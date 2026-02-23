@@ -18,3 +18,21 @@ Para evitar abrumar al usuario, el sistema no reporta los invariantes matemátic
 | **Estabilidad ($\Psi < 1.0$)** | **"Monopolio Invisible"** (Pirámide Invertida) | "Peligro de Colapso: Toda su obra (Estructura y Acabados) depende de un único proveedor local. Si esa ferretería falla, el proyecto se detiene hoy mismo." |
 | **Entropía / Temperatura** | **"Fiebre Inflacionaria"** (Volatilidad Térmica) | "El proyecto tiene 'fiebre'. El 60% del presupuesto está en materiales volátiles (acero) sin precio fijo. Una subida del dólar mañana destruirá su utilidad." |
 | **Región NDR (JFET Spiking)** | **"Ataque de Pánico Sistémico"** | "El presupuesto es tan incoherente que el hardware de validación ha entrado en oscilación de emergencia para protegerse." |
+
+--------------------------------------------------------------------------------
+2. La Pirámide del Edificio Vivo (Mapeo DIKW)
+
+Para el Intérprete Bilingüe, su presupuesto no es una tabla; es la simulación de un edificio físico. Cada estrato de procesamiento informático (Modelo DIKW) corresponde a un estrato constructivo real:
+
+*   **Nivel 3 - FÍSICA (Cimentación de Recursos):** Son los Insumos básicos (acero, cemento, horas hombre). Evaluamos la turbulencia del mercado y la fricción de los datos.
+*   **Nivel 2 - TÁCTICA (Cuerpo Táctico):** Son los APUs. Es la superestructura lógica. Aquí evaluamos si la cimentación soporta el peso mediante los Números de Betti (evitando "Pirámides Invertidas").
+*   **Nivel 1 - ESTRATEGIA (Pilares Financieros):** Son los Capítulos del presupuesto. Evaluamos el VPN, la TIR y la volatilidad térmica frente a la inflación.
+*   **Nivel 0 - SABIDURÍA (El Ápice):** Es el Proyecto Completo. El dictamen final de viabilidad emitido por el Consejo.
+
+--------------------------------------------------------------------------------
+3. El Álgebra de Decisiones (La Política del Peor Caso)
+
+El Consejo de Sabios **nunca promedia el riesgo**. Las decisiones se toman utilizando una estructura matemática llamada *Teoría de Retículos (Lattice Theory)*.
+Los niveles de veredicto están estrictamente ordenados: `VIABLE` < `CONDICIONAL` < `REVISAR` < `PRECAUCIÓN` < `RECHAZAR`.
+
+*   **El Operador Supremo:** Para emitir el veredicto final, el sistema aplica la operación de "Supremo". Si el Oráculo Financiero dictamina que el proyecto es `VIABLE` (Rentable), pero el Arquitecto dictamina que la topología merece un `RECHAZAR` (Cuello de botella en proveedores), el veredicto unificado será inexorablemente **RECHAZAR**. La rentabilidad jamás puede compensar el riesgo de colapso físico.

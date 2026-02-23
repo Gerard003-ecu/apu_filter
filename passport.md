@@ -8,29 +8,19 @@ En la arquitectura tradicional, los datos se mueven "a ciegas". En APU Filter, i
 Este documento viaja adjunto al payload de datos a través del Consejo de Sabios, acumulando "visados" (validaciones) y métricas físicas en cada aduana. Al final del ciclo, el Pasabordo se sella criptográficamente y se almacena como evidencia de auditoría.
 
 --------------------------------------------------------------------------------
-**2. Anatomía del Pasabordo (La Pirámide Conectada a la Rentabilidad)**
+**2. Anatomía Inmutable del Pasaporte (telemetry_schemas)**
 
-El pasabordo está estructurado jerárquicamente, no como un JSON plano, sino como una pirámide DIKW que ancla la tecnología a la rentabilidad del negocio:
+El pasaporte utiliza Estructuras de Datos Inmutables (*frozen dataclasses*). Una vez que un agente estampa su métrica, esta se convierte en un valor algebraico puro y a prueba de manipulaciones forenses.
 
-**Estrato 3: Cimentación (FÍSICA - Datos)**
-*   **Emisor:** El Guardián.
-*   **Validación:** ¿Tienen los datos la integridad termodinámica para existir?
-*   **Métrica Clave:** Entropía (Orden) y Temperatura (Volatilidad). Si los datos son ruido ("basura"), se rechazan aquí para no gastar energía procesando errores.
+*   **PhysicsMetrics (La Realidad):** Registra la Saturación, el Voltaje Flyback y el Exceso Hamiltoniano. (Si se viola la conservación de energía, el dato es corrupto).
+*   **TopologicalMetrics (La Forma):** Registra los Números de Betti ($\beta_0, \beta_1$) y la Estabilidad Piramidal ($\Psi$).
+*   **ThermodynamicMetrics (El Valor):** Registra la Entropía Financiera y la Temperatura del Sistema (Fiebre Inflacionaria).
+*   **ControlMetrics (La Estabilidad):** Registra la ubicación de los Polos de Laplace.
 
-**Estrato 2: Estructura (TÁCTICA - Información)**
-*   **Emisor:** El Arquitecto.
-*   **Validación:** ¿Es la topología del proyecto construible?
-*   **Métrica Clave:** Números de Betti (Ciclos y Huecos). Aquí se detecta el "Bucle de la Formaleta". Si la estructura lógica falla, no se pasa al análisis financiero.
+**2.1 El Juez Final: TelemetryNarrator y la Clausura Transitiva**
 
-**Estrato 1: Finanzas (ESTRATEGIA - Conocimiento)**
-*   **Emisor:** El Oráculo.
-*   **Validación:** ¿Es el proyecto rentable bajo estrés?
-*   **Métrica Clave:** VPN en Riesgo y Temperatura del Sistema (Inflación). Se simulan escenarios de crisis para probar la robustez del margen.
-
-**Estrato 0: Retorno de Inversión (SABIDURÍA - Valor)**
-*   **Emisor:** El Intérprete.
-*   **Validación:** Veredicto Ejecutivo.
-*   **Salida:** Un "Acta de Deliberación" en lenguaje natural que le dice al gerente exactamente qué decisión tomar para proteger su dinero.
+El viaje del Pasaporte termina en el `TelemetryNarrator`. Este módulo lee todos los sellos y aplica la regla de **Clausura Transitiva**: *Un fallo en la base invalida toda la cima*.
+Si el reporte detecta que la física de los datos falló (ej. archivo corrupto o turbulencia masiva en la ingesta), el Narrador emite el código `REJECTED_PHYSICS` y aborta inmediatamente cualquier análisis financiero estratégico. El sistema se niega a crear una "estrategia" sobre datos que físicamente no tienen integridad.
 
 --------------------------------------------------------------------------------
 **3. Protocolo de Control Fronterizo (Gobernanza)**
