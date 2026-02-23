@@ -40,15 +40,15 @@ La matemática compleja es ruido si no se traduce en acción. El Intérprete es 
 • Traducción de Impacto: No dice "β1​=3"; dice: "Se detectaron tres dependencias circulares críticas en la Mampostería que paralizarán el flujo de compras".
 
 --------------------------------------------------------------------------------
-🏛️ El Protocolo de la "Caja de Cristal" (RiskChallenger)
-El verdadero valor de este Consejo de Sabios no reside en el consenso automatizado, sino en la tensión dialéctica y la auditoría adversarial. Las decisiones jamás se presentan como "Cajas Negras". Se emiten formalmente como Actas de Deliberación, exponiendo el debate interno y las opiniones disidentes.
+### 🏛️ El Protocolo de la "Caja de Cristal" (RiskChallenger)
+El valor del Consejo no está en el consenso ciego, sino en la **tensión dialéctica**. Las decisiones se emiten formalmente como **Actas de Deliberación**, exponiendo el debate interno y las opiniones disidentes.
 
-Ejemplo de un Acta de Deliberación generada por el Sistema:
-📜 ACTA DEL CONSEJO DE SABIOS - RESOLUCIÓN DE VIABILIDAD ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ Tensión Dialéctica (Debate Interno):
-1. 🔮 El Oráculo (Finanzas): «Proyección financiera favorable. El Retorno de Inversión (ROI) proyectado es alto. Desde la perspectiva estricta del capital, recomiendo proceder y ejecutar las compras.»
-2. 🏗️ El Arquitecto (Topología): «¡OBJECIÓN FORMAL! Esa rentabilidad es ilusoria. He detectado una Pirámide Invertida (Ψ=0.65). El 80% del peso logístico de la obra depende de solo dos proveedores críticos.»
-3. ⚖️ El Intérprete (Fiscal de Riesgos): «Se detecta una contradicción inaceptable entre la viabilidad financiera y la inestabilidad topológica de la base logística.»
-⚖️ SÍNTESIS EJECUTIVA - VEREDICTO FINAL: ⚠️ APROBACIÓN CONDICIONAL. Aunque los números actuales cuadran (El Oráculo aprueba), la estructura física es frágil. ✍️ Nota Disidente: El Guardián (Física) deja constancia en acta de que la inercia financiera es demasiado baja. Exige que se diversifique la base de proveedores antes de autorizar el primer giro de anticipos para evitar colapsos.
+**Ejemplo de Acta de Deliberación:**
+1. 🔮 **El Oráculo (Finanzas):** «Proyección financiera favorable (Rentabilidad Alta). Recomiendo proceder.»
+2. 🏗️ **El Arquitecto (Topología):** «¡OBJECIÓN FORMAL! Detectada Pirámide Invertida ($\Psi = 0.6$). La base logística es incapaz de sostener la obra.»
+3. ⚖️ **SÍNTESIS EJECUTIVA (Veredicto):**
+   * **⚠️ APROBACIÓN CONDICIONAL.** Se aprueba por viabilidad financiera, pero se aplica penalización estructural.
+   * *✍️ Nota Disidente:* El Guardián (Física) advierte sobre un posible sobrecalentamiento del sistema por base estrecha de proveedores. Su moción de detener la obra fue denegada, pero queda constancia en el acta para auditoría futura.
 
 --------------------------------------------------------------------------------
 ⚙️ El Eje Integrador: El Ciclo OODA y El Pasabordo

@@ -57,4 +57,17 @@ Cada transacción queda registrada con su validación criptográfica:
 • Traza de Linaje: Mapeo completo de la transformación del dato, desde la carga cruda hasta el KPI financiero, garantizando que ningún número es "inventado".
 
 --------------------------------------------------------------------------------
+**6. 🎫 El Pasabordo de Telemetría (Telemetry Context / The Digital Twin)**
+*   **Fuente:** Generado por `telemetry.h` (ESP32) y `telemetry_schemas.py`.
+*   **Concepto:** El "Pasaporte" inmutable que viaja con los datos. Almacena las métricas de Física, Topología, Estrategia y Sabiduría. Garantiza la Clausura Transitiva: no se permite emitir un veredicto si los sellos del estrato Físico (ej. Energía $>$ 0) están rotos.
+
+**7. 📊 El Panel de Control Ejecutivo (Capa 1 de Interfaz)**
+*   **Fuente:** Generado por `SemanticTranslator`.
+*   **Concepto:** Interfaz libre de jerga técnica. Exclusiva para el Gerente de Obra. Muestra el impacto en dinero y tiempo de las patologías detectadas, junto con el "Acta de Deliberación" final del Consejo.
+
+**8. 🕸️ La Metáfora Visual Interactiva (Capa 2 de Interfaz)**
+*   **Fuente:** Generado por `topology_viz.py` (Cytoscape).
+*   **Concepto:** Si la Capa 1 arroja una alerta, el usuario hace clic y ve el presupuesto renderizado como una estructura física. Los ciclos (socavones lógicos) y pirámides invertidas brillan en color ROJO (#EF4444) pulsante, haciendo visible el riesgo matemático a la intuición humana.
+
+--------------------------------------------------------------------------------
 Al acceder a estos archivos, usted no está leyendo opiniones; está auditando la realidad física y matemática de su negocio.
