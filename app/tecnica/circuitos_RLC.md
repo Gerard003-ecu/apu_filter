@@ -4,12 +4,12 @@ Este documento detalla el modelo matemático que utiliza el Guardián (FluxConde
 
 **1. El Modelo RLC: Parámetros Fundamentales**
 El sistema modela el pipeline de procesamiento como un circuito RLC Serie (Resistencia - Inductancia - Capacitancia) gobernado por ecuaciones diferenciales de segundo orden.
-**1.1 Capacitancia ($C$) y Energía Potencial**
-Definición en Código: system_capacitance (Default: 5000.0).
-Significado Físico: La capacidad del sistema para "almacenar" presión de datos sin colapsar (Buffer de Memoria).
-Variable de Estado ($V$): Saturación. Representa qué tan lleno está el lote de procesamiento actual respecto a la capacidad máxima teórica.
-Ecuación de Energía:$$E_c = \frac{1}{2} C \cdot V_{saturación}^2$$
-Diagnóstico: Una alta energía potencial ($E_c$) indica "Alta Presión". Si no se libera, el sistema corre riesgo de Buffer Overflow (Desbordamiento).
+**1.1 La Membrana Viscoelástica (Acumulador Hidráulico y p-Laplaciano)**
+En lugar de un condensador ideal, el sistema implementa una *membrana viscoelástica* para absorber ondas de choque (CSVs caóticos masivos). La presión de entrada ($V_{total}$) se modela con una ecuación diferencial de segundo orden:
+$$V_{total} = V_{elástico} + V_{viscoso} + V_{inercial}$$
+*   **Componente Elástica ($V_{elástico}$):** La capacidad volumétrica de memoria.
+*   **Componente Inercial ($V_{inercial}$):** Resistencia a la aceleración brusca del caudal de datos (mitiga el "golpe de ariete" del CSV).
+*   **Difusión p-Laplaciana ($p > 2$):** La membrana actúa como un fluido no newtoniano. Si el archivo CSV ingresa suavemente, la membrana es elástica. Si llega un pico destructivo de datos corruptos, la membrana incrementa matemáticamente su viscosidad, "endureciéndose" instantáneamente para redistribuir la carga a nodos vecinos y evitar el colapso del pipeline.
 **1.2 Inductancia ($L$) y Energía Cinética**
 Definición en Código: system_inductance (Default: 2.0).
 Significado Físico: La "Inercia" del flujo. Un sistema con alta inductancia se resiste a cambios bruscos en la calidad de los datos.
