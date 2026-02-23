@@ -19,13 +19,10 @@ La Sabiduría como Servicio (Wisdom-as-a-Service)
 • Gobernanza Computacional Federada (Policy-as-Code): Sustituimos la burocracia humana por código. Nuestros agentes actúan como "Sidecars" que bloquean transacciones inestables (con σ>0) o presupuestos fragmentados antes de que contaminen la salud financiera de la constructora.
 • Simulador de Escenarios Dinámicos ("What-If" Gemelo Digital): Capacidad de pilotear el negocio simulando en tiempo real el impacto de cambiar un proveedor crítico. Convertimos el presupuesto estático en un simulador de futuros basado en el análisis de opciones reales.
 
-3. 📢 Canales (Channels)
-
-La Interfaz de Revelación Progresiva (Traduciendo la Física al Negocio)
-Para evitar la fricción cognitiva entre la "Deep Tech" y el gerente de obra, el sistema se despliega en una rampa de acceso de 3 capas:
-• Capa 1: Panel de Control Ejecutivo (El Impacto): Alertas en lenguaje de negocio puro (Riesgo y Dinero). Oculta la topología algebraica y muestra diagnósticos contundentes: "Riesgo de colapso logístico detectado, costando $X millones por día".
-• Capa 2: Calculadora Interactiva y Metáfora Visual (El Grafo): Herramienta de preventa y exploración donde el usuario navega su presupuesto renderizado como una estructura 3D. Las patologías (Pirámides Invertidas, Ciclos) brillan en color rojo, haciendo tangible la inestabilidad matemática a la intuición humana.
-• Capa 3: Auditoría Técnica y API Agéntica: Un panel bajo demanda para ingenieros y peritos que expone el cálculo de invariantes topológicos (Números de Betti, Valor de Fiedler) y la telemetría RLC cruda.
+**3. 📢 Canales (Channels) - La Interfaz de 3 Capas**
+* **Capa 1: Panel Ejecutivo:** Alertas en lenguaje de negocio puro (Riesgo y Dinero). Oculta la matemática, muestra el impacto.
+* **Capa 2: Calculadora Interactiva y Metáfora Visual:** Un simulador web ligero donde el prospecto sube un Excel anónimo y el Grafo interactivo muestra los "nodos de estrés brillando en rojo" (Cytoscape.js). Tangibiliza el valor antes de la compra.
+* **Capa 3: Auditoría Matemática:** Acceso bajo demanda al `TelemetryNarrator` y al Oráculo de Laplace para ingenieros y peritos.
 
 4. ❤️ Relación con el Cliente (Customer Relationships)
 
@@ -33,12 +30,9 @@ De la "Caja Negra" a la Confianza Radical
 • La Caja de Cristal Argumentativa (Actas de Deliberación): Abandonamos los reportes fríos. Toda decisión del sistema se entrega bajo el formato de "Acta del Consejo de Sabios", exponiendo el debate interno y las Opiniones Disidentes. Ejemplo: "Se aprueba el presupuesto por rentabilidad (Voto del Oráculo), pero dejamos constancia del riesgo de fiebre inflacionaria (Voto Disidente del Guardián)." Esto genera una confianza corporativa sin precedentes.
 • Alineación de Excelencia Operativa: Pasamos de ser un proveedor de software a un socio estratégico. El cliente percibe que el sistema lo "premia" económicamente por adoptar mejores prácticas de estructuración de presupuestos.
 
-5. 💰 Fuentes de Ingresos (Revenue Streams)
-
-La "Estrategia de Puente": De la Seguridad Transaccional a la Monetización de la Complejidad
-Dado el salto tecnológico, adoptamos un modelo de transición:
-• Nivel 1 (Orilla Segura) - "Certificación de Estabilidad Física": Un modelo de entrada con tarifa fija por proyecto analizado. Se comercializa como un seguro preventivo. El cliente paga $X para garantizar que el proyecto no tiene "socavones lógicos" ocultos ni riesgos de colapso.
-• Nivel 2 (Modelo Avanzado SaaS) - Gobernanza Dinámica por Entropía (χ): Una vez que el cliente asimila el valor, transiciona a un Metric-based Pricing. La tarifa de procesamiento se calcula dinámicamente utilizando la Característica de Euler (χ=β0​−β1​) del proyecto. Cuanto más limpio, acíclico y ordenado es el presupuesto del cliente, menor es su tarifa. El modelo premia el orden y cobra por la entropía.
+**5. 💰 Fuentes de Ingresos (Revenue Streams) - La Estrategia de Puente**
+* **Nivel de Entrada ("Orilla Segura"): Certificación de Estabilidad Física.** Tarifa fija por proyecto. Se vende como una póliza de seguro pre-construcción. Evita el colapso logístico antes de ejecutar.
+* **Nivel Avanzado: Gobernanza por Complejidad ($\chi$).** Modelo SaaS de precios dinámicos basado en la Característica de Euler ($\chi = \beta_0 - \beta_1$). Presupuestos más limpios y sin ciclos lógicos pagan una menor tasa de procesamiento. Premiamos la excelencia operativa del cliente.
 
 6. 🔑 Recursos Clave (Key Resources)
 

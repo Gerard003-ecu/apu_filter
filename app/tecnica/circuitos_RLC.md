@@ -55,3 +55,8 @@ Estabilidad ($\sigma$): Verifica que todos los polos estén en el semiplano izqu
 Amortiguamiento ($\zeta$):
 $\zeta < 1$ (Subamortiguado): El sistema oscilará. Útil para descubrimiento rápido pero riesgoso.
 $\zeta > 1$ (Sobreamortiguado): El sistema será lento pero robusto. Preferido para cargas masivas de datos financieros.
+
+**5. Proyección Física Isomórfica (El Gatekeeper ESP32)**
+La simulación RLC no vive solo en la nube; se materializa en el nodo perimetral ESP32 a través de `telemetry.h` y `main.cpp`.
+*   **Ingeniería Defensiva (Zero-Allocation):** El ESP32 valida localmente la coherencia termodinámica (`isCoherent()`). Si recibe un "Pasabordo de Telemetría" con datos imposibles (ej. Entropía negativa), actúa como un diodo inverso, vetando la ejecución física.
+*   **Resonancia Hexagonal:** El flujo de inercia y disipación se mapea a un hexágono físico de transistores MOSFET (IRLZ44N) mediante interleaving de fases PWM (0°, 60°, 120°...), cancelando el rizado de datos y estabilizando el sistema ante ataques de entropía altos.

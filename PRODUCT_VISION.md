@@ -18,22 +18,16 @@ En esta fase, el sistema actúa como un túnel de viento digital. Antes de aprob
     ◦ Detección de Pirámides Invertidas (Ψ): El Agente Arquitecto identifica si la base de proveedores es demasiado estrecha para soportar la carga táctica de las APUs.
     ◦ Física del Flujo (FluxCondenser): Regulación PID del ingreso de datos para evitar el "golpe de ariete" en los sistemas de información.
 • Entregable: El Certificado de Estabilidad Espectral. No es una opinión; es una garantía matemática de que el proyecto es controlable.
-Fase 2: La Malla Agéntica Cognitiva (El Ecosistema - The Negotiator)
-Objetivo: Gobernanza Federada y Optimización Topológica.
-El sistema deja de ser una herramienta de un solo usuario y se convierte en una Malla de Datos (Data Mesh) activa.
-• Capacidades Nucleares:
-    ◦ Agentes Autónomos: El "Economista" y el "Ingeniero" debaten (Protocolo RiskChallenger). El usuario ve la tensión dialéctica: Eficiencia vs. Resiliencia.
-    ◦ Semántica Viva (Knowledge Graph): El sistema entiende que "Acero" y "Hierro" son termodinámicamente vinculantes. Se resuelven las islas de datos (β0​) automáticamente.
-    ◦ Contratos de Datos (Policy-as-Code): Implementación de reglas OPA (Open Policy Agent) que bloquean transacciones que violan la integridad estructural (ej. prohibir ciclos lógicos β1​>0).
-• Entregable: Un Gemelo Digital Vivo del negocio que se auto-corrige y gobierna descentralizadamente.
-Fase 3: El Simulador de Futuros (El Oráculo - The Predictor)
-Objetivo: Gestión de Entropía y Opciones Reales.
-El sistema utiliza la capacidad de cómputo masivo (AWS Trainium) para simular millones de futuros posibles.
-• Capacidades Nucleares:
-    ◦ Termodinámica Financiera: Mapa de calor en tiempo real que muestra por dónde está entrando la "fiebre" inflacionaria al grafo del proyecto.
-    ◦ Simulación de Monte Carlo Masiva: No solo simulamos costos, simulamos la topología. ¿Qué pasa si el proveedor X quiebra? (Eliminación de nodo en el grafo → Recálculo de conectividad λ2​).
-    ◦ Valoración de Opciones Reales: El sistema sugiere cuándo "ejercer la opción" de comprar materiales o cuándo esperar, basándose en la volatilidad del mercado (ω).
-• Entregable: Estrategias de cobertura (Hedging) automatizadas y reducción de la Entropía Administrativa.
+**Fase 2: La Malla Agéntica Cognitiva y el "Edge Node"**
+*   **Objetivo:** Gobernanza Federada y Materialización Física.
+*   **Capacidades Nucleares:**
+    *   *El Pasabordo Ciber-Físico:* Integración con un nodo perimetral de hardware (ESP32) que "siente" la salud del presupuesto a través de osciladores neuromórficos.
+    *   *Actas de Deliberación:* Implementación de la "Caja de Cristal", donde los gerentes ven el debate (y las opiniones disidentes) entre el Oráculo y el Arquitecto.
+*   **Entregable:** Un Gemelo Digital con una interfaz de "Revelación Progresiva en 3 Capas" (Ejecutiva, Visual y Auditoría Matemática).
+
+**Fase 3: Computación Neuromórfica y Simulador de Futuros**
+*   **Objetivo:** Autonomía reactiva inspirada en la biología.
+*   **Capacidades Nucleares:** Transición de cálculos de punto flotante a solvers neuromórficos con Diodos Lambda simulados, donde los fallos estructurales inducen latidos de relajación caóticos (spiking neurons), ofreciendo una alerta temprana de colapso a nivel de hardware y AWS Trainium.
 
 --------------------------------------------------------------------------------
 **3. Infraestructura Habilitadora: El Proyecto Rainier**

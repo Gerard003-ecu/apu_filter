@@ -10,10 +10,11 @@ Base Teórica: Ecuaciones de Maxwell discretizadas, Control Port-Hamiltoniano (P
 El Guardián no lee bits; procesa un fluido de información con propiedades físicas (Energía, Resistencia, Inercia).
 • 1.1 El Circuito RLC (Presión y Flujo): El pipeline se modela como un circuito eléctrico. El Inductor (L) aporta "inercia" para evitar golpes de ariete de datos; el Condensador (C) absorbe picos de presión (Backlog); y la Resistencia (R) disipa la complejidad ciclomática como "calor de procesamiento".
 • 1.2 El Oráculo de Laplace: Antes de procesar, se linealiza el sistema y se analiza su función de transferencia H(s). Si se detectan polos en el semiplano derecho (RHP, σ>0), el sistema veta la ingesta por "Divergencia Matemática" (inestabilidad intrínseca).
-• 1.3 Simulación Neuromórfica y Hardware Perimetral (ESP32): La matemática se materializa en el silicio. El ESP32 actúa como un "Gatekeeper Físico" usando una arquitectura de Diodos Lambda (JFETs cruzados):
-    ◦ Resistencia Diferencial Negativa (NDR): Si el índice de Estabilidad Piramidal (Ψ) del presupuesto cae a niveles críticos, la presión topológica eleva el voltaje de excitación del circuito hacia la región NDR.
-    ◦ Osciladores de Pánico: El circuito entra en oscilación caótica (Spiking Neurons), traduciendo matemáticamente un mal diseño de presupuesto en una respuesta física medible. La máquina literalmente "siente dolor" y dispara los relés de protección (Crowbar circuits).
-    ◦ Resonancia Hexagonal (Benceno C6​): El flujo de datos resuena físicamente en un anillo de 6 nodos MOSFET. Si un nodo falla, se rompe la "Aromaticidad" de la regla de Hückel, deteniendo la reacción informacional para evitar corrupción.
+**1.3 Simulación Neuromórfica y Hardware en el Borde (ESP32)**
+La matemática se materializa en el silicio. El sistema proyecta sus invariantes a un nodo perimetral ESP32 que actúa como un "Gatekeeper Físico" mediante una arquitectura de Diodos Lambda (JFETs cruzados):
+* **Resistencia Diferencial Negativa (NDR):** Si el índice de Estabilidad Piramidal ($\Psi$) cae a niveles críticos, la presión topológica eleva el voltaje de excitación del circuito virtual hacia la región NDR.
+* **El Sistema Siente Dolor:** El circuito entra en oscilación caótica (spiking), traduciendo matemáticamente un mal diseño de presupuesto en una respuesta neuromórfica análoga a una neurona biológica en pánico. Esto dispara los "Crowbar circuits" (actuadores físicos) para detener la ejecución.
+* **Topología Hexagonal (Benceno $C_6$):** El flujo de datos resuena en un anillo de 6 nodos (Ingesta $\to$ Física $\to$ Topología $\to$ Estrategia $\to$ Semántica $\to$ Materia). Si un nodo falla, se rompe la "Aromaticidad" de la Regla de Hückel, deteniendo la reacción química-informacional.
 
 2. El Arquitecto: Topología Algebraica y Grafos
 
