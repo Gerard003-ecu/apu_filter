@@ -43,6 +43,11 @@ Base Teórica: Teoría de Retículos (Lattice Theory) y GraphRAG. Componentes: s
 • 4.1 Álgebra de Veredictos: Las decisiones se evalúan bajo un retículo acotado (Verdict,≤,⊔) donde se aplica la operación "Supremo" (Worst-case). Si Finanzas aprueba pero Topología veta, el veredicto final es un Veto, garantizando la seguridad.
 • 4.2 Traducción Semántica (GraphRAG): El sistema vectoriza los datos para saber que "Cemento" y "Concreto" son termodinámicamente equivalentes. Luego, traza la ruta de los errores en el grafo y los traduce a lenguaje ejecutivo (ej. de "β1​>0" a "Socavón Lógico detectado en la Mampostería").
 
+*   **4.3 El Funtor de Traducción Semántica (`SemanticTranslator`):**
+    El paso final del sistema no es generar texto con inteligencia artificial estocástica (riesgo de alucinaciones), sino aplicar un Funtor determinista desde el Espacio Métrico hacia el Espacio Narrativo.
+    *   **GraphRAG Causal:** Al detectar un fallo topológico (ej. un "Socavón Lógico" donde el Acero depende del Transporte y viceversa), el traductor no solo arroja el error $\beta_1 > 0$. Utiliza *Retrieval-Augmented Generation* sobre el Grafo (GraphRAG) para trazar la ruta exacta de la dependencia y generar la cadena causal, produciendo una narrativa auditable: *"Ruta del ciclo detectada: Acero -> Transporte -> Acero. Esto crea una indeterminación matemática en la valoración"*.
+    *   **Isomorfismo de Severidad:** La traducción semántica respeta un isomorfismo estricto entre el retículo de severidad técnica (`OPTIMO`, `ADVERTENCIA`, `CRITICO`) y el retículo de veredicto de negocio (`VIABLE`, `CONDICIONAL`, `RECHAZAR`), garantizando que la "Voz del Consejo" refleje exactamente la realidad matemática sin sesgos optimistas.
+
 5. Motor de Materialización y Fusión Auditada
 
 Base Teórica: Algoritmo Kahan, Secuencia de Mayer-Vietoris. Componentes: pipeline_director.py, matter_generator.py.
