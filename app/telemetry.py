@@ -386,10 +386,11 @@ class TelemetrySpan:
 @dataclass
 class TelemetryContext:
     """
-    Actúa como el 'Pasaporte' de una solicitud, transportando su identidad,
-    historial de ejecución (pasos), métricas y errores.
+    Actúa como el 'Pasaporte' de una solicitud, transportando su identidad y estado.
 
-    Implementación thread-safe con validación y programación defensiva.
+    Este contenedor unificado viaja a través de todas las capas de la arquitectura,
+    acumulando historial de ejecución (pasos), métricas de rendimiento y errores
+    con garantías de thread-safety y validación defensiva.
     """
 
     request_id: str = field(default_factory=lambda: str(uuid.uuid4()))

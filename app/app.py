@@ -6,7 +6,12 @@ el "Pasaporte de Telemetría" y mantener la integridad del estado entre transacc
 
 Arquitectura y Responsabilidades:
 ---------------------------------
-1. Gestión de Espacio-Tiempo (SessionMetadata):
+1. Transparencia "Glass Box" (Caja de Cristal):
+   Implementa una estrategia de observabilidad total donde cada decisión del sistema
+   es trazable y auditable, exponiendo no solo el resultado final sino la narrativa
+   física y matemática que condujo a él.
+
+2. Gestión de Espacio-Tiempo (SessionMetadata):
    Administra el ciclo de vida de la deliberación. Utiliza `SessionMetadata` para
    garantizar la continuidad temporal (persistencia en Redis) y la integridad
    referencial (hashing de datos) entre las distintas fases del pipeline (Carga ->

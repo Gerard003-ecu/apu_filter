@@ -124,7 +124,11 @@ TOP_K_RANGE = (1, 100)
 
 @dataclass
 class DerivationDetails:
-    """Detalles del razonamiento para la coincidencia encontrada (White Box)."""
+    """
+    Detalles del razonamiento para la coincidencia encontrada (White Box).
+
+    Proporciona trazabilidad completa sobre cómo se derivó una estimación.
+    """
 
     match_method: str  # "SEMANTIC", "KEYWORD", "EXACT"
     confidence_score: float  # 0.0 - 1.0 (o 0-100 para KEYWORD, se normalizará)
@@ -134,7 +138,11 @@ class DerivationDetails:
 
 @dataclass
 class MatchCandidate:
-    """Representa un candidato de coincidencia."""
+    """
+    Representa un candidato de coincidencia.
+
+    Encapsula la información de un APU potencial y su puntuación de relevancia.
+    """
 
     apu: pd.Series
     description: str
@@ -146,7 +154,11 @@ class MatchCandidate:
 
 @dataclass
 class SearchArtifacts:
-    """Artefactos necesarios para búsqueda semántica."""
+    """
+    Artefactos necesarios para búsqueda semántica.
+
+    Contiene los modelos y estructuras de datos para realizar búsquedas vectoriales.
+    """
 
     model: SentenceTransformer
     faiss_index: Any
@@ -155,7 +167,11 @@ class SearchArtifacts:
 
 @dataclass
 class DataQualityMetrics:
-    """Métricas de calidad de datos para diagnóstico."""
+    """
+    Métricas de calidad de datos para diagnóstico.
+
+    Permite evaluar si el conjunto de datos es suficiente para realizar estimaciones fiables.
+    """
 
     total_records: int = 0
     valid_records: int = 0
@@ -171,7 +187,11 @@ class DataQualityMetrics:
 
 @dataclass
 class SearchResult:
-    """Resultado estructurado de una búsqueda."""
+    """
+    Resultado estructurado de una búsqueda.
+
+    Encapsula el resultado de una operación de búsqueda, incluyendo éxito/fallo y metadatos.
+    """
 
     success: bool
     apu: Optional[pd.Series] = None
@@ -194,10 +214,10 @@ def validate_search_artifacts(
     Valida exhaustivamente los artefactos de búsqueda semántica.
 
     ROBUSTECIDO:
-    - Verificación de cada componente individualmente
-    - Validación de dimensionalidad del modelo
-    - Verificación del estado del índice FAISS
-    - Validación del mapa de IDs
+    - Verificación de cada componente individualmente.
+    - Validación de dimensionalidad del modelo.
+    - Verificación del estado del índice FAISS.
+    - Validación del mapa de IDs.
 
     Args:
         search_artifacts: Artefactos a validar.
@@ -285,9 +305,9 @@ def assess_data_quality(
     Evalúa la calidad de los datos de un DataFrame.
 
     ROBUSTECIDO:
-    - Análisis detallado de completitud de datos
-    - Métricas de calidad cuantificables
-    - Identificación de problemas específicos
+    - Análisis detallado de completitud de datos.
+    - Métricas de calidad cuantificables.
+    - Identificación de problemas específicos.
 
     Args:
         df: DataFrame a evaluar.
@@ -371,9 +391,9 @@ def validate_dataframe_columns(
     Valida que un DataFrame contenga las columnas requeridas.
 
     ROBUSTECIDO:
-    - Retorna información detallada de columnas presentes/faltantes
-    - Modo estricto vs permisivo
-    - Validación de tipo del DataFrame
+    - Retorna información detallada de columnas presentes/faltantes.
+    - Modo estricto vs permisivo.
+    - Validación de tipo del DataFrame.
 
     Args:
         df: DataFrame a validar.
@@ -474,9 +494,9 @@ def safe_int_conversion(
     Convierte un valor a int de forma segura con validación de rango.
 
     ROBUSTECIDO:
-    - Validación de rango opcional
-    - Manejo de tipos especiales
-    - Conversión desde float con truncamiento explícito
+    - Validación de rango opcional.
+    - Manejo de tipos especiales.
+    - Conversión desde float con truncamiento explícito.
 
     Args:
         value: El valor a convertir.
@@ -667,12 +687,12 @@ def _find_best_keyword_match(
     Encuentra la mejor coincidencia de APU para una lista de palabras clave.
 
     ROBUSTECIDO:
-    - Límite de iteraciones para pools grandes
-    - Early exit cuando se encuentra match perfecto
-    - Validación exhaustiva de entradas
-    - Manejo de memoria para candidatos
-    - Logging detallado para diagnóstico
-    - Coherente con validaciones de apu_processor
+    - Límite de iteraciones para pools grandes.
+    - Early exit cuando se encuentra match perfecto.
+    - Validación exhaustiva de entradas.
+    - Manejo de memoria para candidatos.
+    - Logging detallado para diagnóstico.
+    - Coherente con validaciones de apu_processor.
 
     Args:
         df_pool: DataFrame con APUs procesados.
@@ -913,12 +933,12 @@ def _find_best_semantic_match(
     Encuentra la mejor coincidencia semántica para un texto de consulta.
 
     ROBUSTECIDO:
-    - Validación exhaustiva de artefactos de búsqueda
-    - Verificación de dimensionalidad de embeddings
-    - Manejo específico de errores FAISS
-    - Límites de recursos
-    - Validación de coherencia entre índice y mapa de IDs
-    - Fallback graceful cuando hay problemas
+    - Validación exhaustiva de artefactos de búsqueda.
+    - Verificación de dimensionalidad de embeddings.
+    - Manejo específico de errores FAISS.
+    - Límites de recursos.
+    - Validación de coherencia entre índice y mapa de IDs.
+    - Fallback graceful cuando hay problemas.
 
     Args:
         df_pool: DataFrame con APUs procesados a considerar.
@@ -1209,12 +1229,12 @@ def calculate_estimate(
     Estima el costo de construcción con una estrategia de búsqueda híbrida.
 
     ROBUSTECIDO:
-    - Validación exhaustiva de todos los parámetros de entrada
-    - Evaluación de calidad de datos antes de procesar
-    - Manejo defensivo de datos faltantes o corruptos
-    - Fallbacks múltiples con logging detallado
-    - Métricas de confianza en los resultados
-    - Coherente con validaciones de apu_processor y report_parser_crudo
+    - Validación exhaustiva de todos los parámetros de entrada.
+    - Evaluación de calidad de datos antes de procesar.
+    - Manejo defensivo de datos faltantes o corruptos.
+    - Fallbacks múltiples con logging detallado.
+    - Métricas de confianza en los resultados.
+    - Coherente con validaciones de apu_processor y report_parser_crudo.
 
     Args:
         params: Diccionario con parámetros de entrada.
@@ -1873,9 +1893,9 @@ def _calculate_historical_average(
     Calcula el rendimiento promedio de items históricos similares.
 
     ROBUSTECIDO:
-    - Manejo de excepciones en cada paso
-    - Validación de resultados
-    - Límites en la búsqueda
+    - Manejo de excepciones en cada paso.
+    - Validación de resultados.
+    - Límites en la búsqueda.
 
     Returns:
         Tuple[apu_sintetico, detalles, rendimiento_promedio]
@@ -1964,12 +1984,12 @@ def _calculate_rendimiento_from_detail(
     Calcula el rendimiento a partir del detalle de APUs.
 
     ROBUSTECIDO:
-    - Validación de estructura de datos
-    - Manejo de excepciones
-    - Valores por defecto seguros
+    - Validación de estructura de datos.
+    - Manejo de excepciones.
+    - Valores por defecto seguros.
 
     Returns:
-        Rendimiento calculado (0.0 si no se puede calcular)
+        Rendimiento calculado (0.0 si no se puede calcular).
     """
     log.append("\n  📊 Calculando rendimiento desde detalle...")
 
