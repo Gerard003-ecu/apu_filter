@@ -2407,7 +2407,17 @@ class RefinedFluxPhysicsEngine:
             self._omega_d = 0.0
 
     def _system_equations(self, Q: float, I: float, V_in: float) -> np.ndarray:
-        """ [dQ/dt, dI/dt] """
+        """
+        Calcula las derivadas del sistema dinámico [dQ/dt, dI/dt].
+
+        Args:
+            Q: Carga actual.
+            I: Corriente actual.
+            V_in: Voltaje de entrada.
+
+        Returns:
+            Array numpy con las derivadas.
+        """
         # Resistencia no lineal (termal)
         R_eff = self.R * (1.0 + 0.1 * I**2)
         dQ_dt = I
@@ -2415,6 +2425,16 @@ class RefinedFluxPhysicsEngine:
         return np.array([dQ_dt, dI_dt])
 
     def _compute_jacobian(self, state: np.ndarray, V_in: float) -> np.ndarray:
+        """
+        Calcula la matriz Jacobiana del sistema para el solver implícito.
+
+        Args:
+            state: Vector de estado [Q, I].
+            V_in: Voltaje de entrada.
+
+        Returns:
+            Matriz Jacobiana 2x2.
+        """
         Q, I = state
         dR_term = self.R * (1.0 + 0.3 * I**2)
 
@@ -2424,7 +2444,19 @@ class RefinedFluxPhysicsEngine:
         ])
 
     def _evolve_state_implicit(self, driving_current: float, dt: float) -> Tuple[float, float]:
-        """ Trapezoidal + Newton-Raphson """
+        """
+        Evoluciona el estado usando el método Trapezoidal con Newton-Raphson.
+
+        Recomendado para sistemas rígidos (stiff) donde los métodos explícitos
+        pueden ser inestables.
+
+        Args:
+            driving_current: Corriente impulsora.
+            dt: Paso de tiempo.
+
+        Returns:
+            Tupla (Q_new, I_new).
+        """
         V_in = 20.0 * math.tanh(driving_current)
 
         # Leer estado desde UnifiedPhysicalState
@@ -2516,7 +2548,19 @@ class RefinedFluxPhysicsEngine:
             state.brain_alive = True
 
     def _evolve_state_rk4_adaptive(self, driving_current: float, dt: float) -> Tuple[float, float]:
-        """ RK4 Adaptativo (Simplificado) """
+        """
+        Evoluciona el estado usando un integrador Runge-Kutta 4 adaptativo simplificado.
+
+        Combina precisión de cuarto orden con verificación de error local para
+        cambiar a un solver implícito si se detecta rigidez.
+
+        Args:
+            driving_current: Corriente impulsora.
+            dt: Paso de tiempo.
+
+        Returns:
+            Tupla (Q_new, I_new).
+        """
         # Leer estado desde UnifiedPhysicalState
         Q = self._unified_state.charge
         I = self._unified_state.flux_linkage / self._unified_state.inductance
@@ -4751,7 +4795,16 @@ class DataFluxCondenser:
         )
 
     def _enhance_stats_with_diagnostics(self, stats: ProcessingStats, metrics: Dict) -> Dict:
-        """Mejora estadísticas."""
+        """
+        Enriquece las estadísticas base con diagnósticos detallados del sistema.
+
+        Args:
+            stats: Estadísticas de procesamiento.
+            metrics: Métricas físicas actuales.
+
+        Returns:
+            Diccionario enriquecido.
+        """
         base = asdict(stats)
         return {
             **base,

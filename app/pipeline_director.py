@@ -960,7 +960,10 @@ class BuildOutputStep(ProcessingStep):
 class PipelineDirector:
     """
     Director del pipeline V3: Orquesta pasos secuenciales con validación de estado.
-    Orquestador Algebraico.
+
+    Este componente actúa como el Orquestador Algebraico del sistema, gestionando
+    la evolución del Vector de Estado a través de la filtración topológica
+    DIKW (Data, Information, Knowledge, Wisdom).
     """
     def __init__(self, config: dict, telemetry: TelemetryContext):
         self.config = config
