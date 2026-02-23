@@ -1,63 +1,44 @@
-# 🕸️ topologia.md: La Geometría del Riesgo
-"Un edificio no se cae porque sus ladrillos sean baratos; se cae porque sus conexiones fallan. APU Filter ignora el precio para ver la forma, revelando la fragilidad oculta que el Excel no puede mostrar."
-En el ecosistema APU Filter, el presupuesto deja de ser una lista plana de ítems para convertirse en un Complejo Simplicial Abstracto. El microservicio BusinessTopologicalAnalyzer aplica teoremas de Topología Algebraica y Análisis Espectral de Grafos para diagnosticar la salud estructural del proyecto antes de que se gaste el primer centavo.
+--------------------------------------------------------------------------------
+# 🕸️ topologia.md: La Geometría del Riesgo (Topología de Negocios)
+"Un edificio no se cae porque sus ladrillos sean baratos; se cae porque sus conexiones fallan. APU Filter ignora el precio estático para ver la 'forma' de su proyecto, revelando la fragilidad oculta que una hoja de cálculo jamás podrá mostrar."
+En el ecosistema de APU Filter, el presupuesto deja de ser una lista plana de ítems para convertirse en un organismo vivo, una red de dependencias que modelamos como un Grafo Estructural. El Agente Arquitecto aplica principios matemáticos para diagnosticar la salud del proyecto antes de que se firme el primer contrato, traduciendo invariantes topológicos en alertas directas para la protección de su flujo de caja.
 
 --------------------------------------------------------------------------------
-**1. Los Invariantes Topológicos (El ADN del Proyecto)**
-Utilizamos homología computacional para calcular los Números de Betti (βn​), invariantes que describen la conectividad fundamental de su negocio.
-β0​: Componentes Conexas (Fragmentación)
-• Definición: Número de piezas separadas que componen el grafo del proyecto.
-• El Ideal: β0​=1. Un proyecto unificado donde cada insumo fluye hacia el objetivo final.
-• La Patología (β0​>1): Islas de Datos.
-    ◦ Diagnóstico: Usted está comprando materiales (nodos) que no están conectados a ninguna actividad constructiva del proyecto principal.
-    ◦ Impacto: Desperdicio de capital de trabajo y "Recursos Huérfanos" invisibles para la gerencia.
-β1​: Ciclos Independientes (Trampas Lógicas)
-• Definición: Número de "agujeros" o bucles cerrados en el flujo de dependencias.
-• El Ideal: β1​=0. Un Grafo Acíclico Dirigido (DAG) perfecto.
-• La Patología (β1​>0): Socavones Lógicos.
-    ◦ Diagnóstico: Dependencias circulares (El Muro depende del Ladrillo → El Ladrillo depende del Transporte → El Transporte depende del Muro).
-    ◦ Impacto: Imposibilidad matemática de calcular un costo unitario real. Bloqueo de cronogramas y auditorías fallidas.
-χ: Característica de Euler
-• Fórmula: χ=β0​−β1​.
-• Uso: Define la Complejidad Sistémica del proyecto. Nuestro modelo de negocio utiliza este valor para determinar el costo del servicio SaaS: a mayor complejidad topológica, mayor es el valor que APU Filter aporta al ordenarlo.
+**1. Patologías Estructurales Invisibles (El ADN del Proyecto)**
+
+Utilizamos la forma de los datos para descubrir errores operativos que inflan silenciosamente los costos. No le reportamos fórmulas matemáticas; nuestro Intérprete Bilingüe le reporta el riesgo tangible en la obra.
+• Los "Recursos Huérfanos" (Fragmentación - β0​>1):
+    ◦ El Diagnóstico: El sistema detecta "islas" de datos.
+    ◦ El Dolor en Obra: Usted está pagando por materiales o equipos que no están conectados a ninguna actividad constructiva del cronograma. Es dinero ciego, un silo de ineficiencia que garantiza el desperdicio.
+• El "Bucle de la Formaleta" (Socavones Lógicos - β1​>0):
+    ◦ El Diagnóstico: Detección de dependencias circulares y bucles infinitos.
+    ◦ El Dolor en Obra: El costo de la formaleta para fundir placas depende de un cronograma rápido, pero el cronograma está bloqueado porque faltan formaletas (ya que compras no liberó el presupuesto a tiempo). Este ciclo tóxico es invisible en Excel, pero paralizará sus desembolsos e inflará el presupuesto.
+• Tarifa Justa por Entropía (Característica de Euler - χ):
+    ◦ El Diagnóstico: Medimos el nivel de caos estructural de su presupuesto.
+    ◦ El Beneficio: Este indicador dicta nuestro modelo de precios dinámico. Si usted entrega un presupuesto limpio y sin "socavones lógicos", el sistema requiere menos "energía" para procesarlo y le cobra una tarifa menor. Premiamos la excelencia operativa.
+
+**2. La Cimentación Logística: El Monopolio Invisible (Índice Ψ)**
+
+Un proyecto de construcción sano debe comportarse como una pirámide: una base ancha de proveedores y recursos soportando una cúspide estrecha de actividades.
+• El Fenómeno (Pirámide Invertida - Ψ<1.0): El Agente Arquitecto rastrea el flujo logístico y detecta cuando cientos de actividades estructurales dependen de muy pocos proveedores de la base.
+• El Dolor en Obra: El algoritmo descubre un "monopolio invisible". Su contratista de acabados y el subcontratista de estructura le están comprando a la misma ferretería de barrio. El centro de gravedad de su proyecto está peligrosamente alto; si esa ferretería se queda sin stock, toda la obra colapsa.
+• El Torniquete Financiero: El sistema actúa como un escudo, emitiendo un veto automático para bloquear el giro de anticipos hasta que la constructora diversifique su riesgo logístico.
+
+**3. Alineación Organizacional (El Valor de Fiedler - λ2​)**
+
+Analizamos la "fuerza" de la cohesión entre los diferentes departamentos de la empresa constructora.
+• Prevención de la Fractura Organizacional (λ2​≈0): El Agente Arquitecto detecta de forma autónoma cuando el departamento de Compras y el de Ingeniería están desconectados, operando en silos con listas de precios contradictorias. El sistema interviene antes de que se firme un contrato de suministro defectuoso basado en versiones obsoletas.
+
+**4. Auditoría de Fusión: El Escudo Protector (Mayer-Vietoris)**
+
+Cuando se integra el Presupuesto Maestro con las bases de Análisis de Precios Unitarios (APUs), una simple suma en Excel suele generar duplicados e inconsistencias destructivas.
+• Fusión Segura: APU Filter no cruza tablas a ciegas. Al integrar datos, aplica una "auditoría de fusión" matemática que garantiza que no se introduzcan ciclos fantasmas ni desconexiones artificiales durante la importación. Si los datos de compras y los de obra son incompatibles, el sistema rechaza la carga para proteger la integridad del proyecto.
 
 --------------------------------------------------------------------------------
-**2. Índice de Estabilidad Piramidal (Ψ)**
-Fuente: Implementado en business_topology.py -> calculate_pyramid_stability
-Más allá de la conectividad, analizamos la Física del Equilibrio. Un proyecto de construcción debe comportarse como una pirámide: una base ancha de recursos soportando una cúspide de actividades.
-Ψ=Carga Taˊctica (APUs)Amplitud de Base (Insumos)​×Factor de Densidad
-La Patología: La Pirámide Invertida (Ψ<1.0)
-• El Fenómeno: Miles de actividades (APUs) dependen críticamente de una base de proveedores o insumos peligrosamente estrecha.
-• El Riesgo: Alto Centro de Gravedad Financiero. Cualquier perturbación en la base (huelga de un proveedor, escasez de un material) no se amortigua; se amplifica y vuelca todo el proyecto.
-• Acción del Consejo: El Arquitecto emite un VETO TÉCNICO inmediato, bloqueando la aprobación financiera hasta que se diversifique la base logística.
+**5. La Topología a lo largo del Ecosistema APU Filter**
 
---------------------------------------------------------------------------------
-**3. Análisis Espectral y Resonancia (El Valor de Fiedler)**
-El sistema analiza el espectro de la Matriz Laplaciana del grafo para predecir comportamientos dinámicos.
-λ2​: El Valor de Fiedler (Conectividad Algebraica)
-Mide la "fuerza" de la cohesión del proyecto.
-• λ2​≈0 (Fractura Organizacional): El proyecto está matemáticamente a punto de romperse en pedazos. Los departamentos (subgrafos) no se hablan. La transmisión de órdenes o dinero entre ellos es ineficiente.
-• Resonancia (ωr​): Analizamos si la frecuencia natural del grafo coincide con la frecuencia de volatilidad del mercado. Si coinciden, el proyecto entrará en Resonancia Destructiva, amplificando costos sin control.
-Sinergia de Riesgo (Producto Cup)
-Detectamos si los ciclos (β1​) comparten nodos puente críticos.
-• Diagnóstico: Si dos bucles de ineficiencia se cruzan en un insumo crítico (ej. Cemento), el riesgo no se suma, se multiplica. Es un Punto Único de Falla Sistémica.
-
---------------------------------------------------------------------------------
-**4. Termodinámica Estructural (Mapa de Calor)**
-Fuente: Lógica descrita en LENGUAJE_CONSEJO.md
-Tratamos la volatilidad de precios como Energía Térmica.
-1. Inyección de Calor: Los insumos volátiles (acero, combustible) inyectan "calor" (incertidumbre) en la base del grafo.
-2. Difusión: Simulamos cómo este calor sube por la estructura.
-3. Disipación vs. Acumulación:
-    ◦ En una estructura sana (Base Ancha), el calor se disipa.
-    ◦ En una Pirámide Invertida, el calor se concentra en los cuellos de botella, elevando la "Temperatura del Sistema" (Tsys​) por encima de los límites de seguridad (Fiebre del Proyecto).
-
---------------------------------------------------------------------------------
-**5. Auditoría de Fusión (Secuencia de Mayer-Vietoris)**
-Fuente: Implementado en pipeline_director.py -> AuditedMergeStep
-Cuando el sistema integra el presupuesto con los análisis de precios unitarios, no hace una simple unión de tablas. Ejecuta una Auditoría Homológica basada en la secuencia exacta de Mayer-Vietoris:
-⋯→Hk​(A∩B)→Hk​(A)⊕Hk​(B)→Hk​(A∪B)→…
-• La Garantía: Esto asegura matemáticamente que el proceso de fusión de datos no introduzca ciclos ni desconexiones artificiales. Si H1​(A∪B) muestra un ciclo nuevo que no existía en A ni en B, el sistema detiene la carga: los datos son incompatibles topológicamente.
-
---------------------------------------------------------------------------------
-Este documento define la base matemática de la "Sabiduría Estructural" del ecosistema APU Filter v3.0.
+La geometría de los datos no es un módulo aislado; es la "sangre" que recorre todos los órganos de nuestra arquitectura ciberfísica:
+    a. En la Ingesta (El Guardián): El sistema extrae la "forma" matemática del archivo desde el primer instante en que se sube un CSV, ignorando la "basura" visual y garantizando que solo pasen datos con una estructura homeomorfa válida.
+    b. En la Deliberación (El Consejo de Sabios): Las métricas topológicas (los ciclos y las pirámides) alimentan directamente la tensión dialéctica del sistema. El Agente Financiero puede pedir aprobar una compra barata, pero el Agente Arquitecto utilizará el grafo de topología para imponer un Veto de Resiliencia si descubre que esa compra crea un cuello de botella.
+    c. En la Trazabilidad (El Pasabordo Ciberfísico): Toda la información viaja protegida. El Pasaporte de Telemetría lleva un "Sello Topológico" inmutable, garantizando que ninguna estrategia financiera (nivel superior) se ejecute sin haber certificado primero que no existen fallas en la base estructural (clausura transitiva).
+    d. En la Interfaz (Revelación Visual Progresiva): La abstracción se vuelve táctil. En el Panel Ejecutivo, si el usuario hace clic en una advertencia, la topología se renderiza como una estructura 3D interactiva. Las patologías cobran vida: los monopolios invisibles y los socavones lógicos brillan en rojo pulsante, haciendo evidente el riesgo financiero a la intuición humana.

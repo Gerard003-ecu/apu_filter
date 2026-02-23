@@ -2,55 +2,51 @@
   <img src="logos/vector_3D.png" alt="APU Filter: Consejo de Sabios Digitales" width="75%">
 </div>
 
-1. El Manifiesto del Sistema: APU Filter v3.0
-"En la economía de la complejidad, no vendemos software; vendemos Certeza Matemática. Transformamos la incertidumbre topológica en un activo de gobernanza."
-🧬 La Nueva Identidad: De la Hoja de Cálculo al Organismo Vivo
-Históricamente, la construcción ha gestionado el capital mediante "fotos estáticas" (Excel, PDFs) que mueren al imprimirse. APU Filter rechaza ese modelo. Nosotros implementamos el paradigma de Data Mesh para transformar su presupuesto en un Producto de Datos (Data Product): una entidad autónoma, viva, autodescriptiva y gobernada por leyes físicas.
-No procesamos archivos; simulamos la resistencia de su negocio ante la entropía del mercado.
-🏛️ Las Tres Leyes Fundamentales (La Constitución del Código)
-Nuestro ecosistema opera bajo una constitución estricta derivada de la teoría de sistemas complejos y el álgebra lineal. Estas no son "features", son invariantes matemáticos:
-I. Ley de la Dinámica de Fluidos (Physics-First)
-• El Principio: La información tiene masa, inercia y temperatura. Tratamos el flujo de datos (ingesta de insumos y costos) como un fluido termodinámico dentro de un circuito RLC.
-• La Implementación: El Flux Condenser no es un simple buffer; es una Bomba de Desplazamiento Positivo modelada con ecuaciones de Maxwell discretizadas.
-• El Efecto:
-    ◦ Evitamos el "Golpe de Ariete" (saturación de memoria) mediante válvulas de alivio controladas por PID.
-    ◦ Medimos la "Fiebre del Proyecto" (Tsys​) basada en la volatilidad térmica de los precios de los commodities.
-II. Ley de la Integridad Topológica (Structure-First)
-• El Principio: La forma determina la función (y el fallo). Un presupuesto no es una lista; es un Complejo Simplicial.
-• La Implementación: El Business Topological Analyzer calcula invariantes homológicos (Números de Betti) sobre el grafo del proyecto.
-• El Efecto:
-    ◦ Detectamos "Islas de Datos" (β0​>1): Recursos comprados que no conectan con la obra.
-    ◦ Identificamos "Socavones Lógicos" (β1​>0): Ciclos de dependencia circular que hacen imposible el cálculo de costos.
-    ◦ Auditamos la "Estabilidad Piramidal" (Ψ): Si Ψ<1.0, diagnosticamos una Pirámide Invertida (una superestructura masiva apoyada en una base de proveedores peligrosamente estrecha).
-III. Ley de la Gobernanza Algebraica (Logic-First)
-• El Principio: La estrategia no puede existir sin física. La jerarquía de conocimiento (DIKW) es una filtración estricta de subespacios vectoriales.
-• La Implementación: La Matriz de Interacción Central (MIC) actúa como un Gatekeeper algebraico. Implementa la clausura transitiva: VPHYSICS​⊂VTACTICS​⊂VSTRATEGY​⊂VWISDOM​
-• El Efecto: El sistema prohíbe matemáticamente ejecutar análisis financiero (Estrategia) si no se ha validado la estabilidad de los datos (Física) y la coherencia del grafo (Táctica). No hay "opiniones", solo proyecciones vectoriales válidas o nulas.
 
 --------------------------------------------------------------------------------
-🧙‍♂️ El Consejo de Sabios (Arquitectura de la Malla)
-El sistema no es un monolito; es una coalición de agentes autónomos que deliberan bajo el protocolo de "Caja de Cristal":
-1. 🛡️ El Guardián (FluxPhysicsEngine): Controla la estabilidad física (σ) y disipa la entropía.
-2. 🏗️ El Arquitecto (TopologicalAnalyzer): Audita la integridad estructural y veta topologías rotas.
-3. 🔮 El Oráculo (FinancialEngine): Simula futuros estocásticos (Monte Carlo) y valora opciones reales.
-4. 🗣️ El Intérprete (SemanticTranslator): Traduce la matemática compleja en narrativas de negocio accionables ("De β1​>0 a 'Riesgo de Bloqueo Logístico'").
+🏗️ APU Filter v5.0: El Sistema Nervioso Central de la Rentabilidad Constructiva
+"En la economía de los márgenes estrechos, un presupuesto sano es más que inteligente; es sabio. No vendemos un validador de Excel; entregamos Certeza Operativa para blindar el flujo de caja de su obra."
+🧬 La Nueva Identidad: De la Hoja de Cálculo al Organismo Vivo
+Históricamente, la construcción ha gestionado el capital mediante "fotos estáticas" (Excel, PDFs) que mueren en el instante en que se imprimen. Frente a la presión extrema de los mercados actuales (como los asfixiantes márgenes en los proyectos VIS), los métodos tradicionales son insuficientes.
+APU Filter rechaza el modelo estático. Nosotros transformamos su presupuesto en una entidad viva y autónoma. A través de Sensores Nerviosos y un Pasabordo Ciberfísico, el sistema palpa la salud logística de la obra en tiempo real, detectando patologías estructurales invisibles antes de que destruyan su margen de ganancia.
 
----
+--------------------------------------------------------------------------------
+🏛️ Las Tres Leyes Fundamentales (La Constitución del Sistema)
+Nuestro ecosistema opera bajo tres principios inquebrantables, diseñados para curar los dolores reales de la construcción:
+I. Prevención de la "Fiebre Inflacionaria" (Protección de Capital)
+• El Problema: Su obra depende de materiales con alta volatilidad térmica (como el acero o el cobre). Cualquier estornudo en la inflación destruye la utilidad.
+• Nuestra Solución: El sistema actúa como un sismógrafo financiero. Si detecta sobreexposición a la volatilidad sin contratos de precio cerrado, activa un torniquete financiero, ralentizando compras secundarias (Load Shedding) para asegurar la liquidez inmediata del proyecto.
+II. Detección de Patologías Invisibles (Integridad Estructural)
+• El Problema: El temido "Bucle de la Formaleta". El costo de fundir placas depende de un cronograma rápido, pero el cronograma está bloqueado porque faltan formaletas (ya que compras no liberó el presupuesto a tiempo).
+• Nuestra Solución: El sistema lee la arquitectura invisible del proyecto para alertar sobre desconexiones operativas. Detecta "Recursos Huérfanos" (dinero ciego y desperdicio) y "Monopolios Invisibles" (ej. cuando su contratista de estructura y el de acabados dependen de la misma ferretería de barrio, creando un cuello de botella letal).
+III. Gobernanza Fiduciaria (La "Caja de Cristal")
+• El Problema: La burocracia humana es lenta y permite la firma de contratos basados en presupuestos desactualizados o contradictorios entre departamentos.
+• Nuestra Solución: La estrategia no puede existir sin una cimentación sólida. El sistema prohíbe matemáticamente ejecutar un giro financiero si no se ha validado primero la viabilidad logística de los proveedores. Todo bajo una auditoría forense transparente.
 
-## Instalación del Entorno de Consejería
+--------------------------------------------------------------------------------
+🧙‍♂️ El Consejo de Sabios (Nuestra Malla Agéntica Autónoma)
+Para aplicar estas leyes, el ecosistema no utiliza paneles de alarmas pasivos. Despliega un Consejo de Sabios Digitales: microservicios autónomos con "personalidades" que deliberan, debaten y actúan para defender su modelo de negocio:
+1. 🛡️ El Guardián (Estabilidad Física): Es el primer respondiente. Si detecta datos corruptos o un riesgo inminente de quiebra en la cadena de suministro, bloquea físicamente la ejecución de nuevas órdenes de compra, evitando que el error humano agrave la crisis.
+2. 🏗️ El Arquitecto (Alineación Organizacional): Combate el trabajo en silos. Detecta si Ingeniería y Compras operan con versiones de presupuesto contradictorias y expone los riesgos de "Pirámide Invertida" en la contratación.
+3. 🔮 El Oráculo (Gestor de Valor): Actúa como un Hedge Fund Manager de la obra. Observa el mercado y recomienda proactivamente: "Ante la tendencia inflacionaria, es más rentable acaparar 500 toneladas de acero hoy asumiendo el costo de bodega". Este agente paga su propia licencia con los ahorros que genera.
+4. 🗣️ El Intérprete Bilingüe (Voz y Semántica): El gerente no tiene que interactuar con la complejidad interna. Este agente traduce los riesgos puros a lenguaje de impacto directo (Dinero y Tiempo), emitiendo "Actas de Deliberación" claras y accionables.
 
-Para convocar a su Consejo, seleccione el método de despliegue:
+--------------------------------------------------------------------------------
+🚀 Empezando con APU Filter (Quickstart)
+El sistema está diseñado para integrarse sin fricción en los flujos de trabajo de las Oficinas de Gestión de Datos (BIM 2026).
+Al desplegar este repositorio, usted no está instalando un software contable; está encendiendo el sistema nervioso que protegerá la rentabilidad de sus próximos proyectos.
 
-### A. Sala de Juntas Ejecutiva (Producción con Podman)
-Despliegue rápido y aislado.
-```bash
-./start_podman.sh
-```
+# 1. Clonar el sistema nervioso central
+git clone https://github.com/su-organizacion/apu-filter-v5.git
+cd apu-filter-v5
 
-### B. Laboratorio de Investigación (Desarrollo con Conda)
-Acceso profundo a la lógica de los expertos.
-```bash
-./start_conda.sh
-conda activate apu_filter_env
-```
+# 2. Configurar el entorno de los agentes
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 3. Encender el Consejo de Sabios
+python wsgi.py
+
+Para documentación detallada sobre cómo leer las Actas de Deliberación y operar los paneles ejecutivos, consulte el LENGUAJE_CONSEJO.md y nuestra visión en PRODUCT_VISION.md.
 
