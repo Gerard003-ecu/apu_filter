@@ -44,6 +44,7 @@ Rol: Agente de Interoperabilidad, Narrador y Traductor. Estrato DIKW: Sabiduría
 La matemática compleja es ruido si no se traduce en acción. El Intérprete es el único Sabio que se comunica con el usuario humano.
 
 • Interoperabilidad Semántica (Memoria Asociativa): Utiliza vectores semánticos para saber que "Concreto 3000 PSI" y "Hormigón Estructural" son el mismo nodo, unificando el lenguaje entre ingenieros y contadores.
+• Motor Semántico Desacoplado (Asesor Táctico): Cuenta con una unidad de procesamiento tensorial dedicada que protege la agilidad del Plano de Control. Este "cerebro auxiliar" ejecuta la inferencia profunda (FAISS/Transformers) de manera asíncrona, permitiendo que el diplomático mantenga la conversación fluida mientras consulta el vasto espacio vectorial de conocimientos.
 • Traducción de Impacto: No reporta números abstractos; reporta diagnósticos ejecutivos: "Se detectaron tres dependencias circulares críticas en la Mampostería que paralizarán el flujo de compras".
 
 --------------------------------------------------------------------------------

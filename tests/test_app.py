@@ -30,7 +30,6 @@ from app.app import (
     FileValidator,
     create_app,
     handle_errors,
-    load_semantic_search_artifacts,
     require_session,
     setup_logging,
     temporary_upload_directory,
@@ -59,8 +58,8 @@ def app():
         fake_redis_client = fakeredis.FakeStrictRedis()
         mock_from_url.return_value = fake_redis_client
 
-        # Mockear carga de embeddings
-        with patch("app.app.load_semantic_search_artifacts"):
+        # Mockear carga de embeddings (ahora manejada por MIC/SemanticEstimator)
+        with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
             app = create_app("testing")
             app.config["TESTING"] = True
             yield app
@@ -788,32 +787,37 @@ class TestEndpoints:
         data = json.loads(response.data)
         assert "error" in data
 
-    @patch("app.app.calculate_estimate")
-    def test_get_estimate_success(self, mock_calculate, app, client, sample_session_data):
+    def test_get_estimate_success(self, app, client, sample_session_data):
         """Debe calcular estimación exitosamente."""
-        mock_calculate.return_value = {
-            "valor_construccion": 500000000,
-            "rendimiento_m2_por_dia": 25.5,
+        # Mockear la respuesta de la MIC
+        mock_projection = {
+            "success": True,
+            "estimate": {
+                "valor_construccion": 500000000,
+                "rendimiento_m2_por_dia": 25.5,
+            },
+            "_mic_validation_update": True
         }
 
-        metadata = {
-            "session_id": "sid",
-            "created_at": time.time(),
-            "last_accessed": time.time(),
-            "data_hash": "hash",
-            "version": "2.0",
-        }
+        with patch.object(app.mic, "project_intent", return_value=mock_projection):
+            metadata = {
+                "session_id": "sid",
+                "created_at": time.time(),
+                "last_accessed": time.time(),
+                "data_hash": "hash",
+                "version": "2.0",
+            }
 
-        with client.session_transaction() as sess:
-            sess["user_id"] = "test_user"
-            sess["processed_data"] = sample_session_data["data"]
-            sess["session_metadata"] = metadata
+            with client.session_transaction() as sess:
+                sess["user_id"] = "test_user"
+                sess["processed_data"] = sample_session_data["data"]
+                sess["session_metadata"] = metadata
 
-        params = {"area_m2": 1000, "pisos": 2}
-        response = client.post("/api/estimate", json=params)
-        assert response.status_code == 200
-        data = json.loads(response.data)
-        assert "valor_construccion" in data
+            params = {"area_m2": 1000, "pisos": 2}
+            response = client.post("/api/estimate", json=params)
+            assert response.status_code == 200
+            data = json.loads(response.data)
+            assert "valor_construccion" in data
 
 
 # ============================================================================
@@ -889,78 +893,6 @@ class TestMiddleware:
 
 
 # ============================================================================
-# TESTS - CARGA DE MODELOS SEMÁNTICOS
-# ============================================================================
-
-
-class TestSemanticSearch:
-    """Suite de pruebas para carga de búsqueda semántica"""
-
-    @patch("pathlib.Path.exists")
-    @patch("faiss.read_index")
-    @patch(
-        "builtins.open",
-        new_callable=mock_open,
-        read_data='{"model_name": "test-model", "vector_dimension": 128, "total_vectors": 1000}',
-    )
-    @patch("app.app.SentenceTransformer")
-    def test_load_semantic_search_success(
-        self, mock_transformer, mock_file, mock_faiss, mock_exists, app
-    ):
-        """Debe cargar artefactos exitosamente."""
-        mock_exists.return_value = True
-        mock_index = MagicMock()
-        mock_index.ntotal = 1000
-        mock_index.d = 128
-        mock_faiss.return_value = mock_index
-
-        # Mock encoding for dimension check
-        mock_model = MagicMock()
-        mock_model.encode.return_value = np.zeros((1, 128))
-        mock_transformer.return_value = mock_model
-
-        # Need to populate the file read with valid ID map list
-        file_read_mock = mock_file.return_value
-        file_read_mock.read.side_effect = [
-            # metadata
-            '{"model_name": "test-model", "vector_dimension": 128, "total_vectors": 1000}',
-            json.dumps([str(i) for i in range(1000)]),  # id_map
-        ]
-
-        # Actually we need separate opens. This mocks all opens.
-        # Let's just mock json.load instead to return dict for metadata and list for map.
-        with patch("json.load") as mock_json:
-            mock_json.side_effect = [
-                {
-                    "model_name": "test-model",
-                    "vector_dimension": 128,
-                    "total_vectors": 1000,
-                },  # metadata
-                [str(i) for i in range(1000)],  # id_map
-            ]
-            load_semantic_search_artifacts(app)
-
-        assert app.config.get("FAISS_INDEX") is not None
-        assert app.config.get("EMBEDDING_MODEL") is not None
-
-    @patch("pathlib.Path.exists")
-    def test_load_semantic_search_missing_files(self, mock_exists, app):
-        """Debe manejar archivos faltantes."""
-        mock_exists.return_value = False
-        load_semantic_search_artifacts(app)
-        assert app.config.get("FAISS_INDEX") is None
-
-    @patch("pathlib.Path.exists")
-    @patch("faiss.read_index")
-    def test_load_semantic_search_error_handling(self, mock_faiss, mock_exists, app):
-        """Debe manejar errores en carga."""
-        mock_exists.return_value = True
-        mock_faiss.side_effect = Exception("Error loading index")
-        load_semantic_search_artifacts(app)
-        assert app.config.get("FAISS_INDEX") is None
-
-
-# ============================================================================
 # TESTS - CREATE APP
 # ============================================================================
 
@@ -969,60 +901,60 @@ class TestCreateApp:
     """Suite de pruebas para create_app factory"""
 
     @patch("redis.from_url")
-    @patch("app.app.load_semantic_search_artifacts")
-    def test_create_app_development(self, mock_load, mock_redis):
+    def test_create_app_development(self, mock_redis):
         """Debe crear app en modo desarrollo."""
         mock_redis.return_value = MagicMock()
-        app = create_app("development")
-        assert app is not None
-        assert app.config["TESTING"] is False
+        with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+            app = create_app("development")
+            assert app is not None
+            assert app.config["TESTING"] is False
 
     @patch("redis.from_url")
-    @patch("app.app.load_semantic_search_artifacts")
-    def test_create_app_testing(self, mock_load, mock_redis):
+    def test_create_app_testing(self, mock_redis):
         """Debe crear app en modo testing."""
         mock_redis.return_value = MagicMock()
-        app = create_app("testing")
-        assert app is not None
-        assert app.config["TESTING"] is True
+        with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+            app = create_app("testing")
+            assert app is not None
+            assert app.config["TESTING"] is True
 
     @patch("redis.from_url")
-    @patch("app.app.load_semantic_search_artifacts")
-    def test_create_app_production(self, mock_load, mock_redis):
+    def test_create_app_production(self, mock_redis):
         """Debe crear app en modo producción."""
         mock_redis.return_value = MagicMock()
         # En producción requiere secret key
         with patch.dict(os.environ, {"SECRET_KEY": "prod-secret"}):
-            app = create_app("production")
-            assert app is not None
-            assert app.config["SESSION_COOKIE_SECURE"] is True
+            with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+                app = create_app("production")
+                assert app is not None
+                assert app.config["SESSION_COOKIE_SECURE"] is True
 
     @patch("redis.from_url")
-    @patch("app.app.load_semantic_search_artifacts")
-    def test_create_app_config_loading(self, mock_load, mock_redis):
+    def test_create_app_config_loading(self, mock_redis):
         """Debe cargar configuración desde archivo."""
         mock_redis.return_value = MagicMock()
         with patch("builtins.open", mock_open(read_data='{"version": "1.0.0"}')):
-            app = create_app("testing")
-            assert "APP_CONFIG" in app.config
+            with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+                app = create_app("testing")
+                assert "APP_CONFIG" in app.config
 
     @patch("redis.from_url")
-    @patch("app.app.load_semantic_search_artifacts")
-    def test_create_app_upload_folder_creation(self, mock_load, mock_redis):
+    def test_create_app_upload_folder_creation(self, mock_redis):
         """Debe crear carpeta de uploads."""
         mock_redis.return_value = MagicMock()
         with patch("pathlib.Path.mkdir"):
-            app = create_app("testing")
-            assert "UPLOAD_FOLDER" in app.config
+            with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+                app = create_app("testing")
+                assert "UPLOAD_FOLDER" in app.config
 
     @patch("redis.from_url")
-    @patch("app.app.load_semantic_search_artifacts")
-    def test_create_app_session_configuration(self, mock_load, mock_redis):
+    def test_create_app_session_configuration(self, mock_redis):
         """Debe configurar sesiones correctamente."""
         mock_redis.return_value = MagicMock()
-        app = create_app("testing")
-        assert app.config["SESSION_TYPE"] == "redis"
-        assert app.config["SESSION_PERMANENT"] is True
+        with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+            app = create_app("testing")
+            assert app.config["SESSION_TYPE"] == "redis"
+            assert app.config["SESSION_PERMANENT"] is True
 
 
 # ============================================================================
