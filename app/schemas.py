@@ -191,7 +191,7 @@ class TipoInsumo(str, Enum):
     OTRO = "OTRO"
 
     # Caché de nivel de clase (thread-safe para lecturas en CPython por el GIL)
-    _cache: ClassVar[Dict[str, TipoInsumo]] = {}
+    _cache: ClassVar[Dict[str, TipoInsumo]]
 
     @classmethod
     def from_string(cls, value: Union[str, TipoInsumo]) -> TipoInsumo:
@@ -242,6 +242,9 @@ class TipoInsumo(str, Enum):
         """Retorna el conjunto inmutable de valores válidos."""
         return frozenset(member.value for member in cls)
 
+
+# Inicializar caché externamente para evitar confusión con Enum members
+TipoInsumo._cache = {}
 
 # Actualizar constante de diversidad ahora que la enumeración existe
 _NUM_TIPOS_INSUMO: Final[int] = len(TipoInsumo)  # type: ignore[misc]
@@ -563,6 +566,7 @@ class TopologicalNode:
     stratum: Stratum = field(default=Stratum.PHYSICS)
     description: str = field(default="")
     structural_health: float = field(default=1.0)
+    is_floating: bool = field(default=False)
 
 
 # ============================================================================

@@ -1130,10 +1130,13 @@ class TelemetryNarrator:
         # 3. THERMODYNAMICS (Physics Stratum for Temp)
         if hasattr(context, "thermodynamics"):
             t = context.thermodynamics
-            if t.system_temperature > 75.0: # Critical
+            # Convertir a Celsius para comparar con umbral de 75°C
+            # O usar umbral Kelvin: 75°C approx 348.15 K
+            if t.system_temperature > 348.15: # Critical (> 75°C)
+                temp_c = t.system_temperature - 273.15
                 issues_by_stratum[Stratum.PHYSICS].append(Issue(
                     source="Thermodynamics (Global)",
-                    message=f"Temperatura del sistema crítica: {t.system_temperature:.1f}°C",
+                    message=f"Temperatura del sistema crítica: {temp_c:.1f}°C",
                     issue_type="ThermalAnomaly",
                     depth=0,
                     topological_path=("global", "thermodynamics"),

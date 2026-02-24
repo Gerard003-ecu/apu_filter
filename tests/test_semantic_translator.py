@@ -137,8 +137,8 @@ class TestTelemetrySchemas:
         """Valores por defecto de ThermodynamicMetrics."""
         metrics = ThermodynamicMetrics()
         assert metrics.entropy == 0.0
-        assert metrics.exergy == 1.0
-        assert metrics.system_temperature == 25.0
+        assert metrics.exergy == 0.0  # Exergía calculada con U=0 es 0
+        assert metrics.system_temperature == 300.0
 
     def test_physics_metrics_defaults(self):
         """Valores por defecto de PhysicsMetrics."""
@@ -232,13 +232,21 @@ class TestThermalTranslation:
     """Pruebas para traducción de métricas termodinámicas."""
 
     def test_translate_cold_temperature(self, default_translator: SemanticTranslator):
-        metrics = ThermodynamicMetrics(entropy=0.2, exergy=0.9, system_temperature=15.0)
+        # 280.0 K = 6.85 C (Frío pero no congelado inválido)
+        # U = 300.0 para asegurar eficiencia > 0.7
+        metrics = ThermodynamicMetrics(
+            entropy=0.2,
+            system_temperature=280.0,
+            internal_energy=300.0,
+            heat_capacity=1.0,
+        )
         narrative, verdict = default_translator.translate_thermodynamics(metrics)
         assert "Estable" in narrative or "❄️" in narrative
         assert verdict == VerdictLevel.VIABLE
 
     def test_translate_critical_temperature(self, default_translator: SemanticTranslator):
-        metrics = ThermodynamicMetrics(entropy=0.5, exergy=0.5, system_temperature=80.0)
+        # Para ser crítico (>75 C), T > 348.15 K. Usamos 360.0 K.
+        metrics = ThermodynamicMetrics(entropy=0.5, system_temperature=360.0)
         narrative, verdict = default_translator.translate_thermodynamics(metrics)
         assert "FUSIÓN" in narrative or "crítica" in narrative.lower()
         assert verdict == VerdictLevel.RECHAZAR
@@ -318,7 +326,8 @@ class TestStrategicReportComposition:
         viable_financials: Dict[str, Any],
     ):
         """Métricas térmicas se integran en el reporte."""
-        thermal = {"entropy": 0.8, "exergy": 0.4, "system_temperature": 65.0}
+        # Para fiebre (>50 C), T > 323.15 K. Usamos 340.0 K.
+        thermal = {"entropy": 0.8, "exergy": 0.4, "system_temperature": 340.0}
 
         report = deterministic_translator.compose_strategic_narrative(
             topological_metrics=clean_topology,
@@ -341,7 +350,8 @@ class TestStratumIntegration:
     def test_failed_physics_propagates_up(self, deterministic_translator: SemanticTranslator):
         """Fallo en PHYSICS propaga hacia arriba (clausura transitiva)."""
         # Simular fallo en PHYSICS con temperatura crítica
-        thermal = {"system_temperature": 100.0}  # Crítico
+        # 100.0 K es frío (-173 C). Usamos 400.0 K (127 C) para crítico.
+        thermal = {"system_temperature": 400.0}  # Crítico
 
         report = deterministic_translator.compose_strategic_narrative(
             topological_metrics=TopologicalMetrics(),

@@ -861,19 +861,20 @@ class TestEdgeCasesAndRobustness:
         assert abs(insumo.cantidad * insumo.precio_unitario - expected) < 1e-15
 
     def test_empty_strings_in_fields(self):
-        """Campos con strings vacíos."""
-        insumo = InsumoProcesado(
-            codigo_apu="APU001",
-            descripcion_apu="",
-            unidad_apu="",
-            descripcion_insumo="",
-            unidad_insumo="",
-            cantidad=0,
-            precio_unitario=0,
-            valor_total=0,
-            tipo_insumo="SUMINISTRO"
-        )
-        assert insumo.id.startswith("APU001_")
+        """Campos con strings vacíos deben lanzar error de validación."""
+        from app.schemas import ValidationError
+        with pytest.raises(ValidationError):
+            InsumoProcesado(
+                codigo_apu="APU001",
+                descripcion_apu="",
+                unidad_apu="",
+                descripcion_insumo="",
+                unidad_insumo="",
+                cantidad=0,
+                precio_unitario=0,
+                valor_total=0,
+                tipo_insumo="SUMINISTRO"
+            )
 
     def test_whitespace_handling(self):
         """Manejo de espacios en blanco."""

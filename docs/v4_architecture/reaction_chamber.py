@@ -164,7 +164,7 @@ class CarbonNode(Enum):
     C6_MATTER    = auto()   # valor = 6
 
     # [C5] Mapa de servicios a nivel de clase — construido UNA sola vez
-    _SERVICE_MAP: ClassVar[Dict[str, str]] = {}  # se puebla después de la clase
+    _SERVICE_MAP: ClassVar[Dict[str, str]]  # se puebla después de la clase
 
     @property
     def index(self) -> int:
