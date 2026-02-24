@@ -54,15 +54,12 @@ from functools import wraps
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-# --- Dependencias para Búsqueda Semántica ---
-import faiss
 import pandas as pd
 from flask import Flask, current_app, g, jsonify, render_template, request, session
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from markupsafe import escape
-from sentence_transformers import SentenceTransformer
 from werkzeug.utils import secure_filename
 
 # Configuración del path del sistema
@@ -72,7 +69,6 @@ from config.config_app import config_by_name
 from models.probability_models import run_monte_carlo_simulation
 
 from .data_loader import LoadStatus, load_data  # Nueva importación para carga robusta
-from .estimator import SearchArtifacts, calculate_estimate
 from .pipeline_director import process_all_files  # Ahora usa la versión refactorizada
 from .presenters import APUPresenter
 from .telemetry import TelemetryContext  # Nueva importación
@@ -83,6 +79,7 @@ from .tools_interface import (
     clean_file,
     diagnose_file,
     get_telemetry_status,
+    register_core_vectors,
 )
 from .schemas import Stratum
 from .topology_viz import topology_bp  # Importar el nuevo blueprint
@@ -970,138 +967,6 @@ class FileValidator:
             )
 
 
-# ============================================================================
-# CARGA DE MODELOS DE BÚSQUEDA SEMÁNTICA (MEJORADA)
-# ============================================================================
-
-
-def load_semantic_search_artifacts(app: Flask) -> bool:
-    """
-    Carga el índice FAISS, el mapeo de IDs y el modelo de embeddings.
-
-    Mejoras:
-    - Validación de integridad de archivos
-    - Manejo robusto de errores
-    - Verificación de compatibilidad
-
-    Returns:
-        True si la carga fue exitosa, False en caso contrario.
-    """
-    app.logger.info("Iniciando carga de artefactos de búsqueda semántica...")
-
-    embeddings_dir = Path(__file__).parent / "embeddings"
-    index_path = embeddings_dir / "faiss.index"
-    map_path = embeddings_dir / "id_map.json"
-    metadata_path = embeddings_dir / "metadata.json"
-
-    # Valores por defecto
-    app.config["FAISS_INDEX"] = None
-    app.config["ID_MAP"] = None
-    app.config["EMBEDDING_MODEL"] = None
-    app.config["SEMANTIC_SEARCH_ENABLED"] = False
-
-    try:
-        # 1. Validar existencia de archivos
-        missing_files = []
-        for path in [index_path, map_path, metadata_path]:
-            if not path.exists():
-                missing_files.append(path.name)
-
-        if missing_files:
-            app.logger.warning(
-                f"Archivos de embeddings faltantes: {', '.join(missing_files)}. "
-                "Ejecute 'scripts/generate_embeddings.py' para generarlos."
-            )
-            return False
-
-        # 2. Cargar y validar metadata
-        try:
-            with open(metadata_path, "r", encoding="utf-8") as f:
-                metadata = json.load(f)
-        except Exception as e:
-            app.logger.warning(
-                f"Error cargando metadata.json: {e}. Usando valores por defecto."
-            )
-            metadata = {}
-
-        # Validación flexible de metadata (soporta alias y campos opcionales)
-        model_name = metadata.get("model_name")
-        expected_vectors = metadata.get("total_vectors") or metadata.get("vector_count")
-        expected_dimension = metadata.get("vector_dimension") or 384  # Default seguro
-
-        if not model_name:
-            app.logger.warning(
-                "Metadata incompleta: Falta 'model_name'. Asumiendo 'all-MiniLM-L6-v2'"
-            )
-            model_name = "all-MiniLM-L6-v2"
-
-        # 3. Cargar índice FAISS
-        faiss_index = faiss.read_index(str(index_path))
-
-        # Validar dimensión (si está en metadata)
-        if expected_dimension and faiss_index.d != expected_dimension:
-            app.logger.warning(
-                f"Dimensión del índice ({faiss_index.d}) no coincide "
-                f"con metadata ({expected_dimension}). Ajustando expectativa."
-            )
-            expected_dimension = faiss_index.d
-
-        # Validar cantidad de vectores (si está en metadata)
-        if expected_vectors is not None and faiss_index.ntotal != expected_vectors:
-            app.logger.warning(
-                f"Cantidad de vectores ({faiss_index.ntotal}) difiere "
-                f"de metadata ({expected_vectors})"
-            )
-
-        # 4. Cargar mapeo de IDs
-        with open(map_path, "r", encoding="utf-8") as f:
-            id_map = json.load(f)
-
-        # Si no tenemos expected_vectors confiable, usamos el del índice
-        expected_vectors = expected_vectors or faiss_index.ntotal
-
-        if len(id_map) != expected_vectors:
-            app.logger.warning(
-                f"Tamaño del mapeo ({len(id_map)}) difiere de metadata ({expected_vectors})"
-            )
-
-        # 5. Cargar modelo de embeddings
-        app.logger.info(f"Cargando modelo de embeddings: {model_name}")
-        embedding_model = SentenceTransformer(model_name)
-
-        # Validar dimensión del modelo
-        test_embedding = embedding_model.encode(["test"])
-        if test_embedding.shape[1] != expected_dimension:
-            raise ValueError(
-                f"Dimensión del modelo ({test_embedding.shape[1]}) "
-                f"no coincide con metadata ({expected_dimension})"
-            )
-
-        # 6. Guardar en configuración
-        app.config["FAISS_INDEX"] = faiss_index
-        app.config["ID_MAP"] = id_map
-        app.config["EMBEDDING_MODEL"] = embedding_model
-        app.config["SEMANTIC_SEARCH_ENABLED"] = True
-        app.config["EMBEDDING_METADATA"] = metadata
-
-        app.logger.info(
-            f"✅ Búsqueda semántica activada | Modelo: '{model_name}' | "
-            f"Vectores: {faiss_index.ntotal} | Dimensión: {faiss_index.d}"
-        )
-
-        return True
-
-    except Exception as e:
-        app.logger.error(
-            f"❌ Error al cargar artefactos de búsqueda semántica: {e}",
-            exc_info=True,
-        )
-        app.config["FAISS_INDEX"] = None
-        app.config["ID_MAP"] = None
-        app.config["EMBEDDING_MODEL"] = None
-        app.config["SEMANTIC_SEARCH_ENABLED"] = False
-
-        return False
 
 
 # ============================================================================
@@ -1279,12 +1144,11 @@ def create_app(config_name: str) -> Flask:
 
     mic.register_vector("oracle_analyze", Stratum.TACTICS, laplace_handler)
 
+    # Registrar Vectores del Núcleo (incluye Semánticos si config está presente)
+    register_core_vectors(mic, app.config.get("APP_CONFIG"))
+
     # Inyectar MIC en la app
     app.mic = mic
-
-    # Cargar artefactos de búsqueda semántica
-    with app.app_context():
-        load_semantic_search_artifacts(app)
 
     # ========================================================================
     # MIDDLEWARE Y HOOKS
@@ -1403,8 +1267,8 @@ def create_app(config_name: str) -> Flask:
                     "max_file_size_mb": MAX_CONTENT_LENGTH / (1024 * 1024),
                 },
                 "semantic_search": {
-                    "enabled": app.config.get("SEMANTIC_SEARCH_ENABLED", False),
-                    "model": app.config.get("EMBEDDING_METADATA", {}).get(
+                    "enabled": app.mic.is_registered("semantic_match"),
+                    "model": app.config.get("APP_CONFIG", {}).get("embedding_metadata", {}).get(
                         "model_name", "N/A"
                     ),
                 },
@@ -1794,50 +1658,68 @@ def create_app(config_name: str) -> Flask:
 
         app.logger.info(f"📊 Solicitud de estimación con parámetros: {params}")
 
-        # Construir artefactos de búsqueda
-        search_enabled = app.config.get("SEMANTIC_SEARCH_ENABLED", False)
-
-        if search_enabled:
-            search_artifacts = SearchArtifacts(
-                model=app.config.get("EMBEDDING_MODEL"),
-                faiss_index=app.config.get("FAISS_INDEX"),
-                id_map=app.config.get("ID_MAP"),
-            )
-        else:
-            search_artifacts = None
-            app.logger.warning("Búsqueda semántica desactivada, usando búsqueda exacta")
-
-        # Calcular estimación
+        # Calcular estimación vía MIC (Tactical Advisor)
         user_data = session_data["data"]
 
-        result = calculate_estimate(
-            params=params,
-            data_store=user_data,
-            config=app.config.get("APP_CONFIG", {}),
-            search_artifacts=search_artifacts,
-        )
-
-        if "error" in result:
-            app.logger.warning(f"⚠️  Error en estimación: {result['error']}")
-            g.telemetry.record_error("get_estimate", result["error"])
-            g.telemetry.end_step("get_estimate", "logic_error")
-            return jsonify(result), 400
-
-        # Añadir metadata
-        result["metadata"] = {
-            "semantic_search_used": search_enabled,
-            "timestamp": time.time(),
-            "request_id": g.get("request_id", "N/A"),
+        payload = {
+            "params": params,
+            "data_store": user_data
         }
 
-        app.logger.info(
-            f"✅ Estimación calculada | Construcción: ${result.get('valor_construccion', 0):,.2f} | "
-            f"Rendimiento: {result.get('rendimiento_m2_por_dia', 0):.2f}"
-        )
+        # Contexto para MIC
+        mic_context = {
+            "validated_strata": session.get("validated_strata", set()),
+            "telemetry_context": g.telemetry
+        }
 
-        g.telemetry.end_step("get_estimate", "success")
+        # En testing permitimos bypass
+        if current_app.config.get("TESTING"):
+             mic_context["force_physics_override"] = True
 
-        return jsonify(sanitize_for_json(result))
+        try:
+            # Proyección Algebraica al Estrato Táctico
+            projection = app.mic.project_intent("tactical_estimate", payload, mic_context)
+
+            if not projection.get("success"):
+                error_msg = projection.get("error", "Unknown error in tactical estimate")
+                app.logger.warning(f"⚠️ Error en estimación táctica: {error_msg}")
+                g.telemetry.record_error("get_estimate", error_msg)
+
+                # Manejo de error de permisos (Jerarquía)
+                if projection.get("error_category") == "mic_hierarchy_violation":
+                     return jsonify(projection), 403
+
+                return jsonify(projection), 400
+
+            result = projection.get("estimate", {})
+
+            # MIC: Actualizar sesión si el estrato fue validado
+            if projection.get("_mic_validation_update"):
+                 if "validated_strata" not in session:
+                     session["validated_strata"] = {Stratum.TACTICS}
+                 elif isinstance(session.get("validated_strata"), set):
+                     session["validated_strata"].add(Stratum.TACTICS)
+
+            # Añadir metadata
+            result["metadata"] = {
+                "semantic_search_used": True,
+                "timestamp": time.time(),
+                "request_id": g.get("request_id", "N/A"),
+                "mic_stratum": projection.get("stratum", "UNKNOWN")
+            }
+
+            app.logger.info(
+                f"✅ Estimación calculada | Construcción: ${result.get('valor_construccion', 0):,.2f} | "
+                f"Rendimiento: {result.get('rendimiento_m2_por_dia', 0):.2f}"
+            )
+
+            g.telemetry.end_step("get_estimate", "success")
+
+            return jsonify(sanitize_for_json(result))
+
+        except Exception as e:
+            app.logger.error(f"Critical error in estimate projection: {e}")
+            return jsonify({"error": str(e), "code": "PROJECTION_ERROR"}), 500
 
     @app.route("/api/session/clear", methods=["POST"])
     @handle_errors

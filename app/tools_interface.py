@@ -1804,13 +1804,14 @@ def validate_file_for_processing(path: Path) -> Dict[str, Any]:
 # REGISTRO DE VECTORES (BOOTSTRAP)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def register_core_vectors(mic: 'MICRegistry') -> None:
+def register_core_vectors(mic: 'MICRegistry', config: Optional[Dict[str, Any]] = None) -> None:
     """
     Registra los vectores fundamentales del sistema en la Matriz de Interacción Central.
     Establece la base vectorial del espacio de operaciones.
 
     Args:
         mic (MICRegistry): La instancia de la Matriz donde se registrarán los vectores.
+        config (Dict[str, Any], optional): Configuración del sistema. Requerido para vectores tácticos.
     """
     # 1. Vector Físico: Estabilización de Flujo (FluxCondenser)
     # Requisito: Ninguno (Base)
@@ -1838,5 +1839,19 @@ def register_core_vectors(mic: 'MICRegistry') -> None:
         stratum=Stratum.TACTICS,
         handler=vector_structure_logic
     )
+
+    # 4. Vector Táctico: Asesor Semántico (SemanticEstimator)
+    # Requisito: Configuración del sistema.
+    # Propósito: Inferencia semántica y estimación dinámica.
+    if config:
+        try:
+            from app.semantic_estimator import SemanticEstimatorService
+            service = SemanticEstimatorService(config)
+            service.register_in_mic(mic)
+            logger.info("✅ Vectores semánticos registrados en la MIC")
+        except Exception as e:
+            logger.error(f"❌ Error al registrar vectores semánticos: {e}")
+    else:
+        logger.warning("⚠️ Configuración no proporcionada. Vectores semánticos omitidos.")
 
     logger.info("✅ Vectores nucleares registrados en la MIC: stabilize_flux, parse_raw, structure_logic")

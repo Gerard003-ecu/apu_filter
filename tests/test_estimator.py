@@ -613,8 +613,8 @@ class TestCalculateEstimate:
         assert "error" in result
         assert "No hay datos de APU" in result["error"]
 
-    @patch("app.estimator._find_best_keyword_match")
-    @patch("app.estimator._find_best_semantic_match")
+    @patch("app.semantic_estimator._find_best_keyword_match")
+    @patch("app.semantic_estimator._find_best_semantic_match")
     def test_calculate_estimate_uses_semantic_first(
         self,
         mock_semantic_match,
@@ -652,8 +652,8 @@ class TestCalculateEstimate:
         call_args = mock_keyword_match.call_args[0]
         assert "cuadrilla" in " ".join(call_args[1])
 
-    @patch("app.estimator._find_best_keyword_match")
-    @patch("app.estimator._find_best_semantic_match")
+    @patch("app.semantic_estimator._find_best_keyword_match")
+    @patch("app.semantic_estimator._find_best_semantic_match")
     def test_calculate_estimate_fallback_to_keyword(
         self,
         mock_semantic_match,
@@ -699,7 +699,7 @@ class TestCalculateEstimate:
             "apus_detail": [],
         }
 
-        with patch("app.estimator._find_best_keyword_match") as mock_kw:
+        with patch("app.semantic_estimator._find_best_keyword_match") as mock_kw:
             mock_kw.return_value = (sample_apu_pool.iloc[0], None)
 
             result = calculate_estimate(
@@ -720,14 +720,14 @@ class TestCalculateEstimate:
             "apus_detail": sample_apu_detail,
         }
 
-        with patch("app.estimator._find_best_semantic_match") as mock_sem:
+        with patch("app.semantic_estimator._find_best_semantic_match") as mock_sem:
             # Retornar APU-003 para cuadrilla y APU-004 para tarea
             mock_sem.side_effect = [
                 (sample_apu_pool.iloc[1], None),  # Suministro
                 (sample_apu_pool.iloc[2], None),  # Tarea (APU-003)
             ]
 
-            with patch("app.estimator._find_best_keyword_match") as mock_kw:
+            with patch("app.semantic_estimator._find_best_keyword_match") as mock_kw:
                 mock_kw.return_value = (sample_apu_pool.iloc[2], None)  # Cuadrilla
 
                 result = calculate_estimate(

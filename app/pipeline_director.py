@@ -975,7 +975,7 @@ class PipelineDirector:
         
         # Inicializar la MIC (ahora MICRegistry simplificado)
         self.mic = MICRegistry()
-        register_core_vectors(self.mic)
+        register_core_vectors(self.mic, self.config)
         self._initialize_vector_space_refined()
 
     def _load_thresholds(self, config: dict) -> ProcessingThresholds:
