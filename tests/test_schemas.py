@@ -29,7 +29,7 @@ import pytest
 # IMPORTACIONES DEL MÓDULO BAJO PRUEBA
 # ============================================================================
 
-from schema import (
+from app.schemas import (
     APUStructure,
     Equipo,
     INSUMO_CLASS_MAP,
@@ -52,6 +52,7 @@ from schema import (
     StringValidator,
     Suministro,
     TipoInsumo,
+    TopologicalNode,
     Transporte,
     UNIDADES_TIEMPO,
     UNIDADES_MASA,
@@ -924,7 +925,10 @@ class TestAPUStructure:
         """Solo se aceptan nodos PHYSICS."""
         apu_child = APUStructure(id="CHILD", description="Hijo")
         apu_parent = APUStructure(id="PARENT", description="Padre")
-        with pytest.raises(TypeError, match="PHYSICS"):
+        # El error es TypeError por tipo incorrecto (APUStructure vs InsumoProcesado)
+        # o por estrato incorrecto si fuera InsumoProcesado.
+        # Dado que pasamos APUStructure, falla primero la validación de tipo.
+        with pytest.raises(TypeError, match="Se esperaba InsumoProcesado"):
             apu_parent.add_resource(apu_child)  # type: ignore
 
     def test_total_cost(self, apu_completo):

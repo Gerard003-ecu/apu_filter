@@ -30,7 +30,7 @@ from typing import List, Tuple, Any
 from dataclasses import FrozenInstanceError
 
 # Importar el módulo bajo prueba
-from telemetry_schemas import (
+from app.telemetry_schemas import (
     PhysicsMetrics,
     TopologicalMetrics,
     ControlMetrics,
@@ -1267,10 +1267,10 @@ class TestNumericalEdgeCases:
     def test_thermo_temperature_near_zero(self):
         """T cercano a 0 debe manejarse (tercer principio)."""
         thermo = ThermodynamicMetrics(
-            system_temperature=1e-10,
+            system_temperature=1e-13,  # Menor que EPSILON_ABSOLUTE (1e-12)
             reference_temperature=300.0,
         )
-        # η_C = 0 porque T ≈ 0
+        # η_C = 0 porque T ≈ 0 (T < EPSILON_ABSOLUTE)
         assert thermo.carnot_efficiency == 0.0
     
     def test_thermo_large_temperature_difference(self):

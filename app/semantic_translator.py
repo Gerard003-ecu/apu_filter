@@ -1066,7 +1066,6 @@ class SemanticTranslator:
             thermo = ThermodynamicMetrics(
                 system_temperature=temp,
                 entropy=float(metrics.get("entropy", 0.0)),
-                exergy=float(metrics.get("exergy", 1.0)),
                 heat_capacity=float(metrics.get("heat_capacity", 0.5)),
             )
         elif isinstance(metrics, ThermodynamicMetrics):
@@ -1075,13 +1074,17 @@ class SemanticTranslator:
             thermo = ThermodynamicMetrics()
 
         entropy = thermo.entropy
-        exergy = thermo.exergy
-        temperature = thermo.system_temperature
+        exergy = thermo.exergetic_efficiency
+        temperature_k = thermo.system_temperature
+
+        # Convertir a Celsius para display/clasificación (si > 0)
+        # Asumimos que 0K se queda como 0 (inválido/congelado)
+        temperature_c = temperature_k - 273.15 if temperature_k > 0 else 0.0
 
         # Validar rangos
         entropy = max(0.0, min(1.0, entropy))
         exergy = max(0.0, min(1.0, exergy))
-        temperature = max(0.0, temperature)
+        temperature_c = max(-273.15, temperature_c)
 
         parts = []
         verdicts = []
@@ -1103,12 +1106,12 @@ class SemanticTranslator:
             verdicts.append(VerdictLevel.CONDICIONAL)
 
         # Temperatura
-        temp_class = self.config.thermal.classify_temperature(temperature)
+        temp_class = self.config.thermal.classify_temperature(temperature_c)
         temp_template = NarrativeTemplates.THERMAL_TEMPERATURE.get(
             temp_class,
             NarrativeTemplates.THERMAL_TEMPERATURE["stable"]
         )
-        parts.append(temp_template.format(temperature=temperature))
+        parts.append(temp_template.format(temperature=temperature_c))
 
         temp_verdict_map = {
             "cold": VerdictLevel.VIABLE,
@@ -1359,8 +1362,12 @@ class SemanticTranslator:
 
         # ====== SECCIÓN 1: Diagnóstico Integrado ======
         section_narratives.append("## 🏗️ Diagnóstico del Edificio Vivo")
+
+        temp_k = thermal.system_temperature
+        temp_c = temp_k - 273.15 if temp_k > 0 else 0.0
+
         integrated_diagnosis = self._generate_integrated_diagnosis(
-            stability, thermal.system_temperature, physics_result.verdict
+            stability, temp_c, physics_result.verdict
         )
         section_narratives.append(integrated_diagnosis)
         section_narratives.append("")
@@ -1486,9 +1493,12 @@ class SemanticTranslator:
                 verdicts.append(VerdictLevel.VIABLE)
 
         # 3. Análisis térmico
-        temp_class = self.config.thermal.classify_temperature(thermal.system_temperature)
+        temp_k = thermal.system_temperature
+        temp_c = temp_k - 273.15 if temp_k > 0 else 0.0
+
+        temp_class = self.config.thermal.classify_temperature(temp_c)
         if temp_class in ("hot", "critical"):
-            issues.append(f"Temperatura crítica: {thermal.system_temperature:.1f}°C")
+            issues.append(f"Temperatura crítica: {temp_c:.1f}°C")
             verdicts.append(VerdictLevel.PRECAUCION if temp_class == "hot" else VerdictLevel.RECHAZAR)
         else:
             verdicts.append(VerdictLevel.VIABLE)
