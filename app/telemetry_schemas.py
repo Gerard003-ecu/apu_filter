@@ -78,7 +78,6 @@ class PhysicsMetrics:
         Voltaje: Voltios [V]
         Presión: Pascales [Pa] o unidades arbitrarias
     
-    Ref: flux_condenser.txt [Fuente 797]
     """
     # ── Dinámica de Fluidos ──
     saturation: float = 0.0             # V_elastic: Nivel de llenado del buffer [0.0, 1.0]
