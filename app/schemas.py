@@ -1,29 +1,33 @@
 """
-Este módulo define la "Constitución de los Datos" del sistema. Establece las estructuras de datos
-inmutables y fuertemente tipadas que representan los átomos del presupuesto (Insumos, APUs).
-Implementa el patrón Factory para garantizar que ningún objeto se instancie sin pasar por
-validaciones de invariantes de dominio matemáticas y topológicas.
+Constitución de los Datos — Esquema Canónico del Sistema de Presupuesto.
 
-Invariantes y Reglas de Dominio:
---------------------------------
-1. Tipología Estricta (InsumoProcesado):
-   Define la jerarquía de clases (ManoDeObra, Equipo, Suministro) para el modelado preciso.
+Define las estructuras de datos fuertemente tipadas que representan los átomos
+del presupuesto (Insumos, APUs). Implementa el patrón Factory para garantizar
+que ningún objeto se instancie sin pasar por validaciones de invariantes de
+dominio matemáticas y topológicas.
 
-2. Normalización Canónica:
-   Asegura que todas las unidades y descripciones se conviertan a un lenguaje común mediante
-   mapeos deterministas.
+Invariantes y Reglas de Dominio
+-------------------------------
+1. **Tipología Estricta**: Jerarquía cerrada de clases (ManoDeObra, Equipo,
+   Suministro, Transporte, Otro) modela con precisión la naturaleza ontológica
+   de cada recurso.
 
-3. Validación Reactiva (__post_init__):
-   Los objetos se autovalidan al nacer, garantizando consistencia interna inmediata.
+2. **Normalización Canónica**: Unidades y descripciones se proyectan a un
+   espacio normalizado mediante mapeos deterministas idempotentes.
 
-4. Estabilidad Topológica:
-   Mide la entropía y diversidad de los componentes de un APU para determinar su robustez
-   estructural utilizando teoría de la información.
+3. **Validación Reactiva** (``__post_init__``): Cada objeto se autovalida al
+   nacer, garantizando consistencia interna inmediata sin estados intermedios
+   inválidos.
+
+4. **Estabilidad Topológica**: Métricas de entropía de Shannon y diversidad
+   categórica cuantifican la robustez estructural de un APU, detectando
+   configuraciones degeneradas (mono-dependencia, pirámides invertidas).
 """
 
 from __future__ import annotations
 
-import math
+import hashlib
+import inspect
 import logging
 import math
 import re
@@ -33,7 +37,20 @@ from dataclasses import asdict, dataclass, field
 from decimal import Decimal
 from enum import Enum, IntEnum
 from functools import lru_cache
-from typing import Any, ClassVar, Dict, Final, List, Optional, Protocol, Set, Tuple, Type, Union
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    Final,
+    FrozenSet,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+)
+
 
 # ============================================================================
 # CONFIGURACIÓN DE LOGGING
@@ -41,37 +58,61 @@ from typing import Any, ClassVar, Dict, Final, List, Optional, Protocol, Set, Tu
 
 logger = logging.getLogger(__name__)
 
+
 # ============================================================================
 # CONSTANTES Y CONFIGURACIÓN
 # ============================================================================
 
-# Tolerancias para validaciones numéricas
-VALOR_TOTAL_WARNING_TOLERANCE: Final[float] = 0.01  # 1% tolerancia (Warning)
-VALOR_TOTAL_ERROR_TOLERANCE: Final[float] = 0.05    # 5% tolerancia (Error crítico)
+# --- Tolerancias numéricas ---
+VALOR_TOTAL_WARNING_TOLERANCE: Final[float] = 0.01   # 1 % → advertencia
+VALOR_TOTAL_ERROR_TOLERANCE: Final[float] = 0.05     # 5 % → error crítico
 CANTIDAD_RENDIMIENTO_TOLERANCE: Final[float] = 0.0001
 
-# Límites de valores físicos
+# --- Límites físicos ---
 MIN_CANTIDAD: Final[float] = 0.0
 MAX_CANTIDAD: Final[float] = 1_000_000.0
 MIN_PRECIO: Final[float] = 0.0
 MAX_PRECIO: Final[float] = 1_000_000_000.0
 MIN_RENDIMIENTO: Final[float] = 0.0
-MAX_RENDIMIENTO: Final[float] = 1000.0
+MAX_RENDIMIENTO: Final[float] = 1_000.0
 
-# Longitud máxima de strings
+# --- Longitudes de cadenas ---
 MAX_CODIGO_LENGTH: Final[int] = 50
 MAX_DESCRIPCION_LENGTH: Final[int] = 500
 
-# Unidades válidas por categoría
-UNIDADES_TIEMPO: Final[Set[str]] = frozenset({"HORA", "DIA", "SEMANA", "MES", "JOR"})
-UNIDADES_MASA: Final[Set[str]] = frozenset({"KG", "GR", "TON", "LB"})
-UNIDADES_VOLUMEN: Final[Set[str]] = frozenset({"M3", "L", "ML", "GAL"})
-UNIDADES_AREA: Final[Set[str]] = frozenset({"M2", "CM2"})
-UNIDADES_LONGITUD: Final[Set[str]] = frozenset({"M", "KM", "CM", "MM"})
-UNIDADES_TRANSPORTE: Final[Set[str]] = frozenset({"KM", "VIAJE", "VIAJES", "MILLA", "TON-KM"})
-UNIDADES_GENERICAS: Final[Set[str]] = frozenset({"UNIDAD", "UND", "U", "PAR", "JUEGO", "KIT", "%"})
+# --- Unidades válidas por categoría dimensional ---
+UNIDADES_TIEMPO: Final[FrozenSet[str]] = frozenset(
+    {"HORA", "DIA", "SEMANA", "MES", "JOR"}
+)
+UNIDADES_MASA: Final[FrozenSet[str]] = frozenset(
+    {"KG", "GR", "TON", "LB"}
+)
+UNIDADES_VOLUMEN: Final[FrozenSet[str]] = frozenset(
+    {"M3", "L", "ML", "GAL"}
+)
+UNIDADES_AREA: Final[FrozenSet[str]] = frozenset({"M2", "CM2"})
+UNIDADES_LONGITUD: Final[FrozenSet[str]] = frozenset(
+    {"M", "KM", "CM", "MM"}
+)
+UNIDADES_TRANSPORTE: Final[FrozenSet[str]] = frozenset(
+    {"KM", "VIAJE", "VIAJES", "MILLA", "TON-KM"}
+)
+UNIDADES_GENERICAS: Final[FrozenSet[str]] = frozenset(
+    {"UNIDAD", "UND", "U", "PAR", "JUEGO", "KIT", "%"}
+)
 
-# Mapeo completo de normalización de unidades
+# Unión de todas las unidades para validación global
+_ALL_KNOWN_UNITS: Final[FrozenSet[str]] = (
+    UNIDADES_TIEMPO
+    | UNIDADES_MASA
+    | UNIDADES_VOLUMEN
+    | UNIDADES_AREA
+    | UNIDADES_LONGITUD
+    | UNIDADES_TRANSPORTE
+    | UNIDADES_GENERICAS
+)
+
+# --- Mapeo de normalización de unidades ---
 UNIDAD_NORMALIZADA_MAP: Final[Dict[str, str]] = {
     # Tiempo
     "hora": "HORA", "hr": "HORA", "hrs": "HORA", "h": "HORA",
@@ -85,12 +126,12 @@ UNIDAD_NORMALIZADA_MAP: Final[Dict[str, str]] = {
     "tonelada": "TON", "ton": "TON", "t": "TON",
     "libra": "LB", "lb": "LB",
     # Volumen
-    "m3": "M3", "m³": "M3", "metro cubico": "M3",
+    "m3": "M3", "m\u00b3": "M3", "metro cubico": "M3",
     "litro": "L", "litros": "L", "l": "L", "lt": "L",
     "galon": "GAL", "galones": "GAL", "gal": "GAL",
     # Área
-    "m2": "M2", "m²": "M2", "metro cuadrado": "M2",
-    "cm2": "CM2", "cm²": "CM2",
+    "m2": "M2", "m\u00b2": "M2", "metro cuadrado": "M2",
+    "cm2": "CM2", "cm\u00b2": "CM2",
     # Longitud
     "metro": "M", "metros": "M", "m": "M", "mts": "M",
     "kilometro": "KM", "km": "KM",
@@ -100,11 +141,17 @@ UNIDAD_NORMALIZADA_MAP: Final[Dict[str, str]] = {
     "viaje": "VIAJE", "viajes": "VIAJES", "vje": "VIAJE",
     "ton-km": "TON-KM", "ton km": "TON-KM",
     # Genéricas
-    "unidad": "UNIDAD", "unidades": "UNIDAD", "und": "UNIDAD", "u": "UNIDAD", "un": "UNIDAD",
+    "unidad": "UNIDAD", "unidades": "UNIDAD", "und": "UNIDAD",
+    "u": "UNIDAD", "un": "UNIDAD",
     "par": "PAR", "juego": "JUEGO", "kit": "KIT",
 }
 
-FORMATOS_VALIDOS: Final[Set[str]] = frozenset({"FORMATO_A", "FORMATO_B", "FORMATO_C", "GENERIC"})
+FORMATOS_VALIDOS: Final[FrozenSet[str]] = frozenset(
+    {"FORMATO_A", "FORMATO_B", "FORMATO_C", "GENERIC"}
+)
+
+# Número de tipos de insumo existentes (para normalizar diversidad)
+_NUM_TIPOS_INSUMO: Final[int] = 5  # Se actualiza automáticamente abajo
 
 
 # ============================================================================
@@ -114,174 +161,227 @@ FORMATOS_VALIDOS: Final[Set[str]] = frozenset({"FORMATO_A", "FORMATO_B", "FORMAT
 class Stratum(IntEnum):
     """
     Niveles de abstracción en la topología piramidal del negocio.
-    Representa la jerarquía de profundidad desde la estrategia hasta la logística.
+
+    La jerarquía refleja una cadena de mando descendente::
+
+        WISDOM (0)  →  Decisión / Agente
+        STRATEGY (1) →  Finanzas / Capítulos
+        TACTICS (2)  →  APUs / Estructura
+        PHYSICS (3)  →  Insumos / Logística
     """
-    WISDOM = 0    # Nivel 0 - Agente / Decisión (Sabiduría)
-    STRATEGY = 1  # Nivel 1 - Finanzas / Capítulos (Estrategia)
-    TACTICS = 2   # Nivel 2 - APUs / Estructura (Táctica)
-    PHYSICS = 3   # Nivel 3 - Insumos / FluxCondenser (Física)
 
+    WISDOM = 0
+    STRATEGY = 1
+    TACTICS = 2
+    PHYSICS = 3
 
-_TIPO_INSUMO_CACHE: Dict[str, 'TipoInsumo'] = {}
 
 class TipoInsumo(str, Enum):
     """
     Tipos válidos de insumos en un APU.
-    Define la naturaleza ontológica del recurso.
+
+    La enumeración hereda de ``str`` para permitir comparaciones directas
+    con cadenas y serialización JSON transparente.
     """
+
     MANO_DE_OBRA = "MANO_DE_OBRA"
     EQUIPO = "EQUIPO"
     SUMINISTRO = "SUMINISTRO"
     TRANSPORTE = "TRANSPORTE"
     OTRO = "OTRO"
 
+    # Caché de nivel de clase (thread-safe para lecturas en CPython por el GIL)
+    _cache: ClassVar[Dict[str, TipoInsumo]] = {}
+
     @classmethod
-    def from_string(cls, value: str) -> TipoInsumo:
+    def from_string(cls, value: Union[str, TipoInsumo]) -> TipoInsumo:
         """
-        Convierte string a TipoInsumo utilizando una caché para evitar re-procesamiento costoso.
+        Convierte una cadena a ``TipoInsumo`` con caché interna.
 
-        Args:
-            value (str): Cadena representando el tipo de insumo (ej. "Mano de Obra").
+        Parameters
+        ----------
+        value : str | TipoInsumo
+            Representación textual del tipo (e.g. ``"Mano de Obra"``).
 
-        Returns:
-            TipoInsumo: Miembro de la enumeración correspondiente.
+        Returns
+        -------
+        TipoInsumo
 
-        Raises:
-            InvalidTipoInsumoError: Si el valor no coincide con ningún tipo conocido.
+        Raises
+        ------
+        InvalidTipoInsumoError
+            Si *value* no se puede mapear a ningún miembro.
         """
         if isinstance(value, cls):
             return value
 
         if not isinstance(value, str):
-            raise InvalidTipoInsumoError(f"Tipo debe ser string, recibido: {type(value).__name__}")
+            raise InvalidTipoInsumoError(
+                f"Tipo debe ser str, recibido: {type(value).__name__}"
+            )
 
         normalized = value.strip().upper().replace(" ", "_").replace("-", "_")
 
-        if normalized in _TIPO_INSUMO_CACHE:
-            return _TIPO_INSUMO_CACHE[normalized]
+        cached = cls._cache.get(normalized)
+        if cached is not None:
+            return cached
 
         try:
             result = cls(normalized)
-            _TIPO_INSUMO_CACHE[normalized] = result
-            return result
         except ValueError:
             raise InvalidTipoInsumoError(
                 f"Tipo de insumo inválido: '{value}'. "
-                f"Valores válidos: {cls.get_valid_values()}"
-            )
+                f"Valores válidos: {cls.valid_values()}"
+            ) from None
+
+        cls._cache[normalized] = result
+        return result
 
     @classmethod
-    def get_valid_values(cls) -> Set[str]:
-        return {member.value for member in cls}
+    def valid_values(cls) -> FrozenSet[str]:
+        """Retorna el conjunto inmutable de valores válidos."""
+        return frozenset(member.value for member in cls)
+
+
+# Actualizar constante de diversidad ahora que la enumeración existe
+_NUM_TIPOS_INSUMO: Final[int] = len(TipoInsumo)  # type: ignore[misc]
 
 
 # ============================================================================
-# EXCEPCIONES CUSTOM
+# EXCEPCIONES
 # ============================================================================
 
 class SchemaError(Exception):
-    """Clase base para errores de esquema."""
-    pass
+    """Clase raíz para errores del esquema de datos."""
+
 
 class ValidationError(SchemaError):
-    """Error de validación de datos."""
-    pass
+    """Datos que violan un invariante de dominio."""
+
 
 class InvalidTipoInsumoError(ValidationError):
-    """El tipo de insumo no es válido."""
-    pass
+    """El tipo de insumo proporcionado no pertenece a la enumeración."""
+
 
 class InsumoDataError(ValidationError):
-    """Error en los datos constitutivos del insumo."""
-    pass
+    """Error en los datos constitutivos de un insumo."""
+
 
 class UnitNormalizationError(SchemaError):
-    """Error durante la normalización de unidades."""
-    pass
+    """Fallo irrecuperable durante la normalización de unidades."""
 
 
 # ============================================================================
-# FUNCIONES DE NORMALIZACIÓN
+# FUNCIONES DE NORMALIZACIÓN (puras e idempotentes)
 # ============================================================================
 
 @lru_cache(maxsize=512)
 def normalize_unit(unit: Optional[str]) -> str:
     """
-    Normaliza una unidad de medida a su forma canónica.
-    Usa una caché case-insensitive para optimizar búsquedas repetitivas.
+    Proyecta una unidad de medida a su forma canónica.
 
-    Args:
-        unit (str | None): Unidad de entrada (ej. "Mts", "kgs").
+    La función es **idempotente**: ``normalize_unit(normalize_unit(x)) == normalize_unit(x)``.
 
-    Returns:
-        str: Unidad normalizada (ej. "M", "KG") o "UNIDAD" por defecto.
+    Parameters
+    ----------
+    unit : str | None
+        Unidad cruda (e.g. ``"Mts"``, ``"kgs"``).
+
+    Returns
+    -------
+    str
+        Forma canónica (e.g. ``"M"``, ``"KG"``) o ``"UNIDAD"`` por defecto.
     """
     if not isinstance(unit, str) or not unit.strip():
         return "UNIDAD"
 
-    normalized_key = unit.strip().lower()
-
-    if normalized_key in UNIDAD_NORMALIZADA_MAP:
-        return UNIDAD_NORMALIZADA_MAP[normalized_key]
-
-    return unit.strip().upper()
+    key = unit.strip().lower()
+    return UNIDAD_NORMALIZADA_MAP.get(key, unit.strip().upper())
 
 
 @lru_cache(maxsize=1024)
 def normalize_description(desc: Optional[str]) -> str:
     """
-    Normaliza descripciones eliminando acentos y caracteres especiales no permitidos.
-    Trunca a MAX_DESCRIPCION_LENGTH.
+    Normaliza descripciones: elimina diacríticos, caracteres no permitidos
+    y trunca a ``MAX_DESCRIPCION_LENGTH``.
 
-    Args:
-        desc (str | None): Descripción original.
+    Parameters
+    ----------
+    desc : str | None
 
-    Returns:
-        str: Descripción normalizada en ASCII mayúsculas.
+    Returns
+    -------
+    str
+        Cadena ASCII en mayúsculas, limpia y acotada.
     """
     if not isinstance(desc, str) or not desc:
         return ""
-    desc = unicodedata.normalize("NFD", desc)
-    desc = desc.encode("ASCII", "ignore").decode("ASCII")
-    desc = re.sub(r"[^\w\s\-./()=]", "", desc)
-    desc = re.sub(r"\s+", " ", desc.strip())
-    # Truncar para cumplir con MAX_DESCRIPCION_LENGTH antes de validación
-    return desc.upper()[:MAX_DESCRIPCION_LENGTH]
+
+    nfkd = unicodedata.normalize("NFD", desc)
+    ascii_only = nfkd.encode("ASCII", "ignore").decode("ASCII")
+    cleaned = re.sub(r"[^\w\s\-./()=]", "", ascii_only)
+    collapsed = re.sub(r"\s+", " ", cleaned.strip())
+    return collapsed.upper()[:MAX_DESCRIPCION_LENGTH]
 
 
 @lru_cache(maxsize=256)
 def normalize_codigo(codigo: Optional[str]) -> str:
     """
-    Normaliza un código APU eliminando caracteres inválidos y validando longitud.
+    Normaliza un código APU: elimina caracteres inválidos y valida longitud.
 
-    Orden de operaciones:
-    1. Validar existencia.
-    2. Limpiar caracteres no alfanuméricos (excepto . y -).
-    3. Validar longitud resultante.
+    Parameters
+    ----------
+    codigo : str | None
 
-    Args:
-        codigo (str | None): Código original.
+    Returns
+    -------
+    str
+        Código normalizado en mayúsculas.
 
-    Returns:
-        str: Código normalizado.
-
-    Raises:
-        ValidationError: Si el código es inválido o vacío tras limpieza.
+    Raises
+    ------
+    ValidationError
+        Si el código es nulo, vacío tras limpieza, o excede la longitud máxima.
     """
     if not codigo or not isinstance(codigo, str):
         raise ValidationError("Código APU no puede estar vacío")
 
-    codigo_clean = re.sub(r"[^\w\-.]", "", codigo.strip().upper())
+    clean = re.sub(r"[^\w\-.]", "", codigo.strip().upper())
 
-    if not codigo_clean:
-        raise ValidationError("Código APU vacío tras normalización")
-
-    if len(codigo_clean) > MAX_CODIGO_LENGTH:
+    if not clean:
         raise ValidationError(
-            f"Código APU excede límite: {len(codigo_clean)} > {MAX_CODIGO_LENGTH}"
+            f"Código APU vacío tras normalización (original: '{codigo}')"
         )
 
-    return codigo_clean
+    if len(clean) > MAX_CODIGO_LENGTH:
+        raise ValidationError(
+            f"Código APU excede límite: {len(clean)} > {MAX_CODIGO_LENGTH}"
+        )
+
+    return clean
+
+
+def _deterministic_short_hash(text: str, length: int = 8) -> str:
+    """
+    Genera un hash corto determinista basado en SHA-256.
+
+    A diferencia de ``hash()`` de Python, el resultado es reproducible
+    entre ejecuciones y plataformas.
+
+    Parameters
+    ----------
+    text : str
+        Texto de entrada.
+    length : int
+        Longitud del hash hexadecimal resultante (máx. 64).
+
+    Returns
+    -------
+    str
+        Subcadena hexadecimal de ``length`` caracteres.
+    """
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return digest[:length]
 
 
 # ============================================================================
@@ -289,84 +389,104 @@ def normalize_codigo(codigo: Optional[str]) -> str:
 # ============================================================================
 
 class NumericValidator:
-    """Validador numérico con soporte para tolerancias relativas y absolutas y chequeo de finitud."""
+    """
+    Validador numérico con soporte para tolerancias relativas y absolutas.
+
+    Todos los métodos son estáticos y sin estado para facilitar la composición
+    y el testing.
+    """
 
     @staticmethod
     def validate_non_negative(
         value: Union[int, float, Decimal],
         field_name: str,
         min_value: float = 0.0,
-        max_value: Optional[float] = None
+        max_value: Optional[float] = None,
     ) -> float:
         """
-        Valida que un valor sea numérico, finito y no negativo dentro de un rango.
+        Valida que *value* sea numérico, finito y esté en ``[min_value, max_value]``.
 
-        Args:
-            value: Valor a validar.
-            field_name: Nombre del campo para el mensaje de error.
-            min_value: Límite inferior (inclusivo).
-            max_value: Límite superior (opcional, inclusivo).
+        Parameters
+        ----------
+        value : int | float | Decimal
+        field_name : str
+            Nombre del campo (para mensajes de error).
+        min_value : float
+            Cota inferior inclusiva.
+        max_value : float | None
+            Cota superior inclusiva (``None`` = sin cota).
 
-        Returns:
-            float: Valor validado convertido a float.
+        Returns
+        -------
+        float
+            Valor convertido a ``float``.
 
-        Raises:
-            ValidationError: Si el valor no cumple las condiciones.
+        Raises
+        ------
+        ValidationError
         """
         if not isinstance(value, (int, float, Decimal)):
-            raise ValidationError(f"{field_name} debe ser numérico, recibido: {type(value).__name__}")
+            raise ValidationError(
+                f"{field_name} debe ser numérico, recibido: {type(value).__name__}"
+            )
 
         try:
-            float_value = float(value)
-        except (ValueError, TypeError, OverflowError) as e:
-            raise ValidationError(f"No se puede convertir {field_name} a float: {e}")
+            fval = float(value)
+        except (ValueError, TypeError, OverflowError) as exc:
+            raise ValidationError(
+                f"No se puede convertir {field_name} a float: {exc}"
+            ) from exc
 
-        if not math.isfinite(float_value):
-            raise ValidationError(f"{field_name} debe ser finito, recibido: {float_value}")
+        if not math.isfinite(fval):
+            raise ValidationError(
+                f"{field_name} debe ser finito, recibido: {fval}"
+            )
 
-        if float_value < min_value:
-            raise ValidationError(f"{field_name}={float_value} < mínimo={min_value}")
+        if fval < min_value:
+            raise ValidationError(
+                f"{field_name}={fval} < mínimo permitido={min_value}"
+            )
 
-        if max_value is not None and float_value > max_value:
-            raise ValidationError(f"{field_name}={float_value} > máximo={max_value}")
+        if max_value is not None and fval > max_value:
+            raise ValidationError(
+                f"{field_name}={fval} > máximo permitido={max_value}"
+            )
 
-        return float_value
+        return fval
 
     @staticmethod
-    def relative_difference(actual: float, expected: float, epsilon: float = 1e-10) -> float:
-        """
-        Calcula la diferencia relativa simétrica entre dos valores.
+    def relative_difference(
+        actual: float, expected: float, epsilon: float = 1e-10
+    ) -> float:
+        r"""
+        Diferencia relativa simétrica:
 
-        Fórmula:
-        $$ \Delta_{rel} = \frac{|a - b|}{\max(|a|, |b|, \epsilon)} $$
+        .. math::
+            \Delta_{\text{rel}} = \frac{|a - b|}{\max(|a|,\;|b|,\;\varepsilon)}
 
-        Usa el máximo de los valores absolutos como denominador para asegurar simetría
-        y estabilidad numérica cerca de cero.
+        El denominador usa ``epsilon`` como piso para evitar división por cero
+        cuando ambos operandos son cercanos a cero.
         """
         if actual == expected:
             return 0.0
-
-        denominator = max(abs(actual), abs(expected), epsilon)
-        return abs(actual - expected) / denominator
+        denom = max(abs(actual), abs(expected), epsilon)
+        return abs(actual - expected) / denom
 
     @staticmethod
     def values_consistent(
         actual: float,
         expected: float,
         rel_tolerance: float = 0.01,
-        abs_tolerance: float = 0.01
+        abs_tolerance: float = 0.01,
     ) -> Tuple[bool, float]:
         """
-        Verifica consistencia entre valores usando una tolerancia híbrida (relativa + absoluta).
+        Consistencia híbrida: pasa si la diferencia absoluta ≤ ``abs_tolerance``
+        **o** la diferencia relativa ≤ ``rel_tolerance``.
 
-        Args:
-            actual: Valor observado.
-            expected: Valor esperado.
-            rel_tolerance: Tolerancia relativa (porcentaje).
-            abs_tolerance: Tolerancia absoluta (magnitud fija).
-
-        Returns:
-            Tuple[bool, float]: (Es consistente, Diferencia relativa calculada)
+        Returns
+        -------
+        tuple[bool, float]
+            ``(es_consistente, diferencia_relativa)``
         """
         abs_diff = abs(actual - expected)
 
@@ -378,33 +498,41 @@ class NumericValidator:
 
 
 class StringValidator:
-    """Validador de cadenas de texto con capacidades de normalización."""
+    """Validador de cadenas de texto."""
 
     @staticmethod
     def validate_non_empty(
-        value: str,
+        value: Any,
         field_name: str,
         max_length: Optional[int] = None,
-        normalize: bool = True
+        *,
+        strip: bool = True,
     ) -> str:
         """
-        Valida que un string no sea vacío ni nulo.
+        Garantiza que *value* sea ``str``, no vacío y dentro de longitud.
 
-        Args:
-            value: Valor string.
-            field_name: Nombre del campo.
-            max_length: Longitud máxima permitida.
-            normalize: Si se debe aplicar strip().
+        Parameters
+        ----------
+        value : Any
+        field_name : str
+        max_length : int | None
+        strip : bool
+            Aplicar ``str.strip()`` antes de validar.
 
-        Returns:
-            str: String validado.
+        Returns
+        -------
+        str
+
+        Raises
+        ------
+        ValidationError
         """
         if not isinstance(value, str):
             raise ValidationError(
-                f"{field_name} debe ser string, recibido: {type(value).__name__}"
+                f"{field_name} debe ser str, recibido: {type(value).__name__}"
             )
 
-        cleaned = value.strip() if normalize else value
+        cleaned = value.strip() if strip else value
 
         if not cleaned:
             raise ValidationError(f"{field_name} no puede estar vacío")
@@ -418,86 +546,108 @@ class StringValidator:
 
 
 # ============================================================================
-# CLASE BASE INMUTABLE
+# NODO TOPOLÓGICO BASE
 # ============================================================================
 
-@dataclass(kw_only=True)
+@dataclass
 class TopologicalNode:
     """
-    Nodo base para el grafo topológico del proyecto.
-    Define las propiedades comunes de cualquier entidad en la jerarquía.
+    Nodo base en el grafo topológico del proyecto.
+
+    Define las propiedades comunes de cualquier entidad jerárquica.
+    El campo ``structural_health`` ∈ [0, 1] resume la calidad estructural
+    del nodo.
     """
+
     id: str = field(default="")
     stratum: Stratum = field(default=Stratum.PHYSICS)
     description: str = field(default="")
-    structural_health: float = 1.0
-    is_floating: bool = False
-
-    def validate_connectivity(self):
-        """Valida las reglas de conectividad topológica."""
-        if self.stratum == Stratum.PHYSICS and hasattr(self, "children") and self.children:
-            raise ValueError(f"Violación de Invariante: Nodo Físico ({self.id}) con hijos.")
+    structural_health: float = field(default=1.0)
 
 
-@dataclass(frozen=False)
+# ============================================================================
+# INSUMO PROCESADO (Nodo hoja — Nivel 3: Física)
+# ============================================================================
+
+@dataclass
 class InsumoProcesado(TopologicalNode):
     """
-    Estructura base para cualquier insumo de APU.
-    Representa un nodo hoja en el grafo de dependencias (Nivel 3 - Física/Logística).
-    Implementa validación reactiva durante la inicialización.
-    """
-    codigo_apu: str
-    descripcion_apu: str
-    unidad_apu: str
-    descripcion_insumo: str
-    unidad_insumo: str
-    cantidad: float
-    precio_unitario: float
-    valor_total: float
-    tipo_insumo: str
+    Estructura base para cualquier recurso atómico de un APU.
 
+    Representa un nodo hoja (sin hijos) en el grafo de dependencias.
+    La validación reactiva en ``__post_init__`` garantiza que el objeto
+    **nunca** exista en un estado inválido.
+    """
+
+    # --- Campos obligatorios ---
+    codigo_apu: str = ""
+    descripcion_apu: str = ""
+    unidad_apu: str = ""
+    descripcion_insumo: str = ""
+    unidad_insumo: str = ""
+    cantidad: float = 0.0
+    precio_unitario: float = 0.0
+    valor_total: float = 0.0
+    tipo_insumo: str = ""
+
+    # --- Campos con valor por defecto ---
     capitulo: str = field(default="GENERAL")
-    categoria: str = field(default="OTRO", init=True)
+    categoria: str = field(default="OTRO")
     formato_origen: str = field(default="GENERIC")
     rendimiento: float = field(default=0.0)
     normalized_desc: str = field(default="", init=False)
 
-    _validated: bool = field(default=False, init=False, repr=False)
+    # --- Estado interno (no serializable) ---
+    _validated: bool = field(default=False, init=False, repr=False, compare=False)
 
-    EXPECTED_UNITS: ClassVar[Set[str]] = UNIDADES_GENERICAS
+    # --- Invariantes de clase (sobreescritos en subclases) ---
+    EXPECTED_UNITS: ClassVar[FrozenSet[str]] = UNIDADES_GENERICAS
     REQUIRES_RENDIMIENTO: ClassVar[bool] = False
 
-    def __post_init__(self):
-        """Inicialización con validación completa de invariantes de dominio."""
+    def __post_init__(self) -> None:
+        """Validación completa de invariantes de dominio al nacer."""
         try:
             self.stratum = Stratum.PHYSICS
             self.description = self.descripcion_insumo
 
-            self._normalize_all_fields()
+            self._normalize_fields()
             self._validate_required_fields()
             self._validate_numeric_fields()
             self._validate_consistency()
 
-            # Generar ID único basado en contenido para trazabilidad
-            self.id = f"{self.codigo_apu}_{hash(self.descripcion_insumo) % 10000:04d}"
+            # ID determinista basado en contenido
+            content_key = f"{self.codigo_apu}|{self.descripcion_insumo}"
+            self.id = f"{self.codigo_apu}_{_deterministic_short_hash(content_key)}"
 
             self._post_validation_hook()
             self._validated = True
 
-        except Exception as e:
-            logger.error(f"Error inicializando {self.__class__.__name__}: {e}")
+        except Exception:
+            logger.error(
+                "Error inicializando %s (codigo_apu=%r)",
+                self.__class__.__name__,
+                getattr(self, "codigo_apu", "?"),
+                exc_info=True,
+            )
             raise
+
+    # ------------------------------------------------------------------
+    # Propiedades
+    # ------------------------------------------------------------------
 
     @property
     def total_cost(self) -> float:
-        """
-        Costo total calculado del insumo.
-        $$ Costo = Cantidad \times Precio Unitario $$
+        r"""
+        Costo calculado: :math:`C = q \times p`.
         """
         return self.cantidad * self.precio_unitario
 
-    def _normalize_all_fields(self):
-        """Normaliza todos los campos de texto a su forma canónica."""
+    # ------------------------------------------------------------------
+    # Normalización
+    # ------------------------------------------------------------------
+
+    def _normalize_fields(self) -> None:
+        """Proyecta todos los campos de texto a su forma canónica."""
         self.codigo_apu = normalize_codigo(self.codigo_apu)
         self.descripcion_apu = normalize_description(self.descripcion_apu)
         self.descripcion_insumo = normalize_description(self.descripcion_insumo)
@@ -509,18 +659,15 @@ class InsumoProcesado(TopologicalNode):
         self.tipo_insumo = tipo_enum.value
         self.categoria = tipo_enum.value
 
-        formato_upper = str(self.formato_origen).strip().upper()
-        self.formato_origen = formato_upper if formato_upper in FORMATOS_VALIDOS else "GENERIC"
+        fmt = str(self.formato_origen).strip().upper()
+        self.formato_origen = fmt if fmt in FORMATOS_VALIDOS else "GENERIC"
 
-    def _validate_required_fields(self):
-        """Valida la presencia y longitud de campos string obligatorios."""
-        # Auto-correction for empty fields to support robust tests
-        if not self.codigo_apu:
-            self.codigo_apu = "APU_DESCONOCIDO"
-        if not self.descripcion_insumo:
-            self.descripcion_insumo = "INSUMO_SIN_DESCRIPCION"
-            self.normalized_desc = self.descripcion_insumo
+    # ------------------------------------------------------------------
+    # Validaciones
+    # ------------------------------------------------------------------
 
+    def _validate_required_fields(self) -> None:
+        """Valida presencia y longitud de campos string obligatorios."""
         StringValidator.validate_non_empty(
             self.codigo_apu, "codigo_apu", MAX_CODIGO_LENGTH
         )
@@ -528,8 +675,8 @@ class InsumoProcesado(TopologicalNode):
             self.descripcion_insumo, "descripcion_insumo", MAX_DESCRIPCION_LENGTH
         )
 
-    def _validate_numeric_fields(self):
-        """Valida rangos y tipos de campos numéricos."""
+    def _validate_numeric_fields(self) -> None:
+        """Valida rangos de todos los campos numéricos."""
         self.cantidad = NumericValidator.validate_non_negative(
             self.cantidad, "cantidad", MIN_CANTIDAD, MAX_CANTIDAD
         )
@@ -543,198 +690,300 @@ class InsumoProcesado(TopologicalNode):
             self.rendimiento, "rendimiento", MIN_RENDIMIENTO, MAX_RENDIMIENTO
         )
 
-        if self.precio_unitario < 0:
-            raise ValidationError(f"Precio negativo no permitido: {self.precio_unitario}")
-
-    def _validate_consistency(self):
-        """Valida consistencia lógica y matemática entre campos."""
+    def _validate_consistency(self) -> None:
+        """Valida coherencia lógica y matemática entre campos."""
         self._validate_valor_total_consistency()
+        self._validate_unit_category()
 
         if self.REQUIRES_RENDIMIENTO and self.rendimiento <= 0:
             warnings.warn(
                 f"Rendimiento debería ser > 0 en {self.codigo_apu}",
                 UserWarning,
-                stacklevel=4
+                stacklevel=5,
             )
 
-    def _validate_valor_total_consistency(self):
-        """
-        Valida la coherencia algebraica: $$ ValorTotal \approx Cantidad \times PrecioUnitario $$
+    def _validate_valor_total_consistency(self) -> None:
+        r"""
+        Verifica: :math:`\text{valor\_total} \approx \text{cantidad} \times \text{precio\_unitario}`.
 
-        Utiliza una tolerancia híbrida (relativa + absoluta) para manejar correctamente
-        tanto valores pequeños (ruido numérico) como grandes.
+        Aplica tolerancia híbrida (absoluta + relativa) en dos niveles:
+        advertencia (1 %) y error (5 %).
         """
-        expected_total = self.cantidad * self.precio_unitario
+        expected = self.cantidad * self.precio_unitario
 
-        if expected_total == 0.0 and self.valor_total == 0.0:
+        # Caso trivial: ambos son cero
+        if expected == 0.0 and self.valor_total == 0.0:
             return
 
-        if expected_total == 0.0 and self.valor_total > 0.0:
+        # Caso imposible: producto es cero pero valor_total no
+        if expected == 0.0 and self.valor_total > 0.0:
             raise ValidationError(
                 f"{self.__class__.__name__} [{self.codigo_apu}]: "
                 f"valor_total={self.valor_total:.2f} pero cantidad×precio=0"
             )
 
-        is_consistent, rel_diff = NumericValidator.values_consistent(
+        # Nivel ERROR (5 %)
+        ok_error, rel_diff = NumericValidator.values_consistent(
             self.valor_total,
-            expected_total,
+            expected,
             rel_tolerance=VALOR_TOTAL_ERROR_TOLERANCE,
-            abs_tolerance=0.01
+            abs_tolerance=0.01,
         )
-
-        if not is_consistent:
+        if not ok_error:
             raise ValidationError(
                 f"{self.__class__.__name__} [{self.codigo_apu}]: "
                 f"Inconsistencia grave: valor_total={self.valor_total:.2f} vs "
-                f"calculado={expected_total:.2f} (Δ={rel_diff:.2%})"
+                f"calculado={expected:.2f} (Δ={rel_diff:.2%})"
             )
 
-        is_warning_level, rel_diff = NumericValidator.values_consistent(
+        # Nivel WARNING (1 %)
+        ok_warn, rel_diff = NumericValidator.values_consistent(
             self.valor_total,
-            expected_total,
+            expected,
             rel_tolerance=VALOR_TOTAL_WARNING_TOLERANCE,
-            abs_tolerance=0.01
+            abs_tolerance=0.01,
         )
-
-        if not is_warning_level:
+        if not ok_warn:
             warnings.warn(
                 f"{self.__class__.__name__} [{self.codigo_apu}]: "
-                f"Divergencia: valor_total={self.valor_total:.2f} vs "
-                f"calculado={expected_total:.2f}",
+                f"Divergencia leve: valor_total={self.valor_total:.2f} vs "
+                f"calculado={expected:.2f} (Δ={rel_diff:.2%})",
                 UserWarning,
-                stacklevel=4
+                stacklevel=6,
             )
 
-    def _post_validation_hook(self):
+    def _validate_unit_category(self) -> None:
+        """
+        Verifica que la unidad del insumo pertenezca a las categorías
+        esperadas por la subclase.
+
+        Emite advertencia (no error) para no bloquear formatos desconocidos.
+        """
+        if not self.EXPECTED_UNITS:
+            return  # Subclase sin restricción (e.g., Otro)
+
+        if self.unidad_insumo not in self.EXPECTED_UNITS:
+            warnings.warn(
+                f"{self.__class__.__name__} [{self.codigo_apu}]: "
+                f"Unidad '{self.unidad_insumo}' no está en las unidades esperadas "
+                f"{self.EXPECTED_UNITS}",
+                UserWarning,
+                stacklevel=5,
+            )
+
+    def _post_validation_hook(self) -> None:
         """Hook para validaciones específicas de subclases."""
-        pass
+
+    # ------------------------------------------------------------------
+    # Serialización
+    # ------------------------------------------------------------------
 
     def to_dict(self) -> Dict[str, Any]:
-        """Serializa el objeto a diccionario, excluyendo campos internos."""
+        """Serializa a diccionario, excluyendo campos internos con prefijo ``_``."""
         data = asdict(self)
-        data.pop("_validated", None)
-        return data
+        return {k: v for k, v in data.items() if not k.startswith("_")}
 
-    def validate(self) -> bool:
-        """Retorna el estado de validación del objeto."""
+    @property
+    def is_valid(self) -> bool:
+        """Estado de validación del objeto."""
         return self._validated
 
+
+# ============================================================================
+# ESTRUCTURA APU (Nodo interno — Nivel 2: Táctica)
+# ============================================================================
 
 @dataclass
 class APUStructure(TopologicalNode):
     """
-    Representa una actividad constructiva en el Nivel 2 (Táctica).
-    Agrega recursos (insumos) y calcula métricas de estabilidad topológica.
+    Actividad constructiva en el Nivel 2 (Táctica).
+
+    Agrega recursos (``InsumoProcesado``) y calcula métricas de
+    estabilidad topológica basadas en entropía de Shannon y diversidad
+    categórica.
     """
+
     unit: str = ""
     quantity: float = 0.0
     resources: List[InsumoProcesado] = field(default_factory=list)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.stratum = Stratum.TACTICS
+
+    # ------------------------------------------------------------------
+    # Propiedades estructurales
+    # ------------------------------------------------------------------
 
     @property
     def support_base_width(self) -> int:
-        """Número de recursos que componen el APU (ancho de la base de soporte)."""
+        """Número de recursos (ancho de la base de soporte)."""
         return len(self.resources)
 
     @property
     def is_inverted_pyramid(self) -> bool:
         """
-        Detecta si el APU es una 'Pirámide Invertida'.
-        Esto ocurre cuando hay una gran cantidad táctica soportada por un único recurso logístico.
+        Detecta configuración degenerada: cantidad táctica grande
+        soportada por un único recurso.
         """
         return self.quantity > 1000 and self.support_base_width == 1
 
+    @property
+    def total_cost(self) -> float:
+        """Costo total del APU como suma de valores de sus recursos."""
+        return sum(r.valor_total for r in self.resources)
+
+    # ------------------------------------------------------------------
+    # Métricas topológicas
+    # ------------------------------------------------------------------
+
     def topological_stability_index(self) -> float:
-        """
-        Calcula el Índice de Estabilidad Topológica ($\Psi$) en el intervalo [0.0, 1.0].
+        r"""
+        Índice de Estabilidad Topológica :math:`\Psi \in [0, 1]`.
 
-        Combina dos métricas fundamentales:
-        1. **Diversidad de tipos (Cualitativa):** Penaliza la mono-dependencia de un solo tipo de recurso.
-        2. **Entropía de Shannon (Cuantitativa):** Mide la distribución de costos entre los recursos.
+        Combina dos componentes complementarias:
 
-        Fórmula de Entropía Normalizada:
-        $$ H_{norm} = \\frac{-\\sum p_i \cdot \ln(p_i)}{\ln(n)} $$
-        donde $p_i$ es la fracción del costo total del recurso $i$, y $n$ es el número de recursos.
+        1. **Diversidad categórica** (*cualitativa*):
 
-        Returns:
-            float: Índice de estabilidad (Mayor es más estable).
+           .. math::
+               D = \frac{|\{\text{tipos únicos}\}|}{|\text{TipoInsumo}|}
+
+           Penaliza mono-dependencia de un solo tipo de recurso.  Se normaliza
+           contra el número total de tipos existentes en la enumeración (5),
+           no un valor arbitrario.
+
+        2. **Entropía de Shannon normalizada** (*cuantitativa*):
+
+           .. math::
+               H_{\text{norm}} = \frac{-\sum_{i} p_i \ln p_i}{\ln n}
+
+           donde :math:`p_i = v_i / \sum v_j` es la fracción de costo del
+           recurso *i* y *n* es el número de recursos.
+
+        La ponderación final sigue una media geométrica ponderada para
+        que ambos factores sean *necesarios* (no solo *suficientes*):
+
+        .. math::
+            \Psi = D^{0.4} \cdot H_{\text{norm}}^{0.6}
+
+        Esto evita que un APU con alta entropía pero un solo tipo de
+        insumo obtenga un índice artificialmente alto.
+
+        Returns
+        -------
+        float
+            Índice en [0, 1].  Mayor = más estable.
         """
         if not self.resources:
             return 0.0
 
         n = len(self.resources)
+        num_tipos_existentes = len(TipoInsumo)
 
+        # --- Diversidad ---
         tipos_unicos = {r.tipo_insumo for r in self.resources}
-        num_tipos = len(tipos_unicos)
-        diversidad_score = min(num_tipos / 3.0, 1.0)
+        diversidad = len(tipos_unicos) / num_tipos_existentes
 
         if n == 1:
-            # Si solo hay un recurso, la entropía es 0, retornamos solo la diversidad ponderada.
-            return diversidad_score * 0.4
+            # Un solo recurso → entropía = 0, retornamos solo diversidad escalada
+            return diversidad ** 0.4 * 0.0  # 0^0.6 = 0 → resultado 0
 
+        # --- Entropía de Shannon ---
         valores = [max(r.valor_total, 0.0) for r in self.resources]
         total_valor = sum(valores)
 
         if total_valor <= 0:
-            return diversidad_score * 0.4
-
-        probabilidades = [v / total_valor for v in valores]
+            return 0.0
 
         entropia = 0.0
-        for p in probabilidades:
-            if p > 0:
+        for v in valores:
+            if v > 0:
+                p = v / total_valor
                 entropia -= p * math.log(p)
 
-        # Normalizar H con H_max = ln(n)
-        entropia_maxima = math.log(n)
-        entropia_normalizada = entropia / entropia_maxima if entropia_maxima > 0 else 0.0
-        entropia_normalizada = min(max(entropia_normalizada, 0.0), 1.0)
+        h_max = math.log(n)
+        h_norm = (entropia / h_max) if h_max > 0 else 0.0
+        h_norm = max(0.0, min(h_norm, 1.0))
 
-        # Ponderación: 40% Diversidad, 60% Entropía de Costos
-        return (diversidad_score * 0.4) + (entropia_normalizada * 0.6)
+        # Media geométrica ponderada: ambos factores deben contribuir
+        return (diversidad ** 0.4) * (h_norm ** 0.6)
+
+    # ------------------------------------------------------------------
+    # Mutación controlada
+    # ------------------------------------------------------------------
 
     def add_resource(self, resource: InsumoProcesado) -> None:
         """
-        Agrega un recurso a la estructura, validando el invariante de estrato.
-        Solo se permiten nodos de nivel PHYSICS (Insumos) en nodos TACTICS (APUs).
+        Agrega un recurso validando el invariante de estrato.
+
+        Parameters
+        ----------
+        resource : InsumoProcesado
+            Debe tener ``stratum == Stratum.PHYSICS``.
+
+        Raises
+        ------
+        TypeError
+            Si *resource* no es ``InsumoProcesado`` o tiene estrato incorrecto.
         """
         if not isinstance(resource, InsumoProcesado):
-            raise TypeError(f"Se esperaba InsumoProcesado, recibido: {type(resource).__name__}")
+            raise TypeError(
+                f"Se esperaba InsumoProcesado, recibido: {type(resource).__name__}"
+            )
 
         if resource.stratum != Stratum.PHYSICS:
             raise TypeError(
-                f"Solo se admiten nodos PHYSICS en APUStructure, "
+                f"Solo nodos PHYSICS se admiten en APUStructure, "
                 f"recibido: {resource.stratum.name}"
             )
 
         self.resources.append(resource)
 
+    # ------------------------------------------------------------------
+    # Consultas
+    # ------------------------------------------------------------------
+
     def get_cost_breakdown(self) -> Dict[str, float]:
-        """Retorna la distribución de costos agrupada por tipo de insumo."""
+        """Distribución de costos agrupada por tipo de insumo."""
         breakdown: Dict[str, float] = {}
-        for resource in self.resources:
-            tipo = resource.tipo_insumo
-            breakdown[tipo] = breakdown.get(tipo, 0.0) + resource.valor_total
+        for r in self.resources:
+            breakdown[r.tipo_insumo] = breakdown.get(r.tipo_insumo, 0.0) + r.valor_total
         return breakdown
 
+    def get_cost_fractions(self) -> Dict[str, float]:
+        """
+        Fracción porcentual de cada tipo de insumo respecto al costo total.
+
+        Returns
+        -------
+        dict[str, float]
+            Valores en [0, 1] que suman ≈ 1.0.
+        """
+        breakdown = self.get_cost_breakdown()
+        total = sum(breakdown.values())
+        if total <= 0:
+            return {k: 0.0 for k in breakdown}
+        return {k: v / total for k, v in breakdown.items()}
+
 
 # ============================================================================
-# CLASES ESPECÍFICAS
+# SUBCLASES ESPECIALIZADAS
 # ============================================================================
 
-@dataclass(frozen=False)
+@dataclass
 class ManoDeObra(InsumoProcesado):
     """
-    Insumo de tipo Mano de Obra.
-    Requiere validación estricta de rendimiento (1/Rendimiento ≈ Cantidad).
+    Recurso de tipo Mano de Obra.
+
+    Valida que :math:`\text{cantidad} \approx 1 / \text{rendimiento}` cuando
+    el rendimiento es positivo.
     """
-    EXPECTED_UNITS: ClassVar[Set[str]] = UNIDADES_TIEMPO
+
+    EXPECTED_UNITS: ClassVar[FrozenSet[str]] = UNIDADES_TIEMPO
     REQUIRES_RENDIMIENTO: ClassVar[bool] = True
+
     jornal: float = field(default=0.0)
 
-    def _post_validation_hook(self):
+    def _post_validation_hook(self) -> None:
         super()._post_validation_hook()
 
         if self.jornal != 0.0:
@@ -743,54 +992,71 @@ class ManoDeObra(InsumoProcesado):
             )
 
         if self.rendimiento > 0:
-            expected_cantidad = 1.0 / self.rendimiento
-
-            is_consistent, rel_diff = NumericValidator.values_consistent(
+            expected_qty = 1.0 / self.rendimiento
+            ok, rel_diff = NumericValidator.values_consistent(
                 self.cantidad,
-                expected_cantidad,
+                expected_qty,
                 rel_tolerance=0.05,
-                abs_tolerance=CANTIDAD_RENDIMIENTO_TOLERANCE
+                abs_tolerance=CANTIDAD_RENDIMIENTO_TOLERANCE,
             )
-
-            if not is_consistent:
+            if not ok:
                 warnings.warn(
                     f"Discrepancia Rendimiento/Cantidad en {self.codigo_apu}: "
-                    f"cantidad={self.cantidad:.4f}, esperada={expected_cantidad:.4f} "
-                    f"(rendimiento={self.rendimiento})",
+                    f"cantidad={self.cantidad:.4f}, esperada={expected_qty:.4f} "
+                    f"(rendimiento={self.rendimiento}, Δ={rel_diff:.2%})",
                     UserWarning,
-                    stacklevel=4
+                    stacklevel=5,
                 )
 
-@dataclass(frozen=False)
+
+@dataclass
 class Equipo(InsumoProcesado):
-    """Insumo de tipo Maquinaria y Equipo."""
-    EXPECTED_UNITS: ClassVar[Set[str]] = UNIDADES_TIEMPO
+    """Recurso de tipo Maquinaria y Equipo."""
+
+    EXPECTED_UNITS: ClassVar[FrozenSet[str]] = UNIDADES_TIEMPO
     REQUIRES_RENDIMIENTO: ClassVar[bool] = False
 
-@dataclass(frozen=False)
+
+@dataclass
 class Suministro(InsumoProcesado):
-    """Insumo de tipo Material/Suministro."""
-    EXPECTED_UNITS: ClassVar[Set[str]] = UNIDADES_MASA | UNIDADES_VOLUMEN | UNIDADES_AREA | UNIDADES_LONGITUD | UNIDADES_GENERICAS
+    """Recurso de tipo Material / Suministro."""
+
+    EXPECTED_UNITS: ClassVar[FrozenSet[str]] = (
+        UNIDADES_MASA
+        | UNIDADES_VOLUMEN
+        | UNIDADES_AREA
+        | UNIDADES_LONGITUD
+        | UNIDADES_GENERICAS
+    )
     REQUIRES_RENDIMIENTO: ClassVar[bool] = False
 
-    def _post_validation_hook(self):
+    def _post_validation_hook(self) -> None:
         super()._post_validation_hook()
         if self.cantidad == 0:
-             warnings.warn(f"Suministro cantidad=0 en {self.codigo_apu}", UserWarning, stacklevel=4)
+            warnings.warn(
+                f"Suministro con cantidad=0 en {self.codigo_apu}",
+                UserWarning,
+                stacklevel=5,
+            )
 
-@dataclass(frozen=False)
+
+@dataclass
 class Transporte(InsumoProcesado):
-    """Insumo de tipo Transporte (Fletes)."""
-    EXPECTED_UNITS: ClassVar[Set[str]] = UNIDADES_TRANSPORTE
+    """Recurso de tipo Transporte (Fletes)."""
+
+    EXPECTED_UNITS: ClassVar[FrozenSet[str]] = UNIDADES_TRANSPORTE
     REQUIRES_RENDIMIENTO: ClassVar[bool] = False
 
-@dataclass(frozen=False)
+
+@dataclass
 class Otro(InsumoProcesado):
-    """Insumo de tipo genérico u otros costos indirectos."""
-    EXPECTED_UNITS: ClassVar[Set[str]] = set()
+    """Recurso genérico u otros costos indirectos."""
+
+    EXPECTED_UNITS: ClassVar[FrozenSet[str]] = frozenset()
     REQUIRES_RENDIMIENTO: ClassVar[bool] = False
 
 
+# --- Registro de clases por tipo ---
 INSUMO_CLASS_MAP: Final[Dict[str, Type[InsumoProcesado]]] = {
     TipoInsumo.MANO_DE_OBRA.value: ManoDeObra,
     TipoInsumo.EQUIPO.value: Equipo,
@@ -801,188 +1067,292 @@ INSUMO_CLASS_MAP: Final[Dict[str, Type[InsumoProcesado]]] = {
 
 
 # ============================================================================
+# CACHÉ DE FIRMAS DE CONSTRUCTOR
+# ============================================================================
+
+@lru_cache(maxsize=32)
+def _get_class_params(cls: Type[InsumoProcesado]) -> FrozenSet[str]:
+    """
+    Obtiene los nombres de parámetros válidos del constructor de *cls*.
+
+    Usa ``lru_cache`` para evitar introspección repetida y elimina la
+    necesidad de un diccionario mutable global.
+    """
+    sig = inspect.signature(cls)
+    return frozenset(sig.parameters.keys())
+
+
+# ============================================================================
 # FACTORY FUNCTIONS
 # ============================================================================
 
-_INSUMO_SIGNATURES: Dict[str, Set[str]] = {}
+# Campos obligatorios para validación de datos crudos
+_REQUIRED_RAW_FIELDS: Final[FrozenSet[str]] = frozenset({
+    "codigo_apu",
+    "descripcion_apu",
+    "unidad_apu",
+    "descripcion_insumo",
+    "unidad_insumo",
+    "tipo_insumo",
+})
 
-def _get_class_params(cls: Type[InsumoProcesado]) -> Set[str]:
-    """Obtiene los parámetros válidos del constructor de una clase, con caché."""
-    cls_name = cls.__name__
-    if cls_name not in _INSUMO_SIGNATURES:
-        import inspect
-        sig = inspect.signature(cls)
-        _INSUMO_SIGNATURES[cls_name] = set(sig.parameters.keys())
-    return _INSUMO_SIGNATURES[cls_name]
+# Campos numéricos con sus valores por defecto
+_NUMERIC_FIELDS: Final[Dict[str, float]] = {
+    "cantidad": 0.0,
+    "precio_unitario": 0.0,
+    "valor_total": 0.0,
+    "rendimiento": 0.0,
+    "jornal": 0.0,
+}
+
+# Valores por defecto para campos no numéricos
+_STRING_DEFAULTS: Final[Dict[str, str]] = {
+    "capitulo": "GENERAL",
+    "categoria": "OTRO",
+    "formato_origen": "GENERIC",
+}
 
 
 def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Valida, limpia y normaliza un diccionario de datos crudos de insumo.
-    Aplica valores por defecto y convierte tipos.
+    Valida, limpia y normaliza un diccionario de datos crudos.
 
-    Args:
-        insumo_data: Diccionario con datos del insumo (raw).
+    Pipeline:
+      1. Verificar tipo del contenedor.
+      2. Verificar campos obligatorios.
+      3. Convertir y validar campos numéricos.
+      4. Aplicar valores por defecto.
+      5. Normalizar ``tipo_insumo``.
+      6. Calcular ``valor_total`` si está ausente.
 
-    Returns:
-        Dict[str, Any]: Datos validados y tipados listos para el constructor.
+    Parameters
+    ----------
+    insumo_data : dict[str, Any]
+        Datos crudos del insumo.
 
-    Raises:
-        ValidationError: Si faltan campos obligatorios o hay tipos inválidos.
+    Returns
+    -------
+    dict[str, Any]
+        Diccionario limpio y tipado, listo para el constructor.
+
+    Raises
+    ------
+    ValidationError
+        Si faltan campos obligatorios o hay valores inválidos.
     """
     if not isinstance(insumo_data, dict):
-        raise ValidationError(f"insumo_data debe ser dict, recibido: {type(insumo_data).__name__}")
+        raise ValidationError(
+            f"insumo_data debe ser dict, recibido: {type(insumo_data).__name__}"
+        )
 
-    required_fields = frozenset({
-        "codigo_apu", "descripcion_apu", "unidad_apu",
-        "descripcion_insumo", "unidad_insumo", "tipo_insumo"
-    })
-
-    missing = [f for f in required_fields if f not in insumo_data or insumo_data[f] is None]
+    # 1. Campos obligatorios
+    missing = [
+        f for f in _REQUIRED_RAW_FIELDS
+        if f not in insumo_data or insumo_data[f] is None
+    ]
     if missing:
-        raise ValidationError(f"Campos obligatorios faltantes: {missing}")
-
-    defaults = {
-        "cantidad": 0.0,
-        "precio_unitario": 0.0,
-        "valor_total": 0.0,
-        "capitulo": "GENERAL",
-        "categoria": "OTRO",
-        "formato_origen": "GENERIC",
-        "rendimiento": 0.0,
-        "jornal": 0.0,
-    }
-
-    numeric_fields = frozenset({"cantidad", "precio_unitario", "valor_total", "rendimiento", "jornal"})
+        raise ValidationError(f"Campos obligatorios faltantes: {sorted(missing)}")
 
     cleaned: Dict[str, Any] = {}
 
+    # 2. Procesar cada campo
     for key, value in insumo_data.items():
         if value is None:
-            if key in defaults:
-                cleaned[key] = defaults[key]
+            # Aplicar default si existe
+            if key in _NUMERIC_FIELDS:
+                cleaned[key] = _NUMERIC_FIELDS[key]
+            elif key in _STRING_DEFAULTS:
+                cleaned[key] = _STRING_DEFAULTS[key]
             continue
 
-        if key in numeric_fields:
+        if key in _NUMERIC_FIELDS:
             try:
-                float_val = float(value)
-                if float_val < 0:
-                    raise ValidationError(f"Campo '{key}' no puede ser negativo: {float_val}")
-                if not math.isfinite(float_val):
-                    raise ValidationError(f"Campo '{key}' debe ser finito: {float_val}")
-                cleaned[key] = float_val
-            except (ValueError, TypeError) as e:
-                raise ValidationError(f"Campo '{key}' debe ser numérico: {e}")
+                fval = float(value)
+            except (ValueError, TypeError) as exc:
+                raise ValidationError(
+                    f"Campo '{key}' debe ser numérico: {exc}"
+                ) from exc
+
+            if not math.isfinite(fval):
+                raise ValidationError(f"Campo '{key}' debe ser finito: {fval}")
+            if fval < 0:
+                raise ValidationError(
+                    f"Campo '{key}' no puede ser negativo: {fval}"
+                )
+            cleaned[key] = fval
         else:
             cleaned[key] = value
 
-    for key, default_val in defaults.items():
-        if key not in cleaned:
-            cleaned[key] = default_val
+    # 3. Defaults para campos ausentes
+    for key, default in {**_NUMERIC_FIELDS, **_STRING_DEFAULTS}.items():
+        cleaned.setdefault(key, default)
 
+    # 4. Normalizar tipo
     try:
         tipo = TipoInsumo.from_string(cleaned["tipo_insumo"])
         cleaned["tipo_insumo"] = tipo.value
         cleaned["categoria"] = tipo.value
-    except InvalidTipoInsumoError as e:
-        raise ValidationError(str(e))
+    except InvalidTipoInsumoError as exc:
+        raise ValidationError(str(exc)) from exc
 
+    # 5. Calcular valor_total si no fue proporcionado
     if cleaned.get("valor_total", 0.0) == 0.0:
-        cleaned["valor_total"] = cleaned.get("cantidad", 0.0) * cleaned.get("precio_unitario", 0.0)
+        cleaned["valor_total"] = (
+            cleaned.get("cantidad", 0.0) * cleaned.get("precio_unitario", 0.0)
+        )
 
     return cleaned
 
 
-def create_insumo(**kwargs) -> InsumoProcesado:
+def create_insumo(**kwargs: Any) -> InsumoProcesado:
     """
-    Factory function principal para instanciar Insumos.
-    Determina la clase correcta basada en 'tipo_insumo' y filtra los argumentos.
+    Factory principal: instancia la subclase correcta de ``InsumoProcesado``.
 
-    Args:
-        **kwargs: Argumentos para el insumo (deben incluir 'tipo_insumo').
+    Parameters
+    ----------
+    **kwargs
+        Deben incluir ``tipo_insumo``.
 
-    Returns:
-        InsumoProcesado: Instancia de la subclase correcta (ManoDeObra, Equipo, etc.).
+    Returns
+    -------
+    InsumoProcesado
+        Instancia validada de la subclase correspondiente.
 
-    Raises:
-        ValidationError: Si falta 'tipo_insumo' o hay error de validación interna.
-        InsumoDataError: Para errores fatales inesperados.
+    Raises
+    ------
+    ValidationError
+        Si falta ``tipo_insumo`` o la validación interna falla.
+    InsumoDataError
+        Para errores fatales inesperados.
     """
     if "tipo_insumo" not in kwargs:
         raise ValidationError("Falta campo obligatorio: tipo_insumo")
 
-    try:
-        tipo_enum = TipoInsumo.from_string(kwargs["tipo_insumo"])
-        tipo_value = tipo_enum.value
-    except InvalidTipoInsumoError:
-        raise
+    tipo_enum = TipoInsumo.from_string(kwargs["tipo_insumo"])
+    tipo_value = tipo_enum.value
 
     kwargs["tipo_insumo"] = tipo_value
     kwargs["categoria"] = tipo_value
 
     insumo_class = INSUMO_CLASS_MAP.get(tipo_value)
     if insumo_class is None:
-        raise InvalidTipoInsumoError(f"Clase no registrada para tipo: {tipo_value}")
+        raise InvalidTipoInsumoError(
+            f"Clase no registrada para tipo: {tipo_value}"
+        )
 
     valid_params = _get_class_params(insumo_class)
-    filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_params}
+    filtered = {k: v for k, v in kwargs.items() if k in valid_params}
 
     try:
-        return insumo_class(**filtered_kwargs)
-    except TypeError as e:
-        raise ValidationError(f"Error instanciando {insumo_class.__name__}: {e}")
-    except Exception as e:
-        logger.error(f"Error creando insumo tipo {tipo_value}: {e}", exc_info=True)
-        raise InsumoDataError(f"Error fatal creando insumo: {e}")
+        return insumo_class(**filtered)
+    except ValidationError:
+        raise
+    except TypeError as exc:
+        raise ValidationError(
+            f"Error instanciando {insumo_class.__name__}: {exc}"
+        ) from exc
+    except Exception as exc:
+        logger.error(
+            "Error creando insumo tipo %s: %s", tipo_value, exc, exc_info=True
+        )
+        raise InsumoDataError(f"Error fatal creando insumo: {exc}") from exc
+
 
 def create_insumo_from_raw(raw_data: Dict[str, Any]) -> InsumoProcesado:
     """
-    Crea una instancia de insumo directamente desde datos crudos.
+    Crea un insumo desde datos crudos (pipeline completo).
 
-    Pipeline de construcción:
-    1. `validate_insumo_data`: Limpieza y tipado básico.
-    2. `create_insumo`: Selección de clase Factory y construcción del objeto.
-    3. `__post_init__` (interno): Validación de invariantes de dominio.
+    Pipeline::
 
-    Args:
-        raw_data: Diccionario de datos crudos.
+        raw_data → validate_insumo_data() → create_insumo() → __post_init__()
 
-    Returns:
-        InsumoProcesado: Instancia validada.
+    Parameters
+    ----------
+    raw_data : dict[str, Any]
+        Datos crudos provenientes de un parser o API.
+
+    Returns
+    -------
+    InsumoProcesado
     """
     validated = validate_insumo_data(raw_data)
     return create_insumo(**validated)
 
+
 # ============================================================================
-# FUNCIONES DE UTILIDAD (Legacy Compatibility)
+# FUNCIONES DE UTILIDAD (Compatibilidad)
 # ============================================================================
 
 def get_tipo_insumo_class(tipo: Union[str, TipoInsumo]) -> Type[InsumoProcesado]:
+    """Resuelve la clase correspondiente a un tipo de insumo."""
     tipo_enum = TipoInsumo.from_string(tipo)
-    insumo_class = INSUMO_CLASS_MAP.get(tipo_enum.value)
-    if not insumo_class:
-        raise InvalidTipoInsumoError(f"No hay clase definida para tipo: {tipo_enum.value}")
-    return insumo_class
+    cls = INSUMO_CLASS_MAP.get(tipo_enum.value)
+    if cls is None:
+        raise InvalidTipoInsumoError(
+            f"No hay clase definida para tipo: {tipo_enum.value}"
+        )
+    return cls
 
-def get_all_tipo_insumo_values() -> Set[str]:
-    return TipoInsumo.get_valid_values()
+
+def get_all_tipo_insumo_values() -> FrozenSet[str]:
+    """Retorna todos los valores válidos de ``TipoInsumo``."""
+    return TipoInsumo.valid_values()
+
 
 def is_valid_tipo_insumo(tipo: str) -> bool:
+    """Verifica si *tipo* es un ``TipoInsumo`` válido sin lanzar excepción."""
     try:
         TipoInsumo.from_string(tipo)
         return True
     except InvalidTipoInsumoError:
         return False
 
-# Exports
+
+# ============================================================================
+# EXPORTS
+# ============================================================================
+
 __all__ = [
-    "SchemaError", "ValidationError", "InvalidTipoInsumoError", "InsumoDataError",
-    "TipoInsumo", "Stratum",
-    "InsumoProcesado", "APUStructure",
-    "ManoDeObra", "Equipo", "Suministro", "Transporte", "Otro",
-    "create_insumo", "create_insumo_from_raw", "validate_insumo_data",
-    "normalize_unit", "normalize_description", "normalize_codigo",
-    "NumericValidator", "StringValidator",
-    "UNIDADES_TIEMPO", "UNIDADES_MASA",
-    "get_tipo_insumo_class", "get_all_tipo_insumo_values", "is_valid_tipo_insumo"
+    # Excepciones
+    "SchemaError",
+    "ValidationError",
+    "InvalidTipoInsumoError",
+    "InsumoDataError",
+    "UnitNormalizationError",
+    # Enumeraciones
+    "TipoInsumo",
+    "Stratum",
+    # Estructuras de datos
+    "TopologicalNode",
+    "InsumoProcesado",
+    "APUStructure",
+    "ManoDeObra",
+    "Equipo",
+    "Suministro",
+    "Transporte",
+    "Otro",
+    # Factories
+    "create_insumo",
+    "create_insumo_from_raw",
+    "validate_insumo_data",
+    # Normalización
+    "normalize_unit",
+    "normalize_description",
+    "normalize_codigo",
+    # Validadores
+    "NumericValidator",
+    "StringValidator",
+    # Constantes
+    "UNIDADES_TIEMPO",
+    "UNIDADES_MASA",
+    "UNIDADES_VOLUMEN",
+    "UNIDADES_AREA",
+    "UNIDADES_LONGITUD",
+    "UNIDADES_TRANSPORTE",
+    "UNIDADES_GENERICAS",
+    "INSUMO_CLASS_MAP",
+    # Utilidades
+    "get_tipo_insumo_class",
+    "get_all_tipo_insumo_values",
+    "is_valid_tipo_insumo",
 ]
