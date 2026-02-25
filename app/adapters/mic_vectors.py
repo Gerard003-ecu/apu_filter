@@ -660,6 +660,213 @@ def vector_structure_logic(
 
 
 # =============================================================================
+# VECTOR ESTRATÉGICO: PENSAMIENTO LATERAL (Risk Challenger)
+# =============================================================================
+
+def vector_lateral_pivot(
+    payload: Dict[str, Any],
+    context: Dict[str, Any] = None
+) -> VectorResult:
+    """
+    Vector de nivel STRATEGY.
+    Morfismo que proyecta una intención de pensamiento lateral para mitigar
+    un riesgo topológico o financiero buscando compensaciones (hedges)
+    en el espacio ortogonal.
+
+    Transformación: (T × Φ × Θ) ─L─▶ D_lateral
+    Donde:
+      T = Espacio Topológico (Estabilidad, Betti)
+      Φ = Espacio Financiero (Clase de riesgo, VPN, Opciones)
+      Θ = Espacio Termodinámico (Temperatura, Inercia)
+      D_lateral = Decisión de Excepción Validada
+    """
+    start = time.time()
+
+    # ── 1. Extracción Segura de Subespacios ───────────────────────────────
+    report_state = payload.get("report_state", {})
+    thermal_metrics = payload.get("thermal_metrics", {})
+    financial_metrics = payload.get("financial_metrics", {})
+    synergy_risk = payload.get("synergy_risk", {})
+    pivot_type = payload.get("pivot_type", "UNKNOWN")
+
+    # Extraer variables de estado
+    stability = float(report_state.get("stability", 1.0))
+    beta_1 = int(report_state.get("beta_1", 0))
+
+    system_temp = float(thermal_metrics.get("system_temperature", 25.0))
+    financial_inertia = float(thermal_metrics.get("heat_capacity", 0.5))
+
+    financial_class = str(report_state.get("financial_class", "UNKNOWN"))
+    npv = float(financial_metrics.get("npv", 0.0))
+
+    metrics = VectorMetrics(
+        processing_time_ms=_elapsed_ms(start),
+        memory_usage_mb=_measure_memory_mb(),
+        topological_coherence=1.0,
+        algebraic_integrity=1.0
+    )
+
+    # ── 2. Proyección Algebraica del Pivote ───────────────────────────────
+
+    # Pivote A: El Monopolio Coberturado (Topología vs Termodinámica)
+    if pivot_type == "MONOPOLIO_COBERTURADO":
+        # Condición: La base es estrecha (Ψ < 0.70), PERO el sistema está "frío"
+        # (T < 15.0) y la inercia financiera (contratos fijos) es alta (I > 0.7)
+        if stability < 0.70 and system_temp < 15.0 and financial_inertia > 0.7:
+            return _build_result(
+                success=True,
+                stratum=Stratum.STRATEGY,
+                status=VectorResultStatus.SUCCESS,
+                payload={
+                    "approved_pivot": pivot_type,
+                    "penalty_relief": 0.30,
+                    "reasoning": "Riesgo logístico neutralizado por alta inercia térmica financiera."
+                },
+                metrics=metrics
+            )
+        else:
+            return _build_error(
+                stratum=Stratum.STRATEGY,
+                status=VectorResultStatus.LOGIC_ERROR,
+                error="Rechazado: Condiciones termodinámicas insuficientes para cobertura de monopolio.",
+                    elapsed_ms=_elapsed_ms(start)
+            )
+
+    # Pivote B: El Atajo de Opciones Reales (Opción de Espera)
+    elif pivot_type == "OPCION_ESPERA":
+        real_options = financial_metrics.get("real_options", {})
+        wait_option_value = float(real_options.get("wait_option_value", 0.0))
+
+        # Condición: Alto riesgo actual, pero gran valor estocástico de esperar
+        if financial_class == "HIGH" and wait_option_value > max(npv, 0.0) * 1.5:
+            return _build_result(
+                success=True,
+                stratum=Stratum.STRATEGY,
+                status=VectorResultStatus.SUCCESS,
+                payload={
+                    "approved_pivot": pivot_type,
+                    "strategic_action": "FREEZE_6_MONTHS",
+                    "reasoning": f"Valor de la opción de espera ({wait_option_value}) supera con creces el VPN de ejecución inmediata."
+                },
+                metrics=metrics
+            )
+        else:
+            return _build_error(
+                stratum=Stratum.STRATEGY,
+                status=VectorResultStatus.LOGIC_ERROR,
+                error="Rechazado: El valor de la opción de retraso no justifica la inactividad.",
+                    elapsed_ms=_elapsed_ms(start)
+            )
+
+    # Pivote C: Cuarentena Topológica (Confinamiento de Ciclos)
+    elif pivot_type == "CUARENTENA_TOPOLOGICA":
+        has_synergy = synergy_risk.get("synergy_detected", False)
+
+        # Condición: Hay ciclos (β₁ > 0) pero NO comparten recursos críticos (Sinergia = False)
+        if beta_1 > 0 and not has_synergy:
+            return _build_result(
+                success=True,
+                stratum=Stratum.STRATEGY,
+                status=VectorResultStatus.SUCCESS,
+                payload={
+                    "approved_pivot": pivot_type,
+                    "quarantine_active": True,
+                    "reasoning": "Ciclos detectados pero confinados. Se aprueba la ejecución exceptuando el subgrafo aislado."
+                },
+                metrics=metrics
+            )
+        else:
+            return _build_error(
+                stratum=Stratum.STRATEGY,
+                status=VectorResultStatus.LOGIC_ERROR,
+                error="Rechazado: Los ciclos topológicos presentan sinergia multiplicativa. Cuarentena imposible.",
+                    elapsed_ms=_elapsed_ms(start)
+            )
+
+    # Pivote Desconocido
+    return _build_error(
+        stratum=Stratum.STRATEGY,
+        status=VectorResultStatus.LOGIC_ERROR,
+        error=f"Tipo de pivote lateral desconocido: {pivot_type}",
+        elapsed_ms=_elapsed_ms(start)
+    )
+
+
+# =============================================================================
+# VECTOR TÁCTICO: AUDITORÍA DE FUSIÓN (Mayer-Vietoris)
+# =============================================================================
+
+def vector_audit_homological_fusion(
+    payload: Dict[str, Any],
+    context: Dict[str, Any] = None
+) -> VectorResult:
+    """
+    Vector de nivel TACTICS.
+    Aplica la Secuencia Exacta de Mayer-Vietoris para auditar la integración
+    del Grafo Maestro (A) y el Grafo de APUs (B).
+
+    Transformación: (G_A × G_B) ─MV─▶ G_{A∪B}
+    Invariante algebraico: Δβ₁ = β₁(A ∪ B) - [β₁(A) + β₁(B) - β₁(A ∩ B)] == 0
+    """
+    start = time.time()
+
+    # Extraer los grafos de la intención
+    graph_a = payload.get("graph_a")
+    graph_b = payload.get("graph_b")
+
+    if graph_a is None or graph_b is None:
+        return _build_error(
+            stratum=Stratum.TACTICS,
+            status=VectorResultStatus.LOGIC_ERROR,
+            error="Rechazado: Faltan grafos de entrada (A o B) para la auditoría de fusión.",
+            elapsed_ms=_elapsed_ms(start)
+        )
+
+    try:
+        # Importación diferida para evitar dependencias circulares
+        from agent.business_topology import BusinessTopologicalAnalyzer
+        analyzer = BusinessTopologicalAnalyzer()
+
+        # Ejecutar el cálculo de homología de fusión
+        audit_result = analyzer.audit_integration_homology(graph_a, graph_b)
+        delta_beta_1 = audit_result.get("delta_beta_1", 0)
+
+        # Estampar la métrica pura
+        metrics = VectorMetrics(
+            processing_time_ms=_elapsed_ms(start),
+            memory_usage_mb=_measure_memory_mb(),
+            topological_coherence=1.0 if delta_beta_1 == 0 else 0.0,
+            algebraic_integrity=1.0
+        )
+
+        # Si la discrepancia homológica es mayor a 0, se rompió la topología
+        if delta_beta_1 > 0:
+            return _build_error(
+                stratum=Stratum.TACTICS,
+                status=VectorResultStatus.TOPOLOGY_ERROR,
+                error=f"Anomalía de Mayer-Vietoris: La fusión de datos generó {delta_beta_1} ciclos fantasma (Δβ₁ > 0). Integración abortada.",
+                elapsed_ms=_elapsed_ms(start)
+            )
+
+        # La fusión es topológicamente segura
+        return _build_result(
+            success=True,
+            stratum=Stratum.TACTICS,
+            status=VectorResultStatus.SUCCESS,
+            payload={"audit_result": audit_result, "merged_graph_valid": True},
+            metrics=metrics
+        )
+
+    except Exception as exc:
+        return _build_error(
+            stratum=Stratum.TACTICS,
+            status=VectorResultStatus.LOGIC_ERROR,
+            error=f"Fallo matemático en auditoría de fusión: {str(exc)}",
+            elapsed_ms=_elapsed_ms(start)
+        )
+
+
+# =============================================================================
 # FÁBRICA CON INYECCIÓN DE DEPENDENCIAS
 # =============================================================================
 class VectorFactory:

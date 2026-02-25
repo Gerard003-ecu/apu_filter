@@ -422,22 +422,31 @@ class TestFixtures:
         """Mock de la Matriz de Interacción Central."""
         mic = MagicMock(spec=MICRegistry)
 
+        def project_intent_side_effect(service, payload, context):
+            if service == "financial_analysis":
+                return {
+                    "success": True,
+                    "results": {
+                        "npv": 150.0, # Valor arbitrario para pruebas
+                        "irr": 0.15,
+                        "payback_years": 3.5,
+                        "payback": 3.5, # Alias para compatibilidad con tests
+                        "performance": {
+                            "recommendation": "APPROVE",
+                            "risk_level": "LOW"
+                        },
+                        "wacc": 0.10,
+                        "risk_adjusted_return": 0.12
+                    }
+                }
+            elif service == "lateral_thinking_pivot":
+                # Por defecto rechazamos pivotes para que las pruebas de integración
+                # validen la lógica estándar de riesgo (vetos, alertas).
+                return {"success": False, "error": "Mocked pivot rejection"}
+            return {"success": False, "error": "Unknown service"}
+
         # Configurar respuesta por defecto para financial_analysis
-        mic.project_intent.return_value = {
-            "success": True,
-            "results": {
-                "npv": 150.0, # Valor arbitrario para pruebas
-                "irr": 0.15,
-                "payback_years": 3.5,
-                "payback": 3.5, # Alias para compatibilidad con tests
-                "performance": {
-                    "recommendation": "APPROVE",
-                    "risk_level": "LOW"
-                },
-                "wacc": 0.10,
-                "risk_adjusted_return": 0.12
-            }
-        }
+        mic.project_intent.side_effect = project_intent_side_effect
         return mic
 
     @pytest.fixture
@@ -806,10 +815,19 @@ class TestFinancialAnalysis(TestFixtures):
         
         # Verificar que se llamó a project_intent
         mock_mic.project_intent.assert_called()
-        args = mock_mic.project_intent.call_args
-        assert args[0][0] == "financial_analysis"
-        assert args[0][1]["amount"] == 1000.0
-        assert args[0][1]["time"] == 3
+
+        # Verificar que financial_analysis fue llamado (puede haber otras llamadas como lateral_thinking_pivot)
+        calls = [call[0] for call in mock_mic.project_intent.call_args_list]
+        service_names = [args[0] for args in calls]
+
+        assert "financial_analysis" in service_names, "Se esperaba llamada a financial_analysis"
+
+        # Verificar argumentos específicos
+        financial_call = next(call for call in calls if call[0] == "financial_analysis")
+        payload = financial_call[1]
+
+        assert payload["amount"] == 1000.0
+        assert payload["time"] == 3
 
     def test_viable_project_positive_assessment(self, agent, default_config, mock_mic):
         """Proyecto viable (VPN > 0) recibe evaluación positiva."""
