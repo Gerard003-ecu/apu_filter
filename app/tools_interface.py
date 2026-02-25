@@ -89,7 +89,9 @@ from .schemas import Stratum
 from app.adapters.mic_vectors import (
     vector_stabilize_flux,
     vector_parse_raw_structure,
-    vector_structure_logic
+    vector_structure_logic,
+    vector_lateral_pivot,
+    vector_audit_homological_fusion
 )
 
 logger = logging.getLogger(__name__)
@@ -1850,6 +1852,24 @@ def register_core_vectors(mic: 'MICRegistry', config: Optional[Dict[str, Any]] =
         service_name="structure_logic",
         stratum=Stratum.TACTICS,
         handler=vector_structure_logic
+    )
+
+    # Vector Táctico: Auditoría de Fusión (Mayer-Vietoris)
+    # Requisito: Stratum.PHYSICS validado.
+    # Propósito: Garantizar que la unión de conjuntos no introduzca ciclos espurios.
+    mic.register_vector(
+        service_name="audit_fusion_homology",
+        stratum=Stratum.TACTICS,
+        handler=vector_audit_homological_fusion
+    )
+
+    # 5. Vector Estratégico: Pensamiento Lateral (Risk Challenger)
+    # Requisito: Stratum.PHYSICS y Stratum.TACTICS deben estar validados (Clausura Transitiva).
+    # Propósito: Evaluar excepciones estratégicas cruzando dominios topológicos y termodinámicos.
+    mic.register_vector(
+        service_name="lateral_thinking_pivot",
+        stratum=Stratum.STRATEGY,
+        handler=vector_lateral_pivot
     )
 
     # 4. Vector Táctico: Asesor Semántico (SemanticEstimator)
