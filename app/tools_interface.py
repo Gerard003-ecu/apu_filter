@@ -4,7 +4,7 @@ Módulo: Matriz de Interacción Central (MIC) - El Espacio Vectorial de Intencio
 
 Este componente implementa el núcleo de gobernanza y despacho del sistema, actuando no como un
 simple registro de funciones, sino como un **Espacio Vectorial Jerarquizado**. Define la base
-algebraica sobre la cual los agentes (Business, APU) proyectan sus "Vectores de Intención".
+algebraica sobre la cual los agentes proyectan sus "Vectores de Intención".
 
 Fundamentos Matemáticos y Arquitectura de Gobernanza:
 -----------------------------------------------------
@@ -35,6 +35,18 @@ Fundamentos Matemáticos y Arquitectura de Gobernanza:
    Facilita la conexión con el `SemanticTranslator` y el `KnowledgeGraph`, permitiendo que
    los vectores de intención sean enriquecidos con contexto ontológico antes de su ejecución.
 
+5. Actores Proyectantes (Orígenes de la Intención):
+   La MIC actúa como el sumidero universal de control. Los siguientes componentes están 
+   diseñados arquitectónicamente para proyectar vectores (ejecutar `project_intent`) sobre ella:
+   
+   - **Plano de Control (app.py):** Proyecta las intenciones externas (HTTP/REST) hacia los 
+     estratos Táctico y Físico (ej. `tactical_estimate`, `diagnose`).
+   - **Director del Pipeline (pipeline_director.py):** Orquesta la secuencia DIKW proyectando 
+     vectores de transformación (`stabilize_flux`, `parse_raw`, `structure_logic`).
+   - **Cerebro Ejecutivo (business_agent.py):** El Oráculo Financiero proyecta vectores 
+     estratégicos (`financial_analysis`), condicionando la economía a la topología subyacente.
+   - **Agente Autónomo (apu_agent.py):** El sistema nervioso OODA proyecta vectores de 
+     contingencia (ej. `clean`) al estrato Físico para mantener la homeostasis ante turbulencias.
 """
 
 import codecs
