@@ -9,8 +9,9 @@ Recibe métricas crudas (telemetry_schemas) y las transforma en "Empatía Tácti
 """
 
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 import random
+from dataclasses import dataclass, field
 
 try:
     from app.schemas import Stratum
@@ -26,6 +27,72 @@ except ImportError:
 from app.tools_interface import MICRegistry
 
 logger = logging.getLogger("SemanticDictionary")
+
+# ---------------------------------------------------------------------------
+# Vectores Semánticos del Grafo Piramidal (GraphRAG)
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class PyramidalSemanticVector:
+    """
+    Vector de estado semántico para un nodo dentro del Grafo del Presupuesto.
+    Codifica su posición en la estructura piramidal (DIKW) y su carga topológica.
+    Actúa como un tensor de información para la generación de GraphRAG.
+    """
+    node_id: str
+    node_type: str  # "ROOT", "CAPITULO", "APU", "INSUMO"
+    stratum: Stratum
+    in_degree: int  # Conexiones entrantes (Carga Táctica que soporta)
+    out_degree: int # Conexiones salientes (Dependencias que requiere)
+    is_critical_bridge: bool = False # Verdadero si es un punto único de falla topológica
+
+class GraphSemanticProjector:
+    """
+    Proyecta la topología algebraica del presupuesto hacia el espacio narrativo.
+    Este Funtor es el motor central de GraphRAG: navega el grafo y traduce
+    los invariantes matemáticos en "La Voz del Consejo".
+    """
+    def __init__(self, dictionary_service: 'SemanticDictionaryService'):
+        self.dictionary = dictionary_service
+
+    def project_pyramidal_stress(self, vector: PyramidalSemanticVector) -> Dict[str, Any]:
+        """
+        Identifica y narra cuellos de botella en la base de la pirámide logística.
+        Si la métrica Ψ < 1.0, este vector explica DÓNDE está el estrés.
+        """
+        # Solo los insumos (Cimentación - Nivel Físico) actúan como soporte estructural
+        if vector.stratum == Stratum.PHYSICS and vector.in_degree > 5:
+            return self.dictionary.fetch_narrative(
+                domain="MISC",
+                classification="STRESS_POINT",
+                params={
+                    "node": vector.node_id,
+                    "degree": vector.in_degree
+                }
+            )
+
+        return {"success": False, "error": "El nodo no presenta estrés piramidal crítico."}
+
+    def project_cycle_path(self, path_nodes: List[str]) -> Dict[str, Any]:
+        """
+        Traduce un ciclo homológico (β₁ > 0) a una cadena causal narrativa.
+        Transforma el error matemático en un problema de trazabilidad logística.
+        """
+        if not path_nodes:
+            return {"success": False, "error": "Ruta de ciclo vacía."}
+
+        # Formatear la cadena de dependencias: A -> B -> C -> A
+        path_str = " -> ".join(path_nodes)
+        first_node = path_nodes[0]
+
+        return self.dictionary.fetch_narrative(
+            domain="MISC",
+            classification="CYCLE_PATH",
+            params={
+                "path": path_str,
+                "first_node": first_node
+            }
+        )
 
 class SemanticDictionaryService:
     def __init__(self):
@@ -478,6 +545,41 @@ class SemanticDictionaryService:
             logger.error(f"Error generando narrativa para {domain}.{classification}: {e}")
             return {"success": False, "error": str(e)}
 
+    def project_graph_narrative(self, payload: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        [Vector MIC] Proyecta una anomalía del grafo (ciclos o estrés) a una narrativa.
+        """
+        projector = GraphSemanticProjector(self)
+        anomaly_type = payload.get("anomaly_type")
+
+        if anomaly_type == "CYCLE":
+            path_nodes = payload.get("path_nodes", [])
+            return projector.project_cycle_path(path_nodes)
+
+        elif anomaly_type == "STRESS":
+            vector_data = payload.get("vector", {})
+            # Reconstruir el dataclass desde el payload
+            # Necesitamos convertir stratum integer/string a Enum si es necesario
+            if "stratum" in vector_data:
+                stratum_val = vector_data["stratum"]
+                if isinstance(stratum_val, (int, str)):
+                    # Assuming Stratum(int) or Stratum[str] works if valid
+                    try:
+                        if isinstance(stratum_val, int):
+                            vector_data["stratum"] = Stratum(stratum_val)
+                        elif isinstance(stratum_val, str):
+                            vector_data["stratum"] = Stratum[stratum_val]
+                    except (ValueError, KeyError):
+                        pass # Let it fail or be validated by dataclass
+
+            try:
+                vector = PyramidalSemanticVector(**vector_data)
+                return projector.project_pyramidal_stress(vector)
+            except Exception as e:
+                return {"success": False, "error": f"Error constructing vector: {str(e)}"}
+
+        return {"success": False, "error": "Tipo de anomalía no soportada por GraphRAG."}
+
     def register_in_mic(self, mic: MICRegistry) -> None:
         """Registra el diccionario en la MIC."""
         mic.register_vector(
@@ -485,4 +587,10 @@ class SemanticDictionaryService:
             stratum=Stratum.WISDOM,
             handler=self.fetch_narrative
         )
-        logger.info("✅ Diccionario Semántico registrado en la MIC.")
+        # NUEVO Vector GraphRAG
+        mic.register_vector(
+            service_name="project_graph_narrative",
+            stratum=Stratum.WISDOM,
+            handler=self.project_graph_narrative
+        )
+        logger.info("✅ Vectores Semánticos y de GraphRAG registrados en la MIC.")

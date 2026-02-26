@@ -1,14 +1,20 @@
 import pytest
-from app.semantic_dictionary import SemanticDictionaryService
+from app.semantic_dictionary import (
+    SemanticDictionaryService,
+    PyramidalSemanticVector,
+    GraphSemanticProjector,
+    Stratum
+)
 from app.tools_interface import MICRegistry
-from app.schemas import Stratum
 
 def test_semantic_dictionary_registration():
     mic = MICRegistry()
     service = SemanticDictionaryService()
     service.register_in_mic(mic)
     assert mic.is_registered("fetch_narrative")
+    assert mic.is_registered("project_graph_narrative")
     assert mic.get_vector_stratum("fetch_narrative") == Stratum.WISDOM
+    assert mic.get_vector_stratum("project_graph_narrative") == Stratum.WISDOM
 
 def test_fetch_narrative_basic():
     service = SemanticDictionaryService()
@@ -19,57 +25,86 @@ def test_fetch_narrative_basic():
         "classification": "clean",
         "params": {"beta_1": 0}
     }
-    # Calling as MICRegistry would: unpacked arguments
     result = service.fetch_narrative(**payload)
     assert result["success"] is True
     assert "✅" in result["narrative"]
     assert "Integridad Estructural" in result["narrative"]
 
-def test_fetch_narrative_with_params():
+def test_project_graph_narrative_cycle():
     service = SemanticDictionaryService()
+    context = {}
 
     payload = {
-        "domain": "STABILITY",
-        "classification": "critical",
-        "params": {"stability": 0.5}
+        "anomaly_type": "CYCLE",
+        "path_nodes": ["A", "B", "C", "A"]
     }
-    result = service.fetch_narrative(**payload)
+
+    result = service.project_graph_narrative(payload, context)
     assert result["success"] is True
-    assert "0.50" in result["narrative"]
-    assert "COLAPSO POR BASE ESTRECHA" in result["narrative"]
+    narrative = result["narrative"]
+    assert "Ruta del Ciclo Detectada" in narrative
+    assert "A -> B -> C -> A" in narrative
 
-def test_fetch_narrative_misc_string():
+def test_project_graph_narrative_stress():
     service = SemanticDictionaryService()
+    context = {}
+
+    # Critical stress in PHYSICS (Base) with high degree
+    vector_data = {
+        "node_id": "Cement",
+        "node_type": "INSUMO",
+        "stratum": Stratum.PHYSICS,
+        "in_degree": 6,
+        "out_degree": 2,
+        "is_critical_bridge": True
+    }
 
     payload = {
-        "domain": "MISC",
-        "classification": "THERMAL_DEATH"
+        "anomaly_type": "STRESS",
+        "vector": vector_data
     }
-    result = service.fetch_narrative(**payload)
+
+    result = service.project_graph_narrative(payload, context)
     assert result["success"] is True
-    assert "MUERTE TÉRMICA" in result["narrative"]
+    narrative = result["narrative"]
+    assert "Punto de Estrés Estructural" in narrative
+    assert "Cement" in narrative
+    assert "6" in narrative
 
-def test_fetch_narrative_invalid_domain():
+def test_project_graph_narrative_stress_non_critical():
     service = SemanticDictionaryService()
+    context = {}
+
+    # Low degree stress
+    vector_data = {
+        "node_id": "Brick",
+        "node_type": "INSUMO",
+        "stratum": Stratum.PHYSICS,
+        "in_degree": 2,
+        "out_degree": 1,
+        "is_critical_bridge": False
+    }
 
     payload = {
-        "domain": "NON_EXISTENT",
-        "classification": "clean"
+        "anomaly_type": "STRESS",
+        "vector": vector_data
     }
-    result = service.fetch_narrative(**payload)
+
+    result = service.project_graph_narrative(payload, context)
     assert result["success"] is False
-    assert "not found" in result["error"]
+    assert "no presenta estrés" in result["error"]
 
-def test_fetch_narrative_invalid_classification():
+def test_project_graph_narrative_invalid_type():
     service = SemanticDictionaryService()
+    context = {}
 
     payload = {
-        "domain": "TOPOLOGY_CYCLES",
-        "classification": "INVALID_KEY"
+        "anomaly_type": "UNKNOWN_TYPE"
     }
-    result = service.fetch_narrative(**payload)
-    assert result["success"] is True
-    assert "⚠️ Estado desconocido" in result["narrative"]
+
+    result = service.project_graph_narrative(payload, context)
+    assert result["success"] is False
+    assert "no soportada" in result["error"]
 
 def test_market_context_deterministic():
     service = SemanticDictionaryService()

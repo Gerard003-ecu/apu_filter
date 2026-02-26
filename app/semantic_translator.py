@@ -534,25 +534,52 @@ class SemanticTranslator:
     # ========================================================================
 
     def explain_cycle_path(self, cycle_nodes: List[str]) -> str:
-        """Genera narrativa que explica la ruta del ciclo (GraphRAG)."""
+        """
+        Genera narrativa que explica la ruta del ciclo (GraphRAG).
+        Delega la explicación causal al Diccionario vía MIC.
+        """
         if not cycle_nodes:
             return ""
 
         max_display = self.config.max_cycle_path_display
+
+        # Prepare data for GraphRAG
+        # Truncate locally if needed before sending to graph projector, or let projector handle?
+        # The prompt says "Delega la explicación causal al Diccionario vía MIC."
+        # And gave example:
+        # payload = {"anomaly_type": "CYCLE", "path_nodes": cycle_path}
+        # response = self.mic.project_intent("project_graph_narrative", payload, session_context)
+
+        # We need to construct path_nodes respecting max display configuration?
+        # GraphSemanticProjector implementation uses " -> ".join(path_nodes).
+        # We should probably pass the full list or truncated list to match visual requirement.
+
         display_nodes = cycle_nodes[:max_display]
-        path_str = " → ".join(display_nodes)
-
         if len(cycle_nodes) > max_display:
-            path_str += f" → ... ({len(cycle_nodes) - max_display} más)"
+            display_nodes.append(f"... ({len(cycle_nodes) - max_display} más)")
 
-        # Cerrar el ciclo
-        path_str += f" → {cycle_nodes[0]}"
+        # Ensure cycle closure in display
+        if cycle_nodes and display_nodes[-1] != cycle_nodes[0]:
+             display_nodes.append(cycle_nodes[0])
 
-        return self._fetch_narrative(
-            "MISC",
-            "CYCLE_PATH",
-            {"path": path_str, "first_node": cycle_nodes[0]}
+        payload = {
+            "anomaly_type": "CYCLE",
+            "path_nodes": display_nodes
+        }
+
+        # Proyección a la MIC invocando GraphRAG
+        # We don't have session_context here, passing empty context or minimal required.
+        # Dictionary service doesn't strictly require session context for this projection.
+        response = self.mic.project_intent(
+            "project_graph_narrative",
+            payload,
+            {"force_physics_override": True}
         )
+
+        if response.get("success"):
+            return response.get("narrative", "")
+
+        return "Error generando trazabilidad del ciclo."
 
     def explain_stress_point(self, node: str, degree: Union[int, str]) -> str:
         """Explica por qué un nodo es crítico (GraphRAG)."""
