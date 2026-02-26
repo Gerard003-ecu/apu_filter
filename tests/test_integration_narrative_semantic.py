@@ -36,7 +36,6 @@ from app.telemetry_narrative import (
     StratumAnalysis,
     PyramidalReport,
     TelemetryNarrator,
-    NarrativeTemplates as TelemetryTemplates,
     StratumTopology,
     NarratorConfig,
     create_narrator,
@@ -50,7 +49,6 @@ from app.semantic_translator import (
     StrategicReport,
     SemanticTranslator,
     TranslatorConfig,
-    NarrativeTemplates as TranslatorTemplates,
     create_translator,
 )
 from app.telemetry_schemas import (

@@ -34,7 +34,6 @@ from app.semantic_translator import (
     StrategicReport,
     # Traductor
     SemanticTranslator,
-    NarrativeTemplates,
     # Factories
     create_translator,
     translate_metrics_to_narrative,

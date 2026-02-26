@@ -70,6 +70,7 @@ from app.telemetry_schemas import (
     ControlMetrics,
     ThermodynamicMetrics,
 )
+from app.tools_interface import MICRegistry, register_core_vectors
 
 try:
     from app.schemas import Stratum
@@ -465,299 +466,6 @@ class StrategicReport:
 
 
 # ============================================================================
-# PLANTILLAS DE NARRATIVA
-# ============================================================================
-
-
-class NarrativeTemplates:
-    """
-    Plantillas de narrativa organizadas por dominio.
-
-    Separa el contenido textual de la lógica de traducción.
-    """
-
-    # ========== TOPOLOGÍA ==========
-
-    TOPOLOGY_CYCLES: Dict[str, str] = {
-        "clean": (
-            "✅ **Integridad Estructural (Genus 0)**: No se detectan socavones lógicos "
-            "(β₁ = 0). La Trazabilidad de Carga de Costos fluye verticalmente desde la "
-            "Cimentación hasta el Ápice sin recirculaciones."
-        ),
-        "minor": (
-            "🔶 **Falla Estructural Local (Genus {beta_1})**: Se detectaron {beta_1} "
-            "socavones lógicos en la estructura de costos. Estos 'agujeros' impiden "
-            "la correcta Trazabilidad de Carga y deben ser corregidos para "
-            "evitar asentamientos diferenciales en el presupuesto."
-        ),
-        "moderate": (
-            "🚨 **Estructura Geológicamente Inestable (Genus {beta_1})**: "
-            "Se detectó un Genus Estructural de {beta_1}, indicando una estructura tipo 'esponja'. "
-            "Existen múltiples bucles de retroalimentación de costos que "
-            "impiden la Trazabilidad de Carga y hacen colapsar cualquier valoración estática."
-        ),
-        "critical": (
-            "💀 **COLAPSO TOPOLÓGICO (Genus {beta_1})**: "
-            "La estructura está completamente perforada con {beta_1} ciclos independientes. "
-            "Es matemáticamente imposible calcular costos determinísticos. "
-            "Se requiere rediseño fundamental."
-        ),
-    }
-
-    TOPOLOGY_CONNECTIVITY: Dict[str, str] = {
-        "empty": "⚠️ **Terreno Vacío**: No hay estructura proyectada (β₀ = 0).",
-        "unified": (
-            "🔗 **Unidad de Obra Monolítica**: El proyecto funciona como un solo "
-            "edificio interconectado (β₀ = 1). Todas las cargas tácticas (APUs) "
-            "se transfieren correctamente hacia un único Ápice Estratégico."
-        ),
-        "fragmented": (
-            "⚠️ **Edificios Desconectados (Fragmentación)**: El proyecto no es una "
-            "estructura única, sino un archipiélago de {beta_0} sub-estructuras aisladas. "
-            "No existe un Ápice unificado que centralice la carga financiera."
-        ),
-        "severely_fragmented": (
-            "🚨 **Fragmentación Severa**: El proyecto está fragmentado en {beta_0} islas "
-            "completamente desconectadas. Esto indica múltiples proyectos empaquetados "
-            "como uno solo, o datos severamente incompletos."
-        ),
-    }
-
-    # ========== ESTABILIDAD ==========
-
-    STABILITY: Dict[str, str] = {
-        "critical": (
-            "📉 **COLAPSO POR BASE ESTRECHA (Pirámide Invertida)**: "
-            "Ψ = {stability:.2f}. La Cimentación Logística (Insumos) es demasiado "
-            "angosta para soportar el Peso Táctico (APUs) que tiene encima. "
-            "El centro de gravedad está muy alto; riesgo inminente de vuelco financiero."
-        ),
-        "warning": (
-            "⚖️ **Equilibrio Precario (Isostático)**: "
-            "Ψ = {stability:.2f}. El proyecto tiene la mínima base necesaria, "
-            "sin redundancia. Cualquier perturbación en el suministro puede "
-            "desestabilizar toda la estructura."
-        ),
-        "stable": (
-            "⚖️ **Estructura Isostática (Estable)**: "
-            "Ψ = {stability:.2f}. El equilibrio entre la carga de actividades y "
-            "el soporte de insumos es adecuado, aunque no posee redundancia sísmica."
-        ),
-        "robust": (
-            "🛡️ **ESTRUCTURA ANTISÍSMICA (Resiliente)**: "
-            "Ψ = {stability:.2f}. La Cimentación de Recursos es amplia y redundante. "
-            "El proyecto tiene un bajo centro de gravedad, capaz de absorber "
-            "vibraciones del mercado (volatilidad) sin sufrir daños estructurales."
-        ),
-    }
-
-    # ========== ESPECTRAL ==========
-
-    SPECTRAL_COHESION: Dict[str, str] = {
-        "high": (
-            "🔗 **Alta Cohesión del Equipo (Fiedler={fiedler:.2f})**: "
-            "La estructura de costos está fuertemente sincronizada."
-        ),
-        "standard": (
-            "⚖️ **Cohesión Estándar (Fiedler={fiedler:.2f})**: "
-            "El proyecto presenta un acoplamiento típico entre sus componentes."
-        ),
-        "low": (
-            "💔 **Fractura Organizacional (Fiedler={fiedler:.3f})**: "
-            "Baja cohesión espectral. Los subsistemas operan aislados, "
-            "riesgo de desalineación en ejecución."
-        ),
-    }
-
-    SPECTRAL_RESONANCE: Dict[str, str] = {
-        "risk": (
-            "🔊 **RIESGO DE RESONANCIA FINANCIERA (λ={wavelength:.2f})**: "
-            "El espectro de vibración está peligrosamente concentrado. "
-            "Un impacto externo (inflación/escasez) podría amplificarse en toda la "
-            "estructura simultáneamente."
-        ),
-        "safe": (
-            "🌊 **Disipación Ondulatoria (λ={wavelength:.2f})**: "
-            "La estructura tiene capacidad para amortiguar impactos locales sin entrar en "
-            "resonancia sistémica."
-        ),
-    }
-
-    # ========== TERMODINÁMICA ==========
-
-    THERMAL_TEMPERATURE: Dict[str, str] = {
-        "cold": (
-            "❄️ **Temperatura Estable ({temperature:.1f}°C)**: "
-            "El proyecto está termodinámicamente equilibrado (Precios fríos/fijos)."
-        ),
-        "stable": (
-            "🌡️ **Temperatura Normal ({temperature:.1f}°C)**: "
-            "Condiciones térmicas estándar del mercado."
-        ),
-        "warm": (
-            "🌡️ **Calentamiento Operativo ({temperature:.1f}°C)**: "
-            "Existe una exposición moderada a la volatilidad de precios."
-        ),
-        "hot": (
-            "🔥 **EL PROYECTO TIENE FIEBRE ({temperature:.1f}°C)**: "
-            "El Índice de Inflación Interna es crítico. Los costos de insumos volátiles "
-            "están sobrecalentando la estructura de precios."
-        ),
-        "critical": (
-            "☢️ **FUSIÓN TÉRMICA ({temperature:.1f}°C)**: "
-            "Temperatura crítica alcanzada. Los costos están en espiral inflacionaria. "
-            "Riesgo de colapso financiero por sobrecalentamiento incontrolado."
-        ),
-    }
-
-    THERMAL_ENTROPY: Dict[str, str] = {
-        "low": (
-            "📋 **Orden Administrativo (S={entropy:.2f})**: "
-            "Baja entropía indica procesos bien estructurados y datos limpios."
-        ),
-        "high": (
-            "🌪️ **Alta Entropía ({entropy:.2f})**: Caos administrativo detectado. "
-            "La energía del dinero se disipa en fricción operativa (datos sucios o desorganizados)."
-        ),
-    }
-
-    # ========== FISICA AVANZADA (Flux & Laplace) ==========
-
-    GYROSCOPIC_STABILITY: Dict[str, str] = {
-        "stable": "✅ **Giroscopio Estable**: Flujo con momento angular constante.",
-        "precession": "⚠️ **Precesión Detectada**: Oscilación lateral en el flujo de datos.",
-        "nutation": "🚨 **NUTACIÓN CRÍTICA**: Inestabilidad rotacional. El proceso corre riesgo de colapso inercial."
-    }
-
-    LAPLACE_CONTROL: Dict[str, str] = {
-        "robust": "🛡️ **Control Robusto**: Margen de fase sólido (>45°).",
-        "marginal": "⚠️ **Estabilidad Marginal**: Respuesta oscilatoria ante transitorios.",
-        "unstable": "⛔ **DIVERGENCIA MATEMÁTICA**: Polos en el semiplano derecho (RHP)."
-    }
-
-    MAYER_VIETORIS: str = (
-        "🧩 **Incoherencia de Integración**: La fusión de los presupuestos ha generado "
-        "{delta_beta_1} ciclos lógicos fantasmas (Anomalía de Mayer-Vietoris). "
-        "Los datos individuales son válidos, pero su unión crea una contradicción topológica."
-    )
-
-    THERMAL_DEATH: str = (
-        "☢️ **MUERTE TÉRMICA DEL SISTEMA**: La entropía ha alcanzado el equilibrio máximo. "
-        "No hay energía libre para procesar información útil."
-    )
-
-    # ========== DINÁMICA DE BOMBEO ==========
-
-    PUMP_DYNAMICS: Dict[str, str] = {
-        "efficiency_high": (
-            " Eficiencia de Inyección: **ALTA**. "
-            "El costo administrativo de procesar esta información es {joules_per_record:.2e} Joules por registro."
-        ),
-        "efficiency_low": (
-            " Eficiencia de Inyección: **BAJA**. "
-            "El costo administrativo de procesar esta información es {joules_per_record:.2e} Joules por registro."
-        ),
-        "water_hammer": (
-            "💥 **Inestabilidad de Tubería**: Se detectaron golpes de ariete (Presión={pressure:.2f}). "
-            "El flujo se detiene bruscamente, causando ondas de choque."
-        ),
-        "accumulator_pressure": (
-            "🔋 **Presión del Acumulador**: {pressure:.1f}%. Capacidad de amortiguamiento disponible."
-        )
-    }
-
-    # ========== SINERGIA ==========
-
-    SYNERGY: str = (
-        "🔥 **Riesgo de Contagio (Efecto Dominó)**: Se detectó una 'Sinergia de Riesgo' "
-        "en {count} puntos de intersección crítica. Los errores no son aislados; si uno falla, "
-        "provocará una reacción en cadena a través de los frentes de obra compartidos."
-    )
-
-    EULER_EFFICIENCY: str = (
-        "🕸️ **Sobrecarga de Gestión (Entropía)**: La eficiencia de Euler es baja ({efficiency:.2f}). "
-        "Existe una complejidad innecesaria de enlaces que dificulta la supervisión y aumenta "
-        "los costos indirectos de administración."
-    )
-
-    # ========== GRAPHRAG ==========
-
-    CYCLE_PATH: str = (
-        "🔄 **Ruta del Ciclo Detectada**: La circularidad sigue el camino: [{path}]. "
-        "Esto significa que el costo de '{first_node}' depende indirectamente de sí mismo, "
-        "creando una indeterminación matemática en la valoración."
-    )
-
-    STRESS_POINT: str = (
-        "⚡ **Punto de Estrés Estructural**: El elemento '{node}' actúa como una 'Piedra Angular' crítica, "
-        "soportando {degree} conexiones directas. Una variación en su precio o disponibilidad "
-        "impactará desproporcionadamente a toda la estructura del proyecto (Punto Único de Falla)."
-    )
-
-    # ========== FINANZAS ==========
-
-    WACC: str = "💰 **Costo de Oportunidad**: WACC = {wacc:.2%}."
-
-    CONTINGENCY: str = "📊 **Blindaje Financiero**: Contingencia sugerida de ${contingency:,.2f}."
-
-    FINANCIAL_VERDICT: Dict[str, str] = {
-        "accept": "🚀 **Veredicto**: VIABLE (IR={pi:.2f}). Estructura financiable.",
-        "conditional": "🔵 **Veredicto**: CONDICIONAL (IR={pi:.2f}). Viable con ajustes.",
-        "review": "🔍 **Veredicto**: REVISIÓN REQUERIDA.",
-        "reject": "🛑 **Veredicto**: RIESGO CRÍTICO (IR={pi:.2f}). No procedente.",
-    }
-
-    # ========== MERCADO ==========
-
-    MARKET_CONTEXTS: Tuple[str, ...] = (
-        "Suelo Estable: Precios de cemento sin variación significativa.",
-        "Terreno Inflacionario: Acero al alza (+2.5%). Reforzar estimaciones.",
-        "Vientos de Cambio: Volatilidad cambiaria favorable para importaciones.",
-        "Falla Geológica Laboral: Escasez de mano de obra calificada.",
-        "Mercado Saturado: Alta competencia presiona márgenes.",
-    )
-
-    # ========== VEREDICTOS FINALES ==========
-
-    FINAL_VERDICTS: Dict[str, str] = {
-        "synergy_risk": (
-            "🛑 **PARADA DE EMERGENCIA (Efecto Dominó)**: Se detectaron ciclos interconectados "
-            "que comparten recursos críticos. El riesgo no es aditivo, es multiplicativo. "
-            "Cualquier fallo en el suministro provocará un colapso sistémico en múltiples frentes. "
-            "Desacoplar los ciclos antes de continuar."
-        ),
-        "inverted_pyramid_viable": (
-            "⚠️ **PRECAUCIÓN LOGÍSTICA (Estructura Inestable)**: Aunque los números "
-            "financieros cuadran, el proyecto es una **Pirámide Invertida** (Ψ={stability:.2f}). "
-            "Se sostiene sobre una base de recursos demasiado estrecha. "
-            "RECOMENDACIÓN: Ampliar la base de proveedores antes de construir."
-        ),
-        "inverted_pyramid_reject": (
-            "❌ **PROYECTO INVIABLE (Riesgo de Colapso)**: Combinación letal de "
-            "inestabilidad estructural (Pirámide Invertida) e inviabilidad financiera. "
-            "No proceder bajo ninguna circunstancia sin rediseño total."
-        ),
-        "has_holes": (
-            "🛑 **DETENER PARA REPARACIONES**: Se detectaron {beta_1} socavones "
-            "lógicos (ciclos). No se puede verter dinero en una estructura con agujeros. "
-            "Sanear la topología antes de aprobar presupuesto."
-        ),
-        "certified": (
-            "✅ **CERTIFICADO DE SOLIDEZ**: Estructura piramidal estable, sin socavones "
-            "lógicos y financieramente viable. Proceder a fase de ejecución."
-        ),
-        "review_required": (
-            "🔍 **REVISIÓN TÉCNICA REQUERIDA**: La estructura es sólida pero los números no convencen."
-        ),
-        "analysis_failed": (
-            "⚠️ ANÁLISIS ESTRUCTURAL INTERRUMPIDO: Se detectaron inconsistencias matemáticas "
-            "o falta de datos críticos que impiden certificar la solidez del proyecto. "
-            "Revise los errores en las secciones técnicas."
-        ),
-    }
-
-
-# ============================================================================
 # TRADUCTOR SEMÁNTICO PRINCIPAL
 # ============================================================================
 
@@ -780,6 +488,7 @@ class SemanticTranslator:
         self,
         config: Optional[TranslatorConfig] = None,
         market_provider: Optional[Callable[[], str]] = None,
+        mic: Optional[MICRegistry] = None,
     ) -> None:
         """
         Inicializa el traductor.
@@ -787,9 +496,18 @@ class SemanticTranslator:
         Args:
             config: Configuración consolidada de umbrales
             market_provider: Proveedor de contexto de mercado (inyección de dependencia)
+            mic: Registro MIC para obtener narrativas (opcional, se crea default si falta)
         """
         self.config = config or TranslatorConfig()
         self._market_provider = market_provider
+
+        if mic:
+            self.mic = mic
+        else:
+            # Fallback for legacy tests / standalone usage
+            self.mic = MICRegistry()
+            # Register core vectors to ensure SemanticDictionary is available
+            register_core_vectors(self.mic, config={})
 
         logger.debug(
             f"SemanticTranslator initialized | "
@@ -797,20 +515,26 @@ class SemanticTranslator:
             f"deterministic={self.config.deterministic_market}"
         )
 
+    def _fetch_narrative(self, domain: str, classification: str, params: Dict[str, Any] = None) -> str:
+        """Helper to fetch narrative from MIC."""
+        # Use force_physics_override to access WISDOM layer (Dictionary) even if lower strata fail
+        response = self.mic.project_intent(
+            "fetch_narrative",
+            {
+                "domain": domain,
+                "classification": classification,
+                "params": params or {}
+            },
+            {"force_physics_override": True}
+        )
+        return response.get("narrative", f"[{domain}.{classification}]")
+
     # ========================================================================
     # GRAPHRAG: EXPLICACIÓN CAUSAL
     # ========================================================================
 
     def explain_cycle_path(self, cycle_nodes: List[str]) -> str:
-        """
-        Genera narrativa que explica la ruta del ciclo (GraphRAG).
-
-        Args:
-            cycle_nodes: Lista de nodos que forman el ciclo
-
-        Returns:
-            Narrativa explicativa del ciclo
-        """
+        """Genera narrativa que explica la ruta del ciclo (GraphRAG)."""
         if not cycle_nodes:
             return ""
 
@@ -824,25 +548,18 @@ class SemanticTranslator:
         # Cerrar el ciclo
         path_str += f" → {cycle_nodes[0]}"
 
-        return NarrativeTemplates.CYCLE_PATH.format(
-            path=path_str,
-            first_node=cycle_nodes[0],
+        return self._fetch_narrative(
+            "MISC",
+            "CYCLE_PATH",
+            {"path": path_str, "first_node": cycle_nodes[0]}
         )
 
     def explain_stress_point(self, node: str, degree: Union[int, str]) -> str:
-        """
-        Explica por qué un nodo es crítico (GraphRAG).
-
-        Args:
-            node: Identificador del nodo
-            degree: Número de conexiones o descriptor
-
-        Returns:
-            Narrativa del punto de estrés
-        """
-        return NarrativeTemplates.STRESS_POINT.format(
-            node=node,
-            degree=degree,
+        """Explica por qué un nodo es crítico (GraphRAG)."""
+        return self._fetch_narrative(
+            "MISC",
+            "STRESS_POINT",
+            {"node": node, "degree": degree}
         )
 
     # ========================================================================
@@ -858,15 +575,6 @@ class SemanticTranslator:
     ) -> Tuple[str, VerdictLevel]:
         """
         Traduce métricas topológicas a narrativa de ingeniería civil.
-
-        Args:
-            metrics: Números de Betti y métricas relacionadas
-            stability: Índice de estabilidad piramidal (Ψ)
-            synergy_risk: Datos de sinergia de riesgo (producto cup)
-            spectral: Datos de análisis espectral
-
-        Returns:
-            Tupla (narrativa, veredicto)
         """
         # Normalizar inputs
         if isinstance(metrics, dict):
@@ -901,10 +609,6 @@ class SemanticTranslator:
         narrative_parts.append(cycle_narrative)
         verdicts.append(cycle_verdict)
 
-        # 1.5. Mayer-Vietoris (Integridad de Fusión)
-        # Nota: delta_beta_1 no está en TopologicalMetrics, se asume 0 por defecto
-        # si no se pasa en kwargs o similar (aquí se omite por simplicidad)
-
         # 2. Sinergia de Riesgo (Producto Cup)
         synergy_detected = bool(synergy.get("synergy_detected", False))
         if synergy_detected:
@@ -917,9 +621,6 @@ class SemanticTranslator:
             if intersecting_nodes:
                 example_node = intersecting_nodes[0]
                 narrative_parts.append(self.explain_stress_point(example_node, "múltiples"))
-
-        # 3. Eficiencia de Euler
-        # euler_efficiency no está en TopologicalMetrics, omitido o asumido 1.0
 
         # 4. Espectral
         fiedler = topo.fiedler_value
@@ -955,8 +656,7 @@ class SemanticTranslator:
     def _translate_cycles(self, beta_1: int) -> Tuple[str, VerdictLevel]:
         """Traduce β₁ (ciclos) a narrativa."""
         classification = self.config.topology.classify_cycles(beta_1)
-        template = NarrativeTemplates.TOPOLOGY_CYCLES[classification]
-        narrative = template.format(beta_1=beta_1)
+        narrative = self._fetch_narrative("TOPOLOGY_CYCLES", classification, {"beta_1": beta_1})
 
         verdict_map = {
             "clean": VerdictLevel.VIABLE,
@@ -970,8 +670,7 @@ class SemanticTranslator:
     def _translate_connectivity(self, beta_0: int) -> Tuple[str, VerdictLevel]:
         """Traduce β₀ (conectividad) a narrativa."""
         classification = self.config.topology.classify_connectivity(beta_0)
-        template = NarrativeTemplates.TOPOLOGY_CONNECTIVITY[classification]
-        narrative = template.format(beta_0=beta_0)
+        narrative = self._fetch_narrative("TOPOLOGY_CONNECTIVITY", classification, {"beta_0": beta_0})
 
         verdict_map = {
             "empty": VerdictLevel.RECHAZAR,
@@ -989,11 +688,7 @@ class SemanticTranslator:
         if classification == "invalid":
             return "⚠️ **Valor de estabilidad inválido**", VerdictLevel.REVISAR
 
-        template = NarrativeTemplates.STABILITY.get(
-            classification,
-            NarrativeTemplates.STABILITY["stable"]
-        )
-        narrative = template.format(stability=stability)
+        narrative = self._fetch_narrative("STABILITY", classification, {"stability": stability})
 
         verdict_map = {
             "critical": VerdictLevel.RECHAZAR,
@@ -1007,11 +702,11 @@ class SemanticTranslator:
     def _translate_synergy(self, synergy: Dict[str, Any]) -> str:
         """Traduce sinergia de riesgo a narrativa."""
         count = int(synergy.get("intersecting_cycles_count", 0))
-        return NarrativeTemplates.SYNERGY.format(count=count)
+        return self._fetch_narrative("MISC", "SYNERGY", {"count": count})
 
     def _translate_euler_efficiency(self, efficiency: float) -> str:
         """Traduce eficiencia de Euler a narrativa."""
-        return NarrativeTemplates.EULER_EFFICIENCY.format(efficiency=efficiency)
+        return self._fetch_narrative("MISC", "EULER_EFFICIENCY", {"efficiency": efficiency})
 
     def _translate_spectral(self, fiedler: float, wavelength: float, resonance_risk: bool) -> str:
         """Traduce métricas espectrales a narrativa."""
@@ -1026,17 +721,13 @@ class SemanticTranslator:
             cohesion_type = "low"
 
         parts.append(
-            NarrativeTemplates.SPECTRAL_COHESION[cohesion_type].format(
-                fiedler=fiedler
-            )
+            self._fetch_narrative("SPECTRAL_COHESION", cohesion_type, {"fiedler": fiedler})
         )
 
         # Resonancia
         resonance_type = "risk" if resonance_risk else "safe"
         parts.append(
-            NarrativeTemplates.SPECTRAL_RESONANCE[resonance_type].format(
-                wavelength=wavelength
-            )
+            self._fetch_narrative("SPECTRAL_RESONANCE", resonance_type, {"wavelength": wavelength})
         )
 
         return " ".join(parts)
@@ -1051,18 +742,10 @@ class SemanticTranslator:
     ) -> Tuple[str, VerdictLevel]:
         """
         Traduce métricas termodinámicas a narrativa.
-
-        Args:
-            metrics: Métricas termodinámicas (objeto o diccionario).
-
-        Returns:
-            Tupla (narrativa, veredicto)
         """
         # Normalizar inputs
         if isinstance(metrics, dict):
-            # Fallback para claves antiguas si es necesario
             temp = float(metrics.get("system_temperature", metrics.get("temperature", 25.0)))
-
             thermo = ThermodynamicMetrics(
                 system_temperature=temp,
                 entropy=float(metrics.get("entropy", 0.0)),
@@ -1077,11 +760,8 @@ class SemanticTranslator:
         exergy = thermo.exergetic_efficiency
         temperature_k = thermo.system_temperature
 
-        # Convertir a Celsius para display/clasificación (si > 0)
-        # Asumimos que 0K se queda como 0 (inválido/congelado)
         temperature_c = temperature_k - 273.15 if temperature_k > 0 else 0.0
 
-        # Validar rangos
         entropy = max(0.0, min(1.0, entropy))
         exergy = max(0.0, min(1.0, exergy))
         temperature_c = max(-273.15, temperature_c)
@@ -1095,7 +775,7 @@ class SemanticTranslator:
 
         # Entropía (Muerte Térmica Check)
         if entropy > 0.95:
-            parts.append(NarrativeTemplates.THERMAL_DEATH)
+            parts.append(self._fetch_narrative("MISC", "THERMAL_DEATH"))
             verdicts.append(VerdictLevel.RECHAZAR)
 
         if exergy < self.config.thermal.exergy_poor:
@@ -1107,11 +787,9 @@ class SemanticTranslator:
 
         # Temperatura
         temp_class = self.config.thermal.classify_temperature(temperature_c)
-        temp_template = NarrativeTemplates.THERMAL_TEMPERATURE.get(
-            temp_class,
-            NarrativeTemplates.THERMAL_TEMPERATURE["stable"]
+        parts.append(
+            self._fetch_narrative("THERMAL_TEMPERATURE", temp_class, {"temperature": temperature_c})
         )
-        parts.append(temp_template.format(temperature=temperature_c))
 
         temp_verdict_map = {
             "cold": VerdictLevel.VIABLE,
@@ -1131,16 +809,15 @@ class SemanticTranslator:
         # Entropía
         if entropy > self.config.thermal.entropy_high:
             parts.append(
-                NarrativeTemplates.THERMAL_ENTROPY["high"].format(entropy=entropy)
+                self._fetch_narrative("THERMAL_ENTROPY", "high", {"entropy": entropy})
             )
             verdicts.append(VerdictLevel.PRECAUCION)
         elif entropy < self.config.thermal.entropy_low:
             parts.append(
-                NarrativeTemplates.THERMAL_ENTROPY["low"].format(entropy=entropy)
+                self._fetch_narrative("THERMAL_ENTROPY", "low", {"entropy": entropy})
             )
 
         # Inercia (Capacidad Calorífica)
-        # Acceso directo garantizado por el esquema actualizado
         if thermo.heat_capacity < 0.2:
             parts.append(
                 "🍂 **Hoja al Viento**: Baja inercia financiera (C_v < 0.2). Riesgo de volatilidad extrema."
@@ -1160,34 +837,28 @@ class SemanticTranslator:
     ) -> Tuple[str, VerdictLevel, FinancialVerdict]:
         """
         Traduce métricas financieras a narrativa.
-
-        Args:
-            metrics: Diccionario con métricas financieras
-
-        Returns:
-            Tupla (narrativa, veredicto_general, veredicto_financiero)
         """
         validated = self._validate_financial_metrics(metrics)
         parts = []
 
         # WACC
-        parts.append(NarrativeTemplates.WACC.format(wacc=validated["wacc"]))
+        parts.append(
+            self._fetch_narrative("MISC", "WACC", {"wacc": validated["wacc"]})
+        )
 
         # Contingencia
-        parts.append(NarrativeTemplates.CONTINGENCY.format(
-            contingency=validated["contingency_recommended"]
-        ))
+        parts.append(
+            self._fetch_narrative("MISC", "CONTINGENCY", {"contingency": validated["contingency_recommended"]})
+        )
 
         # Veredicto financiero
         fin_verdict = validated["recommendation"]
         pi = validated["profitability_index"]
 
         verdict_key = fin_verdict.name.lower()
-        verdict_template = NarrativeTemplates.FINANCIAL_VERDICT.get(
-            verdict_key,
-            NarrativeTemplates.FINANCIAL_VERDICT["review"]
+        parts.append(
+            self._fetch_narrative("FINANCIAL_VERDICT", verdict_key, {"pi": pi})
         )
-        parts.append(verdict_template.format(pi=pi))
 
         # Mapear a VerdictLevel
         general_verdict = fin_verdict.to_verdict_level()
@@ -1244,8 +915,6 @@ class SemanticTranslator:
     def get_market_context(self) -> str:
         """
         Obtiene inteligencia de mercado.
-
-        Usa proveedor inyectado o valor determinístico por defecto.
         """
         if self._market_provider:
             try:
@@ -1255,14 +924,11 @@ class SemanticTranslator:
                 logger.warning(f"Market provider failed: {e}")
                 return "🌍 **Suelo de Mercado**: No disponible."
 
-        # Modo determinístico: siempre el mismo valor
-        if self.config.deterministic_market:
-            index = self.config.default_market_index
-        else:
-            import random
-            index = random.randint(0, len(NarrativeTemplates.MARKET_CONTEXTS) - 1)
+        # Modo determinístico o random via MIC
+        params = {"deterministic": self.config.deterministic_market, "index": self.config.default_market_index}
+        response = self.mic.project_intent("fetch_narrative", {"domain": "MARKET_CONTEXT", "params": params}, {})
+        context = response.get("narrative", "")
 
-        context = NarrativeTemplates.MARKET_CONTEXTS[index]
         return f"🌍 **Suelo de Mercado**: {context}"
 
     # ========================================================================
@@ -1283,19 +949,6 @@ class SemanticTranslator:
     ) -> StrategicReport:
         """
         Compone el reporte ejecutivo completo.
-
-        Args:
-            topological_metrics: Métricas de Betti (TopologicalMetrics o dict)
-            financial_metrics: Métricas financieras
-            stability: Índice de estabilidad Ψ
-            synergy_risk: Riesgo de sinergia
-            spectral: Métricas espectrales (wavelength, resonance_risk)
-            thermal_metrics: Métricas termodinámicas (ThermodynamicMetrics o dict)
-            physics_metrics: Métricas físicas (PhysicsMetrics o dict)
-            control_metrics: Métricas de control (ControlMetrics o dict)
-
-        Returns:
-            StrategicReport con análisis completo
         """
         # Normalizar inputs
         # Topología
@@ -1469,25 +1122,25 @@ class SemanticTranslator:
         if physics:
             if physics.gyroscopic_stability < 0.3:
                 issues.append("Nutación crítica detectada")
-                narrative_parts.append(NarrativeTemplates.GYROSCOPIC_STABILITY["nutation"])
+                narrative_parts.append(self._fetch_narrative("GYROSCOPIC_STABILITY", "nutation"))
                 verdicts.append(VerdictLevel.RECHAZAR)
             elif physics.gyroscopic_stability < 0.7:
                 issues.append("Precesión detectada")
-                narrative_parts.append(NarrativeTemplates.GYROSCOPIC_STABILITY["precession"])
+                narrative_parts.append(self._fetch_narrative("GYROSCOPIC_STABILITY", "precession"))
                 verdicts.append(VerdictLevel.PRECAUCION)
             else:
-                narrative_parts.append(NarrativeTemplates.GYROSCOPIC_STABILITY["stable"])
+                narrative_parts.append(self._fetch_narrative("GYROSCOPIC_STABILITY", "stable"))
                 verdicts.append(VerdictLevel.VIABLE)
 
         # 2. Oráculo de Laplace (Control)
         if control:
             if not control.is_stable:
                 issues.append("Divergencia Matemática (RHP)")
-                narrative_parts.append(NarrativeTemplates.LAPLACE_CONTROL["unstable"])
+                narrative_parts.append(self._fetch_narrative("LAPLACE_CONTROL", "unstable"))
                 verdicts.append(VerdictLevel.RECHAZAR)
             elif control.phase_margin_deg < 30:
                 issues.append("Estabilidad Marginal (Resonancia)")
-                narrative_parts.append(NarrativeTemplates.LAPLACE_CONTROL["marginal"])
+                narrative_parts.append(self._fetch_narrative("LAPLACE_CONTROL", "marginal"))
                 verdicts.append(VerdictLevel.PRECAUCION)
             else:
                 verdicts.append(VerdictLevel.VIABLE)
@@ -1506,7 +1159,7 @@ class SemanticTranslator:
         # 4. Entropía (Muerte Térmica)
         if thermal.entropy > 0.95:
              issues.append("Muerte Térmica del Sistema")
-             narrative_parts.append(NarrativeTemplates.THERMAL_DEATH)
+             narrative_parts.append(self._fetch_narrative("MISC", "THERMAL_DEATH"))
              verdicts.append(VerdictLevel.RECHAZAR)
         elif thermal.entropy > self.config.thermal.entropy_high:
             issues.append(f"Alta entropía: {thermal.entropy:.2f}")
@@ -1518,22 +1171,13 @@ class SemanticTranslator:
             if physics.pressure > 0.7:
                 issues.append(f"Inestabilidad de Tubería (P={physics.pressure:.2f})")
                 narrative_parts.append(
-                    NarrativeTemplates.PUMP_DYNAMICS["water_hammer"].format(
-                        pressure=physics.pressure
-                    )
+                    self._fetch_narrative("PUMP_DYNAMICS", "water_hammer", {"pressure": physics.pressure})
                 )
                 verdicts.append(VerdictLevel.PRECAUCION)
 
-            # Cálculo de Eficiencia: pump_work y processed_records no están en PhysicsMetrics.
-            # Se omite o se asume eficiencia high si no hay datos.
-            # Si se desea usar dissipated_power como proxy de fricción:
-            # narrative_parts.append(f"Potencia Disipada: {physics.dissipated_power:.2f}W")
-
             # Presión del Acumulador
             narrative_parts.append(
-                NarrativeTemplates.PUMP_DYNAMICS["accumulator_pressure"].format(
-                    pressure=physics.saturation * 100.0
-                )
+                self._fetch_narrative("PUMP_DYNAMICS", "accumulator_pressure", {"pressure": physics.saturation * 100.0})
             )
 
         verdict = VerdictLevel.supremum(*verdicts) if verdicts else VerdictLevel.VIABLE
@@ -1595,9 +1239,6 @@ class SemanticTranslator:
                 verdicts.append(VerdictLevel.CONDICIONAL)
         else:
             verdicts.append(VerdictLevel.VIABLE)
-
-        # Mayer-Vietoris (Integridad de Fusión)
-        # Omitido si no está en TopologicalMetrics
 
         # Conectividad
         conn_class = self.config.topology.classify_connectivity(topo.beta_0)
@@ -1776,12 +1417,12 @@ class SemanticTranslator:
     ) -> str:
         """Genera el dictamen final."""
         if has_errors:
-            return NarrativeTemplates.FINAL_VERDICTS["analysis_failed"]
+            return self._fetch_narrative("FINAL_VERDICTS", "analysis_failed")
 
         # Sinergia de riesgo
         synergy_detected = bool(synergy.get("synergy_detected", False))
         if synergy_detected:
-            result = NarrativeTemplates.FINAL_VERDICTS["synergy_risk"]
+            result = self._fetch_narrative("FINAL_VERDICTS", "synergy_risk")
             intersecting_cycles = synergy.get("intersecting_cycles", [])
             if intersecting_cycles:
                 cycle_explanation = self.explain_cycle_path(intersecting_cycles[0])
@@ -1798,24 +1439,20 @@ class SemanticTranslator:
 
         if is_inverted:
             if fin_verdict == FinancialVerdict.ACCEPT:
-                return NarrativeTemplates.FINAL_VERDICTS["inverted_pyramid_viable"].format(
-                    stability=stability
-                )
+                return self._fetch_narrative("FINAL_VERDICTS", "inverted_pyramid_viable", {"stability": stability})
             else:
-                return NarrativeTemplates.FINAL_VERDICTS["inverted_pyramid_reject"]
+                return self._fetch_narrative("FINAL_VERDICTS", "inverted_pyramid_reject")
 
         # Agujeros topológicos
         if topo.beta_1 > 0:
-            return NarrativeTemplates.FINAL_VERDICTS["has_holes"].format(
-                beta_1=topo.beta_1
-            )
+            return self._fetch_narrative("FINAL_VERDICTS", "has_holes", {"beta_1": topo.beta_1})
 
         # Caso ideal
         if fin_verdict == FinancialVerdict.ACCEPT:
-            return NarrativeTemplates.FINAL_VERDICTS["certified"]
+            return self._fetch_narrative("FINAL_VERDICTS", "certified")
 
         # Fallback
-        return NarrativeTemplates.FINAL_VERDICTS["review_required"]
+        return self._fetch_narrative("FINAL_VERDICTS", "review_required")
 
     def _generate_executive_summary(
         self,
@@ -1956,9 +1593,10 @@ class SemanticTranslator:
 def create_translator(
     config: Optional[TranslatorConfig] = None,
     market_provider: Optional[Callable[[], str]] = None,
+    mic: Optional[MICRegistry] = None,
 ) -> SemanticTranslator:
     """Factory function para crear un traductor configurado."""
-    return SemanticTranslator(config=config, market_provider=market_provider)
+    return SemanticTranslator(config=config, market_provider=market_provider, mic=mic)
 
 
 def translate_metrics_to_narrative(

@@ -677,6 +677,8 @@ class BusinessTopologyStep(ProcessingStep):
 
     def _resolve_mic_instance(self):
         """Intenta resolver la instancia global de MIC."""
+        if self.mic:
+            return self.mic
         try:
             return getattr(current_app, "mic", None)
         except RuntimeError:
@@ -885,7 +887,7 @@ class BuildOutputStep(ProcessingStep):
             if has_strategy_artifacts:
                 graph = context["graph"]
                 report = context["business_topology_report"]
-                translator = SemanticTranslator()
+                translator = SemanticTranslator(mic=self.mic)
                 result_dict = translator.assemble_data_product(graph, report)
                 result_dict["presupuesto"] = df_final.to_dict("records")
                 result_dict["insumos"] = df_insumos.to_dict("records")
@@ -914,7 +916,7 @@ class BuildOutputStep(ProcessingStep):
 
             # ── Narrativa técnica ──
             try:
-                narrator = TelemetryNarrator()
+                narrator = TelemetryNarrator(mic=self.mic)
                 tech_narrative = narrator.summarize_execution(telemetry)
                 validated_result["technical_audit"] = tech_narrative
             except Exception as e:
