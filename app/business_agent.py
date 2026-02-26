@@ -601,7 +601,7 @@ class BusinessAgent:
         # Componentes del pipeline (inicialización eager para fail-fast)
         self.graph_builder = BudgetGraphBuilder()
         self.topological_analyzer = BusinessTopologicalAnalyzer(self.telemetry)
-        self.translator = SemanticTranslator()
+        self.translator = SemanticTranslator(mic=self.mic)
         # self.financial_engine eliminado en favor de self.mic
 
         # Inicializar el Challenger con configuración inyectada

@@ -5,11 +5,10 @@ Suite de Pruebas para el Narrador Piramidal (TelemetryNarrator)
 Valida:
 1. Propiedades algebraicas del Lattice de Severidad
 2. Estructuras de datos (Issue, PhaseAnalysis, StratumAnalysis, PyramidalReport)
-3. Plantillas de narrativa (NarrativeTemplates)
-4. Lógica de Clausura Transitiva (DIKW)
-5. Recolección recursiva de issues
-6. Integración con TelemetryContext
-7. Casos límite y manejo de errores
+3. Lógica de Clausura Transitiva (DIKW)
+4. Recolección recursiva de issues
+5. Integración con TelemetryContext
+6. Casos límite y manejo de errores
 
 Arquitectura de Tests:
 - TestSeverityLevelLattice: Propiedades algebraicas del lattice
@@ -18,7 +17,6 @@ Arquitectura de Tests:
 - TestPhaseAnalysis: Validación de PhaseAnalysis
 - TestStratumAnalysis: Validación de StratumAnalysis
 - TestPyramidalReport: Validación de PyramidalReport
-- TestNarrativeTemplates: Plantillas de narrativa
 - TestTelemetryNarratorCore: Funcionalidad central del narrador
 - TestClausuraTransitiva: Lógica DIKW piramidal
 - TestIssueCollection: Recolección recursiva de issues
@@ -49,8 +47,6 @@ from app.telemetry_narrative import (
     PhaseAnalysis,
     StratumAnalysis,
     PyramidalReport,
-    # Plantillas
-    NarrativeTemplates,
     # Narrador
     TelemetryNarrator,
     # Factories
@@ -812,108 +808,6 @@ class TestPyramidalReport:
         assert result["is_approved"] is False
         assert len(result["strata_analysis"]) == 4
         assert result["causality_chain"] == ["Step 1", "Step 2"]
-
-
-# ============================================================================
-# TEST: NARRATIVE TEMPLATES
-# ============================================================================
-
-
-class TestNarrativeTemplates:
-    """Pruebas para plantillas de narrativa."""
-
-    def test_success_narratives_exist_for_all_strata(self):
-        """Existen narrativas de éxito para todos los estratos."""
-        for stratum in Stratum:
-            assert stratum in NarrativeTemplates.SUCCESS_NARRATIVES
-
-    def test_failure_narratives_exist_for_all_strata(self):
-        """Existen narrativas de fallo para todos los estratos."""
-        for stratum in Stratum:
-            assert stratum in NarrativeTemplates.FAILURE_NARRATIVES
-            assert "default" in NarrativeTemplates.FAILURE_NARRATIVES[stratum]
-
-    def test_new_failure_modes_exist(self):
-        """Existen los nuevos modos de fallo (Nutación, Muerte Térmica, etc)."""
-        physics = NarrativeTemplates.FAILURE_NARRATIVES[Stratum.PHYSICS]
-        assert "nutation" in physics
-        assert "thermal_death" in physics
-        assert "laplace_unstable" in physics
-
-        tactics = NarrativeTemplates.FAILURE_NARRATIVES[Stratum.TACTICS]
-        assert "mayer_vietoris" in tactics
-
-    def test_warning_narratives_exist_for_all_strata(self):
-        """Existen narrativas de warning para todos los estratos."""
-        for stratum in Stratum:
-            assert stratum in NarrativeTemplates.WARNING_NARRATIVES
-
-    def test_verdict_templates_exist(self):
-        """Existen plantillas de veredictos."""
-        required_verdicts = [
-            "APPROVED",
-            "REJECTED_PHYSICS",
-            "REJECTED_TACTICS",
-            "REJECTED_STRATEGY",
-            "REJECTED_WISDOM",
-        ]
-        for verdict_code in required_verdicts:
-            assert verdict_code in NarrativeTemplates.VERDICTS
-
-    def test_get_stratum_narrative_success(self):
-        """get_stratum_narrative retorna narrativa de éxito."""
-        narrative = NarrativeTemplates.get_stratum_narrative(
-            Stratum.PHYSICS, SeverityLevel.OPTIMO, []
-        )
-        assert "✅" in narrative
-        assert len(narrative) > 0
-
-    def test_get_stratum_narrative_failure(self):
-        """get_stratum_narrative retorna narrativa de fallo."""
-        issues = [Issue(
-            source="s", message="error test", issue_type="Error",
-            depth=0, topological_path=("p",),
-        )]
-        narrative = NarrativeTemplates.get_stratum_narrative(
-            Stratum.PHYSICS, SeverityLevel.CRITICO, issues
-        )
-        assert "🔥" in narrative or "Falla" in narrative
-
-    def test_get_stratum_narrative_warning(self):
-        """get_stratum_narrative retorna narrativa de warning."""
-        narrative = NarrativeTemplates.get_stratum_narrative(
-            Stratum.TACTICS, SeverityLevel.ADVERTENCIA, []
-        )
-        assert "⚠️" in narrative or "Subóptima" in narrative
-
-    def test_detect_failure_type_cycles(self):
-        """Detecta tipo de fallo por ciclos en TACTICS."""
-        issues = [Issue(
-            source="s", message="Ciclo infinito detectado", issue_type="Error",
-            depth=0, topological_path=("p",),
-        )]
-        failure_type = NarrativeTemplates._detect_failure_type(Stratum.TACTICS, issues)
-        assert failure_type == "cycles"
-
-    def test_detect_failure_type_default(self):
-        """Retorna 'default' si no hay keywords."""
-        issues = [Issue(
-            source="s", message="Generic error", issue_type="Error",
-            depth=0, topological_path=("p",),
-        )]
-        failure_type = NarrativeTemplates._detect_failure_type(Stratum.PHYSICS, issues)
-        assert failure_type == "default"
-
-    def test_get_verdict_returns_tuple(self):
-        """get_verdict retorna tupla (título, descripción)."""
-        title, desc = NarrativeTemplates.get_verdict("APPROVED")
-        assert "CERTIFICADO" in title or "🏛️" in title
-        assert len(desc) > 0
-
-    def test_get_verdict_unknown_code(self):
-        """Código desconocido retorna valor por defecto."""
-        title, desc = NarrativeTemplates.get_verdict("UNKNOWN_CODE")
-        assert "DESCONOCIDO" in title or "❓" in title
 
 
 # ============================================================================

@@ -1886,4 +1886,15 @@ def register_core_vectors(mic: 'MICRegistry', config: Optional[Dict[str, Any]] =
     else:
         logger.warning("⚠️ Configuración no proporcionada. Vectores semánticos omitidos.")
 
+    # 6. Vector Wisdom: Diccionario Semántico (SemanticDictionary)
+    # Requisito: Ninguno (Base de Conocimiento).
+    # Propósito: Traducción de métricas técnicas a narrativa prescriptiva (Empatía Táctica).
+    try:
+        from app.semantic_dictionary import SemanticDictionaryService
+        semantic_dict = SemanticDictionaryService()
+        semantic_dict.register_in_mic(mic)
+        logger.info("✅ Diccionario Semántico registrado en la MIC")
+    except Exception as e:
+        logger.error(f"❌ Error al registrar Diccionario Semántico: {e}")
+
     logger.info("✅ Vectores nucleares registrados en la MIC: stabilize_flux, parse_raw, structure_logic")

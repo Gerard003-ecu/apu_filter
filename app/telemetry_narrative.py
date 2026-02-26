@@ -47,6 +47,7 @@ from typing import (
 
 from app.schemas import Stratum
 from app.telemetry import StepStatus, TelemetryContext, TelemetrySpan
+from app.tools_interface import MICRegistry, register_core_vectors
 
 logger = logging.getLogger(__name__)
 
@@ -670,209 +671,84 @@ class PyramidalReport:
 
 
 # ============================================================================
-# GENERADOR DE NARRATIVAS
+# NARRADOR PRINCIPAL
 # ============================================================================
 
 
-class NarrativeTemplates:
+class TelemetryNarrator:
     """
-    Plantillas de narrativa para cada nivel de la pirámide.
+    Narrador que implementa la lógica del 'Consejo de Sabios'.
+
+    Organiza la evidencia forense según la jerarquía DIKW
+    y aplica Clausura Transitiva para determinar el veredicto.
     
-    Implementa la voz de cada 'Sabio' del Consejo.
-    Ref: LENGUAJE_CONSEJO.md
+    Flujo de Procesamiento:
+    1. Análisis de Fases (spans individuales)
+    2. Agrupación por Estratos (consolidación)
+    3. Síntesis de Sabiduría (veredicto final)
+    4. Generación de Reporte (serialización)
     """
 
-    # Narrativas de éxito por estrato
-    SUCCESS_NARRATIVES: Dict[Stratum, str] = {
-        Stratum.PHYSICS: (
-            "✅ **Cimentación Estable**: "
-            "Flujo laminar de datos confirmado. Sin turbulencia (Flyback). "
-            "La base física del proyecto es sólida."
-        ),
-        Stratum.TACTICS: (
-            "✅ **Estructura Coherente**: "
-            "Topología conexa (β₀=1) y acíclica (β₁=0). "
-            "El grafo de dependencias es válido."
-        ),
-        Stratum.STRATEGY: (
-            "✅ **Viabilidad Confirmada**: "
-            "El modelo financiero es robusto ante la volatilidad. "
-            "Los indicadores de riesgo están dentro de umbrales aceptables."
-        ),
-        Stratum.WISDOM: (
-            "✅ **Síntesis Completa**: "
-            "Respuesta generada exitosamente. "
-            "Todas las capas del análisis convergen."
-        ),
-    }
+    def __init__(
+        self,
+        step_mapping: Optional[Dict[str, Stratum]] = None,
+        config: Optional[NarratorConfig] = None,
+        mic: Optional[MICRegistry] = None,
+    ):
+        """
+        Inicializa el narrador.
 
-    # Narrativas de fallo por estrato
-    FAILURE_NARRATIVES: Dict[Stratum, Dict[str, str]] = {
-        Stratum.PHYSICS: {
-            "default": (
-                "🔥 **Falla en Cimentación**: "
-                "Se detectó inestabilidad física (Saturación/Flyback). "
-                "Los datos no son confiables."
-            ),
-            "saturation": (
-                "⚡ **Sobrecarga Detectada**: "
-                "El sistema alcanzó saturación crítica. "
-                "Reducir carga o escalar recursos."
-            ),
-            "corruption": (
-                "💥 **Datos Corruptos**: "
-                "La integridad de los datos de entrada está comprometida. "
-                "Verificar fuentes."
-            ),
-            "nutation": (
-                "🚨 **NUTACIÓN CRÍTICA**: "
-                "Inestabilidad rotacional detectada. El proceso corre riesgo de colapso inercial "
-                "por oscilaciones no amortiguadas."
-            ),
-            "thermal_death": (
-                "☢️ **MUERTE TÉRMICA DEL SISTEMA**: "
-                "La entropía ha alcanzado el equilibrio máximo. "
-                "No hay energía libre para procesar información útil."
-            ),
-            "laplace_unstable": (
-                "⛔ **DIVERGENCIA MATEMÁTICA**: "
-                "Polos en el semiplano derecho (RHP). El sistema es intrínsecamente explosivo "
-                "ante variaciones de entrada."
-            ),
-            "water_hammer": (
-                "🌊 **GOLPE DE ARIETE DETECTADO**: "
-                "Ondas de choque en la tubería de datos (Presión > 0.7). "
-                "Riesgo de ruptura en la persistencia."
-            ),
-            "high_injection_work": (
-                "💪 **Fase de Ingesta (Sobrecarga)**: "
-                "Alto esfuerzo de inyección detectado. La fricción de los datos "
-                "está consumiendo energía crítica."
-            ),
-        },
-        Stratum.TACTICS: {
-            "default": (
-                "🏗️ **Fragmentación Estructural**: "
-                "El grafo del proyecto está desconectado. "
-                "Existen islas de datos sin conexión."
-            ),
-            "cycles": (
-                "🔄 **Socavón Lógico Detectado**: "
-                "La estructura contiene bucles infinitos (β₁ > 0). "
-                "El costo es incalculable."
-            ),
-            "disconnected": (
-                "🧩 **Componentes Aislados**: "
-                "β₀ > 1 indica múltiples componentes desconectados. "
-                "Revisar enlaces entre módulos."
-            ),
-            "mayer_vietoris": (
-                "🧩 **ANOMALÍA DE INTEGRACIÓN (Mayer-Vietoris)**: "
-                "La fusión de datasets ha generado ciclos lógicos que no existían "
-                "en las fuentes originales. Inconsistencia topológica."
-            ),
-        },
-        Stratum.STRATEGY: {
-            "default": (
-                "📉 **Riesgo Sistémico**: "
-                "Aunque la estructura es válida, "
-                "la simulación financiera proyecta pérdidas."
-            ),
-            "high_var": (
-                "🎲 **Alta Volatilidad**: "
-                "El VaR excede umbrales aceptables. "
-                "Considerar coberturas o reducir exposición."
-            ),
-            "negative_npv": (
-                "💸 **Destrucción de Valor**: "
-                "El NPV proyectado es negativo. "
-                "El proyecto no genera valor económico."
-            ),
-        },
-        Stratum.WISDOM: {
-            "default": (
-                "⚠️ **Síntesis Comprometida**: "
-                "Hubo problemas generando la respuesta final. "
-                "Revisar pasos anteriores."
-            ),
-        },
-    }
+        Args:
+            step_mapping: Mapeo personalizado de pasos a estratos
+            config: Configuración personalizada
+            mic: MIC Registry for fetching narratives.
+        """
+        self.step_mapping = step_mapping or {}
+        self.config = config or NarratorConfig()
 
-    # Narrativas de advertencia
-    WARNING_NARRATIVES: Dict[Stratum, str] = {
-        Stratum.PHYSICS: (
-            "⚠️ **Señales de Turbulencia**: "
-            "Se detectaron fluctuaciones en el flujo de datos. "
-            "Monitorear la situación."
-        ),
-        Stratum.TACTICS: (
-            "⚠️ **Estructura Subóptima**: "
-            "El grafo presenta redundancias o complejidad excesiva. "
-            "Considerar simplificación."
-        ),
-        Stratum.STRATEGY: (
-            "⚠️ **Sensibilidad Alta**: "
-            "El modelo financiero es sensible a variaciones. "
-            "Realizar análisis de escenarios."
-        ),
-        Stratum.WISDOM: (
-            "⚠️ **Síntesis Parcial**: "
-            "La respuesta se generó con algunas limitaciones. "
-            "Revisar calidad de inputs."
-        ),
-    }
+        if mic:
+            self.mic = mic
+        else:
+            # Fallback for legacy usage
+            self.mic = MICRegistry()
+            register_core_vectors(self.mic, config={})
 
-    # Veredictos finales
-    VERDICTS: Dict[str, Tuple[str, str]] = {
-        "APPROVED": (
-            "🏛️ **CERTIFICADO DE SOLIDEZ INTEGRAL**",
-            "El Consejo valida el proyecto en todas sus dimensiones: "
-            "Físicamente estable, Topológicamente conexo y Financieramente viable."
-        ),
-        "REJECTED_PHYSICS": (
-            "⛔ **PROCESO ABORTADO POR INESTABILIDAD FÍSICA**",
-            "El Guardián detectó que el flujo de datos es turbulento o corrupto. "
-            "No tiene sentido analizar la estrategia financiera de datos que no existen físicamente."
-        ),
-        "REJECTED_TACTICS": (
-            "🚧 **VETO ESTRUCTURAL DEL ARQUITECTO**",
-            "Los datos son legibles, pero forman una estructura imposible. "
-            "Cualquier cálculo financiero sobre esta base sería una alucinación."
-        ),
-        "REJECTED_STRATEGY": (
-            "📉 **ALERTA FINANCIERA DEL ORÁCULO**",
-            "La estructura es sólida, pero el mercado es hostil o el proyecto no es rentable."
-        ),
-        "REJECTED_WISDOM": (
-            "⚠️ **FALLO EN SÍNTESIS FINAL**",
-            "Todas las capas base son válidas, pero hubo un error generando la respuesta."
-        ),
-    }
+    def _fetch_narrative(self, domain: str, classification: str, params: Dict[str, Any] = None) -> str:
+        """Helper to fetch narrative from MIC."""
+        # Use force_physics_override to access WISDOM layer (Dictionary) even if lower strata fail
+        response = self.mic.project_intent(
+            "fetch_narrative",
+            {
+                "domain": domain,
+                "classification": classification,
+                "params": params or {}
+            },
+            {"force_physics_override": True}
+        )
+        return response.get("narrative", f"[{domain}.{classification}]")
 
-    @classmethod
     def get_stratum_narrative(
-        cls,
+        self,
         stratum: Stratum,
         severity: SeverityLevel,
         issues: List[Issue],
     ) -> str:
         """Genera narrativa apropiada para el estrato y severidad."""
+
+        # Mapping severity to domain
         if severity == SeverityLevel.OPTIMO:
-            return cls.SUCCESS_NARRATIVES.get(stratum, "Operación exitosa.")
+            domain = "TELEMETRY_SUCCESS"
+            classification = stratum.name
+        elif severity == SeverityLevel.ADVERTENCIA:
+            domain = "TELEMETRY_WARNINGS"
+            classification = stratum.name
+        else: # CRITICO
+            domain = f"TELEMETRY_FAILURES_{stratum.name}"
+            classification = self._detect_failure_type(stratum, issues)
 
-        if severity == SeverityLevel.ADVERTENCIA:
-            return cls.WARNING_NARRATIVES.get(stratum, "Advertencias detectadas.")
+        return self._fetch_narrative(domain, classification)
 
-        # Severidad CRITICO - buscar narrativa específica
-        failure_dict = cls.FAILURE_NARRATIVES.get(stratum, {})
-
-        # Detectar tipo específico de fallo
-        failure_type = cls._detect_failure_type(stratum, issues)
-
-        return failure_dict.get(failure_type, failure_dict.get("default", "Fallo crítico."))
-
-    @classmethod
-    def _detect_failure_type(cls, stratum: Stratum, issues: List[Issue]) -> str:
+    def _detect_failure_type(self, stratum: Stratum, issues: List[Issue]) -> str:
         """Detecta el tipo específico de fallo basado en los issues."""
         issue_messages = " ".join(i.message.lower() for i in issues)
 
@@ -908,48 +784,15 @@ class NarrativeTemplates:
 
         return "default"
 
-    @classmethod
-    def get_verdict(cls, verdict_code: str) -> Tuple[str, str]:
-        """Obtiene título y descripción del veredicto."""
-        return cls.VERDICTS.get(
-            verdict_code,
-            ("❓ **ESTADO DESCONOCIDO**", "No se pudo determinar el estado.")
-        )
-
-
-# ============================================================================
-# NARRADOR PRINCIPAL
-# ============================================================================
-
-
-class TelemetryNarrator:
-    """
-    Narrador que implementa la lógica del 'Consejo de Sabios'.
-    
-    Organiza la evidencia forense según la jerarquía DIKW
-    y aplica Clausura Transitiva para determinar el veredicto.
-    
-    Flujo de Procesamiento:
-    1. Análisis de Fases (spans individuales)
-    2. Agrupación por Estratos (consolidación)
-    3. Síntesis de Sabiduría (veredicto final)
-    4. Generación de Reporte (serialización)
-    """
-
-    def __init__(
-        self,
-        step_mapping: Optional[Dict[str, Stratum]] = None,
-        config: Optional[NarratorConfig] = None,
-    ):
-        """
-        Inicializa el narrador.
-        
-        Args:
-            step_mapping: Mapeo personalizado de pasos a estratos
-            config: Configuración personalizada
-        """
-        self.step_mapping = step_mapping or {}
-        self.config = config or NarratorConfig()
+    def _get_verdict_info(self, verdict_code: str) -> Tuple[str, str]:
+        """Obtiene título y descripción del veredicto desde MIC."""
+        full_text = self._fetch_narrative("TELEMETRY_VERDICTS", verdict_code)
+        # Parse based on assuming a newline separator if present, or just split.
+        # Format in Dictionary: "Title\nDescription"
+        if "\n" in full_text:
+            parts = full_text.split("\n", 1)
+            return parts[0], parts[1]
+        return full_text, ""
 
     def get_root_cause_stratum(self, context: TelemetryContext) -> Optional[Stratum]:
         """
@@ -1041,7 +884,7 @@ class TelemetryNarrator:
 
             # 6. Construcción del Reporte
             report = PyramidalReport(
-                verdict=NarrativeTemplates.get_verdict(verdict_code)[0],
+                verdict=self._get_verdict_info(verdict_code)[0],
                 verdict_code=verdict_code,
                 executive_summary=executive_summary,
                 global_severity=global_severity,
@@ -1510,7 +1353,7 @@ class TelemetryNarrator:
             ))
 
             # Generar narrativa
-            narrative = NarrativeTemplates.get_stratum_narrative(
+            narrative = self.get_stratum_narrative(
                 stratum,
                 severity,
                 all_issues,
@@ -1587,7 +1430,7 @@ class TelemetryNarrator:
         
         Retorna (narrativa, cadena_causal)
         """
-        title, base_message = NarrativeTemplates.get_verdict(verdict_code)
+        title, base_message = self._get_verdict_info(verdict_code)
         causality_chain = []
 
         # Si hay rechazo, construir cadena causal
@@ -1766,7 +1609,7 @@ class TelemetryNarrator:
         verdict_code = "REJECTED_PHYSICS" if has_errors else "APPROVED"
         global_severity = SeverityLevel.CRITICO if has_errors else SeverityLevel.OPTIMO
 
-        title, description = NarrativeTemplates.get_verdict(verdict_code)
+        title, description = self._get_verdict_info(verdict_code)
 
         report = PyramidalReport(
             verdict=title,
@@ -1858,9 +1701,10 @@ class TelemetryNarrator:
 
 def create_narrator(
     step_mapping: Optional[Dict[str, Stratum]] = None,
+    mic: Optional[MICRegistry] = None,
 ) -> TelemetryNarrator:
     """Factory function para crear un narrador configurado."""
-    return TelemetryNarrator(step_mapping=step_mapping)
+    return TelemetryNarrator(step_mapping=step_mapping, mic=mic)
 
 
 def summarize_context(context: TelemetryContext) -> Dict[str, Any]:
