@@ -90,9 +90,13 @@ def test_project_graph_narrative_stress_non_critical():
         "vector": vector_data
     }
 
+    # Since we made it passive, it should succeed and just render the template
     result = service.project_graph_narrative(payload, context)
-    assert result["success"] is False
-    assert "no presenta estrés" in result["error"]
+    assert result["success"] is True
+    narrative = result["narrative"]
+    assert "Punto de Estrés Estructural" in narrative
+    assert "Brick" in narrative
+    assert "2" in narrative
 
 def test_project_graph_narrative_invalid_type():
     service = SemanticDictionaryService()

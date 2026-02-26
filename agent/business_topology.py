@@ -1316,6 +1316,9 @@ class BusinessTopologicalAnalyzer:
             metrics, synergy, pyramid_stability, None, thermal, spectral
         )
 
+        # Identify critical resources for reporting
+        critical_resources = self._identify_critical_resources(graph)
+
         return ConstructionRiskReport(
             integrity_score=round(integrity_score, 1),
             waste_alerts=waste_alerts,
@@ -1335,6 +1338,8 @@ class BusinessTopologicalAnalyzer:
                 "density": density,
                 "connectivity": {"is_dag": nx.is_directed_acyclic_graph(graph)},
                 "cycles": [" -> ".join(c) for c in raw_cycles[:5]],
+                "raw_cycles": raw_cycles,  # Raw cycles for GraphRAG
+                "critical_resources": critical_resources,  # Critical resources for GraphRAG
                 "convection_risk": {"high_risk_nodes": []},  # Placeholder
             },
         )

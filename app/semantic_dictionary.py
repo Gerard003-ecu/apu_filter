@@ -57,41 +57,25 @@ class GraphSemanticProjector:
 
     def project_pyramidal_stress(self, vector: PyramidalSemanticVector) -> Dict[str, Any]:
         """
-        Identifica y narra cuellos de botella en la base de la pirámide logística.
-        Si la métrica Ψ < 1.0, este vector explica DÓNDE está el estrés.
+        Consumo PASIVO: Asume que el Arquitecto ya validó que es un punto de estrés.
+        Solo inyecta los datos en la plantilla narrativa.
         """
-        # Solo los insumos (Cimentación - Nivel Físico) actúan como soporte estructural
-        if vector.stratum == Stratum.PHYSICS and vector.in_degree > 5:
-            return self.dictionary.fetch_narrative(
-                domain="MISC",
-                classification="STRESS_POINT",
-                params={
-                    "node": vector.node_id,
-                    "degree": vector.in_degree
-                }
-            )
-
-        return {"success": False, "error": "El nodo no presenta estrés piramidal crítico."}
+        return self.dictionary.fetch_narrative(
+            domain="MISC",
+            classification="STRESS_POINT",
+            params={"node": vector.node_id, "degree": vector.in_degree}
+        )
 
     def project_cycle_path(self, path_nodes: List[str]) -> Dict[str, Any]:
-        """
-        Traduce un ciclo homológico (β₁ > 0) a una cadena causal narrativa.
-        Transforma el error matemático en un problema de trazabilidad logística.
-        """
+        """Consumo PASIVO de la ruta del ciclo."""
         if not path_nodes:
-            return {"success": False, "error": "Ruta de ciclo vacía."}
+            return {"success": False, "error": "Ruta vacía."}
 
-        # Formatear la cadena de dependencias: A -> B -> C -> A
         path_str = " -> ".join(path_nodes)
-        first_node = path_nodes[0]
-
         return self.dictionary.fetch_narrative(
             domain="MISC",
             classification="CYCLE_PATH",
-            params={
-                "path": path_str,
-                "first_node": first_node
-            }
+            params={"path": path_str, "first_node": path_nodes[0]}
         )
 
 class SemanticDictionaryService:

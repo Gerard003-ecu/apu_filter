@@ -543,17 +543,6 @@ class SemanticTranslator:
 
         max_display = self.config.max_cycle_path_display
 
-        # Prepare data for GraphRAG
-        # Truncate locally if needed before sending to graph projector, or let projector handle?
-        # The prompt says "Delega la explicación causal al Diccionario vía MIC."
-        # And gave example:
-        # payload = {"anomaly_type": "CYCLE", "path_nodes": cycle_path}
-        # response = self.mic.project_intent("project_graph_narrative", payload, session_context)
-
-        # We need to construct path_nodes respecting max display configuration?
-        # GraphSemanticProjector implementation uses " -> ".join(path_nodes).
-        # We should probably pass the full list or truncated list to match visual requirement.
-
         display_nodes = cycle_nodes[:max_display]
         if len(cycle_nodes) > max_display:
             display_nodes.append(f"... ({len(cycle_nodes) - max_display} más)")
@@ -568,26 +557,44 @@ class SemanticTranslator:
         }
 
         # Proyección a la MIC invocando GraphRAG
-        # We don't have session_context here, passing empty context or minimal required.
-        # Dictionary service doesn't strictly require session context for this projection.
         response = self.mic.project_intent(
             "project_graph_narrative",
             payload,
             {"force_physics_override": True}
         )
 
-        if response.get("success"):
-            return response.get("narrative", "")
+        return response.get("narrative", "") if response.get("success") else ""
 
-        return "Error generando trazabilidad del ciclo."
+    def explain_stress_point(self, node_id: str, degree: Union[int, str], stratum: Stratum = Stratum.PHYSICS) -> str:
+        """Explica por qué un nodo es crítico (GraphRAG) delegando a la MIC."""
 
-    def explain_stress_point(self, node: str, degree: Union[int, str]) -> str:
-        """Explica por qué un nodo es crítico (GraphRAG)."""
-        return self._fetch_narrative(
-            "MISC",
-            "STRESS_POINT",
-            {"node": node, "degree": degree}
+        # Robust handling for degree if string is passed (e.g. "múltiples")
+        safe_degree = 0
+        if isinstance(degree, int):
+            safe_degree = degree
+        elif isinstance(degree, str):
+            if degree.isdigit():
+                safe_degree = int(degree)
+            else:
+                # "múltiples" or other qualitative descriptors imply high connectivity
+                safe_degree = 10
+
+        payload = {
+            "anomaly_type": "STRESS",
+            "vector": {
+                "node_id": node_id,
+                "node_type": "INSUMO", # Default as stress points usually in physics
+                "stratum": stratum.value,
+                "in_degree": safe_degree,
+                "out_degree": 0
+            }
+        }
+        response = self.mic.project_intent(
+            "project_graph_narrative",
+            payload,
+            {"force_physics_override": True}
         )
+        return response.get("narrative", "") if response.get("success") else ""
 
     # ========================================================================
     # TRADUCCIÓN DE TOPOLOGÍA
@@ -644,9 +651,10 @@ class SemanticTranslator:
             verdicts.append(VerdictLevel.RECHAZAR)
 
             # GraphRAG: Explicar nodos críticos
-            intersecting_nodes = synergy.get("intersecting_nodes", [])
-            if intersecting_nodes:
-                example_node = intersecting_nodes[0]
+            bridge_nodes = synergy.get("bridge_nodes", [])
+            if bridge_nodes:
+                # bridge_nodes is list of dicts with 'id' key
+                example_node = bridge_nodes[0].get("id") if isinstance(bridge_nodes[0], dict) else str(bridge_nodes[0])
                 narrative_parts.append(self.explain_stress_point(example_node, "múltiples"))
 
         # 4. Espectral
@@ -972,6 +980,8 @@ class SemanticTranslator:
         thermal_metrics: Optional[Dict[str, Any]] = None,
         physics_metrics: Optional[Dict[str, Any]] = None,
         control_metrics: Optional[Dict[str, Any]] = None,
+        critical_resources: Optional[List[Dict[str, Any]]] = None,
+        raw_cycles: Optional[List[List[str]]] = None,
         **kwargs: Any,
     ) -> StrategicReport:
         """
@@ -1065,6 +1075,27 @@ class SemanticTranslator:
             )
             section_narratives.append(topo_narrative)
             all_verdicts.append(topo_verdict)
+
+            # Phase 4: Iterate over critical resources (GraphRAG)
+            if critical_resources:
+                # We show up to config.max_stress_points_display resources
+                limit = self.config.max_stress_points_display
+                for i, resource in enumerate(critical_resources[:limit]):
+                    node_id = resource.get("id")
+                    degree = resource.get("in_degree", 0)
+                    if node_id:
+                        explanation = self.explain_stress_point(node_id, degree)
+                        if explanation:
+                            section_narratives.append(f"- {explanation}")
+
+            # Phase 4: Iterate over cycles (GraphRAG)
+            if raw_cycles:
+                limit_cycles = self.config.max_cycle_path_display
+                for cycle_path in raw_cycles[:limit_cycles]:
+                    explanation = self.explain_cycle_path(cycle_path)
+                    if explanation:
+                        section_narratives.append(f"- {explanation}")
+
         except Exception as e:
             error_msg = f"Error analizando estructura: {e}"
             section_narratives.append(f"❌ {error_msg}")
