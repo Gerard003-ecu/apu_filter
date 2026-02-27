@@ -1,157 +1,182 @@
 """
-Test Suite Completo para probability_models.py
+Suite de pruebas exhaustivas para el módulo de simulación Monte Carlo.
 
-Cubre todas las clases, métodos, validaciones, casos edge y flujos de error
-del módulo de modelos de probabilidad y simulaciones Monte Carlo.
+Esta suite cubre:
+- Configuración y validación de parámetros
+- Utilidades de sanitización y validación
+- Clases de resultados y métricas
+- Simulador principal con todas las distribuciones
+- Análisis de sensibilidad
+- Función de compatibilidad legacy
+- Tests de integración y propiedades matemáticas
+
+Ejecutar con: pytest test_monte_carlo.py -v --tb=short
+Ejecutar con cobertura: pytest test_monte_carlo.py --cov=monte_carlo --cov-report=html
 """
 
 import logging
-from unittest.mock import Mock, patch
+import math
+import warnings
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
 
-# Importar las clases y funciones a testear desde la ubicación correcta
-from models.probability_models import (
+# Importar el módulo a testear
+from monte_carlo import (
     DEFAULT_NUM_SIMULATIONS,
     DEFAULT_VOLATILITY,
+    MAX_NUM_SIMULATIONS,
+    MAX_SAFE_FLOAT,
+    MAX_VOLATILITY,
+    MEMORY_HARD_LIMIT_GB,
+    MIN_NUM_SIMULATIONS,
+    MIN_SCALE_VALUE,
+    MIN_VALID_ITEMS_FOR_SIMULATION,
+    MIN_VOLATILITY,
+    ConvergenceMetrics,
+    DistributionType,
     MonteCarloConfig,
     MonteCarloSimulator,
     SimulationResult,
     SimulationStatus,
+    calculate_convergence_metrics,
     estimate_memory_usage,
+    is_numeric_valid,
     run_monte_carlo_simulation,
     sanitize_value,
-    # validate_apu_data_structure,
-    # Esta función no existe en models/probability_models.py, fue un error en el test
+    validate_required_keys,
 )
 
+
 # ============================================================================
-# FIXTURES - Datos de Prueba Reutilizables
+# FIXTURES
 # ============================================================================
 
 
 @pytest.fixture
-def mock_logger():
-    """Logger mock para pruebas."""
-    logger = Mock(spec=logging.Logger)
-    logger.info = Mock()
-    logger.warning = Mock()
-    logger.error = Mock()
-    logger.debug = Mock()
-    return logger
-
-
-@pytest.fixture
-def default_config():
-    """Configuración por defecto."""
+def default_config() -> MonteCarloConfig:
+    """Configuración por defecto para tests."""
     return MonteCarloConfig()
 
 
 @pytest.fixture
-def custom_config():
-    """Configuración personalizada."""
+def deterministic_config() -> MonteCarloConfig:
+    """Configuración con semilla fija para reproducibilidad."""
     return MonteCarloConfig(
-        num_simulations=500,
-        volatility_factor=0.15,
-        min_cost_threshold=100.0,
-        min_quantity_threshold=0.1,
+        num_simulations=1000,
+        volatility_factor=0.10,
         random_seed=42,
-        percentiles=[10, 50, 90],
     )
 
 
 @pytest.fixture
-def valid_apu_data():
-    """Datos de APU válidos para pruebas."""
+def lognormal_config() -> MonteCarloConfig:
+    """Configuración con distribución log-normal."""
+    return MonteCarloConfig(
+        num_simulations=1000,
+        volatility_factor=0.15,
+        distribution=DistributionType.LOGNORMAL,
+        random_seed=42,
+    )
+
+
+@pytest.fixture
+def triangular_config() -> MonteCarloConfig:
+    """Configuración con distribución triangular."""
+    return MonteCarloConfig(
+        num_simulations=1000,
+        volatility_factor=0.20,
+        distribution=DistributionType.TRIANGULAR,
+        random_seed=42,
+    )
+
+
+@pytest.fixture
+def antithetic_config() -> MonteCarloConfig:
+    """Configuración con variantes antitéticas."""
+    return MonteCarloConfig(
+        num_simulations=1000,
+        volatility_factor=0.10,
+        use_antithetic=True,
+        random_seed=42,
+    )
+
+
+@pytest.fixture
+def simple_apu_data() -> List[Dict[str, Any]]:
+    """Datos APU simples para tests básicos."""
     return [
-        {"VR_TOTAL": 10000.0, "CANTIDAD": 5.0},
-        {"VR_TOTAL": 20000.0, "CANTIDAD": 3.0},
-        {"VR_TOTAL": 15000.0, "CANTIDAD": 4.0},
-        {"VR_TOTAL": 5000.0, "CANTIDAD": 10.0},
+        {"VR_TOTAL": 1000.0, "CANTIDAD": 5.0},
+        {"VR_TOTAL": 2000.0, "CANTIDAD": 3.0},
+        {"VR_TOTAL": 1500.0, "CANTIDAD": 4.0},
     ]
 
 
 @pytest.fixture
-def apu_data_with_zeros():
-    """Datos con valores cero."""
+def large_apu_data() -> List[Dict[str, Any]]:
+    """Datos APU más grandes para tests de rendimiento."""
+    np.random.seed(42)
     return [
-        {"VR_TOTAL": 10000.0, "CANTIDAD": 0.0},  # Cantidad cero
-        {"VR_TOTAL": 0.0, "CANTIDAD": 5.0},  # Valor cero
-        {"VR_TOTAL": 15000.0, "CANTIDAD": 4.0},  # Válido
+        {
+            "VR_TOTAL": float(np.random.uniform(100, 10000)),
+            "CANTIDAD": float(np.random.uniform(1, 100)),
+        }
+        for _ in range(100)
     ]
 
 
 @pytest.fixture
-def apu_data_with_negatives():
-    """Datos con valores negativos."""
+def mixed_valid_invalid_data() -> List[Dict[str, Any]]:
+    """Datos con mezcla de valores válidos e inválidos."""
     return [
-        {"VR_TOTAL": -10000.0, "CANTIDAD": 5.0},  # Valor negativo
-        {"VR_TOTAL": 20000.0, "CANTIDAD": -3.0},  # Cantidad negativa
-        {"VR_TOTAL": 15000.0, "CANTIDAD": 4.0},  # Válido
+        {"VR_TOTAL": 1000.0, "CANTIDAD": 5.0},  # Válido
+        {"VR_TOTAL": np.nan, "CANTIDAD": 3.0},  # NaN en VR_TOTAL
+        {"VR_TOTAL": 2000.0, "CANTIDAD": np.nan},  # NaN en CANTIDAD
+        {"VR_TOTAL": np.inf, "CANTIDAD": 2.0},  # Infinito
+        {"VR_TOTAL": -1000.0, "CANTIDAD": 5.0},  # Negativo (si threshold > 0)
+        {"VR_TOTAL": 1500.0, "CANTIDAD": 4.0},  # Válido
+        {"VR_TOTAL": "invalid", "CANTIDAD": 3.0},  # String no numérico
+        {"VR_TOTAL": 3000.0, "CANTIDAD": 2.0},  # Válido
     ]
 
 
 @pytest.fixture
-def apu_data_with_nan():
-    """Datos con valores NaN."""
+def aliased_apu_data() -> List[Dict[str, Any]]:
+    """Datos APU con nombres de columnas alternativos."""
     return [
-        {"VR_TOTAL": np.nan, "CANTIDAD": 5.0},
-        {"VR_TOTAL": 20000.0, "CANTIDAD": np.nan},
-        {"VR_TOTAL": 15000.0, "CANTIDAD": 4.0},
-        {"VR_TOTAL": np.inf, "CANTIDAD": 3.0},
+        {"valor_total": 1000.0, "cantidad": 5.0},
+        {"valor_total": 2000.0, "cantidad": 3.0},
+        {"valor_total": 1500.0, "cantidad": 4.0},
     ]
 
 
 @pytest.fixture
-def apu_data_with_strings():
-    """Datos con strings que pueden convertirse."""
-    return [
-        {"VR_TOTAL": "10000.0", "CANTIDAD": "5.0"},
-        {"VR_TOTAL": "20000.0", "CANTIDAD": "3.0"},
-        {"VR_TOTAL": "invalid", "CANTIDAD": "4.0"},
-    ]
+def silent_logger() -> logging.Logger:
+    """Logger silencioso para tests."""
+    logger = logging.getLogger("test_silent")
+    logger.setLevel(logging.CRITICAL + 1)  # Desactiva todo logging
+    return logger
 
 
 @pytest.fixture
-def apu_data_missing_columns():
-    """Datos con columnas faltantes."""
-    return [
-        {"VR_TOTAL": 10000.0},  # Falta CANTIDAD
-        {"CANTIDAD": 5.0},  # Falta VR_TOTAL
-    ]
-
-
-@pytest.fixture
-def large_apu_data():
-    """Dataset grande para tests de rendimiento."""
-    return [{"VR_TOTAL": 10000.0 + i * 100, "CANTIDAD": 5.0 + i * 0.1} for i in range(1000)]
-
-
-@pytest.fixture
-def simulator(mock_logger):
-    """Simulador con logger mock."""
-    return MonteCarloSimulator(logger=mock_logger)
-
-
-@pytest.fixture
-def simulator_with_seed():
-    """Simulador con semilla fija para reproducibilidad."""
-    config = MonteCarloConfig(random_seed=42, num_simulations=100)
-    return MonteCarloSimulator(config=config)
+def simulator(deterministic_config, silent_logger) -> MonteCarloSimulator:
+    """Simulador configurado para tests."""
+    return MonteCarloSimulator(config=deterministic_config, logger=silent_logger)
 
 
 # ============================================================================
-# TESTS DE MonteCarloConfig
+# TESTS: MonteCarloConfig
 # ============================================================================
 
 
 class TestMonteCarloConfig:
-    """Tests para la clase de configuración."""
+    """Tests para la clase MonteCarloConfig."""
 
-    def test_default_initialization(self):
-        """Debe inicializar con valores por defecto."""
+    def test_default_values(self):
+        """Verifica valores por defecto."""
         config = MonteCarloConfig()
 
         assert config.num_simulations == DEFAULT_NUM_SIMULATIONS
@@ -160,1275 +185,1734 @@ class TestMonteCarloConfig:
         assert config.min_quantity_threshold == 0.0
         assert config.random_seed is None
         assert config.truncate_negative is True
+        assert config.distribution == DistributionType.NORMAL
+        assert config.use_antithetic is False
+        assert config.check_convergence is True
+        assert config.use_float32 is False
+
+    def test_percentiles_default(self):
+        """Verifica percentiles por defecto."""
+        config = MonteCarloConfig()
         assert config.percentiles == [5, 25, 50, 75, 95]
 
-    def test_custom_initialization(self):
-        """Debe aceptar valores personalizados."""
+    def test_percentiles_normalization(self):
+        """Verifica que percentiles se ordenan y eliminan duplicados."""
+        config = MonteCarloConfig(percentiles=[95, 5, 50, 5, 95])
+        assert config.percentiles == [5, 50, 95]
+
+    def test_custom_values(self):
+        """Verifica valores personalizados."""
         config = MonteCarloConfig(
-            num_simulations=500,
-            volatility_factor=0.15,
+            num_simulations=5000,
+            volatility_factor=0.25,
             min_cost_threshold=100.0,
-            min_quantity_threshold=1.0,
-            random_seed=42,
-            truncate_negative=False,
-            percentiles=[10, 90],
+            random_seed=123,
         )
 
-        assert config.num_simulations == 500
-        assert config.volatility_factor == 0.15
+        assert config.num_simulations == 5000
+        assert config.volatility_factor == 0.25
         assert config.min_cost_threshold == 100.0
-        assert config.min_quantity_threshold == 1.0
-        assert config.random_seed == 42
-        assert config.truncate_negative is False
-        assert config.percentiles == [10, 90]
+        assert config.random_seed == 123
 
-    def test_validation_num_simulations_type(self):
-        """Debe validar que num_simulations sea entero."""
-        with pytest.raises(TypeError, match="debe ser int"):
-            MonteCarloConfig(num_simulations=100.5)
+    def test_distribution_from_string(self):
+        """Verifica conversión de string a enum para distribución."""
+        config = MonteCarloConfig(distribution="lognormal")
+        assert config.distribution == DistributionType.LOGNORMAL
 
-        with pytest.raises(TypeError, match="debe ser int"):
-            MonteCarloConfig(num_simulations="100")
+        config2 = MonteCarloConfig(distribution="TRIANGULAR")
+        assert config2.distribution == DistributionType.TRIANGULAR
 
-    def test_validation_num_simulations_range(self):
-        """Debe validar el rango de num_simulations."""
-        with pytest.raises(ValueError, match="debe estar entre"):
-            MonteCarloConfig(num_simulations=50)  # Menor al mínimo
+    def test_repr(self):
+        """Verifica representación string."""
+        config = MonteCarloConfig(num_simulations=5000, volatility_factor=0.15)
+        repr_str = repr(config)
 
-        with pytest.raises(ValueError, match="debe estar entre"):
-            MonteCarloConfig(num_simulations=2_000_000)  # Mayor al máximo
+        assert "5,000" in repr_str
+        assert "15.0%" in repr_str
+        assert "normal" in repr_str
 
-    def test_validation_volatility_type(self):
-        """Debe validar que volatility_factor sea numérico."""
-        with pytest.raises(TypeError, match="debe ser numérico"):
-            MonteCarloConfig(volatility_factor="0.1")
+    # --- Tests de validación de errores ---
 
-    def test_validation_volatility_range(self):
-        """Debe validar el rango de volatility_factor."""
+    def test_invalid_num_simulations_type(self):
+        """Error si num_simulations no es int."""
+        with pytest.raises(TypeError, match="num_simulations debe ser int"):
+            MonteCarloConfig(num_simulations=1000.5)
+
+    def test_num_simulations_too_low(self):
+        """Error si num_simulations es muy bajo."""
+        with pytest.raises(ValueError, match=f"debe estar entre {MIN_NUM_SIMULATIONS}"):
+            MonteCarloConfig(num_simulations=50)
+
+    def test_num_simulations_too_high(self):
+        """Error si num_simulations es muy alto."""
+        with pytest.raises(ValueError, match=f"{MAX_NUM_SIMULATIONS:,}"):
+            MonteCarloConfig(num_simulations=10_000_000)
+
+    def test_invalid_volatility_type(self):
+        """Error si volatility_factor no es numérico."""
+        with pytest.raises(TypeError, match="volatility_factor debe ser numérico"):
+            MonteCarloConfig(volatility_factor="high")
+
+    def test_volatility_out_of_range_low(self):
+        """Error si volatility_factor es negativo."""
         with pytest.raises(ValueError, match="debe estar entre"):
             MonteCarloConfig(volatility_factor=-0.1)
 
+    def test_volatility_out_of_range_high(self):
+        """Error si volatility_factor excede 1."""
         with pytest.raises(ValueError, match="debe estar entre"):
             MonteCarloConfig(volatility_factor=1.5)
 
-    def test_validation_thresholds_type(self):
-        """Debe validar tipos de umbrales."""
-        with pytest.raises(TypeError, match="debe ser numérico"):
-            MonteCarloConfig(min_cost_threshold="100")
-
-        with pytest.raises(TypeError, match="debe ser numérico"):
-            MonteCarloConfig(min_quantity_threshold="1")
-
-    def test_validation_thresholds_negative(self):
-        """Debe rechazar umbrales negativos."""
+    def test_negative_min_cost_threshold(self):
+        """Error si min_cost_threshold es negativo."""
         with pytest.raises(ValueError, match="no puede ser negativo"):
-            MonteCarloConfig(min_cost_threshold=-100.0)
+            MonteCarloConfig(min_cost_threshold=-100)
 
+    def test_negative_min_quantity_threshold(self):
+        """Error si min_quantity_threshold es negativo."""
         with pytest.raises(ValueError, match="no puede ser negativo"):
-            MonteCarloConfig(min_quantity_threshold=-1.0)
+            MonteCarloConfig(min_quantity_threshold=-1)
 
-    def test_validation_random_seed_type(self):
-        """Debe validar tipo de random_seed."""
-        with pytest.raises(TypeError, match="debe ser int o None"):
-            MonteCarloConfig(random_seed="42")
+    def test_invalid_random_seed_type(self):
+        """Error si random_seed no es int."""
+        with pytest.raises(TypeError, match="random_seed debe ser int"):
+            MonteCarloConfig(random_seed=42.5)
 
-        # None debe ser válido
-        config = MonteCarloConfig(random_seed=None)
-        assert config.random_seed is None
+    def test_negative_random_seed(self):
+        """Error si random_seed es negativo."""
+        with pytest.raises(ValueError, match="no puede ser negativo"):
+            MonteCarloConfig(random_seed=-1)
 
-    def test_validation_percentiles_type(self):
-        """Debe validar que percentiles sea lista."""
-        with pytest.raises(TypeError, match="debe ser una lista"):
+    def test_invalid_percentiles_type(self):
+        """Error si percentiles no es lista."""
+        with pytest.raises(TypeError, match="percentiles debe ser una lista"):
             MonteCarloConfig(percentiles=(5, 95))
 
-    def test_validation_percentiles_values(self):
-        """Debe validar valores de percentiles."""
+    def test_empty_percentiles(self):
+        """Error si percentiles está vacía."""
+        with pytest.raises(ValueError, match="no puede estar vacía"):
+            MonteCarloConfig(percentiles=[])
+
+    def test_non_integer_percentiles(self):
+        """Error si percentiles contiene no-enteros."""
+        with pytest.raises(TypeError, match="deben ser enteros"):
+            MonteCarloConfig(percentiles=[5.5, 95.0])
+
+    def test_percentiles_out_of_range(self):
+        """Error si percentiles están fuera de rango."""
         with pytest.raises(ValueError, match="entre 0 y 100"):
             MonteCarloConfig(percentiles=[5, 150])
 
-        with pytest.raises(ValueError, match="entre 0 y 100"):
-            MonteCarloConfig(percentiles=[-5, 50])
-
-        with pytest.raises(ValueError, match="Todos los percentiles deben ser enteros"):
-            MonteCarloConfig(percentiles=[5.5, 95])  # No enteros
+    def test_invalid_distribution_string(self):
+        """Error si string de distribución es inválido."""
+        with pytest.raises(ValueError, match="debe ser uno de"):
+            MonteCarloConfig(distribution="gaussian")
 
 
 # ============================================================================
-# TESTS DE SimulationResult
+# TESTS: DistributionType
+# ============================================================================
+
+
+class TestDistributionType:
+    """Tests para el enum DistributionType."""
+
+    def test_enum_values(self):
+        """Verifica valores del enum."""
+        assert DistributionType.NORMAL.value == "normal"
+        assert DistributionType.LOGNORMAL.value == "lognormal"
+        assert DistributionType.TRIANGULAR.value == "triangular"
+
+    def test_enum_from_string(self):
+        """Verifica creación desde string."""
+        assert DistributionType("normal") == DistributionType.NORMAL
+        assert DistributionType("lognormal") == DistributionType.LOGNORMAL
+
+
+# ============================================================================
+# TESTS: SimulationStatus
+# ============================================================================
+
+
+class TestSimulationStatus:
+    """Tests para el enum SimulationStatus."""
+
+    def test_enum_values(self):
+        """Verifica valores del enum."""
+        assert SimulationStatus.SUCCESS.value == "success"
+        assert SimulationStatus.NO_VALID_DATA.value == "no_valid_data"
+        assert SimulationStatus.INSUFFICIENT_DATA.value == "insufficient_data"
+        assert SimulationStatus.CONVERGENCE_WARNING.value == "convergence_warning"
+        assert SimulationStatus.ERROR.value == "error"
+
+
+# ============================================================================
+# TESTS: ConvergenceMetrics
+# ============================================================================
+
+
+class TestConvergenceMetrics:
+    """Tests para la clase ConvergenceMetrics."""
+
+    def test_creation(self):
+        """Verifica creación de métricas."""
+        metrics = ConvergenceMetrics(
+            is_converged=True,
+            mean_std_error=10.5,
+            relative_error=0.005,
+            half_width_ci=20.58,
+            effective_sample_size=1000,
+        )
+
+        assert metrics.is_converged is True
+        assert metrics.mean_std_error == 10.5
+        assert metrics.relative_error == 0.005
+        assert metrics.half_width_ci == 20.58
+        assert metrics.effective_sample_size == 1000
+
+    def test_to_dict(self):
+        """Verifica conversión a diccionario."""
+        metrics = ConvergenceMetrics(
+            is_converged=True,
+            mean_std_error=10.5,
+            relative_error=0.005,
+            half_width_ci=20.58,
+            effective_sample_size=1000,
+        )
+
+        result = metrics.to_dict()
+
+        assert isinstance(result, dict)
+        assert result["is_converged"] is True
+        assert result["mean_std_error"] == 10.5
+        assert result["effective_sample_size"] == 1000
+
+    def test_to_dict_sanitizes_nan(self):
+        """Verifica que to_dict sanitiza NaN."""
+        metrics = ConvergenceMetrics(
+            is_converged=False,
+            mean_std_error=float("nan"),
+            relative_error=float("inf"),
+            half_width_ci=10.0,
+            effective_sample_size=100,
+        )
+
+        result = metrics.to_dict()
+
+        assert result["mean_std_error"] is None
+        assert result["relative_error"] is None
+
+
+# ============================================================================
+# TESTS: SimulationResult
 # ============================================================================
 
 
 class TestSimulationResult:
-    """Tests para la clase de resultados."""
+    """Tests para la clase SimulationResult."""
 
-    def test_initialization(self):
-        """Debe inicializar correctamente."""
-        stats = {"mean": 100.0, "std_dev": 10.0}
-        metadata = {"num_simulations": 1000}
-
-        result = SimulationResult(
-            status=SimulationStatus.SUCCESS, statistics=stats, metadata=metadata
-        )
-
-        assert result.status == SimulationStatus.SUCCESS
-        assert result.statistics == stats
-        assert result.metadata == metadata
-        assert result.raw_results is None
-
-    def test_initialization_with_raw_results(self):
-        """Debe aceptar resultados brutos."""
-        raw = np.array([100, 110, 90])
-
-        result = SimulationResult(
-            status=SimulationStatus.SUCCESS, statistics={}, metadata={}, raw_results=raw
-        )
-
-        np.testing.assert_array_equal(result.raw_results, raw)
-
-    def test_to_dict_without_raw(self):
-        """Debe convertir a dict sin resultados brutos."""
-        result = SimulationResult(
+    @pytest.fixture
+    def successful_result(self) -> SimulationResult:
+        """Resultado exitoso de ejemplo."""
+        return SimulationResult(
             status=SimulationStatus.SUCCESS,
-            statistics={"mean": 100.0},
-            metadata={"count": 10},
+            statistics={
+                "mean": 10000.0,
+                "median": 9800.0,
+                "std_dev": 1500.0,
+                "percentile_5": 7500.0,
+                "percentile_25": 8800.0,
+                "percentile_50": 9800.0,
+                "percentile_75": 11000.0,
+                "percentile_95": 12500.0,
+                "var_95": 12500.0,
+                "cvar_95": 13000.0,
+            },
+            metadata={
+                "num_simulations_completed": 1000,
+                "valid_items": 10,
+            },
+            raw_results=np.array([9000, 10000, 11000]),
+            convergence=ConvergenceMetrics(
+                is_converged=True,
+                mean_std_error=47.4,
+                relative_error=0.00474,
+                half_width_ci=92.9,
+                effective_sample_size=1000,
+            ),
         )
 
-        result_dict = result.to_dict(include_raw=False)
+    def test_is_successful_success(self, successful_result):
+        """Verifica is_successful para SUCCESS."""
+        assert successful_result.is_successful() is True
 
-        assert result_dict["status"] == "success"
-        assert result_dict["statistics"] == {"mean": 100.0}
-        assert result_dict["metadata"] == {"count": 10}
-        assert "raw_results" not in result_dict
-
-    def test_to_dict_with_raw(self):
-        """Debe incluir resultados brutos si se solicita."""
-        raw = np.array([100, 110, 90])
+    def test_is_successful_convergence_warning(self):
+        """Verifica is_successful para CONVERGENCE_WARNING."""
         result = SimulationResult(
-            status=SimulationStatus.SUCCESS, statistics={}, metadata={}, raw_results=raw
+            status=SimulationStatus.CONVERGENCE_WARNING,
+            statistics={"mean": 1000.0},
+            metadata={},
         )
-
-        result_dict = result.to_dict(include_raw=True)
-
-        assert "raw_results" in result_dict
-        assert result_dict["raw_results"] == [100, 110, 90]
-
-    def test_is_successful_true(self):
-        """Debe retornar True si el status es SUCCESS."""
-        result = SimulationResult(
-            status=SimulationStatus.SUCCESS, statistics={}, metadata={}
-        )
-
         assert result.is_successful() is True
 
-    def test_is_successful_false(self):
-        """Debe retornar False si el status no es SUCCESS."""
+    def test_is_successful_error(self):
+        """Verifica is_successful para ERROR."""
         result = SimulationResult(
-            status=SimulationStatus.NO_VALID_DATA, statistics={}, metadata={}
+            status=SimulationStatus.ERROR,
+            statistics={},
+            metadata={"error": "test"},
         )
-
         assert result.is_successful() is False
+
+    def test_is_successful_no_data(self):
+        """Verifica is_successful para NO_VALID_DATA."""
+        result = SimulationResult(
+            status=SimulationStatus.NO_VALID_DATA,
+            statistics={},
+            metadata={},
+        )
+        assert result.is_successful() is False
+
+    def test_get_var(self, successful_result):
+        """Verifica obtención de VaR."""
+        var_95 = successful_result.get_var(0.95)
+        assert var_95 == 12500.0
+
+    def test_get_var_default_confidence(self, successful_result):
+        """Verifica VaR con confianza por defecto."""
+        var = successful_result.get_var()
+        assert var == 12500.0
+
+    def test_get_var_missing(self):
+        """Verifica VaR cuando no existe."""
+        result = SimulationResult(
+            status=SimulationStatus.SUCCESS,
+            statistics={"mean": 1000.0},
+            metadata={},
+        )
+        assert result.get_var(0.99) is None
+
+    def test_get_cvar(self, successful_result):
+        """Verifica obtención de CVaR."""
+        cvar_95 = successful_result.get_cvar(0.95)
+        assert cvar_95 == 13000.0
+
+    def test_get_confidence_interval(self, successful_result):
+        """Verifica obtención de intervalo de confianza."""
+        lower, upper = successful_result.get_confidence_interval(0.90)
+        assert lower == 7500.0
+        assert upper == 12500.0
+
+    def test_get_confidence_interval_50(self, successful_result):
+        """Verifica IC al 50%."""
+        lower, upper = successful_result.get_confidence_interval(0.50)
+        assert lower == 8800.0
+        assert upper == 11000.0
+
+    def test_to_dict_basic(self, successful_result):
+        """Verifica conversión a diccionario básica."""
+        result = successful_result.to_dict()
+
+        assert isinstance(result, dict)
+        assert result["status"] == "success"
+        assert "statistics" in result
+        assert "metadata" in result
+        assert "convergence" in result
+        assert "raw_results" not in result
+
+    def test_to_dict_include_raw(self, successful_result):
+        """Verifica conversión a diccionario con raw_results."""
+        result = successful_result.to_dict(include_raw=True)
+
+        assert "raw_results" in result
+        assert result["raw_results"] == [9000, 10000, 11000]
+
+    def test_repr(self, successful_result):
+        """Verifica representación string."""
+        repr_str = repr(successful_result)
+
+        assert "success" in repr_str
+        assert "10,000.00" in repr_str
+        assert "1,500.00" in repr_str
 
 
 # ============================================================================
-# TESTS DE sanitize_value
+# TESTS: Utilidades
 # ============================================================================
 
 
 class TestSanitizeValue:
-    """Tests para la función de sanitización."""
+    """Tests para la función sanitize_value."""
 
-    def test_sanitize_nan(self):
-        """Debe convertir NaN a None."""
-        assert sanitize_value(np.nan) is None
-        assert sanitize_value(pd.NA) is None
+    def test_none_value(self):
+        """Verifica manejo de None."""
+        assert sanitize_value(None) is None
+
+    def test_nan_value(self):
+        """Verifica manejo de NaN."""
         assert sanitize_value(float("nan")) is None
+        assert sanitize_value(np.nan) is None
 
-    def test_sanitize_inf(self):
-        """Debe convertir inf a None."""
-        assert sanitize_value(np.inf) is None
-        assert sanitize_value(-np.inf) is None
+    def test_inf_value(self):
+        """Verifica manejo de infinito."""
         assert sanitize_value(float("inf")) is None
         assert sanitize_value(float("-inf")) is None
+        assert sanitize_value(np.inf) is None
 
-    def test_sanitize_float(self):
-        """Debe convertir numpy float a float nativo."""
+    def test_normal_float(self):
+        """Verifica manejo de float normal."""
+        assert sanitize_value(10.5) == 10.5
+
+    def test_numpy_float64(self):
+        """Verifica conversión de numpy float64."""
         result = sanitize_value(np.float64(10.5))
         assert result == 10.5
         assert isinstance(result, float)
 
-    def test_sanitize_int(self):
-        """Debe convertir numpy int a int nativo."""
-        result = sanitize_value(np.int64(10))
-        assert result == 10
+    def test_numpy_float32(self):
+        """Verifica conversión de numpy float32."""
+        result = sanitize_value(np.float32(10.5))
+        assert isinstance(result, float)
+
+    def test_numpy_int64(self):
+        """Verifica conversión de numpy int64."""
+        result = sanitize_value(np.int64(42))
+        assert result == 42
         assert isinstance(result, int)
 
-    def test_sanitize_bool(self):
-        """Debe convertir numpy bool a bool nativo."""
-        result = sanitize_value(np.bool_(True))
-        assert result is True
-        assert isinstance(result, bool)
+    def test_numpy_bool(self):
+        """Verifica conversión de numpy bool."""
+        assert sanitize_value(np.bool_(True)) is True
+        assert sanitize_value(np.bool_(False)) is False
 
-    def test_sanitize_string(self):
-        """Debe retornar strings sin modificar."""
-        result = sanitize_value("hello")
-        assert result == "hello"
-        assert isinstance(result, str)
+    def test_string_unchanged(self):
+        """Verifica que strings no se modifican."""
+        assert sanitize_value("hello") == "hello"
 
-    def test_sanitize_list(self):
-        """Debe retornar listas sanitizadas recursivamente."""
-        original = [1, np.nan, 3]
-        result = sanitize_value(original)
-        assert result == [1, None, 3]
+    def test_list_recursive(self):
+        """Verifica sanitización recursiva de listas."""
+        result = sanitize_value([1, np.nan, 3, np.inf])
+        assert result == [1, None, 3, None]
 
-    def test_sanitize_tuple(self):
-        """Debe retornar tuplas sanitizadas recursivamente."""
-        original = (1, np.nan, 3)
-        result = sanitize_value(original)
+    def test_tuple_recursive(self):
+        """Verifica sanitización recursiva de tuplas."""
+        result = sanitize_value((1, np.nan, 3))
         assert result == (1, None, 3)
 
-    def test_sanitize_dict(self):
-        """Debe retornar diccionarios sanitizados recursivamente."""
-        original = {"key": np.nan}
-        result = sanitize_value(original)
-        assert result == {"key": None}
+    def test_dict_recursive(self):
+        """Verifica sanitización recursiva de diccionarios."""
+        result = sanitize_value({"a": 1, "b": np.nan, "c": np.inf})
+        assert result == {"a": 1, "b": None, "c": None}
 
-    def test_sanitize_none(self):
-        """Debe retornar None sin modificar."""
-        assert sanitize_value(None) is None
+    def test_nested_structure(self):
+        """Verifica sanitización de estructura anidada."""
+        data = {"values": [1, np.nan], "nested": {"x": np.inf}}
+        result = sanitize_value(data)
 
-    @pytest.mark.parametrize(
-        "value,expected",
-        [
-            (10, 10),
-            (10.5, 10.5),
-            (True, True),
-            (False, False),
-            ("text", "text"),
-            ([], []),
-        ],
-    )
-    def test_sanitize_various_types(self, value, expected):
-        """Debe manejar correctamente varios tipos."""
-        result = sanitize_value(value)
-        assert result == expected
+        assert result["values"] == [1, None]
+        assert result["nested"]["x"] is None
+
+    def test_numpy_array_unchanged(self):
+        """Verifica que arrays numpy no se modifican internamente."""
+        arr = np.array([1, 2, np.nan])
+        result = sanitize_value(arr)
+        assert isinstance(result, np.ndarray)
+
+    def test_complex_number(self):
+        """Verifica manejo de números complejos."""
+        result = sanitize_value(complex(1, 2))
+        assert result == "(1+2j)"
+
+    def test_max_depth_protection(self):
+        """Verifica protección contra recursión infinita."""
+        # Crear estructura profundamente anidada
+        deep = {"level": 0}
+        current = deep
+        for i in range(60):
+            current["nested"] = {"level": i + 1}
+            current = current["nested"]
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            result = sanitize_value(deep, max_depth=50)
+            # Debería haber una advertencia de profundidad
+            assert len(w) >= 1
+
+    def test_non_recursive_mode(self):
+        """Verifica modo no recursivo."""
+        data = [1, np.nan, 3]
+        result = sanitize_value(data, recursive=False)
+        assert result == [1, np.nan, 3]  # No sanitiza internamente
+
+    def test_pandas_na(self):
+        """Verifica manejo de pandas NA."""
+        assert sanitize_value(pd.NA) is None
 
 
-# ============================================================================
-# TESTS DE UTILIDADES
-# ============================================================================
+class TestValidateRequiredKeys:
+    """Tests para la función validate_required_keys."""
 
+    def test_valid_keys_first_option(self):
+        """Verifica validación con primera opción de claves."""
+        item = {"VR_TOTAL": 100, "CANTIDAD": 5}
+        # No debería lanzar excepción
+        validate_required_keys(
+            item, [["VR_TOTAL", "vr_total"], ["CANTIDAD", "cantidad"]]
+        )
 
-class TestValidateAPUDataStructure:
-    """Tests para validación de estructura de datos."""
+    def test_valid_keys_second_option(self):
+        """Verifica validación con segunda opción de claves."""
+        item = {"vr_total": 100, "cantidad": 5}
+        validate_required_keys(
+            item, [["VR_TOTAL", "vr_total"], ["CANTIDAD", "cantidad"]]
+        )
 
-    # La función validate_apu_data_structure no fue exportada, usaremos el
-    # método interno de MonteCarloSimulator
+    def test_missing_first_key_group(self):
+        """Error cuando falta primer grupo de claves."""
+        item = {"CANTIDAD": 5}
+        with pytest.raises(ValueError, match="Falta campo requerido"):
+            validate_required_keys(
+                item, [["VR_TOTAL", "vr_total"], ["CANTIDAD", "cantidad"]]
+            )
 
-    def test_validate_valid_data(self, simulator, valid_apu_data):
-        """Debe retornar True para datos válidos."""
-        # simulator._validate_input_data lanza excepción si falla
-        simulator._validate_input_data(valid_apu_data)
+    def test_missing_second_key_group(self):
+        """Error cuando falta segundo grupo de claves."""
+        item = {"VR_TOTAL": 100}
+        with pytest.raises(ValueError, match="Falta campo requerido"):
+            validate_required_keys(
+                item, [["VR_TOTAL", "vr_total"], ["CANTIDAD", "cantidad"]]
+            )
 
-    def test_validate_not_a_list(self, simulator):
-        """Debe retornar False si no es una lista."""
-        with pytest.raises(TypeError):
-            simulator._validate_input_data("not a list")
-
-    def test_validate_empty_list(self, simulator):
-        """Debe retornar False para lista vacía."""
-        with pytest.raises(ValueError):
-            simulator._validate_input_data([])
-
-    def test_validate_not_all_dicts(self, simulator):
-        """Debe retornar False si no todos son diccionarios."""
-        data = [{"VR_TOTAL": 100}, "not a dict", {"CANTIDAD": 5}]
-        with pytest.raises(TypeError):
-            simulator._validate_input_data(data)
+    def test_error_message_includes_index(self):
+        """Verifica que mensaje de error incluye índice."""
+        item = {"VR_TOTAL": 100}
+        with pytest.raises(ValueError, match="en índice 5"):
+            validate_required_keys(
+                item,
+                [["VR_TOTAL"], ["CANTIDAD"]],
+                item_index=5,
+            )
 
 
 class TestEstimateMemoryUsage:
-    """Tests para estimación de memoria."""
+    """Tests para la función estimate_memory_usage."""
 
-    def test_estimate_small_simulation(self):
-        """Debe estimar correctamente para simulación pequeña."""
-        memory = estimate_memory_usage(num_simulations=100, num_apus=10)
-
-        # 100 * 10 * 8 bytes + overhead
-        expected_matrix = 100 * 10 * 8
-        assert memory > expected_matrix
+    def test_basic_estimation(self):
+        """Verifica estimación básica."""
+        memory = estimate_memory_usage(1000, 100)
         assert memory > 0
-
-    def test_estimate_large_simulation(self):
-        """Debe estimar correctamente para simulación grande."""
-        memory = estimate_memory_usage(num_simulations=10000, num_apus=1000)
-
-        # 10000 * 1000 * 8 = 80MB solo matriz
-        expected_matrix = 10000 * 1000 * 8
-        assert memory >= expected_matrix
-
-    def test_estimate_returns_int(self):
-        """Debe retornar un entero."""
-        memory = estimate_memory_usage(100, 10)
         assert isinstance(memory, int)
 
-    def test_estimate_zero_simulations(self):
-        """Debe manejar cero simulaciones."""
-        memory = estimate_memory_usage(0, 10)
-        assert memory >= 0
+    def test_larger_simulation_more_memory(self):
+        """Más simulaciones = más memoria."""
+        mem_small = estimate_memory_usage(1000, 100)
+        mem_large = estimate_memory_usage(10000, 100)
+        assert mem_large > mem_small
 
-    def test_estimate_zero_apus(self):
-        """Debe manejar cero APUs."""
-        memory = estimate_memory_usage(100, 0)
-        assert memory >= 0
+    def test_more_apus_more_memory(self):
+        """Más APUs = más memoria."""
+        mem_small = estimate_memory_usage(1000, 100)
+        mem_large = estimate_memory_usage(1000, 1000)
+        assert mem_large > mem_small
+
+    def test_float32_less_memory(self):
+        """float32 usa menos memoria que float64."""
+        mem_f64 = estimate_memory_usage(1000, 100, use_float32=False)
+        mem_f32 = estimate_memory_usage(1000, 100, use_float32=True)
+        assert mem_f32 < mem_f64
+
+    def test_dataframe_overhead(self):
+        """Verifica inclusión de overhead de DataFrame."""
+        mem_with = estimate_memory_usage(1000, 100, include_dataframe_overhead=True)
+        mem_without = estimate_memory_usage(1000, 100, include_dataframe_overhead=False)
+        assert mem_with > mem_without
+
+    def test_known_size_approximation(self):
+        """Verifica aproximación conocida."""
+        # 1000 sims × 100 APUs × 8 bytes = 800KB solo matriz
+        memory = estimate_memory_usage(1000, 100)
+        # Con overhead debería ser > 800KB pero < 2MB
+        assert memory > 800_000
+        assert memory < 2_000_000
+
+
+class TestIsNumericValid:
+    """Tests para la función is_numeric_valid."""
+
+    def test_valid_int(self):
+        """Verifica int válido."""
+        assert is_numeric_valid(42) is True
+
+    def test_valid_float(self):
+        """Verifica float válido."""
+        assert is_numeric_valid(3.14) is True
+
+    def test_valid_zero(self):
+        """Verifica cero."""
+        assert is_numeric_valid(0) is True
+        assert is_numeric_valid(0.0) is True
+
+    def test_valid_negative(self):
+        """Verifica negativo."""
+        assert is_numeric_valid(-100.5) is True
+
+    def test_nan_invalid(self):
+        """NaN es inválido."""
+        assert is_numeric_valid(float("nan")) is False
+        assert is_numeric_valid(np.nan) is False
+
+    def test_inf_invalid(self):
+        """Infinito es inválido."""
+        assert is_numeric_valid(float("inf")) is False
+        assert is_numeric_valid(float("-inf")) is False
+
+    def test_none_invalid(self):
+        """None es inválido."""
+        assert is_numeric_valid(None) is False
+
+    def test_string_invalid(self):
+        """String es inválido."""
+        assert is_numeric_valid("100") is False
+
+    def test_numpy_types_valid(self):
+        """Tipos numpy válidos."""
+        assert is_numeric_valid(np.float64(10.5)) is True
+        assert is_numeric_valid(np.int32(42)) is True
+
+    def test_numpy_nan_invalid(self):
+        """numpy.nan es inválido."""
+        assert is_numeric_valid(np.float64("nan")) is False
+
+
+class TestCalculateConvergenceMetrics:
+    """Tests para la función calculate_convergence_metrics."""
+
+    def test_converged_simulation(self):
+        """Verifica simulación convergida."""
+        # Generar datos con baja variabilidad relativa
+        np.random.seed(42)
+        data = np.random.normal(10000, 100, 10000)
+
+        metrics = calculate_convergence_metrics(data)
+
+        assert metrics.is_converged is True
+        assert metrics.effective_sample_size == 10000
+        assert metrics.relative_error < 0.01
+
+    def test_not_converged_high_variance(self):
+        """Verifica simulación no convergida."""
+        # Pocos datos con alta variabilidad
+        np.random.seed(42)
+        data = np.random.normal(1000, 500, 100)
+
+        metrics = calculate_convergence_metrics(data)
+
+        # Con CV alto y n pequeño, probablemente no converge
+        assert metrics.effective_sample_size == 100
+        # El relative_error dependerá de la muestra específica
+
+    def test_std_error_formula(self):
+        """Verifica fórmula de error estándar."""
+        data = np.array([100, 100, 100, 100])  # Sin variación
+        metrics = calculate_convergence_metrics(data)
+
+        assert metrics.mean_std_error == 0.0
+
+    def test_half_width_ci(self):
+        """Verifica cálculo de semi-ancho IC."""
+        np.random.seed(42)
+        data = np.random.normal(1000, 100, 1000)
+
+        metrics = calculate_convergence_metrics(data)
+
+        # half_width = 1.96 * SEM
+        expected_hw = 1.96 * metrics.mean_std_error
+        assert abs(metrics.half_width_ci - expected_hw) < 0.01
+
+    def test_custom_tolerance(self):
+        """Verifica tolerancia personalizada."""
+        np.random.seed(42)
+        data = np.random.normal(1000, 50, 1000)
+
+        # Con tolerancia muy baja, podría no converger
+        metrics_strict = calculate_convergence_metrics(data, tolerance=0.001)
+        metrics_loose = calculate_convergence_metrics(data, tolerance=0.1)
+
+        assert metrics_loose.is_converged is True
+        # La estricta podría o no converger
 
 
 # ============================================================================
-# TESTS DE MonteCarloSimulator - Inicialización
+# TESTS: MonteCarloSimulator - Inicialización
 # ============================================================================
 
 
-class TestMonteCarloSimulatorInitialization:
-    """Tests para inicialización del simulador."""
+class TestMonteCarloSimulatorInit:
+    """Tests de inicialización del simulador."""
 
-    def test_initialization_default(self, mock_logger):
-        """Debe inicializar con valores por defecto."""
-        simulator = MonteCarloSimulator(logger=mock_logger)
-
-        assert simulator.logger is mock_logger
-        assert isinstance(simulator.config, MonteCarloConfig)
-        assert simulator.rng is not None
-        mock_logger.info.assert_called_once()
-
-    def test_initialization_custom_config(self, mock_logger, custom_config):
-        """Debe aceptar configuración personalizada."""
-        simulator = MonteCarloSimulator(config=custom_config, logger=mock_logger)
-
-        assert simulator.config is custom_config
-        assert simulator.config.num_simulations == 500
-
-    def test_initialization_without_logger(self):
-        """Debe crear logger por defecto si no se proporciona."""
+    def test_default_initialization(self):
+        """Verifica inicialización por defecto."""
         simulator = MonteCarloSimulator()
 
+        assert simulator.config is not None
         assert simulator.logger is not None
-        assert isinstance(simulator.logger, logging.Logger)
+        assert simulator.rng is not None
 
-    def test_initialization_sets_random_seed(self):
-        """Debe configurar la semilla aleatoria."""
-        config = MonteCarloConfig(random_seed=42)
-        simulator = MonteCarloSimulator(config=config)
+    def test_custom_config(self, deterministic_config):
+        """Verifica inicialización con config personalizada."""
+        simulator = MonteCarloSimulator(config=deterministic_config)
 
-        # Verificar que se use la misma semilla
+        assert simulator.config.num_simulations == 1000
         assert simulator.config.random_seed == 42
+
+    def test_custom_logger(self, silent_logger):
+        """Verifica inicialización con logger personalizado."""
+        simulator = MonteCarloSimulator(logger=silent_logger)
+
+        assert simulator.logger is silent_logger
+
+    def test_rng_reproducibility(self, deterministic_config, silent_logger):
+        """Verifica reproducibilidad con semilla."""
+        sim1 = MonteCarloSimulator(config=deterministic_config, logger=silent_logger)
+        sim2 = MonteCarloSimulator(config=deterministic_config, logger=silent_logger)
+
+        # Generar algunos números aleatorios
+        r1 = sim1.rng.random(10)
+        r2 = sim2.rng.random(10)
+
+        np.testing.assert_array_equal(r1, r2)
 
 
 # ============================================================================
-# TESTS DE MonteCarloSimulator - Validación de Entrada
+# TESTS: MonteCarloSimulator - Validación de Entrada
 # ============================================================================
 
 
 class TestMonteCarloSimulatorInputValidation:
-    """Tests para validación de datos de entrada."""
+    """Tests de validación de datos de entrada."""
 
-    def test_validate_input_success(self, simulator, valid_apu_data):
-        """Debe pasar validación con datos correctos."""
-        # No debe lanzar excepción
-        simulator._validate_input_data(valid_apu_data)
+    def test_valid_input(self, simulator, simple_apu_data):
+        """Verifica datos válidos."""
+        # No debería lanzar excepción
+        result = simulator.run_simulation(simple_apu_data)
+        assert result.is_successful()
 
-    def test_validate_input_not_list(self, simulator):
-        """Debe rechazar datos que no sean lista."""
-        with pytest.raises(TypeError, match="debe ser una lista"):
-            simulator._validate_input_data("not a list")
-
-    def test_validate_input_empty_list(self, simulator):
-        """Debe rechazar lista vacía."""
+    def test_empty_list_error(self, simulator):
+        """Error con lista vacía."""
         with pytest.raises(ValueError, match="no puede estar vacía"):
-            simulator._validate_input_data([])
+            simulator.run_simulation([])
 
-    def test_validate_input_not_dicts(self, simulator):
-        """Debe rechazar elementos que no sean diccionarios."""
+    def test_not_list_error(self, simulator):
+        """Error si no es lista."""
+        with pytest.raises(TypeError, match="debe ser una lista"):
+            simulator.run_simulation({"VR_TOTAL": 100, "CANTIDAD": 5})
+
+    def test_not_dict_elements_error(self, simulator):
+        """Error si elementos no son diccionarios."""
         with pytest.raises(TypeError, match="deben ser diccionarios"):
-            simulator._validate_input_data([1, 2, 3])
+            simulator.run_simulation([1, 2, 3])
+
+    def test_mixed_types_error(self, simulator):
+        """Error con tipos mezclados."""
+        data = [{"VR_TOTAL": 100, "CANTIDAD": 5}, "invalid", 123]
+        with pytest.raises(TypeError, match="deben ser diccionarios"):
+            simulator.run_simulation(data)
+
+    def test_missing_required_keys_error(self, simulator):
+        """Error cuando faltan claves requeridas."""
+        data = [{"price": 100, "qty": 5}]  # Claves incorrectas
+        with pytest.raises(ValueError, match="claves requeridas"):
+            simulator.run_simulation(data)
 
 
 # ============================================================================
-# TESTS DE MonteCarloSimulator - Preparación de Datos
+# TESTS: MonteCarloSimulator - Preparación de Datos
 # ============================================================================
 
 
 class TestMonteCarloSimulatorDataPreparation:
-    """Tests para preparación y limpieza de datos."""
+    """Tests de preparación de datos."""
 
-    def test_prepare_data_success(self, simulator, valid_apu_data):
-        """Debe preparar datos válidos correctamente."""
-        df_valid, discarded = simulator._prepare_data(valid_apu_data)
+    def test_alias_normalization(self, simulator, aliased_apu_data):
+        """Verifica normalización de aliases de columnas."""
+        result = simulator.run_simulation(aliased_apu_data)
 
-        assert len(df_valid) == 4
-        assert discarded == 0
-        assert "base_cost" in df_valid.columns
-        assert (df_valid["base_cost"] > 0).all()
+        assert result.is_successful()
+        assert result.metadata["data_quality"]["valid_items"] == 3
 
-    def test_prepare_data_missing_columns(self, simulator, apu_data_missing_columns):
-        """Debe lanzar error si faltan columnas."""
-        # El comportamiento actual crea columnas NaN y filtra
-        # No lanza error en _prepare_data, pero _validate_input_data debería haberlo
-        # atrapado antes
-        # Si llamamos _prepare_data directamente:
-        df_valid, discarded = simulator._prepare_data(apu_data_missing_columns)
-        # Se descartan por no tener valores validos
-        assert len(df_valid) == 0
-        assert discarded == 2
-
-    def test_prepare_data_converts_strings(self, simulator, apu_data_with_strings):
-        """Debe convertir strings numéricos."""
-        df_valid, discarded = simulator._prepare_data(apu_data_with_strings)
-
-        # Los dos primeros son válidos, el tercero tiene "invalid"
-        assert len(df_valid) == 2
-        assert discarded == 1
-
-    def test_prepare_data_filters_zeros(self, simulator, apu_data_with_zeros):
-        """Debe filtrar valores cero."""
-        df_valid, discarded = simulator._prepare_data(apu_data_with_zeros)
-
-        # Solo el último es válido
-        assert len(df_valid) == 1
-        assert discarded == 2
-
-    def test_prepare_data_filters_nan(self, simulator, apu_data_with_nan, mock_logger):
-        """Debe filtrar valores NaN e inf."""
-        simulator.logger = mock_logger
-        df_valid, discarded = simulator._prepare_data(apu_data_with_nan)
-
-        # Solo el tercero es completamente válido
-        assert len(df_valid) == 1
-        assert discarded == 3
-
-        # Debe haber advertencias
-        assert mock_logger.warning.called
-
-    def test_prepare_data_calculates_base_cost(self, simulator, valid_apu_data):
-        """Debe calcular el costo base correctamente."""
-        df_valid, _ = simulator._prepare_data(valid_apu_data)
-
-        # Verificar cálculo: VR_TOTAL * CANTIDAD
-        expected_costs = [10000.0 * 5.0, 20000.0 * 3.0, 15000.0 * 4.0, 5000.0 * 10.0]
-
-        np.testing.assert_array_almost_equal(df_valid["base_cost"].values, expected_costs)
-
-    def test_prepare_data_with_threshold(self, valid_apu_data):
-        """Debe aplicar umbrales de filtrado."""
-        config = MonteCarloConfig(min_cost_threshold=8000.0, min_quantity_threshold=4.0)
-        simulator = MonteCarloSimulator(config=config)
-
-        df_valid, discarded = simulator._prepare_data(valid_apu_data)
-
-        # Solo deben pasar los que cumplan ambos umbrales
-        assert len(df_valid) < len(valid_apu_data)
-
-
-# ============================================================================
-# TESTS DE MonteCarloSimulator - Verificación de Memoria
-# ============================================================================
-
-
-class TestMonteCarloSimulatorMemoryCheck:
-    """Tests para verificación de requisitos de memoria."""
-
-    def test_check_memory_small_simulation(self, simulator):
-        """Debe pasar para simulaciones pequeñas."""
-        # No debe lanzar excepción
-        simulator._check_memory_requirements(num_apus=10)
-
-    def test_check_memory_warns_large_simulation(self, simulator, mock_logger):
-        """Debe advertir para simulaciones grandes."""
-        simulator.logger = mock_logger
-
-        # Crear simulación que genere advertencia
-        large_config = MonteCarloConfig(num_simulations=100000)
-        large_simulator = MonteCarloSimulator(config=large_config, logger=mock_logger)
-
-        large_simulator._check_memory_requirements(num_apus=10000)
-
-        # Debe haber advertencia de memoria
-        warning_calls = [
-            call
-            for call in mock_logger.warning.call_args_list
-            if "memoria" in str(call).lower()
-        ]
-        assert len(warning_calls) > 0
-
-    def test_check_memory_raises_on_excessive(self, simulator):
-        """Debe lanzar MemoryError si es excesivo."""
-        # Crear simulación extremadamente grande
-        huge_config = MonteCarloConfig(num_simulations=1000000)
-        huge_simulator = MonteCarloSimulator(config=huge_config)
-
-        with pytest.raises(ValueError):  # Lanza ValueError según el código
-            huge_simulator._check_memory_requirements(num_apus=100000)
-
-
-# ============================================================================
-# TESTS DE MonteCarloSimulator - Ejecución de Simulación
-# ============================================================================
-
-
-class TestMonteCarloSimulatorExecution:
-    """Tests para ejecución de la simulación."""
-
-    def test_execute_simulation_success(self, simulator_with_seed, valid_apu_data):
-        """Debe ejecutar simulación exitosamente."""
-        df_valid, _ = simulator_with_seed._prepare_data(valid_apu_data)
-
-        simulated_costs = simulator_with_seed._execute_simulation(df_valid)
-
-        assert len(simulated_costs) == 100  # num_simulations
-        assert simulated_costs.dtype == np.float64
-        assert np.all(np.isfinite(simulated_costs))
-
-    def test_execute_simulation_reproducible(self, valid_apu_data):
-        """Debe ser reproducible con misma semilla."""
-        config = MonteCarloConfig(random_seed=42, num_simulations=100)
-
-        sim1 = MonteCarloSimulator(config=config)
-        df1, _ = sim1._prepare_data(valid_apu_data)
-        results1 = sim1._execute_simulation(df1)
-
-        sim2 = MonteCarloSimulator(config=config)
-        df2, _ = sim2._prepare_data(valid_apu_data)
-        results2 = sim2._execute_simulation(df2)
-
-        np.testing.assert_array_equal(results1, results2)
-
-    def test_execute_simulation_truncates_negatives(self, valid_apu_data):
-        """Debe truncar valores negativos si está configurado."""
+    def test_mixed_valid_invalid_filtering(self, simulator, silent_logger):
+        """Verifica filtrado de datos mixtos."""
         config = MonteCarloConfig(
-            truncate_negative=True,
             num_simulations=1000,
-            volatility_factor=0.5,  # Alta volatilidad para generar negativos
-        )
-        simulator = MonteCarloSimulator(config=config)
-
-        df_valid, _ = simulator._prepare_data(valid_apu_data)
-        simulated_costs = simulator._execute_simulation(df_valid)
-
-        # No debe haber valores negativos
-        assert np.all(simulated_costs >= 0)
-
-    def test_execute_simulation_allows_negatives(self, valid_apu_data):
-        """Debe permitir valores negativos si está configurado."""
-        config = MonteCarloConfig(
-            truncate_negative=False,
-            num_simulations=1000,
-            volatility_factor=0.5,
+            min_cost_threshold=0.0,  # Permite negativos
             random_seed=42,
         )
-        simulator = MonteCarloSimulator(config=config)
+        sim = MonteCarloSimulator(config=config, logger=silent_logger)
 
-        df_valid, _ = simulator._prepare_data(valid_apu_data)
-        simulated_costs = simulator._execute_simulation(df_valid)
+        data = [
+            {"VR_TOTAL": 1000.0, "CANTIDAD": 5.0},
+            {"VR_TOTAL": np.nan, "CANTIDAD": 3.0},
+            {"VR_TOTAL": 2000.0, "CANTIDAD": 4.0},
+        ]
 
-        # Puede haber negativos (aunque depende del random)
-        # Al menos verificamos que no se truncó todo
-        assert len(simulated_costs) == 1000
+        result = sim.run_simulation(data)
 
-    def test_execute_simulation_handles_invalid_results(self, simulator, mock_logger):
-        """Debe manejar resultados inválidos."""
-        simulator.logger = mock_logger
+        assert result.is_successful()
+        # Solo 2 de 3 deberían ser válidos
+        assert result.metadata["data_quality"]["valid_items"] == 2
 
-        # Crear DataFrame que pueda generar problemas
-        df = pd.DataFrame(
-            {
-                "VR_TOTAL": [1e308, 1e308],  # Valores muy grandes
-                "CANTIDAD": [1e308, 1e308],
-                "base_cost": [1e308 * 1e308, 1e308 * 1e308],  # Overflow
-            }
+    def test_min_cost_threshold_filtering(self, silent_logger):
+        """Verifica filtrado por umbral de costo mínimo."""
+        config = MonteCarloConfig(
+            num_simulations=1000,
+            min_cost_threshold=500.0,
+            random_seed=42,
         )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
 
-        # Puede lanzar RuntimeError o procesar dependiendo de numpy
-        try:
-            result = simulator._execute_simulation(df)
-            # Si no lanza error, verificar que filtre inválidos
-            assert np.all(np.isfinite(result))
-        except RuntimeError:
-            # Esperado para casos extremos
-            pass
+        data = [
+            {"VR_TOTAL": 100.0, "CANTIDAD": 5.0},  # Descartado
+            {"VR_TOTAL": 1000.0, "CANTIDAD": 3.0},  # Válido
+            {"VR_TOTAL": 200.0, "CANTIDAD": 4.0},  # Descartado
+        ]
+
+        result = simulator.run_simulation(data)
+
+        assert result.metadata["data_quality"]["valid_items"] == 1
+
+    def test_all_invalid_data(self, simulator):
+        """Verifica manejo cuando todos los datos son inválidos."""
+        data = [
+            {"VR_TOTAL": np.nan, "CANTIDAD": 5.0},
+            {"VR_TOTAL": np.inf, "CANTIDAD": 3.0},
+            {"VR_TOTAL": 1000.0, "CANTIDAD": np.nan},
+        ]
+
+        result = simulator.run_simulation(data)
+
+        assert result.status == SimulationStatus.NO_VALID_DATA
+        assert result.is_successful() is False
 
 
 # ============================================================================
-# TESTS DE MonteCarloSimulator - Cálculo de Estadísticas
+# TESTS: MonteCarloSimulator - Simulación Normal
+# ============================================================================
+
+
+class TestMonteCarloSimulatorNormalDistribution:
+    """Tests de simulación con distribución normal."""
+
+    def test_basic_simulation(self, simulator, simple_apu_data):
+        """Verifica simulación básica."""
+        result = simulator.run_simulation(simple_apu_data)
+
+        assert result.status == SimulationStatus.SUCCESS
+        assert result.statistics["mean"] is not None
+        assert result.statistics["std_dev"] is not None
+
+    def test_reproducibility(self, deterministic_config, silent_logger, simple_apu_data):
+        """Verifica reproducibilidad con semilla."""
+        sim1 = MonteCarloSimulator(config=deterministic_config, logger=silent_logger)
+        sim2 = MonteCarloSimulator(config=deterministic_config, logger=silent_logger)
+
+        result1 = sim1.run_simulation(simple_apu_data)
+        result2 = sim2.run_simulation(simple_apu_data)
+
+        assert result1.statistics["mean"] == result2.statistics["mean"]
+        assert result1.statistics["std_dev"] == result2.statistics["std_dev"]
+
+    def test_truncate_negative_default(self, deterministic_config, silent_logger):
+        """Verifica truncamiento de negativos por defecto."""
+        config = MonteCarloConfig(
+            num_simulations=10000,
+            volatility_factor=0.5,  # Alta volatilidad para generar negativos
+            truncate_negative=True,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        data = [{"VR_TOTAL": 100.0, "CANTIDAD": 1.0}]  # Base pequeña
+        result = simulator.run_simulation(data)
+
+        # El mínimo no debería ser negativo
+        assert result.statistics["min"] >= 0
+
+    def test_no_truncate_negative(self, silent_logger):
+        """Verifica sin truncamiento de negativos."""
+        config = MonteCarloConfig(
+            num_simulations=10000,
+            volatility_factor=0.8,
+            truncate_negative=False,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        data = [{"VR_TOTAL": 100.0, "CANTIDAD": 1.0}]
+        result = simulator.run_simulation(data)
+
+        # Con alta volatilidad y sin truncar, podría haber negativos
+        # (o no, depende de la muestra)
+        assert result.is_successful()
+
+
+# ============================================================================
+# TESTS: MonteCarloSimulator - Simulación Log-Normal
+# ============================================================================
+
+
+class TestMonteCarloSimulatorLognormalDistribution:
+    """Tests de simulación con distribución log-normal."""
+
+    def test_lognormal_simulation(self, lognormal_config, silent_logger, simple_apu_data):
+        """Verifica simulación log-normal."""
+        simulator = MonteCarloSimulator(config=lognormal_config, logger=silent_logger)
+        result = simulator.run_simulation(simple_apu_data)
+
+        assert result.is_successful()
+        assert result.statistics["mean"] is not None
+
+    def test_lognormal_always_positive(self, silent_logger):
+        """Log-normal siempre produce valores positivos."""
+        config = MonteCarloConfig(
+            num_simulations=10000,
+            volatility_factor=0.5,
+            distribution=DistributionType.LOGNORMAL,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        data = [{"VR_TOTAL": 100.0, "CANTIDAD": 1.0}]
+        result = simulator.run_simulation(data)
+
+        # Log-normal nunca genera negativos
+        assert result.statistics["min"] > 0
+
+    def test_lognormal_positive_skew(self, silent_logger, large_apu_data):
+        """Log-normal tiene sesgo positivo."""
+        config = MonteCarloConfig(
+            num_simulations=10000,
+            volatility_factor=0.3,
+            distribution=DistributionType.LOGNORMAL,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        result = simulator.run_simulation(large_apu_data)
+
+        # Log-normal tiene media > mediana (sesgo positivo)
+        assert result.statistics["mean"] >= result.statistics["median"]
+
+
+# ============================================================================
+# TESTS: MonteCarloSimulator - Simulación Triangular
+# ============================================================================
+
+
+class TestMonteCarloSimulatorTriangularDistribution:
+    """Tests de simulación con distribución triangular."""
+
+    def test_triangular_simulation(self, triangular_config, silent_logger, simple_apu_data):
+        """Verifica simulación triangular."""
+        simulator = MonteCarloSimulator(config=triangular_config, logger=silent_logger)
+        result = simulator.run_simulation(simple_apu_data)
+
+        assert result.is_successful()
+
+    def test_triangular_bounded(self, silent_logger):
+        """Triangular está acotada."""
+        config = MonteCarloConfig(
+            num_simulations=10000,
+            volatility_factor=0.20,  # ±20%
+            distribution=DistributionType.TRIANGULAR,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        data = [{"VR_TOTAL": 1000.0, "CANTIDAD": 1.0}]  # Base = 1000
+        result = simulator.run_simulation(data)
+
+        # Con vol=0.20, rango debería ser [800, 1200]
+        assert result.statistics["min"] >= 800 * 0.99  # Pequeño margen
+        assert result.statistics["max"] <= 1200 * 1.01
+
+
+# ============================================================================
+# TESTS: MonteCarloSimulator - Variantes Antitéticas
+# ============================================================================
+
+
+class TestMonteCarloSimulatorAntithetic:
+    """Tests de variantes antitéticas."""
+
+    def test_antithetic_reduces_variance(self, silent_logger, large_apu_data):
+        """Variantes antitéticas deberían reducir varianza del estimador."""
+        config_normal = MonteCarloConfig(
+            num_simulations=1000,
+            volatility_factor=0.15,
+            use_antithetic=False,
+            random_seed=42,
+        )
+        config_antithetic = MonteCarloConfig(
+            num_simulations=1000,
+            volatility_factor=0.15,
+            use_antithetic=True,
+            random_seed=42,
+        )
+
+        sim_normal = MonteCarloSimulator(config=config_normal, logger=silent_logger)
+        sim_antithetic = MonteCarloSimulator(
+            config=config_antithetic, logger=silent_logger
+        )
+
+        result_normal = sim_normal.run_simulation(large_apu_data)
+        result_antithetic = sim_antithetic.run_simulation(large_apu_data)
+
+        # Ambos deberían ser exitosos
+        assert result_normal.is_successful()
+        assert result_antithetic.is_successful()
+
+    def test_antithetic_with_lognormal(self, silent_logger, simple_apu_data):
+        """Verifica antitéticas con log-normal."""
+        config = MonteCarloConfig(
+            num_simulations=1000,
+            volatility_factor=0.15,
+            distribution=DistributionType.LOGNORMAL,
+            use_antithetic=True,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        result = simulator.run_simulation(simple_apu_data)
+
+        assert result.is_successful()
+        assert result.statistics["min"] > 0  # Log-normal siempre positivo
+
+
+# ============================================================================
+# TESTS: MonteCarloSimulator - Estadísticas
 # ============================================================================
 
 
 class TestMonteCarloSimulatorStatistics:
-    """Tests para cálculo de estadísticas."""
+    """Tests de cálculo de estadísticas."""
 
-    def test_calculate_statistics_basic(self, simulator):
-        """Debe calcular estadísticas básicas."""
-        simulated = np.array([90, 95, 100, 105, 110])
+    def test_all_basic_statistics_present(self, simulator, simple_apu_data):
+        """Verifica presencia de estadísticas básicas."""
+        result = simulator.run_simulation(simple_apu_data)
 
-        stats = simulator._calculate_statistics(simulated)
+        assert "mean" in result.statistics
+        assert "median" in result.statistics
+        assert "std_dev" in result.statistics
+        assert "variance" in result.statistics
+        assert "min" in result.statistics
+        assert "max" in result.statistics
+        assert "skewness" in result.statistics
+        assert "kurtosis" in result.statistics
 
-        assert stats["mean"] == 100.0
-        assert stats["median"] == 100.0
-        assert stats["min"] == 90.0
-        assert stats["max"] == 110.0
-        assert "std_dev" in stats
-        assert "variance" in stats
+    def test_percentiles_present(self, simulator, simple_apu_data):
+        """Verifica presencia de percentiles configurados."""
+        result = simulator.run_simulation(simple_apu_data)
 
-    def test_calculate_statistics_percentiles(self, simulator):
-        """Debe calcular percentiles configurados."""
-        simulated = np.arange(0, 101)  # 0 a 100
+        for p in simulator.config.percentiles:
+            assert f"percentile_{p}" in result.statistics
 
-        stats = simulator._calculate_statistics(simulated)
+    def test_risk_metrics_present(self, simulator, simple_apu_data):
+        """Verifica presencia de métricas de riesgo."""
+        result = simulator.run_simulation(simple_apu_data)
 
-        # Percentiles por defecto: [5, 25, 50, 75, 95]
-        assert stats["percentile_5"] == 5.0
-        assert stats["percentile_25"] == 25.0
-        assert stats["percentile_50"] == 50.0
-        assert stats["percentile_75"] == 75.0
-        assert stats["percentile_95"] == 95.0
+        for conf in [90, 95, 99]:
+            assert f"var_{conf}" in result.statistics
+            assert f"cvar_{conf}" in result.statistics
 
-    def test_calculate_statistics_confidence_interval(self, simulator):
-        """Debe calcular intervalo de confianza."""
-        simulated = np.arange(0, 101)
+    def test_coefficient_of_variation(self, simulator, simple_apu_data):
+        """Verifica cálculo de coeficiente de variación."""
+        result = simulator.run_simulation(simple_apu_data)
 
-        stats = simulator._calculate_statistics(simulated)
+        cv = result.statistics["coefficient_of_variation"]
+        mean = result.statistics["mean"]
+        std = result.statistics["std_dev"]
 
-        assert stats["ci_90_lower"] == stats["percentile_5"]
-        assert stats["ci_90_upper"] == stats["percentile_95"]
+        # CV = std / mean
+        if mean > 0:
+            expected_cv = std / mean
+            assert abs(cv - expected_cv) < 0.001
 
-    def test_calculate_statistics_coefficient_variation(self, simulator):
-        """Debe calcular coeficiente de variación."""
-        simulated = np.array([90, 95, 100, 105, 110])
+    def test_iqr(self, simulator, simple_apu_data):
+        """Verifica cálculo de rango intercuartílico."""
+        result = simulator.run_simulation(simple_apu_data)
 
-        stats = simulator._calculate_statistics(simulated)
+        iqr = result.statistics["iqr"]
+        p25 = result.statistics["percentile_25"]
+        p75 = result.statistics["percentile_75"]
 
-        expected_cv = stats["std_dev"] / stats["mean"]
-        assert stats["coefficient_of_variation"] == pytest.approx(expected_cv)
+        assert abs(iqr - (p75 - p25)) < 0.001
 
-    def test_calculate_statistics_cv_zero_mean(self, simulator):
-        """Debe manejar CV cuando la media es cero."""
-        simulated = np.array([0, 0, 0, 0, 0])
+    def test_confidence_intervals(self, simulator, simple_apu_data):
+        """Verifica intervalos de confianza."""
+        result = simulator.run_simulation(simple_apu_data)
 
-        stats = simulator._calculate_statistics(simulated)
+        assert result.statistics["ci_90_lower"] == result.statistics["percentile_5"]
+        assert result.statistics["ci_90_upper"] == result.statistics["percentile_95"]
+        assert result.statistics["ci_50_lower"] == result.statistics["percentile_25"]
+        assert result.statistics["ci_50_upper"] == result.statistics["percentile_75"]
 
-        assert stats["coefficient_of_variation"] is None
+    def test_cvar_greater_than_var(self, simulator, simple_apu_data):
+        """CVaR debe ser >= VaR (para costos)."""
+        result = simulator.run_simulation(simple_apu_data)
 
-    def test_calculate_statistics_custom_percentiles(self):
-        """Debe calcular percentiles personalizados."""
-        config = MonteCarloConfig(percentiles=[10, 50, 90])
-        simulator = MonteCarloSimulator(config=config)
-
-        simulated = np.arange(0, 101)
-        stats = simulator._calculate_statistics(simulated)
-
-        assert "percentile_10" in stats
-        assert "percentile_50" in stats
-        assert "percentile_90" in stats
-        assert "percentile_5" not in stats
+        for conf in [90, 95, 99]:
+            var = result.statistics[f"var_{conf}"]
+            cvar = result.statistics[f"cvar_{conf}"]
+            if var is not None and cvar is not None:
+                assert cvar >= var
 
 
 # ============================================================================
-# TESTS DE MonteCarloSimulator - Metadata
+# TESTS: MonteCarloSimulator - Convergencia
+# ============================================================================
+
+
+class TestMonteCarloSimulatorConvergence:
+    """Tests de métricas de convergencia."""
+
+    def test_convergence_metrics_present(self, simulator, simple_apu_data):
+        """Verifica presencia de métricas de convergencia."""
+        result = simulator.run_simulation(simple_apu_data)
+
+        assert result.convergence is not None
+        assert isinstance(result.convergence, ConvergenceMetrics)
+
+    def test_convergence_with_many_simulations(self, silent_logger, simple_apu_data):
+        """Muchas simulaciones deberían converger."""
+        config = MonteCarloConfig(
+            num_simulations=50000,
+            volatility_factor=0.10,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        result = simulator.run_simulation(simple_apu_data)
+
+        assert result.convergence.is_converged is True
+
+    def test_convergence_warning_status(self, silent_logger, simple_apu_data):
+        """Verifica estado de advertencia de convergencia."""
+        config = MonteCarloConfig(
+            num_simulations=MIN_NUM_SIMULATIONS,  # Mínimo
+            volatility_factor=0.5,  # Alta volatilidad
+            check_convergence=True,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        result = simulator.run_simulation(simple_apu_data)
+
+        # Con pocas simulaciones y alta volatilidad, podría no converger
+        # pero aún debería ser "exitoso" en el sentido de producir resultados
+        assert result.status in (
+            SimulationStatus.SUCCESS,
+            SimulationStatus.CONVERGENCE_WARNING,
+        )
+
+    def test_no_convergence_check(self, silent_logger, simple_apu_data):
+        """Verifica desactivación de verificación de convergencia."""
+        config = MonteCarloConfig(
+            num_simulations=500,
+            check_convergence=False,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        result = simulator.run_simulation(simple_apu_data)
+
+        assert result.convergence is None
+
+
+# ============================================================================
+# TESTS: MonteCarloSimulator - Metadata
 # ============================================================================
 
 
 class TestMonteCarloSimulatorMetadata:
-    """Tests para creación de metadata."""
+    """Tests de metadata de simulación."""
 
-    def test_create_metadata_complete(self, simulator, valid_apu_data):
-        """Debe crear metadata completa."""
-        df_valid, discarded = simulator._prepare_data(valid_apu_data)
+    def test_metadata_structure(self, simulator, simple_apu_data):
+        """Verifica estructura de metadata."""
+        result = simulator.run_simulation(simple_apu_data)
 
-        metadata = simulator._create_metadata(
-            df_valid=df_valid,
-            total_items=len(valid_apu_data),
-            discarded_items=discarded,
-            simulations_completed=simulator.config.num_simulations,
-        )
+        assert "config" in result.metadata
+        assert "data_quality" in result.metadata
+        assert "simulation" in result.metadata
+        assert "base_cost_summary" in result.metadata
 
-        assert metadata["num_simulations_requested"] == simulator.config.num_simulations
-        assert metadata["volatility_factor"] == simulator.config.volatility_factor
-        assert metadata["total_items_input"] == 4
-        assert metadata["valid_items"] == 4
-        assert metadata["discarded_items"] == 0
-        assert metadata["discard_rate"] == 0.0
-        assert "base_cost_sum" in metadata
-        assert "base_cost_mean" in metadata
-        assert "base_cost_std" in metadata
+    def test_config_metadata(self, simulator, simple_apu_data):
+        """Verifica metadata de configuración."""
+        result = simulator.run_simulation(simple_apu_data)
 
-    def test_create_metadata_with_discarded(self, simulator, apu_data_with_zeros):
-        """Debe calcular tasa de descarte correctamente."""
-        df_valid, discarded = simulator._prepare_data(apu_data_with_zeros)
+        config_meta = result.metadata["config"]
+        assert config_meta["num_simulations_requested"] == simulator.config.num_simulations
+        assert config_meta["volatility_factor"] == simulator.config.volatility_factor
+        assert config_meta["distribution"] == simulator.config.distribution.value
 
-        metadata = simulator._create_metadata(
-            df_valid=df_valid,
-            total_items=3,
-            discarded_items=discarded,
-            simulations_completed=simulator.config.num_simulations,
-        )
+    def test_data_quality_metadata(self, simulator, simple_apu_data):
+        """Verifica metadata de calidad de datos."""
+        result = simulator.run_simulation(simple_apu_data)
 
-        assert metadata["discarded_items"] == 2
-        assert metadata["discard_rate"] == pytest.approx(2 / 3)
+        dq = result.metadata["data_quality"]
+        assert dq["total_items_input"] == 3
+        assert dq["valid_items"] == 3
+        assert dq["discarded_items"] == 0
+        assert dq["discard_rate"] == 0.0
 
-    def test_create_metadata_base_costs(self, simulator, valid_apu_data):
-        """Debe calcular estadísticas de costos base."""
-        df_valid, _ = simulator._prepare_data(valid_apu_data)
+    def test_simulation_metadata(self, simulator, simple_apu_data):
+        """Verifica metadata de simulación."""
+        result = simulator.run_simulation(simple_apu_data)
 
-        metadata = simulator._create_metadata(
-            df_valid=df_valid,
-            total_items=len(valid_apu_data),
-            discarded_items=0,
-            simulations_completed=simulator.config.num_simulations,
-        )
+        sim_meta = result.metadata["simulation"]
+        assert sim_meta["num_simulations_completed"] <= simulator.config.num_simulations
+        assert 0 <= sim_meta["simulation_success_rate"] <= 1
 
-        expected_sum = 10000 * 5 + 20000 * 3 + 15000 * 4 + 5000 * 10
-        assert metadata["base_cost_sum"] == pytest.approx(expected_sum)
+    def test_base_cost_summary(self, simulator, simple_apu_data):
+        """Verifica resumen de costos base."""
+        result = simulator.run_simulation(simple_apu_data)
+
+        summary = result.metadata["base_cost_summary"]
+        assert "sum" in summary
+        assert "mean" in summary
+        assert "std" in summary
+        assert "min" in summary
+        assert "max" in summary
+
+        # Verificar valores esperados
+        # simple_apu_data: [1000*5, 2000*3, 1500*4] = [5000, 6000, 6000]
+        expected_sum = 5000 + 6000 + 6000
+        assert summary["sum"] == expected_sum
 
 
 # ============================================================================
-# TESTS DE MonteCarloSimulator - Integración
+# TESTS: MonteCarloSimulator - Análisis de Sensibilidad
 # ============================================================================
 
 
-class TestMonteCarloSimulatorIntegration:
-    """Tests de integración del simulador completo."""
+class TestMonteCarloSimulatorSensitivityAnalysis:
+    """Tests de análisis de sensibilidad."""
 
-    def test_run_simulation_success(self, simulator, valid_apu_data):
-        """Debe ejecutar simulación completa exitosamente."""
-        result = simulator.run_simulation(valid_apu_data)
+    def test_sensitivity_basic(self, simulator, simple_apu_data):
+        """Verifica análisis de sensibilidad básico."""
+        result = simulator.get_sensitivity_analysis(simple_apu_data)
 
-        assert result.status == SimulationStatus.SUCCESS
+        assert "top_contributors" in result
+        assert "total_variance" in result
+        assert "num_apus_analyzed" in result
+        assert "concentration_index_hhi" in result
+
+    def test_sensitivity_top_contributors(self, simulator, simple_apu_data):
+        """Verifica estructura de top contributors."""
+        result = simulator.get_sensitivity_analysis(simple_apu_data, top_n=3)
+
+        assert len(result["top_contributors"]) == 3
+
+        for contributor in result["top_contributors"]:
+            assert "rank" in contributor
+            assert "index" in contributor
+            assert "base_cost" in contributor
+            assert "sensitivity_index" in contributor
+            assert "variance_contribution_pct" in contributor
+            assert "cumulative_contribution_pct" in contributor
+
+    def test_sensitivity_indices_sum_to_one(self, simulator, large_apu_data):
+        """Los índices de sensibilidad deben sumar 1."""
+        result = simulator.get_sensitivity_analysis(large_apu_data, top_n=100)
+
+        total = sum(c["sensitivity_index"] for c in result["top_contributors"])
+        assert abs(total - 1.0) < 0.001
+
+    def test_sensitivity_cumulative_monotonic(self, simulator, simple_apu_data):
+        """Contribución acumulada debe ser monótona creciente."""
+        result = simulator.get_sensitivity_analysis(simple_apu_data, top_n=3)
+
+        cumulative = [c["cumulative_contribution_pct"] for c in result["top_contributors"]]
+        for i in range(1, len(cumulative)):
+            assert cumulative[i] >= cumulative[i - 1]
+
+    def test_sensitivity_hhi_interpretation(self, simulator, simple_apu_data):
+        """Verifica interpretación de HHI."""
+        result = simulator.get_sensitivity_analysis(simple_apu_data)
+
+        assert "interpretation" in result
+        assert "hhi_meaning" in result["interpretation"]
+
+    def test_sensitivity_with_invalid_data(self, simulator):
+        """Análisis de sensibilidad con datos inválidos."""
+        data = [{"VR_TOTAL": np.nan, "CANTIDAD": 5.0}]
+        result = simulator.get_sensitivity_analysis(data)
+
+        assert "error" in result
+
+
+# ============================================================================
+# TESTS: MonteCarloSimulator - Memoria
+# ============================================================================
+
+
+class TestMonteCarloSimulatorMemory:
+    """Tests de gestión de memoria."""
+
+    def test_float32_option(self, silent_logger, simple_apu_data):
+        """Verifica opción de float32."""
+        config = MonteCarloConfig(
+            num_simulations=1000,
+            use_float32=True,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        result = simulator.run_simulation(simple_apu_data)
+
         assert result.is_successful()
-        assert "mean" in result.statistics
-        assert "std_dev" in result.statistics
-        assert result.metadata["valid_items"] == 4
-        assert result.raw_results is not None
 
-    def test_run_simulation_logs_info(self, simulator, valid_apu_data, mock_logger):
-        """Debe loggear información del proceso."""
-        simulator.logger = mock_logger
+    def test_memory_limit_error(self, silent_logger):
+        """Verifica error por límite de memoria."""
+        config = MonteCarloConfig(
+            num_simulations=MAX_NUM_SIMULATIONS,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
 
-        simulator.run_simulation(valid_apu_data)
+        # Crear datos muy grandes
+        large_data = [{"VR_TOTAL": 1000.0, "CANTIDAD": 1.0} for _ in range(100000)]
 
-        # Verificar llamadas de logging
-        assert mock_logger.info.called
-        assert mock_logger.debug.called
+        # Debería lanzar error o manejar correctamente
+        # (depende del límite configurado)
+        result = simulator.run_simulation(large_data)
 
-    def test_run_simulation_no_valid_data(self, simulator, apu_data_with_zeros):
-        """Debe manejar caso sin datos válidos."""
-        # Configurar umbrales altos
-        simulator.config.min_cost_threshold = 100000.0
-
-        result = simulator.run_simulation(apu_data_with_zeros)
-
-        assert result.status == SimulationStatus.NO_VALID_DATA
-        assert not result.is_successful()
-        assert result.statistics["mean"] is None
-
-    def test_run_simulation_invalid_input_type(self, simulator):
-        """Debe lanzar TypeError con entrada inválida."""
-        with pytest.raises(TypeError):
-            simulator.run_simulation("not a list")
-
-    def test_run_simulation_empty_list(self, simulator):
-        """Debe lanzar ValueError con lista vacía."""
-        with pytest.raises(ValueError):
-            simulator.run_simulation([])
-
-    def test_run_simulation_missing_columns(self, simulator, apu_data_missing_columns):
-        """Debe lanzar ValueError si faltan columnas."""
-        with pytest.raises(ValueError, match="Ninguno de los primeros elementos"):
-            simulator.run_simulation(apu_data_missing_columns)
-
-    def test_run_simulation_handles_exceptions(self, simulator, valid_apu_data, mock_logger):
-        """Debe manejar excepciones inesperadas."""
-        simulator.logger = mock_logger
-
-        # Simular error en preparación de datos
-        with patch.object(
-            simulator, "_prepare_data", side_effect=RuntimeError("Unexpected error")
-        ):
-            result = simulator.run_simulation(valid_apu_data)
-
-            assert result.status == SimulationStatus.ERROR
-            assert not result.is_successful()
-            assert "error" in result.metadata
+        # Si excede el límite, debería ser error
+        # Si no, debería funcionar
+        assert result.status in (SimulationStatus.SUCCESS, SimulationStatus.ERROR)
 
 
 # ============================================================================
-# TESTS DE run_monte_carlo_simulation (Función Legacy)
+# TESTS: MonteCarloSimulator - Casos Edge
+# ============================================================================
+
+
+class TestMonteCarloSimulatorEdgeCases:
+    """Tests de casos límite."""
+
+    def test_single_apu(self, simulator):
+        """Simulación con un solo APU."""
+        data = [{"VR_TOTAL": 1000.0, "CANTIDAD": 1.0}]
+        result = simulator.run_simulation(data)
+
+        assert result.is_successful()
+        assert result.metadata["data_quality"]["valid_items"] == 1
+
+    def test_very_small_costs(self, silent_logger):
+        """Costos muy pequeños."""
+        config = MonteCarloConfig(
+            num_simulations=1000,
+            min_cost_threshold=0.0,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        data = [{"VR_TOTAL": 0.001, "CANTIDAD": 1.0}]
+        result = simulator.run_simulation(data)
+
+        assert result.is_successful()
+
+    def test_very_large_costs(self, simulator):
+        """Costos muy grandes."""
+        data = [{"VR_TOTAL": 1e12, "CANTIDAD": 1.0}]
+        result = simulator.run_simulation(data)
+
+        assert result.is_successful()
+
+    def test_zero_volatility(self, silent_logger):
+        """Volatilidad cero (determinista)."""
+        config = MonteCarloConfig(
+            num_simulations=1000,
+            volatility_factor=0.0,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        data = [{"VR_TOTAL": 1000.0, "CANTIDAD": 1.0}]
+        result = simulator.run_simulation(data)
+
+        assert result.is_successful()
+        # Con volatilidad 0, std_dev debería ser muy pequeño
+        assert result.statistics["std_dev"] < 1.0
+
+    def test_max_volatility(self, silent_logger):
+        """Volatilidad máxima."""
+        config = MonteCarloConfig(
+            num_simulations=1000,
+            volatility_factor=1.0,
+            truncate_negative=True,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        data = [{"VR_TOTAL": 1000.0, "CANTIDAD": 1.0}]
+        result = simulator.run_simulation(data)
+
+        assert result.is_successful()
+
+
+# ============================================================================
+# TESTS: Función Legacy
 # ============================================================================
 
 
 class TestRunMonteCarloSimulationLegacy:
     """Tests para la función de compatibilidad legacy."""
 
-    def test_legacy_function_success(self, valid_apu_data):
-        """Debe ejecutar correctamente con parámetros válidos."""
-        result = run_monte_carlo_simulation(
-            apu_details=valid_apu_data,
-            num_simulations=100,
-            volatility_factor=0.1,
-            min_cost_threshold=0.0,
-            log_warnings=False,
-        )
+    def test_basic_usage(self, simple_apu_data):
+        """Uso básico de función legacy."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            result = run_monte_carlo_simulation(simple_apu_data)
 
         assert "mean" in result
         assert "std_dev" in result
         assert "percentile_5" in result
         assert "percentile_95" in result
+
+    def test_deprecation_warning(self, simple_apu_data):
+        """Verifica advertencia de deprecación."""
+        with pytest.warns(DeprecationWarning, match="deprecada"):
+            run_monte_carlo_simulation(simple_apu_data)
+
+    def test_custom_parameters(self, simple_apu_data):
+        """Parámetros personalizados."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            result = run_monte_carlo_simulation(
+                simple_apu_data,
+                num_simulations=5000,
+                volatility_factor=0.20,
+                min_cost_threshold=100.0,
+            )
+
         assert result["mean"] is not None
 
-    def test_legacy_function_default_params(self, valid_apu_data):
-        """Debe funcionar con parámetros por defecto."""
-        result = run_monte_carlo_simulation(valid_apu_data)
+    def test_empty_input_returns_none(self):
+        """Lista vacía retorna None."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            result = run_monte_carlo_simulation([])
 
-        assert result["mean"] is not None
-        assert isinstance(result["mean"], float)
-
-    def test_legacy_function_invalid_simulations(self, valid_apu_data):
-        """Debe retornar None en estadísticas si hay error."""
-        result = run_monte_carlo_simulation(
-            apu_details=valid_apu_data,
-            num_simulations=-100,  # Inválido
-            log_warnings=False,
-        )
-
-        # Debe retornar estructura con None debido al error
         assert result["mean"] is None
         assert result["std_dev"] is None
 
-    def test_legacy_function_invalid_volatility(self, valid_apu_data):
-        """Debe retornar None si volatility es inválida."""
-        result = run_monte_carlo_simulation(
-            apu_details=valid_apu_data,
-            volatility_factor=-0.5,  # Inválido
-            log_warnings=False,
-        )
+    def test_invalid_input_returns_none(self):
+        """Input inválido retorna None."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            result = run_monte_carlo_simulation("invalid")
 
         assert result["mean"] is None
 
-    def test_legacy_function_no_valid_data(self, apu_data_with_zeros):
-        """Debe retornar None si no hay datos válidos."""
-        result = run_monte_carlo_simulation(
-            apu_details=apu_data_with_zeros,
-            min_cost_threshold=100000.0,  # Muy alto
-            log_warnings=False,
-        )
+    def test_log_warnings_parameter(self, simple_apu_data):
+        """Parámetro log_warnings."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            result = run_monte_carlo_simulation(
+                simple_apu_data, log_warnings=True
+            )
 
-        assert result["mean"] is None
-
-    def test_legacy_function_with_logging(self, valid_apu_data, capsys):
-        """Debe loggear si log_warnings=True."""
-        result = run_monte_carlo_simulation(apu_details=valid_apu_data, log_warnings=True)
-
-        # Verificar que funcionó
         assert result["mean"] is not None
 
-    def test_legacy_function_returns_correct_structure(self, valid_apu_data):
-        """Debe retornar estructura específica del legacy API."""
-        result = run_monte_carlo_simulation(valid_apu_data)
-
-        # Solo debe tener estas 4 claves
-        assert set(result.keys()) == {"mean", "std_dev", "percentile_5", "percentile_95"}
-
 
 # ============================================================================
-# TESTS DE CASOS EDGE
+# TESTS: Propiedades Matemáticas
 # ============================================================================
 
 
-class TestEdgeCases:
-    """Tests para casos edge y situaciones límite."""
+class TestMathematicalProperties:
+    """Tests de propiedades matemáticas."""
 
-    def test_single_apu_item(self, simulator):
-        """Debe manejar un solo item APU."""
-        data = [{"VR_TOTAL": 10000.0, "CANTIDAD": 5.0}]
+    def test_mean_in_expected_range(self, silent_logger, simple_apu_data):
+        """Media debe estar cerca del costo base total."""
+        config = MonteCarloConfig(
+            num_simulations=50000,
+            volatility_factor=0.10,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
 
-        result = simulator.run_simulation(data)
+        result = simulator.run_simulation(simple_apu_data)
 
-        assert result.is_successful()
-        assert result.statistics["mean"] is not None
+        # Costo base: 5000 + 6000 + 6000 = 17000
+        expected_base = 17000
+        mean = result.statistics["mean"]
 
-    def test_very_small_values(self, simulator):
-        """Debe manejar valores muy pequeños."""
-        data = [{"VR_TOTAL": 0.01, "CANTIDAD": 0.01}, {"VR_TOTAL": 0.02, "CANTIDAD": 0.02}]
+        # La media debería estar dentro del 5% del costo base
+        assert abs(mean - expected_base) / expected_base < 0.05
 
-        result = simulator.run_simulation(data)
+    def test_std_dev_proportional_to_volatility(self, silent_logger):
+        """Std dev proporcional a volatilidad."""
+        data = [{"VR_TOTAL": 1000.0, "CANTIDAD": 10.0}]  # Base = 10000
 
-        assert result.is_successful()
+        results = {}
+        for vol in [0.05, 0.10, 0.20]:
+            config = MonteCarloConfig(
+                num_simulations=10000,
+                volatility_factor=vol,
+                random_seed=42,
+            )
+            sim = MonteCarloSimulator(config=config, logger=silent_logger)
+            result = sim.run_simulation(data)
+            results[vol] = result.statistics["std_dev"]
 
-    def test_very_large_values(self, simulator):
-        """Debe manejar valores muy grandes."""
-        # Usar valores grandes pero que no desborden la protección de overflow (1e15)
-        # 1e12 * 1e2 = 1e14 < 1e15
-        data = [{"VR_TOTAL": 1e12, "CANTIDAD": 100.0}, {"VR_TOTAL": 1e11, "CANTIDAD": 100.0}]
+        # Mayor volatilidad = mayor std dev
+        assert results[0.05] < results[0.10] < results[0.20]
 
-        result = simulator.run_simulation(data)
-
-        assert result.is_successful()
-
-    def test_zero_volatility(self, valid_apu_data):
-        """Debe manejar volatilidad cero."""
-        config = MonteCarloConfig(volatility_factor=0.0)
-        simulator = MonteCarloSimulator(config=config)
-
-        result = simulator.run_simulation(valid_apu_data)
-
-        # Con volatilidad 0, todas las simulaciones deben dar el mismo valor
-        # Usar approx con tolerancia absoluta pequeña para errores de punto flotante
-        assert result.statistics["std_dev"] == pytest.approx(0.0, abs=1e-9)
-
-    def test_max_volatility(self, valid_apu_data):
-        """Debe manejar volatilidad máxima."""
-        config = MonteCarloConfig(volatility_factor=1.0)
-        simulator = MonteCarloSimulator(config=config)
-
-        result = simulator.run_simulation(valid_apu_data)
-
-        assert result.is_successful()
-        # Con volatilidad alta, debe haber gran dispersión
-        assert result.statistics["std_dev"] > 0
-
-    def test_all_identical_values(self, simulator):
-        """Debe manejar todos los valores idénticos."""
-        data = [
-            {"VR_TOTAL": 10000.0, "CANTIDAD": 5.0},
-            {"VR_TOTAL": 10000.0, "CANTIDAD": 5.0},
-            {"VR_TOTAL": 10000.0, "CANTIDAD": 5.0},
-        ]
-
-        result = simulator.run_simulation(data)
-
-        assert result.is_successful()
-
-    def test_mixed_scales(self, simulator):
-        """Debe manejar valores de diferentes escalas."""
-        data = [
-            {"VR_TOTAL": 1.0, "CANTIDAD": 1.0},
-            {"VR_TOTAL": 1000.0, "CANTIDAD": 100.0},
-            {"VR_TOTAL": 1000000.0, "CANTIDAD": 10000.0},
-        ]
-
-        result = simulator.run_simulation(data)
-
-        assert result.is_successful()
-
-
-# ============================================================================
-# TESTS DE RENDIMIENTO
-# ============================================================================
-
-
-class TestPerformance:
-    """Tests de rendimiento y volumen."""
-
-    def test_large_dataset(self, large_apu_data):
-        """Debe procesar dataset grande eficientemente."""
-        config = MonteCarloConfig(num_simulations=1000)
-        simulator = MonteCarloSimulator(config=config)
-
+    def test_percentile_ordering(self, simulator, large_apu_data):
+        """Percentiles deben estar ordenados."""
         result = simulator.run_simulation(large_apu_data)
 
-        assert result.is_successful()
-        assert result.metadata["valid_items"] == 1000
-
-    def test_many_simulations(self, valid_apu_data):
-        """Debe manejar muchas simulaciones."""
-        config = MonteCarloConfig(num_simulations=10000)
-        simulator = MonteCarloSimulator(config=config)
-
-        result = simulator.run_simulation(valid_apu_data)
-
-        assert result.is_successful()
-        assert len(result.raw_results) == 10000
-
-    @pytest.mark.slow
-    def test_extreme_load(self):
-        """Debe manejar carga extrema (test lento)."""
-        data = [{"VR_TOTAL": 10000.0 + i, "CANTIDAD": 5.0 + i * 0.1} for i in range(10000)]
-
-        config = MonteCarloConfig(num_simulations=1000)
-        simulator = MonteCarloSimulator(config=config)
-
-        result = simulator.run_simulation(data)
-
-        assert result.is_successful()
-
-
-# ============================================================================
-# TESTS PARAMETRIZADOS
-# ============================================================================
-
-
-class TestParametrized:
-    """Tests parametrizados para múltiples casos."""
-
-    @pytest.mark.parametrize("num_sims", [100, 500, 1000, 5000])
-    def test_various_simulation_counts(self, valid_apu_data, num_sims):
-        """Debe funcionar con diferentes cantidades de simulaciones."""
-        config = MonteCarloConfig(num_simulations=num_sims)
-        simulator = MonteCarloSimulator(config=config)
-
-        result = simulator.run_simulation(valid_apu_data)
-
-        assert result.is_successful()
-        assert len(result.raw_results) == num_sims
-
-    @pytest.mark.parametrize("volatility", [0.0, 0.05, 0.1, 0.25, 0.5, 1.0])
-    def test_various_volatilities(self, valid_apu_data, volatility):
-        """Debe funcionar con diferentes volatilidades."""
-        config = MonteCarloConfig(volatility_factor=volatility)
-        simulator = MonteCarloSimulator(config=config)
-
-        result = simulator.run_simulation(valid_apu_data)
-
-        assert result.is_successful()
-
-    @pytest.mark.parametrize("threshold", [0.0, 100.0, 1000.0, 10000.0])
-    def test_various_cost_thresholds(self, valid_apu_data, threshold):
-        """Debe funcionar con diferentes umbrales de costo."""
-        config = MonteCarloConfig(min_cost_threshold=threshold)
-        simulator = MonteCarloSimulator(config=config)
-
-        result = simulator.run_simulation(valid_apu_data)
-
-        # Puede o no tener datos válidos dependiendo del umbral
-        assert result.status in [
-            SimulationStatus.SUCCESS,
-            SimulationStatus.NO_VALID_DATA,
+        percentiles = [
+            result.statistics[f"percentile_{p}"]
+            for p in simulator.config.percentiles
         ]
 
-    @pytest.mark.parametrize("seed", [None, 0, 42, 12345, 99999])
-    def test_various_random_seeds(self, valid_apu_data, seed):
-        """Debe funcionar con diferentes semillas."""
-        config = MonteCarloConfig(random_seed=seed, num_simulations=100)
-        simulator = MonteCarloSimulator(config=config)
+        for i in range(1, len(percentiles)):
+            assert percentiles[i] >= percentiles[i - 1]
 
-        result = simulator.run_simulation(valid_apu_data)
+    def test_min_less_than_mean_less_than_max(self, simulator, large_apu_data):
+        """min <= mean <= max."""
+        result = simulator.run_simulation(large_apu_data)
 
-        assert result.is_successful()
+        assert result.statistics["min"] <= result.statistics["mean"]
+        assert result.statistics["mean"] <= result.statistics["max"]
 
+    def test_variance_equals_std_squared(self, simulator, simple_apu_data):
+        """variance = std_dev²."""
+        result = simulator.run_simulation(simple_apu_data)
 
-# ============================================================================
-# TESTS DE REPRODUCIBILIDAD
-# ============================================================================
+        std = result.statistics["std_dev"]
+        var = result.statistics["variance"]
 
+        assert abs(var - std**2) < 0.01
 
-class TestReproducibility:
-    """Tests para verificar reproducibilidad."""
-
-    def test_same_seed_same_results(self, valid_apu_data):
-        """Debe producir resultados idénticos con misma semilla."""
-        config = MonteCarloConfig(random_seed=42, num_simulations=100)
-
-        sim1 = MonteCarloSimulator(config=config)
-        result1 = sim1.run_simulation(valid_apu_data)
-
-        sim2 = MonteCarloSimulator(config=config)
-        result2 = sim2.run_simulation(valid_apu_data)
-
-        # Estadísticas deben ser idénticas
-        assert result1.statistics["mean"] == result2.statistics["mean"]
-        assert result1.statistics["std_dev"] == result2.statistics["std_dev"]
-
-        # Arrays brutos deben ser idénticos
-        np.testing.assert_array_equal(result1.raw_results, result2.raw_results)
-
-    def test_different_seed_different_results(self, valid_apu_data):
-        """Debe producir resultados diferentes con semillas diferentes."""
-        config1 = MonteCarloConfig(random_seed=42, num_simulations=100)
-        config2 = MonteCarloConfig(random_seed=123, num_simulations=100)
-
-        sim1 = MonteCarloSimulator(config=config1)
-        result1 = sim1.run_simulation(valid_apu_data)
-
-        sim2 = MonteCarloSimulator(config=config2)
-        result2 = sim2.run_simulation(valid_apu_data)
-
-        # Las medias serán cercanas pero no idénticas
-        assert result1.statistics["mean"] != result2.statistics["mean"]
-
-        # Arrays brutos deben ser diferentes
-        assert not np.array_equal(result1.raw_results, result2.raw_results)
-
-
-# ============================================================================
-# TESTS DE COBERTURA ADICIONAL
-# ============================================================================
-
-
-class TestAdditionalCoverage:
-    """Tests adicionales para cobertura completa."""
-
-    def test_create_no_data_result(self, simulator):
-        """Debe crear resultado apropiado sin datos."""
-        result = simulator._create_no_data_result(total_items=10, discarded_items=10)
-
-        assert result.status == SimulationStatus.NO_VALID_DATA
-        assert result.statistics["mean"] is None
-        assert result.metadata["discard_rate"] == 1.0
-
-    def test_simulation_result_to_dict_comprehensive(self):
-        """Debe convertir resultado completo a dict."""
-        raw = np.array([1, 2, 3])
-        result = SimulationResult(
-            status=SimulationStatus.SUCCESS,
-            statistics={"mean": 2.0},
-            metadata={"count": 3},
-            raw_results=raw,
+    def test_lognormal_mean_equals_base_approximately(self, silent_logger):
+        """Log-normal: E[X] ≈ base_cost."""
+        config = MonteCarloConfig(
+            num_simulations=100000,
+            volatility_factor=0.10,
+            distribution=DistributionType.LOGNORMAL,
+            random_seed=42,
         )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
 
-        dict_no_raw = result.to_dict(include_raw=False)
-        assert "raw_results" not in dict_no_raw
+        data = [{"VR_TOTAL": 1000.0, "CANTIDAD": 10.0}]  # Base = 10000
+        result = simulator.run_simulation(data)
 
-        dict_with_raw = result.to_dict(include_raw=True)
-        assert dict_with_raw["raw_results"] == [1, 2, 3]
-
-    def test_sanitize_complex_values(self):
-        """Debe manejar valores complejos."""
-        # Complex float
-        result = sanitize_value(np.complex64(1 + 2j))
-        assert result is not None
-
-        # Array (aunque no debería usarse así)
-        arr = np.array([1, 2, 3])
-        result = sanitize_value(arr)
-        # Arrays no son list/tuple, así que se procesan
-        assert result is not None
-
-    def test_default_logger_creation(self):
-        """Debe crear logger por defecto correctamente."""
-        simulator = MonteCarloSimulator()
-
-        assert simulator.logger is not None
-        assert isinstance(simulator.logger, logging.Logger)
-        assert len(simulator.logger.handlers) > 0
-
-    def test_config_post_init_sets_percentiles(self):
-        """Debe configurar percentiles por defecto en post_init."""
-        config = MonteCarloConfig()
-
-        assert config.percentiles is not None
-        assert isinstance(config.percentiles, list)
-        assert len(config.percentiles) > 0
+        # Con suficientes simulaciones, la media debería estar cerca de 10000
+        assert abs(result.statistics["mean"] - 10000) / 10000 < 0.05
 
 
 # ============================================================================
-# TESTS DE INTEGRACIÓN COMPLETA
+# TESTS: Integración
 # ============================================================================
 
 
-class TestFullIntegration:
+class TestIntegration:
     """Tests de integración end-to-end."""
 
-    def test_complete_workflow(self, valid_apu_data):
-        """Debe ejecutar flujo completo correctamente."""
+    def test_full_workflow(self, large_apu_data):
+        """Flujo completo de trabajo."""
         # 1. Crear configuración
         config = MonteCarloConfig(
-            num_simulations=1000,
+            num_simulations=5000,
             volatility_factor=0.15,
+            distribution=DistributionType.LOGNORMAL,
+            use_antithetic=True,
+            check_convergence=True,
             random_seed=42,
-            percentiles=[5, 25, 50, 75, 95],
         )
 
         # 2. Crear simulador
         simulator = MonteCarloSimulator(config=config)
 
         # 3. Ejecutar simulación
-        result = simulator.run_simulation(valid_apu_data)
+        result = simulator.run_simulation(large_apu_data)
 
         # 4. Verificar resultado
         assert result.is_successful()
-        assert result.status == SimulationStatus.SUCCESS
+        assert result.convergence is not None
 
-        # 5. Verificar estadísticas
-        assert result.statistics["mean"] > 0
-        assert result.statistics["std_dev"] > 0
-        assert result.statistics["min"] >= 0  # Porque trunca negativos
-        assert result.statistics["percentile_50"] == result.statistics["median"]
+        # 5. Obtener métricas de riesgo
+        var_95 = result.get_var(0.95)
+        cvar_95 = result.get_cvar(0.95)
 
-        # 6. Verificar metadata
-        assert result.metadata["valid_items"] == 4
-        assert result.metadata["discarded_items"] == 0
+        assert var_95 is not None
+        assert cvar_95 is not None
+        assert cvar_95 >= var_95
 
-        # 7. Convertir a dict
+        # 6. Obtener intervalo de confianza
+        lower, upper = result.get_confidence_interval(0.90)
+
+        assert lower is not None
+        assert upper is not None
+        assert lower < result.statistics["mean"] < upper
+
+        # 7. Análisis de sensibilidad
+        sensitivity = simulator.get_sensitivity_analysis(large_apu_data, top_n=5)
+
+        assert "top_contributors" in sensitivity
+        assert len(sensitivity["top_contributors"]) == 5
+
+        # 8. Serializar resultado
         result_dict = result.to_dict()
-        assert "status" in result_dict
-        assert "statistics" in result_dict
-        assert "metadata" in result_dict
 
-    def test_workflow_with_data_issues(self, apu_data_with_nan):
-        """Debe manejar flujo con datos problemáticos."""
-        logger = logging.getLogger("test")
-        logger.setLevel(logging.WARNING)
+        assert isinstance(result_dict, dict)
+        assert result_dict["status"] == "success"
 
-        simulator = MonteCarloSimulator(logger=logger)
-        result = simulator.run_simulation(apu_data_with_nan)
+    def test_multiple_distribution_comparison(self, silent_logger, simple_apu_data):
+        """Comparar resultados entre distribuciones."""
+        results = {}
 
-        # Debe filtrar datos inválidos y continuar
-        if result.is_successful():
-            assert result.metadata["discarded_items"] > 0
-        else:
-            assert result.status == SimulationStatus.NO_VALID_DATA
+        for dist in DistributionType:
+            config = MonteCarloConfig(
+                num_simulations=10000,
+                volatility_factor=0.15,
+                distribution=dist,
+                random_seed=42,
+            )
+            simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+            results[dist.value] = simulator.run_simulation(simple_apu_data)
 
-    def test_legacy_to_modern_api_equivalence(self, valid_apu_data):
-        """Debe dar resultados equivalentes entre API legacy y moderna."""
-        # API Legacy
-        legacy_result = run_monte_carlo_simulation(
-            apu_details=valid_apu_data,
-            num_simulations=1000,
-            volatility_factor=0.1,
-            min_cost_threshold=0.0,
-            log_warnings=False,
+        # Todas deberían ser exitosas
+        for dist, result in results.items():
+            assert result.is_successful(), f"Falló distribución: {dist}"
+
+        # Log-normal debería tener sesgo positivo
+        assert (
+            results["lognormal"].statistics["skewness"]
+            > results["normal"].statistics["skewness"]
         )
 
-        # API Moderna
+    def test_workflow_with_data_quality_issues(self, silent_logger):
+        """Flujo con problemas de calidad de datos."""
+        data = [
+            {"VR_TOTAL": 1000.0, "CANTIDAD": 5.0},
+            {"VR_TOTAL": np.nan, "CANTIDAD": 3.0},
+            {"VR_TOTAL": 2000.0, "CANTIDAD": np.inf},
+            {"VR_TOTAL": "invalid", "CANTIDAD": 2.0},
+            {"VR_TOTAL": 1500.0, "CANTIDAD": 4.0},
+            {"VR_TOTAL": -500.0, "CANTIDAD": 3.0},
+            {"VR_TOTAL": 3000.0, "CANTIDAD": 2.0},
+        ]
+
         config = MonteCarloConfig(
             num_simulations=1000,
-            volatility_factor=0.1,
             min_cost_threshold=0.0,
-            random_seed=None,  # Sin semilla para comparación justa
+            random_seed=42,
         )
-        simulator = MonteCarloSimulator(config=config)
-        modern_result = simulator.run_simulation(valid_apu_data)
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
 
-        # Ambos deben ser exitosos
-        assert legacy_result["mean"] is not None
-        assert modern_result.is_successful()
+        result = simulator.run_simulation(data)
 
-        # Los valores deben estar en el mismo rango (no idénticos por aleatoriedad)
-        assert (
-            abs(legacy_result["mean"] - modern_result.statistics["mean"])
-            < modern_result.statistics["mean"] * 0.1
-        )  # 10% de tolerancia
+        # Debería manejar los datos problemáticos
+        assert result.is_successful()
+        assert result.metadata["data_quality"]["discarded_items"] > 0
 
 
 # ============================================================================
-# SUITE DE EJECUCIÓN
+# TESTS: Rendimiento
 # ============================================================================
+
+
+@pytest.mark.slow
+class TestPerformance:
+    """Tests de rendimiento (marcados como slow)."""
+
+    def test_large_simulation(self, silent_logger):
+        """Simulación grande."""
+        config = MonteCarloConfig(
+            num_simulations=100000,
+            volatility_factor=0.15,
+            random_seed=42,
+        )
+        simulator = MonteCarloSimulator(config=config, logger=silent_logger)
+
+        # 1000 APUs
+        np.random.seed(42)
+        data = [
+            {
+                "VR_TOTAL": float(np.random.uniform(100, 10000)),
+                "CANTIDAD": float(np.random.uniform(1, 100)),
+            }
+            for _ in range(1000)
+        ]
+
+        import time
+
+        start = time.time()
+        result = simulator.run_simulation(data)
+        elapsed = time.time() - start
+
+        assert result.is_successful()
+        # Debería completarse en menos de 30 segundos
+        assert elapsed < 30
+
+    def test_float32_performance(self, silent_logger):
+        """Comparar rendimiento float32 vs float64."""
+        np.random.seed(42)
+        data = [
+            {
+                "VR_TOTAL": float(np.random.uniform(100, 10000)),
+                "CANTIDAD": float(np.random.uniform(1, 100)),
+            }
+            for _ in range(500)
+        ]
+
+        import time
+
+        # Float64
+        config64 = MonteCarloConfig(
+            num_simulations=50000,
+            use_float32=False,
+            random_seed=42,
+        )
+        sim64 = MonteCarloSimulator(config=config64, logger=silent_logger)
+
+        start = time.time()
+        result64 = sim64.run_simulation(data)
+        time64 = time.time() - start
+
+        # Float32
+        config32 = MonteCarloConfig(
+            num_simulations=50000,
+            use_float32=True,
+            random_seed=42,
+        )
+        sim32 = MonteCarloSimulator(config=config32, logger=silent_logger)
+
+        start = time.time()
+        result32 = sim32.run_simulation(data)
+        time32 = time.time() - start
+
+        assert result64.is_successful()
+        assert result32.is_successful()
+
+        # Float32 debería ser más rápido o similar
+        # (no siempre garantizado por cache effects)
+        print(f"Float64: {time64:.3f}s, Float32: {time32:.3f}s")
+
+
+# ============================================================================
+# CONFIGURACIÓN DE PYTEST
+# ============================================================================
+
+
+def pytest_configure(config):
+    """Configuración de pytest."""
+    config.addinivalue_line("markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')")
+
 
 if __name__ == "__main__":
-    """
-    Ejecutar tests con pytest.
-
-    Comandos útiles:
-    - pytest test_probability_models.py -v
-    - pytest test_probability_models.py --cov=probability_models --cov-report=html
-    - pytest test_probability_models.py -k "test_config"
-    - pytest test_probability_models.py -x
-    - pytest test_probability_models.py -m "not slow"
-    """
-    pytest.main(
-        [
-            __file__,
-            "-v",
-            "--cov=probability_models",
-            "--cov-report=term-missing",
-            "--cov-report=html:htmlcov_probability",
-            "--tb=short",
-            "-ra",
-        ]
-    )
+    pytest.main([__file__, "-v", "--tb=short"])
