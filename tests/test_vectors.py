@@ -1,26 +1,26 @@
 """
 test_vector.py — Transmisor MIC con Protocolo Pasivo
 =====================================================
-Revisión 3: Protocolo Pasivo (sin manipulación DTR/RTS).
+Revisión 4: Robustez matemática y coherencia topológica reforzada.
 
-HISTORIAL DE DECISIONES DE DISEÑO:
-  v1: Espera fija (sleep 3s) → condición de carrera con bootloader.
-  v2: Auto-reset DTR/RTS     → ESP32 DOIT atrapado en DOWNLOAD_BOOT
-                                por capricho del circuito CH340/CP2102.
-  v3: Protocolo Pasivo       → Python NO toca DTR/RTS. Abre el puerto
-                                en modo silencioso y espera que el
-                                usuario presione EN físicamente.
-                                Robusto ante cualquier variante de
-                                circuito USB-Serial.
+MEJORAS v4:
+  - Validación de floats especiales (NaN, Inf).
+  - Normalización dimensional del Energy Consistency Index.
+  - Coherencia física como función continua (sigmoid suave).
+  - Invariantes topológicos extendidos: β₀, β₁, β₂, χ (Euler).
+  - Backoff con jitter aleatorio para desincronización.
+  - Constantes semánticas para todos los umbrales.
+  - Validación automática en __post_init__ de dataclasses.
+  - Clasificación de errores seriales (recuperables vs fatales).
 
-FLUJO:
-  1. Python abre el puerto SIN tocar líneas de control (dsrdtr=False,
-     rtscts=False). El chip NO se reinicia automáticamente.
-  2. Python solicita al usuario que presione EN físicamente.
-  3. Python escucha con timeout: descarta basura del bootloader y
-     detecta beacon semántico (SENTINEL o READY).
-  4. Python limpia el buffer de entrada y envía el JSON.
-  5. Python escucha el ACK del firmware.
+FUNDAMENTOS MATEMÁTICOS:
+  Espacio de estados: Ω = Φ × Τ × Σ donde
+    Φ ⊂ ℝ³  : fibrado físico (saturation, dissipation, gyro)
+    Τ ⊂ ℤ⁴  : espacio topológico (β₀, β₁, β₂, χ)
+    Σ ⊂ ℤ×S : espacio semántico (verdict, narrative)
+  
+  La validación garantiza que el vector viva en el subespacio
+  admisible Ω_adm ⊂ Ω definido por las restricciones físicas.
 """
 
 from __future__ import annotations
@@ -28,38 +28,27 @@ from __future__ import annotations
 import json
 import logging
 import math
+import random
 import time
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Final, Iterator, Optional
+from typing import Final, Iterator, Optional, Tuple
 
 import serial
 from serial import SerialException
 
-# ---------------------------------------------------------------------------
-# Configuración Global
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# CONFIGURACIÓN GLOBAL — Parámetros del Protocolo
+# ═══════════════════════════════════════════════════════════════════════════
 
 PUERTO: Final[str] = "/dev/ttyUSB0"
 BAUDIOS: Final[int] = 115_200
-
-# Timeout por readline(): 500ms como en la propuesta.
-# Más alto que v2 (100ms) porque en modo pasivo no necesitamos
-# reactividad extrema: el usuario tiene tiempo de presionar EN.
 TIMEOUT_LECTURA: Final[float] = 0.5
 
 # ── Beacon ───────────────────────────────────────────────────────────────────
-# Palabras clave semánticas, case-insensitive.
-# Desacopladas de la versión específica del firmware.
 BEACON_KEYWORDS: Final[tuple[str, ...]] = ("SENTINEL", "READY")
-
-# Tiempo máximo para esperar que el usuario presione EN y el firmware
-# emita su beacon. 60s es generoso para el factor humano.
 TIMEOUT_BEACON: Final[float] = 60.0
-
-# Pausa entre beacon y envío: da tiempo al firmware para estabilizarse
-# y vacía cualquier línea rezagada del arranque.
 PAUSA_POST_BEACON: Final[float] = 0.2
 
 # ── ACK ──────────────────────────────────────────────────────────────────────
@@ -68,13 +57,39 @@ TIMEOUT_ACK: Final[float] = 5.0
 # ── Reintentos ───────────────────────────────────────────────────────────────
 MAX_REINTENTOS: Final[int] = 3
 BACKOFF_BASE: Final[float] = 2.0
+JITTER_MAX: Final[float] = 0.5  # ±50% del backoff para desincronización
 
-# ── Referencia Topológica ─────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# CONSTANTES FÍSICAS — Umbrales con Semántica Explícita
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Potencia de referencia para normalización del ECI [W]
+# Basado en disipación térmica típica de estructuras monitoreadas.
+DISSIPATION_REFERENCE: Final[float] = 100.0
+
+# Umbrales de régimen físico
+SATURATION_HIGH_THRESHOLD: Final[float] = 0.8
+DISSIPATION_HIGH_THRESHOLD: Final[float] = 50.0
+STABILITY_MIN_REQUIRED: Final[float] = 0.9
+
+# Parámetros de la función de coherencia sigmoidal
+COHERENCE_SIGMOID_STEEPNESS: Final[float] = 10.0
+COHERENCE_SIGMOID_CENTER: Final[float] = 0.85
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CONSTANTES TOPOLÓGICAS — Invariantes de Referencia
+# ═══════════════════════════════════════════════════════════════════════════
+
+# β₁ máximo de referencia para normalización logarítmica
 BETA_1_MAX_REFERENCIA: Final[int] = 1000
 
-# ---------------------------------------------------------------------------
-# Logging
-# ---------------------------------------------------------------------------
+# Umbrales de alerta topológica
+EULER_CHAR_WARNING_THRESHOLD: Final[int] = -50
+TOPOLOGICAL_COMPLEXITY_CRITICAL: Final[float] = 0.7
+
+# ═══════════════════════════════════════════════════════════════════════════
+# LOGGING
+# ═══════════════════════════════════════════════════════════════════════════
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -84,221 +99,546 @@ logging.basicConfig(
 logger = logging.getLogger("centinela.mic.test")
 
 
-# ---------------------------------------------------------------------------
-# Dominio: Enumeraciones
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# UTILIDADES MATEMÁTICAS
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def _validate_finite(value: float, name: str) -> None:
+    """
+    Verifica que un float no sea NaN ni infinito.
+    
+    En IEEE 754, NaN ≠ NaN y propagación silenciosa corrompe cálculos.
+    Esta validación temprana previene contaminación del espacio de estados.
+    """
+    if not math.isfinite(value):
+        raise ValueError(
+            f"{name}={value!r} no es finito. "
+            f"Los valores NaN/Inf corrompen el espacio de estados Ω."
+        )
+
+
+def _sigmoid(x: float, steepness: float = 1.0, center: float = 0.0) -> float:
+    """
+    Función sigmoidal suave: σ(x) = 1 / (1 + e^(-k(x-c)))
+    
+    Propiedades:
+      - σ(c) = 0.5
+      - lim_{x→-∞} σ(x) = 0
+      - lim_{x→+∞} σ(x) = 1
+      - Derivable en todo ℝ (sin discontinuidades)
+    
+    Usada para transiciones suaves en validaciones de coherencia.
+    """
+    exponent = -steepness * (x - center)
+    # Protección contra overflow en exp()
+    if exponent > 700:
+        return 0.0
+    if exponent < -700:
+        return 1.0
+    return 1.0 / (1.0 + math.exp(exponent))
+
+
+def _clamp(value: float, low: float, high: float) -> float:
+    """Restringe valor al intervalo [low, high]."""
+    return max(low, min(high, value))
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DOMINIO: Enumeraciones
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 class VerdictCode(IntEnum):
     """
-    Dominio cerrado de veredictos.
-    IntEnum garantiza serialización JSON como entero sin conversión manual.
+    Dominio cerrado de veredictos estructurales.
+    
+    Ordenación total: OPTIMO < ADVERTENCIA < FIEBRE < COLAPSO
+    IntEnum garantiza serialización JSON sin conversión manual.
     """
-
     OPTIMO = 0
     ADVERTENCIA = 1
     FIEBRE_ESTRUCTURAL = 2
     COLAPSO_INMINENTE = 3
 
 
-# ---------------------------------------------------------------------------
-# Dominio: Dataclasses con Validación Matemática
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# DOMINIO: PhysicsState — Estado Físico con Validación Robusta
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 @dataclass(frozen=True)
 class PhysicsState:
     """
-    Estado físico del sistema.
-
-    Invariantes:
-      - saturation ∈ [0, 1]: fracción de saturación normalizada.
-      - dissipated_power ≥ 0: Segunda Ley de la Termodinámica.
-      - gyroscopic_stability ∈ [0, 1]: norma L2 normalizada del vector
-        de estabilidad sobre el subespacio de Lyapunov estable.
+    Estado físico del sistema en el fibrado Φ ⊂ ℝ³.
+    
+    Coordenadas:
+      - saturation ∈ [0, 1]: fracción de capacidad utilizada.
+      - dissipated_power ∈ ℝ≥0: potencia disipada [W].
+      - gyroscopic_stability ∈ [0, 1]: norma L² normalizada sobre
+        el subespacio de Lyapunov estable.
+    
+    Invariantes Físicos:
+      I1: saturation ∈ [0, 1] (normalización)
+      I2: dissipated_power ≥ 0 (Segunda Ley de la Termodinámica)
+      I3: gyroscopic_stability ∈ [0, 1] (norma acotada)
+      I4: Todos los valores finitos (no NaN/Inf)
     """
-
     saturation: float
     dissipated_power: float
     gyroscopic_stability: float
-
+    
+    def __post_init__(self) -> None:
+        """Validación automática en construcción."""
+        self.validate()
+    
     def validate(self) -> None:
+        """Verifica todos los invariantes físicos."""
         errors: list[str] = []
+        
+        # I4: Finitud (verificar primero para evitar comparaciones con NaN)
+        for name, value in [
+            ("saturation", self.saturation),
+            ("dissipated_power", self.dissipated_power),
+            ("gyroscopic_stability", self.gyroscopic_stability),
+        ]:
+            try:
+                _validate_finite(value, name)
+            except ValueError as e:
+                errors.append(str(e))
+        
+        if errors:
+            # Si hay NaN/Inf, las siguientes comparaciones son inválidas
+            raise ValueError(
+                "PhysicsState contiene valores no finitos:\n  "
+                + "\n  ".join(errors)
+            )
+        
+        # I1: Saturación normalizada
         if not (0.0 <= self.saturation <= 1.0):
-            errors.append(f"saturation={self.saturation!r} ∉ [0, 1].")
+            errors.append(
+                f"I1 violado: saturation={self.saturation:.6f} ∉ [0, 1]."
+            )
+        
+        # I2: Segunda Ley de la Termodinámica
         if self.dissipated_power < 0.0:
             errors.append(
-                f"dissipated_power={self.dissipated_power!r} < 0. "
-                "Viola la Segunda Ley de la Termodinámica."
+                f"I2 violado: dissipated_power={self.dissipated_power:.6f} < 0. "
+                f"Viola ΔS ≥ 0 (Segunda Ley)."
             )
+        
+        # I3: Estabilidad giroscópica acotada
         if not (0.0 <= self.gyroscopic_stability <= 1.0):
             errors.append(
-                f"gyroscopic_stability={self.gyroscopic_stability!r} ∉ [0, 1]."
+                f"I3 violado: gyroscopic_stability="
+                f"{self.gyroscopic_stability:.6f} ∉ [0, 1]."
             )
+        
         if errors:
             raise ValueError(
                 "PhysicsState inválido:\n  " + "\n  ".join(errors)
             )
-
+    
     @property
     def energy_consistency_index(self) -> float:
         """
-        ECI = saturation × gyroscopic_stability × dissipated_power.
-        Detecta regímenes anómalos. ECI > 100 → régimen de alarma.
+        Índice de Consistencia Energética normalizado.
+        
+        ECI = sat × gyro × (diss / diss_ref)
+        
+        Normalización: dividir por DISSIPATION_REFERENCE hace que
+        ECI sea adimensional y comparable entre sistemas.
+        
+        Interpretación:
+          ECI < 0.5  → régimen estable
+          ECI ∈ [0.5, 1) → régimen de vigilancia
+          ECI ≥ 1.0  → régimen de alarma
         """
-        return (
-            self.saturation
-            * self.gyroscopic_stability
-            * self.dissipated_power
-        )
+        normalized_power = self.dissipated_power / DISSIPATION_REFERENCE
+        return self.saturation * self.gyroscopic_stability * normalized_power
+    
+    @property
+    def regime_stress_factor(self) -> float:
+        """
+        Factor de estrés del régimen ∈ [0, 1].
+        
+        Combina saturación y disipación normalizada en una métrica
+        única que indica qué tan cerca está el sistema de sus límites.
+        
+        RSF = √(sat² + (diss/diss_ref)²) / √2
+        
+        Geometría: norma L² en el cuadrante [0,1]², normalizada.
+        """
+        norm_diss = min(1.0, self.dissipated_power / DISSIPATION_REFERENCE)
+        raw = math.sqrt(self.saturation**2 + norm_diss**2)
+        return raw / math.sqrt(2.0)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DOMINIO: TopologyState — Estado Topológico con Álgebra Homológica
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 @dataclass(frozen=True)
 class TopologyState:
     """
-    Estado topológico del sistema (Álgebra Homológica).
-
-    Invariantes:
-      - beta_1 ∈ ℤ≥0: primer número de Betti (ciclos independientes).
-      - pyramid_stability ∈ [0, 1]: estabilidad piramidal normalizada.
-
-    Coherencia β₁ ↔ pyramid_stability:
-      lower_bound = max(0, 1 − log(1+β₁) / log(1+β₁_max))
+    Estado topológico del sistema en el espacio Τ ⊂ ℤ³ × [0,1].
+    
+    Coordenadas (Números de Betti):
+      - beta_0 ∈ ℤ≥0: componentes conexas (H₀)
+      - beta_1 ∈ ℤ≥0: ciclos independientes (H₁) — "agujeros 1D"
+      - beta_2 ∈ ℤ≥0: cavidades (H₂) — "burbujas"
+      - pyramid_stability ∈ [0, 1]: estabilidad estructural
+    
+    Invariantes Derivados:
+      χ = β₀ - β₁ + β₂  (Característica de Euler-Poincaré)
+    
+    Teorema de Euler-Poincaré:
+      Para un complejo simplicial K, χ(K) = Σ(-1)ⁱβᵢ es invariante
+      bajo homeomorfismo. Cambios bruscos en χ indican transición
+      de fase topológica.
     """
-
-    beta_1: int
-    pyramid_stability: float
-
+    beta_0: int = 1  # Default: 1 componente conexa
+    beta_1: int = 0
+    beta_2: int = 0  # Default: sin cavidades
+    pyramid_stability: float = 1.0
+    
+    def __post_init__(self) -> None:
+        """Validación automática en construcción."""
+        self.validate()
+    
     def validate(self) -> None:
+        """Verifica invariantes topológicos."""
         errors: list[str] = []
-        if self.beta_1 < 0:
-            errors.append(f"beta_1={self.beta_1!r} < 0. β₁ ∈ ℤ≥0.")
+        
+        # Validar finitud de pyramid_stability
+        try:
+            _validate_finite(self.pyramid_stability, "pyramid_stability")
+        except ValueError as e:
+            errors.append(str(e))
+            raise ValueError(
+                "TopologyState inválido:\n  " + "\n  ".join(errors)
+            )
+        
+        # Números de Betti ∈ ℤ≥0
+        for name, value in [
+            ("beta_0", self.beta_0),
+            ("beta_1", self.beta_1),
+            ("beta_2", self.beta_2),
+        ]:
+            if not isinstance(value, int):
+                errors.append(f"{name}={value!r} debe ser entero.")
+            elif value < 0:
+                errors.append(f"{name}={value} < 0. βᵢ ∈ ℤ≥0 por definición.")
+        
+        # β₀ ≥ 1 para estructuras no vacías
+        if isinstance(self.beta_0, int) and self.beta_0 < 1:
+            errors.append(
+                f"beta_0={self.beta_0} < 1. "
+                f"Una estructura no vacía tiene al menos 1 componente conexa."
+            )
+        
+        # pyramid_stability ∈ [0, 1]
         if not (0.0 <= self.pyramid_stability <= 1.0):
             errors.append(
-                f"pyramid_stability={self.pyramid_stability!r} ∉ [0, 1]."
+                f"pyramid_stability={self.pyramid_stability:.6f} ∉ [0, 1]."
             )
+        
         if errors:
             raise ValueError(
                 "TopologyState inválido:\n  " + "\n  ".join(errors)
             )
+        
         self._validate_topological_coherence()
-
+    
     def _validate_topological_coherence(self) -> None:
         """
-        Bound inferior adaptativo para pyramid_stability dado β₁.
-
-        β₁=442, β₁_max=1000:
-          log_ratio = log(443)/log(1001) ≈ 0.882
-          lower_bound = max(0, 1 − 0.882) ≈ 0.118
-          pyramid_stability = 0.69 ≥ 0.118 ✓
+        Cota inferior adaptativa para pyramid_stability dado β₁.
+        
+        Justificación: A mayor β₁ (más ciclos/defectos), la estructura
+        puede tener menor estabilidad. La relación es logarítmica porque
+        los primeros ciclos son más desestabilizadores que los adicionales
+        (rendimientos decrecientes del daño topológico).
+        
+        lower_bound = max(0, 1 − log(1+β₁) / log(1+β₁_max))
         """
         if BETA_1_MAX_REFERENCIA <= 0:
             return
-        log_ratio = math.log1p(self.beta_1) / math.log1p(
-            BETA_1_MAX_REFERENCIA
-        )
+        
+        log_ratio = math.log1p(self.beta_1) / math.log1p(BETA_1_MAX_REFERENCIA)
         lower_bound = max(0.0, 1.0 - log_ratio)
-        if self.pyramid_stability < lower_bound:
+        
+        if self.pyramid_stability < lower_bound - 1e-9:  # Tolerancia numérica
             raise ValueError(
-                f"Incoherencia topológica: con β₁={self.beta_1}, "
-                f"pyramid_stability ≥ {lower_bound:.4f} requerido, "
-                f"pero es {self.pyramid_stability:.4f}."
+                f"Incoherencia topológica detectada:\n"
+                f"  Con β₁={self.beta_1} ciclos, se requiere "
+                f"pyramid_stability ≥ {lower_bound:.6f},\n"
+                f"  pero el valor es {self.pyramid_stability:.6f}.\n"
+                f"  Δ = {lower_bound - self.pyramid_stability:.6f}"
             )
-
+    
+    @property
+    def euler_characteristic(self) -> int:
+        """
+        Característica de Euler-Poincaré: χ = β₀ - β₁ + β₂
+        
+        Interpretación estructural:
+          χ > 0  → topología "esférica" (dominan componentes/cavidades)
+          χ = 0  → topología "toroidal" (equilibrio)
+          χ < 0  → topología "hiperbólica" (dominan ciclos/defectos)
+        
+        Alerta: χ << 0 indica acumulación de defectos topológicos.
+        """
+        return self.beta_0 - self.beta_1 + self.beta_2
+    
     @property
     def topological_complexity(self) -> float:
-        """C = β₁/(1+β₁) × (1 − pyramid_stability) ∈ [0, 1)."""
-        return (self.beta_1 / (1 + self.beta_1)) * (
-            1.0 - self.pyramid_stability
-        )
+        """
+        Complejidad topológica normalizada ∈ [0, 1).
+        
+        C = [β₁/(1+β₁)] × (1 − pyramid_stability)
+        
+        Propiedades:
+          - C = 0 si β₁ = 0 (sin ciclos) o pyramid_stability = 1
+          - C → 1 si β₁ → ∞ y pyramid_stability → 0
+          - Monótona creciente en β₁, decreciente en stability
+        """
+        betti_factor = self.beta_1 / (1.0 + self.beta_1)
+        instability_factor = 1.0 - self.pyramid_stability
+        return betti_factor * instability_factor
+    
+    @property
+    def homological_defect_density(self) -> float:
+        """
+        Densidad de defectos homológicos: ρ = β₁ / (β₀ × (1 + β₂))
+        
+        Normaliza los ciclos (defectos 1D) por las componentes conexas
+        y las cavidades (que pueden "absorber" ciclos en dimensión superior).
+        
+        ρ alto → alta concentración de defectos por componente.
+        """
+        denominator = self.beta_0 * (1 + self.beta_2)
+        if denominator == 0:
+            return float("inf")  # Estructura degenerada
+        return self.beta_1 / denominator
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DOMINIO: WisdomState — Veredicto Semántico
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 @dataclass(frozen=True)
 class WisdomState:
-    """Veredicto semántico del sistema."""
-
+    """
+    Veredicto semántico del sistema.
+    
+    Proyección del estado físico-topológico al espacio de decisiones
+    humanas interpretables.
+    """
     verdict_code: VerdictCode
     narrative: str
-
+    
+    def __post_init__(self) -> None:
+        """Validación automática en construcción."""
+        self.validate()
+    
     def validate(self) -> None:
+        """Verifica invariantes semánticos."""
         if not isinstance(self.verdict_code, VerdictCode):
             raise ValueError(
-                f"verdict_code={self.verdict_code!r} no es VerdictCode válido."
+                f"verdict_code={self.verdict_code!r} no es VerdictCode válido. "
+                f"Valores permitidos: {list(VerdictCode)}."
             )
-        if not self.narrative.strip():
-            raise ValueError("narrative no puede ser cadena vacía.")
+        if not self.narrative or not self.narrative.strip():
+            raise ValueError(
+                "narrative no puede ser cadena vacía o solo espacios."
+            )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DOMINIO: VectorEstado — Punto en el Espacio de Productos Ω
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 @dataclass(frozen=True)
 class VectorEstado:
     """
     Vector de estado completo del sistema MIC.
-
+    
     Punto en el espacio producto:
-      Ω = ℝ³_física × (ℤ≥0 × [0,1])_topología × ℤ_sabiduría
+      Ω = Φ × Τ × Σ
+        = ℝ³_física × (ℤ³ × [0,1])_topología × (ℤ × String)_sabiduría
+    
+    El espacio admisible Ω_adm ⊂ Ω está definido por:
+      1. Invariantes locales de cada componente (validados en __post_init__)
+      2. Coherencia global cruzada (validada explícitamente)
     """
-
     type: str
     physics: PhysicsState
     topology: TopologyState
     wisdom: WisdomState
-
+    
     def validate_integrity(self) -> None:
-        """Valida componentes y coherencia global cruzada."""
-        self.physics.validate()
-        self.topology.validate()
-        self.wisdom.validate()
-        self._validate_global_coherence()
-        logger.debug("✅ Integridad del vector confirmada.")
-
-    def _validate_global_coherence(self) -> None:
         """
-        Principio de estabilización compensatoria:
-          Si sat > 0.8 AND diss > 50W:
-            gyro + pyramid ≥ 0.9
-          Valores actuales: 0.4 + 0.69 = 1.09 ≥ 0.9 ✓
+        Valida coherencia global cruzada entre subsistemas.
+        
+        Los invariantes locales ya fueron verificados en __post_init__
+        de cada componente. Aquí verificamos relaciones inter-componente.
+        """
+        self._validate_physics_topology_coherence()
+        self._validate_verdict_consistency()
+        logger.debug("✅ Integridad del vector confirmada en Ω_adm.")
+    
+    def _validate_physics_topology_coherence(self) -> None:
+        """
+        Principio de Estabilización Compensatoria (continuo).
+        
+        En sistemas con alta carga (saturation alta, dissipation alta),
+        debe existir suficiente estabilidad combinada (gyro + pyramid)
+        para compensar.
+        
+        Implementación: función sigmoidal suave en lugar de umbral discreto.
+        
+        required_stability = 0.9 × σ(stress_factor; k=10, c=0.85)
+        
+        donde stress_factor combina saturación y disipación.
         """
         p, t = self.physics, self.topology
-        if p.saturation > 0.8 and p.dissipated_power > 50.0:
-            stability_sum = p.gyroscopic_stability + t.pyramid_stability
-            if stability_sum < 0.9:
-                raise ValueError(
-                    f"Incoherencia global: sat={p.saturation}, "
-                    f"diss={p.dissipated_power}W → "
-                    f"gyro + pyramid = {stability_sum:.4f} < 0.9."
+        
+        # Factor de estrés combinado
+        stress = p.regime_stress_factor
+        
+        # Estabilidad requerida: transición suave
+        # Cuando stress < 0.7: casi sin requisito
+        # Cuando stress > 0.9: requisito cercano a 0.9
+        stress_weight = _sigmoid(
+            stress,
+            steepness=COHERENCE_SIGMOID_STEEPNESS,
+            center=COHERENCE_SIGMOID_CENTER,
+        )
+        required_stability = STABILITY_MIN_REQUIRED * stress_weight
+        
+        # Estabilidad disponible
+        available_stability = p.gyroscopic_stability + t.pyramid_stability
+        
+        # Margen de seguridad
+        margin = available_stability - required_stability
+        
+        if margin < -1e-9:  # Tolerancia numérica
+            raise ValueError(
+                f"Incoherencia física-topológica:\n"
+                f"  stress_factor = {stress:.4f} "
+                f"(sat={p.saturation:.2f}, diss={p.dissipated_power:.1f}W)\n"
+                f"  required_stability = {required_stability:.4f}\n"
+                f"  available_stability = {available_stability:.4f} "
+                f"(gyro={p.gyroscopic_stability:.2f} + "
+                f"pyramid={t.pyramid_stability:.2f})\n"
+                f"  déficit = {-margin:.4f}"
+            )
+        
+        logger.debug(
+            f"   Coherencia física-topológica: "
+            f"stress={stress:.3f}, required={required_stability:.3f}, "
+            f"available={available_stability:.3f}, margin={margin:.3f}"
+        )
+    
+    def _validate_verdict_consistency(self) -> None:
+        """
+        Verifica que el veredicto sea consistente con las métricas.
+        
+        Heurística de sanidad (advertencias, no errores):
+          - OPTIMO debería tener ECI < 0.3 y TC < 0.2
+          - COLAPSO_INMINENTE debería tener ECI > 0.7 o TC > 0.5
+        """
+        eci = self.physics.energy_consistency_index
+        tc = self.topology.topological_complexity
+        verdict = self.wisdom.verdict_code
+        
+        # Solo advertencias, no errores duros
+        if verdict == VerdictCode.OPTIMO:
+            if eci > 0.3 or tc > 0.2:
+                logger.warning(
+                    f"⚠️  Veredicto ÓPTIMO con métricas elevadas: "
+                    f"ECI={eci:.3f}, TC={tc:.3f}. Revisar consistencia."
                 )
-
+        elif verdict == VerdictCode.COLAPSO_INMINENTE:
+            if eci < 0.5 and tc < 0.3:
+                logger.warning(
+                    f"⚠️  Veredicto COLAPSO con métricas bajas: "
+                    f"ECI={eci:.3f}, TC={tc:.3f}. Revisar consistencia."
+                )
+    
     def to_dict(self) -> dict:
-        """Convierte a dict con IntEnum → int para serialización JSON."""
-        raw = asdict(self)
-        raw["wisdom"]["verdict_code"] = int(self.wisdom.verdict_code)
-        return raw
-
+        """
+        Convierte a diccionario para serialización.
+        
+        Maneja IntEnum → int explícitamente para compatibilidad JSON.
+        Incluye métricas derivadas para enriquecimiento del payload.
+        """
+        return {
+            "type": self.type,
+            "physics": {
+                "saturation": self.physics.saturation,
+                "dissipated_power": self.physics.dissipated_power,
+                "gyroscopic_stability": self.physics.gyroscopic_stability,
+                # Métricas derivadas
+                "energy_consistency_index": round(
+                    self.physics.energy_consistency_index, 6
+                ),
+                "regime_stress_factor": round(
+                    self.physics.regime_stress_factor, 6
+                ),
+            },
+            "topology": {
+                "beta_0": self.topology.beta_0,
+                "beta_1": self.topology.beta_1,
+                "beta_2": self.topology.beta_2,
+                "pyramid_stability": self.topology.pyramid_stability,
+                # Invariantes derivados
+                "euler_characteristic": self.topology.euler_characteristic,
+                "topological_complexity": round(
+                    self.topology.topological_complexity, 6
+                ),
+                "homological_defect_density": round(
+                    self.topology.homological_defect_density, 6
+                ),
+            },
+            "wisdom": {
+                "verdict_code": int(self.wisdom.verdict_code),
+                "verdict_name": self.wisdom.verdict_code.name,
+                "narrative": self.wisdom.narrative,
+            },
+        }
+    
     def to_json(self) -> str:
         """JSON determinista con sort_keys para reproducibilidad."""
         return json.dumps(
-            self.to_dict(), ensure_ascii=False, sort_keys=True
+            self.to_dict(),
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),  # Compacto para transmisión serial
         )
-
+    
     @property
     def summary(self) -> str:
-        """Línea de log compacta."""
+        """Línea de log compacta con métricas clave."""
+        p, t, w = self.physics, self.topology, self.wisdom
         return (
-            f"type={self.type!r} | "
-            f"sat={self.physics.saturation:.2f} "
-            f"diss={self.physics.dissipated_power:.1f}W "
-            f"gyro={self.physics.gyroscopic_stability:.2f} | "
-            f"β₁={self.topology.beta_1} "
-            f"pyr={self.topology.pyramid_stability:.2f} | "
-            f"verdict={self.wisdom.verdict_code.name} | "
-            f"ECI={self.physics.energy_consistency_index:.2f} "
-            f"TC={self.topology.topological_complexity:.4f}"
+            f"type={self.type!r} │ "
+            f"sat={p.saturation:.2f} diss={p.dissipated_power:.1f}W "
+            f"gyro={p.gyroscopic_stability:.2f} │ "
+            f"β=({t.beta_0},{t.beta_1},{t.beta_2}) χ={t.euler_characteristic} "
+            f"pyr={t.pyramid_stability:.2f} │ "
+            f"verdict={w.verdict_code.name} │ "
+            f"ECI={p.energy_consistency_index:.3f} "
+            f"TC={t.topological_complexity:.4f}"
         )
 
 
-# ---------------------------------------------------------------------------
-# Context Manager: Puerto Serial en Modo Pasivo
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# INFRAESTRUCTURA: Context Manager para Puerto Serial Pasivo
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 @contextmanager
@@ -308,222 +648,170 @@ def puerto_serial_pasivo(
     timeout: float,
 ) -> Iterator[serial.Serial]:
     """
-    Abre el puerto serial en MODO PASIVO.
-
-    Parámetros clave:
-      dsrdtr=False → Python NO controla DTR automáticamente.
-                     Evita el pulso involuntario que reinicia el ESP32
-                     al abrir el puerto (comportamiento del CH340/CP2102).
-      rtscts=False → Python NO controla RTS automáticamente.
-                     Evita que GPIO0 del ESP32 sea tirado a LOW,
-                     lo que lo pondría en modo DOWNLOAD_BOOT.
-
-    Sin estos flags en False, pyserial puede emitir señales de control
-    en el momento de Serial() que confunden al circuito de auto-reset
-    de la placa DOIT DevKit, atrapando al chip en modo de programación.
+    Abre el puerto serial en MODO PASIVO (sin manipular DTR/RTS).
+    
+    Configuración crítica:
+      dsrdtr=False → Evita pulso automático en DTR al abrir
+      rtscts=False → Evita que RTS tire GPIO0 a LOW
+    
+    Esta configuración previene que el circuito CH340/CP2102 del
+    ESP32 DOIT DevKit entre en modo DOWNLOAD_BOOT involuntariamente.
     """
     ser: Optional[serial.Serial] = None
     try:
         logger.info(
-            f"🔌 Abriendo {puerto} @ {baudios} baudios "
+            f"🔌 Abriendo {puerto} @ {baudios} baud "
             f"[MODO PASIVO: dsrdtr=False, rtscts=False]..."
         )
         ser = serial.Serial(
             puerto,
             baudios,
             timeout=timeout,
-            dsrdtr=False,   # No tocar DTR → no pulsar EN del ESP32
-            rtscts=False,   # No tocar RTS → no pulsar GPIO0 del ESP32
+            dsrdtr=False,
+            rtscts=False,
         )
-        logger.info("✅ Puerto abierto en modo pasivo. Chip NO perturbado.")
+        logger.info("✅ Puerto abierto. ESP32 no perturbado.")
         yield ser
+    except SerialException as e:
+        logger.error(f"❌ No se pudo abrir {puerto}: {e}")
+        raise
     finally:
         if ser and ser.is_open:
             ser.close()
             logger.info("🔌 Puerto serial cerrado.")
 
 
-# ---------------------------------------------------------------------------
-# Interfaz de Usuario: Solicitud de Reset Manual
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# PROTOCOLO: Fase 0 — Solicitud de Reset Manual
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 def _solicitar_reset_manual() -> None:
-    """
-    Informa al usuario que debe presionar el botón EN físicamente.
-
-    Usamos logger.info() en lugar de print() para mantener coherencia
-    del canal de salida y que los timestamps sean visibles.
-    El separador visual ayuda a que la instrucción no se pierda
-    entre el flujo de logs.
-    """
-    separador = "=" * 60
-    logger.info(separador)
+    """Informa al usuario que debe presionar EN físicamente."""
+    sep = "═" * 60
+    logger.info(sep)
     logger.info("👉 ACCIÓN REQUERIDA:")
     logger.info("   Presiona el botón 'EN' (Reset) de tu ESP32 AHORA.")
     logger.info(f"   Tienes {TIMEOUT_BEACON:.0f} segundos.")
-    logger.info(separador)
+    logger.info(sep)
 
 
-# ---------------------------------------------------------------------------
-# Fase 1: Espera de Beacon (Modo Pasivo, con Timeout)
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# PROTOCOLO: Fase 1 — Detección de Beacon
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 def _es_beacon(linea: str) -> bool:
-    """
-    Detecta si una línea es un beacon de disponibilidad del firmware.
-
-    Criterio semántico case-insensitive:
-      "SENTINEL" → el firmware se identificó como Centinela.
-      "READY"    → el firmware declaró disponibilidad explícita.
-
-    Desacoplado de versiones: V1.2, V3.0, V4.0 → todos válidos.
-    """
+    """Detecta si una línea contiene keywords de beacon (case-insensitive)."""
     linea_upper = linea.upper()
     return any(kw in linea_upper for kw in BEACON_KEYWORDS)
 
 
 def _esperar_beacon(ser: serial.Serial) -> bool:
     """
-    FASE 1 — Espera del Beacon con Timeout y sin Busy-Wait.
-
-    A diferencia de la propuesta original (bucle infinito), esta
-    versión usa time.monotonic() para garantizar que el loop termine
-    incluso si el usuario no presiona EN o el firmware falla.
-
-    Manejo de líneas:
-      - Vacías tras decode+strip → ignoradas silenciosamente.
-      - No-beacon → logueadas en INFO para que el usuario vea
-        el proceso de arranque del chip en tiempo real.
-        (A diferencia de v2 donde eran DEBUG: en modo pasivo,
-        mostrarlas en INFO ayuda al usuario a saber que el chip
-        está vivo y comunicándose.)
-      - Beacon → detectado, retorno inmediato.
-
+    FASE 1 — Espera del beacon con timeout robusto.
+    
+    Usa time.monotonic() para inmunidad ante ajustes de reloj.
+    El timeout de readline() evita busy-wait.
+    
     Returns:
-        True  → beacon detectado dentro del timeout.
-        False → timeout agotado sin beacon.
+        True si beacon detectado, False si timeout.
     """
     logger.info(
-        f"🔍 Escuchando beacon "
-        f"(keywords={BEACON_KEYWORDS}, timeout={TIMEOUT_BEACON}s)..."
+        f"🔍 Escuchando beacon (keywords={BEACON_KEYWORDS}, "
+        f"timeout={TIMEOUT_BEACON}s)..."
     )
     start = time.monotonic()
     lineas_vistas = 0
-
-    while (time.monotonic() - start) < TIMEOUT_BEACON:
+    
+    while (elapsed := time.monotonic() - start) < TIMEOUT_BEACON:
         try:
             raw = ser.readline()
-        except SerialException as se:
-            logger.error(f"❌ Error leyendo del puerto: {se}")
+        except SerialException as e:
+            logger.error(f"❌ Error de lectura: {e}")
             return False
-
+        
         if not raw:
-            # readline() agotó su timeout de 500ms sin datos.
-            # El chip aún no arrancó o el usuario no presionó EN.
-            # No busy-wait: el timeout de readline() ya cede el hilo.
             continue
-
-        linea = raw.decode("utf-8", errors="replace").strip()
-
+        
+        try:
+            linea = raw.decode("utf-8", errors="replace").strip()
+        except Exception as e:
+            logger.warning(f"⚠️  Error decodificando: {e}")
+            continue
+        
         if not linea:
             continue
-
+        
         lineas_vistas += 1
-
-        # ── Verificación de Beacon ───────────────────────────────────────────
+        
         if _es_beacon(linea):
-            elapsed = time.monotonic() - start
             logger.info(
                 f"🎯 BEACON DETECTADO en {elapsed:.2f}s "
                 f"(línea #{lineas_vistas}): {linea!r}"
             )
             return True
-
-        # ── Arranque del Chip: visible en INFO ───────────────────────────────
-        # En modo pasivo mostramos el arranque en INFO (no DEBUG)
-        # para que el usuario confirme visualmente que el chip vive.
-        logger.info(f"   📡 Chip arrancando [{lineas_vistas:03d}]: {linea!r}")
-
-    elapsed = time.monotonic() - start
+        
+        # Mostrar arranque del chip en INFO para feedback visual
+        logger.info(f"   📡 [{lineas_vistas:03d}]: {linea!r}")
+    
     logger.error(
-        f"⏰ TIMEOUT tras {elapsed:.1f}s: ninguna línea coincidió con "
-        f"keywords={BEACON_KEYWORDS}. "
-        f"({lineas_vistas} líneas recibidas). "
-        "Verifique que presionó EN y que el firmware imprime "
-        "SENTINEL o READY en su setup()."
+        f"⏰ TIMEOUT tras {TIMEOUT_BEACON}s: "
+        f"{lineas_vistas} líneas recibidas, ninguna con {BEACON_KEYWORDS}."
     )
     return False
 
 
-# ---------------------------------------------------------------------------
-# Fase 2: Envío del JSON
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# PROTOCOLO: Fase 2 — Envío del JSON
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 def _enviar_json(ser: serial.Serial, vector: VectorEstado) -> bool:
     """
-    FASE 2 — Limpieza de buffer y Envío del JSON.
-
-    reset_input_buffer() descarta líneas rezagadas del arranque
-    que llegaron entre el beacon y este punto.
-    sleep(PAUSA_POST_BEACON) da margen al firmware para que
-    su loop() esté activo y escuchando antes de que llegue el JSON.
-
+    FASE 2 — Limpia buffer y transmite JSON con newline terminal.
+    
     Returns:
-        True  → bytes escritos correctamente.
-        False → error de escritura.
+        True si escritura exitosa, False si error.
     """
-    logger.info("🧹 Limpiando buffer de entrada post-beacon...")
+    logger.info("🧹 Limpiando buffer de entrada...")
     ser.reset_input_buffer()
     time.sleep(PAUSA_POST_BEACON)
-
+    
     payload = vector.to_json() + "\n"
     encoded = payload.encode("utf-8")
-
+    
     try:
         bytes_escritos = ser.write(encoded)
-        ser.flush()  # Vacía buffer del SO → garantiza transmisión completa
-    except SerialException as se:
-        logger.error(f"❌ Error escribiendo JSON: {se}")
+        ser.flush()
+    except SerialException as e:
+        logger.error(f"❌ Error de escritura: {e}")
         return False
-
+    
     logger.info(f"📨 JSON enviado ({bytes_escritos} bytes):")
     logger.info(f"   {vector.summary}")
-    logger.debug(
-        "   JSON completo:\n"
-        + json.dumps(vector.to_dict(), indent=2, ensure_ascii=False)
-    )
-    return bytes_escritos > 0
+    logger.debug(f"   Payload: {payload.strip()}")
+    
+    return bytes_escritos == len(encoded)
 
 
-# ---------------------------------------------------------------------------
-# Fase 3: Escucha del ACK
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# PROTOCOLO: Fase 3 — Escucha del ACK
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 def _esperar_ack(ser: serial.Serial) -> bool:
     """
-    FASE 3 — Escucha del ACK del Firmware.
-
-    Registra todas las respuestas del firmware durante TIMEOUT_ACK.
-    Considera éxito si el firmware responde con una línea que
-    contiene "ACK" (coincidencia semántica, igual que el beacon).
-
-    time.monotonic() es robusto ante ajustes de reloj del sistema.
-    sleep(0.01) en ausencia de datos evita busy-wait.
-
+    FASE 3 — Escucha respuesta del firmware.
+    
     Returns:
-        True  → ACK semántico recibido.
-        False → timeout sin ACK (advertencia, no error fatal:
-                el firmware puede procesar en silencio).
+        True si "ACK" detectado, False si timeout o ausencia.
     """
-    logger.info(f"👂 Esperando ACK del firmware (timeout={TIMEOUT_ACK}s)...")
+    logger.info(f"👂 Esperando ACK (timeout={TIMEOUT_ACK}s)...")
     start = time.monotonic()
     respuestas: list[str] = []
     ack_recibido = False
-
+    
     while (time.monotonic() - start) < TIMEOUT_ACK:
         if ser.in_waiting > 0:
             try:
@@ -534,47 +822,37 @@ def _esperar_ack(ser: serial.Serial) -> bool:
                     respuestas.append(linea)
                     if "ACK" in linea.upper():
                         ack_recibido = True
-            except SerialException as se:
-                logger.error(f"❌ Error leyendo ACK: {se}")
+            except SerialException as e:
+                logger.error(f"❌ Error leyendo ACK: {e}")
                 break
         else:
-            time.sleep(0.01)  # Ceder CPU: sin busy-wait
-
+            time.sleep(0.01)
+    
     if ack_recibido:
-        logger.info(
-            f"🏆 ACK confirmado — "
-            f"El hardware procesó el vector con éxito. "
-            f"({len(respuestas)} línea(s) recibidas en total.)"
-        )
+        logger.info(f"🏆 ACK confirmado ({len(respuestas)} líneas recibidas).")
         return True
-
+    
     if respuestas:
         logger.warning(
-            f"⚠️  {len(respuestas)} respuesta(s) recibidas, "
-            "pero ninguna contiene 'ACK'. "
-            "El firmware procesó algo, pero sin confirmación explícita."
+            f"⚠️  {len(respuestas)} líneas recibidas sin 'ACK' explícito."
         )
     else:
-        logger.warning(
-            "⚠️  Sin respuesta del firmware en el tiempo límite. "
-            "El JSON puede haberse perdido o el firmware no lo procesó."
-        )
+        logger.warning("⚠️  Sin respuesta del firmware.")
+    
     return False
 
 
-# ---------------------------------------------------------------------------
-# Construcción del Vector de Estado
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# CONSTRUCCIÓN DEL VECTOR DE ESTADO
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 def _construir_vector() -> VectorEstado:
     """
-    Construye y valida el VectorEstado.
-
-    Verificación de coherencia:
-      β₁=442 → lower_bound ≈ 0.118 → pyramid_stability=0.69 ✓
-      sat=0.85 + diss=65W (alta carga):
-        gyro + pyramid = 0.4 + 0.69 = 1.09 ≥ 0.9 ✓
+    Construye el VectorEstado con validación completa.
+    
+    Los invariantes se verifican automáticamente en __post_init__
+    de cada componente, y la coherencia global en validate_integrity().
     """
     vector = VectorEstado(
         type="state_update",
@@ -584,127 +862,122 @@ def _construir_vector() -> VectorEstado:
             gyroscopic_stability=0.4,
         ),
         topology=TopologyState(
+            beta_0=1,
             beta_1=442,
+            beta_2=3,
             pyramid_stability=0.69,
         ),
         wisdom=WisdomState(
             verdict_code=VerdictCode.FIEBRE_ESTRUCTURAL,
-            narrative="FIEBRE ESTRUCTURAL",
+            narrative="FIEBRE ESTRUCTURAL: monitoreo intensivo requerido",
         ),
     )
     vector.validate_integrity()
     return vector
 
 
-# ---------------------------------------------------------------------------
-# Ciclo Principal: Protocolo Pasivo
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# CICLO PRINCIPAL: Protocolo Pasivo Completo
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 def _ejecutar_ciclo_pasivo(vector: VectorEstado) -> bool:
     """
-    Ejecuta un ciclo completo del Protocolo Pasivo:
-
-      [0] Abrir puerto en modo pasivo (sin tocar DTR/RTS).
-      [1] Solicitar al usuario que presione EN físicamente.
-      [2] Esperar beacon semántico con timeout de 60s.
-      [3] Limpiar buffer + enviar JSON.
-      [4] Esperar ACK del firmware.
-
+    Ejecuta un ciclo completo del protocolo pasivo.
+    
+    Fases:
+      0. Abrir puerto sin perturbar ESP32
+      1. Solicitar reset manual al usuario
+      2. Esperar beacon del firmware
+      3. Enviar JSON
+      4. Esperar ACK
+    
     Returns:
-        True  → ciclo completado (beacon + envío OK).
-        False → fallo en cualquier fase.
+        True si ciclo exitoso, False si fallo en cualquier fase.
     """
     with puerto_serial_pasivo(PUERTO, BAUDIOS, TIMEOUT_LECTURA) as ser:
-
-        # ── Fase 0: Instrucción al Usuario ───────────────────────────────────
         _solicitar_reset_manual()
-
-        # ── Fase 1: Beacon ───────────────────────────────────────────────────
+        
         if not _esperar_beacon(ser):
-            logger.error(
-                "🚫 Abortando: ESP32 no emitió beacon reconocible. "
-                "Enviar JSON ahora garantizaría corrupción de datos."
-            )
+            logger.error("🚫 Sin beacon, abortando para evitar corrupción.")
             return False
-
-        # ── Fase 2: Envío ────────────────────────────────────────────────────
+        
         if not _enviar_json(ser, vector):
-            logger.error("🚫 Fallo en la escritura del JSON al puerto.")
+            logger.error("🚫 Fallo en envío JSON.")
             return False
-
-        # ── Fase 3: ACK ──────────────────────────────────────────────────────
+        
         _esperar_ack(ser)
-
         return True
 
 
-# ---------------------------------------------------------------------------
-# Punto de Entrada con Reintentos Exponenciales
-# ---------------------------------------------------------------------------
+def _calcular_backoff_con_jitter(intento: int) -> float:
+    """
+    Calcula tiempo de espera con backoff exponencial + jitter.
+    
+    t = BACKOFF_BASE^intento × (1 + jitter)
+    
+    donde jitter ∈ [-JITTER_MAX, +JITTER_MAX].
+    
+    El jitter previene sincronización en sistemas distribuidos
+    (problema de "thundering herd").
+    """
+    base_delay = BACKOFF_BASE ** intento
+    jitter = random.uniform(-JITTER_MAX, JITTER_MAX)
+    return base_delay * (1.0 + jitter)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PUNTO DE ENTRADA
+# ═══════════════════════════════════════════════════════════════════════════
 
 
 def enviar_vector_estado() -> None:
     """
-    Función principal.
-
-    1. Construye y valida el vector matemáticamente.
-    2. Ejecuta el protocolo pasivo con hasta MAX_REINTENTOS intentos.
-    3. Backoff exponencial entre intentos: t = BACKOFF_BASE^intento.
+    Función principal con reintentos y backoff exponencial con jitter.
     """
-    # ── Construcción ─────────────────────────────────────────────────────────
+    # Construcción y validación del vector
     try:
         vector = _construir_vector()
-        logger.info(f"📦 Vector construido y validado: {vector.summary}")
-    except ValueError as ve:
-        logger.error(f"❌ Vector matemáticamente inconsistente:\n{ve}")
+        logger.info(f"📦 Vector construido: {vector.summary}")
+    except ValueError as e:
+        logger.error(f"❌ Vector inconsistente:\n{e}")
         return
-
-    # ── Ciclo de Reintentos ───────────────────────────────────────────────────
+    
+    # Ciclo de reintentos
     for intento in range(1, MAX_REINTENTOS + 1):
         logger.info(
-            f"\n{'='*60}\n"
+            f"\n{'═'*60}\n"
             f"🔄 INTENTO {intento}/{MAX_REINTENTOS} — Protocolo Pasivo\n"
-            f"{'='*60}"
+            f"{'═'*60}"
         )
+        
         try:
             if _ejecutar_ciclo_pasivo(vector):
                 logger.info("🎯 Transmisión completada exitosamente.")
                 return
-
-        except SerialException as se:
-            logger.error(f"❌ Error serial en intento {intento}: {se}")
-        except OSError as oe:
-            # Cubre: permisos, dispositivo no disponible, cable desconectado
-            logger.error(f"❌ Error del SO en intento {intento}: {oe}")
-        except Exception as exc:
-            logger.error(
-                f"❌ Error inesperado en intento {intento}: {exc}",
-                exc_info=True,
-            )
-            return  # No reintentar ante errores desconocidos
-
+        except SerialException as e:
+            logger.error(f"❌ Error serial: {e}")
+        except OSError as e:
+            logger.error(f"❌ Error del SO: {e}")
+        except Exception as e:
+            logger.error(f"❌ Error inesperado: {e}", exc_info=True)
+            return  # No reintentar errores desconocidos
+        
         if intento < MAX_REINTENTOS:
-            espera = BACKOFF_BASE**intento
+            espera = _calcular_backoff_con_jitter(intento)
             logger.info(
-                f"⏳ Esperando {espera:.1f}s antes del intento {intento + 1} "
-                f"(backoff 2^{intento})..."
+                f"⏳ Esperando {espera:.2f}s antes del intento {intento + 1}..."
             )
             time.sleep(espera)
-
+    
     logger.error(
         f"\n💀 FALLO DEFINITIVO: {MAX_REINTENTOS} intentos agotados.\n"
-        f"Verifique: firmware cargado, cable USB, permisos del puerto,\n"
-        f"keywords esperadas en setup(): {BEACON_KEYWORDS}."
+        f"Verificar: firmware, cable USB, permisos, keywords={BEACON_KEYWORDS}."
     )
 
-
-# ---------------------------------------------------------------------------
-# Punto de Entrada
-# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     try:
         enviar_vector_estado()
     except KeyboardInterrupt:
-        logger.info("\n🛑 Ejecución interrumpida por el usuario.")
+        logger.info("\n🛑 Interrumpido por el usuario.")
