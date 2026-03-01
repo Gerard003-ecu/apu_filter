@@ -25,7 +25,7 @@ import pandas as pd
 import pytest
 
 # Importar el módulo a testear
-from monte_carlo import (
+from models.probability_models import (
     DEFAULT_NUM_SIMULATIONS,
     DEFAULT_VOLATILITY,
     MAX_NUM_SIMULATIONS,
