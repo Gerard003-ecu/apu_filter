@@ -175,6 +175,25 @@ class Stratum(IntEnum):
     TACTICS = 2
     PHYSICS = 3
 
+    @classmethod
+    def base_stratum(cls) -> "Stratum":
+        return cls.PHYSICS
+
+    @classmethod
+    def apex_stratum(cls) -> "Stratum":
+        return cls.WISDOM
+
+    def requires(self) -> frozenset:
+        return frozenset(s for s in Stratum if s.value > self.value)
+
+    @classmethod
+    def ordered_bottom_up(cls) -> list:
+        return sorted(cls, key=lambda s: s.value, reverse=True)
+
+    @classmethod
+    def ordered_top_down(cls) -> list:
+        return sorted(cls, key=lambda s: s.value)
+
 
 class TipoInsumo(str, Enum):
     """

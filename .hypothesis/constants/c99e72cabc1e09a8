@@ -1,0 +1,4 @@
+# file: /app/app/telemetry_schemas.py
+# hypothesis_version: 6.151.9
+
+[-10.0, -5.0, -3.0, -2.0, -1.0, -0.5, -0.1, 0.0, 1e-12, 1e-09, 1e-06, 0.001, 0.01, 0.05, 0.15, 0.25, 0.5, 0.707, 0.8, 1.0, 1.1, 1.2, 1.4, 1.5, 2.0, 2.5, 3.0, 4.0, 4.75, 5.0, 10.0, 45.0, 60.0, 100.0, 290.0, 300.0, 350.0, 400.0, 1000000.0, '\n[Fábrica RLC]', '\n[Grafo árbol ideal]', '\n[Serialización]', '\n[Sistema inestable]', ', CHAOTIC', '1. PHYSICS METRICS', '3. CONTROL METRICS', 'Betti negativo', 'CRITICALLY_DAMPED', 'ControlMetrics', 'DEGRADED', 'Damping negativo', 'Energía negativa', 'Entropía negativa', 'Euler inconsistente', 'Frecuencia negativa', 'HEALTHY', 'OVERDAMPED', 'PhysicsMetrics', 'STABLE', 'Temperatura negativa', 'ThermodynamicMetrics', 'UNDAMPED', 'UNDERDAMPED', 'UNSTABLE', '__main__', 'control', 'epoch', 'euler_characteristic', 'inf', 'is_healthy', 'is_stable', 'physics', 'poles_real', 'thermodynamics', 'timestamp', 'topology', '═']

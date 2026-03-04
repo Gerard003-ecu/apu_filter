@@ -49,7 +49,7 @@ from hypothesis import given, strategies as st, settings, assume, HealthCheck
 # Importación del módulo bajo prueba
 # ═══════════════════════════════════════════════════════════════════════════
 
-from tools_interface import (
+from app.tools_interface import (
     # Configuración
     MICConfiguration,
     DEFAULT_MIC_CONFIG,
@@ -2074,8 +2074,8 @@ class TestMathematicalProperties:
         death = birth + delta
         iv = PersistenceInterval(birth=birth, death=death)
         
-        assert iv.persistence == delta
-        assert iv.midpoint == (birth + death) / 2
+        assert math.isclose(iv.persistence, delta, rel_tol=1e-9, abs_tol=1e-9)
+        assert math.isclose(iv.midpoint, (birth + death) / 2, rel_tol=1e-9, abs_tol=1e-9)
         assert not iv.is_essential
 
 

@@ -1,0 +1,4 @@
+# file: /app/config/config_app.py
+# hypothesis_version: 6.151.9
+
+[1024, 'REDIS_URL', 'SECRET_KEY', 'default', 'development', 'production', 'test-secret-key', 'test_uploads', 'testing', 'uploads']
