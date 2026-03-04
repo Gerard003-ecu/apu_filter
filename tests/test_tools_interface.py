@@ -1,1674 +1,2335 @@
 """
-Suite de pruebas para el módulo tools_interface Refinado.
+Suite de Pruebas — Matriz de Interacción Central (MIC) y Tools Interface.
 
-Cobertura:
-- MICRegistry y Gatekeeper (Niveles Jerárquicos)
-- Estructuras de datos topológicas (PersistenceInterval, TopologicalSummary)
-- Funciones de entropía y probabilidad
-- Análisis topológico de archivos
-- Diagnóstico con homología y persistencia
-- Limpieza con preservación topológica
-- Análisis financiero con variedades de riesgo
-- Telemetría del sistema
+Cobertura de pruebas:
+─────────────────────
+├── Configuración: MICConfiguration y validaciones
+├── Estructuras Topológicas: PersistenceInterval, BettiNumbers, TopologicalSummary
+├── IntentVector: inmutabilidad y propiedades
+├── Cache: TTLCache con TTL, evicción, estadísticas
+├── Métricas: LatencyHistogram, MICMetrics
+├── Análisis Espectral: SpectralGraphMetrics
+├── Transiciones: StratumTransitionMatrix
+├── MICRegistry: registro, proyección, Command Pattern
+├── Excepciones: jerarquía y serialización
+├── Validación de Archivos: permisos, extensiones, tamaños
+├── Funciones Matemáticas: entropía, persistencia, homología
+├── Singleton: get_global_mic, reset_global_mic
+├── Diagnóstico: diagnose_file con análisis topológico
+├── Propiedades: invariantes matemáticos (Hypothesis)
+├── Edge Cases: casos límite y degeneraciones
+└── Rendimiento: benchmarks básicos
+
+Ejecución:
+    pytest test_tools_interface.py -v --cov=tools_interface --cov-report=html
+    pytest test_tools_interface.py -v -m "not slow"  # Excluir lentas
+    pytest test_tools_interface.py -v -k "cache"     # Solo cache
 """
 
-import logging
+import gc
+import hashlib
 import math
+import os
+import stat
+import tempfile
+import threading
+import time
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-from unittest.mock import MagicMock, Mock, patch, PropertyMock
+from typing import Any, Dict, List, Set, Tuple
+from unittest.mock import MagicMock, patch, PropertyMock
 
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
+from hypothesis import given, strategies as st, settings, assume, HealthCheck
 
-# Módulo bajo prueba
-from app.tools_interface import (
-    # Constantes
-    _EPSILON,
-    _DEFAULT_RANDOM_SEED,
-    _MAX_SAMPLE_ROWS,
-    _PERSISTENCE_THRESHOLD,
-    MAX_FILE_SIZE_BYTES,
-    SUPPORTED_ENCODINGS,
-    VALID_DELIMITERS,
-    VALID_EXTENSIONS,
-    _ENCODING_ALIASES,
+# ═══════════════════════════════════════════════════════════════════════════
+# Importación del módulo bajo prueba
+# ═══════════════════════════════════════════════════════════════════════════
+
+from tools_interface import (
+    # Configuración
+    MICConfiguration,
+    DEFAULT_MIC_CONFIG,
     
-    # Excepciones
-    CleaningError,
-    DiagnosticError,
-    FileNotFoundDiagnosticError,
-    FileValidationError,
-    UnsupportedFileTypeError,
-    MICHierarchyViolationError,
-    
-    # Enums y Estructuras
+    # Tipos y Enums
     FileType,
     Stratum,
-    IntentVector,
-    MICRegistry,
+    ProjectionResult,
+    DiagnosticResult,
+    CacheStats,
+    LatencyStats,
+    
+    # Estructuras topológicas
     PersistenceInterval,
+    BettiNumbers,
     TopologicalSummary,
+    IntentVector,
     
-    # Protocolos
-    TelemetryContextProtocol,
-    DiagnosticProtocol,
+    # Excepciones
+    MICException,
+    FileNotFoundDiagnosticError,
+    UnsupportedFileTypeError,
+    FileValidationError,
+    FilePermissionError as MICFilePermissionError,
+    CleaningError,
+    MICHierarchyViolationError,
+    TimeoutError as MICTimeoutError,
     
-    # Funciones de Entropía
-    _compute_shannon_entropy,
-    _compute_distribution_from_counts,
-    _compute_persistence_entropy,
+    # Cache y métricas
+    TTLCache,
+    CacheEntry,
+    LatencyHistogram,
+    MICMetrics,
     
-    # Funciones Topológicas
-    _analyze_topological_features,
-    _detect_cyclic_patterns,
-    _estimate_intrinsic_dimension,
-    _compute_homology_groups,
-    _compute_persistence_diagram,
-    _compute_diagnostic_magnitude,
+    # Análisis
+    SpectralGraphMetrics,
+    StratumTransitionMatrix,
     
-    # Funciones CSV
-    _analyze_csv_topology,
-    _estimate_effective_rank,
-    _compute_topological_preservation,
+    # Core
+    MICRegistry,
     
-    # Funciones Financieras
-    _generate_topological_cash_flows,
-    _analyze_risk_manifold,
-    _compute_risk_homology,
-    _compute_opportunity_persistence,
-    _compute_risk_adjusted_return,
-    _compute_topological_efficiency,
+    # Commands
+    ProjectionContext,
+    ProjectionCommand,
+    CacheCheckCommand,
+    ResolutionCommand,
+    NormalizationCommand,
+    ValidationCommand,
+    ExecutionCommand,
     
-    # Funciones de Validación
-    _validate_path_not_empty,
-    _normalize_path,
-    _validate_file_exists,
-    _validate_file_extension,
-    _validate_file_size,
-    _normalize_encoding,
-    _validate_csv_parameters,
-    _normalize_file_type,
-    _generate_output_path,
-    
-    # Funciones de Respuesta
-    _create_error_response,
-    _create_success_response,
-    _extract_diagnostic_result,
-    
-    # Utilidades Públicas
+    # Funciones
+    diagnose_file,
+    get_global_mic,
+    reset_global_mic,
+    register_core_vectors,
     get_supported_file_types,
     get_supported_delimiters,
     get_supported_encodings,
-    is_valid_file_type,
     validate_file_for_processing,
     
-    # Handlers MIC
-    diagnose_file,
-    clean_file,
-    analyze_financial_viability,
-    get_telemetry_status,
+    # Funciones matemáticas
+    compute_shannon_entropy,
+    compute_persistence_entropy,
+    distribution_from_counts,
+    analyze_topological_features,
+    compute_homology_from_diagnostic,
+    compute_persistence_diagram,
+    compute_diagnostic_magnitude,
+    detect_cyclic_patterns,
+    estimate_intrinsic_dimension,
     
-    # Registry
-    _DIAGNOSTIC_REGISTRY,
-    _get_diagnostic_class,
+    # Validación
+    normalize_path,
+    validate_file_exists,
+    validate_file_permissions,
+    validate_file_extension,
+    validate_file_size,
+    normalize_encoding,
+    normalize_file_type,
+    
+    # Constantes
+    SUPPORTED_ENCODINGS,
+    VALID_DELIMITERS,
+    VALID_EXTENSIONS,
+    _SEVERITY_WEIGHTS,
+    
+    # Helpers
+    _jaccard_similarity,
+    _tokenize_line,
 )
 
 
-# =============================================================================
-# Configuración de Logging para Tests
-# =============================================================================
+# ═══════════════════════════════════════════════════════════════════════════
+# FIXTURES — Datos de prueba reutilizables
+# ═══════════════════════════════════════════════════════════════════════════
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+@pytest.fixture
+def default_config() -> MICConfiguration:
+    """Configuración por defecto."""
+    return DEFAULT_MIC_CONFIG
 
 
-# =============================================================================
-# Fixtures Generales
-# =============================================================================
+@pytest.fixture
+def strict_config() -> MICConfiguration:
+    """Configuración estricta."""
+    return MICConfiguration(
+        max_file_size_bytes=10 * 1024 * 1024,  # 10 MB
+        cache_ttl_seconds=60.0,
+        persistence_threshold=0.05,
+        cycle_similarity_threshold=0.90,
+        strict_encoding_validation=True,
+    )
+
+
+@pytest.fixture
+def relaxed_config() -> MICConfiguration:
+    """Configuración relajada."""
+    return MICConfiguration(
+        max_file_size_bytes=500 * 1024 * 1024,  # 500 MB
+        cache_ttl_seconds=600.0,
+        persistence_threshold=0.001,
+        cycle_similarity_threshold=0.50,
+    )
+
 
 @pytest.fixture
 def temp_csv_file(tmp_path: Path) -> Path:
-    """Crea un archivo CSV temporal válido con estructura topológica simple."""
-    csv_file = tmp_path / "test_data.csv"
-    content = "col1;col2;col3\nval1;val2;val3\nvalA;valB;valC\nval1;val2;val3\n"
-    csv_file.write_text(content, encoding="utf-8")
-    return csv_file
-
-
-@pytest.fixture
-def temp_csv_with_cycles(tmp_path: Path) -> Path:
-    """CSV con patrones cíclicos claros para detección de periodicidad."""
-    csv_file = tmp_path / "cyclic_data.csv"
-    # Patrón A, B, A, B, A, B (periodo 2)
-    content = "A\nB\nA\nB\nA\nB\nA\nB\nA\nB\n"
-    csv_file.write_text(content, encoding="utf-8")
-    return csv_file
-
-
-@pytest.fixture
-def temp_csv_numeric(tmp_path: Path) -> Path:
-    """CSV con datos numéricos para análisis de rango efectivo."""
-    csv_file = tmp_path / "numeric_data.csv"
-    content = "a,b,c,d\n1,2,3,4\n2,4,6,8\n3,6,9,12\n4,8,12,16\n5,10,15,20\n"
-    csv_file.write_text(content, encoding="utf-8")
-    return csv_file
+    """Archivo CSV temporal válido."""
+    file_path = tmp_path / "test_data.csv"
+    content = """CODIGO_APU,DESCRIPCION,VALOR
+APU001,Excavación manual,1500.00
+APU002,Concreto 3000 psi,2500.00
+APU003,Acero de refuerzo,3200.00
+APU004,Mampostería,1800.00
+APU005,Pintura interior,900.00
+"""
+    file_path.write_text(content, encoding="utf-8")
+    return file_path
 
 
 @pytest.fixture
 def temp_empty_file(tmp_path: Path) -> Path:
-    """Archivo vacío para edge cases."""
-    empty_file = tmp_path / "empty.csv"
-    empty_file.write_text("", encoding="utf-8")
-    return empty_file
+    """Archivo vacío temporal."""
+    file_path = tmp_path / "empty.csv"
+    file_path.touch()
+    return file_path
 
 
 @pytest.fixture
 def temp_large_csv(tmp_path: Path) -> Path:
-    """CSV moderadamente grande para tests de rendimiento."""
-    csv_file = tmp_path / "large_data.csv"
-    header = "col1,col2,col3,col4,col5\n"
-    rows = "\n".join([f"{i},{i*2},{i*3},{i%10},{i%5}" for i in range(500)])
-    csv_file.write_text(header + rows, encoding="utf-8")
-    return csv_file
+    """Archivo CSV grande para pruebas de rendimiento."""
+    file_path = tmp_path / "large_data.csv"
+    lines = ["COL1,COL2,COL3,COL4,COL5"]
+    for i in range(1000):
+        lines.append(f"VAL{i},DATA{i},{i*10},{i*100},{i*1000}")
+    file_path.write_text("\n".join(lines), encoding="utf-8")
+    return file_path
 
 
 @pytest.fixture
-def mock_diagnostic_result() -> Dict[str, Any]:
-    """Resultado simulado de diagnóstico con estructura completa."""
+def temp_cyclic_csv(tmp_path: Path) -> Path:
+    """Archivo CSV con patrones cíclicos."""
+    file_path = tmp_path / "cyclic_data.csv"
+    pattern = ["A,B,C", "D,E,F", "G,H,I"]
+    lines = ["COL1,COL2,COL3"]
+    for _ in range(50):
+        lines.extend(pattern)
+    file_path.write_text("\n".join(lines), encoding="utf-8")
+    return file_path
+
+
+@pytest.fixture
+def mic_registry() -> MICRegistry:
+    """Instancia limpia de MICRegistry."""
+    return MICRegistry()
+
+
+@pytest.fixture
+def mic_with_vectors() -> MICRegistry:
+    """MICRegistry con vectores registrados."""
+    mic = MICRegistry()
+    
+    # Registrar vectores de prueba
+    mic.register_vector(
+        "test_physics",
+        Stratum.PHYSICS,
+        lambda **kw: {"success": True, "data": "physics", **kw}
+    )
+    mic.register_vector(
+        "test_tactics",
+        Stratum.TACTICS,
+        lambda **kw: {"success": True, "data": "tactics", **kw}
+    )
+    mic.register_vector(
+        "test_strategy",
+        Stratum.STRATEGY,
+        lambda **kw: {"success": True, "data": "strategy", **kw}
+    )
+    mic.register_vector(
+        "test_wisdom",
+        Stratum.WISDOM,
+        lambda **kw: {"success": True, "data": "wisdom", **kw}
+    )
+    
+    return mic
+
+
+@pytest.fixture
+def sample_diagnostic_data() -> Dict[str, Any]:
+    """Datos diagnósticos de ejemplo."""
     return {
-        "total_rows": 100,
-        "valid_rows": 95,
-        "error_rows": 5,
-        "warnings": [
-            "Circular dependency detected in row 10",
-            "Missing value in column 3"
-        ],
-        "errors": [
-            "Row 10: Invalid format",
-            "Row 25: Type mismatch"
-        ],
         "issues": [
-            {"type": "FORMAT_ERROR", "severity": "HIGH", "row": 10},
-            {"type": "MISSING_VALUE", "severity": "LOW", "row": 15},
-            {"type": "FORMAT_ERROR", "severity": "MEDIUM", "row": 20},
-        ]
+            {"type": "MISSING_VALUE", "severity": "HIGH", "column": "VALOR"},
+            {"type": "DUPLICATE_ROW", "severity": "MEDIUM", "row": 5},
+            {"type": "FORMAT_ERROR", "severity": "LOW", "column": "FECHA"},
+        ],
+        "warnings": [
+            "Algunas filas tienen valores vacíos",
+            "circular dependency detected in column references",
+        ],
+        "errors": [],
     }
 
 
 @pytest.fixture
-def mock_cleaning_stats():
-    """Estadísticas simuladas de limpieza."""
-    mock_stats = MagicMock()
-    mock_stats.to_dict.return_value = {
-        "rows_processed": 100,
-        "rows_cleaned": 95,
-        "rows_removed": 5,
-        "cleaning_time_ms": 150,
+def sample_diagnostic_critical() -> Dict[str, Any]:
+    """Datos diagnósticos con errores críticos."""
+    return {
+        "issues": [
+            {"type": "SCHEMA_VIOLATION", "severity": "CRITICAL"},
+            {"type": "DATA_CORRUPTION", "severity": "CRITICAL"},
+        ],
+        "warnings": [],
+        "errors": ["File encoding error", "Malformed CSV structure"],
     }
-    return mock_stats
 
 
-@pytest.fixture
-def mock_telemetry_context():
-    """Contexto de telemetría mock que implementa el protocolo."""
-    context = MagicMock(spec=TelemetryContextProtocol)
-    context.get_business_report.return_value = {
-        "status": "ACTIVE",
-        "system_health": "HEALTHY",
-        "active_processes": 3,
-        "memory_usage_mb": 256.5,
-    }
-    return context
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: MICConfiguration — Validación de configuración
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestMICConfiguration:
+    """Pruebas de la configuración de la MIC."""
+    
+    def test_default_config_is_valid(self, default_config: MICConfiguration):
+        """La configuración por defecto debe ser válida."""
+        assert default_config.max_file_size_bytes == 100 * 1024 * 1024
+        assert default_config.cache_ttl_seconds == 300.0
+        assert default_config.cache_max_size == 128
+        assert default_config.algorithm_version == "4.0.0-topological"
+    
+    def test_config_immutability(self, default_config: MICConfiguration):
+        """La configuración debe ser inmutable."""
+        with pytest.raises(AttributeError):
+            default_config.max_file_size_bytes = 999
+    
+    def test_invalid_max_file_size_raises(self):
+        """max_file_size_bytes <= 0 debe lanzar ValueError."""
+        with pytest.raises(ValueError, match="max_file_size_bytes debe ser > 0"):
+            MICConfiguration(max_file_size_bytes=0)
+        
+        with pytest.raises(ValueError, match="max_file_size_bytes debe ser > 0"):
+            MICConfiguration(max_file_size_bytes=-100)
+    
+    def test_invalid_cache_ttl_raises(self):
+        """cache_ttl_seconds <= 0 debe lanzar ValueError."""
+        with pytest.raises(ValueError, match="cache_ttl_seconds debe ser > 0"):
+            MICConfiguration(cache_ttl_seconds=0)
+    
+    def test_invalid_cycle_similarity_raises(self):
+        """cycle_similarity_threshold fuera de (0, 1] debe lanzar ValueError."""
+        with pytest.raises(ValueError, match="cycle_similarity_threshold"):
+            MICConfiguration(cycle_similarity_threshold=0)
+        
+        with pytest.raises(ValueError, match="cycle_similarity_threshold"):
+            MICConfiguration(cycle_similarity_threshold=1.5)
+    
+    def test_invalid_persistence_threshold_raises(self):
+        """persistence_threshold fuera de (0, 1) debe lanzar ValueError."""
+        with pytest.raises(ValueError, match="persistence_threshold"):
+            MICConfiguration(persistence_threshold=0)
+        
+        with pytest.raises(ValueError, match="persistence_threshold"):
+            MICConfiguration(persistence_threshold=1.0)
+    
+    def test_custom_config_values(self):
+        """Configuración personalizada acepta valores válidos."""
+        config = MICConfiguration(
+            max_file_size_bytes=50 * 1024 * 1024,
+            cache_ttl_seconds=120.0,
+            cache_max_size=256,
+            persistence_threshold=0.05,
+            cycle_similarity_threshold=0.75,
+        )
+        assert config.max_file_size_bytes == 50 * 1024 * 1024
+        assert config.cache_max_size == 256
 
 
-# =============================================================================
-# Tests para PersistenceInterval
-# =============================================================================
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: Stratum — Jerarquía DIKW
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestStratum:
+    """Pruebas del enum Stratum."""
+    
+    def test_stratum_values(self):
+        """Los valores numéricos deben ser correctos."""
+        assert Stratum.WISDOM.value == 0
+        assert Stratum.STRATEGY.value == 1
+        assert Stratum.TACTICS.value == 2
+        assert Stratum.PHYSICS.value == 3
+    
+    def test_base_stratum(self):
+        """base_stratum debe retornar PHYSICS."""
+        assert Stratum.base_stratum() == Stratum.PHYSICS
+    
+    def test_apex_stratum(self):
+        """apex_stratum debe retornar WISDOM."""
+        assert Stratum.apex_stratum() == Stratum.WISDOM
+    
+    def test_requires_physics(self):
+        """PHYSICS no requiere ningún prerrequisito."""
+        assert Stratum.PHYSICS.requires() == frozenset()
+    
+    def test_requires_tactics(self):
+        """TACTICS requiere PHYSICS."""
+        required = Stratum.TACTICS.requires()
+        assert Stratum.PHYSICS in required
+        assert len(required) == 1
+    
+    def test_requires_strategy(self):
+        """STRATEGY requiere PHYSICS y TACTICS."""
+        required = Stratum.STRATEGY.requires()
+        assert Stratum.PHYSICS in required
+        assert Stratum.TACTICS in required
+        assert len(required) == 2
+    
+    def test_requires_wisdom(self):
+        """WISDOM requiere todos los demás estratos."""
+        required = Stratum.WISDOM.requires()
+        assert Stratum.PHYSICS in required
+        assert Stratum.TACTICS in required
+        assert Stratum.STRATEGY in required
+        assert len(required) == 3
+    
+    def test_ordered_bottom_up(self):
+        """Orden de base a cúspide."""
+        order = Stratum.ordered_bottom_up()
+        assert order == [Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.WISDOM]
+    
+    def test_ordered_top_down(self):
+        """Orden de cúspide a base."""
+        order = Stratum.ordered_top_down()
+        assert order == [Stratum.WISDOM, Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS]
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: FileType — Tipos de archivo
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestFileType:
+    """Pruebas del enum FileType."""
+    
+    def test_file_type_values(self):
+        """Los valores deben ser strings correctos."""
+        assert FileType.APUS.value == "apus"
+        assert FileType.INSUMOS.value == "insumos"
+        assert FileType.PRESUPUESTO.value == "presupuesto"
+    
+    def test_values_method(self):
+        """values() retorna lista de valores."""
+        values = FileType.values()
+        assert "apus" in values
+        assert "insumos" in values
+        assert "presupuesto" in values
+        assert len(values) == 3
+    
+    def test_from_string_valid(self):
+        """from_string parsea strings válidos."""
+        assert FileType.from_string("apus") == FileType.APUS
+        assert FileType.from_string("APUS") == FileType.APUS
+        assert FileType.from_string("  Apus  ") == FileType.APUS
+        assert FileType.from_string("insumos") == FileType.INSUMOS
+        assert FileType.from_string("presupuesto") == FileType.PRESUPUESTO
+    
+    def test_from_string_invalid_raises_value_error(self):
+        """from_string con valor inválido lanza ValueError."""
+        with pytest.raises(ValueError, match="no es válido"):
+            FileType.from_string("invalid_type")
+    
+    def test_from_string_non_string_raises_type_error(self):
+        """from_string con no-string lanza TypeError."""
+        with pytest.raises(TypeError, match="Se esperaba str"):
+            FileType.from_string(123)
+        
+        with pytest.raises(TypeError):
+            FileType.from_string(None)
+    
+    def test_file_type_is_str(self):
+        """FileType hereda de str para serialización JSON."""
+        assert isinstance(FileType.APUS, str)
+        assert FileType.APUS == "apus"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: PersistenceInterval — Intervalos de persistencia
+# ═══════════════════════════════════════════════════════════════════════════
 
 class TestPersistenceInterval:
-    """Tests para la estructura de intervalos de persistencia."""
-
+    """Pruebas de intervalos de persistencia topológica."""
+    
     def test_valid_interval_creation(self):
         """Crear intervalo válido."""
-        interval = PersistenceInterval(birth=0.0, death=1.0, dimension=0)
-        assert interval.birth == 0.0
-        assert interval.death == 1.0
-        assert interval.dimension == 0
-        assert interval.persistence == 1.0
-        assert not interval.is_essential
-
+        iv = PersistenceInterval(birth=0.0, death=1.0, dimension=0)
+        assert iv.birth == 0.0
+        assert iv.death == 1.0
+        assert iv.dimension == 0
+    
+    def test_persistence_calculation(self):
+        """persistence = death - birth."""
+        iv = PersistenceInterval(birth=0.5, death=1.5)
+        assert iv.persistence == 1.0
+    
     def test_essential_interval(self):
-        """Intervalo que nunca muere."""
-        interval = PersistenceInterval(birth=0.5, death=float('inf'), dimension=1)
-        assert interval.is_essential
-        assert math.isinf(interval.persistence)
-
-    def test_invalid_negative_birth(self):
-        """Birth negativo debe fallar."""
-        with pytest.raises(ValueError, match="Birth time must be non-negative"):
+        """Intervalos esenciales tienen death = inf."""
+        iv = PersistenceInterval.essential(birth=0.0, dimension=1)
+        assert iv.is_essential is True
+        assert math.isinf(iv.death)
+        assert math.isinf(iv.persistence)
+    
+    def test_midpoint_finite(self):
+        """Midpoint de intervalo finito."""
+        iv = PersistenceInterval(birth=0.0, death=2.0)
+        assert iv.midpoint == 1.0
+    
+    def test_midpoint_essential(self):
+        """Midpoint de intervalo esencial es birth."""
+        iv = PersistenceInterval.essential(birth=0.5)
+        assert iv.midpoint == 0.5
+    
+    def test_negative_birth_raises(self):
+        """birth < 0 lanza ValueError."""
+        with pytest.raises(ValueError, match="birth debe ser ≥ 0"):
             PersistenceInterval(birth=-1.0, death=1.0)
-
-    def test_invalid_death_before_birth(self):
-        """Death antes de birth debe fallar."""
-        with pytest.raises(ValueError, match="Death .* must be >= birth"):
-            PersistenceInterval(birth=1.0, death=0.5)
-
-    def test_invalid_negative_dimension(self):
-        """Dimensión negativa debe fallar."""
-        with pytest.raises(ValueError, match="Dimension must be non-negative"):
+    
+    def test_death_less_than_birth_raises(self):
+        """death < birth (finito) lanza ValueError."""
+        with pytest.raises(ValueError, match="death.*debe ser ≥ birth"):
+            PersistenceInterval(birth=2.0, death=1.0)
+    
+    def test_negative_dimension_raises(self):
+        """dimension < 0 lanza ValueError."""
+        with pytest.raises(ValueError, match="dimension debe ser ≥ 0"):
             PersistenceInterval(birth=0.0, death=1.0, dimension=-1)
-
+    
     def test_ordering_by_persistence(self):
-        """Intervalos se ordenan por persistencia descendente."""
-        intervals = [
-            PersistenceInterval(0.0, 0.5, 0),   # persistence = 0.5
-            PersistenceInterval(0.0, 2.0, 0),   # persistence = 2.0
-            PersistenceInterval(0.0, 1.0, 0),   # persistence = 1.0
-        ]
-        sorted_intervals = sorted(intervals)
+        """Ordenamiento por persistencia descendente."""
+        iv1 = PersistenceInterval(birth=0.0, death=1.0)  # pers = 1.0
+        iv2 = PersistenceInterval(birth=0.0, death=2.0)  # pers = 2.0
+        iv3 = PersistenceInterval(birth=0.0, death=0.5)  # pers = 0.5
+        
+        sorted_intervals = sorted([iv1, iv2, iv3])
         assert sorted_intervals[0].persistence == 2.0
         assert sorted_intervals[1].persistence == 1.0
         assert sorted_intervals[2].persistence == 0.5
-
-    def test_immutability(self):
-        """PersistenceInterval es inmutable (frozen)."""
-        interval = PersistenceInterval(0.0, 1.0, 0)
-        with pytest.raises(AttributeError):
-            interval.birth = 0.5
-
-
-# =============================================================================
-# Tests para TopologicalSummary
-# =============================================================================
-
-class TestTopologicalSummary:
-    """Tests para el resumen topológico."""
-
-    def test_create_summary(self):
-        """Crear resumen válido."""
-        summary = TopologicalSummary(
-            betti_0=3,
-            betti_1=1,
-            betti_2=0,
-            euler_characteristic=2,
-            structural_entropy=0.5,
-            persistence_entropy=0.3
-        )
-        assert summary.betti_0 == 3
-        assert summary.euler_characteristic == 2
-
-    def test_empty_summary(self):
-        """Crear resumen vacío."""
-        summary = TopologicalSummary.empty()
-        assert summary.betti_0 == 0
-        assert summary.betti_1 == 0
-        assert summary.euler_characteristic == 0
-        assert summary.structural_entropy == 0.0
-
+    
+    def test_essential_precedes_finite(self):
+        """Intervalos esenciales preceden a finitos."""
+        essential = PersistenceInterval.essential(birth=1.0)
+        finite = PersistenceInterval(birth=0.0, death=100.0)  # pers = 100
+        
+        sorted_intervals = sorted([finite, essential])
+        assert sorted_intervals[0].is_essential is True
+    
     def test_to_dict(self):
         """Serialización a diccionario."""
+        iv = PersistenceInterval(birth=0.5, death=1.5, dimension=1)
+        d = iv.to_dict()
+        
+        assert d["birth"] == 0.5
+        assert d["death"] == 1.5
+        assert d["persistence"] == 1.0
+        assert d["dimension"] == 1
+        assert d["is_essential"] is False
+        assert d["midpoint"] == 1.0
+    
+    def test_immutability(self):
+        """Intervalo es inmutable (frozen)."""
+        iv = PersistenceInterval(birth=0.0, death=1.0)
+        with pytest.raises(AttributeError):
+            iv.birth = 2.0
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: BettiNumbers — Números de Betti
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestBettiNumbers:
+    """Pruebas de números de Betti."""
+    
+    def test_valid_creation(self):
+        """Crear números de Betti válidos."""
+        betti = BettiNumbers(beta_0=3, beta_1=1, beta_2=0)
+        assert betti.beta_0 == 3
+        assert betti.beta_1 == 1
+        assert betti.beta_2 == 0
+    
+    def test_euler_characteristic(self):
+        """χ = β₀ - β₁ + β₂."""
+        betti = BettiNumbers(beta_0=5, beta_1=2, beta_2=1)
+        assert betti.euler_characteristic == 5 - 2 + 1  # = 4
+    
+    def test_total_rank(self):
+        """Rango total = suma de Betti."""
+        betti = BettiNumbers(beta_0=3, beta_1=2, beta_2=1)
+        assert betti.total_rank == 6
+    
+    def test_is_connected(self):
+        """Conexo cuando β₀ = 1."""
+        connected = BettiNumbers(beta_0=1, beta_1=0, beta_2=0)
+        disconnected = BettiNumbers(beta_0=3, beta_1=0, beta_2=0)
+        
+        assert connected.is_connected is True
+        assert disconnected.is_connected is False
+    
+    def test_has_cycles(self):
+        """Ciclos cuando β₁ > 0."""
+        with_cycles = BettiNumbers(beta_0=1, beta_1=2, beta_2=0)
+        no_cycles = BettiNumbers(beta_0=1, beta_1=0, beta_2=0)
+        
+        assert with_cycles.has_cycles is True
+        assert no_cycles.has_cycles is False
+    
+    def test_zero_factory(self):
+        """BettiNumbers.zero() crea (0, 0, 0)."""
+        zero = BettiNumbers.zero()
+        assert zero.beta_0 == 0
+        assert zero.beta_1 == 0
+        assert zero.beta_2 == 0
+    
+    def test_point_factory(self):
+        """BettiNumbers.point() crea (1, 0, 0)."""
+        point = BettiNumbers.point()
+        assert point.beta_0 == 1
+        assert point.beta_1 == 0
+        assert point.beta_2 == 0
+    
+    def test_negative_betti_raises(self):
+        """Valores negativos lanzan ValueError."""
+        with pytest.raises(ValueError, match="beta_0"):
+            BettiNumbers(beta_0=-1, beta_1=0, beta_2=0)
+        
+        with pytest.raises(ValueError, match="beta_1"):
+            BettiNumbers(beta_0=1, beta_1=-1, beta_2=0)
+    
+    def test_non_integer_betti_raises(self):
+        """Valores no enteros lanzan ValueError."""
+        with pytest.raises(ValueError, match="beta_0"):
+            BettiNumbers(beta_0=1.5, beta_1=0, beta_2=0)
+    
+    def test_to_dict(self):
+        """Serialización a diccionario."""
+        betti = BettiNumbers(beta_0=2, beta_1=1, beta_2=0)
+        d = betti.to_dict()
+        
+        assert d["beta_0"] == 2
+        assert d["beta_1"] == 1
+        assert d["beta_2"] == 0
+        assert d["betti_numbers"] == [2, 1, 0]
+        assert d["euler_characteristic"] == 1
+        assert d["total_rank"] == 3
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: TopologicalSummary — Resumen topológico
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestTopologicalSummary:
+    """Pruebas del resumen topológico."""
+    
+    def test_valid_creation(self):
+        """Crear resumen válido."""
+        betti = BettiNumbers(beta_0=5, beta_1=2, beta_2=0)
         summary = TopologicalSummary(
-            betti_0=2,
-            betti_1=1,
-            betti_2=0,
-            euler_characteristic=1,
-            structural_entropy=0.123456789,
-            persistence_entropy=0.987654321
+            betti=betti,
+            structural_entropy=2.5,
+            persistence_entropy=0.75,
+            intrinsic_dimension=4,
+        )
+        
+        assert summary.betti == betti
+        assert summary.structural_entropy == 2.5
+        assert summary.persistence_entropy == 0.75
+        assert summary.intrinsic_dimension == 4
+    
+    def test_empty_factory(self):
+        """TopologicalSummary.empty() crea resumen vacío."""
+        empty = TopologicalSummary.empty()
+        
+        assert empty.betti.beta_0 == 0
+        assert empty.structural_entropy == 0.0
+        assert empty.persistence_entropy == 0.0
+        assert empty.intrinsic_dimension == 0
+    
+    def test_negative_structural_entropy_raises(self):
+        """structural_entropy < 0 lanza ValueError."""
+        with pytest.raises(ValueError, match="structural_entropy"):
+            TopologicalSummary(
+                betti=BettiNumbers.zero(),
+                structural_entropy=-1.0,
+                persistence_entropy=0.5,
+            )
+    
+    def test_persistence_entropy_out_of_range_raises(self):
+        """persistence_entropy fuera de [0, 1] lanza ValueError."""
+        with pytest.raises(ValueError, match="persistence_entropy"):
+            TopologicalSummary(
+                betti=BettiNumbers.zero(),
+                structural_entropy=0.5,
+                persistence_entropy=1.5,
+            )
+    
+    def test_negative_dimension_raises(self):
+        """intrinsic_dimension < 0 lanza ValueError."""
+        with pytest.raises(ValueError, match="intrinsic_dimension"):
+            TopologicalSummary(
+                betti=BettiNumbers.zero(),
+                structural_entropy=0.0,
+                persistence_entropy=0.0,
+                intrinsic_dimension=-1,
+            )
+    
+    def test_to_dict(self):
+        """Serialización incluye todos los campos."""
+        betti = BettiNumbers(beta_0=3, beta_1=1, beta_2=0)
+        summary = TopologicalSummary(
+            betti=betti,
+            structural_entropy=1.5,
+            persistence_entropy=0.8,
+            intrinsic_dimension=5,
         )
         d = summary.to_dict()
         
-        assert d["betti_numbers"] == [2, 1, 0]
-        assert d["euler_characteristic"] == 1
-        assert d["structural_entropy"] == 0.123457  # Rounded to 6 decimals
-        assert d["persistence_entropy"] == 0.987654
-
-    def test_immutability(self):
-        """TopologicalSummary es inmutable."""
-        summary = TopologicalSummary.empty()
-        with pytest.raises(AttributeError):
-            summary.betti_0 = 5
-
-
-# =============================================================================
-# Tests para Funciones de Entropía
-# =============================================================================
-
-class TestShannonEntropy:
-    """Tests para cálculo de entropía de Shannon."""
-
-    def test_uniform_distribution(self):
-        """Distribución uniforme tiene máxima entropía."""
-        # 4 eventos equiprobables: H = log2(4) = 2 bits
-        probs = [0.25, 0.25, 0.25, 0.25]
-        entropy = _compute_shannon_entropy(probs)
-        assert math.isclose(entropy, 2.0, rel_tol=1e-6)
-
-    def test_deterministic_distribution(self):
-        """Distribución determinista tiene entropía cero."""
-        probs = [1.0, 0.0, 0.0, 0.0]
-        entropy = _compute_shannon_entropy(probs)
-        assert entropy == 0.0
-
-    def test_binary_distribution(self):
-        """Distribución binaria equiprobable."""
-        probs = [0.5, 0.5]
-        entropy = _compute_shannon_entropy(probs)
-        assert math.isclose(entropy, 1.0, rel_tol=1e-6)
-
-    def test_empty_distribution(self):
-        """Distribución vacía retorna cero."""
-        entropy = _compute_shannon_entropy([])
-        assert entropy == 0.0
-
-    def test_all_zeros(self):
-        """Distribución de todos ceros retorna cero."""
-        entropy = _compute_shannon_entropy([0.0, 0.0, 0.0])
-        assert entropy == 0.0
-
-    def test_unnormalized_distribution(self):
-        """Distribuciones no normalizadas se normalizan automáticamente."""
-        probs = [2, 2, 2, 2]  # Equivalente a [0.25, 0.25, 0.25, 0.25]
-        entropy = _compute_shannon_entropy(probs)
-        assert math.isclose(entropy, 2.0, rel_tol=1e-6)
-
-    def test_negative_probability_raises(self):
-        """Probabilidades negativas lanzan error."""
-        with pytest.raises(ValueError, match="cannot be negative"):
-            _compute_shannon_entropy([0.5, -0.5])
-
-    def test_different_base(self):
-        """Entropía con base e (nats)."""
-        probs = [0.5, 0.5]
-        entropy_nats = _compute_shannon_entropy(probs, base=math.e)
-        # H = ln(2) ≈ 0.693
-        assert math.isclose(entropy_nats, math.log(2), rel_tol=1e-6)
-
-    def test_numerical_stability(self):
-        """Estabilidad con probabilidades muy pequeñas."""
-        probs = [1e-15, 1.0 - 1e-15]
-        # No debería lanzar error ni retornar NaN
-        entropy = _compute_shannon_entropy(probs)
-        assert not math.isnan(entropy)
-        assert entropy >= 0
-
-
-class TestDistributionFromCounts:
-    """Tests para conversión de conteos a distribución."""
-
-    def test_basic_counts(self):
-        """Conteos básicos."""
-        counts = {"a": 2, "b": 3, "c": 5}
-        probs = _compute_distribution_from_counts(counts)
-        assert sum(probs) == pytest.approx(1.0)
-        assert probs == [0.2, 0.3, 0.5]
-
-    def test_counter_object(self):
-        """Funciona con Counter."""
-        counts = Counter(["a", "a", "b", "b", "b"])
-        probs = _compute_distribution_from_counts(counts)
-        assert sum(probs) == pytest.approx(1.0)
-
-    def test_empty_counts(self):
-        """Conteos vacíos retornan lista vacía."""
-        probs = _compute_distribution_from_counts({})
-        assert probs == []
-
-    def test_zero_total(self):
-        """Total cero retorna lista vacía."""
-        probs = _compute_distribution_from_counts({"a": 0, "b": 0})
-        assert probs == []
-
-
-class TestPersistenceEntropy:
-    """Tests para entropía del diagrama de persistencia."""
-
-    def test_single_dominant_feature(self):
-        """Una característica dominante = baja entropía."""
-        intervals = [
-            PersistenceInterval(0.0, 10.0, 0),  # Dominante
-            PersistenceInterval(0.0, 0.1, 0),
-            PersistenceInterval(0.0, 0.1, 0),
-        ]
-        entropy = _compute_persistence_entropy(intervals)
-        # La característica dominante tiene ~98% de la persistencia
-        assert entropy < 0.3
-
-    def test_equal_features(self):
-        """Características iguales = alta entropía."""
-        intervals = [
-            PersistenceInterval(0.0, 1.0, 0),
-            PersistenceInterval(0.0, 1.0, 0),
-            PersistenceInterval(0.0, 1.0, 0),
-        ]
-        entropy = _compute_persistence_entropy(intervals)
-        assert entropy > 0.9  # Cercano a 1 (máximo normalizado)
-
-    def test_empty_intervals(self):
-        """Sin intervalos retorna cero."""
-        entropy = _compute_persistence_entropy([])
-        assert entropy == 0.0
-
-    def test_only_essential_intervals(self):
-        """Solo intervalos esenciales (infinitos) retorna cero."""
-        intervals = [
-            PersistenceInterval(0.0, float('inf'), 0),
-            PersistenceInterval(1.0, float('inf'), 0),
-        ]
-        entropy = _compute_persistence_entropy(intervals)
-        assert entropy == 0.0
-
-
-# =============================================================================
-# Tests para Análisis Topológico de Archivos
-# =============================================================================
-
-class TestAnalyzeTopologicalFeatures:
-    """Tests para análisis topológico de archivos."""
-
-    def test_basic_file(self, temp_csv_file: Path):
-        """Análisis básico de archivo CSV."""
-        features = _analyze_topological_features(temp_csv_file)
-        
-        assert "beta_0" in features
-        assert "beta_1" in features
-        assert "euler_characteristic" in features
-        assert "structural_entropy" in features
-        assert features["num_lines"] == 4
-
-    def test_cyclic_patterns(self, temp_csv_with_cycles: Path):
-        """Detecta patrones cíclicos."""
-        features = _analyze_topological_features(temp_csv_with_cycles)
-        
-        # Archivo con patrón A,B repetido debería tener ciclos
-        assert features["beta_1"] >= 1
-
-    def test_empty_file(self, temp_empty_file: Path):
-        """Archivo vacío retorna resumen vacío."""
-        features = _analyze_topological_features(temp_empty_file)
-        
-        assert features["beta_0"] == 0
-        assert features["beta_1"] == 0
-
-    def test_file_dimension(self, temp_csv_file: Path):
-        """Estima dimensión del archivo."""
-        features = _analyze_topological_features(temp_csv_file)
-        
-        # Archivo tiene 3 columnas
-        assert features["intrinsic_dimension"] == 3
-
-    def test_nonexistent_file(self, tmp_path: Path):
-        """Archivo inexistente retorna error."""
-        features = _analyze_topological_features(tmp_path / "nonexistent.csv")
-        assert "analysis_error" in features
-
-
-class TestDetectCyclicPatterns:
-    """Tests para detección de patrones cíclicos."""
-
-    def test_no_cycles(self):
-        """Sin ciclos en secuencia única."""
-        lines = ["A", "B", "C", "D", "E"]
-        cycles = _detect_cyclic_patterns(lines)
-        assert cycles == 0
-
-    def test_period_two_cycle(self):
-        """Ciclo de período 2."""
-        lines = ["A", "B"] * 10  # A,B,A,B,...
-        cycles = _detect_cyclic_patterns(lines)
-        assert cycles >= 1
-
-    def test_period_three_cycle(self):
-        """Ciclo de período 3."""
-        lines = ["A", "B", "C"] * 10
-        cycles = _detect_cyclic_patterns(lines)
-        assert cycles >= 1
-
-    def test_short_sequence(self):
-        """Secuencia muy corta retorna cero."""
-        lines = ["A", "B"]
-        cycles = _detect_cyclic_patterns(lines)
-        assert cycles == 0
-
-    def test_all_same(self):
-        """Todos iguales = múltiples ciclos."""
-        lines = ["A"] * 20
-        cycles = _detect_cyclic_patterns(lines)
-        # Coincide con todos los períodos
-        assert cycles > 5
-
-
-class TestEstimateIntrinsicDimension:
-    """Tests para estimación de dimensión intrínseca."""
-
-    def test_csv_structure(self):
-        """Detecta estructura CSV."""
-        lines = ["a,b,c,d", "1,2,3,4", "5,6,7,8"]
-        dim = _estimate_intrinsic_dimension(lines)
-        assert dim == 4
-
-    def test_semicolon_delimiter(self):
-        """Detecta delimitador punto y coma."""
-        lines = ["a;b;c", "1;2;3"]
-        dim = _estimate_intrinsic_dimension(lines)
-        assert dim == 3
-
-    def test_no_structure(self):
-        """Sin estructura columnar."""
-        lines = ["texto plano", "otra linea"]
-        dim = _estimate_intrinsic_dimension(lines)
-        assert dim == 1
-
-    def test_empty_lines(self):
-        """Lista vacía retorna cero."""
-        dim = _estimate_intrinsic_dimension([])
-        assert dim == 0
-
-
-# =============================================================================
-# Tests para Homología y Persistencia
-# =============================================================================
-
-class TestComputeHomologyGroups:
-    """Tests para cálculo de grupos de homología."""
-
-    def test_basic_homology(self, mock_diagnostic_result: Dict[str, Any]):
-        """Homología básica desde diagnóstico."""
-        homology = _compute_homology_groups(mock_diagnostic_result)
-        
-        assert "H_0" in homology
-        assert "H_1" in homology
-        assert "beta_0" in homology
-        assert "beta_1" in homology
-        assert "euler_characteristic" in homology
-
-    def test_beta_0_from_issue_types(self, mock_diagnostic_result: Dict[str, Any]):
-        """β₀ se calcula de tipos de issues únicos."""
-        homology = _compute_homology_groups(mock_diagnostic_result)
-        
-        # El mock tiene 2 tipos únicos: FORMAT_ERROR, MISSING_VALUE
-        assert homology["beta_0"] == 2
-
-    def test_beta_1_from_circular_references(self, mock_diagnostic_result: Dict[str, Any]):
-        """β₁ se calcula de referencias circulares."""
-        homology = _compute_homology_groups(mock_diagnostic_result)
-        
-        # El mock tiene 1 warning con "circular"
-        assert homology["beta_1"] == 1
-
-    def test_empty_diagnostic(self):
-        """Diagnóstico vacío."""
-        homology = _compute_homology_groups({})
-        
-        assert homology["beta_0"] == 1  # Mínimo 1 componente
-        assert homology["beta_1"] == 0
-
-    def test_no_circular_references(self):
-        """Sin referencias circulares = β₁ = 0."""
-        data = {"issues": [{"type": "ERROR"}], "warnings": ["Simple warning"]}
-        homology = _compute_homology_groups(data)
-        
-        assert homology["beta_1"] == 0
-        assert not homology["has_cycles"]
-
-
-class TestComputePersistenceDiagram:
-    """Tests para diagrama de persistencia."""
-
-    def test_basic_diagram(self, mock_diagnostic_result: Dict[str, Any]):
-        """Diagrama básico."""
-        diagram = _compute_persistence_diagram(mock_diagnostic_result)
-        
-        assert isinstance(diagram, list)
-        assert len(diagram) > 0
-        
-        for point in diagram:
-            assert "birth" in point
-            assert "death" in point
-            assert "persistence" in point
-
-    def test_severity_mapping(self):
-        """Mapeo correcto de severidad a persistencia."""
-        data = {
-            "issues": [
-                {"severity": "CRITICAL"},
-                {"severity": "LOW"},
-            ]
-        }
-        diagram = _compute_persistence_diagram(data)
-        
-        # CRITICAL debe tener mayor persistencia
-        if len(diagram) >= 2:
-            persistences = [p["persistence"] for p in diagram]
-            assert max(persistences) == pytest.approx(1.0, rel=0.1)
-
-    def test_empty_issues(self):
-        """Sin issues retorna lista vacía."""
-        diagram = _compute_persistence_diagram({"issues": []})
-        assert diagram == []
-
-    def test_significance_flag(self):
-        """Flag de significancia correcto."""
-        data = {"issues": [{"severity": "HIGH"}]}  # persistence = 0.8
-        diagram = _compute_persistence_diagram(data)
-        
-        if diagram:
-            assert diagram[0]["is_significant"] == True
-
-
-class TestComputeDiagnosticMagnitude:
-    """Tests para magnitud del diagnóstico."""
-
-    def test_zero_problems(self):
-        """Sin problemas = magnitud cero."""
-        mag = _compute_diagnostic_magnitude({})
-        assert mag == 0.0
-
-    def test_increasing_magnitude(self):
-        """Más problemas = mayor magnitud."""
-        mag1 = _compute_diagnostic_magnitude({"issues": [1]})
-        mag2 = _compute_diagnostic_magnitude({"issues": [1, 2, 3, 4, 5]})
-        
-        assert mag2 > mag1
-
-    def test_error_weight(self):
-        """Errores pesan más que warnings."""
-        mag_warnings = _compute_diagnostic_magnitude({"warnings": [1, 2, 3]})
-        mag_errors = _compute_diagnostic_magnitude({"errors": [1, 2, 3]})
-        
-        assert mag_errors > mag_warnings
-
-    def test_bounded_output(self):
-        """Salida acotada en [0, 1] via tanh."""
-        mag = _compute_diagnostic_magnitude({
-            "issues": list(range(100)),
-            "warnings": list(range(100)),
-            "errors": list(range(100))
-        })
-        
-        assert 0 <= mag <= 1
-
-
-# =============================================================================
-# Tests para Análisis CSV
-# =============================================================================
-
-class TestAnalyzeCsvTopology:
-    """Tests para análisis topológico de CSV."""
-
-    def test_basic_csv(self, temp_csv_file: Path):
-        """Análisis básico."""
-        topology = _analyze_csv_topology(temp_csv_file, ";", "utf-8")
-        
-        assert topology["rows"] == 3  # Excluyendo header
-        assert topology["columns"] == 3
-        assert "density" in topology
-        assert "null_entropy" in topology
-
-    def test_empty_csv(self, temp_empty_file: Path):
-        """CSV vacío."""
-        topology = _analyze_csv_topology(temp_empty_file, ",", "utf-8")
-        
-        assert topology.get("is_empty", True)
-
-    def test_numeric_csv(self, temp_csv_numeric: Path):
-        """CSV numérico con cálculo de rango efectivo."""
-        topology = _analyze_csv_topology(temp_csv_numeric, ",", "utf-8")
-        
-        assert topology["columns"] == 4
-        assert "effective_rank" in topology
-        # Datos linealmente dependientes = rango bajo
-        assert topology["effective_rank"] <= 2
-
-    def test_density_calculation(self, temp_csv_file: Path):
-        """Cálculo de densidad (sin nulos = densidad 1)."""
-        topology = _analyze_csv_topology(temp_csv_file, ";", "utf-8")
-        
-        assert topology["density"] == pytest.approx(1.0, rel=0.01)
-        assert topology["sparsity"] == pytest.approx(0.0, rel=0.01)
-
-
-class TestEstimateEffectiveRank:
-    """Tests para estimación de rango efectivo via SVD."""
-
-    def test_full_rank_data(self, tmp_path: Path):
-        """Datos de rango completo."""
-        df = pd.DataFrame({
-            "a": [1, 0, 0, 0, 0],
-            "b": [0, 1, 0, 0, 0],
-            "c": [0, 0, 1, 0, 0],
-        })
-        rank = _estimate_effective_rank(df)
-        
-        # 3 columnas independientes
-        assert rank >= 2
-
-    def test_rank_deficient_data(self):
-        """Datos con dependencia lineal."""
-        df = pd.DataFrame({
-            "a": [1, 2, 3, 4, 5],
-            "b": [2, 4, 6, 8, 10],  # b = 2*a
-            "c": [3, 6, 9, 12, 15],  # c = 3*a
-        })
-        rank = _estimate_effective_rank(df)
-        
-        # Solo 1 dimensión efectiva
-        assert rank == 1
-
-    def test_single_column(self):
-        """Una sola columna."""
-        df = pd.DataFrame({"a": [1, 2, 3]})
-        rank = _estimate_effective_rank(df)
-        assert rank == 1
-
-    def test_empty_dataframe(self):
-        """DataFrame vacío."""
-        df = pd.DataFrame()
-        rank = _estimate_effective_rank(df)
-        assert rank == 0
-
-    def test_non_numeric_columns(self):
-        """Columnas no numéricas se ignoran."""
-        df = pd.DataFrame({
-            "text": ["a", "b", "c"],
-            "num": [1, 2, 3]
-        })
-        rank = _estimate_effective_rank(df)
-        assert rank == 1
-
-
-class TestComputeTopologicalPreservation:
-    """Tests para cálculo de preservación topológica."""
-
-    def test_identical_topology(self):
-        """Topologías idénticas = preservación 1.0."""
-        initial = {"rows": 100, "columns": 5, "density": 0.9}
-        final = {"rows": 100, "columns": 5, "density": 0.9}
-        
-        pres = _compute_topological_preservation(initial, final)
-        
-        assert pres["preservation_rate"] == pytest.approx(1.0)
-        assert pres["is_valid"]
-
-    def test_row_reduction(self):
-        """Reducción de filas reduce preservación."""
-        initial = {"rows": 100, "columns": 5, "density": 0.8}
-        final = {"rows": 50, "columns": 5, "density": 0.9}
-        
-        pres = _compute_topological_preservation(initial, final)
-        
-        assert pres["preservation_rate"] < 1.0
-        assert pres["row_preservation"] == 0.5
-
-    def test_density_improvement_bonus(self):
-        """Mejora de densidad da bonus."""
-        initial = {"rows": 100, "columns": 5, "density": 0.5}
-        final = {"rows": 100, "columns": 5, "density": 0.8}
-        
-        pres = _compute_topological_preservation(initial, final)
-        
-        assert pres["improved_density"]
-        assert pres["density_delta"] > 0
-
-    def test_error_handling(self):
-        """Manejo de errores en topologías."""
-        initial = {"error": "Cannot read file"}
-        final = {"rows": 100, "columns": 5}
-        
-        pres = _compute_topological_preservation(initial, final)
-        
-        assert pres["preservation_rate"] == 0.0
-        assert not pres["is_valid"]
-
-
-# =============================================================================
-# Tests para Funciones Financieras
-# =============================================================================
-
-class TestGenerateTopologicalCashFlows:
-    """Tests para generación de flujos de caja."""
-
-    def test_basic_generation(self):
-        """Generación básica."""
-        flows = _generate_topological_cash_flows(
-            amount=1000,
-            time_years=5,
-            std_dev=50,
-            random_seed=42
-        )
-        
-        assert len(flows) == 5
-        assert all(f > 0 for f in flows)  # Log-normal garantiza positivos
-
-    def test_reproducibility(self):
-        """Misma semilla = mismos resultados."""
-        flows1 = _generate_topological_cash_flows(1000, 5, 50, random_seed=123)
-        flows2 = _generate_topological_cash_flows(1000, 5, 50, random_seed=123)
-        
-        assert flows1 == flows2
-
-    def test_different_seeds(self):
-        """Diferentes semillas = diferentes resultados."""
-        flows1 = _generate_topological_cash_flows(1000, 5, 50, random_seed=1)
-        flows2 = _generate_topological_cash_flows(1000, 5, 50, random_seed=2)
-        
-        assert flows1 != flows2
-
-    def test_zero_std_dev(self):
-        """Sin volatilidad = flujos deterministas."""
-        flows = _generate_topological_cash_flows(1000, 5, 0, random_seed=42)
-        
-        # Flujos decaen según decay_rate
-        assert flows[0] > flows[-1]
-
-    def test_invalid_inputs(self):
-        """Inputs inválidos retornan lista vacía."""
-        assert _generate_topological_cash_flows(0, 5, 50) == []
-        assert _generate_topological_cash_flows(1000, 0, 50) == []
-        assert _generate_topological_cash_flows(-100, 5, 50) == []
-
-
-class TestAnalyzeRiskManifold:
-    """Tests para análisis de variedad de riesgo."""
-
-    def test_basic_manifold(self):
-        """Manifold básico."""
-        flows = [200, 180, 160, 150, 140]
-        manifold = _analyze_risk_manifold(1000, 50, 5, flows)
-        
-        assert manifold["dimension"] == 2
-        assert "volatility_surface" in manifold
-        assert "flow_stability" in manifold
-        assert "curvature" in manifold
-
-    def test_degenerate_manifold(self):
-        """Manifold degenerado (sin flujos)."""
-        manifold = _analyze_risk_manifold(1000, 50, 5, [])
-        
-        assert manifold["is_degenerate"]
-        assert manifold["dimension"] == 0
-
-    def test_constant_flows(self):
-        """Flujos constantes = dimensión 1."""
-        flows = [100, 100, 100, 100]
-        manifold = _analyze_risk_manifold(1000, 0, 4, flows)
-        
-        assert manifold["dimension"] == 1
-
-    def test_local_extrema_count(self):
-        """Cuenta extremos locales."""
-        flows = [100, 150, 100, 150, 100]  # 2 máximos, 1 mínimo
-        manifold = _analyze_risk_manifold(1000, 50, 5, flows)
-        
-        assert manifold["local_extrema"] >= 2
-
-
-class TestComputeRiskHomology:
-    """Tests para homología del riesgo."""
-
-    def test_stable_manifold(self):
-        """Manifold estable = pocos agujeros."""
-        manifold = {
-            "flow_stability": 0.9,
-            "local_extrema": 1,
-            "volatility_surface": 0.05,
-            "is_degenerate": False
-        }
-        homology = _compute_risk_homology(manifold)
-        
-        assert homology["risk_holes_beta_1"] <= 2
-        assert "Solid" in homology["interpretation"] or "Minor" in homology["interpretation"]
-
-    def test_unstable_manifold(self):
-        """Manifold inestable = muchos agujeros."""
-        manifold = {
-            "flow_stability": 0.1,
-            "local_extrema": 5,
-            "volatility_surface": 0.5,
-            "is_degenerate": False
-        }
-        homology = _compute_risk_homology(manifold)
-        
-        assert homology["risk_holes_beta_1"] >= 4
-        assert "Critical" in homology["interpretation"] or "Significant" in homology["interpretation"]
-
-    def test_degenerate_input(self):
-        """Input degenerado."""
-        manifold = {"is_degenerate": True}
-        homology = _compute_risk_homology(manifold)
-        
-        assert "Degenerate" in homology["interpretation"]
-
-
-class TestComputeOpportunityPersistence:
-    """Tests para persistencia de oportunidades."""
-
-    def test_positive_mean_flow(self):
-        """Flujo medio positivo = oportunidad primaria."""
-        manifold = {"mean_flow": 150, "flow_stability": 0.8, "volatility_surface": 0.1, "local_extrema": 2}
-        persistence = _compute_opportunity_persistence(manifold)
-        
-        assert len(persistence) >= 1
-        assert persistence[0]["type"] == "primary_opportunity"
-
-    def test_secondary_opportunities(self):
-        """Extremos locales generan oportunidades secundarias."""
-        manifold = {"mean_flow": 100, "flow_stability": 0.5, "volatility_surface": 0.2, "local_extrema": 3}
-        persistence = _compute_opportunity_persistence(manifold)
-        
-        secondary = [p for p in persistence if p["type"] == "secondary_opportunity"]
-        assert len(secondary) == 3
-
-
-class TestComputeRiskAdjustedReturn:
-    """Tests para retorno ajustado al riesgo."""
-
-    def test_positive_npv(self):
-        """NPV positivo con baja tolerancia."""
-        analysis = {"npv": 10000, "volatility": 0.3, "project_life_years": 5}
-        rar = _compute_risk_adjusted_return(analysis, risk_tolerance=0.05)
-        
-        assert rar > 0
-
-    def test_null_npv(self):
-        """NPV nulo retorna cero."""
-        analysis = {"npv": None}
-        rar = _compute_risk_adjusted_return(analysis, risk_tolerance=0.1)
-        
-        assert rar == 0.0
-
-    def test_high_risk_tolerance(self):
-        """Alta tolerancia reduce penalización."""
-        analysis = {"npv": 10000}
-        rar_low = _compute_risk_adjusted_return(analysis, risk_tolerance=0.1)
-        rar_high = _compute_risk_adjusted_return(analysis, risk_tolerance=0.9)
-        
-        # Mayor tolerancia = menor penalización = mayor RAR (aproximadamente)
-        # La relación depende de la fórmula exacta
-
-
-class TestComputeTopologicalEfficiency:
-    """Tests para eficiencia topológica."""
-
-    def test_smooth_manifold(self):
-        """Manifold suave = alta eficiencia."""
-        analysis = {"npv": 10000}
-        manifold = {"curvature": 0.0, "flow_stability": 1.0}
-        
-        eff = _compute_topological_efficiency(analysis, manifold)
-        assert eff > 0.4  # Relativamente alto
-
-    def test_rough_manifold(self):
-        """Manifold rugoso = baja eficiencia."""
-        analysis = {"npv": 10000}
-        manifold = {"curvature": 0.5, "flow_stability": 0.2}
-        
-        eff = _compute_topological_efficiency(analysis, manifold)
-        # Eficiencia penalizada por rugosidad
-
-
-# =============================================================================
-# Tests para MICRegistry (Gatekeeper)
-# =============================================================================
-
-class TestMICRegistry:
-    """Pruebas para la Matriz de Interacción Central y su Gatekeeper."""
-
-    def test_register_vector(self):
-        """Registro básico de vector."""
-        mic = MICRegistry()
-        handler = lambda **k: {"success": True}
-        mic.register_vector("test_service", Stratum.PHYSICS, handler)
-        
-        assert "test_service" in mic.registered_services
-
-    def test_register_empty_name_fails(self):
-        """Nombre vacío falla."""
-        mic = MICRegistry()
-        with pytest.raises(ValueError, match="cannot be empty"):
-            mic.register_vector("", Stratum.PHYSICS, lambda: None)
-
-    def test_register_non_callable_fails(self):
-        """Handler no callable falla."""
-        mic = MICRegistry()
-        with pytest.raises(TypeError, match="must be callable"):
-            mic.register_vector("service", Stratum.PHYSICS, "not a function")
-
-    def test_overwrite_warning(self, caplog):
-        """Sobrescribir vector genera warning."""
-        mic = MICRegistry()
-        mic.register_vector("service", Stratum.PHYSICS, lambda: None)
-        
-        with caplog.at_level(logging.WARNING):
-            mic.register_vector("service", Stratum.TACTICS, lambda: None)
-        
-        assert "Overwriting" in caplog.text
-
-    def test_gatekeeper_blocks_strategy_without_physics(self):
-        """Estrategia requiere Física validada."""
-        mic = MICRegistry()
-        mic.register_vector("finance", Stratum.STRATEGY, lambda **k: {"success": True})
-
-        context = {"validated_strata": set()}
-        result = mic.project_intent("finance", {}, context)
-
-        assert result["success"] is False
-        assert "MIC Hierarchy Violation" in result["error"]
-        assert result.get("error_category") == "mic_hierarchy_violation"
-        assert "PHYSICS" in str(result.get("missing_strata"))
-
-    def test_gatekeeper_allows_physics(self):
-        """Física siempre es accesible (base)."""
-        mic = MICRegistry()
-        mic.register_vector("basic_physics", Stratum.PHYSICS, lambda **k: {"success": True})
-
-        context = {"validated_strata": set()}
-        result = mic.project_intent("basic_physics", {}, context)
-
-        assert result["success"] is True
-        assert result.get("_mic_validation_update") == Stratum.PHYSICS
-        assert result.get("_mic_stratum") == "PHYSICS"
-
-    def test_gatekeeper_allows_strategy_with_full_chain(self):
-        """Estrategia funciona con cadena completa validada."""
-        mic = MICRegistry()
-        mic.register_vector("finance", Stratum.STRATEGY, lambda **k: {"success": True})
-
-        # STRATEGY(1) requiere TACTICS(2) y PHYSICS(3)
-        context = {"validated_strata": {Stratum.PHYSICS, Stratum.TACTICS}}
-        result = mic.project_intent("finance", {}, context)
-
-        assert result["success"] is True
-
-    def test_gatekeeper_blocks_strategy_with_only_physics(self):
-        """Estrategia falla solo con Física (falta Táctica)."""
-        mic = MICRegistry()
-        mic.register_vector("finance", Stratum.STRATEGY, lambda **k: {"success": True})
-
-        context = {"validated_strata": {Stratum.PHYSICS}}
-        result = mic.project_intent("finance", {}, context)
-
-        assert result["success"] is False
-        assert "TACTICS" in str(result.get("missing_strata"))
-
-    def test_force_override(self):
-        """Bypass de emergencia."""
-        mic = MICRegistry()
-        mic.register_vector("finance", Stratum.STRATEGY, lambda **k: {"success": True})
-
-        context = {"validated_strata": set(), "force_physics_override": True}
-        result = mic.project_intent("finance", {}, context)
-
-        assert result["success"] is True
-
-    def test_unknown_vector_raises(self):
-        """Vector desconocido lanza error."""
-        mic = MICRegistry()
-        
-        with pytest.raises(ValueError, match="Unknown vector"):
-            mic.project_intent("nonexistent", {}, {})
-
-    def test_normalize_strata_from_int(self):
-        """Normaliza estratos desde int."""
-        mic = MICRegistry()
-        mic.register_vector("service", Stratum.TACTICS, lambda **k: {"success": True})
-
-        # Usar int en lugar de Stratum
-        context = {"validated_strata": {3}}  # 3 = PHYSICS
-        result = mic.project_intent("service", {}, context)
-
-        assert result["success"] is True
-
-    def test_normalize_strata_from_string(self):
-        """Normaliza estratos desde string."""
-        mic = MICRegistry()
-        mic.register_vector("service", Stratum.TACTICS, lambda **k: {"success": True})
-
-        context = {"validated_strata": {"PHYSICS"}}
-        result = mic.project_intent("service", {}, context)
-
-        assert result["success"] is True
-
-    def test_handler_signature_error(self):
-        """Error de firma del handler."""
-        mic = MICRegistry()
-        mic.register_vector("service", Stratum.PHYSICS, lambda x: {"success": True})
-
-        result = mic.project_intent("service", {"wrong_key": 1}, {})
-
-        assert result["success"] is False
-        assert result["error_category"] == "mic_handler_signature_error"
-
-
-# =============================================================================
-# Tests para IntentVector
-# =============================================================================
+        assert d["beta_0"] == 3
+        assert d["structural_entropy"] == 1.5
+        assert d["persistence_entropy"] == 0.8
+        assert d["intrinsic_dimension"] == 5
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: IntentVector — Vector de intención
+# ═══════════════════════════════════════════════════════════════════════════
 
 class TestIntentVector:
-    """Tests para el vector de intención."""
-
+    """Pruebas del vector de intención."""
+    
     def test_valid_creation(self):
-        """Crear IntentVector válido."""
+        """Crear vector válido."""
+        iv = IntentVector(
+            service_name="test_service",
+            payload={"key": "value"},
+            context={"user": "admin"},
+        )
+        
+        assert iv.service_name == "test_service"
+        assert iv.payload == {"key": "value"}
+        assert iv.context == {"user": "admin"}
+    
+    def test_empty_service_name_raises(self):
+        """Nombre de servicio vacío lanza ValueError."""
+        with pytest.raises(ValueError, match="service_name no puede estar vacío"):
+            IntentVector(service_name="")
+        
+        with pytest.raises(ValueError):
+            IntentVector(service_name="   ")
+    
+    def test_default_payload_and_context(self):
+        """Payload y context son dicts vacíos por defecto."""
+        iv = IntentVector(service_name="test")
+        assert iv.payload == {}
+        assert iv.context == {}
+    
+    def test_payload_hash_deterministic(self):
+        """payload_hash es determinístico."""
+        iv1 = IntentVector(service_name="test", payload={"a": 1, "b": 2})
+        iv2 = IntentVector(service_name="test", payload={"b": 2, "a": 1})
+        
+        # El hash debe ser el mismo para el mismo contenido
+        assert iv1.payload_hash == iv2.payload_hash
+    
+    def test_payload_hash_different_for_different_payloads(self):
+        """payload_hash difiere para payloads diferentes."""
+        iv1 = IntentVector(service_name="test", payload={"a": 1})
+        iv2 = IntentVector(service_name="test", payload={"a": 2})
+        
+        assert iv1.payload_hash != iv2.payload_hash
+    
+    def test_norm_calculation(self):
+        """Norma = sqrt(|payload| + |context|)."""
         iv = IntentVector(
             service_name="test",
-            payload={"key": "value"},
-            context={"session": "123"}
+            payload={"a": 1, "b": 2, "c": 3},
+            context={"x": 1},
         )
-        assert iv.service_name == "test"
-        assert iv.payload == {"key": "value"}
-
-    def test_empty_name_fails(self):
-        """Nombre vacío falla."""
-        with pytest.raises(ValueError, match="cannot be empty"):
-            IntentVector(service_name="", payload={}, context={})
-
-    def test_whitespace_name_fails(self):
-        """Nombre solo espacios falla."""
-        with pytest.raises(ValueError, match="cannot be empty"):
-            IntentVector(service_name="   ", payload={}, context={})
-
+        expected_norm = math.sqrt(3 + 1)
+        assert iv.norm == expected_norm
+    
+    def test_with_context_creates_new_vector(self):
+        """with_context crea nuevo vector sin mutar el original."""
+        original = IntentVector(
+            service_name="test",
+            payload={"key": "value"},
+            context={"original": True},
+        )
+        
+        extended = original.with_context(new_key="new_value")
+        
+        # Original no cambió
+        assert "new_key" not in original.context
+        # Extendido tiene ambos
+        assert extended.context["original"] is True
+        assert extended.context["new_key"] == "new_value"
+    
     def test_immutability(self):
         """IntentVector es inmutable."""
-        iv = IntentVector(service_name="test", payload={}, context={})
+        iv = IntentVector(service_name="test")
         with pytest.raises(AttributeError):
             iv.service_name = "other"
 
 
-# =============================================================================
-# Tests para Handlers MIC
-# =============================================================================
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: TTLCache — Cache con TTL
+# ═══════════════════════════════════════════════════════════════════════════
 
-class TestDiagnoseFile:
-    """Tests para el handler de diagnóstico."""
-
-    @patch("app.tools_interface._get_diagnostic_class")
-    def test_basic_diagnosis(self, mock_get_class, temp_csv_file: Path):
-        """Diagnóstico básico exitoso."""
-        mock_diagnostic = MagicMock()
-        mock_diagnostic.to_dict.return_value = {"issues": [], "warnings": []}
-        mock_get_class.return_value = MagicMock(return_value=mock_diagnostic)
-
-        result = diagnose_file(temp_csv_file, FileType.APUS)
-
-        assert result["success"] is True
-        assert result["file_type"] == "apus"
-        assert "diagnostic_magnitude" in result
-
-    @patch("app.tools_interface._get_diagnostic_class")
-    def test_diagnosis_with_topology(self, mock_get_class, temp_csv_file: Path):
-        """Diagnóstico con análisis topológico."""
-        mock_diagnostic = MagicMock()
-        mock_diagnostic.to_dict.return_value = {
-            "issues": [{"type": "ERROR", "severity": "HIGH"}],
-            "warnings": []
-        }
-        mock_get_class.return_value = MagicMock(return_value=mock_diagnostic)
-
-        result = diagnose_file(temp_csv_file, "apus", topological_analysis=True)
-
-        assert result["success"] is True
-        assert result["has_topological_analysis"] is True
-        assert "topological_features" in result
-        assert "homology" in result
-        assert "persistence_diagram" in result
-
-    def test_file_not_found(self, tmp_path: Path):
-        """Archivo no encontrado."""
-        result = diagnose_file(tmp_path / "nonexistent.csv", "apus")
-
-        assert result["success"] is False
-        assert result["error_category"] == "validation"
-
-    def test_invalid_file_type(self, temp_csv_file: Path):
-        """Tipo de archivo inválido."""
-        result = diagnose_file(temp_csv_file, "invalid_type")
-
-        assert result["success"] is False
-
-    def test_empty_file_warning(self, temp_empty_file: Path):
-        """Archivo vacío genera warning."""
-        result = diagnose_file(temp_empty_file, "apus")
-
-        assert result["success"] is True
-        assert result.get("is_empty") or result.get("warning")
-
-
-class TestCleanFile:
-    """Tests para el handler de limpieza."""
-
-    @patch("app.tools_interface.CSVCleaner")
-    def test_basic_cleaning(self, mock_cleaner_class, temp_csv_file: Path):
-        """Limpieza básica exitosa."""
-        mock_instance = mock_cleaner_class.return_value
-        mock_instance.clean.return_value = {"rows_cleaned": 10}
-
-        result = clean_file(temp_csv_file)
-
-        assert result["success"] is True
-        assert "output_path" in result
-
-    @patch("app.tools_interface.CSVCleaner")
-    def test_cleaning_with_topology(self, mock_cleaner_class, temp_csv_file: Path):
-        """Limpieza con preservación topológica."""
-        output_path = temp_csv_file.with_name("test_data_clean.csv")
+class TestTTLCache:
+    """Pruebas del cache con TTL."""
+    
+    def test_set_and_get(self):
+        """Almacenar y recuperar valores."""
+        cache: TTLCache[str] = TTLCache(ttl_seconds=60.0)
+        cache.set("key1", "value1")
         
-        def mock_clean():
-            output_path.write_text(temp_csv_file.read_text())
-            return {"rows_cleaned": 10}
+        assert cache.get("key1") == "value1"
+    
+    def test_get_nonexistent_returns_none(self):
+        """get de clave inexistente retorna None."""
+        cache: TTLCache[str] = TTLCache()
+        assert cache.get("nonexistent") is None
+    
+    def test_contains_operator(self):
+        """Operador 'in' funciona correctamente."""
+        cache: TTLCache[str] = TTLCache()
+        cache.set("exists", "value")
         
-        mock_instance = mock_cleaner_class.return_value
-        mock_instance.clean.side_effect = mock_clean
+        assert "exists" in cache
+        assert "not_exists" not in cache
+    
+    def test_ttl_expiration(self):
+        """Valores expiran después del TTL."""
+        cache: TTLCache[str] = TTLCache(ttl_seconds=0.1)
+        cache.set("key", "value")
+        
+        assert cache.get("key") == "value"
+        
+        time.sleep(0.15)
+        
+        assert cache.get("key") is None
+    
+    def test_lru_eviction(self):
+        """Evicción LRU cuando se alcanza max_size."""
+        cache: TTLCache[int] = TTLCache(ttl_seconds=60.0, max_size=3)
+        
+        cache.set("a", 1)
+        cache.set("b", 2)
+        cache.set("c", 3)
+        
+        # Acceder a 'a' para que no sea el LRU
+        cache.get("a")
+        
+        # Agregar 'd' debería evictar 'b' (LRU)
+        cache.set("d", 4)
+        
+        assert "a" in cache
+        assert "b" not in cache
+        assert "c" in cache
+        assert "d" in cache
+    
+    def test_update_existing_key(self):
+        """Actualizar clave existente mueve al final del LRU."""
+        cache: TTLCache[int] = TTLCache(ttl_seconds=60.0, max_size=3)
+        
+        cache.set("a", 1)
+        cache.set("b", 2)
+        cache.set("c", 3)
+        
+        # Actualizar 'a'
+        cache.set("a", 100)
+        
+        # Agregar 'd' debería evictar 'b' (ahora LRU)
+        cache.set("d", 4)
+        
+        assert cache.get("a") == 100
+        assert "b" not in cache
+    
+    def test_get_or_compute(self):
+        """get_or_compute ejecuta función solo si no está en cache."""
+        cache: TTLCache[int] = TTLCache()
+        call_count = 0
+        
+        def compute():
+            nonlocal call_count
+            call_count += 1
+            return 42
+        
+        result1 = cache.get_or_compute("key", compute)
+        result2 = cache.get_or_compute("key", compute)
+        
+        assert result1 == 42
+        assert result2 == 42
+        assert call_count == 1  # Solo se llamó una vez
+    
+    def test_clear_returns_count(self):
+        """clear() retorna número de entradas eliminadas."""
+        cache: TTLCache[str] = TTLCache()
+        cache.set("a", "1")
+        cache.set("b", "2")
+        cache.set("c", "3")
+        
+        count = cache.clear()
+        assert count == 3
+        assert cache.size == 0
+    
+    def test_prune_expired(self):
+        """prune_expired elimina solo entradas expiradas."""
+        cache: TTLCache[str] = TTLCache(ttl_seconds=0.1)
+        cache.set("a", "1")
+        
+        time.sleep(0.15)
+        
+        cache.set("b", "2")  # Esta no está expirada
+        
+        pruned = cache.prune_expired()
+        
+        assert pruned == 1
+        assert "a" not in cache
+        assert "b" in cache
+    
+    def test_size_property(self):
+        """size retorna número de entradas."""
+        cache: TTLCache[str] = TTLCache()
+        assert cache.size == 0
+        
+        cache.set("a", "1")
+        cache.set("b", "2")
+        assert cache.size == 2
+    
+    def test_hit_rate(self):
+        """hit_rate calcula correctamente."""
+        cache: TTLCache[str] = TTLCache()
+        cache.set("exists", "value")
+        
+        cache.get("exists")  # Hit
+        cache.get("exists")  # Hit
+        cache.get("missing")  # Miss
+        
+        assert cache.hit_rate == 2 / 3
+    
+    def test_hit_rate_no_queries(self):
+        """hit_rate es 0 sin consultas."""
+        cache: TTLCache[str] = TTLCache()
+        assert cache.hit_rate == 0.0
+    
+    def test_stats(self):
+        """stats retorna CacheStats completo."""
+        cache: TTLCache[str] = TTLCache(ttl_seconds=60.0, max_size=10)
+        cache.set("a", "1")
+        cache.get("a")
+        cache.get("missing")
+        
+        stats = cache.stats
+        
+        assert stats["size"] == 1
+        assert stats["max_size"] == 10
+        assert stats["hits"] == 1
+        assert stats["misses"] == 1
+        assert stats["hit_rate"] == 0.5
+        assert stats["ttl_seconds"] == 60.0
+        assert "evictions" in stats
+        assert "expirations" in stats
+    
+    def test_thread_safety(self):
+        """Cache es thread-safe."""
+        cache: TTLCache[int] = TTLCache(max_size=100)
+        errors = []
+        
+        def writer(n: int):
+            try:
+                for i in range(100):
+                    cache.set(f"key_{n}_{i}", i)
+            except Exception as e:
+                errors.append(e)
+        
+        def reader():
+            try:
+                for _ in range(100):
+                    cache.get("key_0_50")
+            except Exception as e:
+                errors.append(e)
+        
+        threads = [
+            threading.Thread(target=writer, args=(i,))
+            for i in range(5)
+        ]
+        threads.extend([
+            threading.Thread(target=reader)
+            for _ in range(5)
+        ])
+        
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        
+        assert len(errors) == 0
 
-        result = clean_file(temp_csv_file, preserve_topology=True)
 
-        assert result["success"] is True
-        assert result["preserved_topology"] is True
-        assert "topological_preservation" in result
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: LatencyHistogram — Histograma de latencias
+# ═══════════════════════════════════════════════════════════════════════════
 
-    def test_same_input_output_fails(self, temp_csv_file: Path):
-        """Input = Output falla."""
-        result = clean_file(temp_csv_file, output_path=temp_csv_file)
+class TestLatencyHistogram:
+    """Pruebas del histograma de latencias."""
+    
+    def test_record_and_stats(self):
+        """Registrar latencias y obtener estadísticas."""
+        hist = LatencyHistogram(max_size=100)
+        
+        for latency in [10, 20, 30, 40, 50]:
+            hist.record(latency)
+        
+        stats = hist.get_stats()
+        
+        assert stats["count"] == 5
+        assert stats["mean_ms"] == 30.0
+        assert stats["median_ms"] == 30.0
+        assert stats["min_ms"] == 10.0
+        assert stats["max_ms"] == 50.0
+    
+    def test_empty_histogram_stats(self):
+        """Histograma vacío tiene stats en cero."""
+        hist = LatencyHistogram()
+        stats = hist.get_stats()
+        
+        assert stats["count"] == 0
+        assert stats["mean_ms"] == 0.0
+        assert stats["median_ms"] == 0.0
+    
+    def test_percentiles(self):
+        """Cálculo de percentiles."""
+        hist = LatencyHistogram()
+        
+        # 100 valores de 1 a 100
+        for i in range(1, 101):
+            hist.record(float(i))
+        
+        stats = hist.get_stats()
+        
+        assert 90 <= stats["p95_ms"] <= 100
+        assert 95 <= stats["p99_ms"] <= 100
+    
+    def test_context_manager_measure(self):
+        """Context manager mide latencia automáticamente."""
+        hist = LatencyHistogram()
+        
+        with hist.measure():
+            time.sleep(0.05)  # 50ms
+        
+        stats = hist.get_stats()
+        assert stats["count"] == 1
+        assert stats["mean_ms"] >= 45  # Al menos ~45ms
+    
+    def test_buffer_circular(self):
+        """Buffer circular no excede max_size."""
+        hist = LatencyHistogram(max_size=10)
+        
+        for i in range(100):
+            hist.record(float(i))
+        
+        stats = hist.get_stats()
+        assert stats["count"] == 100  # Total registrado
+        # Pero solo los últimos 10 están en el buffer
+        assert stats["min_ms"] >= 90  # Los últimos 10 son 90-99
+    
+    def test_reset(self):
+        """reset limpia el histograma."""
+        hist = LatencyHistogram()
+        hist.record(100)
+        hist.record(200)
+        
+        hist.reset()
+        
+        stats = hist.get_stats()
+        assert stats["count"] == 0
+    
+    def test_thread_safety(self):
+        """Histograma es thread-safe."""
+        hist = LatencyHistogram(max_size=1000)
+        errors = []
+        
+        def record_many():
+            try:
+                for _ in range(100):
+                    hist.record(1.0)
+            except Exception as e:
+                errors.append(e)
+        
+        threads = [threading.Thread(target=record_many) for _ in range(10)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        
+        assert len(errors) == 0
 
-        assert result["success"] is False
-        assert "same as input" in result["error"].lower()
 
-    def test_invalid_delimiter(self, temp_csv_file: Path):
-        """Delimitador inválido."""
-        result = clean_file(temp_csv_file, delimiter="invalid")
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: MICMetrics — Métricas agregadas
+# ═══════════════════════════════════════════════════════════════════════════
 
-        assert result["success"] is False
-        assert result["error_category"] == "validation"
+class TestMICMetrics:
+    """Pruebas de métricas de la MIC."""
+    
+    def test_initial_state(self):
+        """Estado inicial tiene contadores en cero."""
+        metrics = MICMetrics()
+        
+        assert metrics.projections == 0
+        assert metrics.cache_hits == 0
+        assert metrics.violations == 0
+        assert metrics.errors == 0
+        assert metrics.timeouts == 0
+    
+    def test_record_projection(self):
+        """record_projection incrementa contadores."""
+        metrics = MICMetrics()
+        
+        metrics.record_projection(Stratum.PHYSICS)
+        metrics.record_projection(Stratum.PHYSICS)
+        metrics.record_projection(Stratum.TACTICS)
+        
+        assert metrics.projections == 3
+        assert metrics.projections_by_stratum["PHYSICS"] == 2
+        assert metrics.projections_by_stratum["TACTICS"] == 1
+    
+    def test_record_error(self):
+        """record_error incrementa contadores por categoría."""
+        metrics = MICMetrics()
+        
+        metrics.record_error("validation")
+        metrics.record_error("validation")
+        metrics.record_error("execution")
+        
+        assert metrics.errors == 3
+        assert metrics.errors_by_category["validation"] == 2
+        assert metrics.errors_by_category["execution"] == 1
+    
+    def test_to_dict(self):
+        """to_dict serializa todas las métricas."""
+        metrics = MICMetrics()
+        metrics.record_projection(Stratum.PHYSICS)
+        metrics.record_error("test")
+        
+        d = metrics.to_dict()
+        
+        assert "counters" in d
+        assert d["counters"]["projections"] == 1
+        assert d["counters"]["errors"] == 1
+        assert "projections_by_stratum" in d
+        assert "errors_by_category" in d
+        assert "latency" in d
 
 
-class TestAnalyzeFinancialViability:
-    """Tests para el handler de análisis financiero."""
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: Excepciones — Jerarquía y serialización
+# ═══════════════════════════════════════════════════════════════════════════
 
-    @patch("app.tools_interface.FinancialEngine")
-    def test_basic_analysis(self, mock_engine_class):
-        """Análisis básico exitoso."""
-        mock_engine = mock_engine_class.return_value
-        mock_engine.analyze_project.return_value = {
-            "npv": 50000,
-            "wacc": 0.08,
-            "irr": 0.12,
-            "performance": {"recommendation": "PROCEED"}
-        }
-
-        result = analyze_financial_viability(
-            amount=100000,
-            std_dev=5000,
-            time_years=5
+class TestExceptions:
+    """Pruebas de la jerarquía de excepciones."""
+    
+    def test_mic_exception_base(self):
+        """MICException tiene atributos correctos."""
+        exc = MICException(
+            "Test error",
+            details={"key": "value"},
+            category="test",
         )
-
-        assert result["success"] is True
-        assert "results" in result
-        assert result["results"]["npv"] == 50000
-
-    @patch("app.tools_interface.FinancialEngine")
-    def test_analysis_with_topology(self, mock_engine_class):
-        """Análisis con riesgo topológico."""
-        mock_engine = mock_engine_class.return_value
-        mock_engine.analyze_project.return_value = {
-            "npv": 50000,
-            "wacc": 0.08,
-            "performance": {}
-        }
-
-        result = analyze_financial_viability(
-            amount=100000,
-            std_dev=5000,
-            time_years=5,
-            topological_risk_analysis=True,
-            random_seed=42
+        
+        assert str(exc) == "Test error"
+        assert exc.details == {"key": "value"}
+        assert exc.category == "test"
+        assert exc.timestamp > 0
+    
+    def test_mic_exception_to_dict(self):
+        """to_dict serializa la excepción."""
+        exc = MICException("Test error", category="test_cat")
+        d = exc.to_dict()
+        
+        assert d["error"] == "Test error"
+        assert d["error_type"] == "MICException"
+        assert d["error_category"] == "test_cat"
+        assert "timestamp" in d
+    
+    def test_file_not_found_diagnostic_error(self):
+        """FileNotFoundDiagnosticError incluye path."""
+        exc = FileNotFoundDiagnosticError("/path/to/file.csv")
+        
+        assert "/path/to/file.csv" in str(exc)
+        assert exc.details["path"] == "/path/to/file.csv"
+        assert exc.category == "validation"
+    
+    def test_unsupported_file_type_error(self):
+        """UnsupportedFileTypeError incluye opciones."""
+        exc = UnsupportedFileTypeError("xyz", ["apus", "insumos"])
+        
+        assert "xyz" in str(exc)
+        assert exc.details["file_type"] == "xyz"
+        assert exc.details["available_types"] == ["apus", "insumos"]
+    
+    def test_file_validation_error(self):
+        """FileValidationError acepta kwargs adicionales."""
+        exc = FileValidationError(
+            "Invalid extension",
+            extension=".xyz",
+            expected=[".csv", ".txt"],
         )
-
-        assert result["success"] is True
-        assert "topological_risk" in result["results"]
-        assert "risk_manifold" in result["results"]
-        assert "opportunity_persistence" in result["results"]
-        assert "topological_efficiency" in result["results"]
-
-    def test_negative_amount_fails(self):
-        """Monto negativo falla."""
-        result = analyze_financial_viability(
-            amount=-1000,
-            std_dev=50,
-            time_years=5
+        
+        assert exc.details["extension"] == ".xyz"
+        assert exc.details["expected"] == [".csv", ".txt"]
+    
+    def test_file_permission_error(self):
+        """FilePermissionError incluye operación."""
+        exc = MICFilePermissionError("/path/to/file", "read")
+        
+        assert "Permission denied" in str(exc)
+        assert exc.details["path"] == "/path/to/file"
+        assert exc.details["operation"] == "read"
+    
+    def test_hierarchy_violation_error(self):
+        """MICHierarchyViolationError incluye estratos."""
+        exc = MICHierarchyViolationError(
+            target_stratum=Stratum.STRATEGY,
+            missing_strata={Stratum.PHYSICS, Stratum.TACTICS},
+            validated_strata=set(),
         )
-
-        assert result["success"] is False
-        assert "positive" in result["error"].lower()
-
-    def test_zero_time_fails(self):
-        """Tiempo cero falla."""
-        result = analyze_financial_viability(
-            amount=1000,
-            std_dev=50,
-            time_years=0
-        )
-
-        assert result["success"] is False
-
-    def test_invalid_risk_tolerance(self):
-        """Tolerancia fuera de rango falla."""
-        result = analyze_financial_viability(
-            amount=1000,
-            std_dev=50,
-            time_years=5,
-            risk_tolerance=1.5  # > 1
-        )
-
-        assert result["success"] is False
-
-    @patch("app.tools_interface.FinancialEngine")
-    def test_reproducibility(self, mock_engine_class):
-        """Reproducibilidad con semilla."""
-        mock_engine = mock_engine_class.return_value
-        mock_engine.analyze_project.return_value = {"npv": 100, "performance": {}}
-
-        result1 = analyze_financial_viability(1000, 50, 5, random_seed=42)
-        result2 = analyze_financial_viability(1000, 50, 5, random_seed=42)
-
-        # Los parámetros registrados deben ser iguales
-        assert result1["parameters"]["random_seed"] == result2["parameters"]["random_seed"]
+        
+        assert "STRATEGY" in str(exc)
+        assert exc.target_stratum == Stratum.STRATEGY
+        assert Stratum.PHYSICS in exc.missing_strata
+        assert exc.details["missing_strata"] == ["PHYSICS", "TACTICS"]
+    
+    def test_timeout_error(self):
+        """TimeoutError incluye tiempos."""
+        exc = MICTimeoutError("operation_x", 5.0, 7.5)
+        
+        assert "operation_x" in str(exc)
+        assert "7.50s" in str(exc)
+        assert exc.details["timeout_seconds"] == 5.0
+        assert exc.details["elapsed_seconds"] == 7.5
 
 
-class TestGetTelemetryStatus:
-    """Tests para el handler de telemetría."""
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: Validación de Archivos
+# ═══════════════════════════════════════════════════════════════════════════
 
-    def test_no_context(self):
-        """Sin contexto = IDLE."""
-        result = get_telemetry_status(None)
-
-        assert result["success"] is True
-        assert result["status"] == "IDLE"
-        assert result["has_active_context"] is False
-
-    def test_valid_context(self, mock_telemetry_context):
-        """Contexto válido."""
-        result = get_telemetry_status(mock_telemetry_context)
-
-        assert result["success"] is True
-        assert result["status"] == "ACTIVE"
-        assert result["system_health"] == "HEALTHY"
-        assert result["has_active_context"] is True
-        assert result["active_processes"] == 3
-
-    def test_invalid_context_type(self):
-        """Tipo de contexto inválido."""
-        result = get_telemetry_status("not a context")
-
-        assert result["success"] is False
-        assert result["status"] == "ERROR"
-        assert result["system_health"] == "DEGRADED"
-
-    def test_context_returns_none(self):
-        """Contexto retorna None."""
-        context = MagicMock(spec=TelemetryContextProtocol)
-        context.get_business_report.return_value = None
-
-        result = get_telemetry_status(context)
-
-        assert result["success"] is True
-        assert result["status"] == "ACTIVE"
-
-    def test_context_returns_non_dict(self):
-        """Contexto retorna no-dict."""
-        context = MagicMock(spec=TelemetryContextProtocol)
-        context.get_business_report.return_value = "raw string"
-
-        result = get_telemetry_status(context)
-
-        assert result["success"] is True
-        assert result["raw_report"] == "raw string"
-
-    def test_context_raises_exception(self):
-        """Contexto lanza excepción."""
-        context = MagicMock(spec=TelemetryContextProtocol)
-        context.get_business_report.side_effect = RuntimeError("Connection failed")
-
-        result = get_telemetry_status(context)
-
-        assert result["success"] is False
-        assert result["status"] == "ERROR"
-        assert "Connection failed" in result["error"]
-
-
-# =============================================================================
-# Tests para Funciones de Validación
-# =============================================================================
-
-class TestValidationFunctions:
-    """Tests para funciones de validación."""
-
-    def test_normalize_path(self, temp_csv_file: Path):
-        """Normalización de path."""
-        result = _normalize_path(str(temp_csv_file))
+class TestFileValidation:
+    """Pruebas de validación de archivos."""
+    
+    def test_normalize_path_valid(self, tmp_path: Path):
+        """Normaliza path válido."""
+        file_path = tmp_path / "test.csv"
+        file_path.touch()
+        
+        result = normalize_path(str(file_path))
+        
         assert isinstance(result, Path)
-        assert result.exists()
-
-    def test_normalize_path_empty_fails(self):
-        """Path vacío falla."""
-        with pytest.raises(ValueError, match="cannot be empty"):
-            _normalize_path("")
-
-    def test_normalize_path_none_fails(self):
-        """Path None falla."""
-        with pytest.raises(ValueError, match="cannot be None"):
-            _normalize_path(None)
-
-    def test_validate_file_exists(self, temp_csv_file: Path):
-        """Archivo existe."""
-        _validate_file_exists(temp_csv_file)  # No debe lanzar
-
-    def test_validate_file_not_exists(self, tmp_path: Path):
-        """Archivo no existe."""
+        assert result.is_absolute()
+    
+    def test_normalize_path_none_raises(self):
+        """Path None lanza ValueError."""
+        with pytest.raises(ValueError, match="Path no puede ser None"):
+            normalize_path(None)
+    
+    def test_normalize_path_empty_raises(self):
+        """Path vacío lanza ValueError."""
+        with pytest.raises(ValueError, match="Path no puede estar vacío"):
+            normalize_path("")
+        
+        with pytest.raises(ValueError):
+            normalize_path("   ")
+    
+    def test_validate_file_exists_success(self, temp_csv_file: Path):
+        """Archivo existente pasa validación."""
+        validate_file_exists(temp_csv_file)  # No debe lanzar
+    
+    def test_validate_file_exists_not_found(self, tmp_path: Path):
+        """Archivo inexistente lanza FileNotFoundDiagnosticError."""
         with pytest.raises(FileNotFoundDiagnosticError):
-            _validate_file_exists(tmp_path / "nonexistent.csv")
-
-    def test_validate_extension_valid(self, temp_csv_file: Path):
-        """Extensión válida."""
-        ext = _validate_file_extension(temp_csv_file)
+            validate_file_exists(tmp_path / "nonexistent.csv")
+    
+    def test_validate_file_exists_directory(self, tmp_path: Path):
+        """Directorio lanza FileValidationError."""
+        with pytest.raises(FileValidationError, match="no apunta a un archivo"):
+            validate_file_exists(tmp_path)
+    
+    def test_validate_file_extension_valid(self, temp_csv_file: Path):
+        """Extensión .csv es válida."""
+        ext = validate_file_extension(temp_csv_file)
         assert ext == ".csv"
-
-    def test_validate_extension_invalid(self, tmp_path: Path):
-        """Extensión inválida."""
-        invalid_file = tmp_path / "file.xyz"
+    
+    def test_validate_file_extension_invalid(self, tmp_path: Path):
+        """Extensión inválida lanza FileValidationError."""
+        invalid_file = tmp_path / "test.xyz"
         invalid_file.touch()
         
-        with pytest.raises(FileValidationError, match="Invalid extension"):
-            _validate_file_extension(invalid_file)
-
-    def test_normalize_encoding(self):
-        """Normalización de encoding."""
-        assert _normalize_encoding("UTF-8") == "utf-8"
-        assert _normalize_encoding("utf8") == "utf-8"
-        assert _normalize_encoding("LATIN1") == "latin-1"
-
-    def test_validate_csv_parameters(self):
-        """Validación de parámetros CSV."""
-        delim, enc = _validate_csv_parameters(";", "utf-8")
-        assert delim == ";"
-        assert enc == "utf-8"
-
-    def test_validate_csv_invalid_delimiter(self):
-        """Delimitador inválido."""
-        with pytest.raises(ValueError):
-            _validate_csv_parameters("XX", "utf-8")
-
-    def test_normalize_file_type(self):
-        """Normalización de tipo de archivo."""
-        assert _normalize_file_type("APUS") == FileType.APUS
-        assert _normalize_file_type(FileType.INSUMOS) == FileType.INSUMOS
-
-    def test_generate_output_path(self, temp_csv_file: Path):
-        """Generación de path de salida."""
-        output = _generate_output_path(temp_csv_file)
-        assert output.stem == "test_data_clean"
-        assert output.suffix == ".csv"
-
-
-# =============================================================================
-# Tests para Funciones de Respuesta
-# =============================================================================
-
-class TestResponseFunctions:
-    """Tests para funciones de creación de respuestas."""
-
-    def test_create_success_response(self):
-        """Respuesta de éxito."""
-        resp = _create_success_response({"key": "value"}, extra="data")
+        with pytest.raises(FileValidationError, match="Extensión no soportada"):
+            validate_file_extension(invalid_file)
+    
+    def test_validate_file_size_valid(self, temp_csv_file: Path):
+        """Archivo dentro del límite pasa."""
+        size, is_empty = validate_file_size(temp_csv_file)
         
-        assert resp["success"] is True
-        assert resp["key"] == "value"
-        assert resp["extra"] == "data"
-
-    def test_create_error_response_from_exception(self):
-        """Respuesta de error desde excepción."""
-        error = DiagnosticError("Test error", details={"code": 123})
-        resp = _create_error_response(error, category="test")
+        assert size > 0
+        assert is_empty is False
+    
+    def test_validate_file_size_empty(self, temp_empty_file: Path):
+        """Archivo vacío retorna is_empty=True."""
+        size, is_empty = validate_file_size(temp_empty_file)
         
-        assert resp["success"] is False
-        assert resp["error"] == "Test error"
-        assert resp["error_type"] == "DiagnosticError"
-        assert resp["error_details"]["code"] == 123
-
-    def test_create_error_response_from_string(self):
-        """Respuesta de error desde string."""
-        resp = _create_error_response("Simple error")
-        
-        assert resp["success"] is False
-        assert resp["error"] == "Simple error"
-        assert resp["error_type"] == "Error"
-
-    def test_extract_diagnostic_result(self):
-        """Extracción de resultado diagnóstico."""
-        mock_diag = MagicMock()
-        mock_diag.to_dict.return_value = {"issues": [], "status": "OK"}
-        
-        result = _extract_diagnostic_result(mock_diag)
-        
-        assert result["diagnostic_completed"] is True
-        assert result["status"] == "OK"
-
-
-# =============================================================================
-# Tests para Utilidades Públicas
-# =============================================================================
-
-class TestPublicUtilities:
-    """Tests para utilidades públicas."""
-
-    def test_get_supported_file_types(self):
-        """Lista de tipos soportados."""
-        types = get_supported_file_types()
-        assert "apus" in types
-        assert "insumos" in types
-        assert "presupuesto" in types
-
-    def test_get_supported_delimiters(self):
-        """Lista de delimitadores soportados."""
-        delims = get_supported_delimiters()
-        assert "," in delims
-        assert ";" in delims
-        assert "\t" in delims
-
-    def test_get_supported_encodings(self):
-        """Lista de encodings soportados."""
-        encs = get_supported_encodings()
-        assert "utf-8" in encs
-        assert "latin-1" in encs
-
-    def test_is_valid_file_type(self):
-        """Validación de tipo de archivo."""
-        assert is_valid_file_type("apus") is True
-        assert is_valid_file_type("invalid") is False
-        assert is_valid_file_type(FileType.INSUMOS) is True
-
-    def test_validate_file_for_processing(self, temp_csv_file: Path):
-        """Pre-validación de archivo."""
+        assert size == 0
+        assert is_empty is True
+    
+    def test_validate_file_size_exceeds_limit(self, temp_csv_file: Path):
+        """Archivo que excede límite lanza FileValidationError."""
+        with pytest.raises(FileValidationError, match="excede el límite"):
+            validate_file_size(temp_csv_file, max_size=10)  # 10 bytes
+    
+    def test_normalize_encoding_standard(self):
+        """Codificaciones estándar se normalizan."""
+        assert normalize_encoding("utf-8") == "utf-8"
+        assert normalize_encoding("UTF-8") == "utf-8"
+        assert normalize_encoding("latin-1") == "latin-1"
+    
+    def test_normalize_encoding_aliases(self):
+        """Aliases se convierten a forma canónica."""
+        assert normalize_encoding("utf8") == "utf-8"
+        assert normalize_encoding("latin1") == "latin-1"
+        assert normalize_encoding("iso88591") == "iso-8859-1"
+    
+    def test_normalize_encoding_unknown(self):
+        """Codificación desconocida retorna utf-8."""
+        assert normalize_encoding("unknown_encoding") == "utf-8"
+    
+    def test_normalize_encoding_empty(self):
+        """Codificación vacía retorna utf-8."""
+        assert normalize_encoding("") == "utf-8"
+        assert normalize_encoding("   ") == "utf-8"
+    
+    def test_normalize_file_type_enum(self):
+        """FileType se retorna sin cambios."""
+        result = normalize_file_type(FileType.APUS)
+        assert result == FileType.APUS
+    
+    def test_normalize_file_type_string(self):
+        """String se convierte a FileType."""
+        result = normalize_file_type("insumos")
+        assert result == FileType.INSUMOS
+    
+    def test_validate_file_for_processing_valid(self, temp_csv_file: Path):
+        """Validación completa de archivo válido."""
         result = validate_file_for_processing(temp_csv_file)
         
         assert result["valid"] is True
-        assert result["size"] > 0
         assert result["extension"] == ".csv"
+        assert result["is_empty"] is False
+        assert "size" in result
 
-    def test_validate_file_for_processing_nonexistent(self, tmp_path: Path):
-        """Pre-validación de archivo inexistente."""
-        result = validate_file_for_processing(tmp_path / "nonexistent.csv")
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: Funciones Matemáticas
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestShannonEntropy:
+    """Pruebas de entropía de Shannon."""
+    
+    def test_empty_distribution(self):
+        """Distribución vacía tiene entropía 0."""
+        assert compute_shannon_entropy([]) == 0.0
+    
+    def test_single_element(self):
+        """Un solo elemento tiene entropía 0."""
+        assert compute_shannon_entropy([1.0]) == 0.0
+    
+    def test_uniform_distribution(self):
+        """Distribución uniforme tiene entropía máxima."""
+        # 4 elementos uniformes: log₂(4) = 2
+        entropy = compute_shannon_entropy([0.25, 0.25, 0.25, 0.25])
+        assert abs(entropy - 2.0) < 1e-10
+    
+    def test_biased_distribution(self):
+        """Distribución sesgada tiene entropía menor que uniforme."""
+        uniform_entropy = compute_shannon_entropy([0.25, 0.25, 0.25, 0.25])
+        biased_entropy = compute_shannon_entropy([0.7, 0.1, 0.1, 0.1])
         
-        assert result["valid"] is False
-        assert "errors" in result
-
-
-# =============================================================================
-# Tests de Integración
-# =============================================================================
-
-class TestIntegration:
-    """Tests de integración end-to-end."""
-
-    @patch("app.tools_interface._get_diagnostic_class")
-    @patch("app.tools_interface.CSVCleaner")
-    def test_full_physics_workflow(
-        self,
-        mock_cleaner_class,
-        mock_get_class,
-        temp_csv_file: Path
-    ):
-        """Flujo completo de Física: diagnóstico + limpieza."""
-        # Setup mocks
-        mock_diagnostic = MagicMock()
-        mock_diagnostic.to_dict.return_value = {"issues": [], "warnings": []}
-        mock_get_class.return_value = MagicMock(return_value=mock_diagnostic)
+        assert biased_entropy < uniform_entropy
+    
+    def test_auto_normalization(self):
+        """Distribución se normaliza automáticamente."""
+        # Suma = 10, no 1
+        entropy = compute_shannon_entropy([5, 5])
+        assert abs(entropy - 1.0) < 1e-10  # log₂(2) = 1
+    
+    def test_different_bases(self):
+        """Diferentes bases producen diferentes valores."""
+        probs = [0.5, 0.5]
         
-        output_path = temp_csv_file.with_name("test_data_clean.csv")
-        mock_cleaner_class.return_value.clean.side_effect = lambda: (
-            output_path.write_text(temp_csv_file.read_text()) or {"cleaned": 10}
+        bits = compute_shannon_entropy(probs, base=2.0)
+        nats = compute_shannon_entropy(probs, base=math.e)
+        
+        assert abs(bits - 1.0) < 1e-10  # log₂(2) = 1
+        assert abs(nats - math.log(2)) < 1e-10
+    
+    def test_negative_probability_raises(self):
+        """Probabilidad negativa lanza ValueError."""
+        with pytest.raises(ValueError, match="no pueden ser negativas"):
+            compute_shannon_entropy([0.5, -0.5])
+    
+    def test_invalid_base_raises(self):
+        """Base <= 1 lanza ValueError."""
+        with pytest.raises(ValueError, match="base debe ser > 1"):
+            compute_shannon_entropy([0.5, 0.5], base=1.0)
+    
+    def test_entropy_always_non_negative(self):
+        """Entropía siempre es >= 0."""
+        for _ in range(100):
+            probs = np.random.dirichlet(np.ones(5))
+            entropy = compute_shannon_entropy(probs.tolist())
+            assert entropy >= 0
+
+
+class TestDistributionFromCounts:
+    """Pruebas de conversión de conteos a distribución."""
+    
+    def test_empty_counts(self):
+        """Conteos vacíos retornan lista vacía."""
+        assert distribution_from_counts({}) == []
+    
+    def test_zero_total(self):
+        """Total cero retorna lista vacía."""
+        assert distribution_from_counts({"a": 0, "b": 0}) == []
+    
+    def test_valid_counts(self):
+        """Conteos válidos se convierten a probabilidades."""
+        result = distribution_from_counts({"a": 3, "b": 1})
+        
+        assert len(result) == 2
+        assert sum(result) == 1.0
+        assert 0.75 in result
+        assert 0.25 in result
+    
+    def test_counter_input(self):
+        """Acepta Counter como input."""
+        counts = Counter(["a", "a", "b"])
+        result = distribution_from_counts(counts)
+        
+        assert len(result) == 2
+        assert abs(sum(result) - 1.0) < 1e-10
+
+
+class TestPersistenceEntropy:
+    """Pruebas de entropía de persistencia."""
+    
+    def test_empty_intervals(self):
+        """Sin intervalos retorna 0."""
+        assert compute_persistence_entropy([]) == 0.0
+    
+    def test_all_essential(self):
+        """Solo intervalos esenciales retorna 0."""
+        intervals = [
+            PersistenceInterval.essential(0.0),
+            PersistenceInterval.essential(1.0),
+        ]
+        assert compute_persistence_entropy(intervals) == 0.0
+    
+    def test_uniform_persistence(self):
+        """Persistencias uniformes dan entropía 1."""
+        intervals = [
+            PersistenceInterval(birth=0.0, death=1.0),
+            PersistenceInterval(birth=0.0, death=1.0),
+            PersistenceInterval(birth=0.0, death=1.0),
+        ]
+        entropy = compute_persistence_entropy(intervals)
+        assert abs(entropy - 1.0) < 1e-10
+    
+    def test_entropy_in_range(self):
+        """Entropía siempre en [0, 1]."""
+        intervals = [
+            PersistenceInterval(birth=0.0, death=1.0),
+            PersistenceInterval(birth=0.0, death=2.0),
+            PersistenceInterval(birth=0.0, death=0.5),
+        ]
+        entropy = compute_persistence_entropy(intervals)
+        assert 0.0 <= entropy <= 1.0
+
+
+class TestTopologicalAnalysis:
+    """Pruebas de análisis topológico."""
+    
+    def test_analyze_features_valid_file(self, temp_csv_file: Path):
+        """Análisis de archivo válido produce resumen."""
+        summary = analyze_topological_features(temp_csv_file)
+        
+        assert summary.betti.beta_0 >= 1
+        assert summary.structural_entropy >= 0
+        assert summary.intrinsic_dimension >= 1
+    
+    def test_analyze_features_nonexistent_file(self, tmp_path: Path):
+        """Archivo inexistente retorna resumen vacío."""
+        summary = analyze_topological_features(tmp_path / "nonexistent.csv")
+        
+        assert summary == TopologicalSummary.empty()
+    
+    def test_estimate_intrinsic_dimension_csv(self):
+        """Dimensión intrínseca = número de columnas."""
+        lines = [
+            "A,B,C,D,E",
+            "1,2,3,4,5",
+            "6,7,8,9,10",
+        ]
+        dim = estimate_intrinsic_dimension(lines)
+        assert dim == 5
+    
+    def test_estimate_intrinsic_dimension_empty(self):
+        """Líneas vacías retornan 0."""
+        assert estimate_intrinsic_dimension([]) == 0
+    
+    def test_detect_cyclic_patterns_no_cycles(self):
+        """Sin patrones cíclicos retorna 0."""
+        lines = ["a", "b", "c", "d", "e", "f", "g", "h"]
+        cycles = detect_cyclic_patterns(lines)
+        assert cycles == 0
+    
+    def test_detect_cyclic_patterns_with_cycles(self, temp_cyclic_csv: Path):
+        """Detecta patrones cíclicos."""
+        with open(temp_cyclic_csv, "r") as f:
+            lines = f.readlines()
+        
+        cycles = detect_cyclic_patterns(lines)
+        assert cycles > 0
+    
+    def test_jaccard_similarity_identical(self):
+        """Conjuntos idénticos tienen similitud 1."""
+        tokens = frozenset({"a", "b", "c"})
+        assert _jaccard_similarity(tokens, tokens) == 1.0
+    
+    def test_jaccard_similarity_disjoint(self):
+        """Conjuntos disjuntos tienen similitud 0."""
+        a = frozenset({"a", "b"})
+        b = frozenset({"c", "d"})
+        assert _jaccard_similarity(a, b) == 0.0
+    
+    def test_jaccard_similarity_partial(self):
+        """Conjuntos con solapamiento parcial."""
+        a = frozenset({"a", "b", "c"})
+        b = frozenset({"b", "c", "d"})
+        # Intersección: {b, c} = 2
+        # Unión: {a, b, c, d} = 4
+        assert _jaccard_similarity(a, b) == 0.5
+    
+    def test_tokenize_line(self):
+        """Tokeniza línea correctamente."""
+        tokens = _tokenize_line("  a,b;c\td  ")
+        assert tokens == frozenset({"a", "b", "c", "d"})
+
+
+class TestHomologyAndPersistence:
+    """Pruebas de cálculo de homología y diagramas de persistencia."""
+    
+    def test_compute_homology_basic(self, sample_diagnostic_data: Dict):
+        """Homología básica de datos diagnósticos."""
+        homology = compute_homology_from_diagnostic(sample_diagnostic_data)
+        
+        assert "H_0" in homology
+        assert "beta_0" in homology
+        assert homology["beta_0"] >= 1
+    
+    def test_compute_homology_with_cycles(self, sample_diagnostic_data: Dict):
+        """Detecta ciclos en warnings."""
+        # El fixture tiene "circular dependency"
+        homology = compute_homology_from_diagnostic(sample_diagnostic_data)
+        assert homology["beta_1"] >= 1
+    
+    def test_compute_persistence_diagram(self, sample_diagnostic_data: Dict):
+        """Diagrama de persistencia de issues."""
+        intervals = compute_persistence_diagram(sample_diagnostic_data)
+        
+        assert len(intervals) > 0
+        for iv in intervals:
+            assert isinstance(iv, PersistenceInterval)
+            assert iv.persistence > 0
+    
+    def test_compute_persistence_diagram_empty(self):
+        """Sin issues retorna lista vacía."""
+        intervals = compute_persistence_diagram({"issues": []})
+        assert intervals == []
+    
+    def test_compute_diagnostic_magnitude_basic(self, sample_diagnostic_data: Dict):
+        """Magnitud diagnóstica en [0, 1]."""
+        magnitude = compute_diagnostic_magnitude(sample_diagnostic_data)
+        assert 0.0 <= magnitude <= 1.0
+    
+    def test_compute_diagnostic_magnitude_critical(self, sample_diagnostic_critical: Dict):
+        """Errores críticos dan mayor magnitud."""
+        critical_mag = compute_diagnostic_magnitude(sample_diagnostic_critical)
+        normal_mag = compute_diagnostic_magnitude({"issues": [], "warnings": [], "errors": []})
+        
+        assert critical_mag > normal_mag
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: SpectralGraphMetrics
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestSpectralGraphMetrics:
+    """Pruebas de análisis espectral."""
+    
+    def test_empty_registry(self, mic_registry: MICRegistry):
+        """Registro vacío produce métricas vacías."""
+        analyzer = SpectralGraphMetrics(mic_registry)
+        metrics = analyzer.compute_spectral_metrics()
+        
+        assert metrics["n_services"] == 0
+        assert metrics["is_connected"] is False
+    
+    def test_single_service(self, mic_registry: MICRegistry):
+        """Un solo servicio produce grafo trivial."""
+        mic_registry.register_vector(
+            "test", Stratum.PHYSICS, lambda **kw: {"success": True}
         )
+        
+        analyzer = SpectralGraphMetrics(mic_registry)
+        metrics = analyzer.compute_spectral_metrics()
+        
+        assert metrics["n_services"] == 1
+    
+    def test_connected_services(self, mic_with_vectors: MICRegistry):
+        """Servicios con dependencias forman grafo conectado."""
+        analyzer = SpectralGraphMetrics(mic_with_vectors)
+        metrics = analyzer.compute_spectral_metrics()
+        
+        assert metrics["n_services"] == 4
+        assert "algebraic_connectivity" in metrics
+        assert "spectral_radius" in metrics
+        assert "spectral_energy" in metrics
+    
+    def test_adjacency_matrix_shape(self, mic_with_vectors: MICRegistry):
+        """Matriz de adyacencia tiene forma correcta."""
+        analyzer = SpectralGraphMetrics(mic_with_vectors)
+        A = analyzer.build_adjacency_matrix()
+        
+        n = mic_with_vectors.dimension
+        assert A.shape == (n, n)
+    
+    def test_laplacian_symmetric(self, mic_with_vectors: MICRegistry):
+        """Laplaciana es simétrica."""
+        analyzer = SpectralGraphMetrics(mic_with_vectors)
+        L = analyzer.build_laplacian()
+        
+        assert np.allclose(L, L.T)
 
-        # Diagnóstico primero
-        diag_result = diagnose_file(temp_csv_file, "apus", topological_analysis=True)
-        assert diag_result["success"] is True
 
-        # Luego limpieza
-        clean_result = clean_file(temp_csv_file, preserve_topology=True)
-        assert clean_result["success"] is True
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: StratumTransitionMatrix
+# ═══════════════════════════════════════════════════════════════════════════
 
-    @patch("app.tools_interface.FinancialEngine")
-    def test_mic_hierarchy_workflow(self, mock_engine_class):
-        """Flujo completo respetando jerarquía MIC."""
-        mock_engine = mock_engine_class.return_value
-        mock_engine.analyze_project.return_value = {"npv": 1000, "performance": {}}
+class TestStratumTransitionMatrix:
+    """Pruebas de matriz de transición entre estratos."""
+    
+    def test_build_matrix_shape(self):
+        """Matriz tiene forma n×n donde n = número de estratos."""
+        stm = StratumTransitionMatrix()
+        counts = {s: 1 for s in Stratum}
+        T = stm.build(counts)
+        
+        n = len(list(Stratum))
+        assert T.shape == (n, n)
+    
+    def test_matrix_is_stochastic(self):
+        """Filas de la matriz suman 1."""
+        stm = StratumTransitionMatrix()
+        counts = {s: 2 for s in Stratum}
+        T = stm.build(counts)
+        
+        row_sums = T.sum(axis=1)
+        assert np.allclose(row_sums, 1.0)
+    
+    def test_wisdom_is_absorbing(self):
+        """WISDOM es estado absorbente (T[wisdom, wisdom] = 1)."""
+        stm = StratumTransitionMatrix()
+        counts = {s: 1 for s in Stratum}
+        T = stm.build(counts)
+        
+        wisdom_idx = stm._idx[Stratum.WISDOM]
+        assert T[wisdom_idx, wisdom_idx] == 1.0
+    
+    def test_transition_direction(self):
+        """Transiciones van de base a cúspide."""
+        stm = StratumTransitionMatrix()
+        counts = {s: 1 for s in Stratum}
+        T = stm.build(counts)
+        
+        physics_idx = stm._idx[Stratum.PHYSICS]
+        tactics_idx = stm._idx[Stratum.TACTICS]
+        
+        # PHYSICS puede transicionar a TACTICS
+        # (PHYSICS es prerrequisito de TACTICS)
+        assert T[physics_idx, tactics_idx] > 0
+    
+    def test_stationary_distribution(self):
+        """Distribución estacionaria suma 1."""
+        stm = StratumTransitionMatrix()
+        counts = {s: 1 for s in Stratum}
+        
+        stationary = stm.stationary_distribution(counts)
+        
+        total = sum(stationary.values())
+        assert abs(total - 1.0) < 1e-6
 
-        mic = MICRegistry()
 
-        # Registrar vectores
-        mic.register_vector("physics_validate", Stratum.PHYSICS, lambda **k: {"success": True})
-        mic.register_vector("tactics_analyze", Stratum.TACTICS, lambda **k: {"success": True})
-        mic.register_vector("strategy_decide", Stratum.STRATEGY, lambda **k: {"success": True})
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: MICRegistry — Core
+# ═══════════════════════════════════════════════════════════════════════════
 
-        # Fase 1: Física (base)
-        ctx = {"validated_strata": set()}
-        result1 = mic.project_intent("physics_validate", {}, ctx)
+class TestMICRegistry:
+    """Pruebas del registro central MIC."""
+    
+    def test_initial_state(self, mic_registry: MICRegistry):
+        """Estado inicial vacío."""
+        assert mic_registry.dimension == 0
+        assert mic_registry.registered_services == []
+    
+    def test_register_vector(self, mic_registry: MICRegistry):
+        """Registrar vector aumenta dimensión."""
+        mic_registry.register_vector(
+            "test_service",
+            Stratum.PHYSICS,
+            lambda **kw: {"success": True}
+        )
+        
+        assert mic_registry.dimension == 1
+        assert "test_service" in mic_registry.registered_services
+    
+    def test_register_empty_name_raises(self, mic_registry: MICRegistry):
+        """Nombre vacío lanza ValueError."""
+        with pytest.raises(ValueError, match="service_name no puede estar vacío"):
+            mic_registry.register_vector("", Stratum.PHYSICS, lambda: {})
+    
+    def test_register_invalid_stratum_raises(self, mic_registry: MICRegistry):
+        """Stratum inválido lanza TypeError."""
+        with pytest.raises(TypeError, match="stratum debe ser Stratum"):
+            mic_registry.register_vector("test", "PHYSICS", lambda: {})
+    
+    def test_register_non_callable_raises(self, mic_registry: MICRegistry):
+        """Handler no callable lanza TypeError."""
+        with pytest.raises(TypeError, match="handler debe ser callable"):
+            mic_registry.register_vector("test", Stratum.PHYSICS, "not_callable")
+    
+    def test_unregister_vector(self, mic_with_vectors: MICRegistry):
+        """Eliminar vector reduce dimensión."""
+        initial_dim = mic_with_vectors.dimension
+        
+        result = mic_with_vectors.unregister_vector("test_physics")
+        
+        assert result is True
+        assert mic_with_vectors.dimension == initial_dim - 1
+    
+    def test_unregister_nonexistent(self, mic_registry: MICRegistry):
+        """Eliminar vector inexistente retorna False."""
+        result = mic_registry.unregister_vector("nonexistent")
+        assert result is False
+    
+    def test_is_registered(self, mic_with_vectors: MICRegistry):
+        """is_registered funciona correctamente."""
+        assert mic_with_vectors.is_registered("test_physics") is True
+        assert mic_with_vectors.is_registered("nonexistent") is False
+    
+    def test_get_stratum(self, mic_with_vectors: MICRegistry):
+        """get_stratum retorna estrato correcto."""
+        assert mic_with_vectors.get_stratum("test_physics") == Stratum.PHYSICS
+        assert mic_with_vectors.get_stratum("test_tactics") == Stratum.TACTICS
+        assert mic_with_vectors.get_stratum("nonexistent") is None
+    
+    def test_get_services_by_stratum(self, mic_with_vectors: MICRegistry):
+        """get_services_by_stratum filtra correctamente."""
+        physics_services = mic_with_vectors.get_services_by_stratum(Stratum.PHYSICS)
+        
+        assert "test_physics" in physics_services
+        assert "test_tactics" not in physics_services
+    
+    def test_get_stratum_hierarchy(self, mic_with_vectors: MICRegistry):
+        """get_stratum_hierarchy retorna estructura completa."""
+        hierarchy = mic_with_vectors.get_stratum_hierarchy()
+        
+        assert "PHYSICS" in hierarchy
+        assert "TACTICS" in hierarchy
+        assert "STRATEGY" in hierarchy
+        assert "WISDOM" in hierarchy
+    
+    def test_project_intent_success(self, mic_with_vectors: MICRegistry):
+        """Proyección exitosa con contexto válido."""
+        result = mic_with_vectors.project_intent(
+            service_name="test_physics",
+            payload={"key": "value"},
+            context={"validated_strata": set()},  # PHYSICS no requiere nada
+        )
+        
+        assert result["success"] is True
+        assert result["_mic_stratum"] == "PHYSICS"
+    
+    def test_project_intent_missing_prerequisites(self, mic_with_vectors: MICRegistry):
+        """Proyección falla sin prerrequisitos."""
+        result = mic_with_vectors.project_intent(
+            service_name="test_strategy",
+            payload={},
+            context={"validated_strata": set()},  # STRATEGY requiere PHYSICS y TACTICS
+        )
+        
+        assert result["success"] is False
+        assert "error_category" in result
+        assert result["error_category"] == "hierarchy_violation"
+    
+    def test_project_intent_with_prerequisites(self, mic_with_vectors: MICRegistry):
+        """Proyección exitosa con prerrequisitos."""
+        result = mic_with_vectors.project_intent(
+            service_name="test_strategy",
+            payload={},
+            context={"validated_strata": {Stratum.PHYSICS, Stratum.TACTICS}},
+        )
+        
+        assert result["success"] is True
+        assert result["_mic_stratum"] == "STRATEGY"
+    
+    def test_project_intent_unknown_service(self, mic_with_vectors: MICRegistry):
+        """Proyección a servicio desconocido falla."""
+        result = mic_with_vectors.project_intent(
+            service_name="nonexistent",
+            payload={},
+            context={},
+        )
+        
+        assert result["success"] is False
+        assert "error" in result
+    
+    def test_project_intent_with_cache(self, mic_with_vectors: MICRegistry):
+        """Cache funciona en proyecciones."""
+        payload = {"key": "value"}
+        context = {"validated_strata": set()}
+        
+        # Primera llamada
+        result1 = mic_with_vectors.project_intent(
+            service_name="test_physics",
+            payload=payload,
+            context=context,
+            use_cache=True,
+        )
+        
+        # Segunda llamada (debería usar cache)
+        result2 = mic_with_vectors.project_intent(
+            service_name="test_physics",
+            payload=payload,
+            context=context,
+            use_cache=True,
+        )
+        
         assert result1["success"] is True
-        ctx["validated_strata"].add(result1["_mic_validation_update"])
-
-        # Fase 2: Táctica (requiere física)
-        result2 = mic.project_intent("tactics_analyze", {}, ctx)
         assert result2["success"] is True
-        ctx["validated_strata"].add(result2["_mic_validation_update"])
+        
+        # Verificar que hubo hit de cache
+        metrics = mic_with_vectors.metrics
+        assert metrics["counters"]["cache_hits"] >= 1
+    
+    def test_project_intent_force_override(self, mic_with_vectors: MICRegistry):
+        """force_physics_override bypasea validación."""
+        result = mic_with_vectors.project_intent(
+            service_name="test_strategy",
+            payload={},
+            context={
+                "validated_strata": set(),
+                "force_physics_override": True,
+            },
+        )
+        
+        assert result["success"] is True
+    
+    def test_clear_cache(self, mic_with_vectors: MICRegistry):
+        """clear_cache limpia el cache."""
+        mic_with_vectors.project_intent(
+            service_name="test_physics",
+            payload={},
+            context={},
+            use_cache=True,
+        )
+        
+        count = mic_with_vectors.clear_cache()
+        assert count >= 0
+    
+    def test_spectral_analysis(self, mic_with_vectors: MICRegistry):
+        """spectral_analysis retorna métricas."""
+        metrics = mic_with_vectors.spectral_analysis()
+        
+        assert "algebraic_connectivity" in metrics
+        assert "n_services" in metrics
+    
+    def test_stratum_statistics(self, mic_with_vectors: MICRegistry):
+        """stratum_statistics retorna estadísticas."""
+        stats = mic_with_vectors.stratum_statistics()
+        
+        assert "counts_by_stratum" in stats
+        assert "distribution" in stats
+        assert "stratum_entropy" in stats
+        assert "total_services" in stats
+    
+    def test_metrics_property(self, mic_with_vectors: MICRegistry):
+        """metrics retorna métricas completas."""
+        mic_with_vectors.project_intent(
+            service_name="test_physics",
+            payload={},
+            context={},
+        )
+        
+        metrics = mic_with_vectors.metrics
+        
+        assert "counters" in metrics
+        assert "cache" in metrics
 
-        # Fase 3: Estrategia (requiere física + táctica)
-        result3 = mic.project_intent("strategy_decide", {}, ctx)
-        assert result3["success"] is True
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: Command Pattern
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestProjectionCommands:
+    """Pruebas de comandos de proyección."""
+    
+    def test_projection_context_creation(self):
+        """Crear contexto de proyección."""
+        ctx = ProjectionContext(
+            service_name="test",
+            payload={"key": "value"},
+            context={"ctx_key": "ctx_value"},
+            use_cache=True,
+        )
+        
+        assert ctx.service_name == "test"
+        assert ctx.use_cache is True
+        assert ctx.cache_key is None  # Aún no computado
+    
+    def test_normalization_command(self):
+        """NormalizationCommand normaliza estratos."""
+        cmd = NormalizationCommand()
+        ctx = ProjectionContext(
+            service_name="test",
+            payload={},
+            context={"validated_strata": ["PHYSICS", "TACTICS"]},
+            use_cache=False,
+        )
+        
+        result = cmd.execute(ctx)
+        
+        assert result is None  # Continúa al siguiente comando
+        assert Stratum.PHYSICS in ctx.validated_strata
+        assert Stratum.TACTICS in ctx.validated_strata
+    
+    def test_normalization_command_with_integers(self):
+        """NormalizationCommand acepta enteros."""
+        cmd = NormalizationCommand()
+        ctx = ProjectionContext(
+            service_name="test",
+            payload={},
+            context={"validated_strata": [3, 2]},  # PHYSICS=3, TACTICS=2
+            use_cache=False,
+        )
+        
+        cmd.execute(ctx)
+        
+        assert Stratum.PHYSICS in ctx.validated_strata
+        assert Stratum.TACTICS in ctx.validated_strata
 
 
-# =============================================================================
-# Ejecución directa
-# =============================================================================
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: Singleton Global
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestGlobalMIC:
+    """Pruebas del singleton global."""
+    
+    def setup_method(self):
+        """Resetear MIC global antes de cada test."""
+        reset_global_mic()
+    
+    def teardown_method(self):
+        """Resetear MIC global después de cada test."""
+        reset_global_mic()
+    
+    def test_get_global_mic_creates_instance(self):
+        """get_global_mic crea instancia."""
+        mic = get_global_mic()
+        
+        assert isinstance(mic, MICRegistry)
+        assert mic.dimension > 0  # Tiene vectores registrados
+    
+    def test_get_global_mic_returns_same_instance(self):
+        """Llamadas sucesivas retornan la misma instancia."""
+        mic1 = get_global_mic()
+        mic2 = get_global_mic()
+        
+        assert mic1 is mic2
+    
+    def test_reset_global_mic(self):
+        """reset_global_mic limpia la instancia."""
+        mic1 = get_global_mic()
+        reset_global_mic()
+        mic2 = get_global_mic()
+        
+        assert mic1 is not mic2
+    
+    def test_force_reinit(self):
+        """force_reinit crea nueva instancia."""
+        mic1 = get_global_mic()
+        mic2 = get_global_mic(force_reinit=True)
+        
+        assert mic1 is not mic2
+    
+    def test_custom_config(self):
+        """Configuración personalizada se aplica."""
+        custom_config = MICConfiguration(
+            cache_ttl_seconds=120.0,
+            cache_max_size=64,
+        )
+        
+        mic = get_global_mic(mic_config=custom_config)
+        
+        assert mic.config.cache_ttl_seconds == 120.0
+        assert mic.config.cache_max_size == 64
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: API Pública
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestPublicAPI:
+    """Pruebas de funciones de API pública."""
+    
+    def test_get_supported_file_types(self):
+        """Retorna tipos de archivo soportados."""
+        types = get_supported_file_types()
+        
+        assert "apus" in types
+        assert "insumos" in types
+        assert "presupuesto" in types
+    
+    def test_get_supported_delimiters(self):
+        """Retorna delimitadores soportados."""
+        delimiters = get_supported_delimiters()
+        
+        assert "," in delimiters
+        assert ";" in delimiters
+        assert "\t" in delimiters
+    
+    def test_get_supported_encodings(self):
+        """Retorna codificaciones soportadas."""
+        encodings = get_supported_encodings()
+        
+        assert "utf-8" in encodings
+        assert "latin-1" in encodings
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: Propiedades Matemáticas (Hypothesis)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestMathematicalProperties:
+    """Pruebas de propiedades matemáticas con Hypothesis."""
+    
+    @given(st.lists(
+        st.floats(min_value=0.01, max_value=1.0),
+        min_size=1,
+        max_size=20
+    ))
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
+    def test_entropy_non_negative(self, probabilities: List[float]):
+        """Entropía siempre >= 0."""
+        # Normalizar
+        total = sum(probabilities)
+        if total > 0:
+            normalized = [p / total for p in probabilities]
+            entropy = compute_shannon_entropy(normalized)
+            assert entropy >= 0
+    
+    @given(st.integers(min_value=0, max_value=100),
+           st.integers(min_value=0, max_value=100),
+           st.integers(min_value=0, max_value=100))
+    @settings(max_examples=50)
+    def test_betti_euler_formula(self, b0: int, b1: int, b2: int):
+        """χ = β₀ - β₁ + β₂ siempre se cumple."""
+        betti = BettiNumbers(beta_0=b0, beta_1=b1, beta_2=b2)
+        assert betti.euler_characteristic == b0 - b1 + b2
+    
+    @given(st.floats(min_value=0.0, max_value=10.0),
+           st.floats(min_value=0.0, max_value=10.0))
+    @settings(max_examples=50)
+    def test_persistence_interval_invariants(self, birth: float, delta: float):
+        """Invariantes de PersistenceInterval."""
+        death = birth + delta
+        iv = PersistenceInterval(birth=birth, death=death)
+        
+        assert iv.persistence == delta
+        assert iv.midpoint == (birth + death) / 2
+        assert not iv.is_essential
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: Casos Edge
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestEdgeCases:
+    """Pruebas de casos límite."""
+    
+    def test_very_small_probabilities(self):
+        """Probabilidades muy pequeñas no causan overflow."""
+        tiny_probs = [1e-100, 1e-100, 1e-100]
+        # No debe lanzar excepción
+        entropy = compute_shannon_entropy(tiny_probs)
+        assert entropy >= 0
+    
+    def test_single_stratum_registry(self, mic_registry: MICRegistry):
+        """Registro con un solo estrato funciona."""
+        mic_registry.register_vector("only", Stratum.PHYSICS, lambda **kw: {"success": True})
+        
+        hierarchy = mic_registry.get_stratum_hierarchy()
+        assert len(hierarchy["PHYSICS"]) == 1
+        assert len(hierarchy["TACTICS"]) == 0
+    
+    def test_handler_with_exception(self, mic_registry: MICRegistry):
+        """Handler que lanza excepción se maneja gracefully."""
+        def failing_handler(**kwargs):
+            raise RuntimeError("Intentional failure")
+        
+        mic_registry.register_vector("failing", Stratum.PHYSICS, failing_handler)
+        
+        result = mic_registry.project_intent(
+            service_name="failing",
+            payload={},
+            context={},
+        )
+        
+        assert result["success"] is False
+        assert "RuntimeError" in result.get("error_type", "")
+    
+    def test_handler_wrong_signature(self, mic_registry: MICRegistry):
+        """Handler con firma incorrecta se maneja."""
+        def wrong_signature(required_arg):  # No acepta **kwargs
+            return {"success": True}
+        
+        mic_registry.register_vector("wrong_sig", Stratum.PHYSICS, wrong_signature)
+        
+        result = mic_registry.project_intent(
+            service_name="wrong_sig",
+            payload={},  # No pasa required_arg
+            context={},
+        )
+        
+        assert result["success"] is False
+        assert result["error_category"] == "handler_signature_error"
+    
+    def test_unicode_in_payload(self, mic_registry: MICRegistry):
+        """Payload con Unicode funciona."""
+        mic_registry.register_vector(
+            "unicode_test",
+            Stratum.PHYSICS,
+            lambda **kw: {"success": True, **kw}
+        )
+        
+        result = mic_registry.project_intent(
+            service_name="unicode_test",
+            payload={"名前": "値", "emoji": "🎉"},
+            context={},
+        )
+        
+        assert result["success"] is True
+    
+    def test_very_deep_hierarchy(self, mic_registry: MICRegistry):
+        """Todas las dependencias de WISDOM se validan."""
+        mic_registry.register_vector(
+            "wisdom_service",
+            Stratum.WISDOM,
+            lambda **kw: {"success": True}
+        )
+        
+        # Sin validación de prerrequisitos
+        result_fail = mic_registry.project_intent(
+            service_name="wisdom_service",
+            payload={},
+            context={"validated_strata": set()},
+        )
+        assert result_fail["success"] is False
+        
+        # Con todos los prerrequisitos
+        result_success = mic_registry.project_intent(
+            service_name="wisdom_service",
+            payload={},
+            context={"validated_strata": {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}},
+        )
+        assert result_success["success"] is True
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: Rendimiento (marcados como slow)
+# ═══════════════════════════════════════════════════════════════════════════
+
+@pytest.mark.slow
+class TestPerformance:
+    """Pruebas de rendimiento."""
+    
+    def test_cache_performance_under_load(self):
+        """Cache mantiene rendimiento bajo carga."""
+        cache: TTLCache[int] = TTLCache(max_size=1000)
+        
+        start = time.perf_counter()
+        for i in range(10000):
+            cache.set(f"key_{i}", i)
+        write_time = time.perf_counter() - start
+        
+        start = time.perf_counter()
+        for i in range(10000):
+            cache.get(f"key_{i % 1000}")  # Solo los últimos 1000 existen
+        read_time = time.perf_counter() - start
+        
+        assert write_time < 1.0  # < 1s para 10k escrituras
+        assert read_time < 0.5   # < 0.5s para 10k lecturas
+    
+    def test_large_mic_registry(self):
+        """Registro grande mantiene rendimiento."""
+        mic = MICRegistry()
+        
+        start = time.perf_counter()
+        for i in range(100):
+            mic.register_vector(
+                f"service_{i}",
+                Stratum.PHYSICS,
+                lambda **kw: {"success": True}
+            )
+        register_time = time.perf_counter() - start
+        
+        assert register_time < 1.0  # < 1s para 100 registros
+        assert mic.dimension == 100
+    
+    def test_concurrent_projections(self, mic_with_vectors: MICRegistry):
+        """Proyecciones concurrentes son thread-safe."""
+        errors = []
+        results = []
+        
+        def project():
+            try:
+                result = mic_with_vectors.project_intent(
+                    service_name="test_physics",
+                    payload={"thread_id": threading.current_thread().name},
+                    context={},
+                )
+                results.append(result)
+            except Exception as e:
+                errors.append(e)
+        
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(project) for _ in range(100)]
+            for future in as_completed(futures):
+                future.result()
+        
+        assert len(errors) == 0
+        assert len(results) == 100
+        assert all(r["success"] for r in results)
+    
+    def test_large_file_topological_analysis(self, temp_large_csv: Path):
+        """Análisis topológico de archivo grande es eficiente."""
+        start = time.perf_counter()
+        summary = analyze_topological_features(temp_large_csv)
+        elapsed = time.perf_counter() - start
+        
+        assert elapsed < 2.0  # < 2s para ~1000 líneas
+        assert summary.intrinsic_dimension >= 1
+    
+    def test_cycle_detection_performance(self):
+        """Detección de ciclos escala bien."""
+        lines = [f"line_{i % 10}" for i in range(1000)]
+        
+        start = time.perf_counter()
+        cycles = detect_cyclic_patterns(lines)
+        elapsed = time.perf_counter() - start
+        
+        assert elapsed < 1.0  # < 1s para 1000 líneas
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TESTS: Thread Safety
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestThreadSafety:
+    """Pruebas de seguridad en hilos."""
+    
+    def test_mic_registry_concurrent_registration(self):
+        """Registro concurrente es thread-safe."""
+        mic = MICRegistry()
+        errors = []
+        
+        def register_service(n: int):
+            try:
+                mic.register_vector(
+                    f"service_{n}",
+                    Stratum.PHYSICS,
+                    lambda **kw: {"success": True, "n": n}
+                )
+            except Exception as e:
+                errors.append(e)
+        
+        threads = [
+            threading.Thread(target=register_service, args=(i,))
+            for i in range(50)
+        ]
+        
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        
+        assert len(errors) == 0
+        assert mic.dimension == 50
+    
+    def test_metrics_concurrent_updates(self):
+        """Métricas soportan actualizaciones concurrentes."""
+        metrics = MICMetrics()
+        errors = []
+        
+        def update_metrics():
+            try:
+                for _ in range(100):
+                    metrics.record_projection(Stratum.PHYSICS)
+                    metrics.record_error("test")
+            except Exception as e:
+                errors.append(e)
+        
+        threads = [threading.Thread(target=update_metrics) for _ in range(10)]
+        
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        
+        assert len(errors) == 0
+        assert metrics.projections == 1000
+        assert metrics.errors == 1000
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CONFIGURACIÓN DE PYTEST
+# ═══════════════════════════════════════════════════════════════════════════
+
+def pytest_configure(config):
+    """Registrar marcadores personalizados."""
+    config.addinivalue_line(
+        "markers", "slow: marca pruebas lentas (excluir con -m 'not slow')"
+    )
+
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--tb=short", "-x"])
+    pytest.main([__file__, "-v", "--tb=short"])

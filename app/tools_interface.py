@@ -15,7 +15,7 @@ Fundamentos Matemáticos Formalizados:
 
 2. Filtración de Subespacios (Pirámide DIKW):
    V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM
-   
+
    Con la restricción de Clausura Transitiva:
    π_k(v) válido ⟺ ∀j > k: validated(V_j) = True
 
@@ -26,6 +26,19 @@ Fundamentos Matemáticos Formalizados:
 
 4. Gatekeeper como Proyección Condicional:
    G(v, ctx) = v si valid(ctx) else 0⃗
+
+Mejoras v4.0.0:
+───────────────
+- [ARCH] Configuración externalizable via MICConfiguration
+- [ARCH] Separación de responsabilidades en project_intent (Command Pattern)
+- [PERF] SpectralGraphMetrics con soporte scipy.sparse
+- [FIX] StratumTransitionMatrix con lógica de transición corregida
+- [FIX] PersistenceInterval permite death=inf para intervalos esenciales
+- [PERF] detect_cyclic_patterns con early termination y límites
+- [METRICS] Histogramas de latencia y métricas detalladas
+- [ROBUST] Validación de permisos de lectura en archivos
+- [TYPES] TypedDicts para respuestas estructuradas
+- [CACHE] TTLCache mejorado con __contains__ y estadísticas extendidas
 """
 
 from __future__ import annotations
@@ -33,88 +46,169 @@ from __future__ import annotations
 import hashlib
 import logging
 import math
+import os
+import re
+import statistics
 import threading
 import time
-from collections import Counter
+import warnings
+from abc import ABC, abstractmethod
+from collections import Counter, OrderedDict, deque
+from contextlib import contextmanager
 from dataclasses import dataclass, field
-from enum import IntEnum
-from functools import lru_cache, wraps
+from enum import Enum, IntEnum, auto
+from functools import lru_cache, wraps, cached_property
 from pathlib import Path
 from typing import (
-    Any, Callable, Dict, Final, FrozenSet, Generic, List, 
-    Optional, Protocol, Sequence, Set, Tuple, Type, TypeVar, Union,
-    runtime_checkable, Iterator
+    Any, Callable, ClassVar, Dict, Final, FrozenSet, Generic, Iterator,
+    List, Literal, Mapping, NamedTuple, Optional, Protocol, Sequence, 
+    Set, Tuple, Type, TypedDict, TypeVar, Union, cast, overload,
+    runtime_checkable,
 )
 
 import numpy as np
 import pandas as pd
 
+# Importaciones opcionales con fallback
+try:
+    from scipy import sparse
+    from scipy.sparse.linalg import eigsh
+    SCIPY_SPARSE_AVAILABLE = True
+except ImportError:
+    SCIPY_SPARSE_AVAILABLE = False
+    warnings.warn(
+        "scipy.sparse no disponible — análisis espectral usará matrices densas",
+        ImportWarning
+    )
+
+
 # =============================================================================
-# IMPORTACIONES CON FALLBACK ROBUSTO Y LOGGING
+# LOGGER ESTRUCTURADO
 # =============================================================================
 
 logger = logging.getLogger("MIC")
 
+
+class StructuredLoggerAdapter(logging.LoggerAdapter):
+    """Adapter para logging estructurado con contexto."""
+    
+    def process(self, msg: str, kwargs: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
+        extra = kwargs.get('extra', {})
+        extra.update(self.extra)
+        kwargs['extra'] = extra
+        return msg, kwargs
+
+
+def get_structured_logger(name: str, **context: Any) -> StructuredLoggerAdapter:
+    """Crea un logger con contexto estructurado."""
+    return StructuredLoggerAdapter(logging.getLogger(name), context)
+
+
+# =============================================================================
+# IMPORTACIONES CON FALLBACK ROBUSTO
+# =============================================================================
+
 def _safe_import(module_path: str, class_name: str) -> Optional[Type]:
-    """Importación segura con logging de diagnóstico."""
+    """
+    Importación segura con logging de diagnóstico.
+
+    Maneja correctamente:
+    - Módulos absolutos: "scripts.clean_csv"
+    - Módulos relativos con punto: ".financial_engine"
+    """
     try:
-        module = __import__(module_path, fromlist=[class_name])
+        if module_path.startswith("."):
+            import importlib
+            package = __name__.rsplit(".", 1)[0] if "." in __name__ else __name__
+            module = importlib.import_module(module_path, package=package)
+        else:
+            module = __import__(module_path, fromlist=[class_name])
         return getattr(module, class_name, None)
     except ImportError as e:
-        logger.debug(f"Optional import failed: {module_path}.{class_name} - {e}")
+        logger.debug("Optional import failed: %s.%s — %s", module_path, class_name, e)
         return None
+    except Exception as e:
+        logger.debug("Unexpected error importing %s.%s — %s", module_path, class_name, e)
+        return None
+
 
 CSVCleaner = _safe_import("scripts.clean_csv", "CSVCleaner")
 APUFileDiagnostic = _safe_import("scripts.diagnose_apus_file", "APUFileDiagnostic")
 InsumosFileDiagnostic = _safe_import("scripts.diagnose_insumos_file", "InsumosFileDiagnostic")
-PresupuestoFileDiagnostic = _safe_import("scripts.diagnose_presupuesto_file", "PresupuestoFileDiagnostic")
+PresupuestoFileDiagnostic = _safe_import(
+    "scripts.diagnose_presupuesto_file", "PresupuestoFileDiagnostic"
+)
 FinancialConfig = _safe_import(".financial_engine", "FinancialConfig")
 FinancialEngine = _safe_import(".financial_engine", "FinancialEngine")
 
-# Fallback para Stratum
+
+# ── Fallback para Stratum ──────────────────────────────────────────────────
 try:
     from .schemas import Stratum
 except ImportError:
+
     class Stratum(IntEnum):
         """
         Representación jerárquica del modelo DIKW.
-        
-        La ordenación numérica (WISDOM=0 < PHYSICS=3) refleja la
-        precedencia conceptual, mientras que la validación sigue
-        el orden inverso (PHYSICS debe validarse primero).
+
+        Valores numéricos y su semántica en la filtración:
+          PHYSICS  = 3  →  Base de la pirámide (datos crudos)
+          TACTICS  = 2  →  Estructura operativa
+          STRATEGY = 1  →  Planificación financiera
+          WISDOM   = 0  →  Síntesis estratégica (vértice)
+
+        La filtración es ascendente: para alcanzar el estrato k
+        deben estar validados todos los estratos j con valor > k.
         """
-        WISDOM = 0      # Síntesis estratégica (vértice)
-        STRATEGY = 1    # Planificación financiera  
-        TACTICS = 2     # Estructura operativa
-        PHYSICS = 3     # Datos físicos (base de la pirámide)
-        
+        WISDOM = 0
+        STRATEGY = 1
+        TACTICS = 2
+        PHYSICS = 3
+
         @classmethod
-        def base_stratum(cls) -> 'Stratum':
+        def base_stratum(cls) -> "Stratum":
             """Retorna el estrato base de la filtración."""
             return cls.PHYSICS
-        
+
         @classmethod
-        def apex_stratum(cls) -> 'Stratum':
+        def apex_stratum(cls) -> "Stratum":
             """Retorna el estrato superior de la filtración."""
             return cls.WISDOM
-        
-        def requires(self) -> FrozenSet['Stratum']:
-            """Retorna los estratos prerrequisito (clausura transitiva)."""
+
+        def requires(self) -> FrozenSet["Stratum"]:
+            """
+            Retorna los estratos prerrequisito (clausura transitiva).
+
+            Un estrato k requiere todos los estratos con value > self.value.
+            """
             return frozenset(s for s in Stratum if s.value > self.value)
 
-# Vectores mock para testing standalone
+        @classmethod
+        def ordered_bottom_up(cls) -> List["Stratum"]:
+            """Retorna estratos ordenados de base a cúspide."""
+            return sorted(cls, key=lambda s: s.value, reverse=True)
+
+        @classmethod
+        def ordered_top_down(cls) -> List["Stratum"]:
+            """Retorna estratos ordenados de cúspide a base."""
+            return sorted(cls, key=lambda s: s.value)
+
+
+# ── Vectores mock para testing standalone ─────────────────────────────────
 try:
     from app.adapters.mic_vectors import (
-        vector_stabilize_flux,
-        vector_parse_raw_structure,
-        vector_structure_logic,
+        vector_audit_homological_fusion,
         vector_lateral_pivot,
-        vector_audit_homological_fusion
+        vector_parse_raw_structure,
+        vector_stabilize_flux,
+        vector_structure_logic,
     )
 except ImportError:
-    def _mock_vector(**kwargs) -> Dict[str, Any]:
+
+    def _mock_vector(**kwargs: Any) -> Dict[str, Any]:
+        """Vector mock que retorna éxito con los kwargs recibidos."""
         return {"success": True, "mock": True, **kwargs}
-    
+
     vector_stabilize_flux = _mock_vector
     vector_parse_raw_structure = _mock_vector
     vector_structure_logic = _mock_vector
@@ -123,41 +217,155 @@ except ImportError:
 
 
 # =============================================================================
-# CONSTANTES MATEMÁTICAS Y DE CONFIGURACIÓN
+# CONFIGURACIÓN EXTERNALIZABLE
 # =============================================================================
 
-# Límites de archivos
-MAX_FILE_SIZE_BYTES: Final[int] = 100 * 1024 * 1024  # 100 MB
+@dataclass(frozen=True)
+class MICConfiguration:
+    """
+    Configuración centralizada de la MIC.
+    
+    Permite ajustar comportamiento sin modificar código fuente.
+    Valores por defecto calibrados para entornos de producción.
+    """
+    # Límites de archivos
+    max_file_size_bytes: int = 100 * 1024 * 1024  # 100 MB
+    max_sample_rows: int = 1000
+    
+    # Cache
+    cache_ttl_seconds: float = 300.0  # 5 minutos
+    cache_max_size: int = 128
+    
+    # Análisis topológico
+    persistence_threshold: float = 0.01
+    cycle_similarity_threshold: float = 0.80
+    max_cycle_period: int = 50
+    max_lines_for_cycle_detection: int = 10000
+    
+    # Métricas
+    latency_histogram_buckets: int = 100
+    enable_detailed_metrics: bool = True
+    
+    # Validación
+    strict_encoding_validation: bool = False
+    
+    # Timeouts
+    diagnostic_timeout_seconds: float = 30.0
+    spectral_analysis_timeout_seconds: float = 10.0
+    
+    # Constantes matemáticas
+    epsilon: float = 1e-10
+    
+    # Versión
+    algorithm_version: str = "4.0.0-topological"
+    
+    def __post_init__(self) -> None:
+        """Validar invariantes de configuración."""
+        if self.max_file_size_bytes <= 0:
+            raise ValueError("max_file_size_bytes debe ser > 0")
+        if self.cache_ttl_seconds <= 0:
+            raise ValueError("cache_ttl_seconds debe ser > 0")
+        if not (0 < self.cycle_similarity_threshold <= 1):
+            raise ValueError("cycle_similarity_threshold debe estar en (0, 1]")
+        if not (0 < self.persistence_threshold < 1):
+            raise ValueError("persistence_threshold debe estar en (0, 1)")
 
-# Codificaciones soportadas (conjunto canónico)
+
+# Configuración singleton por defecto
+DEFAULT_MIC_CONFIG: Final[MICConfiguration] = MICConfiguration()
+
+
+# =============================================================================
+# CONSTANTES DERIVADAS DE CONFIGURACIÓN
+# =============================================================================
+
 SUPPORTED_ENCODINGS: Final[FrozenSet[str]] = frozenset({
     "utf-8", "utf-8-sig", "latin-1", "iso-8859-1",
     "cp1252", "ascii", "utf-16", "utf-16-le", "utf-16-be",
 })
 
 _ENCODING_ALIASES: Final[Dict[str, str]] = {
-    "utf8": "utf-8", "latin1": "latin-1", 
-    "iso88591": "iso-8859-1", "cp65001": "utf-8",
+    "utf8": "utf-8",
+    "latin1": "latin-1",
+    "iso88591": "iso-8859-1",
+    "cp65001": "utf-8",
 }
 
 VALID_DELIMITERS: Final[FrozenSet[str]] = frozenset({",", ";", "\t", "|", ":"})
 VALID_EXTENSIONS: Final[FrozenSet[str]] = frozenset({".csv", ".txt", ".tsv"})
 
-# Constantes numéricas con significado matemático
-_EPSILON: Final[float] = 1e-10  # Tolerancia para comparaciones flotantes
-_PHI: Final[float] = (1 + math.sqrt(5)) / 2  # Proporción áurea (para heurísticas)
-_DEFAULT_RANDOM_SEED: Final[int] = 42
-_MAX_SAMPLE_ROWS: Final[int] = 1000
-_PERSISTENCE_THRESHOLD: Final[float] = 0.01  # Umbral de significancia topológica
-_CACHE_TTL_SECONDS: Final[float] = 300.0  # TTL del cache (5 minutos)
+_PHI: Final[float] = (1 + math.sqrt(5)) / 2  # Proporción áurea
+
+_SEVERITY_WEIGHTS: Final[Dict[str, float]] = {
+    "CRITICAL": 5.0,
+    "HIGH": 3.0,
+    "MEDIUM": 2.0,
+    "LOW": 1.0,
+    "INFO": 0.5,
+}
 
 
 # =============================================================================
 # TIPOS GENÉRICOS Y PROTOCOLOS
 # =============================================================================
 
-T = TypeVar('T')
-R = TypeVar('R')
+T = TypeVar("T")
+R = TypeVar("R")
+
+
+class ProjectionResult(TypedDict, total=False):
+    """Resultado tipado de una proyección MIC."""
+    success: bool
+    error: str
+    error_type: str
+    error_category: str
+    error_details: Dict[str, Any]
+    result: Any
+    _mic_validation_update: int
+    _mic_stratum: str
+    _mic_validated_strata: List[str]
+
+
+class DiagnosticResult(TypedDict, total=False):
+    """Resultado tipado de un diagnóstico."""
+    success: bool
+    diagnostic_completed: bool
+    is_empty: bool
+    file_type: str
+    file_path: str
+    file_size_bytes: int
+    diagnostic_magnitude: float
+    has_topological_analysis: bool
+    topological_features: Dict[str, Any]
+    homology: Dict[str, Any]
+    persistence_diagram: List[Dict[str, Any]]
+    persistence_entropy: float
+    error: str
+    error_type: str
+    error_category: str
+
+
+class CacheStats(TypedDict):
+    """Estadísticas del cache."""
+    size: int
+    max_size: int
+    hits: int
+    misses: int
+    hit_rate: float
+    ttl_seconds: float
+    evictions: int
+    expirations: int
+
+
+class LatencyStats(TypedDict):
+    """Estadísticas de latencia."""
+    count: int
+    mean_ms: float
+    median_ms: float
+    p95_ms: float
+    p99_ms: float
+    min_ms: float
+    max_ms: float
 
 
 @runtime_checkable
@@ -180,118 +388,14 @@ class VectorHandler(Protocol):
 
 
 # =============================================================================
-# JERARQUÍA DE EXCEPCIONES (Álgebra de Errores)
+# TIPO DE ARCHIVO (FileType)
 # =============================================================================
 
-class MICException(Exception):
-    """
-    Clase base para excepciones de la MIC.
-    
-    Implementa un patrón de "error estructurado" donde cada excepción
-    porta su contexto algebraico (detalles, categoría, severidad).
-    """
-    
-    def __init__(
-        self, 
-        message: str, 
-        details: Optional[Dict[str, Any]] = None,
-        category: str = "mic_error"
-    ) -> None:
-        super().__init__(message)
-        self.details: Dict[str, Any] = details or {}
-        self.category: str = category
-        self.timestamp: float = time.time()
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Serializa la excepción a diccionario para respuestas API."""
-        return {
-            "error": str(self),
-            "error_type": type(self).__name__,
-            "error_category": self.category,
-            "error_details": self.details,
-            "timestamp": self.timestamp
-        }
-
-
-class FileNotFoundDiagnosticError(MICException):
-    """Archivo no encontrado durante diagnóstico."""
-    def __init__(self, path: Union[str, Path], **kwargs):
-        super().__init__(
-            f"File not found: {path}",
-            details={"path": str(path), **kwargs},
-            category="validation"
-        )
-
-
-class UnsupportedFileTypeError(MICException):
-    """Tipo de archivo no soportado por el sistema."""
-    def __init__(self, file_type: str, available: List[str]):
-        super().__init__(
-            f"Unsupported file type: {file_type}",
-            details={"file_type": file_type, "available_types": available},
-            category="validation"
-        )
-
-
-class FileValidationError(MICException):
-    """Error de validación de archivo (extensión, tamaño, etc.)."""
-    def __init__(self, message: str, **kwargs):
-        super().__init__(message, details=kwargs, category="validation")
-
-
-class CleaningError(MICException):
-    """Error durante proceso de limpieza de archivos."""
-    def __init__(self, message: str, **kwargs):
-        super().__init__(message, details=kwargs, category="cleaning")
-
-
-class MICHierarchyViolationError(MICException):
-    """
-    Violación de la Clausura Transitiva en la Filtración de Estratos.
-    
-    Ocurre cuando se intenta proyectar un vector a un estrato k
-    sin haber validado todos los estratos base j > k.
-    """
-    
-    def __init__(
-        self,
-        target_stratum: Stratum,
-        missing_strata: Set[Stratum],
-        validated_strata: Set[Stratum]
-    ) -> None:
-        missing_names = sorted([s.name for s in missing_strata], key=lambda n: Stratum[n].value, reverse=True)
-        validated_names = sorted([s.name for s in validated_strata], key=lambda n: Stratum[n].value, reverse=True)
-        
-        message = (
-            f"Clausura Transitiva Violada: No se puede proyectar a {target_stratum.name}. "
-            f"Estratos faltantes: {', '.join(missing_names)}. "
-            f"Valide primero las operaciones de {Stratum.base_stratum().name}."
-        )
-        
-        super().__init__(
-            message,
-            details={
-                "target_stratum": target_stratum.name,
-                "missing_strata": missing_names,
-                "validated_strata": validated_names
-            },
-            category="hierarchy_violation"
-        )
-        
-        self.target_stratum = target_stratum
-        self.missing_strata = missing_strata
-        self.validated_strata = validated_strata
-
-
-# =============================================================================
-# ENUMERACIONES
-# =============================================================================
-
-class FileType(str, IntEnum if False else type('FileTypeBase', (str,), {})):
+class FileType(str, Enum):
     """
     Tipos de archivo soportados para diagnóstico.
-    
-    Nota: Usamos herencia dual str+Enum para serialización JSON nativa.
+
+    Hereda de str para serialización JSON nativa.
     """
     APUS = "apus"
     INSUMOS = "insumos"
@@ -303,44 +407,309 @@ class FileType(str, IntEnum if False else type('FileTypeBase', (str,), {})):
         return [member.value for member in cls]
 
     @classmethod
-    def from_string(cls, value: str) -> 'FileType':
-        """Parsea string a FileType con normalización robusta."""
+    def from_string(cls, value: str) -> "FileType":
+        """
+        Parsea string a FileType con normalización robusta.
+
+        Raises:
+            TypeError: Si value no es string.
+            ValueError: Si el valor no coincide con ningún miembro.
+        """
         if not isinstance(value, str):
-            raise TypeError(f"Expected string, got {type(value).__name__}")
-
+            raise TypeError(f"Se esperaba str, se recibió {type(value).__name__!r}")
+        
         normalized = value.strip().lower()
-
         for member in cls:
             if member.value == normalized:
                 return member
-
+        
         raise ValueError(
             f"'{value}' no es válido. Opciones: {', '.join(cls.values())}"
         )
 
 
-# Reimplementar FileType como Enum real
-from enum import Enum
+# =============================================================================
+# JERARQUÍA DE EXCEPCIONES
+# =============================================================================
 
-class FileType(str, Enum):
-    """Tipos de archivo soportados para diagnóstico."""
-    APUS = "apus"
-    INSUMOS = "insumos"
-    PRESUPUESTO = "presupuesto"
+class MICException(Exception):
+    """
+    Clase base para excepciones de la MIC.
 
-    @classmethod
-    def values(cls) -> List[str]:
-        return [member.value for member in cls]
+    Cada excepción porta su contexto algebraico:
+    (mensaje, detalles estructurados, categoría, timestamp).
+    """
 
-    @classmethod
-    def from_string(cls, value: str) -> 'FileType':
-        if not isinstance(value, str):
-            raise TypeError(f"Expected string, got {type(value).__name__}")
-        normalized = value.strip().lower()
-        for member in cls:
-            if member.value == normalized:
-                return member
-        raise ValueError(f"'{value}' no es válido. Opciones: {', '.join(cls.values())}")
+    def __init__(
+        self,
+        message: str,
+        details: Optional[Dict[str, Any]] = None,
+        category: str = "mic_error",
+    ) -> None:
+        super().__init__(message)
+        self.details: Dict[str, Any] = details or {}
+        self.category: str = category
+        self.timestamp: float = time.time()
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializa la excepción a diccionario."""
+        return {
+            "error": str(self),
+            "error_type": type(self).__name__,
+            "error_category": self.category,
+            "error_details": self.details,
+            "timestamp": self.timestamp,
+        }
+
+
+class FileNotFoundDiagnosticError(MICException):
+    """Archivo no encontrado durante diagnóstico."""
+
+    def __init__(self, path: Union[str, Path], **kwargs: Any) -> None:
+        super().__init__(
+            f"File not found: {path}",
+            details={"path": str(path), **kwargs},
+            category="validation",
+        )
+
+
+class UnsupportedFileTypeError(MICException):
+    """Tipo de archivo no soportado por el sistema."""
+
+    def __init__(self, file_type: str, available: List[str]) -> None:
+        super().__init__(
+            f"Unsupported file type: {file_type!r}",
+            details={"file_type": file_type, "available_types": available},
+            category="validation",
+        )
+
+
+class FileValidationError(MICException):
+    """Error de validación de archivo."""
+
+    def __init__(self, message: str, **kwargs: Any) -> None:
+        super().__init__(message, details=kwargs, category="validation")
+
+
+class FilePermissionError(MICException):
+    """Error de permisos de archivo."""
+
+    def __init__(self, path: Union[str, Path], operation: str = "read") -> None:
+        super().__init__(
+            f"Permission denied for {operation} operation: {path}",
+            details={"path": str(path), "operation": operation},
+            category="permission",
+        )
+
+
+class CleaningError(MICException):
+    """Error durante proceso de limpieza de archivos."""
+
+    def __init__(self, message: str, **kwargs: Any) -> None:
+        super().__init__(message, details=kwargs, category="cleaning")
+
+
+class MICHierarchyViolationError(MICException):
+    """
+    Violación de la Clausura Transitiva en la Filtración de Estratos.
+
+    Ocurre cuando se intenta proyectar un vector al estrato k sin haber
+    validado todos los estratos base j (donde j.value > k.value).
+    """
+
+    def __init__(
+        self,
+        target_stratum: Stratum,
+        missing_strata: Set[Stratum],
+        validated_strata: Set[Stratum],
+    ) -> None:
+        missing_names = sorted(
+            [s.name for s in missing_strata],
+            key=lambda n: Stratum[n].value,
+            reverse=True,
+        )
+        validated_names = sorted(
+            [s.name for s in validated_strata],
+            key=lambda n: Stratum[n].value,
+            reverse=True,
+        )
+
+        message = (
+            f"Clausura Transitiva Violada: No se puede proyectar a "
+            f"'{target_stratum.name}' (nivel {target_stratum.value}). "
+            f"Estratos faltantes: {' → '.join(missing_names)}. "
+            f"Validados: {', '.join(validated_names) if validated_names else 'ninguno'}."
+        )
+
+        super().__init__(
+            message,
+            details={
+                "target_stratum": target_stratum.name,
+                "target_value": target_stratum.value,
+                "missing_strata": missing_names,
+                "validated_strata": validated_names,
+                "validation_order": [s.name for s in Stratum.ordered_bottom_up()],
+            },
+            category="hierarchy_violation",
+        )
+
+        self.target_stratum = target_stratum
+        self.missing_strata = missing_strata
+        self.validated_strata = validated_strata
+
+
+class TimeoutError(MICException):
+    """Operación excedió tiempo límite."""
+
+    def __init__(
+        self, 
+        operation: str, 
+        timeout_seconds: float,
+        elapsed_seconds: float,
+    ) -> None:
+        super().__init__(
+            f"Operation '{operation}' timed out after {elapsed_seconds:.2f}s "
+            f"(limit: {timeout_seconds:.2f}s)",
+            details={
+                "operation": operation,
+                "timeout_seconds": timeout_seconds,
+                "elapsed_seconds": elapsed_seconds,
+            },
+            category="timeout",
+        )
+
+
+# =============================================================================
+# MÉTRICAS Y TELEMETRÍA
+# =============================================================================
+
+class LatencyHistogram:
+    """
+    Histograma de latencias con estadísticas en tiempo real.
+    
+    Implementa un buffer circular para memoria acotada.
+    Thread-safe para uso concurrente.
+    """
+    
+    __slots__ = ("_buffer", "_max_size", "_lock", "_count")
+    
+    def __init__(self, max_size: int = 1000) -> None:
+        self._buffer: deque[float] = deque(maxlen=max_size)
+        self._max_size = max_size
+        self._lock = threading.Lock()
+        self._count = 0
+    
+    def record(self, latency_ms: float) -> None:
+        """Registra una latencia en milisegundos."""
+        with self._lock:
+            self._buffer.append(latency_ms)
+            self._count += 1
+    
+    @contextmanager
+    def measure(self) -> Iterator[None]:
+        """Context manager para medir latencia automáticamente."""
+        start = time.perf_counter()
+        try:
+            yield
+        finally:
+            elapsed_ms = (time.perf_counter() - start) * 1000
+            self.record(elapsed_ms)
+    
+    def get_stats(self) -> LatencyStats:
+        """Calcula estadísticas del histograma."""
+        with self._lock:
+            if not self._buffer:
+                return LatencyStats(
+                    count=0, mean_ms=0.0, median_ms=0.0,
+                    p95_ms=0.0, p99_ms=0.0, min_ms=0.0, max_ms=0.0
+                )
+            
+            data = list(self._buffer)
+        
+        sorted_data = sorted(data)
+        n = len(sorted_data)
+        
+        def percentile(p: float) -> float:
+            k = (n - 1) * p
+            f = math.floor(k)
+            c = math.ceil(k)
+            if f == c:
+                return sorted_data[int(k)]
+            return sorted_data[f] * (c - k) + sorted_data[c] * (k - f)
+        
+        return LatencyStats(
+            count=self._count,
+            mean_ms=round(statistics.mean(data), 3),
+            median_ms=round(statistics.median(data), 3),
+            p95_ms=round(percentile(0.95), 3),
+            p99_ms=round(percentile(0.99), 3),
+            min_ms=round(min(data), 3),
+            max_ms=round(max(data), 3),
+        )
+    
+    def reset(self) -> None:
+        """Reinicia el histograma."""
+        with self._lock:
+            self._buffer.clear()
+            self._count = 0
+
+
+@dataclass
+class MICMetrics:
+    """
+    Métricas agregadas de la MIC.
+    
+    Recopila estadísticas de operaciones, cache, errores y latencias.
+    """
+    projections: int = 0
+    cache_hits: int = 0
+    violations: int = 0
+    errors: int = 0
+    timeouts: int = 0
+    
+    # Contadores por estrato
+    projections_by_stratum: Dict[str, int] = field(default_factory=dict)
+    errors_by_category: Dict[str, int] = field(default_factory=dict)
+    
+    # Histogramas de latencia
+    projection_latency: LatencyHistogram = field(
+        default_factory=lambda: LatencyHistogram(1000)
+    )
+    handler_latency: LatencyHistogram = field(
+        default_factory=lambda: LatencyHistogram(1000)
+    )
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializa métricas a diccionario."""
+        return {
+            "counters": {
+                "projections": self.projections,
+                "cache_hits": self.cache_hits,
+                "violations": self.violations,
+                "errors": self.errors,
+                "timeouts": self.timeouts,
+            },
+            "projections_by_stratum": self.projections_by_stratum.copy(),
+            "errors_by_category": self.errors_by_category.copy(),
+            "latency": {
+                "projection": self.projection_latency.get_stats(),
+                "handler": self.handler_latency.get_stats(),
+            },
+        }
+    
+    def record_projection(self, stratum: Stratum) -> None:
+        """Registra una proyección exitosa."""
+        self.projections += 1
+        self.projections_by_stratum[stratum.name] = (
+            self.projections_by_stratum.get(stratum.name, 0) + 1
+        )
+    
+    def record_error(self, category: str) -> None:
+        """Registra un error por categoría."""
+        self.errors += 1
+        self.errors_by_category[category] = (
+            self.errors_by_category.get(category, 0) + 1
+        )
 
 
 # =============================================================================
@@ -351,59 +720,58 @@ class FileType(str, Enum):
 class PersistenceInterval:
     """
     Intervalo de persistencia [birth, death) en el diagrama de persistencia.
-    
-    Representa el "tiempo de vida" de una característica topológica (componente
-    conexo, ciclo, cavidad) durante la filtración del complejo simplicial.
-    
+
     Invariantes:
-        - birth ≥ 0
-        - death ≥ birth (death = ∞ indica característica esencial)
-        - dimension ∈ {0, 1, 2, ...}
-    
-    Attributes:
-        birth: Tiempo de nacimiento de la característica
-        death: Tiempo de muerte (float('inf') si es esencial)
-        dimension: Dimensión homológica (0=componentes, 1=ciclos, 2=cavidades)
+        birth ≥ 0
+        death ≥ birth  (death = +∞ → característica esencial)
+        dimension ∈ ℕ₀
     """
+
     birth: float
     death: float
     dimension: int = 0
 
     def __post_init__(self) -> None:
-        # Validación de invariantes (usando object.__setattr__ solo si es necesario)
         if self.birth < 0:
             raise ValueError(f"birth debe ser ≥ 0, recibido: {self.birth}")
-        if self.death < self.birth:
-            raise ValueError(f"death ({self.death}) debe ser ≥ birth ({self.birth})")
+        # Permitir death = inf para intervalos esenciales
+        if not math.isinf(self.death) and self.death < self.birth:
+            raise ValueError(
+                f"death ({self.death}) debe ser ≥ birth ({self.birth}) o inf"
+            )
         if self.dimension < 0:
             raise ValueError(f"dimension debe ser ≥ 0, recibido: {self.dimension}")
 
+    @classmethod
+    def essential(cls, birth: float, dimension: int = 0) -> "PersistenceInterval":
+        """Crea un intervalo esencial (nunca muere)."""
+        return cls(birth=birth, death=float("inf"), dimension=dimension)
+
     @property
     def persistence(self) -> float:
-        """Tiempo de vida de la característica: death - birth."""
-        return self.death - self.birth if not self.is_essential else float('inf')
+        """Tiempo de vida: death - birth. +∞ si es esencial."""
+        return float("inf") if self.is_essential else self.death - self.birth
 
     @property
     def is_essential(self) -> bool:
-        """True si la característica nunca muere (death = ∞)."""
+        """True si la característica nunca muere."""
         return math.isinf(self.death)
-    
+
     @property
     def midpoint(self) -> float:
-        """Punto medio del intervalo (útil para visualización)."""
-        if self.is_essential:
-            return self.birth
-        return (self.birth + self.death) / 2
+        """Punto medio del intervalo."""
+        return self.birth if self.is_essential else (self.birth + self.death) / 2.0
 
-    def __lt__(self, other: 'PersistenceInterval') -> bool:
-        """Ordenamiento por persistencia descendente (mayor persistencia primero)."""
+    def __lt__(self, other: "PersistenceInterval") -> bool:
+        """Ordenamiento por persistencia descendente."""
         if not isinstance(other, PersistenceInterval):
             return NotImplemented
-        # Intervalos esenciales van primero
         if self.is_essential != other.is_essential:
             return self.is_essential
+        if self.is_essential and other.is_essential:
+            return self.birth < other.birth
         return self.persistence > other.persistence
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Serializa el intervalo a diccionario."""
         return {
@@ -411,7 +779,8 @@ class PersistenceInterval:
             "death": self.death if not self.is_essential else "inf",
             "persistence": self.persistence if not self.is_essential else "inf",
             "dimension": self.dimension,
-            "is_essential": self.is_essential
+            "is_essential": self.is_essential,
+            "midpoint": self.midpoint,
         }
 
 
@@ -419,53 +788,59 @@ class PersistenceInterval:
 class BettiNumbers:
     """
     Números de Betti de un espacio topológico.
-    
-    Los números de Betti β_k cuentan el número de "agujeros" k-dimensionales:
-        - β₀: Componentes conexos
-        - β₁: Ciclos independientes (agujeros 1D)
-        - β₂: Cavidades (agujeros 2D)
-    
-    La Característica de Euler χ = β₀ - β₁ + β₂ es un invariante topológico.
+
+    β₀: Componentes conexos
+    β₁: Ciclos independientes
+    β₂: Cavidades
+
+    Invariante: χ = β₀ - β₁ + β₂ (Característica de Euler)
     """
-    beta_0: int  # Componentes conexos
-    beta_1: int  # Ciclos independientes
-    beta_2: int  # Cavidades
-    
+
+    beta_0: int
+    beta_1: int
+    beta_2: int
+
     def __post_init__(self) -> None:
-        for name, val in [("beta_0", self.beta_0), ("beta_1", self.beta_1), ("beta_2", self.beta_2)]:
+        for attr_name, val in [
+            ("beta_0", self.beta_0),
+            ("beta_1", self.beta_1),
+            ("beta_2", self.beta_2),
+        ]:
             if not isinstance(val, int) or val < 0:
-                raise ValueError(f"{name} debe ser entero no negativo, recibido: {val}")
-    
+                raise ValueError(
+                    f"{attr_name} debe ser entero no negativo, recibido: {val!r}"
+                )
+
     @property
     def euler_characteristic(self) -> int:
-        """Característica de Euler χ = β₀ - β₁ + β₂."""
+        """χ = β₀ - β₁ + β₂"""
         return self.beta_0 - self.beta_1 + self.beta_2
-    
+
     @property
     def total_rank(self) -> int:
-        """Rango total de homología Σβ_k."""
+        """Rango total de homología."""
         return self.beta_0 + self.beta_1 + self.beta_2
-    
+
     @property
     def is_connected(self) -> bool:
         """True si el espacio es conexo (β₀ = 1)."""
         return self.beta_0 == 1
-    
+
     @property
     def has_cycles(self) -> bool:
-        """True si existen ciclos no triviales (β₁ > 0)."""
+        """True si existen ciclos no triviales."""
         return self.beta_1 > 0
-    
+
     @classmethod
-    def zero(cls) -> 'BettiNumbers':
-        """Crea números de Betti nulos (espacio vacío)."""
+    def zero(cls) -> "BettiNumbers":
+        """Números de Betti nulos."""
         return cls(beta_0=0, beta_1=0, beta_2=0)
-    
+
     @classmethod
-    def point(cls) -> 'BettiNumbers':
+    def point(cls) -> "BettiNumbers":
         """Números de Betti de un punto."""
         return cls(beta_0=1, beta_1=0, beta_2=0)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Serializa a diccionario."""
         return {
@@ -476,7 +851,7 @@ class BettiNumbers:
             "euler_characteristic": self.euler_characteristic,
             "total_rank": self.total_rank,
             "is_connected": self.is_connected,
-            "has_cycles": self.has_cycles
+            "has_cycles": self.has_cycles,
         }
 
 
@@ -484,23 +859,36 @@ class BettiNumbers:
 class TopologicalSummary:
     """
     Resumen completo de características topológicas de un dataset.
-    
-    Encapsula números de Betti, entropía estructural y métricas derivadas
-    para proporcionar una "firma topológica" del espacio de datos.
     """
+
     betti: BettiNumbers
     structural_entropy: float
     persistence_entropy: float
     intrinsic_dimension: int = 1
 
+    def __post_init__(self) -> None:
+        if self.structural_entropy < 0:
+            raise ValueError(
+                f"structural_entropy debe ser ≥ 0, recibido: {self.structural_entropy}"
+            )
+        if not (0.0 <= self.persistence_entropy <= 1.0):
+            raise ValueError(
+                f"persistence_entropy debe estar en [0,1], "
+                f"recibido: {self.persistence_entropy}"
+            )
+        if self.intrinsic_dimension < 0:
+            raise ValueError(
+                f"intrinsic_dimension debe ser ≥ 0, recibido: {self.intrinsic_dimension}"
+            )
+
     @classmethod
-    def empty(cls) -> 'TopologicalSummary':
-        """Crea un resumen vacío para casos de error o datos vacíos."""
+    def empty(cls) -> "TopologicalSummary":
+        """Resumen vacío para casos de error o datos vacíos."""
         return cls(
             betti=BettiNumbers.zero(),
             structural_entropy=0.0,
             persistence_entropy=0.0,
-            intrinsic_dimension=0
+            intrinsic_dimension=0,
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -509,300 +897,612 @@ class TopologicalSummary:
             **self.betti.to_dict(),
             "structural_entropy": round(self.structural_entropy, 6),
             "persistence_entropy": round(self.persistence_entropy, 6),
-            "intrinsic_dimension": self.intrinsic_dimension
+            "intrinsic_dimension": self.intrinsic_dimension,
         }
 
 
 # =============================================================================
-# VECTOR DE INTENCIÓN (FORMALIZACIÓN ALGEBRAICA)
+# VECTOR DE INTENCIÓN
 # =============================================================================
 
 @dataclass(frozen=True, slots=True)
 class IntentVector:
     """
     Vector de intención inmutable proyectado sobre la MIC.
-    
-    Formalización: Un IntentVector es un elemento del espacio vectorial V
-    definido sobre el anillo de servicios S, con coordenadas en el contexto C.
-    
+
     v = (service_name, payload, context) ∈ S × P × C
-    
-    La norma ||v|| representa la "magnitud" de la intención, útil para
-    priorización en colas de despacho.
     """
+
     service_name: str
     payload: Dict[str, Any] = field(default_factory=dict)
     context: Dict[str, Any] = field(default_factory=dict)
-    
+
     def __post_init__(self) -> None:
         if not self.service_name or not self.service_name.strip():
             raise ValueError("service_name no puede estar vacío")
-    
+
     @property
     def payload_hash(self) -> str:
-        """Hash del payload para cache y deduplicación."""
+        """SHA-256 truncado del payload para cache."""
         content = str(sorted(self.payload.items()))
         return hashlib.sha256(content.encode()).hexdigest()[:16]
-    
+
     @property
     def norm(self) -> float:
-        """
-        Norma del vector de intención.
-        
-        Heurística: ||v|| = √(|payload| + |context|)
-        """
+        """Norma Euclidiana del vector de intención."""
         return math.sqrt(len(self.payload) + len(self.context))
-    
-    def with_context(self, **additional_context) -> 'IntentVector':
-        """Crea un nuevo vector con contexto extendido (inmutabilidad)."""
-        new_context = {**self.context, **additional_context}
+
+    def with_context(self, **additional_context: Any) -> "IntentVector":
+        """Crea un nuevo vector con contexto extendido."""
         return IntentVector(
             service_name=self.service_name,
             payload=self.payload,
-            context=new_context
+            context={**self.context, **additional_context},
         )
 
 
 # =============================================================================
-# CACHE CON TTL (Thread-Safe)
+# CACHE CON TTL MEJORADO
 # =============================================================================
 
 @dataclass
 class CacheEntry(Generic[T]):
-    """Entrada de cache con timestamp para TTL."""
+    """Entrada de cache con metadata temporal."""
+
     value: T
     timestamp: float
-    
+    access_count: int = 0
+    size_bytes: int = 0
+
     def is_expired(self, ttl_seconds: float) -> bool:
-        """Verifica si la entrada ha expirado."""
-        return (time.time() - self.timestamp) > ttl_seconds
+        """True si la entrada ha superado su tiempo de vida."""
+        return (time.monotonic() - self.timestamp) > ttl_seconds
 
 
 class TTLCache(Generic[T]):
     """
-    Cache thread-safe con Time-To-Live.
-    
-    Implementa un patrón de cache con expiración automática para
-    resultados de operaciones costosas (análisis topológico, etc.).
+    Cache thread-safe con Time-To-Live y evicción O(1).
+
+    Mejoras v4:
+    - __contains__ para verificación de existencia
+    - Estadísticas de evicción y expiración
+    - get_or_compute para patrón cache-aside
+    - Estimación de tamaño en memoria
     """
-    
-    def __init__(self, ttl_seconds: float = _CACHE_TTL_SECONDS, max_size: int = 100):
-        self._data: Dict[str, CacheEntry[T]] = {}
+
+    __slots__ = (
+        "_data", "_lock", "_ttl", "_max_size",
+        "_hits", "_misses", "_evictions", "_expirations"
+    )
+
+    def __init__(
+        self,
+        ttl_seconds: float = 300.0,
+        max_size: int = 128,
+    ) -> None:
+        self._data: OrderedDict[str, CacheEntry[T]] = OrderedDict()
         self._lock = threading.RLock()
         self._ttl = ttl_seconds
         self._max_size = max_size
-    
-    def get(self, key: str) -> Optional[T]:
-        """Obtiene valor del cache si existe y no ha expirado."""
+        self._hits: int = 0
+        self._misses: int = 0
+        self._evictions: int = 0
+        self._expirations: int = 0
+
+    def __contains__(self, key: str) -> bool:
+        """Verifica si una clave existe y no ha expirado."""
         with self._lock:
             entry = self._data.get(key)
             if entry is None:
+                return False
+            if entry.is_expired(self._ttl):
+                del self._data[key]
+                self._expirations += 1
+                return False
+            return True
+
+    def get(self, key: str) -> Optional[T]:
+        """Obtiene valor del cache."""
+        with self._lock:
+            entry = self._data.get(key)
+            if entry is None:
+                self._misses += 1
                 return None
             if entry.is_expired(self._ttl):
                 del self._data[key]
+                self._misses += 1
+                self._expirations += 1
                 return None
+            self._data.move_to_end(key)
+            entry.access_count += 1
+            self._hits += 1
             return entry.value
-    
+
     def set(self, key: str, value: T) -> None:
         """Almacena valor en cache."""
         with self._lock:
-            # Evicción LRU simple si excede tamaño máximo
-            if len(self._data) >= self._max_size:
-                oldest_key = min(self._data.keys(), key=lambda k: self._data[k].timestamp)
-                del self._data[oldest_key]
-            
-            self._data[key] = CacheEntry(value=value, timestamp=time.time())
-    
+            if key in self._data:
+                self._data.move_to_end(key)
+                self._data[key] = CacheEntry(
+                    value=value, timestamp=time.monotonic()
+                )
+                return
+
+            while len(self._data) >= self._max_size:
+                self._data.popitem(last=False)
+                self._evictions += 1
+
+            self._data[key] = CacheEntry(value=value, timestamp=time.monotonic())
+
+    def get_or_compute(
+        self, 
+        key: str, 
+        compute_fn: Callable[[], T],
+        ttl_override: Optional[float] = None,
+    ) -> T:
+        """
+        Patrón cache-aside: obtiene del cache o computa y almacena.
+        
+        Args:
+            key: Clave de cache
+            compute_fn: Función para computar el valor si no está en cache
+            ttl_override: TTL específico para esta entrada (no implementado aún)
+        
+        Returns:
+            Valor del cache o recién computado
+        """
+        cached = self.get(key)
+        if cached is not None:
+            return cached
+        
+        value = compute_fn()
+        self.set(key, value)
+        return value
+
     def clear(self) -> int:
-        """Limpia el cache y retorna número de entradas eliminadas."""
+        """Limpia el cache y retorna el número de entradas eliminadas."""
         with self._lock:
             count = len(self._data)
             self._data.clear()
+            self._hits = 0
+            self._misses = 0
+            self._evictions = 0
+            self._expirations = 0
             return count
-    
+
     def prune_expired(self) -> int:
-        """Elimina entradas expiradas y retorna cantidad eliminada."""
+        """Elimina entradas expiradas."""
         with self._lock:
-            expired_keys = [k for k, v in self._data.items() if v.is_expired(self._ttl)]
-            for key in expired_keys:
+            expired = [
+                k for k, v in self._data.items() if v.is_expired(self._ttl)
+            ]
+            for key in expired:
                 del self._data[key]
-            return len(expired_keys)
-    
+                self._expirations += 1
+            return len(expired)
+
     @property
     def size(self) -> int:
         """Número de entradas en el cache."""
         with self._lock:
             return len(self._data)
 
+    @property
+    def hit_rate(self) -> float:
+        """Tasa de aciertos del cache."""
+        with self._lock:
+            total = self._hits + self._misses
+            return self._hits / total if total > 0 else 0.0
+
+    @property
+    def stats(self) -> CacheStats:
+        """Estadísticas del cache."""
+        with self._lock:
+            return CacheStats(
+                size=len(self._data),
+                max_size=self._max_size,
+                hits=self._hits,
+                misses=self._misses,
+                hit_rate=self.hit_rate,
+                ttl_seconds=self._ttl,
+                evictions=self._evictions,
+                expirations=self._expirations,
+            )
+
 
 # =============================================================================
-# MATRIZ DE INTERACCIÓN CENTRAL (MIC) - NÚCLEO DEL SISTEMA
+# MÉTRICAS ESPECTRALES DEL GRAFO DE SERVICIOS
 # =============================================================================
 
-class MICRegistry:
+class SpectralGraphMetrics:
     """
-    Matriz de Interacción Central (MIC).
-    
-    Implementa un Espacio Vectorial Jerárquico donde:
-    
-    1. **Base Canónica**: Cada servicio registrado es un vector base eᵢ
-       en el espacio de acción ℝⁿ.
-    
-    2. **Filtración de Estratos**: Define la cadena de inclusiones
-       V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM
-    
-    3. **Gatekeeper Algebraico**: Operador de proyección condicional
-       G(v, ctx) = v si valid(ctx) else 0⃗
-    
-    4. **Clausura Transitiva**: Para proyectar a estrato k, todos los
-       estratos base j > k deben estar validados.
-    
-    Thread Safety:
-        Todas las operaciones de registro y proyección están protegidas
-        por un RLock para garantizar consistencia en entornos concurrentes.
-    
-    Invariantes:
-        - Un servicio registrado no puede cambiar de estrato sin re-registro
-        - La proyección fallida siempre retorna respuesta estructurada
-        - El cache respeta el TTL configurado
+    Análisis espectral del grafo de dependencias entre servicios.
+
+    Mejoras v4:
+    - Soporte para scipy.sparse cuando está disponible
+    - Manejo de grafos vacíos y casos degenerados
+    - Caching de matrices construidas
     """
-    
-    __slots__ = ('_vectors', '_lock', '_cache', '_logger', '_metrics')
-    
-    def __init__(self, cache_ttl: float = _CACHE_TTL_SECONDS) -> None:
+
+    __slots__ = ("_mic", "_adjacency_cache", "_laplacian_cache")
+
+    def __init__(self, mic_registry: "MICRegistry") -> None:
+        self._mic = mic_registry
+        self._adjacency_cache: Optional[np.ndarray] = None
+        self._laplacian_cache: Optional[np.ndarray] = None
+
+    def _invalidate_cache(self) -> None:
+        """Invalida caches cuando el grafo cambia."""
+        self._adjacency_cache = None
+        self._laplacian_cache = None
+
+    def build_adjacency_matrix(self, use_sparse: bool = False) -> np.ndarray:
         """
-        Inicializa la MIC vacía.
-        
+        Construye la matriz de adyacencia del grafo de servicios.
+
         Args:
-            cache_ttl: Time-to-live del cache en segundos
+            use_sparse: Si True y scipy.sparse disponible, retorna matriz sparse.
+
+        Returns:
+            Matriz de adyacencia A ∈ {0,1}^{n×n}.
         """
-        self._vectors: Dict[str, Tuple[Stratum, VectorHandler]] = {}
-        self._lock = threading.RLock()
-        self._cache: TTLCache[Dict[str, Any]] = TTLCache(ttl_seconds=cache_ttl)
-        self._logger = logging.getLogger("MIC.Registry")
-        self._metrics: Dict[str, int] = {"projections": 0, "cache_hits": 0, "violations": 0}
+        if self._adjacency_cache is not None:
+            return self._adjacency_cache
+
+        with self._mic._lock:
+            services = list(self._mic._vectors.keys())
+            n = len(services)
+
+            if n == 0:
+                return np.zeros((0, 0), dtype=np.float64)
+
+            idx = {svc: i for i, svc in enumerate(services)}
+            
+            if use_sparse and SCIPY_SPARSE_AVAILABLE:
+                rows, cols, data = [], [], []
+                for svc_i, (stratum_i, _) in self._mic._vectors.items():
+                    for svc_j, (stratum_j, _) in self._mic._vectors.items():
+                        if svc_i != svc_j and stratum_i in stratum_j.requires():
+                            rows.append(idx[svc_i])
+                            cols.append(idx[svc_j])
+                            data.append(1.0)
+                A = sparse.csr_matrix(
+                    (data, (rows, cols)), shape=(n, n), dtype=np.float64
+                )
+            else:
+                A = np.zeros((n, n), dtype=np.float64)
+                for svc_i, (stratum_i, _) in self._mic._vectors.items():
+                    for svc_j, (stratum_j, _) in self._mic._vectors.items():
+                        if svc_i != svc_j and stratum_i in stratum_j.requires():
+                            A[idx[svc_i], idx[svc_j]] = 1.0
+
+            self._adjacency_cache = A
+            return A
+
+    def build_laplacian(self) -> np.ndarray:
+        """
+        Construye la matriz Laplaciana simétrica del grafo.
+
+        L = D - A_sym donde A_sym = (A + Aᵀ) / 2
+        """
+        if self._laplacian_cache is not None:
+            return self._laplacian_cache
+
+        A = self.build_adjacency_matrix()
+        if A.size == 0:
+            return np.zeros((0, 0))
+
+        A_sym = (A + A.T) / 2.0
+        D = np.diag(A_sym.sum(axis=1))
+        L = D - A_sym
+
+        self._laplacian_cache = L
+        return L
+
+    def compute_spectral_metrics(
+        self, 
+        config: Optional[MICConfiguration] = None
+    ) -> Dict[str, Any]:
+        """
+        Calcula métricas espectrales del grafo de servicios.
+
+        Returns:
+            Dict con conectividad algebraica, radio espectral, energía, etc.
+        """
+        config = config or DEFAULT_MIC_CONFIG
+        L = self.build_laplacian()
+        A = self.build_adjacency_matrix()
+
+        if L.size == 0:
+            return {
+                "algebraic_connectivity": 0.0,
+                "spectral_radius": 0.0,
+                "spectral_energy": 0.0,
+                "is_connected": False,
+                "n_components": 0,
+                "n_services": 0,
+            }
+
+        try:
+            # Eigenvalores de la Laplaciana
+            eigenvalues_L = np.linalg.eigvalsh(L)
+            eigenvalues_L_sorted = np.sort(eigenvalues_L)
+
+            # λ₂ de Fiedler
+            algebraic_connectivity = float(
+                eigenvalues_L_sorted[1] if len(eigenvalues_L_sorted) > 1 else 0.0
+            )
+
+            # Componentes conexos
+            n_components = int(
+                np.sum(np.abs(eigenvalues_L_sorted) < config.epsilon)
+            )
+
+            # Eigenvalores de la matriz de adyacencia
+            A_sym = (A + A.T) / 2.0
+            eigenvalues_A = np.linalg.eigvalsh(A_sym)
+            spectral_radius = float(np.max(np.abs(eigenvalues_A)))
+            spectral_energy = float(np.sum(np.abs(eigenvalues_A)))
+
+            return {
+                "algebraic_connectivity": round(algebraic_connectivity, 6),
+                "spectral_radius": round(spectral_radius, 6),
+                "spectral_energy": round(spectral_energy, 6),
+                "is_connected": algebraic_connectivity > config.epsilon,
+                "n_components": n_components,
+                "n_services": L.shape[0],
+                "fiedler_value": round(algebraic_connectivity, 6),
+            }
+
+        except np.linalg.LinAlgError as e:
+            logger.warning("Error en análisis espectral: %s", e)
+            return {
+                "algebraic_connectivity": 0.0,
+                "spectral_radius": 0.0,
+                "spectral_energy": 0.0,
+                "is_connected": False,
+                "n_components": 0,
+                "n_services": L.shape[0],
+                "error": str(e),
+            }
+
+
+# =============================================================================
+# MATRIZ DE TRANSICIÓN ENTRE ESTRATOS (CORREGIDA)
+# =============================================================================
+
+class StratumTransitionMatrix:
+    """
+    Matriz de Transición Markoviana entre estratos de la MIC.
+
+    T[i,j] = P(transición de estrato i a estrato j)
+
+    Modela el flujo de validación en la filtración DIKW:
+    - Desde PHYSICS se puede avanzar a TACTICS
+    - Desde TACTICS se puede avanzar a STRATEGY
+    - Desde STRATEGY se puede avanzar a WISDOM
+    - WISDOM es estado absorbente
+    """
+
+    def __init__(self) -> None:
+        self._strata = list(Stratum)
+        self._n = len(self._strata)
+        self._idx = {s: i for i, s in enumerate(self._strata)}
+
+    def build(self, service_counts: Dict[Stratum, int]) -> np.ndarray:
+        """
+        Construye la matriz de transición estocástica.
+
+        La transición i → j ocurre si el estrato i es prerrequisito de j.
+        Es decir, si i.value > j.value en la pirámide DIKW.
+
+        Args:
+            service_counts: Número de servicios por estrato.
+
+        Returns:
+            Matriz T ∈ [0,1]^{n×n} estocástica por filas.
+        """
+        T = np.zeros((self._n, self._n), dtype=np.float64)
+        epsilon = DEFAULT_MIC_CONFIG.epsilon
+
+        for s_from in self._strata:
+            i = self._idx[s_from]
+            
+            # Destinos alcanzables: estratos que tienen a s_from como prerrequisito
+            # j.requires() contiene s_from si s_from.value > j.value
+            reachable = [
+                s for s in self._strata
+                if s != s_from and s_from in s.requires()
+            ]
+
+            if not reachable:
+                # Estado absorbente (llegamos a la cúspide o base sin avance)
+                T[i, i] = 1.0
+                continue
+
+            # Peso proporcional al número de servicios destino
+            weights = np.array(
+                [float(max(1, service_counts.get(s, 1))) for s in reachable],
+                dtype=np.float64,
+            )
+            total_weight = weights.sum()
+            if total_weight > epsilon:
+                weights /= total_weight
+            else:
+                weights = np.ones_like(weights) / len(weights)
+
+            for s_to, w in zip(reachable, weights):
+                j = self._idx[s_to]
+                T[i, j] = w
+
+        return T
+
+    def stationary_distribution(
+        self, service_counts: Dict[Stratum, int]
+    ) -> Dict[str, float]:
+        """
+        Calcula la distribución estacionaria π tal que π T = π.
+
+        Returns:
+            Dict mapeando nombre de estrato a probabilidad estacionaria.
+        """
+        T = self.build(service_counts)
+        epsilon = DEFAULT_MIC_CONFIG.epsilon
+
+        try:
+            # Eigenvectores de Tᵀ → eigenvectores izquierdos de T
+            eigenvalues, eigenvectors = np.linalg.eig(T.T)
+
+            # El eigenvalor 1 (dentro de tolerancia numérica)
+            idx_unit = np.argmin(np.abs(eigenvalues - 1.0))
+            stationary = np.real(eigenvectors[:, idx_unit])
+
+            # Normalizar a distribución de probabilidad
+            stationary = np.abs(stationary)
+            total = stationary.sum()
+            if total > epsilon:
+                stationary /= total
+
+            return {
+                self._strata[i].name: round(float(stationary[i]), 6)
+                for i in range(self._n)
+            }
+
+        except np.linalg.LinAlgError:
+            # Fallback a distribución uniforme
+            uniform = 1.0 / self._n
+            return {s.name: round(uniform, 6) for s in self._strata}
+
+
+# =============================================================================
+# COMMAND PATTERN PARA PROYECCIÓN
+# =============================================================================
+
+class ProjectionCommand(ABC):
+    """
+    Comando abstracto para proyección de intenciones.
     
-    # ─────────────────────────────────────────────────────────────────────────
-    # PROPIEDADES DE INTROSPECCIÓN
-    # ─────────────────────────────────────────────────────────────────────────
+    Implementa el patrón Command para separar responsabilidades
+    en el flujo de project_intent.
+    """
     
-    @property
-    def registered_services(self) -> List[str]:
-        """Lista de servicios registrados (vectores base)."""
-        with self._lock:
-            return list(self._vectors.keys())
+    @abstractmethod
+    def execute(self, context: "ProjectionContext") -> Optional[ProjectionResult]:
+        """
+        Ejecuta el comando.
+        
+        Returns:
+            None para continuar al siguiente comando,
+            ProjectionResult para terminar la cadena.
+        """
+        pass
+
+
+@dataclass
+class ProjectionContext:
+    """Contexto compartido durante la proyección."""
+    service_name: str
+    payload: Dict[str, Any]
+    context: Dict[str, Any]
+    use_cache: bool
     
-    @property
-    def dimension(self) -> int:
-        """Dimensión del espacio vectorial (número de vectores base)."""
-        with self._lock:
-            return len(self._vectors)
+    # Resueltos durante ejecución
+    cache_key: Optional[str] = None
+    target_stratum: Optional[Stratum] = None
+    handler: Optional[VectorHandler] = None
+    validated_strata: Set[Stratum] = field(default_factory=set)
+    force_override: bool = False
     
-    @property
-    def metrics(self) -> Dict[str, int]:
-        """Métricas de uso de la MIC."""
-        with self._lock:
-            return self._metrics.copy()
+    # Métricas
+    start_time: float = field(default_factory=time.perf_counter)
+
+
+class CacheCheckCommand(ProjectionCommand):
+    """Verifica el cache antes de procesar."""
     
-    def is_registered(self, service_name: str) -> bool:
-        """Verifica si un servicio está registrado como vector base."""
-        with self._lock:
-            return service_name in self._vectors
+    def __init__(self, cache: TTLCache, metrics: MICMetrics) -> None:
+        self._cache = cache
+        self._metrics = metrics
     
-    def get_stratum(self, service_name: str) -> Optional[Stratum]:
-        """Retorna el estrato de un servicio registrado."""
-        with self._lock:
-            entry = self._vectors.get(service_name)
-            return entry[0] if entry else None
+    def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
+        if not ctx.use_cache:
+            return None
+        
+        try:
+            payload_repr = str(sorted(ctx.payload.items()))
+            ctx.cache_key = (
+                f"{ctx.service_name}:"
+                f"{hashlib.sha256(payload_repr.encode()).hexdigest()[:16]}"
+            )
+            cached = self._cache.get(ctx.cache_key)
+            if cached is not None:
+                self._metrics.cache_hits += 1
+                logger.debug("Cache hit: '%s'", ctx.service_name)
+                return cast(ProjectionResult, cached)
+        except (TypeError, ValueError) as e:
+            logger.debug(
+                "Cache key computation failed para '%s': %s",
+                ctx.service_name, e
+            )
+            ctx.cache_key = None
+        
+        return None
+
+
+class ResolutionCommand(ProjectionCommand):
+    """Resuelve el vector base y su estrato."""
     
-    def get_services_by_stratum(self, stratum: Stratum) -> List[str]:
-        """Retorna todos los servicios en un estrato dado."""
-        with self._lock:
-            return [name for name, (s, _) in self._vectors.items() if s == stratum]
-    
-    # ─────────────────────────────────────────────────────────────────────────
-    # REGISTRO DE VECTORES
-    # ─────────────────────────────────────────────────────────────────────────
-    
-    def register_vector(
-        self,
-        service_name: str,
-        stratum: Stratum,
-        handler: VectorHandler
+    def __init__(
+        self, 
+        vectors: Dict[str, Tuple[Stratum, VectorHandler]],
+        lock: threading.RLock,
+        metrics: MICMetrics,
     ) -> None:
-        """
-        Registra un microservicio como vector base en la MIC.
-        
-        Args:
-            service_name: Identificador único del servicio
-            stratum: Estrato jerárquico al que pertenece
-            handler: Función que ejecuta la lógica del servicio
-        
-        Raises:
-            ValueError: Si service_name está vacío
-            TypeError: Si handler no es callable
-        
-        Notes:
-            Si el servicio ya existe, se sobrescribe con warning.
-        """
+        self._vectors = vectors
+        self._lock = lock
+        self._metrics = metrics
+    
+    def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
         with self._lock:
-            # Validación de parámetros
-            if not service_name or not service_name.strip():
-                raise ValueError("service_name no puede estar vacío")
-            
-            if not callable(handler):
-                raise TypeError(f"handler debe ser callable, recibido: {type(handler).__name__}")
-            
-            # Warning si sobrescribimos
-            if service_name in self._vectors:
-                old_stratum = self._vectors[service_name][0]
-                self._logger.warning(
-                    f"Sobrescribiendo vector '{service_name}': "
-                    f"{old_stratum.name} → {stratum.name}"
+            if ctx.service_name not in self._vectors:
+                available = list(self._vectors.keys())
+                self._metrics.record_error("resolution_error")
+                return ProjectionResult(
+                    success=False,
+                    error=f"Vector desconocido: '{ctx.service_name}'",
+                    error_type="ValueError",
+                    error_category="resolution_error",
+                    error_details={"available_services": available},
                 )
             
-            self._vectors[service_name] = (stratum, handler)
-            self._logger.info(f"Vector registrado: {service_name} [{stratum.name}]")
-    
-    def unregister_vector(self, service_name: str) -> bool:
-        """
-        Elimina un servicio de la MIC.
+            ctx.target_stratum, ctx.handler = self._vectors[ctx.service_name]
         
-        Returns:
-            True si se eliminó, False si no existía
-        """
-        with self._lock:
-            if service_name in self._vectors:
-                del self._vectors[service_name]
-                self._logger.info(f"Vector eliminado: {service_name}")
-                return True
-            return False
+        return None
+
+
+class NormalizationCommand(ProjectionCommand):
+    """Normaliza el contexto de validación."""
     
-    # ─────────────────────────────────────────────────────────────────────────
-    # VALIDACIÓN JERÁRQUICA (GATEKEEPER)
-    # ─────────────────────────────────────────────────────────────────────────
+    def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
+        raw_validated = ctx.context.get("validated_strata", set())
+        ctx.validated_strata = self._normalize_validated_strata(raw_validated)
+        ctx.force_override = bool(ctx.context.get("force_physics_override", False))
+        return None
     
     def _normalize_validated_strata(self, raw: Any) -> Set[Stratum]:
-        """
-        Normaliza el conjunto de estratos validados desde el contexto.
-        
-        Acepta múltiples formatos de entrada:
-        - Set[Stratum], List[Stratum], FrozenSet[Stratum]
-        - List[str] con nombres de estratos
-        - List[int] con valores numéricos
-        
-        Returns:
-            Set[Stratum] normalizado y validado
-        """
+        """Normaliza el conjunto de estratos validados."""
         if raw is None:
             return set()
-        
+
         if not isinstance(raw, (set, list, tuple, frozenset)):
-            self._logger.warning(f"validated_strata tipo inválido: {type(raw).__name__}")
+            logger.warning(
+                "validated_strata tipo inválido: %s — se ignora",
+                type(raw).__name__,
+            )
             return set()
-        
+
         normalized: Set[Stratum] = set()
-        
+
         for item in raw:
             try:
                 if isinstance(item, Stratum):
@@ -812,206 +1512,389 @@ class MICRegistry:
                 elif isinstance(item, str):
                     normalized.add(Stratum[item.upper().strip()])
             except (ValueError, KeyError):
-                self._logger.debug(f"Ignorando estrato inválido: {item!r}")
-        
+                logger.debug("Ignorando estrato inválido: %r", item)
+
         return normalized
+
+
+class ValidationCommand(ProjectionCommand):
+    """Valida la jerarquía de estratos (Gatekeeper)."""
     
-    def _validate_hierarchy(
-        self,
-        target: Stratum,
-        validated: Set[Stratum],
-        force_override: bool = False
-    ) -> Tuple[bool, Set[Stratum]]:
-        """
-        Valida la clausura transitiva de prerrequisitos.
-        
-        Args:
-            target: Estrato objetivo de la proyección
-            validated: Estratos ya validados en el contexto
-            force_override: Si True, bypasea la validación (con warning)
-        
-        Returns:
-            Tuple (es_válido, estratos_faltantes)
-        """
-        if force_override:
-            self._logger.warning(
-                f"⚠️ Validación jerárquica bypaseada para {target.name} via force_override"
+    def __init__(self, metrics: MICMetrics) -> None:
+        self._metrics = metrics
+    
+    def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
+        if ctx.force_override:
+            logger.warning(
+                "⚠️ Validación jerárquica bypaseada para '%s' via force_override",
+                ctx.target_stratum.name if ctx.target_stratum else "unknown",
             )
-            return True, set()
+            return None
         
-        required = target.requires()
-        missing = required - validated
+        if ctx.target_stratum is None:
+            return ProjectionResult(
+                success=False,
+                error="Target stratum not resolved",
+                error_type="InternalError",
+                error_category="resolution_error",
+            )
         
-        return len(missing) == 0, missing
+        required = ctx.target_stratum.requires()
+        missing = required - ctx.validated_strata
+        
+        if missing:
+            self._metrics.violations += 1
+            self._metrics.record_error("hierarchy_violation")
+            
+            error = MICHierarchyViolationError(
+                target_stratum=ctx.target_stratum,
+                missing_strata=missing,
+                validated_strata=ctx.validated_strata,
+            )
+            logger.error(str(error))
+            return ProjectionResult(
+                success=False,
+                **error.to_dict(),
+            )
+        
+        return None
+
+
+class ExecutionCommand(ProjectionCommand):
+    """Ejecuta el handler del servicio."""
     
-    # ─────────────────────────────────────────────────────────────────────────
-    # PROYECCIÓN DE INTENCIONES (NÚCLEO DE DESPACHO)
-    # ─────────────────────────────────────────────────────────────────────────
+    def __init__(
+        self, 
+        cache: TTLCache, 
+        metrics: MICMetrics,
+        config: MICConfiguration,
+    ) -> None:
+        self._cache = cache
+        self._metrics = metrics
+        self._config = config
     
+    def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
+        if ctx.handler is None or ctx.target_stratum is None:
+            return ProjectionResult(
+                success=False,
+                error="Handler or stratum not resolved",
+                error_type="InternalError",
+                error_category="execution_error",
+            )
+        
+        try:
+            with self._metrics.handler_latency.measure():
+                result = ctx.handler(**ctx.payload)
+            
+            # Normalizar resultado
+            if not isinstance(result, dict):
+                result = {"success": True, "result": result}
+            
+            # Propagación de validación
+            if result.get("success", False):
+                updated_validated = ctx.validated_strata | {ctx.target_stratum}
+                result["_mic_validation_update"] = ctx.target_stratum.value
+                result["_mic_stratum"] = ctx.target_stratum.name
+                result["_mic_validated_strata"] = [s.name for s in updated_validated]
+                
+                # Almacenar en cache
+                if ctx.use_cache and ctx.cache_key is not None:
+                    self._cache.set(ctx.cache_key, result)
+                
+                self._metrics.record_projection(ctx.target_stratum)
+            
+            return cast(ProjectionResult, result)
+        
+        except TypeError as e:
+            logger.error(
+                "Firma de handler incorrecta para '%s': %s",
+                ctx.service_name, e
+            )
+            self._metrics.record_error("handler_signature_error")
+            return ProjectionResult(
+                success=False,
+                error=str(e),
+                error_type="TypeError",
+                error_category="handler_signature_error",
+                error_details={
+                    "service_name": ctx.service_name,
+                    "hint": "Verifique que las claves del payload coincidan con los parámetros"
+                },
+            )
+        
+        except Exception as e:
+            logger.exception("Error ejecutando vector '%s'", ctx.service_name)
+            self._metrics.record_error("execution_error")
+            return ProjectionResult(
+                success=False,
+                error=str(e),
+                error_type=type(e).__name__,
+                error_category="execution_error",
+                error_details={"service_name": ctx.service_name},
+            )
+
+
+# =============================================================================
+# MATRIZ DE INTERACCIÓN CENTRAL (MIC)
+# =============================================================================
+
+class MICRegistry:
+    """
+    Matriz de Interacción Central (MIC).
+
+    Implementa un Espacio Vectorial Jerárquico donde:
+    1. Base Canónica: Cada servicio es un vector base eᵢ
+    2. Filtración de Estratos: V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM
+    3. Gatekeeper Algebraico: Proyección condicional G(v, ctx)
+    4. Clausura Transitiva: Validación de prerrequisitos
+    """
+
+    __slots__ = (
+        "_vectors", "_lock", "_cache", "_logger", "_metrics",
+        "_config", "_projection_commands", "_spectral_analyzer"
+    )
+
+    def __init__(
+        self, 
+        config: Optional[MICConfiguration] = None,
+    ) -> None:
+        """
+        Inicializa la MIC.
+
+        Args:
+            config: Configuración de la MIC.
+        """
+        self._config = config or DEFAULT_MIC_CONFIG
+        self._vectors: Dict[str, Tuple[Stratum, VectorHandler]] = {}
+        self._lock = threading.RLock()
+        self._cache: TTLCache[Dict[str, Any]] = TTLCache(
+            ttl_seconds=self._config.cache_ttl_seconds,
+            max_size=self._config.cache_max_size,
+        )
+        self._logger = get_structured_logger("MIC.Registry")
+        self._metrics = MICMetrics()
+        self._spectral_analyzer: Optional[SpectralGraphMetrics] = None
+        
+        # Inicializar comandos de proyección
+        self._projection_commands: List[ProjectionCommand] = [
+            CacheCheckCommand(self._cache, self._metrics),
+            ResolutionCommand(self._vectors, self._lock, self._metrics),
+            NormalizationCommand(),
+            ValidationCommand(self._metrics),
+            ExecutionCommand(self._cache, self._metrics, self._config),
+        ]
+
+    # ── Propiedades de introspección ───────────────────────────────────────
+
+    @property
+    def registered_services(self) -> List[str]:
+        """Lista de servicios registrados."""
+        with self._lock:
+            return list(self._vectors.keys())
+
+    @property
+    def dimension(self) -> int:
+        """Dimensión del espacio vectorial."""
+        with self._lock:
+            return len(self._vectors)
+
+    @property
+    def metrics(self) -> Dict[str, Any]:
+        """Métricas de uso de la MIC."""
+        with self._lock:
+            return {
+                **self._metrics.to_dict(),
+                "cache": self._cache.stats,
+            }
+
+    @property
+    def config(self) -> MICConfiguration:
+        """Configuración actual de la MIC."""
+        return self._config
+
+    def is_registered(self, service_name: str) -> bool:
+        """Verifica si un servicio está registrado."""
+        with self._lock:
+            return service_name in self._vectors
+
+    def get_stratum(self, service_name: str) -> Optional[Stratum]:
+        """Retorna el estrato de un servicio, o None si no existe."""
+        with self._lock:
+            entry = self._vectors.get(service_name)
+            return entry[0] if entry else None
+
+    def get_services_by_stratum(self, stratum: Stratum) -> List[str]:
+        """Retorna todos los servicios en un estrato dado."""
+        with self._lock:
+            return [
+                name for name, (s, _) in self._vectors.items()
+                if s == stratum
+            ]
+
+    def get_stratum_hierarchy(self) -> Dict[str, List[str]]:
+        """Retorna la estructura jerárquica completa."""
+        hierarchy: Dict[str, List[str]] = {
+            s.name: [] for s in Stratum.ordered_bottom_up()
+        }
+        with self._lock:
+            for name, (stratum, _) in self._vectors.items():
+                hierarchy[stratum.name].append(name)
+        return hierarchy
+
+    # ── Registro de Vectores ───────────────────────────────────────────────
+
+    def register_vector(
+        self,
+        service_name: str,
+        stratum: Stratum,
+        handler: VectorHandler,
+    ) -> None:
+        """
+        Registra un microservicio como vector base.
+
+        Args:
+            service_name: Identificador único del servicio.
+            stratum: Estrato jerárquico.
+            handler: Callable que ejecuta la lógica.
+
+        Raises:
+            ValueError: Si service_name está vacío.
+            TypeError: Si handler no es callable o stratum no es Stratum.
+        """
+        with self._lock:
+            if not service_name or not service_name.strip():
+                raise ValueError("service_name no puede estar vacío")
+
+            if not isinstance(stratum, Stratum):
+                raise TypeError(
+                    f"stratum debe ser Stratum, recibido: {type(stratum).__name__!r}"
+                )
+
+            if not callable(handler):
+                raise TypeError(
+                    f"handler debe ser callable, recibido: {type(handler).__name__!r}"
+                )
+
+            if service_name in self._vectors:
+                old_stratum = self._vectors[service_name][0]
+                self._logger.warning(
+                    "Sobrescribiendo vector '%s': %s → %s",
+                    service_name, old_stratum.name, stratum.name
+                )
+
+            self._vectors[service_name] = (stratum, handler)
+            
+            # Invalidar cache de análisis espectral
+            if self._spectral_analyzer is not None:
+                self._spectral_analyzer._invalidate_cache()
+            
+            self._logger.info(
+                "Vector registrado: '%s' [%s]", service_name, stratum.name
+            )
+
+    def unregister_vector(self, service_name: str) -> bool:
+        """
+        Elimina un servicio de la MIC.
+
+        Returns:
+            True si se eliminó exitosamente, False si no existía.
+        """
+        with self._lock:
+            if service_name in self._vectors:
+                del self._vectors[service_name]
+                if self._spectral_analyzer is not None:
+                    self._spectral_analyzer._invalidate_cache()
+                self._logger.info("Vector eliminado: '%s'", service_name)
+                return True
+            return False
+
+    # ── Proyección de Intenciones ─────────────────────────────────────────
+
     def project_intent(
         self,
         service_name: str,
         payload: Dict[str, Any],
         context: Dict[str, Any],
         *,
-        use_cache: bool = False
-    ) -> Dict[str, Any]:
+        use_cache: bool = False,
+    ) -> ProjectionResult:
         """
-        Proyecta una intención sobre el espacio vectorial de la MIC.
-        
-        Este es el método central de despacho. Implementa el flujo:
-        1. Resolución: Verifica que el servicio exista
-        2. Normalización: Procesa el contexto y estratos validados
-        3. Validación: Verifica clausura transitiva (Gatekeeper)
-        4. Ejecución: Invoca el handler con el payload
-        5. Propagación: Marca el estrato como validado en la respuesta
-        
+        Proyecta una intención sobre el espacio vectorial.
+
+        Flujo de ejecución (Command Pattern):
+          1. Cache check
+          2. Resolución del vector base
+          3. Normalización del contexto
+          4. Validación jerárquica (Gatekeeper)
+          5. Ejecución del handler
+          6. Propagación de validación
+
         Args:
-            service_name: Nombre del servicio/vector a proyectar
-            payload: Argumentos para el handler
-            context: Contexto de ejecución (debe incluir validated_strata)
-            use_cache: Si True, intenta usar cache para resultados idempotentes
-        
+            service_name: Nombre del servicio a proyectar.
+            payload: Argumentos para el handler.
+            context: Contexto de ejecución.
+            use_cache: Si True, usa cache de resultados.
+
         Returns:
-            Dict con resultado de la ejecución o error estructurado
-        
-        Raises:
-            No lanza excepciones directamente; todos los errores se encapsulan
-            en la respuesta con success=False.
+            ProjectionResult con resultado o error estructurado.
         """
-        # ─── Fase 0: Cache Check ───
-        if use_cache:
-            cache_key = f"{service_name}:{hashlib.sha256(str(sorted(payload.items())).encode()).hexdigest()[:16]}"
-            cached = self._cache.get(cache_key)
-            if cached is not None:
-                with self._lock:
-                    self._metrics["cache_hits"] += 1
-                self._logger.debug(f"Cache hit: {service_name}")
-                return cached
-        
-        # ─── Fase 1: Resolución del Vector ───
-        with self._lock:
-            self._metrics["projections"] += 1
-            
-            if service_name not in self._vectors:
-                available = list(self._vectors.keys())
-                error_msg = (
-                    f"Vector desconocido: '{service_name}'. "
-                    f"Disponibles: {available if available else 'ninguno registrado'}"
-                )
-                return self._create_error_response(
-                    ValueError(error_msg),
-                    error_category="resolution_error"
-                )
-            
-            target_stratum, handler = self._vectors[service_name]
-        
-        # ─── Fase 2: Normalización del Contexto ───
-        raw_validated = context.get("validated_strata", set())
-        validated_strata = self._normalize_validated_strata(raw_validated)
-        force_override = bool(context.get("force_physics_override", False))
-        
-        # ─── Fase 3: Validación Jerárquica (Gatekeeper) ───
-        is_valid, missing = self._validate_hierarchy(
-            target_stratum, validated_strata, force_override
+        ctx = ProjectionContext(
+            service_name=service_name,
+            payload=payload,
+            context=context,
+            use_cache=use_cache,
         )
         
-        if not is_valid:
-            with self._lock:
-                self._metrics["violations"] += 1
-            
-            error = MICHierarchyViolationError(
-                target_stratum=target_stratum,
-                missing_strata=missing,
-                validated_strata=validated_strata
-            )
-            self._logger.error(str(error))
-            return self._create_error_response(error)
+        with self._metrics.projection_latency.measure():
+            for command in self._projection_commands:
+                result = command.execute(ctx)
+                if result is not None:
+                    return result
         
-        # ─── Fase 4: Ejecución del Handler ───
-        try:
-            result = handler(**payload)
-            
-            # Normalizar resultado a dict
-            if not isinstance(result, dict):
-                result = {"success": True, "result": result}
-            
-            # ─── Fase 5: Propagación de Validación ───
-            if result.get("success", False):
-                result["_mic_validation_update"] = target_stratum.value
-                result["_mic_stratum"] = target_stratum.name
-                result["_mic_validated_strata"] = [s.name for s in validated_strata | {target_stratum}]
-            
-            # Cache si es exitoso y está habilitado
-            if use_cache and result.get("success", False):
-                self._cache.set(cache_key, result)
-            
-            return result
-        
-        except TypeError as e:
-            # Error de firma: payload no coincide con handler
-            self._logger.error(f"Firma de handler incorrecta para '{service_name}': {e}")
-            return self._create_error_response(
-                e,
-                error_category="handler_signature_error",
-                service_name=service_name,
-                hint="Verifique que las claves del payload coincidan con los parámetros del handler"
-            )
-        
-        except Exception as e:
-            self._logger.exception(f"Error ejecutando vector '{service_name}'")
-            return self._create_error_response(
-                e,
-                error_category="execution_error",
-                service_name=service_name
-            )
-    
-    # ─────────────────────────────────────────────────────────────────────────
-    # UTILIDADES Y RESPUESTAS
-    # ─────────────────────────────────────────────────────────────────────────
-    
-    @staticmethod
-    def _create_error_response(
-        error: Union[Exception, str],
-        error_category: str = "error",
-        **extra
-    ) -> Dict[str, Any]:
-        """Crea respuesta de error estructurada y consistente."""
-        if isinstance(error, MICException):
-            return {"success": False, **error.to_dict(), **extra}
-        
-        msg = str(error)
-        details = getattr(error, "details", {}) if isinstance(error, Exception) else {}
-        
-        return {
-            "success": False,
-            "error": msg,
-            "error_type": type(error).__name__ if isinstance(error, Exception) else "Error",
-            "error_category": error_category,
-            "error_details": details,
-            **extra
-        }
-    
+        # No debería llegar aquí
+        return ProjectionResult(
+            success=False,
+            error="Projection pipeline incomplete",
+            error_type="InternalError",
+            error_category="pipeline_error",
+        )
+
+    # ── Utilidades ─────────────────────────────────────────────────────────
+
     def clear_cache(self) -> int:
-        """Limpia el cache de resultados. Retorna número de entradas eliminadas."""
+        """Limpia el cache de resultados."""
         count = self._cache.clear()
-        self._logger.info(f"Cache limpiado: {count} entradas eliminadas")
+        self._logger.info("Cache limpiado: %d entradas eliminadas", count)
         return count
-    
-    def get_stratum_hierarchy(self) -> Dict[str, List[str]]:
-        """
-        Retorna la estructura jerárquica de la MIC.
-        
-        Returns:
-            Dict mapeando cada estrato a sus servicios
-        """
-        hierarchy: Dict[str, List[str]] = {s.name: [] for s in Stratum}
-        
+
+    def spectral_analysis(self) -> Dict[str, Any]:
+        """Ejecuta análisis espectral del grafo de servicios."""
+        if self._spectral_analyzer is None:
+            self._spectral_analyzer = SpectralGraphMetrics(self)
+        return self._spectral_analyzer.compute_spectral_metrics(self._config)
+
+    def stratum_statistics(self) -> Dict[str, Any]:
+        """Estadísticas por estrato."""
         with self._lock:
-            for name, (stratum, _) in self._vectors.items():
-                hierarchy[stratum.name].append(name)
-        
-        return hierarchy
+            counts: Dict[str, int] = {s.name: 0 for s in Stratum}
+            for _, (stratum, _) in self._vectors.items():
+                counts[stratum.name] += 1
+
+        total = sum(counts.values())
+        distribution = {
+            k: round(v / total, 4) if total > 0 else 0.0
+            for k, v in counts.items()
+        }
+
+        probs = list(distribution.values())
+        entropy = compute_shannon_entropy(probs)
+
+        return {
+            "counts_by_stratum": counts,
+            "distribution": distribution,
+            "stratum_entropy": round(entropy, 6),
+            "total_services": total,
+        }
 
 
 # =============================================================================
@@ -1020,308 +1903,338 @@ class MICRegistry:
 
 def compute_shannon_entropy(
     probabilities: Sequence[float],
-    base: float = 2.0
+    base: float = 2.0,
+    epsilon: float = DEFAULT_MIC_CONFIG.epsilon,
 ) -> float:
     """
     Calcula la entropía de Shannon con estabilidad numérica.
-    
-    H(X) = -Σ p(x) · log_b(p(x))
-    
-    Args:
-        probabilities: Distribución de probabilidad (debe sumar ~1.0)
-        base: Base del logaritmo (2.0 para bits, e para nats)
-    
-    Returns:
-        Entropía en la unidad correspondiente a la base
-    
-    Raises:
-        ValueError: Si alguna probabilidad es negativa
-    
-    Notes:
-        - Probabilidades cercanas a 0 se manejan con _EPSILON
-        - La distribución se normaliza si no suma exactamente 1.0
+
+    H(X) = -Σ p(xᵢ) · log_b(p(xᵢ))
     """
     if not probabilities:
         return 0.0
 
+    if base <= 1.0:
+        raise ValueError(f"La base debe ser > 1, recibida: {base}")
+
     probs = np.asarray(probabilities, dtype=np.float64)
 
-    if np.any(probs < 0):
+    if np.any(probs < 0.0):
         raise ValueError("Las probabilidades no pueden ser negativas")
 
     total = np.sum(probs)
-    if total < _EPSILON:
+    if total < epsilon:
         return 0.0
 
-    # Normalizar si es necesario
-    if not np.isclose(total, 1.0, rtol=1e-5):
+    if not np.isclose(total, 1.0, rtol=1e-5, atol=1e-8):
         probs = probs / total
 
-    # Filtrar valores muy pequeños para estabilidad
-    mask = probs > _EPSILON
+    mask = probs > epsilon
     nonzero_probs = probs[mask]
 
     if len(nonzero_probs) == 0:
         return 0.0
 
-    log_probs = np.log(nonzero_probs) / np.log(base)
-    entropy = -np.sum(nonzero_probs * log_probs)
+    log_base = math.log(base)
+    entropy = -float(np.sum(nonzero_probs * np.log(nonzero_probs))) / log_base
 
-    return float(max(0.0, entropy))
+    return max(0.0, entropy)
 
 
 def distribution_from_counts(counts: Union[Dict[Any, int], Counter]) -> List[float]:
-    """Convierte conteos a distribución de probabilidad normalizada."""
+    """Convierte conteos a distribución de probabilidad."""
     if not counts:
         return []
-    
+
     values = list(counts.values())
     total = sum(values)
-    
+
     if total == 0:
         return []
-    
+
     return [v / total for v in values]
 
 
-def compute_persistence_entropy(intervals: Sequence[PersistenceInterval]) -> float:
+def compute_persistence_entropy(
+    intervals: Sequence[PersistenceInterval],
+    config: Optional[MICConfiguration] = None,
+) -> float:
     """
     Calcula la entropía del diagrama de persistencia.
-    
-    La entropía de persistencia cuantifica la "complejidad topológica"
-    del espacio: valores altos indican muchas características de
-    persistencias similares (más complejo), valores bajos indican
-    dominancia de pocas características (más simple).
-    
-    Args:
-        intervals: Secuencia de intervalos de persistencia
-    
-    Returns:
-        Entropía normalizada en [0, 1]
+
+    H_pers = -Σ (lᵢ/L) · log₂(lᵢ/L)
     """
+    config = config or DEFAULT_MIC_CONFIG
+    
     if not intervals:
         return 0.0
-    
-    # Filtrar intervalos finitos (esenciales tienen persistencia infinita)
-    finite_intervals = [iv for iv in intervals if not iv.is_essential]
-    
-    if not finite_intervals:
+
+    finite = [iv for iv in intervals if not iv.is_essential]
+
+    if not finite:
         return 0.0
-    
-    persistences = [iv.persistence for iv in finite_intervals]
-    total_persistence = sum(persistences)
-    
-    if total_persistence < _EPSILON:
+
+    persistences = np.array([iv.persistence for iv in finite], dtype=np.float64)
+    total = persistences.sum()
+
+    if total < config.epsilon:
         return 0.0
-    
-    probs = [p / total_persistence for p in persistences]
-    raw_entropy = compute_shannon_entropy(probs)
-    
-    # Normalizar por entropía máxima posible
-    max_entropy = math.log2(len(probs)) if len(probs) > 1 else 1.0
-    
-    return raw_entropy / max_entropy if max_entropy > 0 else 0.0
+
+    probs = persistences / total
+    raw_entropy = compute_shannon_entropy(probs.tolist())
+
+    n = len(probs)
+    max_entropy = math.log2(n) if n > 1 else 1.0
+
+    return raw_entropy / max_entropy if max_entropy > config.epsilon else 0.0
 
 
 # =============================================================================
 # ANÁLISIS TOPOLÓGICO
 # =============================================================================
 
-def detect_cyclic_patterns(lines: List[str], max_period: int = 50) -> int:
+def _jaccard_similarity(tokens_a: FrozenSet[str], tokens_b: FrozenSet[str]) -> float:
+    """Similitud de Jaccard entre dos conjuntos."""
+    if not tokens_a and not tokens_b:
+        return 0.0
+    intersection = tokens_a & tokens_b
+    union = tokens_a | tokens_b
+    return len(intersection) / len(union) if union else 0.0
+
+
+def _tokenize_line(line: str) -> FrozenSet[str]:
+    """Tokeniza una línea en conjunto de tokens."""
+    tokens = re.split(r"[,;\t|:\s]+", line.strip())
+    return frozenset(t for t in tokens if t)
+
+
+def detect_cyclic_patterns(
+    lines: List[str], 
+    config: Optional[MICConfiguration] = None,
+) -> int:
     """
     Detecta patrones cíclicos en una secuencia de líneas.
-    
-    Utiliza autocorrelación discreta para encontrar periodicidades.
-    
-    Args:
-        lines: Lista de líneas a analizar
-        max_period: Período máximo a buscar
-    
-    Returns:
-        Número de patrones cíclicos significativos detectados (proxy para β₁)
+
+    Mejoras v4:
+    - Early termination cuando se alcanza umbral
+    - Límite configurable de líneas a analizar
+    - Progreso logarítmico para archivos grandes
     """
-    if len(lines) < 3:
+    config = config or DEFAULT_MIC_CONFIG
+    n = len(lines)
+    
+    if n < 3:
         return 0
-    
+
+    # Limitar líneas para rendimiento
+    effective_n = min(n, config.max_lines_for_cycle_detection)
+    lines_to_analyze = lines[:effective_n]
+
+    # Pre-tokenizar
+    tokenized = [_tokenize_line(line) for line in lines_to_analyze]
+
     cycles_found = 0
-    
-    for period in range(1, min(max_period, len(lines) // 2)):
-        matches = sum(1 for i in range(len(lines) - period) if lines[i] == lines[i + period])
-        comparisons = len(lines) - period
-        
-        if comparisons > 0 and matches / comparisons > 0.8:
+    effective_max = min(config.max_cycle_period, effective_n // 2)
+
+    for period in range(1, effective_max + 1):
+        comparisons = effective_n - period
+        if comparisons <= 0:
+            continue
+
+        matches = sum(
+            1 for i in range(comparisons)
+            if _jaccard_similarity(tokenized[i], tokenized[i + period])
+            >= config.cycle_similarity_threshold
+        )
+
+        if matches / comparisons >= config.cycle_similarity_threshold:
             cycles_found += 1
-    
+
     return cycles_found
 
 
-def estimate_intrinsic_dimension(lines: List[str]) -> int:
+def estimate_intrinsic_dimension(
+    lines: List[str],
+    config: Optional[MICConfiguration] = None,
+) -> int:
     """
     Estima la dimensión intrínseca del espacio de datos.
-    
-    Para archivos tabulares, esto corresponde aproximadamente al
-    número de columnas (grados de libertad).
     """
+    config = config or DEFAULT_MIC_CONFIG
+    
     if not lines:
         return 0
-    
-    sample = lines[0]
-    
-    for delimiter in [',', ';', '\t', '|']:
-        if delimiter in sample:
-            col_counts = [len(line.split(delimiter)) for line in lines[:100]]
+
+    data_lines = lines[1:] if len(lines) > 1 else lines
+    sample = data_lines[:min(100, len(data_lines))]
+
+    if not sample:
+        return 1
+
+    for delimiter in [",", ";", "\t", "|", ":"]:
+        if any(delimiter in line for line in sample[:5]):
+            col_counts = [len(line.split(delimiter)) for line in sample]
             if col_counts:
-                return max(set(col_counts), key=col_counts.count)
-    
+                col_counts_sorted = sorted(col_counts)
+                mid = len(col_counts_sorted) // 2
+                median_cols = (
+                    col_counts_sorted[mid]
+                    if len(col_counts_sorted) % 2 != 0
+                    else (col_counts_sorted[mid - 1] + col_counts_sorted[mid]) // 2
+                )
+                return max(1, int(median_cols))
+
     return 1
 
 
-def analyze_topological_features(file_path: Path) -> TopologicalSummary:
+def analyze_topological_features(
+    file_path: Path,
+    config: Optional[MICConfiguration] = None,
+) -> TopologicalSummary:
     """
     Analiza características topológicas de un archivo.
-    
-    Computa una aproximación a los números de Betti basada en:
-    - β₀: Número de patrones únicos (componentes conexos)
-    - β₁: Patrones cíclicos detectados
-    - Entropía estructural de la distribución de líneas
-    
-    Args:
-        file_path: Ruta al archivo a analizar
-    
-    Returns:
-        TopologicalSummary con métricas calculadas
     """
+    config = config or DEFAULT_MIC_CONFIG
+    
     try:
-        with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
-            lines = [line.rstrip('\n\r') for line in f.readlines()[:_MAX_SAMPLE_ROWS]]
-        
+        with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+            lines = [
+                line.rstrip("\n\r") 
+                for line in f.readlines()[:config.max_sample_rows]
+            ]
+
         if not lines:
             return TopologicalSummary.empty()
-        
-        # Conteo de patrones únicos
+
         line_counts = Counter(lines)
         num_unique = len(line_counts)
-        
-        # Números de Betti aproximados
-        beta_0 = num_unique  # Componentes conexos
-        beta_1 = detect_cyclic_patterns(lines)  # Ciclos
-        
-        # Dimensión intrínseca
-        dimension = estimate_intrinsic_dimension(lines)
-        
-        # Entropía estructural
+
+        beta_0 = max(1, num_unique)
+        beta_1 = detect_cyclic_patterns(lines, config)
+        dimension = estimate_intrinsic_dimension(lines, config)
+
         distribution = distribution_from_counts(line_counts)
         structural_entropy = compute_shannon_entropy(distribution)
-        
-        # Crear resumen
+
         betti = BettiNumbers(beta_0=beta_0, beta_1=beta_1, beta_2=0)
-        
+
         return TopologicalSummary(
             betti=betti,
             structural_entropy=structural_entropy,
-            persistence_entropy=0.0,  # Se calcula con diagrama de persistencia
-            intrinsic_dimension=dimension
+            persistence_entropy=0.0,
+            intrinsic_dimension=dimension,
         )
-    
+
     except Exception as e:
-        logger.warning(f"Análisis topológico falló: {e}")
+        logger.warning("Análisis topológico falló para '%s': %s", file_path, e)
         return TopologicalSummary.empty()
 
 
 def compute_homology_from_diagnostic(diagnostic_data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Calcula grupos de homología a partir de datos diagnósticos.
-    
-    Mapea el espacio de issues a un espacio topológico:
-    - Tipos de issues → Componentes conexos (β₀)
-    - Referencias circulares → Ciclos (β₁)
-    """
+    """Calcula grupos de homología a partir de datos diagnósticos."""
     issues = diagnostic_data.get("issues", [])
     warnings = diagnostic_data.get("warnings", [])
-    
-    # Tipos de issues como componentes
+
     issue_types: Set[str] = set()
     for issue in issues:
         if isinstance(issue, dict):
             issue_types.add(issue.get("type", issue.get("code", "unknown")))
         else:
-            issue_types.add(str(type(issue).__name__))
-    
+            issue_types.add(type(issue).__name__)
+
     beta_0 = max(1, len(issue_types))
-    
-    # Detectar referencias circulares
-    circular_keywords = {"circular", "cycle", "loop", "recursive", "dependency"}
-    
+
+    circular_keywords = frozenset({
+        "circular", "cycle", "loop", "recursive", "dependency"
+    })
+
     def has_circular(item: Any) -> bool:
-        return any(kw in str(item).lower() for kw in circular_keywords)
-    
-    beta_1 = sum(1 for w in warnings if has_circular(w))
-    beta_1 += sum(1 for i in issues if has_circular(i))
-    
+        text = str(item).lower()
+        return any(kw in text for kw in circular_keywords)
+
+    beta_1 = sum(1 for item in (*warnings, *issues) if has_circular(item))
+
     betti = BettiNumbers(beta_0=beta_0, beta_1=beta_1, beta_2=0)
-    
+
     return {
         "H_0": f"ℤ^{beta_0}",
-        "H_1": f"ℤ^{beta_1}",
-        **betti.to_dict()
+        "H_1": f"ℤ^{beta_1}" if beta_1 > 0 else "0",
+        **betti.to_dict(),
     }
 
 
-def compute_persistence_diagram(diagnostic_data: Dict[str, Any]) -> List[PersistenceInterval]:
-    """
-    Calcula diagrama de persistencia para issues diagnósticos.
-    
-    Cada issue genera un intervalo cuya persistencia es proporcional
-    a su severidad.
-    """
+def compute_persistence_diagram(
+    diagnostic_data: Dict[str, Any],
+) -> List[PersistenceInterval]:
+    """Calcula el diagrama de persistencia para issues diagnósticos."""
     issues = diagnostic_data.get("issues", [])
     if not issues:
         return []
-    
-    severity_map = {"CRITICAL": 1.0, "HIGH": 0.8, "MEDIUM": 0.5, "LOW": 0.2, "INFO": 0.1}
+
+    severity_to_weight: Dict[str, float] = {
+        "CRITICAL": 1.0, "HIGH": 0.8, "MEDIUM": 0.5, "LOW": 0.2, "INFO": 0.1,
+    }
+
+    delta_t: float = 0.1
     intervals: List[PersistenceInterval] = []
-    
+
     for idx, issue in enumerate(issues):
         if isinstance(issue, dict):
             raw_severity = issue.get("severity", "MEDIUM")
-            severity = severity_map.get(str(raw_severity).upper(), 0.5)
+            weight = severity_to_weight.get(str(raw_severity).upper(), 0.5)
         else:
-            severity = 0.5
-        
-        birth = idx * 0.1
-        death = birth + severity
-        
+            weight = 0.5
+
+        birth = idx * delta_t
+        death = birth + weight
+
         try:
-            intervals.append(PersistenceInterval(birth=birth, death=death, dimension=0))
+            intervals.append(
+                PersistenceInterval(birth=birth, death=death, dimension=0)
+            )
         except ValueError:
-            continue
-    
-    # Filtrar por umbral de significancia y ordenar
-    significant = [iv for iv in intervals if iv.persistence >= _PERSISTENCE_THRESHOLD]
+            pass
+
+    config = DEFAULT_MIC_CONFIG
+    significant = [
+        iv for iv in intervals 
+        if iv.persistence >= config.persistence_threshold
+    ]
     significant.sort()
-    
+
     return significant
 
 
 def compute_diagnostic_magnitude(diagnostic_data: Dict[str, Any]) -> float:
-    """
-    Calcula la magnitud normalizada del vector diagnóstico.
-    
-    Usa norma ponderada: ||v|| = √(w_e·|errors|² + w_i·|issues|² + w_w·|warnings|²)
-    normalizada por tanh para acotar en [0, 1].
-    """
-    n_errors = len(diagnostic_data.get("errors", []))
-    n_issues = len(diagnostic_data.get("issues", []))
-    n_warnings = len(diagnostic_data.get("warnings", []))
-    
-    # Pesos por severidad
-    raw_magnitude = math.sqrt(
-        3.0 * (n_errors ** 2) +
-        2.0 * (n_issues ** 2) +
-        1.0 * (n_warnings ** 2)
+    """Calcula la magnitud normalizada del vector diagnóstico."""
+    issues = diagnostic_data.get("issues", [])
+    errors = diagnostic_data.get("errors", [])
+    warnings = diagnostic_data.get("warnings", [])
+
+    severity_counts: Counter[str] = Counter()
+
+    for item in issues:
+        if isinstance(item, dict):
+            sev = str(item.get("severity", "MEDIUM")).upper()
+        else:
+            sev = "MEDIUM"
+        severity_counts[sev] += 1
+
+    severity_counts["CRITICAL"] += len(errors)
+    severity_counts["LOW"] += len(warnings)
+
+    weighted_sq_sum = sum(
+        _SEVERITY_WEIGHTS.get(sev, 1.0) * (count ** 2)
+        for sev, count in severity_counts.items()
     )
-    
-    return round(math.tanh(raw_magnitude / 10.0), 4)
+    raw_magnitude = math.sqrt(weighted_sq_sum)
+
+    total_items = max(1, len(issues) + len(errors) + len(warnings))
+    scale = math.sqrt(float(total_items))
+
+    normalized = math.tanh(raw_magnitude / scale)
+
+    return round(normalized, 4)
 
 
 # =============================================================================
@@ -1338,57 +2251,78 @@ def normalize_path(path: Union[str, Path]) -> Path:
 
 
 def validate_file_exists(path: Path) -> None:
-    """Valida existencia y tipo del archivo."""
+    """Valida existencia y tipo del objeto."""
     if not path.exists():
         raise FileNotFoundDiagnosticError(path)
     if not path.is_file():
-        raise FileValidationError(f"La ruta no es un archivo: {path}")
+        raise FileValidationError(
+            f"La ruta no apunta a un archivo regular: {path}",
+            path=str(path),
+        )
+
+
+def validate_file_permissions(path: Path, check_read: bool = True) -> None:
+    """
+    Valida permisos de acceso al archivo.
+    
+    Args:
+        path: Ruta al archivo.
+        check_read: Si verificar permiso de lectura.
+    
+    Raises:
+        FilePermissionError: Si no hay permisos suficientes.
+    """
+    if check_read and not os.access(path, os.R_OK):
+        raise FilePermissionError(path, "read")
 
 
 def validate_file_extension(path: Path) -> str:
-    """Valida extensión del archivo."""
+    """Valida la extensión del archivo."""
     ext = path.suffix.lower()
     if ext not in VALID_EXTENSIONS:
         raise FileValidationError(
-            f"Extensión inválida: {ext}",
-            expected=list(VALID_EXTENSIONS)
+            f"Extensión no soportada: '{ext}'",
+            provided=ext,
+            expected=sorted(VALID_EXTENSIONS),
         )
     return ext
 
 
-def validate_file_size(path: Path, max_size: int = MAX_FILE_SIZE_BYTES) -> Tuple[int, bool]:
-    """
-    Valida tamaño del archivo.
-    
-    Returns:
-        Tuple (tamaño_bytes, está_vacío)
-    """
+def validate_file_size(
+    path: Path,
+    max_size: Optional[int] = None,
+) -> Tuple[int, bool]:
+    """Valida el tamaño del archivo."""
+    max_size = max_size or DEFAULT_MIC_CONFIG.max_file_size_bytes
     size = path.stat().st_size
     if size > max_size:
         raise FileValidationError(
-            f"Archivo excede límite: {size:,} > {max_size:,} bytes",
-            actual_size=size,
-            max_size=max_size
+            f"Archivo excede el límite: {size:,} bytes > {max_size:,} bytes",
+            actual_size_bytes=size,
+            max_size_bytes=max_size,
+            file=str(path),
         )
     return size, size == 0
 
 
 def normalize_encoding(encoding: str) -> str:
-    """Normaliza nombre de codificación con fallback seguro."""
-    if not encoding:
+    """Normaliza el nombre de codificación."""
+    if not encoding or not encoding.strip():
         return "utf-8"
-    
+
     norm = encoding.lower().replace("_", "-").replace(" ", "")
-    
-    # Buscar en aliases
+
     for alias, standard in _ENCODING_ALIASES.items():
-        if norm == alias.lower().replace("_", "").replace("-", ""):
+        alias_norm = alias.lower().replace("_", "").replace("-", "")
+        if norm.replace("-", "") == alias_norm:
             return standard
-    
-    # Verificar si es soportado directamente
+
     if encoding.lower() in SUPPORTED_ENCODINGS:
         return encoding.lower()
-    
+
+    logger.warning(
+        "Codificación '%s' no reconocida, usando 'utf-8'", encoding
+    )
     return "utf-8"
 
 
@@ -1413,18 +2347,15 @@ _DIAGNOSTIC_REGISTRY: Dict[FileType, Optional[Type[DiagnosticProtocol]]] = {
 def get_diagnostic_class(file_type: FileType) -> Type[DiagnosticProtocol]:
     """Obtiene la clase diagnóstica para un tipo de archivo."""
     diagnostic_class = _DIAGNOSTIC_REGISTRY.get(file_type)
-    
+
     if diagnostic_class is None:
-        raise UnsupportedFileTypeError(
-            file_type.value,
-            FileType.values()
-        )
-    
+        raise UnsupportedFileTypeError(file_type.value, available=FileType.values())
+
     return diagnostic_class
 
 
 # =============================================================================
-# HANDLERS DE LA MIC (VECTORES DE SERVICIO)
+# HANDLERS DE LA MIC
 # =============================================================================
 
 def diagnose_file(
@@ -1433,101 +2364,94 @@ def diagnose_file(
     *,
     validate_extension: bool = True,
     max_file_size: Optional[int] = None,
-    topological_analysis: bool = False
-) -> Dict[str, Any]:
+    topological_analysis: bool = False,
+    config: Optional[MICConfiguration] = None,
+) -> DiagnosticResult:
     """
     Vector de Diagnóstico con análisis topológico opcional.
-    
-    Estrato: PHYSICS (Nivel 3 - Base de la pirámide)
-    Prerrequisitos: Ninguno
-    
-    Args:
-        file_path: Ruta al archivo a diagnosticar
-        file_type: Tipo de archivo (apus, insumos, presupuesto)
-        validate_extension: Si validar extensión del archivo
-        max_file_size: Límite de tamaño personalizado
-        topological_analysis: Si incluir análisis topológico
-    
-    Returns:
-        Dict con resultados del diagnóstico
+
+    Estrato: PHYSICS (Nivel 3 — Base de la pirámide)
     """
+    config = config or DEFAULT_MIC_CONFIG
     path_str = str(file_path)
-    
+
     try:
-        # ─── Validación ───
         path = normalize_path(file_path)
         normalized_type = normalize_file_type(file_type)
-        
-        logger.info(f"Iniciando diagnóstico: {path} [{normalized_type.value}]")
-        
+
+        logger.info(
+            "Iniciando diagnóstico: '%s' [tipo=%s]", path, normalized_type.value
+        )
+
         validate_file_exists(path)
-        
+        validate_file_permissions(path)
+
         if validate_extension:
             validate_file_extension(path)
-        
-        effective_max = max_file_size or MAX_FILE_SIZE_BYTES
+
+        effective_max = max_file_size or config.max_file_size_bytes
         size, is_empty = validate_file_size(path, effective_max)
-        
+
         if is_empty:
-            logger.warning(f"Archivo vacío: {path}")
-            return {
-                "success": True,
-                "diagnostic_completed": True,
-                "is_empty": True,
-                "file_type": normalized_type.value,
-                "file_path": str(path),
-                "file_size_bytes": 0
-            }
-        
-        # ─── Diagnóstico Base ───
+            logger.warning("Archivo vacío: '%s'", path)
+            return DiagnosticResult(
+                success=True,
+                diagnostic_completed=True,
+                is_empty=True,
+                file_type=normalized_type.value,
+                file_path=str(path),
+                file_size_bytes=0,
+            )
+
         diagnostic_class = get_diagnostic_class(normalized_type)
         diagnostic = diagnostic_class(str(path))
         diagnostic.diagnose()
-        
         result_data = diagnostic.to_dict()
         result_data["diagnostic_completed"] = True
-        
-        # ─── Análisis Topológico ───
+
         if topological_analysis:
-            logger.debug("Ejecutando análisis topológico")
-            
-            topo_summary = analyze_topological_features(path)
+            logger.debug("Ejecutando análisis topológico para '%s'", path)
+
+            topo_summary = analyze_topological_features(path, config)
             result_data["topological_features"] = topo_summary.to_dict()
-            
+
             homology = compute_homology_from_diagnostic(result_data)
             result_data["homology"] = homology
-            
+
             intervals = compute_persistence_diagram(result_data)
             result_data["persistence_diagram"] = [iv.to_dict() for iv in intervals]
-            result_data["persistence_entropy"] = compute_persistence_entropy(intervals)
-        
+            result_data["persistence_entropy"] = compute_persistence_entropy(
+                intervals, config
+            )
+
         magnitude = compute_diagnostic_magnitude(result_data)
-        
-        logger.info(f"Diagnóstico completado: {path} [magnitud={magnitude}]")
-        
-        return {
-            "success": True,
+
+        logger.info(
+            "Diagnóstico completado: '%s' [magnitud=%.4f]", path, magnitude
+        )
+
+        return DiagnosticResult(
+            success=True,
             **result_data,
-            "file_type": normalized_type.value,
-            "file_path": str(path),
-            "file_size_bytes": size,
-            "diagnostic_magnitude": magnitude,
-            "has_topological_analysis": topological_analysis
-        }
-    
+            file_type=normalized_type.value,
+            file_path=str(path),
+            file_size_bytes=size,
+            diagnostic_magnitude=magnitude,
+            has_topological_analysis=topological_analysis,
+        )
+
     except MICException as e:
-        logger.warning(f"Error de validación: {e}")
-        return {"success": False, **e.to_dict()}
-    
+        logger.warning("Error de validación: %s", e)
+        return DiagnosticResult(success=False, **e.to_dict())
+
     except Exception as e:
-        logger.exception(f"Error inesperado en diagnóstico: {e}")
-        return {
-            "success": False,
-            "error": str(e),
-            "error_type": type(e).__name__,
-            "error_category": "unexpected",
-            "file_path": path_str
-        }
+        logger.exception("Error inesperado en diagnóstico de '%s'", path_str)
+        return DiagnosticResult(
+            success=False,
+            error=str(e),
+            error_type=type(e).__name__,
+            error_category="unexpected",
+        )
 
 
 # =============================================================================
@@ -1536,30 +2460,25 @@ def diagnose_file(
 
 def register_core_vectors(
     mic: MICRegistry,
-    config: Optional[Dict[str, Any]] = None
+    config: Optional[Dict[str, Any]] = None,
 ) -> None:
-    """
-    Registra los vectores fundamentales del sistema en la MIC.
-    
-    Establece la base vectorial canónica {e₁, e₂, ..., eₙ} del espacio
-    de operaciones, organizada por estratos DIKW.
-    
-    Args:
-        mic: Instancia de MICRegistry donde registrar
-        config: Configuración opcional del sistema
-    """
-    # ─── Vectores PHYSICS (Base de la pirámide) ───
+    """Registra los vectores fundamentales del sistema."""
+    # PHYSICS
     mic.register_vector("stabilize_flux", Stratum.PHYSICS, vector_stabilize_flux)
     mic.register_vector("parse_raw", Stratum.PHYSICS, vector_parse_raw_structure)
-    
-    # ─── Vectores TACTICS ───
+
+    # TACTICS
     mic.register_vector("structure_logic", Stratum.TACTICS, vector_structure_logic)
-    mic.register_vector("audit_fusion_homology", Stratum.TACTICS, vector_audit_homological_fusion)
-    
-    # ─── Vectores STRATEGY ───
-    mic.register_vector("lateral_thinking_pivot", Stratum.STRATEGY, vector_lateral_pivot)
-    
-    # ─── Vectores con dependencias opcionales ───
+    mic.register_vector(
+        "audit_fusion_homology", Stratum.TACTICS, vector_audit_homological_fusion
+    )
+
+    # STRATEGY
+    mic.register_vector(
+        "lateral_thinking_pivot", Stratum.STRATEGY, vector_lateral_pivot
+    )
+
+    # Vectores con dependencias opcionales
     if config:
         try:
             from app.semantic_estimator import SemanticEstimatorService
@@ -1567,17 +2486,21 @@ def register_core_vectors(
             service.register_in_mic(mic)
             logger.info("✅ Vectores semánticos registrados")
         except Exception as e:
-            logger.warning(f"⚠️ Vectores semánticos no disponibles: {e}")
-    
+            logger.warning("⚠️ Vectores semánticos no disponibles: %s", e)
+
     try:
         from app.semantic_dictionary import SemanticDictionaryService
         semantic_dict = SemanticDictionaryService()
         semantic_dict.register_in_mic(mic)
         logger.info("✅ Diccionario semántico registrado")
     except Exception as e:
-        logger.warning(f"⚠️ Diccionario semántico no disponible: {e}")
-    
-    logger.info(f"✅ MIC inicializada con {mic.dimension} vectores base")
+        logger.warning("⚠️ Diccionario semántico no disponible: %s", e)
+
+    logger.info(
+        "✅ MIC inicializada con %d vectores (dimensión=%d)",
+        mic.dimension, mic.dimension
+    )
+    logger.debug("Jerarquía: %s", mic.get_stratum_hierarchy())
 
 
 # =============================================================================
@@ -1591,27 +2514,34 @@ def get_supported_file_types() -> List[str]:
 
 def get_supported_delimiters() -> List[str]:
     """Retorna delimitadores CSV soportados."""
-    return list(VALID_DELIMITERS)
+    return sorted(VALID_DELIMITERS)
 
 
 def get_supported_encodings() -> List[str]:
     """Retorna codificaciones soportadas."""
-    return list(SUPPORTED_ENCODINGS)
+    return sorted(SUPPORTED_ENCODINGS)
 
 
-def validate_file_for_processing(path: Union[str, Path]) -> Dict[str, Any]:
-    """
-    Valida completamente un archivo para procesamiento.
+def validate_file_for_processing(
+    path: Union[str, Path],
+    config: Optional[MICConfiguration] = None,
+) -> Dict[str, Any]:
+    """Valida completamente un archivo para procesamiento."""
+    config = config or DEFAULT_MIC_CONFIG
     
-    Returns:
-        Dict con {"valid": bool, "size": int, "extension": str, ...}
-    """
     try:
         p = normalize_path(path)
         validate_file_exists(p)
+        validate_file_permissions(p)
         ext = validate_file_extension(p)
-        size, is_empty = validate_file_size(p)
-        return {"valid": True, "size": size, "extension": ext, "is_empty": is_empty}
+        size, is_empty = validate_file_size(p, config.max_file_size_bytes)
+        return {
+            "valid": True,
+            "size": size,
+            "extension": ext,
+            "is_empty": is_empty,
+            "path": str(p),
+        }
     except MICException as e:
         return {"valid": False, "errors": [str(e)], **e.to_dict()}
     except Exception as e:
@@ -1619,25 +2549,131 @@ def validate_file_for_processing(path: Union[str, Path]) -> Dict[str, Any]:
 
 
 # =============================================================================
-# SINGLETON DE LA MIC (OPCIONAL)
+# SINGLETON DE LA MIC
 # =============================================================================
 
 _global_mic: Optional[MICRegistry] = None
 _mic_lock = threading.Lock()
+_mic_init_error: Optional[Exception] = None
 
 
-def get_global_mic() -> MICRegistry:
+def get_global_mic(
+    config: Optional[Dict[str, Any]] = None,
+    mic_config: Optional[MICConfiguration] = None,
+    force_reinit: bool = False,
+) -> MICRegistry:
     """
-    Obtiene la instancia global de la MIC (patrón Singleton thread-safe).
-    
-    Útil para aplicaciones que requieren una única MIC compartida.
+    Obtiene la instancia global de la MIC (Singleton thread-safe).
+
+    Args:
+        config: Configuración del sistema para el bootstrap.
+        mic_config: Configuración específica de la MIC.
+        force_reinit: Si True, fuerza reinicialización.
+
+    Returns:
+        Instancia inicializada de MICRegistry.
+
+    Raises:
+        RuntimeError: Si el bootstrap falla.
     """
-    global _global_mic
+    global _global_mic, _mic_init_error
+
+    if _global_mic is not None and not force_reinit:
+        return _global_mic
+
+    with _mic_lock:
+        if _global_mic is not None and not force_reinit:
+            return _global_mic
+
+        # Reintentar si hubo error previo y force_reinit
+        if _mic_init_error is not None and not force_reinit:
+            raise RuntimeError(
+                f"MIC global falló previamente: {_mic_init_error}"
+            ) from _mic_init_error
+
+        try:
+            mic = MICRegistry(config=mic_config)
+            register_core_vectors(mic, config=config)
+            _global_mic = mic
+            _mic_init_error = None
+            logger.info("MIC global inicializada con %d vectores", mic.dimension)
+            return _global_mic
+
+        except Exception as e:
+            _mic_init_error = e
+            logger.exception("Error crítico durante bootstrap de la MIC")
+            raise RuntimeError(f"No se pudo inicializar la MIC: {e}") from e
+
+
+def reset_global_mic() -> None:
+    """Reinicia la instancia global de la MIC."""
+    global _global_mic, _mic_init_error
+    with _mic_lock:
+        _global_mic = None
+        _mic_init_error = None
+    logger.info("MIC global reiniciada")
+
+
+# =============================================================================
+# EXPORTS
+# =============================================================================
+
+__all__ = [
+    # Configuración
+    "MICConfiguration",
+    "DEFAULT_MIC_CONFIG",
     
-    if _global_mic is None:
-        with _mic_lock:
-            if _global_mic is None:
-                _global_mic = MICRegistry()
-                register_core_vectors(_global_mic)
+    # Tipos
+    "FileType",
+    "Stratum",
+    "ProjectionResult",
+    "DiagnosticResult",
+    "CacheStats",
+    "LatencyStats",
     
-    return _global_mic
+    # Estructuras topológicas
+    "PersistenceInterval",
+    "BettiNumbers",
+    "TopologicalSummary",
+    "IntentVector",
+    
+    # Excepciones
+    "MICException",
+    "FileNotFoundDiagnosticError",
+    "UnsupportedFileTypeError",
+    "FileValidationError",
+    "FilePermissionError",
+    "CleaningError",
+    "MICHierarchyViolationError",
+    "TimeoutError",
+    
+    # Cache y métricas
+    "TTLCache",
+    "LatencyHistogram",
+    "MICMetrics",
+    
+    # Análisis
+    "SpectralGraphMetrics",
+    "StratumTransitionMatrix",
+    
+    # Core
+    "MICRegistry",
+    
+    # Funciones
+    "diagnose_file",
+    "get_global_mic",
+    "reset_global_mic",
+    "register_core_vectors",
+    "get_supported_file_types",
+    "get_supported_delimiters",
+    "get_supported_encodings",
+    "validate_file_for_processing",
+    
+    # Funciones matemáticas
+    "compute_shannon_entropy",
+    "compute_persistence_entropy",
+    "analyze_topological_features",
+    "compute_homology_from_diagnostic",
+    "compute_persistence_diagram",
+    "compute_diagnostic_magnitude",
+]
