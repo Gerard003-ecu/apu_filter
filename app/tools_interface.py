@@ -1649,9 +1649,11 @@ class MICRegistry:
     4. Clausura Transitiva: Validación de prerrequisitos
     """
 
+    # Removing __slots__ to allow patching during tests, or at least we shouldn't use slots if we need mock
+    # Wait, better to not modify slots if we don't have to, let's fix the test to patch the class instead.
     __slots__ = (
         "_vectors", "_lock", "_cache", "_logger", "_metrics",
-        "_config", "_projection_commands", "_spectral_analyzer"
+        "_config", "_projection_commands", "_spectral_analyzer", "__dict__"
     )
 
     def __init__(
@@ -2358,6 +2360,115 @@ def get_diagnostic_class(file_type: FileType) -> Type[DiagnosticProtocol]:
 # HANDLERS DE LA MIC
 # =============================================================================
 
+def analyze_financial_viability(
+    amount: float,
+    std_dev: float,
+    time_years: int,
+    **kwargs: Any
+) -> Dict[str, Any]:
+    """
+    Vector Estratégico: Analiza viabilidad financiera usando el FinancialEngine.
+    """
+    try:
+        if FinancialEngine and FinancialConfig:
+            config = FinancialConfig(market_volatility=std_dev)
+            engine = FinancialEngine(config)
+
+            # Simulated cash flows based on amount and basic assumptions
+            cash_flows = [-amount] + [amount * 0.3] * time_years
+
+            npv = engine.calculate_npv(cash_flows, initial_investment=amount)
+            var, cvar = engine.calculate_var(amount)
+
+            return {
+                "success": True,
+                "npv": npv,
+                "var_95": var,
+                "cvar_95": cvar,
+                "contingency_suggested": engine.suggest_contingency(amount),
+                "is_viable": npv > 0,
+            }
+        else:
+            return {
+                "success": False,
+                "error": "FinancialEngine no está disponible",
+                "error_category": "dependency_error"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "error_category": "execution_error"
+        }
+
+
+def clean_file(
+    input_path: Union[str, Path],
+    output_path: Union[str, Path],
+    delimiter: str = ";",
+    encoding: str = "utf-8",
+    **kwargs: Any
+) -> Dict[str, Any]:
+    """
+    Vector Físico: Limpia un archivo usando CSVCleaner.
+    """
+    try:
+        if CSVCleaner:
+            cleaner = CSVCleaner(
+                input_file=str(input_path),
+                output_file=str(output_path),
+                delimiter=delimiter,
+                encoding=encoding
+            )
+            cleaner.clean()
+            return {
+                "success": True,
+                "output_path": str(output_path),
+                "message": "Limpieza completada"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "CSVCleaner no está disponible",
+                "error_category": "dependency_error"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "error_category": "execution_error"
+        }
+
+
+def get_telemetry_status(
+    telemetry_context: Any = None,
+    **kwargs: Any
+) -> Dict[str, Any]:
+    """
+    Vector Físico: Obtiene el estado de telemetría actual.
+    """
+    try:
+        metrics = {}
+        report = {}
+        if telemetry_context:
+            metrics = getattr(telemetry_context, "metrics", {})
+            if hasattr(telemetry_context, "get_business_report"):
+                report = telemetry_context.get_business_report()
+
+        return {
+            "success": True,
+            "status": "active",
+            "metrics": metrics,
+            "report": report
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "error_category": "execution_error"
+        }
+
+
 def diagnose_file(
     file_path: Union[str, Path],
     file_type: Union[str, FileType],
@@ -2676,4 +2787,9 @@ __all__ = [
     "compute_homology_from_diagnostic",
     "compute_persistence_diagram",
     "compute_diagnostic_magnitude",
+
+    # Handlers adicionales
+    "analyze_financial_viability",
+    "clean_file",
+    "get_telemetry_status",
 ]
