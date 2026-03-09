@@ -517,7 +517,10 @@ class StateVector:
         # Serializar otros tipos
         result["raw_records"] = self.raw_records
         result["parse_cache"] = self.parse_cache
-        result["validated_strata"] = [s.name for s in self.validated_strata]
+        result["validated_strata"] = [
+            s.name if hasattr(s, "name") else str(s)
+            for s in self.validated_strata
+        ]
         result["quality_report"] = self.quality_report
         
         if self.graph is not None:

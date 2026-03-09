@@ -33,7 +33,7 @@ import networkx as nx
 import pytest
 
 from app.schemas import Stratum
-from mic_algebra import (
+from app.mic_algebra import (
     AtomicVector,
     CategoricalRegistry,
     CategoricalState,
