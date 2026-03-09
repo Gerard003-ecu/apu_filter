@@ -620,14 +620,17 @@ class PyramidalReport:
     @property
     def root_cause_stratum(self) -> Optional[Stratum]:
         """
-        Retorna el estrato de causa raíz (el más base que falló).
-        Siguiendo la Clausura Transitiva.
+        Retorna el estrato de causa raíz (el de mayor valor ordinal que falló).
+        Siguiendo la Precedencia Operacional.
         """
-        for stratum in StratumTopology.EVALUATION_ORDER:
-            if stratum in self.strata_analysis:
-                if self.strata_analysis[stratum].is_compromised:
-                    return stratum
-        return None
+        deepest = None
+        deepest_val = -1
+        for stratum, analysis in self.strata_analysis.items():
+            if analysis.is_compromised:
+                if stratum.value > deepest_val:
+                    deepest_val = stratum.value
+                    deepest = stratum
+        return deepest
 
     def to_dict(self) -> Dict[str, Any]:
         """Serializa a diccionario con compatibilidad."""
@@ -805,7 +808,7 @@ class TelemetryNarrator:
             return None
 
         deepest_failure_stratum = None
-        deepest_level = -1
+        deepest_value = -1
 
         # Recorrido BFS para encontrar todos los fallos y determinar el más profundo (base)
         queue = list(context.root_spans)
@@ -820,11 +823,12 @@ class TelemetryNarrator:
                 if stratum == Stratum.PHYSICS:
                     stratum = StratumTopology.get_stratum_for_step(span.name, self.step_mapping)
 
-                level = StratumTopology.get_level(stratum)
+                # Usamos el valor ordinal del enum: PHYSICS = 3, TACTICS = 2, STRATEGY = 1, WISDOM = 0
+                val = stratum.value
 
-                # Buscamos el nivel más alto (mayor entero = más base = PHYSICS=3)
-                if level > deepest_level:
-                    deepest_level = level
+                # Buscamos el valor más alto (mayor entero = más base = PHYSICS=3)
+                if val > deepest_value:
+                    deepest_value = val
                     deepest_failure_stratum = stratum
 
             queue.extend(span.children)
@@ -1397,17 +1401,24 @@ class TelemetryNarrator:
         strata: Dict[Stratum, StratumAnalysis],
     ) -> Tuple[str, SeverityLevel]:
         """
-        Determina el veredicto final aplicando Clausura Transitiva.
+        Determina el veredicto final aplicando Clausura Transitiva y Precedencia Operacional.
         
         Regla: Fallo en estrato N invalida todos los estratos superiores.
-        Evaluación: PHYSICS → TACTICS → STRATEGY → WISDOM
+        La causa raíz será el fallo en el estrato con mayor valor ordinal.
         """
-        # Evaluar de base a cima (siguiendo el orden de filtración)
-        for stratum in StratumTopology.EVALUATION_ORDER:
-            analysis = strata.get(stratum)
+        deepest = None
+        deepest_val = -1
+
+        # Encontrar la causa raíz más profunda (mayor valor)
+        for stratum, analysis in strata.items():
             if analysis and analysis.is_compromised:
-                verdict_code = f"REJECTED_{stratum.name}"
-                return verdict_code, SeverityLevel.CRITICO
+                if stratum.value > deepest_val:
+                    deepest_val = stratum.value
+                    deepest = stratum
+
+        if deepest:
+            verdict_code = f"REJECTED_{deepest.name}"
+            return verdict_code, SeverityLevel.CRITICO
 
         # Verificar warnings
         has_warnings = any(
@@ -1481,12 +1492,13 @@ class TelemetryNarrator:
 
         # Determinar estrato de causa raíz
         root_cause_stratum: Optional[Stratum] = None
+        deepest_val = -1
 
-        for stratum in StratumTopology.EVALUATION_ORDER:
-            analysis = strata.get(stratum)
+        for stratum, analysis in strata.items():
             if analysis and analysis.is_compromised:
-                root_cause_stratum = stratum
-                break
+                if stratum.value > deepest_val:
+                    deepest_val = stratum.value
+                    root_cause_stratum = stratum
 
         if root_cause_stratum:
             # Extraer issues críticos del estrato que falló

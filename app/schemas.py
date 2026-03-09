@@ -66,6 +66,7 @@ logger = logging.getLogger(__name__)
 # --- Tolerancias numéricas ---
 VALOR_TOTAL_WARNING_TOLERANCE: Final[float] = 0.01   # 1 % → advertencia
 VALOR_TOTAL_ERROR_TOLERANCE: Final[float] = 0.05     # 5 % → error crítico
+CONSERVATION_TOLERANCE: Final[float] = 1e-6
 CANTIDAD_RENDIMIENTO_TOLERANCE: Final[float] = 0.0001
 
 # --- Límites físicos ---
@@ -73,6 +74,7 @@ MIN_CANTIDAD: Final[float] = 0.0
 MAX_CANTIDAD: Final[float] = 1_000_000.0
 MIN_PRECIO: Final[float] = 0.0
 MAX_PRECIO: Final[float] = 1_000_000_000.0
+MAX_VALOR_TOTAL: Final[float] = 1_000_000_000_000.0  # Max cantidad * Max precio
 MIN_RENDIMIENTO: Final[float] = 0.0
 MAX_RENDIMIENTO: Final[float] = 1_000.0
 
@@ -707,7 +709,7 @@ class InsumoProcesado(TopologicalNode):
             self.precio_unitario, "precio_unitario", MIN_PRECIO, MAX_PRECIO
         )
         self.valor_total = NumericValidator.validate_non_negative(
-            self.valor_total, "valor_total", MIN_PRECIO, MAX_PRECIO
+            self.valor_total, "valor_total", MIN_PRECIO, MAX_VALOR_TOTAL
         )
         self.rendimiento = NumericValidator.validate_non_negative(
             self.rendimiento, "rendimiento", MIN_RENDIMIENTO, MAX_RENDIMIENTO
@@ -727,10 +729,8 @@ class InsumoProcesado(TopologicalNode):
 
     def _validate_valor_total_consistency(self) -> None:
         r"""
-        Verifica: :math:`\text{valor\_total} \approx \text{cantidad} \times \text{precio\_unitario}`.
-
-        Aplica tolerancia híbrida (absoluta + relativa) en dos niveles:
-        advertencia (1 %) y error (5 %).
+        Verifica la ley de conservación estricta: :math:`\text{valor\_total} = \text{cantidad} \times \text{precio\_unitario}`.
+        La tolerancia es de 1e-6.
         """
         expected = self.cantidad * self.precio_unitario
 
@@ -738,41 +738,13 @@ class InsumoProcesado(TopologicalNode):
         if expected == 0.0 and self.valor_total == 0.0:
             return
 
-        # Caso imposible: producto es cero pero valor_total no
-        if expected == 0.0 and self.valor_total > 0.0:
+        # Ley de conservación estricta
+        diff = abs(expected - self.valor_total)
+        if diff > CONSERVATION_TOLERANCE:
             raise ValidationError(
                 f"{self.__class__.__name__} [{self.codigo_apu}]: "
-                f"valor_total={self.valor_total:.2f} pero cantidad×precio=0"
-            )
-
-        # Nivel ERROR (5 %)
-        ok_error, rel_diff = NumericValidator.values_consistent(
-            self.valor_total,
-            expected,
-            rel_tolerance=VALOR_TOTAL_ERROR_TOLERANCE,
-            abs_tolerance=0.01,
-        )
-        if not ok_error:
-            raise ValidationError(
-                f"{self.__class__.__name__} [{self.codigo_apu}]: "
-                f"Inconsistencia grave: valor_total={self.valor_total:.2f} vs "
-                f"calculado={expected:.2f} (Δ={rel_diff:.2%})"
-            )
-
-        # Nivel WARNING (1 %)
-        ok_warn, rel_diff = NumericValidator.values_consistent(
-            self.valor_total,
-            expected,
-            rel_tolerance=VALOR_TOTAL_WARNING_TOLERANCE,
-            abs_tolerance=0.01,
-        )
-        if not ok_warn:
-            warnings.warn(
-                f"{self.__class__.__name__} [{self.codigo_apu}]: "
-                f"Divergencia leve: valor_total={self.valor_total:.2f} vs "
-                f"calculado={expected:.2f} (Δ={rel_diff:.2%})",
-                UserWarning,
-                stacklevel=6,
+                f"Inconsistencia en la ley de conservación: valor_total={self.valor_total:.6f} vs "
+                f"calculado={expected:.6f} (diff={diff:.6e} > {CONSERVATION_TOLERANCE:.6e})"
             )
 
     def _validate_unit_category(self) -> None:

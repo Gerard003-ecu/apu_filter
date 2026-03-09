@@ -1,0 +1,4 @@
+# file: /app/app/presenters.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.01, 1.0, ' | ', 'CANTIDAD_APU', 'CATEGORIA', 'CODIGO_APU', 'DESCRIPCION_INSUMO', 'INDEFINIDO', 'PRECIO_UNIT_APU', 'RENDIMIENTO', 'UNIDAD_APU', 'UNIDAD_INSUMO', 'VALOR_TOTAL_APU', 'VR_TOTAL', 'ValorTotal', 'alerta', 'avg_value_per_item', 'campo', 'cantidad', 'categoria', 'categories_count', 'coerce', 'descripcion', 'desglose', 'first', 'items', 'metadata', 'object', 'original_rows', 'processed_items', 'records', 'reduction_rate', 'sum', 'total', 'total_items', 'total_value', 'unidad', 'valor', 'valor_total', 'valor_unitario']
