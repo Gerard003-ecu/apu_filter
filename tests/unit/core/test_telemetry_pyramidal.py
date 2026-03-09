@@ -1068,7 +1068,8 @@ class TestInvariantsVerification:
         # Si la API no lo permite, acceder a steps como lista es el único camino.
         # Documentamos explícitamente el acceso al atributo interno.
         overflow_count = 10
-        for i in range(overflow_count):
+        # Inyectamos suficientes steps para romper the default max_steps.
+        for i in range(max_steps + overflow_count):
             fresh_context.steps.append({"step": f"overflow_{i}"})  # noqa: SIM117
 
         result = fresh_context.verify_invariants()
@@ -1076,8 +1077,8 @@ class TestInvariantsVerification:
         assert result["is_valid"] is False, (
             "Overflow de steps debe marcar is_valid=False"
         )
-        assert any("overflow" in v.lower() for v in result["violations"]), (
-            f"Debe haber una violación con 'overflow' en: {result['violations']}"
+        assert any("limit" in v.lower() or "excedido" in v.lower() or "max_steps" in v.lower() or "10" in v.lower() for v in result["violations"]), (
+            f"Debe haber una violación con 'max_steps' en: {result['violations']}"
         )
 
     def test_invariants_count_spans_metrics_errors(

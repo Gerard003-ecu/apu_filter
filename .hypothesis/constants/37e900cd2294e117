@@ -1,4 +1,0 @@
-# file: /app/scripts/diagnose_apus_file.py
-# hypothesis_version: 6.151.9
-
-[0.0, 0.5, 0.7, 1.0, 2.0, 100, 130, 150, 200, 500, 1024, 8192, 100000, 50000000, '\n🏗️ ESTRUCTURA:', '\n💡 RECOMENDACIONES:', '\n📦 CATEGORÍAS:', '\n🔑 PALABRAS CLAVE:', '"', ',', '--json', ':', ';', '=', 'Archivo vacío', 'EQUIPO', 'ITEM_CODE', 'MANO DE OBRA', 'MATERIALES', 'OTROS', 'UNIT', '\\n-{3,}\\n', '\\n={3,}\\n', '\\n\\s*\\n', '\\s{2,}', '__main__', 'categories', 'column_counts', 'confidence', 'content', 'cp1252', 'encoding', 'errors', 'iso-8859-1', 'latin1', 'length', 'line_num', 'patterns', 'r', 'rb', 'recommendations', 'replace', 'sample_lines', 'stats', 'success', 'unknown', 'utf-8', '|', '✅ Estructura regular']
