@@ -1484,8 +1484,7 @@ class NormalizationCommand(ProjectionCommand):
     """Normaliza el contexto de validación."""
     
     def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
-        # Copia inmutable para garantizar la pureza funcional y la inmutabilidad
-        raw_validated = set(ctx.context.get("validated_strata", set()))
+        raw_validated = ctx.context.get("validated_strata", set())
         ctx.validated_strata = self._normalize_validated_strata(raw_validated)
         ctx.force_override = bool(ctx.context.get("force_physics_override", False))
         return None
@@ -1553,21 +1552,9 @@ class ValidationCommand(ProjectionCommand):
                 validated_strata=ctx.validated_strata,
             )
             logger.error(str(error))
-
-            missing_names = sorted(
-                [s.name for s in missing],
-                key=lambda n: Stratum[n].value,
-                reverse=True,
-            )
-
-            # Use ProjectionResult for correct type hints
             return ProjectionResult(
                 success=False,
-                error_category="hierarchy_violation",
-                error_details={
-                    "target_stratum": ctx.target_stratum.name,
-                    "missing_strata": missing_names
-                }
+                **error.to_dict(),
             )
         
         return None
