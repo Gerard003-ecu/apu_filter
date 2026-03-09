@@ -33,6 +33,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
+import math
 import numpy as np
 import pandas as pd
 
@@ -203,13 +204,11 @@ class PyramidalValidator:
         n_conexiones = grafo_analysis["total_conexiones"]
 
         if n_apus > 0:
-            psi_basico = n_insumos / n_apus
-            # Alineación con tests: Usar tanh sobre el ratio básico (carga estructural)
-            # para modelar saturación.
-            psi_corregido = np.tanh(psi_basico)
+            psi_basico = n_insumos / max(n_apus, 1)
+            psi_corregido = math.tanh(psi_basico)
         else:
             psi_basico = 0
-            psi_corregido = 0
+            psi_corregido = math.tanh(n_insumos / max(n_apus, 1)) if n_insumos >= 0 else 0.0
 
         # 5. Análisis de nodos flotantes
         apus_con_insumos = set()

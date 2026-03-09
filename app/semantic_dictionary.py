@@ -1512,14 +1512,12 @@ class SemanticDictionaryService:
                 service_name="fetch_narrative",
                 stratum=Stratum.WISDOM,
                 handler=self.fetch_narrative,
-                description="Traductor de métricas a narrativa estratégica",
             )
             
             mic_registry.register_vector(
                 service_name="project_graph_narrative",
                 stratum=Stratum.WISDOM,
                 handler=self.project_graph_narrative,
-                description="Proyector de anomalías topológicas a lenguaje natural",
             )
             
             logger.info("✅ Vectores Semánticos registrados en la MIC")
