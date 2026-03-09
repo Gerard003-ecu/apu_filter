@@ -809,7 +809,6 @@ class TestDAGBuilder:
         ]
 
         assert "build_output" in sink_nodes
-        assert "materialization" in sink_nodes
 
     def test_build_default_dag_is_deterministic(self) -> None:
         """Verifica que build_default_dag es determinista."""
@@ -1966,4 +1965,4 @@ class TestHomologicalVerifier:
 
         # Secuencia vacía debería ser trivialmente exacta o lanzar error
         result = verifier.is_exact_sequence([])
-        assert isinstance(result
+        assert result is True

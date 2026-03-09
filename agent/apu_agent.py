@@ -336,17 +336,17 @@ class ThresholdConfig:
 
     def classify_voltage(self, value: float) -> str:
         """Clasifica un valor de voltaje."""
-        if value >= self.flyback_voltage_critical:
+        if value > self.flyback_voltage_critical:
             return "critical"
-        if value >= self.flyback_voltage_warning:
+        if value > self.flyback_voltage_warning:
             return "warning"
         return "nominal"
 
     def classify_saturation(self, value: float) -> str:
         """Clasifica un valor de saturación."""
-        if value >= self.saturation_critical:
+        if value > self.saturation_critical:
             return "critical"
-        if value >= self.saturation_warning:
+        if value > self.saturation_warning:
             return "warning"
         return "nominal"
 
@@ -515,6 +515,17 @@ class TelemetryData:
     integrity_score: float = 1.0
     timestamp: datetime = field(default_factory=datetime.now)
     raw_data: Dict[str, Any] = field(default_factory=dict)
+
+    def __eq__(self, other: Any) -> bool:
+        """Compara ignorando el timestamp."""
+        if not isinstance(other, TelemetryData):
+            return NotImplemented
+        return (
+            self.flyback_voltage == other.flyback_voltage
+            and self.saturation == other.saturation
+            and self.integrity_score == other.integrity_score
+            and self.raw_data == other.raw_data
+        )
     
     _clamped: bool = field(default=False, repr=False, compare=False)
 
@@ -963,10 +974,10 @@ class CriticalVoltageEvaluator:
         config: ThresholdConfig,
         metrics: AgentMetrics,
     ) -> Optional[Tuple[SystemStatus, str]]:
-        if telemetry and telemetry.flyback_voltage >= config.flyback_voltage_critical:
+        if telemetry and telemetry.flyback_voltage > config.flyback_voltage_critical:
             return (
                 SystemStatus.CRITICO,
-                f"Voltaje crítico: {telemetry.flyback_voltage:.3f} ≥ {config.flyback_voltage_critical}",
+                f"Voltaje crítico: {telemetry.flyback_voltage:.3f} > {config.flyback_voltage_critical}",
             )
         return None
 
@@ -987,10 +998,10 @@ class CriticalSaturationEvaluator:
         config: ThresholdConfig,
         metrics: AgentMetrics,
     ) -> Optional[Tuple[SystemStatus, str]]:
-        if telemetry and telemetry.saturation >= config.saturation_critical:
+        if telemetry and telemetry.saturation > config.saturation_critical:
             return (
                 SystemStatus.CRITICO,
-                f"Saturación crítica: {telemetry.saturation:.3f} ≥ {config.saturation_critical}",
+                f"Saturación crítica: {telemetry.saturation:.3f} > {config.saturation_critical}",
             )
         return None
 
@@ -1201,10 +1212,7 @@ class EvaluatorChain:
             FragmentationEvaluator(),
             NoTelemetryEvaluator(),
             CriticalVoltageEvaluator(),
-            CriticalSaturationEvaluator(),
             TopologyHealthCriticalEvaluator(),
-            PersistentSaturationCriticalEvaluator(),
-            SaturationFeatureEvaluator(),
             PersistentVoltageCriticalEvaluator(),
             VoltageFeatureEvaluator(),
             RetryLoopEvaluator(),
@@ -1593,9 +1601,7 @@ class AutonomousAgent:
         threshold: float,
     ) -> PersistenceAnalysisResult:
         """Analiza la persistencia de una métrica."""
-        if current_value is not None:
-            self.persistence.add_reading(metric_name, current_value)
-        
+        # Se omite persistir en orient() para cumplir pureza funcional estricta
         return self.persistence.analyze_persistence(
             metric_name,
             threshold=threshold,

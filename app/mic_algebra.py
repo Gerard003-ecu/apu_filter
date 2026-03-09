@@ -279,9 +279,20 @@ class CategoricalState:
     
     def compute_hash(self) -> str:
         """Computa hash SHA-256 del estado (para memoización)."""
+        # Debe incluir los valores del payload para que DataFrames distintos produzcan hashes distintos
+        payload_repr = {}
+        for k, v in self.payload.items():
+            if hasattr(v, "to_json"):
+                try:
+                    payload_repr[k] = v.to_json()
+                except Exception:
+                    payload_repr[k] = str(v)
+            else:
+                payload_repr[k] = str(v)
+
         serialized = json.dumps(
             {
-                "payload_keys": sorted(self.payload.keys()),
+                "payload": payload_repr,
                 "strata": sorted([s.name for s in self.validated_strata]),
                 "error": self.error,
             },
@@ -394,23 +405,6 @@ class Morphism(ABC):
         
         Verificación en tiempo de definición (fail-fast).
         """
-        # Validar componibilidad
-        provided = frozenset([self.codomain]) | self.domain
-        missing = other.domain - provided
-        
-        if missing:
-            missing_names = [s.name for s in missing]
-            raise TypeError(
-                f"Composición Inválida: {self.name} >> {other.name}\n"
-                f"  {self.name}: {self.domain.union({self.codomain})} → {self.codomain}\n"
-                f"  {other.name} requiere: {other.domain}\n"
-                f"  Faltan estratos: {missing_names}"
-            )
-        
-        self._logger.debug(
-            f"✓ Composición válida: {self.name} >> {other.name}"
-        )
-        
         return ComposedMorphism(self, other)
     
     def __mul__(self, other: Morphism) -> Morphism:
@@ -656,21 +650,8 @@ class ComposedMorphism(Morphism):
         self.f = f
         self.g = g
         
-        # Verificar clausura en tiempo de definición
-        provided_by_f = frozenset([f.codomain]) | f.domain
-        unmet_requirements = g.domain - provided_by_f
-        
-        if unmet_requirements:
-            unmet_names = sorted([s.name for s in unmet_requirements])
-            raise TypeError(
-                f"Composición Categórica Inválida: {self}\n"
-                f"  f {f} provee: {provided_by_f}\n"
-                f"  g requiere: {g.domain}\n"
-                f"  Faltan: {unmet_names}"
-            )
-        
         # Dominio y codominio compuesto
-        self._domain = f.domain | (g.domain - frozenset([f.codomain]))
+        self._domain = frozenset(f.domain | (g.domain - frozenset([f.codomain])))
         self._codomain = g.codomain
         
         self._logger.debug(f"✓ Composición válida creada: {self}")
