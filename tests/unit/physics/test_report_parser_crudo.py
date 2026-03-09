@@ -39,7 +39,7 @@ from app.report_parser_crudo import (
     ReportParserCrudo,
     ValidationStats,
 )
-from tests.test_data import TEST_CONFIG
+from tests.unit.physics.test_data import TEST_CONFIG
 
 
 # =====================================================================

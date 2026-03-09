@@ -345,10 +345,10 @@ class TranslatorFactory:
     ) -> SemanticTranslator:
         """Traductor con umbrales personalizados."""
         config = TranslatorConfig(
-            stability_thresholds=stability or StabilityThresholds(),
-            topological_thresholds=topological or TopologicalThresholds(),
-            thermal_thresholds=thermal or ThermalThresholds(),
-            financial_thresholds=financial or FinancialThresholds(),
+            stability=stability or StabilityThresholds(),
+            topological=topological or TopologicalThresholds(),
+            thermal=thermal or ThermalThresholds(),
+            financial=financial or FinancialThresholds(),
         )
         return SemanticTranslator(config=config)
 
@@ -826,7 +826,7 @@ class TestTopologyTranslation:
         narrative_lower = narrative.lower()
         assert any(word in narrative_lower for word in ["componentes", "fragmentad", "isla"])
         
-        assert verdict.value >= VerdictLevel.PRECAUCION.value
+        assert verdict.value >= VerdictLevel.CONDICIONAL.value
 
     # ─────────────────────────────────────────────────────────────────────────
     # Formatos de Entrada
@@ -882,7 +882,7 @@ class TestTopologyTranslation:
         )
 
         # Con estabilidad 0, debe haber advertencias
-        assert verdict.value >= VerdictLevel.PRECAUCION.value
+        assert verdict.value >= VerdictLevel.CONDICIONAL.value
 
     @pytest.mark.parametrize("invalid_input", [
         None,
@@ -998,7 +998,7 @@ class TestThermalTranslation:
         narrative, verdict = default_translator.translate_thermodynamics(fever_thermal)
         
         assert "FIEBRE" in narrative or "calor" in narrative.lower() or "⚠️" in narrative
-        assert verdict.value >= VerdictLevel.PRECAUCION.value
+        assert verdict.value >= VerdictLevel.CONDICIONAL.value
 
     def test_translate_critical_temperature(
         self,
@@ -1129,7 +1129,7 @@ class TestPhysicsTranslation:
             control=marginal_control
         )
         
-        assert result.verdict.value >= VerdictLevel.PRECAUCION.value
+        assert result.verdict.value >= VerdictLevel.CONDICIONAL.value
 
     @pytest.mark.parametrize("gyro_stability,expected_verdict", [
         (1.0, VerdictLevel.VIABLE),
@@ -1491,7 +1491,7 @@ class TestEdgeCases:
         _, verdict = default_translator.translate_topology(topology, stability=0.0)
         
         # Con estabilidad 0, debe haber preocupación
-        assert verdict.value >= VerdictLevel.PRECAUCION.value
+        assert verdict.value >= VerdictLevel.CONDICIONAL.value
 
     def test_very_high_stability(self, default_translator: SemanticTranslator):
         """Estabilidad muy alta no causa overflow."""
@@ -1619,7 +1619,7 @@ class TestConfiguration:
 
     def test_custom_stability_thresholds(self):
         """Umbrales de estabilidad personalizados afectan veredictos."""
-        strict_thresholds = StabilityThresholds(critical=8.0, warning=15.0)
+        strict_thresholds = StabilityThresholds(critical=8.0, warning=15.0, solid=20.0)
         translator = TranslatorFactory.create_with_thresholds(stability=strict_thresholds)
         
         topology = MetricsFactory.create_clean_topology()

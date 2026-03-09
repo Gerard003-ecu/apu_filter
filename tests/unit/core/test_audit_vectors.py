@@ -34,7 +34,7 @@ from hypothesis import given, strategies as st, settings, assume
 # Importación del módulo bajo prueba
 # ═══════════════════════════════════════════════════════════════════════════
 
-from audit_vectors import (
+from app.adapters.audit_vectors import (
     # Configuración
     AuditConfiguration,
     DEFAULT_CONFIG,
@@ -446,7 +446,9 @@ class TestGiniCoefficient:
     
     def test_extreme_inequality_high_gini(self):
         """Desigualdad extrema → G cercano a 1."""
-        dist = {"RICO": 99999, "POBRE1": 1}
+        dist = {"RICO": 99999}
+        for i in range(1000):
+            dist[f"POBRE{i}"] = 1
         result = _compute_gini_coefficient(dist)
         assert result > 0.9
     
@@ -1342,7 +1344,7 @@ class TestAuxiliaryFunctions:
     
     def test_analyze_graph_spectrum_without_scipy(self, apu_to_insumos_connected):
         """Sin scipy, retorna None."""
-        with patch("audit_vectors.SCIPY_AVAILABLE", False):
+        with patch("app.adapters.audit_vectors.SCIPY_AVAILABLE", False):
             # Nota: Esto puede no funcionar si la constante se evalúa en import
             # En ese caso, saltar esta prueba
             pass
