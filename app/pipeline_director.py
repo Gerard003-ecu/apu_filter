@@ -566,6 +566,24 @@ class StateVector:
         kwargs["session_id"] = data.get("session_id", str(uuid.uuid4()))
         kwargs["version"] = data.get("version", PIPELINE_VERSION)
         
+        if "validated_strata" in data:
+            kwargs["validated_strata"] = {
+                getattr(Stratum, s) for s in data["validated_strata"]
+                if hasattr(Stratum, s)
+            }
+
+        if "created_at" in data:
+            try:
+                kwargs["created_at"] = datetime.datetime.fromisoformat(data["created_at"])
+            except ValueError:
+                pass
+
+        if "updated_at" in data:
+            try:
+                kwargs["updated_at"] = datetime.datetime.fromisoformat(data["updated_at"])
+            except ValueError:
+                pass
+
         return cls(**kwargs)
     
     def compute_hash(self) -> str:
@@ -1876,7 +1894,6 @@ class DAGBuilder:
             ("calculate_costs", "final_merge", ["df_apu_costos", "df_tiempo"]),
             ("final_merge", "business_topology", ["df_final"]),
             ("business_topology", "materialization", ["graph", "business_topology_report"], True),
-            ("materialization", "build_output", ["bill_of_materials"], True),
             ("business_topology", "build_output", ["graph", "business_topology_report"]),
         ]
         
@@ -2321,12 +2338,7 @@ class PipelineDirector:
             "version": PIPELINE_VERSION,
             "nodes": list(self.dag.graph.nodes()),
             "edges": [
-                {
-                    "source": u,
-                    "target": v,
-                    "data_keys": self.dag.graph[u][v].get("data_keys", []),
-                }
-                for u, v in self.dag.graph.edges()
+                (u, v) for u, v in self.dag.graph.edges()
             ],
             "is_acyclic": nx.is_directed_acyclic_graph(self.dag.graph),
             "topological_order": self.dag.topological_sort(),
