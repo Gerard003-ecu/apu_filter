@@ -1,4 +1,0 @@
-# file: /app/app/topology_viz.py
-# hypothesis_version: 6.151.9
-
-[0.0, 0.3, 0.5, 200, 400, 404, 500, ' -> ', '#1E293B', '#3B82F6', '#9CA3AF', '#EF4444', '#F97316', '...', 'APU', 'BUDGET', 'CHAPTER', 'El grafo es None', 'GET', 'INSUMO', 'ITEM', 'UNKNOWN', 'anomalies', 'apus_detail', 'classes', 'color', 'cost', 'count', 'cycle', 'cycles', 'data', 'description', 'details', 'edges', 'elements', 'empty', 'empty_apus', 'error', 'hotspots', 'id', 'is_evidence', 'isolated', 'isolated_nodes', 'label', 'level', 'list', 'nodes', 'nodes_in_cycles', 'normal', 'orphan_insumos', 'orphan_nodes', 'presupuesto', 'processed_data', 'source', 'stratum', 'stressed_nodes', 'success', 'target', 'topology', 'total_cost', 'type', 'unit_cost', 'unknown', 'weight']
