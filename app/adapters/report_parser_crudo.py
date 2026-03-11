@@ -70,7 +70,7 @@ except ImportError:
     _LARK_AVAILABLE = False
     LarkToken = None  # type: ignore[assignment,misc]
 
-from .utils import clean_apu_code
+from app.core.utils import clean_apu_code
 
 logger = logging.getLogger(__name__)
 
@@ -601,13 +601,13 @@ class ReportParserCrudo:
         # Homeomorfismo de espaciado: colapsa variantes de blancos
         normalized = re.sub(r"\s+", " ", line.strip())
 
+        # Normalizar separador de miles para invarianza regional (1,000 → 1000)
+        normalized = re.sub(r"(\d),(\d{3})(?!\d)", r"\1\2", normalized)
+
         # Normalizar ceros iniciales en enteros, pero NO antes de separador decimal.
         # Correcto: r"\b0+(\d+)\b(?!\.)" usa lookahead negativo sobre el carácter
         # que SIGUE al límite de palabra, no sobre el interior del grupo.
         normalized = re.sub(r"\b0+(\d+)\b(?!\.)", r"\1", normalized)
-
-        # Normalizar separador de miles para invarianza regional (1,000 → 1000)
-        normalized = re.sub(r"(\d),(\d{3})(?!\d)", r"\1\2", normalized)
 
         if len(normalized) <= self._CACHE_KEY_MAX_LENGTH:
             return normalized
