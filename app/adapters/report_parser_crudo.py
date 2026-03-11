@@ -598,16 +598,33 @@ class ReportParserCrudo:
               en "0.5" (que sería el dígito antes del punto decimal) pero sí
               quita ceros en enteros como "007" → "7".
         """
+        from app.core.utils import parse_number
+
         # Homeomorfismo de espaciado: colapsa variantes de blancos
         normalized = re.sub(r"\s+", " ", line.strip())
 
-        # Normalizar separador de miles para invarianza regional (1,000 → 1000)
-        normalized = re.sub(r"(\d),(\d{3})(?!\d)", r"\1\2", normalized)
+        # Colapso de onda numérico (Numeric Wave Collapse)
+        # Extraer posibles secuencias numéricas y reemplazarlas por su valor canónico (float parseado)
+        def _collapse_number(match):
+            val_str = match.group(0)
+            try:
+                # En parse_number, 1,000 puede confundirse con 1.0 si no se configura bien el separador regional por default
+                # Si vemos que tiene 3 dígitos después de la coma de miles, ayudamos al parser
+                val_clean = re.sub(r",(\d{3})(?!\d)", r"\1", val_str)
+                parsed_val = parse_number(val_clean, default_value=None, strict=True)
+                if parsed_val is not None:
+                    # Formato consistente sin ceros extra (.0 si es entero)
+                    if parsed_val.is_integer():
+                        return str(int(parsed_val))
+                    return str(parsed_val)
+            except (ValueError, TypeError):
+                pass
+            return val_str
 
-        # Normalizar ceros iniciales en enteros, pero NO antes de separador decimal.
-        # Correcto: r"\b0+(\d+)\b(?!\.)" usa lookahead negativo sobre el carácter
-        # que SIGUE al límite de palabra, no sobre el interior del grupo.
-        normalized = re.sub(r"\b0+(\d+)\b(?!\.)", r"\1", normalized)
+        # Encontrar secuencias numéricas aisladas o contiguas a separadores (usar regex amplio para capturar 1,000.00 o 1,00)
+        # El patrón busca dígitos opcionalmente separados por comas y/o un punto
+        numeric_pattern = r"(?<![a-zA-Z])[-+]?\d+(?:[.,]\d+)*(?![a-zA-Z])"
+        normalized = re.sub(numeric_pattern, _collapse_number, normalized)
 
         if len(normalized) <= self._CACHE_KEY_MAX_LENGTH:
             return normalized
