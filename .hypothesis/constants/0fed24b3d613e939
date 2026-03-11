@@ -1,4 +1,0 @@
-# file: /app/app/mic_algebra.py
-# hypothesis_version: 6.151.9
-
-['(vacío)', ', ', 'A', 'AtomicVector', 'B', 'C', 'CategoricalRegistry', 'CategoricalState', 'ComposedMorphism', 'CompositionTrace', 'CoproductMorphism', 'Functor', 'HomologicalVerifier', 'IdentityMorphism', 'MIC.Algebra', 'MIC.MorphismComposer', 'Morphism', 'MorphismComposer', 'ProductMorphism', 'PullbackMorphism', 'Stratum', 'T', '_', 'available_keys', 'codomain', 'composition_trace', 'context', 'domain', 'error', 'error_details', 'exception_str', 'exception_type', 'fallback_error', 'first_attempt_error', 'force_override', 'is_valid', 'missing_keys', 'morphism', 'path_f', 'path_g', 'payload', 'step', 'strata', 'success', 'time', 'timestamp', 'to_json', 'trace_length', 'utf-8', 'validated_strata', '→', '→\n  ↓']

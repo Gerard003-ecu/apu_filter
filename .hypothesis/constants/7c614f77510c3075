@@ -1,4 +1,0 @@
-# file: /app/scripts/clean_csv.py
-# hypothesis_version: 6.151.9
-
-[0.5, 100, 130, 1024, '#', ',', '--delimiter', '--encoding', '--no-atomic', '--no-strict', '--overwrite', '--verbose', '-d', '-e', '-o', '-v', '.csv_clean_', '.tmp', ';', 'Comentario', 'Línea vacía', '__main__', 'input_file', 'output_file', 'r', 'replace', 'rows_skipped', 'rows_written', 'skip_reasons', 'store_true', 'total_processed', 'utf-8', 'w', '|']

@@ -974,7 +974,7 @@ class CriticalVoltageEvaluator:
         config: ThresholdConfig,
         metrics: AgentMetrics,
     ) -> Optional[Tuple[SystemStatus, str]]:
-        if telemetry and telemetry.flyback_voltage > config.flyback_voltage_critical:
+        if telemetry and telemetry.flyback_voltage >= config.flyback_voltage_critical:
             return (
                 SystemStatus.CRITICO,
                 f"Voltaje crítico: {telemetry.flyback_voltage:.3f} > {config.flyback_voltage_critical}",
@@ -998,7 +998,7 @@ class CriticalSaturationEvaluator:
         config: ThresholdConfig,
         metrics: AgentMetrics,
     ) -> Optional[Tuple[SystemStatus, str]]:
-        if telemetry and telemetry.saturation > config.saturation_critical:
+        if telemetry and telemetry.saturation >= config.saturation_critical:
             return (
                 SystemStatus.CRITICO,
                 f"Saturación crítica: {telemetry.saturation:.3f} > {config.saturation_critical}",
@@ -1212,7 +1212,10 @@ class EvaluatorChain:
             FragmentationEvaluator(),
             NoTelemetryEvaluator(),
             CriticalVoltageEvaluator(),
+            CriticalSaturationEvaluator(),
             TopologyHealthCriticalEvaluator(),
+            PersistentSaturationCriticalEvaluator(),
+            SaturationFeatureEvaluator(),
             PersistentVoltageCriticalEvaluator(),
             VoltageFeatureEvaluator(),
             RetryLoopEvaluator(),
@@ -1235,6 +1238,9 @@ class EvaluatorChain:
             Tupla (status, summary) del primer evaluador que aplica,
             o (NOMINAL, summary) si ninguno aplica.
         """
+        worst_status = SystemStatus.NOMINAL
+        worst_summary = f"Sistema nominal: β₀={topo_health.betti.b0}, h={topo_health.health_score:.2f}"
+
         for evaluator in self._evaluators:
             try:
                 result = evaluator.evaluate(
@@ -1253,16 +1259,16 @@ class EvaluatorChain:
                         else logging.WARNING
                     )
                     logger.log(log_level, f"[EVAL:{evaluator.name}] {summary}")
-                    return result
+
+                    if status > worst_status:
+                        worst_status = status
+                        worst_summary = summary
+
             except Exception as e:
                 logger.warning(f"[EVAL] Error en {evaluator.name}: {e}")
                 continue
         
-        # Estado nominal
-        return (
-            SystemStatus.NOMINAL,
-            f"Sistema nominal: β₀={topo_health.betti.b0}, h={topo_health.health_score:.2f}",
-        )
+        return worst_status, worst_summary
 
 
 # ============================================================================

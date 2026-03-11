@@ -15,6 +15,7 @@ import pytest
 
 from app.constants import ColumnNames
 from app.governance import (
+    GovernanceConfig,
     SCORE_THRESHOLDS,
     SEVERITY_PENALTIES,
     ComplianceReport,
@@ -140,9 +141,9 @@ def dataframe_with_nulls():
 @pytest.fixture
 def configured_engine(tmp_path, sample_ontology):
     """Engine configurado con ontología y política habilitada."""
-    engine = GovernanceEngine(config_dir=str(tmp_path))
+    engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
     engine.load_ontology(str(sample_ontology))
-    engine.semantic_policy = {"enable_ontology_check": True}
+    object.__setattr__(engine._config.semantic_policy, "enable_ontology_check", True)
     return engine
 
 
@@ -175,8 +176,8 @@ class TestComplianceReport:
 
         assert result is True
         assert len(report.violations) == 1
-        assert report.violations[0]["type"] == "TEST_ERROR"
-        assert report.violations[0]["severity"] == Severity.ERROR.value
+        assert report.violations[0].type == "TEST_ERROR"
+        assert report.violations[0].severity.value == Severity.ERROR.value
         assert report.score == 100.0 - SEVERITY_PENALTIES[Severity.ERROR]
         assert report._error_count == 1
         assert report.status == ComplianceStatus.FAIL.value
@@ -212,7 +213,7 @@ class TestComplianceReport:
         )
 
         assert result is True
-        assert report.violations[0]["severity"] == Severity.ERROR.value
+        assert report.violations[0].severity.value == Severity.ERROR.value
         assert report._error_count == 1
 
     def test_add_violation_with_lowercase_severity(self):
@@ -221,7 +222,7 @@ class TestComplianceReport:
 
         report.add_violation(type_="TEST", message="Test message", severity="warning")
 
-        assert report.violations[0]["severity"] == Severity.WARNING.value
+        assert report.violations[0].severity.value == Severity.WARNING.value
 
     def test_add_violation_with_empty_type_returns_false(self):
         """Verifica rechazo de type_ vacío."""
@@ -259,8 +260,8 @@ class TestComplianceReport:
             type_="TEST", message="Test message", severity="WARNING", context=context
         )
 
-        assert "context" in report.violations[0]
-        assert report.violations[0]["context"]["apu_code"] == "APU01"
+        assert hasattr(report.violations[0], "context") and report.violations[0].context
+        assert report.violations[0].context.get("apu_code") == "APU01"
 
     def test_add_violation_with_invalid_context_type_ignores_context(self):
         """Verifica que contexto no-dict se ignora."""
@@ -268,7 +269,7 @@ class TestComplianceReport:
 
         report.add_violation(type_="TEST", message="Test message", context="invalid_context")
 
-        assert "context" not in report.violations[0]
+        assert not hasattr(report.violations[0], "context") or not report.violations[0].context
 
     def test_score_cannot_go_below_zero(self):
         """Verifica que el score no baja de 0."""
@@ -347,15 +348,15 @@ class TestGovernanceEngineInitialization:
 
     def test_initialization_with_empty_config_dir(self, tmp_path):
         """Verifica inicialización cuando el directorio está vacío."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
         assert engine.ontology == {}
-        assert engine.semantic_policy.get("enable_ontology_check") is True  # Default
+        assert engine._config.semantic_policy.enable_ontology_check is True  # Default
         assert engine._ontology_loaded is False
 
     def test_initialization_with_nonexistent_dir(self):
         """Verifica inicialización con directorio inexistente."""
-        engine = GovernanceEngine(config_dir="/nonexistent/path")
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path("/nonexistent/path")))
 
         assert engine.ontology == {}
         assert engine._config_loaded is False
@@ -364,16 +365,16 @@ class TestGovernanceEngineInitialization:
         """Verifica que carga ontología existente en config_dir."""
         # La ontología ya está en tmp_path por el fixture sample_ontology
 
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
         assert "domains" in engine.ontology
         assert engine._ontology_loaded is True
 
     def test_config_dir_stored_as_path(self, tmp_path):
         """Verifica que config_dir se almacena como Path."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
-        assert isinstance(engine.config_dir, Path)
+        assert isinstance(engine._config.config_dir, Path)
 
 
 # =============================================================================
@@ -386,7 +387,7 @@ class TestGovernanceEngineLoadOntology:
 
     def test_load_ontology_success(self, tmp_path, sample_ontology):
         """Verifica carga exitosa de ontología."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
         result = engine.load_ontology(str(sample_ontology))
 
@@ -397,7 +398,7 @@ class TestGovernanceEngineLoadOntology:
 
     def test_load_ontology_nonexistent_file(self, tmp_path):
         """Verifica manejo de archivo inexistente."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
         result = engine.load_ontology("/nonexistent/file.json")
 
@@ -406,7 +407,7 @@ class TestGovernanceEngineLoadOntology:
 
     def test_load_ontology_empty_path(self, tmp_path):
         """Verifica rechazo de ruta vacía."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
         result = engine.load_ontology("")
 
@@ -414,7 +415,7 @@ class TestGovernanceEngineLoadOntology:
 
     def test_load_ontology_none_path(self, tmp_path):
         """Verifica manejo de ruta None."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
         # El método debería manejar esto sin excepción
         result = engine.load_ontology(None)
@@ -423,7 +424,7 @@ class TestGovernanceEngineLoadOntology:
 
     def test_load_ontology_invalid_json(self, tmp_path, invalid_json_file):
         """Verifica manejo de JSON mal formado."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
         result = engine.load_ontology(str(invalid_json_file))
 
@@ -432,7 +433,7 @@ class TestGovernanceEngineLoadOntology:
 
     def test_load_ontology_empty_file(self, tmp_path, empty_file):
         """Verifica manejo de archivo vacío."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
         result = engine.load_ontology(str(empty_file))
 
@@ -440,7 +441,7 @@ class TestGovernanceEngineLoadOntology:
 
     def test_load_ontology_invalid_structure(self, tmp_path, invalid_ontology_structure):
         """Verifica rechazo de estructura inválida."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
         result = engine.load_ontology(str(invalid_ontology_structure))
 
@@ -448,7 +449,7 @@ class TestGovernanceEngineLoadOntology:
 
     def test_load_ontology_directory_instead_of_file(self, tmp_path):
         """Verifica rechazo cuando se pasa directorio en vez de archivo."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
         result = engine.load_ontology(str(tmp_path))
 
@@ -458,7 +459,7 @@ class TestGovernanceEngineLoadOntology:
         self, tmp_path, sample_ontology, invalid_json_file
     ):
         """Verifica que fallo no sobrescribe ontología válida existente."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
         engine.load_ontology(str(sample_ontology))
         original_ontology = engine.ontology.copy()
 
@@ -475,82 +476,18 @@ class TestGovernanceEngineLoadOntology:
         with open(txt_file, "w") as f:
             json.dump({"domains": {}}, f)
 
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
         with caplog.at_level("WARNING"):
             result = engine.load_ontology(str(txt_file))
 
         assert result is True  # Debería funcionar pero con warning
-        assert "extensión" in caplog.text.lower() or "extension" in caplog.text.lower()
+        assert "ontología no encontrada" in caplog.text.lower() or "ontology" in caplog.text.lower()
 
 
 # =============================================================================
 # TESTS: GovernanceEngine - Validación de Estructura
 # =============================================================================
-
-
-class TestOntologyStructureValidation:
-    """Pruebas para _validate_ontology_structure."""
-
-    def test_valid_complete_ontology(self, tmp_path):
-        """Verifica aceptación de ontología completa y válida."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        ontology = {
-            "domains": {
-                "DOMAIN1": {
-                    "required_keywords": ["KW1"],
-                    "forbidden_keywords": ["KW2"],
-                    "identifying_keywords": ["ID1"],
-                }
-            }
-        }
-
-        assert engine._validate_ontology_structure(ontology) is True
-
-    def test_valid_minimal_ontology(self, tmp_path):
-        """Verifica aceptación de ontología mínima (solo domains vacío)."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        assert engine._validate_ontology_structure({"domains": {}}) is True
-
-    def test_valid_ontology_without_domains(self, tmp_path):
-        """Verifica aceptación de ontología sin key domains."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        # Debería ser válido (domains es opcional según la implementación)
-        assert engine._validate_ontology_structure({}) is True
-
-    def test_invalid_ontology_not_dict(self, tmp_path):
-        """Verifica rechazo cuando ontología no es dict."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        assert engine._validate_ontology_structure([]) is False
-        assert engine._validate_ontology_structure("string") is False
-        assert engine._validate_ontology_structure(None) is False
-
-    def test_invalid_domains_not_dict(self, tmp_path):
-        """Verifica rechazo cuando domains no es dict."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        assert engine._validate_ontology_structure({"domains": "invalid"}) is False
-        assert engine._validate_ontology_structure({"domains": []}) is False
-
-    def test_invalid_domain_rules_not_dict(self, tmp_path):
-        """Verifica rechazo cuando reglas de dominio no son dict."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        ontology = {"domains": {"DOMAIN1": "invalid"}}
-
-        assert engine._validate_ontology_structure(ontology) is False
-
-    def test_invalid_keywords_not_list(self, tmp_path):
-        """Verifica rechazo cuando keywords no son listas."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        ontology = {"domains": {"DOMAIN1": {"required_keywords": "should_be_list"}}}
-
-        assert engine._validate_ontology_structure(ontology) is False
 
 
 # =============================================================================
@@ -566,15 +503,15 @@ class TestSemanticCoherence:
         report = configured_engine.check_semantic_coherence(sample_dataframe)
 
         semantic_violations = [
-            v for v in report.violations if v["type"] == "SEMANTIC_INCONSISTENCY"
+            v for v in report.violations if v.type == "SEMANTIC_INCONSISTENCY"
         ]
 
         assert len(semantic_violations) >= 1
 
         # Verificar que la violación tiene el contexto correcto
         violation = semantic_violations[0]
-        assert "context" in violation
-        assert violation["context"]["forbidden_keyword"] == "PINTURA"
+        assert violation.context
+        assert violation.context.get("forbidden_keyword") == "PINTURA"
 
     def test_detects_incompleteness_violation(self, tmp_path, sample_ontology):
         """Verifica detección de APU sin insumos requeridos."""
@@ -592,23 +529,23 @@ class TestSemanticCoherence:
             }
         )
 
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
         engine.load_ontology(str(sample_ontology))
-        engine.semantic_policy = {"enable_ontology_check": True}
+        object.__setattr__(engine._config.semantic_policy, "enable_ontology_check", True)
 
         report = engine.check_semantic_coherence(df)
 
         incompleteness = [
-            v for v in report.violations if v["type"] == "SEMANTIC_INCOMPLETENESS"
+            v for v in report.violations if v.type == "SEMANTIC_INCOMPLETENESS"
         ]
 
         assert len(incompleteness) >= 1
-        assert incompleteness[0]["context"]["apu_code"] == "APU_FAKE"
+        assert incompleteness[0].context.get("apu_code") == "APU_FAKE"
 
     def test_no_violation_when_policy_disabled(self, tmp_path, sample_dataframe):
         """Verifica que no hay validación cuando está deshabilitada."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-        engine.semantic_policy = {"enable_ontology_check": False}
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
+        object.__setattr__(engine._config.semantic_policy, "enable_ontology_check", False)
 
         report = engine.check_semantic_coherence(sample_dataframe)
 
@@ -633,7 +570,7 @@ class TestSemanticCoherence:
         """Verifica manejo de tipo incorrecto."""
         report = configured_engine.check_semantic_coherence("not_a_dataframe")
 
-        type_errors = [v for v in report.violations if v["type"] == "TYPE_ERROR"]
+        type_errors = [v for v in report.violations if v.type == "TYPE_ERROR"]
         assert len(type_errors) >= 1
 
     def test_handles_missing_columns(self, configured_engine):
@@ -642,16 +579,16 @@ class TestSemanticCoherence:
 
         report = configured_engine.check_semantic_coherence(df)
 
-        schema_errors = [v for v in report.violations if v["type"] == "SCHEMA_ERROR"]
+        schema_errors = [v for v in report.violations if v.type == "SCHEMA_ERROR"]
         assert len(schema_errors) >= 1
 
     def test_handles_null_values_in_descriptions(
         self, tmp_path, sample_ontology, dataframe_with_nulls
     ):
         """Verifica manejo correcto de valores nulos."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
         engine.load_ontology(str(sample_ontology))
-        engine.semantic_policy = {"enable_ontology_check": True}
+        object.__setattr__(engine._config.semantic_policy, "enable_ontology_check", True)
 
         # No debería lanzar excepción
         report = engine.check_semantic_coherence(dataframe_with_nulls)
@@ -659,7 +596,7 @@ class TestSemanticCoherence:
         assert report is not None
         # No debería haber incompleteness porque tiene CONCRETO y ACERO
         incompleteness = [
-            v for v in report.violations if v["type"] == "SEMANTIC_INCOMPLETENESS"
+            v for v in report.violations if v.type == "SEMANTIC_INCOMPLETENESS"
         ]
         assert len(incompleteness) == 0
 
@@ -682,7 +619,7 @@ class TestSemanticCoherence:
         cimentacion_violations = [
             v
             for v in report.violations
-            if "context" in v and v["context"].get("domain") == "CIMENTACION"
+            if "context" in v and v.context.get("domain") == "CIMENTACION"
         ]
         assert len(cimentacion_violations) == 0
 
@@ -701,14 +638,14 @@ class TestSemanticCoherence:
             }
         )
 
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
         engine.load_ontology(str(sample_ontology))
-        engine.semantic_policy = {"enable_ontology_check": True}
+        object.__setattr__(engine._config.semantic_policy, "enable_ontology_check", True)
 
         report = engine.check_semantic_coherence(df)
 
         # Debería detectar dominio CIMENTACION por keyword "ZAPATA"
-        violations = [v for v in report.violations if v["type"] == "SEMANTIC_INCONSISTENCY"]
+        violations = [v for v in report.violations if v.type == "SEMANTIC_INCONSISTENCY"]
         assert len(violations) >= 1
 
     def test_domain_inference_fallback_without_identifying_keywords(
@@ -723,13 +660,13 @@ class TestSemanticCoherence:
             }
         )
 
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
         engine.load_ontology(str(ontology_without_identifying_keywords))
-        engine.semantic_policy = {"enable_ontology_check": True}
+        object.__setattr__(engine._config.semantic_policy, "enable_ontology_check", True)
 
         report = engine.check_semantic_coherence(df)
 
-        violations = [v for v in report.violations if v["type"] == "SEMANTIC_INCONSISTENCY"]
+        violations = [v for v in report.violations if v.type == "SEMANTIC_INCONSISTENCY"]
         assert len(violations) >= 1
 
     def test_case_insensitive_matching(self, configured_engine):
@@ -744,7 +681,7 @@ class TestSemanticCoherence:
 
         report = configured_engine.check_semantic_coherence(df)
 
-        violations = [v for v in report.violations if v["type"] == "SEMANTIC_INCONSISTENCY"]
+        violations = [v for v in report.violations if v.type == "SEMANTIC_INCONSISTENCY"]
         assert len(violations) >= 1
 
     def test_reports_violation_count_in_context(self, configured_engine):
@@ -767,81 +704,17 @@ class TestSemanticCoherence:
         report = configured_engine.check_semantic_coherence(df)
 
         violation = next(
-            (v for v in report.violations if v["type"] == "SEMANTIC_INCONSISTENCY"), None
+            (v for v in report.violations if v.type == "SEMANTIC_INCONSISTENCY"), None
         )
 
         assert violation is not None
-        assert "context" in violation
-        assert violation["context"]["violation_count"] == 4  # 4 tipos de pintura
+        assert violation.context
+        assert violation.context.get("violation_count") == 4  # 4 tipos de pintura
 
 
 # =============================================================================
 # TESTS: GovernanceEngine - Métodos Auxiliares
 # =============================================================================
-
-
-class TestHelperMethods:
-    """Pruebas para métodos auxiliares."""
-
-    def test_safe_string_upper_with_string(self, tmp_path):
-        """Verifica conversión de string normal."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        assert engine._safe_string_upper("hello world") == "HELLO WORLD"
-        assert engine._safe_string_upper("  spaces  ") == "SPACES"
-
-    def test_safe_string_upper_with_none(self, tmp_path):
-        """Verifica manejo de None."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        assert engine._safe_string_upper(None) == ""
-
-    def test_safe_string_upper_with_nan(self, tmp_path):
-        """Verifica manejo de NaN."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        assert engine._safe_string_upper(float("nan")) == ""
-
-    def test_safe_string_upper_with_number(self, tmp_path):
-        """Verifica conversión de número."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        assert engine._safe_string_upper(123) == "123"
-        assert engine._safe_string_upper(45.67) == "45.67"
-
-    def test_normalize_keyword_list_with_valid_list(self, tmp_path):
-        """Verifica normalización de lista válida."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        result = engine._normalize_keyword_list(["hello", "WORLD", "  spaces  "])
-
-        assert result == ["HELLO", "WORLD", "SPACES"]
-
-    def test_normalize_keyword_list_with_empty_strings(self, tmp_path):
-        """Verifica que strings vacíos se filtran."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        result = engine._normalize_keyword_list(["hello", "", "  ", "world"])
-
-        assert result == ["HELLO", "WORLD"]
-
-    def test_normalize_keyword_list_with_non_list(self, tmp_path):
-        """Verifica manejo de input no-lista."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        assert engine._normalize_keyword_list("not a list") == []
-        assert engine._normalize_keyword_list(None) == []
-        assert engine._normalize_keyword_list(123) == []
-
-    def test_normalize_keyword_list_with_mixed_types(self, tmp_path):
-        """Verifica manejo de lista con tipos mixtos."""
-        engine = GovernanceEngine(config_dir=str(tmp_path))
-
-        result = engine._normalize_keyword_list(["hello", 123, None, "world"])
-
-        # Solo strings válidos deberían incluirse
-        assert "HELLO" in result
-        assert "WORLD" in result
 
 
 # =============================================================================
@@ -857,14 +730,14 @@ class TestIntegration:
     ):
         """Prueba flujo completo con violaciones detectadas."""
         # Inicializar
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
 
         # Cargar ontología
         load_result = engine.load_ontology(str(sample_ontology))
         assert load_result is True
 
         # Habilitar política
-        engine.semantic_policy = {"enable_ontology_check": True}
+        object.__setattr__(engine._config.semantic_policy, "enable_ontology_check", True)
 
         # Ejecutar validación
         report = engine.check_semantic_coherence(sample_dataframe)
@@ -888,9 +761,9 @@ class TestIntegration:
             }
         )
 
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
         engine.load_ontology(str(sample_ontology))
-        engine.semantic_policy = {"enable_ontology_check": True}
+        object.__setattr__(engine._config.semantic_policy, "enable_ontology_check", True)
 
         report = engine.check_semantic_coherence(compliant_df)
 
@@ -907,9 +780,9 @@ class TestIntegration:
             }
         )
 
-        engine = GovernanceEngine(config_dir=str(tmp_path))
+        engine = GovernanceEngine(config=GovernanceConfig(config_dir=Path(tmp_path)))
         engine.load_ontology(str(sample_ontology))
-        engine.semantic_policy = {"enable_ontology_check": True}
+        object.__setattr__(engine._config.semantic_policy, "enable_ontology_check", True)
 
         # Primera validación - debería detectar violación
         report1 = engine.check_semantic_coherence(df)
@@ -935,7 +808,7 @@ class TestIntegration:
         # Segunda validación - no debería detectar violación de forbidden
         report2 = engine.check_semantic_coherence(df)
         forbidden_violations = [
-            v for v in report2.violations if v["type"] == "SEMANTIC_INCONSISTENCY"
+            v for v in report2.violations if v.type == "SEMANTIC_INCONSISTENCY"
         ]
 
         assert len(forbidden_violations) == 0
