@@ -213,7 +213,7 @@ class OptionMonad(Generic[T]):
 
     __slots__ = ("_value", "_error")
 
-    def __init__(self, value: Optional[T] = None, error: str = ""):
+    def __init__(self, value: Optional[T] = None, error: Optional[str] = None):
         self._value = value
         self._error = error
 
@@ -227,16 +227,16 @@ class OptionMonad(Generic[T]):
     @classmethod
     def fail(cls, error: str) -> "OptionMonad[T]":
         """Constructor de fallo explícito."""
-        return cls(value=None, error=error)
+        return cls(value=None, error=error if error else "Unknown error")
 
     def is_valid(self) -> bool:
         """Verifica si la mónada contiene un valor válido."""
-        return self._value is not None
+        return self._error is None
 
     @property
     def value(self) -> T:
         """Obtiene el valor contenido o lanza excepción si es inválido."""
-        if self._value is None:
+        if not self.is_valid():
             raise ValueError(f"Acceso a valor inválido: {self._error}")
         return self._value
 
@@ -247,7 +247,7 @@ class OptionMonad(Generic[T]):
 
     def get_or_else(self, default: T) -> T:
         """Extracción segura con valor por defecto."""
-        return self._value if self._value is not None else default
+        return self._value if self.is_valid() else default
 
     def bind(self, f: Callable[[T], "OptionMonad[U]"]) -> "OptionMonad[U]":
         """
@@ -626,6 +626,8 @@ class NumericFieldExtractor:
     def parse_number_safe(self, value: str) -> Optional[float]:
         """Parsea un número de forma segura, utilizando el separador decimal configurado."""
         if not value or not isinstance(value, str):
+            return None
+        if not any(c.isdigit() for c in value):
             return None
         try:
             return parse_number(value, decimal_separator=self.decimal_separator)

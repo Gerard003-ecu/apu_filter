@@ -41,7 +41,7 @@ import pytest
 # ─────────────────────────────────────────────────────────────────────────────
 # Importaciones del módulo bajo prueba
 # ─────────────────────────────────────────────────────────────────────────────
-from report_parser_crudo import (
+from app.adapters.report_parser_crudo import (
     APUContext,
     CategoryHandler,
     FileReadError,
@@ -532,7 +532,7 @@ class TestValidateWithLark:
 
         mock_lark = MagicMock()
         exc = UnexpectedCharacters(
-            seq="test", lex_pos=0, line=1, col=1, allowed=None
+            seq="test", lex_pos=0, line=1, column=1, allowed=None
         )
         mock_lark.parse.side_effect = exc
         parser.lark_parser = mock_lark
@@ -781,8 +781,8 @@ class TestValidateBasicStructure:
         assert ok is False
 
     def test_no_numeric_fields_fails(self, parser: ReportParserCrudo) -> None:
-        line = "Cemento Portland;UND;cinco;precio;total"
-        fields = ["Cemento Portland", "UND", "cinco", "precio", "total"]
+        line = "Cemento Portland;UND;cinco;precio;valor"
+        fields = ["Cemento Portland", "UND", "cinco", "precio", "valor"]
         ok, reason = parser._validate_basic_structure(line, fields)
         assert ok is False
         assert parser.validation_stats.failed_basic_numeric >= 1
@@ -865,7 +865,7 @@ class TestValidateInsumoLine:
         mock_lark = MagicMock()
         from lark.exceptions import UnexpectedCharacters
         mock_lark.parse.side_effect = UnexpectedCharacters(
-            seq="x", lex_pos=0, line=1, col=1, allowed=None
+            seq="x", lex_pos=0, line=1, column=1, allowed=None
         )
         parser.lark_parser = mock_lark
 
@@ -1263,7 +1263,7 @@ class TestIsAPUHomeomorphic:
         self, parser: ReportParserCrudo, mock_lark_tree: MagicMock
     ) -> None:
         """Si Lark no está disponible, debe asumir homeomorfismo."""
-        import report_parser_crudo as rpc_module
+        import app.adapters.report_parser_crudo as rpc_module
         original = rpc_module._LARK_AVAILABLE
 
         try:
