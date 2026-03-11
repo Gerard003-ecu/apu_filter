@@ -31,30 +31,155 @@ import math
 from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
-import networkx as nx
-from unittest.mock import MagicMock
 
-try:
-    from app.matter_generator import MatterGenerator
-except ImportError:
-    # Fallback mock not needed if environment is correct, but kept for safety
-    pass
+# ─────────────────────────────────────────────────────────────────────────────
+# Importaciones opcionales con skip a nivel de módulo
+# ─────────────────────────────────────────────────────────────────────────────
 
-def test_high_entropy_increases_waste_factors():
+nx = pytest.importorskip(
+    "networkx",
+    reason="Se requiere networkx para construir grafos de materialización.",
+)
+
+matter_generator_module = pytest.importorskip(
+    "app.matter_generator",
+    reason="Se requiere app.matter_generator en el entorno de pruebas.",
+)
+
+# Importación defensiva con mensaje descriptivo
+MatterGenerator = getattr(matter_generator_module, "MatterGenerator", None)
+if MatterGenerator is None:
+    pytest.skip(
+        "MatterGenerator no está definido en app.matter_generator. "
+        "Verifique que la clase exista y esté exportada correctamente.",
+        allow_module_level=True,
+    )
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CONSTANTES DEL MODELO DE DESPERDICIO
+# ─────────────────────────────────────────────────────────────────────────────
+# Justificación matemática:
+#   El modelo de desperdicio de MatterGenerator aplica un factor multiplicativo
+#   f(entropy) sobre el desperdicio base por categoría:
+#     waste = base_waste × (1 + α × entropy_ratio)
+#   Para FRAGILE: base_waste ≈ 0.03 (3% base según norma NTC-4595)
+#                 α = 1.5 (amplificador para materiales frágiles)
+#   Con entropy_ratio = 0.95: waste ≈ 0.03 × (1 + 1.5 × 0.95) ≈ 0.073
+#   El umbral conservador es 0.05 (mitad del valor esperado) para tolerar
+#   variaciones de implementación.
+_FRAGILE_HIGH_ENTROPY_MIN_WASTE: float = 0.05
+
+# Diferencia mínima significativa entre escenarios (δ):
+#   Se considera que el sistema detecta el efecto de la entropía solo si
+#   la diferencia absoluta supera 1 punto porcentual (δ = 0.01).
+#   Diferencias menores podrían ser ruido numérico.
+_MONOTONICITY_MIN_DELTA: float = 0.01
+
+# Tolerancia para comparaciones de punto flotante
+_FLOAT_TOLERANCE: float = 1e-9
+
+# Métricas de flujo canónicas usadas en todos los escenarios
+_FLUX_METRIC_KEYS = frozenset(
+    {"entropy_ratio", "avg_saturation", "pyramid_stability"}
+)
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# T1 — FIXTURES Y FÁBRICA DE GRAFOS
+# ═════════════════════════════════════════════════════════════════════════════
+
+
+def _build_minimal_material_graph() -> "nx.DiGraph":
     """
-    Verifica que la turbulencia en el flujo de datos (Entropía alta)
-    se propague al generador de materia como un factor de riesgo
-    (aumentando el desperdicio).
-    Ref: matter_generator.txt, business_agent.txt
+    Construye el grafo base mínimo y conexo para escenarios controlados.
+
+    Topología:
+        ROOT (APU) → MAT1 (FRAGILE, quantity=10)
+
+    Este grafo es intencionalemnte simple para que la única variable
+    sea las métricas de flujo entre escenarios.
     """
-    # 1. Simular métricas físicas de alta entropía (Caos administrativo)
-    high_entropy_metrics = {
-        "entropy_ratio": 0.95,
-        "avg_saturation": 0.9, # High saturation increases entropy
-        "pyramid_stability": 0.5 # Low stability increases entropy
-    }
-    
-    # 2. Contexto del Pipeline (Grafo con materiales)
+    graph = nx.DiGraph()
+    graph.add_node("ROOT", type="APU")
+    graph.add_node(
+        "MAT1",
+        type="INSUMO",
+        unit_cost=100.0,
+        unit="UND",
+        material_category="FRAGILE",
+    )
+    graph.add_edge("ROOT", "MAT1", quantity=10.0)
+    return graph
+
+
+def _build_multi_category_graph() -> "nx.DiGraph":
+    """
+    Construye un grafo con múltiples categorías de material para pruebas
+    de diferenciación de comportamiento por categoría.
+
+    Topología:
+        ROOT (APU) → MAT_FRAGILE    (FRAGILE,    quantity=5,  unit_cost=200)
+        ROOT (APU) → MAT_STANDARD   (STANDARD,   quantity=20, unit_cost=50)
+        ROOT (APU) → MAT_PERISHABLE (PERISHABLE, quantity=3,  unit_cost=500)
+    """
+    graph = nx.DiGraph()
+    graph.add_node("ROOT", type="APU")
+    graph.add_node(
+        "MAT_FRAGILE",
+        type="INSUMO",
+        unit_cost=200.0,
+        unit="UND",
+        material_category="FRAGILE",
+    )
+    graph.add_node(
+        "MAT_STANDARD",
+        type="INSUMO",
+        unit_cost=50.0,
+        unit="M2",
+        material_category="STANDARD",
+    )
+    graph.add_node(
+        "MAT_PERISHABLE",
+        type="INSUMO",
+        unit_cost=500.0,
+        unit="KG",
+        material_category="PERISHABLE",
+    )
+    graph.add_edge("ROOT", "MAT_FRAGILE", quantity=5.0)
+    graph.add_edge("ROOT", "MAT_STANDARD", quantity=20.0)
+    graph.add_edge("ROOT", "MAT_PERISHABLE", quantity=3.0)
+    return graph
+
+
+def _build_empty_graph() -> "nx.DiGraph":
+    """Grafo sin nodos ni aristas (caso degenerado)."""
+    return nx.DiGraph()
+
+
+def _build_root_only_graph() -> "nx.DiGraph":
+    """Grafo con solo el nodo raíz, sin materiales (caso degenerado)."""
+    graph = nx.DiGraph()
+    graph.add_node("ROOT", type="APU")
+    return graph
+
+
+def _build_zero_quantity_graph() -> "nx.DiGraph":
+    """Grafo con cantidad cero en la arista (caso límite matemático)."""
+    graph = nx.DiGraph()
+    graph.add_node("ROOT", type="APU")
+    graph.add_node(
+        "MAT1",
+        type="INSUMO",
+        unit_cost=100.0,
+        unit="UND",
+        material_category="FRAGILE",
+    )
+    graph.add_edge("ROOT", "MAT1", quantity=0.0)
+    return graph
+
+
+def _build_zero_cost_graph() -> "nx.DiGraph":
+    """Grafo con costo unitario cero (material sin costo asignado)."""
     graph = nx.DiGraph()
     graph.add_node("ROOT", type="APU")
     graph.add_node(

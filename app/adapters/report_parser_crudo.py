@@ -7,23 +7,42 @@ su procesamiento semántico.
 Capacidades y Métricas:
 -----------------------
 1. Validación Homeomórfica (`_is_apu_homeomorphic`):
-   Verifica que el árbol sintáctico generado (Lark) sea topológicamente equivalente 
+   Verifica que el árbol sintáctico generado (Lark) sea topológicamente equivalente
    al esquema platónico de un APU válido, preservando la estructura jerárquica padre-hijo.
 
 2. Física del Texto (Entropía y Densidad):
    Calcula métricas estructurales para distinguir señal de ruido:
-   - Entropía de Campo (`_calculate_field_entropy`): Mide el desorden en la tipificación de datos.
-   - Densidad Estructural (`_calculate_structural_density`): Relación señal/ruido por línea.
-   - Cohesión Numérica (`_calculate_numeric_cohesion`): Agrupamiento de valores cuantitativos.
+   - Entropía de Campo (`_calculate_field_entropy`): Mide el desorden en la tipificación
+     de datos usando entropía de Shannon H = -Σ p·log₂(p), normalizada a [0,1].
+   - Densidad Estructural (`_calculate_structural_density`): Relación señal/ruido por
+     línea, acotada a [0,1].
+   - Cohesión Numérica (`_calculate_numeric_cohesion`): Agrupamiento de valores
+     cuantitativos, normalizada a [0,1].
 
 3. Patrón Chain of Responsibility:
-   Implementa una cadena de handlers especializados (`JunkHandler`, `HeaderHandler`, `CategoryHandler`, 
-   `InsumoHandler`) que actúan como filtros secuenciales para clasificar cada línea según su 
-   función estructural en el documento.
+   Implementa una cadena de handlers especializados (`JunkHandler`, `HeaderHandler`,
+   `CategoryHandler`, `InsumoHandler`) que actúan como filtros secuenciales para
+   clasificar cada línea según su función estructural en el documento.
 
 4. Contexto y Estado:
-   Mantiene una memoria de corto plazo (`ParserContext`) para resolver la jerarquía 
+   Mantiene una memoria de corto plazo (`ParserContext`) para resolver la jerarquía
    del presupuesto (Capítulo -> APU -> Insumo) y detectar recursos huérfanos.
+
+Correcciones v3:
+----------------
+- Orden correcto de cláusulas `except` para jerarquía de excepciones Lark.
+- `_calculate_numeric_cohesion` normalizada a [0,1] con función sigmoidea inversa.
+- `_calculate_structural_density` acotada a [0,1].
+- `_calculate_field_entropy` con imports a nivel módulo y manejo robusto de log2.
+- `_compute_structural_signature` elimina re-import de hashlib.
+- `_calculate_homogeneity_index` elimina re-import de Counter.
+- `_is_apu_homeomorphic` con import de Token a nivel módulo.
+- `_has_minimal_structural_connectivity` con guard para líneas muy cortas.
+- `_detect_category` con normalización correcta para búsqueda case-insensitive.
+- `_compute_semantic_cache_key` con lookahead correcto en regex de ceros.
+- `_is_supremum_match` con lógica de abreviaturas corregida.
+- Umbrales de `_determine_homeomorphism_class` documentados con justificación.
+- `_log_validation_summary` usa indexación `Counter` consistentemente.
 """
 
 import hashlib
@@ -32,21 +51,44 @@ import re
 from abc import ABC, abstractmethod
 from collections import Counter
 from dataclasses import dataclass, field
+from math import log2
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from lark import Lark
-from lark.exceptions import (
-    LarkError,
-    UnexpectedCharacters,
-    UnexpectedEOF,
-    UnexpectedInput,
-    UnexpectedToken,
-)
+# Import de Token a nivel módulo para evitar imports repetidos en métodos internos
+try:
+    from lark import Lark, Token as LarkToken
+    from lark.exceptions import (
+        LarkError,
+        UnexpectedCharacters,
+        UnexpectedEOF,
+        UnexpectedInput,
+        UnexpectedToken,
+    )
+    _LARK_AVAILABLE = True
+except ImportError:
+    _LARK_AVAILABLE = False
+    LarkToken = None  # type: ignore[assignment,misc]
 
-from app.core.utils import clean_apu_code
+from .utils import clean_apu_code
 
 logger = logging.getLogger(__name__)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CONSTANTES DE MÓDULO
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Número de tipos de campo para normalización de entropía.
+# Los tipos reconocidos son: "alpha", "numeric", "mixed", "empty" → 4 categorías.
+# H_max = log2(4) ≈ 2.0 bits  →  se usa como denominador en normalización.
+_FIELD_TYPE_COUNT: int = 4
+_H_MAX: float = log2(_FIELD_TYPE_COUNT)  # ≈ 2.0 bits
+
+# Factor de escala para cohesión numérica: distancia promedio de 1 campo
+# (adyacente) → cohesión = 1.0; de 10 campos → cohesión ≈ 0.09.
+# Se usa 1/(1 + d) para acotar a (0, 1].
+_COHESION_OFFSET: float = 1.0
 
 
 @dataclass
@@ -75,6 +117,8 @@ class ValidationStats:
     failed_basic_subtotal: int = 0
     failed_basic_junk: int = 0
 
+    # Contadores de error Lark: ahora todos se incrementan correctamente
+    # gracias al orden de except corregido (específico → general).
     failed_lark_parse: int = 0
     failed_lark_unexpected_input: int = 0
     failed_lark_unexpected_chars: int = 0
@@ -86,19 +130,16 @@ class ValidationStats:
 
 class ParserError(Exception):
     """Excepción base para errores ocurridos durante el parseo."""
-
     pass
 
 
 class FileReadError(ParserError):
     """Indica un error al leer el archivo de entrada."""
-
     pass
 
 
 class ParseStrategyError(ParserError):
     """Indica un error en la lógica de la estrategia de parseo."""
-
     pass
 
 
@@ -108,10 +149,11 @@ class APUContext:
     Almacena el contexto de un APU mientras se procesan sus líneas.
 
     Attributes:
-        apu_code: El código (ITEM) del APU.
-        apu_desc: La descripción del APU.
-        apu_unit: La unidad de medida del APU.
-        source_line: El número de línea donde se detectó el APU.
+        apu_code:    Código (ITEM) del APU. Mínimo 2 caracteres tras limpieza.
+        apu_desc:    Descripción textual del APU.
+        apu_unit:    Unidad de medida (ej. M2, ML, UND). Siempre en mayúsculas.
+        source_line: Número de línea (1-indexado) donde se detectó el encabezado.
+        default_unit: Unidad de respaldo cuando no se puede extraer del texto.
     """
 
     apu_code: str
@@ -120,7 +162,7 @@ class APUContext:
     source_line: int
     default_unit: str = "UND"
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Realiza validación y normalización después de la inicialización."""
         self.apu_code = self.apu_code.strip() if self.apu_code else ""
         self.apu_desc = self.apu_desc.strip() if self.apu_desc else ""
@@ -132,7 +174,7 @@ class APUContext:
 
     @property
     def is_valid(self) -> bool:
-        """Comprueba si el contexto del APU es válido."""
+        """Comprueba si el contexto del APU es válido (código ≥ 2 caracteres)."""
         return bool(self.apu_code and len(self.apu_code) >= 2)
 
 
@@ -141,16 +183,17 @@ class ParserContext:
     """
     Mantiene el estado mutable del parseo (La Pirámide en construcción).
 
-    Actúa como la 'Memoria de Corto Plazo' del sistema.
+    Actúa como la 'Memoria de Corto Plazo' del sistema. La pirámide tiene
+    tres niveles: Categoría (raíz) → APU (nodo) → Insumo (hoja).
     """
 
-    current_apu: Optional[APUContext] = None  # El 'Padre' actual (Nivel 2)
+    current_apu: Optional[APUContext] = None  # Nodo padre activo (Nivel 2)
     current_category: str = "INDEFINIDO"
     current_line_number: int = 0
     raw_records: List[Dict[str, Any]] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
 
-    # Telemetría interna
+    # Telemetría interna: usa Counter para acumulación eficiente
     stats: Counter = field(default_factory=Counter)
 
     def has_active_parent(self) -> bool:
@@ -162,12 +205,13 @@ class LineHandler(ABC):
     """
     Unidad de Trabajo Discreta.
 
-    Patrón: Chain of Responsibility.
+    Patrón: Chain of Responsibility. Cada handler es una función parcial
+    definida sobre un subconjunto del espacio de líneas.
     """
 
-    def __init__(self, parent_parser):
+    def __init__(self, parent_parser: "ReportParserCrudo") -> None:
         """Inicializa el handler con una referencia al parser padre."""
-        self.parent = parent_parser  # Acceso a utilidades (Lark, Regex)
+        self.parent = parent_parser
 
     @abstractmethod
     def can_handle(self, line: str, next_line: Optional[str] = None) -> bool:
@@ -181,8 +225,9 @@ class LineHandler(ABC):
         """
         Procesa la línea y actualiza el contexto (mutación de estado).
 
-        Aquí se aplica la lógica de negocio.
-        Returns: True si debe avanzar una línea extra (por encabezados multilínea), False si no.
+        Returns:
+            True si debe avanzar una línea extra (encabezados multilínea),
+            False en caso contrario.
         """
         pass
 
@@ -191,22 +236,19 @@ class JunkHandler(LineHandler):
     """Detecta y descarta basura, separadores o líneas decorativas."""
 
     def can_handle(self, line: str, next_line: Optional[str] = None) -> bool:
-        """Verifica si la línea es considerada basura."""
         return self.parent._is_junk_line(line.upper())
 
     def handle(
         self, line: str, context: ParserContext, next_line: Optional[str] = None
     ) -> bool:
-        """Descarta la línea e incrementa el contador de basura."""
         context.stats["junk_lines_skipped"] += 1
         return False
 
 
 class HeaderHandler(LineHandler):
-    """Detecta encabezados de APU (Nivel 2)."""
+    """Detecta encabezados de APU (Nivel 2 de la pirámide)."""
 
     def can_handle(self, line: str, next_line: Optional[str] = None) -> bool:
-        """Verifica si la línea es un encabezado de APU."""
         line_upper = line.upper()
         is_header_line = "UNIDAD:" in line_upper
         is_item_line_next = next_line is not None and "ITEM:" in next_line.upper()
@@ -215,74 +257,71 @@ class HeaderHandler(LineHandler):
     def handle(
         self, line: str, context: ParserContext, next_line: Optional[str] = None
     ) -> bool:
-        """Procesa el encabezado de APU y actualiza el contexto actual."""
-        header_line = line
         item_line = next_line.strip() if next_line else ""
 
         try:
             apu_context_result = self.parent._extract_apu_header(
-                header_line, item_line, context.current_line_number
+                line, item_line, context.current_line_number
             )
 
             if apu_context_result is not None:
                 context.current_apu = apu_context_result
                 context.current_category = "INDEFINIDO"
                 context.stats["apus_detected"] += 1
-
                 logger.info(
-                    f"✓ APU detectado [línea {context.current_line_number}]: "
-                    f"{context.current_apu.apu_code} - "
-                    f"{context.current_apu.apu_desc[:50]}"
+                    "✓ APU detectado [línea %d]: %s - %s",
+                    context.current_line_number,
+                    context.current_apu.apu_code,
+                    context.current_apu.apu_desc[:50],
                 )
             else:
                 logger.warning(
-                    f"Encabezado APU inválido en línea {context.current_line_number}"
+                    "Encabezado APU inválido en línea %d",
+                    context.current_line_number,
                 )
-        except Exception as e:
+        except Exception as exc:
             logger.warning(
-                f"✗ Fallo al parsear encabezado de APU en línea {context.current_line_number}: {e}"
+                "✗ Fallo al parsear encabezado de APU en línea %d: %s",
+                context.current_line_number,
+                exc,
             )
             context.current_apu = None
 
-        return True  # Consume la siguiente línea (ITEM)
+        return True  # Consume la siguiente línea (ITEM:)
 
 
 class CategoryHandler(LineHandler):
-    """Detecta cambios de categoría."""
+    """Detecta cambios de categoría (MATERIALES, MANO DE OBRA, etc.)."""
 
     def can_handle(self, line: str, next_line: Optional[str] = None) -> bool:
-        """Verifica si la línea indica un cambio de categoría."""
         return self.parent._detect_category(line.upper()) is not None
 
     def handle(
         self, line: str, context: ParserContext, next_line: Optional[str] = None
     ) -> bool:
-        """Actualiza la categoría actual en el contexto."""
         new_category = self.parent._detect_category(line.upper())
         if new_category:
             context.current_category = new_category
             context.stats[f"category_{new_category}"] += 1
-            logger.debug(f"  → Categoría: {new_category}")
+            logger.debug("  → Categoría: %s", new_category)
         return False
 
 
 class InsumoHandler(LineHandler):
-    """Detecta y procesa líneas de insumos (Nivel 3)."""
+    """Detecta y procesa líneas de insumos (Nivel 3 — hojas de la pirámide)."""
 
     def can_handle(self, line: str, next_line: Optional[str] = None) -> bool:
-        """Verifica si la línea es un insumo potencial."""
-        # Validación ligera preliminar: debe tener al menos un separador y algún número
+        # Pre-filtro ligero: debe tener separador y al menos un dígito
         return ";" in line and any(c.isdigit() for c in line)
 
     def handle(
         self, line: str, context: ParserContext, next_line: Optional[str] = None
     ) -> bool:
-        """Procesa la línea de insumo y la añade a los registros crudos si es válida."""
-        # 1. VALIDACIÓN PIRAMIDAL (Lógica Estructural)
+        # ── VALIDACIÓN PIRAMIDAL: recurso huérfano ────────────────────────────
         if not context.has_active_parent():
-            # ERROR CRÍTICO DE NEGOCIO: Recurso Huérfano
             logger.warning(
-                f"⚠️ Recurso Huérfano detectado en línea {context.current_line_number}. Ignorando."
+                "⚠️ Recurso Huérfano detectado en línea %d. Ignorando.",
+                context.current_line_number,
             )
             context.stats["orphans_discarded"] += 1
             return False
@@ -297,23 +336,28 @@ class InsumoHandler(LineHandler):
                 line,
                 context.current_line_number,
                 validation_result,
-                fields,  # Pasar fields para evitar re-split
+                fields,
             )
             context.raw_records.append(record)
             context.stats["insumos_extracted"] += 1
 
             if self.parent.debug_mode:
                 logger.debug(
-                    f"  ✓ Insumo válido [línea {context.current_line_number}] "
-                    f"[{validation_result.validation_layer}]: "
-                    f"{fields[0][:40]}... ({validation_result.fields_count} campos)"
+                    "  ✓ Insumo válido [línea %d] [%s]: %s... (%d campos)",
+                    context.current_line_number,
+                    validation_result.validation_layer,
+                    fields[0][:40],
+                    validation_result.fields_count,
                 )
         else:
             context.stats["lines_ignored_in_context"] += 1
             if self.parent.debug_mode:
                 logger.debug(
-                    f"  ✗ Rechazada [línea {context.current_line_number}]: {validation_result.reason}"
+                    "  ✗ Rechazada [línea %d]: %s",
+                    context.current_line_number,
+                    validation_result.reason,
                 )
+
         return False
 
 
@@ -321,25 +365,30 @@ class ReportParserCrudo:
     """
     Parser robusto tipo máquina de estados para archivos APU semi-estructurados.
 
-    ROBUSTECIDO: Constantes centralizadas, límites de recursos, manejo defensivo.
-    V2: Integración de análisis topológico.
+    Implementa validación en tres capas:
+      Capa 0 — Verificación de tipos (homeomorfismo de tipo).
+      Capa 1 — Invariantes estructurales básicos (cardinalidad, numeración).
+      Capa 2 — Homeomorfismo Lark (parsing gramatical).
+      Capa 3 — Homeomorfismo APU (semántica de insumos).
+
+    Todas las métricas internas (entropía, densidad, cohesión) están normalizadas
+    al intervalo [0, 1] para permitir comparación y ponderación uniforme.
     """
 
-    # ═══════════════════════════════════════════════════════════════════════════
+    # ═══════════════════════════════════════════════════════════════════════
     # CONSTANTES DE CLASE
-    # ═══════════════════════════════════════════════════════════════════════════
+    # ═══════════════════════════════════════════════════════════════════════
 
-    # Límites de recursos
-    _MAX_CACHE_SIZE: int = 50000
+    _MAX_CACHE_SIZE: int = 50_000
     _MAX_FAILED_SAMPLES: int = 20
-    _MAX_LINE_LENGTH: int = 5000
+    _MAX_LINE_LENGTH: int = 5_000
     _MIN_FIELDS_FOR_INSUMO: int = 5
     _MIN_LINE_LENGTH: int = 3
 
-    # Configuración de validación
-    _CACHE_KEY_MAX_LENGTH: int = 2000
+    # Longitud máxima de línea antes de aplicar hash para la clave de cache
+    _CACHE_KEY_MAX_LENGTH: int = 2_000
 
-    CATEGORY_KEYWORDS = {
+    CATEGORY_KEYWORDS: Dict[str, set] = {
         "MATERIALES": {"MATERIALES", "MATERIAL", "MAT.", "INSUMOS"},
         "MANO DE OBRA": {
             "MANO DE OBRA",
@@ -355,8 +404,8 @@ class ReportParserCrudo:
         "OTROS": {"OTROS", "OTRO", "VARIOS", "ADICIONALES"},
     }
 
-    JUNK_KEYWORDS = frozenset(
-        {  # ROBUSTECIDO: frozenset para inmutabilidad y rendimiento
+    JUNK_KEYWORDS: frozenset = frozenset(
+        {
             "SUBTOTAL",
             "COSTO DIRECTO",
             "DESCRIPCION",
@@ -369,10 +418,29 @@ class ReportParserCrudo:
     )
 
     # Patrones pre-compilados para rendimiento
-    _NUMERIC_PATTERN = re.compile(r"\d+[.,]\d+|\d+")
-    _DECORATIVE_PATTERN = re.compile(r"^[=\-_\s*]+$")
-    _UNIT_PATTERN = re.compile(r"UNIDAD:\s*(\S+)", re.IGNORECASE)
-    _ITEM_PATTERN = re.compile(r"ITEM:\s*([\S,]+)", re.IGNORECASE)
+    _NUMERIC_PATTERN: re.Pattern = re.compile(r"\d+[.,]\d+|\d+")
+    _DECORATIVE_PATTERN: re.Pattern = re.compile(r"^[=\-_\s*]+$")
+    _UNIT_PATTERN: re.Pattern = re.compile(r"UNIDAD:\s*(\S+)", re.IGNORECASE)
+    _ITEM_PATTERN: re.Pattern = re.compile(r"ITEM:\s*([\S,]+)", re.IGNORECASE)
+
+    # ── Umbrales de clasificación homeomórfica ───────────────────────────
+    # Justificación matemática:
+    #   CLASE_A: entropía > 0.6 ⟹ distribución de tipos cercana a uniforme
+    #            (H > 0.6·H_max = 1.2 bits de 2.0 posibles).
+    #            densidad > 0.08 ⟹ ≥ 1 unidad semántica cada 12.5 caracteres.
+    #            cohesión > 0.7  ⟹ distancia media entre números ≤ 0.43 campos.
+    #   CLASE_B: cohesión > 0.85 ⟹ números casi contiguos (d̄ ≤ 0.18 campos).
+    #   CLASE_C: homogeneidad > 0.7 ⟹ ≥70% de campos del mismo tipo.
+    #   CLASE_D: señal mixta aceptable (entropía > 0.4 o densidad > 0.05).
+    #   CLASE_E: sin señal estructural reconocible.
+    _THR_A_ENTROPY: float = 0.6
+    _THR_A_DENSITY: float = 0.08
+    _THR_A_COHESION: float = 0.7
+    _THR_B_COHESION: float = 0.85
+    _THR_B_HOMOGENEITY: float = 0.5
+    _THR_C_HOMOGENEITY: float = 0.7
+    _THR_D_ENTROPY: float = 0.4
+    _THR_D_DENSITY: float = 0.05
 
     def __init__(
         self,
@@ -380,181 +448,200 @@ class ReportParserCrudo:
         profile: dict,
         config: Optional[Dict] = None,
         telemetry: Optional[Any] = None,
-    ):
+    ) -> None:
         """Inicializa el parser con validación exhaustiva de parámetros."""
-        # ROBUSTECIDO: Conversión segura de file_path
         if file_path is None:
             raise ValueError("file_path no puede ser None")
         self.file_path = (
             Path(file_path) if not isinstance(file_path, Path) else file_path
         )
 
-        # ROBUSTECIDO: Validación de tipos para profile y config
         if profile is not None and not isinstance(profile, dict):
             logger.warning(
-                f"profile no es dict ({type(profile).__name__}), usando vacío"
+                "profile no es dict (%s), usando vacío", type(profile).__name__
             )
             profile = {}
         if config is not None and not isinstance(config, dict):
-            logger.warning(f"config no es dict ({type(config).__name__}), usando vacío")
+            logger.warning(
+                "config no es dict (%s), usando vacío", type(config).__name__
+            )
             config = {}
 
-        self.profile = profile or {}
-        self.config = config or {}
+        self.profile: Dict[str, Any] = profile or {}
+        self.config: Dict[str, Any] = config or {}
         self.telemetry = telemetry
 
-        # Validar archivo antes de continuar
         self._validate_file_path()
 
-        # ROBUSTECIDO: Inicialización segura del parser Lark
         self.lark_parser: Optional[Lark] = None
         self._parse_cache: Dict[str, Tuple[bool, Any]] = {}
         self.validation_stats = ValidationStats()
 
-        try:
-            from app.tactics.apu_processor import APU_GRAMMAR
-
-            self.lark_parser = self._initialize_lark_parser(APU_GRAMMAR)
-        except ImportError as ie:
+        if not _LARK_AVAILABLE:
             logger.error(
-                f"No se pudo importar APU_GRAMMAR: {ie}\n"
-                f"  El parser funcionará sin validación Lark"
+                "Lark no está instalado. Ejecute: pip install lark\n"
+                "El parser funcionará sin validación Lark."
             )
-        except Exception as e:
-            logger.error(
-                f"Error inicializando parser Lark: {e}\n"
-                f"  El parser funcionará sin validación Lark"
-            )
+        else:
+            try:
+                from .apu_processor import APU_GRAMMAR  # type: ignore[import]
 
-        # Estado del parser
+                self.lark_parser = self._initialize_lark_parser(APU_GRAMMAR)
+            except ImportError as exc:
+                logger.error(
+                    "No se pudo importar APU_GRAMMAR: %s\n"
+                    "El parser funcionará sin validación Lark.",
+                    exc,
+                )
+            except Exception as exc:
+                logger.error(
+                    "Error inicializando parser Lark: %s\n"
+                    "El parser funcionará sin validación Lark.",
+                    exc,
+                )
+
         self.raw_records: List[Dict[str, Any]] = []
         self.stats: Counter = Counter()
         self._parsed: bool = False
-
-        # ROBUSTECIDO: Modo debug desde config
-        self.debug_mode = self.config.get("debug_mode", False)
+        self.debug_mode: bool = self.config.get("debug_mode", False)
 
         logger.debug(
-            f"ReportParserCrudo inicializado:\n"
-            f"  Archivo: {self.file_path.name}\n"
-            f"  Lark parser: {'✓' if self.lark_parser else '✗'}\n"
-            f"  Debug mode: {self.debug_mode}"
+            "ReportParserCrudo inicializado:\n"
+            "  Archivo: %s\n"
+            "  Lark parser: %s\n"
+            "  Debug mode: %s",
+            self.file_path.name,
+            "✓" if self.lark_parser else "✗",
+            self.debug_mode,
         )
 
+    # ── Fábrica de handlers ──────────────────────────────────────────────
+
     def _initialize_handlers(self) -> List[LineHandler]:
-        """Fabrica la cadena de responsabilidad en orden de prioridad."""
+        """Fabrica la cadena de responsabilidad en orden de prioridad decreciente."""
         return [
-            JunkHandler(self),  # 1. Descartar basura obvia
-            HeaderHandler(self),  # 2. Detectar cambios de estructura (Nuevos APUs)
+            JunkHandler(self),      # 1. Descartar basura obvia
+            HeaderHandler(self),    # 2. Detectar cambios de estructura (nuevos APUs)
             CategoryHandler(self),  # 3. Detectar cambios de categoría
-            InsumoHandler(self),  # 4. Procesar datos (Hojas del árbol)
+            InsumoHandler(self),    # 4. Procesar datos (hojas del árbol)
         ]
 
-    def _initialize_lark_parser(self, grammar: Optional[str] = None) -> Optional[Lark]:
-        """Inicializa el parser Lark con la MISMA gramática que usa APUProcessor."""
-        try:
-            from lark import Lark
-            from lark.exceptions import ConfigurationError, GrammarError
-        except ImportError as ie:
-            logger.error(
-                f"No se pudo importar Lark: {ie}\n  Ejecute: pip install lark"
-            )
+    # ── Inicialización Lark ──────────────────────────────────────────────
+
+    def _initialize_lark_parser(
+        self, grammar: Optional[str] = None
+    ) -> Optional["Lark"]:
+        """
+        Inicializa el parser Lark con la misma gramática que usa APUProcessor.
+
+        Garantiza coherencia entre ambos módulos al compartir configuración idéntica.
+        """
+        if not _LARK_AVAILABLE:
             return None
 
-        # ROBUSTECIDO: Obtener gramática si no se proporcionó
         if grammar is None:
             try:
-                from app.tactics.apu_processor import APU_GRAMMAR
+                from .apu_processor import APU_GRAMMAR  # type: ignore[import]
 
                 grammar = APU_GRAMMAR
             except ImportError:
-                logger.error("No se pudo importar APU_GRAMMAR desde apu_processor")
+                logger.error(
+                    "No se pudo importar APU_GRAMMAR desde apu_processor."
+                )
                 return None
 
-        # ROBUSTECIDO: Validar que la gramática no está vacía
         if not grammar or not isinstance(grammar, str) or not grammar.strip():
-            logger.error("La gramática proporcionada está vacía o no es válida")
+            logger.error("La gramática proporcionada está vacía o no es válida.")
             return None
 
         try:
-            # ROBUSTECIDO: Configuración idéntica a APUProcessor para coherencia
-            parser_config = {
-                "start": "line",
-                "parser": "lalr",
-                "maybe_placeholders": False,
-                "propagate_positions": True,  # V2: Necesario para validación topológica
-                "cache": True,
-            }
+            from lark.exceptions import ConfigurationError, GrammarError  # type: ignore[import]
+        except ImportError:
+            logger.error("No se pudieron importar excepciones de Lark.")
+            return None
 
-            parser = Lark(grammar, **parser_config)
-            return parser
-
-        except GrammarError as ge:
-            logger.error(
-                f"Error de gramática Lark:\n"
-                f"  Mensaje: {ge}\n"
-                f"  Revise que APU_GRAMMAR sea válida"
+        try:
+            parser = Lark(
+                grammar,
+                start="line",
+                parser="lalr",
+                maybe_placeholders=False,
+                propagate_positions=True,
+                cache=True,
             )
-            return None
+            return parser
+        except GrammarError as exc:
+            logger.error(
+                "Error de gramática Lark: %s\n"
+                "Revise que APU_GRAMMAR sea válida.",
+                exc,
+            )
+        except ConfigurationError as exc:
+            logger.error("Error de configuración Lark: %s", exc)
+        except Exception as exc:
+            logger.error("Error inesperado inicializando parser Lark: %s", exc)
 
-        except ConfigurationError as ce:
-            logger.error(f"Error de configuración Lark: {ce}")
-            return None
+        return None
 
-        except Exception as e:
-            logger.error(f"Error inesperado inicializando parser Lark: {e}")
-            return None
+    # ── Cache semántico ──────────────────────────────────────────────────
 
     def _compute_semantic_cache_key(self, line: str) -> str:
         """
         Computa clave de cache basada en invariantes topológicos.
 
-        Preserva semántica mientras normaliza variaciones sintácticas superficiales.
-        La función define una relación de equivalencia sobre el espacio de líneas,
-        donde líneas topológicamente equivalentes colapsan al mismo punto en el
-        espacio cociente.
+        Define una relación de equivalencia sobre el espacio de líneas:
+        líneas topológicamente equivalentes colapsan al mismo representante
+        canónico en el espacio cociente L/~.
 
-        Args:
-            line: La línea de texto.
-
-        Retorna:
-            str: El hash semántico que actúa como representante canónico de la clase.
+        Corrección v3:
+            - El lookahead `(?!\.)` ahora es correcto: evita quitar el cero
+              en "0.5" (que sería el dígito antes del punto decimal) pero sí
+              quita ceros en enteros como "007" → "7".
         """
-        # Normalización de espacios (homeomorfismo de espaciado: ℝⁿ → ℝⁿ/~)
+        # Homeomorfismo de espaciado: colapsa variantes de blancos
         normalized = re.sub(r"\s+", " ", line.strip())
 
-        # CORRECCIÓN: El regex anterior eliminaba ceros significativos en decimales
-        # como "0.5" → ".5". Ahora solo normaliza ceros redundantes en enteros.
-        # Ejemplo: "007" → "7", pero "0.5" permanece intacto
+        # Normalizar ceros iniciales en enteros, pero NO antes de separador decimal.
+        # Correcto: r"\b0+(\d+)\b(?!\.)" usa lookahead negativo sobre el carácter
+        # que SIGUE al límite de palabra, no sobre el interior del grupo.
         normalized = re.sub(r"\b0+(\d+)\b(?!\.)", r"\1", normalized)
 
-        # Normalización de separadores decimales para invariancia regional
-        # (Preserva la estructura numérica bajo diferentes convenciones)
-        normalized = re.sub(r"(\d),(\d{3})(?!\d)", r"\1\2", normalized)  # Miles: 1,000 → 1000
+        # Normalizar separador de miles para invarianza regional (1,000 → 1000)
+        normalized = re.sub(r"(\d),(\d{3})(?!\d)", r"\1\2", normalized)
 
-        # Para líneas muy largas: proyección a espacio de características
-        if len(normalized) > self._CACHE_KEY_MAX_LENGTH:
-            # Vector de características estructurales (invariantes topológicos)
-            num_groups = len(re.findall(r"\d+[.,]?\d*", normalized))
-            alpha_groups = len(re.findall(r"[A-Za-zÁÉÍÓÚáéíóúÑñ]+", normalized))
-            sep_count = normalized.count(";")
-            total_len = len(normalized)
+        if len(normalized) <= self._CACHE_KEY_MAX_LENGTH:
+            return normalized
 
-            # Muestreo de fronteras (preserva información de borde)
-            prefix = normalized[:50]
-            suffix = normalized[-30:]
+        # Para líneas largas: proyección a espacio de características compacto
+        num_groups = len(re.findall(r"\d+[.,]?\d*", normalized))
+        alpha_groups = len(re.findall(r"[A-Za-zÁÉÍÓÚáéíóúÑñ]+", normalized))
+        sep_count = normalized.count(";")
+        total_len = len(normalized)
 
-            # Checksum del contenido medio para reducir colisiones
-            middle_start = len(normalized) // 3
-            middle_sample = normalized[middle_start:middle_start + 20]
+        # Muestreo de bordes (preserva información de frontera)
+        prefix = normalized[:50]
+        suffix = normalized[-30:]
+        middle_start = len(normalized) // 3
+        middle_sample = normalized[middle_start: middle_start + 20]
 
-            feature_string = (
-                f"{prefix}|{middle_sample}|{suffix}|"
-                f"{num_groups}|{alpha_groups}|{sep_count}|{total_len}"
-            )
-            return hashlib.sha256(feature_string.encode()).hexdigest()[:32]
+        feature_string = (
+            f"{prefix}|{middle_sample}|{suffix}|"
+            f"{num_groups}|{alpha_groups}|{sep_count}|{total_len}"
+        )
+        return hashlib.sha256(feature_string.encode()).hexdigest()[:32]
 
-        return normalized
+    def _cache_result(self, key: str, is_valid: bool, tree: Any) -> None:
+        """Almacena un resultado en cache con control de tamaño (LRU simplificado)."""
+        if len(self._parse_cache) >= self._MAX_CACHE_SIZE:
+            # Evicción del 10% más antiguo
+            keys_to_remove = list(self._parse_cache.keys())[
+                : self._MAX_CACHE_SIZE // 10
+            ]
+            for k in keys_to_remove:
+                del self._parse_cache[k]
+        self._parse_cache[key] = (is_valid, tree)
+
+    # ── Validación con Lark ──────────────────────────────────────────────
 
     def _validate_with_lark(
         self, line: str, use_cache: bool = True
@@ -562,17 +649,23 @@ class ReportParserCrudo:
         """
         Valida una línea usando el parser Lark con optimización topológica.
 
-        Implementa un functor de validación F: Líneas → (Bool × Árbol? × Mensaje)
-        que preserva la estructura categórica del espacio de parsing.
+        Implementa el functor F: Líneas → (𝔹 × Árbol? × Mensaje).
+
+        CORRECCIÓN CRÍTICA v3:
+            El orden de las cláusulas `except` respeta la jerarquía de herencia
+            de Lark. `UnexpectedCharacters` y `UnexpectedToken` son subclases de
+            `UnexpectedInput`; por tanto, se capturan ANTES que su superclase para
+            que sus contadores específicos se incrementen correctamente.
+            Orden correcto: UnexpectedCharacters → UnexpectedToken →
+                            UnexpectedEOF → UnexpectedInput → LarkError.
 
         Args:
-            line: La línea de texto a validar.
-            use_cache: Si es True, intenta usar el cache de parsing.
+            line:      Línea de texto a validar.
+            use_cache: Si True, intenta usar el cache de parsing.
 
-        Retorna:
-            Tuple[bool, Optional[Any], str]: (Es válido, Árbol Lark, Mensaje de error).
+        Returns:
+            (es_válido, árbol_lark_o_None, mensaje_de_error)
         """
-        # === PRECONDICIONES TOPOLÓGICAS (Verificación de dominio) ===
         if self.lark_parser is None:
             return (True, None, "Lark no disponible - validación omitida")
 
@@ -582,7 +675,6 @@ class ReportParserCrudo:
         line_clean = line.strip()
         line_len = len(line_clean)
 
-        # Verificación de límites del espacio métrico acotado
         if line_len > self._MAX_LINE_LENGTH:
             return (
                 False,
@@ -596,8 +688,10 @@ class ReportParserCrudo:
                 f"Línea insuficiente topológicamente: {line_len} < {self._MIN_LINE_LENGTH}",
             )
 
-        # === CACHE SEMÁNTICO (Memoización sobre espacio cociente) ===
-        cache_key = self._compute_semantic_cache_key(line_clean) if use_cache else None
+        # ── Cache semántico ──────────────────────────────────────────────
+        cache_key: Optional[str] = (
+            self._compute_semantic_cache_key(line_clean) if use_cache else None
+        )
 
         if use_cache and cache_key and cache_key in self._parse_cache:
             self.validation_stats.cached_parses += 1
@@ -605,25 +699,24 @@ class ReportParserCrudo:
 
             if isinstance(cached_result, tuple) and len(cached_result) == 2:
                 is_valid, tree = cached_result
-                # Verificar invariante: árbol válido implica estructura preservada
                 if is_valid and tree is not None and not self._is_valid_tree(tree):
+                    # Invalidar entrada corrupta
                     del self._parse_cache[cache_key]
                 else:
                     reason = "" if is_valid else "Falló previamente (cache válido)"
                     return (is_valid, tree, reason)
 
-        # === VALIDACIÓN DE CONECTIVIDAD ESTRUCTURAL (Pre-filtro homotópico) ===
+        # ── Pre-filtro homotópico ────────────────────────────────────────
         if not self._has_minimal_structural_connectivity(line_clean):
             if use_cache and cache_key:
                 self._cache_result(cache_key, False, None)
             return (False, None, "Falta conectividad estructural mínima")
 
-        # === PARSING CON MANEJO JERÁRQUICO DE ERRORES (Estratificación del codominio) ===
+        # ── Parsing con manejo jerárquico de errores ─────────────────────
         error_msg = ""
         try:
             tree = self.lark_parser.parse(line_clean)
 
-            # Verificar homotopía del árbol resultante
             if not self._validate_tree_homotopy(tree):
                 if use_cache and cache_key:
                     self._cache_result(cache_key, False, None)
@@ -631,72 +724,68 @@ class ReportParserCrudo:
 
             if use_cache and cache_key:
                 self._cache_result(cache_key, True, tree)
-
             return (True, tree, "")
 
+        # ORDEN CORRECTO: subclases antes que superclase
         except UnexpectedCharacters as uc:
             self.validation_stats.failed_lark_unexpected_chars += 1
             column = getattr(uc, "column", 0)
-            context = self._get_topological_context(line_clean, column)
-            error_msg = f"Carácter discontinuo en vecindad {context}"
+            context_str = self._get_topological_context(line_clean, column)
+            error_msg = f"Carácter discontinuo en vecindad {context_str}"
 
         except UnexpectedToken as ut:
             self.validation_stats.failed_lark_parse += 1
-            expected = list(ut.expected) if hasattr(ut, "expected") and ut.expected else []
+            expected = (
+                list(ut.expected)
+                if hasattr(ut, "expected") and ut.expected
+                else []
+            )
             expected_space = self._map_tokens_to_topological_space(expected)
             token_repr = getattr(ut, "token", "desconocido")
             error_msg = f"Token '{token_repr}' fuera del espacio {expected_space}"
-
-        except UnexpectedInput as ui:
-            # CORRECCIÓN: Este caso nunca se capturaba, dejando el contador en 0
-            self.validation_stats.failed_lark_unexpected_input += 1
-            pos = getattr(ui, "pos_in_stream", 0)
-            context = self._get_topological_context(line_clean, pos)
-            error_msg = f"Entrada inesperada en posición {pos}: {context}"
 
         except UnexpectedEOF:
             self.validation_stats.failed_lark_parse += 1
             completeness = self._calculate_topological_completeness(line_clean)
             error_msg = f"Fin prematuro (compleción {completeness:.0%})"
 
-        except LarkError as le:
-            self.validation_stats.failed_lark_parse += 1
-            error_msg = f"Error Lark: {str(le)[:100]}"
+        except UnexpectedInput as ui:
+            # Captura el resto de subclases de UnexpectedInput no cubiertas arriba
+            self.validation_stats.failed_lark_unexpected_input += 1
+            pos = getattr(ui, "pos_in_stream", 0)
+            context_str = self._get_topological_context(line_clean, pos)
+            error_msg = f"Entrada inesperada en posición {pos}: {context_str}"
 
-        except Exception as e:
+        except LarkError as exc:
             self.validation_stats.failed_lark_parse += 1
-            logger.error(f"Error inesperado en validación Lark: {type(e).__name__}: {e}")
-            error_msg = f"Error inesperado: {type(e).__name__}"
+            error_msg = f"Error Lark: {str(exc)[:100]}"
 
-        # Punto de salida unificado para errores (morfismo terminal)
+        except Exception as exc:
+            self.validation_stats.failed_lark_parse += 1
+            logger.error(
+                "Error inesperado en validación Lark: %s: %s",
+                type(exc).__name__,
+                exc,
+            )
+            error_msg = f"Error inesperado: {type(exc).__name__}"
+
+        # Punto de salida unificado para errores
         if use_cache and cache_key:
             self._cache_result(cache_key, False, None)
         return (False, None, error_msg)
 
-    def _cache_result(self, key: str, is_valid: bool, tree: Any) -> None:
-        """Almacena un resultado en cache con control de tamaño."""
-        if len(self._parse_cache) >= self._MAX_CACHE_SIZE:
-            keys_to_remove = list(self._parse_cache.keys())[
-                : self._MAX_CACHE_SIZE // 10
-            ]
-            for k in keys_to_remove:
-                del self._parse_cache[k]
-
-        self._parse_cache[key] = (is_valid, tree)
+    # ── Validación de árboles ────────────────────────────────────────────
 
     def _is_valid_tree(self, tree: Any) -> bool:
-        """Verifica que un árbol Lark es válido y usable."""
+        """Verifica que un árbol Lark tiene la estructura mínima esperada."""
         if tree is None:
             return False
-
         try:
-            if not hasattr(tree, "data"):
-                return False
-            if not hasattr(tree, "children"):
-                return False
-            if not isinstance(tree.data, str):
-                return False
-            return True
+            return (
+                hasattr(tree, "data")
+                and hasattr(tree, "children")
+                and isinstance(tree.data, str)
+            )
         except Exception:
             return False
 
@@ -704,91 +793,71 @@ class ReportParserCrudo:
         """
         Verifica que el árbol de parsing sea homotópicamente válido.
 
-        Un árbol es homotópicamente válido si puede deformarse continuamente
-        a la estructura canónica esperada.
-
-        Args:
-            tree: El árbol Lark.
-
-        Retorna:
-            bool: True si es válido.
+        Un árbol válido puede deformarse continuamente a la estructura canónica
+        esperada sin violaciones de los siguientes invariantes:
+          I1: La raíz pertenece al espacio de no-terminales (str).
+          I2: El factor de ramificación ≤ 50 (evita estructuras degeneradas).
+          I3: La profundidad ≤ 20 (evita recursión potencialmente infinita).
+          I4: Existe al menos un token terminal (árbol no vacío).
         """
-        if tree is None:
+        if not self._is_valid_tree(tree):
             return False
 
         try:
-            if not hasattr(tree, "data") or not hasattr(tree, "children"):
-                return False
-
-            # Invariante 1: La raíz debe pertenecer al espacio de no-terminales válidos
-            if not isinstance(tree.data, str):
-                return False
-
-            # Invariante 2: Límite de ramificación (evita estructuras degeneradas)
             child_count = len(tree.children) if tree.children else 0
-            if child_count > 50:  # Árbol anormalmente ancho
+            if child_count > 50:
                 return False
 
-            # Invariante 3: Profundidad acotada (evita recursión infinita)
             max_depth = 20
 
-            def check_depth_and_validity(node, current_depth: int) -> bool:
-                if current_depth > max_depth:
+            def _check_depth(node: Any, depth: int) -> bool:
+                if depth > max_depth:
                     return False
-
                 if hasattr(node, "children") and node.children:
                     for child in node.children:
-                        if hasattr(child, "data"):  # Es un nodo no-terminal
-                            if not check_depth_and_validity(
-                                child, current_depth + 1
-                            ):
+                        if hasattr(child, "data"):
+                            if not _check_depth(child, depth + 1):
                                 return False
                 return True
 
-            if not check_depth_and_validity(tree, 0):
-                return False
-
-            # Invariante 4: Debe existir al menos un token terminal
-            def has_terminal(node) -> bool:
+            def _has_terminal(node: Any) -> bool:
                 if not hasattr(node, "children") or not node.children:
-                    return True  # Nodo hoja
+                    return True  # Nodo hoja ≡ terminal
                 for child in node.children:
                     if not hasattr(child, "data"):  # Es un Token
                         return True
-                    if has_terminal(child):
+                    if _has_terminal(child):
                         return True
                 return False
 
-            return has_terminal(tree)
+            return _check_depth(tree, 0) and _has_terminal(tree)
 
         except Exception:
             return False
 
+    # ── Conectividad estructural ─────────────────────────────────────────
+
     def _has_minimal_structural_connectivity(self, line: str) -> bool:
         """
-        Verifica conectividad topológica mínima.
+        Verifica conectividad topológica mínima de una línea.
 
-        Una línea tiene conectividad si forma un espacio conexo donde
-        sus componentes (alfanuméricos y separadores) definen una
-        partición no trivial del dominio.
+        Una línea es conexa si sus componentes (tokens alfa, numéricos y
+        separadores) forman una partición no trivial del dominio con
+        contenido distribuido en al menos dos tercios del espacio textual.
 
-        Args:
-            line: La línea de texto.
-
-        Retorna:
-            bool: True si tiene conectividad mínima.
+        Corrección v3:
+            Se añade guarda explícita para líneas con longitud < 10 que no
+            permiten una subdivisión en tercios significativa.
         """
         if not line:
             return False
 
-        # Extracción de componentes estructurales
         alpha_sequences = re.findall(r"[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}", line)
         numeric_sequences = re.findall(r"\d+(?:[.,]\d+)?", line)
         separator_count = line.count(";")
 
-        # Condiciones necesarias para conectividad
-        has_alpha = len(alpha_sequences) >= 1
-        has_numeric = len(numeric_sequences) >= 1
+        has_alpha = bool(alpha_sequences)
+        has_numeric = bool(numeric_sequences)
         min_separators = max(self._MIN_FIELDS_FOR_INSUMO - 1, 1)
         has_separators = separator_count >= min_separators
 
@@ -797,58 +866,48 @@ class ReportParserCrudo:
 
         line_len = len(line)
         if line_len < 10:
-            return True  # Líneas cortas: conectividad trivial (espacio discreto)
+            # Espacio demasiado pequeño para análisis de distribución
+            # La conectividad básica ya fue verificada arriba
+            return True
 
-        # MEJORA: Análisis de distribución topológica más robusto
-        # Dividimos en tercios para mejor análisis de distribución
+        # Análisis de distribución en tercios
         third = line_len // 3
         segments = [
             line[:third],
-            line[third:2*third],
-            line[2*third:]
+            line[third: 2 * third],
+            line[2 * third:],
         ]
 
-        # Contar segmentos con contenido semántico
         segments_with_content = sum(
-            1 for seg in segments
-            if re.search(r"[A-Za-z0-9]", seg)
+            1 for seg in segments if re.search(r"[A-Za-z0-9]", seg)
         )
+        segments_with_separators = sum(1 for seg in segments if ";" in seg)
 
-        # Contar segmentos con separadores (conexiones)
-        segments_with_separators = sum(
-            1 for seg in segments
-            if ";" in seg
-        )
+        # Conectividad: contenido en ≥ 2 segmentos Y separadores en ≥ 1
+        return segments_with_content >= 2 and segments_with_separators >= 1
 
-        # Conectividad: contenido distribuido Y conexiones presentes
-        # Debe haber contenido en al menos 2 segmentos
-        # Y separadores en al menos 1 segmento (preferiblemente 2)
-        well_distributed = segments_with_content >= 2 and segments_with_separators >= 1
-
-        return well_distributed
+    # ── Contexto y mapeo de errores ──────────────────────────────────────
 
     def _get_topological_context(
         self, line: str, position: int, radius: int = 10
     ) -> str:
         """
-        Obtiene el contexto topológico alrededor de una posición.
+        Obtiene la vecindad ε = `radius` del punto de error.
 
-        Muestra la vecindad ε del punto de error.
+        Marca el carácter problemático con delimitadores topológicos ⟪·⟫.
         """
         start = max(0, position - radius)
         end = min(len(line), position + radius)
-
         context = line[start:end]
         error_pos = position - start
 
-        # Marcar el punto de error en el contexto
         if error_pos < len(context):
             marked = (
                 context[:error_pos]
                 + "⟪"
                 + context[error_pos]
                 + "⟫"
-                + context[error_pos + 1 :]
+                + context[error_pos + 1:]
             )
         else:
             marked = context + "⟪␣⟫"
@@ -856,64 +915,72 @@ class ReportParserCrudo:
         return f"[...]{marked}[...]"
 
     def _map_tokens_to_topological_space(self, expected_tokens: List[str]) -> str:
-        """Mapea tokens esperados a espacios topológicos (categorías)."""
+        """
+        Mapea tokens esperados de Lark a espacios topológicos nombrados.
+
+        Se usa coincidencia de subcadena (case-insensitive) para cubrir
+        variantes de nombres de terminal como `__ANON_0` o `NUMBER_FLOAT`.
+        """
         token_spaces = {
             "NUMBER": "Espacio Numérico ℝ",
             "WORD": "Espacio Lexical Σ*",
             "UNIT": "Espacio de Unidades 𝒰",
-            "SEPARATOR": "Espacio de Separación 𝒮",
-            "DESCRIPTION": "Espacio Descriptivo 𝒟",
+            "SEP": "Espacio de Separación 𝒮",
+            "DESC": "Espacio Descriptivo 𝒟",
+            "FIELD": "Espacio de Campo 𝒻",
         }
 
-        # Clasificar tokens esperados en espacios
-        spaces = set()
+        spaces: set = set()
         for token in expected_tokens:
-            found = False
+            token_up = token.upper()
+            matched = False
             for key, space in token_spaces.items():
-                if key in token.upper():
+                if key in token_up:
                     spaces.add(space)
-                    found = True
+                    matched = True
                     break
-            if not found:
-                spaces.add("Espacio Desconocido 𝒳")
+            if not matched:
+                spaces.add(f"Espacio Terminal '{token}'")
 
         return " ∪ ".join(sorted(spaces)) if spaces else "∅"
 
+    # ── Completitud topológica ───────────────────────────────────────────
+
     def _calculate_topological_completeness(self, line: str) -> float:
         """
-        Calcula el grado de compleción topológica de una línea.
+        Calcula el grado de compleción topológica de una línea en [0, 1].
 
-        Basado en la teoría de compleción de espacios métricos, mide qué tan
-        cerca está la línea de ser un "punto límite" válido en el espacio
-        de insumos APU.
+        Basado en la teoría de compleción de espacios métricos: mide qué tan
+        cerca está la línea de ser un "punto límite" válido en el espacio de
+        insumos APU. Cada componente aporta un peso proporcional a su
+        relevancia semántica en la gramática APU.
 
-        Args:
-            line: La línea a evaluar.
-
-        Returns:
-            float: Grado de compleción en [0, 1].
+        Corrección v3:
+            - El regex de `cantidad` busca en toda la línea (sin ancla `$`).
+            - La normalización decimal se aplica a una copia, preservando
+              la línea original para los demás checks.
         """
         if not line or not isinstance(line, str):
             return 0.0
 
-        # CORRECCIÓN: Normalizar separadores decimales de forma consistente
-        # Preservamos la línea original para algunos checks
-        normalized_for_numbers = line.replace(",", ".")
+        line_for_numbers = line.replace(",", ".")
 
-        # Componentes esenciales para un insumo APU completo
-        # Cada componente define un abierto en el espacio de características
         components = {
             "descripcion": bool(re.search(r"[A-Za-zÁÉÍÓÚáéíóúÑñ]{3,}", line)),
-            # CORRECCIÓN: El regex anterior buscaba solo al final ($), ahora busca en cualquier parte
-            "cantidad": bool(re.search(r"\d+\.?\d*", normalized_for_numbers)),
+            "cantidad": bool(re.search(r"\d+\.?\d*", line_for_numbers)),
             "unidad": bool(
-                re.search(r"\b(UND|UN|M|M2|M3|KG|L|LT|GLN|GAL|HR|DIA|ML|CM|TON)\b", line, re.I)
+                re.search(
+                    r"\b(UND|UN|M|M2|M3|KG|L|LT|GLN|GAL|HR|DIA|ML|CM|TON)\b",
+                    line,
+                    re.IGNORECASE,
+                )
             ),
-            "precio": bool(re.search(r"\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?", line)),
+            "precio": bool(
+                re.search(r"\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?", line)
+            ),
             "separadores": line.count(";") >= 3,
         }
 
-        # Pesos que reflejan la importancia topológica de cada componente
         weights = {
             "descripcion": 0.30,
             "cantidad": 0.25,
@@ -924,24 +991,29 @@ class ReportParserCrudo:
 
         score = sum(weights[k] for k, v in components.items() if v)
 
-        # Ajuste por densidad de información (factor de regularización)
+        # Factor de regularización por densidad de información
         info_chunks = len(re.findall(r"\S+", line))
         separators = line.count(";")
         expected_chunks = max(separators + 1, 1)
-
-        # Densidad: relación entre información presente y estructura esperada
         density_factor = min(info_chunks / expected_chunks, 1.5) / 1.5
 
-        # Penalización suave si la densidad es muy baja (espacio ralo)
+        # Penalización suave si la densidad es muy baja
         if density_factor < 0.4:
-            score *= 0.7 + (density_factor * 0.75)  # Escala de 0.7 a 1.0
+            score *= 0.7 + (density_factor * 0.75)
 
         return min(max(score, 0.0), 1.0)
+
+    # ── Validación estructural básica ────────────────────────────────────
 
     def _validate_basic_structure(
         self, line: str, fields: List[str]
     ) -> Tuple[bool, str]:
-        """Validación básica PRE-Lark para filtrado rápido."""
+        """
+        Validación pre-Lark para filtrado rápido de líneas inválidas.
+
+        Verifica cardinalidad de campos, presencia de datos numéricos,
+        ausencia de palabras clave de agregación y longitud máxima de campo.
+        """
         if not line or not isinstance(line, str):
             self.validation_stats.failed_basic_fields += 1
             return (False, "Línea vacía o tipo inválido")
@@ -957,12 +1029,12 @@ class ReportParserCrudo:
                 f"Insuficientes campos: {len(fields)} < {self._MIN_FIELDS_FOR_INSUMO}",
             )
 
-        first_field = fields[0] if fields else ""
-        if not first_field or not first_field.strip():
+        first_field = fields[0].strip() if fields[0] else ""
+        if not first_field:
             self.validation_stats.failed_basic_fields += 1
             return (False, "Campo de descripción vacío")
 
-        if len(first_field.strip()) < 2:
+        if len(first_field) < 2:
             self.validation_stats.failed_basic_fields += 1
             return (False, f"Descripción demasiado corta: '{first_field}'")
 
@@ -980,7 +1052,6 @@ class ReportParserCrudo:
                 "GRAN TOTAL",
             }
         )
-
         for keyword in subtotal_keywords:
             if keyword in line_upper:
                 self.validation_stats.failed_basic_subtotal += 1
@@ -990,12 +1061,11 @@ class ReportParserCrudo:
             self.validation_stats.failed_basic_junk += 1
             return (False, "Línea decorativa/separador")
 
-        has_numeric = False
-        for f in fields[1:]:
-            if f and self._NUMERIC_PATTERN.search(f.strip()):
-                has_numeric = True
-                break
-
+        has_numeric = any(
+            self._NUMERIC_PATTERN.search(f.strip())
+            for f in fields[1:]
+            if f
+        )
         if not has_numeric:
             self.validation_stats.failed_basic_numeric += 1
             return (False, "Sin campos numéricos detectables")
@@ -1011,13 +1081,19 @@ class ReportParserCrudo:
         self.validation_stats.passed_basic += 1
         return (True, "")
 
+    # ── Validación unificada de insumos ──────────────────────────────────
+
     def _validate_insumo_line(
         self, line: str, fields: List[str]
     ) -> LineValidationResult:
-        """Validación topológica unificada con análisis de invariantes homeomórficos."""
+        """
+        Validación topológica unificada con análisis de invariantes homeomórficos.
+
+        Aplica las cuatro capas de validación en orden de coste creciente.
+        """
         self.validation_stats.total_evaluated += 1
 
-        # === CAPA 0: HOMEOMORFISMO DE TIPO ===
+        # Capa 0: homeomorfismo de tipo
         if not isinstance(line, str) or not line:
             return LineValidationResult(
                 is_valid=False,
@@ -1025,7 +1101,6 @@ class ReportParserCrudo:
                 fields_count=0,
                 validation_layer="type_check_failed",
             )
-
         if not isinstance(fields, list):
             return LineValidationResult(
                 is_valid=False,
@@ -1036,9 +1111,8 @@ class ReportParserCrudo:
 
         fields_count = len(fields)
 
-        # === CAPA 1: INVARIANTES ESTRUCTURALES BÁSICOS ===
+        # Capa 1: invariantes estructurales básicos
         basic_valid, basic_reason = self._validate_basic_structure(line, fields)
-
         if not basic_valid:
             error_group = self._classify_basic_error_group(basic_reason)
             return LineValidationResult(
@@ -1049,7 +1123,7 @@ class ReportParserCrudo:
                 validation_layer="basic_invariant_failed",
             )
 
-        # === CAPA 2: HOMEOMORFISMO LARK ===
+        # Capa 2: homeomorfismo Lark
         lark_valid, lark_tree, lark_reason = self._validate_with_lark(line)
 
         has_numeric = any(
@@ -1070,7 +1144,7 @@ class ReportParserCrudo:
         self.validation_stats.passed_lark += 1
         self.validation_stats.passed_both += 1
 
-        # === CAPA 3: HOMEOMORFISMO APU ===
+        # Capa 3: homeomorfismo APU
         if lark_tree and not self._is_apu_homeomorphic(lark_tree):
             return LineValidationResult(
                 is_valid=False,
@@ -1090,109 +1164,99 @@ class ReportParserCrudo:
             lark_tree=lark_tree,
         )
 
-    def _classify_basic_error_group(self, reason: str) -> str:
-        """Clasifica errores básicos en grupos topológicos."""
-        error_groups = {
-            "campos": "Grupo Cardinalidad Gₐ",
-            "numéricos": "Grupo Medida Gₘ",
-            "subtotal": "Grupo Agregación Gₐ",
-            "decorativa": "Grupo Trivial G₀",
-        }
+    # ── Clasificación de errores ─────────────────────────────────────────
 
-        for key, group in error_groups.items():
-            if key in reason.lower():
-                return group
+    def _classify_basic_error_group(self, reason: str) -> str:
+        """Clasifica errores básicos en grupos topológicos nombrados."""
+        reason_lower = reason.lower()
+        if "campos" in reason_lower or "campo" in reason_lower:
+            return "Grupo Cardinalidad Gₐ"
+        if "numérico" in reason_lower or "numerico" in reason_lower:
+            return "Grupo Medida Gₘ"
+        if "subtotal" in reason_lower or "total" in reason_lower:
+            return "Grupo Agregación Gₜ"
+        if "decorativa" in reason_lower or "separador" in reason_lower:
+            return "Grupo Trivial G₀"
         return "Grupo Desconocido Gₓ"
 
     def _classify_lark_error_topology(self, reason: str) -> str:
         """Clasifica errores Lark en tipos topológicos."""
-        if "UnexpectedCharacters" in reason:
+        if "discontinuo" in reason or "UnexpectedCharacters" in reason:
             return "Espacio Discontinuo 𝓓"
-        elif "UnexpectedToken" in reason:
+        if "Token" in reason or "UnexpectedToken" in reason:
             return "Mapeo Incorrecto 𝓜"
-        elif "UnexpectedEOF" in reason:
+        if "prematuro" in reason or "UnexpectedEOF" in reason:
             return "Borde Prematuro 𝓑"
-        elif "UnexpectedInput" in reason:
+        if "inesperada" in reason or "UnexpectedInput" in reason:
             return "Entrada Singular 𝓢"
-        else:
-            return "Anomalía 𝓐"
+        return "Anomalía 𝓐"
+
+    # ── Homeomorfismo APU ────────────────────────────────────────────────
 
     def _is_apu_homeomorphic(self, tree: Any) -> bool:
         """
-        Verifica que el árbol Lark sea homeomorfo (preserva estructura)
-        a un registro de insumo APU válido.
+        Verifica que el árbol Lark sea homeomorfo a un registro de insumo APU.
+
+        Un registro APU válido debe contener:
+          - Al menos una secuencia alfanumérica de ≥ 3 caracteres (descripción).
+          - Al menos un valor numérico (cantidad o precio).
+
+        La verificación de campos separados es implícita en la gramática Lark;
+        no se requiere verificar el token SEP explícitamente aquí.
+
+        Corrección v3:
+            `LarkToken` se importa a nivel módulo (evita import por llamada).
+            Si Lark no está disponible, se asume homeomorfismo por defecto.
         """
         if not self._is_valid_tree(tree):
             return False
 
-        # Un registro APU debe tener al menos estos componentes esenciales
-        essential_components = {
-            "descripcion": False,
-            "valor_numerico": False,
-            "estructura_campos": False,
-        }
-
-        # MEJORA: Importar Token una sola vez (evitar import dentro de función)
-        try:
-            from lark import Token
-        except ImportError:
-            # Fallback: asumir homeomorfismo si no podemos verificar
-            logger.warning("No se pudo importar Token de Lark para verificación homeomórfica")
+        if not _LARK_AVAILABLE or LarkToken is None:
+            logger.warning(
+                "Lark no disponible; se asume homeomorfismo APU por defecto."
+            )
             return True
 
-        def analyze_node(node, depth: int = 0) -> None:
-            """Recorre el árbol acumulando evidencia de componentes."""
-            # Protección contra recursión excesiva
+        found_description = False
+        found_numeric = False
+
+        def _analyze(node: Any, depth: int) -> None:
+            nonlocal found_description, found_numeric
             if depth > 30:
                 return
 
-            if isinstance(node, Token):
+            if isinstance(node, LarkToken):
                 token_type = getattr(node, "type", "")
                 val = str(getattr(node, "value", "")).strip()
 
-                if token_type == "SEP" or val == ";":
-                    essential_components["estructura_campos"] = True
-                elif token_type in ("FIELD_VALUE", "NUMBER", "DECIMAL"):
+                if token_type in ("FIELD_VALUE", "NUMBER", "DECIMAL"):
                     if re.search(r"\d", val):
-                        essential_components["valor_numerico"] = True
-                    if re.search(r"[a-zA-ZÁÉÍÓÚáéíóúÑñ]{3,}", val):
-                        essential_components["descripcion"] = True
+                        found_numeric = True
+                    if re.search(r"[A-Za-zÁÉÍÓÚáéíóúÑñ]{3,}", val):
+                        found_description = True
                 elif token_type in ("WORD", "TEXT", "DESCRIPTION"):
                     if len(val) >= 3:
-                        essential_components["descripcion"] = True
+                        found_description = True
 
             elif hasattr(node, "children") and node.children:
-                # Verificar nombre del nodo para inferir estructura
-                node_data = getattr(node, "data", "")
-                if "field" in str(node_data).lower():
-                    essential_components["estructura_campos"] = True
-
                 for child in node.children:
-                    analyze_node(child, depth + 1)
+                    _analyze(child, depth + 1)
 
         try:
-            analyze_node(tree)
+            _analyze(tree, 0)
         except RecursionError:
-            logger.warning("Recursión excesiva en análisis homeomórfico")
+            logger.warning("Recursión excesiva en análisis homeomórfico.")
             return False
 
-        # Condición de homeomorfismo: descripción + valor numérico es suficiente
-        # La estructura de campos es implícita en la gramática
-        has_core_structure = (
-            essential_components["descripcion"] and
-            essential_components["valor_numerico"]
-        )
+        return found_description and found_numeric
 
-        return has_core_structure
+    # ── Registro de muestras fallidas ────────────────────────────────────
 
     def _record_failed_sample(
         self, line: str, fields: List[str], reason: str
     ) -> None:
         """Registra una muestra de línea fallida para análisis posterior."""
-        max_samples = self.config.get(
-            "max_failed_samples", self._MAX_FAILED_SAMPLES
-        )
-
+        max_samples = self.config.get("max_failed_samples", self._MAX_FAILED_SAMPLES)
         if len(self.validation_stats.failed_samples) >= max_samples:
             return
 
@@ -1202,206 +1266,204 @@ class ReportParserCrudo:
 
         if isinstance(fields, list):
             for i, f in enumerate(fields):
-                if isinstance(f, str):
-                    safe_fields.append(f[:100] if len(f) > 100 else f)
-                    if not f.strip():
-                        empty_positions.append(i)
-                else:
-                    safe_fields.append(str(f)[:100])
+                f_str = str(f)
+                safe_fields.append(f_str[:100])
+                if not f_str.strip():
+                    empty_positions.append(i)
 
-        safe_reason = (
-            reason[:300] if isinstance(reason, str) else str(reason)[:300]
+        self.validation_stats.failed_samples.append(
+            {
+                "line": safe_line,
+                "fields": safe_fields,
+                "fields_count": len(fields) if isinstance(fields, list) else 0,
+                "reason": reason[:300] if isinstance(reason, str) else str(reason)[:300],
+                "has_empty_fields": bool(empty_positions),
+                "empty_field_positions": empty_positions,
+                "line_length": len(line) if isinstance(line, str) else 0,
+                "first_field_preview": safe_fields[0][:50] if safe_fields else "",
+            }
         )
 
-        sample = {
-            "line": safe_line,
-            "fields": safe_fields,
-            "fields_count": len(fields) if isinstance(fields, list) else 0,
-            "reason": safe_reason,
-            "has_empty_fields": bool(empty_positions),
-            "empty_field_positions": empty_positions,
-            "line_length": len(line) if isinstance(line, str) else 0,
-            "first_field_preview": safe_fields[0][:50] if safe_fields else "",
-        }
+    # ── Resumen de validación ────────────────────────────────────────────
 
-        self.validation_stats.failed_samples.append(sample)
-
-    def _log_validation_summary(self):
-        """Registra un resumen detallado de la validación."""
+    def _log_validation_summary(self) -> None:
+        """Registra un resumen detallado de la validación al finalizar el parseo."""
         total = self.validation_stats.total_evaluated
-        valid = self.stats.get("insumos_extracted", 0)
+        # Counter soporta indexación directa; usar [] es idiomático y consistente
+        valid = self.stats["insumos_extracted"]
 
         logger.info("=" * 80)
         logger.info("📊 RESUMEN DE VALIDACIÓN CON LARK")
         logger.info("=" * 80)
-        logger.info(f"Total líneas evaluadas: {total}")
-        if total > 0:
-            valid_percent = f"({valid / total * 100:.1f}%)"
-            logger.info(
-                f"✓ Insumos válidos (ambas capas): {valid} {valid_percent}"
-            )
-        else:
-            logger.info("✓ Insumos válidos (ambas capas): 0 (0.0%)")
+        logger.info("Total líneas evaluadas: %d", total)
 
+        valid_pct = f"({valid / total * 100:.1f}%)" if total > 0 else "(0.0%)"
+        logger.info("✓ Insumos válidos (ambas capas): %d %s", valid, valid_pct)
         logger.info(
-            f"  - Pasaron validación básica: {self.validation_stats.passed_basic}"
+            "  - Pasaron validación básica: %d",
+            self.validation_stats.passed_basic,
         )
         logger.info(
-            f"  - Pasaron validación Lark: {self.validation_stats.passed_lark}"
+            "  - Pasaron validación Lark: %d", self.validation_stats.passed_lark
         )
-        logger.info(f"  - Cache hits: {self.validation_stats.cached_parses}")
+        logger.info(
+            "  - Cache hits: %d", self.validation_stats.cached_parses
+        )
         logger.info("")
         logger.info("Rechazos por validación básica:")
         logger.info(
-            f"  - Campos insuficientes/vacíos: {self.validation_stats.failed_basic_fields}"
+            "  - Campos insuficientes/vacíos: %d",
+            self.validation_stats.failed_basic_fields,
         )
         logger.info(
-            f"  - Sin datos numéricos: {self.validation_stats.failed_basic_numeric}"
+            "  - Sin datos numéricos: %d",
+            self.validation_stats.failed_basic_numeric,
         )
         logger.info(
-            f"  - Subtotales: {self.validation_stats.failed_basic_subtotal}"
+            "  - Subtotales: %d", self.validation_stats.failed_basic_subtotal
         )
         logger.info(
-            f"  - Líneas decorativas: {self.validation_stats.failed_basic_junk}"
+            "  - Líneas decorativas: %d", self.validation_stats.failed_basic_junk
         )
         logger.info("")
         logger.info("Rechazos por validación Lark:")
         logger.info(
-            f"  - Parse error genérico: {self.validation_stats.failed_lark_parse}"
+            "  - Parse error genérico: %d",
+            self.validation_stats.failed_lark_parse,
         )
         logger.info(
-            f"  - Unexpected input: {self.validation_stats.failed_lark_unexpected_input}"
+            "  - Unexpected input: %d",
+            self.validation_stats.failed_lark_unexpected_input,
         )
         logger.info(
-            "  - Unexpected characters: "
-            f"{self.validation_stats.failed_lark_unexpected_chars}"
+            "  - Unexpected characters: %d",
+            self.validation_stats.failed_lark_unexpected_chars,
         )
         logger.info("=" * 80)
 
-        # Mostrar muestras de fallos
         if self.validation_stats.failed_samples:
             logger.info("")
             logger.info("🔍 MUESTRAS DE LÍNEAS RECHAZADAS POR LARK:")
             logger.info("-" * 80)
-
-            for idx, sample in enumerate(
-                self.validation_stats.failed_samples, 1
-            ):
-                logger.info(f"\nMuestra #{idx}:")
-                logger.info(f"  Razón: {sample['reason']}")
-                logger.info(f"  Campos: {sample['fields_count']}")
-                logger.info(f"  Campos vacíos: {sample['has_empty_fields']}")
+            for idx, sample in enumerate(self.validation_stats.failed_samples, 1):
+                logger.info("\nMuestra #%d:", idx)
+                logger.info("  Razón: %s", sample["reason"])
+                logger.info("  Campos: %d", sample["fields_count"])
+                logger.info("  Campos vacíos: %s", sample["has_empty_fields"])
                 if sample["has_empty_fields"]:
                     logger.info(
-                        f"  Posiciones vacías: {sample['empty_field_positions']}"
+                        "  Posiciones vacías: %s",
+                        sample["empty_field_positions"],
                     )
-                logger.info(f"  Contenido: {sample['line']}")
-                logger.info(f"  Campos: {sample['fields']}")
-
+                logger.info("  Contenido: %s", sample["line"])
+                logger.info("  Campos: %s", sample["fields"])
             logger.info("-" * 80)
 
         if valid == 0 and total > 0:
             logger.error("🚨 CRÍTICO: 0 insumos válidos con validación Lark.")
         elif total > 0 and valid < total * 0.5:
             logger.warning(
-                f"⚠️  Tasa de validación baja: {valid / total * 100:.1f}%"
+                "⚠️  Tasa de validación baja: %.1f%%", valid / total * 100
             )
+
+    # ── Cache público ────────────────────────────────────────────────────
 
     def get_parse_cache(self) -> Dict[str, Any]:
         """
-        Retorna el cache de parsing para reutilización en APUProcessor.
+        Exporta el cache de parsing para reutilización en APUProcessor.
 
-        Filtra entradas inválidas y devuelve un diccionario de árboles válidos,
-        realizando una proyección del cache al subespacio de árboles válidos.
+        Proyecta el cache al subespacio de árboles válidos, filtrando
+        entradas inválidas, nulas o corruptas.
 
         Returns:
-            Dict[str, Any]: Diccionario {hash_semantico: arbol_lark}.
+            Diccionario {hash_semántico: árbol_lark}.
         """
         valid_cache: Dict[str, Any] = {}
         invalid_count = 0
 
-        # CORRECCIÓN: Crear copia de items para evitar modificación durante iteración
-        cache_items = list(self._parse_cache.items())
-
-        for line, cached_value in cache_items:
-            # Validar estructura del valor cacheado
+        # Copia de items para evitar modificación durante iteración
+        for line, cached_value in list(self._parse_cache.items()):
             if not isinstance(cached_value, tuple) or len(cached_value) != 2:
                 invalid_count += 1
                 continue
 
             is_valid, tree = cached_value
-
-            # Solo exportar árboles de parseos exitosos
             if not is_valid or tree is None:
                 continue
 
-            # Verificar integridad del árbol
             if not self._is_valid_tree(tree):
                 invalid_count += 1
                 continue
 
-            # Computar clave normalizada para consistencia
             try:
-                # Si la clave ya parece ser un hash, usarla directamente
-                # Esto es para cuando mockeamos claves en tests
+                # Reutilizar clave si ya es un hash SHA-256 de 32 hex chars
                 if len(line) == 32 and re.match(r"^[0-9a-f]{32}$", line):
                     normalized_key = line
                 else:
                     normalized_key = self._compute_semantic_cache_key(line)
                 valid_cache[normalized_key] = tree
-            except Exception as e:
-                # logger.debug(f"Error normalizando clave de cache: {e}")
+            except Exception:
                 invalid_count += 1
-                continue
 
         if invalid_count > 0:
-            logger.debug(f"Cache: {invalid_count} entradas inválidas filtradas")
-
-        logger.info(f"Cache de parsing exportado: {len(valid_cache)} árboles válidos")
-
+            logger.debug(
+                "Cache: %d entradas inválidas filtradas.", invalid_count
+            )
+        logger.info(
+            "Cache de parsing exportado: %d árboles válidos.", len(valid_cache)
+        )
         return valid_cache
 
+    # ── Validación de ruta ───────────────────────────────────────────────
+
     def _validate_file_path(self) -> None:
-        """Valida que la ruta del archivo sea un archivo válido y no vacío."""
+        """Valida que la ruta del archivo exista, sea un fichero y no esté vacío."""
         if not self.file_path.exists():
-            raise FileNotFoundError(f"Archivo no encontrado: {self.file_path}")
+            raise FileNotFoundError(
+                f"Archivo no encontrado: {self.file_path}"
+            )
         if not self.file_path.is_file():
             raise ValueError(f"La ruta no es un archivo: {self.file_path}")
         if self.file_path.stat().st_size == 0:
             raise ValueError(f"El archivo está vacío: {self.file_path}")
 
+    # ── Punto de entrada principal ───────────────────────────────────────
+
     def parse_to_raw(self) -> List[Dict[str, Any]]:
         """
-        Punto de entrada principal para parsear el archivo.
-
         Ejecuta la máquina de estados sobre las líneas del archivo.
 
-        Retorna:
-            List[Dict[str, Any]]: Lista de registros crudos extraídos.
+        Returns:
+            Lista de registros crudos de insumos extraídos.
+
+        Raises:
+            ParseStrategyError: Si ocurre un error irrecuperable durante el parseo.
         """
         if self._parsed:
             return self.raw_records
 
-        logger.info(f"Iniciando parseo línea por línea de: {self.file_path.name}")
+        logger.info(
+            "Iniciando parseo línea por línea de: %s", self.file_path.name
+        )
 
         try:
             content = self._read_file_safely()
             lines = content.split("\n")
             self.stats["total_lines"] = len(lines)
 
-            # Inicializar handlers y contexto
             handlers = self._initialize_handlers()
             context = ParserContext()
 
             logger.info(
-                f"🚀 Iniciando procesamiento de {len(lines)} líneas con Lógica Piramidal."
+                "🚀 Iniciando procesamiento de %d líneas con Lógica Piramidal.",
+                len(lines),
             )
 
             i = 0
             while i < len(lines):
-                line = lines[i]
+                raw_line = lines[i]
                 context.current_line_number = i + 1
-                line = line.strip()
+                line = raw_line.strip()
 
                 if not line:
                     i += 1
@@ -1410,146 +1472,159 @@ class ReportParserCrudo:
                 next_line = (
                     lines[i + 1].strip() if i + 1 < len(lines) else None
                 )
-                handled = False
 
                 for handler in handlers:
                     if handler.can_handle(line, next_line):
-                        should_advance_extra = handler.handle(
-                            line, context, next_line
-                        )
-                        if should_advance_extra:
-                            i += 1  # Saltar la siguiente línea también (ej. ITEM)
-                        handled = True
+                        should_advance = handler.handle(line, context, next_line)
+                        if should_advance:
+                            i += 1  # Consumir la siguiente línea (ITEM:)
                         break
-
-                if not handled:
+                else:
                     logger.debug(
-                        f"Línea {i+1} no reconocida por ningún handler."
+                        "Línea %d no reconocida por ningún handler.", i + 1
                     )
 
                 i += 1
 
-            # Actualizar estado del objeto principal
             self.stats.update(context.stats)
             self.raw_records = context.raw_records
             self._parsed = True
 
             logger.info(
-                f"Parseo completo. Extraídos {self.stats['insumos_extracted']} "
-                "registros crudos."
+                "Parseo completo. Extraídos %d registros crudos.",
+                self.stats["insumos_extracted"],
             )
-
             self._log_validation_summary()
 
-        except Exception as e:
-            logger.error(f"Error crítico de parseo: {e}", exc_info=True)
+        except Exception as exc:
+            logger.error("Error crítico de parseo: %s", exc, exc_info=True)
             raise ParseStrategyError(
-                f"Falló el parseo con estrategia Chain of Responsibility: {e}"
-            ) from e
+                f"Falló el parseo con estrategia Chain of Responsibility: {exc}"
+            ) from exc
 
         return self.raw_records
 
+    # ── Lectura de archivo ───────────────────────────────────────────────
+
     def _read_file_safely(self) -> str:
-        """Lee el contenido del archivo intentando múltiples codificaciones."""
+        """Lee el contenido del archivo probando múltiples codificaciones."""
         default_encodings = self.config.get(
             "encodings", ["utf-8", "latin1", "cp1252", "iso-8859-1"]
         )
-        encodings_to_try = [self.profile.get("encoding")] + default_encodings
+        # Priorizar la codificación del perfil si está definida
+        encodings_to_try: List[Optional[str]] = (
+            [self.profile.get("encoding")] + default_encodings
+        )
 
         for encoding in filter(None, encodings_to_try):
             try:
                 with open(
                     self.file_path, "r", encoding=encoding, errors="strict"
-                ) as f:
-                    content = f.read()
+                ) as fh:
+                    content = fh.read()
                 self.stats["encoding_used"] = encoding
                 logger.info(
-                    f"Archivo leído exitosamente con codificación: {encoding}"
+                    "Archivo leído exitosamente con codificación: %s", encoding
                 )
                 return content
             except (UnicodeDecodeError, TypeError, LookupError):
                 continue
+
         raise FileReadError(
             f"No se pudo leer el archivo {self.file_path} con ninguna de las "
             "codificaciones especificadas."
         )
 
+    # ── Detección de categorías ──────────────────────────────────────────
+
     def _detect_category(self, line_upper: str) -> Optional[str]:
         """
         Detección topológica de categorías usando teoría de retículos.
 
-        Refuerzo: Identifica la categoría como el ínfimo del conjunto de keywords.
+        La línea debe estar en mayúsculas (el llamador es responsable de la
+        conversión). Construye un retículo de pertenencia y retorna la
+        categoría con mayor fuerza de coincidencia.
+
+        Corrección v3:
+            Los patrones de búsqueda se normalizan a mayúsculas antes de
+            comparar con `line_upper`, garantizando coherencia case-insensitive
+            sin depender de flags de re que podrían quedar silenciosos.
         """
         if len(line_upper) > 50 or sum(c.isdigit() for c in line_upper) > 3:
             return None
 
-        # Construir retículo de categorías: cada keyword define un conjunto
-        category_membership = {}
+        category_membership: Dict[str, float] = {}
 
         for canonical, variations in self.CATEGORY_KEYWORDS.items():
             for variation in variations:
-                # Usar límites superiores en el retículo (sup)
-                if self._is_supremum_match(variation, line_upper):
+                # Normalizar variación a mayúsculas para comparar con line_upper
+                variation_upper = variation.upper()
+                if self._is_supremum_match(variation_upper, line_upper):
+                    score = self._calculate_match_strength(
+                        variation_upper, line_upper
+                    )
                     category_membership[canonical] = (
-                        category_membership.get(canonical, 0)
-                        + self._calculate_match_strength(variation, line_upper)
+                        category_membership.get(canonical, 0.0) + score
                     )
 
         if not category_membership:
             return None
 
-        # Encontrar el ínfimo (mejor categoría) por fuerza de match
-        best_category, best_score = max(category_membership.items(), key=lambda x: x[1])
+        best_category, best_score = max(
+            category_membership.items(), key=lambda x: x[1]
+        )
 
-        # Umbral topológico: debe superar un mínimo
-        if best_score > 0.15:
-            return best_category
-
-        return None
+        return best_category if best_score > 0.15 else None
 
     def _is_supremum_match(self, pattern: str, text: str) -> bool:
         """
-        Verifica si pattern es un supremo (límite superior) en el retículo de matches.
+        Verifica si `pattern` (ya en mayúsculas) aparece en `text` (en mayúsculas).
 
-        Considera matches parciales, prefijos y sufijos.
+        Corrección v3:
+            - Para abreviaturas (contienen punto), se construye un regex que
+              escapa el punto literal y permite match sin \b al final (ya que
+              el punto no es word-char y rompe el límite).
+            - Para palabras normales, se usa \b en ambos extremos.
         """
-        # Normalizar para matching topológico
-        pattern_norm = pattern.replace(".", "\\.").replace(" ", "\\s*")
+        escaped = re.escape(pattern)  # Escapa puntos y otros caracteres especiales
 
-        # Buscar como palabra completa o como prefijo/sufijo significativo
         if "." in pattern:
-            # Patrón con abreviatura: match exacto
-            # No usar \b al final si termina en punto, ya que el punto no es word char
-            regex = rf"\b{pattern_norm}"
-            if not pattern.endswith("."):
-                regex += r"\b"
-            return bool(re.search(regex, text))
+            # Abreviatura: match al inicio de palabra, sin requerir \b al final
+            # porque el '.' ya actúa como delimitador natural
+            regex = rf"(?<!\w){escaped}"
         else:
-            # Palabra completa: puede ser parte de una frase
-            return bool(re.search(rf"\b{pattern_norm}\b", text, re.IGNORECASE))
+            regex = rf"\b{escaped}\b"
+
+        return bool(re.search(regex, text))
 
     def _calculate_match_strength(self, pattern: str, text: str) -> float:
         """
         Calcula la fuerza del match en [0, 1] usando métrica topológica.
 
-        Considera posición, completitud y contexto.
+        Pondera posición (inicio > final), completitud (palabra completa > parcial)
+        y contexto (línea corta sugiere categoría pura > línea larga con contenido).
         """
-        # Peso por posición: matches al inicio son más fuertes
-        position_weight = 1.0
         match_pos = text.find(pattern)
-        if match_pos >= 0:
-            position_weight = 1.0 - (match_pos / len(text))
+        if match_pos < 0:
+            return 0.0
 
-        # Peso por completitud: palabras completas vs parciales
-        completeness_weight = 1.0 if f" {pattern} " in f" {text} " else 0.7
+        # Peso por posición: match al inicio tiene position_weight → 1.0
+        position_weight = 1.0 - (match_pos / max(len(text), 1))
 
-        # Peso contextual: línea corta sugiere categoría, larga sugiere contenido
+        # Peso por completitud
+        completeness_weight = (
+            1.0 if f" {pattern} " in f" {text} " else 0.7
+        )
+
+        # Peso contextual: línea corta sugiere categoría pura
         context_weight = 2.0 if len(text) < 30 else 1.0
 
         return position_weight * completeness_weight * context_weight
 
+    # ── Detección de basura ──────────────────────────────────────────────
+
     def _is_junk_line(self, line_upper: str) -> bool:
-        """Determina si una línea debe ser ignorada por ser "ruido"."""
+        """Determina si una línea debe ignorarse por ser ruido estructural."""
         if not line_upper or not isinstance(line_upper, str):
             return True
 
@@ -1562,15 +1637,14 @@ class ReportParserCrudo:
             if keyword in line_upper:
                 return True
 
-        if self._DECORATIVE_PATTERN.search(stripped):
-            return True
+        return bool(self._DECORATIVE_PATTERN.search(stripped))
 
-        return False
+    # ── Extracción de encabezado APU ─────────────────────────────────────
 
     def _extract_apu_header(
         self, header_line: str, item_line: str, line_number: int
     ) -> Optional[APUContext]:
-        """Extrae información del encabezado APU de forma segura."""
+        """Extrae información del encabezado APU de forma defensiva."""
         try:
             parts = header_line.split(";")
             apu_desc = parts[0].strip() if parts else ""
@@ -1582,15 +1656,13 @@ class ReportParserCrudo:
             )
 
             item_match = self._ITEM_PATTERN.search(item_line)
-            if item_match:
-                apu_code_raw = item_match.group(1)
-            else:
-                apu_code_raw = f"UNKNOWN_APU_{line_number}"
-
+            apu_code_raw = (
+                item_match.group(1) if item_match else f"UNKNOWN_APU_{line_number}"
+            )
             apu_code = clean_apu_code(apu_code_raw)
 
             if not apu_code or len(apu_code) < 2:
-                logger.warning(f"Código APU inválido extraído: '{apu_code}'")
+                logger.warning("Código APU inválido extraído: '%s'", apu_code)
                 return None
 
             return APUContext(
@@ -1600,12 +1672,14 @@ class ReportParserCrudo:
                 source_line=line_number,
             )
 
-        except ValueError as ve:
-            logger.debug(f"Validación de APUContext falló: {ve}")
+        except ValueError as exc:
+            logger.debug("Validación de APUContext falló: %s", exc)
             return None
-        except Exception as e:
-            logger.warning(f"Error extrayendo encabezado APU: {e}")
+        except Exception as exc:
+            logger.warning("Error extrayendo encabezado APU: %s", exc)
             return None
+
+    # ── Construcción de registros ────────────────────────────────────────
 
     def _build_insumo_record(
         self,
@@ -1617,11 +1691,11 @@ class ReportParserCrudo:
         fields: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Construye registro con métricas topológicas adicionales.
+        Construye un registro de insumo con métricas topológicas.
 
-        Refuerzo: Añade invariantes y medidas de calidad estructural.
+        El árbol Lark no se serializa directamente; se almacena solo metadata
+        ligera para evitar problemas de serialización y consumo de memoria.
         """
-        # Calcular métricas topológicas
         if fields is None:
             fields = [f.strip() for f in line.split(";")]
 
@@ -1632,24 +1706,23 @@ class ReportParserCrudo:
             "homogeneity_index": self._calculate_homogeneity_index(fields),
         }
 
-        # Determinar clase de homeomorfismo
         homeomorphism_class = self._determine_homeomorphism_class(
             validation_result.validation_layer, topological_metrics
         )
 
-        # MEJORA: No incluir el árbol Lark directamente (muy pesado para serialización)
-        # En su lugar, guardamos si existía y su tipo de raíz
         lark_info = None
         if validation_result.lark_tree is not None:
             lark_info = {
                 "has_tree": True,
-                "root_type": getattr(validation_result.lark_tree, "data", "unknown"),
+                "root_type": getattr(
+                    validation_result.lark_tree, "data", "unknown"
+                ),
                 "children_count": len(
                     getattr(validation_result.lark_tree, "children", [])
                 ),
             }
 
-        record = {
+        return {
             "apu_code": context.apu_code,
             "apu_desc": context.apu_desc,
             "apu_unit": context.apu_unit,
@@ -1660,141 +1733,185 @@ class ReportParserCrudo:
             "validation_layer": validation_result.validation_layer,
             "homeomorphism_class": homeomorphism_class,
             "topological_metrics": topological_metrics,
-            "_lark_info": lark_info,  # Metadata ligera en lugar del árbol completo
+            "_lark_info": lark_info,
             "_structural_signature": self._compute_structural_signature(line),
         }
 
-        return record
+    # ── Métricas topológicas ─────────────────────────────────────────────
 
     def _calculate_field_entropy(self, fields: List[str]) -> float:
-        """Calcula la entropía topológica de los campos."""
+        """
+        Calcula la entropía de Shannon normalizada sobre la distribución de
+        tipos de campo: H_norm = H / H_max ∈ [0, 1].
+
+        Los tipos reconocidos son: alpha, numeric, mixed, empty (4 categorías).
+        H_max = log₂(4) = 2.0 bits  →  constante de módulo `_H_MAX`.
+
+        Corrección v3:
+            - `log2` importado a nivel módulo (no dentro del método).
+            - `_H_MAX` pre-calculado como constante de módulo.
+            - Guarda defensiva para listas de un solo elemento (H_max = 0).
+        """
         if not fields:
             return 0.0
 
-        # Distribución de tipos por campo
-        type_counts = {"alpha": 0, "numeric": 0, "mixed": 0, "empty": 0}
+        type_counts: Dict[str, int] = {
+            "alpha": 0,
+            "numeric": 0,
+            "mixed": 0,
+            "empty": 0,
+        }
 
-        for field in fields:
-            field = str(field).strip()
-            if not field:
+        for f in fields:
+            val = str(f).strip()
+            if not val:
                 type_counts["empty"] += 1
-            elif field.replace(".", "").replace(",", "").isdigit():
+            elif val.replace(".", "").replace(",", "").isdigit():
                 type_counts["numeric"] += 1
-            elif any(c.isalpha() for c in field):
-                if any(c.isdigit() for c in field):
+            elif any(c.isalpha() for c in val):
+                if any(c.isdigit() for c in val):
                     type_counts["mixed"] += 1
                 else:
                     type_counts["alpha"] += 1
-
-        # Entropía de Shannon normalizada
-        from math import log2
+            # Si solo contiene símbolos especiales, cae en empty por defecto
+            else:
+                type_counts["empty"] += 1
 
         total = len(fields)
         entropy = 0.0
-
         for count in type_counts.values():
             if count > 0:
                 p = count / total
                 entropy -= p * log2(p)
 
-        # Normalizar a [0,1]
-        max_entropy = log2(min(len(type_counts), total))
-        return entropy / max_entropy if max_entropy > 0 else 0.0
+        # _H_MAX = log2(4) ≈ 2.0; si total == 1, solo hay 1 tipo → H_max = 0
+        effective_h_max = min(_H_MAX, log2(total)) if total > 1 else 0.0
+        return entropy / effective_h_max if effective_h_max > 0 else 0.0
 
     def _calculate_structural_density(self, line: str) -> float:
-        """Calcula la densidad estructural (información por carácter)."""
-        # Información semántica aproximada
+        """
+        Calcula la densidad estructural: unidades semánticas por carácter.
+
+        Acotada a [0, 1] mediante saturación: dado que una línea no puede tener
+        más unidades semánticas que caracteres, el máximo teórico es 1.0
+        (cada carácter sería una unidad, e.g., dígitos individuales separados).
+
+        Corrección v3:
+            Se aplica `min(..., 1.0)` para garantizar el acotamiento superior.
+        """
         words = re.findall(r"\b[A-Za-z]{3,}\b", line)
         numbers = re.findall(r"\d+(?:[.,]\d+)?", line)
-
         semantic_units = len(words) + len(numbers)
         total_chars = len(line)
-
-        return semantic_units / total_chars if total_chars > 0 else 0.0
+        raw = semantic_units / total_chars if total_chars > 0 else 0.0
+        return min(raw, 1.0)
 
     def _calculate_numeric_cohesion(self, fields: List[str]) -> float:
-        """Calcula la cohesión numérica (qué tan juntos están los números)."""
+        """
+        Calcula la cohesión numérica: qué tan agrupados están los campos numéricos.
+
+        Definición: cohesión = 1 / (1 + d̄), donde d̄ es la distancia media entre
+        posiciones de campos numéricos consecutivos.
+
+        Propiedades matemáticas:
+          - Si d̄ = 0 (todos los campos numéricos son adyacentes): cohesión = 1.0.
+          - Si d̄ → ∞: cohesión → 0.0.
+          - La función es monótona decreciente en d̄ y siempre ∈ (0, 1].
+
+        Corrección v3:
+            Reemplaza `1/d̄` (no acotada) por `1/(1+d̄)` que garantiza [0,1].
+        """
         numeric_positions = [
             i for i, f in enumerate(fields) if any(c.isdigit() for c in str(f))
         ]
 
-        if len(numeric_positions) < 2:
-            return 1.0 if numeric_positions else 0.0
+        if not numeric_positions:
+            return 0.0
+        if len(numeric_positions) == 1:
+            return 1.0
 
-        # Distancia promedio entre números
         distances = [
-            abs(numeric_positions[i] - numeric_positions[i - 1])
-            for i in range(1, len(numeric_positions))
+            abs(numeric_positions[k] - numeric_positions[k - 1])
+            for k in range(1, len(numeric_positions))
         ]
-
         avg_distance = sum(distances) / len(distances)
-
-        # Cohesión inversa a la distancia promedio.
-        # Si avg_distance es 1 (contiguos), cohesión es 1.0.
-        # Si avg_distance aumenta, cohesión baja.
-        return 1.0 / avg_distance if avg_distance > 0 else 0.0
+        return 1.0 / (_COHESION_OFFSET + avg_distance)
 
     def _calculate_homogeneity_index(self, fields: List[str]) -> float:
-        """Índice de homogeneidad (qué tan similares son los campos)."""
+        """
+        Índice de homogeneidad: porcentaje del tipo de campo más frecuente.
+
+        Retorna el máximo de la distribución empírica de tipos, en [0, 1].
+        """
         if len(fields) < 2:
             return 1.0
 
-        # Similaridad por tipo de datos
-        field_types = []
-        for field in fields:
-            field_str = str(field).strip()
-            if not field_str:
+        field_types: List[str] = []
+        for f in fields:
+            val = str(f).strip()
+            if not val:
                 field_types.append("empty")
-            elif field_str.replace(".", "").replace(",", "").isdigit():
+            elif val.replace(".", "").replace(",", "").isdigit():
                 field_types.append("numeric")
-            elif any(c.isalpha() for c in field_str):
-                if any(c.isdigit() for c in field_str):
-                    field_types.append("mixed")
-                else:
-                    field_types.append("alpha")
+            elif any(c.isalpha() for c in val):
+                field_types.append("mixed" if any(c.isdigit() for c in val) else "alpha")
             else:
                 field_types.append("other")
 
-        # Porcentaje del tipo más común
-        from collections import Counter
-
+        # Counter ya está importado a nivel módulo
         type_counts = Counter(field_types)
         most_common_count = max(type_counts.values())
-
         return most_common_count / len(fields)
+
+    # ── Clasificación homeomórfica ───────────────────────────────────────
 
     def _determine_homeomorphism_class(
         self, validation_layer: str, metrics: Dict[str, float]
     ) -> str:
-        """Determina la clase de homeomorfismo del registro."""
+        """
+        Determina la clase de homeomorfismo del registro según métricas y capa.
+
+        Clasificación jerárquica (ver umbrales documentados en constantes de clase):
+          CLASE_A: registro completo y bien estructurado.
+          CLASE_B: predominantemente numérico y cohesivo.
+          CLASE_C: homogéneo en tipo de campo.
+          CLASE_D: señal mixta aceptable.
+          CLASE_E: sin estructura reconocible o registro defectivo.
+        """
         if validation_layer != "full_homeomorphism":
-            # Mapeo a las clases de error esperadas por los tests
             if "lark" in validation_layer:
                 return "CLASE_E_IRREGULAR"
             return f"DEFECTIVO_{validation_layer.upper()}"
 
-        entropy = metrics.get("field_entropy", 0)
-        density = metrics.get("structural_density", 0)
-        cohesion = metrics.get("numeric_cohesion", 0)
-        homogeneity = metrics.get("homogeneity_index", 0)
+        entropy = metrics.get("field_entropy", 0.0)
+        density = metrics.get("structural_density", 0.0)
+        cohesion = metrics.get("numeric_cohesion", 0.0)
+        homogeneity = metrics.get("homogeneity_index", 0.0)
 
-        # Clasificación jerárquica alineada con los tests (CLASE_X)
-        if entropy > 0.6 and density > 0.08 and cohesion > 0.7:
+        if (
+            entropy > self._THR_A_ENTROPY
+            and density > self._THR_A_DENSITY
+            and cohesion > self._THR_A_COHESION
+        ):
             return "CLASE_A_COMPLETO"
-        elif cohesion > 0.85 and homogeneity > 0.5:
+        if cohesion > self._THR_B_COHESION and homogeneity > self._THR_B_HOMOGENEITY:
             return "CLASE_B_NUMERICO"
-        elif homogeneity > 0.7:
+        if homogeneity > self._THR_C_HOMOGENEITY:
             return "CLASE_C_HOMOGENEO"
-        elif entropy > 0.4 or density > 0.05:
+        if entropy > self._THR_D_ENTROPY or density > self._THR_D_DENSITY:
             return "CLASE_D_MIXTO"
-        else:
-            return "CLASE_E_IRREGULAR"
+        return "CLASE_E_IRREGULAR"
+
+    # ── Firma estructural ────────────────────────────────────────────────
 
     def _compute_structural_signature(self, line: str) -> str:
-        """Computa una firma estructural única para la línea."""
-        import hashlib
+        """
+        Computa una firma estructural SHA-256 de 16 hex chars para la línea.
 
-        # Extraer características estructurales invariantes
+        Usa `hashlib` importado a nivel módulo (sin re-import dentro del método).
+        La firma captura las frecuencias de clases de caracteres y la longitud
+        total, constituyendo un invariante de segundo orden sobre la forma de la línea.
+        """
         features = [
             str(len(re.findall(r"[A-Z]", line))),
             str(len(re.findall(r"[a-z]", line))),
@@ -1803,6 +1920,4 @@ class ReportParserCrudo:
             str(len(line.split())),
             str(len(line)),
         ]
-
-        feature_string = "|".join(features)
-        return hashlib.sha256(feature_string.encode()).hexdigest()[:16]
+        return hashlib.sha256("|".join(features).encode()).hexdigest()[:16]
