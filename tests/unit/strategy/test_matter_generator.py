@@ -31,7 +31,7 @@ import pytest
 import networkx as nx
 import numpy as np
 
-from app.matter_generator import BillOfMaterials, MatterGenerator
+from app.physics.matter_generator import BillOfMaterials, MatterGenerator
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

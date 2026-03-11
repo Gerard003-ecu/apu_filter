@@ -39,8 +39,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, Iterator
 
-from app.schemas import Stratum
-from app.telemetry_schemas import (
+from app.core.schemas import Stratum
+from app.core.telemetry_schemas import (
     PhysicsMetrics,
     TopologicalMetrics,
     ControlMetrics,

@@ -77,8 +77,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from app.schemas import Stratum
-from agent.topological_analyzer import (
+from app.core.schemas import Stratum
+from app.tactics.topological_analyzer import (
     HealthLevel,
     MetricState,
     PersistenceAnalysisResult,

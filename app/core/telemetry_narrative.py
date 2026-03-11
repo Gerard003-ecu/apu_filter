@@ -45,9 +45,9 @@ from typing import (
     Union,
 )
 
-from app.schemas import Stratum
-from app.telemetry import StepStatus, TelemetryContext, TelemetrySpan
-from app.tools_interface import MICRegistry, register_core_vectors
+from app.core.schemas import Stratum
+from app.core.telemetry import StepStatus, TelemetryContext, TelemetrySpan
+from app.adapters.tools_interface import MICRegistry, register_core_vectors
 
 logger = logging.getLogger(__name__)
 

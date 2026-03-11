@@ -11,7 +11,7 @@ from app.adapters.mic_vectors import (
     vector_audit_homological_fusion,
     VectorResultStatus,
 )
-from app.schemas import Stratum
+from app.core.schemas import Stratum
 
 
 # =============================================================================

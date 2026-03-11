@@ -39,12 +39,12 @@ import networkx as nx
 import pandas as pd
 import pytest
 
-from app.telemetry import TelemetryContext
-from app.apu_processor import ProcessingThresholds
+from app.core.telemetry import TelemetryContext
+from app.tactics.apu_processor import ProcessingThresholds
 
 # Imports condicionales con diagnóstico
 try:
-    from agent.business_topology import (
+    from app.tactics.business_topology import (
         BudgetGraphBuilder,
         BusinessTopologicalAnalyzer,
     )
@@ -53,13 +53,13 @@ except ImportError:
     _HAS_TOPOLOGY = False
 
 try:
-    from app.pipeline_director import AuditedMergeStep
+    from app.tactics.pipeline_director import AuditedMergeStep
     _HAS_PIPELINE = True
 except ImportError:
     _HAS_PIPELINE = False
 
 try:
-    from app.telemetry_schemas import TopologicalMetrics
+    from app.core.telemetry_schemas import TopologicalMetrics
     _HAS_TOPO_SCHEMAS = True
 except ImportError:
     _HAS_TOPO_SCHEMAS = False
@@ -261,7 +261,7 @@ def analyzer(telemetry):
     if not _HAS_TOPOLOGY:
         pytest.skip(
             "BusinessTopologicalAnalyzer not available. "
-            "Install agent.business_topology."
+            "Install app.tactics.business_topology."
         )
     return BusinessTopologicalAnalyzer(telemetry=telemetry)
 
@@ -955,11 +955,11 @@ class TestAuditedMergeStepPipeline:
         }
 
         with patch(
-            "app.pipeline_director.BudgetGraphBuilder"
+            "app.tactics.pipeline_director.BudgetGraphBuilder"
         ) as MockBuilder, patch(
-            "app.pipeline_director.BusinessTopologicalAnalyzer"
+            "app.tactics.pipeline_director.BusinessTopologicalAnalyzer"
         ) as MockAnalyzer, patch(
-            "app.pipeline_director.DataMerger"
+            "app.tactics.pipeline_director.DataMerger"
         ) as MockMerger:
             # Builder retorna grafos que producirían ciclo
             MockBuilder.return_value.build.side_effect = [ghost_a, ghost_b]
@@ -1006,11 +1006,11 @@ class TestAuditedMergeStepPipeline:
         }
 
         with patch(
-            "app.pipeline_director.BudgetGraphBuilder"
+            "app.tactics.pipeline_director.BudgetGraphBuilder"
         ) as MockBuilder, patch(
-            "app.pipeline_director.BusinessTopologicalAnalyzer"
+            "app.tactics.pipeline_director.BusinessTopologicalAnalyzer"
         ) as MockAnalyzer, patch(
-            "app.pipeline_director.DataMerger"
+            "app.tactics.pipeline_director.DataMerger"
         ) as MockMerger:
             MockBuilder.return_value.build.side_effect = [
                 create_labeled_dag([("A", "B")]),
@@ -1039,11 +1039,11 @@ class TestAuditedMergeStepPipeline:
         context = self._make_context_with_dfs()
 
         with patch(
-            "app.pipeline_director.BudgetGraphBuilder"
+            "app.tactics.pipeline_director.BudgetGraphBuilder"
         ) as MockBuilder, patch(
-            "app.pipeline_director.BusinessTopologicalAnalyzer"
+            "app.tactics.pipeline_director.BusinessTopologicalAnalyzer"
         ) as MockAnalyzer, patch(
-            "app.pipeline_director.DataMerger"
+            "app.tactics.pipeline_director.DataMerger"
         ) as MockMerger:
             MockBuilder.return_value.build.return_value = nx.DiGraph()
             MockAnalyzer.return_value.audit_integration_homology.side_effect = (
@@ -1078,7 +1078,7 @@ class TestAuditedMergeStepPipeline:
         context = self._make_context_with_dfs(presupuesto=False)
 
         with patch(
-            "app.pipeline_director.DataMerger"
+            "app.tactics.pipeline_director.DataMerger"
         ) as MockMerger:
             MockMerger.return_value.merge_apus_with_insumos.return_value = (
                 pd.DataFrame({"merged": [1]})
@@ -1122,11 +1122,11 @@ class TestAuditedMergeStepPipeline:
         context = self._make_context_with_dfs()
 
         with patch(
-            "app.pipeline_director.BudgetGraphBuilder"
+            "app.tactics.pipeline_director.BudgetGraphBuilder"
         ) as MockBuilder, patch(
-            "app.pipeline_director.BusinessTopologicalAnalyzer"
+            "app.tactics.pipeline_director.BusinessTopologicalAnalyzer"
         ) as MockAnalyzer, patch(
-            "app.pipeline_director.DataMerger"
+            "app.tactics.pipeline_director.DataMerger"
         ) as MockMerger:
             MockBuilder.return_value.build.return_value = nx.DiGraph()
             MockAnalyzer.return_value.audit_integration_homology.return_value = {
@@ -1293,13 +1293,13 @@ class TestRegressionFusionHomology:
 
     def test_regression_patch_path_for_builder(self):
         """
-        Bug original: @patch("app.business_topology.BudgetGraphBuilder")
-        Ruta correcta: app.pipeline_director.BudgetGraphBuilder
+        Bug original: @patch("app.tactics.business_topology.BudgetGraphBuilder")
+        Ruta correcta: app.tactics.pipeline_director.BudgetGraphBuilder
         (se parchea donde se consume, no donde se define).
         """
         # Verificar que el import en pipeline_director funciona
         if _HAS_PIPELINE:
-            import app.pipeline_director as pd_mod
+            import app.tactics.pipeline_director as pd_mod
             assert hasattr(pd_mod, "BudgetGraphBuilder") or hasattr(
                 pd_mod, "AuditedMergeStep"
             ), "pipeline_director must import BudgetGraphBuilder"
@@ -1332,7 +1332,7 @@ class TestRegressionFusionHomology:
         mockeable en pipeline_director.
         """
         if _HAS_PIPELINE:
-            import app.pipeline_director as pd_mod
+            import app.tactics.pipeline_director as pd_mod
             assert hasattr(pd_mod, "DataMerger"), (
                 "pipeline_director must import DataMerger for mocking"
             )

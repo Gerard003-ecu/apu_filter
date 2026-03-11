@@ -27,7 +27,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # Importar los módulos a probar
-from app.semantic_dictionary import (
+from app.wisdom.semantic_dictionary import (
     GraphSemanticProjector,
     PyramidalSemanticVector,
     SemanticDictionaryService,
@@ -1061,7 +1061,7 @@ class TestSemanticDictionaryService:
     
     def test_register_in_mic_without_module(self, service: SemanticDictionaryService):
         """Registro sin módulo MICRegistry disponible retorna False."""
-        with patch.dict('sys.modules', {'app.tools_interface': None}):
+        with patch.dict('sys.modules', {'app.adapters.tools_interface': None}):
             result = service.register_in_mic(MagicMock())
             # Puede retornar True o False dependiendo de la implementación
             assert isinstance(result, bool)

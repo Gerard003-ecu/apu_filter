@@ -38,7 +38,7 @@ import networkx as nx
 
 # Integración con telemetría
 try:
-    from .telemetry import TelemetryContext
+    from app.core.telemetry import TelemetryContext
 except ImportError:
     TelemetryContext = Any
 

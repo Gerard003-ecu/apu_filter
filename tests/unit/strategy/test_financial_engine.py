@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 from scipy.stats import norm, t
 
-from app.financial_engine import (
+from app.strategy.financial_engine import (
     CapitalAssetPricing,
     DistributionType,
     FinancialConfig,

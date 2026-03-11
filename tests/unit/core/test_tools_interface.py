@@ -49,7 +49,7 @@ from hypothesis import given, strategies as st, settings, assume, HealthCheck
 # Importación del módulo bajo prueba
 # ═══════════════════════════════════════════════════════════════════════════
 
-from app.tools_interface import (
+from app.adapters.tools_interface import (
     # Configuración
     MICConfiguration,
     DEFAULT_MIC_CONFIG,

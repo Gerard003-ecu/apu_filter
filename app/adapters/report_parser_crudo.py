@@ -44,7 +44,7 @@ from lark.exceptions import (
     UnexpectedToken,
 )
 
-from .utils import clean_apu_code
+from app.core.utils import clean_apu_code
 
 logger = logging.getLogger(__name__)
 
@@ -412,7 +412,7 @@ class ReportParserCrudo:
         self.validation_stats = ValidationStats()
 
         try:
-            from .apu_processor import APU_GRAMMAR
+            from app.tactics.apu_processor import APU_GRAMMAR
 
             self.lark_parser = self._initialize_lark_parser(APU_GRAMMAR)
         except ImportError as ie:
@@ -464,7 +464,7 @@ class ReportParserCrudo:
         # ROBUSTECIDO: Obtener gramática si no se proporcionó
         if grammar is None:
             try:
-                from .apu_processor import APU_GRAMMAR
+                from app.tactics.apu_processor import APU_GRAMMAR
 
                 grammar = APU_GRAMMAR
             except ImportError:

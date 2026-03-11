@@ -144,7 +144,7 @@ FinancialEngine = _safe_import(".financial_engine", "FinancialEngine")
 
 # ── Fallback para Stratum ──────────────────────────────────────────────────
 try:
-    from .schemas import Stratum
+    from app.core.schemas import Stratum
 except ImportError:
 
     class Stratum(IntEnum):
@@ -1702,6 +1702,8 @@ class MICRegistry:
     # ── Propiedades de introspección ───────────────────────────────────────
 
     @property
+
+
     def registered_services(self) -> List[str]:
         """Lista de servicios registrados."""
         with self._lock:
@@ -1757,6 +1759,8 @@ class MICRegistry:
         return hierarchy
 
     # ── Registro de Vectores ───────────────────────────────────────────────
+
+
 
     def register_vector(
         self,
@@ -2605,7 +2609,7 @@ def register_core_vectors(
     # Vectores con dependencias opcionales
     if config:
         try:
-            from app.semantic_estimator import SemanticEstimatorService
+            from app.wisdom.semantic_estimator import SemanticEstimatorService
             service = SemanticEstimatorService(config)
             service.register_in_mic(mic)
             logger.info("✅ Vectores semánticos registrados")
@@ -2613,7 +2617,7 @@ def register_core_vectors(
             logger.warning("⚠️ Vectores semánticos no disponibles: %s", e)
 
     try:
-        from app.semantic_dictionary import SemanticDictionaryService
+        from app.wisdom.semantic_dictionary import SemanticDictionaryService
         semantic_dict = SemanticDictionaryService()
         semantic_dict.register_in_mic(mic)
         logger.info("✅ Diccionario semántico registrado")

@@ -79,9 +79,9 @@ import pandas as pd
 import scipy.sparse
 import scipy.sparse.linalg
 
-from app.constants import ColumnNames
-from app.telemetry import TelemetryContext
-from app.telemetry_schemas import TopologicalMetrics
+from app.core.constants import ColumnNames
+from app.core.telemetry import TelemetryContext
+from app.core.telemetry_schemas import TopologicalMetrics
 
 logger = logging.getLogger(__name__)
 

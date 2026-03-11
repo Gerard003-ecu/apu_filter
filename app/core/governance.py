@@ -68,7 +68,7 @@ from typing import (
 
 import pandas as pd
 
-from app.constants import ColumnNames
+from app.core.constants import ColumnNames
 
 
 logger = logging.getLogger(__name__)

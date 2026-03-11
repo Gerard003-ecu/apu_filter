@@ -19,7 +19,7 @@ import pandas as pd
 import pytest
 from flask import Flask
 
-from app.topology_viz import (
+from app.adapters.topology_viz import (
     CYCLE_SEPARATOR,
     LABEL_ELLIPSIS,
     LABEL_MAX_LENGTH,
@@ -964,7 +964,7 @@ class TestBuildEdgeElement:
 class TestBuildGraphFromSession:
     """Pruebas para build_graph_from_session."""
 
-    @patch("app.topology_viz.BudgetGraphBuilder")
+    @patch("app.adapters.topology_viz.BudgetGraphBuilder")
     def test_builds_graph_successfully(self, mock_builder_class, valid_session_data):
         """Verifica construcción exitosa del grafo."""
         mock_graph = nx.DiGraph()
@@ -978,13 +978,13 @@ class TestBuildGraphFromSession:
         assert isinstance(result, nx.DiGraph)
         mock_builder.build.assert_called_once()
 
-    @patch("app.topology_viz.BudgetGraphBuilder")
+    @patch("app.adapters.topology_viz.BudgetGraphBuilder")
     def test_raises_on_empty_data(self, mock_builder_class, empty_session_data):
         """Verifica error con datos vacíos."""
         with pytest.raises(ValueError, match="No hay datos suficientes"):
             build_graph_from_session(empty_session_data)
 
-    @patch("app.topology_viz.BudgetGraphBuilder")
+    @patch("app.adapters.topology_viz.BudgetGraphBuilder")
     def test_raises_on_invalid_graph(self, mock_builder_class, valid_session_data):
         """Verifica error cuando builder retorna grafo inválido."""
         mock_builder = MagicMock()
@@ -998,7 +998,7 @@ class TestBuildGraphFromSession:
 class TestAnalyzeGraphForVisualization:
     """Pruebas para analyze_graph_for_visualization."""
 
-    @patch("app.topology_viz.BusinessTopologicalAnalyzer")
+    @patch("app.adapters.topology_viz.BusinessTopologicalAnalyzer")
     def test_returns_anomaly_data(
         self, mock_analyzer_class, sample_graph, sample_analysis_result
     ):
@@ -1011,7 +1011,7 @@ class TestAnalyzeGraphForVisualization:
 
         assert isinstance(result, AnomalyData)
 
-    @patch("app.topology_viz.BusinessTopologicalAnalyzer")
+    @patch("app.adapters.topology_viz.BusinessTopologicalAnalyzer")
     def test_handles_analyzer_exception(self, mock_analyzer_class, sample_graph):
         """Verifica manejo de excepción del analizador."""
         mock_analyzer = MagicMock()
@@ -1137,8 +1137,8 @@ class TestGetProjectGraphEndpoint:
 
         assert response.status_code == 400
 
-    @patch("app.topology_viz.build_graph_from_session")
-    @patch("app.topology_viz.analyze_graph_for_visualization")
+    @patch("app.adapters.topology_viz.build_graph_from_session")
+    @patch("app.adapters.topology_viz.analyze_graph_for_visualization")
     def test_returns_success_with_valid_data(
         self, mock_analyze, mock_build, client, sample_graph, valid_session_data
     ):
@@ -1157,7 +1157,7 @@ class TestGetProjectGraphEndpoint:
         assert "elements" in data
         assert "count" in data
 
-    @patch("app.topology_viz.build_graph_from_session")
+    @patch("app.adapters.topology_viz.build_graph_from_session")
     def test_returns_empty_elements_for_empty_graph(
         self, mock_build, client, valid_session_data
     ):
@@ -1174,7 +1174,7 @@ class TestGetProjectGraphEndpoint:
         assert data["elements"] == []
         assert data["count"] == 0
 
-    @patch("app.topology_viz.build_graph_from_session")
+    @patch("app.adapters.topology_viz.build_graph_from_session")
     def test_handles_value_error(self, mock_build, client, valid_session_data):
         """Verifica manejo de ValueError."""
         mock_build.side_effect = ValueError("Construction failed")
@@ -1188,7 +1188,7 @@ class TestGetProjectGraphEndpoint:
         data = response.get_json()
         assert "Construction failed" in data["error"]
 
-    @patch("app.topology_viz.build_graph_from_session")
+    @patch("app.adapters.topology_viz.build_graph_from_session")
     def test_handles_unexpected_exception(self, mock_build, client, valid_session_data):
         """Verifica manejo de excepción inesperada."""
         mock_build.side_effect = RuntimeError("Unexpected error")
@@ -1212,8 +1212,8 @@ class TestGetTopologyStatsEndpoint:
 
         assert response.status_code == 404
 
-    @patch("app.topology_viz.build_graph_from_session")
-    @patch("app.topology_viz.analyze_graph_for_visualization")
+    @patch("app.adapters.topology_viz.build_graph_from_session")
+    @patch("app.adapters.topology_viz.analyze_graph_for_visualization")
     def test_returns_stats(
         self,
         mock_analyze,
@@ -1251,8 +1251,8 @@ class TestGetTopologyStatsEndpoint:
 class TestIntegration:
     """Pruebas de integración end-to-end."""
 
-    @patch("app.topology_viz.BudgetGraphBuilder")
-    @patch("app.topology_viz.BusinessTopologicalAnalyzer")
+    @patch("app.adapters.topology_viz.BudgetGraphBuilder")
+    @patch("app.adapters.topology_viz.BusinessTopologicalAnalyzer")
     def test_full_workflow(
         self,
         mock_analyzer_class,

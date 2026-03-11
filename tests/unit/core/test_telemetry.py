@@ -51,7 +51,7 @@ from typing import Any, Generator
 
 import pytest
 
-from app.telemetry import (
+from app.core.telemetry import (
     ActiveStepInfo,
     BusinessThresholds,
     StepStatus,
@@ -216,7 +216,7 @@ class TestStratumTopologyComplete:
 
     def test_physics_prefixes(self) -> None:
         """PHYSICS contiene prefijos de dominio físico."""
-        from app.telemetry import Stratum, StratumTopology
+        from app.core.telemetry import Stratum, StratumTopology
 
         prefixes = StratumTopology.get_prefixes(Stratum.PHYSICS)
 
@@ -227,7 +227,7 @@ class TestStratumTopologyComplete:
 
     def test_tactics_prefixes(self) -> None:
         """TACTICS contiene prefijos de análisis espectral y resonancia."""
-        from app.telemetry import Stratum, StratumTopology
+        from app.core.telemetry import Stratum, StratumTopology
 
         prefixes = StratumTopology.get_prefixes(Stratum.TACTICS)
 
@@ -237,7 +237,7 @@ class TestStratumTopologyComplete:
 
     def test_strategy_prefixes(self) -> None:
         """STRATEGY contiene prefijos de planificación financiera."""
-        from app.telemetry import Stratum, StratumTopology
+        from app.core.telemetry import Stratum, StratumTopology
 
         prefixes = StratumTopology.get_prefixes(Stratum.STRATEGY)
 
@@ -249,7 +249,7 @@ class TestStratumTopologyComplete:
 
         Verifica que el estrato superior no esté vacío o None.
         """
-        from app.telemetry import Stratum, StratumTopology
+        from app.core.telemetry import Stratum, StratumTopology
 
         prefixes = StratumTopology.get_prefixes(Stratum.WISDOM)
 
@@ -259,7 +259,7 @@ class TestStratumTopologyComplete:
 
     def test_all_strata_have_prefixes_defined(self) -> None:
         """Verifica que todos los estratos tienen prefijos registrados."""
-        from app.telemetry import Stratum, StratumTopology
+        from app.core.telemetry import Stratum, StratumTopology
 
         for stratum in Stratum:
             prefixes = StratumTopology.get_prefixes(stratum)
@@ -269,7 +269,7 @@ class TestStratumTopologyComplete:
 
     def test_prefixes_are_non_empty_strings(self) -> None:
         """Verifica que cada prefijo es un string no vacío."""
-        from app.telemetry import Stratum, StratumTopology
+        from app.core.telemetry import Stratum, StratumTopology
 
         for stratum in Stratum:
             prefixes = StratumTopology.get_prefixes(stratum)

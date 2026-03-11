@@ -30,7 +30,7 @@ from typing import List, Tuple, Any
 from dataclasses import FrozenInstanceError
 
 # Importar el módulo bajo prueba
-from app.telemetry_schemas import (
+from app.core.telemetry_schemas import (
     PhysicsMetrics,
     TopologicalMetrics,
     ControlMetrics,

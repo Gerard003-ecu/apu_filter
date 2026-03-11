@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import Enum
 from copy import deepcopy
 
-from app.topology_viz import extract_anomaly_data, AnomalyData
+from app.adapters.topology_viz import extract_anomaly_data, AnomalyData
 
 
 # =============================================================================

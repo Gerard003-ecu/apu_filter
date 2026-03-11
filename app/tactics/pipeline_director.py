@@ -77,21 +77,21 @@ import numpy as np
 import pandas as pd
 from flask import current_app
 
-from app.constants import ColumnNames, InsumoType
-from app.flux_condenser import CondenserConfig, DataFluxCondenser
-from app.matter_generator import MatterGenerator
-from app.schemas import Stratum
-from app.telemetry import TelemetryContext
-from app.telemetry_narrative import TelemetryNarrator
-from agent.business_topology import (
+from app.core.constants import ColumnNames, InsumoType
+from app.physics.flux_condenser import CondenserConfig, DataFluxCondenser
+from app.physics.matter_generator import MatterGenerator
+from app.core.schemas import Stratum
+from app.core.telemetry import TelemetryContext
+from app.core.telemetry_narrative import TelemetryNarrator
+from app.tactics.business_topology import (
     BudgetGraphBuilder,
     BusinessTopologicalAnalyzer,
 )
-from app.business_agent import BusinessAgent
-from app.semantic_translator import SemanticTranslator
-from app.tools_interface import MICRegistry, register_core_vectors
+from app.strategy.business_agent import BusinessAgent
+from app.wisdom.semantic_translator import SemanticTranslator
+from app.adapters.tools_interface import MICRegistry, register_core_vectors
 
-from .apu_processor import (
+from app.tactics.apu_processor import (
     APUProcessor,
     APUCostCalculator,
     DataMerger,
@@ -108,7 +108,7 @@ from .apu_processor import (
     sanitize_for_json,
     synchronize_data_sources,
 )
-from .data_validator import validate_and_clean_data
+from app.tactics.data_validator import validate_and_clean_data
 
 
 # ============================================================================

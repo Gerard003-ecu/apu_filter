@@ -74,16 +74,16 @@ try:
 except ImportError:
     LinAlgError = Exception
 
-from .apu_processor import (
+from app.tactics.apu_processor import (
     APUProcessor,
     FileValidator,
     InsumosProcessor,
     PresupuestoProcessor,
     ProcessingThresholds,
 )
-from .report_parser_crudo import ReportParserCrudo
-from .telemetry import TelemetryContext
-from .laplace_oracle import LaplaceOracle, ConfigurationError as OracleConfigurationError
+from app.adapters.report_parser_crudo import ReportParserCrudo
+from app.core.telemetry import TelemetryContext
+from app.physics.laplace_oracle import LaplaceOracle, ConfigurationError as OracleConfigurationError
 
 logger = logging.getLogger(__name__)
 

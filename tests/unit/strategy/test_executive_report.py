@@ -34,7 +34,7 @@ from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple
 import networkx as nx
 import pytest
 
-from agent.business_topology import (
+from app.tactics.business_topology import (
     BusinessTopologicalAnalyzer,
     ConstructionRiskReport,
 )

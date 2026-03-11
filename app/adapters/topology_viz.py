@@ -42,7 +42,7 @@ if str(root_path) not in sys.path:
     sys.path.insert(0, str(root_path))
 
 # Importación crítica para análisis topológico y visualización térmica
-from agent.business_topology import BudgetGraphBuilder, BusinessTopologicalAnalyzer
+from app.tactics.business_topology import BudgetGraphBuilder, BusinessTopologicalAnalyzer
 
 topology_bp = Blueprint("topology", __name__)
 logger = logging.getLogger(__name__)

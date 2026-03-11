@@ -61,10 +61,10 @@ from math import exp, log2
 
 import networkx as nx
 
-from agent.business_topology import BusinessTopologicalAnalyzer
-from app.financial_engine import FinancialConfig, FinancialEngine
-from app.flux_condenser import FluxPhysicsEngine
-from app.matter_generator import MaterialRequirement, MatterGenerator
+from app.tactics.business_topology import BusinessTopologicalAnalyzer
+from app.strategy.financial_engine import FinancialConfig, FinancialEngine
+from app.physics.flux_condenser import FluxPhysicsEngine
+from app.physics.matter_generator import MaterialRequirement, MatterGenerator
 
 
 # ── Constantes del dominio ────────────────────────────────────────────────────

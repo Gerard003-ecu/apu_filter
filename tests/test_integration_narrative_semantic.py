@@ -29,7 +29,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 # Importar desde telemetry_narrative (módulo refinado)
-from app.telemetry_narrative import (
+from app.core.telemetry_narrative import (
     SeverityLevel,
     Issue,
     PhaseAnalysis,
@@ -42,7 +42,7 @@ from app.telemetry_narrative import (
 )
 
 # Importar desde semantic_translator (módulo refinado)
-from app.semantic_translator import (
+from app.wisdom.semantic_translator import (
     VerdictLevel,
     FinancialVerdict,
     StratumAnalysisResult,
@@ -51,7 +51,7 @@ from app.semantic_translator import (
     TranslatorConfig,
     create_translator,
 )
-from app.telemetry_schemas import (
+from app.core.telemetry_schemas import (
     TopologicalMetrics,
     ThermodynamicMetrics,
     PhysicsMetrics,
@@ -59,8 +59,8 @@ from app.telemetry_schemas import (
 )
 
 # Importar dependencias comunes
-from app.telemetry import TelemetryContext, TelemetrySpan, StepStatus
-from app.schemas import Stratum
+from app.core.telemetry import TelemetryContext, TelemetrySpan, StepStatus
+from app.core.schemas import Stratum
 
 
 # ============================================================================
@@ -1046,8 +1046,8 @@ class TestFactoryIntegration:
 
     def test_convenience_functions_work_together(self):
         """Funciones de conveniencia trabajan juntas."""
-        from app.telemetry_narrative import summarize_context
-        from app.semantic_translator import translate_metrics_to_narrative
+        from app.core.telemetry_narrative import summarize_context
+        from app.wisdom.semantic_translator import translate_metrics_to_narrative
 
         context = TelemetryContext()
         with context.span("test"):

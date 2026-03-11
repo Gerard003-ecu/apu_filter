@@ -26,7 +26,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.report_parser_crudo import (
+from app.adapters.report_parser_crudo import (
     APUContext,
     CategoryHandler,
     FileReadError,

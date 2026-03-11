@@ -76,7 +76,7 @@ import numpy as np
 # ============================================================================
 
 try:
-    from app.schemas import Stratum
+    from app.core.schemas import Stratum
 except ImportError:
     class Stratum(IntEnum):
         """Estratificación DIKW (Data → Information → Knowledge → Wisdom)."""

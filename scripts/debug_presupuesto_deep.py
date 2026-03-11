@@ -5,8 +5,8 @@ import sys
 # Añadir el directorio raíz al path para importar módulos de app
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.data_loader import load_data
-from app.utils import find_and_rename_columns
+from app.adapters.data_loader import load_data
+from app.core.utils import find_and_rename_columns
 
 
 def debug_presupuesto():

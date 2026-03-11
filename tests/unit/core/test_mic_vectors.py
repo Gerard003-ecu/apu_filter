@@ -41,7 +41,7 @@ from app.adapters.mic_vectors import (
     vector_stabilize_flux,
     vector_structure_logic,
 )
-from app.schemas import Stratum
+from app.core.schemas import Stratum
 
 
 # =============================================================================

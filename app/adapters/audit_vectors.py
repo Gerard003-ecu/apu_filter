@@ -78,7 +78,7 @@ except ImportError:
         ImportWarning
     )
 
-from app.schemas import Stratum
+from app.core.schemas import Stratum
 from app.adapters.mic_vectors import VectorResultStatus
 
 logger = logging.getLogger(__name__)

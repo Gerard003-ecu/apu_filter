@@ -43,7 +43,7 @@ from typing import Any
 
 import pytest
 
-from app.telemetry import (
+from app.core.telemetry import (
     ActiveStepInfo,
     StepStatus,
     TelemetryContext,
@@ -51,8 +51,8 @@ from app.telemetry import (
     TelemetryHealth,
     TelemetrySpan,
 )
-from app.schemas import Stratum
-from app.telemetry_narrative import (
+from app.core.schemas import Stratum
+from app.core.telemetry_narrative import (
     SeverityLevel,
     StratumTopology,
     TelemetryNarrator,

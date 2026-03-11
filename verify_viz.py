@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from agent.topological_analyzer import SystemTopology
+from app.tactics.topological_analyzer import SystemTopology
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)

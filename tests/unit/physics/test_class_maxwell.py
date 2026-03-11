@@ -17,7 +17,7 @@ from typing import Dict, Set, Tuple, List
 import warnings
 
 # Importar las clases a probar (ajustar según estructura del proyecto)
-from app.flux_condenser import (
+from app.physics.flux_condenser import (
     DiscreteVectorCalculus,
     MaxwellFDTDSolver,
     PortHamiltonianController

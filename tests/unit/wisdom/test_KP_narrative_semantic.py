@@ -55,7 +55,7 @@ from unittest.mock import Mock
 import pytest
 
 # Importar módulos a testear
-from app.telemetry_narrative import (
+from app.core.telemetry_narrative import (
     SeverityLevel,
     Issue,
     PhaseAnalysis,
@@ -66,21 +66,21 @@ from app.telemetry_narrative import (
     StratumTopology,
 )
 
-from app.semantic_translator import (
+from app.wisdom.semantic_translator import (
     VerdictLevel,
     StrategicReport,
     SemanticTranslator,
     TranslatorConfig,
 )
-from app.telemetry_schemas import (
+from app.core.telemetry_schemas import (
     TopologicalMetrics,
     ThermodynamicMetrics,
     PhysicsMetrics,
     ControlMetrics,
 )
 
-from app.telemetry import TelemetryContext, TelemetrySpan, StepStatus
-from app.schemas import Stratum
+from app.core.telemetry import TelemetryContext, TelemetrySpan, StepStatus
+from app.core.schemas import Stratum
 
 
 # ============================================================================

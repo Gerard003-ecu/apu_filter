@@ -50,7 +50,7 @@ except ImportError:
     scipy_linalg = None
     HAS_SCIPY = False
 
-from app.flux_condenser import (
+from app.physics.flux_condenser import (
     BatchResult,
     CondenserConfig,
     ConfigurationError,
@@ -71,7 +71,7 @@ from app.flux_condenser import (
 # Alias para compatibilidad
 FluxPhysicsEngine = RefinedFluxPhysicsEngine
 
-from app.laplace_oracle import LaplaceOracle, ConfigurationError as OracleConfigurationError
+from app.physics.laplace_oracle import LaplaceOracle, ConfigurationError as OracleConfigurationError
 
 
 # ============================================================================
@@ -1795,8 +1795,8 @@ class TestViscoelasticMembrane:
 class TestIntegration:
     """Pruebas de integración entre componentes."""
 
-    @patch("app.flux_condenser.APUProcessor")
-    @patch("app.flux_condenser.ReportParserCrudo")
+    @patch("app.physics.flux_condenser.APUProcessor")
+    @patch("app.physics.flux_condenser.ReportParserCrudo")
     def test_stabilize_end_to_end(
         self, mock_parser_class, mock_processor_class,
         valid_config, valid_profile, mock_csv_file
@@ -1824,8 +1824,8 @@ class TestIntegration:
         assert isinstance(result, pd.DataFrame)
         assert len(result) > 0
 
-    @patch("app.flux_condenser.APUProcessor")
-    @patch("app.flux_condenser.ReportParserCrudo")
+    @patch("app.physics.flux_condenser.APUProcessor")
+    @patch("app.physics.flux_condenser.ReportParserCrudo")
     def test_stabilize_with_progress_callback(
         self, mock_parser_class, mock_processor_class,
         valid_config, valid_profile, mock_csv_file
@@ -1850,8 +1850,8 @@ class TestIntegration:
         assert len(progress_calls) > 0
         assert "saturation" in progress_calls[0]
 
-    @patch("app.flux_condenser.APUProcessor")
-    @patch("app.flux_condenser.ReportParserCrudo")
+    @patch("app.physics.flux_condenser.APUProcessor")
+    @patch("app.physics.flux_condenser.ReportParserCrudo")
     def test_stabilize_with_telemetry(
         self, mock_parser_class, mock_processor_class,
         valid_config, valid_profile, mock_csv_file
@@ -1881,7 +1881,7 @@ class TestIntegration:
         with pytest.raises(InvalidInputError):
             condenser.stabilize("")
 
-    @patch("app.flux_condenser.ReportParserCrudo")
+    @patch("app.physics.flux_condenser.ReportParserCrudo")
     def test_stabilize_parser_error_propagates(
         self, mock_parser_class, valid_config, valid_profile, mock_csv_file
     ):
@@ -2088,7 +2088,7 @@ class TestFluxMuscleController:
 
     def test_muscle_slew_rate_limiting(self):
         """Verifica que el cambio de fuerza sea gradual."""
-        from app.flux_condenser import FluxMuscleController
+        from app.physics.flux_condenser import FluxMuscleController
         muscle = FluxMuscleController()
 
         # Intentar saltar de 0 a 1 en 1ms
@@ -2101,7 +2101,7 @@ class TestFluxMuscleController:
 
     def test_muscle_thermal_throttling(self):
         """Verifica que el músculo se debilite ante esfuerzo sostenido."""
-        from app.flux_condenser import FluxMuscleController
+        from app.physics.flux_condenser import FluxMuscleController
         muscle = FluxMuscleController()
 
         # Esfuerzo máximo por 6 segundos (limite es 5s)
@@ -2114,7 +2114,7 @@ class TestFluxMuscleController:
 
     def test_muscle_temperature_increase(self):
         """Verifica que la temperatura aumente con la carga."""
-        from app.flux_condenser import FluxMuscleController
+        from app.physics.flux_condenser import FluxMuscleController
         muscle = FluxMuscleController()
 
         initial_temp = muscle.temperature

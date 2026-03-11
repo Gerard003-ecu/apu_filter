@@ -65,7 +65,7 @@ except ImportError:
 
 import networkx as nx
 
-from app.flux_condenser import (
+from app.physics.flux_condenser import (
     CONSTANTS,
     ConfigurationError,
     DiscreteVectorCalculus,

@@ -149,7 +149,7 @@ except ImportError:
 # Principio: si los imports fallan, los tests deben FALLAR explícitamente.
 # Los stubs silenciosos crean falsos positivos.
 
-from app.flux_condenser import (
+from app.physics.flux_condenser import (
     CondenserConfig,
     DataFluxCondenser,
     DataFluxCondenserError as ConfigurationError,
@@ -508,7 +508,7 @@ def make_condenser_from_spec(
 def mock_oracle_with_response(response: OracleResponse):
     """Context manager que mockea el Oráculo con una respuesta fija."""
     return patch(
-        "app.flux_condenser.LaplaceOracle",
+        "app.physics.flux_condenser.LaplaceOracle",
         **{
             "return_value.validate_for_control_design.return_value": response.to_dict()
         }
@@ -720,7 +720,7 @@ class TestOracleVetoAborts:
         oracle_rejects: Dict[str, Any],
     ) -> None:
         """El Condensador lanza ConfigurationError cuando el Oráculo veta."""
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
             MockOracle.return_value.validate_for_control_design.return_value = oracle_rejects
 
             with pytest.raises(ConfigurationError, match="CONFIGURACIÓN NO APTA PARA CONTROL"):
@@ -732,7 +732,7 @@ class TestOracleVetoAborts:
         oracle_rejects: Dict[str, Any],
     ) -> None:
         """La excepción es ConfigurationError, no Exception genérica."""
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
             MockOracle.return_value.validate_for_control_design.return_value = oracle_rejects
 
             with pytest.raises(ConfigurationError) as exc_info:
@@ -748,7 +748,7 @@ class TestOracleVetoAborts:
         oracle_rejects: Dict[str, Any],
     ) -> None:
         """El Oráculo es consultado exactamente una vez durante __init__."""
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
             mock_validate = MockOracle.return_value.validate_for_control_design
             mock_validate.return_value = oracle_rejects
 
@@ -766,7 +766,7 @@ class TestOracleVetoAborts:
         oracle_rejects: Dict[str, Any],
     ) -> None:
         """El Oráculo recibe argumentos (no llamada vacía)."""
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
             mock_validate = MockOracle.return_value.validate_for_control_design
             mock_validate.return_value = oracle_rejects
 
@@ -785,7 +785,7 @@ class TestOracleVetoAborts:
         oracle_rejects: Dict[str, Any],
     ) -> None:
         """El mensaje de error contiene identificador del veto."""
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
             MockOracle.return_value.validate_for_control_design.return_value = oracle_rejects
 
             with pytest.raises(ConfigurationError) as exc_info:
@@ -802,7 +802,7 @@ class TestOracleVetoAborts:
         """El veto no deja instancia parcialmente inicializada."""
         condenser_ref: Optional[DataFluxCondenser] = None
 
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
             MockOracle.return_value.validate_for_control_design.return_value = oracle_rejects
 
             with pytest.raises(ConfigurationError):
@@ -865,7 +865,7 @@ class TestOracleApprovalSucceeds:
         oracle_approves: Dict[str, Any],
     ) -> None:
         """Con aprobación, el Condensador se inicializa sin error."""
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
             MockOracle.return_value.validate_for_control_design.return_value = oracle_approves
 
             condenser = make_condenser(stable_config)
@@ -877,7 +877,7 @@ class TestOracleApprovalSucceeds:
         oracle_approves: Dict[str, Any],
     ) -> None:
         """El Oráculo es consultado incluso para configs válidas."""
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
             mock_validate = MockOracle.return_value.validate_for_control_design
             mock_validate.return_value = oracle_approves
 
@@ -891,7 +891,7 @@ class TestOracleApprovalSucceeds:
         oracle_approves_with_warnings: Dict[str, Any],
     ) -> None:
         """Aprobación con warnings: inicialización exitosa."""
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
             MockOracle.return_value.validate_for_control_design.return_value = oracle_approves_with_warnings
 
             condenser = make_condenser(stable_config)
@@ -903,7 +903,7 @@ class TestOracleApprovalSucceeds:
         oracle_approves: Dict[str, Any],
     ) -> None:
         """Retorna instancia de DataFluxCondenser."""
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
             MockOracle.return_value.validate_for_control_design.return_value = oracle_approves
 
             condenser = make_condenser(stable_config)
@@ -925,7 +925,7 @@ class TestOracleIntegrationContract:
         oracle_approves: Dict[str, Any],
     ) -> None:
         """LaplaceOracle es instanciado durante __init__."""
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracleClass:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracleClass:
             MockOracleClass.return_value.validate_for_control_design.return_value = oracle_approves
 
             make_condenser(stable_config)
@@ -938,7 +938,7 @@ class TestOracleIntegrationContract:
         oracle_approves: Dict[str, Any],
     ) -> None:
         """Se invoca validate_for_control_design, no otro método."""
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
             mock_instance = MockOracle.return_value
             mock_validate = mock_instance.validate_for_control_design
             mock_validate.return_value = oracle_approves
@@ -953,7 +953,7 @@ class TestOracleIntegrationContract:
         oracle_rejects: Dict[str, Any],
     ) -> None:
         """No hay retry automático tras el veto."""
-        with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+        with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
             mock_validate = MockOracle.return_value.validate_for_control_design
             mock_validate.return_value = oracle_rejects
 
@@ -977,7 +977,7 @@ class TestOracleIntegrationContract:
                 "warnings": ["Warning irrelevante"],
             }
 
-            with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+            with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
                 MockOracle.return_value.validate_for_control_design.return_value = response
 
                 if is_suitable:
@@ -1372,7 +1372,7 @@ class TestThreadSafety:
 
         def create_condenser():
             try:
-                with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+                with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
                     MockOracle.return_value.validate_for_control_design.return_value = oracle_approves
                     condenser = make_condenser(stable_config)
                     with lock:
@@ -1402,7 +1402,7 @@ class TestThreadSafety:
 
         def create_for_system(system: RLCSystemSpec):
             try:
-                with patch("app.flux_condenser.LaplaceOracle") as MockOracle:
+                with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
                     MockOracle.return_value.validate_for_control_design.return_value = oracle_approves
                     condenser = make_condenser(system.to_condenser_config())
                     with lock:

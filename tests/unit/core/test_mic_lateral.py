@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from enum import Enum
 
 from app.adapters.mic_vectors import vector_lateral_pivot, VectorResultStatus
-from app.business_agent import RiskChallenger, ConstructionRiskReport
-from app.schemas import Stratum
+from app.strategy.business_agent import RiskChallenger, ConstructionRiskReport
+from app.core.schemas import Stratum
 
 
 # =============================================================================

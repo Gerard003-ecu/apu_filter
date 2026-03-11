@@ -357,9 +357,9 @@ if __name__ == "__main__":
     output_file = sys.argv[2] if len(sys.argv) > 2 else "grammar_diagnosis.txt"
 
     try:
-        from app.apu_processor import APU_GRAMMAR
+        from app.tactics.apu_processor import APU_GRAMMAR
     except ImportError:
-        logger.error("No se pudo importar APU_GRAMMAR desde app.apu_processor")
+        logger.error("No se pudo importar APU_GRAMMAR desde app.tactics.apu_processor")
         # Definir una gramática de ejemplo para pruebas
         APU_GRAMMAR = r"""
         start: line

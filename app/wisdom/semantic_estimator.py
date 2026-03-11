@@ -47,11 +47,11 @@ import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 
-from app.schemas import Stratum
-from app.telemetry import TelemetryContext
-from app.utils import normalize_text
-from models.probability_models import run_monte_carlo_simulation
-from app.tools_interface import MICRegistry
+from app.core.schemas import Stratum
+from app.core.telemetry import TelemetryContext
+from app.core.utils import normalize_text
+from app.core.probability_models import run_monte_carlo_simulation
+from app.adapters.tools_interface import MICRegistry
 
 
 logger = logging.getLogger("SemanticEstimator")
@@ -125,7 +125,7 @@ class TipoRecurso(str, Enum):
     Tipos de recurso usados en el detalle de APU.
 
     .. note::
-        Distinto de ``app.schemas.TipoInsumo`` que modela la ontología
+        Distinto de ``app.core.schemas.TipoInsumo`` que modela la ontología
         del insumo individual. Este enum clasifica *roles* dentro del
         cálculo de estimación.
     """
