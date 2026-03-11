@@ -28,7 +28,7 @@ import math
 
 import pytest
 
-from agent.topological_analyzer import (
+from app.tactics.topological_analyzer import (
     # Dataclasses
     BettiNumbers,
     HealthLevel,

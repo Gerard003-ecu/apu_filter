@@ -29,8 +29,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from app.business_agent import BusinessAgent
-from app.tools_interface import MICRegistry
+from app.strategy.business_agent import BusinessAgent
+from app.adapters.tools_interface import MICRegistry
 
 
 # =============================================================================

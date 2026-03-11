@@ -59,9 +59,9 @@ import pandas as pd
 import pytest
 
 from app.classifiers.apu_classifier import StructuralClassifier
-from app.data_loader import HierarchyLevel
-from app.data_validator import PyramidalMetrics, PyramidalValidator
-from app.schemas import APUStructure, InsumoProcesado, Stratum, TopologicalNode
+from app.adapters.data_loader import HierarchyLevel
+from app.tactics.data_validator import PyramidalMetrics, PyramidalValidator
+from app.core.schemas import APUStructure, InsumoProcesado, Stratum, TopologicalNode
 
 
 # =============================================================================

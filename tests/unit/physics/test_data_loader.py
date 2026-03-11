@@ -11,7 +11,7 @@ import pandas as pd
 import pytest
 
 # Importar el módulo bajo prueba
-from app.data_loader import (
+from app.adapters.data_loader import (
     DataQualityMetrics,
     FileFormat,
     FileMetadata,
@@ -79,7 +79,7 @@ def test_load_from_csv_success(
     mock_path_is_file.return_value = True
     mock_read_csv.return_value = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
 
-    with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
         mock_meta.return_value = FileMetadata(
             path=Path("data.csv"),
             size_bytes=1024,
@@ -89,7 +89,7 @@ def test_load_from_csv_success(
             readable=True,
         )
 
-        with patch("app.data_loader._validate_file_path", return_value=Path("data.csv")):
+        with patch("app.adapters.data_loader._validate_file_path", return_value=Path("data.csv")):
             result = load_from_csv(Path("data.csv"), sep=";", encoding="utf-8")
 
     assert result.status == LoadStatus.SUCCESS
@@ -103,7 +103,7 @@ def test_load_from_csv_file_not_found(mock_path_exists, mock_path_is_file):
     mock_path_is_file.return_value = False
 
     with patch(
-        "app.data_loader._validate_file_path",
+        "app.adapters.data_loader._validate_file_path",
         side_effect=FileNotFoundError("Archivo no encontrado"),
     ):
         result = load_from_csv(Path("missing.csv"))
@@ -121,7 +121,7 @@ def test_load_from_csv_empty_error(
     mock_path_exists.return_value = True
     mock_path_is_file.return_value = True
 
-    with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
         mock_meta.return_value = FileMetadata(
             path=Path("empty.csv"),
             size_bytes=1024,
@@ -130,7 +130,7 @@ def test_load_from_csv_empty_error(
             exists=True,
             readable=True,
         )
-        with patch("app.data_loader._validate_file_path", return_value=Path("empty.csv")):
+        with patch("app.adapters.data_loader._validate_file_path", return_value=Path("empty.csv")):
             result = load_from_csv(Path("empty.csv"))
 
     assert result.status == LoadStatus.EMPTY
@@ -151,7 +151,7 @@ def test_load_from_csv_encoding_error(
     mock_path_exists.return_value = True
     mock_path_is_file.return_value = True
 
-    with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
         mock_meta.return_value = FileMetadata(
             path=Path("bad_encoding.csv"),
             size_bytes=1024,
@@ -161,7 +161,7 @@ def test_load_from_csv_encoding_error(
             readable=True,
         )
         with patch(
-            "app.data_loader._validate_file_path", return_value=Path("bad_encoding.csv")
+            "app.adapters.data_loader._validate_file_path", return_value=Path("bad_encoding.csv")
         ):
             # Force retry limit to avoid infinite loop
             result = load_from_csv(Path("bad_encoding.csv"), encoding="utf-8", max_retries=1)
@@ -184,7 +184,7 @@ def test_load_from_xlsx_single_sheet_success(
     mock_path_is_file.return_value = True
     mock_read_excel.return_value = pd.DataFrame({"X": [10], "Y": [20]})
 
-    with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
         mock_meta.return_value = FileMetadata(
             path=Path("data.xlsx"),
             size_bytes=1024,
@@ -193,7 +193,7 @@ def test_load_from_xlsx_single_sheet_success(
             exists=True,
             readable=True,
         )
-        with patch("app.data_loader._validate_file_path", return_value=Path("data.xlsx")):
+        with patch("app.adapters.data_loader._validate_file_path", return_value=Path("data.xlsx")):
             with patch("pandas.ExcelFile") as mock_excel_file:
                 mock_excel_file.return_value.sheet_names = ["Hoja1"]
                 result = load_from_xlsx(Path("data.xlsx"), sheet_name="Hoja1")
@@ -212,7 +212,7 @@ def test_load_from_xlsx_all_sheets_success(
     sheets = {"Sheet1": pd.DataFrame({"A": [1]}), "Sheet2": pd.DataFrame({"B": [2]})}
     mock_read_excel.return_value = sheets
 
-    with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
         mock_meta.return_value = FileMetadata(
             path=Path("data.xlsx"),
             size_bytes=1024,
@@ -221,7 +221,7 @@ def test_load_from_xlsx_all_sheets_success(
             exists=True,
             readable=True,
         )
-        with patch("app.data_loader._validate_file_path", return_value=Path("data.xlsx")):
+        with patch("app.adapters.data_loader._validate_file_path", return_value=Path("data.xlsx")):
             with patch("pandas.ExcelFile") as mock_excel_file:
                 mock_excel_file.return_value.sheet_names = ["Sheet1", "Sheet2"]
                 result = load_from_xlsx(Path("data.xlsx"), sheet_name=None)
@@ -237,7 +237,7 @@ def test_load_from_xlsx_file_not_found(mock_path_exists, mock_path_is_file):
     mock_path_is_file.return_value = False
 
     with patch(
-        "app.data_loader._validate_file_path",
+        "app.adapters.data_loader._validate_file_path",
         side_effect=FileNotFoundError("Archivo no encontrado"),
     ):
         result = load_from_xlsx(Path("missing.xlsx"))
@@ -253,7 +253,7 @@ def test_load_from_xlsx_sheet_not_found(
     mock_path_exists.return_value = True
     mock_path_is_file.return_value = True
 
-    with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
         mock_meta.return_value = FileMetadata(
             path=Path("data.xlsx"),
             size_bytes=1024,
@@ -262,7 +262,7 @@ def test_load_from_xlsx_sheet_not_found(
             exists=True,
             readable=True,
         )
-        with patch("app.data_loader._validate_file_path", return_value=Path("data.xlsx")):
+        with patch("app.adapters.data_loader._validate_file_path", return_value=Path("data.xlsx")):
             with patch("pandas.ExcelFile") as mock_excel_file:
                 # Mock available sheets to be different from requested
                 mock_excel_file.return_value.sheet_names = ["Sheet1"]
@@ -300,7 +300,7 @@ def test_load_from_pdf_no_tables(
     mock_pdf.pages = [mock_page]
     mock_pdf_open.return_value.__enter__.return_value = mock_pdf
 
-    with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
         mock_meta.return_value = FileMetadata(
             path=Path("no_tables.pdf"),
             size_bytes=1024,
@@ -310,7 +310,7 @@ def test_load_from_pdf_no_tables(
             readable=True,
         )
         with patch(
-            "app.data_loader._validate_file_path", return_value=Path("no_tables.pdf")
+            "app.adapters.data_loader._validate_file_path", return_value=Path("no_tables.pdf")
         ):
             result = load_from_pdf(Path("no_tables.pdf"))
 
@@ -337,7 +337,7 @@ def test_load_from_pdf_with_dirty_tables(
     mock_pdf.pages = [mock_page]
     mock_pdf_open.return_value.__enter__.return_value = mock_pdf
 
-    with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
         mock_meta.return_value = FileMetadata(
             path=Path("dirty_tables.pdf"),
             size_bytes=1024,
@@ -347,7 +347,7 @@ def test_load_from_pdf_with_dirty_tables(
             readable=True,
         )
         with patch(
-            "app.data_loader._validate_file_path", return_value=Path("dirty_tables.pdf")
+            "app.adapters.data_loader._validate_file_path", return_value=Path("dirty_tables.pdf")
         ):
             result = load_from_pdf(Path("dirty_tables.pdf"))
 
@@ -372,7 +372,7 @@ def test_load_from_pdf_with_table_settings(
 
     settings = {"vertical_strategy": "lines"}
 
-    with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
         mock_meta.return_value = FileMetadata(
             path=Path("some.pdf"),
             size_bytes=1024,
@@ -381,7 +381,7 @@ def test_load_from_pdf_with_table_settings(
             exists=True,
             readable=True,
         )
-        with patch("app.data_loader._validate_file_path", return_value=Path("some.pdf")):
+        with patch("app.adapters.data_loader._validate_file_path", return_value=Path("some.pdf")):
             load_from_pdf(Path("some.pdf"), table_settings=settings)
 
     mock_page.extract_tables.assert_called_once_with(settings)
@@ -393,7 +393,7 @@ def test_load_from_pdf_file_not_found(mock_path_exists, mock_path_is_file):
     mock_path_is_file.return_value = False
 
     with patch(
-        "app.data_loader._validate_file_path",
+        "app.adapters.data_loader._validate_file_path",
         side_effect=FileNotFoundError("Archivo no encontrado"),
     ):
         result = load_from_pdf(Path("missing.pdf"))
@@ -405,7 +405,7 @@ def test_load_from_pdf_file_not_found(mock_path_exists, mock_path_is_file):
 # ─────────────────────────────────────────────────────────────
 
 
-@patch("app.data_loader.load_from_csv")
+@patch("app.adapters.data_loader.load_from_csv")
 def test_load_data_routes_to_csv(
     mock_loader, mock_path_exists, mock_path_is_file, mock_path_stat, mock_file_open
 ):
@@ -420,7 +420,7 @@ def test_load_data_routes_to_csv(
     )
     mock_loader.return_value = mock_result
 
-    with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
         mock_meta.return_value = FileMetadata(
             path=Path("data.csv"),
             size_bytes=1024,
@@ -429,13 +429,13 @@ def test_load_data_routes_to_csv(
             exists=True,
             readable=True,
         )
-        with patch("app.data_loader._validate_file_path", return_value=Path("data.csv")):
+        with patch("app.adapters.data_loader._validate_file_path", return_value=Path("data.csv")):
             load_data(Path("data.csv"), sep=";")
 
     mock_loader.assert_called_once()
 
 
-@patch("app.data_loader.load_from_xlsx")
+@patch("app.adapters.data_loader.load_from_xlsx")
 def test_load_data_routes_to_xlsx(
     mock_loader, mock_path_exists, mock_path_is_file, mock_path_stat, mock_file_open
 ):
@@ -449,7 +449,7 @@ def test_load_data_routes_to_xlsx(
     )
     mock_loader.return_value = mock_result
 
-    with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
         mock_meta.return_value = FileMetadata(
             path=Path("data.xlsx"),
             size_bytes=1024,
@@ -458,13 +458,13 @@ def test_load_data_routes_to_xlsx(
             exists=True,
             readable=True,
         )
-        with patch("app.data_loader._validate_file_path", return_value=Path("data.xlsx")):
+        with patch("app.adapters.data_loader._validate_file_path", return_value=Path("data.xlsx")):
             load_data(Path("data.xlsx"), sheet_name=0)
 
     mock_loader.assert_called_once()
 
 
-@patch("app.data_loader.load_from_pdf")
+@patch("app.adapters.data_loader.load_from_pdf")
 def test_load_data_routes_to_pdf(
     mock_loader, mock_path_exists, mock_path_is_file, mock_path_stat, mock_file_open
 ):
@@ -478,7 +478,7 @@ def test_load_data_routes_to_pdf(
     )
     mock_loader.return_value = mock_result
 
-    with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
         mock_meta.return_value = FileMetadata(
             path=Path("report.pdf"),
             size_bytes=1024,
@@ -487,7 +487,7 @@ def test_load_data_routes_to_pdf(
             exists=True,
             readable=True,
         )
-        with patch("app.data_loader._validate_file_path", return_value=Path("report.pdf")):
+        with patch("app.adapters.data_loader._validate_file_path", return_value=Path("report.pdf")):
             load_data(Path("report.pdf"), page_range=range(1))
 
     mock_loader.assert_called_once()
@@ -497,8 +497,8 @@ def test_load_data_unsupported_format(mock_path_exists, mock_path_is_file, mock_
     """Prueba que devuelva LoadResult con error para formatos no soportados."""
     path = Path("data.xyz")
 
-    with patch("app.data_loader._validate_file_path", return_value=path):
-        with patch("app.data_loader.FileMetadata.from_path") as mock_meta:
+    with patch("app.adapters.data_loader._validate_file_path", return_value=path):
+        with patch("app.adapters.data_loader.FileMetadata.from_path") as mock_meta:
             mock_meta.return_value = FileMetadata(
                 path=path,
                 size_bytes=1024,
@@ -516,7 +516,7 @@ def test_load_data_unsupported_format(mock_path_exists, mock_path_is_file, mock_
 def test_load_data_file_not_found(mock_path_exists, mock_path_is_file):
     """Prueba que load_data devuelva FAILED cuando el archivo no existe."""
     with patch(
-        "app.data_loader._validate_file_path",
+        "app.adapters.data_loader._validate_file_path",
         side_effect=FileNotFoundError("Archivo no encontrado"),
     ):
         result = load_data(Path("missing.any"))

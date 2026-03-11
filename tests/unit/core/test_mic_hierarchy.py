@@ -89,7 +89,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pytest
 
-from app.schemas import Stratum
+from app.core.schemas import Stratum
 
 
 # =============================================================================
@@ -181,7 +181,7 @@ class DIKWPyramid:
 # =============================================================================
 
 try:
-    from app.tools_interface import MICRegistry, IntentVector
+    from app.adapters.tools_interface import MICRegistry, IntentVector
     HAS_MIC = True
 except ImportError:
     HAS_MIC = False
@@ -189,7 +189,7 @@ except ImportError:
     IntentVector = None
 
 try:
-    from app.telemetry import TelemetryContext, StepStatus
+    from app.core.telemetry import TelemetryContext, StepStatus
     HAS_TELEMETRY = True
 except ImportError:
     HAS_TELEMETRY = False

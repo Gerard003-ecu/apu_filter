@@ -23,7 +23,7 @@ from lark import Lark, Token, Tree
 # Ajustar ruta de importación para pruebas
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.apu_processor import (
+from app.tactics.apu_processor import (
     APU_GRAMMAR,
     APUProcessor,
     APUTransformer,
@@ -36,7 +36,7 @@ from app.apu_processor import (
     UnitsValidator,
     ValidationThresholds,
 )
-from app.utils import calculate_unit_costs
+from app.core.utils import calculate_unit_costs
 
 # Configurar logging para pruebas
 logging.basicConfig(level=logging.WARNING)

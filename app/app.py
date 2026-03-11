@@ -66,14 +66,14 @@ from werkzeug.utils import secure_filename
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from config.config_app import config_by_name
-from models.probability_models import run_monte_carlo_simulation
+from app.core.probability_models import run_monte_carlo_simulation
 
-from .data_loader import LoadStatus, load_data  # Nueva importación para carga robusta
-from .pipeline_director import process_all_files  # Ahora usa la versión refactorizada
-from .presenters import APUPresenter
-from .telemetry import TelemetryContext  # Nueva importación
-from .data_validator import PyramidalValidator  # Importar el validador piramidal
-from .tools_interface import (
+from app.adapters.data_loader import LoadStatus, load_data  # Nueva importación para carga robusta
+from app.tactics.pipeline_director import process_all_files  # Ahora usa la versión refactorizada
+from app.adapters.presenters import APUPresenter
+from app.core.telemetry import TelemetryContext  # Nueva importación
+from app.tactics.data_validator import PyramidalValidator  # Importar el validador piramidal
+from app.adapters.tools_interface import (
     MICRegistry,
     analyze_financial_viability,
     clean_file,
@@ -81,10 +81,10 @@ from .tools_interface import (
     get_telemetry_status,
     register_core_vectors,
 )
-from .schemas import Stratum
-from .topology_viz import topology_bp  # Importar el nuevo blueprint
-from .utils import sanitize_for_json
-from .laplace_oracle import LaplaceOracle, ConfigurationError as OracleConfigurationError
+from app.core.schemas import Stratum
+from app.adapters.topology_viz import topology_bp  # Importar el nuevo blueprint
+from app.core.utils import sanitize_for_json
+from app.physics.laplace_oracle import LaplaceOracle, ConfigurationError as OracleConfigurationError
 
 # ============================================================================
 # INYECCIÓN DE SALUD PIRAMIDAL

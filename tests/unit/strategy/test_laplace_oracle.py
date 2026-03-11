@@ -28,7 +28,7 @@ from unittest.mock import patch, MagicMock
 
 # Importaciones del módulo bajo prueba
 try:
-    from app.laplace_oracle import (
+    from app.physics.laplace_oracle import (
         LaplaceOracle, 
         ConfigurationError,
         NumericalConstants,
@@ -39,7 +39,7 @@ try:
     ENUMS_AVAILABLE = True
 except ImportError:
     # Fallback si el código no tiene las clases auxiliares
-    from app.laplace_oracle import LaplaceOracle, ConfigurationError
+    from app.physics.laplace_oracle import LaplaceOracle, ConfigurationError
     ENUMS_AVAILABLE = False
 
 # Intentar importar numpy para tests que lo requieren

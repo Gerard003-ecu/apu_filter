@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from enum import Enum
 from collections import deque
 
-from app.telemetry import TelemetryContext
-from app.telemetry_narrative import TelemetryNarrator
+from app.core.telemetry import TelemetryContext
+from app.core.telemetry_narrative import TelemetryNarrator
 
 
 # =============================================================================

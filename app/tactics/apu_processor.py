@@ -45,12 +45,12 @@ from lark import Token, Transformer, v_args
 from lark.exceptions import LarkError
 
 from app.classifiers.apu_classifier import APUClassifier
-from app.constants import ColumnNames, InsumoType
-from app.validators import DataFrameValidator
+from app.core.constants import ColumnNames, InsumoType
+from app.adapters.validators import DataFrameValidator
 
-from .data_loader import load_data
-from .schemas import Equipo, InsumoProcesado, ManoDeObra, Otro, Suministro, Transporte
-from .utils import (
+from app.adapters.data_loader import load_data
+from app.core.schemas import Equipo, InsumoProcesado, ManoDeObra, Otro, Suministro, Transporte
+from app.core.utils import (
     clean_apu_code,
     find_and_rename_columns,
     normalize_text_series,
@@ -1982,7 +1982,7 @@ class APUProcessor:
                         # Simular cálculos de métricas puras si es necesario para stats
                         # Aquí se asume integración con ReportParserCrudo si existe
                         try:
-                            from .report_parser_crudo import ReportParserCrudo
+                            from app.adapters.report_parser_crudo import ReportParserCrudo
                             if hasattr(ReportParserCrudo, "_calculate_field_entropy"):
                                 fields = line_clean.split(";")
                                 stats.sum_field_entropy += ReportParserCrudo._calculate_field_entropy(None, fields)

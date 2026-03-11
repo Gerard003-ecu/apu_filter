@@ -42,7 +42,7 @@ from typing import (
 # =============================================================================
 
 try:
-    from app.schemas import Stratum
+    from app.core.schemas import Stratum
 except ImportError:
     class Stratum(IntEnum):
         """
@@ -1492,7 +1492,7 @@ class SemanticDictionaryService:
             True si el registro fue exitoso, False en caso contrario
         """
         try:
-            from app.tools_interface import MICRegistry
+            from app.adapters.tools_interface import MICRegistry
         except ImportError:
             logger.warning(
                 "MICRegistry no disponible. "

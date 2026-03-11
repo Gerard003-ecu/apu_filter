@@ -13,7 +13,7 @@ import pandas as pd
 import pytest
 
 # Importar módulo a probar
-from app import utils
+import app.core.utils as utils
 
 # ============================================================================
 # FIXTURES - Datos de prueba reutilizables

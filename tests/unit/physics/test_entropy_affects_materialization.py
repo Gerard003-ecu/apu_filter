@@ -3,7 +3,7 @@ import networkx as nx
 from unittest.mock import MagicMock
 
 try:
-    from app.matter_generator import MatterGenerator
+    from app.physics.matter_generator import MatterGenerator
 except ImportError:
     # Fallback mock not needed if environment is correct, but kept for safety
     pass

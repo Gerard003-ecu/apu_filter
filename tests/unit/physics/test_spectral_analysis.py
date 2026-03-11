@@ -43,7 +43,7 @@ from typing import Any
 import networkx as nx
 import numpy as np
 
-from agent.business_topology import BusinessTopologicalAnalyzer
+from app.tactics.business_topology import BusinessTopologicalAnalyzer
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -29,7 +29,7 @@ import pytest
 # IMPORTACIONES DEL MÓDULO BAJO PRUEBA
 # ============================================================================
 
-from app.schemas import (
+from app.core.schemas import (
     APUStructure,
     Equipo,
     INSUMO_CLASS_MAP,

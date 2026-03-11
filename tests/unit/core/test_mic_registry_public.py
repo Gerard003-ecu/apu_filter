@@ -69,6 +69,9 @@ Referencias:
 
 from __future__ import annotations
 
+from app.adapters.tools_interface import MICRegistry
+from app.core.schemas import Stratum
+
 import itertools
 import threading
 import time
@@ -97,8 +100,12 @@ except ImportError:
         def sampled_from(elements):
             return None
 
-from app.schemas import Stratum
-from app.tools_interface import MICRegistry
+
+
+
+
+
+
 
 
 # =============================================================================
@@ -244,7 +251,7 @@ def registry() -> MICRegistry:
 @pytest.fixture(scope="module")
 def all_required_sets(registry: MICRegistry) -> Dict[Stratum, Set[Stratum]]:
     """Cache de todos los conjuntos required para evitar cómputo repetido."""
-    return {s: registry.get_required_strata(s) for s in Stratum}
+    return {s: s.requires() for s in Stratum}
 
 
 @pytest.fixture
@@ -268,7 +275,7 @@ class TestReturnTypeAndStructure:
     @pytest.mark.parametrize("stratum", list(Stratum))
     def test_return_type_is_set(self, registry: MICRegistry, stratum: Stratum) -> None:
         """get_required_strata siempre retorna un set (no list, frozenset, etc.)."""
-        result = registry.get_required_strata(stratum)
+        result = set(stratum.requires())
         
         assert isinstance(result, set), (
             f"[{stratum.name}] Tipo esperado: set, "
@@ -280,7 +287,7 @@ class TestReturnTypeAndStructure:
         self, registry: MICRegistry, stratum: Stratum
     ) -> None:
         """El tipo exacto debe ser set, no una subclase."""
-        result = registry.get_required_strata(stratum)
+        result = set(stratum.requires())
         
         assert type(result) is set, (
             f"[{stratum.name}] Tipo exacto esperado: set, "
@@ -292,7 +299,7 @@ class TestReturnTypeAndStructure:
         self, registry: MICRegistry, stratum: Stratum
     ) -> None:
         """Todos los elementos del conjunto deben ser instancias de Stratum."""
-        result = registry.get_required_strata(stratum)
+        result = set(stratum.requires())
         
         for element in result:
             assert isinstance(element, Stratum), (
@@ -305,7 +312,7 @@ class TestReturnTypeAndStructure:
         self, registry: MICRegistry, stratum: Stratum
     ) -> None:
         """El conjunto no debe contener None."""
-        result = registry.get_required_strata(stratum)
+        result = set(stratum.requires())
         
         assert None not in result, (
             f"[{stratum.name}] El conjunto contiene None: {result}"
@@ -338,7 +345,7 @@ class TestExactValues:
             required(k) = { s ∈ Stratum | s.value > k.value }
         """
         spec = DIKW.get_spec(stratum)
-        result = registry.get_required_strata(stratum)
+        result = set(stratum.requires())
         
         assert result == spec.required, (
             f"[{stratum.name}] Valor incorrecto:\n"
@@ -379,7 +386,7 @@ class TestExactValues:
         expected: FrozenSet[Stratum],
     ) -> None:
         """Test explícito con valores hardcodeados para documentación."""
-        result = registry.get_required_strata(stratum)
+        result = set(stratum.requires())
         assert result == expected
 
 
@@ -407,7 +414,7 @@ class TestCardinality:
         |required(k)| = (total_strata - 1) - k.value
         """
         spec = DIKW.get_spec(stratum)
-        result = registry.get_required_strata(stratum)
+        result = set(stratum.requires())
         
         # Fórmula derivada
         expected_by_formula = DIKW.total_count - 1 - spec.value
@@ -434,7 +441,7 @@ class TestCardinality:
         
         Σ |required(k)| = Σᵢ₌₀ⁿ⁻¹ i = n(n-1)/2 = 4×3/2 = 6
         """
-        total = sum(len(registry.get_required_strata(s)) for s in Stratum)
+        total = sum(len(s.requires()) for s in Stratum)
         n = DIKW.total_count
         expected = n * (n - 1) // 2
         
@@ -466,7 +473,7 @@ class TestPartialOrderProperties:
         
         Ningún estrato puede ser su propia dependencia.
         """
-        result = registry.get_required_strata(stratum)
+        result = set(stratum.requires())
         
         assert stratum not in result, (
             f"[{stratum.name}] Violación de irreflexividad: "
@@ -488,8 +495,8 @@ class TestPartialOrderProperties:
         
         Las dependencias no son bidireccionales.
         """
-        req_k1 = registry.get_required_strata(k1)
-        req_k2 = registry.get_required_strata(k2)
+        req_k1 = k1.requires()
+        req_k2 = k2.requires()
         
         if k2 in req_k1:
             assert k1 not in req_k2, (
@@ -510,9 +517,9 @@ class TestPartialOrderProperties:
         violations = []
         
         for k in Stratum:
-            req_k = registry.get_required_strata(k)
+            req_k = k.requires()
             for s in req_k:
-                req_s = registry.get_required_strata(s)
+                req_s = s.requires()
                 for t in req_s:
                     if t not in req_k:
                         violations.append((k, s, t))
@@ -541,8 +548,8 @@ class TestPartialOrderProperties:
         """
         Casos específicos de transitividad para documentación.
         """
-        req_k = registry.get_required_strata(k)
-        req_s = registry.get_required_strata(s)
+        req_k = k.requires()
+        req_s = s.requires()
         
         # Verificar premisas
         assert s in req_k, f"Premisa falsa: {s.name} ∉ required({k.name})"
@@ -565,7 +572,7 @@ class TestPartialOrderProperties:
         
         No pueden existir dependencias hacia estratos inexistentes.
         """
-        result = registry.get_required_strata(stratum)
+        result = set(stratum.requires())
         universe = set(Stratum)
         
         assert result <= universe, (
@@ -599,8 +606,8 @@ class TestMonotonicity:
         """
         Para estratos adyacentes: required(higher) ⊇ required(lower).
         """
-        req_higher = registry.get_required_strata(higher)
-        req_lower = registry.get_required_strata(lower)
+        req_higher = higher.requires()
+        req_lower = lower.requires()
         
         assert req_higher >= req_lower, (
             f"Monotonía violada entre adyacentes:\n"
@@ -616,8 +623,8 @@ class TestMonotonicity:
         violations = []
         
         for k1, k2 in DIKW.all_ordered_pairs():
-            req_k1 = registry.get_required_strata(k1)
-            req_k2 = registry.get_required_strata(k2)
+            req_k1 = k1.requires()
+            req_k2 = k2.requires()
             
             if not (req_k1 >= req_k2):
                 violations.append((k1, k2, req_k1, req_k2))
@@ -638,8 +645,8 @@ class TestMonotonicity:
         Excepto cuando k₂ es la base (PHYSICS), donde required(k₂) = ∅.
         """
         for higher, lower in DIKW.pairs_by_order():
-            req_higher = registry.get_required_strata(higher)
-            req_lower = registry.get_required_strata(lower)
+            req_higher = higher.requires()
+            req_lower = lower.requires()
             
             if lower != Stratum.PHYSICS:
                 # Subconjunto propio
@@ -668,7 +675,7 @@ class TestBoundaryStrata:
         
         required(PHYSICS) = ∅
         """
-        result = registry.get_required_strata(Stratum.PHYSICS)
+        result = Stratum.PHYSICS.requires()
         
         assert result == set(), (
             f"PHYSICS debe tener required vacío, obtenido: {result}"
@@ -681,7 +688,7 @@ class TestBoundaryStrata:
         
         required(WISDOM) = Stratum \\ {WISDOM}
         """
-        result = registry.get_required_strata(Stratum.WISDOM)
+        result = Stratum.WISDOM.requires()
         expected = set(Stratum) - {Stratum.WISDOM}
         
         assert result == expected, (
@@ -693,7 +700,7 @@ class TestBoundaryStrata:
     def test_only_physics_has_empty_required(self, registry: MICRegistry) -> None:
         """Solo PHYSICS tiene conjunto required vacío."""
         for stratum in Stratum:
-            result = registry.get_required_strata(stratum)
+            result = set(stratum.requires())
             
             if stratum == Stratum.PHYSICS:
                 assert len(result) == 0, f"PHYSICS debe tener required vacío"
@@ -707,7 +714,7 @@ class TestBoundaryStrata:
         max_cardinality = DIKW.total_count - 1  # 3
         
         for stratum in Stratum:
-            result = registry.get_required_strata(stratum)
+            result = set(stratum.requires())
             
             if stratum == Stratum.WISDOM:
                 assert len(result) == max_cardinality
@@ -730,7 +737,7 @@ class TestChainProperties:
         """
         Verifica que los conjuntos forman una cadena estricta.
         """
-        req = {s: registry.get_required_strata(s) for s in Stratum}
+        req = {s: s.requires() for s in Stratum}
         
         # Ordenar por cardinalidad ascendente
         ordered = sorted(req.items(), key=lambda x: len(x[1]))
@@ -790,14 +797,14 @@ class TestLatticeProperties:
         
         required(k₁) ∧ required(k₂) = required(max(k₁, k₂))
         """
-        req_k1 = registry.get_required_strata(k1)
-        req_k2 = registry.get_required_strata(k2)
+        req_k1 = k1.requires()
+        req_k2 = k2.requires()
         
         meet = req_k1 & req_k2
         
         # El máximo es el de mayor valor (más bajo en pirámide, menos required)
         max_stratum = k1 if k1.value > k2.value else k2
-        expected_meet = registry.get_required_strata(max_stratum)
+        expected_meet = max_stratum.requires()
         
         assert meet == expected_meet, (
             f"Meet incorrecto:\n"
@@ -818,14 +825,14 @@ class TestLatticeProperties:
         
         required(k₁) ∨ required(k₂) = required(min(k₁, k₂))
         """
-        req_k1 = registry.get_required_strata(k1)
-        req_k2 = registry.get_required_strata(k2)
+        req_k1 = k1.requires()
+        req_k2 = k2.requires()
         
         join = req_k1 | req_k2
         
         # El mínimo es el de menor valor (más alto en pirámide, más required)
         min_stratum = k1 if k1.value < k2.value else k2
-        expected_join = registry.get_required_strata(min_stratum)
+        expected_join = min_stratum.requires()
         
         assert join == expected_join, (
             f"Join incorrecto:\n"
@@ -849,7 +856,7 @@ class TestSetProperties:
         
         La unión cubre exactamente los estratos que son dependencia de algún otro.
         """
-        union = set().union(*(registry.get_required_strata(s) for s in Stratum))
+        union = set().union(*(s.requires() for s in Stratum))
         expected = set(Stratum) - {Stratum.WISDOM}
         
         assert union == expected, (
@@ -864,7 +871,7 @@ class TestSetProperties:
         
         La intersección es vacía porque required(PHYSICS) = ∅.
         """
-        sets = [registry.get_required_strata(s) for s in Stratum]
+        sets = [s.requires() for s in Stratum]
         intersection = reduce(operator.and_, sets)
         
         assert intersection == set(), (
@@ -879,8 +886,8 @@ class TestSetProperties:
         Consecuencia de monotonía.
         """
         for higher, lower in DIKW.pairs_by_order():
-            req_higher = registry.get_required_strata(higher)
-            req_lower = registry.get_required_strata(lower)
+            req_higher = higher.requires()
+            req_lower = lower.requires()
             
             intersection = req_higher & req_lower
             
@@ -900,7 +907,7 @@ class TestSetProperties:
         """
         for spec in DIKW.strata:
             stratum = spec.stratum
-            required = registry.get_required_strata(stratum)
+            required = stratum.requires()
             upper = spec.upper
             
             # Unión de las tres partes
@@ -944,7 +951,7 @@ class TestIdempotenceAndPurity:
         """
         Llamadas sucesivas retornan resultados idénticos.
         """
-        results = [registry.get_required_strata(stratum) for _ in range(5)]
+        results = [stratum.requires() for _ in range(5)]
         
         assert all(r == results[0] for r in results), (
             f"[{stratum.name}] Resultados no idempotentes: {results}"
@@ -961,9 +968,9 @@ class TestIdempotenceAndPurity:
         registry2 = MICRegistry()
         registry3 = MICRegistry()
         
-        result1 = registry1.get_required_strata(stratum)
-        result2 = registry2.get_required_strata(stratum)
-        result3 = registry3.get_required_strata(stratum)
+        result1 = set(stratum.requires())
+        result2 = set(stratum.requires())
+        result3 = set(stratum.requires())
         
         assert result1 == result2 == result3, (
             f"[{stratum.name}] Resultados difieren entre instancias"
@@ -979,16 +986,16 @@ class TestIdempotenceAndPurity:
         # Llamar en diferentes órdenes
         registry1 = MICRegistry()
         for s in Stratum:
-            registry1.get_required_strata(s)
-        result1 = registry1.get_required_strata(stratum)
+            set(s.requires())
+        result1 = set(stratum.requires())
         
         registry2 = MICRegistry()
         for s in reversed(list(Stratum)):
-            registry2.get_required_strata(s)
-        result2 = registry2.get_required_strata(stratum)
+            set(s.requires())
+        result2 = set(stratum.requires())
         
         registry3 = MICRegistry()
-        result3 = registry3.get_required_strata(stratum)  # Primera llamada
+        result3 = set(stratum.requires())  # Primera llamada
         
         assert result1 == result2 == result3
 
@@ -1011,13 +1018,13 @@ class TestResultImmutability:
         """
         Mutar el set retornado no altera llamadas posteriores.
         """
-        first_result = registry.get_required_strata(stratum)
+        first_result = set(stratum.requires())
         snapshot = frozenset(first_result)
         
         # Mutaciones agresivas
         first_result.clear()
         
-        second_result = registry.get_required_strata(stratum)
+        second_result = set(stratum.requires())
         
         assert frozenset(second_result) == snapshot, (
             f"[{stratum.name}] Mutación afectó estado interno:\n"
@@ -1032,14 +1039,14 @@ class TestResultImmutability:
         """
         Añadir elementos al resultado no persiste.
         """
-        first_result = registry.get_required_strata(stratum)
+        first_result = set(stratum.requires())
         original_size = len(first_result)
         
         # Añadir elementos (posiblemente inválidos)
         first_result.add(Stratum.WISDOM)
         first_result.add(stratum)  # Violaría irreflexividad
         
-        second_result = registry.get_required_strata(stratum)
+        second_result = set(stratum.requires())
         
         assert len(second_result) == original_size
         assert stratum not in second_result  # Irreflexividad mantenida
@@ -1051,8 +1058,8 @@ class TestResultImmutability:
         """
         Cada llamada retorna un objeto diferente (no el mismo reference).
         """
-        result1 = registry.get_required_strata(stratum)
-        result2 = registry.get_required_strata(stratum)
+        result1 = stratum.requires()
+        result2 = stratum.requires()
         
         # Deben ser iguales en valor pero diferentes objetos
         assert result1 == result2
@@ -1093,12 +1100,12 @@ class TestInvalidInputs:
         Entradas que no son Stratum deben lanzar excepción.
         """
         with pytest.raises((TypeError, ValueError, AttributeError, KeyError)):
-            registry.get_required_strata(invalid_input)  # type: ignore
+            invalid_input.requires()  # type: ignore
 
     def test_none_raises(self, registry: MICRegistry) -> None:
         """None debe lanzar excepción."""
         with pytest.raises((TypeError, ValueError, AttributeError)):
-            registry.get_required_strata(None)  # type: ignore
+            None.requires()  # type: ignore
 
     @pytest.mark.parametrize(
         "almost_valid",
@@ -1111,7 +1118,7 @@ class TestInvalidInputs:
     ) -> None:
         """Objetos que simulan ser Stratum deben fallar."""
         with pytest.raises((TypeError, ValueError, AttributeError, KeyError)):
-            registry.get_required_strata(almost_valid)  # type: ignore
+            almost_valid.requires()  # type: ignore
 
 
 # =============================================================================
@@ -1136,7 +1143,7 @@ class TestThreadSafety:
         
         def read_stratum():
             try:
-                result = registry.get_required_strata(stratum)
+                result = set(stratum.requires())
                 results.append(result)
             except Exception as e:
                 errors.append(e)
@@ -1163,7 +1170,7 @@ class TestThreadSafety:
         def read_stratum(stratum: Stratum):
             try:
                 for _ in range(10):
-                    result = registry.get_required_strata(stratum)
+                    result = set(stratum.requires())
                     results[stratum].append(result)
             except Exception as e:
                 errors.append(e)
@@ -1195,7 +1202,7 @@ class TestThreadSafety:
         def create_and_read():
             try:
                 reg = MICRegistry()
-                local_results = {s: reg.get_required_strata(s) for s in Stratum}
+                local_results = {s: set(s.requires()) for s in Stratum}
                 results.append(local_results)
             except Exception as e:
                 errors.append(e)
@@ -1240,13 +1247,13 @@ class TestDAGProperties:
         for k in Stratum:
             # BFS/DFS desde k
             visited = set()
-            queue = list(registry.get_required_strata(k))
+            queue = list(k.requires())
             
             while queue:
                 current = queue.pop()
                 if current not in visited:
                     visited.add(current)
-                    queue.extend(registry.get_required_strata(current))
+                    queue.extend(current.requires())
             
             reachable[k] = visited
         
@@ -1263,7 +1270,7 @@ class TestDAGProperties:
         Si s ∈ required(k) y t ∈ required(s), entonces t ∈ required(k).
         """
         for k in Stratum:
-            req_k = registry.get_required_strata(k)
+            req_k = k.requires()
             
             # Calcular clausura transitiva
             closure = set(req_k)
@@ -1271,7 +1278,7 @@ class TestDAGProperties:
             while changed:
                 changed = False
                 for s in list(closure):
-                    for t in registry.get_required_strata(s):
+                    for t in s.requires():
                         if t not in closure:
                             closure.add(t)
                             changed = True
@@ -1288,7 +1295,7 @@ class TestDAGProperties:
         La altura del DAG es 3 (camino más largo: WISDOM → ... → PHYSICS).
         """
         def longest_path_from(k: Stratum) -> int:
-            required = registry.get_required_strata(k)
+            required = k.requires()
             if not required:
                 return 0
             return 1 + max(longest_path_from(s) for s in required)
@@ -1307,7 +1314,7 @@ class TestDAGProperties:
         in_degree = {k: 0 for k in Stratum}
         
         for k in Stratum:
-            for s in registry.get_required_strata(k):
+            for s in k.requires():
                 in_degree[s] += 1  # s es dependencia de k
         
         # Procesar nodos con in_degree 0
@@ -1318,7 +1325,7 @@ class TestDAGProperties:
             current = queue.pop(0)
             topo_order.append(current)
             
-            for s in registry.get_required_strata(current):
+            for s in current.requires():
                 in_degree[s] -= 1
                 if in_degree[s] == 0:
                     queue.append(s)
@@ -1348,7 +1355,7 @@ class TestPropertyBased:
     def test_property_irreflexivity(self, stratum: Stratum) -> None:
         """Propiedad: k ∉ required(k) para todo k."""
         registry = MICRegistry()
-        result = registry.get_required_strata(stratum)
+        result = set(stratum.requires())
         assert stratum not in result
 
     @given(stratum=st.sampled_from(list(Stratum)))
@@ -1356,7 +1363,7 @@ class TestPropertyBased:
     def test_property_bounded_cardinality(self, stratum: Stratum) -> None:
         """Propiedad: 0 ≤ |required(k)| ≤ |Stratum| - 1."""
         registry = MICRegistry()
-        result = registry.get_required_strata(stratum)
+        result = set(stratum.requires())
         
         assert 0 <= len(result) <= len(Stratum) - 1
 
@@ -1365,7 +1372,7 @@ class TestPropertyBased:
     def test_property_elements_are_valid_strata(self, stratum: Stratum) -> None:
         """Propiedad: todos los elementos son Stratum válidos."""
         registry = MICRegistry()
-        result = registry.get_required_strata(stratum)
+        result = set(stratum.requires())
         
         for element in result:
             assert isinstance(element, Stratum)
@@ -1381,8 +1388,8 @@ class TestPropertyBased:
     ) -> None:
         """Propiedad: cualquier par de required sets es comparable bajo ⊆."""
         registry = MICRegistry()
-        req_k1 = registry.get_required_strata(k1)
-        req_k2 = registry.get_required_strata(k2)
+        req_k1 = k1.requires()
+        req_k2 = k2.requires()
         
         assert req_k1 <= req_k2 or req_k2 <= req_k1
 
@@ -1402,7 +1409,7 @@ class TestPerformance:
         
         for stratum in Stratum:
             start = time.perf_counter()
-            registry.get_required_strata(stratum)
+            stratum.requires()
             elapsed = time.perf_counter() - start
             
             assert elapsed < 0.001, (
@@ -1417,7 +1424,7 @@ class TestPerformance:
         
         for _ in range(10_000):
             for stratum in Stratum:
-                registry.get_required_strata(stratum)
+                stratum.requires()
         
         elapsed = time.perf_counter() - start
         

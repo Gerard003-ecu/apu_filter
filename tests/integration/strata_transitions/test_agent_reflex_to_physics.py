@@ -36,7 +36,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from agent.apu_agent import (
+from app.tactics.apu_agent import (
     AgentDecision,
     AutonomousAgent,
     SystemStatus,

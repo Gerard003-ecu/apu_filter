@@ -63,16 +63,16 @@ from typing import (
 import networkx as nx
 
 # Importaciones del proyecto
-from app.telemetry_schemas import (
+from app.core.telemetry_schemas import (
     PhysicsMetrics,
     TopologicalMetrics,
     ControlMetrics,
     ThermodynamicMetrics,
 )
-from app.tools_interface import MICRegistry, register_core_vectors
+from app.adapters.tools_interface import MICRegistry, register_core_vectors
 
 try:
-    from app.schemas import Stratum
+    from app.core.schemas import Stratum
 except ImportError:
     from enum import IntEnum as StratumBase
 

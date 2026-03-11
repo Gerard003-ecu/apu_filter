@@ -23,7 +23,7 @@ import pytest
 import requests
 import logging
 
-from agent.apu_agent import AutonomousAgent
+from app.tactics.apu_agent import AutonomousAgent
 
 
 # =============================================================================
@@ -253,7 +253,7 @@ class TestFixtures:
 
     @pytest.fixture
     def mock_datetime(self):
-        with patch("agent.apu_agent.datetime") as mock:
+        with patch("app.tactics.apu_agent.datetime") as mock:
             mock.now.return_value = FIXED_TIMESTAMP
             mock.side_effect = lambda *args, **kw: datetime(*args, **kw)
             yield mock
@@ -272,7 +272,7 @@ class TestFixtures:
 
     @pytest.fixture
     def mock_topology(self):
-        with patch("agent.apu_agent.SystemTopology") as mock:
+        with patch("app.tactics.apu_agent.SystemTopology") as mock:
             instance = MagicMock()
             mock.return_value = instance
             instance.update_connectivity.return_value = (3, [])
@@ -282,7 +282,7 @@ class TestFixtures:
 
     @pytest.fixture
     def mock_persistence(self):
-        with patch("agent.apu_agent.PersistenceHomology") as mock:
+        with patch("app.tactics.apu_agent.PersistenceHomology") as mock:
             instance = MagicMock()
             mock.return_value = instance
             yield instance
@@ -301,7 +301,7 @@ class TestFixtures:
         mock_signal_handlers,
         mock_session
     ):
-        from agent.apu_agent import AgentConfig, ConnectionConfig, TimingConfig
+        from app.tactics.apu_agent import AgentConfig, ConnectionConfig, TimingConfig
         config = AgentConfig(
             connection=ConnectionConfig(
                 base_url="http://test-core:5000",

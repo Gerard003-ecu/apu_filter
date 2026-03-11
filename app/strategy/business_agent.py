@@ -90,7 +90,7 @@ except ImportError:
 
 # Componentes del sistema
 try:
-    from agent.business_topology import (
+    from app.tactics.business_topology import (
         BudgetGraphBuilder,
         BusinessTopologicalAnalyzer,
         ConstructionRiskReport,
@@ -102,7 +102,7 @@ except ImportError:
     logger.warning("business_topology no disponible")
 
 try:
-    from app.constants import ColumnNames
+    from app.core.constants import ColumnNames
 except ImportError:
     # Fallback con columnas estándar
     class ColumnNames:
@@ -114,13 +114,13 @@ except ImportError:
         COSTO_INSUMO_EN_APU = "costo_insumo_en_apu"
 
 try:
-    from app.financial_engine import FinancialConfig, FinancialEngine
+    from app.strategy.financial_engine import FinancialConfig, FinancialEngine
 except ImportError:
     FinancialConfig = None  # type: ignore
     FinancialEngine = None  # type: ignore
 
 try:
-    from app.schemas import Stratum
+    from app.core.schemas import Stratum
 except ImportError:
     from enum import IntEnum
     class Stratum(IntEnum):
@@ -130,12 +130,12 @@ except ImportError:
         PHYSICS = 3
 
 try:
-    from app.semantic_translator import SemanticTranslator
+    from app.wisdom.semantic_translator import SemanticTranslator
 except ImportError:
     SemanticTranslator = None  # type: ignore
 
 try:
-    from app.telemetry import TelemetryContext
+    from app.core.telemetry import TelemetryContext
 except ImportError:
     @dataclass
     class TelemetryContext:
@@ -143,7 +143,7 @@ except ImportError:
             logger.error(f"[{category}] {message}")
 
 try:
-    from app.tools_interface import MICRegistry
+    from app.adapters.tools_interface import MICRegistry
 except ImportError:
     MICRegistry = None  # type: ignore
 

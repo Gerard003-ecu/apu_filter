@@ -931,4 +931,4 @@ class TestRegression:
 # ============================================================================
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--tb=short", "--cov=app.utils.grammar_diagnostics"])
+    pytest.main([__file__, "-v", "--tb=short", "--cov=app.core.utils.grammar_diagnostics"])

@@ -20,4 +20,9 @@ logs/
 data/
 miniconda.sh
 miniconda3/
-hardware/
+hardware/.hypothesis/
+.hypothesis/
+__pycache__/
+.pytest_cache/
+.hypothesis
+.hypothesis/*

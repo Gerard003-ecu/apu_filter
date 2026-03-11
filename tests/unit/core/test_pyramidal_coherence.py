@@ -53,18 +53,18 @@ from typing import Any, Final, TypeVar
 
 import pytest
 
-from app.schemas import Stratum
-from app.semantic_translator import (
+from app.core.schemas import Stratum
+from app.wisdom.semantic_translator import (
     SemanticTranslator,
     TranslatorConfig,
     VerdictLevel,
 )
-from app.telemetry import StepStatus, TelemetryContext
-from app.telemetry_narrative import TelemetryNarrator
-from app.telemetry_schemas import TopologicalMetrics
+from app.core.telemetry import StepStatus, TelemetryContext
+from app.core.telemetry_narrative import TelemetryNarrator
+from app.core.telemetry_schemas import TopologicalMetrics
 
 try:
-    from app.business_agent import ConstructionRiskReport, RiskChallenger
+    from app.strategy.business_agent import ConstructionRiskReport, RiskChallenger
 
     HAS_RISK_CHALLENGER = True
 except ImportError:

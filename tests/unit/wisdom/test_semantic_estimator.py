@@ -30,7 +30,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from app.semantic_estimator import (
+from app.wisdom.semantic_estimator import (
     CostCalculator,
     DataQualityMetrics,
     DataValidator,
@@ -590,7 +590,7 @@ class TestSearchEngineKeyword:
             "original_description": "Tubo PVC Presión",
         }])
         keywords = ["tubo", "pvc"]
-        with patch("app.semantic_estimator.normalize_text", return_value="tubo pvc presion"):
+        with patch("app.wisdom.semantic_estimator.normalize_text", return_value="tubo pvc presion"):
             apu, _ = engine.find_keyword_match(df, keywords, estimation_log)
         # Debe intentar crear DESC_NORMALIZED desde original_description
 
@@ -1441,7 +1441,7 @@ class TestEnumeraciones:
         assert TipoRecurso.MATERIAL.value == "MATERIAL"
 
     def test_tipo_recurso_distinto_de_schema(self):
-        """TipoRecurso es distinto de app.schemas.TipoInsumo."""
+        """TipoRecurso es distinto de app.core.schemas.TipoInsumo."""
         assert TipoRecurso.__name__ == "TipoRecurso"
 
 
@@ -1513,7 +1513,7 @@ class TestCasosLimite:
         data_store = {"apus_detail": [{"CODIGO_APU": "APU-001"}]}
 
         with patch(
-            "app.semantic_estimator.run_monte_carlo_simulation",
+            "app.wisdom.semantic_estimator.run_monte_carlo_simulation",
             side_effect=RuntimeError("MC error"),
         ):
             result = CostCalculator._run_financial_analysis(

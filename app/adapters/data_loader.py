@@ -41,7 +41,7 @@ import numpy as np
 
 # Telemetry integration
 try:
-    from .telemetry import TelemetryContext
+    from app.core.telemetry import TelemetryContext
 except ImportError:
     TelemetryContext = Any  # Fallback for typing if circular import
 

@@ -10,7 +10,7 @@ import pandas as pd
 # Añadir el directorio raíz del proyecto a sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.data_validator import (
+from app.tactics.data_validator import (
     AnomalyValidator,
     PyramidalValidator,
     TipoAlerta,

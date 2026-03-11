@@ -37,7 +37,7 @@ Cubre
 
 Ejecutar:
     pytest test_pipeline_director.py -v --tb=short
-    pytest test_pipeline_director.py -v --cov=app.pipeline_director --cov=app.mic_algebra
+    pytest test_pipeline_director.py -v --cov=app.tactics.pipeline_director --cov=app.core.mic_algebra
 """
 
 from __future__ import annotations
@@ -58,7 +58,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from app.mic_algebra import (
+from app.core.mic_algebra import (
     AtomicVector,
     CategoricalRegistry,
     CompositionTrace,
@@ -67,7 +67,7 @@ from app.mic_algebra import (
     MorphismComposer,
     create_categorical_state,
 )
-from app.pipeline_director import (
+from app.tactics.pipeline_director import (
     AlgebraicDAG,
     DAGBuilder,
     DependencyResolutionError,
@@ -81,8 +81,8 @@ from app.pipeline_director import (
     StateVector,
     TensorSignature,
 )
-from app.schemas import Stratum
-from app.telemetry import TelemetryContext
+from app.core.schemas import Stratum
+from app.core.telemetry import TelemetryContext
 
 
 # =============================================================================

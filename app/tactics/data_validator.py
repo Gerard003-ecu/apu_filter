@@ -39,7 +39,7 @@ import pandas as pd
 
 # Telemetry integration
 try:
-    from .telemetry import TelemetryContext
+    from app.core.telemetry import TelemetryContext
 except ImportError:
     TelemetryContext = Any  # Fallback
 

@@ -13,8 +13,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from app.constants import ColumnNames
-from app.governance import (
+from app.core.constants import ColumnNames
+from app.core.governance import (
     GovernanceConfig,
     SCORE_THRESHOLDS,
     SEVERITY_PENALTIES,

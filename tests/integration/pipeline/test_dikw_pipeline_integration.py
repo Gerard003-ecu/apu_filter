@@ -57,11 +57,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from app.mic_algebra import CategoricalState, create_categorical_state
-from app.pipeline_director import PipelineConfig, PipelineDirector
-from app.schemas import Stratum
-from app.telemetry import TelemetryContext
-from app.tools_interface import MICRegistry
+from app.core.mic_algebra import CategoricalState, create_categorical_state
+from app.tactics.pipeline_director import PipelineConfig, PipelineDirector
+from app.core.schemas import Stratum
+from app.core.telemetry import TelemetryContext
+from app.adapters.tools_interface import MICRegistry
 
 
 # =============================================================================

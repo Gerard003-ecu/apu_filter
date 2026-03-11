@@ -25,7 +25,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 import requests
 
-from agent.apu_agent import (
+from app.tactics.apu_agent import (
     ConfigurationError,
     AgentConfig,
     ConnectionConfig,
@@ -39,7 +39,7 @@ from agent.apu_agent import (
     ThresholdConfig,
     TopologicalDiagnosis,
 )
-from agent.topological_analyzer import (
+from app.tactics.topological_analyzer import (
     BettiNumbers,
     HealthLevel,
     MetricState,
@@ -767,7 +767,7 @@ class TestFixtureBase:
         
         Configura todos los métodos necesarios para el ciclo OODA.
         """
-        with patch("agent.apu_agent.SystemTopology") as MockClass:
+        with patch("app.tactics.apu_agent.SystemTopology") as MockClass:
             instance = MagicMock()
             MockClass.return_value = instance
 
@@ -788,7 +788,7 @@ class TestFixtureBase:
         """
         Mock de PersistenceHomology con comportamiento estable.
         """
-        with patch("agent.apu_agent.PersistenceHomology") as MockClass:
+        with patch("app.tactics.apu_agent.PersistenceHomology") as MockClass:
             instance = MagicMock()
             MockClass.return_value = instance
 
@@ -829,7 +829,7 @@ class TestFixtureBase:
         Garantiza aislamiento completo de dependencias externas.
         """
         with patch.object(AutonomousAgent, "_setup_signal_handlers"):
-            from agent.apu_agent import AgentConfig, ConnectionConfig, TimingConfig
+            from app.tactics.apu_agent import AgentConfig, ConnectionConfig, TimingConfig
             agent = AutonomousAgent(
                 config=AgentConfig(
                     connection=ConnectionConfig(base_url="http://test-core:5000", request_timeout=1),

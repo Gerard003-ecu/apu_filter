@@ -31,11 +31,11 @@ from typing import Dict, List, Optional, Set, Tuple, Any
 import numpy as np
 from collections import defaultdict
 
-from app.schemas import Stratum
-from agent.apu_agent import AutonomousAgent, SystemStatus
-from app.telemetry_narrative import TelemetryNarrator
-from app.telemetry import TelemetryContext, StepStatus, TelemetrySpan
-from app.topology_viz import convert_graph_to_cytoscape_elements, AnomalyData
+from app.core.schemas import Stratum
+from app.tactics.apu_agent import AutonomousAgent, SystemStatus
+from app.core.telemetry_narrative import TelemetryNarrator
+from app.core.telemetry import TelemetryContext, StepStatus, TelemetrySpan
+from app.adapters.topology_viz import convert_graph_to_cytoscape_elements, AnomalyData
 
 
 # ============================================================================
@@ -479,7 +479,7 @@ class TestAgentObservabilityRefined:
         # Mock completo del sistema
         with patch.object(agent, 'observe') as mock_observe, \
              patch.object(agent, 'topology', create=True) as mock_topology, \
-             patch('agent.apu_agent.SystemStatus') as mock_system_status:
+             patch('app.tactics.apu_agent.SystemStatus') as mock_system_status:
 
             # Configurar mocks por estrato
             mock_telemetry = MagicMock()

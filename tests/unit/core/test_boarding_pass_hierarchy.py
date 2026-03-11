@@ -49,20 +49,20 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from app.telemetry import TelemetryContext
-from app.telemetry_narrative import TelemetryNarrator
-from app.semantic_translator import SemanticTranslator
-from app.telemetry_schemas import (
+from app.core.telemetry import TelemetryContext
+from app.core.telemetry_narrative import TelemetryNarrator
+from app.wisdom.semantic_translator import SemanticTranslator
+from app.core.telemetry_schemas import (
     PhysicsMetrics,
     TopologicalMetrics,
     ThermodynamicMetrics,
     ControlMetrics,
 )
-from app.schemas import Stratum
+from app.core.schemas import Stratum
 
 # Intentar importar VerdictLevel; si no existe, crear stub
 try:
-    from app.semantic_translator import VerdictLevel
+    from app.wisdom.semantic_translator import VerdictLevel
 except ImportError:
     VerdictLevel = None
 

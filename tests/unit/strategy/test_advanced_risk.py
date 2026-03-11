@@ -24,8 +24,8 @@ import networkx as nx
 import numpy as np
 import pytest
 
-from agent.business_topology import BusinessTopologicalAnalyzer
-from app.financial_engine import FinancialConfig, FinancialEngine
+from app.tactics.business_topology import BusinessTopologicalAnalyzer
+from app.strategy.financial_engine import FinancialConfig, FinancialEngine
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

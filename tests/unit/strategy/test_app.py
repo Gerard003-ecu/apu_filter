@@ -34,7 +34,7 @@ from app.app import (
     setup_logging,
     temporary_upload_directory,
 )
-from app.presenters import APUPresenter
+from app.adapters.presenters import APUPresenter
 
 # ============================================================================
 # FIXTURES - Configuración y datos de prueba
@@ -59,7 +59,7 @@ def app():
         mock_from_url.return_value = fake_redis_client
 
         # Mockear carga de embeddings (ahora manejada por MIC/SemanticEstimator)
-        with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+        with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
             app = create_app("testing")
             app.config["TESTING"] = True
             yield app
@@ -904,7 +904,7 @@ class TestCreateApp:
     def test_create_app_development(self, mock_redis):
         """Debe crear app en modo desarrollo."""
         mock_redis.return_value = MagicMock()
-        with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+        with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
             app = create_app("development")
             assert app is not None
             assert app.config["TESTING"] is False
@@ -913,7 +913,7 @@ class TestCreateApp:
     def test_create_app_testing(self, mock_redis):
         """Debe crear app en modo testing."""
         mock_redis.return_value = MagicMock()
-        with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+        with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
             app = create_app("testing")
             assert app is not None
             assert app.config["TESTING"] is True
@@ -924,7 +924,7 @@ class TestCreateApp:
         mock_redis.return_value = MagicMock()
         # En producción requiere secret key
         with patch.dict(os.environ, {"SECRET_KEY": "prod-secret"}):
-            with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+            with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
                 app = create_app("production")
                 assert app is not None
                 assert app.config["SESSION_COOKIE_SECURE"] is True
@@ -934,7 +934,7 @@ class TestCreateApp:
         """Debe cargar configuración desde archivo."""
         mock_redis.return_value = MagicMock()
         with patch("builtins.open", mock_open(read_data='{"version": "1.0.0"}')):
-            with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+            with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
                 app = create_app("testing")
                 assert "APP_CONFIG" in app.config
 
@@ -943,7 +943,7 @@ class TestCreateApp:
         """Debe crear carpeta de uploads."""
         mock_redis.return_value = MagicMock()
         with patch("pathlib.Path.mkdir"):
-            with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+            with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
                 app = create_app("testing")
                 assert "UPLOAD_FOLDER" in app.config
 
@@ -951,7 +951,7 @@ class TestCreateApp:
     def test_create_app_session_configuration(self, mock_redis):
         """Debe configurar sesiones correctamente."""
         mock_redis.return_value = MagicMock()
-        with patch("app.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+        with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
             app = create_app("testing")
             assert app.config["SESSION_TYPE"] == "redis"
             assert app.config["SESSION_PERMANENT"] is True

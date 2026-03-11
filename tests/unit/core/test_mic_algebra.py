@@ -32,8 +32,8 @@ from unittest.mock import MagicMock, Mock, patch
 import networkx as nx
 import pytest
 
-from app.schemas import Stratum
-from app.mic_algebra import (
+from app.core.schemas import Stratum
+from app.core.mic_algebra import (
     AtomicVector,
     CategoricalRegistry,
     CategoricalState,

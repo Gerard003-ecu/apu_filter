@@ -44,8 +44,8 @@ from unittest.mock import Mock, call
 
 import pytest
 
-from app.schemas import Stratum
-from app.tools_interface import MICRegistry
+from app.core.schemas import Stratum
+from app.adapters.tools_interface import MICRegistry
 
 
 # =============================================================================

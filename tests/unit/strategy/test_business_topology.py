@@ -6,12 +6,12 @@ import networkx as nx
 import pandas as pd
 import pytest
 
-from agent.business_topology import (
+from app.tactics.business_topology import (
     BudgetGraphBuilder,
     BusinessTopologicalAnalyzer,
     TopologicalMetrics,
 )
-from app.constants import ColumnNames
+from app.core.constants import ColumnNames
 
 # =============================================================================
 # HELPER FUNCTIONS

@@ -11,7 +11,7 @@ import pandas as pd
 import pytest
 
 # Importar las clases a testear
-from app.presenters import APUPresenter, APUProcessingConfig
+from app.adapters.presenters import APUPresenter, APUProcessingConfig
 
 # ============================================================================
 # FIXTURES - Datos de Prueba Reutilizables

@@ -74,7 +74,7 @@ import pytest
 # IMPORTACIONES DEL MÓDULO BAJO PRUEBA
 # =============================================================================
 
-from app.business_agent import (
+from app.strategy.business_agent import (
     # Configuración y Constantes
     RiskChallengerThresholds,
     DecisionWeights,
@@ -118,7 +118,7 @@ from app.business_agent import (
 
 # Schemas (para columnas)
 try:
-    from app.constants import ColumnNames
+    from app.core.constants import ColumnNames
 except ImportError:
     class ColumnNames:
         CODIGO_APU = "codigo_apu"
@@ -130,7 +130,7 @@ except ImportError:
 
 # Stratum
 try:
-    from app.schemas import Stratum
+    from app.core.schemas import Stratum
 except ImportError:
     from enum import IntEnum
     class Stratum(IntEnum):
@@ -1775,7 +1775,7 @@ class TestTopologyBuilder:
     ):
         """Construcción exitosa retorna grafo y bundle."""
         # Configurar mock de nx.is_connected
-        with patch('app.business_agent.nx') as mock_nx:
+        with patch('app.strategy.business_agent.nx') as mock_nx:
             mock_nx.is_connected.return_value = True
             mock_nx.number_connected_components.return_value = 1
             
@@ -1928,7 +1928,7 @@ class TestBusinessAgent:
     ):
         """Evaluación exitosa retorna reporte."""
         # Mock para nx
-        with patch('app.business_agent.nx') as mock_nx:
+        with patch('app.strategy.business_agent.nx') as mock_nx:
             mock_nx.is_connected.return_value = True
             mock_nx.number_connected_components.return_value = 1
             
@@ -1974,7 +1974,7 @@ class TestBusinessAgent:
         # Quitar estratos validados
         context = {**valid_context, "validated_strata": set()}
         
-        with patch('app.business_agent.nx') as mock_nx:
+        with patch('app.strategy.business_agent.nx') as mock_nx:
             mock_nx.is_connected.return_value = True
             mock_nx.number_connected_components.return_value = 1
             
@@ -2001,7 +2001,7 @@ class TestBusinessAgent:
             "validated_strata": {"PHYSICS", "TACTICS"}
         }
         
-        with patch('app.business_agent.nx') as mock_nx:
+        with patch('app.strategy.business_agent.nx') as mock_nx:
             mock_nx.is_connected.return_value = True
             
             report = business_agent.evaluate_project(context)
@@ -2050,7 +2050,7 @@ class TestBusinessAgentIntegration:
             initial_investment=1_000_000.0
         )
         
-        with patch('app.business_agent.nx') as mock_nx:
+        with patch('app.strategy.business_agent.nx') as mock_nx:
             mock_nx.is_connected.return_value = True
             mock_nx.number_connected_components.return_value = 1
             
@@ -2090,7 +2090,7 @@ class TestBusinessAgentIntegration:
         
         context = ContextFactory.create_evaluation_context()
         
-        with patch('app.business_agent.nx') as mock_nx:
+        with patch('app.strategy.business_agent.nx') as mock_nx:
             mock_nx.is_connected.return_value = True
             
             report = agent.evaluate_project(context)
@@ -2318,7 +2318,7 @@ class TestRegression:
         """
         context = {**valid_context, "validated_strata": ["PHYSICS", "TACTICS"]}
         
-        with patch('app.business_agent.nx') as mock_nx:
+        with patch('app.strategy.business_agent.nx') as mock_nx:
             mock_nx.is_connected.return_value = True
             
             # No debe fallar por tipo de validated_strata

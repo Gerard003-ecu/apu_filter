@@ -83,10 +83,10 @@ def _safe_import(module_path: str, class_name: str) -> Optional[Type]:
 
 
 # Motores físicos
-APUProcessor = _safe_import("app.apu_processor", "APUProcessor")
-CondenserConfig = _safe_import("app.flux_condenser", "CondenserConfig")
-DataFluxCondenser = _safe_import("app.flux_condenser", "DataFluxCondenser")
-ReportParserCrudo = _safe_import("app.report_parser_crudo", "ReportParserCrudo")
+APUProcessor = _safe_import("app.tactics.apu_processor", "APUProcessor")
+CondenserConfig = _safe_import("app.physics.flux_condenser", "CondenserConfig")
+DataFluxCondenser = _safe_import("app.physics.flux_condenser", "DataFluxCondenser")
+ReportParserCrudo = _safe_import("app.adapters.report_parser_crudo", "ReportParserCrudo")
 
 # Mocks para testing standalone
 if APUProcessor is None:
@@ -122,7 +122,7 @@ if ReportParserCrudo is None:
 
 # Stratum fallback
 try:
-    from app.schemas import Stratum
+    from app.core.schemas import Stratum
 except ImportError:
     class Stratum(IntEnum):
         """Representación jerárquica del modelo DIKW."""
@@ -1360,9 +1360,9 @@ def vector_audit_homological_fusion(
         
         # ─── Importación diferida con manejo de dependencia ───
         try:
-            from agent.business_topology import BusinessTopologicalAnalyzer
+            from app.tactics.business_topology import BusinessTopologicalAnalyzer
         except ImportError as imp_err:
-            logger.error(f"Dependencia 'agent.business_topology' no disponible: {imp_err}")
+            logger.error(f"Dependencia 'app.tactics.business_topology' no disponible: {imp_err}")
             return _build_error(
                 stratum=Stratum.TACTICS,
                 status=VectorResultStatus.DEPENDENCY_ERROR,

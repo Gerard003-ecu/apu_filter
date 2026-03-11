@@ -2,8 +2,8 @@ import json
 import logging
 import os
 
-from app.pipeline_director import PipelineDirector
-from app.telemetry import TelemetryContext
+from app.tactics.pipeline_director import PipelineDirector
+from app.core.telemetry import TelemetryContext
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
