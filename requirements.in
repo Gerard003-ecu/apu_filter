@@ -10,6 +10,7 @@ pandas
 openpyxl
 # Pin NumPy a <2.0 para garantizar compatibilidad binaria con faiss-conda
 numpy<2.0
+requests
 
 # --- Parsing y Texto ---
 lark
@@ -29,3 +30,8 @@ networkx<3.3
 redis
 psutil
 gunicorn
+
+# --- Certeza matemática ---
+hypothesis
+networkx
+chardet
