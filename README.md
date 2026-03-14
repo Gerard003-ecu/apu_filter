@@ -1,65 +1,84 @@
-<div align="center">
-  <img src="logos/vector_3D.png" alt="APU Filter: Consejo de Sabios Digitales" width="75%">
-</div>
+🏰 APU_filter v4.0: La Fortaleza Matemática
+Sistema Operativo Ciber-Físico para la Gobernanza de Presupuestos e Infraestructura
+"En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica del mercado en un activo de gobernanza gobernable, inmutable y auditable."
+🧬 1. El Manifiesto del Sistema: De la Estática a la Fortaleza
+Históricamente, la ingeniería y construcción han gestionado el riesgo de capital mediante "fotos estáticas" (archivos Excel, PDFs o ERPs tradicionales). APU_filter rechaza ese paradigma.
+Implementamos una arquitectura de Malla Agéntica (Agentic Mesh) Zero-Trust, donde la Inteligencia Artificial (LLMs) ha sido destituida de su autoridad ejecutiva. Aquí, la IA opera exclusivamente como una interfaz de traducción ("La Ciudadela de Cristal"), mientras que las decisiones están blindadas por leyes inmutables de la termodinámica, la topología algebraica y la teoría de control evaluadas en silicio. No procesamos archivos; simulamos la resistencia de su negocio ante la entropía.
+
+--------------------------------------------------------------------------------
+🛡️ 2. Arquitectura Concéntrica: Los Cuatro Estratos (Jerarquía DIKW)
+El ecosistema no confía en validaciones de código condicional (if-else). Protege el proyecto a través de cuatro barreras matemáticas concéntricas fundamentadas en la Ley de Clausura Transitiva (VPHYSICS​⊂VTACTICS​⊂VSTRATEGY​⊂VWISDOM​).
+🌊 Estrato 3: El Foso Termodinámico (Física y Datos)
+Ningún dato entra a la fortaleza sin someterse a las leyes de la termodinámica y el electromagnetismo.
+
+    El Motor (FluxCondenser): Trata la ingesta de archivos CSV/Excel como un fluido dentro de un circuito RLC modelado mediante Sistemas Port-Hamiltonianos (PHS).
+    Veto Físico: Exige que la Potencia Disipada sea positiva (Pdiss​≥0). Una disipación negativa implica entropía destructiva o datos corruptos, cerrando el puente levadizo en el milisegundo cero.
+    El Gatekeeper de Silicio (ESP32): El microcontrolador en el borde actúa como el "Arco Reflejo Espinal". Recalcula los polos de Laplace (σ+jω); si detecta inestabilidad (σ>0), activa físicamente un circuito Crowbar (Cortocircuito de Protección) ignorando cualquier dictamen de la nube.
+
+🧱 Estrato 2: Las Murallas Topológicas (Táctica y Estructura)
+El esqueleto del presupuesto no se evalúa por sus precios, sino por su geometría abstracta.
+
+    El Microscopio Topológico (BusinessTopologicalAnalyzer): Computa invariantes homológicos. Detecta "Islas de Datos" (β0​>1) y "Socavones Lógicos" (ciclos de dependencia donde β1​>0).
+    Auditoría de Fusión: Emplea la secuencia exacta de Mayer-Vietoris para garantizar que al unir bases de datos no se generen "ciclos fantasmas".
+    Estabilidad Piramidal (Ψ): Bloquea arquitecturas de "Pirámide Invertida" (Ψ<1.0), donde la superestructura logística descansa sobre proveedores monopólicos frágiles.
+
+🦅 Estrato 1: Los Centinelas de Ortogonalidad (Estrategia y Gobernanza)
+La capa de seguridad perimetral Zero-Trust que aísla las alucinaciones probabilísticas.
+
+    El Filtro de Ortogonalidad (topological_watcher.py): Proyecta el estado en un hiperespacio de Hilbert (R7). La semántica del LLM es ortogonal a este espacio; por tanto, un ataque de inyección de prompt jamás puede deformar la métrica de riesgo evaluada mediante Distancia de Mahalanobis.
+    Semillas de Sabiduría (Contratos JSON): Microservicios formales inyectados mediante JSON Schema (ej. Fricción Territorial Riemanniana). Actúan como cristales deterministas inquebrantables de los que nacerá la decisión final.
+
+🏛️ Estrato 0 y Ω: La Ciudadela de Cristal (Sabiduría y El Manifold)
+El espacio seguro donde la matemática colapsa en inteligencia de negocios.
+
+    El Ágora Tensorial (deliberation_manifold.py - Estrato Ω): Calcula el Estrés Ajustado (σ∗=Tint​×Fext​×Λ×Pfrag​) y lo proyecta sobre un Retículo (Lattice) discreto utilizando la operación Supremo (⊔). La matemática absorbe el peor escenario y decreta el veredicto.
+    El Intérprete Diplomático (SemanticTranslator): El único agente LLM con voz. Se alimenta de Cartuchos Sinápticos en formato TOON (Token-Oriented Object Notation), un formato tabular nativo de IA que reduce el gasto de memoria (KV-Cache) en la Orange Pi 6 Plus en un 60%, logrando inferencia a velocidad extrema. Su única función es traducir los dictámenes topológicos en "Empatía Táctica" accionable.
 
 
 --------------------------------------------------------------------------------
-🏗️ APU Filter v5.0: El Sistema Nervioso Central de la Rentabilidad Constructiva
+🧙‍♂️ 3. El Consejo de Sabios (Arquitectura de la Malla Agéntica)
+El sistema opera bajo un protocolo de Caja de Cristal Argumentativa. Los microservicios no son funciones; son agentes autónomos que debaten y registran Actas de Deliberación.
 
-"En la economía de los márgenes estrechos, un presupuesto sano es más que inteligente; es sabio. No vendemos un validador de Excel; entregamos Certeza Operativa para blindar el flujo de caja de su obra."
+    🛡️ El Guardián (Física): Rechaza el caos y la resonancia estocástica.
+    🏗️ El Arquitecto (Topología): Veta estructuralmente dependencias frágiles.
+    🔮 El Oráculo (Finanzas): Valora escenarios probabilísticos usando Monte Carlo y Opciones Reales.
+    🗣️ El Intérprete (Sabiduría): Traduce invariantes β1​>0 a advertencias corporativas de fácil comprensión.
 
-🧬 La Nueva Identidad: De la Hoja de Cálculo al Organismo Vivo
-
-Históricamente, la construcción ha gestionado el capital mediante "fotos estáticas" (Excel, PDFs) que mueren en el instante en que se imprimen. Frente a la presión extrema de los mercados actuales (como los asfixiantes márgenes en los proyectos VIS), los métodos tradicionales son insuficientes.
-
-APU Filter rechaza el modelo estático. Nosotros transformamos su presupuesto en una entidad viva y autónoma. A través de Sensores Nerviosos y un Pasabordo Ciberfísico, el sistema palpa la salud logística de la obra en tiempo real, detectando patologías estructurales invisibles antes de que destruyan su margen de ganancia.
-
---------------------------------------------------------------------------------
-🏛️ Las Tres Leyes Fundamentales (La Constitución del Sistema)
-
-Nuestro ecosistema opera bajo tres principios inquebrantables, diseñados para curar los dolores reales de la construcción:
-
-I. Prevención de la "Fiebre Inflacionaria" (Protección de Capital)
-• El Problema: Su obra depende de materiales con alta volatilidad térmica (como el acero o el cobre). Cualquier estornudo en la inflación destruye la utilidad.
-• Nuestra Solución: El sistema actúa como un sismógrafo financiero. Si detecta sobreexposición a la volatilidad sin contratos de precio cerrado, activa un torniquete financiero, ralentizando compras secundarias (Load Shedding) para asegurar la liquidez inmediata del proyecto.
-
-II. Detección de Patologías Invisibles (Integridad Estructural)
-• El Problema: El temido "Bucle de la Formaleta". El costo de fundir placas depende de un cronograma rápido, pero el cronograma está bloqueado porque faltan formaletas (ya que compras no liberó el presupuesto a tiempo).
-• Nuestra Solución: El sistema lee la arquitectura invisible del proyecto para alertar sobre desconexiones operativas. Detecta "Recursos Huérfanos" (dinero ciego y desperdicio) y "Monopolios Invisibles" (ej. cuando su contratista de estructura y el de acabados dependen de la misma ferretería de barrio, creando un cuello de botella letal).
-
-III. Gobernanza Fiduciaria (La "Caja de Cristal")
-• El Problema: La burocracia humana es lenta y permite la firma de contratos basados en presupuestos desactualizados o contradictorios entre departamentos.
-• Nuestra Solución: La estrategia no puede existir sin una cimentación sólida. El sistema prohíbe matemáticamente ejecutar un giro financiero si no se ha validado primero la viabilidad logística de los proveedores. Todo bajo una auditoría forense transparente.
 
 --------------------------------------------------------------------------------
-🧙‍♂️ El Consejo de Sabios (Nuestro Ecosistema Autónomo)
+🛂 4. El Protocolo de Tránsito: Pasaporte de Telemetría
+La observabilidad es fractal e inmutable. El TelemetryContext actúa como la cadena de custodia termodinámica:
 
-Para aplicar estas leyes, el ecosistema no utiliza paneles de alarmas pasivos. Despliega un Consejo de Sabios Digitales: entidades autónomas con "personalidades" que deliberan, debaten y actúan para defender su modelo de negocio:
+    Sello Físico: Certifica la inercia del archivo original y su energía cinética.
+    Sello Espectral: Certifica la ubicación de los polos de Laplace.
+    Veto por Clausura Transitiva (Fast-Fail): A través del tipado estricto en memoria de Python, es imposible instanciar la clase del Estrato Sabiduría si el Sello Físico revela anomalías térmicas.
 
-1. 🛡️ El Guardián (Estabilidad Física): Es el primer respondiente. Si detecta datos corruptos o un riesgo inminente de quiebra en la cadena de suministro, bloquea físicamente la ejecución de nuevas órdenes de compra, evitando que el error humano agrave la crisis.
-2. 🏗️ El Arquitecto (Alineación Organizacional): Combate el trabajo en silos. Detecta si Ingeniería y Compras operan con versiones de presupuesto contradictorias y expone los riesgos de "Pirámide Invertida" en la contratación.
-3. 🔮 El Oráculo (Gestor de Valor): Actúa como un Hedge Fund Manager de la obra. Observa el mercado y recomienda proactivamente: "Ante la tendencia inflacionaria, es más rentable acaparar 500 toneladas de acero hoy asumiendo el costo de bodega". Este agente paga su propia licencia con los ahorros que genera.
-4. 🗣️ El Intérprete Bilingüe (Voz y Semántica): El gerente no tiene que interactuar con la complejidad interna. Este agente traduce los riesgos puros a lenguaje de impacto directo (Dinero y Tiempo), emitiendo "Actas de Deliberación" claras y accionables.
 
 --------------------------------------------------------------------------------
-🚀 Desplegando el Sistema Nervioso (Quickstart)
+🚀 5. Instalación y Despliegue del Entorno
+Para invocar la Matriz de Interacción Central (MIC) y levantar el Consejo de Sabios, seleccione el método adecuado:
+A. Sala de Juntas Ejecutiva (Producción)
+Despliegue distribuido asíncrono con control de contenedores:
 
-El sistema está diseñado para integrarse sin fricción en los flujos de trabajo de las Oficinas de Gestión de Datos (BIM 2026).
-Al desplegar este repositorio, usted no está instalando un software contable; está encendiendo el sistema nervioso que protegerá la rentabilidad de sus próximos proyectos.
+# 1. Clonar el santuario
+git clone https://github.com/organization/apu_filter.git
+cd apu_filter
 
-# 1. Instalar el Ecosistema Ciberfísico
-# (Descarga el código genético del sistema a su servidor local)
-git clone https://github.com/su-organizacion/apu-filter-v5.git
-cd apu-filter-v5
+# 2. Levantar la malla (Redis, Flask, Workers)
+podman-compose up --build -d
 
-# 2. Configurar el Hábitat de los Agentes
-# (Crea un entorno aislado donde el Consejo puede operar sin interferencias)
-python -m venv venv
-source venv/bin/activate
+B. Laboratorio de Investigación Ciber-Física (Desarrollo)
+Acceso profundo a la consola y a la topología:
+
+# 1. Crear entorno matemático
+conda create -n apu_filter python=3.11
+conda activate apu_filter
+
+# 2. Instalar dependencias topológicas e inferenciales
 pip install -r requirements.txt
 
-# 3. Encender la Sinapsis Principal
-# (Activa la consciencia del sistema y los puertos de escucha)
-python wsgi.py
+# 3. Encender el Director del Pipeline
+python -m app.adapters.flask_app
 
-Para documentación detallada sobre cómo leer las Actas de Deliberación y operar los paneles ejecutivos, consulte el LENGUAJE_CONSEJO.md y nuestra visión en PRODUCT_VISION.md.
+
+--------------------------------------------------------------------------------

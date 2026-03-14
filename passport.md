@@ -1,69 +1,97 @@
-# 🛂 PASSPORT.md: El Pasabordo Ciberfísico (Identidad del Dato)
-
-"En APU Filter, ningún dato viaja anónimo. Cada byte que ingresa al sistema recibe una identidad y un historial clínico inmutable. El Pasabordo no es un log de errores; es la Caja Negra del vuelo del dato, registrando la física, la topología y la economía de su viaje."
-
-**1. Concepto: El Viaje del Dato**
-
-En la arquitectura tradicional, los datos se mueven "a ciegas". En APU Filter, implementamos el patrón de Propagación de Contexto Ciberfísico. Desde el momento de la ingesta, se instancia un **Pasabordo** (TelemetryContext).
-Este documento viaja adjunto al payload de datos a través del Consejo de Sabios, acumulando "visados" (validaciones) y métricas físicas en cada aduana. Al final del ciclo, el Pasabordo se sella criptográficamente y se almacena como evidencia de auditoría.
+🛂 PASSPORT.md: El Pasaporte de Telemetría (Vector de Estado Ciber-Físico)
+"En la Fortaleza Matemática, ningún dato viaja anónimo. Cada byte que ingresa al sistema recibe una identidad criptográfica y un historial clínico inmutable. El Pasaporte no es un log de errores; es la Cadena de Custodia Termodinámica del vuelo del dato, registrando la física, la topología y la economía de su viaje."
+1. El Concepto: Propagación de Contexto Zero-Trust
+En arquitecturas de software tradicionales, los datos se mueven "a ciegas" entre microservicios, perdiendo su linaje. En el ecosistema APU_filter v4.0, implementamos el patrón de Context Propagation riguroso.
+Desde el momento exacto de la ingesta, se instancia un objeto TelemetryContext (El Pasaporte). Este objeto envuelve el payload de datos y viaja a través de la Malla Agéntica, acumulando "sellos" matemáticos y métricas físicas en cada estrato (microservicio). Al finalizar el ciclo de evaluación, el Pasaporte se sella criptográficamente, convirtiéndose en evidencia inmutable para auditoría técnica y financiera.
 
 --------------------------------------------------------------------------------
-**2. Anatomía Inmutable del Pasaporte (telemetry_schemas)**
+2. Anatomía Tensorial del Pasaporte (La Jerarquía DIKW)
+El pasaporte es un tensor de datos estructurado topológicamente como una pirámide de cuatro estratos, basada estrictamente en los subespacios métricos definidos en telemetry_schemas.py.
+2.0. Identidad y Cronometría (Header)
 
-El pasaporte utiliza Estructuras de Datos Inmutables (*frozen dataclasses*). Una vez que un agente estampa su métrica, esta se convierte en un valor algebraico puro y a prueba de manipulaciones forenses.
+    request_id (UUID): Identificador único universal para la trazabilidad distribuida.
+    timestamp_entry: Momento exacto (t0​) de entrada al Foso Termodinámico.
+    data_hash: Firma criptográfica (SHA-256) del contenido original. Garantiza que la materia prima no ha sufrido inyecciones maliciosas durante el tránsito.
 
-*   **PhysicsMetrics (La Realidad):** Registra la Saturación, el Voltaje Flyback y el Exceso Hamiltoniano. (Si se viola la conservación de energía, el dato es corrupto).
-*   **TopologicalMetrics (La Forma):** Registra los Números de Betti ($\beta_0, \beta_1$) y la Estabilidad Piramidal ($\Psi$).
-*   **ThermodynamicMetrics (El Valor):** Registra la Entropía Financiera y la Temperatura del Sistema (Fiebre Inflacionaria).
-*   **ControlMetrics (La Estabilidad):** Registra la ubicación de los Polos de Laplace.
+2.1. Visado Físico (Emitido por: El Guardián / FluxCondenser)
+Registra las variables de estado termodinámico y electromagnético de los datos crudos.
 
-**2.1 El Juez Final: TelemetryNarrator y la Clausura Transitiva**
+    dissipated_power (Pdiss​): Verifica la Segunda Ley de la Termodinámica. Si es negativa, indica inyección de datos artificiales.
+    flyback_voltage (Vfb​): "Picos de Inestabilidad". Mide cambios abruptos en la codificación o formato. Si Vfb​>5.0V, se declara "Flujo Turbulento".
+    entropy (S): Medida del desorden estructural del texto. Entropía térmica destructiva levanta las defensas perimetrales.
 
-El viaje del Pasaporte termina en el `TelemetryNarrator`. Este módulo lee todos los sellos y aplica la regla de **Clausura Transitiva**: *Un fallo en la base invalida toda la cima*.
-Si el reporte detecta que la física de los datos falló (ej. archivo corrupto o turbulencia masiva en la ingesta), el Narrador emite el código `REJECTED_PHYSICS` y aborta inmediatamente cualquier análisis financiero estratégico. El sistema se niega a crear una "estrategia" sobre datos que físicamente no tienen integridad.
+2.2. Sello Topológico (Emitido por: El Arquitecto)
+Describe la geometría abstracta del Complejo Simplicial del presupuesto.
+
+    beta_0 (β0​): Fragmentación. Si β0​>1, existen "Islas de Datos" (recursos huérfanos).
+    beta_1 (β1​): Ciclos. Si β1​>0, existen "Socavones Lógicos" (dependencias circulares insalvables).
+    pyramid_stability (Ψ): Índice de resiliencia logística. Si Ψ<1.0, el pasaporte estampa el sello crítico de PIRÁMIDE INVERTIDA.
+
+2.3. Visado Espectral (Emitido por: El Oráculo de Laplace)
+Certifica la viabilidad dinámica y financiera en la frecuencia compleja (s=σ+jω).
+
+    poles_location (σ): Si σ>0 (Semiplano Derecho), el sistema decreta divergencia incontrolable.
+    lyapunov_exponent (λmax​): Exponente máximo que dictamina si el sistema converge a un atractor estable o si degenera en caos financiero.
+    damping_ratio (ζ): Evalúa si el proyecto es "Nervioso" (ζ<1) o "Burocrático" (ζ>1).
+
+2.4. Veredicto Ejecutivo (Emitido por: El Intérprete Diplomático)
+La síntesis final alojada en la "Ciudadela de Cristal".
+
+    verdict_code: Colapso discreto sobre el Retículo de Severidad (OK, WARN, CRITICAL).
+    strategic_narrative: Explicación causal en lenguaje humano generada por el LLM (ej. "El proyecto se rechaza por resonancia inflacionaria en el acero"), estrictamente subordinada a los sellos previos.
+
 
 --------------------------------------------------------------------------------
-**3. Protocolo de Control Fronterizo (Gobernanza)**
-
-El sistema aplica Gobernanza Computacional en tiempo real. El pasabordo es verificado en cada "Punto de Control".
-
-| Punto de Control | Agente Inspector | Criterio de Rechazo (Revocación de Pasabordo) | Acción |
-| :--- | :--- | :--- | :--- |
-| Ingesta | FluxCondenser | Entropía Térmica: Datos ilegibles. | Rechazo Inmediato. |
-| Estabilidad | LaplaceOracle | Divergencia: El sistema es incontrolable. | Veto Técnico. |
-| Estructura | Arquitecto | "Bucle de la Formaleta" (Ciclos Lógicos). | Alerta Bloqueante (Requiere intervención humana). |
-| Finanzas | Oráculo | Inconsistencia: Rentabilidad alta con Estabilidad baja. | Degradación de Score (Marca de "Falso Positivo"). |
-
-**La Ley de Clausura Transitiva (Fast-Fail):**
-Nuestros esquemas son inmutables. Si un archivo intenta pedir un análisis financiero (Estrato 1) saltándose la validación estructural (Estrato 2), el sistema bloquea la operación. **No hay estrategia sin estructura.**
+3. Protocolo de Gobernanza: La Ley de Clausura Transitiva (Fast-Fail)
+La filtración de la pirámide (VPHYSICS​⊂VTACTICS​⊂VSTRATEGY​⊂VWISDOM​) no es una sugerencia, es un contrato algebraico implementado mediante clases de datos inmutables (frozen=True).
+Si un agente (LLM) o usuario intenta forzar la instanciación de un objeto de "Sabiduría" (Estrategia) basándose en cimientos físicos corruptos (ej. entropía negativa o costos imposibles), el tipado estricto del sistema lanza una excepción en el milisegundo cero. Este mecanismo Fast-Fail destruye la transacción en la memoria RAM, impidiendo la alucinación antes de que consuma ciclos de procesamiento neuronal. No hay estrategia sin física.
 
 --------------------------------------------------------------------------------
-**4. Ejemplo de Pasabordo Sellado (Acta Digital)**
+4. El Tribunal de Silicio (El Bypass del ESP32)
+El Pasaporte de Telemetría no termina su viaje en la nube. Desciende al hardware perimetral (ESP32), donde la función en C++ isVerdictCoherent() ejecuta una doble contabilidad ciber-física.
+El microcontrolador lee independientemente las matrices físicas y topológicas del Pasaporte. Si el LLM fue vulnerado (Prompt Injection) y estampó un verdict_code == OK a pesar de que los números de Betti indican β1​>0 (Ciclos) o los polos de Laplace indican inestabilidad, el hardware detecta un MISMATCH. Al instante, el ESP32 ignora al modelo de lenguaje, desactiva el flujo nominal (PIN_Q4_WISDOM) y activa físicamente el circuito Crowbar (PIN_Q3_STRATEGY) para vetar el proyecto en el mundo real.
 
-Este es el documento final que recibe el auditor o el sistema cliente.
+--------------------------------------------------------------------------------
+5. Artefacto Criptográfico (Estructura JSON Inmutable)
+El siguiente es el documento consolidado final que genera la Malla Agéntica y que recibe el auditor financiero o la entidad gubernamental:
 
 {
   "passport_id": "req_8f15c0a2-bcee-4b12",
-  "status": "APPROVED_WITH_WARNINGS",
+  "timestamp_entry": "2026-03-13T10:00:00Z",
+  "data_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "physics_stamp": {
     "agent": "FluxCondenser",
     "metrics": {
-      "system_temperature": 68.5   // ALERTA: Fiebre Inflacionaria
+      "saturation": 0.35,
+      "flyback_voltage": 0.02,
+      "dissipated_power": 12.4,
+      "entropy": 0.15
     },
-    "status": "STABLE"
+    "is_coherent": true
   },
   "topology_stamp": {
     "agent": "BusinessTopologicalAnalyzer",
     "metrics": {
-      "pyramid_stability": 0.69    // CRÍTICO: Monopolio Invisible detectado
+      "beta_0": 1,
+      "beta_1": 0,
+      "euler_characteristic": 1,
+      "pyramid_stability": 0.69
     },
-    "anomalies": ["Alto estrés en nodo: CEMENTO_GRIS"]
+    "anomalies": ["High stress on node: CEMENTO_PORTLAND"],
+    "is_coherent": true
   },
-  "final_narrative": {
-    "verdict": "APROBACIÓN CONDICIONADA",
-    "summary": "El proyecto es viable físicamente, pero presenta una estructura de Pirámide Invertida (Psi=0.69). Se requiere ampliar la base de proveedores de Cemento para mitigar el riesgo de colapso logístico."
+  "spectral_stamp": {
+    "agent": "LaplaceOracle",
+    "metrics": {
+      "poles_location": "LHP",
+      "damping_ratio": 0.407,
+      "lyapunov_exponent": -0.003
+    },
+    "is_stable": true
+  },
+  "wisdom_stamp": {
+    "agent": "SemanticTranslator",
+    "verdict_code": "CRITICAL",
+    "strategic_narrative": "El proyecto es viable en términos termodinámicos y espectrales, pero presenta una topología de Pirámide Invertida (Psi=0.69). Se emite VETO ESTRUCTURAL: Es mandatorio ampliar la base de proveedores de Cemento para evitar el colapso logístico ante disrupciones de mercado."
   }
 }
-
---------------------------------------------------------------------------------
-Este documento define el estándar de interoperabilidad y trazabilidad del ecosistema APU Filter.

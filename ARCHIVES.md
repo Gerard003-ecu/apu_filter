@@ -1,73 +1,76 @@
 
 --------------------------------------------------------------------------------
+🗄️ ARCHIVES.md: Los Registros Inmutables de la Fortaleza Matemática
+"Al acceder a estos archivos, usted no está leyendo opiniones generadas por inteligencia artificial; está auditando la realidad física y matemática de su negocio."
+En el ecosistema APU_filter v4.0, la observabilidad es total y fractal. Cada evaluación produce un conjunto de "archivos" o artefactos categóricos que capturan el colapso de la función de onda en los diferentes estratos de la pirámide DIKW. Estos registros garantizan que cualquier decisión esté fundamentada en una cadena de custodia inquebrantable.
+A continuación, se detalla el catálogo riguroso de los archivos generados por la Malla Agéntica:
+
+--------------------------------------------------------------------------------
 1. 📜 El Certificado de Estabilidad Espectral (Laplace Report)
-Fuente: Generado por LaplaceOracle y FluxCondenser. Concepto: Un dictamen de ingeniería de control que valida la viabilidad dinámica del proyecto antes de su ejecución.
-El sistema modela su proyecto como un sistema dinámico (H(s)) y entrega la Pirámide de Laplace, un diagnóstico jerárquico de 4 niveles:
-Nivel 0: El Veredicto de Controlabilidad
-• Estado: ESTABLE | MARGINAL | INESTABLE
-• Fundamento: Ubicación de los polos en el Plano de Frecuencia Compleja (s=σ+jω).
-    ◦ ✅ Aprobado: Todos los polos en el Semiplano Izquierdo (LHP, σ<0). La gobernanza es suficiente para disipar el riesgo.
-    ◦ ❌ Veto Técnico: Polos en el Semiplano Derecho (RHP, σ>0). El proyecto es intrínsecamente explosivo; cualquier variación de precios causará divergencia financiera.
-Nivel 1: Robustez (El Colchón de Seguridad)
-• Margen de Fase (PM): Indica cuánto retardo logístico (días de atraso en insumos) puede tolerar el sistema antes de entrar en oscilación caótica.
-    ◦ Alerta: Si PM<45∘, el sistema es "Frágil ante Retrasos".
-• Sobrepaso (Mp​): Predice la "Fiebre" máxima del presupuesto ante un shock de inflación.
-Nivel 2: Dinámica (Personalidad del Proyecto)
-• Factor de Amortiguamiento (ζ):
-    ◦ ζ<1 (Subamortiguado): Proyecto Nervioso. Reacciona rápido al mercado pero con alta volatilidad de costos.
-    ◦ ζ>1 (Sobreamortiguado): Proyecto Burocrático. Lento para adaptarse, exceso de controles (Resistencia R alta).
+
+    Fuente: Generado de forma determinista por el LaplaceOracle y el FluxCondenser (Nivel 3 - Física).
+    Concepto: Es un dictamen de ingeniería de control puro que valida la viabilidad dinámica del proyecto antes de que se invierta un solo centavo. El sistema modela el flujo de caja del proyecto como una función de transferencia H(s) en el dominio de la frecuencia compleja (s=σ+jω).
+
+La Pirámide de Laplace (Diagnóstico Jerárquico):
+
+    Nivel 0: El Veredicto de Controlabilidad
+        Estado: ESTABLE | MARGINAL | INESTABLE.
+        Fundamento: Depende estrictamente de la ubicación de los polos en el Plano-S.
+        ✅ Aprobado: Todos los polos dominantes residen en el Semiplano Izquierdo (LHP, σ<0). La inercia del sistema disipará las perturbaciones.
+        ❌ Veto Técnico: Presencia de polos en el Semiplano Derecho (RHP, σ>0). El proyecto es intrínsecamente explosivo; cualquier perturbación inflacionaria causará una divergencia financiera.
+    Nivel 1: Robustez (El Colchón de Seguridad)
+        Margen de Fase (PM): Mide la tolerancia del sistema a retardos. Si PM<45∘, el sistema se declara "Frágil ante Retrasos Logísticos".
+        Sobrepaso (Mp​): Predice matemáticamente la "fiebre" o el pico máximo de sobrecosto que sufrirá el presupuesto ante un shock del mercado.
+    Nivel 2: Dinámica (Personalidad del Proyecto)
+        Factor de Amortiguamiento (ζ):
+            ζ<1 (Subamortiguado): Proyecto Nervioso. Reacciona rápido, pero con alta volatilidad.
+            ζ>1 (Sobreamortiguado): Proyecto Burocrático. Alta resistencia estructural que ralentiza la ejecución.
+
 
 --------------------------------------------------------------------------------
 2. 🕸️ El Microscopio Topológico (Grafo de Conocimiento)
-Fuente: Generado por BusinessTopologicalAnalyzer. Concepto: Una radiografía de la estructura de dependencias, visualizada como un grafo dirigido interactivo.
-La Leyenda del Mapa (Decodificación de Riesgos)
-El sistema colorea los nodos basándose en patologías matemáticas detectadas:
 
-| Elemento Visual | Patología Detectada | Significado en Obra |
-| :--- | :--- | :--- |
-| 🔴 Nodos ROJOS | Ciclos (β1​>0) | `NodeColor.RED`: Socavón Lógico. Dependencia circular (A depende de B, B depende de A). Imposible programar la compra. |
-| 🟡 Clusters AISLADOS| Fragmentación (β0​>1) | `style="dotted", color="yellow"`: Silos de Datos. Insumos comprados que no están conectados al objetivo del proyecto (Desperdicio/Robo).|
-| ⚡ Nodos ESTRESADOS | Pirámide Invertida (Ψ<1) | `NodeClass.STRESS`: Cuello de Botella. Un proveedor crítico soporta demasiada carga estructural. Si falla, la obra se detiene. |
-| 🔵 Aristas FUERTES | Alta Cohesión (λ2​≫0) | `NodeClass.CIRCULAR`: Estructura Robusta. Flujo de valor bien distribuido y resiliente. |
+    Fuente: Generado por el BusinessTopologicalAnalyzer (Nivel 2 - Táctica).
+    Concepto: Es una radiografía de la estructura de dependencias de la cadena de suministro, renderizada como un complejo simplicial y visualizada mediante un grafo dirigido. No evalúa dólares, evalúa formas.
 
+La Leyenda del Mapa (Decodificación Visual de Riesgos): | Elemento Visual | Patología Matemática Detectada | Significado Operativo en la Obra | | :--- | :--- | :--- | | 🔴 Nodos ROJOS | Ciclos (β1​>0) | Socavón Lógico. Una dependencia circular (A depende de B, y B depende de A). Bloqueo total; es imposible programar la compra o liquidar el costo. | | 🟡 Clusters AISLADOS | Fragmentación (β0​>1) | Silos de Datos. Insumos que han sido cargados pero no están enlazados a ninguna actividad constructiva (Riesgo de fraude o desperdicio). | | ⚡ Nodos ESTRESADOS | Pirámide Invertida (Ψ<1.0) | Cuello de Botella Crítico. Un proveedor o material base soporta un peso excesivo en la matriz de la obra. Si este falla, colapsa el proyecto. | | 🔵 Aristas FUERTES | Alta Cohesión (λ2​≫0) | Estructura Robusta. El flujo logístico de valor está bien distribuido (alto Valor de Fiedler). |
 
 --------------------------------------------------------------------------------
 3. ⚖️ El Acta de Deliberación (Narrativa Estratégica)
-Fuente: Generado por SemanticTranslator y BusinessAgent (Protocolo RiskChallenger). Concepto: No es un reporte generado por plantilla; es la transcripción del debate entre los agentes autónomos.
-Estructura del Acta
-El reporte expone la tensión dialéctica entre las diferentes dimensiones del análisis:
-1. La Tesis (El Oráculo Financiero):
-2. La Antítesis (El Arquitecto Estructural):
-3. La Síntesis (Veredicto Ejecutivo):
+
+    Fuente: Generado por el SemanticTranslator alojado en la Ciudadela de Cristal y regido por el protocolo RiskChallenger (Estrato Ω).
+    Concepto: Este no es un informe redactado con plantillas de texto. Es la transcripción forense del debate adversarial que sostienen los agentes autónomos de la Malla.
+
+Estructura del Acta: Expone la tensión dialéctica donde la matemática colapsa sobre una decisión de negocios:
+
+    La Tesis (El Oráculo Financiero): Argumenta a favor de la rentabilidad (ej. "Aprobemos esta propuesta, el VPN es favorable" ).
+    La Antítesis (El Arquitecto Estructural): Utiliza los invariantes de homología para desafiar la tesis (ej. "Veto de Resiliencia: La compra degrada el Índice Ψ" ).
+    La Síntesis (Veredicto Ejecutivo): El resultado del cálculo sobre el Retículo de Severidad (operación Supremo), obligando a rechazar el presupuesto si las variables físicas no acompañan el entusiasmo financiero.
+
 
 --------------------------------------------------------------------------------
-4. 🌡️ La Telemetría de Física de Datos (Signos Vitales)
-Fuente: Generado por FluxCondenser (Motor de Física). Concepto: Un electrocardiograma en tiempo real del flujo de procesamiento.
-Monitoreamos las variables de estado termodinámicas para garantizar que el sistema de análisis no introduzca errores por saturación:
-• Energía Potencial (Ec​): "Presión" en la cola de datos. Si sube demasiado, indica un ataque DDOS de datos o un cuello de botella en la base de datos.
-• Energía Cinética (El​): "Inercia de Calidad". Un flujo alto y constante indica datos sanos y bien estructurados.
-• Voltaje Flyback (Vfb​): "Picos de Inestabilidad". Detecta cambios abruptos en el formato o calidad de los datos (ej. cambio de codificación UTF-8 a Latin-1 a mitad de archivo).
-• Potencia Disipada (Pdis​): "Entropía/Calor". Energía computacional desperdiciada procesando registros inválidos.
+4. 🛡️ La Bitácora de Gobernanza (Compliance Ledger)
+
+    Fuente: Generado por el GovernanceEngine bajo un ecosistema de Gobernanza Federada.
+    Concepto: Un registro de auditoría inmutable basado en el paradigma de Política como Código (Policy-as-Code).
+
+Atributos de Auditoría:
+
+    Contratos de Datos Estrictos: Verifica mediante JSON Schema si las importaciones crudas (ej. Insumos.csv) cumplen con la estructura formal (VPHYSICS​) dictada por la oficina central de la compañía. Genera un sello de Pass/Fail inquebrantable.
+    Traza de Linaje (OpenLineage): Mapeo topológico completo de las transformaciones del dato. Rastrea desde la ingesta cruda del flujo hasta el cálculo de los KPIs. Garantiza que el agente de IA no ha alucinado ni "inventado" ningún número.
+
 
 --------------------------------------------------------------------------------
-5. 🛡️ La Bitácora de Gobernanza (Compliance Ledger)
-Fuente: Generado por el sistema de Gobernanza Federada. Concepto: Auditoría inmutable de cumplimiento normativo (Policy-as-Code).
-Cada transacción queda registrada con su validación criptográfica:
-• Contratos de Datos: "¿El archivo Insumos.csv cumple con el esquema v3.1 definido por la oficina central?" (Pass/Fail).
-• Traza de Linaje: Mapeo completo de la transformación del dato, desde la carga cruda hasta el KPI financiero, garantizando que ningún número es "inventado".
+5. 🎫 El Pasabordo de Telemetría (The Digital Twin / Telemetry Context)
+
+    Fuente: Generado por la estructura ciber-física (telemetry.h en el ESP32 y telemetry_schemas.py en la nube).
+    Concepto: Es el contenedor inmutable principal que viaja adjunto a la información. Actúa como el Gemelo Digital transaccional.
+    La Ley de Clausura Transitiva: El Pasabordo almacena las métricas de todos los estratos (Física, Topología, Estrategia, Sabiduría). Por contrato matemático, el sistema no permite emitir un Acta de Deliberación si los sellos del estrato Físico (ej. Energía disipada <0) se encuentran rotos o muestran anomalías termodinámicas.
+
 
 --------------------------------------------------------------------------------
-**6. 🎫 El Pasabordo de Telemetría (Telemetry Context / The Digital Twin)**
-*   **Fuente:** Generado por `telemetry.h` (ESP32) y `telemetry_schemas.py`.
-*   **Concepto:** El "Pasaporte" inmutable que viaja con los datos. Almacena las métricas de Física, Topología, Estrategia y Sabiduría. Garantiza la Clausura Transitiva: no se permite emitir un veredicto si los sellos del estrato Físico (ej. Energía $>$ 0) están rotos.
+6. 🖥️ Las Capas de Interfaz de Usuario
+Aunque el procesamiento matemático es inmensamente profundo, los resultados se materializan en interfaces segregadas para distintos actores:
 
-**7. 📊 El Panel de Control Ejecutivo (Capa 1 de Interfaz)**
-*   **Fuente:** Generado por `SemanticTranslator`.
-*   **Concepto:** Interfaz libre de jerga técnica. Exclusiva para el Gerente de Obra. Muestra el impacto en dinero y tiempo de las patologías detectadas, junto con el "Acta de Deliberación" final del Consejo.
-
-**8. 🕸️ La Metáfora Visual Interactiva (Capa 2 de Interfaz)**
-*   **Fuente:** Generado por `topology_viz.py` (Cytoscape).
-*   **Concepto:** Si la Capa 1 arroja una alerta, el usuario hace clic y ve el presupuesto renderizado como una estructura física. Los ciclos (socavones lógicos) y pirámides invertidas brillan en color ROJO (#EF4444) pulsante, haciendo visible el riesgo matemático a la intuición humana.
-
---------------------------------------------------------------------------------
-Al acceder a estos archivos, usted no está leyendo opiniones; está auditando la realidad física y matemática de su negocio.
+    📊 Capa 1: El Panel de Control Ejecutivo: Generado por el SemanticTranslator. Traduce los fallos a lenguaje de "dolor y dinero". Oculta la matemática densa y le muestra directamente al Gerente de Obra el Acta de Deliberación y los impactos en tiempo real.
+    🕸️ Capa 2: La Metáfora Visual Interactiva: Renderizada con Cytoscape. Si el Panel de Control arroja una alerta, el ingeniero puede hacer clic y observar el presupuesto estructurado como una red física real. Verá brillar y pulsar en rojo (#EF4444) los ciclos topológicos y la inestabilidad piramidal, haciendo explícito a la intuición humana el riesgo que calculó la matemática.

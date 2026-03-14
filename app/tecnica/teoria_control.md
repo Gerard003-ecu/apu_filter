@@ -1,58 +1,56 @@
+🎛️ teoria_control.md: Ingeniería de Control y Estabilidad Dinámica
+"En APU Filter, la ingesta y el procesamiento de datos no se rigen por heurísticas simples o validaciones estáticas. Tratamos el flujo de datos como un sistema dinámico complejo y aplicamos Teoría de Control de grado industrial para garantizar su estabilidad matemática."
+Este documento formaliza la arquitectura matemática y los algoritmos subyacentes que gobiernan el comportamiento cibernético del sistema, específicamente implementados en flux_condenser.py y supervisados por el Oráculo de Laplace.
 
 --------------------------------------------------------------------------------
-**1. Arquitectura de Control Híbrida**
-Implementación: app/flux_condenser.py -> PIController y DataFluxCondenser.
-El sistema utiliza una topología de Control por Prealimentación (Feedforward) aumentada con Retroalimentación (Feedback).
-u(t)=Feedback (Error)uPI​(e)​​+Feedforward (Complejidad)uFF​(ΔC)​​+ProteccioˊnuSafety​​​
-1.1 Diagrama de Bloques Lógico
-1. Planta: El proceso de ingestión de datos (Batch Processing).
-2. Sensor: El Motor de Física (FluxPhysicsEngine) que mide Saturación (V), Corriente (I) y Potencia (P).
-3. Estimador de Estado: Un Filtro de Kalman Extendido (EKF) que predice la saturación futura.
-4. Controlador: Algoritmo PI Discreto con Feedforward basado en complejidad.
+1. Arquitectura de Control Híbrida
+El ecosistema utiliza una topología de Control por Prealimentación (Feedforward) aumentada con Retroalimentación (Feedback). Esta arquitectura permite al sistema no solo reaccionar a los errores, sino anticiparse a las perturbaciones en el flujo de información.
+La ley de control global del sistema se define como: u(t)=uPI​(e)+uFF​(ΔC)+uSafety​
+Diagrama de Bloques Lógico:
+
+    Planta: El proceso de ingestión de datos masivos (Batch Processing).
+    Sensor: El Motor de Física (FluxPhysicsEngine) que mide la Saturación (V), la Corriente (I) y la Potencia disipada (P).
+    Estimador de Estado: Un Filtro de Kalman Extendido (EKF) que predice la saturación futura del sistema.
+    Controlador: Un algoritmo PI Discreto combinado con una etapa Feedforward basada en la complejidad.
+
 
 --------------------------------------------------------------------------------
-**2. El Controlador PI Discreto (Feedback)**
-Objetivo: Eliminar el error de estado estacionario (e(k)=SP−PV) manteniendo la saturación del sistema al 30%.
-Utilizamos la forma posicional discreta con mejoras anti-windup avanzadas:
-uPI​(k)=Kp​⋅e(k)+Ki​i=0∑k​e(i)⋅Δt
-Mecanismos de Robustez Implementados:
-• Anti-Windup (Clamping Condicional + Back-calculation): A diferencia de un anti-windup simple, el sistema usa Back-calculation. Si el actuador (tamaño del batch) se satura, recalcula el término integral para que sea consistente con la salida real, evitando que el error se "acumule" fantasmagóricamente mientras el sistema está al límite.
-• Slew Rate Limiting (Anti-Jerk): Limitamos la tasa de cambio de la salida (du/dt) para evitar cambios bruscos en el tamaño del lote que podrían inestabilizar la base de datos o la memoria.
+2. El Controlador PI Discreto (Feedback)
+El objetivo primario del lazo cerrado es eliminar el error de estado estacionario (e(k)=SP−PV) manteniendo la saturación de la memoria en un Setpoint óptimo del 30% (Flujo Laminar).
+El sistema emplea la forma posicional discreta del controlador Proporcional-Integral: uPI​(k)=Kp​⋅e(k)+Ki​i=0∑k​e(i)⋅Δt
+Para garantizar la robustez en entornos de alta demanda, se implementaron mecanismos defensivos rigurosos:
+
+    Anti-Windup (Clamping Condicional + Back-calculation): A diferencia de un recorte simple, el sistema utiliza back-calculation. Si el actuador (el tamaño del lote) se satura físicamente, el algoritmo recalcula dinámicamente el término integral para que sea congruente con la salida real. Esto evita que el error se acumule "fantasmagóricamente" e induzca oscilaciones cuando el sistema sale de la saturación.
+    Slew Rate Limiting (Anti-Jerk): Se acota estrictamente la tasa de cambio de la salida (du/dt). Esto previene variaciones bruscas y destructivas en el tamaño del lote que podrían inestabilizar la memoria de la base de datos o causar latencia.
+
 
 --------------------------------------------------------------------------------
-**3. Control Feedforward Adaptativo (Anticipación)**
-Implementación: DataFluxCondenser._stabilize_batch.
-El control feedback es intrínsecamente lento (debe esperar a que ocurra el error). Para compensar, el Guardián "mira hacia adelante":
-• Variable de Perturbación: La Complejidad Ciclomática del texto en los datos crudos.
-• La Lógica: Si el sistema detecta que el siguiente bloque de texto es matemáticamente más denso (mayor entropía o longitud), reduce el tamaño del batch antes de que aumente la saturación de memoria.
-• Ecuación de Ajuste: uFF​=KFF​⋅(dtdC​+0.5dt2d2C​)
- El sistema reacciona no solo al cambio de complejidad (dC/dt), sino a la aceleración del cambio (d2C/dt2), actuando como un amortiguador predictivo.
+3. Control Feedforward Adaptativo (Anticipación)
+Dado que el control por retroalimentación es intrínsecamente reactivo (debe esperar a que ocurra el error de saturación para actuar), el Guardián implementa una lógica de anticipación mirando "hacia adelante" en la cola de procesamiento.
+
+    Variable de Perturbación: Se calcula la Complejidad Ciclomática (C) del texto en los datos crudos.
+    Lógica Predictiva: Si el sensor detecta que el siguiente bloque de texto es matemáticamente más denso (mayor entropía térmica o longitud), el controlador reduce el tamaño del lote antes de que la saturación real impacte la memoria.
+    Ecuación de Ajuste Cinemático: El sistema reacciona a la velocidad y a la aceleración del cambio de complejidad mediante la ecuación: uFF​=KFF​⋅(dtdC​+0.5dt2dt2d2C​)
+     Esto permite que el control actúe como un amortiguador predictivo perfecto.
+
 
 --------------------------------------------------------------------------------
-**4. El Oráculo de Estado: Filtro de Kalman Extendido (EKF)**
-Implementación: _predict_next_saturation.
-No esperamos a medir la saturación; la predecimos. El sistema implementa un EKF que modela la saturación como un oscilador armónico amortiguado con punto de equilibrio variable.
-Modelo de Estado del EKF:
-Estado vector x=[s,v,a]T (Saturación, Velocidad, Aceleración). s˙=v
+4. El Oráculo de Estado: Filtro de Kalman Extendido (EKF)
+El sistema no espera a medir la saturación actual; la predice utilizando un modelo de observabilidad de estado.
+El EKF modela la saturación de memoria como un oscilador armónico amortiguado que tiende hacia un punto de equilibrio dinámico. El vector de estado se define como x=[s,v,a]T (Saturación, Velocidad, Aceleración).
+El modelo cinemático interno sigue las ecuaciones diferenciales: s˙=v
  v˙=a−βv−ω2(s−seq​)
  a˙=−γa+wa​
-• Adaptación de Parámetros: El filtro ajusta dinámicamente sus propios parámetros internos (ω frecuencia natural, β amortiguamiento) basándose en la "innovación" (error de predicción), permitiéndole distinguir entre ruido de medición y tendencias reales del sistema.
+Adaptación de Parámetros: El EKF ajusta continuamente sus parámetros estructurales, como la frecuencia natural (ω) y el coeficiente de amortiguamiento (β), basándose en la "innovación" (la diferencia entre la saturación medida y la predicha). Esta dinámica le permite discriminar con precisión matemática entre el ruido estocástico de las mediciones y las tendencias reales de colapso del sistema.
 
 --------------------------------------------------------------------------------
-**5. Análisis de Estabilidad en Tiempo Real**
-El sistema no asume estabilidad; la calcula matemáticamente en cada ciclo.
-**5.1 Criterio de Jury (Validación Estática)**
-Al inicio, validamos que los parámetros del controlador (Kp​,Ki​) no violen la estabilidad del lazo cerrado discreto. Verificamos que las raíces del polinomio característico estén dentro del círculo unitario (∣z∣<1).
-**5.2 Exponente de Lyapunov (Validación Dinámica)**
-Implementación: _update_lyapunov_metric. Durante la ejecución, estimamos el Exponente de Lyapunov (λ) de la serie temporal del error. ∣e(k)∣≈∣e(0)∣⋅eλk
-• λ<0 (Convergencia): El sistema es estable; el error decae exponencialmente.
-• λ>0 (Caos): El sistema está divergiendo. El Guardián detecta esto como una "Falla de Control" y activa el Freno de Emergencia antes de que ocurra un desbordamiento de memoria (OOM).
+5. Análisis de Estabilidad en Tiempo Real
+El ecosistema no asume que la red es estable; lo demuestra matemáticamente en cada ciclo de ingestión mediante dos enfoques de frontera.
+5.1 Criterio de Jury (Validación Estática)
+Antes de iniciar operaciones, el Oráculo de Laplace valida que los parámetros sintonizados del controlador (Kp​, Ki​) no introduzcan resonancia. Evalúa el polinomio característico en el dominio discreto (z), exigiendo que todas las raíces residan estrictamente dentro del círculo unitario (∣z∣<1).
+Adicionalmente, se modela la dinámica en el plano complejo continuo (s=σ+jω). Si cualquier polo migra al Semiplano Derecho (σ>0), el sistema dictamina Divergencia Matemática y veta la operación por ser intrínsecamente explosiva.
+5.2 Exponente de Lyapunov (Validación Dinámica)
+Durante la ejecución continua, el FluxCondenser estima en tiempo real el Exponente de Lyapunov máximo (λ) de la serie temporal del error. La evolución del error se aproxima mediante: ∣e(k)∣≈∣e(0)∣⋅eλk
 
---------------------------------------------------------------------------------
-**6. Filtrado de Señal: EMA Adaptativo**
-Implementación: _apply_ema_filter.
-La señal de saturación suele ser ruidosa. No usamos un promedio simple. Implementamos un filtro de Media Móvil Exponencial (EMA) donde el factor α varía según la volatilidad estadística:
-• Alta varianza (Ruido): α disminuye (mayor suavizado).
-• Cambio escalón (Step): Si se detecta un cambio brusco real, el filtro "abre la compuerta" (bypass) para reaccionar rápido, evitando el retraso de fase típico de los filtros pasabajos.
-
---------------------------------------------------------------------------------
+    Convergencia (λ<0): El lazo de control es asintóticamente estable; las perturbaciones decaen exponencialmente y el sistema absorbe la entropía.
+    Caos Determinista (λ>0): Las trayectorias del error están divergiendo. El Guardián físico identifica instantáneamente esta firma matemática como una "Falla de Control" y acciona el circuito Crowbar (Freno de Emergencia físico en el ESP32) abortando la ingesta de datos antes de que se materialice un error de desbordamiento de memoria (OOM)

@@ -1,16 +1,13 @@
 
-Cualquier tecnología suficientemente avanzada es indistinguible de la magia. Aquí revelamos el truco: no es magia, es Matemática Aplicada y Física de Datos operando bajo una capa de absoluta Empatía Táctica."
-Este documento detalla la Arquitectura Cognitiva que utiliza el Consejo de Sabios para traducir la topología algebraica y la física de datos en Sabiduría Estratégica. En la construcción, donde la presión de cronogramas y la volatilidad son extremas, el sistema no debe generar "alarmas matemáticas" que aumenten la carga cognitiva del usuario, sino entregar asesoría prescriptiva, empática y orientada a proteger el flujo de caja.
+--------------------------------------------------------------------------------
+🗣️ LENGUAJE_CONSEJO.md: El Lenguaje Secreto (La Arquitectura Cognitiva)
+"Cualquier tecnología suficientemente avanzada es indistinguible de la magia. Aquí revelamos el truco: no es magia, es Matemática Aplicada y Física de Datos operando en un sustrato Ciber-Físico."
+En el ecosistema APU_filter v4.0, la matemática abstracta carece de valor si no logra generar una acción correctiva en el mundo físico. Este documento detalla la Arquitectura Cognitiva utilizada por el Consejo de Sabios (específicamente por el Agente Intérprete Diplomático) para convertir datos crudos (vectores, invariantes topológicos, corrientes eléctricas) en Sabiduría Estructural.
+Explicamos aquí cómo la matemática profunda de la Matriz de Interacción Central (MIC) se traduce al lenguaje pragmático del gerente de obra enfocado en el "riesgo y dinero".
 
 --------------------------------------------------------------------------------
-1. Revelación Progresiva (La Interfaz en Capas)
-Para evitar abrumar a un gerente de proyecto que intenta sortear una crisis logística, el sistema oculta la matemática pura bajo un diseño de revelación progresiva.
-• Capa 1 - Ejecutiva (Prescripción): Libre de ecuaciones. El Intérprete Diplomático reporta el dolor del negocio y la ruta de salida (ej. "Se ha detectado un Socavón Lógico en la fase de mampostería. Recomendamos destrabar las compras").
-• Capa 2 - Caja de Cristal (Auditoría Matemática): Completamente opcional. Solo si el usuario hace clic en "Verificar Rigor Matemático", el sistema despliega los invariantes topológicos (los complejos simpliciales, los números de Betti β1​) que fundamentan la decisión.
-
---------------------------------------------------------------------------------
-2. El Diccionario de Empatía Táctica (La Piedra Rosetta)
-El Consejo abandona el tono frío y alarmista (como gritar "¡Inestabilidad Piramidal!") para adoptar un enfoque de "Sabiduría como Servicio", contextualizando el riesgo y ofreciendo salidas inteligentes
+1. El Diccionario Topológico-Civil (La Piedra Rosetta)
+Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta los invariantes matemáticos crudos, sino que los mapea semánticamente a patologías estructurales de la construcción de fácil comprensión.
 
 | Invariante (La Matemática) | Diagnóstico Ejecutivo (La Traducción) | Impacto Tangible (El Dolor) |
 | :--- | :--- | :--- |
@@ -22,21 +19,25 @@ El Consejo abandona el tono frío y alarmista (como gritar "¡Inestabilidad Pira
 
 
 --------------------------------------------------------------------------------
-3. El Guardián Insobornable: El Freno Físico (ESP32)
-El nodo de hardware perimetral (ESP32) no es un simple capricho técnico en el barro de la obra; es el gatekeeper físico que protege directamente la rentabilidad del modelo de negocio.
-• El Concepto: En la construcción, la realidad es física y el internet falla. La burocracia humana a menudo permite excepciones por presión de la obra.
-• La Acción: Cuando el hardware detecta "Fiebre Inflacionaria" o un riesgo letal en la topología, el ESP32 actúa como un freno insobornable de la caja fuerte. Físicamente impide la firma de contratos o el giro de anticipos en el origen, bloqueando la transacción antes de que la entropía administrativa o el sobrecosto contamine a la sede central de la constructora.
+2. El Diccionario Dinámico-Financiero (Frecuencia Compleja)
+El Oráculo de Laplace y el Guardián Físico modelan el comportamiento estocástico del mercado en el plano-S (s=σ+jω). El Intérprete traduce estos vectores continuos en arquetipos de riesgo financiero:
+--------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
-4. La Pirámide del Edificio Vivo (Mapeo DIKW)
-Para el Intérprete Bilingüe, su presupuesto es la simulación de un edificio físico. Cada estrato de procesamiento informático (Modelo DIKW) corresponde a un estrato constructivo real:
-• Nivel 3 - FÍSICA (Cimentación de Recursos): Los datos crudos y el hardware ESP32. Evaluamos la turbulencia y evitamos el ingreso de datos corruptos.
-• Nivel 2 - TÁCTICA (Cuerpo Táctico): Los APUs. Es la superestructura lógica. Aquí buscamos "Socavones" y "Recursos Huérfanos".
-• Nivel 1 - ESTRATEGIA (Pilares Financieros): Los Capítulos del presupuesto. Evaluamos la "Fiebre Inflacionaria" y aplicamos pensamiento lateral (ej. opciones reales).
-• Nivel 0 - SABIDURÍA (El Ápice): El dictamen final de viabilidad emitido por el Consejo con empatía táctica.
+3. La Arquitectura Cognitiva de la Traducción (GraphRAG y Retículos)
+El Agente a cargo de esta traducción es el Intérprete Diplomático (SemanticTranslator). Opera estrictamente bajo los siguientes paradigmas ciber-físicos:
+A. Empatía Táctica mediante GraphRAG
+La matemática compleja es ruido si no se traduce en acción. El Intérprete no escupe un reporte que diga "Fallo estructural: β1​=3". Utiliza un Grafo de Conocimiento y Modelos de Lenguaje Vectorial (FAISS + Sentence-Transformers) para comprender que el error está ligado a la mampostería, redactando: "Se detectaron tres dependencias circulares críticas en la Mampostería que paralizarán el flujo de compras".
+B. El Retículo de Severidad (La Operación Supremo ⊔)
+El Intérprete no tiene autoridad deductiva para decidir si el proyecto es viable, está subordinado a la matemática. Las decisiones se basan en un Retículo Algebraico Acotado (⊥≤Veredicto≤⊤). El sistema aplica la operación Supremo (⊔). Si el Oráculo Financiero dictamina VIABLE (⊥) pero el Arquitecto Topológico dictamina un fallo por Pirámide Invertida CRÍTICO (⊤), el sistema ejecuta: VIABLE⊔CRITICO=CRITICO
+ El Intérprete recibe un vector inmutable y bloqueado, viéndose forzado a redactar un Veto Estructural indiscutible.
 
 --------------------------------------------------------------------------------
-5. El Álgebra de Decisiones y el Pensamiento Lateral
-El Consejo de Sabios nunca promedia el riesgo; aplica el operador matemático "Supremo" (la Política del Peor Caso) bajo la Teoría de Retículos.
-• Si las finanzas son excelentes pero la topología colapsa, el veredicto es RECHAZAR.
-• El Debate (Pensamiento Lateral): Antes de emitir un rechazo rotundo, el Risk Challenger busca compensaciones (hedges). Por ejemplo, si detecta un "Monopolio Invisible" (Ψ<1.0) debido a la alta dependencia de un solo proveedor, pero reconoce que los precios están fijos (baja "Fiebre Inflacionaria") y la obra está bajo presión extrema de tiempo, el Consejo redacta el acta proponiendo alternativas prevalidadas y aprobando bajo una excepción estratégica, asumiendo la realidad y las presiones del constructor
+4. El Protocolo de Emisión: Actas de Deliberación ("Caja de Cristal")
+Cuando el Consejo de Sabios se pronuncia, no entrega un informe genérico. Entrega un documento forense llamado Acta de Deliberación, estructurado como un debate adversarial guiado por el RiskChallenger:
+
+    1. La Tesis (El Oráculo): "Solicito aprobación para el Lote de Acero #405. Es un 15% más económico, lo que maximiza la utilidad inmediata del proyecto (VPN)."
+    2. La Antítesis (El Arquitecto): "¡VETO DE RESILIENCIA! El análisis de Frecuencia Compleja muestra que este proveedor introduce un polo σ>0. El ahorro actual no justifica la resonancia destructiva del cronograma."
+    3. La Síntesis Ejecutiva (El Veredicto del Intérprete): "RECHAZADO. El sistema asume el peor caso topológico. Se prioriza la estabilidad termodinámica de la obra sobre la ganancia marginal contable."
+
+Al utilizar este Lenguaje de Consejo, los directivos y gerentes de proyecto dejan de discutir contra un "software opaco" y comienzan a gobernar basándose en la física inquebrantable de su propio negocio.

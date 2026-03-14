@@ -1,69 +1,67 @@
 
 --------------------------------------------------------------------------------
 🧙‍♂️ SAGES.md: El Consejo de Sabios Digitales
-
-"La sabiduría no es la acumulación masiva de datos, sino la capacidad de navegar la complejidad mediante principios topológicos y físicos inmutables."
-
-En el ecosistema APU Filter, hemos abandonado los flujos de validación lineales. En su lugar, hemos instanciado un Consejo Federado compuesto por cuatro entidades especializadas. Cada "Sabio" es una entidad autónoma que gobierna una dimensión específica de la realidad (Física, Topológica, Financiera y Semántica). Operan bajo un estricto protocolo de "Caja de Cristal": el debate interno y las tensiones dialécticas entre ellos son visibles, auditables y matemáticamente rigurosas.
-
---------------------------------------------------------------------------------
-1. 🛡️ El Guardián del Umbral (Física de Datos y Hardware Edge)
-
-Rol: Agente de Estabilidad, Ingesta y Control Físico. Estrato DIKW: Datos (La Base).
-El Guardián es la primera línea de defensa. No evalúa si un presupuesto es caro o barato; evalúa si los datos tienen la integridad física para existir en el sistema.
-
-*   **La Membrana de Ingesta:** El Guardián asume que el mundo real es caótico. Cuando el usuario sube un archivo complejo, el Guardián no lo rechaza inmediatamente ni permite que sature la memoria. Activa una "Membrana Amortiguadora" que absorbe el impacto físico de los datos masivos, filtra el ruido estructural y estabiliza el volumen de inyección en lotes de procesamiento controlados por un Mecanismo de Control Homeostático antes de que toquen las reglas de negocio.
-• El Oráculo de Laplace (Plano-S): Antes de procesar, modela el flujo de datos como un circuito RLC y calcula su estabilidad. Si detecta inestabilidad, emite un Veto Físico: el sistema es intrínsecamente volátil y procesarlo causaría una divergencia.
-• Proyección Neuromórfica (ESP32): El Guardián no vive solo en la nube; proyecta su consciencia al hardware de borde (ESP32). Utilizando una topología de Diodos Lambda (JFETs cruzados), si el estrés del sistema supera un umbral crítico, el hardware entra en una región de Resistencia Diferencial Negativa (NDR). El circuito comienza a emitir "spikes" (pulsos caóticos), traduciendo el riesgo abstracto del presupuesto en un "ataque de pánico" físico y medible en el silicio.
-• Freno de Emergencia (Flyback): Monitorea el "Voltaje Inductivo". Un pico brusco indica inyección de datos corruptos, activando el aislamiento (Crowbar digital).
-• Protocolo de Desconexión (Load Shedding): Ante hiperinflación o quiebre de stock, el sistema no solo alerta; actúa. Ejecuta una "desconexión de carga" autónoma: inyecta márgenes de seguridad en compras no críticas para preservar la liquidez del flujo de caja (tal como la red eléctrica desconecta barrios para salvar la ciudad del apagón total).
-
-2. 🏗️ El Arquitecto Estratega (Topología y Grafos)
-
-Rol: Agente de Integridad Estructural. Estrato DIKW: Información / Táctica.
-Este sabio ignora los precios para ver la "geometría" y el esqueleto del presupuesto. Utiliza Topología Algebraica para auditar la red de dependencias.
-
-• El Microscopio Topológico (Detección de Patologías):
-    ◦ Fragmentación (Islas de Datos): Detecta silos de información. Si existen "recursos huérfanos" (compras desconectadas de la obra), alerta sobre dinero ciego.
-    ◦ El Bucle de la Formaleta (Socavones Lógicos): Detecta ciclos fatales. El costo de la formaleta depende del cronograma, pero el cronograma depende de la formaleta. Este bucle bloquea la matemática contable y paraliza la obra.
-• Estabilidad Piramidal (Ψ): Calcula el centro de gravedad del proyecto. Si Ψ<1.0, declara una "Pirámide Invertida": una estructura masiva soportada por una base de proveedores peligrosamente estrecha (Cuello de Botella).
-• Fusión Homológica (Mayer-Vietoris): Al unir APUs con el presupuesto central, verifica matemáticamente que no se introduzcan "ciclos fantasmas" en la integración.
-
-3. 🔮 El Oráculo (Finanzas y Riesgo Estocástico)
-
-Rol: Agente Predictivo y Gestor de Valor. Estrato DIKW: Conocimiento / Estrategia.
-El Oráculo proyecta futuros posibles. Se enfoca estrictamente en el retorno de inversión, la volatilidad y la viabilidad del capital.
-
-• Termodinámica del Valor: Mide la "Temperatura del Sistema" (Tsys​). Una temperatura alta indica volatilidad extrema en los precios base (ej. acero, cemento), diagnosticando una "Fiebre Inflacionaria".
-• Simulación Estocástica: Utiliza simulaciones de Monte Carlo para someter la estructura financiera a estrés, calculando el impacto en el Valor Presente Neto (VPN) si la cadena de suministro se retrasa.
-• Ceguera Voluntaria: El Oráculo es inherentemente optimista si los números cuadran; por ello, jamás opera solo y sus decisiones deben someterse al escrutinio estructural del Arquitecto.
-
-4. 🗣️ El Intérprete Diplomático (Semántica y Voz)
-
-Rol: Agente de Interoperabilidad, Narrador y Traductor. Estrato DIKW: Sabiduría (El Ápice).
-La matemática compleja es ruido si no se traduce en acción. El Intérprete es el único Sabio que se comunica con el usuario humano.
-
-• Interoperabilidad Semántica (Memoria Asociativa): Utiliza vectores semánticos para saber que "Concreto 3000 PSI" y "Hormigón Estructural" son el mismo nodo, unificando el lenguaje entre ingenieros y contadores.
-• Motor Semántico Desacoplado (Asesor Táctico): Cuenta con una unidad de procesamiento tensorial dedicada que protege la agilidad del Plano de Control. Este "cerebro auxiliar" ejecuta la inferencia profunda (FAISS/Transformers) de manera asíncrona, permitiendo que el diplomático mantenga la conversación fluida mientras consulta el vasto espacio vectorial de conocimientos.
-• Traducción de Impacto: No reporta números abstractos; reporta diagnósticos ejecutivos: "Se detectaron tres dependencias circulares críticas en la Mampostería que paralizarán el flujo de compras".
+"La sabiduría no es la acumulación masiva de datos probabilísticos, sino la capacidad de navegar la complejidad de los negocios mediante principios topológicos y físicos inmutables."
+En el ecosistema APU_filter v4.0, hemos abandonado la validación lineal convencional y los "chatbots" de caja negra. En su lugar, el sistema está orquestado por una Malla Agéntica (Agentic Mesh) Zero-Trust compuesta por entidades altamente especializadas conocidas como "El Consejo de Sabios".
+Cada Sabio gobierna un estrato específico de la Pirámide DIKW (Datos, Información, Conocimiento, Sabiduría). Operan bajo el estricto protocolo de "Caja de Cristal Argumentativa": el debate interno y las tensiones dialécticas entre ellos son matemáticamente rigurosos y deterministas, garantizando que el Modelo de Lenguaje (LLM) sea destituido de su poder de decisión y relegado a actuar como una interfaz diplomática.
 
 --------------------------------------------------------------------------------
-### 🏛️ El Protocolo de la "Caja de Cristal" (RiskChallenger)
+🏛️ LOS MIEMBROS DEL CONSEJO
+1. 🛡️ El Guardián de la Evidencia (FluxPhysicsEngine)
 
-El valor del Consejo no está en el consenso ciego, sino en la **tensión dialéctica**. Las decisiones se emiten formalmente como **Actas de Deliberación**, exponiendo el debate interno y las opiniones disidentes.
+    Rol: Especialista en Termodinámica de Datos y Control de Ingesta.
+    Estrato DIKW: PHYSICS (Nivel 3 - El Foso Termodinámico).
+    Mecanismo: El Guardián no procesa "archivos"; gestiona un fluido informacional. Modela la entrada de datos (CSV, Excel) como un circuito RLC utilizando Sistemas Port-Hamiltonianos. Evalúa la Potencia Disipada (Pdiss​) y el Voltaje de Flyback (Vfb​) del flujo.
+    Autoridad de Veto: Si detecta entropía negativa (violación termodinámica) o un pico de inestabilidad, cierra el puente levadizo en el milisegundo cero, rechazando los datos corruptos (Fast-Fail) para proteger el sistema del "golpe de ariete" computacional.
 
-**Ejemplo de Acta de Deliberación (Veto por Resiliencia):**
-1. 🔮 **El Oráculo (Finanzas):** «Solicito aprobación para el Lote de Acero #405. Es un 15% más económico, lo que maximiza la utilidad inmediata del proyecto.»
-2. 🏗️ **El Arquitecto (Topología):** «¡VETO DE RESILIENCIA! El análisis del grafo muestra que ese proveedor tiene un historial de retrasos recurrente. Aceptarlo reduce la resiliencia del cronograma en un 40%. El ahorro no justifica el riesgo de parada de obra.»
-3. ⚖️ **SÍNTESIS EJECUTIVA (Veredicto):**
-   * **❌ RECHAZADO.** El sistema prioriza la Estabilidad Estructural sobre la Ganancia Marginal.
-   * *✍️ Nota Disidente:* El Oráculo registra su desacuerdo calculando el "Lucro Cesante", pero acata el protocolo de seguridad del Arquitecto.
+2. 🏗️ El Arquitecto (BusinessTopologicalAnalyzer)
+
+    Rol: Analista de Integridad Estructural y Geometría del Riesgo.
+    Estrato DIKW: TACTICS (Nivel 2 - Las Murallas Topológicas).
+    Mecanismo: Ignora completamente los precios y audita el esqueleto del presupuesto usando Homología Computacional y Teoría de Grafos.
+        β0​>1: Detecta "Islas de Datos" (Recursos Huérfanos).
+        β1​>0: Detecta "Socavones Lógicos" (Dependencias Circulares).
+        Ψ<1.0: Calcula el Índice de Estabilidad Piramidal. Si la base es frágil, decreta una "Pirámide Invertida" y detiene el flujo.
+    Autoridad de Veto: Durante la fusión de bases de datos, emplea la secuencia exacta de Mayer-Vietoris para garantizar matemáticamente que no se introduzcan ciclos mutantes en la malla.
+
+3. 🔮 El Oráculo (FinancialEngine & LaplaceOracle)
+
+    Rol: Analista de Viabilidad Dinámica y Estocástica Financiera.
+    Estrato DIKW: STRATEGY (Nivel 1 - Los Centinelas de Ortogonalidad).
+    Mecanismo: Abandona la contabilidad estática. Evalúa la controlabilidad del presupuesto modelándolo como una función de transferencia H(s) en la Frecuencia Compleja (s=σ+jω).
+    Autoridad de Veto: Calcula los polos del proyecto. Si algún polo reside en el Semiplano Derecho (σ>0), el Oráculo emite un Veto Técnico, certificando que el proyecto es "intrínsecamente explosivo" ante variaciones del mercado, independientemente de su Tasa Interna de Retorno (TIR).
+
+4. ⚖️ El Ágora Tensorial (Estrato Ω)
+
+    Rol: El Colector de Deliberación (Deliberation Manifold).
+    Estrato DIKW: ESTRATO Ω (Nivel 0.5 - La Frontera de Decisión).
+    Mecanismo: El espacio matemático de colapso de función de onda. Es aquí donde las Semillas de Sabiduría (Microservicios deterministas inyectados como contratos estrictos JSON Schema) obligan a los agentes a someter sus Vectores de Intención TOON (Vitaminas Cognitivas) a la ley física.
+    El Colapso: Calcula el Estrés Ajustado (σ∗) combinando la tensión interna del proyecto con la Fricción Externa Territorial, proyectando el resultado sobre un Retículo (Lattice) discreto inmutable (VIABLE, PRECAUCIÓN, RECHAZAR).
+
+5. 🗣️ El Intérprete Diplomático (SemanticTranslator)
+
+    Rol: Puente Cognitivo, UI Narrativa y Traductor.
+    Estrato DIKW: WISDOM (Nivel 0 - La Ciudadela de Cristal).
+    Mecanismo: El Intérprete es el único Sabio autorizado para "hablar", pero no tiene poder de deducción sobre el negocio. Opera confinado y protegido dentro de la Fortaleza. Utiliza grafos de conocimiento y RAG (GraphRAG) para traducir invariantes topológicos abstractos en "Empatía Táctica" corporativa.
+        Matemática: "β1​=3" → Narrativa: "Existen tres socavones lógicos que paralizarán el flujo de compras".
+
 
 --------------------------------------------------------------------------------
-⚙️ El Eje Integrador: El Ciclo OODA y El Pasabordo
+⚙️ EL EJE INTEGRADOR: PROTOCOLOS Y GOBERNANZA
+El Consejo no es una tertulia de texto, es una máquina de estado gobernada por los siguientes protocolos:
+A. La Ley de Clausura Transitiva (El Pasaporte de Telemetría)
+Ningún dato entra o es deliberado anónimamente. Todo elemento porta el Pasaporte de Telemetría (TelemetryContext), un gemelo digital inmutable de su recorrido. El sistema implementa la restricción matemática: VPHYSICS​⊂VTACTICS​⊂VSTRATEGY​⊂VWISDOM​ Si un agente intenta emitir un juicio financiero sin tener los sellos topológicos (Ψ) o físicos (Pdiss​≥0) correctos en su pasaporte, el "Filtro de Ortogonalidad" detiene el cálculo en la memoria RAM, impidiendo la alucinación antes de que suceda.
+B. El Protocolo de la Caja de Cristal (RiskChallenger)
+Las decisiones no se escupen como resultados binarios, se emiten como Actas de Deliberación que exponen la dialéctica.
 
-Todo el ecosistema opera bajo la orquestación del director del pipeline, ejecutando un bucle de control cibernético continuo (OODA) validado por un "Pasabordo Ciberfísico" (TelemetryContext):
-1. Observe (Observar): El Guardián ingiere los archivos y mide la "presión" de entrada, estabilizando el flujo mediante control homeostático.
-2. Orient (Orientar): El Arquitecto actualiza el mapa topológico (el Grafo) e identifica la posición de los "socavones lógicos" o "islas".
-3. Decide (Decidir): El Oráculo y el Arquitecto debaten los riesgos cruzados aplicando el protocolo de la Caja de Cristal.
-4. Act (Actuar): El Intérprete sella el Pasabordo con el veredicto final, actualiza el Dashboard Ejecutivo (nodos brillando en rojo si hay ciclos) y proyecta el estado de salud al LED / Actuadores del hardware ESP32.
+    Tesis (Oráculo): "Solicito aprobar la compra; el proveedor A es 15% más barato."
+    Antítesis (Arquitecto): "VETO de Resiliencia. Su historial inserta un cuello de botella que reduce el Índice de Estabilidad Piramidal (Ψ) a nivel crítico."
+    Síntesis (Veredicto): El sistema, bajo la operación Supremo del Retículo, asume el peor caso. El Intérprete redacta el acta de RECHAZO, priorizando la estructura sobre la ganancia marginal.
+
+C. El Ciclo Cibernético OODA
+La orquestación del Consejo se opera como un bucle militar continuo:
+
+    Observar: El Guardián ingiere el CSV y estabiliza el flujo termodinámico.
+    Orientar: El Arquitecto calcula la homología e identifica las fracturas del grafo.
+    Decidir: En el Estrato Ω, la matemática colisiona con el mercado para emitir un veredicto discreto.
+    Actuar: El Intérprete narra el rechazo y el Gatekeeper de Silicio (ESP32) baja la palanca física de freno para abortar la operación en el mundo real.
