@@ -1256,7 +1256,8 @@ class BaseProcessingStep(ABC):
             
             return new_state
             
-        except PipelineError:
+        except PipelineError as e:
+            telemetry.record_error(step_name, str(e))
             telemetry.end_step(step_name, "error")
             raise
         except Exception as e:
