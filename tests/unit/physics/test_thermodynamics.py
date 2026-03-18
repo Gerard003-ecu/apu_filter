@@ -1049,7 +1049,7 @@ class TestBusinessTopologicalAnalyzer(unittest.TestCase):
     """
 
     def setUp(self) -> None:
-        self.analyzer = BusinessTopologicalAnalyzer()
+        self.analyzer = BusinessTopologicalAnalyzer(telemetry=None)
 
     def tearDown(self) -> None:
         self.analyzer = None  # type: ignore[assignment]

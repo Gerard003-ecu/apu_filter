@@ -1477,7 +1477,7 @@ class AuditedMergeStep(BaseProcessingStep):
             self.logger.info("Iniciando auditoría homológica (Mayer-Vietoris)...")
             
             if self.auditor is None:
-                self.auditor = HomologicalAuditor(TelemetryContext())
+                self.auditor = HomologicalAuditor(telemetry=TelemetryContext())
             
             audit = self.auditor.audit_merge(
                 state.df_presupuesto,

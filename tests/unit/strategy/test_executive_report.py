@@ -528,7 +528,7 @@ class TestFixtures:
     @pytest.fixture
     def analyzer(self) -> BusinessTopologicalAnalyzer:
         """Proporciona una instancia del analizador."""
-        return BusinessTopologicalAnalyzer()
+        return BusinessTopologicalAnalyzer(telemetry=None)
 
     @pytest.fixture
     def healthy_graph(self) -> nx.DiGraph:
