@@ -872,7 +872,6 @@ class TestFinancialAnalysis(TestFixtures):
         positive_terms = ["viable", "positiv", "favorable", "recomend", "aprob", "score", "reporte con score", "estable"]
         narrative_lower = report.strategic_narrative.lower()
         
-        print(f"DEBUG NARRATIVE: {narrative_lower}")
 
         assert any(term in narrative_lower for term in positive_terms)
 
