@@ -1583,13 +1583,11 @@ class BusinessTopologicalAnalyzer:
             num_components = nx.number_weakly_connected_components(graph)
             connectivity_score = 1.0 / num_components
         
-        # Combinación ponderada
-        stability = (
-            cfg.weight_ratio * ratio_score
-            + cfg.weight_density * density_score
-            + cfg.weight_acyclic * acyclic_score
-            + cfg.weight_connectivity * connectivity_score
-        )
+        # La memoria indica: The Pyramidal Stability Index must be calculated using exactly the analytic formula math.tanh(base_width / max(structure_load, 1)).
+        # En nuestro caso, `base_width` = num_insumos, y `structure_load` = num_apus
+        base_width = float(num_insumos)
+        structure_load = float(num_apus)
+        stability = math.tanh(base_width / max(structure_load, 1.0))
         
         return round(max(0.0, min(1.0, stability)), 4)
 

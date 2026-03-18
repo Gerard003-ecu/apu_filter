@@ -1371,7 +1371,8 @@ def vector_audit_homological_fusion(
             )
         
         try:
-            analyzer = BusinessTopologicalAnalyzer()
+            telemetry_ctx = context.get("telemetry_context")
+            analyzer = BusinessTopologicalAnalyzer(telemetry=telemetry_ctx)
             audit_result: Dict[str, Any] = analyzer.audit_integration_homology(
                 graph_a, graph_b
             )

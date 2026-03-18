@@ -49,7 +49,7 @@ class TestFixtures:
     @pytest.fixture
     def analyzer(self) -> BusinessTopologicalAnalyzer:
         """Instancia del analizador topológico de negocios."""
-        return BusinessTopologicalAnalyzer()
+        return BusinessTopologicalAnalyzer(telemetry=None)
     
     @pytest.fixture
     def financial_engine_default(self) -> FinancialEngine:

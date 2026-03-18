@@ -520,7 +520,7 @@ class TestBusinessTopologicalAnalyzer:
     @pytest.fixture
     def analyzer(self):
         """Fixture para crear analizador sin telemetría."""
-        return BusinessTopologicalAnalyzer()
+        return BusinessTopologicalAnalyzer(telemetry=None)
 
     @pytest.fixture
     def analyzer_with_telemetry(self):
@@ -538,7 +538,7 @@ class TestBusinessTopologicalAnalyzer:
 
         @pytest.fixture
         def analyzer(self):
-            return BusinessTopologicalAnalyzer()
+            return BusinessTopologicalAnalyzer(telemetry=None)
 
         def test_empty_graph(self, analyzer):
             """Grafo vacío tiene todos los invariantes en 0."""
@@ -706,7 +706,7 @@ class TestBusinessTopologicalAnalyzer:
 
         @pytest.fixture
         def analyzer(self):
-            return BusinessTopologicalAnalyzer(max_cycles=10)
+            return BusinessTopologicalAnalyzer(config=TopologyAnalyzerConfig(max_cycles=10))
 
         def test_no_cycles_in_dag(self, analyzer):
             """DAG no tiene ciclos."""
@@ -742,7 +742,7 @@ class TestBusinessTopologicalAnalyzer:
 
         def test_truncation_on_many_cycles(self):
             """Verifica truncamiento cuando hay muchos ciclos."""
-            analyzer = BusinessTopologicalAnalyzer(max_cycles=2)
+            analyzer = BusinessTopologicalAnalyzer(config=TopologyAnalyzerConfig(max_cycles=2))
 
             # Grafo con múltiples ciclos
             G = nx.DiGraph()
@@ -772,7 +772,7 @@ class TestBusinessTopologicalAnalyzer:
 
         @pytest.fixture
         def analyzer(self):
-            return BusinessTopologicalAnalyzer()
+            return BusinessTopologicalAnalyzer(telemetry=None)
 
         def test_isolated_nodes_detected(self, analyzer):
             """Detecta nodos completamente aislados."""
@@ -843,7 +843,7 @@ class TestBusinessTopologicalAnalyzer:
 
         @pytest.fixture
         def analyzer(self):
-            return BusinessTopologicalAnalyzer()
+            return BusinessTopologicalAnalyzer(telemetry=None)
 
         def test_identifies_most_used_resources(self, analyzer):
             """Identifica recursos con mayor in-degree."""
@@ -904,7 +904,7 @@ class TestBusinessTopologicalAnalyzer:
 
         @pytest.fixture
         def analyzer(self):
-            return BusinessTopologicalAnalyzer()
+            return BusinessTopologicalAnalyzer(telemetry=None)
 
         def test_dag_detection(self, analyzer):
             """Detecta correctamente si es DAG."""
@@ -953,7 +953,7 @@ class TestBusinessTopologicalAnalyzer:
 
         @pytest.fixture
         def analyzer(self):
-            return BusinessTopologicalAnalyzer()
+            return BusinessTopologicalAnalyzer(telemetry=None)
 
         def test_connected_interpretation(self, analyzer):
             """Interpreta correctamente espacio conexo."""
@@ -1004,7 +1004,7 @@ class TestBusinessTopologicalAnalyzer:
 
         @pytest.fixture
         def analyzer(self):
-            return BusinessTopologicalAnalyzer()
+            return BusinessTopologicalAnalyzer(telemetry=None)
 
         def test_returns_flat_metrics(self, analyzer):
             """Verifica que retorna métricas planas."""
@@ -1093,7 +1093,7 @@ class TestBusinessTopologicalAnalyzer:
 
         @pytest.fixture
         def analyzer(self):
-            return BusinessTopologicalAnalyzer()
+            return BusinessTopologicalAnalyzer(telemetry=None)
 
         def test_report_is_list_of_strings(self, analyzer):
             """Verifica que el reporte es lista de strings."""
@@ -1207,7 +1207,7 @@ class TestIntegration:
 
     @pytest.fixture
     def analyzer(self):
-        return BusinessTopologicalAnalyzer()
+        return BusinessTopologicalAnalyzer(telemetry=None)
 
     def test_full_pipeline(self, builder, analyzer):
         """Pipeline completo: construcción → análisis → reporte."""
@@ -1330,7 +1330,7 @@ class TestEdgeCases:
 
     @pytest.fixture
     def analyzer(self):
-        return BusinessTopologicalAnalyzer()
+        return BusinessTopologicalAnalyzer(telemetry=None)
 
     def test_very_large_graph_performance(self, builder, analyzer):
         """Verifica rendimiento con grafo grande."""

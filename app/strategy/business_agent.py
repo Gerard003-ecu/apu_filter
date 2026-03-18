@@ -2067,7 +2067,7 @@ class BusinessAgent:
         self._validator = validator or DataFrameValidator()
         self._graph_builder = graph_builder or (BudgetGraphBuilder() if BudgetGraphBuilder else None)
         self._topology_analyzer = topology_analyzer or (
-            BusinessTopologicalAnalyzer(self._telemetry) if BusinessTopologicalAnalyzer else None
+            BusinessTopologicalAnalyzer(telemetry=self._telemetry) if BusinessTopologicalAnalyzer else None
         )
         self._translator = semantic_translator or (
             SemanticTranslator(mic=mic) if SemanticTranslator else None

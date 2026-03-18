@@ -793,7 +793,7 @@ def analyze_graph_for_visualization(graph: nx.DiGraph) -> AnomalyData:
 
     # 1. Análisis estructural base
     try:
-        analyzer = BusinessTopologicalAnalyzer()
+        analyzer = BusinessTopologicalAnalyzer(telemetry=None)
         analysis_result = analyzer.analyze_structural_integrity(graph)
         anomaly_data = extract_anomaly_data(analysis_result)
     except Exception as e:
@@ -808,7 +808,7 @@ def analyze_graph_for_visualization(graph: nx.DiGraph) -> AnomalyData:
 
     # 3. Análisis Térmico (Visualización de Calor)
     try:
-        analyzer = BusinessTopologicalAnalyzer()
+        analyzer = BusinessTopologicalAnalyzer(telemetry=None)
         thermal_result = analyzer.analyze_thermal_flow(graph)
         hotspots = thermal_result.get("hotspots", [])
         # Extraer IDs de hotspots

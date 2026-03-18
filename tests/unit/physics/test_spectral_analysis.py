@@ -78,7 +78,7 @@ class TestSpectralAnalysisBase(unittest.TestCase):
 
     def setUp(self) -> None:
         """Inicializa recursos antes de cada prueba."""
-        self.analyzer = BusinessTopologicalAnalyzer()
+        self.analyzer = BusinessTopologicalAnalyzer(telemetry=None)
         self.EPSILON = _DEFAULT_EPSILON
         self.TOLERANCE = _DEFAULT_TOLERANCE
 
