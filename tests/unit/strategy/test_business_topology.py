@@ -129,7 +129,8 @@ class TestBudgetGraphBuilder:
         )
         def test_sanitize_code(self, builder, input_value, expected):
             """Verifica sanitización de códigos con diversos inputs."""
-            result = builder._sanitize_code(input_value)
+            from app.tactics.business_topology import NumericParser
+            result = NumericParser.sanitize_code(input_value)
             assert result == expected
 
         @pytest.mark.parametrize(
@@ -148,12 +149,14 @@ class TestBudgetGraphBuilder:
         )
         def test_safe_float(self, builder, input_value, default, expected):
             """Verifica conversión segura a float."""
-            result = builder._safe_float(input_value, default)
+            from app.tactics.business_topology import NumericParser
+            result = NumericParser.parse(input_value, default)
             assert result == expected
 
         def test_safe_float_with_nan_pandas(self, builder):
             """Verifica manejo de NaN de pandas."""
-            result = builder._safe_float(pd.NA, 0.0)
+            from app.tactics.business_topology import NumericParser
+            result = NumericParser.parse(pd.NA, 0.0)
             assert result == 0.0
 
     # -------------------------------------------------------------------------
@@ -706,6 +709,7 @@ class TestBusinessTopologicalAnalyzer:
 
         @pytest.fixture
         def analyzer(self):
+            from app.tactics.business_topology import TopologyAnalyzerConfig
             return BusinessTopologicalAnalyzer(config=TopologyAnalyzerConfig(max_cycles=10))
 
         def test_no_cycles_in_dag(self, analyzer):
@@ -742,6 +746,7 @@ class TestBusinessTopologicalAnalyzer:
 
         def test_truncation_on_many_cycles(self):
             """Verifica truncamiento cuando hay muchos ciclos."""
+            from app.tactics.business_topology import TopologyAnalyzerConfig
             analyzer = BusinessTopologicalAnalyzer(config=TopologyAnalyzerConfig(max_cycles=2))
 
             # Grafo con múltiples ciclos
@@ -785,7 +790,7 @@ class TestBusinessTopologicalAnalyzer:
 
             classification = analyzer._classify_anomalous_nodes(G)
 
-            isolated_ids = [n["id"] for n in classification["isolated_nodes"]]
+            isolated_ids = [n["id"] for n in classification.isolated_nodes]
             assert "ISOLATED-APU" in isolated_ids
             assert "ISOLATED-INSUMO" in isolated_ids
             assert "CONNECTED-APU" not in isolated_ids
@@ -802,7 +807,7 @@ class TestBusinessTopologicalAnalyzer:
 
             classification = analyzer._classify_anomalous_nodes(G)
 
-            empty_apu_ids = [n["id"] for n in classification["empty_apus"]]
+            empty_apu_ids = [n["id"] for n in classification.empty_apus]
             assert "EMPTY-APU" in empty_apu_ids
 
         def test_orphan_insumos_detected(self, analyzer):
@@ -817,7 +822,7 @@ class TestBusinessTopologicalAnalyzer:
 
             classification = analyzer._classify_anomalous_nodes(G)
 
-            orphan_ids = [n["id"] for n in classification["orphan_insumos"]]
+            orphan_ids = [n["id"] for n in classification.orphan_insumos]
             assert "ORPHAN-INSUMO" in orphan_ids
 
         def test_node_info_completeness(self, analyzer):
@@ -827,7 +832,7 @@ class TestBusinessTopologicalAnalyzer:
 
             classification = analyzer._classify_anomalous_nodes(G)
 
-            node_info = classification["isolated_nodes"][0]
+            node_info = classification.isolated_nodes[0]
             assert "id" in node_info
             assert "description" in node_info
             assert "inferred" in node_info

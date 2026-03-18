@@ -974,7 +974,7 @@ class CriticalVoltageEvaluator:
         config: ThresholdConfig,
         metrics: AgentMetrics,
     ) -> Optional[Tuple[SystemStatus, str]]:
-        if telemetry and telemetry.flyback_voltage >= config.flyback_voltage_critical:
+        if telemetry and telemetry.flyback_voltage > config.flyback_voltage_critical:
             return (
                 SystemStatus.CRITICO,
                 f"Voltaje crítico: {telemetry.flyback_voltage:.3f} > {config.flyback_voltage_critical}",
@@ -998,7 +998,7 @@ class CriticalSaturationEvaluator:
         config: ThresholdConfig,
         metrics: AgentMetrics,
     ) -> Optional[Tuple[SystemStatus, str]]:
-        if telemetry and telemetry.saturation >= config.saturation_critical:
+        if telemetry and telemetry.saturation > config.saturation_critical:
             return (
                 SystemStatus.CRITICO,
                 f"Saturación crítica: {telemetry.saturation:.3f} > {config.saturation_critical}",

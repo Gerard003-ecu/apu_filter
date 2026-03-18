@@ -509,13 +509,14 @@ class MockMICRegistry:
         """Verifica si un vector está registrado."""
         return vector_name in self._vectors
 
-    def get_vector_stratum(self, vector_name: str) -> Optional[Stratum]:
+    def get_stratum(self, vector_name: str) -> Optional[Stratum]:
         """Retorna el estrato de un vector, o None si no existe."""
         if vector_name in self._vectors:
             return self._vectors[vector_name][0]
         return None
 
-    def get_registered_vectors(self) -> List[str]:
+    @property
+    def registered_services(self) -> List[str]:
         """Retorna lista de nombres de vectores registrados."""
         return list(self._vectors.keys())
 
@@ -706,12 +707,12 @@ class TestMICRegistryBasics:
     )
     def test_vector_stratum_mapping(self, mic, vector_name, expected_stratum):
         """Cada vector reporta su estrato correcto."""
-        assert mic.get_vector_stratum(vector_name) == expected_stratum
+        assert mic.get_stratum(vector_name) == expected_stratum
 
     def test_unknown_vector_stratum_returns_none(self, mic):
         """Estrato de vector desconocido → None."""
-        assert mic.get_vector_stratum("unknown") is None
-        assert mic.get_vector_stratum("") is None
+        assert mic.get_stratum("unknown") is None
+        assert mic.get_stratum("") is None
 
     def test_unknown_vector_raises_valueerror(self, mic):
         """Regla G₃: proyectar vector desconocido → ValueError."""
@@ -750,11 +751,11 @@ class TestMICRegistryBasics:
         registry = MockMICRegistry()
         registry.register_vector("migrating_v", Stratum.PHYSICS, _physics_handler)
 
-        assert registry.get_vector_stratum("migrating_v") == Stratum.PHYSICS
+        assert registry.get_stratum("migrating_v") == Stratum.PHYSICS
 
         registry.register_vector("migrating_v", Stratum.TACTICS, _physics_handler)
 
-        assert registry.get_vector_stratum("migrating_v") == Stratum.TACTICS
+        assert registry.get_stratum("migrating_v") == Stratum.TACTICS
 
     def test_register_with_none_name_raises(self):
         """Registrar con nombre None lanza ValueError."""
@@ -776,7 +777,7 @@ class TestMICRegistryBasics:
 
     def test_get_registered_vectors(self, mic):
         """Obtener lista de vectores registrados."""
-        vectors = mic.get_registered_vectors()
+        vectors = mic.registered_services
         
         assert len(vectors) == 4
         assert set(vectors) == {
@@ -786,11 +787,11 @@ class TestMICRegistryBasics:
 
     def test_clear_removes_all_vectors(self, mic):
         """Clear elimina todos los vectores."""
-        assert len(mic.get_registered_vectors()) == 4
+        assert len(mic.registered_services) == 4
         
         mic.clear()
         
-        assert len(mic.get_registered_vectors()) == 0
+        assert len(mic.registered_services) == 0
         assert not mic.is_registered("mock_physics")
 
 
@@ -1814,7 +1815,7 @@ class TestMICConcurrency:
         def reader(vector_name):
             for _ in range(10):
                 is_reg = mic.is_registered(vector_name)
-                stratum = mic.get_vector_stratum(vector_name)
+                stratum = mic.get_stratum(vector_name)
                 results.append((is_reg, stratum))
         
         threads = [
@@ -1879,7 +1880,7 @@ class TestMICConcurrency:
             t.join()
         
         # Debe haber exactamente 50 vectores
-        assert len(registry.get_registered_vectors()) == 50
+        assert len(registry.registered_services) == 50
 
 
 # =============================================================================
@@ -1914,7 +1915,7 @@ class TestMICPerformance:
             registry.register_vector(f"vector_{i}", Stratum.PHYSICS, handler)
         
         # Verificar que todos están registrados
-        assert len(registry.get_registered_vectors()) == 1000
+        assert len(registry.registered_services) == 1000
         
         # Proyectar algunos
         for i in [0, 500, 999]:

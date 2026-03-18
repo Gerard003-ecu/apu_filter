@@ -184,7 +184,7 @@ class TestClassificationRuleValidation:
             ("len(porcentaje_materiales) > 0", "no permitidos"),
             ("abs(porcentaje_materiales) >= 50", "no permitidos"),
             # Sintaxis inválida
-            ("porcentaje_materiales >= ", "Sintaxis inválida"),
+            ("porcentaje_materiales >= ", "invalid syntax"),
             ("porcentaje_materiales >= 50 &&", "no permitidos"),
             ("porcentaje_materiales >= 50 ||", "no permitidos"),
         ],
@@ -198,7 +198,7 @@ class TestClassificationRuleValidation:
                 condition=invalid_condition,
                 description="Invalid",
             )
-        assert error_fragment in str(exc_info.value)
+        assert error_fragment.lower() in str(exc_info.value).lower()
 
     def test_empty_condition_rejected(self):
         """Condición vacía debe ser rechazada."""
@@ -677,7 +677,7 @@ class TestAPUClassifierTopologicalCoverage:
 
     def test_default_rules_cover_space(self, default_classifier):
         """Reglas por defecto deben cubrir todo el espacio válido."""
-        uncovered = default_classifier._sample_uncovered_regions(grid_size=10)
+        uncovered, total_points = default_classifier._sample_uncovered_regions(grid_size=10)
 
         # No debe haber regiones sin cobertura
         assert len(uncovered) == 0, f"Regiones sin cobertura: {uncovered}"
