@@ -443,12 +443,18 @@ def _extract_nodes_from_cycles(cycles_list: Any) -> Set[str]:
             continue
 
         # Separar y limpiar partes
-        parts = cycle_str.split(CYCLE_SEPARATOR)
+        # Handle variations in whitespace: split by "->" and then strip
+        parts = cycle_str.split("->")
         valid_parts = [p.strip() for p in parts if p.strip()]
 
         if len(valid_parts) < 2:
-            logger.debug(f"Ciclo inválido (menos de 2 nodos): {cycle_str}")
-            continue
+            # Fallback to alternative separator used in some reports
+            parts = cycle_str.split("→")
+            valid_parts = [p.strip() for p in parts if p.strip()]
+
+            if len(valid_parts) < 2:
+                logger.debug(f"Ciclo inválido (menos de 2 nodos): {cycle_str}")
+                continue
 
         # Remover duplicado de cierre si existe
         if valid_parts[-1] == valid_parts[0]:

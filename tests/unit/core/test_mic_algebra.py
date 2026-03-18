@@ -211,10 +211,10 @@ class TestStratumHierarchy:
     
     def test_stratum_level(self):
         """Niveles de estratos."""
-        assert Stratum.WISDOM.level == 0
-        assert Stratum.STRATEGY.level == 1
-        assert Stratum.TACTICS.level == 2
-        assert Stratum.PHYSICS.level == 3
+        assert Stratum.WISDOM.value == 0
+        assert Stratum.STRATEGY.value == 1
+        assert Stratum.TACTICS.value == 2
+        assert Stratum.PHYSICS.value == 3
 
 
 # ============================================================================
@@ -257,7 +257,7 @@ class TestCategoricalState:
     def test_state_is_success_property(self):
         """Propiedad is_success funciona."""
         state_ok = create_categorical_state()
-        state_err = create_categorical_state(error="Failed")
+        state_err = create_categorical_state().with_error("Failed")
         
         assert state_ok.is_success is True
         assert state_err.is_success is False
@@ -265,7 +265,7 @@ class TestCategoricalState:
     def test_state_is_failed_property(self):
         """Propiedad is_failed funciona."""
         state_ok = create_categorical_state()
-        state_err = create_categorical_state(error="Failed")
+        state_err = create_categorical_state().with_error("Failed")
         
         assert state_ok.is_failed is False
         assert state_err.is_failed is True
@@ -337,9 +337,9 @@ class TestCategoricalState:
             strata={Stratum.WISDOM, Stratum.TACTICS}
         )
         
-        assert state1.stratum_level == Stratum.PHYSICS.level
-        assert state2.stratum_level == Stratum.TACTICS.level
-        assert state3.stratum_level == Stratum.WISDOM.level
+        assert state1.stratum_level == Stratum.PHYSICS.value
+        assert state2.stratum_level == Stratum.TACTICS.value
+        assert state3.stratum_level == Stratum.WISDOM.value
     
     def test_add_trace(self, simple_state):
         """Añade entrada a traza."""
@@ -667,7 +667,7 @@ class TestAtomicVector:
             failing_handler,
         )
         
-        error_input = create_categorical_state(error="Previous error")
+        error_input = create_categorical_state().with_error("Previous error")
         
         result = morph(error_input)
         
@@ -1157,7 +1157,7 @@ class TestCoproductMorphism:
         
         coproduct = morph1 | morph2
         
-        error_state = create_categorical_state(error="Previous error")
+        error_state = create_categorical_state().with_error("Previous error")
         
         result = coproduct(error_state)
         
@@ -1495,7 +1495,7 @@ class TestMonadalityAndErrorHandling:
     
     def test_error_is_absorbing_element(self):
         """Error es elemento absorbente."""
-        state = create_categorical_state(error="Initial error")
+        state = create_categorical_state().with_error("Initial error")
         
         def handler():
             return {"should_not_see": "this"}
@@ -1566,8 +1566,8 @@ class TestMonadalityAndErrorHandling:
     
     def test_error_details_preserved(self):
         """Detalles de error se preservan."""
-        state = create_categorical_state(
-            error="Main error",
+        state = create_categorical_state().with_error(
+            error_msg="Main error",
             details={"code": 500, "source": "database"},
         )
         

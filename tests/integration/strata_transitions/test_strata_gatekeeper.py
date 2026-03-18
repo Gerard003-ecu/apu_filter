@@ -1231,15 +1231,19 @@ class TestGlobalInvariants:
     def test_prerequisite_chain_is_acyclic(self) -> None:
         """La cadena de prerrequisitos es acíclica."""
         for stratum in Stratum:
-            visited = {stratum}
-            to_check = list(compute_prerequisites(stratum))
+            # Only trace paths to verify it is acyclic, tracking the full path to detect cycles
+            visited_paths = set()
+            to_check = [(stratum,)]
             
             while to_check:
-                current = to_check.pop()
-                if current in visited:
-                    pytest.fail(f"Ciclo detectado involucrando {current.name}")
-                visited.add(current)
-                to_check.extend(compute_prerequisites(current))
+                current_path = to_check.pop()
+                current_node = current_path[-1]
+
+                prereqs = compute_prerequisites(current_node)
+                for prereq in prereqs:
+                    if prereq in current_path:
+                        pytest.fail(f"Ciclo detectado involucrando {prereq.name} en el camino {current_path}")
+                    to_check.append(current_path + (prereq,))
 
     def test_total_valid_projections_count(self) -> None:
         """Verifica el conteo de proyecciones válidas."""

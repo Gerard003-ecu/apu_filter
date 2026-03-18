@@ -2161,7 +2161,11 @@ class BusinessAgent:
         self._logger.info("🤖 Iniciando evaluación de proyecto...")
         
         # ═══ Fase 0: Validación ═══
-        df_presupuesto = context.get("df_final") or context.get("df_presupuesto")
+        df_final = context.get("df_final")
+        if df_final is not None and not df_final.empty:
+            df_presupuesto = df_final
+        else:
+            df_presupuesto = context.get("df_presupuesto")
         df_apus_detail = context.get("df_merged")
         
         validation = self._validator.validate(df_presupuesto, df_apus_detail)

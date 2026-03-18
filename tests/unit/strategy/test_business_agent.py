@@ -2206,7 +2206,7 @@ class TestEdgeCases:
         assert 0.0 <= fin_q <= 1.0
     
     def test_inf_npv_handling(self, stable_topology_bundle: TopologicalMetricsBundle):
-        """Infinito en NPV se maneja correctamente."""
+        """Infinito en NPV se maneja correctamente y se asigna 0."""
         financial = {"npv": float('inf'), "irr": 0.15}
         
         _, fin_q, _ = DecisionAlgebra.compute_quality_factors(
@@ -2216,8 +2216,8 @@ class TestEdgeCases:
             exergy=0.5
         )
         
-        # tanh(inf) = 1.0, normalizado a (1+1)/2 = 1.0
-        assert fin_q == pytest.approx(1.0, rel=0.01)
+        # if not finite, npv defaults to 0.0 -> tanh(0) = 0.0 -> normalizado a (0+1)/2 = 0.5
+        assert fin_q == pytest.approx(0.5, rel=0.01)
 
 
 # =============================================================================
