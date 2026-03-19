@@ -203,7 +203,7 @@ def make_star_graph(hub: str, spokes: List[str], directed_out: bool = True) -> n
 
 
 def make_diamond_graph() -> nx.DiGraph:
-    """
+    r"""
     Crea topología diamante (DAG con confluencia).
     
           A
@@ -400,7 +400,7 @@ def assert_ghost_cycle_detected(result: Dict[str, Any], context: str = ""):
 # =============================================================================
 
 class TestVectorAuditHomologicalFusion:
-    """
+    r"""
     Pruebas unitarias para el vector 'audit_fusion_homology'.
 
     Fundamento matemático — Secuencia de Mayer-Vietoris:
@@ -1261,7 +1261,7 @@ class TestVectorAuditHomologicalFusion:
     # ═══════════════════════════════════════════════════════════════════════
 
     def test_diamond_topology_no_ghost_cycle(self):
-        """
+        r"""
         Topología diamante (confluencia de caminos).
         
               A
@@ -1502,7 +1502,7 @@ class TestVectorAuditHomologicalFusion:
 # =============================================================================
 
 class TestFusionResultInvariants:
-    """
+    r"""
     Pruebas que validan la estructura del dict de resultado.
 
     Contrato del resultado:

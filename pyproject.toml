@@ -2,6 +2,12 @@
 pythonpath = "."
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: integration tests",
+    "categorical: categorical state tests",
+    "order_theory: order theory tests",
+    "unit: unit tests",
+    "algebraic: algebraic tests",
+    "regression: regression tests",
 ]
 
 [tool.ruff]
