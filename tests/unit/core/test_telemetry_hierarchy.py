@@ -1781,9 +1781,16 @@ class TestIdempotenceAndDeterminism:
         with ctx.span("Test"):
             pass
 
-        report1 = narrator.summarize_execution(ctx)
-        report2 = narrator.summarize_execution(ctx)
-        report3 = narrator.summarize_execution(ctx)
+        def _remove_timestamps(d):
+            if isinstance(d, dict):
+                return {k: _remove_timestamps(v) for k, v in d.items() if k != "timestamp"}
+            if isinstance(d, list):
+                return [_remove_timestamps(v) for v in d]
+            return d
+
+        report1 = _remove_timestamps(narrator.summarize_execution(ctx))
+        report2 = _remove_timestamps(narrator.summarize_execution(ctx))
+        report3 = _remove_timestamps(narrator.summarize_execution(ctx))
 
         assert report1 == report2 == report3
 

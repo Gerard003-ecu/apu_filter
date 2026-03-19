@@ -242,9 +242,9 @@ class StepStatus(Enum):
         if not isinstance(value, str):
             return cls.SUCCESS
 
-        value_stripped = value.strip()
+        value_stripped = value.strip().upper()
         for status in cls:
-            if status.value == value_stripped:
+            if status.name == value_stripped:
                 return status
 
         return cls.SUCCESS

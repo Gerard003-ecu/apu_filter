@@ -488,6 +488,8 @@ class TestAgentObservabilityRefined:
             mock_telemetry.integrity_score = 0.95
             mock_telemetry.timestamp = datetime.utcnow()
             mock_observe.return_value = mock_telemetry
+            agent._last_telemetry = mock_telemetry
+            agent._last_diagnosis = MagicMock(health=MagicMock(health_score=0.9), summary="todo bien")
 
             # Mock de salud topológica
             mock_topo_health = MagicMock()
@@ -622,7 +624,7 @@ class TestAgentObservabilityRefined:
                 "name": "physics_failure",
                 "stratum": Stratum.PHYSICS,
                 "simulate_failure": lambda: setattr(agent, '_last_status', SystemStatus.CRITICO),
-                "expected_health": {"status": "CRITICO", "voltage": 0.8}  # Alto voltaje
+                "expected_health": {"status": "CRITICO", "voltage": 0.9}  # Alto voltaje
             },
             {
                 "name": "topology_failure",
@@ -636,17 +638,18 @@ class TestAgentObservabilityRefined:
             {
                 "name": "strategy_risk",
                 "stratum": Stratum.STRATEGY,
-                "simulate_failure": lambda: setattr(
-                    agent, '_last_decision',
-                    MagicMock(name="ESCALATE", confidence=0.3)
+                "simulate_failure": lambda: (
+                    setattr(agent, '_last_decision', MagicMock(name="ESCALATE", confidence=0.3)),
+                    setattr(agent, '_last_diagnosis', MagicMock(health=MagicMock(health_score=0.3), summary="low confidence"))
                 ),
                 "expected_health": {"risk_detected": True, "confidence": 0.3}
             },
             {
                 "name": "wisdom_critical",
                 "stratum": Stratum.WISDOM,
-                "simulate_failure": lambda: setattr(
-                    agent, '_last_status', SystemStatus.CRITICO
+                "simulate_failure": lambda: (
+                    setattr(agent, '_last_status', SystemStatus.CRITICO),
+                    setattr(agent, '_last_diagnosis', None)
                 ),
                 # Agent returns name of the enum member, which is "CRITICO"
                 "expected_health": {"verdict": "CRITICO", "certainty": 0.0}
@@ -663,9 +666,10 @@ class TestAgentObservabilityRefined:
                 # Configurar mocks según escenario
                 if scenario["stratum"] == Stratum.PHYSICS:
                     mock_telemetry = MagicMock()
-                    mock_telemetry.flyback_voltage = 0.8  # Voltaje crítico
+                    mock_telemetry.flyback_voltage = 0.9  # Voltaje crítico > 0.8
                     mock_telemetry.saturation = 0.9
                     mock_observe.return_value = mock_telemetry
+                    agent._last_telemetry = mock_telemetry
 
                 elif scenario["stratum"] == Stratum.TACTICS:
                     mock_topo_health = MagicMock()

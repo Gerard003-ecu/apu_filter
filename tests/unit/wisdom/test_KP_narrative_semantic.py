@@ -605,7 +605,7 @@ class TestTranslatorPerformance:
 
     def test_thermal_translation_performance(self, translator: SemanticTranslator):
         """translate_thermodynamics debe completarse en < 5ms."""
-        metrics = ThermodynamicMetrics(entropy=0.5, exergy=0.7, system_temperature=45.0)
+        metrics = ThermodynamicMetrics(entropy=0.5, system_temperature=45.0)
         with measure_time() as times:
             for _ in range(100):
                 _ = translator.translate_thermodynamics(metrics)
@@ -1162,7 +1162,7 @@ class TestDetailedProfiling:
         phase_times["financial"] = (time.perf_counter() - start) * 100
         
         # Traducción térmica
-        metrics = ThermodynamicMetrics(entropy=0.6, exergy=0.7, system_temperature=55.0)
+        metrics = ThermodynamicMetrics(entropy=0.6, system_temperature=55.0)
         start = time.perf_counter()
         for _ in range(10):
             _ = translator.translate_thermodynamics(metrics)

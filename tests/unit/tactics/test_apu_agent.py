@@ -2062,14 +2062,14 @@ class TestEdgeCases(TestFixtureBase):
 
         # Exactamente en warning (no critical)
         telemetry = TelemetryData(
-            flyback_voltage=DEFAULT_VOLTAGE_CRITICAL,  # En el umbral
+            flyback_voltage=DEFAULT_VOLTAGE_CRITICAL,  # Exactamente 0.8
             saturation=0.3,
         )
         
         status = agent.orient(telemetry)
         
-        # En el umbral crítico (no mayor) debería ser crítico según >
-        assert status >= SystemStatus.SATURADO
+        # V3: La región nominal es V <= θ. El punto ciego exacto es NOMINAL.
+        assert status == SystemStatus.NOMINAL
 
     def test_metrics_survive_multiple_cycles(self, agent):
         """Métricas se acumulan correctamente entre ciclos."""

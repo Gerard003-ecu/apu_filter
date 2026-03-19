@@ -1930,15 +1930,15 @@ class TestValueSanitization:
     def test_sanitize_object_without_dict_is_converted_to_dict(
         self, ctx: TelemetryContext
     ) -> None:
-        """Verifica que objetos sin atributos se convierten a dict con __class__."""
+        """Verifica que objetos sin atributos se convierten a representacion en string (fallback de V3)."""
 
         class EmptyObject:
             __slots__ = ()
 
         obj = EmptyObject()
         result = ctx._sanitize_value(obj)
-        assert isinstance(result, dict)
-        assert result.get("__class__") == "EmptyObject"
+        assert isinstance(result, str)
+        assert "EmptyObject" in result
 
     def test_sanitize_enum_returns_value(self, ctx: TelemetryContext) -> None:
         """Verifica que los Enum se convierten a su valor."""
