@@ -38,14 +38,12 @@ from app.adapters.mic_vectors import (
     calculate_algebraic_integrity,
     calculate_betti_numbers,
     calculate_topological_coherence,
-    calculate_dimensionality,
     compose_vectors,
+    Dimensionality,
     vector_parse_raw_structure,
     vector_stabilize_flux,
     vector_structure_logic,
-    validate_topological_preconditions,
-    validate_homological_constraints,
-    validate_dimensional_isomorphism,
+    TopologicalGuard,
 )
 from app.core.schemas import Stratum
 
@@ -583,103 +581,103 @@ class TestValidateTopologicalPreconditions:
 
     def test_valid_preconditions(self, tmp_file):
         config = {"key_a": 1, "key_b": 2}
-        is_valid, err = validate_topological_preconditions(
+        validation = TopologicalGuard.validate_physics_preconditions(
             tmp_file, config, ["key_a", "key_b"]
         )
-        assert is_valid is True
-        assert err is None
+        assert validation.is_valid is True
+        assert validation.error_message is None
 
     def test_file_not_exists(self, nonexistent_file):
-        is_valid, err = validate_topological_preconditions(
+        validation = TopologicalGuard.validate_physics_preconditions(
             nonexistent_file, {}, []
         )
-        assert is_valid is False
-        assert "no existe" in err
+        assert validation.is_valid is False
+        assert "no existe" in validation.error_message
 
     def test_missing_required_keys(self, tmp_file):
         config = {"key_a": 1}
-        is_valid, err = validate_topological_preconditions(
+        validation = TopologicalGuard.validate_physics_preconditions(
             tmp_file, config, ["key_a", "key_b", "key_c"]
         )
-        assert is_valid is False
-        assert "key_b" in err and "key_c" in err
+        assert validation.is_valid is False
+        assert "key_b" in validation.error_message and "key_c" in validation.error_message
 
     def test_non_numeric_dimension_constraints(self, tmp_file):
         config = {
             "dimension_constraints": {"x": "not_a_number", "y": 3}
         }
-        is_valid, err = validate_topological_preconditions(
+        validation = TopologicalGuard.validate_physics_preconditions(
             tmp_file, config, []
         )
-        assert is_valid is False
-        assert "no numérica" in err
+        assert validation.is_valid is False
+        assert "no numérica" in validation.error_message
 
     def test_valid_dimension_constraints(self, tmp_file):
         config = {
             "dimension_constraints": {"x": 1, "y": 2.5, "z": 0}
         }
-        is_valid, err = validate_topological_preconditions(
+        validation = TopologicalGuard.validate_physics_preconditions(
             tmp_file, config, []
         )
-        assert is_valid is True
-        assert err is None
+        assert validation.is_valid is True
+        assert validation.error_message is None
 
     def test_no_dimension_constraints_is_ok(self, tmp_file):
         config = {"some_key": "value"}
-        is_valid, err = validate_topological_preconditions(
+        validation = TopologicalGuard.validate_physics_preconditions(
             tmp_file, config, ["some_key"]
         )
-        assert is_valid is True
+        assert validation.is_valid is True
 
     def test_empty_required_keys_always_passes(self, tmp_file):
-        is_valid, err = validate_topological_preconditions(
+        validation = TopologicalGuard.validate_physics_preconditions(
             tmp_file, {}, []
         )
-        assert is_valid is True
+        assert validation.is_valid is True
 
 
 class TestValidateHomologicalConstraints:
     """Validadores de restricciones homológicas."""
 
     def test_valid_constraints(self, valid_topological_constraints):
-        assert validate_homological_constraints(
+        assert TopologicalGuard.validate_homological_constraints(
             valid_topological_constraints
-        ) is True
+        ).is_valid is True
 
     def test_missing_max_dimension(self):
         c = {"allow_holes": True, "connectivity": 0.9}
-        assert validate_homological_constraints(c) is False
+        assert TopologicalGuard.validate_homological_constraints(c).is_valid is False
 
     def test_missing_allow_holes(self):
         c = {"max_dimension": 2, "connectivity": 0.9}
-        assert validate_homological_constraints(c) is False
+        assert TopologicalGuard.validate_homological_constraints(c).is_valid is False
 
     def test_missing_connectivity(self):
         c = {"max_dimension": 2, "allow_holes": True}
-        assert validate_homological_constraints(c) is False
+        assert TopologicalGuard.validate_homological_constraints(c).is_valid is False
 
     def test_negative_max_dimension(self):
         c = {"max_dimension": -1, "allow_holes": True, "connectivity": 0.9}
-        assert validate_homological_constraints(c) is False
+        assert TopologicalGuard.validate_homological_constraints(c).is_valid is False
 
     def test_non_int_max_dimension(self):
         c = {"max_dimension": 2.5, "allow_holes": True, "connectivity": 0.9}
-        assert validate_homological_constraints(c) is False
+        assert TopologicalGuard.validate_homological_constraints(c).is_valid is False
 
     def test_non_bool_allow_holes(self):
         c = {"max_dimension": 2, "allow_holes": "yes", "connectivity": 0.9}
-        assert validate_homological_constraints(c) is False
+        assert TopologicalGuard.validate_homological_constraints(c).is_valid is False
 
     def test_non_numeric_connectivity(self):
         c = {"max_dimension": 2, "allow_holes": True, "connectivity": "high"}
-        assert validate_homological_constraints(c) is False
+        assert TopologicalGuard.validate_homological_constraints(c).is_valid is False
 
     def test_zero_max_dimension_is_valid(self):
         c = {"max_dimension": 0, "allow_holes": False, "connectivity": 1.0}
-        assert validate_homological_constraints(c) is True
+        assert TopologicalGuard.validate_homological_constraints(c).is_valid is True
 
     def test_empty_dict(self):
-        assert validate_homological_constraints({}) is False
+        assert TopologicalGuard.validate_homological_constraints({}).is_valid is False
 
 
 # =============================================================================
@@ -1819,8 +1817,8 @@ class TestAlgebraicProperties:
 
     def test_dimensionality_idempotent(self, sample_raw_records):
         """dim ∘ dim = dim (idempotencia)."""
-        d1 = calculate_dimensionality(sample_raw_records)
-        d2 = calculate_dimensionality(sample_raw_records)
+        d1 = Dimensionality.from_records(sample_raw_records).dimensions
+        d2 = Dimensionality.from_records(sample_raw_records).dimensions
         assert d1 == d2
 
     def test_isomorphism_reflexive(self):
@@ -1898,7 +1896,7 @@ class TestAlgebraicProperties:
     )
     def test_dimensionality_non_negative(self, records):
         """∀ tipo: dim ≥ 0."""
-        dims = calculate_dimensionality(records)
+        dims = Dimensionality.from_records(records).dimensions
         for dim in dims.values():
             assert dim >= 0
 
@@ -1934,11 +1932,3 @@ class TestAlgebraicProperties:
 
         if not iso_10:
             assert not iso_15 or iso_15  # si es False en 10%, puede ser T o F en 15%
-
-    def test_calculate_dimensionality_exported(self, sample_raw_records):
-        """calculate_dimensionality es callable y devuelve dict."""
-        result = calculate_dimensionality(sample_raw_records)
-        assert isinstance(result, dict)
-        for k, v in result.items():
-            assert isinstance(k, str)
-            assert isinstance(v, int)

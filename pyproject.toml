@@ -9,6 +9,10 @@ markers = [
     "algebraic: algebraic tests",
     "regression: regression tests",
 ]
+filterwarnings = [
+    "ignore:builtin type SwigPy.*:DeprecationWarning",
+    "ignore:builtin type swigvarlink.*:DeprecationWarning",
+]
 
 [tool.ruff]
 line-length = 93
