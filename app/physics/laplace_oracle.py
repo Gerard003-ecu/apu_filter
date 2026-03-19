@@ -1420,6 +1420,7 @@ class ReportBuilder:
                 "zeta": self._params.zeta,
                 "Q": self._params.Q,
                 "damping_class": self._params.damping_class.name,
+                "poles": self._stability.poles if hasattr(self._stability, "poles") else [],
             },
             
             "level_3_physics": {
@@ -1490,6 +1491,8 @@ class ReportBuilder:
         # Verificar sensibilidad
         if sensitivity.robustness_class == RobustnessClass.FRAGILE:
             warnings.append("Alta sensibilidad paramétrica")
+
+        recommendations = self._generate_control_recommendations(margins, sensitivity)
         
         is_suitable = len(issues) == 0
         
@@ -1497,6 +1500,7 @@ class ReportBuilder:
             "is_suitable_for_control": is_suitable,
             "issues": issues,
             "warnings": warnings,
+            "recommendations": recommendations,
             "summary": (
                 "APTO PARA CONTROL" if is_suitable
                 else f"NO APTO - {len(issues)} problemas críticos"

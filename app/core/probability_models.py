@@ -411,8 +411,8 @@ class SimulationResult:
             Tupla (lower, upper) del intervalo de confianza.
         """
         alpha = (1 - confidence) / 2
-        lower_pct = int(alpha * 100)
-        upper_pct = int((1 - alpha) * 100)
+        lower_pct = round(alpha * 100)
+        upper_pct = round((1 - alpha) * 100)
 
         return (
             self.statistics.get(f"percentile_{lower_pct}"),
@@ -644,11 +644,14 @@ def is_numeric_valid(value: Any) -> bool:
         >>> is_numeric_valid(np.inf)
         False
     """
+    if isinstance(value, str):
+        return False
+
     try:
         if pd.isna(value):
             return False
         float_value = float(value)
-        return np.isfinite(float_value)
+        return bool(np.isfinite(float_value))
     except (TypeError, ValueError, OverflowError):
         return False
 
@@ -689,7 +692,7 @@ def calculate_convergence_metrics(
     half_width_ci = Z_SCORE_95 * mean_std_error
 
     # Verificar convergencia
-    is_converged = relative_error < tolerance
+    is_converged = bool(relative_error < tolerance)
 
     return ConvergenceMetrics(
         is_converged=is_converged,

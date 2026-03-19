@@ -709,26 +709,21 @@ class TestConsistenciaValorTotal:
         assert insumo.is_valid
 
     def test_inconsistencia_grave_lanza_error(self, datos_insumo_base):
-        """Diferencia > 5% lanza ValidationError."""
+        """La ley de conservación en V3 lanza ValidationError estricto."""
         datos_insumo_base["cantidad"] = 10.0
         datos_insumo_base["precio_unitario"] = 100.0
         datos_insumo_base["valor_total"] = 2000.0  # 100% de diferencia
-        with pytest.raises(ValidationError, match="Inconsistencia grave"):
+        with pytest.raises(ValidationError, match="Inconsistencia en la ley de conservación"):
             create_insumo(**datos_insumo_base)
 
     def test_divergencia_leve_emite_warning(self, datos_insumo_base):
-        """Diferencia entre 1% y 5% emite UserWarning."""
+        """La ley de conservación en V3 lanza ValidationError estricto, sin tolerar warning de discrepancia."""
         datos_insumo_base["cantidad"] = 10.0
         datos_insumo_base["precio_unitario"] = 100.0
         # 2% de diferencia
         datos_insumo_base["valor_total"] = 1020.0
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            insumo = create_insumo(**datos_insumo_base)
-            divergencia_warnings = [
-                x for x in w if "Divergencia" in str(x.message)
-            ]
-            assert len(divergencia_warnings) >= 1
+        with pytest.raises(ValidationError, match="Inconsistencia en la ley de conservación"):
+            create_insumo(**datos_insumo_base)
 
     def test_cero_por_cero_es_valido(self, datos_insumo_base):
         """cantidad=0, precio=0, valor_total=0 es válido."""
@@ -743,21 +738,16 @@ class TestConsistenciaValorTotal:
         datos_insumo_base["cantidad"] = 0.0
         datos_insumo_base["precio_unitario"] = 100.0
         datos_insumo_base["valor_total"] = 500.0
-        with pytest.raises(ValidationError, match="cantidad×precio=0"):
+        with pytest.raises(ValidationError, match="Inconsistencia en la ley de conservación"):
             create_insumo(**datos_insumo_base)
 
     def test_tolerancia_absoluta_pequena(self, datos_insumo_base):
-        """Diferencia absoluta <= 0.01 se acepta sin warning."""
+        """La ley de conservación en V3 evalua la tolerancia en 1e-6 absoluto, por lo que 0.005 lanza error."""
         datos_insumo_base["cantidad"] = 1.0
         datos_insumo_base["precio_unitario"] = 100.0
         datos_insumo_base["valor_total"] = 100.005
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            insumo = create_insumo(**datos_insumo_base)
-            divergencia_warnings = [
-                x for x in w if "Divergencia" in str(x.message)
-            ]
-            assert len(divergencia_warnings) == 0
+        with pytest.raises(ValidationError, match="Inconsistencia en la ley de conservación"):
+            create_insumo(**datos_insumo_base)
 
 
 class TestManoDeObra:

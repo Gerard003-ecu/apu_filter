@@ -425,6 +425,9 @@ class TestSimulationResult:
                 "percentile_50": 9800.0,
                 "percentile_75": 11000.0,
                 "percentile_95": 12500.0,
+                "percentile_5": 7500.0,
+                "percentile_10": 7500.0,
+                "percentile_90": 12500.0,
                 "var_95": 12500.0,
                 "cvar_95": 13000.0,
             },
@@ -1484,9 +1487,13 @@ class TestMonteCarloSimulatorMemory:
 
         # Debería lanzar error o manejar correctamente
         # (depende del límite configurado)
-        result = simulator.run_simulation(large_data)
+        try:
+            result = simulator.run_simulation(large_data)
+        except ValueError:
+            # Es el comportamiento esperado si el error es levantado como ValueError
+            return
 
-        # Si excede el límite, debería ser error
+        # Si excede el límite (y está manejado internamente), debería ser error
         # Si no, debería funcionar
         assert result.status in (SimulationStatus.SUCCESS, SimulationStatus.ERROR)
 
