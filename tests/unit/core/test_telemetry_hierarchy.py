@@ -204,7 +204,7 @@ def collect_all_spans(root_spans: List[Any]) -> List[Any]:
 # =============================================================================
 
 class TestSpanHierarchy:
-    """
+    r"""
     Pruebas sobre la estructura de árbol enraizado que forman los spans.
 
     Modelo formal (Teoría de Grafos):
@@ -284,7 +284,7 @@ class TestSpanHierarchy:
         assert validation["total_nodes"] == 2
 
     def test_root_with_multiple_children(self, ctx):
-        """
+        r"""
         Árbol de profundidad 2 con múltiples hijos.
         
         Estructura:

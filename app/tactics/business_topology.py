@@ -827,6 +827,15 @@ class NumericParser:
         Returns:
             Valor numérico flotante.
         """
+        if value is None:
+            return default
+
+        # Interceptar tensores/arreglos vacíos antes de la evaluación booleana
+        if isinstance(value, (list, tuple, np.ndarray, pd.Series)):
+            if len(value) == 0:
+                return default
+            value = value[0] if isinstance(value, (list, tuple, pd.Series)) else value.item(0)
+
         if pd.isna(value) or value is None:
             return default
         
