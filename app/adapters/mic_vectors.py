@@ -1153,6 +1153,9 @@ class LateralPivotEvaluator:
         Condición: base estrecha (ψ < 0.70) + sistema frío (T < 15.0) +
                    inercia financiera alta (I > umbral)
         """
+        if stability <= 0.0:
+            return False, "Estabilidad estructural colapsada (Ψ ≤ 0)."
+
         if (
             stability < 0.70
             and system_temp < 15.0
@@ -1227,6 +1230,14 @@ def vector_lateral_pivot(
         D_lateral = Decisión de Excepción Validada
     """
     with MetricsCollector() as collector:
+        if payload is None:
+            return _build_error(
+                stratum=Stratum.STRATEGY,
+                status=VectorResultStatus.VALIDATION_ERROR,
+                error="Payload vacío",
+                metrics=collector.build_metrics()
+            )
+
         # ─── Extracción de subespacios ───
         report_state = payload.get("report_state", {})
         thermal_metrics = payload.get("thermal_metrics", {})
@@ -1371,7 +1382,7 @@ def vector_audit_homological_fusion(
             )
         
         try:
-            telemetry_ctx = context.get("telemetry_context")
+            telemetry_ctx = context.get("telemetry_context") if context else None
             analyzer = BusinessTopologicalAnalyzer(telemetry=telemetry_ctx)
             audit_result: Dict[str, Any] = analyzer.audit_integration_homology(
                 graph_a, graph_b
