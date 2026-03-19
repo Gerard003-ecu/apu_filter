@@ -1,0 +1,188 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.19, pytest-8.4.2, pluggy-1.6.0 -- /home/gerardo/miniconda3/envs/apu_filter_env/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /home/gerardo/Documentos/GitHub/apu_filter
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.151.9
+collected 5785 items / 1 error / 1 skipped                                     
+
+==================================== ERRORS ====================================
+_____________ ERROR collecting tests/unit/core/test_mic_vectors.py _____________
+ImportError while importing test module '/home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_mic_vectors.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:498: in importtestmodule
+    mod = import_path(
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1050: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1027: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1006: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:688: in _load_unlocked
+    ???
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/unit/core/test_mic_vectors.py:31: in <module>
+    from app.adapters.mic_vectors import (
+E   ImportError: cannot import name '_elapsed_ms' from 'app.adapters.mic_vectors' (/home/gerardo/Documentos/GitHub/apu_filter/app/adapters/mic_vectors.py)
+=============================== warnings summary ===============================
+tests/integration/pipeline/test_dikw_pipeline_integration.py:555
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/pipeline/test_dikw_pipeline_integration.py:555: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests/integration/pipeline/test_dikw_pipeline_integration.py:632
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/pipeline/test_dikw_pipeline_integration.py:632: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests/integration/pipeline/test_dikw_pipeline_integration.py:759
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/pipeline/test_dikw_pipeline_integration.py:759: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests/integration/pipeline/test_dikw_pipeline_integration.py:836
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/pipeline/test_dikw_pipeline_integration.py:836: PytestUnknownMarkWarning: Unknown pytest.mark.categorical - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.categorical
+
+tests/integration/pipeline/test_dikw_pipeline_integration.py:935
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/pipeline/test_dikw_pipeline_integration.py:935: PytestUnknownMarkWarning: Unknown pytest.mark.order_theory - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.order_theory
+
+tests/integration/pipeline/test_dikw_pipeline_integration.py:1015
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/pipeline/test_dikw_pipeline_integration.py:1015: PytestUnknownMarkWarning: Unknown pytest.mark.categorical - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.categorical
+
+tests/integration/pipeline/test_dikw_pipeline_integration.py:1080
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/pipeline/test_dikw_pipeline_integration.py:1080: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests/integration/pipeline/test_dikw_pipeline_integration.py:1206
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/pipeline/test_dikw_pipeline_integration.py:1206: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests/unit/core/test_mic_homology.py:206
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_mic_homology.py:206: DeprecationWarning: invalid escape sequence '\ '
+    """
+
+tests/unit/core/test_mic_homology.py:1264
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_mic_homology.py:1264: DeprecationWarning: invalid escape sequence '\ '
+    """
+
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+<frozen importlib._bootstrap>:241
+  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+tests/unit/strategy/test_business_agent.py:790
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:790: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:836
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:836: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:885
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:885: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:962
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:962: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1020
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1020: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1087
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1087: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1112
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1112: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1140
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1140: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1152
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1152: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1167
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1167: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1208
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1208: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1334
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1334: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1335
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1335: PytestUnknownMarkWarning: Unknown pytest.mark.algebraic - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.algebraic
+
+tests/unit/strategy/test_business_agent.py:1463
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1463: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1525
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1525: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1583
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1583: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1637
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1637: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1764
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1764: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1838
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1838: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:1892
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:1892: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests/unit/strategy/test_business_agent.py:2020
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:2020: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests/unit/strategy/test_business_agent.py:2107
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:2107: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:2144
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:2144: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/unit/strategy/test_business_agent.py:2227
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:2227: PytestUnknownMarkWarning: Unknown pytest.mark.algebraic - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.algebraic
+
+tests/unit/strategy/test_business_agent.py:2286
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/strategy/test_business_agent.py:2286: PytestUnknownMarkWarning: Unknown pytest.mark.regression - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.regression
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/unit/core/test_mic_vectors.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+================== 1 skipped, 38 warnings, 1 error in 10.47s ===================
