@@ -35,7 +35,6 @@ from app.adapters.mic_vectors import (
     _build_error,
     _build_result,
     _measure_memory_mb,
-    _elapsed_ms,
     calculate_algebraic_integrity,
     calculate_betti_numbers,
     calculate_topological_coherence,
@@ -452,34 +451,6 @@ class TestMeasureMemoryMb:
         r1 = _measure_memory_mb()
         r2 = _measure_memory_mb()
         assert r1 == r2
-
-
-class TestElapsedMs:
-    """Pruebas para _elapsed_ms como funtor temporal."""
-
-    def test_positive_elapsed(self):
-        start = time.time() - 0.1  # 100ms atrás
-        result = _elapsed_ms(start)
-        assert result >= 90.0  # al menos 90ms (margen)
-        assert result < 500.0  # no más de 500ms
-
-    def test_zero_elapsed(self):
-        start = time.time()
-        result = _elapsed_ms(start)
-        assert result >= 0.0
-        assert result < 50.0
-
-    def test_returns_float(self):
-        result = _elapsed_ms(time.time())
-        assert isinstance(result, float)
-
-    def test_monotonicity(self):
-        """t₁ < t₂ ⟹ elapsed(t₁) > elapsed(t₂) (invertida)."""
-        start1 = time.time() - 0.2
-        start2 = time.time() - 0.1
-        elapsed1 = _elapsed_ms(start1)
-        elapsed2 = _elapsed_ms(start2)
-        assert elapsed1 > elapsed2
 
 
 class TestBuildResult:
