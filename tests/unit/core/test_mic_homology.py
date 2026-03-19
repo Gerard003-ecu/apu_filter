@@ -364,7 +364,7 @@ def assert_clean_merge(result: Dict[str, Any], context: str = ""):
     assert result[ResultKeys.SUCCESS] is True, (
         f"{prefix}Esperado success=True"
     )
-    assert result[ResultKeys.STRATUM] == Stratum.TACTICS, (
+    assert result[ResultKeys.STRATUM] == Stratum.TACTICS.name, (
         f"{prefix}Stratum incorrecto: {result.get(ResultKeys.STRATUM)}"
     )
     assert result[ResultKeys.PAYLOAD][ResultKeys.MERGED_GRAPH_VALID] is True, (
@@ -389,7 +389,7 @@ def assert_ghost_cycle_detected(result: Dict[str, Any], context: str = ""):
     assert result[ResultKeys.STATUS] == VectorResultStatus.TOPOLOGY_ERROR.value, (
         f"{prefix}Status debe ser TOPOLOGY_ERROR"
     )
-    assert "ciclos fantasma" in result[ResultKeys.ERROR].lower() or \
+    assert "ciclo(s) fantasma" in result[ResultKeys.ERROR].lower() or "ciclos fantasma" in result[ResultKeys.ERROR].lower() or \
            "mayer-vietoris" in result[ResultKeys.ERROR].lower(), (
         f"{prefix}Error debe mencionar ciclos fantasma o Mayer-Vietoris"
     )
@@ -447,7 +447,7 @@ class TestVectorAuditHomologicalFusion:
 
     # ── PATH DE MOCK (centralizado para mantenimiento) ─────────────────
 
-    ANALYZER_PATCH_PATH = "app.adapters.mic_vectors.BusinessTopologicalAnalyzer"
+    ANALYZER_PATCH_PATH = "app.tactics.business_topology.BusinessTopologicalAnalyzer"
 
     # ── FACTORIES ──────────────────────────────────────────────────────
 
@@ -739,7 +739,7 @@ class TestVectorAuditHomologicalFusion:
             result = vector_audit_homological_fusion(payload)
 
         assert result[ResultKeys.SUCCESS] is False
-        assert "ciclos fantasma" in result[ResultKeys.ERROR].lower()
+        assert "ciclo(s) fantasma" in result[ResultKeys.ERROR].lower() or "ciclos fantasma" in result[ResultKeys.ERROR].lower()
 
     def test_multiple_ghost_cycles(self):
         """
@@ -1068,7 +1068,7 @@ class TestVectorAuditHomologicalFusion:
 
             result = vector_audit_homological_fusion(payload)
 
-        assert result[ResultKeys.STRATUM] == Stratum.TACTICS
+        assert result[ResultKeys.STRATUM] == Stratum.TACTICS.name
 
     def test_stratum_present_on_failure(self):
         """
@@ -1092,7 +1092,7 @@ class TestVectorAuditHomologicalFusion:
             result = vector_audit_homological_fusion(payload)
 
         if ResultKeys.STRATUM in result:
-            assert result[ResultKeys.STRATUM] in list(Stratum)
+            assert result[ResultKeys.STRATUM] in [s.name for s in Stratum]
 
     # ═══════════════════════════════════════════════════════════════════════
     # INVARIANTE I₆: INMUTABILIDAD DE GRAFOS DE ENTRADA
@@ -1515,7 +1515,7 @@ class TestFusionResultInvariants:
       └─────┴───────────────────────────────────────────────────────────────┘
     """
 
-    ANALYZER_PATCH_PATH = "app.adapters.mic_vectors.BusinessTopologicalAnalyzer"
+    ANALYZER_PATCH_PATH = "app.tactics.business_topology.BusinessTopologicalAnalyzer"
 
     @pytest.mark.parametrize(
         "scenario, payload, mock_result",
@@ -1593,7 +1593,7 @@ class TestPerformanceAndStress:
     Pruebas de rendimiento bajo carga.
     """
 
-    ANALYZER_PATCH_PATH = "app.adapters.mic_vectors.BusinessTopologicalAnalyzer"
+    ANALYZER_PATCH_PATH = "app.tactics.business_topology.BusinessTopologicalAnalyzer"
 
     def test_large_graph_fusion(self):
         """
@@ -1653,7 +1653,7 @@ class TestIdempotenceAndDeterminism:
     Pruebas de propiedades de idempotencia y determinismo.
     """
 
-    ANALYZER_PATCH_PATH = "app.adapters.mic_vectors.BusinessTopologicalAnalyzer"
+    ANALYZER_PATCH_PATH = "app.tactics.business_topology.BusinessTopologicalAnalyzer"
 
     def test_fusion_is_deterministic(self):
         """

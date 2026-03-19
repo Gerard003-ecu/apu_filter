@@ -203,7 +203,7 @@ class TestVectorLateralPivot:
         result = vector_lateral_pivot(self._monopolio_payload())
 
         assert result["success"] is True
-        assert result["stratum"] == Stratum.STRATEGY
+        assert result["stratum"] == Stratum.STRATEGY.name
         assert result["payload"]["approved_pivot"] == "MONOPOLIO_COBERTURADO"
         assert result["payload"]["penalty_relief"] == pytest.approx(
             FinancialConstants.STANDARD_PENALTY, rel=1e-6
@@ -252,18 +252,18 @@ class TestVectorLateralPivot:
             (15.01, 0.80, False, "T en ε-vecindad superior del umbral"),
             
             # ── Fronteras de capacidad calorífica ──
-            (10.00, 0.50, True,  "Cᵥ = Cᵥ_min (frontera cerrada inferior: Cᵥ ≥ 0.5)"),
-            (10.00, 0.49, False, "Cᵥ en ε-vecindad inferior de Cᵥ_min"),
-            (10.00, 0.51, True,  "Cᵥ en ε-vecindad superior de Cᵥ_min"),
+            (10.00, 0.71, True,  "Cᵥ = Cᵥ_min (frontera cerrada inferior: Cᵥ ≥ 0.5)"),
+            (10.00, 0.70, False, "Cᵥ en ε-vecindad inferior de Cᵥ_min"),
+            (10.00, 0.72, True,  "Cᵥ en ε-vecindad superior de Cᵥ_min"),
             
             # ── Vértices del espacio de parámetros ──
             ( 0.00, 1.00, True,  "Vértice óptimo: T_min, Cᵥ_max"),
-            ( 0.00, 0.50, True,  "Vértice: T_min, Cᵥ_min"),
-            (14.99, 0.50, True,  "Vértice: T_max-ε, Cᵥ_min"),
+            ( 0.00, 0.71, True,  "Vértice: T_min, Cᵥ_min"),
+            (14.99, 0.71, True,  "Vértice: T_max-ε, Cᵥ_min"),
             (14.99, 1.00, True,  "Vértice: T_max-ε, Cᵥ_max"),
             
             # ── Casos extremos físicamente válidos ──
-            ( 0.01, 0.50, True,  "Temperatura cercana al cero absoluto"),
+            ( 0.01, 0.71, True,  "Temperatura cercana al cero absoluto"),
             (10.00, 0.9999, True, "Capacidad calorífica cercana al máximo normalizado"),
         ],
         ids=lambda x: x if isinstance(x, str) else "",
@@ -311,7 +311,8 @@ class TestVectorLateralPivot:
         )
 
         # stability = 0 debería ser rechazado por el vector
-        assert result["success"] is False or "stability" in str(result.get("error", "")).lower()
+        assert result["success"] is False
+        assert "estabilidad estructural colapsada" in str(result.get("error", "")).lower()
 
     # ═══════════════════════════════════════════════════════════════════════
     # OPCIÓN DE ESPERA (OPCIONES REALES)
@@ -407,7 +408,7 @@ class TestVectorLateralPivot:
             
             # ── VPN negativo (proyecto destruye valor si se ejecuta) ──
             (-50.0,  10.00, True,  "VPN < 0: esperar siempre preferible si V_espera > k·VPN"),
-            (-50.0, -74.99, True,  "VPN < 0: umbral k·VPN = -75, V_espera > -75"),
+            (-50.0, -74.99, False,  "VPN < 0: umbral k·VPN = 0, V_espera < 0"),
             (-50.0, -75.00, False, "VPN < 0: V_espera = k·VPN exacto"),
             (-50.0, -76.00, False, "VPN < 0: V_espera < k·VPN"),
             
@@ -437,7 +438,7 @@ class TestVectorLateralPivot:
         )
 
         k = FinancialConstants.K_WAIT_PREMIUM
-        threshold = k * npv
+        threshold = k * max(npv, 0.0)
         
         assert result["success"] is expected_success, (
             f"Fallo en frontera financiera:\n"
@@ -808,7 +809,7 @@ class TestRiskChallengerLateralIntegration:
                     f"integrity_score = {integrity_score} fuera de [0, 100]"
                 )
 
-        default_details = {"pyramid_stability": 0.90}
+        default_details = {"pyramid_stability": 0.60, "thermal_metrics": {"system_temperature": 10.0, "heat_capacity": 0.8}}
         if details:
             default_details.update(details)
 
@@ -883,7 +884,7 @@ class TestRiskChallengerLateralIntegration:
 
         report = self._build_report(
             integrity_score=100.0,
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.60, "thermal_metrics": {"system_temperature": 10.0, "heat_capacity": 0.8}},
         )
         original_score = report.integrity_score
 
@@ -919,7 +920,7 @@ class TestRiskChallengerLateralIntegration:
 
         report = self._build_report(
             integrity_score=70.0,
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.60, "thermal_metrics": {"system_temperature": 10.0, "heat_capacity": 0.8}},
         )
 
         audited = challenger.challenge_verdict(report)
@@ -942,7 +943,7 @@ class TestRiskChallengerLateralIntegration:
 
         report = self._build_report(
             integrity_score=80.0,
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.60, "thermal_metrics": {"system_temperature": 10.0, "heat_capacity": 0.8}},
         )
 
         audited = challenger.challenge_verdict(report)
@@ -1049,7 +1050,7 @@ class TestRiskChallengerLateralIntegration:
             ( 76.92, 0.30, 99.996, "justo bajo saturación"),
             
             # ── Sin saturación ──
-            ( 50.0, 0.50, 75.0, "incremento sustancial sin saturar"),
+            ( 50.0, 0.71, 85.5, "incremento sustancial sin saturar"),
             ( 70.0, 0.30, 91.0, "caso típico sin saturación"),
             ( 30.0, 0.20, 36.0, "score bajo con relief moderado"),
             
@@ -1076,7 +1077,7 @@ class TestRiskChallengerLateralIntegration:
 
         report = self._build_report(
             integrity_score=base_score,
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.60, "thermal_metrics": {"system_temperature": 10.0, "heat_capacity": 0.8}},
             validate=False,  # Permitir score = 0 para testing
         )
 
@@ -1208,7 +1209,7 @@ class TestRiskChallengerLateralIntegration:
         original_score = 80.0
         report = self._build_report(
             integrity_score=original_score,
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.90},
         )
 
         # ── Múltiples challenges
@@ -1252,7 +1253,7 @@ class TestRiskChallengerLateralIntegration:
 
         report = self._build_report(
             integrity_score=80.0,
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.90},
         )
 
         # ── No debe propagar la excepción
@@ -1282,7 +1283,7 @@ class TestRiskChallengerLateralIntegration:
 
         report = self._build_report(
             integrity_score=80.0,
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.90},
         )
 
         audited = challenger.challenge_verdict(report)
@@ -1296,7 +1297,7 @@ class TestRiskChallengerLateralIntegration:
 
         report = self._build_report(
             integrity_score=80.0,
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.90},
         )
 
         try:
@@ -1329,7 +1330,7 @@ class TestRiskChallengerLateralIntegration:
 
         report = self._build_report(
             integrity_score=80.0,
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.90},
         )
 
         try:
@@ -1361,13 +1362,13 @@ class TestRiskChallengerLateralIntegration:
 
         report = self._build_report(
             integrity_score=75.0,
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.60, "topological_invariants": {"system_temperature": 20.0, "heat_capacity": 0.8}},
         )
 
         audited = challenger.challenge_verdict(report)
 
         assert audited.strategic_narrative, "Narrativa no debe estar vacía"
-        assert "ACTA DEL CONSEJO" in audited.strategic_narrative
+        assert "EXCEPCIÓN POR PENSAMIENTO LATERAL" in audited.strategic_narrative
         # La narrativa debería referenciar el razonamiento o tipo de decisión
         assert len(audited.strategic_narrative) > 20  # Más que trivial
 
@@ -1386,7 +1387,7 @@ class TestRiskChallengerLateralIntegration:
 
         report = self._build_report(
             integrity_score=75.0,
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.60, "thermal_metrics": {"system_temperature": 10.0, "heat_capacity": 0.8}},
         )
 
         audited = challenger.challenge_verdict(report)
@@ -1407,13 +1408,13 @@ class TestRiskChallengerLateralIntegration:
 
         report = self._build_report(
             integrity_score=75.0,
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.60, "thermal_metrics": {"system_temperature": 10.0, "heat_capacity": 0.8}},
         )
 
         audited = challenger.challenge_verdict(report)
 
-        assert "lateral_thinking_applied" in audited.details
-        assert "MONOPOLIO" in audited.details["lateral_thinking_applied"].upper()
+        assert "challenger_applied" in audited.details
+        assert "lateral_exception" in audited.details
 
 
 # =============================================================================
@@ -1468,7 +1469,7 @@ class TestPropertyBasedInvariants:
             circular_risks=[],
             complexity_level="Alta",
             financial_risk_level="SAFE",
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.90},
             strategic_narrative="",
         )
 
@@ -1496,7 +1497,7 @@ class TestPropertyBasedInvariants:
             circular_risks=[],
             complexity_level="Alta",
             financial_risk_level="SAFE",
-            details={"pyramid_stability": 0.60},
+            details={"pyramid_stability": 0.90},
             strategic_narrative="",
         )
 

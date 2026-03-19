@@ -1485,7 +1485,8 @@ class NormalizationCommand(ProjectionCommand):
     
     def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
         # Copia inmutable para garantizar la pureza funcional y la inmutabilidad
-        raw_validated = set(ctx.context.get("validated_strata", set()))
+        raw_validated = ctx.context.get("validated_strata", set())
+        raw_validated = set() if raw_validated is None else set(raw_validated)
         ctx.validated_strata = self._normalize_validated_strata(raw_validated)
         ctx.force_override = bool(ctx.context.get("force_physics_override", False))
         return None

@@ -1441,11 +1441,35 @@ class BusinessTopologicalAnalyzer:
         if len(eigenvalues) <= 2:
             return True
         
+        # Calcular agrupación de eigenvalores para detectar degeneración
+        # Si la mayoría de eigenvalores (ej. > 50%) son indistinguibles, hay alto riesgo.
+        # Agrupamos con tolerancia abs_tol=1e-4
+        clusters = []
+        for e in eigenvalues:
+            placed = False
+            for c in clusters:
+                import math
+                if math.isclose(e, c[0], abs_tol=1e-4):
+                    c.append(e)
+                    placed = True
+                    break
+            if not placed:
+                clusters.append([e])
+
+        # Si un solo cluster agrupa a muchos eigenvalores (degeneración)
+        max_cluster_size = max(len(c) for c in clusters) if clusters else 0
+        degeneracy_ratio = max_cluster_size / len(eigenvalues)
+
+        # Si la degeneración es alta (>0.5), el riesgo de resonancia es True.
+        if degeneracy_ratio > 0.5:
+            return True
+
         eigen_std = np.std(eigenvalues)
         eigen_mean = np.mean(eigenvalues)
         cv = eigen_std / eigen_mean if eigen_mean > EPSILON else 0.0
         
-        return cv < cfg.resonance_cv_threshold
+        # Debe retornar bool nativo, no np.bool_
+        return bool(cv < cfg.resonance_cv_threshold)
 
     # ========================================================================
     # EFICIENCIA DE EULER
