@@ -903,7 +903,8 @@ class TestCreateApp:
     @patch("redis.from_url")
     def test_create_app_development(self, mock_redis):
         """Debe crear app en modo desarrollo."""
-        mock_redis.return_value = MagicMock()
+        import fakeredis
+        mock_redis.return_value = fakeredis.FakeStrictRedis()
         with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
             app = create_app("development")
             assert app is not None
@@ -912,7 +913,8 @@ class TestCreateApp:
     @patch("redis.from_url")
     def test_create_app_testing(self, mock_redis):
         """Debe crear app en modo testing."""
-        mock_redis.return_value = MagicMock()
+        import fakeredis
+        mock_redis.return_value = fakeredis.FakeStrictRedis()
         with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
             app = create_app("testing")
             assert app is not None
@@ -921,7 +923,8 @@ class TestCreateApp:
     @patch("redis.from_url")
     def test_create_app_production(self, mock_redis):
         """Debe crear app en modo producción."""
-        mock_redis.return_value = MagicMock()
+        import fakeredis
+        mock_redis.return_value = fakeredis.FakeStrictRedis()
         # En producción requiere secret key
         with patch.dict(os.environ, {"SECRET_KEY": "prod-secret"}):
             with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
@@ -932,7 +935,8 @@ class TestCreateApp:
     @patch("redis.from_url")
     def test_create_app_config_loading(self, mock_redis):
         """Debe cargar configuración desde archivo."""
-        mock_redis.return_value = MagicMock()
+        import fakeredis
+        mock_redis.return_value = fakeredis.FakeStrictRedis()
         with patch("builtins.open", mock_open(read_data='{"version": "1.0.0"}')):
             with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
                 app = create_app("testing")
@@ -941,7 +945,8 @@ class TestCreateApp:
     @patch("redis.from_url")
     def test_create_app_upload_folder_creation(self, mock_redis):
         """Debe crear carpeta de uploads."""
-        mock_redis.return_value = MagicMock()
+        import fakeredis
+        mock_redis.return_value = fakeredis.FakeStrictRedis()
         with patch("pathlib.Path.mkdir"):
             with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
                 app = create_app("testing")
@@ -950,7 +955,8 @@ class TestCreateApp:
     @patch("redis.from_url")
     def test_create_app_session_configuration(self, mock_redis):
         """Debe configurar sesiones correctamente."""
-        mock_redis.return_value = MagicMock()
+        import fakeredis
+        mock_redis.return_value = fakeredis.FakeStrictRedis()
         with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
             app = create_app("testing")
             assert app.config["SESSION_TYPE"] == "redis"
