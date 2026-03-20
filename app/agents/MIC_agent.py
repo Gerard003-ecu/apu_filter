@@ -97,10 +97,20 @@ from app.core.schemas import Stratum
 from app.core.mic_algebra import (
     CategoricalState,
     _canonicalize,
-    _stable_hash,
 )
 from app.adapters.tools_interface import MICRegistry
 
+
+
+def _stable_hash(data: Any) -> str:
+    """Genera un hash SHA-256 estable a partir de cualquier estructura de datos canonicalizable."""
+    serialized = json.dumps(
+        _canonicalize(data),
+        sort_keys=True,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 logger = logging.getLogger("MIC.Agent.CategoricalEqualizer")
 
@@ -336,7 +346,7 @@ class CategoricalEqualizerSeed:
         return _stable_hash(data)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class TOONDocument:
     """
     Documento TOON (Tabular Object-Oriented Notation).
@@ -390,14 +400,37 @@ class TOONDocument:
             raise TOONCompressionError("Marcador de fin faltante o inválido")
         
         # Parsear template y records
-        header_template = lines[1]
+        header_lines = []
         records: List[Tuple[str, str]] = []
         
-        for line in lines[2:-1]:
-            if TOON_FIELD_SEPARATOR in line:
-                parts = line.split(TOON_FIELD_SEPARATOR, 1)
-                if len(parts) == 2:
+        # La convención es que el header finaliza en la primera línea que contenga
+        # valores escapados (ej: "value") o una estructura JSON.
+        # Alternativamente, si estamos procesando la última línea del bloque,
+        # es un record si tiene el separador.
+        # Una manera más rigurosa: el primer campo de un record no suele ser 'key' o 'col1'.
+        # Y sabemos que TOON_FIELD_SEPARATOR se usa tanto en el template como en los records.
+        # Sin embargo, los records son `key|json_value`.
+
+        in_records = False
+        for line in lines[1:-1]:
+            if not in_records:
+                # Determinar si la línea es un record.
+                # Heurística robusta: si tiene separador y la segunda parte empieza por un carácter JSON
+                # válido (", {, [, número, true, false, null) y no es simplemente 'value' o 'col2'.
+                if TOON_FIELD_SEPARATOR in line:
+                    parts = line.split(TOON_FIELD_SEPARATOR, 1)
+                    val = parts[1].strip()
+                    if val.startswith('"') or val.startswith('{') or val.startswith('[') or val in ('true', 'false', 'null') or val.lstrip('-').replace('.', '', 1).isdigit():
+                        in_records = True
+
+            if in_records:
+                if TOON_FIELD_SEPARATOR in line:
+                    parts = line.split(TOON_FIELD_SEPARATOR, 1)
                     records.append((parts[0], parts[1]))
+            else:
+                header_lines.append(line)
+
+        header_template = "\n".join(header_lines)
         
         return cls(
             cartridge_id=cartridge_id,
@@ -1678,7 +1711,7 @@ class MICAgent:
                 validation_errors.extend(schema_result.errors)
         
         # 6. Aplicar vetos algebraicos
-        if status == ImpedanceMatchStatus.LAMINAR_PROJECTION:
+        if status in [ImpedanceMatchStatus.LAMINAR_PROJECTION, ImpedanceMatchStatus.SCHEMA_VALIDATION_ERROR]:
             veto_errors = self._algebraic_vetos.validate(stratum, llm_output)
             if veto_errors:
                 status = ImpedanceMatchStatus.ALGEBRAIC_VETO
