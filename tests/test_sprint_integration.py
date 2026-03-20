@@ -1,3 +1,40 @@
+"""
+Suite de Integración y Extracción Topológica de Anomalías (Sprint Integration).
+
+Fundamentos Matemáticos Verificados:
+─────────────────────────────────────────────────────────────────────────────
+1. Homología Simplicial y Ciclos (H₁):
+   En la topología del presupuesto, una dependencia circular o "Socavón Lógico" 
+   se formaliza como un elemento no trivial del primer grupo de homología H₁(G), 
+   donde el primer número de Betti es estrictamente positivo (β₁ > 0).
+   Esta suite valida que las cadenas de texto detectadas correspondan a verdaderos 
+   1-ciclos algebraicos. Específicamente, a través de `validate_cycle_closure`, 
+   se demuestra computacionalmente que el operador frontera sobre la cadena 
+   evaluada es estrictamente nulo: ∂₁(c) = 0, garantizando el cierre topológico del grafo.
+
+2. Proyección y Descomposición de Subgrafos Anómalos:
+   La función `extract_anomaly_data` actúa como un funtor que mapea el espacio 
+   de ciclos y anomalías topológicas hacia un espacio de conjuntos discretos 
+   (`AnomalyData`), aislando los vértices (nodos únicos) y los 1-simplices 
+   (aristas) responsables de la fractura del DAG.
+
+3. Idempotencia y Determinismo Analítico:
+   Se exige axiomáticamente que cualquier proyección topológica hacia las métricas 
+   de anomalía sea un morfismo idempotente y determinista. La evaluación iterativa 
+   y el parseo de representaciones de grafos bajo múltiples formatos (`CycleFormat`) 
+   y separadores (`CycleSeparators`) debe converger sin varianza numérica ni pérdida 
+   de entropía estructural.
+
+Contratos Estructurales Probados:
+─────────────────────────────────────────────────────────────────────────────
+- Parseo estricto y extracción geométrica de ciclos mediante `parse_cycle_string`.
+- Validación matemática del cierre del ciclo en topologías cíclicas complejas.
+- Identificación de conjuntos ortogonales de nodos y aristas únicos involucrados 
+  en la anomalía de Betti (H₁).
+- Preservación de la complejidad asintótica y estabilidad de la memoria bajo 
+  escenarios de estrés, evitando la explosión combinatoria al extraer métricas.
+"""
+
 import pytest
 import re
 from typing import Any, Dict, List, Optional, Set, Tuple, FrozenSet
