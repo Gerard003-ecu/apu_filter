@@ -360,13 +360,15 @@ def stratum_infimum(s1: Stratum, s2: Stratum) -> Stratum:
 # CONSTRUCTORES DE DATOS DE PRUEBA
 # =============================================================================
 
+from app.core.schemas import TipoInsumo
+
 def make_insumo(
     *,
     codigo_apu: str = "APU001",
     descripcion_apu: str = "Muro de Ladrillo",
     unidad_apu: str = "m2",
     descripcion_insumo: str = "Ladrillo Arcilla",
-    unidad_insumo: str = "und",
+    unidad_insumo: str = "UND",
     cantidad: float = 150.0,
     precio_unitario: float = 850.0,
     valor_total: float | None = None,
@@ -395,7 +397,14 @@ def make_insumo(
     if valor_total is None:
         valor_total = cantidad * precio_unitario
     
-    return InsumoProcesado(
+    rendimiento = 0.0
+    if tipo_insumo == TipoInsumo.MANO_DE_OBRA.value and cantidad > 0:
+        rendimiento = 1.0 / cantidad
+
+    from app.core.schemas import INSUMO_CLASS_MAP
+    clase_insumo = INSUMO_CLASS_MAP.get(tipo_insumo, InsumoProcesado)
+
+    return clase_insumo(
         codigo_apu=codigo_apu,
         descripcion_apu=descripcion_apu,
         unidad_apu=unidad_apu,
@@ -405,6 +414,7 @@ def make_insumo(
         precio_unitario=precio_unitario,
         valor_total=valor_total,
         tipo_insumo=tipo_insumo,
+        rendimiento=rendimiento,
     )
 
 
@@ -518,6 +528,7 @@ def insumos_variados() -> list[InsumoProcesado]:
         make_insumo(
             descripcion_insumo="Ladrillo",
             tipo_insumo="SUMINISTRO",
+            unidad_insumo="UND",
         ),
         make_insumo(
             descripcion_insumo="Cemento",
@@ -528,14 +539,14 @@ def insumos_variados() -> list[InsumoProcesado]:
         ),
         make_insumo(
             descripcion_insumo="Albañil",
-            unidad_insumo="hr",
+            unidad_insumo="HORA",
             cantidad=4.0,
             precio_unitario=15000.0,
             tipo_insumo="MANO_DE_OBRA",
         ),
         make_insumo(
             descripcion_insumo="Mezcladora",
-            unidad_insumo="hr",
+            unidad_insumo="HORA",
             cantidad=2.0,
             precio_unitario=5000.0,
             tipo_insumo="EQUIPO",
@@ -832,11 +843,6 @@ class TestInsumoProcesado:
         assert prefix == "APU001"
         assert suffix != ""
 
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_insumo_id_uniqueness_same_apu(self) -> None:
         """Verifica unicidad de IDs para el mismo APU."""
         insumo_a = make_insumo(descripcion_insumo="Ladrillo")
@@ -864,7 +870,12 @@ class TestInsumoProcesado:
     @pytest.mark.parametrize("tipo", _VALID_INSUMO_TYPES)
     def test_insumo_valid_types(self, tipo: str) -> None:
         """Verifica aceptación de tipos válidos."""
-        insumo = make_insumo(tipo_insumo=tipo)
+        unidad = "UND"
+        if tipo in ["MANO_DE_OBRA", "EQUIPO"]:
+            unidad = "HORA"
+        elif tipo == "TRANSPORTE":
+            unidad = "VIAJE"
+        insumo = make_insumo(tipo_insumo=tipo, unidad_insumo=unidad)
         assert insumo.tipo_insumo == tipo
 
 
@@ -917,10 +928,12 @@ class TestInsumoConservationLaw:
 
     def test_conservation_law_zero_quantity(self) -> None:
         """Verifica ley con cantidad cero."""
-        insumo = make_insumo(
-            cantidad=0.0,
-            precio_unitario=1000.0,
-        )
+        import pytest
+        with pytest.warns(UserWarning, match="Suministro con cantidad=0 en APU001"):
+            insumo = make_insumo(
+                cantidad=0.0,
+                precio_unitario=1000.0,
+            )
         
         satisfies, _ = verify_conservation_law(insumo)
         assert satisfies
@@ -955,10 +968,6 @@ class TestAPUStructure:
         """Verifica soporte inicial vacío."""
         assert apu_vacio.support_base_width == 0
 
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_apu_add_single_resource(
         self,
         apu_vacio: APUStructure,
@@ -968,10 +977,6 @@ class TestAPUStructure:
         apu_vacio.add_resource(insumos_variados[0])
         assert apu_vacio.support_base_width == 1
 
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_apu_add_multiple_resources_incremental(
         self,
         apu_vacio: APUStructure,
@@ -986,10 +991,6 @@ class TestAPUStructure:
 class TestAPUSupportMonotonicity:
     """Pruebas de monotonía del soporte de APU."""
 
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_support_monotonically_increasing(
         self,
         apu_vacio: APUStructure,
@@ -1020,10 +1021,6 @@ class TestAPUSupportMonotonicity:
         for i in range(len(supports) - 1):
             assert supports[i] < supports[i + 1]
 
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_support_never_decreases(
         self,
         apu_vacio: APUStructure,
@@ -1041,10 +1038,6 @@ class TestAPUSupportMonotonicity:
 class TestAPUStratumRelations:
     """Pruebas de relaciones entre estratos de APU e insumos."""
 
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_apu_stratum_above_insumos(
         self,
         apu_vacio: APUStructure,
