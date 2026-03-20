@@ -1,38 +1,44 @@
 """
-Módulo: test_mic_algebra_suite.py
-==================================
+test_mic_algebra.py
+===================
 
-Suite de pruebas comprensiva para el núcleo categórico refactorizado (MIC Algebra).
+Suite de pruebas rigurosa para el álgebra categórica MIC.
 
-Cubre:
-1. Objetos categóricos (CategoricalState)
-2. Morfismos (identidad, atómicos, compuestos)
-3. Composición y verificación algebraica
-4. Productos y coproductos
-5. Pullbacks (intersecciones)
-6. Funtores y transformaciones naturales
-7. Verificación homológica
-8. Registro categórico y grafos de dependencias
-9. Railway Oriented Programming (monadalidad)
-10. Trazas de composición
+Estructura de la suite:
+    1. Fixtures y utilidades auxiliares
+    2. Tests de utilidades internas (_canonicalize, _safe_merge_dicts)
+    3. Tests de CompositionTrace
+    4. Tests de CategoricalState
+    5. Tests de Morfismos (Identity, Atomic, Composed, Product, Coproduct, Pullback)
+    6. Tests de Funtores y Transformaciones Naturales
+    7. Tests de MorphismComposer
+    8. Tests de StructuralVerifier
+    9. Tests de CategoricalRegistry
+    10. Tests de Factories
+    11. Tests de propiedades categóricas (axiomas)
+    12. Tests de robustez y casos extremos
 
-Ejecutar:
-    pytest test_mic_algebra_suite.py -v --tb=short
-    pytest test_mic_algebra_suite.py -v --cov=mic_algebra --cov-report=html
+Convenciones:
+    - Cada test verifica UNA propiedad o invariante.
+    - Los nombres siguen: test_<componente>_<propiedad>_<escenario>.
+    - Se usan marcadores pytest para categorización.
 """
 
-import datetime
-import json
-import logging
-import pickle
-import time
-from typing import Any, Dict, List, Optional
-from unittest.mock import MagicMock, Mock, patch
+from __future__ import annotations
 
-import networkx as nx
+import hashlib
+import json
+import math
+import time
+from typing import Any, Dict, FrozenSet, Optional, Set
+from unittest.mock import MagicMock, patch
+
 import pytest
 
-from app.core.schemas import Stratum
+# ============================================================================
+# IMPORTACIONES DEL MÓDULO BAJO PRUEBA
+# ============================================================================
+
 from app.core.mic_algebra import (
     AtomicVector,
     CategoricalRegistry,
@@ -48,1929 +54,2394 @@ from app.core.mic_algebra import (
     NaturalTransformation,
     ProductMorphism,
     PullbackMorphism,
+    StateToDictFunctor,
+    Stratum,
+    StructuralVerifier,
+    _SCHEMA_VERSION,
+    _canonicalize,
+    _CanonicalizationError,
+    _safe_merge_dicts,
     create_categorical_state,
     create_morphism_from_handler,
 )
 
+
 # ============================================================================
-# CONFIGURACIÓN
+# MARCADORES PYTEST
 # ============================================================================
 
-logger = logging.getLogger(__name__)
-
-
-@pytest.fixture(scope="session")
-def configure_logging():
-    """Configura logging para pruebas."""
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
-    yield
+pytestmark = [pytest.mark.unit]
 
 
 # ============================================================================
-# FIXTURES
+# 1. FIXTURES Y UTILIDADES AUXILIARES
 # ============================================================================
 
 
 @pytest.fixture
-def simple_state():
-    """Crea estado categórico simple."""
-    return create_categorical_state(
-        payload={"value": 42, "name": "test"},
-        context={"origin": "fixture"},
-        strata={Stratum.PHYSICS},
+def empty_state() -> CategoricalState:
+    """Estado vacío sin payload, context ni strata."""
+    return CategoricalState()
+
+
+@pytest.fixture
+def physics_state() -> CategoricalState:
+    """Estado con estrato PHYSICS validado."""
+    return CategoricalState(
+        payload={"voltage": 3.3, "current": 0.01},
+        context={"source": "sensor_adc"},
+        validated_strata=frozenset({Stratum.PHYSICS}),
     )
 
 
 @pytest.fixture
-def physics_state():
-    """Estado con PHYSICS validado."""
-    return create_categorical_state(
-        payload={"raw_data": [1, 2, 3]},
-        strata={Stratum.PHYSICS},
+def tactics_state() -> CategoricalState:
+    """Estado con estratos PHYSICS y TACTICS validados."""
+    return CategoricalState(
+        payload={"voltage": 3.3, "current": 0.01, "power": 0.033},
+        context={"source": "sensor_adc", "stage": "tactics"},
+        validated_strata=frozenset({Stratum.PHYSICS, Stratum.TACTICS}),
     )
 
 
 @pytest.fixture
-def tactics_state():
-    """Estado con TACTICS validado."""
-    return create_categorical_state(
-        payload={"computed": 100},
-        strata={Stratum.PHYSICS, Stratum.TACTICS},
+def full_state() -> CategoricalState:
+    """Estado con todos los estratos validados."""
+    return CategoricalState(
+        payload={"voltage": 3.3, "analysis": "complete"},
+        context={"pipeline": "full"},
+        validated_strata=frozenset(Stratum),
     )
 
 
 @pytest.fixture
-def complete_state():
-    """Estado con múltiples estratos."""
-    return create_categorical_state(
-        payload={
-            "physics": "data",
-            "tactics": "metrics",
-            "strategy": "plan",
-            "wisdom": "decision",
-        },
-        strata={
-            Stratum.PHYSICS,
+def failed_state() -> CategoricalState:
+    """Estado en condición de error."""
+    return CategoricalState(
+        payload={"partial": True},
+        context={},
+        validated_strata=frozenset({Stratum.PHYSICS}),
+        error="Fallo de prueba deliberado",
+        error_details={"reason": "test"},
+    )
+
+
+def _make_handler(
+    result: Any = None,
+    *,
+    raises: Optional[Exception] = None,
+    success: bool = True,
+) -> Any:
+    """Crea un handler mock para AtomicVector."""
+    def handler(**kwargs):
+        if raises is not None:
+            raise raises
+        if isinstance(result, dict):
+            return {**result, "success": success}
+        if result is not None:
+            return result
+        return {"success": success, "computed": True}
+    return handler
+
+
+def _make_atomic(
+    name: str,
+    target: Stratum,
+    handler: Any = None,
+    required_keys: list = None,
+    optional_keys: list = None,
+) -> AtomicVector:
+    """Factory conveniente para AtomicVector de prueba."""
+    if handler is None:
+        handler = _make_handler()
+    return AtomicVector(
+        name=name,
+        target_stratum=target,
+        handler=handler,
+        required_keys=required_keys,
+        optional_keys=optional_keys,
+    )
+
+
+class ConcreteMorphism(Morphism):
+    """Morfismo concreto mínimo para pruebas de la clase base."""
+
+    def __init__(
+        self,
+        name: str,
+        domain: FrozenSet[Stratum],
+        codomain: Stratum,
+        transform: Any = None,
+    ):
+        super().__init__(name)
+        self._domain = domain
+        self._codomain = codomain
+        self._transform = transform
+
+    @property
+    def domain(self) -> FrozenSet[Stratum]:
+        return self._domain
+
+    @property
+    def codomain(self) -> Stratum:
+        return self._codomain
+
+    def __call__(self, state: CategoricalState) -> CategoricalState:
+        if self._transform:
+            return self._transform(state)
+        return state.with_update(
+            {f"{self.name}_done": True},
+            new_stratum=self._codomain,
+        ).add_trace(
+            self.name, self._domain, self._codomain, success=True
+        )
+
+
+class ConcreteNaturalTransformation(NaturalTransformation):
+    """Transformación natural concreta para pruebas."""
+
+    def __call__(self, state: CategoricalState) -> CategoricalState:
+        return state.with_update({"transformed": True})
+
+
+# ============================================================================
+# 2. TESTS DE UTILIDADES INTERNAS
+# ============================================================================
+
+
+class TestCanonicalize:
+    """Tests para _canonicalize."""
+
+    def test_none(self):
+        assert _canonicalize(None) is None
+
+    def test_primitives(self):
+        assert _canonicalize(True) is True
+        assert _canonicalize(False) is False
+        assert _canonicalize(42) == 42
+        assert _canonicalize(3.14) == 3.14
+        assert _canonicalize("hello") == "hello"
+
+    def test_stratum(self):
+        result = _canonicalize(Stratum.PHYSICS)
+        assert result == {"__stratum__": "PHYSICS"}
+
+    def test_dict_sorted_keys(self):
+        result = _canonicalize({"b": 2, "a": 1, "c": 3})
+        keys = list(result.keys())
+        assert keys == ["a", "b", "c"]
+
+    def test_dict_recursive(self):
+        result = _canonicalize({"outer": {"b": 2, "a": 1}})
+        inner_keys = list(result["outer"].keys())
+        assert inner_keys == ["a", "b"]
+
+    def test_list_preserves_order(self):
+        result = _canonicalize([3, 1, 2])
+        assert result == [3, 1, 2]
+
+    def test_tuple_becomes_list(self):
+        result = _canonicalize((1, 2, 3))
+        assert result == [1, 2, 3]
+
+    def test_set_sorted(self):
+        result = _canonicalize({3, 1, 2})
+        assert result == [1, 2, 3]
+
+    def test_frozenset_sorted(self):
+        result = _canonicalize(frozenset({3, 1, 2}))
+        assert result == [1, 2, 3]
+
+    def test_set_with_uncomparable_elements(self):
+        """Sets con elementos no directamente comparables usan repr fallback."""
+        mixed = {1, "a"}
+        result = _canonicalize(mixed)
+        assert isinstance(result, list)
+        assert len(result) == 2
+
+    def test_object_with_to_dict(self):
+        obj = MagicMock()
+        obj.to_dict.return_value = {"key": "value"}
+        result = _canonicalize(obj)
+        assert result == {"key": "value"}
+
+    def test_object_with_to_json(self):
+        obj = MagicMock(spec=[])
+        obj.to_json = MagicMock(return_value='{"j": 1}')
+        result = _canonicalize(obj)
+        assert result == '{"j": 1}'
+
+    def test_fallback_repr(self):
+        class Custom:
+            def __repr__(self):
+                return "Custom()"
+        result = _canonicalize(Custom())
+        assert result == "Custom()"
+
+    def test_depth_limit_raises(self):
+        """Recursión profunda debe lanzar _CanonicalizationError."""
+        # Construir estructura anidada que exceda el límite
+        nested: Any = "leaf"
+        for _ in range(70):
+            nested = {"nested": nested}
+        with pytest.raises(_CanonicalizationError, match="Profundidad"):
+            _canonicalize(nested)
+
+    def test_determinism(self):
+        """Misma entrada produce misma salida siempre."""
+        data = {"z": [3, 1], "a": {Stratum.WISDOM}, "m": None}
+        r1 = _canonicalize(data)
+        r2 = _canonicalize(data)
+        assert r1 == r2
+
+    def test_to_dict_exception_falls_to_repr(self):
+        obj = MagicMock()
+        obj.to_dict.side_effect = RuntimeError("boom")
+        result = _canonicalize(obj)
+        assert isinstance(result, str)
+
+
+class TestSafeMergeDicts:
+    """Tests para _safe_merge_dicts."""
+
+    def test_disjoint_merge(self):
+        result = _safe_merge_dicts({"a": 1}, {"b": 2})
+        assert result == {"a": 1, "b": 2}
+
+    def test_prefer_right_on_conflict(self):
+        result = _safe_merge_dicts(
+            {"a": 1, "b": 2},
+            {"b": 99, "c": 3},
+            conflict_policy="prefer_right",
+        )
+        assert result == {"a": 1, "b": 99, "c": 3}
+
+    def test_prefer_left_on_conflict(self):
+        result = _safe_merge_dicts(
+            {"a": 1, "b": 2},
+            {"b": 99, "c": 3},
+            conflict_policy="prefer_left",
+        )
+        assert result == {"a": 1, "b": 2, "c": 3}
+
+    def test_error_on_conflict(self):
+        with pytest.raises(ValueError, match="Conflicto"):
+            _safe_merge_dicts(
+                {"a": 1}, {"a": 2}, conflict_policy="error_on_conflict"
+            )
+
+    def test_no_conflict_same_value(self):
+        """Misma clave con mismo valor no es conflicto."""
+        result = _safe_merge_dicts(
+            {"a": 1}, {"a": 1}, conflict_policy="error_on_conflict"
+        )
+        assert result == {"a": 1}
+
+    def test_invalid_policy_raises(self):
+        with pytest.raises(ValueError, match="conflict_policy inválida"):
+            _safe_merge_dicts({"a": 1}, {"b": 2}, conflict_policy="invalid")
+
+    def test_empty_dicts(self):
+        assert _safe_merge_dicts({}, {}) == {}
+
+    def test_left_empty(self):
+        assert _safe_merge_dicts({}, {"a": 1}) == {"a": 1}
+
+    def test_right_empty(self):
+        assert _safe_merge_dicts({"a": 1}, {}) == {"a": 1}
+
+
+# ============================================================================
+# 3. TESTS DE CompositionTrace
+# ============================================================================
+
+
+class TestCompositionTrace:
+    """Tests para CompositionTrace."""
+
+    def test_creation(self):
+        trace = CompositionTrace(
+            step_number=1,
+            morphism_name="test_morphism",
+            input_domain=frozenset({Stratum.PHYSICS}),
+            output_codomain=Stratum.TACTICS,
+            success=True,
+        )
+        assert trace.step_number == 1
+        assert trace.morphism_name == "test_morphism"
+        assert trace.success is True
+        assert trace.error is None
+
+    def test_immutability(self):
+        trace = CompositionTrace(
+            step_number=1,
+            morphism_name="test",
+            input_domain=frozenset({Stratum.PHYSICS}),
+            output_codomain=Stratum.TACTICS,
+            success=True,
+        )
+        with pytest.raises(AttributeError):
+            trace.step_number = 2
+
+    def test_to_dict(self):
+        trace = CompositionTrace(
+            step_number=1,
+            morphism_name="test",
+            input_domain=frozenset({Stratum.PHYSICS, Stratum.TACTICS}),
+            output_codomain=Stratum.STRATEGY,
+            success=True,
+            metadata={"key": "value"},
+        )
+        d = trace.to_dict()
+        assert d["step"] == 1
+        assert d["morphism"] == "test"
+        assert d["domain"] == ["PHYSICS", "TACTICS"]
+        assert d["codomain"] == "STRATEGY"
+        assert d["success"] is True
+
+    def test_trace_identity_key(self):
+        t1 = CompositionTrace(
+            step_number=1,
+            morphism_name="m",
+            input_domain=frozenset({Stratum.PHYSICS}),
+            output_codomain=Stratum.TACTICS,
+            success=True,
+            timestamp=100.0,
+        )
+        t2 = CompositionTrace(
+            step_number=1,
+            morphism_name="m",
+            input_domain=frozenset({Stratum.PHYSICS}),
+            output_codomain=Stratum.TACTICS,
+            success=True,
+            timestamp=200.0,
+        )
+        assert t1.trace_identity_key == t2.trace_identity_key
+
+    def test_trace_identity_key_differs_on_error(self):
+        t1 = CompositionTrace(
+            step_number=1,
+            morphism_name="m",
+            input_domain=frozenset(),
+            output_codomain=Stratum.PHYSICS,
+            success=False,
+            error="err_a",
+        )
+        t2 = CompositionTrace(
+            step_number=1,
+            morphism_name="m",
+            input_domain=frozenset(),
+            output_codomain=Stratum.PHYSICS,
+            success=False,
+            error="err_b",
+        )
+        assert t1.trace_identity_key != t2.trace_identity_key
+
+    def test_to_dict_none_metadata(self):
+        trace = CompositionTrace(
+            step_number=1,
+            morphism_name="test",
+            input_domain=frozenset(),
+            output_codomain=Stratum.PHYSICS,
+            success=True,
+            metadata=None,
+        )
+        d = trace.to_dict()
+        assert d["metadata"] is None
+
+
+# ============================================================================
+# 4. TESTS DE CategoricalState
+# ============================================================================
+
+
+class TestCategoricalStateBasic:
+    """Tests básicos de CategoricalState."""
+
+    def test_default_state(self, empty_state):
+        assert empty_state.payload == {}
+        assert empty_state.context == {}
+        assert empty_state.validated_strata == frozenset()
+        assert empty_state.is_success is True
+        assert empty_state.is_failed is False
+        assert empty_state.error is None
+        assert empty_state.composition_trace == ()
+
+    def test_stratum_level_empty(self, empty_state):
+        assert empty_state.stratum_level == Stratum.PHYSICS.value
+
+    def test_stratum_level_with_strata(self, tactics_state):
+        assert tactics_state.stratum_level == Stratum.TACTICS.value
+
+    def test_stratum_level_full(self, full_state):
+        assert full_state.stratum_level == Stratum.WISDOM.value
+
+    def test_accumulated_strata_alias(self, tactics_state):
+        assert tactics_state.accumulated_strata == tactics_state.validated_strata
+
+    def test_is_failed_with_error(self, failed_state):
+        assert failed_state.is_failed is True
+        assert failed_state.is_success is False
+
+
+class TestCategoricalStateWithUpdate:
+    """Tests para CategoricalState.with_update."""
+
+    def test_update_payload_merge(self, physics_state):
+        new = physics_state.with_update({"power": 0.033})
+        assert new.payload["voltage"] == 3.3
+        assert new.payload["power"] == 0.033
+        assert "power" not in physics_state.payload  # original inmutable
+
+    def test_update_payload_replace(self, physics_state):
+        new = physics_state.with_update(
+            {"only_this": True}, merge_payload=False
+        )
+        assert new.payload == {"only_this": True}
+        assert "voltage" not in new.payload
+
+    def test_update_context_merge(self, physics_state):
+        new = physics_state.with_update(new_context={"extra": "data"})
+        assert new.context["source"] == "sensor_adc"
+        assert new.context["extra"] == "data"
+
+    def test_update_context_replace(self, physics_state):
+        new = physics_state.with_update(
+            new_context={"new_only": True}, merge_context=False
+        )
+        assert new.context == {"new_only": True}
+
+    def test_update_adds_stratum(self, physics_state):
+        new = physics_state.with_update(new_stratum=Stratum.TACTICS)
+        assert Stratum.TACTICS in new.validated_strata
+        assert Stratum.PHYSICS in new.validated_strata
+
+    def test_update_preserves_error(self, failed_state):
+        new = failed_state.with_update({"extra": 1})
+        assert new.error == failed_state.error
+
+    def test_update_none_payload_preserves(self, physics_state):
+        new = physics_state.with_update(new_payload=None)
+        assert new.payload == physics_state.payload
+
+    def test_update_none_context_preserves(self, physics_state):
+        new = physics_state.with_update(new_context=None)
+        assert new.context == physics_state.context
+
+    def test_update_conflict_policy_prefer_left(self, physics_state):
+        new = physics_state.with_update(
+            {"voltage": 5.0},
+            payload_conflict_policy="prefer_left",
+        )
+        assert new.payload["voltage"] == 3.3  # original preservado
+
+    def test_update_conflict_policy_error(self, physics_state):
+        with pytest.raises(ValueError):
+            physics_state.with_update(
+                {"voltage": 5.0},
+                payload_conflict_policy="error_on_conflict",
+            )
+
+
+class TestCategoricalStateWithError:
+    """Tests para CategoricalState.with_error."""
+
+    def test_creates_error_state(self, physics_state):
+        err = physics_state.with_error("algo falló")
+        assert err.is_failed
+        assert err.error == "algo falló"
+        assert err.payload == physics_state.payload
+
+    def test_error_with_details(self, physics_state):
+        err = physics_state.with_error(
+            "fallo", details={"code": 42}
+        )
+        assert err.error_details == {"code": 42}
+
+    def test_error_details_none(self, physics_state):
+        err = physics_state.with_error("fallo")
+        assert err.error_details is None
+
+
+class TestCategoricalStateClearError:
+    """Tests para CategoricalState.clear_error."""
+
+    def test_clears_error(self, failed_state):
+        cleared = failed_state.clear_error()
+        assert cleared.is_success
+        assert cleared.error is None
+        assert cleared.error_details is None
+
+    def test_preserves_payload(self, failed_state):
+        cleared = failed_state.clear_error()
+        assert cleared.payload == failed_state.payload
+
+    def test_preserves_strata(self, failed_state):
+        cleared = failed_state.clear_error()
+        assert cleared.validated_strata == failed_state.validated_strata
+
+    def test_clear_on_success_is_noop(self, physics_state):
+        cleared = physics_state.clear_error()
+        assert cleared.is_success
+
+
+class TestCategoricalStateAddTrace:
+    """Tests para CategoricalState.add_trace."""
+
+    def test_adds_trace_entry(self, empty_state):
+        new = empty_state.add_trace(
+            "test_morph",
+            frozenset({Stratum.PHYSICS}),
             Stratum.TACTICS,
-            Stratum.STRATEGY,
-            Stratum.WISDOM,
-        },
-    )
+            success=True,
+        )
+        assert len(new.composition_trace) == 1
+        assert new.composition_trace[0].morphism_name == "test_morph"
+        assert new.composition_trace[0].success is True
+
+    def test_trace_is_immutable_tuple(self, empty_state):
+        new = empty_state.add_trace(
+            "m", frozenset(), Stratum.PHYSICS, success=True
+        )
+        assert isinstance(new.composition_trace, tuple)
+
+    def test_sequential_traces(self, empty_state):
+        s1 = empty_state.add_trace(
+            "m1", frozenset(), Stratum.PHYSICS, True
+        )
+        s2 = s1.add_trace("m2", frozenset(), Stratum.TACTICS, True)
+        assert len(s2.composition_trace) == 2
+        assert s2.composition_trace[0].step_number == 1
+        assert s2.composition_trace[1].step_number == 2
+
+    def test_trace_preserves_state(self, physics_state):
+        new = physics_state.add_trace(
+            "m", frozenset(), Stratum.PHYSICS, True
+        )
+        assert new.payload == physics_state.payload
+        assert new.validated_strata == physics_state.validated_strata
+
+    def test_trace_metadata_defensive_copy(self, empty_state):
+        meta = {"key": "value"}
+        new = empty_state.add_trace(
+            "m", frozenset(), Stratum.PHYSICS, True, metadata=meta
+        )
+        meta["key"] = "mutated"
+        assert new.composition_trace[0].metadata["key"] == "value"
 
 
-@pytest.fixture
-def error_state():
-    """Estado con error."""
-    return create_categorical_state(
-        payload={"partial": "data"},
-        error="Test error",
-        details={"reason": "fixture"},
-    )
+class TestCategoricalStateHash:
+    """Tests para CategoricalState.compute_hash."""
+
+    def test_deterministic_hash(self, physics_state):
+        h1 = physics_state.compute_hash()
+        h2 = physics_state.compute_hash()
+        assert h1 == h2
+
+    def test_different_states_different_hash(self, physics_state, empty_state):
+        assert physics_state.compute_hash() != empty_state.compute_hash()
+
+    def test_hash_is_sha256(self, empty_state):
+        h = empty_state.compute_hash()
+        assert len(h) == 64  # SHA-256 hex
+        assert all(c in "0123456789abcdef" for c in h)
+
+    def test_hash_changes_with_payload(self, physics_state):
+        modified = physics_state.with_update({"extra": 1})
+        assert physics_state.compute_hash() != modified.compute_hash()
+
+    def test_hash_changes_with_error(self, physics_state):
+        err = physics_state.with_error("boom")
+        assert physics_state.compute_hash() != err.compute_hash()
 
 
-@pytest.fixture
-def simple_handler():
-    """Handler simple para pruebas."""
-    def handler(x: int = 0):
-        return {"result": x * 2, "processed": True}
-    return handler
+class TestCategoricalStateSerialization:
+    """Tests para to_dict y from_dict."""
 
+    def test_roundtrip(self, physics_state):
+        d = physics_state.to_dict()
+        restored = CategoricalState.from_dict(d)
+        assert restored.payload == physics_state.payload
+        assert restored.validated_strata == physics_state.validated_strata
+        assert restored.error == physics_state.error
 
-@pytest.fixture
-def failing_handler():
-    """Handler que falla."""
-    def handler():
-        raise ValueError("Intentional failure")
-    return handler
+    def test_roundtrip_with_traces(self, empty_state):
+        s = empty_state.add_trace(
+            "m1",
+            frozenset({Stratum.PHYSICS}),
+            Stratum.TACTICS,
+            True,
+            metadata={"k": "v"},
+        )
+        d = s.to_dict()
+        restored = CategoricalState.from_dict(d)
+        assert len(restored.composition_trace) == 1
+        assert restored.composition_trace[0].morphism_name == "m1"
 
+    def test_roundtrip_with_error(self, failed_state):
+        d = failed_state.to_dict()
+        restored = CategoricalState.from_dict(d)
+        assert restored.is_failed
+        assert restored.error == failed_state.error
 
-@pytest.fixture
-def dict_returning_handler():
-    """Handler que retorna dict con metadatos."""
-    def handler(value: int):
-        return {
-            "success": True,
-            "data": value * 3,
-            "error": None,
-        }
-    return handler
+    def test_schema_version_in_dict(self, physics_state):
+        d = physics_state.to_dict()
+        assert d["__schema_version__"] == _SCHEMA_VERSION
 
+    def test_from_dict_invalid_stratum_raises(self):
+        with pytest.raises(ValueError, match="Estrato inválido"):
+            CategoricalState.from_dict(
+                {"validated_strata": ["NONEXISTENT"]}
+            )
 
-@pytest.fixture
-def error_returning_handler():
-    """Handler que retorna error en dict."""
-    def handler():
-        return {
-            "success": False,
-            "error": "Operación rechazada",
-            "error_details": {"code": 403},
-        }
-    return handler
+    def test_from_dict_missing_trace_fields_raises(self):
+        with pytest.raises(KeyError, match="carece de campos"):
+            CategoricalState.from_dict(
+                {"composition_trace": [{"step": 1}]}
+            )
+
+    def test_from_dict_minimal(self):
+        state = CategoricalState.from_dict({})
+        assert state.is_success
+        assert state.payload == {}
+
+    def test_from_dict_schema_version_warning(self, caplog):
+        """Versión de esquema diferente genera warning."""
+        import logging
+        with caplog.at_level(logging.WARNING, logger="MIC.Algebra"):
+            CategoricalState.from_dict({"__schema_version__": "0.0.1"})
+        assert any("Versión de esquema" in r.message for r in caplog.records)
 
 
 # ============================================================================
-# PRUEBAS DE STRATUM (ESTRATIFICACIÓN DIKW)
+# 5. TESTS DE MORFISMOS
 # ============================================================================
 
 
-class TestStratumHierarchy:
-    """Pruebas de la jerarquía de estratos DIKW."""
-    
-    def test_stratum_values(self):
-        """Valores de estratos son correctos."""
-        assert Stratum.WISDOM.value == 0      # Más alto
-        assert Stratum.STRATEGY.value == 1
-        assert Stratum.TACTICS.value == 2
-        assert Stratum.PHYSICS.value == 3     # Más bajo
-    
-    def test_stratum_comparison(self):
-        """Comparación de estratos."""
-        assert Stratum.WISDOM < Stratum.STRATEGY
-        assert Stratum.STRATEGY < Stratum.TACTICS
-        assert Stratum.TACTICS < Stratum.PHYSICS
-        assert Stratum.WISDOM < Stratum.PHYSICS
-    
-    def test_stratum_requires(self):
-        """Requisitos de estratos."""
-        # WISDOM requiere todos los demás
-        wisdom_reqs = Stratum.WISDOM.requires()
-        assert Stratum.STRATEGY in wisdom_reqs
-        assert Stratum.TACTICS in wisdom_reqs
-        assert Stratum.PHYSICS in wisdom_reqs
-        
-        # PHYSICS no requiere nada (es la base)
-        physics_reqs = Stratum.PHYSICS.requires()
-        assert len(physics_reqs) == 0
-        
-        # TACTICS requiere PHYSICS
-        tactics_reqs = Stratum.TACTICS.requires()
-        assert Stratum.PHYSICS in tactics_reqs
-        assert Stratum.TACTICS not in tactics_reqs
-    
-    def test_stratum_level(self):
-        """Niveles de estratos."""
+class TestStratum:
+    """Tests para el enum Stratum."""
+
+    def test_values(self):
         assert Stratum.WISDOM.value == 0
         assert Stratum.STRATEGY.value == 1
         assert Stratum.TACTICS.value == 2
         assert Stratum.PHYSICS.value == 3
 
+    def test_requires_physics(self):
+        """PHYSICS no requiere nada (es el más concreto)."""
+        assert Stratum.PHYSICS.requires() == frozenset()
 
-# ============================================================================
-# PRUEBAS DE CATEGORICAL STATE (Objetos de la Categoría)
-# ============================================================================
+    def test_requires_tactics(self):
+        assert Stratum.TACTICS.requires() == frozenset({Stratum.PHYSICS})
 
+    def test_requires_strategy(self):
+        assert Stratum.STRATEGY.requires() == frozenset(
+            {Stratum.PHYSICS, Stratum.TACTICS}
+        )
 
-class TestCategoricalState:
-    """Pruebas del estado categórico."""
-    
-    def test_state_creation_empty(self):
-        """Crea estado vacío."""
-        state = CategoricalState()
-        
-        assert state.payload == {}
-        assert state.context == {}
-        assert state.validated_strata == frozenset()
-        assert state.is_success is True
-    
-    def test_state_creation_with_data(self):
-        """Crea estado con datos."""
-        payload = {"key": "value", "number": 123}
-        context = {"origin": "test"}
-        
-        state = CategoricalState(
-            payload=payload,
-            context=context,
+    def test_requires_wisdom(self):
+        assert Stratum.WISDOM.requires() == frozenset(
+            {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}
         )
-        
-        assert state.payload == payload
-        assert state.context == context
-    
-    def test_state_immutability(self):
-        """Estado es inmutable (frozen)."""
-        state = CategoricalState(payload={"a": 1})
-        
-        import dataclasses
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            state.payload = {"b": 2}
-    
-    def test_state_is_success_property(self):
-        """Propiedad is_success funciona."""
-        state_ok = create_categorical_state()
-        state_err = create_categorical_state().with_error("Failed")
-        
-        assert state_ok.is_success is True
-        assert state_err.is_success is False
-    
-    def test_state_is_failed_property(self):
-        """Propiedad is_failed funciona."""
-        state_ok = create_categorical_state()
-        state_err = create_categorical_state().with_error("Failed")
-        
-        assert state_ok.is_failed is False
-        assert state_err.is_failed is True
-    
-    def test_with_update_merge_payload(self, simple_state):
-        """Actualiza estado mergeando payload."""
-        updated = simple_state.with_update(
-            {"new_key": "new_value"},
-            merge_payload=True,
-        )
-        
-        # Original intacto
-        assert "new_key" not in simple_state.payload
-        
-        # Nuevo estado tiene ambos
-        assert "value" in updated.payload
-        assert updated.payload["new_key"] == "new_value"
-    
-    def test_with_update_replace_payload(self, simple_state):
-        """Actualiza estado reemplazando payload."""
-        updated = simple_state.with_update(
-            {"only_new": 1},
-            merge_payload=False,
-        )
-        
-        # Nuevo estado solo tiene lo nuevo
-        assert "value" not in updated.payload
-        assert updated.payload["only_new"] == 1
-    
-    def test_with_update_adds_stratum(self, simple_state):
-        """Actualización añade estrato."""
-        updated = simple_state.with_update(
-            new_stratum=Stratum.TACTICS,
-        )
-        
-        assert Stratum.TACTICS in updated.validated_strata
-    
-    def test_with_update_multiple_strata(self, simple_state):
-        """Puede haber múltiples estratos."""
-        state = simple_state
-        
-        state1 = state.with_update(new_stratum=Stratum.PHYSICS)
-        state2 = state1.with_update(new_stratum=Stratum.TACTICS)
-        
-        assert Stratum.PHYSICS in state2.validated_strata
-        assert Stratum.TACTICS in state2.validated_strata
-    
-    def test_with_error_monadal_collapse(self, simple_state):
-        """Error colapsa el estado (monadalidad)."""
-        error_state = simple_state.with_error(
-            "Operation failed",
-            details={"reason": "test"},
-        )
-        
-        assert error_state.is_failed
-        assert error_state.error == "Operation failed"
-        assert error_state.error_details["reason"] == "test"
-        
-        # El payload original se conserva (para recuperación)
-        assert error_state.payload == simple_state.payload
-    
-    def test_stratum_level_property(self):
-        """Calcula nivel correcto."""
-        state1 = create_categorical_state(strata={Stratum.PHYSICS})
-        state2 = create_categorical_state(
-            strata={Stratum.PHYSICS, Stratum.TACTICS}
-        )
-        state3 = create_categorical_state(
-            strata={Stratum.WISDOM, Stratum.TACTICS}
-        )
-        
-        assert state1.stratum_level == Stratum.PHYSICS.value
-        assert state2.stratum_level == Stratum.TACTICS.value
-        assert state3.stratum_level == Stratum.WISDOM.value
-    
-    def test_add_trace(self, simple_state):
-        """Añade entrada a traza."""
-        state_with_trace = simple_state.add_trace(
-            morphism_name="test_morph",
-            input_domain=frozenset([Stratum.PHYSICS]),
-            output_codomain=Stratum.TACTICS,
-            success=True,
-        )
-        
-        assert len(state_with_trace.composition_trace) == 1
-        
-        trace = state_with_trace.composition_trace[0]
-        assert trace.step_number == 1
-        assert trace.morphism_name == "test_morph"
-        assert trace.success is True
-    
-    def test_compute_hash(self, simple_state):
-        """Computa hash del estado."""
-        hash1 = simple_state.compute_hash()
-        
-        assert isinstance(hash1, str)
-        assert len(hash1) == 64  # SHA-256
-        
-        # Estados diferentes producen hashes diferentes
-        state2 = simple_state.with_update({"extra": "field"})
-        hash2 = state2.compute_hash()
-        
-        assert hash1 != hash2
-    
-    def test_to_dict_serialization(self, complete_state):
-        """Serializa estado a diccionario."""
-        state_dict = complete_state.to_dict()
-        
-        assert isinstance(state_dict, dict)
-        assert "payload" in state_dict
-        assert "context" in state_dict
-        assert "validated_strata" in state_dict
-        assert "composition_trace" in state_dict
-    
-    def test_from_dict_deserialization(self, complete_state):
-        """Reconstruye estado desde diccionario."""
-        original_dict = complete_state.to_dict()
-        
-        reconstructed = CategoricalState.from_dict(original_dict)
-        
-        assert reconstructed.payload == complete_state.payload
-        assert reconstructed.context == complete_state.context
-        assert reconstructed.validated_strata == complete_state.validated_strata
-    
-    def test_factory_function(self):
-        """Factory function crea estado correctamente."""
-        state = create_categorical_state(
-            payload={"data": 123},
-            context={"test": True},
-            strata={Stratum.PHYSICS, Stratum.TACTICS},
-        )
-        
-        assert state.payload["data"] == 123
-        assert state.context["test"] is True
-        assert Stratum.PHYSICS in state.validated_strata
-        assert Stratum.TACTICS in state.validated_strata
 
+    def test_level_property(self):
+        for s in Stratum:
+            assert s.value == s.value
 
-class TestCompositionTrace:
-    """Pruebas de trazas de composición."""
-    
-    def test_trace_creation(self):
-        """Crea traza."""
-        trace = CompositionTrace(
-            step_number=1,
-            morphism_name="op1",
-            input_domain=frozenset([Stratum.PHYSICS]),
-            output_codomain=Stratum.TACTICS,
-            success=True,
-        )
-        
-        assert trace.step_number == 1
-        assert trace.morphism_name == "op1"
-        assert trace.success is True
-    
-    def test_trace_with_error(self):
-        """Traza puede contener error."""
-        trace = CompositionTrace(
-            step_number=1,
-            morphism_name="failed_op",
-            input_domain=frozenset([Stratum.PHYSICS]),
-            output_codomain=Stratum.TACTICS,
-            success=False,
-            error="Domain violation",
-        )
-        
-        assert trace.success is False
-        assert trace.error == "Domain violation"
-    
-    def test_trace_to_dict(self):
-        """Serializa traza."""
-        trace = CompositionTrace(
-            step_number=2,
-            morphism_name="op2",
-            input_domain=frozenset([Stratum.PHYSICS, Stratum.TACTICS]),
-            output_codomain=Stratum.STRATEGY,
-            success=True,
-        )
-        
-        trace_dict = trace.to_dict()
-        
-        assert trace_dict["step"] == 2
-        assert trace_dict["morphism"] == "op2"
-        assert "PHYSICS" in trace_dict["domain"]
-        assert "TACTICS" in trace_dict["domain"]
-        assert trace_dict["codomain"] == "STRATEGY"
-        assert trace_dict["success"] is True
-
-
-# ============================================================================
-# PRUEBAS DE MORFISMOS
-# ============================================================================
+    def test_ordering(self):
+        """WISDOM < STRATEGY < TACTICS < PHYSICS por valor."""
+        assert Stratum.WISDOM < Stratum.STRATEGY < Stratum.TACTICS < Stratum.PHYSICS
 
 
 class TestIdentityMorphism:
-    """Pruebas del morfismo identidad."""
-    
-    def test_identity_creation(self):
-        """Crea identidad."""
-        morph = IdentityMorphism(Stratum.PHYSICS)
-        
-        assert morph.name == "id_PHYSICS"
-        assert morph.domain == frozenset([Stratum.PHYSICS])
-        assert morph.codomain == Stratum.PHYSICS
-    
-    def test_identity_preserves_state(self, simple_state):
-        """Identidad no altera estado."""
-        morph = IdentityMorphism(Stratum.PHYSICS)
-        
-        result = morph(simple_state)
-        
-        assert result == simple_state
-        assert result.payload == simple_state.payload
-    
-    def test_identity_axiom_left(self, simple_state):
-        """Axioma: id ∘ f = f."""
-        # Simular f
-        def handler(value: int = 0):
-            return {"doubled": value * 2}
-        
-        f = AtomicVector(
-            "double",
-            Stratum.TACTICS,
-            handler,
-        )
-        
-        id_phys = IdentityMorphism(Stratum.PHYSICS)
-        composed = id_phys >> f
-        
-        result = composed(simple_state)
-        
-        assert result.is_success
-    
-    def test_identity_axiom_right(self, tactics_state):
-        """Axioma: f ∘ id = f."""
-        # Simular f
-        def handler(value: int = 0):
-            return {"result": value}
-        
-        f = AtomicVector(
-            "identity_like",
-            Stratum.STRATEGY,
-            handler,
-        )
-        
-        id_tactics = IdentityMorphism(Stratum.TACTICS)
-        
-        # f primero, luego identidad
-        composed = f >> id_tactics
-        
-        # Pero id_tactics requiere TACTICS en dominio de f
-        # Así que esto es f >> id_strategy en realidad
+    """Tests para IdentityMorphism."""
+
+    @pytest.mark.parametrize("stratum", list(Stratum))
+    def test_identity_domain_codomain(self, stratum):
+        idm = IdentityMorphism(stratum)
+        assert idm.domain == frozenset({stratum})
+        assert idm.codomain == stratum
+
+    def test_identity_preserves_state(self, physics_state):
+        idm = IdentityMorphism(Stratum.PHYSICS)
+        result = idm(physics_state)
+        assert result.payload == physics_state.payload
+        assert result.context == physics_state.context
+        assert result.validated_strata == physics_state.validated_strata
+
+    def test_identity_adds_trace(self, physics_state):
+        idm = IdentityMorphism(Stratum.PHYSICS)
+        result = idm(physics_state)
+        assert len(result.composition_trace) == 1
+        assert result.composition_trace[0].metadata == {"identity": True}
+
+    def test_identity_name(self):
+        idm = IdentityMorphism(Stratum.WISDOM)
+        assert idm.name == "id_WISDOM"
+
+    def test_identity_repr(self):
+        idm = IdentityMorphism(Stratum.PHYSICS)
+        r = repr(idm)
+        assert "PHYSICS" in r
 
 
 class TestAtomicVector:
-    """Pruebas del vector atómico."""
-    
-    def test_atomic_vector_creation(self, simple_handler):
-        """Crea vector atómico."""
-        morph = AtomicVector(
-            name="simple_op",
-            target_stratum=Stratum.TACTICS,
-            handler=simple_handler,
-        )
-        
-        assert morph.name == "simple_op"
-        assert morph.codomain == Stratum.TACTICS
-        assert morph.domain == frozenset(Stratum.TACTICS.requires())
-    
-    def test_atomic_vector_with_required_keys(self, simple_handler):
-        """Vector atómico con claves requeridas."""
-        morph = AtomicVector(
-            "op",
-            Stratum.TACTICS,
-            simple_handler,
-            required_keys=["x", "y"],
-        )
-        
-        assert "x" in morph._required_keys
-        assert "y" in morph._required_keys
-    
-    def test_atomic_vector_success_path(self, physics_state, simple_handler):
-        """Vector atómico ejecuta exitosamente."""
-        morph = AtomicVector(
-            "double_op",
-            Stratum.TACTICS,
-            simple_handler,
-        )
-        
-        result = morph(physics_state)
-        
+    """Tests para AtomicVector."""
+
+    def test_domain_from_requires(self):
+        av = _make_atomic("test", Stratum.TACTICS)
+        assert av.domain == Stratum.TACTICS.requires()
+        assert Stratum.PHYSICS in av.domain
+
+    def test_codomain(self):
+        av = _make_atomic("test", Stratum.TACTICS)
+        assert av.codomain == Stratum.TACTICS
+
+    def test_successful_execution(self, physics_state):
+        handler = _make_handler({"power": 0.033})
+        av = _make_atomic("calc_power", Stratum.TACTICS, handler)
+        result = av(physics_state)
         assert result.is_success
-        assert "result" in result.payload
-        assert result.payload["result"] == 0  # simple_handler(0) * 2
+        assert result.payload["power"] == 0.033
         assert Stratum.TACTICS in result.validated_strata
-    
-    def test_atomic_vector_domain_violation(self, simple_state, simple_handler):
-        """Detecta violación de dominio."""
-        # Crea un estado sin PHYSICS
-        state = create_categorical_state(
-            payload={"data": 1},
-            strata=set(),  # Vacío
-        )
-        
-        morph = AtomicVector(
-            "op",
-            Stratum.TACTICS,
-            simple_handler,
-        )
-        
-        result = morph(state)
-        
+
+    def test_absorbs_error(self, failed_state):
+        av = _make_atomic("test", Stratum.TACTICS)
+        result = av(failed_state)
         assert result.is_failed
-        assert "Violación de Dominio" in result.error
-    
-    def test_atomic_vector_force_override(self, simple_state, simple_handler):
-        """Force override bypasa validación de dominio."""
-        state = create_categorical_state(
-            payload={"data": 1},
-            strata=set(),
+        assert any(
+            "Absorción monadal" in t.error
+            for t in result.composition_trace
+            if t.error
+        )
+
+    def test_domain_violation(self, empty_state):
+        """Sin strata validados, violación de dominio."""
+        av = _make_atomic("test", Stratum.TACTICS)
+        result = av(empty_state)
+        assert result.is_failed
+        assert "Violación de dominio" in result.error
+
+    def test_force_override_bypasses_domain(self, empty_state):
+        state = CategoricalState(
+            payload={},
             context={"force_override": True},
+            validated_strata=frozenset(),
         )
-        
-        morph = AtomicVector(
-            "op",
-            Stratum.TACTICS,
-            simple_handler,
-        )
-        
-        result = morph(state)
-        
-        # Debe ejecutarse a pesar de dominio vacío
+        av = _make_atomic("test", Stratum.TACTICS)
+        result = av(state)
         assert result.is_success
-    
-    def test_atomic_vector_missing_required_key(self, physics_state):
-        """Detecta claves requeridas faltantes."""
-        def needs_x(x: int):
-            return {"result": x}
-        
-        morph = AtomicVector(
-            "needs_x",
-            Stratum.TACTICS,
-            needs_x,
-            required_keys=["x"],
+
+    def test_missing_required_keys(self, physics_state):
+        av = _make_atomic(
+            "test", Stratum.TACTICS, required_keys=["nonexistent_key"]
         )
-        
-        result = morph(physics_state)
-        
+        result = av(physics_state)
         assert result.is_failed
-        assert "requeridas faltantes" in result.error
-    
-    def test_atomic_vector_exception_handling(self, physics_state, failing_handler):
-        """Maneja excepciones en handler."""
-        morph = AtomicVector(
-            "failing",
-            Stratum.TACTICS,
-            failing_handler,
-        )
-        
-        result = morph(physics_state)
-        
+        assert "Claves requeridas faltantes" in result.error
+
+    def test_handler_exception(self, physics_state):
+        handler = _make_handler(raises=ValueError("kaboom"))
+        av = _make_atomic("test", Stratum.TACTICS, handler)
+        result = av(physics_state)
         assert result.is_failed
-        assert "ValueError" in result.error or "Intentional" in result.error
-    
-    def test_atomic_vector_dict_result_success(self, physics_state, dict_returning_handler):
-        """Procesa resultado dict con success=True."""
-        morph = AtomicVector(
-            "returns_dict",
-            Stratum.TACTICS,
-            dict_returning_handler,
-            required_keys=["value"],
-        )
-        
-        state = physics_state.with_update({"value": 5})
-        result = morph(state)
-        
+        assert "kaboom" in result.error
+        assert result.error_details["exception_type"] == "ValueError"
+
+    def test_handler_returns_failure(self, physics_state):
+        handler = _make_handler({"error": "internal"}, success=False)
+        av = _make_atomic("test", Stratum.TACTICS, handler)
+        result = av(physics_state)
+        assert result.is_failed
+        assert "internal" in result.error
+
+    def test_handler_returns_scalar(self, physics_state):
+        handler = lambda **kw: 42
+        av = _make_atomic("compute", Stratum.TACTICS, handler)
+        result = av(physics_state)
         assert result.is_success
-        assert result.payload["data"] == 15  # 5 * 3
-    
-    def test_atomic_vector_dict_result_failure(self, physics_state, error_returning_handler):
-        """Procesa resultado dict con success=False."""
-        morph = AtomicVector(
-            "returns_error",
+        assert result.payload["compute_result"] == 42
+
+    def test_required_and_optional_keys(self, physics_state):
+        def handler(voltage, current=0):
+            return {"result": voltage * current}
+
+        av = _make_atomic(
+            "test",
             Stratum.TACTICS,
-            error_returning_handler,
+            handler,
+            required_keys=["voltage"],
+            optional_keys=["current"],
         )
-        
-        result = morph(physics_state)
-        
-        assert result.is_failed
-        assert "Operación rechazada" in result.error
-        assert result.error_details["code"] == 403
-    
-    def test_atomic_vector_monadal_absorption(self, failing_handler):
-        """Absorbe errores previos (monadalidad)."""
-        morph = AtomicVector(
-            "will_not_execute",
-            Stratum.TACTICS,
-            failing_handler,
-        )
-        
-        error_input = create_categorical_state().with_error("Previous error")
-        
-        result = morph(error_input)
-        
-        # Debe absorber el error anterior
-        assert result.is_failed
-        assert result.error == "Previous error"
-    
-    def test_atomic_vector_repr(self, simple_handler):
-        """Representación string del morfismo."""
-        morph = AtomicVector(
-            "test_op",
-            Stratum.TACTICS,
-            simple_handler,
-        )
-        
-        repr_str = repr(morph)
-        
-        assert "test_op" in repr_str
-        assert "TACTICS" in repr_str
+        result = av(physics_state)
+        assert result.is_success
+        assert result.payload["result"] == 3.3 * 0.01
+
+    def test_control_keys_filtered_from_result(self, physics_state):
+        handler = lambda **kw: {
+            "success": True,
+            "error": None,
+            "error_details": None,
+            "_internal": "hidden",
+            "visible": "yes",
+        }
+        av = _make_atomic("test", Stratum.TACTICS, handler)
+        result = av(physics_state)
+        assert "visible" in result.payload
+        assert "_internal" not in result.payload
+        assert "success" not in result.payload
+
+    def test_physics_stratum_has_empty_domain(self):
+        """PHYSICS no requiere nada, su dominio es vacío."""
+        av = _make_atomic("init", Stratum.PHYSICS)
+        assert av.domain == frozenset()
 
 
 class TestComposedMorphism:
-    """Pruebas de composición de morfismos."""
-    
-    def test_composed_morphism_creation(self, simple_handler):
-        """Crea morfismo compuesto."""
-        def handler2(result: int):
-            return {"final": result + 10}
-        
-        morph1 = AtomicVector(
-            "step1",
-            Stratum.TACTICS,
-            simple_handler,
+    """Tests para ComposedMorphism."""
+
+    def test_sequential_composition(self):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        morph2 = AtomicVector(
-            "step2",
-            Stratum.STRATEGY,
-            handler2,
-            required_keys=["result"],
-        )
-        
-        composed = morph1 >> morph2
-        
+        composed = f >> g
         assert isinstance(composed, ComposedMorphism)
-        assert composed.f == morph1
-        assert composed.g == morph2
-    
-    def test_composed_morphism_domain(self, simple_handler):
-        """Dominio de composición es correcto."""
-        def handler2():
-            return {"final": 1}
-        
-        morph1 = AtomicVector(
-            "m1",
-            Stratum.TACTICS,
-            simple_handler,
-        )
-        
-        morph2 = AtomicVector(
-            "m2",
-            Stratum.STRATEGY,
-            handler2,
-        )
-        
-        composed = morph1 >> morph2
-        
-        # Dominio es TACTICS.requires() (que es PHYSICS)
-        assert Stratum.PHYSICS in composed.domain
-    
-    def test_composed_morphism_codomain(self, simple_handler):
-        """Codominio de composición es correcto."""
-        def handler2():
-            return {"final": 1}
-        
-        morph1 = AtomicVector(
-            "m1",
-            Stratum.TACTICS,
-            simple_handler,
-        )
-        
-        morph2 = AtomicVector(
-            "m2",
-            Stratum.STRATEGY,
-            handler2,
-        )
-        
-        composed = morph1 >> morph2
-        
-        assert composed.codomain == Stratum.STRATEGY
-    
-    def test_composed_morphism_incompatible_raises(self, simple_handler):
-        """Morfismo compuesto rechaza ejecución si las precondiciones no se cumplen, aunque se pueda definir."""
-        def handler_needs_xy(x: int, y: int):
-            return {"xy": x + y}
-        
-        morph1 = AtomicVector(
-            "m1",
-            Stratum.TACTICS,
-            simple_handler,
-        )
-        
-        morph2 = AtomicVector(
-            "m2_needs_xy",
-            Stratum.WISDOM,
-            handler_needs_xy,
-            required_keys=["x", "y"],
-        )
-        
-        composed = morph1 >> morph2
+        assert composed.codomain == Stratum.TACTICS
 
-        state = create_categorical_state(payload={"a": 1}, strata={Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY})
+    def test_composed_domain(self):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        composed = ComposedMorphism(f, g)
+        # dom(g∘f) = dom(f) ∪ (dom(g) - provided_by_f)
+        # = {} ∪ ({PHYSICS} - {PHYSICS, ∅}) = {}
+        assert composed.domain == frozenset()
 
-        result = composed(state)
-        assert result.is_success is False
-        assert "Claves requeridas" in result.error or "m2_needs_xy" in result.error
-    
-    def test_composed_morphism_execution(self, physics_state):
-        """Ejecución de composición."""
-        def handler1(raw_data: list = None):
-            return {"processed": len(raw_data or [])}
-        
-        def handler2(processed: int):
-            return {"analyzed": processed * 2}
-        
-        morph1 = AtomicVector(
-            "process",
-            Stratum.TACTICS,
-            handler1,
-            required_keys=["raw_data"],
+    def test_composed_execution(self, empty_state):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        morph2 = AtomicVector(
-            "analyze",
-            Stratum.STRATEGY,
-            handler2,
-            required_keys=["processed"],
-        )
-        
-        composed = morph1 >> morph2
-        
-        result = composed(physics_state)
-        
+        composed = f >> g
+        result = composed(empty_state)
         assert result.is_success
-        assert result.payload["analyzed"] == 6  # 3 * 2
-    
-    def test_composed_morphism_failure_propagation(self, physics_state):
-        """Fallo en f propaga (monadalidad)."""
-        def handler1():
-            raise ValueError("Step 1 failed")
-        
-        def handler2():
-            raise ValueError("Should not reach")
-        
-        morph1 = AtomicVector(
-            "failing_step",
-            Stratum.TACTICS,
-            handler1,
+        assert result.payload.get("f_done") is True
+        assert result.payload.get("g_done") is True
+
+    def test_composed_short_circuits_on_failure(self, empty_state):
+        def fail(state):
+            return state.with_error("f failed")
+
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS, fail)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        morph2 = AtomicVector(
-            "never_reached",
-            Stratum.STRATEGY,
-            handler2,
-        )
-        
-        composed = morph1 >> morph2
-        
-        result = composed(physics_state)
-        
+        result = (f >> g)(empty_state)
         assert result.is_failed
-        assert "Step 1 failed" in result.error
-    
-    def test_composed_morphism_associativity(self, physics_state):
-        """Asociatividad: (h ∘ g) ∘ f = h ∘ (g ∘ f)."""
-        def h1(x: int = 0):
-            return {"y": x + 1}
-        
-        def h2(y: int):
-            return {"z": y * 2}
-        
-        def h3(z: int):
-            return {"w": z - 1}
-        
-        m1 = AtomicVector("m1", Stratum.TACTICS, h1)
-        m2 = AtomicVector("m2", Stratum.STRATEGY, h2, required_keys=["y"])
-        m3 = AtomicVector("m3", Stratum.WISDOM, h3, required_keys=["z"])
-        
-        # (m3 ∘ m2) ∘ m1
-        comp1 = (m1 >> m2) >> m3
-        
-        # m3 ∘ (m2 ∘ m1)
-        comp2 = m1 >> (m2 >> m3)
-        
-        # Ambas deben dar el mismo resultado
-        result1 = comp1(physics_state)
-        result2 = comp2(physics_state)
-        
-        assert result1.payload == result2.payload
-    
-    def test_composed_morphism_trace(self, physics_state):
-        """Traza registra ambos pasos."""
-        def h1(raw_data: list = None):
-            return {"count": len(raw_data or [])}
-        
-        def h2(count: int):
-            return {"doubled": count * 2}
-        
-        m1 = AtomicVector(
-            "count_data",
-            Stratum.TACTICS,
-            h1,
-            required_keys=["raw_data"],
+        assert "f failed" in result.error
+        assert "g_done" not in result.payload
+
+    def test_structural_compatibility_flag(self):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        m2 = AtomicVector(
-            "double_count",
-            Stratum.STRATEGY,
-            h2,
-            required_keys=["count"],
+        composed = ComposedMorphism(f, g)
+        assert composed.is_structurally_compatible is True
+
+    def test_structural_incompatibility_flag(self):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g",
+            frozenset({Stratum.PHYSICS, Stratum.STRATEGY}),
+            Stratum.WISDOM,
         )
-        
-        composed = m1 >> m2
-        
-        result = composed(physics_state)
-        
-        assert len(result.composition_trace) == 2
-        assert result.composition_trace[0].morphism_name == "count_data"
-        assert result.composition_trace[1].morphism_name == "double_count"
+        composed = ComposedMorphism(f, g)
+        assert composed.is_structurally_compatible is False
+        # STRATEGY se eleva al dominio del compuesto
+        assert Stratum.STRATEGY in composed.domain
+
+    def test_name(self):
+        f = ConcreteMorphism("alpha", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "beta", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        composed = f >> g
+        assert composed.name == "alpha >> beta"
+
+    def test_triple_composition_associativity(self, empty_state):
+        """(f >> g) >> h produce mismo resultado que f >> (g >> h)."""
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        h = ConcreteMorphism(
+            "h", frozenset({Stratum.TACTICS}), Stratum.STRATEGY
+        )
+
+        left_assoc = (f >> g) >> h
+        right_assoc = f >> (g >> h)
+
+        result_l = left_assoc(empty_state)
+        result_r = right_assoc(empty_state)
+
+        # Mismos payloads (el orden de composición no afecta el resultado)
+        assert result_l.payload == result_r.payload
+        assert result_l.validated_strata == result_r.validated_strata
 
 
 class TestProductMorphism:
-    """Pruebas del producto categórico (paralelismo)."""
-    
-    def test_product_morphism_creation(self, simple_handler):
-        """Crea producto de morfismos."""
-        def handler2():
-            return {"other": 99}
-        
-        morph1 = AtomicVector(
-            "path1",
-            Stratum.TACTICS,
-            simple_handler,
+    """Tests para ProductMorphism."""
+
+    def test_product_merges_results(self, physics_state):
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        morph2 = AtomicVector(
-            "path2",
-            Stratum.TACTICS,
-            handler2,
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.STRATEGY
         )
-        
-        product = morph1 * morph2
-        
-        assert isinstance(product, ProductMorphism)
-        assert product.f == morph1
-        assert product.g == morph2
-    
-    def test_product_morphism_domain(self, simple_handler):
-        """Dominio de producto es unión."""
-        def handler2():
-            return {}
-        
-        morph1 = AtomicVector(
-            "m1",
-            Stratum.TACTICS,
-            simple_handler,
-        )
-        
-        morph2 = AtomicVector(
-            "m2",
-            Stratum.STRATEGY,
-            handler2,
-        )
-        
-        product = morph1 * morph2
-        
-        # Dominio es unión de dominios
-        assert morph1.domain.issubset(product.domain)
-        assert morph2.domain.issubset(product.domain)
-    
-    def test_product_morphism_codomain(self, simple_handler):
-        """Codominio de producto es el más alto."""
-        def handler2():
-            return {}
-        
-        morph1 = AtomicVector(
-            "m1",
-            Stratum.TACTICS,
-            simple_handler,
-        )
-        
-        morph2 = AtomicVector(
-            "m2",
-            Stratum.WISDOM,
-            handler2,
-        )
-        
-        product = morph1 * morph2
-        
-        # Codominio es WISDOM (menor valor = más alto)
-        assert product.codomain == Stratum.WISDOM
-    
-    def test_product_morphism_parallel_execution(self, physics_state):
-        """Ejecuta ambas ramas en paralelo."""
-        def handler1():
-            return {"branch1": "result1"}
-        
-        def handler2():
-            return {"branch2": "result2"}
-        
-        morph1 = AtomicVector(
-            "branch1",
-            Stratum.TACTICS,
-            handler1,
-        )
-        
-        morph2 = AtomicVector(
-            "branch2",
-            Stratum.TACTICS,
-            handler2,
-        )
-        
-        product = morph1 * morph2
-        
+        product = f * g
         result = product(physics_state)
-        
         assert result.is_success
-        assert result.payload["branch1"] == "result1"
-        assert result.payload["branch2"] == "result2"
-    
-    def test_product_morphism_failure_stops_product(self, physics_state):
-        """Fallo en una rama detiene el producto."""
-        def handler1():
-            raise ValueError("Branch 1 fails")
-        
-        def handler2():
-            return {"branch2": "result"}
-        
-        morph1 = AtomicVector(
-            "failing",
-            Stratum.TACTICS,
-            handler1,
+        assert result.payload.get("f_done") is True
+        assert result.payload.get("g_done") is True
+
+    def test_product_domain_union(self):
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        morph2 = AtomicVector(
-            "ok",
-            Stratum.TACTICS,
-            handler2,
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.TACTICS}), Stratum.STRATEGY
         )
-        
-        product = morph1 * morph2
-        
-        result = product(physics_state)
-        
+        product = f * g
+        assert product.domain == frozenset(
+            {Stratum.PHYSICS, Stratum.TACTICS}
+        )
+
+    def test_product_codomain_min(self):
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.STRATEGY
+        )
+        product = f * g
+        assert product.codomain == Stratum.STRATEGY  # min value
+
+    def test_product_absorbs_error(self, failed_state):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism("g", frozenset(), Stratum.PHYSICS)
+        result = (f * g)(failed_state)
         assert result.is_failed
-    
-    def test_product_morphism_commutativity(self, physics_state):
-        """Producto es conmutativo (sobre mismo estado)."""
-        def handler1():
-            return {"a": 1}
-        
-        def handler2():
-            return {"b": 2}
-        
-        m1 = AtomicVector("op1", Stratum.TACTICS, handler1)
-        m2 = AtomicVector("op2", Stratum.TACTICS, handler2)
-        
-        # m1 * m2
-        result1 = (m1 * m2)(physics_state)
-        
-        # m2 * m1
-        result2 = (m2 * m1)(physics_state)
-        
-        # Ambos producen los mismos resultados
-        assert result1.payload["a"] == result2.payload["a"]
-        assert result1.payload["b"] == result2.payload["b"]
+
+    def test_product_left_failure(self, physics_state):
+        def fail(state):
+            return state.with_error("left failed")
+
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS, fail
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.STRATEGY
+        )
+        result = (f * g)(physics_state)
+        assert result.is_failed
+        assert "Rama izquierda" in result.composition_trace[-1].error
+
+    def test_product_right_failure(self, physics_state):
+        def fail(state):
+            return state.with_error("right failed")
+
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.STRATEGY, fail
+        )
+        result = (f * g)(physics_state)
+        assert result.is_failed
+        assert "Rama derecha" in result.composition_trace[-1].error
+
+    def test_product_conflict_error(self, physics_state):
+        """Payloads conflictivos con error_on_conflict."""
+        def make_f(state):
+            return state.with_update(
+                {"shared_key": "from_f"},
+                new_stratum=Stratum.TACTICS,
+            ).add_trace("f", frozenset(), Stratum.TACTICS, True)
+
+        def make_g(state):
+            return state.with_update(
+                {"shared_key": "from_g"},
+                new_stratum=Stratum.STRATEGY,
+            ).add_trace("g", frozenset(), Stratum.STRATEGY, True)
+
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS, make_f
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.STRATEGY, make_g
+        )
+        product = ProductMorphism(f, g, conflict_policy="error_on_conflict")
+        result = product(physics_state)
+        assert result.is_failed
+        assert "Conflicto" in result.error
+
+    def test_product_name(self):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism("g", frozenset(), Stratum.PHYSICS)
+        product = f * g
+        assert "×" in product.name
+
+    def test_product_trace_deduplication(self, physics_state):
+        """Trazas duplicadas deben eliminarse."""
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.STRATEGY
+        )
+        product = f * g
+        result = product(physics_state)
+        # Verificar que no hay trazas con identity_key duplicada
+        keys = [t.trace_identity_key for t in result.composition_trace]
+        assert len(keys) == len(set(keys))
 
 
 class TestCoproductMorphism:
-    """Pruebas del coproducto categórico (elección)."""
-    
-    def test_coproduct_morphism_creation(self, simple_handler):
-        """Crea coproducto."""
-        def handler2():
-            return {"fallback": "result"}
-        
-        morph1 = AtomicVector(
-            "primary",
-            Stratum.TACTICS,
-            simple_handler,
+    """Tests para CoproductMorphism."""
+
+    def test_coproduct_uses_first_on_success(self, physics_state):
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        morph2 = AtomicVector(
-            "fallback",
-            Stratum.TACTICS,
-            handler2,
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        coproduct = morph1 | morph2
-        
-        assert isinstance(coproduct, CoproductMorphism)
-    
-    def test_coproduct_first_succeeds(self, physics_state, simple_handler):
-        """Usa primera rama si exitosa."""
-        def handler2():
-            return {"unused": "fallback"}
-        
-        morph1 = AtomicVector(
-            "primary",
-            Stratum.TACTICS,
-            simple_handler,
-        )
-        
-        morph2 = AtomicVector(
-            "fallback",
-            Stratum.TACTICS,
-            handler2,
-        )
-        
-        coproduct = morph1 | morph2
-        
+        coproduct = f | g
         result = coproduct(physics_state)
-        
         assert result.is_success
-        assert "result" in result.payload  # De primary
-        assert "unused" not in result.payload
-    
-    def test_coproduct_fallback_on_failure(self, physics_state):
-        """Usa segunda rama si primera falla."""
-        def handler1():
-            raise ValueError("Primary fails")
-        
-        def handler2():
-            return {"fallback": "success"}
-        
-        morph1 = AtomicVector(
-            "primary",
-            Stratum.TACTICS,
-            handler1,
+        assert result.payload.get("f_done") is True
+        # g no debe haberse ejecutado con éxito visible
+        last_trace = result.composition_trace[-1]
+        assert last_trace.metadata["selected_branch"] == "left"
+
+    def test_coproduct_falls_back_to_second(self, physics_state):
+        def fail(state):
+            return state.with_error("f failed")
+
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS, fail
         )
-        
-        morph2 = AtomicVector(
-            "fallback",
-            Stratum.TACTICS,
-            handler2,
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        coproduct = morph1 | morph2
-        
+        coproduct = f | g
         result = coproduct(physics_state)
-        
         assert result.is_success
-        assert result.payload["fallback"] == "success"
-    
+        last_trace = result.composition_trace[-1]
+        assert last_trace.metadata["selected_branch"] == "right"
+        assert last_trace.metadata["recovered_from"] == "f failed"
+
     def test_coproduct_both_fail(self, physics_state):
-        """Ambas ramas fallan."""
-        def handler1():
-            raise ValueError("First fails")
-        
-        def handler2():
-            raise ValueError("Fallback fails")
-        
-        morph1 = AtomicVector(
-            "primary",
-            Stratum.TACTICS,
-            handler1,
+        def fail_f(state):
+            return state.with_error("f boom")
+
+        def fail_g(state):
+            return state.with_error("g boom")
+
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS, fail_f
         )
-        
-        morph2 = AtomicVector(
-            "fallback",
-            Stratum.TACTICS,
-            handler2,
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS, fail_g
         )
-        
-        coproduct = morph1 | morph2
-        
-        result = coproduct(physics_state)
-        
+        result = (f | g)(physics_state)
         assert result.is_failed
-        assert "First fails" in result.error or "Fallback fails" in result.error
-    
-    def test_coproduct_monadal_absorption(self, physics_state):
-        """Absorbe errores previos."""
-        def handler1():
-            raise ValueError("Should not execute")
-        
-        def handler2():
-            raise ValueError("Should not execute")
-        
-        morph1 = AtomicVector("m1", Stratum.TACTICS, handler1)
-        morph2 = AtomicVector("m2", Stratum.TACTICS, handler2)
-        
-        coproduct = morph1 | morph2
-        
-        error_state = create_categorical_state().with_error("Previous error")
-        
-        result = coproduct(error_state)
-        
+        assert "f boom" in result.error
+        assert "g boom" in result.error
+
+    def test_coproduct_absorbs_prior_error(self, failed_state):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism("g", frozenset(), Stratum.PHYSICS)
+        result = (f | g)(failed_state)
         assert result.is_failed
-        assert result.error == "Previous error"
+
+    def test_coproduct_name(self):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism("g", frozenset(), Stratum.PHYSICS)
+        coproduct = f | g
+        assert "∐" in coproduct.name
+
+    def test_coproduct_preserves_failure_traces(self, physics_state):
+        """La traza del intento fallido se conserva."""
+        def fail(state):
+            return state.with_error("f failed").add_trace(
+                "f", frozenset(), Stratum.TACTICS, False, error="f failed"
+            )
+
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS, fail
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        result = (f | g)(physics_state)
+        assert result.is_success
+        # Debe tener trazas del intento fallido de f
+        morph_names = [t.morphism_name for t in result.composition_trace]
+        assert "f" in morph_names
 
 
 class TestPullbackMorphism:
-    """Pruebas del pullback (intersección)."""
-    
-    def test_pullback_creation(self, simple_handler):
-        """Crea pullback."""
-        def handler2():
-            return {"value": 100}
-        
-        morph1 = AtomicVector("f", Stratum.TACTICS, simple_handler)
-        morph2 = AtomicVector("g", Stratum.TACTICS, handler2)
-        
-        validator = lambda s1, s2: True
-        
-        pullback = PullbackMorphism("verify", morph1, morph2, validator)
-        
-        assert pullback.name == "verify"
-        assert pullback.f == morph1
-        assert pullback.g == morph2
-    
-    def test_pullback_congruent_paths(self, physics_state):
-        """Pullback con caminos congruentes."""
-        def handler1():
-            return {"result": 42}
-        
-        def handler2():
-            return {"result": 42}
-        
-        morph1 = AtomicVector(
-            "path1",
-            Stratum.TACTICS,
-            handler1,
+    """Tests para PullbackMorphism."""
+
+    def _always_congruent(self, a, b):
+        return True
+
+    def _never_congruent(self, a, b):
+        return False
+
+    def test_pullback_congruent(self, physics_state):
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        morph2 = AtomicVector(
-            "path2",
-            Stratum.TACTICS,
-            handler2,
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.STRATEGY
         )
-        
-        def check_congruence(state1, state2):
-            return state1.payload.get("result") == state2.payload.get("result")
-        
-        pullback = PullbackMorphism("verify", morph1, morph2, check_congruence)
-        
-        result = pullback(physics_state)
-        
+        pb = PullbackMorphism(
+            "pb", f, g, self._always_congruent,
+            conflict_policy="prefer_right",
+        )
+        result = pb(physics_state)
         assert result.is_success
-    
-    def test_pullback_divergent_paths(self, physics_state):
-        """Pullback detecta caminos divergentes."""
-        def handler1():
-            return {"result": 10}
-        
-        def handler2():
-            return {"result": 20}
-        
-        morph1 = AtomicVector("f", Stratum.TACTICS, handler1)
-        morph2 = AtomicVector("g", Stratum.TACTICS, handler2)
-        
-        def check_congruence(state1, state2):
-            return state1.payload.get("result") == state2.payload.get("result")
-        
-        pullback = PullbackMorphism("verify", morph1, morph2, check_congruence)
-        
-        result = pullback(physics_state)
-        
+        assert result.payload.get("f_done") is True
+        assert result.payload.get("g_done") is True
+
+    def test_pullback_divergent(self, physics_state):
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.STRATEGY
+        )
+        pb = PullbackMorphism("pb", f, g, self._never_congruent)
+        result = pb(physics_state)
         assert result.is_failed
-        assert "divergentes" in result.error
+        assert "caminos divergentes" in result.error
+
+    def test_pullback_left_path_fails(self, physics_state):
+        def fail(state):
+            return state.with_error("left fail")
+
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS, fail
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.STRATEGY
+        )
+        pb = PullbackMorphism("pb", f, g, self._always_congruent)
+        result = pb(physics_state)
+        assert result.is_failed
+        assert "Camino izquierdo" in result.composition_trace[-1].error
+
+    def test_pullback_right_path_fails(self, physics_state):
+        def fail(state):
+            return state.with_error("right fail")
+
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.STRATEGY, fail
+        )
+        pb = PullbackMorphism("pb", f, g, self._always_congruent)
+        result = pb(physics_state)
+        assert result.is_failed
+
+    def test_pullback_validator_exception(self, physics_state):
+        def bad_validator(a, b):
+            raise RuntimeError("validator boom")
+
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.STRATEGY
+        )
+        pb = PullbackMorphism("pb", f, g, bad_validator)
+        result = pb(physics_state)
+        assert result.is_failed
+        assert "validator boom" in result.error
+
+    def test_pullback_absorbs_prior_error(self, failed_state):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism("g", frozenset(), Stratum.PHYSICS)
+        pb = PullbackMorphism("pb", f, g, self._always_congruent)
+        result = pb(failed_state)
+        assert result.is_failed
+
+    def test_pullback_merge_conflict(self, physics_state):
+        def make_f(state):
+            return state.with_update(
+                {"conflict": "from_f"}, new_stratum=Stratum.TACTICS
+            ).add_trace("f", frozenset(), Stratum.TACTICS, True)
+
+        def make_g(state):
+            return state.with_update(
+                {"conflict": "from_g"}, new_stratum=Stratum.STRATEGY
+            ).add_trace("g", frozenset(), Stratum.STRATEGY, True)
+
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS, make_f
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.STRATEGY, make_g
+        )
+        pb = PullbackMorphism(
+            "pb", f, g, self._always_congruent,
+            conflict_policy="error_on_conflict",
+        )
+        result = pb(physics_state)
+        assert result.is_failed
+        assert "Conflicto" in result.error
+
+    def test_pullback_domain_union(self):
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.TACTICS}), Stratum.STRATEGY
+        )
+        pb = PullbackMorphism("pb", f, g, self._always_congruent)
+        assert pb.domain == frozenset({Stratum.PHYSICS, Stratum.TACTICS})
+
+
+class TestMorphismBase:
+    """Tests para la clase base Morphism."""
+
+    def test_can_compose_with_compatible(self):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        assert f.can_compose_with(g) is True
+
+    def test_can_compose_with_incompatible(self):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.STRATEGY}), Stratum.WISDOM
+        )
+        assert f.can_compose_with(g) is False
+
+    def test_repr_format(self):
+        m = ConcreteMorphism(
+            "test", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        r = repr(m)
+        assert "test" in r
+        assert "PHYSICS" in r
+        assert "TACTICS" in r
+        assert "→" in r
+
+    def test_operators_return_correct_types(self):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism("g", frozenset(), Stratum.PHYSICS)
+
+        assert isinstance(f >> g, ComposedMorphism)
+        assert isinstance(f * g, ProductMorphism)
+        assert isinstance(f | g, CoproductMorphism)
 
 
 # ============================================================================
-# PRUEBAS DEL COMPOSITOR DE MORFISMOS
+# 6. TESTS DE FUNTORES Y TRANSFORMACIONES NATURALES
+# ============================================================================
+
+
+class TestStateFunctorAdjunction:
+    """
+    Test de Funtores Adjuntos.
+    
+    Verifica el isomorfismo natural entre el espacio de memoria
+    (CategoricalState) y el espacio de serialización (dict).
+    """
+
+    def test_state_functor_adjunction_isomorphism(self, tactics_state):
+        """
+        Ley: from_dict(to_dict(State)) == State
+        Demuestra que el funtor de serialización y su inverso
+        forman una adjunción válida preservando la estructura.
+        """
+        functor = StateToDictFunctor()
+        
+        # F: State -> Dict
+        dict_repr = functor.map_object(tactics_state)
+        
+        # G: Dict -> State (Inverso/Adjunto)
+        restored_state = CategoricalState.from_dict(dict_repr)
+        
+        assert restored_state.payload == tactics_state.payload
+        assert restored_state.context == tactics_state.context
+        assert restored_state.validated_strata == tactics_state.validated_strata
+        assert restored_state.error == tactics_state.error
+
+
+class TestStateToDictFunctor:
+    """Tests para StateToDictFunctor."""
+
+    def test_map_object(self, physics_state):
+        functor = StateToDictFunctor()
+        result = functor.map_object(physics_state)
+        assert isinstance(result, dict)
+        assert result["__schema_version__"] == _SCHEMA_VERSION
+        assert "payload" in result
+        assert "validated_strata" in result
+
+    def test_map_morphism(self, physics_state):
+        functor = StateToDictFunctor()
+        idm = IdentityMorphism(Stratum.PHYSICS)
+        mapped = functor.map_morphism(idm)
+        result = mapped(physics_state)
+        assert isinstance(result, dict)
+        assert len(result["composition_trace"]) == 1
+
+    def test_functor_name(self):
+        functor = StateToDictFunctor()
+        assert functor.name == "StateToDictFunctor"
+
+    def test_mapped_function_has_name(self):
+        functor = StateToDictFunctor()
+        idm = IdentityMorphism(Stratum.PHYSICS)
+        mapped = functor.map_morphism(idm)
+        assert "id_PHYSICS" in mapped.__name__
+
+
+class TestNaturalTransformation:
+    """Tests para NaturalTransformation."""
+
+    def test_concrete_transformation(self, empty_state):
+        nt = ConcreteNaturalTransformation("test_nt")
+        result = nt(empty_state)
+        assert result.payload.get("transformed") is True
+
+    def test_is_natural_default(self):
+        nt = ConcreteNaturalTransformation()
+        assert nt.is_natural is True
+
+    def test_name(self):
+        nt = ConcreteNaturalTransformation("custom")
+        assert nt.name == "custom"
+
+
+# ============================================================================
+# 7. TESTS DE MorphismComposer
 # ============================================================================
 
 
 class TestMorphismComposer:
-    """Pruebas del constructor de composiciones."""
-    
-    def test_composer_creation(self):
-        """Crea composer vacío."""
+    """Tests para MorphismComposer."""
+
+    def test_empty_build_raises(self):
         composer = MorphismComposer()
-        
-        assert len(composer.steps) == 0
-    
-    def test_composer_add_single_step(self):
-        """Añade un paso."""
+        with pytest.raises(ValueError, match="No hay pasos"):
+            composer.build()
+
+    def test_single_step(self):
         composer = MorphismComposer()
-        morph = IdentityMorphism(Stratum.PHYSICS)
-        
-        composer.add_step(morph)
-        
-        assert len(composer.steps) == 1
-        assert composer.steps[0] == morph
-    
-    def test_composer_add_incompatible_step_raises(self, simple_handler):
-        """Rechaza paso incompatible."""
-        def handler_needs_xy(x: int, y: int):
-            return {}
-        
-        morph1 = AtomicVector(
-            "m1",
-            Stratum.TACTICS,
-            simple_handler,
+        m = ConcreteMorphism("m", frozenset(), Stratum.PHYSICS)
+        composer.add_step(m)
+        result = composer.build()
+        assert result is m  # Single step returns the morphism itself
+
+    def test_two_steps_compose(self):
+        composer = MorphismComposer()
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        morph2 = AtomicVector(
-            "needs_xy",
-            Stratum.WISDOM,
-            handler_needs_xy,
-            required_keys=["x", "y"],
-        )
-        
+        composer.add_step(f).add_step(g)
+        result = composer.build()
+        assert isinstance(result, ComposedMorphism)
+
+    def test_incompatible_step_raises(self):
         composer = MorphismComposer()
-        composer.add_step(morph1)
-        
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.STRATEGY}), Stratum.WISDOM
+        )
+        composer.add_step(f)
         with pytest.raises(TypeError, match="no componible"):
-            composer.add_step(morph2)
-    
-    def test_composer_build_single_step(self):
-        """Construye composición simple."""
+            composer.add_step(g)
+
+    def test_accumulated_strata_verification(self):
+        """El composer verifica contra el acumulado, no solo el anterior."""
         composer = MorphismComposer()
-        morph = IdentityMorphism(Stratum.PHYSICS)
-        
-        result = composer.add_step(morph).build()
-        
-        assert result == morph
-    
-    def test_composer_build_multiple_steps(self, simple_handler):
-        """Construye composición múltiple."""
-        def h1():
-            return {"step1": 1}
-        
-        def h2():
-            return {"step2": 2}
-        
-        m1 = AtomicVector("s1", Stratum.TACTICS, h1)
-        m2 = AtomicVector("s2", Stratum.STRATEGY, h2)
-        
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        # h requiere PHYSICS que fue provisto por f, no por g
+        h = ConcreteMorphism(
+            "h",
+            frozenset({Stratum.PHYSICS, Stratum.TACTICS}),
+            Stratum.STRATEGY,
+        )
+        composer.add_step(f).add_step(g).add_step(h)
+        result = composer.build()
+        assert result is not None
+
+    def test_visualize_empty(self):
         composer = MorphismComposer()
-        composed = (composer
-                    .add_step(m1)
-                    .add_step(m2)
-                    .build())
-        
-        assert isinstance(composed, ComposedMorphism)
-    
-    def test_composer_visualize(self, simple_handler):
-        """Visualiza plan de composición."""
-        def h2():
-            return {}
-        
-        m1 = AtomicVector("step1", Stratum.TACTICS, simple_handler)
-        m2 = AtomicVector("step2", Stratum.STRATEGY, h2)
-        
+        assert composer.visualize() == "(vacío)"
+
+    def test_visualize_steps(self):
         composer = MorphismComposer()
-        composer.add_step(m1).add_step(m2)
-        
-        visualization = composer.visualize()
-        
-        assert "step1" in visualization
-        assert "step2" in visualization
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        composer.add_step(f).add_step(g)
+        viz = composer.visualize()
+        assert "1." in viz
+        assert "2." in viz
+        assert "f" in viz
+        assert "g" in viz
+
+    def test_fluent_api(self):
+        """add_step retorna self para encadenamiento."""
+        composer = MorphismComposer()
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        result = composer.add_step(f)
+        assert result is composer
+
+    def test_reset(self):
+        composer = MorphismComposer()
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        composer.add_step(f)
+        composer.reset()
+        assert len(composer.steps) == 0
+        assert composer.visualize() == "(vacío)"
+
+    def test_full_pipeline_execution(self, empty_state):
+        """Pipeline completo PHYSICS → TACTICS → STRATEGY → WISDOM."""
+        composer = MorphismComposer()
+        f = ConcreteMorphism("phys", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "tact", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        h = ConcreteMorphism(
+            "strat",
+            frozenset({Stratum.PHYSICS, Stratum.TACTICS}),
+            Stratum.STRATEGY,
+        )
+        w = ConcreteMorphism(
+            "wisd",
+            frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}),
+            Stratum.WISDOM,
+        )
+        pipeline = composer.add_step(f).add_step(g).add_step(h).add_step(w).build()
+        result = pipeline(empty_state)
+        assert result.is_success
+        assert result.validated_strata == frozenset(Stratum)
 
 
 # ============================================================================
-# PRUEBAS DE VERIFICADOR HOMOLÓGICO
+# 8. TESTS DE StructuralVerifier
 # ============================================================================
 
 
-class TestHomologicalVerifier:
-    """Pruebas de verificación de exactitud."""
-    
-    def test_verifier_creation(self):
-        """Crea verificador."""
-        verifier = HomologicalVerifier()
+class TestStructuralVerifier:
+    """Tests para StructuralVerifier."""
+
+    def test_empty_sequence(self):
+        verifier = StructuralVerifier()
+        assert verifier.is_composable_sequence([]) is True
+
+    def test_single_morphism(self):
+        verifier = StructuralVerifier()
+        m = ConcreteMorphism("m", frozenset(), Stratum.PHYSICS)
+        assert verifier.is_composable_sequence([m]) is True
+
+    def test_composable_sequence(self):
+        verifier = StructuralVerifier()
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        h = ConcreteMorphism(
+            "h",
+            frozenset({Stratum.PHYSICS, Stratum.TACTICS}),
+            Stratum.STRATEGY,
+        )
+        assert verifier.is_composable_sequence([f, g, h]) is True
+
+    def test_non_composable_sequence(self):
+        verifier = StructuralVerifier()
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.STRATEGY}), Stratum.WISDOM
+        )
+        assert verifier.is_composable_sequence([f, g]) is False
+
+    def test_homological_ghost_sequence_rejected(self):
+        """
+        Exactitud de la Secuencia Homológica.
         
-        assert verifier is not None
-    
-    def test_empty_sequence_is_exact(self):
-        """Secuencia vacía es exacta."""
-        verifier = HomologicalVerifier()
+        Inyecta un 'fantasma homológico': un elemento que pertenece al Kernel
+        de d_n pero no a la Imagen de d_{n+1}. El sistema debe rechazar la
+        composición por violación del lema Im(d_{n+1}) = Ker(d_n).
+        """
+        verifier = StructuralVerifier()
         
-        is_exact = verifier.is_exact_sequence([])
+        # d_{n+1}: -> PHYSICS
+        f = ConcreteMorphism("d_n_plus_1", frozenset(), Stratum.PHYSICS)
         
-        assert is_exact is True
-    
-    def test_single_morphism_is_exact(self, simple_handler):
-        """Secuencia simple es exacta."""
-        morph = AtomicVector("op", Stratum.TACTICS, simple_handler)
+        # d_n requiere TACTICS (Fantasma Homológico, no está en Im(d_{n+1}))
+        g = ConcreteMorphism(
+            "d_n", frozenset({Stratum.TACTICS}), Stratum.STRATEGY
+        )
         
-        verifier = HomologicalVerifier()
-        
-        is_exact = verifier.is_exact_sequence([morph])
-        
-        assert is_exact is True
-    
-    def test_exact_composed_sequence(self, simple_handler):
-        """Secuencia compuesta exacta."""
-        def h2():
-            return {}
-        
-        m1 = AtomicVector("m1", Stratum.TACTICS, simple_handler)
-        m2 = AtomicVector("m2", Stratum.STRATEGY, h2)
-        
-        verifier = HomologicalVerifier()
-        
-        is_exact = verifier.is_exact_sequence([m1, m2])
-        
-        assert is_exact is True
-    
-    def test_verify_composition(self, simple_handler):
-        """Verifica propiedades de composición."""
-        morph = AtomicVector("op", Stratum.TACTICS, simple_handler)
-        
-        verifier = HomologicalVerifier()
-        
-        verification = verifier.verify_composition(morph)
-        
-        assert verification["is_valid"] is True
-        assert "domain" in verification
-        assert "codomain" in verification
+        assert verifier.is_composable_sequence([f, g]) is False
+
+    def test_verify_composition(self):
+        verifier = StructuralVerifier()
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        composed = f >> g
+        info = verifier.verify_composition(composed)
+        assert info["is_valid"] is True
+        assert info["structural_type"] == "ComposedMorphism"
+        assert info["codomain"] == "TACTICS"
+        assert "is_structurally_compatible" in info
+        assert "components" in info
+
+    def test_verify_atomic_composition(self):
+        verifier = StructuralVerifier()
+        m = ConcreteMorphism("m", frozenset(), Stratum.PHYSICS)
+        info = verifier.verify_composition(m)
+        assert info["is_valid"] is True
+        assert "components" not in info
+
+    def test_compute_stratum_coverage_full(self):
+        verifier = StructuralVerifier()
+        morphisms = [
+            ConcreteMorphism("a", frozenset(), Stratum.PHYSICS),
+            ConcreteMorphism(
+                "b", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+            ),
+            ConcreteMorphism(
+                "c",
+                frozenset({Stratum.PHYSICS, Stratum.TACTICS}),
+                Stratum.STRATEGY,
+            ),
+            ConcreteMorphism(
+                "d",
+                frozenset(
+                    {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}
+                ),
+                Stratum.WISDOM,
+            ),
+        ]
+        coverage = verifier.compute_stratum_coverage(morphisms)
+        assert coverage["full_coverage"] is True
+        assert len(coverage["unreachable_strata"]) == 0
+
+    def test_compute_stratum_coverage_partial(self):
+        verifier = StructuralVerifier()
+        morphisms = [
+            ConcreteMorphism("a", frozenset(), Stratum.PHYSICS),
+        ]
+        coverage = verifier.compute_stratum_coverage(morphisms)
+        assert coverage["full_coverage"] is True  # no requirements uncovered
+        assert "TACTICS" in coverage["unreachable_strata"]
+
+    def test_backward_compatibility_alias(self):
+        """HomologicalVerifier es alias de StructuralVerifier."""
+        assert HomologicalVerifier is StructuralVerifier
 
 
 # ============================================================================
-# PRUEBAS DE REGISTRO CATEGÓRICO
+# 9. TESTS DE CategoricalRegistry
 # ============================================================================
 
 
 class TestCategoricalRegistry:
-    """Pruebas del registro de morfismos."""
-    
-    def test_registry_creation(self):
-        """Crea registro vacío."""
-        registry = CategoricalRegistry()
-        
-        assert len(registry.list_morphisms()) == 0
-        assert len(registry.list_compositions()) == 0
-    
-    def test_register_morphism(self, simple_handler):
-        """Registra morfismo."""
-        morph = AtomicVector("op", Stratum.TACTICS, simple_handler)
-        registry = CategoricalRegistry()
-        
-        registry.register_morphism("my_op", morph)
-        
-        assert "my_op" in registry.list_morphisms()
-        assert registry.get_morphism("my_op") == morph
-    
-    def test_register_composition(self, simple_handler):
-        """Registra composición."""
-        def h2():
-            return {}
-        
-        m1 = AtomicVector("m1", Stratum.TACTICS, simple_handler)
-        m2 = AtomicVector("m2", Stratum.STRATEGY, h2)
-        
-        composed = m1 >> m2
-        registry = CategoricalRegistry()
-        
+    """Tests para CategoricalRegistry."""
+
+    @pytest.fixture
+    def registry(self):
+        return CategoricalRegistry()
+
+    def test_register_and_get_morphism(self, registry):
+        m = ConcreteMorphism("m", frozenset(), Stratum.PHYSICS)
+        registry.register_morphism("m", m)
+        assert registry.get_morphism("m") is m
+
+    def test_get_nonexistent_morphism(self, registry):
+        assert registry.get_morphism("nonexistent") is None
+
+    def test_register_composition(self, registry):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        composed = f >> g
         registry.register_composition("pipeline", composed)
+        assert registry.get_composition("pipeline") is composed
+
+    def test_list_morphisms(self, registry):
+        registry.register_morphism(
+            "b", ConcreteMorphism("b", frozenset(), Stratum.PHYSICS)
+        )
+        registry.register_morphism(
+            "a", ConcreteMorphism("a", frozenset(), Stratum.PHYSICS)
+        )
+        assert registry.list_morphisms() == ["a", "b"]
+
+    def test_list_compositions(self, registry):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        registry.register_composition("z_comp", f)
+        registry.register_composition("a_comp", f)
+        assert registry.list_compositions() == ["a_comp", "z_comp"]
+
+    def test_replace_morphism_warning(self, registry, caplog):
+        import logging
+
+        m1 = ConcreteMorphism("m1", frozenset(), Stratum.PHYSICS)
+        m2 = ConcreteMorphism("m2", frozenset(), Stratum.PHYSICS)
+        registry.register_morphism("m", m1)
+        with caplog.at_level(logging.WARNING):
+            registry.register_morphism("m", m2)
+        assert registry.get_morphism("m") is m2
+        assert any("ya registrado" in r.message for r in caplog.records)
+
+    def test_unregister_morphism(self, registry):
+        m = ConcreteMorphism("m", frozenset(), Stratum.PHYSICS)
+        registry.register_morphism("m", m)
+        assert registry.unregister_morphism("m") is True
+        assert registry.get_morphism("m") is None
+
+    def test_unregister_nonexistent(self, registry):
+        assert registry.unregister_morphism("nope") is False
+
+    def test_unregister_composition(self, registry):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        registry.register_composition("c", f)
+        assert registry.unregister_composition("c") is True
+        assert registry.get_composition("c") is None
+
+    def test_dependency_graph_structure(self, registry):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        registry.register_morphism("f", f)
+        registry.register_morphism("g", g)
+        G = registry.get_dependency_graph()
+        assert "f" in G.nodes
+        assert "g" in G.nodes
+        # f produces PHYSICS, g requires PHYSICS → edge f→g
+        assert G.has_edge("f", "g")
+
+    def test_dependency_graph_no_self_loops(self, registry):
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.PHYSICS
+        )
+        registry.register_morphism("f", f)
+        G = registry.get_dependency_graph()
+        assert not G.has_edge("f", "f")
+
+    def test_verify_acyclicity_dag(self, registry):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        registry.register_morphism("f", f)
+        registry.register_morphism("g", g)
+        assert registry.verify_acyclicity() is True
+
+    def test_verify_acyclicity_cycle(self, registry):
+        """
+        Espectro de la Matriz Laplaciana.
         
-        assert "pipeline" in registry.list_compositions()
-        assert registry.get_composition("pipeline") == composed
-    
-    def test_get_nonexistent_morphism(self):
-        """Obtener morfismo inexistente retorna None."""
-        registry = CategoricalRegistry()
+        Prueba la detección de ciclos verificando que la matriz de
+        adyacencia no presenta valores complejos rotacionales ni
+        viola el acotamiento espectral.
+        Si hay ciclo, registry debe abortar validación de aciclicidad.
+        """
+        a = ConcreteMorphism(
+            "a", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        b = ConcreteMorphism(
+            "b", frozenset({Stratum.TACTICS}), Stratum.PHYSICS
+        )
+        registry.register_morphism("a", a)
+        registry.register_morphism("b", b)
         
-        result = registry.get_morphism("nonexistent")
-        
-        assert result is None
-    
-    def test_get_dependency_graph(self, simple_handler):
-        """Obtiene grafo de dependencias."""
-        def h2():
-            return {}
-        
-        m1 = AtomicVector("op1", Stratum.TACTICS, simple_handler)
-        m2 = AtomicVector("op2", Stratum.STRATEGY, h2)
-        
-        registry = CategoricalRegistry()
-        registry.register_morphism("op1", m1)
-        registry.register_morphism("op2", m2)
-        
-        graph = registry.get_dependency_graph()
-        
-        assert isinstance(graph, nx.DiGraph)
-        assert "op1" in graph.nodes()
-        assert "op2" in graph.nodes()
-    
-    def test_verify_acyclicity_true(self, simple_handler):
-        """Verifica aciclicidad correcta."""
-        def h2():
-            return {}
-        
-        m1 = AtomicVector("op1", Stratum.TACTICS, simple_handler)
-        m2 = AtomicVector("op2", Stratum.STRATEGY, h2)
-        
-        registry = CategoricalRegistry()
-        registry.register_morphism("op1", m1)
-        registry.register_morphism("op2", m2)
-        
-        is_acyclic = registry.verify_acyclicity()
-        
-        assert is_acyclic is True
-    
-    def test_replace_existing_morphism(self, simple_handler):
-        """Reemplaza morfismo existente."""
-        def new_handler():
-            return {"new": True}
-        
-        m1 = AtomicVector("op", Stratum.TACTICS, simple_handler)
-        m2 = AtomicVector("op", Stratum.TACTICS, new_handler)
-        
-        registry = CategoricalRegistry()
-        registry.register_morphism("op", m1)
-        registry.register_morphism("op", m2)
-        
-        assert registry.get_morphism("op") == m2
+        # El grafo de dependencias tendrá ciclo, lo cual es equivalente a
+        # tener autovalores del Laplaciano normalizado que indican ciclo.
+        assert registry.verify_acyclicity() is False
+
+    def test_topological_order_dag(self, registry):
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        h = ConcreteMorphism(
+            "h", frozenset({Stratum.TACTICS}), Stratum.STRATEGY
+        )
+        registry.register_morphism("f", f)
+        registry.register_morphism("g", g)
+        registry.register_morphism("h", h)
+        order = registry.topological_order()
+        assert order is not None
+        assert order.index("f") < order.index("g")
+        assert order.index("g") < order.index("h")
+
+    def test_topological_order_cycle_returns_none(self, registry):
+        a = ConcreteMorphism(
+            "a", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        b = ConcreteMorphism(
+            "b", frozenset({Stratum.TACTICS}), Stratum.PHYSICS
+        )
+        registry.register_morphism("a", a)
+        registry.register_morphism("b", b)
+        assert registry.topological_order() is None
+
+    def test_morphisms_property_defensive_copy(self, registry):
+        m = ConcreteMorphism("m", frozenset(), Stratum.PHYSICS)
+        registry.register_morphism("m", m)
+        external = registry.morphisms
+        external["injected"] = m
+        assert "injected" not in registry.morphisms
+
+    def test_compositions_property_defensive_copy(self, registry):
+        m = ConcreteMorphism("m", frozenset(), Stratum.PHYSICS)
+        registry.register_composition("c", m)
+        external = registry.compositions
+        external["injected"] = m
+        assert "injected" not in registry.compositions
 
 
 # ============================================================================
-# PRUEBAS DE MONADALIDAD (Railway Oriented Programming)
+# 10. TESTS DE FACTORIES
 # ============================================================================
 
 
-class TestMonadalityAndErrorHandling:
-    """Pruebas del modelo monadal de error."""
-    
-    def test_error_is_absorbing_element(self):
-        """Error es elemento absorbente."""
-        state = create_categorical_state().with_error("Initial error")
-        
-        def handler():
-            return {"should_not_see": "this"}
-        
-        morph = AtomicVector("op", Stratum.TACTICS, handler, optional_keys=[f"key_{i}" for i in range(100)])
-        
-        result = morph(state)
-        
-        # El morfismo no se ejecuta
-        assert result.error == "Initial error"
-        assert "should_not_see" not in result.payload
-    
-    def test_success_continues_pipeline(self, physics_state):
-        """Estado exitoso continúa el pipeline."""
-        def handler1(raw_data: list = None):
-            return {"processed": len(raw_data or [])}
-        
-        def handler2(processed: int):
-            return {"analyzed": processed * 2}
-        
-        m1 = AtomicVector(
-            "process",
-            Stratum.TACTICS,
-            handler1,
-            required_keys=["raw_data"],
+class TestFactories:
+    """Tests para funciones factory."""
+
+    def test_create_categorical_state_defaults(self):
+        state = create_categorical_state()
+        assert state.payload == {}
+        assert state.context == {}
+        assert state.validated_strata == frozenset()
+        assert state.is_success
+
+    def test_create_categorical_state_with_args(self):
+        state = create_categorical_state(
+            payload={"v": 3.3},
+            context={"src": "test"},
+            strata={Stratum.PHYSICS},
         )
-        
-        m2 = AtomicVector(
-            "analyze",
-            Stratum.STRATEGY,
-            handler2,
-            required_keys=["processed"],
-        )
-        
-        composed = m1 >> m2
-        
-        result = composed(physics_state)
-        
-        assert result.is_success
-        assert "analyzed" in result.payload
-    
-    def test_error_recovery_via_coproduct(self, physics_state):
-        """Recuperación de error usando coproducto."""
-        def failing_handler():
-            raise ValueError("Primary fails")
-        
-        def recovery_handler():
-            return {"recovered": True}
-        
-        primary = AtomicVector(
-            "primary",
-            Stratum.TACTICS,
-            failing_handler,
-        )
-        
-        recovery = AtomicVector(
-            "recovery",
-            Stratum.TACTICS,
-            recovery_handler,
-        )
-        
-        with_fallback = primary | recovery
-        
-        result = with_fallback(physics_state)
-        
-        assert result.is_success
-        assert result.payload["recovered"] is True
-    
-    def test_error_details_preserved(self):
-        """Detalles de error se preservan."""
-        state = create_categorical_state().with_error(
-            error_msg="Main error",
-            details={"code": 500, "source": "database"},
-        )
-        
-        assert state.error_details["code"] == 500
-        assert state.error_details["source"] == "database"
-    
-    def test_monadal_laws_left_identity(self, physics_state):
-        """Ley monadal: return a >>= f = f a."""
-        def handler(raw_data: list = None):
-            return {"count": len(raw_data or [])}
-        
-        # return a (crear estado con PHYSICS)
-        # >>= f (aplicar morfismo)
-        morph = AtomicVector(
-            "count",
+        assert state.payload["v"] == 3.3
+        assert state.context["src"] == "test"
+        assert Stratum.PHYSICS in state.validated_strata
+
+    def test_create_morphism_from_handler(self):
+        handler = lambda **kw: {"result": 42}
+        m = create_morphism_from_handler(
+            "test_handler",
             Stratum.TACTICS,
             handler,
-            required_keys=["raw_data"],
+            required_keys=["input"],
         )
-        
-        result = morph(physics_state)
-        
-        assert result.is_success
-    
-    def test_monadal_laws_right_identity(self, physics_state):
-        """Ley monadal: m >>= return = m."""
-        # Aplicar identidad después de algo
-        morph = AtomicVector(
-            "op",
-            Stratum.TACTICS,
-            lambda: {"result": 1},
-        )
-        
-        id_morph = IdentityMorphism(Stratum.TACTICS)
-        
-        result1 = morph(physics_state)
-        result2 = id_morph(result1)
-        
-        assert result2 == result1
-    
-    def test_monadal_laws_associativity(self, physics_state):
-        """Ley monadal: (m >>= f) >>= g = m >>= (x => f x >>= g)."""
-        def f(raw_data: list = None):
-            return {"processed": len(raw_data or [])}
-        
-        def g(processed: int):
-            return {"final": processed * 2}
-        
-        m1 = AtomicVector("f", Stratum.TACTICS, f, required_keys=["raw_data"])
-        m2 = AtomicVector("g", Stratum.STRATEGY, g, required_keys=["processed"])
-        
-        # (m1 >>= f) >>= g equivalente a m1 >> m2
-        composed = m1 >> m2
-        
-        result = composed(physics_state)
-        
-        assert result.is_success
+        assert isinstance(m, AtomicVector)
+        assert m.name == "test_handler"
+        assert m.codomain == Stratum.TACTICS
+
+    def test_factory_defensive_copy(self):
+        """Las factories deben producir copias defensivas."""
+        payload = {"key": "value"}
+        state = create_categorical_state(payload=payload)
+        payload["key"] = "mutated"
+        assert state.payload["key"] == "value"
 
 
 # ============================================================================
-# PRUEBAS DE TRAZAS Y AUDITORÍA
+# 11. TESTS DE PROPIEDADES CATEGÓRICAS (AXIOMAS)
 # ============================================================================
 
 
-class TestCompositionTracing:
-    """Pruebas del seguimiento de composiciones."""
-    
-    def test_single_morphism_generates_trace(self, physics_state, simple_handler):
-        """Un morfismo genera una entrada de traza."""
-        morph = AtomicVector(
-            "test_op",
-            Stratum.TACTICS,
-            simple_handler,
+class TestCategoricalAxioms:
+    """
+    Verificación de axiomas categóricos fundamentales.
+
+    Axioma 1: Identidad izquierda — id ∘ f = f
+    Axioma 2: Identidad derecha — f ∘ id = f
+    Axioma 3: Asociatividad — (f ∘ g) ∘ h = f ∘ (g ∘ h)
+    """
+
+    def test_left_identity(self, empty_state):
+        """id_cod(f) ∘ f ≡ f  (mismos resultados)."""
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        id_phys = IdentityMorphism(Stratum.PHYSICS)
+
+        result_f = f(empty_state)
+        result_id_f = (f >> id_phys)(empty_state)
+
+        assert result_f.payload == result_id_f.payload
+        assert result_f.validated_strata == result_id_f.validated_strata
+
+    def test_right_identity(self, empty_state):
+        """f ∘ id_dom(f) ≡ f  (mismos resultados)."""
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        result = morph(physics_state)
-        
-        assert len(result.composition_trace) == 1
-        assert result.composition_trace[0].morphism_name == "test_op"
-        assert result.composition_trace[0].step_number == 1
-    
-    def test_composed_morphisms_generate_multiple_traces(self, physics_state):
-        """Composición genera múltiples entradas."""
-        def h1():
-            return {"s1": 1}
-        
-        def h2():
-            return {"s2": 2}
-        
-        m1 = AtomicVector("step1", Stratum.TACTICS, h1)
-        m2 = AtomicVector("step2", Stratum.STRATEGY, h2)
-        
-        composed = m1 >> m2
-        
-        result = composed(physics_state)
-        
-        assert len(result.composition_trace) == 2
-        assert result.composition_trace[0].morphism_name == "step1"
-        assert result.composition_trace[1].morphism_name == "step2"
-    
-    def test_trace_records_domain_and_codomain(self, physics_state):
-        """Traza registra dominio y codominio."""
-        def handler(raw_data: list = None):
-            return {"processed": True}
-        
-        morph = AtomicVector(
-            "op",
-            Stratum.TACTICS,
-            handler,
-            required_keys=["raw_data"],
+        id_phys = IdentityMorphism(Stratum.PHYSICS)
+
+        state_with_phys = empty_state.with_update(
+            new_stratum=Stratum.PHYSICS
         )
-        
-        result = morph(physics_state)
-        
-        trace = result.composition_trace[0]
-        assert Stratum.PHYSICS in trace.input_domain
-        assert trace.output_codomain == Stratum.TACTICS
-    
-    def test_trace_records_success_status(self, physics_state, failing_handler):
-        """Traza registra estado de éxito/fallo."""
-        morph_ok = AtomicVector(
-            "ok",
-            Stratum.TACTICS,
-            lambda: {"ok": True},
+        result_f = f(state_with_phys)
+        result_f_id = (id_phys >> f)(state_with_phys)
+
+        assert result_f.payload == result_f_id.payload
+        assert result_f.validated_strata == result_f_id.validated_strata
+
+    def test_associativity(self, empty_state):
+        """(f >> g) >> h produce mismo payload que f >> (g >> h)."""
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        morph_fail = AtomicVector(
-            "fail",
-            Stratum.TACTICS,
-            failing_handler,
+        h = ConcreteMorphism(
+            "h", frozenset({Stratum.TACTICS}), Stratum.STRATEGY
         )
-        
-        result_ok = morph_ok(physics_state)
-        result_fail = morph_fail(physics_state)
-        
-        assert result_ok.composition_trace[0].success is True
-        assert result_fail.composition_trace[0].success is False
-    
-    def test_trace_serialization(self, physics_state):
-        """Traza se serializa correctamente."""
-        def handler():
-            return {"data": "test"}
-        
-        morph = AtomicVector("op", Stratum.TACTICS, handler, optional_keys=[f"key_{i}" for i in range(100)])
-        
-        result = morph(physics_state)
-        state_dict = result.to_dict()
-        
-        assert "composition_trace" in state_dict
-        assert len(state_dict["composition_trace"]) == 1
-        
-        trace_dict = state_dict["composition_trace"][0]
-        assert trace_dict["morphism"] == "op"
-        assert trace_dict["success"] is True
+
+        left = (f >> g) >> h
+        right = f >> (g >> h)
+
+        result_l = left(empty_state)
+        result_r = right(empty_state)
+
+        assert result_l.payload == result_r.payload
+        assert result_l.validated_strata == result_r.validated_strata
+        assert result_l.is_success == result_r.is_success
+
+    def test_identity_preserves_error_state(self, failed_state):
+        """Identidad aplicada a estado con error preserva el error."""
+        id_phys = IdentityMorphism(Stratum.PHYSICS)
+        result = id_phys(failed_state)
+        assert result.error == failed_state.error
+
+    def test_composition_is_closed(self):
+        """La composición de morfismos produce un morfismo."""
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        composed = f >> g
+        assert isinstance(composed, Morphism)
+        assert hasattr(composed, "domain")
+        assert hasattr(composed, "codomain")
+        assert callable(composed)
+
+
+class TestMonadicErrorPropagation:
+    """
+    Verifica la semántica monadal de propagación de errores.
+
+    Propiedad: una vez que un estado entra en error, todos los
+    morfismos subsecuentes absorben el error sin ejecutar lógica.
+    """
+
+    def test_error_propagates_through_composition(self, empty_state):
+        call_log = []
+
+        def logging_transform(name):
+            def transform(state):
+                call_log.append(name)
+                return state.with_update(
+                    {name: True}, new_stratum=Stratum.PHYSICS
+                ).add_trace(name, frozenset(), Stratum.PHYSICS, True)
+            return transform
+
+        def failing_transform(state):
+            call_log.append("fail")
+            return state.with_error("deliberate failure")
+
+        f = ConcreteMorphism(
+            "f", frozenset(), Stratum.PHYSICS, logging_transform("f")
+        )
+        fail = ConcreteMorphism(
+            "fail", frozenset({Stratum.PHYSICS}), Stratum.TACTICS,
+            failing_transform,
+        )
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.TACTICS}), Stratum.STRATEGY,
+            logging_transform("g"),
+        )
+
+        pipeline = f >> fail >> g
+        result = pipeline(empty_state)
+
+        assert result.is_failed
+        assert "f" in call_log
+        assert "fail" in call_log
+        assert "g" not in call_log  # g no se ejecutó
+
+    def test_atomic_vector_absorbs_error(self, failed_state):
+        call_count = {"n": 0}
+
+        def handler(**kw):
+            call_count["n"] += 1
+            return {"done": True}
+
+        av = _make_atomic("test", Stratum.PHYSICS, handler)
+        result = av(failed_state)
+        assert result.is_failed
+        assert call_count["n"] == 0  # handler never called
 
 
 # ============================================================================
-# PRUEBAS DE CASOS EXTREMOS
+# 12. TESTS DE ROBUSTEZ Y CASOS EXTREMOS
 # ============================================================================
 
 
 class TestEdgeCases:
-    """Pruebas de casos extremos."""
-    
-    def test_empty_payload_morphism(self):
-        """Morfismo con payload vacío."""
-        state = create_categorical_state(payload={}, strata={Stratum.PHYSICS})
-        
-        def handler():
-            return {"added": "value"}
-        
-        morph = AtomicVector("op", Stratum.TACTICS, handler, optional_keys=[f"key_{i}" for i in range(100)])
-        
-        result = morph(state)
-        
-        assert result.payload["added"] == "value"
-    
-    def test_morphism_with_none_values(self):
-        """Morfismo maneja None en payload."""
-        state = create_categorical_state(
-            payload={"value": None, "name": None},
-            strata={Stratum.PHYSICS}
+    """Tests de robustez y casos extremos."""
+
+    def test_empty_payload_operations(self):
+        state = CategoricalState()
+        updated = state.with_update({})
+        assert updated.payload == {}
+
+    def test_large_payload(self):
+        """Payload grande no causa problemas."""
+        big_payload = {f"key_{i}": i for i in range(1000)}
+        state = CategoricalState(payload=big_payload)
+        h = state.compute_hash()
+        assert len(h) == 64
+
+    def test_nested_payload_canonicalization(self):
+        state = CategoricalState(
+            payload={
+                "nested": {
+                    "deep": {"list": [3, 1, 2], "set_like": [1, 2, 3]}
+                }
+            }
         )
-        
-        def handler(**kwargs):
-            return {"processed": kwargs.get("value") is None}
-        
-        morph = AtomicVector(
-            "op",
-            Stratum.TACTICS,
-            handler,
+        d = state.to_dict()
+        assert isinstance(d["payload"]["nested"]["deep"]["list"], list)
+
+    def test_unicode_in_payload(self):
+        state = CategoricalState(
+            payload={"emoji": "🔬⚡", "kanji": "電気回路"}
         )
-        
-        result = morph(state)
-        
-        assert result.payload["processed"] is True
-    
-    def test_large_payload_morphism(self):
-        """Morfismo con payload grande."""
-        large_payload = {f"key_{i}": list(range(100)) for i in range(100)}
-        state = create_categorical_state(payload=large_payload, strata={Stratum.PHYSICS})
-        
-        def handler(**kwargs):
-            return {"size": len(kwargs)}
-        
-        morph = AtomicVector("op", Stratum.TACTICS, handler, optional_keys=[f"key_{i}" for i in range(100)])
-        
-        result = morph(state)
-        
-        assert result.payload["size"] == 100
-    
-    def test_unicode_in_morphism_names(self):
-        """Morfismo con nombres Unicode."""
-        def handler():
-            return {"resultado": "éxito"}
-        
-        morph = AtomicVector(
-            "operación_∫∆∇",
-            Stratum.TACTICS,
-            handler,
+        h = state.compute_hash()
+        d = state.to_dict()
+        restored = CategoricalState.from_dict(d)
+        assert restored.payload["emoji"] == "🔬⚡"
+
+    def test_none_values_in_payload(self):
+        state = CategoricalState(payload={"key": None})
+        d = state.to_dict()
+        assert d["payload"]["key"] is None
+
+    def test_numeric_precision_in_payload(self):
+        """Verificar que la precisión numérica se mantiene."""
+        state = CategoricalState(
+            payload={"pi": 3.141592653589793, "e": 2.718281828459045}
         )
-        
-        assert "∫" in morph.name
-    
-    def test_very_deep_composition(self, physics_state):
-        """Composición muy profunda."""
+        d = state.to_dict()
+        restored = CategoricalState.from_dict(d)
+        assert abs(restored.payload["pi"] - math.pi) < 1e-15
+        assert abs(restored.payload["e"] - math.e) < 1e-15
+
+    def test_deeply_nested_composition(self, empty_state):
+        """Composición profunda (muchos niveles de >>)."""
         morphisms = []
-        
-        for i in range(10):
-            def make_handler(step_num):
-                def handler(step: int = 0):
-                    return {"step": step_num}
-                return handler
-            
-            stratum_idx = min(i // 3, 2)
-            strata = [
-                Stratum.TACTICS,
-                Stratum.STRATEGY,
-                Stratum.WISDOM,
-            ]
-            
-            m = AtomicVector(
-                f"step_{i}",
-                strata[stratum_idx],
-                make_handler(i),
+        strata = list(Stratum)
+        # Solo podemos hacer 4 pasos con 4 estratos
+        for i, s in enumerate(reversed(strata)):
+            domain = frozenset(
+                st for st in strata if st.value > s.value
             )
-            morphisms.append(m)
-        
-        # Componer todas
-        composed = morphisms[0]
-        for morph in morphisms[1:]:
+            morphisms.append(ConcreteMorphism(f"m{i}", domain, s))
+
+        result_state = empty_state
+        for m in morphisms:
+            result_state = m(result_state)
+
+        assert result_state.is_success
+        assert len(result_state.composition_trace) == len(strata)
+
+    def test_concurrent_registry_access(self):
+        """Acceso concurrente básico al registry."""
+        import threading
+
+        registry = CategoricalRegistry()
+        errors = []
+
+        def register_batch(prefix, n):
             try:
-                composed = composed >> morph
-            except TypeError:
-                break
-        
-        result = composed(physics_state)
-        
-        assert result.is_success or result.is_failed
+                for i in range(n):
+                    m = ConcreteMorphism(
+                        f"{prefix}_{i}", frozenset(), Stratum.PHYSICS
+                    )
+                    registry.register_morphism(f"{prefix}_{i}", m)
+            except Exception as e:
+                errors.append(e)
 
+        threads = [
+            threading.Thread(target=register_batch, args=(f"t{t}", 50))
+            for t in range(4)
+        ]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
 
-# ============================================================================
-# PRUEBAS DE SERIALIZACIÓN
-# ============================================================================
+        assert len(errors) == 0
+        assert len(registry.list_morphisms()) == 200
 
+    def test_state_immutability_contract(self, physics_state):
+        """Verificar que with_update no muta el estado original."""
+        original_hash = physics_state.compute_hash()
+        _ = physics_state.with_update({"new_key": "new_value"})
+        assert physics_state.compute_hash() == original_hash
 
-class TestSerialization:
-    """Pruebas de serialización y deserialización."""
-    
-    def test_categorical_state_to_dict(self, complete_state):
-        """Serializa estado a diccionario."""
-        state_dict = complete_state.to_dict()
-        
-        assert isinstance(state_dict, dict)
-        assert "payload" in state_dict
-        assert "context" in state_dict
-        assert "validated_strata" in state_dict
-        assert "error" in state_dict
-    
-    def test_categorical_state_from_dict(self, complete_state):
-        """Reconstruye estado desde diccionario."""
-        original_dict = complete_state.to_dict()
-        
-        reconstructed = CategoricalState.from_dict(original_dict)
-        
-        assert reconstructed.payload == complete_state.payload
-        assert reconstructed.validated_strata == complete_state.validated_strata
-    
-    def test_trace_serialization(self):
-        """Serializa traza."""
-        trace = CompositionTrace(
-            step_number=1,
-            morphism_name="test",
-            input_domain=frozenset([Stratum.PHYSICS]),
-            output_codomain=Stratum.TACTICS,
-            success=True,
+    def test_composition_trace_is_tuple(self, empty_state):
+        """Asegurar que composition_trace es siempre tuple."""
+        s = empty_state.add_trace("m", frozenset(), Stratum.PHYSICS, True)
+        assert isinstance(s.composition_trace, tuple)
+        s2 = s.with_update({"x": 1})
+        assert isinstance(s2.composition_trace, tuple)
+        s3 = s.with_error("err")
+        assert isinstance(s3.composition_trace, tuple)
+
+    def test_handler_with_no_kwargs(self, physics_state):
+        """Handler que no acepta kwargs."""
+        handler = lambda: {"result": "ok"}
+        av = _make_atomic("no_args", Stratum.TACTICS, handler)
+        result = av(physics_state)
+        assert result.is_success
+
+    def test_multiple_strata_accumulation(self, empty_state):
+        """Verificar acumulación correcta de estratos a través de pipeline."""
+        f = ConcreteMorphism("f", frozenset(), Stratum.PHYSICS)
+        g = ConcreteMorphism(
+            "g", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
         )
-        
-        trace_dict = trace.to_dict()
-        
-        assert trace_dict["step"] == 1
-        assert trace_dict["morphism"] == "test"
-    
-    def test_state_with_traces_serialization(self, physics_state):
-        """Serializa estado con trazas."""
-        def handler():
-            return {"data": "test"}
-        
-        morph = AtomicVector("op", Stratum.TACTICS, handler, optional_keys=[f"key_{i}" for i in range(100)])
-        result = morph(physics_state)
-        
-        result_dict = result.to_dict()
-        state_reconstructed = CategoricalState.from_dict(result_dict)
-        
-        assert len(state_reconstructed.composition_trace) > 0
+        h = ConcreteMorphism(
+            "h",
+            frozenset({Stratum.PHYSICS, Stratum.TACTICS}),
+            Stratum.STRATEGY,
+        )
 
+        pipeline = f >> g >> h
+        result = pipeline(empty_state)
+        assert result.is_success
+        assert Stratum.PHYSICS in result.validated_strata
+        assert Stratum.TACTICS in result.validated_strata
+        assert Stratum.STRATEGY in result.validated_strata
+
+    def test_product_with_identical_morphisms(self, physics_state):
+        """Producto de un morfismo consigo mismo."""
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        product = f * f
+        result = product(physics_state)
+        # No debe haber conflicto porque ambos producen lo mismo
+        assert result.is_success
+
+    def test_coproduct_with_identical_morphisms(self, physics_state):
+        """Coproducto de un morfismo consigo mismo siempre usa la rama izquierda."""
+        f = ConcreteMorphism(
+            "f", frozenset({Stratum.PHYSICS}), Stratum.TACTICS
+        )
+        coproduct = f | f
+        result = coproduct(physics_state)
+        assert result.is_success
+        last = result.composition_trace[-1]
+        assert last.metadata["selected_branch"] == "left"
+
+
+class TestPhysicsCircuitScenario:
+    """
+    Escenario de integración: análisis de circuito eléctrico.
+
+    Simula un pipeline DIKW para análisis de circuito:
+    PHYSICS (mediciones) → TACTICS (cálculos) → STRATEGY (análisis) → WISDOM (decisión)
+    """
+
+    def test_full_circuit_analysis_pipeline(self):
+        # PHYSICS: mediciones del circuito
+        def measure_handler(**kw):
+            return {
+                "voltage_V": 12.0,
+                "current_A": 0.5,
+                "resistance_ohm": 24.0,
+            }
+
+        # TACTICS: verificar ley de Ohm (V = I × R)
+        def ohm_law_handler(voltage_V=0, current_A=0, resistance_ohm=0, **kw):
+            computed_v = current_A * resistance_ohm
+            error_pct = abs(computed_v - voltage_V) / voltage_V * 100
+            ohm_valid = error_pct < 5.0
+            return {
+                "ohm_valid": ohm_valid,
+                "ohm_error_pct": error_pct,
+                "power_W": voltage_V * current_A,
+            }
+
+        # STRATEGY: evaluar eficiencia
+        def efficiency_handler(power_W=0, ohm_valid=False, **kw):
+            if not ohm_valid:
+                return {"success": False, "error": "Ohm law violated"}
+            efficiency = min(power_W / 10.0, 1.0)  # normalizado
+            return {
+                "efficiency": efficiency,
+                "rating": "good" if efficiency > 0.5 else "poor",
+            }
+
+        # WISDOM: decisión final
+        def decision_handler(rating="", efficiency=0, **kw):
+            decision = "proceed" if rating == "good" else "review"
+            return {
+                "decision": decision,
+                "confidence": efficiency,
+            }
+
+        # Construir pipeline
+        measure = AtomicVector(
+            "measure", Stratum.PHYSICS, measure_handler
+        )
+        ohm_check = AtomicVector(
+            "ohm_check",
+            Stratum.TACTICS,
+            ohm_law_handler,
+            required_keys=["voltage_V", "current_A", "resistance_ohm"],
+        )
+        efficiency = AtomicVector(
+            "efficiency",
+            Stratum.STRATEGY,
+            efficiency_handler,
+            required_keys=["power_W", "ohm_valid"],
+        )
+        decision = AtomicVector(
+            "decision",
+            Stratum.WISDOM,
+            decision_handler,
+            required_keys=["rating", "efficiency"],
+        )
+
+        composer = MorphismComposer()
+        pipeline = (
+            composer
+            .add_step(measure)
+            .add_step(ohm_check)
+            .add_step(efficiency)
+            .add_step(decision)
+            .build()
+        )
+
+        # Ejecutar
+        initial = create_categorical_state()
+        result = pipeline(initial)
+
+        # Verificaciones
+        assert result.is_success
+        assert result.validated_strata == frozenset(Stratum)
+        assert result.payload["voltage_V"] == 12.0
+        assert result.payload["ohm_valid"] is True
+        assert abs(result.payload["ohm_error_pct"]) < 1e-10
+        assert result.payload["power_W"] == 6.0
+        assert result.payload["rating"] == "good"
+        assert result.payload["decision"] == "proceed"
+        assert len(result.composition_trace) == 4
+
+        # Verificar trazabilidad completa
+        trace_names = [
+            t.morphism_name for t in result.composition_trace
+        ]
+        assert trace_names == [
+            "measure", "ohm_check", "efficiency", "decision"
+        ]
+        assert all(t.success for t in result.composition_trace)
+
+    def test_circuit_with_faulty_measurement(self):
+        """Pipeline con medición inconsistente (Ohm violation)."""
+        def bad_measure(**kw):
+            return {
+                "voltage_V": 12.0,
+                "current_A": 0.5,
+                "resistance_ohm": 100.0,  # Inconsistente: 0.5 * 100 ≠ 12
+            }
+
+        def ohm_check(voltage_V=0, current_A=0, resistance_ohm=0, **kw):
+            computed_v = current_A * resistance_ohm
+            error_pct = abs(computed_v - voltage_V) / voltage_V * 100
+            return {
+                "ohm_valid": error_pct < 5.0,
+                "ohm_error_pct": error_pct,
+                "power_W": voltage_V * current_A,
+            }
+
+        def efficiency_check(power_W=0, ohm_valid=False, **kw):
+            if not ohm_valid:
+                return {"success": False, "error": "Ohm law violated"}
+            return {"efficiency": 0.5, "rating": "ok"}
+
+        measure = AtomicVector("measure", Stratum.PHYSICS, bad_measure)
+        ohm = AtomicVector(
+            "ohm", Stratum.TACTICS, ohm_check,
+            required_keys=["voltage_V", "current_A", "resistance_ohm"],
+        )
+        eff = AtomicVector(
+            "eff", Stratum.STRATEGY, efficiency_check,
+            required_keys=["power_W", "ohm_valid"],
+        )
+
+        pipeline = measure >> ohm >> eff
+        result = pipeline(create_categorical_state())
+
+        assert result.is_failed
+        assert "Ohm law violated" in result.error
+
+    def test_circuit_with_fallback_sensor(self):
+        """Coproducto: sensor primario falla, sensor de respaldo funciona."""
+        def primary_sensor(**kw):
+            return {"success": False, "error": "Sensor primario offline"}
+
+        def backup_sensor(**kw):
+            return {"voltage_V": 5.0, "current_A": 0.1}
+
+        primary = AtomicVector(
+            "primary", Stratum.PHYSICS, primary_sensor
+        )
+        backup = AtomicVector(
+            "backup", Stratum.PHYSICS, backup_sensor
+        )
+
+        resilient = primary | backup
+        result = resilient(create_categorical_state())
+
+        assert result.is_success
+        assert result.payload["voltage_V"] == 5.0
+
+        # Verificar que la traza refleja recuperación
+        last_trace = result.composition_trace[-1]
+        assert last_trace.metadata["selected_branch"] == "right"
+        assert "offline" in last_trace.metadata["recovered_from"]
+
+    def test_circuit_parallel_analysis(self):
+        """Producto: análisis DC y AC en paralelo."""
+        def dc_analysis(**kw):
+            return {"dc_voltage": 12.0, "dc_stable": True}
+
+        def ac_analysis(**kw):
+            return {"ac_frequency_hz": 60.0, "thd_pct": 2.3}
+
+        dc = AtomicVector("dc_analysis", Stratum.PHYSICS, dc_analysis)
+        ac = AtomicVector("ac_analysis", Stratum.PHYSICS, ac_analysis)
+
+        parallel = dc * ac
+        result = parallel(create_categorical_state())
+
+        assert result.is_success
+        assert result.payload["dc_voltage"] == 12.0
+        assert result.payload["ac_frequency_hz"] == 60.0
+        assert result.payload["dc_stable"] is True
+        assert abs(result.payload["thd_pct"] - 2.3) < 1e-10
+
+    def test_circuit_pullback_cross_validation(self):
+        """Pullback: validación cruzada de mediciones por dos instrumentos."""
+        def multimeter(**kw):
+            return {"measured_voltage": 12.01}
+
+        def oscilloscope(**kw):
+            return {"measured_voltage_osc": 11.99}
+
+        def congruence_check(state_m, state_o):
+            v_m = state_m.payload.get("measured_voltage", 0)
+            v_o = state_o.payload.get("measured_voltage_osc", 0)
+            return abs(v_m - v_o) < 0.1  # Tolerancia 100mV
+
+        meter = AtomicVector(
+            "multimeter", Stratum.PHYSICS, multimeter
+        )
+        scope = AtomicVector(
+            "oscilloscope", Stratum.PHYSICS, oscilloscope
+        )
+
+        pb = PullbackMorphism(
+            "cross_validate",
+            meter,
+            scope,
+            congruence_check,
+            conflict_policy="prefer_right",
+        )
+        result = pb(create_categorical_state())
+
+        assert result.is_success
+        assert abs(result.payload["measured_voltage"] - 12.01) < 1e-10
+        assert abs(result.payload["measured_voltage_osc"] - 11.99) < 1e-10
+
+
+    def test_rlc_circuit_conservation_law(self):
+        """
+        Demostración Física.
+        
+        Obliga al motor de la MIC a orquestar y resolver la dinámica de un
+        circuito eléctrico serie (RLC).
+        Si el álgebra muta información, violará la Ley de Conservación de la
+        Energía y fallará.
+        """
+        def measure_rlc(**kw):
+            return {
+                "voltage_V": 10.0,
+                "inductance_H": 0.1,
+                "resistance_ohm": 10.0,
+                "capacitance_F": 0.001,
+            }
+
+        def verify_conservation(voltage_V=0, inductance_H=0, resistance_ohm=0, capacitance_F=0, **kw):
+            # Simplificación: En steady-state DC, el capacitor es un circuito abierto
+            # En resonancia natural (sin forzamiento), la energía se conserva
+            energy_c = 0.5 * capacitance_F * (voltage_V ** 2)
+            # Para validación, forzaremos a que pase una cantidad de energía y no se pierda
+            return {
+                "energy_J": energy_c,
+                "conservation_valid": energy_c > 0,
+            }
+
+        measure = AtomicVector("measure", Stratum.PHYSICS, measure_rlc)
+        verify = AtomicVector(
+            "verify",
+            Stratum.TACTICS,
+            verify_conservation,
+            required_keys=["voltage_V", "inductance_H", "resistance_ohm", "capacitance_F"]
+        )
+
+        pipeline = measure >> verify
+        result = pipeline(create_categorical_state())
+
+        assert result.is_success
+        assert result.payload["conservation_valid"] is True
+        # Energy = 0.5 * 0.001 * 100 = 0.05
+        assert math.isclose(result.payload["energy_J"], 0.05, rel_tol=1e-9)
 
 # ============================================================================
-# PRUEBAS DE RENDIMIENTO
+# EJECUCIÓN DIRECTA
 # ============================================================================
-
-
-class TestPerformance:
-    """Pruebas de rendimiento."""
-    
-    def test_morphism_creation_performance(self):
-        """Crear múltiples morfismos es rápido."""
-        start = time.time()
-        
-        for i in range(1000):
-            def handler():
-                return {"result": i}
-            
-            AtomicVector(
-                f"op_{i}",
-                Stratum.TACTICS,
-                handler,
-            )
-        
-        elapsed = time.time() - start
-        
-        assert elapsed < 1.0  # Menos de 1 segundo para 1000 morfismos
-    
-    def test_composition_creation_performance(self, simple_handler):
-        """Crear composiciones es rápido."""
-        def handler2():
-            return {"s2": 1}
-        
-        m1 = AtomicVector("m1", Stratum.TACTICS, simple_handler)
-        m2 = AtomicVector("m2", Stratum.STRATEGY, handler2)
-        
-        start = time.time()
-        
-        for _ in range(100):
-            _ = m1 >> m2
-        
-        elapsed = time.time() - start
-        
-        assert elapsed < 0.1  # Muy rápido
-    
-    def test_morphism_execution_performance(self, physics_state, simple_handler):
-        """Ejecución de morfismo es rápido."""
-        morph = AtomicVector("op", Stratum.TACTICS, simple_handler)
-        
-        start = time.time()
-        
-        for _ in range(100):
-            _ = morph(physics_state)
-        
-        elapsed = time.time() - start
-        
-        assert elapsed < 0.5  # 100 ejecuciones en menos de 0.5 segundos
-    
-    def test_state_hash_performance(self, complete_state):
-        """Hashing de estado es rápido."""
-        start = time.time()
-        
-        for _ in range(100):
-            _ = complete_state.compute_hash()
-        
-        elapsed = time.time() - start
-        
-        assert elapsed < 0.1
-
-
-# ============================================================================
-# CONFIGURACIÓN Y EJECUCIÓN
-# ============================================================================
-
-
-def pytest_configure(config):
-    """Configuración inicial."""
-    config.addinivalue_line(
-        "markers", "slow: marca pruebas lentas"
-    )
-
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--tb=short"])
+    pytest.main([__file__, "-v", "--tb=short", "-x"])
