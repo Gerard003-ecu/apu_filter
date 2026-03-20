@@ -8,6 +8,7 @@ markers = [
     "unit: unit tests",
     "algebraic: algebraic tests",
     "regression: regression tests",
+    "stress: stress tests",
 ]
 filterwarnings = [
     "ignore:builtin type SwigPy.*:DeprecationWarning",
