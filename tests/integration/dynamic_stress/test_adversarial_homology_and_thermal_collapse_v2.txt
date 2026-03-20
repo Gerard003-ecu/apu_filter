@@ -714,3 +714,4 @@ class TestAdversarialHomologyAndThermalCollapse:
             "El registro debe incluir las razones específicas del veto "
             "para análisis post-mortem y cumplimiento regulatorio."
         )
+

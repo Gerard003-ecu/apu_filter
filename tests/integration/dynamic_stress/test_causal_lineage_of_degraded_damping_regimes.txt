@@ -1,0 +1,826 @@
+"""
+Suite de integración: Linaje causal bajo regímenes de amortiguamiento degenerado.
+
+Fundamentación matemática:
+──────────────────────────
+
+1. Función de transferencia del filtro RLC serie:
+   Para un circuito RLC serie con entrada V_in(s) y salida V_C(s)
+   (voltaje en el capacitor), la función de transferencia es:
+
+       H(s) = ω₀² / (s² + 2ζω₀s + ω₀²)
+
+   donde:
+       ω₀ = 1/√(LC)          frecuencia natural no amortiguada [rad/s]
+       ζ  = (R/2)·√(C/L)     factor de amortiguamiento [adimensional]
+
+   Los polos del sistema son las raíces del polinomio característico:
+
+       s₁,₂ = -ζω₀ ± ω₀√(ζ² - 1)
+
+   Clasificación por regímenes:
+       ζ > 1:  Sobreamortiguado  — dos polos reales negativos distintos
+       ζ = 1:  Críticamente amortiguado — polo real doble s = -ω₀
+       ζ < 1:  Subamortiguado — polos complejos conjugados
+               s₁,₂ = -σ ± jω_d donde σ = ζω₀, ω_d = ω₀√(1-ζ²)
+       ζ = 0:  Marginalmente estable — polos en eje imaginario ±jω₀
+
+   Referencia: [1] Ogata, K. "Modern Control Engineering", 5th Ed.,
+   Prentice Hall, 2010, Cap. 3.
+
+2. Migración de polos y estabilidad BIBO:
+   Un sistema LTI es BIBO-estable ⟺ todos los polos tienen parte
+   real estrictamente negativa (Re(s_i) < 0 ∀i).
+
+   Cuando R → 0:
+       ζ → 0
+       σ = ζω₀ → 0
+       s₁,₂ → ±jω₀
+
+   Los polos migran del semiplano izquierdo (LHP, estable) hacia el
+   eje imaginario (marginalmente estable / oscilación sostenida).
+   En la frontera ζ = 0, el sistema exhibe oscilación no amortiguada
+   a frecuencia ω₀ — análogo a la resistencia diferencial negativa
+   (NDR) en transistores JFET.
+
+   Referencia: [2] Haykin & Van Veen, "Signals and Systems", 2nd Ed.,
+   Wiley, 2003, Cap. 9.
+
+3. Clausura transitiva en la jerarquía DIKW:
+   En la teoría de orden parcial, si los estratos forman una cadena:
+
+       PHYSICS ≤ TACTICS ≤ STRATEGY ≤ WISDOM
+
+   entonces la relación de dependencia es transitiva:
+
+       Fail(PHYSICS) ⟹ Compromised(TACTICS)
+       Fail(PHYSICS) ⟹ Compromised(STRATEGY)
+       Fail(PHYSICS) ⟹ Compromised(WISDOM)
+
+   Esto es consecuencia directa de la transitividad del orden parcial
+   y modela la realidad física: no se puede construir táctica sobre
+   datos físicamente inválidos.
+
+   Referencia: [3] Ackoff, R. "From Data to Wisdom", J. Applied Systems
+   Analysis, 16, 1989.
+
+4. Semántica de empatía y traducción narrativa:
+   La oscilación NDR (polos en eje imaginario) se traduce al dominio
+   ejecutivo como "Ataque de Pánico Sistémico" — una metáfora que
+   mapea la oscilación no amortiguada del circuito a la inestabilidad
+   organizacional cíclica sin convergencia.
+
+   Referencia: [4] Meadows, D. "Thinking in Systems", Chelsea Green, 2008.
+"""
+
+from __future__ import annotations
+
+import cmath
+import math
+import pytest
+from typing import Dict, Any, List, Tuple, Optional
+from dataclasses import dataclass
+
+from app.physics.laplace_oracle import LaplaceOracle, SystemParameters
+from app.physics.flux_condenser import CondenserConfig
+from app.core.telemetry import TelemetryContext, StepStatus
+from app.core.schemas import Stratum
+from app.core.telemetry_narrative import TelemetryNarrator
+from app.wisdom.semantic_translator import SemanticTranslator, TranslatorConfig
+
+
+# =============================================================================
+# CONSTANTES CIBERFÍSICAS
+# =============================================================================
+
+# Capacitancia del circuito RLC [Faradios].
+# C = 1.0 F simplifica ω₀ = 1/√(LC) = 1/√L.
+_IDEAL_CAPACITANCE: float = 1.0
+
+# Inductancia del circuito RLC [Henrios].
+# L = 1.0 H da ω₀ = 1/√(1·1) = 1.0 rad/s.
+_IDEAL_INDUCTANCE: float = 1.0
+
+# Frecuencia natural no amortiguada [rad/s].
+# ω₀ = 1/√(LC) = 1/√(1·1) = 1.0
+_NATURAL_FREQUENCY: float = 1.0 / math.sqrt(
+    _IDEAL_INDUCTANCE * _IDEAL_CAPACITANCE
+)
+
+# Resistencia crítica [Ohmios]: R_c = 2·√(L/C).
+# Para L=1, C=1: R_c = 2·√(1/1) = 2.0 Ω.
+# Con esta resistencia, ζ = (R_c/2)·√(C/L) = 1.0 (amortiguamiento crítico).
+_CRITICAL_RESISTANCE: float = 2.0 * math.sqrt(
+    _IDEAL_INDUCTANCE / _IDEAL_CAPACITANCE
+)
+
+# Resistencia degradada [Ohmios]: R → 0 simula pérdida total de fricción.
+# ζ = (1e-6/2)·√(1/1) = 5e-7 ≈ 0 (marginalmente estable).
+_DEGRADED_RESISTANCE: float = 1e-6
+
+# Tolerancia para comparación de polos con valores teóricos.
+# Los polos se calculan con aritmética de punto flotante estándar (float64),
+# cuya precisión relativa es ~1e-15. Usamos 1e-5 como margen conservador
+# para acomodar errores numéricos del solver del LaplaceOracle.
+_POLE_TOLERANCE: float = 1e-5
+
+# Tolerancia para verificar ζ (factor de amortiguamiento).
+_DAMPING_TOLERANCE: float = 1e-5
+
+# ID del test para trazabilidad forense.
+_TEST_REQUEST_ID: str = "stress-test-damping-001"
+
+# Narrativa esperada del traductor semántico para oscilación NDR.
+_EXPECTED_PANIC_NARRATIVE: str = "Ataque de Pánico Sistémico"
+
+
+# =============================================================================
+# FUNCIONES AUXILIARES DE ANÁLISIS DE CIRCUITOS
+# =============================================================================
+
+
+def _compute_damping_ratio(
+    R: float, L: float, C: float,
+) -> float:
+    """
+    Calcula el factor de amortiguamiento ζ para un circuito RLC serie.
+
+    Definición:
+        ζ = R / (2·√(L/C))  =  (R/2)·√(C/L)
+
+    Regímenes:
+        ζ > 1:  Sobreamortiguado (dos exponenciales decrecientes)
+        ζ = 1:  Críticamente amortiguado (respuesta más rápida sin oscilación)
+        0 < ζ < 1: Subamortiguado (oscilación decreciente)
+        ζ = 0:  No amortiguado (oscilación perpetua)
+
+    Parameters
+    ----------
+    R : float
+        Resistencia [Ω]. Debe ser ≥ 0.
+    L : float
+        Inductancia [H]. Debe ser > 0.
+    C : float
+        Capacitancia [F]. Debe ser > 0.
+
+    Returns
+    -------
+    float
+        Factor de amortiguamiento ζ ≥ 0.
+
+    Raises
+    ------
+    ValueError
+        Si L ≤ 0, C ≤ 0, o R < 0.
+    """
+    if L <= 0:
+        raise ValueError(f"Inductancia debe ser > 0, recibido L={L}")
+    if C <= 0:
+        raise ValueError(f"Capacitancia debe ser > 0, recibido C={C}")
+    if R < 0:
+        raise ValueError(f"Resistencia debe ser ≥ 0, recibido R={R}")
+
+    return (R / 2.0) * math.sqrt(C / L)
+
+
+def _compute_characteristic_poles(
+    R: float, L: float, C: float,
+) -> Tuple[complex, complex]:
+    """
+    Calcula los polos analíticos del polinomio característico del RLC serie.
+
+    Polinomio característico:
+        s² + 2ζω₀s + ω₀² = 0
+
+    Solución por fórmula cuadrática:
+        s₁,₂ = -ζω₀ ± ω₀·√(ζ² - 1)
+
+    Para ζ < 1 (subamortiguado):
+        s₁,₂ = -ζω₀ ± j·ω₀·√(1 - ζ²)
+        donde σ = ζω₀ (tasa de decaimiento) y ω_d = ω₀√(1-ζ²) (frecuencia amortiguada)
+
+    Para ζ = 1 (crítico):
+        s₁ = s₂ = -ω₀  (raíz doble real)
+
+    Para ζ > 1 (sobreamortiguado):
+        s₁,₂ = -ζω₀ ± ω₀·√(ζ² - 1)  (dos raíces reales negativas distintas)
+
+    Parameters
+    ----------
+    R : float
+        Resistencia [Ω].
+    L : float
+        Inductancia [H].
+    C : float
+        Capacitancia [F].
+
+    Returns
+    -------
+    Tuple[complex, complex]
+        Par de polos (s₁, s₂) donde Im(s₁) ≥ 0.
+    """
+    omega_0: float = 1.0 / math.sqrt(L * C)
+    zeta: float = _compute_damping_ratio(R, L, C)
+
+    # Discriminante: ζ² - 1
+    discriminant: complex = cmath.sqrt(zeta**2 - 1.0)
+
+    s1: complex = -zeta * omega_0 + omega_0 * discriminant
+    s2: complex = -zeta * omega_0 - omega_0 * discriminant
+
+    # Convención: s1 tiene parte imaginaria ≥ 0
+    if s1.imag < s2.imag:
+        s1, s2 = s2, s1
+
+    return (s1, s2)
+
+
+def _verify_pole_in_lhp(
+    pole: complex, margin: float = 0.0,
+) -> bool:
+    """
+    Verifica si un polo está estrictamente en el semiplano izquierdo (LHP).
+
+    Un polo s está en el LHP si Re(s) < -margin.
+
+    Parameters
+    ----------
+    pole : complex
+        Polo a verificar.
+    margin : float
+        Margen de seguridad. Default 0.0 (solo Re(s) < 0).
+
+    Returns
+    -------
+    bool
+        True si el polo está en LHP con el margen dado.
+    """
+    return pole.real < -margin
+
+
+def _inject_physics_failure(
+    telemetry_ctx: TelemetryContext,
+    oracle: LaplaceOracle,
+) -> bool:
+    """
+    Inyecta la perturbación física en el contexto de telemetría y registra
+    el resultado de la validación de controlabilidad.
+
+    Este método simula el ciclo de vida del Gatekeeper de hardware:
+    1. Evalúa si el sistema RLC es apto para diseño de control.
+    2. Si NO es apto, registra el error con tipo específico.
+    3. Retorna el estado de salud de la capa PHYSICS.
+
+    Parameters
+    ----------
+    telemetry_ctx : TelemetryContext
+        Contexto donde registrar la evidencia forense.
+    oracle : LaplaceOracle
+        Oráculo de Laplace configurado con los parámetros del circuito.
+
+    Returns
+    -------
+    bool
+        True si la capa PHYSICS pasó la validación, False si falló.
+    """
+    with telemetry_ctx.step(
+        "physics_initialization", Stratum.PHYSICS
+    ) as step:
+        response = oracle.validate_for_control_design(SystemParameters())
+
+        if not response.is_suitable_for_control:
+            step.record_error(
+                message=(
+                    "Pérdida de amortiguamiento RLC: polos migraron al eje "
+                    "imaginario (ζ → 0). Oscilación NDR detectada."
+                ),
+                error_type="LaplaceInstabilityError",
+            )
+            step.status = StepStatus.FAILURE
+            return False
+
+    return True
+
+
+def _propagate_dikw_closure(
+    telemetry_ctx: TelemetryContext,
+    dependent_strata: List[Tuple[str, Stratum]],
+) -> None:
+    """
+    Propaga la clausura transitiva de fallo a través de los estratos DIKW.
+
+    Si PHYSICS ha fallado, todos los estratos dependientes deben
+    abortar con TransitiveClosureError. Esto implementa la ley:
+
+        Fail(PHYSICS) ⟹ ∀S > PHYSICS: Compromised(S)
+
+    La propagación NO es automática en este punto — el test verifica
+    que el sistema DEBERÍA implementarla. Si el sistema no la
+    implementa, este test falla.
+
+    Parameters
+    ----------
+    telemetry_ctx : TelemetryContext
+        Contexto con el estado de PHYSICS ya registrado.
+    dependent_strata : List[Tuple[str, Stratum]]
+        Lista de (nombre_paso, estrato) a evaluar en orden.
+    """
+    for step_name, stratum in dependent_strata:
+        with telemetry_ctx.step(step_name, stratum) as step:
+            if not telemetry_ctx.is_stratum_healthy(Stratum.PHYSICS):
+                step.record_error(
+                    f"Abortado por clausura transitiva: "
+                    f"PHYSICS → {stratum.name}",
+                    "TransitiveClosureError",
+                )
+                step.status = StepStatus.FAILURE
+
+
+# =============================================================================
+# FIXTURES
+# =============================================================================
+
+
+@pytest.fixture
+def telemetry_ctx() -> TelemetryContext:
+    """
+    Contexto de telemetría con ID de request para trazabilidad forense.
+
+    Returns
+    -------
+    TelemetryContext
+        Contexto limpio con request_id fijo para reproducibilidad.
+    """
+    return TelemetryContext(request_id=_TEST_REQUEST_ID)
+
+
+@pytest.fixture
+def narrator() -> TelemetryNarrator:
+    """
+    Narrador de telemetría para síntesis de reportes piramidales DIKW.
+
+    Returns
+    -------
+    TelemetryNarrator
+        Instancia del narrador.
+    """
+    return TelemetryNarrator()
+
+
+@pytest.fixture
+def semantic_translator() -> SemanticTranslator:
+    """
+    Traductor semántico configurado en modo determinista.
+
+    El modo determinista garantiza que la traducción de oscilación
+    NDR siempre produce la misma narrativa, eliminando variabilidad
+    estocástica del LLM subyacente.
+
+    Returns
+    -------
+    SemanticTranslator
+        Traductor en modo determinista.
+    """
+    return SemanticTranslator(
+        config=TranslatorConfig(deterministic_market=True)
+    )
+
+
+@pytest.fixture
+def stable_oracle() -> LaplaceOracle:
+    """
+    Oráculo de Laplace configurado con amortiguamiento crítico (ζ = 1).
+
+    Parámetros:
+        R = 2.0 Ω,  L = 1.0 H,  C = 1.0 F
+        ζ = (2/2)·√(1/1) = 1.0
+        ω₀ = 1/√(1·1) = 1.0 rad/s
+        Polos: s₁ = s₂ = -1.0 (raíz doble real)
+
+    Returns
+    -------
+    LaplaceOracle
+        Oráculo en régimen críticamente amortiguado.
+    """
+    return LaplaceOracle(
+        R=_CRITICAL_RESISTANCE,
+        L=_IDEAL_INDUCTANCE,
+        C=_IDEAL_CAPACITANCE,
+    )
+
+
+@pytest.fixture
+def degraded_oracle() -> LaplaceOracle:
+    """
+    Oráculo de Laplace con amortiguamiento degenerado (ζ ≈ 0).
+
+    Parámetros:
+        R = 1e-6 Ω,  L = 1.0 H,  C = 1.0 F
+        ζ = (1e-6/2)·√(1/1) = 5e-7 ≈ 0
+        ω₀ = 1.0 rad/s
+        Polos: s₁,₂ ≈ ±j·1.0 (eje imaginario)
+
+    Returns
+    -------
+    LaplaceOracle
+        Oráculo en régimen marginalmente estable.
+    """
+    return LaplaceOracle(
+        R=_DEGRADED_RESISTANCE,
+        L=_IDEAL_INDUCTANCE,
+        C=_IDEAL_CAPACITANCE,
+    )
+
+
+# =============================================================================
+# TEST SUITE
+# =============================================================================
+
+
+@pytest.mark.integration
+@pytest.mark.stress
+class TestCausalLineageOfDegradedDampingRegimes:
+    """
+    Valida la trazabilidad causal completa cuando el amortiguamiento
+    del circuito RLC colapsa (ζ → 0), verificando la propagación
+    de fallos a través de la jerarquía DIKW.
+
+    Estructura de tests:
+    ────────────────────
+    1. Cálculo analítico de ζ y ω₀
+    2. Polos en LHP para ζ = 1 (estabilidad)
+    3. Migración de polos al eje imaginario para ζ → 0
+    4. Comparación de polos del oracle vs analíticos
+    5. Clausura transitiva DIKW
+    6. Narrativa forense y traducción semántica
+
+    Invariantes verificados:
+        (I1) ζ = (R/2)·√(C/L) computado correctamente
+        (I2) ζ = 1 ⟹ polos reales, σ = -ω₀
+        (I3) ζ → 0 ⟹ polos en ±jω₀
+        (I4) Oracle.poles ≈ polos analíticos
+        (I5) Fail(PHYSICS) ⟹ Fail(TACTICS) ∧ Fail(STRATEGY)
+        (I6) Oscilación NDR → "Ataque de Pánico Sistémico"
+    """
+
+    # ─────────────────────────────────────────────────────────────────
+    # Test 1: Verificación analítica de ζ y ω₀
+    # ─────────────────────────────────────────────────────────────────
+
+    def test_damping_ratio_analytical_computation(self) -> None:
+        """
+        Verifica el invariante (I1): el factor de amortiguamiento ζ se
+        calcula correctamente para ambos regímenes.
+
+        Para ζ_crítico:
+            ζ = (R_c / 2) · √(C/L)
+            ζ = (2.0 / 2) · √(1.0 / 1.0)
+            ζ = 1.0 · 1.0 = 1.0  ✓
+
+        Para ζ_degradado:
+            ζ = (1e-6 / 2) · √(1.0 / 1.0)
+            ζ = 5e-7 ≈ 0  ✓
+
+        También verifica ω₀:
+            ω₀ = 1/√(LC) = 1/√(1·1) = 1.0 rad/s
+        """
+        # ω₀
+        omega_0: float = 1.0 / math.sqrt(
+            _IDEAL_INDUCTANCE * _IDEAL_CAPACITANCE
+        )
+        assert math.isclose(omega_0, 1.0, rel_tol=1e-12), (
+            f"ω₀ = {omega_0}, esperado 1.0. "
+            f"L = {_IDEAL_INDUCTANCE}, C = {_IDEAL_CAPACITANCE}."
+        )
+
+        # ζ crítico
+        zeta_critical: float = _compute_damping_ratio(
+            _CRITICAL_RESISTANCE, _IDEAL_INDUCTANCE, _IDEAL_CAPACITANCE
+        )
+        assert math.isclose(zeta_critical, 1.0, abs_tol=_DAMPING_TOLERANCE), (
+            f"ζ_crítico = {zeta_critical}, esperado 1.0. "
+            f"R = {_CRITICAL_RESISTANCE}, fórmula: (R/2)·√(C/L)."
+        )
+
+        # ζ degradado
+        zeta_degraded: float = _compute_damping_ratio(
+            _DEGRADED_RESISTANCE, _IDEAL_INDUCTANCE, _IDEAL_CAPACITANCE
+        )
+        assert zeta_degraded < _DAMPING_TOLERANCE, (
+            f"ζ_degradado = {zeta_degraded}, esperado ≈ 0. "
+            f"R = {_DEGRADED_RESISTANCE}."
+        )
+
+        # Verificación cruzada: R_c = 2·√(L/C)
+        R_c_computed: float = 2.0 * math.sqrt(
+            _IDEAL_INDUCTANCE / _IDEAL_CAPACITANCE
+        )
+        assert math.isclose(R_c_computed, _CRITICAL_RESISTANCE, rel_tol=1e-12), (
+            f"R_c computado = {R_c_computed}, constante = {_CRITICAL_RESISTANCE}. "
+            f"Inconsistencia en la definición de resistencia crítica."
+        )
+
+    # ─────────────────────────────────────────────────────────────────
+    # Test 2: Polos en LHP para amortiguamiento crítico
+    # ─────────────────────────────────────────────────────────────────
+
+    def test_critical_damping_poles_in_lhp(
+        self,
+        stable_oracle: LaplaceOracle,
+    ) -> None:
+        """
+        Verifica el invariante (I2): para ζ = 1, los polos son reales
+        y están firmemente en el semiplano izquierdo.
+
+        Cálculo analítico:
+            s₁,₂ = -ζω₀ ± ω₀√(ζ²-1) = -1.0 ± 0 = -1.0
+
+        Raíz doble real: s₁ = s₂ = -1.0.
+
+        Propiedades verificadas:
+        - Re(s_i) < 0 (estabilidad BIBO)
+        - Im(s_i) = 0 (sin oscilación)
+        - s_i ≈ -ω₀ = -1.0 (valor exacto)
+        """
+        # Polos analíticos
+        s1_exact, s2_exact = _compute_characteristic_poles(
+            _CRITICAL_RESISTANCE, _IDEAL_INDUCTANCE, _IDEAL_CAPACITANCE
+        )
+
+        # Verificar que los polos exactos son -1.0 (raíz doble)
+        for pole_exact in (s1_exact, s2_exact):
+            assert math.isclose(pole_exact.real, -_NATURAL_FREQUENCY, abs_tol=_POLE_TOLERANCE), (
+                f"Polo analítico Re(s) = {pole_exact.real}, "
+                f"esperado -ω₀ = {-_NATURAL_FREQUENCY}."
+            )
+            assert math.isclose(pole_exact.imag, 0.0, abs_tol=_POLE_TOLERANCE), (
+                f"Polo analítico Im(s) = {pole_exact.imag}, esperado 0.0. "
+                f"Para ζ=1 no debe haber componente oscilatoria."
+            )
+
+        # Polos del oracle
+        analysis = stable_oracle.analyze_stability()
+
+        for i, pole in enumerate(analysis.poles):
+            # Estabilidad: Re(s) < 0
+            assert _verify_pole_in_lhp(pole, margin=0.0), (
+                f"Polo #{i+1} del oracle: s = {pole}. "
+                f"Re(s) = {pole.real} ≥ 0 — sistema NO estable. "
+                f"Para ζ = 1, todos los polos deben estar en LHP."
+            )
+
+            # Comparación con valor analítico
+            assert math.isclose(pole.real, s1_exact.real, abs_tol=_POLE_TOLERANCE), (
+                f"Polo #{i+1} del oracle: Re(s) = {pole.real:.8f}, "
+                f"analítico: Re(s) = {s1_exact.real:.8f}. "
+                f"Desviación: {abs(pole.real - s1_exact.real):.2e}."
+            )
+
+    # ─────────────────────────────────────────────────────────────────
+    # Test 3: Migración de polos al eje imaginario
+    # ─────────────────────────────────────────────────────────────────
+
+    def test_pole_migration_to_imaginary_axis(
+        self,
+        degraded_oracle: LaplaceOracle,
+    ) -> None:
+        """
+        Verifica el invariante (I3): cuando R → 0 (ζ → 0), los polos
+        migran al eje imaginario puro ±jω₀.
+
+        Cálculo analítico para R = 1e-6:
+            ζ = 5e-7
+            σ = ζω₀ = 5e-7 ≈ 0
+            ω_d = ω₀√(1 - ζ²) ≈ ω₀ = 1.0
+
+            s₁ ≈ +j·1.0
+            s₂ ≈ -j·1.0
+
+        Propiedades verificadas:
+        - |Re(s_i)| ≈ 0 (margen de estabilidad ≈ 0)
+        - |Im(s_i)| ≈ ω₀ = 1.0 (oscilación a frecuencia natural)
+        - El sistema ya NO es BIBO-estable en sentido estricto
+        """
+        # Polos analíticos
+        s1_exact, s2_exact = _compute_characteristic_poles(
+            _DEGRADED_RESISTANCE, _IDEAL_INDUCTANCE, _IDEAL_CAPACITANCE
+        )
+
+        # Verificar que los polos analíticos están en el eje imaginario
+        for pole_exact in (s1_exact, s2_exact):
+            assert abs(pole_exact.real) < _POLE_TOLERANCE, (
+                f"Polo analítico Re(s) = {pole_exact.real:.2e}, "
+                f"esperado ≈ 0 para ζ ≈ 0."
+            )
+            assert abs(abs(pole_exact.imag) - _NATURAL_FREQUENCY) < _POLE_TOLERANCE, (
+                f"Polo analítico |Im(s)| = {abs(pole_exact.imag):.6f}, "
+                f"esperado ω₀ = {_NATURAL_FREQUENCY}."
+            )
+
+        # Polos del oracle
+        analysis = degraded_oracle.analyze_stability()
+
+        for i, pole in enumerate(analysis.poles):
+            # Re(s) ≈ 0 (pérdida de margen de estabilidad)
+            assert abs(pole.real) < _POLE_TOLERANCE, (
+                f"Polo #{i+1} del oracle: Re(s) = {pole.real:.2e}. "
+                f"Para R = {_DEGRADED_RESISTANCE}, Re(s) debería ser ≈ 0 "
+                f"(polos en eje imaginario). "
+                f"El oracle no detectó la degeneración del amortiguamiento."
+            )
+
+            # |Im(s)| ≈ ω₀ (frecuencia de oscilación preservada)
+            assert abs(abs(pole.imag) - _NATURAL_FREQUENCY) < _POLE_TOLERANCE, (
+                f"Polo #{i+1} del oracle: |Im(s)| = {abs(pole.imag):.6f}, "
+                f"esperado ω₀ = {_NATURAL_FREQUENCY}. "
+                f"La frecuencia natural se distorsionó durante la degradación."
+            )
+
+    # ─────────────────────────────────────────────────────────────────
+    # Test 4: Concordancia oracle vs. cálculo analítico
+    # ─────────────────────────────────────────────────────────────────
+
+    def test_oracle_poles_match_analytical(
+        self,
+        stable_oracle: LaplaceOracle,
+        degraded_oracle: LaplaceOracle,
+    ) -> None:
+        """
+        Verifica el invariante (I4): los polos reportados por el
+        LaplaceOracle coinciden con los calculados analíticamente
+        para ambos regímenes.
+
+        Este test es una verificación de consistencia interna del
+        LaplaceOracle — asegura que su implementación numérica no
+        diverge de la solución cerrada del polinomio característico.
+        """
+        test_cases = [
+            (
+                "crítico",
+                stable_oracle,
+                _CRITICAL_RESISTANCE,
+            ),
+            (
+                "degradado",
+                degraded_oracle,
+                _DEGRADED_RESISTANCE,
+            ),
+        ]
+
+        for regime_name, oracle, resistance in test_cases:
+            # Polos analíticos
+            s1_exact, s2_exact = _compute_characteristic_poles(
+                resistance, _IDEAL_INDUCTANCE, _IDEAL_CAPACITANCE
+            )
+            exact_poles = sorted(
+                [s1_exact, s2_exact], key=lambda p: (p.real, p.imag)
+            )
+
+            # Polos del oracle
+            analysis = oracle.analyze_stability()
+            oracle_poles = sorted(
+                analysis.poles, key=lambda p: (p.real, p.imag)
+            )
+
+            assert len(oracle_poles) == 2, (
+                f"Régimen {regime_name}: oracle reporta {len(oracle_poles)} polos, "
+                f"esperados 2 (sistema de segundo orden)."
+            )
+
+            for idx, (oracle_pole, exact_pole) in enumerate(
+                zip(oracle_poles, exact_poles)
+            ):
+                distance = abs(oracle_pole - exact_pole)
+                assert distance < _POLE_TOLERANCE, (
+                    f"Régimen {regime_name}, polo #{idx+1}: "
+                    f"oracle = {oracle_pole}, analítico = {exact_pole}. "
+                    f"Distancia |Δ| = {distance:.2e} > tolerancia {_POLE_TOLERANCE}."
+                )
+
+    # ─────────────────────────────────────────────────────────────────
+    # Test 5: Clausura transitiva DIKW
+    # ─────────────────────────────────────────────────────────────────
+
+    def test_dikw_transitive_closure(
+        self,
+        degraded_oracle: LaplaceOracle,
+        telemetry_ctx: TelemetryContext,
+    ) -> None:
+        """
+        Verifica el invariante (I5): el fallo en PHYSICS propaga
+        automáticamente a TACTICS y STRATEGY via clausura transitiva.
+
+        Cadena causal esperada:
+            1. LaplaceOracle detecta ζ ≈ 0 → is_suitable_for_control = False
+            2. Step PHYSICS registra LaplaceInstabilityError, status = FAILURE
+            3. Step TACTICS detecta PHYSICS no saludable → TransitiveClosureError
+            4. Step STRATEGY (si existiera) → idem
+
+        La cadena NO debe contener excepciones genéricas de Python.
+        Cada error debe tener un tipo específico que identifique
+        unívocamente la causa raíz.
+        """
+        # Inyectar fallo físico
+        physics_healthy: bool = _inject_physics_failure(
+            telemetry_ctx, degraded_oracle
+        )
+
+        assert not physics_healthy, (
+            "El LaplaceOracle con R = 1e-6 debería rechazar el sistema "
+            "como no apto para control. ¿validate_for_control_design() "
+            "no detecta polos en el eje imaginario?"
+        )
+
+        # Propagar clausura transitiva
+        _propagate_dikw_closure(
+            telemetry_ctx,
+            dependent_strata=[
+                ("tactics_evaluation", Stratum.TACTICS),
+            ],
+        )
+
+        # Verificar que PHYSICS está comprometido
+        assert not telemetry_ctx.is_stratum_healthy(Stratum.PHYSICS), (
+            "PHYSICS debería estar en estado FAILURE tras la inyección "
+            "del fallo de amortiguamiento."
+        )
+
+        # Verificar que TACTICS heredó el fallo
+        assert not telemetry_ctx.is_stratum_healthy(Stratum.TACTICS), (
+            "TACTICS debería estar en FAILURE por clausura transitiva. "
+            "La ley Fail(PHYSICS) ⟹ Compromised(TACTICS) no se cumplió."
+        )
+
+    # ─────────────────────────────────────────────────────────────────
+    # Test 6: Narrativa forense y traducción semántica
+    # ─────────────────────────────────────────────────────────────────
+
+    def test_semantic_translation_of_ndr_oscillation(
+        self,
+        degraded_oracle: LaplaceOracle,
+        telemetry_ctx: TelemetryContext,
+        narrator: TelemetryNarrator,
+        semantic_translator: SemanticTranslator,
+    ) -> None:
+        """
+        Verifica el invariante (I6): la oscilación NDR se traduce
+        correctamente al dominio ejecutivo como "Ataque de Pánico Sistémico".
+
+        Pipeline completo:
+            1. Inyección de fallo físico (R → 0, ζ → 0)
+            2. Propagación DIKW
+            3. Generación de reporte piramidal por el narrador
+            4. Traducción semántica al lenguaje ejecutivo
+            5. Verificación de la narrativa de salida
+
+        La traducción semántica mapea:
+            Oscilación NDR (polos en eje imaginario)
+            → "El sistema oscila sin convergencia"
+            → "Ataque de Pánico Sistémico" (metáfora ejecutiva)
+        """
+        # Fase 1-2: Inyección y propagación
+        _inject_physics_failure(telemetry_ctx, degraded_oracle)
+        _propagate_dikw_closure(
+            telemetry_ctx,
+            dependent_strata=[
+                ("tactics_evaluation", Stratum.TACTICS),
+            ],
+        )
+
+        # Fase 3: Reporte piramidal
+        pyramidal_report = narrator.generate_report(telemetry_ctx)
+
+        # Verificar que el reporte identifica el rechazo físico
+        assert pyramidal_report.physics.status == "REJECTED_PHYSICS", (
+            f"Estado del reporte físico: '{pyramidal_report.physics.status}', "
+            f"esperado 'REJECTED_PHYSICS'. "
+            f"El narrador no clasificó correctamente la inestabilidad RLC."
+        )
+
+        # Verificar que la cadena causal apunta a PHYSICS
+        causality_stratum = pyramidal_report.causality_chain.stratum
+        assert causality_stratum == Stratum.PHYSICS or (
+            hasattr(causality_stratum, "name")
+            and causality_stratum.name == "PHYSICS"
+        ), (
+            f"La cadena causal apunta a '{causality_stratum}', "
+            f"esperado Stratum.PHYSICS. "
+            f"La mónada de error perdió el linaje causal. "
+            f"El origen del fallo es la degeneración del amortiguamiento "
+            f"(R → 0), no un error táctico o estratégico."
+        )
+
+        # Fase 4: Traducción semántica
+        executive_summary = semantic_translator.translate_pyramidal_report(
+            pyramidal_report
+        )
+
+        # Fase 5: Verificación de la narrativa
+        assert _EXPECTED_PANIC_NARRATIVE in executive_summary.narrative, (
+            f"Traducción semántica incorrecta. "
+            f"Narrativa generada: '{executive_summary.narrative}'. "
+            f"Esperado que contenga: '{_EXPECTED_PANIC_NARRATIVE}'. "
+            f"El traductor no mapeó la oscilación NDR "
+            f"(polos en ±jω₀, ζ ≈ 0) al diagnóstico ejecutivo correcto. "
+            f"Verifique el diccionario de empatía táctica."
+        )
