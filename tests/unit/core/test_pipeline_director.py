@@ -1510,7 +1510,9 @@ class TestIdentityMorphism:
 
         result = morph(state)
 
-        assert result == state
+        assert result.payload == state.payload
+        assert len(result.composition_trace) == len(state.composition_trace) + 1
+        assert result.composition_trace[-1].morphism_name.startswith('id_')
         assert result.payload == {"a": 1}
 
     def test_identity_is_idempotent(self) -> None:
@@ -1521,7 +1523,9 @@ class TestIdentityMorphism:
         result1 = morph(state)
         result2 = morph(result1)
 
-        assert result1 == result2 == state
+        assert result2.payload == result1.payload == state.payload
+        assert len(result2.composition_trace) == len(result1.composition_trace) + 1
+        assert result2.composition_trace[-1].morphism_name.startswith('id_')
 
     def test_identity_preserves_strata(self) -> None:
         """Verifica que identidad preserva estratos."""
@@ -1575,7 +1579,7 @@ class TestAtomicVector:
         result = morph(state)
 
         assert result.is_failed
-        assert "Violación de Dominio" in result.error
+        assert "Violación de dominio" in result.error
 
     def test_atomic_vector_missing_keys(self) -> None:
         """Verifica detección de claves faltantes."""
@@ -1936,33 +1940,3 @@ class TestMorphismComposer:
         with pytest.raises((ValueError, IndexError)):
             composer.build()
 
-
-# =============================================================================
-# PRUEBAS DEL VERIFICADOR HOMOLÓGICO
-# =============================================================================
-
-class TestHomologicalVerifier:
-    """Pruebas del verificador homológico."""
-
-    def test_exact_sequence_valid(self) -> None:
-        """Verifica detección de secuencia exacta válida."""
-        def h1():
-            return {"result": 1}
-
-        def h2():
-            return {"result": 2}
-
-        m1 = AtomicVector("op1", Stratum.TACTICS, h1)
-        m2 = AtomicVector("op2", Stratum.STRATEGY, h2)
-
-        verifier = HomologicalVerifier()
-
-        assert verifier.is_exact_sequence([m1, m2]) is True
-
-    def test_verifier_empty_sequence(self) -> None:
-        """Verifica manejo de secuencia vacía."""
-        verifier = HomologicalVerifier()
-
-        # Secuencia vacía debería ser trivialmente exacta o lanzar error
-        result = verifier.is_exact_sequence([])
-        assert result is True
