@@ -1,3 +1,58 @@
+"""
+Módulo: Álgebra Categórica de la Matriz de Interacción Central (MIC)
+Naturaleza: Núcleo Funtorial y Topológico de Gobernanza Ciber-Física
+
+Este módulo implementa el sustrato matemático fundamental del sistema, abandonando 
+la programación imperativa tradicional en favor de la Teoría de Categorías pura y 
+el Álgebra Lineal rigurosa [1]. Actúa como el motor de resolución determinista 
+para el espacio vectorial jerarquizado de intenciones agénticas.
+
+1. Fundamentación en Álgebra Lineal (La Matriz Identidad I_n):
+La interfaz de herramientas no es un diccionario algorítmico arbitrario, sino la Base 
+Canónica de un espacio euclidiano R^n. Se modela rígidamente como una Matriz 
+Identidad (I_n), donde la función delta de Kronecker (δ_ij) rige el acoplamiento: la 
+presencia de un pivote a_ii = 1 define la existencia ontológica de una herramienta, 
+mientras que los ceros fuera de la diagonal (a_ij = 0 para i ≠ j) imponen axiomáticamente 
+la ortogonalidad funcional. Esto garantiza la ausencia de efectos secundarios 
+entrelazados (cross-terms) y asegura, mediante el Teorema de Rango-Nulidad, que el núcleo 
+(Null Space) sea trivial (Nulidad = 0), impidiendo que cualquier intención del agente 
+se mapee a un estado nulo o desaparezca en la matriz.
+
+2. Formalización Categórica (Categoría C_MIC):
+- Objetos (Obj): Instancias inmutables de `CategoricalState`, que encapsulan el 
+  tensor de carga útil (payload) y los estratos validados mediante conjuntos 
+  congelados (frozenset) [7].
+- Morfismos (Hom): Transformaciones tipadas (IdentityMorphism, AtomicVector, 
+  CoproductMorphism, PullbackMorphism) que operan direccionalmente sobre los objetos, 
+  preservando la trazabilidad a través del `CompositionTrace` [7-10].
+- Funtores y Transformaciones Naturales: Mapeos estructurales (ej. StateToDictFunctor) 
+  que proyectan la categoría C_MIC hacia la categoría Set (diccionarios y colecciones), 
+  preservando la estructura jerárquica original [11].
+
+3. Filtración Topológica y Conexiones de Ehresmann:
+El módulo codifica la Ley de Clausura Transitiva de la jerarquía DIKW 
+(V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM) exigida por el ecosistema [12, 13]. 
+El componente `StructuralVerifier` (y su alias `HomologicalVerifier`) no realiza 
+una simple validación de tipos; actúa matemáticamente como una Conexión de Ehresmann 
+sobre el fibrado de datos [14]. Audita que el `MorphismComposer` no introduzca 
+desgarros geométricos en el subespacio durante la composición (g ∘ f), protegiendo 
+al sistema de colapsos causales [14].
+
+4. Cota Termodinámica Computacional:
+La constante de esquema `_MAX_CANONICALIZE_DEPTH = 64` impone una barrera 
+entrópica artificial estricta [15]. Al limitar la dimensión máxima del espacio 
+tensorial anidado durante la operación `_canonicalize`, se garantiza un límite 
+asintótico superior para el consumo de memoria, evitando el colapso térmico 
+(Stack Overflow) del hardware en el borde frente a recursiones infinitas o 
+alucinaciones generativas del LLM [15, 16].
+
+Advertencia Arquitectónica:
+La modificación de este archivo compromete el núcleo del sistema ciber-físico. 
+Cualquier introducción de nuevos morfismos debe demostrar conmutatividad en 
+sus diagramas categóricos y preservar estrictamente la ortogonalidad de la 
+Matriz Identidad subyacente.
+"""
+
 from __future__ import annotations
 
 import hashlib
