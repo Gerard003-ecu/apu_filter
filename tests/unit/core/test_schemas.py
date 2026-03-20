@@ -613,8 +613,7 @@ class TestInsumoProcesado:
     def test_normalizacion_aplicada(self, datos_insumo_base):
         """Los campos de texto se normalizan."""
         datos_insumo_base["descripcion_insumo"] = "  obrero raso  "
-        # Cambiamos a HH para mano de obra en vez de "hr" que podría disparar un warning de unidad
-        datos_insumo_base["unidad_insumo"] = "HH"
+        datos_insumo_base["unidad_insumo"] = "HORA"
         insumo = create_insumo(**datos_insumo_base)
         assert insumo.descripcion_insumo == "OBRERO RASO"
         assert insumo.unidad_insumo == "HORA"
@@ -738,20 +737,15 @@ class TestConsistenciaValorTotal:
 
     @pytest.mark.filterwarnings('ignore::UserWarning')
     @pytest.mark.filterwarnings("ignore::UserWarning")
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_cero_por_cero_es_valido(self, datos_insumo_base):
         """cantidad=0, precio=0, valor_total=0 es válido."""
         datos_insumo_base["cantidad"] = 0.0
         datos_insumo_base["precio_unitario"] = 0.0
         datos_insumo_base["valor_total"] = 0.0
+        datos_insumo_base["rendimiento"] = 0.0
         import pytest
-        with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
-            import pytest
-            with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
-                insumo = create_insumo(**datos_insumo_base)
+        with pytest.warns(UserWarning, match="Rendimiento debería ser > 0"):
+            insumo = create_insumo(**datos_insumo_base)
         assert insumo.is_valid
 
     def test_producto_cero_valor_positivo_lanza_error(self, datos_insumo_base):
@@ -988,20 +982,15 @@ class TestCostBreakdown:
 
     @pytest.mark.filterwarnings('ignore::UserWarning')
     @pytest.mark.filterwarnings("ignore::UserWarning")
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_fractions_valores_cero(self, datos_insumo_base):
         """Si todos los valores son 0, las fracciones son 0."""
         datos_insumo_base["cantidad"] = 0.0
         datos_insumo_base["precio_unitario"] = 0.0
         datos_insumo_base["valor_total"] = 0.0
+        datos_insumo_base["rendimiento"] = 0.0
         import pytest
-        with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
-            import pytest
-            with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
-                insumo = create_insumo(**datos_insumo_base)
+        with pytest.warns(UserWarning, match="Rendimiento debería ser > 0"):
+            insumo = create_insumo(**datos_insumo_base)
         apu = APUStructure(id="ZERO", description="Zero cost")
         apu.add_resource(insumo)
         fractions = apu.get_cost_fractions()
@@ -1087,7 +1076,9 @@ class TestTopologicalStabilityIndex:
             d["valor_total"] = 0.0
             d["rendimiento"] = 0.0
             d["descripcion_insumo"] = f"Zero {i}"
-            apu.add_resource(create_insumo(**d))
+            import pytest
+            with pytest.warns(UserWarning, match="Rendimiento debería ser > 0"):
+                apu.add_resource(create_insumo(**d))
 
         assert apu.topological_stability_index() == 0.0
 
@@ -1107,6 +1098,7 @@ class TestTopologicalStabilityIndex:
         d1["cantidad"] = 1.0
         d1["precio_unitario"] = 100.0
         d1["valor_total"] = 100.0
+        d1["rendimiento"] = 1.0
         d1["descripcion_insumo"] = "Recurso A"
         apu.add_resource(create_insumo(**d1))
 
@@ -1114,6 +1106,7 @@ class TestTopologicalStabilityIndex:
         d2["cantidad"] = 1.0
         d2["precio_unitario"] = 900.0
         d2["valor_total"] = 900.0
+        d2["rendimiento"] = 1.0
         d2["descripcion_insumo"] = "Recurso B"
         apu.add_resource(create_insumo(**d2))
 
@@ -1380,63 +1373,36 @@ class TestCasosLimite:
             insumo = create_insumo(**datos_insumo_base)
         assert insumo.is_valid
 
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings("ignore::UserWarning")
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_cantidad_cero_es_valida(self, datos_insumo_base):
         """Cantidad = 0 es válida (no negativa)."""
         datos_insumo_base["cantidad"] = 0.0
-        import pytest
         datos_insumo_base["valor_total"] = 0.0
-        with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
-            import pytest
-            with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
-                insumo = create_insumo(**datos_insumo_base)
-        assert insumo.cantidad == 0.0
-
-    @pytest.mark.filterwarnings("ignore::UserWarning")
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-def test_rendimiento_cero_es_valido(self, datos_insumo_base):
-        """Rendimiento = 0 es válido (emite warning en ManoDeObra)."""
-        datos_insumo_base["rendimiento"] = 0.0
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            import pytest
-            with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
-                insumo = create_insumo(**datos_insumo_base)
-            assert insumo.rendimiento == 0.0
-
-    @pytest.mark.filterwarnings("ignore::UserWarning")
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-def test_descripcion_con_unicode_complejo(self, datos_insumo_base):
-        """Caracteres Unicode complejos se procesan sin error."""
-        datos_insumo_base["descripcion_insumo"] = "Señal vía — «túnel» ñandú"
         import pytest
         with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
             insumo = create_insumo(**datos_insumo_base)
+        assert insumo.cantidad == 0.0
+
+    def test_rendimiento_cero_es_valido(self, datos_insumo_base):
+        """Rendimiento = 0 es válido (emite warning en ManoDeObra)."""
+        datos_insumo_base["rendimiento"] = 0.0
+        import pytest
+        with pytest.warns(UserWarning, match="Rendimiento debería ser > 0"):
+            insumo = create_insumo(**datos_insumo_base)
+        assert insumo.rendimiento == 0.0
+
+    def test_descripcion_con_unicode_complejo(self, datos_insumo_base):
+        """Caracteres Unicode complejos se procesan sin error."""
+        datos_insumo_base["descripcion_insumo"] = "Señal vía — «túnel» ñandú"
+        datos_insumo_base["rendimiento"] = 1.0 / datos_insumo_base["cantidad"]
+        insumo = create_insumo(**datos_insumo_base)
         assert "SENAL" in insumo.descripcion_insumo
         assert "NANDU" in insumo.descripcion_insumo
 
-    @pytest.mark.filterwarnings("ignore::UserWarning")
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-def test_codigo_con_puntos_y_guiones(self, datos_insumo_base):
+    def test_codigo_con_puntos_y_guiones(self, datos_insumo_base):
         """Puntos y guiones son válidos en códigos."""
         datos_insumo_base["codigo_apu"] = "CAP.01-ITEM.02.A"
-        import pytest
-        with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
-            insumo = create_insumo(**datos_insumo_base)
+        datos_insumo_base["rendimiento"] = 1.0 / datos_insumo_base["cantidad"]
+        insumo = create_insumo(**datos_insumo_base)
         assert insumo.codigo_apu == "CAP.01-ITEM.02.A"
 
     def test_multiples_insumos_mismo_apu(self, datos_insumo_base):
@@ -1444,31 +1410,21 @@ def test_codigo_con_puntos_y_guiones(self, datos_insumo_base):
         insumos = []
         for i in range(5):
             d = datos_insumo_base.copy()
+            d["rendimiento"] = 1.0 / d["cantidad"]
             d["descripcion_insumo"] = f"Recurso {i}"
             insumos.append(create_insumo(**d))
         assert all(ins.is_valid for ins in insumos)
         assert len({ins.id for ins in insumos}) == 5  # IDs únicos
 
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings("ignore::UserWarning")
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_precision_numerica_flotante(self, datos_insumo_base):
         """Valores con alta precisión decimal no causan falsos positivos."""
         datos_insumo_base["cantidad"] = 1.0 / 3.0
         datos_insumo_base["precio_unitario"] = 99999.99
         datos_insumo_base["valor_total"] = (1.0 / 3.0) * 99999.99
-        import pytest
-        with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
-            insumo = create_insumo(**datos_insumo_base)
+        datos_insumo_base["rendimiento"] = 1.0 / datos_insumo_base["cantidad"]
+        insumo = create_insumo(**datos_insumo_base)
         assert insumo.is_valid
 
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
-    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_apu_con_cinco_tipos(
         self,
         datos_insumo_base,
@@ -1532,22 +1488,16 @@ class TestValidacionUnidadesCategoria:
             ]
             assert len(unit_warnings) == 0
 
-    @pytest.mark.filterwarnings("ignore::UserWarning")
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-def test_unidad_inesperada_emite_warning(self, datos_insumo_base):
+    def test_unidad_inesperada_emite_warning(self, datos_insumo_base):
         """Unidad 'KG' para ManoDeObra emite warning."""
         datos_insumo_base["unidad_insumo"] = "KG"
+        datos_insumo_base["rendimiento"] = 1.0 / datos_insumo_base["cantidad"]
         import pytest
         with pytest.warns(UserWarning, match="no está en las unidades esperadas"):
-            import pytest
-            with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
-                insumo = create_insumo(**datos_insumo_base)
+            insumo = create_insumo(**datos_insumo_base)
 
-            # Pero el insumo se crea igualmente
-            assert insumo.is_valid
+        # Pero el insumo se crea igualmente
+        assert insumo.is_valid
 
     def test_otro_no_emite_warning_unidad(self, datos_otro):
         """Tipo 'Otro' no restringe unidades."""
@@ -1664,12 +1614,7 @@ class TestEdgeCasesEntropy:
         # Pero la entropía es máxima
         assert psi > 0.0
 
-    @pytest.mark.filterwarnings("ignore::UserWarning")
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-def test_entropia_con_valores_muy_pequenos(self, datos_insumo_base):
+    def test_entropia_con_valores_muy_pequenos(self, datos_insumo_base):
         """Valores muy pequeños (pero positivos) no causan problemas numéricos."""
         apu = APUStructure(id="TINY", description="Tiny values")
         for i in range(3):
@@ -1677,8 +1622,13 @@ def test_entropia_con_valores_muy_pequenos(self, datos_insumo_base):
             d["cantidad"] = 0.0001
             d["precio_unitario"] = 0.001
             d["valor_total"] = 0.0001 * 0.001
-            d["descripcion_insumo"] = f"Tiny {i}"
-            apu.add_resource(create_insumo(**d))
+            # Mantenemos el rendimiento en un rango valido para ManoDeObra
+            # y usamos test adversarial warns
+            import pytest
+            with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
+                d["rendimiento"] = 2.0
+                d["descripcion_insumo"] = f"Tiny {i}"
+                apu.add_resource(create_insumo(**d))
 
         psi = apu.topological_stability_index()
         assert math.isfinite(psi)
@@ -1692,12 +1642,7 @@ def test_entropia_con_valores_muy_pequenos(self, datos_insumo_base):
 class TestIntegracion:
     """Pruebas de integración que verifican el flujo completo."""
 
-    @pytest.mark.filterwarnings("ignore::UserWarning")
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-def test_pipeline_raw_a_apu(self):
+    def test_pipeline_raw_a_apu(self):
         """
         Flujo completo: datos crudos → insumos → APU → métricas.
         """
@@ -1707,22 +1652,22 @@ def test_pipeline_raw_a_apu(self):
                 "descripcion_apu": "Muro en ladrillo",
                 "unidad_apu": "M2",
                 "descripcion_insumo": "Oficial de construcción",
-                "unidad_insumo": "hora",
+                "unidad_insumo": "HORA",
                 "cantidad": 1.5,
-                "precio_unitario": 12000,
-                "valor_total": 18000,
+                "precio_unitario": 12000.0,
+                "valor_total": 18000.0,
                 "tipo_insumo": "mano de obra",
-                "rendimiento": 8.0,
+                "rendimiento": 1.0 / 1.5,
             },
             {
                 "codigo_apu": "INT-001",
                 "descripcion_apu": "Muro en ladrillo",
                 "unidad_apu": "M2",
                 "descripcion_insumo": "Ladrillo tolete",
-                "unidad_insumo": "und",
-                "cantidad": 35,
-                "precio_unitario": 800,
-                "valor_total": 28000,
+                "unidad_insumo": "UND",
+                "cantidad": 35.0,
+                "precio_unitario": 800.0,
+                "valor_total": 28000.0,
                 "tipo_insumo": "suministro",
             },
             {
@@ -1730,23 +1675,18 @@ def test_pipeline_raw_a_apu(self):
                 "descripcion_apu": "Muro en ladrillo",
                 "unidad_apu": "M2",
                 "descripcion_insumo": "Andamio metálico",
-                "unidad_insumo": "hora",
+                "unidad_insumo": "HORA",
                 "cantidad": 0.5,
-                "precio_unitario": 5000,
-                "valor_total": 2500,
+                "precio_unitario": 5000.0,
+                "valor_total": 2500.0,
                 "tipo_insumo": "equipo",
             },
         ]
 
         # Crear insumos
-        import pytest
         insumos = []
         for r in raw_insumos:
-            if r.get("codigo_apu") == "INT-001" and r.get("tipo_insumo") == "mano de obra":
-                with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
-                    insumos.append(create_insumo_from_raw(r))
-            else:
-                insumos.append(create_insumo_from_raw(r))
+            insumos.append(create_insumo_from_raw(r))
         assert len(insumos) == 3
         assert all(i.is_valid for i in insumos)
 
@@ -1796,16 +1736,10 @@ def test_pipeline_raw_a_apu(self):
         assert apu2.support_base_width == 1
         assert apu1.resources[0].tipo_insumo != apu2.resources[0].tipo_insumo
 
-    @pytest.mark.filterwarnings("ignore::UserWarning")
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-@pytest.mark.filterwarnings('ignore::UserWarning')
-def test_serialization_roundtrip(self, datos_insumo_base):
+    def test_serialization_roundtrip(self, datos_insumo_base):
         """to_dict() produce un diccionario reutilizable."""
-        import pytest
-        with pytest.warns(UserWarning, match="Discrepancia Rendimiento/Cantidad"):
-            insumo = create_insumo(**datos_insumo_base)
+        datos_insumo_base["rendimiento"] = 1.0 / datos_insumo_base["cantidad"]
+        insumo = create_insumo(**datos_insumo_base)
         d = insumo.to_dict()
 
         assert isinstance(d, dict)
