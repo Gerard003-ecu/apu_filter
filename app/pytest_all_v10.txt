@@ -1,0 +1,105 @@
+=============================== warnings summary ===============================
+tests/unit/core/test_pyramidal_logic.py::TestInsumoProcesado::test_insumo_id_uniqueness_same_apu
+tests/unit/core/test_pyramidal_logic.py::TestAPUStructure::test_apu_add_single_resource
+tests/unit/core/test_pyramidal_logic.py::TestAPUStructure::test_apu_add_multiple_resources_incremental
+tests/unit/core/test_pyramidal_logic.py::TestAPUSupportMonotonicity::test_support_monotonically_increasing
+tests/unit/core/test_pyramidal_logic.py::TestAPUSupportMonotonicity::test_support_never_decreases
+tests/unit/core/test_pyramidal_logic.py::TestAPUStratumRelations::test_apu_stratum_above_insumos
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_pyramidal_logic.py:398: UserWarning: InsumoProcesado [APU001]: Unidad 'KG' no está en las unidades esperadas frozenset({'UND', '%', 'JUEGO', 'PAR', 'U', 'KIT', 'UNIDAD'})
+    return InsumoProcesado(
+
+tests/unit/core/test_pyramidal_logic.py::TestAPUStructure::test_apu_add_single_resource
+tests/unit/core/test_pyramidal_logic.py::TestAPUStructure::test_apu_add_multiple_resources_incremental
+tests/unit/core/test_pyramidal_logic.py::TestAPUSupportMonotonicity::test_support_monotonically_increasing
+tests/unit/core/test_pyramidal_logic.py::TestAPUSupportMonotonicity::test_support_never_decreases
+tests/unit/core/test_pyramidal_logic.py::TestAPUStratumRelations::test_apu_stratum_above_insumos
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_pyramidal_logic.py:398: UserWarning: InsumoProcesado [APU001]: Unidad 'HORA' no está en las unidades esperadas frozenset({'UND', '%', 'JUEGO', 'PAR', 'U', 'KIT', 'UNIDAD'})
+    return InsumoProcesado(
+
+tests/unit/core/test_schemas.py::TestConsistenciaValorTotal::test_consistencia_exacta
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:708: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=10.0000, esperada=2.0000 (rendimiento=0.5, Δ=80.00%)
+    insumo = create_insumo(**datos_insumo_base)
+
+tests/unit/core/test_schemas.py::TestConsistenciaValorTotal::test_cero_por_cero_es_valido
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:733: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=0.0000, esperada=2.0000 (rendimiento=0.5, Δ=100.00%)
+    insumo = create_insumo(**datos_insumo_base)
+
+tests/unit/core/test_schemas.py::TestCostBreakdown::test_fractions_valores_cero
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:971: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=0.0000, esperada=2.0000 (rendimiento=0.5, Δ=100.00%)
+    insumo = create_insumo(**datos_insumo_base)
+
+tests/unit/core/test_schemas.py::TestTopologicalStabilityIndex::test_distribucion_uniforme_maxima_entropia
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:1037: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=1.0000, esperada=2.0000 (rendimiento=0.5, Δ=50.00%)
+    apu.add_resource(create_insumo(**d))
+
+tests/unit/core/test_schemas.py::TestTopologicalStabilityIndex::test_recursos_con_valor_cero
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:1052: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=0.0000, esperada=2.0000 (rendimiento=0.5, Δ=100.00%)
+    apu.add_resource(create_insumo(**d))
+
+tests/unit/core/test_schemas.py::TestTopologicalStabilityIndex::test_dos_recursos_mismo_tipo_valor_diferente
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:1073: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=1.0000, esperada=2.0000 (rendimiento=0.5, Δ=50.00%)
+    apu.add_resource(create_insumo(**d1))
+
+tests/unit/core/test_schemas.py::TestTopologicalStabilityIndex::test_dos_recursos_mismo_tipo_valor_diferente
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:1080: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=1.0000, esperada=2.0000 (rendimiento=0.5, Δ=50.00%)
+    apu.add_resource(create_insumo(**d2))
+
+tests/unit/core/test_schemas.py::TestCasosLimite::test_valores_en_limites_exactos
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:1323: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=1000000.0000, esperada=2.0000 (rendimiento=0.5, Δ=100.00%)
+    insumo = create_insumo(**datos_insumo_base)
+
+tests/unit/core/test_schemas.py::TestCasosLimite::test_cantidad_cero_es_valida
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:1330: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=0.0000, esperada=2.0000 (rendimiento=0.5, Δ=100.00%)
+    insumo = create_insumo(**datos_insumo_base)
+
+tests/unit/core/test_schemas.py::TestCasosLimite::test_precision_numerica_flotante
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:1369: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=0.3333, esperada=2.0000 (rendimiento=0.5, Δ=83.33%)
+    insumo = create_insumo(**datos_insumo_base)
+
+tests/unit/core/test_schemas.py::TestEdgeCasesEntropy::test_un_recurso_domina
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:1520: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=1.0000, esperada=2.0000 (rendimiento=0.5, Δ=50.00%)
+    apu.add_resource(create_insumo(**d_grande))
+
+tests/unit/core/test_schemas.py::TestEdgeCasesEntropy::test_distribucion_perfectamente_uniforme
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:1544: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=1.0000, esperada=2.0000 (rendimiento=0.5, Δ=50.00%)
+    apu.add_resource(create_insumo(**d))
+
+tests/unit/core/test_schemas.py::TestEdgeCasesEntropy::test_entropia_con_valores_muy_pequenos
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/test_schemas.py:1560: UserWarning: Discrepancia Rendimiento/Cantidad en APU-001: cantidad=0.0001, esperada=2.0000 (rendimiento=0.5, Δ=100.00%)
+    apu.add_resource(create_insumo(**d))
+
+tests/unit/core/test_schemas.py::TestIntegracion::test_pipeline_raw_a_apu
+  /home/gerardo/Documentos/GitHub/apu_filter/app/core/schemas.py:1274: UserWarning: Discrepancia Rendimiento/Cantidad en INT-001: cantidad=1.5000, esperada=0.1250 (rendimiento=8.0, Δ=91.67%)
+    return create_insumo(**validated)
+
+tests/unit/physics/test_flux_condenser.py::TestEdgeCases::test_engine_very_high_natural_frequency
+  /home/gerardo/Documentos/GitHub/apu_filter/app/physics/flux_condenser.py:2422: RuntimeWarning: overflow encountered in scalar power
+    R_eff = self.R * (1.0 + 0.1 * I**2)
+
+tests/unit/physics/test_flux_condenser.py::TestEdgeCases::test_engine_very_high_natural_frequency
+  /home/gerardo/Documentos/GitHub/apu_filter/app/physics/flux_condenser.py:2585: RuntimeWarning: invalid value encountered in add
+    return y_in + (h/6.0)*(k1 + 2*k2 + 2*k3 + k4)
+
+tests/unit/strategy/test_app.py: 51 warnings
+  /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/flask_session/base.py:172: DeprecationWarning: The 'use_signer' option is deprecated and will be removed in the next minor release. Please update your configuration accordingly or open an issue.
+    warnings.warn(
+
+tests/unit/strategy/test_app.py::TestCreateApp::test_create_app_development
+tests/unit/strategy/test_app.py::TestCreateApp::test_create_app_testing
+tests/unit/strategy/test_app.py::TestCreateApp::test_create_app_production
+tests/unit/strategy/test_app.py::TestCreateApp::test_create_app_config_loading
+tests/unit/strategy/test_app.py::TestCreateApp::test_create_app_upload_folder_creation
+tests/unit/strategy/test_app.py::TestCreateApp::test_create_app_session_configuration
+  /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/flask_session/redis/redis.py:51: RuntimeWarning: No valid Redis instance provided, attempting to create a new instance on localhost with default settings.
+    warnings.warn(
+
+tests/unit/tactics/test_apu_processor.py: 13 warnings
+  /home/gerardo/Documentos/GitHub/apu_filter/app/tactics/apu_processor.py:1592: UserWarning: Suministro [2.1]: Unidad 'HORA' no está en las unidades esperadas frozenset({'MM', 'CM', 'LB', 'KG', 'JUEGO', 'M2', 'UND', 'M', '%', 'L', 'TON', 'CM2', 'PAR', 'U', 'GR', 'M3', 'KIT', 'KM', 'GAL', 'ML', 'UNIDAD'})
+    return InsumoClass(
+
+tests/unit/wisdom/test_semantic_estimator.py: 13 warnings
+  /home/gerardo/Documentos/GitHub/apu_filter/app/wisdom/semantic_estimator.py:1482: DeprecationWarning: run_monte_carlo_simulation está deprecada. Use MonteCarloSimulator directamente para funcionalidad completa.
+    mc = run_monte_carlo_simulation(insumos)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========== 6161 passed, 18 skipped, 110 warnings in 88.95s (0:01:28) ===========
