@@ -824,3 +824,5 @@ class TestCausalLineageOfDegradedDampingRegimes:
             f"(polos en ±jω₀, ζ ≈ 0) al diagnóstico ejecutivo correcto. "
             f"Verifique el diccionario de empatía táctica."
         )
+
+        
