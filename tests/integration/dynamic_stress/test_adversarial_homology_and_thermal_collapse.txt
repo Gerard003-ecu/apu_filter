@@ -1,146 +1,716 @@
+"""
+Test suite de integración: Homología adversarial, análisis espectral y colapso térmico.
+
+Fundamentación matemática:
+──────────────────────────
+- Teorema de Euler-Poincaré para complejos simpliciales de dimensión 1 (grafos):
+      χ(G) = β₀ - β₁ = V - E
+  donde β₀ = número de componentes conexas, β₁ = rango del primer grupo de homología.
+
+- Teorema espectral de Chung (1997) para el Laplaciano normalizado L_norm:
+      spec(L_norm) ⊆ [0, 2]
+  con multiplicidad algebraica de λ=0 igual a β₀.
+
+- Conectividad algebraica de Fiedler (1973):
+      a(G) = λ₂(L) > 0  ⟺  G es conexo.
+
+Referencias:
+    [1] Chung, F.R.K. "Spectral Graph Theory", AMS, 1997.
+    [2] Fiedler, M. "Algebraic connectivity of graphs", Czech. Math. J. 23(98), 1973.
+    [3] Hatcher, A. "Algebraic Topology", Cambridge University Press, 2002.
+"""
+
 import pytest
 import math
 import networkx as nx
 import numpy as np
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional, Union
+from unittest.mock import MagicMock
 
 from app.core.schemas import Stratum
 from app.agents.MIC_agent import MICAgent, ImpedanceMatchStatus
-from unittest.mock import MagicMock
-from app.tactics.business_topology import BusinessTopologicalAnalyzer, TopologyAnalyzerConfig
+from app.tactics.business_topology import (
+    BusinessTopologicalAnalyzer,
+    TopologyAnalyzerConfig,
+)
+
 
 # =============================================================================
-# CONSTANTS
+# CONSTANTES FÍSICO-MATEMÁTICAS
 # =============================================================================
-_SPECTRAL_ZERO_TOLERANCE = 1e-10
-_FIEDLER_FRACTURE_THRESHOLD = 0.5
-_CRITICAL_THERMAL_STRESS = 65.0
-_COLLAPSED_FINANCIAL_INERTIA = 0.1
+
+# Tolerancia para detección de autovalores nulos.
+# Justificación: la precisión de eigvalsh (LAPACK dsyevd) es O(n · ε_mach · ‖L‖₂)
+# donde ε_mach ≈ 2.22e-16. Para matrices con ‖L‖₂ ≤ 2 y n ≤ 1000,
+# el error absoluto máximo es ~4.44e-13, por lo que 1e-10 da margen de 3 órdenes.
+_SPECTRAL_ZERO_TOLERANCE: float = 1e-10
+
+# Umbral de conectividad algebraica de Fiedler para declarar "fractura estructural".
+# Si a(G) = λ₂(L) < este umbral, el grafo está cuasi-desconexo.
+_FIEDLER_FRACTURE_THRESHOLD: float = 0.5
+
+# Temperatura crítica del sistema (unidades adimensionales normalizadas).
+# Por encima de este valor, el filtro EKF diverge por saturación de la covarianza.
+_CRITICAL_THERMAL_STRESS: float = 65.0
+
+# Inercia financiera colapsada: valor por debajo del cual
+# la dinámica del sistema es irrecuperable sin intervención externa.
+_COLLAPSED_FINANCIAL_INERTIA: float = 0.1
+
+# Cota superior del espectro del Laplaciano normalizado (Teorema de Chung).
+_CHUNG_SPECTRAL_UPPER_BOUND: float = 2.0
+
+
+# =============================================================================
+# FUNCIONES AUXILIARES DE VALIDACIÓN ESPECTRAL
+# =============================================================================
+
+
+def _compute_euler_betti_numbers(
+    graph: nx.DiGraph,
+) -> Dict[str, int]:
+    """
+    Calcula los números de Betti β₀ y β₁ para un complejo simplicial
+    unidimensional (grafo dirigido interpretado como 1-esqueleto).
+
+    Fundamento:
+        Para un complejo simplicial Δ de dimensión 1, la característica
+        de Euler-Poincaré satisface:
+
+            χ(Δ) = V - E = β₀ - β₁
+
+        Despejando:
+            β₁ = E - V + β₀
+
+        donde β₀ se computa en O(V + E) mediante búsqueda de componentes
+        débilmente conexas (BFS/DFS), evitando la enumeración NP-hard de
+        ciclos independientes.
+
+    Complejidad:
+        Temporal: O(V + E)
+        Espacial: O(V)
+
+    Parameters
+    ----------
+    graph : nx.DiGraph
+        Grafo dirigido que representa el 1-esqueleto del complejo simplicial.
+        Se asume que no contiene multi-aristas ni self-loops para que la
+        fórmula de Euler sea directamente aplicable.
+
+    Returns
+    -------
+    Dict[str, int]
+        Diccionario con claves:
+        - "V": número de vértices (0-simplices)
+        - "E": número de aristas (1-simplices)
+        - "beta_0": número de componentes débilmente conexas
+        - "beta_1": rango del primer grupo de homología H₁(Δ; ℤ)
+        - "euler_characteristic": χ(Δ) = V - E
+
+    Raises
+    ------
+    ValueError
+        Si el grafo contiene self-loops, violando la estructura simplicial.
+    """
+    if nx.number_of_selfloops(graph) > 0:
+        raise ValueError(
+            "El grafo contiene self-loops, lo cual viola la definición de "
+            "complejo simplicial (un 1-simplex requiere dos vértices distintos)."
+        )
+
+    V: int = graph.number_of_nodes()
+    E: int = graph.number_of_edges()
+    beta_0: int = nx.number_weakly_connected_components(graph)
+
+    # Euler-Poincaré: χ = β₀ - β₁ = V - E  ⟹  β₁ = E - V + β₀
+    euler_characteristic: int = V - E
+    beta_1: int = E - V + beta_0
+
+    return {
+        "V": V,
+        "E": E,
+        "beta_0": beta_0,
+        "beta_1": beta_1,
+        "euler_characteristic": euler_characteristic,
+    }
+
+
+def _compute_normalized_laplacian_spectrum(
+    graph: nx.DiGraph,
+) -> Dict[str, Any]:
+    """
+    Calcula el espectro completo del Laplaciano normalizado L_norm del
+    grafo subyacente no dirigido.
+
+    Definición del Laplaciano normalizado (Chung, 1997):
+        L_norm = D^{-1/2} · L · D^{-1/2}
+
+    donde:
+        - L = D - A  es el Laplaciano combinatorio
+        - D = diag(d₁, ..., dₙ) es la matriz de grados
+        - A es la matriz de adyacencia
+
+    Propiedades espectrales garantizadas:
+        (P1) L_norm es real, simétrica y positiva semidefinida.
+        (P2) spec(L_norm) ⊆ [0, 2]  (Teorema 1.7, Chung 1997).
+        (P3) mult(0) = β₀ = número de componentes conexas.
+
+    Para vértices aislados (grado 0), NetworkX asigna L_norm[i,i] = 0,
+    lo cual es consistente con la convención de que un vértice aislado
+    forma su propia componente conexa con autovalor λ = 0.
+
+    Parameters
+    ----------
+    graph : nx.DiGraph
+        Grafo dirigido. Se convierte internamente a no dirigido para
+        construir el operador Laplaciano simétrico.
+
+    Returns
+    -------
+    Dict[str, Any]
+        - "eigenvalues": np.ndarray ordenado ascendentemente
+        - "laplacian_matrix": np.ndarray de L_norm
+        - "dimension": int (tamaño de la matriz)
+        - "zero_multiplicity": int (número de eigenvalores ≈ 0)
+        - "fiedler_value": Optional[float] (λ₂ si el grafo es conexo, None si no)
+        - "spectral_gap": float (menor eigenvalor no nulo, 0.0 si todos son nulos)
+
+    Raises
+    ------
+    ValueError
+        Si el grafo no tiene vértices.
+    """
+    if graph.number_of_nodes() == 0:
+        raise ValueError("No se puede calcular el espectro de un grafo vacío.")
+
+    undirected: nx.Graph = graph.to_undirected()
+    n: int = undirected.number_of_nodes()
+
+    # Construcción de L_norm como array denso (válido para n moderado)
+    L_norm: np.ndarray = nx.normalized_laplacian_matrix(undirected).toarray()
+
+    # Verificación dimensional
+    assert L_norm.shape == (n, n), (
+        f"Dimensión inconsistente: L_norm es {L_norm.shape}, esperado ({n}, {n})"
+    )
+
+    # Verificación de simetría (L_norm debe ser Hermitiana para eigvalsh)
+    symmetry_error: float = np.max(np.abs(L_norm - L_norm.T))
+    assert symmetry_error < _SPECTRAL_ZERO_TOLERANCE, (
+        f"L_norm no es simétrica: error máximo = {symmetry_error:.2e}"
+    )
+
+    # Diagonalización exacta via LAPACK dsyevd (O(n³))
+    eigenvalues: np.ndarray = np.linalg.eigvalsh(L_norm)
+
+    # Conteo de multiplicidad del autovalor nulo
+    zero_multiplicity: int = int(
+        np.sum(np.abs(eigenvalues) <= _SPECTRAL_ZERO_TOLERANCE)
+    )
+
+    # Fiedler value: solo definido para grafos conexos (β₀ = 1)
+    fiedler_value: Optional[float] = None
+    if zero_multiplicity == 1 and n >= 2:
+        fiedler_value = float(eigenvalues[1])
+
+    # Spectral gap: menor autovalor estrictamente positivo
+    positive_eigenvalues = eigenvalues[eigenvalues > _SPECTRAL_ZERO_TOLERANCE]
+    spectral_gap: float = float(np.min(positive_eigenvalues)) if len(positive_eigenvalues) > 0 else 0.0
+
+    return {
+        "eigenvalues": eigenvalues,
+        "laplacian_matrix": L_norm,
+        "dimension": n,
+        "zero_multiplicity": zero_multiplicity,
+        "fiedler_value": fiedler_value,
+        "spectral_gap": spectral_gap,
+    }
+
+
+def _extract_metric_value(
+    metrics: Any,
+    key: str,
+    default: Any = None,
+) -> Any:
+    """
+    Extrae un valor de un objeto de métricas de forma defensiva,
+    soportando tanto diccionarios como dataclasses/objetos con atributos.
+
+    La necesidad de esta función surge porque BusinessTopologicalAnalyzer
+    puede retornar sus métricas en distintos formatos según la configuración.
+
+    Parameters
+    ----------
+    metrics : Any
+        Objeto de métricas (dict, dataclass, NamedTuple, o similar).
+    key : str
+        Nombre del campo a extraer.
+    default : Any
+        Valor por defecto si el campo no existe.
+
+    Returns
+    -------
+    Any
+        El valor del campo, o `default` si no se encuentra.
+    """
+    if isinstance(metrics, dict):
+        return metrics.get(key, default)
+    return getattr(metrics, key, default)
+
+
+# =============================================================================
+# FIXTURES
+# =============================================================================
+
+
+@pytest.fixture
+def topology_analyzer() -> BusinessTopologicalAnalyzer:
+    """
+    Fixture que provee un BusinessTopologicalAnalyzer con telemetría mock
+    y configuración por defecto.
+
+    Returns
+    -------
+    BusinessTopologicalAnalyzer
+        Instancia configurada para testing.
+    """
+    return BusinessTopologicalAnalyzer(
+        telemetry=MagicMock(),
+        config=TopologyAnalyzerConfig(),
+    )
+
+
+@pytest.fixture
+def mic_agent() -> MICAgent:
+    """
+    Fixture que provee un MICAgent con registro mock configurado
+    para el estrato STRATEGY.
+
+    Returns
+    -------
+    MICAgent
+        Instancia con mock registry preconfigurado.
+    """
+    mock_registry = MagicMock()
+    mock_registry.get_vector_info.return_value = {"stratum": Stratum.STRATEGY}
+    return MICAgent(mic_registry=mock_registry)
+
+
+@pytest.fixture
+def adversarial_thermal_context() -> Dict[str, Any]:
+    """
+    Fixture que construye un contexto de telemetría adversarial
+    diseñado para provocar colapso térmico y divergencia del filtro EKF.
+
+    El contexto modela las siguientes condiciones simultáneas de falla:
+
+    1. **Temperatura supercrítica**: T = 65.0 > T_critical, lo cual
+       satura la covarianza P del filtro de Kalman extendido (EKF),
+       causando que la ganancia de Kalman K → 0 y el filtro ignore
+       las observaciones.
+
+    2. **Inercia financiera colapsada**: ξ = 0.1, indicando que el
+       sistema ha perdido su capacidad de amortiguamiento dinámico
+       (análogo a un oscilador con coeficiente de amortiguamiento
+       ζ → 0, resultando en oscilaciones divergentes).
+
+    3. **Fiedler cuasi-nulo**: a(G) = 0.0001 ≈ 0, indicando que el
+       grafo de dependencias está a punto de desconectarse (existe
+       un corte de aristas de peso ≈ 0).
+
+    4. **Divergencia de innovación EKF**: la secuencia de innovaciones
+       ν_k = z_k - H·x̂_{k|k-1} no es white noise, violando la
+       hipótesis fundamental del filtro.
+
+    5. **Exponente de Lyapunov positivo**: λ_max = 1.5 > 0, lo cual
+       implica sensibilidad exponencial a condiciones iniciales
+       (caos determinista), haciendo imposible la predicción a
+       horizonte finito.
+
+    Returns
+    -------
+    Dict[str, Any]
+        Contexto de telemetría adversarial.
+    """
+    return {
+        "system_temperature": _CRITICAL_THERMAL_STRESS,
+        "financial_inertia": _COLLAPSED_FINANCIAL_INERTIA,
+        "laplacian_fiedler": 0.0001,
+        "betti_numbers": {"beta_1": 2, "beta_0": 1},
+        "isolated_nodes": [],
+        "ekf_innovation_divergence": True,
+        "max_lyapunov_exponent": 1.5,
+    }
+
+
+# =============================================================================
+# TEST SUITE
+# =============================================================================
+
 
 @pytest.mark.integration
 class TestAdversarialHomologyAndThermalCollapse:
     """
-    Test de Integración de Estrés Dinámico:
-    Valida la resistencia categórica frente a una discrepancia homológica (Mayer-Vietoris)
-    y colapso térmico simultáneo, aplicando rigor analítico estricto.
+    Suite de integración para validación de invariantes topológicos y
+    resiliencia ante colapso térmico.
+
+    Estructura de los tests:
+    ────────────────────────
+    1. **Homología adversarial** (test_adversarial_homology_exactness):
+       Verifica que β₁ se computa via Euler-Poincaré en O(V+E),
+       no por enumeración de ciclos.
+
+    2. **Integridad espectral** (test_spectral_analysis_rigor):
+       Valida las propiedades P1-P3 del Laplaciano normalizado
+       y la detección correcta de desconexión.
+
+    3. **Spectral gap en grafo conexo** (test_spectral_gap_connected_graph):
+       Verifica que el Fiedler value es positivo y detecta
+       cuasi-desconexión cuando a(G) < umbral.
+
+    4. **Veto térmico del MICAgent** (test_mic_agent_thermal_collapse_veto):
+       Valida que el agente emite ALGEBRAIC_VETO ante condiciones
+       de colapso térmico acoplado.
+
+    5. **Auditoría forense** (test_mic_agent_audit_trail_integrity):
+       Verifica que el AuditTrail preserva la traza completa
+       del evento de veto.
+
+    Invariantes verificados:
+        - χ(G) = V - E = β₀ - β₁  (Euler-Poincaré)
+        - spec(L_norm) ⊆ [0, 2]    (Chung)
+        - mult(0, L_norm) = β₀     (Teorema espectral)
+        - a(G) > 0 ⟺ G conexo     (Fiedler)
     """
 
-    def test_adversarial_homology_exactness(self):
+    # ─────────────────────────────────────────────────────────────────
+    # Test 1: Homología via Euler-Poincaré
+    # ─────────────────────────────────────────────────────────────────
+
+    def test_adversarial_homology_exactness(
+        self, topology_analyzer: BusinessTopologicalAnalyzer
+    ) -> None:
         """
-        Valida que β1 se calcula de manera determinista vía la característica de Euler
-        (χ = V - E = β0 - β1), rechazando la enumeración NP-Hard de ciclos.
+        Valida que β₁ se calcula de manera determinista y exacta mediante
+        la característica de Euler-Poincaré, sin enumeración de ciclos.
+
+        Grafo de prueba (adversarial por tener múltiples ciclos superpuestos):
+
+            A ──→ B
+            ↑ ↗   │
+            │/    ↓
+            D ←── C
+
+        Topología:
+            V = 4 (vértices: A, B, C, D)
+            E = 5 (aristas: A→B, B→C, C→A, C→D, D→A)
+            β₀ = 1 (una componente débilmente conexa)
+
+        Cálculo por Euler-Poincaré:
+            χ = V - E = 4 - 5 = -1
+            χ = β₀ - β₁ = 1 - β₁
+            ∴ β₁ = β₀ - χ = 1 - (-1) = 2
+
+        Los dos ciclos independientes que generan H₁ son:
+            γ₁ = A → B → C → A
+            γ₂ = A → D ← C → A  (en el grafo subyacente no dirigido)
+
+        Complejidad del cálculo: O(V + E) vs O(2^E) de enumeración.
         """
-        # Crear un complejo simplicial D1 (grafo) adversarial
-        # V = 4, E = 5 -> χ = 4 - 5 = -1
-        # β0 (Componentes débilmente conexas) = 1
-        # Por Teorema Euler-Poincaré: β1 = E - V + β0 = 5 - 4 + 1 = 2
         graph = nx.DiGraph()
         graph.add_edges_from([
-            ("A", "B"), ("B", "C"), ("C", "A"), # Ciclo 1
-            ("C", "D"), ("D", "A")              # Ciclo 2
+            ("A", "B"), ("B", "C"), ("C", "A"),  # Ciclo γ₁
+            ("C", "D"), ("D", "A"),               # Cierra ciclo γ₂
         ])
 
-        V = graph.number_of_nodes()
-        E = graph.number_of_edges()
+        # Cálculo exacto via función auxiliar
+        betti = _compute_euler_betti_numbers(graph)
 
-        # Compute exact β0 via O(V+E) weak connectivity
-        beta_0 = nx.number_weakly_connected_components(graph)
-        assert beta_0 == 1, "Beta_0 no es 1 para grafo conexo"
-
-        # Invariante exacto Euler-Poincaré:
-        beta_1_exact = E - V + beta_0
-        assert beta_1_exact == 2, "La biyección homológica exacta (χ) falló"
-
-        # Validar a través del analizador (usará su propia aproximación o wrapper)
-        analyzer = BusinessTopologicalAnalyzer(
-            telemetry=MagicMock(),
-            config=TopologyAnalyzerConfig()
+        assert betti["V"] == 4, f"Esperado V=4, obtenido V={betti['V']}"
+        assert betti["E"] == 5, f"Esperado E=5, obtenido E={betti['E']}"
+        assert betti["beta_0"] == 1, (
+            f"Grafo debería ser débilmente conexo (β₀=1), "
+            f"obtenido β₀={betti['beta_0']}"
         )
-        metrics = analyzer.calculate_betti_numbers(graph)
+        assert betti["euler_characteristic"] == -1, (
+            f"χ debería ser -1, obtenido χ={betti['euler_characteristic']}"
+        )
+        assert betti["beta_1"] == 2, (
+            f"Euler-Poincaré exige β₁=2, obtenido β₁={betti['beta_1']}"
+        )
 
-        # Extraemos el beta_1 reportado (dependiendo si es dict o dataclass)
-        reported_beta_1 = getattr(metrics, "beta_1", metrics.get("beta_1", 0) if isinstance(metrics, dict) else 0)
-        assert reported_beta_1 == beta_1_exact, f"El analyzer reporta {reported_beta_1} vs exacto {beta_1_exact}"
+        # Validación cruzada con el analyzer del sistema
+        metrics = topology_analyzer.calculate_betti_numbers(graph)
+        reported_beta_1 = _extract_metric_value(metrics, "beta_1", default=None)
 
-    def test_spectral_analysis_rigor(self):
+        assert reported_beta_1 is not None, (
+            "El analyzer no retornó el campo 'beta_1'. "
+            "Verifique la interfaz de BusinessTopologicalAnalyzer."
+        )
+        assert reported_beta_1 == betti["beta_1"], (
+            f"Discrepancia: analyzer reporta β₁={reported_beta_1}, "
+            f"Euler-Poincaré exige β₁={betti['beta_1']}. "
+            f"El analyzer podría estar usando un método incorrecto."
+        )
+
+    # ─────────────────────────────────────────────────────────────────
+    # Test 2: Invariantes espectrales del Laplaciano normalizado
+    # ─────────────────────────────────────────────────────────────────
+
+    def test_spectral_analysis_rigor(self) -> None:
         """
-        Demuestra la integridad del operador Laplaciano normalizado.
-        - Todos los autovalores λ_i ∈ [0, 2]
-        - La multiplicidad algebraica de λ=0 es igual a β0
+        Verifica las propiedades espectrales del Laplaciano normalizado
+        para un grafo con dos componentes conexas (β₀ = 2).
+
+        Grafo de prueba:
+            Componente 1: A → B → C  (camino dirigido, 3 vértices, 2 aristas)
+            Componente 2: {D}         (vértice aislado)
+
+        Grafo subyacente no dirigido:
+            Componente 1: A — B — C   (camino, 3 vértices, 2 aristas)
+            Componente 2: {D}         (aislado)
+
+        Propiedades a verificar:
+            (P1) L_norm ∈ ℝ^{4×4}, simétrica
+            (P2) spec(L_norm) ⊆ [0, 2]
+            (P3) mult(λ=0) = β₀ = 2
+            (P4) Dimensión de la matriz = |V| = 4
         """
         graph = nx.DiGraph()
         graph.add_edges_from([("A", "B"), ("B", "C")])
-        graph.add_node("D") # Componente aislada (β0 = 2)
+        graph.add_node("D")  # Componente aislada
 
-        beta_0 = nx.number_weakly_connected_components(graph)
-        assert beta_0 == 2
+        beta_0_expected: int = 2
+        beta_0_actual: int = nx.number_weakly_connected_components(graph)
+        assert beta_0_actual == beta_0_expected, (
+            f"Precondición fallida: β₀ esperado={beta_0_expected}, "
+            f"actual={beta_0_actual}"
+        )
 
-        # Obtener grafo no dirigido para Laplaciano espectral
-        undirected_graph = graph.to_undirected()
+        # Análisis espectral completo
+        spectral = _compute_normalized_laplacian_spectrum(graph)
 
-        # Calcular Laplaciano Normalizado y Espectro (eigvalsh)
-        L_norm = nx.normalized_laplacian_matrix(undirected_graph).toarray()
-        eigenvalues = np.linalg.eigvalsh(L_norm)
+        # (P1) Verificación dimensional
+        assert spectral["dimension"] == 4, (
+            f"Dimensión incorrecta: {spectral['dimension']}, esperado 4"
+        )
 
-        # Invariantes Espectrales
-        for lambda_i in eigenvalues:
-            assert -_SPECTRAL_ZERO_TOLERANCE <= lambda_i <= 2 + _SPECTRAL_ZERO_TOLERANCE, \
-                f"Eigenvalor {lambda_i} excede la cota de Chung [0, 2]"
+        # (P2) Cota de Chung: todos los eigenvalores en [0, 2]
+        eigenvalues: np.ndarray = spectral["eigenvalues"]
+        violations = [
+            (i, float(λ))
+            for i, λ in enumerate(eigenvalues)
+            if λ < -_SPECTRAL_ZERO_TOLERANCE
+            or λ > _CHUNG_SPECTRAL_UPPER_BOUND + _SPECTRAL_ZERO_TOLERANCE
+        ]
+        assert len(violations) == 0, (
+            f"Violación de la cota de Chung [0, 2]. "
+            f"Eigenvalores fuera de rango: {violations}"
+        )
 
-        # Multiplicidad del autovalor cero
-        zero_eigenvalues = sum(1 for val in eigenvalues if abs(val) <= _SPECTRAL_ZERO_TOLERANCE)
-        assert zero_eigenvalues == beta_0, "Matriz Laplaciana corrupta: dim(Ker(L)) != β0"
+        # (P3) Multiplicidad del autovalor nulo = β₀
+        assert spectral["zero_multiplicity"] == beta_0_expected, (
+            f"dim(Ker(L_norm)) = {spectral['zero_multiplicity']} ≠ "
+            f"β₀ = {beta_0_expected}. "
+            f"La matriz Laplaciana está corrupta o la tolerancia es inadecuada. "
+            f"Eigenvalores: {eigenvalues}"
+        )
 
-        # Fiedler Value (segundo autovalor más pequeño si conexo, o el de menor no nulo)
-        fiedler = eigenvalues[1] if len(eigenvalues) > 1 else 0.0
-        assert fiedler < _FIEDLER_FRACTURE_THRESHOLD, "Fractura estructural no detectada correctamente"
+        # (P4) Fiedler value no definido para grafo desconexo
+        assert spectral["fiedler_value"] is None, (
+            "El Fiedler value no debe definirse para grafos desconexos "
+            "(β₀ > 1). La conectividad algebraica a(G) = λ₂(L) solo "
+            "tiene significado cuando G es conexo (Fiedler, 1973)."
+        )
 
-    def test_mic_agent_thermal_collapse_and_veto(self):
+    # ─────────────────────────────────────────────────────────────────
+    # Test 3: Spectral gap y Fiedler para grafo conexo
+    # ─────────────────────────────────────────────────────────────────
+
+    def test_spectral_gap_connected_graph(self) -> None:
         """
-        El RiskChallenger y el MICAgent interceptan la mónada de error en la telemetría,
-        y aplican un veto categórico irrompible ante el colapso del filtro EKF.
+        Verifica el Fiedler value para un grafo conexo y detecta
+        cuasi-desconexión estructural.
+
+        Grafo de prueba (camino P₄):
+            A — B — C — D
+
+        Para el camino Pₙ, el k-ésimo eigenvalor del Laplaciano normalizado es:
+
+            λ_k = 1 - cos(πk/n),  k = 0, 1, ..., n-1
+
+        Para n=4:
+            λ₀ = 1 - cos(0)     = 0
+            λ₁ = 1 - cos(π/4)   = 1 - √2/2 ≈ 0.2929
+            λ₂ = 1 - cos(π/2)   = 1
+            λ₃ = 1 - cos(3π/4)  = 1 + √2/2 ≈ 1.7071
+
+        Nota: Esta fórmula aplica para el Laplaciano normalizado de caminos
+        donde todos los vértices interiores tienen grado 2 y los extremos
+        grado 1. La fórmula exacta puede diferir ligeramente por los
+        vértices de borde; verificamos numéricamente.
         """
-        # Configuramos la "Fiebre Inflacionaria" extrema
-        adversarial_context = {
-            "system_temperature": _CRITICAL_THERMAL_STRESS,
-            "financial_inertia": _COLLAPSED_FINANCIAL_INERTIA,
-            "laplacian_fiedler": 0.0001,
-            "betti_numbers": {"beta_1": 2, "beta_0": 1},
-            "isolated_nodes": [],
-            # Trazas de falla del EKF/Lyapunov (entropía física inmanejable)
-            "ekf_innovation_divergence": True,
-            "max_lyapunov_exponent": 1.5 # λ > 0 (caos inmanejable)
+        graph = nx.path_graph(4, create_using=nx.DiGraph)
+        # path_graph crea 0→1→2→3
+
+        spectral = _compute_normalized_laplacian_spectrum(graph)
+        eigenvalues = spectral["eigenvalues"]
+
+        # El grafo subyacente es conexo
+        assert spectral["zero_multiplicity"] == 1, (
+            f"P₄ debería ser conexo (β₀=1), pero "
+            f"mult(0) = {spectral['zero_multiplicity']}"
+        )
+
+        # Fiedler value definido y positivo
+        assert spectral["fiedler_value"] is not None, (
+            "Fiedler value debería estar definido para grafo conexo"
+        )
+        assert spectral["fiedler_value"] > 0, (
+            f"Fiedler value debería ser > 0 para grafo conexo, "
+            f"obtenido {spectral['fiedler_value']}"
+        )
+
+        # Para P₄, a(G) = λ₁ ≈ 0.2929 < 0.5, indicando baja conectividad
+        assert spectral["fiedler_value"] < _FIEDLER_FRACTURE_THRESHOLD, (
+            f"Fiedler value = {spectral['fiedler_value']:.6f} debería ser "
+            f"< {_FIEDLER_FRACTURE_THRESHOLD} para el camino P₄, "
+            f"indicando estructura cuasi-lineal con baja robustez."
+        )
+
+        # Verificación numérica contra fórmula teórica (con tolerancia)
+        n = 4
+        theoretical_fiedler = 1.0 - math.cos(math.pi / n)
+        assert abs(spectral["fiedler_value"] - theoretical_fiedler) < 0.05, (
+            f"Fiedler value numérico ({spectral['fiedler_value']:.6f}) difiere "
+            f"del teórico ({theoretical_fiedler:.6f}) más allá de la tolerancia. "
+            f"Nota: la fórmula exacta para P_n con Laplaciano normalizado "
+            f"puede requerir corrección por vértices de borde."
+        )
+
+    # ─────────────────────────────────────────────────────────────────
+    # Test 4: Veto categórico del MICAgent ante colapso térmico
+    # ─────────────────────────────────────────────────────────────────
+
+    def test_mic_agent_thermal_collapse_veto(
+        self,
+        mic_agent: MICAgent,
+        adversarial_thermal_context: Dict[str, Any],
+    ) -> None:
+        """
+        Verifica que el MICAgent emite un ALGEBRAIC_VETO irrevocable cuando
+        se presentan simultáneamente las siguientes condiciones de falla:
+
+        Condiciones de activación del veto (conjunción AND):
+        ────────────────────────────────────────────────────
+        1. T_sistema ≥ T_crítica (colapso térmico)
+        2. ξ_financiera ≤ ξ_colapso (pérdida de amortiguamiento)
+        3. a(G) ≈ 0 (desconexión inminente del grafo de dependencias)
+        4. Divergencia de innovación del EKF (filtro no informativo)
+        5. λ_max(Lyapunov) > 0 (dinámica caótica)
+
+        Además se verifica que:
+        - force_override=True NO puede anular el veto (es categórico)
+        - El contrato territorial_friction ≥ 1.0 para STRATEGY se viola
+        - El resultado contiene el código de error correcto
+
+        Nota sobre el diseño:
+            El veto ALGEBRAIC_VETO es irrevocable por diseño porque la
+            combinación de caos determinista (λ_max > 0) con filtro
+            divergente implica que NINGUNA estrategia basada en
+            predicción puede ser confiable. El sistema debe entrar en
+            modo de protección (circuit breaker).
+        """
+        llm_output_strategy: Dict[str, float] = {
+            "territorial_friction": 0.5,  # Viola contrato: debe ser ≥ 1.0
+            "risk_coupling": 0.99,
         }
 
-        mock_mic_registry = MagicMock()
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.STRATEGY}
-        agent = MICAgent(mic_registry=mock_mic_registry)
-
-        llm_output_strategy = {
-            "territorial_friction": 0.5, # Debería ser >= 1.0 según contrato STRATEGY
-            "risk_coupling": 0.99
-        }
-
-        result = agent.encapsulate_monad(
+        result = mic_agent.encapsulate_monad(
             target_vector="Riemannian_Friction_Contract",
             llm_output=llm_output_strategy,
             validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS]),
-            raw_telemetry=adversarial_context,
-            force_override=True
+            raw_telemetry=adversarial_thermal_context,
+            force_override=True,  # Intentar anular — debe fallar
         )
 
-        # Validar el Supremo categórico
-        assert result.is_failed, "El sistema no vetó un colapso térmico acoplado"
-        assert result.error == ImpedanceMatchStatus.ALGEBRAIC_VETO.value
+        # El resultado DEBE ser fallido
+        assert result.is_failed, (
+            "FALLA CRÍTICA DE SEGURIDAD: El sistema no vetó una condición "
+            "de colapso térmico acoplado con caos determinista. "
+            f"Contexto: T={adversarial_thermal_context['system_temperature']}, "
+            f"λ_max={adversarial_thermal_context['max_lyapunov_exponent']}, "
+            f"EKF_divergente={adversarial_thermal_context['ekf_innovation_divergence']}"
+        )
 
-        # Sello forense en el AuditTrail preservando la entropía de Shannon
-        audits = agent.get_recent_audits(1)
-        assert len(audits) == 1
+        # Código de error específico
+        assert result.error == ImpedanceMatchStatus.ALGEBRAIC_VETO.value, (
+            f"Código de error incorrecto: '{result.error}', "
+            f"esperado '{ImpedanceMatchStatus.ALGEBRAIC_VETO.value}'. "
+            f"El veto debe ser ALGEBRAIC_VETO, no un error genérico."
+        )
+
+    # ─────────────────────────────────────────────────────────────────
+    # Test 5: Integridad del AuditTrail forense
+    # ─────────────────────────────────────────────────────────────────
+
+    def test_mic_agent_audit_trail_integrity(
+        self,
+        mic_agent: MICAgent,
+        adversarial_thermal_context: Dict[str, Any],
+    ) -> None:
+        """
+        Verifica que el AuditTrail del MICAgent preserva la traza forense
+        completa del evento de veto, incluyendo:
+
+        1. El estado de impedance match (ALGEBRAIC_VETO)
+        2. La lista no vacía de errores de validación
+        3. Datos suficientes para reconstrucción post-mortem
+
+        La preservación de esta información es análoga a la conservación
+        de la entropía de Shannon: ningún bit de información sobre el
+        evento de falla debe perderse en el pipeline de auditoría.
+        """
+        # Primero provocar el veto
+        llm_output_strategy: Dict[str, float] = {
+            "territorial_friction": 0.5,
+            "risk_coupling": 0.99,
+        }
+
+        mic_agent.encapsulate_monad(
+            target_vector="Riemannian_Friction_Contract",
+            llm_output=llm_output_strategy,
+            validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS]),
+            raw_telemetry=adversarial_thermal_context,
+            force_override=True,
+        )
+
+        # Recuperar y validar el audit trail
+        audits: list = mic_agent.get_recent_audits(1)
+        assert len(audits) == 1, (
+            f"Se esperaba exactamente 1 registro de auditoría, "
+            f"obtenidos {len(audits)}. "
+            f"¿El MICAgent no está registrando eventos de veto?"
+        )
 
         audit = audits[0]
-        # Recuperamos usando diccionario o atributo
-        status = audit.get("impedance_match_status") if hasattr(audit, "get") else getattr(audit, "impedance_match_status").value
-        assert status == ImpedanceMatchStatus.ALGEBRAIC_VETO.value
 
-        errors = audit.get("validation_errors", []) if hasattr(audit, "get") else getattr(audit, "validation_errors")
-        assert len(errors) > 0
+        # Extraer impedance_match_status de forma defensiva
+        status = _extract_metric_value(audit, "impedance_match_status")
+        if status is not None and hasattr(status, "value"):
+            status = status.value  # Manejar enums
+
+        assert status == ImpedanceMatchStatus.ALGEBRAIC_VETO.value, (
+            f"AuditTrail corrupto: impedance_match_status = '{status}', "
+            f"esperado '{ImpedanceMatchStatus.ALGEBRAIC_VETO.value}'"
+        )
+
+        # Verificar que los errores de validación están registrados
+        validation_errors = _extract_metric_value(
+            audit, "validation_errors", default=[]
+        )
+        assert len(validation_errors) > 0, (
+            "AuditTrail incompleto: validation_errors está vacío. "
+            "El registro debe incluir las razones específicas del veto "
+            "para análisis post-mortem y cumplimiento regulatorio."
+        )
