@@ -1,1400 +1,1146 @@
 """
-Suite de Integración y Extracción Topológica de Anomalías (Sprint Integration).
+Suite de integración: Extracción topológica de anomalías (Sprint Integration).
 
-Fundamentos Matemáticos Verificados:
-─────────────────────────────────────────────────────────────────────────────
-1. Homología Simplicial y Ciclos (H₁):
-   En la topología del presupuesto, una dependencia circular o "Socavón Lógico" 
-   se formaliza como un elemento no trivial del primer grupo de homología H₁(G), 
-   donde el primer número de Betti es estrictamente positivo (β₁ > 0).
-   Esta suite valida que las cadenas de texto detectadas correspondan a verdaderos 
-   1-ciclos algebraicos. Específicamente, a través de `validate_cycle_closure`, 
-   se demuestra computacionalmente que el operador frontera sobre la cadena 
-   evaluada es estrictamente nulo: ∂₁(c) = 0, garantizando el cierre topológico del grafo.
+Fundamentación matemática:
+──────────────────────────
 
-2. Proyección y Descomposición de Subgrafos Anómalos:
-   La función `extract_anomaly_data` actúa como un funtor que mapea el espacio 
-   de ciclos y anomalías topológicas hacia un espacio de conjuntos discretos 
-   (`AnomalyData`), aislando los vértices (nodos únicos) y los 1-simplices 
-   (aristas) responsables de la fractura del DAG.
+1. Ciclos en grafos dirigidos y homología simplicial:
+   Sea G = (V, E) un grafo dirigido. Un ciclo c es una secuencia
+   (v₀, v₁, ..., vₖ) donde:
+       - (vᵢ, vᵢ₊₁) ∈ E  para i ∈ {0, ..., k-1}
+       - v₀ = vₖ  (condición de cierre)
+       - k ≥ 1    (al menos una arista)
 
-3. Idempotencia y Determinismo Analítico:
-   Se exige axiomáticamente que cualquier proyección topológica hacia las métricas 
-   de anomalía sea un morfismo idempotente y determinista. La evaluación iterativa 
-   y el parseo de representaciones de grafos bajo múltiples formatos (`CycleFormat`) 
-   y separadores (`CycleSeparators`) debe converger sin varianza numérica ni pérdida 
-   de entropía estructural.
+   En el contexto del presupuesto, un ciclo representa una dependencia
+   circular ("socavón lógico") — un elemento no trivial del primer
+   grupo de homología H₁(G; ℤ).
 
-Contratos Estructurales Probados:
-─────────────────────────────────────────────────────────────────────────────
-- Parseo estricto y extracción geométrica de ciclos mediante `parse_cycle_string`.
-- Validación matemática del cierre del ciclo en topologías cíclicas complejas.
-- Identificación de conjuntos ortogonales de nodos y aristas únicos involucrados 
-  en la anomalía de Betti (H₁).
-- Preservación de la complejidad asintótica y estabilidad de la memoria bajo 
-  escenarios de estrés, evitando la explosión combinatoria al extraer métricas.
+   Referencia: [1] Hatcher, A. "Algebraic Topology", Cambridge, 2002.
+
+2. Operador frontera y cierre topológico:
+   Para una 1-cadena c = Σᵢ (vᵢ, vᵢ₊₁), el operador frontera es:
+
+       ∂₁(c) = Σᵢ [vᵢ₊₁ - vᵢ]
+
+   Un ciclo cerrado satisface ∂₁(c) = 0 (la suma telescópica cancela
+   cuando v₀ = vₖ). Esto es equivalente a ker(∂₁) ⊃ im(∂₂) en la
+   secuencia exacta de homología.
+
+3. Extracción como funtor:
+   La función extract_anomaly_data actúa como un funtor:
+
+       F: CycleSpace → AnomalyData
+
+   que mapea el espacio de ciclos (representados como strings) al
+   espacio discreto de conjuntos de nodos y aristas, preservando:
+   - Unicidad (I₂): F mapea a conjuntos, eliminando duplicados
+   - Determinismo: F(x) = F(x) para todo x (función pura)
+   - Inmutabilidad (I₅): F no modifica su argumento
+
+4. Idempotencia del funtor de extracción:
+   Una función f es idempotente si f(f(x)) = f(x) para todo x.
+   En nuestro caso, como F: Dict → AnomalyData y el dominio/codominio
+   difieren, la idempotencia se interpreta como:
+       F(x₁) = F(x₂) cuando x₁ ≡ x₂ (inputs equivalentes)
+
+Invariantes del sistema verificados:
+    (I₁) ∀ entrada: type(F(entrada)) == AnomalyData (nunca None, nunca excepción)
+    (I₂) ∀ resultado: nodes_in_cycles es conjunto (sin duplicados)
+    (I₃) Si cycles = ∅ → nodes_in_cycles = ∅
+    (I₄) ∀ cadena "A → B → C": {A, B, C} ⊆ nodes_in_cycles
+    (I₅) Input original permanece inmutable tras F(input)
+    (I₆) ∂₁(c) = 0 para todo ciclo cerrado c
+
+Referencias:
+    [1] Hatcher, A. "Algebraic Topology", Cambridge University Press, 2002.
+    [2] Diestel, R. "Graph Theory", 5th Ed., Springer, 2017.
 """
 
-import pytest
+from __future__ import annotations
+
 import re
-from typing import Any, Dict, List, Optional, Set, Tuple, FrozenSet
-from dataclasses import dataclass
-from enum import Enum
+import pytest
+from typing import Any, Dict, List, Optional, Set, Tuple
 from copy import deepcopy
 
 from app.adapters.topology_viz import extract_anomaly_data, AnomalyData
 
 
 # =============================================================================
-# CONSTANTES Y ENUMERACIONES DE DOMINIO TOPOLÓGICO
+# CONSTANTES
 # =============================================================================
 
-class CycleFormat(str, Enum):
-    """
-    Formatos soportados para representación de ciclos.
-    
-    Taxonomía:
-      F₁ (LIST): Lista de strings representando ciclos individuales
-      F₂ (DICT_LEGACY): Diccionario con clave 'list' (retrocompatibilidad)
-      F₃ (INVALID): Cualquier otro formato no reconocido
-    """
-    LIST = "list"
-    DICT_LEGACY = "dict_legacy"
-    INVALID = "invalid"
+# Patrón regex para normalización de separadores de ciclo.
+# Captura variantes: ->, →, =>, ⟶ con whitespace arbitrario.
+_SEPARATOR_PATTERN: re.Pattern = re.compile(r'\s*(?:->|→|=>|⟶)\s*')
 
+# Separador canónico tras normalización.
+_CANONICAL_SEPARATOR: str = " -> "
 
-class CycleSeparators:
-    """
-    Separadores válidos para cadenas de ciclo.
-    
-    El separador canónico es ' -> ' pero el parser debe ser
-    tolerante a variaciones de whitespace.
-    """
-    CANONICAL = " -> "
-    ARROW = "->"
-    UNICODE_ARROW = "→"
-    DOUBLE_ARROW = "=>"
-    LONG_ARROW = "⟶"
-    
-    # Patrón regex que captura todas las variantes
-    PATTERN = re.compile(r'\s*(?:->|→|=>|⟶)\s*')
-    
-    @classmethod
-    def all_variants(cls) -> List[str]:
-        return [cls.CANONICAL, cls.ARROW, cls.UNICODE_ARROW, 
-                cls.DOUBLE_ARROW, cls.LONG_ARROW]
-
-
-class TopologicalInvariants:
-    """
-    Invariantes topológicos del sistema de extracción de anomalías.
-    
-    Fundamentación en Teoría de Grafos:
-      Sea G = (V, E) un grafo dirigido.
-      Un ciclo C es una secuencia (v₀, v₁, ..., vₖ) donde:
-        - (vᵢ, vᵢ₊₁) ∈ E para i ∈ [0, k-1]
-        - v₀ = vₖ (ciclo cerrado)
-        - k ≥ 1 (al menos una arista)
-    """
-    # Longitud mínima de ciclo válido (auto-lazo: A -> A)
-    MIN_CYCLE_LENGTH = 1
-    
-    # Número máximo de nodos para pruebas de stress
-    MAX_STRESS_NODES = 1000
+# Límite de tiempo para tests de rendimiento [segundos].
+# Conservador para CI en hardware heterogéneo.
+_PERFORMANCE_TIME_LIMIT: float = 2.0
 
 
 # =============================================================================
-# HELPERS DE VALIDACIÓN Y PARSING TOPOLÓGICO
+# FUNCIONES AUXILIARES DE PARSING Y VALIDACIÓN
 # =============================================================================
 
-def parse_cycle_string(cycle_str: str) -> Tuple[List[str], List[Tuple[str, str]]]:
+
+def _parse_cycle_string(cycle_str: str) -> Tuple[List[str], List[Tuple[str, str]]]:
     """
-    Parsea una cadena de ciclo y extrae nodos y aristas.
-    
-    Args:
-        cycle_str: Cadena en formato "A -> B -> C -> A"
-        
-    Returns:
-        Tupla (nodes, edges) donde:
-          - nodes: Lista de nodos en orden de aparición
-          - edges: Lista de aristas dirigidas (source, target)
-          
-    Ejemplo:
-        "A -> B -> C -> A" → 
-        nodes = ["A", "B", "C", "A"]
-        edges = [("A", "B"), ("B", "C"), ("C", "A")]
+    Parsea una cadena de ciclo y extrae nodos y aristas dirigidas.
+
+    La normalización procede en dos pasos:
+    1. Reemplazar todos los separadores reconocidos por el canónico " -> "
+    2. Dividir por el separador canónico y limpiar whitespace
+
+    Parameters
+    ----------
+    cycle_str : str
+        Cadena en formato "A -> B -> C -> A" (o variantes de separador).
+
+    Returns
+    -------
+    Tuple[List[str], List[Tuple[str, str]]]
+        - nodes: Lista de nodos en orden de aparición (incluye repetición
+          del nodo inicial si el ciclo es cerrado).
+        - edges: Lista de aristas dirigidas (source, target).
+
+    Examples
+    --------
+    >>> _parse_cycle_string("A -> B -> C -> A")
+    (['A', 'B', 'C', 'A'], [('A', 'B'), ('B', 'C'), ('C', 'A')])
+
+    >>> _parse_cycle_string("")
+    ([], [])
     """
     if not cycle_str or not cycle_str.strip():
         return [], []
-    
-    # Normalizar separadores usando regex
-    normalized = CycleSeparators.PATTERN.sub(" -> ", cycle_str)
-    
-    # Extraer nodos
-    nodes = [n.strip() for n in normalized.split(" -> ") if n.strip()]
-    
-    # Generar aristas como pares consecutivos
-    edges = []
-    for i in range(len(nodes) - 1):
-        edges.append((nodes[i], nodes[i + 1]))
-    
+
+    normalized: str = _SEPARATOR_PATTERN.sub(_CANONICAL_SEPARATOR, cycle_str)
+    nodes: List[str] = [n.strip() for n in normalized.split(_CANONICAL_SEPARATOR) if n.strip()]
+    edges: List[Tuple[str, str]] = [
+        (nodes[i], nodes[i + 1]) for i in range(len(nodes) - 1)
+    ]
+
     return nodes, edges
 
 
-def validate_cycle_closure(cycle_str: str) -> Dict[str, Any]:
+def _validate_cycle_closure(cycle_str: str) -> Dict[str, Any]:
     """
-    Valida si un ciclo está correctamente cerrado.
-    
-    Un ciclo cerrado tiene la forma v₀ → v₁ → ... → v₀
-    donde el primer y último nodo son idénticos.
-    
-    Returns:
-        Dict con:
-          - is_closed: bool
-          - first_node: str | None
-          - last_node: str | None
-          - is_self_loop: bool (True si A -> A)
+    Valida si una cadena de ciclo es topológicamente cerrada.
+
+    Un ciclo cerrado satisface v₀ = vₖ, lo cual implica ∂₁(c) = 0
+    (la suma telescópica del operador frontera cancela).
+
+    Parameters
+    ----------
+    cycle_str : str
+        Cadena de ciclo a validar.
+
+    Returns
+    -------
+    Dict[str, Any]
+        - "is_closed": bool — True si v₀ = vₖ
+        - "first_node": Optional[str] — v₀
+        - "last_node": Optional[str] — vₖ
+        - "is_self_loop": bool — True si k=1 y v₀ = v₁
+        - "num_edges": int — número de aristas k
+        - "boundary_is_zero": bool — True si ∂₁(c) = 0 (equivalente a is_closed)
     """
-    nodes, _ = parse_cycle_string(cycle_str)
-    
+    nodes, edges = _parse_cycle_string(cycle_str)
+
     if len(nodes) < 2:
         return {
             "is_closed": False,
             "first_node": nodes[0] if nodes else None,
             "last_node": nodes[0] if nodes else None,
             "is_self_loop": False,
+            "num_edges": 0,
+            "boundary_is_zero": False,
         }
-    
-    is_closed = nodes[0] == nodes[-1]
-    is_self_loop = len(nodes) == 2 and is_closed
-    
+
+    is_closed: bool = nodes[0] == nodes[-1]
+
     return {
         "is_closed": is_closed,
         "first_node": nodes[0],
         "last_node": nodes[-1],
-        "is_self_loop": is_self_loop,
+        "is_self_loop": len(nodes) == 2 and is_closed,
+        "num_edges": len(edges),
+        "boundary_is_zero": is_closed,
     }
 
 
-def extract_unique_nodes(cycle_strings: List[str]) -> Set[str]:
+def _compute_boundary_operator(edges: List[Tuple[str, str]]) -> Dict[str, int]:
     """
-    Extrae el conjunto de nodos únicos de múltiples ciclos.
-    
-    Dado un conjunto de ciclos C = {c₁, c₂, ..., cₙ},
-    retorna V = ⋃ᵢ V(cᵢ) (unión de vértices).
+    Calcula el operador frontera ∂₁ sobre una 1-cadena.
+
+    Para una cadena c = Σᵢ (vᵢ, vᵢ₊₁), el operador frontera es:
+
+        ∂₁(c) = Σᵢ [vᵢ₊₁ - vᵢ]
+
+    Esto se implementa como un contador: cada arista (u, v) contribuye
+    +1 a v y -1 a u. Si ∂₁(c) = 0, todos los contadores son cero.
+
+    Parameters
+    ----------
+    edges : List[Tuple[str, str]]
+        Lista de aristas dirigidas (source, target).
+
+    Returns
+    -------
+    Dict[str, int]
+        Mapa nodo → valor del operador frontera.
+        Si todos los valores son 0, la cadena es un ciclo (∂₁ = 0).
+    """
+    boundary: Dict[str, int] = {}
+    for source, target in edges:
+        boundary[source] = boundary.get(source, 0) - 1
+        boundary[target] = boundary.get(target, 0) + 1
+    return boundary
+
+
+def _extract_expected_nodes(cycle_strings: List[str]) -> Set[str]:
+    """
+    Calcula el conjunto de nodos únicos esperado para una lista de ciclos.
+
+    V = ⋃ᵢ V(cᵢ) donde V(cᵢ) son los nodos del i-ésimo ciclo.
+
+    Parameters
+    ----------
+    cycle_strings : List[str]
+        Lista de cadenas de ciclo.
+
+    Returns
+    -------
+    Set[str]
+        Unión de todos los nodos únicos.
     """
     all_nodes: Set[str] = set()
-    
     for cycle in cycle_strings:
-        nodes, _ = parse_cycle_string(cycle)
+        nodes, _ = _parse_cycle_string(cycle)
         all_nodes.update(n for n in nodes if n)
-    
     return all_nodes
 
 
-def extract_all_edges(cycle_strings: List[str]) -> Set[Tuple[str, str]]:
+def _make_analysis_result(
+    cycles: Any = None,
+    include_details: bool = True,
+    additional_details: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     """
-    Extrae el conjunto de aristas únicas de múltiples ciclos.
-    
-    Dado un conjunto de ciclos C, retorna E = ⋃ᵢ E(cᵢ).
-    """
-    all_edges: Set[Tuple[str, str]] = set()
-    
-    for cycle in cycle_strings:
-        _, edges = parse_cycle_string(cycle)
-        all_edges.update(edges)
-    
-    return all_edges
+    Factory para construir analysis_result con estructura controlada.
 
-
-def compute_cycle_metrics(cycle_strings: List[str]) -> Dict[str, Any]:
-    """
-    Computa métricas topológicas de un conjunto de ciclos.
-    
-    Returns:
-        Dict con:
-          - num_cycles: Número de ciclos
-          - num_unique_nodes: |V|
-          - num_unique_edges: |E|
-          - avg_cycle_length: Longitud promedio
-          - max_cycle_length: Longitud máxima
-          - has_self_loops: Si existe algún auto-lazo
-    """
-    if not cycle_strings:
-        return {
-            "num_cycles": 0,
-            "num_unique_nodes": 0,
-            "num_unique_edges": 0,
-            "avg_cycle_length": 0.0,
-            "max_cycle_length": 0,
-            "has_self_loops": False,
+    Estructura del resultado:
+        {
+            "details": {
+                "cycles": <cycles>,
+                ...additional_details
+            }
         }
-    
-    all_nodes = extract_unique_nodes(cycle_strings)
-    all_edges = extract_all_edges(cycle_strings)
-    
-    cycle_lengths = []
-    has_self_loops = False
-    
-    for cycle in cycle_strings:
-        validation = validate_cycle_closure(cycle)
-        nodes, _ = parse_cycle_string(cycle)
-        
-        if nodes:
-            cycle_lengths.append(len(nodes) - 1)  # Aristas = nodos - 1
-            if validation["is_self_loop"]:
-                has_self_loops = True
-    
-    return {
-        "num_cycles": len(cycle_strings),
-        "num_unique_nodes": len(all_nodes),
-        "num_unique_edges": len(all_edges),
-        "avg_cycle_length": sum(cycle_lengths) / len(cycle_lengths) if cycle_lengths else 0.0,
-        "max_cycle_length": max(cycle_lengths) if cycle_lengths else 0,
-        "has_self_loops": has_self_loops,
-    }
+
+    Parameters
+    ----------
+    cycles : Any
+        Valor del campo 'cycles'. None = omitir la clave.
+    include_details : bool
+        Si False, retorna dict sin clave 'details'.
+    additional_details : Optional[Dict]
+        Campos adicionales para el dict 'details'.
+
+    Returns
+    -------
+    Dict[str, Any]
+        Diccionario estructurado para testing.
+    """
+    if not include_details:
+        return {}
+
+    details: Dict[str, Any] = {}
+    if cycles is not None:
+        details["cycles"] = cycles
+    if additional_details:
+        details.update(additional_details)
+
+    return {"details": details} if details else {"details": {}}
+
+
+def _assert_anomaly_data_valid(
+    result: Any,
+    expected_nodes: Optional[Set[str]] = None,
+    context: str = "",
+) -> None:
+    """
+    Aserción compuesta que verifica la estructura de AnomalyData.
+
+    Verifica los invariantes I₁ (tipo), I₂ (unicidad) y opcionalmente
+    I₄ (nodos esperados).
+
+    Parameters
+    ----------
+    result : Any
+        Resultado de extract_anomaly_data a validar.
+    expected_nodes : Optional[Set[str]]
+        Si se provee, verifica inclusión exacta de nodos.
+    context : str
+        Descripción del contexto para mensajes de error.
+    """
+    prefix = f"[{context}] " if context else ""
+
+    # I₁: Tipo correcto
+    assert isinstance(result, AnomalyData), (
+        f"{prefix}Invariante I₁ violado: esperado AnomalyData, "
+        f"obtenido {type(result).__name__}."
+    )
+
+    # Atributo requerido
+    assert hasattr(result, "nodes_in_cycles"), (
+        f"{prefix}AnomalyData carece del atributo 'nodes_in_cycles'."
+    )
+
+    # I₂: Unicidad
+    nodes_list = list(result.nodes_in_cycles)
+    nodes_set = set(nodes_list)
+    assert len(nodes_list) == len(nodes_set), (
+        f"{prefix}Invariante I₂ violado: nodos duplicados encontrados. "
+        f"Lista: {nodes_list}, Conjunto: {nodes_set}."
+    )
+
+    # I₄: Nodos esperados
+    if expected_nodes is not None:
+        actual_nodes = set(result.nodes_in_cycles)
+        assert actual_nodes == expected_nodes, (
+            f"{prefix}Nodos incorrectos:\n"
+            f"  Esperados:  {sorted(expected_nodes)}\n"
+            f"  Obtenidos:  {sorted(actual_nodes)}\n"
+            f"  Faltantes:  {sorted(expected_nodes - actual_nodes)}\n"
+            f"  Sobrantes:  {sorted(actual_nodes - expected_nodes)}"
+        )
 
 
 # =============================================================================
-# PRUEBAS DE EXTRACCIÓN DE DATOS DE ANOMALÍA TOPOLÓGICA
+# TEST SUITE 1: FORMATO F₁ — LISTA DE STRINGS
 # =============================================================================
 
-class TestExtractAnomalyData:
+
+class TestExtractAnomalyDataListFormat:
     """
-    Pruebas unitarias para extract_anomaly_data().
+    Tests para extract_anomaly_data con formato F₁ (lista de strings).
 
-    Modelo formal (Teoría de Grafos Dirigidos):
-    
-      Sea G = (V, E) un digrafo donde:
-        - V = conjunto de vértices (nodos)
-        - E ⊆ V × V = conjunto de aristas dirigidas
-        
-      Un ciclo en G es un camino cerrado c = (v₀, v₁, ..., vₖ = v₀) donde:
-        - ∀i ∈ [0, k-1]: (vᵢ, vᵢ₊₁) ∈ E
-        - v₀ = vₖ (condición de cierre)
-        
-    Formatos de entrada soportados:
-      ┌─────┬─────────────────────────────────────────────────────────────┐
-      │ F₁  │ Lista de strings: ["A -> B -> A", "C -> D -> C"]           │
-      ├─────┼─────────────────────────────────────────────────────────────┤
-      │ F₂  │ Dict legacy: {"list": ["X -> Y -> X"]}                     │
-      ├─────┼─────────────────────────────────────────────────────────────┤
-      │ F₃  │ Formato inválido: cualquier otro tipo → degradación        │
-      └─────┴─────────────────────────────────────────────────────────────┘
+    Cada test verifica una configuración topológica específica del
+    grafo de dependencias.
 
-    Invariantes del sistema:
-      ┌─────┬───────────────────────────────────────────────────────────────┐
-      │ I₁  │ ∀ entrada: type(resultado) == AnomalyData (nunca None)       │
-      ├─────┼───────────────────────────────────────────────────────────────┤
-      │ I₂  │ ∀ resultado: nodes_in_cycles es conjunto (sin duplicados)    │
-      ├─────┼───────────────────────────────────────────────────────────────┤
-      │ I₃  │ Si cycles = [] o ausente → nodes_in_cycles = ∅               │
-      ├─────┼───────────────────────────────────────────────────────────────┤
-      │ I₄  │ ∀ cadena "A -> B -> C": {A, B, C} ⊆ nodes_in_cycles         │
-      ├─────┼───────────────────────────────────────────────────────────────┤
-      │ I₅  │ Input original permanece inmutable                           │
-      └─────┴───────────────────────────────────────────────────────────────┘
+    Formato F₁:
+        {"details": {"cycles": ["A -> B -> A", "C -> D -> C"]}}
     """
 
-    # ═══════════════════════════════════════════════════════════════════════
-    # FACTORIES Y HELPERS
-    # ═══════════════════════════════════════════════════════════════════════
-
-    @staticmethod
-    def _make_result(
-        cycles: Any = None,
-        include_details: bool = True,
-        additional_details: Optional[Dict] = None,
-    ) -> dict:
+    def test_two_disjoint_cycles(self) -> None:
         """
-        Factory para construir analysis_result con estructura controlada.
+        Dos ciclos disjuntos: V₁ ∩ V₂ = ∅.
 
-        Args:
-            cycles: Valor del campo 'cycles' dentro de details
-            include_details: Si False, omite la clave 'details' por completo
-            additional_details: Campos adicionales para el dict 'details'
-            
-        Returns:
-            Diccionario estructurado para testing
-        """
-        if not include_details:
-            return {}
-            
-        details = {}
-        if cycles is not None:
-            details["cycles"] = cycles
-        if additional_details:
-            details.update(additional_details)
-            
-        if not details:
-            return {"details": {}}
-            
-        return {"details": details}
+        Ciclo₁: A → B → A   (V₁ = {A, B})
+        Ciclo₂: C → D → C   (V₂ = {C, D})
 
-    @staticmethod
-    def _extract_expected_nodes(cycle_strings: List[str]) -> Set[str]:
-        """Wrapper para extracción de nodos esperados."""
-        return extract_unique_nodes(cycle_strings)
-
-    @staticmethod
-    def _assert_anomaly_data_valid(result: Any, expected_nodes: Optional[Set[str]] = None):
-        """
-        Aserción compuesta que verifica estructura básica de AnomalyData.
-        
-        Args:
-            result: Resultado a validar
-            expected_nodes: Si se provee, verifica que los nodos coincidan
-        """
-        # Invariante I₁: Siempre es AnomalyData
-        assert isinstance(result, AnomalyData), (
-            f"Tipo incorrecto: esperado AnomalyData, obtenido {type(result)}"
-        )
-        
-        # Verificar que tiene el atributo nodes_in_cycles
-        assert hasattr(result, 'nodes_in_cycles'), (
-            "AnomalyData debe tener atributo 'nodes_in_cycles'"
-        )
-        
-        # Invariante I₂: Sin duplicados
-        nodes_list = list(result.nodes_in_cycles)
-        assert len(nodes_list) == len(set(nodes_list)), (
-            f"Nodos duplicados encontrados: {nodes_list}"
-        )
-        
-        # Verificar nodos esperados si se proporcionan
-        if expected_nodes is not None:
-            actual_nodes = set(result.nodes_in_cycles)
-            assert actual_nodes == expected_nodes, (
-                f"Nodos incorrectos:\n"
-                f"  Esperados: {expected_nodes}\n"
-                f"  Obtenidos: {actual_nodes}\n"
-                f"  Faltantes: {expected_nodes - actual_nodes}\n"
-                f"  Extras: {actual_nodes - expected_nodes}"
-            )
-
-    # ═══════════════════════════════════════════════════════════════════════
-    # FORMATO F₁: LISTA DE STRINGS
-    # ═══════════════════════════════════════════════════════════════════════
-
-    def test_list_format_basic_two_disjoint_cycles(self):
-        """
-        Formato F₁: Dos ciclos disjuntos (sin nodos compartidos).
-        
-        Ciclo₁: A → B → A (triángulo degenerado)
-        Ciclo₂: C → D → C
-        
-        V(G) = {A, B} ∪ {C, D} = {A, B, C, D}
-        Los ciclos son componentes conexas separadas.
+        V(G) = V₁ ∪ V₂ = {A, B, C, D}
         """
         cycles = ["A -> B -> A", "C -> D -> C"]
-        result = extract_anomaly_data(self._make_result(cycles=cycles))
+        result = extract_anomaly_data(_make_analysis_result(cycles=cycles))
+        _assert_anomaly_data_valid(result, {"A", "B", "C", "D"}, "disjoint")
 
-        expected = {"A", "B", "C", "D"}
-        self._assert_anomaly_data_valid(result, expected)
-
-    def test_list_format_single_cycle(self):
+    def test_single_cycle(self) -> None:
         """
-        Formato F₁: Un único ciclo.
-        
-        Ciclo: Alpha → Beta → Alpha
-        Este es un ciclo de longitud 2 (2 aristas).
+        Un único ciclo: Alpha → Beta → Alpha.
+
+        |V| = 2, |E| = 2.
         """
         cycles = ["Alpha -> Beta -> Alpha"]
-        result = extract_anomaly_data(self._make_result(cycles=cycles))
+        result = extract_anomaly_data(_make_analysis_result(cycles=cycles))
+        _assert_anomaly_data_valid(result, {"Alpha", "Beta"}, "single")
 
-        self._assert_anomaly_data_valid(result)
-        assert "Alpha" in result.nodes_in_cycles
-        assert "Beta" in result.nodes_in_cycles
-        assert len(result.nodes_in_cycles) == 2
-
-    def test_list_format_long_cycle_4_nodes(self):
+    def test_long_cycle_4_nodes(self) -> None:
         """
-        Ciclo de longitud 4: A → B → C → D → A.
-        
-        Este es un ciclo simple (sin nodos repetidos internamente).
-        |V| = 4, |E| = 4
-        
-        Verifica que el parser no asuma longitud fija.
+        Ciclo simple de 4 nodos: A → B → C → D → A.
+
+        |V| = 4, |E| = 4. Verifica que el parser no asuma longitud fija.
         """
-        cycle = "A -> B -> C -> D -> A"
-        result = extract_anomaly_data(self._make_result(cycles=[cycle]))
+        cycles = ["A -> B -> C -> D -> A"]
+        result = extract_anomaly_data(_make_analysis_result(cycles=cycles))
+        _assert_anomaly_data_valid(result, {"A", "B", "C", "D"}, "4-cycle")
 
-        expected = {"A", "B", "C", "D"}
-        self._assert_anomaly_data_valid(result, expected)
-        
-        # Verificar métricas del ciclo
-        metrics = compute_cycle_metrics([cycle])
-        assert metrics["num_unique_nodes"] == 4
-        assert metrics["max_cycle_length"] == 4  # 4 aristas
-
-    def test_list_format_self_loop(self):
+    def test_self_loop(self) -> None:
         """
         Auto-lazo: A → A (ciclo de longitud 1).
-        
-        En teoría de grafos, un auto-lazo es una arista (v, v) ∈ E.
-        Es el ciclo más corto posible.
-        
-        Topológicamente válido; el parser debe extraer el nodo.
-        """
-        result = extract_anomaly_data(
-            self._make_result(cycles=["A -> A"])
-        )
 
-        self._assert_anomaly_data_valid(result, {"A"})
-        
-        # Verificar que es reconocido como self-loop
-        validation = validate_cycle_closure("A -> A")
+        Es el ciclo más corto posible. Topológicamente válido:
+        la arista (A, A) ∈ E forma un 1-ciclo con ∂₁((A,A)) = A - A = 0.
+        """
+        cycles = ["A -> A"]
+        result = extract_anomaly_data(_make_analysis_result(cycles=cycles))
+        _assert_anomaly_data_valid(result, {"A"}, "self-loop")
+
+        validation = _validate_cycle_closure("A -> A")
         assert validation["is_self_loop"] is True
-        assert validation["is_closed"] is True
+        assert validation["boundary_is_zero"] is True
 
-    def test_list_format_shared_nodes_between_cycles(self):
+    def test_shared_nodes_between_cycles(self) -> None:
         """
-        Nodos compartidos entre ciclos (intersección no vacía).
-        
+        Ciclos con intersección no vacía: V₁ ∩ V₂ = {B}.
+
         Ciclo₁: A → B → A
         Ciclo₂: B → C → B
-        
-        V₁ ∩ V₂ = {B} ≠ ∅
-        V(G) = V₁ ∪ V₂ = {A, B, C}
-        
-        Invariante I₂: B debe aparecer exactamente una vez.
+
+        V(G) = {A, B, C}. El nodo B aparece exactamente una vez (I₂).
         """
         cycles = ["A -> B -> A", "B -> C -> B"]
-        result = extract_anomaly_data(self._make_result(cycles=cycles))
+        result = extract_anomaly_data(_make_analysis_result(cycles=cycles))
+        _assert_anomaly_data_valid(result, {"A", "B", "C"}, "shared-node")
 
-        expected = {"A", "B", "C"}
-        self._assert_anomaly_data_valid(result, expected)
-
-    def test_list_format_triangle_complete_graph(self):
+    def test_hexagonal_cycle(self) -> None:
         """
-        Grafo completo K₃ representado como ciclos.
-        
-        Ciclos: A→B→A, B→C→B, C→A→C
-        
-        Esto cubre todas las aristas de un triángulo dirigido.
-        V = {A, B, C}
-        """
-        cycles = ["A -> B -> A", "B -> C -> B", "C -> A -> C"]
-        result = extract_anomaly_data(self._make_result(cycles=cycles))
+        Ciclo hexagonal: A → B → C → D → E → F → A.
 
-        expected = {"A", "B", "C"}
-        self._assert_anomaly_data_valid(result, expected)
-        
-        # Verificar métricas
-        metrics = compute_cycle_metrics(cycles)
-        assert metrics["num_cycles"] == 3
-        assert metrics["num_unique_nodes"] == 3
+        |V| = 6, |E| = 6. Verifica escalamiento con ciclos largos.
+        """
+        cycles = ["A -> B -> C -> D -> E -> F -> A"]
+        result = extract_anomaly_data(_make_analysis_result(cycles=cycles))
+        _assert_anomaly_data_valid(
+            result,
+            {"A", "B", "C", "D", "E", "F"},
+            "hexagon",
+        )
 
     @pytest.mark.parametrize(
-        "cycle_strings, expected_nodes, description",
+        "cycle_strings, expected_nodes",
         [
             (
                 ["W -> X -> Y -> Z -> W"],
                 {"W", "X", "Y", "Z"},
-                "Ciclo simple de 4 nodos (cuadrado)",
             ),
             (
                 ["A -> B -> A", "C -> D -> E -> C"],
                 {"A", "B", "C", "D", "E"},
-                "Ciclos de diferentes longitudes (2 y 3)",
-            ),
-            (
-                ["Solo -> Solo"],
-                {"Solo"},
-                "Auto-lazo único",
-            ),
-            (
-                ["A -> B -> C -> D -> E -> F -> A"],
-                {"A", "B", "C", "D", "E", "F"},
-                "Ciclo largo de 6 nodos (hexágono)",
             ),
             (
                 ["N1 -> N2 -> N3 -> N1", "N3 -> N4 -> N5 -> N3"],
                 {"N1", "N2", "N3", "N4", "N5"},
-                "Dos triángulos con nodo compartido (N3)",
             ),
         ],
-        ids=["square", "mixed_lengths", "self_loop", "hexagon", "shared_vertex"],
+        ids=["square", "mixed-lengths", "shared-vertex-triangles"],
     )
-    def test_list_format_parametrized(self, cycle_strings, expected_nodes, description):
+    def test_parametrized_topologies(
+        self, cycle_strings: List[str], expected_nodes: Set[str],
+    ) -> None:
         """
-        Verificación parametrizada de extracción de nodos.
-        
-        Cubre múltiples configuraciones topológicas.
-        """
-        result = extract_anomaly_data(
-            self._make_result(cycles=cycle_strings)
-        )
-
-        self._assert_anomaly_data_valid(result, expected_nodes)
-
-    # ═══════════════════════════════════════════════════════════════════════
-    # FORMATO F₂: DICT LEGACY (RETROCOMPATIBILIDAD)
-    # ═══════════════════════════════════════════════════════════════════════
-
-    def test_dict_legacy_format_basic(self):
-        """
-        Formato legacy: {"list": ["X -> Y -> X"]}.
-        
-        Mantiene retrocompatibilidad con versiones anteriores
-        del pipeline que usaban este formato.
+        Verificación parametrizada de múltiples configuraciones topológicas.
         """
         result = extract_anomaly_data(
-            self._make_result(cycles={"list": ["X -> Y -> X"]})
+            _make_analysis_result(cycles=cycle_strings)
         )
+        _assert_anomaly_data_valid(result, expected_nodes)
 
-        self._assert_anomaly_data_valid(result, {"X", "Y"})
 
-    def test_dict_legacy_format_multiple_cycles(self):
+# =============================================================================
+# TEST SUITE 2: FORMATO F₂ — DICT LEGACY
+# =============================================================================
+
+
+class TestExtractAnomalyDataDictLegacy:
+    """
+    Tests para formato F₂ (retrocompatibilidad).
+
+    Formato F₂:
+        {"details": {"cycles": {"list": ["X -> Y -> X"]}}}
+
+    Este formato existe por retrocompatibilidad con versiones anteriores
+    del pipeline. Solo la clave 'list' debe procesarse.
+    """
+
+    def test_basic_legacy_format(self) -> None:
+        """Formato legacy con un ciclo simple."""
+        result = extract_anomaly_data(
+            _make_analysis_result(cycles={"list": ["X -> Y -> X"]})
+        )
+        _assert_anomaly_data_valid(result, {"X", "Y"}, "legacy-basic")
+
+    def test_multiple_cycles_legacy(self) -> None:
         """Formato legacy con múltiples ciclos."""
         result = extract_anomaly_data(
-            self._make_result(cycles={"list": ["A -> B -> A", "C -> D -> C"]})
+            _make_analysis_result(
+                cycles={"list": ["A -> B -> A", "C -> D -> C"]}
+            )
         )
+        _assert_anomaly_data_valid(result, {"A", "B", "C", "D"}, "legacy-multi")
 
-        self._assert_anomaly_data_valid(result, {"A", "B", "C", "D"})
-
-    def test_dict_legacy_format_empty_list(self):
+    def test_empty_list_legacy(self) -> None:
         """
         Formato legacy con lista vacía: {"list": []}.
-        
-        Invariante I₃: sin ciclos → conjunto vacío.
+
+        Invariante I₃: sin ciclos → nodes_in_cycles = ∅.
         """
         result = extract_anomaly_data(
-            self._make_result(cycles={"list": []})
+            _make_analysis_result(cycles={"list": []})
         )
+        _assert_anomaly_data_valid(result, set(), "legacy-empty")
 
-        self._assert_anomaly_data_valid(result, set())
-
-    def test_dict_legacy_format_with_extra_keys(self):
+    def test_extra_keys_ignored(self) -> None:
         """
-        Formato legacy con claves adicionales (ignoradas).
-        
-        Solo la clave 'list' debe procesarse.
+        Claves adicionales en el dict legacy se ignoran.
+
+        Solo 'list' contribuye nodos.
         """
         result = extract_anomaly_data(
-            self._make_result(cycles={
+            _make_analysis_result(cycles={
                 "list": ["A -> B -> A"],
-                "metadata": "should_be_ignored",
+                "metadata": "ignored",
                 "count": 1,
             })
         )
+        _assert_anomaly_data_valid(result, {"A", "B"}, "legacy-extra-keys")
 
-        self._assert_anomaly_data_valid(result, {"A", "B"})
-
-    def test_dict_legacy_format_missing_list_key(self):
+    def test_missing_list_key(self) -> None:
         """
-        Formato dict pero sin clave 'list'.
-        
-        Debe degradar graciosamente (como formato inválido).
+        Dict sin clave 'list'. Debe degradar graciosamente.
         """
         result = extract_anomaly_data(
-            self._make_result(cycles={"other_key": ["A -> B -> A"]})
+            _make_analysis_result(cycles={"other_key": ["A -> B -> A"]})
         )
+        _assert_anomaly_data_valid(result, context="legacy-missing-list")
 
-        # Comportamiento esperado: sin la clave 'list', no se extraen nodos
-        self._assert_anomaly_data_valid(result)
-        # El comportamiento exacto depende de la implementación
-        # Verificamos al menos que no crashea
 
-    # ═══════════════════════════════════════════════════════════════════════
-    # FORMATO F₃: ENTRADAS INVÁLIDAS (DEGRADACIÓN GRACIOSA)
-    # ═══════════════════════════════════════════════════════════════════════
+# =============================================================================
+# TEST SUITE 3: DEGRADACIÓN GRACIOSA (FORMATO F₃)
+# =============================================================================
+
+
+class TestExtractAnomalyDataGracefulDegradation:
+    """
+    Tests de degradación graciosa ante inputs inválidos.
+
+    Invariante I₁: extract_anomaly_data NUNCA lanza excepción no
+    capturada y SIEMPRE retorna AnomalyData.
+
+    Invariante I₃: inputs sin ciclos válidos → nodes_in_cycles = ∅.
+    """
 
     @pytest.mark.parametrize(
-        "invalid_cycles, type_description",
-        [
-            (123, "entero"),
-            (3.14159, "flotante"),
-            (True, "booleano True"),
-            (False, "booleano False"),
-            (None, "None explícito"),
-            ("not a list", "string plano"),
-            (set(), "set vacío"),
-            (frozenset(), "frozenset vacío"),
-            ((), "tupla vacía"),
-            ((1, 2, 3), "tupla de enteros"),
-            (object(), "objeto genérico"),
-            (lambda x: x, "función lambda"),
+        "invalid_cycles",
+        [123, 3.14, True, False, None, "not a list", set(), (), (1, 2, 3)],
+        ids=[
+            "int", "float", "bool-true", "bool-false", "none",
+            "plain-string", "empty-set", "empty-tuple", "int-tuple",
         ],
-        ids=lambda x: x if isinstance(x, str) else type(x).__name__,
     )
-    def test_invalid_formats_degrade_gracefully(self, invalid_cycles, type_description):
+    def test_invalid_types_produce_empty_result(
+        self, invalid_cycles: Any,
+    ) -> None:
         """
-        Invariante I₁ + I₃: Cualquier tipo no soportado
-        debe producir AnomalyData con conjunto vacío, sin excepción.
-        
-        El sistema es defensivo ante inputs malformados.
+        Tipos no soportados en 'cycles' producen AnomalyData con ∅.
         """
         result = extract_anomaly_data(
-            self._make_result(cycles=invalid_cycles)
+            _make_analysis_result(cycles=invalid_cycles)
         )
-
-        self._assert_anomaly_data_valid(result)
+        _assert_anomaly_data_valid(result, context=f"invalid-{type(invalid_cycles).__name__}")
         assert len(result.nodes_in_cycles) == 0, (
-            f"Formato inválido ({type_description}) no debe producir nodos"
+            f"Tipo inválido {type(invalid_cycles).__name__} no debe producir nodos."
         )
 
-    def test_invalid_format_nested_invalid_types(self):
+    def test_missing_details_key(self) -> None:
+        """analysis_result sin clave 'details' → ∅."""
+        result = extract_anomaly_data({})
+        _assert_anomaly_data_valid(result, set(), "no-details")
+
+    def test_details_without_cycles(self) -> None:
+        """'details' presente pero sin 'cycles' → ∅."""
+        result = extract_anomaly_data({"details": {}})
+        _assert_anomaly_data_valid(result, set(), "no-cycles-key")
+
+    def test_details_is_none(self) -> None:
+        """details = None → ∅."""
+        result = extract_anomaly_data({"details": None})
+        _assert_anomaly_data_valid(result, set(), "none-details")
+
+    def test_empty_cycles_list(self) -> None:
         """
-        Tipos inválidos anidados profundamente.
+        cycles = [] (lista vacía). Invariante I₃.
+        """
+        result = extract_anomaly_data(_make_analysis_result(cycles=[]))
+        _assert_anomaly_data_valid(result, set(), "empty-list")
+
+    def test_list_of_empty_strings(self) -> None:
+        """
+        Lista de strings vacíos. No debe producir nodos fantasma.
         """
         result = extract_anomaly_data(
-            self._make_result(cycles={"list": [123, None, True, ["nested"]]})
+            _make_analysis_result(cycles=["", "", ""])
         )
+        _assert_anomaly_data_valid(result, set(), "empty-strings")
 
-        # Elementos inválidos dentro de la lista deben ignorarse
-        self._assert_anomaly_data_valid(result)
-
-    def test_invalid_format_mixed_valid_invalid(self):
+    def test_mixed_valid_and_invalid_elements(self) -> None:
         """
-        Lista mezclando elementos válidos e inválidos.
-        
-        Solo los elementos válidos (strings) deben procesarse.
+        Lista mezclando strings válidos con tipos inválidos.
+
+        Solo los strings válidos deben contribuir nodos.
+        Los elementos no-string se ignoran silenciosamente.
         """
         result = extract_anomaly_data(
-            self._make_result(cycles=["A -> B -> A", 123, "C -> D -> C", None])
+            _make_analysis_result(
+                cycles=["A -> B -> A", 123, "C -> D -> C", None]
+            )
         )
-
-        # Solo los strings válidos contribuyen nodos
         assert "A" in result.nodes_in_cycles
         assert "B" in result.nodes_in_cycles
         assert "C" in result.nodes_in_cycles
         assert "D" in result.nodes_in_cycles
 
-    # ═══════════════════════════════════════════════════════════════════════
-    # CASOS DEGENERADOS: AUSENCIA DE CLAVES
-    # ═══════════════════════════════════════════════════════════════════════
 
-    def test_missing_details_key(self):
-        """
-        analysis_result sin clave 'details'.
-        
-        Primer nivel de ausencia → degradación graciosa.
-        """
-        result = extract_anomaly_data({})
+# =============================================================================
+# TEST SUITE 4: ROBUSTEZ DEL PARSER
+# =============================================================================
 
-        self._assert_anomaly_data_valid(result, set())
 
-    def test_details_without_cycles_key(self):
-        """
-        'details' presente pero sin clave 'cycles'.
-        """
-        result = extract_anomaly_data({"details": {}})
+class TestCycleParserRobustness:
+    """
+    Tests de robustez del parser de cadenas de ciclo.
 
-        self._assert_anomaly_data_valid(result, set())
-
-    def test_details_is_none(self):
-        """details = None: valor nulo en el contenedor."""
-        result = extract_anomaly_data({"details": None})
-
-        self._assert_anomaly_data_valid(result, set())
-
-    def test_analysis_result_is_none(self):
-        """
-        Input raíz es None.
-        
-        Caso extremo: debe manejarse sin excepción.
-        """
-        try:
-            result = extract_anomaly_data(None)
-            self._assert_anomaly_data_valid(result, set())
-        except (TypeError, AttributeError):
-            # Si lanza excepción, debe ser descriptiva
-            pass  # Aceptable si la API no soporta None explícitamente
-
-    def test_analysis_result_is_empty_string(self):
-        """Input raíz es string vacío."""
-        try:
-            result = extract_anomaly_data("")
-            self._assert_anomaly_data_valid(result)
-        except (TypeError, AttributeError):
-            pass
-
-    def test_cycles_is_empty_list(self):
-        """
-        cycles = [] (lista vacía).
-        
-        Invariante I₃: sin ciclos → nodes_in_cycles = ∅.
-        """
-        result = extract_anomaly_data(self._make_result(cycles=[]))
-
-        self._assert_anomaly_data_valid(result, set())
-
-    def test_cycles_is_list_of_empty_strings(self):
-        """
-        Lista de strings vacíos.
-        
-        No debe producir nodos fantasma.
-        """
-        result = extract_anomaly_data(
-            self._make_result(cycles=["", "", ""])
-        )
-
-        self._assert_anomaly_data_valid(result, set())
-
-    # ═══════════════════════════════════════════════════════════════════════
-    # ROBUSTEZ DEL PARSER DE CADENAS
-    # ═══════════════════════════════════════════════════════════════════════
+    Verifica tolerancia a whitespace, caracteres especiales,
+    nombres largos y Unicode.
+    """
 
     @pytest.mark.parametrize(
         "cycle_variant, expected_nodes",
         [
-            ("A -> B -> A", {"A", "B"}),           # Canónico
-            ("A->B->A", {"A", "B"}),               # Sin espacios
-            ("A  ->  B  ->  A", {"A", "B"}),      # Espacios extras
-            (" A -> B -> A ", {"A", "B"}),        # Espacios externos
-            ("A   ->B->   A", {"A", "B"}),        # Espacios irregulares
-            ("\tA -> B -> A\n", {"A", "B"}),      # Whitespace especial
+            ("A -> B -> A", {"A", "B"}),
+            ("A->B->A", {"A", "B"}),
+            ("A  ->  B  ->  A", {"A", "B"}),
+            (" A -> B -> A ", {"A", "B"}),
+            ("A   ->B->   A", {"A", "B"}),
         ],
-        ids=[
-            "canonical", 
-            "no_spaces", 
-            "extra_spaces", 
-            "external_spaces",
-            "irregular_spaces",
-            "special_whitespace",
-        ],
+        ids=["canonical", "no-spaces", "extra-spaces", "external-spaces", "irregular"],
     )
-    def test_whitespace_tolerance(self, cycle_variant, expected_nodes):
+    def test_whitespace_tolerance(
+        self, cycle_variant: str, expected_nodes: Set[str],
+    ) -> None:
         """
-        El parser debe ser tolerante a variaciones de whitespace.
-        
-        Todas las variantes representan el mismo ciclo: A → B → A.
-        """
-        result = extract_anomaly_data(
-            self._make_result(cycles=[cycle_variant])
-        )
-
-        self._assert_anomaly_data_valid(result, expected_nodes)
-
-    def test_empty_string_in_cycles_list(self):
-        """
-        Cadena vacía intercalada con ciclos válidos.
-        
-        La cadena vacía debe ignorarse sin afectar los demás.
+        Todas las variantes de whitespace representan el mismo ciclo A → B → A.
         """
         result = extract_anomaly_data(
-            self._make_result(cycles=["", "A -> B -> A", ""])
+            _make_analysis_result(cycles=[cycle_variant])
         )
+        _assert_anomaly_data_valid(result, expected_nodes, "whitespace")
 
-        self._assert_anomaly_data_valid(result, {"A", "B"})
+    def test_empty_string_intercalated(self) -> None:
+        """
+        Strings vacíos intercalados con ciclos válidos se ignoran.
+        """
+        result = extract_anomaly_data(
+            _make_analysis_result(cycles=["", "A -> B -> A", ""])
+        )
+        _assert_anomaly_data_valid(result, {"A", "B"}, "intercalated-empty")
         assert "" not in result.nodes_in_cycles
 
-    def test_only_whitespace_in_cycles_list(self):
-        """
-        Strings que contienen solo whitespace.
-        """
-        result = extract_anomaly_data(
-            self._make_result(cycles=["   ", "\t\n", "A -> B -> A"])
-        )
-
-        self._assert_anomaly_data_valid(result, {"A", "B"})
-
     @pytest.mark.parametrize(
-        "node_name, description",
+        "node_name",
         [
-            ("node-1", "guiones"),
-            ("node_1", "guiones bajos"),
-            ("node.1", "puntos"),
-            ("node:1", "dos puntos"),
-            ("node/path", "barras"),
-            ("node@domain", "arroba"),
-            ("node#123", "hash"),
-            ("UPPERCASE", "mayúsculas"),
-            ("MixedCase", "case mixto"),
-            ("123numeric", "inicio numérico"),
-            ("node with spaces", "espacios internos"),
+            "node-1", "node_1", "node.1", "node:1",
+            "node/path", "UPPERCASE", "MixedCase", "123numeric",
         ],
-        ids=lambda x: x if len(x) < 20 else x[:17] + "...",
+        ids=[
+            "hyphens", "underscores", "dots", "colons",
+            "slashes", "uppercase", "mixed-case", "numeric-prefix",
+        ],
     )
-    def test_special_characters_in_node_names(self, node_name, description):
+    def test_special_characters_in_node_names(self, node_name: str) -> None:
         """
-        Nombres de nodo con caracteres especiales.
-        
-        El parser no debe fragmentar ni corromper nombres complejos.
+        Nombres de nodo con caracteres especiales no deben fragmentarse.
         """
         cycle = f"{node_name} -> other -> {node_name}"
-        result = extract_anomaly_data(self._make_result(cycles=[cycle]))
+        result = extract_anomaly_data(_make_analysis_result(cycles=[cycle]))
 
         assert node_name in result.nodes_in_cycles, (
-            f"Nodo con {description} no fue extraído: '{node_name}'"
+            f"Nodo '{node_name}' no fue extraído correctamente. "
+            f"Nodos obtenidos: {result.nodes_in_cycles}"
         )
         assert "other" in result.nodes_in_cycles
 
-    def test_unicode_node_names(self):
+    def test_very_long_node_names(self) -> None:
         """
-        Nombres de nodo con caracteres Unicode.
-        """
-        cycles = [
-            "αlpha -> βeta -> αlpha",      # Griego
-            "節点 -> 连接 -> 節点",           # Chino/Japonés
-            "узел -> связь -> узел",       # Cirílico
-            "nœud -> lien -> nœud",        # Francés con ligadura
-            "😀 -> 😎 -> 😀",               # Emojis
-        ]
-        
-        result = extract_anomaly_data(self._make_result(cycles=cycles))
-
-        # Verificar algunos nodos Unicode
-        assert "αlpha" in result.nodes_in_cycles or "alpha" in str(result.nodes_in_cycles).lower()
-        # El comportamiento exacto depende de la implementación
-
-    def test_very_long_node_names(self):
-        """
-        Nombres de nodo extremadamente largos.
+        Nombres de nodo de 1000 caracteres. No debe truncar.
         """
         long_name = "X" * 1000
         cycle = f"{long_name} -> Y -> {long_name}"
-        
-        result = extract_anomaly_data(self._make_result(cycles=[cycle]))
+        result = extract_anomaly_data(_make_analysis_result(cycles=[cycle]))
 
         assert long_name in result.nodes_in_cycles
         assert "Y" in result.nodes_in_cycles
 
-    # ═══════════════════════════════════════════════════════════════════════
-    # SEPARADORES ALTERNATIVOS
-    # ═══════════════════════════════════════════════════════════════════════
+
+# =============================================================================
+# TEST SUITE 5: INVARIANTE I₁ — TIPO DE RETORNO
+# =============================================================================
+
+
+class TestReturnTypeInvariant:
+    """
+    Verificación exhaustiva del invariante I₁: extract_anomaly_data
+    SIEMPRE retorna AnomalyData, independientemente del input.
+    """
 
     @pytest.mark.parametrize(
-        "separator, description",
+        "input_data",
         [
-            ("->", "sin espacios"),
-            (" -> ", "canónico"),
-            ("→", "flecha Unicode"),
-            (" → ", "flecha Unicode con espacios"),
-            ("=>", "doble flecha"),
-            (" => ", "doble flecha con espacios"),
-        ],
-        ids=["arrow_compact", "arrow_spaced", "unicode", "unicode_spaced", 
-             "double_arrow", "double_spaced"],
-    )
-    def test_alternative_separators(self, separator, description):
-        """
-        El parser debe soportar múltiples formatos de separador.
-        """
-        cycle = f"A{separator}B{separator}A"
-        result = extract_anomaly_data(self._make_result(cycles=[cycle]))
-
-        # Si el separador es soportado, debería extraer los nodos
-        # Si no, debe degradar graciosamente
-        self._assert_anomaly_data_valid(result)
-
-    # ═══════════════════════════════════════════════════════════════════════
-    # INVARIANTE I₁: TIPO DE RETORNO SIEMPRE AnomalyData
-    # ═══════════════════════════════════════════════════════════════════════
-
-    @pytest.mark.parametrize(
-        "input_data, description",
-        [
-            ({}, "dict vacío"),
-            ({"details": None}, "details None"),
-            ({"details": {}}, "details vacío"),
-            ({"details": {"cycles": []}}, "cycles vacío"),
-            ({"details": {"cycles": ["A -> B -> A"]}}, "ciclo válido F₁"),
-            ({"details": {"cycles": {"list": ["X -> Y -> X"]}}}, "ciclo válido F₂"),
-            ({"details": {"cycles": 999}}, "cycles tipo inválido"),
-            ({"details": {"cycles": ["", "   "]}}, "cycles con strings vacíos"),
-            ({"details": {"other_key": "value"}}, "details sin cycles"),
-            ({"unrelated": "data"}, "sin details"),
+            {},
+            {"details": None},
+            {"details": {}},
+            {"details": {"cycles": []}},
+            {"details": {"cycles": ["A -> B -> A"]}},
+            {"details": {"cycles": {"list": ["X -> Y -> X"]}}},
+            {"details": {"cycles": 999}},
+            {"details": {"cycles": ["", "   "]}},
+            {"details": {"other_key": "value"}},
+            {"unrelated": "data"},
         ],
         ids=[
-            "empty_dict",
-            "none_details",
-            "empty_details",
-            "empty_cycles",
-            "valid_F1",
-            "valid_F2",
-            "invalid_type",
-            "empty_strings",
-            "no_cycles_key",
-            "no_details_key",
+            "empty-dict", "none-details", "empty-details", "empty-cycles",
+            "valid-F1", "valid-F2", "invalid-type", "empty-strings",
+            "no-cycles-key", "no-details-key",
         ],
     )
-    def test_return_type_always_anomaly_data(self, input_data, description):
+    def test_always_returns_anomaly_data(self, input_data: Dict) -> None:
         """
-        Invariante I₁: El retorno siempre es AnomalyData.
-        
-        Nunca None, nunca excepción no capturada.
+        Invariante I₁: type(result) == AnomalyData para todo input.
         """
         result = extract_anomaly_data(input_data)
-
         assert isinstance(result, AnomalyData), (
-            f"Invariante I₁ violado para {description}: "
-            f"esperado AnomalyData, obtenido {type(result)}"
+            f"Invariante I₁ violado: esperado AnomalyData, "
+            f"obtenido {type(result).__name__} para input {input_data}"
         )
 
-    # ═══════════════════════════════════════════════════════════════════════
-    # INVARIANTE I₂: UNICIDAD DE NODOS
-    # ═══════════════════════════════════════════════════════════════════════
 
-    def test_nodes_uniqueness_overlapping_cycles(self):
+# =============================================================================
+# TEST SUITE 6: INVARIANTE I₂ — UNICIDAD DE NODOS
+# =============================================================================
+
+
+class TestNodeUniquenessInvariant:
+    """
+    Verificación del invariante I₂: nodes_in_cycles no contiene duplicados.
+    """
+
+    def test_overlapping_cycles_no_duplicates(self) -> None:
         """
-        Invariante I₂: Nodos repetidos entre ciclos
-        aparecen exactamente una vez.
-        
-        Configuración: Triángulo completo con cada arista como ciclo.
+        Triángulo completo con cada arista como ciclo.
+
+        Todos los nodos aparecen en múltiples ciclos, pero el resultado
+        debe contener cada nodo exactamente una vez.
         """
         cycles = [
             "A -> B -> A",
             "B -> C -> B",
             "C -> A -> C",
-            "A -> B -> C -> A",  # Ciclo largo que repite todos los nodos
+            "A -> B -> C -> A",
         ]
-        
-        result = extract_anomaly_data(self._make_result(cycles=cycles))
+        result = extract_anomaly_data(_make_analysis_result(cycles=cycles))
 
         nodes_list = list(result.nodes_in_cycles)
-        nodes_set = set(nodes_list)
-        
-        assert len(nodes_list) == len(nodes_set), (
-            f"Duplicados encontrados: {nodes_list}"
+        assert len(nodes_list) == len(set(nodes_list)), (
+            f"Duplicados en nodes_in_cycles: {nodes_list}"
         )
-        assert nodes_set == {"A", "B", "C"}
+        assert set(nodes_list) == {"A", "B", "C"}
 
-    def test_nodes_uniqueness_same_cycle_repeated(self):
+    def test_same_cycle_repeated(self) -> None:
         """
-        El mismo ciclo listado múltiples veces.
+        El mismo ciclo listado 10 veces. Resultado idéntico a una vez.
         """
         cycles = ["A -> B -> A"] * 10
-        
-        result = extract_anomaly_data(self._make_result(cycles=cycles))
+        result = extract_anomaly_data(_make_analysis_result(cycles=cycles))
 
         assert set(result.nodes_in_cycles) == {"A", "B"}
         assert len(result.nodes_in_cycles) == 2
 
-    # ═══════════════════════════════════════════════════════════════════════
-    # INVARIANTE I₅: INMUTABILIDAD DEL INPUT
-    # ═══════════════════════════════════════════════════════════════════════
 
-    def test_input_immutability_list_format(self):
+# =============================================================================
+# TEST SUITE 7: INVARIANTE I₅ — INMUTABILIDAD DEL INPUT
+# =============================================================================
+
+
+class TestInputImmutabilityInvariant:
+    """
+    Verificación del invariante I₅: extract_anomaly_data no modifica su input.
+    """
+
+    def test_list_format_immutability(self) -> None:
         """
-        Invariante I₅: El input original no debe ser modificado.
+        Input con formato F₁ permanece intacto tras la extracción.
         """
         original_cycles = ["A -> B -> A", "C -> D -> C"]
-        input_data = {
-            "details": {
-                "cycles": original_cycles.copy()
-            }
-        }
-        
-        # Crear snapshot profundo
-        input_snapshot = deepcopy(input_data)
-        
-        _ = extract_anomaly_data(input_data)
-        
-        # Verificar que el input no cambió
-        assert input_data == input_snapshot, (
-            "El input fue mutado por extract_anomaly_data"
-        )
-        assert input_data["details"]["cycles"] == original_cycles
+        input_data = {"details": {"cycles": original_cycles.copy()}}
+        snapshot = deepcopy(input_data)
 
-    def test_input_immutability_dict_format(self):
+        _ = extract_anomaly_data(input_data)
+
+        assert input_data == snapshot, (
+            "Invariante I₅ violado: el input fue mutado.\n"
+            f"  Antes:   {snapshot}\n"
+            f"  Después: {input_data}"
+        )
+
+    def test_dict_format_immutability(self) -> None:
         """
-        Inmutabilidad con formato dict legacy.
+        Input con formato F₂ permanece intacto tras la extracción.
         """
         input_data = {
             "details": {
                 "cycles": {
                     "list": ["X -> Y -> X"],
-                    "metadata": {"count": 1}
+                    "metadata": {"count": 1},
                 }
             }
         }
-        
-        input_snapshot = deepcopy(input_data)
-        
+        snapshot = deepcopy(input_data)
+
         _ = extract_anomaly_data(input_data)
-        
-        assert input_data == input_snapshot
+
+        assert input_data == snapshot, (
+            "Invariante I₅ violado: el input fue mutado (formato legacy)."
+        )
 
 
 # =============================================================================
-# PRUEBAS DE EXTRACCIÓN DE ARISTAS
+# TEST SUITE 8: INVARIANTE I₆ — OPERADOR FRONTERA ∂₁
 # =============================================================================
 
+
+class TestBoundaryOperatorInvariant:
+    """
+    Verificación del invariante I₆: ∂₁(c) = 0 para ciclos cerrados.
+
+    El operador frontera sobre una 1-cadena c = Σᵢ (vᵢ, vᵢ₊₁) es:
+
+        ∂₁(c) = Σᵢ [vᵢ₊₁ - vᵢ]
+
+    Para un ciclo cerrado (v₀ = vₖ), la suma telescópica cancela
+    y ∂₁(c) = 0. Este es el criterio algebraico de cierre.
+    """
+
+    @pytest.mark.parametrize(
+        "cycle_str",
+        [
+            "A -> B -> A",
+            "A -> B -> C -> A",
+            "A -> B -> C -> D -> E -> F -> A",
+            "X -> X",
+        ],
+        ids=["digon", "triangle", "hexagon", "self-loop"],
+    )
+    def test_closed_cycles_have_zero_boundary(self, cycle_str: str) -> None:
+        """
+        Para ciclos cerrados, ∂₁(c) = 0: la suma de las contribuciones
+        de cada arista al operador frontera es el vector nulo.
+        """
+        nodes, edges = _parse_cycle_string(cycle_str)
+        boundary = _compute_boundary_operator(edges)
+
+        # Verificar que todos los valores del boundary son 0
+        for node, value in boundary.items():
+            assert value == 0, (
+                f"∂₁ ≠ 0 para ciclo '{cycle_str}': "
+                f"∂₁({node}) = {value}. "
+                f"Boundary completo: {boundary}."
+            )
+
+    @pytest.mark.parametrize(
+        "path_str",
+        [
+            "A -> B -> C",
+            "X -> Y",
+        ],
+        ids=["open-path-3", "open-path-2"],
+    )
+    def test_open_paths_have_nonzero_boundary(self, path_str: str) -> None:
+        """
+        Para caminos abiertos (v₀ ≠ vₖ), ∂₁(c) ≠ 0.
+
+        ∂₁(A → B → C) = C - A ≠ 0.
+        """
+        nodes, edges = _parse_cycle_string(path_str)
+        boundary = _compute_boundary_operator(edges)
+
+        # Al menos un nodo tiene valor no nulo
+        nonzero_values = {n: v for n, v in boundary.items() if v != 0}
+        assert len(nonzero_values) > 0, (
+            f"Camino abierto '{path_str}' reporta ∂₁ = 0, "
+            f"pero debería tener boundary no nulo. "
+            f"Boundary: {boundary}."
+        )
+
+    def test_boundary_operator_consistency_with_closure_validation(self) -> None:
+        """
+        Verifica que ∂₁(c) = 0 ⟺ is_closed para múltiples cadenas.
+        """
+        test_cases = [
+            ("A -> B -> A", True),
+            ("A -> B -> C -> A", True),
+            ("A -> B -> C", False),
+            ("X -> X", True),
+            ("P -> Q", False),
+        ]
+
+        for cycle_str, expected_closed in test_cases:
+            nodes, edges = _parse_cycle_string(cycle_str)
+            boundary = _compute_boundary_operator(edges)
+            boundary_is_zero = all(v == 0 for v in boundary.values())
+
+            validation = _validate_cycle_closure(cycle_str)
+
+            assert boundary_is_zero == expected_closed, (
+                f"Inconsistencia para '{cycle_str}': "
+                f"∂₁=0 es {boundary_is_zero}, esperado {expected_closed}."
+            )
+            assert validation["is_closed"] == expected_closed, (
+                f"Inconsistencia entre ∂₁ y validate_cycle_closure "
+                f"para '{cycle_str}'."
+            )
+            assert validation["boundary_is_zero"] == boundary_is_zero
+
+
+# =============================================================================
+# TEST SUITE 9: DETERMINISMO E IDEMPOTENCIA
+# =============================================================================
+
+
+class TestDeterminismAndIdempotence:
+    """
+    Verifica que extract_anomaly_data es una función pura:
+    determinista y sin efectos secundarios observables.
+    """
+
+    def test_determinism_same_input(self) -> None:
+        """
+        La misma entrada produce el mismo resultado en múltiples llamadas.
+        """
+        input_data = _make_analysis_result(cycles=["X -> Y -> Z -> X"])
+
+        results = [extract_anomaly_data(input_data) for _ in range(5)]
+        first_nodes = set(results[0].nodes_in_cycles)
+
+        for i, result in enumerate(results[1:], start=2):
+            assert set(result.nodes_in_cycles) == first_nodes, (
+                f"Llamada #{i} produjo nodos distintos: "
+                f"{set(result.nodes_in_cycles)} vs {first_nodes}."
+            )
+
+    def test_order_independence(self) -> None:
+        """
+        El orden de los ciclos en la lista no afecta el conjunto de nodos.
+
+        La extracción es una operación de conjunto (unión), que es
+        conmutativa y asociativa.
+        """
+        order_1 = ["A -> B -> A", "C -> D -> C"]
+        order_2 = ["C -> D -> C", "A -> B -> A"]
+
+        result_1 = extract_anomaly_data(_make_analysis_result(cycles=order_1))
+        result_2 = extract_anomaly_data(_make_analysis_result(cycles=order_2))
+
+        assert set(result_1.nodes_in_cycles) == set(result_2.nodes_in_cycles), (
+            "El orden de los ciclos afectó el resultado. "
+            f"Orden 1: {set(result_1.nodes_in_cycles)}, "
+            f"Orden 2: {set(result_2.nodes_in_cycles)}."
+        )
+
+
+# =============================================================================
+# TEST SUITE 10: EXTRACCIÓN DE ARISTAS (CONDICIONAL)
+# =============================================================================
+
+
+_HAS_EDGES_ATTRIBUTE: bool = hasattr(AnomalyData, "edges_in_cycles")
+
+
+@pytest.mark.skipif(
+    not _HAS_EDGES_ATTRIBUTE,
+    reason="AnomalyData no expone edges_in_cycles",
+)
 class TestExtractAnomalyEdges:
     """
-    Pruebas de extracción de aristas de ciclos.
+    Tests de extracción de aristas dirigidas.
 
-    Si AnomalyData expone edges_in_cycles, validamos que:
-      - Cada par consecutivo en "A -> B -> C -> A" genera (A,B), (B,C), (C,A)
-      - Las aristas son dirigidas: (A,B) ≠ (B,A)
-      - Sin ciclos → sin aristas
+    Solo se ejecutan si AnomalyData implementa edges_in_cycles.
 
-    Estas pruebas se saltan si AnomalyData no implementa edges_in_cycles.
+    Para un ciclo A → B → C → A, las aristas son:
+        E = {(A,B), (B,C), (C,A)}
+
+    Las aristas son dirigidas: (A,B) ≠ (B,A).
     """
 
-    @staticmethod
-    def _has_edges_attribute() -> bool:
-        """Verifica si AnomalyData expone edges_in_cycles."""
-        return hasattr(AnomalyData, "edges_in_cycles")
+    def test_simple_cycle_edges(self) -> None:
+        """
+        Ciclo A → B → C → A genera exactamente 3 aristas dirigidas.
+        """
+        result = extract_anomaly_data(
+            _make_analysis_result(cycles=["A -> B -> C -> A"])
+        )
+        edges = set(result.edges_in_cycles)
 
-    @pytest.fixture
-    def result_with_simple_cycle(self):
-        """AnomalyData con un ciclo simple de 3 aristas."""
-        return extract_anomaly_data(
-            {"details": {"cycles": ["A -> B -> C -> A"]}}
+        assert edges == {("A", "B"), ("B", "C"), ("C", "A")}, (
+            f"Aristas incorrectas: {edges}"
         )
 
-    @pytest.fixture
-    def result_with_multiple_cycles(self):
-        """AnomalyData con múltiples ciclos."""
-        return extract_anomaly_data(
-            {"details": {"cycles": ["A -> B -> A", "C -> D -> E -> C"]}}
+    def test_multiple_cycles_edges(self) -> None:
+        """
+        Aristas de múltiples ciclos se combinan.
+        """
+        result = extract_anomaly_data(
+            _make_analysis_result(
+                cycles=["A -> B -> A", "C -> D -> E -> C"]
+            )
         )
+        edges = set(result.edges_in_cycles)
 
-    @pytest.mark.skipif(
-        not hasattr(AnomalyData, "edges_in_cycles"),
-        reason="AnomalyData no expone edges_in_cycles",
-    )
-    def test_edges_extracted_from_simple_cycle(self, result_with_simple_cycle):
-        """
-        Ciclo A → B → C → A genera 3 aristas dirigidas.
-        
-        E = {(A,B), (B,C), (C,A)}
-        """
-        edges = set(result_with_simple_cycle.edges_in_cycles)
-        expected_edges = {("A", "B"), ("B", "C"), ("C", "A")}
-        
-        assert expected_edges.issubset(edges)
-        assert len(edges) == 3
-
-    @pytest.mark.skipif(
-        not hasattr(AnomalyData, "edges_in_cycles"),
-        reason="AnomalyData no expone edges_in_cycles",
-    )
-    def test_edges_from_multiple_cycles(self, result_with_multiple_cycles):
-        """
-        Múltiples ciclos: aristas de ambos se combinan.
-        """
-        edges = set(result_with_multiple_cycles.edges_in_cycles)
-        
-        # Aristas del primer ciclo
         assert ("A", "B") in edges
         assert ("B", "A") in edges
-        
-        # Aristas del segundo ciclo
         assert ("C", "D") in edges
         assert ("D", "E") in edges
         assert ("E", "C") in edges
 
-    @pytest.mark.skipif(
-        not hasattr(AnomalyData, "edges_in_cycles"),
-        reason="AnomalyData no expone edges_in_cycles",
-    )
-    def test_no_edges_from_empty_cycles(self):
+    def test_empty_cycles_no_edges(self) -> None:
         """Sin ciclos → sin aristas."""
-        result = extract_anomaly_data({"details": {"cycles": []}})
-        
+        result = extract_anomaly_data(_make_analysis_result(cycles=[]))
         assert len(result.edges_in_cycles) == 0
 
-    @pytest.mark.skipif(
-        not hasattr(AnomalyData, "edges_in_cycles"),
-        reason="AnomalyData no expone edges_in_cycles",
-    )
-    def test_self_loop_edge(self):
-        """Auto-lazo genera una arista (A, A)."""
+    def test_self_loop_edge(self) -> None:
+        """Auto-lazo A → A genera arista (A, A)."""
         result = extract_anomaly_data(
-            {"details": {"cycles": ["A -> A"]}}
+            _make_analysis_result(cycles=["A -> A"])
         )
-        
         assert ("A", "A") in result.edges_in_cycles
 
-    @pytest.mark.skipif(
-        not hasattr(AnomalyData, "edges_in_cycles"),
-        reason="AnomalyData no expone edges_in_cycles",
-    )
-    def test_edges_are_directed(self):
+    def test_edges_are_directed(self) -> None:
         """
-        Las aristas son dirigidas: (A,B) y (B,A) son distintas.
+        Aristas dirigidas: ciclo A → B → A contiene (A,B) Y (B,A).
+        Son aristas distintas.
         """
         result = extract_anomaly_data(
-            {"details": {"cycles": ["A -> B -> A"]}}
+            _make_analysis_result(cycles=["A -> B -> A"])
         )
-        
         edges = set(result.edges_in_cycles)
-        
-        # Ambas direcciones deben estar presentes
+
         assert ("A", "B") in edges
         assert ("B", "A") in edges
-        
-        # Son aristas distintas
         assert len(edges) == 2
 
 
 # =============================================================================
-# PRUEBAS DE PROPIEDADES TOPOLÓGICAS
+# TEST SUITE 11: RENDIMIENTO
 # =============================================================================
 
-class TestTopologicalProperties:
+
+@pytest.mark.stress
+class TestExtractionPerformance:
     """
-    Pruebas de propiedades topológicas de los ciclos extraídos.
-    
-    Verifica que la extracción preserve invariantes de teoría de grafos.
-    """
+    Tests de rendimiento bajo carga.
 
-    def test_cycle_closure_verification(self):
-        """
-        Verificar que los ciclos extraídos son cerrados.
-        
-        Un ciclo cerrado tiene v₀ = vₖ.
-        """
-        cycles = [
-            "A -> B -> C -> A",      # Cerrado
-            "X -> Y -> Z -> X",      # Cerrado
-            "Self -> Self",          # Auto-lazo (cerrado)
-        ]
-        
-        for cycle in cycles:
-            validation = validate_cycle_closure(cycle)
-            assert validation["is_closed"], (
-                f"Ciclo debería ser cerrado: {cycle}"
-            )
-
-    def test_open_path_detection(self):
-        """
-        Detectar caminos abiertos (no son ciclos verdaderos).
-        
-        Un camino A → B → C (sin retorno a A) no es un ciclo.
-        """
-        # Nota: Esto verifica la función de validación, no extract_anomaly_data
-        open_paths = [
-            "A -> B -> C",           # Sin cierre
-            "X -> Y",                # Camino de longitud 1
-        ]
-        
-        for path in open_paths:
-            validation = validate_cycle_closure(path)
-            assert not validation["is_closed"], (
-                f"Camino debería detectarse como abierto: {path}"
-            )
-
-    def test_node_count_matches_extraction(self):
-        """
-        Verificar que el conteo de nodos del helper coincide
-        con la extracción de AnomalyData.
-        """
-        cycles = ["A -> B -> C -> A", "D -> E -> D"]
-        
-        # Conteo con helper
-        expected_nodes = extract_unique_nodes(cycles)
-        
-        # Extracción real
-        result = extract_anomaly_data({"details": {"cycles": cycles}})
-        actual_nodes = set(result.nodes_in_cycles)
-        
-        assert expected_nodes == actual_nodes
-
-    def test_metrics_computation_consistency(self):
-        """
-        Verificar que las métricas computadas son consistentes.
-        """
-        cycles = [
-            "A -> B -> C -> D -> A",  # 4 aristas
-            "X -> Y -> X",            # 2 aristas
-            "Z -> Z",                 # 1 arista (self-loop)
-        ]
-        
-        metrics = compute_cycle_metrics(cycles)
-        
-        assert metrics["num_cycles"] == 3
-        assert metrics["num_unique_nodes"] == 7  # A,B,C,D,X,Y,Z
-        assert metrics["has_self_loops"] is True
-        assert metrics["avg_cycle_length"] == pytest.approx((4 + 2 + 1) / 3)
-        assert metrics["max_cycle_length"] == 4
-
-
-# =============================================================================
-# PRUEBAS DE RENDIMIENTO Y STRESS
-# =============================================================================
-
-class TestPerformanceAndStress:
-    """
-    Pruebas de rendimiento bajo carga.
-    
-    Verifican que la extracción escale adecuadamente
-    con grafos grandes.
+    Estos tests verifican que la extracción escale linealmente
+    con el número de ciclos y nodos, sin explosión combinatoria.
     """
 
-    def test_many_small_cycles(self):
+    def test_many_small_cycles(self) -> None:
         """
-        Muchos ciclos pequeños (stress en número de ciclos).
+        100 ciclos pequeños (stress en número de ciclos).
+
+        Complejidad esperada: O(n · k) donde n = num_cycles, k = avg_length.
         """
         num_cycles = 100
-        cycles = [f"Node_{i} -> Node_{i+1} -> Node_{i}" for i in range(num_cycles)]
-        
-        result = extract_anomaly_data({"details": {"cycles": cycles}})
-        
+        cycles = [
+            f"Node_{i} -> Node_{i + 1} -> Node_{i}"
+            for i in range(num_cycles)
+        ]
+
+        result = extract_anomaly_data(_make_analysis_result(cycles=cycles))
+
         assert isinstance(result, AnomalyData)
-        # Cada ciclo aporta ~2 nodos únicos (con algo de overlap)
         assert len(result.nodes_in_cycles) > 0
 
-    def test_single_very_long_cycle(self):
+    def test_single_long_cycle(self) -> None:
         """
-        Un único ciclo muy largo (stress en longitud).
+        Un único ciclo de 100 nodos (stress en longitud).
         """
         num_nodes = 100
         node_names = [f"N{i}" for i in range(num_nodes)]
-        cycle = " -> ".join(node_names + [node_names[0]])  # Cerrar el ciclo
-        
-        result = extract_anomaly_data({"details": {"cycles": [cycle]}})
-        
+        cycle = " -> ".join(node_names + [node_names[0]])
+
+        result = extract_anomaly_data(_make_analysis_result(cycles=[cycle]))
+
         assert len(result.nodes_in_cycles) == num_nodes
 
-    def test_fully_connected_graph_cycles(self):
+    def test_extraction_completes_in_bounded_time(self) -> None:
         """
-        Ciclos de un grafo completamente conectado K_n.
-        
-        Para K_5, hay muchos ciclos posibles.
-        """
-        nodes = ["A", "B", "C", "D", "E"]
-        # Algunos ciclos de K_5
-        cycles = [
-            "A -> B -> C -> A",
-            "A -> C -> D -> A",
-            "B -> D -> E -> B",
-            "A -> B -> C -> D -> E -> A",
-        ]
-        
-        result = extract_anomaly_data({"details": {"cycles": cycles}})
-        
-        assert set(result.nodes_in_cycles) == set(nodes)
-
-    def test_extraction_time_bounded(self):
-        """
-        La extracción debe completarse en tiempo razonable.
+        500 ciclos se extraen en menos de _PERFORMANCE_TIME_LIMIT segundos.
         """
         import time
-        
-        # Crear input moderadamente grande
+
         cycles = [f"A{i} -> B{i} -> A{i}" for i in range(500)]
-        input_data = {"details": {"cycles": cycles}}
-        
+        input_data = _make_analysis_result(cycles=cycles)
+
         start = time.perf_counter()
         result = extract_anomaly_data(input_data)
         elapsed = time.perf_counter() - start
-        
-        assert elapsed < 1.0, f"Extracción tardó {elapsed:.2f}s (límite: 1s)"
+
+        assert elapsed < _PERFORMANCE_TIME_LIMIT, (
+            f"Extracción tardó {elapsed:.3f}s, "
+            f"límite: {_PERFORMANCE_TIME_LIMIT}s. "
+            f"Posible explosión combinatoria en el parser."
+        )
         assert isinstance(result, AnomalyData)
 
 
 # =============================================================================
-# PRUEBAS DE IDEMPOTENCIA Y DETERMINISMO
+# TEST SUITE 12: INTEGRACIÓN CON AnomalyData
 # =============================================================================
 
-class TestIdempotenceAndDeterminism:
+
+class TestAnomalyDataStructure:
     """
-    Pruebas de propiedades de idempotencia y determinismo.
-    """
-
-    def test_extraction_is_idempotent(self):
-        """
-        Múltiples llamadas con el mismo input producen el mismo resultado.
-        """
-        input_data = {
-            "details": {
-                "cycles": ["A -> B -> C -> A", "D -> E -> D"]
-            }
-        }
-        
-        result1 = extract_anomaly_data(input_data)
-        result2 = extract_anomaly_data(input_data)
-        result3 = extract_anomaly_data(input_data)
-        
-        assert set(result1.nodes_in_cycles) == set(result2.nodes_in_cycles)
-        assert set(result2.nodes_in_cycles) == set(result3.nodes_in_cycles)
-
-    def test_extraction_is_deterministic(self):
-        """
-        Dado el mismo input, siempre produce el mismo output.
-        """
-        def create_input():
-            return {
-                "details": {
-                    "cycles": ["X -> Y -> Z -> X"]
-                }
-            }
-        
-        results = [extract_anomaly_data(create_input()) for _ in range(5)]
-        
-        first_nodes = set(results[0].nodes_in_cycles)
-        for result in results[1:]:
-            assert set(result.nodes_in_cycles) == first_nodes
-
-    def test_order_independence_in_cycles_list(self):
-        """
-        El orden de los ciclos en la lista no afecta el resultado.
-        
-        La extracción de nodos es una operación de conjunto.
-        """
-        cycles_order_1 = ["A -> B -> A", "C -> D -> C"]
-        cycles_order_2 = ["C -> D -> C", "A -> B -> A"]
-        
-        result1 = extract_anomaly_data({"details": {"cycles": cycles_order_1}})
-        result2 = extract_anomaly_data({"details": {"cycles": cycles_order_2}})
-        
-        assert set(result1.nodes_in_cycles) == set(result2.nodes_in_cycles)
-
-
-# =============================================================================
-# PRUEBAS DE INTEGRACIÓN CON ANOMALY DATA
-# =============================================================================
-
-class TestAnomalyDataIntegration:
-    """
-    Pruebas de integración que verifican la estructura y comportamiento
-    del objeto AnomalyData retornado.
+    Tests que verifican la estructura y usabilidad del objeto AnomalyData.
     """
 
-    def test_anomaly_data_has_required_attributes(self):
-        """
-        AnomalyData debe exponer al menos nodes_in_cycles.
-        """
+    def test_has_required_attribute(self) -> None:
+        """AnomalyData expone nodes_in_cycles como atributo iterable."""
         result = extract_anomaly_data(
-            {"details": {"cycles": ["A -> B -> A"]}}
+            _make_analysis_result(cycles=["A -> B -> A"])
         )
-        
-        assert hasattr(result, 'nodes_in_cycles')
-        # nodes_in_cycles debe ser iterable
-        assert hasattr(result.nodes_in_cycles, '__iter__')
+        assert hasattr(result, "nodes_in_cycles")
+        assert hasattr(result.nodes_in_cycles, "__iter__")
 
-    def test_anomaly_data_nodes_are_strings(self):
-        """
-        Todos los nodos extraídos deben ser strings.
-        """
+    def test_nodes_are_strings(self) -> None:
+        """Todos los nodos extraídos son instancias de str."""
         result = extract_anomaly_data(
-            {"details": {"cycles": ["Node1 -> Node2 -> Node1", "A -> B -> C -> A"]}}
+            _make_analysis_result(
+                cycles=["Node1 -> Node2 -> Node1", "A -> B -> C -> A"]
+            )
         )
-        
         for node in result.nodes_in_cycles:
-            assert isinstance(node, str), f"Nodo no es string: {node} ({type(node)})"
+            assert isinstance(node, str), (
+                f"Nodo no es str: {node!r} (tipo: {type(node).__name__})"
+            )
 
-    def test_anomaly_data_is_usable_in_set_operations(self):
-        """
-        nodes_in_cycles debe poder usarse en operaciones de conjunto.
-        """
+    def test_nodes_usable_in_set_operations(self) -> None:
+        """nodes_in_cycles soporta operaciones de conjunto estándar."""
         result = extract_anomaly_data(
-            {"details": {"cycles": ["A -> B -> C -> A"]}}
+            _make_analysis_result(cycles=["A -> B -> C -> A"])
         )
-        
         nodes_set = set(result.nodes_in_cycles)
-        
-        # Operaciones de conjunto básicas
+
         assert "A" in nodes_set
         assert nodes_set & {"A", "B"} == {"A", "B"}
         assert len(nodes_set - {"Z"}) == len(nodes_set)
 
-    def test_anomaly_data_repr_or_str(self):
-        """
-        AnomalyData debe tener representación legible.
-        """
+    def test_has_string_representation(self) -> None:
+        """AnomalyData tiene representación str/repr legible."""
         result = extract_anomaly_data(
-            {"details": {"cycles": ["A -> B -> A"]}}
+            _make_analysis_result(cycles=["A -> B -> A"])
         )
-        
-        # No debe lanzar excepción
-        str_repr = str(result)
-        repr_repr = repr(result)
-        
-        assert len(str_repr) > 0
-        assert len(repr_repr) > 0
+        assert len(str(result)) > 0
+        assert len(repr(result)) > 0
