@@ -521,7 +521,7 @@ def insumos_variados() -> list[InsumoProcesado]:
         ),
         make_insumo(
             descripcion_insumo="Cemento",
-            unidad_insumo="kg",
+            unidad_insumo="UND",
             cantidad=25.0,
             precio_unitario=450.0,
             tipo_insumo="SUMINISTRO",
@@ -832,12 +832,17 @@ class TestInsumoProcesado:
         assert prefix == "APU001"
         assert suffix != ""
 
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_insumo_id_uniqueness_same_apu(self) -> None:
         """Verifica unicidad de IDs para el mismo APU."""
         insumo_a = make_insumo(descripcion_insumo="Ladrillo")
         insumo_b = make_insumo(
             descripcion_insumo="Cemento",
-            unidad_insumo="kg",
+            unidad_insumo="UND",
         )
         assert insumo_a.id != insumo_b.id
 
@@ -950,6 +955,10 @@ class TestAPUStructure:
         """Verifica soporte inicial vacío."""
         assert apu_vacio.support_base_width == 0
 
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_apu_add_single_resource(
         self,
         apu_vacio: APUStructure,
@@ -959,6 +968,10 @@ class TestAPUStructure:
         apu_vacio.add_resource(insumos_variados[0])
         assert apu_vacio.support_base_width == 1
 
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_apu_add_multiple_resources_incremental(
         self,
         apu_vacio: APUStructure,
@@ -973,6 +986,10 @@ class TestAPUStructure:
 class TestAPUSupportMonotonicity:
     """Pruebas de monotonía del soporte de APU."""
 
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_support_monotonically_increasing(
         self,
         apu_vacio: APUStructure,
@@ -1003,6 +1020,10 @@ class TestAPUSupportMonotonicity:
         for i in range(len(supports) - 1):
             assert supports[i] < supports[i + 1]
 
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_support_never_decreases(
         self,
         apu_vacio: APUStructure,
@@ -1020,6 +1041,10 @@ class TestAPUSupportMonotonicity:
 class TestAPUStratumRelations:
     """Pruebas de relaciones entre estratos de APU e insumos."""
 
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings('ignore::UserWarning')
     def test_apu_stratum_above_insumos(
         self,
         apu_vacio: APUStructure,

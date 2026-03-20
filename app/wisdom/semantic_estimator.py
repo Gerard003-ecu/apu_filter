@@ -50,7 +50,7 @@ from sentence_transformers import SentenceTransformer
 from app.core.schemas import Stratum
 from app.core.telemetry import TelemetryContext
 from app.core.utils import normalize_text
-from app.core.probability_models import run_monte_carlo_simulation
+from app.core.probability_models import MonteCarloSimulator
 from app.adapters.tools_interface import MICRegistry
 
 
@@ -1479,7 +1479,8 @@ class CostCalculator:
             if not insumos:
                 return result
 
-            mc = run_monte_carlo_simulation(insumos)
+            simulator = MonteCarloSimulator(num_simulations=1000)
+            mc = simulator.run_simulation(insumos)
             stats = mc.get("statistics", {})
             result["monte_carlo_mean"] = stats.get("mean", valor_construccion)
             result["monte_carlo_std"] = stats.get("std_dev", 0.0)
