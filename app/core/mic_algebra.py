@@ -99,7 +99,7 @@ except ImportError:
         Estratificación DIKW (Data → Information → Knowledge → Wisdom).
 
         Convención ordinal: valor numérico MAYOR ↔ estrato más concreto.
-        WISDOM (0) es el más abstracto; PHYSICS (3) el más concreto.
+        WISDOM (0) es el más abstracto; PHYSICS (4) el más concreto.
 
         Relación de dependencia:
             Un estrato s depende de todos los estratos con valor > s.value,
@@ -107,9 +107,10 @@ except ImportError:
         """
 
         WISDOM = 0
-        STRATEGY = 1
-        TACTICS = 2
-        PHYSICS = 3
+        OMEGA = 1
+        STRATEGY = 2
+        TACTICS = 3
+        PHYSICS = 4
 
         def requires(self) -> FrozenSet[Stratum]:
             """

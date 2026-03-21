@@ -154,8 +154,9 @@ class DIKWHierarchy:
     
     def get_spec(self, stratum: Stratum) -> StratumSpec:
         """Obtiene la especificación de un estrato."""
+        target_val = getattr(stratum, "value", stratum)
         for spec in self.strata:
-            if spec.stratum == stratum:
+            if spec.stratum.value == target_val:
                 return spec
         raise ValueError(f"Estrato desconocido: {stratum}")
     
@@ -189,34 +190,42 @@ DIKW = DIKWHierarchy(strata=(
     StratumSpec(
         stratum=Stratum.WISDOM,
         value=0,
-        required=frozenset({Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS}),
+        required=frozenset({Stratum.OMEGA, Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS}),
         upper=frozenset(),
-        cardinality=3,
+        cardinality=4,
         height_in_dag=0,
     ),
     StratumSpec(
-        stratum=Stratum.STRATEGY,
+        stratum=Stratum.OMEGA,
         value=1,
-        required=frozenset({Stratum.TACTICS, Stratum.PHYSICS}),
+        required=frozenset({Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS}),
         upper=frozenset({Stratum.WISDOM}),
-        cardinality=2,
+        cardinality=3,
         height_in_dag=1,
     ),
     StratumSpec(
-        stratum=Stratum.TACTICS,
+        stratum=Stratum.STRATEGY,
         value=2,
-        required=frozenset({Stratum.PHYSICS}),
-        upper=frozenset({Stratum.WISDOM, Stratum.STRATEGY}),
-        cardinality=1,
+        required=frozenset({Stratum.TACTICS, Stratum.PHYSICS}),
+        upper=frozenset({Stratum.WISDOM, Stratum.OMEGA}),
+        cardinality=2,
         height_in_dag=2,
     ),
     StratumSpec(
-        stratum=Stratum.PHYSICS,
+        stratum=Stratum.TACTICS,
         value=3,
-        required=frozenset(),
-        upper=frozenset({Stratum.WISDOM, Stratum.STRATEGY, Stratum.TACTICS}),
-        cardinality=0,
+        required=frozenset({Stratum.PHYSICS}),
+        upper=frozenset({Stratum.WISDOM, Stratum.OMEGA, Stratum.STRATEGY}),
+        cardinality=1,
         height_in_dag=3,
+    ),
+    StratumSpec(
+        stratum=Stratum.PHYSICS,
+        value=4,
+        required=frozenset(),
+        upper=frozenset({Stratum.WISDOM, Stratum.OMEGA, Stratum.STRATEGY, Stratum.TACTICS}),
+        cardinality=0,
+        height_in_dag=4,
     ),
 ))
 
@@ -359,8 +368,13 @@ class TestExactValues:
         [
             pytest.param(
                 Stratum.WISDOM,
+                frozenset({Stratum.OMEGA, Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS}),
+                id="WISDOM→{OMEGA,STRATEGY,TACTICS,PHYSICS}",
+            ),
+            pytest.param(
+                Stratum.OMEGA,
                 frozenset({Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS}),
-                id="WISDOM→{STRATEGY,TACTICS,PHYSICS}",
+                id="OMEGA→{STRATEGY,TACTICS,PHYSICS}",
             ),
             pytest.param(
                 Stratum.STRATEGY,

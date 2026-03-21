@@ -56,6 +56,7 @@ from app.adapters.tools_interface import MICRegistry
 _PHYSICS_SERVICE: Final[str] = "physics_service"
 _TACTICS_SERVICE: Final[str] = "tactics_service"
 _STRATEGY_SERVICE: Final[str] = "strategy_service"
+_OMEGA_SERVICE: Final[str] = "omega_service"
 _WISDOM_SERVICE: Final[str] = "wisdom_service"
 
 # Mapeo de estrato a nombre de servicio
@@ -63,14 +64,16 @@ _SERVICE_FOR_STRATUM: Final[dict[Stratum, str]] = {
     Stratum.PHYSICS: _PHYSICS_SERVICE,
     Stratum.TACTICS: _TACTICS_SERVICE,
     Stratum.STRATEGY: _STRATEGY_SERVICE,
+    Stratum.OMEGA: _OMEGA_SERVICE,
     Stratum.WISDOM: _WISDOM_SERVICE,
 }
 
 # Orden de estratos por valor (de mayor a menor, base a cúspide)
 _STRATUM_ORDER: Final[tuple[Stratum, ...]] = (
-    Stratum.PHYSICS,    # valor 3
-    Stratum.TACTICS,    # valor 2
-    Stratum.STRATEGY,   # valor 1
+    Stratum.PHYSICS,    # valor 4
+    Stratum.TACTICS,    # valor 3
+    Stratum.STRATEGY,   # valor 2
+    Stratum.OMEGA,      # valor 1
     Stratum.WISDOM,     # valor 0
 )
 
@@ -79,7 +82,8 @@ _PREREQUISITES: Final[dict[Stratum, frozenset[Stratum]]] = {
     Stratum.PHYSICS: frozenset(),
     Stratum.TACTICS: frozenset({Stratum.PHYSICS}),
     Stratum.STRATEGY: frozenset({Stratum.PHYSICS, Stratum.TACTICS}),
-    Stratum.WISDOM: frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}),
+    Stratum.OMEGA: frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}),
+    Stratum.WISDOM: frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA}),
 }
 
 # Categoría de error para violación jerárquica
@@ -455,7 +459,7 @@ class TestTransitiveClosureProperties:
     def test_wisdom_requires_all_lower_strata(self) -> None:
         """WISDOM requiere todos los estratos inferiores."""
         prereqs = compute_prerequisites(Stratum.WISDOM)
-        expected = frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY})
+        expected = frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA})
         assert prereqs == expected
 
     def test_prerequisites_are_transitive(self) -> None:
@@ -871,7 +875,7 @@ class TestValidTransitions:
         result = mic.project_intent(
             service_name=_WISDOM_SERVICE,
             payload={"final": True},
-            context=build_context(Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY),
+            context=build_context(Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA),
             use_cache=False,
         )
 
@@ -1250,7 +1254,7 @@ class TestGlobalInvariants:
         valid_pairs = generate_valid_projection_pairs()
         invalid_pairs = generate_invalid_projection_pairs()
         
-        total_pairs = 16 * 4  # 2^4 contextos × 4 objetivos
+        total_pairs = 32 * 5  # 2^5 contextos × 5 objetivos
         
         assert len(valid_pairs) + len(invalid_pairs) == total_pairs
 

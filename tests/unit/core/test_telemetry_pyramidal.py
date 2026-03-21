@@ -396,9 +396,10 @@ class TestStratumHierarchy:
     def test_stratum_enum_values_fixed(self) -> None:
         """Los valores del enum son contratos fijos del dominio."""
         assert Stratum.WISDOM.value   == 0
-        assert Stratum.STRATEGY.value == 1
-        assert Stratum.TACTICS.value  == 2
-        assert Stratum.PHYSICS.value  == 3
+        assert Stratum.OMEGA.value    == 1
+        assert Stratum.STRATEGY.value == 2
+        assert Stratum.TACTICS.value  == 3
+        assert Stratum.PHYSICS.value  == 4
 
     def test_physics_is_base_of_pyramid(self) -> None:
         """PHYSICS tiene el valor máximo → es la base."""
@@ -410,12 +411,12 @@ class TestStratumHierarchy:
 
     def test_exactly_four_strata_defined(self) -> None:
         """
-        Exactamente 4 estratos en el modelo DIKW.
+        Exactamente 5 estratos en el modelo DIKW.
 
-        Si se agrega un quinto estrato, los tests de propagación
+        Si se agrega un sexto estrato, los tests de propagación
         necesitan revisión → este test actúa como guardia de regresión.
         """
-        assert len(list(Stratum)) == 4
+        assert len(list(Stratum)) == 5
 
     def test_stratum_propagation_set_from_physics(self) -> None:
         """

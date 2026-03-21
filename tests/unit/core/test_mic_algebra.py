@@ -723,9 +723,10 @@ class TestStratum:
 
     def test_values(self):
         assert Stratum.WISDOM.value == 0
-        assert Stratum.STRATEGY.value == 1
-        assert Stratum.TACTICS.value == 2
-        assert Stratum.PHYSICS.value == 3
+        assert Stratum.OMEGA.value == 1
+        assert Stratum.STRATEGY.value == 2
+        assert Stratum.TACTICS.value == 3
+        assert Stratum.PHYSICS.value == 4
 
     def test_requires_physics(self):
         """PHYSICS no requiere nada (es el más concreto)."""
@@ -739,9 +740,14 @@ class TestStratum:
             {Stratum.PHYSICS, Stratum.TACTICS}
         )
 
+    def test_requires_omega(self):
+        assert Stratum.OMEGA.requires() == frozenset(
+            {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}
+        )
+
     def test_requires_wisdom(self):
         assert Stratum.WISDOM.requires() == frozenset(
-            {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}
+            {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA}
         )
 
     def test_level_property(self):
@@ -749,8 +755,8 @@ class TestStratum:
             assert s.value == s.value
 
     def test_ordering(self):
-        """WISDOM < STRATEGY < TACTICS < PHYSICS por valor."""
-        assert Stratum.WISDOM < Stratum.STRATEGY < Stratum.TACTICS < Stratum.PHYSICS
+        """WISDOM < OMEGA < STRATEGY < TACTICS < PHYSICS por valor."""
+        assert Stratum.WISDOM < Stratum.OMEGA < Stratum.STRATEGY < Stratum.TACTICS < Stratum.PHYSICS
 
 
 class TestIdentityMorphism:
@@ -1525,7 +1531,7 @@ class TestMorphismComposer:
         assert composer.visualize() == "(vacío)"
 
     def test_full_pipeline_execution(self, empty_state):
-        """Pipeline completo PHYSICS → TACTICS → STRATEGY → WISDOM."""
+        """Pipeline completo PHYSICS → TACTICS → STRATEGY → OMEGA → WISDOM."""
         composer = MorphismComposer()
         f = ConcreteMorphism("phys", frozenset(), Stratum.PHYSICS)
         g = ConcreteMorphism(
@@ -1536,12 +1542,17 @@ class TestMorphismComposer:
             frozenset({Stratum.PHYSICS, Stratum.TACTICS}),
             Stratum.STRATEGY,
         )
+        o = ConcreteMorphism(
+            "omega",
+            frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}),
+            Stratum.OMEGA,
+        )
         w = ConcreteMorphism(
             "wisd",
-            frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}),
+            frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA}),
             Stratum.WISDOM,
         )
-        pipeline = composer.add_step(f).add_step(g).add_step(h).add_step(w).build()
+        pipeline = composer.add_step(f).add_step(g).add_step(h).add_step(o).add_step(w).build()
         result = pipeline(empty_state)
         assert result.is_success
         assert result.validated_strata == frozenset(Stratum)
@@ -1639,9 +1650,14 @@ class TestStructuralVerifier:
                 Stratum.STRATEGY,
             ),
             ConcreteMorphism(
+                "o",
+                frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}),
+                Stratum.OMEGA,
+            ),
+            ConcreteMorphism(
                 "d",
                 frozenset(
-                    {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}
+                    {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA}
                 ),
                 Stratum.WISDOM,
             ),
@@ -2212,9 +2228,15 @@ class TestPhysicsCircuitScenario:
                 "rating": "good" if efficiency > 0.5 else "poor",
             }
 
+        # OMEGA: deliberar
+        def omega_handler(rating="", efficiency=0, **kw):
+            return {
+                "risk": 1.0 - efficiency,
+            }
+
         # WISDOM: decisión final
-        def decision_handler(rating="", efficiency=0, **kw):
-            decision = "proceed" if rating == "good" else "review"
+        def decision_handler(rating="", efficiency=0, risk=0.0, **kw):
+            decision = "proceed" if rating == "good" and risk < 0.5 else "review"
             return {
                 "decision": decision,
                 "confidence": efficiency,
@@ -2236,11 +2258,17 @@ class TestPhysicsCircuitScenario:
             efficiency_handler,
             required_keys=["power_W", "ohm_valid"],
         )
+        omega = AtomicVector(
+            "omega",
+            Stratum.OMEGA,
+            omega_handler,
+            required_keys=["rating", "efficiency"],
+        )
         decision = AtomicVector(
             "decision",
             Stratum.WISDOM,
             decision_handler,
-            required_keys=["rating", "efficiency"],
+            required_keys=["rating", "efficiency", "risk"],
         )
 
         composer = MorphismComposer()
@@ -2249,6 +2277,7 @@ class TestPhysicsCircuitScenario:
             .add_step(measure)
             .add_step(ohm_check)
             .add_step(efficiency)
+            .add_step(omega)
             .add_step(decision)
             .build()
         )
@@ -2266,14 +2295,14 @@ class TestPhysicsCircuitScenario:
         assert result.payload["power_W"] == 6.0
         assert result.payload["rating"] == "good"
         assert result.payload["decision"] == "proceed"
-        assert len(result.composition_trace) == 4
+        assert len(result.composition_trace) == 5
 
         # Verificar trazabilidad completa
         trace_names = [
             t.morphism_name for t in result.composition_trace
         ]
         assert trace_names == [
-            "measure", "ohm_check", "efficiency", "decision"
+            "measure", "ohm_check", "efficiency", "omega", "decision"
         ]
         assert all(t.success for t in result.composition_trace)
 

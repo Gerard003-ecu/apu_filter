@@ -889,9 +889,10 @@ class TestSemanticDictionaryService:
     
     @pytest.mark.parametrize("value,expected", [
         (0, Stratum.WISDOM),
-        (1, Stratum.STRATEGY),
-        (2, Stratum.TACTICS),
-        (3, Stratum.PHYSICS),
+        (1, Stratum.OMEGA),
+        (2, Stratum.STRATEGY),
+        (3, Stratum.TACTICS),
+        (4, Stratum.PHYSICS),
     ])
     def test_convert_stratum_from_int(
         self, 
@@ -1448,9 +1449,10 @@ class TestStratum:
     def test_stratum_values(self):
         """Verifica valores correctos del enum."""
         assert Stratum.WISDOM.value == 0
-        assert Stratum.STRATEGY.value == 1
-        assert Stratum.TACTICS.value == 2
-        assert Stratum.PHYSICS.value == 3
+        assert Stratum.OMEGA.value == 1
+        assert Stratum.STRATEGY.value == 2
+        assert Stratum.TACTICS.value == 3
+        assert Stratum.PHYSICS.value == 4
     
     def test_stratum_ordering(self):
         """Verifica orden de los estratos."""
@@ -1463,7 +1465,7 @@ class TestStratum:
         """Stratum es IntEnum, permite comparaciones numéricas."""
         assert Stratum.WISDOM < Stratum.STRATEGY
         assert Stratum.PHYSICS > Stratum.TACTICS
-        assert int(Stratum.TACTICS) == 2
+        assert int(Stratum.TACTICS) == 3
 
 
 # =============================================================================

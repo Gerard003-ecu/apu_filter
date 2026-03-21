@@ -1424,6 +1424,7 @@ class TelemetryNarrator:
         has_warnings = any(
             strata[s].severity == SeverityLevel.ADVERTENCIA
             for s in Stratum
+            if s in strata
         )
 
         if has_warnings:
