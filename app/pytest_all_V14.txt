@@ -1,64 +1,33 @@
 (apu_filter_env) gerardo@gerardo-HP-EliteBook-840-G1:~/Documentos/GitHub/apu_filter$ python -m pytest -vv
-============================ test session starts ============================
+===================================== test session starts =====================================
 platform linux -- Python 3.10.19, pytest-8.4.2, pluggy-1.6.0 -- /home/gerardo/miniconda3/envs/apu_filter_env/bin/python
 cachedir: .pytest_cache
 hypothesis profile 'default'
 rootdir: /home/gerardo/Documentos/GitHub/apu_filter
 configfile: pyproject.toml
 plugins: anyio-4.12.1, hypothesis-6.151.9
-collected 6686 items / 1 skipped                                            
+collected 6686 items / 1 skipped                                                              
 
-dev_tools/test_diagnose_grammar.py::TestBasicFunctionality::test_diagnose_all_valid_lines PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestBasicFunctionality::test_diagnose_all_invalid_lines PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestBasicFunctionality::test_diagnose_mixed_valid_invalid PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestBasicFunctionality::test_skip_apu_headers PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestPatternAnalysis::test_detect_empty_fields PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestPatternAnalysis::test_failure_rate_calculation PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestPatternAnalysis::test_sample_limit_respected PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestErrorHandling::test_file_not_found PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestErrorHandling::test_invalid_grammar PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestErrorHandling::test_empty_csv_file PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestErrorHandling::test_csv_with_only_whitespace PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestErrorHandling::test_csv_with_special_characters PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestErrorHandling::test_invalid_encoding_handling PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestLarkErrorTypes::test_unexpected_input_error PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestLarkErrorTypes::test_unexpected_characters_error PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestLarkErrorTypes::test_parse_error_generic PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestOutputFormat::test_output_file_structure PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestOutputFormat::test_output_file_encoding_utf8 PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestOutputFormat::test_output_detailed_error_info PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestLogging::test_logger_info_called PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestLogging::test_logger_includes_output_path PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestReturnValue::test_return_type_is_list PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestReturnValue::test_return_structure_complete PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestReturnValue::test_return_preserves_order PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestPerformance::test_handles_large_file PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestPerformance::test_memory_efficient_with_large_errors PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestEdgeCases::test_line_with_semicolon_in_description PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestEdgeCases::test_line_with_only_semicolons PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestEdgeCases::test_line_exceeding_typical_length PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestEdgeCases::test_mixed_line_endings PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestDifferentGrammars::test_with_optional_fields_grammar PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestDifferentGrammars::test_with_strict_grammar PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestDifferentGrammars::test_with_number_format_variations PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestConfiguration::test_with_different_profiles PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestConfiguration::test_custom_output_path PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestConfiguration::test_output_file_overwrite PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestRegression::test_empty_field_at_end_of_line PASSED [  0%]
-dev_tools/test_diagnose_grammar.py::TestRegression::test_unicode_normalization PASSED [  0%]
-tests/integration/dynamic_stress/test_adversarial_homology_and_thermal_collapse_v2.py::TestAdversarialHomologyAndThermalCollapse::test_adversarial_homology_exactness PASSED [  0%]
-tests/integration/dynamic_stress/test_adversarial_homology_and_thermal_collapse_v2.py::TestAdversarialHomologyAndThermalCollapse::test_spectral_analysis_rigor PASSED [  0%]
-tests/integration/dynamic_stress/test_adversarial_homology_and_thermal_collapse_v2.py::TestAdversarialHomologyAndThermalCollapse::test_spectral_gap_connected_graph PASSED [  0%]
-tests/integration/dynamic_stress/test_adversarial_homology_and_thermal_collapse_v2.py::TestAdversarialHomologyAndThermalCollapse::test_mic_agent_thermal_collapse_veto PASSED [  0%]
-tests/integration/dynamic_stress/test_adversarial_homology_and_thermal_collapse_v2.py::TestAdversarialHomologyAndThermalCollapse::test_mic_agent_audit_trail_integrity PASSED [  0%]
-tests/integration/dynamic_stress/test_causal_lineage_of_degraded_damping_regimes.py::TestCausalLineageOfDegradedDampingRegimes::test_damping_ratio_analytical_computation PASSED [  0%]
-tests/integration/dynamic_stress/test_causal_lineage_of_degraded_damping_regimes.py::TestCausalLineageOfDegradedDampingRegimes::test_critical_damping_poles_in_lhp PASSED [  0%]
-tests/integration/dynamic_stress/test_causal_lineage_of_degraded_damping_regimes.py::TestCausalLineageOfDegradedDampingRegimes::test_pole_migration_to_imaginary_axis PASSED [  0%]
-tests/integration/dynamic_stress/test_causal_lineage_of_degraded_damping_regimes.py::TestCausalLineageOfDegradedDampingRegimes::test_oracle_poles_match_analytical PASSED [  0%]
-tests/integration/dynamic_stress/test_causal_lineage_of_degraded_damping_regimes.py::TestCausalLineageOfDegradedDampingRegimes::test_dikw_transitive_closure PASSED [  0%]
-tests/integration/dynamic_stress/test_causal_lineage_of_degraded_damping_regimes.py::TestCausalLineageOfDegradedDampingRegimes::test_semantic_translation_of_ndr_oscillation PASSED [  0%]
-tests/integration/dynamic_stress/test_ekf_divergence_under_non_newtonian_data_flux.py::TestEKFDivergenceUnderNonNewtonianFlux::test_laminar_regime_stability PASSED [  0%]
-### simplificado para análisis
+### simplificado para análisis.
+tests/unit/tactics/test_topology_viz.py::TestBuildGraphFromSession::test_raises_on_empty_data PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestBuildGraphFromSession::test_raises_on_invalid_graph PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestAnalyzeGraphForVisualization::test_returns_anomaly_data PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestAnalyzeGraphForVisualization::test_handles_analyzer_exception PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestConvertGraphToCytoscapeElements::test_converts_all_elements PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestConvertGraphToCytoscapeElements::test_nodes_have_correct_structure PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestConvertGraphToCytoscapeElements::test_edges_have_correct_structure PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestConvertGraphToCytoscapeElements::test_handles_empty_graph PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestCreateErrorResponse::test_response_structure PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestCreateSuccessResponse::test_response_structure PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestGetProjectGraphEndpoint::test_returns_404_without_session PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestGetProjectGraphEndpoint::test_returns_400_for_invalid_session_data PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestGetProjectGraphEndpoint::test_returns_success_with_valid_data PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestGetProjectGraphEndpoint::test_returns_empty_elements_for_empty_graph PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestGetProjectGraphEndpoint::test_handles_value_error PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestGetProjectGraphEndpoint::test_handles_unexpected_exception PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestGetTopologyStatsEndpoint::test_returns_404_without_session PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestGetTopologyStatsEndpoint::test_returns_stats PASSED [ 94%]
+tests/unit/tactics/test_topology_viz.py::TestIntegration::test_full_workflow PASSED     [ 94%]
 tests/unit/tactics/test_topology_viz.py::TestIntegration::test_dataclass_serialization_chain PASSED [ 94%]
 tests/unit/wisdom/test_KP_narrative_semantic.py::TestLatticePerformance::test_severity_join_performance PASSED [ 94%]
 tests/unit/wisdom/test_KP_narrative_semantic.py::TestLatticePerformance::test_severity_supremum_performance PASSED [ 94%]
@@ -116,10 +85,10 @@ tests/unit/wisdom/test_semantic_dictionary.py::TestTTLCache::test_cleanup_expire
 tests/unit/wisdom/test_semantic_dictionary.py::TestTTLCache::test_stats_tracking PASSED [ 95%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestTTLCache::test_thread_safety_concurrent_access PASSED [ 95%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestPyramidalSemanticVector::test_valid_construction PASSED [ 95%]
+tests/unit/wisdom/test_semantic_dictionary.py::TestPyramidalSemanticVector::test_all_valid_node_types[INSUMO] PASSED [ 95%]
+tests/unit/wisdom/test_semantic_dictionary.py::TestPyramidalSemanticVector::test_all_valid_node_types[APU] PASSED [ 95%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestPyramidalSemanticVector::test_all_valid_node_types[CAPITULO] PASSED [ 95%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestPyramidalSemanticVector::test_all_valid_node_types[ROOT] PASSED [ 95%]
-tests/unit/wisdom/test_semantic_dictionary.py::TestPyramidalSemanticVector::test_all_valid_node_types[APU] PASSED [ 95%]
-tests/unit/wisdom/test_semantic_dictionary.py::TestPyramidalSemanticVector::test_all_valid_node_types[INSUMO] PASSED [ 95%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestPyramidalSemanticVector::test_invalid_node_type_raises_error PASSED [ 95%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestPyramidalSemanticVector::test_negative_in_degree_raises_error PASSED [ 95%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestPyramidalSemanticVector::test_negative_out_degree_raises_error PASSED [ 95%]
@@ -216,7 +185,7 @@ tests/unit/wisdom/test_semantic_dictionary.py::TestConcurrency::test_concurrent_
 tests/unit/wisdom/test_semantic_dictionary.py::TestConcurrency::test_cache_thread_safety_under_load PASSED [ 97%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestEdgeCases::test_very_long_node_id PASSED [ 97%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestEdgeCases::test_unicode_in_narratives PASSED [ 97%]
-tests/unit/wisdom/test_semantic_dictionary.py::TestEdgeCases::test_zero_degrees PASSED [ 97%]
+tests/unit/wisdom/test_semantic_dictionary.py::TestEdgeCases::test_zero_degrees PASSED  [ 97%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestEdgeCases::test_very_high_degrees PASSED [ 97%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestEdgeCases::test_special_characters_in_path_nodes PASSED [ 97%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestEdgeCases::test_empty_params_dict PASSED [ 97%]
@@ -226,7 +195,7 @@ tests/unit/wisdom/test_semantic_dictionary.py::TestEdgeCases::test_boundary_thre
 tests/unit/wisdom/test_semantic_dictionary.py::TestEdgeCases::test_negative_float_handling PASSED [ 97%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestFactoryFunction::test_create_semantic_dictionary_service PASSED [ 97%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestFactoryFunction::test_factory_creates_independent_instances PASSED [ 97%]
-tests/unit/wisdom/test_semantic_dictionary.py::TestStratum::test_stratum_values PASSED [ 97%]
+tests/unit/wisdom/test_semantic_dictionary.py::TestStratum::test_stratum_values PASSED  [ 97%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestStratum::test_stratum_ordering PASSED [ 97%]
 tests/unit/wisdom/test_semantic_dictionary.py::TestStratum::test_stratum_is_int_enum PASSED [ 97%]
 tests/unit/wisdom/test_semantic_estimator.py::TestSafeConvertToFloat::test_conversiones_validas[10-10.0] PASSED [ 97%]
@@ -266,7 +235,7 @@ tests/unit/wisdom/test_semantic_estimator.py::TestSafeConvertColumnValue::test_t
 tests/unit/wisdom/test_semantic_estimator.py::TestSafeConvertColumnValue::test_tipo_int PASSED [ 97%]
 tests/unit/wisdom/test_semantic_estimator.py::TestSafeConvertColumnValue::test_string_vacio_retorna_default PASSED [ 97%]
 tests/unit/wisdom/test_semantic_estimator.py::TestEstimationLog::test_header_inicial PASSED [ 97%]
-tests/unit/wisdom/test_semantic_estimator.py::TestEstimationLog::test_log_vacio PASSED [ 97%]
+tests/unit/wisdom/test_semantic_estimator.py::TestEstimationLog::test_log_vacio PASSED  [ 97%]
 tests/unit/wisdom/test_semantic_estimator.py::TestEstimationLog::test_info_append PASSED [ 97%]
 tests/unit/wisdom/test_semantic_estimator.py::TestEstimationLog::test_warn_formato PASSED [ 97%]
 tests/unit/wisdom/test_semantic_estimator.py::TestEstimationLog::test_error_formato PASSED [ 97%]
@@ -280,7 +249,121 @@ tests/unit/wisdom/test_semantic_estimator.py::TestEstimationLog::test_log_top_ca
 tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_validate_search_artifacts_none PASSED [ 98%]
 tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_validate_search_artifacts_incompleto PASSED [ 98%]
 tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_validate_search_artifacts_completo PASSED [ 98%]
-# simplificado para análisis
+tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_validate_dataframe_valido PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_validate_dataframe_no_es_df PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_validate_dataframe_vacio PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_validate_dataframe_columna_faltante PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_assess_quality_buena PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_assess_quality_df_vacio PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_assess_quality_sin_codigos PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_assess_quality_descripciones_cortas PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_validate_columns_presente PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_validate_columns_faltante_no_estricto PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataValidator::test_validate_columns_faltante_estricto PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_match_exacto PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_match_parcial PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_sin_match PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_pool_vacio PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_keywords_vacias PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_keywords_muy_cortas_filtradas PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_modo_estricto_match_perfecto PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_modo_estricto_sin_perfecto PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_modo_substring PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_modo_invalido_usa_words PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_sin_desc_normalized_usa_original PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_limite_keywords PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_umbral_porcentaje PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineKeyword::test_early_exit_estricto PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineSemantic::test_match_semantico_exitoso PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineSemantic::test_match_semantico_bajo_umbral PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineSemantic::test_sin_artefactos PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineSemantic::test_query_vacio PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineSemantic::test_query_muy_corto PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineSemantic::test_pool_vacio PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineSemantic::test_pool_sin_columna_codigo PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineSemantic::test_codigo_no_en_pool PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineSemantic::test_similitud_fuera_de_rango PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineSemantic::test_error_en_encode PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineSemantic::test_embedding_vacio PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineBestMatch::test_cascada_semantico_primero PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSearchEngineBestMatch::test_cascada_fallback_keyword PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFactors::test_factores_por_defecto PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFactors::test_factores_zona PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFactors::test_factores_izaje PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFactors::test_factores_seguridad PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFactors::test_factores_combinados PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFactors::test_zona_desconocida_usa_default PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFactors::test_thresholds_extraction PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFactors::test_config_corrupta PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorLaborCost::test_calculo_normal PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorLaborCost::test_con_factor_seguridad PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorLaborCost::test_rendimiento_cero PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorLaborCost::test_rendimiento_muy_pequeno PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorLaborCost::test_rendimiento_en_limite PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorLaborCost::test_costo_excesivo_clamped PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorLaborCost::test_costo_dia_cero PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorRendimiento::test_rendimiento_normal PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorRendimiento::test_sin_detalle PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorRendimiento::test_sin_mano_obra PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorRendimiento::test_tiempo_total_cero PASSED [ 98%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorRendimiento::test_codigo_no_encontrado PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorRendimiento::test_columnas_faltantes PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorRendimiento::test_rendimiento_anormalmente_alto PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorHistoricalAverage::test_promedio_normal PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorHistoricalAverage::test_sin_keywords_significativas PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorHistoricalAverage::test_sin_matches PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorHistoricalAverage::test_sin_columna_rendimiento PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorHistoricalAverage::test_todos_rendimiento_cero PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorHistoricalAverage::test_confianza_acotada PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorCalculate::test_sin_apus PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorCalculate::test_sin_material PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorCalculate::test_estimacion_basica PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorCalculate::test_con_factores PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorCalculate::test_con_cuadrilla PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorCalculate::test_derivation_details_presentes PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorCalculate::test_codigos_apu_en_resultado PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorCalculate::test_datos_apu_invalidos PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorCalculate::test_rendimiento_en_resultado PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFilters::test_filter_pool_existente PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFilters::test_filter_pool_columna_faltante PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFilters::test_filter_pool_sin_coincidencias PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFilters::test_filter_by_unit PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCostCalculatorFilters::test_filter_by_unit_sin_columna PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceLifecycle::test_inicializacion PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceLifecycle::test_ready_event_señalizado PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceLifecycle::test_wait_until_ready_timeout PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceLifecycle::test_is_ready_sin_artifacts PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceLifecycle::test_is_ready_con_artifacts PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceProjection::test_projec_exitoso PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceProjection::test_servicio_no_listo PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceProjection::test_pool_vacio PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceProjection::test_pool_como_lista PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceProjection::test_con_telemetria PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceProjection::test_error_interno PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceEstimate::test_estimacion_basica PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceEstimate::test_sin_material PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceEstimate::test_data_store_vacio PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceEstimate::test_con_telemetria_error PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestSemanticEstimatorServiceMIC::test_register_in_mic PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataclasses::test_derivation_details_inmutable PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataclasses::test_match_candidate_rank_key PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataclasses::test_match_candidate_sin_similitud PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataclasses::test_search_artifacts_inmutable PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataclasses::test_search_artifacts_is_complete PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataclasses::test_search_artifacts_incompleto PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataclasses::test_search_artifacts_mapa_vacio PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataclasses::test_data_quality_metrics PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataclasses::test_estimation_factors_defaults PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestDataclasses::test_estimation_components_defaults PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestEnumeraciones::test_match_mode_values PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestEnumeraciones::test_tipo_apu_values PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestEnumeraciones::test_tipo_recurso_values PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestEnumeraciones::test_tipo_recurso_distinto_de_schema PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCasosLimite::test_df_con_nan_en_desc PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCasosLimite::test_df_con_tipos_mixtos PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCasosLimite::test_miles_de_registros PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCasosLimite::test_unicode_en_descriptions PASSED [ 99%]
+tests/unit/wisdom/test_semantic_estimator.py::TestCasosLimite::test_financial_analysis_sin_codigos PASSED [ 99%]
 tests/unit/wisdom/test_semantic_estimator.py::TestCasosLimite::test_financial_analysis_con_error PASSED [ 99%]
 tests/unit/wisdom/test_semantic_estimator.py::TestCasosLimite::test_error_result_formato PASSED [ 99%]
 tests/unit/wisdom/test_semantic_estimator.py::TestCasosLimite::test_details_to_dict_none PASSED [ 99%]
@@ -291,118 +374,5 @@ tests/unit/wisdom/test_semantic_estimator.py::TestIntegracion::test_servicio_com
 tests/unit/wisdom/test_semantic_estimator.py::TestIntegracion::test_resilencia_sin_modelo PASSED [ 99%]
 tests/unit/wisdom/test_semantic_estimator.py::TestIntegracion::test_multiple_estimaciones_independientes PASSED [100%]
 
-================================= FAILURES ==================================
-____________ TestThreadSafety.test_concurrent_different_configs _____________
-
-self = <test_physics_stability_handshake.TestThreadSafety object at 0x7de9f0e6e560>
-oracle_approves = {'is_suitable_for_control': True, 'issues': [], 'summary': 'Sistema estable y apto para control', 'warnings': []}
-
-    def test_concurrent_different_configs(
-        self,
-        oracle_approves: Dict[str, Any],
-    ) -> None:
-        """Instanciaciones concurrentes con diferentes configs."""
-        results: Dict[str, DataFluxCondenser] = {}
-        errors: List[Exception] = []
-        lock = threading.Lock()
-    
-        def create_for_system(system: RLCSystemSpec):
-            try:
-                with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
-                    MockOracle.return_value.validate_for_control_design.return_value = oracle_approves
-                    MockOracle.return_value.analyze_stability.return_value = {"continuous": {"natural_frequency_rad_s": 1.0, "damping_ratio": 1.0, "damping_class": "critical"}, "stability_margins": {"phase_margin_deg": 60.0}}
-                    condenser = make_condenser(system.to_condenser_config())
-                    with lock:
-                        results[system.name] = condenser
-            except Exception as e:
-                with lock:
-                    errors.append(e)
-    
-        # Usar solo sistemas estables
-        stable_systems = [STABLE_SYSTEM, CRITICAL_SYSTEM, UNDERDAMPED_SYSTEM]
-    
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            futures = [
-                executor.submit(create_for_system, system)
-                for system in stable_systems
-                for _ in range(3)  # 3 instancias por sistema
-            ]
-            for future in as_completed(futures):
-                future.result()
-    
->       assert not errors
-E       assert not [ConfigurationError("Error inicializando componentes: unsupported format string passed to MagicMock.__format__\nEstado: {'laplace_validated': True, 'physics_initialized': False, 'controller_initialized': False, 'timestamp': 1774124681.6926928}")]
-
-tests/unit/physics/test_physics_stability_handshake.py:1443: AssertionError
---------------------------- Captured stderr call ----------------------------
-2026-03-21 15:24:41,648 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-21 15:24:41,654 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-21 15:24:41,655 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-21 15:24:41,655 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-21 15:24:41,664 - app.physics.flux_condenser - WARNING - J no es antisimétrica: ||J + Jᵀ|| = 5.00e-01
-2026-03-21 15:24:41,664 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-21 15:24:41,665 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-21 15:24:41,667 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-21 15:24:41,667 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-21 15:24:41,673 - app.physics.flux_condenser - WARNING - J no es antisimétrica: ||J + Jᵀ|| = 5.00e-01
-2026-03-21 15:24:41,674 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-21 15:24:41,675 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-21 15:24:41,676 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-21 15:24:41,676 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-21 15:24:41,682 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-21 15:24:41,688 - app.physics.flux_condenser - WARNING - J no es antisimétrica: ||J + Jᵀ|| = 5.00e-01
-2026-03-21 15:24:41,690 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-21 15:24:41,692 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-21 15:24:41,693 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-21 15:24:41,701 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-21 15:24:41,703 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-21 15:24:41,703 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-21 15:24:41,712 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-21 15:24:41,719 - DataFluxCondenser - ERROR - Error fatal en inicialización: unsupported format string passed to MagicMock.__format__
-Traceback (most recent call last):
-  File "/home/gerardo/Documentos/GitHub/apu_filter/app/physics/flux_condenser.py", line 3269, in __init__
-    f"✅ Estabilidad Confirmada: "
-TypeError: unsupported format string passed to MagicMock.__format__
-2026-03-21 15:24:41,719 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-21 15:24:41,719 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-21 15:24:41,723 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-21 15:24:41,732 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-21 15:24:41,740 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
------------------------------ Captured log call -----------------------------
-INFO     DataFluxCondenser:flux_condenser.py:3238 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3238 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3238 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3268 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-WARNING  app.physics.flux_condenser:flux_condenser.py:1804 J no es antisimétrica: ||J + Jᵀ|| = 5.00e-01
-INFO     DataFluxCondenser:flux_condenser.py:3238 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3325 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-INFO     DataFluxCondenser:flux_condenser.py:3238 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3268 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-WARNING  app.physics.flux_condenser:flux_condenser.py:1804 J no es antisimétrica: ||J + Jᵀ|| = 5.00e-01
-INFO     DataFluxCondenser:flux_condenser.py:3238 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3325 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-INFO     DataFluxCondenser:flux_condenser.py:3268 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3268 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3325 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-WARNING  app.physics.flux_condenser:flux_condenser.py:1804 J no es antisimétrica: ||J + Jᵀ|| = 5.00e-01
-INFO     DataFluxCondenser:flux_condenser.py:3325 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-INFO     DataFluxCondenser:flux_condenser.py:3238 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3268 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3325 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-INFO     DataFluxCondenser:flux_condenser.py:3238 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3268 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3325 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-ERROR    DataFluxCondenser:flux_condenser.py:3306 Error fatal en inicialización: unsupported format string passed to MagicMock.__format__
-Traceback (most recent call last):
-  File "/home/gerardo/Documentos/GitHub/apu_filter/app/physics/flux_condenser.py", line 3269, in __init__
-    f"✅ Estabilidad Confirmada: "
-TypeError: unsupported format string passed to MagicMock.__format__
-INFO     DataFluxCondenser:flux_condenser.py:3238 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3268 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3268 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3325 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-INFO     DataFluxCondenser:flux_condenser.py:3325 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-========================== short test summary info ==========================
-FAILED tests/unit/physics/test_physics_stability_handshake.py::TestThreadSafety::test_concurrent_different_configs - assert not [ConfigurationError("Error inicializando componentes: unsupported format string passed to MagicMock.__format__\nEstado: {'laplace_validated': True, 'physics_initialized': False, 'controller_initialized': False, 'timestamp': 1774124681.6926928}")]
-=========== 1 failed, 6668 passed, 18 skipped in 79.47s (0:01:19) ===========
+========================= 6669 passed, 18 skipped in 84.20s (0:01:24) =========================
 (apu_filter_env) gerardo@gerardo-HP-EliteBook-840-G1:~/Documentos/GitHub/apu_filter$ 
