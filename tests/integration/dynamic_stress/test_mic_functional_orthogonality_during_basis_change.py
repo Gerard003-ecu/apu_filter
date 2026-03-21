@@ -61,8 +61,9 @@ from dataclasses import dataclass
 from app.core.schemas import Stratum
 from app.core.mic_algebra import (
     CategoricalState,
-    AtomicVector,
+    Morphism,
     ComposedMorphism,
+    create_morphism_from_handler,
 )
 from app.adapters.tools_interface import MICRegistry
 
@@ -93,7 +94,7 @@ _PERTURBATION_VALUES: List[float] = [3.14, -2.71, 42.0]
 # =============================================================================
 
 
-def _handler_e1(state: CategoricalState) -> CategoricalState:
+def _handler_e1(**kwargs) -> Dict[str, Any]:
     """
     Proyección canónica sobre el eje 1 (dimensión de búsqueda).
 
@@ -108,23 +109,19 @@ def _handler_e1(state: CategoricalState) -> CategoricalState:
 
     Parameters
     ----------
-    state : CategoricalState
-        Estado categórico de entrada.
+    **kwargs : Dict
+        Kwargs para compatibilidad con create_morphism_from_handler.
 
     Returns
     -------
-    CategoricalState
-        Estado con dim_1 activada (= 1.0), demás dimensiones intactas.
+    Dict
+        Dict con dim_1 activada (= 1.0).
     """
-    new_payload = dict(state.payload)
-    new_payload["dim_1"] = 1.0
-    return CategoricalState(
-        payload=new_payload,
-        validated_strata=state.validated_strata | {Stratum.PHYSICS},
-    )
+    dim_1 = kwargs.get("dim_1", 0.0)
+    return {"dim_1": 1.0 + dim_1 if "dim_1" not in kwargs else 1.0}
 
 
-def _handler_e2(state: CategoricalState) -> CategoricalState:
+def _handler_e2(**kwargs) -> Dict[str, Any]:
     """
     Proyección canónica sobre el eje 2 (dimensión de cálculo).
 
@@ -135,23 +132,19 @@ def _handler_e2(state: CategoricalState) -> CategoricalState:
 
     Parameters
     ----------
-    state : CategoricalState
-        Estado categórico de entrada.
+    **kwargs : Dict
+        Kwargs para compatibilidad con create_morphism_from_handler.
 
     Returns
     -------
-    CategoricalState
-        Estado con dim_2 activada (= 1.0), demás dimensiones intactas.
+    Dict
+        Dict con dim_2 activada (= 1.0).
     """
-    new_payload = dict(state.payload)
-    new_payload["dim_2"] = 1.0
-    return CategoricalState(
-        payload=new_payload,
-        validated_strata=state.validated_strata | {Stratum.TACTICS},
-    )
+    dim_2 = kwargs.get("dim_2", 0.0)
+    return {"dim_2": 1.0 + dim_2 if "dim_2" not in kwargs else 1.0}
 
 
-def _handler_e3(state: CategoricalState) -> CategoricalState:
+def _handler_e3(**kwargs) -> Dict[str, Any]:
     """
     Proyección canónica sobre el eje 3 (dimensión de estrategia).
 
@@ -162,20 +155,16 @@ def _handler_e3(state: CategoricalState) -> CategoricalState:
 
     Parameters
     ----------
-    state : CategoricalState
-        Estado categórico de entrada.
+    **kwargs : Dict
+        Kwargs para compatibilidad con create_morphism_from_handler.
 
     Returns
     -------
-    CategoricalState
-        Estado con dim_3 activada (= 1.0), demás dimensiones intactas.
+    Dict
+        Dict con dim_3 activada (= 1.0).
     """
-    new_payload = dict(state.payload)
-    new_payload["dim_3"] = 1.0
-    return CategoricalState(
-        payload=new_payload,
-        validated_strata=state.validated_strata | {Stratum.STRATEGY},
-    )
+    dim_3 = kwargs.get("dim_3", 0.0)
+    return {"dim_3": 1.0 + dim_3 if "dim_3" not in kwargs else 1.0}
 
 
 # =============================================================================
@@ -385,7 +374,7 @@ def _compute_gram_matrix(
 
 
 def _compute_transformation_matrix(
-    atomic_vectors: List[AtomicVector],
+    atomic_vectors: List[Morphism],
     base_state: CategoricalState,
 ) -> np.ndarray:
     """
@@ -401,7 +390,7 @@ def _compute_transformation_matrix(
 
     Parameters
     ----------
-    atomic_vectors : List[AtomicVector]
+    atomic_vectors : List[Morphism]
         Vectores atómicos (herramientas) a evaluar.
     base_state : CategoricalState
         Estado base desde el cual se evalúan las transformaciones.
@@ -412,7 +401,7 @@ def _compute_transformation_matrix(
         Matriz T de dimensión n × n (si n herramientas en ℝⁿ).
     """
     columns = [
-        _extract_state_vector(vec.execute(base_state))
+        _extract_state_vector(vec(base_state))
         for vec in atomic_vectors
     ]
     return np.column_stack(columns)
@@ -424,7 +413,7 @@ def _compute_transformation_matrix(
 
 
 @pytest.fixture
-def canonical_basis() -> List[AtomicVector]:
+def canonical_basis() -> List[Morphism]:
     """
     Construye la base canónica E = {e₁, e₂, e₃} como vectores atómicos.
 
@@ -433,21 +422,23 @@ def canonical_basis() -> List[AtomicVector]:
 
     Returns
     -------
-    List[AtomicVector]
+    List[Morphism]
         Lista ordenada de vectores base.
     """
     return [
-        AtomicVector(
+        create_morphism_from_handler(
             name=spec.name,
-            target_stratum=spec.stratum,
+            target_stratum=Stratum.PHYSICS,
             handler=spec.handler,
+            required_keys=[],
+            optional_keys=list(_CANONICAL_DIMENSIONS)
         )
         for spec in _CANONICAL_BASIS
     ]
 
 
 @pytest.fixture
-def mic_registry(canonical_basis: List[AtomicVector]) -> MICRegistry:
+def mic_registry(canonical_basis: List[Morphism]) -> MICRegistry:
     """
     Inicializa la MIC registrando los vectores de la base canónica.
 
@@ -540,7 +531,7 @@ class TestMICFunctionalOrthogonality:
 
     def test_canonical_basis_orthonormality(
         self,
-        canonical_basis: List[AtomicVector],
+        canonical_basis: List[Morphism],
         zero_state: CategoricalState,
     ) -> None:
         """
@@ -564,7 +555,7 @@ class TestMICFunctionalOrthogonality:
         - Normalidad: ‖v_i‖ = 1 para todo i (activación unitaria)
         """
         vectors: List[np.ndarray] = [
-            _extract_state_vector(vec.execute(zero_state))
+            _extract_state_vector(vec(zero_state))
             for vec in canonical_basis
         ]
 
@@ -594,7 +585,7 @@ class TestMICFunctionalOrthogonality:
 
     def test_spectral_stability_identity_spectrum(
         self,
-        canonical_basis: List[AtomicVector],
+        canonical_basis: List[Morphism],
         zero_state: CategoricalState,
     ) -> None:
         """
@@ -642,7 +633,7 @@ class TestMICFunctionalOrthogonality:
 
     def test_full_rank_no_blind_spots(
         self,
-        canonical_basis: List[AtomicVector],
+        canonical_basis: List[Morphism],
         zero_state: CategoricalState,
     ) -> None:
         """
@@ -689,7 +680,7 @@ class TestMICFunctionalOrthogonality:
 
     def test_orthogonality_invariance_under_perturbation(
         self,
-        canonical_basis: List[AtomicVector],
+        canonical_basis: List[Morphism],
         perturbed_state: CategoricalState,
     ) -> None:
         """
@@ -719,7 +710,7 @@ class TestMICFunctionalOrthogonality:
         effect_vectors: List[np.ndarray] = []
 
         for vec in canonical_basis:
-            result_vector = _extract_state_vector(vec.execute(perturbed_state))
+            result_vector = _extract_state_vector(vec(perturbed_state))
             delta = result_vector - base_vector
             effect_vectors.append(delta)
 
@@ -753,7 +744,7 @@ class TestMICFunctionalOrthogonality:
 
     def test_no_dimensional_leaks(
         self,
-        canonical_basis: List[AtomicVector],
+        canonical_basis: List[Morphism],
         zero_state: CategoricalState,
     ) -> None:
         """
@@ -777,7 +768,7 @@ class TestMICFunctionalOrthogonality:
         allowed_dims: Set[str] = set(_CANONICAL_DIMENSIONS)
 
         for i, vec in enumerate(canonical_basis):
-            result_state = vec.execute(zero_state)
+            result_state = vec(zero_state)
             leaks = _detect_dimensional_leaks(result_state, allowed_dims)
 
             assert len(leaks) == 0, (
@@ -793,7 +784,7 @@ class TestMICFunctionalOrthogonality:
 
     def test_composition_preserves_complement_orthogonality(
         self,
-        canonical_basis: List[AtomicVector],
+        canonical_basis: List[Morphism],
         zero_state: CategoricalState,
     ) -> None:
         """
@@ -817,15 +808,14 @@ class TestMICFunctionalOrthogonality:
         coincidencia composición = suma NO es general.
         """
         composed = ComposedMorphism(
-            name="composite_e1_e2",
-            morphisms=[canonical_basis[0], canonical_basis[1]],
+            canonical_basis[0], canonical_basis[1]
         )
 
         v_composite: np.ndarray = _extract_state_vector(
-            composed.execute(zero_state)
+            composed(zero_state)
         )
         v_complement: np.ndarray = _extract_state_vector(
-            canonical_basis[2].execute(zero_state)
+            canonical_basis[2](zero_state)
         )
 
         # Ortogonalidad con el complemento
@@ -842,10 +832,12 @@ class TestMICFunctionalOrthogonality:
             f"Debería ser 0 (contenido en Span(e₁, e₂))."
         )
 
+        effect_1 = _extract_state_vector(canonical_basis[0](zero_state))
+        effect_2 = _extract_state_vector(canonical_basis[1](zero_state))
+
         # Verificar coincidencia composición ≈ suma (propiedad de soportes disjuntos)
         v_sum: np.ndarray = (
-            _extract_state_vector(canonical_basis[0].execute(zero_state))
-            + _extract_state_vector(canonical_basis[1].execute(zero_state))
+            effect_1 + effect_2
         )
         np.testing.assert_allclose(
             v_composite,
@@ -864,7 +856,7 @@ class TestMICFunctionalOrthogonality:
 
     def test_handler_commutativity(
         self,
-        canonical_basis: List[AtomicVector],
+        canonical_basis: List[Morphism],
         zero_state: CategoricalState,
     ) -> None:
         """
@@ -893,11 +885,11 @@ class TestMICFunctionalOrthogonality:
 
                     # e_j ∘ e_i
                     result_ij = _extract_state_vector(
-                        e_j.execute(e_i.execute(initial_state))
+                        e_j(e_i(initial_state))
                     )
                     # e_i ∘ e_j
                     result_ji = _extract_state_vector(
-                        e_i.execute(e_j.execute(initial_state))
+                        e_i(e_j(initial_state))
                     )
 
                     np.testing.assert_allclose(
@@ -921,7 +913,7 @@ class TestMICFunctionalOrthogonality:
 
     def test_handler_idempotence(
         self,
-        canonical_basis: List[AtomicVector],
+        canonical_basis: List[Morphism],
         zero_state: CategoricalState,
     ) -> None:
         """
@@ -943,11 +935,11 @@ class TestMICFunctionalOrthogonality:
         """
         for i, vec in enumerate(canonical_basis):
             # Una aplicación
-            once = vec.execute(zero_state)
+            once = vec(zero_state)
             v_once = _extract_state_vector(once)
 
             # Doble aplicación
-            twice = vec.execute(once)
+            twice = vec(once)
             v_twice = _extract_state_vector(twice)
 
             np.testing.assert_allclose(
