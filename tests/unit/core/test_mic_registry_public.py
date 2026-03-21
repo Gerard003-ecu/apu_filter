@@ -188,44 +188,34 @@ class DIKWHierarchy:
 # Construir la especificación del dominio
 DIKW = DIKWHierarchy(strata=(
     StratumSpec(
-        stratum=Stratum.WISDOM,
-        value=0,
+        stratum=Stratum.WISDOM, value=0,
+        required=frozenset({Stratum.ALPHA, Stratum.OMEGA, Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS}),
+        upper=frozenset(), cardinality=5, height_in_dag=0,
+    ),
+    StratumSpec(
+        stratum=Stratum.ALPHA, value=1,
         required=frozenset({Stratum.OMEGA, Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS}),
-        upper=frozenset(),
-        cardinality=4,
-        height_in_dag=0,
+        upper=frozenset({Stratum.WISDOM}), cardinality=4, height_in_dag=1,
     ),
     StratumSpec(
-        stratum=Stratum.OMEGA,
-        value=1,
+        stratum=Stratum.OMEGA, value=2,
         required=frozenset({Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS}),
-        upper=frozenset({Stratum.WISDOM}),
-        cardinality=3,
-        height_in_dag=1,
+        upper=frozenset({Stratum.WISDOM, Stratum.ALPHA}), cardinality=3, height_in_dag=2,
     ),
     StratumSpec(
-        stratum=Stratum.STRATEGY,
-        value=2,
+        stratum=Stratum.STRATEGY, value=3,
         required=frozenset({Stratum.TACTICS, Stratum.PHYSICS}),
-        upper=frozenset({Stratum.WISDOM, Stratum.OMEGA}),
-        cardinality=2,
-        height_in_dag=2,
+        upper=frozenset({Stratum.WISDOM, Stratum.ALPHA, Stratum.OMEGA}), cardinality=2, height_in_dag=3,
     ),
     StratumSpec(
-        stratum=Stratum.TACTICS,
-        value=3,
+        stratum=Stratum.TACTICS, value=4,
         required=frozenset({Stratum.PHYSICS}),
-        upper=frozenset({Stratum.WISDOM, Stratum.OMEGA, Stratum.STRATEGY}),
-        cardinality=1,
-        height_in_dag=3,
+        upper=frozenset({Stratum.WISDOM, Stratum.ALPHA, Stratum.OMEGA, Stratum.STRATEGY}), cardinality=1, height_in_dag=4,
     ),
     StratumSpec(
-        stratum=Stratum.PHYSICS,
-        value=4,
+        stratum=Stratum.PHYSICS, value=5,
         required=frozenset(),
-        upper=frozenset({Stratum.WISDOM, Stratum.OMEGA, Stratum.STRATEGY, Stratum.TACTICS}),
-        cardinality=0,
-        height_in_dag=4,
+        upper=frozenset({Stratum.WISDOM, Stratum.ALPHA, Stratum.OMEGA, Stratum.STRATEGY, Stratum.TACTICS}), cardinality=0, height_in_dag=5,
     ),
 ))
 
@@ -368,8 +358,13 @@ class TestExactValues:
         [
             pytest.param(
                 Stratum.WISDOM,
+                frozenset({Stratum.ALPHA, Stratum.OMEGA, Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS}),
+                id="WISDOM→{ALPHA,OMEGA,STRATEGY,TACTICS,PHYSICS}",
+            ),
+            pytest.param(
+                Stratum.ALPHA,
                 frozenset({Stratum.OMEGA, Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS}),
-                id="WISDOM→{OMEGA,STRATEGY,TACTICS,PHYSICS}",
+                id="ALPHA→{OMEGA,STRATEGY,TACTICS,PHYSICS}",
             ),
             pytest.param(
                 Stratum.OMEGA,
@@ -412,8 +407,8 @@ class TestCardinality:
     """
     Verificación de la propiedad de cardinalidad.
     
-    Para una pirámide de N=4 estratos:
-        |required(k)| = N - 1 - k.value = 3 - k.value
+    Para una pirámide de N=6 estratos:
+        |required(k)| = N - 1 - k.value = 5 - k.value
     """
 
     @pytest.mark.parametrize(
