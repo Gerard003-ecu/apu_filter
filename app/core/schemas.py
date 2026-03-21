@@ -167,17 +167,19 @@ class Stratum(IntEnum):
     La jerarquía refleja una cadena de mando descendente::
 
         WISDOM (0)  →  Decisión / Agente
-        OMEGA (1)   →  Ágora Tensorial / Veredicto Operativo
-        STRATEGY (2) →  Finanzas / Capítulos
-        TACTICS (3)  →  APUs / Estructura
-        PHYSICS (4)  →  Insumos / Logística
+        ALPHA (1)   →  Estructura de Negocio
+        OMEGA (2)   →  Ágora Tensorial / Veredicto Operativo
+        STRATEGY (3) →  Finanzas / Capítulos
+        TACTICS (4)  →  APUs / Estructura
+        PHYSICS (5)  →  Insumos / Logística
     """
 
     WISDOM = 0
-    OMEGA = 1
-    STRATEGY = 2
-    TACTICS = 3
-    PHYSICS = 4
+    ALPHA = 1
+    OMEGA = 2
+    STRATEGY = 3
+    TACTICS = 4
+    PHYSICS = 5
 
     @classmethod
     def base_stratum(cls) -> "Stratum":

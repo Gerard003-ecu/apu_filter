@@ -27,7 +27,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 # Importaciones del módulo bajo prueba
-from app.stratums.alpha.business_canvas import (
+from app.alfa.business_canvas import (
     # Clases principales
     AlphaTopologyVector,
     ChainComplex1D,
@@ -704,7 +704,7 @@ class TestDirectedCycles:
         
         cycles = topology_vector._analyze_directed_cycles(G)
         
-        assert cycles.is_acyclic == True
+        assert cycles.is_dag == True
         assert cycles.directed_cycles_count == 0
     
     def test_simple_cycle_detected(
@@ -717,7 +717,7 @@ class TestDirectedCycles:
         
         cycles = topology_vector._analyze_directed_cycles(G)
         
-        assert cycles.is_acyclic == False
+        assert cycles.is_dag == False
         assert cycles.directed_cycles_count >= 1
     
     def test_multiple_cycles(
@@ -746,7 +746,7 @@ class TestDirectedCycles:
         
         cycles = topology_vector._analyze_directed_cycles(G)
         
-        assert cycles.is_acyclic == False
+        assert cycles.is_dag == False
         assert cycles.directed_cycles_count >= 1
 
 
@@ -939,16 +939,17 @@ class TestInternalConsistency:
     ):
         """Detecta inconsistencia en β₀."""
         # Crear métricas artificialmente inconsistentes
-        h = HomologyMetrics(
-            n_vertices=4,
-            n_edges=3,
-            rank_boundary_1=3,
-            nullity_boundary_1=0,
-            beta_0=2,  # Incorrecto: debería ser 1
-            beta_1=0,
-            euler_char=1,
-            euler_from_betti=2,  # Inconsistente
-        )
+        with pytest.raises(HomologicalInconsistencyError):
+            h = HomologyMetrics(
+                n_vertices=4,
+                n_edges=3,
+                rank_boundary_1=3,
+                nullity_boundary_1=0,
+                beta_0=2,  # Incorrecto: debería ser 1
+                beta_1=0,
+                euler_char=1,
+                euler_from_betti=2,  # Inconsistente
+            )
         # Esto debería fallar en __post_init__
         # Pero si llegara a pasar, la validación lo detectaría
 
@@ -979,10 +980,25 @@ class TestTopologicalConstraints:
         mock_state_vector: CategoricalState
     ):
         """BMC válido es aceptado."""
+        # BMC Base contains cycles natively, which fails topology checks if beta_1 != 0.
+        # Modifying the payload to represent a valid Directed Acyclic Graph with 0 cycles
+        # We need a fully connected graph with beta_1 = 0 and no directed cycles.
+        mock_state_vector.payload = {
+            "remove_edges": [
+                {"source": "P_soc", "target": "P_cost"},
+                {"source": "P_rec", "target": "P_cost"},
+                {"source": "P_val", "target": "P_can"},
+                {"source": "P_val", "target": "P_rel"}
+            ],
+            "extra_edges": [
+                {"source": "P_val", "target": "P_seg"}
+            ]
+        }
+
         result = topology_vector(mock_state_vector)
         
-        # El BMC base debería ser válido
-        assert result.get("success") == True or "VETO" not in result.get("narrative", "")
+        # El BMC ajustado debería ser válido
+        assert result.get("success") == True
 
 
 # =============================================================================
@@ -1122,13 +1138,25 @@ class TestEndToEndIntegration:
         mock_state_vector: CategoricalState
     ):
         """Pipeline completo de análisis funciona."""
+        # BMC Base contains cycles natively, modifying the payload to represent a tree structure
+        mock_state_vector.payload = {
+            "remove_edges": [
+                {"source": "P_soc", "target": "P_cost"},
+                {"source": "P_rec", "target": "P_cost"},
+                {"source": "P_val", "target": "P_can"},
+                {"source": "P_val", "target": "P_rel"}
+            ],
+            "extra_edges": [
+                {"source": "P_val", "target": "P_seg"}
+            ]
+        }
+
         result = topology_vector(mock_state_vector)
         
-        assert "metrics" in result or "error" in result
-        if "metrics" in result:
-            metrics = result["metrics"]
-            assert "beta_0" in metrics
-            assert "fiedler_value" in metrics
+        assert result.get("success") == True
+        metrics = result["metrics_payload"]
+        assert "beta_0" in metrics
+        assert "fiedler_value" in metrics
     
     def test_error_handling_invalid_payload(
         self,

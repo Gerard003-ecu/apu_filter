@@ -152,10 +152,11 @@ except ImportError:
         Representación jerárquica del modelo DIKW.
 
         Valores numéricos y su semántica en la filtración:
-          PHYSICS  = 4  →  Base de la pirámide (datos crudos)
-          TACTICS  = 3  →  Estructura operativa
-          STRATEGY = 2  →  Planificación financiera
-          OMEGA    = 1  →  Ágora Tensorial
+          PHYSICS  = 5  →  Base de la pirámide (datos crudos)
+          TACTICS  = 4  →  Estructura operativa
+          STRATEGY = 3  →  Planificación financiera
+          OMEGA    = 2  →  Ágora Tensorial
+          ALPHA    = 1  →  Estructura de Negocio
           WISDOM   = 0  →  Síntesis estratégica (vértice)
 
         La filtración es ascendente: para alcanzar el estrato k
