@@ -1660,7 +1660,7 @@ class TestMorphismComposition:
 
         morph1 = AtomicVector("add1", Stratum.TACTICS, handler1, ["x"])
         morph2 = AtomicVector("mul2", Stratum.STRATEGY, handler2, ["y"])
-        morph3 = AtomicVector("sub1", Stratum.WISDOM, handler3, ["z"])
+        morph3 = AtomicVector("sub1", Stratum.OMEGA, handler3, ["z"])
 
         # (f ∘ g) ∘ h
         composed_left = (morph1 >> morph2) >> morph3

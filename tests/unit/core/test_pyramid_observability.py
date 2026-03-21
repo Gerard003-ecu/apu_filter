@@ -1671,7 +1671,7 @@ class TestObservabilityMetricsRefined:
 
         # 1. Datos del agente
         # Simulamos un diccionario de agent_health
-        agent_health = {Stratum.PHYSICS: {}, Stratum.TACTICS: {}, Stratum.STRATEGY: {}, Stratum.WISDOM: {}}
+        agent_health = {Stratum.PHYSICS: {}, Stratum.TACTICS: {}, Stratum.STRATEGY: {}, Stratum.OMEGA: {}, Stratum.WISDOM: {}}
 
         # 2. Datos del narrador
         # Lo mockeamos en este unit test local.
@@ -1679,6 +1679,7 @@ class TestObservabilityMetricsRefined:
             Stratum.PHYSICS: {"failure_rate": 0.5, "adjacent_failures": 1},
             Stratum.TACTICS: {"failure_rate": 0.5, "adjacent_failures": 1},
             Stratum.STRATEGY: {"failure_rate": 0.5, "adjacent_failures": 1},
+            Stratum.OMEGA: {"failure_rate": 0.5, "adjacent_failures": 1},
             Stratum.WISDOM: {"failure_rate": 0.5, "adjacent_failures": 1}
         }}}
 

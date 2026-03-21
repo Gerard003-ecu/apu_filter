@@ -135,9 +135,10 @@ except ImportError:
     from enum import IntEnum
     class Stratum(IntEnum):
         WISDOM = 0
-        STRATEGY = 1
-        TACTICS = 2
-        PHYSICS = 3
+        OMEGA = 1
+        STRATEGY = 2
+        TACTICS = 3
+        PHYSICS = 4
 
 
 # =============================================================================

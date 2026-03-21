@@ -53,12 +53,13 @@ except ImportError:
         
         Propiedades Algebraicas:
             - Forma un conjunto totalmente ordenado (cadena)
-            - El orden induce una filtración: WISDOM ⊂ STRATEGY ⊂ TACTICS ⊂ PHYSICS
+            - El orden induce una filtración: WISDOM ⊂ OMEGA ⊂ STRATEGY ⊂ TACTICS ⊂ PHYSICS
         """
         WISDOM = 0      # Síntesis estratégica (Ápice)
-        STRATEGY = 1    # Planificación financiera  
-        TACTICS = 2     # Estructura operativa
-        PHYSICS = 3     # Datos físicos/cimentación (Base)
+        OMEGA = 1       # Ágora Tensorial
+        STRATEGY = 2    # Planificación financiera
+        TACTICS = 3     # Estructura operativa
+        PHYSICS = 4     # Datos físicos/cimentación (Base)
 
 
 logger = logging.getLogger("SemanticDictionary")

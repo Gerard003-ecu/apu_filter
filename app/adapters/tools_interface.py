@@ -152,18 +152,20 @@ except ImportError:
         Representación jerárquica del modelo DIKW.
 
         Valores numéricos y su semántica en la filtración:
-          PHYSICS  = 3  →  Base de la pirámide (datos crudos)
-          TACTICS  = 2  →  Estructura operativa
-          STRATEGY = 1  →  Planificación financiera
+          PHYSICS  = 4  →  Base de la pirámide (datos crudos)
+          TACTICS  = 3  →  Estructura operativa
+          STRATEGY = 2  →  Planificación financiera
+          OMEGA    = 1  →  Ágora Tensorial
           WISDOM   = 0  →  Síntesis estratégica (vértice)
 
         La filtración es ascendente: para alcanzar el estrato k
         deben estar validados todos los estratos j con valor > k.
         """
         WISDOM = 0
-        STRATEGY = 1
-        TACTICS = 2
-        PHYSICS = 3
+        OMEGA = 1
+        STRATEGY = 2
+        TACTICS = 3
+        PHYSICS = 4
 
         @classmethod
         def base_stratum(cls) -> "Stratum":

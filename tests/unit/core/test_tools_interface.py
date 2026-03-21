@@ -358,9 +358,10 @@ class TestStratum:
     def test_stratum_values(self):
         """Los valores numéricos deben ser correctos."""
         assert Stratum.WISDOM.value == 0
-        assert Stratum.STRATEGY.value == 1
-        assert Stratum.TACTICS.value == 2
-        assert Stratum.PHYSICS.value == 3
+        assert Stratum.OMEGA.value == 1
+        assert Stratum.STRATEGY.value == 2
+        assert Stratum.TACTICS.value == 3
+        assert Stratum.PHYSICS.value == 4
     
     def test_base_stratum(self):
         """base_stratum debe retornar PHYSICS."""
@@ -387,23 +388,32 @@ class TestStratum:
         assert Stratum.TACTICS in required
         assert len(required) == 2
     
+    def test_requires_omega(self):
+        """OMEGA requiere PHYSICS, TACTICS y STRATEGY."""
+        required = Stratum.OMEGA.requires()
+        assert Stratum.PHYSICS in required
+        assert Stratum.TACTICS in required
+        assert Stratum.STRATEGY in required
+        assert len(required) == 3
+
     def test_requires_wisdom(self):
         """WISDOM requiere todos los demás estratos."""
         required = Stratum.WISDOM.requires()
         assert Stratum.PHYSICS in required
         assert Stratum.TACTICS in required
         assert Stratum.STRATEGY in required
-        assert len(required) == 3
+        assert Stratum.OMEGA in required
+        assert len(required) == 4
     
     def test_ordered_bottom_up(self):
         """Orden de base a cúspide."""
         order = Stratum.ordered_bottom_up()
-        assert order == [Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.WISDOM]
+        assert order == [Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.WISDOM]
     
     def test_ordered_top_down(self):
         """Orden de cúspide a base."""
         order = Stratum.ordered_top_down()
-        assert order == [Stratum.WISDOM, Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS]
+        assert order == [Stratum.WISDOM, Stratum.OMEGA, Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS]
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1937,7 +1947,7 @@ class TestProjectionCommands:
         ctx = ProjectionContext(
             service_name="test",
             payload={},
-            context={"validated_strata": [3, 2]},  # PHYSICS=3, TACTICS=2
+            context={"validated_strata": [4, 3]},  # PHYSICS=4, TACTICS=3
             use_cache=False,
         )
         
@@ -2169,7 +2179,7 @@ class TestEdgeCases:
         result_success = mic_registry.project_intent(
             service_name="wisdom_service",
             payload={},
-            context={"validated_strata": {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}},
+            context={"validated_strata": {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA}},
         )
         assert result_success["success"] is True
 

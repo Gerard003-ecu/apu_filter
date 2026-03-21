@@ -78,9 +78,10 @@ except ImportError:
 
     class Stratum(StratumBase):
         WISDOM = 0
-        STRATEGY = 1
-        TACTICS = 2
-        PHYSICS = 3
+        OMEGA = 1
+        STRATEGY = 2
+        TACTICS = 3
+        PHYSICS = 4
 
 
 logger = logging.getLogger(__name__)

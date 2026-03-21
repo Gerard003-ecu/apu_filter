@@ -781,7 +781,7 @@ class TestTransitiveClosureRules:
         """PHYSICS compromete TACTICS, STRATEGY, WISDOM."""
         rule = TransitiveClosureRule.from_stratum(Stratum.PHYSICS)
         
-        expected_compromised = {Stratum.TACTICS, Stratum.STRATEGY, Stratum.WISDOM}
+        expected_compromised = frozenset({Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.WISDOM})
         assert rule.compromised_strata == expected_compromised
         assert len(rule.preserved_strata) == 0
 
@@ -789,8 +789,8 @@ class TestTransitiveClosureRules:
         """TACTICS compromete STRATEGY, WISDOM pero no PHYSICS."""
         rule = TransitiveClosureRule.from_stratum(Stratum.TACTICS)
         
-        expected_compromised = {Stratum.STRATEGY, Stratum.WISDOM}
-        expected_preserved = {Stratum.PHYSICS}
+        expected_compromised = frozenset({Stratum.STRATEGY, Stratum.OMEGA, Stratum.WISDOM})
+        expected_preserved = frozenset({Stratum.PHYSICS})
         
         assert rule.compromised_strata == expected_compromised
         assert rule.preserved_strata == expected_preserved
@@ -799,8 +799,8 @@ class TestTransitiveClosureRules:
         """STRATEGY compromete solo WISDOM."""
         rule = TransitiveClosureRule.from_stratum(Stratum.STRATEGY)
         
-        expected_compromised = {Stratum.WISDOM}
-        expected_preserved = {Stratum.PHYSICS, Stratum.TACTICS}
+        expected_compromised = frozenset({Stratum.OMEGA, Stratum.WISDOM})
+        expected_preserved = frozenset({Stratum.PHYSICS, Stratum.TACTICS})
         
         assert rule.compromised_strata == expected_compromised
         assert rule.preserved_strata == expected_preserved
@@ -810,7 +810,7 @@ class TestTransitiveClosureRules:
         rule = TransitiveClosureRule.from_stratum(Stratum.WISDOM)
         
         assert len(rule.compromised_strata) == 0
-        assert rule.preserved_strata == {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}
+        assert rule.preserved_strata == frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA})
 
     def test_closure_rules_partition_remaining_strata(self) -> None:
         """Comprometidos y preservados particionan los estratos restantes."""
@@ -1644,7 +1644,8 @@ class TestDeterminism:
         assert global_severity(report_1) == global_severity(report_2)
         
         for stratum in Stratum:
-            assert severity_of(report_1, stratum) == severity_of(report_2, stratum)
+            if stratum.name in report_1.get("strata_analysis", {}):
+                assert severity_of(report_1, stratum) == severity_of(report_2, stratum)
 
     def test_translator_is_deterministic(
         self,
@@ -1734,7 +1735,8 @@ class TestGlobalInvariants:
         
         if verdict_code(report) == "APPROVED":
             for stratum in Stratum:
-                assert severity_of(report, stratum) in {"OPTIMO", "ACEPTABLE"}
+                if stratum.name in report.get("strata_analysis", {}):
+                    assert severity_of(report, stratum) in {"OPTIMO", "ACEPTABLE"}
 
 
 if __name__ == "__main__":

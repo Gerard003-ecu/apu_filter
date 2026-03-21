@@ -139,6 +139,7 @@ class DIKWPyramid:
         Stratum.PHYSICS,
         Stratum.TACTICS,
         Stratum.STRATEGY,
+        Stratum.OMEGA,
         Stratum.WISDOM,
     ]
     
@@ -147,7 +148,8 @@ class DIKWPyramid:
         Stratum.PHYSICS: set(),
         Stratum.TACTICS: {Stratum.PHYSICS},
         Stratum.STRATEGY: {Stratum.PHYSICS, Stratum.TACTICS},
-        Stratum.WISDOM: {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY},
+        Stratum.OMEGA: {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY},
+        Stratum.WISDOM: {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA},
     }
     
     @classmethod
@@ -359,7 +361,7 @@ def verify_order_properties(registry) -> Dict[str, Any]:
     )
     
     # A₆: Maximalidad
-    expected_max = {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}
+    expected_max = {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA}
     results["A6_maximum"] = (
         registry.get_required_strata(Stratum.WISDOM) == expected_max
     )
@@ -440,8 +442,21 @@ class MockMICRegistry:
         # G₁: Verificar permisos de jerarquía
         if not self._check_hierarchy_permission(stratum, context):
             required = DIKWPyramid.get_requirements(stratum)
+
+            missing = required - context.get(MICContextKeys.VALIDATED_STRATA, set())
+            missing_names = sorted(
+                [s.name for s in missing],
+                key=lambda n: Stratum[n].value,
+                reverse=True,
+            )
+
             return {
                 MICResultKeys.SUCCESS: False,
+                "error_category": "hierarchy_violation",
+                "error_details": {
+                    "target_stratum": stratum.name,
+                    "missing_strata": missing_names
+                },
                 MICResultKeys.ERROR_TYPE: MICErrorMessages.PERMISSION_ERROR,
                 MICResultKeys.ERROR: (
                     f"{MICErrorMessages.HIERARCHY_VIOLATION}: {stratum.name} "
@@ -555,6 +570,15 @@ def _strategy_handler(amount: float) -> Dict[str, Any]:
     }
 
 
+def _omega_handler(risk_score: float) -> Dict[str, Any]:
+    """Handler de nivel OMEGA."""
+    return {
+        MICResultKeys.SUCCESS: True,
+        "risk_score": risk_score,
+        MICResultKeys.STRATUM: "OMEGA",
+    }
+
+
 def _wisdom_handler(decision: str) -> Dict[str, Any]:
     """Handler de nivel WISDOM."""
     return {
@@ -597,6 +621,7 @@ def _build_registry() -> MockMICRegistry:
     registry.register_vector("mock_physics", Stratum.PHYSICS, _physics_handler)
     registry.register_vector("mock_tactics", Stratum.TACTICS, _tactics_handler)
     registry.register_vector("mock_strategy", Stratum.STRATEGY, _strategy_handler)
+    registry.register_vector("mock_omega", Stratum.OMEGA, _omega_handler)
     registry.register_vector("mock_wisdom", Stratum.WISDOM, _wisdom_handler)
     
     return registry
@@ -636,6 +661,7 @@ STRATUM_VECTOR_MAP: Dict[Stratum, Tuple[str, Dict[str, Any]]] = {
     Stratum.PHYSICS: ("mock_physics", {"val": 1}),
     Stratum.TACTICS: ("mock_tactics", {"items": []}),
     Stratum.STRATEGY: ("mock_strategy", {"amount": 1.0}),
+    Stratum.OMEGA: ("mock_omega", {"risk_score": 0.85}),
     Stratum.WISDOM: ("mock_wisdom", {"decision": "test"}),
 }
 
@@ -779,15 +805,15 @@ class TestMICRegistryBasics:
         """Obtener lista de vectores registrados."""
         vectors = mic.registered_services
         
-        assert len(vectors) == 4
+        assert len(vectors) == 5
         assert set(vectors) == {
             "mock_physics", "mock_tactics", 
-            "mock_strategy", "mock_wisdom"
+            "mock_strategy", "mock_omega", "mock_wisdom"
         }
 
     def test_clear_removes_all_vectors(self, mic):
         """Clear elimina todos los vectores."""
-        assert len(mic.registered_services) == 4
+        assert len(mic.registered_services) == 5
         
         mic._projection_commands[1]._vectors.clear() # Hack for test since clear is removed
         
@@ -936,7 +962,7 @@ class TestMICHierarchyPermissions:
             "mock_wisdom",
             {"decision": "proceed"},
             _build_context(validated={
-                Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY,
+                Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA,
             }),
         )
 
@@ -975,7 +1001,8 @@ class TestMICHierarchyPermissions:
             (Stratum.WISDOM, {Stratum.PHYSICS, Stratum.TACTICS}, False),
             (Stratum.WISDOM, {Stratum.PHYSICS, Stratum.STRATEGY}, False),
             (Stratum.WISDOM, {Stratum.TACTICS, Stratum.STRATEGY}, False),
-            (Stratum.WISDOM, {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}, True),
+            (Stratum.WISDOM, {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}, False),
+            (Stratum.WISDOM, {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA}, True),
         ],
         ids=[
             "phys_empty", "phys_with_tactics", "phys_with_extras", "phys_idempotent",
@@ -984,7 +1011,7 @@ class TestMICHierarchyPermissions:
             "strat_empty", "strat_only_phys", "strat_only_tact",
             "strat_phys_tact", "strat_phys_wisd", "strat_tact_wisd",
             "wisd_empty", "wisd_only_phys", "wisd_phys_tact",
-            "wisd_phys_strat", "wisd_tact_strat", "wisd_full_chain",
+            "wisd_phys_strat", "wisd_tact_strat", "wisd_incomplete_chain", "wisd_full_chain",
         ],
     )
     def test_permission_matrix(self, mic, target, validated, expected_success):
@@ -1149,7 +1176,7 @@ class TestMICAlgebraicProperties:
     inducido por la pirámide DIKW.
 
     El conjunto (P = Stratum, <) forma una cadena total (orden lineal):
-      PHYSICS < TACTICS < STRATEGY < WISDOM
+      PHYSICS < TACTICS < STRATEGY < OMEGA < WISDOM
 
     Propiedades verificadas: A₁–A₇ del docstring de módulo.
     """
@@ -1205,17 +1232,19 @@ class TestMICAlgebraicProperties:
 
     def test_transitive_chain_inclusion(self, registry):
         """
-        A₃: req(WISDOM) ⊇ req(STRATEGY) ⊇ req(TACTICS) ⊇ req(PHYSICS).
+        A₃: req(WISDOM) ⊇ req(OMEGA) ⊇ req(STRATEGY) ⊇ req(TACTICS) ⊇ req(PHYSICS).
         Inclusión de cadena monotónica creciente.
         """
         req_phys = registry.get_required_strata(Stratum.PHYSICS)
         req_tact = registry.get_required_strata(Stratum.TACTICS)
         req_strat = registry.get_required_strata(Stratum.STRATEGY)
+        req_omega = registry.get_required_strata(Stratum.OMEGA)
         req_wisd = registry.get_required_strata(Stratum.WISDOM)
 
         assert req_phys.issubset(req_tact), "req(PHYSICS) ⊄ req(TACTICS)"
         assert req_tact.issubset(req_strat), "req(TACTICS) ⊄ req(STRATEGY)"
-        assert req_strat.issubset(req_wisd), "req(STRATEGY) ⊄ req(WISDOM)"
+        assert req_strat.issubset(req_omega), "req(STRATEGY) ⊄ req(OMEGA)"
+        assert req_omega.issubset(req_wisd), "req(OMEGA) ⊄ req(WISDOM)"
 
     def test_transitive_closure_correct(self, registry):
         """
@@ -1225,7 +1254,7 @@ class TestMICAlgebraicProperties:
         entonces PHYSICS ∈ req(STRATEGY).
         """
         # PHYSICS está en requisitos de todos los superiores
-        for stratum in [Stratum.TACTICS, Stratum.STRATEGY, Stratum.WISDOM]:
+        for stratum in [Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.WISDOM]:
             assert Stratum.PHYSICS in registry.get_required_strata(stratum), (
                 f"PHYSICS no está en req({stratum.name}) - falla transitividad"
             )
@@ -1254,12 +1283,13 @@ class TestMICAlgebraicProperties:
         Verificación directa de que el orden es una cadena lineal.
         
         Esto significa que existe una única secuencia
-        s₀ < s₁ < s₂ < s₃ que ordena todos los elementos.
+        s₀ < s₁ < s₂ < s₃ < s₄ que ordena todos los elementos.
         """
         expected_order = [
             Stratum.PHYSICS,
             Stratum.TACTICS,
             Stratum.STRATEGY,
+            Stratum.OMEGA,
             Stratum.WISDOM,
         ]
         
@@ -1282,7 +1312,7 @@ class TestMICAlgebraicProperties:
 
     def test_physics_in_all_higher_requirements(self, registry):
         """Corolario de A₅: PHYSICS ∈ req(s) para todo s > PHYSICS."""
-        for stratum in [Stratum.TACTICS, Stratum.STRATEGY, Stratum.WISDOM]:
+        for stratum in [Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.WISDOM]:
             assert Stratum.PHYSICS in registry.get_required_strata(stratum), (
                 f"PHYSICS ausente en req({stratum.name})"
             )
@@ -1302,7 +1332,7 @@ class TestMICAlgebraicProperties:
 
     def test_wisdom_is_maximum(self, registry):
         """A₆: req(WISDOM) = P \\ {WISDOM}. Elemento máximo."""
-        expected = {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}
+        expected = {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA}
         assert registry.get_required_strata(Stratum.WISDOM) == expected
 
     def test_wisdom_requires_all_others(self, registry):
@@ -1350,7 +1380,7 @@ class TestMICAlgebraicProperties:
     def test_cardinality_strictly_increasing(self, registry):
         """
         |req(s)| es estrictamente creciente a lo largo de la cadena.
-        Esto induce una biyección con {0, 1, 2, 3}.
+        Esto induce una biyección con {0, 1, 2, 3, 4}.
         """
         cardinalities = [
             (stratum, len(registry.get_required_strata(stratum)))
@@ -1360,7 +1390,7 @@ class TestMICAlgebraicProperties:
         sorted_by_card = sorted(cardinalities, key=lambda x: x[1])
         expected_order = [
             Stratum.PHYSICS, Stratum.TACTICS,
-            Stratum.STRATEGY, Stratum.WISDOM,
+            Stratum.STRATEGY, Stratum.OMEGA, Stratum.WISDOM,
         ]
 
         actual_order = [s for s, _ in sorted_by_card]
@@ -1548,6 +1578,7 @@ class TestMICFlowScenarios:
             results[stratum] = result[MICResultKeys.SUCCESS]
 
         assert results[Stratum.WISDOM] is False
+        assert results[Stratum.OMEGA] is False
         assert results[Stratum.STRATEGY] is False
         assert results[Stratum.TACTICS] is False
         assert results[Stratum.PHYSICS] is True  # Siempre permitido
@@ -2021,11 +2052,11 @@ class TestMICIntegrationWithTelemetry:
                     if result[MICResultKeys.SUCCESS]:
                         validated.add(stratum)
         
-        # Un span raíz con 4 hijos
+        # Un span raíz con 5 hijos
         assert len(telemetry_ctx.root_spans) == 1
         pipeline_span = telemetry_ctx.root_spans[0]
         assert pipeline_span.name == "pipeline"
-        assert len(pipeline_span.children) == 4
+        assert len(pipeline_span.children) == 5
 
 
 # =============================================================================

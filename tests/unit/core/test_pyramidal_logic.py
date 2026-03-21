@@ -71,10 +71,13 @@ from app.core.schemas import APUStructure, InsumoProcesado, Stratum, Topological
 # Cadena esperada de estratos con sus valores ordinales
 _EXPECTED_STRATUM_CHAIN: Final[tuple[tuple[str, int], ...]] = (
     ("WISDOM", 0),
-    ("STRATEGY", 1),
-    ("TACTICS", 2),
-    ("PHYSICS", 3),
+    ("OMEGA", 1),
+    ("STRATEGY", 2),
+    ("TACTICS", 3),
+    ("PHYSICS", 4),
 )
+
+_STRATUM_CARDINALITY: Final[int] = 5
 
 # Tipos válidos de insumo (partición del espacio de tipos)
 _VALID_INSUMO_TYPES: Final[tuple[str, ...]] = (
@@ -102,7 +105,7 @@ _HEALTH_MIN: Final[float] = 0.0
 _HEALTH_MAX: Final[float] = 1.0
 
 # Cardinalidad esperada del espacio de estratos
-_STRATUM_CARDINALITY: Final[int] = 4
+_STRATUM_CARDINALITY: Final[int] = 5
 
 # Longitud máxima permitida para IDs
 _MAX_ID_LENGTH: Final[int] = 512
@@ -1491,7 +1494,8 @@ class TestGlobalTopologicalInvariants:
 
     def test_pyramid_is_dag_by_value_orientation(self) -> None:
         """Verifica orientación del DAG piramidal."""
-        assert Stratum.WISDOM.value < Stratum.STRATEGY.value
+        assert Stratum.WISDOM.value < Stratum.OMEGA.value
+        assert Stratum.OMEGA.value < Stratum.STRATEGY.value
         assert Stratum.STRATEGY.value < Stratum.TACTICS.value
         assert Stratum.TACTICS.value < Stratum.PHYSICS.value
 
