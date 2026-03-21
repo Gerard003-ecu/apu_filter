@@ -84,7 +84,7 @@ from numpy.typing import NDArray
 
 # Dependencias MIC
 from app.core.mic_algebra import CategoricalState, Morphism
-from app.adapters.mic_vectors import VectorResultStatus, _build_result, _build_error
+from app.adapters.mic_vectors import VectorResultStatus, _build_result, _build_error, VectorMetrics
 from app.core.schemas import Stratum
 
 logger = logging.getLogger("MIC.Alpha.BusinessCanvas")
@@ -275,15 +275,16 @@ def compute_null_space_basis(
     sigma_max = s[0] if s[0] > EPSILON else 1.0
     threshold = tol * sigma_max
     
-    # Valores singulares considerados nulos
-    null_count = int(np.sum(s <= threshold))
+    # Valores singulares considerados no nulos (rango numérico)
+    rank = int(np.sum(s > threshold))
+    null_dim = n - rank
     
-    if null_count == 0:
+    if null_dim == 0:
         return np.array([]).reshape(n, 0)
     
-    # Las últimas 'null_count' filas de Vᵀ corresponden al kernel
-    # Vh tiene forma (n, n), queremos las últimas filas transpuestas
-    null_space = Vh[-(null_count):, :].T
+    # Las últimas 'null_dim' filas de Vᵀ (cuyas dimensiones son n x n por full_matrices=True)
+    # corresponden a la base del kernel
+    null_space = Vh[-(null_dim):, :].T
     
     return null_space
 
@@ -518,8 +519,16 @@ class AlphaTopologyVector(Morphism):
     """
 
     def __init__(self, name: str = "alpha_business_canvas_topology") -> None:
-        self.name = name
-        self.target_stratum = Stratum.WISDOM
+        super().__init__(name)
+        self.target_stratum = Stratum.ALPHA
+
+    @property
+    def domain(self) -> FrozenSet[Stratum]:
+        return frozenset(self.target_stratum.requires())
+
+    @property
+    def codomain(self) -> Stratum:
+        return self.target_stratum
 
     # -------------------------------------------------------------------------
     # INTERFAZ PÚBLICA
@@ -551,7 +560,8 @@ class AlphaTopologyVector(Morphism):
                 success=True,
                 stratum=self.target_stratum,
                 status=VectorResultStatus.SUCCESS,
-                metrics=self._metrics_to_dict(metrics),
+                metrics=VectorMetrics(),
+                metrics_payload=self._metrics_to_dict(metrics),
                 narrative=narrative,
             )
 
@@ -883,13 +893,12 @@ class AlphaTopologyVector(Morphism):
         # Contar autovalores nulos (= β₀)
         mult_zero = int(np.sum(np.abs(eigenvalues) < EIGENVALUE_ZERO_TOL))
         
-        # Valor de Fiedler: primer autovalor estrictamente positivo
-        if n == 1:
-            # Grafo con un solo vértice: trivialmente conexo, sin aristas
+        # Valor de Fiedler: segundo autovalor más pequeño
+        if n <= 1:
+            # Grafo con un solo vértice o vacío: trivialmente conexo, sin aristas
             fiedler = 0.0
         else:
-            positive_eigenvalues = eigenvalues[eigenvalues > EIGENVALUE_ZERO_TOL]
-            fiedler = float(positive_eigenvalues[0]) if len(positive_eigenvalues) > 0 else 0.0
+            fiedler = float(eigenvalues[1])
         
         spectral_gap = fiedler
         
@@ -921,7 +930,7 @@ class AlphaTopologyVector(Morphism):
                 dimension=0,
                 cycle_basis_edges=(),
                 directed_cycles_count=0,
-                is_acyclic=True,
+                is_dag=True,
             )
         
         # Enumerar ciclos con límite de seguridad
@@ -954,7 +963,7 @@ class AlphaTopologyVector(Morphism):
             dimension=cycle_count,
             cycle_basis_edges=tuple(sample_cycles),
             directed_cycles_count=cycle_count,
-            is_acyclic=False,
+            is_dag=False,
         )
 
     # -------------------------------------------------------------------------
@@ -1021,12 +1030,19 @@ class AlphaTopologyVector(Morphism):
         1. β₀ = 1 (conexo)
         2. β₁ = 0 (sin ciclos estructurales)
         3. DAG (sin ciclos dirigidos)
+        4. λ₁ > MIN_FIEDLER_VALUE (conectividad algebraica estricta)
         """
         if metrics.beta_0 > 1:
             raise TopologicalInvariantError(
                 f"BMC fragmentado: β₀={metrics.beta_0} componentes"
             )
         
+        if not metrics.is_spectrally_stable:
+            raise TopologicalInvariantError(
+                f"Fractura organizacional: Fiedler value (λ₂={metrics.fiedler_value:.4f}) "
+                f"es menor al umbral {MIN_FIEDLER_VALUE}"
+            )
+
         if metrics.beta_1 > 0:
             raise TopologicalInvariantError(
                 f"Espacio de ciclos no trivial: β₁={metrics.beta_1}"
@@ -1086,7 +1102,7 @@ class AlphaTopologyVector(Morphism):
             is_connected=(homology.beta_0 == 1),
             has_cycle_space=(homology.beta_1 > 0),
             has_directed_feedback=(cycles.directed_cycles_count > 0),
-            is_dag=cycles.is_acyclic,
+            is_dag=cycles.is_dag,
             is_spectrally_stable=(spectral.fiedler_value >= MIN_FIEDLER_VALUE),
             connectivity_class=conn_class,
             n_vertices=homology.n_vertices,
@@ -1214,16 +1230,16 @@ class AlphaTopologyVector(Morphism):
             logger.error("Fusión rechazada: unión desconectada (β₀=%d)", h_U.beta_0)
             return MergeVerdict.REJECTED_DISCONNECTED
         
+        if new_directed > 0:
+            logger.error("Fusión rechazada: %d nuevos ciclos dirigidos", new_directed)
+            return MergeVerdict.REJECTED_TOXIC_CYCLES
+
         if h_U.beta_1 > max(h_A.beta_1, h_B.beta_1) or mv_defect > 0:
             logger.error(
                 "Fusión rechazada: defecto homológico β₁(U)=%d, MV_defect=%d",
                 h_U.beta_1, mv_defect
             )
             return MergeVerdict.REJECTED_HOMOLOGICAL_DEFECT
-        
-        if new_directed > 0:
-            logger.error("Fusión rechazada: %d nuevos ciclos dirigidos", new_directed)
-            return MergeVerdict.REJECTED_TOXIC_CYCLES
         
         if s_U.fiedler_value < MIN_FIEDLER_VALUE:
             logger.error(
@@ -1303,7 +1319,7 @@ class AlphaTopologyVector(Morphism):
             },
             "cycles": {
                 "directed_count": cycles.directed_cycles_count,
-                "is_dag": cycles.is_acyclic,
+                "is_dag": cycles.is_dag,
                 "fundamental_basis": [
                     [list(e) for e in c] for c in cycle_basis
                 ],
