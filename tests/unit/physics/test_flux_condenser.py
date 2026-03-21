@@ -1920,7 +1920,8 @@ class TestEdgeCases:
             inductance=0.001,
         )
         
-        metrics = engine.calculate_metrics(100, 50, 0, 1.0)
+        with pytest.warns(RuntimeWarning, match="overflow|invalid value"):
+            metrics = engine.calculate_metrics(100, 50, 0, 1.0)
         assert_finite(metrics["saturation"])
 
     def test_engine_zero_resistance_infinite_q(self):

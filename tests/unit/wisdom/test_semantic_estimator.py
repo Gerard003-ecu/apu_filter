@@ -1513,7 +1513,7 @@ class TestCasosLimite:
         data_store = {"apus_detail": [{"CODIGO_APU": "APU-001"}]}
 
         with patch(
-            "app.wisdom.semantic_estimator.run_monte_carlo_simulation",
+            "app.wisdom.semantic_estimator.MonteCarloSimulator.run_simulation",
             side_effect=RuntimeError("MC error"),
         ):
             result = CostCalculator._run_financial_analysis(
