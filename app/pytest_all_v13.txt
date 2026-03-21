@@ -1,0 +1,461 @@
+---------------------------- Captured stderr setup -----------------------------
+2026-03-21 14:53:02,722 - MIC.Registry - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+2026-03-21 14:53:02,722 - MIC.Registry - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+2026-03-21 14:53:02,723 - MIC.Registry - INFO - Vector registrado: 'structure_logic' [TACTICS]
+2026-03-21 14:53:02,723 - MIC.Registry - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+2026-03-21 14:53:02,723 - MIC.Registry - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+2026-03-21 14:53:02,723 - SemanticDictionary - WARNING - Se encontraron 27 plantillas con posibles problemas de formato
+2026-03-21 14:53:02,723 - SemanticDictionary - WARNING -   - STABILITY.critical: Unknown format code 'f' for object of type 'str'
+2026-03-21 14:53:02,723 - SemanticDictionary - WARNING -   - STABILITY.warning: Unknown format code 'f' for object of type 'str'
+2026-03-21 14:53:02,723 - SemanticDictionary - WARNING -   - STABILITY.stable: Unknown format code 'f' for object of type 'str'
+2026-03-21 14:53:02,723 - SemanticDictionary - WARNING -   - STABILITY.robust: Unknown format code 'f' for object of type 'str'
+2026-03-21 14:53:02,724 - SemanticDictionary - WARNING -   - SPECTRAL_COHESION.high: Unknown format code 'f' for object of type 'str'
+2026-03-21 14:53:02,724 - SemanticDictionary - INFO - ✅ SemanticDictionaryService inicializado exitosamente
+2026-03-21 14:53:02,724 - MIC.Registry - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+2026-03-21 14:53:02,724 - MIC.Registry - INFO - Vector registrado: 'project_graph_narrative' [WISDOM]
+2026-03-21 14:53:02,724 - SemanticDictionary - INFO - ✅ Vectores Semánticos registrados en la MIC
+2026-03-21 14:53:02,724 - MIC - INFO - ✅ Diccionario semántico registrado
+2026-03-21 14:53:02,724 - MIC - INFO - ✅ MIC inicializada con 7 vectores (dimensión=7)
+------------------------------ Captured log setup ------------------------------
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+WARNING  SemanticDictionary:semantic_dictionary.py:665 Se encontraron 27 plantillas con posibles problemas de formato
+WARNING  SemanticDictionary:semantic_dictionary.py:670   - STABILITY.critical: Unknown format code 'f' for object of type 'str'
+WARNING  SemanticDictionary:semantic_dictionary.py:670   - STABILITY.warning: Unknown format code 'f' for object of type 'str'
+WARNING  SemanticDictionary:semantic_dictionary.py:670   - STABILITY.stable: Unknown format code 'f' for object of type 'str'
+WARNING  SemanticDictionary:semantic_dictionary.py:670   - STABILITY.robust: Unknown format code 'f' for object of type 'str'
+WARNING  SemanticDictionary:semantic_dictionary.py:670   - SPECTRAL_COHESION.high: Unknown format code 'f' for object of type 'str'
+INFO     SemanticDictionary:semantic_dictionary.py:672 ✅ SemanticDictionaryService inicializado exitosamente
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'project_graph_narrative' [WISDOM]
+INFO     SemanticDictionary:semantic_dictionary.py:1524 ✅ Vectores Semánticos registrados en la MIC
+INFO     MIC:tools_interface.py:2626 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:2630 ✅ MIC inicializada con 7 vectores (dimensión=7)
+----------------------------- Captured stderr call -----------------------------
+2026-03-21 14:53:02,725 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-21 14:53:02,725 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-21 14:53:02,725 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-21 14:53:02,725 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-21 14:53:02,725 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-21 14:53:02,725 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-21 14:53:02,726 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-21 14:53:02,726 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-21 14:53:02,726 - MIC - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA. Validados: ninguno.
+2026-03-21 14:53:02,726 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+------------------------------ Captured log call -------------------------------
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+ERROR    MIC:tools_interface.py:1558 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA. Validados: ninguno.
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+___________________ TestNormalizeStratum.test_int_conversion ___________________
+
+self = <test_mic_agent.TestNormalizeStratum object at 0x7b3d706e9930>
+
+    def test_int_conversion(self):
+        """Enteros se convierten a Stratum."""
+        assert normalize_stratum(0) == Stratum.WISDOM
+>       assert normalize_stratum(1) == Stratum.STRATEGY
+E       assert <Stratum.OMEGA: 1> == <Stratum.STRATEGY: 2>
+E        +  where <Stratum.OMEGA: 1> = normalize_stratum(1)
+E        +  and   <Stratum.STRATEGY: 2> = Stratum.STRATEGY
+
+tests/unit/agents/test_mic_agent.py:201: AssertionError
+_______________ TestNormalizeStratum.test_string_int_conversion ________________
+
+self = <test_mic_agent.TestNormalizeStratum object at 0x7b3d706e9c30>
+
+    def test_string_int_conversion(self):
+        """Strings numéricos se convierten."""
+        assert normalize_stratum("0") == Stratum.WISDOM
+>       assert normalize_stratum("3") == Stratum.PHYSICS
+E       AssertionError: assert <Stratum.TACTICS: 3> == <Stratum.PHYSICS: 4>
+E        +  where <Stratum.TACTICS: 3> = normalize_stratum('3')
+E        +  and   <Stratum.PHYSICS: 4> = Stratum.PHYSICS
+
+tests/unit/agents/test_mic_agent.py:214: AssertionError
+___________________ TestIntegration.test_full_dikw_pipeline ____________________
+
+self = <test_mic_agent.TestIntegration object at 0x7b3d7053bd90>
+mock_mic_registry = <MagicMock id='135503216189376'>
+
+    def test_full_dikw_pipeline(self, mock_mic_registry):
+        """Pipeline completo PHYSICS → TACTICS → STRATEGY → WISDOM."""
+        agent = MICAgent(mic_registry=mock_mic_registry)
+    
+        # PHYSICS
+        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
+    
+        physics_result = agent.execute_projection(
+            target_vector="physics_vec",
+            llm_output=VALID_PHYSICS_PAYLOAD,
+            validated_strata=frozenset(),
+        )
+        assert physics_result["status"] == "OK"
+    
+        # TACTICS (con PHYSICS validado)
+        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.TACTICS}
+    
+        tactics_result = agent.execute_projection(
+            target_vector="tactics_vec",
+            llm_output=VALID_TACTICS_PAYLOAD,
+            validated_strata=frozenset([Stratum.PHYSICS]),
+        )
+        assert tactics_result["status"] == "OK"
+    
+        # STRATEGY (con PHYSICS, TACTICS validados)
+        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.STRATEGY}
+    
+        strategy_result = agent.execute_projection(
+            target_vector="strategy_vec",
+            llm_output=VALID_STRATEGY_PAYLOAD,
+            validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS]),
+        )
+        assert strategy_result["status"] == "OK"
+    
+        # WISDOM (con todos validados)
+        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.WISDOM}
+    
+        wisdom_result = agent.execute_projection(
+            target_vector="wisdom_vec",
+            llm_output=VALID_WISDOM_PAYLOAD,
+            validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY]),
+        )
+>       assert wisdom_result["status"] == "OK"
+E       AssertionError: assert 'VETO' == 'OK'
+E         
+E         - OK
+E         + VETO
+
+tests/unit/agents/test_mic_agent.py:1531: AssertionError
+----------------------------- Captured stderr call -----------------------------
+2026-03-21 14:53:03,723 - MIC.Agent.CategoricalEqualizer - INFO - Proyectando: vector=physics_vec estrato=PHYSICS
+2026-03-21 14:53:03,723 - MIC.Agent.CategoricalEqualizer - INFO - Proyectando: vector=tactics_vec estrato=TACTICS
+2026-03-21 14:53:03,724 - MIC.Agent.CategoricalEqualizer - INFO - Proyectando: vector=strategy_vec estrato=STRATEGY
+2026-03-21 14:53:03,724 - MIC.Agent.CategoricalEqualizer - WARNING - Encapsulación vetada: vector=wisdom_vec estrato=WISDOM status=STRATUM_MISMATCH_REJECTED error=Clausura transitiva incumplida para WISDOM: faltan estratos ['OMEGA']
+2026-03-21 14:53:03,724 - MIC.Agent.CategoricalEqualizer - WARNING - Proyección abortada: STRATUM_MISMATCH_REJECTED
+------------------------------ Captured log call -------------------------------
+INFO     MIC.Agent.CategoricalEqualizer:MIC_agent.py:1889 Proyectando: vector=physics_vec estrato=PHYSICS
+INFO     MIC.Agent.CategoricalEqualizer:MIC_agent.py:1889 Proyectando: vector=tactics_vec estrato=TACTICS
+INFO     MIC.Agent.CategoricalEqualizer:MIC_agent.py:1889 Proyectando: vector=strategy_vec estrato=STRATEGY
+WARNING  MIC.Agent.CategoricalEqualizer:MIC_agent.py:1770 Encapsulación vetada: vector=wisdom_vec estrato=WISDOM status=STRATUM_MISMATCH_REJECTED error=Clausura transitiva incumplida para WISDOM: faltan estratos ['OMEGA']
+WARNING  MIC.Agent.CategoricalEqualizer:MIC_agent.py:1870 Proyección abortada: STRATUM_MISMATCH_REJECTED
+________________ TestNarratorPerformance.test_narrator_scaling _________________
+
+self = <test_KP_narrative_semantic.TestNarratorPerformance object at 0x7b3d4d54bdf0>
+narrator = <app.core.telemetry_narrative.TelemetryNarrator object at 0x7b3d33cef700>
+
+    def test_narrator_scaling(self, narrator: TelemetryNarrator):
+        """El tiempo de procesamiento debe escalar linealmente con spans."""
+        sizes = [10, 50, 100, 200]
+        times_per_size = []
+    
+        for size in sizes:
+            context = create_test_context(num_spans=size, span_depth=1)
+    
+            with measure_time() as times:
+                for _ in range(10):
+                    _ = narrator.summarize_execution(context)
+    
+            times_per_size.append(times[0] / 10)
+    
+        # Calcular factor de escala
+        for i in range(1, len(sizes)):
+            size_ratio = sizes[i] / sizes[i-1]
+            time_ratio = times_per_size[i] / max(times_per_size[i-1], 0.001)
+    
+            # El tiempo no debe crecer más rápido que O(n * factor)
+>           assert time_ratio < size_ratio * THRESHOLDS.MAX_SCALING_FACTOR, \
+                f"Non-linear scaling at size {sizes[i]}: {time_ratio:.1f}x for {size_ratio:.1f}x data"
+E           AssertionError: Non-linear scaling at size 200: 11.1x for 2.0x data
+E           assert 11.129713444380956 < (2.0 * 2.5)
+E            +  where 2.5 = PerformanceThresholds(MAX_SINGLE_SPAN_ANALYSIS_MS=10.0, MAX_REPORT_GENERATION_MS=100.0, MAX_LATTICE_OPERATION_US=10.0, MAX_TRANSLATION_MS=50.0, MAX_SERIALIZATION_MS=20.0, MAX_MEMORY_PER_SPAN_KB=10.0, MAX_MEMORY_PER_REPORT_MB=5.0, MAX_SCALING_FACTOR=2.5, MIN_SPANS_PER_SECOND=1000, MIN_TRANSLATIONS_PER_SECOND=100).MAX_SCALING_FACTOR
+
+tests/unit/wisdom/test_KP_narrative_semantic.py:531: AssertionError
+------------------------------ Captured log setup ------------------------------
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+WARNING  SemanticDictionary:semantic_dictionary.py:665 Se encontraron 27 plantillas con posibles problemas de formato
+WARNING  SemanticDictionary:semantic_dictionary.py:670   - STABILITY.critical: Unknown format code 'f' for object of type 'str'
+WARNING  SemanticDictionary:semantic_dictionary.py:670   - STABILITY.warning: Unknown format code 'f' for object of type 'str'
+WARNING  SemanticDictionary:semantic_dictionary.py:670   - STABILITY.stable: Unknown format code 'f' for object of type 'str'
+WARNING  SemanticDictionary:semantic_dictionary.py:670   - STABILITY.robust: Unknown format code 'f' for object of type 'str'
+WARNING  SemanticDictionary:semantic_dictionary.py:670   - SPECTRAL_COHESION.high: Unknown format code 'f' for object of type 'str'
+INFO     SemanticDictionary:semantic_dictionary.py:672 ✅ SemanticDictionaryService inicializado exitosamente
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:1813 Vector registrado: 'project_graph_narrative' [WISDOM]
+INFO     SemanticDictionary:semantic_dictionary.py:1524 ✅ Vectores Semánticos registrados en la MIC
+INFO     MIC:tools_interface.py:2626 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:2630 ✅ MIC inicializada con 7 vectores (dimensión=7)
+------------------------------ Captured log call -------------------------------
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1532 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+=========================== short test summary info ============================
+FAILED tests/test_integration_narrative_semantic.py::TestStratumConsistency::test_narrator_covers_all_strata - AssertionError: Stratum.OMEGA no está en StratumTopology.HIERARCHY.
+assert <Stratum.OMEGA: 1> in {<Stratum.WISDOM: 0>, <Stratum.STRATEGY: 2>, <Stratum.TACTICS: 3>, <Stratum.PHYSICS: 4>}
+FAILED tests/test_integration_narrative_semantic.py::TestStratumConsistency::test_translator_produces_strata_analysis - AssertionError: Stratum.OMEGA ausente en strata_analysis.
+assert <Stratum.OMEGA: 1> in {<Stratum.PHYSICS: 4>: StratumAnalysisResult(stratum=<Stratum.PHYSICS: 4>, verdict=<VerdictLevel.VIABLE: 0>, narrative='Base f\xedsica estable. Flujo de datos sin turbulencia.', metrics_summary={'temperature': 300.0, 'temperature_celsius': 26.850000000000023, 'entropy': 0.0, 'exergy': 0.0, 'stability': 10.0, 'phase_margin': 45.0, 'is_stable': True}, issues=[], confidence=1.0), <Stratum.TACTICS: 3>: StratumAnalysisResult(stratum=<Stratum.TACTICS: 3>, verdict=<VerdictLevel.VIABLE: 0>, narrative='Estructura topol\xf3gicamente s\xf3lida y conexa.', metrics_summary={'beta_0': 1, 'beta_1': 0, 'beta_2': 0, 'euler_characteristic': 1, 'fiedler_value': 1.0, 'stability': 10.0, 'synergy_risk': False}, issues=[], confidence=1.0), <Stratum.STRATEGY: 2>: StratumAnalysisResult(stratum=<Stratum.STRATEGY: 2>, verdict=<VerdictLevel.VIABLE: 0>, narrative='Modelo financiero viable y robusto.', metrics_summary={'wacc': 0.1, 'profitability_index': 1.25, 'recommendation': 'ACEPTAR'}, issues=[], confidence=1.0), <Stratum.WISDOM: 0>: StratumAnalysisResult(stratum=<Stratum.WISDOM: 0>, verdict=<VerdictLevel.VIABLE: 0>, narrative='\u2705 CERTIFICADO DE SOLIDEZ: Estructura piramidal estable, sin socavones l\xf3gicos y financieramente viable. Proceder a fase de ejecuci\xf3n.', metrics_summary={'final_verdict': 'VIABLE', 'is_viable': True, 'requires_action': False}, issues=[], confidence=1.0)}
+ +  where {<Stratum.PHYSICS: 4>: StratumAnalysisResult(stratum=<Stratum.PHYSICS: 4>, verdict=<VerdictLevel.VIABLE: 0>, narrative='Base f\xedsica estable. Flujo de datos sin turbulencia.', metrics_summary={'temperature': 300.0, 'temperature_celsius': 26.850000000000023, 'entropy': 0.0, 'exergy': 0.0, 'stability': 10.0, 'phase_margin': 45.0, 'is_stable': True}, issues=[], confidence=1.0), <Stratum.TACTICS: 3>: StratumAnalysisResult(stratum=<Stratum.TACTICS: 3>, verdict=<VerdictLevel.VIABLE: 0>, narrative='Estructura topol\xf3gicamente s\xf3lida y conexa.', metrics_summary={'beta_0': 1, 'beta_1': 0, 'beta_2': 0, 'euler_characteristic': 1, 'fiedler_value': 1.0, 'stability': 10.0, 'synergy_risk': False}, issues=[], confidence=1.0), <Stratum.STRATEGY: 2>: StratumAnalysisResult(stratum=<Stratum.STRATEGY: 2>, verdict=<VerdictLevel.VIABLE: 0>, narrative='Modelo financiero viable y robusto.', metrics_summary={'wacc': 0.1, 'profitability_index': 1.25, 'recommendation': 'ACEPTAR'}, issues=[], confidence=1.0), <Stratum.WISDOM: 0>: StratumAnalysisResult(stratum=<Stratum.WISDOM: 0>, verdict=<VerdictLevel.VIABLE: 0>, narrative='\u2705 CERTIFICADO DE SOLIDEZ: Estructura piramidal estable, sin socavones l\xf3gicos y financieramente viable. Proceder a fase de ejecuci\xf3n.', metrics_summary={'final_verdict': 'VIABLE', 'is_viable': True, 'requires_action': False}, issues=[], confidence=1.0)} = StrategicReport(title='INFORME DE INGENIER\xcdA ESTRAT\xc9GICA', verdict=<VerdictLevel.VIABLE: 0>, executive_summary='**Veredicto: \u2705 VIABLE**\n*Proyecto viable sin restricciones*\n\n- **PHYSICS**: \u2705 VIABLE\n- **TACTICS**: \u2705 VIABLE\n- **STRATEGY**: \u2705 VIABLE', strata_analysis={<Stratum.PHYSICS: 4>: StratumAnalysisResult(stratum=<Stratum.PHYSICS: 4>, verdict=<VerdictLevel.VIABLE: 0>, narrative='Base f\xedsica estable. Flujo de datos sin turbulencia.', metrics_summary={'temperature': 300.0, 'temperature_celsius': 26.850000000000023, 'entropy': 0.0, 'exergy': 0.0, 'stability': 10.0, 'phase_margin': 45.0, 'is_stable': True}, issues=[], confidence=1.0), <Stratum.TACTICS: 3>: StratumAnalysisResult(stratum=<Stratum.TACTICS: 3>, verdict=<VerdictLevel.VIABLE: 0>, narrative='Estructura topol\xf3gicamente s\xf3lida y conexa.', metrics_summary={'beta_0': 1, 'beta_1': 0, 'beta_2': 0, 'euler_characteristic': 1, 'fiedler_value': 1.0, 'stability': 10.0, 'synergy_risk': False}, issues=[], confidence=1.0), <Stratum.STRATEGY: 2>: StratumAnalysisResult(stratum=<Stratum.STRATEGY: 2>, verdict=<VerdictLevel.VIABLE: 0>, narrative='Modelo financiero viable y robusto.', metrics_summary={'wacc': 0.1, 'profitability_index': 1.25, 'recommendation': 'ACEPTAR'}, issues=[], confidence=1.0), <Stratum.WISDOM: 0>: StratumAnalysisResult(stratum=<Stratum.WISDOM: 0>, verdict=<VerdictLevel.VIABLE: 0>, narrative='\u2705 CERTIFICADO DE SOLIDEZ: Estructura piramidal estable, sin socavones l\xf3gicos y financieramente viable. Proceder a fase de ejecuci\xf3n.', metrics_summary={'final_verdict': 'VIABLE', 'is_viable': True, 'requires_action': False}, issues=[], confidence=1.0)}, recommendations=['\u2705 Proceder con la ejecuci\xf3n del proyecto.'], raw_narrative='# \U0001f3d7\ufe0f INFORME DE INGENIER\xcdA ESTRAT\xc9GICA\n\n*An\xe1lisis de Coherencia Fractal | Estabilidad Cr\xedtica: \u03a8 < 1.0*\n\n## \U0001f3d7\ufe0f Diagn\xf3stico del Edificio Vivo\n\nEl edificio tiene una **cimentaci\xf3n s\xf3lida** (\u03a8=10.00). La base de recursos es amplia y redundante. El entorno es t\xe9rmicamente estable (26.9\xb0C). El riesgo inflacionario externo es bajo.\n\n### 0. Din\xe1mica de Bombeo (F\xedsica)\n\nBase f\xedsica estable. Flujo de datos sin turbulencia.\n\n### 1. Auditor\xeda de Integridad Estructural\n\n\u2705 Integridad Estructural (G\xe9nero 0): No se detectan socavones l\xf3gicos (\u03b2\u2081 = 0). La Trazabilidad de Carga de Costos fluye verticalmente desde la Cimentaci\xf3n hasta el \xc1pice sin recirculaciones.\n\U0001f517 Alta Cohesi\xf3n del Equipo (Eigenvalor Fiedler=1.00): La estructura de costos est\xe1 fuertemente sincronizada. \U0001f30a Disipaci\xf3n Ondulatoria (\u03bb=0.00): La estructura tiene capacidad para amortiguar impactos locales sin entrar en resonancia sist\xe9mica.\n\U0001f517 Unidad de Obra Monol\xedtica: El proyecto funciona como un solo edificio interconectado (\u03b2\u2080 = 1). Todas las cargas t\xe1cticas (APUs) se transfieren correctamente hacia un \xfanico \xc1pice Estrat\xe9gico.\n\U0001f6e1\ufe0f ESTRUCTURA ANTIS\xcdSMICA (Resiliente): \u03a8 = 10.00. La Cimentaci\xf3n de Recursos es amplia y redundante. El proyecto tiene un bajo centro de gravedad, capaz de absorber vibraciones del mercado (volatilidad) sin sufrir da\xf1os estructurales.\n\n### 2. An\xe1lisis de Cargas Financieras\n\n\U0001f4b0 Costo de Oportunidad: WACC = 10.00%.\n\U0001f4ca Blindaje Financiero: Contingencia sugerida de $5,000.00.\n\U0001f680 Veredicto: VIABLE (IR=1.25). Estructura financiable.\n\n### 3. Geotecnia de Mercado\n\n\U0001f30d **Suelo de Mercado**: Datos de mercado no disponibles.\n\n### \U0001f4a1 Dictamen del Ingeniero Jefe\n\n\u2705 CERTIFICADO DE SOLIDEZ: Estructura piramidal estable, sin socavones l\xf3gicos y financieramente viable. Proceder a fase de ejecuci\xf3n.', timestamp='2026-03-21T19:53:02.727156', confidence=1.0).strata_analysis
+FAILED tests/unit/agents/test_mic_agent.py::TestNormalizeStratum::test_int_conversion - assert <Stratum.OMEGA: 1> == <Stratum.STRATEGY: 2>
+ +  where <Stratum.OMEGA: 1> = normalize_stratum(1)
+ +  and   <Stratum.STRATEGY: 2> = Stratum.STRATEGY
+FAILED tests/unit/agents/test_mic_agent.py::TestNormalizeStratum::test_string_int_conversion - AssertionError: assert <Stratum.TACTICS: 3> == <Stratum.PHYSICS: 4>
+ +  where <Stratum.TACTICS: 3> = normalize_stratum('3')
+ +  and   <Stratum.PHYSICS: 4> = Stratum.PHYSICS
+FAILED tests/unit/agents/test_mic_agent.py::TestIntegration::test_full_dikw_pipeline - AssertionError: assert 'VETO' == 'OK'
+  
+  - OK
+  + VETO
+FAILED tests/unit/wisdom/test_KP_narrative_semantic.py::TestNarratorPerformance::test_narrator_scaling - AssertionError: Non-linear scaling at size 200: 11.1x for 2.0x data
+assert 11.129713444380956 < (2.0 * 2.5)
+ +  where 2.5 = PerformanceThresholds(MAX_SINGLE_SPAN_ANALYSIS_MS=10.0, MAX_REPORT_GENERATION_MS=100.0, MAX_LATTICE_OPERATION_US=10.0, MAX_TRANSLATION_MS=50.0, MAX_SERIALIZATION_MS=20.0, MAX_MEMORY_PER_SPAN_KB=10.0, MAX_MEMORY_PER_REPORT_MB=5.0, MAX_SCALING_FACTOR=2.5, MIN_SPANS_PER_SECOND=1000, MIN_TRANSLATIONS_PER_SECOND=100).MAX_SCALING_FACTOR
+============ 6 failed, 6663 passed, 18 skipped in 84.12s (0:01:24) =============
