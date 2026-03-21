@@ -1,4 +1,4 @@
-"""
+r"""
 Módulo: Semantic Translator (El Intérprete Diplomático del Consejo)
 ===================================================================
 

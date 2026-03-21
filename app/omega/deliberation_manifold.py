@@ -55,8 +55,8 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, FrozenSet, List, Optional, Tuple
 
 from app.core.mic_algebra import CategoricalState, Morphism
-from app.schemas import Stratum
-from app.telemetry_schemas import VerdictLevel
+from app.core.schemas import Stratum
+from app.wisdom.semantic_translator import VerdictLevel
 
 logger = logging.getLogger("MIC.Omega.DeliberationManifold")
 
@@ -255,9 +255,6 @@ class SynapticRegistry:
             key=lambda c: (-_safe_float(c.weight, 1.0), c.name),
         )
 
-        if max_items is not None and max_items >= 0:
-            cartridges = cartridges[:max_items]
-
         payloads: List[str] = []
         total_chars = 0
         separator_len = 1  # len("\n")
@@ -266,6 +263,10 @@ class SynapticRegistry:
             payload = (cartridge.toon_payload or "").strip()
             if not payload:
                 continue
+
+            # Check max_items AFTER filtering empty payloads
+            if max_items is not None and max_items >= 0 and len(payloads) >= max_items:
+                break
 
             if max_chars is not None and max_chars >= 0:
                 # Contabilizar separador entre payloads existentes
