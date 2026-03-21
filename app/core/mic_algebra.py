@@ -4,7 +4,7 @@ Naturaleza: Núcleo Funtorial y Topológico de Gobernanza Ciber-Física
 
 Este módulo implementa el sustrato matemático fundamental del sistema, abandonando 
 la programación imperativa tradicional en favor de la Teoría de Categorías pura y 
-el Álgebra Lineal rigurosa [1]. Actúa como el motor de resolución determinista 
+el Álgebra Lineal rigurosa. Actúa como el motor de resolución determinista 
 para el espacio vectorial jerarquizado de intenciones agénticas.
 
 1. Fundamentación en Álgebra Lineal (La Matriz Identidad I_n):
