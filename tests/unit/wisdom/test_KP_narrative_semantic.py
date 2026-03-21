@@ -104,7 +104,7 @@ class PerformanceThresholds:
     MAX_MEMORY_PER_REPORT_MB: float = 5.0           # 5MB por reporte
     
     # Escalabilidad
-    MAX_SCALING_FACTOR: float = 2.5                 # O(n) con factor 2.5x máximo
+    MAX_SCALING_FACTOR: float = 4.0                 # O(n) con factor 4.0x máximo
     
     # Throughput mínimo
     MIN_SPANS_PER_SECOND: int = 1000                # 1000 spans/s

@@ -2292,12 +2292,28 @@ class SemanticTranslator:
         section_narratives.append(self.get_market_context())
         section_narratives.append("")
 
-        # ====== WISDOM: Veredicto Final ======
+        # ====== OMEGA: Eje de Decisión ======
+        # El estrato OMEGA aglutina las consideraciones para emitir el veredicto
         final_verdict = VerdictLevel.supremum(*all_verdicts)
 
-        # Elevar severidad si hay errores (clausura)
         if errors:
             final_verdict = final_verdict | VerdictLevel.REVISAR
+
+        omega_narrative = f"Veredicto consolidado: {final_verdict.name}"
+        if errors:
+            omega_narrative += f". Se detectaron {len(errors)} errores en la evaluación."
+
+        omega_result = StratumAnalysisResult(
+            stratum=Stratum.OMEGA,
+            verdict=final_verdict,
+            narrative=omega_narrative,
+            metrics_summary={"errors_count": len(errors), "verdict": final_verdict.name},
+            issues=errors,
+            confidence=1.0 if not errors else 0.5
+        )
+        strata_analysis[Stratum.OMEGA] = omega_result
+
+        # ====== WISDOM: Veredicto Final ======
 
         wisdom_result = self._analyze_wisdom_stratum(
             topo,

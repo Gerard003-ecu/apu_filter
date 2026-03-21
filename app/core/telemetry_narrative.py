@@ -103,9 +103,10 @@ class StratumTopology:
 
     # Orden explícito: mayor número = más cerca de la base física
     HIERARCHY: Dict[Stratum, int] = {
-        Stratum.PHYSICS: 3,   # Base de la pirámide
-        Stratum.TACTICS: 2,
-        Stratum.STRATEGY: 1,
+        Stratum.PHYSICS: 4,   # Base de la pirámide
+        Stratum.TACTICS: 3,
+        Stratum.STRATEGY: 2,
+        Stratum.OMEGA: 1,     # Eje de decisión
         Stratum.WISDOM: 0,    # Cima de la pirámide
     }
 
@@ -114,6 +115,7 @@ class StratumTopology:
         Stratum.PHYSICS,
         Stratum.TACTICS,
         Stratum.STRATEGY,
+        Stratum.OMEGA,
         Stratum.WISDOM,
     )
 
