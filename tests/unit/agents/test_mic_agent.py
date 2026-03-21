@@ -198,9 +198,10 @@ class TestNormalizeStratum:
     def test_int_conversion(self):
         """Enteros se convierten a Stratum."""
         assert normalize_stratum(0) == Stratum.WISDOM
-        assert normalize_stratum(1) == Stratum.STRATEGY
-        assert normalize_stratum(2) == Stratum.TACTICS
-        assert normalize_stratum(3) == Stratum.PHYSICS
+        assert normalize_stratum(1) == Stratum.OMEGA
+        assert normalize_stratum(2) == Stratum.STRATEGY
+        assert normalize_stratum(3) == Stratum.TACTICS
+        assert normalize_stratum(4) == Stratum.PHYSICS
 
     def test_string_name_conversion(self):
         """Strings por nombre se convierten."""
@@ -211,7 +212,8 @@ class TestNormalizeStratum:
     def test_string_int_conversion(self):
         """Strings numéricos se convierten."""
         assert normalize_stratum("0") == Stratum.WISDOM
-        assert normalize_stratum("3") == Stratum.PHYSICS
+        assert normalize_stratum("3") == Stratum.TACTICS
+        assert normalize_stratum("4") == Stratum.PHYSICS
 
     def test_invalid_int_raises(self):
         """Entero inválido lanza StratumResolutionError."""
@@ -1487,7 +1489,7 @@ class TestIntegration:
     """Pruebas de integración end-to-end."""
 
     def test_full_dikw_pipeline(self, mock_mic_registry):
-        """Pipeline completo PHYSICS → TACTICS → STRATEGY → WISDOM."""
+        """Pipeline completo PHYSICS → TACTICS → STRATEGY → OMEGA → WISDOM."""
         agent = MICAgent(mic_registry=mock_mic_registry)
         
         # PHYSICS
@@ -1519,6 +1521,16 @@ class TestIntegration:
             validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS]),
         )
         assert strategy_result["status"] == "OK"
+
+        # OMEGA (con PHYSICS, TACTICS, STRATEGY validados)
+        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.OMEGA}
+
+        omega_result = agent.execute_projection(
+            target_vector="omega_vec",
+            llm_output={"final_verdict": "VIABLE"},
+            validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY]),
+        )
+        assert omega_result["status"] == "OK"
         
         # WISDOM (con todos validados)
         mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.WISDOM}
@@ -1526,12 +1538,12 @@ class TestIntegration:
         wisdom_result = agent.execute_projection(
             target_vector="wisdom_vec",
             llm_output=VALID_WISDOM_PAYLOAD,
-            validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY]),
+            validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA]),
         )
         assert wisdom_result["status"] == "OK"
         
         # Verificar auditoría completa
-        assert agent.audit_trail.total_count == 4
+        assert agent.audit_trail.total_count == 5
 
     def test_cascading_veto(self, mock_mic_registry):
         """Un veto en PHYSICS impide avanzar en el pipeline."""

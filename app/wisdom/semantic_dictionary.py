@@ -1238,13 +1238,18 @@ class SemanticDictionaryService:
         Returns:
             Texto narrativo formateado
         """
+        safe_params = {
+            k: float(v) if isinstance(v, str) and (v.replace('.', '', 1).isdigit() or (v.startswith('-') and v[1:].replace('.', '', 1).isdigit())) else v
+            for k, v in params.items()
+        }
+
         if isinstance(template_group, str):
-            return template_group.format(**params)
+            return template_group.format(**safe_params)
         
         if isinstance(template_group, dict):
             default_msg = "⚠️ Estado desconocido. Clasificación no encontrada."
             template = template_group.get(classification, default_msg)
-            return template.format(**params)
+            return template.format(**safe_params)
         
         # Fallback para otros tipos
         return str(template_group)
