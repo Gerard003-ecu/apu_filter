@@ -1,0 +1,51 @@
+===================================== test session starts =====================================
+platform linux -- Python 3.10.19, pytest-8.4.2, pluggy-1.6.0 -- /home/gerardo/miniconda3/envs/apu_filter_env/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /home/gerardo/Documentos/GitHub/apu_filter
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.151.9
+collected 7215 items / 1 error / 1 skipped                                                    
+
+=========================================== ERRORS ============================================
+________________ ERROR collecting tests/unit/core/test_mic_registry_public.py _________________
+tests/unit/core/test_mic_registry_public.py:422: in <lambda>
+    ids=lambda s: f"{s.name}-card={DIKW.get_spec(s).cardinality}",
+tests/unit/core/test_mic_registry_public.py:161: in get_spec
+    raise ValueError(f"Estrato desconocido: {stratum}")
+E   ValueError: Estrato desconocido: 1
+
+The above exception was the direct cause of the following exception:
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/pluggy/_hooks.py:512: in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/pluggy/_manager.py:120: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:240: in pytest_pycollect_makeitem
+    return list(collector._genfunctions(name, obj))
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:466: in _genfunctions
+    self.ihook.pytest_generate_tests.call_extra(methods, dict(metafunc=metafunc))
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/pluggy/_hooks.py:573: in call_extra
+    return self._hookexec(self.name, hookimpls, kwargs, firstresult)
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/pluggy/_manager.py:120: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:114: in pytest_generate_tests
+    metafunc.parametrize(*marker.args, **marker.kwargs, _param_mark=marker)
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:1272: in parametrize
+    ids = self._resolve_parameter_set_ids(
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:1393: in _resolve_parameter_set_ids
+    return id_maker.make_unique_parameterset_ids()
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:902: in make_unique_parameterset_ids
+    resolved_ids = list(self._resolve_ids())
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:945: in _resolve_ids
+    yield "-".join(
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:946: in <genexpr>
+    self._idval(val, argname, idx)
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:952: in _idval
+    idval = self._idval_from_function(val, argname, idx)
+../../../miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:974: in _idval_from_function
+    raise ValueError(msg) from e
+E   ValueError: tests/unit/core/test_mic_registry_public.py::TestCardinality::test_cardinality_matches_formula: error raised while trying to determine id of parameter 'stratum' at position 1
+=================================== short test summary info ===================================
+ERROR tests/unit/core/test_mic_registry_public.py::TestCardinality - ValueError: tests/unit/core/test_mic_registry_public.py::TestCardinality::test_cardinality_matches_formula: error raised while trying to determine id of parameter 'stratum' at position 1
+!!!!!!!!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+================================= 1 skipped, 1 error in 9.74s =================================
