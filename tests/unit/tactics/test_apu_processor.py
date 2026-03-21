@@ -192,7 +192,7 @@ def make_grouped_sample_records() -> List[Dict[str, Any]]:
             "source_line": 25,
             "lines": [
                 "PEON;JOR;0.5;;100000;50000",
-                "RETROEXCAVADORA;HR;0.1;85000;8500",
+                "ALQUILER RETROEXCAVADORA;HR;0.1;85000;8500",
                 "TRANSPORTE;VIAJE;0.3;45000;13500",
             ],
         },

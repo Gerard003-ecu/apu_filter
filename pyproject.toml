@@ -13,6 +13,7 @@ markers = [
 filterwarnings = [
     "ignore:builtin type SwigPy.*:DeprecationWarning",
     "ignore:builtin type swigvarlink.*:DeprecationWarning",
+    "ignore:The 'use_signer' option is deprecated:DeprecationWarning:flask_session.*",
 ]
 
 [tool.ruff]
