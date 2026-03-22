@@ -948,6 +948,10 @@ class SemanticTranslator:
     """
     Traductor semántico que convierte métricas técnicas en narrativa de ingeniería.
 
+    Actúa como un Funtor de retículos estricto T: L_S → L_V entre el
+    Lattice de Severidades y el Lattice de Veredictos.
+    Garantiza que el mapeo preserve el supremo: T(⊤) = ⊤ (CRITICO -> RECHAZAR).
+
     Interpreta el presupuesto como una estructura física donde:
     - Insumos = Cimentación de Recursos (Nivel 3 - PHYSICS)
     - APUs = Cuerpo Táctico (Nivel 2 - TACTICS)
@@ -1761,7 +1765,7 @@ class SemanticTranslator:
         # Ciclos
         cycle_class = self.config.topology.classify_cycles(topo.beta_1)
         if cycle_class != "clean":
-            issues.append(f"Ciclos detectados (β₁={topo.beta_1})")
+            issues.append(f"Socavón lógico detectado (β₁={topo.beta_1})")
             verdict_map = {
                 "critical": VerdictLevel.RECHAZAR,
                 "moderate": VerdictLevel.PRECAUCION,
@@ -1771,11 +1775,14 @@ class SemanticTranslator:
         else:
             verdicts.append(VerdictLevel.VIABLE)
 
-        # Conectividad
-        conn_class = self.config.topology.classify_connectivity(topo.beta_0)
-        if conn_class != "unified":
-            issues.append(f"Fragmentación (β₀={topo.beta_0})")
-            verdicts.append(VerdictLevel.CONDICIONAL)
+        # Conectividad y Fiedler (Silos organizacionales / Fractura)
+        fiedler = topo.fiedler_value
+        if fiedler < 0.5 and fiedler > 0.0:  # MIN_FIEDLER_VALUE check effectively
+            issues.append(f"Silos organizacionales: conectividad algebraica crítica (λ₂={fiedler:.2e})")
+            verdicts.append(VerdictLevel.RECHAZAR)
+        elif topo.beta_0 > 1 or fiedler == 0.0:
+            issues.append(f"Fragmentación / Silos organizacionales (β₀={topo.beta_0})")
+            verdicts.append(VerdictLevel.RECHAZAR)
 
         # Sinergia de riesgo
         synergy_detected = bool(synergy.get("synergy_detected", False))
@@ -1797,7 +1804,12 @@ class SemanticTranslator:
         if verdict == VerdictLevel.VIABLE:
             narrative = "Estructura topológicamente sólida y conexa."
         elif verdict == VerdictLevel.RECHAZAR:
-            narrative = "Estructura comprometida. Reparaciones necesarias antes de proceder."
+            if "Silos organizacionales" in str(issues):
+                narrative = f"Silos organizacionales detectados. La estructura está gravemente fragmentada. {', '.join(issues)}"
+            elif "Socavón lógico detectado" in str(issues):
+                narrative = f"Socavón lógico detectado. La estructura contiene ciclos anómalos. {', '.join(issues)}"
+            else:
+                narrative = "Estructura comprometida. Reparaciones necesarias antes de proceder."
         else:
             narrative = "Estructura con defectos menores a corregir."
 
