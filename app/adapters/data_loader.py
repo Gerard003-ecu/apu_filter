@@ -91,10 +91,11 @@ class HierarchyLevel(IntEnum):
     """
 
     ROOT = 0  # Proyecto Total (Ápice)
-    OMEGA = 1 # OMEGA
-    STRATEGY = 2  # Capítulos (Pilares)
-    TACTIC = 3  # APUs (Actividades)
-    LOGISTICS = 4  # Insumos (Recursos Atómicos)
+    ALPHA = 1 # ALPHA
+    OMEGA = 2 # OMEGA
+    STRATEGY = 3  # Capítulos (Pilares)
+    TACTIC = 4  # APUs (Actividades)
+    LOGISTICS = 5  # Insumos (Recursos Atómicos)
 
 
 @dataclass

@@ -358,10 +358,11 @@ class TestStratum:
     def test_stratum_values(self):
         """Los valores numéricos deben ser correctos."""
         assert Stratum.WISDOM.value == 0
-        assert Stratum.OMEGA.value == 1
-        assert Stratum.STRATEGY.value == 2
-        assert Stratum.TACTICS.value == 3
-        assert Stratum.PHYSICS.value == 4
+        assert Stratum.ALPHA.value == 1
+        assert Stratum.OMEGA.value == 2
+        assert Stratum.STRATEGY.value == 3
+        assert Stratum.TACTICS.value == 4
+        assert Stratum.PHYSICS.value == 5
     
     def test_base_stratum(self):
         """base_stratum debe retornar PHYSICS."""
@@ -403,17 +404,18 @@ class TestStratum:
         assert Stratum.TACTICS in required
         assert Stratum.STRATEGY in required
         assert Stratum.OMEGA in required
-        assert len(required) == 4
+        assert Stratum.ALPHA in required
+        assert len(required) == 5
     
     def test_ordered_bottom_up(self):
         """Orden de base a cúspide."""
         order = Stratum.ordered_bottom_up()
-        assert order == [Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.WISDOM]
+        assert order == [Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA, Stratum.WISDOM]
     
     def test_ordered_top_down(self):
         """Orden de cúspide a base."""
         order = Stratum.ordered_top_down()
-        assert order == [Stratum.WISDOM, Stratum.OMEGA, Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS]
+        assert order == [Stratum.WISDOM, Stratum.ALPHA, Stratum.OMEGA, Stratum.STRATEGY, Stratum.TACTICS, Stratum.PHYSICS]
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1947,7 +1949,7 @@ class TestProjectionCommands:
         ctx = ProjectionContext(
             service_name="test",
             payload={},
-            context={"validated_strata": [4, 3]},  # PHYSICS=4, TACTICS=3
+            context={"validated_strata": [5, 4]},  # PHYSICS=5, TACTICS=4
             use_cache=False,
         )
         
@@ -2179,7 +2181,7 @@ class TestEdgeCases:
         result_success = mic_registry.project_intent(
             service_name="wisdom_service",
             payload={},
-            context={"validated_strata": {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA}},
+            context={"validated_strata": {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA}},
         )
         assert result_success["success"] is True
 

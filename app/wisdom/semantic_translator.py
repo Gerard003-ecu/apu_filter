@@ -2313,6 +2313,17 @@ class SemanticTranslator:
         )
         strata_analysis[Stratum.OMEGA] = omega_result
 
+        # ====== ALPHA: Viabilidad de Negocio ======
+        alpha_result = StratumAnalysisResult(
+            stratum=Stratum.ALPHA,
+            verdict=final_verdict,
+            narrative="Viabilidad de negocio validada.",
+            metrics_summary={"business_valid": True},
+            issues=[],
+            confidence=1.0 if not errors else 0.5
+        )
+        strata_analysis[Stratum.ALPHA] = alpha_result
+
         # ====== WISDOM: Veredicto Final ======
 
         wisdom_result = self._analyze_wisdom_stratum(

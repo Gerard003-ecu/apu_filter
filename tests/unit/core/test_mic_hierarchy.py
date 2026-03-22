@@ -140,6 +140,7 @@ class DIKWPyramid:
         Stratum.TACTICS,
         Stratum.STRATEGY,
         Stratum.OMEGA,
+        Stratum.ALPHA,
         Stratum.WISDOM,
     ]
     
@@ -149,7 +150,8 @@ class DIKWPyramid:
         Stratum.TACTICS: {Stratum.PHYSICS},
         Stratum.STRATEGY: {Stratum.PHYSICS, Stratum.TACTICS},
         Stratum.OMEGA: {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY},
-        Stratum.WISDOM: {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA},
+        Stratum.ALPHA: {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA},
+        Stratum.WISDOM: {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA},
     }
     
     @classmethod
@@ -361,7 +363,7 @@ def verify_order_properties(registry) -> Dict[str, Any]:
     )
     
     # A₆: Maximalidad
-    expected_max = {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA}
+    expected_max = {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA}
     results["A6_maximum"] = (
         registry.get_required_strata(Stratum.WISDOM) == expected_max
     )
@@ -579,6 +581,15 @@ def _omega_handler(risk_score: float) -> Dict[str, Any]:
     }
 
 
+def _alpha_handler(business_model_valid: bool = True) -> Dict[str, Any]:
+    """Handler de nivel ALPHA."""
+    return {
+        MICResultKeys.SUCCESS: True,
+        "business_model_valid": business_model_valid,
+        MICResultKeys.STRATUM: "ALPHA",
+    }
+
+
 def _wisdom_handler(decision: str) -> Dict[str, Any]:
     """Handler de nivel WISDOM."""
     return {
@@ -622,6 +633,7 @@ def _build_registry() -> MockMICRegistry:
     registry.register_vector("mock_tactics", Stratum.TACTICS, _tactics_handler)
     registry.register_vector("mock_strategy", Stratum.STRATEGY, _strategy_handler)
     registry.register_vector("mock_omega", Stratum.OMEGA, _omega_handler)
+    registry.register_vector("mock_alpha", Stratum.ALPHA, _alpha_handler)
     registry.register_vector("mock_wisdom", Stratum.WISDOM, _wisdom_handler)
     
     return registry
@@ -662,6 +674,7 @@ STRATUM_VECTOR_MAP: Dict[Stratum, Tuple[str, Dict[str, Any]]] = {
     Stratum.TACTICS: ("mock_tactics", {"items": []}),
     Stratum.STRATEGY: ("mock_strategy", {"amount": 1.0}),
     Stratum.OMEGA: ("mock_omega", {"risk_score": 0.85}),
+    Stratum.ALPHA: ("mock_alpha", {"business_model_valid": True}),
     Stratum.WISDOM: ("mock_wisdom", {"decision": "test"}),
 }
 
@@ -805,15 +818,15 @@ class TestMICRegistryBasics:
         """Obtener lista de vectores registrados."""
         vectors = mic.registered_services
         
-        assert len(vectors) == 5
+        assert len(vectors) == 6
         assert set(vectors) == {
             "mock_physics", "mock_tactics", 
-            "mock_strategy", "mock_omega", "mock_wisdom"
+            "mock_strategy", "mock_omega", "mock_alpha", "mock_wisdom"
         }
 
     def test_clear_removes_all_vectors(self, mic):
         """Clear elimina todos los vectores."""
-        assert len(mic.registered_services) == 5
+        assert len(mic.registered_services) == 6
         
         mic._projection_commands[1]._vectors.clear() # Hack for test since clear is removed
         
@@ -962,7 +975,7 @@ class TestMICHierarchyPermissions:
             "mock_wisdom",
             {"decision": "proceed"},
             _build_context(validated={
-                Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA,
+                Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA,
             }),
         )
 
@@ -1002,7 +1015,7 @@ class TestMICHierarchyPermissions:
             (Stratum.WISDOM, {Stratum.PHYSICS, Stratum.STRATEGY}, False),
             (Stratum.WISDOM, {Stratum.TACTICS, Stratum.STRATEGY}, False),
             (Stratum.WISDOM, {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY}, False),
-            (Stratum.WISDOM, {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA}, True),
+            (Stratum.WISDOM, {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA}, True),
         ],
         ids=[
             "phys_empty", "phys_with_tactics", "phys_with_extras", "phys_idempotent",
@@ -1290,6 +1303,7 @@ class TestMICAlgebraicProperties:
             Stratum.TACTICS,
             Stratum.STRATEGY,
             Stratum.OMEGA,
+            Stratum.ALPHA,
             Stratum.WISDOM,
         ]
         
@@ -1332,7 +1346,7 @@ class TestMICAlgebraicProperties:
 
     def test_wisdom_is_maximum(self, registry):
         """A₆: req(WISDOM) = P \\ {WISDOM}. Elemento máximo."""
-        expected = {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA}
+        expected = {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA}
         assert registry.get_required_strata(Stratum.WISDOM) == expected
 
     def test_wisdom_requires_all_others(self, registry):
@@ -1380,7 +1394,7 @@ class TestMICAlgebraicProperties:
     def test_cardinality_strictly_increasing(self, registry):
         """
         |req(s)| es estrictamente creciente a lo largo de la cadena.
-        Esto induce una biyección con {0, 1, 2, 3, 4}.
+        Esto induce una biyección con {0, 1, 2, 3, 4, 5}.
         """
         cardinalities = [
             (stratum, len(registry.get_required_strata(stratum)))
@@ -1390,7 +1404,7 @@ class TestMICAlgebraicProperties:
         sorted_by_card = sorted(cardinalities, key=lambda x: x[1])
         expected_order = [
             Stratum.PHYSICS, Stratum.TACTICS,
-            Stratum.STRATEGY, Stratum.OMEGA, Stratum.WISDOM,
+            Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA, Stratum.WISDOM,
         ]
 
         actual_order = [s for s, _ in sorted_by_card]
@@ -2052,11 +2066,11 @@ class TestMICIntegrationWithTelemetry:
                     if result[MICResultKeys.SUCCESS]:
                         validated.add(stratum)
         
-        # Un span raíz con 5 hijos
+        # Un span raíz con 6 hijos (5 en V2, pero ahora con ALPHA hay 6)
         assert len(telemetry_ctx.root_spans) == 1
         pipeline_span = telemetry_ctx.root_spans[0]
         assert pipeline_span.name == "pipeline"
-        assert len(pipeline_span.children) == 5
+        assert len(pipeline_span.children) == 6
 
 
 # =============================================================================

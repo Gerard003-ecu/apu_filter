@@ -568,7 +568,7 @@ class TestStratum:
 
     def test_valores_numericos(self):
         assert Stratum.WISDOM == 0
-        assert Stratum.PHYSICS == 4
+        assert Stratum.PHYSICS == 5
 
     def test_es_int_enum(self):
         """Stratum es comparable como entero."""

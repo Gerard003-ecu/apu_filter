@@ -69,7 +69,9 @@ class StratumTopology:
         Stratum.PHYSICS: 0,
         Stratum.TACTICS: 1,
         Stratum.STRATEGY: 2,
-        Stratum.WISDOM: 3,
+        Stratum.OMEGA: 3,
+        Stratum.ALPHA: 4,
+        Stratum.WISDOM: 5,
     }
 
     # Prefijos de métricas por estrato

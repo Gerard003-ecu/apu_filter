@@ -103,10 +103,11 @@ class StratumTopology:
 
     # Orden explícito: mayor número = más cerca de la base física
     HIERARCHY: Dict[Stratum, int] = {
-        Stratum.PHYSICS: 4,   # Base de la pirámide
-        Stratum.TACTICS: 3,
-        Stratum.STRATEGY: 2,
-        Stratum.OMEGA: 1,     # Eje de decisión
+        Stratum.PHYSICS: 5,   # Base de la pirámide
+        Stratum.TACTICS: 4,
+        Stratum.STRATEGY: 3,
+        Stratum.OMEGA: 2,     # Eje de decisión
+        Stratum.ALPHA: 1,     # Viabilidad de negocio
         Stratum.WISDOM: 0,    # Cima de la pirámide
     }
 
@@ -141,6 +142,14 @@ class StratumTopology:
         "financial_analysis": Stratum.STRATEGY,
         "risk_assessment": Stratum.STRATEGY,
         "npv_calculation": Stratum.STRATEGY,
+
+        # OMEGA - Pivot de Riesgos
+        "omega_deliberation": Stratum.OMEGA,
+        "risk_pivot": Stratum.OMEGA,
+
+        # ALPHA - Viabilidad de negocio
+        "alpha_viability": Stratum.ALPHA,
+        "business_model": Stratum.ALPHA,
 
         # WISDOM - Síntesis
         "build_output": Stratum.WISDOM,
