@@ -781,7 +781,7 @@ class TestTransitiveClosureRules:
         """PHYSICS compromete TACTICS, STRATEGY, WISDOM."""
         rule = TransitiveClosureRule.from_stratum(Stratum.PHYSICS)
         
-        expected_compromised = frozenset({Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.WISDOM})
+        expected_compromised = frozenset({Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA, Stratum.WISDOM})
         assert rule.compromised_strata == expected_compromised
         assert len(rule.preserved_strata) == 0
 
@@ -789,7 +789,7 @@ class TestTransitiveClosureRules:
         """TACTICS compromete STRATEGY, WISDOM pero no PHYSICS."""
         rule = TransitiveClosureRule.from_stratum(Stratum.TACTICS)
         
-        expected_compromised = frozenset({Stratum.STRATEGY, Stratum.OMEGA, Stratum.WISDOM})
+        expected_compromised = frozenset({Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA, Stratum.WISDOM})
         expected_preserved = frozenset({Stratum.PHYSICS})
         
         assert rule.compromised_strata == expected_compromised
@@ -799,7 +799,7 @@ class TestTransitiveClosureRules:
         """STRATEGY compromete solo WISDOM."""
         rule = TransitiveClosureRule.from_stratum(Stratum.STRATEGY)
         
-        expected_compromised = frozenset({Stratum.OMEGA, Stratum.WISDOM})
+        expected_compromised = frozenset({Stratum.OMEGA, Stratum.ALPHA, Stratum.WISDOM})
         expected_preserved = frozenset({Stratum.PHYSICS, Stratum.TACTICS})
         
         assert rule.compromised_strata == expected_compromised
@@ -810,7 +810,7 @@ class TestTransitiveClosureRules:
         rule = TransitiveClosureRule.from_stratum(Stratum.WISDOM)
         
         assert len(rule.compromised_strata) == 0
-        assert rule.preserved_strata == frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA})
+        assert rule.preserved_strata == frozenset({Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA})
 
     def test_closure_rules_partition_remaining_strata(self) -> None:
         """Comprometidos y preservados particionan los estratos restantes."""
