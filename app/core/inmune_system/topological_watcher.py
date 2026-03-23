@@ -1493,6 +1493,10 @@ class OrthogonalProjector:
                 len(self._subspaces),
             )
 
+        # ── Invariante topológico (Fase 2: Cortafuegos Homológico) ────────────
+        # Calcular Euler *antes* de proyecciones para abortar si hay colapso
+        euler_char = self._compute_euler_characteristic(psi)
+
         # ── Amenazas por subespacio (cómputo único por subespacio) ───────────
         levels: Dict[str, float] = {}
         for name, spec in self._subspaces.items():
@@ -1512,9 +1516,6 @@ class OrthogonalProjector:
         max_source = max(levels, key=lambda k: levels[k])
         max_value = float(levels[max_source])
         total_threat = float(np.linalg.norm(threat_values))
-
-        # ── Invariante topológico ─────────────────────────────────────────────
-        euler_char = self._compute_euler_characteristic(psi)
 
         # ── Clasificación con histéresis ──────────────────────────────────────
         status = self._classify_with_hysteresis(
