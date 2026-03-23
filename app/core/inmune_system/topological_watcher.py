@@ -60,8 +60,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from app.schemas import Stratum
-from app.mic_algebra import Morphism, CategoricalState
+from app.core.schemas import Stratum
+from app.core.mic_algebra import CategoricalState, Morphism
 
 logger = logging.getLogger("MIC.ImmuneSystem")
 
@@ -362,11 +362,10 @@ def _compute_condition_number(
         # eigvalsh garantiza eigenvalores reales para matrices simétricas
         eigenvalues = np.linalg.eigvalsh(matrix)
         # CORRECCIÓN A3: verificar TODOS los eigenvalores, no solo positivos
-        positive = eigenvalues[eigenvalues > MIN_EIGVAL_TOL]
-        if positive.size == 0:
+        lam_min = float(eigenvalues.min())
+        if lam_min <= MIN_EIGVAL_TOL:
             return float("inf")
-        lam_min = float(positive.min())
-        lam_max = float(positive.max())
+        lam_max = float(eigenvalues.max())
         # κ = λ_max / λ_min para matrices SPD
         return lam_max / lam_min
 

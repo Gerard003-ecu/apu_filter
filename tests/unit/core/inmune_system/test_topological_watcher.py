@@ -58,8 +58,8 @@ import pytest
 from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
 
-import app.topological_watcher as _module
-from app.topological_watcher import (
+import app.core.inmune_system.topological_watcher as _module
+from app.core.inmune_system.topological_watcher import (
     DimensionalMismatchError,
     ImmuneSystemError,
     MetricTensorError,
@@ -91,8 +91,8 @@ from app.topological_watcher import (
     _stable_reciprocal,
 )
 
-from app.schemas import Stratum
-from app.mic_algebra import CategoricalState, Morphism
+from app.core.schemas import Stratum
+from app.core.mic_algebra import CategoricalState, Morphism
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
