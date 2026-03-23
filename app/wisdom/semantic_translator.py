@@ -475,6 +475,167 @@ class TranslatorConfig:
 
 
 # ============================================================================
+# DIFEOMORFISMO SEMÁNTICO Y GENERACIÓN CAUSAL
+# ============================================================================
+
+class SemanticDiffeomorphismMapper:
+    """
+    Funtor que mapea el espacio de invariantes topológicos al espacio de impacto de negocio.
+    Actúa como la 'Piedra Rosetta' del Estrato Ω, asegurando que la matemática pura
+    se traduzca en 'Empatía Táctica' sin pérdida de rigor causal [6-8].
+    """
+
+    @staticmethod
+    def map_betti_1_cycles(cycle_nodes: List[str]) -> str:
+        """
+        [Mapeo de Socavón Lógico (β₁ > 0)]
+        Transforma la detección de ciclos de homología en un diagnóstico de parálisis.
+        """
+        chain_str = " ➔ ".join(cycle_nodes) + f" ➔ {cycle_nodes[0]}" if cycle_nodes else ""
+        return (
+            f"VETO ESTRUCTURAL (Socavón Lógico): Se ha detectado una dependencia circular infinita "
+            f"en la ruta crítica. El sistema de compras se paralizará porque la adquisición de estos "
+            f"insumos requiere que se completen primero entre sí. "
+            f"Cadena patológica: {chain_str}. "
+            f"Recomendación: Romper el bucle reasignando dependencias [3, 6, 9]."
+        )
+
+    @staticmethod
+    def map_pyramid_instability(psi_value: float, critical_supplier: str) -> str:
+        """
+        [Mapeo de Pirámide Invertida (Ψ < 1.0)]
+        Traduce la métrica de estabilidad a un escenario de quiebra logística.
+        """
+        return (
+            f"ALERTA DE QUIEBRA (Pirámide Invertida): Su presupuesto descansa sobre una base "
+            f"logística peligrosamente estrecha (Índice Ψ = {psi_value:.2f}). "
+            f"El proveedor o insumo '{critical_supplier}' soporta un peso excesivo en la matriz de la obra. "
+            f"Si este nodo falla, el choque logístico no se amortiguará y colapsará el proyecto entero. "
+            f"Recomendación: Diversificar inmediatamente la matriz de proveedores base [4-6, 10]."
+        )
+
+    @staticmethod
+    def map_betti_0_fragmentation(isolated_clusters: int, cost_at_risk: float) -> str:
+        """
+        [Mapeo de Fragmentación (β₀ > 1)]
+        Mapea el número de componentes conexas a recursos financieros ciegos.
+        """
+        return (
+            f"FUGA DE CAPITAL (Recursos Huérfanos): El análisis topológico revela {isolated_clusters} "
+            f"islas de datos desconectadas del proyecto central. Usted está programando "
+            f"una inversión de ${cost_at_risk:,.2f} en materiales que no están enlazados a "
+            f"ninguna actividad constructiva real. "
+            f"Riesgo inminente de fraude o desperdicio seguro [6, 11]."
+        )
+
+
+class GraphRAGCausalNarrator:
+    """
+    Sintetiza la narrativa causal inyectando la ruta del error topológico
+    directamente en el contexto del Intérprete Diplomático.
+    """
+
+    def __init__(self, knowledge_graph: nx.DiGraph):
+        self.kg = knowledge_graph
+
+    def narrate_topological_collapse(self, betti_1: int, psi: float) -> str:
+        """
+        Orquesta el Colapso Semántico traduciendo las métricas puras en
+        una Acta de Deliberación accionable [7, 13].
+        """
+        acta_sections = ["--- ACTA DE DELIBERACIÓN DEL CONSEJO DE SABIOS ---"]
+
+        # 1. Evaluación de Betti-1 (Ciclos)
+        if betti_1 > 0:
+            # Extracción algorítmica del ciclo en el grafo
+            cycles = list(nx.simple_cycles(self.kg))
+            if cycles:
+                # Se toma el ciclo más crítico para la narrativa
+                critical_cycle = cycles[0]
+                narrative = SemanticDiffeomorphismMapper.map_betti_1_cycles(critical_cycle)
+                acta_sections.append(narrative)
+
+        # 2. Evaluación de Ψ (Estabilidad)
+        if psi < 1.0:
+            # Determinación de centralidad de autovector para hallar el nodo hiper-cargado
+            try:
+                centrality = nx.eigenvector_centrality_numpy(self.kg)
+                critical_node = max(centrality, key=centrality.get) if centrality else "Desconocido"
+            except Exception:
+                critical_node = "Nodo Central Desconocido"
+
+            narrative = SemanticDiffeomorphismMapper.map_pyramid_instability(psi, critical_node)
+            acta_sections.append(narrative)
+
+        if len(acta_sections) == 1:
+            acta_sections.append("ESTADO NOMINAL: La topología del presupuesto es laminar y coherente.")
+
+        return "\n\n".join(acta_sections)
+
+class SeverityLattice(IntEnum):
+    """
+    Retículo Algebraico Acotado (⊥ ≤ Veredicto ≤ ⊤) [7, 14].
+    El orden numérico garantiza que la operación Supremo (max)
+    imponga la restricción física sobre la avaricia financiera.
+    """
+    VIABLE = 0      # ⊥ (Bottom)
+    PRECAUCION = 1
+    RECHAZAR = 2    # ⊤ (Top)
+
+
+class LatticeVerdictCollapse:
+    """
+    Motor determinista que subordina las decisiones del LLM al rigor matemático.
+    """
+
+    @staticmethod
+    def compute_supremum(financial_verdict: SeverityLattice, topological_verdict: SeverityLattice) -> SeverityLattice:
+        """
+        Aplica la operación Supremo (⊔) entre los dictámenes del Oráculo y el Arquitecto [7].
+        Si Finanzas dice VIABLE (0) pero Topología dice RECHAZAR (2), el resultado es RECHAZAR (2).
+        VIABLE ⊔ RECHAZAR = RECHAZAR
+        """
+        final_verdict = max(financial_verdict, topological_verdict)
+        return SeverityLattice(final_verdict)
+
+    @staticmethod
+    def enforce_semantic_diffeomorphism(
+        roi_viable: bool,
+        betti_1: int,
+        psi: float,
+        graph: nx.DiGraph
+    ) -> str:
+        """
+        Punto de entrada final para el Estrato Ω. Colapsa la función de decisión y
+        emite el Acta de Deliberación inmutable.
+        """
+        # 1. Sensado de Estratos Independientes
+        fin_verdict = SeverityLattice.VIABLE if roi_viable else SeverityLattice.PRECAUCION
+
+        topo_verdict = SeverityLattice.VIABLE
+        if betti_1 > 0 or psi < 1.0:
+            topo_verdict = SeverityLattice.RECHAZAR  # Veto físico inmediato
+
+        # 2. Colapso del Retículo (Supremum)
+        final_severity = LatticeVerdictCollapse.compute_supremum(fin_verdict, topo_verdict)
+
+        # 3. Generación de la Narrativa Causal (Traducción Semántica)
+        narrator = GraphRAGCausalNarrator(graph)
+        causal_text = narrator.narrate_topological_collapse(betti_1, psi)
+
+        synthesis = f"VEREDICTO FINAL SÍNTESIS: {final_severity.name}\n"
+        if final_severity == SeverityLattice.RECHAZAR and fin_verdict == SeverityLattice.VIABLE:
+            synthesis += (
+                "JUSTIFICACIÓN: Aunque el Oráculo Financiero proyecta rentabilidad (VPN positivo), "
+                "el sistema ejecuta la operación Supremo (⊔) priorizando la supervivencia física. "
+                "El ahorro contable proyectado NO justifica la resonancia destructiva del cronograma "
+                "que causará este fallo estructural [13]."
+            )
+
+        return f"{causal_text}\n\n{synthesis}"
+
+
+# ============================================================================
 # LATTICE DE VEREDICTOS (ESTRUCTURA ALGEBRAICA)
 # ============================================================================
 
@@ -2306,14 +2467,27 @@ class SemanticTranslator:
 
         # ====== OMEGA: Eje de Decisión ======
         # El estrato OMEGA aglutina las consideraciones para emitir el veredicto
+        # Integramos LatticeVerdictCollapse
+        is_financially_viable = strategy_result.verdict.is_positive
+        graph_mock = nx.DiGraph()  # GraphRAGCausalNarrator uses nx.DiGraph
+        if "graph" in kwargs and isinstance(kwargs["graph"], nx.DiGraph):
+            graph_mock = kwargs["graph"]
+
+        omega_narrative = LatticeVerdictCollapse.enforce_semantic_diffeomorphism(
+            roi_viable=is_financially_viable,
+            betti_1=topo.beta_1,
+            psi=eff_stability,
+            graph=graph_mock
+        )
+
+        # Colapso final
         final_verdict = VerdictLevel.supremum(*all_verdicts)
+        if topo.beta_1 > 0 or eff_stability < 1.0:
+            final_verdict = final_verdict | VerdictLevel.RECHAZAR
 
         if errors:
             final_verdict = final_verdict | VerdictLevel.REVISAR
-
-        omega_narrative = f"Veredicto consolidado: {final_verdict.name}"
-        if errors:
-            omega_narrative += f". Se detectaron {len(errors)} errores en la evaluación."
+            omega_narrative += f"\nSe detectaron {len(errors)} errores en la evaluación."
 
         omega_result = StratumAnalysisResult(
             stratum=Stratum.OMEGA,
