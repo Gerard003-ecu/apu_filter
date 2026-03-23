@@ -1925,8 +1925,7 @@ class MICAgent:
                 stratum.name,
             )
             
-            # Post-composición y proyección: T_protegida = F_immune ∘ T ∘ F_immune
-            # Validamos con la Matriz
+            # Proyección del Intento: Ejecución del morfismo base T
             mic_result = self._mic.project_intent(
                 target_basis_vector=target_vector,
                 stratum_target=stratum.value,
@@ -1936,18 +1935,53 @@ class MICAgent:
                 orthogonality_guarantee=0.0,
                 payload=protected_state.payload,
             )
+
+            # Post-composición: T_protegida = F_immune ∘ T ∘ F_immune
+            # Construimos un nuevo estado categórico con el resultado para
+            # garantizar que la transición no inyectó vectores fuera de los subespacios.
+            post_state = protected_state.with_update(
+                new_payload=mic_result,
+                merge_payload=False,
+            )
             
+            # Extraemos telemetría actualizada si existe en el resultado
+            updated_telemetry = mic_result.get("telemetry_metrics", raw_telemetry)
+            if updated_telemetry is not None:
+                post_state = post_state.with_update(
+                    new_context={"telemetry_metrics": updated_telemetry},
+                    merge_context=True,
+                )
+
+            # Evaluamos la post-condición con el escudo topológico
+            final_protected_state = self._immune_watcher(post_state)
+
+            if final_protected_state.is_failed:
+                logger.warning(
+                    "Post-composición abortada por fuga dimensional: %s",
+                    final_protected_state.error,
+                )
+                return {
+                    "status": "VETO",
+                    "impedance_status": final_protected_state.error,
+                    "reason": (
+                        final_protected_state.error_details.get("reason")
+                        if final_protected_state.error_details else None
+                    ),
+                    "details": final_protected_state.error_details,
+                    "context": final_protected_state.context,
+                }
+
             return {
                 "status": "OK",
                 "impedance_status": ImpedanceMatchStatus.LAMINAR_PROJECTION.value,
                 "target_vector": target_vector,
                 "target_stratum": stratum.name,
-                "categorical_state_hash": protected_state.compute_hash(),
+                "categorical_state_hash": final_protected_state.compute_hash(),
                 "validated_strata": sorted(
-                    s.name for s in protected_state.validated_strata
+                    s.name for s in final_protected_state.validated_strata
                 ),
                 "mic_result": mic_result,
-                "audit_context": protected_state.context,
+                "audit_context": final_protected_state.context,
             }
         
         except Exception as e:
