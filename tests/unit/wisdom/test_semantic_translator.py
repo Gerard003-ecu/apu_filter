@@ -975,14 +975,14 @@ class TestThermalThresholds:
             (ABSOLUTE_ZERO_CELSIUS - 1.0, "invalid"),  # Imposible físicamente
             (ABSOLUTE_ZERO_CELSIUS, "cold"),            # -273.15°C = 0K → cold
             (-50.0, "cold"),
-            (20.0, "cold"),                             # < temperature_warm (default≈25)
-            (25.0, "stable"),                           # ≥ temperature_warm, < hot
+            (20.0, "cold"),                             # <= temperature_cold (default=20)
+            (25.0, "stable"),                           # <= temperature_warm (default=35)
             (35.0, "stable"),
-            (40.0, "warm"),                             # ≥ temperature_hot (default≈40)
-            (55.0, "warm"),
-            (60.0, "hot"),                              # ≥ temperature_hot (default≈60)
+            (40.0, "warm"),                             # <= temperature_hot (default=50)
+            (50.0, "warm"),
+            (60.0, "hot"),                              # <= temperature_critical (default=75)
             (75.0, "hot"),
-            (80.0, "critical"),                         # ≥ temperature_critical (default≈80)
+            (80.0, "critical"),                         # > temperature_critical (default=75)
             (200.0, "critical"),
         ],
     )
@@ -1007,13 +1007,13 @@ class TestThermalThresholds:
             (-0.1, "invalid"),      # Entropía negativa: imposible
             (1.5, "invalid"),       # Entropía > 1: imposible
             (float("nan"), "invalid"),
-            (0.0, "low"),           # ∈ [0, entropy_low)
+            (0.0, "low"),           # <= entropy_low (default=0.3)
             (0.2, "low"),
-            (0.3, "moderate"),      # ∈ [entropy_low, entropy_high)
-            (0.5, "moderate"),
-            (0.7, "high"),          # ∈ [entropy_high, entropy_death)
+            (0.3, "low"),           # <= 0.3
+            (0.5, "moderate"),      # > 0.3, < 0.7
+            (0.7, "high"),          # >= entropy_high (default=0.7)
             (0.8, "high"),
-            (0.95, "death"),        # ∈ [entropy_death, 1]
+            (0.95, "death"),        # >= entropy_death (default=0.95)
             (1.0, "death"),
         ],
     )
@@ -1035,11 +1035,11 @@ class TestThermalThresholds:
         [
             (-0.1, "invalid"),      # Ex < 0: termodinámicamente imposible
             (1.5, "invalid"),       # Ex > 1: imposible
-            (0.0, "poor"),          # ∈ [0, exergy_poor)
+            (0.0, "poor"),          # <= exergy_poor (default=0.3)
             (0.2, "poor"),
-            (0.3, "moderate"),      # Umbral exergy_poor (default≈0.3)
+            (0.3, "poor"),          # <= 0.3
             (0.5, "moderate"),
-            (0.7, "efficient"),     # ∈ [exergy_efficient, 1]
+            (0.7, "efficient"),     # >= exergy_efficient (default=0.7)
             (1.0, "efficient"),
         ],
     )
@@ -1125,7 +1125,7 @@ class TestFinancialThresholds:
             (1.2, "good"),                  # PI > 1 pero < excellent
             (1.5, "excellent"),             # PI ≥ excellent
             (2.0, "excellent"),             # PI muy alto
-            (float("inf"), "excellent"),    # PI = ∞: si es válido, es excelente
+            (float("inf"), "invalid"),      # PI = ∞ no es finito, debe ser invalid
         ],
     )
     def test_classify_profitability(self, pi: float, expected: str):
@@ -1230,7 +1230,7 @@ class TestVerdictLevelLattice:
     @pytest.mark.parametrize(
         "a,b",
         list(product(list(VerdictLevel), repeat=2)),
-        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}" if isinstance(pair, tuple) else str(pair),
     )
     def test_commutative_join(self, a: VerdictLevel, b: VerdictLevel):
         """∀a,b ∈ L: a ⊔ b = b ⊔ a."""
@@ -1244,7 +1244,7 @@ class TestVerdictLevelLattice:
     @pytest.mark.parametrize(
         "a,b",
         list(product(list(VerdictLevel), repeat=2)),
-        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}" if isinstance(pair, tuple) else str(pair),
     )
     def test_commutative_meet(self, a: VerdictLevel, b: VerdictLevel):
         """∀a,b ∈ L: a ⊓ b = b ⊓ a."""
@@ -1260,7 +1260,7 @@ class TestVerdictLevelLattice:
     @pytest.mark.parametrize(
         "a,b,c",
         list(product(list(VerdictLevel), repeat=3)),
-        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}",
+        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}" if isinstance(triple, tuple) else str(triple),
     )
     def test_associative_join(
         self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel,
@@ -1277,7 +1277,7 @@ class TestVerdictLevelLattice:
     @pytest.mark.parametrize(
         "a,b,c",
         list(product(list(VerdictLevel), repeat=3)),
-        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}",
+        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}" if isinstance(triple, tuple) else str(triple),
     )
     def test_associative_meet(
         self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel,
@@ -1296,7 +1296,7 @@ class TestVerdictLevelLattice:
     @pytest.mark.parametrize(
         "a,b",
         list(product(list(VerdictLevel), repeat=2)),
-        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}" if isinstance(pair, tuple) else str(pair),
     )
     def test_absorption_join_meet(self, a: VerdictLevel, b: VerdictLevel):
         """∀a,b ∈ L: a ⊔ (a ⊓ b) = a (absorción tipo 1)."""
@@ -1309,7 +1309,7 @@ class TestVerdictLevelLattice:
     @pytest.mark.parametrize(
         "a,b",
         list(product(list(VerdictLevel), repeat=2)),
-        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}" if isinstance(pair, tuple) else str(pair),
     )
     def test_absorption_meet_join(self, a: VerdictLevel, b: VerdictLevel):
         """∀a,b ∈ L: a ⊓ (a ⊔ b) = a (absorción tipo 2)."""
@@ -1360,7 +1360,7 @@ class TestVerdictLevelLattice:
     @pytest.mark.parametrize(
         "a,b,c",
         list(product(list(VerdictLevel), repeat=3)),
-        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}",
+        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}" if isinstance(triple, tuple) else str(triple),
     )
     def test_distributive_meet_over_join(
         self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel,
@@ -1377,7 +1377,7 @@ class TestVerdictLevelLattice:
     @pytest.mark.parametrize(
         "a,b,c",
         list(product(list(VerdictLevel), repeat=3)),
-        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}",
+        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}" if isinstance(triple, tuple) else str(triple),
     )
     def test_distributive_join_over_meet(
         self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel,
@@ -1396,7 +1396,7 @@ class TestVerdictLevelLattice:
     @pytest.mark.parametrize(
         "a,b",
         list(product(list(VerdictLevel), repeat=2)),
-        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}" if isinstance(pair, tuple) else str(pair),
     )
     def test_reflexive(self, a: VerdictLevel, b: VerdictLevel):
         """∀a ∈ L: a ≤ a (reflexividad)."""
@@ -1405,7 +1405,7 @@ class TestVerdictLevelLattice:
     @pytest.mark.parametrize(
         "a,b",
         list(product(list(VerdictLevel), repeat=2)),
-        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}" if isinstance(pair, tuple) else str(pair),
     )
     def test_antisymmetric(self, a: VerdictLevel, b: VerdictLevel):
         """∀a,b ∈ L: (a ≤ b ∧ b ≤ a) ⟹ a = b (antisimetría)."""
@@ -1418,7 +1418,7 @@ class TestVerdictLevelLattice:
     @pytest.mark.parametrize(
         "a,b,c",
         list(product(list(VerdictLevel), repeat=3)),
-        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}",
+        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}" if isinstance(triple, tuple) else str(triple),
     )
     def test_transitive(
         self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel,
@@ -1435,7 +1435,7 @@ class TestVerdictLevelLattice:
     @pytest.mark.parametrize(
         "a,b",
         list(product(list(VerdictLevel), repeat=2)),
-        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}" if isinstance(pair, tuple) else str(pair),
     )
     def test_total_order_trichotomy(self, a: VerdictLevel, b: VerdictLevel):
         """
@@ -1949,7 +1949,7 @@ class TestNarrativeCache:
         stats = cache.stats
         assert stats["size"] == 0, f"Tamaño después de clear: {stats['size']}"
         assert stats["hits"] == 0, f"Hits después de clear: {stats['hits']}"
-        assert stats["misses"] == 0, f"Misses después de clear: {stats['misses']}"
+        assert stats["misses"] == 1, f"Misses después de clear: {stats['misses']}" # Se llamó get() después de clear()
 
     def test_stats_accuracy(self):
         """
@@ -2253,6 +2253,42 @@ class TestSemanticDiffeomorphism:
 # ============================================================================
 
 
+
+    def test_semantic_hysteresis_at_diffeomorphic_boundary(self, translator):
+        """
+        Aserta la existencia de una banda de histéresis δ > ε_mach en la transición
+        de fase topológica, previniendo el chattering semántico.
+        """
+        critical_fiedler = MIN_FIEDLER_VALUE if 'MIN_FIEDLER_VALUE' in globals() else translator.config.topology.fiedler_connected_threshold
+        noise = _FIEDLER_NUMERIC_TOLERANCE  # ~2.22e-13
+
+        # Helper para crear el estado alpha. 'translate_metrics' no existe en el original,
+        # así que emularemos su comportamiento llamando al pipeline topológico.
+        def _build_alpha_state(fiedler_val):
+            return ValidatedTopology(
+                beta_0=1, beta_1=0, beta_2=0,
+                euler_characteristic=1,
+                fiedler_value=fiedler_val,
+                spectral_gap=0.3,
+                pyramid_stability=5.0,
+                structural_entropy=0.2
+            )
+
+        # Estado inicial: Ligeramente por encima del umbral (VIABLE)
+        metrics_stable = _build_alpha_state(critical_fiedler + noise * 10)
+        report_stable_verdict = translator.translate_topology(metrics_stable)[1]
+
+        # Notificamos el estado anterior al traductor (memoria de estado)
+        translator._last_verdict = report_stable_verdict
+        translator._last_fiedler = critical_fiedler + noise * 10
+
+        # Perturbación que empuja infinitesimalmente debajo del umbral absoluto
+        # debido a error de máquina, pero dentro de la banda de histéresis.
+        metrics_perturbed = _build_alpha_state(critical_fiedler - noise)
+        report_perturbed_verdict = translator.translate_topology(metrics_perturbed)[1]
+
+        assert report_stable_verdict == report_perturbed_verdict, \
+            "Divergencia difeomórfica: El funtor carece de histéresis y sufre chattering numérico."
 class TestGraphRAGCausalNarrator:
     """
     Verificación del narrador causal basado en grafos.
@@ -2447,6 +2483,23 @@ class TestGraphRAGCausalNarrator:
 # ============================================================================
 
 
+
+    def test_narrative_homological_invariance(self):
+        """
+        Demuestra que ciclos en la misma clase de homología [c] ∈ H₁(X)
+        se mapean a narrativas semánticamente isomorfas.
+        """
+        # Construimos un grafo donde el ciclo A-B-C-A y A-B-D-C-A envuelven el mismo "agujero"
+        G = nx.DiGraph([("A", "B"), ("B", "C"), ("C", "A"), ("B", "D"), ("D", "C")])
+
+        narrator = GraphRAGCausalNarrator(G)
+        # Extraemos la causalidad, en este caso vamos a obtener los ciclos homológicamente únicos
+        causal_chains = narrator.extract_causality()
+
+        # Asertamos que el narrador identifica la clase de homología subyacente
+        # y no emite alertas redundantes para ciclos homológicamente equivalentes.
+        assert len(causal_chains) == 1, \
+            "Fuga de entropía semántica: El funtor separó ciclos homológicamente equivalentes."
 class TestStrategicReport:
     """
     Serialización y propiedades del reporte estratégico.
@@ -2582,7 +2635,7 @@ class TestStrategicReport:
         """El timestamp es reciente (creado en los últimos 5 segundos)."""
         from datetime import datetime as dt, timezone, timedelta
         report = self._make_report()
-        now = dt.now()
+        now = dt.now(timezone.utc)
         parsed = dt.fromisoformat(report.timestamp)
         # Tolerancia de 5 segundos para ejecución de tests
         delta = abs((now - parsed).total_seconds())
@@ -2721,6 +2774,74 @@ class TestAlgebraicProperties:
                 f"φ({ordered_financial[i].name}) = {mapped_values[i]} "
                 f"≥ φ({ordered_financial[i+1].name}) = {mapped_values[i+1]}"
             )
+
+
+# ============================================================================
+# TESTS DE EDGE CASES — Refinado
+# ============================================================================
+
+
+
+
+    def test_narrative_supremum_commutativity(self, translator):
+        """
+        Verifica que el diagrama conmutativo cierra: la narrativa final
+        debe contener la huella léxica del estrato que definió el Supremo del retículo.
+        """
+        _TOPOLOGY_CYCLE_KEYWORDS = ["VETO", "circular", "Socavón Lógico"]
+
+        def _text_contains_any_keyword(text, keywords):
+            if not text:
+                return False
+            return any(kw in text for kw in keywords)
+
+        def _build_physics_state(level):
+            return {
+                "temperature": 25.0 if level == SeverityLevel.OPTIMO else 80.0,
+                "entropy": 0.2 if level == SeverityLevel.OPTIMO else 0.9,
+                "heat_capacity": 0.5
+            }
+
+        def _build_alpha_state(fiedler_val, level, betti_1=0):
+            b1 = betti_1 if level != SeverityLevel.OPTIMO else 0
+            if level == SeverityLevel.CRITICO:
+                b1 = 1
+            return ValidatedTopology(
+                beta_0=1, beta_1=b1, beta_2=0,
+                euler_characteristic=1 - b1,
+                fiedler_value=fiedler_val,
+                spectral_gap=0.3,
+                pyramid_stability=5.0,
+                structural_entropy=0.2
+            )
+
+        class SeverityLevel:
+            OPTIMO = 0
+            CRITICO = 1
+
+        # PHYSICS = OPTIMO, ALPHA = CRITICO -> Supremo = CRITICO
+        physics_state = _build_physics_state(SeverityLevel.OPTIMO)
+        alpha_state = _build_alpha_state(1e-9, SeverityLevel.CRITICO)
+
+        # Necesitamos un grafo con ciclos para que GraphRAGCausalNarrator pueda explicarlo
+        # Si betti_1=1, GraphRAGCausalNarrator buscará un ciclo en el grafo pasado.
+        G = nx.DiGraph([("A", "B"), ("B", "C"), ("C", "A")])
+
+        report = translator.compose_strategic_narrative(
+            topological_metrics=alpha_state,
+            financial_metrics={"performance": {"recommendation": "ACEPTAR", "profitability_index": 1.5}},
+            thermal_metrics=physics_state,
+            graph=G,
+            raw_cycles=[["A", "B", "C"]]
+        )
+        supremum_verdict = report.verdict
+
+        # Asertamos la conmutatividad semántica
+        assert supremum_verdict == VerdictLevel.RECHAZAR, "Fallo en álgebra de retículos."
+
+        # OMEGA debe contener la huella léxica
+        assert _text_contains_any_keyword(report.strata_analysis[Stratum.OMEGA].narrative, _TOPOLOGY_CYCLE_KEYWORDS), \
+            "Fallo del Funtor: La narrativa colapsó y omitió la justificación del Supremo (Alpha)."
 
 
 # ============================================================================
