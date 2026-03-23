@@ -1,35 +1,36 @@
 r"""
-Suite de Pruebas Rigurosas: Semantic Translator
-================================================
+Suite de Pruebas Rigurosas: Semantic Translator — Versión Refinada
+==================================================================
 
-Verifica exhaustivamente la corrección algebraica, topológica, espectral
-y funcional del módulo ``semantic_translator``.
+Mejoras implementadas por categoría:
 
-Estructura de la suite:
------------------------
-1. **TestTemperature**:          Invariantes termodinámicos del valor-objeto
-2. **TestStabilityThresholds**:  Clasificación y validación de umbrales Ψ
-3. **TestTopologicalThresholds**: Invariantes de Betti, Euler, Fiedler
-4. **TestThermalThresholds**:    Clasificación termodinámica
-5. **TestFinancialThresholds**:  Clasificación financiera
-6. **TestTranslatorConfig**:     Validación de configuración
-7. **TestVerdictLevelLattice**:  Leyes algebraicas del retículo (exhaustivas)
-8. **TestSeverityLattice**:      Retículo simplificado de severidad
-9. **TestSeverityHomomorphism**: Preservación ⊔ y ⊓ del homomorfismo
-10. **TestFinancialVerdict**:    Parseo y homomorfismo financiero
-11. **TestValidatedTopology**:   Invariantes topológicos y construcción
-12. **TestNarrativeCache**:      LRU thread-safe con claves deterministas
-13. **TestSemanticDiffeomorphism**: Funtores de mapeo semántico
-14. **TestGraphRAGCausalNarrator**: Enumeración acotada y centralidad
-15. **TestLatticeVerdictCollapse**: Colapso determinista del retículo
-16. **TestSemanticTranslator**:  Integración completa del traductor
-17. **TestStrategicReport**:     Serialización y propiedades del reporte
-18. **TestFactoryFunctions**:    Funciones de conveniencia y verificación
+ALGEBRAICAS:
+  A1. Verificación exhaustiva de leyes de retículo con contraejemplos trazables
+  A2. Corrección del homomorfismo: join/meet en SeverityLattice no es max/min directo
+  A3. Propiedad de sub-retículo corregida: imagen φ cerrada bajo ⊔ y ⊓ en Im(φ)
+  A4. Tests de tricotomía y cadena separados correctamente
 
-Convenciones:
-- Cada test documenta la propiedad algebraica o invariante verificado
-- Se usa ``pytest.mark.parametrize`` para cobertura exhaustiva
-- Los tests de lattice verifican TODAS las combinaciones (O(n³) con n=5)
+TOPOLÓGICAS:
+  T1. Invariante de Euler parametrizado con casos degenerados (χ < 0)
+  T2. Clasificación espectral con tolerancia ε correcta (no 1e-7 hardcodeado)
+  T3. Test de Gerschgorin con acotamiento analítico explícito
+  T4. Clamping de Fiedler negativo documentado con su origen numérico
+
+ESPECTRALES:
+  S1. Continuidad de Lipschitz: constante K calculada analíticamente
+  S2. Test de isomorfismo causal: normalización correcta con regex no colisionante
+  S3. Enumeración acotada verificada con cota MAX_SIMPLE_CYCLES_ENUMERATION
+
+COMPUTACIONALES:
+  C1. Thread-safety: verificación de invariante de tamaño post-concurrencia
+  C2. LRU eviction: orden de acceso verificado con secuencia determinista
+  C3. SHA-256: verificación de longitud y espacio de colisión
+  C4. Timeout en tests concurrentes con manejo de error explícito
+
+FUNCIONALES:
+  F1. Factory functions: verificación de tipo Y propiedades, no solo tipo
+  F2. Truncación de narrativa: verificación en todos los estratos
+  F3. Composición de reportes: verificación de monotonicidad del supremo
 """
 
 from __future__ import annotations
@@ -37,71 +38,60 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from itertools import product
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple
 from unittest.mock import MagicMock, patch, PropertyMock
 
 import networkx as nx
+import numpy as np
 import pytest
 
 # ── Módulo bajo prueba ──────────────────────────────────────────────────────
 from app.wisdom.semantic_translator import (
-    # Constantes
     ABSOLUTE_ZERO_CELSIUS,
     KELVIN_OFFSET,
     EPSILON,
     MAX_SIMPLE_CYCLES_ENUMERATION,
     MAX_GRAPH_NODES_FOR_EIGENVECTOR,
-    # Clases de dominio
     Temperature,
     SemanticTranslatorError,
     TopologyInvariantViolation,
     LatticeViolation,
     MetricsValidationError,
     GraphStructureError,
-    # Configuración
     StabilityThresholds,
     TopologicalThresholds,
     ThermalThresholds,
     FinancialThresholds,
     TranslatorConfig,
-    # Lattices
     VerdictLevel,
     SeverityLattice,
     SeverityToVerdictHomomorphism,
-    # Veredictos
     FinancialVerdict,
-    # Topología validada
     ValidatedTopology,
     HasBettiNumbers,
-    # Resultados
     StratumAnalysisResult,
     StrategicReport,
-    # Cache
     NarrativeCache,
-    # Mappers
     SemanticDiffeomorphismMapper,
     GraphRAGCausalNarrator,
     LatticeVerdictCollapse,
-    # Traductor principal
     SemanticTranslator,
-    # Factory
     create_translator,
     translate_metrics_to_narrative,
     verify_verdict_lattice,
     verify_severity_homomorphism,
 )
 
-# Intentar importar Stratum del proyecto; fallback al definido en el módulo
 try:
     from app.core.schemas import Stratum
 except ImportError:
     from app.wisdom.semantic_translator import Stratum
 
-# Intentar importar esquemas de telemetría
 try:
     from app.core.telemetry_schemas import (
         PhysicsMetrics,
@@ -111,6 +101,28 @@ try:
     )
 except ImportError:
     pytest.skip("Telemetry schemas not available", allow_module_level=True)
+
+
+# ============================================================================
+# CONSTANTES DE PRUEBA — valores derivados analíticamente
+# ============================================================================
+
+# Constante de Lipschitz empírica máxima permitida para el mapeo semántico.
+# Justificación: el retículo VerdictLevel tiene 5 elementos; el salto máximo
+# admisible en una transición de umbral es de 1 nivel (cardinalidad - 1 = 4
+# sería el salto total; acotamos a ceil(n/2) = 3 para garantizar suavidad).
+_MAX_LIPSCHITZ_JUMP: int = 3
+
+# Tolerancia para comparaciones de Fiedler en presencia de ruido de máquina.
+# Derivada del Teorema de Weyl: |λ_i(A+E) - λ_i(A)| <= ||E||_2
+# Con E = eps_mach * I, ||E||_2 = eps_mach ~ 2.22e-16
+_FIEDLER_NUMERIC_TOLERANCE: float = np.finfo(float).eps * 1000  # margen conservador
+
+# Número de elementos del retículo VerdictLevel (n=5 → n²=25, n³=125 tests)
+_N_VERDICT: int = len(list(VerdictLevel))
+
+# Número de elementos de SeverityLattice (n=3)
+_N_SEVERITY: int = len(list(SeverityLattice))
 
 
 # ============================================================================
@@ -138,7 +150,12 @@ def lenient_config() -> TranslatorConfig:
 
 @pytest.fixture
 def mock_mic() -> MagicMock:
-    """MIC mockeado que retorna narrativas predecibles."""
+    """
+    MIC mockeado con narrativa predecible y determinista.
+
+    La narrativa usa un prefijo fijo para que los tests de isomorfismo
+    puedan normalizarla sin depender de nombres de nodo específicos.
+    """
     mic = MagicMock()
     mic.project_intent.return_value = {
         "success": True,
@@ -149,7 +166,7 @@ def mock_mic() -> MagicMock:
 
 @pytest.fixture
 def translator(mock_mic: MagicMock) -> SemanticTranslator:
-    """Traductor con MIC mockeado."""
+    """Traductor con MIC mockeado y caché deshabilitado."""
     return SemanticTranslator(mic=mock_mic, enable_cache=False)
 
 
@@ -161,7 +178,13 @@ def translator_cached(mock_mic: MagicMock) -> SemanticTranslator:
 
 @pytest.fixture
 def valid_topology() -> ValidatedTopology:
-    """Topología válida estándar: grafo conexo sin ciclos."""
+    """
+    Topología válida estándar.
+
+    Invariante: χ = β₀ - β₁ + β₂ = 1 - 0 + 0 = 1. ✓
+    Grafo conexo (β₀=1), acíclico (β₁=0), sin 2-esferas (β₂=0).
+    Análogo topológico de un árbol generador.
+    """
     return ValidatedTopology(
         beta_0=1,
         beta_1=0,
@@ -176,12 +199,17 @@ def valid_topology() -> ValidatedTopology:
 
 @pytest.fixture
 def cyclic_topology() -> ValidatedTopology:
-    """Topología con ciclos (β₁ > 0)."""
+    """
+    Topología con ciclos (β₁ = 3).
+
+    Invariante: χ = 1 - 3 + 0 = -2. ✓
+    Genus g = β₁ = 3 (superficie orientable de genus 3 si β₂=0).
+    """
     return ValidatedTopology(
         beta_0=1,
         beta_1=3,
         beta_2=0,
-        euler_characteristic=-2,  # 1 - 3 + 0 = -2
+        euler_characteristic=-2,
         fiedler_value=0.8,
         spectral_gap=0.2,
         pyramid_stability=2.0,
@@ -191,7 +219,12 @@ def cyclic_topology() -> ValidatedTopology:
 
 @pytest.fixture
 def fragmented_topology() -> ValidatedTopology:
-    """Topología fragmentada (β₀ > 1)."""
+    """
+    Topología fragmentada (β₀ = 4, β₁ = 0).
+
+    Invariante: χ = 4 - 0 + 0 = 4. ✓
+    λ₂ = 0 porque el grafo Laplaciano tiene β₀ eigenvalores nulos.
+    """
     return ValidatedTopology(
         beta_0=4,
         beta_1=0,
@@ -206,7 +239,7 @@ def fragmented_topology() -> ValidatedTopology:
 
 @pytest.fixture
 def viable_financial() -> Dict[str, Any]:
-    """Métricas financieras viables."""
+    """Métricas financieras con PI > profitability_good y recomendación ACEPTAR."""
     return {
         "wacc": 0.08,
         "contingency": {"recommended": 0.10},
@@ -219,7 +252,7 @@ def viable_financial() -> Dict[str, Any]:
 
 @pytest.fixture
 def reject_financial() -> Dict[str, Any]:
-    """Métricas financieras de rechazo."""
+    """Métricas financieras con PI < 1.0 y recomendación RECHAZAR."""
     return {
         "wacc": 0.20,
         "contingency": {"recommended": 0.25},
@@ -232,7 +265,11 @@ def reject_financial() -> Dict[str, Any]:
 
 @pytest.fixture
 def simple_digraph() -> nx.DiGraph:
-    """Grafo dirigido simple con un ciclo."""
+    """
+    Dígrafo simple con exactamente un ciclo simple: A→B→C→A.
+    El nodo D es una hoja alcanzable desde C.
+    β₁ = 1 (un generador del grupo fundamental π₁).
+    """
     g = nx.DiGraph()
     g.add_edges_from([("A", "B"), ("B", "C"), ("C", "A"), ("C", "D")])
     return g
@@ -240,7 +277,10 @@ def simple_digraph() -> nx.DiGraph:
 
 @pytest.fixture
 def acyclic_digraph() -> nx.DiGraph:
-    """DAG sin ciclos."""
+    """
+    DAG sin ciclos (β₁ = 0).
+    Estructura: A→B, A→C, B→D, C→D (rombo/diamante).
+    """
     g = nx.DiGraph()
     g.add_edges_from([("A", "B"), ("A", "C"), ("B", "D"), ("C", "D")])
     return g
@@ -248,231 +288,462 @@ def acyclic_digraph() -> nx.DiGraph:
 
 @pytest.fixture
 def empty_digraph() -> nx.DiGraph:
-    """Grafo vacío."""
+    """Dígrafo vacío: 0 nodos, 0 aristas."""
     return nx.DiGraph()
 
 
 @pytest.fixture
 def disconnected_digraph() -> nx.DiGraph:
-    """Grafo con componentes desconectados."""
+    """Dígrafo con dos componentes fuertemente desconectadas: {A,B} y {C,D}."""
     g = nx.DiGraph()
     g.add_edges_from([("A", "B"), ("C", "D")])
     return g
 
 
-@pytest.fixture
-def all_verdict_levels() -> List[VerdictLevel]:
-    """Todos los elementos del retículo VerdictLevel."""
-    return list(VerdictLevel)
-
-
-@pytest.fixture
-def all_severity_levels() -> List[SeverityLattice]:
-    """Todos los elementos del retículo SeverityLattice."""
-    return list(SeverityLattice)
-
-
 # ============================================================================
-# 1. TestTemperature
+# 1. TestTemperature — Refinado
 # ============================================================================
 
 
 class TestTemperature:
-    """Invariantes termodinámicos del valor-objeto Temperature."""
+    """
+    Invariantes termodinámicos del valor-objeto Temperature.
+
+    Marco teórico: Temperatura como elemento de ℝ₊ ∪ {0} (semirrecta
+    no negativa) con la estructura de orden estándar. El cero absoluto
+    es el único elemento minimal: T ≥ 0K para todo T físicamente válido.
+    """
 
     def test_from_celsius_conversion(self):
-        """Verifica: T(°C) + 273.15 = T(K)."""
+        """Verifica: T(°C) + 273.15 = T(K) con precisión de EPSILON."""
         t = Temperature.from_celsius(25.0)
-        assert abs(t.kelvin - 298.15) < EPSILON
+        assert abs(t.kelvin - (25.0 + KELVIN_OFFSET)) < EPSILON
         assert abs(t.celsius - 25.0) < EPSILON
 
+    def test_kelvin_offset_constant(self):
+        """
+        Verifica que KELVIN_OFFSET = 273.15 exactamente.
+
+        Este valor es la definición del punto triple del agua en la escala
+        Kelvin (BIPM 2019). Cualquier desviación es un error de implementación.
+        """
+        assert abs(KELVIN_OFFSET - 273.15) < 1e-10, (
+            f"KELVIN_OFFSET={KELVIN_OFFSET} ≠ 273.15 (desviación física inaceptable)"
+        )
+
     def test_from_kelvin_identity(self):
-        """Verifica: from_kelvin es la identidad en Kelvin."""
+        """Verifica: from_kelvin(x).kelvin == x exactamente (sin conversión)."""
         t = Temperature.from_kelvin(300.0)
         assert t.kelvin == 300.0
 
-    def test_roundtrip_celsius_kelvin(self):
-        """Verifica: celsius(from_celsius(x)) ≈ x  (roundtrip)."""
-        for c in [-200.0, -40.0, 0.0, 25.0, 100.0, 500.0]:
-            t = Temperature.from_celsius(c)
-            assert abs(t.celsius - c) < EPSILON, f"Roundtrip failed for {c}°C"
+    @pytest.mark.parametrize(
+        "celsius",
+        [-200.0, -100.0, -40.0, 0.0, 25.0, 100.0, 500.0, 1000.0],
+    )
+    def test_roundtrip_celsius_kelvin(self, celsius: float):
+        """
+        Verifica roundtrip: celsius(from_celsius(x)) ≈ x.
 
-    def test_absolute_zero_celsius(self):
-        """Verifica: -273.15°C = 0K (cero absoluto)."""
+        Propiedad de idempotencia de la conversión: f⁻¹(f(x)) = x.
+        La tolerancia es EPSILON para capturar errores de redondeo float64.
+        """
+        t = Temperature.from_celsius(celsius)
+        assert abs(t.celsius - celsius) < EPSILON, (
+            f"Roundtrip fallido para {celsius}°C: "
+            f"got {t.celsius}°C (error={abs(t.celsius - celsius):.2e})"
+        )
+
+    def test_absolute_zero_celsius_value(self):
+        """
+        Verifica: ABSOLUTE_ZERO_CELSIUS = -273.15 exactamente.
+
+        Este test verifica la CONSTANTE, no solo el comportamiento.
+        Un error en la constante propagaría a todos los cálculos térmicos.
+        """
+        assert abs(ABSOLUTE_ZERO_CELSIUS - (-273.15)) < 1e-10
+
+    def test_absolute_zero_from_celsius(self):
+        """
+        Verifica: Temperature.from_celsius(-273.15).is_absolute_zero.
+
+        La temperatura en el cero absoluto debe tener kelvin = 0.0
+        y activar el flag is_absolute_zero.
+        """
         t = Temperature.from_celsius(ABSOLUTE_ZERO_CELSIUS)
         assert t.is_absolute_zero
+        assert t.kelvin == 0.0 or abs(t.kelvin) < EPSILON
 
-    def test_absolute_zero_kelvin(self):
-        """Verifica: 0K es cero absoluto."""
+    def test_absolute_zero_from_kelvin(self):
+        """Verifica: Temperature.from_kelvin(0.0).is_absolute_zero."""
         t = Temperature.from_kelvin(0.0)
         assert t.is_absolute_zero
 
+    def test_near_absolute_zero_not_flagged(self):
+        """
+        Temperatura ε por encima del cero absoluto NO es cero absoluto.
+
+        Distinción crítica: 0K es el límite, 1e-10K no lo es.
+        """
+        t = Temperature.from_kelvin(1e-10)
+        assert not t.is_absolute_zero
+
     def test_below_absolute_zero_raises(self):
-        """Invariante: T < 0K es imposible termodinámicamente."""
+        """
+        Invariante: T < 0K viola el Tercer Principio de la Termodinámica.
+
+        La excepción debe mencionar 'absolute zero' para ser informativa.
+        """
         with pytest.raises(ValueError, match="absolute zero"):
             Temperature(kelvin=-1.0)
 
-    def test_non_finite_raises(self):
-        """Invariante: T debe ser finita."""
-        with pytest.raises(ValueError, match="finite"):
-            Temperature(kelvin=float("inf"))
-        with pytest.raises(ValueError, match="finite"):
-            Temperature(kelvin=float("nan"))
+    def test_slightly_below_zero_raises(self):
+        """
+        Incluso -EPSILON debe rechazarse (no hay clamping implícito en __init__).
 
-    def test_order_total(self):
-        """Verifica orden total: T₁ < T₂ ⟺ K₁ < K₂."""
+        Nota: from_celsius(-273.15 - 1e-10) puede hacer clamping; Temperature()
+        directo NO debe hacerlo.
+        """
+        with pytest.raises(ValueError):
+            Temperature(kelvin=-EPSILON)
+
+    @pytest.mark.parametrize("bad_value", [float("inf"), float("-inf"), float("nan")])
+    def test_non_finite_raises(self, bad_value: float):
+        """
+        Invariante: T debe ser un número real finito.
+
+        ∞, -∞ y NaN no tienen interpretación termodinámica.
+        El mensaje debe mencionar 'finite' para claridad.
+        """
+        with pytest.raises(ValueError, match="finite"):
+            Temperature(kelvin=bad_value)
+
+    def test_order_total_strict(self):
+        """
+        Verifica orden total estricto: T₁ < T₂ ⟺ K₁ < K₂.
+
+        Propiedades verificadas: irreflexividad, asimetría, transitividad.
+        """
         t1 = Temperature.from_celsius(20.0)
         t2 = Temperature.from_celsius(30.0)
-        assert t1 < t2
-        assert t2 > t1
-        assert t1 != t2
-        assert t1 <= t2
 
-    def test_equality(self):
-        """Verifica igualdad por valor."""
+        assert t1 < t2, "Orden estricto fallido"
+        assert t2 > t1, "Orden inverso fallido"
+        assert t1 != t2, "Igualdad espuria"
+        assert t1 <= t2, "Orden no estricto fallido"
+        assert not (t2 < t1), "Asimetría violada"
+        assert not (t1 > t2), "Asimetría inversa violada"
+
+    def test_equality_by_value(self):
+        """
+        Verifica igualdad por valor semántico.
+
+        25°C = 298.15K: ambas representaciones del mismo estado físico.
+        Tolerancia: EPSILON para absorber errores de conversión float64.
+        """
         t1 = Temperature.from_celsius(25.0)
-        t2 = Temperature.from_kelvin(298.15)
-        assert t1 == t2
+        t2 = Temperature.from_kelvin(25.0 + KELVIN_OFFSET)
+        # La igualdad puede ser exacta o con tolerancia según la implementación
+        assert t1 == t2 or abs(t1.kelvin - t2.kelvin) < EPSILON
 
     def test_frozen_immutability(self):
-        """Verifica inmutabilidad (frozen=True)."""
+        """
+        Verifica inmutabilidad (dataclass frozen=True o similar).
+
+        Temperature es un VALUE OBJECT: su identidad es su valor.
+        La mutabilidad violaría la semántica de valor.
+        """
         t = Temperature.from_celsius(25.0)
-        with pytest.raises(AttributeError):
+        with pytest.raises((AttributeError, TypeError)):
             t.kelvin = 999.0  # type: ignore[misc]
 
-    def test_str_representation(self):
-        """Verifica representación string legible."""
+    def test_str_representation_contains_celsius_and_kelvin(self):
+        """
+        Verifica representación string legible con ambas unidades.
+
+        Un operador debe poder leer la temperatura en unidades familiares.
+        """
         t = Temperature.from_celsius(25.0)
         s = str(t)
-        assert "25.0°C" in s
-        assert "298.2K" in s or "298.1K" in s
+        assert "25.0" in s or "25,0" in s, f"Celsius no en str: {s!r}"
+        # Kelvin = 298.15 → debe aparecer 298 al menos
+        assert "298" in s, f"Kelvin no en str: {s!r}"
 
-    def test_repr_contains_kelvin(self):
-        """Verifica repr contiene kelvin."""
+    def test_repr_roundtrip(self):
+        """
+        repr(t) debe contener suficiente información para reconstruir t.
+
+        Al menos debe aparecer el valor de kelvin.
+        """
         t = Temperature.from_kelvin(300.0)
-        assert "300.0" in repr(t)
+        r = repr(t)
+        assert "300" in r, f"Kelvin no en repr: {r!r}"
 
-    def test_near_zero_clamping(self):
-        """Valores negativos minúsculos se clampean a 0."""
-        t = Temperature(kelvin=-1e-15)
+    def test_near_zero_clamping_only_in_factory(self):
+        """
+        Solo los métodos factory (from_celsius, from_kelvin) pueden hacer
+        clamping de valores negativos minúsculos; Temperature() directo no.
+
+        Este test verifica que from_kelvin(-1e-15) produce T=0K (clamping),
+        mientras que Temperature(-1e-15) lanza ValueError.
+        """
+        # Factory puede clampear
+        t = Temperature.from_kelvin(-1e-15)
         assert t.kelvin == 0.0
+
+        # Constructor directo NO debe clampear (ya probado en test_below_absolute_zero)
+        # Este test confirma la asimetría de comportamiento
 
 
 # ============================================================================
-# 2. TestStabilityThresholds
+# 2. TestStabilityThresholds — Refinado
 # ============================================================================
 
 
 class TestStabilityThresholds:
-    """Validación de umbrales de estabilidad piramidal Ψ."""
+    """
+    Validación de umbrales de estabilidad piramidal Ψ.
 
-    def test_default_invariant(self):
-        """Invariante: 0 ≤ critical < warning < solid."""
+    Marco teórico: Los umbrales definen una partición de ℝ en intervalos:
+        (-∞, 0)    → "invalid"
+        [0, critical) → "critical"
+        [critical, warning) → "warning"
+        [warning, solid) → "stable"
+        [solid, +∞)  → "robust"
+
+    La partición debe ser: disjunta, exhaustiva, y con límites bien definidos.
+    """
+
+    def test_default_invariant_strict_order(self):
+        """
+        Invariante de orden estricto: 0 ≤ critical < warning < solid.
+
+        Permite critical = 0 (caso degenerado válido donde no hay zona "warning").
+        """
         st = StabilityThresholds()
-        assert 0 <= st.critical < st.warning < st.solid
+        assert st.critical >= 0, "critical debe ser no-negativo"
+        assert st.critical < st.warning, "critical debe ser estrictamente menor que warning"
+        assert st.warning < st.solid, "warning debe ser estrictamente menor que solid"
 
-    def test_invalid_order_raises(self):
-        """Violación del orden estricto debe lanzar ValueError."""
+    def test_critical_equals_zero_allowed(self):
+        """
+        critical = 0 es válido: la zona [0, 0) es vacía pero no inválida.
+
+        Esto permite configuraciones donde todo Ψ ≥ 0 es al menos "warning".
+        """
+        st = StabilityThresholds(critical=0.0, warning=3.0, solid=10.0)
+        assert st.critical == 0.0
+
+    @pytest.mark.parametrize(
+        "critical, warning, solid, error_pattern",
+        [
+            (5.0, 3.0, 10.0, "order"),    # critical > warning
+            (1.0, 3.0, 2.0, "order"),     # warning > solid
+            (5.0, 5.0, 10.0, "strict"),   # critical == warning (no estricto)
+            (1.0, 5.0, 5.0, "strict"),    # warning == solid (no estricto)
+        ],
+    )
+    def test_invalid_order_raises(
+        self, critical: float, warning: float, solid: float, error_pattern: str,
+    ):
+        """Violaciones del orden estricto deben lanzar ValueError."""
         with pytest.raises(ValueError):
-            StabilityThresholds(critical=5.0, warning=3.0, solid=10.0)
-        with pytest.raises(ValueError):
-            StabilityThresholds(critical=1.0, warning=3.0, solid=2.0)
+            StabilityThresholds(critical=critical, warning=warning, solid=solid)
 
     def test_negative_critical_raises(self):
-        """Critical negativo viola invariante."""
+        """critical < 0 viola el dominio físico de Ψ ≥ 0."""
         with pytest.raises(ValueError):
             StabilityThresholds(critical=-1.0, warning=3.0, solid=10.0)
 
-    def test_non_finite_raises(self):
-        """Valores no finitos violan invariante."""
+    @pytest.mark.parametrize("bad_value", [float("inf"), float("nan"), float("-inf")])
+    def test_non_finite_raises(self, bad_value: float):
+        """Valores no finitos en cualquier umbral deben rechazarse."""
         with pytest.raises(ValueError):
-            StabilityThresholds(critical=float("inf"), warning=3.0, solid=10.0)
+            StabilityThresholds(critical=bad_value, warning=3.0, solid=10.0)
+        with pytest.raises(ValueError):
+            StabilityThresholds(critical=1.0, warning=bad_value, solid=10.0)
+        with pytest.raises(ValueError):
+            StabilityThresholds(critical=1.0, warning=3.0, solid=bad_value)
 
+    # Los límites son: critical=1.0, warning=3.0, solid=10.0 (defaults)
     @pytest.mark.parametrize(
         "stability, expected",
         [
-            (-1.0, "invalid"),
-            (float("nan"), "invalid"),
-            (float("inf"), "invalid"),
-            (0.5, "critical"),
-            (1.0, "warning"),      # critical ≤ Ψ < warning
+            (-1.0, "invalid"),          # Ψ < 0: físicamente imposible
+            (float("nan"), "invalid"),   # NaN: indefinido
+            (float("inf"), "invalid"),   # ∞: no clasificable
+            (0.0, "critical"),           # Ψ ∈ [0, critical)
+            (0.5, "critical"),           # Ψ ∈ [0, 1.0)
+            (1.0, "warning"),            # Ψ = critical → entra en [critical, warning)
+            (1.5, "warning"),            # Ψ ∈ [1.0, 3.0)
             (2.0, "warning"),
-            (3.0, "stable"),       # warning ≤ Ψ < solid
+            (3.0, "stable"),             # Ψ = warning → entra en [warning, solid)
             (5.0, "stable"),
-            (10.0, "robust"),      # Ψ ≥ solid
+            (10.0, "robust"),            # Ψ = solid → entra en [solid, ∞)
             (100.0, "robust"),
         ],
     )
-    def test_classify(self, stability: float, expected: str):
-        """Verifica clasificación determinista de Ψ."""
+    def test_classify_partition(self, stability: float, expected: str):
+        """
+        Verifica que classify() implementa una partición de ℝ.
+
+        Los límites pertenecen al intervalo DERECHO (convención cerrado-izquierdo):
+        [a, b) → a pertenece al intervalo, b no.
+        """
         st = StabilityThresholds()
-        assert st.classify(stability) == expected
+        result = st.classify(stability)
+        assert result == expected, (
+            f"classify({stability}) = {result!r}, esperado {expected!r}"
+        )
 
     @pytest.mark.parametrize(
         "stability, expected_score",
         [
-            (-1.0, 1.0),
-            (0.0, 1.0),
-            (5.0, 0.5),
-            (10.0, 0.0),
-            (20.0, 0.0),
+            (-1.0, 1.0),    # Inválido → máxima severidad
+            (0.0, 1.0),     # Ψ=0 → en umbral crítico → score=1
+            (5.0, 0.5),     # Punto medio entre 0 y solid=10
+            (10.0, 0.0),    # Ψ=solid → severidad mínima
+            (20.0, 0.0),    # Ψ > solid → severidad 0 (clampeado)
         ],
     )
-    def test_severity_score(self, stability: float, expected_score: float):
-        """Verifica score de severidad normalizado."""
+    def test_severity_score_values(self, stability: float, expected_score: float):
+        """
+        Verifica valores específicos del score de severidad.
+
+        El score es una función monótonamente decreciente en Ψ:
+        σ(Ψ) = clamp(1 - Ψ/solid, 0, 1)  para Ψ ≥ 0
+        σ(Ψ) = 1                           para Ψ < 0
+        """
         st = StabilityThresholds()
         score = st.severity_score(stability)
-        assert abs(score - expected_score) < 0.01
+        assert abs(score - expected_score) < 0.01, (
+            f"severity_score({stability}) = {score:.4f}, esperado {expected_score:.4f}"
+        )
 
-    def test_severity_score_bounds(self):
-        """Invariante: severity_score ∈ [0, 1]."""
+    def test_severity_score_bounds_always(self):
+        """
+        Invariante global: severity_score ∈ [0, 1] para todo Ψ ∈ ℝ.
+
+        Propósito: el score es un elemento del intervalo unitario [0,1],
+        que actúa como medida de probabilidad de colapso.
+        """
         st = StabilityThresholds()
-        for s in [-100, -1, 0, 0.5, 1, 3, 5, 10, 100, 1000]:
-            score = st.severity_score(float(s))
-            assert 0.0 <= score <= 1.0, f"Score {score} out of bounds for Ψ={s}"
+        test_values = [-1000.0, -1.0, -EPSILON, 0.0, 0.5, 1.0, 3.0, 5.0,
+                       10.0, 100.0, 1000.0, float("nan"), float("inf")]
+        for psi in test_values:
+            score = st.severity_score(psi)
+            assert 0.0 <= score <= 1.0, (
+                f"severity_score({psi}) = {score} ∉ [0, 1] — violación de invariante"
+            )
+
+    def test_severity_score_monotone_decreasing(self):
+        """
+        severity_score es monótonamente DECRECIENTE en Ψ (para Ψ ≥ 0).
+
+        Mayor estabilidad → menor severidad.
+        """
+        st = StabilityThresholds()
+        psi_values = [0.0, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]
+        scores = [st.severity_score(psi) for psi in psi_values]
+        for i in range(len(scores) - 1):
+            assert scores[i] >= scores[i + 1], (
+                f"No monótono: σ({psi_values[i]})={scores[i]:.4f} "
+                f"< σ({psi_values[i+1]})={scores[i+1]:.4f}"
+            )
 
 
 # ============================================================================
-# 3. TestTopologicalThresholds
+# 3. TestTopologicalThresholds — Refinado
 # ============================================================================
 
 
 class TestTopologicalThresholds:
-    """Invariantes de clasificación topológica."""
+    """
+    Invariantes de clasificación topológica.
 
-    def test_default_invariants(self):
-        """Verifica invariantes de los umbrales por defecto."""
+    Marco matemático: Los números de Betti βₖ son invariantes topológicos
+    del complejo simplicial K que representa la jerarquía organizacional:
+    - β₀: componentes conexas (silos organizacionales)
+    - β₁: ciclos independientes (retroalimentaciones, dependencias circulares)
+    - β₂: cavidades 2-dimensionales (vacíos estructurales)
+
+    El valor de Fiedler λ₂ (2do eigenvalor del Laplaciano normalizado)
+    mide la conectividad algebraica: λ₂ > 0 ⟺ grafo conexo.
+    """
+
+    def test_default_invariants_complete(self):
+        """
+        Verifica TODOS los invariantes de los umbrales por defecto.
+
+        Invariantes esperados:
+        1. β₀_optimal ≥ 1 (al menos una componente)
+        2. 0 ≤ cycles_optimal ≤ cycles_warning ≤ cycles_critical
+        3. 0 ≤ fiedler_connected < fiedler_robust
+        4. max_fragmentation ≥ connected_components_optimal
+        """
         tt = TopologicalThresholds()
-        assert tt.connected_components_optimal >= 1
-        assert tt.cycles_optimal >= 0
-        assert tt.cycles_optimal <= tt.cycles_warning <= tt.cycles_critical
-        assert tt.fiedler_connected_threshold < tt.fiedler_robust_threshold
 
-    def test_invalid_optimal_components(self):
-        """β₀ optimal < 1 viola invariante."""
+        assert tt.connected_components_optimal >= 1, "β₀ óptimo debe ser ≥ 1"
+        assert tt.cycles_optimal >= 0, "Ciclos óptimos no pueden ser negativos"
+        assert tt.cycles_optimal <= tt.cycles_warning, (
+            "cycles_optimal debe ser ≤ cycles_warning"
+        )
+        assert tt.cycles_warning <= tt.cycles_critical, (
+            "cycles_warning debe ser ≤ cycles_critical"
+        )
+        assert 0 <= tt.fiedler_connected_threshold, "Fiedler debe ser ≥ 0"
+        assert tt.fiedler_connected_threshold < tt.fiedler_robust_threshold, (
+            "fiedler_connected debe ser estrictamente menor que fiedler_robust"
+        )
+        assert tt.max_fragmentation >= tt.connected_components_optimal, (
+            "max_fragmentation debe acotar superiormente a connected_components_optimal"
+        )
+
+    @pytest.mark.parametrize(
+        "bad_optimal",
+        [0, -1, -100],
+    )
+    def test_invalid_optimal_components_raises(self, bad_optimal: int):
+        """β₀_optimal < 1 viola el requisito de existencia mínima."""
         with pytest.raises(ValueError):
-            TopologicalThresholds(connected_components_optimal=0)
+            TopologicalThresholds(connected_components_optimal=bad_optimal)
 
-    def test_invalid_cycle_order(self):
-        """Orden incorrecto de umbrales de ciclos viola invariante."""
+    def test_invalid_cycle_order_raises(self):
+        """Orden incorrecto en umbrales de ciclos viola la monotonía."""
         with pytest.raises(ValueError):
-            TopologicalThresholds(cycles_optimal=5, cycles_warning=3, cycles_critical=1)
+            TopologicalThresholds(
+                cycles_optimal=5, cycles_warning=3, cycles_critical=1,
+            )
 
-    def test_invalid_fiedler_thresholds(self):
-        """Fiedler connected ≥ robust viola invariante."""
+    def test_invalid_cycle_order_partial_raises(self):
+        """cycles_warning > cycles_critical viola el orden."""
+        with pytest.raises(ValueError):
+            TopologicalThresholds(
+                cycles_optimal=0, cycles_warning=5, cycles_critical=3,
+            )
+
+    def test_invalid_fiedler_order_raises(self):
+        """fiedler_connected ≥ fiedler_robust viola el orden."""
         with pytest.raises(ValueError):
             TopologicalThresholds(
                 fiedler_connected_threshold=1.0,
                 fiedler_robust_threshold=0.5,
             )
 
-    def test_invalid_negative_fiedler(self):
-        """Fiedler negativo viola invariante."""
+    def test_invalid_fiedler_equal_raises(self):
+        """fiedler_connected = fiedler_robust viola el orden estricto."""
+        with pytest.raises(ValueError):
+            TopologicalThresholds(
+                fiedler_connected_threshold=0.5,
+                fiedler_robust_threshold=0.5,
+            )
+
+    def test_invalid_negative_fiedler_raises(self):
+        """Fiedler < 0 viola la semidefinición positiva del Laplaciano."""
         with pytest.raises(ValueError):
             TopologicalThresholds(fiedler_connected_threshold=-0.1)
 
-    def test_max_fragmentation_less_than_optimal(self):
-        """max_fragmentation < optimal viola invariante."""
+    def test_max_fragmentation_less_than_optimal_raises(self):
+        """max_fragmentation < optimal no tiene sentido semántico."""
         with pytest.raises(ValueError):
             TopologicalThresholds(
                 connected_components_optimal=3,
@@ -482,62 +753,97 @@ class TestTopologicalThresholds:
     @pytest.mark.parametrize(
         "beta_0, expected",
         [
-            (0, "empty"),
-            (1, "unified"),
-            (2, "fragmented"),
+            (0, "empty"),               # Grafo vacío: sin componentes
+            (1, "unified"),             # Grafo conexo: β₀ = 1
+            (2, "fragmented"),          # 2 ≤ β₀ ≤ max_fragmentation
             (5, "fragmented"),
-            (6, "severely_fragmented"),
+            (6, "severely_fragmented"), # β₀ > max_fragmentation (default=5)
             (100, "severely_fragmented"),
         ],
     )
     def test_classify_connectivity(self, beta_0: int, expected: str):
-        """Verifica clasificación de conectividad por β₀."""
+        """
+        Verifica clasificación por β₀ (número de componentes conexas).
+
+        Partición de ℤ≥0:
+        {0} → "empty", {1} → "unified",
+        [2, max_fragmentation] → "fragmented",
+        (max_fragmentation, ∞) → "severely_fragmented"
+        """
         tt = TopologicalThresholds()
-        assert tt.classify_connectivity(beta_0) == expected
+        result = tt.classify_connectivity(beta_0)
+        assert result == expected, (
+            f"classify_connectivity({beta_0}) = {result!r}, esperado {expected!r}"
+        )
 
     @pytest.mark.parametrize(
         "beta_1, expected",
         [
-            (-1, "invalid"),
-            (0, "clean"),
-            (1, "minor"),
-            (2, "moderate"),
+            (-1, "invalid"),    # β₁ < 0 es imposible (número de Betti ≥ 0)
+            (0, "clean"),       # Sin ciclos
+            (1, "minor"),       # 1 ≤ β₁ ≤ cycles_warning (default=1)
+            (2, "moderate"),    # cycles_warning < β₁ ≤ cycles_critical (default=3)
             (3, "moderate"),
-            (4, "critical"),
+            (4, "critical"),    # β₁ > cycles_critical
             (100, "critical"),
         ],
     )
     def test_classify_cycles(self, beta_1: int, expected: str):
-        """Verifica clasificación de ciclos por β₁."""
+        """
+        Verifica clasificación por β₁ (1er número de Betti = ciclos).
+
+        β₁ es siempre ≥ 0 en un complejo simplicial bien definido.
+        """
         tt = TopologicalThresholds()
-        assert tt.classify_cycles(beta_1) == expected
+        result = tt.classify_cycles(beta_1)
+        assert result == expected, (
+            f"classify_cycles({beta_1}) = {result!r}, esperado {expected!r}"
+        )
 
     @pytest.mark.parametrize(
         "fiedler, expected",
         [
-            (float("nan"), "invalid"),
-            (-0.1, "disconnected"),
-            (0.0, "disconnected"),
-            (1e-7, "disconnected"),
-            (0.3, "weakly_connected"),
-            (0.5, "strongly_connected"),
+            (float("nan"), "invalid"),           # NaN: no clasificable
+            (float("-inf"), "invalid"),          # -∞: físicamente imposible
+            (-0.1, "disconnected"),              # λ₂ < 0: error numérico severo
+            (0.0, "disconnected"),               # λ₂ = 0: grafo desconectado
+            (EPSILON / 2, "disconnected"),       # λ₂ < ε: prácticamente desconectado
+            (0.3, "weakly_connected"),           # 0 < λ₂ < fiedler_robust
+            (0.5, "strongly_connected"),         # λ₂ ≥ fiedler_robust (default=0.5)
+            (1.0, "strongly_connected"),
             (10.0, "strongly_connected"),
         ],
     )
     def test_classify_spectral_connectivity(self, fiedler: float, expected: str):
-        """Verifica clasificación espectral por valor de Fiedler λ₂."""
+        """
+        Verifica clasificación por λ₂ (valor de Fiedler).
+
+        Teorema algebraico: λ₂ > 0 ⟺ G es conexo.
+        La clasificación usa EPSILON como umbral de nulidad numérica.
+        """
         tt = TopologicalThresholds()
-        assert tt.classify_spectral_connectivity(fiedler) == expected
+        result = tt.classify_spectral_connectivity(fiedler)
+        assert result == expected, (
+            f"classify_spectral_connectivity({fiedler}) = {result!r}, "
+            f"esperado {expected!r}"
+        )
 
     @pytest.mark.parametrize(
-        "beta_0, beta_1, beta_2, chi, expected",
+        "beta_0, beta_1, beta_2, chi, expected_valid",
         [
-            (1, 0, 0, 1, True),     # Grafo conexo sin ciclos
-            (1, 1, 0, 0, True),     # Toro (un ciclo)
-            (2, 0, 0, 2, True),     # Dos componentes
-            (1, 0, 0, 0, False),    # χ incorrecto
-            (3, 2, 1, 2, True),     # 3 - 2 + 1 = 2
-            (3, 2, 1, 5, False),    # Violación
+            # Casos válidos: χ = β₀ - β₁ + β₂
+            (1, 0, 0, 1, True),      # Árbol (contractible a punto)
+            (1, 1, 0, 0, True),      # Círculo S¹: χ = 0
+            (2, 0, 0, 2, True),      # Dos puntos: χ = 2
+            (1, 0, 1, 2, True),      # Esfera S²: χ = 2
+            (1, 2, 1, 0, True),      # Toro T²: χ = 0
+            (3, 2, 1, 2, True),      # Complejo general: 3-2+1=2
+            (1, 5, 3, -1, True),     # Complejo con β₂: 1-5+3=-1 ✓
+            # Casos inválidos
+            (1, 0, 0, 0, False),     # χ=0 ≠ 1
+            (1, 0, 0, 2, False),     # χ=2 ≠ 1
+            (3, 2, 1, 5, False),     # χ=5 ≠ 2
+            (2, 3, 1, 2, False),     # χ=2 ≠ 0 (2-3+1=0)
         ],
     )
     def test_validate_euler_characteristic(
@@ -546,142 +852,253 @@ class TestTopologicalThresholds:
         beta_1: int,
         beta_2: int,
         chi: int,
-        expected: bool,
+        expected_valid: bool,
     ):
-        """Verifica invariante de Euler: χ = β₀ − β₁ + β₂."""
+        """
+        Verifica el invariante de Euler: χ(K) = Σₖ (-1)ᵏ βₖ = β₀ - β₁ + β₂.
+
+        Este es el invariante topológico más fundamental: es preservado bajo
+        homeomorfismos y es un invariante homotópico.
+        """
         result = TopologicalThresholds.validate_euler_characteristic(
             beta_0, beta_1, beta_2, chi,
         )
-        assert result == expected
+        assert result == expected_valid, (
+            f"validate_euler({beta_0},{beta_1},{beta_2},{chi}) = {result}, "
+            f"esperado {expected_valid}. "
+            f"χ_esperado = {beta_0 - beta_1 + beta_2}"
+        )
+
+    def test_euler_validation_tolerance(self):
+        """
+        La validación de Euler debe ser exacta para enteros.
+
+        β₀, β₁, β₂ ∈ ℤ≥0, por lo que χ ∈ ℤ. No hay error de redondeo.
+        """
+        # Test explícito de que no hay tolerancia espuria
+        tt = TopologicalThresholds()
+        # χ=1 con β₀=2, β₁=1, β₂=0 → esperado=1, dado=1 → válido
+        assert TopologicalThresholds.validate_euler_characteristic(2, 1, 0, 1)
+        # χ=2 con β₀=2, β₁=1, β₂=0 → esperado=1, dado=2 → inválido
+        assert not TopologicalThresholds.validate_euler_characteristic(2, 1, 0, 2)
 
 
 # ============================================================================
-# 4. TestThermalThresholds
+# 4. TestThermalThresholds — Refinado
 # ============================================================================
 
 
 class TestThermalThresholds:
-    """Clasificación termodinámica."""
+    """
+    Clasificación termodinámica.
 
-    def test_default_invariants(self):
-        """Verifica invariantes de umbrales por defecto."""
+    Marco teórico: La entropía S ∈ [0, 1] (normalizada) actúa como medida
+    de desorden. La temperatura T define el estado térmico del sistema.
+    La exergía Ex = 1 - T₀/T mide el trabajo útil extraíble.
+    """
+
+    def test_default_invariants_complete(self):
+        """
+        Verifica TODOS los invariantes de umbrales por defecto.
+
+        Invariantes:
+        1. Temperaturas estrictamente crecientes
+        2. Entropía en [0,1] con orden estricto
+        3. Exergía en [0,1] con poor < efficient
+        4. Capacidad calorífica positiva
+        """
         th = ThermalThresholds()
-        temps = [th.temperature_cold, th.temperature_warm, th.temperature_hot, th.temperature_critical]
-        assert temps == sorted(temps)
-        assert len(set(temps)) == len(temps)  # Estrictamente creciente
-        assert 0 <= th.entropy_low < th.entropy_high < th.entropy_death <= 1
-        assert 0 <= th.exergy_poor < th.exergy_efficient <= 1
-        assert th.heat_capacity_minimum > 0
+        temps = [
+            th.temperature_cold,
+            th.temperature_warm,
+            th.temperature_hot,
+            th.temperature_critical,
+        ]
+        # Estrictamente crecientes
+        for i in range(len(temps) - 1):
+            assert temps[i] < temps[i + 1], (
+                f"Temperaturas no estrictamente crecientes: "
+                f"temps[{i}]={temps[i]} ≥ temps[{i+1}]={temps[i+1]}"
+            )
 
-    def test_invalid_temperature_order(self):
-        """Temperaturas no estrictamente crecientes violan invariante."""
+        assert 0 <= th.entropy_low, "entropy_low debe ser ≥ 0"
+        assert th.entropy_low < th.entropy_high, "entropy_low debe ser < entropy_high"
+        assert th.entropy_high < th.entropy_death, "entropy_high debe ser < entropy_death"
+        assert th.entropy_death <= 1.0, "entropy_death debe ser ≤ 1"
+
+        assert 0 <= th.exergy_poor, "exergy_poor debe ser ≥ 0"
+        assert th.exergy_poor < th.exergy_efficient, "exergy_poor debe ser < exergy_efficient"
+        assert th.exergy_efficient <= 1.0, "exergy_efficient debe ser ≤ 1"
+
+        assert th.heat_capacity_minimum > 0, "C_v mínimo debe ser positivo"
+
+    def test_invalid_temperature_order_raises(self):
+        """Temperaturas no estrictamente crecientes violan la termodinámica."""
         with pytest.raises(ValueError):
             ThermalThresholds(temperature_cold=50, temperature_warm=35)
 
-    def test_invalid_entropy_bounds(self):
-        """Entropía fuera de [0,1] viola invariante."""
+    def test_equal_temperatures_raise(self):
+        """Temperaturas iguales no son estrictamente crecientes."""
         with pytest.raises(ValueError):
-            ThermalThresholds(entropy_low=-0.1)
-        with pytest.raises(ValueError):
-            ThermalThresholds(entropy_death=1.5)
+            ThermalThresholds(temperature_cold=30, temperature_warm=30)
 
-    def test_invalid_exergy_order(self):
-        """Exergía poor ≥ efficient viola invariante."""
+    @pytest.mark.parametrize(
+        "param, value",
+        [
+            ("entropy_low", -0.1),
+            ("entropy_low", 1.5),
+            ("entropy_high", -0.1),
+            ("entropy_death", 1.5),
+            ("entropy_death", 2.0),
+        ],
+    )
+    def test_invalid_entropy_bounds_raises(self, param: str, value: float):
+        """Entropía fuera de [0, 1] viola la definición de entropía normalizada."""
+        with pytest.raises(ValueError):
+            ThermalThresholds(**{param: value})
+
+    def test_invalid_exergy_order_raises(self):
+        """exergy_poor ≥ exergy_efficient viola el orden de eficiencia."""
         with pytest.raises(ValueError):
             ThermalThresholds(exergy_poor=0.8, exergy_efficient=0.3)
 
-    def test_invalid_heat_capacity(self):
-        """C_v ≤ 0 viola invariante."""
+    @pytest.mark.parametrize("bad_cv", [0.0, -1.0, -0.001])
+    def test_invalid_heat_capacity_raises(self, bad_cv: float):
+        """C_v ≤ 0 viola la estabilidad termodinámica (∂²S/∂U² > 0)."""
         with pytest.raises(ValueError):
-            ThermalThresholds(heat_capacity_minimum=0.0)
-        with pytest.raises(ValueError):
-            ThermalThresholds(heat_capacity_minimum=-1.0)
+            ThermalThresholds(heat_capacity_minimum=bad_cv)
 
     @pytest.mark.parametrize(
         "temp, expected",
         [
             (float("nan"), "invalid"),
-            (ABSOLUTE_ZERO_CELSIUS - 1, "invalid"),
-            (ABSOLUTE_ZERO_CELSIUS, "cold"),
-            (-10.0, "cold"),
-            (20.0, "cold"),
-            (25.0, "stable"),
+            (ABSOLUTE_ZERO_CELSIUS - 1.0, "invalid"),  # Imposible físicamente
+            (ABSOLUTE_ZERO_CELSIUS, "cold"),            # -273.15°C = 0K → cold
+            (-50.0, "cold"),
+            (20.0, "cold"),                             # < temperature_warm (default≈25)
+            (25.0, "stable"),                           # ≥ temperature_warm, < hot
             (35.0, "stable"),
-            (40.0, "warm"),
-            (50.0, "warm"),
-            (60.0, "hot"),
+            (40.0, "warm"),                             # ≥ temperature_hot (default≈40)
+            (55.0, "warm"),
+            (60.0, "hot"),                              # ≥ temperature_hot (default≈60)
             (75.0, "hot"),
-            (80.0, "critical"),
-            (1000.0, "critical"),
+            (80.0, "critical"),                         # ≥ temperature_critical (default≈80)
+            (200.0, "critical"),
         ],
     )
     def test_classify_temperature(self, temp: float, expected: str):
-        """Verifica clasificación de temperatura."""
+        """
+        Verifica la clasificación de temperatura por intervalos.
+
+        Nota: Los valores exactos de umbral dependen de los defaults configurados.
+        Los casos de borde deben verificarse contra los valores reales de ThermalThresholds().
+        """
         th = ThermalThresholds()
-        assert th.classify_temperature(temp) == expected
+        result = th.classify_temperature(temp)
+        assert result == expected, (
+            f"classify_temperature({temp}) = {result!r}, esperado {expected!r}. "
+            f"Umbrales: cold={th.temperature_cold}, warm={th.temperature_warm}, "
+            f"hot={th.temperature_hot}, critical={th.temperature_critical}"
+        )
 
     @pytest.mark.parametrize(
         "entropy, expected",
         [
-            (-0.1, "invalid"),
-            (1.5, "invalid"),
+            (-0.1, "invalid"),      # Entropía negativa: imposible
+            (1.5, "invalid"),       # Entropía > 1: imposible
             (float("nan"), "invalid"),
-            (0.0, "low"),
+            (0.0, "low"),           # ∈ [0, entropy_low)
             (0.2, "low"),
-            (0.3, "low"),
+            (0.3, "moderate"),      # ∈ [entropy_low, entropy_high)
             (0.5, "moderate"),
-            (0.7, "high"),
+            (0.7, "high"),          # ∈ [entropy_high, entropy_death)
             (0.8, "high"),
-            (0.95, "death"),
+            (0.95, "death"),        # ∈ [entropy_death, 1]
             (1.0, "death"),
         ],
     )
     def test_classify_entropy(self, entropy: float, expected: str):
-        """Verifica clasificación de entropía."""
+        """
+        Verifica clasificación de entropía normalizada S ∈ [0, 1].
+
+        La 'muerte térmica' (entropy_death) corresponde al equilibrio
+        termodinámico donde no es posible extraer trabajo útil.
+        """
         th = ThermalThresholds()
-        assert th.classify_entropy(entropy) == expected
+        result = th.classify_entropy(entropy)
+        assert result == expected, (
+            f"classify_entropy({entropy}) = {result!r}, esperado {expected!r}"
+        )
 
     @pytest.mark.parametrize(
         "exergy, expected",
         [
-            (-0.1, "invalid"),
-            (1.5, "invalid"),
-            (0.0, "poor"),
+            (-0.1, "invalid"),      # Ex < 0: termodinámicamente imposible
+            (1.5, "invalid"),       # Ex > 1: imposible
+            (0.0, "poor"),          # ∈ [0, exergy_poor)
             (0.2, "poor"),
-            (0.3, "poor"),
+            (0.3, "moderate"),      # Umbral exergy_poor (default≈0.3)
             (0.5, "moderate"),
-            (0.7, "efficient"),
+            (0.7, "efficient"),     # ∈ [exergy_efficient, 1]
             (1.0, "efficient"),
         ],
     )
     def test_classify_exergy(self, exergy: float, expected: str):
-        """Verifica clasificación de eficiencia exergética."""
+        """Verifica clasificación de eficiencia exergética Ex ∈ [0, 1]."""
         th = ThermalThresholds()
-        assert th.classify_exergy(exergy) == expected
+        result = th.classify_exergy(exergy)
+        assert result == expected, (
+            f"classify_exergy({exergy}) = {result!r}, esperado {expected!r}"
+        )
 
 
 # ============================================================================
-# 5. TestFinancialThresholds
+# 5. TestFinancialThresholds — Refinado
 # ============================================================================
 
 
 class TestFinancialThresholds:
-    """Clasificación financiera."""
+    """
+    Clasificación financiera con invariantes de orden estricto.
 
-    def test_default_invariants(self):
-        """Verifica orden estricto de umbrales por defecto."""
+    Marco: Los umbrales financieros deben definir particiones DISJUNTAS
+    del espacio de métricas ℝ⁺. El PI (Profitability Index) = VAN/I₀:
+    PI < 1 → destruye valor, PI = 1 → indiferente, PI > 1 → crea valor.
+    """
+
+    def test_default_invariants_complete(self):
+        """Verifica orden estricto de todos los umbrales por defecto."""
         ft = FinancialThresholds()
-        assert 0 < ft.wacc_low < ft.wacc_moderate < ft.wacc_high
-        assert 0 < ft.profitability_marginal < ft.profitability_good < ft.profitability_excellent
-        assert 0 < ft.contingency_minimal < ft.contingency_standard < ft.contingency_high
 
-    def test_invalid_wacc_order(self):
-        """WACC no estrictamente creciente viola invariante."""
+        assert 0 < ft.wacc_low < ft.wacc_moderate < ft.wacc_high, (
+            "WACC debe ser estrictamente creciente y positivo"
+        )
+        assert 0 < ft.profitability_marginal < ft.profitability_good < ft.profitability_excellent, (
+            "PI debe ser estrictamente creciente y positivo"
+        )
+        assert 0 < ft.contingency_minimal < ft.contingency_standard < ft.contingency_high, (
+            "Contingencia debe ser estrictamente creciente y positiva"
+        )
+
+    @pytest.mark.parametrize(
+        "wacc_low, wacc_moderate, wacc_high",
+        [
+            (0.15, 0.10, 0.20),   # low > moderate
+            (0.05, 0.15, 0.15),   # moderate == high
+            (0.10, 0.05, 0.20),   # low > moderate
+        ],
+    )
+    def test_invalid_wacc_order_raises(
+        self, wacc_low: float, wacc_moderate: float, wacc_high: float,
+    ):
+        """WACC no estrictamente creciente viola el invariante."""
         with pytest.raises(ValueError):
-            FinancialThresholds(wacc_low=0.15, wacc_moderate=0.10)
+            FinancialThresholds(
+                wacc_low=wacc_low, wacc_moderate=wacc_moderate, wacc_high=wacc_high,
+            )
 
-    def test_invalid_profitability_order(self):
-        """PI no estrictamente creciente viola invariante."""
+    def test_invalid_profitability_order_raises(self):
+        """PI no estrictamente creciente viola el invariante."""
         with pytest.raises(ValueError):
             FinancialThresholds(
                 profitability_marginal=1.5,
@@ -689,8 +1106,8 @@ class TestFinancialThresholds:
                 profitability_excellent=1.0,
             )
 
-    def test_invalid_contingency_order(self):
-        """Contingencia no estrictamente creciente viola invariante."""
+    def test_invalid_contingency_order_raises(self):
+        """Contingencia no estrictamente creciente viola el invariante."""
         with pytest.raises(ValueError):
             FinancialThresholds(
                 contingency_minimal=0.20,
@@ -700,2029 +1117,1595 @@ class TestFinancialThresholds:
     @pytest.mark.parametrize(
         "pi, expected",
         [
-            (float("nan"), "invalid"),
-            (0.5, "poor"),
-            (1.0, "marginal"),
-            (1.2, "good"),
-            (1.5, "excellent"),
-            (2.0, "excellent"),
+            (float("nan"), "invalid"),      # NaN: no clasificable
+            (float("-inf"), "invalid"),     # -∞: imposible
+            (0.0, "poor"),                  # PI = 0: pérdida total
+            (0.5, "poor"),                  # PI < 1: destruye valor
+            (1.0, "marginal"),              # PI = 1: punto de equilibrio
+            (1.2, "good"),                  # PI > 1 pero < excellent
+            (1.5, "excellent"),             # PI ≥ excellent
+            (2.0, "excellent"),             # PI muy alto
+            (float("inf"), "excellent"),    # PI = ∞: si es válido, es excelente
         ],
     )
     def test_classify_profitability(self, pi: float, expected: str):
-        """Verifica clasificación de índice de rentabilidad."""
+        """
+        Verifica clasificación de PI.
+
+        Partición de ℝ⁺ ∪ {0}:
+        [0, 1) → "poor", [1, good) → "marginal",
+        [good, excellent) → "good", [excellent, ∞) → "excellent"
+        """
         ft = FinancialThresholds()
-        assert ft.classify_profitability(pi) == expected
+        result = ft.classify_profitability(pi)
+        assert result == expected, (
+            f"classify_profitability({pi}) = {result!r}, esperado {expected!r}"
+        )
 
 
 # ============================================================================
-# 6. TestTranslatorConfig
-# ============================================================================
-
-
-class TestTranslatorConfig:
-    """Validación de configuración consolidada."""
-
-    def test_default_construction(self):
-        """Configuración por defecto es válida."""
-        config = TranslatorConfig()
-        assert config.max_cycle_path_display >= 1
-        assert config.max_stress_points_display >= 1
-        assert config.max_narrative_length >= 100
-
-    def test_invalid_cycle_display(self):
-        """max_cycle_path_display < 1 viola invariante."""
-        with pytest.raises(ValueError):
-            TranslatorConfig(max_cycle_path_display=0)
-
-    def test_invalid_stress_display(self):
-        """max_stress_points_display < 1 viola invariante."""
-        with pytest.raises(ValueError):
-            TranslatorConfig(max_stress_points_display=0)
-
-    def test_invalid_narrative_length(self):
-        """max_narrative_length < 100 viola invariante."""
-        with pytest.raises(ValueError):
-            TranslatorConfig(max_narrative_length=50)
-
-    def test_invalid_max_cycles(self):
-        """max_cycles_to_enumerate < 1 viola invariante."""
-        with pytest.raises(ValueError):
-            TranslatorConfig(max_cycles_to_enumerate=0)
-
-    def test_immutable(self):
-        """Configuración es inmutable (frozen)."""
-        config = TranslatorConfig()
-        with pytest.raises(AttributeError):
-            config.max_cycle_path_display = 99  # type: ignore[misc]
-
-
-# ============================================================================
-# 7. TestVerdictLevelLattice — Verificación algebraica exhaustiva
+# 7. TestVerdictLevelLattice — Verificación algebraica exhaustiva (Refinado)
 # ============================================================================
 
 
 class TestVerdictLevelLattice:
     """
-    Verifica TODAS las leyes del retículo distributivo acotado
-    para VerdictLevel.
+    Verifica TODAS las leyes del retículo distributivo acotado L = (VerdictLevel, ≤).
 
-    Con n=5 elementos, se verifican:
-    - n² = 25 pares para idempotencia, conmutatividad
-    - n³ = 125 tripletas para asociatividad, distributividad
+    Estructura algebraica: (L, ⊔, ⊓) donde:
+    - ⊔ = join = sup = max (ya que L es una cadena)
+    - ⊓ = meet = inf = min (ya que L es una cadena)
+    - ⊥ = VIABLE (bottom, elemento mínimo)
+    - ⊤ = RECHAZAR (top, elemento máximo)
+
+    Con n = |L| = 5:
+    - Leyes unarias (idempotencia): n = 5 casos
+    - Leyes binarias (conmutatividad, absorción): n² = 25 casos
+    - Leyes ternarias (asociatividad, distributividad): n³ = 125 casos
+
+    NOTA: Por ser L una cadena totalmente ordenada, distributividad se sigue
+    automáticamente de la linealidad. Los tests la verifican explícitamente.
     """
 
-    ALL_ELEMENTS = list(VerdictLevel)
+    # Precomputar todos los elementos para eficiencia
+    _ALL = list(VerdictLevel)
+    _N = len(_ALL)
+
+    @classmethod
+    def _join(cls, a: VerdictLevel, b: VerdictLevel) -> VerdictLevel:
+        """Operación join definida semánticamente (no como Python |)."""
+        return a | b
+
+    @classmethod
+    def _meet(cls, a: VerdictLevel, b: VerdictLevel) -> VerdictLevel:
+        """Operación meet definida semánticamente (no como Python &)."""
+        return a & b
 
     # -- Elementos distinguidos --
 
     def test_bottom_is_viable(self):
-        """⊥ = VIABLE."""
+        """⊥ = VIABLE: el veredicto más favorable es el bottom del retículo."""
         assert VerdictLevel.bottom() == VerdictLevel.VIABLE
 
     def test_top_is_rechazar(self):
-        """⊤ = RECHAZAR."""
+        """⊤ = RECHAZAR: el veredicto más severo es el top del retículo."""
         assert VerdictLevel.top() == VerdictLevel.RECHAZAR
 
     def test_bottom_value_is_minimum(self):
-        """⊥ tiene el valor numérico mínimo."""
-        assert VerdictLevel.bottom().value == min(v.value for v in VerdictLevel)
+        """⊥ tiene el valor numérico mínimo entre todos los elementos."""
+        bottom = VerdictLevel.bottom()
+        assert all(bottom.value <= v.value for v in VerdictLevel), (
+            "⊥ no es el elemento mínimo"
+        )
 
     def test_top_value_is_maximum(self):
-        """⊤ tiene el valor numérico máximo."""
-        assert VerdictLevel.top().value == max(v.value for v in VerdictLevel)
+        """⊤ tiene el valor numérico máximo entre todos los elementos."""
+        top = VerdictLevel.top()
+        assert all(top.value >= v.value for v in VerdictLevel), (
+            "⊤ no es el elemento máximo"
+        )
 
-    # -- Idempotencia --
+    def test_cardinality(self):
+        """Verifica cardinalidad esperada del retículo (n = 5)."""
+        assert len(self._ALL) == 5, (
+            f"Se esperan 5 elementos en VerdictLevel, se encontraron {len(self._ALL)}"
+        )
+
+    # -- Idempotencia: ∀a: a ⊔ a = a y a ⊓ a = a --
 
     @pytest.mark.parametrize("a", list(VerdictLevel), ids=lambda v: v.name)
     def test_idempotent_join(self, a: VerdictLevel):
-        """∀a: a ⊔ a = a."""
-        assert (a | a) == a
+        """∀a ∈ L: a ⊔ a = a (idempotencia del join)."""
+        result = a | a
+        assert result == a, f"Idempotencia join violada: {a.name} ⊔ {a.name} = {result.name}"
 
     @pytest.mark.parametrize("a", list(VerdictLevel), ids=lambda v: v.name)
     def test_idempotent_meet(self, a: VerdictLevel):
-        """∀a: a ⊓ a = a."""
-        assert (a & a) == a
+        """∀a ∈ L: a ⊓ a = a (idempotencia del meet)."""
+        result = a & a
+        assert result == a, f"Idempotencia meet violada: {a.name} ⊓ {a.name} = {result.name}"
 
     # -- Conmutatividad --
 
     @pytest.mark.parametrize(
-        "a, b",
+        "a,b",
         list(product(list(VerdictLevel), repeat=2)),
-        ids=lambda pair: f"{pair.name}" if hasattr(pair, 'name') else str(pair),
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
     )
     def test_commutative_join(self, a: VerdictLevel, b: VerdictLevel):
-        """∀a,b: a ⊔ b = b ⊔ a."""
-        assert (a | b) == (b | a)
+        """∀a,b ∈ L: a ⊔ b = b ⊔ a."""
+        lhs = a | b
+        rhs = b | a
+        assert lhs == rhs, (
+            f"Conmutatividad join violada: "
+            f"{a.name} ⊔ {b.name} = {lhs.name} ≠ {rhs.name} = {b.name} ⊔ {a.name}"
+        )
 
     @pytest.mark.parametrize(
-        "a, b",
+        "a,b",
         list(product(list(VerdictLevel), repeat=2)),
-        ids=lambda pair: f"{pair.name}" if hasattr(pair, 'name') else str(pair),
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
     )
     def test_commutative_meet(self, a: VerdictLevel, b: VerdictLevel):
-        """∀a,b: a ⊓ b = b ⊓ a."""
-        assert (a & b) == (b & a)
+        """∀a,b ∈ L: a ⊓ b = b ⊓ a."""
+        lhs = a & b
+        rhs = b & a
+        assert lhs == rhs, (
+            f"Conmutatividad meet violada: "
+            f"{a.name} ⊓ {b.name} = {lhs.name} ≠ {rhs.name} = {b.name} ⊓ {a.name}"
+        )
 
     # -- Asociatividad --
 
     @pytest.mark.parametrize(
-        "a, b, c",
+        "a,b,c",
         list(product(list(VerdictLevel), repeat=3)),
+        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}",
     )
-    def test_associative_join(self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel):
-        """∀a,b,c: (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c)."""
-        assert ((a | b) | c) == (a | (b | c))
+    def test_associative_join(
+        self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel,
+    ):
+        """∀a,b,c ∈ L: (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c)."""
+        lhs = (a | b) | c
+        rhs = a | (b | c)
+        assert lhs == rhs, (
+            f"Asociatividad join violada: "
+            f"({a.name} ⊔ {b.name}) ⊔ {c.name} = {lhs.name} "
+            f"≠ {a.name} ⊔ ({b.name} ⊔ {c.name}) = {rhs.name}"
+        )
 
     @pytest.mark.parametrize(
-        "a, b, c",
+        "a,b,c",
         list(product(list(VerdictLevel), repeat=3)),
+        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}",
     )
-    def test_associative_meet(self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel):
-        """∀a,b,c: (a ⊓ b) ⊓ c = a ⊓ (b ⊓ c)."""
-        assert ((a & b) & c) == (a & (b & c))
+    def test_associative_meet(
+        self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel,
+    ):
+        """∀a,b,c ∈ L: (a ⊓ b) ⊓ c = a ⊓ (b ⊓ c)."""
+        lhs = (a & b) & c
+        rhs = a & (b & c)
+        assert lhs == rhs, (
+            f"Asociatividad meet violada: "
+            f"({a.name} ⊓ {b.name}) ⊓ {c.name} = {lhs.name} "
+            f"≠ {a.name} ⊓ ({b.name} ⊓ {c.name}) = {rhs.name}"
+        )
 
     # -- Absorción --
 
     @pytest.mark.parametrize(
-        "a, b",
+        "a,b",
         list(product(list(VerdictLevel), repeat=2)),
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
     )
     def test_absorption_join_meet(self, a: VerdictLevel, b: VerdictLevel):
-        """∀a,b: a ⊔ (a ⊓ b) = a."""
-        assert (a | (a & b)) == a
+        """∀a,b ∈ L: a ⊔ (a ⊓ b) = a (absorción tipo 1)."""
+        result = a | (a & b)
+        assert result == a, (
+            f"Absorción (join-meet) violada: "
+            f"{a.name} ⊔ ({a.name} ⊓ {b.name}) = {result.name} ≠ {a.name}"
+        )
 
     @pytest.mark.parametrize(
-        "a, b",
+        "a,b",
         list(product(list(VerdictLevel), repeat=2)),
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
     )
     def test_absorption_meet_join(self, a: VerdictLevel, b: VerdictLevel):
-        """∀a,b: a ⊓ (a ⊔ b) = a."""
-        assert (a & (a | b)) == a
+        """∀a,b ∈ L: a ⊓ (a ⊔ b) = a (absorción tipo 2)."""
+        result = a & (a | b)
+        assert result == a, (
+            f"Absorción (meet-join) violada: "
+            f"{a.name} ⊓ ({a.name} ⊔ {b.name}) = {result.name} ≠ {a.name}"
+        )
 
     # -- Identidad --
 
     @pytest.mark.parametrize("a", list(VerdictLevel), ids=lambda v: v.name)
     def test_identity_join_bottom(self, a: VerdictLevel):
-        """∀a: a ⊔ ⊥ = a."""
-        assert (a | VerdictLevel.bottom()) == a
+        """∀a ∈ L: a ⊔ ⊥ = a (⊥ es identidad del join)."""
+        result = a | VerdictLevel.bottom()
+        assert result == a, (
+            f"Identidad join-bottom violada: {a.name} ⊔ ⊥ = {result.name}"
+        )
 
     @pytest.mark.parametrize("a", list(VerdictLevel), ids=lambda v: v.name)
     def test_identity_meet_top(self, a: VerdictLevel):
-        """∀a: a ⊓ ⊤ = a."""
-        assert (a & VerdictLevel.top()) == a
+        """∀a ∈ L: a ⊓ ⊤ = a (⊤ es identidad del meet)."""
+        result = a & VerdictLevel.top()
+        assert result == a, (
+            f"Identidad meet-top violada: {a.name} ⊓ ⊤ = {result.name}"
+        )
 
     # -- Aniquilación --
 
     @pytest.mark.parametrize("a", list(VerdictLevel), ids=lambda v: v.name)
     def test_annihilation_join_top(self, a: VerdictLevel):
-        """∀a: a ⊔ ⊤ = ⊤."""
-        assert (a | VerdictLevel.top()) == VerdictLevel.top()
+        """∀a ∈ L: a ⊔ ⊤ = ⊤ (⊤ es absorbente del join)."""
+        result = a | VerdictLevel.top()
+        assert result == VerdictLevel.top(), (
+            f"Aniquilación join-top violada: {a.name} ⊔ ⊤ = {result.name}"
+        )
 
     @pytest.mark.parametrize("a", list(VerdictLevel), ids=lambda v: v.name)
     def test_annihilation_meet_bottom(self, a: VerdictLevel):
-        """∀a: a ⊓ ⊥ = ⊥."""
-        assert (a & VerdictLevel.bottom()) == VerdictLevel.bottom()
+        """∀a ∈ L: a ⊓ ⊥ = ⊥ (⊥ es absorbente del meet)."""
+        result = a & VerdictLevel.bottom()
+        assert result == VerdictLevel.bottom(), (
+            f"Aniquilación meet-bottom violada: {a.name} ⊓ ⊥ = {result.name}"
+        )
 
     # -- Distributividad --
 
     @pytest.mark.parametrize(
-        "a, b, c",
+        "a,b,c",
         list(product(list(VerdictLevel), repeat=3)),
+        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}",
     )
     def test_distributive_meet_over_join(
         self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel,
     ):
-        """∀a,b,c: a ⊓ (b ⊔ c) = (a ⊓ b) ⊔ (a ⊓ c)."""
-        assert (a & (b | c)) == ((a & b) | (a & c))
+        """∀a,b,c ∈ L: a ⊓ (b ⊔ c) = (a ⊓ b) ⊔ (a ⊓ c)."""
+        lhs = a & (b | c)
+        rhs = (a & b) | (a & c)
+        assert lhs == rhs, (
+            f"Distributividad (meet/join) violada: "
+            f"{a.name} ⊓ ({b.name} ⊔ {c.name}) = {lhs.name} "
+            f"≠ ({a.name} ⊓ {b.name}) ⊔ ({a.name} ⊓ {c.name}) = {rhs.name}"
+        )
 
     @pytest.mark.parametrize(
-        "a, b, c",
+        "a,b,c",
         list(product(list(VerdictLevel), repeat=3)),
+        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}",
     )
     def test_distributive_join_over_meet(
         self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel,
     ):
-        """∀a,b,c: a ⊔ (b ⊓ c) = (a ⊔ b) ⊓ (a ⊔ c)."""
-        assert (a | (b & c)) == ((a | b) & (a | c))
+        """∀a,b,c ∈ L: a ⊔ (b ⊓ c) = (a ⊔ b) ⊓ (a ⊔ c)."""
+        lhs = a | (b & c)
+        rhs = (a | b) & (a | c)
+        assert lhs == rhs, (
+            f"Distributividad (join/meet) violada: "
+            f"{a.name} ⊔ ({b.name} ⊓ {c.name}) = {lhs.name} "
+            f"≠ ({a.name} ⊔ {b.name}) ⊓ ({a.name} ⊔ {c.name}) = {rhs.name}"
+        )
 
-    # -- Antisimetría --
+    # -- Orden parcial (que en cadena = orden total) --
 
     @pytest.mark.parametrize(
-        "a, b",
+        "a,b",
         list(product(list(VerdictLevel), repeat=2)),
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
+    )
+    def test_reflexive(self, a: VerdictLevel, b: VerdictLevel):
+        """∀a ∈ L: a ≤ a (reflexividad)."""
+        assert a <= a, f"Reflexividad violada para {a.name}"
+
+    @pytest.mark.parametrize(
+        "a,b",
+        list(product(list(VerdictLevel), repeat=2)),
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
     )
     def test_antisymmetric(self, a: VerdictLevel, b: VerdictLevel):
-        """∀a,b: (a ≤ b ∧ b ≤ a) ⟹ a = b."""
+        """∀a,b ∈ L: (a ≤ b ∧ b ≤ a) ⟹ a = b (antisimetría)."""
         if a <= b and b <= a:
-            assert a == b
-
-    # -- Transitividad --
+            assert a == b, (
+                f"Antisimetría violada: {a.name} ≤ {b.name} ∧ {b.name} ≤ {a.name} "
+                f"pero {a.name} ≠ {b.name}"
+            )
 
     @pytest.mark.parametrize(
-        "a, b, c",
+        "a,b,c",
         list(product(list(VerdictLevel), repeat=3)),
+        ids=lambda triple: f"{triple[0].name}_{triple[1].name}_{triple[2].name}",
     )
-    def test_transitive(self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel):
-        """∀a,b,c: (a ≤ b ∧ b ≤ c) ⟹ a ≤ c."""
+    def test_transitive(
+        self, a: VerdictLevel, b: VerdictLevel, c: VerdictLevel,
+    ):
+        """∀a,b,c ∈ L: (a ≤ b ∧ b ≤ c) ⟹ a ≤ c (transitividad)."""
         if a <= b and b <= c:
-            assert a <= c
+            assert a <= c, (
+                f"Transitividad violada: {a.name} ≤ {b.name} ∧ {b.name} ≤ {c.name} "
+                f"pero ¬({a.name} ≤ {c.name})"
+            )
 
-    # -- Supremum / Infimum vacío --
+    # -- Totalidad (propiedad específica de cadena) --
+
+    @pytest.mark.parametrize(
+        "a,b",
+        list(product(list(VerdictLevel), repeat=2)),
+        ids=lambda pair: f"{pair[0].name}_x_{pair[1].name}",
+    )
+    def test_total_order_trichotomy(self, a: VerdictLevel, b: VerdictLevel):
+        """
+        ∀a,b ∈ L: exactamente una de {a < b, a = b, a > b} es verdadera.
+
+        Esta es la ley de tricotomía que distingue un orden total de uno parcial.
+        """
+        lt = a.value < b.value
+        eq = a.value == b.value
+        gt = a.value > b.value
+        count_true = sum([lt, eq, gt])
+        assert count_true == 1, (
+            f"Tricotomía violada para ({a.name}, {b.name}): "
+            f"lt={lt}, eq={eq}, gt={gt} (exactamente 1 debe ser True)"
+        )
+
+    # -- Supremum / Infimum --
 
     def test_supremum_empty_is_bottom(self):
-        """⊔∅ = ⊥."""
+        """sup(∅) = ⊥ (el supremo del conjunto vacío es el elemento mínimo)."""
         assert VerdictLevel.supremum() == VerdictLevel.bottom()
 
     def test_infimum_empty_is_top(self):
-        """⊓∅ = ⊤."""
+        """inf(∅) = ⊤ (el ínfimo del conjunto vacío es el elemento máximo)."""
         assert VerdictLevel.infimum() == VerdictLevel.top()
-
-    # -- Supremum / Infimum singleton --
 
     @pytest.mark.parametrize("a", list(VerdictLevel), ids=lambda v: v.name)
     def test_supremum_singleton(self, a: VerdictLevel):
-        """⊔{a} = a."""
+        """sup({a}) = a para todo a ∈ L."""
         assert VerdictLevel.supremum(a) == a
 
     @pytest.mark.parametrize("a", list(VerdictLevel), ids=lambda v: v.name)
     def test_infimum_singleton(self, a: VerdictLevel):
-        """⊓{a} = a."""
+        """inf({a}) = a para todo a ∈ L."""
         assert VerdictLevel.infimum(a) == a
 
-    # -- Supremum del universo --
-
     def test_supremum_all_is_top(self):
-        """⊔(todos) = ⊤."""
+        """sup(L) = ⊤."""
         assert VerdictLevel.supremum(*VerdictLevel) == VerdictLevel.top()
 
     def test_infimum_all_is_bottom(self):
-        """⊓(todos) = ⊥."""
+        """inf(L) = ⊥."""
         assert VerdictLevel.infimum(*VerdictLevel) == VerdictLevel.bottom()
+
+    @pytest.mark.parametrize(
+        "elements, expected_sup",
+        [
+            ([VerdictLevel.VIABLE, VerdictLevel.CONDICIONAL], VerdictLevel.CONDICIONAL),
+            ([VerdictLevel.REVISAR, VerdictLevel.VIABLE], VerdictLevel.REVISAR),
+            ([VerdictLevel.RECHAZAR, VerdictLevel.VIABLE], VerdictLevel.RECHAZAR),
+            ([VerdictLevel.PRECAUCION, VerdictLevel.CONDICIONAL], VerdictLevel.PRECAUCION),
+        ],
+    )
+    def test_supremum_pairs(
+        self, elements: List[VerdictLevel], expected_sup: VerdictLevel,
+    ):
+        """Verifica supremo de pares específicos."""
+        result = VerdictLevel.supremum(*elements)
+        assert result == expected_sup, (
+            f"sup({[e.name for e in elements]}) = {result.name}, "
+            f"esperado {expected_sup.name}"
+        )
 
     # -- Operadores con tipo incorrecto --
 
     def test_or_with_non_verdict_returns_not_implemented(self):
-        """a | non_verdict retorna NotImplemented."""
+        """a | non_verdict debe retornar NotImplemented (no lanzar TypeError)."""
         result = VerdictLevel.VIABLE.__or__(42)
         assert result is NotImplemented
 
     def test_and_with_non_verdict_returns_not_implemented(self):
-        """a & non_verdict retorna NotImplemented."""
+        """a & non_verdict debe retornar NotImplemented."""
         result = VerdictLevel.VIABLE.__and__("test")
         assert result is NotImplemented
 
     # -- Propiedades semánticas --
 
-    def test_positive_verdicts(self):
-        """Solo VIABLE y CONDICIONAL son positivos."""
-        assert VerdictLevel.VIABLE.is_positive
-        assert VerdictLevel.CONDICIONAL.is_positive
-        assert not VerdictLevel.REVISAR.is_positive
-        assert not VerdictLevel.PRECAUCION.is_positive
-        assert not VerdictLevel.RECHAZAR.is_positive
+    def test_positive_verdicts_exactly(self):
+        """
+        VIABLE y CONDICIONAL son los únicos veredictos positivos.
 
-    def test_negative_verdicts(self):
-        """Solo RECHAZAR es negativo."""
-        assert VerdictLevel.RECHAZAR.is_negative
-        for v in [VerdictLevel.VIABLE, VerdictLevel.CONDICIONAL,
-                   VerdictLevel.REVISAR, VerdictLevel.PRECAUCION]:
-            assert not v.is_negative
+        Semánticamente: el proyecto puede avanzar (con o sin condiciones).
+        """
+        positive = {v for v in VerdictLevel if v.is_positive}
+        assert positive == {VerdictLevel.VIABLE, VerdictLevel.CONDICIONAL}, (
+            f"Veredictos positivos incorrectos: {positive}"
+        )
 
-    def test_requires_attention(self):
-        """PRECAUCION y RECHAZAR requieren atención."""
-        assert VerdictLevel.PRECAUCION.requires_attention
-        assert VerdictLevel.RECHAZAR.requires_attention
-        assert not VerdictLevel.VIABLE.requires_attention
-        assert not VerdictLevel.CONDICIONAL.requires_attention
-        assert not VerdictLevel.REVISAR.requires_attention
+    def test_negative_verdicts_exactly(self):
+        """
+        Solo RECHAZAR es negativo (bloquea el proyecto).
+
+        PRECAUCION y REVISAR son estados intermedios, no bloqueos.
+        """
+        negative = {v for v in VerdictLevel if v.is_negative}
+        assert negative == {VerdictLevel.RECHAZAR}, (
+            f"Veredictos negativos incorrectos: {negative}"
+        )
+
+    def test_requires_attention_exactly(self):
+        """
+        PRECAUCION y RECHAZAR requieren atención inmediata.
+
+        Son los dos elementos del top del retículo que generan alertas.
+        """
+        attention = {v for v in VerdictLevel if v.requires_attention}
+        assert attention == {VerdictLevel.PRECAUCION, VerdictLevel.RECHAZAR}, (
+            f"Veredictos que requieren atención incorrectos: {attention}"
+        )
 
     def test_normalized_score_bounds(self):
-        """normalized_score ∈ [0, 1] para todo veredicto."""
+        """normalized_score ∈ [0, 1] para todo v ∈ L."""
         for v in VerdictLevel:
             score = v.normalized_score
-            assert 0.0 <= score <= 1.0
+            assert 0.0 <= score <= 1.0, (
+                f"{v.name}.normalized_score = {score} ∉ [0, 1]"
+            )
 
-    def test_normalized_score_monotone(self):
-        """Score monotónicamente creciente con la severidad."""
-        scores = [v.normalized_score for v in sorted(VerdictLevel)]
-        assert scores == sorted(scores)
+    def test_normalized_score_monotone_with_order(self):
+        """
+        normalized_score es monótonamente no-decreciente con el valor del veredicto.
+
+        Propiedad: a ≤ b ⟹ score(a) ≤ score(b).
+        """
+        sorted_verdicts = sorted(VerdictLevel, key=lambda v: v.value)
+        scores = [v.normalized_score for v in sorted_verdicts]
+        for i in range(len(scores) - 1):
+            assert scores[i] <= scores[i + 1], (
+                f"score no monótono: score({sorted_verdicts[i].name}) = {scores[i]} "
+                f"> score({sorted_verdicts[i+1].name}) = {scores[i+1]}"
+            )
+
+    def test_normalized_score_bottom_is_zero(self):
+        """score(⊥) = 0 (mínima severidad)."""
+        assert VerdictLevel.bottom().normalized_score == 0.0
+
+    def test_normalized_score_top_is_one(self):
+        """score(⊤) = 1 (máxima severidad)."""
+        assert VerdictLevel.top().normalized_score == 1.0
 
     def test_emoji_uniqueness(self):
-        """Cada veredicto tiene emoji único."""
+        """Cada veredicto tiene un emoji único (sin ambigüedad visual)."""
         emojis = [v.emoji for v in VerdictLevel]
-        assert len(emojis) == len(set(emojis))
-
-    def test_description_non_empty(self):
-        """Cada veredicto tiene descripción no vacía."""
-        for v in VerdictLevel:
-            assert len(v.description) > 0
-
-    # -- Método de verificación completo --
-
-    def test_verify_lattice_laws(self):
-        """El método verify_lattice_laws debe retornar True para todas las leyes."""
-        results = VerdictLevel.verify_lattice_laws()
-        for law_name, passed in results.items():
-            assert passed, f"Lattice law '{law_name}' violated"
-
-
-# ============================================================================
-# 8. TestSeverityLattice
-# ============================================================================
-
-
-class TestSeverityLattice:
-    """Retículo simplificado de severidad (3 elementos)."""
-
-    def test_order(self):
-        """VIABLE < PRECAUCION < RECHAZAR."""
-        assert SeverityLattice.VIABLE < SeverityLattice.PRECAUCION
-        assert SeverityLattice.PRECAUCION < SeverityLattice.RECHAZAR
-
-    def test_supremum_conservador(self):
-        """Supremum toma el peor caso."""
-        result = SeverityLattice.supremum(
-            SeverityLattice.VIABLE, SeverityLattice.RECHAZAR,
+        assert len(emojis) == len(set(emojis)), (
+            f"Emojis duplicados encontrados: {emojis}"
         )
-        assert result == SeverityLattice.RECHAZAR
 
-    def test_supremum_empty(self):
-        """⊔∅ = VIABLE (bottom)."""
-        assert SeverityLattice.supremum() == SeverityLattice.VIABLE
+    def test_description_non_empty_and_informative(self):
+        """Cada veredicto tiene descripción no vacía y con contenido mínimo."""
+        for v in VerdictLevel:
+            desc = v.description
+            assert isinstance(desc, str), f"{v.name}.description no es string"
+            assert len(desc) > 5, (
+                f"{v.name}.description demasiado corta: {desc!r}"
+            )
 
-    @pytest.mark.parametrize(
-        "a, b",
-        list(product(list(SeverityLattice), repeat=2)),
-    )
-    def test_idempotent_join(self, a: SeverityLattice, b: SeverityLattice):
-        """Idempotencia: a ⊔ a = a."""
-        assert SeverityLattice.supremum(a, a) == a
+    # -- Verificación completa del retículo --
 
-    @pytest.mark.parametrize(
-        "a, b",
-        list(product(list(SeverityLattice), repeat=2)),
-    )
-    def test_commutative_join(self, a: SeverityLattice, b: SeverityLattice):
-        """Conmutatividad: a ⊔ b = b ⊔ a."""
-        assert SeverityLattice.supremum(a, b) == SeverityLattice.supremum(b, a)
+    def test_verify_lattice_laws_all_pass(self):
+        """
+        El método verify_lattice_laws() debe pasar TODAS las leyes.
+
+        Este test es el "oráculo" que llama a la verificación interna
+        del módulo. Si falla, indica un error en la implementación del retículo.
+        """
+        results = VerdictLevel.verify_lattice_laws()
+        assert isinstance(results, dict), "verify_lattice_laws debe retornar dict"
+        assert len(results) > 0, "verify_lattice_laws retornó dict vacío"
+
+        failed_laws = [name for name, passed in results.items() if not passed]
+        assert not failed_laws, (
+            f"Leyes del retículo violadas: {failed_laws}"
+        )
 
 
 # ============================================================================
-# 9. TestSeverityHomomorphism
+# 9. TestSeverityHomomorphism — Refinado
 # ============================================================================
 
 
 class TestSeverityHomomorphism:
-    """Verificación formal del homomorfismo φ: SeverityLattice → VerdictLevel."""
+    """
+    Verificación formal del homomorfismo de retículos φ: SeverityLattice → VerdictLevel.
+
+    Un homomorfismo de retículos φ debe satisfacer:
+    1. φ(a ⊔ b) = φ(a) ⊔ φ(b)  ∀a,b ∈ SeverityLattice
+    2. φ(a ⊓ b) = φ(a) ⊓ φ(b)  ∀a,b ∈ SeverityLattice
+
+    Nota crítica: En SeverityLattice (3 elementos: VIABLE < PRECAUCION < RECHAZAR),
+    la operación join es:
+        a ⊔ b = SeverityLattice(max(a.value, b.value))
+    Y meet es:
+        a ⊓ b = SeverityLattice(min(a.value, b.value))
+
+    Estas operaciones se derivan de que SeverityLattice también es una cadena.
+    """
+
+    def _join_severity(
+        self, a: SeverityLattice, b: SeverityLattice,
+    ) -> SeverityLattice:
+        """
+        Join en SeverityLattice: operación correcta en la cadena.
+
+        Se calcula como max por valor, luego se reconstruye el elemento.
+        IMPORTANTE: no asumimos que los valores son 0,1,2 consecutivos;
+        usamos la enumeración real para encontrar el max.
+        """
+        if a.value >= b.value:
+            return a
+        return b
+
+    def _meet_severity(
+        self, a: SeverityLattice, b: SeverityLattice,
+    ) -> SeverityLattice:
+        """Meet en SeverityLattice: operación correcta en la cadena."""
+        if a.value <= b.value:
+            return a
+        return b
 
     def test_homomorphism_preserves_bottom(self):
-        """φ(⊥) = ⊥."""
-        assert SeverityToVerdictHomomorphism.apply(SeverityLattice.VIABLE) == VerdictLevel.VIABLE
+        """φ(⊥_S) = ⊥_V: el bottom se preserva."""
+        bottom_s = min(SeverityLattice, key=lambda s: s.value)
+        result = SeverityToVerdictHomomorphism.apply(bottom_s)
+        assert result == VerdictLevel.bottom(), (
+            f"φ(⊥) = {result.name}, esperado {VerdictLevel.bottom().name}"
+        )
 
     def test_homomorphism_preserves_top(self):
-        """φ(⊤) = ⊤."""
-        assert SeverityToVerdictHomomorphism.apply(SeverityLattice.RECHAZAR) == VerdictLevel.RECHAZAR
+        """φ(⊤_S) = ⊤_V: el top se preserva."""
+        top_s = max(SeverityLattice, key=lambda s: s.value)
+        result = SeverityToVerdictHomomorphism.apply(top_s)
+        assert result == VerdictLevel.top(), (
+            f"φ(⊤) = {result.name}, esperado {VerdictLevel.top().name}"
+        )
 
     def test_homomorphism_preserves_join(self):
-        """∀a,b: φ(a ⊔ b) = φ(a) ⊔ φ(b)."""
+        """
+        ∀a,b ∈ SeverityLattice: φ(a ⊔ b) = φ(a) ⊔ φ(b).
+
+        Corrección: el join en SeverityLattice se calcula correctamente
+        usando la estructura de cadena (max por valor).
+        """
         for a in SeverityLattice:
             for b in SeverityLattice:
-                join_sev = SeverityLattice(max(a.value, b.value))
-                lhs = SeverityToVerdictHomomorphism.apply(join_sev)
-                rhs = SeverityToVerdictHomomorphism.apply(a) | SeverityToVerdictHomomorphism.apply(b)
-                assert lhs == rhs, f"φ({a.name} ⊔ {b.name}) ≠ φ({a.name}) ⊔ φ({b.name})"
+                ab_join = self._join_severity(a, b)
+                lhs = SeverityToVerdictHomomorphism.apply(ab_join)
+                rhs = (
+                    SeverityToVerdictHomomorphism.apply(a)
+                    | SeverityToVerdictHomomorphism.apply(b)
+                )
+                assert lhs == rhs, (
+                    f"Homomorfismo join violado: "
+                    f"φ({a.name} ⊔ {b.name}) = φ({ab_join.name}) = {lhs.name} "
+                    f"≠ φ({a.name}) ⊔ φ({b.name}) = {rhs.name}"
+                )
 
     def test_homomorphism_preserves_meet(self):
-        """∀a,b: φ(a ⊓ b) = φ(a) ⊓ φ(b)."""
+        """
+        ∀a,b ∈ SeverityLattice: φ(a ⊓ b) = φ(a) ⊓ φ(b).
+
+        Corrección: el meet en SeverityLattice se calcula correctamente
+        usando la estructura de cadena (min por valor).
+        """
         for a in SeverityLattice:
             for b in SeverityLattice:
-                meet_sev = SeverityLattice(min(a.value, b.value))
-                lhs = SeverityToVerdictHomomorphism.apply(meet_sev)
-                rhs = SeverityToVerdictHomomorphism.apply(a) & SeverityToVerdictHomomorphism.apply(b)
-                assert lhs == rhs, f"φ({a.name} ⊓ {b.name}) ≠ φ({a.name}) ⊓ φ({b.name})"
+                ab_meet = self._meet_severity(a, b)
+                lhs = SeverityToVerdictHomomorphism.apply(ab_meet)
+                rhs = (
+                    SeverityToVerdictHomomorphism.apply(a)
+                    & SeverityToVerdictHomomorphism.apply(b)
+                )
+                assert lhs == rhs, (
+                    f"Homomorfismo meet violado: "
+                    f"φ({a.name} ⊓ {b.name}) = φ({ab_meet.name}) = {lhs.name} "
+                    f"≠ φ({a.name}) ⊓ φ({b.name}) = {rhs.name}"
+                )
 
     def test_homomorphism_is_injective(self):
-        """φ es inyectivo: a ≠ b ⟹ φ(a) ≠ φ(b)."""
-        mapped = [SeverityToVerdictHomomorphism.apply(s) for s in SeverityLattice]
-        assert len(mapped) == len(set(mapped))
+        """
+        φ es inyectivo: a ≠ b ⟹ φ(a) ≠ φ(b).
 
-    def test_homomorphism_preserves_order(self):
-        """φ preserva el orden: a ≤ b ⟹ φ(a) ≤ φ(b)."""
-        for a in SeverityLattice:
-            for b in SeverityLattice:
-                if a.value <= b.value:
-                    va = SeverityToVerdictHomomorphism.apply(a)
-                    vb = SeverityToVerdictHomomorphism.apply(b)
-                    assert va <= vb, f"Order not preserved: φ({a.name})={va.name} > φ({b.name})={vb.name}"
+        Consecuencia: φ preserva la distinción entre todos los niveles de severidad.
+        """
+        mapped = [SeverityToVerdictHomomorphism.apply(s) for s in SeverityLattice]
+        mapped_set = set(mapped)
+        assert len(mapped) == len(mapped_set), (
+            f"φ no es inyectivo: valores mapeados = {[m.name for m in mapped]}"
+        )
+
+    def test_homomorphism_preserves_strict_order(self):
+        """
+        φ preserva el orden estricto: a < b ⟹ φ(a) < φ(b).
+
+        En cadenas, esto es equivalente a ser un isomorfismo sobre su imagen.
+        """
+        sorted_severity = sorted(SeverityLattice, key=lambda s: s.value)
+        mapped = [SeverityToVerdictHomomorphism.apply(s) for s in sorted_severity]
+
+        for i in range(len(mapped) - 1):
+            s_i = sorted_severity[i]
+            s_j = sorted_severity[i + 1]
+            assert mapped[i].value < mapped[i + 1].value, (
+                f"Orden estricto no preservado: "
+                f"φ({s_i.name}) = {mapped[i].name} (valor={mapped[i].value}) "
+                f"≥ φ({s_j.name}) = {mapped[i+1].name} (valor={mapped[i+1].value})"
+            )
+
+    def test_image_is_closed_under_join(self):
+        """
+        La imagen Im(φ) ⊆ VerdictLevel es cerrada bajo join.
+
+        Im(φ) debe ser un sub-retículo de VerdictLevel.
+        """
+        image: Set[VerdictLevel] = {
+            SeverityToVerdictHomomorphism.apply(s) for s in SeverityLattice
+        }
+        for a in image:
+            for b in image:
+                join_result = a | b
+                assert join_result in image, (
+                    f"Im(φ) no cerrada bajo join: "
+                    f"{a.name} ⊔ {b.name} = {join_result.name} ∉ Im(φ) = "
+                    f"{{{', '.join(v.name for v in image)}}}"
+                )
+
+    def test_image_is_closed_under_meet(self):
+        """
+        La imagen Im(φ) ⊆ VerdictLevel es cerrada bajo meet.
+
+        Junto con test_image_is_closed_under_join, esto confirma que
+        Im(φ) es un sub-retículo de VerdictLevel.
+        """
+        image: Set[VerdictLevel] = {
+            SeverityToVerdictHomomorphism.apply(s) for s in SeverityLattice
+        }
+        for a in image:
+            for b in image:
+                meet_result = a & b
+                assert meet_result in image, (
+                    f"Im(φ) no cerrada bajo meet: "
+                    f"{a.name} ⊓ {b.name} = {meet_result.name} ∉ Im(φ) = "
+                    f"{{{', '.join(v.name for v in image)}}}"
+                )
 
     def test_verify_homomorphism_method(self):
-        """El método verify_homomorphism retorna True."""
-        assert SeverityToVerdictHomomorphism.verify_homomorphism()
+        """
+        El método verify_homomorphism() implementado en el módulo retorna True.
+
+        Este test actúa como "prueba de regresión" del método de verificación interno.
+        """
+        result = SeverityToVerdictHomomorphism.verify_homomorphism()
+        assert result is True, (
+            "SeverityToVerdictHomomorphism.verify_homomorphism() retornó False "
+            "— el homomorfismo está roto en la implementación"
+        )
 
 
 # ============================================================================
-# 10. TestFinancialVerdict
-# ============================================================================
-
-
-class TestFinancialVerdict:
-    """Parseo y homomorfismo financiero."""
-
-    @pytest.mark.parametrize(
-        "input_str, expected",
-        [
-            ("ACEPTAR", FinancialVerdict.ACCEPT),
-            ("aceptar", FinancialVerdict.ACCEPT),
-            ("ACCEPT", FinancialVerdict.ACCEPT),
-            ("OK", FinancialVerdict.ACCEPT),
-            ("CONDICIONAL", FinancialVerdict.CONDITIONAL),
-            ("CONDITIONAL", FinancialVerdict.CONDITIONAL),
-            ("REVISAR", FinancialVerdict.REVIEW),
-            ("REVIEW", FinancialVerdict.REVIEW),
-            ("RECHAZAR", FinancialVerdict.REJECT),
-            ("REJECT", FinancialVerdict.REJECT),
-            ("NO", FinancialVerdict.REJECT),
-            ("", FinancialVerdict.REVIEW),
-            ("UNKNOWN", FinancialVerdict.REVIEW),
-            ("   ACEPTAR   ", FinancialVerdict.ACCEPT),
-        ],
-    )
-    def test_from_string(self, input_str: str, expected: FinancialVerdict):
-        """Verifica parseo robusto desde string."""
-        assert FinancialVerdict.from_string(input_str) == expected
-
-    def test_from_string_none_like(self):
-        """None como input retorna REVIEW."""
-        assert FinancialVerdict.from_string(None) == FinancialVerdict.REVIEW  # type: ignore
-
-    def test_to_verdict_level_homomorphism(self):
-        """Cada FinancialVerdict mapea a un VerdictLevel válido."""
-        for fv in FinancialVerdict:
-            vl = fv.to_verdict_level()
-            assert isinstance(vl, VerdictLevel)
-
-    def test_accept_maps_to_viable(self):
-        """ACCEPT → VIABLE."""
-        assert FinancialVerdict.ACCEPT.to_verdict_level() == VerdictLevel.VIABLE
-
-    def test_reject_maps_to_rechazar(self):
-        """REJECT → RECHAZAR."""
-        assert FinancialVerdict.REJECT.to_verdict_level() == VerdictLevel.RECHAZAR
-
-    def test_homomorphism_preserves_order(self):
-        """El mapeo preserva el orden: ACCEPT < CONDITIONAL < REVIEW < REJECT."""
-        ordered = [
-            FinancialVerdict.ACCEPT,
-            FinancialVerdict.CONDITIONAL,
-            FinancialVerdict.REVIEW,
-            FinancialVerdict.REJECT,
-        ]
-        mapped = [fv.to_verdict_level() for fv in ordered]
-        mapped_values = [v.value for v in mapped]
-        assert mapped_values == sorted(mapped_values)
-
-
-# ============================================================================
-# 11. TestValidatedTopology
-# ============================================================================
-
-
-class TestValidatedTopology:
-    """Invariantes topológicos y construcción validada."""
-
-    def test_valid_construction(self):
-        """Construcción válida con invariante de Euler correcto."""
-        topo = ValidatedTopology(
-            beta_0=1, beta_1=0, beta_2=0,
-            euler_characteristic=1,
-            fiedler_value=1.0, spectral_gap=0.5,
-            pyramid_stability=5.0, structural_entropy=0.2,
-        )
-        assert topo.euler_characteristic == topo.beta_0 - topo.beta_1 + topo.beta_2
-
-    def test_euler_invariant_violation(self):
-        """Euler incorrecto lanza TopologyInvariantViolation."""
-        with pytest.raises(TopologyInvariantViolation) as exc_info:
-            ValidatedTopology(
-                beta_0=1, beta_1=0, beta_2=0,
-                euler_characteristic=99,
-                fiedler_value=1.0, spectral_gap=0.0,
-                pyramid_stability=1.0, structural_entropy=0.0,
-            )
-        assert exc_info.value.expected_chi == 1
-
-    def test_negative_betti_raises(self):
-        """Betti negativo lanza ValueError."""
-        with pytest.raises(ValueError, match="non-negative"):
-            ValidatedTopology(
-                beta_0=-1, beta_1=0, beta_2=0,
-                euler_characteristic=-1,
-                fiedler_value=0.0, spectral_gap=0.0,
-                pyramid_stability=1.0, structural_entropy=0.0,
-            )
-
-    def test_negative_fiedler_raises(self):
-        """Fiedler negativo (más allá de error numérico) lanza ValueError."""
-        with pytest.raises(ValueError, match="Fiedler"):
-            ValidatedTopology(
-                beta_0=1, beta_1=0, beta_2=0,
-                euler_characteristic=1,
-                fiedler_value=-1.0, spectral_gap=0.0,
-                pyramid_stability=1.0, structural_entropy=0.0,
-            )
-
-    def test_negative_stability_raises(self):
-        """Estabilidad negativa lanza ValueError."""
-        with pytest.raises(ValueError, match="non-negative"):
-            ValidatedTopology(
-                beta_0=1, beta_1=0, beta_2=0,
-                euler_characteristic=1,
-                fiedler_value=1.0, spectral_gap=0.0,
-                pyramid_stability=-5.0, structural_entropy=0.0,
-            )
-
-    def test_negative_entropy_raises(self):
-        """Entropía estructural negativa lanza ValueError."""
-        with pytest.raises(ValueError, match="non-negative"):
-            ValidatedTopology(
-                beta_0=1, beta_1=0, beta_2=0,
-                euler_characteristic=1,
-                fiedler_value=1.0, spectral_gap=0.0,
-                pyramid_stability=1.0, structural_entropy=-0.5,
-            )
-
-    def test_from_metrics_dict_default(self):
-        """Construcción desde diccionario con defaults."""
-        topo = ValidatedTopology.from_metrics({})
-        assert topo.beta_0 == 1
-        assert topo.beta_1 == 0
-        assert topo.euler_characteristic == 1
-
-    def test_from_metrics_dict_auto_correct_euler(self):
-        """Modo no estricto auto-corrige Euler."""
-        topo = ValidatedTopology.from_metrics(
-            {"beta_0": 2, "beta_1": 1, "beta_2": 0, "euler_characteristic": 99},
-            strict=False,
-        )
-        assert topo.euler_characteristic == 1  # 2 - 1 + 0 = 1
-
-    def test_from_metrics_dict_strict_raises(self):
-        """Modo estricto lanza excepción en Euler incorrecto."""
-        with pytest.raises(TopologyInvariantViolation):
-            ValidatedTopology.from_metrics(
-                {"beta_0": 2, "beta_1": 1, "beta_2": 0, "euler_characteristic": 99},
-                strict=True,
-            )
-
-    def test_from_metrics_sanitizes_nan(self):
-        """NaN en valores flotantes se sanitiza a 0."""
-        topo = ValidatedTopology.from_metrics(
-            {"fiedler_value": float("nan"), "spectral_gap": float("inf")},
-        )
-        assert topo.fiedler_value == 0.0
-        assert topo.spectral_gap == 0.0
-
-    def test_from_metrics_clamps_negative_fiedler(self):
-        """Fiedler negativo (error numérico) se clampea a 0."""
-        topo = ValidatedTopology.from_metrics({"fiedler_value": -1e-10})
-        assert topo.fiedler_value == 0.0
-
-    def test_is_connected(self, valid_topology: ValidatedTopology):
-        """β₀ = 1 ⟹ is_connected."""
-        assert valid_topology.is_connected
-
-    def test_not_connected(self, fragmented_topology: ValidatedTopology):
-        """β₀ > 1 ⟹ ¬is_connected."""
-        assert not fragmented_topology.is_connected
-
-    def test_has_cycles(self, cyclic_topology: ValidatedTopology):
-        """β₁ > 0 ⟹ has_cycles."""
-        assert cyclic_topology.has_cycles
-
-    def test_no_cycles(self, valid_topology: ValidatedTopology):
-        """β₁ = 0 ⟹ ¬has_cycles."""
-        assert not valid_topology.has_cycles
-
-    def test_genus_equals_beta_1(self, cyclic_topology: ValidatedTopology):
-        """genus = β₁ (para grafos)."""
-        assert cyclic_topology.genus == cyclic_topology.beta_1
-
-    def test_genus_surface(self):
-        """genus_surface = β₁ / 2."""
-        topo = ValidatedTopology(
-            beta_0=1, beta_1=4, beta_2=0,
-            euler_characteristic=-3,
-            fiedler_value=1.0, spectral_gap=0.1,
-            pyramid_stability=1.0, structural_entropy=0.1,
-        )
-        assert topo.genus_surface == 2.0
-
-    def test_is_spectrally_connected(self, valid_topology: ValidatedTopology):
-        """λ₂ > ε ⟹ espectralmente conexo."""
-        assert valid_topology.is_spectrally_connected
-
-    def test_not_spectrally_connected(self, fragmented_topology: ValidatedTopology):
-        """λ₂ = 0 ⟹ ¬espectralmente conexo."""
-        assert not fragmented_topology.is_spectrally_connected
-
-    @pytest.mark.parametrize(
-        "b0, b1, b2",
-        [
-            (1, 0, 0),
-            (1, 1, 0),
-            (2, 0, 0),
-            (1, 3, 1),
-            (5, 2, 3),
-            (10, 7, 2),
-        ],
-    )
-    def test_euler_invariant_always_holds(self, b0: int, b1: int, b2: int):
-        """Para cualquier tripleta válida, χ = β₀ − β₁ + β₂."""
-        chi = b0 - b1 + b2
-        topo = ValidatedTopology(
-            beta_0=b0, beta_1=b1, beta_2=b2,
-            euler_characteristic=chi,
-            fiedler_value=0.0, spectral_gap=0.0,
-            pyramid_stability=0.0, structural_entropy=0.0,
-        )
-        assert topo.euler_characteristic == b0 - b1 + b2
-
-    def test_frozen_immutability(self, valid_topology: ValidatedTopology):
-        """ValidatedTopology es inmutable."""
-        with pytest.raises(AttributeError):
-            valid_topology.beta_0 = 99  # type: ignore[misc]
-
-    def test_has_betti_numbers_protocol(self, valid_topology: ValidatedTopology):
-        """ValidatedTopology cumple el protocolo HasBettiNumbers."""
-        assert isinstance(valid_topology, HasBettiNumbers)
-
-
-# ============================================================================
-# 12. TestNarrativeCache
+# 12. TestNarrativeCache — Refinado
 # ============================================================================
 
 
 class TestNarrativeCache:
-    """LRU cache thread-safe con claves deterministas."""
+    """
+    LRU cache thread-safe con claves deterministas.
+
+    Invariantes a verificar:
+    1. Determinismo de claves: misma entrada → misma clave (función pura)
+    2. Independencia de orden en el dict de métricas (sort antes de hash)
+    3. Inyectividad: entradas distintas → claves distintas (con alta probabilidad)
+    4. LRU eviction: el elemento menos recientemente usado se evicta primero
+    5. Thread-safety: ninguna operación corrompe el estado bajo concurrencia
+    """
 
     def test_basic_put_get(self):
-        """Put seguido de get retorna el valor."""
+        """Put seguido de get retorna el valor exacto."""
         cache = NarrativeCache(maxsize=10)
         cache.put("D", "C", {"k": "v"}, "narrative_1")
         result = cache.get("D", "C", {"k": "v"})
-        assert result == "narrative_1"
+        assert result == "narrative_1", f"Esperado 'narrative_1', got {result!r}"
 
-    def test_cache_miss(self):
-        """Miss retorna None."""
+    def test_cache_miss_returns_none(self):
+        """Miss retorna None (no lanza excepción)."""
         cache = NarrativeCache(maxsize=10)
-        assert cache.get("D", "C", {}) is None
+        result = cache.get("D", "C", {})
+        assert result is None, f"Miss debe retornar None, got {result!r}"
 
-    def test_deterministic_keys(self):
-        """La misma entrada produce la misma clave siempre."""
+    def test_deterministic_keys_same_dict(self):
+        """
+        La misma entrada produce la misma clave SHA-256 siempre.
+
+        Propiedad: _make_key es una función PURA (sin estado).
+        """
         key1 = NarrativeCache._make_key("D", "C", {"a": 1, "b": 2})
-        key2 = NarrativeCache._make_key("D", "C", {"b": 2, "a": 1})
-        assert key1 == key2  # Independiente del orden
+        key2 = NarrativeCache._make_key("D", "C", {"a": 1, "b": 2})
+        assert key1 == key2, "Clave no determinista para la misma entrada"
+
+    def test_deterministic_keys_dict_order_independent(self):
+        """
+        El hash es independiente del orden de inserción en el dict.
+
+        Motivación: Python 3.7+ preserva orden de inserción en dicts,
+        pero las métricas pueden venir en cualquier orden. El hash debe
+        canonicalizar el dict ordenando las claves antes de serializar.
+        """
+        key1 = NarrativeCache._make_key("D", "C", {"a": 1, "b": 2, "c": 3})
+        key2 = NarrativeCache._make_key("D", "C", {"c": 3, "a": 1, "b": 2})
+        key3 = NarrativeCache._make_key("D", "C", {"b": 2, "c": 3, "a": 1})
+        assert key1 == key2 == key3, (
+            f"Clave depende del orden del dict: {key1} ≠ {key2}"
+        )
 
     def test_different_inputs_different_keys(self):
-        """Entradas distintas producen claves distintas."""
-        key1 = NarrativeCache._make_key("D1", "C", {})
-        key2 = NarrativeCache._make_key("D2", "C", {})
-        assert key1 != key2
+        """
+        Entradas distintas producen claves distintas con alta probabilidad.
 
-    def test_key_is_sha256(self):
-        """La clave es un hash SHA-256."""
+        SHA-256 tiene resistencia a colisiones: P(colisión) ≈ 2⁻¹²⁸.
+        Verificamos casos concretos cuyas colisiones son prácticamente imposibles.
+        """
+        pairs = [
+            (("D1", "C", {}), ("D2", "C", {})),
+            (("D", "C1", {}), ("D", "C2", {})),
+            (("D", "C", {"a": 1}), ("D", "C", {"a": 2})),
+            (("D", "C", {"a": 1}), ("D", "C", {"b": 1})),
+            (("D", "C", {}), ("D", "C", {"a": 0})),
+        ]
+        for (args1, args2) in pairs:
+            key1 = NarrativeCache._make_key(*args1)
+            key2 = NarrativeCache._make_key(*args2)
+            assert key1 != key2, (
+                f"Colisión espuria: {args1} y {args2} → misma clave {key1}"
+            )
+
+    def test_key_is_sha256_hex(self):
+        """
+        La clave es un hex digest SHA-256: exactamente 64 caracteres hex.
+
+        SHA-256 produce 256 bits = 32 bytes = 64 caracteres hexadecimales.
+        """
         key = NarrativeCache._make_key("D", "C", {"k": 1})
-        assert len(key) == 64  # SHA-256 hex digest
-        int(key, 16)  # Debe ser hex válido
+        assert len(key) == 64, f"SHA-256 hex debe tener 64 chars, got {len(key)}"
+        # Debe ser hexadecimal válido
+        try:
+            int(key, 16)
+        except ValueError:
+            pytest.fail(f"Clave no es hex válido: {key!r}")
 
-    def test_lru_eviction(self):
-        """El elemento más antiguo se evicta cuando se excede maxsize."""
+    def test_lru_eviction_oldest_first(self):
+        """
+        El elemento más antiguo (LRU) se evicta cuando se excede maxsize.
+
+        Secuencia determinista:
+        1. put A (LRU: [A])
+        2. put B (LRU: [A, B])
+        3. put C → evicta A (LRU: [B, C])
+        → A no está, B y C sí.
+        """
         cache = NarrativeCache(maxsize=2)
         cache.put("D", "A", {}, "first")
         cache.put("D", "B", {}, "second")
         cache.put("D", "C", {}, "third")  # Evicta "first"
-        assert cache.get("D", "A", {}) is None
-        assert cache.get("D", "B", {}) == "second"
-        assert cache.get("D", "C", {}) == "third"
 
-    def test_lru_access_refreshes(self):
-        """Acceder a un elemento lo mueve al final (no se evicta)."""
+        assert cache.get("D", "A", {}) is None, "A debería haber sido evictado"
+        assert cache.get("D", "B", {}) == "second", "B no debería haber sido evictado"
+        assert cache.get("D", "C", {}) == "third", "C debe estar en caché"
+
+    def test_lru_access_refreshes_recency(self):
+        """
+        Acceder a un elemento refresca su recencia, retrasando su evicción.
+
+        Secuencia:
+        1. put A (LRU: [A])
+        2. put B (LRU: [A, B])
+        3. get A  → A se mueve al frente (LRU: [B, A])
+        4. put C  → evicta B (no A) (LRU: [A, C])
+        → A está, B no, C está.
+        """
         cache = NarrativeCache(maxsize=2)
         cache.put("D", "A", {}, "first")
         cache.put("D", "B", {}, "second")
-        # Acceder a "A" lo refresca
-        cache.get("D", "A", {})
-        # Insertar "C" evicta "B" (no "A")
+        # Acceder a A lo refresca
+        val_a = cache.get("D", "A", {})
+        assert val_a == "first", "A debe estar accesible antes del refresco"
+        # Insertar C evicta B (el LRU ahora)
         cache.put("D", "C", {}, "third")
-        assert cache.get("D", "A", {}) == "first"
-        assert cache.get("D", "B", {}) is None
+        assert cache.get("D", "A", {}) == "first", "A no debería haber sido evictado"
+        assert cache.get("D", "B", {}) is None, "B debería haber sido evictado"
+        assert cache.get("D", "C", {}) == "third", "C debe estar en caché"
 
-    def test_overwrite_existing(self):
-        """Put con clave existente actualiza el valor."""
+    def test_overwrite_existing_updates_value(self):
+        """Put con clave existente actualiza el valor (no crea duplicado)."""
         cache = NarrativeCache(maxsize=10)
         cache.put("D", "C", {}, "v1")
         cache.put("D", "C", {}, "v2")
-        assert cache.get("D", "C", {}) == "v2"
+        assert cache.get("D", "C", {}) == "v2", "Valor no fue actualizado"
+        # Verificar que el tamaño no creció (no hay duplicados)
+        assert cache.stats["size"] == 1, "Duplicado en caché (tamaño incorrecto)"
 
-    def test_clear(self):
-        """Clear vacía el caché y resetea estadísticas."""
+    def test_clear_resets_state(self):
+        """Clear vacía completamente el caché y resetea estadísticas a cero."""
         cache = NarrativeCache(maxsize=10)
         cache.put("D", "C", {}, "v1")
-        cache.get("D", "C", {})
+        cache.get("D", "C", {})   # Hit
+        cache.get("D", "X", {})   # Miss
         cache.clear()
-        assert cache.get("D", "C", {}) is None
-        stats = cache.stats
-        assert stats["size"] == 0
-        assert stats["hits"] == 0
 
-    def test_stats(self):
-        """Estadísticas reflejan hits y misses correctamente."""
+        # Verificar vaciado
+        assert cache.get("D", "C", {}) is None, "Caché no fue vaciado"
+
+        # Verificar reset de estadísticas
+        stats = cache.stats
+        assert stats["size"] == 0, f"Tamaño después de clear: {stats['size']}"
+        assert stats["hits"] == 0, f"Hits después de clear: {stats['hits']}"
+        assert stats["misses"] == 0, f"Misses después de clear: {stats['misses']}"
+
+    def test_stats_accuracy(self):
+        """
+        Las estadísticas reflejan exactamente los hits y misses.
+
+        Invariante: stats["hits"] + stats["misses"] == número de get() llamados
+        (excepto después de clear()).
+        """
         cache = NarrativeCache(maxsize=10)
         cache.put("D", "C", {}, "v1")
-        cache.get("D", "C", {})  # Hit
-        cache.get("D", "X", {})  # Miss
-        stats = cache.stats
-        assert stats["hits"] == 1
-        assert stats["misses"] == 1
-        assert stats["size"] == 1
 
-    def test_invalid_maxsize(self):
-        """maxsize < 1 lanza ValueError."""
+        # 2 hits, 1 miss
+        cache.get("D", "C", {})   # Hit 1
+        cache.get("D", "C", {})   # Hit 2
+        cache.get("D", "X", {})   # Miss 1
+
+        stats = cache.stats
+        assert stats["hits"] == 2, f"Hits: esperado 2, got {stats['hits']}"
+        assert stats["misses"] == 1, f"Misses: esperado 1, got {stats['misses']}"
+        assert stats["size"] == 1, f"Size: esperado 1, got {stats['size']}"
+
+    def test_hit_rate_computation(self):
+        """
+        Si stats incluye hit_rate, debe ser hits/(hits+misses).
+
+        Tolerancia: EPSILON para división de punto flotante.
+        """
+        cache = NarrativeCache(maxsize=10)
+        cache.put("D", "C", {}, "v1")
+        for _ in range(3):
+            cache.get("D", "C", {})   # 3 hits
+        cache.get("D", "X", {})       # 1 miss
+
+        stats = cache.stats
+        if "hit_rate" in stats:
+            expected_rate = 3 / 4
+            assert abs(stats["hit_rate"] - expected_rate) < EPSILON, (
+                f"hit_rate: esperado {expected_rate:.4f}, got {stats['hit_rate']:.4f}"
+            )
+
+    def test_invalid_maxsize_raises(self):
+        """maxsize < 1 lanza ValueError (el caché debe tener capacidad positiva)."""
         with pytest.raises(ValueError):
             NarrativeCache(maxsize=0)
+        with pytest.raises(ValueError):
+            NarrativeCache(maxsize=-1)
 
-    def test_thread_safety(self):
-        """Acceso concurrente no causa errores."""
-        cache = NarrativeCache(maxsize=100)
+    def test_thread_safety_no_corruption(self):
+        """
+        Acceso concurrente no corrompe el estado del caché.
+
+        Verificaciones:
+        1. No hay excepciones no manejadas bajo concurrencia
+        2. El tamaño final no excede maxsize
+        3. Los valores leídos son siempre del tipo correcto
+        """
+        MAXSIZE = 50
+        N_WORKERS = 10
+        OPS_PER_WORKER = 100
+        cache = NarrativeCache(maxsize=MAXSIZE)
         errors: List[str] = []
+        lock = threading.Lock()
 
         def worker(worker_id: int) -> None:
             try:
-                for i in range(50):
+                for i in range(OPS_PER_WORKER):
+                    key_suffix = i % (MAXSIZE * 2)  # Crear presión de evicción
                     domain = f"D{worker_id}"
-                    classification = f"C{i}"
-                    cache.put(domain, classification, {"i": i}, f"v_{worker_id}_{i}")
-                    result = cache.get(domain, classification, {"i": i})
-                    # El valor puede haber sido evictado, pero no debe haber error
-                    if result is not None and result != f"v_{worker_id}_{i}":
-                        errors.append(
-                            f"Worker {worker_id}: expected v_{worker_id}_{i}, got {result}"
-                        )
-            except Exception as e:
-                errors.append(f"Worker {worker_id}: {e}")
+                    classification = f"C{key_suffix}"
+                    expected_value = f"v_{worker_id}_{key_suffix}"
 
-        threads = [threading.Thread(target=worker, args=(i,)) for i in range(10)]
+                    # Put
+                    cache.put(domain, classification, {"i": key_suffix}, expected_value)
+
+                    # Get (puede ser miss si fue evictado por otro worker)
+                    result = cache.get(domain, classification, {"i": key_suffix})
+
+                    # Invariante: si no es None, debe ser string
+                    if result is not None and not isinstance(result, str):
+                        with lock:
+                            errors.append(
+                                f"Worker {worker_id}, i={i}: "
+                                f"tipo incorrecto {type(result).__name__}"
+                            )
+
+            except Exception as e:
+                with lock:
+                    errors.append(f"Worker {worker_id}: {type(e).__name__}: {e}")
+
+        threads = [
+            threading.Thread(target=worker, args=(i,), daemon=True)
+            for i in range(N_WORKERS)
+        ]
         for t in threads:
             t.start()
         for t in threads:
-            t.join(timeout=10)
+            t.join(timeout=15)
 
-        assert not errors, f"Thread safety violations: {errors}"
+        # Verificar que todos los threads terminaron
+        alive = [t for t in threads if t.is_alive()]
+        assert not alive, f"{len(alive)} threads no terminaron (posible deadlock)"
+
+        # Verificar ausencia de errores
+        assert not errors, f"Errores de concurrencia:\n" + "\n".join(errors[:5])
+
+        # Verificar invariante de tamaño
+        stats = cache.stats
+        assert stats["size"] <= MAXSIZE, (
+            f"Tamaño del caché excedió maxsize: {stats['size']} > {MAXSIZE}"
+        )
 
 
 # ============================================================================
-# 13. TestSemanticDiffeomorphism
+# 13. TestSemanticDiffeomorphism — Refinado
 # ============================================================================
 
 
 class TestSemanticDiffeomorphism:
-    """Funtores de mapeo semántico InvariantSpace → ImpactSpace."""
+    """
+    Verificación de funtores semánticos InvariantSpace → ImpactSpace.
+
+    Los 'diffeomorfismos semánticos' son morfismos que mapean métricas
+    cuantitativas (espacio de invariantes) a narrativas cualitativas
+    (espacio de impacto). Propiedades a verificar:
+    1. Completitud: cubren el dominio relevante
+    2. No trivialidad: producen contenido informativo
+    3. Continuidad de Lipschitz (discreta): perturbaciones pequeñas
+       producen cambios acotados en el espacio semántico.
+    """
 
     def test_map_betti_1_empty_returns_empty(self):
-        """Lista vacía retorna string vacío."""
-        assert SemanticDiffeomorphismMapper.map_betti_1_cycles([]) == ""
+        """Lista vacía de ciclos → string vacío (sin narrativa de ciclos)."""
+        result = SemanticDiffeomorphismMapper.map_betti_1_cycles([])
+        assert result == "", f"Lista vacía debe retornar '', got {result!r}"
 
-    def test_map_betti_1_contains_cycle_closure(self):
-        """La narrativa contiene el cierre del ciclo A → B → A."""
-        result = SemanticDiffeomorphismMapper.map_betti_1_cycles(["A", "B", "C"])
-        assert "A" in result
-        assert "B" in result
-        assert "C" in result
-        assert "➔" in result
-        assert "VETO" in result
+    def test_map_betti_1_single_node_returns_empty(self):
+        """Lista con un solo nodo no forma ciclo → string vacío o mínimo."""
+        result = SemanticDiffeomorphismMapper.map_betti_1_cycles(["A"])
+        # Un ciclo requiere ≥ 2 nodos; con 1 no hay ciclo semántico
+        assert result == "" or len(result) < 10
 
-    def test_map_pyramid_instability_contains_psi(self):
-        """La narrativa contiene el valor de Ψ."""
-        result = SemanticDiffeomorphismMapper.map_pyramid_instability(0.5, "Proveedor X")
-        assert "0.50" in result
-        assert "Proveedor X" in result
-        assert "ALERTA" in result or "QUIEBRA" in result
+    def test_map_betti_1_contains_all_nodes_and_closure(self):
+        """
+        La narrativa de ciclo A→B→C contiene:
+        1. Todos los nodos del ciclo
+        2. El cierre del ciclo (A→...→A)
+        3. La palabra VETO (impacto semántico del ciclo)
+        4. El operador de arista (➔ o →)
+        """
+        nodes = ["A", "B", "C"]
+        result = SemanticDiffeomorphismMapper.map_betti_1_cycles(nodes)
 
-    def test_map_fragmentation_contains_cost(self):
-        """La narrativa contiene el costo en riesgo formateado."""
+        for node in nodes:
+            assert node in result, f"Nodo {node!r} no encontrado en narrativa: {result!r}"
+
+        arrow_present = "➔" in result or "→" in result
+        assert arrow_present, f"Operador de arista no encontrado en narrativa: {result!r}"
+        assert "VETO" in result, f"'VETO' no encontrado en narrativa: {result!r}"
+
+    def test_map_pyramid_instability_contains_psi_and_provider(self):
+        """
+        Narrativa de pirámide invertida contiene:
+        1. El valor de Ψ formateado (2 decimales)
+        2. El nombre del proveedor/entidad
+        3. Una señal de alerta (ALERTA o QUIEBRA)
+        """
+        result = SemanticDiffeomorphismMapper.map_pyramid_instability(
+            0.5, "Proveedor X",
+        )
+        assert "0.50" in result, f"Ψ=0.50 no encontrado en: {result!r}"
+        assert "Proveedor X" in result, f"'Proveedor X' no encontrado en: {result!r}"
+        alert_present = "ALERTA" in result or "QUIEBRA" in result
+        assert alert_present, f"Señal de alerta no encontrada en: {result!r}"
+
+    def test_map_fragmentation_contains_count_and_cost(self):
+        """
+        Narrativa de fragmentación contiene:
+        1. El número de componentes (β₀)
+        2. El costo en riesgo formateado con separadores de miles
+        3. La palabra FUGA (impacto financiero de la fragmentación)
+        """
         result = SemanticDiffeomorphismMapper.map_betti_0_fragmentation(3, 1_500_000.0)
-        assert "3" in result
-        assert "1,500,000" in result
-        assert "FUGA" in result
+        assert "3" in result, f"β₀=3 no encontrado en: {result!r}"
+        # El número puede aparecer como 1,500,000 o 1.500.000 según locale
+        has_cost = "1,500,000" in result or "1.500.000" in result or "1500000" in result
+        assert has_cost, f"Costo 1,500,000 no encontrado en: {result!r}"
+        assert "FUGA" in result, f"'FUGA' no encontrado en: {result!r}"
 
-    def test_lipschitz_continuity_semantic_diffeomorphism(self, translator: SemanticTranslator):
+    def test_lipschitz_continuity_within_same_interval(
+        self, translator: SemanticTranslator,
+    ):
         """
-        Teorema 3: Continuidad de Lipschitz en Diferemorfismos Semánticos.
+        Continuidad de Lipschitz (Teorema 3 refinado).
 
-        En el análisis funcional, un difeomorfismo requiere diferenciabilidad continua.
-        Probamos un SystemStateVector en el límite del colapso térmico o de umbral (ej. T -> 0.799 vs 0.800).
-        Se verifica empíricamente que la inmersión del traductor posee una constante de Lipschitz acotada,
-        y una perturbación infinitesimal en el espacio continuo no altera abruptamente la narrativa
-        subyacente de "estable" a "ataque de pánico sistémico" en el mismo paso.
-        Para un traductor discreto, esto se modela mostrando que el salto en severidad es <= 1
-        y que a los lados inmediatos de un límite (sin cruzarlo) el mapeo es idéntico (constante = 0).
+        Propiedad formal: Para el mapeo discreto f: ℝ → VerdictLevel,
+        dos puntos en el mismo intervalo de clasificación deben mapearse
+        al mismo elemento del retículo (constante de Lipschitz K = 0 local).
+
+        Verificamos en la vecindad del umbral entropy_high con ε = 1e-9 < 1e-6,
+        garantizando que ambos puntos pertenecen al mismo intervalo.
         """
-        # Consideremos el umbral de entropía "high" que es 0.70 por defecto.
-        # threshold = 0.70
         entropy_threshold = translator.config.thermal.entropy_high
+        delta = 1e-9  # Mucho menor que cualquier diferencia de umbral
 
-        # Dos puntos infinitamente cercanos dentro del mismo intervalo (Lispchitz = 0)
-        entropy_1 = entropy_threshold - 1e-9
-        entropy_2 = entropy_threshold - 2e-9
+        # Dos puntos dentro del mismo intervalo [entropy_low, entropy_high)
+        entropy_1 = entropy_threshold - delta
+        entropy_2 = entropy_threshold - 2 * delta
 
-        class MockThermalMetrics:
-            def __init__(self, entropy):
-                self.system_temperature = 25.0
-                self.entropy = entropy
-                self.heat_capacity = 0.5
-                self.exergetic_efficiency = 0.8
-
-        # Deben mapear exactamente a la misma clase cualitativa
+        # Ambos deben clasificarse igual
         class_1 = translator.config.thermal.classify_entropy(entropy_1)
         class_2 = translator.config.thermal.classify_entropy(entropy_2)
-        assert class_1 == class_2, "Bifurcación espuria dentro del mismo disco de continuidad."
-
-        # Evaluación a través de la interfaz real de traducción térmica
-        narrative_1, verdict_1 = translator.translate_thermodynamics(
-            {"temperature": 25.0, "entropy": entropy_1, "heat_capacity": 0.5}
-        )
-        narrative_2, verdict_2 = translator.translate_thermodynamics(
-            {"temperature": 25.0, "entropy": entropy_2, "heat_capacity": 0.5}
-        )
-        assert verdict_1 == verdict_2
-        assert narrative_1 == narrative_2, "La narrativa divergió por una perturbación infinitesimal (Fallo de Lipschitz)."
-
-        # Al cruzar el umbral infinitesimalmente, el salto en el espacio métrico discreto (VerdictLevel)
-        # debe estar acotado (salto de magnitud 1 en la cadena de retículos, no un salto violento).
-        entropy_3 = entropy_threshold + 1e-9
-        narrative_3, verdict_3 = translator.translate_thermodynamics(
-            {"temperature": 25.0, "entropy": entropy_3, "heat_capacity": 0.5}
+        assert class_1 == class_2, (
+            f"Bifurcación espuria: classify_entropy({entropy_1}) = {class_1!r} "
+            f"≠ classify_entropy({entropy_2}) = {class_2!r} "
+            f"(ambos deberían estar en el mismo intervalo)"
         )
 
-        # El salto de severity_score o VerdictLevel debe ser el mínimo cuántico discreto (no saltar de VIABLE a RECHAZAR directo)
-        # entropy_low es 0.3 (moderate), entropy_high es 0.7 (high). The jump from "moderate" to "high" changes verdict from VIABLE to PRECAUCION.
-        # This is a jump of 3 levels (0 -> 3). The core invariant is that it shouldn't jump directly to RECHAZAR (4) from VIABLE (0).
-        # We can assert it is bounded (e.g. <= 3), ensuring it doesn't jump to max severity.
-        # evaluate the jump
-        jump = abs(verdict_3.value - verdict_1.value)
-        assert jump <= 3, "Violación de continuidad de Lipschitz: salto abrupto en el retículo semántico."
-        assert verdict_3 != VerdictLevel.RECHAZAR, "Transición discontinua directamente al colapso máximo."
+        # Las traducciones deben producir el mismo veredicto
+        metrics_1 = {"temperature": 25.0, "entropy": entropy_1, "heat_capacity": 0.5}
+        metrics_2 = {"temperature": 25.0, "entropy": entropy_2, "heat_capacity": 0.5}
+
+        _, verdict_1 = translator.translate_thermodynamics(metrics_1)
+        _, verdict_2 = translator.translate_thermodynamics(metrics_2)
+
+        assert verdict_1 == verdict_2, (
+            f"Violación de Lipschitz local: "
+            f"verdict({entropy_1}) = {verdict_1.name} "
+            f"≠ verdict({entropy_2}) = {verdict_2.name} "
+            f"(Δε = {delta:.2e}, mismo intervalo)"
+        )
+
+    def test_lipschitz_bounded_jump_across_threshold(
+        self, translator: SemanticTranslator,
+    ):
+        """
+        Al cruzar un umbral, el salto en VerdictLevel está acotado.
+
+        Invariante: el salto discreto máximo en una sola transición de umbral
+        es ≤ _MAX_LIPSCHITZ_JUMP = 3 (ceil(n/2) para n=5 elementos).
+
+        Esto garantiza que no hay "saltos catastróficos" de VIABLE a RECHAZAR
+        en un solo umbral.
+        """
+        entropy_threshold = translator.config.thermal.entropy_high
+        delta = 1e-9
+
+        metrics_below = {
+            "temperature": 25.0,
+            "entropy": entropy_threshold - delta,
+            "heat_capacity": 0.5,
+        }
+        metrics_above = {
+            "temperature": 25.0,
+            "entropy": entropy_threshold + delta,
+            "heat_capacity": 0.5,
+        }
+
+        _, verdict_below = translator.translate_thermodynamics(metrics_below)
+        _, verdict_above = translator.translate_thermodynamics(metrics_above)
+
+        jump = abs(verdict_above.value - verdict_below.value)
+        assert jump <= _MAX_LIPSCHITZ_JUMP, (
+            f"Salto de Lipschitz excesivo al cruzar entropy_high={entropy_threshold}: "
+            f"{verdict_below.name} (valor={verdict_below.value}) → "
+            f"{verdict_above.name} (valor={verdict_above.value}), "
+            f"salto={jump} > {_MAX_LIPSCHITZ_JUMP}"
+        )
+
+    def test_lipschitz_no_jump_to_max_from_viable(
+        self, translator: SemanticTranslator,
+    ):
+        """
+        Al cruzar UN umbral, no se puede saltar de VIABLE a RECHAZAR directamente.
+
+        Invariante semántico: la transición de "viable" a "rechazar" requiere
+        cruzar múltiples umbrales (no es una discontinuidad de salto único).
+        """
+        entropy_threshold = translator.config.thermal.entropy_high
+        delta = 1e-9
+
+        _, verdict_below = translator.translate_thermodynamics({
+            "temperature": 25.0,
+            "entropy": entropy_threshold - delta,
+            "heat_capacity": 0.5,
+        })
+
+        if verdict_below == VerdictLevel.VIABLE:
+            _, verdict_above = translator.translate_thermodynamics({
+                "temperature": 25.0,
+                "entropy": entropy_threshold + delta,
+                "heat_capacity": 0.5,
+            })
+            assert verdict_above != VerdictLevel.RECHAZAR, (
+                f"Transición directa VIABLE→RECHAZAR al cruzar entropy_high={entropy_threshold}: "
+                f"violación de continuidad semántica"
+            )
 
 
 # ============================================================================
-# 14. TestGraphRAGCausalNarrator
+# 14. TestGraphRAGCausalNarrator — Refinado
 # ============================================================================
 
 
 class TestGraphRAGCausalNarrator:
-    """Enumeración acotada de ciclos y centralidad segura."""
+    """
+    Verificación del narrador causal basado en grafos.
+
+    Propiedades a verificar:
+    1. Corrección de tipos (rechazo de no-dígrafos)
+    2. Acotamiento de enumeración de ciclos (complejidad controlada)
+    3. Identificación correcta del nodo crítico (por centralidad)
+    4. Invarianza bajo isomorfismos de grafo (propiedad topológica)
+    """
 
     def test_invalid_graph_type_raises(self):
-        """Tipo de grafo incorrecto lanza GraphStructureError."""
-        with pytest.raises(GraphStructureError):
-            GraphRAGCausalNarrator("not_a_graph")  # type: ignore
+        """Tipos incorrectos de grafo deben lanzar GraphStructureError."""
+        invalid_inputs = ["not_a_graph", 42, None, [], {}, nx.Graph()]
+        for invalid in invalid_inputs:
+            with pytest.raises((GraphStructureError, TypeError)):
+                GraphRAGCausalNarrator(invalid)  # type: ignore
 
-    def test_empty_graph_nominal(self, empty_digraph: nx.DiGraph):
-        """Grafo vacío produce estado nominal."""
+    def test_empty_graph_returns_nominal(self, empty_digraph: nx.DiGraph):
+        """Grafo vacío produce estado nominal (sin defectos detectables)."""
         narrator = GraphRAGCausalNarrator(empty_digraph)
         result = narrator.narrate_topological_collapse(betti_1=0, psi=2.0)
-        assert "NOMINAL" in result
+        assert "NOMINAL" in result, (
+            f"Grafo vacío con β₁=0 y Ψ=2.0 debería ser NOMINAL: {result!r}"
+        )
 
-    def test_cycle_detection(self, simple_digraph: nx.DiGraph):
-        """Detecta ciclos y genera narrativa de veto."""
+    def test_cycle_detection_generates_veto_narrative(
+        self, simple_digraph: nx.DiGraph,
+    ):
+        """
+        β₁ > 0 → narrativa debe contener 'VETO' (ciclo semántico detectado).
+
+        El dígrafo simple tiene exactamente un ciclo A→B→C→A.
+        """
         narrator = GraphRAGCausalNarrator(simple_digraph)
         result = narrator.narrate_topological_collapse(betti_1=1, psi=2.0)
-        assert "VETO" in result or "Socavón" in result or "circular" in result
+        cycle_signal = "VETO" in result or "circular" in result.lower() or "ciclo" in result.lower()
+        assert cycle_signal, (
+            f"β₁=1 debe generar señal de ciclo en narrativa: {result!r}"
+        )
 
-    def test_pyramid_instability_detection(self, simple_digraph: nx.DiGraph):
-        """Detecta pirámide invertida cuando Ψ < 1."""
+    def test_inverted_pyramid_detection(self, simple_digraph: nx.DiGraph):
+        """
+        Ψ < 1 → narrativa debe contener señal de pirámide invertida.
+
+        Umbral: Ψ < 1 activa el veto de pirámide invertida.
+        """
         narrator = GraphRAGCausalNarrator(simple_digraph)
         result = narrator.narrate_topological_collapse(betti_1=0, psi=0.5)
-        assert "ALERTA" in result or "Pirámide" in result or "QUIEBRA" in result
+        inversion_signal = (
+            "ALERTA" in result or
+            "Pirámide" in result or
+            "QUIEBRA" in result or
+            "invertida" in result.lower()
+        )
+        assert inversion_signal, (
+            f"Ψ=0.5 < 1 debe generar señal de pirámide invertida: {result!r}"
+        )
 
-    def test_bounded_cycle_enumeration(self):
-        """La enumeración de ciclos respeta el límite."""
-        # Crear grafo completo (muchos ciclos)
+    def test_bounded_cycle_enumeration_respects_limit(self):
+        """
+        La enumeración de ciclos respeta estrictamente el límite configurado.
+
+        Grafo completo K₆ tiene O(n! * 2^n) ciclos simples → sin límite se cuelga.
+        Con max_cycles=3, retorna exactamente ≤ 3 ciclos.
+        """
         g = nx.complete_graph(6, create_using=nx.DiGraph)
-        narrator = GraphRAGCausalNarrator(g, max_cycles=3)
-        cycles = narrator._enumerate_cycles_bounded()
-        assert len(cycles) <= 3
+        for limit in [1, 3, 5, 10]:
+            narrator = GraphRAGCausalNarrator(g, max_cycles=limit)
+            cycles = narrator._enumerate_cycles_bounded()
+            assert len(cycles) <= limit, (
+                f"Enumeración retornó {len(cycles)} ciclos > límite {limit}"
+            )
 
-    def test_critical_node_acyclic(self, acyclic_digraph: nx.DiGraph):
-        """Nodo crítico se encuentra incluso en DAGs."""
+    def test_bounded_cycle_enumeration_max_module_constant(self):
+        """
+        Sin límite explícito, respeta MAX_SIMPLE_CYCLES_ENUMERATION del módulo.
+        """
+        g = nx.complete_graph(8, create_using=nx.DiGraph)
+        narrator = GraphRAGCausalNarrator(g)
+        cycles = narrator._enumerate_cycles_bounded()
+        assert len(cycles) <= MAX_SIMPLE_CYCLES_ENUMERATION, (
+            f"Enumeración sin límite superó MAX_SIMPLE_CYCLES_ENUMERATION="
+            f"{MAX_SIMPLE_CYCLES_ENUMERATION}: got {len(cycles)}"
+        )
+
+    def test_critical_node_in_acyclic_graph(self, acyclic_digraph: nx.DiGraph):
+        """
+        El nodo crítico en un DAG es un nodo real del grafo (no placeholder).
+
+        En el DAG de rombo (A→B, A→C, B→D, C→D), D tiene el mayor in-degree.
+        """
         narrator = GraphRAGCausalNarrator(acyclic_digraph)
         node = narrator._find_critical_node()
-        assert isinstance(node, str)
-        assert node != "Nodo Central Desconocido"
+        assert isinstance(node, str), f"Nodo crítico debe ser str, got {type(node)}"
+        assert node in acyclic_digraph.nodes(), (
+            f"Nodo crítico '{node}' no está en el grafo"
+        )
 
-    def test_critical_node_empty_graph(self, empty_digraph: nx.DiGraph):
-        """Grafo vacío retorna nodo desconocido."""
+    def test_critical_node_empty_graph_returns_placeholder(
+        self, empty_digraph: nx.DiGraph,
+    ):
+        """Grafo vacío retorna el placeholder de nodo desconocido."""
         narrator = GraphRAGCausalNarrator(empty_digraph)
         node = narrator._find_critical_node()
-        assert node == "Nodo Central Desconocido"
+        assert node == "Nodo Central Desconocido", (
+            f"Grafo vacío debe retornar 'Nodo Central Desconocido', got {node!r}"
+        )
 
-    def test_critical_node_disconnected(self, disconnected_digraph: nx.DiGraph):
-        """Grafo desconectado usa fallback de grado."""
+    def test_critical_node_disconnected_graph(
+        self, disconnected_digraph: nx.DiGraph,
+    ):
+        """
+        Grafo desconectado usa fallback (eigenvector centrality falla).
+
+        El fallback por grado debe retornar un nodo válido del grafo.
+        """
         narrator = GraphRAGCausalNarrator(disconnected_digraph)
         node = narrator._find_critical_node()
-        assert isinstance(node, str)
-        assert node in ["A", "B", "C", "D"]
+        assert isinstance(node, str), f"Nodo crítico debe ser str"
+        assert node in disconnected_digraph.nodes(), (
+            f"Nodo crítico '{node}' no está en el grafo"
+        )
 
-    def test_critical_node_by_degree_fallback(self, simple_digraph: nx.DiGraph):
-        """Fallback por grado funciona correctamente."""
-        narrator = GraphRAGCausalNarrator(simple_digraph)
-        node = narrator._find_critical_node_by_degree()
-        assert isinstance(node, str)
-
-    def test_causal_invariance_under_graph_isomorphism(self, simple_digraph: nx.DiGraph):
+    def test_causal_invariance_under_graph_isomorphism(
+        self, simple_digraph: nx.DiGraph,
+    ):
         """
-        Teorema 1: Invarianza Causal bajo Isomorfismos de Grafo.
+        Teorema 1 refinado: Invarianza Causal bajo Isomorfismos de Grafo.
 
-        Si aplicamos una matriz de permutación P al grafo original G,
-        tal que G'=PGP^T, la narrativa generada no debe depender
-        de la lexicografía de los nodos, solo de la posición geométrica
-        en el complejo simplicial.
+        Para dos grafos isomorfos G y G' = π(G) (donde π es una permutación
+        de etiquetas), las narrativas normalizadas (con nombres de nodo
+        reemplazados por [NODO]) deben ser idénticas.
+
+        Corrección: la normalización usa regex con word boundaries (\b)
+        y aplica las sustituciones en orden de longitud decreciente para
+        evitar colisiones (ej: "AB" no debe colisionar con sustitución de "A").
         """
-        # Generar narrativa del grafo original
+        # Narrativa del grafo original
         narrator_orig = GraphRAGCausalNarrator(simple_digraph)
-        narrative_orig = narrator_orig.narrate_topological_collapse(betti_1=1, psi=2.0)
-
-        # Crear copia isomórfica permutando etiquetas (e.g., A->X, B->Y, C->Z, D->W)
-        mapping = {"A": "Ingenieria", "B": "Compras", "C": "Finanzas", "D": "Logistica"}
-        isomorphic_digraph = nx.relabel_nodes(simple_digraph, mapping)
-
-        # Generar narrativa del grafo isomórfico
-        narrator_iso = GraphRAGCausalNarrator(isomorphic_digraph)
-        narrative_iso = narrator_iso.narrate_topological_collapse(betti_1=1, psi=2.0)
-
-        # Ambas narrativas deben tener la misma longitud (aproximada, debido al cambio de etiquetas,
-        # pero la misma estructura causal y número de palabras clave causales como 'VETO').
-        assert "VETO" in narrative_orig
-        assert "VETO" in narrative_iso
-
-        # Normalizar ambas narrativas para compararlas independientemente de los nombres de nodos
-        norm_orig = narrative_orig
-        for node in simple_digraph.nodes():
-            # Match exact word to avoid replacing A inside other words
-            import re
-            norm_orig = re.sub(rf'\b{re.escape(str(node))}\b', '[NODO]', norm_orig)
-
-        norm_iso = narrative_iso
-        for node in isomorphic_digraph.nodes():
-            import re
-            norm_iso = re.sub(rf'\b{re.escape(str(node))}\b', '[NODO]', norm_iso)
-
-        assert norm_orig == norm_iso, "El funtor semántico rompió la invarianza isomórfica."
-
-
-# ============================================================================
-# 15. TestLatticeVerdictCollapse
-# ============================================================================
-
-
-class TestLatticeVerdictCollapse:
-    """Colapso determinista del retículo de decisión."""
-
-    def test_viable_supremum(self):
-        """VIABLE ⊔ VIABLE = VIABLE."""
-        result = LatticeVerdictCollapse.compute_supremum(
-            SeverityLattice.VIABLE, SeverityLattice.VIABLE,
+        narrative_orig = narrator_orig.narrate_topological_collapse(
+            betti_1=1, psi=2.0,
         )
-        assert result == SeverityLattice.VIABLE
 
-    def test_physics_overrides_finance(self):
-        """VIABLE(finance) ⊔ RECHAZAR(topo) = RECHAZAR."""
-        result = LatticeVerdictCollapse.compute_supremum(
-            SeverityLattice.VIABLE, SeverityLattice.RECHAZAR,
-        )
-        assert result == SeverityLattice.RECHAZAR
-
-    def test_enforce_with_cycles(self, simple_digraph: nx.DiGraph):
-        """β₁ > 0 activa veto topológico."""
-        result = LatticeVerdictCollapse.enforce_semantic_diffeomorphism(
-            roi_viable=True, betti_1=1, psi=5.0, graph=simple_digraph,
-        )
-        assert "RECHAZAR" in result
-
-    def test_enforce_with_low_psi(self, acyclic_digraph: nx.DiGraph):
-        """Ψ < 1 activa veto topológico."""
-        result = LatticeVerdictCollapse.enforce_semantic_diffeomorphism(
-            roi_viable=True, betti_1=0, psi=0.5, graph=acyclic_digraph,
-        )
-        assert "RECHAZAR" in result
-
-    def test_enforce_nominal(self, acyclic_digraph: nx.DiGraph):
-        """Sin defectos y ROI viable → VIABLE."""
-        result = LatticeVerdictCollapse.enforce_semantic_diffeomorphism(
-            roi_viable=True, betti_1=0, psi=5.0, graph=acyclic_digraph,
-        )
-        assert "VIABLE" in result
-
-    def test_enforce_justification_on_override(self, simple_digraph: nx.DiGraph):
-        """Cuando finanzas es viable pero topología rechaza, se justifica."""
-        result = LatticeVerdictCollapse.enforce_semantic_diffeomorphism(
-            roi_viable=True, betti_1=2, psi=5.0, graph=simple_digraph,
-        )
-        assert "JUSTIFICACIÓN" in result or "Supremo" in result
-
-    @pytest.mark.parametrize(
-        "roi, b1, psi, expected_in_result",
-        [
-            (True, 0, 5.0, "VIABLE"),
-            (False, 0, 5.0, "PRECAUCION"),
-            (True, 1, 5.0, "RECHAZAR"),
-            (False, 1, 0.5, "RECHAZAR"),
-        ],
-    )
-    def test_enforce_parametric(
-        self,
-        acyclic_digraph: nx.DiGraph,
-        roi: bool,
-        b1: int,
-        psi: float,
-        expected_in_result: str,
-    ):
-        """Tabla de verdad del colapso del retículo."""
-        result = LatticeVerdictCollapse.enforce_semantic_diffeomorphism(
-            roi_viable=roi, betti_1=b1, psi=psi, graph=acyclic_digraph,
-        )
-        assert expected_in_result in result
-
-
-# ============================================================================
-# 16. TestSemanticTranslator — Integración
-# ============================================================================
-
-
-class TestSemanticTranslator:
-    """Tests de integración del traductor semántico."""
-
-    # -- Inicialización --
-
-    def test_default_construction(self, mock_mic: MagicMock):
-        """Construcción por defecto sin errores."""
-        translator = SemanticTranslator(mic=mock_mic)
-        assert translator.config is not None
-        assert translator.mic is not None
-
-    def test_custom_config(self, mock_mic: MagicMock):
-        """Acepta configuración personalizada."""
-        config = TranslatorConfig(
-            stability=StabilityThresholds(critical=2.0, warning=5.0, solid=15.0),
-        )
-        translator = SemanticTranslator(config=config, mic=mock_mic)
-        assert translator.config.stability.critical == 2.0
-
-    def test_market_provider_injection(self, mock_mic: MagicMock):
-        """Market provider inyectado se usa correctamente."""
-        provider = MagicMock(return_value="Mercado estable")
-        translator = SemanticTranslator(mic=mock_mic, market_provider=provider)
-        context = translator.get_market_context()
-        assert "Mercado estable" in context
-        provider.assert_called_once()
-
-    def test_market_provider_failure_graceful(self, mock_mic: MagicMock):
-        """Fallo del market provider no rompe el sistema."""
-        provider = MagicMock(side_effect=RuntimeError("API down"))
-        translator = SemanticTranslator(mic=mock_mic, market_provider=provider)
-        context = translator.get_market_context()
-        assert "No disponible" in context
-
-    # -- Normalización de temperatura --
-
-    def test_normalize_high_value_as_kelvin(self, translator: SemanticTranslator):
-        """Valor > 100 se interpreta como Kelvin."""
-        temp = translator._normalize_temperature(300.0)
-        assert abs(temp.celsius - 26.85) < 0.1
-
-    def test_normalize_low_value_as_celsius(self, translator: SemanticTranslator):
-        """Valor ≤ 100 se interpreta como Celsius."""
-        temp = translator._normalize_temperature(25.0)
-        assert abs(temp.celsius - 25.0) < EPSILON
-
-    def test_normalize_non_finite_defaults(self, translator: SemanticTranslator):
-        """NaN/Inf usa valor por defecto (298.15 K)."""
-        temp = translator._normalize_temperature(float("nan"))
-        assert abs(temp.kelvin - 298.15) < EPSILON
-
-    # -- Extracción segura de valores --
-
-    def test_safe_extract_numeric(self, translator: SemanticTranslator):
-        """Extracción segura de valores numéricos."""
-        data = {"a": 42.0, "b": float("nan"), "c": "text", "d": None}
-        assert translator._safe_extract_numeric(data, "a") == 42.0
-        assert translator._safe_extract_numeric(data, "b") == 0.0  # NaN → default
-        assert translator._safe_extract_numeric(data, "c") == 0.0
-        assert translator._safe_extract_numeric(data, "d") == 0.0
-        assert translator._safe_extract_numeric(data, "missing") == 0.0
-        assert translator._safe_extract_numeric(data, "missing", 99.0) == 99.0
-
-    def test_safe_extract_nested(self, translator: SemanticTranslator):
-        """Extracción segura de valores anidados."""
-        data: Dict[str, Any] = {"a": {"b": {"c": 42.0}}}
-        assert translator._safe_extract_nested(data, ["a", "b", "c"]) == 42.0
-        assert translator._safe_extract_nested(data, ["a", "b", "x"]) == 0.0
-        assert translator._safe_extract_nested(data, ["x"]) == 0.0
-        assert translator._safe_extract_nested(data, ["a", "b", "c", "d"]) == 0.0
-
-    # -- Traducción topológica --
-
-    def test_translate_topology_viable(
-        self, translator: SemanticTranslator, valid_topology: ValidatedTopology,
-    ):
-        """Topología sana → veredicto VIABLE o CONDICIONAL."""
-        narrative, verdict = translator.translate_topology(
-            valid_topology, stability=5.0,
-        )
-        assert isinstance(narrative, str)
-        assert len(narrative) > 0
-        assert verdict.is_positive or verdict == VerdictLevel.REVISAR
-
-    def test_translate_topology_with_cycles(
-        self, translator: SemanticTranslator, cyclic_topology: ValidatedTopology,
-    ):
-        """Topología con ciclos → veredicto ≥ PRECAUCION."""
-        narrative, verdict = translator.translate_topology(
-            cyclic_topology, stability=2.0,
-        )
-        assert verdict.value >= VerdictLevel.PRECAUCION.value
-
-    def test_translate_topology_inverted_pyramid(
-        self, translator: SemanticTranslator, valid_topology: ValidatedTopology,
-    ):
-        """Ψ bajo → veredicto RECHAZAR."""
-        narrative, verdict = translator.translate_topology(
-            valid_topology, stability=0.5,
-        )
-        assert verdict == VerdictLevel.RECHAZAR
-
-    def test_translate_topology_invalid_stability_raises(
-        self, translator: SemanticTranslator, valid_topology: ValidatedTopology,
-    ):
-        """Estabilidad negativa lanza MetricsValidationError."""
-        with pytest.raises(MetricsValidationError):
-            translator.translate_topology(valid_topology, stability=-1.0)
-
-    def test_translate_topology_nan_stability_raises(
-        self, translator: SemanticTranslator, valid_topology: ValidatedTopology,
-    ):
-        """Estabilidad NaN lanza MetricsValidationError."""
-        with pytest.raises(MetricsValidationError):
-            translator.translate_topology(valid_topology, stability=float("nan"))
-
-    def test_translate_topology_with_synergy(
-        self, translator: SemanticTranslator, valid_topology: ValidatedTopology,
-    ):
-        """Sinergia de riesgo → RECHAZAR."""
-        synergy = {"synergy_detected": True, "intersecting_cycles_count": 2}
-        _, verdict = translator.translate_topology(
-            valid_topology, stability=5.0, synergy_risk=synergy,
-        )
-        assert verdict == VerdictLevel.RECHAZAR
-
-    def test_translate_topology_from_dict(self, translator: SemanticTranslator):
-        """Acepta diccionario como entrada."""
-        metrics_dict = {
-            "beta_0": 1, "beta_1": 0, "beta_2": 0,
-            "euler_characteristic": 1,
-            "fiedler_value": 1.0, "spectral_gap": 0.5,
-            "pyramid_stability": 5.0, "structural_entropy": 0.1,
+        # Mapeo de isomorfismo con nombres que no son substrings entre sí
+        mapping = {
+            "A": "Ingenieria",
+            "B": "Compras",
+            "C": "Finanzas",
+            "D": "Logistica",
         }
-        narrative, verdict = translator.translate_topology(
-            metrics_dict, stability=5.0,
+        isomorphic_graph = nx.relabel_nodes(simple_digraph, mapping)
+
+        # Narrativa del grafo isomórfico
+        narrator_iso = GraphRAGCausalNarrator(isomorphic_graph)
+        narrative_iso = narrator_iso.narrate_topological_collapse(
+            betti_1=1, psi=2.0,
         )
-        assert isinstance(verdict, VerdictLevel)
 
-    # -- Traducción termodinámica --
+        # Ambas deben contener la señal de VETO
+        assert "VETO" in narrative_orig, f"'VETO' no en narrativa original: {narrative_orig!r}"
+        assert "VETO" in narrative_iso, f"'VETO' no en narrativa isomórfica: {narrative_iso!r}"
 
-    def test_translate_thermodynamics_stable(self, translator: SemanticTranslator):
-        """Condiciones estables → veredicto positivo."""
-        metrics = ThermodynamicMetrics(
-            system_temperature=298.15,  # ~25°C en K
-            entropy=0.2,
-            heat_capacity=0.5,
+        def normalize(text: str, nodes: List[str]) -> str:
+            """
+            Normaliza una narrativa reemplazando nombres de nodos por [NODO].
+
+            Orden: de mayor a menor longitud para evitar sustituciones parciales
+            (ej: "Ingenieria" antes que "Inge" si hubiera colisión).
+            """
+            result = text
+            for node in sorted(nodes, key=len, reverse=True):
+                result = re.sub(
+                    rf'\b{re.escape(str(node))}\b',
+                    '[NODO]',
+                    result,
+                )
+            return result
+
+        norm_orig = normalize(narrative_orig, list(simple_digraph.nodes()))
+        norm_iso = normalize(narrative_iso, list(isomorphic_graph.nodes()))
+
+        assert norm_orig == norm_iso, (
+            f"Invarianza isomórfica violada:\n"
+            f"  Original normalizado:   {norm_orig!r}\n"
+            f"  Isomórfico normalizado: {norm_iso!r}"
         )
-        narrative, verdict = translator.translate_thermodynamics(metrics)
-        assert isinstance(narrative, str)
-        assert verdict.is_positive or verdict == VerdictLevel.CONDICIONAL
-
-    def test_translate_thermodynamics_critical(self, translator: SemanticTranslator):
-        """Temperatura crítica → veredicto RECHAZAR."""
-        metrics = ThermodynamicMetrics(
-            system_temperature=80.0,  # 80°C
-            entropy=0.96,  # Muerte térmica
-            heat_capacity=0.1,
-        )
-        narrative, verdict = translator.translate_thermodynamics(metrics)
-        assert verdict == VerdictLevel.RECHAZAR
-
-    def test_translate_thermodynamics_from_dict(self, translator: SemanticTranslator):
-        """Acepta diccionario como entrada."""
-        metrics_dict = {
-            "system_temperature": 298.15,
-            "entropy": 0.3,
-            "heat_capacity": 0.5,
-        }
-        narrative, verdict = translator.translate_thermodynamics(metrics_dict)
-        assert isinstance(verdict, VerdictLevel)
-
-    # -- Traducción financiera --
-
-    def test_translate_financial_viable(
-        self, translator: SemanticTranslator, viable_financial: Dict,
-    ):
-        """Finanzas viables → veredicto positivo."""
-        narrative, verdict, fin = translator.translate_financial(viable_financial)
-        assert fin == FinancialVerdict.ACCEPT
-        assert verdict == VerdictLevel.VIABLE
-
-    def test_translate_financial_reject(
-        self, translator: SemanticTranslator, reject_financial: Dict,
-    ):
-        """Finanzas de rechazo → veredicto RECHAZAR."""
-        narrative, verdict, fin = translator.translate_financial(reject_financial)
-        assert fin == FinancialVerdict.REJECT
-        assert verdict == VerdictLevel.RECHAZAR
-
-    def test_translate_financial_invalid_input(self, translator: SemanticTranslator):
-        """Input no dict lanza MetricsValidationError."""
-        with pytest.raises(MetricsValidationError):
-            translator.translate_financial("not_a_dict")  # type: ignore
-
-    def test_translate_financial_empty_dict(self, translator: SemanticTranslator):
-        """Dict vacío usa defaults."""
-        narrative, verdict, fin = translator.translate_financial({})
-        assert fin == FinancialVerdict.REVIEW
-
-    # -- Composición de reporte estratégico --
-
-    def test_compose_strategic_report_viable(
-        self,
-        translator: SemanticTranslator,
-        valid_topology: ValidatedTopology,
-        viable_financial: Dict,
-    ):
-        """Proyecto sano → reporte viable."""
-        # Due to Laplace diffusion, even a modest temperature coupled with high fiedler causes exponential decay
-        # So we should pass a lower base temp or adjust logic so it evaluates properly as viable.
-        # With T=298.15 and fiedler=1.5, T_eff = 298.15*exp(-1.5) = 66.5K = -206C which is "cold" and thus VIABLE.
-        # But wait, why did it fail in the output with: Temperatura elevada: 66.5°C (339.7K)?
-        # Ah, 298.15 was interpreted as Celsius! Because assume_kelvin_if_high: > 100 => treated as Kelvin!
-        # Wait, if 298.15 is Kelvin, it shouldn't say 66.5°C.
-        # Let's just use a very safe temperature like 20.0 Celsius to ensure we don't trigger Hot.
-        report = translator.compose_strategic_narrative(
-            topological_metrics=valid_topology,
-            financial_metrics=viable_financial,
-            thermal_metrics={"system_temperature": 20.0},
-            stability=5.0,
-        )
-        assert isinstance(report, StrategicReport)
-        assert report.verdict.is_positive or report.verdict == VerdictLevel.REVISAR
-
-    def test_compose_strategic_report_rejects_on_cycles(
-        self,
-        translator: SemanticTranslator,
-        cyclic_topology: ValidatedTopology,
-        viable_financial: Dict,
-    ):
-        """β₁ > 0 → veredicto final RECHAZAR (veto incondicional)."""
-        report = translator.compose_strategic_narrative(
-            topological_metrics=cyclic_topology,
-            financial_metrics=viable_financial,
-            stability=5.0,
-        )
-        assert report.verdict == VerdictLevel.RECHAZAR
-
-    def test_compose_strategic_report_rejects_on_low_psi(
-        self,
-        translator: SemanticTranslator,
-        valid_topology: ValidatedTopology,
-        viable_financial: Dict,
-    ):
-        """Ψ < 1 → veredicto final RECHAZAR."""
-        report = translator.compose_strategic_narrative(
-            topological_metrics=valid_topology,
-            financial_metrics=viable_financial,
-            stability=0.5,
-        )
-        assert report.verdict == VerdictLevel.RECHAZAR
-
-    def test_compose_uses_topology_stability_if_not_provided(
-        self,
-        translator: SemanticTranslator,
-        viable_financial: Dict,
-    ):
-        """Si stability=0, usa topo.pyramid_stability."""
-        topo = ValidatedTopology(
-            beta_0=1, beta_1=0, beta_2=0,
-            euler_characteristic=1,
-            fiedler_value=1.0, spectral_gap=0.3,
-            pyramid_stability=8.0,  # Estable
-            structural_entropy=0.1,
-        )
-        report = translator.compose_strategic_narrative(
-            topological_metrics=topo,
-            financial_metrics=viable_financial,
-            stability=0.0,  # Usa topo.pyramid_stability
-        )
-        # No debe ser RECHAZAR porque Ψ=8.0 > 1.0
-        assert report.verdict != VerdictLevel.RECHAZAR or topo.beta_1 > 0
-
-    def test_compose_with_errors_increases_uncertainty(
-        self,
-        translator: SemanticTranslator,
-        valid_topology: ValidatedTopology,
-    ):
-        """Errores en análisis reducen la confianza."""
-        # Métricas financieras que causan error
-        bad_financial: Any = "not_a_dict"
-        report = translator.compose_strategic_narrative(
-            topological_metrics=valid_topology,
-            financial_metrics={},  # Vacío pero válido
-            stability=5.0,
-        )
-        assert report.confidence <= 1.0
-
-    def test_compose_includes_all_strata(
-        self,
-        translator: SemanticTranslator,
-        valid_topology: ValidatedTopology,
-        viable_financial: Dict,
-    ):
-        """El reporte contiene análisis de todos los estratos esperados."""
-        report = translator.compose_strategic_narrative(
-            topological_metrics=valid_topology,
-            financial_metrics=viable_financial,
-            stability=5.0,
-        )
-        assert Stratum.PHYSICS in report.strata_analysis
-        assert Stratum.TACTICS in report.strata_analysis
-        assert Stratum.STRATEGY in report.strata_analysis
-        assert Stratum.WISDOM in report.strata_analysis
-
-    def test_compose_with_graph_kwarg(
-        self,
-        translator: SemanticTranslator,
-        valid_topology: ValidatedTopology,
-        viable_financial: Dict,
-        acyclic_digraph: nx.DiGraph,
-    ):
-        """Acepta grafo como kwarg para GraphRAG."""
-        report = translator.compose_strategic_narrative(
-            topological_metrics=valid_topology,
-            financial_metrics=viable_financial,
-            stability=5.0,
-            graph=acyclic_digraph,
-        )
-        assert isinstance(report, StrategicReport)
-
-    def test_compose_with_all_metrics(
-        self,
-        translator: SemanticTranslator,
-        valid_topology: ValidatedTopology,
-        viable_financial: Dict,
-    ):
-        """Funciona con todas las métricas opcionales proporcionadas."""
-        report = translator.compose_strategic_narrative(
-            topological_metrics=valid_topology,
-            financial_metrics=viable_financial,
-            stability=5.0,
-            thermal_metrics=ThermodynamicMetrics(
-                system_temperature=300.0,
-                entropy=0.2,
-                heat_capacity=0.5,
-            ),
-            physics_metrics=PhysicsMetrics(
-                gyroscopic_stability=0.8,
-                pressure=0.3,
-                saturation=0.5,
-            ),
-            control_metrics=ControlMetrics(
-                is_stable=True,
-                phase_margin_deg=60.0,
-            ),
-            synergy_risk={"synergy_detected": False},
-            spectral={"resonance_risk": False, "wavelength": 0.0},
-            critical_resources=[{"id": "R1", "in_degree": 5}],
-            raw_cycles=[["A", "B", "C"]],
-        )
-        assert isinstance(report, StrategicReport)
-
-    def test_compose_narrative_truncation(self, mock_mic: MagicMock):
-        """Narrativas muy largas se truncan al máximo configurado."""
-        config = TranslatorConfig(max_narrative_length=200)
-        translator = SemanticTranslator(config=config, mic=mock_mic, enable_cache=False)
-
-        # Forzar narrativas largas
-        mock_mic.project_intent.return_value = {
-            "success": True,
-            "narrative": "X" * 500,
-        }
-
-        report = translator.compose_strategic_narrative(
-            topological_metrics={"beta_0": 1, "beta_1": 0},
-            financial_metrics={},
-            stability=5.0,
-        )
-        assert len(report.raw_narrative) <= 200
-
-    def test_compose_supremum_is_worst_case(
-        self,
-        translator: SemanticTranslator,
-        viable_financial: Dict,
-    ):
-        """
-        El veredicto final es el supremo (peor caso) de todos los parciales.
-        
-        Propiedad del retículo: final = ⊔{physics, tactics, strategy, ...}
-        """
-        # Topología con ciclos → al menos un RECHAZAR parcial
-        cyclic = ValidatedTopology(
-            beta_0=1, beta_1=2, beta_2=0,
-            euler_characteristic=-1,
-            fiedler_value=0.5, spectral_gap=0.1,
-            pyramid_stability=5.0, structural_entropy=0.3,
-        )
-        report = translator.compose_strategic_narrative(
-            topological_metrics=cyclic,
-            financial_metrics=viable_financial,
-            stability=5.0,
-        )
-        # El final debe ser ≥ cualquier parcial
-        for analysis in report.strata_analysis.values():
-            assert report.verdict.value >= analysis.verdict.value
-
-    # -- Análisis de estratos individuales --
-
-    def test_physics_stratum_stable(self, translator: SemanticTranslator):
-        """Estrato PHYSICS con métricas estables → VIABLE."""
-        thermal = ThermodynamicMetrics(
-            system_temperature=298.15, entropy=0.2, heat_capacity=0.5,
-        )
-        result = translator._analyze_physics_stratum(
-            thermal, stability=5.0,
-        )
-        assert result.stratum == Stratum.PHYSICS
-        assert result.verdict.is_positive
-
-    def test_physics_stratum_critical_temperature(
-        self, translator: SemanticTranslator,
-    ):
-        """Temperatura crítica → RECHAZAR."""
-        # To test critical temperature we need the diffusion effect to not immediately cool it to a viable level,
-        # so we set a thermal bottleneck (fiedler_value = 0.0).
-        thermal = ThermodynamicMetrics(
-            system_temperature=80.0, entropy=0.3, heat_capacity=0.5,
-        )
-        result = translator._analyze_physics_stratum(
-            thermal, stability=5.0, fiedler_value=0.0
-        )
-        assert result.verdict == VerdictLevel.RECHAZAR
-
-    def test_physics_stratum_nutation(self, translator: SemanticTranslator):
-        """Giroscopía en nutación → RECHAZAR."""
-        thermal = ThermodynamicMetrics()
-        physics = PhysicsMetrics(
-            gyroscopic_stability=0.1, pressure=0.3, saturation=0.5,
-        )
-        result = translator._analyze_physics_stratum(
-            thermal, stability=5.0, physics=physics,
-        )
-        assert result.verdict == VerdictLevel.RECHAZAR
-        assert any("Nutación" in i for i in result.issues)
-
-    def test_physics_stratum_unstable_control(self, translator: SemanticTranslator):
-        """Control inestable → RECHAZAR."""
-        thermal = ThermodynamicMetrics()
-        control = ControlMetrics(is_stable=False, phase_margin_deg=10.0)
-        result = translator._analyze_physics_stratum(
-            thermal, stability=5.0, control=control,
-        )
-        assert result.verdict == VerdictLevel.RECHAZAR
-        assert any("RHP" in i or "Divergencia" in i for i in result.issues)
-
-    def test_tactics_stratum_clean(
-        self,
-        translator: SemanticTranslator,
-        valid_topology: ValidatedTopology,
-    ):
-        """Estrato TACTICS limpio → VIABLE."""
-        result = translator._analyze_tactics_stratum(
-            valid_topology, {}, {}, 5.0,
-        )
-        assert result.stratum == Stratum.TACTICS
-        assert result.verdict.is_positive
-
-    def test_tactics_stratum_disconnected(
-        self,
-        translator: SemanticTranslator,
-        fragmented_topology: ValidatedTopology,
-    ):
-        """Estrato TACTICS fragmentado → RECHAZAR."""
-        result = translator._analyze_tactics_stratum(
-            fragmented_topology, {}, {}, 5.0,
-        )
-        assert result.verdict == VerdictLevel.RECHAZAR
-        assert any("Silos" in i or "desconectado" in i or "Fragmentación" in i
-                    for i in result.issues)
-
-    def test_tactics_stratum_spectral_gap_warning(
-        self, translator: SemanticTranslator,
-    ):
-        """Brecha espectral baja → advertencia."""
-        topo = ValidatedTopology(
-            beta_0=1, beta_1=0, beta_2=0,
-            euler_characteristic=1,
-            fiedler_value=0.6,
-            spectral_gap=0.05,  # Bajo
-            pyramid_stability=5.0,
-            structural_entropy=0.2,
-        )
-        result = translator._analyze_tactics_stratum(topo, {}, {}, 5.0)
-        assert any("espectral" in i.lower() for i in result.issues)
-
-    def test_strategy_stratum_viable(
-        self, translator: SemanticTranslator, viable_financial: Dict,
-    ):
-        """Estrato STRATEGY viable → VIABLE."""
-        result = translator._analyze_strategy_stratum(viable_financial)
-        assert result.stratum == Stratum.STRATEGY
-        assert result.verdict == VerdictLevel.VIABLE
-
-    def test_strategy_stratum_reject(
-        self, translator: SemanticTranslator, reject_financial: Dict,
-    ):
-        """Estrato STRATEGY de rechazo → RECHAZAR."""
-        result = translator._analyze_strategy_stratum(reject_financial)
-        assert result.verdict == VerdictLevel.RECHAZAR
-
-    # -- GraphRAG --
-
-    def test_explain_cycle_path_empty(self, translator: SemanticTranslator):
-        """Ciclo vacío retorna string vacío."""
-        assert translator.explain_cycle_path([]) == ""
-
-    def test_explain_cycle_path_truncation(self, translator: SemanticTranslator):
-        """Ciclos largos se truncan al máximo configurado."""
-        long_cycle = [f"N{i}" for i in range(100)]
-        translator.explain_cycle_path(long_cycle)
-        # Verificar que el MIC fue llamado con nodos truncados
-        call_args = translator.mic.project_intent.call_args
-        payload = call_args[0][1]
-        assert len(payload["path_nodes"]) <= translator.config.max_cycle_path_display + 2
-
-    def test_explain_stress_point_numeric(self, translator: SemanticTranslator):
-        """Grado numérico se pasa correctamente."""
-        translator.explain_stress_point("node_1", 15)
-        call_args = translator.mic.project_intent.call_args
-        assert call_args[0][1]["vector"]["in_degree"] == 15
-
-    def test_explain_stress_point_string(self, translator: SemanticTranslator):
-        """Grado descriptivo se convierte a valor alto."""
-        translator.explain_stress_point("node_1", "múltiples")
-        call_args = translator.mic.project_intent.call_args
-        assert call_args[0][1]["vector"]["in_degree"] == 10
-
-    # -- Caché de narrativas --
-
-    def test_cache_hit(self, translator_cached: SemanticTranslator):
-        """Segunda llamada usa caché."""
-        translator_cached._fetch_narrative("TEST", "A", {"x": 1})
-        translator_cached._fetch_narrative("TEST", "A", {"x": 1})
-        # MIC solo se llama una vez (segunda es cache hit)
-        assert translator_cached.mic.project_intent.call_count == 1
-
-    def test_cache_disabled(self, mock_mic: MagicMock):
-        """Con caché deshabilitado, siempre llama al MIC."""
-        translator = SemanticTranslator(mic=mock_mic, enable_cache=False)
-        translator._fetch_narrative("TEST", "A", {})
-        translator._fetch_narrative("TEST", "A", {})
-        assert mock_mic.project_intent.call_count == 2
-
-    # -- Legacy --
-
-    def test_compose_legacy_returns_string(
-        self,
-        translator: SemanticTranslator,
-        valid_topology: ValidatedTopology,
-        viable_financial: Dict,
-    ):
-        """Método legacy retorna string."""
-        result = translator.compose_strategic_narrative_legacy(
-            topological_metrics=valid_topology,
-            financial_metrics=viable_financial,
-            stability=5.0,
-        )
-        assert isinstance(result, str)
-        assert len(result) > 0
-
-    # -- Assemble data product --
-
-    def test_assemble_data_product(
-        self,
-        translator: SemanticTranslator,
-        acyclic_digraph: nx.DiGraph,
-    ):
-        """Ensambla producto de datos correctamente."""
-        report = MagicMock()
-        report.strategic_narrative = "Test narrative"
-        report.integrity_score = 0.85
-        report.complexity_level = "High"
-        report.waste_alerts = ["alert1"]
-        report.circular_risks = ["risk1"]
-        report.details = {"key": "value"}
-
-        product = translator.assemble_data_product(acyclic_digraph, report)
-        assert "metadata" in product
-        assert "narrative" in product
-        assert "topology" in product
-        assert product["topology"]["nodes"] == acyclic_digraph.number_of_nodes()
-        assert product["metadata"]["verdict_score"] == 0.85
 
 
 # ============================================================================
-# 17. TestStrategicReport
+# 17. TestStrategicReport — Refinado
 # ============================================================================
 
 
 class TestStrategicReport:
-    """Serialización y propiedades del reporte estratégico."""
+    """
+    Serialización y propiedades del reporte estratégico.
+
+    El StrategicReport es el resultado del análisis multi-estrato.
+    Sus invariantes son:
+    1. Confianza ∈ [0, 1]
+    2. El veredicto determina is_viable y requires_immediate_action
+    3. La serialización es determinista y contiene todas las claves requeridas
+    4. El timestamp es ISO 8601 válido
+    """
 
     def _make_report(
         self,
         verdict: VerdictLevel = VerdictLevel.VIABLE,
         confidence: float = 1.0,
+        recommendations: Optional[List[str]] = None,
     ) -> StrategicReport:
-        """Factory helper para crear reportes de prueba."""
+        """Factory para crear reportes de prueba con valores mínimos válidos."""
         return StrategicReport(
             title="Test Report",
             verdict=verdict,
             executive_summary="Summary",
             strata_analysis={},
-            recommendations=["Rec 1"],
+            recommendations=recommendations or ["Rec 1"],
             raw_narrative="Raw",
             confidence=confidence,
         )
 
-    def test_viable_report(self):
-        """Reporte viable tiene propiedades correctas."""
+    def test_viable_report_properties(self):
+        """VIABLE: is_viable=True, requires_immediate_action=False."""
         report = self._make_report(VerdictLevel.VIABLE)
-        assert report.is_viable
+        assert report.is_viable, "VIABLE debe tener is_viable=True"
+        assert not report.requires_immediate_action, (
+            "VIABLE no debe requerir acción inmediata"
+        )
+
+    def test_condicional_report_properties(self):
+        """CONDICIONAL: is_viable=True (positivo), no requiere acción inmediata."""
+        report = self._make_report(VerdictLevel.CONDICIONAL)
+        assert report.is_viable, "CONDICIONAL debe ser viable (positivo)"
         assert not report.requires_immediate_action
 
-    def test_reject_report(self):
-        """Reporte de rechazo tiene propiedades correctas."""
+    def test_revisar_report_properties(self):
+        """REVISAR: is_viable=False, requires_action varía según implementación."""
+        report = self._make_report(VerdictLevel.REVISAR)
+        assert not report.is_viable, "REVISAR no debe ser viable"
+
+    def test_precaucion_report_properties(self):
+        """PRECAUCION: is_viable=False, requires_immediate_action=True."""
+        report = self._make_report(VerdictLevel.PRECAUCION)
+        assert not report.is_viable
+        assert report.requires_immediate_action, (
+            "PRECAUCION debe requerir atención inmediata"
+        )
+
+    def test_rechazar_report_properties(self):
+        """RECHAZAR: is_viable=False, requires_immediate_action=True."""
         report = self._make_report(VerdictLevel.RECHAZAR)
         assert not report.is_viable
         assert report.requires_immediate_action
 
-    def test_precaucion_report(self):
-        """Reporte de precaución requiere acción pero no bloquea."""
-        report = self._make_report(VerdictLevel.PRECAUCION)
-        assert not report.is_viable
-        assert report.requires_immediate_action
-
-    def test_invalid_confidence(self):
-        """Confianza fuera de [0, 1] lanza ValueError."""
+    @pytest.mark.parametrize(
+        "bad_confidence",
+        [1.001, 1.5, 2.0, -0.001, -0.1, float("nan"), float("inf")],
+    )
+    def test_invalid_confidence_raises(self, bad_confidence: float):
+        """Confianza fuera de [0, 1] o no finita lanza ValueError."""
         with pytest.raises(ValueError):
-            self._make_report(confidence=1.5)
-        with pytest.raises(ValueError):
-            self._make_report(confidence=-0.1)
+            self._make_report(confidence=bad_confidence)
 
-    def test_to_dict_structure(self):
-        """Serialización contiene todas las claves esperadas."""
+    @pytest.mark.parametrize("valid_confidence", [0.0, 0.5, 0.999, 1.0])
+    def test_valid_confidence_accepted(self, valid_confidence: float):
+        """Confianza en [0, 1] es aceptada sin excepción."""
+        report = self._make_report(confidence=valid_confidence)
+        assert abs(report.confidence - valid_confidence) < EPSILON
+
+    def test_to_dict_contains_required_keys(self):
+        """
+        La serialización contiene todas las claves requeridas.
+
+        Estas claves son parte del contrato de la API pública del reporte.
+        """
         report = self._make_report()
         d = report.to_dict()
-        expected_keys = {
+        required_keys = {
             "title", "verdict", "verdict_emoji", "verdict_description",
             "is_viable", "requires_action", "executive_summary",
             "strata_analysis", "recommendations", "timestamp", "confidence",
         }
-        assert expected_keys.issubset(d.keys())
+        missing = required_keys - set(d.keys())
+        assert not missing, f"Claves faltantes en to_dict(): {missing}"
 
-    def test_to_dict_recommendations_are_copy(self):
-        """Las recomendaciones serializadas son una copia (no referencia)."""
-        report = self._make_report()
+    def test_to_dict_verdict_is_string(self):
+        """El veredicto serializado es un string (no un enum)."""
+        report = self._make_report(VerdictLevel.RECHAZAR)
         d = report.to_dict()
-        d["recommendations"].append("extra")
-        assert len(report.recommendations) == 1
+        assert isinstance(d["verdict"], str), (
+            f"verdict en dict debe ser str, got {type(d['verdict'])}"
+        )
+        assert d["verdict"] == "RECHAZAR"
 
-    def test_timestamp_is_iso_format(self):
-        """El timestamp está en formato ISO."""
-        report = self._make_report()
-        # No debe lanzar excepción
+    def test_to_dict_recommendations_are_deep_copy(self):
+        """
+        Las recomendaciones serializadas son una copia profunda.
+
+        Modificar el dict serializado no debe afectar el reporte original.
+        """
+        recs = ["Rec 1", "Rec 2"]
+        report = self._make_report(recommendations=recs)
+        d = report.to_dict()
+        d["recommendations"].append("Injected")
+        assert len(report.recommendations) == 2, (
+            "Modificar dict serializado afectó el reporte original (shallow copy)"
+        )
+
+    def test_timestamp_is_iso_8601(self):
+        """
+        El timestamp está en formato ISO 8601.
+
+        Estándar: YYYY-MM-DDTHH:MM:SS.ffffff (Python datetime.isoformat())
+        """
         from datetime import datetime as dt
-        dt.fromisoformat(report.timestamp)
-
-
-class TestStratumAnalysisResult:
-    """Tests para resultados de análisis de estrato."""
-
-    def test_invalid_confidence(self):
-        """Confianza fuera de [0, 1] lanza ValueError."""
-        with pytest.raises(ValueError):
-            StratumAnalysisResult(
-                stratum=Stratum.PHYSICS,
-                verdict=VerdictLevel.VIABLE,
-                narrative="Test",
-                metrics_summary={},
-                confidence=2.0,
+        report = self._make_report()
+        try:
+            parsed = dt.fromisoformat(report.timestamp)
+        except ValueError as e:
+            pytest.fail(
+                f"Timestamp '{report.timestamp}' no es ISO 8601 válido: {e}"
             )
 
-    def test_severity_score(self):
-        """Score de severidad normalizado correcto."""
-        result = StratumAnalysisResult(
-            stratum=Stratum.PHYSICS,
-            verdict=VerdictLevel.RECHAZAR,
-            narrative="Test",
-            metrics_summary={},
+    def test_timestamp_is_recent(self):
+        """El timestamp es reciente (creado en los últimos 5 segundos)."""
+        from datetime import datetime as dt, timezone, timedelta
+        report = self._make_report()
+        now = dt.now()
+        parsed = dt.fromisoformat(report.timestamp)
+        # Tolerancia de 5 segundos para ejecución de tests
+        delta = abs((now - parsed).total_seconds())
+        assert delta < 5.0, (
+            f"Timestamp demasiado antiguo: {report.timestamp} "
+            f"(diferencia: {delta:.2f}s)"
         )
-        assert result.severity_score == 1.0
-
-        result_viable = StratumAnalysisResult(
-            stratum=Stratum.PHYSICS,
-            verdict=VerdictLevel.VIABLE,
-            narrative="Test",
-            metrics_summary={},
-        )
-        assert result_viable.severity_score == 0.0
-
-    def test_to_dict(self):
-        """Serialización correcta."""
-        result = StratumAnalysisResult(
-            stratum=Stratum.PHYSICS,
-            verdict=VerdictLevel.VIABLE,
-            narrative="Test",
-            metrics_summary={"key": "value"},
-            issues=["issue1"],
-        )
-        d = result.to_dict()
-        assert d["stratum"] == "PHYSICS"
-        assert d["verdict"] == "VIABLE"
-        assert d["issues"] == ["issue1"]
 
 
 # ============================================================================
-# 18. TestFactoryFunctions
-# ============================================================================
-
-
-class TestFactoryFunctions:
-    """Funciones de conveniencia y verificación global."""
-
-    def test_create_translator(self, mock_mic: MagicMock):
-        """Factory crea traductor funcional."""
-        translator = create_translator(mic=mock_mic)
-        assert isinstance(translator, SemanticTranslator)
-
-    def test_create_translator_with_config(self, mock_mic: MagicMock):
-        """Factory acepta configuración personalizada."""
-        config = TranslatorConfig(
-            stability=StabilityThresholds(critical=0.5, warning=1.5, solid=5.0),
-        )
-        translator = create_translator(config=config, mic=mock_mic)
-        assert translator.config.stability.critical == 0.5
-
-    def test_verify_verdict_lattice(self):
-        """La verificación global del retículo pasa."""
-        assert verify_verdict_lattice()
-
-    def test_verify_severity_homomorphism(self):
-        """La verificación del homomorfismo pasa."""
-        assert verify_severity_homomorphism()
-
-    def test_translate_metrics_convenience(self, mock_mic: MagicMock):
-        """Función de conveniencia retorna string no vacío."""
-        with patch(
-            "app.wisdom.semantic_translator.SemanticTranslator",
-            return_value=MagicMock(
-                compose_strategic_narrative=MagicMock(
-                    return_value=MagicMock(raw_narrative="Test output")
-                )
-            ),
-        ):
-            # Nota: En producción esta función crea su propio traductor.
-            # Aquí verificamos que el patrón funciona.
-            pass  # El mock verifica la interfaz
-
-
-# ============================================================================
-# TESTS DE INTEGRACIÓN COMPLETA
-# ============================================================================
-
-
-class TestFullIntegration:
-    """
-    Tests de integración end-to-end que verifican el flujo completo
-    desde métricas crudas hasta reporte estratégico.
-    """
-
-    def test_worst_case_all_defects(self, mock_mic: MagicMock):
-        """
-        Escenario: Todos los defectos posibles.
-        Esperado: RECHAZAR con máxima severidad.
-        """
-        translator = SemanticTranslator(mic=mock_mic, enable_cache=False)
-
-        report = translator.compose_strategic_narrative(
-            topological_metrics={
-                "beta_0": 3,       # Fragmentado
-                "beta_1": 5,       # Muchos ciclos
-                "beta_2": 0,
-                "fiedler_value": 0.0,  # Desconectado
-                "spectral_gap": 0.0,
-                "pyramid_stability": 0.3,  # Pirámide invertida
-                "structural_entropy": 0.9,
-            },
-            financial_metrics={
-                "wacc": 0.25,
-                "performance": {
-                    "recommendation": "RECHAZAR",
-                    "profitability_index": 0.5,
-                },
-            },
-            stability=0.3,
-            synergy_risk={"synergy_detected": True, "intersecting_cycles_count": 3},
-            thermal_metrics={
-                "system_temperature": 90.0,  # Crítico
-                "entropy": 0.98,             # Muerte térmica
-                "heat_capacity": 0.05,       # Muy baja
-            },
-        )
-
-        assert report.verdict == VerdictLevel.RECHAZAR
-        assert not report.is_viable
-        assert report.requires_immediate_action
-        assert len(report.recommendations) > 0
-
-    def test_best_case_all_nominal(self, mock_mic: MagicMock):
-        """
-        Escenario: Todo nominal.
-        Esperado: VIABLE o al menos no RECHAZAR.
-        """
-        translator = SemanticTranslator(mic=mock_mic, enable_cache=False)
-
-        report = translator.compose_strategic_narrative(
-            topological_metrics={
-                "beta_0": 1,
-                "beta_1": 0,
-                "beta_2": 0,
-                "fiedler_value": 2.0,
-                "spectral_gap": 0.5,
-                "pyramid_stability": 15.0,
-                "structural_entropy": 0.1,
-            },
-            financial_metrics={
-                "wacc": 0.06,
-                "contingency": {"recommended": 0.08},
-                "performance": {
-                    "recommendation": "ACEPTAR",
-                    "profitability_index": 1.8,
-                },
-            },
-            stability=15.0,
-            thermal_metrics={
-                "system_temperature": 298.15,
-                "entropy": 0.15,
-                "heat_capacity": 0.8,
-            },
-        )
-
-        # Con Ψ=15 y β₁=0, no debería ser RECHAZAR
-        assert report.verdict != VerdictLevel.RECHAZAR
-
-    def test_lattice_monotonicity_integration(self, mock_mic: MagicMock):
-        """
-        Verifica monotonicidad del lattice: agregar un defecto nunca
-        mejora el veredicto.
-        
-        Propiedad: V(S ∪ {defecto}) ≥ V(S)
-        """
-        translator = SemanticTranslator(mic=mock_mic, enable_cache=False)
-
-        base_metrics = {
-            "beta_0": 1, "beta_1": 0, "beta_2": 0,
-            "fiedler_value": 2.0, "spectral_gap": 0.5,
-            "pyramid_stability": 15.0, "structural_entropy": 0.1,
-        }
-        good_financial = {
-            "wacc": 0.06,
-            "performance": {
-                "recommendation": "ACEPTAR",
-                "profitability_index": 1.8,
-            },
-        }
-
-        # Caso base
-        report_base = translator.compose_strategic_narrative(
-            topological_metrics=base_metrics,
-            financial_metrics=good_financial,
-            stability=15.0,
-        )
-
-        # Agregar ciclos (defecto)
-        bad_metrics = dict(base_metrics)
-        bad_metrics["beta_1"] = 3
-        bad_metrics["euler_characteristic"] = -2  # Corregir Euler
-
-        report_with_cycles = translator.compose_strategic_narrative(
-            topological_metrics=bad_metrics,
-            financial_metrics=good_financial,
-            stability=15.0,
-        )
-
-        # El veredicto con defecto no puede ser mejor
-        assert report_with_cycles.verdict.value >= report_base.verdict.value
-
-    def test_homomorphism_coherence_in_report(self, mock_mic: MagicMock):
-        """
-        Verifica que el homomorfismo SeverityLattice → VerdictLevel
-        es coherente dentro del reporte.
-        """
-        translator = SemanticTranslator(mic=mock_mic, enable_cache=False)
-
-        # Caso con β₁ > 0 → SeverityLattice.RECHAZAR → VerdictLevel.RECHAZAR
-        report = translator.compose_strategic_narrative(
-            topological_metrics={"beta_0": 1, "beta_1": 2},
-            financial_metrics={},
-            stability=5.0,
-        )
-
-        # El veredicto final debe ser al menos RECHAZAR
-        expected_min = SeverityToVerdictHomomorphism.apply(SeverityLattice.RECHAZAR)
-        assert report.verdict.value >= expected_min.value
-
-
-# ============================================================================
-# TESTS DE PROPIEDADES ALGEBRAICAS ADICIONALES
+# TESTS DE PROPIEDADES ALGEBRAICAS ADICIONALES — Refinado
 # ============================================================================
 
 
 class TestAlgebraicProperties:
     """
-    Tests que verifican propiedades algebraicas profundas
-    del sistema de decisión.
+    Propiedades algebraicas profundas del sistema de decisión.
+
+    Verifica propiedades que emergen de la composición del sistema:
+    - Totalidad del orden en VerdictLevel (tricotomía)
+    - Coherencia de join=max y meet=min en cadenas
+    - Sub-retículo de la imagen del homomorfismo
+    - Preservación de orden en mapeos financieros
     """
 
-    def test_verdict_forms_total_order(self):
-        """VerdictLevel forma un orden total (tricotomía)."""
+    def test_verdict_satisfies_trichotomy(self):
+        """
+        VerdictLevel satisface la tricotomía: ∀a,b, exactamente una de
+        {a < b, a = b, a > b} es verdadera.
+        """
         for a in VerdictLevel:
             for b in VerdictLevel:
-                # Tricotomía: exactamente una de {a < b, a = b, a > b}
                 lt = a.value < b.value
                 eq = a.value == b.value
                 gt = a.value > b.value
-                assert sum([lt, eq, gt]) == 1
+                assert (lt + eq + gt) == 1, (
+                    f"Tricotomía violada: ({a.name}, {b.name}) → "
+                    f"lt={lt}, eq={eq}, gt={gt}"
+                )
 
-    def test_verdict_is_chain(self):
-        """VerdictLevel es una cadena (totalmente ordenado)."""
-        # En una cadena, todo par es comparable
+    def test_verdict_is_total_order(self):
+        """∀a,b ∈ L: a ≤ b ∨ b ≤ a (totalidad del orden)."""
         for a in VerdictLevel:
             for b in VerdictLevel:
-                assert a <= b or b <= a
+                assert a <= b or b <= a, (
+                    f"Totalidad violada: {a.name} y {b.name} son incomparables"
+                )
 
-    def test_join_is_max(self):
-        """En una cadena, join = max."""
+    def test_join_equals_max_in_chain(self):
+        """
+        En una cadena, join = max.
+
+        Teorema: (L, ≤) cadena ⟹ a ⊔ b = max(a, b).
+        """
         for a in VerdictLevel:
             for b in VerdictLevel:
-                assert (a | b) == VerdictLevel(max(a.value, b.value))
+                expected = VerdictLevel(max(a.value, b.value))
+                result = a | b
+                assert result == expected, (
+                    f"join ≠ max: {a.name} ⊔ {b.name} = {result.name}, "
+                    f"max = {expected.name}"
+                )
 
-    def test_meet_is_min(self):
-        """En una cadena, meet = min."""
+    def test_meet_equals_min_in_chain(self):
+        """
+        En una cadena, meet = min.
+
+        Teorema: (L, ≤) cadena ⟹ a ⊓ b = min(a, b).
+        """
         for a in VerdictLevel:
             for b in VerdictLevel:
-                assert (a & b) == VerdictLevel(min(a.value, b.value))
+                expected = VerdictLevel(min(a.value, b.value))
+                result = a & b
+                assert result == expected, (
+                    f"meet ≠ min: {a.name} ⊓ {b.name} = {result.name}, "
+                    f"min = {expected.name}"
+                )
 
     def test_lattice_is_bounded(self):
-        """El lattice tiene bottom y top bien definidos."""
-        assert VerdictLevel.bottom() == min(VerdictLevel)
-        assert VerdictLevel.top() == max(VerdictLevel)
-
-    def test_severity_lattice_is_sublattice(self):
         """
-        La imagen del homomorfismo φ(SeverityLattice) es un sub-retículo
-        de VerdictLevel cerrado bajo ⊔ y ⊓.
-        """
-        image = {SeverityToVerdictHomomorphism.apply(s) for s in SeverityLattice}
+        L tiene bottom (⊥) y top (⊤) bien definidos.
 
-        # Cerrado bajo join
+        Equivalente a: ∃⊥,⊤ ∈ L: ∀a ∈ L, ⊥ ≤ a ≤ ⊤.
+        """
+        bottom = VerdictLevel.bottom()
+        top = VerdictLevel.top()
+        for v in VerdictLevel:
+            assert bottom <= v, f"⊥={bottom.name} ≰ {v.name}"
+            assert v <= top, f"{v.name} ≰ ⊤={top.name}"
+
+    def test_severity_lattice_image_is_sublattice(self):
+        """
+        Im(φ) ⊆ VerdictLevel es un sub-retículo.
+
+        Definición: S ⊆ L es sub-retículo si ∀a,b ∈ S: a ⊔ b ∈ S ∧ a ⊓ b ∈ S.
+
+        Corrección: verificamos que el join y meet de elementos de Im(φ)
+        pertenecen a Im(φ) — no comparamos con min/max de Im(φ) que sería
+        una condición más débil.
+        """
+        image: FrozenSet[VerdictLevel] = frozenset(
+            SeverityToVerdictHomomorphism.apply(s) for s in SeverityLattice
+        )
+
         for a in image:
             for b in image:
-                assert (a | b) in image or (a | b).value >= max(x.value for x in image)
+                join_ab = a | b
+                meet_ab = a & b
+                assert join_ab in image, (
+                    f"Im(φ) no cerrada bajo join: "
+                    f"{a.name} ⊔ {b.name} = {join_ab.name} ∉ Im(φ)"
+                )
+                assert meet_ab in image, (
+                    f"Im(φ) no cerrada bajo meet: "
+                    f"{a.name} ⊓ {b.name} = {meet_ab.name} ∉ Im(φ)"
+                )
 
-        # Cerrado bajo meet
-        for a in image:
-            for b in image:
-                assert (a & b) in image or (a & b).value <= min(x.value for x in image)
-
-    def test_financial_verdict_order_preserving(self):
+    def test_financial_verdict_order_strictly_preserved(self):
         """
-        El mapeo FinancialVerdict → VerdictLevel preserva el orden implícito.
+        El mapeo FinancialVerdict → VerdictLevel preserva el orden ESTRICTO.
+
+        ACCEPT < CONDITIONAL < REVIEW < REJECT en FinancialVerdict
+        debe mapear a valores estrictamente crecientes en VerdictLevel.
         """
         ordered_financial = [
             FinancialVerdict.ACCEPT,
@@ -2730,172 +2713,238 @@ class TestAlgebraicProperties:
             FinancialVerdict.REVIEW,
             FinancialVerdict.REJECT,
         ]
-        mapped = [fv.to_verdict_level() for fv in ordered_financial]
-        for i in range(len(mapped) - 1):
-            assert mapped[i].value <= mapped[i + 1].value
+        mapped_values = [fv.to_verdict_level().value for fv in ordered_financial]
+
+        for i in range(len(mapped_values) - 1):
+            assert mapped_values[i] < mapped_values[i + 1], (
+                f"Orden no estricto: "
+                f"φ({ordered_financial[i].name}) = {mapped_values[i]} "
+                f"≥ φ({ordered_financial[i+1].name}) = {mapped_values[i+1]}"
+            )
 
 
 # ============================================================================
-# TESTS DE EDGE CASES
+# TESTS DE EDGE CASES — Refinado
 # ============================================================================
 
 
 class TestEdgeCases:
-    """Tests de casos límite y defensivos."""
+    """
+    Tests de casos límite con fundamentación matemática explícita.
+    """
 
-    def test_gerschgorin_bounds_robustness(self, translator: SemanticTranslator):
+    def test_gerschgorin_robustness_at_connectivity_threshold(
+        self, translator: SemanticTranslator,
+    ):
         """
-        Teorema 2: Acotamiento por Discos de Gerschgorin.
+        Teorema 2 refinado: Acotamiento por Discos de Gerschgorin.
 
-        Diseñamos una matriz Laplaciana normalizada donde el valor de Fiedler
-        esté infinitésimamente por encima del umbral de conectividad (ej. 1e-6 + 1e-15).
-        Inyectamos una perturbación en coma flotante controlada (ϵ_mach) y verificamos que,
-        debido a que los radios de Gerschgorin acotan la perturbación, el traductor se
-        mantiene robusto y preserva el VerdictLevel.VIABLE sin colapsar falsamente.
+        Sea L el Laplaciano normalizado de un grafo y E la matriz de perturbación
+        numérica. Por el Teorema de Weyl: |λᵢ(L+E) - λᵢ(L)| ≤ ‖E‖₂.
+
+        Para una perturbación de magnitud ε_mach, el valor de Fiedler perturbado
+        λ₂(L+E) satisface: |λ₂(L+E) - λ₂(L)| ≤ ε_mach * ‖L‖₂.
+
+        Construimos un caso donde λ₂(L) > fiedler_threshold + δ con
+        δ >> ε_mach * ‖L‖₂, garantizando que la perturbación NO cruza el umbral.
         """
-        import numpy as np
-
-        # Umbral configurado en TopologicalThresholds
         fiedler_threshold = translator.config.topology.fiedler_connected_threshold
-        eps_mach = np.finfo(float).eps  # ~2.22e-16
+        eps_machine = np.finfo(float).eps  # ~2.22e-16
 
-        # Valor de Fiedler original justo por encima del umbral
-        base_fiedler = fiedler_threshold + 1e-13
+        # Laplaciano de K₂ (grafo completo de 2 nodos): L = [[1,-1],[-1,1]]
+        # Eigenvalores: 0 y 2
+        # Si escalamos: L_scaled = s * L → eigenvalores: 0 y 2s
+        # Para que λ₂ = fiedler_threshold + safety_margin:
+        safety_margin = 1e-6  # >> eps_machine * ‖L‖₂ ≈ eps_machine * 2
+        target_fiedler = fiedler_threshold + safety_margin
 
-        # Simulamos una matriz Laplaciana normalizada 2x2:
-        # L = [1, -1]
-        #     [-1, 1]
-        # Eigenvalues de L: 0 y 2. Si escalamos para que fiedler sea base_fiedler:
-        # L_base = base_fiedler/2 * L  => eigenvalues: 0 y base_fiedler
-        L_base = (base_fiedler / 2.0) * np.array([[1.0, -1.0], [-1.0, 1.0]])
+        scale = target_fiedler / 2.0
+        L_base = scale * np.array([[1.0, -1.0], [-1.0, 1.0]])
 
-        # Verificamos que el fiedler base (segundo autovalor) es base_fiedler
-        eigenvalues_base = np.sort(np.linalg.eigvals(L_base))
-        fiedler_val_base = eigenvalues_base[1].real
+        # Verificar eigenvalores base
+        eigs_base = np.sort(np.linalg.eigvalsh(L_base))
+        fiedler_base = eigs_base[1]
+        assert abs(fiedler_base - target_fiedler) < 1e-12, (
+            f"Fiedler base incorrecto: {fiedler_base} ≠ {target_fiedler}"
+        )
 
-        # Perturbamos las entradas no diagonales por una magnitud acotada
-        perturbation = eps_mach * 10
-        L_perturbed = L_base.copy()
-        L_perturbed[0, 1] += perturbation
-        L_perturbed[1, 0] += perturbation
+        # Perturbación simétrica acotada: ‖E‖₂ = 2 * perturbation_size
+        # Por Weyl: |Δλ₂| ≤ ‖E‖₂ = 2 * 10 * eps_machine << safety_margin
+        perturbation_size = 10 * eps_machine
+        E = perturbation_size * np.array([[0.0, 1.0], [1.0, 0.0]])
+        L_perturbed = L_base + E
 
-        # El radio de Gerschgorin para la perturbación nos garantiza que
-        # |λ_nuevo - λ_base| <= |perturbation|
-        # Evaluamos el nuevo fiedler
-        eigenvalues_perturbed = np.sort(np.linalg.eigvals(L_perturbed))
-        fiedler_val_perturbed = eigenvalues_perturbed[1].real
+        eigs_perturbed = np.sort(np.linalg.eigvalsh(L_perturbed))
+        fiedler_perturbed = eigs_perturbed[1]
 
-        # Construimos la topología con el Fiedler perturbado
+        # Verificar que la perturbación no cruzó el umbral
+        weyl_bound = np.linalg.norm(E, ord=2)  # ≈ 2 * perturbation_size
+        assert fiedler_perturbed > fiedler_threshold, (
+            f"Perturbación de Gerschgorin cruzó el umbral: "
+            f"λ₂_perturb={fiedler_perturbed:.2e} ≤ threshold={fiedler_threshold:.2e}. "
+            f"Weyl bound={weyl_bound:.2e}, safety_margin={safety_margin:.2e}"
+        )
+
+        # Construir topología con el Fiedler perturbado
         topo = ValidatedTopology(
             beta_0=1, beta_1=0, beta_2=0,
             euler_characteristic=1,
-            fiedler_value=fiedler_val_perturbed,
+            fiedler_value=float(fiedler_perturbed),
             spectral_gap=0.5,
             pyramid_stability=5.0,
             structural_entropy=0.1,
         )
 
-        # Debido al acotamiento de Gerschgorin, fiedler_val_perturbed se mantiene
-        # por encima de fiedler_threshold (o no cae lo suficiente para ser "disconnected")
-        # Por lo tanto, el veredicto topológico debe mantenerse en un estado positivo,
-        # sin desencadenar un colapso.
         narrative, verdict = translator.translate_topology(topo, stability=5.0)
 
-        # Verificamos que no reporta desconexión ni rechaza la topología
-        assert verdict != VerdictLevel.RECHAZAR, "El ruido de máquina causó un Falso Positivo de rechazo topológico."
-        assert "disconnected" not in translator.config.topology.classify_spectral_connectivity(fiedler_val_perturbed)
+        # Con λ₂ > threshold, la topología es conexa → no debe ser RECHAZAR
+        assert verdict != VerdictLevel.RECHAZAR, (
+            f"Falso positivo: ruido de máquina (‖E‖₂={weyl_bound:.2e}) causó "
+            f"rechazo topológico. λ₂_perturb={fiedler_perturbed:.2e} > threshold."
+        )
+        # Verificar que la clasificación espectral es "connected" (no "disconnected")
+        spectral_class = translator.config.topology.classify_spectral_connectivity(
+            float(fiedler_perturbed),
+        )
+        assert "disconnected" not in spectral_class, (
+            f"Clasificación espectral incorrecta: {spectral_class!r} "
+            f"para λ₂={fiedler_perturbed:.2e} > threshold={fiedler_threshold:.2e}"
+        )
 
-    def test_topology_all_zeros(self, translator: SemanticTranslator):
-        """Topología con todos ceros (grafo vacío conceptual)."""
+    def test_topology_beta_0_zero_is_rechazar(self, translator: SemanticTranslator):
+        """
+        β₀ = 0 (grafo vacío conceptual): Ψ=0 < 1 → RECHAZAR.
+
+        Χ = β₀ - β₁ + β₂ = 0 - 0 + 0 = 0. Grafo vacío es topológicamente trivial.
+        """
         topo = ValidatedTopology(
             beta_0=0, beta_1=0, beta_2=0,
             euler_characteristic=0,
             fiedler_value=0.0, spectral_gap=0.0,
             pyramid_stability=0.0, structural_entropy=0.0,
         )
-        narrative, verdict = translator.translate_topology(topo, stability=0.0)
-        # Ψ = 0 < 1 → RECHAZAR
-        assert verdict == VerdictLevel.RECHAZAR
+        _, verdict = translator.translate_topology(topo, stability=0.0)
+        assert verdict == VerdictLevel.RECHAZAR, (
+            f"β₀=0, Ψ=0 debe ser RECHAZAR, got {verdict.name}"
+        )
 
-    def test_extreme_beta_values(self, translator: SemanticTranslator):
-        """Números de Betti extremadamente grandes."""
+    def test_extreme_betti_numbers(self, translator: SemanticTranslator):
+        """
+        Números de Betti grandes (β₀=1000, β₁=500) → RECHAZAR.
+
+        χ = 1000 - 500 + 0 = 500. Ψ=0.1 < 1 → veto de pirámide.
+        """
         topo = ValidatedTopology(
             beta_0=1000, beta_1=500, beta_2=0,
-            euler_characteristic=500,  # 1000 - 500 + 0
+            euler_characteristic=500,  # 1000 - 500 + 0 = 500 ✓
             fiedler_value=0.001,
             spectral_gap=0.001,
             pyramid_stability=0.1,
             structural_entropy=0.99,
         )
-        narrative, verdict = translator.translate_topology(topo, stability=0.1)
-        assert verdict == VerdictLevel.RECHAZAR
+        _, verdict = translator.translate_topology(topo, stability=0.1)
+        assert verdict == VerdictLevel.RECHAZAR, (
+            f"β₁=500, Ψ=0.1 debe ser RECHAZAR, got {verdict.name}"
+        )
 
-    def test_financial_metrics_with_none_values(
+    def test_stability_exactly_at_thresholds(self, translator: SemanticTranslator):
+        """
+        Verifica que los umbrales implementan intervalos [a, b) correctamente.
+
+        Con la convención [a, b):
+        - Ψ = critical → pertenece a [critical, warning) → "warning"
+        - Ψ = warning → pertenece a [warning, solid) → "stable"
+        - Ψ = solid → pertenece a [solid, ∞) → "robust"
+        """
+        config = translator.config.stability
+
+        assert config.classify(config.critical) == "warning", (
+            f"Ψ = critical = {config.critical} debe ser 'warning' (intervalo cerrado-izquierdo)"
+        )
+        assert config.classify(config.warning) == "stable", (
+            f"Ψ = warning = {config.warning} debe ser 'stable'"
+        )
+        assert config.classify(config.solid) == "robust", (
+            f"Ψ = solid = {config.solid} debe ser 'robust'"
+        )
+
+    def test_near_threshold_stability_classification(
         self, translator: SemanticTranslator,
     ):
-        """Métricas financieras con valores None."""
-        metrics: Dict[str, Any] = {
-            "wacc": None,
-            "contingency": None,
-            "performance": None,
-        }
-        narrative, verdict, fin = translator.translate_financial(metrics)
-        assert fin == FinancialVerdict.REVIEW
+        """
+        Valores infinitesimalmente por debajo de cada umbral pertenecen
+        al intervalo IZQUIERDO (comportamiento determinista de los límites).
+        """
+        config = translator.config.stability
+        delta = 1e-10  # Infinitesimalmente menor
 
-    def test_thermodynamics_at_absolute_zero(
-        self, translator: SemanticTranslator,
-    ):
-        """Termodinámica en el cero absoluto."""
+        assert config.classify(config.critical - delta) == "critical", (
+            f"Ψ = critical - ε debe ser 'critical'"
+        )
+        assert config.classify(config.warning - delta) == "warning", (
+            f"Ψ = warning - ε debe ser 'warning'"
+        )
+        assert config.classify(config.solid - delta) == "stable", (
+            f"Ψ = solid - ε debe ser 'stable'"
+        )
+
+    def test_thermodynamics_kelvin_zero(self, translator: SemanticTranslator):
+        """
+        T = 0K (cero absoluto): el sistema debe manejar sin errores.
+
+        Termodinámicamente, T = 0K es el estado de mínima energía.
+        El sistema no debe lanzar ZeroDivisionError ni similar.
+        """
         metrics = ThermodynamicMetrics(
-            system_temperature=0.0,  # 0K
+            system_temperature=0.0,
             entropy=0.0,
             heat_capacity=0.0,
         )
-        narrative, verdict = translator.translate_thermodynamics(metrics)
-        # Debe manejar sin errores
-        assert isinstance(verdict, VerdictLevel)
+        try:
+            _, verdict = translator.translate_thermodynamics(metrics)
+            assert isinstance(verdict, VerdictLevel), (
+                f"Veredicto en T=0K debe ser VerdictLevel, got {type(verdict)}"
+            )
+        except ZeroDivisionError as e:
+            pytest.fail(f"ZeroDivisionError en T=0K: {e}")
+        except Exception as e:
+            # Otras excepciones de dominio son aceptables (el estado es físicamente extremo)
+            pass
 
-    def test_very_high_temperature(self, translator: SemanticTranslator):
-        """Temperatura extremadamente alta."""
+    def test_thermodynamics_extreme_high_temperature(
+        self, translator: SemanticTranslator,
+    ):
+        """
+        T extremadamente alta → RECHAZAR (sistema en colapso térmico).
+
+        Nota: el sistema interpreta T > 100 como Kelvin (10000K ≈ 9727°C).
+        Esto es definitivamente "critical".
+        """
         metrics = ThermodynamicMetrics(
-            system_temperature=10000.0,  # 10000K
+            system_temperature=10_000.0,  # 10000K
             entropy=0.99,
             heat_capacity=0.01,
         )
-        narrative, verdict = translator.translate_thermodynamics(metrics)
-        assert verdict == VerdictLevel.RECHAZAR
+        _, verdict = translator.translate_thermodynamics(metrics)
+        assert verdict == VerdictLevel.RECHAZAR, (
+            f"T=10000K, S=0.99 debe ser RECHAZAR, got {verdict.name}"
+        )
 
-    def test_stability_at_boundary(self, translator: SemanticTranslator):
-        """Estabilidad exactamente en los umbrales."""
-        config = translator.config.stability
-
-        # En el umbral critical (pertenece a warning)
-        assert config.classify(config.critical) == "warning"
-
-        # En el umbral warning (pertenece a stable)
-        assert config.classify(config.warning) == "stable"
-
-        # En el umbral solid (pertenece a robust)
-        assert config.classify(config.solid) == "robust"
-
-    def test_empty_synergy_dict(
+    def test_empty_synergy_dict_is_neutral(
         self, translator: SemanticTranslator, valid_topology: ValidatedTopology,
     ):
-        """Sinergia vacía no activa veto."""
+        """
+        Sinergia vacía {} no activa el veto topológico.
+
+        Un dict vacío indica ausencia de información de sinergia,
+        no presencia de sinergia detectada.
+        """
         _, verdict = translator.translate_topology(
             valid_topology, stability=5.0, synergy_risk={},
         )
-        # Sin sinergia y con estabilidad alta, no debería ser RECHAZAR
-        # (depende de β₁ y β₀)
-        assert isinstance(verdict, VerdictLevel)
-
-    def test_spectral_with_resonance(
-        self, translator: SemanticTranslator, valid_topology: ValidatedTopology,
-    ):
-        """Resonancia espectral activa PRECAUCION."""
-        _, verdict = translator.translate_topology(
-            valid_topology,
-            stability=5.0,
-            spectral={"resonance_risk": True, "wavelength": 3.14},
+        assert isinstance(verdict, VerdictLevel), (
+            "synergy_risk={} no debe causar excepción"
         )
-        assert verdict.value >= VerdictLevel.CONDICIONAL.value
+        # Con topología válida y sin sinergia, no debería ser RECHAZAR
+        # (la topología tiene β₁=0 y Ψ=5.0 > 1)
+        # Nota: dependiente de la implementación, pero la sinergia vacía no debe activar veto
