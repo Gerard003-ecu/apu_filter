@@ -1095,6 +1095,11 @@ class LatticeVerdictCollapse:
 
         El rigor topológico/físico siempre domina sobre la avaricia financiera.
         """
+        # Absorbing element optimization (⊤ = RECHAZAR)
+        if topological_verdict == SeverityLattice.RECHAZAR:
+            return SeverityLattice.RECHAZAR
+        if financial_verdict == SeverityLattice.RECHAZAR:
+            return SeverityLattice.RECHAZAR
         return SeverityLattice.supremum(financial_verdict, topological_verdict)
 
     @staticmethod
@@ -1120,20 +1125,25 @@ class LatticeVerdictCollapse:
         Returns:
             Acta de Deliberación con veredicto y justificación
         """
-        # 1. Sensado de estratos independientes
-        fin_verdict = (
-            SeverityLattice.VIABLE if roi_viable
-            else SeverityLattice.PRECAUCION
-        )
-
+        # 1. Evaluación topológica (Fast-Fail)
         topo_verdict = SeverityLattice.VIABLE
         if betti_1 > 0 or psi < 1.0:
             topo_verdict = SeverityLattice.RECHAZAR  # Veto físico inmediato
 
-        # 2. Colapso del retículo (supremum)
-        final_severity = LatticeVerdictCollapse.compute_supremum(
-            fin_verdict, topo_verdict,
-        )
+        # Absorbing element check (⊤): if topography rejects, bypass financial calculations
+        if topo_verdict == SeverityLattice.RECHAZAR:
+            fin_verdict = SeverityLattice.VIABLE  # Dummy value, will be absorbed
+            final_severity = SeverityLattice.RECHAZAR
+        else:
+            # Only evaluate finance if not already blocked
+            fin_verdict = (
+                SeverityLattice.VIABLE if roi_viable
+                else SeverityLattice.PRECAUCION
+            )
+            # 2. Colapso del retículo (supremum)
+            final_severity = LatticeVerdictCollapse.compute_supremum(
+                fin_verdict, topo_verdict,
+            )
 
         # 3. Generación de narrativa causal
         narrator = GraphRAGCausalNarrator(graph, max_cycles=max_cycles)
@@ -1142,14 +1152,13 @@ class LatticeVerdictCollapse:
         synthesis = f"VEREDICTO FINAL SÍNTESIS: {final_severity.name}\n"
         if (
             final_severity == SeverityLattice.RECHAZAR
-            and fin_verdict == SeverityLattice.VIABLE
+            and topo_verdict == SeverityLattice.RECHAZAR
         ):
             synthesis += (
-                "JUSTIFICACIÓN: Aunque el Oráculo Financiero proyecta rentabilidad "
-                "(VPN positivo), el sistema ejecuta la operación Supremo (⊔) "
-                "priorizando la supervivencia física. "
-                "El ahorro contable proyectado NO justifica la resonancia "
-                "destructiva del cronograma que causará este fallo estructural."
+                "JUSTIFICACIÓN: Se ha aplicado un cortocircuito absorbente (Fast-Fail). "
+                "Debido a que la topología devuelve un estado de RECHAZAR (⊤), "
+                "el sistema omite la evaluación financiera, ya que a ⊔ ⊤ = ⊤. "
+                "El rigor topológico/físico domina incondicionalmente."
             )
 
         return f"{causal_text}\n\n{synthesis}"
@@ -1172,8 +1181,6 @@ class FinancialVerdict(Enum):
     REVIEW = "REVISAR"
     REJECT = "RECHAZAR"
 
-    _VERDICT_MAP: ClassVar[Dict[str, VerdictLevel]] = {}
-
     def to_verdict_level(self) -> VerdictLevel:
         """Homomorfismo al retículo de veredictos."""
         mapping: Dict[FinancialVerdict, VerdictLevel] = {
@@ -1191,7 +1198,7 @@ class FinancialVerdict(Enum):
             return cls.REVIEW
         normalized = value.strip().upper()
         for verdict in cls:
-            if verdict.value.upper() == normalized or verdict.name == normalized:
+            if str(verdict.value).upper() == normalized or verdict.name == normalized:
                 return verdict
         # Fuzzy matching para tolerancia a errores
         _ALIASES: Dict[str, FinancialVerdict] = {
@@ -1530,11 +1537,34 @@ class NarrativeCache:
     ) -> str:
         """
         Genera clave determinista usando SHA-256 sobre representación canónica.
+        Ahora incluye el tensor de invariantes topológicos y la temperatura, garantizando
+        isomorfismo semántico absoluto.
 
         A diferencia de ``hash()``, SHA-256 es determinista entre procesos.
         """
+        # Extraer parámetros relevantes o establecer sus defaults si no existen,
+        # para formar el tensor topológico-térmico (β0, β1, λ2, Ψ, T)
+        beta_0 = params.get("beta_0", 1)
+        beta_1 = params.get("beta_1", 0)
+        fiedler = params.get("fiedler", 1.0)
+        psi = params.get("stability", 1.0)
+        temperature = params.get("temperature", 298.15)
+
+        tensor_invariants = {
+            "beta_0": beta_0,
+            "beta_1": beta_1,
+            "fiedler_value": fiedler,
+            "pyramid_stability": psi,
+            "temperature": temperature,
+        }
+
         canonical = json.dumps(
-            {"d": domain, "c": classification, "p": params},
+            {
+                "d": domain,
+                "c": classification,
+                "p": params,
+                "tensor": tensor_invariants
+            },
             sort_keys=True,
             separators=(",", ":"),
             default=str,
@@ -2027,6 +2057,7 @@ class SemanticTranslator:
     def translate_thermodynamics(
         self,
         metrics: Union[ThermodynamicMetrics, Dict[str, Any]],
+        fiedler_value: float = 1.0,
     ) -> Tuple[str, VerdictLevel]:
         """
         Traduce métricas termodinámicas a narrativa.
@@ -2052,7 +2083,23 @@ class SemanticTranslator:
         else:
             thermo = ThermodynamicMetrics()
 
-        temp = self._normalize_temperature(thermo.system_temperature)
+        base_temp = self._normalize_temperature(thermo.system_temperature)
+
+        # Difusión Térmica Laplaciana: Teff = Tbase * exp(-λ2 * t)
+        # Assuming t = 1.0 for the timestep of evaluation
+        t = 1.0
+        effective_temp_kelvin = base_temp.kelvin * math.exp(-fiedler_value * t)
+
+        # Determine if we have a thermal bottleneck due to low connectivity
+        is_thermal_bottleneck = False
+        if fiedler_value < self.config.topology.fiedler_connected_threshold:
+            # Heat cannot dissipate, local thermal singularities occur
+            is_thermal_bottleneck = True
+            # We override the effective temperature to be extremely high
+            # effectively ignoring the diffusion cooling effect, preserving the high input temperature
+            effective_temp_kelvin = base_temp.kelvin
+
+        temp = Temperature.from_kelvin(effective_temp_kelvin)
         temp_celsius = temp.celsius
 
         # Clamp entropía y exergía a [0, 1]
@@ -2101,28 +2148,37 @@ class SemanticTranslator:
 
         # 3. Temperatura
         temp_class = self.config.thermal.classify_temperature(temp_celsius)
-        parts.append(
-            self._fetch_narrative(
-                "THERMAL_TEMPERATURE", temp_class,
-                {"temperature": round(temp_celsius, 1)},
-            )
-        )
 
-        temp_verdict_map: Dict[str, VerdictLevel] = {
-            "cold": VerdictLevel.VIABLE,
-            "stable": VerdictLevel.VIABLE,
-            "warm": VerdictLevel.CONDICIONAL,
-            "hot": VerdictLevel.PRECAUCION,
-            "critical": VerdictLevel.RECHAZAR,
-            "invalid": VerdictLevel.REVISAR,
-        }
-        verdicts.append(temp_verdict_map.get(temp_class, VerdictLevel.REVISAR))
-
-        if temp_class in ("hot", "critical"):
+        if is_thermal_bottleneck:
             parts.append(
-                "💊 **Receta**: Se recomienda enfriar mediante contratos de futuros "
-                "o stock preventivo."
+                f"🔥 **Embotellamiento Térmico Inminente**: La conectividad algebraica es críticamente "
+                f"baja (λ₂ = {fiedler_value:.2e}). El calor no puede disiparse por la red, "
+                f"creando singularidades térmicas locales."
             )
+            verdicts.append(VerdictLevel.RECHAZAR)
+        else:
+            parts.append(
+                self._fetch_narrative(
+                    "THERMAL_TEMPERATURE", temp_class,
+                    {"temperature": round(temp_celsius, 1)},
+                )
+            )
+
+            temp_verdict_map: Dict[str, VerdictLevel] = {
+                "cold": VerdictLevel.VIABLE,
+                "stable": VerdictLevel.VIABLE,
+                "warm": VerdictLevel.CONDICIONAL,
+                "hot": VerdictLevel.PRECAUCION,
+                "critical": VerdictLevel.RECHAZAR,
+                "invalid": VerdictLevel.REVISAR,
+            }
+            verdicts.append(temp_verdict_map.get(temp_class, VerdictLevel.REVISAR))
+
+            if temp_class in ("hot", "critical"):
+                parts.append(
+                    "💊 **Receta**: Se recomienda enfriar mediante contratos de futuros "
+                    "o stock preventivo."
+                )
 
         # 4. Inercia (Capacidad Calorífica)
         heat_cap = thermo.heat_capacity if math.isfinite(thermo.heat_capacity) else 0.0
@@ -2240,6 +2296,7 @@ class SemanticTranslator:
         stability: float,
         physics: Optional[PhysicsMetrics] = None,
         control: Optional[ControlMetrics] = None,
+        fiedler_value: float = 1.0,
     ) -> StratumAnalysisResult:
         """
         Analiza el estrato PHYSICS (datos, flujo, temperatura).
@@ -2299,10 +2356,22 @@ class SemanticTranslator:
                 verdicts.append(VerdictLevel.VIABLE)
 
         # 3. Análisis térmico
-        temp = self._normalize_temperature(thermal.system_temperature)
+        base_temp = self._normalize_temperature(thermal.system_temperature)
+
+        t = 1.0
+        effective_temp_kelvin = base_temp.kelvin * math.exp(-fiedler_value * t)
+
+        is_thermal_bottleneck = fiedler_value < self.config.topology.fiedler_connected_threshold
+        if is_thermal_bottleneck:
+            effective_temp_kelvin = base_temp.kelvin
+
+        temp = Temperature.from_kelvin(effective_temp_kelvin)
         temp_class = self.config.thermal.classify_temperature(temp.celsius)
 
-        if temp_class == "critical":
+        if is_thermal_bottleneck:
+            issues.append(f"Embotellamiento Térmico Inminente (λ₂={fiedler_value:.2e})")
+            verdicts.append(VerdictLevel.RECHAZAR)
+        elif temp_class == "critical":
             issues.append(f"Temperatura crítica: {temp}")
             verdicts.append(VerdictLevel.RECHAZAR)
         elif temp_class == "hot":
@@ -2900,7 +2969,7 @@ class SemanticTranslator:
 
         # ====== PHYSICS ======
         physics_result = self._analyze_physics_stratum(
-            thermal, eff_stability, physics, control,
+            thermal, eff_stability, physics, control, topo.fiedler_value,
         )
         strata_analysis[Stratum.PHYSICS] = physics_result
         all_verdicts.append(physics_result.verdict)
