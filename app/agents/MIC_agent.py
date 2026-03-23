@@ -96,9 +96,14 @@ from typing import (
 from app.core.schemas import Stratum
 from app.core.mic_algebra import (
     CategoricalState,
+    Morphism,
     _canonicalize,
 )
 from app.adapters.tools_interface import MICRegistry
+from app.core.inmune_system.topological_watcher import (
+    create_immune_watcher,
+    ImmuneWatcherMorphism,
+)
 
 
 
@@ -1451,6 +1456,7 @@ class MICAgent:
         algebraic_veto_registry: Optional[AlgebraicVetoRegistry] = None,
         toon_compressor: Optional[TOONCompressor] = None,
         audit_trail_size: int = MAX_AUDIT_TRAIL_SIZE,
+        immune_watcher: Optional[ImmuneWatcherMorphism] = None,
     ) -> None:
         """
         Inicializa el MIC Agent.
@@ -1462,6 +1468,7 @@ class MICAgent:
             algebraic_veto_registry: Registro de vetos (opcional, usa default)
             toon_compressor: Compresor TOON (opcional, usa default)
             audit_trail_size: Tamaño máximo de traza de auditoría
+            immune_watcher: Funtor de escudo inmunológico F_inmune
         """
         self._mic = mic_registry
         self._silo_manager = silo_manager or SiloManager()
@@ -1469,6 +1476,18 @@ class MICAgent:
         self._algebraic_vetos = algebraic_veto_registry or AlgebraicVetoRegistry()
         self._toon_compressor = toon_compressor or TOONCompressor()
         self._audit_trail = AuditTrail(max_size=audit_trail_size)
+
+        # Inyectar escudo topológico (Perfil Phase 2)
+        if immune_watcher is None:
+            self._immune_watcher = create_immune_watcher(
+                profile="default",
+                warning_threshold=0.8,
+                critical_threshold=1.5,
+                hysteresis=0.05,
+                enable_topology_monitoring=True,
+            )
+        else:
+            self._immune_watcher = immune_watcher
 
     # -------------------------------------------------------------------------
     # PROPIEDADES
@@ -1855,7 +1874,7 @@ class MICAgent:
         Returns:
             Diccionario con resultado de proyección
         """
-        # Encapsular
+        # Paso 1: Encapsular salida base (T)
         categorical_state = self.encapsulate_monad(
             target_vector=target_vector,
             llm_output=llm_output,
@@ -1865,8 +1884,22 @@ class MICAgent:
             force_override=force_override,
         )
         
-        # Verificar errores de encapsulación
-        if categorical_state.is_failed:
+        # Paso 2: Evaluar pre-condición (F_immune ∘ T)
+        # Aseguramos de que el estado tenga en el context la telemetría,
+        # que el immune_watcher inspecciona en categorical_state.context['telemetry_metrics']
+        if raw_telemetry is not None:
+            # Añadir telemetry_metrics de forma temporal si no está
+            categorical_state = categorical_state.with_update(
+                new_context={"telemetry_metrics": raw_telemetry},
+                merge_context=True,
+            )
+
+        # Blindaje topológico: Fase de pre-composición
+        protected_state = self._immune_watcher(categorical_state)
+
+        # Verificar errores de encapsulación o de escudo inmunológico
+        if protected_state.is_failed:
+            categorical_state = protected_state
             logger.warning(
                 "Proyección abortada: %s",
                 categorical_state.error,
@@ -1892,14 +1925,16 @@ class MICAgent:
                 stratum.name,
             )
             
+            # Post-composición y proyección: T_protegida = F_immune ∘ T ∘ F_immune
+            # Validamos con la Matriz
             mic_result = self._mic.project_intent(
                 target_basis_vector=target_vector,
                 stratum_target=stratum.value,
                 validated_subspaces=[
-                    s.name for s in categorical_state.validated_strata
+                    s.name for s in protected_state.validated_strata
                 ],
                 orthogonality_guarantee=0.0,
-                payload=categorical_state.payload,
+                payload=protected_state.payload,
             )
             
             return {
@@ -1907,12 +1942,12 @@ class MICAgent:
                 "impedance_status": ImpedanceMatchStatus.LAMINAR_PROJECTION.value,
                 "target_vector": target_vector,
                 "target_stratum": stratum.name,
-                "categorical_state_hash": categorical_state.compute_hash(),
+                "categorical_state_hash": protected_state.compute_hash(),
                 "validated_strata": sorted(
-                    s.name for s in categorical_state.validated_strata
+                    s.name for s in protected_state.validated_strata
                 ),
                 "mic_result": mic_result,
-                "audit_context": categorical_state.context,
+                "audit_context": protected_state.context,
             }
         
         except Exception as e:
