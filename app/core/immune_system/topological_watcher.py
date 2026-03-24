@@ -1184,6 +1184,8 @@ class OrthogonalProjector:
         "_topo_indices",
         "_projection_matrices",
         "_validation_report",
+        "_global_metric",
+        "_global_metric_tensor",
     )
 
     def __init__(
@@ -1223,6 +1225,36 @@ class OrthogonalProjector:
         self._topo_indices = topo_indices
 
         self._validate_and_build(cache_projections)
+
+        # Ensamblar tensor global para bloque-diagonal R7
+        self._build_global_tensor()
+
+    def _build_global_tensor(self) -> None:
+        """Construye un tensor métrico global G_{global} bloque-diagonal ponderado"""
+        import app.core.immune_system.metric_tensors as ext_metric_tensors
+        from scipy.linalg import block_diag
+
+        # Extraemos las matrices base usando los pesos y referencias en subespacios
+        blocks = []
+        # Para R7 nos aseguramos de seguir un orden canónico: phys, topo, thermo
+
+        ordered_keys = ["physics_core", "topology_core", "thermo_core"]
+        for key in ordered_keys:
+            if key in self._subspaces:
+                spec = self._subspaces[key]
+                # Modificamos la matriz multiplicando por w^2
+                # d_G(v, ref) = sqrt( (v-ref)^T G (v-ref) )
+                # threat = w * d_G = sqrt( (v-ref)^T (w^2 G) (v-ref) )
+                weighted_matrix = (spec.weight ** 2) * spec.metric.to_array()
+                blocks.append(weighted_matrix)
+
+        if len(blocks) == 3:
+            G_global_arr = block_diag(*blocks)
+            self._global_metric = ext_metric_tensors.MetricTensorFactory._validate_and_regularize("G_global", G_global_arr)
+            self._global_metric_tensor = MetricTensor(self._global_metric, validate=False)
+        else:
+            self._global_metric = None
+            self._global_metric_tensor = None
 
     def _validate_and_build(self, cache_projections: bool) -> None:
         """
@@ -1511,11 +1543,25 @@ class OrthogonalProjector:
                     threat / spec.weight if spec.weight > EPS else float("inf"),
                 )
 
-        # ── Total de amenaza (norma L²) ──────────────────────────────────────
+        # ── Total de amenaza (distancia geométrica agregada en R7) ──────────────────────────────────────
         threat_values = list(levels.values())
         max_source = max(levels, key=lambda k: levels[k])
         max_value = float(levels[max_source])
-        total_threat = float(np.linalg.norm(threat_values))
+
+        if self._global_metric_tensor is not None:
+            # Calcular la amenaza global proyectando el estado sobre el tensor global R7 ensamblado
+            global_reference = np.zeros(self._dim, dtype=np.float64)
+            # Reensamblamos el vector de referencia global preservando el orden de los bloques
+            for key in ["physics_core", "topology_core", "thermo_core"]:
+                if key in self._subspaces:
+                    spec = self._subspaces[key]
+                    global_reference[spec.indices] = spec.reference
+
+            delta = psi - global_reference
+            maha_sq = self._global_metric_tensor.quadratic_form(delta)
+            total_threat = float(np.sqrt(max(maha_sq, 0.0)))
+        else:
+            total_threat = float(np.linalg.norm(threat_values))
 
         # ── Clasificación con histéresis (usando total_threat como distancia geométrica agregada) ──────────────────────────────────────
         status = self._classify_with_hysteresis(
@@ -1951,6 +1997,7 @@ class ImmuneWatcherMorphism(Morphism):
                 indices=slice(0, 3),
                 weight=1.0,
                 reference=np.zeros(3, dtype=np.float64),
+                scale=scale_phys,
                 metric=MetricTensor(scaled_G_phys, validate=False),
             ),
             "topology_core": SubspaceSpec(
@@ -1958,6 +2005,7 @@ class ImmuneWatcherMorphism(Morphism):
                 indices=slice(3, 5),
                 weight=1.5,
                 reference=np.array([1.0, 0.0], dtype=np.float64),
+                scale=scale_topo,
                 metric=MetricTensor(scaled_G_topo, validate=False),
             ),
             "thermo_core": SubspaceSpec(
@@ -1965,6 +2013,7 @@ class ImmuneWatcherMorphism(Morphism):
                 indices=slice(5, 7),
                 weight=1.2,
                 reference=np.zeros(2, dtype=np.float64),
+                scale=scale_thermo,
                 metric=MetricTensor(scaled_G_thermo, validate=False),
             ),
         }
