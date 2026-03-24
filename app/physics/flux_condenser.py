@@ -501,8 +501,6 @@ class PIController:
             raise ConfigurationError(
                 f"Setpoint debe estar en (0, 1) para normalización, recibido: {setpoint}"
             )
-        if min_out <= 0:
-            raise ConfigurationError(f"min_output debe ser positivo, recibido: {min_out}")
         if min_out >= max_out:
             raise ConfigurationError(
                 f"Rango de salida inválido: [{min_out}, {max_out}]"
@@ -599,18 +597,20 @@ class PIController:
         sign_changes = np.sum(np.diff(np.sign(errors)) != 0)
         self._oscillation_index = sign_changes / max(len(errors) - 1, 1)
 
-    def compute(self, measurement: float) -> int:
+    def compute(self, measurement: float, dt: Optional[float] = None) -> float:
         """
         Calcula señal de control con anti-windup por back-calculation.
 
         Args:
             measurement: Variable de proceso actual
+            dt: Paso temporal determinista.
 
         Returns:
-            Señal de control entera (batch size)
+            Señal de control flotante para evitar discretización ruidosa.
         """
         current_time = time.time()
-        dt = current_time - self._last_time
+        if dt is None:
+            dt = current_time - self._last_time
         dt = max(CONSTANTS.MIN_DELTA_TIME, min(dt, CONSTANTS.MAX_DELTA_TIME))
 
         # Filtrado de entrada
@@ -668,7 +668,7 @@ class PIController:
         self._last_error = error
         self._output_history.append(output)
 
-        return int(round(output))
+        return float(output)
 
     def get_lyapunov_exponent(self) -> float:
         """Retorna exponente de Lyapunov estimado."""
@@ -1504,7 +1504,7 @@ class MaxwellSolver:
         # Actualizar D
         self.D = self.epsilon * (self.calc.star1 @ self.E)
 
-    def leapfrog_step(self, dt: Optional[float] = None) -> None:
+    def leapfrog_step(self, dt: Optional[float] = None, context: Optional['TelemetryContext'] = None) -> None:
         """
         Paso completo leap-frog.
 
@@ -1519,8 +1519,15 @@ class MaxwellSolver:
 
         if dt > self.dt_cfl:
             msg = f"Δt={dt:.2e} > Δt_CFL={self.dt_cfl:.2e}. Posible inestabilidad."
-            logger.warning(msg)
-            warnings.warn(msg, UserWarning)
+            logger.error(msg)
+            if context:
+                context.record_error(
+                    step_name="physics.maxwell_solver",
+                    error_type="NumericalInstabilityError",
+                    error_message=msg,
+                )
+                context._verdict_code = "REJECTED_PHYSICS"
+            raise NumericalInstabilityError(msg)
 
         self.step_magnetic_field(dt)
         self.step_electric_field(dt)
@@ -1903,9 +1910,28 @@ class PortHamiltonianController:
 
         return u
 
-    def apply_control(self, dt: float) -> np.ndarray:
-        """Aplica señal de control como fuentes."""
-        u = self.compute_control()
+    def apply_control(self, dt: float, u_input: Optional[float] = None) -> float:
+        """
+        Aplica señal de control (computada o forzada) como fuentes.
+
+        Args:
+            dt: Paso temporal.
+            u_input: Si se provee, sobrescribe el controlador interno (forcing externo)
+                     como un escalar que se aplica como campo constante.
+
+        Returns:
+            La salida del sistema y = g^T \\nabla H, que es necesaria para
+            evaluar la desigualdad de pasividad empíricamente.
+        """
+        if u_input is not None:
+            # Control forzado externo (para validación de pasividad)
+            # En el lazo cerrado estricto, u_input representa el esfuerzo (ganancia)
+            # sobre el gradiente, modelando u = -u_input * grad_H
+            grad_H = self.hamiltonian_gradient()
+            u = -u_input * grad_H
+        else:
+            # Lazo cerrado natural
+            u = self.compute_control()
 
         u_e = u[:self.n_e]
         u_f = u[self.n_e:] if self.n_f > 0 else np.array([])
@@ -1919,20 +1945,30 @@ class PortHamiltonianController:
         self.energy_history.append(self.hamiltonian())
         self.lyapunov_history.append(self.storage_function())
 
-        return u
+        # Calcular salida y = g^T \\nabla H
+        # g = I, entonces y = \\nabla H
+        grad_H = self.hamiltonian_gradient()
+        y = self.g_matrix.T @ grad_H
 
-    def controlled_step(self, dt: Optional[float] = None) -> None:
+        # Proyectar al espacio escalar para el cálculo de pasividad unidimensional
+        y_scalar = float(np.sum(y))
+
+        return y_scalar
+
+    def controlled_step(self, dt: Optional[float] = None, u_input: Optional[float] = None) -> float:
         """Paso con control activo."""
         if dt is None:
             dt = 0.9 * self.solver.dt_cfl
 
-        self.apply_control(dt)
+        y_out = self.apply_control(dt, u_input=u_input)
         self.solver.leapfrog_step(dt)
 
         # Limpiar fuentes
         self.solver.J_e.fill(0.0)
         if self.n_f > 0:
             self.solver.J_m.fill(0.0)
+
+        return y_out
 
     def verify_passivity(self, num_steps: int = 100) -> Dict[str, float]:
         """Verifica pasividad: dV/dt ≤ uᵀy."""
