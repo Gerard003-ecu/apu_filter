@@ -13,7 +13,7 @@ Fundamentos Teóricos y Arquitectura de Control:
 1. Analogía Electro-Hidráulica Rigurosa (Isomorfismo):
    Implementa una correspondencia biyectiva donde la Presión ($P$) equivale al Voltaje ($V$)
    y el Caudal ($Q$) a la Corriente ($I$). El sistema resuelve la Ecuación de Poisson en Grafos
-   ($L \cdot p = s$) para garantizar la conservación de masa y energía (Teorema de Tellegen).
+   ($L \\cdot p = s$) para garantizar la conservación de masa y energía (Teorema de Tellegen).
 
 2. Cálculo Exterior Discreto (DEC) y Operadores de Hodge:
    Utiliza matrices de incidencia ($B_1$) y de ciclos ($B_2$) para definir operadores diferenciales
