@@ -58,8 +58,8 @@ import pytest
 from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
 
-import app.core.inmune_system.topological_watcher as _module
-from app.core.inmune_system.topological_watcher import (
+import app.core.immune_system.topological_watcher as _module
+from app.core.immune_system.topological_watcher import (
     DimensionalMismatchError,
     ImmuneSystemError,
     MetricTensorError,
@@ -368,6 +368,8 @@ def dense_metric_3d() -> MetricTensor:
     return MetricTensor(A.T @ A + 0.1 * np.eye(3))
 
 
+import app.core.immune_system.metric_tensors as ext_metric_tensors
+
 @pytest.fixture
 def standard_projector() -> OrthogonalProjector:
     """
@@ -381,31 +383,43 @@ def standard_projector() -> OrthogonalProjector:
     Verificación post-construcción: subespacios DEBEN ser disjuntos
     y su unión DEBE cubrir {0,...,6} exactamente (resolución de identidad).
     """
+    scale_phys = np.array([
+        PhysicalConstants.SATURATION_CRITICAL,
+        PhysicalConstants.FLYBACK_MAX_SAFE,
+        PhysicalConstants.P_NOMINAL(),
+    ], dtype=np.float64)
+    D_inv_phys = np.diag(1.0 / scale_phys)
+    scaled_G_phys = D_inv_phys @ ext_metric_tensors.G_PHYSICS @ D_inv_phys
+
+    scale_topo = np.array([1.0, 1.0], dtype=np.float64)
+    D_inv_topo = np.diag(1.0 / scale_topo)
+    scaled_G_topo = D_inv_topo @ ext_metric_tensors.G_TOPOLOGY @ D_inv_topo
+
+    scale_thermo = np.array([0.5, 0.5], dtype=np.float64)
+    D_inv_thermo = np.diag(1.0 / scale_thermo)
+    scaled_G_thermo = D_inv_thermo @ ext_metric_tensors.G_THERMODYNAMICS @ D_inv_thermo
+
     subspaces = {
         "physics_core": SubspaceSpec(
             name="physics_core",
             indices=slice(0, 3),
             weight=1.0,
             reference=np.zeros(3),
-            scale=np.array([
-                PhysicalConstants.SATURATION_CRITICAL,
-                PhysicalConstants.FLYBACK_MAX_SAFE,
-                PhysicalConstants.P_NOMINAL(),
-            ]),
+            metric=MetricTensor(scaled_G_phys, validate=False),
         ),
         "topology_core": SubspaceSpec(
             name="topology_core",
             indices=slice(3, 5),
             weight=1.5,
             reference=np.array([1.0, 0.0]),
-            scale=np.ones(2),
+            metric=MetricTensor(scaled_G_topo, validate=False),
         ),
         "thermo_core": SubspaceSpec(
             name="thermo_core",
             indices=slice(5, 7),
             weight=1.2,
             reference=np.zeros(2),
-            scale=np.array([0.5, 0.5]),
+            metric=MetricTensor(scaled_G_thermo, validate=False),
         ),
     }
     proj = OrthogonalProjector(
@@ -764,7 +778,8 @@ class TestStableNorm:
 
     def test_zero_vector_norm_is_zero(self):
         """‖0‖ = 0 exactamente."""
-        result = _stable_norm(np.zeros(10))
+        with pytest.warns(RuntimeWarning, match="degeneración"):
+            result = _stable_norm(np.zeros(10))
         assert result == pytest.approx(0.0, abs=1e-15), (
             f"‖0‖ = {result} ≠ 0"
         )
@@ -2187,6 +2202,49 @@ class TestImmuneWatcherFunctoriality:
     4. Estados críticos invocan with_error con acción QUARANTINE
     5. with_update recibe new_stratum=WISDOM
     """
+
+    def test_topological_changes_do_not_leak_into_thermodynamics(
+        self, watcher_default: ImmuneWatcherMorphism, healthy_telemetry: Dict,
+    ):
+        """
+        La modificación de la complejidad topológica (β₁) no debe generar
+        'fugas dimensionales' o efectos secundarios en el cálculo de la
+        temperatura financiera (σ) o amenaza termodinámica, preservando la
+        ortogonalidad funcional cruzada.
+        """
+        import copy
+
+        # Estado base
+        state_base = _make_state(healthy_telemetry)
+        watcher_default(state_base)
+        context_base = state_base.with_update.call_args[0][0]
+        thermo_threat_base = context_base["threat_levels"]["thermo_core"]
+        topo_threat_base = context_base["threat_levels"]["topology_core"]
+
+        # Incrementar complejidad topológica (β₁: 0 -> 2)
+        leaky_telemetry = copy.deepcopy(healthy_telemetry)
+        leaky_telemetry["beta_1"] = 2
+
+        state_leaky = _make_state(leaky_telemetry)
+        watcher_default(state_leaky)
+
+        # When critical threshold is exceeded, it uses with_error instead of with_update
+        if state_leaky.with_update.called:
+            context_leaky = state_leaky.with_update.call_args[0][0]
+        else:
+            context_leaky = state_leaky.with_error.call_args[1]["details"]
+
+        thermo_threat_leaky = context_leaky["threat_levels"]["thermo_core"]
+        topo_threat_leaky = context_leaky["threat_levels"]["topology_core"]
+
+        # Asegurar que la amenaza topológica sí cambió
+        assert topo_threat_leaky > topo_threat_base, "La amenaza topológica no respondió al cambio"
+
+        # ASERCIÓN CLAVE: La amenaza termodinámica se mantiene matemáticamente idéntica
+        assert thermo_threat_base == pytest.approx(thermo_threat_leaky, abs=1e-12), (
+            f"Fuga dimensional: la topología alteró la termodinámica. "
+            f"Base: {thermo_threat_base}, Leaky: {thermo_threat_leaky}"
+        )
 
     def test_error_state_returned_as_identity(
         self, watcher_default: ImmuneWatcherMorphism, error_state: MagicMock,

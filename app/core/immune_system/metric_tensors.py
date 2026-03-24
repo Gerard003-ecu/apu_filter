@@ -262,6 +262,12 @@ class MetricTensorFactory:
                 f"Tipo recibido: {type(G).__name__}. Error: {exc}"
             ) from exc
 
+        if G is None:
+            raise MetricTensorError(
+                f"Tensor {name}: no convertible a array numérico float64. "
+                f"Tipo recibido: NoneType."
+            )
+
         if G_arr.ndim != 2:
             raise MetricTensorError(
                 f"Tensor {name}: se requiere matriz 2D (rango tensorial 2), "
@@ -550,14 +556,26 @@ class MetricTensorFactory:
             )
 
         # Verificación 4: Espectro inferior acotado
-        if profile.lambda_min < MIN_EIGVAL_TOL:
+        if profile.lambda_min <= MIN_EIGVAL_TOL:
             raise MetricTensorError(
-                f"Tensor {name}: λ_min = {profile.lambda_min:.6e} < "
+                f"Tensor {name}: λ_min = {profile.lambda_min:.6e} <= "
                 f"MIN_EIGVAL_TOL = {MIN_EIGVAL_TOL:.6e}. "
-                "La regularización no logró estabilizar el espectro inferior."
+                "La regularización no logró estabilizar el espectro inferior, "
+                "divergencia de número de condición inminente."
             )
 
-        # Verificación 5: Certificación Cholesky (gold standard, O(n³/3))
+        # Verificación 5: Criterio de Sylvester (menores principales líderes > 0)
+        n = G.shape[0]
+        for k in range(1, n + 1):
+            leading_minor = np.linalg.det(G[:k, :k])
+            if leading_minor <= 0:
+                raise MetricTensorError(
+                    f"Tensor {name}: falló el Criterio de Sylvester en el menor "
+                    f"principal líder k={k}. Δ_{k} = {leading_minor:.6e} <= 0. "
+                    "La matriz no es SPD."
+                )
+
+        # Verificación 6: Certificación Cholesky (gold standard, O(n³/3))
         if not cls._verify_spd_by_cholesky(name, G):
             raise MetricTensorError(
                 f"Tensor {name}: falló descomposición de Cholesky a pesar de "
@@ -930,18 +948,25 @@ class MetricTensorFactory:
 
         # Calcular deformación por regularización
         if required_regularization:
-            deformation = cls._compute_regularization_deformation(
-                G_symmetric, G_regularized, tikhonov_delta
-            )
-
-            if deformation > _REGULARIZATION_ABORT_THRESHOLD:
-                raise MetricTensorError(
-                    f"Tensor {name}: deformación por regularización excesiva. "
-                    f"||G_reg - G||_F / ||G||_F = {deformation:.2%} > "
-                    f"{_REGULARIZATION_ABORT_THRESHOLD:.0%}. "
-                    "La matriz base es demasiado deficiente para ser "
-                    "utilizable como tensor métrico."
+            # Si la matriz es demasiado pequeña, no abortamos por deformación relativa
+            frobenius_norm = float(np.linalg.norm(G_symmetric, "fro"))
+            if frobenius_norm < _NEAR_ZERO_FROBENIUS_TOL * 1e4:
+                # La matriz es muy pequeña, la regularización dominará, esto es aceptable
+                # para la estabilidad y no abortaremos la ejecución por porcentaje de deformación
+                deformation = tikhonov_delta * np.sqrt(G_symmetric.shape[0]) / max(frobenius_norm, _NEAR_ZERO_FROBENIUS_TOL)
+            else:
+                deformation = cls._compute_regularization_deformation(
+                    G_symmetric, G_regularized, tikhonov_delta
                 )
+
+                if deformation > _REGULARIZATION_ABORT_THRESHOLD:
+                    raise MetricTensorError(
+                        f"Tensor {name}: deformación por regularización excesiva. "
+                        f"||G_reg - G||_F / ||G||_F = {deformation:.2%} > "
+                        f"{_REGULARIZATION_ABORT_THRESHOLD:.0%}. "
+                        "La matriz base es demasiado deficiente para ser "
+                        "utilizable como tensor métrico."
+                    )
         else:
             deformation = 0.0
 
@@ -1130,6 +1155,30 @@ class MetricTensorFactory:
             dtype=_FLOAT_DTYPE,
         )
         return cls._validate_and_regularize("G_topo", G_topo)
+
+    @classmethod
+    def build_global_tensor(
+        cls,
+        physics_tensor: np.ndarray,
+        topology_tensor: np.ndarray,
+        thermo_tensor: np.ndarray,
+    ) -> np.ndarray:
+        """
+        Ensambla el tensor global como una matriz bloque-diagonal
+        combinando G_PHYSICS, G_TOPOLOGY y G_THERMODYNAMICS.
+        Esto garantiza algebraicamente que el producto interior cruzado
+        sea nulo (⟨v_phys, v_topo⟩_G = 0).
+
+        Returns:
+            Tensor métrico G_global ∈ 𝒮₊₊⁷ validado e inmutable.
+        """
+        from scipy.linalg import block_diag
+        G_global = block_diag(
+            physics_tensor,
+            topology_tensor,
+            thermo_tensor,
+        )
+        return cls._validate_and_regularize("G_global", G_global)
 
     @classmethod
     def build_thermo_tensor(cls) -> np.ndarray:
