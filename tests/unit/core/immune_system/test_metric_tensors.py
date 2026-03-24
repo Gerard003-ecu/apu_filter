@@ -1203,11 +1203,20 @@ class TestStrictSPDAssertion:
             factory._assert_spd_strict("test", G, profile)
 
     def test_lambda_min_below_threshold_detected(self, factory):
-        """λ_min < MIN_EIGVAL_TOL es detectado."""
-        tiny = MIN_EIGVAL_TOL * 0.1
+        """λ_min <= MIN_EIGVAL_TOL es detectado (divergencia de número de condición inminente)."""
+        tiny = MIN_EIGVAL_TOL
         G = np.diag([tiny, 1.0]).astype(_FLOAT_DTYPE)
         profile = self._make_profile([tiny, 1.0])
-        with pytest.raises(MetricTensorError, match="λ_min"):
+        with pytest.raises(MetricTensorError, match="λ_min.*?<="):
+            factory._assert_spd_strict("test", G, profile)
+
+    def test_sylvester_criterion_in_strict_spd(self, factory):
+        """Criterio de Sylvester (menores principales positivos) falla y es detectado."""
+        # Una matriz con λ_min y λ_max positivos pero que no es SPD debido
+        # a componentes fuera de la diagonal muy grandes
+        G = np.array([[1.0, 10.0], [10.0, 1.0]], dtype=_FLOAT_DTYPE)
+        profile = self._make_profile([0.5, 1.5])  # valores falsos para saltar los checks previos
+        with pytest.raises(MetricTensorError, match="Criterio de Sylvester"):
             factory._assert_spd_strict("test", G, profile)
 
 
@@ -1748,6 +1757,33 @@ class TestMahalanobisDistance:
     Verifica propiedades de la forma cuadrática de Mahalanobis d_G(x)² = xᵀGx
     que define la pseudo-distancia inducida por los tensores métricos.
     """
+
+    def test_distance_is_non_negative_truncated(self):
+        """Si la distancia de Mahalanobis cae por debajo de cero debido a
+        los límites IEEE 754, el tensor debe truncarlo algebraicamente a cero.
+        Probamos esto instanciando un MetricTensor y forzando una forma
+        cuadrática numéricamente inestable o pasándole un vector específico,
+        pero dado que la lógica de truncamiento está en topological_watcher.py,
+        lo probamos importando de allí o simulando la operación."""
+        from app.core.immune_system.topological_watcher import MetricTensor
+        # Creamos una matriz SPD
+        G = np.array([[1e-10, 0], [0, 1e-10]], dtype=_FLOAT_DTYPE)
+        tensor = MetricTensor(G, validate=False)
+
+        # En MetricTensor.quadratic_form, ya se clampea a 0.0
+        # Simulemos un resultado ligeramente negativo que produciría np.dot
+        # Forzamos _matrix a tener un valor negativo minúsculo (esto no debería
+        # pasar para SPD pero sirve para probar el clamping de la función)
+        tensor._matrix = np.array([[-1e-16, 0], [0, -1e-16]], dtype=_FLOAT_DTYPE)
+        v = np.array([1.0, 1.0], dtype=_FLOAT_DTYPE)
+
+        # La forma cuadrática normal daría negativo
+        raw_result = float(v @ tensor._matrix @ v)
+        assert raw_result < 0.0
+
+        # Pero quadratic_form debe clampearlo a 0.0
+        clamped_result = tensor.quadratic_form(v)
+        assert clamped_result == 0.0
 
     def test_distance_is_non_negative(self, tensor_info):
         """xᵀGx ≥ 0 para todo x (definida positiva implica ≥ 0)."""

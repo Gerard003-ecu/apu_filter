@@ -1517,9 +1517,9 @@ class OrthogonalProjector:
         max_value = float(levels[max_source])
         total_threat = float(np.linalg.norm(threat_values))
 
-        # ── Clasificación con histéresis ──────────────────────────────────────
+        # ── Clasificación con histéresis (usando total_threat como distancia geométrica agregada) ──────────────────────────────────────
         status = self._classify_with_hysteresis(
-            max_value,
+            total_threat,
             warning_threshold,
             critical_threshold,
             hysteresis,
@@ -1923,31 +1923,49 @@ class ImmuneWatcherMorphism(Morphism):
         topology_core [3:5] : β₀, β₁ (peso 1.5 — cambios cualitativos)
         thermo_core   [5:7] : entropía, pérdida exergética
         """
+        import app.core.immune_system.metric_tensors as ext_metric_tensors
+
+        # Usamos los tensores precompilados del nuevo módulo combinados con las escalas
+        # para preservar la normalización original que se lograba mediante diag(1/s**2).
+
+        # G_phys escalado: D^{-1} G_PHYSICS D^{-1} donde D = diag(scale)
+        scale_phys = np.array([
+            PhysicalConstants.SATURATION_CRITICAL,
+            PhysicalConstants.FLYBACK_MAX_SAFE,
+            _P_NOMINAL,
+        ], dtype=np.float64)
+        D_inv_phys = np.diag(1.0 / scale_phys)
+        scaled_G_phys = D_inv_phys @ ext_metric_tensors.G_PHYSICS @ D_inv_phys
+
+        scale_topo = np.array([1.0, 1.0], dtype=np.float64)
+        D_inv_topo = np.diag(1.0 / scale_topo)
+        scaled_G_topo = D_inv_topo @ ext_metric_tensors.G_TOPOLOGY @ D_inv_topo
+
+        scale_thermo = np.array([0.5, 0.5], dtype=np.float64)
+        D_inv_thermo = np.diag(1.0 / scale_thermo)
+        scaled_G_thermo = D_inv_thermo @ ext_metric_tensors.G_THERMODYNAMICS @ D_inv_thermo
+
         subspaces: Dict[str, SubspaceSpec] = {
             "physics_core": SubspaceSpec(
                 name="physics_core",
                 indices=slice(0, 3),
                 weight=1.0,
                 reference=np.zeros(3, dtype=np.float64),
-                scale=np.array([
-                    PhysicalConstants.SATURATION_CRITICAL,
-                    PhysicalConstants.FLYBACK_MAX_SAFE,
-                    _P_NOMINAL,
-                ], dtype=np.float64),
+                metric=MetricTensor(scaled_G_phys, validate=False),
             ),
             "topology_core": SubspaceSpec(
                 name="topology_core",
                 indices=slice(3, 5),
                 weight=1.5,
                 reference=np.array([1.0, 0.0], dtype=np.float64),
-                scale=np.array([1.0, 1.0], dtype=np.float64),
+                metric=MetricTensor(scaled_G_topo, validate=False),
             ),
             "thermo_core": SubspaceSpec(
                 name="thermo_core",
                 indices=slice(5, 7),
                 weight=1.2,
                 reference=np.zeros(2, dtype=np.float64),
-                scale=np.array([0.5, 0.5], dtype=np.float64),
+                metric=MetricTensor(scaled_G_thermo, validate=False),
             ),
         }
 
@@ -2074,6 +2092,23 @@ class ImmuneWatcherMorphism(Morphism):
             self._check_topology_change(assessment.euler_char)
 
             return self._emit_state(state, assessment)
+
+        except MetricTensorError as exc:
+            logger.critical(
+                "🛡️ COLAPSO TENSORIAL (#%d): %s. Tensor métrico insalvable, deteniendo transición.",
+                self._evaluation_count, exc,
+            )
+            return state.with_error(
+                error_msg=f"Colapso Tensorial (MetricTensorError): {exc}",
+                details={
+                    "morphism": self.name,
+                    "error_type": "metric_tensor_collapse",
+                    "exception_class": "MetricTensorError",
+                    "evaluation_number": self._evaluation_count,
+                    "action": "QUARANTINE",
+                    "severity": "CRITICO",
+                },
+            )
 
         except (ValueError, ImmuneSystemError) as exc:
             logger.error(
