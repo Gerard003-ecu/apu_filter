@@ -540,6 +540,36 @@ class TestOrientPhase:
             "Violación de monotonía."
         )
 
+    def test_teorema_b_heaviside_y_umbral_flyback(self, agent: AutonomousAgent) -> None:
+        """
+        Teorema B: Función de Heaviside y Umbral de Flyback.
+
+        Para un inductor con corriente i(t), el voltaje inducido satisface Vfb = L·|di/dt|.
+        Debes demostrar que la fase orient del agente opera como una función de
+        Heaviside trasladada χ(θ,∞) en torno al umbral crítico normalizado θ=0.8.
+        Si Vfb > θ, el sistema debe activar incondicionalmente el estado de
+        ALERTA_CRITICA, denotando el disparo del crowbar digital y la pérdida
+        temporal del flujo.
+        """
+        # Valor justo por debajo del umbral θ = 0.8
+        safe_telemetry = make_telemetry(0.799)
+        status_safe = agent.orient(safe_telemetry)
+        decision_safe = agent.decide(status_safe)
+
+        assert status_safe == SystemStatus.NOMINAL
+        assert decision_safe != AgentDecision.ALERTA_CRITICA
+
+        # Valor justo por encima del umbral θ = 0.8
+        critical_telemetry = make_telemetry(0.801)
+        status_critical = agent.orient(critical_telemetry)
+        decision_critical = agent.decide(status_critical)
+
+        assert status_critical == SystemStatus.CRITICO
+        assert decision_critical == AgentDecision.ALERTA_CRITICA, (
+            "El sistema DEBE activar incondicionalmente ALERTA_CRITICA "
+            "cuando Vfb > 0.8 (disparo del crowbar digital)."
+        )
+
     # -------------------------------------------------------------------------
     # Tabla de clasificación exhaustiva
     # -------------------------------------------------------------------------
@@ -1112,6 +1142,32 @@ class TestPropertyBasedOrient:
     Estas pruebas verifican invariantes que deben cumplirse para cualquier
     entrada válida del dominio.
     """
+
+    def test_teorema_c_independencia_funcional_del_reflejo(self, agent: AutonomousAgent) -> None:
+        """
+        Teorema C: Independencia Funcional del Reflejo.
+
+        Debes asertar la nulidad de la derivada parcial ∂(orient)/∂(saturation) = 0
+        bajo el régimen de partición topológica. Esto probará matemáticamente que frente
+        a picos inductivos destructivos, el ciclo OODA toma decisiones puras y deterministas
+        basándose en la inestabilidad de la derivada (di/dt), ignorando la capacidad estática
+        de la memoria (saturación).
+        """
+        base_flyback = 0.9  # Pico inductivo destructivo (Vfb > 0.8)
+
+        # Evaluamos para diferentes niveles de saturación (capacidad estática de memoria)
+        base_status = agent.orient(make_telemetry(base_flyback, saturation=0.0))
+
+        for sat in [0.1, 0.5, 0.9]:
+            status = agent.orient(make_telemetry(base_flyback, saturation=sat))
+            # Asertar la nulidad de la derivada parcial: un cambio en saturación no
+            # produce ningún cambio en el estado de orientación.
+            assert status == base_status, (
+                f"Violación de la nulidad de la derivada parcial: "
+                f"orient(Vfb={base_flyback}, sat={sat}) = {status}, "
+                f"pero orient(Vfb={base_flyback}, sat=0.0) = {base_status}. "
+                f"El ciclo OODA debe ignorar la capacidad estática de la memoria."
+            )
 
     @pytest.mark.parametrize(
         "flyback",
