@@ -1678,6 +1678,13 @@ class TestMorphismComposition:
         assert result_left.payload == result_right.payload
         assert result_left.payload["w"] == (5 + 1) * 2 - 1  # 11
 
+        # Validar commutatividad en el CompositionTrace
+        # (f ∘ g) ∘ h == f ∘ (g ∘ h) debe tener la misma historia exacta de morfismos aplicados
+        trace_left = [t.to_dict().get("morphism_name", "unk") for t in result_left.composition_trace]
+        trace_right = [t.to_dict().get("morphism_name", "unk") for t in result_right.composition_trace]
+        assert trace_left == trace_right
+        assert len(trace_left) == 3, "La traza de composición debe tener exactamente 3 morfismos"
+
     def test_identity_is_neutral_element_left(self) -> None:
         """Verifica id ∘ f = f (identidad como elemento neutro izquierdo)."""
         def handler(x: int):

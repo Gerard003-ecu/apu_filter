@@ -100,7 +100,7 @@ from app.core.mic_algebra import (
     _canonicalize,
 )
 from app.adapters.tools_interface import MICRegistry
-from app.core.inmune_system.topological_watcher import (
+from app.core.immune_system.topological_watcher import (
     create_immune_watcher,
     ImmuneWatcherMorphism,
 )

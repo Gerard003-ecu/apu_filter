@@ -556,12 +556,17 @@ class TestPipelineDirectorProperties:
     """Pruebas de propiedades estructurales del PipelineDirector."""
 
     def test_dag_is_acyclic(self, mock_pipeline_components) -> None:
-        """Verifica que el DAG del director es acíclico."""
+        """
+        Verifica que el DAG del director es acíclico.
+
+        Características Homológicas: β₁(G_pipeline) = 0 y su ordenamiento
+        topológico representa una extensión lineal válida del orden parcial.
+        """
         director = mock_pipeline_components["director"]
         dag_info = director.get_dag_info()
 
         assert dag_info["is_acyclic"] is True, (
-            "El DAG del pipeline debe ser acíclico"
+            "El DAG del pipeline debe ser acíclico (β₁ = 0)"
         )
 
     def test_dag_has_nodes(self, mock_pipeline_components) -> None:
@@ -607,7 +612,8 @@ class TestPipelineDirectorProperties:
         """
         Verifica que existe un orden topológico válido.
         
-        Todo DAG acíclico tiene al menos un orden topológico.
+        Todo DAG acíclico tiene al menos un orden topológico que representa
+        una extensión lineal válida del orden parcial impuesto por las dependencias.
         """
         director = mock_pipeline_components["director"]
         dag_info = director.get_dag_info()
@@ -622,6 +628,13 @@ class TestPipelineDirectorProperties:
             order = list(nx.topological_sort(G))
             
             assert len(order) == len(dag_info["nodes"])
+
+            # Verificar que el orden respeta todas las aristas (dependencias)
+            order_indices = {node: i for i, node in enumerate(order)}
+            for u, v in dag_info["edges"]:
+                assert order_indices[u] < order_indices[v], (
+                    f"Violación topológica: {u} debe preceder a {v}"
+                )
 
 
 # =============================================================================
@@ -652,8 +665,9 @@ class TestGreatWaveCollapse:
         """
         Verifica que el hash del estado evoluciona a lo largo del flujo.
         
-        Cada transición debe producir un hash diferente, reflejando
-        el cambio en el estado.
+        Cadena de Custodia Criptográfica: Cada transición de estado calcula
+        un hash SHA-256 de la firma tensorial. Se aserta que Hash(S_t) != Hash(S_{t+1})
+        demostrando evolución de entropía determinista.
         """
         is_evolving, message = verify_hash_evolution(all_states_list)
         assert is_evolving, message
@@ -662,8 +676,9 @@ class TestGreatWaveCollapse:
         """
         Verifica monotonía: los estratos validados crecen monótonamente.
         
-        Si estado_i tiene estrato S validado, entonces estado_j (j > i)
-        también debe tener S validado.
+        Funtor DIKW: La evolución a través del pipeline actúa como un funtor monótono
+        F: Stratum -> State. El conjunto de validated_strata debe ser monótonamente
+        expansivo (S_t ⊆ S_{t+1}) bajo el operador de unión de conjuntos.
         """
         states = [
             dikw_state_chain["initial"],
@@ -676,6 +691,14 @@ class TestGreatWaveCollapse:
         
         is_monotone, message = verify_monotone_chain(states)
         assert is_monotone, message
+
+        # Verificación estricta de conjuntos de estratos (S_t ⊆ S_{t+1})
+        for i in range(len(states) - 1):
+            current_strata = states[i].validated_strata
+            next_strata = states[i+1].validated_strata
+            assert current_strata.issubset(next_strata), (
+                f"Violación de monotonía: S_{i} no es subconjunto de S_{i+1}"
+            )
 
     def test_stratum_subset_chain(self, dikw_state_chain) -> None:
         """Verifica cadena de subconjuntos estricta."""
@@ -715,8 +738,9 @@ class TestGreatWaveCollapse:
         """
         Verifica que el hash de linaje apunta exactamente al estado WISDOM.
         
-        El linaje debe ser trazable al estado inmediatamente anterior
-        a la adición del producto final.
+        Invariante de Linaje: El producto final en WISDOM debe contener
+        la huella criptográfica SHA-256 exacta del estado final, proveyendo
+        una prueba matemática auditable.
         """
         wisdom = dikw_state_chain["wisdom"]
         final = dikw_state_chain["final"]
@@ -724,8 +748,12 @@ class TestGreatWaveCollapse:
         final_product = final.payload.get("final_result")
         lineage_hash = final_product["metadata"]["lineage_hash"]
         
+        # Validar que es un hash SHA-256 (64 caracteres hex)
+        import re
+        assert re.match(r"^[a-f0-9]{64}$", lineage_hash), "El hash debe ser un SHA-256 hexadecimal válido"
+
         assert lineage_hash == wisdom.compute_hash(), (
-            "El hash de linaje debe coincidir con el estado WISDOM"
+            "El hash de linaje debe coincidir con el estado WISDOM exactamente"
         )
 
     def test_initial_hash_differs_from_final(self, dikw_state_chain) -> None:
@@ -915,11 +943,17 @@ class TestCategoricalProperties:
             )
 
     def test_transition_produces_new_object(self, initial_state) -> None:
-        """Verifica que cada transición produce un nuevo objeto."""
+        """
+        Verifica que cada transición produce un nuevo objeto.
+
+        Morfismos como Operadores Inmutables: Si aplicamos un morfismo T sobre un
+        estado x, la aserción debe certificar que x_nuevo = T(x) ocupa un
+        espacio de memoria distinto (id(x_nuevo) != id(x)).
+        """
         physics_state = transition_state(initial_state, Stratum.PHYSICS)
         
         assert initial_state is not physics_state
-        assert id(initial_state) != id(physics_state)
+        assert id(initial_state) != id(physics_state), "La transición mutó el objeto original in-place"
 
     def test_original_state_unchanged_after_transition(
         self,

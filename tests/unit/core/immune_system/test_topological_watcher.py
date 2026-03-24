@@ -405,6 +405,7 @@ def standard_projector() -> OrthogonalProjector:
             indices=slice(0, 3),
             weight=1.0,
             reference=np.zeros(3),
+            scale=scale_phys,
             metric=MetricTensor(scaled_G_phys, validate=False),
         ),
         "topology_core": SubspaceSpec(
@@ -412,6 +413,7 @@ def standard_projector() -> OrthogonalProjector:
             indices=slice(3, 5),
             weight=1.5,
             reference=np.array([1.0, 0.0]),
+            scale=scale_topo,
             metric=MetricTensor(scaled_G_topo, validate=False),
         ),
         "thermo_core": SubspaceSpec(
@@ -419,6 +421,7 @@ def standard_projector() -> OrthogonalProjector:
             indices=slice(5, 7),
             weight=1.2,
             reference=np.zeros(2),
+            scale=scale_thermo,
             metric=MetricTensor(scaled_G_thermo, validate=False),
         ),
     }
