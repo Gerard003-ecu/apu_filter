@@ -251,7 +251,7 @@ class OptionMonad(Generic[T]):
 
     def bind(self, f: Callable[[T], "OptionMonad[U]"]) -> "OptionMonad[U]":
         """
-        Operación bind de la mónada ($\gg=$).
+        Operación bind de la mónada ($\\gg=$).
 
         Permite encadenar operaciones secuenciales que pueden fallar.
         """

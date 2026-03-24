@@ -594,7 +594,7 @@ class ReportParserCrudo:
         canónico en el espacio cociente L/~.
 
         Corrección v3:
-            - El lookahead `(?!\.)` ahora es correcto: evita quitar el cero
+            - El lookahead `(?!\\.)` ahora es correcto: evita quitar el cero
               en "0.5" (que sería el dígito antes del punto decimal) pero sí
               quita ceros en enteros como "007" → "7".
         """
