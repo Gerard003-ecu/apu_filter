@@ -1,46 +1,61 @@
 """
-Módulo: Sheaf Cohomology Orchestrator (El Inspector de Cohomología de Haces)
+=========================================================================================
+Módulo: Sheaf Cohomology Orchestrator (Interferómetro de Holonomía de Gauge)
 Ubicación: app/core/immune_system/calibration/sheaf_cohomology_orchestrator.py
+=========================================================================================
 
-Naturaleza:
-Validador de consistencia global para sistemas multi-agente mediante teoría de
-haces celulares (cellular sheaves).
+Naturaleza Ciber-Física:
+    Validador de congruencia topológica global para la Malla Agéntica mediante la
+    Teoría de Haces Celulares (Cellular Sheaves). Actúa como el sistema de 
+    propiocepción de la red, distinguiendo entre ruido termodinámico resoluble y 
+    paradojas lógicas insalvables (obstrucciones topológicas).
 
-Fundamentación matemática:
-──────────────────────────
-Sea G = (V, E) un grafo de la malla agéntica con orientación fija.
+Fundamentación Matemática y Topología Algebraica:
+    Sea G = (V, E) un grafo dirigido representando la malla de decisión.
+    Un haz celular ℱ asigna a la topología un fibrado de espacios vectoriales:
+        • F(v) ≅ ℝ^{d_v} a cada nodo v ∈ V (Espacio de estado local del agente).
+        • F(e) ≅ ℝ^{d_e} a cada arista e ∈ E (Espacio del contrato de interfaz).
+    
+    El acoplamiento se rige por mapas de restricción lineales F_{v ◁ e}: F(v) → F(e),
+    los cuales proyectan la "verdad local" de un agente hacia el contrato compartido.
 
-Un haz celular F asigna:
-  • Un espacio vectorial F(v) ≅ ℝ^{d_v}  a cada nodo v ∈ V
-  • Un espacio vectorial F(e) ≅ ℝ^{d_e}  a cada arista e ∈ E
+Complejo de Cocadenas y Operadores:
+    El sistema modela el flujo de información sobre la secuencia exacta corta:
+        C⁰(G; ℱ) xrightarrow{\delta} C¹(G; ℱ)
+    Donde C⁰ es el espacio de 0-cocadenas (estados globales) y C¹ es el espacio 
+    de 1-cocadenas (evaluaciones de arista). 
+    El operador co-frontera (Coboundary) δ evalúa la divergencia discreta de la red.
 
-Los mapas de restricción lineales son:
-    F_{v ▷ e}: F(v) → F(e)     para cada par (v, e) con v ∈ ∂e
+Termodinámica de la Información (Energía de Dirichlet):
+    El Laplaciano del Haz se define axiomáticamente como L = δᵀδ [2]. Sin embargo, por
+    rigor de análisis numérico, L JAMÁS se ensambla explícitamente para evitar elevar al 
+    cuadrado el número de condición κ(L) = κ(δ)².
+    La "Frustración Global" o fricción operativa se cuantifica mediante la Energía 
+    de Dirichlet del estado x:
+        E(x) = xᵀLx = ‖δx‖² ≥ 0.
 
-El complejo de cochains del haz es:
-    C⁰(G; F) = ⨁_{v ∈ V} F(v)     (0-cochains)
-    C¹(G; F) = ⨁_{e ∈ E} F(e)     (1-cochains)
+Invariantes Cohomológicos y Veredicto Estructural:
+    El módulo extrae el espectro de la variedad mediante Descomposición en Valores 
+    Singulares Dispersa (Sparse SVD) sobre δ, donde λ_i(L) = σ_i(δ)², garantizando
+    convergencia asintótica y evadiendo el colapso del solver de Lanczos.
 
-El operador de cofrontera δ: C⁰ → C¹ se define por bloques: para cada
-arista e = (u → v) con la orientación canónica u < v:
+    1. H⁰(G; ℱ) ≅ ker(δ) = ker(L): 
+       Dimensión del núcleo. Mide los grados de libertad para un consenso absoluto.
+    2. Brecha Espectral (λ₁ > 0): 
+       El primer autovalor no nulo (Fiedler value del haz). Cuantifica la "rigidez" 
+       del consenso frente a inyecciones de ruido estocástico.
+    3. H¹(G; ℱ) ≅ coker(δ): 
+       Calculado estrictamente mediante el Teorema de Rango-Nulidad: 
+       dim H¹ = dim C¹ - rank(δ). 
+       [AXIOMA DE VETO]: Si dim H¹ > 0, existe una "Obstrucción Topológica Absoluta".
+       Las directrices de los agentes conforman una paradoja irreconciliable.
 
-    (δx)_e = F_{v ▷ e} x_v − F_{u ▷ e} x_u
-
-El Laplaciano del haz L = δᵀδ es:
-  • Simétrico (por construcción como AᵀA)
-  • Semidefinido positivo: xᵀLx = ‖δx‖² ≥ 0
-
-La energía de Dirichlet E(x) = xᵀLx = ‖δx‖² mide la inconsistencia
-del estado propuesto x.
-
-Invariantes cohomológicos:
-  • H⁰(G; F) ≅ ker(δ) = ker(L)    (secciones globales compatibles)
-  • dim H⁰ = dim ker(L)            (nulidad del Laplaciano)
-  • La brecha espectral λ₁ > 0 de L mide la robustez del consenso
-
-Observación rigurosa:
-  • E(x) > ε implica que x NO es una sección global compatible
-  • Esto NO implica por sí solo que H¹ ≠ 0 (que requiere analizar coker(δ))
+Resolución y Fagocitosis (Teorema de Hodge Discreto):
+    Si E(x) > ε pero H¹ = 0, el conflicto es ruido homotópico. El sistema no aborta; 
+    ejecuta una Proyección de Hodge-Helmholtz ortogonal sobre ker(L), resolviendo 
+    la ecuación de Poisson del haz para inyectar a los agentes hacia la sección 
+    global matemáticamente válida más cercana, sanando el vector de estado.
+=========================================================================================
 """
 from __future__ import annotations
 

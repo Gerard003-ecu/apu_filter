@@ -1,7 +1,7 @@
 =================================== FAILURES ===================================
 _____________________ TestMaxwellDynamics.test_cfl_warning _____________________
 
-self = <test_class_maxwell.TestMaxwellDynamics object at 0x7771179e5780>
+self = <test_class_maxwell.TestMaxwellDynamics object at 0x7f1d50e79c90>
 single_triangle = {0: {1, 2}, 1: {0, 2}, 2: {0, 1}}
 
     def test_cfl_warning(self, single_triangle):
@@ -15,7 +15,7 @@ single_triangle = {0: {1, 2}, 1: {0, 2}, 2: {0, 1}}
 tests/unit/physics/test_class_maxwell.py:835: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-self = <app.physics.flux_condenser.MaxwellSolver object at 0x7770ef99aa10>
+self = <app.physics.flux_condenser.MaxwellSolver object at 0x7f1d2dfb8af0>
 dt = np.float64(0.5), context = None
 
     def leapfrog_step(self, dt: Optional[float] = None, context: Optional['TelemetryContext'] = None) -> None:
@@ -48,7 +48,7 @@ app/physics/flux_condenser.py:1530: NumericalInstabilityError
 
 During handling of the above exception, another exception occurred:
 
-self = <test_class_maxwell.TestMaxwellDynamics object at 0x7771179e5780>
+self = <test_class_maxwell.TestMaxwellDynamics object at 0x7f1d50e79c90>
 single_triangle = {0: {1, 2}, 1: {0, 2}, 2: {0, 1}}
 
     def test_cfl_warning(self, single_triangle):
@@ -62,12 +62,12 @@ E        Emitted warnings: [].
 
 tests/unit/physics/test_class_maxwell.py:834: Failed
 ----------------------------- Captured stderr call -----------------------------
-2026-03-24 17:22:07,546 - app.physics.flux_condenser - ERROR - Δt=5.00e-01 > Δt_CFL=2.50e-01. Posible inestabilidad.
+2026-03-24 18:14:46,319 - app.physics.flux_condenser - ERROR - Δt=5.00e-01 > Δt_CFL=2.50e-01. Posible inestabilidad.
 ------------------------------ Captured log call -------------------------------
 ERROR    app.physics.flux_condenser:flux_condenser.py:1522 Δt=5.00e-01 > Δt_CFL=2.50e-01. Posible inestabilidad.
 _________ TestPIController.test_invalid_min_output_not_positive_raises _________
 
-self = <test_flux_condenser.TestPIController object at 0x7771178ebe50>
+self = <test_flux_condenser.TestPIController object at 0x7f1d50d8bd90>
 
     def test_invalid_min_output_not_positive_raises(self):
         """min_output ≤ 0 debe fallar."""
@@ -77,8 +77,8 @@ E       Failed: DID NOT RAISE <class 'app.physics.flux_condenser.ConfigurationEr
 tests/unit/physics/test_flux_condenser.py:444: Failed
 _________ TestPIController.test_compute_returns_integer_in_valid_range _________
 
-self = <test_flux_condenser.TestPIController object at 0x777117708610>
-controller_fixture = <app.physics.flux_condenser.PIController object at 0x7770ef739e40>
+self = <test_flux_condenser.TestPIController object at 0x7f1d50daca90>
+controller_fixture = <app.physics.flux_condenser.PIController object at 0x7f1d2d5bee90>
 
     def test_compute_returns_integer_in_valid_range(self, controller_fixture):
         """La salida debe ser entero dentro del rango [min, max]."""
@@ -90,112 +90,12 @@ controller_fixture = <app.physics.flux_condenser.PIController object at 0x7770ef
 >           assert isinstance(output, int), f"Salida debe ser int, obtenido: {type(output)}"
 E           AssertionError: Salida debe ser int, obtenido: <class 'float'>
 E           assert False
-E            +  where False = isinstance(25.00173568725586, int)
+E            +  where False = isinstance(25.003076791763306, int)
 
 tests/unit/physics/test_flux_condenser.py:597: AssertionError
-______________ TestThreadSafety.test_concurrent_different_configs ______________
-
-self = <test_physics_stability_handshake.TestThreadSafety object at 0x7770f6572170>
-oracle_approves = {'is_suitable_for_control': True, 'issues': [], 'summary': 'Sistema estable y apto para control', 'warnings': []}
-
-    def test_concurrent_different_configs(
-        self,
-        oracle_approves: Dict[str, Any],
-    ) -> None:
-        """Instanciaciones concurrentes con diferentes configs."""
-        results: Dict[str, DataFluxCondenser] = {}
-        errors: List[Exception] = []
-        lock = threading.Lock()
-    
-        def create_for_system(system: RLCSystemSpec):
-            try:
-                with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
-                    MockOracle.return_value.validate_for_control_design.return_value = oracle_approves
-                    MockOracle.return_value.analyze_stability.return_value = {"continuous": {"natural_frequency_rad_s": 1.0, "damping_ratio": 1.0, "damping_class": "critical"}, "stability_margins": {"phase_margin_deg": 60.0}}
-                    condenser = make_condenser(system.to_condenser_config())
-                    with lock:
-                        results[system.name] = condenser
-            except Exception as e:
-                with lock:
-                    errors.append(e)
-    
-        # Usar solo sistemas estables
-        stable_systems = [STABLE_SYSTEM, CRITICAL_SYSTEM, UNDERDAMPED_SYSTEM]
-    
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            futures = [
-                executor.submit(create_for_system, system)
-                for system in stable_systems
-                for _ in range(3)  # 3 instancias por sistema
-            ]
-            for future in as_completed(futures):
-                future.result()
-    
->       assert not errors
-E       AssertionError: assert not [ConfigurationError('CONFIGURACI\xd3N NO APTA PARA CONTROL:\n  \u2022 Margen de fase insuficiente (28.0\xb0 < 30\xb0)\nResumen: NO APTO - 1 problemas cr\xedticos\nRecomendaciones:\n  \u2192 \u26a0\ufe0f Margen de fase bajo (28.0\xb0). Agregue compensaci\xf3n de adelanto.\n  \u2192 \u2713 Sistema bien condicionado. Sensibilidades dentro de rangos aceptables.')]
-
-tests/unit/physics/test_physics_stability_handshake.py:1443: AssertionError
------------------------------ Captured stderr call -----------------------------
-2026-03-24 17:22:20,820 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-24 17:22:20,820 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-24 17:22:20,822 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-24 17:22:20,829 - app.physics.flux_condenser - WARNING - J no es antisimétrica: ||J + Jᵀ|| = 5.00e-01
-2026-03-24 17:22:20,830 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-24 17:22:20,830 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-24 17:22:20,831 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-24 17:22:20,831 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-24 17:22:20,833 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-24 17:22:20,841 - app.physics.flux_condenser - WARNING - J no es antisimétrica: ||J + Jᵀ|| = 5.00e-01
-2026-03-24 17:22:20,843 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-24 17:22:20,851 - app.physics.flux_condenser - WARNING - J no es antisimétrica: ||J + Jᵀ|| = 5.00e-01
-2026-03-24 17:22:20,851 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-24 17:22:20,852 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-24 17:22:20,852 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-24 17:22:20,853 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-24 17:22:20,859 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-24 17:22:20,861 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-24 17:22:20,862 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-24 17:22:20,869 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-24 17:22:20,870 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-24 17:22:20,872 - DataFluxCondenser - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
-2026-03-24 17:22:20,873 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-24 17:22:20,873 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-24 17:22:20,874 - DataFluxCondenser - INFO - ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-2026-03-24 17:22:20,881 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-24 17:22:20,888 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-2026-03-24 17:22:20,895 - DataFluxCondenser - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
------------------------------- Captured log call -------------------------------
-INFO     DataFluxCondenser:flux_condenser.py:3274 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3304 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3274 🔬 Iniciando Análisis de Laplace Mejorado...
-WARNING  app.physics.flux_condenser:flux_condenser.py:1811 J no es antisimétrica: ||J + Jᵀ|| = 5.00e-01
-INFO     DataFluxCondenser:flux_condenser.py:3274 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3304 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3361 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-INFO     DataFluxCondenser:flux_condenser.py:3304 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3274 🔬 Iniciando Análisis de Laplace Mejorado...
-WARNING  app.physics.flux_condenser:flux_condenser.py:1811 J no es antisimétrica: ||J + Jᵀ|| = 5.00e-01
-INFO     DataFluxCondenser:flux_condenser.py:3274 🔬 Iniciando Análisis de Laplace Mejorado...
-WARNING  app.physics.flux_condenser:flux_condenser.py:1811 J no es antisimétrica: ||J + Jᵀ|| = 5.00e-01
-INFO     DataFluxCondenser:flux_condenser.py:3304 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3361 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-INFO     DataFluxCondenser:flux_condenser.py:3304 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3361 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-INFO     DataFluxCondenser:flux_condenser.py:3361 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-INFO     DataFluxCondenser:flux_condenser.py:3274 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3274 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3361 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-INFO     DataFluxCondenser:flux_condenser.py:3274 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3274 🔬 Iniciando Análisis de Laplace Mejorado...
-INFO     DataFluxCondenser:flux_condenser.py:3304 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3304 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3304 ✅ Estabilidad Confirmada: ωₙ=1.00 rad/s, ζ=1.000, PM=60.0°
-INFO     DataFluxCondenser:flux_condenser.py:3361 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-INFO     DataFluxCondenser:flux_condenser.py:3361 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
-INFO     DataFluxCondenser:flux_condenser.py:3361 ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
 _ TestPIControllerRefined.test_invalid_parameters_raise_configuration_error[params3-min_output negativo inv\xe1lido para actuadores f\xedsicos] _
 
-self = <test_refined_controllers.TestPIControllerRefined object at 0x7770f5c15930>
+self = <test_refined_controllers.TestPIControllerRefined object at 0x7f1d2f4f5de0>
 params = {'ki': 0.5, 'kp': 2.0, 'max_output': 1000, 'min_output': -10, ...}
 reason = 'min_output negativo inválido para actuadores físicos'
 
@@ -238,7 +138,7 @@ E       Failed: DID NOT RAISE <class 'app.physics.flux_condenser.ConfigurationEr
 tests/unit/tactics/test_refined_controllers.py:321: Failed
 _______ TestPIControllerRefined.test_ema_filter_reduces_output_variance ________
 
-self = <test_refined_controllers.TestPIControllerRefined object at 0x7770f5c16a40>
+self = <test_refined_controllers.TestPIControllerRefined object at 0x7f1d2f4f4100>
 
     @_requires_numpy
     def test_ema_filter_reduces_output_variance(self) -> None:
@@ -292,13 +192,6 @@ E       assert np.float64(0.00287454028762429) <= np.float64(0.00268962492266447
 
 tests/unit/tactics/test_refined_controllers.py:518: AssertionError
 =============================== warnings summary ===============================
-app/physics/flux_condenser.py:1
-  /home/gerardo/Documentos/GitHub/apu_filter/app/physics/flux_condenser.py:1: DeprecationWarning: invalid escape sequence '\c'
-    """
-
-<unknown>:1
-  <unknown>:1: DeprecationWarning: invalid escape sequence '\c'
-
 tests/integration/physics/test_port_hamiltonian_maxwell_integration.py::TestPHSPassivity::test_passivity_inequality_second
   /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/physics/test_port_hamiltonian_maxwell_integration.py:1178: DeprecationWarning: `trapz` is deprecated. Use `trapezoid` instead, or one of the numerical integration functions in `scipy.integrate`.
     supply_integral = float(np.trapz(supply_values, dx=dt))
@@ -310,9 +203,8 @@ FAILED tests/unit/physics/test_class_maxwell.py::TestMaxwellDynamics::test_cfl_w
 FAILED tests/unit/physics/test_flux_condenser.py::TestPIController::test_invalid_min_output_not_positive_raises - Failed: DID NOT RAISE <class 'app.physics.flux_condenser.ConfigurationError'>
 FAILED tests/unit/physics/test_flux_condenser.py::TestPIController::test_compute_returns_integer_in_valid_range - AssertionError: Salida debe ser int, obtenido: <class 'float'>
 assert False
- +  where False = isinstance(25.00173568725586, int)
-FAILED tests/unit/physics/test_physics_stability_handshake.py::TestThreadSafety::test_concurrent_different_configs - AssertionError: assert not [ConfigurationError('CONFIGURACI\xd3N NO APTA PARA CONTROL:\n  \u2022 Margen de fase insuficiente (28.0\xb0 < 30\xb0)\nResumen: NO APTO - 1 problemas cr\xedticos\nRecomendaciones:\n  \u2192 \u26a0\ufe0f Margen de fase bajo (28.0\xb0). Agregue compensaci\xf3n de adelanto.\n  \u2192 \u2713 Sistema bien condicionado. Sensibilidades dentro de rangos aceptables.')]
+ +  where False = isinstance(25.003076791763306, int)
 FAILED tests/unit/tactics/test_refined_controllers.py::TestPIControllerRefined::test_invalid_parameters_raise_configuration_error[params3-min_output negativo inv\xe1lido para actuadores f\xedsicos] - Failed: DID NOT RAISE <class 'app.physics.flux_condenser.ConfigurationError'>
 FAILED tests/unit/tactics/test_refined_controllers.py::TestPIControllerRefined::test_ema_filter_reduces_output_variance - AssertionError: EMA no reduce varianza: var(sin_filtro)=0.0027, var(con_filtro)=0.0029
 assert np.float64(0.00287454028762429) <= np.float64(0.0026896249226644707)
-====== 6 failed, 8913 passed, 18 skipped, 3 warnings in 94.05s (0:01:34) =======
+====== 5 failed, 8916 passed, 18 skipped, 1 warning in 124.15s (0:02:04) =======
