@@ -420,6 +420,9 @@ class TelemetryContext:
     created_at: float = field(default_factory=time.perf_counter)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    # Forensic Evidence para auditoría homológica
+    forensic_evidence: Dict[str, Any] = field(default_factory=dict)
+
     # Vectores de estado tipados
     physics: PhysicsMetrics = field(default_factory=PhysicsMetrics)
     topology: TopologicalMetrics = field(default_factory=TopologicalMetrics)

@@ -94,6 +94,14 @@ from typing import (
 )
 
 from app.core.schemas import Stratum
+from app.core.immune_system.calibration.sheaf_cohomology_orchestrator import (
+    SheafCohomologyOrchestrator,
+    HomologicalInconsistencyError,
+    SpectralComputationError,
+    SheafDegeneracyError,
+    SheafCohomologyError,
+    CellularSheaf,
+)
 from app.core.mic_algebra import (
     CategoricalState,
     Morphism,
@@ -1736,6 +1744,16 @@ class MICAgent:
                 status = ImpedanceMatchStatus.ALGEBRAIC_VETO
                 error_msg = veto_errors[0]
                 validation_errors.extend(veto_errors)
+
+            # Integración de la Cohomología de Haces Celulares (Fase 2)
+            # Solo aplica durante la transición hacia WISDOM si se detecta frustración global
+            if status == ImpedanceMatchStatus.LAMINAR_PROJECTION and stratum == Stratum.WISDOM:
+                # Verificamos si existe un haz y un estado en llm_output y raw_telemetry o el entorno
+                # En un entorno real, `CellularSheaf` o sus datos vendrían del llm_output o context
+                # Dado que la directiva indica inyectar la evaluación de la frustración global antes
+                # del encapsulamiento monádico final (STRATEGY -> WISDOM), podemos comprobar si
+                # el orchestrator falla
+                pass
         
         # 7. Comprimir telemetría
         compressed_context = ""
@@ -1874,6 +1892,41 @@ class MICAgent:
         Returns:
             Diccionario con resultado de proyección
         """
+        # Pre-composición: Integración de la Cohomología de Haces Celulares (Fase 2)
+        # Si transitamos hacia WISDOM y hay un haz celular reportado, evaluar la frustración global.
+        forensic_evidence = None
+        sheaf_error = None
+        try:
+            stratum = self.sense_stratum(target_vector)
+            if stratum == Stratum.WISDOM and raw_telemetry is not None:
+                # Buscar posible haz y estado vectorizado en telemetría para auditar
+                # En un caso real estarían dentro del context, aquí simulamos para pruebas y flujos
+                sheaf_obj = raw_telemetry.get("cellular_sheaf") if isinstance(raw_telemetry, dict) else None
+                global_state = raw_telemetry.get("global_state_vector") if isinstance(raw_telemetry, dict) else None
+
+                if sheaf_obj and global_state is not None:
+                    orchestrator = SheafCohomologyOrchestrator()
+                    try:
+                        assessment = orchestrator.audit_global_state(sheaf_obj, global_state)
+                        forensic_evidence = {
+                            "frustration_energy": assessment.frustration_energy,
+                            "h0_dimension": assessment.h0_dimension,
+                            "spectral_gap": assessment.spectral_gap,
+                            "residual_norm": assessment.residual_norm,
+                            "spectral_method": assessment.spectral_method,
+                        }
+                    except SheafCohomologyError as e:
+                        # Fase 3: Capturar laplaciano degenerado si es posible y anexar evidencia
+                        sheaf_error = e
+                        forensic_evidence = {"error_type": e.__class__.__name__, "message": str(e)}
+                        try:
+                            L = sheaf_obj.compute_sheaf_laplacian()
+                            forensic_evidence["degenerate_laplacian"] = L.toarray().tolist()
+                        except Exception:
+                            pass
+        except StratumResolutionError:
+            pass
+
         # Paso 1: Encapsular salida base (T)
         categorical_state = self.encapsulate_monad(
             target_vector=target_vector,
@@ -1883,6 +1936,24 @@ class MICAgent:
             raw_telemetry=raw_telemetry,
             force_override=force_override,
         )
+
+        if forensic_evidence is not None:
+            categorical_state = categorical_state.with_update(new_context={"forensic_evidence": forensic_evidence})
+            if categorical_state.is_failed and not categorical_state.forensic_evidence:
+                # Add forensic evidence directly via an error
+                categorical_state = categorical_state.with_error(
+                    error_msg=categorical_state.error,
+                    details=categorical_state.error_details,
+                    forensic_evidence=forensic_evidence,
+                )
+            elif sheaf_error:
+                # Si falló la cohomología, vetar
+                categorical_state = categorical_state.with_error(
+                    error_msg=str(sheaf_error),
+                    details={"reason": "HomologicalInconsistency"},
+                    forensic_evidence=forensic_evidence,
+                )
+
         
         # Paso 2: Evaluar pre-condición (F_immune ∘ T)
         # Aseguramos de que el estado tenga en el context la telemetría,

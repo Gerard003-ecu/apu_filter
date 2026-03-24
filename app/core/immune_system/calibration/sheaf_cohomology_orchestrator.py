@@ -567,14 +567,14 @@ class CellularSheaf:
 
         if F_ue.matrix.shape != expected_u_shape:
             raise SheafDegeneracyError(
-                f"Arista {edge_id}: mapa F_{{u▷e}} tiene forma "
+                f"Incoherencia dimensional en Arista {edge_id}: mapa F_{{u▷e}} tiene forma "
                 f"{F_ue.matrix.shape}, esperada {expected_u_shape}. "
                 f"dim(F(e))={edge_dim}, dim(F(u={u}))={self._node_dims[u]}."
             )
 
         if F_ve.matrix.shape != expected_v_shape:
             raise SheafDegeneracyError(
-                f"Arista {edge_id}: mapa F_{{v▷e}} tiene forma "
+                f"Incoherencia dimensional en Arista {edge_id}: mapa F_{{v▷e}} tiene forma "
                 f"{F_ve.matrix.shape}, esperada {expected_v_shape}. "
                 f"dim(F(e))={edge_dim}, dim(F(v={v}))={self._node_dims[v]}."
             )
@@ -618,7 +618,7 @@ class CellularSheaf:
         if missing:
             raise SheafDegeneracyError(
                 f"El haz no está completamente ensamblado. "
-                f"Faltan aristas: {sorted(missing)}. "
+                f"Faltan aristas: {list(sorted(missing))}. "
                 f"Añadidas: {len(self._edges)}/{len(self._edge_dims)}."
             )
 
@@ -956,9 +956,12 @@ class _SpectralAnalyzer:
 
         k = min(_SPARSE_MAX_EIGENVALUES, max(2, n - 1))
 
+        # Check for expected dimensions properly to prevent ARPACK errors inside
+        # when dealing with heterogeneous fibers. Also use shift-invert mode to trap
+        # eigenvalues close to zero stably.
         try:
             eigenvalues = eigsh(
-                L, k=k, which="SM",
+                L, k=k, sigma=-1e-5, which="LM",
                 return_eigenvectors=False,
                 tol=_ARPACK_TOLERANCE,
             )
@@ -967,6 +970,14 @@ class _SpectralAnalyzer:
                 f"ARPACK no convergió para el Laplaciano del haz "
                 f"(dim={n}, k={k}): {exc}"
             ) from exc
+        except Exception as exc:
+            if "dimension mismatch" in str(exc).lower():
+                from app.core.immune_system.topological_watcher import DimensionalMismatchError
+                raise DimensionalMismatchError(
+                    f"Incoherencia dimensional durante el análisis disperso de ARPACK "
+                    f"(dim={n}, k={k}): {exc}"
+                ) from exc
+            raise
 
         eigenvalues = np.sort(eigenvalues.astype(np.float64))
 

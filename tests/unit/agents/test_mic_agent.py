@@ -1489,8 +1489,81 @@ class TestMICAgentConvenienceMethods:
 # TESTS: INTEGRACIÓN
 # =============================================================================
 
+from app.core.immune_system.calibration.sheaf_cohomology_orchestrator import (
+    CellularSheaf,
+    RestrictionMap,
+    HomologicalInconsistencyError,
+    SheafCohomologyOrchestrator,
+)
+import numpy as np
+from app.core.telemetry import TelemetryContext
+
+def _build_heterogeneous_sheaf_with_conflict() -> CellularSheaf:
+    """Construye un haz con fibras heterogéneas y un conflicto (energía alta)."""
+    F_0 = np.eye(2, dtype=np.float64)
+    F_1 = np.array([
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+    ], dtype=np.float64)
+
+    sheaf = CellularSheaf(
+        num_nodes=2,
+        node_dims={0: 2, 1: 3},
+        edge_dims={0: 2},
+    )
+    sheaf.add_edge(
+        0, u=0, v=1,
+        F_ue=RestrictionMap(F_0),
+        F_ve=RestrictionMap(F_1),
+    )
+    return sheaf
+
 class TestIntegration:
     """Pruebas de integración end-to-end."""
+
+    def test_sheaf_frustration_blocks_wisdom_transition(self, mic_agent):
+        """
+        Aserta que un estado global frustrado (E(x) > ε) detona una inconsistencia
+        homológica, bloqueando la transición al estrato WISDOM.
+        """
+        # Generar un haz celular con fibras heterogéneas y opiniones contradictorias
+        sheaf = _build_heterogeneous_sheaf_with_conflict()
+
+        # Estado frustrado que no satisface el consenso global (ej. x = (1, 2, 3, 4, 5))
+        # F_0(1, 2) = (1, 2), F_1(3, 4, 5) = (3, 4) -> (3, 4) - (1, 2) != 0 -> E(x) > 0
+        global_state_vector = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float64)
+
+        telemetry_ctx = TelemetryContext()
+
+        orchestrator = SheafCohomologyOrchestrator()
+
+        with pytest.raises(HomologicalInconsistencyError):
+            # El orquestador evalúa la Energía de Dirichlet (dentro de MICAgent)
+            orchestrator.audit_global_state(sheaf, global_state_vector)
+
+        # El test asegura que el MICAgent detectaría la frustración antes de WISDOM
+        # Simulando el rechazo en MICAgent:
+        mock_registry = mic_agent._mic
+        mock_registry.get_vector_info.return_value = {"stratum": Stratum.WISDOM}
+
+        # En el flujo completo, mic_agent llamaría a orchestrator.audit_global_state() en STRATEGY->WISDOM
+        # lo que lanzaría HomologicalInconsistencyError. Para probar el rechazo explícito, pasamos state a la función execute_projection
+        # y verificamos que el status es VETO y hay un degenerate_laplacian en los details
+        res = mic_agent.execute_projection(
+            target_vector="wisdom_vec",
+            llm_output=VALID_WISDOM_PAYLOAD,
+            validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA]),
+            raw_telemetry={"cellular_sheaf": sheaf, "global_state_vector": global_state_vector},
+            force_override=True,
+        )
+        assert res["status"] == "VETO"
+        assert res.get("reason") == "HomologicalInconsistency"
+
+        # Phase 3: Check if the forensic evidence was injected into the trace
+        # Specifically, check for degenerate_laplacian
+        forensic = res.get("details", {}).get("forensic_evidence") or res.get("context", {}).get("forensic_evidence")
+        assert forensic is not None, "El context no integró forensic_evidence"
+        assert "degenerate_laplacian" in forensic, "forensic_evidence carece de la evaluación del Laplaciano (Laplaciano degenerado)"
 
     def test_full_dikw_pipeline(self, mock_mic_registry):
         """Pipeline completo PHYSICS → TACTICS → STRATEGY → OMEGA → WISDOM."""
