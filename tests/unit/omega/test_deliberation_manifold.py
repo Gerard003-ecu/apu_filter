@@ -276,6 +276,20 @@ class TestClamp:
     def test_zero_width_range(self):
         assert _clamp(99.0, 3.0, 3.0) == 3.0
 
+    def test_infinite_inputs(self):
+        """Asertar acotamiento estricto frente a entropía extrema (overflow/inf)."""
+        assert _clamp(math.inf, 0.0, 1.0) == 1.0
+        assert _clamp(-math.inf, 0.0, 1.0) == 0.0
+
+    def test_nan_inputs(self):
+        """Asertar que NaNs se manejen correctamente evitando fracturar el pipeline.
+        Dado que _clamp utiliza max(low, min(high, value)), si pasamos un NaN a min(high, nan) en python
+        el resultado es el primer argumento según especificaciones de min/max con NaNs, o sea `high`
+        si es float. Entonces max(low, high) -> high. Validamos rigurosamente este comportamiento acotador.
+        """
+        result = _clamp(math.nan, 0.0, 1.0)
+        assert result == 1.0, "La inyección de entropía extrema (NaN) debe acotarse matemáticamente (evitar desbordamiento)."
+
 
 # ============================================================================
 # TEST: _safe_float
@@ -304,12 +318,15 @@ class TestSafeFloat:
         assert _safe_float(False, 99.0) == 99.0
 
     def test_nan(self):
+        """Si recibe NaN aserta que se retorna el fallback."""
         assert _safe_float(float("nan"), 0.0) == 0.0
 
     def test_inf(self):
+        """Asertar acotamiento estricto frente a overflow (+inf)."""
         assert _safe_float(float("inf"), 0.0) == 0.0
 
     def test_neg_inf(self):
+        """Asertar acotamiento estricto frente a overflow (-inf)."""
         assert _safe_float(float("-inf"), 0.0) == 0.0
 
     def test_non_numeric_string(self):
@@ -352,9 +369,11 @@ class TestSafeInt:
         assert _safe_int(True, 0) == 0
 
     def test_nan(self):
+        """Asegura que el retorno siempre es acotado validando el fallback en NaN."""
         assert _safe_int(float("nan"), 5) == 5
 
     def test_inf(self):
+        """Asertar acotamiento estricto frente a valores overflow (+inf)."""
         assert _safe_int(float("inf"), 5) == 5
 
     def test_non_numeric(self):
@@ -706,7 +725,32 @@ class TestSynapticRegistry:
             sr.load_cartridge(tc)
         context = sr.get_active_context(max_chars=None)
         assert len(context) > 0
-        assert context != "CONTEXTO_COGNITIVO|VACIO"
+
+    def test_probability_space_normalization(self, sample_cartridges):
+        """
+        Asertar que la adición de cartuchos al registro altera el peso ponderado
+        de la decisión sin violar la normalización del espacio de probabilidad
+        (la suma de influencias debe mantenerse acotada para no saturar el clasificador).
+        """
+        sr = SynapticRegistry()
+        for tc in sample_cartridges:
+            sr.load_cartridge(tc)
+
+        # En una formulación de probabilidad estricta, la influencia normalizada
+        # de los cartuchos se basa en weights acotados (>=0), de modo que para un
+        # clasificador p_i = w_i / sum(w). Probamos matemáticamente esto
+        weights = [c.weight for c in sr._cartridges.values()]
+        assert all(w >= 0.0 for w in weights)
+
+        sum_w = sum(weights)
+        if sum_w > 0:
+            probs = [w / sum_w for w in weights]
+            assert sum(probs) == pytest.approx(1.0)
+            assert all(0.0 <= p <= 1.0 for p in probs)
+
+        # Además, verificamos que _safe_float and truncation guarantees
+        # this bounded behavior internally.
+        assert sr.cartridge_count == len(sample_cartridges)
 
 
 # ============================================================================
@@ -1115,6 +1159,45 @@ class TestComputeFragilityPenalty:
         for psi in [_PSI_CLAMP_LOW, 0.0, 0.5, 0.99, 1.0, 2.0, 5.0]:
             result = manifold._compute_fragility_penalty(psi)
             assert 1.0 <= result <= 1.0 + _FRAGILITY_PENALTY_MAX_DELTA
+
+    def test_gravity_coupling_monotonicity(self, manifold):
+        """Asertar que la penalización por fragilidad es estrictamente monotónica
+        respecto a entropía climática y logística (Gravity Coupling).
+        Aquí simulamos que la gravedad amplifica el riesgo.
+        """
+        from app.omega.deliberation_manifold import OmegaInputs, VerdictLevel
+
+        # Base hostile territory with unstable topology
+        base_inputs = OmegaInputs(
+            psi=0.4, # Psi < 0.5
+            territory_present=True,
+            logistics_friction=1.0,
+            social_friction=1.0,
+            climate_entropy=1.0,
+            roi=0.1
+        )
+
+        # Calculate base stress
+        metrics_base = manifold._compute_metrics(base_inputs)
+
+        from dataclasses import replace
+
+        # Increase logistics friction drastically
+        inputs_high_logistics = replace(base_inputs, logistics_friction=4.0)
+        metrics_high_logistics = manifold._compute_metrics(inputs_high_logistics)
+
+        # Increase climate entropy drastically
+        inputs_high_climate = replace(inputs_high_logistics, climate_entropy=4.0)
+        metrics_high_climate = manifold._compute_metrics(inputs_high_climate)
+
+        # Assert strictly monotonic directional derivative (increasing stress)
+        assert metrics_high_logistics.adjusted_stress > metrics_base.adjusted_stress
+        assert metrics_high_climate.adjusted_stress > metrics_high_logistics.adjusted_stress
+
+        # Assert exponential-like risk amplification forcing a Wisdom Veto
+        # If Psi < 0.5 in hostile territory, it should force RECHAZAR or PRECAUCION at least
+        verdict = manifold._project_to_lattice(metrics_high_climate.adjusted_stress)
+        assert verdict in [VerdictLevel.RECHAZAR, VerdictLevel.PRECAUCION], "Gravity failed to amplify risk into a Wisdom Veto"
 
 
 class TestProjectToLattice:

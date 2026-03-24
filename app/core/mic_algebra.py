@@ -337,6 +337,7 @@ class CategoricalState:
     validated_strata: FrozenSet[Stratum] = field(default_factory=frozenset)
     error: Optional[str] = None
     error_details: Optional[Dict[str, Any]] = None
+    forensic_evidence: Optional[Dict[str, Any]] = None
     composition_trace: Tuple[CompositionTrace, ...] = field(default_factory=tuple)
 
     @property
@@ -419,6 +420,7 @@ class CategoricalState:
             validated_strata=updated_strata,
             error=self.error,
             error_details=dict(self.error_details) if self.error_details else None,
+            forensic_evidence=dict(self.forensic_evidence) if self.forensic_evidence else None,
             composition_trace=_copy_trace(self.composition_trace),
         )
 
@@ -426,6 +428,7 @@ class CategoricalState:
         self,
         error_msg: str,
         details: Optional[Dict[str, Any]] = None,
+        forensic_evidence: Optional[Dict[str, Any]] = None,
     ) -> CategoricalState:
         """
         Produce un nuevo estado en condición de error.
@@ -438,6 +441,7 @@ class CategoricalState:
             validated_strata=self.validated_strata,
             error=error_msg,
             error_details=dict(details) if details else None,
+            forensic_evidence=dict(forensic_evidence) if forensic_evidence else (dict(self.forensic_evidence) if self.forensic_evidence else None),
             composition_trace=_copy_trace(self.composition_trace),
         )
 
