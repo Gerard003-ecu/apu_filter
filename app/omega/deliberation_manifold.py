@@ -1,50 +1,52 @@
 """
+=========================================================================================
 Módulo: Deliberation Manifold (El Ágora Tensorial — Estrato Ω)
-==============================================================
+Ubicación: app/core/immune_system/deliberation_manifold.py
+=========================================================================================
 
-Este módulo implementa el Estrato OMEGA (Nivel 0.5). Actúa como un morfismo
-de agregación determinista que toma estados de TACTICS (Topología) y STRATEGY
-(Finanzas), los somete a la fricción del Territorio y a una heurística de
-riesgo de extremos, para colapsar el sistema en un veredicto operativo.
+Naturaleza Ciber-Física:
+    Actúa como el Funtor de Colapso de la Función de Estado del sistema. Intercepta 
+    los tensores continuos provenientes de los subespacios de Topología (V_TACTICS) 
+    y Finanzas (V_STRATEGY), sometiéndolos a la fricción geométrica del territorio 
+    para colapsar el sistema en un vértice operativo determinista. Su función axiomática 
+    es erradicar el libre albedrío estocástico del Modelo de Lenguaje (LLM), forzándolo 
+    a acatar el límite superior del riesgo físico.
 
-Modelo Matemático del Manifold:
--------------------------------
-El estrés ajustado σ* se computa como producto de cuatro factores:
+1. Ecuación de Estado (Estrés Ajustado Tensorial):
+    El escalar continuo de estrés ajustado (σ*) se define mediante la contracción:
+        σ* = T_int ⊗ F_ext ⊗ Λ ⊗ P_frag
+    Donde:
+    • T_int (Tensión Interna): Matriz de covarianza entre la desalineación estratégica 
+      y el acoplamiento gravitacional del presupuesto.
+    • F_ext (Fricción Externa): Evaluación sobre una métrica Riemanniana territorial,
+      ponderando asimétricamente el clima, la logística y la entropía social.
+    • Λ (Palanca de Improbabilidad): Operador de amplificación para anomalías en 
+      la homología persistente.
+    • P_frag (Penalización Estructural): Inverso del Índice de Estabilidad Piramidal 
+      (Si Ψ < 1.0, P_frag amplifica exponencialmente el colapso).
 
-    σ* = T_int · F_ext · Λ · P_frag
+2. Proyección sobre el Retículo de Severidad (Lattice Theory):
+    El Manifold mapea el escalar continuo σ* ∈ ℝ⁺ hacia un espacio discreto utilizando 
+    un Retículo Acotado Distributivo (VerdictLevel, ≤, ⊔, ⊓). 
+    El veredicto final se extrae aplicando estrictamente la operación Supremo (⊔ / Join):
+        Veredicto = ⊔ (σ* → L_i)
+    Esto garantiza matemáticamente el "Worst-Case Scenario": si una sola dimensión 
+    física o topológica cruza el umbral crítico, la operación Supremo satura la 
+    ecuación a ⊤ (RECHAZAR), sin posibilidad de dilución estocástica.
 
-donde:
-    T_int   = tensión interna (misalignment × gravity_coupling)
-    F_ext   = fricción externa territorial (métrica riemanniana simplificada)
-    Λ       = palanca de improbabilidad (escala combinatoria × presión anómala)
-    P_frag  = penalización por fragilidad estructural (ψ < 1)
+3. Ley de Clausura Transitiva (Filtración DIKW):
+    El morfismo respeta la filtración topológica estricta:
+        V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_Ω ⊂ V_WISDOM
+    Un fallo en un estrato subyacente F_i propaga invariablemente el colapso hacia 
+    los estratos superiores F_j (para j < i). 
 
-El veredicto se obtiene proyectando σ* al retículo discreto:
-
-    σ* < 0.75  →  VIABLE
-    σ* < 1.75  →  CONDICIONAL
-    σ* < 3.00  →  PRECAUCION
-    σ* ≥ 3.00  →  RECHAZAR
-
-Estos umbrales están calibrados para que:
-- Un sistema perfectamente saludable (ψ=1, ROI=1, sin anomalías) produzca
-  σ* ≈ 0, cayendo en VIABLE.
-- Un sistema con ψ < 0.5 y anomalías significativas escale a PRECAUCION/RECHAZAR.
-
-Estructuras intermedias:
-------------------------
-- ``OmegaInputs``:      Coordenadas saneadas del espacio de deliberación.
-- ``OmegaMetrics``:      Magnitudes continuas derivadas del manifold.
-- ``OmegaDiagnostics``:  Trazabilidad semántica y matemática del colapso.
-- ``OmegaResult``:       Agregado final del cálculo antes de empaquetar el estado.
-
-Invariantes:
-------------
-- Todo float intermedio y de salida es finito (no NaN, no ±Inf).
-- Todos los inputs están clamped a rangos documentados.
-- La fragilidad está normalizada a [0, 1] para comparabilidad con ROI normalizado.
-- ``_collapse()`` es función pura (sin efectos secundarios).
-- ``AnomalyData.consolidate()`` es idempotente.
+Invariantes Algebraicos y Numéricos Garantizados:
+    • Finitud estricta: Todo float intermedio y resultante (σ*) es comprobablemente 
+      finito (¬NaN, ¬±Inf), protegiendo la Unidad de Punto Flotante (FPU).
+    • Idempotencia de consolidación: AnomalyData.consolidate() = (AnomalyData.consolidate())²
+    • Pureza Funcional: La operación de colapso _collapse() es un homomorfismo puro, 
+      carente de efectos secundarios en el espacio de fase.
+=========================================================================================
 """
 
 from __future__ import annotations

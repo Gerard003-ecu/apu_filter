@@ -1,50 +1,61 @@
 """
-Topological Watcher (Sistema Inmunológico Matemático) — v4.1 Refinada
-=============================================================================
+=========================================================================================
+Módulo: Topological Watcher (Sistema Inmunológico Matemático)
+Ubicación: app/core/immune_system/topological_watcher.py
+=========================================================================================
 
-Mejoras implementadas por categoría:
+Naturaleza Ciber-Física:
+    Actúa como el "Escudo Deflector Matemático" de la Malla Agéntica. Rechaza la 
+    evaluación de métricas aisladas mediante heurísticas escalares. En su lugar, modela 
+    el estado del ecosistema como una variedad diferenciable, detectando anomalías ya sea 
+    como deformaciones continuas en un espacio curvo (Riemann) o como bifurcaciones 
+    estructurales abruptas (Morse).
 
-ÁLGEBRA LINEAL:
-  A1. HealthStatus._severity_map_: acceso corregido (no .value para dict enum)
-  A2. MetricTensor diagonal: eigenvalores verificados con eigvalsh, no eigvals
-  A3. _compute_condition_number: singular detectado con min sobre TODOS eigvals
-  A4. Suma de proyectores: inicialización con np.zeros tipado, no sum() con int
-  A5. OrthogonalProjector: rank verificado con tr(P) = rango del proyector
+1. Geometría Riemanniana y Descomposición Ortogonal (Espacio de Hilbert ℝ⁷):
+    El estado computacional se proyecta como un vector de señal ψ ∈ ℝ⁷ sobre un 
+    hiperespacio descompuesto en suma directa ortogonal:
+        V = V_phys ⊕ V_topo ⊕ V_thermo
+    
+    Sea πₖ el proyector ortogonal sobre el subespacio Vₖ. El nivel de amenaza se 
+    cuantifica mediante la Distancia de Mahalanobis inducida por el Tensor Métrico 
+    Riemanniano Gₖ ≻ 0 (Simétrico Definido Positivo):
+        threatₖ = wₖ · √[(πₖψ - ψ_ref)ᵀ Gₖ (πₖψ - ψ_ref)]
+    Esta forma cuadrática garantiza la penalización asimétrica de riesgos acoplados, 
+    anulando la covarianza parasitaria.
 
-NUMÉRICA:
-  N1. _safe_normalize: tolerancia por defecto EPS corregida a EPS del módulo
-  N2. _stable_norm: pre-escalado previo a forma cuadrática (evita overflow)
-  N3. _regularize_metric: copia preserva tipo float64 (no hereda dtype)
-  N4. MetricTensor densa: regularización ANTES de verificar condición
-  N5. quadratic_form: clamping a 0 para formas cuadráticas casi-nulas negativas
+2. Topología Algebraica y Teoría Discreta de Morse:
+    El sistema audita el 1-esqueleto del complejo simplicial del proyecto a través de 
+    los invariantes de Betti-Poincaré:
+        • β₀ ≥ 1 : Componentes conexas (Medida de fragmentación e integridad).
+        • β₁ ≥ 0 : Ciclos independientes (Detección de socavones lógicos).
+    
+    Aplicando la Teoría de Morse sobre la Característica de Euler (χ = β₀ - β₁), el 
+    sistema evalúa el diferencial topológico Δχ. Si Δχ ≠ 0 entre dos instantes de fase, 
+    se diagnostica una "Bifurcación Cualitativa". Toda mutación estructural topológica 
+    dispara un veto absoluto (Fast-Fail), independientemente de la métrica continua.
 
-TOPOLÓGICA:
-  T1. _compute_euler_characteristic: tipo int nativo garantizado con int()
-  T2. β₀ < 1 mensaje incluye valor real detectado
-  T3. β₁ < 0 mensaje incluye valor real detectado
-  T4. topo_indices validados contra dimensiones del proyector en construcción
+3. Funtorialidad Categórica y Propagación del Veto:
+    Implementado estrictamente como un Funtor F: Top → Narr entre categorías estratificadas:
+        Dom(F) = Stratum.PHYSICS  ⟶  Codom(F) = Stratum.WISDOM
+    El morfismo respeta la Mónada de Error dictando la Clausura Transitiva: F(⊥) = ⊥. 
+    Si el estado base colapsa, la función propaga el fallo de forma idempotente, 
+    suprimiendo el libre albedrío probabilístico de los modelos de lenguaje (LLMs).
 
-HISTÉRESIS:
-  H1. _classify_with_hysteresis: hiperesis=0.0 no causa división por cero
-  H2. Validación de hysteresis: condición >= cambiada a > para excluir límite
-  H3. Bandas asimétricas documentadas con invariantes algebraicos explícitos
+4. Teoría de Control (Histéresis y Estabilidad Asintótica):
+    Para prevenir la resonancia de alta frecuencia (flapping) en la frontera del caos 
+    operativo, la transición de estados de salud incorpora bandas de histéresis 
+    asimétricas (δ > 0):
+        • Condición de Saneamiento: Amenaza < (Umbral - δ) [2]
+        • Condición de Alerta:      Amenaza > (Umbral + δ) [2]
 
-FÍSICA:
-  P1. build_signal: error_msg siempre inicializado antes del bloque condicional
-  P2. SIGNAL_SCHEMA: flyback_voltage usa PhysicalConstants.FLYBACK_MAX_SAFE
-  P3. PhysicalConstants.__slots__: añadido para consistencia con diseño
-
-CATEGÓRICA:
-  C1. ImmuneWatcherMorphism.__call__: F(error) retorna MISMO objeto (not copy)
-  C2. _check_topology_change: history indexado correctamente [-2], no [-1]
-  C3. _emit_state: with_update recibe contexto y stratum separados
-  C4. topology_history: retorna tuple de copia (no referencia a lista mutable)
-
-INTERFAZ:
-  I1. temporary_algebraic_tolerance: validación de tolerancia negativa
-  I2. get_diagnostics: topology_history_last10 usa slice seguro [-10:]
-  I3. create_immune_watcher: overrides validados antes de construcción
-  I4. health_report: manejo de historia vacía sin IndexError
+5. Invariantes Matemáticos y Físicos Garantizados:
+    • Álgebra Lineal: 
+      Σπₖ = I (Resolución de identidad), πᵢπⱼ = δᵢⱼπᵢ (Ortogonalidad estricta).
+    • Análisis Espectral: 
+      G ≻ 0 (λ_min > 0, evitando singularidades en el tensor métrico).
+    • Termodinámica de Datos: 
+      ΔS ≥ 0 (Segunda Ley), P_diss ≥ 0 (Potencia disipada no negativa).
+=========================================================================================
 """
 
 from __future__ import annotations

@@ -1,40 +1,53 @@
 """
-Módulo: Tensores Métricos Riemannianos (El Tejido del Espacio de Fase)
+=========================================================================================
+Módulo: Tensores Métricos Riemannianos (Tejido Conectivo Anisotrópico del Espacio de Fase)
 Ubicación: app/core/immune_system/metric_tensors.py
+=========================================================================================
 
-Este módulo define los tensores métricos (G_k) que gobiernan la topología local
-del espacio de estados en subespacios de ℝ⁷. Los tensores son matrices simétricas
-definidas positivas (SPD) pertenecientes a la variedad diferenciable:
+Naturaleza Ciber-Física:
+    Define el campo métrico estático G_{\mu\nu} que establece la curvatura intrínseca y la 
+    rigidez estructural del ecosistema en el hiperespacio de información ℝ⁷. Actúa como 
+    el tejido anisotrópico que absorbe, cuantifica y penaliza la covarianza de los 
+    riesgos inyectados por la Malla Agéntica.
 
-    𝒮₊₊ⁿ = { G ∈ ℝⁿˣⁿ : G = Gᵀ, G ≻ 0 }
+Fundamentación Matemática y Geometría Diferencial:
+    El espacio de fase global se descompone en subespacios de riesgo ortogonales:
+        • Física: V_phys ⊂ ℝ³
+        • Topología: V_topo ⊂ ℝ²
+        • Termodinámica: V_thermo ⊂ ℝ²
 
-Se emplean para evaluar formas cuadráticas de Mahalanobis:
+    La distancia causal (amenaza) entre un estado nominal de referencia ψ_{ref} y un 
+    estado perturbado ψ se evalúa estrictamente mediante la métrica tensorial 
+    (Distancia de Mahalanobis):
+        ds² = G_{\mu\nu} d\psi^\mu d\psi^\nu
+    Esta contracción covariante (evaluada vía sumatorio de Einstein) penaliza 
+    asimétricamente las desviaciones acopladas, impidiendo que anomalías combinadas 
+    induzcan el colapso logístico del proyecto.
 
-    d_G(x)² = xᵀ G x
+Síntesis Espectral y Garantías Geométricas (Aniquilación de Cholesky):
+    Se rechaza axiomáticamente la validación por descomposición de Cholesky por 
+    redundancia algebraica. Toda matriz G de diseño se proyecta sobre el espacio 
+    simétrico de Onsager. La condición Simétrica Definida Positiva (SPD, G ≻ 0) 
+    se garantiza puramente mediante Síntesis Espectral Exacta O(n³):
+        G_reg = Q(Λ + δI)Qᵀ,  donde δ = max(0, ε - λ_min)
+    Este desplazamiento espectral de Tikhonov asegura la ausencia de espacios 
+    degenerados o singularidades topológicas en la variedad.
 
-donde G ≻ 0 penaliza anisotrópicamente riesgos acoplados en subespacios de:
-- Física (V_phys ⊂ ℝ³)
-- Topología (V_topo ⊂ ℝ²)
-- Termodinámica (V_thermo ⊂ ℝ²)
+Termodinámica de la Información (Deformación de Frobenius):
+    La inyección de "entropía artificial" para evitar la degeneración del tensor 
+    (dilatación isométrica δI) es estrictamente cuantificada. Si la norma de 
+    Frobenius relativa de la deformación (‖G_reg - G‖_F / ‖G‖_F) excede la 
+    tolerancia admisible, el sistema registra una penalización térmica. Este 
+    acoplamiento informa al Oráculo de Laplace sobre el ruido inducido por el 
+    mal condicionamiento del espacio subyacente.
 
-Garantías Matemáticas Reforzadas:
-─────────────────────────────────
-1. Toda matriz es finita, cuadrada, simétrica (hasta tolerancia relativa)
-2. Verificación SPD por descomposición de Cholesky (criterio definitivo)
-3. Regularización Tikhonov adaptativa: G_reg = G + δI con δ = max(0, ε - λ_min)
-4. Control de número de condición: κ₂(G) = λ_max/λ_min ≤ COND_NUM_TOL
-5. Certificación de pertenencia al interior del cono SPD
-6. Cuantificación de deformación por regularización (norma de Frobenius relativa)
-7. Consistencia espectral verificada entre eigenvalores analíticos y numéricos
-8. Brecha espectral normalizada por λ_max para estabilidad adimensional
-
-Invariantes del Módulo:
-───────────────────────
-- Los tensores precompilados son inmutables (arrays read-only)
-- Los eigenvalores almacenados en SpectralProfile son inmutables
-- El módulo falla rápido en tiempo de carga si hay incoherencia geométrica
-- Todas las operaciones preservan tipo float64 para estabilidad numérica
-- Ninguna importación no utilizada; toda función importada se emplea
+Inmutabilidad Computacional (Estado Estacionario):
+    Los tensores G_k se computan y compilan en el milisegundo cero de carga del 
+    módulo. Al asumir ∂_ρ G_{\mu\nu} = 0, se operan como constantes universales de 
+    solo lectura (arrays frozen), protegiendo la Unidad de Punto Flotante (FPU) 
+    contra la inyección de vectores maliciosos y asegurando un cálculo de O(1) 
+    durante el bombardeo estocástico en tiempo real.
+=========================================================================================
 """
 from __future__ import annotations
 
