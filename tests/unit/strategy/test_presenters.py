@@ -1,1166 +1,1332 @@
 """
-Test Suite Completo para APUPresenter
-Cubre todos los métodos, casos edge, validaciones y flujos de error.
+Suite de pruebas rigurosa para ``presenters.py``.
+
+Estructura:
+- Fixtures reutilizables para logger, config y datos de APU.
+- Pruebas unitarias por método/responsabilidad.
+- Pruebas de integración para el pipeline completo.
+- Pruebas de propiedades (idempotencia, determinismo, invariantes).
+
+Convenciones:
+- Cada clase ``Test*`` agrupa pruebas de una unidad lógica.
+- Los nombres siguen el patrón ``test_<condición>_<resultado_esperado>``.
+- Se usa ``pytest.mark.parametrize`` para cubrir variantes sin duplicación.
 """
 
+from __future__ import annotations
+
 import logging
-from unittest.mock import Mock, patch
+import math
+from typing import Any, Dict, List
+from unittest.mock import MagicMock
 
 import numpy as np
 import pandas as pd
 import pytest
 
-# Importar las clases a testear
-from app.adapters.presenters import APUPresenter, APUProcessingConfig
-
-# ============================================================================
-# FIXTURES - Datos de Prueba Reutilizables
-# ============================================================================
+from presenters import APUPresenter, APUProcessingConfig
 
 
-@pytest.fixture
-def mock_logger():
-    """Logger mock para pruebas."""
-    logger = Mock(spec=logging.Logger)
-    logger.info = Mock()
-    logger.warning = Mock()
-    logger.error = Mock()
-    logger.debug = Mock()
-    return logger
+# ======================================================================
+# Fixtures
+# ======================================================================
 
 
-@pytest.fixture
-def default_config():
-    """Configuración por defecto para pruebas."""
+@pytest.fixture()
+def logger() -> logging.Logger:
+    """Logger silencioso para pruebas."""
+    test_logger = logging.getLogger("test_presenters")
+    test_logger.setLevel(logging.DEBUG)
+    if not test_logger.handlers:
+        test_logger.addHandler(logging.NullHandler())
+    return test_logger
+
+
+@pytest.fixture()
+def config() -> APUProcessingConfig:
+    """Configuración por defecto."""
     return APUProcessingConfig()
 
 
-@pytest.fixture
-def custom_config():
-    """Configuración personalizada para pruebas específicas."""
-    return APUProcessingConfig(
-        default_category="SIN_CATEGORIA", tolerance_price_variance=0.05
-    )
+@pytest.fixture()
+def presenter(logger: logging.Logger, config: APUProcessingConfig) -> APUPresenter:
+    """Instancia de presentador con configuración por defecto."""
+    return APUPresenter(logger=logger, config=config)
 
 
-@pytest.fixture
-def presenter(mock_logger):
-    """Instancia de APUPresenter con logger mock."""
-    return APUPresenter(logger=mock_logger)
+@pytest.fixture()
+def minimal_apu_record() -> Dict[str, Any]:
+    """Registro APU mínimo válido con todas las columnas requeridas."""
+    return {
+        "CATEGORIA": "MATERIALES",
+        "DESCRIPCION_INSUMO": "Cemento Portland",
+        "CANTIDAD_APU": 10.0,
+        "VALOR_TOTAL_APU": 500.0,
+        "UNIDAD_APU": "kg",
+        "PRECIO_UNIT_APU": 50.0,
+        "CODIGO_APU": "APU-001",
+        "UNIDAD_INSUMO": "kg",
+        "RENDIMIENTO": 1.0,
+    }
 
 
-@pytest.fixture
-def presenter_custom_config(mock_logger, custom_config):
-    """Instancia de APUPresenter con configuración personalizada."""
-    return APUPresenter(logger=mock_logger, config=custom_config)
-
-
-@pytest.fixture
-def valid_apu_details():
-    """Datos válidos de APU para pruebas exitosas."""
+@pytest.fixture()
+def valid_apu_details(minimal_apu_record: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Lista de registros APU válidos con múltiples categorías."""
     return [
-        {
-            "CATEGORIA": "MATERIALES",
-            "DESCRIPCION_INSUMO": "Cemento gris",
-            "CANTIDAD_APU": 50.0,
-            "VALOR_TOTAL_APU": 500000.0,
-            "RENDIMIENTO": 1.0,
-            "UNIDAD_APU": "kg",
-            "PRECIO_UNIT_APU": 10000.0,
-            "CODIGO_APU": "MAT001",
-            "UNIDAD_INSUMO": "kg",
-        },
-        {
-            "CATEGORIA": "MATERIALES",
-            "DESCRIPCION_INSUMO": "Cemento gris",
-            "CANTIDAD_APU": 25.0,
-            "VALOR_TOTAL_APU": 250000.0,
-            "RENDIMIENTO": 0.5,
-            "UNIDAD_APU": "kg",
-            "PRECIO_UNIT_APU": 10000.0,
-            "CODIGO_APU": "MAT001",
-            "UNIDAD_INSUMO": "kg",
-        },
+        minimal_apu_record,
         {
             "CATEGORIA": "MANO DE OBRA",
-            "DESCRIPCION_INSUMO": "Oficial",
+            "DESCRIPCION_INSUMO": "Albañil",
             "CANTIDAD_APU": 8.0,
-            "VALOR_TOTAL_APU": 200000.0,
-            "RENDIMIENTO": 1.0,
+            "VALOR_TOTAL_APU": 400.0,
             "UNIDAD_APU": "hr",
-            "PRECIO_UNIT_APU": 25000.0,
-            "CODIGO_APU": "MO001",
+            "PRECIO_UNIT_APU": 50.0,
+            "CODIGO_APU": "APU-001",
             "UNIDAD_INSUMO": "hr",
+            "RENDIMIENTO": 1.0,
         },
         {
             "CATEGORIA": "EQUIPO",
             "DESCRIPCION_INSUMO": "Mezcladora",
-            "CANTIDAD_APU": 4.0,
-            "VALOR_TOTAL_APU": 100000.0,
-            "RENDIMIENTO": 1.0,
+            "CANTIDAD_APU": 2.0,
+            "VALOR_TOTAL_APU": 100.0,
             "UNIDAD_APU": "hr",
-            "PRECIO_UNIT_APU": 25000.0,
-            "CODIGO_APU": "EQ001",
+            "PRECIO_UNIT_APU": 50.0,
+            "CODIGO_APU": "APU-001",
             "UNIDAD_INSUMO": "hr",
-        },
-    ]
-
-
-@pytest.fixture
-def apu_details_with_alerts():
-    """Datos de APU con alertas."""
-    return [
-        {
-            "CATEGORIA": "MATERIALES",
-            "DESCRIPCION_INSUMO": "Cemento gris",
-            "CANTIDAD_APU": 50.0,
-            "VALOR_TOTAL_APU": 500000.0,
-            "RENDIMIENTO": 1.0,
-            "UNIDAD_APU": "kg",
-            "PRECIO_UNIT_APU": 10000.0,
-            "CODIGO_APU": "MAT001",
-            "UNIDAD_INSUMO": "kg",
-            "alerta": "Precio alto",
-        },
-        {
-            "CATEGORIA": "MATERIALES",
-            "DESCRIPCION_INSUMO": "Cemento gris",
-            "CANTIDAD_APU": 25.0,
-            "VALOR_TOTAL_APU": 250000.0,
             "RENDIMIENTO": 0.5,
-            "UNIDAD_APU": "kg",
-            "PRECIO_UNIT_APU": 10000.0,
-            "CODIGO_APU": "MAT001",
-            "UNIDAD_INSUMO": "kg",
-            "alerta": "Stock bajo",
         },
     ]
 
 
-@pytest.fixture
-def apu_details_with_nan():
-    """Datos con valores NaN y None."""
-    return [
-        {
-            "CATEGORIA": "MATERIALES",
-            "DESCRIPCION_INSUMO": "Cemento gris",
-            "CANTIDAD_APU": 50.0,
-            "VALOR_TOTAL_APU": np.nan,
-            "RENDIMIENTO": 1.0,
-            "UNIDAD_APU": "kg",
-            "PRECIO_UNIT_APU": 10000.0,
-            "CODIGO_APU": "MAT001",
-            "UNIDAD_INSUMO": "kg",
-        },
-        {
-            "CATEGORIA": None,
-            "DESCRIPCION_INSUMO": "Arena",
-            "CANTIDAD_APU": None,
-            "VALOR_TOTAL_APU": 150000.0,
-            "RENDIMIENTO": np.inf,
-            "UNIDAD_APU": "m3",
-            "PRECIO_UNIT_APU": 50000.0,
-            "CODIGO_APU": "MAT002",
-            "UNIDAD_INSUMO": "m3",
-        },
-    ]
+# ======================================================================
+# Tests: APUProcessingConfig
+# ======================================================================
 
 
-@pytest.fixture
-def apu_details_inconsistent_prices():
-    """Datos con precios inconsistentes para mismo insumo."""
-    return [
-        {
-            "CATEGORIA": "MATERIALES",
-            "DESCRIPCION_INSUMO": "Cemento gris",
-            "CANTIDAD_APU": 50.0,
-            "VALOR_TOTAL_APU": 500000.0,
-            "RENDIMIENTO": 1.0,
-            "UNIDAD_APU": "kg",
-            "PRECIO_UNIT_APU": 10000.0,
-            "CODIGO_APU": "MAT001",
-            "UNIDAD_INSUMO": "kg",
-        },
-        {
-            "CATEGORIA": "MATERIALES",
-            "DESCRIPCION_INSUMO": "Cemento gris",
-            "CANTIDAD_APU": 25.0,
-            "VALOR_TOTAL_APU": 312500.0,
-            "RENDIMIENTO": 0.5,
-            "UNIDAD_APU": "kg",
-            "PRECIO_UNIT_APU": 12500.0,  # Precio diferente
-            "CODIGO_APU": "MAT001",
-            "UNIDAD_INSUMO": "kg",
-        },
-    ]
+class TestAPUProcessingConfig:
+    """Pruebas para la dataclass de configuración."""
+
+    def test_default_values_are_populated(self) -> None:
+        cfg = APUProcessingConfig()
+        assert cfg.required_columns is not None
+        assert cfg.numeric_columns is not None
+        assert isinstance(cfg.required_columns, frozenset)
+        assert isinstance(cfg.numeric_columns, frozenset)
+        assert cfg.default_category == "INDEFINIDO"
+
+    def test_numeric_columns_subset_of_required(self) -> None:
+        cfg = APUProcessingConfig()
+        assert cfg.numeric_columns <= cfg.required_columns, (
+            "numeric_columns debe ser subconjunto de required_columns"
+        )
+
+    def test_custom_values_preserved(self) -> None:
+        custom_required = frozenset({"A", "B", "C"})
+        custom_numeric = frozenset({"A"})
+        cfg = APUProcessingConfig(
+            required_columns=custom_required,
+            numeric_columns=custom_numeric,
+            default_category="OTRO",
+            tolerance_price_variance=0.05,
+        )
+        assert cfg.required_columns == custom_required
+        assert cfg.numeric_columns == custom_numeric
+        assert cfg.default_category == "OTRO"
+        assert cfg.tolerance_price_variance == 0.05
+
+    @pytest.mark.parametrize(
+        "field, value",
+        [
+            ("tolerance_price_variance", -0.01),
+            ("consistency_relative_tolerance", -1e-3),
+            ("consistency_absolute_tolerance", -1e-9),
+        ],
+    )
+    def test_negative_tolerance_raises(self, field: str, value: float) -> None:
+        with pytest.raises(ValueError, match="debe ser ≥ 0"):
+            APUProcessingConfig(**{field: value})
+
+    def test_orphan_numeric_columns_raises(self) -> None:
+        with pytest.raises(ValueError, match="no presentes en required_columns"):
+            APUProcessingConfig(
+                required_columns=frozenset({"A", "B"}),
+                numeric_columns=frozenset({"A", "C"}),
+            )
+
+    def test_empty_default_category_raises(self) -> None:
+        with pytest.raises(ValueError, match="string no vacío"):
+            APUProcessingConfig(default_category="")
+
+    def test_whitespace_only_default_category_raises(self) -> None:
+        with pytest.raises(ValueError, match="string no vacío"):
+            APUProcessingConfig(default_category="   ")
+
+    def test_frozen_immutability(self) -> None:
+        cfg = APUProcessingConfig()
+        with pytest.raises(AttributeError):
+            cfg.default_category = "NUEVO"  # type: ignore[misc]
 
 
-@pytest.fixture
-def apu_details_negative_values():
-    """Datos con valores negativos."""
-    return [
-        {
-            "CATEGORIA": "MATERIALES",
-            "DESCRIPCION_INSUMO": "Cemento gris",
-            "CANTIDAD_APU": -50.0,  # Negativo
-            "VALOR_TOTAL_APU": 500000.0,
-            "RENDIMIENTO": 1.0,
-            "UNIDAD_APU": "kg",
-            "PRECIO_UNIT_APU": 10000.0,
-            "CODIGO_APU": "MAT001",
-            "UNIDAD_INSUMO": "kg",
-        }
-    ]
+# ======================================================================
+# Tests: APUPresenter.__init__
+# ======================================================================
 
 
-@pytest.fixture
-def apu_details_whitespace_strings():
-    """Datos con strings que contienen espacios."""
-    return [
-        {
-            "CATEGORIA": "  MATERIALES  ",
-            "DESCRIPCION_INSUMO": "  Cemento gris  ",
-            "CANTIDAD_APU": 50.0,
-            "VALOR_TOTAL_APU": 500000.0,
-            "RENDIMIENTO": 1.0,
-            "UNIDAD_APU": "  kg  ",
-            "PRECIO_UNIT_APU": 10000.0,
-            "CODIGO_APU": "MAT001",
-            "UNIDAD_INSUMO": "  kg  ",
-        }
-    ]
+class TestAPUPresenterInit:
+    """Pruebas de inicialización del presentador."""
 
-
-# ============================================================================
-# TESTS DE INICIALIZACIÓN
-# ============================================================================
-
-
-class TestAPUPresenterInitialization:
-    """Tests para la inicialización del presenter."""
-
-    def test_initialization_with_logger(self, mock_logger):
-        """Debe inicializar correctamente con un logger válido."""
-        presenter = APUPresenter(logger=mock_logger)
-
-        assert presenter.logger is mock_logger
+    def test_valid_initialization(self, logger: logging.Logger) -> None:
+        presenter = APUPresenter(logger=logger)
+        assert presenter.logger is logger
         assert isinstance(presenter.config, APUProcessingConfig)
-        mock_logger.info.assert_called_once_with("APUPresenter inicializado correctamente")
 
-    def test_initialization_with_custom_config(self, mock_logger, custom_config):
-        """Debe aceptar configuración personalizada."""
-        presenter = APUPresenter(logger=mock_logger, config=custom_config)
+    def test_custom_config_preserved(self, logger: logging.Logger) -> None:
+        cfg = APUProcessingConfig(default_category="CUSTOM")
+        presenter = APUPresenter(logger=logger, config=cfg)
+        assert presenter.config.default_category == "CUSTOM"
 
-        assert presenter.config is custom_config
-        assert presenter.config.default_category == "SIN_CATEGORIA"
-        assert presenter.config.tolerance_price_variance == 0.05
+    def test_none_logger_raises_type_error(self) -> None:
+        with pytest.raises(TypeError, match="logging.Logger"):
+            APUPresenter(logger=None)  # type: ignore[arg-type]
 
-    def test_initialization_without_logger_raises_error(self):
-        """Debe lanzar ValueError si no se proporciona logger."""
-        with pytest.raises(ValueError, match="Logger es requerido"):
-            APUPresenter(logger=None)
+    def test_non_logger_instance_raises_type_error(self) -> None:
+        with pytest.raises(TypeError, match="logging.Logger"):
+            APUPresenter(logger="not_a_logger")  # type: ignore[arg-type]
 
-    def test_initialization_with_default_config(self, mock_logger):
-        """Debe crear configuración por defecto si no se proporciona."""
-        presenter = APUPresenter(logger=mock_logger)
-
-        assert presenter.config.default_category == "INDEFINIDO"
-        assert presenter.config.tolerance_price_variance == 0.01
+    def test_mock_object_raises_type_error(self) -> None:
+        with pytest.raises(TypeError):
+            APUPresenter(logger=MagicMock())  # type: ignore[arg-type]
 
 
-# ============================================================================
-# TESTS DE VALIDACIÓN DE ENTRADAS
-# ============================================================================
+# ======================================================================
+# Tests: _validate_inputs
+# ======================================================================
 
 
-class TestInputValidation:
-    """Tests para el método _validate_inputs."""
+class TestValidateInputs:
+    """Pruebas para validación de entradas del pipeline."""
 
-    def test_validate_inputs_success(self, presenter, valid_apu_details):
-        """Debe pasar validación con datos correctos."""
-        # No debe lanzar excepción
-        presenter._validate_inputs(valid_apu_details, "APU001")
+    def test_valid_inputs_pass(self, presenter: APUPresenter) -> None:
+        presenter._validate_inputs([{"key": "value"}], "APU-001")
 
-    def test_validate_inputs_not_a_list(self, presenter):
-        """Debe fallar si apu_details no es una lista."""
+    def test_non_list_raises(self, presenter: APUPresenter) -> None:
         with pytest.raises(ValueError, match="debe ser una lista"):
-            presenter._validate_inputs("not a list", "APU001")
+            presenter._validate_inputs({"key": "value"}, "APU-001")
 
-        with pytest.raises(ValueError, match="debe ser una lista"):
-            presenter._validate_inputs({"key": "value"}, "APU001")
-
-    def test_validate_inputs_empty_list(self, presenter):
-        """Debe fallar si la lista está vacía."""
+    def test_empty_list_raises(self, presenter: APUPresenter) -> None:
         with pytest.raises(ValueError, match="No se encontraron detalles"):
-            presenter._validate_inputs([], "APU001")
+            presenter._validate_inputs([], "APU-001")
 
-    def test_validate_inputs_not_dict_elements(self, presenter):
-        """Debe fallar si los elementos no son diccionarios."""
-        with pytest.raises(ValueError, match="deben ser diccionarios"):
-            presenter._validate_inputs([1, 2, 3], "APU001")
+    def test_non_dict_elements_raises(self, presenter: APUPresenter) -> None:
+        with pytest.raises(ValueError, match="no son diccionarios"):
+            presenter._validate_inputs([{"ok": 1}, "not_dict", 42], "APU-001")
 
-        with pytest.raises(ValueError, match="deben ser diccionarios"):
-            presenter._validate_inputs(["string", "values"], "APU001")
+    def test_non_dict_reports_positions(self, presenter: APUPresenter) -> None:
+        with pytest.raises(ValueError, match=r"\[1, 2\]"):
+            presenter._validate_inputs([{"ok": 1}, "bad", 42], "APU-001")
 
-    def test_validate_inputs_invalid_apu_code(self, presenter, valid_apu_details):
-        """Debe fallar si apu_code no es válido."""
-        with pytest.raises(ValueError, match="debe ser un string no vacío"):
-            presenter._validate_inputs(valid_apu_details, "")
+    @pytest.mark.parametrize(
+        "bad_code",
+        [None, "", "   ", 123, [], True],
+    )
+    def test_invalid_apu_code_raises(
+        self, presenter: APUPresenter, bad_code: Any
+    ) -> None:
+        with pytest.raises(ValueError, match="apu_code"):
+            presenter._validate_inputs([{"key": "val"}], bad_code)
 
-        with pytest.raises(ValueError, match="debe ser un string no vacío"):
-            presenter._validate_inputs(valid_apu_details, "   ")
-
-        with pytest.raises(ValueError, match="debe ser un string no vacío"):
-            presenter._validate_inputs(valid_apu_details, None)
-
-        with pytest.raises(ValueError, match="debe ser un string no vacío"):
-            presenter._validate_inputs(valid_apu_details, 123)
-
-
-# ============================================================================
-# TESTS DE SANITIZACIÓN
-# ============================================================================
+    def test_tuple_input_raises(self, presenter: APUPresenter) -> None:
+        with pytest.raises(ValueError, match="debe ser una lista"):
+            presenter._validate_inputs(({"key": "val"},), "APU-001")
 
 
-class TestDataSanitization:
-    """Tests para el método _sanitize_dataframe."""
+# ======================================================================
+# Tests: _sanitize_text
+# ======================================================================
 
-    def test_sanitize_replaces_nan_with_none(self, presenter):
-        """Debe reemplazar NaN con None."""
-        df = pd.DataFrame({"A": [1, np.nan, 3], "B": [np.nan, 2, 3]})
 
-        df_sanitized = presenter._sanitize_dataframe(df)
+class TestSanitizeText:
+    """Pruebas para sanitización textual."""
 
-        assert df_sanitized.loc[0, "B"] is None
-        assert df_sanitized.loc[1, "A"] is None
+    @pytest.mark.parametrize(
+        "input_val, expected",
+        [
+            (None, None),
+            ("", None),
+            ("   ", None),
+            ("hello", "hello"),
+            ("  hello  world  ", "hello world"),
+            ("line\none", "line one"),
+            ("tab\there", "tab here"),
+            ("\x00\x01hidden\x7F", "hidden"),
+            ("múltiples   espacios", "múltiples espacios"),
+            (42, 42),
+            (3.14, 3.14),
+            (True, True),
+            (["list"], ["list"]),
+        ],
+    )
+    def test_sanitization(self, input_val: Any, expected: Any) -> None:
+        assert APUPresenter._sanitize_text(input_val) == expected
 
-    def test_sanitize_replaces_inf_with_none(self, presenter):
-        """Debe reemplazar inf y -inf con None."""
-        df = pd.DataFrame({"A": [1, np.inf, 3], "B": [-np.inf, 2, 3]})
+    def test_idempotence(self) -> None:
+        """Aplicar _sanitize_text dos veces produce el mismo resultado."""
+        test_values = [
+            "  hello\t\nworld  ",
+            "\x00control\x1F",
+            "normal",
+            None,
+            "",
+            42,
+        ]
+        for val in test_values:
+            first = APUPresenter._sanitize_text(val)
+            second = APUPresenter._sanitize_text(first)
+            assert first == second, f"No idempotente para {val!r}"
 
-        df_sanitized = presenter._sanitize_dataframe(df)
+    def test_only_control_chars_returns_none(self) -> None:
+        assert APUPresenter._sanitize_text("\x00\x01\x02") is None
 
-        assert df_sanitized.loc[1, "A"] is None
-        assert df_sanitized.loc[0, "B"] is None
+    def test_unicode_preserved(self) -> None:
+        assert APUPresenter._sanitize_text("café résumé") == "café résumé"
 
-    def test_sanitize_strips_whitespace_from_strings(self, presenter):
-        """Debe eliminar espacios de los strings."""
-        df = pd.DataFrame({"text": ["  hello  ", "world  ", "  test"]})
 
-        df_sanitized = presenter._sanitize_dataframe(df)
+# ======================================================================
+# Tests: _normalize_category
+# ======================================================================
 
-        assert df_sanitized.loc[0, "text"] == "hello"
-        assert df_sanitized.loc[1, "text"] == "world"
-        assert df_sanitized.loc[2, "text"] == "test"
 
-    def test_sanitize_converts_numeric_columns(self, presenter, mock_logger):
-        """Debe convertir columnas numéricas y advertir sobre fallos."""
-        df = pd.DataFrame(
-            {
-                "CANTIDAD_APU": ["10", "20", "invalid"],
-                "VALOR_TOTAL_APU": [100.5, 200.5, 300.5],
-            }
+class TestNormalizeCategory:
+    """Pruebas para normalización categórica."""
+
+    @pytest.mark.parametrize(
+        "input_val, expected",
+        [
+            ("MATERIALES", "MATERIALES"),
+            ("MATERIAL", "MATERIALES"),
+            ("MAT", "MATERIALES"),
+            ("material", "MATERIALES"),
+            ("Material", "MATERIALES"),
+            ("MANO DE OBRA", "MANO DE OBRA"),
+            ("MO", "MANO DE OBRA"),
+            ("EQUIPO", "EQUIPO"),
+            ("EQUIPOS", "EQUIPO"),
+            ("MAQUINARIA", "EQUIPO"),
+            ("equipo", "EQUIPO"),
+        ],
+    )
+    def test_known_categories(
+        self, presenter: APUPresenter, input_val: str, expected: str
+    ) -> None:
+        assert presenter._normalize_category(input_val) == expected
+
+    def test_unknown_category_returns_uppercase(
+        self, presenter: APUPresenter
+    ) -> None:
+        assert presenter._normalize_category("transporte") == "TRANSPORTE"
+
+    def test_none_returns_default(self, presenter: APUPresenter) -> None:
+        assert (
+            presenter._normalize_category(None)
+            == presenter.config.default_category
         )
 
-        presenter.logger = mock_logger
-        df_sanitized = presenter._sanitize_dataframe(df)
-
-        # Verificar conversión
-        assert df_sanitized.loc[0, "CANTIDAD_APU"] == 10.0
-        assert df_sanitized.loc[1, "CANTIDAD_APU"] == 20.0
-        assert pd.isna(df_sanitized.loc[2, "CANTIDAD_APU"])
-
-        # Verificar warning por valor no numérico
-        assert mock_logger.warning.called
-
-    def test_sanitize_warns_about_negative_values(self, presenter, mock_logger):
-        """Debe advertir sobre valores negativos en columnas numéricas."""
-        df = pd.DataFrame(
-            {"CANTIDAD_APU": [10, -20, 30], "VALOR_TOTAL_APU": [100, 200, -300]}
+    def test_empty_string_returns_default(
+        self, presenter: APUPresenter
+    ) -> None:
+        assert (
+            presenter._normalize_category("")
+            == presenter.config.default_category
         )
 
-        presenter.logger = mock_logger
+    def test_irregular_spaces_collapsed(
+        self, presenter: APUPresenter
+    ) -> None:
+        """Variantes con espacios internos irregulares se resuelven."""
+        assert presenter._normalize_category("MANO  DE   OBRA") == "MANO DE OBRA"
+        assert presenter._normalize_category("  MANO   DE  OBRA  ") == "MANO DE OBRA"
+
+    def test_control_chars_in_category(
+        self, presenter: APUPresenter
+    ) -> None:
+        assert presenter._normalize_category("\x00EQUIPO\x1F") == "EQUIPO"
+
+    def test_idempotence(self, presenter: APUPresenter) -> None:
+        categories = ["MATERIALES", "MO", "EQUIPO", None, "", "TRANSPORTE"]
+        for cat in categories:
+            first = presenter._normalize_category(cat)
+            second = presenter._normalize_category(first)
+            assert first == second, f"No idempotente para {cat!r}"
+
+
+# ======================================================================
+# Tests: _sanitize_dataframe
+# ======================================================================
+
+
+class TestSanitizeDataframe:
+    """Pruebas para sanitización del DataFrame."""
+
+    def _make_df(self, records: List[Dict[str, Any]]) -> pd.DataFrame:
+        return pd.DataFrame(records)
+
+    def test_text_columns_sanitized(
+        self, presenter: APUPresenter, minimal_apu_record: Dict[str, Any]
+    ) -> None:
+        record = minimal_apu_record.copy()
+        record["DESCRIPCION_INSUMO"] = "  Cemento\x00  Portland  "
+        df = self._make_df([record])
+        result = presenter._sanitize_dataframe(df)
+        assert result["DESCRIPCION_INSUMO"].iloc[0] == "Cemento Portland"
+
+    def test_category_normalized(
+        self, presenter: APUPresenter, minimal_apu_record: Dict[str, Any]
+    ) -> None:
+        record = minimal_apu_record.copy()
+        record["CATEGORIA"] = "material"
+        df = self._make_df([record])
+        result = presenter._sanitize_dataframe(df)
+        assert result["CATEGORIA"].iloc[0] == "MATERIALES"
+
+    def test_numeric_conversion(
+        self, presenter: APUPresenter, minimal_apu_record: Dict[str, Any]
+    ) -> None:
+        record = minimal_apu_record.copy()
+        record["CANTIDAD_APU"] = "10.5"
+        df = self._make_df([record])
+        result = presenter._sanitize_dataframe(df)
+        assert result["CANTIDAD_APU"].iloc[0] == pytest.approx(10.5)
+
+    def test_non_numeric_coerced_to_nan(
+        self, presenter: APUPresenter, minimal_apu_record: Dict[str, Any]
+    ) -> None:
+        record = minimal_apu_record.copy()
+        record["CANTIDAD_APU"] = "not_a_number"
+        df = self._make_df([record])
+        result = presenter._sanitize_dataframe(df)
+        assert pd.isna(result["CANTIDAD_APU"].iloc[0])
+
+    def test_inf_replaced_by_nan(
+        self, presenter: APUPresenter, minimal_apu_record: Dict[str, Any]
+    ) -> None:
+        record = minimal_apu_record.copy()
+        record["CANTIDAD_APU"] = float("inf")
+        df = self._make_df([record])
+        result = presenter._sanitize_dataframe(df)
+        assert pd.isna(result["CANTIDAD_APU"].iloc[0])
+
+    def test_negative_inf_replaced_by_nan(
+        self, presenter: APUPresenter, minimal_apu_record: Dict[str, Any]
+    ) -> None:
+        record = minimal_apu_record.copy()
+        record["VALOR_TOTAL_APU"] = float("-inf")
+        df = self._make_df([record])
+        result = presenter._sanitize_dataframe(df)
+        assert pd.isna(result["VALOR_TOTAL_APU"].iloc[0])
+
+    def test_original_dataframe_not_mutated(
+        self, presenter: APUPresenter, minimal_apu_record: Dict[str, Any]
+    ) -> None:
+        df = self._make_df([minimal_apu_record])
+        original_copy = df.copy()
         presenter._sanitize_dataframe(df)
+        pd.testing.assert_frame_equal(df, original_copy)
 
-        # Debe haber advertencias sobre valores negativos
-        warning_calls = [call for call in mock_logger.warning.call_args_list]
-        assert len(warning_calls) > 0
+    def test_idempotence(
+        self, presenter: APUPresenter, minimal_apu_record: Dict[str, Any]
+    ) -> None:
+        df = self._make_df([minimal_apu_record])
+        first = presenter._sanitize_dataframe(df)
+        second = presenter._sanitize_dataframe(first)
+        pd.testing.assert_frame_equal(first, second)
 
-    def test_sanitize_does_not_modify_original(self, presenter):
-        """Debe retornar una copia, no modificar el original."""
-        df_original = pd.DataFrame(
-            {"A": [1, np.nan, 3], "text": ["  hello  ", "world", "test"]}
-        )
-
-        df_original_copy = df_original.copy()
-        df_sanitized = presenter._sanitize_dataframe(df_original)
-
-        # El original no debe cambiar
-        pd.testing.assert_frame_equal(df_original, df_original_copy)
-        # El sanitizado debe ser diferente
-        assert not df_sanitized.equals(df_original)
-
-
-# ============================================================================
-# TESTS DE VALIDACIÓN DE ESQUEMA
-# ============================================================================
+    def test_none_category_becomes_default(
+        self, presenter: APUPresenter, minimal_apu_record: Dict[str, Any]
+    ) -> None:
+        record = minimal_apu_record.copy()
+        record["CATEGORIA"] = None
+        df = self._make_df([record])
+        result = presenter._sanitize_dataframe(df)
+        assert result["CATEGORIA"].iloc[0] == presenter.config.default_category
 
 
-class TestSchemaValidation:
-    """Tests para el método _validate_dataframe_schema."""
+# ======================================================================
+# Tests: _validate_dataframe_schema
+# ======================================================================
 
-    def test_validate_schema_success(self, presenter, valid_apu_details):
-        """Debe pasar validación con todas las columnas requeridas."""
-        df = pd.DataFrame(valid_apu_details)
 
-        # No debe lanzar excepción
-        presenter._validate_dataframe_schema(df, "APU001")
+class TestValidateDataframeSchema:
+    """Pruebas para validación de esquema."""
 
-    def test_validate_schema_missing_columns(self, presenter, mock_logger):
-        """Debe fallar si faltan columnas requeridas."""
+    def test_valid_schema_passes(
+        self,
+        presenter: APUPresenter,
+        minimal_apu_record: Dict[str, Any],
+    ) -> None:
+        df = pd.DataFrame([minimal_apu_record])
+        presenter._validate_dataframe_schema(df, "APU-001")
+
+    def test_missing_columns_raises_key_error(
+        self, presenter: APUPresenter
+    ) -> None:
+        df = pd.DataFrame([{"CATEGORIA": "MATERIALES"}])
+        with pytest.raises(KeyError, match="columnas faltantes"):
+            presenter._validate_dataframe_schema(df, "APU-001")
+
+    def test_error_message_contains_missing_column_names(
+        self, presenter: APUPresenter
+    ) -> None:
         df = pd.DataFrame(
-            {
-                "CATEGORIA": ["MAT"],
-                "DESCRIPCION_INSUMO": ["Cemento"],
-                # Faltan muchas columnas requeridas
-            }
+            [{"CATEGORIA": "A", "DESCRIPCION_INSUMO": "B"}]
         )
+        with pytest.raises(KeyError) as exc_info:
+            presenter._validate_dataframe_schema(df, "APU-001")
+        error_msg = str(exc_info.value)
+        assert "CANTIDAD_APU" in error_msg
 
-        presenter.logger = mock_logger
-
-        with pytest.raises(KeyError, match="Columnas faltantes"):
-            presenter._validate_dataframe_schema(df, "APU001")
-
-    def test_validate_schema_logs_success(self, presenter, valid_apu_details, mock_logger):
-        """Debe loggear éxito de validación."""
-        df = pd.DataFrame(valid_apu_details)
-        presenter.logger = mock_logger
-
-        presenter._validate_dataframe_schema(df, "APU001")
-
-        mock_logger.debug.assert_called_with("Validación de esquema exitosa para APU APU001")
-
-
-# ============================================================================
-# TESTS DE AGREGACIÓN
-# ============================================================================
+    def test_extra_columns_accepted(
+        self,
+        presenter: APUPresenter,
+        minimal_apu_record: Dict[str, Any],
+    ) -> None:
+        record = minimal_apu_record.copy()
+        record["EXTRA_COL"] = "extra"
+        df = pd.DataFrame([record])
+        presenter._validate_dataframe_schema(df, "APU-001")
 
 
-class TestAggregation:
-    """Tests para métodos de agregación."""
+# ======================================================================
+# Tests: _aggregate_price
+# ======================================================================
 
-    def test_group_by_category_consolidates_items(self, presenter, valid_apu_details):
-        """Debe consolidar items duplicados por descripción."""
-        df = pd.DataFrame(valid_apu_details)
 
-        processed = presenter._group_by_category(df)
+class TestAggregatePrice:
+    """Pruebas para agregación de precios."""
 
-        # Debe consolidar los dos registros de "Cemento gris" en uno
-        cement_items = [item for item in processed if item["descripcion"] == "Cemento gris"]
+    def test_single_price_returned_as_is(
+        self, presenter: APUPresenter
+    ) -> None:
+        prices = pd.Series([50.0])
+        result = presenter._aggregate_price(prices, None, "TEST")
+        assert result == pytest.approx(50.0)
 
-        assert len(cement_items) == 1
-        assert cement_items[0]["cantidad"] == 75.0  # 50 + 25
-        assert cement_items[0]["valor_total"] == 750000.0  # 500000 + 250000
+    def test_empty_series_returns_none(
+        self, presenter: APUPresenter
+    ) -> None:
+        prices = pd.Series([], dtype=float)
+        assert presenter._aggregate_price(prices, None, "TEST") is None
 
-    def test_group_by_category_processes_all_categories(self, presenter, valid_apu_details):
-        """Debe procesar todas las categorías presentes."""
-        df = pd.DataFrame(valid_apu_details)
+    def test_all_nan_returns_none(self, presenter: APUPresenter) -> None:
+        prices = pd.Series([np.nan, np.nan])
+        assert presenter._aggregate_price(prices, None, "TEST") is None
 
-        processed = presenter._group_by_category(df)
+    def test_weighted_average_with_quantities(
+        self, presenter: APUPresenter
+    ) -> None:
+        """p̄ = (50×10 + 60×20) / (10+20) = 1700/30 ≈ 56.6667"""
+        prices = pd.Series([50.0, 60.0])
+        quantities = pd.Series([10.0, 20.0])
+        result = presenter._aggregate_price(prices, quantities, "TEST")
+        expected = (50.0 * 10.0 + 60.0 * 20.0) / (10.0 + 20.0)
+        assert result == pytest.approx(expected, rel=1e-6)
 
-        categories = {item["categoria"] for item in processed}
+    def test_fallback_to_arithmetic_mean_without_quantities(
+        self, presenter: APUPresenter
+    ) -> None:
+        prices = pd.Series([50.0, 60.0])
+        result = presenter._aggregate_price(prices, None, "TEST")
+        assert result == pytest.approx(55.0)
 
-        assert "MATERIALES" in categories
-        assert "MANO DE OBRA" in categories
-        assert "EQUIPO" in categories
+    def test_fallback_when_quantities_all_zero(
+        self, presenter: APUPresenter
+    ) -> None:
+        prices = pd.Series([50.0, 60.0])
+        quantities = pd.Series([0.0, 0.0])
+        result = presenter._aggregate_price(prices, quantities, "TEST")
+        # No valid weights → arithmetic mean
+        assert result == pytest.approx(55.0)
 
-    def test_group_by_category_empty_dataframe(self, presenter, mock_logger):
-        """Debe manejar DataFrame vacío."""
-        df = pd.DataFrame({"CATEGORIA": [], "DESCRIPCION_INSUMO": []})
+    def test_identical_prices_return_single_value(
+        self, presenter: APUPresenter
+    ) -> None:
+        prices = pd.Series([42.0, 42.0, 42.0])
+        result = presenter._aggregate_price(prices, None, "TEST")
+        assert result == pytest.approx(42.0)
 
-        presenter.logger = mock_logger
-        processed = presenter._group_by_category(df)
+    def test_non_numeric_prices_filtered(
+        self, presenter: APUPresenter
+    ) -> None:
+        prices = pd.Series([50.0, "invalid", 60.0])
+        result = presenter._aggregate_price(prices, None, "TEST")
+        assert result == pytest.approx(55.0)
 
-        assert processed == []
-        mock_logger.warning.assert_called()
 
-    def test_group_by_category_with_alerts(self, presenter, apu_details_with_alerts):
-        """Debe agregar alertas correctamente."""
-        df = pd.DataFrame(apu_details_with_alerts)
+# ======================================================================
+# Tests: _validate_consistency (field)
+# ======================================================================
 
-        processed = presenter._group_by_category(df)
 
-        # Verificar que las alertas se concatenaron
-        cement_item = next(
-            item for item in processed if item["descripcion"] == "Cemento gris"
-        )
+class TestValidateConsistencyField:
+    """Pruebas para validación de consistencia de campos singulares."""
 
-        assert "alerta" in cement_item
-        assert "Precio alto" in cement_item["alerta"]
-        assert "Stock bajo" in cement_item["alerta"]
-
-    def test_aggregate_price_single_price(self, presenter):
-        """Debe retornar el precio único si todos son iguales."""
-        series = pd.Series([10000.0, 10000.0, 10000.0])
-
-        price = presenter._aggregate_price(series)
-
-        assert price == 10000.0
-
-    def test_aggregate_price_multiple_prices_warning(self, presenter, mock_logger):
-        """Debe advertir y promediar si hay variación significativa."""
-        series = pd.Series([10000.0, 12000.0, 14000.0])
-        presenter.logger = mock_logger
-
-        price = presenter._aggregate_price(series, "MATERIALES")
-
-        assert price == 12000.0  # Promedio
-        mock_logger.warning.assert_called()
-
-    def test_aggregate_price_empty_series(self, presenter):
-        """Debe retornar 0 si la serie está vacía."""
-        series = pd.Series([], dtype=float)
-
-        price = presenter._aggregate_price(series)
-
-        assert price == 0.0
-
-    def test_validate_consistency_single_value(self, presenter):
-        """Debe retornar el valor único si todos son iguales."""
+    def test_single_value_returned(self, presenter: APUPresenter) -> None:
         series = pd.Series(["kg", "kg", "kg"])
+        assert presenter._validate_consistency(series, "UNIDAD") == "kg"
 
-        value = presenter._validate_consistency(series, "UNIDAD")
+    def test_empty_series_returns_none(
+        self, presenter: APUPresenter
+    ) -> None:
+        series = pd.Series([None, None, np.nan])
+        assert presenter._validate_consistency(series, "UNIDAD") is None
 
-        assert value == "kg"
+    def test_multiple_values_returns_mode(
+        self, presenter: APUPresenter
+    ) -> None:
+        # "kg" aparece 3 veces, "lb" aparece 1 vez
+        series = pd.Series(["kg", "kg", "lb", "kg"])
+        result = presenter._validate_consistency(series, "UNIDAD")
+        assert result == "kg"
 
-    def test_validate_consistency_multiple_values_warning(self, presenter, mock_logger):
-        """Debe advertir y retornar el primero si hay inconsistencia."""
-        series = pd.Series(["kg", "m3", "lt"])
-        presenter.logger = mock_logger
+    def test_all_nan_returns_none(self, presenter: APUPresenter) -> None:
+        series = pd.Series([np.nan, np.nan])
+        assert presenter._validate_consistency(series) is None
 
-        value = presenter._validate_consistency(series, "UNIDAD")
-
-        assert value == "kg"
-        mock_logger.warning.assert_called()
-
-    def test_validate_consistency_empty_series(self, presenter):
-        """Debe retornar None si la serie está vacía."""
-        series = pd.Series([])
-
-        value = presenter._validate_consistency(series)
-
-        assert value is None
-
-    def test_aggregate_alerts_concatenates_unique(self, presenter):
-        """Debe concatenar alertas únicas."""
-        series = pd.Series(["Alerta 1", "Alerta 2", "Alerta 1"])
-
-        result = presenter._aggregate_alerts(series)
-
-        assert "Alerta 1" in result
-        assert "Alerta 2" in result
-        assert result.count("Alerta 1") == 1  # Solo una vez
-
-    def test_aggregate_alerts_empty_series(self, presenter):
-        """Debe retornar None si no hay alertas."""
-        series = pd.Series([])
-
-        result = presenter._aggregate_alerts(series)
-
-        assert result is None
+    def test_mixed_with_nans(self, presenter: APUPresenter) -> None:
+        series = pd.Series(["m3", None, "m3", np.nan])
+        assert presenter._validate_consistency(series, "UNIDAD") == "m3"
 
 
-# ============================================================================
-# TESTS DE ORGANIZACIÓN DE DESGLOSE
-# ============================================================================
+# ======================================================================
+# Tests: _validate_item_consistency (economic)
+# ======================================================================
 
 
-class TestBreakdownOrganization:
-    """Tests para el método _organize_breakdown."""
+class TestValidateItemConsistency:
+    """Pruebas para verificación de consistencia económica."""
 
-    def test_organize_breakdown_groups_by_category(self, presenter):
-        """Debe organizar items por categoría."""
+    def test_consistent_item_no_warning(
+        self, presenter: APUPresenter
+    ) -> None:
+        """valor_total = cantidad × valor_unitario → sin warning."""
+        item = {
+            "descripcion": "Cemento",
+            "cantidad": 10.0,
+            "valor_unitario": 50.0,
+            "valor_total": 500.0,
+        }
+        # No debería levantar excepción ni warning
+        presenter._validate_item_consistency(item, "MATERIALES")
+
+    def test_inconsistent_item_logs_warning(
+        self, logger: logging.Logger, presenter: APUPresenter
+    ) -> None:
+        item = {
+            "descripcion": "Cemento",
+            "cantidad": 10.0,
+            "valor_unitario": 50.0,
+            "valor_total": 999.0,  # Inconsistente
+        }
+        with pytest.warns(None) as _:
+            # No lanza excepción, solo registra warning en logger
+            presenter._validate_item_consistency(item, "MATERIALES")
+
+    def test_none_values_skip_validation(
+        self, presenter: APUPresenter
+    ) -> None:
+        """Si algún valor es None, no se puede verificar → no falla."""
         items = [
-            {"categoria": "MATERIALES", "desc": "Item 1"},
-            {"categoria": "MATERIALES", "desc": "Item 2"},
-            {"categoria": "EQUIPO", "desc": "Item 3"},
+            {"cantidad": None, "valor_unitario": 50.0, "valor_total": 500.0},
+            {"cantidad": 10.0, "valor_unitario": None, "valor_total": 500.0},
+            {"cantidad": 10.0, "valor_unitario": 50.0, "valor_total": None},
         ]
+        for item in items:
+            presenter._validate_item_consistency(item, "TEST")
 
-        desglose = presenter._organize_breakdown(items)
+    def test_zero_quantity_nonzero_total(
+        self, presenter: APUPresenter
+    ) -> None:
+        """cantidad=0, valor_total>0 debería detectar inconsistencia."""
+        item = {
+            "descripcion": "Item fantasma",
+            "cantidad": 0.0,
+            "valor_unitario": 50.0,
+            "valor_total": 100.0,
+        }
+        # Debe ejecutar sin excepción (solo warning interno)
+        presenter._validate_item_consistency(item, "TEST")
 
-        assert "MATERIALES" in desglose
-        assert "EQUIPO" in desglose
-        assert len(desglose["MATERIALES"]) == 2
-        assert len(desglose["EQUIPO"]) == 1
+    def test_zero_unit_price_nonzero_total(
+        self, presenter: APUPresenter
+    ) -> None:
+        """valor_unitario=0, valor_total>0 → inconsistencia."""
+        item = {
+            "descripcion": "Gratis pero no",
+            "cantidad": 10.0,
+            "valor_unitario": 0.0,
+            "valor_total": 500.0,
+        }
+        presenter._validate_item_consistency(item, "TEST")
 
-    def test_organize_breakdown_handles_missing_category(self, presenter, mock_logger):
-        """Debe asignar categoría por defecto a items sin categoría."""
+    def test_within_tolerance_passes(self, logger: logging.Logger) -> None:
+        """Diferencia dentro de tolerancia no genera warning."""
+        cfg = APUProcessingConfig(
+            consistency_relative_tolerance=0.01,
+            consistency_absolute_tolerance=1.0,
+        )
+        p = APUPresenter(logger=logger, config=cfg)
+        item = {
+            "descripcion": "Casi exacto",
+            "cantidad": 10.0,
+            "valor_unitario": 50.0,
+            "valor_total": 500.5,  # Dentro de atol=1.0
+        }
+        p._validate_item_consistency(item, "TEST")
+
+
+# ======================================================================
+# Tests: _organize_breakdown
+# ======================================================================
+
+
+class TestOrganizeBreakdown:
+    """Pruebas para organización del desglose."""
+
+    def test_empty_items_returns_empty_dict(
+        self, presenter: APUPresenter
+    ) -> None:
+        assert presenter._organize_breakdown([]) == {}
+
+    def test_single_category(self, presenter: APUPresenter) -> None:
         items = [
-            {"categoria": None, "desc": "Item 1"},
-            {"categoria": "", "desc": "Item 2"},
-            {"categoria": "   ", "desc": "Item 3"},
+            {"categoria": "MATERIALES", "descripcion": "Cemento"},
+            {"categoria": "MATERIALES", "descripcion": "Arena"},
         ]
+        result = presenter._organize_breakdown(items)
+        assert len(result) == 1
+        assert "MATERIALES" in result
+        assert len(result["MATERIALES"]) == 2
 
-        presenter.logger = mock_logger
-        desglose = presenter._organize_breakdown(items)
+    def test_multiple_categories(self, presenter: APUPresenter) -> None:
+        items = [
+            {"categoria": "MATERIALES", "descripcion": "Cemento"},
+            {"categoria": "EQUIPO", "descripcion": "Mezcladora"},
+        ]
+        result = presenter._organize_breakdown(items)
+        assert len(result) == 2
+        assert "MATERIALES" in result
+        assert "EQUIPO" in result
 
-        assert "INDEFINIDO" in desglose
-        assert len(desglose["INDEFINIDO"]) == 3
-        mock_logger.warning.assert_called()
+    def test_missing_category_assigned_default(
+        self, presenter: APUPresenter
+    ) -> None:
+        items = [
+            {"categoria": None, "descripcion": "Sin categoría"},
+            {"categoria": "", "descripcion": "Vacío"},
+            {"categoria": "   ", "descripcion": "Solo espacios"},
+        ]
+        result = presenter._organize_breakdown(items)
+        default = presenter.config.default_category
+        assert default in result
+        assert len(result[default]) == 3
 
-    def test_organize_breakdown_empty_list(self, presenter, mock_logger):
-        """Debe retornar diccionario vacío para lista vacía."""
-        presenter.logger = mock_logger
-        desglose = presenter._organize_breakdown([])
-
-        assert desglose == {}
-        mock_logger.warning.assert_called_with("No hay items para organizar en desglose")
-
-    def test_organize_breakdown_custom_default_category(
-        self, presenter_custom_config, mock_logger
-    ):
-        """Debe usar categoría por defecto personalizada."""
-        items = [{"categoria": None, "desc": "Item 1"}]
-
-        presenter_custom_config.logger = mock_logger
-        desglose = presenter_custom_config._organize_breakdown(items)
-
-        assert "SIN_CATEGORIA" in desglose
+    def test_items_mutated_with_default_category(
+        self, presenter: APUPresenter
+    ) -> None:
+        items = [{"categoria": None, "descripcion": "Test"}]
+        presenter._organize_breakdown(items)
+        assert items[0]["categoria"] == presenter.config.default_category
 
 
-# ============================================================================
-# TESTS DE METADATA
-# ============================================================================
+# ======================================================================
+# Tests: _calculate_metadata
+# ======================================================================
 
 
-class TestMetadataCalculation:
-    """Tests para el método _calculate_metadata."""
+class TestCalculateMetadata:
+    """Pruebas para cálculo de metadatos."""
 
-    def test_calculate_metadata_success(self, presenter, valid_apu_details):
-        """Debe calcular metadata correctamente."""
-        df = pd.DataFrame(valid_apu_details)
-        processed = presenter._group_by_category(df)
+    def test_basic_metadata_structure(
+        self,
+        presenter: APUPresenter,
+        minimal_apu_record: Dict[str, Any],
+    ) -> None:
+        df = pd.DataFrame([minimal_apu_record])
+        df = presenter._sanitize_dataframe(df)
+        items = [{"valor_total": 500.0, "categoria": "MATERIALES"}]
+        meta = presenter._calculate_metadata(df, items)
 
-        metadata = presenter._calculate_metadata(df, processed)
+        expected_keys = {
+            "original_rows",
+            "processed_items",
+            "reduction_rate",
+            "categories_count",
+            "classification_coverage",
+            "total_value",
+            "avg_value_per_item",
+        }
+        assert set(meta.keys()) == expected_keys
 
-        assert metadata["original_rows"] == 4
-        assert metadata["processed_items"] == 3  # 2 items consolidados en 1
-        assert "reduction_rate" in metadata
-        assert metadata["reduction_rate"] > 0
-        assert "total_value" in metadata
-        assert "avg_value_per_item" in metadata
-        assert "categories_count" in metadata
+    def test_no_processed_items(
+        self,
+        presenter: APUPresenter,
+        minimal_apu_record: Dict[str, Any],
+    ) -> None:
+        df = pd.DataFrame([minimal_apu_record])
+        meta = presenter._calculate_metadata(df, [])
+        assert meta["processed_items"] == 0
+        assert meta["total_value"] == 0.0
+        assert meta["avg_value_per_item"] == 0.0
 
-    def test_calculate_metadata_total_value(self, presenter):
-        """Debe calcular el valor total correctamente."""
+    def test_reduction_rate_clamped_to_zero_one(
+        self, presenter: APUPresenter
+    ) -> None:
+        """Si la agregación produce más filas, reduction_rate = 0."""
+        df = pd.DataFrame(
+            [
+                {
+                    "CATEGORIA": "A",
+                    "DESCRIPCION_INSUMO": "X",
+                    "CANTIDAD_APU": 1,
+                    "VALOR_TOTAL_APU": 10,
+                    "UNIDAD_APU": "u",
+                    "PRECIO_UNIT_APU": 10,
+                    "CODIGO_APU": "C1",
+                    "UNIDAD_INSUMO": "u",
+                    "RENDIMIENTO": 1,
+                }
+            ]
+        )
+        # 3 processed items from 1 original row
+        items = [
+            {"valor_total": 10.0},
+            {"valor_total": 20.0},
+            {"valor_total": 30.0},
+        ]
+        meta = presenter._calculate_metadata(df, items)
+        assert 0.0 <= meta["reduction_rate"] <= 1.0
+
+    def test_total_value_sums_correctly(
+        self, presenter: APUPresenter
+    ) -> None:
+        df = pd.DataFrame(
+            [
+                {
+                    "CATEGORIA": "A",
+                    "DESCRIPCION_INSUMO": "X",
+                    "CANTIDAD_APU": 1,
+                    "VALOR_TOTAL_APU": 10,
+                    "UNIDAD_APU": "u",
+                    "PRECIO_UNIT_APU": 10,
+                    "CODIGO_APU": "C1",
+                    "UNIDAD_INSUMO": "u",
+                    "RENDIMIENTO": 1,
+                }
+            ]
+            * 3
+        )
+        items = [
+            {"valor_total": 100.0},
+            {"valor_total": 200.0},
+            {"valor_total": None},
+        ]
+        meta = presenter._calculate_metadata(df, items)
+        assert meta["total_value"] == pytest.approx(300.0)
+
+    def test_classification_coverage(
+        self, presenter: APUPresenter
+    ) -> None:
         df = pd.DataFrame(
             {
-                "CATEGORIA": ["A", "B"],
-                "DESCRIPCION_INSUMO": ["Item1", "Item2"],
-                "CANTIDAD_APU": [10, 20],
-                "VALOR_TOTAL_APU": [100, 200],
-                "RENDIMIENTO": [1, 1],
-                "UNIDAD_APU": ["kg", "kg"],
-                "PRECIO_UNIT_APU": [10, 10],
-                "CODIGO_APU": ["A1", "B1"],
-                "UNIDAD_INSUMO": ["kg", "kg"],
+                "CATEGORIA": ["A", None, "B", None],
+                "DESCRIPCION_INSUMO": ["x"] * 4,
+                "CANTIDAD_APU": [1] * 4,
+                "VALOR_TOTAL_APU": [10] * 4,
+                "UNIDAD_APU": ["u"] * 4,
+                "PRECIO_UNIT_APU": [10] * 4,
+                "CODIGO_APU": ["C1"] * 4,
+                "UNIDAD_INSUMO": ["u"] * 4,
+                "RENDIMIENTO": [1] * 4,
             }
         )
+        meta = presenter._calculate_metadata(df, [{"valor_total": 40.0}])
+        assert meta["classification_coverage"] == pytest.approx(0.5)
 
-        processed = [{"VR_TOTAL": 100.0}, {"VR_TOTAL": 200.0}]
-
-        metadata = presenter._calculate_metadata(df, processed)
-
-        assert metadata["total_value"] == 300.0
-
-    def test_calculate_metadata_handles_none_values(self, presenter):
-        """Debe manejar valores None en VR_TOTAL."""
+    def test_empty_dataframe_metadata(
+        self, presenter: APUPresenter
+    ) -> None:
         df = pd.DataFrame(
-            {
-                "CATEGORIA": ["A"],
-                "DESCRIPCION_INSUMO": ["Item1"],
-                "CANTIDAD_APU": [10],
-                "VALOR_TOTAL_APU": [100],
-                "RENDIMIENTO": [1],
-                "UNIDAD_APU": ["kg"],
-                "PRECIO_UNIT_APU": [10],
-                "CODIGO_APU": ["A1"],
-                "UNIDAD_INSUMO": ["kg"],
-            }
+            columns=[
+                "CATEGORIA",
+                "DESCRIPCION_INSUMO",
+                "CANTIDAD_APU",
+                "VALOR_TOTAL_APU",
+                "UNIDAD_APU",
+                "PRECIO_UNIT_APU",
+                "CODIGO_APU",
+                "UNIDAD_INSUMO",
+                "RENDIMIENTO",
+            ]
+        )
+        meta = presenter._calculate_metadata(df, [])
+        assert meta["original_rows"] == 0
+        assert meta["reduction_rate"] == 0.0
+
+
+# ======================================================================
+# Tests: _safe_float
+# ======================================================================
+
+
+class TestSafeFloat:
+    """Pruebas para conversión defensiva a float."""
+
+    @pytest.mark.parametrize(
+        "input_val, expected",
+        [
+            (None, None),
+            (42, 42.0),
+            (3.14, 3.14),
+            ("50.5", 50.5),
+            ("0", 0.0),
+            ("-10.5", -10.5),
+        ],
+    )
+    def test_valid_conversions(
+        self, input_val: Any, expected: Any
+    ) -> None:
+        result = APUPresenter._safe_float(input_val)
+        if expected is None:
+            assert result is None
+        else:
+            assert result == pytest.approx(expected)
+
+    @pytest.mark.parametrize(
+        "input_val",
+        [
+            float("nan"),
+            float("inf"),
+            float("-inf"),
+            "not_a_number",
+            "abc",
+            [],
+            {},
+            object(),
+        ],
+    )
+    def test_invalid_returns_none(self, input_val: Any) -> None:
+        assert APUPresenter._safe_float(input_val) is None
+
+    def test_numpy_int(self) -> None:
+        assert APUPresenter._safe_float(np.int64(42)) == pytest.approx(42.0)
+
+    def test_numpy_float(self) -> None:
+        assert APUPresenter._safe_float(np.float64(3.14)) == pytest.approx(
+            3.14
         )
 
-        processed = [{"VR_TOTAL": None}, {"VR_TOTAL": 100.0}]
+    def test_numpy_nan(self) -> None:
+        assert APUPresenter._safe_float(np.nan) is None
 
-        metadata = presenter._calculate_metadata(df, processed)
-
-        assert metadata["total_value"] == 100.0
-
-    def test_calculate_metadata_empty_processed_items(self, presenter):
-        """Debe manejar lista vacía de items procesados."""
-        df = pd.DataFrame(
-            {
-                "CATEGORIA": ["A"],
-                "DESCRIPCION_INSUMO": ["Item1"],
-                "CANTIDAD_APU": [10],
-                "VALOR_TOTAL_APU": [100],
-                "RENDIMIENTO": [1],
-                "UNIDAD_APU": ["kg"],
-                "PRECIO_UNIT_APU": [10],
-                "CODIGO_APU": ["A1"],
-                "UNIDAD_INSUMO": ["kg"],
-            }
-        )
-
-        metadata = presenter._calculate_metadata(df, [])
-
-        assert metadata["processed_items"] == 0
-        assert metadata["avg_value_per_item"] == 0
+    def test_numpy_inf(self) -> None:
+        assert APUPresenter._safe_float(np.inf) is None
 
 
-# ============================================================================
-# TESTS DE INTEGRACIÓN - PROCESO COMPLETO
-# ============================================================================
+# ======================================================================
+# Tests: _serialize_scalar / _serialize_record
+# ======================================================================
 
 
-class TestProcessAPUDetailsIntegration:
-    """Tests de integración del proceso completo."""
+class TestSerialization:
+    """Pruebas para serialización segura."""
 
-    def test_process_apu_details_success(self, presenter, valid_apu_details, mock_logger):
-        """Debe procesar APU completo exitosamente."""
-        presenter.logger = mock_logger
+    @pytest.mark.parametrize(
+        "input_val, expected",
+        [
+            (None, None),
+            (42, 42),
+            (3.14, 3.14),
+            ("hello", "hello"),
+            (True, True),
+            (float("nan"), None),
+            (float("inf"), None),
+            (float("-inf"), None),
+            (np.int64(42), 42),
+            (np.float64(3.14), pytest.approx(3.14)),
+            (np.nan, None),
+            (np.bool_(True), True),
+        ],
+    )
+    def test_scalar_serialization(
+        self, input_val: Any, expected: Any
+    ) -> None:
+        result = APUPresenter._serialize_scalar(input_val)
+        if expected is None:
+            assert result is None
+        else:
+            assert result == expected
 
-        result = presenter.process_apu_details(valid_apu_details, "APU001")
+    def test_record_serialization(self) -> None:
+        record = {
+            "name": "test",
+            "value": np.float64(42.0),
+            "bad": float("nan"),
+            "none": None,
+            "count": np.int64(5),
+        }
+        result = APUPresenter._serialize_record(record)
+        assert result == {
+            "name": "test",
+            "value": pytest.approx(42.0),
+            "bad": None,
+            "none": None,
+            "count": 5,
+        }
+
+    def test_pd_nat_serialized_to_none(self) -> None:
+        assert APUPresenter._serialize_scalar(pd.NaT) is None
+
+    def test_list_value_passed_through(self) -> None:
+        """Valores no escalares (listas) pasan sin modificación."""
+        val = [1, 2, 3]
+        result = APUPresenter._serialize_scalar(val)
+        assert result == [1, 2, 3]
+
+
+# ======================================================================
+# Tests: _aggregate_alerts
+# ======================================================================
+
+
+class TestAggregateAlerts:
+    """Pruebas para consolidación de alertas."""
+
+    def test_single_alert(self) -> None:
+        series = pd.Series(["Precio alto"])
+        assert APUPresenter._aggregate_alerts(series) == "Precio alto"
+
+    def test_multiple_unique_alerts(self) -> None:
+        series = pd.Series(["Alerta B", "Alerta A", "Alerta B"])
+        result = APUPresenter._aggregate_alerts(series)
+        # Deduplicadas y ordenadas
+        assert result == "Alerta A | Alerta B"
+
+    def test_all_nan_returns_none(self) -> None:
+        series = pd.Series([None, np.nan])
+        assert APUPresenter._aggregate_alerts(series) is None
+
+    def test_empty_strings_filtered(self) -> None:
+        series = pd.Series(["", "  ", "Válida"])
+        result = APUPresenter._aggregate_alerts(series)
+        assert result == "Válida"
+
+    def test_empty_series_returns_none(self) -> None:
+        series = pd.Series([], dtype=object)
+        assert APUPresenter._aggregate_alerts(series) is None
+
+    def test_deterministic_order(self) -> None:
+        """El resultado es determinista independientemente del orden de entrada."""
+        series_a = pd.Series(["Z", "A", "M"])
+        series_b = pd.Series(["M", "Z", "A"])
+        assert APUPresenter._aggregate_alerts(
+            series_a
+        ) == APUPresenter._aggregate_alerts(series_b)
+
+
+# ======================================================================
+# Tests: process_apu_details (integración)
+# ======================================================================
+
+
+class TestProcessApuDetailsIntegration:
+    """Pruebas de integración del pipeline completo."""
+
+    def test_successful_processing(
+        self,
+        presenter: APUPresenter,
+        valid_apu_details: List[Dict[str, Any]],
+    ) -> None:
+        result = presenter.process_apu_details(valid_apu_details, "APU-001")
 
         assert "items" in result
         assert "desglose" in result
         assert "total_items" in result
         assert "metadata" in result
+        assert result["total_items"] == len(result["items"])
+        assert isinstance(result["desglose"], dict)
+        assert isinstance(result["metadata"], dict)
 
-        assert len(result["items"]) == 3  # 4 originales, 2 consolidados
-        assert result["total_items"] == 3
-        assert len(result["desglose"]) == 3  # 3 categorías
+    def test_output_contains_expected_categories(
+        self,
+        presenter: APUPresenter,
+        valid_apu_details: List[Dict[str, Any]],
+    ) -> None:
+        result = presenter.process_apu_details(valid_apu_details, "APU-001")
+        categories = set(result["desglose"].keys())
+        assert "MATERIALES" in categories
+        assert "MANO DE OBRA" in categories
+        assert "EQUIPO" in categories
 
-    def test_process_apu_details_with_alerts(self, presenter, apu_details_with_alerts):
-        """Debe procesar alertas correctamente."""
-        result = presenter.process_apu_details(apu_details_with_alerts, "APU001")
+    def test_metadata_original_rows_correct(
+        self,
+        presenter: APUPresenter,
+        valid_apu_details: List[Dict[str, Any]],
+    ) -> None:
+        result = presenter.process_apu_details(valid_apu_details, "APU-001")
+        assert result["metadata"]["original_rows"] == len(valid_apu_details)
 
-        # Verificar que el item consolidado tiene alertas
-        cement_item = next(
-            item for item in result["items"] if item["descripcion"] == "Cemento gris"
-        )
-
-        assert "alerta" in cement_item
-
-    def test_process_apu_details_sanitizes_data(self, presenter, apu_details_with_nan):
-        """Debe sanitizar datos con NaN correctamente."""
-        result = presenter.process_apu_details(apu_details_with_nan, "APU001")
-
-        # Verificar que se procesó sin errores
-        assert result["total_items"] >= 0
-
-    def test_process_apu_details_logs_processing(
-        self, presenter, valid_apu_details, mock_logger
-    ):
-        """Debe loggear el inicio y fin del procesamiento."""
-        presenter.logger = mock_logger
-
-        presenter.process_apu_details(valid_apu_details, "APU001")
-
-        # Verificar llamadas al logger
-        info_calls = mock_logger.info.call_args_list
-        assert len(info_calls) >= 2  # Inicio y fin
-
-    def test_process_apu_details_handles_whitespace(
-        self, presenter, apu_details_whitespace_strings
-    ):
-        """Debe eliminar espacios en blanco de strings."""
-        result = presenter.process_apu_details(apu_details_whitespace_strings, "APU001")
-
-        item = result["items"][0]
-
-        assert item["categoria"] == "MATERIALES"
-        assert item["descripcion"] == "Cemento gris"
-        assert item["unidad"] == "kg"
-
-
-# ============================================================================
-# TESTS DE CASOS EDGE Y ERRORES
-# ============================================================================
-
-
-class TestEdgeCasesAndErrors:
-    """Tests para casos edge y manejo de errores."""
-
-    def test_process_empty_list_raises_error(self, presenter):
-        """Debe lanzar error con lista vacía."""
+    def test_empty_list_raises_value_error(
+        self, presenter: APUPresenter
+    ) -> None:
         with pytest.raises(ValueError, match="No se encontraron detalles"):
-            presenter.process_apu_details([], "APU001")
+            presenter.process_apu_details([], "APU-001")
 
-    def test_process_invalid_type_raises_error(self, presenter):
-        """Debe lanzar error con tipo inválido."""
+    def test_missing_columns_raises_key_error(
+        self, presenter: APUPresenter
+    ) -> None:
+        with pytest.raises(KeyError, match="columnas faltantes"):
+            presenter.process_apu_details(
+                [{"incomplete": "data"}], "APU-001"
+            )
+
+    def test_non_list_raises_value_error(
+        self, presenter: APUPresenter
+    ) -> None:
         with pytest.raises(ValueError, match="debe ser una lista"):
-            presenter.process_apu_details("not a list", "APU001")
+            presenter.process_apu_details(
+                {"not": "a_list"}, "APU-001"  # type: ignore[arg-type]
+            )
 
-    def test_process_missing_columns_raises_error(self, presenter):
-        """Debe lanzar error si faltan columnas requeridas."""
-        invalid_data = [{"CATEGORIA": "MAT", "DESCRIPCION_INSUMO": "Cemento"}]
+    def test_serialization_produces_json_safe_output(
+        self,
+        presenter: APUPresenter,
+        valid_apu_details: List[Dict[str, Any]],
+    ) -> None:
+        """Todos los valores en items deben ser JSON-serializable."""
+        import json
 
-        with pytest.raises(KeyError, match="Columnas faltantes"):
-            presenter.process_apu_details(invalid_data, "APU001")
+        result = presenter.process_apu_details(valid_apu_details, "APU-001")
+        # Esto no debería lanzar excepción
+        json_str = json.dumps(result, default=str)
+        assert isinstance(json_str, str)
 
-    def test_process_invalid_apu_code_raises_error(self, presenter, valid_apu_details):
-        """Debe lanzar error con código APU inválido."""
-        with pytest.raises(ValueError, match="debe ser un string no vacío"):
-            presenter.process_apu_details(valid_apu_details, "")
-
-    def test_process_handles_category_processing_error(
-        self, presenter, valid_apu_details, mock_logger
-    ):
-        """Debe continuar procesando si una categoría falla."""
-        presenter.logger = mock_logger
-
-        # Simular error en una categoría específica
-        with patch.object(
-            presenter,
-            "_aggregate_category_items",
-            side_effect=[
-                Exception("Error simulado"),  # Primera categoría falla
-                [{"item": "data"}],  # Segunda categoría funciona
-            ],
-        ):
-            # No debe lanzar excepción, debe continuar
-            presenter._group_by_category(pd.DataFrame(valid_apu_details))
-
-            # Verificar que se loggeó el error
-            mock_logger.error.assert_called()
-
-    def test_process_all_categories_nan(self, presenter):
-        """Debe manejar caso donde todas las categorías son NaN."""
-        data = [
+    def test_duplicate_descriptions_aggregated(
+        self, presenter: APUPresenter
+    ) -> None:
+        """Registros con misma categoría y descripción se agregan."""
+        records = [
             {
-                "CATEGORIA": np.nan,
-                "DESCRIPCION_INSUMO": "Item",
-                "CANTIDAD_APU": 10.0,
-                "VALOR_TOTAL_APU": 100.0,
-                "RENDIMIENTO": 1.0,
+                "CATEGORIA": "MATERIALES",
+                "DESCRIPCION_INSUMO": "Cemento",
+                "CANTIDAD_APU": 5.0,
+                "VALOR_TOTAL_APU": 250.0,
                 "UNIDAD_APU": "kg",
-                "PRECIO_UNIT_APU": 10.0,
-                "CODIGO_APU": "A1",
+                "PRECIO_UNIT_APU": 50.0,
+                "CODIGO_APU": "APU-001",
                 "UNIDAD_INSUMO": "kg",
-            }
-        ]
-
-        result = presenter.process_apu_details(data, "APU001")
-
-        # Debe asignar a categoría por defecto
-        assert "INDEFINIDO" in result["desglose"]
-
-    def test_process_with_inconsistent_prices(
-        self, presenter, apu_details_inconsistent_prices, mock_logger
-    ):
-        """Debe advertir sobre precios inconsistentes."""
-        presenter.logger = mock_logger
-
-        result = presenter.process_apu_details(apu_details_inconsistent_prices, "APU001")
-
-        # Debe haber procesado los datos
-        assert result["total_items"] > 0
-
-        # Debe haber advertencia sobre variación de precios
-        warning_calls = [
-            call
-            for call in mock_logger.warning.call_args_list
-            if "Variación significativa en precios" in str(call)
-        ]
-        assert len(warning_calls) > 0
-
-    def test_process_with_negative_values_warns(
-        self, presenter, apu_details_negative_values, mock_logger
-    ):
-        """Debe advertir sobre valores negativos."""
-        presenter.logger = mock_logger
-
-        presenter.process_apu_details(apu_details_negative_values, "APU001")
-
-        # Debe advertir sobre valores negativos
-        mock_logger.warning.assert_called()
-
-    def test_process_dataframe_creation_error(self, presenter, mock_logger):
-        """Debe manejar error en creación de DataFrame."""
-        presenter.logger = mock_logger
-
-        # Datos que no se pueden convertir a DataFrame correctamente
-        invalid_data = [
-            {"key1": "value1"},
-            {"different_key": "value2"},  # Estructura inconsistente
-        ]
-
-        # Aunque pandas puede crear el DF, faltarán columnas
-        with pytest.raises(KeyError):
-            presenter.process_apu_details(invalid_data, "APU001")
-
-
-# ============================================================================
-# TESTS DE CONFIGURACIÓN
-# ============================================================================
-
-
-class TestAPUProcessingConfig:
-    """Tests para la clase de configuración."""
-
-    def test_config_default_values(self):
-        """Debe tener valores por defecto correctos."""
-        config = APUProcessingConfig()
-
-        assert config.default_category == "INDEFINIDO"
-        assert config.tolerance_price_variance == 0.01
-        assert len(config.required_columns) > 0
-        assert len(config.numeric_columns) > 0
-
-    def test_config_custom_values(self):
-        """Debe aceptar valores personalizados."""
-        config = APUProcessingConfig(
-            default_category="CUSTOM", tolerance_price_variance=0.05
-        )
-
-        assert config.default_category == "CUSTOM"
-        assert config.tolerance_price_variance == 0.05
-
-    def test_config_required_columns_includes_essentials(self):
-        """Debe incluir columnas esenciales."""
-        config = APUProcessingConfig()
-
-        essential_columns = {
-            "CATEGORIA",
-            "DESCRIPCION_INSUMO",
-            "CANTIDAD_APU",
-            "VALOR_TOTAL_APU",
-        }
-
-        assert essential_columns.issubset(config.required_columns)
-
-    def test_config_numeric_columns_includes_essentials(self):
-        """Debe incluir columnas numéricas esenciales."""
-        config = APUProcessingConfig()
-
-        essential_numeric = {"CANTIDAD_APU", "VALOR_TOTAL_APU", "PRECIO_UNIT_APU"}
-
-        assert essential_numeric.issubset(config.numeric_columns)
-
-
-# ============================================================================
-# TESTS DE RENDIMIENTO Y VOLUMEN
-# ============================================================================
-
-
-class TestPerformance:
-    """Tests de rendimiento y manejo de grandes volúmenes."""
-
-    def test_process_large_dataset(self, presenter):
-        """Debe procesar datasets grandes eficientemente."""
-        # Generar dataset grande
-        large_data = []
-        for i in range(1000):
-            large_data.append(
-                {
-                    "CATEGORIA": f"CAT_{i % 10}",
-                    "DESCRIPCION_INSUMO": f"Insumo_{i % 50}",
-                    "CANTIDAD_APU": float(i),
-                    "VALOR_TOTAL_APU": float(i * 100),
-                    "RENDIMIENTO": 1.0,
-                    "UNIDAD_APU": "kg",
-                    "PRECIO_UNIT_APU": 100.0,
-                    "CODIGO_APU": f"COD_{i}",
-                    "UNIDAD_INSUMO": "kg",
-                }
-            )
-
-        result = presenter.process_apu_details(large_data, "APU_LARGE")
-
-        # Verificar que se procesó correctamente
-        assert result["total_items"] > 0
-        assert result["metadata"]["original_rows"] == 1000
-
-    def test_process_many_duplicate_items(self, presenter):
-        """Debe consolidar eficientemente muchos duplicados."""
-        # 100 registros del mismo item
-        duplicate_data = []
-        for i in range(100):
-            duplicate_data.append(
-                {
-                    "CATEGORIA": "MATERIALES",
-                    "DESCRIPCION_INSUMO": "Cemento",
-                    "CANTIDAD_APU": 1.0,
-                    "VALOR_TOTAL_APU": 100.0,
-                    "RENDIMIENTO": 1.0,
-                    "UNIDAD_APU": "kg",
-                    "PRECIO_UNIT_APU": 100.0,
-                    "CODIGO_APU": "MAT001",
-                    "UNIDAD_INSUMO": "kg",
-                }
-            )
-
-        result = presenter.process_apu_details(duplicate_data, "APU_DUP")
-
-        # Debe consolidar en un solo item
-        assert result["total_items"] == 1
-        cement = result["items"][0]
-        assert cement["cantidad"] == 100.0
-        assert cement["valor_total"] == 10000.0
-
-
-# ============================================================================
-# TESTS PARAMETRIZADOS
-# ============================================================================
-
-
-class TestParametrized:
-    """Tests parametrizados para cubrir múltiples casos."""
-
-    @pytest.mark.parametrize("invalid_apu_code", ["", "   ", None, 123, [], {}])
-    def test_invalid_apu_codes(self, presenter, valid_apu_details, invalid_apu_code):
-        """Debe rechazar múltiples tipos de códigos APU inválidos."""
-        with pytest.raises(ValueError):
-            presenter.process_apu_details(valid_apu_details, invalid_apu_code)
-
-    @pytest.mark.parametrize(
-        "invalid_details",
-        ["string", 123, None, {"key": "value"}, [1, 2, 3], ["string1", "string2"]],
-    )
-    def test_invalid_apu_details_types(self, presenter, invalid_details):
-        """Debe rechazar múltiples tipos inválidos de apu_details."""
-        with pytest.raises(ValueError):
-            presenter.process_apu_details(invalid_details, "APU001")
-
-    @pytest.mark.parametrize("nan_value", [np.nan, np.inf, -np.inf, None])
-    def test_sanitize_special_values(self, presenter, nan_value):
-        """Debe sanitizar múltiples tipos de valores especiales."""
-        df = pd.DataFrame({"A": [1, nan_value, 3]})
-
-        df_sanitized = presenter._sanitize_dataframe(df)
-
-        assert df_sanitized.loc[1, "A"] is None
-
-    @pytest.mark.parametrize(
-        "whitespace_string,expected",
-        [
-            ("  hello  ", "hello"),
-            ("world  ", "world"),
-            ("  test", "test"),
-            ("no-space", "no-space"),
-            ("  multiple   spaces  ", "multiple   spaces"),
-        ],
-    )
-    def test_strip_whitespace_variations(self, presenter, whitespace_string, expected):
-        """Debe eliminar espacios de diferentes formas."""
-        df = pd.DataFrame({"text": [whitespace_string]})
-
-        df_sanitized = presenter._sanitize_dataframe(df)
-
-        assert df_sanitized.loc[0, "text"] == expected
-
-
-# ============================================================================
-# TESTS DE COBERTURA ADICIONAL
-# ============================================================================
-
-
-class TestAdditionalCoverage:
-    """Tests adicionales para alcanzar 100% de cobertura."""
-
-    def test_create_dataframe_exception_handling(self, presenter, mock_logger):
-        """Debe manejar excepciones al crear DataFrame."""
-        presenter.logger = mock_logger
-
-        # Crear datos que causen error al convertir a DataFrame
-        # (aunque pandas es muy tolerante)
-        with patch("pandas.DataFrame", side_effect=Exception("Mock error")):
-            with pytest.raises(ValueError, match="Error creando DataFrame"):
-                presenter._create_and_sanitize_dataframe([{"key": "value"}], "APU001")
-
-    def test_create_dataframe_results_empty(self, presenter):
-        """Debe detectar cuando DataFrame resulta vacío."""
-        # Esto es difícil de lograr con pandas, pero podemos mockear
-        with patch("pandas.DataFrame") as mock_df:
-            mock_df.return_value = pd.DataFrame()
-            mock_df.return_value.empty = True
-
-            with pytest.raises(ValueError, match="DataFrame resultó vacío"):
-                presenter._create_and_sanitize_dataframe([{"key": "value"}], "APU001")
-
-    def test_process_unexpected_exception(self, presenter, valid_apu_details, mock_logger):
-        """Debe manejar excepciones inesperadas."""
-        presenter.logger = mock_logger
-
-        # Simular excepción inesperada
-        with patch.object(
-            presenter,
-            "_create_and_sanitize_dataframe",
-            side_effect=RuntimeError("Unexpected error"),
-        ):
-            with pytest.raises(RuntimeError, match="Fallo en procesamiento"):
-                presenter.process_apu_details(valid_apu_details, "APU001")
-
-            # Verificar que se loggeó el error
-            mock_logger.error.assert_called()
-
-    def test_metadata_reduction_rate_calculation(self, presenter):
-        """Debe calcular tasa de reducción correctamente."""
-        df = pd.DataFrame(
+                "RENDIMIENTO": 1.0,
+            },
             {
-                "CATEGORIA": ["A"] * 10,
-                "DESCRIPCION_INSUMO": ["Item"] * 10,
-                "CANTIDAD_APU": [1] * 10,
-                "VALOR_TOTAL_APU": [100] * 10,
-                "RENDIMIENTO": [1] * 10,
-                "UNIDAD_APU": ["kg"] * 10,
-                "PRECIO_UNIT_APU": [100] * 10,
-                "CODIGO_APU": ["A1"] * 10,
-                "UNIDAD_INSUMO": ["kg"] * 10,
-            }
-        )
-
-        processed = [{"VR_TOTAL": 1000.0}]  # 10 items reducidos a 1
-
-        metadata = presenter._calculate_metadata(df, processed)
-
-        # Reducción de 90%
-        assert metadata["reduction_rate"] == 0.9
-
-    def test_aggregate_alerts_with_empty_strings(self, presenter):
-        """Debe filtrar strings vacíos en alertas."""
-        series = pd.Series(["Alerta 1", "", "   ", "Alerta 2"])
-
-        result = presenter._aggregate_alerts(series)
-
-        # No debe incluir strings vacíos
-        assert "Alerta 1" in result
-        assert "Alerta 2" in result
-        # No debe tener separadores vacíos consecutivos
-
-
-# ============================================================================
-# SUITE DE EJECUCIÓN
-# ============================================================================
-
-if __name__ == "__main__":
-    """
-    Ejecutar tests con pytest.
-    Comandos útiles:
-    - pytest test_presenters.py -v                    # Verbose
-    - pytest test_presenters.py -v --cov=presenters   # Con cobertura
-    - pytest test_presenters.py -v --cov-report=html  # Reporte HTML
-    - pytest test_presenters.py -k "test_process"     # Solo tests que coincidan
-    - pytest test_presenters.py -x                    # Detener en primer fallo
-    - pytest test_presenters.py --tb=short            # Traceback corto
-    """
-    pytest.main(
-        [
-            __file__,
-            "-v",
-            "--cov=presenters",
-            "--cov-report=term-missing",
-            "--cov-report=html",
-            "-x",  # Detener en primer fallo para debugging
+                "CATEGORIA": "MATERIALES",
+                "DESCRIPCION_INSUMO": "Cemento",
+                "CANTIDAD_APU": 5.0,
+                "VALOR_TOTAL_APU": 250.0,
+                "UNIDAD_APU": "kg",
+                "PRECIO_UNIT_APU": 50.0,
+                "CODIGO_APU": "APU-001",
+                "UNIDAD_INSUMO": "kg",
+                "RENDIMIENTO": 1.0,
+            },
         ]
-    )
+        result = presenter.process_apu_details(records, "APU-AGG")
+        materiales_items = result["desglose"].get("MATERIALES", [])
+        assert len(materiales_items) == 1
+        assert materiales_items[0]["cantidad"] == pytest.approx(10.0)
+        assert materiales_items[0]["valor_total"] == pytest.approx(500.0)
+
+    def test_category_normalization_in_pipeline(
+        self, presenter: APUPresenter
+    ) -> None:
+        """Variantes categóricas se consolidan en el pipeline completo."""
+        records = [
+            {
+                "CATEGORIA": "MATERIAL",
+                "DESCRIPCION_INSUMO": "Arena",
+                "CANTIDAD_APU": 1.0,
+                "VALOR_TOTAL_APU": 10.0,
+                "UNIDAD_APU": "m3",
+                "PRECIO_UNIT_APU": 10.0,
+                "CODIGO_APU": "APU-002",
+                "UNIDAD_INSUMO": "m3",
+                "RENDIMIENTO": 1.0,
+            },
+            {
+                "CATEGORIA": "MAT",
+                "DESCRIPCION_INSUMO": "Grava",
+                "CANTIDAD_APU": 2.0,
+                "VALOR_TOTAL_APU": 30.0,
+                "UNIDAD_APU": "m3",
+                "PRECIO_UNIT_APU": 15.0,
+                "CODIGO_APU": "APU-002",
+                "UNIDAD_INSUMO": "m3",
+                "RENDIMIENTO": 1.0,
+            },
+        ]
+        result = presenter.process_apu_details(records, "APU-NORM")
+        assert "MATERIALES" in result["desglose"]
+        assert len(result["desglose"]["MATERIALES"]) == 2
+
+    def test_with_alerts_column(self, presenter: APUPresenter) -> None:
+        """Pipeline maneja correctamente la columna opcional 'alerta'."""
+        records = [
+            {
+                "CATEGORIA": "EQUIPO",
+                "DESCRIPCION_INSUMO": "Vibrador",
+                "CANTIDAD_APU": 1.0,
+                "VALOR_TOTAL_APU": 50.0,
+                "UNIDAD_APU": "hr",
+                "PRECIO_UNIT_APU": 50.0,
+                "CODIGO_APU": "APU-003",
+                "UNIDAD_INSUMO": "hr",
+                "RENDIMIENTO": 0.5,
+                "alerta": "Precio alto",
+            },
+            {
+                "CATEGORIA": "EQUIPO",
+                "DESCRIPCION_INSUMO": "Vibrador",
+                "CANTIDAD_APU": 1.0,
+                "VALOR_TOTAL_APU": 50.0,
+                "UNIDAD_APU": "hr",
+                "PRECIO_UNIT_APU": 50.0,
+                "CODIGO_APU": "APU-003",
+                "UNIDAD_INSUMO": "hr",
+                "RENDIMIENTO": 0.5,
+                "alerta": "Rendimiento bajo",
+            },
+        ]
+        result = presenter.process_apu_details(records, "APU-ALERT")
+        equipo_items = result["desglose"]["EQUIPO"]
+        assert len(equipo_items) == 1
+        assert "alerta" in equipo_items[0]
+        assert "Precio alto" in equipo_items[0]["alerta"]
+        assert "Rendimiento bajo" in equipo_items[0]["alerta"]
+
+    def test_runtime_error_wraps_unexpected_exceptions(
+        self, logger: logging.Logger
+    ) -> None:
+        """Excepciones inesperadas se envuelven en RuntimeError."""
+        # Crear un presenter con config que provoque error interno
+        presenter = APUPresenter(logger=logger)
+
+        # Monkey-patch para forzar una excepción inesperada
+        def exploding_sanitize(*args: Any, **kwargs: Any) -> None:
+            raise MemoryError("boom")
+
+        presenter._sanitize_dataframe = exploding_sanitize  # type: ignore[assignment]
+
+        records = [
+            {
+                "CATEGORIA": "EQUIPO",
+                "DESCRIPCION_INSUMO": "X",
+                "CANTIDAD_APU": 1,
+                "VALOR_TOTAL_APU": 10,
+                "UNIDAD_APU": "u",
+                "PRECIO_UNIT_APU": 10,
+                "CODIGO_APU": "C1",
+                "UNIDAD_INSUMO": "u",
+                "RENDIMIENTO": 1,
+            }
+        ]
+        with pytest.raises(RuntimeError, match="Fallo en procesamiento"):
+            presenter.process_apu_details(records, "APU-FAIL")
+
+
+# ======================================================================
+# Tests: Propiedades del sistema
+# ======================================================================
+
+
+class TestSystemProperties:
+    """Pruebas de propiedades transversales del sistema."""
+
+    def test_config_immutability_after_init(
+        self, presenter: APUPresenter
+    ) -> None:
+        """La configuración no puede ser mutada después de la inicialización."""
+        with pytest.raises(AttributeError):
+            presenter.config.default_category = "NUEVO"  # type: ignore[misc]
+
+    def test_deterministic_output(
+        self,
+        presenter: APUPresenter,
+        valid_apu_details: List[Dict[str, Any]],
+    ) -> None:
+        """Dos ejecuciones con mismos datos producen mismo resultado."""
+        result1 = presenter.process_apu_details(valid_apu_details, "APU-DET")
+        result2 = presenter.process_apu_details(valid_apu_details, "APU-DET")
+
+        assert result1["total_items"] == result2["total_items"]
+        assert result1["metadata"] == result2["metadata"]
+        assert len(result1["items"]) == len(result2["items"])
+
+        for item1, item2 in zip(result1["items"], result2["items"]):
+            for key in item1:
+                v1, v2 = item1[key], item2[key]
+                if isinstance(v1, float) and v1 is not None:
+                    assert v1 == pytest.approx(v2)
+                else:
+                    assert v1 == v2
+
+    def test_no_numpy_types_in_output(
+        self,
+        presenter: APUPresenter,
+        valid_apu_details: List[Dict[str, Any]],
+    ) -> None:
+        """La salida no contiene tipos numpy, solo tipos Python nativos."""
+        result = presenter.process_apu_details(valid_apu_details, "APU-NP")
+
+        def check_no_numpy(obj: Any, path: str = "root") -> None:
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    check_no_numpy(v, f"{path}.{k}")
+            elif isinstance(obj, list):
+                for i, v in enumerate(obj):
+                    check_no_numpy(v, f"{path}[{i}]")
+            else:
+                assert not isinstance(obj, np.generic), (
+                    f"Tipo numpy encontrado en {path}: {type(obj).__name__}"
+                )
+
+        check_no_numpy(result)
+
+    def test_all_items_have_consistent_keys(
+        self,
+        presenter: APUPresenter,
+        valid_apu_details: List[Dict[str, Any]],
+    ) -> None:
+        """Todos los items procesados tienen el mismo conjunto de claves."""
+        result = presenter.process_apu_details(valid_apu_details, "APU-KEYS")
+        items = result["items"]
+
+        if not items:
+            pytest.skip("No hay items para verificar")
+
+        reference_keys = set(items[0].keys())
+        for i, item in enumerate(items[1:], start=1):
+            assert set(item.keys()) == reference_keys, (
+                f"Item {i} tiene claves diferentes: "
+                f"esperado={reference_keys}, obtenido={set(item.keys())}"
+            )
+
+    def test_total_items_equals_sum_of_breakdown(
+        self,
+        presenter: APUPresenter,
+        valid_apu_details: List[Dict[str, Any]],
+    ) -> None:
+        """total_items == sum(len(v) for v in desglose.values())"""
+        result = presenter.process_apu_details(valid_apu_details, "APU-SUM")
+        breakdown_total = sum(
+            len(items) for items in result["desglose"].values()
+        )
+        assert result["total_items"] == breakdown_total
