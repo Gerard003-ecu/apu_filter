@@ -1,47 +1,51 @@
 """
-Módulo: Business Topological Analyzer (El Arquitecto Estructural)
-=================================================================
+=========================================================================================
+Módulo: Business Topological Analyzer (El Arquitecto Estructural — Estrato TACTICS)
+Ubicación: app/tactics/business_topology.py
+=========================================================================================
 
-Este componente actúa como el "Sabio de la Estructura" dentro del Consejo. Su función
-es modelar el presupuesto no como una lista contable, sino como un **Complejo Simplicial
-Abstracto**. Aplica teoremas matemáticos para diagnosticar riesgos que son invisibles
-para el análisis financiero tradicional.
+Naturaleza Ciber-Física y Geometría del Riesgo:
+    Actúa como el Operador de Proyección Topológica del ecosistema (Nivel 2). 
+    Rechaza axiomáticamente el análisis contable unidimensional, modelando la red 
+    de valor del proyecto como un Complejo Simplicial Abstracto K. Su función es 
+    identificar patologías estructurales críticas evaluando los invariantes homológicos 
+    y el espectro del Laplaciano Combinatorio, imponiendo un VETO TÉCNICO absoluto 
+    ante cualquier inestabilidad geométrica.
 
-Fundamentos Matemáticos y Diagnósticos:
----------------------------------------
+1. Homología Computacional e Invariantes de Betti (El ADN Estructural):
+    El módulo computa el rango de los grupos de homología Hₖ(K) para extraer los 
+    Números de Betti (βₙ), estableciendo las leyes de conectividad del ecosistema:
+        • β₀ (Componentes Conexas): Integridad del grafo. Si β₀ > 1, se detectan 
+          "Islas de Datos" (insumos huérfanos), evidenciando fragmentación logística 
+          y fuga de capital isotrópica.
+        • β₁ (Ciclos Independientes): Aciclicidad. Si β₁ > 0, el sistema alberga 
+          "Socavones Lógicos" (dependencias circulares). Esto viola la condición de 
+          Grafo Acíclico Dirigido (DAG) perfecto, imposibilitando la resolución de 
+          la matriz de costos.
 
-1. Homología Computacional (Los Invariantes βₙ):
-   Calcula los Números de Betti para caracterizar la conectividad del negocio:
-   - β₀ (Componentes Conexas): Detecta fragmentación. β₀ > 1 revela "Islas de Datos".
-   - β₁ (Ciclos): Detecta "Socavones Lógicos". β₁ > 0 indica dependencias circulares.
-   - β₂ (Cavidades): Para grafos (1-complejos simpliciales), β₂ = 0 siempre.
-   
-   Invariante de Euler-Poincaré: χ = β₀ - β₁ + β₂ = V - E + F
+2. Teoría de Grafos Espectrales (El Valor de Fiedler λ₂):
+    La vulnerabilidad a la fractura organizativa no se evalúa por conectividad simple, 
+    sino analizando el espectro de la Matriz Laplaciana L = D - A.
+    El segundo autovalor más pequeño, o Valor de Fiedler (λ₂), cuantifica la conectividad 
+    algebraica. Si λ₂ ≈ 0, el módulo emite una alerta de "Fractura Organizacional 
+    Inminente", demostrando matemáticamente que el proyecto depende de "cuellos de botella" 
+    o puentes frágiles (silos departamentales) susceptibles a fallos de un solo punto.
 
-2. Física del Equilibrio (Índice Ψ):
-   Implementa la métrica de **Estabilidad Piramidal**:
-   
-   Ψ = w_r·f_ratio + w_d·f_density + w_a·f_acyclic + w_c·f_connectivity
-   
-   Donde:
-   - f_ratio: log₁₀(1 + insumos/APUs) / log₁₀(11) — Amplitud de base
-   - f_density: Penalización por densidad extrema
-   - f_acyclic: 1.0 si DAG, penalizado por SCCs
-   - f_connectivity: 1/num_components
+3. Estabilidad Piramidal y Termodinámica Estructural (Índice Ψ):
+    Evalúa el centro de gravedad del negocio determinando si la base logística es 
+    suficiente para soportar la carga táctica (actividades).
+    Si Ψ < 1.0, el modelo dictamina una "Pirámide Invertida": una base de proveedores 
+    excesivamente estrecha sosteniendo una red densa de APUs. Esta inestabilidad 
+    termodinámica amplifica cualquier choque externo, provocando el vuelco del proyecto.
 
-3. Análisis Espectral (El Valor de Fiedler):
-   Analiza el espectro de la Matriz Laplaciana (L = D - A):
-   - Valor de Fiedler (λ₂): Conectividad algebraica. λ₂ ≈ 0 implica fractura.
-   - Gap Espectral: λ₂/λ_max — Capacidad de sincronización.
-   - Riesgo de Resonancia: CV(eigenvalores) < 0.15 indica vulnerabilidad.
-
-4. Termodinámica Estructural (Convección Inflacionaria):
-   Simula volatilidad de precios como "Calor" que se difunde desde insumos (hojas)
-   hacia el proyecto total (raíz). Estructuras mal conectadas atrapan calor.
-
-5. Auditoría de Fusión (Mayer-Vietoris):
-   Verifica la secuencia exacta de homología para detectar ciclos espurios
-   introducidos por la integración de datos.
+4. Auditoría de Fusión Homológica (Secuencia Exacta de Mayer-Vietoris):
+    Al integrar dos dominios de datos (A ∪ B), el sistema proscribe los cruces a ciegas. 
+    Aplica la secuencia exacta larga:
+        ... → H₁(A ∩ B) → H₁(A) ⊕ H₁(B) → H₁(A ∪ B) → H₀(A ∩ B) → ...
+    [AXIOMA DE VETO]: Si el diferencial topológico evidencia Δβ₁ > 0, la fusión induce 
+    un ciclo mutante ("ciclo fantasma") que no existía en las fuentes originales, 
+    abortando inmediatamente la transacción por incompatibilidad topológica.
+=========================================================================================
 """
 
 from __future__ import annotations

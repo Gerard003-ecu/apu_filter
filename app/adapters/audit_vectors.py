@@ -1,49 +1,56 @@
 """
-Vector de Auditoría Topológica — Estabilidad Estructural de Grafo Bipartito.
+=========================================================================================
+Módulo: Audit Vectors (Proyector de Coherencia Topológica y Entropía Estructural)
+Ubicación: app/adapters/audit_vectors.py
+=========================================================================================
 
-Fundamentación Matemática Extendida:
-────────────────────────────────────
-Sea G = (U ∪ V, E) un grafo bipartito donde:
-  • U = {apu₁, ..., apuₘ}  — nodos de APUs (m = structure_load)
-  • V = {ins₁, ..., insₙ}  — nodos de Insumos (n = base_width)  
-  • E ⊆ U × V              — aristas de consumo
+Naturaleza Ciber-Física y Geometría de la Información:
+    Este módulo abandona las heurísticas empíricas para formalizar la auditoría de la red
+    de valor como el análisis de un Complejo Simplicial Bipartito G = (U ∪ V, E). Actúa
+    en el Estrato TACTICS (Nivel 2), cuantificando la fricción logística y la 
+    vulnerabilidad topológica mediante Teoría Espectral de Grafos y Termodinámica de 
+    la Información.
 
-Métricas de coherencia estructural:
+1. Geometría Bipartita y Operador Frontera:
+    El ecosistema se modela axiomáticamente como un espacio discreto donde:
+    • U = {apu₁, ..., apuₘ} representa el subespacio de TACTICS (Masa Táctica / Nodos).
+    • V = {ins₁, ..., insₙ} representa el subespacio de PHYSICS (Cimentación Base).
+    • E ⊆ U × V define las 1-cadenas (aristas) de flujo termodinámico logístico.
+    
+    [AXIOMA DE ROBUSTEZ]: La Robustez Topológica ρ = (m - |V_floating|) / m audita
+    directamente el núcleo del operador frontera. Un nodo flotante implica algebraicamente
+    la fractura del componente conexo (β₀ > 1), revelando una singularidad logística 
+    o un sumidero de energía financiera (dinero ciego).
 
-1. **Índice de Simpson (Diversidad)**:
-   D = 1 - Σᵢ(pᵢ²)  donde pᵢ = freq(insᵢ) / |E|
-   Interpreta: probabilidad de que 2 aristas aleatorias conecten insumos distintos
-   Rango: [0, 1], óptimo → 1
+2. Teoría Espectral y la Desigualdad de Cheeger (λ₂):
+    La robustez de la cadena de suministro no se asume; se demuestra analizando el 
+    espectro de la Matriz Laplaciana L = D - A del grafo proyectado U → U.
+    El Valor de Fiedler (λ₂) cuantifica la resistencia mínima a la partición de la red
+    (acotada por la constante isoperimétrica de Cheeger). Si λ₂ → 0, el módulo certifica 
+    matemáticamente una "Fractura Organizacional Inminente" (cuellos de botella), 
+    justificando un veto técnico.
 
-2. **Conectividad Normalizada** (reformulada):
-   κ = σ(|E| / (m · c̄) - 1)  con σ = sigmoide suavizada
-   Interpreta: densidad de aristas vs. configuración típica
-   Rango: [0, 1], κ(c̄) = 0.5 (punto neutro), óptimo → 1
+3. Termodinámica de la Información y Geometría de Distribución:
+    La centralización de recursos se somete al rigor de la Teoría de la Información:
+    • Entropía de Shannon (H): H = -Σ pᵢ ln(pᵢ). Cuantifica la incertidumbre del sistema.
+      Su exponencial proyectada N_eff = exp(H) determina los "grados de libertad reales" 
+      de la matriz de suministro, erradicando la falsa seguridad de inventarios nominales.
+    • Asimetría de Inercia (Índice de Gini, G): G = Σᵢ Σⱼ |xᵢ - xⱼ| / (2n²μ). Mide la 
+      concentración de masa de capital. Si G → 1, el sistema exhibe una singularidad, 
+      revelando Puntos Únicos de Fallo (SPOF).
+    • Probabilidad de Colisión Ortogonal (Índice D): D = 1 - Σ(pᵢ²). Si D → 0, el tensor 
+      de suministro colapsa dimensionalmente hacia un monopolio estricto.
 
-3. **Robustez Topológica**:
-   ρ = (m - |floating|) / m
-   Interpreta: fracción de nodos conectados (componente β₀ implícito)
-   Rango: [0, 1], óptimo = 1
-
-4. **Conectividad Algebraica** (λ₂ del Laplaciano):
-   Sea L = D - A la matriz Laplaciana del grafo proyectado U→U
-   λ₂ = segundo menor eigenvalor de L
-   Interpreta: resistencia a partición (Teorema de Cheeger)
-   Rango: [0, m], normalizado a [0, 1]
-
-5. **Índice de Gini** (concentración):
-   G = Σᵢ Σⱼ |xᵢ - xⱼ| / (2n²μ)
-   Interpreta: desigualdad en distribución de uso
-   Rango: [0, 1], óptimo → 0 (equidistribución)
-
-6. **Número Efectivo de Especies** (Hill q=1):
-   N_eff = exp(H) donde H = entropía de Shannon
-   Interpreta: número equivalente de insumos equidistribuidos
-   
-7. **Índice de Estabilidad Compuesto**:
-   Ψ = ((D + ε)^α · (κ + ε)^β · (ρ + ε)^γ · (1 - G + ε)^δ)^(1/(α+β+γ+δ))
-   Media geométrica ponderada con suavizado ε
-   Rango: [0, 1], umbral mínimo calibrado empíricamente
+4. Ecuación de Estado Estructural (El Tensor Ψ):
+    La síntesis de las variables de fase se colapsa en el Índice de Estabilidad
+    Compuesto (Ψ), computado como una media geométrica ponderada bajo suavizado euclidiano ε:
+        Ψ = ((D + ε)^α · (κ + ε)^β · (ρ + ε)^γ · (1 - G + ε)^δ)^(1/(α+β+γ+δ))
+    
+    [AXIOMA DE VETO]: Si el invariante escalar Ψ decae por debajo del límite crítico de
+    estabilidad, el orquestador dictamina el estado de "Pirámide Invertida", forzando
+    un colapso algebraico de la función de evaluación y deteniendo la propagación
+    de la información hacia el Estrato STRATEGY.
+=========================================================================================
 """
 
 from __future__ import annotations

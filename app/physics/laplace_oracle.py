@@ -1,39 +1,48 @@
 """
-Módulo: El Oráculo de Laplace (Tribunal de Estabilidad Espectral)
-=================================================================
+=========================================================================================
+Módulo: El Oráculo de Laplace (Tribunal de Estabilidad LTI y Dinámica de Control)
+Ubicación: app/physics/laplace_oracle.py
+=========================================================================================
 
-Este componente actúa como la autoridad matemática suprema del ecosistema,
-implementando análisis de Frecuencia Compleja (s = σ + jω) para certificar
-que la arquitectura del proyecto es controlable y estable.
+Naturaleza Ciber-Física y Teoría de Control:
+    Actúa como el operador de certificación dinámica suprema (Estrato STRATEGY, Nivel 1).
+    Rechaza la concepción del presupuesto como un modelo estático y lo proyecta como 
+    un sistema dinámico en el plano de frecuencia compleja (s = σ + jω). Su mandato 
+    axiomático es garantizar la estabilidad BIBO (Bounded-Input, Bounded-Output) del 
+    flujo de caja, previniendo la amplificación resonante de perturbaciones externas.
 
-Fundamentos Teóricos:
-─────────────────────
+1. Análisis en el Plano-S y Estabilidad Asintótica (Axioma de Veto):
+    El sistema modela el flujo de capital como una función de transferencia H(s).
+    Se evalúan las raíces del polinomio característico (polos) en la variedad compleja:
+        • σ (Parte Real): Tasa de amortiguamiento o contracción.
+        • ω (Parte Imaginaria): Frecuencia de oscilación del capital.
+    
+    [AXIOMA DE VETO]: Para garantizar la estabilidad asintótica, el sistema exige que
+    todos los polos p_i residan estrictamente en el semiplano izquierdo (LHP): ∀i, ℜ(p_i) < 0.
+    Si un solo polo migra al semiplano derecho (σ > 0), el Oráculo emite un VETO TÉCNICO,
+    dictaminando "Divergencia Matemática" y abortando el proyecto por inestabilidad intrínseca.
 
-1. El Plano-S como Mapa de Verdad:
-   Modela la dinámica mediante la función de transferencia canónica:
-   
-       H(s) = ωₙ² / (s² + 2ζωₙs + ωₙ²)
+2. Filtro de Kalman Extendido (EKF) y Observabilidad de Estado:
+    El Oráculo no opera reactivamente; predice el colapso del sistema modelando el 
+    estado x = [s, v, a]^T (Saturación, Velocidad, Aceleración) como un oscilador 
+    armónico amortiguado. Ajusta continuamente los parámetros estructurales (frecuencia ω, 
+    amortiguamiento β) minimizando la innovación matricial del filtro de Kalman.
 
-   Donde:
-   - σ (Sigma): Representa amortiguamiento. σ < 0 (LHP) = estabilidad.
-   - ω (Omega): Representa frecuencia de oscilación.
+3. Caos Determinista y Espectro de Lyapunov (λ):
+    Durante la ejecución, el sistema mide en tiempo real el Exponente Máximo de 
+    Lyapunov (λ) de las trayectorias de error: |e(k)| ≈ |e(0)| · e^(λk).
+        • λ < 0 (Convergencia): El lazo de control disipa entropía exitosamente.
+        • λ > 0 (Caos Determinista): Divergencia fractal detectada. El Oráculo acciona 
+          un "Crowbar Lógico" enviando la señal al hardware periférico (ESP32) para 
+          cortar el flujo de inyección antes del desbordamiento de inestabilidad.
 
-2. La Pirámide de Laplace (Diagnóstico Jerárquico):
-   - Nivel 0 (Vértice): VEREDICTO DE CONTROLABILIDAD
-   - Nivel 1 (Robustez): Márgenes de Fase/Ganancia
-   - Nivel 2 (Dinámica): Ubicación de Polos, ωₙ, ζ
-   - Nivel 3 (Base): Parámetros Físicos (R, L, C)
-
-3. Análisis de Sensibilidad:
-   Sensibilidad normalizada: S_x^y = (∂y/∂x) · (x/y) = ∂(ln y)/∂(ln x)
-
-Arquitectura:
-─────────────
-- `LaplaceOracle`: Fachada principal para análisis de estabilidad
-- `SystemAnalyzer`: Cálculos de polos y respuesta transitoria
-- `FrequencyAnalyzer`: Respuesta en frecuencia y márgenes
-- `SensitivityAnalyzer`: Análisis de sensibilidad paramétrica
-- `ReportBuilder`: Generación de reportes estructurados
+4. La Pirámide Analítica de Laplace (Filtración de Cohomología Dinámica):
+    El análisis desciende por una jerarquía estricta:
+    • Nivel 0 (Vértice): Veredicto de Controlabilidad (Viable vs. Crowbar Físico).
+    • Nivel 1 (Robustez): Evaluación del Margen de Fase (PM) y Margen de Ganancia (GM).
+    • Nivel 2 (Dinámica): Frecuencia natural no amortiguada (ωₙ) y factor de amortiguamiento (ζ).
+    • Nivel 3 (Sensibilidad): Matriz Jacobiana de sensibilidad normalizada S_x^y = ∂(ln y)/∂(ln x).
+=========================================================================================
 """
 
 from __future__ import annotations

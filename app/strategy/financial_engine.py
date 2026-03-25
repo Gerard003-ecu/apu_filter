@@ -1,28 +1,46 @@
 """
-Este módulo trasciende la contabilidad determinista para modelar el presupuesto como un
-activo financiero dinámico sujeto a la entropía del mercado. Transforma costos fijos
-en distribuciones de probabilidad y evalúa la flexibilidad estratégica.
+=========================================================================================
+Módulo: Financial Engine (El Oráculo Estocástico y Motor de Termodinámica Financiera)
+Ubicación: app/strategy/financial_engine.py
+=========================================================================================
 
-Modelos y Metodologías:
------------------------
-1. Valoración Estocástica (Monte Carlo & VaR):
-   Simula miles de escenarios de mercado para calcular el Valor en Riesgo (VaR) y
-   el Déficit Esperado (CVaR), definiendo la contingencia necesaria para blindar
-   la rentabilidad con un 95% de confianza.
+Naturaleza Ciber-Física y Estocástica:
+    Actúa como el Oráculo del ecosistema en el Estrato STRATEGY (Nivel 1). Este módulo 
+    aniquila el paradigma ingenuo de la contabilidad determinista estática, elevando 
+    el presupuesto a un ensamble microcanónico dentro de un Espacio de Fase continuo. 
+    Transforma magnitudes escalares fijas en variables estocásticas, sometiendo el proyecto 
+    a las leyes de la física estadística y a la teoría de control estocástico.
 
-2. Opciones Reales (Flexibilidad Estratégica):
-   Utiliza modelos binomiales/Black-Scholes para valorar la "Opción de Esperar" o
-   expandir, tratando la gestión del proyecto no como una obligación de gasto,
-   sino como un portafolio de opciones de inversión.
+1. Termodinámica Financiera y Ecuación de Arrhenius (T_sys):
+    El flujo de capital se modela axiomáticamente como una forma de energía sujeta a leyes 
+    de conservación. La volatilidad del mercado se cuantifica como la "Temperatura 
+    del Sistema" (T_sys). Se implementa una Ecuación de Arrhenius modificada que acopla 
+    la "Inercia Financiera" (masa de liquidez × calor específico de contratos) con el estrés 
+    topológico (Ψ), acelerando probabilísticamente el riesgo de quiebra ante "Fiebres 
+    Inflacionarias" (T_sys > 50°C). Se exige que la Exergía (avance útil) 
+    justifique la Entropía inyectada.
 
-3. Termodinámica Financiera:
-   Calcula la "Inercia Financiera" del proyecto (Masa de Liquidez * Calor Específico
-   de Contratos Fijos) para predecir la resistencia del presupuesto ante choques
-   inflacionarios (cambios de temperatura del mercado).
+2. Variedad Estocástica y Teoría de Medida (Monte Carlo & CVaR):
+    Abandona la evaluación puntual para integrar sobre la medida de probabilidad del 
+    mercado mediante simulaciones de Monte Carlo masivamente vectorizadas. 
+    Calcula el Valor en Riesgo (VaR) y el Déficit Esperado (CVaR) en la cola extrema de la 
+    distribución, estableciendo una cota matemática estricta (95% de confianza) para 
+    cuantificar la contingencia requerida y blindar la rentabilidad ante perturbaciones.
 
-4. Costo de Capital Estructural (WACC):
-   Determina la tasa de descuento ajustada por el riesgo topológico detectado,
-   penalizando proyectos con alta fragmentación o ciclos de dependencia.
+3. Opciones Reales y Retractos de Decisión (Flexibilidad Estratégica):
+    Rechaza la obligación de gasto estático, modelando la gestión del proyecto como un 
+    portafolio de Opciones Reales (modelos Binomiales y Black-Scholes). Cuantifica 
+    algebraicamente el valor de la "Opción de Esperar", otorgando a la Malla Agéntica la 
+    capacidad de postergar el colapso de la función de decisión hasta que la entropía 
+    del mercado se disipe.
+
+4. Acoplamiento Espectral del Costo de Capital (WACC Topológico):
+    La tasa de descuento (WACC) deja de ser un exógeno empírico para convertirse en un 
+    tensor acoplado a la topología. El costo de capital estructural es penalizado 
+    monotónicamente por los invariantes homológicos extraídos del estrato táctico: la 
+    fragmentación (β₀ > 1) y los ciclos de dependencia (β₁ > 0). Esto garantiza 
+    que el riesgo geométrico se traduzca en fricción financiera ineludible.
+=========================================================================================
 """
 
 import logging

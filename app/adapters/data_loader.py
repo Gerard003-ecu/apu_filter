@@ -1,29 +1,43 @@
-# app/data_loader.py
 """
-Este módulo actúa como la interfaz de frontera del sistema, responsable de la ingesta
-robusta de datos desde fuentes heterogéneas (CSV, Excel, PDF). Su función no es solo
-leer archivos, sino reducir la entropía de formato inicial, garantizando que solo
-estructuras de datos normalizadas ingresen al pipeline de procesamiento.
+=========================================================================================
+Módulo: Data Loader (Funtor de Ingesta y Operador de Frontera Topológica)
+Ubicación: app/adapters/data_loader.py
+=========================================================================================
 
-Capacidades y Protocolos:
--------------------------
-1. Detección Heurística de Formato:
-   Implementa algoritmos de inferencia (`_detect_csv_delimiter`, `_detect_encoding`)
-   para interpretar archivos sin metadatos explícitos, actuando como un traductor
-   universal de dialectos de datos (encoding latino, separadores no estándar).
+Naturaleza Ciber-Física y Topológica:
+    Este módulo constituye la "Superficie de Absorción Termodinámica" del ecosistema. 
+    Abandona la semántica del simple parseo de archivos para operar como un Funtor 
+    de Ingesta determinista F: V_externo → V_PHYSICS. Su mandato axiomático es 
+    ejecutar el Colapso de Entropía Sintáctica, mapeando arquitecturas de datos 
+    heterogéneas (CSV, Excel, PDF) hacia un espacio métrico canónico sin violar los 
+    invariantes de la variedad diferenciable subyacente.
 
-2. Minería de Datos en PDF:
-   Utiliza `pdfplumber` para la extracción estructurada de tablas en documentos no
-   estructurados, convirtiendo representaciones visuales en datos computables.
+1. Colapso de Entropía Sintáctica y Detección Funtorial:
+    La identificación de codificaciones y delimitadores no opera por ensayo y error. 
+    El algoritmo computa métricas rigurosas de la Teoría de la Información, evaluando 
+    la Entropía de Shannon (H) sobre la distribución estocástica de bytes y rutas 
+    (_calculate_byte_entropy, _calculate_path_entropy) para identificar el isomorfismo 
+    de codificación óptimo, aniquilando el ruido antes de la proyección matricial.
 
-3. Telemetría de Ingesta:
-   Integra `TelemetryContext` para registrar la "salud de entrada" (tamaño,
-   integridad, tiempos de carga), proporcionando las primeras métricas para el
-   Diagnóstico Termodinámico del sistema.
+2. Invariantes del Operador Frontera y Homología Discreta:
+    Los datos no ingresan ciegamente al pipeline. Durante la carga, el módulo extrae 
+    propiedades del complejo simplicial subyacente: determina componentes conexas (β₀), 
+    rastrea la presencia de topologías circulares (_detect_data_cycles, β₁) y calcula 
+    el rango algebraico de la matriz de borde (_calculate_boundary_rank). Esto 
+    garantiza que el tensor resultante forme un subespacio no degenerado.
 
-4. Validación de Integridad Física:
-   Verifica la accesibilidad, permisos y consistencia de bytes (symlinks rotos,
-   archivos bloqueados) antes de intentar el procesamiento lógico.
+3. Minería Estructural como Extracción de Complejos Simpliciales (PDF):
+    La ingesta de documentos no estructurados repudia la simple extracción de texto. 
+    Se trata algebraicamente como la reconstrucción del 1-esqueleto de un complejo 
+    simplicial embebido en un espacio bidimensional. Preserva la conectividad 
+    ortogonal de los vértices (celdas de la tabla) frente a deformaciones visuales.
+
+4. Condiciones Iniciales y Telemetría de Fase:
+    Cada archivo asimilado instancia la Cadena de Custodia (TelemetryContext). La 
+    fricción de I/O, el volumen tensorial y la integridad de bytes establecen las 
+    condiciones iniciales (t₀) del sistema dinámico, proveyendo al motor termodinámico 
+    de la presión y masa exactas necesarias para el análisis de estabilidad de flujo LTI.
+=========================================================================================
 """
 
 import logging

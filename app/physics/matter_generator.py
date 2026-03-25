@@ -1,28 +1,46 @@
 """
-Este módulo transforma el grafo topológico abstracto del proyecto en una realidad
-física y logística: la Lista de Materiales (BOM). Ejecuta un algoritmo de
-"Colapso de Grafo" para consolidar requerimientos dispersos en una lista de
-compras determinista.
+=========================================================================================
+Módulo: Matter Generator (Motor de Colapso de Onda Material y Proyector Logístico)
+Ubicación: app/physics/matter_generator.py
+=========================================================================================
 
-Algoritmos y Metodologías:
---------------------------
-1. Recorrido Topológico (DFS Memoizado):
-   Navega la jerarquía del presupuesto (Proyecto -> Capítulo -> APU -> Insumo)
-   para acumular cantidades base, resolviendo la estructura de árbol en una lista plana.
+Naturaleza Ciber-Física y Topológica:
+    Actúa como el operador de colapso determinista que proyecta el Complejo Simplicial 
+    jerárquico del presupuesto (Proyecto → Capítulo → APU → Insumo) hacia un subespacio 
+    plano 0-dimensional: la Base Canónica Logística (BOM). Su mandato axiomático es 
+    materializar la intención de diseño en un tensor de compras garantizando la 
+    conservación absoluta de masa y valor.
 
-2. Precisión Numérica Compensada (Kahan Summation):
-   Implementa algoritmos de suma compensada para mitigar el error de punto flotante
-   (IEEE 754) en presupuestos de gran escala, garantizando integridad contable
-   absoluta.
+1. Proyección Topológica de Fibrado (DFS Algebraico):
+    El recorrido de la jerarquía no se modela como un simple algoritmo procedural, sino 
+    como una proyección a través de las fibras del complejo estructural. El sistema 
+    evalúa la dependencia funcional acumulando multiplicadores a lo largo de las 
+    1-cadenas (aristas de consumo), colapsando los grados de libertad jerárquicos 
+    en un vector de masa consolidado, libre de redundancias (isomorfismo de aplanamiento).
 
-3. Aplicación de Entropía (Factores de Desperdicio):
-   Inyecta la incertidumbre del mundo real en el modelo ideal mediante factores
-   de desperdicio y riesgo logístico, transformando cantidades teóricas en
-   cantidades de compra realistas.
+2. Conservación de Masa Discreta (Suma de Kahan como Estabilizador LTI):
+    Para satisfacer la "Ley de Conservación de Valor", el sistema mitiga la entropía 
+    intrínseca de la Unidad de Punto Flotante (IEEE 754). Dado el volumen masivo de 
+    operaciones tensoriales, la agregación de cantidades emplea la Suma Compensada de 
+    Kahan. Este algoritmo mantiene un acumulador de error (el compensador de truncamiento), 
+    garantizando que el error relativo asintótico permanezca en el orden de O(ε_mach), 
+    blindando la integridad contable ante la fricción numérica de la máquina.
 
-4. Análisis de Concentración (Pareto/Gini):
-   Calcula métricas de distribución de recursos (ej. "el 20% de los materiales
-   representa el 80% del costo") para guiar la estrategia de abastecimiento.
+3. Inyección del Tensor de Fricción Termodinámica (Factores de Desperdicio):
+    Las cantidades teóricas (estado ideal del sistema) se perturban de manera 
+    determinista introduciendo tensores de fricción logística (desperdicio y mermas). 
+    Esta inyección modela la incertidumbre entrópica del mundo real, garantizando que el 
+    tensor material resultante posea la exergía suficiente para contrarrestar la 
+    disipación de recursos en la obra física.
+
+4. Geometría de Distribución y Asimetría de Inercia (Gini):
+    Rechaza las heurísticas empíricas (regla empírica de Pareto) en favor de la 
+    Termodinámica de la Información. Evalúa la concentración de masa de capital 
+    mediante el Índice de Gini (G = Σᵢ Σⱼ |xᵢ - xⱼ| / (2n²μ)). Si G → 1, el sistema 
+    detecta una Singularidad Logística (Puntos Únicos de Fallo o SPOF), alertando que 
+    la inercia del proyecto depende asimétricamente de un subconjunto ínfimo de vértices 
+    en el espacio de suministro.
+=========================================================================================
 """
 
 import logging

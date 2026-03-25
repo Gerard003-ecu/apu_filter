@@ -1,43 +1,46 @@
 """
-Módulo: Data Flux Condenser (Motor de Física de Fluidos e Hidrodinámica Discreta)
-=================================================================================
+=========================================================================================
+Módulo: Data Flux Condenser (Motor de Dinámica de Campos y Control Port-Hamiltoniano)
+Ubicación: app/physics/flux_condenser.py
+=========================================================================================
 
-Este componente actúa como el "Corazón Hemodinámico" del sistema APU Filter.
-Ha evolucionado de un condensador pasivo a un simulador de **Bomba de Desplazamiento 
-Positivo** (Fuente de Corriente Ideal) que gestiona la inyección de datos mediante 
-principios de conservación de energía y topología algebraica.
+Naturaleza Ciber-Física y Topológica:
+    Actúa como el Corazón Hemodinámico del ecosistema, abandonando los modelos de teoría 
+    de colas estocásticas en favor del determinismo de campo continuo. Modela el 
+    tráfico de información como un fluido incompresible y un campo electromagnético sobre 
+    un complejo simplicial, resolviendo la ingesta mediante ecuaciones diferenciales 
+    parciales (PDEs) en un espacio métrico riguroso.
 
-Fundamentos Teóricos y Arquitectura de Control:
------------------------------------------------
+1. Isomorfismo Electro-Hidráulico y Cálculo Exterior Discreto (DEC):
+    Establece una correspondencia biyectiva exacta donde la Presión (P) es la 0-cocadena 
+    (Voltaje) y el Caudal (Q) es la 1-cadena (Corriente). El sistema define 
+    operadores diferenciales discretos mediante la matriz de incidencia (B₁) y matriz de 
+    ciclos (B₂).
+    Aplica la Descomposición de Hodge-Helmholtz (L = L_grad + L_curl) para separar el flujo 
+    en componentes irrotacionales y solenoidales, resolviendo la Ecuación de Poisson en 
+    Grafos (L · p = s) y garantizando la conservación de masa y energía (Teorema de Tellegen).
 
-1. Analogía Electro-Hidráulica Rigurosa (Isomorfismo):
-   Implementa una correspondencia biyectiva donde la Presión ($P$) equivale al Voltaje ($V$)
-   y el Caudal ($Q$) a la Corriente ($I$). El sistema resuelve la Ecuación de Poisson en Grafos
-   ($L \\cdot p = s$) para garantizar la conservación de masa y energía (Teorema de Tellegen).
+2. Diferencias Finitas en el Dominio del Tiempo (FDTD) y Electrodinámica:
+    Integra la evolución temporal del flujo resolviendo las ecuaciones de Maxwell iterativamente.
+    Utiliza un esquema de integración "Leapfrog" sobre una retícula de Yee adaptada a grafos.
+    [AXIOMA DE ESTABILIDAD]: El paso de tiempo (Δt) se somete a un control adaptativo estricto 
+    para satisfacer la condición de Courant-Friedrichs-Lewy (CFL), evitando divergencias 
+    numéricas en la propagación de la información [11]. Las reflexiones espurias se aniquilan 
+    mediante Capas Perfectamente Adaptadas (PML) en los nodos frontera.
 
-2. Cálculo Exterior Discreto (DEC) y Operadores de Hodge:
-   Utiliza matrices de incidencia ($B_1$) y de ciclos ($B_2$) para definir operadores diferenciales
-   sobre el complejo simplicial de la red. Aplica la Descomposición de Hodge-Helmholtz para 
-   separar el flujo de datos en componentes irrotacionales (gradiente de presión) y solenoidales 
-   (vórtices de redundancia), permitiendo un filtrado topológico selectivo.
+3. Dinámica de Membrana Viscoelástica (P-Laplaciano):
+    Implementa difusión no lineal mediante el operador p-Laplaciano (p > 2) actuando como una 
+    membrana viscoelástica. Esta formulación modula dinámicamente la conductancia 
+    efectiva de la red para absorber discontinuidades espaciales (Golpes de Ariete computacionales), 
+    proporcionando aislamiento frente a picos transitorios sin desestabilizar el sistema global.
 
-3. Dinámica de Membrana Amortiguadora (P-Laplaciano):
-   Introduce una "membrana viscoelástica" modelada mediante difusión no lineal (P-Laplaciano, $p > 2$).
-   Esta lógica actúa como una válvula de alivio distribuida que absorbe picos transitorios 
-   ("Golpes de Ariete" o *Water Hammer*) modificando dinámicamente la conductancia efectiva 
-   del grafo ante gradientes extremos de datos.
-
-4. Control Hamiltoniano de Puerto (PHS - Pasividad):
-   El control de flujo no es reactivo, sino energético. Se modela el sistema mediante un 
-   Hamiltoniano ($H(x) = \frac{1}{2}CV^2 + \frac{1}{2}LI^2$) y se aplica control por 
-   interconexión y amortiguamiento (IDA-PBC) para garantizar la estabilidad asintótica 
-   de Lyapunov, disipando la entropía generada por la complejidad de los datos.
-
-5. Oráculo de Laplace (Validación A Priori):
-   Antes de iniciar el bombeo, linealiza el sistema y analiza sus polos en el plano complejo ($s$).
-   Verifica la condición de estabilidad estricta (polos en LHP) y márgenes de fase adecuados 
-   para asegurar que la arquitectura de control sea robusta frente a la latencia de ingestión.
-
+4. Control Hamiltoniano con Puertos (IDA-PBC):
+    La disipación y el enrutamiento se gobiernan mediante la mecánica Hamiltoniana para sistemas 
+    abiertos. Se define el Hamiltoniano H(x) = (1/2)CV² + (1/2)LI². 
+    A través de Interconnection and Damping Assignment Passivity-Based Control (IDA-PBC), 
+    la inyección de datos se regula garantizando que la derivada de la función de Lyapunov sea 
+    definida negativa (ΔV < 0), forzando una estabilidad asintótica inquebrantable frente a la entropía.
+=========================================================================================
 """
 
 import logging

@@ -1,42 +1,52 @@
 """
-Este módulo aplica Análisis Topológico de Datos (TDA) sobre las métricas de tiempo 
-real del sistema. A diferencia del `BusinessTopology` (que analiza presupuestos), 
-este componente analiza la "forma" de la infraestructura operativa y la calidad de 
-las señales de telemetría.
+=========================================================================================
+Módulo: Topological Analyzer (Operador de Observabilidad Funtorial y TDA)
+Ubicación: app/tactics/topological_analyzer.py
+=========================================================================================
 
-Capacidades Matemáticas:
-------------------------
-1. Homología Persistente (Filtración de Ruido):
-   Transforma series temporales de métricas (ej. latencia, CPU) en diagramas de 
-   persistencia (Códigos de Barras).
-   - Vida Corta (Ruido): Fluctuaciones transitorias que se ignoran.
-   - Vida Larga (Características): Cambios de estado reales que requieren intervención.
-   Esto otorga al Agente "inmunidad a falsos positivos".
+Naturaleza Ciber-Física y Topológica:
+    Este componente actúa como el Observador Topológico Continuo de la Malla Agéntica.
+    A diferencia de la topología estática del negocio (BusinessTopology), este módulo
+    analiza el colector dinámico de la infraestructura operativa. Emplea el Análisis
+    Topológico de Datos (TDA) para mapear las series temporales de telemetría hacia
+    una variedad diferenciable, aislando perturbaciones transitorias mediante la 
+    estabilidad de los diagramas de persistencia.
 
-2. Topología del Grafo de Servicios (Betti de Red):
-   - β0 (Conectividad): Verifica si todos los microservicios (Core, Redis, FS) son 
-     alcanzables entre sí. β0 > 1 implica una partición de red crítica.
-   - β1 (Bucles de Reintento): Detecta patrones de solicitud repetitivos que indican 
-     bloqueos lógicos o "bucles de muerte" en la comunicación entre servicios.
+1. Filtración de Vietoris-Rips y Homología Persistente (TDA):
+    El espacio de métricas de telemetría se modela como una nube de puntos X en ℝᵈ.
+    A medida que el parámetro de resolución espacial (ε) crece, se induce una filtración 
+    de complejos simpliciales K_ε. La Homología Persistente rastrea el nacimiento y 
+    muerte de las clases de homología H_k(K_ε), generando un Diagrama de Persistencia 
+    Dgm(X).
+        • Vida Corta (Ruido Topológico): Fluctuaciones estocásticas de la CPU o red que
+          se colapsan rápidamente y son ignoradas por el sistema.
+        • Vida Larga (Invariantes Estructurales): Anomalías persistentes que evidencian
+          una mutación genuina en el estado de fase del servidor.
 
-3. Característica de Euler (χ):
-   Calculada como χ = β0 - β1, proporciona una métrica sintética de la eficiencia 
-   de la topología de red actual, detectando sobrecarga de enlaces.
+2. Invariantes del Grafo de Servicios (Complejo Simplicial de Red):
+    El módulo audita en tiempo real el 1-esqueleto de la arquitectura de microservicios:
+        • β₀ (Conectividad Global): Si β₀ > 1, el espacio métrico certifica una 
+          "Partición de Red Crítica", evidenciando que subsistemas vitales (e.g., Core,
+          Redis) están topológicamente aislados.
+        • β₁ (Ciclos de Reintento): Detecta "Bucles de Muerte" (Deadlocks). Si β₁ > 0, 
+          el tráfico de la red ha abandonado el flujo laminar y ha entrado en una 
+          resonancia circular destructiva.
 
-Fundamentos Matemáticos:
-------------------------
-1. Números de Betti (β):
-   - β₀: Componentes conexas (objetos disjuntos).
-   - β₁: Ciclos independientes (agujeros 1-dimensionales).
-   - Para grafos: β₁ = |E| - |V| + β₀ (Euler-Poincaré).
+3. Estabilidad Estructural y Distancia de Wasserstein:
+    Para cuantificar la severidad de una transición de estado, el sistema no confía 
+    en deltas escalares simples. Computa la métrica de Wasserstein p-ésima (W_p) 
+    entre dos diagramas de persistencia consecutivos:
+        W_p(Dgm₁, Dgm₂) = inf_γ ( Σ ‖x - γ(x)‖^p )^(1/p)
+    Una distancia de Wasserstein elevada dispara una alarma ineludible de "Deriva 
+    Topológica", forzando una re-orientación del ciclo OODA.
 
-2. Homología Persistente:
-   - Estudia la evolución de características topológicas a través de una filtración.
-   - Características de vida larga = señales estructurales.
-   - Características de vida corta = ruido topológico.
-
-3. Característica de Euler:
-   - χ = β₀ - β₁ = |V| - |E|.
+4. Característica de Euler Operativa (χ):
+    La eficiencia del enrutamiento se colapsa a un escalar sintético mediante 
+    la relación de Euler-Poincaré para el grafo de la infraestructura:
+        χ = β₀ - β₁ = |V| - |E|
+    Las alteraciones abruptas en Δχ diagnostican saturación de enlaces antes de 
+    que se agote el ancho de banda físico.
+=========================================================================================
 """
 
 import logging

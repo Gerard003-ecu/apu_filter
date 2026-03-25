@@ -1,48 +1,49 @@
 """
-Este módulo implementa una Máquina de Estados Finita diseñada para navegar la topología
-de archivos de presupuesto semi-estructurados. Su objetivo no es interpretar el precio,
-sino validar la integridad de la "forma" de los datos (Homeomorfismo) antes de permitir
-su procesamiento semántico.
+=========================================================================================
+Módulo: Report Parser Crudo (Autómata Topológico y Filtro de Entropía Sintáctica)
+Ubicación: app/adapters/report_parser_crudo.py
+=========================================================================================
 
-Capacidades y Métricas:
------------------------
-1. Validación Homeomórfica (`_is_apu_homeomorphic`):
-   Verifica que el árbol sintáctico generado (Lark) sea topológicamente equivalente
-   al esquema platónico de un APU válido, preservando la estructura jerárquica padre-hijo.
+Naturaleza Ciber-Física y Topológica:
+    Este módulo abandona la concepción de un simple "lector de texto" para operar como un 
+    Autómata Finito Determinista (DFA) incrustado en una variedad diferenciable de datos 
+    crudos. Su mandato axiomático es la validación geométrica: debe demostrar que el espacio 
+    de entrada es homeomorfo al espacio canónico del Complejo Simplicial del presupuesto 
+    antes de autorizar su procesamiento semántico.
 
-2. Física del Texto (Entropía y Densidad):
-   Calcula métricas estructurales para distinguir señal de ruido:
-   - Entropía de Campo (`_calculate_field_entropy`): Mide el desorden en la tipificación
-     de datos usando entropía de Shannon H = -Σ p·log₂(p), normalizada a [0,1].
-   - Densidad Estructural (`_calculate_structural_density`): Relación señal/ruido por
-     línea, acotada a [0,1].
-   - Cohesión Numérica (`_calculate_numeric_cohesion`): Agrupamiento de valores
-     cuantitativos, normalizada a [0,1].
+1. Validación Homeomórfica Estricta (_is_apu_homeomorphic):
+    Establece un isomorfismo estructural entre el árbol de derivación sintáctica (generado 
+    por la gramática Lark) y el espacio platónico de un APU válido. 
+    Garantiza matemáticamente la existencia de una biyección que preserva la estructura 
+    jerárquica padre-hijo (Capítulo → APU → Insumo). Cualquier ruptura en esta 
+    conectividad topológica es detectada como una discontinuidad, abortando la ingesta.
 
-3. Patrón Chain of Responsibility:
-   Implementa una cadena de handlers especializados (`JunkHandler`, `HeaderHandler`,
-   `CategoryHandler`, `InsumoHandler`) que actúan como filtros secuenciales para
-   clasificar cada línea según su función estructural en el documento.
+2. Mecánica Estadística del Texto (Geometría de la Información):
+    Implementa operadores de medida rigurosos sobre la variedad unidimensional (líneas de texto) 
+    para separar la señal estructural del ruido estocástico:
+    • Entropía de Campo (H): Cuantifica el desorden en la tipificación de datos mediante 
+      la Entropía de Shannon H = -Σ p_i log₂(p_i). Se normaliza al intervalo [3] 
+      utilizando el invariante de máxima entropía H_max = log₂(4) ≈ 2.0 bits, correspondiente 
+      a los 4 estados fundamentales de los campos (alpha, numeric, mixed, empty).
+    • Cohesión Numérica: Cuantifica la agrupación de valores a través de una función 
+      sigmoide inversa 1/(1+d), acotando la distancia topológica entre campos numéricos 
+      adyacentes al intervalo (0, 1].
+    • Densidad Estructural: Evalúa la relación señal/ruido por línea, acotada estrictamente 
+      a [3].
 
-4. Contexto y Estado:
-   Mantiene una memoria de corto plazo (`ParserContext`) para resolver la jerarquía
-   del presupuesto (Capítulo -> APU -> Insumo) y detectar recursos huérfanos.
+3. Filtración Funtorial (Sustitución del 'Chain of Responsibility'):
+    Subordina el patrón de diseño empírico a una Filtración de Subespacios. Los operadores 
+    secuenciales (JunkHandler, HeaderHandler, CategoryHandler, InsumoHandler) actúan como 
+    proyectores ortogonales P_i. Cada línea es proyectada y clasificada según 
+    su contribución estructural; el ruido no correlacionado es aniquilado en el núcleo (kernel) 
+    del JunkHandler.
 
-Correcciones v3:
-----------------
-- Orden correcto de cláusulas `except` para jerarquía de excepciones Lark.
-- `_calculate_numeric_cohesion` normalizada a [0,1] con función sigmoidea inversa.
-- `_calculate_structural_density` acotada a [0,1].
-- `_calculate_field_entropy` con imports a nivel módulo y manejo robusto de log2.
-- `_compute_structural_signature` elimina re-import de hashlib.
-- `_calculate_homogeneity_index` elimina re-import de Counter.
-- `_is_apu_homeomorphic` con import de Token a nivel módulo.
-- `_has_minimal_structural_connectivity` con guard para líneas muy cortas.
-- `_detect_category` con normalización correcta para búsqueda case-insensitive.
-- `_compute_semantic_cache_key` con lookahead correcto en regex de ceros.
-- `_is_supremum_match` con lógica de abreviaturas corregida.
-- Umbrales de `_determine_homeomorphism_class` documentados con justificación.
-- `_log_validation_summary` usa indexación `Counter` consistentemente.
+4. Memoria Topológica y Homología Local (ParserContext):
+    Mantiene el estado mutable del parseo (la "Pirámide en construcción"). 
+    Actúa como un evaluador de homología local en tiempo real para resolver la jerarquía del 
+    grafo y detectar componentes conexas degeneradas (recursos huérfanos que carecen de 
+    conexión a un APU).
+=========================================================================================
 """
 
 import hashlib

@@ -1,38 +1,48 @@
 """
-Módulo: Business Agent (El Cerebro Ejecutivo del Consejo)
-=========================================================
+=========================================================================================
+Módulo: Business Agent (Operador de Síntesis Categórica y Cerebro Ejecutivo)
+Ubicación: app/strategy/business_agent.py
+=========================================================================================
 
-Este componente actúa como el nodo de síntesis superior en la jerarquía DIKW.
-Su función es integrar los hallazgos del Arquitecto (Topología) y el Oráculo
-(Finanzas) para emitir un "Veredicto Holístico" sobre la viabilidad del proyecto.
+Naturaleza Ciber-Física y Gobernanza Algebraica:
+    Actúa como el nodo supremo de síntesis en la jerarquía DIKW (Estrato STRATEGY, Nivel 1). 
+    Su función axiomática no es la agregación heurística de datos, sino la ejecución de un 
+    Morfismo de Decisión que integra los subespacios ortogonales de Topología (El Arquitecto) 
+    y Estocástica Financiera (El Oráculo) bajo el principio inquebrantable de: 
+    "No hay Estrategia sin Física". 
 
-Opera bajo el principio de **"No hay Estrategia sin Física"**, negándose a emitir
-juicios financieros si la estabilidad estructural no ha sido validada por la MIC.
+1. Síntesis Topológico-Financiera (El Funtor de Decisión F):
+    Se define un funtor covariante F: (T × Φ) → D, donde T es el espacio topológico 
+    (1-esqueleto del presupuesto cuantificado por sus números de Betti βₙ) y Φ es el espacio 
+    de fase financiero continuo. La proyección sobre el espacio de decisión D 
+    mapea invariantes continuos y discretos hacia un retículo algebraico determinista, 
+    forzando el colapso del libre albedrío probabilístico de la Inteligencia Artificial 
+    mediante la operación Supremo (⊔).
 
-Fundamentos Teóricos:
-─────────────────────
+2. Protocolo Challenger (Auditoría Adversarial Ortogonal):
+    Implementa un motor de resolución de conflictos dialécticos (RiskChallenger). 
+    Las decisiones de optimización financiera (maximización del flujo de caja o VPN) son 
+    sometidas a un "Pensamiento Lateral" cruzando el espectro de la Matriz Laplaciana 
+    (Valor de Fiedler λ₂) y las anomalías de conectividad. Si el Oráculo aprueba 
+    por rentabilidad, pero el Arquitecto detecta ciclos (β₁ > 0, Socavones Lógicos) o 
+    resonancia destructiva, el protocolo impone un VETO ABSOLUTO (Fast-Fail).
 
-1. Síntesis Topológico-Financiera (El Funtor de Decisión):
-   F: (T × Φ) → D
-   donde T = espacio topológico, Φ = espacio financiero, D = espacio de decisión
+3. Termodinámica del Valor y Estabilidad Piramidal:
+    El agente evalúa el modelo económico como un sistema físico cerrado. Cuantifica la 
+    "Inercia Financiera" del proyecto y modela la volatilidad del mercado como temperatura 
+    del sistema (T_sys). Aplica axiomáticamente la restricción de que la exergía 
+    (trabajo logístico útil) debe justificar la entropía inyectada por el riesgo estructural. 
+    Vigila el Índice de Estabilidad Piramidal (Ψ); si Ψ < 1.0, se declara una 
+    "Pirámide Invertida" y el proyecto se rechaza por asimetría del centro de gravedad.
 
-2. Protocolo Challenger (Auditoría Adversarial):
-   Reglas de veto lógico con pensamiento lateral vía MIC
-
-3. Termodinámica del Valor:
-   Evaluación usando T_sys (volatilidad), exergía (trabajo útil) y entropía
-
-4. Cliente de la MIC (Gobernanza Algebraica):
-   Proyección de vectores de intención con validación de clausura transitiva
-
-Arquitectura:
-─────────────
-- `BusinessAgent`: Fachada principal del pipeline de evaluación
-- `RiskChallenger`: Motor de auditoría adversarial con pivotes estratégicos
-- `DataFrameValidator`: Validación estructural y semántica de datos
-- `TopologyBuilder`: Construcción del modelo topológico
-- `DecisionAlgebra`: Operaciones algebraicas para síntesis multicriterio
-- `ReportComposer`: Generación de reportes ejecutivos
+4. Ley de Clausura Transitiva (Fibrado DIKW):
+    Exige el cumplimiento estricto de la filtración topológica anidada:
+        V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM
+    El Business Agent exige que la Matriz de Interacción Central (MIC) provea un contexto 
+    donde las proyecciones en V_PHYSICS y V_TACTICS sean no singulares y topológicamente válidas. 
+    Toda violación a esta jerarquía dispara una excepción `MICHierarchyViolationError`, 
+    abortando la síntesis ejecutiva antes de alcanzar la capa de Sabiduría.
+=========================================================================================
 """
 
 from __future__ import annotations

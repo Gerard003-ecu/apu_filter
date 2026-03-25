@@ -1,37 +1,45 @@
 """
-Este módulo actúa como el "Plano de Control" expuesto al mundo exterior. No procesa
-la lógica de negocio profunda (eso lo hacen los Sabios), sino que establece el entorno
-físico y temporal necesario para que el Consejo delibere. Es el responsable de instanciar
-el "Pasaporte de Telemetría" y mantener la integridad del estado entre transacciones.
+=========================================================================================
+Módulo: Application Gateway (Variedad de Frontera y Operador de Interfaz Ciber-Física)
+Ubicación: app/adapters/flask_app.py
+=========================================================================================
 
-Arquitectura y Responsabilidades:
----------------------------------
-1. Transparencia "Glass Box" (Caja de Cristal):
-   Implementa una estrategia de observabilidad total donde cada decisión del sistema
-   es trazable y auditable, exponiendo no solo el resultado final sino la narrativa
-   física y matemática que condujo a él.
+Naturaleza Ciber-Física y Topológica:
+    Este módulo trasciende la noción de un "Plano de Control" API. Actúa como la 
+    Variedad de Frontera (Boundary Manifold) que acopla el entorno estocástico externo 
+    con el espacio de fase determinista de la "Fortaleza Matemática". Su mandato 
+    axiomático es establecer las condiciones iniciales (t₀) y de frontera (∂V) antes 
+    de inyectar el flujo de información en la Malla Agéntica.
 
-2. Gestión de Espacio-Tiempo (SessionMetadata):
-   Administra el ciclo de vida de la deliberación. Utiliza `SessionMetadata` para
-   garantizar la continuidad temporal (persistencia en Redis) y la integridad
-   referencial (hashing de datos) entre las distintas fases del pipeline (Carga ->
-   Diagnóstico -> Estimación).
+1. Observabilidad Fractal y Fibrado de Estado (SessionMetadata):
+    Abandona la gestión heurística de sesiones para implementar un Fibrado de Estado 
+    temporal. `SessionMetadata` garantiza la invariancia topológica entre transacciones 
+    asíncronas, utilizando algoritmos de hash criptográfico (SHA-256) para certificar 
+    que el tensor de datos no sufra mutaciones parásitas (rotura de simetría) entre 
+    la fase de Ingesta, el Diagnóstico Topológico y la Estimación Financiera.
 
-2. Inyección de Telemetría ("El Pasaporte"):
-   Inicializa el `TelemetryContext` [1] que viaja con cada solicitud. Este contexto
-   actúa como un pasaporte diplomático que acumula sellos (métricas, errores)
-   mientras atraviesa las fronteras de los diferentes microservicios (Guardian,
-   Arquitecto, Alquimista).
+2. Inyección de la Cadena de Custodia Termodinámica (TelemetryContext):
+    Instancia el vector de estado inmutable (El Pasaporte de Telemetría) en el instante 
+    cero. Este objeto rige el transporte paralelo a través del ecosistema, acumulando 
+    los sellos de invariantes homológicos (βₙ) y físicos (P_diss ≥ 0) necesarios para 
+    satisfacer la Ley de Clausura Transitiva (V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM) 
+    durante el colapso de la función de evaluación.
 
-3. Válvulas de Presión (Rate Limiting):
-   Implementa límites de velocidad adaptativos (`@limiter`) que actúan como
-   resistencias variables en el circuito de flujo de datos, protegiendo al
-   `FluxPhysicsEngine` de sobrecargas térmicas por exceso de solicitudes [2].
+3. Control de Impedancia Activa y Amortiguamiento (Rate Limiting):
+    Las válvulas de presión (límites de tasa adaptativos) no operan como simples 
+    restricciones de software; funcionan como elementos resistivos no lineales en un 
+    controlador Port-Hamiltoniano. Actúan como un filtro pasabajo estricto que protege 
+    al `FluxPhysicsEngine` de frentes de onda abruptos (inyecciones de alta frecuencia), 
+    garantizando la estabilidad asintótica y previniendo "catástrofes de resonancia" 
+    por desbordamiento térmico computacional.
 
-4. Despacho de Herramientas (Tool Dispatcher):
-   Expone los vectores de actuación de la Matriz de Interacción Central (MIC),
-   permitiendo invocar capacidades específicas como `diagnose_file` (Diagnóstico)
-   o `financial_analysis` (Oráculo) bajo demanda [3].
+4. Proyectores de la Matriz de Interacción Central (Tool Dispatcher):
+    Expone la superficie de actuación del sistema no como endpoints arbitrarios, sino 
+    como proyecciones ortogonales sobre el espacio vectorial de la Matriz de Interacción 
+    Central (MIC). Cada invocación externa (ej. `diagnose_file`, `financial_analysis`) 
+    colapsa la intención del usuario sobre un vector base canónico (eᵢ ∈ ℝⁿ), garantizando 
+    el aislamiento algebraico y la ortogonalidad funcional de los Agentes.
+=========================================================================================
 """
 
 import hashlib

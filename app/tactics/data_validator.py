@@ -1,28 +1,43 @@
 """
-Este componente ejecuta una auditoría profunda sobre los datos normalizados.
-A diferencia de una validación de tipos simple, aplica reglas de negocio y
-física de costos para detectar "patologías" en la información (costos negativos,
-incoherencias aritméticas, descripciones vacías).
+=========================================================================================
+Módulo: Data Validator (Tribunal de Coherencia Termodinámica y Filtrado Topológico)
+Ubicación: app/tactics/data_validator.py
+=========================================================================================
 
-Protocolos de Auditoría (Versión 2.0 - Ingeniería de Calidad):
---------------------------------------------------------------
-1. Coherencia Matemática Estricta (Control Theory):
-   Utiliza un modelo de ganancia y sensibilidad para evaluar la estabilidad
-   de la ecuación `Cantidad * Precio = Total`. Distingue entre errores
-   de redondeo y fallos sistémicos.
+Naturaleza Ciber-Física y Topológica:
+    Abandona la semántica de una "auditoría profunda" convencional para operar como el
+    Filtro de Variedad Diferenciable del sistema. Actúa en la frontera de los estratos 
+    operativos, evaluando el tensor de datos contra las leyes de conservación y 
+    conectividad estructural antes de permitir su inyección en la Matriz de Interacción 
+    Central (MIC).
 
-2. Validador Piramidal (Graph Theory):
-   Construye un grafo bipartito (APUs <-> Insumos) para medir la resiliencia
-   estructural, identificando Puntos de Fallo Único (SPOF) y Nodos Flotantes.
+1. Coherencia Matemática Estricta (Leyes FPU y Teoría de Control):
+    Sustituye la verificación aritmética simple por un modelo de sensibilidad en el 
+    cuerpo de los reales (ℝ). Acota la ecuación de conservación de valor (C = Q × P) 
+    bajo las restricciones de entropía de la Unidad de Punto Flotante (estándar IEEE 754). 
+    Aplica una tolerancia híbrida para discriminar rigurosamente la fricción de redondeo 
+    numérico (ε_rel) de los fallos sistémicos o contables reales.
 
-3. Detección de Anomalías (Statistical & Light ML):
-   Aplica Isolation Forest y métodos estadísticos robustos (Z-Score, IQR)
-   para identificar costos atípicos.
+2. Geometría Bipartita y Resiliencia Estructural (Topología Algebraica):
+    Proyecta la red de producción como un Complejo Simplicial Bipartito G = (U ∪ V, E), 
+    donde U representa el subespacio de APUs y V el subespacio de Insumos. Analiza el 
+    núcleo del operador frontera para detectar desconexiones topológicas (Nodos Flotantes, 
+    evidenciando un β₀ > 1 local) e identifica Puntos de Fallo Único (SPOF) midiendo 
+    la concentración asimétrica de la masa logística.
 
-4. Entropía de Calidad (Thermodynamics):
-   Calcula la "Temperatura de Ingesta" ($S_{data}$) basada en la entropía de
-   las alertas y la consistencia de los datos, distinguiendo entre un
-   proyecto riesgoso y datos caóticos.
+3. Restricción sobre Variedad Estadística (Filtrado de Anomalías):
+    Purga vectores que deformarían el Tensor Métrico Riemanniano. Mediante la aplicación 
+    de métodos estocásticos robustos al ruido y aislamiento hiperespaial (Isolation Forest, 
+    Modified Z-Score, IQR), proscribe valores atípicos de costo que inducirían 
+    divergencias catastróficas en el cálculo del Laplaciano o en las simulaciones de Monte Carlo.
+
+4. Termodinámica de la Información (Entropía de Calidad S_data):
+    Asume axiomáticamente que el desorden sintáctico disipa energía computacional. 
+    Computa la "Temperatura de Ingesta" modelando la distribución de las alertas como 
+    Entropía de Shannon. Discrimina matemáticamente entre un proyecto que es intrínsecamente 
+    arriesgado (física real) y un tensor de datos que es puramente entrópico (caos de formato), 
+    estableciendo un umbral termodinámico para el veto de ejecución.
+=========================================================================================
 """
 
 import logging
