@@ -6,7 +6,7 @@ Ubicación: app/adapters/tools_interface.py
 
 Naturaleza Ciber-Física y Algebraica:
     Instancia el núcleo de gobernanza, enrutamiento y despacho del ecosistema, actuando 
-    como un Espacio Vectorial Jerarquizado con Filtración Topológica [1]. 
+    como un Espacio Vectorial Jerarquizado con Filtración Topológica. 
     Modela el catálogo de capacidades del agente autónomo sobre la estructura rígida 
     de una Matriz Identidad (I_n), garantizando un difeomorfismo perfecto y determinista 
     entre la intención probabilística generada por el LLM y la ejecución discreta.

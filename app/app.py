@@ -1,7 +1,7 @@
 """
 =========================================================================================
 Módulo: Application Gateway (Variedad de Frontera y Operador de Interfaz Ciber-Física)
-Ubicación: app/adapters/flask_app.py
+Ubicación: app/app.py
 =========================================================================================
 
 Naturaleza Ciber-Física y Topológica:
