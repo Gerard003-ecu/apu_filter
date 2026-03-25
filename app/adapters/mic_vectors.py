@@ -1,41 +1,47 @@
 """
-Módulo: MIC Vectors (Adaptadores de Capacidad y Morfismos Algebraicos)
-======================================================================
+=========================================================================================
+Módulo: MIC Vectors (Funtores de Adaptación y Morfismos de Proyección)
+Ubicación: app/adapters/mic_vectors.py
+=========================================================================================
 
-Este módulo implementa la capa de adaptación ("Glue Code") como un conjunto de
-**Morfismos Algebraicos** que proyectan las intenciones del Agente sobre los
-motores físicos y lógicos del sistema.
+Naturaleza Ciber-Física:
+    Erradica el concepto empírico de "Glue Code" para instaurar un marco riguroso de 
+    Morfismos Algebraicos. Este módulo proyecta las intenciones probabilísticas del 
+    Agente sobre los motores físicos, termodinámicos y topológicos del sistema, 
+    forzando un colapso determinista que respeta la geometría del espacio de fase.
 
-Fundamentos Matemáticos:
-────────────────────────
+1. Teoría de Categorías y Funtorialidad Estricta:
+    Cada función vectorial φ se define axiomáticamente como un morfismo que mapea:
+        φ: ConfigSpace × Context → ResultSpace
+    Este operador garantiza la preservación de la estructura topológica a través de 
+    la filtración estricta de los estratos de la pirámide DIKW, asegurando que 
+    ningún vector de intención degenere al ascender dimensionalmente [1].
 
-1. Teoría de Categorías (Morfismos):
-   Cada función vectorial φ es un morfismo:
-       φ: ConfigSpace × Context → ResultSpace
-   
-   preservando la estructura a través de los estratos DIKW.
+2. Auditoría Homológica de Fusión (Secuencia de Mayer-Vietoris):
+    La integración espacial de dos subcomplejos (A ∪ B) no se trata como una simple 
+    concatenación de datos, sino que se audita mediante la secuencia exacta larga 
+    de homología de Mayer-Vietoris [1]:
+        ... → H₁(A ∩ B) → H₁(A) ⊕ H₁(B) → H₁(A ∪ B) → H₀(A ∩ B) → ...
+    [AXIOMA DE VETO]: Se impone la restricción de que la fusión no debe generar 
+    clases homológicas espurias. Si el diferencial topológico arroja 
+    Δβ₁ = β₁(A ∪ B) - [β₁(A) + β₁(B) - β₁(A ∩ B)] ≠ 0, la transformación induce 
+    un ciclo parásito y el tensor es rechazado incondicionalmente [1].
 
-2. Coherencia Topológica (C):
-   Métrica invariante para evaluar calidad de transformación:
-       C = clamp(S · R / (1 + H), 0, 1)
-   
-   donde S = stability, R = resonance, H = entropy.
+3. Invariantes Topológicos e Isomorfismo Dimensional:
+    El espacio de atributos debe conservar sus propiedades globales tras la inyección:
+        • Característica de Euler-Poincaré para el complejo simplicial K: 
+          χ(K) = β₀ - β₁ + β₂ [1].
+        • Isomorfismo Dimensional: Se aplican guardas algebraicas para asegurar que 
+          dim(V_expected) ≅ dim(V_actual), acotado por una ε-tolerancia [1]. 
+          Esto previene el colapso hacia subespacios de dimensión inferior.
 
-3. Números de Betti y Característica de Euler:
-   Para un complejo simplicial K:
-       χ(K) = β₀ - β₁ + β₂
-   
-   Este invariante se verifica como postcondición.
-
-4. Isomorfismo Dimensional:
-   Guardas algebraicas que aseguran:
-       dim(V_expected) ≅ dim(V_actual)  (ε-tolerancia)
-
-5. Secuencia de Mayer-Vietoris:
-   Para auditar fusión de grafos A ∪ B:
-       ... → H₁(A ∩ B) → H₁(A) ⊕ H₁(B) → H₁(A ∪ B) → H₀(A ∩ B) → ...
-   
-   Si Δβ₁ = β₁(A∪B) - [β₁(A) + β₁(B) - β₁(A∩B)] ≠ 0, la fusión es inválida.
+4. Métrica de Coherencia Topológica (C):
+    La viabilidad de la transformación se evalúa mediante un invariante continuo 
+    que acopla estabilidad (S), resonancia (R) y entropía termodinámica (H) [1]:
+        C = clamp(S · R / (1 + H), 0, 1)
+    Cualquier vector resultante que arroje un C por debajo del umbral crítico 
+    es abortado antes de propagarse por el tejido conectivo de la Malla Agéntica [1].
+=========================================================================================
 """
 
 from __future__ import annotations

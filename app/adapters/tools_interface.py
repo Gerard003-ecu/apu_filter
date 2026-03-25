@@ -1,44 +1,55 @@
 """
-Módulo: Matriz de Interacción Central (MIC) - El Espacio Vectorial de Intenciones
-================================================================================
+=========================================================================================
+Módulo: Matriz de Interacción Central (MIC) — El Espacio Vectorial de Intenciones
+Ubicación: app/adapters/tools_interface.py
+=========================================================================================
 
-Este componente implementa el núcleo de gobernanza y despacho del sistema, actuando
-como un **Espacio Vectorial Jerarquizado con Filtración Topológica**.
+Naturaleza Ciber-Física y Algebraica:
+    Instancia el núcleo de gobernanza, enrutamiento y despacho del ecosistema, actuando 
+    como un Espacio Vectorial Jerarquizado con Filtración Topológica [1]. 
+    Modela el catálogo de capacidades del agente autónomo sobre la estructura rígida 
+    de una Matriz Identidad (I_n), garantizando un difeomorfismo perfecto y determinista 
+    entre la intención probabilística generada por el LLM y la ejecución discreta.
 
-Fundamentos Matemáticos Formalizados:
-─────────────────────────────────────
+1. Álgebra Lineal de la Acción (Matriz Identidad e Independencia Lineal):
+    Cada herramienta atómica (servicio s_i) se proyecta como un vector base canónico e_i ∈ ℝⁿ.
+    La interfaz global se define axiomáticamente mediante el delta de Kronecker [2]:
+        I_{ij} = δ_{ij} = { 1 si i = j, 0 si i ≠ j }
+    
+    * Ortogonalidad Estricta: ⟨e_i, e_j⟩ = δ_{ij}. Se asegura matemáticamente el aislamiento 
+      (Zero Side-Effects). La activación de una herramienta no posee proyección sobre 
+      el dominio de otra, aniquilando la interferencia mutua [3-5].
+    * Teorema Rango-Nulidad: Rank(I_n) = n y Nullity(I_n) = 0. Certifica un alcance 
+      universal en el espacio de acciones sin redundancias funcionales y asegura que 
+      ningún vector de intención del agente colapsará hacia el vacío (no hay acciones 
+      "silenciosas" o ignoradas por el núcleo) [6, 7].
+    * Estabilidad Espectral: Todos los eigenvalores cumplen λ_i = 1. La interfaz es 
+      un canal de transmisión perfecto; no distorsiona, no amplifica ni atenúa la 
+      intención original del agente [8, 9].
 
-1. Álgebra Lineal de la Acción (Base Canónica):
-   - Cada servicio s_i es un vector base e_i ∈ ℝⁿ
-   - La MIC define el espacio V = span{e₁, e₂, ..., eₙ}
-   - Ortogonalidad Funcional: ⟨eᵢ, eⱼ⟩ = δᵢⱼ (Kronecker)
+2. Filtración de Subespacios Topológicos (Clausura Transitiva DIKW):
+    El espacio vectorial de intenciones se estructura como una filtración estricta anidada:
+        V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM [1]
+    
+    El operador de proyección π_k(v) actúa como el "Gatekeeper" de la matriz:
+        G(v, ctx) = v si ∀j < k: validated(V_j) = True, de lo contrario 0⃗ [1].
+    Esto subordina axiomáticamente cualquier operación estratégica o de nivel de 
+    sabiduría a la coherencia física y topológica de sus estratos subyacentes.
 
-2. Filtración de Subespacios (Pirámide DIKW):
-   V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM
+3. Auditoría Homológica y Persistencia Espectral (Mayer-Vietoris):
+    La inyección de datos concurrentes (A ∪ B) se audita mediante la secuencia exacta de 
+    Mayer-Vietoris [1]. Si la integración induce una mutación del primer número de Betti 
+    (Δβ₁ = β₁(A∪B) - [β₁(A) + β₁(B) - β₁(A∩B)] ≠ 0), se aborta la fusión por inconsistencia.
+    
+    La topología de la MIC monitorea:
+        * H₀: Componentes conexos (fragmentación y silos de operaciones) [1].
+        * H₁: Ciclos homológicos (bucles de dependencias circulares y deadlocks) [1].
 
-   Con la restricción de Clausura Transitiva:
-   π_k(v) válido ⟺ ∀j > k: validated(V_j) = True
-
-3. Persistencia Homológica:
-   - H₀: Componentes conexos (clusters de issues)
-   - H₁: Ciclos (dependencias circulares)
-   - Entropía de persistencia para cuantificar complejidad
-
-4. Gatekeeper como Proyección Condicional:
-   G(v, ctx) = v si valid(ctx) else 0⃗
-
-Mejoras v4.0.0:
-───────────────
-- [ARCH] Configuración externalizable via MICConfiguration
-- [ARCH] Separación de responsabilidades en project_intent (Command Pattern)
-- [PERF] SpectralGraphMetrics con soporte scipy.sparse
-- [FIX] StratumTransitionMatrix con lógica de transición corregida
-- [FIX] PersistenceInterval permite death=inf para intervalos esenciales
-- [PERF] detect_cyclic_patterns con early termination y límites
-- [METRICS] Histogramas de latencia y métricas detalladas
-- [ROBUST] Validación de permisos de lectura en archivos
-- [TYPES] TypedDicts para respuestas estructuradas
-- [CACHE] TTLCache mejorado con __contains__ y estadísticas extendidas
+Invariantes del Módulo:
+    * Idempotencia Categórica: I_n · I_n = I_n. Validaciones recursivas no mutan el estado [10].
+    * Isomorfismo Dimensional: dim(V_expected) ≅ dim(V_actual) acotado por ε-tolerancia [1].
+    * Cero Dependencia Lineal: Si c_1 e_1 + ... + c_n e_n = 0, entonces c_i = 0 ∀i [11].
+=========================================================================================
 """
 
 from __future__ import annotations

@@ -1,63 +1,51 @@
 """
-Módulo: MIC Agent (Ecualizador Categórico)
-==========================================
+=========================================================================================
+Módulo: MIC Agent (Ecualizador Categórico y Funtor de Proyección Estocástica-Determinista)
+Ubicación: app/agents/mic_agent.py
+=========================================================================================
 
-Implementación de un adaptador de impedancia formalizado como un funtor
-entre la categoría de salidas probabilísticas (LLM) y la categoría
-determinista estratificada (MIC).
+Naturaleza Ciber-Física:
+    Actúa como la barrera de "Adaptación de Impedancia" (Impedance Matching) entre el 
+    dominio probabilístico y estocástico del Modelo de Lenguaje (LLM) y el dominio 
+    determinista de la Matriz de Interacción Central (MIC). Su función axiomática es 
+    colapsar la función de onda generativa del LLM en un Vector de Intención inmutable 
+    que respete estrictamente los invariantes físicos y topológicos del sistema.
 
-Marco Teórico
-=============
+1. Fundamentación en Teoría de Categorías:
+    Sean dos categorías formales:
+    • Categoría ℒ (LLM): 
+      Espacio continuo de probabilidades donde los objetos son secuencias de tokens (JSON/Texto) 
+      y los morfismos son transformaciones estocásticas de contexto. Carece de rigor estructural.
+    • Categoría ℳ (MIC): 
+      Poset (Partially Ordered Set) determinista donde los objetos son `CategoricalState` 
+      y los morfismos son vectores de transformación tipados regidos por un Retículo Acotado.
 
-Definimos dos categorías:
+    El MICAgent implementa un Funtor Covariante estricto F: ℒ → ℳ que satisface:
+      F(g ∘ f) = F(g) ∘ F(f)
+    Garantizando que la composición de "razonamientos" del LLM se mapee isomorficamente 
+    a una secuencia de operaciones permitidas en la física del negocio.
 
-Categoría LLM (L):
-------------------
-- Objetos: Respuestas del modelo de lenguaje como Mappings JSON
-- Morfismos: Transformaciones de prompt/contexto
-- No tiene estructura estratificada inherente
+2. Ley de Clausura Transitiva (Filtración Topológica):
+    El funtor F proyecta la intención hacia un estrato específico de la pirámide DIKW.
+    Se impone algebraicamente la condición de subespacios anidados:
+        V_{PHYSICS} ⊂ V_{TACTICS} ⊂ V_{STRATEGY} ⊂ V_{WISDOM}
+    Si la proyección objetivo cod(F(x)) exige un estrato superior, el agente verifica 
+    que validated_strata ⊇ stratum.requires(). Una falla aquí produce un 
+    `ClosureViolationError`, abortando la inyección mediante Fast-Fail.
 
-Categoría MIC (M):
-------------------
-- Objetos: CategoricalState con estratos DIKW certificados
-- Morfismos: Vectores tipados por estrato (ver mic_algebra.py)
-- Estructura: Poset de estratos con clausura transitiva
+3. Retracto Topológico TOON (Tabular Object-Oriented Notation):
+    Para evadir el desbordamiento de la memoria LPDDR5 y la ineficiencia atencional,
+    el adaptador aplica el protocolo TOON. Matemáticamente, esto es un retracto de 
+    deformación que proyecta el espacio sintáctico redundante (JSON) sobre una 
+    variedad de dimensión mínima (matriz tabular densa), preservando la homotopía 
+    de las dependencias pero aniquilando la entropía sintáctica parasitaria.
 
-Funtor de Impedancia F: L → M:
-------------------------------
-El MICAgent implementa un funtor F que:
-1. Asigna objetos: F_obj(llm_output) = CategoricalState
-2. Preserva estructura: F respeta las restricciones de estrato
-
-La adaptación de impedancia consiste en:
-1. Sensado de estrato objetivo
-2. Selección de contrato (Silo A) y cartucho TOON (Silo B)
-3. Validación de clausura transitiva DIKW
-4. Encapsulación monádica del resultado
-5. Proyección hacia la MIC
-
-Protocolo TOON (Tabular Object-Oriented Notation):
---------------------------------------------------
-Formato de compresión determinista para contexto:
-    --- INICIO {cartridge_id} ---
-    {header_template}
-    {key}|{json_value}
-    ...
-    --- FIN TOON ---
-
-La compresión es idempotente y tiene inversa definida.
-
-Invariantes:
-------------
-1. Compatibilidad de estrato: cod(F(x)) ∈ stratum_objetivo
-2. Clausura transitiva: validated_strata ⊇ stratum.requires()
-3. Validación contractual: payload ⊨ schema
-4. Monadicidad del error: error se propaga sin transformación
-5. Trazabilidad: cada operación genera CategoricalEqualizerSeed
-
-Referencias:
-- Mac Lane, S. (1971). Categories for the Working Mathematician
-- Baez, J. & Stay, M. (2011). Physics, Topology, Logic and Computation
+4. Invariantes de la Transformación Natural:
+    • Monadicidad del Error: Cualquier vector fuera del núcleo de validación (x ∉ ker(L)) 
+      es encapsulado en una Mónada de Error sin alterar el estado de la categoría ℳ.
+    • Trazabilidad Inmutable: Toda inyección genera una `CategoricalEqualizerSeed`,
+      actuando como una firma criptográfica (prueba de trabajo) del colapso estocástico.
+=========================================================================================
 """
 
 from __future__ import annotations

@@ -1,64 +1,47 @@
 """
-Módulo: Business Canvas Topology (Estrato α - Nivel Superior)
+=========================================================================================
+Módulo: Business Canvas Topology (Condición de Frontera Macroscópica — Estrato α)
+Ubicación: app/core/immune_system/business_canvas.py
+=========================================================================================
 
-Versión matemáticamente rigurosa para análisis topológico-algebraico.
+Naturaleza Ciber-Física:
+    Constituye el límite topológico supremo (Estrato α) del ecosistema APU_filter.
+    Modela el Business Model Canvas (BMC) de la organización matriz no como una
+    abstracción gráfica, sino como un 1-complejo simplicial finito K, auditando
+    matemáticamente su viabilidad estructural antes de permitir la deliberación
+    del Estrato Ω y el procesamiento táctico de presupuestos.
 
-Marco Teórico
-=============
+1. Complejo de Cadenas y Operador Frontera:
+    Sea G = (V, E, w) el digrafo ponderado del ecosistema de negocio. 
+    Su proyección al 1-esqueleto no dirigido K induce la secuencia exacta corta 
+    de cadenas con coeficientes en ℝ:
+        0 ⟶ C₁(K; ℝ) xrightarrow{∂₁} C₀(K; ℝ) ⟶ 0
+    El operador frontera discreto ∂₁ se materializa algorítmicamente como la 
+    matriz de incidencia de dimensiones |V| × |E|.
 
-Sea G = (V, E, w) el grafo dirigido ponderado del Business Model Canvas donde:
-- V = {nodos del BMC}
-- E ⊆ V × V con pesos w: E → ℝ⁺
+2. Invariantes Homológicos (Teorema de Rango-Nulidad):
+    La viabilidad intrínseca del modelo se extrae computando el rango numérico 
+    estricto del operador frontera ∂₁ mediante Descomposición en Valores Singulares 
+    (SVD) para mantener estabilidad frente al ruido flotante:
+        • β₀ = |V| - rank(∂₁) (Componentes Conexas: Fragmentación del valor)
+        • β₁ = |E| - rank(∂₁) (Dimensión del Espacio de Ciclos: ker(∂₁))
+    
+    [AXIOMA DE CANIBALIZACIÓN]: Si la homología revela β₁ > 0 (clases homológicas
+    no triviales en H₁), el BMC alberga bucles logísticos tóxicos irreconciliables.
+    El sistema impone un veto absoluto retornando REJECTED_TOXIC_CYCLES.
 
-Construcción del 1-Complejo Simplicial K:
------------------------------------------
-1. Proyección de G a su 1-esqueleto no dirigido K = (V, E_u)
-2. K es un 1-complejo simplicial finito con:
-   - 0-símplices: σ₀ ∈ V
-   - 1-símplices: σ₁ = {u,v} para {u,v} ∈ E_u
+3. Invariante Macroscópico de Euler-Poincaré:
+    La salud sistémica se verifica evaluando la característica de Euler del lienzo:
+        χ(K) = β₀ - β₁ = |V| - |E|
+    Un BMC degenerado con χ ≤ 0 colapsa automáticamente la Malla Agéntica.
 
-Complejo de Cadenas con Coeficientes Reales:
---------------------------------------------
-    0 → C₁(K;ℝ) --∂₁--> C₀(K;ℝ) → 0
-
-donde:
-- C₀(K;ℝ) ≅ ℝ^|V| (espacio de 0-cadenas)
-- C₁(K;ℝ) ≅ ℝ^|E| (espacio de 1-cadenas)
-- ∂₁: C₁ → C₀ es el operador frontera
-
-Matriz de Incidencia Orientada:
--------------------------------
-Para arista e_j = {u,v} con u < v (orden lexicográfico canónico):
-    [∂₁]_{i,j} = { -1  si i = índice(u)
-                {  +1  si i = índice(v)
-                {   0  en otro caso
-
-Invariantes Homológicos (Teorema de Euler-Poincaré):
-----------------------------------------------------
-- H₀(K) = C₀/im(∂₁) = coker(∂₁)
-    → β₀ = dim H₀ = |V| - rank(∂₁)
-- H₁(K) = ker(∂₁)/im(∂₂) = ker(∂₁)  [pues ∂₂ = 0 en 1-complejos]
-    → β₁ = dim H₁ = nullity(∂₁) = |E| - rank(∂₁)
-- χ(K) = |V| - |E| = β₀ - β₁
-
-Laplacianos Combinatorios (Teoría de Hodge Discreta):
------------------------------------------------------
-- L₀ = ∂₁∂₁ᵀ ∈ ℝ^{|V|×|V|} (actúa en 0-cadenas)
-- L₁ = ∂₁ᵀ∂₁ ∈ ℝ^{|E|×|E|} (actúa en 1-cadenas)
-
-Propiedades Espectrales de L₀:
-- spec(L₀) = {0 = λ₀ ≤ λ₁ ≤ ... ≤ λ_{|V|-1}}
-- mult(0, L₀) = β₀ (número de componentes conexas)
-- λ₁ > 0 ⟺ K es conexo (λ₁ = conectividad algebraica de Fiedler)
-- tr(L₀) = 2|E| (suma de grados)
-
-Teorema de Hodge Discreto:
-- dim(ker(Δₖ)) = βₖ para cada k
-
-Referencias:
-- Eckmann, B. (1944). Harmonische Funktionen und Randwertaufgaben
-- Friedman, J. (1998). Computing Betti Numbers via Combinatorial Laplacians
-- Chung, F.R.K. (1997). Spectral Graph Theory, AMS
+4. Espectro Combinatorio y Robustez de la Cadena de Valor:
+    El Laplaciano Combinatorio de grado 0 se define como L₀ = ∂₁∂₁ᵀ. 
+    Su espectro determina la resiliencia estructural de la matriz empresarial.
+    Si el valor de Fiedler (conectividad algebraica λ₂) decae por debajo de la
+    tolerancia admisible (λ₂ < MIN_FIEDLER_VALUE), la empresa sufre de "Fragilidad 
+    Espectral", indicando una alta probabilidad de fractura ante perturbaciones.
+=========================================================================================
 """
 
 from __future__ import annotations
