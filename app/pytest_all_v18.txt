@@ -1,7 +1,7 @@
 =================================== FAILURES ===================================
 _____________________ TestMaxwellDynamics.test_cfl_warning _____________________
 
-self = <test_class_maxwell.TestMaxwellDynamics object at 0x7f1d50e79c90>
+self = <test_class_maxwell.TestMaxwellDynamics object at 0x7464f855e200>
 single_triangle = {0: {1, 2}, 1: {0, 2}, 2: {0, 1}}
 
     def test_cfl_warning(self, single_triangle):
@@ -15,7 +15,7 @@ single_triangle = {0: {1, 2}, 1: {0, 2}, 2: {0, 1}}
 tests/unit/physics/test_class_maxwell.py:835: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-self = <app.physics.flux_condenser.MaxwellSolver object at 0x7f1d2dfb8af0>
+self = <app.physics.flux_condenser.MaxwellSolver object at 0x7464d468dcf0>
 dt = np.float64(0.5), context = None
 
     def leapfrog_step(self, dt: Optional[float] = None, context: Optional['TelemetryContext'] = None) -> None:
@@ -48,7 +48,7 @@ app/physics/flux_condenser.py:1530: NumericalInstabilityError
 
 During handling of the above exception, another exception occurred:
 
-self = <test_class_maxwell.TestMaxwellDynamics object at 0x7f1d50e79c90>
+self = <test_class_maxwell.TestMaxwellDynamics object at 0x7464f855e200>
 single_triangle = {0: {1, 2}, 1: {0, 2}, 2: {0, 1}}
 
     def test_cfl_warning(self, single_triangle):
@@ -62,12 +62,12 @@ E        Emitted warnings: [].
 
 tests/unit/physics/test_class_maxwell.py:834: Failed
 ----------------------------- Captured stderr call -----------------------------
-2026-03-24 18:14:46,319 - app.physics.flux_condenser - ERROR - Δt=5.00e-01 > Δt_CFL=2.50e-01. Posible inestabilidad.
+2026-03-24 19:09:06,054 - app.physics.flux_condenser - ERROR - Δt=5.00e-01 > Δt_CFL=2.50e-01. Posible inestabilidad.
 ------------------------------ Captured log call -------------------------------
 ERROR    app.physics.flux_condenser:flux_condenser.py:1522 Δt=5.00e-01 > Δt_CFL=2.50e-01. Posible inestabilidad.
 _________ TestPIController.test_invalid_min_output_not_positive_raises _________
 
-self = <test_flux_condenser.TestPIController object at 0x7f1d50d8bd90>
+self = <test_flux_condenser.TestPIController object at 0x7464f8488070>
 
     def test_invalid_min_output_not_positive_raises(self):
         """min_output ≤ 0 debe fallar."""
@@ -77,8 +77,8 @@ E       Failed: DID NOT RAISE <class 'app.physics.flux_condenser.ConfigurationEr
 tests/unit/physics/test_flux_condenser.py:444: Failed
 _________ TestPIController.test_compute_returns_integer_in_valid_range _________
 
-self = <test_flux_condenser.TestPIController object at 0x7f1d50daca90>
-controller_fixture = <app.physics.flux_condenser.PIController object at 0x7f1d2d5bee90>
+self = <test_flux_condenser.TestPIController object at 0x7464f8488d30>
+controller_fixture = <app.physics.flux_condenser.PIController object at 0x7464c7ab7fd0>
 
     def test_compute_returns_integer_in_valid_range(self, controller_fixture):
         """La salida debe ser entero dentro del rango [min, max]."""
@@ -90,12 +90,12 @@ controller_fixture = <app.physics.flux_condenser.PIController object at 0x7f1d2d
 >           assert isinstance(output, int), f"Salida debe ser int, obtenido: {type(output)}"
 E           AssertionError: Salida debe ser int, obtenido: <class 'float'>
 E           assert False
-E            +  where False = isinstance(25.003076791763306, int)
+E            +  where False = isinstance(25.001556873321533, int)
 
 tests/unit/physics/test_flux_condenser.py:597: AssertionError
 _ TestPIControllerRefined.test_invalid_parameters_raise_configuration_error[params3-min_output negativo inv\xe1lido para actuadores f\xedsicos] _
 
-self = <test_refined_controllers.TestPIControllerRefined object at 0x7f1d2f4f5de0>
+self = <test_refined_controllers.TestPIControllerRefined object at 0x7464d6985f00>
 params = {'ki': 0.5, 'kp': 2.0, 'max_output': 1000, 'min_output': -10, ...}
 reason = 'min_output negativo inválido para actuadores físicos'
 
@@ -138,7 +138,7 @@ E       Failed: DID NOT RAISE <class 'app.physics.flux_condenser.ConfigurationEr
 tests/unit/tactics/test_refined_controllers.py:321: Failed
 _______ TestPIControllerRefined.test_ema_filter_reduces_output_variance ________
 
-self = <test_refined_controllers.TestPIControllerRefined object at 0x7f1d2f4f4100>
+self = <test_refined_controllers.TestPIControllerRefined object at 0x7464d6986c20>
 
     @_requires_numpy
     def test_ema_filter_reduces_output_variance(self) -> None:
@@ -192,6 +192,20 @@ E       assert np.float64(0.00287454028762429) <= np.float64(0.00268962492266447
 
 tests/unit/tactics/test_refined_controllers.py:518: AssertionError
 =============================== warnings summary ===============================
+app/core/immune_system/calibration/sheaf_cohomology_orchestrator.py:1
+  /home/gerardo/Documentos/GitHub/apu_filter/app/core/immune_system/calibration/sheaf_cohomology_orchestrator.py:1: DeprecationWarning: invalid escape sequence '\d'
+    """
+
+app/core/immune_system/metric_tensors.py:1
+  /home/gerardo/Documentos/GitHub/apu_filter/app/core/immune_system/metric_tensors.py:1: DeprecationWarning: invalid escape sequence '\m'
+    """
+
+<unknown>:1
+  <unknown>:1: DeprecationWarning: invalid escape sequence '\d'
+
+<unknown>:1
+  <unknown>:1: DeprecationWarning: invalid escape sequence '\m'
+
 tests/integration/physics/test_port_hamiltonian_maxwell_integration.py::TestPHSPassivity::test_passivity_inequality_second
   /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/physics/test_port_hamiltonian_maxwell_integration.py:1178: DeprecationWarning: `trapz` is deprecated. Use `trapezoid` instead, or one of the numerical integration functions in `scipy.integrate`.
     supply_integral = float(np.trapz(supply_values, dx=dt))
@@ -203,8 +217,8 @@ FAILED tests/unit/physics/test_class_maxwell.py::TestMaxwellDynamics::test_cfl_w
 FAILED tests/unit/physics/test_flux_condenser.py::TestPIController::test_invalid_min_output_not_positive_raises - Failed: DID NOT RAISE <class 'app.physics.flux_condenser.ConfigurationError'>
 FAILED tests/unit/physics/test_flux_condenser.py::TestPIController::test_compute_returns_integer_in_valid_range - AssertionError: Salida debe ser int, obtenido: <class 'float'>
 assert False
- +  where False = isinstance(25.003076791763306, int)
+ +  where False = isinstance(25.001556873321533, int)
 FAILED tests/unit/tactics/test_refined_controllers.py::TestPIControllerRefined::test_invalid_parameters_raise_configuration_error[params3-min_output negativo inv\xe1lido para actuadores f\xedsicos] - Failed: DID NOT RAISE <class 'app.physics.flux_condenser.ConfigurationError'>
 FAILED tests/unit/tactics/test_refined_controllers.py::TestPIControllerRefined::test_ema_filter_reduces_output_variance - AssertionError: EMA no reduce varianza: var(sin_filtro)=0.0027, var(con_filtro)=0.0029
 assert np.float64(0.00287454028762429) <= np.float64(0.0026896249226644707)
-====== 5 failed, 8916 passed, 18 skipped, 1 warning in 124.15s (0:02:04) =======
+====== 5 failed, 8916 passed, 18 skipped, 5 warnings in 109.49s (0:01:49) ======
