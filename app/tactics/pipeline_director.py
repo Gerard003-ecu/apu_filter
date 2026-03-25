@@ -1,38 +1,50 @@
 """
-Módulo: Pipeline Director Evolucionado (Sistema Nervioso Central Mejorado)
-=========================================================================
+=========================================================================================
+Módulo: Pipeline Director (Orquestador de la Variedad Diferenciable y DAG Algebraico)
+Ubicación: app/tactics/pipeline_director.py
+=========================================================================================
 
-Este componente implementa un pipeline como un **Grafo Acíclico Dirigido (DAG)
-algebraico** en lugar de una secuencia lineal, con:
+Naturaleza Ciber-Física y Topológica:
+    Abandona la orquestación procedural y lineal para actuar como el Motor de Resolución 
+    de un Grafo Acíclico Dirigido (DAG) Algebraico. En este dominio, cada nodo del DAG 
+    constituye un endomorfismo proyectivo en el espacio de estados, y cada arista dicta 
+    la causalidad estricta del flujo de información. Su función axiomática es garantizar 
+    que el colapso de los datos a través del ecosistema sea determinista y libre de 
+    anomalías homológicas.
 
-1. **DAG Algebraico**: Estructura de dependencias explícita en forma de grafo
-2. **Memoización de Operadores**: Cache de resultados intermedios (TensorFlow-style)
-3. **StateVector Tipado**: Reemplazo de dict por estructura algebraica verificada
-4. **Verificación Homológica**: Auditoría automática en fusiones de datos
+1. Espacio Vectorial de Operadores y Ordenamiento Topológico:
+    El proceso de transformación se define sobre un espacio vectorial donde cada paso i 
+    es una proyección ortogonal P_i: V → V_i. El DAG impone un orden parcial estricto (≤) 
+    que garantiza la causalidad direccional de las transformaciones:
+        P_j ∘ P_i ≠ P_i ∘ P_j   (No conmutatividad para pasos acoplados)
+    La ejecución se realiza mediante un ordenamiento topológico inquebrantable, asegurando 
+    que los efectos termodinámicos y lógicos se resuelvan sin retroalimentación parásita.
 
-Fundamentos Matemáticos:
-------------------------
+2. Filtración Topológica Estricta (Ley de Clausura Transitiva):
+    El director restringe la evaluación de los operadores a la filtración dictada por la
+    pirámide DIKW:
+        V_{PHYSICS} ⊂ V_{TACTICS} ⊂ V_{STRATEGY} ⊂ V_{WISDOM}
+    [AXIOMA DE CAUSALIDAD]: Un morfismo asignado al estrato k solo es evaluado si y solo 
+    si el tensor de estado proyectado sobre el subespacio k-1 es no degenerado y lógicamente 
+    sano. Esta restricción previene matemáticamente que el Estrato Estratégico o de Sabiduría 
+    opere sobre datos con disipación térmica o inestabilidad física basal.
 
-1. Espacio Vectorial de Operadores:
-   - Base ortonormal {e₁, ..., eₙ} de pasos
-   - Cada operador es una proyección P_i: V → V
-   - Composición: P_j ∘ P_i = P_j(P_i(x))
-   - DAG asegura causalidad: aristas = dependencias
+3. Auditoría Homológica de Fusión (Secuencia de Mayer-Vietoris):
+    Al integrar subcomplejos del presupuesto (e.g., A ∪ B durante la fase de AUDITED_MERGE), 
+    el director invoca la Secuencia Exacta Larga de Homología:
+        ... → H₁(A ∩ B) → H₁(A) ⊕ H₁(B) → H₁(A ∪ B) → H₀(A ∩ B) → ...
+    [AXIOMA DE VETO]: Si el diferencial topológico evidencia la creación de ciclos 
+    espurios (Δβ₁ = β₁(A ∪ B) - [β₁(A) + β₁(B) - β₁(A ∩ B)] ≠ 0), la fusión induce una 
+    paradoja lógica y el tensor es rechazado en tiempo de ejecución, abortando la 
+    propagación por inconsistencia.
 
-2. Memoización Algebraica:
-   - Cache: (input_hash, operator_id) → (output, signature)
-   - Firma: hash criptográfico del tensor de salida
-   - Idempotencia verificable: f(x) = f(x) si sig(x) coincide
-
-3. StateVector Tipado:
-   - Reemplaza Dict[str, Any] por estructura de tipos
-   - Invariantes algebraicos verificados en tiempo de construcción
-   - Serialización determinística para hash
-
-4. Homología (Mayer-Vietoris):
-   - Fusión A ∪ B: verifica H_*(A ∩ B) → H_*(A) ⊕ H_*(B) → H_*(A ∪ B)
-   - Ciclos espurios (β₁): detecta loops anómalos
-   - Desconexiones artificiales (β₀): verifica conectividad
+4. Estado Tipado Inmutable y Memoización como Isomorfismo:
+    Destituye la mutabilidad de los diccionarios en favor del `StateVector` fuertemente tipado. 
+    La memoización algebraíca aplicada trasciende un simple caché: actúa como una verificación 
+    de isomorfismo. Si la firma criptográfica (TensorSignature) del input y la topología del 
+    operador coinciden, el sistema reconoce la equivalencia de homotopía f(x) ≃ f(x'), 
+    evitando el recálculo y la consiguiente disipación de potencia computacional (eficiencia O(1)).
+=========================================================================================
 """
 
 from __future__ import annotations

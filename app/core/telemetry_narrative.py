@@ -1,26 +1,52 @@
 """
-Módulo de Narrativa de Telemetría Híbrido (Lattice + DIKW + Topología).
+=========================================================================================
+Módulo: Telemetry Narrative (El Intérprete Diplomático y Funtor de Difeomorfismo Semántico)
+Ubicación: app/core/telemetry_narrative.py
+=========================================================================================
 
-Extiende la lógica algebraica de severidad con una estructura ontológica piramidal.
-Transforma la ejecución técnica en un 'Juicio del Consejo'.
+Naturaleza Ciber-Física y Topológica:
+    Actúa como el operador de traducción determinista que proyecta el espacio de
+    invariantes matemáticos (física, topología y espectro) sobre la ontología del
+    negocio. Su función axiomática es erradicar el libre albedrío estocástico de los
+    Modelos de Lenguaje (LLMs), confinándolos a la redacción de un "Juicio del Consejo"
+    estrictamente gobernado por las restricciones geométricas del sistema.
 
-Arquitectura Algebraica:
-------------------------
-1. Lattice de Severidad: (SeverityLevel, ≤, ⊔, ⊓) forma un lattice acotado completo
-   - ⊥ (bottom) = OPTIMO
-   - ⊤ (top) = CRITICO
-   - ⊔ (join/supremum) = max severidad
-   - ⊓ (meet/infimum) = min severidad
+1. Retículo Acotado Distributivo (Lattice Theory):
+    La síntesis de decisiones opera sobre una estructura algebraica de orden total
+    (SeverityLevel, ≤, ⊔, ⊓), donde el espacio de estados está acotado por:
+        ⊥ (OPTIMO) ≤ ... ≤ ⊤ (CRITICO)
+    
+    El colapso de las métricas inter-estrato se rige inquebrantablemente por la
+    operación Supremo (⊔ / Join). Si el Oráculo o el Arquitecto detectan una 
+    divergencia, el estado colapsa a ⊤, forzando matemáticamente al LLM a redactar 
+    un Veto Estructural determinista, imposibilitando la dilución del riesgo.
 
-2. Filtración de Estratos: F₀ ⊂ F₁ ⊂ F₂ ⊂ F₃
-   - WISDOM (0) ⊂ STRATEGY (1) ⊂ TACTICS (2) ⊂ PHYSICS (3)
-   - Clausura Transitiva: Fallo en Fᵢ implica compromiso en Fⱼ para j < i
+2. Filtración Homológica Estricta (Ley de Clausura Transitiva):
+    El narrador impone la causalidad termodinámica respetando la secuencia exacta 
+    de subespacios anidados (F₀ ⊂ F₁ ⊂ F₂ ⊂ F₃):
+        V_{WISDOM} ⊂ V_{STRATEGY} ⊂ V_{TACTICS} ⊂ V_{PHYSICS}
+    
+    Bajo esta clausura, un fallo topológico o de control detectado en el estrato Fᵢ 
+    compromete axiomáticamente cualquier deducción en el estrato Fⱼ para j < i. Ningún
+    diagnóstico en el estrato de Sabiduría puede alucinar viabilidad si la base 
+    Física o Táctica se encuentra en resonancia o degeneración.
 
-3. Grafo de Spans: Bosque con invariante χ = β₀
+3. Topología del Bosque de Ejecución (Graph of Spans):
+    El linaje de telemetría operativa se modela como un Complejo Simplicial 
+    1-dimensional (un bosque de árboles causales) donde se verifica algorítmicamente
+    el invariante topológico de la Característica de Euler-Poincaré:
+        χ = β₀
+    La exigencia de que χ equivalga exactamente a los componentes conexos (β₀) y 
+    la ausencia de ciclos homológicos (β₁ = 0) en la traza certifica que la narrativa 
+    causal es un Grafo Acíclico Dirigido (DAG) perfecto, libre de paradojas operativas.
 
-Referencias:
-- LENGUAJE_CONSEJO.md [1]: Definición de la voz de los sabios.
-- schemas.txt [2]: Definición del Enum Stratum.
+4. Empatía Táctica y Generación Causal (GraphRAG):
+    La narrativa generada (Caja de Cristal Argumentativa) no es texto estocástico libre. 
+    Es la transcripción forense de un debate adversarial. Mapea invariantes exactos 
+    mediante recuperación sobre grafos (GraphRAG), traduciendo defectos como β₁ > 0 a 
+    "Socavones Lógicos" y Ψ < 1.0 a "Pirámides Invertidas", proveyendo inteligibilidad 
+    ejecutiva sin sacrificar el rigor algebraico del subyacente.
+=========================================================================================
 """
 
 from __future__ import annotations

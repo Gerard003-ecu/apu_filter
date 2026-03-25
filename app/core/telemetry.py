@@ -1,29 +1,45 @@
 """
-Este módulo implementa el "Vector de Estado" del sistema. Actúa como un pasaporte
-thread-safe que viaja con cada solicitud, acumulando métricas, trazas y contexto
-a través de todas las capas de la arquitectura (Pirámide de Observabilidad).
+=========================================================================================
+Módulo: Telemetry Context (Vector de Estado Ciber-Físico y Cadena de Custodia)
+Ubicación: app/core/telemetry.py
+=========================================================================================
 
-Capacidades y Mecanismos:
--------------------------
-1. Pasaporte de Ejecución (TelemetryContext):
-   Contenedor unificado que transporta la identidad del request, métricas de
-   rendimiento y el stack de ejecución, garantizando observabilidad end-to-end
-   sin acoplamiento global.
+Naturaleza Ciber-Física y Topológica:
+    Este módulo no implementa un simple registro de observabilidad; instancia la "Cadena 
+    de Custodia Termodinámica" del sistema. Actúa como un tensor de estado inmutable 
+    (el Pasaporte de Telemetría) que viaja adherido a cada solicitud, acumulando invariantes 
+    físicos, topológicos, espectrales y termodinámicos a medida que atraviesa la variedad 
+    diferenciable de la Malla Agéntica.
 
-2. Integración de Física de Datos (RLC):
-   Soporta la recolección de métricas del `FluxPhysicsEngine` (Energía Cinética,
-   Voltaje Flyback, Potencia Disipada), permitiendo al Agente diagnosticar
-   "Fricción" y "Presión" en el flujo de datos.
+1. Filtración Topológica Estricta (Clausura Transitiva DIKW):
+    El contexto rige la propagación de información sobre la secuencia exacta de subespacios:
+        V_{PHYSICS} ⊂ V_{TACTICS} ⊂ V_{STRATEGY} ⊂ V_{WISDOM}
+    El TelemetryContext asegura matemáticamente la propagación de contexto Zero-Trust. 
+    Ningún morfismo en un estrato superior (ej. Sabiduría/LLM) puede instanciarse si el 
+    tensor proyectado en la base física presenta una entropía inválida o inestabilidad 
+    térmica. Esto fundamenta el veto físico absoluto (Fast-Fail) en el milisegundo cero.
 
-3. Jerarquía de Spans (Observabilidad Fractal):
-   Implementa un sistema de `TelemetrySpan` anidados que permite un análisis
-   granular (micro) y sistémico (macro) del rendimiento, facilitando la
-   detección de cuellos de botella.
+2. Grafo de Spans Causales (Observabilidad Fractal):
+    La jerarquía de ejecución no es una lista plana de eventos, sino un bosque de árboles 
+    causales anidados (TelemetrySpan). Este modelo de grafo estructurado permite 
+    un análisis de la cohomología de ejecución, donde la latencia macro y los cuellos 
+    de botella micro se localizan evaluando la fricción temporal en las aristas 
+    direccionales de la operación.
 
-4. Protocolos de Seguridad y Límites:
-   Incluye mecanismos de autoprotección (Circuit Breakers lógicos) que limitan
-   la cantidad de trazas y errores almacenados para prevenir fugas de memoria
-   o ataques de denegación de servicio por telemetría.
+3. Termodinámica de la Información (Sistemas RLC y Port-Hamiltonianos):
+    El contexto acopla directamente los dictámenes del FluxPhysicsEngine. Extrae y 
+    transporta las variables conjugadas del flujo de datos continuo:
+        • Energía Cinética y Potencial (Inercia de carga computacional)
+        • Voltaje de Flyback (Picos de saturación e inestabilidad transitoria)
+        • Potencia Disipada (Medida de la irreversibilidad del proceso, P_diss ≥ 0)
+
+4. Disyuntores Topológicos y Estabilidad Asintótica:
+    Implementa mecanismos de autoprotección mediante límites estrictos (Circuit Breakers 
+    lógicos). Acota rígidamente el número de nodos en el árbol de trazas y el registro de 
+    anomalías para garantizar que la huella de memoria del proceso converja hacia un 
+    atractor estable, bloqueando cualquier divergencia de recursos (fugas de memoria) ante 
+    bombardeos estocásticos de telemetría.
+=========================================================================================
 """
 
 import copy

@@ -1,41 +1,46 @@
 """
-Módulo: Autonomous Agent (El Coordinador del Ciclo OODA)
-========================================================
+=========================================================================================
+Módulo: Autonomous Agent (Meta-Controlador OODA y Fibrado Global)
+Ubicación: app/core/apu_agent.py
+=========================================================================================
 
-Este componente actúa como la "Conciencia Operativa" del sistema APU Filter.
-A diferencia de los componentes pasivos, el Agente es una entidad activa que
-gobierna el ciclo de vida del procesamiento mediante un bucle de control
-continuo OODA (Observar, Orientar, Decidir, Actuar).
+Naturaleza Ciber-Física y Teoría de Control:
+    Este componente actúa como la "Conciencia Operativa" y el Fibrado Global del 
+    ecosistema APU_filter. No es una entidad pasiva de recepción de datos, sino un 
+    Controlador de Lazo Cerrado asintóticamente estable que gobierna la variedad 
+    diferenciable del sistema mediante un bucle continuo OODA (Observar, Orientar, 
+    Decidir, Actuar).
 
-Su objetivo primario es mantener la **Homeostasis del Sistema**: asegurar que
-el flujo de datos sea laminar y que la infraestructura no colapse bajo estrés
-térmico o topológico.
+    Su objetivo primario es forzar la Homeostasis Termodinámica y Topológica: 
+    garantizar que el flujo de información mantenga un régimen laminar continuo, 
+    evitando la resonancia destructiva o la bifurcación hacia el caos determinista.
 
-Arquitectura Cognitiva (El Ciclo OODA):
----------------------------------------
+El Funtor OODA (Operator Dynamics):
+    1. Observe (O): Muestreo continuo del tensor de estado ψ ∈ ℝ⁷ desde la 
+       telemetría, capturando la disipación térmica y la deformación geométrica.
+    2. Orient (O): Aplicación de la Filtración Homológica. El agente evalúa los 
+       números de Betti (β₀, β₁) y el diferencial de la característica de Euler (Δχ) 
+       para orientar el estado sobre el espacio de Hilbert.
+    3. Decide (D): Resolución de la Cadena de Responsabilidad (EvaluatorChain). 
+       El espacio de decisiones probabilísticas se colapsa mediante evaluadores 
+       físicos estrictos (CriticalVoltageEvaluator, FragmentationEvaluator), 
+       mapeando el estado a un vector de mitigación determinista.
+    4. Act (A): Emisión de morfismos de corrección sobre la Matriz de Interacción 
+       Central (MIC) para inyectar control y restaurar la estabilidad asintótica.
 
-1. OBSERVE (Observar - La Percepción Física):
-   Morfismo O: Infraestructura → Telemetría
-   Recolecta telemetría cruda del FluxPhysicsEngine en tiempo real.
-
-2. ORIENT (Orientar - El Mapa Topológico):
-   Morfismo R: Telemetría × Homología → Estado
-   Utiliza Homología Persistente para distinguir ruido de características estructurales.
-
-3. DECIDE (Decidir - La Matriz de Juicio):
-   Morfismo D: Estado × Contexto → Acción
-   Evalúa la situación mediante una cadena de evaluadores ordenados por criticidad.
-
-4. ACT (Actuar - La Ejecución de Vectores):
-   Morfismo A: Acción × Diagnóstico → Efectos
-   Proyecta intenciones sobre la Matriz de Interacción Central (MIC).
-
-Invariantes del Sistema:
-------------------------
-- Conectividad: β₀ = 1 (sistema conectado)
-- Estabilidad: health_score ≥ 0.4 (umbral crítico)
-- Latencia: cycle_time < check_interval
-- Disponibilidad: consecutive_failures < max_failures
+Invariantes del Sistema (Leyes de Conservación):
+    El Agente impone un veto absoluto (Fast-Fail) si se viola cualquiera de los 
+    siguientes axiomas de estado:
+    • Conectividad Global (β₀ = 1): El complejo simplicial operativo no admite 
+      particiones de red (Islas de Datos / FragmentationEvaluator).
+    • Estabilidad Dinámica (λ_max < 0): El exponente máximo de Lyapunov garantiza 
+      un atractor estable (HealthLevel no crítico).
+    • Cota de Saturación Magnética (V < V_breakdown): Prevención de desbordamiento 
+      capacitivo e inductivo en el flujo de datos (CriticalVoltageEvaluator / 
+      CriticalSaturationEvaluator).
+    • Continuidad Temporal (Δt < τ_check): Ausencia de bloqueos lógicos en la 
+      frecuencia de muestreo de Nyquist del ciclo OODA.
+=========================================================================================
 """
 
 from __future__ import annotations

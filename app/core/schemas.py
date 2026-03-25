@@ -1,216 +1,60 @@
 """
-Constitución de los Datos — Esquema Canónico del Sistema de Presupuesto.
+=========================================================================================
+Módulo: Schemas (Constitución de los Datos — Esquema Canónico del Sistema de Presupuesto)
+Ubicación: app/core/schemas.py
+=========================================================================================
 
-REFINAMIENTO RIGUROSO
-═════════════════════
+Naturaleza Ciber-Física y Topológica:
+    Este módulo no define simples clases de datos, sino que establece los Invariantes 
+    Estructurales del espacio de fase presupuestal. Proyecta las entidades financieras 
+    como un complejo simplicial restringido, garantizando que el orquestador opere 
+    sobre un espacio métrico no degenerado y lógicamente coherente.
 
-Mejoras implementadas:
-  [C1] Formalización de invariantes con verificación automática
-  [C2] Topología de grafos: DAG bipartito explícito
-  [C3] Numerología: justificación teórica de tolerancias
-  [C4] Entropía: análisis matemático rigoroso de Shannon
-  [C5] Validación: idempotencia formal de normalizadores
-  [C6] Serialización: soporte para Decimal y versionado
-  [C7] Factory: inyección de dependencias y patrón Strategy
-  [C8] Tipado: protocolos y verificación en runtime
-  [C9] Traceabilidad: auditoría de cambios y logging estructurado
-  [C10] Cobertura: casos límite y degeneración
+0. Preliminares: Topología del Grafo Bipartito:
+    La estructura se modela axiomáticamente como un grafo bipartito G = (V_TACTICS ∪ V_PHYSICS, E):
+    • V_TACTICS = {APU₁, APU₂, ...} (nodos internos del estrato táctico).
+    • V_PHYSICS = {Insumo₁, Insumo₂, ...} (nodos hoja del estrato físico).
+    • E ⊆ V_TACTICS × V_PHYSICS (aristas de dependencia directa).
+    
+    Propiedades garantizadas algorítmicamente:
+    (G1) Acíclico Dirigido (DAG): β₁ = 0. Ausencia absoluta de paradojas circulares.
+    (G2) Bipartito Estricto: Las aristas E operan exclusivamente inter-estrato.
+    (G3) Bosque Estructural: Cada APU constituye la raíz de un árbol de expansión de insumos.
 
-Fundamentos Matemáticos (Expandidos)
-═════════════════════════════════════
+1. Invariantes Físico-Matemáticos de Dominio:
+    (I1) Ley de Conservación de Valor: Para todo insumo i, valor_total[i] = cantidad[i] × precio_unitario[i].
+         Debido a la entropía de la Unidad de Punto Flotante (IEEE 754), se impone una 
+         tolerancia híbrida: ε_rel = 1e-6 y ε_abs = 1e-10. 
+         Justificación: Para valores de O(10⁶) y O(10⁹), el error relativo acumulado es O(10⁻²⁷). 
+         El margen ε_rel ≫ 10⁻²⁷ absorbe la fricción numérica sin admitir corrupción contable.
+    
+    (I2) No-negatividad Absoluta: ∀i: cantidad[i] ≥ 0, precio[i] ≥ 0. La energía financiera 
+         negativa carece de significado físico en este marco y es vetada.
+    
+    (I3) Acotación Física (Saturación Dimensional):
+         • Cantidad ∈ [0, 10⁶] (Límite logístico estructural).
+         • Precio ∈ [0, 10⁹] (Límite de capitalización de equipos pesados).
+         • Rendimiento ∈ [0, 10³] (Límite termodinámico del trabajo humano/mecánico).
+    
+    (I4) Normalización Idempotente (Retractos de Deformación):
+         Todo operador normalizador f ∈ {normalize_unit, normalize_description, normalize_codigo}
+         debe garantizar f(f(x)) = f(x). Esta invarianza protege al sistema de mutaciones parásitas 
+         durante evaluaciones cíclicas iterativas.
 
-0. PRELIMINARES: TOPOLOGÍA DEL GRAFO BIPARTITO
-────────────────────────────────────────────────
+2. Termodinámica Estructural y Entropía de Shannon:
+    La estabilidad logística (Índice de Fiedler generalizado Ψ) de una APU "a" se deriva 
+    de la dispersión de sus recursos R(a):
+        H = -Σᵢ pᵢ ln(pᵢ)  [nats]
+    Donde pᵢ = valor_total_i / Σ valor_total_j ∈ es la fracción de energía financiera.
+    Normalizado como H_norm = H / ln(n) ∈. Si pᵢ = 1 para un único nodo (H = 0),
+    existe un Punto de Fallo Único (SPOF), lo que desploma el índice Ψ y activa alertas
+    de "Pirámide Invertida" o monopolio logístico.
 
-   Estructura:
-       G = (V_TACTICS ∪ V_PHYSICS, E)
-
-   donde:
-       • V_TACTICS = {APU₁, APU₂, ...}  (nodos internos)
-       • V_PHYSICS = {Insumo₁, Insumo₂, ...}  (nodos hoja)
-       • E ⊆ V_TACTICS × V_PHYSICS  (aristas de dependencia)
-
-   Propiedades garantizadas:
-       (G1) DAG (acíclico dirigido): no existen ciclos
-       (G2) Bipartito: E solo cruza entre capas, sin aristas internas
-       (G3) Árbol forestal: cada APU es raíz de un árbol de insumos
-       (G4) Determinismo: el grafo es identificado por su contenido
-
-1. INVARIANTES DE DOMINIO (FORMALIZADOS)
-─────────────────────────────────────────
-
-   (I1) Ley de conservación (Consistencia de valor_total)
-   ──────────────────────────────────────────────────────
-
-   Postulado: Para todo insumo i:
-       valor_total[i] = cantidad[i] × precio_unitario[i]
-
-   Verificación numérica (tolerancia híbrida):
-       Sea ε_rel = CONSERVATION_RELATIVE_TOLERANCE = 1e-6
-       Sea ε_abs = CONSERVATION_ABSOLUTE_TOLERANCE = 1e-10
-
-       expected = cantidad × precio_unitario
-       scale = max(|expected|, |actual|)
-
-       Caso 1 (valores pequeños): scale < ε_abs
-           → Se acepta trivialmente (ambos ≈ 0)
-
-       Caso 2 (valores grandes): scale ≥ ε_abs
-           → Verificar |expected - actual| / scale ≤ ε_rel
-
-   Justificación de ε_rel = 1e-6:
-       • float64 tiene ~15 dígitos significativos
-       • Para producto C = Q × P donde |Q| = O(10^m), |P| = O(10^n):
-         |C| = O(10^(m+n))
-       • Error relativo de float ≈ 10^-15 / 10^(m+n) = 10^(-15-m-n)
-       • Peor caso (Q, P grandes): m+n ≤ 12 ⟹ error ≈ 10^-27
-       • Margen de seguridad: 1e-6 >> 10^-27 ✓
-
-   (I2) No-negatividad
-   ───────────────────
-   ∀ insumo i: cantidad[i] ≥ 0, precio[i] ≥ 0, valor_total[i] ≥ 0
-
-   (I3) Acotación física
-   ─────────────────────
-   ∀ insumo i:
-       cantidad[i] ∈ [0, 10^6]      (O(10^6) unidades máx por APU)
-       precio[i] ∈ [0, 10^9]        (equipo especial: O(10^8) por hora)
-       valor_total[i] ∈ [0, 10^15]  (máximo = 10^6 × 10^9)
-       rendimiento[i] ∈ [0, 10^3]   (O(1000) unidades/hora máx)
-
-   Justificación:
-       • Cantidad: Construcción civil típica ≤ 10^6 unidades/APU
-       • Precio: Grúa especializada ≈ 1000 USD/hora ≈ 10^9 en moneda local
-       • Rendimiento: >1000 unidades/hora indica error en datos
-
-   (I4) Normalización idempotente
-   ──────────────────────────────
-   ∀ normalizador f ∈ {normalize_unit, normalize_description, normalize_codigo}:
-       f(f(x)) = f(x)  ∀ x
-
-   (I5) Tipología cerrada
-   ──────────────────────
-   ∀ insumo i:
-       tipo_insumo[i] ∈ {MANO_DE_OBRA, EQUIPO, SUMINISTRO, TRANSPORTE, OTRO}
-
-   Partición: estos 5 tipos son disjuntos y exhaustivos.
-
-   (I6) Estabilidad topológica (Índice de Fiedler generalizado)
-   ────────────────────────────────────────────────────────────
-   Para cada APU a con recursos R(a) = {r₁,...,rₙ}:
-
-       Ψ(a) = D(a)^α · H_norm(a)^(1-α)  donde α = 0.4
-
-   donde:
-       D(a) = |tipos únicos en R(a)| / 5  ∈ [0, 1]
-              (diversidad categórica)
-
-       H_norm(a) = H(a) / H_max(a)        ∈ [0, 1]
-              (entropía de Shannon normalizada)
-
-   Propiedades:
-       (P1) Ψ = 0 si n ≤ 1 o Σ valor_total = 0
-       (P2) Ψ = 1 solo si D = 1 y H = H_max (máxima estabilidad)
-       (P3) Media geométrica asegura compensación: Ψ bajo si D O H bajo
-
-2. ANÁLISIS MATEMÁTICO: ENTROPÍA DE SHANNON
-─────────────────────────────────────────────
-
-   Definición (Shannon, 1948)
-   ──────────────────────────
-   H = -Σᵢ₌₁ⁿ pᵢ ln(pᵢ)  [nats]
-
-   donde pᵢ = valor_total_i / Σⱼ valor_total_j  ∈ [0, 1]
-
-   Convención: lim_{p→0⁺} p ln(p) = 0  (continuidad por definición)
-
-   Propiedades:
-       (E1) Alcance: H ∈ [0, ln(n)]
-       (E2) Concavidad: H es función cóncava en {pᵢ}
-       (E3) Máximo: H = ln(n) cuando pᵢ = 1/n para todo i
-       (E4) Mínimo: H = 0 cuando ∃! i: pᵢ = 1, resto = 0
-
-   Normalización
-   ─────────────
-   H_norm = H / ln(n)  ∈ [0, 1]
-
-   Casos especiales:
-       • n = 0: indefinido, asignar Ψ = 0
-       • n = 1: H_norm = 0 (no hay incertidumbre)
-       • n = 2: máx cuando p₁ = p₂ = 0.5 ⟹ H = ln(2) ≈ 0.693
-
-   Estabilidad numérica
-   ────────────────────
-   Cálculo seguro de p ln(p):
-
-       safe_p_ln_p(p):
-           if p ≤ 0: return 0
-           if p ≥ 1: return 0 (límite de (1-ε)ln(1-ε) cuando ε→0⁺)
-           return p * log(p)
-
-   Justificación: log(p) es bien definido para p > 0;
-   el término p→0⁺ es continuamente extendido como 0.
-
-3. ANÁLISIS DE DIVERSIDAD CATEGÓRICA
-─────────────────────────────────────
-
-   Definición: D(a) = |{tipos únicos en R(a)}| / 5
-
-   Propiedades:
-       • D = 0: un solo tipo presente
-       • D = 0.2: cada tipo hay al menos 1 (máxima)
-       • D es discreta (solo toma valores {0, 0.2, 0.4, 0.6, 0.8, 1.0})
-
-   Interpretación: mide vulnerabilidad a fallos de proveedores.
-   Si D = 0 (mono-tipo), un solo proveedor afecta toda la APU.
-
-4. TOLERANCIAS Y NÚMEROS CONDICIONALES
-───────────────────────────────────────
-
-   Problema: Para valores grandes Q × P, el error relativo acumulado
-   puede ser significativo.
-
-   Solución: Tolerancia híbrida que combina regímenes.
-
-   Régimen 1: |valor_total| < ε_abs = 1e-10
-       Ambos operandos son negligibles. Aceptar igualdad exacta.
-
-   Régimen 2: |valor_total| ≥ ε_abs
-       Exigir diferencia relativa ≤ ε_rel = 1e-6.
-
-   Justificación: float64 con m dígitos significativos en cantidad,
-   n en precio ⟹ error en producto ≈ 10^(-15) × 10^(m+n).
-   Para m+n ≤ 12: error ≤ 10^-27 << 1e-6 ✓
-
-5. CONSTANTES NUMÉRICAS: VALORES Y JUSTIFICACIÓN
-──────────────────────────────────────────────────
-
-   MAX_CANTIDAD = 1,000,000 (10^6)
-       Construcción civil: máxima cantidad razonable por APU
-       Ejemplo: no se esperan 1 millón de ladrillos en un solo APU
-
-   MAX_PRECIO = 1,000,000,000 (10^9)
-       Equipo especial: grúa de torre ≈ $1,000/hora = 10^9 en moneda local
-       Amortización: puede costar O(10^8) por proyecto
-
-   MAX_RENDIMIENTO = 1,000 (10^3)
-       Mano de obra: máximo 1000 unidades/hora
-       Si rendimiento > 1000, probablemente error de unidades
-
-   CONSERVATION_RELATIVE_TOLERANCE = 1e-6
-       float64: ε_mach ≈ 2.22e-16
-       Producto de O(10^m) × O(10^n): error ≈ 10^(m+n-15)
-       Peor caso (m+n ≤ 12): error ≤ 10^-27
-       Margen: 1e-6 ≫ 10^-27
-
-Referencias:
-    [1] Shannon, C.E. (1948). "A Mathematical Theory of Communication",
-        Bell System Technical Journal, 27(3-4):379–423.
-    [2] Diestel, R. (2017). "Graph Theory", 5th ed., Springer-Verlag.
-    [3] Goldberg, D. (1991). "What Every Computer Scientist Should Know
-        About Floating-Point Arithmetic", ACM Computing Surveys.
-    [4] Higham, N.J. (2002). "Accuracy and Stability of Numerical
-        Algorithms", 2nd ed., SIAM.
+3. Diversidad Categórica D(a):
+    D(a) = |tipos únicos en R(a)| / 5 ∈. Cuantifica la ortogonalidad de la cadena 
+    de suministro. Una APU con D=0 (monotipo) es intrínsecamente frágil ante fallos de 
+    una sola clase de proveedor.
+=========================================================================================
 """
 
 from __future__ import annotations

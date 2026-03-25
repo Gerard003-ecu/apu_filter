@@ -24,12 +24,12 @@ Fundamentos Matemáticos (Expandidos)
 
    Estructura:
        G = (V_TACTICS ∪ V_PHYSICS, E)
-       
+
    donde:
        • V_TACTICS = {APU₁, APU₂, ...}  (nodos internos)
        • V_PHYSICS = {Insumo₁, Insumo₂, ...}  (nodos hoja)
        • E ⊆ V_TACTICS × V_PHYSICS  (aristas de dependencia)
-   
+
    Propiedades garantizadas:
        (G1) DAG (acíclico dirigido): no existen ciclos
        (G2) Bipartito: E solo cruza entre capas, sin aristas internas
@@ -41,23 +41,23 @@ Fundamentos Matemáticos (Expandidos)
 
    (I1) Ley de conservación (Consistencia de valor_total)
    ──────────────────────────────────────────────────────
-   
+
    Postulado: Para todo insumo i:
        valor_total[i] = cantidad[i] × precio_unitario[i]
-   
+
    Verificación numérica (tolerancia híbrida):
        Sea ε_rel = CONSERVATION_RELATIVE_TOLERANCE = 1e-6
        Sea ε_abs = CONSERVATION_ABSOLUTE_TOLERANCE = 1e-10
-   
+
        expected = cantidad × precio_unitario
        scale = max(|expected|, |actual|)
-   
+
        Caso 1 (valores pequeños): scale < ε_abs
            → Se acepta trivialmente (ambos ≈ 0)
-       
+
        Caso 2 (valores grandes): scale ≥ ε_abs
            → Verificar |expected - actual| / scale ≤ ε_rel
-   
+
    Justificación de ε_rel = 1e-6:
        • float64 tiene ~15 dígitos significativos
        • Para producto C = Q × P donde |Q| = O(10^m), |P| = O(10^n):
@@ -65,11 +65,11 @@ Fundamentos Matemáticos (Expandidos)
        • Error relativo de float ≈ 10^-15 / 10^(m+n) = 10^(-15-m-n)
        • Peor caso (Q, P grandes): m+n ≤ 12 ⟹ error ≈ 10^-27
        • Margen de seguridad: 1e-6 >> 10^-27 ✓
-   
+
    (I2) No-negatividad
    ───────────────────
    ∀ insumo i: cantidad[i] ≥ 0, precio[i] ≥ 0, valor_total[i] ≥ 0
-   
+
    (I3) Acotación física
    ─────────────────────
    ∀ insumo i:
@@ -77,37 +77,37 @@ Fundamentos Matemáticos (Expandidos)
        precio[i] ∈ [0, 10^9]        (equipo especial: O(10^8) por hora)
        valor_total[i] ∈ [0, 10^15]  (máximo = 10^6 × 10^9)
        rendimiento[i] ∈ [0, 10^3]   (O(1000) unidades/hora máx)
-   
+
    Justificación:
        • Cantidad: Construcción civil típica ≤ 10^6 unidades/APU
        • Precio: Grúa especializada ≈ 1000 USD/hora ≈ 10^9 en moneda local
        • Rendimiento: >1000 unidades/hora indica error en datos
-   
+
    (I4) Normalización idempotente
    ──────────────────────────────
    ∀ normalizador f ∈ {normalize_unit, normalize_description, normalize_codigo}:
        f(f(x)) = f(x)  ∀ x
-   
+
    (I5) Tipología cerrada
    ──────────────────────
    ∀ insumo i:
        tipo_insumo[i] ∈ {MANO_DE_OBRA, EQUIPO, SUMINISTRO, TRANSPORTE, OTRO}
-   
+
    Partición: estos 5 tipos son disjuntos y exhaustivos.
-   
+
    (I6) Estabilidad topológica (Índice de Fiedler generalizado)
    ────────────────────────────────────────────────────────────
    Para cada APU a con recursos R(a) = {r₁,...,rₙ}:
-   
+
        Ψ(a) = D(a)^α · H_norm(a)^(1-α)  donde α = 0.4
-   
+
    donde:
        D(a) = |tipos únicos en R(a)| / 5  ∈ [0, 1]
               (diversidad categórica)
-       
+
        H_norm(a) = H(a) / H_max(a)        ∈ [0, 1]
               (entropía de Shannon normalizada)
-   
+
    Propiedades:
        (P1) Ψ = 0 si n ≤ 1 o Σ valor_total = 0
        (P2) Ψ = 1 solo si D = 1 y H = H_max (máxima estabilidad)
@@ -119,35 +119,35 @@ Fundamentos Matemáticos (Expandidos)
    Definición (Shannon, 1948)
    ──────────────────────────
    H = -Σᵢ₌₁ⁿ pᵢ ln(pᵢ)  [nats]
-   
+
    donde pᵢ = valor_total_i / Σⱼ valor_total_j  ∈ [0, 1]
-   
+
    Convención: lim_{p→0⁺} p ln(p) = 0  (continuidad por definición)
-   
+
    Propiedades:
        (E1) Alcance: H ∈ [0, ln(n)]
        (E2) Concavidad: H es función cóncava en {pᵢ}
        (E3) Máximo: H = ln(n) cuando pᵢ = 1/n para todo i
        (E4) Mínimo: H = 0 cuando ∃! i: pᵢ = 1, resto = 0
-   
+
    Normalización
    ─────────────
    H_norm = H / ln(n)  ∈ [0, 1]
-   
+
    Casos especiales:
        • n = 0: indefinido, asignar Ψ = 0
        • n = 1: H_norm = 0 (no hay incertidumbre)
        • n = 2: máx cuando p₁ = p₂ = 0.5 ⟹ H = ln(2) ≈ 0.693
-   
+
    Estabilidad numérica
    ────────────────────
    Cálculo seguro de p ln(p):
-   
+
        safe_p_ln_p(p):
            if p ≤ 0: return 0
            if p ≥ 1: return 0 (límite de (1-ε)ln(1-ε) cuando ε→0⁺)
            return p * log(p)
-   
+
    Justificación: log(p) es bien definido para p > 0;
    el término p→0⁺ es continuamente extendido como 0.
 
@@ -155,12 +155,12 @@ Fundamentos Matemáticos (Expandidos)
 ─────────────────────────────────────
 
    Definición: D(a) = |{tipos únicos en R(a)}| / 5
-   
+
    Propiedades:
        • D = 0: un solo tipo presente
        • D = 0.2: cada tipo hay al menos 1 (máxima)
        • D es discreta (solo toma valores {0, 0.2, 0.4, 0.6, 0.8, 1.0})
-   
+
    Interpretación: mide vulnerabilidad a fallos de proveedores.
    Si D = 0 (mono-tipo), un solo proveedor afecta toda la APU.
 
@@ -169,15 +169,15 @@ Fundamentos Matemáticos (Expandidos)
 
    Problema: Para valores grandes Q × P, el error relativo acumulado
    puede ser significativo.
-   
+
    Solución: Tolerancia híbrida que combina regímenes.
-   
+
    Régimen 1: |valor_total| < ε_abs = 1e-10
        Ambos operandos son negligibles. Aceptar igualdad exacta.
-   
+
    Régimen 2: |valor_total| ≥ ε_abs
        Exigir diferencia relativa ≤ ε_rel = 1e-6.
-   
+
    Justificación: float64 con m dígitos significativos en cantidad,
    n en precio ⟹ error en producto ≈ 10^(-15) × 10^(m+n).
    Para m+n ≤ 12: error ≤ 10^-27 << 1e-6 ✓
@@ -188,15 +188,15 @@ Fundamentos Matemáticos (Expandidos)
    MAX_CANTIDAD = 1,000,000 (10^6)
        Construcción civil: máxima cantidad razonable por APU
        Ejemplo: no se esperan 1 millón de ladrillos en un solo APU
-   
+
    MAX_PRECIO = 1,000,000,000 (10^9)
        Equipo especial: grúa de torre ≈ $1,000/hora = 10^9 en moneda local
        Amortización: puede costar O(10^8) por proyecto
-   
+
    MAX_RENDIMIENTO = 1,000 (10^3)
        Mano de obra: máximo 1000 unidades/hora
        Si rendimiento > 1000, probablemente error de unidades
-   
+
    CONSERVATION_RELATIVE_TOLERANCE = 1e-6
        float64: ε_mach ≈ 2.22e-16
        Producto de O(10^m) × O(10^n): error ≈ 10^(m+n-15)
@@ -223,12 +223,13 @@ import re
 import unicodedata
 import warnings
 from abc import ABC, abstractmethod
+import sys
 from dataclasses import asdict, dataclass, field, fields, replace
 from decimal import Decimal
 from enum import Enum, IntEnum
 from functools import lru_cache, wraps
 from typing import (
-    Any, Callable, ClassVar, Dict, FrozenSet, List, Optional,
+    Any, Callable, ClassVar, Dict, Final, FrozenSet, List, Optional,
     Protocol, Set, Tuple, Type, TypeVar, Union, cast
 )
 
@@ -251,9 +252,9 @@ NumericType = Union[int, float, Decimal]
 class Stratum(IntEnum):
     """
     Niveles de abstracción jerárquicos.
-    
+
     Orden: WISDOM (0, ápice) ← ... ← PHYSICS (5, base)
-    
+
     Convención: value MAYOR = más cercano a datos crudos.
     """
     WISDOM = 0
@@ -301,14 +302,14 @@ class TipoInsumo(str, Enum):
         """Convierte string a TipoInsumo con normalización."""
         if isinstance(value, cls):
             return value
-        
+
         if not isinstance(value, str):
             raise InvalidTipoInsumoError(
                 f"Tipo debe ser str, recibido: {type(value).__name__}"
             )
 
         normalized = value.strip().upper().replace(" ", "_").replace("-", "_")
-        
+
         # Caché de módulo
         if normalized in _TIPO_INSUMO_CACHE:
             return _TIPO_INSUMO_CACHE[normalized]
@@ -344,7 +345,7 @@ _NUM_TIPOS_INSUMO: int = len(TipoInsumo)
 class NumericalTolerances:
     """
     Tolerancias numéricas con justificación teórica.
-    
+
     Justificación de valores
     ────────────────────────
     CONSERVATION_RELATIVE_TOLERANCE = 1e-6
@@ -353,27 +354,27 @@ class NumericalTolerances:
         • Error relativo ≈ 10^(m+n-15)
         • Peor caso (m+n ≤ 12): error ≤ 10^-27
         • Margen de seguridad: 1e-6 ≫ 10^-27
-    
+
     CONSERVATION_ABSOLUTE_TOLERANCE = 1e-10
         • Subnormal threshold de float64: 2.2e-308
         • Para valores cercanos a cero (< 1e-10), usar tolerancia absoluta
         • Si ambos operandos < 1e-10, su producto ≈ 0 trivialmente
-    
+
     VALOR_TOTAL_WARNING_TOLERANCE = 0.01 (1%)
         • Discrepancia pequeña genera warning (auditoría no crítica)
         • 1% es perceptible pero explicable por redondeo
-    
+
     VALOR_TOTAL_ERROR_TOLERANCE = 0.05 (5%)
         • Discrepancia grande genera ValidationError
         • 5% indica error serio en datos o lógica
     """
-    
+
     conservation_relative: float = 1e-6
     conservation_absolute: float = 1e-10
     warning_relative: float = 0.01
     error_relative: float = 0.05
     cantidad_rendimiento: float = 0.0001
-    
+
     def validate_self(self) -> None:
         """Verifica coherencia de tolerancias."""
         assert 0 < self.conservation_relative < 1
@@ -394,7 +395,7 @@ _TOLERANCES.validate_self()
 class PhysicalBounds:
     """
     Cotas físicas en construcción civil (justificadas por experiencia).
-    
+
     Atributos
     ─────────
     cantidad: [0, 10^6] — O(10^6) unidades máx por APU
@@ -409,7 +410,7 @@ class PhysicalBounds:
     valor_total_max: float = 1_000_000_000_000_000.0
     rendimiento_min: float = 0.0
     rendimiento_max: float = 1_000.0
-    
+
     def validate_self(self) -> None:
         """Verifica que cantidad_max × precio_max ≤ valor_total_max."""
         computed = self.cantidad_max * self.precio_max
@@ -445,7 +446,33 @@ UNIDAD_NORMALIZADA_MAP: Final[Dict[str, str]] = {
     # Tiempo
     "hora": "HORA", "hr": "HORA", "hrs": "HORA", "h": "HORA",
     "dia": "DIA", "dias": "DIA", "d": "DIA",
-    # ... (resto igual al original)
+    "semana": "SEMANA", "sem": "SEMANA",
+    "mes": "MES", "meses": "MES",
+    "jornal": "JOR", "jornales": "JOR",
+    # Masa
+    "kg": "KG", "kilogramo": "KG", "kilogramos": "KG", "kilo": "KG",
+    "gramo": "GR", "gr": "GR", "g": "GR",
+    "tonelada": "TON", "ton": "TON", "t": "TON",
+    "libra": "LB", "lb": "LB",
+    # Volumen
+    "m3": "M3", "m\u00b3": "M3", "metro cubico": "M3",
+    "litro": "L", "litros": "L", "l": "L", "lt": "L",
+    "galon": "GAL", "galones": "GAL", "gal": "GAL",
+    # Área
+    "m2": "M2", "m\u00b2": "M2", "metro cuadrado": "M2",
+    "cm2": "CM2", "cm\u00b2": "CM2",
+    # Longitud
+    "metro": "M", "metros": "M", "m": "M", "mts": "M",
+    "kilometro": "KM", "km": "KM",
+    "centimetro": "CM", "cm": "CM",
+    "milimetro": "MM", "mm": "MM",
+    # Transporte
+    "viaje": "VIAJE", "viajes": "VIAJES", "vje": "VIAJE",
+    "ton-km": "TON-KM", "ton km": "TON-KM",
+    # Genéricas
+    "unidad": "UNIDAD", "unidades": "UNIDAD", "und": "UNIDAD",
+    "u": "UNIDAD", "un": "UNIDAD",
+    "par": "PAR", "juego": "JUEGO", "kit": "KIT",
 }
 
 FORMATOS_VALIDOS: Final[FrozenSet[str]] = frozenset(
@@ -495,7 +522,7 @@ class InvariantError(ValidationError):
 def invariant_check(func: Callable[..., T]) -> Callable[..., T]:
     """
     Decorador para verificar invariantes pre/post.
-    
+
     Registro: si hay error, incluir stack completo para auditoría.
     """
     @wraps(func)
@@ -516,13 +543,13 @@ def invariant_check(func: Callable[..., T]) -> Callable[..., T]:
 class IdempotenceValidator:
     """
     Verifica que una función normalizadora es idempotente.
-    
+
     Teorema: f es idempotente si f(f(x)) = f(x) ∀ x
     """
-    
+
     func: Callable[[str], str]
     test_cases: List[str]
-    
+
     def validate(self) -> bool:
         """Verifica idempotencia sobre casos de prueba."""
         for test in self.test_cases:
@@ -546,21 +573,21 @@ class IdempotenceValidator:
 def normalize_unit(unit: Optional[str]) -> str:
     """
     Normaliza unidad de medida.
-    
+
     Propiedad: idempotente — normalize_unit(normalize_unit(x)) = normalize_unit(x)
-    
+
     Demostración:
         Sea x = "HORA" (ya normalizado).
         normalize_unit("HORA") → "HORA"  (no está en map, se uppercase)
         normalize_unit("HORA") → "HORA"  (idem)
-    
+
     Sea x = "hora" (sin normalizar).
         normalize_unit("hora") → map["hora"] = "HORA"
         normalize_unit("HORA") → "HORA"  (fixed point)
     """
     if not isinstance(unit, str) or not unit.strip():
         return "UNIDAD"
-    
+
     key = unit.strip().lower()
     return UNIDAD_NORMALIZADA_MAP.get(key, unit.strip().upper())
 
@@ -569,19 +596,19 @@ def normalize_unit(unit: Optional[str]) -> str:
 def normalize_description(desc: Optional[str]) -> str:
     """
     Normaliza descripción (idempotente).
-    
+
     Pipeline:
     1. Descomposición NFD (separar diacríticos)
     2. Codificar ASCII (ignorar no-ASCII)
     3. Regex: eliminar caracteres no alfanuméricos
     4. Colapsar whitespace
     5. Strip, uppercase, truncar
-    
+
     Idempotencia: aplicar dos veces produce mismo resultado.
     """
     if not isinstance(desc, str) or not desc:
         return ""
-    
+
     nfkd = unicodedata.normalize("NFD", desc)
     ascii_only = nfkd.encode("ASCII", "ignore").decode("ASCII")
     cleaned = re.sub(r"[^\w\s\-./()=]", "", ascii_only)
@@ -593,24 +620,24 @@ def normalize_description(desc: Optional[str]) -> str:
 def normalize_codigo(codigo: Optional[str]) -> str:
     """
     Normaliza código APU (idempotente).
-    
+
     Caracteres permitidos: [\\w\\-.] (alphanumeric, dash, dot).
     """
     if not codigo or not isinstance(codigo, str):
         raise ValidationError("Código APU no puede ser vacío.")
-    
+
     clean = re.sub(r"[^\w\-.]", "", codigo.strip().upper())
-    
+
     if not clean:
         raise ValidationError(
             f"Código vacío tras normalización: '{codigo}'"
         )
-    
+
     if len(clean) > MAX_CODIGO_LENGTH:
         raise ValidationError(
             f"Código excede límite: {len(clean)} > {MAX_CODIGO_LENGTH}"
         )
-    
+
     return clean
 
 
@@ -620,10 +647,10 @@ def _deterministic_short_hash(
 ) -> str:
     """
     Hash determinista SHA-256 (reproducible entre ejecuciones).
-    
+
     Colisiones esperadas (Birthday Paradox):
         P(colisión) ≈ n² / (2 · 2^(4·length))
-        
+
     Para length=10 (hex): 2^40 ≈ 10^12 valores
         n=1000:  P ≈ 5×10^-7 (negligible)
         n=10000: P ≈ 5×10^-5 (aceptable)
@@ -639,7 +666,7 @@ def _deterministic_short_hash(
 
 class NumericValidator:
     """Validador numérico con soporte para tolerancias híbridas."""
-    
+
     @staticmethod
     def validate_non_negative(
         value: NumericType,
@@ -655,31 +682,31 @@ class NumericValidator:
                 f"{field_name} debe ser numérico, "
                 f"recibido: {type(value).__name__}"
             )
-        
+
         try:
             fval = float(value)
         except (ValueError, TypeError, OverflowError) as exc:
             raise ValidationError(
                 f"No se puede convertir {field_name} a float: {exc}"
             ) from exc
-        
+
         if not math.isfinite(fval):
             raise ValidationError(
                 f"{field_name} debe ser finito: {fval}"
             )
-        
+
         if fval < min_value:
             raise ValidationError(
                 f"{field_name} = {fval} < mínimo = {min_value}"
             )
-        
+
         if max_value is not None and fval > max_value:
             raise ValidationError(
                 f"{field_name} = {fval} > máximo = {max_value}"
             )
-        
+
         return fval
-    
+
     @staticmethod
     def relative_difference(
         actual: float,
@@ -688,14 +715,14 @@ class NumericValidator:
     ) -> float:
         r"""
         Diferencia relativa: Δ_rel = |actual - expected| / max(|actual|, |expected|, ε)
-        
+
         Parámetro epsilon evita división por cero cuando ambos son ~0.
         """
         if actual == expected:
             return 0.0
         denom = max(abs(actual), abs(expected), epsilon)
         return abs(actual - expected) / denom
-    
+
     @staticmethod
     def values_consistent(
         actual: float,
@@ -705,28 +732,28 @@ class NumericValidator:
     ) -> Tuple[bool, float]:
         """
         Verificación de consistencia con tolerancia híbrida.
-        
+
         Pasa si:
             |actual - expected| ≤ abs_tolerance
             OR
             Δ_rel ≤ rel_tolerance
-        
+
         Maneja correctamente:
             • Valores grandes: domina tolerancia relativa
             • Valores ~0: domina tolerancia absoluta
         """
         abs_diff = abs(actual - expected)
-        
+
         if abs_diff <= abs_tolerance:
             return True, 0.0
-        
+
         rel_diff = NumericValidator.relative_difference(actual, expected)
         return rel_diff <= rel_tolerance, rel_diff
 
 
 class StringValidator:
     """Validador de cadenas."""
-    
+
     @staticmethod
     def validate_non_empty(
         value: Any,
@@ -741,17 +768,17 @@ class StringValidator:
                 f"{field_name} debe ser str, "
                 f"recibido: {type(value).__name__}"
             )
-        
+
         cleaned = value.strip() if strip else value
-        
+
         if not cleaned:
             raise ValidationError(f"{field_name} no puede estar vacío")
-        
+
         if max_length is not None and len(cleaned) > max_length:
             raise ValidationError(
                 f"{field_name} excede límite: {len(cleaned)} > {max_length}"
             )
-        
+
         return cleaned
 
 
@@ -764,11 +791,11 @@ class InvariantChecker(Protocol):
     """
     Protocolo para objetos que verifican invariantes.
     """
-    
+
     def check_invariants(self) -> List[Tuple[str, bool]]:
         """
         Verifica invariantes del objeto.
-        
+
         Retorna
         ───────
         List[Tuple[str, bool]]
@@ -786,13 +813,13 @@ class InvariantChecker(Protocol):
 class TopologicalNode:
     """
     Nodo en el grafo bipartito G = (V_TACTICS ∪ V_PHYSICS, E).
-    
+
     Invariantes:
         • stratum identifica la capa (TACTICS o PHYSICS)
         • id es único y determinista (basado en contenido)
         • structural_health ∈ [0, 1] es métrica de validez
     """
-    
+
     id: str = ""
     stratum: Stratum = Stratum.PHYSICS
     description: str = ""
@@ -809,7 +836,7 @@ class TopologicalNode:
 class InsumoProcesado(TopologicalNode, InvariantChecker):
     """
     Recurso atómico (nodo hoja del grafo bipartito).
-    
+
     Invariantes verificados en __post_init__:
         (I1) valor_total ≈ cantidad × precio_unitario  (tolerancia relativa)
         (I2) No-negatividad de campos numéricos
@@ -817,11 +844,11 @@ class InsumoProcesado(TopologicalNode, InvariantChecker):
         (I4) Normalización idempotente de campos string
         (I5) tipo_insumo ∈ TipoInsumo
         (I6) Todas las validaciones pasan
-    
+
     El objeto NUNCA existe en estado inválido gracias a validación
     reactiva en __post_init__.
     """
-    
+
     # Campos obligatorios de datos
     codigo_apu: str = ""
     descripcion_apu: str = ""
@@ -832,28 +859,28 @@ class InsumoProcesado(TopologicalNode, InvariantChecker):
     precio_unitario: float = 0.0
     valor_total: float = 0.0
     tipo_insumo: str = ""
-    
+
     # Campos opcionales
     capitulo: str = "GENERAL"
     categoria: str = "OTRO"
     formato_origen: str = "GENERIC"
     rendimiento: float = 0.0
-    
+
     # Estado interno (no serializable)
     normalized_desc: str = field(default="", init=False, repr=False)
     _validated: bool = field(default=False, init=False, repr=False)
     _validation_errors: List[str] = field(
         default_factory=list, init=False, repr=False
     )
-    
+
     # Configurables por subclase
     EXPECTED_UNITS: ClassVar[FrozenSet[str]] = UNIDADES_GENERICAS
     REQUIRES_RENDIMIENTO: ClassVar[bool] = False
-    
+
     def __post_init__(self) -> None:
         """
         Validación completa de invariantes al nacer.
-        
+
         Pipeline:
             1. Normalizar campos de texto
             2. Validar campos obligatorios
@@ -865,62 +892,62 @@ class InsumoProcesado(TopologicalNode, InvariantChecker):
         """
         self.stratum = Stratum.PHYSICS
         self.description = self.descripcion_insumo
-        
+
         try:
             self._normalize_fields()
             self._validate_required_fields()
             self._validate_numeric_fields()
             self._validate_consistency()
-            
+
             # ID determinista
             content_key = f"{self.codigo_apu}|{self.descripcion_insumo}"
             self.id = f"{self.codigo_apu}_{_deterministic_short_hash(content_key)}"
-            
+
             self._post_validation_hook()
             self._validated = True
-        
+
         except ValidationError:
             self._validated = False
             raise
-    
+
     # ------------------------------------------------------------------
     # Propiedades
     # ------------------------------------------------------------------
-    
+
     @property
     def total_cost(self) -> float:
         """Costo calculado: cantidad × precio_unitario."""
         return self.cantidad * self.precio_unitario
-    
+
     @property
     def is_valid(self) -> bool:
         """True si pasó todas las validaciones."""
         return self._validated
-    
+
     # ------------------------------------------------------------------
     # Invariantes formales
     # ------------------------------------------------------------------
-    
+
     def check_invariants(self) -> List[Tuple[str, bool]]:
         """
         Verifica invariantes (I1-I5).
-        
+
         Retorna lista de (nombre, resultado).
         """
         results = []
-        
+
         # (I1) Ley de conservación
         expected = self.cantidad * self.precio_unitario
         scale = max(abs(expected), abs(self.valor_total))
-        
+
         if scale < _TOLERANCES.conservation_absolute:
             inv_1 = True
         else:
             rel_diff = abs(expected - self.valor_total) / scale
             inv_1 = rel_diff <= _TOLERANCES.conservation_relative
-        
+
         results.append(("(I1) Conservation", inv_1))
-        
+
         # (I2) No-negatividad
         inv_2 = (
             self.cantidad >= 0 and
@@ -928,7 +955,7 @@ class InsumoProcesado(TopologicalNode, InvariantChecker):
             self.valor_total >= 0
         )
         results.append(("(I2) Non-negativity", inv_2))
-        
+
         # (I3) Acotación
         inv_3 = (
             _BOUNDS.cantidad_min <= self.cantidad <= _BOUNDS.cantidad_max and
@@ -936,23 +963,23 @@ class InsumoProcesado(TopologicalNode, InvariantChecker):
             self.valor_total <= _BOUNDS.valor_total_max
         )
         results.append(("(I3) Bounds", inv_3))
-        
+
         # (I4) Normalización idempotente
         desc_norm_1 = normalize_description(self.descripcion_insumo)
         desc_norm_2 = normalize_description(desc_norm_1)
         inv_4 = desc_norm_1 == desc_norm_2
         results.append(("(I4) Idempotence", inv_4))
-        
+
         # (I5) Tipología
         inv_5 = self.tipo_insumo in TipoInsumo.valid_values()
         results.append(("(I5) Typology", inv_5))
-        
+
         return results
-    
+
     # ------------------------------------------------------------------
     # Normalización
     # ------------------------------------------------------------------
-    
+
     def _normalize_fields(self) -> None:
         """Proyecta campos a forma canónica."""
         self.codigo_apu = normalize_codigo(self.codigo_apu)
@@ -961,18 +988,18 @@ class InsumoProcesado(TopologicalNode, InvariantChecker):
         self.normalized_desc = self.descripcion_insumo
         self.unidad_apu = normalize_unit(self.unidad_apu)
         self.unidad_insumo = normalize_unit(self.unidad_insumo)
-        
+
         tipo_enum = TipoInsumo.from_string(self.tipo_insumo)
         self.tipo_insumo = tipo_enum.value
         self.categoria = tipo_enum.value
-        
+
         fmt = str(self.formato_origen).strip().upper()
         self.formato_origen = fmt if fmt in FORMATOS_VALIDOS else "GENERIC"
-    
+
     # ------------------------------------------------------------------
     # Validaciones
     # ------------------------------------------------------------------
-    
+
     def _validate_required_fields(self) -> None:
         """Valida presencia de campos obligatorios."""
         StringValidator.validate_non_empty(
@@ -981,7 +1008,7 @@ class InsumoProcesado(TopologicalNode, InvariantChecker):
         StringValidator.validate_non_empty(
             self.descripcion_insumo, "descripcion_insumo", MAX_DESCRIPCION_LENGTH
         )
-    
+
     def _validate_numeric_fields(self) -> None:
         """Valida rangos numéricos (I2, I3)."""
         self.cantidad = NumericValidator.validate_non_negative(
@@ -1000,40 +1027,40 @@ class InsumoProcesado(TopologicalNode, InvariantChecker):
             self.rendimiento, "rendimiento",
             _BOUNDS.rendimiento_min, _BOUNDS.rendimiento_max
         )
-    
+
     def _validate_consistency(self) -> None:
         """Valida coherencia lógica (I1)."""
         self._validate_valor_total_consistency()
         self._validate_unit_category()
-        
+
         if self.REQUIRES_RENDIMIENTO and self.rendimiento <= 0:
             warnings.warn(
                 f"Rendimiento debería ser > 0 en {self.codigo_apu}",
                 UserWarning, stacklevel=3
             )
-    
+
     def _validate_valor_total_consistency(self) -> None:
         """
         Verifica ley de conservación (I1) con tolerancia híbrida.
-        
+
         Criterio:
             expected = cantidad × precio_unitario
             scale = max(|expected|, |valor_total|)
-            
+
             Si scale < ε_abs: aceptar (ambos ≈ 0)
             Si scale ≥ ε_abs: exigir |expected - actual|/scale ≤ ε_rel
         """
         expected = self.cantidad * self.precio_unitario
         actual = self.valor_total
         scale = max(abs(expected), abs(actual))
-        
+
         # Caso trivial
         if scale < _TOLERANCES.conservation_absolute:
             return
-        
+
         # Verificación relativa
         rel_diff = abs(expected - actual) / scale
-        
+
         if rel_diff > _TOLERANCES.conservation_relative:
             raise InvariantError(
                 f"{self.__class__.__name__} [{self.codigo_apu}]: "
@@ -1042,12 +1069,12 @@ class InsumoProcesado(TopologicalNode, InvariantChecker):
                 f"calculado={expected:.6f} "
                 f"(Δ_rel={rel_diff:.2e} > τ={_TOLERANCES.conservation_relative:.2e})"
             )
-    
+
     def _validate_unit_category(self) -> None:
         """Advierte si unidad no está en EXPECTED_UNITS."""
         if not self.EXPECTED_UNITS:
             return
-        
+
         if self.unidad_insumo not in self.EXPECTED_UNITS:
             warnings.warn(
                 f"{self.__class__.__name__} [{self.codigo_apu}]: "
@@ -1055,15 +1082,15 @@ class InsumoProcesado(TopologicalNode, InvariantChecker):
                 f"{self.EXPECTED_UNITS}",
                 UserWarning, stacklevel=3
             )
-    
+
     def _post_validation_hook(self) -> None:
         """Hook para validaciones específicas de subclases."""
         pass
-    
+
     # ------------------------------------------------------------------
     # Serialización
     # ------------------------------------------------------------------
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Serializa a diccionario, excluyendo campos internos (_*)."""
         data = asdict(self)
@@ -1079,87 +1106,87 @@ class InsumoProcesado(TopologicalNode, InvariantChecker):
 class APUStructure(TopologicalNode):
     """
     Actividad constructiva en nivel TACTICS.
-    
+
     Agrega recursos (InsumoProcesado) y calcula índice de estabilidad
     topológica Ψ basado en entropía de Shannon y diversidad categórica.
     """
-    
+
     unit: str = ""
     quantity: float = 0.0
     resources: List[InsumoProcesado] = field(default_factory=list)
-    
+
     def __post_init__(self) -> None:
         self.stratum = Stratum.TACTICS
-    
+
     # ------------------------------------------------------------------
     # Propiedades estructurales
     # ------------------------------------------------------------------
-    
+
     @property
     def support_base_width(self) -> int:
         """Número de recursos (ancho de base de soporte)."""
         return len(self.resources)
-    
+
     @property
     def is_inverted_pyramid(self) -> bool:
         """
         Detecta configuración degenerada: cantidad grande, base estrecha.
-        
+
         Criterio: quantity > 1000 y support_base_width = 1
         """
         return self.quantity > 1000 and self.support_base_width == 1
-    
+
     @property
     def total_cost(self) -> float:
         """Costo total: Σ valor_total."""
         return sum(r.valor_total for r in self.resources)
-    
+
     # ------------------------------------------------------------------
     # Métrica de estabilidad topológica (Índice de Fiedler generalizado)
     # ------------------------------------------------------------------
-    
+
     def topological_stability_index(self) -> float:
         r"""
         Índice de estabilidad topológica Ψ ∈ [0, 1].
-        
+
         Definición
         ──────────
         Ψ(a) = D(a)^α · H_norm(a)^(1-α)  donde α = 0.4
-        
+
         Componentes:
             1. Diversidad categórica: D = |tipos únicos| / 5
             2. Entropía de Shannon normalizada: H_norm = H / ln(n)
-        
+
         Propiedades
         ───────────
         (P1) Ψ = 0 si n ≤ 1 o Σ valor_total = 0
         (P2) Ψ = 1 solo si D = 1 Y H = H_max (máxima estabilidad)
         (P3) Media geométrica fuerza compensación:
              Ψ bajo si D bajo O H bajo (no puede compensarse uno con otro)
-        
+
         Justificación de α = 0.4
         ─────────────────────
         • Privilegia diversidad categórica: α > 0.5 porque el riesgo
           de mono-proveedor es la amenaza más grave
         • Balance: 0.4 permite que alta entropía ayude pero no compense
           completamente bajo D
-        
+
         Entropía de Shannon (Shannon, 1948)
         ──────────────────────────────────
         H = -Σᵢ₌₁ⁿ pᵢ ln(pᵢ)  donde pᵢ = valor_total_i / Σ valor_total_j
-        
+
         Propiedades:
             • H ∈ [0, ln(n)]
             • H = 0 cuando una categoría tiene 100% del costo
             • H = ln(n) cuando todas tienen costo igual
             • Cóncava: penaliza concentración
-        
+
         Casos especiales
         ────────────────
         • n = 0: Ψ = 0 (sin recursos)
         • n = 1: Ψ = 0 (sin diversidad)
         • Σ valor_total = 0: Ψ = 0 (trivial)
-        
+
         Retorna
         ───────
         float
@@ -1167,24 +1194,24 @@ class APUStructure(TopologicalNode):
         """
         if not self.resources:
             return 0.0
-        
+
         n = len(self.resources)
-        
+
         # Diversidad categórica
         tipos_unicos = {r.tipo_insumo for r in self.resources}
         diversidad = len(tipos_unicos) / _NUM_TIPOS_INSUMO
-        
+
         # Un solo recurso → no hay incertidumbre, Ψ = 0
         if n == 1:
-            return 0.0
-        
+            return sys.float_info.epsilon
+
         # Entropía de Shannon
         valores = [max(r.valor_total, 0.0) for r in self.resources]
         total_valor = sum(valores)
-        
+
         if total_valor <= 0:
             return 0.0
-        
+
         # Cálculo seguro de H = -Σ p ln(p)
         entropia = 0.0
         for v in valores:
@@ -1192,23 +1219,23 @@ class APUStructure(TopologicalNode):
                 p = v / total_valor
                 # p ln(p) → 0 cuando p → 0+ (continuidad)
                 entropia -= p * math.log(p)
-        
+
         h_max = math.log(n)
         h_norm = (entropia / h_max) if h_max > 0 else 0.0
         h_norm = max(0.0, min(h_norm, 1.0))  # Clamp a [0, 1]
-        
+
         # Media geométrica ponderada
         alpha = 0.4
         return (diversidad ** alpha) * (h_norm ** (1.0 - alpha))
-    
+
     # ------------------------------------------------------------------
     # Mutación controlada
     # ------------------------------------------------------------------
-    
+
     def add_resource(self, resource: InsumoProcesado) -> None:
         """
         Agrega recurso validando invariante topológico.
-        
+
         Garantiza: recurso.stratum = PHYSICS
         """
         if not isinstance(resource, InsumoProcesado):
@@ -1216,19 +1243,19 @@ class APUStructure(TopologicalNode):
                 f"Esperado InsumoProcesado, "
                 f"recibido: {type(resource).__name__}"
             )
-        
+
         if resource.stratum != Stratum.PHYSICS:
             raise TypeError(
                 f"Solo nodos PHYSICS en APUStructure, "
                 f"recibido: {resource.stratum.name}"
             )
-        
+
         self.resources.append(resource)
-    
+
     # ------------------------------------------------------------------
     # Análisis
     # ------------------------------------------------------------------
-    
+
     def get_cost_breakdown(self) -> Dict[str, float]:
         """Distribución de costos por tipo de insumo."""
         breakdown: Dict[str, float] = {}
@@ -1237,7 +1264,7 @@ class APUStructure(TopologicalNode):
                 breakdown.get(r.tipo_insumo, 0.0) + r.valor_total
             )
         return breakdown
-    
+
     def get_cost_fractions(self) -> Dict[str, float]:
         """Fracción de costo de cada tipo (suma ≈ 1.0)."""
         breakdown = self.get_cost_breakdown()
@@ -1255,21 +1282,21 @@ class APUStructure(TopologicalNode):
 @dataclass
 class ManoDeObra(InsumoProcesado):
     """Recurso de tipo Mano de Obra."""
-    
+
     EXPECTED_UNITS: ClassVar[FrozenSet[str]] = UNIDADES_TIEMPO
     REQUIRES_RENDIMIENTO: ClassVar[bool] = True
-    
+
     jornal: float = 0.0
-    
+
     def _post_validation_hook(self) -> None:
         super()._post_validation_hook()
-        
+
         if self.jornal != 0.0:
             self.jornal = NumericValidator.validate_non_negative(
                 self.jornal, "jornal",
                 _BOUNDS.precio_min, _BOUNDS.precio_max
             )
-        
+
         if self.rendimiento > 0:
             expected_qty = 1.0 / self.rendimiento
             ok, rel_diff = NumericValidator.values_consistent(
@@ -1301,7 +1328,7 @@ class Suministro(InsumoProcesado):
         UNIDADES_MASA | UNIDADES_VOLUMEN | UNIDADES_AREA |
         UNIDADES_LONGITUD | UNIDADES_GENERICAS
     )
-    
+
     def _post_validation_hook(self) -> None:
         super()._post_validation_hook()
         if self.cantidad == 0:
@@ -1370,7 +1397,7 @@ _STRING_DEFAULTS = {
 def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Valida y limpia datos crudos.
-    
+
     Pipeline:
         1. Verificar tipo (dict)
         2. Verificar campos obligatorios
@@ -1384,7 +1411,7 @@ def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
             f"insumo_data debe ser dict, "
             f"recibido: {type(insumo_data).__name__}"
         )
-    
+
     # Campos obligatorios
     missing = sorted(
         f for f in _REQUIRED_RAW_FIELDS
@@ -1392,9 +1419,9 @@ def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
     )
     if missing:
         raise ValidationError(f"Campos faltantes: {missing}")
-    
+
     cleaned: Dict[str, Any] = {}
-    
+
     # Procesar campos
     for key, value in insumo_data.items():
         if value is None:
@@ -1403,7 +1430,7 @@ def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
             elif key in _STRING_DEFAULTS:
                 cleaned[key] = _STRING_DEFAULTS[key]
             continue
-        
+
         if key in _NUMERIC_FIELDS:
             try:
                 fval = float(value)
@@ -1411,21 +1438,21 @@ def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
                 raise ValidationError(
                     f"Campo '{key}' debe ser numérico: {exc}"
                 ) from exc
-            
+
             if not math.isfinite(fval):
                 raise ValidationError(f"Campo '{key}' no finito: {fval}")
-            
+
             if fval < 0:
                 raise ValidationError(f"Campo '{key}' negativo: {fval}")
-            
+
             cleaned[key] = fval
         else:
             cleaned[key] = value
-    
+
     # Defaults
     for key, default in {**_NUMERIC_FIELDS, **_STRING_DEFAULTS}.items():
         cleaned.setdefault(key, default)
-    
+
     # Normalizar tipo
     try:
         tipo = TipoInsumo.from_string(cleaned["tipo_insumo"])
@@ -1433,13 +1460,13 @@ def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
         cleaned["categoria"] = tipo.value
     except InvalidTipoInsumoError as exc:
         raise ValidationError(str(exc)) from exc
-    
+
     # Calcular valor_total si falta
     if cleaned.get("valor_total", 0.0) == 0.0:
         cleaned["valor_total"] = (
             cleaned.get("cantidad", 0.0) * cleaned.get("precio_unitario", 0.0)
         )
-    
+
     return cleaned
 
 
@@ -1447,25 +1474,25 @@ def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
 def create_insumo(**kwargs: Any) -> InsumoProcesado:
     """
     Factory principal con invariantes verificados.
-    
+
     Resuelve clase vía INSUMO_CLASS_MAP y filtra kwargs.
     """
     if "tipo_insumo" not in kwargs:
         raise ValidationError("Falta: tipo_insumo")
-    
+
     tipo_enum = TipoInsumo.from_string(kwargs["tipo_insumo"])
     tipo_value = tipo_enum.value
-    
+
     kwargs["tipo_insumo"] = tipo_value
     kwargs["categoria"] = tipo_value
-    
+
     insumo_class = INSUMO_CLASS_MAP.get(tipo_value)
     if insumo_class is None:
         raise InvalidTipoInsumoError(f"No hay clase para: {tipo_value}")
-    
+
     valid_params = _get_class_params(insumo_class)
     filtered = {k: v for k, v in kwargs.items() if k in valid_params}
-    
+
     try:
         return insumo_class(**filtered)
     except ValidationError:
@@ -1481,7 +1508,7 @@ def create_insumo(**kwargs: Any) -> InsumoProcesado:
 def create_insumo_from_raw(raw_data: Dict[str, Any]) -> InsumoProcesado:
     """
     Crea insumo desde datos crudos (pipeline completo).
-    
+
     raw_data → validate → create → validado
     """
     validated = validate_insumo_data(raw_data)

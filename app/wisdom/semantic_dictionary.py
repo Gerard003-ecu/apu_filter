@@ -1,15 +1,47 @@
 """
-Microservicio: Semantic Dictionary (El Guardián de la Ontología)
-Estrato DIKW: WISDOM (Nivel 0)
+=========================================================================================
+Módulo: Semantic Dictionary (El Guardián de la Ontología y Fibrado Semántico)
+Ubicación: app/wisdom/semantic_dictionary.py
+=========================================================================================
 
-Responsabilidad:
-    Aloja todas las plantillas narrativas y diccionarios de traducción.
-    Recibe métricas crudas (telemetry_schemas) y las transforma en "Empatía Táctica"
-    (prescripciones estratégicas) para el usuario final.
+Naturaleza Ciber-Física y Topológica:
+    Actúa como la "Piedra Rosetta" de la Malla Agéntica, estableciendo el Espacio Base
+    para el Difeomorfismo Semántico. Su responsabilidad axiomática es alojar las 
+    proyecciones lingüísticas puras (fibras) que mapean invariantes topológicos, 
+    espectrales y termodinámicos hacia el dominio del impacto de negocio corporativo.
 
-Invariantes Topológicos:
-    - Preserva la homotopía entre el espacio de datos y el espacio narrativo
-    - Mantiene la fibración semántica sobre el grafo del presupuesto
+1. Fibración Semántica y Preservación de Homotopía:
+    Sea M el espacio de métricas invariantes (InvariantSpace) y N el espacio narrativo 
+    (ImpactSpace). El diccionario define un funtor de proyección F: M → N que preserva 
+    la homotopía: dos estados termodinámicamente equivalentes pero topológicamente 
+    distintos se mapean de manera estricta a narrativas disjuntas. La IA generativa 
+    opera únicamente sobre las fibras pre-aprobadas de este espacio, erradicando 
+    la alucinación estocástica.
+
+2. Mapeo Biyectivo de Invariantes (El Funtor de Traducción):
+    El diccionario establece el contrato algebraico inmutable para traducir las 
+    patologías estructurales detectadas en los estratos inferiores:
+    
+        • Topología Simplicial (Homología):
+          β₀ > 1  (Fragmentación)    → "Recursos Huérfanos / Islas de Datos"
+          β₁ > 0  (Ciclos)           → "Socavón Lógico / Bucle de Dependencia"
+          Ψ < 1.0 (Pirámide Inversa) → "Riesgo de Colapso por Base Estrecha"
+          
+        • Cohomología de Haces (Cellular Sheaves):
+          H¹ ≠ 0  (Obstrucción)      → "Veto Estructural / Paradoja Contractual"
+          E(x)> ε (Energía Dirichlet)→ "Fricción Operativa / Desgaste de Consenso"
+          
+        • Teoría Espectral y Termodinámica:
+          λ₂ ≈ 0  (Brecha espectral) → "Fractura Organizacional Inminente"
+          ΔS > 0  (Alta volatilidad) → "Fiebre Inflacionaria"
+
+3. Invarianza Funcional y Ortogonalidad:
+    Este módulo está estrictamente desacoplado del álgebra de decisiones (operación 
+    Supremo ⊔ del retículo). Solo provee las "Coordenadas Base" del lenguaje. Si la 
+    matriz empresarial requiere alterar el tono ejecutivo (Empatía Táctica), únicamente 
+    mutan las fibras en este diccionario mediante el sistema de TTLCache, dejando 
+    intactos los motores de evaluación topológica y reticular del Estrato Ω.
+=========================================================================================
 """
 import logging
 import random

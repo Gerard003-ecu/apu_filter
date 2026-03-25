@@ -1,28 +1,50 @@
 """
-Este módulo provee las funciones fundamentales para la manipulación segura de
-datos atómicos (números, cadenas, rutas). Actúa como la primera capa de defensa
-contra la entropía, garantizando que la información ingrese al sistema en un
-formato canónico y libre de ambigüedades.
+=========================================================================================
+Módulo: Utils (Filtro de Entropía y Operadores de Proyección Métrica)
+Ubicación: app/core/utils.py
+=========================================================================================
 
-Funciones Críticas:
--------------------
-1. Conversión Numérica Robusta (`parse_number`):
-   Maneja la ambigüedad de formatos regionales (puntos vs. comas decimales),
-   notación científica y caracteres de moneda, transformando texto sucio en
-   valores flotantes computables o detectando errores de tipo tempranamente.
+Naturaleza Ciber-Física y Topológica:
+    Este módulo constituye la primera "Capa Límite Termodinámica" del ecosistema. 
+    Su propósito axiomático es interceptar vectores de datos externos (gobernados por 
+    alta entropía sintáctica de Shannon) y proyectarlos mediante transformaciones 
+    idempotentes hacia un Espacio de Hilbert canónico, garantizando que el ruido del 
+    mundo real no induzca degeneración en los tensores de la Malla Agéntica.
 
-2. Normalización de Texto (`normalize_text`, `clean_apu_code`):
-   Estandariza cadenas eliminando variaciones de codificación, espacios
-   redundantes y caracteres especiales, asegurando que claves idénticas
-   semánticamente sean idénticas binariamente (hashing consistente).
+1. Retractos de Deformación y Clases de Equivalencia (Normalización):
+    Las funciones de normalización de texto (`normalize_text`, `clean_apu_code`) no 
+    realizan simples reemplazos de cadenas. Operan como Retractos de Deformación que 
+    mapean un espacio topológico de sintaxis redundante hacia un espacio cociente.
+    Garantizan axiomáticamente que si dos descripciones x, y son semánticamente 
+    homotópicas (x ≃ y), pertenecerán a la misma clase de equivalencia [x], 
+    produciendo un hash criptográfico binariamente idéntico (Colapso de Ambigüedad).
 
-3. Detección de Outliers (`detect_outliers`):
-   Implementa métodos estadísticos (IQR, Z-Score) para identificar valores
-   anómalos en series de datos antes de que contaminen los modelos de simulación.
+2. Proyección Numérica y Estabilidad LTI (`parse_number`):
+    El mapeo de representaciones alfanuméricas hacia el cuerpo de los reales (ℝ) 
+    se ejecuta bajo las estrictas restricciones de la FPU (IEEE 754). El operador de 
+    proyección resuelve ambigüedades métricas (comas vs. puntos) y previene la inyección 
+    de singularidades no finitas (NaN, ±∞) que de otro modo desestabilizarían el 
+    cálculo del Laplaciano Combinatorio y la integración de sistemas LTI.
 
-4. Gestión Segura de Archivos:
-   Validaciones de rutas, extensiones y permisos para prevenir errores de I/O
-   y vulnerabilidades de seguridad en el manejo del sistema de archivos.
+3. Filtrado de Variedad Estadística y Outliers (`detect_outliers`):
+    Las series de datos no se aceptan ciegamente; se someten a un escrutinio en su 
+    variedad probabilística. Utilizando métricas de dispersión robustas (Modified Z-Score 
+    mediante Desviación Absoluta de la Mediana, IQR), el módulo poda vectores que se 
+    sitúen más allá de la hiperesfera de confianza permitida. Esto evita que valores 
+    extremos introduzcan deformaciones locales severas en la simulación de Monte Carlo 
+    y en el Tensor Métrico Riemanniano del proyecto.
+
+4. Invariantes Topológicos de Frontera (I/O Security):
+    La gestión del sistema de archivos impone un control de acceso basado en la 
+    verificación de grafos de directorios. Actúa como un difeomorfismo seguro entre 
+    el hipervisor del sistema operativo y la memoria del agente, bloqueando vectores 
+    de ataque como roturas de symlinks o inyección de entropía en memoria no autorizada.
+
+Invariantes Garantizados:
+    • Idempotencia Estricta: ∀ f ∈ {Normalizadores}, f(f(x)) = f(x).
+    • Cota Numérica: Todo valor real retornado pertenece al intervalo acotado 
+      fijado por los límites físicos de `NUMERIC_VALIDATION_LIMITS`.
+=========================================================================================
 """
 
 import logging

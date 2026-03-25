@@ -1,34 +1,51 @@
 """
-Módulo: Telemetry Schemas (Definición del Espacio Vectorial de Estado)
-======================================================================
+=========================================================================================
+Módulo: Telemetry Schemas (Estructura Tensorial del Espacio de Fase Ciber-Físico)
+Ubicación: app/core/telemetry_schemas.py
+=========================================================================================
 
-Este módulo define los subespacios métricos que componen el Vector de Estado
-del sistema APU Filter. Implementa clases de datos inmutables (frozen dataclasses)
-que actúan como contratos estrictos para la telemetría.
+Naturaleza Ciber-Física y Topológica:
+    Este módulo define la base axiomática del Vector de Estado global del ecosistema 
+    APU_filter. Abandona la concepción estática de "estructuras de datos" para 
+    implementar Subespacios Métricos Ortogonales sobre una variedad diferenciable. 
+    Las estructuras inmutables (frozen dataclasses) actúan como el sello de invariancia 
+    temporal del tensor de telemetría durante su tránsito por la red.
 
-Fundamentos Matemáticos:
-------------------------
-Cada clase representa una dimensión del análisis DIKW:
-1. PhysicsMetrics (Física): Variables de estado del FluxCondenser (Energía, Flujo).
-2. TopologicalMetrics (Estructura): Invariantes homológicos del Grafo (Betti, Euler).
-3. ControlMetrics (Estabilidad): Polos y ceros del Oráculo de Laplace.
-4. ThermodynamicMetrics (Valor): Entropía y temperatura del sistema financiero.
+1. Descomposición Ortogonal del Espacio de Fase (Ψ):
+    El vector de estado global Ψ se descompone matemáticamente en la suma directa 
+    de cuatro subespacios fundamentales:
+        Ψ = V_{PHYSICS} ⊕ V_{TOPOLOGY} ⊕ V_{CONTROL} ⊕ V_{THERMO}
 
-La inmutabilidad garantiza que las mediciones sean tratadas como valores
-algebraicos puros, facilitando la auditoría forense y el razonamiento causal.
+    Cada subespacio encapsula los invariantes de su estrato escalar correspondiente:
+    • Física (PhysicsMetrics): Evalúa la dinámica Port-Hamiltoniana de la ingesta. 
+      Cuantifica la energía cinética, la tensión de retroceso inductivo (Flyback Voltage) 
+      y garantiza el cumplimiento de la Segunda Ley (Potencia Disipada P_diss ≥ 0).
+    • Topología (TopologicalMetrics): Captura los invariantes homológicos del 
+      complejo simplicial del negocio. Monitorea los Números de Betti (β₀, β₁), la 
+      Característica de Euler-Poincaré (χ) y la conectividad algebraica del Laplaciano 
+      (Valor de Fiedler, λ₂).
+    • Control (ControlMetrics): Domina el análisis en la Frecuencia Compleja (s = σ + jω). 
+      Acumula la ubicación de los polos, el factor de amortiguamiento (ζ) y el exponente 
+      máximo de Lyapunov (λ_max) para certificar la estabilidad asintótica (BIBO).
+    • Termodinámica (ThermodynamicMetrics): Modela la "Economía Física". Cuantifica 
+      la entropía informacional (S ≥ 0) y el índice de irreversibilidad, relacionando 
+      la exergía con la inercia financiera del proyecto.
 
-Refinamientos v3:
------------------
-- Corrección dimensional: energy_density normalizada por capacitancia efectiva.
-- Separación semántica: efficiency → potential_ratio + dissipation_efficiency.
-- Polo dominante: corregido a max(σ) en lugar de min(|σ|).
-- settling_time: implementación diferenciada para ζ < 1 y ζ ≥ 1.
-- Lyapunov exponent: ahora Optional[float] con semántica clara.
-- Topología: renombrado topological_complexity → total_betti_number.
-- Termodinámica: separación clara entre internal_energy y exergy.
-- Tolerancias: constantes globales para comparaciones numéricas.
-- Slots: añadidos para optimización de memoria.
-- Serialización: métodos to_dict() para persistencia.
+2. Inmutabilidad como Invariante Algebraico (Tensor Frozen):
+    El uso estricto de `frozen=True` y `slots=True` garantiza que el estado colapsado 
+    no sufra mutaciones topológicas ni térmicas parasitarias durante el procesamiento. 
+    Una vez instanciado, el vector de estado es un punto fijo en la variedad, 
+    permitiendo el cálculo determinista del Tensor Métrico Riemanniano y la Distancia 
+    de Mahalanobis sin condiciones de carrera.
+
+3. Ley de Clausura Transitiva (Filtración DIKW):
+    Estos esquemas tipados fuerzan el cumplimiento de la jerarquía de subespacios anidados:
+        V_{PHYSICS} ⊂ V_{TACTICS} ⊂ V_{STRATEGY} ⊂ V_{WISDOM}
+    La instanciación del `SystemStateVector` exige la coherencia cruzada de las cuatro 
+    dimensiones. Previene algorítmicamente que el estrato de Sabiduría (el Modelo de Lenguaje) 
+    delibere sobre una base de datos que presenta disipación térmica anómala o 
+    inestabilidad espectral.
+=========================================================================================
 """
 
 from dataclasses import dataclass, field, asdict

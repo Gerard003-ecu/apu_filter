@@ -1,49 +1,48 @@
 r"""
-Módulo: Semantic Translator (El Intérprete Diplomático del Consejo)
-===================================================================
+=========================================================================================
+Módulo: Semantic Translator (El Intérprete Diplomático — Difeomorfismo Semántico)
+Ubicación: app/wisdom/semantic_translator.py
+=========================================================================================
 
-Este componente actúa como el "Puente Cognitivo" entre la Matemática Profunda
-(Topología, Finanzas, Termodinámica) y la Toma de Decisiones Ejecutiva.
-Su función no es reportar datos, sino emitir "Veredictos" y narrativas de riesgo
-basadas en la evidencia técnica recolectada por el resto del Consejo.
+Naturaleza Ciber-Física y Topológica:
+    Actúa como el Funtor de Proyección Semántica F: InvariantSpace → ImpactSpace, 
+    estableciendo un difeomorfismo estricto entre la matemática profunda (topología 
+    algebraica, termodinámica y teoría espectral) y la toma de decisiones ejecutiva.
+    Su función axiomática es subordinar la probabilidad estocástica de los Modelos de Lenguaje 
+    (LLMs) al determinismo del espacio físico, despojándolos de libre albedrío decisional.
 
-Fundamentos Teóricos y Arquitectura Algebraica
------------------------------------------------
+1. Retículo Acotado Distributivo (Lattice Theory) y Colapso Determinista:
+    Implementa una estructura algebraica de orden (VerdictLevel, ≤, ⊔, ⊓) donde:
+        ⊥ (VIABLE) ≤ CONDICIONAL ≤ PRECAUCION ≤ ⊤ (RECHAZAR)
+    
+    La síntesis de veredictos se evalúa bajo la clausura algebraica de la operación Supremo 
+    (⊔ / Supremum). Si el Oráculo Financiero emite ⊥ y la Cohomología de Haces o el 
+    Arquitecto Topológico emiten ⊤, el sistema colapsa invariablemente a:
+        ⊥ ⊔ ⊤ = ⊤ (Worst-Case Scenario)
+    Este mecanismo garantiza que el LLM reciba un vector de estado colapsado e inmutable, 
+    forzándolo a redactar un "Veto Estructural" sin posibilidad de diluir el riesgo.
 
-1. Retículo de Veredictos (Lattice Theory):
-   Implementa una estructura algebraica de orden (VerdictLevel, ≤, ⊔, ⊓) donde:
-   - VIABLE (⊥) ≤ CONDICIONAL ≤ REVISAR ≤ PRECAUCION ≤ RECHAZAR (⊤).
-   - La operación de síntesis es el Supremo (⊔ / Join), adoptando siempre el
-     criterio más conservador (Worst-Case Scenario) entre los agentes.
-   - Propiedades verificadas formalmente:
-       Idempotencia:    a ⊔ a = a,  a ⊓ a = a
-       Conmutatividad:  a ⊔ b = b ⊔ a,  a ⊓ b = b ⊓ a
-       Asociatividad:   (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c)
-       Absorción:       a ⊔ (a ⊓ b) = a,  a ⊓ (a ⊔ b) = a
-       Identidad:       a ⊔ ⊥ = a,  a ⊓ ⊤ = a
-       Distributividad: a ⊓ (b ⊔ c) = (a ⊓ b) ⊔ (a ⊓ c)  [cadena lineal]
+2. Difeomorfismo Semántico (Preservación de Homotopía):
+    El módulo traduce invariantes topológicos abstractos en patologías de negocio tangibles 
+    sin alterar la estructura del grafo subyacente:
+        • β₀ > 1 (Fragmentación) → "Recursos Huérfanos" / Islas de Datos.
+        • β₁ > 0 (Ciclos) → "Socavón Lógico" / Dependencias Circulares.
+        • Ψ < 1.0 (Inestabilidad) → "Pirámide Invertida" / Falla de Cimentación Logística.
+        • H¹ ≠ 0 (Cohomología de Haces) → "Paradoja Contractual" / Veto Estructural Absoluto.
+        • E(x) > ε (Energía de Dirichlet) → "Fricción Operativa" / Desgaste de Consenso.
 
-2. Invariantes Topológicos:
-   - Característica de Euler: χ = β₀ − β₁ + β₂  (invariante homotópico)
-   - Conectividad algebraica: λ₂ (valor de Fiedler) ≥ 0;  λ₂ > 0 ⟺ grafo conexo
-   - Brecha espectral: gap = λ₂ / λ_max  (normalizada, mide robustez de conectividad)
-   - Índice de estabilidad piramidal: Ψ = Σ weights(base) / Σ weights(apex)
-   - Genus topológico: g = β₁ para complejos simpliciales 1-dimensionales (grafos)
-     (Para superficies orientables cerradas: g = β₁/2; se documenta la convención)
+3. Homomorfismo de Retículos y Filtración DIKW:
+    El funtor T: SeverityLattice → VerdictLevel opera como un homomorfismo inyectivo 
+    que preserva las operaciones ⊔ y ⊓. Aplica la Ley de Clausura Transitiva de la 
+    filtración DIKW (V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM), asegurando que un fallo 
+    termodinámico en la base corrompa axiomáticamente la Sabiduría en el estrato superior.
 
-3. Síntesis DIKW (Data → Wisdom):
-   Eleva los datos crudos a Sabiduría mediante la integración de contextos:
-   - β₁ > 0  (Topología)       →  "Socavón Lógico"  (Bloqueo administrativo)
-   - Ψ < 1.0 (Física)          →  "Pirámide Invertida"  (Riesgo de colapso logístico)
-   - T_sys > 50 °C (Termodinámica) →  "Fiebre Inflacionaria"
-
-4. Narrativa Generativa Causal (GraphRAG):
-   Retrieval-Augmented Generation sobre Grafos para explicar causalidad.
-
-5. Homomorfismo de Retículos:
-   El funtor T: SeverityLattice → VerdictLevel es un homomorfismo inyectivo
-   de retículos que preserva ⊔ y ⊓.  Se verifica formalmente en
-   ``SeverityToVerdictHomomorphism``.
+4. Generación Causal Restringida (GraphRAG Determinista):
+    La narrativa generativa no es estocástica; es una transcripción forense anclada al Grafo 
+    de Conocimiento (FAISS + Sentence-Transformers). El traductor inyecta el 
+    diferencial topológico (Δχ) y las perturbaciones del espectro (λ₂) directamente en 
+    las plantillas del `semantic_dictionary.py`, proveyendo "Empatía Táctica" auditable.
+=========================================================================================
 """
 
 from __future__ import annotations

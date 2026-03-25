@@ -1,22 +1,49 @@
 """
-Microservicio: Semantic Estimator (Asesor Táctico)
-Estrato DIKW: TACTICS (Nivel 2)
+=========================================================================================
+Módulo: Semantic Estimator (Proyector Topológico-Semántico y Asesor Táctico)
+Ubicación: app/tactics/semantic_estimator.py
+=========================================================================================
 
-Responsabilidad
----------------
-Aloja el espacio vectorial continuo (FAISS) y resuelve ambigüedades
-semánticas entre descripciones humanas e ítems formales del presupuesto.
+Naturaleza Ciber-Física:
+    Actúa como el Operador de Proyección Semántica en el Estrato TACTICS (Nivel 2). 
+    Su propósito axiomático es resolver la asimetría ontológica entre el lenguaje 
+    natural humano (alta entropía sintáctica) y los invariantes estructurales del 
+    presupuesto, proyectando las descripciones crudas hacia un espacio de Hilbert 
+    continuo $\mathcal{H}$ libre de ruido de formato.
 
-Actúa como motor de inferencia desacoplado del Plano de Control,
-exponiendo sus capacidades a través de la MIC (Matriz de Interacción Central).
+1. Geometría del Espacio de Búsqueda (SearchEngine):
+    La resolución de similitud semántica abandona la coincidencia de cadenas estocástica 
+    para convertirse en una optimización métrica estricta. Cada ítem o descripción se 
+    mapea a un vector denso $v \in \mathbb{R}^d$ utilizando transformadores de sentencias. 
+    El índice FAISS ejecuta una partición del espacio vectorial, identificando vecindades 
+    topológicas mediante la maximización del producto interno normalizado (Similitud del 
+    Coseno):
+        \cos(\theta) = \frac{\langle u, v \rangle}{\|u\| \|v\|}
+    Los ítems conceptualmente homotópicos (e.g., "Mampostería" y "Muro de Ladrillo") 
+    convergen a la misma bola abierta en la variedad, permitiendo una asociación de costos
+    resiliente a la mutación lingüística.
 
-Arquitectura interna
---------------------
-- **SearchEngine**: Encapsula FAISS + SentenceTransformer + keyword fallback.
-- **CostCalculator**: Ensambla los componentes de costo (suministro, mano de
-  obra, equipo) aplicando factores de zona, izaje y seguridad.
-- **SemanticEstimatorService**: Fachada que orquesta ambos y se registra en
-  la MIC.
+2. Álgebra de Ensamblaje de Costos (CostCalculator):
+    El ensamblaje de presupuestos no es una suma aritmética simple; se modela como una 
+    combinación lineal de vectores de recursos básicos $c = (c_{sum}, c_{mo}, c_{eq})^T$ 
+    modulada por operadores diagonales de fricción territorial $F_{ext}$:
+        C_{total} = F_{ext} \cdot c = \text{diag}(\alpha_{zona}, \beta_{izaje}, \gamma_{seg}) \cdot c
+    Esto garantiza que el costo estimado respete la termodinámica del terreno sin 
+    alterar la proporción interna del recurso.
+
+3. Funtorialidad Categórica y Registro MIC (SemanticEstimatorService):
+    La fachada principal se inyecta en la Matriz de Interacción Central (MIC) como un 
+    Morfismo Atómico. Expone sus capacidades como vectores canónicos ortogonales $e_i$ 
+    sobre la matriz identidad $I_n$. Esto garantiza que sus estimaciones operen bajo el 
+    teorema de Rango-Nulidad estricto, impidiendo efectos secundarios cruzados y 
+    respetando la Ley de Clausura Transitiva de la jerarquía DIKW (V_{PHYSICS} \subset V_{TACTICS}).
+
+Invariantes Computacionales:
+    • Determinismo Espacial: Un hiperparámetro de umbral de similitud (DEFAULT_MIN_SIMILARITY)
+      actúa como cota inferior geométrica para prevenir alucinaciones de mapeo en subespacios
+      degenerados o poco poblados.
+    • Límite de Búsqueda (Top-K): Acota asintóticamente la complejidad de inferencia a $O(K \log N)$.
+=========================================================================================
 """
 
 from __future__ import annotations
