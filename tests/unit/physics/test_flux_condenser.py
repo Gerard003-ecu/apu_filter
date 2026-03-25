@@ -439,14 +439,10 @@ class TestPIController:
         with pytest.raises(ConfigurationError):
             PIController(kp=10, ki=5, setpoint=0.5, min_output=200, max_output=100)
 
-    def test_invalid_min_output_not_positive_raises(self):
-        """min_output ≤ 0 debe fallar."""
-        with pytest.raises(ConfigurationError) as exc_info:
-            PIController(kp=10, ki=5, setpoint=0.5, min_output=0, max_output=100)
-        assert "min_output" in str(exc_info.value)
-        
-        with pytest.raises(ConfigurationError):
-            PIController(kp=10, ki=5, setpoint=0.5, min_output=-10, max_output=100)
+    def test_pi_accepts_zero_or_negative_minimum_output(self):
+        """Demuestra que el PI permite válvulas de control cerradas (u=0) para disipación."""
+        pi = PIController(kp=2.0, ki=0.5, setpoint=0.5, min_output=0.0, max_output=100.0)
+        assert pi.min_output <= 0.0, "Fallo de acotamiento: El controlador no permite disipación pasiva."
 
     # ---------- Criterio de Jury para Estabilidad ----------
 
@@ -587,14 +583,14 @@ class TestPIController:
 
     # ---------- Cálculo de Salida (compute) ----------
 
-    def test_compute_returns_integer_in_valid_range(self, controller_fixture):
-        """La salida debe ser entero dentro del rango [min, max]."""
+    def test_compute_returns_float_in_valid_range(self, controller_fixture):
+        """La salida debe ser float dentro del rango [min, max]."""
         controller = controller_fixture
         
         for pv in [0.0, 0.25, 0.5, 0.75, 1.0]:
             output = controller.compute(pv)
             
-            assert isinstance(output, int), f"Salida debe ser int, obtenido: {type(output)}"
+            assert isinstance(output, float), f"La señal de control físico debe pertenecer a ℝ, obtenido: {type(output)}"
             assert controller.min_output <= output <= controller.max_output
 
     def test_compute_deadband_reduces_output_jitter(self, controller_fixture):

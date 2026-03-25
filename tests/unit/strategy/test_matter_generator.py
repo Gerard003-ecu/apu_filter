@@ -1100,7 +1100,7 @@ class TestEdgeCases(TestFixtures):
         assert bom.total_material_cost == pytest.approx(expected_total, rel=1e-6)
     
     def test_diamond_pattern(self, generator):
-        """
+        r"""
         Patrón diamante: múltiples caminos al mismo nodo.
         
              ROOT
@@ -1324,7 +1324,7 @@ class TestMathematicalProperties(TestFixtures):
     """
     
     def test_factor_composition_logarithmic(self, generator):
-        """
+        r"""
         La composición de factores es multiplicativa (logarítmica).
         
         F_total = F_a × F_b × F_c = exp(ln(F_a) + ln(F_b) + ln(F_c))

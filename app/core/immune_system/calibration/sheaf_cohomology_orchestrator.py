@@ -1,4 +1,4 @@
-"""
+r"""
 =========================================================================================
 Módulo: Sheaf Cohomology Orchestrator (Interferómetro de Holonomía de Gauge)
 Ubicación: app/core/immune_system/calibration/sheaf_cohomology_orchestrator.py

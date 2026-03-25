@@ -20,7 +20,8 @@ import warnings
 from app.physics.flux_condenser import (
     DiscreteVectorCalculus,
     MaxwellFDTDSolver,
-    PortHamiltonianController
+    PortHamiltonianController,
+    NumericalInstabilityError
 )
 
 
@@ -831,7 +832,7 @@ class TestMaxwellDynamics:
         calc = DiscreteVectorCalculus(single_triangle)
         solver = MaxwellFDTDSolver(calc)
 
-        with pytest.warns(UserWarning, match="inestabilidad"):
+        with pytest.raises(NumericalInstabilityError, match=r"CFL"):
             solver.leapfrog_step(dt=solver.dt_cfl * 2)
 
     def test_set_initial_conditions(self, tetrahedron):
