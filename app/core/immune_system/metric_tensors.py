@@ -1,4 +1,4 @@
-"""
+r"""
 =========================================================================================
 Módulo: Tensores Métricos Riemannianos (Tejido Conectivo Anisotrópico del Espacio de Fase)
 Ubicación: app/core/immune_system/metric_tensors.py

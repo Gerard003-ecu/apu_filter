@@ -1175,7 +1175,11 @@ class TestPHSPassivity:
             assert np.isfinite(y_t), f"Paso {k}: salida y(t) no finita."
             supply_values[k] = float(u_t) * y_t
 
-        supply_integral = float(np.trapz(supply_values, dx=dt))
+        # For compatibility with older NumPy versions where np.trapezoid is missing but np.trapz warns
+        if hasattr(np, 'trapezoid'):
+            supply_integral = float(np.trapezoid(supply_values, dx=dt))
+        else:
+            supply_integral = float(np.trapz(supply_values, dx=dt))
 
         HT = float(phs_controller.hamiltonian())
         assert np.isfinite(HT), "H(T) debe ser finito."
