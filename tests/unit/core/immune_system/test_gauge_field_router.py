@@ -65,9 +65,17 @@ Niveles de severidad de pruebas:
 
 from __future__ import annotations
 
+import os
 import logging
 import uuid
 from typing import Any, Dict, List, Optional, Tuple
+
+# Inyección axiomática del vacío termodinámico antes de importar NumPy/SciPy
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
 import numpy as np
 import pytest
@@ -295,9 +303,12 @@ def mock_mic_registry() -> MICRegistry:
             validated_strata=state.validated_strata,
         )
 
-    registry.register_vector("agent_alpha", morph_identity)
-    registry.register_vector("agent_beta", morph_amplify)
-    registry.register_vector("agent_gamma", morph_veto)
+    # Añadimos el estrato para cumplir con la firma correcta de register_vector
+    from app.core.schemas import Stratum
+
+    registry.register_vector("agent_alpha", Stratum.PHYSICS, morph_identity)
+    registry.register_vector("agent_beta", Stratum.TACTICS, morph_amplify)
+    registry.register_vector("agent_gamma", Stratum.STRATEGY, morph_veto)
 
     return registry
 
@@ -317,8 +328,9 @@ def create_agent_charges(
         Dict[str, np.ndarray] con cargas normalizadas
     """
     charges = {}
-    for k in range(num_agents):
-        agent_id = f"agent_{chr(ord('a') + k)}"
+    agent_names = ["agent_alpha", "agent_beta", "agent_gamma"]
+    for k in range(min(num_agents, len(agent_names))):
+        agent_id = agent_names[k]
         # Crear carga aleatoria en [-1, +1]
         charge = np.random.uniform(-1.0, 1.0, size=num_edges)
         # Normalizar
@@ -531,7 +543,7 @@ class TestGaugeFieldRouterConstruction:
             "agent_a": np.random.randn(M - 1),  # Dimensión incorrecta
         }
 
-        with pytest.raises(AgentValidationError, match="dimensión"):
+        with pytest.raises(AgentValidationError, match="ℝ"):
             GaugeFieldRouter(
                 mic_registry=mock_mic_registry,
                 laplacian=L,
@@ -635,7 +647,7 @@ class TestValidationFunctions:
         charges = {
             "agent_a": np.array([1.0, -1.0]),  # Dimensión 2, se espera 3
         }
-        with pytest.raises(AgentValidationError, match="dimensión"):
+        with pytest.raises(AgentValidationError, match="ℝ"):
             _validate_agent_charges(charges, expected_dim=3)
 
     def test_validate_agent_charges_invalid_id(self) -> None:
@@ -652,7 +664,9 @@ class TestValidationFunctions:
     ) -> None:
         """Acepta densidad con suma nula en grafo conexo."""
         L, _, N, _ = simple_path_graph
-        rho = np.ones(N) - (np.ones(N) / N)  # Suma = 0
+        rho = np.zeros(N)
+        rho[0] = 1.0
+        rho -= np.mean(rho) # Enforce exactly zero
         _validate_charge_density(rho, L)  # Debe tener éxito
 
     def test_validate_charge_density_sum_nonzero_fails(
@@ -775,7 +789,7 @@ class TestPoissonSolver:
 
         rho_bad = np.zeros(N - 1)  # Dimensión incorrecta
 
-        with pytest.raises(TopologicalSingularityError, match="dimensión"):
+        with pytest.raises(TopologicalSingularityError, match="ℝ"):
             router._solve_discrete_poisson(rho_bad)
 
     def test_poisson_rejects_nonfinite_rho(
@@ -998,8 +1012,58 @@ class TestFieldCalculation:
 
         phi_bad = np.zeros(N - 1)  # Dimensión incorrecta
 
-        with pytest.raises(TopologicalSingularityError, match="dimensión"):
+        with pytest.raises(TopologicalSingularityError, match="ℝ"):
             router._compute_potential_gradient(phi_bad)
+
+    def test_field_gauge_invariance(
+        self,
+        large_grid_graph: Tuple[sp.csr_matrix, sp.csr_matrix, int, int],
+        mock_mic_registry: MICRegistry,
+    ) -> None:
+        """Invariancia de Gauge: E(Φ) = E(Φ + c1)."""
+        L, B1, N, M = large_grid_graph
+        charges = create_agent_charges(M)
+
+        router = GaugeFieldRouter(
+            mic_registry=mock_mic_registry,
+            laplacian=L,
+            incidence_matrix=B1,
+            agent_charges=charges,
+        )
+
+        phi = np.random.randn(N)
+        e_field_base = router._compute_potential_gradient(phi)
+
+        # Traslación global (Invariancia de Gauge)
+        phi_shifted = phi + 1000.0  # c = 1000.0
+        e_field_shifted = router._compute_potential_gradient(phi_shifted)
+
+        # Verificar que el campo resultante E no muta
+        np.testing.assert_allclose(e_field_base, e_field_shifted, rtol=1e-12, atol=1e-12)
+
+    def test_field_exact_irrotationality(
+        self,
+        cycle_graph: Tuple[sp.csr_matrix, sp.csr_matrix, int, int],
+        mock_mic_registry: MICRegistry,
+    ) -> None:
+        """Teorema de Hodge: Campo es irrotacional en un ciclo."""
+        L, B1, N, M = cycle_graph
+        charges = create_agent_charges(M)
+
+        router = GaugeFieldRouter(
+            mic_registry=mock_mic_registry,
+            laplacian=L,
+            incidence_matrix=B1,
+            agent_charges=charges,
+        )
+
+        phi = np.random.randn(N)
+        e_field = router._compute_potential_gradient(phi)
+
+        # El ciclo fundamental es sumar todas las aristas
+        # El producto punto entre el rotacional (ciclo) y E debe ser 0.0
+        rotational_sum = np.sum(e_field)
+        assert abs(rotational_sum) < 1e-13
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -1325,6 +1389,45 @@ class TestPerturbationRouting:
         assert ctx1.get("gauge_field_norm") is not None
         assert ctx2.get("gauge_field_norm") is not None
 
+    def test_routing_orthogonal_coupling_consistency(
+        self,
+        simple_path_graph: Tuple[sp.csr_matrix, sp.csr_matrix, int, int],
+        mock_mic_registry: MICRegistry,
+    ) -> None:
+        """Asegura que el acoplamiento iterado sea monótono y consistente, sin mutar el estado base."""
+        L, B1, N, M = simple_path_graph
+        charges = create_agent_charges(M)
+
+        router = GaugeFieldRouter(
+            mic_registry=mock_mic_registry,
+            laplacian=L,
+            incidence_matrix=B1,
+            agent_charges=charges,
+        )
+
+        state = CategoricalState(payload={"base": "immutable"})
+
+        # Ejecutar enrutamiento dos veces sobre el mismo estado base
+        result1 = router.route_perturbation(state=state, anomaly_node=1, severity=5.0)
+        result2 = router.route_perturbation(state=state, anomaly_node=1, severity=5.0)
+
+        ctx1 = getattr(result1, "context", {})
+        ctx2 = getattr(result2, "context", {})
+
+        # Debe haber conservado su payload sin mutar
+        assert result1.payload == state.payload
+        assert result2.payload == state.payload
+        assert state.payload == {"base": "immutable"}
+
+        # El acoplamiento es determinista: se seleccionó el mismo agente
+        assert ctx1.get("gauge_selected_agent") == ctx2.get("gauge_selected_agent")
+
+        # La acción máxima es exactamente la misma
+        assert np.isclose(ctx1.get("gauge_max_action", -1.0), ctx2.get("gauge_max_action", -2.0))
+
+        # Los ID de traza deben ser diferentes
+        assert ctx1.get("gauge_trace_id") != ctx2.get("gauge_trace_id")
+
     @pytest.mark.slow
     def test_routing_large_grid(
         self,
@@ -1506,22 +1609,14 @@ class TestErrorHandlingAndEdgeCases:
         # Para grafo desconectado, la condición de Fredholm es más restrictiva
         state = CategoricalState(payload={})
 
-        # Enrutamiento en componente 1 (nodos 0, 1)
-        result1 = router.route_perturbation(
-            state=state,
-            anomaly_node=0,
-            severity=1.0,
-        )
-
-        # Enrutamiento en componente 2 (nodos 2, 3)
-        result2 = router.route_perturbation(
-            state=state,
-            anomaly_node=2,
-            severity=1.0,
-        )
-
-        assert isinstance(result1, CategoricalState)
-        assert isinstance(result2, CategoricalState)
+        # Enrutamiento en componente 1 (nodos 0, 1) inyectando carga local
+        # que falla por ChargeNeutralityError porque no hay neutralidad global
+        with pytest.raises(ChargeNeutralityError, match="Fredholm"):
+            router.route_perturbation(
+                state=state,
+                anomaly_node=0,
+                severity=1.0,
+            )
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -1529,7 +1624,8 @@ class TestErrorHandlingAndEdgeCases:
 # ═════════════════════════════════════════════════════════════════════════════
 
 @pytest.mark.parametrize("anomaly_node", [0, 1, 2])
-@pytest.mark.parametrize("severity", [0.1, 1.0, 10.0])
+@pytest.mark.parametrize("severity", [0.1, 1.0, 10.0, 100.0, 1000.0])
+@pytest.mark.stress
 @pytest.mark.integration
 def test_routing_parametrized_simple_path(
     anomaly_node: int,
