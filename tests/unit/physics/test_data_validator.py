@@ -21,7 +21,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from validators import (
+from app.adapters.validators import (
     DataFrameValidator,
     ValidationCode,
     ValidationIssue,

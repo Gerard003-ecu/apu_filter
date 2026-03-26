@@ -1,5 +1,5 @@
 """
-Suite de pruebas rigurosa para ``topology_viz.py``.
+Suite de pruebas rigurosa para ``app.adapters.topology_viz.py``.
 
 Estructura:
 - Fixtures reutilizables para grafos, anomalías y configuraciones.
@@ -25,7 +25,7 @@ import networkx as nx
 import pandas as pd
 import pytest
 
-from topology_viz import (
+from app.adapters.topology_viz import (
     ALLOWED_STRATUM_FILTERS,
     LABEL_ELLIPSIS,
     LABEL_MAX_LENGTH,
@@ -1729,7 +1729,7 @@ class TestBuildGraphFromSession:
         with pytest.raises(ValueError, match="No hay datos suficientes"):
             build_graph_from_session({"presupuesto": [], "apus_detail": []})
 
-    @patch("topology_viz.BudgetGraphBuilder")
+    @patch("app.adapters.topology_viz.BudgetGraphBuilder")
     def test_builder_exception_wrapped(
         self, mock_builder_class: MagicMock
     ) -> None:
@@ -1742,7 +1742,7 @@ class TestBuildGraphFromSession:
                 {"presupuesto": [{"col": 1}]}
             )
 
-    @patch("topology_viz.BudgetGraphBuilder")
+    @patch("app.adapters.topology_viz.BudgetGraphBuilder")
     def test_invalid_graph_raises(
         self, mock_builder_class: MagicMock
     ) -> None:
@@ -1755,7 +1755,7 @@ class TestBuildGraphFromSession:
                 {"presupuesto": [{"col": 1}]}
             )
 
-    @patch("topology_viz.BudgetGraphBuilder")
+    @patch("app.adapters.topology_viz.BudgetGraphBuilder")
     def test_successful_build(
         self, mock_builder_class: MagicMock
     ) -> None:
@@ -1771,7 +1771,7 @@ class TestBuildGraphFromSession:
         assert isinstance(result, nx.DiGraph)
         assert result.number_of_nodes() == 1
 
-    @patch("topology_viz.BudgetGraphBuilder")
+    @patch("app.adapters.topology_viz.BudgetGraphBuilder")
     def test_non_digraph_converted(
         self, mock_builder_class: MagicMock
     ) -> None:
@@ -1798,7 +1798,7 @@ class TestBuildGraphFromSession:
 class TestAnalyzeGraphForVisualization:
     """Pruebas para análisis topológico de visualización."""
 
-    @patch("topology_viz.BusinessTopologicalAnalyzer")
+    @patch("app.adapters.topology_viz.BusinessTopologicalAnalyzer")
     def test_returns_anomaly_data(
         self,
         mock_analyzer_class: MagicMock,
@@ -1817,7 +1817,7 @@ class TestAnalyzeGraphForVisualization:
         assert isinstance(result, AnomalyData)
         assert "ISO-1" in result.isolated_ids
 
-    @patch("topology_viz.BusinessTopologicalAnalyzer")
+    @patch("app.adapters.topology_viz.BusinessTopologicalAnalyzer")
     def test_degradable_on_structural_error(
         self,
         mock_analyzer_class: MagicMock,
@@ -1833,7 +1833,7 @@ class TestAnalyzeGraphForVisualization:
         result = analyze_graph_for_visualization(simple_digraph)
         assert isinstance(result, AnomalyData)
 
-    @patch("topology_viz.BusinessTopologicalAnalyzer")
+    @patch("app.adapters.topology_viz.BusinessTopologicalAnalyzer")
     def test_degradable_on_thermal_error(
         self,
         mock_analyzer_class: MagicMock,
@@ -1850,7 +1850,7 @@ class TestAnalyzeGraphForVisualization:
         assert isinstance(result, AnomalyData)
         assert len(result.hot_ids) == 0
 
-    @patch("topology_viz.BusinessTopologicalAnalyzer")
+    @patch("app.adapters.topology_viz.BusinessTopologicalAnalyzer")
     def test_result_is_frozen(
         self,
         mock_analyzer_class: MagicMock,

@@ -302,7 +302,12 @@ class ObservabilityTestUtils:
             Grafo y datos de anomalías
         """
         G = nx.DiGraph()
-        anomaly_data = AnomalyData()
+
+        # Recolectar datos en estructuras mutables primero
+        anomalous_nodes_set = set()
+        node_scores_dict = {}
+        anomalous_edges_set = set()
+        edge_scores_dict = {}
 
         # Configuración de la jerarquía
         LEVEL_CONFIG = [
@@ -339,8 +344,8 @@ class ObservabilityTestUtils:
                         stable_hash = sum(ord(c) * (k + 1) for k, c in enumerate(node_id)) % 100
 
                         if stable_hash < (anomaly_density * 100):
-                            anomaly_data.anomalous_nodes.add(node_id)
-                            anomaly_data.node_scores[node_id] = 0.7 + (stable_hash % 30) / 100.0
+                            anomalous_nodes_set.add(node_id)
+                            node_scores_dict[node_id] = 0.7 + (stable_hash % 30) / 100.0
 
                     node_counter += 1
 
@@ -367,12 +372,28 @@ class ObservabilityTestUtils:
                             edge_hash = sum(ord(c) * (k + 1) for k, c in enumerate(edge_key)) % 100
 
                             if edge_hash < (anomaly_density * 50):  # Menor densidad para aristas
-                                anomaly_data.anomalous_edges.add((source, target))
-                                anomaly_data.edge_scores[(source, target)] = 0.6 + (edge_hash % 40) / 100.0
+                                anomalous_edges_set.add((source, target))
+                                edge_scores_dict[(source, target)] = 0.6 + (edge_hash % 40) / 100.0
 
         # Añadir ciclos solo entre nodos del MISMO nivel (preserva DAG entre niveles)
         if add_cycles:
             for comp in range(disconnected_components):
+                # ... the inner loops for add_cycles
+                for level in range(4):
+                    nodes_in_level = nodes_by_level[comp][level]
+                    if len(nodes_in_level) >= 3:
+                        for i in range(len(nodes_in_level)):
+                            u = nodes_in_level[i]
+                            v = nodes_in_level[(i + 1) % len(nodes_in_level)]
+                            G.add_edge(u, v)
+
+                            if anomaly_density > 0:
+                                edge_key = f"{u}->{v}"
+                                edge_hash = sum(ord(c) * (k + 1) for k, c in enumerate(edge_key)) % 100
+                                if edge_hash < (anomaly_density * 50):
+                                    anomalous_edges_set.add((u, v))
+                                    edge_scores_dict[(u, v)] = 0.6 + (edge_hash % 40) / 100.0
+
                 # Añadir ciclo en nivel PHYSICS (3) donde hay más nodos
                 physics_nodes = nodes_by_level[comp][3]
                 if len(physics_nodes) >= 2:
@@ -383,6 +404,13 @@ class ObservabilityTestUtils:
                 tactics_nodes = nodes_by_level[comp][2]
                 if len(tactics_nodes) >= 2:
                     G.add_edge(tactics_nodes[-1], tactics_nodes[0])
+
+        anomaly_data = AnomalyData(
+            anomalous_nodes=frozenset(anomalous_nodes_set),
+            node_scores=node_scores_dict,
+            anomalous_edges=frozenset(anomalous_edges_set),
+            edge_scores=edge_scores_dict
+        )
 
         return G, anomaly_data
 

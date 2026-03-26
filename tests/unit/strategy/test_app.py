@@ -59,7 +59,7 @@ def app():
         mock_from_url.return_value = fake_redis_client
 
         # Mockear carga de embeddings (ahora manejada por MIC/SemanticEstimator)
-        with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+        with patch("app.tactics.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
             app = create_app("testing")
             app.config["TESTING"] = True
             yield app
@@ -330,7 +330,7 @@ class TestAPUPresenter:
     def test_group_by_category(self, processor, sample_apu_data):
         """Debe agrupar correctamente por categoría."""
         df = pd.DataFrame(sample_apu_data)
-        result = processor._group_by_category(df)
+        result = processor._group_by_category(df, "APU-001")
         assert isinstance(result, list)
         assert len(result) > 0
         for item in result:
@@ -365,7 +365,7 @@ class TestAPUPresenter:
             },
         ]
         df = pd.DataFrame(data)
-        result = processor._group_by_category(df)
+        result = processor._group_by_category(df, "APU-001")
         assert len(result) == 1
         assert result[0]["cantidad"] == 8.0
         assert result[0]["valor_total"] == 160000.0
@@ -373,7 +373,7 @@ class TestAPUPresenter:
     def test_organize_breakdown(self, processor, sample_apu_data):
         """Debe organizar desglose por categoría."""
         df = pd.DataFrame(sample_apu_data)
-        items = processor._group_by_category(df)
+        items = processor._group_by_category(df, "APU-001")
         result = processor._organize_breakdown(items)
         assert isinstance(result, dict)
         assert "SUMINISTRO" in result
@@ -905,7 +905,7 @@ class TestCreateApp:
         """Debe crear app en modo desarrollo."""
         import fakeredis
         mock_redis.return_value = fakeredis.FakeStrictRedis()
-        with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+        with patch("app.tactics.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
             app = create_app("development")
             assert app is not None
             assert app.config["TESTING"] is False
@@ -915,7 +915,7 @@ class TestCreateApp:
         """Debe crear app en modo testing."""
         import fakeredis
         mock_redis.return_value = fakeredis.FakeStrictRedis()
-        with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+        with patch("app.tactics.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
             app = create_app("testing")
             assert app is not None
             assert app.config["TESTING"] is True
@@ -927,7 +927,7 @@ class TestCreateApp:
         mock_redis.return_value = fakeredis.FakeStrictRedis()
         # En producción requiere secret key
         with patch.dict(os.environ, {"SECRET_KEY": "prod-secret"}):
-            with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+            with patch("app.tactics.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
                 app = create_app("production")
                 assert app is not None
                 assert app.config["SESSION_COOKIE_SECURE"] is True
@@ -938,7 +938,7 @@ class TestCreateApp:
         import fakeredis
         mock_redis.return_value = fakeredis.FakeStrictRedis()
         with patch("builtins.open", mock_open(read_data='{"version": "1.0.0"}')):
-            with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+            with patch("app.tactics.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
                 app = create_app("testing")
                 assert "APP_CONFIG" in app.config
 
@@ -948,7 +948,7 @@ class TestCreateApp:
         import fakeredis
         mock_redis.return_value = fakeredis.FakeStrictRedis()
         with patch("pathlib.Path.mkdir"):
-            with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+            with patch("app.tactics.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
                 app = create_app("testing")
                 assert "UPLOAD_FOLDER" in app.config
 
@@ -957,7 +957,7 @@ class TestCreateApp:
         """Debe configurar sesiones correctamente."""
         import fakeredis
         mock_redis.return_value = fakeredis.FakeStrictRedis()
-        with patch("app.wisdom.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
+        with patch("app.tactics.semantic_estimator.SemanticEstimatorService._load_tensor_space"):
             app = create_app("testing")
             assert app.config["SESSION_TYPE"] == "redis"
             assert app.config["SESSION_PERMANENT"] is True
