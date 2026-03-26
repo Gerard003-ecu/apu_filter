@@ -1773,6 +1773,16 @@ class MICRegistry:
                 hierarchy[stratum.name].append(name)
         return hierarchy
 
+    def get_registered_morphisms(self) -> Dict[str, Tuple[Stratum, VectorHandler]]:
+        """
+        Retorna una proyección inmutable (difeomorfismo) de los vectores base actuales.
+        Garantiza el aislamiento thread-safe bloqueando el estado durante la copia.
+        """
+        with self._lock:
+            # Retornamos una copia superficial del diccionario para aislar la memoria,
+            # protegiendo el encapsulamiento monádico del registro.
+            return self._vectors.copy()
+
     # ── Registro de Vectores ───────────────────────────────────────────────
 
 
