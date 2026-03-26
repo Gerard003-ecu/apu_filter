@@ -2,6 +2,7 @@
 Suite de pruebas rigurosa para ``quantum_admission_gate.py``.
 
 Estructura:
+- Configuración estricta del entorno para vacío termodinámico.
 - Mocks para interfaces inyectadas (oracles).
 - Pruebas unitarias por método/función.
 - Pruebas de integración para ``evaluate_admission`` y ``__call__``.
@@ -15,6 +16,16 @@ Convenciones:
 
 from __future__ import annotations
 
+import os
+
+# Configuración del Vacío Termodinámico (Bloqueo de ruido estocástico del multiprocesamiento)
+# Estas variables de entorno fuerzan el determinismo en el oráculo espectral.
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
 import hashlib
 import math
 from dataclasses import FrozenInstanceError
@@ -23,7 +34,9 @@ from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
 
-from quantum_admission_gate import (
+from app.core.schemas import Stratum
+from app.core.mic_algebra import CategoricalState
+from app.physics.quantum_admission_gate import (
     Eigenstate,
     ILaplaceOracle,
     ISheafCohomologyOrchestrator,
@@ -1154,6 +1167,163 @@ class TestMomentumCalculation:
         gate = make_gate(threat=0.0, pole=-1.0, frustration=0.0)
         m = gate.evaluate_admission({"data": "test"})
         assert math.isfinite(m.momentum)
+
+
+# ======================================================================
+# Tests: Phase 1 - Asymptotic Singularities
+# ======================================================================
+
+class TestAsymptoticSingularities:
+    """Pruebas para Singularidades Asintóticas de la Fase 1."""
+
+    def test_classical_limit_imaginary_root(self, gate: QuantumAdmissionGate) -> None:
+        """
+        El Límite Clásico y la Raíz Imaginaria (E >= V):
+        Si E >= Phi, el término (2m(V-E))^0.5 ingresa al dominio imaginario.
+        El operador debe implementar una función de Heaviside forzando T=1.0.
+        """
+        # E > Phi
+        T1 = gate._compute_wkb_tunneling_probability(E=20.0, Phi=10.0, m_eff=1.0)
+        assert T1 == 1.0
+        assert type(T1) is float
+
+        # E == Phi
+        T2 = gate._compute_wkb_tunneling_probability(E=10.0, Phi=10.0, m_eff=1.0)
+        assert T2 == 1.0
+        assert type(T2) is float
+
+    def test_asymptotic_divergence_cohomological_frustration(self, gate: QuantumAdmissionGate) -> None:
+        """
+        Divergencia Asintótica por Frustración Cohomológica (m* -> inf):
+        Ante una frustración extrema, la masa efectiva m* diverge asintóticamente.
+        Una masa infinita no puede tunelar, por lo que T debe colapsar al cero absoluto
+        con tolerancia estricta (abs_tol=1e-15).
+        """
+        # Simulamos frustración extrema con masa infinita o extremadamente grande
+        # La masa finita extremadamente grande también colapsa la transmisión a 0
+        T = gate._compute_wkb_tunneling_probability(E=5.0, Phi=10.0, m_eff=float('inf'))
+        assert T == pytest.approx(0.0, abs=1e-15)
+
+    def test_momentum_indeterminacy_zero_entropy(self) -> None:
+        """
+        Indeterminación del Momentum por Entropía Nula:
+        Un payload cristalino (ej. ceros \x00) genera entropía = 0.0.
+        El sistema debe inyectar un estado fundamental (ENTROPY_FLOOR)
+        para asegurar que la energía incidente E > 0 y el momentum p > 0.
+        """
+        gate = make_gate(threat=0.0, pole=-1.0, frustration=0.0)
+
+        # El payload con \x00 repetidos produce entropía byte-wise de 0.0
+        payload = {"data": b"\x00" * 100}
+
+        # Obtenemos la evaluación
+        m = gate.evaluate_admission(payload)
+
+        # Verificamos que se haya inyectado un estado fundamental a la energía (E > 0)
+        assert m.incident_energy > 0.0
+        # Verificamos que si se admite, el momentum es finito y no se indetermina
+        if m.eigenstate == Eigenstate.ADMITIDO:
+            assert math.isfinite(m.momentum)
+            # Puede ser 0.0 si K = 0.0 debido a E < Phi, pero no NaN ni infinito
+            assert m.momentum >= 0.0
+        else:
+            # Si se rechaza, el momentum reportado es 0.0
+            assert m.momentum == 0.0
+
+
+# ======================================================================
+# Tests: Phase 2 - Architectural Coupling
+# ======================================================================
+
+class TestArchitecturalCoupling:
+    """Pruebas para el Acoplamiento Arquitectónico (Inmersión en MIC)."""
+
+    def test_functorial_projection_in_telemetry(self) -> None:
+        """
+        Proyección Funtorial en el Pasabordo Ciberfísico (TelemetryContext):
+        El resultado del colapso de la función de onda hacia un Eigenstate
+        y la probabilidad T exacta deben grabarse criptográficamente.
+        Si hay rechazo por inestabilidad, debe inyectar evidencia forense.
+        """
+        gate = make_gate(threat=2.0, pole=1.5, frustration=0.0)
+        payload = {"data": "test_telemetry"}
+        state = CategoricalState(
+            payload=payload,
+            context={"initial_key": "initial_value"},
+            validated_strata=frozenset()
+        )
+
+        new_state = gate(state)
+        context = new_state.context
+
+        # Verificamos inmutabilidad y copiado
+        assert "initial_key" in context
+        assert "quantum_measurement" in context
+
+        measurement = context["quantum_measurement"]
+        assert isinstance(measurement, QuantumMeasurement)
+        assert measurement.dominant_pole_real == 1.5
+
+        if measurement.eigenstate == Eigenstate.RECHAZADO:
+            assert "quantum_error" in context
+            assert "VETO CUÁNTICO" in context["quantum_error"]
+        else:
+            assert "quantum_momentum" in context
+
+    def test_transitive_closure_veto(self) -> None:
+        """
+        Ejecución de la Clausura Transitiva (El Veto):
+        Un fallo en los estratos primarios (ej. por inestabilidad espectral)
+        debe irradiar hacia arriba y abortar automáticamente la transición,
+        dejando vacíos los estratos validados.
+        """
+        gate = make_gate(threat=0.0, pole=0.0, frustration=2.0)
+        payload = {"data": "test_veto"}
+        state = CategoricalState(
+            payload=payload,
+            context={},
+            validated_strata=frozenset()
+        )
+
+        new_state = gate(state)
+
+        # El estado final no debe tener ningún estrato validado
+        assert len(new_state.validated_strata) == 0
+        assert "quantum_error" in new_state.context
+        assert new_state.context["quantum_measurement"].frustration_veto is True
+        assert new_state.context["quantum_measurement"].eigenstate == Eigenstate.RECHAZADO
+
+    def test_orthogonality_in_mic(self) -> None:
+        """
+        Ortogonalidad en la Matriz de Interacción Central (MIC):
+        El morfismo debe ser puro, preservando la ortogonalidad funcional.
+        No debe mutar los datos de entrada (producto interior nulo con otros procesos).
+        """
+        gate = make_gate(threat=0.0, pole=-1.0, frustration=0.0)
+
+        original_payload = {"key": "value", "nested": [1, 2, 3]}
+        # Hacemos una copia para comparar después
+        payload_copy = {"key": "value", "nested": [1, 2, 3]}
+
+        original_context = {"a": 1, "b": 2}
+        context_copy = {"a": 1, "b": 2}
+
+        state = CategoricalState(
+            payload=original_payload,
+            context=original_context,
+            validated_strata=frozenset()
+        )
+
+        new_state = gate(state)
+
+        # 1. El payload original no fue modificado
+        assert original_payload == payload_copy
+        # 2. El contexto original no fue modificado
+        assert original_context == context_copy
+        # 3. El nuevo estado es un objeto diferente
+        assert id(new_state) != id(state)
+        # 4. El nuevo contexto es un objeto diferente
+        assert id(new_state.context) != id(original_context)
 
 
 # ======================================================================

@@ -24,7 +24,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from presenters import APUPresenter, APUProcessingConfig
+from app.adapters.presenters import APUPresenter, APUProcessingConfig
 
 
 # ======================================================================
@@ -628,7 +628,8 @@ class TestValidateItemConsistency:
             "valor_unitario": 50.0,
             "valor_total": 999.0,  # Inconsistente
         }
-        with pytest.warns(None) as _:
+        import warnings
+        with warnings.catch_warnings(record=True) as _:
             # No lanza excepción, solo registra warning en logger
             presenter._validate_item_consistency(item, "MATERIALES")
 
