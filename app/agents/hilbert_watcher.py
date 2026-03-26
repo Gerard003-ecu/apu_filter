@@ -210,36 +210,47 @@ class WavefunctionState:
 
     def __post_init__(self) -> None:
         """Valida invariantes de clase tras construcción."""
-        # Verificar no-negatividad de observables que lo requieren
-        if self.energy < 0.0:
+        # Verificar finitud y no-negatividad de observables que lo requieren
+        if not math.isfinite(self.energy) or self.energy < 0.0:
             raise HilbertNumericalError(
-                f"energy debe ser ≥ 0, recibido: {self.energy}"
+                f"energy debe ser un float finito ≥ 0, recibido: {self.energy}"
             )
-        if self.work_function < 0.0:
+        if not math.isfinite(self.work_function) or self.work_function < 0.0:
             raise HilbertNumericalError(
-                f"work_function debe ser ≥ 0, recibido: {self.work_function}"
+                f"work_function debe ser un float finito ≥ 0, recibido: {self.work_function}"
             )
-        if not (self.effective_mass > 0.0 or math.isinf(self.effective_mass)):
+
+        # effective_mass debe ser finita positiva o infinito positivo
+        if math.isnan(self.effective_mass) or self.effective_mass <= 0.0:
             raise HilbertNumericalError(
                 f"effective_mass debe ser > 0 ó +∞, recibido: {self.effective_mass}"
             )
-        if not (0.0 <= self.transmission_prob <= 1.0):
+
+        if not math.isfinite(self.transmission_prob) or not (0.0 <= self.transmission_prob <= 1.0):
             raise HilbertNumericalError(
                 f"transmission_prob debe estar en [0,1], recibido: "
                 f"{self.transmission_prob}"
             )
-        if not (0.0 <= self.collapse_threshold < 1.0):
+
+        if not math.isfinite(self.collapse_threshold) or not (0.0 <= self.collapse_threshold < 1.0):
             raise HilbertNumericalError(
                 f"collapse_threshold debe estar en [0,1), recibido: "
                 f"{self.collapse_threshold}"
             )
-        if self.threat_level < 0.0:
+
+        if not math.isfinite(self.threat_level) or self.threat_level < 0.0:
             raise HilbertNumericalError(
-                f"threat_level debe ser ≥ 0, recibido: {self.threat_level}"
+                f"threat_level debe ser un float finito ≥ 0, recibido: {self.threat_level}"
             )
-        if self.frustration_energy < 0.0:
+
+        if not math.isfinite(self.dominant_pole_real):
             raise HilbertNumericalError(
-                f"frustration_energy debe ser ≥ 0, recibido: "
+                f"dominant_pole_real debe ser un float finito, recibido: {self.dominant_pole_real}"
+            )
+
+        if not math.isfinite(self.frustration_energy) or self.frustration_energy < 0.0:
+            raise HilbertNumericalError(
+                f"frustration_energy debe ser un float finito ≥ 0, recibido: "
                 f"{self.frustration_energy}"
             )
 
@@ -447,6 +458,14 @@ class HilbertObserverAgent(Morphism):
     """
 
     __slots__ = ("_topo", "_laplace", "_sheaf")
+
+    @property
+    def domain(self) -> FrozenSet[Stratum]:
+        return frozenset()
+
+    @property
+    def codomain(self) -> Stratum:
+        return Stratum.PHYSICS
 
     def __init__(
         self,
@@ -869,11 +888,12 @@ class HilbertObserverAgent(Morphism):
 
         # R2: Masa infinita (barrera impenetrable al túnel)
         if math.isinf(m_eff):
-            T = 1.0 if E >= Phi else 0.0
+            # Criterio de Routh-Hurwitz estricto: Si la masa es infinita (polo inestable),
+            # el estado colapsa irrefutablemente a REJECTED (T = 0.0), sin importar E.
+            T = 0.0
             logger.info(
-                "[DECIDE] m_eff=+∞: T=%.1f "
-                "(E=%.4f %s Φ=%.4f)",
-                T, E, "≥" if E >= Phi else "<", Phi,
+                "[DECIDE] m_eff=+∞: T=%.1f (Colapso incondicional a REJECTED por polo inestable)",
+                T,
             )
             return T
 
@@ -893,7 +913,7 @@ class HilbertObserverAgent(Morphism):
 
         # R4: Túnel cuántico WKB
         barrier_height = Phi - E  # > 0 garantizado por E < Phi
-        integrand = math.sqrt(2.0 * m_eff * barrier_height)
+        integrand = math.sqrt(max(0.0, 2.0 * m_eff * barrier_height))
 
         exponent = (
             -(2.0 / QuantumThresholds.PLANCK_HBAR)
@@ -1195,7 +1215,12 @@ class HilbertObserverAgent(Morphism):
         """Punto de entrada principal del agente.
 
         Ejecuta secuencialmente el ciclo completo OODA con
-        serialización única del payload:
+        serialización única del payload.
+
+        Idempotencia:
+            Si el estado ya contiene evidencia de colapso ('quantum_measurement'
+            en context) por haber sido procesado, se devuelve exactamente
+            el mismo estado preservando la invarianza topológica.
 
             Serialize → Observe → Orient → Decide → Threshold → Act
 
@@ -1238,6 +1263,11 @@ class HilbertObserverAgent(Morphism):
                 f"state.payload debe ser Mapping/dict; "
                 f"recibido {type(state.payload).__name__}"
             )
+
+        # --- Verificación de Idempotencia de Medición ---
+        # Si el estado ya colapsó bajo este operador, devolvemos el objeto inalterado.
+        if "quantum_measurement" in state.context:
+            return state
 
         # 0. SERIALIZACIÓN ÚNICA (evita doble cómputo)
         serialized = self._serialize_payload(state.payload)
