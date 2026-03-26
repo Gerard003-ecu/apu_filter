@@ -815,7 +815,7 @@ class QuantumAdmissionGate(Morphism):
             new_context = {
                 **context,
                 "quantum_error": error_msg,
-                "quantum_measurement": measurement,
+                "quantum_admission": measurement,
             }
 
             return CategoricalState(
@@ -837,7 +837,7 @@ class QuantumAdmissionGate(Morphism):
         new_context = {
             **context,
             "quantum_momentum": measurement.momentum,
-            "quantum_measurement": measurement,
+            "quantum_admission": measurement,
         }
 
         return CategoricalState(
