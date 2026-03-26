@@ -1258,9 +1258,9 @@ class TestArchitecturalCoupling:
 
         # Verificamos inmutabilidad y copiado
         assert "initial_key" in context
-        assert "quantum_measurement" in context
+        assert "quantum_admission" in context
 
-        measurement = context["quantum_measurement"]
+        measurement = context["quantum_admission"]
         assert isinstance(measurement, QuantumMeasurement)
         assert measurement.dominant_pole_real == 1.5
 
@@ -1290,8 +1290,8 @@ class TestArchitecturalCoupling:
         # El estado final no debe tener ningún estrato validado
         assert len(new_state.validated_strata) == 0
         assert "quantum_error" in new_state.context
-        assert new_state.context["quantum_measurement"].frustration_veto is True
-        assert new_state.context["quantum_measurement"].eigenstate == Eigenstate.RECHAZADO
+        assert new_state.context["quantum_admission"].frustration_veto is True
+        assert new_state.context["quantum_admission"].eigenstate == Eigenstate.RECHAZADO
 
     def test_orthogonality_in_mic(self) -> None:
         """
