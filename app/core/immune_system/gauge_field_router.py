@@ -1754,14 +1754,14 @@ class GaugeFieldRouter:
             GaugeFieldError si el agente no existe en el registro MIC
         """
         morphism: Optional[Morphism] = None
-        # Acceder a self._mic._vectors directamente ya que la clase MICRegistry usa _vectors.
-        with self._mic._lock:
-            if agent_id in self._mic._vectors:
-                morphism = self._mic._vectors[agent_id][1]
+        # Acceder a self._mic._vectors de forma segura usando el funtor de proyección.
+        registered_morphisms = self._mic.get_registered_morphisms()
+
+        if agent_id in registered_morphisms:
+            morphism = registered_morphisms[agent_id][1]
 
         if morphism is None:
-            with self._mic._lock:
-                registered_agents = list(self._mic._vectors.keys())
+            registered_agents = list(registered_morphisms.keys())
             raise GaugeFieldError(
                 f"El agente '{agent_id}' fue seleccionado por acoplamiento gauge, "
                 f"pero no existe en el registro MIC. "
