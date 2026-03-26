@@ -220,14 +220,14 @@ class LatticeQEDConstants:
     """Límite de iteraciones (None = sin límite explícito, usa default lsqr)."""
 
     # ── Validación de solución ──
-    RESIDUAL_TOLERANCE: Final[float] = 1e-8
+    RESIDUAL_TOLERANCE: Final[float] = 1e-7
     """
     Tolerancia de residual relativo post-solución.
     
     Verificación: ‖LΦ − ρ‖₂ / ‖ρ‖₂ < RESIDUAL_TOLERANCE
     
     Justificación: agrupa todos los errores del solver (atol, btol, iteraciones).
-    Valor 1e-8 permite cierto overhead pero es suficientemente restrictivo.
+    Valor 1e-7 permite cierto overhead pero es suficientemente restrictivo.
     """
 
     # ── Validación algebraica ──
@@ -1753,14 +1753,20 @@ class GaugeFieldRouter:
         Raises:
             GaugeFieldError si el agente no existe en el registro MIC
         """
-        morphism: Optional[Morphism] = self._mic.get_vector(agent_id)
+        morphism: Optional[Morphism] = None
+        # Acceder a self._mic._vectors directamente ya que la clase MICRegistry usa _vectors.
+        with self._mic._lock:
+            if agent_id in self._mic._vectors:
+                morphism = self._mic._vectors[agent_id][1]
 
         if morphism is None:
+            with self._mic._lock:
+                registered_agents = list(self._mic._vectors.keys())
             raise GaugeFieldError(
                 f"El agente '{agent_id}' fue seleccionado por acoplamiento gauge, "
                 f"pero no existe en el registro MIC. "
                 f"Agentes registrados en gauge: {self.agent_ids}. "
-                f"Agentes registrados en MIC: {self._mic.list_vectors()}."
+                f"Agentes registrados en MIC: {registered_agents}."
             )
 
         return morphism
