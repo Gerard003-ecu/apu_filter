@@ -297,11 +297,19 @@ class QuantumAdmissionGate(Morphism):
         laplace_oracle: ILaplaceOracle,
         sheaf_orchestrator: ISheafCohomologyOrchestrator,
     ) -> None:
+        super().__init__(name="QuantumAdmissionGate")
         self._topo_watcher = topo_watcher
         self._laplace_oracle = laplace_oracle
         self._sheaf_orchestrator = sheaf_orchestrator
         self._validate_dependencies()
-        super().__init__()
+
+    @property
+    def domain(self) -> frozenset:
+        return frozenset()
+
+    @property
+    def codomain(self) -> Stratum:
+        return Stratum.PHYSICS
 
     # ------------------------------------------------------------------
     # VALIDACIÓN DE CONTRATOS

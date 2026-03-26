@@ -424,7 +424,7 @@ class DataFrameValidator:
         """
         if value is None:
             return
-        if not isinstance(value, (int, float)):
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
             raise ValueError(
                 f"Límite '{bound_name}' para '{col}' debe ser numérico, "
                 f"recibido={type(value).__name__}"
