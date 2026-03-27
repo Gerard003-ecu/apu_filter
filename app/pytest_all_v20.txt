@@ -1,0 +1,743 @@
+=================================== FAILURES ===================================
+________ TestEvaluateProjectFlow.test_report_contains_required_sections ________
+
+self = <tests.test_business_agent_integration.TestEvaluateProjectFlow object at 0x731d1eeaa470>
+agent = <app.strategy.business_agent.BusinessAgent object at 0x731d1ee79d20>
+complete_context = ({'cash_flows': [400.0, 400.0, 400.0, 400.0], 'df_merged':    CODIGO_APU    DESCRIPCION_INSUMO  ... COSTO_INSUMO_EN_AP...b0>, ...}, CashFlowProjection(initial_investment=1000.0, cash_flows=[400.0, 400.0, 400.0, 400.0], risk_free_rate=0.05))
+
+    def test_report_contains_required_sections(
+        self,
+        agent: BusinessAgent,
+        complete_context: Tuple[Dict, CashFlowProjection],
+    ) -> None:
+        """
+        La narrativa contiene las secciones requeridas del informe.
+    
+        Secciones obligatorias del contrato de interfaz.
+        """
+        context, _ = complete_context
+        report = agent.evaluate_project(context)
+    
+        required_sections = [
+            "INFORME DE INGENIERÍA ESTRATÉGICA",
+            "Auditoría de Integridad Estructural",
+            "Análisis de Cargas Financieras",
+            "Geotecnia de Mercado",
+            "Dictamen del Ingeniero Jefe",
+        ]
+    
+        for section in required_sections:
+>           assert section in report.strategic_narrative, (
+                f"Sección requerida faltante: '{section}'.\n"
+                f"Narrativa (primeros 300 chars): "
+                f"'{report.strategic_narrative[:300]}...'"
+            )
+E           AssertionError: Sección requerida faltante: 'INFORME DE INGENIERÍA ESTRATÉGICA'.
+E             Narrativa (primeros 300 chars): '🏗️ **ESTRUCTURA SÓLIDA**: Base robusta. ✅ **TRAZABILIDAD LIMPIA**: Flujo acíclico. 📡 **RIESGO DE RESONANCIA**: Vulnerabilidad sistémica....'
+E           assert 'INFORME DE INGENIER\xcdA ESTRAT\xc9GICA' in '\U0001f3d7\ufe0f **ESTRUCTURA S\xd3LIDA**: Base robusta. \u2705 **TRAZABILIDAD LIMPIA**: Flujo ac\xedclico. \U0001f4e1 **RIESGO DE RESONANCIA**: Vulnerabilidad sist\xe9mica.'
+E            +  where '\U0001f3d7\ufe0f **ESTRUCTURA S\xd3LIDA**: Base robusta. \u2705 **TRAZABILIDAD LIMPIA**: Flujo ac\xedclico. \U0001f4e1 **RIESGO DE RESONANCIA**: Vulnerabilidad sist\xe9mica.' = ConstructionRiskReport(integrity_score=67.23028469183882, waste_alerts=[], circular_risks=[], complexity_level=<ComplexityLevel.LOW: 'Baja'>, details={'metrics': {'beta_0': 1, 'beta_1': 0, 'beta_2': 0, 'euler_characteristic': 1, 'fiedler_value': 1.0, 'spectral_gap': 0.0, 'pyramid_stability': 1.0, 'structural_entropy': 0.0}, 'euler_efficiency': 1.0, 'pyramid_stability': 0.9993, 'synergy_risk': {'synergy_detected': False, 'synergy_score': 0.0, 'synergy_strength': 0.0, 'risk_level': 'NINGUNO', 'bridge_nodes': [], 'intersecting_cycles_count': 0}, 'anomalies': {'isolated_nodes': [], 'orphan_insumos': [], 'empty_apus': []}, 'thermal': {'system_temperature': 46.5, 'thermal_risk_level': 'MEDIO', 'hotspots': [{'id': 'Flete (APU-001)', 'temp': 75.0}, {'id': 'Flete (APU-002)', 'temp': 75.0}, {'id': 'Flete (APU-003)', 'temp': 75.0}, {'id': 'Cemento (APU-001)', 'temp': 60.0}, {'id': 'Cemento (APU-002)', 'temp': 60.0}, {'id': 'Cemento (APU-003)', 'temp': 60.0}]}, 'spectral': {'fiedler_value': 0.0, 'spectral_gap': 0.0, 'spectral_energy': 21.0, 'wavelength': 0.5, 'lambda_max': 2.0, 'resonance_risk': True, 'algebraic_connectivity': 0.0, 'eigenvalues': [-0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0], 'isolated_nodes_removed': 0, 'status': 'success'}, 'spectral_analysis': {'fiedler_value': 0.0, 'spectral_gap': 0.0, 'spectral_energy': 21.0, 'wavelength': 0.5, 'lambda_max': 2.0, 'resonance_risk': True, 'algebraic_connectivity': 0.0, 'eigenvalues': [-0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0], 'isolated_nodes_removed': 0, 'status': 'success'}, 'density': 0.0625, 'connectivity': {'is_dag': True}, 'cycles': [], 'raw_cycles': [], 'critical_resources': [{'id': 'Cemento (APU-001)', 'in_degree': 1, 'description': 'Cemento (APU-001)'}, {'id': 'Oficial (APU-001)', 'in_degree': 1, 'description': 'Oficial (APU-001)'}, {'id': 'Mezcladora (APU-001)', 'in_degree': 1, 'description': 'Mezcladora (APU-001)'}, {'id': 'Flete (APU-001)', 'in_degree': 1, 'description': 'Flete (APU-001)'}, {'id': 'Cemento (APU-002)', 'in_degree': 1, 'description': 'Cemento (APU-002)'}], 'convection_risk': {'high_risk_nodes': []}, 'strategic_narrative': '\U0001f3d7\ufe0f **ESTRUCTURA S\xd3LIDA**: Base robusta. \u2705 **TRAZABILIDAD LIMPIA**: Flujo ac\xedclico. \U0001f4e1 **RIESGO DE RESONANCIA**: Vulnerabilidad sist\xe9mica.', 'financial_metrics': {'npv': 150.0, 'irr': 0.15, 'payback_years': 3.5, 'payback': 3.5, 'wacc': 0.1, 'risk_adjusted_return': 0.12, 'performance': {'recommendation': 'APPROVE', 'risk_level': 'LOW'}, 'npv_adjusted': 149.89499999999998, 'structural_discount': 0.0007000000000000339}, 'thermal_metrics': {'system_temperature': 46.5, 'thermal_risk_level': 'MEDIO', 'hotspots': [{'id': 'Flete (APU-001)', 'temp': 75.0}, {'id': 'Flete (APU-002)', 'temp': 75.0}, {'id': 'Flete (APU-003)', 'temp': 75.0}, {'id': 'Cemento (APU-001)', 'temp': 60.0}, {'id': 'Cemento (APU-002)', 'temp': 60.0}, {'id': 'Cemento (APU-003)', 'temp': 60.0}], 'node_temperatures': {'PROYECTO_TOTAL': 46.5, 'APU-001': 46.5, 'APU-002': 46.5, 'APU-003': 46.5, 'Cemento (APU-001)': 60.0, 'Oficial (APU-001)': 30.0, 'Mezcladora (APU-001)': 30.0, 'Flete (APU-001)': 75.0, 'Cemento (APU-002)': 60.0, 'Oficial (APU-002)': 30.0, 'Mezcladora (APU-002)': 30.0, 'Flete (APU-002)': 75.0, 'Cemento (APU-003)': 60.0, 'Oficial (APU-003)': 30.0, 'Mezcladora (APU-003)': 30.0, 'Flete (APU-003)': 75.0}}, 'thermodynamics': {'entropy': 0.5, 'exergy': 0.6, 'negentropy': 0.5}, 'topological_invariants': {'betti_numbers': {'beta_0': 1, 'beta_1': 0, 'beta_2': 0}, 'pyramid_stability': 0.9993, 'structural_coherence': 0.9993, 'n_nodes': 16, 'n_edges': 15, 'is_connected': True, 'cycle_density': 0.0, 'euler_characteristic': 1}, 'decision_algebra': {'weights': {'alpha': 0.4, 'beta': 0.4, 'gamma': 0.2}, 'quality_factors': {'topology': 0.9993, 'finance': 0.5000749999994375, 'thermodynamics': 0.55}, 'integrated_score': 0.6723028469183882}}, financial_risk_level='Pendiente', strategic_narrative='\U0001f3d7\ufe0f **ESTRUCTURA S\xd3LIDA**: Base robusta. \u2705 **TRAZABILIDAD LIMPIA**: Flujo ac\xedclico. \U0001f4e1 **RIESGO DE RESONANCIA**: Vulnerabilidad sist\xe9mica.', timestamp='2026-03-27T20:43:48.665789').strategic_narrative
+
+tests/test_business_agent_integration.py:1128: AssertionError
+----------------------------- Captured stderr call -----------------------------
+2026-03-27 15:43:48,656 - app.strategy.business_agent.BusinessAgent - INFO - 🤖 Iniciando evaluación de proyecto...
+2026-03-27 15:43:48,658 - app.strategy.business_agent.TopologyBuilder - INFO - 🏗️ Construyendo topología del presupuesto...
+2026-03-27 15:43:48,658 - BudgetGraphBuilder - INFO - Iniciando construcción del Grafo Piramidal...
+2026-03-27 15:43:48,660 - BudgetGraphBuilder - INFO - Grafo Piramidal construido: {'chapter_count': 0, 'apu_count': 3, 'insumo_count': 12, 'inferred_count': 0, 'total_nodes': 16, 'total_edges': 15}
+2026-03-27 15:43:48,661 - app.strategy.business_agent.TopologyBuilder - INFO - Métricas topológicas: β₀=1, β₁=0, Ψ=0.999, Conexo=True
+2026-03-27 15:43:48,662 - app.strategy.business_agent.BusinessAgent - INFO - 🤖 Proyectando vector financiero...
+2026-03-27 15:43:48,662 - app.strategy.business_agent.BusinessAgent - INFO - ✅ Proyección financiera: VPN=150.0
+2026-03-27 15:43:48,662 - app.strategy.business_agent.ReportComposer - INFO - 🧠 Componiendo reporte con álgebra multicriterio...
+2026-03-27 15:43:48,665 - app.strategy.business_agent.ReportComposer - WARNING - ⚠️ Generación de narrativa falló: 'FinancialVerdict' object has no attribute 'get'
+2026-03-27 15:43:48,665 - app.strategy.business_agent.RiskChallenger - INFO - ⚖️ Risk Challenger: Iniciando auditoría...
+2026-03-27 15:43:48,665 - app.strategy.business_agent.BusinessAgent - INFO - ✅ Evaluación completada con éxito
+------------------------------ Captured log call -------------------------------
+INFO     app.strategy.business_agent.BusinessAgent:business_agent.py:2172 🤖 Iniciando evaluación de proyecto...
+INFO     app.strategy.business_agent.TopologyBuilder:business_agent.py:929 🏗️ Construyendo topología del presupuesto...
+INFO     BudgetGraphBuilder:business_topology.py:1223 Iniciando construcción del Grafo Piramidal...
+INFO     BudgetGraphBuilder:business_topology.py:1255 Grafo Piramidal construido: {'chapter_count': 0, 'apu_count': 3, 'insumo_count': 12, 'inferred_count': 0, 'total_nodes': 16, 'total_edges': 15}
+INFO     app.strategy.business_agent.TopologyBuilder:business_agent.py:989 Métricas topológicas: β₀=1, β₁=0, Ψ=0.999, Conexo=True
+INFO     app.strategy.business_agent.BusinessAgent:business_agent.py:2316 🤖 Proyectando vector financiero...
+INFO     app.strategy.business_agent.BusinessAgent:business_agent.py:2371 ✅ Proyección financiera: VPN=150.0
+INFO     app.strategy.business_agent.ReportComposer:business_agent.py:1911 🧠 Componiendo reporte con álgebra multicriterio...
+WARNING  app.strategy.business_agent.ReportComposer:business_agent.py:2015 ⚠️ Generación de narrativa falló: 'FinancialVerdict' object has no attribute 'get'
+INFO     app.strategy.business_agent.RiskChallenger:business_agent.py:1413 ⚖️ Risk Challenger: Iniciando auditoría...
+INFO     app.strategy.business_agent.BusinessAgent:business_agent.py:2246 ✅ Evaluación completada con éxito
+_______ TestTopologicalAnalysis.test_connected_budget_positive_narrative _______
+
+self = <tests.test_business_agent_integration.TestTopologicalAnalysis object at 0x731d1eea8f10>
+agent = <app.strategy.business_agent.BusinessAgent object at 0x731cf8d8f820>
+complete_context = ({'cash_flows': [400.0, 400.0, 400.0, 400.0], 'df_merged':    CODIGO_APU    DESCRIPCION_INSUMO  ... COSTO_INSUMO_EN_AP...f0>, ...}, CashFlowProjection(initial_investment=1000.0, cash_flows=[400.0, 400.0, 400.0, 400.0], risk_free_rate=0.05))
+
+    def test_connected_budget_positive_narrative(
+        self,
+        agent: BusinessAgent,
+        complete_context: Tuple[Dict, CashFlowProjection],
+    ) -> None:
+        """
+        Presupuesto bien formado (todos los APUs con insumos)
+        genera narrativa con indicadores de integridad.
+        """
+        context, _ = complete_context
+        report = agent.evaluate_project(context)
+    
+>       _narrative_contains_any(
+            report.strategic_narrative,
+            ["íntegr", "conectad", "coheren", "estable", "completo"],
+            "budget-connected",
+        )
+
+tests/test_business_agent_integration.py:1301: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+narrative = '🏗️ **ESTRUCTURA SÓLIDA**: Base robusta. ✅ **TRAZABILIDAD LIMPIA**: Flujo acíclico. 📡 **RIESGO DE RESONANCIA**: Vulnerabilidad sistémica.'
+terms = ['íntegr', 'conectad', 'coheren', 'estable', 'completo']
+context = 'budget-connected'
+
+    def _narrative_contains_any(
+        narrative: str,
+        terms: List[str],
+        context: str = "",
+    ) -> None:
+        """
+        Verifica que la narrativa contiene al menos uno de los términos dados.
+    
+        Parameters
+        ----------
+        narrative : str
+            Texto de la narrativa.
+        terms : List[str]
+            Términos a buscar (case-insensitive, búsqueda parcial).
+        context : str
+            Descripción del contexto para error.
+        """
+        narrative_lower = narrative.lower()
+        found = [t for t in terms if t in narrative_lower]
+    
+>       assert len(found) > 0, (
+            f"[{context}] Narrativa no contiene ninguno de los términos "
+            f"esperados: {terms}.\n"
+            f"Narrativa (primeros 500 chars): "
+            f"'{narrative_lower[:500]}...'"
+        )
+E       AssertionError: [budget-connected] Narrativa no contiene ninguno de los términos esperados: ['íntegr', 'conectad', 'coheren', 'estable', 'completo'].
+E         Narrativa (primeros 500 chars): '🏗️ **estructura sólida**: base robusta. ✅ **trazabilidad limpia**: flujo acíclico. 📡 **riesgo de resonancia**: vulnerabilidad sistémica....'
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests/test_business_agent_integration.py:676: AssertionError
+----------------------------- Captured stderr call -----------------------------
+2026-03-27 15:43:48,768 - app.strategy.business_agent.BusinessAgent - INFO - 🤖 Iniciando evaluación de proyecto...
+2026-03-27 15:43:48,770 - app.strategy.business_agent.TopologyBuilder - INFO - 🏗️ Construyendo topología del presupuesto...
+2026-03-27 15:43:48,770 - BudgetGraphBuilder - INFO - Iniciando construcción del Grafo Piramidal...
+2026-03-27 15:43:48,772 - BudgetGraphBuilder - INFO - Grafo Piramidal construido: {'chapter_count': 0, 'apu_count': 3, 'insumo_count': 12, 'inferred_count': 0, 'total_nodes': 16, 'total_edges': 15}
+2026-03-27 15:43:48,773 - app.strategy.business_agent.TopologyBuilder - INFO - Métricas topológicas: β₀=1, β₁=0, Ψ=0.999, Conexo=True
+2026-03-27 15:43:48,774 - app.strategy.business_agent.BusinessAgent - INFO - 🤖 Proyectando vector financiero...
+2026-03-27 15:43:48,774 - app.strategy.business_agent.BusinessAgent - INFO - ✅ Proyección financiera: VPN=150.0
+2026-03-27 15:43:48,774 - app.strategy.business_agent.ReportComposer - INFO - 🧠 Componiendo reporte con álgebra multicriterio...
+2026-03-27 15:43:48,777 - app.strategy.business_agent.ReportComposer - WARNING - ⚠️ Generación de narrativa falló: 'FinancialVerdict' object has no attribute 'get'
+2026-03-27 15:43:48,777 - app.strategy.business_agent.RiskChallenger - INFO - ⚖️ Risk Challenger: Iniciando auditoría...
+2026-03-27 15:43:48,777 - app.strategy.business_agent.BusinessAgent - INFO - ✅ Evaluación completada con éxito
+------------------------------ Captured log call -------------------------------
+INFO     app.strategy.business_agent.BusinessAgent:business_agent.py:2172 🤖 Iniciando evaluación de proyecto...
+INFO     app.strategy.business_agent.TopologyBuilder:business_agent.py:929 🏗️ Construyendo topología del presupuesto...
+INFO     BudgetGraphBuilder:business_topology.py:1223 Iniciando construcción del Grafo Piramidal...
+INFO     BudgetGraphBuilder:business_topology.py:1255 Grafo Piramidal construido: {'chapter_count': 0, 'apu_count': 3, 'insumo_count': 12, 'inferred_count': 0, 'total_nodes': 16, 'total_edges': 15}
+INFO     app.strategy.business_agent.TopologyBuilder:business_agent.py:989 Métricas topológicas: β₀=1, β₁=0, Ψ=0.999, Conexo=True
+INFO     app.strategy.business_agent.BusinessAgent:business_agent.py:2316 🤖 Proyectando vector financiero...
+INFO     app.strategy.business_agent.BusinessAgent:business_agent.py:2371 ✅ Proyección financiera: VPN=150.0
+INFO     app.strategy.business_agent.ReportComposer:business_agent.py:1911 🧠 Componiendo reporte con álgebra multicriterio...
+WARNING  app.strategy.business_agent.ReportComposer:business_agent.py:2015 ⚠️ Generación de narrativa falló: 'FinancialVerdict' object has no attribute 'get'
+INFO     app.strategy.business_agent.RiskChallenger:business_agent.py:1413 ⚖️ Risk Challenger: Iniciando auditoría...
+INFO     app.strategy.business_agent.BusinessAgent:business_agent.py:2246 ✅ Evaluación completada con éxito
+_________ TestFinancialAnalysis.test_viable_project_positive_narrative _________
+
+self = <tests.test_business_agent_integration.TestFinancialAnalysis object at 0x731d1eeaab90>
+default_config = {'financial_config': {'inflation_rate': 0.03, 'risk_free_rate': 0.05, 'tax_rate': 0.25}, 'report_config': {'include_charts': False, 'language': 'es'}, 'risk_config': {'concentration_limit': 0.4, 'volatility_threshold': 0.2}}
+
+    def test_viable_project_positive_narrative(
+        self, default_config: Dict,
+    ) -> None:
+        """
+        Proyecto viable (VPN > 0 en MIC) genera narrativa positiva.
+        """
+        mic = _create_mock_mic(npv=500.0, recommendation="APPROVE")
+        agent = BusinessAgent(default_config, mic=mic)
+    
+        context = (
+            ProjectContextBuilder()
+            .with_presupuesto(
+                PresupuestoBuilder().with_apu("APU-001", "Test", 10.0)
+            )
+            .with_insumos(
+                InsumosBuilder()
+                .for_apus("APU-001")
+                .with_insumo("APU-001", "Material", "MATERIAL", 100.0)
+            )
+            .with_viable_project()
+            .build()
+        )
+    
+        report = agent.evaluate_project(context)
+    
+>       _narrative_contains_any(
+            report.strategic_narrative,
+            ["viable", "positiv", "favorable", "recomend", "aprob", "estable"],
+            "viable-project",
+        )
+
+tests/test_business_agent_integration.py:1361: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+narrative = '🏗️ **ESTRUCTURA SÓLIDA**: Base robusta. ✅ **TRAZABILIDAD LIMPIA**: Flujo acíclico. 📡 **RIESGO DE RESONANCIA**: Vulnerabilidad sistémica.'
+terms = ['viable', 'positiv', 'favorable', 'recomend', 'aprob', 'estable']
+context = 'viable-project'
+
+    def _narrative_contains_any(
+        narrative: str,
+        terms: List[str],
+        context: str = "",
+    ) -> None:
+        """
+        Verifica que la narrativa contiene al menos uno de los términos dados.
+    
+        Parameters
+        ----------
+        narrative : str
+            Texto de la narrativa.
+        terms : List[str]
+            Términos a buscar (case-insensitive, búsqueda parcial).
+        context : str
+            Descripción del contexto para error.
+        """
+        narrative_lower = narrative.lower()
+        found = [t for t in terms if t in narrative_lower]
+    
+>       assert len(found) > 0, (
+            f"[{context}] Narrativa no contiene ninguno de los términos "
+            f"esperados: {terms}.\n"
+            f"Narrativa (primeros 500 chars): "
+            f"'{narrative_lower[:500]}...'"
+        )
+E       AssertionError: [viable-project] Narrativa no contiene ninguno de los términos esperados: ['viable', 'positiv', 'favorable', 'recomend', 'aprob', 'estable'].
+E         Narrativa (primeros 500 chars): '🏗️ **estructura sólida**: base robusta. ✅ **trazabilidad limpia**: flujo acíclico. 📡 **riesgo de resonancia**: vulnerabilidad sistémica....'
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests/test_business_agent_integration.py:676: AssertionError
+----------------------------- Captured stderr call -----------------------------
+2026-03-27 15:43:48,828 - app.strategy.business_agent.BusinessAgent - INFO - 🤖 Iniciando evaluación de proyecto...
+2026-03-27 15:43:48,830 - app.strategy.business_agent.TopologyBuilder - INFO - 🏗️ Construyendo topología del presupuesto...
+2026-03-27 15:43:48,831 - BudgetGraphBuilder - INFO - Iniciando construcción del Grafo Piramidal...
+2026-03-27 15:43:48,831 - BudgetGraphBuilder - INFO - Grafo Piramidal construido: {'chapter_count': 0, 'apu_count': 1, 'insumo_count': 1, 'inferred_count': 0, 'total_nodes': 3, 'total_edges': 2}
+2026-03-27 15:43:48,832 - app.strategy.business_agent.TopologyBuilder - INFO - Métricas topológicas: β₀=1, β₁=0, Ψ=0.762, Conexo=True
+2026-03-27 15:43:48,832 - app.strategy.business_agent.BusinessAgent - INFO - 🤖 Proyectando vector financiero...
+2026-03-27 15:43:48,832 - app.strategy.business_agent.BusinessAgent - INFO - ✅ Proyección financiera: VPN=500.0
+2026-03-27 15:43:48,832 - app.strategy.business_agent.ReportComposer - INFO - 🧠 Componiendo reporte con álgebra multicriterio...
+2026-03-27 15:43:48,834 - app.strategy.business_agent.ReportComposer - WARNING - ⚠️ Generación de narrativa falló: 'FinancialVerdict' object has no attribute 'get'
+2026-03-27 15:43:48,835 - app.strategy.business_agent.RiskChallenger - INFO - ⚖️ Risk Challenger: Iniciando auditoría...
+2026-03-27 15:43:48,835 - app.strategy.business_agent.BusinessAgent - INFO - ✅ Evaluación completada con éxito
+------------------------------ Captured log call -------------------------------
+INFO     app.strategy.business_agent.BusinessAgent:business_agent.py:2172 🤖 Iniciando evaluación de proyecto...
+INFO     app.strategy.business_agent.TopologyBuilder:business_agent.py:929 🏗️ Construyendo topología del presupuesto...
+INFO     BudgetGraphBuilder:business_topology.py:1223 Iniciando construcción del Grafo Piramidal...
+INFO     BudgetGraphBuilder:business_topology.py:1255 Grafo Piramidal construido: {'chapter_count': 0, 'apu_count': 1, 'insumo_count': 1, 'inferred_count': 0, 'total_nodes': 3, 'total_edges': 2}
+INFO     app.strategy.business_agent.TopologyBuilder:business_agent.py:989 Métricas topológicas: β₀=1, β₁=0, Ψ=0.762, Conexo=True
+INFO     app.strategy.business_agent.BusinessAgent:business_agent.py:2316 🤖 Proyectando vector financiero...
+INFO     app.strategy.business_agent.BusinessAgent:business_agent.py:2371 ✅ Proyección financiera: VPN=500.0
+INFO     app.strategy.business_agent.ReportComposer:business_agent.py:1911 🧠 Componiendo reporte con álgebra multicriterio...
+WARNING  app.strategy.business_agent.ReportComposer:business_agent.py:2015 ⚠️ Generación de narrativa falló: 'FinancialVerdict' object has no attribute 'get'
+INFO     app.strategy.business_agent.RiskChallenger:business_agent.py:1413 ⚖️ Risk Challenger: Iniciando auditoría...
+INFO     app.strategy.business_agent.BusinessAgent:business_agent.py:2246 ✅ Evaluación completada con éxito
+_______________ TestCholeskyVerification.test_spd_matrix_passes ________________
+
+self = <test_metric_tensors.TestCholeskyVerification object at 0x731d1ea713c0>
+factory = <class 'app.core.immune_system.metric_tensors.MetricTensorFactory'>
+
+    def test_spd_matrix_passes(self, factory):
+        """Una matriz SPD pasa la verificación de Cholesky."""
+        G = np.array([[4.0, 2.0], [2.0, 3.0]], dtype=_FLOAT_DTYPE)
+>       assert factory._verify_spd_by_cholesky("test", G) is True
+E       AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+
+tests/unit/core/immune_system/test_metric_tensors.py:919: AttributeError
+________________ TestCholeskyVerification.test_identity_passes _________________
+
+self = <test_metric_tensors.TestCholeskyVerification object at 0x731d1e905fc0>
+factory = <class 'app.core.immune_system.metric_tensors.MetricTensorFactory'>
+identity_3x3 = array([[1., 0., 0.],
+       [0., 1., 0.],
+       [0., 0., 1.]])
+
+    def test_identity_passes(self, factory, identity_3x3):
+        """La identidad pasa Cholesky trivialmente."""
+>       assert factory._verify_spd_by_cholesky("test", identity_3x3) is True
+E       AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+
+tests/unit/core/immune_system/test_metric_tensors.py:923: AttributeError
+____________ TestCholeskyVerification.test_negative_definite_fails _____________
+
+self = <test_metric_tensors.TestCholeskyVerification object at 0x731d1e905f00>
+factory = <class 'app.core.immune_system.metric_tensors.MetricTensorFactory'>
+
+    def test_negative_definite_fails(self, factory):
+        """Una matriz negativa definida falla Cholesky."""
+        G = -np.eye(2, dtype=_FLOAT_DTYPE)
+>       assert factory._verify_spd_by_cholesky("test", G) is False
+E       AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+
+tests/unit/core/immune_system/test_metric_tensors.py:928: AttributeError
+______________ TestCholeskyVerification.test_semi_definite_fails _______________
+
+self = <test_metric_tensors.TestCholeskyVerification object at 0x731d1e905960>
+factory = <class 'app.core.immune_system.metric_tensors.MetricTensorFactory'>
+
+    def test_semi_definite_fails(self, factory):
+        """Una matriz semidefinida positiva (singular) falla Cholesky."""
+        G = np.array([[1.0, 1.0], [1.0, 1.0]], dtype=_FLOAT_DTYPE)
+>       assert factory._verify_spd_by_cholesky("test", G) is False
+E       AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+
+tests/unit/core/immune_system/test_metric_tensors.py:933: AttributeError
+________________ TestCholeskyVerification.test_indefinite_fails ________________
+
+self = <test_metric_tensors.TestCholeskyVerification object at 0x731d1e905510>
+factory = <class 'app.core.immune_system.metric_tensors.MetricTensorFactory'>
+
+    def test_indefinite_fails(self, factory):
+        """Una matriz indefinida falla Cholesky."""
+        G = np.array([[1.0, 0.0], [0.0, -1.0]], dtype=_FLOAT_DTYPE)
+>       assert factory._verify_spd_by_cholesky("test", G) is False
+E       AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+
+tests/unit/core/immune_system/test_metric_tensors.py:938: AttributeError
+_______________ TestCholeskyVerification.test_zero_matrix_fails ________________
+
+self = <test_metric_tensors.TestCholeskyVerification object at 0x731d1e904a90>
+factory = <class 'app.core.immune_system.metric_tensors.MetricTensorFactory'>
+
+    def test_zero_matrix_fails(self, factory):
+        """La matriz cero no es SPD."""
+        G = np.zeros((2, 2), dtype=_FLOAT_DTYPE)
+>       assert factory._verify_spd_by_cholesky("test", G) is False
+E       AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+
+tests/unit/core/immune_system/test_metric_tensors.py:943: AttributeError
+__________ TestTikhonovRegularization.test_regularized_matrix_is_spd ___________
+
+self = <test_metric_tensors.TestTikhonovRegularization object at 0x731d1e906bc0>
+factory = <class 'app.core.immune_system.metric_tensors.MetricTensorFactory'>
+
+    def test_regularized_matrix_is_spd(self, factory):
+        """La matriz regularizada debe ser SPD."""
+        G = np.diag([1e-15, 1.0]).astype(_FLOAT_DTYPE)
+        profile = factory._compute_spectral_profile(G)
+        G_reg, _ = factory._apply_tikhonov_regularization("test", G, profile)
+>       assert factory._verify_spd_by_cholesky("test", G_reg)
+E       AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+
+tests/unit/core/immune_system/test_metric_tensors.py:1033: AttributeError
+________ TestStrictSPDAssertion.test_sylvester_criterion_in_strict_spd _________
+
+self = <test_metric_tensors.TestStrictSPDAssertion object at 0x731d1e907d30>
+factory = <class 'app.core.immune_system.metric_tensors.MetricTensorFactory'>
+
+    def test_sylvester_criterion_in_strict_spd(self, factory):
+        """Criterio de Sylvester (menores principales positivos) falla y es detectado."""
+        # Una matriz con λ_min y λ_max positivos pero que no es SPD debido
+        # a componentes fuera de la diagonal muy grandes
+        G = np.array([[1.0, 10.0], [10.0, 1.0]], dtype=_FLOAT_DTYPE)
+        profile = self._make_profile([0.5, 1.5])  # valores falsos para saltar los checks previos
+>       with pytest.raises(MetricTensorError, match="Criterio de Sylvester"):
+E       Failed: DID NOT RAISE <class 'app.core.immune_system.topological_watcher.MetricTensorError'>
+
+tests/unit/core/immune_system/test_metric_tensors.py:1219: Failed
+______________ TestTensorDiagnostics.test_diagnostics_of_identity ______________
+
+self = <test_metric_tensors.TestTensorDiagnostics object at 0x731d1e923310>
+
+    def test_diagnostics_of_identity(self):
+        """Diagnósticos de la identidad son correctos."""
+        diag = get_tensor_diagnostics(np.eye(3, dtype=_FLOAT_DTYPE), "I_3")
+        assert diag["name"] == "I_3"
+>       assert diag["shape"] == (3, 3)
+E       KeyError: 'shape'
+
+tests/unit/core/immune_system/test_metric_tensors.py:1613: KeyError
+___ TestTensorDiagnostics.test_diagnostics_of_precompiled_tensors[G_PHYSICS] ___
+
+self = <test_metric_tensors.TestTensorDiagnostics object at 0x731d1e9045b0>
+tensor_info = ('G_PHYSICS', array([[2.5 , 0.85, 0.3 ],
+       [0.85, 1.5 , 0.45],
+       [0.3 , 0.45, 1.  ]]), 3)
+
+    def test_diagnostics_of_precompiled_tensors(self, tensor_info):
+        """Diagnósticos de tensores precompilados son coherentes."""
+        name, G, expected_dim = tensor_info
+        diag = get_tensor_diagnostics(G, name)
+        assert diag["name"] == name
+>       assert diag["shape"] == (expected_dim, expected_dim)
+E       KeyError: 'shape'
+
+tests/unit/core/immune_system/test_metric_tensors.py:1627: KeyError
+__ TestTensorDiagnostics.test_diagnostics_of_precompiled_tensors[G_TOPOLOGY] ___
+
+self = <test_metric_tensors.TestTensorDiagnostics object at 0x731d1ea72bc0>
+tensor_info = ('G_TOPOLOGY', array([[1. , 0.6],
+       [0.6, 3. ]]), 2)
+
+    def test_diagnostics_of_precompiled_tensors(self, tensor_info):
+        """Diagnósticos de tensores precompilados son coherentes."""
+        name, G, expected_dim = tensor_info
+        diag = get_tensor_diagnostics(G, name)
+        assert diag["name"] == name
+>       assert diag["shape"] == (expected_dim, expected_dim)
+E       KeyError: 'shape'
+
+tests/unit/core/immune_system/test_metric_tensors.py:1627: KeyError
+_ TestTensorDiagnostics.test_diagnostics_of_precompiled_tensors[G_THERMODYNAMICS] _
+
+self = <test_metric_tensors.TestTensorDiagnostics object at 0x731d1e9231c0>
+tensor_info = ('G_THERMODYNAMICS', array([[1.8 , 0.75],
+       [0.75, 2.2 ]]), 2)
+
+    def test_diagnostics_of_precompiled_tensors(self, tensor_info):
+        """Diagnósticos de tensores precompilados son coherentes."""
+        name, G, expected_dim = tensor_info
+        diag = get_tensor_diagnostics(G, name)
+        assert diag["name"] == name
+>       assert diag["shape"] == (expected_dim, expected_dim)
+E       KeyError: 'shape'
+
+tests/unit/core/immune_system/test_metric_tensors.py:1627: KeyError
+________ TestTensorDiagnostics.test_diagnostics_includes_asymmetry_info ________
+
+self = <test_metric_tensors.TestTensorDiagnostics object at 0x731d1e9227a0>
+
+    def test_diagnostics_includes_asymmetry_info(self):
+        """Los diagnósticos incluyen información de asimetría."""
+        G = np.array([[2.0, 1.0], [1.0, 3.0]], dtype=_FLOAT_DTYPE)
+        diag = get_tensor_diagnostics(G, "sym_test")
+>       assert "asymmetry_norm" in diag
+E       assert 'asymmetry_norm' in {'name': 'sym_test', 'error': "type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'", 'error_type': 'AttributeError'}
+
+tests/unit/core/immune_system/test_metric_tensors.py:1652: AssertionError
+_________ TestTensorDiagnostics.test_diagnostics_eigenvalues_are_list __________
+
+self = <test_metric_tensors.TestTensorDiagnostics object at 0x731d1e922170>
+
+    def test_diagnostics_eigenvalues_are_list(self):
+        """Los eigenvalores en diagnósticos son lista (serializable JSON)."""
+        diag = get_tensor_diagnostics(np.eye(2, dtype=_FLOAT_DTYPE), "test")
+>       assert isinstance(diag["eigenvalues"], list)
+E       KeyError: 'eigenvalues'
+
+tests/unit/core/immune_system/test_metric_tensors.py:1659: KeyError
+____________ TestTensorDiagnostics.test_diagnostics_non_spd_matrix _____________
+
+self = <test_metric_tensors.TestTensorDiagnostics object at 0x731d1e921d80>
+
+    def test_diagnostics_non_spd_matrix(self):
+        """Diagnósticos de matriz no SPD reportan is_spd=False."""
+        G = np.array([[1.0, 2.0], [2.0, 1.0]], dtype=_FLOAT_DTYPE)
+        diag = get_tensor_diagnostics(G, "non_spd")
+>       assert diag["is_spd"] is False
+E       KeyError: 'is_spd'
+
+tests/unit/core/immune_system/test_metric_tensors.py:1666: KeyError
+____ TestHomologicalIntegrity.test_translator_produces_rejection_for_cycles ____
+
+self = <test_boarding_pass_hierarchy.TestHomologicalIntegrity object at 0x731d1c60a170>
+translator = <app.wisdom.semantic_translator.SemanticTranslator object at 0x731cd2d015a0>
+
+    def test_translator_produces_rejection_for_cycles(self, translator):
+        """
+        El SemanticTranslator, al recibir métricas con β₁ > 0,
+        debe producir un veredicto de rechazo o precaución.
+        """
+        # Verificar que el translator expone el método esperado
+        translate_method = None
+        for method_name in (
+            "translate_topology",
+            "translate_topological_metrics",
+            "interpret_topology",
+        ):
+            if hasattr(translator, method_name):
+                translate_method = getattr(translator, method_name)
+                break
+    
+        if translate_method is None:
+            pytest.skip(
+                "SemanticTranslator does not expose a topology translation method. "
+                f"Available methods: {[m for m in dir(translator) if not m.startswith('_')]}"
+            )
+    
+        # Construir métricas con ciclo
+        try:
+            topo_metrics = TopologicalMetrics(
+                beta_0=1,
+                beta_1=1,
+            )
+        except TypeError as e:
+            pytest.skip(f"TopologicalMetrics constructor differs: {e}")
+    
+        # Invocar traducción
+        try:
+            result = translate_method(topo_metrics)
+        except TypeError:
+            # Puede requerir argumentos adicionales
+            try:
+                result = translate_method(topo_metrics, context={})
+            except TypeError as e2:
+                pytest.skip(f"translate_topology signature unknown: {e2}")
+    
+        # El resultado puede ser (narrative, verdict) o un dict
+        if isinstance(result, tuple) and len(result) == 2:
+            narrative, verdict = result
+        elif isinstance(result, dict):
+            narrative = result.get("narrative", str(result))
+            verdict = result.get("verdict", result.get("level", ""))
+        else:
+            narrative = str(result)
+            verdict = result
+    
+        # Verificar que el veredicto indica problema
+        assert _verdict_is_rejection(verdict) or _verdict_is_caution(verdict), (
+            f"Topology with β₁=1 should produce rejection or caution. "
+            f"Got verdict: '{verdict}'"
+        )
+    
+        # Verificar que la narrativa menciona el problema
+>       assert _text_contains_any_keyword(str(narrative), _TOPOLOGY_CYCLE_KEYWORDS), (
+            f"Narrative should mention topology/cycle concepts. "
+            f"Got: '{str(narrative)[:200]}...'"
+        )
+E       AssertionError: Narrative should mention topology/cycle concepts. Got: '🚨 Estructura Geológicamente Inestable (Género 1): Se detectó un Género Estructural de 1, indicando una estructura tipo 'esponja'. Existen múltiples bucles de retroalimentación de costos que impiden la...'
+E       assert False
+E        +  where False = _text_contains_any_keyword("\U0001f6a8 Estructura Geol\xf3gicamente Inestable (G\xe9nero 1): Se detect\xf3 un G\xe9nero Estructural de 1, indicando una estructura tipo 'esponja'. Existen m\xfaltiples bucles de retroalimentaci\xf3n de costos que impiden la Trazabilidad de Carga y hacen colapsar cualquier valoraci\xf3n est\xe1tica.\n\U0001f517 Alta Cohesi\xf3n del Equipo (Eigenvalor Fiedler=1.00): La estructura de costos est\xe1 fuertemente sincronizada. \U0001f30a Disipaci\xf3n Ondulatoria (\u03bb=0.00): La estructura tiene capacidad para amortiguar impactos locales sin entrar en resonancia sist\xe9mica.\n\U0001f517 Unidad de Obra Monol\xedtica: El proyecto funciona como un solo edificio interconectado (\u03b2\u2080 = 1). Todas las cargas t\xe1cticas (APUs) se transfieren correctamente hacia un \xfanico \xc1pice Estrat\xe9gico.\n\u2696\ufe0f Equilibrio Precario (Isost\xe1tico): \u03a8 = 1.00. El proyecto tiene la m\xednima base necesaria, sin redundancia. Cualquier perturbaci\xf3n en el suministro puede desestabilizar toda la estructura.", {'integraci\xf3n', 'topol\xf3gic', 'cycle', 'mayer_vietoris', 'incoherencia', 'beta_1', '\u03b2\u2081', 'socavones', 'homolog', 'topolog', 'ciclo', 'beta1', 'mayer-vietoris'})
+E        +    where "\U0001f6a8 Estructura Geol\xf3gicamente Inestable (G\xe9nero 1): Se detect\xf3 un G\xe9nero Estructural de 1, indicando una estructura tipo 'esponja'. Existen m\xfaltiples bucles de retroalimentaci\xf3n de costos que impiden la Trazabilidad de Carga y hacen colapsar cualquier valoraci\xf3n est\xe1tica.\n\U0001f517 Alta Cohesi\xf3n del Equipo (Eigenvalor Fiedler=1.00): La estructura de costos est\xe1 fuertemente sincronizada. \U0001f30a Disipaci\xf3n Ondulatoria (\u03bb=0.00): La estructura tiene capacidad para amortiguar impactos locales sin entrar en resonancia sist\xe9mica.\n\U0001f517 Unidad de Obra Monol\xedtica: El proyecto funciona como un solo edificio interconectado (\u03b2\u2080 = 1). Todas las cargas t\xe1cticas (APUs) se transfieren correctamente hacia un \xfanico \xc1pice Estrat\xe9gico.\n\u2696\ufe0f Equilibrio Precario (Isost\xe1tico): \u03a8 = 1.00. El proyecto tiene la m\xednima base necesaria, sin redundancia. Cualquier perturbaci\xf3n en el suministro puede desestabilizar toda la estructura." = str("\U0001f6a8 Estructura Geol\xf3gicamente Inestable (G\xe9nero 1): Se detect\xf3 un G\xe9nero Estructural de 1, indicando una estructura tipo 'esponja'. Existen m\xfaltiples bucles de retroalimentaci\xf3n de costos que impiden la Trazabilidad de Carga y hacen colapsar cualquier valoraci\xf3n est\xe1tica.\n\U0001f517 Alta Cohesi\xf3n del Equipo (Eigenvalor Fiedler=1.00): La estructura de costos est\xe1 fuertemente sincronizada. \U0001f30a Disipaci\xf3n Ondulatoria (\u03bb=0.00): La estructura tiene capacidad para amortiguar impactos locales sin entrar en resonancia sist\xe9mica.\n\U0001f517 Unidad de Obra Monol\xedtica: El proyecto funciona como un solo edificio interconectado (\u03b2\u2080 = 1). Todas las cargas t\xe1cticas (APUs) se transfieren correctamente hacia un \xfanico \xc1pice Estrat\xe9gico.\n\u2696\ufe0f Equilibrio Precario (Isost\xe1tico): \u03a8 = 1.00. El proyecto tiene la m\xednima base necesaria, sin redundancia. Cualquier perturbaci\xf3n en el suministro puede desestabilizar toda la estructura.")
+
+tests/unit/core/test_boarding_pass_hierarchy.py:759: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2026-03-27 15:44:03,842 - MIC.Registry - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+2026-03-27 15:44:03,842 - MIC.Registry - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+2026-03-27 15:44:03,842 - MIC.Registry - INFO - Vector registrado: 'structure_logic' [TACTICS]
+2026-03-27 15:44:03,842 - MIC.Registry - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+2026-03-27 15:44:03,842 - MIC.Registry - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+2026-03-27 15:44:03,843 - SemanticDictionary - WARNING - Se encontraron 27 plantillas con posibles problemas de formato
+2026-03-27 15:44:03,843 - SemanticDictionary - WARNING -   - STABILITY.critical: Unknown format code 'f' for object of type 'str'
+2026-03-27 15:44:03,843 - SemanticDictionary - WARNING -   - STABILITY.warning: Unknown format code 'f' for object of type 'str'
+2026-03-27 15:44:03,843 - SemanticDictionary - WARNING -   - STABILITY.stable: Unknown format code 'f' for object of type 'str'
+2026-03-27 15:44:03,843 - SemanticDictionary - WARNING -   - STABILITY.robust: Unknown format code 'f' for object of type 'str'
+2026-03-27 15:44:03,843 - SemanticDictionary - WARNING -   - SPECTRAL_COHESION.high: Unknown format code 'f' for object of type 'str'
+2026-03-27 15:44:03,843 - SemanticDictionary - INFO - ✅ SemanticDictionaryService inicializado exitosamente
+2026-03-27 15:44:03,843 - MIC.Registry - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+2026-03-27 15:44:03,843 - MIC.Registry - INFO - Vector registrado: 'project_graph_narrative' [WISDOM]
+2026-03-27 15:44:03,843 - SemanticDictionary - INFO - ✅ Vectores Semánticos registrados en la MIC
+2026-03-27 15:44:03,843 - MIC - INFO - ✅ Diccionario semántico registrado
+2026-03-27 15:44:03,843 - MIC - INFO - ✅ MIC inicializada con 7 vectores (dimensión=7)
+------------------------------ Captured log setup ------------------------------
+INFO     MIC.Registry:tools_interface.py:1879 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1879 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1879 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1879 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1879 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+WARNING  SemanticDictionary:semantic_dictionary.py:697 Se encontraron 27 plantillas con posibles problemas de formato
+WARNING  SemanticDictionary:semantic_dictionary.py:702   - STABILITY.critical: Unknown format code 'f' for object of type 'str'
+WARNING  SemanticDictionary:semantic_dictionary.py:702   - STABILITY.warning: Unknown format code 'f' for object of type 'str'
+WARNING  SemanticDictionary:semantic_dictionary.py:702   - STABILITY.stable: Unknown format code 'f' for object of type 'str'
+WARNING  SemanticDictionary:semantic_dictionary.py:702   - STABILITY.robust: Unknown format code 'f' for object of type 'str'
+WARNING  SemanticDictionary:semantic_dictionary.py:702   - SPECTRAL_COHESION.high: Unknown format code 'f' for object of type 'str'
+INFO     SemanticDictionary:semantic_dictionary.py:704 ✅ SemanticDictionaryService inicializado exitosamente
+INFO     MIC.Registry:tools_interface.py:1879 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:1879 Vector registrado: 'project_graph_narrative' [WISDOM]
+INFO     SemanticDictionary:semantic_dictionary.py:1561 ✅ Vectores Semánticos registrados en la MIC
+INFO     MIC:tools_interface.py:2692 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:2696 ✅ MIC inicializada con 7 vectores (dimensión=7)
+----------------------------- Captured stderr call -----------------------------
+2026-03-27 15:44:03,844 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-27 15:44:03,844 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-27 15:44:03,844 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-27 15:44:03,845 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-27 15:44:03,845 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-27 15:44:03,845 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+2026-03-27 15:44:03,845 - MIC - WARNING - ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+------------------------------ Captured log call -------------------------------
+WARNING  MIC:tools_interface.py:1563 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1563 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1563 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1563 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1563 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1563 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+WARNING  MIC:tools_interface.py:1563 ⚠️ Validación jerárquica bypaseada para 'unknown' via force_override
+______ TestFinancialVerdict.test_from_string[OK-FinancialVerdict.ACCEPT] _______
+
+self = <test_semantic_translator.TestFinancialVerdict object at 0x731cf962f2b0>
+string_input = 'OK', expected = <FinancialVerdict.ACCEPT: 'ACEPTAR'>
+
+    @pytest.mark.parametrize("string_input,expected", [
+        ("ACEPTAR", FinancialVerdict.ACCEPT),
+        ("ACCEPT", FinancialVerdict.ACCEPT),
+        ("OK", FinancialVerdict.ACCEPT),
+        ("CONDICIONAL", FinancialVerdict.CONDITIONAL),
+        ("REVISAR", FinancialVerdict.REVIEW),
+        ("RECHAZAR", FinancialVerdict.REJECT),
+        ("REJECT", FinancialVerdict.REJECT),
+        ("NO", FinancialVerdict.REJECT),
+        ("unknown_value", FinancialVerdict.REVIEW),
+        ("", FinancialVerdict.REVIEW),
+    ])
+    def test_from_string(self, string_input, expected):
+>       assert FinancialVerdict.from_string(string_input) == expected
+
+tests/unit/wisdom/test_semantic_translator.py:1178: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <enum 'FinancialVerdict'>, value = 'OK'
+
+    @classmethod
+    def from_string(cls, value: str) -> FinancialVerdict:
+        """Parsea desde string con normalización robusta."""
+        if not value or not isinstance(value, str):
+            return cls.REVIEW
+        normalized = value.strip().upper()
+        for verdict in cls:
+            if (str(verdict.value).upper() == normalized
+                    or verdict.name == normalized):
+                return verdict
+        # Fuzzy matching via aliases de clase
+>       alias_target = cls._ALIASES.get(normalized)  # type: ignore[attr-defined]
+E       AttributeError: 'FinancialVerdict' object has no attribute 'get'
+
+app/wisdom/semantic_translator.py:1391: AttributeError
+______ TestFinancialVerdict.test_from_string[NO-FinancialVerdict.REJECT] _______
+
+self = <test_semantic_translator.TestFinancialVerdict object at 0x731cf962dd50>
+string_input = 'NO', expected = <FinancialVerdict.REJECT: 'RECHAZAR'>
+
+    @pytest.mark.parametrize("string_input,expected", [
+        ("ACEPTAR", FinancialVerdict.ACCEPT),
+        ("ACCEPT", FinancialVerdict.ACCEPT),
+        ("OK", FinancialVerdict.ACCEPT),
+        ("CONDICIONAL", FinancialVerdict.CONDITIONAL),
+        ("REVISAR", FinancialVerdict.REVIEW),
+        ("RECHAZAR", FinancialVerdict.REJECT),
+        ("REJECT", FinancialVerdict.REJECT),
+        ("NO", FinancialVerdict.REJECT),
+        ("unknown_value", FinancialVerdict.REVIEW),
+        ("", FinancialVerdict.REVIEW),
+    ])
+    def test_from_string(self, string_input, expected):
+>       assert FinancialVerdict.from_string(string_input) == expected
+
+tests/unit/wisdom/test_semantic_translator.py:1178: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <enum 'FinancialVerdict'>, value = 'NO'
+
+    @classmethod
+    def from_string(cls, value: str) -> FinancialVerdict:
+        """Parsea desde string con normalización robusta."""
+        if not value or not isinstance(value, str):
+            return cls.REVIEW
+        normalized = value.strip().upper()
+        for verdict in cls:
+            if (str(verdict.value).upper() == normalized
+                    or verdict.name == normalized):
+                return verdict
+        # Fuzzy matching via aliases de clase
+>       alias_target = cls._ALIASES.get(normalized)  # type: ignore[attr-defined]
+E       AttributeError: 'FinancialVerdict' object has no attribute 'get'
+
+app/wisdom/semantic_translator.py:1391: AttributeError
+_ TestFinancialVerdict.test_from_string[unknown_value-FinancialVerdict.REVIEW] _
+
+self = <test_semantic_translator.TestFinancialVerdict object at 0x731cf962dbd0>
+string_input = 'unknown_value', expected = <FinancialVerdict.REVIEW: 'REVISAR'>
+
+    @pytest.mark.parametrize("string_input,expected", [
+        ("ACEPTAR", FinancialVerdict.ACCEPT),
+        ("ACCEPT", FinancialVerdict.ACCEPT),
+        ("OK", FinancialVerdict.ACCEPT),
+        ("CONDICIONAL", FinancialVerdict.CONDITIONAL),
+        ("REVISAR", FinancialVerdict.REVIEW),
+        ("RECHAZAR", FinancialVerdict.REJECT),
+        ("REJECT", FinancialVerdict.REJECT),
+        ("NO", FinancialVerdict.REJECT),
+        ("unknown_value", FinancialVerdict.REVIEW),
+        ("", FinancialVerdict.REVIEW),
+    ])
+    def test_from_string(self, string_input, expected):
+>       assert FinancialVerdict.from_string(string_input) == expected
+
+tests/unit/wisdom/test_semantic_translator.py:1178: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <enum 'FinancialVerdict'>, value = 'unknown_value'
+
+    @classmethod
+    def from_string(cls, value: str) -> FinancialVerdict:
+        """Parsea desde string con normalización robusta."""
+        if not value or not isinstance(value, str):
+            return cls.REVIEW
+        normalized = value.strip().upper()
+        for verdict in cls:
+            if (str(verdict.value).upper() == normalized
+                    or verdict.name == normalized):
+                return verdict
+        # Fuzzy matching via aliases de clase
+>       alias_target = cls._ALIASES.get(normalized)  # type: ignore[attr-defined]
+E       AttributeError: 'FinancialVerdict' object has no attribute 'get'
+
+app/wisdom/semantic_translator.py:1391: AttributeError
+=============================== warnings summary ===============================
+app/adapters/tools_interface.py:1307
+  /home/gerardo/Documentos/GitHub/apu_filter/app/adapters/tools_interface.py:1307: DeprecationWarning: invalid escape sequence '\m'
+    """
+
+app/core/immune_system/metric_tensors.py:1129
+  /home/gerardo/Documentos/GitHub/apu_filter/app/core/immune_system/metric_tensors.py:1129: DeprecationWarning: invalid escape sequence '\m'
+    """
+
+<unknown>:1307
+  <unknown>:1307: DeprecationWarning: invalid escape sequence '\m'
+
+<unknown>:1129
+  <unknown>:1129: DeprecationWarning: invalid escape sequence '\m'
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_business_agent_integration.py::TestEvaluateProjectFlow::test_report_contains_required_sections - AssertionError: Sección requerida faltante: 'INFORME DE INGENIERÍA ESTRATÉGICA'.
+  Narrativa (primeros 300 chars): '🏗️ **ESTRUCTURA SÓLIDA**: Base robusta. ✅ **TRAZABILIDAD LIMPIA**: Flujo acíclico. 📡 **RIESGO DE RESONANCIA**: Vulnerabilidad sistémica....'
+assert 'INFORME DE INGENIER\xcdA ESTRAT\xc9GICA' in '\U0001f3d7\ufe0f **ESTRUCTURA S\xd3LIDA**: Base robusta. \u2705 **TRAZABILIDAD LIMPIA**: Flujo ac\xedclico. \U0001f4e1 **RIESGO DE RESONANCIA**: Vulnerabilidad sist\xe9mica.'
+ +  where '\U0001f3d7\ufe0f **ESTRUCTURA S\xd3LIDA**: Base robusta. \u2705 **TRAZABILIDAD LIMPIA**: Flujo ac\xedclico. \U0001f4e1 **RIESGO DE RESONANCIA**: Vulnerabilidad sist\xe9mica.' = ConstructionRiskReport(integrity_score=67.23028469183882, waste_alerts=[], circular_risks=[], complexity_level=<ComplexityLevel.LOW: 'Baja'>, details={'metrics': {'beta_0': 1, 'beta_1': 0, 'beta_2': 0, 'euler_characteristic': 1, 'fiedler_value': 1.0, 'spectral_gap': 0.0, 'pyramid_stability': 1.0, 'structural_entropy': 0.0}, 'euler_efficiency': 1.0, 'pyramid_stability': 0.9993, 'synergy_risk': {'synergy_detected': False, 'synergy_score': 0.0, 'synergy_strength': 0.0, 'risk_level': 'NINGUNO', 'bridge_nodes': [], 'intersecting_cycles_count': 0}, 'anomalies': {'isolated_nodes': [], 'orphan_insumos': [], 'empty_apus': []}, 'thermal': {'system_temperature': 46.5, 'thermal_risk_level': 'MEDIO', 'hotspots': [{'id': 'Flete (APU-001)', 'temp': 75.0}, {'id': 'Flete (APU-002)', 'temp': 75.0}, {'id': 'Flete (APU-003)', 'temp': 75.0}, {'id': 'Cemento (APU-001)', 'temp': 60.0}, {'id': 'Cemento (APU-002)', 'temp': 60.0}, {'id': 'Cemento (APU-003)', 'temp': 60.0}]}, 'spectral': {'fiedler_value': 0.0, 'spectral_gap': 0.0, 'spectral_energy': 21.0, 'wavelength': 0.5, 'lambda_max': 2.0, 'resonance_risk': True, 'algebraic_connectivity': 0.0, 'eigenvalues': [-0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0], 'isolated_nodes_removed': 0, 'status': 'success'}, 'spectral_analysis': {'fiedler_value': 0.0, 'spectral_gap': 0.0, 'spectral_energy': 21.0, 'wavelength': 0.5, 'lambda_max': 2.0, 'resonance_risk': True, 'algebraic_connectivity': 0.0, 'eigenvalues': [-0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0], 'isolated_nodes_removed': 0, 'status': 'success'}, 'density': 0.0625, 'connectivity': {'is_dag': True}, 'cycles': [], 'raw_cycles': [], 'critical_resources': [{'id': 'Cemento (APU-001)', 'in_degree': 1, 'description': 'Cemento (APU-001)'}, {'id': 'Oficial (APU-001)', 'in_degree': 1, 'description': 'Oficial (APU-001)'}, {'id': 'Mezcladora (APU-001)', 'in_degree': 1, 'description': 'Mezcladora (APU-001)'}, {'id': 'Flete (APU-001)', 'in_degree': 1, 'description': 'Flete (APU-001)'}, {'id': 'Cemento (APU-002)', 'in_degree': 1, 'description': 'Cemento (APU-002)'}], 'convection_risk': {'high_risk_nodes': []}, 'strategic_narrative': '\U0001f3d7\ufe0f **ESTRUCTURA S\xd3LIDA**: Base robusta. \u2705 **TRAZABILIDAD LIMPIA**: Flujo ac\xedclico. \U0001f4e1 **RIESGO DE RESONANCIA**: Vulnerabilidad sist\xe9mica.', 'financial_metrics': {'npv': 150.0, 'irr': 0.15, 'payback_years': 3.5, 'payback': 3.5, 'wacc': 0.1, 'risk_adjusted_return': 0.12, 'performance': {'recommendation': 'APPROVE', 'risk_level': 'LOW'}, 'npv_adjusted': 149.89499999999998, 'structural_discount': 0.0007000000000000339}, 'thermal_metrics': {'system_temperature': 46.5, 'thermal_risk_level': 'MEDIO', 'hotspots': [{'id': 'Flete (APU-001)', 'temp': 75.0}, {'id': 'Flete (APU-002)', 'temp': 75.0}, {'id': 'Flete (APU-003)', 'temp': 75.0}, {'id': 'Cemento (APU-001)', 'temp': 60.0}, {'id': 'Cemento (APU-002)', 'temp': 60.0}, {'id': 'Cemento (APU-003)', 'temp': 60.0}], 'node_temperatures': {'PROYECTO_TOTAL': 46.5, 'APU-001': 46.5, 'APU-002': 46.5, 'APU-003': 46.5, 'Cemento (APU-001)': 60.0, 'Oficial (APU-001)': 30.0, 'Mezcladora (APU-001)': 30.0, 'Flete (APU-001)': 75.0, 'Cemento (APU-002)': 60.0, 'Oficial (APU-002)': 30.0, 'Mezcladora (APU-002)': 30.0, 'Flete (APU-002)': 75.0, 'Cemento (APU-003)': 60.0, 'Oficial (APU-003)': 30.0, 'Mezcladora (APU-003)': 30.0, 'Flete (APU-003)': 75.0}}, 'thermodynamics': {'entropy': 0.5, 'exergy': 0.6, 'negentropy': 0.5}, 'topological_invariants': {'betti_numbers': {'beta_0': 1, 'beta_1': 0, 'beta_2': 0}, 'pyramid_stability': 0.9993, 'structural_coherence': 0.9993, 'n_nodes': 16, 'n_edges': 15, 'is_connected': True, 'cycle_density': 0.0, 'euler_characteristic': 1}, 'decision_algebra': {'weights': {'alpha': 0.4, 'beta': 0.4, 'gamma': 0.2}, 'quality_factors': {'topology': 0.9993, 'finance': 0.5000749999994375, 'thermodynamics': 0.55}, 'integrated_score': 0.6723028469183882}}, financial_risk_level='Pendiente', strategic_narrative='\U0001f3d7\ufe0f **ESTRUCTURA S\xd3LIDA**: Base robusta. \u2705 **TRAZABILIDAD LIMPIA**: Flujo ac\xedclico. \U0001f4e1 **RIESGO DE RESONANCIA**: Vulnerabilidad sist\xe9mica.', timestamp='2026-03-27T20:43:48.665789').strategic_narrative
+FAILED tests/test_business_agent_integration.py::TestTopologicalAnalysis::test_connected_budget_positive_narrative - AssertionError: [budget-connected] Narrativa no contiene ninguno de los términos esperados: ['íntegr', 'conectad', 'coheren', 'estable', 'completo'].
+  Narrativa (primeros 500 chars): '🏗️ **estructura sólida**: base robusta. ✅ **trazabilidad limpia**: flujo acíclico. 📡 **riesgo de resonancia**: vulnerabilidad sistémica....'
+assert 0 > 0
+ +  where 0 = len([])
+FAILED tests/test_business_agent_integration.py::TestFinancialAnalysis::test_viable_project_positive_narrative - AssertionError: [viable-project] Narrativa no contiene ninguno de los términos esperados: ['viable', 'positiv', 'favorable', 'recomend', 'aprob', 'estable'].
+  Narrativa (primeros 500 chars): '🏗️ **estructura sólida**: base robusta. ✅ **trazabilidad limpia**: flujo acíclico. 📡 **riesgo de resonancia**: vulnerabilidad sistémica....'
+assert 0 > 0
+ +  where 0 = len([])
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestCholeskyVerification::test_spd_matrix_passes - AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestCholeskyVerification::test_identity_passes - AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestCholeskyVerification::test_negative_definite_fails - AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestCholeskyVerification::test_semi_definite_fails - AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestCholeskyVerification::test_indefinite_fails - AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestCholeskyVerification::test_zero_matrix_fails - AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestTikhonovRegularization::test_regularized_matrix_is_spd - AttributeError: type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestStrictSPDAssertion::test_sylvester_criterion_in_strict_spd - Failed: DID NOT RAISE <class 'app.core.immune_system.topological_watcher.MetricTensorError'>
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestTensorDiagnostics::test_diagnostics_of_identity - KeyError: 'shape'
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestTensorDiagnostics::test_diagnostics_of_precompiled_tensors[G_PHYSICS] - KeyError: 'shape'
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestTensorDiagnostics::test_diagnostics_of_precompiled_tensors[G_TOPOLOGY] - KeyError: 'shape'
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestTensorDiagnostics::test_diagnostics_of_precompiled_tensors[G_THERMODYNAMICS] - KeyError: 'shape'
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestTensorDiagnostics::test_diagnostics_includes_asymmetry_info - assert 'asymmetry_norm' in {'name': 'sym_test', 'error': "type object 'MetricTensorFactory' has no attribute '_verify_spd_by_cholesky'", 'error_type': 'AttributeError'}
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestTensorDiagnostics::test_diagnostics_eigenvalues_are_list - KeyError: 'eigenvalues'
+FAILED tests/unit/core/immune_system/test_metric_tensors.py::TestTensorDiagnostics::test_diagnostics_non_spd_matrix - KeyError: 'is_spd'
+FAILED tests/unit/core/test_boarding_pass_hierarchy.py::TestHomologicalIntegrity::test_translator_produces_rejection_for_cycles - AssertionError: Narrative should mention topology/cycle concepts. Got: '🚨 Estructura Geológicamente Inestable (Género 1): Se detectó un Género Estructural de 1, indicando una estructura tipo 'esponja'. Existen múltiples bucles de retroalimentación de costos que impiden la...'
+assert False
+ +  where False = _text_contains_any_keyword("\U0001f6a8 Estructura Geol\xf3gicamente Inestable (G\xe9nero 1): Se detect\xf3 un G\xe9nero Estructural de 1, indicando una estructura tipo 'esponja'. Existen m\xfaltiples bucles de retroalimentaci\xf3n de costos que impiden la Trazabilidad de Carga y hacen colapsar cualquier valoraci\xf3n est\xe1tica.\n\U0001f517 Alta Cohesi\xf3n del Equipo (Eigenvalor Fiedler=1.00): La estructura de costos est\xe1 fuertemente sincronizada. \U0001f30a Disipaci\xf3n Ondulatoria (\u03bb=0.00): La estructura tiene capacidad para amortiguar impactos locales sin entrar en resonancia sist\xe9mica.\n\U0001f517 Unidad de Obra Monol\xedtica: El proyecto funciona como un solo edificio interconectado (\u03b2\u2080 = 1). Todas las cargas t\xe1cticas (APUs) se transfieren correctamente hacia un \xfanico \xc1pice Estrat\xe9gico.\n\u2696\ufe0f Equilibrio Precario (Isost\xe1tico): \u03a8 = 1.00. El proyecto tiene la m\xednima base necesaria, sin redundancia. Cualquier perturbaci\xf3n en el suministro puede desestabilizar toda la estructura.", {'integraci\xf3n', 'topol\xf3gic', 'cycle', 'mayer_vietoris', 'incoherencia', 'beta_1', '\u03b2\u2081', 'socavones', 'homolog', 'topolog', 'ciclo', 'beta1', 'mayer-vietoris'})
+ +    where "\U0001f6a8 Estructura Geol\xf3gicamente Inestable (G\xe9nero 1): Se detect\xf3 un G\xe9nero Estructural de 1, indicando una estructura tipo 'esponja'. Existen m\xfaltiples bucles de retroalimentaci\xf3n de costos que impiden la Trazabilidad de Carga y hacen colapsar cualquier valoraci\xf3n est\xe1tica.\n\U0001f517 Alta Cohesi\xf3n del Equipo (Eigenvalor Fiedler=1.00): La estructura de costos est\xe1 fuertemente sincronizada. \U0001f30a Disipaci\xf3n Ondulatoria (\u03bb=0.00): La estructura tiene capacidad para amortiguar impactos locales sin entrar en resonancia sist\xe9mica.\n\U0001f517 Unidad de Obra Monol\xedtica: El proyecto funciona como un solo edificio interconectado (\u03b2\u2080 = 1). Todas las cargas t\xe1cticas (APUs) se transfieren correctamente hacia un \xfanico \xc1pice Estrat\xe9gico.\n\u2696\ufe0f Equilibrio Precario (Isost\xe1tico): \u03a8 = 1.00. El proyecto tiene la m\xednima base necesaria, sin redundancia. Cualquier perturbaci\xf3n en el suministro puede desestabilizar toda la estructura." = str("\U0001f6a8 Estructura Geol\xf3gicamente Inestable (G\xe9nero 1): Se detect\xf3 un G\xe9nero Estructural de 1, indicando una estructura tipo 'esponja'. Existen m\xfaltiples bucles de retroalimentaci\xf3n de costos que impiden la Trazabilidad de Carga y hacen colapsar cualquier valoraci\xf3n est\xe1tica.\n\U0001f517 Alta Cohesi\xf3n del Equipo (Eigenvalor Fiedler=1.00): La estructura de costos est\xe1 fuertemente sincronizada. \U0001f30a Disipaci\xf3n Ondulatoria (\u03bb=0.00): La estructura tiene capacidad para amortiguar impactos locales sin entrar en resonancia sist\xe9mica.\n\U0001f517 Unidad de Obra Monol\xedtica: El proyecto funciona como un solo edificio interconectado (\u03b2\u2080 = 1). Todas las cargas t\xe1cticas (APUs) se transfieren correctamente hacia un \xfanico \xc1pice Estrat\xe9gico.\n\u2696\ufe0f Equilibrio Precario (Isost\xe1tico): \u03a8 = 1.00. El proyecto tiene la m\xednima base necesaria, sin redundancia. Cualquier perturbaci\xf3n en el suministro puede desestabilizar toda la estructura.")
+FAILED tests/unit/wisdom/test_semantic_translator.py::TestFinancialVerdict::test_from_string[OK-FinancialVerdict.ACCEPT] - AttributeError: 'FinancialVerdict' object has no attribute 'get'
+FAILED tests/unit/wisdom/test_semantic_translator.py::TestFinancialVerdict::test_from_string[NO-FinancialVerdict.REJECT] - AttributeError: 'FinancialVerdict' object has no attribute 'get'
+FAILED tests/unit/wisdom/test_semantic_translator.py::TestFinancialVerdict::test_from_string[unknown_value-FinancialVerdict.REVIEW] - AttributeError: 'FinancialVerdict' object has no attribute 'get'
+===== 22 failed, 8865 passed, 18 skipped, 4 warnings in 103.29s (0:01:43) ======
