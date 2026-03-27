@@ -50,7 +50,7 @@ De la "Caja Negra" a la Confianza Radical:
 De la Ingesta a la Sabiduría, gestionadas mediante `app/core/immune_system/gauge_field_router.py`:
 
     Física de Datos y Detección Neuromórfica: Ingesta de datos crudos aplicando leyes de termodinámica (Potencia Disipada $\ge 0$) y filtrado RLC en el FluxCondenser para rechazar información corrupta y medir la inercia del sistema.
-    Diagnóstico Topológico y Arbitraje Espectral: Análisis continuo del Complejo Simplicial para computar números de Betti ($eta_n$) e identificar de manera determinista dependencias circulares ($eta_1 > 0$) o inestabilidad piramidal ($\Psi < 1.0$).
+    Diagnóstico Topológico y Arbitraje Espectral: Análisis continuo del Complejo Simplicial para computar números de Betti ($\beta_n$) e identificar de manera determinista dependencias circulares ($\beta_1 > 0$) o inestabilidad piramidal ($\Psi < 1.0$).
 
 ```mermaid
 graph TD
