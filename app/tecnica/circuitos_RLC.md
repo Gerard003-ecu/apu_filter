@@ -8,6 +8,43 @@ Este documento detalla el modelo matemático fundacional que utiliza el Guardiá
 1. El Paradigma Dinámico y Cuántico: Ecuación Diferencial y Electrodinámica
 El sistema abandona la ingesta de datos de un modelo estocástico M/M/1. En su lugar, proyecta el pipeline de procesamiento hacia un modelo de campo continuo y electrodinámica cuántica (Lattice QED). La arquitectura (implementada en `app/physics/quantum_admission_gate.py` y `app/agents/hilbert_watcher.py`) modela la validación a través del Operador de Proyección de Hilbert y el Efecto Fotoeléctrico Ciber-Físico en el Estrato ALEPH ($\aleph_0$).
 
+
+```mermaid
+graph BT
+    %% Estilos de Nodos Termodinámicos
+    classDef high_entropy fill:#1a1a1a,stroke:#4a4e69,stroke-width:1px,color:#9ca3af;
+    classDef filter fill:#222831,stroke:#e94560,stroke-width:2px,color:#fff;
+    classDef high_exergy fill:#0f3460,stroke:#00f0ff,stroke-width:3px,color:#fff;
+
+    %% Base: Alta Entropía
+    subgraph "Base Plana: Dominio del Tiempo (Alta Entropía H → max)"
+        B1((Byte crudo)):::high_entropy
+        B2((Micro-evento)):::high_entropy
+        B3((Fila CSV)):::high_entropy
+        B4((Ruido Estocástico)):::high_entropy
+    end
+
+    %% Filtro: Operador de Borde
+    subgraph "Filtro Termodinámico: Operador de Borde (∂1) / Membrana RLC"
+        F[FluxCondenser<br>Matriz Laplaciana | Estrangulamiento Viscoelástico]:::filter
+    end
+
+    %% Cúspide: Alta Exergía
+    subgraph "Cúspide: Dominio de Frecuencia (Baja Entropía / Alta Exergía)"
+        C[Flujo Laminar Limpio<br>Plano de Frecuencia Compleja s=σ+jω]:::high_exergy
+    end
+
+    %% Ascensión Termodinámica
+    B1 --> F
+    B2 --> F
+    B3 --> F
+    B4 --> F
+
+    F ==>|Aniquilación de Entropía Sintáctica| C
+```
+
+
+
 La Función de Trabajo ($\Phi$) acoplada al tensor de Gauge aniquila el ruido entrópico estocástico en la frontera exterior discreta. Esta compuerta cuántica garantiza el isomorfismo hacia la propagación electromagnética continua interior. Al admitir un paquete, se extrae su energía cinética residual ($K_{max} = E - \Phi$) colapsando en un Momentum Ciber-Físico $p = \sqrt{2m \cdot K_{max}}$. Esto significa operativamente que los datos aprobados nunca son "estáticos"; poseen un impulso inercial calculado para una absorción logística óptima, honrando la conservación de energía desde $t_0$ antes de disipar energía computacional. Subyacentemente, la red logística se modela como un fluido incompresible bajo el Control Port-Hamiltoniano (IDA-PBC) y ecuaciones de Maxwell discretizadas (implementadas en `app/physics/flux_condenser.py`), gobernadas por la ecuación diferencial lineal de segundo orden del oscilador armónico amortiguado:
 Ldt2d2q​+Rdtdq​+C1​q=V(t)
 Donde cada variable tiene una ontología dual (física-informática) estricta:

@@ -1,4 +1,51 @@
 🏰 APU_filter v4.0: La Fortaleza Matemática
+
+## La Arquitectura Ciber-Física DIKΩαW
+
+```mermaid
+graph TD
+    %% Estilos de Capas
+    classDef void fill:#1a1a2e,stroke:#e94560,stroke-width:2px,color:#fff;
+    classDef physics fill:#16213e,stroke:#0f3460,stroke-width:2px,color:#fff;
+    classDef tactics fill:#0f3460,stroke:#e94560,stroke-width:2px,color:#fff;
+    classDef strategy fill:#e94560,stroke:#1a1a2e,stroke-width:2px,color:#fff;
+    classDef wisdom fill:#fff,stroke:#1a1a2e,stroke-width:3px,color:#000;
+
+    %% Nodos Principales
+    subgraph "Estrato Ω: WISDOM (La Ciudadela de Cristal)"
+        W[Semantic Translator<br>Retículo de Decisión (VIABLE / RECHAZO)]:::wisdom
+    end
+
+    subgraph "Estrato 1: STRATEGY (El Escudo Electrodinámico)"
+        S[Laplace Oracle<br>Plano s=σ+jω | Estabilidad BIBO]:::strategy
+    end
+
+    subgraph "Estrato 2: TACTICS (El Esqueleto Topológico)"
+        T[Business Topological Analyzer<br>Grafo Simplicial | βn | Ψ]:::tactics
+    end
+
+    subgraph "Estrato 3: PHYSICS (El Foso Termodinámico)"
+        P[FluxCondenser<br>Circuitos RLC | Pdiss ≥ 0]:::physics
+    end
+
+    subgraph "Estrato ℵ0: ALEPH (La Variedad de Frontera)"
+        A[Hilbert Watcher & Quantum Gate<br>Filtro de Entropía H | Efecto Túnel WKB]:::void
+    end
+
+    %% Relaciones Causales (Flujo de Colapso de Estado)
+    A -- "Exergía Validada (T>0)" --> P
+    P -- "Flujo Laminar (Energía Conservada)" --> T
+    T -- "Grafo Acíclico Conexo (β1=0, β0=1)" --> S
+    S -- "Estabilidad Asintótica (σ<0)" --> W
+
+    %% Relación de Fractura (Flechas rotas)
+    A -. "Colapso Estocástico (Ruido)" .-> Reject1[Desintegración en el Hiperespacio]
+    P -. "Disipación Negativa" .-> Reject2[Crowbar Físico]
+    T -. "Socavón Lógico (β1>0)" .-> Reject3[Veto Topológico]
+    S -. "Resonancia Paramétrica (σ>0)" .-> Reject4[Veto Espectral]
+```
+
+
 Sistema Operativo Ciber-Físico para la Gobernanza de Presupuestos e Infraestructura
 "En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica del mercado en un activo de gobernanza gobernable, inmutable y auditable."
 🧬 1. El Manifiesto del Sistema: De la Estática a la Fortaleza

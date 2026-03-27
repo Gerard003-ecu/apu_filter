@@ -50,7 +50,49 @@ De la "Caja Negra" a la Confianza Radical:
 De la Ingesta a la Sabiduría, gestionadas mediante `app/core/immune_system/gauge_field_router.py`:
 
     Física de Datos y Detección Neuromórfica: Ingesta de datos crudos aplicando leyes de termodinámica (Potencia Disipada $\ge 0$) y filtrado RLC en el FluxCondenser para rechazar información corrupta y medir la inercia del sistema.
-    Diagnóstico Topológico y Arbitraje Espectral: Análisis continuo del Complejo Simplicial para computar números de Betti ($\beta_n$) e identificar de manera determinista dependencias circulares ($\beta_1 > 0$) o inestabilidad piramidal ($\Psi < 1.0$).
+    Diagnóstico Topológico y Arbitraje Espectral: Análisis continuo del Complejo Simplicial para computar números de Betti ($eta_n$) e identificar de manera determinista dependencias circulares ($eta_1 > 0$) o inestabilidad piramidal ($\Psi < 1.0$).
+
+```mermaid
+graph TD
+    %% Estilos de Nodos Topológicos
+    classDef stable fill:#2e8b57,stroke:#fff,stroke-width:2px;
+    classDef spof fill:#ef4444,stroke:#000,stroke-width:3px,color:#fff;
+    classDef apu fill:#808080,stroke:#fff,stroke-width:1px;
+
+    subgraph "Figura A: Sistema Estable (Ψ ≥ 1.0) - Base Ancha"
+        APU1_A[Mampostería]:::apu
+        APU2_A[Cimentación]:::apu
+        APU3_A[Estructura]:::apu
+
+        P1_A((Proveedor 1<br>Acero)):::stable
+        P2_A((Proveedor 2<br>Acero)):::stable
+        P3_A((Proveedor 3<br>Cemento)):::stable
+        P4_A((Proveedor 4<br>Concreto)):::stable
+
+        APU1_A --> P3_A
+        APU2_A --> P4_A
+        APU2_A --> P1_A
+        APU3_A --> P2_A
+        APU3_A --> P4_A
+    end
+
+    subgraph "Figura B: Pirámide Invertida (Ψ < 1.0) - Alta Energía de Dirichlet"
+        APU1_B[Mampostería]:::apu
+        APU2_B[Cimentación]:::apu
+        APU3_B[Estructura]:::apu
+        APU4_B[Acabados]:::apu
+        APU5_B[Cubierta]:::apu
+
+        SPOF((ÚNICO PROVEEDOR<br>Acero/Cemento<br>🔥 SPOF)):::spof
+
+        APU1_B --> SPOF
+        APU2_B --> SPOF
+        APU3_B --> SPOF
+        APU4_B --> SPOF
+        APU5_B --> SPOF
+    end
+```
+
     Combate a la Fractura Organizacional: El Arquitecto utiliza el Valor de Fiedler ($\lambda_2 \approx 0$) para detectar silos departamentales, alertando a la gerencia antes de la firma de contratos defectuosos.
     Electrodinámica Cuántica en el Retículo (Lattice QED): Las anomalías generan un campo de potencial resolviendo la Ecuación de Poisson Discreta ($L \cdot \Phi = \rho$). Los agentes son atraídos determinísticamente hacia la solución óptima de los recursos clave mediante la Fuerza de Lorentz discreta.
     Traducción Semántica Transversal: Conversión ininterrumpida de tensores matemáticos abstractos a narrativas de negocio ejecutables mediante GraphRAG a cargo del Intérprete Diplomático.

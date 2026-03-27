@@ -4,6 +4,43 @@ Este documento formaliza la arquitectura matemática y los algoritmos subyacente
 
 Toda la arquitectura obedece al mandato axiomático de la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$. Este cimiento Físico (Estrato PHYSICS - Nivel 3 y $ALEPH \aleph_0$) establece la validación termodinámica ineludible para los estratos superiores, registrando su "Cadena de Custodia Termodinámica" generada en el tiempo inicial ($t_0$) mediante `app/core/telemetry.py` y `app/core/telemetry_schemas.py`.
 
+
+```mermaid
+graph BT
+    %% Estilos de Nodos Termodinámicos
+    classDef high_entropy fill:#1a1a1a,stroke:#4a4e69,stroke-width:1px,color:#9ca3af;
+    classDef filter fill:#222831,stroke:#e94560,stroke-width:2px,color:#fff;
+    classDef high_exergy fill:#0f3460,stroke:#00f0ff,stroke-width:3px,color:#fff;
+
+    %% Base: Alta Entropía
+    subgraph "Base Plana: Dominio del Tiempo (Alta Entropía H → max)"
+        B1((Byte crudo)):::high_entropy
+        B2((Micro-evento)):::high_entropy
+        B3((Fila CSV)):::high_entropy
+        B4((Ruido Estocástico)):::high_entropy
+    end
+
+    %% Filtro: Operador de Borde
+    subgraph "Filtro Termodinámico: Operador de Borde (∂1) / Membrana RLC"
+        F[FluxCondenser<br>Matriz Laplaciana | Estrangulamiento Viscoelástico]:::filter
+    end
+
+    %% Cúspide: Alta Exergía
+    subgraph "Cúspide: Dominio de Frecuencia (Baja Entropía / Alta Exergía)"
+        C[Flujo Laminar Limpio<br>Plano de Frecuencia Compleja s=σ+jω]:::high_exergy
+    end
+
+    %% Ascensión Termodinámica
+    B1 --> F
+    B2 --> F
+    B3 --> F
+    B4 --> F
+
+    F ==>|Aniquilación de Entropía Sintáctica| C
+```
+
+
+
 --------------------------------------------------------------------------------
 1. Arquitectura de Control Híbrida y Efecto Fotoeléctrico Ciber-Físico
 El ecosistema utiliza una topología de Control por Prealimentación (Feedforward) aumentada con Retroalimentación (Feedback) y Control Port-Hamiltoniano (IDA-PBC). El sistema actúa como un fluido incompresible regido por las ecuaciones de Maxwell discretizadas. A través del Operador de Proyección de Hilbert (Estrato $\aleph_0$) y el Efecto Fotoeléctrico Ciber-Físico, la Función de Trabajo ($\Phi$) acoplada al tensor de Gauge aniquila el ruido entrópico en la frontera discreta antes de excitar el motor electromagnético continuo del sistema.
