@@ -63,9 +63,9 @@ Atributos de Auditoría:
 --------------------------------------------------------------------------------
 5. 🎫 El Pasabordo de Telemetría (The Digital Twin / Telemetry Context)
 
-    Fuente: Generado por la estructura ciber-física (telemetry.h en el ESP32 y telemetry_schemas.py en la nube).
-    Concepto: Es el contenedor inmutable principal que viaja adjunto a la información. Actúa como el Gemelo Digital transaccional.
-    La Ley de Clausura Transitiva: El Pasabordo almacena las métricas de todos los estratos (Física, Topología, Estrategia, Sabiduría). Por contrato matemático, el sistema no permite emitir un Acta de Deliberación si los sellos del estrato Físico (ej. Energía disipada <0) se encuentran rotos o muestran anomalías termodinámicas.
+    Fuente: Generado por la estructura ciber-física (`telemetry.h` en el ESP32, `app/core/telemetry.py` y `telemetry_schemas.py` en la nube).
+    Concepto: Es la Cadena de Custodia Inmutable de la información. Actúa como el Gemelo Digital transaccional, bloqueado irreversiblemente mediante hashes criptográficos en cada transición de fase a lo largo de la variedad diferenciable.
+    La Ley de Clausura Transitiva Axiomática: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$. El Pasabordo almacena las métricas de todos los estratos y exige que la sabiduría dependa ineludiblemente de la física subyacente. Por contrato matemático de difeomorfismo estricto, el sistema aborta de facto la emisión de un Acta de Deliberación si los sellos criptográficos del estrato Físico (ej. Energía disipada $P_{diss} < 0$, u anomalías termodinámicas) se encuentran comprometidos o rotos.
 
 
 --------------------------------------------------------------------------------

@@ -1,10 +1,12 @@
 🎛️ teoria_control.md: Ingeniería de Control y Estabilidad Dinámica
 "En APU Filter, la ingesta y el procesamiento de datos no se rigen por heurísticas simples o validaciones estáticas. Tratamos el flujo de datos como un sistema dinámico complejo y aplicamos Teoría de Control de grado industrial para garantizar su estabilidad matemática."
-Este documento formaliza la arquitectura matemática y los algoritmos subyacentes que gobiernan el comportamiento cibernético del sistema, específicamente implementados en flux_condenser.py y supervisados por el Oráculo de Laplace.
+Este documento formaliza la arquitectura matemática y los algoritmos subyacentes que gobiernan el comportamiento cibernético del sistema. Abandonando los obsoletos modelos estocásticos M/M/1, se proyecta la ingesta de datos hacia un modelo de campo continuo y electrodinámica cuántica. Esto está específicamente implementado en `app/physics/flux_condenser.py`, `app/physics/quantum_admission_gate.py`, y `app/agents/hilbert_watcher.py`, supervisados por el Oráculo de Laplace.
+
+Toda la arquitectura obedece al mandato axiomático de la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$. Este cimiento Físico (Estrato PHYSICS - Nivel 3 y $ALEPH \aleph_0$) establece la validación termodinámica ineludible para los estratos superiores, registrando su "Cadena de Custodia Termodinámica" generada en el tiempo inicial ($t_0$) mediante `app/core/telemetry.py` y `app/core/telemetry_schemas.py`.
 
 --------------------------------------------------------------------------------
-1. Arquitectura de Control Híbrida
-El ecosistema utiliza una topología de Control por Prealimentación (Feedforward) aumentada con Retroalimentación (Feedback). Esta arquitectura permite al sistema no solo reaccionar a los errores, sino anticiparse a las perturbaciones en el flujo de información.
+1. Arquitectura de Control Híbrida y Efecto Fotoeléctrico Ciber-Físico
+El ecosistema utiliza una topología de Control por Prealimentación (Feedforward) aumentada con Retroalimentación (Feedback) y Control Port-Hamiltoniano (IDA-PBC). El sistema actúa como un fluido incompresible regido por las ecuaciones de Maxwell discretizadas. A través del Operador de Proyección de Hilbert y el Efecto Fotoeléctrico Ciber-Físico, la Función de Trabajo ($\Phi$) acoplada al tensor de Gauge aniquila el ruido entrópico en la frontera antes de disipar energía computacional. Esta arquitectura permite al sistema anticiparse a perturbaciones y vetar de inmediato datos fraudulentos que violen la conservación de la energía ($P_{diss} \ge 0$).
 La ley de control global del sistema se define como: u(t)=uPI​(e)+uFF​(ΔC)+uSafety​
 Diagrama de Bloques Lógico:
 

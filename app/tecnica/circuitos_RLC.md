@@ -5,8 +5,10 @@
 Este documento detalla el modelo matemático fundacional que utiliza el Guardián de la Evidencia (FluxCondenser) para estabilizar la ingesta de datos en el ecosistema. Transformamos variables informáticas abstractas (latencia, errores de parseo, desbordamientos de caché) en variables físicas concretas (Voltaje, Corriente, Entropía) para aplicar Teoría de Control de grado industrial y garantizar un procesamiento determinista.
 
 --------------------------------------------------------------------------------
-1. El Paradigma Dinámico: Ecuación Diferencial del Sistema
-El sistema abandona la lectura secuencial estática y modela el pipeline de procesamiento de datos como un circuito RLC Serie (Resistencia - Inductancia - Capacitancia). Esta topología se comporta como un oscilador armónico amortiguado que está gobernado por una ecuación diferencial lineal de segundo orden:
+1. El Paradigma Dinámico y Cuántico: Ecuación Diferencial y Electrodinámica
+El sistema abandona la ingesta de datos de un modelo estocástico M/M/1. En su lugar, proyecta el pipeline de procesamiento hacia un modelo de campo continuo y electrodinámica cuántica (Lattice QED). La arquitectura (implementada en `app/physics/quantum_admission_gate.py` y `app/agents/hilbert_watcher.py`) modela la validación a través del Operador de Proyección de Hilbert y el Efecto Fotoeléctrico Ciber-Físico.
+
+La Función de Trabajo ($\Phi$) acoplada al tensor de Gauge aniquila el ruido entrópico en la frontera antes de disipar energía computacional. Subyacentemente, la red logística se modela como un fluido incompresible bajo el Control Port-Hamiltoniano (IDA-PBC) y ecuaciones de Maxwell discretizadas (implementadas en `app/physics/flux_condenser.py`), gobernadas por la ecuación diferencial lineal de segundo orden del oscilador armónico amortiguado:
 Ldt2d2q​+Rdtdq​+C1​q=V(t)
 Donde cada variable tiene una ontología dual (física-informática) estricta:
 
@@ -22,8 +24,10 @@ Para resolver el estrés sobre la base de datos, el sistema implementa tres barr
 A diferencia de un simulador electrónico estándar que utiliza un condensador ideal, el sistema APU_filter implementa matemáticamente una membrana viscoelástica (un acumulador hidráulico y p-Laplaciano). Su propósito es absorber las ondas de choque provocadas por la llegada de CSVs caóticos masivos. La caída de presión total en este nodo no es puramente lineal, sino que se define mediante: Vtotal​=Velaˊstico​+Vviscoso​+Vinercial​
 2.2 Inercia y el Fenómeno de "Flyback" (Inductancia L)
 El inductor modela la inercia computacional del sistema. Si el controlador estrangula el flujo de datos abruptamente (como en el final de un ciclo PWM), el campo de información "colapsa" de golpe. Según la ley de Faraday-Lenz, el sistema intentará mantener la corriente fluyendo, lo que invierte la polaridad y genera un pico transitorio destructivo conocido como Voltaje de Flyback (Vfb​). El FluxCondenser vigila este pico; si la inercia de los datos supera los límites de seguridad, la inyección es vetada de inmediato para proteger el ecosistema de un golpe de ariete computacional.
-2.3 Entropía y Fricción (Resistencia R)
-La resistencia acopla la validación a la Segunda Ley de la Termodinámica. Cualquier fricción al parsear un dato se mide como Potencia Disipada (Pdiss​). La física de circuitos exige axiomáticamente que esta potencia sea no-negativa (Pdiss​≥0) para cualquier elemento pasivo. Si el sistema detecta "disipación negativa", concluye que hay datos corruptos creando energía a partir del vacío y levanta las defensas perimetrales.
+2.3 Entropía y Fricción (Resistencia R) y la Cadena de Custodia
+La resistencia acopla la validación a la Segunda Ley de la Termodinámica y al mandato axiomático de disipación de potencia. Se exige axiomáticamente que la Potencia Disipada sea estrictamente no-negativa ($P_{diss} \ge 0$), vetando datos fraudulentos que violen la conservación de energía. Esta inmutabilidad de la estructura se vincula irremediablemente con la "Cadena de Custodia Termodinámica" generada en el tiempo inicial ($t_0$), respaldada por `app/core/telemetry.py` y `app/core/telemetry_schemas.py`.
+
+Todo el diseño estructural obedece a la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$. Como cimiento ($ALEPH \aleph_0$ y Estrato Nivel 3), este documento asegura la validación termodinámica que los estratos superiores invocarán ineludiblemente.
 
 --------------------------------------------------------------------------------
 3. Proyección Física Isomórfica (El Gatekeeper en el Edge)
