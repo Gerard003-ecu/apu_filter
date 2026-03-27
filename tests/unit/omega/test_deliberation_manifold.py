@@ -1332,16 +1332,22 @@ class TestComputeMetrics:
         assert metrics.fragility_penalty == 1.0
 
     def test_all_metrics_finite(self, manifold, worst_case_inputs):
-        """Ninguna métrica debe ser NaN o Inf, incluso en el peor caso."""
+        """Las métricas deben ser finitas a excepción de adjusted_stress en condiciones extremas."""
         metrics = manifold._compute_metrics(worst_case_inputs)
         for field_name in [
             "fragility_norm", "roi_norm", "misalignment", "gravity_coupling",
             "internal_tension", "external_friction", "anomaly_pressure",
             "combinatorial_scale", "friction_scale", "improbability_lever",
-            "base_stress", "fragility_penalty", "total_stress", "adjusted_stress",
+            "base_stress", "fragility_penalty", "total_stress",
         ]:
             value = getattr(metrics, field_name)
             assert math.isfinite(value), f"{field_name} no es finito: {value}"
+
+        # adjusted_stress puede ser math.inf por el Mínima Acción Agéntica
+        if metrics.anomaly_pressure > 1.25 and metrics.external_friction > 1.5:
+            assert metrics.adjusted_stress == math.inf
+        else:
+            assert math.isfinite(metrics.adjusted_stress)
 
     def test_stress_nonnegative(self, manifold, worst_case_inputs):
         metrics = manifold._compute_metrics(worst_case_inputs)
@@ -1518,7 +1524,10 @@ class TestOmegaDiagnostics:
         result = manifold._collapse(worst_case_inputs)
         for key, val in result.diagnostics.derived_snapshot.items():
             if isinstance(val, float):
-                assert math.isfinite(val), f"derived_snapshot[{key}] = {val}"
+                if key == "adjusted_stress" and result.metrics.anomaly_pressure > 1.25 and result.metrics.external_friction > 1.5:
+                    assert val == math.inf
+                else:
+                    assert math.isfinite(val), f"derived_snapshot[{key}] = {val}"
         for key, val in result.diagnostics.inputs_snapshot.items():
             if isinstance(val, float):
                 assert math.isfinite(val), f"inputs_snapshot[{key}] = {val}"
@@ -1567,7 +1576,10 @@ class TestOmegaResultToPayload:
         result = manifold._collapse(worst_case_inputs)
         payload = result.to_payload(synaptic_context_toon="ctx")
         for key, val in payload["omega_metrics"].items():
-            assert math.isfinite(val), f"omega_metrics[{key}] = {val}"
+            if key == "adjusted_stress" and result.metrics.anomaly_pressure > 1.25 and result.metrics.external_friction > 1.5:
+                assert val == math.inf
+            else:
+                assert math.isfinite(val), f"omega_metrics[{key}] = {val}"
 
 
 # ============================================================================
