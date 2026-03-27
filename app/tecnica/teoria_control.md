@@ -50,7 +50,11 @@ El ecosistema utiliza una topología de Control por Prealimentación (Feedforwar
 La arquitectura matricial que hace posible la garantía termodinámica del Control Port-Hamiltoniano (PHS) se basa en el acoplamiento de potencia, definiendo explícitamente la **Matriz de Interconexión Antisimétrica de Dirac** $J(x) = -J(x)^T$ y la **Matriz de Disipación Simétrica** $R(x) = R(x)^T \ge 0$.
 El "veto termodinámico" se ejecuta rigurosamente a través de la inecuación del balance de potencia:
 $\frac{dH}{dt} = \nabla H^T(J-R)\nabla H \le 0$
-El Momentum Ciber-Físico ($p$) inyectado desde la frontera cuántica actúa formalmente como el vector de esfuerzo ($e$) acoplado al caudal de ingesta de datos ($f$). Desde una perspectiva gerencial: los datos aprobados no entran al sistema "estáticos"; entran con un impulso inercial calculado exactamente para que las tuberías logísticas los absorban a la velocidad óptima. El hardware en el borde (ESP32) vigila esta Estructura de Dirac; si el sistema intenta generar energía ($P_{diss} < 0$), el Veto Físico desintegra el flujo anómalo de inmediato.
+El Momentum Ciber-Físico ($p$) inyectado desde la frontera cuántica no es un escalar estático; actúa formalmente como la variable conjugada de **Flujo ($f$)**, acoplándose rigurosamente al vector de **Esfuerzo ($e$)** (representado por el gradiente de densidad lógica o costo del APU) a través de la matriz de Dirac $J(x)$.
+
+Desde la perspectiva matemática de control, esta topología de acoplamiento blinda axiomáticamente el teorema de conservación de energía de la Malla Agéntica, brindando la prueba definitiva de que:
+$$\dot{H} = \nabla H^T(J-R)\nabla H \le 0$$
+Para el gerente de obra, esto se traduce en que la plataforma no permite que un solo byte de información circule con velocidad inercial desbalanceada. Cada insumo entra impulsado de manera que las tuberías de compras lo absorban en un tiempo termodinámicamente óptimo. El hardware en el borde (ESP32) vigila esta Estructura de Dirac en tiempo real. Si una fluctuación induce $\dot{H} > 0$ (el flujo estocástico intenta violar la resistencia estructural del proyecto creando "energía de la nada"), el Veto Físico acciona el *Crowbar* y desintegra el paquete anómalo antes de la saturación matricial.
 La ley de control global del sistema se define como: u(t)=uPI​(e)+uFF​(ΔC)+uSafety​
 Diagrama de Bloques Lógico:
 

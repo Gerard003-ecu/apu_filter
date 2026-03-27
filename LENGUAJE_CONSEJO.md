@@ -28,18 +28,23 @@ El Oráculo de Laplace y el Guardián Físico modelan el comportamiento estocás
 --------------------------------------------------------------------------------
 3. La Arquitectura Cognitiva de la Traducción (GraphRAG y Retículos)
 El Agente a cargo de esta traducción es el Intérprete Diplomático (SemanticTranslator). Opera estrictamente bajo los siguientes paradigmas ciber-físicos:
-A. Empatía Táctica mediante GraphRAG
-La matemática compleja es ruido si no se traduce en acción. El Intérprete no escupe un reporte que diga "Fallo estructural: β1​=3". Utiliza un Grafo de Conocimiento y Modelos de Lenguaje Vectorial (FAISS + Sentence-Transformers) para comprender que el error está ligado a la mampostería, redactando: "Se detectaron tres dependencias circulares críticas en la Mampostería que paralizarán el flujo de compras".
-B. El Retículo de Severidad (La Operación Supremo $\sqcup$) y la Fibración Convexa Termodinámica
-El Intérprete no tiene libre albedrío deductivo para decidir si el proyecto es viable; actúa como un proyector semántico estrictamente subordinado a la matemática y la Ley de Clausura Transitiva de la pirámide DIKW ($V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$). La validación termodinámica de los estratos subyacentes es un requisito absoluto dictado por `app/wisdom/semantic_translator.py` y `app/core/telemetry_narrative.py`.
+A. Empatía Táctica mediante GraphRAG (Recuperación Semántica Riemanniana)
+La matemática compleja es ruido si no se traduce en acción. El Intérprete no escupe un reporte que diga "Fallo estructural: $\beta_1 = 3$". Utiliza un Grafo de Conocimiento y Modelos de Lenguaje Vectorial acoplados a FAISS (`Sentence-Transformers`) para comprender y proyectar la severidad del error hacia el lenguaje de negocio corporativo (Empatía Táctica).
 
-Las decisiones se basan en un Retículo Algebraico Acotado ($\bot \le Veredicto \le \top$). Inicialmente, el sistema aplicaba la operación Supremo discreta ($\sqcup$), donde un fallo estructural ($\top$) dominaba sobre una viabilidad financiera ($\bot$) forzando un Veto Estructural ($\top \sqcup \bot = \top$).
-No obstante, la naturaleza de escalón unitario de esta operación ($Heaviside$) inducía inestabilidad estructural o *Chattering Topológico* en el límite de la variedad. Si el índice de estabilidad piramidal ($\Psi$) oscilaba infinitesimalmente alrededor de $1.0$ (e.g., $0.999 \leftrightarrow 1.001$), el sistema alternaba violentamente entre Veredicto Óptimo y Veto Crítico.
+**Violación Prevenida: El Tensor Métrico Anisotrópico ($G_{\mu\nu}$):**
+Los algoritmos canónicos de búsqueda vectorial como FAISS (HNSW) asumen un espacio euclidiano isotrópico mediante la norma $L_2$ o Similitud del Coseno. Sin embargo, en el ecosistema matemático de `APU_filter`, la base canónica del riesgo es una variedad anisotrópica y altamente curva. Documentamos explícitamente que el espacio de búsqueda vectorial de **GraphRAG no es euclidiano**.
+La recuperación semántica no calcula la distancia cartesiana entre el riesgo y el texto; resuelve el producto interno dictaminado por el Tensor Métrico Riemanniano ($G_{\mu\nu}$). Esto equivale a recuperar los vectores semánticos midiendo la **Distancia de Mahalanobis**, donde los hallazgos son ponderados por la matriz de covarianza que refleja el riesgo estructural y financiero del proyecto en tiempo real. Un "socavón lógico" en el acero dolerá exponencialmente más en el reporte narrativo si el modelo financiero exhibe alta volatilidad estructural.
+B. Mecánica Estadística del Veredicto: El Límite Termodinámico del Retículo de Severidad
+El Intérprete no tiene libre albedrío deductivo para decidir si el proyecto es viable; actúa como un proyector semántico estrictamente subordinado a la matemática y la Ley de Clausura Transitiva de la pirámide DIKW ($V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$).
 
-**Transición Suavizada (Softmax y Temperatura):** Para suavizar la variedad de decisión sin diluir el rigor matemático, se ha introducido una Fibración Convexa Termodinámica. El veredicto ya no colapsa ciegamente como un escalón, sino mediante una función Softmax parametrizada por la Temperatura del Sistema ($T_{sys}$).
-El peso semántico dictaminado por el Intérprete es ahora proporcional a:
-$$w \propto \exp\left(-\frac{\Delta E_{Dirichlet}}{k_B T_{sys}}\right)$$
-De esta forma, la "Empatía Táctica" del LLM se convierte en una transición de fase continua y diferenciable. La narrativa de la advertencia transita y escala orgánicamente conforme la energía de frustración topológica subyacente aumenta, blindando el difeomorfismo entre el álgebra del código y la percepción corporativa.
+Para evitar la paradoja algebraica de poseer simultáneamente un colapso discreto duro y una transición convexa suave en el mismo estado del espacio de fase, el veredicto del Intérprete se modela estrictamente bajo los principios de la **Mecánica Estadística**. El espacio de decisión opera sobre un Retículo Algebraico Acotado ($\bot \le Veredicto \le \top$), pero la probabilidad del dictamen es gobernada por una Distribución de Softmax / Gibbs, parametrizada por la Temperatura Termodinámica del sistema ($T_{sys}$):
+
+$$P(Veredicto_i) = \frac{\exp\left(-\frac{E_i}{k_B T_{sys}}\right)}{\sum_j \exp\left(-\frac{E_j}{k_B T_{sys}}\right)}$$
+
+Donde $E_i$ representa la energía de frustración topológica (Energía de Dirichlet) de un estado dado. La transición de fase es matemáticamente continua y diferenciable, evitando la inestabilidad de límite (*Chattering Topológico*) cuando índices como la estabilidad piramidal $\Psi$ oscilan infinitesimalmente.
+
+**El Operador Supremo ($\sqcup$) como Comportamiento Asintótico:**
+Se especifica axiomáticamente que la operación discreta Supremo ($\top \sqcup \bot = \top$) se recupera *únicamente* como el comportamiento asintótico del sistema cuando la temperatura tiende al cero absoluto ($T_{sys} \to 0$). Es decir, en un mercado de certidumbre absoluta y riesgo cero, la transición convexa colapsa en el escalón de Heaviside determinista estricto del retículo, erradicando matemáticamente cualquier alucinación estocástica de los LLMs en regímenes de alta severidad.
 
 --------------------------------------------------------------------------------
 4. El Protocolo de Emisión: Actas de Deliberación ("Caja de Cristal")
