@@ -96,6 +96,7 @@ _TOPOLOGY_CYCLE_KEYWORDS = {
     "ciclo", "cycle", "β₁", "beta_1", "beta1", "homolog",
     "mayer-vietoris", "mayer_vietoris", "integración",
     "incoherencia", "topológic", "topolog", "socavones",
+    "género 1", "genero 1", "esponja", "bucle", "bucles",
 }
 
 _THERMODYNAMIC_FRAGILITY_KEYWORDS = {

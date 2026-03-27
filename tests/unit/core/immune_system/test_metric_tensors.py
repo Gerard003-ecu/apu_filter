@@ -916,31 +916,31 @@ class TestCholeskyVerification:
     def test_spd_matrix_passes(self, factory):
         """Una matriz SPD pasa la verificación de Cholesky."""
         G = np.array([[4.0, 2.0], [2.0, 3.0]], dtype=_FLOAT_DTYPE)
-        assert factory._verify_spd_by_cholesky("test", G) is True
+        assert factory._verify_spd_by_cholesky(G) is True
 
     def test_identity_passes(self, factory, identity_3x3):
         """La identidad pasa Cholesky trivialmente."""
-        assert factory._verify_spd_by_cholesky("test", identity_3x3) is True
+        assert factory._verify_spd_by_cholesky(identity_3x3) is True
 
     def test_negative_definite_fails(self, factory):
         """Una matriz negativa definida falla Cholesky."""
         G = -np.eye(2, dtype=_FLOAT_DTYPE)
-        assert factory._verify_spd_by_cholesky("test", G) is False
+        assert factory._verify_spd_by_cholesky(G) is False
 
     def test_semi_definite_fails(self, factory):
         """Una matriz semidefinida positiva (singular) falla Cholesky."""
         G = np.array([[1.0, 1.0], [1.0, 1.0]], dtype=_FLOAT_DTYPE)
-        assert factory._verify_spd_by_cholesky("test", G) is False
+        assert factory._verify_spd_by_cholesky(G) is False
 
     def test_indefinite_fails(self, factory):
         """Una matriz indefinida falla Cholesky."""
         G = np.array([[1.0, 0.0], [0.0, -1.0]], dtype=_FLOAT_DTYPE)
-        assert factory._verify_spd_by_cholesky("test", G) is False
+        assert factory._verify_spd_by_cholesky(G) is False
 
     def test_zero_matrix_fails(self, factory):
         """La matriz cero no es SPD."""
         G = np.zeros((2, 2), dtype=_FLOAT_DTYPE)
-        assert factory._verify_spd_by_cholesky("test", G) is False
+        assert factory._verify_spd_by_cholesky(G) is False
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1030,7 +1030,7 @@ class TestTikhonovRegularization:
         G = np.diag([1e-15, 1.0]).astype(_FLOAT_DTYPE)
         profile = factory._compute_spectral_profile(G)
         G_reg, _ = factory._apply_tikhonov_regularization("test", G, profile)
-        assert factory._verify_spd_by_cholesky("test", G_reg)
+        assert factory._verify_spd_by_cholesky(G_reg)
 
     def test_regularized_matrix_preserves_symmetry(self, factory):
         """La regularización G + δI preserva simetría exactamente."""
@@ -1216,7 +1216,7 @@ class TestStrictSPDAssertion:
         # a componentes fuera de la diagonal muy grandes
         G = np.array([[1.0, 10.0], [10.0, 1.0]], dtype=_FLOAT_DTYPE)
         profile = self._make_profile([0.5, 1.5])  # valores falsos para saltar los checks previos
-        with pytest.raises(MetricTensorError, match="Criterio de Sylvester"):
+        with pytest.raises(MetricTensorError, match="criterio de Sylvester"):
             factory._assert_spd_strict("test", G, profile)
 
 

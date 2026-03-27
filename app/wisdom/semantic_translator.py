@@ -1378,19 +1378,30 @@ class FinancialVerdict(Enum):
         return mapping[self]
 
     @classmethod
-    def from_string(cls, value: str) -> FinancialVerdict:
+    def from_string(cls, value: Any) -> FinancialVerdict:
         """Parsea desde string con normalización robusta."""
-        if not value or not isinstance(value, str):
+        if isinstance(value, Enum):
+            verdict_str = value.name
+        elif hasattr(value, "get"):
+            verdict_str = value.get("recommendation", "REVIEW")
+        else:
+            verdict_str = str(value)
+
+        if not verdict_str or not isinstance(verdict_str, str):
             return cls.REVIEW
-        normalized = value.strip().upper()
+
+        normalized = verdict_str.strip().upper()
         for verdict in cls:
             if (str(verdict.value).upper() == normalized
                     or verdict.name == normalized):
                 return verdict
         # Fuzzy matching via aliases de clase
-        alias_target = cls._ALIASES.get(normalized)  # type: ignore[attr-defined]
-        if alias_target:
-            return cls[alias_target]
+        try:
+            alias_target = cls._ALIASES.value.get(normalized)  # type: ignore[attr-defined]
+            if alias_target:
+                return cls[alias_target]
+        except AttributeError:
+            pass
         return cls.REVIEW
 
 
@@ -2561,7 +2572,7 @@ class SemanticTranslator:
             if not isinstance(performance, dict):
                 return FinancialVerdict.REVIEW
             rec = performance.get("recommendation", "REVISAR")
-            return FinancialVerdict.from_string(str(rec))
+            return FinancialVerdict.from_string(rec)
 
         return {
             "wacc": self._safe_extract_numeric(metrics, "wacc", 0.0),
