@@ -322,6 +322,10 @@ class OmegaInputs:
     climate_entropy: float = 1.0
     territory_present: bool = False
 
+    # Contexto Visual (Resolución de Homotopía)
+    focus_node_id: Optional[str] = None
+    zoom_level: Optional[int] = None
+
     # Raw states para trazabilidad (inmutabilidad de contenido no garantizada
     # por frozen=True en dicts; se documentan como read-only por contrato)
     topo_data: Dict[str, Any] = field(default_factory=dict)
@@ -342,6 +346,23 @@ class OmegaInputs:
         topo_data = _safe_dict(safe_payload.get("tactics_state"))
         fin_data = _safe_dict(safe_payload.get("strategy_state"))
         territory_data = _safe_dict(safe_payload.get("territory_state"))
+
+        # Extraer parámetros de resolución visual
+        focus_node_id = safe_payload.get("focus_node_id")
+        zoom_level_raw = safe_payload.get("zoom_level")
+        zoom_level = _safe_int(zoom_level_raw, 0) if zoom_level_raw is not None else None
+
+        # Fibración Localizada: si existe un focus_node_id, restringimos el análisis
+        # a los datos proporcionados para ese sub-grafo si existen (esto asume que
+        # tactics_state puede proveer métricas localizadas, de lo contrario usamos globales).
+        # En una arquitectura completa, `topo_data` tendría sub-grafos pre-computados,
+        # pero para conservar isomorfismo, si el payload indica que estos datos *ya son*
+        # locales, se respetan, o extraemos de un key local si lo proveyó el requester.
+        local_topo = topo_data.get("localized_metrics", {}).get(focus_node_id) if focus_node_id else None
+        active_topo_data = local_topo if local_topo else topo_data
+
+        local_fin = fin_data.get("localized_metrics", {}).get(focus_node_id) if focus_node_id else None
+        active_fin_data = local_fin if local_fin else fin_data
 
         # Determinar presencia de territorio: dict no vacío
         territory_present = bool(territory_data)
@@ -369,19 +390,21 @@ class OmegaInputs:
             climate_entropy = 1.0
 
         return cls(
-            psi=_extract_topological_stability(topo_data),
-            n_nodes=max(1, _safe_int(topo_data.get("n_nodes"), 1)),
-            n_edges=max(1, _safe_int(topo_data.get("n_edges"), 1)),
-            cycle_count=max(0, _safe_int(topo_data.get("cycle_count"), 0)),
-            isolated_count=max(0, _safe_int(topo_data.get("isolated_count"), 0)),
-            stressed_count=max(0, _safe_int(topo_data.get("stressed_count"), 0)),
-            roi=_extract_profitability_index(fin_data),
+            psi=_extract_topological_stability(active_topo_data),
+            n_nodes=max(1, _safe_int(active_topo_data.get("n_nodes"), 1)),
+            n_edges=max(1, _safe_int(active_topo_data.get("n_edges"), 1)),
+            cycle_count=max(0, _safe_int(active_topo_data.get("cycle_count"), 0)),
+            isolated_count=max(0, _safe_int(active_topo_data.get("isolated_count"), 0)),
+            stressed_count=max(0, _safe_int(active_topo_data.get("stressed_count"), 0)),
+            roi=_extract_profitability_index(active_fin_data),
             logistics_friction=logistics_friction,
             social_friction=social_friction,
             climate_entropy=climate_entropy,
             territory_present=territory_present,
-            topo_data=topo_data,
-            fin_data=fin_data,
+            focus_node_id=focus_node_id,
+            zoom_level=zoom_level,
+            topo_data=active_topo_data,
+            fin_data=active_fin_data,
             territory_data=territory_data,
         )
 
@@ -457,7 +480,7 @@ class OmegaResult:
 
         Incluye todas las métricas intermedias para máxima auditabilidad.
         """
-        return {
+        payload = {
             "omega_metrics": {
                 "topological_stability": round(self.inputs.psi, 6),
                 "fragility_norm": round(self.metrics.fragility_norm, 6),
@@ -479,6 +502,16 @@ class OmegaResult:
             "synaptic_context_toon": synaptic_context_toon,
             "omega_diagnostics": self.diagnostics.to_dict(),
         }
+
+        # Si se aplicó un retracto de resolución, anexar contexto de fibración
+        if self.inputs.focus_node_id:
+            payload["resolution_retract"] = {
+                "focus_node_id": self.inputs.focus_node_id,
+                "zoom_level": self.inputs.zoom_level,
+                "is_localized_deliberation": True
+            }
+
+        return payload
 
 
 # =============================================================================

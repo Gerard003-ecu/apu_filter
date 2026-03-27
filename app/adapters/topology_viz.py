@@ -215,23 +215,28 @@ class CytoscapeNode:
     score: float = 0.0
     is_evidence: bool = False
     tooltip: str = ""
+    parent: Optional[str] = None
     classes: Tuple[str, ...] = field(default_factory=tuple)
 
     def to_dict(self) -> Dict[str, Any]:
         """Serializa a formato Cytoscape.js."""
+        data: Dict[str, Any] = {
+            "id": self.id,
+            "label": self.label,
+            "type": self.node_type,
+            "color": self.color,
+            "level": self.level,
+            "cost": self.cost,
+            "weight": self.weight,
+            "score": self.score,
+            "is_evidence": self.is_evidence,
+            "tooltip": self.tooltip,
+        }
+        if self.parent:
+            data["parent"] = self.parent
+
         return {
-            "data": {
-                "id": self.id,
-                "label": self.label,
-                "type": self.node_type,
-                "color": self.color,
-                "level": self.level,
-                "cost": self.cost,
-                "weight": self.weight,
-                "score": self.score,
-                "is_evidence": self.is_evidence,
-                "tooltip": self.tooltip,
-            },
+            "data": data,
             "classes": " ".join(self.classes),
         }
 
@@ -1104,6 +1109,7 @@ def build_node_element(
     node_id: Any,
     attrs: Dict[str, Any],
     anomaly_data: AnomalyData,
+    inherited_anomalous: bool = False,
 ) -> CytoscapeNode:
     """
     Construye un elemento CytoscapeNode completo desde datos crudos.
@@ -1124,9 +1130,16 @@ def build_node_element(
     classes = _determine_node_classes(
         node_id_str, node_type, anomaly_data
     )
-    color = _determine_node_color(node_id_str, node_type, anomaly_data)
 
-    is_evidence = anomaly_data.is_node_anomalous(node_id_str)
+    is_evidence = anomaly_data.is_node_anomalous(node_id_str) or inherited_anomalous
+
+    # Herencia de Tensor de Estrés (Semántica Cromática)
+    if inherited_anomalous and not anomaly_data.is_node_anomalous(node_id_str):
+        color = NodeColor.RED.value
+        if NodeClass.ANOMALOUS.value not in classes:
+            classes = tuple(list(classes) + [NodeClass.ANOMALOUS.value])
+    else:
+        color = _determine_node_color(node_id_str, node_type, anomaly_data)
 
     tooltip = _build_node_tooltip(
         node_id=node_id_str,
@@ -1137,6 +1150,16 @@ def build_node_element(
         score=score,
         level=level,
     )
+
+    parent = None
+    if node_type == NodeType.APU.value:
+        parent_id = safe_attrs.get("chapter_id")
+        if parent_id:
+            parent = _normalize_identifier(parent_id)
+    elif node_type == NodeType.INSUMO.value:
+        parent_id = safe_attrs.get("apu_id")
+        if parent_id:
+            parent = _normalize_identifier(parent_id)
 
     return CytoscapeNode(
         id=node_id_str,
@@ -1149,6 +1172,7 @@ def build_node_element(
         score=score,
         is_evidence=is_evidence,
         tooltip=tooltip,
+        parent=parent,
         classes=classes,
     )
 
@@ -1420,6 +1444,35 @@ def convert_graph_to_cytoscape_elements(
     node_ids_processed: Set[str] = set()
     visible_levels = _get_visible_levels(stratum_filter)
 
+    # Calculate inherited anomaly status for collapsed nodes
+    # If a child node has an anomaly, the parent should inherit it for visual "stress inheritance"
+    inherited_anomalies: Set[str] = set()
+
+    # Pass 1: find all inherited anomalies (bottom up)
+    for node_id, attrs in graph.nodes(data=True):
+        safe_attrs = attrs if isinstance(attrs, dict) else {}
+        node_id_str = _normalize_identifier(node_id)
+
+        if anomaly_data.is_node_anomalous(node_id_str):
+            node_type = _get_node_type(safe_attrs)
+            if node_type == NodeType.INSUMO.value:
+                parent_apu = safe_attrs.get("apu_id")
+                if parent_apu:
+                    inherited_anomalies.add(_normalize_identifier(parent_apu))
+                    # Also inherit to chapter level
+                    # Finding the APU's chapter requires a second lookup which we can avoid by just doing a multi-pass or recursive approach,
+                    # but since graph is fully available, we can just grab it.
+                    apu_data = graph.nodes.get(parent_apu)
+                    if apu_data:
+                        apu_safe_attrs = apu_data if isinstance(apu_data, dict) else {}
+                        parent_chapter = apu_safe_attrs.get("chapter_id")
+                        if parent_chapter:
+                            inherited_anomalies.add(_normalize_identifier(parent_chapter))
+            elif node_type == NodeType.APU.value:
+                parent_chapter = safe_attrs.get("chapter_id")
+                if parent_chapter:
+                    inherited_anomalies.add(_normalize_identifier(parent_chapter))
+
     # --- Nodos ---
     for node_id, attrs in graph.nodes(data=True):
         safe_attrs = attrs if isinstance(attrs, dict) else {}
@@ -1434,7 +1487,10 @@ def convert_graph_to_cytoscape_elements(
 
         try:
             node_element = build_node_element(
-                node_id, safe_attrs, anomaly_data
+                node_id,
+                safe_attrs,
+                anomaly_data,
+                inherited_anomalous=(node_id_str in inherited_anomalies)
             )
             elements.append(node_element.to_dict())
         except Exception as exc:

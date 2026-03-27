@@ -8,6 +8,7 @@ En el ecosistema de la Fortaleza Matemática, el presupuesto deja de ser una lis
 1. Los Invariantes Topológicos (El ADN del Proyecto)
 Utilizamos homología computacional para calcular los Números de Betti (βn​), los cuales son invariantes matemáticos que describen la conectividad fundamental de la red de valor.
 
+    La Fractalidad de Betti: El análisis homológico no es plano. Al igual que el universo físico, el presupuesto es una Variedad Fractal. Si el análisis general detecta β1​=0 a nivel de Capítulos, el operador puede hacer zoom in (desplegar la fibra) para auditar el Laplaciano Combinatorio específico de la mampostería. La Ley de Clausura asegura que ninguna inestabilidad microscópica (Ψ<1.0) pase desapercibida, ya que su entropía fluirá hacia arriba tensionando el tejido visual del nodo contenedor.
     $\beta_0$: Componentes Conexas (Fragmentación)
         El Ideal: $\beta_0 = 1$. Un proyecto unificado donde cada insumo fluye coherentemente hacia el objetivo final.
         La Patología ($\beta_0 > 1$): Islas de Datos. Existen subgrafos desconectados.
