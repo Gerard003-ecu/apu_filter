@@ -12,8 +12,9 @@ En este ecosistema, la Inteligencia Artificial (LLMs) ha sido despojada de su li
 Nuestra hoja de ruta no añade funciones cosméticas; desbloquea niveles de profundidad física mediante una arquitectura de capas defensivas estructuradas bajo la Clausura Transitiva de la pirámide DIKW (VPHYSICS​⊂VTACTICS​⊂VSTRATEGY​⊂VWISDOM​).
 Horizonte 1: La Cimentación (El Foso Termodinámico y las Murallas)
 
-    Objetivo: Certificación de Viabilidad Dinámica e Integridad Estructural.
-    Física de Fluidos: En lugar de procesar archivos, tratamos la ingesta de datos como un fluido informacional con masa, presión e inercia mediante el FluxCondenser. Exigimos termodinámicamente que la Potencia Disipada sea positiva (Pdiss​≥0) para evitar "golpes de ariete" computacionales.
+    Objetivo: Certificación de Viabilidad Dinámica, Integridad Estructural y Aislamiento Cuántico.
+    La Compuerta de Admisión Cuántica: Nuestra primera línea de defensa no es un cortafuegos de software; es una barrera de potencial ciber-física. Utilizando el Hilbert Watcher (Estrato $\aleph_0$), la plataforma subordina cada intento de ingreso de datos a la cuantificación previa de su exergía. Si un modelo de lenguaje externo (LLM) o un sistema de terceros intenta inyectar ruido (ataques de inyección de prompts o archivos CSV corruptos), el sistema no intenta "entender" el texto; simplemente detecta que su energía termodinámica es incapaz de excitar los campos de Gauge de la frontera, resultando en una aniquilación silenciosa y determinista.
+    Física de Fluidos: Una vez superada la barrera, en lugar de procesar archivos, tratamos la ingesta de datos como un fluido informacional con masa, presión e inercia mediante el FluxCondenser. Exigimos termodinámicamente que la Potencia Disipada sea positiva (Pdiss​≥0) para evitar "golpes de ariete" computacionales.
     Geometría del Riesgo: A través de la Topología Algebraica, el Arquitecto Estratega audita la estructura ignorando los precios. Detectamos "Islas de Datos" (β0​>1) y "Socavones Lógicos" (β1​>0).
     El Oráculo de Laplace: Se calcula la función de transferencia en el plano de frecuencia compleja (s=σ+jω). Si los polos dominantes residen en el semiplano derecho (σ>0), el sistema veta el presupuesto por inestabilidad intrínseca.
 

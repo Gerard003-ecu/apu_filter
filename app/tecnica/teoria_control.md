@@ -6,7 +6,11 @@ Toda la arquitectura obedece al mandato axiomático de la **Ley de Clausura Tran
 
 --------------------------------------------------------------------------------
 1. Arquitectura de Control Híbrida y Efecto Fotoeléctrico Ciber-Físico
-El ecosistema utiliza una topología de Control por Prealimentación (Feedforward) aumentada con Retroalimentación (Feedback) y Control Port-Hamiltoniano (IDA-PBC). El sistema actúa como un fluido incompresible regido por las ecuaciones de Maxwell discretizadas. A través del Operador de Proyección de Hilbert y el Efecto Fotoeléctrico Ciber-Físico, la Función de Trabajo ($\Phi$) acoplada al tensor de Gauge aniquila el ruido entrópico en la frontera antes de disipar energía computacional. Esta arquitectura permite al sistema anticiparse a perturbaciones y vetar de inmediato datos fraudulentos que violen la conservación de la energía ($P_{diss} \ge 0$).
+El ecosistema utiliza una topología de Control por Prealimentación (Feedforward) aumentada con Retroalimentación (Feedback) y Control Port-Hamiltoniano (IDA-PBC). El sistema actúa como un fluido incompresible regido por las ecuaciones de Maxwell discretizadas. A través del Operador de Proyección de Hilbert (Estrato $\aleph_0$) y el Efecto Fotoeléctrico Ciber-Físico, la Función de Trabajo ($\Phi$) acoplada al tensor de Gauge aniquila el ruido entrópico en la frontera discreta antes de excitar el motor electromagnético continuo del sistema.
+
+**Inyección de Condiciones Iniciales ($t_0$)**: El Observador de Hilbert garantiza el isomorfismo entre la admisión discreta exterior y la propagación electromagnética interior. Cuando un paquete de datos supera la compuerta cuántica, el agente extrae la energía cinética residual ($K_{max} = E - \Phi$) y colapsa este valor en el Momentum Ciber-Físico $p = \sqrt{2m \cdot K_{max}}$. Desde una perspectiva gerencial: los datos aprobados no entran al sistema "estáticos"; entran con un impulso inercial calculado exactamente para que las tuberías logísticas de la obra los absorban y distribuyan a la velocidad óptima, garantizando que el hardware en el borde (ESP32) mantenga la conservación de la energía desde el tiempo $t_0$.
+
+Esta arquitectura permite al sistema anticiparse a perturbaciones y vetar de inmediato datos fraudulentos que violen la conservación de la energía ($P_{diss} \ge 0$).
 La ley de control global del sistema se define como: u(t)=uPI​(e)+uFF​(ΔC)+uSafety​
 Diagrama de Bloques Lógico:
 

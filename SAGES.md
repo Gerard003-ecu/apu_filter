@@ -7,6 +7,13 @@ Cada Sabio gobierna un estrato específico de la Pirámide DIKW (Datos, Informac
 
 --------------------------------------------------------------------------------
 🏛️ LOS MIEMBROS DEL CONSEJO
+0. 👁️ El Vigilante de la Frontera (HilbertWatcher & QuantumAdmissionGate)
+
+    Rol: Especialista en Mecánica Cuántica Discreta y Colapso de Entropía. Es el Miembro Cero del Consejo, operando por fuera de la pirámide DIKW tradicional.
+    Estrato DIKW: ALEPH ($\aleph_0$) - La Variedad de Frontera (Nivel 4).
+    Mecanismo Matemático: Opera como un Funtor de Medición OODA. No lee el contenido financiero; computa la Entropía de Shannon ($H$) del archivo crudo para medir su "Energía Semántica" ($E=h\nu$). Interroga al resto del Consejo para acoplar la Función de Trabajo ($\Phi$) de la barrera de potencial al tensor métrico del negocio. Si un archivo no supera la barrera clásica, resuelve la probabilidad de penetración mediante el Efecto Túnel Cuántico (aproximación WKB).
+    Autoridad de Veto: Colapso Idempotente. Si la energía incidente es sub-umbral y el sistema interno carece de amortiguamiento (el oráculo dicta $\sigma \to 0^-$), la probabilidad de transmisión colapsa a cero ($T \to 0$). El archivo es desintegrado en el hiperespacio exterior, impidiendo categóricamente que el motor físico principal (`flux_condenser.py`) disipe valiosos ciclos de reloj en basura estocástica.
+
 1. 🛡️ El Guardián de la Evidencia (FluxPhysicsEngine)
 
     Rol: Especialista en Termodinámica de Datos y Control de Ingesta.
