@@ -548,6 +548,27 @@ class MetricTensorFactory:
                 "divergencia de número de condición inminente."
             )
 
+        # Verificación 5: Criterio de Sylvester (Cholesky)
+        if not cls._verify_spd_by_cholesky(G):
+            raise MetricTensorError(
+                f"Tensor {name}: falló la factorización de Cholesky. "
+                "La matriz no es estrictamente definida positiva según el criterio de Sylvester, "
+                "a pesar de tener eigenvalores positivos."
+            )
+
+    # ───────────────────────────────────────────────────────────────────────────
+    # MÉTODOS DE CERTIFICACIÓN DE SPD
+    # ───────────────────────────────────────────────────────────────────────────
+
+    @classmethod
+    def _verify_spd_by_cholesky(cls, tensor: np.ndarray) -> bool:
+        """Certifica matemáticamente la propiedad SPD mediante la existencia de G = L L^T"""
+        try:
+            np.linalg.cholesky(tensor)
+            return True
+        except np.linalg.LinAlgError:
+            return False
+
     # ───────────────────────────────────────────────────────────────────────────
     # MÉTODOS DE REGULARIZACIÓN
     # ───────────────────────────────────────────────────────────────────────────
@@ -1282,11 +1303,12 @@ def get_tensor_diagnostics(G: np.ndarray, name: str = "unnamed") -> dict:
         # Simetrizar para análisis espectral válido
         G_sym = MetricTensorFactory._symmetrize_by_projection(G_arr)
         profile = MetricTensorFactory._compute_spectral_profile(G_sym)
-        is_spd = MetricTensorFactory._verify_spd_by_cholesky(name, G_sym)
+        is_spd = MetricTensorFactory._verify_spd_by_cholesky(G_sym)
 
         return {
             "name": name,
             "shape": G_arr.shape,
+            "eigenvalues": profile.eigenvalues.tolist(),
             "dtype": str(G_arr.dtype),
             "is_symmetric": is_symmetric,
             "asymmetry_norm": asymmetry_norm,
@@ -1297,7 +1319,6 @@ def get_tensor_diagnostics(G: np.ndarray, name: str = "unnamed") -> dict:
             "condition_number": profile.condition_number,
             "spectral_gap": profile.spectral_gap,
             "frobenius_norm": profile.frobenius_norm,
-            "eigenvalues": profile.eigenvalues.tolist(),
             "is_well_conditioned": profile.is_well_conditioned(),
             "is_strictly_positive": profile.is_strictly_positive(),
         }
