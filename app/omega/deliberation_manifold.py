@@ -59,6 +59,7 @@ from typing import Any, Dict, FrozenSet, List, Optional, Tuple
 from app.core.mic_algebra import CategoricalState, Morphism
 from app.core.schemas import Stratum
 from app.wisdom.semantic_translator import VerdictLevel
+from app.core.immune_system.calibration.sheaf_cohomology_orchestrator import SheafDegeneracyError, HomologicalInconsistencyError, SheafCohomologyOrchestrator
 
 logger = logging.getLogger("MIC.Omega.DeliberationManifold")
 
@@ -352,17 +353,26 @@ class OmegaInputs:
         zoom_level_raw = safe_payload.get("zoom_level")
         zoom_level = _safe_int(zoom_level_raw, 0) if zoom_level_raw is not None else None
 
-        # Fibración Localizada: si existe un focus_node_id, restringimos el análisis
-        # a los datos proporcionados para ese sub-grafo si existen (esto asume que
-        # tactics_state puede proveer métricas localizadas, de lo contrario usamos globales).
-        # En una arquitectura completa, `topo_data` tendría sub-grafos pre-computados,
-        # pero para conservar isomorfismo, si el payload indica que estos datos *ya son*
-        # locales, se respetan, o extraemos de un key local si lo proveyó el requester.
-        local_topo = topo_data.get("localized_metrics", {}).get(focus_node_id) if focus_node_id else None
-        active_topo_data = local_topo if local_topo else topo_data
+        # Fibración Localizada: si existe un focus_node_id, el análisis se restringe
+        # ESTRICTAMENTE a los datos del sub-grafo invocando conceptualmente el Mapa de Restricción.
+        # El fallback a métricas globales se extirpa para preservar el axioma
+        # de restricción de la Teoría de Haces Celulares.
+        if focus_node_id:
+            # Invocar el RestrictionMap desde el payload derivado del SheafCohomologyOrchestrator
+            local_topo = topo_data.get("localized_metrics", {}).get(focus_node_id)
+            local_fin = fin_data.get("localized_metrics", {}).get(focus_node_id)
 
-        local_fin = fin_data.get("localized_metrics", {}).get(focus_node_id) if focus_node_id else None
-        active_fin_data = local_fin if local_fin else fin_data
+            # Si el orquestador espectral falló durante la restricción (debido a falta de aristas,
+            # β0>1 generalizado en el subgrafo, etc.), los datos locales no existirán o estarán marcados.
+            SheafCohomologyOrchestrator.validate_local_restriction(
+                focus_node_id, local_topo, local_fin
+            )
+
+            active_topo_data = local_topo
+            active_fin_data = local_fin
+        else:
+            active_topo_data = topo_data
+            active_fin_data = fin_data
 
         # Determinar presencia de territorio: dict no vacío
         territory_present = bool(territory_data)
@@ -591,6 +601,82 @@ class OmegaDeliberationManifold(Morphism):
 
         except (KeyboardInterrupt, SystemExit):
             raise
+        except (SheafDegeneracyError, HomologicalInconsistencyError) as e:
+            # FASE 3: Saturación del Retículo y Colapso Determinista (Fast-Fail)
+            logger.error("🛑 Saturación del Retículo por Singularidad Topológica Local: %s", e)
+
+            # Recuperar payload de nuevo pero sin tratar de validarlo estrictamente,
+            # solo para mantener contexto de la petición local
+            payload = state.payload if isinstance(state.payload, dict) else {}
+            safe_payload = _safe_dict(payload)
+            focus_node_id = safe_payload.get("focus_node_id", "DESCONOCIDO")
+            zoom_level = _safe_int(safe_payload.get("zoom_level"), 0)
+
+            # Inyección Axiomática de Estrés Infinito
+            collapsed_payload = {
+                "omega_metrics": {
+                    "topological_stability": 0.0,
+                    "fragility_norm": 1.0,
+                    "roi_norm": 0.0,
+                    "internal_tension": math.inf,
+                    "external_friction": math.inf,
+                    "improbability_lever": math.inf,
+                    "base_stress": math.inf,
+                    "total_stress": math.inf,
+                    "adjusted_stress": math.inf,
+                    "misalignment": 1.0,
+                    "gravity_coupling": 2.0,
+                    "fragility_penalty": 2.5,
+                    "anomaly_pressure": math.inf,
+                    "combinatorial_scale": math.inf,
+                    "friction_scale": math.inf,
+                },
+                "verdict": VerdictLevel.RECHAZAR,
+                "synaptic_context_toon": self.synaptic_registry.get_active_context(),
+                "omega_diagnostics": {
+                    "topology_status": "fragil",
+                    "financial_status": "retorno_debil",
+                    "territory_status": "territorio_hostil",
+                    "stress_status": "tension_critica",
+                    "dominant_risk_axis": "Singularidad Topológica Local",
+                    "risk_contribution_breakdown": {
+                        "extremes": math.inf,
+                        "fragility": math.inf,
+                        "internal": math.inf,
+                        "territory": math.inf,
+                    },
+                    "summary": (
+                        f"Veredicto=RECHAZAR; "
+                        f"Instrucción Axiomática: Singularidad Topológica Local en sub-espacio '{focus_node_id}'. "
+                        f"El sub-grafo carece de soporte estructural. "
+                        f"Causa: {e}"
+                    ),
+                    "inputs_snapshot": {},
+                    "derived_snapshot": {}
+                },
+                "resolution_retract": {
+                    "focus_node_id": focus_node_id,
+                    "zoom_level": zoom_level,
+                    "is_localized_deliberation": True
+                }
+            }
+
+            # Se registra la anomalía en el estado y se avanza forzando el rechazo.
+            # Esto aniquila el libre albedrío del LLM y fuerza una justificación forense de rechazo.
+            if state.telemetry_context:
+                state.telemetry_context.record_error(
+                    step_name="deliberation_manifold_collapse",
+                    error_message=f"Saturación del Retículo por Singularidad Topológica Local: {e}",
+                    error_type="SheafDegeneracyError",
+                    severity="CRITICAL",
+                    stratum=Stratum.OMEGA,
+                    propagate=True
+                )
+
+            return state.with_update(
+                new_payload={"omega_state": collapsed_payload},
+                new_stratum=self.codomain,
+            ).with_error(f"SheafDegeneracyError/HomologicalInconsistencyError: {e}")
         except Exception as e:
             logger.exception("Fallo en el Manifold de Deliberación")
             return state.with_error(f"Colapso Tensorial fallido: {e}")

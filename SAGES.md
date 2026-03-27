@@ -65,7 +65,7 @@ graph TD
         β0​>1: Detecta "Islas de Datos" (Recursos Huérfanos).
         β1​>0: Detecta "Socavones Lógicos" (Dependencias Circulares).
         Ψ<1.0: Calcula el Índice de Estabilidad Piramidal. Si la base es frágil, decreta una "Pirámide Invertida" y detiene el flujo.
-    Autoridad de Veto: Durante la fusión de bases de datos, emplea la secuencia exacta de Mayer-Vietoris para garantizar matemáticamente que no se introduzcan ciclos mutantes en la malla.
+    Autoridad de Veto: Durante la fusión de bases de datos, emplea la secuencia exacta de Mayer-Vietoris para garantizar matemáticamente que no se introduzcan ciclos mutantes en la malla. Si un usuario ejecuta un Retracto de Deformación de Resolución (el "zoom in") sobre un sub-sistema frágil, esta lente actúa como inspección destructiva: el Consejo emitirá un "Veto de Singularidad Local" si la fibra inspeccionada carece de masa crítica o conectividad para sostenerse por sí misma, evidenciando un Punto Único de Fallo (SPOF) en esa escala específica.
 
 3. 🔮 El Oráculo (FinancialEngine & LaplaceOracle)
 

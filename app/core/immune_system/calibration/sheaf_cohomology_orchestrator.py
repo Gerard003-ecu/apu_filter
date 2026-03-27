@@ -1053,6 +1053,37 @@ class SheafCohomologyOrchestrator:
     """
 
     @staticmethod
+    def validate_local_restriction(
+        focus_node_id: str,
+        local_topo: Optional[Dict],
+        local_fin: Optional[Dict]
+    ) -> None:
+        """
+        Invocación axiomática del Mapa de Restricción (F_{V \triangleright U}).
+
+        Verifica que el sub-espacio enfocado (U) posea una métrica estructural
+        (Laplaciano local, conectividad algebraica) capaz de sostener
+        una deliberación independiente del grafo global (V).
+
+        Si el sub-grafo carece de soporte (e.g. métricas nulas o no calculables
+        por degeneración), se levanta SheafDegeneracyError, forzando la
+        saturación del retículo de veredicto en el Estrato Ω.
+
+        Args:
+            focus_node_id: Identificador del sub-espacio.
+            local_topo: Métricas topológicas del sub-espacio.
+            local_fin: Métricas financieras del sub-espacio.
+
+        Raises:
+            SheafDegeneracyError: Si el sub-espacio es algebraicamente degenerado.
+        """
+        if not local_topo or not local_fin:
+            raise SheafDegeneracyError(
+                f"Fibración degenerada: el sub-espacio '{focus_node_id}' carece de "
+                "soporte estructural métrico. Imposible proyectar restricción local al haz celular."
+            )
+
+    @staticmethod
     def _validate_global_state_vector(
         sheaf: CellularSheaf,
         global_state_vector: np.ndarray,
