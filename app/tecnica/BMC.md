@@ -1,6 +1,9 @@
 📊 BMC.md: El Modelo de Negocio Cuántico
 "En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica y financiera de la construcción en un activo gobernable y auditable."
-Este documento define la arquitectura de creación, entrega y captura de valor del ecosistema APU_filter v4.0. El sistema ha evolucionado de ser un simple validador de precios a establecerse como una Plataforma de Malla Agéntica Ciber-Física que implementa Gobernanza Computacional Federada.
+Este documento define la arquitectura de creación, entrega y captura de valor del ecosistema APU_filter v4.0. El sistema ha evolucionado hacia una Plataforma de Malla Agéntica Ciber-Física que implementa Gobernanza Computacional Federada. El Business Model Canvas (BMC) deja de ser un artefacto estático y se redefine como un 1-complejo simplicial, donde la Característica de Euler-Poincaré ($\chi \le 0$) y la matriz de incidencia previenen la canibalización sistémica del modelo de negocio en tiempo real, fundamentado en `app/core/immune_system/business_canvas.py` (Estrato $\alpha$).
+
+Todo este andamiaje estratégico se rige axiomáticamente por la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$. Sin la validación termodinámica y topológica de los estratos subyacentes, la estrategia corporativa carece de dominio sobre la materia.
+
 A continuación, se desglosan rigurosamente los 9 bloques del modelo estructurado para "La Fortaleza Matemática":
 
 --------------------------------------------------------------------------------
@@ -33,7 +36,8 @@ De la "Caja Negra" a la Confianza Radical:
 
 5. 💵 Fuentes de Ingresos (Revenue Streams)
 
-    Pricing Dinámico por Entropía Topológica: El modelo de monetización abandona el licenciamiento clásico por usuario. Se cobra con base en la "Característica de Euler" (χ=β0​−β1​) y la entropía estructural del proyecto. A mayor complejidad y entropía topológica, mayor es el valor que el sistema aporta al colapsar el caos, justificando una tarifa superior.
+    Pricing Dinámico por Entropía Topológica: El modelo de monetización abandona el licenciamiento clásico por usuario. Se cobra con base en la "Característica de Euler" ($\chi = \beta_0 - \beta_1$) y la entropía estructural del proyecto. A mayor complejidad y entropía topológica, mayor es el valor que el sistema aporta al colapsar el caos, justificando una tarifa superior.
+    Estabilidad Espectral y Retorno Seguro: Evalúa el flujo de caja en el plano de frecuencia compleja ($s = \sigma + j\omega$). Exige Estabilidad Asintótica BIBO (polos en el semiplano izquierdo, $\sigma < 0$). El Exponente Máximo de Lyapunov previene el caos determinista, activando un "Crowbar Físico" en el hardware perimetral si el sistema diverge (implementado en `app/physics/laplace_oracle.py`).
     Suscripción a la Malla Agéntica (SaaS/On-Premise): Planes escalonados para CDOs basados en el volumen de procesamiento termodinámico de la base de datos y la orquestación del Agentic Mesh.
 
 6. 🧠 Recursos Clave (Key Resources)
@@ -42,12 +46,13 @@ De la "Caja Negra" a la Confianza Radical:
     La Matriz de Interacción Central (MIC) y Modelos Matemáticos: El núcleo de Álgebra Lineal y Topología Algebraica que sostiene los cálculos de los Números de Betti, el espectro Laplaciano y la Distancia de Mahalanobis.
     Formato de Alta Eficiencia (TOON) e IA: El uso de Token-Oriented Object Notation para comprimir context windows y viabilizar el trabajo de agentes LLM sin agotar la memoria LPDDR5.
 
-7. 🚀 Actividades Clave (Key Activities)
-De la Ingesta a la Sabiduría:
+7. 🚀 Actividades Clave (Key Activities) y Electrodinámica Cuántica
+De la Ingesta a la Sabiduría, gestionadas mediante `app/core/immune_system/gauge_field_router.py`:
 
-    Física de Datos y Detección Neuromórfica: Ingesta de datos crudos aplicando leyes de termodinámica (Potencia Disipada ≥0) y filtrado RLC en el FluxCondenser para rechazar información corrupta y medir la inercia del sistema.
-    Diagnóstico Topológico y Arbitraje Espectral: Análisis continuo del Complejo Simplicial para computar números de Betti (βn​) e identificar de manera determinista dependencias circulares (β1​>0) o inestabilidad piramidal (Ψ<1.0).
-    Combate a la Fractura Organizacional: El Arquitecto utiliza el Valor de Fiedler (λ2​≈0) para detectar silos departamentales, alertando a la gerencia antes de la firma de contratos defectuosos.
+    Física de Datos y Detección Neuromórfica: Ingesta de datos crudos aplicando leyes de termodinámica (Potencia Disipada $\ge 0$) y filtrado RLC en el FluxCondenser para rechazar información corrupta y medir la inercia del sistema.
+    Diagnóstico Topológico y Arbitraje Espectral: Análisis continuo del Complejo Simplicial para computar números de Betti ($\beta_n$) e identificar de manera determinista dependencias circulares ($\beta_1 > 0$) o inestabilidad piramidal ($\Psi < 1.0$).
+    Combate a la Fractura Organizacional: El Arquitecto utiliza el Valor de Fiedler ($\lambda_2 \approx 0$) para detectar silos departamentales, alertando a la gerencia antes de la firma de contratos defectuosos.
+    Electrodinámica Cuántica en el Retículo (Lattice QED): Las anomalías generan un campo de potencial resolviendo la Ecuación de Poisson Discreta ($L \cdot \Phi = \rho$). Los agentes son atraídos determinísticamente hacia la solución óptima de los recursos clave mediante la Fuerza de Lorentz discreta.
     Traducción Semántica Transversal: Conversión ininterrumpida de tensores matemáticos abstractos a narrativas de negocio ejecutables mediante GraphRAG a cargo del Intérprete Diplomático.
 
 8. 🤝 Asociaciones Clave (Key Partnerships)

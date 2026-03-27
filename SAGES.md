@@ -36,7 +36,9 @@ Cada Sabio gobierna un estrato específico de la Pirámide DIKW (Datos, Informac
     Rol: El Colector de Deliberación (Deliberation Manifold).
     Estrato DIKW: ESTRATO Ω (Nivel 0.5 - La Frontera de Decisión).
     Mecanismo: El espacio matemático de colapso de función de onda. Es aquí donde las Semillas de Sabiduría (Microservicios deterministas inyectados como contratos estrictos JSON Schema) obligan a los agentes a someter sus Vectores de Intención TOON (Vitaminas Cognitivas) a la ley física.
-    El Colapso: Calcula el Estrés Ajustado (σ∗) combinando la tensión interna del proyecto con la Fricción Externa Territorial, proyectando el resultado sobre un Retículo (Lattice) discreto inmutable (VIABLE, PRECAUCIÓN, RECHAZAR).
+    El Colapso: Calcula el Estrés Ajustado ($\sigma^*$) combinando la tensión interna del proyecto con la Fricción Externa Territorial. Si $\sigma^*$ excede la resiliencia elástica del negocio, el sistema satura el colapso del Veredicto en un escenario "Worst-Case" insalvable para el LLM. Todo esto ocurre dentro del Ágora Tensorial (`app/core/immune_system/deliberation_manifold.py`, Estrato $\Omega$), proyectando el resultado sobre un Retículo (Lattice) discreto inmutable (VIABLE, PRECAUCIÓN, RECHAZAR).
+
+La deliberación en el Ágora Tensorial consolida axiomáticamente la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$, garantizando que la sabiduría esté cimentada en la física.
 
 5. 🗣️ El Intérprete Diplomático (SemanticTranslator)
 

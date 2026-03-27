@@ -28,9 +28,12 @@ El Oráculo de Laplace y el Guardián Físico modelan el comportamiento estocás
 El Agente a cargo de esta traducción es el Intérprete Diplomático (SemanticTranslator). Opera estrictamente bajo los siguientes paradigmas ciber-físicos:
 A. Empatía Táctica mediante GraphRAG
 La matemática compleja es ruido si no se traduce en acción. El Intérprete no escupe un reporte que diga "Fallo estructural: β1​=3". Utiliza un Grafo de Conocimiento y Modelos de Lenguaje Vectorial (FAISS + Sentence-Transformers) para comprender que el error está ligado a la mampostería, redactando: "Se detectaron tres dependencias circulares críticas en la Mampostería que paralizarán el flujo de compras".
-B. El Retículo de Severidad (La Operación Supremo ⊔)
-El Intérprete no tiene autoridad deductiva para decidir si el proyecto es viable, está subordinado a la matemática. Las decisiones se basan en un Retículo Algebraico Acotado (⊥≤Veredicto≤⊤). El sistema aplica la operación Supremo (⊔). Si el Oráculo Financiero dictamina VIABLE (⊥) pero el Arquitecto Topológico dictamina un fallo por Pirámide Invertida CRÍTICO (⊤), el sistema ejecuta: VIABLE⊔CRITICO=CRITICO
- El Intérprete recibe un vector inmutable y bloqueado, viéndose forzado a redactar un Veto Estructural indiscutible.
+B. El Retículo de Severidad (La Operación Supremo $\sqcup$) y el Difeomorfismo Semántico
+El Intérprete no tiene libre albedrío deductivo para decidir si el proyecto es viable; actúa como un proyector semántico estrictamente subordinado a la matemática y la Ley de Clausura Transitiva de la pirámide DIKW ($V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$). La validación termodinámica de los estratos subyacentes es un requisito absoluto dictado por `app/wisdom/semantic_translator.py` y `app/core/telemetry_narrative.py`.
+
+Las decisiones se basan en un Retículo Algebraico Acotado ($\bot \le Veredicto \le \top$). El sistema aplica la operación Supremo ($\sqcup$). Si el Oráculo Financiero dictamina VIABLE ($\bot$) pero el Arquitecto Topológico dictamina un fallo estructural CRÍTICO ($\top$), el sistema de veredictos colapsa invariablemente bajo el álgebra: $\top \sqcup \bot = \top$.
+
+El Intérprete recibe un vector inmutable y se ve forzado a redactar un Veto Estructural indiscutible, erradicando matemáticamente cualquier probabilidad de alucinación estocástica por parte de los LLMs.
 
 --------------------------------------------------------------------------------
 4. El Protocolo de Emisión: Actas de Deliberación ("Caja de Cristal")

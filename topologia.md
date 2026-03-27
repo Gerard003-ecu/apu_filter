@@ -2,19 +2,19 @@
 --------------------------------------------------------------------------------
 🕸️ topologia.md: La Geometría del Riesgo
 "Un edificio no se cae porque sus ladrillos sean baratos; se cae porque sus conexiones fallan. APU_filter ignora el precio para ver la forma, revelando la fragilidad oculta que el Excel clásico no puede mostrar."
-En el ecosistema de la Fortaleza Matemática, el presupuesto deja de ser una lista plana de ítems contables para convertirse formalmente en un Complejo Simplicial Abstracto. El microservicio BusinessTopologicalAnalyzer (El Arquitecto) evalúa este complejo aplicando teoremas de Topología Algebraica y Teoría de Grafos Espectrales. Su objetivo es diagnosticar patologías estructurales críticas antes de que el Agente de Sabiduría (LLM) intente siquiera deliberar sobre el proyecto.
+En el ecosistema de la Fortaleza Matemática, el presupuesto deja de ser una lista plana de ítems contables para convertirse formalmente en un Complejo Simplicial Abstracto $K$. Todo este diseño se subordina axiomáticamente a la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$. Este documento consolida el Esqueleto Táctico (Estrato TACTICS - Nivel 2), respaldado computacionalmente por `app/tactics/business_topology.py`. El microservicio BusinessTopologicalAnalyzer (El Arquitecto) evalúa este complejo aplicando teoremas de Topología Algebraica y Teoría de Grafos Espectrales. Su objetivo es diagnosticar patologías estructurales críticas antes de que el Agente de Sabiduría (LLM) intente siquiera deliberar sobre el proyecto.
 
 --------------------------------------------------------------------------------
 1. Los Invariantes Topológicos (El ADN del Proyecto)
 Utilizamos homología computacional para calcular los Números de Betti (βn​), los cuales son invariantes matemáticos que describen la conectividad fundamental de la red de valor.
 
-    β0​: Componentes Conexas (Fragmentación)
-        El Ideal: β0​=1. Un proyecto unificado donde cada insumo fluye coherentemente hacia el objetivo final.
-        La Patología (β0​>1): Islas de Datos. Existen subgrafos desconectados.
-        Impacto de Negocio: Usted está comprando materiales que no están enlazados a ninguna actividad constructiva del proyecto principal. Es dinero "ciego" y desperdicio seguro o riesgo de fraude (recursos huérfanos).
-    β1​: Ciclos Independientes (Trampas Lógicas)
-        El Ideal: β1​=0. El flujo del proyecto es laminar y conforma un Grafo Acíclico Dirigido (DAG) perfecto.
-        La Patología (β1​>0): Socavones Lógicos. Se han detectado dependencias circulares (Ej. El Muro depende del Ladrillo → El Ladrillo depende del Transporte → El Transporte depende del Muro).
+    $\beta_0$: Componentes Conexas (Fragmentación)
+        El Ideal: $\beta_0 = 1$. Un proyecto unificado donde cada insumo fluye coherentemente hacia el objetivo final.
+        La Patología ($\beta_0 > 1$): Islas de Datos. Existen subgrafos desconectados.
+        Impacto de Negocio: Fragmentación logística pura. Usted está comprando materiales que no están enlazados a ninguna actividad constructiva del proyecto principal. Es dinero "ciego" y desperdicio seguro o riesgo de fraude (recursos huérfanos).
+    $\beta_1$: Ciclos Independientes (Trampas Lógicas)
+        El Ideal: $\beta_1 = 0$. El flujo del proyecto es laminar y conforma un Grafo Acíclico Dirigido (DAG) perfecto.
+        La Patología ($\beta_1 > 0$): Socavones Lógicos. Se han detectado dependencias circulares o grafos cíclicos prohibidos (Ej. El Muro depende del Ladrillo $\to$ El Ladrillo depende del Transporte $\to$ El Transporte depende del Muro).
         Impacto de Negocio: Imposibilidad matemática de calcular un costo unitario real. Esto dispara una Mónada de Error (F(0)=0) y el Gatekeeper del sistema bloquea inmediatamente cualquier cálculo financiero posterior.
     χ: Característica de Euler-Poincaré
         Fórmula: χ=β0​−β1​.
@@ -22,22 +22,20 @@ Utilizamos homología computacional para calcular los Números de Betti (βn​)
 
 
 --------------------------------------------------------------------------------
-2. La Física del Equilibrio: Índice de Estabilidad Piramidal (Ψ)
-Más allá de la conectividad general, analizamos el centro de gravedad del negocio mediante la métrica Ψ. Un proyecto de construcción resiliente debe emular una pirámide: una base logística ancha soportando una cúspide concentrada de actividades.
+2. La Física del Equilibrio: Índice de Estabilidad Piramidal ($\Psi$)
+Más allá de la conectividad general, el `app/tactics/business_topology.py` analiza el centro de gravedad del negocio mediante la métrica $\Psi$. Un proyecto de construcción resiliente debe emular una pirámide termodinámica estable.
 
-    Fórmula (Conceptual): Ψ≈Amplitud de Base (Insumos)Carga Taˊctica (APUs)​×Factor de Densidad.
-    La Patología (Ψ<1.0): La Pirámide Invertida.
-        El Fenómeno: Miles de actividades constructivas (APUs) descansan críticamente sobre una base de proveedores o insumos monopólica y peligrosamente estrecha.
-        El Riesgo Ciber-Físico: Crea un centro de gravedad financiero alto y extremadamente inestable. Si un nodo crítico en la base (ej. el único proveedor de acero) falla, el choque logístico no se amortigua, sino que se amplifica y vuelca todo el proyecto.
-        Acción Sistémica: El Arquitecto emite un VETO TÉCNICO INMEDIATO, impidiendo que el Agente de Negocios dictamine viabilidad hasta que la base de la matriz se diversifique.
-
+    La Patología ($\Psi < 1.0$): La Pirámide Invertida.
+        El Fenómeno: Miles de actividades constructivas (APUs) descansan críticamente sobre una base de proveedores monopólica y peligrosamente estrecha.
+        El Riesgo Ciber-Físico: Si un nodo crítico en la base falla, el choque logístico no se amortigua, sino que se amplifica y vuelca todo el proyecto, diagnosticando una inminente "Fractura Organizacional".
+        Acción Sistémica: El Arquitecto emite un VETO TÉCNICO INMEDIATO, impidiendo la ascensión a la Sabiduría.
 
 --------------------------------------------------------------------------------
-3. Estabilidad Espectral: El Valor de Fiedler (λ2​)
-Para ir más allá de la estructura superficial, se analiza el espectro propio de la Matriz Laplaciana (L=D−A) del grafo.
+3. Estabilidad Espectral: El Valor de Fiedler ($\lambda_2$)
+Para diagnosticar la "Fractura Organizacional", se analiza el espectro propio de la Matriz Laplaciana ($L=D-A$) del Complejo Simplicial.
 
-    Métrica: La conectividad algebraica λ2​ (El Valor de Fiedler).
-    Diagnóstico: Si λ2​≈0, el sistema diagnostica una "Fractura Organizacional". Revela que, aunque el presupuesto no tenga "Islas" separadas (β0​=1), existen clústeres gigantescos de datos (ej. un departamento entero de compras frente a uno de ingeniería) unidos por un solo hilo frágil. Ante cualquier tensión (cambio de precios), la estructura se partirá en dos.
+    Métrica: La conectividad algebraica $\lambda_2$ (El Valor de Fiedler del Laplaciano Combinatorio).
+    Diagnóstico: Si $\lambda_2 \approx 0$, el sistema diagnostica una "Fractura Organizacional". Revela que existen clústeres masivos unidos por un solo hilo logístico frágil, presagiando una ruptura inminente de la cadena de suministro bajo estrés del mercado.
 
 
 --------------------------------------------------------------------------------

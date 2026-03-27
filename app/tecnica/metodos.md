@@ -52,17 +52,18 @@ Este documento técnico desglosa la maquinaria matemática que permite al Consej
 
 
 --------------------------------------------------------------------------------
-5. Motor de Materialización y Fusión Auditada
+5. Motor de Materialización, Fusión Auditada y Asimetría de Inercia
 
-    Base Teórica: Algoritmo Kahan, Secuencia de Mayer-Vietoris.
-    Componentes: pipeline_director.py, matter_generator.py.
-    5.1 Auditoría Homológica de Fusión: Al unir la tabla maestra del presupuesto con los APUs, se aplica la secuencia exacta de Mayer-Vietoris. Esto asegura matemáticamente que la unión espacial (A∪B) no introduzca "ciclos fantasmas" (Δβ1​>0) inexistentes en las fuentes originales.
+    Base Teórica: Algoritmo Kahan, Secuencia de Mayer-Vietoris, Índice de Gini, Entropía de Shannon.
+    Componentes: `app/tactics/pipeline_director.py`, `app/adapters/mic_vectors.py`, `app/adapters/audit_vectors.py`.
+    5.1 Auditoría Homológica de Fusión: Al unir la tabla maestra del presupuesto con los APUs, se aplica la regla de inyección de datos ($A \cup B$) mediante la Secuencia Exacta Larga de Homología de Mayer-Vietoris. Esto asegura matemáticamente que la unión espacial no introduzca "ciclos fantasmas". Cualquier fusión que genere ciclos homológicos mutantes ($\Delta\beta_1 \neq 0$) abortará irremediablemente la integración.
+    5.2 Asimetría de Inercia y Concentración de Masa: Se sustenta la métrica de asimetría de inercia y la concentración de masa de capital del proyecto utilizando el Índice de Gini y la Entropía de Shannon, mapeando el riesgo volumétrico y el desequilibrio de Pareto en la estructura del presupuesto.
     5.2 Colapso de Onda y Suma de Kahan: Para transformar el grafo 3D en un listado de materiales plano (BOM), se usa un recorrido DFS con memoización. Dado el gran volumen de operaciones, se aplica la Suma Compensada de Kahan para mitigar errores de punto flotante, asegurando precisión centesimal absoluta en el costo total.
 
 
 --------------------------------------------------------------------------------
 6. Ley de Gobernanza Algebraica (Isomorfismo de Esquemas)
-La filtración estricta de la Pirámide DIKW (VPHYSICS​⊂VTACTICS​⊂VSTRATEGY​⊂VWISDOM​) no se gestiona con microservicios centralizados que generen latencia, sino que se materializa mediante Domain-Driven Design (DDD) en los archivos schemas.py y telemetry_schemas.py.
+La filtración estricta y axiomática de la Ley de Clausura Transitiva de la Pirámide DIKW ($V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$) no se gestiona con microservicios centralizados que generen latencia, sino que se materializa mediante Domain-Driven Design (DDD) en los archivos `schemas.py` y `telemetry_schemas.py`.
 
     Geometría de Datos Inmutable: Los subespacios de estado (PhysicsMetrics, TopologicalMetrics) se instancian como frozen dataclasses. Actúan como un contrato algebraico puro: una vez construidos, su identidad observacional es fija y a prueba de manipulaciones forenses.
     Proyección Condicional en la MIC: La Matriz de Interacción Central (MIC) exige este Pasaporte tipado. Si las validaciones del __post_init__ detectan una anomalía estructural (ej. un costo negativo violando los axiomas físicos), el reporte colapsa algebraicamente. Las matemáticas del código impiden instanciar un objeto de "Sabiduría" sobre datos inconsistentes
