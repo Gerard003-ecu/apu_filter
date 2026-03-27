@@ -10,10 +10,10 @@ Este documento técnico desglosa la maquinaria matemática que permite al Consej
     Base Teórica: Ecuaciones de Maxwell discretizadas, Control Port-Hamiltoniano (PHS) y Física de Semiconductores.
     Componentes: flux_condenser.py, neuromorphic_solver.py, Firmware ESP32 (telemetry.h). El Guardián no lee bits; procesa un fluido de información con propiedades físicas (Energía, Resistencia, Inercia).
 
-1.1 Filtrado Topológico y Laplaciano de Hodge (L1​) El Guardián no procesa el archivo línea por línea; somete la matriz de datos al Cálculo Exterior Discreto. Utilizando la Descomposición de Hodge-Helmholtz (L1​=Lgrad​+Lcurl​), la membrana separa el flujo de información en dos:
+1.1 Filtrado Topológico y Laplaciano de Hodge ($L_1$) El Guardián no procesa el archivo línea por línea; somete la matriz de datos al Cálculo Exterior Discreto. Utilizando la Descomposición de Hodge-Helmholtz ($L_1 = L_{grad} + L_{curl}$), la membrana separa el flujo de información en dos:
 
-    Flujo Gradiente (Lgrad​): La información estructurada útil que la membrana permite pasar hacia el estrato Táctico.
-    Flujo Rotacional (Lcurl​): El "ruido" o dependencias circulares locales en el CSV crudo. La membrana penaliza y disipa esta turbulencia como entropía, entregando un flujo laminar puro.
+    Flujo Gradiente ($L_{grad}$): La información estructurada útil que la membrana permite pasar hacia el estrato Táctico.
+    Flujo Rotacional ($L_{curl}$): El "ruido" o dependencias circulares locales en el CSV crudo. El Guardián aísla explícitamente esta componente solenoidal ($L_{curl}$) del grafo para cuantificar la "Fricción Circulante" del presupuesto. La membrana penaliza y disipa esta turbulencia escalar como entropía, entregando un flujo laminar puro al sistema de toma de decisiones.
 
 1.2 El Oráculo de Laplace Antes de procesar, se linealiza el sistema y se analiza su función de transferencia H(s). Si se detectan polos en el semiplano derecho (RHP, σ>0), el sistema veta la ingesta por "Divergencia Matemática" (inestabilidad intrínseca).
 1.3 Simulación Neuromórfica y Hardware en el Borde (ESP32) La matemática se materializa en el silicio. El sistema proyecta sus invariantes a un nodo perimetral ESP32 que actúa como un "Gatekeeper Físico" mediante una arquitectura de Diodos Lambda (JFETs cruzados):
