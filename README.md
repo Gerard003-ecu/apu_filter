@@ -6,7 +6,7 @@ Históricamente, la ingeniería y construcción han gestionado el riesgo de capi
 Implementamos una arquitectura de Malla Agéntica (Agentic Mesh) Zero-Trust, donde la Inteligencia Artificial (LLMs) ha sido destituida de su autoridad ejecutiva. Aquí, la IA opera exclusivamente como una interfaz de traducción ("La Ciudadela de Cristal"), mientras que las decisiones están blindadas por leyes inmutables de la termodinámica, la topología algebraica y la teoría de control evaluadas en silicio. No procesamos archivos; simulamos la resistencia de su negocio ante la entropía.
 
 --------------------------------------------------------------------------------
-🛡️ 2. Arquitectura Concéntrica: Los Cuatro Estratos (Jerarquía DIKW)
+🛡️ 2. Arquitectura Concéntrica: Los Cuatro Estratos (Jerarquía DIKΩαW)
 El ecosistema no confía en validaciones de código condicional (if-else). Protege el proyecto a través de cuatro barreras matemáticas concéntricas fundamentadas en la Ley de Clausura Transitiva (VPHYSICS​⊂VTACTICS​⊂VSTRATEGY​⊂VWISDOM​).
 🌊 Estrato 3: El Foso Termodinámico (Física y Datos)
 Ningún dato entra a la fortaleza sin someterse a las leyes de la termodinámica y el electromagnetismo.
