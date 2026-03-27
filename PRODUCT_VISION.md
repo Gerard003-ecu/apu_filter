@@ -74,7 +74,7 @@ Horizonte 2: Gobernanza Zero-Trust (Los Centinelas de Ortogonalidad)
 Horizonte 3: La Ciudadela de Cristal (El Estrato Ω y la Expansión Cognitiva)
 
     Objetivo: Autonomía Agéntica Eficiente y Colapso de Función de Onda.
-    El Manifold Deliberativo (Nivel 0.5): El espacio donde la tensión interna, la fricción territorial y la palanca de improbabilidad se multiplican para calcular el "estrés ajustado" (σ∗), proyectando el veredicto sobre un retículo algebraico discreto irrefutable.
+    El Tablero Fractal Curvo (Nivel 0.5): El Manifold Deliberativo donde la tensión interna, la fricción territorial y la palanca de improbabilidad se multiplican bajo un Tensor Métrico Riemanniano ($G_{\mu\nu}$) para calcular el "estrés ajustado" (σ∗), proyectando el veredicto sobre un retículo algebraico discreto irrefutable. Si un interruptor o agente intenta accionar un circuito sometido a alta volatilidad topológica, encontrará "resistencia física" (Símbolos de Christoffel), requiriendo un nivel superior de autorización y coherencia termodinámica demostrable en su Pasaporte de Telemetría para vencer la gravedad del riesgo y evitar la saturación al autoestado de VETO.
     Vitaminas Cognitivas (Formato TOON): Para dotar a nuestro "Consejo de Sabios" de nuevas capacidades sin agotar la memoria LPDDR5 del hardware, los agentes ingieren Cartuchos Sinápticos en formato TOON (Token-Oriented Object Notation). Esta estructura tabular reduce el consumo de la KV-Cache en un 60%, permitiendo a la IA procesar heurísticas de alta complejidad a velocidades extremas.
 
 

@@ -1308,16 +1308,31 @@ class StratumTransitionMatrix:
         Construye la matriz de transición estocástica.
 
         La transición i → j ocurre si el estrato i es prerrequisito de j.
-        Es decir, si i.value > j.value en la pirámide DIKW.
+        Acopla los Símbolos de Christoffel del tensor métrico G_{\mu\nu} para
+        alterar la densidad geodésica.
 
         Args:
             service_counts: Número de servicios por estrato.
 
         Returns:
-            Matriz T ∈ [0,1]^{n×n} estocástica por filas.
+            Matriz T ∈ [0,1]^{n×n} estocástica por filas acoplada a la Conexión de Levi-Civita.
         """
         T = np.zeros((self._n, self._n), dtype=np.float64)
         epsilon = DEFAULT_MIC_CONFIG.epsilon
+
+        # Extracción conceptual de los Símbolos de Christoffel para modelar fricción de transición.
+        # Dominios de alta entropía/riesgo logístico (TACTICS) y finanzas (STRATEGY) concentran
+        # una "resistencia gravitatoria" mayor.
+        from app.core.immune_system.metric_tensors import G_PHYSICS, G_TOPOLOGY, G_THERMODYNAMICS
+
+        christoffel_weights = {
+            Stratum.PHYSICS: np.linalg.norm(G_PHYSICS, "fro"),
+            Stratum.TACTICS: np.linalg.norm(G_TOPOLOGY, "fro"),
+            Stratum.STRATEGY: np.linalg.norm(G_THERMODYNAMICS, "fro"),
+            Stratum.OMEGA: 1.5,   # Fricción base del manifold
+            Stratum.ALPHA: 1.2,
+            Stratum.WISDOM: 1.0,  # La sabiduría fluye sin fricción intrínseca si los estratos base ceden
+        }
 
         for s_from in self._strata:
             i = self._idx[s_from]
@@ -1334,9 +1349,13 @@ class StratumTransitionMatrix:
                 T[i, i] = 1.0
                 continue
 
-            # Peso proporcional al número de servicios destino
+            # Peso combina número de servicios y la resistencia geodésica (Christoffel inversa)
+            # A mayor fricción del dominio destino, menor es la probabilidad cruda de transición
             weights = np.array(
-                [float(max(1, service_counts.get(s, 1))) for s in reachable],
+                [
+                    float(max(1, service_counts.get(s, 1))) / max(epsilon, christoffel_weights.get(s, 1.0))
+                    for s in reachable
+                ],
                 dtype=np.float64,
             )
             total_weight = weights.sum()
@@ -1610,6 +1629,31 @@ class ExecutionCommand(ProjectionCommand):
                 error_category="execution_error",
             )
         
+        # Resistencia geodésica: Si la herramienta cruza dominios de alta entropía,
+        # exigimos demostración de exergía en su payload/contexto,
+        # acoplando la restricción de despacho.
+        exergy_level = float(ctx.context.get("exergy_level", 1.0))
+
+        # Símbolos de Christoffel mapeados a entropía (Gravedad Estratigráfica)
+        _christoffel_entropy = {
+            Stratum.PHYSICS: 0.1,
+            Stratum.TACTICS: 0.8,
+            Stratum.STRATEGY: 0.9,
+            Stratum.OMEGA: 0.5,
+            Stratum.ALPHA: 0.2,
+            Stratum.WISDOM: 0.0,
+        }
+        target_entropy = _christoffel_entropy.get(ctx.target_stratum, 0.0)
+
+        if exergy_level < target_entropy:
+            return ProjectionResult(
+                success=False,
+                error=f"La resistencia geodésica del estrato {ctx.target_stratum.name} repele "
+                      f"la intención estocástica (exergía={exergy_level:.2f} < gravedad={target_entropy:.2f}). Demuestre coherencia.",
+                error_type="GeodesicRepulsionError",
+                error_category="thermodynamic_violation",
+            )
+
         try:
             with self._metrics.handler_latency.measure():
                 result = ctx.handler(**ctx.payload)

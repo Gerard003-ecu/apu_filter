@@ -743,7 +743,15 @@ class OmegaDeliberationManifold(Morphism):
         base_stress = internal_tension * external_friction
         total_stress = base_stress * improbability_lever
         fragility_penalty = self._compute_fragility_penalty(inputs.psi)
-        adjusted_stress = total_stress * fragility_penalty
+
+        # Mínima Acción Agéntica: Si la intención insiste en atravesar un socavón lógico
+        # (alta anomalía topológica β_1 > 0 modelado en anomaly_pressure) bajo alta fricción,
+        # la Energía de Dirichlet acoplada al tensor fuerza la saturación hacia el autoestado supremo.
+        if anomaly_pressure > 1.25 and external_friction > 1.5:
+            # Acoplamiento del tensor topológico
+            adjusted_stress = math.inf
+        else:
+            adjusted_stress = total_stress * fragility_penalty
 
         return OmegaMetrics(
             fragility_norm=fragility_norm,

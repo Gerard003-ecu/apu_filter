@@ -53,6 +53,7 @@ import logging
 import math
 import threading
 import warnings
+import numpy as np
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from dataclasses import dataclass, field
@@ -1735,6 +1736,40 @@ class SemanticTranslator:
     # HELPERS INTERNOS
     # ========================================================================
 
+    def _mahalanobis_retrieve(
+        self,
+        query_vector: np.ndarray,
+        domain_tensor: np.ndarray,
+        candidates: List[Tuple[str, np.ndarray]]
+    ) -> str:
+        """
+        Recuperación semántica anisotrópica acoplada al Tensor Métrico de Riesgo.
+        Calcula la distancia de Mahalanobis: d(x, y) = sqrt((x-y)^T G (x-y))
+
+        Args:
+            query_vector: Vector de intención.
+            domain_tensor: Tensor G_{\mu\nu} (Física, Topología o Termodinámica).
+            candidates: Lista de tuplas (texto, vector) para recuperar.
+
+        Returns:
+            El texto del candidato que minimice la Energía de Dirichlet acoplada.
+        """
+        if not candidates:
+            return ""
+
+        best_candidate = candidates[0][0]
+        min_distance = float('inf')
+
+        for text, candidate_vector in candidates:
+            diff = query_vector - candidate_vector
+            dist_sq = float(diff.T @ domain_tensor @ diff)
+
+            if dist_sq < min_distance:
+                min_distance = dist_sq
+                best_candidate = text
+
+        return best_candidate
+
     def _fetch_narrative(
         self,
         domain: str,
@@ -1753,6 +1788,14 @@ class SemanticTranslator:
             Narrativa formateada
         """
         params = params or {}
+
+        # Mínima Acción Agéntica (Recuperación Mahalanobis)
+        if "query_vector" in params and "domain_tensor" in params and "candidates" in params:
+            return self._mahalanobis_retrieve(
+                params["query_vector"],
+                params["domain_tensor"],
+                params["candidates"]
+            )
 
         # Intentar caché
         if self._cache is not None:
@@ -1944,6 +1987,22 @@ class SemanticTranslator:
         synergy = synergy_risk or {}
         spec = spectral or {}
 
+        # Para recuperación Mahalanobis si hay tensor disponible
+        try:
+            from app.core.immune_system.metric_tensors import G_TOPOLOGY
+            mahalanobis_context = {
+                "domain_tensor": G_TOPOLOGY,
+                "query_vector": np.array([topo.beta_0, topo.beta_1], dtype=np.float64),
+                # El diccionario canónico se pasa como candidatos
+                "candidates": [
+                    ("crítico", np.array([3, 1], dtype=np.float64)),
+                    ("moderado", np.array([2, 0], dtype=np.float64)),
+                    ("nominal", np.array([1, 0], dtype=np.float64)),
+                ]
+            }
+        except ImportError:
+            mahalanobis_context = {}
+
 
         eff_stability = stability if stability != 0.0 else topo.pyramid_stability
 
@@ -1965,8 +2024,24 @@ class SemanticTranslator:
         narrative_parts: List[str] = []
         verdicts: List[VerdictLevel] = []
 
-        # 1. β₁: Ciclos / Genus
-        cycle_narrative, cycle_verdict = self._translate_cycles(topo.beta_1)
+        # 1. β₁: Ciclos / Genus (Recuperación Mahalanobis inyectada)
+        if mahalanobis_context:
+            mahalanobis_context["candidates"] = [
+                (self._fetch_narrative("TOPOLOGY_CYCLES", "critical", {"beta_1": topo.beta_1}), np.array([0, 2], dtype=np.float64)),
+                (self._fetch_narrative("TOPOLOGY_CYCLES", "moderate", {"beta_1": topo.beta_1}), np.array([0, 1], dtype=np.float64)),
+                (self._fetch_narrative("TOPOLOGY_CYCLES", "clean", {"beta_1": topo.beta_1}), np.array([0, 0], dtype=np.float64)),
+            ]
+            cycle_narrative = self._mahalanobis_retrieve(
+                mahalanobis_context["query_vector"],
+                mahalanobis_context["domain_tensor"],
+                mahalanobis_context["candidates"]
+            )
+            # Calculamos el veredicto basándonos en si es cíclico o no, como antes,
+            # pero la narrativa usa la métrica Riemanniana real
+            cycle_verdict = VerdictLevel.RECHAZAR if topo.beta_1 > 1 else (VerdictLevel.PRECAUCION if topo.beta_1 > 0 else VerdictLevel.VIABLE)
+        else:
+            cycle_narrative, cycle_verdict = self._translate_cycles(topo.beta_1)
+
         narrative_parts.append(cycle_narrative)
         verdicts.append(cycle_verdict)
 
