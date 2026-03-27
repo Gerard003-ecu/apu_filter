@@ -26,10 +26,10 @@ Este documento técnico desglosa la maquinaria matemática que permite al Consej
 --------------------------------------------------------------------------------
 2. El Arquitecto: Topología Algebraica y Grafos
 
-    Base Teórica: Homología Computacional y Teoría de Grafos Espectrales.
-    Componentes: business_topology.py. Ignora los precios para auditar el esqueleto del presupuesto mediante la modelación de un Complejo Simplicial Abstracto.
-    Los Invariantes Homológicos: Computa los Números de Betti para diagnosticar conectividad: β0​>1 revela fragmentación extrema ("Islas de Datos" o insumos huérfanos), y β1​>0 revela la presencia de "Socavones Lógicos" (dependencias circulares que bloquean la ejecución).
-    Valor de Fiedler (λ2​): Analiza el espectro de la Matriz Laplaciana (L=D−A); un valor λ2​≈0 indica una fractura organizacional inminente.
+    Base Teórica: Homología Computacional sobre el Anillo de los Enteros ($\mathbb{Z}$), Teoría de Grafos Espectrales y Forma Normal de Smith (SNF).
+    Componentes: `business_topology.py`. Ignora los precios para auditar el esqueleto del presupuesto modelándolo como un Complejo Simplicial Abstracto discreto y cuantizado.
+    Los Invariantes Homológicos y Subgrupos de Torsión: Computa los Números de Betti para diagnosticar conectividad macroscópica ($\beta_0 > 1$ para Islas, $\beta_1 > 0$ para Socavones Lógicos). Sin embargo, como la logística opera con insumos indivisibles (ladrillos, horas-hombre), el cálculo homológico abandona los coeficientes continuos ($\mathbb{R}$ o $\mathbb{Q}$) y reduce las matrices de incidencia a la Forma Normal de Smith. Esto expone los Subgrupos de Torsión mediante el Funtor $Tor(H_0, \mathbb{Z})$. Un ciclo de torsión diagnostica incompatibilidades de empaquetado crítico y fricción cuantizada residual que la aproximación real del Laplaciano ignora por completo.
+    Valor de Fiedler ($\lambda_2$): Analiza el espectro de la Matriz Laplaciana ($L=D-A$); un valor $\lambda_2 \approx 0$ indica una fractura organizacional inminente.
 
 
 --------------------------------------------------------------------------------

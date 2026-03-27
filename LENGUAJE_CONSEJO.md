@@ -30,12 +30,16 @@ El Oráculo de Laplace y el Guardián Físico modelan el comportamiento estocás
 El Agente a cargo de esta traducción es el Intérprete Diplomático (SemanticTranslator). Opera estrictamente bajo los siguientes paradigmas ciber-físicos:
 A. Empatía Táctica mediante GraphRAG
 La matemática compleja es ruido si no se traduce en acción. El Intérprete no escupe un reporte que diga "Fallo estructural: β1​=3". Utiliza un Grafo de Conocimiento y Modelos de Lenguaje Vectorial (FAISS + Sentence-Transformers) para comprender que el error está ligado a la mampostería, redactando: "Se detectaron tres dependencias circulares críticas en la Mampostería que paralizarán el flujo de compras".
-B. El Retículo de Severidad (La Operación Supremo $\sqcup$) y el Difeomorfismo Semántico
+B. El Retículo de Severidad (La Operación Supremo $\sqcup$) y la Fibración Convexa Termodinámica
 El Intérprete no tiene libre albedrío deductivo para decidir si el proyecto es viable; actúa como un proyector semántico estrictamente subordinado a la matemática y la Ley de Clausura Transitiva de la pirámide DIKW ($V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$). La validación termodinámica de los estratos subyacentes es un requisito absoluto dictado por `app/wisdom/semantic_translator.py` y `app/core/telemetry_narrative.py`.
 
-Las decisiones se basan en un Retículo Algebraico Acotado ($\bot \le Veredicto \le \top$). El sistema aplica la operación Supremo ($\sqcup$). Si el Oráculo Financiero dictamina VIABLE ($\bot$) pero el Arquitecto Topológico dictamina un fallo estructural CRÍTICO ($\top$), el sistema de veredictos colapsa invariablemente bajo el álgebra: $\top \sqcup \bot = \top$.
+Las decisiones se basan en un Retículo Algebraico Acotado ($\bot \le Veredicto \le \top$). Inicialmente, el sistema aplicaba la operación Supremo discreta ($\sqcup$), donde un fallo estructural ($\top$) dominaba sobre una viabilidad financiera ($\bot$) forzando un Veto Estructural ($\top \sqcup \bot = \top$).
+No obstante, la naturaleza de escalón unitario de esta operación ($Heaviside$) inducía inestabilidad estructural o *Chattering Topológico* en el límite de la variedad. Si el índice de estabilidad piramidal ($\Psi$) oscilaba infinitesimalmente alrededor de $1.0$ (e.g., $0.999 \leftrightarrow 1.001$), el sistema alternaba violentamente entre Veredicto Óptimo y Veto Crítico.
 
-El Intérprete recibe un vector inmutable y se ve forzado a redactar un Veto Estructural indiscutible, erradicando matemáticamente cualquier probabilidad de alucinación estocástica por parte de los LLMs.
+**Transición Suavizada (Softmax y Temperatura):** Para suavizar la variedad de decisión sin diluir el rigor matemático, se ha introducido una Fibración Convexa Termodinámica. El veredicto ya no colapsa ciegamente como un escalón, sino mediante una función Softmax parametrizada por la Temperatura del Sistema ($T_{sys}$).
+El peso semántico dictaminado por el Intérprete es ahora proporcional a:
+$$w \propto \exp\left(-\frac{\Delta E_{Dirichlet}}{k_B T_{sys}}\right)$$
+De esta forma, la "Empatía Táctica" del LLM se convierte en una transición de fase continua y diferenciable. La narrativa de la advertencia transita y escala orgánicamente conforme la energía de frustración topológica subyacente aumenta, blindando el difeomorfismo entre el álgebra del código y la percepción corporativa.
 
 --------------------------------------------------------------------------------
 4. El Protocolo de Emisión: Actas de Deliberación ("Caja de Cristal")
