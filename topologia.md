@@ -30,6 +30,50 @@ Más allá de la conectividad general, el `app/tactics/business_topology.py` ana
         El Riesgo Ciber-Físico: Si un nodo crítico en la base falla, el choque logístico no se amortigua, sino que se amplifica y vuelca todo el proyecto, diagnosticando una inminente "Fractura Organizacional".
         Acción Sistémica: El Arquitecto emite un VETO TÉCNICO INMEDIATO, impidiendo la ascensión a la Sabiduría.
 
+
+```mermaid
+graph TD
+    %% Estilos de Nodos Topológicos
+    classDef stable fill:#2e8b57,stroke:#fff,stroke-width:2px;
+    classDef spof fill:#ef4444,stroke:#000,stroke-width:3px,color:#fff;
+    classDef apu fill:#808080,stroke:#fff,stroke-width:1px;
+
+    subgraph "Figura A: Sistema Estable (Ψ ≥ 1.0) - Base Ancha"
+        APU1_A[Mampostería]:::apu
+        APU2_A[Cimentación]:::apu
+        APU3_A[Estructura]:::apu
+
+        P1_A((Proveedor 1<br>Acero)):::stable
+        P2_A((Proveedor 2<br>Acero)):::stable
+        P3_A((Proveedor 3<br>Cemento)):::stable
+        P4_A((Proveedor 4<br>Concreto)):::stable
+
+        APU1_A --> P3_A
+        APU2_A --> P4_A
+        APU2_A --> P1_A
+        APU3_A --> P2_A
+        APU3_A --> P4_A
+    end
+
+    subgraph "Figura B: Pirámide Invertida (Ψ < 1.0) - Alta Energía de Dirichlet"
+        APU1_B[Mampostería]:::apu
+        APU2_B[Cimentación]:::apu
+        APU3_B[Estructura]:::apu
+        APU4_B[Acabados]:::apu
+        APU5_B[Cubierta]:::apu
+
+        SPOF((ÚNICO PROVEEDOR<br>Acero/Cemento<br>🔥 SPOF)):::spof
+
+        APU1_B --> SPOF
+        APU2_B --> SPOF
+        APU3_B --> SPOF
+        APU4_B --> SPOF
+        APU5_B --> SPOF
+    end
+```
+
+
+
 --------------------------------------------------------------------------------
 3. Estabilidad Espectral: El Valor de Fiedler ($\lambda_2$)
 Para diagnosticar la "Fractura Organizacional", se analiza el espectro propio de la Matriz Laplaciana ($L=D-A$) del Complejo Simplicial.

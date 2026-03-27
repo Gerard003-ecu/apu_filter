@@ -5,6 +5,42 @@
 En el ecosistema APU_filter v4.0, hemos abandonado la validación lineal convencional y los "chatbots" de caja negra. En su lugar, el sistema está orquestado por una Malla Agéntica (Agentic Mesh) Zero-Trust compuesta por entidades altamente especializadas conocidas como "El Consejo de Sabios".
 Cada Sabio gobierna un estrato específico de la Pirámide DIKW (Datos, Información, Conocimiento, Sabiduría). Operan bajo el estricto protocolo de "Caja de Cristal Argumentativa": el debate interno y las tensiones dialécticas entre ellos son matemáticamente rigurosos y deterministas, garantizando que el Modelo de Lenguaje (LLM) sea destituido de su poder de decisión y relegado a actuar como una interfaz diplomática.
 
+
+```mermaid
+graph TD
+    classDef orchestrator fill:#0f3460,stroke:#e94560,stroke-width:3px,color:#fff;
+    classDef delegates fill:#1a1a2e,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef workers fill:#16213e,stroke:#4a4e69,stroke-width:1px,color:#fff;
+    classDef error_node fill:#ef4444,stroke:#000,stroke-width:3px,color:#fff;
+
+    %% Vértice: Orquestador (Manager)
+    O[Business Agent Orquestador<br>Política de Alto Nivel]:::orchestrator
+
+    %% Estrato Medio: Sabios (Delegates)
+    D1[Topological Watcher<br>Matriz Ortogonal Topológica]:::delegates
+    D2[Laplace Oracle<br>Matriz Ortogonal Financiera]:::delegates
+
+    %% Base: Trabajadores (Workers)
+    W1[Worker 1<br>Policy-as-Code (APUs)]:::workers
+    W2[Worker 2<br>Policy-as-Code (Insumos)]:::error_node
+    W3[Worker 3<br>Policy-as-Code (Cantidades)]:::workers
+
+    %% Propagación Descendente
+    O --> D1
+    O --> D2
+    D1 --> W1
+    D1 --> W2
+    D2 --> W3
+
+    %% Propagación de Cumplimiento (Mónadas de Error)
+    W2 -. "Ciclo Mutante (β1>0)" .-> D1
+    style D1 stroke:#ef4444,stroke-width:4px
+    D1 -. "Veto Estructural Topológico" .-> O
+    style O fill:#ef4444,stroke:#fff,stroke-width:4px
+```
+
+
+
 --------------------------------------------------------------------------------
 🏛️ LOS MIEMBROS DEL CONSEJO
 0. 👁️ El Vigilante de la Frontera (HilbertWatcher & QuantumAdmissionGate)

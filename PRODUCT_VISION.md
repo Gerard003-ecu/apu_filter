@@ -3,7 +3,54 @@
 "En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica de la construcción en un activo de gobernanza gobernable, inmutable y auditable."
 1. La Tesis Central: De la Estática a la Fortaleza Matemática
 Históricamente, la ingeniería y construcción han gestionado el tiempo (cronogramas) y el dinero (presupuestos) basándose en "fotos estáticas" como hojas de cálculo de Excel o bases de datos ERP tradicionales. En la realidad, un proyecto de infraestructura es un sistema dinámico complejo sujeto a fuerzas termodinámicas de mercado, entropía logística y fricción operativa.
-APU_filter v4.0 rechaza el paradigma de validación lineal. No somos una herramienta de auditoría de precios; nos erigimos como una Fortaleza Matemática Zero-Trust y una Arquitectura Mesh Ciber-Física. Implementamos la Matriz de Interacción Central (MIC) alojada en `app/adapters/tools_interface.py` como una Matriz Identidad ortogonal ($I_n$) que rige la independencia lineal de los agentes, asegurando un teorema de Rango-Nulidad estricto para prevenir dependencias cruzadas (Zero Side-Effects).
+APU_filter v4.0 rechaza el paradigma de validación lineal. No somos una herramienta de auditoría de precios; nos erigimos como una Fortaleza Matemática Zero-Trust y una Arquitectura Mesh Ciber-Física.
+
+
+```mermaid
+graph TD
+    %% Estilos de Capas
+    classDef void fill:#1a1a2e,stroke:#e94560,stroke-width:2px,color:#fff;
+    classDef physics fill:#16213e,stroke:#0f3460,stroke-width:2px,color:#fff;
+    classDef tactics fill:#0f3460,stroke:#e94560,stroke-width:2px,color:#fff;
+    classDef strategy fill:#e94560,stroke:#1a1a2e,stroke-width:2px,color:#fff;
+    classDef wisdom fill:#fff,stroke:#1a1a2e,stroke-width:3px,color:#000;
+
+    %% Nodos Principales
+    subgraph "Estrato Ω: WISDOM (La Ciudadela de Cristal)"
+        W[Semantic Translator<br>Retículo de Decisión (VIABLE / RECHAZO)]:::wisdom
+    end
+
+    subgraph "Estrato 1: STRATEGY (El Escudo Electrodinámico)"
+        S[Laplace Oracle<br>Plano s=σ+jω | Estabilidad BIBO]:::strategy
+    end
+
+    subgraph "Estrato 2: TACTICS (El Esqueleto Topológico)"
+        T[Business Topological Analyzer<br>Grafo Simplicial | βn | Ψ]:::tactics
+    end
+
+    subgraph "Estrato 3: PHYSICS (El Foso Termodinámico)"
+        P[FluxCondenser<br>Circuitos RLC | Pdiss ≥ 0]:::physics
+    end
+
+    subgraph "Estrato ℵ0: ALEPH (La Variedad de Frontera)"
+        A[Hilbert Watcher & Quantum Gate<br>Filtro de Entropía H | Efecto Túnel WKB]:::void
+    end
+
+    %% Relaciones Causales (Flujo de Colapso de Estado)
+    A -- "Exergía Validada (T>0)" --> P
+    P -- "Flujo Laminar (Energía Conservada)" --> T
+    T -- "Grafo Acíclico Conexo (β1=0, β0=1)" --> S
+    S -- "Estabilidad Asintótica (σ<0)" --> W
+
+    %% Relación de Fractura (Flechas rotas)
+    A -. "Colapso Estocástico (Ruido)" .-> Reject1[Desintegración en el Hiperespacio]
+    P -. "Disipación Negativa" .-> Reject2[Crowbar Físico]
+    T -. "Socavón Lógico (β1>0)" .-> Reject3[Veto Topológico]
+    S -. "Resonancia Paramétrica (σ>0)" .-> Reject4[Veto Espectral]
+```
+
+
+ Implementamos la Matriz de Interacción Central (MIC) alojada en `app/adapters/tools_interface.py` como una Matriz Identidad ortogonal ($I_n$) que rige la independencia lineal de los agentes, asegurando un teorema de Rango-Nulidad estricto para prevenir dependencias cruzadas (Zero Side-Effects).
 
 En este ecosistema, la Inteligencia Artificial (LLMs) ha sido despojada de su libre albedrío decisional. Hemos subordinado la probabilidad estadística de las redes neuronales a un tribunal implacable de leyes físicas, topología algebraica y teoría de control. Todo este diseño obedece al cimiento axiomático de la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$.
 
