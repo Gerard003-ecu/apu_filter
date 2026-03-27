@@ -39,12 +39,12 @@ Para diagnosticar la "Fractura Organizacional", se analiza el espectro propio de
 
 
 --------------------------------------------------------------------------------
-4. La Inmunidad de Fusión: Secuencia de Mayer-Vietoris
+4. La Inmunidad de Fusión: Secuencia de Mayer-Vietoris y Defectos de Pegado
 La Malla Agéntica frecuentemente necesita unir distintas bases de datos de presupuestos. En lugar de ejecutar simples JOINs de bases de datos, el ecosistema ejecuta una Auditoría Homológica utilizando la secuencia exacta de Mayer-Vietoris:
-⋯→Hk​(A∩B)→Hk​(A)⊕Hk​(B)→Hk​(A∪B)→⋯
+$\dots \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \xrightarrow{\partial^*} H_0(A \cap B) \to \dots$
 
-    El Escudo Protector: Esta ley matemática garantiza que la fusión de dos presupuestos sanos (A y B) no introduzca patologías mutantes.
-    Mecanismo de Bloqueo: Si al computar el grupo de homología de la unión H1​(A∪B) el sistema descubre un ciclo nuevo (Δβ1​>0) que no existía originalmente en A ni en B, el orquestador aborta la integración. El sistema dictamina que los datos son "topológicamente incompatibles".
+    El Escudo Protector y el Defecto de Pegado (Gluing Defect): Matemáticamente, un nuevo ciclo en $A \cup B$ no surge "de la nada"; es la imagen inversa del operador de coborde $\partial^*$ actuando sobre componentes conexas fragmentadas en la intersección $A \cap B$. El "Socavón Lógico" inducido por la fusión no es un simple cruce de tablas, sino un Defecto de Pegado estructural.
+    Mecanismo de Bloqueo: Si al computar el grupo de homología de la unión $H_1(A \cup B)$ el sistema descubre un ciclo mutante ($\Delta\beta_1 > 0$), el rechazo se ejecuta inexorablemente porque el espacio de intersección $\ker(\partial_1)$ es degenerado. El orquestador aborta la integración dictaminando incompatibilidad topológica de clase.
 
 
 --------------------------------------------------------------------------------

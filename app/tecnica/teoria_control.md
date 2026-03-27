@@ -47,12 +47,14 @@ Adaptación de Parámetros: El EKF ajusta continuamente sus parámetros estructu
 
 --------------------------------------------------------------------------------
 5. Análisis de Estabilidad en Tiempo Real
-El ecosistema no asume que la red es estable; lo demuestra matemáticamente en cada ciclo de ingestión mediante dos enfoques de frontera.
+El ecosistema no asume que la red es estable; lo demuestra matemáticamente en cada ciclo de ingestión mediante tres enfoques de frontera.
 5.1 Criterio de Jury (Validación Estática)
-Antes de iniciar operaciones, el Oráculo de Laplace valida que los parámetros sintonizados del controlador (Kp​, Ki​) no introduzcan resonancia. Evalúa el polinomio característico en el dominio discreto (z), exigiendo que todas las raíces residan estrictamente dentro del círculo unitario (∣z∣<1).
-Adicionalmente, se modela la dinámica en el plano complejo continuo (s=σ+jω). Si cualquier polo migra al Semiplano Derecho (σ>0), el sistema dictamina Divergencia Matemática y veta la operación por ser intrínsecamente explosiva.
-5.2 Exponente de Lyapunov (Validación Dinámica)
-Durante la ejecución continua, el FluxCondenser estima en tiempo real el Exponente de Lyapunov máximo (λ) de la serie temporal del error. La evolución del error se aproxima mediante: ∣e(k)∣≈∣e(0)∣⋅eλk
+Antes de iniciar operaciones, el Oráculo de Laplace valida que los parámetros sintonizados del controlador ($K_p$, $K_i$) no introduzcan resonancia. Evalúa el polinomio característico en el dominio discreto ($z$), exigiendo que todas las raíces residan estrictamente dentro del círculo unitario ($|z|<1$).
+Adicionalmente, se modela la dinámica en el plano complejo continuo ($s = \sigma + j\omega$). Si cualquier polo migra al Semiplano Derecho ($\sigma > 0$), el sistema dictamina Divergencia Matemática y veta la operación por ser intrínsecamente explosiva.
+5.2 Teoría de Floquet y Resonancia Paramétrica
+Evaluar el proyecto únicamente en el plano de frecuencia compleja asume perturbaciones estacionarias, pero la construcción civil posee una estacionalidad innegable. El Oráculo de Laplace no solo busca polos $\sigma > 0$, sino que además computa la Matriz de Monodromía del flujo de caja sobre órbitas periódicas utilizando la Teoría de Floquet. Si los multiplicadores de Floquet exceden la circunferencia unitaria en el plano complejo, el proyecto exhibe resonancia paramétrica destructiva (e.g., el costo de la deuda oscilando en fase con el retraso de la obra), forzando un veto estructural inmediato.
+5.3 Exponente de Lyapunov (Validación Dinámica)
+Durante la ejecución continua, el FluxCondenser estima en tiempo real el Exponente de Lyapunov máximo ($\lambda$) de la serie temporal del error. La evolución del error se aproxima mediante: $|e(k)| \approx |e(0)| \cdot e^{\lambda k}$
 
-    Convergencia (λ<0): El lazo de control es asintóticamente estable; las perturbaciones decaen exponencialmente y el sistema absorbe la entropía.
-    Caos Determinista (λ>0): Las trayectorias del error están divergiendo. El Guardián físico identifica instantáneamente esta firma matemática como una "Falla de Control" y acciona el circuito Crowbar (Freno de Emergencia físico en el ESP32) abortando la ingesta de datos antes de que se materialice un error de desbordamiento de memoria (OOM)
+    Convergencia ($\lambda < 0$): El lazo de control es asintóticamente estable; las perturbaciones decaen exponencialmente y el sistema absorbe la entropía.
+    Caos Determinista ($\lambda > 0$): Las trayectorias del error divergen. El Guardián físico identifica instantáneamente esta firma matemática como una "Falla de Control" y acciona el circuito Crowbar (Freno de Emergencia físico en el ESP32) abortando la ingesta de datos, estabilizando termodinámicamente el límite impenetrable.

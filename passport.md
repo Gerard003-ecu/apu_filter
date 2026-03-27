@@ -59,6 +59,11 @@ El siguiente es el documento consolidado final que genera la Malla Agéntica y q
   "passport_id": "req_8f15c0a2-bcee-4b12",
   "timestamp_entry": "2026-03-13T10:00:00Z",
   "data_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "cyber_physical_momentum": {
+    "tensor": "p = sqrt(2 * m_eff * K_max)",
+    "description": "Condición de valor inicial ineludible (t_0) inyectada por la Compuerta Cuántica (quantum_admission_gate).",
+    "forensic_audit": "Este subespacio métrico ortogonal permite al auditor recalcular retrospectivamente la matriz Laplaciana ante disputas legales."
+  },
   "physics_stamp": {
     "agent": "FluxCondenser",
     "metrics": {
