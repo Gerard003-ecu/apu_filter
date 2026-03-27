@@ -90,6 +90,7 @@ Para hacer viable esta física de negocios, APU_filter requiere una infraestruct
 4. El Compromiso de la "Caja de Cristal"
 A medida que elevamos la sofisticación matemática (Homología, Termodinámica, Retículos), nuestra obligación con la transparencia es radical.
 
+    La Variedad de Observabilidad (Lente de Homotopía Jerárquica): Nuestra plataforma no agrupa datos en carpetas. Aplica un 'Retracto de Deformación de Resolución'. Cuando usted observa el presupuesto a nivel global, el sistema ha colapsado matemáticamente millones de datos en un solo grafo compacto, conservando inquebrantablemente la 'temperatura' del riesgo. Al hacer zoom in, el sistema revierte esta deformación, desplegando la anatomía interna de los costos sin pérdida de isomorfismo. El riesgo que brilla en el nivel macro es la proyección termodinámica exacta de las anomalías micro-estructurales.
     Destitución Ejecutiva del LLM: La IA no decide la viabilidad del negocio; actúa puramente como el Intérprete Diplomático. Su labor se restringe a tomar el vector de fallo inmutable (ej. β1​=3) y traducirlo a "Empatía Táctica" (narrativa comprensible) para el Gerente de Obra.
     Actas de Deliberación: No emitimos "Resultados". Emitimos la transcripción forense de la tensión dialéctica entre el Arquitecto (que cuida la resiliencia) y el Oráculo (que busca la rentabilidad), aplicando la operación Supremo (⊔) para asegurar que siempre prime la seguridad de la topología sobre la avaricia financiera.
 
