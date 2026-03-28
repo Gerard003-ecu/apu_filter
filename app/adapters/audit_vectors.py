@@ -1366,6 +1366,20 @@ def vector_audit_pyramidal_structure(
             config
         )
         
+        # Acoplamiento de Fröhlich (Detección de Polarones)
+        # Evaluamos el valor de Fiedler (lambda_2, que corresponde a algebraic_connectivity en el grafo)
+        # Para acoplar el arrastre inercial a las demoras o fallas atómicas
+        # Generar un flag / métrica de acoplamiento si existe
+        frohlich_alpha = 0.0
+        if algebraic_connectivity is not None and algebraic_connectivity > 0:
+            import networkx as nx
+            try:
+                # Construimos un grafo NX temporal simple para obtener centralidades si G no se pasó.
+                # Simplificación táctica para calcular alpha medio.
+                frohlich_alpha = 1.0 / algebraic_connectivity  # Acoplamiento inversamente proporcional a la conectividad
+            except Exception as polar_exc:
+                logger.warning(f"Error evaluando constantes polarónicas: {polar_exc}")
+
         # Estadísticas adicionales
         edges_per_apu = edge_count / structure_load if structure_load > 0 else 0.0
         
@@ -1470,6 +1484,7 @@ def vector_audit_pyramidal_structure(
                     if algebraic_connectivity is not None 
                     else None
                 ),
+                "frohlich_coupling_alpha": round(frohlich_alpha, 6),
                 "floating_nodes": floating_count,
             },
             

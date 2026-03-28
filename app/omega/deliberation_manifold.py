@@ -744,6 +744,14 @@ class OmegaDeliberationManifold(Morphism):
         total_stress = base_stress * improbability_lever
         fragility_penalty = self._compute_fragility_penalty(inputs.psi)
 
+        # Magnetización TOON (Silo B): Acoplamiento Mínimo de Gauge
+        # Si el estrato cuenta con Cartuchos TOON cargados, la atención p_mu sufre
+        # deflexión determinista: p_mu -> p_mu - q_h A_mu, forzando un alineamiento
+        # ortogonal con la física del proyecto (alineación de estrés) y restando
+        # grados de libertad al libre albedrío del LLM.
+        cartridges_loaded = self.synaptic_registry.cartridge_count
+        gauge_deflection = 1.0 + 0.05 * cartridges_loaded  # Cada cartucho introduce fricción determinista
+
         # Mínima Acción Agéntica: Si la intención insiste en atravesar un socavón lógico
         # (alta anomalía topológica β_1 > 0 modelado en anomaly_pressure) bajo alta fricción,
         # la Energía de Dirichlet acoplada al tensor fuerza la saturación hacia el autoestado supremo.
@@ -751,7 +759,7 @@ class OmegaDeliberationManifold(Morphism):
             # Acoplamiento del tensor topológico
             adjusted_stress = math.inf
         else:
-            adjusted_stress = total_stress * fragility_penalty
+            adjusted_stress = total_stress * fragility_penalty * gauge_deflection
 
         return OmegaMetrics(
             fragility_norm=fragility_norm,
