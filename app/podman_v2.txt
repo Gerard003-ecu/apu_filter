@@ -1,0 +1,102 @@
+[2026-03-28 14:39:50] [INFO   ] PID:38454  ══════════════════════════════════════════════════════════
+[2026-03-28 14:39:50] [INFO   ] PID:38454    Iniciando Despliegue Seguro de APU Filter Ecosystem
+[2026-03-28 14:39:50] [INFO   ] PID:38454    Versión: 3.0.0 | PID: 38454
+[2026-03-28 14:39:50] [INFO   ] PID:38454  ══════════════════════════════════════════════════════════
+[2026-03-28 14:39:50] [INFO   ] PID:38454  Log file: /home/gerardo/Documentos/GitHub/apu_filter/logs/podman_start_20260328_143950.log
+[2026-03-28 14:39:50] [INFO   ] PID:38454  Project root: /home/gerardo/Documentos/GitHub/apu_filter
+[2026-03-28 14:39:50] [SUCCESS] PID:38454  Todas las dependencias verificadas correctamente.
+[2026-03-28 14:39:50] [INFO   ] PID:38454  Configurando directorios con permisos seguros...
+[2026-03-28 14:39:50] [SUCCESS] PID:38454  Directorios configurados con permisos seguros (750).
+[2026-03-28 14:39:50] [INFO   ] PID:38454  Verificando configuración de registros de Podman...
+[2026-03-28 14:39:50] [INFO   ] PID:38454  Ejecutando configuración de registros...
+Configuración de registros de Podman aplicada correctamente.
+[2026-03-28 14:39:50] [SUCCESS] PID:38454  Configuración de registros aplicada correctamente.
+[2026-03-28 14:39:50] [INFO   ] PID:38454  Limpiando contenedores y redes de despliegues previos...
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+** excluding:  set()
+podman stop -t 30 apu_agent
+Error: no container with name or ID "apu_agent" found: no such container
+exit code: 125
+podman stop -t 45 apu_core
+Error: no container with name or ID "apu_core" found: no such container
+exit code: 125
+podman stop -t 15 apu_redis
+Error: no container with name or ID "apu_redis" found: no such container
+exit code: 125
+podman rm apu_agent
+Error: no container with ID or name "apu_agent" found: no such container
+exit code: 1
+podman rm apu_core
+Error: no container with ID or name "apu_core" found: no such container
+exit code: 1
+podman rm apu_redis
+Error: no container with ID or name "apu_redis" found: no such container
+exit code: 1
+['podman', 'ps', '--filter', 'label=io.podman.compose.project=apu', '-a', '--format', '{{ .Names }}']
+keep set()
+['podman', 'volume', 'ls', '--noheading', '--filter', 'label=io.podman.compose.project=apu', '--format', '{{.Name}}']
+[2026-03-28 14:39:50] [INFO   ] PID:38454  Iniciando construcción de 2 imagen(es)...
+[2026-03-28 14:39:50] [INFO   ] PID:38454  Construyendo imagen: apu-core:latest (Dockerfile: /home/gerardo/Documentos/GitHub/apu_filter/infrastructure/Dockerfile.core)
+STEP 1/29: FROM public.ecr.aws/docker/library/python:3.10-slim
+STEP 2/29: LABEL maintainer="equipo-desarrollo"       version="7.0"       description="Core API - Flask con PyTorch CPU"
+--> Using cache e633ff7c997820786125c2fdf97cd3c70627e9a0205ad2260cb58740f733f0f8
+--> e633ff7c9978
+STEP 3/29: ARG TORCH_VERSION=2.5.1
+--> Using cache 393034caf069ad1933b3715603275d925b13ef8c86c1c7e801c81a23e916d299
+--> 393034caf069
+STEP 4/29: ARG TORCHVISION_VERSION=0.20.1
+--> Using cache 7022366dc0904b20b48f9eda2a757c0b461d7d27bdde8706ff9e04727224207c
+--> 7022366dc090
+STEP 5/29: ARG TORCHAUDIO_VERSION=2.5.1
+--> Using cache 5006f5b0ab4ef90d09d4fd141b97377775c0c0614772b1346b9e0345f391e7f8
+--> 5006f5b0ab4e
+STEP 6/29: ARG SYMPY_VERSION=1.13.1
+--> Using cache 17d2d3f92e2366625e6537eee8f5f2f455166404696b32220e75c5f04772d43d
+--> 17d2d3f92e23
+STEP 7/29: ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     PYTHONPATH=/app     PIP_NO_CACHE_DIR=1     PIP_DISABLE_PIP_VERSION_CHECK=1     PIP_ROOT_USER_ACTION=ignore     FLASK_APP=app.app
+--> Using cache 1061c89a5349abb72f62504dfdb9e1108c35de01c2272b1ea5e84b98a07761bd
+--> 1061c89a5349
+STEP 8/29: WORKDIR /app
+--> Using cache e5697b618106551bfc05239afb8a10c7b3f76240d609345123ef86029fb3b6a4
+--> e5697b618106
+STEP 9/29: RUN apt-get update     && apt-get install -y --no-install-recommends curl     && apt-get clean     && rm -rf /var/lib/apt/lists/*
+--> Using cache 806beb34a98f521f2593a4c4159cab3a34621ba6af6304e2230362491d6a0800
+--> 806beb34a98f
+STEP 10/29: COPY requirements.txt ./req-base-original.txt
+--> Using cache 0ffe0df552441f35fd6ead400c877e44a13e8fcaf4eeaf10e73e73fd394f2163
+--> 0ffe0df55244
+STEP 11/29: RUN set -e;     EXCL='^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)([=><!~\[[:space:]]|$)';     grep -v -E "$EXCL" req-base-original.txt > requirements-clean.txt || true;     printf '%s\n'       "torch==${TORCH_VERSION}+cpu"       "torchvision==${TORCHVISION_VERSION}+cpu"       "torchaudio==${TORCHAUDIO_VERSION}+cpu"       "sympy==${SYMPY_VERSION}"       > /tmp/constraints.txt
+--> Using cache fad97b300c09a90749385b2070b6c5d863972a82f49bf85665c4135bee99c744
+--> fad97b300c09
+STEP 12/29: RUN pip install       torch==${TORCH_VERSION}+cpu       torchvision==${TORCHVISION_VERSION}+cpu       torchaudio==${TORCHAUDIO_VERSION}+cpu       --index-url https://download.pytorch.org/whl/cpu
+--> Using cache 63d41b8115304e7761a05674fdd26c1aa00a90f182e6e7006b54706a3728ac8d
+--> 63d41b811530
+STEP 13/29: RUN pip install       -c /tmp/constraints.txt       sentence-transformers       transformers       accelerate       huggingface-hub       safetensors
+--> Using cache c979a5eef12b4fbbc96066896d55fb447a8a05314bf7da877f2f5ec79722924d
+--> c979a5eef12b
+STEP 14/29: RUN pip install -c /tmp/constraints.txt -r requirements-clean.txt     && pip install -c /tmp/constraints.txt gunicorn
+--> Using cache 2946ac1d7b0b112ed56b135db66d9ffe37e218eeabd98dfa32fb37c09686577f
+--> 2946ac1d7b0b
+STEP 15/29: RUN python -c "import torch; v = torch.__version__; assert v == '${TORCH_VERSION}+cpu',     f'FALLO: se esperaba ${TORCH_VERSION}+cpu, se obtuvo {v}'; assert not torch.cuda.is_available(), 'FALLO: CUDA detectado en build CPU'; from sentence_transformers import SentenceTransformer; import flask; print(f'[OK] torch=={v}'); print('[OK] sentence-transformers disponible'); print(f'[OK] Flask {flask.__version__}'); print('[OK] CUDA ausente (build CPU correcto)')"
+--> Using cache 7ae5a4cbe66e3207d6c936643dbe715e8d4f24b1043fea3262e1c1b31f9d1e33
+--> 7ae5a4cbe66e
+STEP 16/29: RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user     && mkdir -p /app/logs /app/data/uploads     && chown -R apu_user:apu_user /app     && chmod 775 /app/logs /app/data     && rm -f /tmp/constraints.txt              req-base-original.txt              requirements-clean.txt
+--> Using cache b6aabd65923daeb9cbf17a96f883b1ce5a507a1f3bd0ac31a702c66059b20324
+--> b6aabd65923d
+STEP 17/29: USER apu_user
+--> Using cache 9eb8afa62d0775832108597039d2e75f76644b143218fb2726ac0d7ecd9534b5
+--> 9eb8afa62d07
+STEP 18/29: COPY --chown=apu_user:apu_user app/       /app/app/
+--> Using cache ba83d648a5531b3e74ded713e93d0bbf9028c0b5288904653f84dca281dcec9b
+--> ba83d648a553
+STEP 19/29: COPY --chown=apu_user:apu_user agent/     /app/agent/
+Error: building at STEP "COPY --chown=apu_user:apu_user agent/ /app/agent/": checking on sources under "/home/gerardo/Documentos/GitHub/apu_filter": copier: stat: "/agent": no such file or directory
+[2026-03-28 14:39:51] [WARN   ] PID:38454  Construcción estándar fallida para 'apu-core:latest'.
+[2026-03-28 14:39:51] [ERROR  ] PID:38454  Establece ALLOW_UNCONFINED_SECCOMP=true si es absolutamente necesario.
+[2026-03-28 14:39:51] [ERROR  ] PID:38454  Falló la construcción de 'apu-core:latest' en todos los intentos.
+[2026-03-28 14:39:51] [ERROR  ] PID:38454  Consulta el log para detalles: /home/gerardo/Documentos/GitHub/apu_filter/logs/podman_start_20260328_143950.log
+[2026-03-28 14:39:51] [ERROR  ] PID:38454  Fallo en imagen 0/2: apu-core:latest
+[2026-03-28 14:39:51] [ERROR  ] PID:38454  Script terminado con código de error: 1
+[2026-03-28 14:39:51] [INFO   ] PID:38454  Revisar log para detalles: /home/gerardo/Documentos/GitHub/apu_filter/logs/podman_start_20260328_143950.log
