@@ -1246,13 +1246,30 @@ class SiloManager:
 
 class TOONCompressor:
     """
-    Compresor determinista de telemetría a formato TOON.
+    Compresor determinista de telemetría a formato TOON (Tabular Object-Oriented Notation).
     
     Propiedades:
+    - Retracto de Deformación Topológica hacia variedad plana tabular.
+    - Cálculo de Rango Tensorial para validación de isomorfismo.
     - Determinista: misma entrada → misma salida
     - Reversible: parse(render(x)) ≈ x
     - Estable: ordenamiento consistente de claves
     """
+
+    def _compute_tensor_rank(self, payload: Any, depth: int = 0) -> int:
+        """
+        Computa el Rango Tensorial (nivel de anidamiento) del JSON.
+        Si la profundidad (depth) supera el nivel 2, aplicaría factorización o lanza error.
+        """
+        if isinstance(payload, dict):
+            if not payload:
+                return depth + 1
+            return max(self._compute_tensor_rank(v, depth + 1) for v in payload.values())
+        elif isinstance(payload, list):
+            if not payload:
+                return depth + 1
+            return max(self._compute_tensor_rank(v, depth + 1) for v in payload)
+        return depth
 
     def compress(
         self,
@@ -1261,7 +1278,10 @@ class TOONCompressor:
         header_template: str,
     ) -> TOONDocument:
         """
-        Comprime telemetría a documento TOON.
+        Comprime telemetría a documento TOON, encapsulando fermiones (Electrones, Protones, Polarones).
+
+        Si el Rango Tensorial es mayor a 2, el JSON no es estrictamente mapeable a una
+        tabla 2D de llave-valor biyectiva de forma plana (sin corromper la jerarquía).
         
         Args:
             telemetry: Datos de telemetría
@@ -1270,11 +1290,25 @@ class TOONCompressor:
         
         Returns:
             Documento TOON comprimido
+        Raises:
+            TOONCompressionError: Si el rango tensorial > 2
         """
+        # 1. Comprobar isomorfismo tabular vía Rango Tensorial
+        tensor_rank = self._compute_tensor_rank(telemetry)
+        if tensor_rank > 2:
+            raise TOONCompressionError(f"Rango tensorial {tensor_rank} excede el grado 2. La biyección estricta tabular no se preservaría.")
+
         records: List[Tuple[str, str]] = []
         
+        import dataclasses
         for key in sorted(telemetry.keys()):
             value = telemetry[key]
+            # Si se topa con objetos cuánticos (dataclasses con slots=True no tienen __dict__)
+            if dataclasses.is_dataclass(value):
+                value = dataclasses.asdict(value)
+            # También soportar el caso en el que haya listas de dataclasses
+            elif isinstance(value, tuple) and all(dataclasses.is_dataclass(item) for item in value):
+                value = [dataclasses.asdict(item) for item in value]
             json_value = json.dumps(value, ensure_ascii=False, default=str)
             records.append((str(key), json_value))
         

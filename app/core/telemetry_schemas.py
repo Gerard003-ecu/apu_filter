@@ -305,6 +305,42 @@ class PhysicsMetrics:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# CARTUCHOS CUÁNTICOS (Fermiones Base)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True, slots=True)
+class ElectronCartridge:
+    """
+    Electrón de Inspección (Anomalía detectada).
+    Fermión de entropía que se emite si Mahalanobis excede el límite elástico.
+    """
+    inertial_mass: float          # m* ∝ ||δx||²
+    topological_spin: str         # "source" o "sink"
+    homological_charge: int       # Δχ
+    source_subspace: str          # Subespacio que originó el electrón
+
+@dataclass(frozen=True, slots=True)
+class ProtonCartridge:
+    """
+    Protón de Estabilidad (Resiliencia).
+    Fermión con masa positiva emitido por BIBO stability en el plano-S.
+    """
+    spectral_charge: float        # q_s > 0
+    logistic_inertial_mass: float # m_p (basado en Ψ ≥ 1.0)
+    dominant_pole: float          # Polo que valida el protón
+
+@dataclass(frozen=True, slots=True)
+class PolaronCartridge:
+    """
+    Polarón Logístico.
+    Generado por el acoplamiento de Fröhlich (defecto interacciona con fonones).
+    """
+    base_electron: ElectronCartridge
+    frohlich_coupling: float      # α
+    effective_mass: float         # m** = m* (1 + α/6)
+    fiedler_value: float          # λ₂
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # 2. SUBESPACIO TOPOLÓGICO
 # ═══════════════════════════════════════════════════════════════════════════════
 

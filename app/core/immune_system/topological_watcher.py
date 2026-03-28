@@ -73,6 +73,7 @@ import numpy as np
 
 from app.core.schemas import Stratum
 from app.core.mic_algebra import CategoricalState, Morphism
+from app.core.telemetry_schemas import ElectronCartridge
 
 logger = logging.getLogger("MIC.ImmuneSystem")
 
@@ -1080,6 +1081,7 @@ class ThreatAssessment:
     euler_char: Optional[int] = None
     status: HealthStatus = HealthStatus.HEALTHY
     metadata: Dict[str, Any] = field(default_factory=dict)
+    electrons: Tuple[ElectronCartridge, ...] = field(default_factory=tuple)
 
     def __repr__(self) -> str:
         items = ", ".join(f"{k}={v:.4f}" for k, v in self.levels.items())
@@ -1118,6 +1120,7 @@ class ThreatAssessment:
         euler_char: Optional[int] = None,
         warning_threshold: float = 0.8,
         critical_threshold: float = 1.5,
+        electrons: Tuple[ElectronCartridge, ...] = (),
     ) -> "ThreatAssessment":
         """
         Constructor que infiere atributos derivados automáticamente.
@@ -1164,6 +1167,7 @@ class ThreatAssessment:
             total_threat=total_threat,
             euler_char=euler_char,
             status=status,
+            electrons=electrons,
         )
 
 
@@ -1476,6 +1480,37 @@ class OrthogonalProjector:
                 "ALGEBRAIC_TOL restaurado: %.2e", original,
             )
 
+    def _quantize_anomaly_electrons(self, name: str, threat: float, psi: np.ndarray, euler_char: Optional[int], threshold: float) -> Optional[ElectronCartridge]:
+        """
+        Emite un ElectronCartridge si la deformación excede el límite elástico (threshold).
+        """
+        if threat <= threshold:
+            return None
+
+        # Masa inercial: m* ∝ ||δx||^2 ∝ threat^2
+        m_star = threat ** 2
+
+        # Espín topológico
+        b0_idx = self._topo_indices[0] if self._topo_indices else -1
+        b1_idx = self._topo_indices[1] if self._topo_indices else -1
+
+        spin = "source"
+        if b1_idx >= 0 and b1_idx < len(psi) and psi[b1_idx] > 0:
+            spin = "sink"
+
+        # Carga homológica: Δχ
+        delta_chi = 0
+        if euler_char is not None:
+            # Se asume delta_chi = chi - expected_chi (1 para grafos conexos sin ciclos)
+            delta_chi = euler_char - 1
+
+        return ElectronCartridge(
+            inertial_mass=m_star,
+            topological_spin=spin,
+            homological_charge=delta_chi,
+            source_subspace=name
+        )
+
     def project(
         self,
         psi: np.ndarray,
@@ -1542,10 +1577,16 @@ class OrthogonalProjector:
 
         # ── Amenazas por subespacio (cómputo único por subespacio) ───────────
         levels: Dict[str, float] = {}
+        electrons: List[ElectronCartridge] = []
         for name, spec in self._subspaces.items():
             subvec = psi[spec.indices]
             threat = spec.compute_threat(subvec)  # único cómputo
             levels[name] = threat
+
+            # Cuantizar anomalías en Electrones si exceden umbral elástico (warning_threshold)
+            electron = self._quantize_anomaly_electrons(name, threat, psi, euler_char, warning_threshold)
+            if electron:
+                electrons.append(electron)
 
             if verbose:
                 logger.debug(
@@ -1599,6 +1640,7 @@ class OrthogonalProjector:
             euler_char=euler_char,
             status=status,
             metadata=metadata,
+            electrons=tuple(electrons),
         )
 
     @staticmethod

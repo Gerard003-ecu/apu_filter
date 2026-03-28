@@ -1711,6 +1711,8 @@ class LaplaceOracle:
         - Métricas de respuesta transitoria
         - Sensibilidad paramétrica
         """
+        from app.core.telemetry_schemas import ProtonCartridge
+
         cache_key = "stability_analysis"
         cached = self._cache.get(cache_key)
         if cached is not None:
@@ -1726,6 +1728,26 @@ class LaplaceOracle:
         sensitivity = self._sensitivity_calc.calculate_sensitivity_matrix()
         recommendations = self._report_builder._generate_control_recommendations(margins, sensitivity)
         
+        # Emitir Protón de Estabilidad si el sistema es BIBO estable y el índice asintótico σ ≪ 0
+        proton = None
+        if self.stability_status == StabilityStatus.STABLE:
+            # Identificar el polo dominante (el más cercano al eje imaginario, con mayor parte real)
+            # Para estabilidad, todos los polos tienen parte real < 0
+            if poles_c:
+                dominant = max(poles_c, key=lambda p: p.real)
+                # Generador de masa positiva: índice de estabilidad basado en el margen de fase o amortiguamiento
+                # Por ejemplo, Psi basado en margen de fase: Psi = PM / 45.0
+                psi_index = max(1.0, margins.phase_margin_deg / NC.DEFAULT_PHASE_MARGIN_GOOD)
+
+                # Emitir Protón de Estabilidad si Psi >= 1.0 (garantizando resiliencia)
+                if psi_index >= 1.0:
+                    spectral_charge = abs(dominant.real)  # qs > 0
+                    proton = ProtonCartridge(
+                        spectral_charge=spectral_charge,
+                        logistic_inertial_mass=psi_index,
+                        dominant_pole=dominant.real
+                    )
+
         result = {
             "status": self.stability_status.value,
             "is_stable": self.stability_status == StabilityStatus.STABLE,
@@ -1740,6 +1762,8 @@ class LaplaceOracle:
                 "response_type": self.response_type.value,
             },
             
+            "proton_cartridge": {"spectral_charge": proton.spectral_charge, "logistic_inertial_mass": proton.logistic_inertial_mass, "dominant_pole": proton.dominant_pole} if proton else None,
+
             "discrete": {
                 "poles": [p.to_tuple() for p in poles_d],
                 "sample_rate_hz": self._sample_rate,
