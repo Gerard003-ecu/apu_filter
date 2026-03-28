@@ -59,7 +59,7 @@ fi
 readonly SCRIPT_VERSION="4.0.0"
 readonly SCRIPT_PID=$$
 readonly TIMESTAMP
-TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+readonly TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 readonly TIMESTAMP
 
 # --- Detección de rutas ---
