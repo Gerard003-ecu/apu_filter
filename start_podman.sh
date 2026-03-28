@@ -60,6 +60,7 @@ readonly SCRIPT_VERSION="4.0.0"
 readonly SCRIPT_PID=$$
 readonly TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 
+
 # --- Detección de rutas ---
 # Resuelve el directorio real del script (maneja symlinks)
 readonly SCRIPT_DIR
