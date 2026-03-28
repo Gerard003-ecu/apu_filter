@@ -340,6 +340,61 @@ class PolaronCartridge:
     effective_mass: float         # m** = m* (1 + α/6)
     fiedler_value: float          # λ₂
 
+@dataclass(frozen=True, slots=True)
+class MagnonCartridge:
+    """
+    Magnón de Vorticidad Solenoidal.
+    Bosón emitido cuando se aísla la componente rotacional en la
+    Descomposición de Hodge-Helmholtz. Inyecta Veto de Enrutamiento.
+    """
+    kinetic_energy: float         # Energía del flujo parasitario circular
+    curl_subspace_dim: int        # Dimensión del subespacio rotacional
+
+@dataclass(frozen=True, slots=True)
+class PhotonCartridge:
+    """
+    Fotón de Gobernanza (OPA).
+    Bosón sin masa emitido por la Gobernanza Computacional Federada.
+    Ilumina el hiperespacio de fase para curvar geodésicas de decisión.
+    """
+    policy_id: str                # Identificador de la política
+    spectral_frequency: float     # Frecuencia de la solución ejecutiva
+    governance_weight: float      # Fuerza de iluminación
+
+@dataclass(frozen=True, slots=True)
+class PositronCartridge:
+    """
+    Positrón (Antimateria Exógena).
+    Inyectado por un Meta-Controlador humano para aniquilar un Electrón.
+    """
+    inertial_mass: float          # m* (Debe coincidir con la del Electrón)
+    topological_spin: str         # Espín inverso
+    homological_charge: int       # Carga opuesta
+    authorization_signature: str  # Firma del humano que asume el riesgo
+
+@dataclass(frozen=True, slots=True)
+class GammaPhoton:
+    """
+    Fotón Gamma Virtual.
+    Radiación emitida tras la aniquilación Electrón-Positrón.
+    Sirve como prueba criptográfica en la Cadena de Custodia Termodinámica.
+    """
+    annihilation_energy: float    # 2 * m* c^2
+    data_hash: str                # Hash del estado al momento de la aniquilación
+    timestamp_entry: float        # Timestamp forense
+    authorization_signature: str  # Firma heredada del Positrón
+
+@dataclass(frozen=True, slots=True)
+class PolaritonCartridge:
+    """
+    Polaritón (Condensado de Bose-Einstein).
+    Híbrido Fermión-Bosón cuando un Polarón resuena con un Fotón de Gobernanza.
+    """
+    polaron: PolaronCartridge
+    photon: PhotonCartridge
+    rabi_coupling: float          # Ω_R (Acoplamiento fuerte de Rabi)
+    dissipation_trace: float      # Traza de la matriz de disipación
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # 2. SUBESPACIO TOPOLÓGICO
 # ═══════════════════════════════════════════════════════════════════════════════

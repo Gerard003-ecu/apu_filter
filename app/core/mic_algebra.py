@@ -597,6 +597,11 @@ class Morphism(ABC):
     """
     Clase base abstracta para morfismos en la categoría C_MIC.
 
+    Implementa Acoplamiento Fuerte de Rabi (Condensación Polaritónica) en la ejecución base:
+    Si en un estado coexisten la anomalía masiva (Polarón Logístico) y la solución en código
+    (Fotón de Gobernanza), el sistema los hibrida automáticamente emitiendo un Polaritón
+    y evadiendo el cálculo LLM disipativo.
+
     Un morfismo f: A → B mapea objetos CategoricalState con
     precondiciones de estrato (domain) a un estrato objetivo (codomain).
 
@@ -642,6 +647,11 @@ class Morphism(ABC):
         """
         Aplica el morfismo al estado. Debe ser puro (sin efectos
         laterales observables más allá del logging).
+
+        Soporta Condensación de Bose-Einstein: si el estado acarrea un
+        PhotonCartridge y un MagnonCartridge / Logistical Polaron
+        que resuenan, se debe instanciar un PolaritonCartridge y
+        bypass de LLM disipativo si aplica en implementaciones concretas.
         """
         ...
 

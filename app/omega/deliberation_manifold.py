@@ -210,13 +210,20 @@ class SynapticRegistry:
         """Número de cartuchos registrados."""
         return len(self._cartridges)
 
-    def load_cartridge(self, cartridge: ToonCartridge) -> None:
+    def load_cartridge(self, cartridge: ToonCartridge, telemetry_context: Optional[Any] = None) -> None:
         """Acopla una nueva vitamina cognitiva al sistema.
+
+        Permite la Cirugía Topológica Exógena: Si se inyecta un Positrón (Antimateria Exógena),
+        se busca un Electrón de masa equivalente. Si se encuentra, ambos se aniquilan del
+        SynapticRegistry y se emite un GammaPhoton como prueba criptográfica a través
+        de telemetry_context.
 
         Raises:
             TypeError: si ``cartridge`` no es instancia de ``ToonCartridge``.
             ValueError: si el nombre del cartucho está vacío.
         """
+        import json
+
         if not isinstance(cartridge, ToonCartridge):
             raise TypeError(
                 f"cartridge debe ser instancia de ToonCartridge, "
@@ -227,6 +234,46 @@ class SynapticRegistry:
         # pero la repetimos por defensa en profundidad.
         if not cartridge.name.strip():
             raise ValueError("El cartucho debe tener un nombre no vacío")
+
+        # Evaluar Aniquilación de Electrón-Positrón
+        if "PositronCartridge" in cartridge.toon_payload:
+            try:
+                positron_data = json.loads(cartridge.toon_payload.split("|")[-1])
+                pos_mass = positron_data.get("inertial_mass")
+
+                # Buscar electrón correspondiente para aniquilar
+                for existing_name, existing_cartridge in list(self._cartridges.items()):
+                    if "ElectronCartridge" in existing_cartridge.toon_payload:
+                        electron_data = json.loads(existing_cartridge.toon_payload.split("|")[-1])
+                        elec_mass = electron_data.get("inertial_mass")
+
+                        if pos_mass == elec_mass:
+                            del self._cartridges[existing_name]
+
+                            # Emisión de radiación de auditoría (Fotón Gamma)
+                            if telemetry_context is not None:
+                                from app.core.telemetry_schemas import GammaPhoton
+                                import time
+                                import hashlib
+                                data_hash = hashlib.sha256(str(pos_mass).encode()).hexdigest()
+                                gamma = GammaPhoton(
+                                    annihilation_energy=2 * pos_mass * (3e8)**2,
+                                    data_hash=data_hash,
+                                    timestamp_entry=time.time(),
+                                    authorization_signature=positron_data.get("authorization_signature", "unknown")
+                                )
+                                telemetry_context.record_error(
+                                    step_name="Exogenous_Topological_Surgery",
+                                    error_message="Electron-Positron Annihilation in RAM.",
+                                    error_type="GammaPhotonEmission",
+                                    severity="INFO",
+                                    stratum=Stratum.OMEGA,
+                                    metadata={"gamma_photon": gamma.__dict__}
+                                )
+                            logger.info("💥 Aniquilación Electrón-Positrón completada. Radiación Gamma emitida.")
+                            return
+            except Exception as e:
+                logger.warning(f"Error evaluando inyección de Positrón: {e}")
 
         self._cartridges[cartridge.name] = cartridge
         logger.info(
