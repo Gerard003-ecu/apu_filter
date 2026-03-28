@@ -13,10 +13,10 @@ Utilizamos homología computacional para calcular los Números de Betti (βn​)
         El Ideal: $\beta_0 = 1$. Un proyecto unificado donde cada insumo fluye coherentemente hacia el objetivo final.
         La Patología ($\beta_0 > 1$): Islas de Datos. Existen subgrafos desconectados.
         Impacto de Negocio: Fragmentación logística pura. Usted está comprando materiales que no están enlazados a ninguna actividad constructiva del proyecto principal. Es dinero "ciego" y desperdicio seguro o riesgo de fraude (recursos huérfanos).
-    $\beta_1$: Ciclos Independientes (Trampas Lógicas)
+    $\beta_1$: Ciclos Independientes (Trampas Lógicas) y Cohomología Regenerativa
         El Ideal: $\beta_1 = 0$. El flujo del proyecto es laminar y conforma un Grafo Acíclico Dirigido (DAG) perfecto.
-        La Patología ($\beta_1 > 0$): Socavones Lógicos. Se han detectado dependencias circulares o grafos cíclicos prohibidos (Ej. El Muro depende del Ladrillo $\to$ El Ladrillo depende del Transporte $\to$ El Transporte depende del Muro).
-        Impacto de Negocio: Imposibilidad matemática de calcular un costo unitario real. Esto dispara una Mónada de Error (F(0)=0) y el Gatekeeper del sistema bloquea inmediatamente cualquier cálculo financiero posterior.
+        La Patología Parasitaria ($\beta_1 > 0$): Socavones Lógicos. Se han detectado dependencias circulares o grafos cíclicos prohibidos (Ej. El Muro depende del Ladrillo $\to$ El Ladrillo depende del Transporte $\to$ El Transporte depende del Muro). Imposibilidad matemática de calcular un costo unitario.
+        El Agente 3R (Ciclo Homológico Regenerativo $\beta_1^+$): Modificación axiomática a la detección de ciclos. Un ciclo topológico ($\beta_1 > 0$) deja de ser automáticamente un "Socavón Lógico" si el Pasaporte Digital de Producto (DPP) certifica una circularidad material lícita (Reusar, Reciclar). Si $\langle f_{curl}, DPP \rangle > 0$ y se obedece estrictamente el Teorema de Tellegen, el ciclo se clasifica como regenerativo, descontando Energía de Dirichlet al sistema general y previniendo el "Greenwashing Termodinámico".
     χ: Característica de Euler-Poincaré
         Fórmula: χ=β0​−β1​.
         Uso: Cuantifica la "Entropía Estructural" y la Complejidad Sistémica del proyecto. Sirve como métrica base para el Pricing Dinámico del modelo de negocio SaaS (a mayor complejidad y entropía topológica, mayor es el valor que el sistema aporta al colapsar dicho riesgo).

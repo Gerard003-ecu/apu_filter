@@ -1,9 +1,10 @@
 --------------------------------------------------------------------------------
 🔭 PRODUCT_VISION.md: El Sistema Operativo de la Física del Negocio
 "En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica de la construcción en un activo de gobernanza gobernable, inmutable y auditable."
-1. La Tesis Central: De la Estática a la Fortaleza Matemática
+1. La Tesis Central: El Reactor Port-Hamiltoniano de Valor
 Históricamente, la ingeniería y construcción han gestionado el tiempo (cronogramas) y el dinero (presupuestos) basándose en "fotos estáticas" como hojas de cálculo de Excel o bases de datos ERP tradicionales. En la realidad, un proyecto de infraestructura es un sistema dinámico complejo sujeto a fuerzas termodinámicas de mercado, entropía logística y fricción operativa.
-APU_filter v4.0 rechaza el paradigma de validación lineal. No somos una herramienta de auditoría de precios; nos erigimos como una Fortaleza Matemática Zero-Trust y una Arquitectura Mesh Ciber-Física.
+APU_filter v4.0 rechaza la metáfora estática de la validación lineal y las barreras de Dirichlet pasivas. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge**. Procesamos un fluido logístico incompresible bajo el control estricto de una Estructura de Dirac, garantizando que la potencia disipada cumpla siempre $P_{diss} \ge 0$.
+A su vez, "APU" no representa "Agentic Processing Unit", sino **Agentic Power Unit**: el cuanto de acción termodinámica de la malla que inyecta exergía computacional para vencer la inercia logística del mercado.
 
 
 ```mermaid
@@ -52,11 +53,11 @@ graph TD
 
  Implementamos la Matriz de Interacción Central (MIC) alojada en `app/adapters/tools_interface.py` como una Matriz Identidad ortogonal ($I_n$) que rige la independencia lineal de los agentes, asegurando un teorema de Rango-Nulidad estricto para prevenir dependencias cruzadas (Zero Side-Effects).
 
-En este ecosistema, la Inteligencia Artificial (LLMs) ha sido despojada de su libre albedrío decisional. Hemos subordinado la probabilidad estadística de las redes neuronales a un tribunal implacable de leyes físicas, topología algebraica y teoría de control. Todo este diseño obedece al cimiento axiomático de la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$.
+Todo este diseño obedece al cimiento axiomático de la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$. Resulta imperativo destacar que el estrato $V_{TACTICS}$ ahora modela la materia bariónica sobre el anillo de los enteros ($\mathbb{Z}$), sujetando la logística a una estricta fricción cuantizada.
 
 --------------------------------------------------------------------------------
 2. Los Horizontes de Evolución: La Arquitectura Concéntrica
-Nuestra hoja de ruta no añade funciones cosméticas; desbloquea niveles de profundidad física mediante una arquitectura de capas defensivas estructuradas bajo la Clausura Transitiva de la pirámide DIKW (VPHYSICS​⊂VTACTICS​⊂VSTRATEGY​⊂VWISDOM​).
+Nuestra hoja de ruta no añade funciones cosméticas; desbloquea niveles de profundidad física mediante una arquitectura de capas defensivas estructuradas bajo la Clausura Transitiva de la pirámide DIKW ($V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$).
 Horizonte 1: La Cimentación (El Foso Termodinámico y las Murallas)
 
     Objetivo: Certificación de Viabilidad Dinámica, Integridad Estructural y Aislamiento Cuántico.

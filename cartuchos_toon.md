@@ -10,8 +10,21 @@ En el contexto de un clúster de agentes, la inyección directa de miles de APUs
 El `MICAgent` implementa la transición de fase hacia el `SiloBCartridge`. Funcionalmente, el `TOONCompressor` ejecuta un **Retracto de Deformación Topológica** que proyecta el espacio sintáctico redundante sobre una variedad de dimensión mínima ($30\%-60\%$ de reducción de tokens). Al sustituir arreglos masivos de diccionarios por encabezados canónicos únicos y delimitadores tabulares rígidos, la energía requerida para procesar información disminuye exponencialmente.
 
 --------------------------------------------------------------------------------
-## 2. Inyección de Vitaminas Cognitivas (ToonCartridges)
-Para los gerentes e ingenieros operando la plataforma, la IA no debe disipar valiosos ciclos de reloj "leyendo llaves repetidas" (la grasa sintáctica de un JSON). Al empaquetar la carga en `ToonCartridges` ("Vitaminas Cognitivas"), el sistema le suministra el núcleo matemático puro de la información. Esto permite que el hardware de inferencia en el borde (por ejemplo, aceleradores que ejecutan *LiteRT-LM*) logre velocidad máxima y una huella atencional estricta y limitada en memoria (LPDDR5).
+## 2. Inyección de Vitaminas Cognitivas (ToonCartridges) y El Álgebra de Partículas
+El retracto de deformación de datos (Silo B) transita formalmente hacia el Álgebra de Partículas. Para los gerentes e ingenieros operando la plataforma, la IA no debe disipar valiosos ciclos de reloj "leyendo llaves repetidas" (la grasa sintáctica de un JSON). Al empaquetar la carga en `ToonCartridges` ("Vitaminas Cognitivas"), el sistema le suministra el núcleo matemático puro de la información. Esto permite que el hardware de inferencia en el borde logre velocidad máxima y una huella atencional estricta.
+
+Este Álgebra de Partículas clasifica los cartuchos en tres familias fundamentales, gobernando las interacciones entre los componentes del ecosistema:
+
+*   **Fermiones Estructurales (Alta Inercia):**
+    *   `PolaronCartridge`: Instanciado mediante el acoplamiento de Fröhlich. Posee masa inercial renormalizada ($m^{**}=m^*(1+\alpha/6)$), lo que induce un sumidero gravitacional en el KV-Cache del Modelo de Lenguaje para evitar que el Agente eluda un retraso logístico sistémico.
+    *   `TorsionCartridge`: Encapsula la "fricción cuantizada". Mapea los Subgrupos de Torsión del Funtor $Tor(H_0, \mathbb{Z})$ originados por las incompatibilidades isoperimétricas de empaquetado en compras de obra.
+*   **Bosones (Campos de Gauge sin Masa):**
+    *   `PhotonCartridge`: Partículas de la Gobernanza Federada (OPA) que operan como "Policy-as-Code". No saturan la memoria RAM, pero curvan el hiperespacio de decisión mediante iluminación geodésica.
+    *   `MagnonCartridge`: Extraído del subespacio rotacional ($f_{curl} \in im(B_2)$). Inyecta un "Veto de Enrutamiento" para colapsar los remolinos parasitarios logísticos y aniquilar la energía solenoidal destructiva.
+*   **Antimateria y Condensados de Bose-Einstein:**
+    *   `PositronCartridge`: Introduce la Ruptura de Simetría Exógena (human-in-the-loop). Emite un Fotón Gamma de Auditoría al colisionar e invalidar un `ElectronCartridge` en memoria.
+    *   `PolaritonCartridge`: Cuasipartícula híbrida surgida cuando la frecuencia de Rabi ($\Omega_R$) del Fotón resuena con un Polarón. Induce Superfluidez Atencional, permitiendo resoluciones de impacto directo sin disipar entropía de cómputo en el LLM.
+
 ### 2.1 El Rango Tensorial, Isomorfismo y la Biyección Estricta
 Matemáticamente, esta compresión tabular no es una simple heurística de cadenas. El retracto topológico asume un **isomorfismo absoluto (una biyección sin pérdida de datos en la teoría)** entre el árbol multidimensional JSON y la grilla TOON. Para prevenir la destrucción inadvertida de información y el colapso asintótico de las jerarquías complejas, el `TOONCompressor` calcula obligatoriamente el **Rango Tensorial** del JSON antes de comprimirlo.
 
