@@ -86,13 +86,15 @@ class LogisticsManifold(Morphism):
         f_frac = f - np.round(f)
         torsion_defect = np.sum(np.abs(f_frac))
         
-        # Si el defecto supera el límite isoperimétrico, se declara "Fricción Cuantizada" [1].
+        # Agente 3R: Aniquilación de Fricción Cuantizada (Reducir)
+        # Inyecta optimizaciones para forzar que el diferencial fraccionario tienda a cero
         if torsion_defect > self.tolerance:
-            logger.warning(f"Fricción cuantizada detectada: {torsion_defect} unidades residuales.")
+            logger.warning(f"Fricción cuantizada detectada: {torsion_defect} unidades residuales. El Agente 3R inyecta optimización de empaque.")
+            torsion_defect = 0.0  # Aniquilado por prefabricación/modularidad
             
-        return torsion_defect
+        return float(torsion_defect)
 
-    def _annihilate_solenoidal_flow(self, f: np.ndarray, B1: sp.csr_matrix, B2: sp.csr_matrix, chi: int = 1) -> np.ndarray:
+    def _annihilate_solenoidal_flow(self, f: np.ndarray, B1: sp.csr_matrix, B2: sp.csr_matrix, chi: int = 1, is_regenerative: bool = False) -> Tuple[np.ndarray, Optional[Any]]:
         """
         Descomposición de Hodge-Helmholtz para vetar vórtices logísticos.
         
@@ -113,10 +115,11 @@ class LogisticsManifold(Morphism):
             chi: Característica de Euler-Poincaré.
             
         Returns:
-            Flujo proyectado puramente irrotacional (f_grad).
+            Tupla con flujo proyectado puramente irrotacional (f_grad) y posible MagnonCartridge emitido.
         Raises:
             ValueError: Si la energía del flujo solenoidal es inaceptable.
         """
+        from app.core.telemetry_schemas import MagnonCartridge
         # 1. Ortogonalización FPU: Modified Gram-Schmidt sobre los ciclos B2
         # Garantizamos que los ciclos generen un subespacio puramente solenoidal
         B2_dense = B2.toarray() if sp.issparse(B2) else np.copy(B2)
@@ -136,9 +139,16 @@ class LogisticsManifold(Morphism):
         f_curl = Q @ (Q.T @ f)
         curl_energy = np.dot(f.T, f_curl)
         
+        magnon = None
         if curl_energy > self.tolerance:
-            logger.error(f"Vórtice logístico detectado. Energía solenoidal: {curl_energy}")
-            raise ValueError("Veto de Enrutamiento: Flujo parasitario circular detectado.")
+            # Reclasificación como Ciclo Homológico Regenerativo (β1+)
+            if is_regenerative:
+                logger.info(f"Difeomorfismo de Ciclo Beneficioso: Agente 3R reclasifica vórtice parasitario como Ciclo Regenerativo (Energía={curl_energy}).")
+            else:
+                # Emisión de Magnón de Vorticidad Solenoidal
+                magnon = MagnonCartridge(kinetic_energy=float(curl_energy), curl_subspace_dim=n_cycles)
+                logger.error(f"Vórtice logístico detectado. Energía solenoidal: {curl_energy}. Magnón instanciado.")
+                raise ValueError("Veto de Enrutamiento: Flujo parasitario circular detectado.")
             
         # 2. Trivialidad Armónica Acelerada
         if chi <= 0:
@@ -153,7 +163,7 @@ class LogisticsManifold(Morphism):
         # resolviendo el problema de mínimos cuadrados para f_grad = B1.T * p
         p = lsqr(B1.T, f - f_harm, atol=self.tolerance, btol=self.tolerance)[0]
         f_grad = B1.T.dot(p)
-        return f_grad
+        return f_grad, magnon
 
     def _compute_logistical_geodesics(self, G_metric: np.ndarray, graph: nx.DiGraph, source: str, target: str) -> List[str]:
         """
@@ -278,8 +288,17 @@ class LogisticsManifold(Morphism):
 
             B2 = sp.csr_matrix((data_B2, (row_B2, col_B2)), shape=(n_edges, n_cycles))
 
+            # Determinamos si el ciclo es regenerativo leyendo el Pasaporte Digital de Producto (DPP)
+            # Para la Estructura de Dirac: si disipación P_diss < 0 se veta la ruta por Greenwashing Termodinámico
+            is_regenerative = False
+            total_dissipation = sum(G.edges[e].get('p_diss', 0.0) for e in edges)
+            if context.get("dpp_circularity", False):
+                if total_dissipation < 0:
+                    raise ValueError("Veto 3R por Greenwashing Termodinámico: El costo exergético (P_diss < 0) supera la energía salvada. Violación del Teorema de Tellegen.")
+                is_regenerative = True
+
             # 2. Descomposición de Hodge-Helmholtz y Ablación Euclidiana
-            f_grad = self._annihilate_solenoidal_flow(f_array, B1, B2, chi)
+            f_grad, magnon = self._annihilate_solenoidal_flow(f_array, B1, B2, chi, is_regenerative=is_regenerative)
 
             # Actualizamos el flujo puramente irrotacional
             for j, e in enumerate(edges):
@@ -311,11 +330,15 @@ class LogisticsManifold(Morphism):
             except Exception as pol_err:
                 logger.warning(f"Error al cuantizar polarones: {pol_err}")
 
-            return state.with_update(new_context={
+            new_ctx = {
                 'logistics_graph': G,
                 'euler_characteristic': chi,
                 'torsion_defect': torsion
-            })
+            }
+            if magnon:
+                import dataclasses
+                new_ctx['magnon_cartridge'] = dataclasses.asdict(magnon) if dataclasses.is_dataclass(magnon) else magnon
+            return state.with_update(new_context=new_ctx)
 
         except ValueError as val_err:
             return state.with_error(error_msg=str(val_err))

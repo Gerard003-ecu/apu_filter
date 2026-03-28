@@ -974,6 +974,26 @@ class SemanticDiffeomorphismMapper:
     """
 
     @staticmethod
+    def _evaluate_polariton_superfluidity(context: Dict[str, Any]) -> Optional[str]:
+        """
+        Condensación de Bose-Einstein y Superfluidez (Polaritones).
+        Evalúa si hay un Polaritón en la telemetría, y si su acoplamiento de Rabi (Ω_R)
+        supera la traza de la disipación, devuelve un veredicto autoejecutable termodinámico
+        que ahorra disipación LLM.
+        """
+        import json
+        photon = context.get("photon_cartridge")
+        polaron = context.get("logistics_graph", {}).get("nodes", {}).get("effective_mass", None) # Simplificado para evaluación de contexto general
+
+        # Este método busca la presencia de un `PolaritonCartridge` emitido o lo forja a partir de los datos.
+        polariton_data = context.get("polariton_cartridge")
+        if polariton_data:
+            if isinstance(polariton_data, dict) and polariton_data.get("rabi_coupling", 0) > polariton_data.get("dissipation_trace", float("inf")):
+                return "Resolución de Superfluidez Estructural. El defecto fue absorbido dinámicamente por la política de contingencia sin generar disipación térmica."
+
+        return None
+
+    @staticmethod
     def map_betti_1_cycles(cycle_nodes: List[str]) -> str:
         r"""
         Mapeo de Socavón Lógico (β₁ > 0).

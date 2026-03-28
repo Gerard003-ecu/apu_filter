@@ -1968,8 +1968,17 @@ class GaugeFieldRouter:
         momentum = self._compute_cyber_momentum(validated_severity, field_norm)
 
         # ──────────────────────────────────────────────────────────────────
-        # [8] Inyección de contexto físico
+        # [8] Inyección de contexto físico (Forja de Fotón)
         # ──────────────────────────────────────────────────────────────────
+        from app.core.telemetry_schemas import PhotonCartridge
+        import dataclasses
+
+        photon = PhotonCartridge(
+            policy_id=f"GaugePolicy_{agent_id}",
+            spectral_frequency=float(field_norm),
+            governance_weight=float(momentum)
+        )
+
         original_context = _safe_context(state)
         mutated_context: Dict[str, Any] = {
             **original_context,
@@ -1984,6 +1993,7 @@ class GaugeFieldRouter:
             "gauge_num_maximizers": coupling_result.num_maximizers,
             "gauge_poisson_relative_residual": poisson_result.relative_residual,
             "gauge_poisson_acond": poisson_result.acond,
+            "photon_cartridge": dataclasses.asdict(photon),
         }
 
         intermediate_state = CategoricalState(
