@@ -58,9 +58,7 @@ fi
 # --- Metadatos del script ---
 readonly SCRIPT_VERSION="4.0.0"
 readonly SCRIPT_PID=$$
-readonly TIMESTAMP
 readonly TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
-readonly TIMESTAMP
 
 # --- Detección de rutas ---
 # Resuelve el directorio real del script (maneja symlinks)
