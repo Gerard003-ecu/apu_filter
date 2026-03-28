@@ -112,9 +112,8 @@ USER apu_user
 # =============================================================================
 # FASE 7: Código de la aplicación
 # =============================================================================
-COPY --chown=apu_user:apu_user app/   /app/
-COPY --chown=apu_user:apu_user tactics/ /app/tactics/
+COPY --chown=apu_user:apu_user app/       /app/app/
 
 STOPSIGNAL SIGTERM
 
-ENTRYPOINT ["python", "-u", "-m", "agent.apu_agent"]
+ENTRYPOINT ["python", "-u", "-m", "app.tactics.apu_agent"]
