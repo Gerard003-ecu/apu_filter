@@ -2,43 +2,9 @@
 "En APU Filter, la ingesta y el procesamiento de datos no se rigen por heurísticas simples o validaciones estáticas. Tratamos el flujo de datos como un sistema dinámico complejo y aplicamos Teoría de Control de grado industrial para garantizar su estabilidad matemática."
 Este documento formaliza la arquitectura matemática y los algoritmos subyacentes que gobiernan el comportamiento cibernético del sistema. Abandonando los obsoletos modelos estocásticos M/M/1, se proyecta la ingesta de datos hacia un modelo de campo continuo y electrodinámica cuántica. Esto está específicamente implementado en `app/physics/flux_condenser.py`, `app/physics/quantum_admission_gate.py`, y `app/agents/hilbert_watcher.py`, supervisados por el Oráculo de Laplace.
 
-Toda la arquitectura obedece al mandato axiomático de la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$. Este cimiento Físico (Estrato PHYSICS - Nivel 3 y $ALEPH \aleph_0$) establece la validación termodinámica ineludible para los estratos superiores, registrando su "Cadena de Custodia Termodinámica" generada en el tiempo inicial ($t_0$) mediante `app/core/telemetry.py` y `app/core/telemetry_schemas.py`.
+Toda la arquitectura obedece al mandato axiomático de la **Ley de Clausura Transitiva de la pirámide DIKW** (tabla canónica): $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$. Este cimiento Físico (**Nivel 0 $\aleph_0$ y Nivel 1 $\mathbb{P}$**) establece la validación termodinámica ineludible para los estratos superiores, registrando su "Cadena de Custodia Termodinámica" generada en el tiempo inicial ($t_0$) mediante `app/core/telemetry.py` y `app/core/telemetry_schemas.py`.
 
-
-```mermaid
-graph BT
-    %% Estilos de Nodos Termodinámicos
-    classDef high_entropy fill:#1a1a1a,stroke:#4a4e69,stroke-width:1px,color:#9ca3af;
-    classDef filter fill:#222831,stroke:#e94560,stroke-width:2px,color:#fff;
-    classDef high_exergy fill:#0f3460,stroke:#00f0ff,stroke-width:3px,color:#fff;
-
-    %% Base: Alta Entropía
-    subgraph "Base Plana: Dominio del Tiempo (Alta Entropía H → max)"
-        B1((Byte crudo)):::high_entropy
-        B2((Micro-evento)):::high_entropy
-        B3((Fila CSV)):::high_entropy
-        B4((Ruido Estocástico)):::high_entropy
-    end
-
-    %% Filtro: Operador de Borde
-    subgraph "Filtro Termodinámico: Operador de Borde (∂1) / Membrana RLC"
-        F[FluxCondenser<br>Matriz Laplaciana | Estrangulamiento Viscoelástico]:::filter
-    end
-
-    %% Cúspide: Alta Exergía
-    subgraph "Cúspide: Dominio de Frecuencia (Baja Entropía / Alta Exergía)"
-        C[Flujo Laminar Limpio<br>Plano de Frecuencia Compleja s=σ+jω]:::high_exergy
-    end
-
-    %% Ascensión Termodinámica
-    B1 --> F
-    B2 --> F
-    B3 --> F
-    B4 --> F
-
-    F ==>|Aniquilación de Entropía Sintáctica| C
-```
-
+> **Referencia normativa (M12):** El diagrama del flujo termodinámico Data→Filtro→Exergía (FluxCondenser como operador de borde $\partial_1$, con ascensión desde dominio del tiempo a dominio de frecuencia) está documentado canonícamente en [`circuitos_RLC.md` §1](./circuitos_RLC.md). Este documento referencia aquel diseño para evitar la duplicación de la fuente de verdad.
 
 
 --------------------------------------------------------------------------------

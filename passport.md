@@ -25,9 +25,12 @@ Registra las variables de estado termodinámico y electromagnético de los datos
 Describe la geometría abstracta del Complejo Simplicial del presupuesto y su lente gravitacional.
 
     beta_0 (β0​): Fragmentación. Si β0​>1, existen "Islas de Datos" (recursos huérfanos).
-    beta_1 (β1​): Ciclos. Si β1​>0, existen "Socavones Lógicos" (dependencias circulares insalvables).
-    pyramid_stability (Ψ): Índice de resiliencia logística. Si Ψ<1.0, el pasaporte estampa el sello crítico de PIRÁMIDE INVERTIDA.
-    renormalized_inertial_drag (m**): Documenta el arrastre de masa inercial renormalizada que deforma el espacio de fase, evidenciando un anclaje logístico severo en el presupuesto.
+    beta_1 ($\beta_1$): Ciclos. Si $\beta_1^- > 0$ (sin DPP certificado), existen "Socavones Lógicos" (dependencias circulares insalvables). Genera **veto duro**.
+    pyramid_stability ($\Psi$): Índice de resiliencia logística. **Definición formal** (Inversa del Índice de Simpson de Concentración):
+    $$\Psi := \frac{\left(\sum_{j=1}^{n} \deg(p_j)\right)^2}{n \cdot \sum_{j=1}^{n} \deg(p_j)^2} \in (0, 1]$$
+    donde $\deg(p_j)$ es el número de APUs que dependen del proveedor $j$. Si $\Psi < \Psi_{\min}$: **veto duro** (Fast-Fail, RECHAZO). Si $\Psi_{\min} \leq \Psi < 1.0$: veto suave (CRITICAL/WARN con plan correctivo). $\Psi_{\min}$ recomendado: 0.7 para infraestructura pública.
+    beta_2 ($\beta_2$): Cavidades ternarias. Si $\beta_2 > 0$, existen interdependencias trilaterales irresolubles. Genera veto suave y penalización de tarifa.
+    renormalized_inertial_drag ($m^{**}$): Documenta el arrastre de masa inercial renormalizada que deforma el espacio de fase, evidenciando un anclaje logístico severo en el presupuesto.
 
 2.3. Visado Espectral (Emitido por: El Oráculo de Laplace)
 Certifica la viabilidad dinámica y financiera en la frecuencia compleja (s=σ+jω).
@@ -44,9 +47,22 @@ La síntesis final alojada en la "Ciudadela de Cristal".
 
 
 --------------------------------------------------------------------------------
-3. Protocolo de Gobernanza: La Ley de Clausura Transitiva (Fast-Fail)
-La filtración de la pirámide (VPHYSICS​⊂VTACTICS​⊂VSTRATEGY​⊂VWISDOM​) no es una sugerencia, es un contrato algebraico implementado mediante clases de datos inmutables (frozen=True).
-Si un agente (LLM) o usuario intenta forzar la instanciación de un objeto de "Sabiduría" (Estrategia) basándose en cimientos físicos corruptos (ej. entropía negativa o costos imposibles), el tipado estricto del sistema lanza una excepción en el milisegundo cero. Este mecanismo Fast-Fail destruye la transacción en la memoria RAM, impidiendo la alucinación antes de que consuma ciclos de procesamiento neuronal. No hay estrategia sin física.
+3. Protocolo de Gobernanza: Ley de Clausura Transitiva y Niveles de Veto
+La filtración de la pirámide (tabla canónica: $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$) no es una sugerencia, es un contrato algebraico implementado mediante clases de datos inmutables (`frozen=True`).
+
+**Distinción crítica: Veto Duro vs Veto Suave**
+
+El sistema opera con dos categorías estrictas de respuesta, no intercambiables:
+
+| Tipo | Código | Condición Disparadora | Acción |
+|---|---|---|---|
+| **Veto Duro (Fast-Fail)** | `RECHAZO` | $P_{\text{diss}} < 0$, $\beta_1^- > 0$, $\Psi < \Psi_{\min}$, $\sigma > 0$, o $|\mu_k| > 1$ | Transacción abortada en RAM. Imposible continuar sin sanear el invariante. ESP32 activa Crowbar. |
+| **Veto Suave** | `CRITICAL` | $\Psi_{\min} \leq \Psi < 1.0$, $\beta_2 > 0$, PM $< 45°$ | Proyecto puede continuar bajo condiciones. Acta de Deliberación con plan correctivo obligatorio. |
+| **Advertencia** | `WARN` | Límites próximos pero no superados | Registro de precaución. Sin bloqueo. |
+
+La **Ley de Monotonicidad del Pasaporte** garantiza transiciones únicamente ascendentes: `PASS → WARN → CRITICAL → RECHAZO`. Un sello de RECHAZO en estrato $k$ imposibilita emitir sello de aprobación en cualquier estrato $k' > k$ dentro del mismo ciclo.
+
+Si un agente (LLM) intenta forzar la instanciación de Sabiduría sobre cimientos físicos corruptos, el tipado estricto lanza una excepción en el milisegundo cero (Fast-Fail). No hay estrategia sin física.
 
 --------------------------------------------------------------------------------
 4. El Tribunal de Silicio (El Bypass del ESP32)
@@ -81,11 +97,15 @@ El siguiente es el documento consolidado final que genera la Malla Agéntica y q
     "metrics": {
       "beta_0": 1,
       "beta_1": 0,
+      "beta_2": 0,
       "euler_characteristic": 1,
-      "pyramid_stability": 0.69
+      "pyramid_stability": 0.69,
+      "pyramid_stability_threshold": 0.70,
+      "veto_type": "SOFT_WARN"
     },
-    "anomalies": ["High stress on node: CEMENTO_PORTLAND"],
-    "is_coherent": true
+    "anomalies": ["High stress on node: CEMENTO_PORTLAND", "Psi=0.69 < Psi_min=0.70: WARN — diversificar proveedores de cemento"],
+    "is_coherent": true,
+    "note": "IMPORTANT: is_coherent=true porque Psi=0.69 supera el umbral de veto DURO (Psi_min=0.70 en este proyecto). Un veto duro requeriria Psi < Psi_min, lo cual generaria is_coherent=false y Fast-Fail inmediato. El verdict_code=CRITICAL a continuacion es un veto SUAVE: el proyecto puede continuar bajo plan correctivo obligatorio de diversificacion de proveedores."
   },
   "spectral_stamp": {
     "agent": "LaplaceOracle",

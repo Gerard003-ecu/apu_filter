@@ -56,14 +56,16 @@ fi
 # ====================================================
 
 # --- Metadatos del script ---
-readonly SCRIPT_VERSION="4.0.0"
-readonly SCRIPT_PID=$$
-readonly TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+SCRIPT_VERSION="4.0.0"
+readonly SCRIPT_VERSION
+SCRIPT_PID=$$
+readonly SCRIPT_PID
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+readonly TIMESTAMP
 
 
 # --- Detección de rutas ---
-# Resuelve el directorio real del script (maneja symlinks)
-readonly SCRIPT_DIR
+# Resuelve el directorio real del script (maneja symlinks con -P)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 readonly SCRIPT_DIR
 

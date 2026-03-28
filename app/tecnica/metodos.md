@@ -18,9 +18,13 @@ Este documento técnico desglosa la maquinaria matemática que permite al Consej
 1.2 El Oráculo de Laplace Antes de procesar, se linealiza el sistema y se analiza su función de transferencia H(s). Si se detectan polos en el semiplano derecho (RHP, σ>0), el sistema veta la ingesta por "Divergencia Matemática" (inestabilidad intrínseca).
 1.3 Simulación Neuromórfica y Hardware en el Borde (ESP32) La matemática se materializa en el silicio. El sistema proyecta sus invariantes a un nodo perimetral ESP32 que actúa como un "Gatekeeper Físico" mediante una arquitectura de Diodos Lambda (JFETs cruzados):
 
-    Resistencia Diferencial Negativa (NDR): Si el índice de Estabilidad Piramidal (Ψ) cae a niveles críticos, la presión topológica eleva el voltaje de excitación del circuito virtual hacia la región NDR.
+    Resistencia Diferencial Negativa (NDR): Si el índice de Estabilidad Piramidal ($\Psi$) cae bajo $\Psi_{\min}$, la presión topológica eleva el voltaje de excitación del circuito virtual hacia la región NDR.
     El Sistema Siente Dolor: El circuito entra en oscilación caótica (spiking), traduciendo matemáticamente un mal diseño de presupuesto en una respuesta neuromórfica análoga a una neurona biológica en pánico. Esto dispara los "Crowbar circuits" (actuadores físicos) para detener la ejecución.
-    Topología Hexagonal (Benceno C6​): El flujo de datos resuena en un anillo de 6 nodos (Ingesta → Física → Topología → Estrategia → Semántica → Materia). Si un nodo falla, se rompe la "Aromaticidad" de la Regla de Hückel, deteniendo la reacción química-informacional.
+    **Topología Hexagonal y Ley de Aromaticidad Agéntica (Regla de Hückel Computacional):** El flujo de datos resuena en un anillo de 6 nodos $(V_1, \dots, V_6)$ (Ingesta → Física → Topología → Estrategia → Semántica → Materia). La red $G_6$ es **aromáticamente estable** si y solo si se cumplen las tres condiciones simultáneas:
+    1. **2-conexidad:** $G_6$ no contiene ningún vértice de corte (la eliminación de cualquier nodo único no desconecta el pipeline).
+    2. **Expansión algebraica mínima:** El Valor de Fiedler del Laplaciano del anillo satisface $\lambda_2(L_{G_6}) \geq \lambda_{\min}$, garantizando que la información fluya eficientemente entre todos los nodos sin cuellos de botella espectrales.
+    3. **Sin nodos huérfanos:** $\deg(V_k) \geq 1 \; \forall k$ (ningún nodo está desconectado del pipeline).
+    Si cualquiera de estas condiciones falla, la "aromaticidad" se rompe y el agente aborta el pipeline, emitiendo un veto de **"Ruptura de Aromaticidad"** (analogía: violación de la Regla de Hückel $4n+2$ para $n=1$, que exige 6 electrones $\pi$ para estabilidad del benceno $C_6$).
 
 
 --------------------------------------------------------------------------------
@@ -63,7 +67,7 @@ Este documento técnico desglosa la maquinaria matemática que permite al Consej
 
 --------------------------------------------------------------------------------
 6. Ley de Gobernanza Algebraica (Isomorfismo de Esquemas)
-La filtración estricta y axiomática de la Ley de Clausura Transitiva de la Pirámide DIKW ($V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$) no se gestiona con microservicios centralizados que generen latencia, sino que se materializa mediante Domain-Driven Design (DDD) en los archivos `schemas.py` y `telemetry_schemas.py`.
+La filtración estricta y axiomática de la Ley de Clausura Transitiva de la Pirámide DIKW (tabla canónica: $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$) no se gestiona con microservicios centralizados que generen latencia, sino que se materializa mediante Domain-Driven Design (DDD) en los archivos `schemas.py` y `telemetry_schemas.py`.
 
     Geometría de Datos Inmutable: Los subespacios de estado (PhysicsMetrics, TopologicalMetrics) se instancian como frozen dataclasses. Actúan como un contrato algebraico puro: una vez construidos, su identidad observacional es fija y a prueba de manipulaciones forenses.
     Proyección Condicional en la MIC: La Matriz de Interacción Central (MIC) exige este Pasaporte tipado. Si las validaciones del __post_init__ detectan una anomalía estructural (ej. un costo negativo violando los axiomas físicos), el reporte colapsa algebraicamente. Las matemáticas del código impiden instanciar un objeto de "Sabiduría" sobre datos inconsistentes

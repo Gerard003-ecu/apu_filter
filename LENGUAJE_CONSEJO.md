@@ -26,7 +26,17 @@ Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta 
 
 --------------------------------------------------------------------------------
 2. El Diccionario Dinámico-Financiero (Frecuencia Compleja)
-El Oráculo de Laplace y el Guardián Físico modelan el comportamiento estocástico del mercado en el plano-S (s=σ+jω). El Intérprete traduce estos vectores continuos en arquetipos de riesgo financiero:
+El Oráculo de Laplace y el Guardián Físico modelan el comportamiento estocástico del mercado en el plano-S ($s = \sigma + j\omega$). El Intérprete traduce estos vectores continuos en arquetipos de riesgo financiero accionable:
+
+| Invariante Espectral | Diagnóstico Financiero | Impacto Tangible |
+|:---|:---|:---|
+| **Polos en RHP ($\sigma > 0$)** | "Veto Espectral: El proyecto es intrínsecamente explosivo." | **"Bomba de Tiempo Financiera:"** El modelo de flujo de caja diverge ante cualquier perturbación inflacionaria. Inversión prohibida sin reestructuración completa del cronograma. |
+| **Margen de Fase $< 45°$** | "Proyecto Frágil ante Retrasos." | **"Casa de Naipes Logística:"** El sistema soporta variaciones mínimas antes de colapsar. Un retraso de 2 semanas en el proveedor crítico puede causar sobrecostos del 30\%. |
+| **Factor de Amortiguamiento $\zeta < 1$** | "Sistema Subamortiguado — Proyecto Nervioso." | **"Fiebre Oscilatoria:"** El presupuesto reacciona rápido pero con alta volatilidad. Picos de sobrecosto seguidos de correcciones bruscas. Se recomienda blindar contratos de materiales volátiles. |
+| **Factor de Amortiguamiento $\zeta > 1$** | "Sistema Sobreamortiguado — Proyecto Burocrático." | **"Resistencia Estructural Excesiva:"** El presupuesto absorbe choques lentamente. Ideal para mega-proyectos con cronogramas largos, pero suboptimal para obras de ciclo corto. |
+| **Multiplicador de Floquet $|\mu_k| > 1$** | "Resonancia Paramétrica Estacional." | **"Trampa Estacional:"** Los costos oscilan en fase con la estacionalidad de la obra (ej. lluvia de invierno + deuda = resonancia destructiva). Veto estructural inmediato. |
+| **Exponente de Lyapunov $\lambda_{\max} > 0$** | "Caos Determinísta Activo." | **"El Sistema Perdió el Control:"** Las trayectorias del error divergen exponencialmente. El Guardián activa el Crowbar de emergencia. Ningún agente puede deliberar bajo caos activo. |
+| **Sobrepaso $M_p$** | "Pico Máximo de Sobrecosto Predecible." | **"Presupuesto de Contingencia Calculado:"** $M_p$ predice matemáticamente el peor pico de sobrecosto ante un shock de mercado, permitiendo provisionar reservas exactas en lugar de estimaciones empíricas. |
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
@@ -39,16 +49,24 @@ La matemática compleja es ruido si no se traduce en acción. El Intérprete no 
 Los algoritmos canónicos de búsqueda vectorial como FAISS (HNSW) asumen un espacio euclidiano isotrópico mediante la norma $L_2$ o Similitud del Coseno. Sin embargo, en el ecosistema matemático de `APU_filter`, la base canónica del riesgo es una variedad anisotrópica y altamente curva. Documentamos explícitamente que el espacio de búsqueda vectorial de **GraphRAG no es euclidiano**.
 La recuperación semántica no calcula la distancia cartesiana entre el riesgo y el texto; resuelve el producto interno dictaminado por el Tensor Métrico Riemanniano ($G_{\mu\nu}$). Esto equivale a recuperar los vectores semánticos midiendo la **Distancia de Mahalanobis**, donde los hallazgos son ponderados por la matriz de covarianza que refleja el riesgo estructural y financiero del proyecto en tiempo real. Un "socavón lógico" en el acero dolerá exponencialmente más en el reporte narrativo si el modelo financiero exhibe alta volatilidad estructural.
 B. Mecánica Estadística del Veredicto: El Límite Termodinámico del Retículo de Severidad
-El Intérprete no tiene libre albedrío deductivo para decidir si el proyecto es viable; actúa como un proyector semántico estrictamente subordinado a la matemática y la Ley de Clausura Transitiva de la pirámide DIKW ($V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$).
+El Intérprete no tiene libre albedrío deductivo para decidir si el proyecto es viable; actúa como un proyector semántico estrictamente subordinado a la matemática y la Ley de Clausura Transitiva de la pirámide DIKW (tabla canónica: $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$).
 
-Para evitar la paradoja algebraica de poseer simultáneamente un colapso discreto duro y una transición convexa suave en el mismo estado del espacio de fase, el veredicto del Intérprete se modela estrictamente bajo los principios de la **Mecánica Estadística**. El espacio de decisión opera sobre un Retículo Algebraico Acotado ($\bot \le Veredicto \le \top$), pero la probabilidad del dictamen es gobernada por una Distribución de Softmax / Gibbs, parametrizada por la Temperatura Termodinámica del sistema ($T_{sys}$):
+Para evitar la paradoja algebraica de poseer simultáneamente un colapso discreto duro y una transición convexa suave en el mismo estado del espacio de fase, el veredicto del Intérprete se modela estrictamente bajo los principios de la **Mecánica Estadística**. El espacio de decisión opera sobre un Retículo Algebraico Acotado ($\bot \le \text{Veredicto} \le \top$), pero la probabilidad del dictamen es gobernada por una Distribución de Softmax / Gibbs, parametrizada por la **Temperatura de Gobernanza** $T_{\text{gov}}$:
 
-$$P(Veredicto_i) = \frac{\exp\left(-\frac{E_i}{k_B T_{sys}}\right)}{\sum_j \exp\left(-\frac{E_j}{k_B T_{sys}}\right)}$$
+$$P(\text{Veredicto}_i) = \frac{\exp\left(-\frac{E_i}{k_B T_{\text{gov}}}\right)}{\sum_j \exp\left(-\frac{E_j}{k_B T_{\text{gov}}}\right)}$$
 
 Donde $E_i$ representa la energía de frustración topológica (Energía de Dirichlet) de un estado dado. La transición de fase es matemáticamente continua y diferenciable, evitando la inestabilidad de límite (*Chattering Topológico*) cuando índices como la estabilidad piramidal $\Psi$ oscilan infinitesimalmente.
 
+**Axioma de Temperatura Dual (M5):**
+El sistema opera bajo dos temperaturas independientes:
+
+$$T_{\text{market}} \in \mathbb{R}^+ \quad \text{(exógena — volatilidad del mercado)}$$
+$$T_{\text{gov}} := \begin{cases} 0 & \text{si } \exists \text{ invariante de veto duro activo: } P_{\text{diss}} < 0,\, \beta_1^- > 0,\, \Psi < \Psi_{\min},\, \sigma > 0,\, |\mu_k| > 1 \\ T_{\text{market}} & \text{en caso contrario} \end{cases}$$
+
+Cuando $T_{\text{gov}} = 0$, el Supremo $\top$ (RECHAZO) es **forzado determinísticamente** sin consultar la distribución de Gibbs — el Fast-Fail es irreversible. Cuando $T_{\text{gov}} = T_{\text{market}}$, la distribución de Gibbs opera normalmente produciendo veredictos probabilísticos continuos. Esto elimina la paradoja de querer $T_{\text{sys}} \to 0$ instanttáneamente bajo veto (exigencia determinísta) sin forzar $T_{\text{market}} = 0$ (lo cual es imposible en un mercado real).
+
 **El Operador Supremo ($\sqcup$) como Comportamiento Asintótico:**
-Se especifica axiomáticamente que la operación discreta Supremo ($\top \sqcup \bot = \top$) se recupera *únicamente* como el comportamiento asintótico del sistema cuando la temperatura tiende al cero absoluto ($T_{sys} \to 0$). Es decir, en un mercado de certidumbre absoluta y riesgo cero, la transición convexa colapsa en el escalón de Heaviside determinista estricto del retículo, erradicando matemáticamente cualquier alucinación estocástica de los LLMs en regímenes de alta severidad.
+Se especifica axiomáticamente que la operación discreta Supremo ($\top \sqcup \bot = \top$) se recupera *únicamente* como el comportamiento asintótico del sistema cuando $T_{\text{gov}} \to 0$. Es decir, en presencia de veto duro o mercado de certidumbre absoluta y riesgo cero, la transición convexa colapsa en el escalón de Heaviside determinísta estricto del retículo, erradicando matemáticamente cualquier alucinación estocástica de los LLMs en regímenes de alta severidad.
 
 --------------------------------------------------------------------------------
 4. El Protocolo de Emisión: Actas de Deliberación ("Caja de Cristal")

@@ -51,9 +51,13 @@ graph TD
 ```
 
 
- Implementamos la Matriz de Interacción Central (MIC) alojada en `app/adapters/tools_interface.py` como una Matriz Identidad ortogonal ($I_n$) que rige la independencia lineal de los agentes, asegurando un teorema de Rango-Nulidad estricto para prevenir dependencias cruzadas (Zero Side-Effects).
+ Implementamos la **Matriz de Interacción Central (MIC)**, alojada en `app/adapters/tools_interface.py`, como una matriz de adyacencia ponderada del grafo de deliberación:
+$$\text{MIC} \in \mathbb{R}^{n \times n}, \quad \text{MIC}_{ij} = w_{ij} \in [0,1]$$
+donde $w_{ij}$ es el peso del canal de información del Sabio $j$ al Sabio $i$. La **independencia Zero Side-Effects** se garantiza mediante la condición de rango completo:
+$$\text{rank}(\text{MIC}) = n \quad \Leftrightarrow \quad \ker(\text{MIC}) = \{\mathbf{0}\}$$
+esto asegura que ningún agente es linealmente dependiente de otro (información colíneal nula). El Teorema de Rango-Nulidad garantiza $\dim(\ker(\text{MIC})) = 0$: no existen agentes "parásitos". **Nota:** La MIC no puede ser la Matriz Identidad $I_n$, pues ello implicaría agentes estrictamente desacoplados, lo cual contradice el protocolo de deliberación adversarial RiskChallenger donde los Sabios interactúan y producen veredictos por tensión dialéctica.
 
-Todo este diseño obedece al cimiento axiomático de la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$. Resulta imperativo destacar que el estrato $V_{TACTICS}$ ahora modela la materia bariónica sobre el anillo de los enteros ($\mathbb{Z}$), sujetando la logística a una estricta fricción cuantizada.
+Todo este diseño obedece al cimiento axiomático de la **Ley de Clausura Transitiva de la pirámide DIKW** (tabla canónica): $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$. Resulta imperativo destacar que el estrato $V_{\mathbb{T}}$ ahora modela la materia bariónica como un **2-complejo simplicial** sobre el anillo de los enteros ($\mathbb{Z}$), capturando no solo dependencias binarias (aristas) sino interdependencias ternarias (triángulos) con fricción cuantizada.
 
 --------------------------------------------------------------------------------
 2. Los Horizontes de Evolución: La Arquitectura Concéntrica
