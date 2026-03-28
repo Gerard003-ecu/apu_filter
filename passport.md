@@ -19,13 +19,15 @@ Registra las variables de estado termodinámico y electromagnético de los datos
     dissipated_power (Pdiss​): Verifica la Segunda Ley de la Termodinámica. Si es negativa, indica inyección de datos artificiales.
     flyback_voltage (Vfb​): "Picos de Inestabilidad". Mide cambios abruptos en la codificación o formato. Si Vfb​>5.0V, se declara "Flujo Turbulento".
     entropy (S): Medida del desorden estructural del texto. Entropía térmica destructiva levanta las defensas perimetrales.
+    quantized_friction (Tor(H_0, Z)): Captura obligatoriamente la fricción de cuantización logística que el sistema disipa como remanente isoperimétrico.
 
 2.2. Sello Topológico (Emitido por: El Arquitecto)
-Describe la geometría abstracta del Complejo Simplicial del presupuesto.
+Describe la geometría abstracta del Complejo Simplicial del presupuesto y su lente gravitacional.
 
     beta_0 (β0​): Fragmentación. Si β0​>1, existen "Islas de Datos" (recursos huérfanos).
     beta_1 (β1​): Ciclos. Si β1​>0, existen "Socavones Lógicos" (dependencias circulares insalvables).
     pyramid_stability (Ψ): Índice de resiliencia logística. Si Ψ<1.0, el pasaporte estampa el sello crítico de PIRÁMIDE INVERTIDA.
+    renormalized_inertial_drag (m**): Documenta el arrastre de masa inercial renormalizada que deforma el espacio de fase, evidenciando un anclaje logístico severo en el presupuesto.
 
 2.3. Visado Espectral (Emitido por: El Oráculo de Laplace)
 Certifica la viabilidad dinámica y financiera en la frecuencia compleja (s=σ+jω).

@@ -1,4 +1,4 @@
-🏰 APU_filter v4.0: La Fortaleza Matemática
+🏰 APU_filter v4.0: Reactor Port-Hamiltoniano de Valor (Variedad Agéntica de Gauge)
 
 ## La Arquitectura Ciber-Física DIKΩαW
 
@@ -48,15 +48,18 @@ graph TD
 
 Sistema Operativo Ciber-Físico para la Gobernanza de Presupuestos e Infraestructura
 "En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica del mercado en un activo de gobernanza gobernable, inmutable y auditable."
-🧬 1. El Manifiesto del Sistema: De la Estática a la Fortaleza
-Históricamente, la ingeniería y construcción han gestionado el riesgo de capital mediante "fotos estáticas" (archivos Excel, PDFs o ERPs tradicionales). APU_filter rechaza ese paradigma.
-Implementamos una arquitectura de Malla Agéntica (Agentic Mesh) Zero-Trust, donde la Inteligencia Artificial (LLMs) ha sido destituida de su autoridad ejecutiva. Aquí, la IA opera exclusivamente como una interfaz de traducción ("La Ciudadela de Cristal"), mientras que las decisiones están blindadas por leyes inmutables de la termodinámica, la topología algebraica y la teoría de control evaluadas en silicio. No procesamos archivos; simulamos la resistencia de su negocio ante la entropía.
+
+🧬 1. El Manifiesto del Sistema: El Reactor Port-Hamiltoniano de Valor
+Históricamente, la ingeniería y construcción han gestionado el riesgo de capital mediante "fotos estáticas" (archivos Excel, PDFs o ERPs tradicionales). APU_filter rechaza ese paradigma de "fortaleza estática".
+El sistema se redefine axiomáticamente como una **Variedad Agéntica de Gauge**. No oponemos resistencia estática a los datos mediante barreras de Dirichlet pasivas; procesamos la cadena de suministro como un fluido logístico incompresible bajo el control estricto de una **Estructura de Dirac**. Las decisiones están blindadas por leyes inmutables de la termodinámica, la topología algebraica y la teoría de control evaluadas en silicio. Todo proceso garantiza matemáticamente que la potencia disipada cumpla $P_{diss} \ge 0$.
+A su vez, el acrónimo APU se cuantiza formalmente: ya no es una "Agentic Processing Unit", sino una **Agentic Power Unit**. Se define como el "cuanto de acción termodinámica" de la malla; una celda unitaria discreta que inyecta exergía computacional para vencer la inercia logística del mercado.
 
 --------------------------------------------------------------------------------
 🛡️ 2. Arquitectura Concéntrica: Los Cuatro Estratos (Jerarquía DIKΩαW)
-El ecosistema no confía en validaciones de código condicional (if-else). Protege el proyecto a través de cuatro barreras matemáticas concéntricas fundamentadas en la Ley de Clausura Transitiva (VPHYSICS​⊂VTACTICS​⊂VSTRATEGY​⊂VWISDOM​).
+El ecosistema no confía en validaciones de código condicional (if-else). Protege el proyecto a través de cuatro barreras matemáticas concéntricas fundamentadas en la Ley de Clausura Transitiva ($V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$). Es fundamental explicitar que el estrato $V_{TACTICS}$ ahora modela la materia bariónica sobre el anillo de los enteros ($\mathbb{Z}$), sujetando la logística a una fricción cuantizada.
+
 🌊 Estrato 3: El Foso Termodinámico (Física y Datos)
-Ningún dato entra a la fortaleza sin someterse a las leyes de la termodinámica y el electromagnetismo.
+Ningún dato penetra en la variedad sin someterse a las leyes de la termodinámica y el electromagnetismo.
 
     El Motor (FluxCondenser): Trata la ingesta de archivos CSV/Excel como un fluido dentro de un circuito RLC modelado mediante Sistemas Port-Hamiltonianos (PHS).
     Veto Físico: Exige que la Potencia Disipada sea positiva (Pdiss​≥0). Una disipación negativa implica entropía destructiva o datos corruptos, cerrando el puente levadizo en el milisegundo cero.

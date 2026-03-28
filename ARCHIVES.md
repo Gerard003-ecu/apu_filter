@@ -52,10 +52,11 @@ Estructura del Acta: Expone la tensión dialéctica donde la matemática colapsa
 4. 🛡️ La Bitácora de Gobernanza (Compliance Ledger)
 
     Fuente: Generado por el GovernanceEngine bajo un ecosistema de Gobernanza Federada.
-    Concepto: Un registro de auditoría inmutable basado en el paradigma de Política como Código (Policy-as-Code).
+    Concepto: Un registro de auditoría inmutable basado en el paradigma de Política como Código (Policy-as-Code). Se documenta el mecanismo de aniquilación topológica en la RAM.
 
 Atributos de Auditoría:
 
+    Fotón Gamma de Auditoría: La Bitácora registrará inmutablemente la emisión del Fotón Gamma, desencadenada por una Ruptura de Simetría Exógena. Almacena el `data_hash` y el `timestamp_entry` exactos, probando criptográficamente que la colisión de invalidación (aniquilación de un ElectronCartridge en memoria) fue ejecutada por el libre albedrío del Meta-Controlador (human-in-the-loop) y no por una alucinación estocástica de un agente.
     Contratos de Datos Estrictos: Verifica mediante JSON Schema si las importaciones crudas (ej. Insumos.csv) cumplen con la estructura formal (VPHYSICS​) dictada por la oficina central de la compañía. Genera un sello de Pass/Fail inquebrantable.
     Traza de Linaje (OpenLineage): Mapeo topológico completo de las transformaciones del dato. Rastrea desde la ingesta cruda del flujo hasta el cálculo de los KPIs. Garantiza que el agente de IA no ha alucinado ni "inventado" ningún número.
 

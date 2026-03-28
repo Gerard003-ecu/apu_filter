@@ -4,7 +4,7 @@ Este documento define la arquitectura de creación, entrega y captura de valor d
 
 Todo este andamiaje estratégico se rige axiomáticamente por la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$. Sin la validación termodinámica y topológica de los estratos subyacentes, la estrategia corporativa carece de dominio sobre la materia.
 
-A continuación, se desglosan rigurosamente los 9 bloques del modelo estructurado para "La Fortaleza Matemática":
+A continuación, se desglosan rigurosamente los 9 bloques del modelo estructurado para el "Reactor Port-Hamiltoniano de Valor":
 
 --------------------------------------------------------------------------------
 1. 👥 Segmentos de Cliente (Customer Segments)
