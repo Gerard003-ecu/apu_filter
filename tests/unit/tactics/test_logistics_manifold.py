@@ -46,7 +46,7 @@ import scipy.sparse as sp
 
 # ── Importaciones del módulo bajo prueba ─────────────────────────────────
 # Ajustar la ruta de importación según la estructura del proyecto.
-from app.core.tactics.logistics_manifold import (
+from app.tactics.logistics_manifold import (
     ContinuityReport,
     CycleData,
     HodgeDecomposition,
@@ -328,9 +328,9 @@ class TestValidation:
     def test_sanitize_metric_identity_when_none(self, manifold: LogisticsManifold):
         """Sin tensor → debe retornar identidad 3x3 (o fallback)."""
         with patch(
-            "app.core.tactics.logistics_manifold.G_PHYSICS", None
+            "app.tactics.logistics_manifold.G_PHYSICS", None
         ), patch(
-            "app.core.tactics.logistics_manifold.MetricTensorFactory"
+            "app.tactics.logistics_manifold.MetricTensorFactory"
         ) as mock_factory:
             mock_factory.build.side_effect = Exception("no factory")
             metric = manifold._sanitize_metric(None)
@@ -511,7 +511,7 @@ class TestCycleMatrix:
     ):
         """Grafo camino (árbol): β₁ = 0, C tiene 0 columnas."""
         inc = manifold._build_incidence_matrix(simple_path_graph)
-        cyc = manifold._build_cycle_matrix(simple_path_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(simple_path_graph, inc.edge_idx, inc.B1)
         assert cyc.betti_1 == 0
         assert cyc.C.shape[1] == 0
         assert cyc.rank == 0
@@ -521,7 +521,7 @@ class TestCycleMatrix:
     ):
         """Triángulo: β₁ = 3 - 3 + 1 = 1."""
         inc = manifold._build_incidence_matrix(triangle_graph)
-        cyc = manifold._build_cycle_matrix(triangle_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(triangle_graph, inc.edge_idx, inc.B1)
         assert cyc.betti_1 == 1
         assert cyc.rank == 1
 
@@ -530,7 +530,7 @@ class TestCycleMatrix:
     ):
         """Diamante: β₁ = 4 - 4 + 1 = 1."""
         inc = manifold._build_incidence_matrix(diamond_graph)
-        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx, inc.B1)
         assert cyc.betti_1 == 1
         assert cyc.rank == 1
 
@@ -541,7 +541,7 @@ class TestCycleMatrix:
         Verifica β₁ = m - n + c para la grilla.
         """
         inc = manifold._build_incidence_matrix(large_grid_graph)
-        cyc = manifold._build_cycle_matrix(large_grid_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(large_grid_graph, inc.edge_idx, inc.B1)
         n = large_grid_graph.number_of_nodes()
         m = large_grid_graph.number_of_edges()
         c = nx.number_connected_components(large_grid_graph.to_undirected())
@@ -556,7 +556,7 @@ class TestCycleMatrix:
         Es decir, B₁ C = 0.
         """
         inc = manifold._build_incidence_matrix(diamond_graph)
-        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx, inc.B1)
         product = inc.B1 @ cyc.C
         product_dense = product.toarray()
         np.testing.assert_array_almost_equal(
@@ -569,7 +569,7 @@ class TestCycleMatrix:
     ):
         """Grafo desconexo sin ciclos: β₁ = 2 - 4 + 2 = 0."""
         inc = manifold._build_incidence_matrix(disconnected_graph)
-        cyc = manifold._build_cycle_matrix(disconnected_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(disconnected_graph, inc.edge_idx, inc.B1)
         assert cyc.betti_1 == 0
 
 
@@ -714,7 +714,7 @@ class TestHodgeDecomposition:
     ):
         """f_grad + f_curl + f_harm = f (identidad de descomposición)."""
         inc = manifold._build_incidence_matrix(diamond_graph)
-        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx, inc.B1)
         f = np.array([
             diamond_graph.edges[e]["flow"] for e in inc.edges
         ], dtype=float)
@@ -731,7 +731,7 @@ class TestHodgeDecomposition:
     ):
         """Ortogonalidad mutua de las tres componentes."""
         inc = manifold._build_incidence_matrix(diamond_graph)
-        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx, inc.B1)
         f = np.array([
             diamond_graph.edges[e]["flow"] for e in inc.edges
         ], dtype=float)
@@ -746,7 +746,7 @@ class TestHodgeDecomposition:
     ):
         """‖f‖² = ‖f_grad‖² + ‖f_curl‖² + ‖f_harm‖²."""
         inc = manifold._build_incidence_matrix(diamond_graph)
-        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx, inc.B1)
         f = np.array([
             diamond_graph.edges[e]["flow"] for e in inc.edges
         ], dtype=float)
@@ -764,7 +764,7 @@ class TestHodgeDecomposition:
     ):
         """f_grad ∈ Im(B₁ᵀ)."""
         inc = manifold._build_incidence_matrix(diamond_graph)
-        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx, inc.B1)
         f = np.array([
             diamond_graph.edges[e]["flow"] for e in inc.edges
         ], dtype=float)
@@ -777,7 +777,7 @@ class TestHodgeDecomposition:
     ):
         """f_curl ∈ Im(C) cuando β₁ > 0."""
         inc = manifold._build_incidence_matrix(triangle_graph)
-        cyc = manifold._build_cycle_matrix(triangle_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(triangle_graph, inc.edge_idx, inc.B1)
         f = np.array([
             triangle_graph.edges[e]["flow"] for e in inc.edges
         ], dtype=float)
@@ -791,7 +791,7 @@ class TestHodgeDecomposition:
     ):
         """f = 0 ⟹ f_grad = f_curl = f_harm = 0."""
         inc = manifold._build_incidence_matrix(diamond_graph)
-        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx, inc.B1)
         f = np.zeros(len(inc.edges))
 
         hodge = manifold._compute_hodge_decomposition(f, inc.B1, cyc.C)
@@ -808,7 +808,7 @@ class TestHodgeDecomposition:
             f_curl = 0, f_harm = 0.
         """
         inc = manifold._build_incidence_matrix(simple_path_graph)
-        cyc = manifold._build_cycle_matrix(simple_path_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(simple_path_graph, inc.edge_idx, inc.B1)
         f = np.array([
             simple_path_graph.edges[e]["flow"] for e in inc.edges
         ], dtype=float)
@@ -827,7 +827,7 @@ class TestHodgeDecomposition:
         Entonces f_grad = 0 y f_curl = f (módulo componente armónica).
         """
         inc = manifold._build_incidence_matrix(triangle_graph)
-        cyc = manifold._build_cycle_matrix(triangle_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(triangle_graph, inc.edge_idx, inc.B1)
         f = np.array([1.0, 1.0, 1.0])
 
         hodge = manifold._compute_hodge_decomposition(f, inc.B1, cyc.C)
@@ -842,7 +842,7 @@ class TestHodgeDecomposition:
     ):
         """El defecto de ortogonalidad debe ser un float no negativo."""
         inc = manifold._build_incidence_matrix(diamond_graph)
-        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx, inc.B1)
         f = np.array([3.0, 2.0, 3.0, 2.0])
 
         hodge = manifold._compute_hodge_decomposition(f, inc.B1, cyc.C)
@@ -858,7 +858,7 @@ class TestHodgeDecomposition:
         Verifica escalabilidad y corrección numérica.
         """
         inc = manifold._build_incidence_matrix(large_grid_graph)
-        cyc = manifold._build_cycle_matrix(large_grid_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(large_grid_graph, inc.edge_idx, inc.B1)
 
         rng = np.random.default_rng(42)
         f = rng.standard_normal(len(inc.edges))
@@ -1552,7 +1552,7 @@ class TestEdgeCasesAndRobustness:
     ):
         """Todas las aristas con flow=0 debe dar descomposición trivial."""
         inc = manifold._build_incidence_matrix(diamond_graph)
-        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx)
+        cyc = manifold._build_cycle_matrix(diamond_graph, inc.edge_idx, inc.B1)
         f = np.zeros(len(inc.edges))
         hodge = manifold._compute_hodge_decomposition(f, inc.B1, cyc.C)
         assert hodge.total_energy == pytest.approx(0.0)
