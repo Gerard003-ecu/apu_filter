@@ -17,11 +17,25 @@ import os
 import sys
 
 import pytest
+import tempfile
 
 # Garantiza que el paquete raíz del proyecto sea resoluble sin instalación.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.app import create_app
+
+@pytest.fixture(scope="module", autouse=True)
+def sterile_logging_environment():
+    """
+    Anestesia el sistema de archivos inyectando un directorio temporal.
+    Garantiza que setup_logging no intente proyectar sobre el disco local.
+    """
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        # Inyectamos la variable de entorno para redirigir los logs
+        os.environ["APU_LOG_DIR"] = tmpdirname
+        yield
+        # El cierre del contexto destruye el directorio temporal,
+        # preservando la pureza de estado (Idempotencia).
 
 
 @pytest.fixture(scope="module")
