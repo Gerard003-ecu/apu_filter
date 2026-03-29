@@ -1781,10 +1781,13 @@ class PortHamiltonianController:
         J_ef = (-1.0 / eps) * calc.boundary2
         J_fe = (1.0 / mu) * calc.boundary2.T
 
-        return bmat([
+        J_raw = bmat([
             [zero_ee, J_ef],
             [J_fe, zero_ff]
         ], format='csr')
+
+        # Proyección coercitiva para garantizar antisimetría estricta
+        return 0.5 * (J_raw - J_raw.T)
 
     def _build_dissipation(self) -> sparse.csr_matrix:
         """
