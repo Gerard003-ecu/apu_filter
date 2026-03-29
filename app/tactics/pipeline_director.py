@@ -473,6 +473,9 @@ class StateVector:
     """
     
     # Datos físicos (Stratum.PHYSICS)
+    presupuesto_path: Optional[str] = None
+    apus_path: Optional[str] = None
+    insumos_path: Optional[str] = None
     df_presupuesto: Optional[pd.DataFrame] = None
     df_insumos: Optional[pd.DataFrame] = None
     df_apus_raw: Optional[pd.DataFrame] = None
@@ -1374,11 +1377,11 @@ class LoadDataStep(BaseProcessingStep):
         mic: MICRegistry,
     ) -> StateVector:
         """Ejecuta carga."""
-        # Acceder a paths desde raw_config o contexto
+        # Acceder a paths desde el estado (inyección en initial_context) o raw_config temporal
         config_dict = self.config.raw_config
-        presupuesto_path = config_dict.get("presupuesto_path")
-        apus_path = config_dict.get("apus_path")
-        insumos_path = config_dict.get("insumos_path")
+        presupuesto_path = state.presupuesto_path or config_dict.get("presupuesto_path")
+        apus_path = state.apus_path or config_dict.get("apus_path")
+        insumos_path = state.insumos_path or config_dict.get("insumos_path")
         
         if not all([presupuesto_path, apus_path, insumos_path]):
             raise PreconditionError(
