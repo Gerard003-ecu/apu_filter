@@ -1387,9 +1387,25 @@ class TestThreadSafety:
 
         def create_condenser():
             try:
-                with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
-                    MockOracle.return_value.validate_for_control_design.return_value = oracle_approves
-                    MockOracle.return_value.analyze_stability.return_value = {"continuous": {"natural_frequency_rad_s": 1.0, "damping_ratio": 1.0, "damping_class": "critical"}, "stability_margins": {"phase_margin_deg": 60.0}}
+                def _validate_side_effect(*args, **kwargs):
+                    return oracle_approves
+
+                def _analyze_side_effect(*args, **kwargs):
+                    return {
+                        "continuous": {
+                            "natural_frequency_rad_s": 1.0,
+                            "damping_ratio": 1.0,
+                            "damping_class": "critical"
+                        },
+                        "stability_margins": {"phase_margin_deg": 60.0}
+                    }
+                with patch(
+                    "app.physics.flux_condenser.LaplaceOracle",
+                    **{
+                        "return_value.validate_for_control_design.side_effect": _validate_side_effect,
+                        "return_value.analyze_stability.side_effect": _analyze_side_effect
+                    }
+                ):
                     condenser = make_condenser(stable_config)
                     with lock:
                         results.append(condenser)
@@ -1416,32 +1432,25 @@ class TestThreadSafety:
         errors: List[Exception] = []
         lock = threading.Lock()
 
-        def create_for_system(system: RLCSystemSpec):
+        def instantiate_stable():
+            return make_condenser(STABLE_SYSTEM.to_condenser_config())
+
+        def instantiate_unstable():
             try:
-                with patch("app.physics.flux_condenser.LaplaceOracle") as MockOracle:
-                    MockOracle.return_value.validate_for_control_design.return_value = oracle_approves
-                    MockOracle.return_value.analyze_stability.return_value = {"continuous": {"natural_frequency_rad_s": 1.0, "damping_ratio": 1.0, "damping_class": "critical"}, "stability_margins": {"phase_margin_deg": 60.0}}
-                    condenser = make_condenser(system.to_condenser_config())
-                    with lock:
-                        results[system.name] = condenser
-            except Exception as e:
-                with lock:
-                    errors.append(e)
+                make_condenser(UNSTABLE_HIGH_KP.to_condenser_config())
+                return False
+            except ConfigurationError:
+                return True
 
-        # Usar solo sistemas estables
-        stable_systems = [STABLE_SYSTEM, CRITICAL_SYSTEM, UNDERDAMPED_SYSTEM]
-        
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            futures = [
-                executor.submit(create_for_system, system)
-                for system in stable_systems
-                for _ in range(3)  # 3 instancias por sistema
-            ]
-            for future in as_completed(futures):
-                future.result()
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            f1 = executor.submit(instantiate_stable)
+            f2 = executor.submit(instantiate_unstable)
 
-        assert not errors
-        assert len(results) == len(stable_systems)
+            condenser_stable = f1.result()
+            caught_unstable = f2.result()
+
+            assert condenser_stable is not None, "El sistema estable fue corrompido por el hilo inestable."
+            assert caught_unstable is True, "El sistema inestable evadió el Veto de Laplace."
 
 
 # ══════════════════════════════════════════════════════════════════════════════
