@@ -3280,10 +3280,12 @@ class DataFluxCondenser:
             self.logger.info("🔬 Iniciando Análisis de Laplace Mejorado...")
 
             try:
+                # Modificado para inyectar pid_kp de la configuración, necesario para evaluación dinámica
                 self.laplace_analyzer = LaplaceOracle(
                     R=self.condenser_config.base_resistance,
                     L=self.condenser_config.system_inductance,
                     C=self.condenser_config.system_capacitance,
+                    pid_kp=self.condenser_config.pid_kp,
                     sample_rate=getattr(self.condenser_config, 'sample_rate', 1000.0)
                 )
             except OracleConfigurationError as e:
