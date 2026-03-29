@@ -143,4 +143,4 @@ STOPSIGNAL SIGTERM
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:5002/health || exit 1
 
-CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5002", "--timeout", "300", "--preload", "wsgi:app"]
+CMD ["gunicorn", "--worker-tmp-dir", "/dev/shm", "--no-control-socket", "--workers", "4", "--bind", "0.0.0.0:5002", "--timeout", "300", "--preload", "wsgi:app"]
