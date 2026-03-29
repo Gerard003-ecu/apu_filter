@@ -1427,30 +1427,73 @@ class TestThreadSafety:
         self,
         oracle_approves: Dict[str, Any],
     ) -> None:
-        """Instanciaciones concurrentes con diferentes configs."""
-        results: Dict[str, DataFluxCondenser] = {}
-        errors: List[Exception] = []
-        lock = threading.Lock()
+        """
+        Aserción de ortogonalidad funcional bajo presión concurrente.
+        Garantiza que la evaluación espectral de un hilo no contamina el colector del otro.
+        """
+        stable_spec = RLCSystemSpec(capacitance_F=5000.0, resistance_ohm=10.0, inductance_H=2.0, pid_kp=2.0)
+        unstable_spec = RLCSystemSpec(capacitance_F=5000.0, resistance_ohm=10.0, inductance_H=2.0, pid_kp=2000.0)
+
+        # 1. Construcción del Difeomorfismo Dinámico (Oráculo Sensible)
+        def dynamic_oracle_builder(*args, **kwargs):
+            instance = MagicMock()
+
+            def evaluate_stability():
+                # Extracción robusta de K_p desde los kwargs de inicialización del mock
+                # Dado que LaplaceOracle se inicializa con (R, L, C, pid_kp), lo sacamos de args/kwargs
+                kp = kwargs.get('pid_kp', 1.0)
+                if not kwargs and len(args) >= 4:
+                    kp = args[3]
+
+                # Bifurcación topológica: Si la ganancia destruye el margen de fase, aplicar Veto.
+                if kp > 100.0:
+                    return {
+                        "is_suitable_for_control": False,
+                        "issues": ["Margen de fase insuficiente (28.0° < 30°)"],
+                        "summary": "NO APTO - 1 problemas críticos",
+                        "warnings": []
+                    }
+                return {
+                    "is_suitable_for_control": True,
+                    "issues": [],
+                    "summary": "Sistema estable y apto para control",
+                    "warnings": []
+                }
+
+            def analyze_stability():
+                # Proyección nominal para evitar fallos de formateo en el logger
+                return {
+                    "continuous": {"natural_frequency_rad_s": 1.0, "damping_ratio": 1.0, "damping_class": "critical"},
+                    "stability_margins": {"phase_margin_deg": 60.0}
+                }
+
+            instance.validate_for_control_design.side_effect = evaluate_stability
+            instance.analyze_stability.side_effect = analyze_stability
+            return instance
 
         def instantiate_stable():
-            return make_condenser(STABLE_SYSTEM.to_condenser_config())
+            return make_condenser_from_spec(stable_spec)
 
         def instantiate_unstable():
             try:
-                make_condenser(UNSTABLE_HIGH_KP.to_condenser_config())
+                make_condenser_from_spec(unstable_spec)
                 return False
             except ConfigurationError:
                 return True
 
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            f1 = executor.submit(instantiate_stable)
-            f2 = executor.submit(instantiate_unstable)
+        # 2. Confinamiento del Espacio de Hilbert (Aislamiento de Mocks)
+        # Usamos patch como context manager para asegurar que NINGÚN mock de clase
+        # superior contamine este experimento concurrente.
+        with patch("app.physics.flux_condenser.LaplaceOracle") as mock_oracle_class:
+            mock_oracle_class.side_effect = dynamic_oracle_builder
 
-            condenser_stable = f1.result()
-            caught_unstable = f2.result()
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                f1 = executor.submit(instantiate_stable)
+                f2 = executor.submit(instantiate_unstable)
 
-            assert condenser_stable is not None, "El sistema estable fue corrompido por el hilo inestable."
-            assert caught_unstable is True, "El sistema inestable evadió el Veto de Laplace."
+                # Aserciones Matemáticas de Aislamiento
+                assert f1.result() is not None, "Fuga dimensional: el sistema estable colapsó por interferencia."
+                assert f2.result() is True, "El sistema inestable evadió el Veto de Laplace debido a un error de oráculo."
 
 
 # ══════════════════════════════════════════════════════════════════════════════
