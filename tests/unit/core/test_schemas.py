@@ -1,21 +1,22 @@
 """
-Suite de pruebas rigurosas para schemas.py
+Suite de pruebas rigurosas para ``app.core.schemas``.
 
 Cobertura:
-  [T1] Enumeraciones: orden, dependencias, métodos
-  [T2] Normalización: idempotencia, casos límite
-  [T3] Validadores: numéricos, strings, híbridos
-  [T4] Invariantes: (I1-I6) formales
-  [T5] InsumoProcesado: construcción, validación, serialización
-  [T6] Subclases: especialización y comportamiento
-  [T7] APUStructure: topología, entropía, estabilidad
-  [T8] Factory: resolución de tipos, pipelines
-  [T9] Edge cases: degeneración, overflow, casos límite
-  [T10] Integración end-to-end
+    [T1] Enumeraciones: orden, dependencias, métodos.
+    [T2] Normalización: idempotencia, casos límite.
+    [T3] Validadores: numéricos, strings, híbridos.
+    [T4] Invariantes: (I1-I6) formales.
+    [T5] InsumoProcesado: construcción, validación, serialización.
+    [T6] Subclases: especialización y comportamiento.
+    [T7] APUStructure: topología, entropía, estabilidad.
+    [T8] Factory: resolución de tipos, pipelines.
+    [T9] Edge cases: degeneración, overflow, casos límite.
+    [T10] Integración end-to-end.
 
-Ejecutar:
-    pytest test_schemas.py -v --tb=short
-    pytest test_schemas.py -v --cov=schemas --cov-report=html
+Ejecutar::
+
+    pytest tests/unit/core/test_schemas.py -v --tb=short
+    pytest tests/unit/core/test_schemas.py -v --cov=app.core.schemas --cov-report=html
 """
 
 from __future__ import annotations

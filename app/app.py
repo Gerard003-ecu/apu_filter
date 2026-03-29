@@ -274,8 +274,13 @@ def setup_logging(app: Flask, log_file: str = "app.log") -> None:
         app: Instancia de Flask.
         log_file: Nombre del archivo de log.
     """
-    log_dir = Path("logs")
-    log_dir.mkdir(exist_ok=True)
+    # Ruta absoluta derivada de PYTHONPATH (ENV /app en Dockerfile) para
+    # garantizar que el RotatingFileHandler escriba al volumen montado
+    # /app/logs y no al CWD del proceso, que puede ser '/' en
+    # contenedores --read-only.
+    app_root = Path(os.environ.get("PYTHONPATH", "/app").split(os.pathsep)[0])
+    log_dir = app_root / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
 
     # Formato detallado con request_id
     file_formatter = logging.Formatter(
@@ -291,14 +296,26 @@ def setup_logging(app: Flask, log_file: str = "app.log") -> None:
 
     from logging.handlers import RotatingFileHandler
 
-    file_handler = RotatingFileHandler(
-        log_dir / log_file,
-        maxBytes=10 * 1024 * 1024,
-        backupCount=5,
-    )
-    file_handler.setFormatter(file_formatter)
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.addFilter(RequestIdFilter())
+    # Intentar configurar el handler de archivo. En contenedores con
+    # volúmenes --read-only o restricciones SELinux (:Z), el archivo de
+    # log puede no ser accesible en arranque; en ese caso se degrada
+    # elegantemente a solo stdout sin detener el proceso.
+    file_handler = None
+    try:
+        file_handler = RotatingFileHandler(
+            log_dir / log_file,
+            maxBytes=10 * 1024 * 1024,
+            backupCount=5,
+        )
+        file_handler.setFormatter(file_formatter)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.addFilter(RequestIdFilter())
+    except (PermissionError, OSError) as exc:
+        # El volumen no es accesible; se continúa solo con stdout.
+        logging.warning(
+            f"[setup_logging] No se pudo abrir el archivo de log "
+            f"'{log_dir / log_file}': {exc}. Logging solo a stdout."
+        )
 
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(console_formatter)
@@ -306,13 +323,16 @@ def setup_logging(app: Flask, log_file: str = "app.log") -> None:
     console_handler.addFilter(RequestIdFilter())
 
     app.logger.handlers.clear()
-    app.logger.addHandler(file_handler)
+    if file_handler is not None:
+        app.logger.addHandler(file_handler)
     app.logger.addHandler(console_handler)
     app.logger.setLevel(logging.DEBUG)
 
     root_logger = logging.getLogger()
     root_logger.handlers.clear()
-    root_logger.addHandler(file_handler)
+    if file_handler is not None:
+        root_logger.addHandler(file_handler)
+    root_logger.addHandler(console_handler)
     root_logger.addFilter(RequestIdFilter())
     root_logger.setLevel(logging.INFO)
 
@@ -1044,7 +1064,11 @@ def create_app(config_name: str) -> Flask:
     import redis
     from flask_session import Session
 
-    redis_url = app.config.get("REDIS_URL", "redis://localhost:6379/0")
+    redis_url = (
+        app.config.get("REDIS_URL")
+        or os.environ.get("REDIS_URL")
+        or "redis://redis:6379/0"
+    )
 
     try:
         redis_client = redis.from_url(redis_url, decode_responses=False)

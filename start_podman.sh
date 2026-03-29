@@ -115,7 +115,7 @@ readonly SAFE_DIR_PERMS="750"
 readonly SAFE_FILE_PERMS="640"
 
 # --- Health Check: configuración por defecto ---
-readonly DEFAULT_HEALTH_TIMEOUT=150     # Timeout total en segundos
+readonly DEFAULT_HEALTH_TIMEOUT=450     # Timeout total en segundos
 readonly HEALTH_INITIAL_INTERVAL=2      # Intervalo inicial entre reintentos
 readonly HEALTH_MAX_INTERVAL=15         # Intervalo máximo (backoff exponencial)
 # Factor de backoff escalado: 15 representa 1.5 (aritmética entera: i * 15 / 10)

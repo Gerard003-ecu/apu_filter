@@ -2,16 +2,18 @@
 Suite de pruebas exhaustivas para el módulo de simulación Monte Carlo.
 
 Esta suite cubre:
-- Configuración y validación de parámetros
-- Utilidades de sanitización y validación
-- Clases de resultados y métricas
-- Simulador principal con todas las distribuciones
-- Análisis de sensibilidad
-- Función de compatibilidad legacy
-- Tests de integración y propiedades matemáticas
+    - Configuración y validación de parámetros.
+    - Utilidades de sanitización y validación.
+    - Clases de resultados y métricas.
+    - Simulador principal con todas las distribuciones.
+    - Análisis de sensibilidad.
+    - Función de compatibilidad legacy.
+    - Tests de integración y propiedades matemáticas.
 
-Ejecutar con: pytest test_monte_carlo.py -v --tb=short
-Ejecutar con cobertura: pytest test_monte_carlo.py --cov=monte_carlo --cov-report=html
+Ejecutar con::
+
+    pytest tests/unit/core/test_models.py -v --tb=short
+    pytest tests/unit/core/test_models.py --cov=app.core.probability_models --cov-report=html
 """
 
 import logging

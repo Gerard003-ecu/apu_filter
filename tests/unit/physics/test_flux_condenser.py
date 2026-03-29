@@ -1,23 +1,23 @@
 """
-Suite de Pruebas para el `DataFluxCondenser` - Versión Refinada V6.
+Suite de pruebas para el ``DataFluxCondenser`` — Versión Refinada V6.
 
 Cobertura actualizada con mejoras en robustez matemática y física:
-- Invariantes Hamiltonianos y conservación de energía
-- Criterio de Jury con análisis de márgenes de estabilidad
-- Verificación de relación de Euler-Poincaré para Betti numbers
-- Filtro EMA con detección de anomalías y adaptación de varianza
-- Métricas de Lyapunov con regresión robusta (Theil-Sen)
-- Integración RK4 con verificación de orden de convergencia
-- Entropía de Rényi con verificación de propiedades axiomáticas
-- Estabilidad giroscópica con ecuaciones de Euler completas
-- EKF adaptativo con verificación de consistencia de innovaciones
-- Recuperación multinivel con garantías de progreso
+    - Invariantes Hamiltonianos y conservación de energía.
+    - Criterio de Jury con análisis de márgenes de estabilidad.
+    - Verificación de la relación de Euler-Poincaré para Betti numbers.
+    - Filtro EMA con detección de anomalías y adaptación de varianza.
+    - Métricas de Lyapunov con regresión robusta (Theil-Sen).
+    - Integración RK4 con verificación de orden de convergencia.
+    - Entropía de Rényi con verificación de propiedades axiomáticas.
+    - Estabilidad giroscópica con ecuaciones de Euler completas.
+    - EKF adaptativo con verificación de consistencia de innovaciones.
+    - Recuperación multinivel con garantías de progreso.
 
 Principios de diseño:
-- Cada test verifica una propiedad matemática específica
-- Valores de referencia derivados analíticamente cuando es posible
-- Tolerancias numéricas justificadas por análisis de error
-- Aislamiento completo entre pruebas
+    - Cada test verifica una propiedad matemática específica.
+    - Valores de referencia derivados analíticamente cuando es posible.
+    - Tolerancias numéricas justificadas por análisis de error.
+    - Aislamiento completo entre pruebas.
 """
 
 import math

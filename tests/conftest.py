@@ -1,9 +1,24 @@
+"""
+Configuración global de pytest para el ecosistema APU Filter.
+
+Este módulo define fixtures compartidas de alcance de módulo que
+proporcionan instancias de la aplicación Flask y un cliente HTTP
+de prueba aislado para cada suite de tests.
+
+Convenciones:
+    - ``scope="module"``: la instancia se reutiliza en todos los tests
+      del mismo módulo, lo que reduce el coste de inicialización.
+    - La inserción en ``sys.path`` garantiza la resolución de importaciones
+      relativas al paquete raíz del proyecto independientemente del
+      directorio de trabajo desde el que se invoque pytest.
+"""
+
 import os
 import sys
 
 import pytest
 
-# Añadir el directorio raíz al path para asegurar que los módulos se encuentren
+# Garantiza que el paquete raíz del proyecto sea resoluble sin instalación.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.app import create_app
@@ -11,16 +26,28 @@ from app.app import create_app
 
 @pytest.fixture(scope="module")
 def app():
-    """Crea y configura una nueva instancia de la aplicación para cada módulo de prueba."""
-    # Usar la configuración de 'testing'
-    app = create_app("testing")
+    """Crea y configura una nueva instancia de la aplicación para cada módulo de prueba.
 
-    # Establecer el contexto de la aplicación
-    with app.app_context():
-        yield app
+    Utiliza el perfil ``testing`` de la aplicación Flask para asegurar que
+    las opciones de depuración, caché y base de datos estén configuradas
+    de manera adecuada para el entorno de prueba.
+
+    Yields:
+        Flask: Instancia de la aplicación activa dentro de su contexto.
+    """
+    application = create_app("testing")
+    with application.app_context():
+        yield application
 
 
 @pytest.fixture(scope="module")
 def client(app):
-    """Un cliente de prueba para la aplicación."""
+    """Proporciona un cliente HTTP de prueba para la aplicación.
+
+    Args:
+        app: Fixture de la aplicación Flask.
+
+    Returns:
+        FlaskClient: Cliente de prueba listo para enviar peticiones.
+    """
     return app.test_client()
