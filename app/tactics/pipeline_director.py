@@ -1127,6 +1127,28 @@ class PipelineConfig:
             step_data = data.get("steps", {}).get(step.value, {})
             step_configs[step.value] = StepConfig.from_dict(step_data)
         
+        raw_recipe = data.get("pipeline_recipe")
+        parsed_recipe = None
+        if raw_recipe is not None:
+            parsed_recipe = []
+            for item in raw_recipe:
+                if isinstance(item, dict) and "step" in item:
+                    step_name = item["step"]
+                    parsed_recipe.append(step_name)
+                    if step_name in step_configs:
+                        old = step_configs[step_name]
+                        step_configs[step_name] = StepConfig(
+                            enabled=item.get("enabled", old.enabled),
+                            timeout_seconds=old.timeout_seconds,
+                            retry_count=old.retry_count,
+                            retry_delay_seconds=old.retry_delay_seconds,
+                            use_memoization=old.use_memoization,
+                        )
+                    else:
+                        step_configs[step_name] = StepConfig(enabled=item.get("enabled", True))
+                elif isinstance(item, str):
+                    parsed_recipe.append(item)
+        
         return cls(
             session=SessionConfig(
                 session_dir=Path(session_dir),
@@ -1135,7 +1157,7 @@ class PipelineConfig:
                 persist_on_error=bool(session_data.get("persist_on_error", True)),
             ),
             step_configs=step_configs,
-            recipe=data.get("pipeline_recipe"),
+            recipe=parsed_recipe,
             enforce_filtration=bool(data.get("enforce_filtration", True)),
             enforce_homology=bool(data.get("enforce_homology", HOMOLOGICAL_AUDIT_ENABLED)),
             file_profiles=data.get("file_profiles", {}),
