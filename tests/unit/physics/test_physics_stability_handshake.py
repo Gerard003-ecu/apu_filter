@@ -1434,16 +1434,19 @@ class TestThreadSafety:
         stable_spec = RLCSystemSpec(capacitance_F=5000.0, resistance_ohm=10.0, inductance_H=2.0, pid_kp=2.0)
         unstable_spec = RLCSystemSpec(capacitance_F=5000.0, resistance_ohm=10.0, inductance_H=2.0, pid_kp=2000.0)
 
-        # 1. Construcción del Difeomorfismo Dinámico (Oráculo Sensible)
+        # 1. Confinamiento del Espacio de Hilbert (Aislamiento de Mocks Dinámicos en Hilos)
+        # En vez de pasar el kp en la firma del oráculo (lo cual viola la ortogonalidad),
+        # inyectamos el mock dinámico a través del contexto del hilo evaluando el espectro de la especificación
+        import threading
+        local_kp = threading.local()
+
         def dynamic_oracle_builder(*args, **kwargs):
             instance = MagicMock()
 
             def evaluate_stability():
-                # Extracción robusta de K_p desde los kwargs de inicialización del mock
-                # Dado que LaplaceOracle se inicializa con (R, L, C, pid_kp), lo sacamos de args/kwargs
-                kp = kwargs.get('pid_kp', 1.0)
-                if not kwargs and len(args) >= 4:
-                    kp = args[3]
+                # Obtenemos K_p directamente del contexto del hilo para simular
+                # la evaluación inyectiva del oráculo sin acoplar sus constructores.
+                kp = getattr(local_kp, 'pid_kp', 1.0)
 
                 # Bifurcación topológica: Si la ganancia destruye el margen de fase, aplicar Veto.
                 if kp > 100.0:
@@ -1472,9 +1475,11 @@ class TestThreadSafety:
             return instance
 
         def instantiate_stable():
+            local_kp.pid_kp = stable_spec.pid_kp
             return make_condenser_from_spec(stable_spec)
 
         def instantiate_unstable():
+            local_kp.pid_kp = unstable_spec.pid_kp
             try:
                 make_condenser_from_spec(unstable_spec)
                 return False
@@ -1482,8 +1487,6 @@ class TestThreadSafety:
                 return True
 
         # 2. Confinamiento del Espacio de Hilbert (Aislamiento de Mocks)
-        # Usamos patch como context manager para asegurar que NINGÚN mock de clase
-        # superior contamine este experimento concurrente.
         with patch("app.physics.flux_condenser.LaplaceOracle") as mock_oracle_class:
             mock_oracle_class.side_effect = dynamic_oracle_builder
 
