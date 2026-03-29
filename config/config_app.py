@@ -13,7 +13,8 @@ class Config:
     DEBUG = False
     TESTING = False
     # Otras configuraciones globales
-    UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), "uploads")
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, "data", "uploads")
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
     REDIS_URL = os.environ.get("REDIS_URL") or "redis://127.0.0.1:6379/0"
 
