@@ -1216,9 +1216,14 @@ class LogisticsManifold(Morphism):
 
         # ── Intento 1: centralidad de eigenvector ────────────────────
         try:
-            if n > 1 and undirected.number_of_edges() > 0:
+            if n > 2 and undirected.number_of_edges() > 0:
                 centrality = nx.eigenvector_centrality_numpy(undirected)
                 return {k: float(v) for k, v in centrality.items()}
+            elif n <= 2:
+                logger.debug(
+                    "Grafo muy pequeño (n=%d) para eigenvector centrality; "
+                    "haciendo fallback a uniforme para evitar warning ARPACK.", n
+                )
         except Exception as e:
             logger.debug(
                 "Eigenvector centrality falló: %s. Intentando grado.", e

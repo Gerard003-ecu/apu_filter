@@ -1251,6 +1251,11 @@ class GraphRAGCausalNarrator:
             return self._find_critical_node_by_degree()
 
         try:
+            n_nodes = self.kg.number_of_nodes()
+            if n_nodes <= 2:
+                # Fallback to avoid ARPACK warning "k >= N - 1 for N * N square matrix"
+                return self._find_critical_node_by_degree()
+
             centrality = nx.eigenvector_centrality_numpy(self.kg)
             if not centrality:
                 return "Nodo Central Desconocido"

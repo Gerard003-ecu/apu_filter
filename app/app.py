@@ -274,12 +274,15 @@ def setup_logging(app: Flask, log_file: str = "app.log") -> None:
         app: Instancia de Flask.
         log_file: Nombre del archivo de log.
     """
-    # Ruta absoluta derivada de PYTHONPATH (ENV /app en Dockerfile) para
-    # garantizar que el RotatingFileHandler escriba al volumen montado
-    # /app/logs y no al CWD del proceso, que puede ser '/' en
-    # contenedores --read-only.
-    app_root = Path(os.environ.get("PYTHONPATH", "/app").split(os.pathsep)[0])
-    log_dir = app_root / "logs"
+    # El sistema busca una variable de entorno; si no existe,
+    # proyecta el directorio 'logs' relativo a la raíz del proyecto.
+    base_dir = os.environ.get(
+        "APU_LOG_DIR",
+        str(Path(__file__).resolve().parent.parent / "logs")
+    )
+    log_dir = Path(base_dir)
+
+    # Ahora la mutación de estado (mkdir) es segura en cualquier colector
     log_dir.mkdir(parents=True, exist_ok=True)
 
     # Formato detallado con request_id
