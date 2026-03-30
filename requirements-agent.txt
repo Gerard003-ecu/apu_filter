@@ -50,4 +50,6 @@ six==1.17.0
 threadpoolctl==3.6.0
     # via scikit-learn
 urllib3==2.6.3
-    # via requests
+    # via
+    #   -r requirements-agent.in
+    #   requests
