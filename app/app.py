@@ -2009,8 +2009,8 @@ def create_app(config_name: str) -> Flask:
         payload = {"telemetry_context": context}
         context_mic = {"validated_strata": session.get("validated_strata", [])}
 
-        # Telemetry is Physics/Observation, usually always allowed or base
-        context_mic["force_physics_override"] = True
+        # Se elimina el bypass parásito para garantizar la ortogonalidad y clausura física pura
+        # context_mic["force_physics_override"] = True
 
         result = app.mic.project_intent("get_telemetry_status", payload, context_mic)
 

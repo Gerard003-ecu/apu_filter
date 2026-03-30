@@ -298,6 +298,7 @@ class StepStatus(str, enum.Enum):
 
 class PipelineSteps(str, enum.Enum):
     """Pasos canónicos del pipeline (orden topológico)."""
+    LITHOLOGICAL_BASELINE = "lithological_baseline"
     LOAD_DATA = "load_data"
     AUDITED_MERGE = "audited_merge"
     CALCULATE_COSTS = "calculate_costs"
@@ -323,6 +324,7 @@ class PipelineSteps(str, enum.Enum):
 
 
 _STEP_STRATA: Final[Dict[PipelineSteps, Stratum]] = {
+    PipelineSteps.LITHOLOGICAL_BASELINE: Stratum.PHYSICS,
     PipelineSteps.LOAD_DATA: Stratum.PHYSICS,
     PipelineSteps.AUDITED_MERGE: Stratum.PHYSICS,
     PipelineSteps.CALCULATE_COSTS: Stratum.TACTICS,
@@ -1362,6 +1364,40 @@ class BaseProcessingStep(ABC):
 # ============================================================================
 
 
+class LithologicalBaselineStep(BaseProcessingStep):
+    """
+    Paso de Pre-inicialización Geomecánica.
+
+    Establece las Condiciones de Frontera de Dirichlet (capacitancia, inductancia,
+    resistencia base) necesarias para estabilizar la dinámica Port-Hamiltoniana.
+    """
+    PRODUCED_CONTEXT_KEYS = ("lithological_config", "system_capacitance", "system_inductance", "base_resistance")
+
+    def _execute_impl(
+        self,
+        state: StateVector,
+        telemetry: TelemetryContext,
+        mic: MICRegistry,
+    ) -> StateVector:
+        """Emite el estado basal y condiciones de frontera."""
+        # Inyectar variables al context de la instancia (para auditoría o métricas)
+        baseline_vars = {
+            "system_capacitance": 1.0,  # Valores canónicos por defecto
+            "system_inductance": 0.5,
+            "base_resistance": 0.1,
+            "lithological_baseline_initialized": True
+        }
+        state.lithological_config = baseline_vars
+        state.system_capacitance = 1.0
+        state.system_inductance = 0.5
+        state.base_resistance = 0.1
+
+        # También actualizamos el diccionario crudo por compatibilidad
+        self.config.raw_config.update(baseline_vars)
+
+        return state
+
+
 class LoadDataStep(BaseProcessingStep):
     """Paso de carga de datos."""
     
@@ -1894,6 +1930,7 @@ class BuildOutputStep(BaseProcessingStep):
 # ============================================================================
 
 STEP_REGISTRY: Final[Dict[str, Type[BaseProcessingStep]]] = {
+    PipelineSteps.LITHOLOGICAL_BASELINE.value: LithologicalBaselineStep,
     PipelineSteps.LOAD_DATA.value: LoadDataStep,
     PipelineSteps.AUDITED_MERGE.value: AuditedMergeStep,
     PipelineSteps.CALCULATE_COSTS.value: CalculateCostsStep,
@@ -1927,6 +1964,7 @@ class DAGBuilder:
         
         # Agregar aristas (dependencias)
         dependencies = [
+            ("lithological_baseline", "load_data", []),
             ("load_data", "audited_merge", ["df_apus_raw", "df_insumos"]),
             ("audited_merge", "calculate_costs", ["df_merged"]),
             ("calculate_costs", "final_merge", ["df_apu_costos", "df_tiempo"]),

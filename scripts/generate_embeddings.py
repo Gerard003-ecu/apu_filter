@@ -487,7 +487,7 @@ class FileManager:
 
         for encoding in FileManager.SUPPORTED_ENCODINGS:
             try:
-                df = pd.read_csv(file_path, encoding=encoding)
+                df = pd.read_csv(file_path, encoding=encoding, sep=";")
                 if encoding != "utf-8":
                     logger.warning(
                         f"Archivo {file_path.name} leído con codificación {encoding}"
@@ -1046,16 +1046,19 @@ def main():
     try:
         config_path = Path(__file__).resolve().parent.parent / "config" / "config_rules.json"
         json_config = load_config_from_json(config_path)
+        # Extraer parámetros de embedding_generation si existe
+        if "embedding_generation" in json_config:
+            json_config = json_config["embedding_generation"]
     except Exception as e:
         logging.error(f"Error al cargar configuración desde JSON: {e}")
         json_config = {}
 
     # Definir argumentos permitiendo sobreescritura
-    parser.add_argument("--input_file", type=Path, default=json_config.get("input_file"))
-    parser.add_argument("--output_dir", type=Path, default=json_config.get("output_dir"))
-    parser.add_argument("--model_name", type=str, default=json_config.get("model_name"))
-    parser.add_argument("--text_column", type=str, default=json_config.get("text_column"))
-    parser.add_argument("--id_column", type=str, default=json_config.get("id_column"))
+    parser.add_argument("--input_file", type=Path, default=json_config.get("input_file", "data/apus_clean.csv"))
+    parser.add_argument("--output_dir", type=Path, default=json_config.get("output_dir", "app/embeddings"))
+    parser.add_argument("--model_name", type=str, default=json_config.get("model_name", "paraphrase-multilingual-MiniLM-L12-v2"))
+    parser.add_argument("--text_column", type=str, default=json_config.get("text_column", "DESCRIPCION"))
+    parser.add_argument("--id_column", type=str, default=json_config.get("id_column", "CODIGO_APU"))
     parser.add_argument(
         "--max_batch_size", type=int, default=json_config.get("max_batch_size", 512)
     )
