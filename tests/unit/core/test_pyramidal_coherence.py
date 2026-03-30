@@ -629,15 +629,34 @@ def build_context_from_failures(failing_strata: frozenset[Stratum]) -> Telemetry
 # FIXTURES
 # =============================================================================
 
+from app.adapters.tools_interface import reset_global_mic
+
+@pytest.fixture(autouse=True)
+def annihilate_global_state():
+    """
+    Funtor de Aniquilación: Garantiza que la topología del test
+    esté libre de entropía de ejecuciones previas.
+    """
+    reset_global_mic()
+    yield
+    reset_global_mic()
+
 @pytest.fixture
 def narrator() -> TelemetryNarrator:
     """Instancia fresca de TelemetryNarrator."""
     return TelemetryNarrator()
 
 
+from app.wisdom.semantic_dictionary import SemanticDictionaryService
+
 @pytest.fixture
 def translator() -> SemanticTranslator:
     """Instancia fresca de SemanticTranslator con mercado determinístico."""
+    # Aseguramos que el SemanticDictionaryService global esté instanciado y registrado en el test env
+    svc = SemanticDictionaryService()
+    # Forzamos que se cargue la configuración actual del diccionario local o dinámico
+    svc._dictionary_tree = svc._load_templates()
+
     return SemanticTranslator(config=TranslatorConfig(deterministic_market=True))
 
 
