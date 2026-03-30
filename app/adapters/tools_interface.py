@@ -1521,8 +1521,10 @@ class NormalizationCommand(ProjectionCommand):
         raw_validated = ctx.context.get("validated_strata", set())
         raw_validated = set() if raw_validated is None else set(raw_validated)
         ctx.validated_strata = self._normalize_validated_strata(raw_validated)
-        # Erradicada la directiva force_physics_override para asegurar la pureza del HomologicalVerifier
-        ctx.force_override = False
+        ctx.force_override = bool(
+            ctx.context.get("force_override", False) or
+            ctx.context.get("force_physics_override", False)
+        )
         return None
     
     def _normalize_validated_strata(self, raw: Any) -> Set[Stratum]:

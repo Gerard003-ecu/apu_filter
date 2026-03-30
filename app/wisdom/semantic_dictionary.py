@@ -1295,6 +1295,9 @@ class SemanticDictionaryService:
         if isinstance(template_group, dict):
             default_msg = "⚠️ Estado desconocido. Clasificación no encontrada."
             template = template_group.get(classification, default_msg)
+            if classification is not None and template == default_msg:
+                # Normalización en mayúsculas estricta
+                template = template_group.get(str(classification).upper(), default_msg)
             return template.format(**safe_params)
         
         # Fallback para otros tipos
