@@ -1964,7 +1964,7 @@ class DAGBuilder:
         
         # Agregar aristas (dependencias)
         dependencies = [
-            ("lithological_baseline", "load_data", []),
+            ("lithological_baseline", "load_data", ["lithological_config"]),
             ("load_data", "audited_merge", ["df_apus_raw", "df_insumos"]),
             ("audited_merge", "calculate_costs", ["df_merged"]),
             ("calculate_costs", "final_merge", ["df_apu_costos", "df_tiempo"]),

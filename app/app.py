@@ -1419,11 +1419,53 @@ def create_app(config_name: str) -> Flask:
 
             start_processing = time.time()
             # Pasamos g.telemetry al procesador
+
+            # Retrieve geomechanical baseline config and fast-fail if not present
+            lithological_context = request.form.get("lithological_context")
+            if not lithological_context:
+                error_msg = "Missing required payload: 'lithological_context'"
+                app.logger.error(error_msg)
+                g.telemetry.record_error("upload_request_validation", error_msg)
+                return jsonify({"error": error_msg, "code": "MISSING_LITHOLOGICAL_CONTEXT"}), 400
+
+            try:
+                lithological_dict = json.loads(lithological_context)
+            except json.JSONDecodeError:
+                error_msg = "Invalid JSON in 'lithological_context'"
+                app.logger.error(error_msg)
+                g.telemetry.record_error("upload_request_validation", error_msg)
+                return jsonify({"error": error_msg, "code": "INVALID_LITHOLOGICAL_CONTEXT"}), 400
+
+            required_lithological_keys = ["system_capacitance", "system_inductance", "base_resistance"]
+            missing_lithological_keys = [k for k in required_lithological_keys if k not in lithological_dict]
+            if missing_lithological_keys:
+                error_msg = f"Missing required keys in 'lithological_context': {', '.join(missing_lithological_keys)}"
+                app.logger.error(error_msg)
+                g.telemetry.record_error("upload_request_validation", error_msg)
+                return jsonify({"error": error_msg, "code": "MISSING_LITHOLOGICAL_KEYS"}), 400
+
+            try:
+                system_capacitance = float(lithological_dict["system_capacitance"])
+                system_inductance = float(lithological_dict["system_inductance"])
+                base_resistance = float(lithological_dict["base_resistance"])
+            except ValueError:
+                error_msg = "'lithological_context' values must be numeric"
+                app.logger.error(error_msg)
+                g.telemetry.record_error("upload_request_validation", error_msg)
+                return jsonify({"error": error_msg, "code": "INVALID_LITHOLOGICAL_VALUES"}), 400
+
+            pipeline_config = app.config.get("APP_CONFIG", {}).copy()
+            pipeline_config.update({
+                "system_capacitance": system_capacitance,
+                "system_inductance": system_inductance,
+                "base_resistance": base_resistance
+            })
+
             processed_data = process_all_files(
                 file_paths["presupuesto"],
                 file_paths["apus"],
                 file_paths["insumos"],
-                config=app.config.get("APP_CONFIG", {}),
+                config=pipeline_config,
                 telemetry=g.telemetry,
             )
             processing_time = time.time() - start_processing

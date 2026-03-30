@@ -111,6 +111,7 @@ _STRATUM_ORDER: Final[tuple[Stratum, ...]] = (
 
 # Nodos esperados en el DAG por defecto
 _DEFAULT_DAG_NODES: Final[frozenset[str]] = frozenset({
+    "lithological_baseline",
     "load_data",
     "audited_merge",
     "calculate_costs",
@@ -122,6 +123,7 @@ _DEFAULT_DAG_NODES: Final[frozenset[str]] = frozenset({
 
 # Aristas esperadas en el DAG por defecto
 _DEFAULT_DAG_EDGES: Final[frozenset[tuple[str, str]]] = frozenset({
+    ("lithological_baseline", "load_data"),
     ("load_data", "audited_merge"),
     ("audited_merge", "calculate_costs"),
     ("calculate_costs", "final_merge"),
@@ -794,10 +796,10 @@ class TestDAGBuilder:
         assert nx.is_directed_acyclic_graph(dag.graph)
 
     def test_build_default_dag_source_node(self) -> None:
-        """Verifica que load_data es el nodo fuente."""
+        """Verifica que lithological_baseline es el nodo fuente."""
         dag = DAGBuilder.build_default_dag()
 
-        assert len(dag.get_dependencies("load_data")) == 0
+        assert len(dag.get_dependencies("lithological_baseline")) == 0
 
     def test_build_default_dag_sink_nodes(self) -> None:
         """Verifica nodos sumidero del DAG."""

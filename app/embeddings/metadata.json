@@ -1,11 +1,11 @@
 {
   "model_name": "paraphrase-multilingual-MiniLM-L12-v2",
-  "creation_date": "2026-03-30 16:10:37",
-  "vector_count": 3,
+  "creation_date": "2026-03-30 23:04:38",
+  "vector_count": 104,
   "embedding_dimension": 384,
-  "text_column": "original_description",
-  "id_column": "CODIGO_APU",
+  "text_column": "DESCRIPCION",
+  "id_column": "ITEM",
   "max_batch_size": 512,
   "normalize_embeddings": true,
-  "input_file": "/app/data/processed_apus.json"
+  "input_file": "/app/data/presupuesto_clean.csv"
 }
