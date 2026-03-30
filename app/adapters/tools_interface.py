@@ -1521,7 +1521,8 @@ class NormalizationCommand(ProjectionCommand):
         raw_validated = ctx.context.get("validated_strata", set())
         raw_validated = set() if raw_validated is None else set(raw_validated)
         ctx.validated_strata = self._normalize_validated_strata(raw_validated)
-        ctx.force_override = bool(ctx.context.get("force_physics_override", False))
+        # Erradicada la directiva force_physics_override para asegurar la pureza del HomologicalVerifier
+        ctx.force_override = False
         return None
     
     def _normalize_validated_strata(self, raw: Any) -> Set[Stratum]:
@@ -2678,7 +2679,7 @@ def register_core_vectors(
     # Vectores con dependencias opcionales
     if config:
         try:
-            from app.wisdom.semantic_estimator import SemanticEstimatorService
+            from app.tactics.semantic_estimator import SemanticEstimatorService
             service = SemanticEstimatorService(config)
             service.register_in_mic(mic)
             logger.info("✅ Vectores semánticos registrados")
