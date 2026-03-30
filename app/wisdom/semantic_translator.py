@@ -3139,7 +3139,7 @@ class SemanticTranslator:
         synergy_detected = bool(synergy.get("synergy_detected", False))
         if synergy_detected:
             result = self._fetch_narrative(
-                "FINAL_VERDICTS", "SYNERGY_RISK"
+                "FINAL_VERDICTS", "synergy_risk"
             )
             intersecting_cycles = synergy.get("intersecting_cycles", [])
             if (intersecting_cycles
