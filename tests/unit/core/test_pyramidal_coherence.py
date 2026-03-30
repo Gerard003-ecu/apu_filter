@@ -684,10 +684,7 @@ def translator() -> SemanticTranslator:
             "review": "Requiere revisión financiera.",
         }
     }
-    svc._dictionary_tree = svc._load_templates()
-    # Merge mock into the loaded tree to guarantee test paths are satisfied while keeping full dictionary
-    if "FINAL_VERDICTS" in svc._dictionary_tree:
-        svc._dictionary_tree["FINAL_VERDICTS"]["synergy_risk"] = "🛑 PARADA DE EMERGENCIA (Efecto Dominó): Se detectaron ciclos interconectados"
+    svc._dictionary_tree = mock_dictionary_tree
 
     return SemanticTranslator(config=TranslatorConfig(deterministic_market=True))
 
