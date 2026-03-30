@@ -660,7 +660,12 @@ class TestEndpoints:
 
         response = client.post(
             "/upload",
-            data={"presupuesto": f1, "apus": f2, "insumos": f3},
+            data={
+                "presupuesto": f1,
+                "apus": f2,
+                "insumos": f3,
+                "lithological_context": '{"system_capacitance": 5000.0, "system_inductance": 2.0, "base_resistance": 10.0}',
+            },
         )
 
         assert response.status_code in [200]
@@ -682,7 +687,12 @@ class TestEndpoints:
 
         response = client.post(
             "/upload",
-            data={"presupuesto": f1, "apus": f2, "insumos": f3},
+            data={
+                "presupuesto": f1,
+                "apus": f2,
+                "insumos": f3,
+                "lithological_context": '{"system_capacitance": 5000.0, "system_inductance": 2.0, "base_resistance": 10.0}',
+            },
         )
 
         assert response.status_code == 500
