@@ -585,7 +585,8 @@ class TemplateValidator:
             placeholders = cls.extract_placeholders(template)
             
             # Crear diccionario de prueba con valores dummy
-            test_params = {p: "" for p in placeholders}
+            # Se usa 0.0 para compatibilidad con formatadores 'f' en las validaciones de inicialización.
+            test_params = {p: 0.0 for p in placeholders}
             
             # Intentar formatear
             template.format(**test_params)
@@ -1270,8 +1271,21 @@ class SemanticDictionaryService:
         Returns:
             Texto narrativo formateado
         """
+        def _robust_float_cast(value: Any) -> Any:
+            """Saneamiento estricto del tensor de tipos para formatos 'f'."""
+            if isinstance(value, float):
+                return value
+            if isinstance(value, int):
+                return float(value)
+            if isinstance(value, str):
+                try:
+                    return float(value)
+                except ValueError:
+                    return value
+            return value
+
         safe_params = {
-            k: float(v) if isinstance(v, str) and (v.replace('.', '', 1).isdigit() or (v.startswith('-') and v[1:].replace('.', '', 1).isdigit())) else v
+            k: _robust_float_cast(v)
             for k, v in params.items()
         }
 

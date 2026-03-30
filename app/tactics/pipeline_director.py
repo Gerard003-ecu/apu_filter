@@ -2478,7 +2478,17 @@ def process_all_files(
     # Crear director y ejecutar
     director = create_director(config, telemetry)
     
+    # Injection of RLC Invariants for physics stability handshake
+    condenser_config = CondenserConfig(
+        system_capacitance=config.get("system_capacitance", 5000.0),
+        system_inductance=config.get("system_inductance", 2.0),
+        base_resistance=config.get("base_resistance", 10.0),
+        pid_kp=config.get("pid_kp", 2.0),
+        pid_ki=config.get("pid_ki", 0.1)
+    )
+
     initial_context = {k: str(v) for k, v in paths.items()}
+    initial_context["condenser_config"] = condenser_config
     
     try:
         final_result = director.execute_pipeline(initial_context)

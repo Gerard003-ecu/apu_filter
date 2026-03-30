@@ -592,7 +592,7 @@ class TelemetryContext:
             # Actualizar salud del estrato
             self._mark_stratum_active(stratum)
 
-        logger.info(f"[{self.request_id}] ▶ Step started: {step_name} [{stratum.name}]")
+        logger.debug(f"[{self.request_id}] ▶ Step started: {step_name} [{stratum.name}]")
         return True
 
     def end_step(
@@ -985,7 +985,7 @@ class TelemetryContext:
             }
 
             self.events.append(event_data)
-            logger.info(f"[{self.request_id}] EVENT: {name}")
+            logger.debug(f"[{self.request_id}] EVENT: {name}")
             return True
 
     # =========================================================================
@@ -1343,7 +1343,7 @@ class TelemetryContext:
 
             self.created_at = time.perf_counter()
 
-            logger.info(
+            logger.debug(
                 f"[{old_request_id}] Context reset. "
                 f"Cleared: {pre_reset_summary['steps_cleared']} steps, "
                 f"{pre_reset_summary['errors_cleared']} errors"
@@ -1545,7 +1545,7 @@ class TelemetryContext:
         for i in range(len(self._scope_stack) - 1, -1, -1):
             if self._scope_stack[i] is span:
                 self._scope_stack.pop(i)
-                logger.info(f"[{self.request_id}] Span '{span.name}' removed from position {i}")
+                logger.debug(f"[{self.request_id}] Span '{span.name}' removed from position {i}")
                 return
 
         logger.error(f"[{self.request_id}] Span '{span.name}' not found in stack during recovery")
@@ -1999,7 +1999,7 @@ class TelemetryContext:
             if target_type == list:
                 if isinstance(value, (tuple, set, frozenset)):
                     result = list(value)
-                    logger.info(
+                    logger.debug(
                         f"[{request_id}] Converted {attr_name} from "
                         f"{type(value).__name__} to list"
                     )
@@ -2007,7 +2007,7 @@ class TelemetryContext:
             elif target_type == dict:
                 if hasattr(value, "__dict__"):
                     result = dict(value.__dict__)
-                    logger.info(
+                    logger.debug(
                         f"[{request_id}] Converted {attr_name} from "
                         f"{type(value).__name__} to dict"
                     )
@@ -2317,7 +2317,7 @@ class TelemetryContext:
             if step_name in self._active_steps:
                 step_info = self._active_steps.pop(step_name)
                 duration = step_info.get_duration()
-                logger.info(
+                logger.debug(
                     f"[{self.request_id}] Cancelled step: {step_name} "
                     f"(was active for {duration:.6f}s)"
                 )
