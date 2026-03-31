@@ -511,6 +511,8 @@ def _clamp(value: float, lo: float, hi: float) -> float:
 
     Invariante: lo ≤ hi.
     """
+    if math.isnan(value):
+        return float('nan')
     return max(lo, min(value, hi))
 
 

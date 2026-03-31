@@ -55,53 +55,18 @@ def _bootstrap_external_mocks() -> None:
     Esto permite ejecutar los tests en aislamiento sin necesidad de
     instalar todo el framework.
     """
-    # --- app.core.mic_algebra ---
-    mic_algebra = types.ModuleType("app.core.mic_algebra")
+    mock_schemas = MagicMock()
+    # Simulación del retículo de estratos
+    mock_schemas.Stratum.PHYSICS = 4
+    sys.modules["app.core.schemas"] = mock_schemas
 
-    class MockMorphism:
-        """Mock base de Morphism que acepta name y target_stratum."""
-        def __init__(self, name: str = "", target_stratum: Any = None):
-            self.name = name
-            self.target_stratum = target_stratum
+    mock_mic_algebra = MagicMock()
+    mock_mic_algebra.CategoricalState = MagicMock
+    mock_mic_algebra.Morphism = MagicMock
+    sys.modules["app.core.mic_algebra"] = mock_mic_algebra
 
-    @dataclass
-    class MockCategoricalState:
-        """Mock de CategoricalState con campos mínimos."""
-        payload: Dict[str, Any]
-        context: Dict[str, Any]
-        validated_strata: FrozenSet[Any]
-
-    mic_algebra.Morphism = MockMorphism
-    mic_algebra.CategoricalState = MockCategoricalState
-
-    # --- app.core.schemas ---
-    schemas = types.ModuleType("app.core.schemas")
-
-    class MockStratum:
-        PHYSICS = "PHYSICS"
-
-    schemas.Stratum = MockStratum
-
-    # --- app.core.immune_system.metric_tensors ---
-    metric_tensors = types.ModuleType("app.core.immune_system.metric_tensors")
-
-    class MockMetricTensorFactory:
-        @staticmethod
-        def build_physics_tensor():
-            return MagicMock()
-
-    metric_tensors.MetricTensorFactory = MockMetricTensorFactory
-
-    # --- Registrar en sys.modules ---
-    sys.modules.setdefault("app", types.ModuleType("app"))
-    sys.modules.setdefault("app.core", types.ModuleType("app.core"))
-    sys.modules.setdefault(
-        "app.core.immune_system",
-        types.ModuleType("app.core.immune_system"),
-    )
-    sys.modules["app.core.mic_algebra"] = mic_algebra
-    sys.modules["app.core.schemas"] = schemas
-    sys.modules["app.core.immune_system.metric_tensors"] = metric_tensors
+    mock_metric_tensors = MagicMock()
+    sys.modules["app.core.immune_system.metric_tensors"] = mock_metric_tensors
 
 
 # Ejecutar bootstrap ANTES de importar el módulo bajo prueba
@@ -301,6 +266,12 @@ class TestClamp:
     def test_degenerate_interval(self) -> None:
         """Cuando lo == hi, retorna ese valor."""
         assert _clamp(5.0, 3.0, 3.0) == 3.0
+
+    def test_clamp_invariants(self) -> None:
+        """Prueba casos límites (Inf, -Inf, NaN) sobre el operador de saturación."""
+        assert math.isclose(_clamp(float('inf'), 0.0, 1.0), 1.0, abs_tol=1e-12)
+        assert math.isclose(_clamp(float('-inf'), 0.0, 1.0), 0.0, abs_tol=1e-12)
+        assert math.isnan(_clamp(float('nan'), 0.0, 1.0))
 
 
 class TestAssertFinite:
@@ -862,9 +833,10 @@ class TestDynamicRigidity:
     def test_known_computation(
         self, manifold: LithologicalManifold, nominal_sand_tensor: SoilTensor
     ) -> None:
-        """G_max = 1800 · 300² = 162,000,000 Pa."""
-        g_max = manifold._compute_dynamic_rigidity_pa(nominal_sand_tensor)
-        assert g_max == pytest.approx(1800.0 * 300.0 * 300.0)
+        """G_max = ρ · Vs² > 0, con dimensiones [Pa]."""
+        calculated_g = manifold._compute_dynamic_rigidity_pa(nominal_sand_tensor)
+        expected_g = nominal_sand_tensor.bulk_density_kg_m3 * nominal_sand_tensor.shear_wave_velocity ** 2
+        assert math.isclose(calculated_g, expected_g, rel_tol=1e-9)
 
     def test_always_positive(self, manifold: LithologicalManifold) -> None:
         """G_max > 0 para cualquier entrada válida."""
@@ -1214,6 +1186,7 @@ class TestLiquefactionSusceptibilityIndex:
             is_saturated=False,
         )
         assert manifold._compute_liquefaction_susceptibility_index(tensor) == 0.0
+        assert math.isclose(manifold._compute_liquefaction_susceptibility_index(tensor), 0.0, abs_tol=1e-12)
 
     def test_zero_when_not_sand(
         self, manifold: LithologicalManifold
@@ -1676,6 +1649,13 @@ class TestPeatSingularity:
             with pytest.raises(LithologicalSingularityError):
                 manifold._evaluate_diagnostic_rules(tensor)
 
+    def test_yielding_susceptibility_approaches_one(
+        self, manifold: LithologicalManifold, peat_tensor: SoilTensor
+    ) -> None:
+        """La turba (PT) actúa como una singularidad y el índice de cedencia se aproxima asintóticamente a 1.0."""
+        yielding_susceptibility_index = manifold._compute_yielding_susceptibility_index(peat_tensor)
+        assert math.isclose(yielding_susceptibility_index, 1.0, rel_tol=1e-9)
+
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║              §6  MORFISMO COMPLETO (__call__) — INTEGRACIÓN                ║
@@ -1701,8 +1681,10 @@ class TestMorphismIntegration:
         nominal_payload: Dict[str, Any],
         empty_context: Dict[str, Any],
     ) -> None:
+        import sys
         state = manifold(nominal_payload, empty_context)
-        assert "PHYSICS" in state.validated_strata
+        # Using Stratum.PHYSICS which was mocked as 4
+        assert sys.modules["app.core.schemas"].Stratum.PHYSICS in state.validated_strata
 
     def test_payload_enriched_with_derived_quantities(
         self,
