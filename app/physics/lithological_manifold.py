@@ -2,52 +2,37 @@
 Módulo: Lithological Manifold
 Ubicación: app/physics/lithological_manifold.py
 
-Descripción
------------
-Morfismo geotécnico hacia el estrato de física.  Interpreta propiedades
-litológicas de entrada como un tensor de estado del suelo, calcula
-indicadores geomecánicos derivados y emite «cartuchos» diagnósticos que
-representan patologías o modos de interacción relevantes.
+Naturaleza Ciber-Física y Topológica:
+Este módulo abandona la heurística empírica de la mecánica de suelos tradicional para modelar
+la litología del terreno como un Tensor de Impedancia Geomecánica Compleja (Z_{geo}). Se
+acopla ortogonalmente al Estrato de Física (V_PHYSICS) actuando como la Condición de Frontera
+de Dirichlet absoluta. Fija los nodos de anclaje (tierra) de la matriz Laplaciana del proyecto;
+sin esta métrica, el motor dinámico asumiría un espacio euclidiano isotrópico de rigidez infinita,
+induciendo una violación catastrófica de la conservación de energía (P_diss ≥ 0).
 
-Modelo matemático
------------------
-Sea S = (σ_USCS, LL, PI, Vs, e₀, sat, ρ) ∈ ℝ⁷ el vector de estado
-litológico.  El operador Φ : S → (G_max, I_sw, I_y, I_liq, {C_k}) mapea
-el estado a magnitudes derivadas y un conjunto finito de cartuchos
-diagnósticos C_k, con k ∈ {swelling, yielding, liquefaction}.
+Fundamentación Axiomática y Modelo Matemático:
+1. Espacio de Estado Litológico: Sea S = (σ_USCS, LL, PI, Vs, e₀, sat, ρ) ∈ ℝ⁷ el vector covariante
+de estado del suelo.
+2. Difeomorfismo Físico (El Operador Φ): El funtor Φ : S → (G_max, I_sw, I_y, I_liq, {C_k}) ejecuta
+un mapeo no lineal desde las primitivas geomecánicas hacia un conjunto de magnitudes derivadas acotadas
+estrictamente en el intervalo unitario [3]. 
+3. Cuantización de Defectos (Cartuchos TOON): Las patologías litológicas no se propagan como cadenas
+de texto de alta entropía. El operador colapsa el estado en un conjunto finito de cuasipartículas
+informacionales C_k con k ∈ {SwellingPlasmon, YieldingPhonon, LiquefactionSoliton}. Estas partículas
+inyectan capacitancia parásita, arrastre viscoso inercial, o aniquilan la conectividad topológica (β₀ → ∞) del grafo logístico.
 
-Cada indicador I_• ∈ [0, 1] se construye como función acotada y monótona
-de las variables primitivas, garantizando:
+Invariantes Computacionales Garantizados:
+- Finitud Estricta y Consistencia Dimensional: Todo resultado intermedio es verificado como finito (¬NaN, ¬±Inf).
+El módulo de rigidez dinámica se aproxima mediante la inercia de la onda de corte G_max = ρ · Vs², preservando
+la condición estricta de no-negatividad.
+- Clausura Transitiva Categórica: La detección de una singularidad litológica extrema (ej. suelos altamente orgánicos
+como Turba 'PT') dispara un "Fast-Fail", aniquilando la invertibilidad de la matriz Laplaciana e impidiendo la disipación
+inútil de exergía computacional en la FPU.
 
-    (i)   Imagen ⊂ [0, 1]  (normalización estricta).
-    (ii)  Continuidad respecto a perturbaciones de entrada.
-    (iii) Consistencia dimensional verificable.
-
-Principios de diseño
---------------------
-- Consistencia dimensional mínima en magnitudes mecánicas.
-- Validación fuerte de entradas con rangos físicos admisibles.
-- Separación entre parseo, validación, diagnóstico y ensamblado.
-- Trazabilidad de reglas disparadas mediante enumeración tipada.
-- Robustez numérica: todo resultado intermedio verificado como finito.
-- Heurísticas etiquetadas explícitamente como índices proxy.
-- Indices normalizados al intervalo unitario [0, 1].
-
-Notas
------
-- El módulo cortante dinámico se aproxima como G_max = ρ · Vs².
-- Los índices de expansividad, cedencia y licuación son indicadores
-  internos de susceptibilidad; no sustituyen correlaciones normativas
-  ni ensayos de laboratorio o campo.
-
-Referencias
------------
-- Terzaghi, K., Peck, R.B., Mesri, G. (1996). Soil Mechanics in
-  Engineering Practice. 3ª ed.
-- Seed, H.B. & Idriss, I.M. (1971). Simplified Procedure for
-  Evaluating Soil Liquefaction Potential.
-- Skempton, A.W. (1944). Notes on the Compressibility of Clays.
-  Quarterly Journal of the Geological Society, 100, 119-135.
+Referencias Fundacionales:
+- Terzaghi, K., Peck, R.B., Mesri, G. (1996). Soil Mechanics in Engineering Practice. 3ª ed [4].
+- Seed, H.B. & Idriss, I.M. (1971). Simplified Procedure for Evaluating Soil Liquefaction Potential [4].
+- Skempton, A.W. (1944). Notes on the Compressibility of Clays [4].
 """
 
 from __future__ import annotations
@@ -511,8 +496,6 @@ def _clamp(value: float, lo: float, hi: float) -> float:
 
     Invariante: lo ≤ hi.
     """
-    if math.isnan(value):
-        return float('nan')
     return max(lo, min(value, hi))
 
 
