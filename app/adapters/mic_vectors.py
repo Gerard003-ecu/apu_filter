@@ -897,10 +897,7 @@ def vector_stabilize_flux(
             condenser_conf = CondenserConfig(
                 system_capacitance=float(config["system_capacitance"]),
                 system_inductance=float(config["system_inductance"]),
-                base_resistance=float(config["base_resistance"]),
-                resonance_threshold=float(
-                    config.get("resonance_threshold", PhysicsConstants.DEFAULT_RESONANCE_THRESHOLD)
-                ),
+                base_resistance=float(config["base_resistance"])
             )
             
             condenser = DataFluxCondenser(
@@ -981,7 +978,6 @@ def vector_parse_raw_structure(
             parser = ReportParserCrudo(
                 file_path,
                 profile=profile,
-                topological_constraints=topological_constraints,
             )
             
             raw_records: List[Dict[str, Any]] = parser.parse_to_raw()
