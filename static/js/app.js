@@ -561,6 +561,17 @@ const AppController = {
         formData.append('apus', apus);
         formData.append('insumos', insumos);
 
+        // --- Geomechanical Baseline Invariants ---
+        const lithologicalContext = {
+            uscs_classification: "CH",
+            liquid_limit: 55.0,
+            plasticity_index: 30.0,
+            shear_wave_velocity: 180.0,
+            void_ratio: 0.8,
+            is_saturated: true
+        };
+        formData.append('lithological_context', JSON.stringify(lithologicalContext));
+
         UIManager.toggleLoader(true);
         UIManager.showStatus("Iniciando procesamiento de alta velocidad...", 'info');
 

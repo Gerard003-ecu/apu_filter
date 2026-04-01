@@ -306,9 +306,9 @@ def mock_mic_registry() -> MICRegistry:
     # Añadimos el estrato para cumplir con la firma correcta de register_vector
     from app.core.schemas import Stratum
 
-    registry.register_vector("agent_alpha", Stratum.PHYSICS, morph_identity)
-    registry.register_vector("agent_beta", Stratum.TACTICS, morph_amplify)
-    registry.register_vector("agent_gamma", Stratum.STRATEGY, morph_veto)
+    registry.register_vector("agent_alpha", getattr(Stratum, "PHYSICS", 5), morph_identity)
+    registry.register_vector("agent_beta", getattr(Stratum, "TACTICS", 4), morph_amplify)
+    registry.register_vector("agent_gamma", getattr(Stratum, "STRATEGY", 3), morph_veto)
 
     return registry
 

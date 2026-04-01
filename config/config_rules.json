@@ -1,8 +1,11 @@
 {
   "presupuesto_column_map": {
-    "CODIGO_APU": ["ITEM"],
-    "DESCRIPCION_APU": ["DESCRIPCION"],
-    "CANTIDAD_PRESUPUESTO": ["CANT."]
+    "CODIGO_APU": ["ITEM", "CÓDIGO", "ID"],
+    "DESCRIPCION_APU": ["DESCRIPCION", "ACTIVIDAD", "NOMBRE"],
+    "UNIDAD_APU": ["UND", "UNIDAD", "U"],
+    "CANTIDAD_PRESUPUESTO": ["CANT.", "CANTIDAD", "VOLUMEN"],
+    "VALOR_UNITARIO_APU": ["VR. UNIT", "VR. UNITARIO", "V.U.", "VR. UNIT."],
+    "VALOR_TOTAL_APU": ["VR.TOTAL", "VALOR TOTAL", "V.T."]
   },
   "validation_thresholds": {
     "MANO_DE_OBRA": {
@@ -41,11 +44,13 @@
     }
   },
   "pipeline_recipe": [
+    {"step": "lithological_baseline", "enabled": true},
     {"step": "load_data", "enabled": true},
-    {"step": "merge_data", "enabled": true},
+    {"step": "audited_merge", "enabled": true},
     {"step": "calculate_costs", "enabled": true},
-    {"step": "business_topology", "enabled": true},
     {"step": "final_merge", "enabled": true},
+    {"step": "business_topology", "enabled": true},
+    {"step": "materialization", "enabled": true},
     {"step": "build_output", "enabled": true}
   ],
   "clean_apu_code_params": {

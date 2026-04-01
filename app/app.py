@@ -1,8 +1,6 @@
 """
-=========================================================================================
 Módulo: Application Gateway (Variedad de Frontera y Operador de Interfaz Ciber-Física)
 Ubicación: app/app.py
-=========================================================================================
 
 Naturaleza Ciber-Física y Topológica:
     Este módulo trasciende la noción de un "Plano de Control" API. Actúa como la 
@@ -39,7 +37,6 @@ Naturaleza Ciber-Física y Topológica:
     Central (MIC). Cada invocación externa (ej. `diagnose_file`, `financial_analysis`) 
     colapsa la intención del usuario sobre un vector base canónico (eᵢ ∈ ℝⁿ), garantizando 
     el aislamiento algebraico y la ortogonalidad funcional de los Agentes.
-=========================================================================================
 """
 
 import hashlib
@@ -94,9 +91,7 @@ from app.adapters.topology_viz import topology_bp  # Importar el nuevo blueprint
 from app.core.utils import sanitize_for_json
 from app.physics.laplace_oracle import LaplaceOracle, ConfigurationError as OracleConfigurationError
 
-# ============================================================================
 # INYECCIÓN DE SALUD PIRAMIDAL
-# ============================================================================
 
 
 def _inject_pyramidal_health(response_data: dict, session_data: dict):
@@ -166,9 +161,7 @@ def _inject_pyramidal_health(response_data: dict, session_data: dict):
         current_app.logger.warning(f"No se pudo calcular salud piramidal: {e}")
 
 
-# ============================================================================
 # CONSTANTES Y CONFIGURACIÓN
-# ============================================================================
 
 SESSION_TIMEOUT = 3600  # 1 hora
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB máximo por archivo
@@ -194,9 +187,7 @@ REQUIRED_COLUMNS = {
 }
 
 
-# ============================================================================
 # DATACLASSES PARA VALIDACIÓN DE ESQUEMAS
-# ============================================================================
 
 
 @dataclass
@@ -245,9 +236,7 @@ class FileValidationResult:
             self.warnings = []
 
 
-# ============================================================================
 # CONFIGURACIÓN DE LOGGING MEJORADA CON REQUEST ID
-# ============================================================================
 
 
 class RequestIdFilter(logging.Filter):
@@ -340,9 +329,7 @@ def setup_logging(app: Flask, log_file: str = "app.log") -> None:
     root_logger.setLevel(logging.INFO)
 
 
-# ============================================================================
 # UTILIDADES DE SEGURIDAD Y VALIDACIÓN
-# ============================================================================
 
 
 def generate_data_hash(data: Dict[str, Any]) -> str:
@@ -402,9 +389,7 @@ def validate_data_schema(data: Dict[str, Any]) -> Tuple[bool, List[str]]:
     return len(errors) == 0, errors
 
 
-# ============================================================================
 # CLASE DE MÉTRICAS DE RENDIMIENTO
-# ============================================================================
 
 
 class PerformanceMetrics:
@@ -439,9 +424,7 @@ class PerformanceMetrics:
             ]
 
 
-# ============================================================================
 # DECORADORES MEJORADOS
-# ============================================================================
 
 
 def timed(metric_name: str = None):
@@ -746,9 +729,7 @@ def temporary_upload_directory(base_path: Path, session_id: str):
                     time.sleep(0.1)  # Pequeña pausa antes de reintentar
 
 
-# ============================================================================
 # VALIDADORES MEJORADOS
-# ============================================================================
 
 
 class FileValidator:
@@ -1000,9 +981,7 @@ class FileValidator:
 
 
 
-# ============================================================================
 # FACTORY DE APLICACIÓN MEJORADA
-# ============================================================================
 
 
 def create_app(config_name: str) -> Flask:
@@ -1024,9 +1003,7 @@ def create_app(config_name: str) -> Flask:
     """
     app = Flask(__name__, static_folder="../static", static_url_path="/static")
 
-    # ========================================================================
     # CONFIGURACIÓN BÁSICA
-    # ========================================================================
 
     app.config.from_object(config_by_name[config_name])
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
@@ -1039,30 +1016,22 @@ def create_app(config_name: str) -> Flask:
 
     app.config["SECRET_KEY"] = secret_key or "dev_key_fija_y_secreta_12345"
 
-    # ========================================================================
     # CONFIGURACIÓN DE LOGGING
-    # ========================================================================
 
     setup_logging(app)
     app.logger.info(f"{'=' * 60}")
     app.logger.info(f"Iniciando aplicación en modo: {config_name.upper()}")
     app.logger.info(f"{'=' * 60}")
 
-    # ========================================================================
     # SISTEMA DE MÉTRICAS
-    # ========================================================================
 
     app.metrics = PerformanceMetrics()
 
-    # ========================================================================
     # CONFIGURACIÓN DE CORS
-    # ========================================================================
 
     CORS(app, supports_credentials=True)
 
-    # ========================================================================
     # CONFIGURACIÓN DE REDIS Y SESIONES
-    # ========================================================================
 
     import redis
     from flask_session import Session
@@ -1103,9 +1072,7 @@ def create_app(config_name: str) -> Flask:
 
     Session(app)
 
-    # ========================================================================
     # RATE LIMITING
-    # ========================================================================
 
     def is_internal_traffic():
         """
@@ -1128,9 +1095,7 @@ def create_app(config_name: str) -> Flask:
         default_limits_exempt_when=is_internal_traffic,
     )
 
-    # ========================================================================
     # CONFIGURACIÓN DE LA APLICACIÓN
-    # ========================================================================
 
     config_path = Path(__file__).parent.parent / "config" / "config_rules.json"
     try:
@@ -1141,9 +1106,7 @@ def create_app(config_name: str) -> Flask:
         app.logger.error(f"❌ Error al cargar config_rules.json: {e}")
         app.config["APP_CONFIG"] = {}
 
-    # ========================================================================
     # CONFIGURACIÓN DE DIRECTORIOS
-    # ========================================================================
 
     project_root = Path(__file__).parent.parent
     app.template_folder = str(project_root / "templates")
@@ -1156,9 +1119,7 @@ def create_app(config_name: str) -> Flask:
     upload_folder.mkdir(parents=True, exist_ok=True)
     app.config["UPLOAD_FOLDER"] = str(upload_folder)
 
-    # ========================================================================
     # INICIALIZACIÓN DE COMPONENTES
-    # ========================================================================
 
     apu_presenter = APUPresenter(app.logger)
 
@@ -1185,9 +1146,7 @@ def create_app(config_name: str) -> Flask:
     # Inyectar MIC en la app
     app.mic = mic
 
-    # ========================================================================
     # MIDDLEWARE Y HOOKS
-    # ========================================================================
 
     @app.before_request
     def before_request_func():
@@ -1255,9 +1214,7 @@ def create_app(config_name: str) -> Flask:
     # Registrar Blueprints
     app.register_blueprint(topology_bp)
 
-    # ========================================================================
     # RUTAS PRINCIPALES
-    # ========================================================================
 
     @app.route("/")
     def index():
@@ -1420,6 +1377,7 @@ def create_app(config_name: str) -> Flask:
             start_processing = time.time()
             # Pasamos g.telemetry al procesador
 
+
             # Retrieve geomechanical baseline config and fast-fail if not present
             lithological_context = request.form.get("lithological_context")
             if not lithological_context:
@@ -1436,7 +1394,14 @@ def create_app(config_name: str) -> Flask:
                 g.telemetry.record_error("upload_request_validation", error_msg)
                 return jsonify({"error": error_msg, "code": "INVALID_LITHOLOGICAL_CONTEXT"}), 400
 
-            required_lithological_keys = ["system_capacitance", "system_inductance", "base_resistance"]
+            required_lithological_keys = [
+                "uscs_classification",
+                "liquid_limit",
+                "plasticity_index",
+                "shear_wave_velocity",
+                "void_ratio",
+                "is_saturated"
+            ]
             missing_lithological_keys = [k for k in required_lithological_keys if k not in lithological_dict]
             if missing_lithological_keys:
                 error_msg = f"Missing required keys in 'lithological_context': {', '.join(missing_lithological_keys)}"
@@ -1444,21 +1409,24 @@ def create_app(config_name: str) -> Flask:
                 g.telemetry.record_error("upload_request_validation", error_msg)
                 return jsonify({"error": error_msg, "code": "MISSING_LITHOLOGICAL_KEYS"}), 400
 
-            try:
-                system_capacitance = float(lithological_dict["system_capacitance"])
-                system_inductance = float(lithological_dict["system_inductance"])
-                base_resistance = float(lithological_dict["base_resistance"])
-            except ValueError:
-                error_msg = "'lithological_context' values must be numeric"
-                app.logger.error(error_msg)
-                g.telemetry.record_error("upload_request_validation", error_msg)
-                return jsonify({"error": error_msg, "code": "INVALID_LITHOLOGICAL_VALUES"}), 400
-
             pipeline_config = app.config.get("APP_CONFIG", {}).copy()
+
+            # 1. Inyección Canónica del Tensor de Reglas en la Frontera
+            config_rules_path = Path(__file__).parent.parent / "config" / "config_rules.json"
+            try:
+                with open(config_rules_path, "r", encoding="utf-8") as f:
+                    global_rules = json.load(f)
+            except Exception as e:
+                app.logger.warning(f"Could not load global rules: {e}")
+                global_rules = {}
+
+            # Proyección del hiper-volumen de reglas hacia el state local
             pipeline_config.update({
-                "system_capacitance": system_capacitance,
-                "system_inductance": system_inductance,
-                "base_resistance": base_resistance
+                "presupuesto_column_map": global_rules.get("presupuesto_column_map", {}),
+                "insumos_column_map": global_rules.get("insumos_column_map", {}),
+                "lithological_context": lithological_dict,
+                "enforce_filtration": True,
+                "enforce_homology": True
             })
 
             processed_data = process_all_files(
@@ -1885,9 +1853,7 @@ def create_app(config_name: str) -> Flask:
             }
         )
 
-    # ========================================================================
     # ENDPOINTS DE HERRAMIENTAS (Pivotes del Agente)
-    # ========================================================================
 
     @app.route("/api/tools/diagnose", methods=["POST"])
     @limiter.limit("20 per minute", exempt_when=lambda: current_app.config.get("TESTING"))
@@ -2204,9 +2170,7 @@ def create_app(config_name: str) -> Flask:
         # Si es éxito, el resultado es el retorno del handler.
         return jsonify(result)
 
-    # ========================================================================
     # MANEJADORES DE ERRORES
-    # ========================================================================
 
     @app.errorhandler(404)
     def not_found(error):
@@ -2261,9 +2225,7 @@ def create_app(config_name: str) -> Flask:
             }
         ), 500
 
-    # ========================================================================
     # FINALIZACIÓN
-    # ========================================================================
 
     app.logger.info("✅ Aplicación inicializada exitosamente")
     app.logger.info(f"{'=' * 60}")
@@ -2271,9 +2233,7 @@ def create_app(config_name: str) -> Flask:
     return app
 
 
-# ============================================================================
 # PUNTO DE ENTRADA PARA DESARROLLO
-# ============================================================================
 
 if __name__ == "__main__":
     app = create_app("development")

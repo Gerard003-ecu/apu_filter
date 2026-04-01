@@ -73,6 +73,8 @@ def _bootstrap_external_mocks() -> None:
 _bootstrap_external_mocks()
 
 # --- Importaciones del módulo bajo prueba ---
+from app.core.schemas import Stratum
+
 from app.physics.lithological_manifold import (
     GeomechanicalConstants,
     DiagnosticRule,
@@ -1683,8 +1685,15 @@ class TestMorphismIntegration:
     ) -> None:
         import sys
         state = manifold(nominal_payload, empty_context)
-        # Using Stratum.PHYSICS which was mocked as 4
-        assert sys.modules["app.core.schemas"].Stratum.PHYSICS in state.validated_strata
+        # We need to extract the raw physics enum value because the tested Stratum
+        # is the real one, but the mock we injected assigned Stratum.PHYSICS = 4
+        # Since LithologicalManifold now uses the real Stratum, we assert against
+        # the real Stratum.PHYSICS instance.
+        # We check the string representation or enum name to avoid mock conflicts
+        # since state.validated_strata contains the real Stratum.PHYSICS instance
+        # but the module import gives us the mocked one (4).
+        strata_names = [s.name for s in state.validated_strata]
+        assert "PHYSICS" in strata_names
 
     def test_payload_enriched_with_derived_quantities(
         self,

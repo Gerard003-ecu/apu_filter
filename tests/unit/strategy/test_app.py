@@ -664,7 +664,7 @@ class TestEndpoints:
                 "presupuesto": f1,
                 "apus": f2,
                 "insumos": f3,
-                "lithological_context": '{"system_capacitance": 5000.0, "system_inductance": 2.0, "base_resistance": 10.0}',
+                "lithological_context": '{"uscs_classification": "CH", "liquid_limit": 55.0, "plasticity_index": 30.0, "shear_wave_velocity": 180.0, "void_ratio": 0.8, "is_saturated": true}',
             },
         )
 
@@ -691,7 +691,7 @@ class TestEndpoints:
                 "presupuesto": f1,
                 "apus": f2,
                 "insumos": f3,
-                "lithological_context": '{"system_capacitance": 5000.0, "system_inductance": 2.0, "base_resistance": 10.0}',
+                "lithological_context": '{"uscs_classification": "CH", "liquid_limit": 55.0, "plasticity_index": 30.0, "shear_wave_velocity": 180.0, "void_ratio": 0.8, "is_saturated": true}',
             },
         )
 
@@ -1009,7 +1009,12 @@ class TestIntegration:
 
         upload_response = client.post(
             "/upload",
-            data={"presupuesto": f1, "apus": f2, "insumos": f3},
+            data={
+                "presupuesto": f1,
+                "apus": f2,
+                "insumos": f3,
+                "lithological_context": '{"uscs_classification": "CH", "liquid_limit": 55.0, "plasticity_index": 30.0, "shear_wave_velocity": 180.0, "void_ratio": 0.8, "is_saturated": true}',
+            },
             follow_redirects=True,
         )
 

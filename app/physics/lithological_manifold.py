@@ -15,7 +15,7 @@ Fundamentación Axiomática y Modelo Matemático:
 de estado del suelo.
 2. Difeomorfismo Físico (El Operador Φ): El funtor Φ : S → (G_max, I_sw, I_y, I_liq, {C_k}) ejecuta
 un mapeo no lineal desde las primitivas geomecánicas hacia un conjunto de magnitudes derivadas acotadas
-estrictamente en el intervalo unitario [3]. 
+estrictamente en el intervalo unitario [3].
 3. Cuantización de Defectos (Cartuchos TOON): Las patologías litológicas no se propagan como cadenas
 de texto de alta entropía. El operador colapsa el estado en un conjunto finito de cuasipartículas
 informacionales C_k con k ∈ {SwellingPlasmon, YieldingPhonon, LiquefactionSoliton}. Estas partículas
@@ -496,6 +496,8 @@ def _clamp(value: float, lo: float, hi: float) -> float:
 
     Invariante: lo ≤ hi.
     """
+    if math.isnan(value):
+        return value
     return max(lo, min(value, hi))
 
 
@@ -696,9 +698,17 @@ class LithologicalManifold(Morphism):
     def __init__(self) -> None:
         super().__init__(
             name="lithological_evaluation",
-            target_stratum=Stratum.PHYSICS,
         )
+        self.target_stratum = Stratum.PHYSICS
         self._metric_tensor = MetricTensorFactory.build_physics_tensor()
+
+    @property
+    def domain(self) -> frozenset[Stratum]:
+        return frozenset()
+
+    @property
+    def codomain(self) -> Stratum:
+        return Stratum.PHYSICS
 
     # ------------------------------------------------------------------
     # §8.1  Parseo y validación
