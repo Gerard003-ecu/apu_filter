@@ -1,6 +1,6 @@
 """
 =========================================================================================
-Módulo: Solenoidal Acústico v3.0 — Descomposición de Hodge–Helmholtz Rigurosa
+Módulo: Solenoide Acústico v3.0 — Descomposición de Hodge–Helmholtz Rigurosa
 =========================================================================================
 
 Fundamentos Matemáticos
