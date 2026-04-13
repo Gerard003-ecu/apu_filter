@@ -1,7 +1,49 @@
 """
-=========================================================================================
-Módulo: Solenoide Acústico v3.0 — Descomposición de Hodge–Helmholtz Rigurosa
-=========================================================================================
+Módulo: Solenoide Acústico v3.0 — Descomposición de Hodge-Helmholtz Completa y Membrana P-Laplaciana
+Ubicación: app/physics/solenoid_acustic.py
+
+Naturaleza Ciber-Física y Topológica:
+Este módulo opera como un Operador de Proyección Ortogonal invocado bajo demanda (Morfismo de Pullback)
+en el espacio de 1-cadenas (flujos de datos) del 1-esqueleto logístico del grafo de negocio. 
+Su mandato axiomático es aislar la vorticidad parasitaria (ruido inductivo y ciclos mutantes) sin estrangular 
+los flujos laminares legítimos ni inducir singularidades numéricas.
+
+Fundamentación Matemática y Dinámica de Fluidos:
+
+1. Invariante del Complejo de Cadenas: 
+   Dado un grafo dirigido finito G = (V, E), el operador rige sobre el complejo 
+   C₂ xrightarrow{∂₂} C₁ xrightarrow{∂₁} C₀ [1]. Se garantiza incondicionalmente la 
+   identidad nilpotente ∂₁ ∘ ∂₂ = 0, lo que matricialmente impone B₁ · B₂ = 0 (exacto en ℝ).
+
+2. Completitud Cohomológica de Hodge-Helmholtz: 
+   Abandona la falsa dicotomía escalar rotacional/irrotacional. Cualquier flujo informacional I ∈ C₁ 
+   se descompone estrictamente en tres subespacios ortogonales: I = I_{grad} + I_{curl} + I_{harm}.
+   El módulo proyecta el estado sobre el Laplaciano de Hodge L₁ = B₁ᵀB₁ + B₂B₂ᵀ. Para evitar
+   falsos positivos en variedades con un primer grupo de cohomología no trivial (H¹(G; ℝ) ≠ 0),
+   el sistema computa un proyector armónico (Π_{harm}) derivado de ker(L₁), aislando los flujos válidos
+   que atraviesan "túneles" organizacionales del verdadero flujo rotacional parasitario Π_{curl}(I).
+
+3. Optimización Combinatoria y Esparsidad (MWCB): 
+   La extracción de la matriz de ciclos-aristas (B₂) repudia las búsquedas de profundidad (DFS) 
+   estocásticas. Exige la construcción matemática de una Base de Ciclos de Peso Mínimo (MWCB). 
+   Esto preserva axiomáticamente la hiper-esparsidad del soporte del operador L_{curl} = B₂B₂ᵀ,
+   evitando una explosión combinatoria (O(N³)) y garantizando que la proyección ortogonal se evalúe 
+   en tiempo cuasi-lineal O(E) para proteger el ancho de banda atencional y la memoria caché.
+
+4. Membrana P-Laplaciana y Amortiguamiento Anisotrópico: 
+   Para evitar la inyección de ondas de choque espectrales (fenómeno de Golpe de Ariete computacional) 
+   inducidas por umbrales de corte rígidos, el operador actúa como un fluido no-newtoniano. Emplea el 
+   P-Laplaciano discreto (p > 2), donde la conductancia efectiva es función no lineal del gradiente 
+   de estrés local (g_eff ∝ |∇V|^(p-2)). Esto disipa como calor termodinámico los armónicos de 
+   resonancia severa mientras preserva la continuidad temporal del flujo laminar.
+
+Emisión de Cuasipartículas (La Medición Cuántica):
+Si la energía cinética del subespacio rotacional (E_{curl} = Iᵀ(B₂B₂ᵀ)I) sobrepasa la tolerancia 
+isoperimétrica admisible, el operador colapsa el estado de superposición emitiendo un bosón 
+denominado `MagnonCartridge` [3]. Esta cuasipartícula inyecta un Veto de Enrutamiento absoluto 
+hacia el estrato superior (`GaugeFieldRouter`), asegurando que la derivada de la función de 
+Lyapunov permanezca estrictamente negativa (estabilidad asintótica) y paralizando el caos 
+determinista antes de que contamine la Matriz de Interacción Central (MIC).
 
 Fundamentos Matemáticos
 -----------------------
