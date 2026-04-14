@@ -172,6 +172,8 @@ class NumericalUtilities:
                     f"Se esperaba matriz 2-D, se recibió shape={arr.shape}"
                 )
             m, n = arr.shape
+            if m == 0 or n == 0:
+                return eps
             # SVD completo: σ_max exacto
             try:
                 sigma_max_ub = np.linalg.svd(arr, compute_uv=False)[0]
@@ -256,6 +258,9 @@ class NumericalUtilities:
 
         if tolerance is None:
             tolerance = NumericalUtilities.adaptive_tolerance(dense)
+
+        # Implementar truncamiento espectral estricto exigido en Fase 3
+        tolerance = max(tolerance, 1e-10)
 
         U, s, Vt = np.linalg.svd(dense, full_matrices=False)
         # Invertir únicamente singulares sobre el umbral
@@ -487,7 +492,7 @@ class HodgeDecompositionBuilder:
 
         # Verificación: cada columna debe sumar cero
         col_sums = B1.sum(axis=0)
-        col_sum_max = float(np.max(np.abs(col_sums)))
+        col_sum_max = float(np.max(np.abs(col_sums))) if col_sums.size > 0 else 0.0
 
         rank_B1, svs = NumericalUtilities.compute_rank(B1)
 
@@ -503,141 +508,24 @@ class HodgeDecompositionBuilder:
     # 2.2 Matriz de Ciclos B₂
     # ──────────────────────────────────────────────────────────────────────
 
-    def build_cycle_matrix(self) -> Tuple[np.ndarray, Dict[str, Any]]:
+    def build_face_matrix(self) -> Tuple[np.ndarray, Dict[str, Any]]:
         """
-        Matriz de Ciclos Fundamentales B₂ ∈ ℝᵐˣᵏ.
-
-        Algoritmo (garantiza B₁B₂ = 0 algebraicamente):
-        ──────────────────────────────────────────────
-        Sea T un árbol generador de G_undirected con m−n+c aristas de cotejo.
-        Cada arista de cotejo eⱼ ∉ T define un ciclo fundamental Cⱼ:
-            Cⱼ = único camino en T entre tail(eⱼ) y head(eⱼ) + eⱼ
-
-        Para cada arista eᵢ ∈ Cⱼ:
-            (B₂)_{i,j} = +1  si la dirección de eᵢ en Cⱼ coincide con la
-                              dirección de eᵢ en G
-                       = −1  en caso contrario
-
-        Demostración de B₁B₂ = 0:
-            Por construcción, cada columna de B₂ representa un ciclo orientado.
-            El operador de borde de un ciclo es cero: ∂₁(∂₂(γ)) = 0.
-
-        Propiedades:
-            • k = β₁ = m − n + c  (primer número de Betti)
-            • rank(B₂) = k  (columnas linealmente independientes por construcción)
-            • B₁ B₂ = 0  (exacto en aritmética exacta, ‖·‖ ≤ tol en fp)
+        Matriz de fronteras de caras B₂ (o ∂₂) ∈ ℝ^{m×f}.
+        En un grafo puro sin 2-simplices, retorna una matriz vacía de dimensiones m×0.
 
         Returns:
-            (B2, metadata) con:
-                metadata["betti_1"]:        β₁
-                metadata["B1B2_norm"]:      ‖B₁B₂‖_F
-                metadata["verify_B1B2_zero"]: bool
+            B2: np.ndarray de tamaño (m, 0)
+            metadata: Dict con B1B2_norm y rank_B2.
         """
-        # Números de Betti: β₁ = m − n + c
-        undirected = self.G.to_undirected()
-        c = nx.number_connected_components(undirected)
-        k = max(0, self.m - self.n + c)   # β₁ (puede ser 0 para bosques)
-
-        B1, _ = self.build_incidence_matrix()
-
-        if k == 0:
-            B2 = np.zeros((self.m, 0), dtype=np.float64)
-            metadata: Dict[str, Any] = {
-                "shape": (self.m, 0),
-                "betti_1": 0,
-                "num_cycles": 0,
-                "B1B2_norm": 0.0,
-                "verify_B1B2_zero": True,
-                "rank_B2": 0,
-            }
-            return B2, metadata
-
-        # ── Árbol generador y aristas de cotejo ──────────────────────────
-        # Usar un árbol generador por componente conexa
-        spanning_tree_edges: FrozenSet[FrozenSet[Any]] = frozenset(
-            frozenset(e) for e in nx.spanning_tree(undirected).edges()
-        )
-
-        tree_edge_set: set = {
-            frozenset(e) for e in spanning_tree_edges
-        }
-
-        # Aristas de cotejo (co-tree edges) que definen los ciclos
-        cotree_edges: List[Tuple[Any, Any]] = [
-            e for e in self._edges
-            if frozenset(e) not in tree_edge_set
-        ]
-
-        # Verificación de consistencia
-        assert len(cotree_edges) == k, (
-            f"Se esperaban {k} aristas de cotejo, se encontraron "
-            f"{len(cotree_edges)}.  Revisar construcción del árbol generador."
-        )
-
-        # ── Construcción de B₂ columna a columna ─────────────────────────
-        B2 = np.zeros((self.m, k), dtype=np.float64)
-
-        for j, (cotree_tail, cotree_head) in enumerate(cotree_edges):
-            # Índice de la arista de cotejo en el grafo original
-            cotree_edge_idx = self._edge_index[(cotree_tail, cotree_head)]
-
-            # La arista de cotejo contribuye con +1 (define la orientación
-            # positiva del ciclo)
-            B2[cotree_edge_idx, j] = +1.0
-
-            # Camino único en el árbol entre cotree_tail y cotree_head
-            try:
-                path_nodes: List[Any] = nx.shortest_path(
-                    undirected, cotree_tail, cotree_head
-                )
-            except nx.NetworkXNoPath:
-                # No debería ocurrir en un árbol generador válido
-                logger.error(
-                    f"Sin camino en árbol entre {cotree_tail} y {cotree_head}"
-                )
-                continue
-
-            # Para cada arista del camino, determinar orientación relativa
-            for i in range(len(path_nodes) - 1):
-                u, v = path_nodes[i], path_nodes[i + 1]
-
-                # Solo aristas de árbol: frozenset({u,v}) ∈ tree_edge_set
-                if frozenset({u, v}) not in tree_edge_set:
-                    continue
-
-                # Determinar si la arista dirigida original es (u→v) o (v→u)
-                if (u, v) in self._edge_index:
-                    # Arista dirigida u→v: misma dirección que el camino
-                    e_idx = self._edge_index[(u, v)]
-                    B2[e_idx, j] = +1.0
-                elif (v, u) in self._edge_index:
-                    # Arista dirigida v→u: dirección inversa al camino
-                    e_idx = self._edge_index[(v, u)]
-                    B2[e_idx, j] = -1.0
-                # Si ninguna dirección existe (no es arista del grafo),
-                # se ignora — no debe ocurrir en árbol válido
-
-        # ── Verificación algebraica B₁B₂ = 0 ────────────────────────────
-        product = B1 @ B2
-        B1B2_norm = float(np.linalg.norm(product, 'fro'))
-        tol_verify = NumericalUtilities.adaptive_tolerance(B1) * self.m
-
-        rank_B2, _ = NumericalUtilities.compute_rank(B2)
-
-        if B1B2_norm > tol_verify:
-            logger.warning(
-                f"‖B₁B₂‖_F = {B1B2_norm:.2e} > tol = {tol_verify:.2e}. "
-                f"Posible error en construcción de ciclos."
-            )
-
+        B2 = np.zeros((self.m, 0), dtype=np.float64)
         metadata = {
-            "shape": (self.m, k),
-            "betti_1": k,
-            "num_cycles": k,
-            "rank_B2": rank_B2,
-            "B1B2_norm": B1B2_norm,
-            "verify_B1B2_zero": B1B2_norm <= tol_verify,
-            "cotree_edges": cotree_edges,
+            "shape": (self.m, 0),
+            "betti_1": max(0, self.m - self.n + nx.number_connected_components(self.G.to_undirected())),
+            "num_cycles": 0,
+            "rank_B2": 0,
+            "B1B2_norm": 0.0,
+            "verify_B1B2_zero": True,
+            "cotree_edges": [],
         }
         return B2, metadata
 
@@ -665,7 +553,7 @@ class HodgeDecompositionBuilder:
             (L1, metadata) con análisis espectral completo.
         """
         B1, meta1 = self.build_incidence_matrix()
-        B2, meta2 = self.build_cycle_matrix()
+        B2, meta2 = self.build_face_matrix()
 
         # L₁ = L_grad + L_curl
         L_grad = B1.T @ B1   # m×m, PSD, im = im(B₁ᵀ)
@@ -687,14 +575,14 @@ class HodgeDecompositionBuilder:
 
         tol_eig = NumericalUtilities.adaptive_tolerance(L1)
 
-        zero_eigenvalues = int(np.sum(eigenvalues < tol_eig))
+        zero_eigenvalues = int(np.sum(eigenvalues <= tol_eig))
         spectral_gap = float(eigenvalues[1] - eigenvalues[0]) if self.m > 1 else 0.0
 
         kappa, sigma_min, sigma_max = NumericalUtilities.matrix_condition_number(L1)
 
         # Verificar isomorfismo de Hodge: dim ker(L₁) = β₁
         betti_1 = meta2["betti_1"]
-        hodge_iso_satisfied = abs(zero_eigenvalues - betti_1) <= 1
+        hodge_iso_satisfied = zero_eigenvalues == betti_1
 
         if not hodge_iso_satisfied:
             logger.warning(
@@ -735,41 +623,35 @@ class HodgeDecompositionBuilder:
             1. ‖B₁B₂‖_F ≤ tol             (∂₁ ∘ ∂₂ = 0)
             2. Dimensiones consistentes
             3. rank(B₁) = n − c
-            4. rank(B₂) = β₁ = m − n + c
+            4. rank(B₂) = 0 en grafo 1D
             5. Euler–Poincaré: χ = n − m = β₀ − β₁
-               con β₀ = c (componentes conexas)
 
         Returns:
             Dict con resultados booleanos y métricas numéricas.
         """
         B1, meta1 = self.build_incidence_matrix()
-        B2, meta2 = self.build_cycle_matrix()
+        B2, meta2 = self.build_face_matrix()
 
         undirected = self.G.to_undirected()
         c = nx.number_connected_components(undirected)
         betti_0 = c
         betti_1 = meta2["betti_1"]
 
-        # 1. Verificar B₁B₂ = 0
         B1B2_zero = meta2["verify_B1B2_zero"]
         B1B2_norm = meta2["B1B2_norm"]
 
-        # 2. Dimensiones
         dims_ok = (
             B1.shape == (self.n, self.m)
-            and B2.shape == (self.m, betti_1)
+            and B2.shape == (self.m, 0)
         )
 
-        # 3. rank(B₁) = n − c
         rank_B1 = meta1["rank_B1"]
         rank_B1_expected = self.n - c
         rank_B1_ok = rank_B1 == rank_B1_expected
 
-        # 4. rank(B₂) = β₁
         rank_B2 = meta2["rank_B2"]
-        rank_B2_ok = rank_B2 == betti_1
+        rank_B2_ok = rank_B2 == 0
 
-        # 5. Euler–Poincaré: n − m = β₀ − β₁
         chi = self.n - self.m
         chi_topological = betti_0 - betti_1
         euler_ok = (chi == chi_topological)
@@ -778,24 +660,18 @@ class HodgeDecompositionBuilder:
 
         return {
             "is_valid": is_valid,
-            # ∂₁∂₂ = 0
             "B1B2_zero": B1B2_zero,
             "B1B2_norm": B1B2_norm,
-            # Dimensiones
             "dimensions_consistent": dims_ok,
-            # Rango B₁
             "rank_B1": rank_B1,
             "rank_B1_expected": rank_B1_expected,
             "rank_B1_ok": rank_B1_ok,
-            # Rango B₂
             "rank_B2": rank_B2,
-            "rank_B2_expected": betti_1,
+            "rank_B2_expected": 0,
             "rank_B2_ok": rank_B2_ok,
-            # Euler–Poincaré
             "chi_geometric": chi,
             "chi_topological": chi_topological,
             "euler_poincare_ok": euler_ok,
-            # Números de Betti
             "beta_0": betti_0,
             "beta_1": betti_1,
             "connected_components": c,
@@ -890,6 +766,54 @@ class AcousticSolenoidOperator:
                 )
         return I_vec
 
+    def _build_fundamental_cycles(self, G: nx.DiGraph) -> np.ndarray:
+        """
+        Construye la matriz de ciclos fundamentales (B_cycle) para extraer la vorticidad.
+        """
+        import networkx as nx
+        import numpy as np
+
+        undirected = G.to_undirected()
+        m = G.number_of_edges()
+        n = G.number_of_nodes()
+        c = nx.number_connected_components(undirected)
+        k = max(0, m - n + c)
+
+        if k == 0:
+            return np.zeros((m, 0), dtype=np.float64)
+
+        edges = list(G.edges())
+        edge_index = {e: i for i, e in enumerate(edges)}
+
+        spanning_edges = set(nx.minimum_spanning_tree(undirected).edges())
+        directed_tree_edges = set()
+        for u, v in spanning_edges:
+            if (u, v) in edges:
+                directed_tree_edges.add((u, v))
+            elif (v, u) in edges:
+                directed_tree_edges.add((v, u))
+
+        cotree_edges = [e for e in edges if e not in directed_tree_edges]
+
+        B_cycle = np.zeros((m, k), dtype=np.float64)
+        tree_graph = undirected.edge_subgraph(spanning_edges)
+
+        for j, (cotree_tail, cotree_head) in enumerate(cotree_edges):
+            B_cycle[edge_index[(cotree_tail, cotree_head)], j] = 1.0
+            try:
+                path_nodes = nx.shortest_path(tree_graph, cotree_head, cotree_tail)
+            except nx.NetworkXNoPath:
+                continue
+
+            for i in range(len(path_nodes) - 1):
+                u, v = path_nodes[i], path_nodes[i + 1]
+                if (u, v) in directed_tree_edges:
+                    B_cycle[edge_index[(u, v)], j] = 1.0
+                elif (v, u) in directed_tree_edges:
+                    B_cycle[edge_index[(v, u)], j] = -1.0
+
+        return B_cycle
+
     def _compute_projector_via_svd(
         self,
         B2: np.ndarray,
@@ -960,7 +884,8 @@ class AcousticSolenoidOperator:
             es irrotacional.
         """
         builder = self._get_builder(G)
-        B2, cycle_meta = builder.build_cycle_matrix()
+        B2 = self._build_fundamental_cycles(G)
+        cycle_meta = {}
         k = B2.shape[1]
 
         # ── Sin ciclos: vorticidad axiomáticamente nula ──────────────────
@@ -1084,7 +1009,7 @@ class AcousticSolenoidOperator:
         """
         builder = self._get_builder(G)
         B1, _ = builder.build_incidence_matrix()
-        B2, _ = builder.build_cycle_matrix()
+        B2, _ = builder.build_face_matrix()
 
         I_vec = self._build_flow_vector(builder, edge_flows)
 
@@ -1537,22 +1462,22 @@ def verify_hodge_properties(G: nx.DiGraph) -> Dict[str, Any]:
 
     cochain_result = hodge.verify_cochain_complex()
     B1, _ = hodge.build_incidence_matrix()
-    B2, _ = hodge.build_cycle_matrix()
+    B2, _ = hodge.build_face_matrix()
     L1, spectral = hodge.compute_hodge_laplacian()
 
     # Verificar nulidad del kernel usando base explícita
     ker_L1 = NumericalUtilities.null_space_basis(L1)
     ker_dim = ker_L1.shape[1]
 
-    # Verificar que ker(L₁) ⊆ ker(B₁ᵀ) ∩ ker(B₂ᵀ)
+    # Verificar que ker(L₁) ⊆ ker(B₁) ∩ ker(B₂ᵀ)
     ker_ok = True
     if ker_dim > 0:
-        B1T_ker_norm = float(np.linalg.norm(B1.T @ ker_L1))
+        B1_ker_norm = float(np.linalg.norm(B1 @ ker_L1))
         B2T_ker_norm = float(np.linalg.norm(B2.T @ ker_L1)) if B2.shape[1] > 0 else 0.0
         tol = 1e-8
-        ker_ok = B1T_ker_norm < tol and B2T_ker_norm < tol
+        ker_ok = B1_ker_norm < tol and B2T_ker_norm < tol
     else:
-        B1T_ker_norm = 0.0
+        B1_ker_norm = 0.0
         B2T_ker_norm = 0.0
 
     return {
@@ -1582,7 +1507,7 @@ def verify_hodge_properties(G: nx.DiGraph) -> Dict[str, Any]:
             "ker_L1_dimension": ker_dim,
             "expected_beta_1": cochain_result["beta_1"],
             "isomorphism_ok": ker_dim == cochain_result["beta_1"],
-            "ker_subset_of_ker_B1T": B1T_ker_norm,
+            "ker_subset_of_ker_B1": B1_ker_norm,
             "ker_subset_of_ker_B2T": B2T_ker_norm,
             "kernel_property_ok": ker_ok,
         },
