@@ -406,6 +406,9 @@ class Issue:
 
     def __post_init__(self) -> None:
         """Validación y normalización post-inicialización."""
+        if isinstance(self.stratum, int):
+            self.stratum = Stratum(self.stratum)
+
         # Asegurar que topological_path sea tupla
         if isinstance(self.topological_path, str):
             object.__setattr__(
@@ -512,6 +515,9 @@ class PhaseAnalysis:
 
     def __post_init__(self) -> None:
         """Validación post-inicialización."""
+        if isinstance(self.stratum, int):
+            self.stratum = Stratum(self.stratum)
+
         if self.duration_seconds < 0:
             self.duration_seconds = 0.0
 
@@ -577,6 +583,9 @@ class StratumAnalysis:
 
     def __post_init__(self) -> None:
         """Recalcula severidad si es necesario."""
+        if isinstance(self.stratum, int):
+            self.stratum = Stratum(self.stratum)
+
         if self.phases and self.severity == SeverityLevel.OPTIMO:
             # Recalcular como supremum de las fases
             phase_severities = [p.severity for p in self.phases]
