@@ -47,7 +47,7 @@ import scipy.linalg as la
 import scipy.sparse as sp
 
 # ── Módulo bajo prueba ────────────────────────────────────────────────────────
-from solenoid_acustic import (
+from app.physics.solenoid_acustic import (
     AcousticSolenoidOperator,
     HodgeDecompositionBuilder,
     MagnonCartridge,
@@ -620,46 +620,27 @@ class TestHodgeDecompositionBuilder:
     # ── Matriz de Ciclos B₂ ───────────────────────────────────────────────
 
     def test_B2_shape(self):
-        """B₂ ∈ ℝᵐˣᵏ con k = β₁."""
+        """B₂ ∈ ℝᵐˣ⁰ para un grafo 1D."""
         for factory, (G, inv) in [
             ("triangle", GraphFactory.triangle()),
             ("two_tri", GraphFactory.two_triangles_shared_vertex()),
             ("path", GraphFactory.path_graph()),
         ]:
             builder = HodgeDecompositionBuilder(G)
-            B2, meta = builder.build_cycle_matrix()
-            expected_k = inv["beta_1"]
-            assert B2.shape == (inv["m"], expected_k), (
-                f"{factory}: shape esperado ({inv['m']}, {expected_k}), "
-                f"obtenido {B2.shape}"
-            )
+            B2, meta = builder.build_face_matrix()
+            assert B2.shape == (inv["m"], 0)
 
-    def test_B2_rank_equals_beta1(self):
-        """
-        rank(B₂) = β₁ = m − n + c.
-
-        Las columnas de B₂ deben ser linealmente independientes.
-        """
-        test_cases = [
-            GraphFactory.triangle(),
-            GraphFactory.two_triangles_shared_vertex(),
-            GraphFactory.square_with_diagonal(),
-            GraphFactory.disconnected_two_triangles(),
-        ]
-        for G, inv in test_cases:
-            if inv["beta_1"] == 0:
-                continue
-            builder = HodgeDecompositionBuilder(G)
-            B2, meta = builder.build_cycle_matrix()
-            assert meta["rank_B2"] == inv["beta_1"], (
-                f"rank(B₂) esperado {inv['beta_1']}, "
-                f"obtenido {meta['rank_B2']}"
-            )
+    def test_B2_rank_equals_zero(self):
+        """rank(B₂) = 0 en un grafo 1D."""
+        G, _ = GraphFactory.triangle()
+        builder = HodgeDecompositionBuilder(G)
+        B2, meta = builder.build_face_matrix()
+        assert meta["rank_B2"] == 0
 
     def test_B2_entries_in_minus1_0_plus1(self):
         """Entradas de B₂ ∈ {-1, 0, +1}."""
         G, _ = GraphFactory.two_triangles_shared_vertex()
-        B2, _ = HodgeDecompositionBuilder(G).build_cycle_matrix()
+        B2, _ = HodgeDecompositionBuilder(G).build_face_matrix()
         if B2.size > 0:
             valid_entries = set(np.unique(B2))
             assert valid_entries <= {-1.0, 0.0, 1.0}
@@ -667,14 +648,14 @@ class TestHodgeDecompositionBuilder:
     def test_B2_empty_for_acyclic_graph(self):
         """β₁ = 0 ⟹ B₂ ∈ ℝᵐˣ⁰ (sin columnas)."""
         G, _ = GraphFactory.path_graph(5)
-        B2, meta = HodgeDecompositionBuilder(G).build_cycle_matrix()
+        B2, meta = HodgeDecompositionBuilder(G).build_face_matrix()
         assert B2.shape[1] == 0
         assert meta["betti_1"] == 0
 
     def test_B2_empty_for_single_node(self):
         """Grafo trivial: B₂ vacía."""
         G, _ = GraphFactory.single_node()
-        B2, meta = HodgeDecompositionBuilder(G).build_cycle_matrix()
+        B2, meta = HodgeDecompositionBuilder(G).build_face_matrix()
         assert B2.shape == (0, 0)
 
     def test_B2_betti_1_formula(self):
@@ -688,7 +669,7 @@ class TestHodgeDecompositionBuilder:
             GraphFactory.complete_directed(4),
         ]
         for G, inv in test_cases:
-            _, meta = HodgeDecompositionBuilder(G).build_cycle_matrix()
+            _, meta = HodgeDecompositionBuilder(G).build_face_matrix()
             expected = inv.get("beta_1", inv["m"] - inv["n"] + inv["c"])
             assert meta["betti_1"] == expected, (
                 f"β₁ esperado {expected}, obtenido {meta['betti_1']}"
@@ -707,6 +688,28 @@ class TestCochainComplexInvariants:
 
     El invariante central es ∂₁ ∘ ∂₂ = 0, i.e., B₁B₂ = 0.
     """
+
+    def test_betti_rank_nullity_invariant(self) -> None:
+        G, inv = GraphFactory.two_triangles_shared_vertex()
+        builder = HodgeDecompositionBuilder(G)
+        B1, _ = builder.build_incidence_matrix()
+        B2, _ = builder.build_face_matrix()
+
+        n, m = B1.shape
+        c = nx.number_connected_components(G.to_undirected())
+
+        if B2.shape[1] > 0:
+            boundary_annihilation = np.linalg.norm(B1 @ B2)
+            assert boundary_annihilation < TOL_STRICT, "Violación cohomológica: ∂₁∘∂₂ ≠ 0"
+
+        rank_B2 = np.linalg.matrix_rank(B2) if B2.size > 0 else 0
+        beta_1 = (m - n + c) - rank_B2
+
+        L1 = B1.T @ B1 + (B2 @ B2.T if B2.size > 0 else np.zeros((m, m)))
+        eigenvalues = np.linalg.eigvalsh(L1)
+        nullity_L1 = np.sum(eigenvalues < TOL_STRICT)
+
+        assert nullity_L1 == beta_1, f"Ruptura del Teorema de Hodge: dim(ker(L₁)) = {nullity_L1} != β₁ = {beta_1}."
 
     @pytest.mark.parametrize("factory", [
         GraphFactory.triangle,
@@ -728,7 +731,7 @@ class TestCochainComplexInvariants:
         G, _ = factory()
         builder = HodgeDecompositionBuilder(G)
         B1, _ = builder.build_incidence_matrix()
-        B2, meta = builder.build_cycle_matrix()
+        B2, meta = builder.build_face_matrix()
 
         if B2.shape[1] == 0:
             return  # Trivialmente satisfecho
@@ -779,19 +782,11 @@ class TestCochainComplexInvariants:
                 f"obtenido {result['rank_B1']}"
             )
 
-    def test_rank_B2_equals_beta1(self):
-        """rank(B₂) = β₁ para grafos con ciclos."""
-        test_cases = [
-            GraphFactory.triangle(),
-            GraphFactory.two_triangles_shared_vertex(),
-            GraphFactory.square_with_diagonal(),
-        ]
-        for G, inv in test_cases:
-            result = HodgeDecompositionBuilder(G).verify_cochain_complex()
-            assert result["rank_B2_ok"], (
-                f"rank(B₂) incorrecto: esperado β₁={result['rank_B2_expected']}, "
-                f"obtenido {result['rank_B2']}"
-            )
+    def test_rank_B2_equals_zero(self):
+        """rank(B₂) = 0 para grafos 1D."""
+        G, _ = GraphFactory.triangle()
+        result = HodgeDecompositionBuilder(G).verify_cochain_complex()
+        assert result["rank_B2_ok"]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -879,7 +874,7 @@ class TestSpectralProperties:
         G, _ = GraphFactory.two_triangles_shared_vertex()
         builder = HodgeDecompositionBuilder(G)
         B1, _ = builder.build_incidence_matrix()
-        B2, _ = builder.build_cycle_matrix()
+        B2, _ = builder.build_face_matrix()
         L1, _ = builder.compute_hodge_laplacian()
 
         L_grad = B1.T @ B1
@@ -979,13 +974,14 @@ class TestAcousticSolenoidOperator:
         assert magnon is not None
 
         # Calcular manualmente
+        op_instance = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
+        B_cycle = op_instance._build_fundamental_cycles(G)
         builder = HodgeDecompositionBuilder(G)
-        B2, _ = builder.build_cycle_matrix()
         I_vec = np.array([
             flows.get(e, 0.0)
             for e in builder._edges
         ])
-        circulation = B2.T @ I_vec
+        circulation = B_cycle.T @ I_vec
         E_curl_expected = float(np.dot(circulation, circulation))
 
         assert abs(magnon.kinetic_energy - E_curl_expected) < TOL_STRICT, (
@@ -1428,14 +1424,12 @@ class TestFullHodgeDecomposition:
         )
 
     def test_acyclic_graph_curl_is_zero(self):
-        """Para β₁ = 0: ‖I_curl‖ = 0 (no hay componente solenoidal)."""
-        G, _ = GraphFactory.path_graph(5)
-        flows = {(i, i + 1): float(i + 1) for i in range(4)}
+        """Para grafos 1D, ‖I_curl‖ = 0 (no hay caras 2D)."""
+        G, _ = GraphFactory.triangle()
+        flows = {e: 1.0 for e in G.edges()}
         result = self._get_decomposition(G, flows)
         curl_norm = result["norms"]["solenoidal"]
-        assert curl_norm < TOL_NUMERICAL, (
-            f"‖I_curl‖ = {curl_norm:.2e} debe ser ≈ 0 para β₁ = 0"
-        )
+        assert curl_norm < TOL_NUMERICAL
 
     def test_verification_flags_orthogonal(self):
         """El flag is_orthogonal_decomposition debe ser True."""
@@ -1469,7 +1463,7 @@ class TestEdgeCases:
         G.add_edge(0, 1)
         builder = HodgeDecompositionBuilder(G)
         B1, _ = builder.build_incidence_matrix()
-        B2, meta = builder.build_cycle_matrix()
+        B2, meta = builder.build_face_matrix()
         assert B2.shape[1] == 0
         assert meta["betti_1"] == 0
 
@@ -1482,7 +1476,7 @@ class TestEdgeCases:
         G.add_edge("A", "B")
         G.add_edge("B", "A")
         builder = HodgeDecompositionBuilder(G)
-        B2, meta = builder.build_cycle_matrix()
+        B2, meta = builder.build_face_matrix()
         # Verificar B₁B₂ = 0
         B1, _ = builder.build_incidence_matrix()
         if B2.shape[1] > 0:
@@ -1597,7 +1591,7 @@ class TestEulerPoincare:
         Ciclo n-gono: β₁ = 1, β₀ = 1, χ = 0.
         """
         G = nx.cycle_graph(n, create_using=nx.DiGraph)
-        _, meta = HodgeDecompositionBuilder(G).build_cycle_matrix()
+        _, meta = HodgeDecompositionBuilder(G).build_face_matrix()
         assert meta["betti_1"] == 1, (
             f"Ciclo {n}-gono: β₁ esperado 1, obtenido {meta['betti_1']}"
         )
@@ -1608,7 +1602,7 @@ class TestEulerPoincare:
         K_n dirigido: β₁ = m − n + 1 = n(n−1) − n + 1.
         """
         G, inv = GraphFactory.complete_directed(n)
-        _, meta = HodgeDecompositionBuilder(G).build_cycle_matrix()
+        _, meta = HodgeDecompositionBuilder(G).build_face_matrix()
         expected_beta1 = inv["m"] - inv["n"] + 1
         assert meta["betti_1"] == expected_beta1, (
             f"K_{n}: β₁ esperado {expected_beta1}, obtenido {meta['betti_1']}"
@@ -1618,7 +1612,7 @@ class TestEulerPoincare:
         """Árbol: β₁ = 0 (sin ciclos)."""
         for n in [4, 7, 10]:
             G, _ = GraphFactory.spanning_tree(n)
-            _, meta = HodgeDecompositionBuilder(G).build_cycle_matrix()
+            _, meta = HodgeDecompositionBuilder(G).build_face_matrix()
             assert meta["betti_1"] == 0, (
                 f"Árbol {n}-nodos: β₁ = {meta['betti_1']}, esperado 0"
             )
@@ -1694,7 +1688,7 @@ class TestNumericalStability:
         for G, inv in test_cases:
             builder = HodgeDecompositionBuilder(G)
             B1, _ = builder.build_incidence_matrix()
-            B2, meta = builder.build_cycle_matrix()
+            B2, meta = builder.build_face_matrix()
             if B2.shape[1] == 0:
                 continue
             norm = meta["B1B2_norm"]
@@ -1719,7 +1713,7 @@ class TestNumericalStability:
         A = U @ np.diag(sigmas) @ V.T
 
         A_plus = NumericalUtilities.moore_penrose_pseudoinverse(A)
-        residual = np.linalg.norm(A @ A_plus @ A - A, "fro")
+        residual = np.linalg.norm(A @ A_plus @ A - A, "fro") / np.linalg.norm(A, "fro")
         # Para κ=1e10 y ε_mach≈2e-16: error esperado ≈ 2e-6
         assert residual < 1e-5, (
             f"A A⁺ A ≠ A para matriz mal condicionada: residual = {residual:.2e}"
@@ -1920,14 +1914,14 @@ class TestVerifyHodgeProperties:
             )
 
     def test_kernel_vectors_in_null_space_of_B1T_and_B2T(self):
-        """ker(L₁) ⊆ ker(B₁ᵀ) ∩ ker(B₂ᵀ)."""
+        """ker(L₁) ⊆ ker(B₁) ∩ ker(B₂ᵀ)."""
         G, _ = GraphFactory.triangle()
         result = verify_hodge_properties(G)
         hk = result["hodge_kernel"]
         assert hk["kernel_property_ok"], (
-            f"ker(L₁) no está en ker(B₁ᵀ) ∩ ker(B₂ᵀ): "
-            f"‖B₁ᵀN‖ = {hk['ker_subset_of_ker_B1T']:.2e}, "
-            f"‖B₂ᵀN‖ = {hk['ker_subset_of_ker_B2T']:.2e}"
+            f"ker(L₁) no está en ker(B₁) ∩ ker(B₂ᵀ): "
+            f"‖B₁N‖ = {hk.get('ker_subset_of_ker_B1', 0.0):.2e}, "
+            f"‖B₂ᵀN‖ = {hk.get('ker_subset_of_ker_B2T', 0.0):.2e}"
         )
 
 

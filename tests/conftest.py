@@ -14,6 +14,14 @@ Convenciones:
 """
 
 import os
+# Fase 1: Esterilización del Espacio Vectorial (Vacío Termodinámico)
+# Inyectar variables de entorno ANTES de cargar numpy/scipy para forzar BLAS/LAPACK a 1 hilo
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
 import sys
 
 import pytest
