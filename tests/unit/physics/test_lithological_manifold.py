@@ -70,7 +70,7 @@ def _bootstrap_external_mocks() -> None:
 
 
 # Ejecutar bootstrap ANTES de importar el módulo bajo prueba
-_bootstrap_external_mocks()
+# _bootstrap_external_mocks()
 
 # --- Importaciones del módulo bajo prueba ---
 from app.core.schemas import Stratum
