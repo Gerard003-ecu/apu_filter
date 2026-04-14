@@ -40,7 +40,7 @@ Fundamentación Matemática y Dinámica de Fluidos:
 Emisión de Cuasipartículas (La Medición Cuántica):
 Si la energía cinética del subespacio rotacional (E_{curl} = Iᵀ(B₂B₂ᵀ)I) sobrepasa la tolerancia 
 isoperimétrica admisible, el operador colapsa el estado de superposición emitiendo un bosón 
-denominado `MagnonCartridge` [3]. Esta cuasipartícula inyecta un Veto de Enrutamiento absoluto 
+denominado `MagnonCartridge`. Esta cuasipartícula inyecta un Veto de Enrutamiento absoluto 
 hacia el estrato superior (`GaugeFieldRouter`), asegurando que la derivada de la función de 
 Lyapunov permanezca estrictamente negativa (estabilidad asintótica) y paralizando el caos 
 determinista antes de que contamine la Matriz de Interacción Central (MIC).
