@@ -337,6 +337,18 @@ class CategoricalState:
     forensic_evidence: Optional[Dict[str, Any]] = None
     composition_trace: Tuple[CompositionTrace, ...] = field(default_factory=tuple)
 
+    def __post_init__(self):
+        # Proyección coercitiva al espacio topológico correcto para strata validados
+        if self.validated_strata:
+            corrected_strata = []
+            for s in self.validated_strata:
+                if isinstance(s, int):
+                    corrected_strata.append(Stratum(s))
+                else:
+                    corrected_strata.append(s)
+            # Como es frozen, debemos usar object.__setattr__
+            object.__setattr__(self, 'validated_strata', frozenset(corrected_strata))
+
     @property
     def is_success(self) -> bool:
         """Estado sin error registrado."""

@@ -1563,9 +1563,11 @@ class ValidationCommand(ProjectionCommand):
     
     def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
         if ctx.force_override:
+            if ctx.target_stratum is None:
+                raise ValueError("Bypass denegado: estrato de origen indeterminado ('unknown')")
             logger.warning(
                 "⚠️ Validación jerárquica bypaseada para '%s' via force_override",
-                ctx.target_stratum.name if ctx.target_stratum else "unknown",
+                ctx.target_stratum.name,
             )
             return None
         

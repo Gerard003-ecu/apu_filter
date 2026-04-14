@@ -264,7 +264,9 @@ class NumericalUtilities:
 
         U, s, Vt = np.linalg.svd(dense, full_matrices=False)
         # Invertir únicamente singulares sobre el umbral
-        inv_s = np.where(s > tolerance, 1.0 / s, 0.0)
+        # Protección contra evaluación ansiosa (eager evaluation) en el espectro degenerado
+        s_safe = np.where(s > tolerance, s, 1.0)
+        inv_s = np.where(s > tolerance, 1.0 / s_safe, 0.0)
         # A⁺ = V diag(Σ⁺) Uᵀ
         return (Vt.T * inv_s) @ U.T  # equivalente a Vt.T @ diag(inv_s) @ U.T
 
