@@ -3434,6 +3434,10 @@ class DataMerger(BaseCostProcessor):
             indicator="_merge"
         )
 
+        # Asegurar la biyección de la dimensión perdida (Mayer-Vietoris)
+        if ColumnNames.CANTIDAD_PRESUPUESTO not in df_merged.columns and ColumnNames.CANTIDAD_PRESUPUESTO in df_apus.columns:
+            df_merged[ColumnNames.CANTIDAD_PRESUPUESTO] = df_apus[ColumnNames.CANTIDAD_PRESUPUESTO]
+
         return self._consolidate_columns(df_merged)
 
     def _fuzzy_merge(
