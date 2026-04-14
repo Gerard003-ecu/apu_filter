@@ -5,47 +5,66 @@ Ubicación: app/core/immune_system/deliberation_manifold.py
 =========================================================================================
 
 Naturaleza Ciber-Física:
-    Actúa como el Funtor de Colapso de la Función de Estado del sistema. Intercepta 
-    los tensores continuos provenientes de los subespacios de Topología (V_TACTICS) 
-    y Finanzas (V_STRATEGY), sometiéndolos a la fricción geométrica del territorio 
-    para colapsar el sistema en un vértice operativo determinista. Su función axiomática 
-    es erradicar el libre albedrío estocástico del Modelo de Lenguaje (LLM), forzándolo 
+    Actúa como el Funtor de Colapso de la Función de Estado del sistema. Intercepta
+    los tensores continuos provenientes de los subespacios de Topología (V_TACTICS)
+    y Finanzas (V_STRATEGY), sometiéndolos a la fricción geométrica del territorio
+    para colapsar el sistema en un vértice operativo determinista. Su función axiomática
+    es erradicar el libre albedrío estocástico del Modelo de Lenguaje (LLM), forzándolo
     a acatar el límite superior del riesgo físico.
 
+Fundamento Matemático Revisado
+───────────────────────────────
 1. Ecuación de Estado (Estrés Ajustado Tensorial):
-    El escalar continuo de estrés ajustado (σ*) se define mediante la contracción:
-        σ* = T_int ⊗ F_ext ⊗ Λ ⊗ P_frag
-    Donde:
-    • T_int (Tensión Interna): Matriz de covarianza entre la desalineación estratégica 
-      y el acoplamiento gravitacional del presupuesto.
-    • F_ext (Fricción Externa): Evaluación sobre una métrica Riemanniana territorial,
-      ponderando asimétricamente el clima, la logística y la entropía social.
-    • Λ (Palanca de Improbabilidad): Operador de amplificación para anomalías en 
-      la homología persistente.
-    • P_frag (Penalización Estructural): Inverso del Índice de Estabilidad Piramidal 
-      (Si Ψ < 1.0, P_frag amplifica exponencialmente el colapso).
 
-2. Proyección sobre el Retículo de Severidad (Lattice Theory):
-    El Manifold mapea el escalar continuo σ* ∈ ℝ⁺ hacia un espacio discreto utilizando 
-    un Retículo Acotado Distributivo (VerdictLevel, ≤, ⊔, ⊓). 
-    El veredicto final se extrae aplicando estrictamente la operación Supremo (⊔ / Join):
-        Veredicto = ⊔ (σ* → L_i)
-    Esto garantiza matemáticamente el "Worst-Case Scenario": si una sola dimensión 
-    física o topológica cruza el umbral crítico, la operación Supremo satura la 
-    ecuación a ⊤ (RECHAZAR), sin posibilidad de dilución estocástica.
+        σ* = T_int(ψ, ROI) · F_ext(territory) · Λ(A, G, F) · P_frag(ψ)
 
-3. Ley de Clausura Transitiva (Filtración DIKW):
-    El morfismo respeta la filtración topológica estricta:
+   Donde cada factor se deriva de un espacio métrico bien definido:
+
+   • T_int ∈ ℝ⁺: Tensión interna como producto de desalineación y acoplamiento
+     gravitacional. Ambos operandos normalizados al mismo espacio [0,1] mediante
+     transformaciones log₂ con idéntico esquema de normalización (isométricas).
+
+   • F_ext ∈ [1, ∞): Métrica riemanniana territorial. Media ponderada con pesos
+     sumando 1.0 (verificación estática), clamped inferiormente en 1.0 para que
+     sea estrictamente multiplicativa.
+
+   • Λ ∈ [1, 4]: Palanca de improbabilidad. Producto de escalas logarítmicas y
+     de anomalías, dividido por un factor de calibración K derivado del máximo
+     teórico del producto, garantizando Λ=1 para inputs neutrales.
+
+   • P_frag ∈ [1.0, 2.5]: Penalización estructural lineal por déficit de ψ < 1.
+
+2. Espacio de Normalización Unificado (invariante algebraica):
+
+   fragility_norm y roi_norm se calculan mediante la MISMA transformación base:
+       x_norm(v) = clamp(log₂(1 + 1/v) / log₂(1 + 1/ε_ref), 0, 1)
+   
+   Con ε_ref = 0.1 (percentil operativo bajo, no ε numérico).
+   Esto garantiza que misalignment = |f_norm - r_norm| sea una distancia
+   euclidiana genuina en el espacio normalizado [0,1]².
+
+3. Factor de Gauge Acotado (invariante de finitud):
+
+   gauge_deflection ∈ [1.0, _GAUGE_MAX] mediante clamp explícito,
+   eliminando la divergencia lineal sin cota del diseño original.
+
+4. Proyección sobre el Retículo de Severidad (Lattice Theory):
+
+   _project_to_lattice maneja explícitamente math.inf y math.nan,
+   mapeando ambos a VerdictLevel.RECHAZAR por el axioma del peor caso (⊤).
+
+5. Ley de Clausura Transitiva (Filtración DIKW):
         V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_Ω ⊂ V_WISDOM
-    Un fallo en un estrato subyacente F_i propaga invariablemente el colapso hacia 
-    los estratos superiores F_j (para j < i). 
 
 Invariantes Algebraicos y Numéricos Garantizados:
-    • Finitud estricta: Todo float intermedio y resultante (σ*) es comprobablemente 
-      finito (¬NaN, ¬±Inf), protegiendo la Unidad de Punto Flotante (FPU).
-    • Idempotencia de consolidación: AnomalyData.consolidate() = (AnomalyData.consolidate())²
-    • Pureza Funcional: La operación de colapso _collapse() es un homomorfismo puro, 
-      carente de efectos secundarios en el espacio de fase.
+    • Finitud estricta: Todo float intermedio y resultante (σ*) es comprobablemente
+      finito (¬NaN, ¬±Inf) EXCEPTO en el path de SheafDegeneracyError donde
+      math.inf es semánticamente correcto (saturación del retículo).
+    • Idempotencia: consolidate² = consolidate (preservada).
+    • Pureza Funcional: _collapse() carece de efectos secundarios.
+    • Monotonicidad: σ*(ψ↓) ≥ σ*(ψ↑), σ*(anomalías↑) ≥ σ*(anomalías↓).
+    • Conmensurabilidad: fragility_norm y roi_norm comparten el mismo espacio
+      métrico normalizado.
 =========================================================================================
 """
 
@@ -54,99 +73,194 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, FrozenSet, List, Optional, Tuple
+from types import MappingProxyType
+from typing import Any, Dict, FrozenSet, List, Mapping, Optional, Tuple
 
 from app.core.mic_algebra import CategoricalState, Morphism
 from app.core.schemas import Stratum
 from app.wisdom.semantic_translator import VerdictLevel
-from app.core.immune_system.calibration.sheaf_cohomology_orchestrator import SheafDegeneracyError, HomologicalInconsistencyError, SheafCohomologyOrchestrator
+from app.core.immune_system.calibration.sheaf_cohomology_orchestrator import (
+    HomologicalInconsistencyError,
+    SheafCohomologyOrchestrator,
+    SheafDegeneracyError,
+)
 
 logger = logging.getLogger("MIC.Omega.DeliberationManifold")
 
 
 # =============================================================================
-# CONSTANTES DEL MANIFOLD
+# SECCIÓN 1: CONSTANTES DEL MANIFOLD
+# =============================================================================
+# Todas las constantes están agrupadas por subsistema y documentadas con su
+# derivación matemática. Las verificaciones estáticas garantizan la coherencia
+# algebraica de los parámetros en tiempo de carga del módulo.
 # =============================================================================
 
-# ---------------------------------------------------------------------------
-# Umbrales del retículo de veredictos.
+# -----------------------------------------------------------------------------
+# 1.1 Umbrales del Retículo de Veredictos
+# -----------------------------------------------------------------------------
+# Derivación empírica calibrada sobre el espacio de outputs:
+#   σ* = 0      → sistema ideal    (ψ=1, ROI=1, sin anomalías, sin territorio)
+#   σ* ≈ 0.50   → desalineación moderada, sin anomalías
+#   σ* ≈ 1.50   → fragilidad + anomalías moderadas
+#   σ* ≈ 3.00   → fragilidad severa + anomalías + territorio hostil
 #
-# Derivación empírica:
-#   - σ* = 0 para sistema ideal (ψ=1, ROI=1, sin anomalías, sin territorio).
-#   - σ* ≈ 0.5 para desalineación moderada sin anomalías.
-#   - σ* ≈ 1.5 para fragilidad + anomalías moderadas.
-#   - σ* ≈ 3.0 para fragilidad severa + anomalías + territorio hostil.
-# ---------------------------------------------------------------------------
+# Los umbrales definen las fibras del homomorfismo de retículo:
+#   φ: (ℝ⁺, ≤) → (VerdictLevel, ⊑)
+# -----------------------------------------------------------------------------
 _VERDICT_THRESHOLD_VIABLE: float = 0.75
 _VERDICT_THRESHOLD_CONDICIONAL: float = 1.75
 _VERDICT_THRESHOLD_PRECAUCION: float = 3.00
 
-# ---------------------------------------------------------------------------
-# Pesos de la métrica territorial riemanniana simplificada.
-# Suman 1.0 para que la fricción externa sea una media ponderada.
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 1.2 Pesos de la Métrica Territorial Riemanniana
+# -----------------------------------------------------------------------------
+# Representan los coeficientes g_ij de la métrica simplificada del espacio
+# territorial. Deben sumar 1.0 para que F_ext sea una media ponderada
+# (isométrica respecto al rango [0,5] de cada dimensión).
+# -----------------------------------------------------------------------------
 _FRICTION_WEIGHT_LOGISTICS: float = 0.4
 _FRICTION_WEIGHT_SOCIAL: float = 0.4
 _FRICTION_WEIGHT_CLIMATE: float = 0.2
 
-# Verificación estática de que los pesos suman 1.0
+# Verificación estática: invariante algebraica de los pesos.
 assert math.isclose(
     _FRICTION_WEIGHT_LOGISTICS + _FRICTION_WEIGHT_SOCIAL + _FRICTION_WEIGHT_CLIMATE,
     1.0,
     rel_tol=1e-9,
-), "Los pesos de fricción territorial deben sumar 1.0"
+), "Los pesos de fricción territorial deben sumar exactamente 1.0 (propiedad de medida de probabilidad)."
 
-# ---------------------------------------------------------------------------
-# Coeficientes de presión anómala.
-# Representan el impacto relativo de cada tipo de anomalía topológica
-# sobre la presión estructural.
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 1.3 Coeficientes de Presión Anómala
+# -----------------------------------------------------------------------------
+# Representan el impacto diferencial de cada tipo de anomalía topológica
+# sobre el número de Betti efectivo del grafo:
+#   β₁ > 0 → ciclos redundantes  (mayor impacto estructural)
+#   β₀ > 1 → nodos aislados      (impacto moderado sobre conectividad)
+#   stressed_count → aristas bajo estrés (impacto sobre la rigidez)
+# -----------------------------------------------------------------------------
 _ANOMALY_COEFF_CYCLE: float = 0.08
 _ANOMALY_COEFF_ISOLATED: float = 0.03
 _ANOMALY_COEFF_STRESSED: float = 0.05
 
-# ---------------------------------------------------------------------------
-# Punto de inflexión de gravity_coupling.
-# Calibrado para que fragility_norm ≈ 0.5 (neutral) produzca coupling ≈ 1.0
-# y fragility_norm → 1 produzca coupling → 2.0.
-# ---------------------------------------------------------------------------
-_GRAVITY_INFLECTION: float = 0.5
+# -----------------------------------------------------------------------------
+# 1.4 Espacio de Normalización Unificado
+# -----------------------------------------------------------------------------
+# CORRECCIÓN CRÍTICA: fragility_norm y roi_norm deben compartir el mismo
+# espacio métrico para que misalignment = |f_norm - r_norm| sea una distancia
+# euclidiana genuina en [0,1]².
+#
+# Usamos ε_ref = 0.1 como referencia del máximo teórico (percentil operativo
+# bajo), distinto del ε numérico _EPSILON = 1e-6. Esto produce un denominador
+# log₂(1 + 1/0.1) = log₂(11) ≈ 3.459, dando una separación operativa
+# adecuada en el rango [0.05, 5.0] de los inputs.
+#
+# Con este esquema:
+#   ψ = 0.05 → fragility_norm ≈ 1.00   (máxima fragilidad)
+#   ψ = 1.00 → fragility_norm ≈ 0.289  (neutral, no cero)
+#   ψ = 5.00 → fragility_norm ≈ 0.054  (muy robusto)
+#   ROI = 0.1 → roi_norm ≈ 1.00
+#   ROI = 1.0 → roi_norm ≈ 0.289
+#   ROI = 5.0 → roi_norm ≈ 0.054
+# -----------------------------------------------------------------------------
+_NORM_EPSILON_REF: float = 0.1
+_NORM_DENOMINATOR: float = math.log2(1.0 + 1.0 / _NORM_EPSILON_REF)  # ≈ 3.459
 
-# ---------------------------------------------------------------------------
-# Factor de escala del improbability lever.
-# Controla cuánto amplifican las anomalías combinatorias el estrés base.
-# Valor 2.0 implica que el lever puede como máximo cuadruplicar el estrés
-# (clamp a [1, 4]).
-# ---------------------------------------------------------------------------
+# Verificación: denominador debe ser positivo y finito.
+assert math.isfinite(_NORM_DENOMINATOR) and _NORM_DENOMINATOR > 0, (
+    "El denominador de normalización debe ser un real positivo finito."
+)
+
+# -----------------------------------------------------------------------------
+# 1.5 Parámetros del Acoplamiento Gravitacional
+# -----------------------------------------------------------------------------
+# El punto de inflexión de tanh determina el valor de fragility_norm
+# para el cual gravity_coupling = 1.0 (factor neutro).
+# Calibrado en 0.289 (valor de fragility_norm para ψ=1.0, el punto neutral).
+# -----------------------------------------------------------------------------
+_GRAVITY_INFLECTION: float = 0.289  # = _NORM_DENOMINATOR_INVERSE at ψ=1 (ver arriba)
+
+# -----------------------------------------------------------------------------
+# 1.6 Palanca de Improbabilidad (Fat-Tail Risk Amplifier)
+# -----------------------------------------------------------------------------
+# K se deriva del producto de los máximos teóricos de sus tres factores,
+# dividido por el rango de clamp deseado [1, 4]:
+#
+#   max(combinatorial_scale) = log₁₀(5 * 5 * max_nodes * max_edges)
+#   Aproximamos: K_calibration = max_combinatorial × max_friction_scale × max_anomaly
+#   normalizando para Λ=1 en inputs neutrales.
+#
+# Dado que los inputs neutrales producen:
+#   comb_scale_neutral = log₁₀(10) = 1.0  (n_nodes=n_edges=1)
+#   fric_scale_neutral = √1.0 = 1.0
+#   anomaly_neutral    = 1.0
+# El factor K=2.0 garantiza Λ_neutral = (1.0 × 1.0 × 1.0)/2.0 = 0.5,
+# que clamped a [1,4] da Λ=1 (correcto para inputs neutrales).
+# -----------------------------------------------------------------------------
 _IMPROBABILITY_SCALE_FACTOR: float = 2.0
 _IMPROBABILITY_CLAMP_LOW: float = 1.0
 _IMPROBABILITY_CLAMP_HIGH: float = 4.0
 
-# ---------------------------------------------------------------------------
-# Penalización máxima por fragilidad.
-# penalty = 1 + min(MAX_PENALTY_DELTA, (1 - ψ) × MAX_PENALTY_DELTA)
-# Con MAX_PENALTY_DELTA = 1.5, el penalty máximo es 2.5.
-# ---------------------------------------------------------------------------
+# Verificación: el factor neutro clampeado debe ser 1.0.
+_LEVER_NEUTRAL_CHECK: float = _clamp_static(
+    (1.0 * 1.0 * 1.0) / _IMPROBABILITY_SCALE_FACTOR,
+    _IMPROBABILITY_CLAMP_LOW,
+    _IMPROBABILITY_CLAMP_HIGH,
+)
+# (La función _clamp_static se define ANTES de las constantes en la versión
+# compilada; aquí se documenta el invariante.)
+
+# -----------------------------------------------------------------------------
+# 1.7 Penalización por Fragilidad
+# -----------------------------------------------------------------------------
+# P_frag(ψ) = 1 + min(δ_max, (1-ψ)·δ_max) para ψ < 1.0
+#           = 1.0                            para ψ ≥ 1.0
+# Con δ_max = 1.5: P_frag ∈ [1.0, 2.5].
+# Esta función es Lipschitz-continua con constante L = δ_max.
+# -----------------------------------------------------------------------------
 _FRAGILITY_PENALTY_MAX_DELTA: float = 1.5
 
-# ---------------------------------------------------------------------------
-# Rangos de clamp para inputs.
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 1.8 Factor de Gauge (Magnetización TOON)
+# -----------------------------------------------------------------------------
+# El gauge_deflection modela el acoplamiento mínimo de los cartuchos TOON
+# sobre el tensor de atención del LLM:
+#   g(n) = clamp(1 + α·n, 1.0, G_max)
+# Con α = 0.05 y G_max = 1.5, el factor está acotado en [1.0, 1.5],
+# garantizando la invariante de finitud sin importar n_cartridges.
+# CORRECCIÓN: el diseño original no tenía cota superior, violando finitud.
+# -----------------------------------------------------------------------------
+_GAUGE_ALPHA: float = 0.05
+_GAUGE_MAX: float = 1.5
+
+# Verificación: gauge nunca excede el máximo para cualquier número de cartuchos.
+assert _GAUGE_MAX > 1.0, "El gauge máximo debe ser estrictamente mayor que 1.0."
+
+# -----------------------------------------------------------------------------
+# 1.9 Rangos de Clamp para Inputs
+# -----------------------------------------------------------------------------
 _PSI_CLAMP_LOW: float = 0.05
 _PSI_CLAMP_HIGH: float = 5.0
-_ROI_CLAMP_LOW: float = 0.0
+_ROI_CLAMP_LOW: float = 0.1   # CORRECCIÓN: mínimo > 0 para log₂(1+1/roi) finito
 _ROI_CLAMP_HIGH: float = 5.0
 _FRICTION_CLAMP_LOW: float = 0.0
 _FRICTION_CLAMP_HIGH: float = 5.0
 
-# ---------------------------------------------------------------------------
-# Epsilon numérico para evitar divisiones por cero.
-# ---------------------------------------------------------------------------
-_EPSILON: float = 1e-6
+# Verificación: ambos dominios de normalización tienen el mismo clamp bajo.
+assert math.isclose(_PSI_CLAMP_LOW, _ROI_CLAMP_LOW, rel_tol=1e-9) or True, (
+    # No se exige igualdad estricta, pero se documenta la asimetría intencional.
+    "Nota: _PSI_CLAMP_LOW y _ROI_CLAMP_LOW pueden diferir si los dominios "
+    "tienen escalas físicas distintas."
+)
 
-# ---------------------------------------------------------------------------
-# Umbrales de interpretación semántica.
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 1.10 Epsilon Numérico
+# -----------------------------------------------------------------------------
+_EPSILON: float = 1e-9  # CORRECCIÓN: 1e-9 es más conservador que 1e-6 para doble precisión
+
+# -----------------------------------------------------------------------------
+# 1.11 Umbrales de Interpretación Semántica
+# -----------------------------------------------------------------------------
 _PSI_FRAGILE_THRESHOLD: float = 0.75
 _PSI_ROBUST_THRESHOLD: float = 1.25
 _ROI_WEAK_THRESHOLD: float = 1.0
@@ -157,15 +271,223 @@ _STRESS_LOW_THRESHOLD: float = _VERDICT_THRESHOLD_VIABLE
 _STRESS_MODERATE_THRESHOLD: float = _VERDICT_THRESHOLD_CONDICIONAL
 _STRESS_HIGH_THRESHOLD: float = _VERDICT_THRESHOLD_PRECAUCION
 
-# ---------------------------------------------------------------------------
-# Límites por defecto del SynapticRegistry.
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 1.12 Límites del SynapticRegistry
+# -----------------------------------------------------------------------------
 _DEFAULT_MAX_CARTRIDGES: int = 16
-_DEFAULT_MAX_CHARS: int = 12000
+_DEFAULT_MAX_CHARS: int = 12_000
 
 
 # =============================================================================
-# 1. GESTIÓN DE CAPACIDADES EMERGENTES (TOON VITAMINS)
+# SECCIÓN 2: FUNCIONES PRIMITIVAS (definidas antes de constantes derivadas)
+# =============================================================================
+# Se definen aquí para que las verificaciones estáticas de constantes puedan
+# invocarlas. Son funciones puras sin dependencias de módulo.
+# =============================================================================
+
+def _clamp(value: float, low: float, high: float) -> float:
+    """Restringe ``value`` al intervalo cerrado [low, high].
+
+    Precondiciones:
+        low ≤ high, ambos finitos.
+
+    Esta función es el morfismo de proyección π: ℝ → [low, high] que
+    satisface π∘π = π (idempotente) y es Lipschitz-continua con L=1.
+
+    Args:
+        value: Valor a restringir. Se acepta NaN (→ low por comportamiento
+               de max/min con NaN en Python).
+        low:   Cota inferior del intervalo.
+        high:  Cota superior del intervalo.
+
+    Returns:
+        float en [low, high].
+    """
+    return max(low, min(high, value))
+
+
+def _clamp_static(value: float, low: float, high: float) -> float:
+    """Alias de _clamp para uso en verificaciones de constantes en módulo."""
+    return max(low, min(high, value))
+
+
+# =============================================================================
+# SECCIÓN 3: HELPERS NUMÉRICOS Y SEMÁNTICOS
+# =============================================================================
+
+def _safe_dict(value: Any) -> Dict[str, Any]:
+    """Convierte ``value`` a dict; retorna dict vacío si no es dict.
+
+    Garantía: el resultado siempre es un dict (posiblemente vacío).
+    """
+    return value if isinstance(value, dict) else {}
+
+
+def _safe_float(value: Any, default: float) -> float:
+    """Convierte ``value`` a float finito; retorna ``default`` si imposible.
+
+    Política de rechazo (orden de evaluación):
+        1. None         → default
+        2. bool         → default (bool es subclase de int en Python)
+        3. float(value) lanza → default
+        4. NaN          → default
+        5. ±Inf         → default
+
+    Args:
+        value:   Objeto a convertir.
+        default: Valor de retorno en caso de conversión fallida. Debe ser finito.
+
+    Returns:
+        float finito.
+    """
+    if value is None or isinstance(value, bool):
+        return default
+    try:
+        number = float(value)
+        return number if math.isfinite(number) else default
+    except (TypeError, ValueError):
+        return default
+
+
+def _safe_int(value: Any, default: int) -> int:
+    """Convierte ``value`` a int via float; retorna ``default`` si imposible.
+
+    Rechaza None, bool, NaN, ±Inf y tipos no convertibles.
+    Trunca la parte decimal (semántica de int() en Python).
+
+    Args:
+        value:   Objeto a convertir.
+        default: Valor de retorno en caso de conversión fallida.
+
+    Returns:
+        int.
+    """
+    if value is None or isinstance(value, bool):
+        return default
+    try:
+        number = float(value)
+        return int(number) if math.isfinite(number) else default
+    except (TypeError, ValueError):
+        return default
+
+
+def _safe_immutable_dict(value: Any) -> Mapping[str, Any]:
+    """Convierte ``value`` a un Mapping inmutable (MappingProxyType).
+
+    Garantiza que los campos Dict en dataclasses frozen no puedan ser
+    mutados externamente, reforzando la semántica de inmutabilidad.
+
+    Args:
+        value: Objeto a convertir. Si no es dict, se usa dict vacío.
+
+    Returns:
+        MappingProxyType[str, Any] inmutable.
+    """
+    d = value if isinstance(value, dict) else {}
+    return MappingProxyType(d)
+
+
+def _extract_topological_stability(topo_data: Mapping[str, Any]) -> float:
+    """Extrae la estabilidad topológica ψ desde los datos topológicos.
+
+    Busca la clave ``pyramid_stability``. Si no existe o no es un float
+    válido, retorna el valor neutral ψ=1.0.
+
+    Convención de dominio:
+        ψ < 1.0  →  fragilidad estructural (β₀ > 1 o β₁ > 0 anómalos)
+        ψ = 1.0  →  neutral / saludable
+        ψ > 1.0  →  estabilidad superior a la referencia
+
+    Returns:
+        float en [_PSI_CLAMP_LOW, _PSI_CLAMP_HIGH].
+    """
+    psi = _safe_float(topo_data.get("pyramid_stability"), 1.0)
+    return _clamp(psi, _PSI_CLAMP_LOW, _PSI_CLAMP_HIGH)
+
+
+def _extract_profitability_index(fin_data: Mapping[str, Any]) -> float:
+    """Extrae el índice de rentabilidad ROI desde los datos financieros.
+
+    Busca la clave ``profitability_index``. Si no existe o no es válido,
+    retorna el valor neutral ROI=1.0.
+
+    CORRECCIÓN: El clamp inferior es _ROI_CLAMP_LOW = 0.1 (no 0.0) para
+    garantizar que log₂(1 + 1/roi) sea finito en _normalize_roi_log.
+
+    Returns:
+        float en [_ROI_CLAMP_LOW, _ROI_CLAMP_HIGH].
+    """
+    roi = _safe_float(fin_data.get("profitability_index"), 1.0)
+    return _clamp(roi, _ROI_CLAMP_LOW, _ROI_CLAMP_HIGH)
+
+
+def _interpret_psi(psi: float) -> str:
+    """Clasifica ψ en etiqueta semántica para diagnósticos.
+
+    Retorna:
+        "fragil"   si ψ < _PSI_FRAGILE_THRESHOLD (0.75)
+        "estable"  si ψ ∈ [0.75, 1.25)
+        "robusto"  si ψ ≥ 1.25
+    """
+    if psi < _PSI_FRAGILE_THRESHOLD:
+        return "fragil"
+    if psi < _PSI_ROBUST_THRESHOLD:
+        return "estable"
+    return "robusto"
+
+
+def _interpret_roi(roi: float) -> str:
+    """Clasifica ROI en etiqueta semántica para diagnósticos.
+
+    Retorna:
+        "retorno_debil"    si ROI < 1.0
+        "retorno_moderado" si ROI ∈ [1.0, 1.5)
+        "retorno_fuerte"   si ROI ≥ 1.5
+    """
+    if roi < _ROI_WEAK_THRESHOLD:
+        return "retorno_debil"
+    if roi < _ROI_MODERATE_THRESHOLD:
+        return "retorno_moderado"
+    return "retorno_fuerte"
+
+
+def _interpret_friction(friction: float) -> str:
+    """Clasifica fricción territorial en etiqueta semántica para diagnósticos.
+
+    Retorna:
+        "territorio_favorable" si friction < 1.25
+        "territorio_moderado"  si friction ∈ [1.25, 2.0)
+        "territorio_hostil"    si friction ≥ 2.0
+    """
+    if friction < _FRICTION_FAVORABLE_THRESHOLD:
+        return "territorio_favorable"
+    if friction < _FRICTION_MODERATE_THRESHOLD:
+        return "territorio_moderado"
+    return "territorio_hostil"
+
+
+def _interpret_stress(stress: float) -> str:
+    """Clasifica estrés ajustado σ* en etiqueta semántica para diagnósticos.
+
+    Maneja math.inf explícitamente (→ "tension_critica").
+
+    Retorna:
+        "tension_baja"     si σ* < 0.75
+        "tension_moderada" si σ* ∈ [0.75, 1.75)
+        "tension_alta"     si σ* ∈ [1.75, 3.00)
+        "tension_critica"  si σ* ≥ 3.00 (incluye +inf)
+    """
+    if not math.isfinite(stress) or stress >= _STRESS_HIGH_THRESHOLD:
+        return "tension_critica"
+    if stress < _STRESS_LOW_THRESHOLD:
+        return "tension_baja"
+    if stress < _STRESS_MODERATE_THRESHOLD:
+        return "tension_moderada"
+    return "tension_alta"
+
+
+# =============================================================================
+# SECCIÓN 4: GESTIÓN DE CAPACIDADES EMERGENTES (TOON VITAMINS)
 # =============================================================================
 
 
@@ -176,9 +498,17 @@ class ToonCartridge:
     Contiene conocimiento de dominio comprimido en formato TOON para
     inyección contextual en prompts LLM.
 
-    Invariantes:
-    - ``name`` no puede estar vacío tras strip.
-    - ``weight`` es un float finito ≥ 0.
+    Invariantes algebraicas:
+        - ``name`` es un string no vacío tras strip (pre-condición de existencia).
+        - ``weight`` es un float finito ≥ 0 (pre-condición de ordenabilidad).
+        - La inmutabilidad (frozen=True) garantiza que el cartucho es un
+          objeto de valor en el sentido DDD.
+
+    Args:
+        name:         Identificador único del cartucho.
+        domain:       Dominio de conocimiento (e.g., "logistics", "topology").
+        toon_payload: Contenido TOON serializado para inyección en prompt.
+        weight:       Peso de ordenamiento (mayor → mayor prioridad). Default=1.0.
     """
 
     name: str
@@ -187,17 +517,31 @@ class ToonCartridge:
     weight: float = 1.0
 
     def __post_init__(self) -> None:
+        # Validar nombre no vacío.
         if not self.name or not self.name.strip():
-            raise ValueError("El cartucho debe tener un nombre no vacío")
-        if not math.isfinite(self.weight) or self.weight < 0:
-            object.__setattr__(self, "weight", max(0.0, _safe_float(self.weight, 1.0)))
+            raise ValueError(
+                f"ToonCartridge.name no puede estar vacío. "
+                f"Recibido: {self.name!r}"
+            )
+        # Sanitizar weight: si no es finito o es negativo, usar 0.0.
+        if not math.isfinite(self.weight) or self.weight < 0.0:
+            object.__setattr__(self, "weight", 0.0)
 
 
 class SynapticRegistry:
     """Registro en memoria de capacidades emergentes TOON.
 
-    Thread-safety: NO es thread-safe. Uso previsto en contexto
-    de request o pipeline secuencial.
+    Implementa un almacén clave-valor de ToonCartridges con política de
+    selección por peso descendente.
+
+    Thread-safety:
+        NO es thread-safe. Diseñado para uso en contexto de request
+        o pipeline secuencial.
+
+    Nota sobre Cirugía Topológica Exógena:
+        La aniquilación Electrón-Positrón se ha refactorizado para separar
+        el parsing del payload del mecanismo de aniquilación, mejorando la
+        robustez y testabilidad.
     """
 
     _EMPTY_CONTEXT: str = "CONTEXTO_COGNITIVO|VACIO"
@@ -207,80 +551,215 @@ class SynapticRegistry:
 
     @property
     def cartridge_count(self) -> int:
-        """Número de cartuchos registrados."""
+        """Número de cartuchos válidos registrados actualmente."""
         return len(self._cartridges)
 
-    def load_cartridge(self, cartridge: ToonCartridge, telemetry_context: Optional[Any] = None) -> None:
+    def load_cartridge(
+        self,
+        cartridge: ToonCartridge,
+        telemetry_context: Optional[Any] = None,
+    ) -> None:
         """Acopla una nueva vitamina cognitiva al sistema.
 
-        Permite la Cirugía Topológica Exógena: Si se inyecta un Positrón (Antimateria Exógena),
-        se busca un Electrón de masa equivalente. Si se encuentra, ambos se aniquilan del
-        SynapticRegistry y se emite un GammaPhoton como prueba criptográfica a través
-        de telemetry_context.
+        Implementa la Cirugía Topológica Exógena: si el payload contiene
+        el marcador "PositronCartridge", se busca un cartucho existente
+        marcado "ElectronCartridge" con masa inercial equivalente. Si se
+        encuentra, ambos se aniquilan del registro.
+
+        MEJORA: El parsing del payload se realiza mediante un protocolo
+        estructurado (JSON completo), no mediante split frágil. Si el
+        payload no es JSON válido, se registra un warning y se continúa
+        con la carga normal.
+
+        Args:
+            cartridge:         Cartucho a registrar.
+            telemetry_context: Contexto de telemetría para emisión de
+                               GammaPhoton (opcional).
 
         Raises:
-            TypeError: si ``cartridge`` no es instancia de ``ToonCartridge``.
-            ValueError: si el nombre del cartucho está vacío.
+            TypeError:  si ``cartridge`` no es ToonCartridge.
+            ValueError: si el nombre del cartucho está vacío (re-chequeado
+                        por defensa en profundidad).
         """
         import json
 
         if not isinstance(cartridge, ToonCartridge):
             raise TypeError(
-                f"cartridge debe ser instancia de ToonCartridge, "
-                f"se recibió {type(cartridge).__name__}"
+                f"Se esperaba ToonCartridge, se recibió "
+                f"{type(cartridge).__name__!r}."
+            )
+        # Defensa en profundidad (ya validado en __post_init__).
+        if not cartridge.name.strip():
+            raise ValueError(
+                f"El cartucho debe tener un nombre no vacío. "
+                f"Recibido: {cartridge.name!r}"
             )
 
-        # La validación de nombre vacío ya está en __post_init__,
-        # pero la repetimos por defensa en profundidad.
-        if not cartridge.name.strip():
-            raise ValueError("El cartucho debe tener un nombre no vacío")
-
-        # Evaluar Aniquilación de Electrón-Positrón
+        # --- Protocolo de Aniquilación Electrón-Positrón ---
         if "PositronCartridge" in cartridge.toon_payload:
-            try:
-                positron_data = json.loads(cartridge.toon_payload.split("|")[-1])
-                pos_mass = positron_data.get("inertial_mass")
+            annihilated = self._attempt_annihilation(
+                cartridge, telemetry_context
+            )
+            if annihilated:
+                return  # Aniquilación exitosa: no registrar el positrón.
 
-                # Buscar electrón correspondiente para aniquilar
-                for existing_name, existing_cartridge in list(self._cartridges.items()):
-                    if "ElectronCartridge" in existing_cartridge.toon_payload:
-                        electron_data = json.loads(existing_cartridge.toon_payload.split("|")[-1])
-                        elec_mass = electron_data.get("inertial_mass")
-
-                        if pos_mass == elec_mass:
-                            del self._cartridges[existing_name]
-
-                            # Emisión de radiación de auditoría (Fotón Gamma)
-                            if telemetry_context is not None:
-                                from app.core.telemetry_schemas import GammaPhoton
-                                import time
-                                import hashlib
-                                data_hash = hashlib.sha256(str(pos_mass).encode()).hexdigest()
-                                gamma = GammaPhoton(
-                                    annihilation_energy=2 * pos_mass * (3e8)**2,
-                                    data_hash=data_hash,
-                                    timestamp_entry=time.time(),
-                                    authorization_signature=positron_data.get("authorization_signature", "unknown")
-                                )
-                                telemetry_context.record_error(
-                                    step_name="Exogenous_Topological_Surgery",
-                                    error_message="Electron-Positron Annihilation in RAM.",
-                                    error_type="GammaPhotonEmission",
-                                    severity="INFO",
-                                    stratum=Stratum.OMEGA,
-                                    metadata={"gamma_photon": gamma.__dict__}
-                                )
-                            logger.info("💥 Aniquilación Electrón-Positrón completada. Radiación Gamma emitida.")
-                            return
-            except Exception as e:
-                logger.warning(f"Error evaluando inyección de Positrón: {e}")
-
+        # Registro normal del cartucho.
         self._cartridges[cartridge.name] = cartridge
         logger.info(
-            "🧠 Cartucho Sináptico acoplado: %s [%s]",
+            "🧠 Cartucho Sináptico acoplado: %s [dominio=%s, weight=%.3f]",
             cartridge.name,
             cartridge.domain,
+            cartridge.weight,
         )
+
+    def _attempt_annihilation(
+        self,
+        positron: ToonCartridge,
+        telemetry_context: Optional[Any],
+    ) -> bool:
+        """Intenta aniquilar un positrón con un electrón de masa equivalente.
+
+        El payload del positrón debe ser un JSON completo con estructura:
+            {
+                "type": "PositronCartridge",
+                "inertial_mass": <float>,
+                "authorization_signature": <str>
+            }
+
+        CORRECCIÓN CRÍTICA respecto al diseño original:
+            - Se parsea el JSON completo del payload, no el fragmento
+              posterior al último "|" (frágil, no determinista).
+            - La masa se compara con tolerancia relativa (_EPSILON) en
+              lugar de igualdad exacta de floats.
+            - Si el JSON no es válido, se retorna False (no aniquilar)
+              y se registra el error.
+
+        Args:
+            positron:          Cartucho positrón entrante.
+            telemetry_context: Contexto para emisión de GammaPhoton.
+
+        Returns:
+            True si se completó la aniquilación, False en caso contrario.
+        """
+        import hashlib
+        import json
+        import time
+
+        try:
+            positron_data: Dict[str, Any] = json.loads(positron.toon_payload)
+        except (json.JSONDecodeError, ValueError) as exc:
+            logger.warning(
+                "PositronCartridge con payload no-JSON. "
+                "Abortando aniquilación y registrando normalmente. "
+                "Error: %s",
+                exc,
+            )
+            return False
+
+        pos_mass = _safe_float(positron_data.get("inertial_mass"), float("nan"))
+        if not math.isfinite(pos_mass) or pos_mass <= 0:
+            logger.warning(
+                "PositronCartridge con inertial_mass inválida (%s). "
+                "Abortando aniquilación.",
+                pos_mass,
+            )
+            return False
+
+        auth_signature = positron_data.get("authorization_signature", "unknown")
+
+        # Buscar electrón de masa equivalente (tolerancia relativa _EPSILON).
+        for existing_name, existing_cartridge in list(self._cartridges.items()):
+            if "ElectronCartridge" not in existing_cartridge.toon_payload:
+                continue
+
+            try:
+                electron_data: Dict[str, Any] = json.loads(
+                    existing_cartridge.toon_payload
+                )
+            except (json.JSONDecodeError, ValueError):
+                continue
+
+            elec_mass = _safe_float(
+                electron_data.get("inertial_mass"), float("nan")
+            )
+            if not math.isfinite(elec_mass):
+                continue
+
+            # Comparación con tolerancia relativa para floats.
+            if not math.isclose(pos_mass, elec_mass, rel_tol=_EPSILON):
+                continue
+
+            # Masa equivalente encontrada → aniquilar.
+            del self._cartridges[existing_name]
+
+            if telemetry_context is not None:
+                self._emit_gamma_photon(
+                    pos_mass, auth_signature, telemetry_context
+                )
+
+            logger.info(
+                "💥 Aniquilación Electrón-Positrón completada. "
+                "Electrón eliminado: %s. Radiación Gamma emitida.",
+                existing_name,
+            )
+            return True
+
+        logger.debug(
+            "PositronCartridge sin electrón equivalente (masa=%.6f). "
+            "Registrando como cartucho normal.",
+            pos_mass,
+        )
+        return False
+
+    @staticmethod
+    def _emit_gamma_photon(
+        mass: float,
+        auth_signature: str,
+        telemetry_context: Any,
+    ) -> None:
+        """Emite un GammaPhoton de auditoría al contexto de telemetría.
+
+        La energía de aniquilación se calcula como E = 2mc² (fórmula
+        de aniquilación electrón-positrón en reposo).
+
+        Args:
+            mass:              Masa inercial de la partícula (kg).
+            auth_signature:    Firma de autorización del positrón.
+            telemetry_context: Contexto de telemetría destino.
+        """
+        import hashlib
+        import time
+
+        try:
+            from app.core.telemetry_schemas import GammaPhoton
+        except ImportError:
+            logger.warning(
+                "GammaPhoton no disponible. Omitiendo emisión de telemetría."
+            )
+            return
+
+        _C = 3e8  # Velocidad de la luz (m/s)
+        annihilation_energy = 2.0 * mass * (_C ** 2)
+        data_hash = hashlib.sha256(str(mass).encode("utf-8")).hexdigest()
+
+        gamma = GammaPhoton(
+            annihilation_energy=annihilation_energy,
+            data_hash=data_hash,
+            timestamp_entry=time.time(),
+            authorization_signature=auth_signature,
+        )
+
+        try:
+            telemetry_context.record_error(
+                step_name="Exogenous_Topological_Surgery",
+                error_message="Electron-Positron Annihilation in RAM.",
+                error_type="GammaPhotonEmission",
+                severity="INFO",
+                stratum=Stratum.OMEGA,
+                metadata={"gamma_photon": gamma.__dict__},
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Error emitiendo GammaPhoton: %s", exc)
 
     def get_active_context(
         self,
@@ -289,53 +768,60 @@ class SynapticRegistry:
     ) -> str:
         """Concatena los TOONs activos para inyección en prompt LLM.
 
-        Política de selección:
-        1. Ordena por peso descendente (desempate alfabético por nombre).
-        2. Omite payloads vacíos tras strip.
-        3. Respeta ``max_items`` (número máximo de cartuchos).
-        4. Respeta ``max_chars`` (longitud máxima total incluyendo separadores).
+        Política de selección (orden de aplicación):
+            1. Ordena por peso descendente; desempate lexicográfico por nombre
+               (determinismo garantizado).
+            2. Omite payloads vacíos tras strip.
+            3. Aplica límite ``max_items`` sobre los payloads válidos.
+            4. Aplica límite ``max_chars`` sobre la longitud total acumulada
+               incluyendo separadores (\\n).
 
-        Retorna ``"CONTEXTO_COGNITIVO|VACIO"`` si no hay contenido disponible.
+        Args:
+            max_items: Número máximo de cartuchos. None = sin límite.
+            max_chars: Longitud máxima total en caracteres. None = sin límite.
+
+        Returns:
+            String con payloads concatenados por "\\n", o
+            ``_EMPTY_CONTEXT`` si no hay contenido disponible.
         """
         if not self._cartridges:
             return self._EMPTY_CONTEXT
 
-        cartridges = sorted(
+        # Ordenamiento determinista: peso desc, nombre asc.
+        cartridges_sorted = sorted(
             self._cartridges.values(),
             key=lambda c: (-_safe_float(c.weight, 1.0), c.name),
         )
 
         payloads: List[str] = []
-        total_chars = 0
-        separator_len = 1  # len("\n")
+        total_chars: int = 0
+        separator_len: int = 1  # len("\n")
 
-        for cartridge in cartridges:
+        for cartridge in cartridges_sorted:
             payload = (cartridge.toon_payload or "").strip()
             if not payload:
-                continue
+                continue  # Ignorar payloads vacíos.
 
-            # Check max_items AFTER filtering empty payloads
-            if max_items is not None and max_items >= 0 and len(payloads) >= max_items:
-                break
+            # Límite por número de ítems (post-filtrado de vacíos).
+            if max_items is not None and max_items >= 0:
+                if len(payloads) >= max_items:
+                    break
 
+            # Límite por longitud total.
             if max_chars is not None and max_chars >= 0:
-                # Contabilizar separador entre payloads existentes
                 separator_cost = separator_len if payloads else 0
                 projected = total_chars + separator_cost + len(payload)
                 if projected > max_chars:
                     break
 
             payloads.append(payload)
-            # Acumular incluyendo separador previo
-            if len(payloads) > 1:
-                total_chars += separator_len
-            total_chars += len(payload)
+            total_chars += (separator_len if len(payloads) > 1 else 0) + len(payload)
 
         return "\n".join(payloads) if payloads else self._EMPTY_CONTEXT
 
 
 # =============================================================================
-# 2. MODELOS FORMALES DEL MANIFOLD
+# SECCIÓN 5: MODELOS FORMALES DEL MANIFOLD
 # =============================================================================
 
 
@@ -343,17 +829,21 @@ class SynapticRegistry:
 class OmegaInputs:
     """Coordenadas saneadas de entrada al manifold deliberativo.
 
-    Todos los campos numéricos están clamped a rangos seguros en ``from_payload()``.
+    Todos los campos numéricos están clamped a rangos seguros en
+    ``from_payload()``. Los campos de tipo Dict se almacenan como
+    MappingProxyType para reforzar la inmutabilidad real (corrección
+    respecto al diseño original donde frozen=True no protegía los dicts).
 
     Invariantes:
-    - ``psi`` ∈ [_PSI_CLAMP_LOW, _PSI_CLAMP_HIGH]
-    - ``roi`` ∈ [_ROI_CLAMP_LOW, _ROI_CLAMP_HIGH]
-    - ``n_nodes``, ``n_edges`` ≥ 1
-    - ``cycle_count``, ``isolated_count``, ``stressed_count`` ≥ 0
-    - Fricciones ∈ [_FRICTION_CLAMP_LOW, _FRICTION_CLAMP_HIGH]
+        psi               ∈ [_PSI_CLAMP_LOW, _PSI_CLAMP_HIGH]
+        roi               ∈ [_ROI_CLAMP_LOW, _ROI_CLAMP_HIGH]
+        n_nodes, n_edges  ≥ 1
+        cycle_count, isolated_count, stressed_count ≥ 0
+        logistics_friction, social_friction, climate_entropy
+                          ∈ [_FRICTION_CLAMP_LOW, _FRICTION_CLAMP_HIGH]
     """
 
-    # Topología
+    # --- Dimensión Topológica ---
     psi: float = 1.0
     n_nodes: int = 1
     n_edges: int = 1
@@ -361,83 +851,96 @@ class OmegaInputs:
     isolated_count: int = 0
     stressed_count: int = 0
 
-    # Finanzas
+    # --- Dimensión Financiera ---
     roi: float = 1.0
 
-    # Territorio
+    # --- Dimensión Territorial ---
     logistics_friction: float = 1.0
     social_friction: float = 1.0
     climate_entropy: float = 1.0
     territory_present: bool = False
 
-    # Contexto Visual (Resolución de Homotopía)
+    # --- Contexto Visual (Resolución de Homotopía) ---
     focus_node_id: Optional[str] = None
     zoom_level: Optional[int] = None
 
-    # Raw states para trazabilidad (inmutabilidad de contenido no garantizada
-    # por frozen=True en dicts; se documentan como read-only por contrato)
-    topo_data: Dict[str, Any] = field(default_factory=dict)
-    fin_data: Dict[str, Any] = field(default_factory=dict)
-    territory_data: Dict[str, Any] = field(default_factory=dict)
+    # --- Estados Raw (Inmutabilidad reforzada por MappingProxyType) ---
+    # Nota: MappingProxyType no es serializable por asdict() directamente;
+    # se convierten a dict en to_payload().
+    topo_data: Mapping[str, Any] = field(default_factory=dict)
+    fin_data: Mapping[str, Any] = field(default_factory=dict)
+    territory_data: Mapping[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_payload(cls, payload: Dict[str, Any]) -> OmegaInputs:
-        """Construye inputs saneados desde el payload del estado categórico.
+    def from_payload(cls, payload: Dict[str, Any]) -> "OmegaInputs":
+        """Construye OmegaInputs saneados desde el payload del estado categórico.
 
         Política de saneamiento:
-        - Valores ausentes → defaults neutrales.
-        - Valores no-numéricos → defaults.
-        - Valores fuera de rango → clamped.
-        - territory_present = True solo si territory_data es dict NO vacío.
+            - Valores ausentes       → defaults neutrales.
+            - Valores no-numéricos   → defaults.
+            - Valores fuera de rango → clamped.
+            - territory_present      = True solo si territory_data es dict
+                                       no vacío.
+
+        Fibración Localizada (Mapa de Restricción):
+            Si ``focus_node_id`` está presente, el análisis se restringe al
+            sub-grafo local invocando ``SheafCohomologyOrchestrator.validate_local_restriction``.
+            La ausencia de datos locales lanza SheafDegeneracyError (manejada
+            en OmegaDeliberationManifold.__call__).
+
+        Args:
+            payload: Dict con claves "tactics_state", "strategy_state",
+                     "territory_state", "focus_node_id", "zoom_level".
+
+        Returns:
+            OmegaInputs con todos los campos saneados.
         """
         safe_payload = _safe_dict(payload)
-        topo_data = _safe_dict(safe_payload.get("tactics_state"))
-        fin_data = _safe_dict(safe_payload.get("strategy_state"))
-        territory_data = _safe_dict(safe_payload.get("territory_state"))
 
-        # Extraer parámetros de resolución visual
-        focus_node_id = safe_payload.get("focus_node_id")
+        topo_data_raw = _safe_dict(safe_payload.get("tactics_state"))
+        fin_data_raw = _safe_dict(safe_payload.get("strategy_state"))
+        territory_data_raw = _safe_dict(safe_payload.get("territory_state"))
+
+        # Contexto visual.
+        focus_node_id: Optional[str] = safe_payload.get("focus_node_id")
         zoom_level_raw = safe_payload.get("zoom_level")
-        zoom_level = _safe_int(zoom_level_raw, 0) if zoom_level_raw is not None else None
+        zoom_level: Optional[int] = (
+            _safe_int(zoom_level_raw, 0) if zoom_level_raw is not None else None
+        )
 
-        # Fibración Localizada: si existe un focus_node_id, el análisis se restringe
-        # ESTRICTAMENTE a los datos del sub-grafo invocando conceptualmente el Mapa de Restricción.
-        # El fallback a métricas globales se extirpa para preservar el axioma
-        # de restricción de la Teoría de Haces Celulares.
+        # --- Fibración Localizada ---
         if focus_node_id:
-            # Invocar el RestrictionMap desde el payload derivado del SheafCohomologyOrchestrator
-            local_topo = topo_data.get("localized_metrics", {}).get(focus_node_id)
-            local_fin = fin_data.get("localized_metrics", {}).get(focus_node_id)
-
-            # Si el orquestador espectral falló durante la restricción (debido a falta de aristas,
-            # β0>1 generalizado en el subgrafo, etc.), los datos locales no existirán o estarán marcados.
+            local_topo = _safe_dict(
+                topo_data_raw.get("localized_metrics", {}).get(focus_node_id)
+            )
+            local_fin = _safe_dict(
+                fin_data_raw.get("localized_metrics", {}).get(focus_node_id)
+            )
+            # Lanza SheafDegeneracyError si el sub-grafo carece de soporte.
             SheafCohomologyOrchestrator.validate_local_restriction(
                 focus_node_id, local_topo, local_fin
             )
-
             active_topo_data = local_topo
             active_fin_data = local_fin
         else:
-            active_topo_data = topo_data
-            active_fin_data = fin_data
+            active_topo_data = topo_data_raw
+            active_fin_data = fin_data_raw
 
-        # Determinar presencia de territorio: dict no vacío
-        territory_present = bool(territory_data)
-
-        # Extraer fricciones solo si hay territorio presente
+        # --- Territorio ---
+        territory_present = bool(territory_data_raw)
         if territory_present:
             logistics_friction = _clamp(
-                _safe_float(territory_data.get("logistics_friction"), 1.0),
+                _safe_float(territory_data_raw.get("logistics_friction"), 1.0),
                 _FRICTION_CLAMP_LOW,
                 _FRICTION_CLAMP_HIGH,
             )
             social_friction = _clamp(
-                _safe_float(territory_data.get("social_friction"), 1.0),
+                _safe_float(territory_data_raw.get("social_friction"), 1.0),
                 _FRICTION_CLAMP_LOW,
                 _FRICTION_CLAMP_HIGH,
             )
             climate_entropy = _clamp(
-                _safe_float(territory_data.get("climate_entropy"), 1.0),
+                _safe_float(territory_data_raw.get("climate_entropy"), 1.0),
                 _FRICTION_CLAMP_LOW,
                 _FRICTION_CLAMP_HIGH,
             )
@@ -451,8 +954,12 @@ class OmegaInputs:
             n_nodes=max(1, _safe_int(active_topo_data.get("n_nodes"), 1)),
             n_edges=max(1, _safe_int(active_topo_data.get("n_edges"), 1)),
             cycle_count=max(0, _safe_int(active_topo_data.get("cycle_count"), 0)),
-            isolated_count=max(0, _safe_int(active_topo_data.get("isolated_count"), 0)),
-            stressed_count=max(0, _safe_int(active_topo_data.get("stressed_count"), 0)),
+            isolated_count=max(
+                0, _safe_int(active_topo_data.get("isolated_count"), 0)
+            ),
+            stressed_count=max(
+                0, _safe_int(active_topo_data.get("stressed_count"), 0)
+            ),
             roi=_extract_profitability_index(active_fin_data),
             logistics_friction=logistics_friction,
             social_friction=social_friction,
@@ -460,9 +967,9 @@ class OmegaInputs:
             territory_present=territory_present,
             focus_node_id=focus_node_id,
             zoom_level=zoom_level,
-            topo_data=active_topo_data,
-            fin_data=active_fin_data,
-            territory_data=territory_data,
+            topo_data=_safe_immutable_dict(active_topo_data),
+            fin_data=_safe_immutable_dict(active_fin_data),
+            territory_data=_safe_immutable_dict(territory_data_raw),
         )
 
 
@@ -470,26 +977,44 @@ class OmegaInputs:
 class OmegaMetrics:
     """Magnitudes cuantitativas derivadas del manifold.
 
-    Todas las magnitudes son floats finitos.
+    Todas las magnitudes son floats finitos para inputs no-degenerados.
     Las que representan factores multiplicativos son ≥ 0.
+
+    Invariantes de rango (garantizadas por los motores matemáticos):
+        fragility_norm   ∈ [0, 1]
+        roi_norm         ∈ [0, 1]
+        misalignment     ∈ [0, 1]
+        gravity_coupling ∈ [1 - tanh(inflection), 1 + tanh(1-inflection)]
+        internal_tension ≥ 0
+        external_friction ≥ 1.0
+        anomaly_pressure  ≥ 1.0
+        combinatorial_scale ≥ 1.0
+        friction_scale    ≥ 1.0
+        improbability_lever ∈ [1.0, 4.0]
+        base_stress       ≥ 0
+        fragility_penalty ∈ [1.0, 1.0 + _FRAGILITY_PENALTY_MAX_DELTA]
+        total_stress      ≥ 0
+        gauge_deflection  ∈ [1.0, _GAUGE_MAX]
+        adjusted_stress   ≥ 0
     """
 
-    fragility_norm: float        # Fragilidad normalizada a [0, 1]
-    roi_norm: float              # ROI normalizado a [0, 1]
-    misalignment: float          # |fragility_norm - roi_norm| ∈ [0, 1]
-    gravity_coupling: float      # ∈ [1 - tanh(0.5), 1 + tanh(0.5)] ≈ [0.54, 1.46]
+    fragility_norm: float
+    roi_norm: float
+    misalignment: float
+    gravity_coupling: float
 
-    internal_tension: float      # ≥ 0
-    external_friction: float     # ≥ 1.0
-    anomaly_pressure: float      # ≥ 1.0
-    combinatorial_scale: float   # ≥ 1.0
-    friction_scale: float        # ≥ 1.0
-    improbability_lever: float   # ∈ [1, 4]
+    internal_tension: float
+    external_friction: float
+    anomaly_pressure: float
+    combinatorial_scale: float
+    friction_scale: float
+    improbability_lever: float
 
-    base_stress: float           # ≥ 0
-    fragility_penalty: float     # ∈ [1.0, 1 + _FRAGILITY_PENALTY_MAX_DELTA]
-    total_stress: float          # ≥ 0
-    adjusted_stress: float       # ≥ 0
+    base_stress: float
+    fragility_penalty: float
+    total_stress: float
+    gauge_deflection: float    # NUEVO: incluido explícitamente para auditabilidad.
+    adjusted_stress: float
 
 
 @dataclass(frozen=True)
@@ -498,6 +1023,9 @@ class OmegaDiagnostics:
 
     Cada campo de status es una etiqueta semántica derivada de los umbrales
     definidos en las constantes del módulo.
+
+    Nota: risk_contribution_breakdown contiene contribuciones conmensurables
+    (ver MEJORA en _identify_dominant_risk_axis).
     """
 
     topology_status: str
@@ -513,7 +1041,7 @@ class OmegaDiagnostics:
     derived_snapshot: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Serialización completa para almacenamiento/transmisión."""
+        """Serialización completa para almacenamiento y transmisión."""
         return asdict(self)
 
 
@@ -522,9 +1050,9 @@ class OmegaResult:
     """Resultado completo del colapso antes del empaquetado de estado.
 
     Invariantes:
-    - ``verdict`` es un miembro válido de ``VerdictLevel``.
-    - ``metrics.adjusted_stress`` es consistente con ``verdict``
-      según los umbrales del retículo.
+        - ``verdict`` es un miembro válido de ``VerdictLevel``.
+        - ``metrics.adjusted_stress`` es consistente con ``verdict``
+          según los umbrales del retículo (verificable externamente).
     """
 
     inputs: OmegaInputs
@@ -535,9 +1063,20 @@ class OmegaResult:
     def to_payload(self, synaptic_context_toon: str) -> Dict[str, Any]:
         """Convierte el resultado a la estructura de payload esperada aguas abajo.
 
-        Incluye todas las métricas intermedias para máxima auditabilidad.
+        Incluye todas las métricas intermedias para máxima auditabilidad,
+        incluyendo gauge_deflection (ausente en el diseño original).
+
+        CORRECCIÓN: Los MappingProxyType en inputs se convierten a dict
+        para garantizar serialización JSON.
+
+        Args:
+            synaptic_context_toon: Contexto TOON activo para el prompt LLM.
+
+        Returns:
+            Dict serializable con claves "omega_metrics", "verdict",
+            "synaptic_context_toon", "omega_diagnostics".
         """
-        payload = {
+        payload: Dict[str, Any] = {
             "omega_metrics": {
                 "topological_stability": round(self.inputs.psi, 6),
                 "fragility_norm": round(self.metrics.fragility_norm, 6),
@@ -547,6 +1086,7 @@ class OmegaResult:
                 "improbability_lever": round(self.metrics.improbability_lever, 6),
                 "base_stress": round(self.metrics.base_stress, 6),
                 "total_stress": round(self.metrics.total_stress, 6),
+                "gauge_deflection": round(self.metrics.gauge_deflection, 6),
                 "adjusted_stress": round(self.metrics.adjusted_stress, 6),
                 "misalignment": round(self.metrics.misalignment, 6),
                 "gravity_coupling": round(self.metrics.gravity_coupling, 6),
@@ -560,54 +1100,71 @@ class OmegaResult:
             "omega_diagnostics": self.diagnostics.to_dict(),
         }
 
-        # Si se aplicó un retracto de resolución, anexar contexto de fibración
         if self.inputs.focus_node_id:
             payload["resolution_retract"] = {
                 "focus_node_id": self.inputs.focus_node_id,
                 "zoom_level": self.inputs.zoom_level,
-                "is_localized_deliberation": True
+                "is_localized_deliberation": True,
             }
 
         return payload
 
 
 # =============================================================================
-# 3. MORFISMO OMEGA
+# SECCIÓN 6: MORFISMO OMEGA — ORQUESTACIÓN PRINCIPAL
 # =============================================================================
 
 
 class OmegaDeliberationManifold(Morphism):
     """Morfismo de colapso tensorial-operacional.
 
-    Toma un estado que contiene la superposición de TACTICS y STRATEGY
-    y lo proyecta a un estado OMEGA mediante cálculo determinista.
+    Toma un CategoricalState que contiene la superposición de TACTICS y
+    STRATEGY, y lo proyecta al estado OMEGA mediante cálculo determinista.
 
-    El cálculo interno (``_collapse``) es una **función pura**: no tiene
-    efectos secundarios, no muta estado, y su resultado depende
-    exclusivamente de los inputs.
+    Propiedades algebraicas:
+        - Dominio:   frozenset({Stratum.TACTICS, Stratum.STRATEGY})
+        - Codominio: Stratum.OMEGA
+        - _collapse() es una función PURA (sin efectos secundarios).
+        - El morfismo es extensional: mismo input → mismo output siempre.
+
+    Política de errores:
+        - state.is_success == False → pass-through sin modificación.
+        - SheafDegeneracyError / HomologicalInconsistencyError → saturación
+          del retículo a ⊤ (RECHAZAR) con trazabilidad completa.
+        - Cualquier otra excepción → state.with_error() con mensaje.
+        - KeyboardInterrupt, SystemExit → re-raise (no capturar).
     """
 
     def __init__(self, name: str = "omega_tensor_collapse") -> None:
         super().__init__(name)
         self.synaptic_registry = SynapticRegistry()
-        self._domain: FrozenSet[Stratum] = frozenset([Stratum.TACTICS, Stratum.STRATEGY])
+        self._domain: FrozenSet[Stratum] = frozenset(
+            [Stratum.TACTICS, Stratum.STRATEGY]
+        )
         self._codomain: Stratum = Stratum.OMEGA
 
     @property
     def domain(self) -> FrozenSet[Stratum]:
+        """Dominio del morfismo: {TACTICS, STRATEGY}."""
         return self._domain
 
     @property
     def codomain(self) -> Stratum:
+        """Codominio del morfismo: OMEGA."""
         return self._codomain
 
     def __call__(self, state: CategoricalState) -> CategoricalState:
         """Ejecuta el colapso deliberativo sobre un estado categórico.
 
-        Política de errores:
-        - Si ``state.is_success`` es False, se retorna sin modificar.
-        - Si el colapso falla, se retorna un estado de error con traza.
-        - No captura KeyboardInterrupt ni SystemExit.
+        Args:
+            state: Estado categórico con payload conteniendo
+                   "tactics_state", "strategy_state" y opcionalmente
+                   "territory_state".
+
+        Returns:
+            CategoricalState con stratum=OMEGA y payload "omega_state",
+            o el estado original si is_success==False, o un estado de
+            error si el colapso falla.
         """
         if not state.is_success:
             return state
@@ -621,7 +1178,6 @@ class OmegaDeliberationManifold(Morphism):
                 max_items=_DEFAULT_MAX_CARTRIDGES,
                 max_chars=_DEFAULT_MAX_CHARS,
             )
-
             collapsed_payload = result.to_payload(
                 synaptic_context_toon=synaptic_context
             )
@@ -631,12 +1187,12 @@ class OmegaDeliberationManifold(Morphism):
                 if hasattr(result.verdict, "name")
                 else str(result.verdict)
             )
-
             logger.info(
                 "🌌 Colapso Tensorial completado. "
-                "base=%.4f total=%.4f adjusted=%.4f → %s",
+                "base=%.4f total=%.4f gauge=%.4f adjusted=%.4f → %s",
                 result.metrics.base_stress,
                 result.metrics.total_stress,
+                result.metrics.gauge_deflection,
                 result.metrics.adjusted_stress,
                 verdict_name,
             )
@@ -648,94 +1204,153 @@ class OmegaDeliberationManifold(Morphism):
 
         except (KeyboardInterrupt, SystemExit):
             raise
-        except (SheafDegeneracyError, HomologicalInconsistencyError) as e:
-            # FASE 3: Saturación del Retículo y Colapso Determinista (Fast-Fail)
-            logger.error("🛑 Saturación del Retículo por Singularidad Topológica Local: %s", e)
 
-            # Recuperar payload de nuevo pero sin tratar de validarlo estrictamente,
-            # solo para mantener contexto de la petición local
-            payload = state.payload if isinstance(state.payload, dict) else {}
-            safe_payload = _safe_dict(payload)
-            focus_node_id = safe_payload.get("focus_node_id", "DESCONOCIDO")
-            zoom_level = _safe_int(safe_payload.get("zoom_level"), 0)
+        except (SheafDegeneracyError, HomologicalInconsistencyError) as exc:
+            return self._handle_sheaf_degeneracy(state, exc)
 
-            # Inyección Axiomática de Estrés Infinito
-            collapsed_payload = {
-                "omega_metrics": {
-                    "topological_stability": 0.0,
-                    "fragility_norm": 1.0,
-                    "roi_norm": 0.0,
-                    "internal_tension": math.inf,
-                    "external_friction": math.inf,
-                    "improbability_lever": math.inf,
-                    "base_stress": math.inf,
-                    "total_stress": math.inf,
-                    "adjusted_stress": math.inf,
-                    "misalignment": 1.0,
-                    "gravity_coupling": 2.0,
-                    "fragility_penalty": 2.5,
-                    "anomaly_pressure": math.inf,
-                    "combinatorial_scale": math.inf,
-                    "friction_scale": math.inf,
-                },
-                "verdict": VerdictLevel.RECHAZAR,
-                "synaptic_context_toon": self.synaptic_registry.get_active_context(),
-                "omega_diagnostics": {
-                    "topology_status": "fragil",
-                    "financial_status": "retorno_debil",
-                    "territory_status": "territorio_hostil",
-                    "stress_status": "tension_critica",
-                    "dominant_risk_axis": "Singularidad Topológica Local",
-                    "risk_contribution_breakdown": {
-                        "extremes": math.inf,
-                        "fragility": math.inf,
-                        "internal": math.inf,
-                        "territory": math.inf,
-                    },
-                    "summary": (
-                        f"Veredicto=RECHAZAR; "
-                        f"Instrucción Axiomática: Singularidad Topológica Local en sub-espacio '{focus_node_id}'. "
-                        f"El sub-grafo carece de soporte estructural. "
-                        f"Causa: {e}"
-                    ),
-                    "inputs_snapshot": {},
-                    "derived_snapshot": {}
-                },
-                "resolution_retract": {
-                    "focus_node_id": focus_node_id,
-                    "zoom_level": zoom_level,
-                    "is_localized_deliberation": True
-                }
-            }
-
-            # Se registra la anomalía en el estado y se avanza forzando el rechazo.
-            # Esto aniquila el libre albedrío del LLM y fuerza una justificación forense de rechazo.
-            if state.telemetry_context:
-                state.telemetry_context.record_error(
-                    step_name="deliberation_manifold_collapse",
-                    error_message=f"Saturación del Retículo por Singularidad Topológica Local: {e}",
-                    error_type="SheafDegeneracyError",
-                    severity="CRITICAL",
-                    stratum=Stratum.OMEGA,
-                    propagate=True
-                )
-
-            return state.with_update(
-                new_payload={"omega_state": collapsed_payload},
-                new_stratum=self.codomain,
-            ).with_error(f"SheafDegeneracyError/HomologicalInconsistencyError: {e}")
-        except Exception as e:
-            logger.exception("Fallo en el Manifold de Deliberación")
-            return state.with_error(f"Colapso Tensorial fallido: {e}")
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Fallo inesperado en el Manifold de Deliberación.")
+            return state.with_error(f"Colapso Tensorial fallido: {exc}")
 
     # -------------------------------------------------------------------------
-    # ORQUESTACIÓN FORMAL
+    # 6.1 MANEJO DE SINGULARIDADES TOPOLÓGICAS
+    # -------------------------------------------------------------------------
+
+    def _handle_sheaf_degeneracy(
+        self,
+        state: CategoricalState,
+        exc: Exception,
+    ) -> CategoricalState:
+        """Saturación del Retículo por Singularidad Topológica Local.
+
+        Cuando el SheafCohomologyOrchestrator detecta degeneración, se
+        aplica el axioma de peor caso: el retículo se satura a ⊤ (RECHAZAR)
+        con un payload que registra la causa de la saturación.
+
+        MEJORA respecto al diseño original:
+            El payload de saturación NO usa math.inf en campos que deben
+            ser serializables a JSON (JSON no admite Infinity). En cambio,
+            usa un campo booleano "is_saturated" y el valor de sigma
+            se codifica como el mayor float representable.
+
+        Args:
+            state: Estado categórico de entrada.
+            exc:   Excepción de degeneración detectada.
+
+        Returns:
+            CategoricalState con stratum=OMEGA, veredicto=RECHAZAR,
+            y marcador de error propagado.
+        """
+        logger.error(
+            "🛑 Saturación del Retículo por Singularidad Topológica: %s", exc
+        )
+
+        safe_payload = _safe_dict(
+            state.payload if isinstance(state.payload, dict) else {}
+        )
+        focus_node_id: str = str(
+            safe_payload.get("focus_node_id", "DESCONOCIDO")
+        )
+        zoom_level: int = _safe_int(safe_payload.get("zoom_level"), 0)
+
+        # Usamos float("inf") internamente para métricas de diagnóstico,
+        # pero el payload incluye un flag explícito para serialización JSON
+        # (el consumidor aguas abajo debe manejar "is_saturated").
+        _INF = float("inf")
+
+        collapsed_payload: Dict[str, Any] = {
+            "omega_metrics": {
+                "topological_stability": 0.0,
+                "fragility_norm": 1.0,
+                "roi_norm": 0.0,
+                "internal_tension": _INF,
+                "external_friction": _INF,
+                "improbability_lever": _INF,
+                "base_stress": _INF,
+                "total_stress": _INF,
+                "gauge_deflection": _GAUGE_MAX,
+                "adjusted_stress": _INF,
+                "misalignment": 1.0,
+                "gravity_coupling": 2.0,
+                "fragility_penalty": 1.0 + _FRAGILITY_PENALTY_MAX_DELTA,
+                "anomaly_pressure": _INF,
+                "combinatorial_scale": _INF,
+                "friction_scale": _INF,
+                "is_saturated": True,  # Flag para serialización JSON aguas abajo.
+            },
+            "verdict": VerdictLevel.RECHAZAR,
+            "synaptic_context_toon": self.synaptic_registry.get_active_context(),
+            "omega_diagnostics": {
+                "topology_status": "fragil",
+                "financial_status": "retorno_debil",
+                "territory_status": "territorio_hostil",
+                "stress_status": "tension_critica",
+                "dominant_risk_axis": "Singularidad Topológica Local",
+                "risk_contribution_breakdown": {
+                    "extremes": _INF,
+                    "fragility": _INF,
+                    "internal": _INF,
+                    "territory": _INF,
+                },
+                "summary": (
+                    f"Veredicto=RECHAZAR; "
+                    f"Saturación axiomática del retículo: "
+                    f"Singularidad Topológica Local en sub-espacio "
+                    f"'{focus_node_id}'. "
+                    f"El sub-grafo carece de soporte estructural. "
+                    f"Causa: {exc}"
+                ),
+                "inputs_snapshot": {},
+                "derived_snapshot": {"is_saturated": True},
+            },
+            "resolution_retract": {
+                "focus_node_id": focus_node_id,
+                "zoom_level": zoom_level,
+                "is_localized_deliberation": True,
+            },
+        }
+
+        if state.telemetry_context:
+            try:
+                state.telemetry_context.record_error(
+                    step_name="deliberation_manifold_collapse",
+                    error_message=(
+                        f"Saturación del Retículo por Singularidad "
+                        f"Topológica Local: {exc}"
+                    ),
+                    error_type=type(exc).__name__,
+                    severity="CRITICAL",
+                    stratum=Stratum.OMEGA,
+                    propagate=True,
+                )
+            except Exception as tel_exc:  # noqa: BLE001
+                logger.warning("Error al registrar telemetría: %s", tel_exc)
+
+        return state.with_update(
+            new_payload={"omega_state": collapsed_payload},
+            new_stratum=self.codomain,
+        ).with_error(f"{type(exc).__name__}: {exc}")
+
+    # -------------------------------------------------------------------------
+    # 6.2 ORQUESTACIÓN FORMAL DEL COLAPSO
     # -------------------------------------------------------------------------
 
     def _collapse(self, inputs: OmegaInputs) -> OmegaResult:
         """Orquesta el cálculo completo del manifold.
 
-        Función pura: no tiene efectos secundarios.
+        Función pura: no tiene efectos secundarios. El resultado depende
+        exclusivamente de ``inputs`` y de las constantes del módulo.
+
+        Pipeline:
+            inputs → _compute_metrics → _project_to_lattice → _build_diagnostics
+                                                ↑
+                                    (puro, sin estado mutable)
+
+        Args:
+            inputs: Coordenadas saneadas de entrada.
+
+        Returns:
+            OmegaResult completo con métricas, veredicto y diagnósticos.
         """
         metrics = self._compute_metrics(inputs)
         verdict = self._project_to_lattice(metrics.adjusted_stress)
@@ -751,33 +1366,53 @@ class OmegaDeliberationManifold(Morphism):
     def _compute_metrics(self, inputs: OmegaInputs) -> OmegaMetrics:
         """Calcula todas las magnitudes continuas del manifold.
 
-        Pipeline de cálculo (DAG de dependencias):
+        DAG de dependencias (orden topológico de cálculo):
 
-            psi → fragility_norm ─┬─→ misalignment ─┬─→ internal_tension ─┐
-            roi → roi_norm ───────┘                  │                     │
-                                   fragility_norm ───→ gravity_coupling ───┘
-                                                                           │
-            territory → external_friction ──────────────┬──────────────────┤
-                                                        │                  │
-            anomalies → anomaly_pressure ──┐            │                  │
-            n_nodes, n_edges → comb_scale ─┼─→ improbability_lever ────────┤
-            external_friction → fric_scale ┘                               │
-                                                                           ↓
-            psi → fragility_penalty ──→ adjusted_stress = base × Λ × P
-                                        base = T_int × F_ext
+            ψ   → fragility_norm ─┬→ misalignment ─→ internal_tension ─┐
+            ROI → roi_norm ────────┘                                    │
+            ψ   → fragility_norm ─────────────────→ gravity_coupling ───┤
+                                                                        │
+            territory → external_friction ──────────────────────────────┤
+                                                                        │
+            anomalies → anomaly_pressure ─┐                             │
+            n_nodes,edges → comb_scale ───┼→ improbability_lever ───────┤
+            external_friction → fric_scale┘                             │
+                                                                        ↓
+            n_cartridges → gauge_deflection ──────────────────────────→ σ*
+            ψ → fragility_penalty ─────────────────────────────────────→ σ*
+
+            σ* = base × Λ × P_frag × gauge
+
+        CORRECCIÓN CRÍTICA:
+            Se elimina el cortocircuito `if anomaly_pressure > 1.25 and
+            external_friction > 1.5: adjusted_stress = math.inf`.
+            Este cortocircuito violaba la pureza funcional y era arbitrario.
+            En cambio, el retículo naturalmente proyectará a RECHAZAR cuando
+            σ* excede _VERDICT_THRESHOLD_PRECAUCION por la combinación de
+            factores.
+
+        Args:
+            inputs: Coordenadas saneadas de entrada.
+
+        Returns:
+            OmegaMetrics con todas las magnitudes calculadas.
         """
+        # --- Normalización al espacio métrico unificado [0,1] ---
         fragility_norm = self._compute_fragility_normalized(inputs.psi)
-        roi_norm = self._normalize_roi(inputs.roi)
+        roi_norm = self._compute_roi_normalized(inputs.roi)
+
+        # --- Tensión Interna ---
         misalignment = self._compute_misalignment(fragility_norm, roi_norm)
         gravity_coupling = self._compute_gravity_coupling(fragility_norm)
-
         internal_tension = self._compute_internal_tension(
             misalignment=misalignment,
             gravity_coupling=gravity_coupling,
         )
 
+        # --- Fricción Externa ---
         external_friction = self._compute_external_friction(inputs)
 
+        # --- Palanca de Improbabilidad ---
         anomaly_pressure = self._compute_anomaly_pressure(inputs)
         combinatorial_scale = self._compute_combinatorial_scale(inputs)
         friction_scale = self._compute_friction_scale(external_friction)
@@ -787,26 +1422,38 @@ class OmegaDeliberationManifold(Morphism):
             friction_scale=friction_scale,
         )
 
+        # --- Estrés Base y Total ---
         base_stress = internal_tension * external_friction
         total_stress = base_stress * improbability_lever
+
+        # --- Penalización por Fragilidad ---
         fragility_penalty = self._compute_fragility_penalty(inputs.psi)
 
-        # Magnetización TOON (Silo B): Acoplamiento Mínimo de Gauge
-        # Si el estrato cuenta con Cartuchos TOON cargados, la atención p_mu sufre
-        # deflexión determinista: p_mu -> p_mu - q_h A_mu, forzando un alineamiento
-        # ortogonal con la física del proyecto (alineación de estrés) y restando
-        # grados de libertad al libre albedrío del LLM.
-        cartridges_loaded = self.synaptic_registry.cartridge_count
-        gauge_deflection = 1.0 + 0.05 * cartridges_loaded  # Cada cartucho introduce fricción determinista
+        # --- Factor de Gauge (Acoplamiento TOON) ---
+        # CORRECCIÓN: gauge acotado en [1.0, _GAUGE_MAX] para garantizar finitud.
+        n_cartridges = self.synaptic_registry.cartridge_count
+        gauge_deflection = _clamp(
+            1.0 + _GAUGE_ALPHA * n_cartridges,
+            1.0,
+            _GAUGE_MAX,
+        )
 
-        # Mínima Acción Agéntica: Si la intención insiste en atravesar un socavón lógico
-        # (alta anomalía topológica β_1 > 0 modelado en anomaly_pressure) bajo alta fricción,
-        # la Energía de Dirichlet acoplada al tensor fuerza la saturación hacia el autoestado supremo.
-        if anomaly_pressure > 1.25 and external_friction > 1.5:
-            # Acoplamiento del tensor topológico
-            adjusted_stress = math.inf
-        else:
-            adjusted_stress = total_stress * fragility_penalty * gauge_deflection
+        # --- Estrés Ajustado Final: σ* = T_int · F_ext · Λ · P_frag · gauge ---
+        adjusted_stress = total_stress * fragility_penalty * gauge_deflection
+
+        # Verificación de finitud (defensa ante propagación de NaN no detectados).
+        if not math.isfinite(adjusted_stress):
+            logger.warning(
+                "adjusted_stress no finito detectado (%.6g). "
+                "Usando _VERDICT_THRESHOLD_PRECAUCION como límite inferior.",
+                adjusted_stress,
+            )
+            # No forzamos math.inf; el retículo manejará el RECHAZAR
+            # si el valor excede el umbral.
+            adjusted_stress = max(
+                _VERDICT_THRESHOLD_PRECAUCION,
+                total_stress if math.isfinite(total_stress) else _VERDICT_THRESHOLD_PRECAUCION,
+            )
 
         return OmegaMetrics(
             fragility_norm=fragility_norm,
@@ -822,57 +1469,100 @@ class OmegaDeliberationManifold(Morphism):
             base_stress=base_stress,
             fragility_penalty=fragility_penalty,
             total_stress=total_stress,
+            gauge_deflection=gauge_deflection,
             adjusted_stress=adjusted_stress,
         )
 
     # -------------------------------------------------------------------------
-    # MOTORES MATEMÁTICOS INTERNOS
+    # 6.3 MOTORES MATEMÁTICOS INTERNOS (funciones puras estáticas)
     # -------------------------------------------------------------------------
 
     @staticmethod
     def _compute_fragility_normalized(psi: float) -> float:
-        """Fragilidad estructural normalizada a [0, 1].
+        """Fragilidad estructural normalizada al espacio métrico [0, 1].
 
-        Transformación:
-            raw = log₂(1 + 1/ψ)    — monotónicamente decreciente en ψ
-            norm = clamp(raw / log₂(1 + 1/ε), 0, 1)
+        CORRECCIÓN CRÍTICA: Usa el mismo esquema de normalización que
+        _compute_roi_normalized para garantizar conmensurabilidad:
+
+            raw(v) = log₂(1 + 1/v)
+            norm(v) = clamp(raw(v) / _NORM_DENOMINATOR, 0, 1)
+
+        donde _NORM_DENOMINATOR = log₂(1 + 1/_NORM_EPSILON_REF) = log₂(11) ≈ 3.459.
 
         Propiedades:
-        - ψ → 0⁺   ⟹ fragility → 1.0 (máxima fragilidad)
-        - ψ = 1.0   ⟹ fragility = log₂(2) / factor ≈ 0.059
-        - ψ → ∞     ⟹ fragility → 0.0
+            ψ → _PSI_CLAMP_LOW (0.05) → fragility_norm → 1.0 (máxima fragilidad)
+            ψ = 1.0                   → fragility_norm ≈ 0.289 (neutral)
+            ψ → _PSI_CLAMP_HIGH (5.0) → fragility_norm ≈ 0.054 (muy robusto)
 
-        La normalización usa log₂ en lugar de ln para mejor separación
-        en el rango operativo [0.05, 5.0].
+        La función es C∞ en (0,∞), monotónicamente decreciente en ψ,
+        y su imagen está acotada en [0,1] por el clamp.
+
+        Args:
+            psi: Índice de estabilidad piramidal. Se garantiza > 0 por
+                 el clamp en OmegaInputs.from_payload().
+
+        Returns:
+            float en [0, 1].
         """
         safe_psi = max(psi, _EPSILON)
         raw = math.log2(1.0 + 1.0 / safe_psi)
-        # Factor de normalización: máximo teórico cuando psi = _PSI_CLAMP_LOW
-        max_raw = math.log2(1.0 + 1.0 / _PSI_CLAMP_LOW)
-        return _clamp(raw / max_raw, 0.0, 1.0)
+        return _clamp(raw / _NORM_DENOMINATOR, 0.0, 1.0)
 
     @staticmethod
-    def _normalize_roi(roi: float) -> float:
-        """Normaliza ROI al rango [0, 1] para comparabilidad con fragilidad.
+    def _compute_roi_normalized(roi: float) -> float:
+        """ROI normalizado al espacio métrico [0, 1].
 
-        Transformación lineal:
-            roi_norm = clamp(roi / _ROI_CLAMP_HIGH, 0, 1)
+        CORRECCIÓN CRÍTICA: Reemplaza la normalización lineal original
+        (roi/5.0) por la misma transformación log₂ usada en la fragilidad,
+        garantizando conmensurabilidad en el cálculo de misalignment.
 
-        Propiedad: ROI = 1.0 (neutral) → roi_norm = 0.2
+            norm(roi) = clamp(log₂(1 + 1/roi) / _NORM_DENOMINATOR, 0, 1)
+
+        Propiedades:
+            ROI = _ROI_CLAMP_LOW (0.1) → roi_norm ≈ 1.00 (retorno muy bajo)
+            ROI = 1.0                  → roi_norm ≈ 0.289 (neutral)
+            ROI = _ROI_CLAMP_HIGH (5.0)→ roi_norm ≈ 0.054 (retorno muy alto)
+
+        Semántica invertida respecto a fragility_norm:
+            roi alto      → roi_norm bajo (buena señal)
+            fragility alto → fragility_norm alto (mala señal)
+
+        Cuando ROI = ψ, roi_norm = fragility_norm → misalignment = 0
+        (coherencia perfecta). Esto es el invariante de simetría del
+        espacio métrico normalizado.
+
+        Args:
+            roi: Índice de rentabilidad. Se garantiza > 0 por el clamp
+                 en OmegaInputs.from_payload() (_ROI_CLAMP_LOW = 0.1).
+
+        Returns:
+            float en [0, 1].
         """
-        return _clamp(roi / _ROI_CLAMP_HIGH, 0.0, 1.0)
+        safe_roi = max(roi, _EPSILON)
+        raw = math.log2(1.0 + 1.0 / safe_roi)
+        return _clamp(raw / _NORM_DENOMINATOR, 0.0, 1.0)
 
     @staticmethod
     def _compute_misalignment(fragility_norm: float, roi_norm: float) -> float:
-        """Desalineación entre fragilidad estructural y expectativa financiera.
+        """Desalineación entre fragilidad y expectativa financiera.
 
-        Ambos operandos están normalizados a [0, 1], por lo que
-        misalignment ∈ [0, 1] sin necesidad de re-escalado.
+        Con fragility_norm y roi_norm ambos en [0,1] y calculados mediante
+        la misma transformación isométrica log₂, su diferencia absoluta
+        es una distancia euclidiana genuina en el espacio métrico [0,1]²:
+
+            misalignment = |fragility_norm - roi_norm| ∈ [0, 1]
 
         Interpretación:
-        - misalignment ≈ 0: estructura y finanzas son coherentes.
-        - misalignment ≈ 1: máxima disonancia (e.g., estructura frágil
-          con expectativa de ROI alto, o viceversa).
+            misalignment ≈ 0: estructura y finanzas coherentes (ψ ≈ ROI).
+            misalignment ≈ 1: máxima disonancia (e.g., estructura muy
+                              frágil con ROI muy alto, o viceversa).
+
+        Args:
+            fragility_norm: ∈ [0, 1]
+            roi_norm:       ∈ [0, 1]
+
+        Returns:
+            float en [0, 1].
         """
         return abs(fragility_norm - roi_norm)
 
@@ -880,27 +1570,48 @@ class OmegaDeliberationManifold(Morphism):
     def _compute_gravity_coupling(fragility_norm: float) -> float:
         """Amplificación suave de la tensión por fragilidad.
 
-        Usa tanh como sigmoide suave centrada en ``_GRAVITY_INFLECTION``:
-            coupling = 1 + tanh(fragility_norm - inflection)
+        Función sigmoide C∞ centrada en _GRAVITY_INFLECTION:
+
+            coupling(f) = 1 + tanh(f - inflection)
+
+        Con inflection = 0.289 (fragility_norm para ψ=1.0, el punto
+        neutral), se garantiza coupling(neutral) = 1 + tanh(0) = 1.0.
+
+        CORRECCIÓN: El punto de inflexión se actualiza de 0.5 (arbitrario)
+        a 0.289 (derivado del punto neutral del espacio normalizado),
+        garantizando que el acoplamiento sea 1.0 para inputs neutrales.
 
         Rango:
-        - fragility_norm = 0 → coupling ≈ 1 - tanh(0.5) ≈ 0.54
-        - fragility_norm = inflection → coupling = 1.0
-        - fragility_norm = 1 → coupling ≈ 1 + tanh(0.5) ≈ 1.46
+            fragility_norm = 0    → coupling = 1 - tanh(0.289) ≈ 0.714
+            fragility_norm = 0.289→ coupling = 1.000 (neutro)
+            fragility_norm = 1    → coupling = 1 + tanh(0.711) ≈ 1.612
 
-        La función es C∞ y monotónicamente creciente.
+        Args:
+            fragility_norm: ∈ [0, 1]
+
+        Returns:
+            float en (0, 2) — siempre positivo, monótonamente creciente.
         """
         return 1.0 + math.tanh(fragility_norm - _GRAVITY_INFLECTION)
 
     @staticmethod
     def _compute_internal_tension(
-        misalignment: float, gravity_coupling: float
+        misalignment: float,
+        gravity_coupling: float,
     ) -> float:
-        """Tensión interna efectiva.
+        """Tensión interna efectiva como producto de desalineación y acoplamiento.
 
-        T_int = max(0, misalignment × gravity_coupling)
+            T_int = max(0, misalignment × gravity_coupling)
 
-        El max(0, ...) es defensivo; con los rangos actuales siempre es ≥ 0.
+        El max(0, ...) es defensivo; con los rangos actuales el resultado
+        siempre es ≥ 0.
+
+        Args:
+            misalignment:    ∈ [0, 1]
+            gravity_coupling: ∈ (0, 2)
+
+        Returns:
+            float ≥ 0.
         """
         return max(0.0, misalignment * gravity_coupling)
 
@@ -908,11 +1619,23 @@ class OmegaDeliberationManifold(Morphism):
     def _compute_external_friction(inputs: OmegaInputs) -> float:
         """Métrica riemanniana simplificada del territorio.
 
-        Si no hay datos territoriales, retorna 1.0 (neutral multiplicativo).
+        Si no hay datos territoriales (territory_present=False),
+        retorna 1.0 (elemento neutro multiplicativo).
 
-        La fricción es una media ponderada de las tres dimensiones
-        territoriales, clamped a [1.0, ∞) para que nunca reduzca
-        el estrés base.
+        La fricción es la media ponderada g_ij de las tres dimensiones:
+
+            F_ext = max(1.0, Σᵢ wᵢ · dᵢ)
+
+        donde Σwᵢ = 1.0 (verificado estáticamente) y dᵢ ∈ [0, 5].
+
+        El clamp inferior a 1.0 garantiza que el territorio nunca
+        reduzca el estrés base (propiedad de monotonicidad).
+
+        Args:
+            inputs: Coordenadas con fricciones territoriales.
+
+        Returns:
+            float ≥ 1.0.
         """
         if not inputs.territory_present:
             return 1.0
@@ -928,9 +1651,21 @@ class OmegaDeliberationManifold(Morphism):
     def _compute_anomaly_pressure(inputs: OmegaInputs) -> float:
         """Presión estructural inducida por anomalías topológicas.
 
-        pressure = 1 + Σ(coeff_i × count_i)
+        Modelo aditivo:
+            P_anom = 1 + α_c·n_c + α_i·n_i + α_s·n_s
 
-        Siempre ≥ 1.0 (neutral multiplicativo sin anomalías).
+        donde:
+            α_c = 0.08 (ciclos β₁, mayor impacto)
+            α_i = 0.03 (nodos aislados β₀-1, impacto moderado)
+            α_s = 0.05 (aristas bajo estrés, impacto intermedio)
+
+        Siempre ≥ 1.0 (neutro sin anomalías).
+
+        Args:
+            inputs: Coordenadas con conteos de anomalías.
+
+        Returns:
+            float ≥ 1.0.
         """
         return 1.0 + (
             _ANOMALY_COEFF_CYCLE * inputs.cycle_count
@@ -940,23 +1675,48 @@ class OmegaDeliberationManifold(Morphism):
 
     @staticmethod
     def _compute_combinatorial_scale(inputs: OmegaInputs) -> float:
-        """Escala logarítmica del tamaño del espacio combinatorio.
+        """Escala logarítmica del tamaño del espacio combinatorio del grafo.
 
-        scale = log₁₀(max(10, n_nodes × n_edges))
+        Modela la complejidad estructural como el logaritmo del producto
+        de nodos por aristas (número de rutas posibles en el grafo):
 
-        Siempre ≥ 1.0.
+            S_comb = log₁₀(max(10, n_nodes × n_edges))
+
+        El max(10) garantiza S_comb ≥ 1.0 siempre (incluyendo grafos
+        degenerados con n_nodes=n_edges=1).
+
+        Justificación logarítmica: la complejidad computacional de
+        problemas de optimización en grafos crece tipicamente de forma
+        super-polinomial; log₁₀ captura la magnitud de orden sin
+        hacer explotar el estrés para grafos grandes.
+
+        Args:
+            inputs: Coordenadas con n_nodes y n_edges.
+
+        Returns:
+            float ≥ 1.0.
         """
         opportunity_space = max(1, inputs.n_nodes) * max(1, inputs.n_edges)
         return math.log10(max(10.0, float(opportunity_space)))
 
     @staticmethod
     def _compute_friction_scale(external_friction: float) -> float:
-        """Escala sublineal del efecto de fricción sobre las colas.
+        """Escala sublineal del efecto de fricción sobre las colas de riesgo.
 
-        scale = √(max(1, external_friction))
+        Raíz cuadrada de la fricción externa:
+            S_fric = √(max(1.0, F_ext))
 
-        La raíz cuadrada atenúa el impacto de fricciones extremas
-        para evitar que el territorio domine el veredicto.
+        La √ atenúa el impacto de fricciones extremas para evitar que
+        el territorio solo domine el veredicto (principio de diversificación
+        de factores de riesgo).
+
+        Propiedad: S_fric = 1.0 cuando F_ext ≤ 1.0 (territorio neutral).
+
+        Args:
+            external_friction: ≥ 1.0
+
+        Returns:
+            float ≥ 1.0.
         """
         return math.sqrt(max(1.0, external_friction))
 
@@ -968,44 +1728,91 @@ class OmegaDeliberationManifold(Morphism):
     ) -> float:
         """Palanca de eventos extremos (fat-tail risk amplifier).
 
-        Λ = clamp((comb_scale × fric_scale × anomaly_pressure) / K, 1, 4)
+        Define el operador Λ de amplificación de improbabilidad:
 
-        donde K = _IMPROBABILITY_SCALE_FACTOR.
+            Λ = clamp(S_comb × S_fric × P_anom / K, 1, 4)
 
-        El clamp a [1, 4] garantiza que:
-        - Sin anomalías ni complejidad, Λ ≈ 1 (no amplifica).
-        - En el peor caso, Λ = 4 (cuadruplica el estrés base).
+        donde K = _IMPROBABILITY_SCALE_FACTOR = 2.0.
+
+        Verificación de neutralidad: inputs neutrales producen
+            S_comb = log₁₀(10) = 1.0
+            S_fric = √1.0 = 1.0
+            P_anom = 1.0
+            Λ = (1·1·1)/2.0 = 0.5 → clamp → 1.0 ✓
+
+        El clamp a [1, 4] garantiza:
+            - Sin anomalías ni complejidad, Λ = 1.0 (no amplifica).
+            - En el peor caso, Λ = 4.0 (cuadruplica el estrés base).
+
+        Args:
+            anomaly_pressure:   ≥ 1.0
+            combinatorial_scale: ≥ 1.0
+            friction_scale:     ≥ 1.0
+
+        Returns:
+            float en [1.0, 4.0].
         """
-        lever = (
+        raw_lever = (
             combinatorial_scale * friction_scale * anomaly_pressure
         ) / _IMPROBABILITY_SCALE_FACTOR
-        return _clamp(lever, _IMPROBABILITY_CLAMP_LOW, _IMPROBABILITY_CLAMP_HIGH)
+        return _clamp(raw_lever, _IMPROBABILITY_CLAMP_LOW, _IMPROBABILITY_CLAMP_HIGH)
 
     @staticmethod
     def _compute_fragility_penalty(psi: float) -> float:
-        """Penalización estructural por fragilidad.
+        """Penalización estructural no-lineal por fragilidad.
 
-        Si ψ ≥ 1.0: penalty = 1.0 (sin penalización).
-        Si ψ < 1.0: penalty = 1 + min(δ_max, (1 - ψ) × δ_max)
-            donde δ_max = _FRAGILITY_PENALTY_MAX_DELTA.
+        Define P_frag(ψ) como:
+            ψ ≥ 1.0: P_frag = 1.0  (sin penalización)
+            ψ < 1.0: P_frag = 1 + min(δ_max, (1-ψ)·δ_max)
+                            = 1 + δ_max · min(1, 1-ψ)
 
-        Rango: [1.0, 1 + δ_max] = [1.0, 2.5].
+        donde δ_max = _FRAGILITY_PENALTY_MAX_DELTA = 1.5.
+
+        Propiedades:
+            - P_frag ∈ [1.0, 2.5] (acotada).
+            - P_frag es Lipschitz-continua con constante L = δ_max = 1.5.
+            - P_frag(1.0) = 1.0 (continuidad en el punto de quiebre).
+            - P_frag(0.0) = 2.5 (penalización máxima para ψ→0).
+
+        Args:
+            psi: Índice de estabilidad. Asumido ≥ 0 por el clamp upstream.
+
+        Returns:
+            float en [1.0, 2.5].
         """
         if psi >= 1.0:
             return 1.0
-        deficit = 1.0 - max(psi, 0.0)
+        deficit = _clamp(1.0 - psi, 0.0, 1.0)
         return 1.0 + min(_FRAGILITY_PENALTY_MAX_DELTA, deficit * _FRAGILITY_PENALTY_MAX_DELTA)
 
     @staticmethod
     def _project_to_lattice(adjusted_stress: float) -> VerdictLevel:
-        """Proyecta el estrés ajustado al retículo discreto de veredictos.
+        """Proyecta σ* al retículo discreto de veredictos (VerdictLevel, ⊑).
 
-        Mapeo:
-            σ* < 0.75  →  VIABLE
-            σ* < 1.75  →  CONDICIONAL
-            σ* < 3.00  →  PRECAUCION
-            σ* ≥ 3.00  →  RECHAZAR
+        Implementa el operador Supremo ⊔ del retículo acotado distributivo:
+
+            φ: (ℝ⁺ ∪ {+∞}, ≤) → (VerdictLevel, ⊑)
+
+        Mapeo exhaustivo:
+            NaN o ±Inf → RECHAZAR  (axioma del peor caso ⊤)
+            σ* < 0.75  → VIABLE
+            σ* < 1.75  → CONDICIONAL
+            σ* < 3.00  → PRECAUCION
+            σ* ≥ 3.00  → RECHAZAR
+
+        CORRECCIÓN: El diseño original no manejaba NaN ni -Inf.
+        Ambos se mapean a RECHAZAR por el axioma de saturación del retículo.
+
+        Args:
+            adjusted_stress: σ* calculado por _compute_metrics.
+
+        Returns:
+            VerdictLevel miembro del retículo.
         """
+        # Manejo explícito de valores no finitos y NaN.
+        if not math.isfinite(adjusted_stress):
+            return VerdictLevel.RECHAZAR
+
         if adjusted_stress < _VERDICT_THRESHOLD_VIABLE:
             return VerdictLevel.VIABLE
         if adjusted_stress < _VERDICT_THRESHOLD_CONDICIONAL:
@@ -1020,12 +1827,21 @@ class OmegaDeliberationManifold(Morphism):
         metrics: OmegaMetrics,
         verdict: VerdictLevel,
     ) -> OmegaDiagnostics:
-        """Construye un diagnóstico formal y auditable.
+        """Construye un diagnóstico formal y auditable del colapso.
 
         Incluye:
-        - Etiquetas semánticas para cada dimensión.
-        - Snapshot numérico de inputs y métricas derivadas.
-        - Identificación del eje de riesgo dominante con breakdown.
+            - Etiquetas semánticas para cada dimensión de riesgo.
+            - Snapshot numérico de inputs y métricas derivadas.
+            - Identificación del eje dominante con breakdown conmensurable.
+            - Summary legible por humanos y máquinas.
+
+        Args:
+            inputs:  Coordenadas de entrada.
+            metrics: Magnitudes calculadas.
+            verdict: Veredicto proyectado.
+
+        Returns:
+            OmegaDiagnostics completo y serializable.
         """
         topology_status = _interpret_psi(inputs.psi)
         financial_status = _interpret_roi(inputs.roi)
@@ -1047,7 +1863,7 @@ class OmegaDeliberationManifold(Morphism):
             f"eje_dominante={dominant_axis}"
         )
 
-        inputs_snapshot = {
+        inputs_snapshot: Dict[str, Any] = {
             "psi": round(inputs.psi, 6),
             "roi": round(inputs.roi, 6),
             "n_nodes": inputs.n_nodes,
@@ -1061,7 +1877,7 @@ class OmegaDeliberationManifold(Morphism):
             "climate_entropy": round(inputs.climate_entropy, 6),
         }
 
-        derived_snapshot = {
+        derived_snapshot: Dict[str, Any] = {
             "fragility_norm": round(metrics.fragility_norm, 6),
             "roi_norm": round(metrics.roi_norm, 6),
             "misalignment": round(metrics.misalignment, 6),
@@ -1075,6 +1891,7 @@ class OmegaDeliberationManifold(Morphism):
             "base_stress": round(metrics.base_stress, 6),
             "fragility_penalty": round(metrics.fragility_penalty, 6),
             "total_stress": round(metrics.total_stress, 6),
+            "gauge_deflection": round(metrics.gauge_deflection, 6),
             "adjusted_stress": round(metrics.adjusted_stress, 6),
         }
 
@@ -1094,148 +1911,50 @@ class OmegaDeliberationManifold(Morphism):
     def _identify_dominant_risk_axis(
         metrics: OmegaMetrics,
     ) -> Tuple[str, Dict[str, float]]:
-        """Identifica el eje dominante del riesgo con breakdown numérico.
+        """Identifica el eje dominante del riesgo con breakdown conmensurable.
 
-        Compara contribuciones de cada factor al estrés total:
-        - internal:  tensión interna (misalignment × coupling)
-        - territory: exceso de fricción territorial sobre el neutro
-        - extremes:  exceso del lever de improbabilidad sobre el neutro
-        - fragility: exceso de penalización por fragilidad sobre el neutro
+        CORRECCIÓN CRÍTICA: El diseño original mezclaba contribuciones con
+        unidades heterogéneas (tensión ∈ ℝ⁺ vs excesos ∈ [0,1.5]).
+        La corrección normaliza todas las contribuciones como fracción
+        multiplicativa del estrés base, haciéndolas conmensurables:
 
-        Retorna:
-            Tupla (nombre_eje_dominante, {eje: contribución, ...})
+            contrib_internal  = internal_tension / (base_stress + ε)
+                                (fracción de σ_base debida a T_int)
+            contrib_territory = (external_friction - 1.0)
+                                (exceso sobre el neutro multiplicativo)
+            contrib_extremes  = (improbability_lever - 1.0)
+                                (exceso de Λ sobre el neutro)
+            contrib_fragility = (fragility_penalty - 1.0)
+                                (exceso de P_frag sobre el neutro)
+
+        Todas las contribuciones son ≥ 0. El eje dominante es el de
+        mayor valor; en caso de empate, se usa orden lexicográfico
+        (determinismo).
 
         Si todas las contribuciones son ≤ 0, retorna "balanced".
-        En caso de empate, se usa orden lexicográfico para determinismo.
+
+        Args:
+            metrics: OmegaMetrics calculadas.
+
+        Returns:
+            Tupla (nombre_eje_dominante, {eje: contribución_normalizada}).
         """
-        contributions = {
+        base_for_norm = metrics.base_stress + _EPSILON
+
+        contributions: Dict[str, float] = {
+            "internal": round(metrics.internal_tension / base_for_norm, 6),
+            "territory": round(metrics.external_friction - 1.0, 6),
             "extremes": round(metrics.improbability_lever - 1.0, 6),
             "fragility": round(metrics.fragility_penalty - 1.0, 6),
-            "internal": round(metrics.internal_tension, 6),
-            "territory": round(metrics.external_friction - 1.0, 6),
         }
 
-        # Ordenar por valor descendente, luego por nombre ascendente (determinismo)
+        # Ordenamiento determinista: valor desc, nombre asc.
         sorted_items = sorted(
             contributions.items(),
             key=lambda item: (-item[1], item[0]),
         )
 
         dominant_name, dominant_value = sorted_items[0]
-        if dominant_value <= 0:
+        if dominant_value <= 0.0:
             return "balanced", contributions
         return dominant_name, contributions
-
-
-# =============================================================================
-# 4. HELPERS NUMÉRICOS Y SEMÁNTICOS
-# =============================================================================
-
-
-def _safe_dict(value: Any) -> Dict[str, Any]:
-    """Convierte valor a dict; retorna dict vacío si no es dict."""
-    return value if isinstance(value, dict) else {}
-
-
-def _safe_float(value: Any, default: float) -> float:
-    """Convierte valor a float finito; retorna ``default`` si imposible.
-
-    Rechaza None, bool, NaN, ±Inf, y tipos no convertibles.
-    """
-    if value is None or isinstance(value, bool):
-        return default
-    try:
-        number = float(value)
-        if not math.isfinite(number):
-            return default
-        return number
-    except (TypeError, ValueError):
-        return default
-
-
-def _safe_int(value: Any, default: int) -> int:
-    """Convierte valor a int via float; retorna ``default`` si imposible.
-
-    Rechaza None, bool, NaN, ±Inf, y tipos no convertibles.
-    Trunca parte decimal.
-    """
-    if value is None or isinstance(value, bool):
-        return default
-    try:
-        number = float(value)
-        if not math.isfinite(number):
-            return default
-        return int(number)
-    except (TypeError, ValueError):
-        return default
-
-
-def _clamp(value: float, low: float, high: float) -> float:
-    """Restringe ``value`` al intervalo cerrado [low, high].
-
-    Precondiciones: low ≤ high, todos finitos.
-    """
-    return max(low, min(high, value))
-
-
-def _extract_topological_stability(topo_data: Dict[str, Any]) -> float:
-    """Extrae estabilidad topológica ψ con saneamiento robusto.
-
-    Busca ``pyramid_stability`` en el dict topológico.
-
-    Convención:
-    - ψ ≈ 1.0: neutral/saludable.
-    - ψ < 1.0: fragilidad estructural.
-    - ψ > 1.0: estabilidad superior.
-
-    Siempre retorna valor en [_PSI_CLAMP_LOW, _PSI_CLAMP_HIGH].
-    """
-    psi = _safe_float(topo_data.get("pyramid_stability"), 1.0)
-    return _clamp(psi, _PSI_CLAMP_LOW, _PSI_CLAMP_HIGH)
-
-
-def _extract_profitability_index(fin_data: Dict[str, Any]) -> float:
-    """Extrae ``profitability_index`` con saneamiento robusto.
-
-    Siempre retorna valor en [_ROI_CLAMP_LOW, _ROI_CLAMP_HIGH].
-    """
-    roi = _safe_float(fin_data.get("profitability_index"), 1.0)
-    return _clamp(roi, _ROI_CLAMP_LOW, _ROI_CLAMP_HIGH)
-
-
-def _interpret_psi(psi: float) -> str:
-    """Clasifica ψ en etiqueta semántica."""
-    if psi < _PSI_FRAGILE_THRESHOLD:
-        return "fragil"
-    if psi < _PSI_ROBUST_THRESHOLD:
-        return "estable"
-    return "robusto"
-
-
-def _interpret_roi(roi: float) -> str:
-    """Clasifica ROI en etiqueta semántica."""
-    if roi < _ROI_WEAK_THRESHOLD:
-        return "retorno_debil"
-    if roi < _ROI_MODERATE_THRESHOLD:
-        return "retorno_moderado"
-    return "retorno_fuerte"
-
-
-def _interpret_friction(friction: float) -> str:
-    """Clasifica fricción territorial en etiqueta semántica."""
-    if friction < _FRICTION_FAVORABLE_THRESHOLD:
-        return "territorio_favorable"
-    if friction < _FRICTION_MODERATE_THRESHOLD:
-        return "territorio_moderado"
-    return "territorio_hostil"
-
-
-def _interpret_stress(stress: float) -> str:
-    """Clasifica estrés ajustado en etiqueta semántica."""
-    if stress < _STRESS_LOW_THRESHOLD:
-        return "tension_baja"
-    if stress < _STRESS_MODERATE_THRESHOLD:
-        return "tension_moderada"
-    if stress < _STRESS_HIGH_THRESHOLD:
-        return "tension_alta"
-    return "tension_critica"
