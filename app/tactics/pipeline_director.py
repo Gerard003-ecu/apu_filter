@@ -1610,6 +1610,11 @@ class AuditedMergeStep(BaseProcessingStep):
         merger = DataMerger(self.thresholds)
         df_merged = merger.merge_apus_with_insumos(df_b, df_insumos)
 
+        # Asegurar la biyección de la dimensión perdida en caso de que el merge la haya dropeado
+        if state.df_presupuesto is not None:
+            if 'CANTIDAD_PRESUPUESTO' not in df_merged.columns and 'CANTIDAD_PRESUPUESTO' in state.df_presupuesto.columns:
+                df_merged['CANTIDAD_PRESUPUESTO'] = state.df_presupuesto['CANTIDAD_PRESUPUESTO']
+
         # Auditoría homológica (solo tiene sentido post-merge con el resultado real)
         if state.df_presupuesto is not None and self.config.enforce_homology:
             self.logger.info("Iniciando auditoría homológica (Mayer-Vietoris)...")

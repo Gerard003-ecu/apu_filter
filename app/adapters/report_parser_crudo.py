@@ -485,7 +485,7 @@ class ReportParserCrudo:
             )
         else:
             try:
-                from .apu_processor import APU_GRAMMAR  # type: ignore[import]
+                from app.tactics.apu_processor import APU_GRAMMAR  # type: ignore[import]
 
                 self.lark_parser = self._initialize_lark_parser(APU_GRAMMAR)
             except ImportError as exc:
@@ -542,7 +542,7 @@ class ReportParserCrudo:
 
         if grammar is None:
             try:
-                from .apu_processor import APU_GRAMMAR  # type: ignore[import]
+                from app.tactics.apu_processor import APU_GRAMMAR  # type: ignore[import]
 
                 grammar = APU_GRAMMAR
             except ImportError:

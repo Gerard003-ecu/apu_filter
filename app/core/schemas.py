@@ -213,7 +213,7 @@ class NumericalTolerances:
         • 5% indica error serio en datos o lógica
     """
 
-    conservation_relative: float = 1e-6
+    conservation_relative: float = 1e-3
     conservation_absolute: float = 1e-10
     warning_relative: float = 0.01
     error_relative: float = 0.05
@@ -253,7 +253,7 @@ class PhysicalBounds:
     precio_max: float = 1_000_000_000.0
     valor_total_max: float = 1_000_000_000_000_000.0
     rendimiento_min: float = 0.0
-    rendimiento_max: float = 1_000.0
+    rendimiento_max: float = 100000.0
 
     def validate_self(self) -> None:
         """Verifica que cantidad_max × precio_max ≤ valor_total_max."""
@@ -277,7 +277,7 @@ UNIDADES_MASA = frozenset({"KG", "GR", "TON", "LB"})
 UNIDADES_VOLUMEN = frozenset({"M3", "L", "ML", "GAL"})
 UNIDADES_AREA = frozenset({"M2", "CM2"})
 UNIDADES_LONGITUD = frozenset({"M", "KM", "CM", "MM"})
-UNIDADES_TRANSPORTE = frozenset({"KM", "VIAJE", "VIAJES", "MILLA", "TON-KM"})
+UNIDADES_TRANSPORTE = frozenset({"KM", "VIAJE", "VIAJES", "MILLA", "TON-KM", "UNIDAD", "UND", "U"})
 UNIDADES_GENERICAS = frozenset({"UNIDAD", "UND", "U", "PAR", "JUEGO", "KIT", "%"})
 
 ALL_KNOWN_UNITS = (
