@@ -4,67 +4,45 @@ Módulo: Deliberation Manifold (El Ágora Tensorial — Estrato Ω)
 Ubicación: app/core/immune_system/deliberation_manifold.py
 =========================================================================================
 
-Naturaleza Ciber-Física:
-    Actúa como el Funtor de Colapso de la Función de Estado del sistema. Intercepta
-    los tensores continuos provenientes de los subespacios de Topología (V_TACTICS)
-    y Finanzas (V_STRATEGY), sometiéndolos a la fricción geométrica del territorio
-    para colapsar el sistema en un vértice operativo determinista. Su función axiomática
-    es erradicar el libre albedrío estocástico del Modelo de Lenguaje (LLM), forzándolo
-    a acatar el límite superior del riesgo físico.
+Naturaleza Ciber-Física y Teoría de Categorías:
+Actúa como el Funtor de Colapso de la Función de Estado del sistema [1]. Intercepta 
+los tensores continuos provenientes de los subespacios de Topología (V_TACTICS) y 
+Finanzas (V_STRATEGY), sometiéndolos a la fricción geométrica del territorio para 
+colapsar el sistema en un vértice operativo determinista [1]. Su función axiomática 
+es erradicar el libre albedrío estocástico del Modelo de Lenguaje (LLM), forzándolo 
+a acatar el límite superior del riesgo físico [1].
 
-Fundamento Matemático Revisado
-───────────────────────────────
-1. Ecuación de Estado (Estrés Ajustado Tensorial):
+Fundamentación Matemática Rigurosa y Geometría Diferencial:
 
-        σ* = T_int(ψ, ROI) · F_ext(territory) · Λ(A, G, F) · P_frag(ψ)
+1. Ecuación de Estado (Estrés Ajustado Tensorial σ*):
+   El colapso se rige por la interacción de cuatro campos ortogonales [2]:
+   • T_int ∈ ℝ⁺: Tensión interna como producto del Mapeo Conforme Dinámico (desalineación) 
+     y el acoplamiento gravitacional [2].
+   • F_ext ∈ [1, ∞): Métrica riemanniana territorial. Media ponderada estrictamente 
+     multiplicativa [2].
+   • Λ ∈ [3, 4]: Palanca de improbabilidad (Fat-Tail Risk Amplifier) [2].
+   • P_frag ∈ [1.0, 2.5]: Penalización estructural continua para déficits de estabilidad (ψ < 1.0) [2].
 
-   Donde cada factor se deriva de un espacio métrico bien definido:
+2. Mapeo Conforme Dinámico (Espacio de Normalización Unificado):
+   Se abandona la normalización escalar estática [2]. El espacio bidimensional se contrae o dilata 
+   isométricamente en función de la conectividad espectral del grafo (Valor de Fiedler λ₂). 
+   La desalineación se calcula como una distancia euclidiana genuina sobre esta variedad [2].
 
-   • T_int ∈ ℝ⁺: Tensión interna como producto de desalineación y acoplamiento
-     gravitacional. Ambos operandos normalizados al mismo espacio [0,1] mediante
-     transformaciones log₂ con idéntico esquema de normalización (isométricas).
+3. Transición de Fase C^∞ (Factor de Gauge Acotado):
+   La magnetización de los cartuchos TOON sobre el tensor de atención se modela mediante 
+   mecánica estadística de espines. Emplea una función tangente hiperbólica desplazada para 
+   garantizar una saturación asintótica estricta g(n) ∈ [1.0, G_max], preservando la invariante 
+   de finitud [2], imponiendo la Continuidad de Lipschitz y aniquilando singularidades Jacobianas.
 
-   • F_ext ∈ [1, ∞): Métrica riemanniana territorial. Media ponderada con pesos
-     sumando 1.0 (verificación estática), clamped inferiormente en 1.0 para que
-     sea estrictamente multiplicativa.
-
-   • Λ ∈ [1, 4]: Palanca de improbabilidad. Producto de escalas logarítmicas y
-     de anomalías, dividido por un factor de calibración K derivado del máximo
-     teórico del producto, garantizando Λ=1 para inputs neutrales.
-
-   • P_frag ∈ [1.0, 2.5]: Penalización estructural lineal por déficit de ψ < 1.
-
-2. Espacio de Normalización Unificado (invariante algebraica):
-
-   fragility_norm y roi_norm se calculan mediante la MISMA transformación base:
-       x_norm(v) = clamp(log₂(1 + 1/v) / log₂(1 + 1/ε_ref), 0, 1)
-   
-   Con ε_ref = 0.1 (percentil operativo bajo, no ε numérico).
-   Esto garantiza que misalignment = |f_norm - r_norm| sea una distancia
-   euclidiana genuina en el espacio normalizado [0,1]².
-
-3. Factor de Gauge Acotado (invariante de finitud):
-
-   gauge_deflection ∈ [1.0, _GAUGE_MAX] mediante clamp explícito,
-   eliminando la divergencia lineal sin cota del diseño original.
-
-4. Proyección sobre el Retículo de Severidad (Lattice Theory):
-
-   _project_to_lattice maneja explícitamente math.inf y math.nan,
-   mapeando ambos a VerdictLevel.RECHAZAR por el axioma del peor caso (⊤).
+4. Compactificación de Alexandroff (Proyección sobre el Retículo de Severidad):
+   El dominio del espacio de decisión proyecta el tensor de estrés continuo sobre la Esfera 
+   de Riemann (S¹). Las singularidades topológicas (math.nan, math.inf) se mapean isomorfamente al 
+   "Polo Norte" (el punto en el infinito), colapsando por pura geometría al Supremo del 
+   retículo acotado distributivo (VerdictLevel.RECHAZAR o ⊤) por el axioma del peor caso [2].
 
 5. Ley de Clausura Transitiva (Filtración DIKW):
-        V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_Ω ⊂ V_WISDOM
-
-Invariantes Algebraicos y Numéricos Garantizados:
-    • Finitud estricta: Todo float intermedio y resultante (σ*) es comprobablemente
-      finito (¬NaN, ¬±Inf) EXCEPTO en el path de SheafDegeneracyError donde
-      math.inf es semánticamente correcto (saturación del retículo).
-    • Idempotencia: consolidate² = consolidate (preservada).
-    • Pureza Funcional: _collapse() carece de efectos secundarios.
-    • Monotonicidad: σ*(ψ↓) ≥ σ*(ψ↑), σ*(anomalías↑) ≥ σ*(anomalías↓).
-    • Conmensurabilidad: fragility_norm y roi_norm comparten el mismo espacio
-      métrico normalizado.
+   Impone axiomáticamente la anidación de subespacios [2]:
+   V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_Ω ⊂ V_WISDOM [2].
 =========================================================================================
 """
 
