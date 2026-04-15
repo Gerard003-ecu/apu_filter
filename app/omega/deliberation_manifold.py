@@ -179,6 +179,12 @@ _IMPROBABILITY_SCALE_FACTOR: float = 2.0
 _IMPROBABILITY_CLAMP_LOW: float = 1.0
 _IMPROBABILITY_CLAMP_HIGH: float = 4.0
 
+def _clamp_static(value: float, low: float, high: float) -> float:
+    import math
+    if math.isnan(value):
+        return math.nan
+    return max(low, min(value, high))
+
 # Verificación: el factor neutro clampeado debe ser 1.0.
 _LEVER_NEUTRAL_CHECK: float = _clamp_static(
     (1.0 * 1.0 * 1.0) / _IMPROBABILITY_SCALE_FACTOR,
@@ -1375,9 +1381,10 @@ class OmegaDeliberationManifold(Morphism):
         Returns:
             OmegaMetrics con todas las magnitudes calculadas.
         """
-        # --- Normalización al espacio métrico unificado [0,1] ---
-        fragility_norm = self._compute_fragility_normalized(inputs.psi)
-        roi_norm = self._compute_roi_normalized(inputs.roi)
+                # --- Normalización al espacio métrico unificado [0,1] ---
+        fiedler_value = float(inputs.topo_data.get("fiedler_value", 0.0)) if isinstance(inputs.topo_data, dict) else 0.0
+        fragility_norm = self._compute_fragility_normalized(inputs.psi, fiedler_value)
+        roi_norm = self._compute_roi_normalized(inputs.roi, fiedler_value)
 
         # --- Tensión Interna ---
         misalignment = self._compute_misalignment(fragility_norm, roi_norm)
@@ -1407,14 +1414,10 @@ class OmegaDeliberationManifold(Morphism):
         # --- Penalización por Fragilidad ---
         fragility_penalty = self._compute_fragility_penalty(inputs.psi)
 
-        # --- Factor de Gauge (Acoplamiento TOON) ---
-        # CORRECCIÓN: gauge acotado en [1.0, _GAUGE_MAX] para garantizar finitud.
+                # --- Factor de Gauge (Acoplamiento TOON) ---
+        # CORRECCIÓN: Fase continua C^∞ mediante transición hiperbólica.
         n_cartridges = self.synaptic_registry.cartridge_count
-        gauge_deflection = _clamp(
-            1.0 + _GAUGE_ALPHA * n_cartridges,
-            1.0,
-            _GAUGE_MAX,
-        )
+        gauge_deflection = 1.0 + (_GAUGE_MAX - 1.0) * math.tanh((_GAUGE_ALPHA * n_cartridges) / (_GAUGE_MAX - 1.0))
 
         # --- Estrés Ajustado Final: σ* = T_int · F_ext · Λ · P_frag · gauge ---
         adjusted_stress = total_stress * fragility_penalty * gauge_deflection
@@ -1456,69 +1459,22 @@ class OmegaDeliberationManifold(Morphism):
     # -------------------------------------------------------------------------
 
     @staticmethod
-    def _compute_fragility_normalized(psi: float) -> float:
-        """Fragilidad estructural normalizada al espacio métrico [0, 1].
-
-        CORRECCIÓN CRÍTICA: Usa el mismo esquema de normalización que
-        _compute_roi_normalized para garantizar conmensurabilidad:
-
-            raw(v) = log₂(1 + 1/v)
-            norm(v) = clamp(raw(v) / _NORM_DENOMINATOR, 0, 1)
-
-        donde _NORM_DENOMINATOR = log₂(1 + 1/_NORM_EPSILON_REF) = log₂(11) ≈ 3.459.
-
-        Propiedades:
-            ψ → _PSI_CLAMP_LOW (0.05) → fragility_norm → 1.0 (máxima fragilidad)
-            ψ = 1.0                   → fragility_norm ≈ 0.289 (neutral)
-            ψ → _PSI_CLAMP_HIGH (5.0) → fragility_norm ≈ 0.054 (muy robusto)
-
-        La función es C∞ en (0,∞), monotónicamente decreciente en ψ,
-        y su imagen está acotada en [0,1] por el clamp.
-
-        Args:
-            psi: Índice de estabilidad piramidal. Se garantiza > 0 por
-                 el clamp en OmegaInputs.from_payload().
-
-        Returns:
-            float en [0, 1].
-        """
+    def _compute_fragility_normalized(psi: float, fiedler_value: float = 0.0) -> float:
         safe_psi = max(psi, _EPSILON)
         raw = math.log2(1.0 + 1.0 / safe_psi)
-        return _clamp(raw / _NORM_DENOMINATOR, 0.0, 1.0)
+        kappa = 0.1 # basal coupling constant
+        eps_ref = kappa / (fiedler_value + 0.1) # eps is already included in 0.1
+        norm_denominator = math.log2(1.0 + 1.0 / eps_ref)
+        return _clamp(raw / norm_denominator, 0.0, 1.0)
 
     @staticmethod
-    def _compute_roi_normalized(roi: float) -> float:
-        """ROI normalizado al espacio métrico [0, 1].
-
-        CORRECCIÓN CRÍTICA: Reemplaza la normalización lineal original
-        (roi/5.0) por la misma transformación log₂ usada en la fragilidad,
-        garantizando conmensurabilidad en el cálculo de misalignment.
-
-            norm(roi) = clamp(log₂(1 + 1/roi) / _NORM_DENOMINATOR, 0, 1)
-
-        Propiedades:
-            ROI = _ROI_CLAMP_LOW (0.1) → roi_norm ≈ 1.00 (retorno muy bajo)
-            ROI = 1.0                  → roi_norm ≈ 0.289 (neutral)
-            ROI = _ROI_CLAMP_HIGH (5.0)→ roi_norm ≈ 0.054 (retorno muy alto)
-
-        Semántica invertida respecto a fragility_norm:
-            roi alto      → roi_norm bajo (buena señal)
-            fragility alto → fragility_norm alto (mala señal)
-
-        Cuando ROI = ψ, roi_norm = fragility_norm → misalignment = 0
-        (coherencia perfecta). Esto es el invariante de simetría del
-        espacio métrico normalizado.
-
-        Args:
-            roi: Índice de rentabilidad. Se garantiza > 0 por el clamp
-                 en OmegaInputs.from_payload() (_ROI_CLAMP_LOW = 0.1).
-
-        Returns:
-            float en [0, 1].
-        """
+    def _compute_roi_normalized(roi: float, fiedler_value: float = 0.0) -> float:
         safe_roi = max(roi, _EPSILON)
         raw = math.log2(1.0 + 1.0 / safe_roi)
-        return _clamp(raw / _NORM_DENOMINATOR, 0.0, 1.0)
+        kappa = 0.1
+        eps_ref = kappa / (fiedler_value + 0.1)
+        norm_denominator = math.log2(1.0 + 1.0 / eps_ref)
+        return _clamp(raw / norm_denominator, 0.0, 1.0)
 
     @staticmethod
     def _compute_misalignment(fragility_norm: float, roi_norm: float) -> float:
@@ -1765,30 +1721,8 @@ class OmegaDeliberationManifold(Morphism):
 
     @staticmethod
     def _project_to_lattice(adjusted_stress: float) -> VerdictLevel:
-        """Proyecta σ* al retículo discreto de veredictos (VerdictLevel, ⊑).
-
-        Implementa el operador Supremo ⊔ del retículo acotado distributivo:
-
-            φ: (ℝ⁺ ∪ {+∞}, ≤) → (VerdictLevel, ⊑)
-
-        Mapeo exhaustivo:
-            NaN o ±Inf → RECHAZAR  (axioma del peor caso ⊤)
-            σ* < 0.75  → VIABLE
-            σ* < 1.75  → CONDICIONAL
-            σ* < 3.00  → PRECAUCION
-            σ* ≥ 3.00  → RECHAZAR
-
-        CORRECCIÓN: El diseño original no manejaba NaN ni -Inf.
-        Ambos se mapean a RECHAZAR por el axioma de saturación del retículo.
-
-        Args:
-            adjusted_stress: σ* calculado por _compute_metrics.
-
-        Returns:
-            VerdictLevel miembro del retículo.
-        """
-        # Manejo explícito de valores no finitos y NaN.
-        if not math.isfinite(adjusted_stress):
+        # Compactificación de Alexandroff: mapeo del infinito y NaN al polo norte (Supremo ⊤).
+        if not math.isfinite(adjusted_stress) or math.isnan(adjusted_stress):
             return VerdictLevel.RECHAZAR
 
         if adjusted_stress < _VERDICT_THRESHOLD_VIABLE:
