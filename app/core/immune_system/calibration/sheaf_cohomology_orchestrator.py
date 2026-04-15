@@ -1,70 +1,44 @@
 r"""
-=========================================================================================
-Módulo: Sheaf Cohomology Orchestrator (Interferómetro de Holonomía de Gauge)
+Módulo: Sheaf Cohomology Orchestrator (Interferómetro de Holonomía de Gauge) v4.0
 Ubicación: app/core/immune_system/calibration/sheaf_cohomology_orchestrator.py
+
+Naturaleza Ciber-Física y Topología Diferencial:
+Actúa como el sistema de propiocepción invariante de la Malla Agéntica mediante la 
+Teoría de Haces Celulares (Cellular Sheaves). Abandona la validación nodo a nodo para 
+evaluar el consenso global del hiperespacio. Discrimina matemáticamente entre ruido 
+termodinámico resoluble y obstrucciones topológicas absolutas (paradojas lógicas).
+
+Fundamentación Matemática y Álgebra Lineal Numérica:
+
+1. El Fibrado y el Operador Cofrontera (δ):
+   Sea G = (V, E) el grafo de la malla de decisión. Un haz celular ℱ asigna espacios 
+   vectoriales a vértices F(v) ≅ ℝ^{d_v} y aristas F(e) ≅ ℝ^{d_e}. El desacuerdo 
+   local se mide mediante los mapas de restricción lineales F_{v ◁ e}.
+   El operador cofrontera δ: C⁰ → C¹ cuantifica la divergencia del consenso:
+   (δx)_e = F_{v ◁ e}(x_v) − F_{u ◁ e}(x_u)
+
+2. Invariantes Cohomológicos y Teorema de Rango-Nulidad:
+   • H⁰(G; ℱ) ≅ ker(δ): Espacio nulo. Dimensión de los grados de libertad del consenso global.
+   • H¹(G; ℱ) ≅ coker(δ): Obstrucciones topológicas.
+   [AXIOMA DE VETO]: Si dim H¹ > 0, el sistema alberga dependencias circulares insalvables 
+   o contratos mutuamente excluyentes. Se emite un Veto Absoluto sin posibilidad de sanación.
+
+3. Preservación del Número de Condición (Censura del Laplaciano):
+   El Laplaciano del Haz L = δᵀδ ⪰ 0 es el operador teórico de energía, pero su 
+   ensamblaje explícito está PROSCRITO computacionalmente, ya que cuadra el número de 
+   condición κ(L) = κ(δ)², induciendo colapso en la Unidad de Punto Flotante (IEEE 754).
+   La Energía de Dirichlet E(x) = ‖δx‖² y el espectro se evalúan aplicando SVD disperso 
+   y métodos iterativos de Krylov (shift-invert con σ=0) exclusivamente sobre δ.
+
+4. Proyección de Hodge-Helmholtz Acotada Termodinámicamente:
+   Si el haz no presenta defectos estructurales (H¹ = 0) pero exhibe frustración térmica 
+   (E(x) > ε), el sistema ejecuta una Proyección de Hodge sobre el núcleo ker(δ) usando 
+   LSQR. 
+   [CONDICIÓN LIPSCHITZ]: Esta proyección está sometida a un límite isoperimétrico. Si la 
+   distancia de sanación ‖x - x*‖₂ excede la inercia financiera permitida del estrato físico, 
+   la proyección se aborta, garantizando la conservación de masa y energía del presupuesto real.
 =========================================================================================
 
-Naturaleza Ciber-Física:
-    Validador de congruencia topológica global para la Malla Agéntica mediante la
-    Teoría de Haces Celulares (Cellular Sheaves). Actúa como el sistema de
-    propiocepción de la red, distinguiendo entre ruido termodinámico resoluble y
-    paradojas lógicas insalvables (obstrucciones topológicas).
-
-Fundamentación Matemática Revisada
-────────────────────────────────────
-Sea G = (V, E) un grafo no dirigido representando la malla de decisión.
-Un haz celular ℱ asigna:
-    • F(v) ≅ ℝ^{d_v}  a cada vértice v ∈ V  (espacio de estado local)
-    • F(e) ≅ ℝ^{d_e}  a cada arista e ∈ E   (espacio del contrato de interfaz)
-
-Mapas de restricción lineales:
-    F_{v ◁ e}: F(v) → F(e)  para cada par incidente (v, e)
-
-Complejo de Cocadenas:
-    C⁰(G; ℱ) = ⨁_{v ∈ V} F(v),   dim C⁰ = Σ_v d_v
-    C¹(G; ℱ) = ⨁_{e ∈ E} F(e),   dim C¹ = Σ_e d_e
-
-Operador de Cofrontera δ: C⁰ → C¹
-    Para cada arista e = {u, v} con orientación u → v:
-        (δx)_e = F_{v ◁ e}(x_v) − F_{u ◁ e}(x_u)
-
-Laplaciano del Haz L = δᵀδ:
-    • L ∈ ℝ^{n×n}, n = dim C⁰
-    • L ⪰ 0 (semidefinida positiva por construcción)
-    • ker(L) = ker(δ) = H⁰(G; ℱ)  [secciones globales]
-
-Energía de Dirichlet:
-    E(x) = ‖δx‖² = xᵀLx ≥ 0
-
-    NOTA NUMÉRICA CRÍTICA: Se calcula como ‖δx‖² (producto matriz-vector
-    seguido de norma-2) en lugar de xᵀLx para evitar elevar al cuadrado
-    el número de condición κ(L) = κ(δ)².
-
-Invariantes Cohomológicos:
-    H⁰(G; ℱ) ≅ ker(δ):  dimensión del espacio de consenso global.
-    H¹(G; ℱ) ≅ coker(δ): dim H¹ = dim C¹ − rank(δ) [Teorema Rango-Nulidad].
-    [AXIOMA DE VETO]: dim H¹ > 0 ⟹ obstrucción topológica absoluta.
-
-Brecha Espectral (Fiedler value del haz):
-    λ₁ = min{λ : λ > 0, Lv = λv}
-    Mide la rigidez del consenso frente a perturbaciones estocásticas.
-
-Mejoras respecto al diseño original
-─────────────────────────────────────
-1. _SYMMETRY_TOLERANCE adaptativa: max(abs, relativa·‖L‖_F) evita falsos
-   positivos en matrices de gran norma.
-2. compute_sparse usa shift-invert (sigma=0) en lugar de which='SM' puro,
-   evitando inestabilidad del solucionador de Lanczos cerca de λ=0.
-3. _compute_frustration_energy usa np.linalg.norm(residual)**2 con
-   verificación de consistencia interna.
-4. _verify_semidefinite_positivity con tolerancia adaptativa relativa.
-5. RestrictionMap.condition_number() expone κ₂(F) para diagnóstico.
-6. CellularSheaf registra número de condición estimado de δ.
-7. audit_global_state expone dim H¹ en el diagnóstico.
-8. validate_local_restriction verifica presencia Y finitud de métricas clave.
-9. hodge_projection implementa la Proyección de Hodge-Helmholtz para
-   sanar estados con ruido homotópico (H¹ = 0, E(x) > ε).
-=========================================================================================
 """
 from __future__ import annotations
 
