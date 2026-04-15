@@ -2157,8 +2157,6 @@ class ImmuneWatcherMorphism(Morphism):
             "hysteresis_in_valid_range": 0.0 <= self._hysteresis < max_h,
         }
 
-
-
     def _compute_discrete_ricci_curvature(self, telemetry: Dict[str, Any]) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Calcula la Curvatura de Forman-Ricci/Ollivier-Ricci aproximada (Ric_mu_nu)

@@ -5,44 +5,44 @@ Ubicación: app/core/immune_system/deliberation_manifold.py
 =========================================================================================
 
 Naturaleza Ciber-Física y Teoría de Categorías:
-Actúa como el Funtor de Colapso de la Función de Estado del sistema [1]. Intercepta 
+Actúa como el Funtor de Colapso de la Función de Estado del sistema. Intercepta 
 los tensores continuos provenientes de los subespacios de Topología (V_TACTICS) y 
 Finanzas (V_STRATEGY), sometiéndolos a la fricción geométrica del territorio para 
-colapsar el sistema en un vértice operativo determinista [1]. Su función axiomática 
+colapsar el sistema en un vértice operativo determinista. Su función axiomática 
 es erradicar el libre albedrío estocástico del Modelo de Lenguaje (LLM), forzándolo 
-a acatar el límite superior del riesgo físico [1].
+a acatar el límite superior del riesgo físico.
 
 Fundamentación Matemática Rigurosa y Geometría Diferencial:
 
 1. Ecuación de Estado (Estrés Ajustado Tensorial σ*):
-   El colapso se rige por la interacción de cuatro campos ortogonales [2]:
+   El colapso se rige por la interacción de cuatro campos ortogonales:
    • T_int ∈ ℝ⁺: Tensión interna como producto del Mapeo Conforme Dinámico (desalineación) 
-     y el acoplamiento gravitacional [2].
+     y el acoplamiento gravitacional.
    • F_ext ∈ [1, ∞): Métrica riemanniana territorial. Media ponderada estrictamente 
-     multiplicativa [2].
-   • Λ ∈ [3, 4]: Palanca de improbabilidad (Fat-Tail Risk Amplifier) [2].
-   • P_frag ∈ [1.0, 2.5]: Penalización estructural continua para déficits de estabilidad (ψ < 1.0) [2].
+     multiplicativa.
+   • Λ ∈ [3, 4]: Palanca de improbabilidad (Fat-Tail Risk Amplifier).
+   • P_frag ∈ [1.0, 2.5]: Penalización estructural continua para déficits de estabilidad (ψ < 1.0).
 
 2. Mapeo Conforme Dinámico (Espacio de Normalización Unificado):
-   Se abandona la normalización escalar estática [2]. El espacio bidimensional se contrae o dilata 
+   Se abandona la normalización escalar estática. El espacio bidimensional se contrae o dilata 
    isométricamente en función de la conectividad espectral del grafo (Valor de Fiedler λ₂). 
-   La desalineación se calcula como una distancia euclidiana genuina sobre esta variedad [2].
+   La desalineación se calcula como una distancia euclidiana genuina sobre esta variedad.
 
 3. Transición de Fase C^∞ (Factor de Gauge Acotado):
    La magnetización de los cartuchos TOON sobre el tensor de atención se modela mediante 
    mecánica estadística de espines. Emplea una función tangente hiperbólica desplazada para 
    garantizar una saturación asintótica estricta g(n) ∈ [1.0, G_max], preservando la invariante 
-   de finitud [2], imponiendo la Continuidad de Lipschitz y aniquilando singularidades Jacobianas.
+   de finitud, imponiendo la Continuidad de Lipschitz y aniquilando singularidades Jacobianas.
 
 4. Compactificación de Alexandroff (Proyección sobre el Retículo de Severidad):
    El dominio del espacio de decisión proyecta el tensor de estrés continuo sobre la Esfera 
    de Riemann (S¹). Las singularidades topológicas (math.nan, math.inf) se mapean isomorfamente al 
    "Polo Norte" (el punto en el infinito), colapsando por pura geometría al Supremo del 
-   retículo acotado distributivo (VerdictLevel.RECHAZAR o ⊤) por el axioma del peor caso [2].
+   retículo acotado distributivo (VerdictLevel.RECHAZAR o ⊤) por el axioma del peor caso.
 
 5. Ley de Clausura Transitiva (Filtración DIKW):
-   Impone axiomáticamente la anidación de subespacios [2]:
-   V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_Ω ⊂ V_WISDOM [2].
+   Impone axiomáticamente la anidación de subespacios:
+   V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_Ω ⊂ V_WISDOM.
 =========================================================================================
 """
 
