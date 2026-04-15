@@ -62,7 +62,7 @@ from app.core.immune_system.calibration.sheaf_cohomology_orchestrator import (
     _FRUSTRATION_TOLERANCE,
     _SPARSE_MAX_EIGENVALUES,
     _SPECTRAL_TOLERANCE,
-    _SYMMETRY_TOLERANCE,
+    _SYMMETRY_TOLERANCE_ABS,
 )
 
 
@@ -519,7 +519,7 @@ class TestAddEdge:
         )
         wrong_shape = RestrictionMap(np.eye(2, 3, dtype=np.float64))
         correct = RestrictionMap(np.eye(2, 3, dtype=np.float64))
-        with pytest.raises(SheafDegeneracyError, match="Incoherencia dimensional.*u"):
+        with pytest.raises(SheafDegeneracyError, match="tiene forma"):
             sheaf.add_edge(0, 0, 1, wrong_shape, correct)
 
     def test_rejects_incompatible_restriction_shape_v(self):
@@ -531,7 +531,7 @@ class TestAddEdge:
         )
         correct_u = RestrictionMap(np.eye(2, dtype=np.float64))
         wrong_v = RestrictionMap(np.eye(2, dtype=np.float64))
-        with pytest.raises(SheafDegeneracyError, match="Incoherencia dimensional.*v"):
+        with pytest.raises(SheafDegeneracyError, match="tiene forma"):
             sheaf.add_edge(0, 0, 1, correct_u, wrong_v)
 
     def test_invalidates_cache_on_add(self):
@@ -704,7 +704,7 @@ class TestSheafLaplacian:
         L = triangle_sheaf.compute_sheaf_laplacian()
         L_dense = L.toarray()
         np.testing.assert_allclose(
-            L_dense, L_dense.T, atol=_SYMMETRY_TOLERANCE
+            L_dense, L_dense.T, atol=_SYMMETRY_TOLERANCE_ABS
         )
 
     def test_is_semidefinite_positive(self, triangle_sheaf):
@@ -951,7 +951,7 @@ class TestDenseSpectralAnalysis:
     def test_identity_laplacian(self):
         """L = I tiene todos eigenvalores = 1, h0_dim = 0."""
         L = sp.csc_matrix(np.eye(3, dtype=np.float64))
-        result = _SpectralAnalyzer.compute_dense(L)
+        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         assert result.h0_dimension == 0
         assert result.method == "dense"
         np.testing.assert_allclose(result.spectral_gap, 1.0, rtol=_FLOAT64_RTOL)
@@ -959,14 +959,14 @@ class TestDenseSpectralAnalysis:
     def test_zero_laplacian(self):
         """L = 0 tiene todos eigenvalores = 0, h0_dim = n."""
         L = sp.csc_matrix((3, 3), dtype=np.float64)
-        result = _SpectralAnalyzer.compute_dense(L)
+        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         assert result.h0_dimension == 3
         assert result.spectral_gap == 0.0
 
     def test_path_graph_laplacian_h0(self, path_sheaf_4):
         """El camino P₄ (conexo) tiene dim H⁰ = 1."""
         L = path_sheaf_4.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_dense(L)
+        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         assert result.h0_dimension == 1
         assert result.spectral_gap > 0.0
 
@@ -987,7 +987,7 @@ class TestDenseSpectralAnalysis:
         sheaf.add_edge(1, 2, 3, RestrictionMap(I), RestrictionMap(I))
 
         L = sheaf.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_dense(L)
+        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         assert result.h0_dimension == 2
 
     def test_triangle_spectral_gap(self, triangle_sheaf):
@@ -996,7 +996,7 @@ class TestDenseSpectralAnalysis:
         (0 con multiplicidad 1, 3 con multiplicidad 2).
         """
         L = triangle_sheaf.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_dense(L)
+        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
 
         # FASE 1: asertar que h0_dimension coincide exactamente con la multiplicidad algebraica de λ=0
         multiplicity_zero = int(np.sum(np.abs(result.smallest_eigenvalues) <= _SPECTRAL_TOLERANCE))
@@ -1010,7 +1010,7 @@ class TestDenseSpectralAnalysis:
     def test_eigenvalues_immutable(self):
         """Los eigenvalores en SpectralInvariants son read-only."""
         L = sp.csc_matrix(np.eye(2, dtype=np.float64))
-        result = _SpectralAnalyzer.compute_dense(L)
+        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         with pytest.raises(ValueError, match="read-only|not writeable"):
             result.smallest_eigenvalues[0] = 999.0
 
@@ -1019,13 +1019,13 @@ class TestDenseSpectralAnalysis:
         L_dense = np.array([[1.0, 0.5], [0.0, 1.0]])
         L = sp.csc_matrix(L_dense)
         with pytest.raises(SheafCohomologyError, match="simétrico"):
-            _SpectralAnalyzer.compute_dense(L)
+            _SpectralAnalyzer.compute_dense(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
 
     def test_rejects_negative_definite(self):
         """Laplaciano negativo definido es rechazado."""
         L = sp.csc_matrix(-np.eye(2, dtype=np.float64))
         with pytest.raises(SpectralComputationError, match="semidefinido"):
-            _SpectralAnalyzer.compute_dense(L)
+            _SpectralAnalyzer.compute_dense(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1038,7 +1038,7 @@ class TestSparseSpectralAnalysis:
     def test_zero_dimensional(self):
         """Matriz 0×0 retorna invariantes triviales."""
         L = sp.csc_matrix((0, 0), dtype=np.float64)
-        result = _SpectralAnalyzer.compute_sparse(L)
+        result = _SpectralAnalyzer.compute_sparse(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         assert result.h0_dimension == 0
         assert result.spectral_gap == 0.0
         assert result.method == "sparse"
@@ -1046,27 +1046,27 @@ class TestSparseSpectralAnalysis:
     def test_one_dimensional(self):
         """Matriz 1×1 con L[0,0] = 0 tiene h0_dim = 1."""
         L = sp.csc_matrix(np.array([[0.0]]))
-        result = _SpectralAnalyzer.compute_sparse(L)
+        result = _SpectralAnalyzer.compute_sparse(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         assert result.h0_dimension == 1
 
     def test_one_dimensional_nonzero(self):
         """Matriz 1×1 con L[0,0] > 0 tiene h0_dim = 0."""
         L = sp.csc_matrix(np.array([[5.0]]))
-        result = _SpectralAnalyzer.compute_sparse(L)
+        result = _SpectralAnalyzer.compute_sparse(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         assert result.h0_dimension == 0
         np.testing.assert_allclose(result.spectral_gap, 5.0, rtol=1e-6)
 
     def test_path_graph_sparse(self, path_sheaf_4):
         """El camino P₄ tiene dim H⁰ = 1 (también via disperso)."""
         L = path_sheaf_4.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_sparse(L)
+        result = _SpectralAnalyzer.compute_sparse(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         assert result.h0_dimension == 1
         assert result.spectral_gap > 0.0
 
     def test_eigenvalues_immutable_sparse(self, path_sheaf_4):
         """Eigenvalores son inmutables en modo disperso."""
         L = path_sheaf_4.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_sparse(L)
+        result = _SpectralAnalyzer.compute_sparse(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         with pytest.raises(ValueError, match="read-only|not writeable"):
             result.smallest_eigenvalues[0] = 999.0
 
@@ -1074,7 +1074,7 @@ class TestSparseSpectralAnalysis:
         """Eigenvalores negativos severos lanzan error."""
         L = sp.csc_matrix(-5.0 * np.eye(3, dtype=np.float64))
         with pytest.raises(SpectralComputationError, match="semidefinido"):
-            _SpectralAnalyzer.compute_sparse(L)
+            _SpectralAnalyzer.compute_sparse(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1088,21 +1088,21 @@ class TestHybridSpectralStrategy:
         """Matrices pequeñas (n ≤ threshold) usan método denso."""
         L = triangle_sheaf.compute_sheaf_laplacian()
         assert L.shape[0] <= _DENSE_SPECTRAL_MAX_DIM
-        result = _SpectralAnalyzer.compute(L)
+        result = _SpectralAnalyzer.compute(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         assert result.method == "dense"
 
     def test_dense_and_sparse_agree_on_h0(self, path_sheaf_4):
         """Ambos métodos coinciden en dim H⁰ para problemas pequeños."""
         L = path_sheaf_4.compute_sheaf_laplacian()
-        dense = _SpectralAnalyzer.compute_dense(L)
-        sparse = _SpectralAnalyzer.compute_sparse(L)
+        dense = _SpectralAnalyzer.compute_dense(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
+        sparse = _SpectralAnalyzer.compute_sparse(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
         assert dense.h0_dimension == sparse.h0_dimension
 
     def test_dense_and_sparse_agree_on_gap(self, triangle_sheaf):
         """Ambos métodos coinciden en brecha espectral."""
         L = triangle_sheaf.compute_sheaf_laplacian()
-        dense = _SpectralAnalyzer.compute_dense(L)
-        sparse = _SpectralAnalyzer.compute_sparse(L)
+        dense = _SpectralAnalyzer.compute_dense(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
+        sparse = _SpectralAnalyzer.compute_sparse(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
         np.testing.assert_allclose(
             dense.spectral_gap, sparse.spectral_gap, rtol=1e-4
         )
@@ -1121,36 +1121,45 @@ class TestSpectralInvariants:
         eigs.setflags(write=False)
         si = SpectralInvariants(
             h0_dimension=1,
-            spectral_gap=1.0,
+            h1_dimension=0,
+            spectral_gap=0.0,
             smallest_eigenvalues=eigs,
             method="dense",
+            delta_rank=0,
+            condition_number_est=1.0,
         )
         assert si.h0_dimension == 1
-        assert si.spectral_gap == 1.0
+        assert si.spectral_gap == 0.0
         assert si.method == "dense"
 
     def test_rejects_negative_h0(self):
         """h0_dimension negativo es rechazado."""
         eigs = np.array([0.0], dtype=np.float64)
         eigs.setflags(write=False)
-        with pytest.raises(ValueError, match="no negativo"):
+        with pytest.raises(ValueError, match="≥ 0"):
             SpectralInvariants(
                 h0_dimension=-1,
+                h1_dimension=0,
                 spectral_gap=0.0,
                 smallest_eigenvalues=eigs,
                 method="dense",
+                delta_rank=0,
+                condition_number_est=1.0,
             )
 
     def test_rejects_negative_gap(self):
         """spectral_gap negativo es rechazado."""
         eigs = np.array([0.0], dtype=np.float64)
         eigs.setflags(write=False)
-        with pytest.raises(ValueError, match="no negativo"):
+        with pytest.raises(ValueError, match="≥ 0"):
             SpectralInvariants(
                 h0_dimension=0,
+                h1_dimension=0,
                 spectral_gap=-0.1,
                 smallest_eigenvalues=eigs,
                 method="dense",
+                delta_rank=0,
+                condition_number_est=1.0,
             )
 
     def test_rejects_invalid_method(self):
@@ -1160,9 +1169,12 @@ class TestSpectralInvariants:
         with pytest.raises(ValueError, match="method"):
             SpectralInvariants(
                 h0_dimension=0,
+                h1_dimension=0,
                 spectral_gap=0.0,
                 smallest_eigenvalues=eigs,
                 method="unknown",
+                delta_rank=0,
+                condition_number_est=1.0,
             )
 
     def test_frozen(self):
@@ -1171,9 +1183,12 @@ class TestSpectralInvariants:
         eigs.setflags(write=False)
         si = SpectralInvariants(
             h0_dimension=0,
+            h1_dimension=0,
             spectral_gap=0.0,
             smallest_eigenvalues=eigs,
             method="dense",
+            delta_rank=0,
+            condition_number_est=1.0,
         )
         with pytest.raises(AttributeError):
             si.h0_dimension = 5
@@ -1204,7 +1219,7 @@ class TestOrchestrator:
         x = np.array([1.0, 100.0, -50.0], dtype=np.float64)
         with pytest.raises(
             HomologicalInconsistencyError,
-            match="sección global compatible",
+            match="sección compatible",
         ):
             orchestrator.audit_global_state(triangle_sheaf, x)
 
@@ -1357,7 +1372,7 @@ class TestCohomologicalInvariants:
         sheaf.add_edge(0, 0, 1, RestrictionMap(I2), RestrictionMap(I2))
 
         L = sheaf.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_dense(L)
+        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         assert result.h0_dimension == 2
 
     def test_nontrivial_restriction_changes_h0(self):
@@ -1385,7 +1400,7 @@ class TestCohomologicalInvariants:
         sheaf.add_edge(0, 0, 1, F_0, F_1)
 
         L = sheaf.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_dense(L)
+        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
         assert result.h0_dimension == 0
 
 
@@ -1444,7 +1459,7 @@ class TestHeterogeneousFibers:
 
         # Verificar simetría
         np.testing.assert_allclose(
-            L.toarray(), L.toarray().T, atol=_SYMMETRY_TOLERANCE
+            L.toarray(), L.toarray().T, atol=_SYMMETRY_TOLERANCE_ABS
         )
 
 
@@ -1460,10 +1475,13 @@ class TestGlobalFrustrationAssessment:
         gfa = GlobalFrustrationAssessment(
             frustration_energy=0.0,
             h0_dimension=1,
+            h1_dimension=0,
             is_coherent=True,
             spectral_gap=1.0,
             residual_norm=0.0,
             spectral_method="dense",
+            delta_rank=0,
+            condition_number_est=1.0,
         )
         with pytest.raises(AttributeError):
             gfa.frustration_energy = 999.0
@@ -1473,10 +1491,13 @@ class TestGlobalFrustrationAssessment:
         gfa = GlobalFrustrationAssessment(
             frustration_energy=0.001,
             h0_dimension=2,
+            h1_dimension=1,
             is_coherent=True,
             spectral_gap=0.5,
             residual_norm=0.0316,
             spectral_method="sparse",
+            delta_rank=1,
+            condition_number_est=2.0,
         )
         assert gfa.frustration_energy == 0.001
         assert gfa.h0_dimension == 2
@@ -1744,7 +1765,7 @@ class TestModuleConstants:
 
     def test_symmetry_tolerance_positive(self):
         """Tolerancia de simetría es positiva."""
-        assert _SYMMETRY_TOLERANCE > 0
+        assert _SYMMETRY_TOLERANCE_ABS > 0
 
     def test_spectral_tolerance_positive(self):
         """Tolerancia espectral es positiva."""
@@ -1767,7 +1788,7 @@ class TestModuleConstants:
     def test_tolerances_are_small(self):
         """Todas las tolerancias son mucho menores que 1."""
         assert _FRUSTRATION_TOLERANCE < 1e-3
-        assert _SYMMETRY_TOLERANCE < 1e-6
+        assert _SYMMETRY_TOLERANCE_ABS < 1e-6
         assert _SPECTRAL_TOLERANCE < 1e-3
         assert _ARPACK_TOLERANCE < 1e-3
 

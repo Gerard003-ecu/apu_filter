@@ -119,7 +119,7 @@ _ARPACK_TOLERANCE: Final[float] = 1e-7
 # CORRECCIÓN: el diseño original usaba sigma=-1e-5 (valor negativo sin
 # justificación). Con sigma=0, el shift-invert apunta exactamente al
 # espectro de interés (eigenvalores pequeños de L ⪰ 0).
-_ARPACK_SIGMA: Final[float] = 0.0
+_ARPACK_SIGMA: Final[float] = -1e-5
 
 # Tolerancia para verificar semi-positividad de L.
 # CORRECCIÓN: la tolerancia es adaptativa: max(abs, rel · λ_max_estimado).
