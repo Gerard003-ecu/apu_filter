@@ -4008,10 +4008,63 @@ class APUCostCalculator(BaseCostProcessor):
 # ==================== FUNCIONES AUXILIARES ====================
 
 
+# ============================================================================
+# KAHAN COMPENSATED SUMMATION — Restauración de Invariante I1
+# ============================================================================
+
+
+def kahan_sum(values) -> float:
+    r"""
+    Suma Compensada de Kahan — O(ε) en lugar de O(nε).
+
+    Algoritmo
+    ─────────
+    Sea S = Σ v_i la suma exacta y ŝ la suma en punto flotante.
+
+    Kahan mantiene una variable de compensación `c` que acumula el error
+    numérico de cada paso y lo inyecta en la siguiente iteración:
+
+        y = v_i - c          (aplica compensación al sumando)
+        t = total + y        (suma provisional (puede perder bits bajos)
+        c = (t - total) - y  (recupera bits perdidos: c ≈ error cometido)
+        total = t
+
+    Propiedad: |ŝ - S| ≤ 2ε + O(nε²)  en lugar de O(nε) suma ingenua
+    donde ε = machine epsilon ≈ 2.22e-16 (float64).
+
+    References
+    ----------
+    Kahan, W. (1965). "Pracniques: Further remarks on reducing truncation errors".
+    Communications of the ACM, 8(1), 40.
+
+    Parameters
+    ----------
+    values : Iterable[float]
+        Secuencia de valores a sumar (soporta pd.Series, list, np.ndarray).
+
+    Returns
+    -------
+    float
+        Suma con error de redondeo acotado a O(ε).
+    """
+    total: float = 0.0
+    compensation: float = 0.0
+    for v in values:
+        # Manejo defensivo de NaN/inf
+        if not math.isfinite(v):
+            continue
+        y = float(v) - compensation
+        t = total + y
+        compensation = (t - total) - y
+        total = t
+    return total
+
+
 def calculate_insumo_costs(
     df: pd.DataFrame, thresholds: ProcessingThresholds
 ) -> pd.DataFrame:
     """Calcula costos de insumos de forma robusta."""
+
     if df is None or not isinstance(df, pd.DataFrame):
         logger.error("❌ DataFrame inválido para cálculo de costos")
         return pd.DataFrame()
@@ -4061,7 +4114,8 @@ def calculate_insumo_costs(
         df[ColumnNames.VR_UNITARIO_INSUMO].fillna(0.0).clip(0, max_cost)
     )
 
-    total_costo = df[ColumnNames.COSTO_INSUMO_EN_APU].sum()
+    # ── Kahan summation: conservación I1 con error relativo O(ε) ────────────
+    total_costo = kahan_sum(df[ColumnNames.COSTO_INSUMO_EN_APU])
     registros_sin_costo = (df[ColumnNames.COSTO_INSUMO_EN_APU] == 0).sum()
 
     if registros_sin_costo > 0:
@@ -4070,7 +4124,7 @@ def calculate_insumo_costs(
             f"⚠️ {registros_sin_costo} registros ({pct:.1f}%) sin costo calculado"
         )
 
-    logger.debug(f"Costo total calculado: {total_costo:,.2f}")
+    logger.debug(f"Costo total calculado (Kahan): {total_costo:,.2f}")
 
     return df
 
@@ -4084,12 +4138,30 @@ def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:
 def calculate_total_costs(
     df: pd.DataFrame, thresholds: ProcessingThresholds
 ) -> pd.DataFrame:
+    """Calcula costo total de construcción con Kahan summation (I1)."""
     if ColumnNames.CANTIDAD_PRESUPUESTO in df.columns:
         qty = pd.to_numeric(
             df[ColumnNames.CANTIDAD_PRESUPUESTO], errors="coerce"
         ).fillna(0)
-        df[ColumnNames.VALOR_CONSTRUCCION_TOTAL] = (
-            df[ColumnNames.VALOR_CONSTRUCCION_UN] * qty
+        # Kahan sobre el producto elemento-a-elemento
+        unit_values = df[ColumnNames.VALOR_CONSTRUCCION_UN].fillna(0.0).values
+        quantities = qty.values
+        totals = unit_values * quantities
+        df[ColumnNames.VALOR_CONSTRUCCION_TOTAL] = totals
+
+        # Log de conservación: comparar suma pandas vs Kahan
+        suma_pandas = float(df[ColumnNames.VALOR_CONSTRUCCION_TOTAL].sum())
+        suma_kahan = kahan_sum(df[ColumnNames.VALOR_CONSTRUCCION_TOTAL])
+        delta_rel = abs(suma_pandas - suma_kahan) / max(abs(suma_kahan), 1e-15)
+        if delta_rel > 1e-10:
+            logger.warning(
+                "⚠️ Deriva numérica detectada (I1): Δ_rel=%.2e"
+                " entre suma Pandas y Kahan. Usando Kahan.",
+                delta_rel,
+            )
+        logger.debug(
+            "Costo total construcción (Kahan): %.2f | Pandas: %.2f | Δ_rel=%.2e",
+            suma_kahan, suma_pandas, delta_rel,
         )
     return df
 

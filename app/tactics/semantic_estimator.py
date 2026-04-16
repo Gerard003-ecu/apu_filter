@@ -74,6 +74,17 @@ import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity as sklearn_cosine
+    import scipy.sparse as sp_sparse
+    _SKLEARN_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    _SKLEARN_AVAILABLE = False
+    TfidfVectorizer = None  # type: ignore
+    sklearn_cosine = None   # type: ignore
+    sp_sparse = None        # type: ignore
+
 from app.core.schemas import Stratum
 from app.core.telemetry import TelemetryContext
 from app.core.utils import normalize_text
@@ -193,7 +204,7 @@ class MatchCandidate:
 
 @dataclass(frozen=True, slots=True)
 class SearchArtifacts:
-    """Artefactos inmutables para búsqueda vectorial."""
+    """Artefactos inmutables para búsqueda vectorial FAISS."""
     model: SentenceTransformer
     faiss_index: Any
     id_map: Dict[str, str]
@@ -206,6 +217,73 @@ class SearchArtifacts:
             and self.id_map is not None
             and len(self.id_map) > 0
         )
+
+
+@dataclass
+class TFIDFFallbackArtifacts:
+    """
+    PullbackMorphism L²: índice de similitud TF-IDF como espacio métrico de respaldo.
+
+    Fundamento Algebraico
+    ─────────────────────
+    Cuando FAISS no está disponible, este morfismo retrae el espacio
+    de búsqueda semántica al espacio L² de representaciones TF-IDF:
+
+        φ: Texto → ℝ^n  (embebido TF-IDF de dimensión n = |vocabulario|)
+        d(q, d_i) = 1 - cos(φ(q), φ(d_i))  (distancia coseno)
+
+    La similitud coseno en L² es una métrica válida en el simplejo
+    de probabilidad y produce rankings coherentes con la similitud semántica
+    para textos en el mismo dominio lingüístico (APUs en español).
+    """
+
+    vectorizer: Any   # TfidfVectorizer (type guard para no-sklearn)
+    tfidf_matrix: Any  # scipy sparse matrix (n_docs x n_features)
+    id_list: List[str]  # Códigos APU paralelos a filas de tfidf_matrix
+    description_list: List[str]  # Descripciones para retorno de resultado
+    build_timestamp: float = field(default_factory=lambda: __import__("time").time())
+
+    def find_nearest(
+        self,
+        query: str,
+        top_k: int = 5,
+    ) -> List[Tuple[str, str, float]]:
+        """
+        Busca los documentos más similares usando similitud coseno.
+
+        Parameters
+        ----------
+        query : str
+            Texto de consulta.
+        top_k : int
+            Número máximo de resultados.
+
+        Returns
+        -------
+        List[Tuple[str, str, float]]
+            Lista de (codigo_apu, descripcion, score) ordenados por similaridad desc.
+        """
+        if not _SKLEARN_AVAILABLE or self.vectorizer is None:
+            return []
+        if not query or not query.strip():
+            return []
+        try:
+            q_vec = self.vectorizer.transform([query.strip()])
+            sims = sklearn_cosine(q_vec, self.tfidf_matrix).flatten()
+            top_indices = sims.argsort()[::-1][:top_k]
+            results = []
+            for idx in top_indices:
+                score = float(sims[idx])
+                if score > 0.01:  # umbral mínimo de relevancia
+                    results.append((
+                        self.id_list[idx],
+                        self.description_list[idx],
+                        score,
+                    ))
+            return results
+        except Exception as exc:
+            logger.warning("TFIDFFallbackArtifacts.find_nearest error: %s", exc)
+            return []
 
 
 @dataclass(slots=True)
@@ -1551,14 +1629,26 @@ class SemanticEstimatorService:
     """
     Fachada que orquesta búsqueda vectorial y estimación de costos.
 
-    Carga los modelos pesados en un hilo background con sincronización
-    por ``threading.Event`` para evitar race conditions.
+    Inicialización en Dos Etapas
+    ─────────────────────────────
+    Stage 1 (startup): Carga FAISS en hilo background.
+       - Éxito: _artifacts = SearchArtifacts, _faiss_available = True
+       - Fallo: _artifacts = None, _faiss_available = False
+         (NO setea _ready_event aún)
+
+    Stage 2 (primer project_semantic_match):
+       - Si _faiss_available = False, construye TFIDFFallbackArtifacts
+         desde df_pool (inyectado vía payload). Setea _ready_event al completar.
+       - Si el pool es insuficiente, degrada a SUBSTRING y audita.
     """
 
     def __init__(self, config: Dict[str, Any]) -> None:
         self._config = config
         self._artifacts: Optional[SearchArtifacts] = None
+        self._tfidf_fallback: Optional[TFIDFFallbackArtifacts] = None
+        self._faiss_available: bool = False
         self._ready_event = threading.Event()
+        self._tfidf_lock = threading.Lock()
         self._load_error: Optional[str] = None
 
         # Carga perezosa en hilo daemon
@@ -1571,8 +1661,10 @@ class SemanticEstimatorService:
 
     @property
     def is_ready(self) -> bool:
-        """Indica si los artefactos están cargados y disponibles."""
-        return self._ready_event.is_set() and self._artifacts is not None
+        """Indica si los artefactos (FAISS o TF-IDF) están cargados y disponibles."""
+        return self._ready_event.is_set() and (
+            self._artifacts is not None or self._tfidf_fallback is not None
+        )
 
     def wait_until_ready(self, timeout: float = 60.0) -> bool:
         """
@@ -1581,23 +1673,28 @@ class SemanticEstimatorService:
         Returns
         -------
         bool
-            ``True`` si se cargó exitosamente.
+            ``True`` si se cargó exitosamente (FAISS o TF-IDF).
         """
         return self._ready_event.wait(timeout=timeout)
 
     # ------------------------------------------------------------------
-    # Carga de modelos
+    # Carga de modelos (Stage 1)
     # ------------------------------------------------------------------
 
     def _load_tensor_space(self) -> None:
         """
-        Carga modelos en memoria aislada (hilo background).
+        Stage 1: Intenta cargar FAISS en hilo background.
 
-        Usa ``threading.Event`` para señalizar disponibilidad de forma
-        thread-safe.
+        Si FAISS no está disponible:
+          - Marca _faiss_available = False
+          - NO setea _ready_event (Stage 2 lo hara cuando tenga df_pool)
+          - Registra el error para trazabilidad
+
+        Si FAISS está disponible:
+          - Marca _faiss_available = True, setea _ready_event
         """
         logger.info(
-            "Iniciando carga del Espacio Vectorial (FAISS) en background..."
+            "Stage 1: Intentando cargar Espacio Vectorial (FAISS) en background..."
         )
         try:
             emb_meta = self._config.get("embedding_metadata", {})
@@ -1611,10 +1708,12 @@ class SemanticEstimatorService:
 
             if not index_path.exists() or not map_path.exists():
                 self._load_error = "Artefactos FAISS no encontrados"
+                self._faiss_available = False
                 logger.warning(
-                    "%s. Búsqueda semántica deshabilitada.", self._load_error
+                    "⚠️ %s. Stage 2 (TF-IDF) se activará en el primer project_semantic_match.",
+                    self._load_error,
                 )
-                self._ready_event.set()
+                # NO setear _ready_event: Stage 2 lo hará cuando tenga datos
                 return
 
             model = SentenceTransformer(model_name)
@@ -1626,19 +1725,116 @@ class SemanticEstimatorService:
             self._artifacts = SearchArtifacts(
                 model=model, faiss_index=index, id_map=id_map
             )
+            self._faiss_available = True
             logger.info(
-                "✅ Espacio Vectorial cargado. Dimensión: %d, Vectores: %d",
+                "✅ Espacio Vectorial FAISS cargado. Dimensión: %d, Vectores: %d",
                 index.d,
                 index.ntotal,
             )
 
         except Exception as exc:
             self._load_error = str(exc)
+            self._faiss_available = False
             logger.critical(
-                "❌ Fallo al cargar espacio vectorial: %s", exc, exc_info=True
+                "❌ Fallo al cargar espacio vectorial FAISS: %s", exc, exc_info=True
             )
         finally:
-            self._ready_event.set()
+            # Setear _ready_event SOLO si FAISS cargó exitosamente
+            if self._faiss_available:
+                self._ready_event.set()
+
+    # ------------------------------------------------------------------
+    # Stage 2: Fallback TF-IDF (PullbackMorphism L²)
+    # ------------------------------------------------------------------
+
+    def _build_tfidf_fallback(
+        self, df_pool: "pd.DataFrame"
+    ) -> Optional[TFIDFFallbackArtifacts]:
+        """
+        Construye el PullbackMorphism TF-IDF desde el pool de datos de sesión.
+
+        Invocado en Stage 2 (primer project_semantic_match sin FAISS).
+
+        Parameters
+        ----------
+        df_pool : pd.DataFrame
+            DataFrame con columnas CODIGO_APU y DESCRIPCION_APU.
+
+        Returns
+        -------
+        TFIDFFallbackArtifacts or None
+            Artefacto TF-IDF listo, o None si sklearn no disponible / pool pequeño.
+        """
+        if not _SKLEARN_AVAILABLE:
+            logger.error(
+                "❌ sklearn no disponible. TF-IDF fallback imposible. "
+                "Instale: pip install scikit-learn"
+            )
+            return None
+
+        if df_pool is None or df_pool.empty:
+            logger.warning("⚠️ df_pool vacío para construir TF-IDF fallback.")
+            return None
+
+        if len(df_pool) < MIN_VALID_APUS_FOR_ESTIMATION:
+            logger.warning(
+                "⚠️ Pool insuficiente (%d APUs < %d mín) para TF-IDF fallback.",
+                len(df_pool), MIN_VALID_APUS_FOR_ESTIMATION,
+            )
+            return None
+
+        try:
+            # Identificar columna de descripción
+            desc_col = None
+            for col in ["DESCRIPCION_APU", "descripcion_apu", "descripcion", "DESCRIPCION"]:
+                if col in df_pool.columns:
+                    desc_col = col
+                    break
+
+            code_col = None
+            for col in ["CODIGO_APU", "codigo_apu", "codigo", "CODIGO"]:
+                if col in df_pool.columns:
+                    code_col = col
+                    break
+
+            if desc_col is None or code_col is None:
+                logger.warning(
+                    "⚠️ No se encontraron columnas de descripción/código en df_pool. "
+                    "Columnas disponibles: %s", list(df_pool.columns)
+                )
+                return None
+
+            descriptions = df_pool[desc_col].fillna("").astype(str).tolist()
+            codes = df_pool[code_col].fillna("").astype(str).tolist()
+
+            vectorizer = TfidfVectorizer(
+                analyzer="char_wb",   # n-gramas de carácteres (robusto a typos)
+                ngram_range=(2, 4),
+                max_features=8000,
+                sublinear_tf=True,    # log-TF para suavizar frecuencias altas
+                min_df=1,
+            )
+            tfidf_matrix = vectorizer.fit_transform(descriptions)
+
+            artifacts = TFIDFFallbackArtifacts(
+                vectorizer=vectorizer,
+                tfidf_matrix=tfidf_matrix,
+                id_list=codes,
+                description_list=descriptions,
+            )
+
+            logger.info(
+                "✅ TFIDFFallbackArtifacts (PullbackMorphism L²) construido: "
+                "%d APUs, %d features TF-IDF",
+                len(descriptions),
+                tfidf_matrix.shape[1],
+            )
+            return artifacts
+
+        except Exception as exc:
+            logger.error("Error construyendo TF-IDF fallback: %s", exc, exc_info=True)
+            return None
+
 
     # ------------------------------------------------------------------
     # Vectores MIC
@@ -1652,6 +1848,8 @@ class SemanticEstimatorService:
         """
         [Vector MIC] Proyecta una descripción humana al insumo formal
         más cercano en el espacio vectorial.
+
+        Soporta búsqueda por FAISS (Stage 1) o TF-IDF L² (Stage 2 fallback).
 
         Parameters
         ----------
@@ -1670,10 +1868,6 @@ class SemanticEstimatorService:
         if telemetry:
             telemetry.start_step(step_name)
 
-        if not self.is_ready or self._artifacts is None:
-            error_msg = self._load_error or "Asesor Semántico no inicializado"
-            return {"success": False, "error": error_msg}
-
         query_text = payload.get("query_text", "")
         df_pool_data = payload.get("df_pool")
 
@@ -1686,26 +1880,78 @@ class SemanticEstimatorService:
             if df_pool is None or (isinstance(df_pool, pd.DataFrame) and df_pool.empty):
                 return {"success": False, "error": "Pool vacío"}
 
-            engine = SearchEngine(self._artifacts)
-            log = EstimationLog()
+            # ── Stage 2: construir TF-IDF fallback si FAISS no está listo ──
+            if not self._faiss_available and not self._ready_event.is_set():
+                with self._tfidf_lock:
+                    if self._tfidf_fallback is None:
+                        self._tfidf_fallback = self._build_tfidf_fallback(df_pool)
+                        if self._tfidf_fallback is not None:
+                            logger.info(
+                                "✅ Stage 2 completado: TF-IDF PullbackMorphism activo."
+                            )
+                        else:
+                            logger.warning(
+                                "⚠️ Stage 2: TF-IDF no pudo construirse. "
+                                "Degradando a SUBSTRING."
+                            )
+                    # Setear ready_event independientemente del resultado
+                    self._ready_event.set()
 
-            apu, details = engine.find_semantic_match(
-                df_pool, query_text, log
-            )
+            # ── Rama FAISS (Stage 1) ─────────────────────────────────
+            if self._faiss_available and self._artifacts is not None:
+                engine = SearchEngine(self._artifacts)
+                log = EstimationLog()
+                apu, details = engine.find_semantic_match(df_pool, query_text, log)
 
+                if telemetry:
+                    telemetry.end_step(step_name, "success_faiss")
+
+                if apu is not None:
+                    return {
+                        "success": True,
+                        "matched_id": str(apu.get("CODIGO_APU")),
+                        "confidence": details.confidence_score if details else 0.0,
+                        "details": CostCalculator._details_to_dict(details),
+                        "stratum": Stratum.TACTICS.name,
+                        "search_mode": "FAISS_L2",
+                    }
+                return {"success": False, "error": "No match found (FAISS)",
+                        "search_mode": "FAISS_L2"}
+
+            # ── Rama TF-IDF Fallback (Stage 2) ───────────────────────
+            if self._tfidf_fallback is not None:
+                results = self._tfidf_fallback.find_nearest(query_text, top_k=5)
+
+                if telemetry:
+                    telemetry.end_step(step_name, "success_tfidf")
+
+                if results:
+                    best_code, best_desc, best_score = results[0]
+                    return {
+                        "success": True,
+                        "matched_id": best_code,
+                        "confidence": best_score,
+                        "details": {
+                            "description": best_desc,
+                            "alternatives": [
+                                {"codigo": c, "descripcion": d, "score": s}
+                                for c, d, s in results[1:]
+                            ],
+                        },
+                        "stratum": Stratum.TACTICS.name,
+                        "search_mode": "TFIDF_L2_FALLBACK",
+                    }
+                return {"success": False, "error": "No match found (TF-IDF)",
+                        "search_mode": "TFIDF_L2_FALLBACK"}
+
+            # ── Fallback final: error explícito (mejor que SUBSTRING silencioso) ─
             if telemetry:
-                telemetry.end_step(step_name, "success")
-
-            if apu is not None:
-                return {
-                    "success": True,
-                    "matched_id": str(apu.get("CODIGO_APU")),
-                    "confidence": details.confidence_score if details else 0.0,
-                    "details": CostCalculator._details_to_dict(details),
-                    "stratum": Stratum.TACTICS.name,
-                }
-
-            return {"success": False, "error": "No match found"}
+                telemetry.record_error(step_name, "no_search_artifacts_available")
+            return {
+                "success": False,
+                "error": self._load_error or "Ningún artefacto semántico disponible",
+                "search_mode": "NONE",
+            }
 
         except Exception as exc:
             if telemetry:

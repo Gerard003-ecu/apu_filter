@@ -221,19 +221,36 @@ class CondenserConfig:
     """
     Configuración inmutable y validada para el `DataFluxCondenser`.
 
-    Define los umbrales operativos y comportamientos del condensador,
-    incluyendo sus parámetros para el motor de simulación física y el PID.
+    Parámetros RLC calibrados para amortiguación crítica exacta (ζ=1)
+    ──────────────────────────────────────────────────
+    Condición de Butterworth orden 2:  R_c = 2·√(L/C)
+
+        L = 0.5 H,  C = 1.0 F  ⟹  R_c = 2·(1/√2) = √2 ≈ 1.4142 Ω
+
+    Polinomio característico:  0.5s² + 1.4142s + 1.0 = 0
+    Discriminante:  Δ = R² - 4L/C = 2.0 - 2.0 = 0  (raíz doble real)
+    Polo dominante:  s = -R/(2L) = -√2 ≈ -1.4142 rad/s  (σ < 0 ✓)
+    Factor de amortiguación:  ζ = (R/2)·√(C/L) = (√2/2)·√2 = 1.0  ✓
+
+    Advertencia anterior:  Los valores C=5000, R=10, L=2 producían
+    ζ = 5·√2500 = 250 ("sumidero entrópico") y polo en -2.5 (DC puro).
     """
 
     min_records_threshold: int = 1
     enable_strict_validation: bool = True
     log_level: str = "INFO"
 
-    # Configuración Física RLC
-    system_capacitance: float = 5000.0
-    base_resistance: float = 10.0
-    system_inductance: float = 2.0
+    # Configuración Física RLC — Amortiguación Crítica (ζ = 1.0 exacto)
+    # R_c = 2·√(L/C) = 2·√(0.5/1.0) = √2
+    system_capacitance: float = 1.0          # C [F]
+    base_resistance: float = 1.4142135623730951  # R = √2 [Ω], ζ=1 exacto
+    system_inductance: float = 0.5           # L [H]
     max_voltage: float = 5.3
+
+    # Membrana P-Laplaciana (difusión no-lineal)
+    p_laplacian_exponent: float = 3.0        # p > 2: régimen viscoelastico
+    p_laplacian_epsilon: float = 1e-8        # ε de regularización Lipschitz
+    p_laplacian_G0: float = 1.0              # Conductancia de referencia G₀
 
     # Configuración Reserva Táctica (UPS)
     brain_capacitance: float = 4.0
@@ -258,7 +275,7 @@ class CondenserConfig:
         self._validate_configuration()
 
     def _validate_configuration(self) -> None:
-        """Valida que todos los parámetros estén en rangos válidos."""
+        """Valida parámetros incluyendo coherencia de amortiguación crítica."""
         errors = []
 
         if self.min_records_threshold < 0:
@@ -290,10 +307,35 @@ class CondenserConfig:
         if self.pid_setpoint <= 0.0 or self.pid_setpoint >= 1.0:
             errors.append(f"pid_setpoint debe estar entre 0 y 1, got {self.pid_setpoint}")
 
+        # Validar parámetros P-Laplaciano
+        if self.p_laplacian_exponent <= 2.0:
+            errors.append(
+                f"p_laplacian_exponent debe ser > 2 para régimen viscoelastico, "
+                f"got {self.p_laplacian_exponent}"
+            )
+        if self.p_laplacian_epsilon <= 0:
+            errors.append(
+                f"p_laplacian_epsilon debe ser > 0 (regularización Lipschitz), "
+                f"got {self.p_laplacian_epsilon}"
+            )
+
         if errors:
             raise ConfigurationError(
                 "Errores de configuración:\n" + "\n".join(f"  - {e}" for e in errors)
             )
+
+    @property
+    def damping_ratio(self) -> float:
+        """ζ = (R/2)·√(C/L). Debe ser ≈ 1.0 para amortiguación crítica."""
+        return (self.base_resistance / 2.0) * math.sqrt(
+            self.system_capacitance / self.system_inductance
+        )
+
+    @property
+    def dominant_pole(self) -> float:
+        """σ = -R/(2L). Polo dominante (real, negativo para estabilidad)."""
+        return -self.base_resistance / (2.0 * self.system_inductance)
+
 
 
 @dataclass
@@ -2332,7 +2374,15 @@ class RefinedFluxPhysicsEngine:
 
     _MAX_METRICS_HISTORY: int = 100
 
-    def __init__(self, capacitance: float, resistance: float, inductance: float):
+    def __init__(
+        self,
+        capacitance: float,
+        resistance: float,
+        inductance: float,
+        p_laplacian_exponent: float = 3.0,
+        p_laplacian_epsilon: float = 1e-8,
+        p_laplacian_G0: float = 1.0,
+    ):
         # Inicializar logger primero para usar en validación
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
 
@@ -2342,11 +2392,22 @@ class RefinedFluxPhysicsEngine:
         self.R = float(resistance)
         self.L = float(inductance)
 
+        # Parámetros P-Laplaciano (membrana viscoelástica)
+        self._p_exp: float = p_laplacian_exponent   # p > 2
+        self._p_eps: float = p_laplacian_epsilon     # ε regularización Lipschitz
+        self._p_G0: float = p_laplacian_G0           # conductancia G₀ referencia
+
         # Parámetros derivados del circuito RLC
         self._omega_0 = 1.0 / math.sqrt(self.L * self.C)  # Frecuencia natural
         self._alpha = self.R / (2.0 * self.L)  # Factor de amortiguamiento
         self._zeta = self._alpha / self._omega_0  # Ratio de amortiguamiento
         self._Q = math.sqrt(self.L / self.C) / self.R if self.R > 0 else float("inf")
+
+        self.logger.info(
+            "RLC: ζ=%.4f, ω₀=%.4f rad/s, σ=%.4f | P-Laplaciano: p=%.1f, ε=%.2e",
+            self._zeta, self._omega_0, -self._alpha,
+            self._p_exp, self._p_eps,
+        )
 
         # Clasificación del sistema
         self._update_damping_classification()
@@ -2448,23 +2509,111 @@ class RefinedFluxPhysicsEngine:
             self._damping_type = "CRITICALLY_DAMPED"
             self._omega_d = 0.0
 
-    def _system_equations(self, Q: float, I: float, V_in: float) -> np.ndarray:
+    def _compute_p_laplacian_conductance(
+        self,
+        delta_v: float,
+        p: Optional[float] = None,
+        epsilon: Optional[float] = None,
+        G0: Optional[float] = None,
+    ) -> float:
+        r"""
+        Conductancia efectiva P-Laplaciana con regularización Lipschitziana.
+
+        Fundamento Físico
+        ─────────────────
+        El operador p-Laplaciano Δ_p u = div(|∇u|^{p-2} ∇u) para p > 2
+        modela una membrana viscoelastíca. La conductancia efectiva de cada
+        arista del complejo simplicial es:
+
+            g_eff(ΔV) = (|ΔV| + ε)^{p-2} · G₀
+
+        La constante de regularización ε > 0 garantiza:
+            1. g_eff ≥ ε^{p-2}·G₀ > 0  ∀ ΔV  (no-singularidad)
+            2. La Matriz Laplaciana permanece Simétrica Definida Positiva (SDP)
+            3. Condición de Lipschitz satisfecha en ΔV = 0
+
+        Integración numérica
+        ────────────────────
+        La difusión no-lineal P-Laplaciana acoplada a la inercia capacitiva
+        genera sistemas rígidos (stiff). Este método se consume por
+        `_evolve_state_implicit` (solver Trapezoidal Implícito con
+        Newton-Raphson), que es A-estable y disipa el ruido de alta
+        frecuencia (equivalente funcional a BDF-2 en la banda de interés).
+
+        Parameters
+        ----------
+        delta_v : float
+            Gradiente de voltaje entre nodos adyacentes |ΔV|.
+        p : float, optional
+            Exponente p-Laplaciano (default: CondenserConfig.p_laplacian_exponent).
+            Debe ser > 2 para régimen viscoelastico.
+        epsilon : float, optional
+            Regularización Lipschitz (default: CondenserConfig.p_laplacian_epsilon).
+        G0 : float, optional
+            Conductancia de referencia (default: CondenserConfig.p_laplacian_G0).
+
+        Returns
+        -------
+        float
+            Conductancia efectiva g_eff ≥ ε^{p-2}·G₀ > 0.
+        """
+        # Leer parámetros desde config del motor (accedidos via self)
+        _p = p if p is not None else getattr(self, '_p_exp', 3.0)
+        _eps = epsilon if epsilon is not None else getattr(self, '_p_eps', 1e-8)
+        _G0 = G0 if G0 is not None else getattr(self, '_p_G0', 1.0)
+
+        # g_eff = (|ΔV| + ε)^{p-2} · G₀
+        g_eff = (abs(delta_v) + _eps) ** (_p - 2.0) * _G0
+
+        return float(g_eff)
+
+    def _system_equations(
+        self, Q: float, I: float, V_in: float,
+        delta_v_node: Optional[float] = None,
+    ) -> np.ndarray:
         """
         Calcula las derivadas del sistema dinámico [dQ/dt, dI/dt].
+
+        La resistencia efectiva es modulada por la membrana P-Laplaciana:
+            R_eff(ΔV) = R_thermal + R_linear·g_eff(ΔV)^{-1}
+
+        Esto acopla la dinámica del circuito con la conductancia viscoelastica
+        de la red, haciendo el sistema rígido (stiff) pero absorbiendo
+        discontinuidades espaciales sin fracturar la FPU.
 
         Args:
             Q: Carga actual.
             I: Corriente actual.
             V_in: Voltaje de entrada.
+            delta_v_node : float, optional
+                Gradiente de voltaje en el nodo actual para el p-Laplaciano.
+                Si es None, se usa |V_in - Q/C| como proxy.
 
         Returns:
-            Array numpy con las derivadas.
+            Array numpy con las derivadas [dQ/dt, dI/dt].
         """
-        # Resistencia no lineal (termal)
-        R_eff = self.R * (1.0 + 0.1 * I**2)
+        # Gradiente de voltaje para membrana p-Laplaciana
+        if delta_v_node is None:
+            delta_v_node = abs(V_in - Q / max(self.C, CONSTANTS.NUMERICAL_ZERO))
+
+        # Conductancia efectiva (membrana viscoelastica)
+        g_eff = self._compute_p_laplacian_conductance(delta_v_node)
+
+        # Resistencia térmica no lineal (I²R pre-existente)
+        R_thermal = self.R * (1.0 + 0.1 * I ** 2)
+
+        # Modulación P-Laplaciana: la membrana aumenta la conductancia efectiva
+        # ante gradientes grandes, reduciendo R_eff (válvula de alivio)
+        # R_plaplacian actua como resistencia parásitca no-lineal en paralelo
+        R_plaplacian = 1.0 / max(g_eff, CONSTANTS.NUMERICAL_ZERO)
+        R_eff = R_thermal * R_plaplacian / max(R_thermal + R_plaplacian, CONSTANTS.NUMERICAL_ZERO)
+
         dQ_dt = I
-        dI_dt = (V_in - R_eff * I - Q/self.C) / self.L
+        dI_dt = (V_in - R_eff * I - Q / max(self.C, CONSTANTS.NUMERICAL_ZERO)) / max(
+            self.L, CONSTANTS.NUMERICAL_ZERO
+        )
         return np.array([dQ_dt, dI_dt])
+
 
     def _compute_jacobian(self, state: np.ndarray, V_in: float) -> np.ndarray:
         """
@@ -3329,6 +3478,9 @@ class DataFluxCondenser:
                 self.condenser_config.system_capacitance,
                 self.condenser_config.base_resistance,
                 self.condenser_config.system_inductance,
+                p_laplacian_exponent=self.condenser_config.p_laplacian_exponent,
+                p_laplacian_epsilon=self.condenser_config.p_laplacian_epsilon,
+                p_laplacian_G0=self.condenser_config.p_laplacian_G0,
             )
             self._initialization_status["physics_initialized"] = True
 

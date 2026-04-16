@@ -203,6 +203,33 @@ class FiltrationViolationError(PipelineError):
         )
 
 
+class FiltrationAbortSignal(FiltrationViolationError):
+    """
+    Señal de aborto monádica absorbente por quiebre de filtración.
+
+    Semántica categorial
+    ────────────────────
+    Cuando el Orador de Filtración detecta que el estrato k-1 es degenerado,
+    esta señal activa el elemento absorbente de la mónada: ∅ ∘ f = ∅ ∀ f.
+    Ningún estado corrupto es persistido en sesión, y el pipeline retorna
+    un `CategoricalEqualizerSeed` con status=ERROR en O(1) tiempo.
+
+    NO hereda de StepExecutionError: no se trata de un fallo de ejecución 
+    sino de una violación axíomatica pre-condición.
+    """
+
+    def __init__(
+        self,
+        target_stratum: Stratum,
+        missing_strata: List[str],
+        validated_strata: List[str],
+        step_name: str = "",
+    ):
+        self.step_name = step_name
+        super().__init__(target_stratum, missing_strata, validated_strata)
+
+
+
 class HomologicalAuditError(PipelineError):
     """Error en auditoría homológica."""
     
@@ -2343,7 +2370,25 @@ class PipelineDirector:
             # Validar filtración
             pipeline_step = PipelineSteps.from_string(step_name)
             if pipeline_step and validate_stratum and self.config.enforce_filtration:
-                self._enforce_filtration(pipeline_step.stratum, state)
+                try:
+                    self._enforce_filtration(pipeline_step.stratum, state)
+                except FiltrationViolationError as fve:
+                    # ── HANDLER MONÁDICO ABSORBENTE ────────────────────────────
+                    # La violación de filtración es un pre-requisito axíomatico:
+                    # el estado es structuralmente corrupto. NO serializar.
+                    # Propagar como FiltrationAbortSignal (sin persistir).
+                    self.logger.critical(
+                        "[FILTRATION ABORT] Estrato=%s | Faltantes=%s | Validados=%s",
+                        fve.target_stratum.name,
+                        fve.missing_strata,
+                        fve.validated_strata,
+                    )
+                    raise FiltrationAbortSignal(
+                        fve.target_stratum,
+                        fve.missing_strata,
+                        fve.validated_strata,
+                        step_name=step_name,
+                    ) from fve
             
             # Instanciar y ejecutar
             step_instance = step_class(
@@ -2370,6 +2415,9 @@ class PipelineDirector:
                 state_vector_hash=new_state.compute_hash(),
             )
             
+        except FiltrationAbortSignal:
+            # Re-propagar sin atrapar: el outer loop la manejará
+            raise
         except PipelineError as e:
             result = StepResult(
                 step_name=step_name,
@@ -2442,11 +2490,38 @@ class PipelineDirector:
                 f"Orchestrating step [{idx + 1}/{len(recipe)}]: {step_name}"
             )
             
-            result = self.run_single_step(
-                step_name,
-                session_id,
-                initial_state if idx == 0 else None,
-            )
+            try:
+                result = self.run_single_step(
+                    step_name,
+                    session_id,
+                    initial_state if idx == 0 else None,
+                )
+            except FiltrationAbortSignal as fab:
+                # ── ELEMENTO ABSORBENTE: CategoricalEqualizerSeed ──────────────
+                # Retorna en O(1) sin propagar excepciones no controladas.
+                # El estado sesión NO fue corrompido (jamás se serializó).
+                self.logger.critical(
+                    "[PIPELINE ABORT] FiltrationAbortSignal en '%s'. "
+                    "Retornando CategoricalEqualizerSeed con status=ERROR.",
+                    fab.step_name or step_name,
+                )
+                return {
+                    "kind": "CategoricalEqualizerSeed",
+                    "status": "ERROR",
+                    "error_class": "FiltrationViolation",
+                    "session_id": session_id,
+                    "step": fab.step_name or step_name,
+                    "target_stratum": fab.target_stratum.name,
+                    "missing_strata": fab.missing_strata,
+                    "validated_strata": fab.validated_strata,
+                    "message": str(fab),
+                    "axiom": (
+                        "V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM: "
+                        "Ley de Clausura Transitiva violada. "
+                        "El estado base es degenerado y no puede soportar "
+                        "los estratos superiores."
+                    ),
+                }
             
             if not result.is_successful:
                 error_msg = (

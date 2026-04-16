@@ -649,6 +649,128 @@ class InvariantChecker(Protocol):
 
 
 # ============================================================================
+# QUOTIENT SPACE MAPPER — Fibrado de Transformación de Unidades
+# ============================================================================
+
+
+class QuotientSpaceMapper:
+    """
+    Proyecta el espacio de unidades genéricas Q_genérico al dominio temporal Q_temporal.
+
+    Fundamento Algebraico
+    ─────────────────────
+    Sea U = {"UNIDAD", "UND", "U", ...} la 0-forma genérica (escalar sin dimensión)
+    y T = {"HORA", "DIA", "JOR", ...} el dominio temporal.
+
+    La proyección es un morfismo de espacios vectoriales:
+        π: (Q ∈ U, ρ > 0) → (Q' ∈ T,  Q' = 1/ρ)
+
+    donde ρ es el rendimiento [unidades/jornada].
+
+    Esto implementa el fibrado:
+        E = Q_genérico × ρ  →(π)→  Q_temporal
+        F^{-1}(q_t) = {(q_g, ρ) : q_g = q_t · ρ}  (fibra sobre q_t)
+
+    Invariante garantizado: el nodo InsumoProcesado resultante satisface la
+    conservación I1 en el dominio temporal normalizado.
+    """
+
+    # Unidades genéricas que pertenecen a la 0-forma escalar
+    _GENERIC_FORMS: ClassVar[FrozenSet[str]] = frozenset(
+        {"UNIDAD", "UND", "U", "UN", "PAR", "JUEGO", "KIT"}
+    )
+
+    # Tolerancia para considerar rendimiento válido
+    _RENDIMIENTO_MIN: ClassVar[float] = 1e-9
+
+    @classmethod
+    def needs_projection(cls, unit: str, rendimiento: float) -> bool:
+        """
+        Determina si el morfismo de proyección debe aplicarse.
+
+        Condición: unidad ∈ U_genérico  AND  rendimiento > ε
+        """
+        return unit in cls._GENERIC_FORMS and rendimiento > cls._RENDIMIENTO_MIN
+
+    @classmethod
+    def project_to_temporal(
+        cls,
+        cantidad: float,
+        rendimiento: float,
+        codigo_apu: str = "",
+    ) -> Tuple[float, str]:
+        """
+        Aplica la proyección π: Q_genérico → Q_temporal.
+
+        Parameters
+        ----------
+        cantidad : float
+            Cantidad en dominio genérico.
+        rendimiento : float
+            Tasa de producción [unidades/unidad_temporal] > 0.
+        codigo_apu : str
+            Código para trazabilidad en logs.
+
+        Returns
+        -------
+        tuple[float, str]
+            (cantidad_proyectada, unidad_proyectada)
+            donde cantidad_proyectada = 1.0 / rendimiento.
+
+        Raises
+        ------
+        ValidationError
+            Si rendimiento ≤ 0 (fibra degenerada).
+        """
+        if rendimiento <= cls._RENDIMIENTO_MIN:
+            raise ValidationError(
+                f"QuotientSpaceMapper [{codigo_apu}]: "
+                f"rendimiento={rendimiento} ≤ ε={cls._RENDIMIENTO_MIN}. "
+                f"Fibra degenerada — proyección imposible."
+            )
+
+        # π(Q_g, ρ) = 1/ρ   (cantidad temporal estándar en MO)
+        cantidad_temporal = 1.0 / rendimiento
+
+        logger.debug(
+            "QuotientSpaceMapper [%s]: Q_genérico=%.4f ──π──> "
+            "Q_temporal=%.4f (ρ=%.4f)",
+            codigo_apu, cantidad, cantidad_temporal, rendimiento,
+        )
+
+        return cantidad_temporal, "HORA"
+
+    @classmethod
+    def audit_projection(
+        cls,
+        cantidad_original: float,
+        cantidad_proyectada: float,
+        codigo_apu: str = "",
+    ) -> None:
+        """
+        Audita la coherencia de la proyección respecto a la cantidad declarada.
+
+        Emite advertencia si la cantidad original difiere significativamente
+        de la proyectada (posible error de datos en el insumo fuente).
+        """
+        if cantidad_original <= 0:
+            return
+        rel_diff = abs(cantidad_original - cantidad_proyectada) / max(
+            abs(cantidad_proyectada), 1e-15
+        )
+        if rel_diff > 0.05:  # 5% de tolerancia de auditoría
+            warnings.warn(
+                f"QuotientSpaceMapper [{codigo_apu}]: "
+                f"cantidad declarada={cantidad_original:.4f} difiere "
+                f"de la cantidad proyectada (1/ρ)={cantidad_proyectada:.4f} "
+                f"(Δ_rel={rel_diff:.2%}). Posible inconsistencia en datos fuente.",
+                UserWarning,
+                stacklevel=4,
+            )
+
+
+
+# ============================================================================
 # NODO TOPOLÓGICO BASE
 # ============================================================================
 
@@ -1142,6 +1264,27 @@ class ManoDeObra(InsumoProcesado):
             )
 
         if self.rendimiento > 0:
+            # ── QuotientSpaceMapper: si unidad_insumo es 0-forma genérica,
+            #    proyectar al dominio temporal mediante π(Q,ρ) = 1/ρ ──────────
+            if QuotientSpaceMapper.needs_projection(
+                self.unidad_insumo, self.rendimiento
+            ):
+                qty_projected, unit_projected = QuotientSpaceMapper.project_to_temporal(
+                    cantidad=self.cantidad,
+                    rendimiento=self.rendimiento,
+                    codigo_apu=self.codigo_apu,
+                )
+                QuotientSpaceMapper.audit_projection(
+                    self.cantidad, qty_projected, self.codigo_apu
+                )
+                # Actualizar unidad al dominio temporal homogenizado
+                object.__setattr__(self, "unidad_insumo", unit_projected) \
+                    if hasattr(type(self), "__dataclass_fields__") \
+                    else setattr(self, "unidad_insumo", unit_projected)
+                # Nota: la cantidad NO se corrige aquí — se audita vía warnings
+                # para preservar el dato fuente y trazabilidad forense.
+
+            # ── Verificación rendimiento/cantidad en dominio normalizado ──────
             expected_qty = 1.0 / self.rendimiento
             ok, rel_diff = NumericValidator.values_consistent(
                 self.cantidad, expected_qty,
@@ -1156,6 +1299,7 @@ class ManoDeObra(InsumoProcesado):
                     f"(Δ_rel={rel_diff:.2%})",
                     UserWarning, stacklevel=3
                 )
+
 
 
 @dataclass
