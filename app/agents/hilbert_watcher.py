@@ -41,7 +41,7 @@ Fundamentación Axiomática del Bucle OODA (Mecánica Cuántica Discreta):
        para el motor FDTD del Flux Condenser.
 
 Restricciones de Fibrado:
-    El agente repudia la propagación de estados degenerados. Cualquier violación 
+    El agente rechaza la propagación de estados degenerados. Cualquier violación 
     en la conservación de información (T ∉ [3]) o detección de frustración 
     cohomológica global aniquila la función de onda instantáneamente, garantizando 
     la Ley de Clausura Transitiva.

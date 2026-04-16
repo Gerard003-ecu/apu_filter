@@ -15,32 +15,32 @@ Naturaleza Ciber-Física:
         φ: ConfigSpace × Context → ResultSpace
     Este operador garantiza la preservación de la estructura topológica a través de 
     la filtración estricta de los estratos de la pirámide DIKW, asegurando que 
-    ningún vector de intención degenere al ascender dimensionalmente [1].
+    ningún vector de intención se degenere al ascender dimensionalmente.
 
 2. Auditoría Homológica de Fusión (Secuencia de Mayer-Vietoris):
     La integración espacial de dos subcomplejos (A ∪ B) no se trata como una simple 
     concatenación de datos, sino que se audita mediante la secuencia exacta larga 
-    de homología de Mayer-Vietoris [1]:
+    de homología de Mayer-Vietoris:
         ... → H₁(A ∩ B) → H₁(A) ⊕ H₁(B) → H₁(A ∪ B) → H₀(A ∩ B) → ...
     [AXIOMA DE VETO]: Se impone la restricción de que la fusión no debe generar 
     clases homológicas espurias. Si el diferencial topológico arroja 
     Δβ₁ = β₁(A ∪ B) - [β₁(A) + β₁(B) - β₁(A ∩ B)] ≠ 0, la transformación induce 
-    un ciclo parásito y el tensor es rechazado incondicionalmente [1].
+    un ciclo parásito y el tensor es rechazado incondicionalmente.
 
 3. Invariantes Topológicos e Isomorfismo Dimensional:
     El espacio de atributos debe conservar sus propiedades globales tras la inyección:
         • Característica de Euler-Poincaré para el complejo simplicial K: 
-          χ(K) = β₀ - β₁ + β₂ [1].
+          χ(K) = β₀ - β₁ + β₂.
         • Isomorfismo Dimensional: Se aplican guardas algebraicas para asegurar que 
-          dim(V_expected) ≅ dim(V_actual), acotado por una ε-tolerancia [1]. 
+          dim(V_expected) ≅ dim(V_actual), acotado por una ε-tolerancia. 
           Esto previene el colapso hacia subespacios de dimensión inferior.
 
 4. Métrica de Coherencia Topológica (C):
     La viabilidad de la transformación se evalúa mediante un invariante continuo 
-    que acopla estabilidad (S), resonancia (R) y entropía termodinámica (H) [1]:
+    que acopla estabilidad (S), resonancia (R) y entropía termodinámica (H):
         C = clamp(S · R / (1 + H), 0, 1)
     Cualquier vector resultante que arroje un C por debajo del umbral crítico 
-    es abortado antes de propagarse por el tejido conectivo de la Malla Agéntica [1].
+    es abortado antes de propagarse por el tejido conectivo de la Malla Agéntica.
 =========================================================================================
 """
 
