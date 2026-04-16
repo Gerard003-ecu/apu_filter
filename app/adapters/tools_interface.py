@@ -1565,6 +1565,8 @@ class ValidationCommand(ProjectionCommand):
         if ctx.force_override:
             if ctx.target_stratum is None:
                 raise ValueError("Bypass denegado: estrato de origen indeterminado ('unknown')")
+            if ctx.target_stratum == Stratum.WISDOM:
+                raise ValueError("Violación de Clausura Transitiva: Prohibido usar force_override en el estrato WISDOM.")
             logger.warning(
                 "⚠️ Validación jerárquica bypaseada para '%s' via force_override",
                 ctx.target_stratum.name,

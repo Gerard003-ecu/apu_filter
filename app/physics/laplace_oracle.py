@@ -1335,6 +1335,14 @@ class TransferFunctionBuilder:
         num = np.array([1.0, 2.0, 1.0]) / den_z2
         den = np.array([1.0, den_z1 / den_z2, den_z0 / den_z2])
         
+        # Validación de Nyquist
+        if omega_n * T >= math.pi:
+            import warnings
+            warnings.warn(
+                f"Frecuencia natural {omega_n:.2f} excede el límite de estabilidad de Nyquist (pi/T). Se requiere subdividir Δt.",
+                RuntimeWarning
+            )
+
         # Validar estabilidad
         self._validate_discrete_stability(den)
         

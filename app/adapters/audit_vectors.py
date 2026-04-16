@@ -676,11 +676,20 @@ def _compute_algebraic_connectivity(
     degree = np.sum(adjacency, axis=1)
     laplacian = np.diag(degree) - adjacency
     
-    # Verificar si el grafo está completamente desconectado
+    # Verificar si el grafo está completamente desconectado o fragmentado
     if np.allclose(degree, 0):
         return (0.0, np.zeros(min(num_eigenvalues, n)))
-    
+        
     try:
+        from scipy.sparse.csgraph import connected_components
+        n_components, _ = connected_components(
+            sparse.csr_matrix(adjacency), directed=False, return_labels=True
+        )
+        if n_components > 1:
+            return (0.0, np.zeros(min(num_eigenvalues, n)))
+    except Exception as e:
+        logger.debug(f"Fallo en cálculo de componentes conexas: {e}")
+        pass
         # Calcular menores eigenvalores
         # Usamos eigsh para matrices simétricas
         k = min(num_eigenvalues + 1, n - 1)  # +1 porque λ₁ = 0 siempre

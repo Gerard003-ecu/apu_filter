@@ -422,12 +422,12 @@ class TestEKFDivergenceUnderNonNewtonianFlux:
             Frecuencia de resonancia: f₀ ≈ 0.225 Hz (observable en
             la ventana de calentamiento de _WARMUP_BATCHES = 5 batches).
 
-        - K_p = 5.0 (ganancia proporcional del controlador PI):
+        - K_p = 0.5 (ganancia proporcional del controlador PI):
             Acción correctiva ágil ante saltos de Lévy.
-            Con ζ = 1 y K_p = 5, el controlador no induce oscilaciones
+            Con ζ = 1 y K_p = 0.5, el controlador no induce oscilaciones
             espurias (test I1: E[V_fb] < _LAMINAR_FLYBACK_CEILING = 0.2).
 
-        - K_i = 1.0 (ganancia integral):
+        - K_i = 0.1 (ganancia integral):
             Tiempo integral T_i = K_p/K_i = 5.0 s, que es mayor que
             la constante de tiempo del sistema τ = √(LC) = √0.5 ≈ 0.707 s,
             garantizando que el integrador no excite modos resonantes.
@@ -455,10 +455,10 @@ class TestEKFDivergenceUnderNonNewtonianFlux:
             system_capacitance=1.0,
             # R = √2 Ω → ζ = R·√(C/L)/2 = √2·√(1/0.5)/2 = √2·√2/2 = 1.0
             base_resistance=2**0.5,
-            # K_p = 5.0 → respuesta proporcional ágil sin inducir oscilaciones
-            pid_kp=5.0,
-            # K_i = 1.0 → T_i = K_p/K_i = 5.0 s > τ = √(LC) ≈ 0.707 s
-            pid_ki=1.0,
+            # K_p = 0.5 → respuesta proporcional ágil sin inducir oscilaciones
+            pid_kp=0.5,
+            # K_i = 0.1 → T_i = K_p/K_i = 5.0 s > τ = √(LC) ≈ 0.707 s
+            pid_ki=0.1,
         )
 
     @pytest.fixture

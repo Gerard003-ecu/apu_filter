@@ -4453,9 +4453,9 @@ class DataFluxCondenser:
 
                 # Covarianza del estado (diagonal para simplicidad)
                 "P": [
-                    [0.05, 0.0, 0.0],
-                    [0.0, 0.10, 0.0],
-                    [0.0, 0.0, 0.05],
+                    [1e-3, 0.0, 0.0],
+                    [0.0, 1e-3, 0.0],
+                    [0.0, 0.0, 1e-3],
                 ],
 
                 # Covarianza del proceso
