@@ -1,7 +1,7 @@
 """
 =========================================================================================
 Módulo: Business Canvas Topology (Condición de Frontera Macroscópica — Estrato α)
-Ubicación: app/core/immune_system/business_canvas.py
+Ubicación: app/alfa/business_canvas.py
 =========================================================================================
 
 Naturaleza Ciber-Física:
