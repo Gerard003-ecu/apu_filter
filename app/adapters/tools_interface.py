@@ -13,37 +13,37 @@ Naturaleza Ciber-Física y Algebraica:
 
 1. Álgebra Lineal de la Acción (Matriz Identidad e Independencia Lineal):
     Cada herramienta atómica (servicio s_i) se proyecta como un vector base canónico e_i ∈ ℝⁿ.
-    La interfaz global se define axiomáticamente mediante el delta de Kronecker [2]:
+    La interfaz global se define axiomáticamente mediante el delta de Kronecker:
         I_{ij} = δ_{ij} = { 1 si i = j, 0 si i ≠ j }
     
     * Ortogonalidad Estricta: ⟨e_i, e_j⟩ = δ_{ij}. Se asegura matemáticamente el aislamiento 
       (Zero Side-Effects). La activación de una herramienta no posee proyección sobre 
-      el dominio de otra, aniquilando la interferencia mutua [3-5].
+      el dominio de otra, aniquilando la interferencia mutua.
     * Teorema Rango-Nulidad: Rank(I_n) = n y Nullity(I_n) = 0. Certifica un alcance 
       universal en el espacio de acciones sin redundancias funcionales y asegura que 
       ningún vector de intención del agente colapsará hacia el vacío (no hay acciones 
       "silenciosas" o ignoradas por el núcleo) [6, 7].
     * Estabilidad Espectral: Todos los eigenvalores cumplen λ_i = 1. La interfaz es 
       un canal de transmisión perfecto; no distorsiona, no amplifica ni atenúa la 
-      intención original del agente [8, 9].
+      intención original del agente.
 
 2. Filtración de Subespacios Topológicos (Clausura Transitiva DIKW):
     El espacio vectorial de intenciones se estructura como una filtración estricta anidada:
-        V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM [1]
+        V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM
     
     El operador de proyección π_k(v) actúa como el "Gatekeeper" de la matriz:
-        G(v, ctx) = v si ∀j < k: validated(V_j) = True, de lo contrario 0⃗ [1].
+        G(v, ctx) = v si ∀j < k: validated(V_j) = True, de lo contrario 0⃗.
     Esto subordina axiomáticamente cualquier operación estratégica o de nivel de 
     sabiduría a la coherencia física y topológica de sus estratos subyacentes.
 
 3. Auditoría Homológica y Persistencia Espectral (Mayer-Vietoris):
     La inyección de datos concurrentes (A ∪ B) se audita mediante la secuencia exacta de 
-    Mayer-Vietoris [1]. Si la integración induce una mutación del primer número de Betti 
+    Mayer-Vietoris. Si la integración induce una mutación del primer número de Betti 
     (Δβ₁ = β₁(A∪B) - [β₁(A) + β₁(B) - β₁(A∩B)] ≠ 0), se aborta la fusión por inconsistencia.
     
     La topología de la MIC monitorea:
-        * H₀: Componentes conexos (fragmentación y silos de operaciones) [1].
-        * H₁: Ciclos homológicos (bucles de dependencias circulares y deadlocks) [1].
+        * H₀: Componentes conexos (fragmentación y silos de operaciones).
+        * H₁: Ciclos homológicos (bucles de dependencias circulares y deadlocks).
 
 Invariantes del Módulo:
     * Idempotencia Categórica: I_n · I_n = I_n. Validaciones recursivas no mutan el estado [10].

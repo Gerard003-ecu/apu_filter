@@ -12,7 +12,7 @@ Fundamentación Matemática y Dinámica de Fluidos:
 
 1. Invariante del Complejo de Cadenas: 
    Dado un grafo dirigido finito G = (V, E), el operador rige sobre el complejo 
-   C₂ xrightarrow{∂₂} C₁ xrightarrow{∂₁} C₀ [1]. Se garantiza incondicionalmente la 
+   C₂ xrightarrow{∂₂} C₁ xrightarrow{∂₁} C₀. Se garantiza incondicionalmente la 
    identidad nilpotente ∂₁ ∘ ∂₂ = 0, lo que matricialmente impone B₁ · B₂ = 0 (exacto en ℝ).
 
 2. Completitud Cohomológica de Hodge-Helmholtz: 

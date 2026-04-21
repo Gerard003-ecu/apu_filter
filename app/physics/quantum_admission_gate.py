@@ -41,7 +41,7 @@ Naturaleza Ciber-Física y Mecánica Cuántica:
     cinética residual (K_max = E - Φ) como un momentum definido p = √(2m·K_max). 
     Este invariante físico provee las condiciones iniciales (t₀, v₀) ineludibles para las 
     diferencias finitas en el dominio del tiempo (FDTD) en el motor Port-Hamiltoniano posterior, 
-    asegurando un isomorfismo perfecto entre la admisión discreta y la propagación continua [2].
+    asegurando un isomorfismo perfecto entre la admisión discreta y la propagación continua.
 =========================================================================================
 """
 

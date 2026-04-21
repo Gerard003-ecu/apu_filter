@@ -7,13 +7,15 @@ Este es un sistema ciber-físico escrito en Python que procesa presupuestos de c
 
 Debes delegar la responsabilidad de revisar, analizar y proponer mejoras rigurosas a los métodos de la arquitectura "APU Filter" a los sub-agentes que se alojan en ".gemini/agents".
 
+Una vez los sub-agentes han propuesto, cada uno, sus mejoras en los métodos, debes transferir la propuesta al operador asíncrono Jules para que aplique, valide y evalúe los ajustes.
+
 ## Directrices Estrictas de Gobernanza:
 
 Antes de analizar y modificar el código base debes verificar que entorno quieres operar. A continuación se detalla cuando operar el entorno Conda y el entorno en Podman. En el proyecto APU Filter, Conda y Podman no están uno dentro del otro; son Ortogonales (Perpendiculares). Trabajan en equipo pero en dominios distintos:
 
     El entorno Conda (apu_filter_env): Es el Centro de Mando (Cockpit).
 
-        Aquí instalas herramientas de desarrollo: pytest para probar código localmente, uv para gestionar dependencias, y ahora Gemini CLI (tu asistente de IA).
+        Aquí instalas herramientas de desarrollo: pytest para probar código localmente, uv para gestionar dependencias.
 
         Desde aquí, orquestas la batalla. Empleas el archivo ./start_conda.sh para levantar el entorno Conda (verifica que tiene permisos de escritura chmod +x)
 
@@ -25,7 +27,7 @@ Antes de analizar y modificar el código base debes verificar que entorno quiere
 
 1. **Rigor Matemático:** Si analizas o modificas `flux_condenser.py`, `topological_watcher.py` o `sheaf_cohomology_orchestrator.py`, **DEBES** preservar la estabilidad numérica (uso de `np.float64`, `_safe_normalize`, y tolerancias adaptativas).
 2. **Infraestructura:** Usamos `podman` y `podman-compose`, NUNCA docker.
-3. **Arquitectura DIKΩαW:** La arquitectura ciber-física de la plataforma APU_filter, modelada bajo la jerarquía expandida DIKΩαW, se compone estrictamente de 7 estratos ortogonales. Esta estructura abandona la secuencialidad estocástica clásica para erigirse como un Complejo Simplicial Anidado, gobernado axiomáticamente por la Ley de Clausura Transitiva de los subespacios de Hilbert.
+3. **Arquitectura ℵ0​DIKΩαW:** La arquitectura ciber-física de la plataforma APU_filter, modelada bajo la jerarquía expandida ℵ0​DIKΩαW, se compone estrictamente de 7 estratos ortogonales. Esta estructura abandona la secuencialidad estocástica clásica para erigirse como un Complejo Simplicial Anidado, gobernado axiomáticamente por la Ley de Clausura Transitiva de los subespacios de Hilbert.
 A continuación, se deconstruye la dimensionalidad de cada uno de los 7 estratos que conforman la variedad diferenciable del sistema:
 
     I. Estrato ALEPH (ℵ0​) - El Vacío Topológico y la Frontera Cuántica Es el sustrato primigenio que precede al plano físico. Habitado por el HilbertWatcher y la QuantumAdmissionGate, opera bajo los principios de la mecánica cuántica discreta. Modela la red de ingesta como un pozo de potencial gobernado por una Función de Trabajo (Φ) acoplada como un campo de Gauge. Cuantifica la Entropía de Shannon de los datos incidentes, exigiendo que la energía semántica del paquete supere a Φ para inducir el Efecto Fotoeléctrico Ciber-Físico, aniquilando el ruido estocástico del entorno antes de que logre excitar el ecosistema interno.
