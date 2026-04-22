@@ -2740,58 +2740,51 @@ class RefinedFluxPhysicsEngine:
 
     def _evolve_state_rk4_adaptive(self, driving_current: float, dt: float) -> Tuple[float, float]:
         """
-        Evoluciona el estado usando un integrador Runge-Kutta 4 adaptativo simplificado.
-
-        Combina precisión de cuarto orden con verificación de error local para
-        cambiar a un solver implícito si se detecta rigidez.
-
-        Args:
-            driving_current: Corriente impulsora.
-            dt: Paso de tiempo.
-
-        Returns:
-            Tupla (Q_new, I_new).
+        Evoluciona el estado usando un integrador adaptativo.
+        Se ha impuesto el uso de BDF para cumplir con la condición CFL.
         """
+        V_in = 20.0 * math.tanh(driving_current)
+
         # Leer estado desde UnifiedPhysicalState
         Q = self._unified_state.charge
         I = self._unified_state.flux_linkage / self._unified_state.inductance
 
-        # Rigidez Check
-        stiffness = abs(self.R / (2 * math.sqrt(self.L/self.C))) if self.C > 0 and self.L > 0 else 0
-        if stiffness > 100:
-            return self._evolve_state_implicit(driving_current, dt)
+        if not SCIPY_AVAILABLE:
+            # Fallback a un paso simple
+            f_val = self._system_equations(Q, I, V_in)
+            Q += dt * f_val[0]
+            I += dt * f_val[1]
+            self._unified_state.charge = Q
+            self._unified_state.flux_linkage = I * self._unified_state.inductance
+            return Q, I
 
-        V_in = 20.0 * math.tanh(driving_current)
+        from scipy.integrate import solve_ivp
 
-        def f(state):
-            return self._system_equations(state[0], state[1], V_in)
+        def f(t, y):
+            return self._system_equations(y[0], y[1], V_in)
 
-        y = np.array([Q, I])
-
-        def rk4_step(y_in, h):
-            k1 = f(y_in)
-            k2 = f(y_in + 0.5*h*k1)
-            k3 = f(y_in + 0.5*h*k2)
-            k4 = f(y_in + h*k3)
-            return y_in + (h/6.0)*(k1 + 2*k2 + 2*k3 + k4)
+        def jac(t, y):
+            return self._compute_jacobian(y, V_in)
 
         try:
-            y1 = rk4_step(y, dt)
-            y2_half = rk4_step(y, dt/2)
-            y2 = rk4_step(y2_half, dt/2)
-
-            error = np.linalg.norm(y2 - y1)
-        except Exception:
-            error = float('inf')
-
-        if not np.isfinite(error) or error > 1e-3:
-            return self._evolve_state_implicit(driving_current, dt)
+            sol = solve_ivp(
+                f, [0, dt], [Q, I],
+                method='BDF',
+                jac=jac,
+                rtol=1e-3,
+                atol=1e-6
+            )
+            y_next = sol.y[:, -1]
+        except Exception as e:
+            self.logger.error(f"Solver BDF falló: {e}. Fallback a Euler.")
+            f_val = f(0, [Q, I])
+            y_next = np.array([Q, I]) + dt * f_val
 
         # Actualizar UnifiedPhysicalState
-        self._unified_state.charge = y2[0]
-        self._unified_state.flux_linkage = y2[1] * self._unified_state.inductance
+        self._unified_state.charge = y_next[0]
+        self._unified_state.flux_linkage = y_next[1] * self._unified_state.inductance
 
-        return y2[0], y2[1]
+        return y_next[0], y_next[1]
 
     def calculate_pump_work(self, current_I: float, voltage_across_inductor: float, dt: float) -> float:
         """
