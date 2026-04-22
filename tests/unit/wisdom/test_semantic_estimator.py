@@ -1231,9 +1231,9 @@ class TestSemanticEstimatorServiceProjection:
         ):
             svc = SemanticEstimatorService(base_config)
             svc._artifacts = search_artifacts
+            svc._faiss_available = True
             svc._ready_event.set()
             return svc
-
     def test_projec_exitoso(self, service, df_apus_base):
         payload = {
             "query_text": "tubo pvc presion 4 pulgadas",
@@ -1302,6 +1302,7 @@ class TestSemanticEstimatorServiceEstimate:
         ):
             svc = SemanticEstimatorService(base_config)
             svc._artifacts = search_artifacts
+            svc._faiss_available = True
             svc._ready_event.set()
             return svc
 
@@ -1595,6 +1596,7 @@ class TestIntegracion:
         ):
             svc = SemanticEstimatorService(base_config)
             svc._artifacts = search_artifacts
+            svc._faiss_available = True
             svc._ready_event.set()
 
             # Proyección

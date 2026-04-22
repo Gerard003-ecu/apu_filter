@@ -449,15 +449,15 @@ class TestEKFDivergenceUnderNonNewtonianFlux:
             Configuración críticamente amortiguada del circuito RLC.
         """
         return CondenserConfig(
-            # L = 0.5 H → |di/dt|_max = θ/L = 0.8/0.5 = 1.6 A/s
-            system_inductance=0.5,
-            # C = 1.0 F → ζ = 1.0 (crítico), elimina polo |z|=1 patológico
+            # L = 0.1 H
+            system_inductance=0.1,
+            # C = 1.0 F
             system_capacitance=1.0,
-            # R = √2 Ω → ζ = R·√(C/L)/2 = √2·√(1/0.5)/2 = √2·√2/2 = 1.0
-            base_resistance=2**0.5,
-            # K_p = 0.5 → respuesta proporcional ágil sin inducir oscilaciones
+            # R para ζ = 1.0: R = 2*sqrt(L/C) = 2*sqrt(0.1) = 0.63245553203
+            base_resistance=0.63245553203,
+            # K_p = 0.5
             pid_kp=0.5,
-            # K_i = 0.1 → T_i = K_p/K_i = 5.0 s > τ = √(LC) ≈ 0.707 s
+            # K_i = 0.1
             pid_ki=0.1,
         )
 
