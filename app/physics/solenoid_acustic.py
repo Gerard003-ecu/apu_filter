@@ -106,6 +106,9 @@ import scipy.linalg as la
 import scipy.sparse as sp
 from scipy.sparse.linalg import svds
 
+from app.core.schemas import Stratum
+from app.core.telemetry import TelemetryContext, StepStatus
+
 logger = logging.getLogger("MIC.Physics.AcousticSolenoid")
 
 
@@ -427,10 +430,10 @@ class HodgeDecompositionBuilder:
                    =  0 en otro caso
 
     Invariantes garantizados post-construcción:
-        1. B₁ ∈ ℝⁿˣᵐ, B₂ ∈ ℝᵐˣᵏ
+    1. B₁ ∈ ℝⁿˣᵐ, B₂ ∈ ℝᵐˣ⁰ (para complejos 1D)
         2. ‖B₁ B₂‖_F ≤ tol  (cochain complex)
-        3. rank(B₂) = k = β₁
-        4. χ = n - m = β₀ - β₁  (Euler–Poincaré)
+    3. rank(B₂) = 0 (Herejía topológica evitada: B₂ es nula en 1-esqueletos)
+    4. χ = n - m = β₀ - β₁  (Euler–Poincaré, donde β₁ = dim ker(B₁))
 
     Args:
         graph: Grafo dirigido (nx.DiGraph).
@@ -1300,11 +1303,20 @@ class MagnonCartridge:
 # PARTE V · INTERFAZ AGÉNTICA
 # ─────────────────────────────────────────────────────────────────────────────
 
+class ResonanceMitigationResult(dict):
+    """Objeto de resultado que soporta acceso por atributo y por clave."""
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(f"'ResonanceMitigationResult' object has no attribute '{name}'")
+
 def inspect_and_mitigate_resonance(
     G: nx.DiGraph,
     flows: Dict[Tuple[Any, Any], float],
     full_analysis: bool = False,
-) -> Dict[str, Any]:
+    telemetry_ctx: Optional[TelemetryContext] = None,
+) -> ResonanceMitigationResult:
     """
     Punto de entrada principal para la Malla Agéntica.
 
@@ -1323,10 +1335,11 @@ def inspect_and_mitigate_resonance(
         G:             Grafo dirigido del sistema.
         flows:         Campo de flujos {(u,v): valor} sobre aristas.
         full_analysis: Si True, incluye descomposición completa y espectro.
+        telemetry_ctx: Contexto de telemetría opcional para auditoría homológica.
 
     Returns:
-        Dict con:
-            status:            "RESONANCE_DETECTED" | "LAMINAR_FLOW"
+        ResonanceMitigationResult con:
+            status:            StepStatus o string indicador de estado
             action:            Acción prescripta
             vorticity_metrics: Métricas de vorticidad
             mathematical_proof: Verificación formal
@@ -1343,8 +1356,12 @@ def inspect_and_mitigate_resonance(
 
     # ── RESONANCIA DETECTADA ─────────────────────────────────────────────
     if magnon is not None and magnon.is_significant:
-        result: Dict[str, Any] = {
-            "status": "RESONANCE_DETECTED",
+        # Si la severidad es CRÍTICA, forzamos fallo estructural en el pipeline
+        is_critical = magnon.thermodynamic_severity == "CRITICAL"
+        status = StepStatus.FAILURE if is_critical else "RESONANCE_DETECTED"
+
+        result = ResonanceMitigationResult({
+            "status": status,
             "action": magnon._prescribe_action(),
             "vorticity_metrics": {
                 "parasitic_kinetic_energy": magnon.kinetic_energy,
@@ -1358,13 +1375,25 @@ def inspect_and_mitigate_resonance(
             },
             "mathematical_proof": _generate_proof(magnon),
             "energy_accounting": magnon.energy_decomposition,
-        }
+        })
 
         if full_analysis:
             result["full_hodge_decomposition"] = (
                 solenoid.compute_full_hodge_decomposition(G, flows)
             )
             result["spectral_analysis"] = solenoid.spectral_analysis(G)
+
+        if telemetry_ctx:
+            # Registrar el error en telemetría si es crítico
+            if is_critical:
+                telemetry_ctx.record_error(
+                    step_name="solenoid_inspection",
+                    error_message=f"Resonancia crítica detectada (ω={magnon.vorticity_index:.2f})",
+                    severity="CRITICAL",
+                    stratum=Stratum.PHYSICS
+                )
+            else:
+                telemetry_ctx.record_event("solenoid_vorticity_detected", result["vorticity_metrics"])
 
         logger.warning(
             f"Vorticidad detectada — β₁={magnon.curl_subspace_dim}, "
@@ -1375,7 +1404,7 @@ def inspect_and_mitigate_resonance(
         return result
 
     # ── FLUJO LAMINAR ────────────────────────────────────────────────────
-    result = {
+    result = ResonanceMitigationResult({
         "status": "LAMINAR_FLOW",
         "action": "PROCEED",
         "vorticity_metrics": {
@@ -1392,7 +1421,11 @@ def inspect_and_mitigate_resonance(
             ),
             "verification": "P_curl I = 0 ∀I ∈ ℝᵐ cuando β₁ = 0.",
         },
-    }
+    })
+
+    if telemetry_ctx:
+        # Validar el estrato físico si no hay resonancia obstructiva
+        telemetry_ctx.update_physics(is_stable=True)
 
     logger.info("Flujo laminar confirmado. Sin vorticidad detectable.")
     return result
