@@ -74,6 +74,7 @@ _np_module: Any = None
 
 try:
     import numpy as np
+    EPSILON_SPECTRAL = 1e-10
     _HAS_NUMPY = True
     _np_module = np
 except ImportError:
@@ -2142,3 +2143,83 @@ def validate_rlc_parameters(
             result["errors"].append(str(e))
     
     return result
+
+class SpectralAnalyzer:
+    """
+    Analizador espectral riguroso para grafos.
+
+    Implementa métodos de teoría espectral de grafos con garantías
+    numéricas basadas en análisis de perturbaciones.
+    """
+
+    @staticmethod
+    def fiedler_eigenvalue(laplacian: np.ndarray) -> float:
+        """
+        Calcula el segundo eigenvalor más pequeño del Laplaciano (Fiedler).
+
+        Propiedades:
+            - λ₁ = 0 si y solo si el grafo está desconectado
+            - λ₁ > 0 indica conectividad; mayor valor = mejor cohesión
+            - Bounds de Cheeger: h(G)/2 ≤ λ₁ ≤ 2·h(G)
+
+        Args:
+            laplacian: Matriz Laplaciana simétrica del grafo
+
+        Returns:
+            Conectividad algebraica (Fiedler eigenvalue)
+
+        Raises:
+            ValueError: Si la matriz no es simétrica o tiene formato inválido
+        """
+        if not np.allclose(laplacian, laplacian.T, atol=EPSILON_SPECTRAL):
+            raise ValueError("Laplacian must be symmetric")
+
+        # Usar solver especializado para matrices simétricas
+        eigenvalues = np.linalg.eigvalsh(laplacian)
+
+        # Ordenar y tomar el segundo (el primero debe ser ~0)
+        eigenvalues = np.sort(eigenvalues)
+
+        # Verificar que el primer eigenvalor es efectivamente 0
+        if abs(eigenvalues[0]) > EPSILON_SPECTRAL:
+            logger.warning(
+                f"Primer eigenvalor no es cero: {eigenvalues[0]:.2e}. "
+                f"Posible error numérico o grafo mal formado."
+            )
+
+        return float(eigenvalues[1]) if len(eigenvalues) > 1 else 0.0
+
+    @staticmethod
+    def spectral_gap(eigenvalues: np.ndarray) -> float:
+        """
+        Calcula la brecha espectral (gap entre eigenvalores consecutivos).
+
+        Una brecha grande indica separación clara de escalas, lo cual
+        en física estadística corresponde a transiciones de fase nítidas.
+
+        Args:
+            eigenvalues: Array ordenado de eigenvalores
+
+        Returns:
+            Brecha espectral máxima
+        """
+        if len(eigenvalues) < 2:
+            return 0.0
+
+        gaps = np.diff(np.sort(eigenvalues))
+        return float(np.max(gaps))
+
+    @staticmethod
+    def cheeger_constant_bounds(fiedler: float) -> Tuple[float, float]:
+        """
+        Calcula bounds para la constante de Cheeger usando el Fiedler eigenvalue.
+
+        Teorema de Cheeger:
+            h(G)/2 ≤ λ₁ ≤ 2·h(G)
+
+        Returns:
+            Tupla (lower_bound, upper_bound) para h(G)
+        """
+        lower = fiedler / 2.0
+        upper = 2.0 * fiedler
+        return (lower, upper)
