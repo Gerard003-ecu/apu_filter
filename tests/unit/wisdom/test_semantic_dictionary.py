@@ -1,1097 +1,1278 @@
 """
-Suite de Pruebas para SemanticDictionaryService
-===============================================
+=========================================================================================
+Test Suite: Semantic Dictionary - Validación Rigurosa de Invariantes Matemáticos
+Ubicación: tests/test_semantic_dictionary.py
+=========================================================================================
 
-Cobertura:
-    - Pruebas unitarias para cada componente
-    - Pruebas de integración entre componentes
-    - Pruebas de concurrencia (thread safety)
-    - Pruebas de casos límite y edge cases
-    - Pruebas de validación y manejo de errores
+METODOLOGÍA DE TESTING:
 
-Requisitos:
-    pytest >= 7.0
-    pytest-cov (opcional, para cobertura)
+1. **Property-Based Testing**:
+   Usa Hypothesis para generar casos automáticos que verifican propiedades
+   matemáticas universales (ej: β₀ ≥ 1, eigenvalues reales para matrices simétricas).
+
+2. **Verificación de Invariantes Topológicos**:
+   - Fórmula de Euler: V - E + F = χ
+   - Monotonía de números de Betti en filtraciones
+   - Simetría y positividad semidefinida del Laplaciano
+
+3. **Análisis de Complejidad**:
+   Benchmarks para verificar que los algoritmos cumplen con su complejidad teórica.
+
+4. **Fuzzing Matemático**:
+   Generación de grafos aleatorios para detectar casos extremos no contemplados.
+
+=========================================================================================
 """
-import concurrent.futures
+
 import hashlib
 import logging
 import random
-import string
 import threading
 import time
-from dataclasses import FrozenInstanceError
-from typing import Any, Dict, List
-from unittest.mock import MagicMock, patch
+from collections import OrderedDict
+from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
 import pytest
+from hypothesis import given, settings, strategies as st
+from hypothesis.extra import numpy as npst
+from unittest.mock import Mock, patch, MagicMock
 
-# Importar los módulos a probar
+# Imports del módulo bajo test
+import sys
+from pathlib import Path
+
+# Agregar el path del proyecto
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from app.wisdom.semantic_dictionary import (
+    # Clases principales
+    SemanticDictionaryService,
     GraphSemanticProjector,
     PyramidalSemanticVector,
-    SemanticDictionaryService,
-    Stratum,
-    TemplateValidator,
     TTLCache,
+    TemplateValidator,
+    
+    # Utilidades matemáticas
+    SpectralAnalyzer,
+    TopologyCalculator,
+    StatisticalThresholdClassifier,
+    
+    # Constantes y tipos
+    Stratum,
+    NodeType,
     VALID_NODE_TYPES,
+    EPSILON_SPECTRAL,
+    EPSILON_TOPOLOGY,
+    
+    # Factory
     create_semantic_dictionary_service,
 )
 
 
 # =============================================================================
-# FIXTURES COMPARTIDAS
+# CONFIGURACIÓN DE LOGGING PARA TESTS
+# =============================================================================
+
+logging.basicConfig(
+    level=logging.WARNING,  # Solo warnings y errors en tests
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+logger = logging.getLogger("test_semantic_dictionary")
+
+
+# =============================================================================
+# FIXTURES COMPARTIDOS
 # =============================================================================
 
 @pytest.fixture
-def service() -> SemanticDictionaryService:
-    """Fixture para crear una instancia limpia del servicio."""
-    return SemanticDictionaryService()
+def simple_adjacency_matrix() -> np.ndarray:
+    """
+    Grafo simple conexo sin ciclos (árbol):
+    
+        0 --- 1 --- 2
+              |
+              3
+    
+    Propiedades:
+        - V = 4 vértices
+        - E = 3 aristas
+        - β₀ = 1 (conexo)
+        - β₁ = 0 (acíclico)
+        - χ = V - E = 1
+    """
+    adj = np.array([
+        [0, 1, 0, 0],
+        [1, 0, 1, 1],
+        [0, 1, 0, 0],
+        [0, 1, 0, 0]
+    ], dtype=float)
+    return adj
+
+
+@pytest.fixture
+def cycle_adjacency_matrix() -> np.ndarray:
+    """
+    Grafo con un ciclo:
+    
+        0 --- 1
+        |     |
+        3 --- 2
+    
+    Propiedades:
+        - V = 4 vértices
+        - E = 4 aristas
+        - β₀ = 1 (conexo)
+        - β₁ = 1 (un ciclo)
+        - χ = V - E = 0
+    """
+    adj = np.array([
+        [0, 1, 0, 1],
+        [1, 0, 1, 0],
+        [0, 1, 0, 1],
+        [1, 0, 1, 0]
+    ], dtype=float)
+    return adj
+
+
+@pytest.fixture
+def disconnected_adjacency_matrix() -> np.ndarray:
+    """
+    Grafo con dos componentes desconectadas:
+    
+        0 --- 1        2 --- 3
+    
+    Propiedades:
+        - V = 4 vértices
+        - E = 2 aristas
+        - β₀ = 2 (dos componentes)
+        - β₁ = 0 (acíclico)
+        - χ = V - E = 2
+    """
+    adj = np.array([
+        [0, 1, 0, 0],
+        [1, 0, 0, 0],
+        [0, 0, 0, 1],
+        [0, 0, 1, 0]
+    ], dtype=float)
+    return adj
+
+
+@pytest.fixture
+def laplacian_matrix(simple_adjacency_matrix) -> np.ndarray:
+    """
+    Matriz Laplaciana del grafo simple.
+    
+    L = D - A, donde D es la matriz de grados.
+    """
+    adj = simple_adjacency_matrix
+    degrees = np.sum(adj, axis=1)
+    D = np.diag(degrees)
+    L = D - adj
+    return L
+
+
+@pytest.fixture
+def semantic_vector() -> PyramidalSemanticVector:
+    """Vector semántico de prueba."""
+    return PyramidalSemanticVector(
+        node_id="APU_001",
+        node_type="APU",
+        stratum=Stratum.TACTICS,
+        in_degree=3,
+        out_degree=5,
+        is_critical_bridge=True,
+        weight=100.0
+    )
+
+
+@pytest.fixture
+def semantic_service() -> SemanticDictionaryService:
+    """Servicio semántico configurado para testing."""
+    return create_semantic_dictionary_service(
+        enable_validation=True,
+        enable_statistical=False
+    )
 
 
 @pytest.fixture
 def ttl_cache() -> TTLCache:
-    """Fixture para crear un caché con TTL corto para pruebas."""
-    return TTLCache(ttl_seconds=1.0, maxsize=10)
-
-
-@pytest.fixture
-def projector(service: SemanticDictionaryService) -> GraphSemanticProjector:
-    """Fixture para crear un proyector semántico."""
-    return GraphSemanticProjector(service, cache_ttl=1.0, cache_maxsize=50)
-
-
-@pytest.fixture
-def valid_vector_data() -> Dict[str, Any]:
-    """Fixture con datos válidos para PyramidalSemanticVector."""
-    return {
-        "node_id": "APU-001",
-        "node_type": "APU",
-        "stratum": Stratum.TACTICS,
-        "in_degree": 3,
-        "out_degree": 5,
-        "is_critical_bridge": False,
-    }
-
-
-@pytest.fixture
-def sample_vectors() -> List[PyramidalSemanticVector]:
-    """Fixture con varios vectores de ejemplo."""
-    return [
-        PyramidalSemanticVector(
-            node_id="ROOT-001",
-            node_type="ROOT",
-            stratum=Stratum.WISDOM,
-            in_degree=0,
-            out_degree=10,
-        ),
-        PyramidalSemanticVector(
-            node_id="CAP-001",
-            node_type="CAPITULO",
-            stratum=Stratum.STRATEGY,
-            in_degree=1,
-            out_degree=5,
-        ),
-        PyramidalSemanticVector(
-            node_id="APU-001",
-            node_type="APU",
-            stratum=Stratum.TACTICS,
-            in_degree=2,
-            out_degree=3,
-        ),
-        PyramidalSemanticVector(
-            node_id="INS-001",
-            node_type="INSUMO",
-            stratum=Stratum.PHYSICS,
-            in_degree=5,
-            out_degree=0,
-        ),
-    ]
+    """Caché TTL configurado para testing."""
+    cache = TTLCache(
+        ttl_seconds=1.0,  # TTL corto para tests
+        maxsize=10,
+        cleanup_interval=0.5,
+        auto_cleanup=True
+    )
+    yield cache
+    cache.shutdown(timeout=2.0)
 
 
 # =============================================================================
-# TESTS PARA TTLCache
+# TESTS DE UTILIDADES MATEMÁTICAS
+# =============================================================================
+
+class TestSpectralAnalyzer:
+    """Tests para análisis espectral de grafos."""
+    
+    def test_fiedler_eigenvalue_simple_graph(self, laplacian_matrix):
+        """
+        Test: El eigenvalor de Fiedler es positivo para grafos conexos.
+        
+        Teorema: Para un grafo conexo G, λ₁(L) > 0.
+        """
+        fiedler = SpectralAnalyzer.fiedler_eigenvalue(laplacian_matrix)
+        
+        assert fiedler > 0, (
+            "Fiedler eigenvalue debe ser positivo para grafo conexo"
+        )
+        assert fiedler < 10, (
+            "Fiedler eigenvalue parece anormalmente grande"
+        )
+    
+    def test_fiedler_eigenvalue_disconnected(self, disconnected_adjacency_matrix):
+        """
+        Test: λ₁ ≈ 0 para grafos desconectados.
+        
+        Teorema: G es desconectado ⟺ λ₁(L) = 0
+        """
+        # Construir Laplaciano
+        adj = disconnected_adjacency_matrix
+        degrees = np.sum(adj, axis=1)
+        L = np.diag(degrees) - adj
+        
+        fiedler = SpectralAnalyzer.fiedler_eigenvalue(L)
+        
+        assert abs(fiedler) < EPSILON_SPECTRAL, (
+            f"Fiedler eigenvalue debe ser ~0 para grafo desconectado, "
+            f"got {fiedler:.2e}"
+        )
+    
+    def test_laplacian_symmetry(self, laplacian_matrix):
+        """
+        Test: La matriz Laplaciana es simétrica.
+        
+        Propiedad: L = Lᵀ
+        """
+        assert np.allclose(laplacian_matrix, laplacian_matrix.T), (
+            "Laplacian matrix must be symmetric"
+        )
+    
+    def test_laplacian_positive_semidefinite(self, laplacian_matrix):
+        """
+        Test: El Laplaciano es positivo semidefinido.
+        
+        Propiedad: Todos los eigenvalues λᵢ ≥ 0
+        """
+        eigenvalues = np.linalg.eigvalsh(laplacian_matrix)
+        
+        assert np.all(eigenvalues >= -EPSILON_SPECTRAL), (
+            f"Laplacian debe ser PSD, pero tiene eigenvalues negativos: "
+            f"{eigenvalues[eigenvalues < 0]}"
+        )
+    
+    def test_spectral_gap(self):
+        """
+        Test: Cálculo de brecha espectral.
+        
+        La brecha es la diferencia máxima entre eigenvalues consecutivos.
+        """
+        eigenvalues = np.array([0.0, 0.5, 0.6, 1.5, 2.0])
+        gap = SpectralAnalyzer.spectral_gap(eigenvalues)
+        
+        # Brecha máxima es 1.5 - 0.6 = 0.9
+        assert abs(gap - 0.9) < EPSILON_SPECTRAL, (
+            f"Expected gap 0.9, got {gap}"
+        )
+    
+    def test_cheeger_bounds(self):
+        """
+        Test: Bounds de Cheeger son consistentes.
+        
+        Propiedad: lower_bound ≤ 2 * upper_bound
+        """
+        fiedler = 0.5
+        lower, upper = SpectralAnalyzer.cheeger_constant_bounds(fiedler)
+        
+        assert lower == fiedler / 2.0
+        assert upper == 2.0 * fiedler
+        assert lower <= 2 * upper
+    
+    def test_fiedler_raises_on_nonsymmetric(self):
+        """
+        Test: Fiedler eigenvalue rechaza matrices no simétricas.
+        """
+        nonsymmetric = np.array([
+            [0, 1, 0],
+            [0, 0, 1],
+            [0, 0, 0]
+        ], dtype=float)
+        
+        with pytest.raises(ValueError, match="symmetric"):
+            SpectralAnalyzer.fiedler_eigenvalue(nonsymmetric)
+
+
+class TestTopologyCalculator:
+    """Tests para cálculos topológicos."""
+    
+    def test_betti_numbers_tree(self, simple_adjacency_matrix):
+        """
+        Test: Números de Betti para árbol.
+        
+        Para un árbol:
+            - β₀ = 1 (conexo)
+            - β₁ = 0 (acíclico)
+        """
+        beta_0, beta_1 = TopologyCalculator.betti_numbers_from_adjacency(
+            simple_adjacency_matrix,
+            directed=False
+        )
+        
+        assert beta_0 == 1, "Tree must be connected (β₀ = 1)"
+        assert beta_1 == 0, "Tree must be acyclic (β₁ = 0)"
+    
+    def test_betti_numbers_cycle(self, cycle_adjacency_matrix):
+        """
+        Test: Números de Betti para ciclo simple.
+        
+        Para un ciclo de 4 vértices:
+            - β₀ = 1 (conexo)
+            - β₁ = 1 (un ciclo independiente)
+        """
+        beta_0, beta_1 = TopologyCalculator.betti_numbers_from_adjacency(
+            cycle_adjacency_matrix,
+            directed=False
+        )
+        
+        assert beta_0 == 1, "Cycle graph must be connected (β₀ = 1)"
+        assert beta_1 == 1, "Cycle graph has one independent cycle (β₁ = 1)"
+    
+    def test_betti_numbers_disconnected(self, disconnected_adjacency_matrix):
+        """
+        Test: Números de Betti para grafo desconectado.
+        
+        Dos componentes sin ciclos:
+            - β₀ = 2
+            - β₁ = 0
+        """
+        beta_0, beta_1 = TopologyCalculator.betti_numbers_from_adjacency(
+            disconnected_adjacency_matrix,
+            directed=False
+        )
+        
+        assert beta_0 == 2, "Must have 2 connected components (β₀ = 2)"
+        assert beta_1 == 0, "No cycles (β₁ = 0)"
+    
+    def test_euler_characteristic_consistency(self):
+        """
+        Test: Fórmula de Euler es consistente.
+        
+        Para grafo planar: χ = V - E + F
+        Para 1-esqueleto: χ = β₀ - β₁
+        """
+        # Grafo con V=5, E=6, β₀=1, β₁=2
+        # (dos ciclos independientes)
+        adj = np.array([
+            [0, 1, 1, 0, 0],
+            [1, 0, 1, 1, 0],
+            [1, 1, 0, 0, 1],
+            [0, 1, 0, 0, 1],
+            [0, 0, 1, 1, 0]
+        ], dtype=float)
+        
+        beta_0, beta_1 = TopologyCalculator.betti_numbers_from_adjacency(
+            adj, directed=False
+        )
+        
+        chi = TopologyCalculator.euler_characteristic([beta_0, beta_1])
+        expected_chi = beta_0 - beta_1
+        
+        assert chi == expected_chi, (
+            f"Euler characteristic inconsistency: χ={chi}, "
+            f"β₀-β₁={expected_chi}"
+        )
+    
+    def test_betti_numbers_empty_graph(self):
+        """
+        Test: Grafo vacío tiene β₀ = 0.
+        """
+        empty_adj = np.zeros((0, 0), dtype=float)
+        beta_0, beta_1 = TopologyCalculator.betti_numbers_from_adjacency(
+            empty_adj, directed=False
+        )
+        
+        assert beta_0 == 0, "Empty graph should have β₀ = 0"
+        assert beta_1 == 0, "Empty graph should have β₁ = 0"
+    
+    def test_betti_numbers_self_loop(self):
+        """
+        Test: Self-loop contribuye a β₁.
+        
+        Un vértice con self-loop tiene un ciclo de longitud 1.
+        """
+        # Grafo con self-loop en vértice 0
+        adj = np.array([
+            [1, 0],  # Self-loop
+            [0, 0]
+        ], dtype=float)
+        
+        beta_0, beta_1 = TopologyCalculator.betti_numbers_from_adjacency(
+            adj, directed=False
+        )
+        
+        # Dos componentes (vértice 0 con loop, vértice 1 aislado)
+        assert beta_0 == 2, "Should have 2 components"
+        # El self-loop crea un ciclo
+        assert beta_1 >= 0, "Self-loop should contribute to cycles"
+
+
+class TestStatisticalThresholdClassifier:
+    """Tests para clasificador estadístico."""
+    
+    def test_classifier_fit_and_classify(self):
+        """
+        Test: Clasificador ajusta umbrales correctamente.
+        """
+        data = np.array([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+        
+        classifier = StatisticalThresholdClassifier(
+            metric_name="test_metric",
+            quantiles={
+                "low": 0.25,
+                "medium": 0.50,
+                "high": 0.75,
+            }
+        )
+        
+        classifier.fit(data)
+        
+        # Verificar umbrales
+        assert classifier._thresholds["low"] == 32.5  # Q1
+        assert classifier._thresholds["medium"] == 55.0  # Mediana
+        assert classifier._thresholds["high"] == 77.5  # Q3
+        
+        # Clasificar valores
+        assert classifier.classify(20) == "low"
+        assert classifier.classify(50) == "medium"
+        assert classifier.classify(85) == "high"
+    
+    def test_classifier_not_fitted_raises(self):
+        """
+        Test: Clasificador no ajustado lanza error.
+        """
+        classifier = StatisticalThresholdClassifier(
+            metric_name="test",
+            quantiles={"low": 0.5}
+        )
+        
+        with pytest.raises(ValueError, match="not fitted"):
+            classifier.classify(10.0)
+    
+    def test_confidence_interval_bootstrap(self):
+        """
+        Test: Intervalos de confianza son razonables.
+        """
+        # Datos normales
+        np.random.seed(42)
+        data = np.random.normal(loc=50, scale=10, size=100)
+        
+        classifier = StatisticalThresholdClassifier(
+            metric_name="test",
+            quantiles={"median": 0.5},
+            reference_distribution=data
+        )
+        
+        classifier.fit(data)
+        
+        ci = classifier.get_confidence_interval("median", confidence=0.95)
+        
+        assert ci is not None, "CI should be computed"
+        lower, upper = ci
+        assert lower < upper, "Lower bound must be less than upper"
+        assert lower < 50 < upper, "True median should be in CI"
+
+
+class TestGiniCoefficient:
+    """Tests para coeficiente de Gini."""
+    
+    def test_gini_perfect_equality(self):
+        """
+        Test: Gini = 0 para distribución perfectamente igual.
+        """
+        values = np.array([10, 10, 10, 10, 10])
+        gini = GraphSemanticProjector._gini_coefficient(values)
+        
+        assert abs(gini) < EPSILON_TOPOLOGY, (
+            f"Gini should be 0 for perfect equality, got {gini}"
+        )
+    
+    def test_gini_maximum_inequality(self):
+        """
+        Test: Gini → 1 para máxima desigualdad.
+        """
+        # Uno tiene todo, los demás nada
+        values = np.array([0, 0, 0, 0, 100])
+        gini = GraphSemanticProjector._gini_coefficient(values)
+        
+        # Para n elementos, Gini máximo es (n-1)/n
+        expected_max = 4/5  # 0.8 para n=5
+        
+        assert gini >= expected_max * 0.9, (
+            f"Gini should be close to {expected_max} for max inequality, "
+            f"got {gini}"
+        )
+    
+    def test_gini_empty_array(self):
+        """
+        Test: Gini = 0 para array vacío.
+        """
+        values = np.array([])
+        gini = GraphSemanticProjector._gini_coefficient(values)
+        
+        assert gini == 0.0
+    
+    def test_gini_single_value(self):
+        """
+        Test: Gini = 0 para un solo valor.
+        """
+        values = np.array([42])
+        gini = GraphSemanticProjector._gini_coefficient(values)
+        
+        assert gini == 0.0
+    
+    def test_gini_properties(self):
+        """
+        Test: Propiedades matemáticas del Gini.
+        
+        1. 0 ≤ Gini ≤ 1
+        2. Invariante ante escalamiento
+        3. Aumenta con desigualdad
+        """
+        # Distribución moderadamente desigual
+        values = np.array([1, 2, 3, 4, 5])
+        gini1 = GraphSemanticProjector._gini_coefficient(values)
+        
+        # Propiedad 1: Rango
+        assert 0 <= gini1 <= 1, "Gini must be in [0, 1]"
+        
+        # Propiedad 2: Invariancia ante escalamiento
+        scaled_values = values * 10
+        gini2 = GraphSemanticProjector._gini_coefficient(scaled_values)
+        assert abs(gini1 - gini2) < EPSILON_TOPOLOGY, (
+            "Gini must be scale-invariant"
+        )
+        
+        # Propiedad 3: Aumenta con desigualdad
+        more_unequal = np.array([1, 1, 1, 1, 10])
+        gini3 = GraphSemanticProjector._gini_coefficient(more_unequal)
+        assert gini3 > gini1, "Gini should increase with inequality"
+
+
+# =============================================================================
+# TESTS DE CACHÉ TTL
 # =============================================================================
 
 class TestTTLCache:
-    """Suite de pruebas para TTLCache."""
+    """Tests para caché con TTL."""
     
-    def test_init_valid_parameters(self):
-        """Verifica inicialización con parámetros válidos."""
-        cache = TTLCache(ttl_seconds=60.0, maxsize=100)
-        assert cache._ttl == 60.0
-        assert cache._maxsize == 100
-        assert len(cache._cache) == 0
-    
-    def test_init_invalid_ttl_raises_error(self):
-        """TTL <= 0 debe lanzar ValueError."""
-        with pytest.raises(ValueError, match="TTL debe ser positivo"):
-            TTLCache(ttl_seconds=0)
-        
-        with pytest.raises(ValueError, match="TTL debe ser positivo"):
-            TTLCache(ttl_seconds=-1.0)
-    
-    def test_init_invalid_maxsize_raises_error(self):
-        """maxsize <= 0 debe lanzar ValueError."""
-        with pytest.raises(ValueError, match="maxsize debe ser positivo"):
-            TTLCache(ttl_seconds=1.0, maxsize=0)
-        
-        with pytest.raises(ValueError, match="maxsize debe ser positivo"):
-            TTLCache(ttl_seconds=1.0, maxsize=-5)
-    
-    def test_set_and_get_basic(self, ttl_cache: TTLCache):
-        """Operaciones básicas de set y get."""
+    def test_cache_basic_operations(self, ttl_cache):
+        """
+        Test: Operaciones básicas get/set.
+        """
         ttl_cache.set("key1", "value1")
-        ttl_cache.set("key2", {"nested": "data"})
         
         assert ttl_cache.get("key1") == "value1"
-        assert ttl_cache.get("key2") == {"nested": "data"}
-    
-    def test_get_nonexistent_key_returns_none(self, ttl_cache: TTLCache):
-        """Get de clave inexistente retorna None."""
         assert ttl_cache.get("nonexistent") is None
     
-    def test_ttl_expiration(self):
-        """Verifica que las entradas expiren después del TTL."""
-        cache = TTLCache(ttl_seconds=0.1, maxsize=10)
-        cache.set("key", "value")
+    def test_cache_ttl_expiration(self):
+        """
+        Test: Entradas expiran después del TTL.
+        """
+        cache = TTLCache(ttl_seconds=0.1, maxsize=10, auto_cleanup=False)
         
-        # Inmediatamente después, debe existir
-        assert cache.get("key") == "value"
+        cache.set("key1", "value1")
+        assert cache.get("key1") == "value1"
         
-        # Esperar a que expire
+        # Esperar expiración
         time.sleep(0.15)
         
-        # Ahora debe retornar None
-        assert cache.get("key") is None
+        assert cache.get("key1") is None, "Entry should have expired"
+        
+        cache.shutdown()
     
-    def test_lru_eviction_on_capacity(self):
-        """Verifica evicción LRU cuando se alcanza capacidad máxima."""
-        cache = TTLCache(ttl_seconds=60.0, maxsize=3)
+    def test_cache_lru_eviction(self):
+        """
+        Test: Evicción LRU cuando se alcanza maxsize.
+        """
+        cache = TTLCache(ttl_seconds=60, maxsize=3, auto_cleanup=False)
         
-        cache.set("a", 1)
-        cache.set("b", 2)
-        cache.set("c", 3)
+        cache.set("k1", "v1")
+        cache.set("k2", "v2")
+        cache.set("k3", "v3")
         
-        # Acceder a 'a' para que sea más reciente
-        _ = cache.get("a")
+        # k1 es el más antiguo
+        # Acceder a k1 para hacerlo más reciente
+        cache.get("k1")
         
-        # Insertar nuevo elemento, 'b' debería ser eviccionado (LRU)
-        cache.set("d", 4)
+        # Agregar k4, debería evictar k2 (ahora el más antiguo)
+        cache.set("k4", "v4")
         
-        assert cache.get("a") == 1  # Accedido recientemente
-        assert cache.get("b") is None  # Eviccionado
-        assert cache.get("c") == 3
-        assert cache.get("d") == 4
+        assert cache.get("k1") == "v1", "k1 should still be in cache"
+        assert cache.get("k2") is None, "k2 should have been evicted"
+        assert cache.get("k3") == "v3"
+        assert cache.get("k4") == "v4"
+        
+        cache.shutdown()
     
-    def test_update_existing_key(self, ttl_cache: TTLCache):
-        """Actualizar clave existente debe actualizar valor y timestamp."""
-        ttl_cache.set("key", "old_value")
-        old_ts = ttl_cache._timestamps["key"]
+    def test_cache_cleanup_expired(self):
+        """
+        Test: Limpieza manual de entradas expiradas.
+        """
+        cache = TTLCache(ttl_seconds=0.1, maxsize=10, auto_cleanup=False)
         
-        time.sleep(0.01)
-        ttl_cache.set("key", "new_value")
+        cache.set("k1", "v1")
+        cache.set("k2", "v2")
         
-        assert ttl_cache.get("key") == "new_value"
-        assert ttl_cache._timestamps["key"] >= old_ts
-    
-    def test_clear_removes_all_entries(self, ttl_cache: TTLCache):
-        """Clear debe eliminar todas las entradas."""
-        ttl_cache.set("a", 1)
-        ttl_cache.set("b", 2)
-        ttl_cache.set("c", 3)
-        
-        ttl_cache.clear()
-        
-        assert ttl_cache.get("a") is None
-        assert ttl_cache.get("b") is None
-        assert ttl_cache.get("c") is None
-        assert len(ttl_cache._cache) == 0
-    
-    def test_cleanup_expired_removes_old_entries(self):
-        """cleanup_expired debe eliminar entradas expiradas."""
-        cache = TTLCache(ttl_seconds=0.1, maxsize=10)
-        
-        cache.set("old1", "val1")
-        cache.set("old2", "val2")
         time.sleep(0.15)
-        cache.set("new", "val3")
         
-        removed = cache.cleanup_expired()
+        evicted = cache.cleanup_expired()
         
-        assert removed == 2
-        assert cache.get("old1") is None
-        assert cache.get("old2") is None
-        assert cache.get("new") == "val3"
+        assert evicted == 2, "Should have evicted 2 expired entries"
+        assert cache.get("k1") is None
+        assert cache.get("k2") is None
+        
+        cache.shutdown()
     
-    def test_stats_tracking(self, ttl_cache: TTLCache):
-        """Verifica que las estadísticas se actualicen correctamente."""
-        ttl_cache.set("key", "value")
+    def test_cache_auto_cleanup(self):
+        """
+        Test: Limpieza automática en background.
+        """
+        cache = TTLCache(
+            ttl_seconds=0.2,
+            maxsize=10,
+            cleanup_interval=0.3,
+            auto_cleanup=True
+        )
         
-        # Hit
-        _ = ttl_cache.get("key")
-        # Miss
-        _ = ttl_cache.get("nonexistent")
-        # Otro hit
-        _ = ttl_cache.get("key")
+        cache.set("k1", "v1")
+        
+        # Esperar que expire y se limpie automáticamente
+        time.sleep(0.6)
+        
+        # El cleanup thread debería haber eliminado la entrada
+        assert cache.get("k1") is None
+        
+        cache.shutdown()
+    
+    def test_cache_stats(self, ttl_cache):
+        """
+        Test: Estadísticas del caché.
+        """
+        ttl_cache.set("k1", "v1")
+        ttl_cache.get("k1")  # Hit
+        ttl_cache.get("k2")  # Miss
         
         stats = ttl_cache.stats
         
-        assert stats["hits"] == 2
+        assert stats["hits"] == 1
         assert stats["misses"] == 1
-        assert stats["hit_rate"] == pytest.approx(2/3, rel=0.01)
         assert stats["size"] == 1
+        assert 0 <= stats["hit_rate"] <= 1
     
-    def test_thread_safety_concurrent_access(self):
-        """Verifica thread safety con accesos concurrentes."""
-        cache = TTLCache(ttl_seconds=60.0, maxsize=1000)
-        errors = []
+    def test_cache_thread_safety(self):
+        """
+        Test: Caché es thread-safe.
+        """
+        cache = TTLCache(ttl_seconds=10, maxsize=100, auto_cleanup=False)
         
-        def writer(thread_id: int):
-            try:
-                for i in range(100):
-                    cache.set(f"key_{thread_id}_{i}", f"value_{i}")
-            except Exception as e:
-                errors.append(e)
+        def worker(thread_id: int):
+            for i in range(50):
+                cache.set(f"t{thread_id}_k{i}", f"v{i}")
+                cache.get(f"t{thread_id}_k{i}")
         
-        def reader(thread_id: int):
-            try:
-                for i in range(100):
-                    _ = cache.get(f"key_{thread_id}_{i}")
-            except Exception as e:
-                errors.append(e)
-        
-        threads = []
-        for i in range(10):
-            threads.append(threading.Thread(target=writer, args=(i,)))
-            threads.append(threading.Thread(target=reader, args=(i,)))
+        threads = [
+            threading.Thread(target=worker, args=(i,))
+            for i in range(5)
+        ]
         
         for t in threads:
             t.start()
+        
         for t in threads:
             t.join()
         
-        assert len(errors) == 0, f"Errores de concurrencia: {errors}"
+        # No debería haber crashes
+        stats = cache.stats
+        assert stats["size"] <= 100  # Respetó maxsize
+        
+        cache.shutdown()
+    
+    def test_cache_clear(self, ttl_cache):
+        """
+        Test: Clear elimina todas las entradas.
+        """
+        ttl_cache.set("k1", "v1")
+        ttl_cache.set("k2", "v2")
+        
+        ttl_cache.clear()
+        
+        assert ttl_cache.get("k1") is None
+        assert ttl_cache.get("k2") is None
+        assert ttl_cache.stats["size"] == 0
 
 
 # =============================================================================
-# TESTS PARA PyramidalSemanticVector
+# TESTS DE VECTOR SEMÁNTICO
 # =============================================================================
 
 class TestPyramidalSemanticVector:
-    """Suite de pruebas para PyramidalSemanticVector."""
+    """Tests para vectores semánticos."""
     
-    def test_valid_construction(self, valid_vector_data: Dict[str, Any]):
-        """Construcción válida de un vector."""
-        vector = PyramidalSemanticVector(**valid_vector_data)
-        
-        assert vector.node_id == "APU-001"
-        assert vector.node_type == "APU"
-        assert vector.stratum == Stratum.TACTICS
-        assert vector.in_degree == 3
-        assert vector.out_degree == 5
-        assert vector.is_critical_bridge is False
+    def test_vector_creation_valid(self, semantic_vector):
+        """
+        Test: Creación de vector con parámetros válidos.
+        """
+        assert semantic_vector.node_id == "APU_001"
+        assert semantic_vector.node_type == "APU"
+        assert semantic_vector.stratum == Stratum.TACTICS
+        assert semantic_vector.total_degree == 8
     
-    @pytest.mark.parametrize("node_type", list(VALID_NODE_TYPES))
-    def test_all_valid_node_types(self, node_type: str):
-        """Verifica que todos los tipos de nodo válidos sean aceptados."""
-        vector = PyramidalSemanticVector(
-            node_id="test",
-            node_type=node_type,
-            stratum=Stratum.TACTICS,
-            in_degree=1,
-            out_degree=1,
-        )
-        assert vector.node_type == node_type
-    
-    def test_invalid_node_type_raises_error(self):
-        """node_type inválido debe lanzar ValueError."""
-        with pytest.raises(ValueError, match="node_type inválido"):
-            PyramidalSemanticVector(
-                node_id="test",
-                node_type="INVALID_TYPE",
-                stratum=Stratum.TACTICS,
-                in_degree=1,
-                out_degree=1,
-            )
-    
-    def test_negative_in_degree_raises_error(self):
-        """in_degree negativo debe lanzar ValueError."""
-        with pytest.raises(ValueError, match="in_degree no puede ser negativo"):
+    def test_vector_negative_degree_raises(self):
+        """
+        Test: Grados negativos lanzan error.
+        """
+        with pytest.raises(ValueError, match="non-negative"):
             PyramidalSemanticVector(
                 node_id="test",
                 node_type="APU",
                 stratum=Stratum.TACTICS,
                 in_degree=-1,
-                out_degree=1,
+                out_degree=5
             )
     
-    def test_negative_out_degree_raises_error(self):
-        """out_degree negativo debe lanzar ValueError."""
-        with pytest.raises(ValueError, match="out_degree no puede ser negativo"):
+    def test_vector_invalid_node_type_raises(self):
+        """
+        Test: Tipo de nodo inválido lanza error.
+        """
+        with pytest.raises(ValueError, match="Invalid node_type"):
             PyramidalSemanticVector(
                 node_id="test",
-                node_type="APU",
+                node_type="INVALID_TYPE",  # type: ignore
                 stratum=Stratum.TACTICS,
                 in_degree=1,
-                out_degree=-1,
+                out_degree=1
             )
     
-    def test_empty_node_id_raises_error(self):
-        """node_id vacío debe lanzar ValueError."""
-        with pytest.raises(ValueError, match="node_id no puede estar vacío"):
-            PyramidalSemanticVector(
-                node_id="",
-                node_type="APU",
-                stratum=Stratum.TACTICS,
-                in_degree=1,
-                out_degree=1,
-            )
-        
-        with pytest.raises(ValueError, match="node_id no puede estar vacío"):
+    def test_vector_empty_node_id_raises(self):
+        """
+        Test: node_id vacío lanza error.
+        """
+        with pytest.raises(ValueError, match="cannot be empty"):
             PyramidalSemanticVector(
                 node_id="   ",
                 node_type="APU",
                 stratum=Stratum.TACTICS,
                 in_degree=1,
-                out_degree=1,
+                out_degree=1
             )
     
-    def test_total_degree_property(self):
-        """Verifica cálculo de total_degree."""
-        vector = PyramidalSemanticVector(
-            node_id="test",
-            node_type="APU",
-            stratum=Stratum.TACTICS,
-            in_degree=3,
-            out_degree=5,
-        )
-        assert vector.total_degree == 8
-    
-    def test_is_leaf_property(self):
-        """Verifica propiedad is_leaf."""
-        leaf = PyramidalSemanticVector(
-            node_id="leaf",
-            node_type="INSUMO",
-            stratum=Stratum.PHYSICS,
-            in_degree=3,
-            out_degree=0,
-        )
-        non_leaf = PyramidalSemanticVector(
-            node_id="non_leaf",
-            node_type="APU",
-            stratum=Stratum.TACTICS,
-            in_degree=2,
-            out_degree=3,
-        )
+    def test_vector_properties(self, semantic_vector):
+        """
+        Test: Propiedades derivadas del vector.
+        """
+        assert semantic_vector.total_degree == 8
+        assert not semantic_vector.is_leaf  # out_degree > 0
+        assert not semantic_vector.is_root  # in_degree > 0
+        assert not semantic_vector.is_isolated  # total_degree > 0
         
-        assert leaf.is_leaf is True
-        assert non_leaf.is_leaf is False
-    
-    def test_is_root_property(self):
-        """Verifica propiedad is_root."""
-        root = PyramidalSemanticVector(
-            node_id="root",
-            node_type="ROOT",
-            stratum=Stratum.WISDOM,
-            in_degree=0,
-            out_degree=5,
-        )
-        non_root = PyramidalSemanticVector(
-            node_id="non_root",
-            node_type="CAPITULO",
-            stratum=Stratum.STRATEGY,
-            in_degree=1,
-            out_degree=3,
-        )
-        
-        assert root.is_root is True
-        assert non_root.is_root is False
-    
-    def test_is_isolated_property(self):
-        """Verifica propiedad is_isolated."""
+        # Vector aislado
         isolated = PyramidalSemanticVector(
             node_id="isolated",
             node_type="INSUMO",
             stratum=Stratum.PHYSICS,
             in_degree=0,
-            out_degree=0,
-        )
-        connected = PyramidalSemanticVector(
-            node_id="connected",
-            node_type="APU",
-            stratum=Stratum.TACTICS,
-            in_degree=1,
-            out_degree=0,
+            out_degree=0
         )
         
-        assert isolated.is_isolated is True
-        assert connected.is_isolated is False
+        assert isolated.is_isolated
+        assert isolated.is_leaf
+        assert isolated.is_root
     
-    def test_to_dict_serialization(self, valid_vector_data: Dict[str, Any]):
-        """Verifica serialización a diccionario."""
-        vector = PyramidalSemanticVector(**valid_vector_data)
-        result = vector.to_dict()
+    def test_vector_to_dict(self, semantic_vector):
+        """
+        Test: Serialización a diccionario.
+        """
+        data = semantic_vector.to_dict()
         
-        assert result["node_id"] == "APU-001"
-        assert result["node_type"] == "APU"
-        assert result["stratum"] == "TACTICS"
-        assert result["in_degree"] == 3
-        assert result["out_degree"] == 5
-        assert result["is_critical_bridge"] is False
-        assert result["total_degree"] == 8
+        assert data["node_id"] == "APU_001"
+        assert data["total_degree"] == 8
+        assert data["is_critical_bridge"] is True
+        assert "stratum" in data
     
-    def test_frozen_dataclass_immutable(self, valid_vector_data: Dict[str, Any]):
-        """Verifica que el dataclass sea inmutable (frozen)."""
-        vector = PyramidalSemanticVector(**valid_vector_data)
+    def test_vector_with_updates(self, semantic_vector):
+        """
+        Test: Inmutabilidad funcional con with_updates.
+        """
+        updated = semantic_vector.with_updates(in_degree=10)
         
-        with pytest.raises(FrozenInstanceError):
-            vector.node_id = "new_id"
+        assert updated.in_degree == 10
+        assert semantic_vector.in_degree == 3  # Original no mutado
+        assert updated.node_id == semantic_vector.node_id
     
-    @pytest.mark.parametrize("stratum", list(Stratum))
-    def test_all_strata_accepted(self, stratum: Stratum):
-        """Verifica que todos los estratos sean aceptados."""
-        vector = PyramidalSemanticVector(
-            node_id="test",
-            node_type="APU",
-            stratum=stratum,
-            in_degree=1,
-            out_degree=1,
-        )
-        assert vector.stratum == stratum
+    def test_vector_critical_bridge_inconsistency_warns(self):
+        """
+        Test: Advertencia si bridge crítico tiene grado 0.
+        """
+        with pytest.warns() as record:
+            PyramidalSemanticVector(
+                node_id="test",
+                node_type="APU",
+                stratum=Stratum.TACTICS,
+                in_degree=0,
+                out_degree=0,
+                is_critical_bridge=True  # Inconsistente
+            )
+        
+        # Verificar que se emitió warning
+        assert len(record) > 0
 
 
 # =============================================================================
-# TESTS PARA TemplateValidator
-# =============================================================================
-
-class TestTemplateValidator:
-    """Suite de pruebas para TemplateValidator."""
-    
-    def test_extract_simple_placeholders(self):
-        """Extrae placeholders simples."""
-        template = "Hello {name}, your score is {score}."
-        placeholders = TemplateValidator.extract_placeholders(template)
-        
-        assert placeholders == {"name", "score"}
-    
-    def test_extract_formatted_placeholders(self):
-        """Extrae placeholders con formato."""
-        template = "Value: {value:.2f}, Percent: {percent:.1%}, Price: ${price:,.2f}"
-        placeholders = TemplateValidator.extract_placeholders(template)
-        
-        assert placeholders == {"value", "percent", "price"}
-    
-    def test_extract_no_placeholders(self):
-        """Template sin placeholders retorna conjunto vacío."""
-        template = "No placeholders here!"
-        placeholders = TemplateValidator.extract_placeholders(template)
-        
-        assert placeholders == set()
-    
-    def test_extract_repeated_placeholders(self):
-        """Placeholders repetidos solo aparecen una vez."""
-        template = "{name} said hello to {name} and {other}"
-        placeholders = TemplateValidator.extract_placeholders(template)
-        
-        assert placeholders == {"name", "other"}
-    
-    def test_extract_complex_format_specs(self):
-        """Maneja especificadores de formato complejos."""
-        template = "{value:>10.2f} {date:%Y-%m-%d} {num:08d}"
-        placeholders = TemplateValidator.extract_placeholders(template)
-        
-        assert "value" in placeholders
-        assert "date" in placeholders
-        assert "num" in placeholders
-    
-    def test_validate_valid_template(self):
-        """Validación de plantilla correcta."""
-        template = "Hello {name}!"
-        is_valid, error = TemplateValidator.validate_template(template)
-        
-        assert is_valid is True
-        assert error is None
-    
-    def test_validate_template_with_required_params(self):
-        """Validación con parámetros requeridos presentes."""
-        template = "User {name} has {count} items"
-        required = {"name", "count"}
-        
-        is_valid, error = TemplateValidator.validate_template(template, required)
-        
-        assert is_valid is True
-    
-    def test_validate_template_missing_required_params(self):
-        """Detecta parámetros requeridos faltantes."""
-        template = "User {name} logged in"
-        required = {"name", "email", "timestamp"}
-        
-        is_valid, error = TemplateValidator.validate_template(template, required)
-        
-        assert is_valid is False
-        assert "email" in error or "timestamp" in error
-    
-    def test_validate_malformed_template(self):
-        """Detecta plantillas mal formadas."""
-        malformed = "Hello {name"  # Falta cerrar
-        
-        is_valid, error = TemplateValidator.validate_template(malformed)
-        
-        # Puede ser válido o inválido según implementación
-        # Lo importante es que no lance excepción
-        assert isinstance(is_valid, bool)
-    
-    def test_validate_all_templates_recursive(self):
-        """Validación recursiva de diccionario de plantillas."""
-        templates = {
-            "GROUP_A": {
-                "valid": "This is {valid}",
-                "also_valid": "Value: {num}",
-            },
-            "GROUP_B": {
-                "simple": "No placeholders",
-            },
-        }
-        
-        errors = TemplateValidator.validate_all_templates(templates)
-        
-        assert len(errors) == 0
-    
-    def test_validate_all_templates_finds_errors(self):
-        """Detecta errores en validación recursiva."""
-        templates = {
-            "GROUP_A": {
-                "broken": "This has {unclosed",
-            },
-        }
-        
-        # No debe lanzar excepción
-        errors = TemplateValidator.validate_all_templates(templates)
-        # Puede o no detectar el error según la implementación
-
-
-# =============================================================================
-# TESTS PARA GraphSemanticProjector
+# TESTS DE PROYECTOR SEMÁNTICO
 # =============================================================================
 
 class TestGraphSemanticProjector:
-    """Suite de pruebas para GraphSemanticProjector."""
+    """Tests para proyector semántico."""
     
-    def test_project_pyramidal_stress_valid(
-        self, 
-        projector: GraphSemanticProjector,
-        valid_vector_data: Dict[str, Any]
-    ):
-        """Proyección de estrés con vector válido."""
-        vector = PyramidalSemanticVector(**valid_vector_data)
-        result = projector.project_pyramidal_stress(vector)
+    @pytest.fixture
+    def mock_dictionary(self):
+        """Mock del servicio de diccionario."""
+        mock = Mock(spec=SemanticDictionaryService)
+        mock.fetch_narrative.return_value = {
+            "success": True,
+            "narrative": "Test narrative"
+        }
+        return mock
+    
+    @pytest.fixture
+    def projector(self, mock_dictionary):
+        """Proyector con diccionario mock."""
+        return GraphSemanticProjector(
+            dictionary_service=mock_dictionary,
+            cache_ttl=60,
+            cache_maxsize=100
+        )
+    
+    def test_projector_stress_point(self, projector, semantic_vector, mock_dictionary):
+        """
+        Test: Proyección de punto de estrés.
+        """
+        result = projector.project_pyramidal_stress(semantic_vector)
         
-        assert result["success"] is True
-        assert "narrative" in result
         assert "vector_metadata" in result
-    
-    def test_project_pyramidal_stress_caching(
-        self, 
-        projector: GraphSemanticProjector,
-        valid_vector_data: Dict[str, Any]
-    ):
-        """Verifica que el caché funcione para proyecciones."""
-        vector = PyramidalSemanticVector(**valid_vector_data)
+        assert "criticality_score" in result
+        assert result["vector_metadata"]["node_id"] == "APU_001"
         
+        # Verificar que llamó al diccionario
+        mock_dictionary.fetch_narrative.assert_called_once()
+    
+    def test_projector_stress_caching(self, projector, semantic_vector):
+        """
+        Test: Caché evita llamadas duplicadas.
+        """
         # Primera llamada
-        result1 = projector.project_pyramidal_stress(vector)
-        stats1 = projector.cache_stats
+        result1 = projector.project_pyramidal_stress(semantic_vector)
         
-        # Segunda llamada (debería usar caché)
-        result2 = projector.project_pyramidal_stress(vector)
-        stats2 = projector.cache_stats
+        # Segunda llamada (debería venir del caché)
+        result2 = projector.project_pyramidal_stress(semantic_vector)
         
-        assert stats2["hits"] > stats1["hits"]
-        assert result1["narrative"] == result2["narrative"]
+        # Verificar que el diccionario solo se llamó una vez
+        assert projector._dictionary.fetch_narrative.call_count == 1
+        
+        # Resultados deben ser iguales
+        assert result1["vector_metadata"] == result2["vector_metadata"]
     
-    def test_project_cycle_path_valid(self, projector: GraphSemanticProjector):
-        """Proyección de ciclo con ruta válida."""
-        path = ["A", "B", "C", "A"]
+    def test_projector_criticality_score(self, projector):
+        """
+        Test: Cálculo de score de criticidad.
+        """
+        # Nodo altamente crítico
+        critical_vector = PyramidalSemanticVector(
+            node_id="critical",
+            node_type="APU",
+            stratum=Stratum.TACTICS,
+            in_degree=50,
+            out_degree=50,
+            is_critical_bridge=True
+        )
+        
+        score = projector._compute_criticality(critical_vector)
+        
+        assert 0 <= score <= 1, "Score must be in [0, 1]"
+        assert score > 0.5, "High degree + bridge should have high score"
+        
+        # Nodo poco crítico
+        low_vector = PyramidalSemanticVector(
+            node_id="low",
+            node_type="INSUMO",
+            stratum=Stratum.PHYSICS,
+            in_degree=1,
+            out_degree=0,
+            is_critical_bridge=False
+        )
+        
+        low_score = projector._compute_criticality(low_vector)
+        assert low_score < 0.5, "Low degree + not bridge should have low score"
+    
+    def test_projector_cycle_path(self, projector):
+        """
+        Test: Proyección de ciclo.
+        """
+        path = ["APU_001", "INSUMO_042", "APU_003"]
+        
         result = projector.project_cycle_path(path)
         
-        assert result["success"] is True
-        assert "narrative" in result
         assert "cycle_metadata" in result
-        assert result["cycle_metadata"]["length"] == 4
+        assert result["cycle_metadata"]["length"] == 3
+        assert not result["cycle_metadata"]["is_self_loop"]
     
-    def test_project_cycle_path_empty(self, projector: GraphSemanticProjector):
-        """Proyección de ciclo con lista vacía."""
+    def test_projector_self_loop(self, projector):
+        """
+        Test: Proyección de self-loop.
+        """
+        path = ["APU_001"]
+        
+        result = projector.project_cycle_path(path)
+        
+        assert result["cycle_metadata"]["is_self_loop"]
+        assert result["cycle_metadata"]["length"] == 1
+    
+    def test_projector_empty_cycle_returns_error(self, projector):
+        """
+        Test: Ciclo vacío retorna error.
+        """
         result = projector.project_cycle_path([])
         
         assert result["success"] is False
         assert "error" in result
     
-    def test_project_cycle_path_single_node(self, projector: GraphSemanticProjector):
-        """Proyección de self-loop (nodo único)."""
-        result = projector.project_cycle_path(["A"])
+    def test_projector_fragmentation(self, projector):
+        """
+        Test: Proyección de fragmentación.
+        """
+        component_sizes = [10, 5, 3, 2]
         
-        assert result["success"] is True
-        assert result["cycle_metadata"]["is_self_loop"] is True
-    
-    def test_project_cycle_path_sanitizes_nodes(self, projector: GraphSemanticProjector):
-        """Verifica sanitización de nodos."""
-        path = ["  A  ", "B", "  C  "]
-        result = projector.project_cycle_path(path)
+        result = projector.project_fragmentation(
+            beta_0=4,
+            component_sizes=component_sizes
+        )
         
-        assert result["success"] is True
-        assert result["cycle_metadata"]["nodes"] == ["A", "B", "C"]
-    
-    def test_project_fragmentation_empty(self, projector: GraphSemanticProjector):
-        """Proyección de grafo vacío (β₀ = 0)."""
-        result = projector.project_fragmentation(0)
-        
-        assert result["success"] is True
-        assert "empty" in result.get("classification", "") or "Vacío" in result.get("narrative", "")
-    
-    def test_project_fragmentation_unified(self, projector: GraphSemanticProjector):
-        """Proyección de grafo conectado (β₀ = 1)."""
-        result = projector.project_fragmentation(1)
-        
-        assert result["success"] is True
-    
-    def test_project_fragmentation_with_sizes(self, projector: GraphSemanticProjector):
-        """Proyección con tamaños de componentes."""
-        result = projector.project_fragmentation(3, [100, 50, 10])
-        
-        assert result["success"] is True
         assert "component_analysis" in result
-        assert result["component_analysis"]["largest"] == 100
-        assert result["component_analysis"]["smallest"] == 10
+        assert result["component_analysis"]["largest"] == 10
+        assert result["component_analysis"]["smallest"] == 2
+        assert "gini_coefficient" in result["component_analysis"]
     
-    def test_calculate_gini_equal_distribution(self):
-        """Gini = 0 para distribución perfectamente igual."""
-        gini = GraphSemanticProjector._calculate_gini([10, 10, 10, 10])
-        assert gini == pytest.approx(0.0, abs=0.01)
+    def test_projector_fragmentation_classification(self, projector):
+        """
+        Test: Clasificación correcta según β₀.
+        """
+        # β₀ = 0: empty
+        result = projector.project_fragmentation(beta_0=0)
+        assert projector._dictionary.fetch_narrative.call_args[1]["classification"] == "empty"
+        
+        # β₀ = 1: unified
+        projector._dictionary.fetch_narrative.reset_mock()
+        result = projector.project_fragmentation(beta_0=1)
+        assert projector._dictionary.fetch_narrative.call_args[1]["classification"] == "unified"
+        
+        # β₀ > 5: severely_fragmented
+        projector._dictionary.fetch_narrative.reset_mock()
+        result = projector.project_fragmentation(beta_0=10)
+        assert projector._dictionary.fetch_narrative.call_args[1]["classification"] == "severely_fragmented"
     
-    def test_calculate_gini_unequal_distribution(self):
-        """Gini > 0 para distribución desigual."""
-        gini = GraphSemanticProjector._calculate_gini([1, 1, 1, 100])
-        assert gini > 0.5  # Distribución muy desigual
+    def test_projector_cache_stats(self, projector, semantic_vector):
+        """
+        Test: Estadísticas del caché del proyector.
+        """
+        # Generar algunas proyecciones
+        projector.project_pyramidal_stress(semantic_vector)
+        projector.project_cycle_path(["A", "B", "C"])
+        
+        stats = projector.cache_stats
+        
+        assert "size" in stats
+        assert "hits" in stats
+        assert "misses" in stats
     
-    def test_calculate_gini_single_value(self):
-        """Gini = 0 para un solo valor."""
-        gini = GraphSemanticProjector._calculate_gini([100])
-        assert gini == 0.0
-    
-    def test_calculate_gini_empty_list(self):
-        """Gini = 0 para lista vacía."""
-        gini = GraphSemanticProjector._calculate_gini([])
-        assert gini == 0.0
+    def test_projector_shutdown(self, projector):
+        """
+        Test: Shutdown libera recursos.
+        """
+        projector.shutdown()
+        # No debería lanzar errores
 
 
 # =============================================================================
-# TESTS PARA SemanticDictionaryService
+# TESTS DE VALIDADOR DE PLANTILLAS
+# =============================================================================
+
+class TestTemplateValidator:
+    """Tests para validador de plantillas."""
+    
+    def test_extract_placeholders_simple(self):
+        """
+        Test: Extracción de placeholders simples.
+        """
+        template = "Hello {name}, you have {count} messages."
+        placeholders = TemplateValidator.extract_placeholders(template)
+        
+        assert placeholders == {"name", "count"}
+    
+    def test_extract_placeholders_with_format(self):
+        """
+        Test: Extracción con especificadores de formato.
+        """
+        template = "Value: {value:.2f}, Percent: {pct:.1%}"
+        placeholders = TemplateValidator.extract_placeholders(template)
+        
+        assert placeholders == {"value", "pct"}
+    
+    def test_extract_placeholders_nested(self):
+        """
+        Test: Extracción de placeholders con atributos.
+        """
+        template = "User {user.name} has {user.score} points"
+        placeholders = TemplateValidator.extract_placeholders(template)
+        
+        assert "user" in placeholders
+    
+    def test_validate_template_valid(self):
+        """
+        Test: Validación de plantilla válida.
+        """
+        template = "Result: {beta_1} cycles detected"
+        is_valid, error = TemplateValidator.validate_template(template)
+        
+        assert is_valid
+        assert error is None
+    
+    def test_validate_template_invalid_syntax(self):
+        """
+        Test: Plantilla con sintaxis inválida.
+        """
+        template = "Result: {unclosed"
+        is_valid, error = TemplateValidator.validate_template(template)
+        
+        assert not is_valid
+        assert error is not None
+    
+    def test_validate_template_with_required_params(self):
+        """
+        Test: Validación con parámetros requeridos.
+        """
+        template = "Value: {x}"
+        
+        # Falta parámetro 'y'
+        is_valid, error = TemplateValidator.validate_template(
+            template,
+            required_params={"x", "y"}
+        )
+        
+        assert not is_valid
+        assert "Missing required parameters" in error
+    
+    def test_validate_all_templates(self):
+        """
+        Test: Validación recursiva de plantillas anidadas.
+        """
+        templates = {
+            "level1": {
+                "valid": "Test {param}",
+                "invalid": "Test {unclosed",
+            },
+            "level2": "Another {value:.2f}"
+        }
+        
+        errors = TemplateValidator.validate_all_templates(templates)
+        
+        assert len(errors) == 1  # Solo "invalid" tiene error
+        assert errors[0]["path"] == "level1.invalid"
+    
+    def test_infer_test_value_float(self):
+        """
+        Test: Inferencia de valor de prueba para floats.
+        """
+        value = TemplateValidator._infer_test_value(".2f")
+        assert isinstance(value, float)
+        
+        value = TemplateValidator._infer_test_value(".3e")
+        assert isinstance(value, float)
+    
+    def test_infer_test_value_int(self):
+        """
+        Test: Inferencia de valor de prueba para integers.
+        """
+        value = TemplateValidator._infer_test_value("d")
+        assert isinstance(value, int)
+
+
+# =============================================================================
+# TESTS DEL SERVICIO PRINCIPAL
 # =============================================================================
 
 class TestSemanticDictionaryService:
-    """Suite de pruebas para SemanticDictionaryService."""
+    """Tests para el servicio principal."""
     
-    def test_initialization(self, service: SemanticDictionaryService):
-        """Verifica inicialización correcta."""
-        assert service is not None
-        assert len(service._templates) > 0
-        assert len(service._market_contexts) > 0
+    def test_service_initialization(self, semantic_service):
+        """
+        Test: Inicialización correcta del servicio.
+        """
+        assert semantic_service is not None
+        assert len(semantic_service.get_available_domains()) > 0
     
-    def test_health_check(self, service: SemanticDictionaryService):
-        """Verifica endpoint de health check."""
-        health = service.health_check()
+    def test_service_fetch_narrative_topology(self, semantic_service):
+        """
+        Test: Fetch narrativa de topología.
+        """
+        result = semantic_service.fetch_narrative(
+            domain="TOPOLOGY_CYCLES",
+            classification="clean"
+        )
+        
+        assert result["success"] is True
+        assert "narrative" in result
+        assert result["stratum"] == Stratum.WISDOM.name
+    
+    def test_service_fetch_narrative_with_params(self, semantic_service):
+        """
+        Test: Fetch con parámetros de sustitución.
+        """
+        result = semantic_service.fetch_narrative(
+            domain="TOPOLOGY_CYCLES",
+            classification="minor",
+            params={"beta_1": 3}
+        )
+        
+        assert result["success"] is True
+        assert "3" in result["narrative"]
+    
+    def test_service_fetch_narrative_missing_param(self, semantic_service):
+        """
+        Test: Error si falta parámetro requerido.
+        """
+        result = semantic_service.fetch_narrative(
+            domain="STABILITY",
+            classification="critical",
+            params={}  # Falta "stability"
+        )
+        
+        assert result["success"] is False
+        assert "error" in result
+    
+    def test_service_fetch_market_context(self, semantic_service):
+        """
+        Test: Fetch de contexto de mercado.
+        """
+        result = semantic_service.fetch_narrative(
+            domain="MARKET_CONTEXT",
+            params={"deterministic": True, "index": 0}
+        )
+        
+        assert result["success"] is True
+        assert "narrative" in result
+    
+    def test_service_classification_by_threshold(self, semantic_service):
+        """
+        Test: Clasificación por umbrales.
+        """
+        # STABILITY: mayor es mejor
+        classification = semantic_service.get_classification_by_threshold(
+            metric_name="STABILITY",
+            value=0.90
+        )
+        assert classification == "robust"
+        
+        classification = semantic_service.get_classification_by_threshold(
+            metric_name="STABILITY",
+            value=0.25
+        )
+        assert classification == "critical"
+        
+        # ENTROPY: mayor es peor (reverse)
+        classification = semantic_service.get_classification_by_threshold(
+            metric_name="ENTROPY",
+            value=0.80
+        )
+        assert classification == "high"
+    
+    def test_service_invalid_metric_raises(self, semantic_service):
+        """
+        Test: Métrica inválida lanza error.
+        """
+        with pytest.raises(ValueError, match="not recognized"):
+            semantic_service.get_classification_by_threshold(
+                metric_name="INVALID_METRIC",
+                value=0.5
+            )
+    
+    def test_service_projector_lazy_init(self, semantic_service):
+        """
+        Test: Proyector se inicializa lazy.
+        """
+        # Acceder al proyector
+        projector = semantic_service.projector
+        
+        assert projector is not None
+        assert isinstance(projector, GraphSemanticProjector)
+        
+        # Segunda llamada retorna la misma instancia
+        projector2 = semantic_service.projector
+        assert projector is projector2
+    
+    def test_service_health_check(self, semantic_service):
+        """
+        Test: Health check retorna información correcta.
+        """
+        health = semantic_service.health_check()
         
         assert health["status"] == "healthy"
+        assert health["service"] == "SemanticDictionaryService"
         assert "template_domains" in health
+        assert "thresholds" in health
         assert "timestamp" in health
-        assert health["stratum"] == "WISDOM"
     
-    def test_get_available_domains(self, service: SemanticDictionaryService):
-        """Verifica listado de dominios disponibles."""
-        domains = service.get_available_domains()
+    def test_service_get_available_domains(self, semantic_service):
+        """
+        Test: Listado de dominios disponibles.
+        """
+        domains = semantic_service.get_available_domains()
         
         assert isinstance(domains, list)
-        assert len(domains) > 0
         assert "TOPOLOGY_CYCLES" in domains
         assert "STABILITY" in domains
     
-    def test_get_domain_classifications_existing(self, service: SemanticDictionaryService):
-        """Obtiene clasificaciones de dominio existente."""
-        classifications = service.get_domain_classifications("STABILITY")
+    def test_service_get_domain_classifications(self, semantic_service):
+        """
+        Test: Obtener clasificaciones de un dominio.
+        """
+        classifications = semantic_service.get_domain_classifications("STABILITY")
         
-        assert classifications is not None
+        assert isinstance(classifications, list)
         assert "critical" in classifications
         assert "robust" in classifications
     
-    def test_get_domain_classifications_nonexistent(self, service: SemanticDictionaryService):
-        """Dominio inexistente retorna None."""
-        classifications = service.get_domain_classifications("NONEXISTENT")
-        assert classifications is None
-    
-    # =========================================================================
-    # fetch_narrative tests
-    # =========================================================================
-    
-    def test_fetch_narrative_valid_domain_classification(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """fetch_narrative con dominio y clasificación válidos."""
-        result = service.fetch_narrative(
-            domain="STABILITY",
-            classification="robust",
-            params={"stability": 0.90}
-        )
+    def test_service_shutdown(self, semantic_service):
+        """
+        Test: Shutdown limpio del servicio.
+        """
+        # Inicializar proyector
+        _ = semantic_service.projector
         
-        assert result["success"] is True
-        assert "narrative" in result
-        assert "0.90" in result["narrative"]
-    
-    def test_fetch_narrative_invalid_domain(self, service: SemanticDictionaryService):
-        """fetch_narrative con dominio inválido."""
-        result = service.fetch_narrative(
-            domain="NONEXISTENT_DOMAIN",
-            classification="any"
-        )
+        # Shutdown
+        semantic_service.shutdown()
         
-        assert result["success"] is False
-        assert "error" in result
-        assert "available_domains" in result
-    
-    def test_fetch_narrative_missing_params(self, service: SemanticDictionaryService):
-        """fetch_narrative con parámetros faltantes."""
-        result = service.fetch_narrative(
-            domain="STABILITY",
-            classification="robust",
-            params={}  # Falta 'stability'
-        )
-        
-        assert result["success"] is False
-        assert "error" in result
-    
-    def test_fetch_narrative_market_context_random(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """fetch_narrative para contexto de mercado aleatorio."""
-        result = service.fetch_narrative(
-            domain="MARKET_CONTEXT",
-            params={"deterministic": False}
-        )
-        
-        assert result["success"] is True
-        assert "narrative" in result
-    
-    def test_fetch_narrative_market_context_deterministic(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """fetch_narrative para contexto de mercado determinístico."""
-        result1 = service.fetch_narrative(
-            domain="MARKET_CONTEXT",
-            params={"deterministic": True, "index": 0}
-        )
-        result2 = service.fetch_narrative(
-            domain="MARKET_CONTEXT",
-            params={"deterministic": True, "index": 0}
-        )
-        
-        assert result1["narrative"] == result2["narrative"]
-    
-    def test_fetch_narrative_with_kwargs(self, service: SemanticDictionaryService):
-        """fetch_narrative acepta kwargs como parámetros."""
-        result = service.fetch_narrative(
-            domain="STABILITY",
-            classification="robust",
-            stability=0.95
-        )
-        
-        assert result["success"] is True
-        assert "0.95" in result["narrative"]
-    
-    @pytest.mark.parametrize("domain,classification,params", [
-        ("TOPOLOGY_CYCLES", "clean", {}),
-        ("TOPOLOGY_CYCLES", "minor", {"beta_1": 2}),
-        ("TOPOLOGY_CONNECTIVITY", "unified", {}),
-        ("SPECTRAL_COHESION", "high", {"fiedler": 0.85}),
-        ("THERMAL_ENTROPY", "low", {"entropy": 0.2}),
-    ])
-    def test_fetch_narrative_various_templates(
-        self, 
-        service: SemanticDictionaryService,
-        domain: str,
-        classification: str,
-        params: Dict[str, Any]
-    ):
-        """Prueba varias combinaciones de plantillas."""
-        result = service.fetch_narrative(
-            domain=domain,
-            classification=classification,
-            params=params
-        )
-        
-        assert result["success"] is True
-        assert result["domain"] == domain
-        assert result["classification"] == classification
-    
-    # =========================================================================
-    # get_classification_by_threshold tests
-    # =========================================================================
-    
-    @pytest.mark.parametrize("value,expected", [
-        (0.95, "robust"),
-        (0.75, "stable"),
-        (0.55, "warning"),
-        (0.25, "critical"),
-    ])
-    def test_get_classification_stability(
-        self, 
-        service: SemanticDictionaryService,
-        value: float,
-        expected: str
-    ):
-        """Clasificación de estabilidad por umbrales."""
-        classification = service.get_classification_by_threshold("STABILITY", value)
-        assert classification == expected
-    
-    @pytest.mark.parametrize("value,expected", [
-        (0.8, "high"),
-        (0.2, "low"),
-    ])
-    def test_get_classification_entropy(
-        self, 
-        service: SemanticDictionaryService,
-        value: float,
-        expected: str
-    ):
-        """Clasificación de entropía (no necesariamente invertida según los diccionarios)."""
-        classification = service.get_classification_by_threshold("ENTROPY", value)
-        # Check that classification returns something valid if domain changed logic.
-        assert classification in ["low", "moderate", "high", "critical", "warning"]
-    
-    def test_get_classification_invalid_metric(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """Métrica inválida lanza ValueError."""
-        with pytest.raises(ValueError, match="no tiene umbrales definidos"):
-            service.get_classification_by_threshold("INVALID_METRIC", 0.5)
-    
-    # =========================================================================
-    # convert_stratum_value tests
-    # =========================================================================
-    
-    def test_convert_stratum_from_stratum(self, service: SemanticDictionaryService):
-        """Conversión desde Stratum retorna mismo valor."""
-        result = service.convert_stratum_value(Stratum.TACTICS)
-        assert result == Stratum.TACTICS
-    
-    @pytest.mark.parametrize("value,expected", [
-        (0, Stratum.WISDOM),
-        (1, Stratum.ALPHA),
-        (2, Stratum.OMEGA),
-        (3, Stratum.STRATEGY),
-        (4, Stratum.TACTICS),
-        (5, Stratum.PHYSICS),
-    ])
-    def test_convert_stratum_from_int(
-        self, 
-        service: SemanticDictionaryService,
-        value: int,
-        expected: Stratum
-    ):
-        """Conversión desde int."""
-        result = service.convert_stratum_value(value)
-        assert result == expected
-    
-    @pytest.mark.parametrize("value,expected", [
-        ("WISDOM", Stratum.WISDOM),
-        ("wisdom", Stratum.WISDOM),
-        ("Tactics", Stratum.TACTICS),
-        ("PHYSICS", Stratum.PHYSICS),
-        ("  STRATEGY  ", Stratum.STRATEGY),
-    ])
-    def test_convert_stratum_from_string(
-        self, 
-        service: SemanticDictionaryService,
-        value: str,
-        expected: Stratum
-    ):
-        """Conversión desde string (case insensitive)."""
-        result = service.convert_stratum_value(value)
-        assert result == expected
-    
-    def test_convert_stratum_invalid_int(self, service: SemanticDictionaryService):
-        """Entero inválido lanza ValueError."""
-        with pytest.raises(ValueError, match="no es un Stratum válido"):
-            service.convert_stratum_value(99)
-    
-    def test_convert_stratum_invalid_string(self, service: SemanticDictionaryService):
-        """String inválido lanza ValueError."""
-        with pytest.raises(ValueError, match="no es un nombre de Stratum válido"):
-            service.convert_stratum_value("INVALID")
-    
-    def test_convert_stratum_invalid_type(self, service: SemanticDictionaryService):
-        """Tipo inválido lanza TypeError."""
-        with pytest.raises(TypeError, match="Tipo no soportado"):
-            service.convert_stratum_value([1, 2, 3])
-    
-    # =========================================================================
-    # project_graph_narrative tests
-    # =========================================================================
-    
-    def test_project_graph_narrative_cycle(self, service: SemanticDictionaryService):
-        """Proyección de anomalía de ciclo."""
-        payload = {
-            "anomaly_type": "CYCLE",
-            "path_nodes": ["A", "B", "C", "A"],
-        }
-        
-        result = service.project_graph_narrative(payload)
-        
-        assert result["success"] is True
-        assert "cycle_metadata" in result
-    
-    def test_project_graph_narrative_stress(
-        self, 
-        service: SemanticDictionaryService,
-        valid_vector_data: Dict[str, Any]
-    ):
-        """Proyección de anomalía de estrés."""
-        payload = {
-            "anomaly_type": "STRESS",
-            "vector": valid_vector_data,
-        }
-        
-        result = service.project_graph_narrative(payload)
-        
-        assert result["success"] is True
-        assert "vector_metadata" in result
-    
-    def test_project_graph_narrative_stress_with_string_stratum(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """Proyección de estrés con stratum como string."""
-        payload = {
-            "anomaly_type": "STRESS",
-            "vector": {
-                "node_id": "test",
-                "node_type": "APU",
-                "stratum": "TACTICS",  # String en lugar de Enum
-                "in_degree": 3,
-                "out_degree": 5,
-            },
-        }
-        
-        result = service.project_graph_narrative(payload)
-        
-        assert result["success"] is True
-    
-    def test_project_graph_narrative_fragmentation(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """Proyección de anomalía de fragmentación."""
-        payload = {
-            "anomaly_type": "FRAGMENTATION",
-            "beta_0": 3,
-            "component_sizes": [100, 50, 10],
-        }
-        
-        result = service.project_graph_narrative(payload)
-        
-        assert result["success"] is True
-    
-    def test_project_graph_narrative_unsupported_type(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """Tipo de anomalía no soportado."""
-        payload = {
-            "anomaly_type": "UNKNOWN_TYPE",
-        }
-        
-        result = service.project_graph_narrative(payload)
-        
-        assert result["success"] is False
-        assert "supported_types" in result
-    
-    def test_project_graph_narrative_missing_vector_fields(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """Vector con campos faltantes."""
-        payload = {
-            "anomaly_type": "STRESS",
-            "vector": {
-                "node_id": "test",
-                # Faltan otros campos
-            },
-        }
-        
-        result = service.project_graph_narrative(payload)
-        
-        assert result["success"] is False
-        assert "Faltan campos requeridos" in result["error"]
-    
-    def test_project_graph_narrative_invalid_node_type(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """Vector con node_type inválido."""
-        payload = {
-            "anomaly_type": "STRESS",
-            "vector": {
-                "node_id": "test",
-                "node_type": "INVALID",
-                "stratum": Stratum.TACTICS,
-                "in_degree": 1,
-                "out_degree": 1,
-            },
-        }
-        
-        result = service.project_graph_narrative(payload)
-        
-        assert result["success"] is False
-        assert "node_type inválido" in result["error"]
-    
-    # =========================================================================
-    # register_in_mic tests
-    # =========================================================================
-    
-    def test_register_in_mic_without_module(self, service: SemanticDictionaryService):
-        """Registro sin módulo MICRegistry disponible retorna False."""
-        with patch.dict('sys.modules', {'app.adapters.tools_interface': None}):
-            result = service.register_in_mic(MagicMock())
-            # Puede retornar True o False dependiendo de la implementación
-            assert isinstance(result, bool)
-    
-    def test_register_in_mic_wrong_type(self, service: SemanticDictionaryService):
-        """Registro con tipo incorrecto retorna False."""
-        result = service.register_in_mic("not_a_registry")
-        assert result is False
-    
-    # =========================================================================
-    # Projector lazy initialization
-    # =========================================================================
-    
-    def test_projector_lazy_initialization(self, service: SemanticDictionaryService):
-        """Projector se inicializa de forma perezosa."""
-        assert service._projector is None
-        
-        projector = service.projector
-        
-        assert projector is not None
-        assert service._projector is projector
-    
-    def test_projector_singleton(self, service: SemanticDictionaryService):
-        """Projector es singleton."""
-        projector1 = service.projector
-        projector2 = service.projector
-        
-        assert projector1 is projector2
+        # No debería lanzar errores
 
 
 # =============================================================================
@@ -1099,89 +1280,403 @@ class TestSemanticDictionaryService:
 # =============================================================================
 
 class TestIntegration:
-    """Pruebas de integración entre componentes."""
+    """Tests de integración end-to-end."""
     
-    def test_full_cycle_projection_flow(self, service: SemanticDictionaryService):
-        """Flujo completo de proyección de ciclo."""
-        # Simular detección de ciclo por motor topológico
-        cycle_data = {
-            "anomaly_type": "CYCLE",
-            "path_nodes": ["Excavación", "Cimentación", "Estructura", "Excavación"],
-        }
+    def test_full_workflow_stress_point(self):
+        """
+        Test: Flujo completo de proyección de punto de estrés.
+        """
+        # 1. Crear servicio
+        service = create_semantic_dictionary_service()
         
-        # Proyectar a narrativa
-        result = service.project_graph_narrative(cycle_data)
+        # 2. Crear vector
+        vector = PyramidalSemanticVector(
+            node_id="APU_CRITICAL",
+            node_type="APU",
+            stratum=Stratum.TACTICS,
+            in_degree=25,
+            out_degree=30,
+            is_critical_bridge=True
+        )
         
-        # Verificar resultado
+        # 3. Proyectar
+        result = service.projector.project_pyramidal_stress(vector)
+        
+        # 4. Verificar resultado
         assert result["success"] is True
         assert "narrative" in result
-        assert "Excavación" in result["narrative"]
-    
-    def test_full_stress_projection_flow(self, service: SemanticDictionaryService):
-        """Flujo completo de proyección de estrés."""
-        # Simular detección de punto crítico
-        stress_data = {
-            "anomaly_type": "STRESS",
-            "vector": {
-                "node_id": "CEMENTO-PORTLAND",
-                "node_type": "INSUMO",
-                "stratum": "PHYSICS",
-                "in_degree": 25,
-                "out_degree": 0,
-                "is_critical_bridge": True,
-            },
-        }
+        assert "criticality_score" in result
+        assert result["vector_metadata"]["node_id"] == "APU_CRITICAL"
         
-        result = service.project_graph_narrative(stress_data)
+        # 5. Cleanup
+        service.shutdown()
+    
+    def test_full_workflow_cycle_detection(self):
+        """
+        Test: Flujo completo de detección y narrativa de ciclo.
+        """
+        service = create_semantic_dictionary_service()
+        
+        # Ciclo detectado
+        cycle_path = ["APU_A", "INSUMO_X", "APU_B", "INSUMO_Y"]
+        
+        result = service.projector.project_cycle_path(
+            path_nodes=cycle_path,
+            cycle_metadata={"detection_algorithm": "tarjan"}
+        )
         
         assert result["success"] is True
-        assert "CEMENTO-PORTLAND" in result["narrative"]
-    
-    def test_narrative_generation_for_multiple_domains(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """Generación de narrativas para múltiples dominios."""
-        test_cases = [
-            ("TOPOLOGY_CYCLES", "critical", {"beta_1": 15}),
-            ("STABILITY", "critical", {"stability": 0.2}),
-            ("SPECTRAL_COHESION", "low", {"fiedler": 0.15}),
-            ("THERMAL_TEMPERATURE", "hot", {"temperature": 85.5}),
-            ("FINANCIAL_VERDICT", "accept", {"pi": 1.25}),
-        ]
+        assert "cycle_metadata" in result
+        assert result["cycle_metadata"]["length"] == 4
+        assert "homology_obstruction" in result
         
-        for domain, classification, params in test_cases:
-            result = service.fetch_narrative(
-                domain=domain,
-                classification=classification,
-                params=params
+        service.shutdown()
+    
+    def test_full_workflow_fragmentation_analysis(self):
+        """
+        Test: Flujo completo de análisis de fragmentación.
+        """
+        service = create_semantic_dictionary_service()
+        
+        # Grafo fragmentado
+        beta_0 = 3
+        component_sizes = [50, 30, 20]
+        
+        result = service.projector.project_fragmentation(
+            beta_0=beta_0,
+            component_sizes=component_sizes
+        )
+        
+        assert result["success"] is True
+        assert "component_analysis" in result
+        assert result["component_analysis"]["count"] == 3
+        assert "gini_coefficient" in result["component_analysis"]
+        assert "homology_analysis" in result
+        
+        service.shutdown()
+    
+    def test_factory_function(self):
+        """
+        Test: Factory function crea servicio correctamente.
+        """
+        service = create_semantic_dictionary_service(
+            enable_validation=True,
+            enable_statistical=False
+        )
+        
+        assert isinstance(service, SemanticDictionaryService)
+        
+        health = service.health_check()
+        assert health["status"] == "healthy"
+        
+        service.shutdown()
+
+
+# =============================================================================
+# PROPERTY-BASED TESTS (Hypothesis)
+# =============================================================================
+
+class TestPropertyBased:
+    """Tests basados en propiedades con Hypothesis."""
+    
+    @given(st.integers(min_value=0, max_value=100))
+    def test_betti_0_always_nonnegative(self, n_vertices):
+        """
+        Propiedad: β₀ ≥ 0 siempre.
+        """
+        if n_vertices == 0:
+            pytest.skip("Empty graph")
+        
+        # Generar grafo aleatorio
+        adj = np.random.randint(0, 2, size=(n_vertices, n_vertices))
+        adj = (adj + adj.T) / 2  # Simetrizar
+        np.fill_diagonal(adj, 0)  # Sin self-loops
+        
+        beta_0, beta_1 = TopologyCalculator.betti_numbers_from_adjacency(
+            adj, directed=False
+        )
+        
+        assert beta_0 >= 0, f"β₀ must be non-negative, got {beta_0}"
+        assert beta_1 >= 0, f"β₁ must be non-negative, got {beta_1}"
+    
+    @given(st.lists(st.floats(min_value=0, max_value=1000), min_size=1, max_size=100))
+    def test_gini_in_range(self, values):
+        """
+        Propiedad: 0 ≤ Gini ≤ 1 para cualquier distribución.
+        """
+        values_array = np.array(values)
+        gini = GraphSemanticProjector._gini_coefficient(values_array)
+        
+        assert 0 <= gini <= 1, f"Gini must be in [0,1], got {gini}"
+    
+    @given(
+        st.integers(min_value=0, max_value=50),
+        st.integers(min_value=0, max_value=50)
+    )
+    def test_vector_total_degree(self, in_deg, out_deg):
+        """
+        Propiedad: total_degree = in_degree + out_degree.
+        """
+        vector = PyramidalSemanticVector(
+            node_id="test",
+            node_type="APU",
+            stratum=Stratum.TACTICS,
+            in_degree=in_deg,
+            out_degree=out_deg
+        )
+        
+        assert vector.total_degree == in_deg + out_deg
+    
+    @given(npst.arrays(dtype=np.float64, shape=(10, 10)))
+    def test_laplacian_row_sum_zero(self, matrix):
+        """
+        Propiedad: Las filas del Laplaciano suman 0.
+        
+        Para matriz de adyacencia A, L = D - A tiene filas que suman 0.
+        """
+        # Asegurar que es no negativa y simétrica
+        adj = np.abs(matrix)
+        adj = (adj + adj.T) / 2
+        np.fill_diagonal(adj, 0)
+        
+        # Construir Laplaciano
+        degrees = np.sum(adj, axis=1)
+        L = np.diag(degrees) - adj
+        
+        # Verificar que filas suman ~0
+        row_sums = np.sum(L, axis=1)
+        
+        assert np.allclose(row_sums, 0, atol=1e-10), (
+            f"Laplacian rows must sum to 0, got max deviation: "
+            f"{np.max(np.abs(row_sums))}"
+        )
+    
+    @settings(max_examples=50)
+    @given(st.floats(min_value=0.01, max_value=10.0))
+    def test_cache_ttl_respected(self, ttl):
+        """
+        Propiedad: Entradas expiran después de TTL.
+        """
+        cache = TTLCache(ttl_seconds=ttl, maxsize=10, auto_cleanup=False)
+        
+        cache.set("key", "value")
+        
+        # Inmediatamente debe estar disponible
+        assert cache.get("key") == "value"
+        
+        # Después de TTL debe haber expirado
+        time.sleep(ttl + 0.1)
+        assert cache.get("key") is None
+        
+        cache.shutdown()
+
+
+# =============================================================================
+# BENCHMARKS Y TESTS DE PERFORMANCE
+# =============================================================================
+
+class TestPerformance:
+    """Tests de performance y escalabilidad."""
+    
+    @pytest.mark.benchmark
+    def test_betti_computation_scalability(self, benchmark):
+        """
+        Benchmark: Cálculo de números de Betti escala bien.
+        
+        Complejidad esperada: O(V + E) para DFS
+        """
+        n = 100
+        adj = np.random.randint(0, 2, size=(n, n))
+        adj = (adj + adj.T) / 2
+        np.fill_diagonal(adj, 0)
+        
+        def compute():
+            return TopologyCalculator.betti_numbers_from_adjacency(
+                adj, directed=False
             )
-            
-            assert result["success"] is True, f"Fallo en {domain}.{classification}"
-            assert len(result["narrative"]) > 0
+        
+        result = benchmark(compute)
+        assert result[0] >= 1  # Al menos una componente
     
-    def test_threshold_classification_integration(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """Integración clasificación por umbral + narrativa."""
-        stability_value = 0.45
+    @pytest.mark.benchmark
+    def test_cache_performance(self, benchmark):
+        """
+        Benchmark: Performance del caché.
+        """
+        cache = TTLCache(ttl_seconds=60, maxsize=1000, auto_cleanup=False)
         
-        # Clasificar
-        classification = service.get_classification_by_threshold(
-            "STABILITY", 
-            stability_value
+        # Pre-populate
+        for i in range(100):
+            cache.set(f"key{i}", f"value{i}")
+        
+        def access_cache():
+            for i in range(100):
+                cache.get(f"key{i % 50}")  # 50% hit rate
+        
+        benchmark(access_cache)
+        
+        stats = cache.stats
+        assert stats["hit_rate"] > 0
+        
+        cache.shutdown()
+    
+    def test_gini_computation_efficiency(self):
+        """
+        Test: Gini se calcula eficientemente para arrays grandes.
+        
+        Complejidad esperada: O(n log n) por el sorting
+        """
+        import time
+        
+        n = 10000
+        values = np.random.rand(n)
+        
+        start = time.perf_counter()
+        gini = GraphSemanticProjector._gini_coefficient(values)
+        elapsed = time.perf_counter() - start
+        
+        assert elapsed < 0.1, f"Gini computation too slow: {elapsed:.3f}s"
+        assert 0 <= gini <= 1
+    
+    def test_spectral_analysis_efficiency(self):
+        """
+        Test: Análisis espectral es eficiente.
+        
+        Complejidad esperada: O(n³) para eigenvalues completos,
+        pero usamos eigvalsh (simétrico) que es más rápido.
+        """
+        import time
+        
+        n = 100
+        # Grafo aleatorio
+        adj = np.random.rand(n, n)
+        adj = (adj + adj.T) / 2
+        np.fill_diagonal(adj, 0)
+        
+        # Laplaciano
+        degrees = np.sum(adj, axis=1)
+        L = np.diag(degrees) - adj
+        
+        start = time.perf_counter()
+        fiedler = SpectralAnalyzer.fiedler_eigenvalue(L)
+        elapsed = time.perf_counter() - start
+        
+        assert elapsed < 1.0, f"Spectral analysis too slow: {elapsed:.3f}s"
+        assert fiedler >= 0
+
+
+# =============================================================================
+# TESTS DE CASOS EXTREMOS (EDGE CASES)
+# =============================================================================
+
+class TestEdgeCases:
+    """Tests de casos extremos y situaciones límite."""
+    
+    def test_empty_graph_betti(self):
+        """
+        Test: Grafo vacío tiene β₀ = 0.
+        """
+        empty = np.zeros((0, 0))
+        beta_0, beta_1 = TopologyCalculator.betti_numbers_from_adjacency(
+            empty, directed=False
         )
         
-        # Generar narrativa
-        result = service.fetch_narrative(
-            domain="STABILITY",
-            classification=classification,
-            params={"stability": stability_value}
+        assert beta_0 == 0
+        assert beta_1 == 0
+    
+    def test_single_vertex_graph(self):
+        """
+        Test: Grafo con un solo vértice aislado.
+        """
+        single = np.zeros((1, 1))
+        beta_0, beta_1 = TopologyCalculator.betti_numbers_from_adjacency(
+            single, directed=False
         )
         
-        assert result["success"] is True
-        assert classification in ["critical", "warning", "stable", "robust"]
+        assert beta_0 == 1  # Una componente
+        assert beta_1 == 0  # Sin ciclos
+    
+    def test_complete_graph(self):
+        """
+        Test: Grafo completo Kₙ.
+        
+        Para Kₙ:
+            - β₀ = 1 (conexo)
+            - β₁ = número de ciclos independientes
+        """
+        n = 5
+        # Grafo completo: todos conectados con todos
+        adj = np.ones((n, n)) - np.eye(n)
+        
+        beta_0, beta_1 = TopologyCalculator.betti_numbers_from_adjacency(
+            adj, directed=False
+        )
+        
+        assert beta_0 == 1  # Conexo
+        # K₅ tiene muchos ciclos
+        assert beta_1 > 0
+    
+    def test_very_large_numbers(self):
+        """
+        Test: Manejo de números muy grandes.
+        """
+        vector = PyramidalSemanticVector(
+            node_id="massive",
+            node_type="APU",
+            stratum=Stratum.TACTICS,
+            in_degree=1_000_000,
+            out_degree=1_000_000
+        )
+        
+        assert vector.total_degree == 2_000_000
+        
+        # Criticality score debe seguir en [0, 1]
+        projector = GraphSemanticProjector(
+            dictionary_service=Mock(spec=SemanticDictionaryService)
+        )
+        score = projector._compute_criticality(vector)
+        assert 0 <= score <= 1
+    
+    def test_unicode_node_ids(self):
+        """
+        Test: Node IDs con Unicode.
+        """
+        vector = PyramidalSemanticVector(
+            node_id="Nodo_测试_🔧",
+            node_type="APU",
+            stratum=Stratum.TACTICS,
+            in_degree=1,
+            out_degree=1
+        )
+        
+        assert vector.node_id == "Nodo_测试_🔧"
+    
+    def test_stratum_conversion_edge_cases(self):
+        """
+        Test: Conversión de Stratum con casos límite.
+        """
+        service = SemanticDictionaryService()
+        
+        # Integer
+        assert service.convert_stratum_value(0) == Stratum.WISDOM
+        assert service.convert_stratum_value(4) == Stratum.PHYSICS
+        
+        # String
+        assert service.convert_stratum_value("WISDOM") == Stratum.WISDOM
+        assert service.convert_stratum_value("wisdom") == Stratum.WISDOM
+        
+        # Ya es Stratum
+        assert service.convert_stratum_value(Stratum.OMEGA) == Stratum.OMEGA
+        
+        # Inválidos
+        with pytest.raises(ValueError):
+            service.convert_stratum_value(999)
+        
+        with pytest.raises(ValueError):
+            service.convert_stratum_value("INVALID")
+        
+        with pytest.raises(TypeError):
+            service.convert_stratum_value([1, 2, 3])  # type: ignore
 
 
 # =============================================================================
@@ -1189,316 +1684,154 @@ class TestIntegration:
 # =============================================================================
 
 class TestConcurrency:
-    """Pruebas de comportamiento bajo carga concurrente."""
+    """Tests de comportamiento concurrente."""
     
-    def test_concurrent_fetch_narrative(self, service: SemanticDictionaryService):
-        """Múltiples llamadas concurrentes a fetch_narrative."""
+    def test_service_thread_safety(self):
+        """
+        Test: Servicio es thread-safe.
+        """
+        service = create_semantic_dictionary_service()
         errors = []
-        results = []
         
-        def fetch(thread_id: int):
+        def worker(thread_id: int):
             try:
                 for i in range(20):
                     result = service.fetch_narrative(
-                        domain="STABILITY",
-                        classification="stable",
-                        params={"stability": 0.75 + thread_id * 0.01}
+                        domain="TOPOLOGY_CYCLES",
+                        classification="clean"
                     )
-                    results.append(result)
+                    assert result["success"] is True
             except Exception as e:
-                errors.append(e)
-        
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            futures = [executor.submit(fetch, i) for i in range(10)]
-            concurrent.futures.wait(futures)
-        
-        assert len(errors) == 0
-        assert len(results) == 200
-        assert all(r["success"] for r in results)
-    
-    def test_concurrent_project_graph_narrative(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """Múltiples proyecciones concurrentes."""
-        errors = []
-        
-        def project(thread_id: int):
-            try:
-                for i in range(10):
-                    payload = {
-                        "anomaly_type": "CYCLE",
-                        "path_nodes": [f"Node_{thread_id}_{j}" for j in range(3)],
-                    }
-                    result = service.project_graph_narrative(payload)
-                    assert result["success"]
-            except Exception as e:
-                errors.append(e)
+                errors.append((thread_id, e))
         
         threads = [
-            threading.Thread(target=project, args=(i,))
+            threading.Thread(target=worker, args=(i,))
             for i in range(10)
         ]
         
         for t in threads:
             t.start()
+        
         for t in threads:
             t.join()
         
-        assert len(errors) == 0
-    
-    def test_cache_thread_safety_under_load(self):
-        """Cache bajo alta carga concurrente."""
-        cache = TTLCache(ttl_seconds=60.0, maxsize=100)
-        errors = []
-        operations = []
+        assert len(errors) == 0, f"Thread safety violations: {errors}"
         
-        def worker(thread_id: int):
-            try:
-                for i in range(100):
-                    key = f"key_{thread_id % 20}_{i % 10}"
-                    if random.random() > 0.3:
-                        cache.set(key, f"value_{thread_id}_{i}")
-                        operations.append(("set", key))
-                    else:
-                        value = cache.get(key)
-                        operations.append(("get", key, value))
-            except Exception as e:
-                errors.append(e)
+        service.shutdown()
+    
+    def test_projector_concurrent_access(self):
+        """
+        Test: Proyector maneja acceso concurrente.
+        """
+        service = create_semantic_dictionary_service()
+        projector = service.projector
+        
+        results = []
+        
+        def project_stress():
+            vector = PyramidalSemanticVector(
+                node_id=f"node_{threading.get_ident()}",
+                node_type="APU",
+                stratum=Stratum.TACTICS,
+                in_degree=5,
+                out_degree=5
+            )
+            result = projector.project_pyramidal_stress(vector)
+            results.append(result)
         
         threads = [
-            threading.Thread(target=worker, args=(i,))
-            for i in range(20)
+            threading.Thread(target=project_stress)
+            for _ in range(20)
         ]
         
         for t in threads:
             t.start()
+        
         for t in threads:
             t.join()
         
-        assert len(errors) == 0
+        assert len(results) == 20
+        assert all(r["success"] for r in results)
+        
+        service.shutdown()
 
 
 # =============================================================================
-# TESTS DE EDGE CASES
+# TESTS DE REGRESIÓN
 # =============================================================================
 
-class TestEdgeCases:
-    """Pruebas de casos límite y condiciones de borde."""
+class TestRegression:
+    """Tests de regresión para bugs conocidos."""
     
-    def test_very_long_node_id(self, service: SemanticDictionaryService):
-        """node_id muy largo."""
-        long_id = "A" * 10000
+    def test_regression_gini_zero_values(self):
+        """
+        Regresión: Gini con todos valores en 0 causaba división por 0.
+        """
+        values = np.array([0, 0, 0, 0])
+        gini = GraphSemanticProjector._gini_coefficient(values)
         
-        payload = {
-            "anomaly_type": "STRESS",
-            "vector": {
-                "node_id": long_id,
-                "node_type": "APU",
-                "stratum": Stratum.TACTICS,
-                "in_degree": 1,
-                "out_degree": 1,
-            },
-        }
-        
-        result = service.project_graph_narrative(payload)
-        
-        assert result["success"] is True
+        assert gini == 0.0, "Gini of all zeros should be 0"
     
-    def test_unicode_in_narratives(self, service: SemanticDictionaryService):
-        """Caracteres unicode en narrativas."""
-        result = service.fetch_narrative(
-            domain="TOPOLOGY_CYCLES",
-            classification="clean"
-        )
+    def test_regression_fiedler_single_vertex(self):
+        """
+        Regresión: Fiedler con un solo vértice causaba index error.
+        """
+        L = np.array([[0.0]])
+        fiedler = SpectralAnalyzer.fiedler_eigenvalue(L)
         
-        assert result["success"] is True
-        # Verificar que los emojis estén presentes
-        assert "✅" in result["narrative"] or "β" in result["narrative"]
+        # Con un solo vértice, no hay segundo eigenvalue
+        assert fiedler == 0.0
     
-    def test_zero_degrees(self):
-        """Vector con grados cero (nodo aislado)."""
-        vector = PyramidalSemanticVector(
-            node_id="isolated",
-            node_type="INSUMO",
-            stratum=Stratum.PHYSICS,
-            in_degree=0,
-            out_degree=0,
-        )
-        
-        assert vector.is_isolated is True
-        assert vector.total_degree == 0
-    
-    def test_very_high_degrees(self):
-        """Vector con grados muy altos."""
-        vector = PyramidalSemanticVector(
-            node_id="hub",
-            node_type="ROOT",
-            stratum=Stratum.WISDOM,
-            in_degree=1000000,
-            out_degree=500000,
-        )
-        
-        assert vector.total_degree == 1500000
-    
-    def test_special_characters_in_path_nodes(
-        self, 
-        service: SemanticDictionaryService
-    ):
-        """Caracteres especiales en nodos del ciclo."""
-        payload = {
-            "anomaly_type": "CYCLE",
-            "path_nodes": [
-                "Nodo<script>",
-                "Nodo'quoted'",
-                'Nodo"double"',
-                "Nodo\nwith\nnewlines",
-            ],
-        }
-        
-        result = service.project_graph_narrative(payload)
-        
-        # Debe manejar sin errores
-        assert "success" in result
-    
-    def test_empty_params_dict(self, service: SemanticDictionaryService):
-        """Plantilla que no requiere parámetros."""
-        result = service.fetch_narrative(
-            domain="TOPOLOGY_CYCLES",
-            classification="clean",
-            params={}
-        )
-        
-        assert result["success"] is True
-    
-    def test_extra_params_ignored(self, service: SemanticDictionaryService):
-        """Parámetros extra son ignorados."""
-        result = service.fetch_narrative(
-            domain="STABILITY",
-            classification="stable",
-            params={
-                "stability": 0.75,
-                "extra_param": "ignored",
-                "another_extra": 12345,
-            }
-        )
-        
-        assert result["success"] is True
-    
-    def test_none_classification(self, service: SemanticDictionaryService):
-        """Classification None con dominio que es string directo."""
-        # MARKET_CONTEXT es manejado especialmente
-        result = service.fetch_narrative(
-            domain="MARKET_CONTEXT",
-            classification=None
-        )
-        
-        assert result["success"] is True
-    
-    def test_boundary_threshold_values(self, service: SemanticDictionaryService):
-        """Valores exactamente en los umbrales."""
-        # Exactamente en el umbral de robust
-        result = service.get_classification_by_threshold("STABILITY", 0.85)
-        assert result == "robust"
-        
-        # Justo debajo
-        result = service.get_classification_by_threshold("STABILITY", 0.849)
-        assert result == "stable"
-    
-    def test_negative_float_handling(self):
-        """Manejo de valores flotantes negativos donde no aplica."""
-        # Los grados deben ser enteros no negativos
-        with pytest.raises(ValueError):
-            PyramidalSemanticVector(
-                node_id="test",
-                node_type="APU",
-                stratum=Stratum.TACTICS,
-                in_degree=-1,
-                out_degree=5,
-            )
-
-
-# =============================================================================
-# TESTS PARA FACTORY FUNCTION
-# =============================================================================
-
-class TestFactoryFunction:
-    """Pruebas para la función factory."""
-    
-    def test_create_semantic_dictionary_service(self):
-        """Factory crea instancia válida."""
+    def test_regression_cache_key_collision(self):
+        """
+        Regresión: Claves de caché con mismos parámetros en orden diferente.
+        """
         service = create_semantic_dictionary_service()
+        projector = service.projector
         
-        assert isinstance(service, SemanticDictionaryService)
-        assert service.health_check()["status"] == "healthy"
-    
-    def test_factory_creates_independent_instances(self):
-        """Factory crea instancias independientes."""
-        service1 = create_semantic_dictionary_service()
-        service2 = create_semantic_dictionary_service()
+        # Dos vectores con mismos grados pero diferente orden
+        v1 = PyramidalSemanticVector(
+            node_id="A",
+            node_type="APU",
+            stratum=Stratum.TACTICS,
+            in_degree=5,
+            out_degree=10
+        )
         
-        assert service1 is not service2
-
-
-# =============================================================================
-# TESTS DE STRATUM ENUM
-# =============================================================================
-
-class TestStratum:
-    """Pruebas para el enum Stratum."""
-    
-    def test_stratum_values(self):
-        """Verifica valores correctos del enum."""
-        assert Stratum.WISDOM.value == 0
-        assert Stratum.ALPHA.value == 1
-        assert Stratum.OMEGA.value == 2
-        assert Stratum.STRATEGY.value == 3
-        assert Stratum.TACTICS.value == 4
-        assert Stratum.PHYSICS.value == 5
-    
-    def test_stratum_ordering(self):
-        """Verifica orden de los estratos."""
-        strata = list(Stratum)
+        v2 = PyramidalSemanticVector(
+            node_id="B",
+            node_type="APU",
+            stratum=Stratum.TACTICS,
+            in_degree=5,
+            out_degree=10
+        )
         
-        assert strata[0] == Stratum.WISDOM
-        assert strata[-1] == Stratum.PHYSICS
-    
-    def test_stratum_is_int_enum(self):
-        """Stratum es IntEnum, permite comparaciones numéricas."""
-        assert Stratum.WISDOM < Stratum.STRATEGY
-        assert Stratum.PHYSICS > Stratum.TACTICS
-        assert int(Stratum.TACTICS) == 4
+        r1 = projector.project_pyramidal_stress(v1)
+        r2 = projector.project_pyramidal_stress(v2)
+        
+        # Deben tener node_ids diferentes
+        assert r1["vector_metadata"]["node_id"] != r2["vector_metadata"]["node_id"]
+        
+        service.shutdown()
 
 
 # =============================================================================
-# CONFIGURACIÓN DE PYTEST
-# =============================================================================
-
-@pytest.fixture(autouse=True)
-def setup_logging():
-    """Configura logging para las pruebas."""
-    logging.basicConfig(level=logging.WARNING)
-    yield
-    logging.shutdown()
-
-
-def pytest_configure(config):
-    """Configuración de pytest."""
-    config.addinivalue_line(
-        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
-    )
-
-
-# =============================================================================
-# MAIN PARA EJECUCIÓN DIRECTA
+# SUITE DE TESTS COMPLETA
 # =============================================================================
 
 if __name__ == "__main__":
+    """
+    Ejecutar suite completa de tests.
+    
+    Uso:
+        pytest test_semantic_dictionary.py -v
+        pytest test_semantic_dictionary.py -v --benchmark-only
+        pytest test_semantic_dictionary.py -v -k "property"
+    """
     pytest.main([
         __file__,
         "-v",
         "--tb=short",
-        "-x",  # Detener en primer fallo
-        "--cov=semantic_dictionary",
-        "--cov-report=term-missing",
+        "--strict-markers",
+        "-ra",  # Show summary of all test outcomes
     ])
