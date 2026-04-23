@@ -7,7 +7,7 @@ Este es un sistema ciber-físico escrito en Python que procesa presupuestos de c
 
 Debes delegar la responsabilidad de revisar, analizar y proponer mejoras rigurosas a los métodos de la arquitectura "APU Filter" a los sub-agentes que se alojan en ".gemini/agents".
 
-Una vez los sub-agentes han propuesto, cada uno, sus mejoras en los métodos, debes transferir la propuesta al operador asíncrono Jules para que aplique, valide y evalúe los ajustes.
+Una vez los sub-agentes han propuesto, cada uno, sus mejoras en los métodos o clases, debes transferir la propuesta al operador asíncrono Jules para que aplique, valide y evalúe los ajustes.
 
 ## Directrices Estrictas de Gobernanza:
 

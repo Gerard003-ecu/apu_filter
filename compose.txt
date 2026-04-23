@@ -146,6 +146,7 @@ services:
   # ─────────────────────────────────────────────────────────────────────────
   core:
     image: apu-core:latest
+    userns_mode: "keep-id"
     pull_policy: never
 
     build:
@@ -186,13 +187,8 @@ services:
     #   start_period + (interval × retries) = 300 + (30 × 5) = 450s = 7.5 min
     healthcheck:
       test:
-        - "CMD"
-        - "curl"
-        - "--silent"
-        - "--fail"
-        - "--max-time"
-        - "8"
-        - "http://localhost:5002/health"
+        - "CMD-SHELL"
+        - "curl --silent --fail --max-time 8 http://localhost:5002/health || exit 1"
       interval: 30s
       timeout: 10s
       retries: 5
@@ -253,6 +249,7 @@ services:
   # ─────────────────────────────────────────────────────────────────────────
   agent:
     image: apu-agent:latest
+    userns_mode: "keep-id"
     pull_policy: never
 
     build:
@@ -276,10 +273,10 @@ services:
       # Intervalo de muestreo del loop principal (segundos)
       # Rango válido: 1-3600. Default: 1 (alta frecuencia / real-time).
       # Valores bajos aumentan carga de CPU. Ajustar según caso de uso.
-      CHECK_INTERVAL: "1"
+      CHECK_INTERVAL: "10"
       # Nivel de logging del agent
       # Valores válidos: DEBUG, INFO, WARNING, ERROR, CRITICAL
-      LOG_LEVEL: "INFO"
+      LOG_LEVEL: "WARNING"
       # PYTHONUNBUFFERED y PYTHONPATH: definidos en Dockerfile.agent v7.0
 
     depends_on:

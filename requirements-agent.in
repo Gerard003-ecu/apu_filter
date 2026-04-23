@@ -1,7 +1,8 @@
-requests
-schedule
+matplotlib
 networkx
 numpy
+requests
+schedule
 scikit-learn
 scipy
-matplotlib
+urllib3>=2.0.0
