@@ -1,0 +1,723 @@
+=================================== FAILURES ===================================
+_____________ TestEndToEndFlow.test_tactics_failure_detects_cycles _____________
+
+self = <tests.test_integration_narrative_semantic.TestEndToEndFlow object at 0x77758acdb1f0>
+narrator = <app.core.telemetry_narrative.TelemetryNarrator object at 0x777566e69e40>
+translator = <app.wisdom.semantic_translator.SemanticTranslator object at 0x777566e6b0a0>
+
+    def test_tactics_failure_detects_cycles(
+        self,
+        narrator: TelemetryNarrator,
+        translator: SemanticTranslator,
+    ) -> None:
+        """
+        Fallo en TACTICS (ciclos) → narrativa menciona ciclos.
+        """
+        context = _create_tactics_failure_context()
+    
+        telemetry_report = narrator.summarize_execution(context)
+        assert "TACTICS" in telemetry_report["verdict_code"]
+    
+        strategic_report = translator.compose_strategic_narrative(
+            topological_metrics=TopologicalMetrics(beta_0=1, beta_1=3),
+            financial_metrics={
+                "performance": {"recommendation": "REVISAR"},
+            },
+            stability=10.0,
+        )
+    
+>       _assert_narrative_contains_any(
+            strategic_report.raw_narrative,
+            ["socavón", "ciclo", "agujero", "β₁", "homolog"],
+            "tactics-cycles",
+        )
+
+tests/test_integration_narrative_semantic.py:590: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+narrative = '# 🏗 INFORME DE INGENIERÍA ESTRATÉGICA\n\n*Análisis de Coherencia Fractal | Estabilidad Crítica: Ψ < 1.0*\n\n## 🏗 Diag...uelo de Mercado**: Datos de mercado no disponibles.\n\n### 🏛 Dictamen del Ingeniero Jefe\n\n[FINAL_VERDICTS.has_holes]'
+terms = ['socavón', 'ciclo', 'agujero', 'β₁', 'homolog']
+context = 'tactics-cycles'
+
+    def _assert_narrative_contains_any(
+        narrative: str,
+        terms: List[str],
+        context: str = "",
+    ) -> None:
+        """
+        Verifica que la narrativa contiene al menos uno de los términos.
+    
+        Parameters
+        ----------
+        narrative : str
+            Texto a buscar.
+        terms : List[str]
+            Términos candidatos (case-insensitive, búsqueda parcial).
+        context : str
+            Descripción para mensajes de error.
+        """
+        narrative_lower = narrative.lower()
+        found = [t for t in terms if t.lower() in narrative_lower]
+    
+>       assert len(found) > 0, (
+            f"[{context}] Narrativa no contiene ninguno de: {terms}.\n"
+            f"Narrativa (500 chars): '{narrative_lower[:500]}...'"
+        )
+E       AssertionError: [tactics-cycles] Narrativa no contiene ninguno de: ['socavón', 'ciclo', 'agujero', 'β₁', 'homolog'].
+E         Narrativa (500 chars): '# 🏗 informe de ingeniería estratégica
+E         
+E         *análisis de coherencia fractal | estabilidad crítica: ψ < 1.0*
+E         
+E         ## 🏗 diagnóstico del edificio vivo
+E         
+E         el edificio tiene una **cimentación sólida** (ψ=10.00). la base de recursos es amplia y redundante. ✅ gracias a la base ancha, la estructura actúa como un **disipador de calor** eficiente. el riesgo de sobrecostos se diluye en la red de proveedores resiliente. el entorno es térmicamente estable (26.9°c). el riesgo inflacionario externo es bajo.
+E         
+E         ### 0. dinám...'
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests/test_integration_narrative_semantic.py:230: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2026-04-23 14:18:00,606 - MIC.Registry - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+2026-04-23 14:18:00,606 - MIC.Registry - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+2026-04-23 14:18:00,606 - MIC.Registry - INFO - Vector registrado: 'structure_logic' [TACTICS]
+2026-04-23 14:18:00,606 - MIC.Registry - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+2026-04-23 14:18:00,606 - MIC.Registry - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+2026-04-23 14:18:00,607 - SemanticDictionary - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+2026-04-23 14:18:00,607 - MIC - WARNING - ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+2026-04-23 14:18:00,607 - MIC - INFO - ✅ MIC inicializada con 5 vectores (dimensión=5)
+2026-04-23 14:18:00,607 - MIC.Registry - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+2026-04-23 14:18:00,608 - MIC.Registry - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+2026-04-23 14:18:00,608 - MIC.Registry - INFO - Vector registrado: 'structure_logic' [TACTICS]
+2026-04-23 14:18:00,608 - MIC.Registry - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+2026-04-23 14:18:00,608 - MIC.Registry - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+2026-04-23 14:18:00,608 - SemanticDictionary - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+2026-04-23 14:18:00,608 - MIC - WARNING - ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+2026-04-23 14:18:00,608 - MIC - INFO - ✅ MIC inicializada con 5 vectores (dimensión=5)
+------------------------------ Captured log setup ------------------------------
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     SemanticDictionary:semantic_dictionary.py:1247 ✅ SemanticDictionaryService v2.0 initialized successfully
+WARNING  MIC:tools_interface.py:2735 ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+INFO     MIC:tools_interface.py:2737 ✅ MIC inicializada con 5 vectores (dimensión=5)
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     SemanticDictionary:semantic_dictionary.py:1247 ✅ SemanticDictionaryService v2.0 initialized successfully
+WARNING  MIC:tools_interface.py:2735 ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+INFO     MIC:tools_interface.py:2737 ✅ MIC inicializada con 5 vectores (dimensión=5)
+_________ TestNarrativeCoherence.test_success_narratives_are_positive __________
+
+self = <tests.test_integration_narrative_semantic.TestNarrativeCoherence object at 0x77758acdb640>
+narrator = <app.core.telemetry_narrative.TelemetryNarrator object at 0x777566f89c60>
+translator = <app.wisdom.semantic_translator.SemanticTranslator object at 0x777566f89f00>
+
+    def test_success_narratives_are_positive(
+        self,
+        narrator: TelemetryNarrator,
+        translator: SemanticTranslator,
+    ) -> None:
+        """
+        Invariante (C1): pipeline exitoso → narrativas positivas.
+        """
+        context = _create_successful_context()
+    
+        telemetry_report = narrator.summarize_execution(context)
+        strategic_report = translator.compose_strategic_narrative(
+            topological_metrics=TopologicalMetrics(),
+            financial_metrics={
+                "performance": {
+                    "recommendation": "ACEPTAR",
+                    "profitability_index": 1.5,
+                },
+            },
+            stability=20.0,
+        )
+    
+>       _assert_narrative_contains_any(
+            telemetry_report.get("executive_summary", ""),
+            ["✅", "CERTIFICADO", "aprobad", "exitoso"],
+            "narrator-positive",
+        )
+
+tests/test_integration_narrative_semantic.py:673: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+narrative = '[TELEMETRY_VERDICTS.APPROVED]\n'
+terms = ['✅', 'CERTIFICADO', 'aprobad', 'exitoso']
+context = 'narrator-positive'
+
+    def _assert_narrative_contains_any(
+        narrative: str,
+        terms: List[str],
+        context: str = "",
+    ) -> None:
+        """
+        Verifica que la narrativa contiene al menos uno de los términos.
+    
+        Parameters
+        ----------
+        narrative : str
+            Texto a buscar.
+        terms : List[str]
+            Términos candidatos (case-insensitive, búsqueda parcial).
+        context : str
+            Descripción para mensajes de error.
+        """
+        narrative_lower = narrative.lower()
+        found = [t for t in terms if t.lower() in narrative_lower]
+    
+>       assert len(found) > 0, (
+            f"[{context}] Narrativa no contiene ninguno de: {terms}.\n"
+            f"Narrativa (500 chars): '{narrative_lower[:500]}...'"
+        )
+E       AssertionError: [narrator-positive] Narrativa no contiene ninguno de: ['✅', 'CERTIFICADO', 'aprobad', 'exitoso'].
+E         Narrativa (500 chars): '[telemetry_verdicts.approved]
+E         ...'
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests/test_integration_narrative_semantic.py:230: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2026-04-23 14:18:00,643 - MIC.Registry - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+2026-04-23 14:18:00,643 - MIC.Registry - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+2026-04-23 14:18:00,643 - MIC.Registry - INFO - Vector registrado: 'structure_logic' [TACTICS]
+2026-04-23 14:18:00,643 - MIC.Registry - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+2026-04-23 14:18:00,643 - MIC.Registry - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+2026-04-23 14:18:00,644 - SemanticDictionary - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+2026-04-23 14:18:00,644 - MIC - WARNING - ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+2026-04-23 14:18:00,644 - MIC - INFO - ✅ MIC inicializada con 5 vectores (dimensión=5)
+2026-04-23 14:18:00,644 - MIC.Registry - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+2026-04-23 14:18:00,644 - MIC.Registry - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+2026-04-23 14:18:00,644 - MIC.Registry - INFO - Vector registrado: 'structure_logic' [TACTICS]
+2026-04-23 14:18:00,644 - MIC.Registry - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+2026-04-23 14:18:00,644 - MIC.Registry - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+2026-04-23 14:18:00,645 - SemanticDictionary - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+2026-04-23 14:18:00,645 - MIC - WARNING - ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+2026-04-23 14:18:00,645 - MIC - INFO - ✅ MIC inicializada con 5 vectores (dimensión=5)
+------------------------------ Captured log setup ------------------------------
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     SemanticDictionary:semantic_dictionary.py:1247 ✅ SemanticDictionaryService v2.0 initialized successfully
+WARNING  MIC:tools_interface.py:2735 ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+INFO     MIC:tools_interface.py:2737 ✅ MIC inicializada con 5 vectores (dimensión=5)
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     SemanticDictionary:semantic_dictionary.py:1247 ✅ SemanticDictionaryService v2.0 initialized successfully
+WARNING  MIC:tools_interface.py:2735 ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+INFO     MIC:tools_interface.py:2737 ✅ MIC inicializada con 5 vectores (dimensión=5)
+_____ TestBettiNumberConsistency.test_euler_poincare_consistency[3-cycles] _____
+
+self = <tests.test_integration_narrative_semantic.TestBettiNumberConsistency object at 0x77758ab05870>
+translator = <app.wisdom.semantic_translator.SemanticTranslator object at 0x77758acda650>
+beta_0 = 1, beta_1 = 3, expected_chi = -2
+
+    @pytest.mark.parametrize(
+        "beta_0, beta_1, expected_chi",
+        [
+            (1, 0, 1),    # Árbol conexo
+            (1, 3, -2),   # Conexo con 3 ciclos
+            (3, 2, 1),    # 3 componentes, 2 ciclos
+            (1, 1, 0),    # Conexo con 1 ciclo
+        ],
+        ids=["tree", "3-cycles", "3-components", "1-cycle"],
+    )
+    def test_euler_poincare_consistency(
+        self,
+        translator: SemanticTranslator,
+        beta_0: int,
+        beta_1: int,
+        expected_chi: int,
+    ) -> None:
+        """
+        χ = β₀ - β₁ es consistente para todos los casos.
+        """
+        calculated_chi = beta_0 - beta_1
+        assert calculated_chi == expected_chi, (
+            f"χ inconsistente: β₀={beta_0}, β₁={beta_1}, "
+            f"χ calculado={calculated_chi}, esperado={expected_chi}."
+        )
+    
+        topology = TopologicalMetrics(
+            beta_0=beta_0,
+            beta_1=beta_1,
+            euler_characteristic=expected_chi,
+        )
+    
+        report = translator.compose_strategic_narrative(
+            topological_metrics=topology,
+            financial_metrics={
+                "performance": {"recommendation": "ACEPTAR"},
+            },
+            stability=10.0,
+        )
+    
+        if beta_1 > 0:
+>           _assert_narrative_contains_any(
+                report.raw_narrative,
+                ["ciclo", "socavón", "agujero", "β₁", "homolog"],
+                f"betti-β₁={beta_1}",
+            )
+
+tests/test_integration_narrative_semantic.py:1151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+narrative = '# 🏗 INFORME DE INGENIERÍA ESTRATÉGICA\n\n*Análisis de Coherencia Fractal | Estabilidad Crítica: Ψ < 1.0*\n\n## 🏗 Diag...uelo de Mercado**: Datos de mercado no disponibles.\n\n### 🏛 Dictamen del Ingeniero Jefe\n\n[FINAL_VERDICTS.has_holes]'
+terms = ['ciclo', 'socavón', 'agujero', 'β₁', 'homolog'], context = 'betti-β₁=3'
+
+    def _assert_narrative_contains_any(
+        narrative: str,
+        terms: List[str],
+        context: str = "",
+    ) -> None:
+        """
+        Verifica que la narrativa contiene al menos uno de los términos.
+    
+        Parameters
+        ----------
+        narrative : str
+            Texto a buscar.
+        terms : List[str]
+            Términos candidatos (case-insensitive, búsqueda parcial).
+        context : str
+            Descripción para mensajes de error.
+        """
+        narrative_lower = narrative.lower()
+        found = [t for t in terms if t.lower() in narrative_lower]
+    
+>       assert len(found) > 0, (
+            f"[{context}] Narrativa no contiene ninguno de: {terms}.\n"
+            f"Narrativa (500 chars): '{narrative_lower[:500]}...'"
+        )
+E       AssertionError: [betti-β₁=3] Narrativa no contiene ninguno de: ['ciclo', 'socavón', 'agujero', 'β₁', 'homolog'].
+E         Narrativa (500 chars): '# 🏗 informe de ingeniería estratégica
+E         
+E         *análisis de coherencia fractal | estabilidad crítica: ψ < 1.0*
+E         
+E         ## 🏗 diagnóstico del edificio vivo
+E         
+E         el edificio tiene una **cimentación sólida** (ψ=10.00). la base de recursos es amplia y redundante. ✅ gracias a la base ancha, la estructura actúa como un **disipador de calor** eficiente. el riesgo de sobrecostos se diluye en la red de proveedores resiliente. el entorno es térmicamente estable (26.9°c). el riesgo inflacionario externo es bajo.
+E         
+E         ### 0. dinám...'
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests/test_integration_narrative_semantic.py:230: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2026-04-23 14:18:00,792 - MIC.Registry - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+2026-04-23 14:18:00,792 - MIC.Registry - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+2026-04-23 14:18:00,792 - MIC.Registry - INFO - Vector registrado: 'structure_logic' [TACTICS]
+2026-04-23 14:18:00,792 - MIC.Registry - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+2026-04-23 14:18:00,792 - MIC.Registry - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+2026-04-23 14:18:00,792 - SemanticDictionary - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+2026-04-23 14:18:00,793 - MIC - WARNING - ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+2026-04-23 14:18:00,793 - MIC - INFO - ✅ MIC inicializada con 5 vectores (dimensión=5)
+------------------------------ Captured log setup ------------------------------
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     SemanticDictionary:semantic_dictionary.py:1247 ✅ SemanticDictionaryService v2.0 initialized successfully
+WARNING  MIC:tools_interface.py:2735 ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+INFO     MIC:tools_interface.py:2737 ✅ MIC inicializada con 5 vectores (dimensión=5)
+___ TestBettiNumberConsistency.test_euler_poincare_consistency[3-components] ___
+
+self = <tests.test_integration_narrative_semantic.TestBettiNumberConsistency object at 0x77758ab05ab0>
+translator = <app.wisdom.semantic_translator.SemanticTranslator object at 0x7775897cbf10>
+beta_0 = 3, beta_1 = 2, expected_chi = 1
+
+    @pytest.mark.parametrize(
+        "beta_0, beta_1, expected_chi",
+        [
+            (1, 0, 1),    # Árbol conexo
+            (1, 3, -2),   # Conexo con 3 ciclos
+            (3, 2, 1),    # 3 componentes, 2 ciclos
+            (1, 1, 0),    # Conexo con 1 ciclo
+        ],
+        ids=["tree", "3-cycles", "3-components", "1-cycle"],
+    )
+    def test_euler_poincare_consistency(
+        self,
+        translator: SemanticTranslator,
+        beta_0: int,
+        beta_1: int,
+        expected_chi: int,
+    ) -> None:
+        """
+        χ = β₀ - β₁ es consistente para todos los casos.
+        """
+        calculated_chi = beta_0 - beta_1
+        assert calculated_chi == expected_chi, (
+            f"χ inconsistente: β₀={beta_0}, β₁={beta_1}, "
+            f"χ calculado={calculated_chi}, esperado={expected_chi}."
+        )
+    
+        topology = TopologicalMetrics(
+            beta_0=beta_0,
+            beta_1=beta_1,
+            euler_characteristic=expected_chi,
+        )
+    
+        report = translator.compose_strategic_narrative(
+            topological_metrics=topology,
+            financial_metrics={
+                "performance": {"recommendation": "ACEPTAR"},
+            },
+            stability=10.0,
+        )
+    
+        if beta_1 > 0:
+>           _assert_narrative_contains_any(
+                report.raw_narrative,
+                ["ciclo", "socavón", "agujero", "β₁", "homolog"],
+                f"betti-β₁={beta_1}",
+            )
+
+tests/test_integration_narrative_semantic.py:1151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+narrative = '# 🏗 INFORME DE INGENIERÍA ESTRATÉGICA\n\n*Análisis de Coherencia Fractal | Estabilidad Crítica: Ψ < 1.0*\n\n## 🏗 Diag...uelo de Mercado**: Datos de mercado no disponibles.\n\n### 🏛 Dictamen del Ingeniero Jefe\n\n[FINAL_VERDICTS.has_holes]'
+terms = ['ciclo', 'socavón', 'agujero', 'β₁', 'homolog'], context = 'betti-β₁=2'
+
+    def _assert_narrative_contains_any(
+        narrative: str,
+        terms: List[str],
+        context: str = "",
+    ) -> None:
+        """
+        Verifica que la narrativa contiene al menos uno de los términos.
+    
+        Parameters
+        ----------
+        narrative : str
+            Texto a buscar.
+        terms : List[str]
+            Términos candidatos (case-insensitive, búsqueda parcial).
+        context : str
+            Descripción para mensajes de error.
+        """
+        narrative_lower = narrative.lower()
+        found = [t for t in terms if t.lower() in narrative_lower]
+    
+>       assert len(found) > 0, (
+            f"[{context}] Narrativa no contiene ninguno de: {terms}.\n"
+            f"Narrativa (500 chars): '{narrative_lower[:500]}...'"
+        )
+E       AssertionError: [betti-β₁=2] Narrativa no contiene ninguno de: ['ciclo', 'socavón', 'agujero', 'β₁', 'homolog'].
+E         Narrativa (500 chars): '# 🏗 informe de ingeniería estratégica
+E         
+E         *análisis de coherencia fractal | estabilidad crítica: ψ < 1.0*
+E         
+E         ## 🏗 diagnóstico del edificio vivo
+E         
+E         el edificio tiene una **cimentación sólida** (ψ=10.00). la base de recursos es amplia y redundante. ✅ gracias a la base ancha, la estructura actúa como un **disipador de calor** eficiente. el riesgo de sobrecostos se diluye en la red de proveedores resiliente. el entorno es térmicamente estable (26.9°c). el riesgo inflacionario externo es bajo.
+E         
+E         ### 0. dinám...'
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests/test_integration_narrative_semantic.py:230: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2026-04-23 14:18:00,817 - MIC.Registry - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+2026-04-23 14:18:00,817 - MIC.Registry - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+2026-04-23 14:18:00,817 - MIC.Registry - INFO - Vector registrado: 'structure_logic' [TACTICS]
+2026-04-23 14:18:00,817 - MIC.Registry - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+2026-04-23 14:18:00,817 - MIC.Registry - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+2026-04-23 14:18:00,818 - SemanticDictionary - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+2026-04-23 14:18:00,818 - MIC - WARNING - ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+2026-04-23 14:18:00,818 - MIC - INFO - ✅ MIC inicializada con 5 vectores (dimensión=5)
+------------------------------ Captured log setup ------------------------------
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     SemanticDictionary:semantic_dictionary.py:1247 ✅ SemanticDictionaryService v2.0 initialized successfully
+WARNING  MIC:tools_interface.py:2735 ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+INFO     MIC:tools_interface.py:2737 ✅ MIC inicializada con 5 vectores (dimensión=5)
+_____ TestBettiNumberConsistency.test_euler_poincare_consistency[1-cycle] ______
+
+self = <tests.test_integration_narrative_semantic.TestBettiNumberConsistency object at 0x77758ab05b70>
+translator = <app.wisdom.semantic_translator.SemanticTranslator object at 0x777567213970>
+beta_0 = 1, beta_1 = 1, expected_chi = 0
+
+    @pytest.mark.parametrize(
+        "beta_0, beta_1, expected_chi",
+        [
+            (1, 0, 1),    # Árbol conexo
+            (1, 3, -2),   # Conexo con 3 ciclos
+            (3, 2, 1),    # 3 componentes, 2 ciclos
+            (1, 1, 0),    # Conexo con 1 ciclo
+        ],
+        ids=["tree", "3-cycles", "3-components", "1-cycle"],
+    )
+    def test_euler_poincare_consistency(
+        self,
+        translator: SemanticTranslator,
+        beta_0: int,
+        beta_1: int,
+        expected_chi: int,
+    ) -> None:
+        """
+        χ = β₀ - β₁ es consistente para todos los casos.
+        """
+        calculated_chi = beta_0 - beta_1
+        assert calculated_chi == expected_chi, (
+            f"χ inconsistente: β₀={beta_0}, β₁={beta_1}, "
+            f"χ calculado={calculated_chi}, esperado={expected_chi}."
+        )
+    
+        topology = TopologicalMetrics(
+            beta_0=beta_0,
+            beta_1=beta_1,
+            euler_characteristic=expected_chi,
+        )
+    
+        report = translator.compose_strategic_narrative(
+            topological_metrics=topology,
+            financial_metrics={
+                "performance": {"recommendation": "ACEPTAR"},
+            },
+            stability=10.0,
+        )
+    
+        if beta_1 > 0:
+>           _assert_narrative_contains_any(
+                report.raw_narrative,
+                ["ciclo", "socavón", "agujero", "β₁", "homolog"],
+                f"betti-β₁={beta_1}",
+            )
+
+tests/test_integration_narrative_semantic.py:1151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+narrative = '# 🏗 INFORME DE INGENIERÍA ESTRATÉGICA\n\n*Análisis de Coherencia Fractal | Estabilidad Crítica: Ψ < 1.0*\n\n## 🏗 Diag...uelo de Mercado**: Datos de mercado no disponibles.\n\n### 🏛 Dictamen del Ingeniero Jefe\n\n[FINAL_VERDICTS.has_holes]'
+terms = ['ciclo', 'socavón', 'agujero', 'β₁', 'homolog'], context = 'betti-β₁=1'
+
+    def _assert_narrative_contains_any(
+        narrative: str,
+        terms: List[str],
+        context: str = "",
+    ) -> None:
+        """
+        Verifica que la narrativa contiene al menos uno de los términos.
+    
+        Parameters
+        ----------
+        narrative : str
+            Texto a buscar.
+        terms : List[str]
+            Términos candidatos (case-insensitive, búsqueda parcial).
+        context : str
+            Descripción para mensajes de error.
+        """
+        narrative_lower = narrative.lower()
+        found = [t for t in terms if t.lower() in narrative_lower]
+    
+>       assert len(found) > 0, (
+            f"[{context}] Narrativa no contiene ninguno de: {terms}.\n"
+            f"Narrativa (500 chars): '{narrative_lower[:500]}...'"
+        )
+E       AssertionError: [betti-β₁=1] Narrativa no contiene ninguno de: ['ciclo', 'socavón', 'agujero', 'β₁', 'homolog'].
+E         Narrativa (500 chars): '# 🏗 informe de ingeniería estratégica
+E         
+E         *análisis de coherencia fractal | estabilidad crítica: ψ < 1.0*
+E         
+E         ## 🏗 diagnóstico del edificio vivo
+E         
+E         el edificio tiene una **cimentación sólida** (ψ=10.00). la base de recursos es amplia y redundante. ✅ gracias a la base ancha, la estructura actúa como un **disipador de calor** eficiente. el riesgo de sobrecostos se diluye en la red de proveedores resiliente. el entorno es térmicamente estable (26.9°c). el riesgo inflacionario externo es bajo.
+E         
+E         ### 0. dinám...'
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests/test_integration_narrative_semantic.py:230: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2026-04-23 14:18:00,842 - MIC.Registry - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+2026-04-23 14:18:00,842 - MIC.Registry - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+2026-04-23 14:18:00,842 - MIC.Registry - INFO - Vector registrado: 'structure_logic' [TACTICS]
+2026-04-23 14:18:00,842 - MIC.Registry - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+2026-04-23 14:18:00,842 - MIC.Registry - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+2026-04-23 14:18:00,843 - SemanticDictionary - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+2026-04-23 14:18:00,843 - MIC - WARNING - ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+2026-04-23 14:18:00,843 - MIC - INFO - ✅ MIC inicializada con 5 vectores (dimensión=5)
+------------------------------ Captured log setup ------------------------------
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     SemanticDictionary:semantic_dictionary.py:1247 ✅ SemanticDictionaryService v2.0 initialized successfully
+WARNING  MIC:tools_interface.py:2735 ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+INFO     MIC:tools_interface.py:2737 ✅ MIC inicializada con 5 vectores (dimensión=5)
+______________ TestSpecialCases.test_synergy_risk_always_rejects _______________
+
+self = <test_pyramidal_coherence.TestSpecialCases object at 0x777589fde830>
+translator = <app.wisdom.semantic_translator.SemanticTranslator object at 0x777589e29ff0>
+
+    def test_synergy_risk_always_rejects(
+        self,
+        translator: SemanticTranslator,
+    ) -> None:
+        """Verifica que riesgo de sinergia siempre rechaza."""
+        synergy = {
+            "synergy_detected": True,
+            "intersecting_cycles_count": 3,
+            "intersecting_cycles": [["A", "B", "C"]],
+        }
+    
+        report = translator.compose_strategic_narrative(
+            topological_metrics=make_topology(beta_0=1, beta_1=0),
+            financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
+            stability=20.0,
+            synergy_risk=synergy,
+        )
+    
+        assert report.verdict == VerdictLevel.RECHAZAR
+>       assert_contains_any(
+            report.raw_narrative,
+            ["Dominó", "EMERGENCIA", "Sinergia", "contagio"],
+            "Debe mencionar el efecto dominó",
+        )
+
+tests/unit/core/test_pyramidal_coherence.py:1645: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+text = '# 🏗 INFORME DE INGENIERÍA ESTRATÉGICA\n\n*Análisis de Coherencia Fractal | Estabilidad Crítica: Ψ < 1.0*\n\n## 🏗 Diag...o de Mercado**: Datos de mercado no disponibles.\n\n### 🏛 Dictamen del Ingeniero Jefe\n\n[FINAL_VERDICTS.synergy_risk]'
+keywords = ['Dominó', 'EMERGENCIA', 'Sinergia', 'contagio']
+msg = 'Debe mencionar el efecto dominó'
+
+    def assert_contains_any(text: str, keywords: Sequence[str], msg: str = "") -> None:
+        """
+        Verifica que el texto contiene al menos una de las palabras clave.
+    
+        Args:
+            text: Texto a buscar.
+            keywords: Lista de palabras clave.
+            msg: Mensaje de error adicional.
+    
+        Raises:
+            AssertionError: Si ninguna palabra clave está presente.
+        """
+        found = any(keyword.lower() in text.lower() for keyword in keywords)
+        if not found:
+>           raise AssertionError(
+                f"{msg}\nEsperado cualquiera de {list(keywords)} en:\n{text[:500]}..."
+            )
+E           AssertionError: Debe mencionar el efecto dominó
+E           Esperado cualquiera de ['Dominó', 'EMERGENCIA', 'Sinergia', 'contagio'] en:
+E           # 🏗 INFORME DE INGENIERÍA ESTRATÉGICA
+E           
+E           *Análisis de Coherencia Fractal | Estabilidad Crítica: Ψ < 1.0*
+E           
+E           ## 🏗 Diagnóstico del Edificio Vivo
+E           
+E           El edificio tiene una **cimentación sólida** (Ψ=20.00). La base de recursos es amplia y redundante. ✅ Gracias a la base ancha, la estructura actúa como un **disipador de calor** eficiente. El riesgo de sobrecostos se diluye en la red de proveedores resiliente. El entorno es térmicamente estable (26.9°C). El riesgo inflacionario externo es bajo.
+E           
+E           ### 0. Dinám...
+
+tests/unit/core/test_pyramidal_coherence.py:342: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2026-04-23 14:18:32,752 - MIC - INFO - MIC global reiniciada
+2026-04-23 14:18:32,752 - SemanticDictionary - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+2026-04-23 14:18:32,752 - MIC.Registry - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+2026-04-23 14:18:32,752 - MIC.Registry - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+2026-04-23 14:18:32,753 - MIC.Registry - INFO - Vector registrado: 'structure_logic' [TACTICS]
+2026-04-23 14:18:32,753 - MIC.Registry - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+2026-04-23 14:18:32,753 - MIC.Registry - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+2026-04-23 14:18:32,753 - SemanticDictionary - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+2026-04-23 14:18:32,753 - MIC - WARNING - ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+2026-04-23 14:18:32,753 - MIC - INFO - ✅ MIC inicializada con 5 vectores (dimensión=5)
+------------------------------ Captured log setup ------------------------------
+INFO     MIC:tools_interface.py:2852 MIC global reiniciada
+INFO     SemanticDictionary:semantic_dictionary.py:1247 ✅ SemanticDictionaryService v2.0 initialized successfully
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:1920 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     SemanticDictionary:semantic_dictionary.py:1247 ✅ SemanticDictionaryService v2.0 initialized successfully
+WARNING  MIC:tools_interface.py:2735 ⚠️ Diccionario semántico no disponible: 'SemanticDictionaryService' object has no attribute 'register_in_mic'
+INFO     MIC:tools_interface.py:2737 ✅ MIC inicializada con 5 vectores (dimensión=5)
+--------------------------- Captured stderr teardown ---------------------------
+2026-04-23 14:18:32,792 - MIC - INFO - MIC global reiniciada
+---------------------------- Captured log teardown -----------------------------
+INFO     MIC:tools_interface.py:2852 MIC global reiniciada
+=========================== short test summary info ============================
+FAILED tests/test_integration_narrative_semantic.py::TestEndToEndFlow::test_tactics_failure_detects_cycles - AssertionError: [tactics-cycles] Narrativa no contiene ninguno de: ['socavón', 'ciclo', 'agujero', 'β₁', 'homolog'].
+  Narrativa (500 chars): '# 🏗 informe de ingeniería estratégica
+  
+  *análisis de coherencia fractal | estabilidad crítica: ψ < 1.0*
+  
+  ## 🏗 diagnóstico del edificio vivo
+  
+  el edificio tiene una **cimentación sólida** (ψ=10.00). la base de recursos es amplia y redundante. ✅ gracias a la base ancha, la estructura actúa como un **disipador de calor** eficiente. el riesgo de sobrecostos se diluye en la red de proveedores resiliente. el entorno es térmicamente estable (26.9°c). el riesgo inflacionario externo es bajo.
+  
+  ### 0. dinám...'
+assert 0 > 0
+ +  where 0 = len([])
+FAILED tests/test_integration_narrative_semantic.py::TestNarrativeCoherence::test_success_narratives_are_positive - AssertionError: [narrator-positive] Narrativa no contiene ninguno de: ['✅', 'CERTIFICADO', 'aprobad', 'exitoso'].
+  Narrativa (500 chars): '[telemetry_verdicts.approved]
+  ...'
+assert 0 > 0
+ +  where 0 = len([])
+FAILED tests/test_integration_narrative_semantic.py::TestBettiNumberConsistency::test_euler_poincare_consistency[3-cycles] - AssertionError: [betti-β₁=3] Narrativa no contiene ninguno de: ['ciclo', 'socavón', 'agujero', 'β₁', 'homolog'].
+  Narrativa (500 chars): '# 🏗 informe de ingeniería estratégica
+  
+  *análisis de coherencia fractal | estabilidad crítica: ψ < 1.0*
+  
+  ## 🏗 diagnóstico del edificio vivo
+  
+  el edificio tiene una **cimentación sólida** (ψ=10.00). la base de recursos es amplia y redundante. ✅ gracias a la base ancha, la estructura actúa como un **disipador de calor** eficiente. el riesgo de sobrecostos se diluye en la red de proveedores resiliente. el entorno es térmicamente estable (26.9°c). el riesgo inflacionario externo es bajo.
+  
+  ### 0. dinám...'
+assert 0 > 0
+ +  where 0 = len([])
+FAILED tests/test_integration_narrative_semantic.py::TestBettiNumberConsistency::test_euler_poincare_consistency[3-components] - AssertionError: [betti-β₁=2] Narrativa no contiene ninguno de: ['ciclo', 'socavón', 'agujero', 'β₁', 'homolog'].
+  Narrativa (500 chars): '# 🏗 informe de ingeniería estratégica
+  
+  *análisis de coherencia fractal | estabilidad crítica: ψ < 1.0*
+  
+  ## 🏗 diagnóstico del edificio vivo
+  
+  el edificio tiene una **cimentación sólida** (ψ=10.00). la base de recursos es amplia y redundante. ✅ gracias a la base ancha, la estructura actúa como un **disipador de calor** eficiente. el riesgo de sobrecostos se diluye en la red de proveedores resiliente. el entorno es térmicamente estable (26.9°c). el riesgo inflacionario externo es bajo.
+  
+  ### 0. dinám...'
+assert 0 > 0
+ +  where 0 = len([])
+FAILED tests/test_integration_narrative_semantic.py::TestBettiNumberConsistency::test_euler_poincare_consistency[1-cycle] - AssertionError: [betti-β₁=1] Narrativa no contiene ninguno de: ['ciclo', 'socavón', 'agujero', 'β₁', 'homolog'].
+  Narrativa (500 chars): '# 🏗 informe de ingeniería estratégica
+  
+  *análisis de coherencia fractal | estabilidad crítica: ψ < 1.0*
+  
+  ## 🏗 diagnóstico del edificio vivo
+  
+  el edificio tiene una **cimentación sólida** (ψ=10.00). la base de recursos es amplia y redundante. ✅ gracias a la base ancha, la estructura actúa como un **disipador de calor** eficiente. el riesgo de sobrecostos se diluye en la red de proveedores resiliente. el entorno es térmicamente estable (26.9°c). el riesgo inflacionario externo es bajo.
+  
+  ### 0. dinám...'
+assert 0 > 0
+ +  where 0 = len([])
+FAILED tests/unit/core/test_pyramidal_coherence.py::TestSpecialCases::test_synergy_risk_always_rejects - AssertionError: Debe mencionar el efecto dominó
+Esperado cualquiera de ['Dominó', 'EMERGENCIA', 'Sinergia', 'contagio'] en:
+# 🏗 INFORME DE INGENIERÍA ESTRATÉGICA
+
+*Análisis de Coherencia Fractal | Estabilidad Crítica: Ψ < 1.0*
+
+## 🏗 Diagnóstico del Edificio Vivo
+
+El edificio tiene una **cimentación sólida** (Ψ=20.00). La base de recursos es amplia y redundante. ✅ Gracias a la base ancha, la estructura actúa como un **disipador de calor** eficiente. El riesgo de sobrecostos se diluye en la red de proveedores resiliente. El entorno es térmicamente estable (26.9°C). El riesgo inflacionario externo es bajo.
+
+### 0. Dinám...
+============ 6 failed, 9325 passed, 18 skipped in 107.12s (0:01:47) ============
