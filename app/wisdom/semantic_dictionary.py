@@ -1246,6 +1246,44 @@ class SemanticDictionaryService:
         
         logger.info("✅ SemanticDictionaryService v2.0 initialized successfully")
     
+    def register_in_mic(self, mic_registry: Any) -> None:
+        """
+        Inyecta los operadores de traducción semántica en la Matriz de Interacción Central (MIC).
+        Restaura el funtor que mapea invariantes topológicos y termodinámicos a lenguaje estratégico
+        en el Estrato WISDOM, garantizando que el núcleo de la transformación sea nulo.
+        """
+        # Proyección del operador de traducción de métricas y términos
+        mic_registry.register_vector(
+            service_name="fetch_narrative",
+            stratum=Stratum.WISDOM,
+            handler=self.fetch_narrative
+        )
+
+        mic_registry.register_vector(
+            service_name="translate_semantic_term",
+            stratum=Stratum.WISDOM,
+            handler=self.translate_term
+        )
+
+        # Proyección del operador de resolución de plantillas (Autoestados a Lenguaje Natural)
+        mic_registry.register_vector(
+            service_name="resolve_template",
+            stratum=Stratum.WISDOM,
+            handler=self.resolve_template
+        )
+
+    def translate_term(self, **kwargs) -> Dict[str, Any]:
+        """Handler para el vector translate_semantic_term."""
+        return self.fetch_narrative(**kwargs)
+
+    def resolve_template(self, **kwargs) -> str:
+        """Handler para el vector resolve_template."""
+        return self._resolve_template(
+            template_group=kwargs.get("template_group", {}),
+            classification=kwargs.get("classification"),
+            params=kwargs.get("params", {})
+        )
+
     def _init_statistical_classifiers(self) -> None:
         """Inicializa clasificadores estadísticos (placeholder)."""
         # Aquí se cargarían datos empíricos y se ajustarían los clasificadores
@@ -1398,6 +1436,7 @@ class SemanticDictionaryService:
                     "Los eigenvalues están bien separados (spectral gap adecuado). "
                     "El sistema puede disipar perturbaciones sin entrar en resonancia."
                 ),
+                "default": "🌊 **Espectro de Frecuencias**: El sistema opera en un régimen de disipación estándar.",
             },
             
             "THERMAL_TEMPERATURE": {
@@ -1443,6 +1482,46 @@ class SemanticDictionaryService:
                 ),
             },
             
+            "FINAL_VERDICTS": {
+                "analysis_failed": (
+                    "⚠️ **FALLO DE ANÁLISIS SÉPTICO**:\n"
+                    "No se pudo completar la síntesis debido a errores de consistencia "
+                    "en los estratos inferiores. Veredicto suspendido por precaución."
+                ),
+                "synergy_risk": (
+                    "🛑 **RIESGO DE SINERGIA (Efecto Dominó)**:\n"
+                    "Se han detectado ciclos interconectados que amplifican el riesgo "
+                    "sistémico. Una falla en un nodo provocará un contagio en cascada "
+                    "a través de la red de dependencias. EMERGENCIA: Resonancia paramétrica detectada."
+                ),
+                "inverted_pyramid_viable": (
+                    "⚖️ **PIRÁMIDE INVERTIDA VIABLE (Ψ = {stability:.2f})**:\n"
+                    "Aunque la base logística es estrecha, el alto rendimiento financiero "
+                    "permite una operación bajo estrés. Se requiere monitoreo en tiempo real."
+                ),
+                "inverted_pyramid_reject": (
+                    "🛑 **COLAPSO POR PIRÁMIDE INVERTIDA**:\n"
+                    "Estructura logística insuficiente combinada con bajo rendimiento. "
+                    "Inestabilidad estructural crítica confirmada."
+                ),
+                "has_holes": (
+                    "🔄 **ESTRUCTURA PERFORADA (Hole Detection)**:\n"
+                    "El análisis de homología H¹ detectó {beta_1} socavón(es) lógico(s) "
+                    "o ciclo(s) de dependencia. La integridad del flujo de costos está "
+                    "comprometida por estas obstrucciones topológicas."
+                ),
+                "certified": (
+                    "✅ **CERTIFICADO DE COHERENCIA**:\n"
+                    "El proyecto ha sido validado exitosamente en todos sus estratos. "
+                    "La estructura es robusta, rentable y topológicamente limpia."
+                ),
+                "review_required": (
+                    "🔍 **REVISIÓN ESTRATÉGICA REQUERIDA**:\n"
+                    "Existen zonas de sombra en la matriz de decisión que requieren "
+                    "intervención experta antes de proceder."
+                ),
+            },
+
             "FINANCIAL_VERDICT": {
                 "accept": (
                     "🚀 **PROYECTO VIABLE (IR = {pi:.3f})**:\n"
@@ -1493,13 +1572,17 @@ class SemanticDictionaryService:
                 "CONTINGENCY": (
                     "📊 **Reserva de Contingencia Recomendada**:\n"
                     "Monto: ${contingency:,.2f}\n\n"
-                    "Calculado mediante análisis de Value-at-Risk (VaR) al {confidence:.0%} "
-                    "de confianza. Esta reserva cubre el percentil {percentile:.0%} de "
-                    "escenarios adversos en simulación Monte Carlo."
+                    "Calculado mediante análisis de Riesgo Sistémico. Esta reserva cubre escenarios "
+                    "adversos proyectados en la simulación de flujo."
                 ),
             },
             
             # Telemetría (simplificada para brevedad)
+            "TELEMETRY_VERDICTS": {
+                "APPROVED": "✅ El sistema ha certificado la viabilidad del proyecto. Estructura aprobada.",
+                "REJECTED": "🛑 Proyecto rechazado por inconsistencias críticas.",
+            },
+
             "TELEMETRY_SUCCESS": {
                 "PHYSICS": "✅ Cimentación: Flujo laminar confirmado",
                 "TACTICS": "✅ Topología: Estructura coherente (β₀=1, β₁=0)",
