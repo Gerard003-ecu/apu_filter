@@ -106,8 +106,8 @@ T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
 
 # Constantes físicas
-BOLTZMANN_CONSTANT: Final[float] = 1.380649e-23  # J/K
-PLANCK_CONSTANT: Final[float] = 6.62607015e-34   # J·s
+BOLTZMANN_CONSTANT: Final[float] = 1.0  # k_B(ciber) normalized
+PLANCK_CONSTANT: Final[float] = 1.0  # h(ciber) normalized
 
 # Tolerancias numéricas
 EPSILON_SPECTRAL: Final[float] = 1e-10
@@ -140,177 +140,6 @@ class ThresholdClassifier(Protocol):
 # =============================================================================
 # UTILIDADES MATEMÁTICAS RIGUROSAS
 # =============================================================================
-
-class SpectralAnalyzer:
-    """
-    Analizador espectral riguroso para grafos.
-    
-    Implementa métodos de teoría espectral de grafos con garantías
-    numéricas basadas en análisis de perturbaciones.
-    """
-    
-    @staticmethod
-    def fiedler_eigenvalue(laplacian: np.ndarray) -> float:
-        """
-        Calcula el segundo eigenvalor más pequeño del Laplaciano (Fiedler).
-        
-        Propiedades:
-            - λ₁ = 0 si y solo si el grafo está desconectado
-            - λ₁ > 0 indica conectividad; mayor valor = mejor cohesión
-            - Bounds de Cheeger: h(G)/2 ≤ λ₁ ≤ 2·h(G)
-        
-        Args:
-            laplacian: Matriz Laplaciana simétrica del grafo
-            
-        Returns:
-            Conectividad algebraica (Fiedler eigenvalue)
-            
-        Raises:
-            ValueError: Si la matriz no es simétrica o tiene formato inválido
-        """
-        if not np.allclose(laplacian, laplacian.T, atol=EPSILON_SPECTRAL):
-            raise ValueError("Laplacian must be symmetric")
-        
-        # Usar solver especializado para matrices simétricas
-        eigenvalues = np.linalg.eigvalsh(laplacian)
-        
-        # Ordenar y tomar el segundo (el primero debe ser ~0)
-        eigenvalues = np.sort(eigenvalues)
-        
-        # Verificar que el primer eigenvalor es efectivamente 0
-        if abs(eigenvalues[0]) > EPSILON_SPECTRAL:
-            logger.warning(
-                f"Primer eigenvalor no es cero: {eigenvalues[0]:.2e}. "
-                f"Posible error numérico o grafo mal formado."
-            )
-        
-        return float(eigenvalues[1]) if len(eigenvalues) > 1 else 0.0
-    
-    @staticmethod
-    def spectral_gap(eigenvalues: np.ndarray) -> float:
-        """
-        Calcula la brecha espectral (gap entre eigenvalores consecutivos).
-        
-        Una brecha grande indica separación clara de escalas, lo cual
-        en física estadística corresponde a transiciones de fase nítidas.
-        
-        Args:
-            eigenvalues: Array ordenado de eigenvalores
-            
-        Returns:
-            Brecha espectral máxima
-        """
-        if len(eigenvalues) < 2:
-            return 0.0
-        
-        gaps = np.diff(np.sort(eigenvalues))
-        return float(np.max(gaps))
-    
-    @staticmethod
-    def cheeger_constant_bounds(fiedler: float) -> Tuple[float, float]:
-        """
-        Calcula bounds para la constante de Cheeger usando el Fiedler eigenvalue.
-        
-        Teorema de Cheeger:
-            h(G)/2 ≤ λ₁ ≤ 2·h(G)
-        
-        Returns:
-            Tupla (lower_bound, upper_bound) para h(G)
-        """
-        lower = fiedler / 2.0
-        upper = 2.0 * fiedler
-        return (lower, upper)
-
-
-class TopologyCalculator:
-    """
-    Calculador de invariantes topológicos con corrección algorítmica.
-    
-    Implementa algoritmos estándar de topología computacional con
-    verificación de invariantes.
-    """
-    
-    @staticmethod
-    def betti_numbers_from_adjacency(
-        adjacency: np.ndarray,
-        directed: bool = False
-    ) -> Tuple[int, int]:
-        """
-        Calcula números de Betti β₀ y β₁ desde matriz de adyacencia.
-        
-        Algoritmo:
-            1. β₀ = número de componentes conexas (DFS/BFS)
-            2. β₁ = |E| - |V| + β₀ (fórmula de Euler para grafos planos)
-        
-        Nota: Para grafos NO planos, esto da el rango del primer grupo
-        de homología del 1-skeleton, no del grafo embebido.
-        
-        Args:
-            adjacency: Matriz de adyacencia (simétrica si no dirigido)
-            directed: Si el grafo es dirigido
-            
-        Returns:
-            Tupla (β₀, β₁)
-        """
-        n_vertices = adjacency.shape[0]
-        
-        # Calcular β₀ mediante componentes conexas
-        visited = np.zeros(n_vertices, dtype=bool)
-        beta_0 = 0
-        
-        def dfs(node: int) -> None:
-            """Depth-first search para marcar componente."""
-            stack = [node]
-            while stack:
-                current = stack.pop()
-                if visited[current]:
-                    continue
-                visited[current] = True
-                
-                # Encontrar vecinos
-                if directed:
-                    neighbors = np.where(adjacency[current] > 0)[0]
-                else:
-                    neighbors = np.where(
-                        (adjacency[current] > 0) | (adjacency[:, current] > 0)
-                    )[0]
-                
-                stack.extend(neighbors[~visited[neighbors]])
-        
-        for v in range(n_vertices):
-            if not visited[v]:
-                dfs(v)
-                beta_0 += 1
-        
-        # Calcular número de aristas
-        if directed:
-            n_edges = int(np.sum(adjacency > 0))
-        else:
-            n_edges = int(np.sum(adjacency > 0) // 2)  # Dividir por 2 para no duplicar
-        
-        # Fórmula de Euler: β₁ = |E| - |V| + β₀
-        beta_1 = max(0, n_edges - n_vertices + beta_0)
-        
-        return (beta_0, beta_1)
-    
-    @staticmethod
-    def euler_characteristic(betti_numbers: List[int]) -> int:
-        """
-        Calcula la característica de Euler alternante.
-        
-        χ = Σ(-1)ⁱ · βᵢ
-        
-        Args:
-            betti_numbers: Lista [β₀, β₁, β₂, ...]
-            
-        Returns:
-            Característica de Euler
-        """
-        return sum(
-            (-1)**i * beta
-            for i, beta in enumerate(betti_numbers)
-        )
-
 
 class StatisticalThresholdClassifier:
     """
@@ -442,189 +271,127 @@ class StatisticalThresholdClassifier:
 # CACHÉ CON TTL Y EVICCIÓN AUTOMÁTICA
 # =============================================================================
 
-class TTLCache(Generic[T]):
+
+class SemanticCache(Generic[T]):
     """
-    Caché thread-safe con Time-To-Live y evicción automática.
-    
-    Mejoras sobre la versión original:
-        - Evicción automática en background thread
-        - Métricas detalladas (latencia, hit rate)
-        - Interfaz genérica tipada
-        - Shutdown limpio de recursos
+    Caché de memoria basado en Entropía y Similitud del Coseno.
+    Cumple con el axioma de evicción geométrica: cos(θ) = ⟨u,v⟩/|u||v|.
+    Si un tensor almacenado se vuelve ortogonal a la trayectoria de decisión de la malla, es purgado.
     """
+    __slots__ = ('_cache', '_embeddings', '_decision_vector', '_maxsize', '_lock', '_hits', '_misses', '_evictions', '_entropy_threshold')
     
-    __slots__ = (
-        '_cache', '_timestamps', '_ttl', '_maxsize', '_lock',
-        '_hits', '_misses', '_evictions', '_cleanup_thread',
-        '_shutdown_event', '_cleanup_interval'
-    )
-    
-    def __init__(
-        self,
-        ttl_seconds: float = 300.0,
-        maxsize: int = 1000,
-        cleanup_interval: float = 60.0,
-        auto_cleanup: bool = True
-    ):
-        if ttl_seconds <= 0:
-            raise ValueError("TTL must be positive")
+    def __init__(self, maxsize: int = 500, entropy_threshold: float = 0.1, decision_vector: Optional[np.ndarray] = None):
         if maxsize <= 0:
             raise ValueError("maxsize must be positive")
-        if cleanup_interval <= 0:
-            raise ValueError("cleanup_interval must be positive")
-        
         self._cache: OrderedDict[str, T] = OrderedDict()
-        self._timestamps: Dict[str, float] = {}
-        self._ttl = ttl_seconds
+        self._embeddings: Dict[str, np.ndarray] = {}
         self._maxsize = maxsize
         self._lock = threading.RLock()
-        
-        # Métricas
         self._hits = 0
         self._misses = 0
         self._evictions = 0
+        self._entropy_threshold = entropy_threshold
         
-        # Background cleanup
-        self._cleanup_interval = cleanup_interval
-        self._shutdown_event = threading.Event()
-        self._cleanup_thread: Optional[threading.Thread] = None
-        
-        if auto_cleanup:
-            self._start_cleanup_thread()
-    
-    def _start_cleanup_thread(self) -> None:
-        """Inicia thread de limpieza automática."""
-        def cleanup_loop():
-            while not self._shutdown_event.is_set():
-                try:
-                    evicted = self.cleanup_expired()
-                    if evicted > 0:
-                        logger.debug(f"Auto-cleanup evicted {evicted} entries")
-                except Exception as e:
-                    logger.exception(f"Error in cleanup thread: {e}")
-                
-                # Esperar intervalo o hasta shutdown
-                self._shutdown_event.wait(self._cleanup_interval)
-        
-        self._cleanup_thread = threading.Thread(
-            target=cleanup_loop,
-            daemon=True,
-            name="TTLCache-Cleanup"
-        )
-        self._cleanup_thread.start()
-        logger.debug("TTLCache cleanup thread started")
-    
+        if decision_vector is not None:
+            self._decision_vector = decision_vector
+        else:
+            self._decision_vector = np.ones(3) / np.sqrt(3)
+
+    def _cosine_similarity(self, u: np.ndarray, v: np.ndarray) -> float:
+        norm_u = np.linalg.norm(u)
+        norm_v = np.linalg.norm(v)
+        if norm_u == 0 or norm_v == 0:
+            return 0.0
+        return float(np.dot(u, v) / (norm_u * norm_v))
+
+    def update_decision_trajectory(self, new_vector: np.ndarray) -> None:
+        with self._lock:
+            self._decision_vector = new_vector
+            self.cleanup_orthogonal()
+
     def get(self, key: str) -> Optional[T]:
-        """
-        Obtiene valor si existe y no ha expirado.
-        
-        Complejidad: O(1) amortizado
-        """
         with self._lock:
             if key not in self._cache:
                 self._misses += 1
                 return None
             
-            timestamp = self._timestamps.get(key, 0.0)
-            if time.time() - timestamp >= self._ttl:
-                self._evict_key(key)
-                self._misses += 1
-                return None
+            emb = self._embeddings.get(key)
+            if emb is not None:
+                sim = self._cosine_similarity(emb, self._decision_vector)
+                if sim < self._entropy_threshold:
+                    self._evict_key(key)
+                    self._misses += 1
+                    return None
             
-            # LRU: mover al final
             self._cache.move_to_end(key)
             self._hits += 1
             return self._cache[key]
-    
-    def set(self, key: str, value: T) -> None:
-        """
-        Almacena valor con timestamp actual.
-        
-        Complejidad: O(1) amortizado
-        """
+
+    def set(self, key: str, value: T, embedding: np.ndarray) -> None:
         with self._lock:
             if key in self._cache:
                 self._cache.move_to_end(key)
             else:
-                # Evictar si está lleno
                 while len(self._cache) >= self._maxsize:
-                    self._evict_oldest()
+                    self._evict_lowest_relevance()
             
             self._cache[key] = value
-            self._timestamps[key] = time.time()
-    
+            self._embeddings[key] = embedding
+
     def _evict_key(self, key: str) -> None:
-        """Elimina una clave específica."""
         self._cache.pop(key, None)
-        self._timestamps.pop(key, None)
+        self._embeddings.pop(key, None)
         self._evictions += 1
-    
-    def _evict_oldest(self) -> None:
-        """Elimina la entrada más antigua (LRU)."""
-        if self._cache:
-            oldest_key = next(iter(self._cache))
-            self._evict_key(oldest_key)
-    
-    def cleanup_expired(self) -> int:
-        """
-        Limpieza activa de entradas expiradas.
+
+    def _evict_lowest_relevance(self) -> None:
+        if not self._cache:
+            return
+
+        lowest_key = None
+        lowest_sim = float('inf')
         
-        Returns:
-            Número de entradas eliminadas
-        """
+        for k, emb in self._embeddings.items():
+            sim = self._cosine_similarity(emb, self._decision_vector)
+            if sim < lowest_sim:
+                lowest_sim = sim
+                lowest_key = k
+
+        if lowest_key is None:
+            lowest_key = next(iter(self._cache))
+
+        self._evict_key(lowest_key)
+
+    def cleanup_orthogonal(self) -> int:
         with self._lock:
-            now = time.time()
-            expired_keys = [
-                k for k, ts in self._timestamps.items()
-                if now - ts >= self._ttl
+            orthogonal_keys = [
+                k for k, emb in self._embeddings.items()
+                if self._cosine_similarity(emb, self._decision_vector) < self._entropy_threshold
             ]
-            for key in expired_keys:
+            for key in orthogonal_keys:
                 self._evict_key(key)
-            return len(expired_keys)
-    
+            return len(orthogonal_keys)
+
     def clear(self) -> None:
-        """Limpia todo el caché."""
         with self._lock:
             self._cache.clear()
-            self._timestamps.clear()
-            logger.debug("Cache cleared")
-    
-    def shutdown(self, timeout: float = 5.0) -> None:
-        """
-        Detiene el thread de limpieza y libera recursos.
-        
-        Args:
-            timeout: Tiempo máximo de espera en segundos
-        """
-        if self._cleanup_thread and self._cleanup_thread.is_alive():
-            logger.debug("Shutting down cleanup thread...")
-            self._shutdown_event.set()
-            self._cleanup_thread.join(timeout=timeout)
+            self._embeddings.clear()
             
-            if self._cleanup_thread.is_alive():
-                logger.warning(
-                    "Cleanup thread did not terminate within timeout"
-                )
-    
+    def shutdown(self, timeout: float = 5.0) -> None:
+        pass
+
     @property
     def stats(self) -> Dict[str, Any]:
-        """Estadísticas detalladas del caché."""
         with self._lock:
             total = self._hits + self._misses
             return {
                 "size": len(self._cache),
                 "maxsize": self._maxsize,
-                "ttl_seconds": self._ttl,
                 "hits": self._hits,
                 "misses": self._misses,
                 "evictions": self._evictions,
                 "hit_rate": self._hits / total if total > 0 else 0.0,
                 "utilization": len(self._cache) / self._maxsize,
             }
-    
-    def __del__(self):
-        """Cleanup en destrucción."""
-        self.shutdown(timeout=1.0)
 
 
 # =============================================================================
@@ -779,9 +546,13 @@ class GraphSemanticProjector:
         cache_maxsize: int = 500
     ):
         self._dictionary = dictionary_service
-        self._cache: TTLCache[Dict[str, Any]] = TTLCache(
-            ttl_seconds=cache_ttl,
-            maxsize=cache_maxsize
+
+        # Traducimos cache_ttl a un "Umbral de Tolerancia Entrópica" para cumplir con el Axioma I
+        entropy_threshold = 1.0 / max(cache_ttl, 1.0) if cache_ttl > 0 else 0.1
+
+        self._cache: SemanticCache[Dict[str, Any]] = SemanticCache(
+            maxsize=cache_maxsize,
+            entropy_threshold=entropy_threshold
         )
     
     def _secure_cache_key(self, prefix: str, *args) -> str:
@@ -844,43 +615,50 @@ class GraphSemanticProjector:
         result["vector_metadata"] = vector.to_dict()
         result["criticality_score"] = self._compute_criticality(vector)
         
-        self._cache.set(cache_key, result)
+        # Embedding determinista del nodo para el SemanticCache
+        emb = np.array([vector.in_degree, vector.out_degree, float(vector.is_critical_bridge)])
+        norm = np.linalg.norm(emb)
+        emb = emb / norm if norm > 0 else np.array([1.0, 0.0, 0.0])
+        self._cache.set(cache_key, result, embedding=emb)
         return result
     
+
     @staticmethod
     def _compute_criticality(vector: PyramidalSemanticVector) -> float:
         """
-        Calcula score de criticidad basado en teoría de redes.
-        
-        Combina múltiples métricas:
-            - Grado total (centralidad)
-            - Asimetría de grados (in vs out)
-            - Flag de cut-vertex
-        
-        Returns:
-            Score en [0, 1] donde 1 = máxima criticidad
+        Calcula score de criticidad basado en topología y termodinámica.
+        Implementa normalización de la Energía de Dirichlet acoplada a T_sys.
         """
-        # Normalización por grado (asumiendo max ~100)
         degree_score = min(vector.total_degree / 100.0, 1.0)
-        
-        # Penalización por asimetría
-        if vector.total_degree > 0:
-            asymmetry = abs(vector.in_degree - vector.out_degree) / vector.total_degree
-        else:
-            asymmetry = 0.0
-        
-        # Score de puente crítico
+        asymmetry = abs(vector.in_degree - vector.out_degree) / max(vector.total_degree, 1)
         bridge_score = 1.0 if vector.is_critical_bridge else 0.0
         
-        # Combinación ponderada
-        criticality = (
-            0.4 * degree_score +
-            0.3 * asymmetry +
-            0.3 * bridge_score
-        )
+        base_criticality = (0.4 * degree_score + 0.3 * asymmetry + 0.3 * bridge_score)
         
-        return criticality
-    
+        # Phase II: Normalización Termodinámica y Energía de Dirichlet
+        # E_Dirichlet = base_criticality * degree
+        # Escalar proporcional al grado total del nodo
+        scale_factor = float(max(vector.total_degree, 1))
+        
+        # Asumimos T_sys proporcional a la asimetría y el flujo (grado)
+        t_sys = 1.0 + (asymmetry * scale_factor)
+        
+        delta_e_dirichlet = base_criticality * scale_factor
+
+        # Softmax paramétrico: w = exp(-Delta E / (kB * T_sys))
+        # kB_ciber = 1.0, garantizamos que el argumento esté en [-700, 700]
+        argument = -(delta_e_dirichlet) / (BOLTZMANN_CONSTANT * t_sys)
+        argument_clamped = max(min(argument, 700.0), -700.0)
+
+        w_prob = np.exp(argument_clamped)
+
+        # Normalizamos la probabilidad termodinámica inversamente para la criticidad
+        # (mayor criticidad = menor probabilidad termodinámica estable)
+        thermo_criticality = 1.0 - w_prob
+
+        # Retornamos el promedio entre la base estructural y la métrica termodinámica
+        return float((base_criticality + thermo_criticality) / 2.0)
+
     def project_cycle_path(
         self,
         path_nodes: List[str],
@@ -968,7 +746,10 @@ class GraphSemanticProjector:
             )
         }
         
-        self._cache.set(cache_key, result)
+        emb = np.array([float(cycle_length), float(is_self_loop), 1.0])
+        norm = np.linalg.norm(emb)
+        emb = emb / norm if norm > 0 else np.array([0.0, 1.0, 0.0])
+        self._cache.set(cache_key, result, embedding=emb)
         return result
     
     def project_fragmentation(
@@ -1033,7 +814,10 @@ class GraphSemanticProjector:
             )
         }
         
-        self._cache.set(cache_key, result)
+        emb = np.array([float(beta_0), 1.0, 0.0])
+        norm = np.linalg.norm(emb)
+        emb = emb / norm if norm > 0 else np.array([0.0, 0.0, 1.0])
+        self._cache.set(cache_key, result, embedding=emb)
         return result
     
     @staticmethod
@@ -1334,6 +1118,30 @@ class TemplateValidator:
                     })
         
         return errors
+
+
+
+    @classmethod
+    def enforce_lipschitz_boundary(cls, text: str, psi: float) -> str:
+        """
+        Retracto de Deformación Categórico (Lipschitz Perimetral).
+
+        Si Ψ < 1.0 y el texto generado tiene connotación optimista (alucinación),
+        se trunca y se converge a un subespacio semántico determinista de "Precaución" o "Rechazo".
+        """
+        optimistic_keywords = ["viable", "éxito", "óptimo", "estable", "rentable", "seguro", "excelente"]
+        text_lower = text.lower()
+
+        if psi < 1.0 and any(k in text_lower for k in optimistic_keywords):
+            # Forzar convergencia a subespacio semántico seguro
+            return (
+                "⚠️ ALERTA DE SISTEMA (Retracto de Deformación Aplicado): "
+                "La narrativa generada excedió la frontera de Lipschitz permitida "
+                "dado que el índice de estabilidad Ψ < 1.0. "
+                "Veredicto forzado: PRECAUCIÓN/RECHAZO - El sistema presenta inestabilidad "
+                "estructural y no soporta viabilidad."
+            )
+        return text
 
 
 # =============================================================================
@@ -1776,6 +1584,7 @@ class SemanticDictionaryService:
                 "available_domains": sorted(self._templates.keys()),
             }
         
+
         try:
             narrative = self._resolve_template(
                 template_group,
@@ -1783,6 +1592,15 @@ class SemanticDictionaryService:
                 effective_params
             )
             
+            # Phase IV: Retracto de Deformación Categórico (Lipschitz Perimetral)
+            if "stability" in effective_params:
+                try:
+                    psi_value = float(effective_params["stability"])
+                    narrative = TemplateValidator.enforce_lipschitz_boundary(narrative, psi_value)
+                except (ValueError, TypeError):
+                    pass
+
+
             return {
                 "success": True,
                 "narrative": narrative,
@@ -1948,6 +1766,25 @@ class SemanticDictionaryService:
         # Retornar clasificación más baja
         return sorted_thresholds[-1][0]
     
+
+    def get_available_domains(self) -> list[str]:
+        return list(self._templates.keys())
+
+    def get_domain_classifications(self, domain: str) -> list[str]:
+        template_group = self._templates.get(domain)
+        if isinstance(template_group, dict):
+            return list(template_group.keys())
+        return []
+
+    def convert_stratum_value(self, value: Union[int, str, Stratum]) -> Stratum:
+        if isinstance(value, Stratum):
+            return value
+        if isinstance(value, int):
+            return Stratum(value)
+        if isinstance(value, str):
+            return Stratum[value.upper()]
+        raise TypeError(f"Invalid type for stratum: {type(value)}")
+
     def health_check(self) -> Dict[str, Any]:
         """
         Endpoint de salud con métricas operacionales.
@@ -1967,7 +1804,7 @@ class SemanticDictionaryService:
             "template_domains": len(self._templates),
             "market_contexts_count": len(self._market_contexts),
             "strata_available": [
-                {"name": s.name, "value": s.value, "filtration_level": s.filtration_level}
+                {"name": s.name, "value": s.value, "filtration_level": getattr(s, "filtration_level", 4 - s.value)}
                 for s in Stratum
             ],
             "thresholds": {

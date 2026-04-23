@@ -2494,3 +2494,92 @@ def verify_topology_invariants(graph: nx.DiGraph) -> Dict[str, bool]:
         results["error"] = str(e)
     
     return results
+
+class TopologyCalculator:
+    """
+    Calculador de invariantes topológicos con corrección algorítmica.
+
+    Implementa algoritmos estándar de topología computacional con
+    verificación de invariantes.
+    """
+
+    @staticmethod
+    def betti_numbers_from_adjacency(
+        adjacency: np.ndarray,
+        directed: bool = False
+    ) -> Tuple[int, int]:
+        """
+        Calcula números de Betti β₀ y β₁ desde matriz de adyacencia.
+
+        Algoritmo:
+            1. β₀ = número de componentes conexas (DFS/BFS)
+            2. β₁ = |E| - |V| + β₀ (fórmula de Euler para grafos planos)
+
+        Nota: Para grafos NO planos, esto da el rango del primer grupo
+        de homología del 1-skeleton, no del grafo embebido.
+
+        Args:
+            adjacency: Matriz de adyacencia (simétrica si no dirigido)
+            directed: Si el grafo es dirigido
+
+        Returns:
+            Tupla (β₀, β₁)
+        """
+        n_vertices = adjacency.shape[0]
+
+        # Calcular β₀ mediante componentes conexas
+        visited = np.zeros(n_vertices, dtype=bool)
+        beta_0 = 0
+
+        def dfs(node: int) -> None:
+            """Depth-first search para marcar componente."""
+            stack = [node]
+            while stack:
+                current = stack.pop()
+                if visited[current]:
+                    continue
+                visited[current] = True
+
+                # Encontrar vecinos
+                if directed:
+                    neighbors = np.where(adjacency[current] > 0)[0]
+                else:
+                    neighbors = np.where(
+                        (adjacency[current] > 0) | (adjacency[:, current] > 0)
+                    )[0]
+
+                stack.extend(neighbors[~visited[neighbors]])
+
+        for v in range(n_vertices):
+            if not visited[v]:
+                dfs(v)
+                beta_0 += 1
+
+        # Calcular número de aristas
+        if directed:
+            n_edges = int(np.sum(adjacency > 0))
+        else:
+            n_edges = int(np.sum(adjacency > 0) // 2)  # Dividir por 2 para no duplicar
+
+        # Fórmula de Euler: β₁ = |E| - |V| + β₀
+        beta_1 = max(0, n_edges - n_vertices + beta_0)
+
+        return (beta_0, beta_1)
+
+    @staticmethod
+    def euler_characteristic(betti_numbers: List[int]) -> int:
+        """
+        Calcula la característica de Euler alternante.
+
+        χ = Σ(-1)ⁱ · βᵢ
+
+        Args:
+            betti_numbers: Lista [β₀, β₁, β₂, ...]
+
+        Returns:
+            Característica de Euler
+        """
+        return sum(
+            (-1)**i * beta
+            for i, beta in enumerate(betti_numbers)
+        )
