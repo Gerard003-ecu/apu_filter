@@ -1,0 +1,1302 @@
+2026-04-23 20:54:00,520 - MIC.ImmuneSystem.MetricTensors - INFO - Tensores métricos inicializados exitosamente: G_PHYSICS (3, 3), G_TOPOLOGY (2, 2), G_THERMODYNAMICS (2, 2)
+20:54:00 [SYSTEM] - INFO - ============================================================
+20:54:00 [SYSTEM] - INFO - ============================================================
+20:54:00 [SYSTEM] - INFO - Iniciando aplicación en modo: PRODUCTION
+20:54:00 [SYSTEM] - INFO - Iniciando aplicación en modo: PRODUCTION
+20:54:00 [SYSTEM] - INFO - ============================================================
+20:54:00 [SYSTEM] - INFO - ============================================================
+20:54:01 [SYSTEM] - INFO - ✅ Conexión a Redis exitosa: redis://redis:6379/0
+20:54:01 [SYSTEM] - INFO - ✅ Conexión a Redis exitosa: redis://redis:6379/0
+20:54:02 [SYSTEM] - INFO - ✅ Configuración cargada desde config_rules.json
+20:54:02 [SYSTEM] - INFO - ✅ Configuración cargada desde config_rules.json
+20:54:02 [SYSTEM] - INFO - APUPresenter inicializado correctamente
+20:54:02 [SYSTEM] - INFO - APUPresenter inicializado correctamente
+20:54:02 [SYSTEM] - INFO - Vector registrado: 'diagnose' [PHYSICS]
+20:54:02 [SYSTEM] - INFO - Vector registrado: 'clean' [PHYSICS]
+20:54:02 [SYSTEM] - INFO - Vector registrado: 'get_telemetry_status' [PHYSICS]
+20:54:02 [SYSTEM] - INFO - Vector registrado: 'financial_analysis' [STRATEGY]
+20:54:02 [SYSTEM] - INFO - Vector registrado: 'oracle_analyze' [TACTICS]
+20:54:02 [SYSTEM] - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+20:54:02 [SYSTEM] - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+20:54:02 [SYSTEM] - INFO - Vector registrado: 'structure_logic' [TACTICS]
+20:54:02 [SYSTEM] - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+20:54:02 [SYSTEM] - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+20:54:02 [SYSTEM] - INFO - Loading faiss with AVX2 support.
+20:54:05 [SYSTEM] - INFO - Successfully loaded faiss with AVX2 support.
+20:54:39 [SYSTEM] - INFO - Stage 1: Intentando cargar Espacio Vectorial (FAISS) en background...
+20:54:39 [SYSTEM] - INFO - Vector registrado: 'semantic_match' [TACTICS]
+20:54:39 [SYSTEM] - WARNING - ⚠️ Artefactos FAISS no encontrados. Stage 2 (TF-IDF) se activará en el primer project_semantic_match.
+20:54:39 [SYSTEM] - INFO - Vector registrado: 'tactical_estimate' [TACTICS]
+20:54:39 [SYSTEM] - INFO - ✅ Vectores Tácticos Semánticos registrados en la MIC.
+20:54:39 [SYSTEM] - INFO - ✅ Vectores semánticos registrados
+20:54:39 [SYSTEM] - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+20:54:39 [SYSTEM] - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+20:54:39 [SYSTEM] - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+20:54:39 [SYSTEM] - INFO - Vector registrado: 'resolve_template' [WISDOM]
+20:54:39 [SYSTEM] - INFO - ✅ Diccionario semántico registrado
+20:54:39 [SYSTEM] - INFO - ✅ MIC inicializada con 15 vectores (dimensión=15)
+20:54:39 [SYSTEM] - INFO - ✅ Aplicación inicializada exitosamente
+20:54:39 [SYSTEM] - INFO - ✅ Aplicación inicializada exitosamente
+20:54:39 [SYSTEM] - INFO - ============================================================
+20:54:39 [SYSTEM] - INFO - ============================================================
+[2026-04-23 20:54:39 +0000] [2] [INFO] Starting gunicorn 25.1.0
+[2026-04-23 20:54:39 +0000] [2] [INFO] Listening at: http://0.0.0.0:5002 (2)
+[2026-04-23 20:54:39 +0000] [2] [INFO] Using worker: sync
+[2026-04-23 20:54:39 +0000] [13] [INFO] Booting worker with pid: 13
+[2026-04-23 20:54:39 +0000] [14] [INFO] Booting worker with pid: 14
+[2026-04-23 20:54:39 +0000] [15] [INFO] Booting worker with pid: 15
+[2026-04-23 20:54:39 +0000] [16] [INFO] Booting worker with pid: 16
+20:55:19 [SYSTEM] - INFO - 📊 Telemetry for c2b020ed: {"request_id": "c2b020ed", "steps": [], "metrics": {}, "errors": [], "events": [], "spans": [], "total_duration_seconds": 0, "created_at": 37005.760218536, "age_seconds": 0.015189, "summary": {"request_id": "c2b020ed", "total_steps": 0, "total_errors": 0, "total_metrics": 0, "total_events": 0, "total_spans": 0, "active_timers": 0, "stale_timers": 0, "total_duration_seconds": 0.0, "step_statuses": {}, "error_types": {}, "has_errors": false, "has_failures": false, "success_rate": 1.0, "age_seconds": 0.015215, "limits": {"steps": "0/1000", "errors": "0/100", "metrics": "0/500"}}}
+# simplificado para análisis
+20:57:51 [SYSTEM] - INFO - 📊 Telemetry for 8f8e1971: {"request_id": "8f8e1971", "steps": [], "metrics": {}, "errors": [], "events": [], "spans": [], "total_duration_seconds": 0, "created_at": 37157.524438056, "age_seconds": 0.004317, "summary": {"request_id": "8f8e1971", "total_steps": 0, "total_errors": 0, "total_metrics": 0, "total_events": 0, "total_spans": 0, "active_timers": 0, "stale_timers": 0, "total_duration_seconds": 0.0, "step_statuses": {}, "error_types": {}, "has_errors": false, "has_failures": false, "success_rate": 1.0, "age_seconds": 0.004336, "limits": {"steps": "0/1000", "errors": "0/100", "metrics": "0/500"}}}
+20:57:58 [affa7317] - INFO - 📤 Iniciando proceso de carga de archivos
+20:57:58 [affa7317] - INFO - 📤 Iniciando proceso de carga de archivos
+20:57:58 [affa7317] - INFO - [affa7317] ■ Step finished: upload_request_validation (success) in 0.013826s
+20:57:58 [affa7317] - INFO - Procesando archivos para sesión cc067813...
+20:57:58 [affa7317] - INFO - Procesando archivos para sesión cc067813...
+20:57:58 [affa7317] - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+20:57:58 [affa7317] - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+20:57:58 [affa7317] - INFO - Vector registrado: 'structure_logic' [TACTICS]
+20:57:58 [affa7317] - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+20:57:58 [affa7317] - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+20:57:58 [SYSTEM] - INFO - Stage 1: Intentando cargar Espacio Vectorial (FAISS) en background...
+20:57:58 [affa7317] - INFO - Vector registrado: 'semantic_match' [TACTICS]
+20:57:58 [SYSTEM] - WARNING - ⚠️ Artefactos FAISS no encontrados. Stage 2 (TF-IDF) se activará en el primer project_semantic_match.
+20:57:58 [affa7317] - INFO - Vector registrado: 'tactical_estimate' [TACTICS]
+20:57:58 [affa7317] - INFO - ✅ Vectores Tácticos Semánticos registrados en la MIC.
+20:57:58 [affa7317] - INFO - ✅ Vectores semánticos registrados
+20:57:58 [affa7317] - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+20:57:58 [affa7317] - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+20:57:58 [affa7317] - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+20:57:58 [affa7317] - INFO - Vector registrado: 'resolve_template' [WISDOM]
+20:57:58 [affa7317] - INFO - ✅ Diccionario semántico registrado
+20:57:58 [affa7317] - INFO - ✅ MIC inicializada con 10 vectores (dimensión=10)
+20:57:58 [affa7317] - INFO - PipelineDirector initialized | Version: 4.0.0-dag-algebraic | DAG nodes: 8 | Memoization: enabled
+20:57:58 [affa7317] - INFO - Starting pipeline (Session: ed93351c...) | DAG mode | Memoization enabled
+20:57:58 [affa7317] - INFO - Orchestrating step [1/8]: lithological_baseline
+20:57:58 [affa7317] - INFO - Executing step: lithological_baseline
+20:57:58 [affa7317] - INFO - Iniciando evaluación de la variedad litológica.
+20:57:58 [affa7317] - WARNING - Cartucho de expansión emitido: LL=55.0%, PI=30.0%, I_sw=0.3717
+20:57:58 [affa7317] - INFO - Evaluación litológica completada: G_max=162000000 Pa, cartuchos=1, reglas=['swelling_potential_detected']
+20:57:58 [affa7317] - INFO - [affa7317] ■ Step finished: lithological_baseline (success) in 0.002727s
+20:57:58 [affa7317] - INFO - ✓ lithological_baseline (3ms)
+20:57:58 [affa7317] - INFO - Orchestrating step [2/8]: load_data
+20:57:58 [affa7317] - INFO - Executing step: load_data
+20:57:58 [affa7317] - INFO - 📥 Cargando presupuesto desde: /app/data/uploads/cc067813-6fa3-45a0-8d4b-53475da21f25/presupuesto.csv
+20:57:58 [affa7317] - INFO - ================================================================================
+20:57:58 [affa7317] - INFO - Análisis topológico iniciado para: /app/data/uploads/cc067813-6fa3-45a0-8d4b-53475da21f25/presupuesto.csv
+20:57:58 [affa7317] - INFO - ================================================================================
+20:57:58 [affa7317] - INFO - Cargando CSV: /app/data/uploads/cc067813-6fa3-45a0-8d4b-53475da21f25/presupuesto.csv (0.03 MB)
+20:57:58 [affa7317] - INFO - Se eliminaron 109 filas completamente vacías
+20:57:58 [affa7317] - INFO - CSV cargado exitosamente: 440 filas, 6 columnas (encoding: UTF-8-SIG, delimitador: ';')
+20:57:58 [affa7317] - INFO - ================================================================================
+20:57:58 [affa7317] - INFO - Carga completada - Estado: SUCCESS
+20:57:58 [affa7317] - INFO - Estrategia: robust_csv
+20:57:58 [affa7317] - INFO - Análisis topológico: 3 métricas
+20:57:58 [affa7317] - INFO - Tiempo total: 0.044 segundos
+20:57:58 [affa7317] - INFO - ================================================================================
+20:57:58 [affa7317] - INFO - 📊 DataFrame cargado: 440 filas. Columnas: ['ITEM', 'DESCRIPCION', 'UND', 'CANT.', 'VR. UNIT', 'VR.TOTAL']
+20:57:58 [affa7317] - INFO - 👻 Filas fantasma eliminadas: 53
+20:57:58 [affa7317] - INFO - 👻 Filas tras limpieza fantasma: 387
+20:57:58 [affa7317] - INFO - 🏷️ Columnas tras renombrado: ['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU', 'CANTIDAD_PRESUPUESTO', 'VALOR_UNITARIO_APU', 'VALOR_TOTAL_APU']
+20:57:58 [affa7317] - INFO - 🔢 Filas tras conversión de datos: 113
+20:57:58 [affa7317] - WARNING - ⚠️ Se encontraron 17 filas duplicadas en 'presupuesto' por ['CODIGO_APU']. Se conservará: 'first'
+20:57:58 [affa7317] - INFO - ✅ Duplicados eliminados en 'presupuesto': 9 filas removidas
+20:57:58 [affa7317] - INFO - ✅ Presupuesto procesado: 104 filas
+20:57:58 [affa7317] - INFO - 📂 Grupo detectado: MATERIALES
+20:57:58 [affa7317] - INFO - 📋 Encabezado detectado para grupo MATERIALES: ['CODIGO', 'DESCRIPCION', 'UND', '', 'CANT.', 'VR. UNIT.', 'VR.TOTAL', 'VR.Original', '% Increm.', 'Nuevo Valor', 'Valor Total', '']
+20:57:58 [affa7317] - INFO - 📂 Grupo detectado: MANO DE OBRA
+20:57:58 [affa7317] - INFO - 📋 Encabezado detectado para grupo MANO DE OBRA: ['CODIGO', 'DESCRIPCION', 'UND', '', 'CANT.', 'VR. UNIT.', 'VR.TOTAL', 'VR.Original', '% Increm.', 'Nuevo Valor', 'Valor Total', '']
+20:57:58 [affa7317] - INFO - 📂 Grupo detectado: EQUIPO
+20:57:58 [affa7317] - INFO - 📋 Encabezado detectado para grupo EQUIPO: ['CODIGO', 'DESCRIPCION', 'UND', '', 'CANT.', 'VR. UNIT.', 'VR.TOTAL', 'VR.Original', '% Increm.', 'Nuevo Valor', 'Valor Total', '']
+20:57:58 [affa7317] - INFO - 📂 Grupo detectado: OTROS
+20:57:58 [affa7317] - INFO - 📋 Encabezado detectado para grupo OTROS: ['CODIGO', 'DESCRIPCION', 'UND', '', 'CANT.', 'VR. UNIT.', 'VR.TOTAL', 'VR.Original', '% Increm.', 'Nuevo Valor', 'Valor Total', '']
+20:57:58 [affa7317] - INFO - ✅ Total insumos extraídos: 145
+20:57:58 [affa7317] - INFO - 🔬 Iniciando Análisis de Laplace Mejorado...
+20:57:58 [affa7317] - WARNING - ⚠️ C = 5.00e+03 F excede rango típico
+20:57:58 [affa7317] - WARNING - ⚠️ Sistema extremadamente sobreamortiguado (ζ = 250.0). Respuesta muy lenta.
+20:57:58 [affa7317] - WARNING - Sistema discreto marginalmente estable: max|polo| = 1.000000
+20:57:58 [affa7317] - INFO - ✅ Estabilidad Confirmada: ωₙ=0.01 rad/s, ζ=250.000, PM=90.0°
+20:57:58 [affa7317] - INFO - RLC: ζ=250.0000, ω₀=0.0100 rad/s, σ=-2.5000 | P-Laplaciano: p=3.0, ε=1.00e-08
+20:57:58 [affa7317] - INFO - ✅ DataFluxCondenser inicializado: batch_range=[50, 5000]
+20:57:58 [affa7317] - INFO - ⚡ [STABILIZE] Iniciando: apus.csv
+20:57:58 [affa7317] - INFO - Iniciando parseo línea por línea de: apus.csv
+20:57:58 [affa7317] - INFO - Archivo leído exitosamente con codificación: latin1
+20:57:58 [affa7317] - INFO - 🚀 Iniciando procesamiento de 4175 líneas con Lógica Piramidal.
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1]: 1.1 - REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS C
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 26]: 1.2 - REMATE CON PINTURA DE FABRICA CAL 22 DE 100 CMTS C
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 51]: 1.3 - REMATE CON PINTURA DE FABRICA CAL 22 DE 80 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 76]: 1.4 - REMATE CON PINTURA DE FABRICA CAL 22 DE 60 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 100]: 1.5 - REMATE CON PINTURA DE FABRICA CAL 22 DE 40 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 125]: 1.6 - REMATE CON PINTURA DE FABRICA CAL 22 DE 30 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 149]: 1.7 - REMATE CON PINTURA DE FABRICA CAL 22 DE 20 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 175]: 2.1 - REMATE CON PINTURA DE FABRICA CAL 24 DE 120 CMTS C
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 200]: 2.2 - REMATE CON PINTURA DE FABRICA CAL 24 DE 100 CMTS C
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 225]: 2.3 - REMATE CON PINTURA DE FABRICA CAL 24 DE 80 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 250]: 2.4 - REMATE CON PINTURA DE FABRICA CAL 24 DE 60 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 274]: 2.5 - REMATE CON PINTURA DE FABRICA CAL 24 DE 40 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 299]: 2.6 - REMATE CON PINTURA DE FABRICA CAL 24 DE 30 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 323]: 2.7 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 348]: UNKNOWN_APU_348 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 374]: 3.1 - REMATE CON PINTURA DE FABRICA CAL 24 DE 80 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 399]: 3.2 - REMATE CON PINTURA DE FABRICA CAL 24 DE 60 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 423]: 3.3 - REMATE CON PINTURA DE FABRICA CAL 24 DE 40 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 448]: 3.4 - REMATE CON PINTURA DE FABRICA CAL 24 DE 30 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 472]: 3.5 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 497]: 4.1 - REMATE CON PINTURA DE FABRICA CAL 26 DE 80 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 522]: 4.2 - REMATE CON PINTURA DE FABRICA CAL 26 DE 60 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 546]: 4.3 - REMATE CON PINTURA DE FABRICA CAL 26 DE 40 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 571]: 4.4 - REMATE CON PINTURA DE FABRICA CAL 26 DE 30 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 595]: 4.5 - REMATE CON PINTURA DE FABRICA CAL 26 DE 20 CMTS CU
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 621]: 5.1 - REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 647]: 5.2 - REMATE CON PINTURA DE FABRICA CAL 22 DE 100 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 672]: 5.3 - REMATE CON PINTURA DE FABRICA CAL 22 DE 80 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 697]: 5.4 - REMATE CON PINTURA DE FABRICA CAL 22 DE 60 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 722]: 5.5 - REMATE CON PINTURA DE FABRICA CAL 22 DE 40 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 747]: 5.6 - REMATE CON PINTURA DE FABRICA CAL 22 DE 30 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 771]: 5.7 - REMATE CON PINTURA DE FABRICA CAL 22 DE 20 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 796]: 6.1 - REMATE CON PINTURA DE FABRICA CAL 24 DE 120 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 822]: 6.2 - REMATE CON PINTURA DE FABRICA CAL 24 DE 100 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 847]: 6.3 - REMATE CON PINTURA DE FABRICA CAL 24 DE 80 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 872]: 6.4 - REMATE CON PINTURA DE FABRICA CAL 24 DE 60 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 896]: 6.5 - REMATE CON PINTURA DE FABRICA CAL 24 DE 40 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 921]: 6.6 - REMATE CON PINTURA DE FABRICA CAL 24 DE 30 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 945]: 6.7 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 971]: 7.1 - REMATE CON PINTURA FABRICA CAL 24 DE 0.80 MTS LAMI
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 996]: 7.2 - REMATE CON PINTURA DE FABRICA CAL 24 DE 60 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1020]: 7.3 - REMATE CON PINTURA DE FABRICA CAL 24 DE 40 CTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1045]: 7.4 - REMATE CON PINTURA DE FABRICA CAL 24 DE 30 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1069]: 7.5 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1094]: 8.1 - REMATE CON PINTURA DE FABRICA CAL 26 DE 80 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1119]: 8.2 - REMATE CON PINTURA DE FABRICA CAL 26 DE 60 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1143]: 8.3 - REMATE CON PINTURA DE FABRICA CAL 26 DE 40 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1168]: 8.4 - REMATE CON PINTURA DE FABRICA CAL 26 DE 30 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1192]: 8.5 - REMATE CON PINTURA DE FABRICA CAL 26 DE 20 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1220]: 9.1 - INSTALACION DE CABALLETE  LIMATESA
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1254]: 9.2 - INSTALACION DE SOLAPAS CON RANURA
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1288]: 9.3 - INSTALACION DE SOLAPAS SIN RANURA
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1320]: 9.4 - INSTALACION DE GOTERO
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1352]: 9.5 - INSTALACION DE CONTRACABALLETE
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1384]: 9.6 - INSTALACION DE ESQUINERO
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1417]: 9.7 - INSTALACION DE LIMAHOYA
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1456]: 10.1 - INSTALACION DE CABALLETE  LIMATESA CURVO
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1490]: 10.2 - INSTALACION DE SOLAPAS CON RANURA CURVA
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1524]: 10.3 - INSTALACION DE SOLAPAS SIN RANURA CURVA
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1556]: 10.4 - INSTALACION DE GOTERO CURVO
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1588]: 10.5 - INSTALACION DE CONTRACABALLETE CURVO
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1620]: 10.6 - INSTALACION DE ESQUINERO CURVO
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1652]: 10.7 - INSTALACION DE LIMAHOYA CURVA
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1691]: 11.1 - CANAL - SOLO LAMINA CAL 22 DE 120 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1718]: 11.2 - CANAL - SOLO LAMINA CAL 22 DE 100 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1745]: 11.3 - CANAL - SOLO LAMINA CAL 22 DE 80 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1772]: 11.4 - CANAL - SOLO LAMINA CAL 22 DE 60 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1798]: 12.1 - CANAL - SOLO LAMINA CAL 24 DE 120 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1825]: 12.2 - CANAL - SOLO LAMINA CAL 24 DE 100 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1852]: 12.3 - CANAL - SOLO LAMINA CAL 24 DE 80 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1879]: 12.4 - CANAL - SOLO LAMINA CAL 24 DE 60 CMTS
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1906]: 13.1 - CANAL EN LAMINA - MANO DE OBRA Y FORMACION
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1945]: 13.2 - CANAL EN RESINA POLIESTER - MANO DE OBRA Y FORMACI
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 1979]: 14.1 - PROTECCION DE POLIURETANO CON PINTURA BRONCO
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 2040]: 15.2 - INSTALACION PLATINADO CORREAS (EJEMPLO: BRAKO 1)
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 2074]: 16.1 - "SUMINISTRO DE PLATINA 1/8""x1-1/2"""
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 2107]: 16.2 - INSTALACION PLATINADO CORREAS (EJEMPLO: BRAKO 1)
+20:57:58 [affa7317] - INFO - ✓ APU detectado [línea 2142]: UNKNOWN_APU_2142 - CUADRILLA DE 2 TECHADORES 1 DIA
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2176]: UNKNOWN_APU_2176 - CUADRILLA DE 2 TECHADORES 6 DIAS
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2209]: UNKNOWN_APU_2209 - CUADRILLA DE 2 TECHADORES 1 MES
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2242]: UNKNOWN_APU_2242 - CUADRILLA DE 3 TECHADORES 1 DIA
+20:57:59 [SYSTEM] - INFO - 📊 Telemetry for 6aa7e191: {"request_id": "6aa7e191", "steps": [], "metrics": {}, "errors": [], "events": [], "spans": [], "total_duration_seconds": 0, "created_at": 37165.170525636, "age_seconds": 0.003526, "summary": {"request_id": "6aa7e191", "total_steps": 0, "total_errors": 0, "total_metrics": 0, "total_events": 0, "total_spans": 0, "active_timers": 0, "stale_timers": 0, "total_duration_seconds": 0.0, "step_statuses": {}, "error_types": {}, "has_errors": false, "has_failures": false, "success_rate": 1.0, "age_seconds": 0.003543, "limits": {"steps": "0/1000", "errors": "0/100", "metrics": "0/500"}}}
+20:57:59 [SYSTEM] - INFO - 📊 Telemetry for 6aa7e191: {"request_id": "6aa7e191", "steps": [], "metrics": {}, "errors": [], "events": [], "spans": [], "total_duration_seconds": 0, "created_at": 37165.170525636, "age_seconds": 0.003526, "summary": {"request_id": "6aa7e191", "total_steps": 0, "total_errors": 0, "total_metrics": 0, "total_events": 0, "total_spans": 0, "active_timers": 0, "stale_timers": 0, "total_duration_seconds": 0.0, "step_statuses": {}, "error_types": {}, "has_errors": false, "has_failures": false, "success_rate": 1.0, "age_seconds": 0.003543, "limits": {"steps": "0/1000", "errors": "0/100", "metrics": "0/500"}}}
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2275]: UNKNOWN_APU_2275 - CUADRILLA DE 3 TECHADORES 6 DIAS
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2308]: UNKNOWN_APU_2308 - CUADRILLA DE 3 TECHADORES 1 MES
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2341]: UNKNOWN_APU_2341 - CUADRILLA DE 4 TECHADORES 1 DIA
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2374]: UNKNOWN_APU_2374 - CUADRILLA DE 4 TECHADORES 6 DIAS
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2407]: UNKNOWN_APU_2407 - CUADRILLA DE 4 TECHADORES 1 MES
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2441]: UNKNOWN_APU_2441 - CUADRILLA DE 4 TECHADORES 1 DIA
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2474]: UNKNOWN_APU_2474 - LIMPIEZA DE CUBIERTA CUADRILLA DE 3
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2507]: UNKNOWN_APU_2507 - LIMPIEZA DE CUBIERTA CUADRILLA DE 4
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2531]: UNKNOWN_APU_2531 - ARMADO Y DESARMADO DE ANDAMIOS 1 CUERPO H=2.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2556]: UNKNOWN_APU_2556 - ARMADO Y DESARMADO DE ANDAMIOS 2 CUERPOS H=4.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2581]: UNKNOWN_APU_2581 - ARMADO Y DESARMADO DE ANDAMIOS 3 CUERPOS H=6.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2606]: UNKNOWN_APU_2606 - ARMADO Y DESARMADO DE ANDAMIOS 4 CUERPOS H=8.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2631]: UNKNOWN_APU_2631 - ARMADO Y DESARMADO DE ANDAMIOS 5 CUERPOS H=10.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2656]: UNKNOWN_APU_2656 - ALQUILER ANDAMIO 1 CUERPO H=2.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2679]: UNKNOWN_APU_2679 - ALQUILER ANDAMIO 2 CUERPOS H=4.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2703]: UNKNOWN_APU_2703 - ALQUILER ANDAMIO 3 CUERPOS H=6.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2727]: UNKNOWN_APU_2727 - ALQUILER ANDAMIO 4 CUERPOS H=8.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2751]: UNKNOWN_APU_2751 - ALQUILER ANDAMIO 5 CUERPOS H=10.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2775]: UNKNOWN_APU_2775 - ALQUILER ANDAMIO DE CARGA H=2.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2799]: UNKNOWN_APU_2799 - ALQUILER ANDAMIO DE CARGA H=4.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2823]: UNKNOWN_APU_2823 - ALQUILER ANDAMIO DE CARGA H=6.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2847]: UNKNOWN_APU_2847 - ALQUILER ANDAMIO DE CARGA H=8.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2871]: UNKNOWN_APU_2871 - ALQUILER ANDAMIO DE CARGA H=10.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2895]: UNKNOWN_APU_2895 - ALQUILER ANDAMIO DE CARGA H=12.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2919]: UNKNOWN_APU_2919 - RESIDENTE OCUP. 30%
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2938]: UNKNOWN_APU_2938 - RESIDENTE OCUP. 50%
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2957]: UNKNOWN_APU_2957 - RESIDENTE OCUP. 70%
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2976]: UNKNOWN_APU_2976 - RESIDENTE OCUP. 100%
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 2995]: UNKNOWN_APU_2995 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3023]: UNKNOWN_APU_3023 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3051]: UNKNOWN_APU_3051 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3079]: UNKNOWN_APU_3079 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3107]: UNKNOWN_APU_3107 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3135]: UNKNOWN_APU_3135 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3163]: UNKNOWN_APU_3163 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3191]: UNKNOWN_APU_3191 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3219]: UNKNOWN_APU_3219 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3247]: UNKNOWN_APU_3247 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3275]: UNKNOWN_APU_3275 - CANAL - SOLO LAMINA CAL 24 DE 120 CMTS
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3302]: UNKNOWN_APU_3302 - CANAL - SOLO LAMINA CAL 24 DE 100 CMTS
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3329]: UNKNOWN_APU_3329 - CANAL - SOLO LAMINA CAL 24 DE 80 CMTS
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3356]: UNKNOWN_APU_3356 - CANAL - SOLO LAMINA CAL 24 DE 60 CMTS
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3383]: UNKNOWN_APU_3383 - CANAL - MANO DE OBRA Y FORMACION
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3403]: UNKNOWN_APU_3403 - PROTECCION DE POLIURETANO CON PINTURA BRONCO
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3420]: UNKNOWN_APU_3420 - INSTALACION PLATINADO CORREAS (EJEMPLO: BRAKO 1)
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3440]: UNKNOWN_APU_3440 - INSTALACION PLATINADO CORREAS (EJEMPLO: BRAKO 1)
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3458]: UNKNOWN_APU_3458 - CUADRILLA DE 4 TECHADORES 1 DIA
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3478]: UNKNOWN_APU_3478 - ARMADO Y DESARMADO DE ANDAMIOS 1 CUERPO H=2.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3503]: UNKNOWN_APU_3503 - ARMADO Y DESARMADO DE ANDAMIOS 2 CUERPOS H=4.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3528]: UNKNOWN_APU_3528 - ARMADO Y DESARMADO DE ANDAMIOS 3 CUERPOS H=6.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3553]: UNKNOWN_APU_3553 - ARMADO Y DESARMADO DE ANDAMIOS 4 CUERPOS H=8.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3578]: UNKNOWN_APU_3578 - ARMADO Y DESARMADO DE ANDAMIOS 5 CUERPOS H=10.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3603]: UNKNOWN_APU_3603 - ALQUILER ANDAMIO 1 CUERPO H=2.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3626]: UNKNOWN_APU_3626 - ALQUILER ANDAMIO 2 CUERPOS H=4.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3650]: UNKNOWN_APU_3650 - ALQUILER ANDAMIO 3 CUERPOS H=6.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3674]: UNKNOWN_APU_3674 - ALQUILER ANDAMIO 4 CUERPOS H=8.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3697]: UNKNOWN_APU_3697 - ALQUILER ANDAMIO 5 CUERPOS H=10.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3721]: UNKNOWN_APU_3721 - ALQUILER ANDAMIO DE CARGA H=2.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3745]: UNKNOWN_APU_3745 - ALQUILER ANDAMIO DE CARGA H=4.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3769]: UNKNOWN_APU_3769 - ALQUILER ANDAMIO DE CARGA H=6.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3793]: UNKNOWN_APU_3793 - ALQUILER ANDAMIO DE CARGA H=8.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3816]: UNKNOWN_APU_3816 - ALQUILER ANDAMIO DE CARGA H=10.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3840]: UNKNOWN_APU_3840 - ALQUILER ANDAMIO DE CARGA H=12.00MT
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3864]: UNKNOWN_APU_3864 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3892]: UNKNOWN_APU_3892 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3920]: UNKNOWN_APU_3920 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3948]: UNKNOWN_APU_3948 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 3976]: UNKNOWN_APU_3976 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 4004]: UNKNOWN_APU_4004 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 4032]: UNKNOWN_APU_4032 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 4060]: UNKNOWN_APU_4060 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 4088]: UNKNOWN_APU_4088 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 4116]: UNKNOWN_APU_4116 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+20:57:59 [affa7317] - INFO - ✓ APU detectado [línea 4146]: UNKNOWN_APU_4146 - MANO DE OBRA DESMONTE DE TEJA DE ASBESTO CUADRILLA
+20:57:59 [affa7317] - INFO - Parseo completo. Extraídos 909 registros crudos.
+20:57:59 [affa7317] - INFO - ================================================================================
+20:57:59 [affa7317] - INFO - 📊 RESUMEN DE VALIDACIÓN CON LARK
+20:57:59 [affa7317] - INFO - ================================================================================
+20:57:59 [affa7317] - INFO - Total líneas evaluadas: 910
+20:57:59 [affa7317] - INFO - ✓ Insumos válidos (ambas capas): 909 (99.9%)
+20:57:59 [affa7317] - INFO -   - Pasaron validación básica: 909
+20:57:59 [affa7317] - INFO -   - Pasaron validación Lark: 909
+20:57:59 [affa7317] - INFO -   - Cache hits: 395
+20:57:59 [affa7317] - INFO - 
+20:57:59 [affa7317] - INFO - Rechazos por validación básica:
+20:57:59 [affa7317] - INFO -   - Campos insuficientes/vacíos: 1
+20:57:59 [affa7317] - INFO -   - Sin datos numéricos: 0
+20:57:59 [affa7317] - INFO -   - Subtotales: 0
+20:57:59 [affa7317] - INFO -   - Líneas decorativas: 0
+20:57:59 [affa7317] - INFO - 
+20:57:59 [affa7317] - INFO - Rechazos por validación Lark:
+20:57:59 [affa7317] - INFO -   - Parse error genérico: 0
+20:57:59 [affa7317] - INFO -   - Unexpected input: 0
+20:57:59 [affa7317] - INFO -   - Unexpected characters: 0
+20:57:59 [affa7317] - INFO - ================================================================================
+20:57:59 [affa7317] - INFO - Cache de parsing exportado: 514 árboles válidos.
+20:57:59 [affa7317] - INFO - 📊 Registros a procesar: 909
+20:58:00 [affa7317] - INFO - ✓ APUProcessor inicializado con cache de 514 líneas
+20:58:00 [affa7317] - INFO - Agrupando 50 registros planos por APU...
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [1.1]: Ley de conservación (I1) violada: valor_total=7630.230000 vs calculado=7642.360000 (Δ_rel=1.59e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [1.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [1.2]: Ley de conservación (I1) violada: valor_total=7630.230000 vs calculado=7642.360000 (Δ_rel=1.59e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [1.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [1.3]: Ley de conservación (I1) violada: valor_total=7630.230000 vs calculado=7642.360000 (Δ_rel=1.59e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [1.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [1.4]: Ley de conservación (I1) violada: valor_total=5086.820000 vs calculado=5095.310000 (Δ_rel=1.67e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [1.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [1.5]: Ley de conservación (I1) violada: valor_total=2119.500000 vs calculado=2122.340000 (Δ_rel=1.34e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [1.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [1.6]: Ley de conservación (I1) violada: valor_total=2119.500000 vs calculado=2122.340000 (Δ_rel=1.34e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [1.6]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [1.7]: Ley de conservación (I1) violada: valor_total=1483.650000 vs calculado=1485.880000 (Δ_rel=1.50e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [1.7]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [2.1]: Ley de conservación (I1) violada: valor_total=7630.230000 vs calculado=7642.360000 (Δ_rel=1.59e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [2.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [2.2]: Ley de conservación (I1) violada: valor_total=7630.230000 vs calculado=7642.360000 (Δ_rel=1.59e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [2.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [2.3]: Ley de conservación (I1) violada: valor_total=7630.230000 vs calculado=7642.360000 (Δ_rel=1.59e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [2.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [2.4]: Ley de conservación (I1) violada: valor_total=5086.820000 vs calculado=5095.310000 (Δ_rel=1.67e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [2.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [2.5]: Ley de conservación (I1) violada: valor_total=2119.500000 vs calculado=2122.340000 (Δ_rel=1.34e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [2.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [2.6]: Ley de conservación (I1) violada: valor_total=2119.500000 vs calculado=2122.340000 (Δ_rel=1.34e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [2.6]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [2.7]: Ley de conservación (I1) violada: valor_total=1483.650000 vs calculado=1485.880000 (Δ_rel=1.50e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [2.7]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [UNKNOWN_APU_348]: Ley de conservación (I1) violada: valor_total=1483.650000 vs calculado=1485.880000 (Δ_rel=1.50e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_348]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [3.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [3.1]: cantidad declarada=6.3200 difiere de la cantidad proyectada (1/ρ)=0.1582 (Δ_rel=3894.24%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 3.1: cantidad=6.3200, esperada=0.1582 (Δ_rel=97.50%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [3.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - INFO - Stats: ParsingStats(total_lines=50, successful_parses=35, lark_parse_errors=0, lark_unexpected_input=0, lark_unexpected_chars=0, transformer_errors=0, empty_results=15, fallback_attempts=0, fallback_successes=0, cache_hits=0, sum_field_entropy=26.33408646788865, sum_numeric_cohesion=14.08888888888889, sum_structural_density=5.138716005538467, failed_lines=[])
+20:58:00 [affa7317] - INFO - ✓ APUProcessor inicializado con cache de 514 líneas
+20:58:00 [affa7317] - INFO - Agrupando 48 registros planos por APU...
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [3.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [3.2]: cantidad declarada=4.2100 difiere de la cantidad proyectada (1/ρ)=0.2375 (Δ_rel=1672.41%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 3.2: cantidad=4.2100, esperada=0.2375 (Δ_rel=94.36%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [3.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [3.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [3.3]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 3.3: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [3.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [3.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [3.4]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 3.4: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [3.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [3.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [3.5]: cantidad declarada=1.2300 difiere de la cantidad proyectada (1/ρ)=0.8130 (Δ_rel=51.29%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 3.5: cantidad=1.2300, esperada=0.8130 (Δ_rel=33.90%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [3.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [4.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [4.1]: cantidad declarada=6.3200 difiere de la cantidad proyectada (1/ρ)=0.1582 (Δ_rel=3894.24%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 4.1: cantidad=6.3200, esperada=0.1582 (Δ_rel=97.50%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [4.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [4.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [4.2]: cantidad declarada=4.2100 difiere de la cantidad proyectada (1/ρ)=0.2375 (Δ_rel=1672.41%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 4.2: cantidad=4.2100, esperada=0.2375 (Δ_rel=94.36%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [4.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [4.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [4.3]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 4.3: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [4.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [4.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [4.4]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 4.4: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [4.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [4.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [4.5]: cantidad declarada=1.2300 difiere de la cantidad proyectada (1/ρ)=0.8130 (Δ_rel=51.29%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 4.5: cantidad=1.2300, esperada=0.8130 (Δ_rel=33.90%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [4.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [5.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [5.1]: cantidad declarada=6.3200 difiere de la cantidad proyectada (1/ρ)=0.1582 (Δ_rel=3894.24%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 5.1: cantidad=6.3200, esperada=0.1582 (Δ_rel=97.50%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [5.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [5.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [5.2]: cantidad declarada=6.3200 difiere de la cantidad proyectada (1/ρ)=0.1582 (Δ_rel=3894.24%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 5.2: cantidad=6.3200, esperada=0.1582 (Δ_rel=97.50%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [5.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [5.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [5.3]: cantidad declarada=6.3200 difiere de la cantidad proyectada (1/ρ)=0.1582 (Δ_rel=3894.24%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 5.3: cantidad=6.3200, esperada=0.1582 (Δ_rel=97.50%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [5.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [5.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [5.4]: cantidad declarada=4.2100 difiere de la cantidad proyectada (1/ρ)=0.2375 (Δ_rel=1672.41%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 5.4: cantidad=4.2100, esperada=0.2375 (Δ_rel=94.36%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [5.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [5.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [5.5]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 5.5: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+20:58:00 [affa7317] - INFO - Stats: ParsingStats(total_lines=48, successful_parses=48, lark_parse_errors=0, lark_unexpected_input=0, lark_unexpected_chars=0, transformer_errors=0, empty_results=0, fallback_attempts=0, fallback_successes=0, cache_hits=0, sum_field_entropy=35.00726980410661, sum_numeric_cohesion=19.55555555555555, sum_structural_density=7.511018145047034, failed_lines=[])
+20:58:00 [affa7317] - INFO - ✓ APUProcessor inicializado con cache de 514 líneas
+20:58:00 [affa7317] - INFO - Agrupando 90 registros planos por APU...
+/app/app/core/schemas.py:866: UserWarning: Equipo [5.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [5.6]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [5.6]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 5.6: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [5.6]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [5.7]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [5.7]: cantidad declarada=1.2300 difiere de la cantidad proyectada (1/ρ)=0.8130 (Δ_rel=51.29%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 5.7: cantidad=1.2300, esperada=0.8130 (Δ_rel=33.90%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [5.7]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [6.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [6.1]: cantidad declarada=6.3200 difiere de la cantidad proyectada (1/ρ)=0.1582 (Δ_rel=3894.24%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 6.1: cantidad=6.3200, esperada=0.1582 (Δ_rel=97.50%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [6.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [6.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [6.2]: cantidad declarada=6.3200 difiere de la cantidad proyectada (1/ρ)=0.1582 (Δ_rel=3894.24%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 6.2: cantidad=6.3200, esperada=0.1582 (Δ_rel=97.50%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [6.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [6.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [6.3]: cantidad declarada=6.3200 difiere de la cantidad proyectada (1/ρ)=0.1582 (Δ_rel=3894.24%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 6.3: cantidad=6.3200, esperada=0.1582 (Δ_rel=97.50%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [6.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [6.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [6.4]: cantidad declarada=4.2100 difiere de la cantidad proyectada (1/ρ)=0.2375 (Δ_rel=1672.41%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 6.4: cantidad=4.2100, esperada=0.2375 (Δ_rel=94.36%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [6.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [6.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [6.5]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 6.5: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [6.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [6.6]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [6.6]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 6.6: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [6.6]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [6.7]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [6.7]: cantidad declarada=1.2300 difiere de la cantidad proyectada (1/ρ)=0.8130 (Δ_rel=51.29%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 6.7: cantidad=1.2300, esperada=0.8130 (Δ_rel=33.90%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [6.7]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [7.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [7.1]: cantidad declarada=6.3200 difiere de la cantidad proyectada (1/ρ)=0.1582 (Δ_rel=3894.24%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 7.1: cantidad=6.3200, esperada=0.1582 (Δ_rel=97.50%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [7.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [7.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [7.2]: cantidad declarada=4.2100 difiere de la cantidad proyectada (1/ρ)=0.2375 (Δ_rel=1672.41%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 7.2: cantidad=4.2100, esperada=0.2375 (Δ_rel=94.36%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [7.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [7.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [7.3]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 7.3: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [7.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [7.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [7.4]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 7.4: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [7.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [7.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [7.5]: cantidad declarada=1.2300 difiere de la cantidad proyectada (1/ρ)=0.8130 (Δ_rel=51.29%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 7.5: cantidad=1.2300, esperada=0.8130 (Δ_rel=33.90%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [7.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [8.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [8.1]: cantidad declarada=6.3200 difiere de la cantidad proyectada (1/ρ)=0.1582 (Δ_rel=3894.24%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 8.1: cantidad=6.3200, esperada=0.1582 (Δ_rel=97.50%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [8.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [8.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [8.2]: cantidad declarada=4.2100 difiere de la cantidad proyectada (1/ρ)=0.2375 (Δ_rel=1672.41%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 8.2: cantidad=4.2100, esperada=0.2375 (Δ_rel=94.36%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [8.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [8.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [8.3]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 8.3: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [8.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [8.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [8.4]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 8.4: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [8.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [8.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [8.5]: cantidad declarada=1.2300 difiere de la cantidad proyectada (1/ρ)=0.8130 (Δ_rel=51.29%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 8.5: cantidad=1.2300, esperada=0.8130 (Δ_rel=33.90%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [8.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [9.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Equipo [9.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Suministro [9.1]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [9.1]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [9.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Suministro [9.2]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [9.2]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [9.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - INFO - Stats: ParsingStats(total_lines=90, successful_parses=85, lark_parse_errors=0, lark_unexpected_input=0, lark_unexpected_chars=0, transformer_errors=0, empty_results=5, fallback_attempts=0, fallback_successes=0, cache_hits=0, sum_field_entropy=62.08972710460744, sum_numeric_cohesion=34.71944444444445, sum_structural_density=13.179748163004037, failed_lines=[])
+20:58:00 [affa7317] - INFO - ✓ APUProcessor inicializado con cache de 514 líneas
+20:58:00 [affa7317] - INFO - Agrupando 118 registros planos por APU...
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Suministro [9.3]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [9.3]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [9.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Suministro [9.4]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [9.4]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [9.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Suministro [9.5]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [9.5]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [9.6]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Suministro [9.6]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [9.6]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [9.7]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Suministro [9.7]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [9.7]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [10.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Equipo [10.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Suministro [10.1]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [10.1]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [10.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Suministro [10.2]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [10.2]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [10.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Suministro [10.3]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [10.3]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [10.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Suministro [10.4]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [10.4]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [10.5]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Suministro [10.5]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [10.5]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [10.6]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:00 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Suministro [10.6]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [10.6]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [10.7]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Equipo [10.7]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [10.7]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [11.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [11.1]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 11.1: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [11.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - INFO - Stats: ParsingStats(total_lines=118, successful_parses=95, lark_parse_errors=0, lark_unexpected_input=0, lark_unexpected_chars=0, transformer_errors=0, empty_results=23, fallback_attempts=0, fallback_successes=0, cache_hits=0, sum_field_entropy=69.19022814465151, sum_numeric_cohesion=39.075, sum_structural_density=14.251690545658652, failed_lines=[])
+20:58:01 [affa7317] - INFO - ✓ APUProcessor inicializado con cache de 514 líneas
+20:58:01 [affa7317] - INFO - Agrupando 136 registros planos por APU...
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [11.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [11.2]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 11.2: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [11.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [11.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [11.3]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 11.3: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [11.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [11.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [11.4]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 11.4: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [11.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [12.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [12.1]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 12.1: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [12.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [12.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [12.2]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 12.2: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [12.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [12.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [12.3]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 12.3: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [12.3]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [12.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [12.4]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 12.4: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [12.4]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [13.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Equipo [13.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [13.1]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [13.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Equipo [13.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [13.2]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Suministro [14.1]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [14.1]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [14.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: ManoDeObra [14.1]: Ley de conservación (I1) violada: valor_total=2147.220000 vs calculado=2135.640000 (Δ_rel=5.39e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [14.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [15.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Equipo [15.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [15.2]: Ley de conservación (I1) violada: valor_total=3.990000 vs calculado=4.000000 (Δ_rel=2.50e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Transporte [15.2]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [16.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [16.1]: cantidad declarada=2738.0000 difiere de la cantidad proyectada (1/ρ)=0.0004 (Δ_rel=749664300.00%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en 16.1: cantidad=2738.0000, esperada=0.0004 (Δ_rel=100.00%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [16.1]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [16.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 157986.0 > máximo = 100000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: Equipo [16.2]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [16.2]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2142]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_2142]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2142]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2176]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_2176]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - INFO - Stats: ParsingStats(total_lines=136, successful_parses=123, lark_parse_errors=0, lark_unexpected_input=0, lark_unexpected_chars=0, transformer_errors=0, empty_results=13, fallback_attempts=0, fallback_successes=0, cache_hits=2, sum_field_entropy=88.35764794587348, sum_numeric_cohesion=51.300000000000004, sum_structural_density=19.798794755648558, failed_lines=[])
+20:58:01 [affa7317] - INFO - ✓ APUProcessor inicializado con cache de 514 líneas
+20:58:01 [affa7317] - INFO - Agrupando 147 registros planos por APU...
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2176]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2209]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_2209]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2209]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2242]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_2242]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [SYSTEM] - INFO - 📊 Telemetry for 0323ff54: {"request_id": "0323ff54", "steps": [], "metrics": {}, "errors": [], "events": [], "spans": [], "total_duration_seconds": 0, "created_at": 37167.539154594, "age_seconds": 0.0188, "summary": {"request_id": "0323ff54", "total_steps": 0, "total_errors": 0, "total_metrics": 0, "total_events": 0, "total_spans": 0, "active_timers": 0, "stale_timers": 0, "total_duration_seconds": 0.0, "step_statuses": {}, "error_types": {}, "has_errors": false, "has_failures": false, "success_rate": 1.0, "age_seconds": 0.018839, "limits": {"steps": "0/1000", "errors": "0/100", "metrics": "0/500"}}}
+20:58:01 [SYSTEM] - INFO - 📊 Telemetry for 0323ff54: {"request_id": "0323ff54", "steps": [], "metrics": {}, "errors": [], "events": [], "spans": [], "total_duration_seconds": 0, "created_at": 37167.539154594, "age_seconds": 0.0188, "summary": {"request_id": "0323ff54", "total_steps": 0, "total_errors": 0, "total_metrics": 0, "total_events": 0, "total_spans": 0, "active_timers": 0, "stale_timers": 0, "total_duration_seconds": 0.0, "step_statuses": {}, "error_types": {}, "has_errors": false, "has_failures": false, "success_rate": 1.0, "age_seconds": 0.018839, "limits": {"steps": "0/1000", "errors": "0/100", "metrics": "0/500"}}}
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2242]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2275]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_2275]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2275]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2308]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_2308]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2308]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2341]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_2341]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2341]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2374]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_2374]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2374]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2407]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_2407]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2407]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2441]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_2441]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2441]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2474]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_2474]: Ley de conservación (I1) violada: valor_total=667.720000 vs calculado=669.057110 (Δ_rel=2.00e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_2474]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - INFO - Stats: ParsingStats(total_lines=147, successful_parses=146, lark_parse_errors=0, lark_unexpected_input=0, lark_unexpected_chars=0, transformer_errors=0, empty_results=1, fallback_attempts=0, fallback_successes=0, cache_hits=9, sum_field_entropy=106.05288649096565, sum_numeric_cohesion=61.460714285714296, sum_structural_density=25.954241119617247, failed_lines=[])
+20:58:01 [affa7317] - INFO - ✓ APUProcessor inicializado con cache de 514 líneas
+20:58:01 [affa7317] - INFO - Agrupando 154 registros planos por APU...
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2507]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2531]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_2531]: Ley de conservación (I1) violada: valor_total=35.050000 vs calculado=36.056970 (Δ_rel=2.79e-02 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2531]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2556]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_2556]: Ley de conservación (I1) violada: valor_total=70.110000 vs calculado=72.113940 (Δ_rel=2.78e-02 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2556]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2581]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_2581]: Ley de conservación (I1) violada: valor_total=105.170000 vs calculado=104.164580 (Δ_rel=9.56e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2581]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2606]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2606]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2631]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_2631]: Ley de conservación (I1) violada: valor_total=175.280000 vs calculado=176.278520 (Δ_rel=5.66e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_2631]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2656]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2679]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2703]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2727]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2751]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2775]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2799]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2823]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2847]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2871]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2895]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 400633.0 > máximo = 100000.0
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_2995]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_2995]: Ley de conservación (I1) violada: valor_total=4.050000 vs calculado=4.006330 (Δ_rel=1.08e-02 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3023]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3023]: Ley de conservación (I1) violada: valor_total=598.000000 vs calculado=598.766940 (Δ_rel=1.28e-03 > τ=1.00e-03)
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3023]: Ley de conservación (I1) violada: valor_total=3.040000 vs calculado=4.006330 (Δ_rel=2.41e-01 > τ=1.00e-03)
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 730381.0 > máximo = 100000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3051]: Ley de conservación (I1) violada: valor_total=2.430000 vs calculado=4.006330 (Δ_rel=3.93e-01 > τ=1.00e-03)
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: cantidad = 1016308.0 > máximo = 1000000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3079]: Ley de conservación (I1) violada: valor_total=342.000000 vs calculado=341.249760 (Δ_rel=2.19e-03 > τ=1.00e-03)
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3079]: Ley de conservación (I1) violada: valor_total=1.730000 vs calculado=0.000000 (Δ_rel=1.00e+00 > τ=1.00e-03)
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: cantidad = 1333489.0 > máximo = 1000000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3107]: Ley de conservación (I1) violada: valor_total=266.000000 vs calculado=265.416480 (Δ_rel=2.19e-03 > τ=1.00e-03)
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3107]: Ley de conservación (I1) violada: valor_total=1.350000 vs calculado=0.000000 (Δ_rel=1.00e+00 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3135]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3135]: Ley de conservación (I1) violada: valor_total=1.600000 vs calculado=1.579860 (Δ_rel=1.26e-02 > τ=1.00e-03)
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3135]: Ley de conservación (I1) violada: valor_total=8.090000 vs calculado=8.012660 (Δ_rel=9.56e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3163]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3163]: Ley de conservación (I1) violada: valor_total=1.200000 vs calculado=1.579860 (Δ_rel=2.40e-01 > τ=1.00e-03)
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3163]: Ley de conservación (I1) violada: valor_total=6.070000 vs calculado=8.012660 (Δ_rel=2.42e-01 > τ=1.00e-03)
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 730381.0 > máximo = 100000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3191]: Ley de conservación (I1) violada: valor_total=4.860000 vs calculado=4.006330 (Δ_rel=1.76e-01 > τ=1.00e-03)
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: cantidad = 1016308.0 > máximo = 1000000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3219]: Ley de conservación (I1) violada: valor_total=3.470000 vs calculado=4.006330 (Δ_rel=1.34e-01 > τ=1.00e-03)
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: cantidad = 1333489.0 > máximo = 1000000.0
+20:58:01 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3247]: Ley de conservación (I1) violada: valor_total=2.700000 vs calculado=4.006330 (Δ_rel=3.26e-01 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3275]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [UNKNOWN_APU_3275]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en UNKNOWN_APU_3275: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_3275]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3302]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [UNKNOWN_APU_3302]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en UNKNOWN_APU_3302: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+20:58:01 [affa7317] - INFO - Stats: ParsingStats(total_lines=154, successful_parses=75, lark_parse_errors=0, lark_unexpected_input=0, lark_unexpected_chars=0, transformer_errors=0, empty_results=79, fallback_attempts=0, fallback_successes=0, cache_hits=10, sum_field_entropy=50.56441356095759, sum_numeric_cohesion=33.999999999999986, sum_structural_density=11.772052480878537, failed_lines=[])
+20:58:01 [affa7317] - INFO - ✓ APUProcessor inicializado con cache de 514 líneas
+20:58:01 [affa7317] - INFO - Agrupando 159 registros planos por APU...
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_3302]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3329]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [UNKNOWN_APU_3329]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en UNKNOWN_APU_3329: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_3329]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3356]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+<string>:23: UserWarning: QuotientSpaceMapper [UNKNOWN_APU_3356]: cantidad declarada=1.7500 difiere de la cantidad proyectada (1/ρ)=0.5714 (Δ_rel=206.25%). Posible inconsistencia en datos fuente.
+<string>:23: UserWarning: Discrepancia rendimiento/cantidad en UNKNOWN_APU_3356: cantidad=1.7500, esperada=0.5714 (Δ_rel=67.35%)
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_3356]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3478]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Suministro [UNKNOWN_APU_3478]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_3478]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3503]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Suministro [UNKNOWN_APU_3503]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_3503]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3528]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Suministro [UNKNOWN_APU_3528]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_3528]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3553]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Suministro [UNKNOWN_APU_3553]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_3553]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3578]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Suministro [UNKNOWN_APU_3578]: Unidad 'DIA' no en frozenset({'L', 'LB', 'TON', 'CM', 'ML', 'M', 'JUEGO', 'U', 'UNIDAD', 'KM', '%', 'PAR', 'GR', 'M2', 'M3', 'CM2', 'UND', 'KIT', 'KG', 'GAL', 'MM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Transporte [UNKNOWN_APU_3578]: Unidad 'DIA' no en frozenset({'MILLA', 'UND', 'VIAJE', 'U', 'VIAJES', 'UNIDAD', 'KM', 'TON-KM'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3603]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3626]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3650]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3674]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3697]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3721]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3745]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3769]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3793]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3816]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3840]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3864]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:02 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3864]: Ley de conservación (I1) violada: valor_total=263.310000 vs calculado=263.836620 (Δ_rel=2.00e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_3892]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:02 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 730381.0 > máximo = 100000.0
+20:58:02 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: cantidad = 1016308.0 > máximo = 1000000.0
+20:58:02 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3948]: Ley de conservación (I1) violada: valor_total=112.850000 vs calculado=112.170060 (Δ_rel=6.03e-03 > τ=1.00e-03)
+20:58:02 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: cantidad = 1333489.0 > máximo = 1000000.0
+20:58:02 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_3976]: Ley de conservación (I1) violada: valor_total=87.770000 vs calculado=88.472160 (Δ_rel=7.94e-03 > τ=1.00e-03)
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_4004]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_4032]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:02 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: rendimiento = 730381.0 > máximo = 100000.0
+20:58:02 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: cantidad = 1016308.0 > máximo = 1000000.0
+20:58:02 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: Suministro [UNKNOWN_APU_4088]: Ley de conservación (I1) violada: valor_total=225.690000 vs calculado=225.919980 (Δ_rel=1.02e-03 > τ=1.00e-03)
+20:58:02 [affa7317] - ERROR - Error construyendo INSUMO_BASICO: cantidad = 1333489.0 > máximo = 1000000.0
+/app/app/core/schemas.py:866: UserWarning: ManoDeObra [UNKNOWN_APU_4146]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+/app/app/core/schemas.py:866: UserWarning: Equipo [UNKNOWN_APU_4146]: Unidad 'UNIDAD' no en frozenset({'SEMANA', 'MES', 'DIA', 'JOR', 'HORA'})
+  self._validate_consistency()
+20:58:02 [affa7317] - INFO - Stats: ParsingStats(total_lines=159, successful_parses=99, lark_parse_errors=0, lark_unexpected_input=0, lark_unexpected_chars=0, transformer_errors=0, empty_results=60, fallback_attempts=0, fallback_successes=0, cache_hits=0, sum_field_entropy=68.59624377415874, sum_numeric_cohesion=44.38214285714285, sum_structural_density=14.743725984309553, failed_lines=[])
+20:58:02 [affa7317] - WARNING - 🛡️ MEMBRANA ACTIVADA: Derivando sobrepresión (Clamping)
+20:58:02 [affa7317] - INFO - ✓ APUProcessor inicializado con cache de 514 líneas
+20:58:02 [affa7317] - INFO - Agrupando 7 registros planos por APU...
+20:58:02 [affa7317] - INFO - Stats: ParsingStats(total_lines=7, successful_parses=7, lark_parse_errors=0, lark_unexpected_input=0, lark_unexpected_chars=0, transformer_errors=0, empty_results=0, fallback_attempts=0, fallback_successes=0, cache_hits=0, sum_field_entropy=5.44035104292869, sum_numeric_cohesion=2.7499999999999996, sum_structural_density=1.1100207331397483, failed_lines=[])
+20:58:02 [affa7317] - INFO - Eliminados 433 duplicados
+20:58:02 [affa7317] - INFO - 📋 Validación de salida: 280 registros, 13 columnas, 0.0% nulos
+20:58:02 [affa7317] - INFO - ✅ [STABILIZE] Completado: 280 registros en 4.24s (66 rec/s)
+20:58:02 [affa7317] - INFO - Iniciando parseo línea por línea de: apus.csv
+20:58:02 [affa7317] - INFO - Archivo leído exitosamente con codificación: latin1
+20:58:02 [affa7317] - INFO - 🚀 Iniciando procesamiento de 4175 líneas con Lógica Piramidal.
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1]: 1.1 - REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS C
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 26]: 1.2 - REMATE CON PINTURA DE FABRICA CAL 22 DE 100 CMTS C
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 51]: 1.3 - REMATE CON PINTURA DE FABRICA CAL 22 DE 80 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 76]: 1.4 - REMATE CON PINTURA DE FABRICA CAL 22 DE 60 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 100]: 1.5 - REMATE CON PINTURA DE FABRICA CAL 22 DE 40 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 125]: 1.6 - REMATE CON PINTURA DE FABRICA CAL 22 DE 30 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 149]: 1.7 - REMATE CON PINTURA DE FABRICA CAL 22 DE 20 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 175]: 2.1 - REMATE CON PINTURA DE FABRICA CAL 24 DE 120 CMTS C
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 200]: 2.2 - REMATE CON PINTURA DE FABRICA CAL 24 DE 100 CMTS C
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 225]: 2.3 - REMATE CON PINTURA DE FABRICA CAL 24 DE 80 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 250]: 2.4 - REMATE CON PINTURA DE FABRICA CAL 24 DE 60 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 274]: 2.5 - REMATE CON PINTURA DE FABRICA CAL 24 DE 40 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 299]: 2.6 - REMATE CON PINTURA DE FABRICA CAL 24 DE 30 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 323]: 2.7 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 348]: UNKNOWN_APU_348 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 374]: 3.1 - REMATE CON PINTURA DE FABRICA CAL 24 DE 80 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 399]: 3.2 - REMATE CON PINTURA DE FABRICA CAL 24 DE 60 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 423]: 3.3 - REMATE CON PINTURA DE FABRICA CAL 24 DE 40 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 448]: 3.4 - REMATE CON PINTURA DE FABRICA CAL 24 DE 30 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 472]: 3.5 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 497]: 4.1 - REMATE CON PINTURA DE FABRICA CAL 26 DE 80 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 522]: 4.2 - REMATE CON PINTURA DE FABRICA CAL 26 DE 60 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 546]: 4.3 - REMATE CON PINTURA DE FABRICA CAL 26 DE 40 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 571]: 4.4 - REMATE CON PINTURA DE FABRICA CAL 26 DE 30 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 595]: 4.5 - REMATE CON PINTURA DE FABRICA CAL 26 DE 20 CMTS CU
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 621]: 5.1 - REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 647]: 5.2 - REMATE CON PINTURA DE FABRICA CAL 22 DE 100 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 672]: 5.3 - REMATE CON PINTURA DE FABRICA CAL 22 DE 80 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 697]: 5.4 - REMATE CON PINTURA DE FABRICA CAL 22 DE 60 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 722]: 5.5 - REMATE CON PINTURA DE FABRICA CAL 22 DE 40 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 747]: 5.6 - REMATE CON PINTURA DE FABRICA CAL 22 DE 30 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 771]: 5.7 - REMATE CON PINTURA DE FABRICA CAL 22 DE 20 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 796]: 6.1 - REMATE CON PINTURA DE FABRICA CAL 24 DE 120 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 822]: 6.2 - REMATE CON PINTURA DE FABRICA CAL 24 DE 100 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 847]: 6.3 - REMATE CON PINTURA DE FABRICA CAL 24 DE 80 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 872]: 6.4 - REMATE CON PINTURA DE FABRICA CAL 24 DE 60 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 896]: 6.5 - REMATE CON PINTURA DE FABRICA CAL 24 DE 40 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 921]: 6.6 - REMATE CON PINTURA DE FABRICA CAL 24 DE 30 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 945]: 6.7 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 971]: 7.1 - REMATE CON PINTURA FABRICA CAL 24 DE 0.80 MTS LAMI
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 996]: 7.2 - REMATE CON PINTURA DE FABRICA CAL 24 DE 60 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1020]: 7.3 - REMATE CON PINTURA DE FABRICA CAL 24 DE 40 CTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1045]: 7.4 - REMATE CON PINTURA DE FABRICA CAL 24 DE 30 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1069]: 7.5 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1094]: 8.1 - REMATE CON PINTURA DE FABRICA CAL 26 DE 80 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1119]: 8.2 - REMATE CON PINTURA DE FABRICA CAL 26 DE 60 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1143]: 8.3 - REMATE CON PINTURA DE FABRICA CAL 26 DE 40 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1168]: 8.4 - REMATE CON PINTURA DE FABRICA CAL 26 DE 30 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1192]: 8.5 - REMATE CON PINTURA DE FABRICA CAL 26 DE 20 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1220]: 9.1 - INSTALACION DE CABALLETE  LIMATESA
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1254]: 9.2 - INSTALACION DE SOLAPAS CON RANURA
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1288]: 9.3 - INSTALACION DE SOLAPAS SIN RANURA
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1320]: 9.4 - INSTALACION DE GOTERO
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1352]: 9.5 - INSTALACION DE CONTRACABALLETE
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1384]: 9.6 - INSTALACION DE ESQUINERO
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1417]: 9.7 - INSTALACION DE LIMAHOYA
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1456]: 10.1 - INSTALACION DE CABALLETE  LIMATESA CURVO
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1490]: 10.2 - INSTALACION DE SOLAPAS CON RANURA CURVA
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1524]: 10.3 - INSTALACION DE SOLAPAS SIN RANURA CURVA
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1556]: 10.4 - INSTALACION DE GOTERO CURVO
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1588]: 10.5 - INSTALACION DE CONTRACABALLETE CURVO
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1620]: 10.6 - INSTALACION DE ESQUINERO CURVO
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1652]: 10.7 - INSTALACION DE LIMAHOYA CURVA
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1691]: 11.1 - CANAL - SOLO LAMINA CAL 22 DE 120 CMTS
+20:58:02 [affa7317] - INFO - ✓ APU detectado [línea 1718]: 11.2 - CANAL - SOLO LAMINA CAL 22 DE 100 CMTS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 1745]: 11.3 - CANAL - SOLO LAMINA CAL 22 DE 80 CMTS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 1772]: 11.4 - CANAL - SOLO LAMINA CAL 22 DE 60 CMTS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 1798]: 12.1 - CANAL - SOLO LAMINA CAL 24 DE 120 CMTS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 1825]: 12.2 - CANAL - SOLO LAMINA CAL 24 DE 100 CMTS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 1852]: 12.3 - CANAL - SOLO LAMINA CAL 24 DE 80 CMTS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 1879]: 12.4 - CANAL - SOLO LAMINA CAL 24 DE 60 CMTS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 1906]: 13.1 - CANAL EN LAMINA - MANO DE OBRA Y FORMACION
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 1945]: 13.2 - CANAL EN RESINA POLIESTER - MANO DE OBRA Y FORMACI
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 1979]: 14.1 - PROTECCION DE POLIURETANO CON PINTURA BRONCO
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2040]: 15.2 - INSTALACION PLATINADO CORREAS (EJEMPLO: BRAKO 1)
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2074]: 16.1 - "SUMINISTRO DE PLATINA 1/8""x1-1/2"""
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2107]: 16.2 - INSTALACION PLATINADO CORREAS (EJEMPLO: BRAKO 1)
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2142]: UNKNOWN_APU_2142 - CUADRILLA DE 2 TECHADORES 1 DIA
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2176]: UNKNOWN_APU_2176 - CUADRILLA DE 2 TECHADORES 6 DIAS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2209]: UNKNOWN_APU_2209 - CUADRILLA DE 2 TECHADORES 1 MES
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2242]: UNKNOWN_APU_2242 - CUADRILLA DE 3 TECHADORES 1 DIA
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2275]: UNKNOWN_APU_2275 - CUADRILLA DE 3 TECHADORES 6 DIAS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2308]: UNKNOWN_APU_2308 - CUADRILLA DE 3 TECHADORES 1 MES
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2341]: UNKNOWN_APU_2341 - CUADRILLA DE 4 TECHADORES 1 DIA
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2374]: UNKNOWN_APU_2374 - CUADRILLA DE 4 TECHADORES 6 DIAS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2407]: UNKNOWN_APU_2407 - CUADRILLA DE 4 TECHADORES 1 MES
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2441]: UNKNOWN_APU_2441 - CUADRILLA DE 4 TECHADORES 1 DIA
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2474]: UNKNOWN_APU_2474 - LIMPIEZA DE CUBIERTA CUADRILLA DE 3
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2507]: UNKNOWN_APU_2507 - LIMPIEZA DE CUBIERTA CUADRILLA DE 4
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2531]: UNKNOWN_APU_2531 - ARMADO Y DESARMADO DE ANDAMIOS 1 CUERPO H=2.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2556]: UNKNOWN_APU_2556 - ARMADO Y DESARMADO DE ANDAMIOS 2 CUERPOS H=4.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2581]: UNKNOWN_APU_2581 - ARMADO Y DESARMADO DE ANDAMIOS 3 CUERPOS H=6.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2606]: UNKNOWN_APU_2606 - ARMADO Y DESARMADO DE ANDAMIOS 4 CUERPOS H=8.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2631]: UNKNOWN_APU_2631 - ARMADO Y DESARMADO DE ANDAMIOS 5 CUERPOS H=10.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2656]: UNKNOWN_APU_2656 - ALQUILER ANDAMIO 1 CUERPO H=2.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2679]: UNKNOWN_APU_2679 - ALQUILER ANDAMIO 2 CUERPOS H=4.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2703]: UNKNOWN_APU_2703 - ALQUILER ANDAMIO 3 CUERPOS H=6.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2727]: UNKNOWN_APU_2727 - ALQUILER ANDAMIO 4 CUERPOS H=8.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2751]: UNKNOWN_APU_2751 - ALQUILER ANDAMIO 5 CUERPOS H=10.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2775]: UNKNOWN_APU_2775 - ALQUILER ANDAMIO DE CARGA H=2.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2799]: UNKNOWN_APU_2799 - ALQUILER ANDAMIO DE CARGA H=4.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2823]: UNKNOWN_APU_2823 - ALQUILER ANDAMIO DE CARGA H=6.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2847]: UNKNOWN_APU_2847 - ALQUILER ANDAMIO DE CARGA H=8.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2871]: UNKNOWN_APU_2871 - ALQUILER ANDAMIO DE CARGA H=10.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2895]: UNKNOWN_APU_2895 - ALQUILER ANDAMIO DE CARGA H=12.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2919]: UNKNOWN_APU_2919 - RESIDENTE OCUP. 30%
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2938]: UNKNOWN_APU_2938 - RESIDENTE OCUP. 50%
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2957]: UNKNOWN_APU_2957 - RESIDENTE OCUP. 70%
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2976]: UNKNOWN_APU_2976 - RESIDENTE OCUP. 100%
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 2995]: UNKNOWN_APU_2995 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3023]: UNKNOWN_APU_3023 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3051]: UNKNOWN_APU_3051 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3079]: UNKNOWN_APU_3079 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3107]: UNKNOWN_APU_3107 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3135]: UNKNOWN_APU_3135 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3163]: UNKNOWN_APU_3163 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3191]: UNKNOWN_APU_3191 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3219]: UNKNOWN_APU_3219 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3247]: UNKNOWN_APU_3247 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3275]: UNKNOWN_APU_3275 - CANAL - SOLO LAMINA CAL 24 DE 120 CMTS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3302]: UNKNOWN_APU_3302 - CANAL - SOLO LAMINA CAL 24 DE 100 CMTS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3329]: UNKNOWN_APU_3329 - CANAL - SOLO LAMINA CAL 24 DE 80 CMTS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3356]: UNKNOWN_APU_3356 - CANAL - SOLO LAMINA CAL 24 DE 60 CMTS
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3383]: UNKNOWN_APU_3383 - CANAL - MANO DE OBRA Y FORMACION
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3403]: UNKNOWN_APU_3403 - PROTECCION DE POLIURETANO CON PINTURA BRONCO
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3420]: UNKNOWN_APU_3420 - INSTALACION PLATINADO CORREAS (EJEMPLO: BRAKO 1)
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3440]: UNKNOWN_APU_3440 - INSTALACION PLATINADO CORREAS (EJEMPLO: BRAKO 1)
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3458]: UNKNOWN_APU_3458 - CUADRILLA DE 4 TECHADORES 1 DIA
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3478]: UNKNOWN_APU_3478 - ARMADO Y DESARMADO DE ANDAMIOS 1 CUERPO H=2.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3503]: UNKNOWN_APU_3503 - ARMADO Y DESARMADO DE ANDAMIOS 2 CUERPOS H=4.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3528]: UNKNOWN_APU_3528 - ARMADO Y DESARMADO DE ANDAMIOS 3 CUERPOS H=6.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3553]: UNKNOWN_APU_3553 - ARMADO Y DESARMADO DE ANDAMIOS 4 CUERPOS H=8.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3578]: UNKNOWN_APU_3578 - ARMADO Y DESARMADO DE ANDAMIOS 5 CUERPOS H=10.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3603]: UNKNOWN_APU_3603 - ALQUILER ANDAMIO 1 CUERPO H=2.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3626]: UNKNOWN_APU_3626 - ALQUILER ANDAMIO 2 CUERPOS H=4.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3650]: UNKNOWN_APU_3650 - ALQUILER ANDAMIO 3 CUERPOS H=6.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3674]: UNKNOWN_APU_3674 - ALQUILER ANDAMIO 4 CUERPOS H=8.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3697]: UNKNOWN_APU_3697 - ALQUILER ANDAMIO 5 CUERPOS H=10.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3721]: UNKNOWN_APU_3721 - ALQUILER ANDAMIO DE CARGA H=2.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3745]: UNKNOWN_APU_3745 - ALQUILER ANDAMIO DE CARGA H=4.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3769]: UNKNOWN_APU_3769 - ALQUILER ANDAMIO DE CARGA H=6.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3793]: UNKNOWN_APU_3793 - ALQUILER ANDAMIO DE CARGA H=8.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3816]: UNKNOWN_APU_3816 - ALQUILER ANDAMIO DE CARGA H=10.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3840]: UNKNOWN_APU_3840 - ALQUILER ANDAMIO DE CARGA H=12.00MT
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3864]: UNKNOWN_APU_3864 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3892]: UNKNOWN_APU_3892 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3920]: UNKNOWN_APU_3920 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3948]: UNKNOWN_APU_3948 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 3976]: UNKNOWN_APU_3976 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 4004]: UNKNOWN_APU_4004 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 4032]: UNKNOWN_APU_4032 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 4060]: UNKNOWN_APU_4060 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 4088]: UNKNOWN_APU_4088 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 4116]: UNKNOWN_APU_4116 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+20:58:03 [affa7317] - INFO - ✓ APU detectado [línea 4146]: UNKNOWN_APU_4146 - MANO DE OBRA DESMONTE DE TEJA DE ASBESTO CUADRILLA
+20:58:03 [affa7317] - INFO - Parseo completo. Extraídos 909 registros crudos.
+20:58:03 [affa7317] - INFO - ================================================================================
+20:58:03 [affa7317] - INFO - 📊 RESUMEN DE VALIDACIÓN CON LARK
+20:58:03 [affa7317] - INFO - ================================================================================
+20:58:03 [affa7317] - INFO - Total líneas evaluadas: 910
+20:58:03 [affa7317] - INFO - ✓ Insumos válidos (ambas capas): 909 (99.9%)
+20:58:03 [affa7317] - INFO -   - Pasaron validación básica: 909
+20:58:03 [affa7317] - INFO -   - Pasaron validación Lark: 909
+20:58:03 [affa7317] - INFO -   - Cache hits: 395
+20:58:03 [affa7317] - INFO - 
+20:58:03 [affa7317] - INFO - Rechazos por validación básica:
+20:58:03 [affa7317] - INFO -   - Campos insuficientes/vacíos: 1
+20:58:03 [affa7317] - INFO -   - Sin datos numéricos: 0
+20:58:03 [affa7317] - INFO -   - Subtotales: 0
+20:58:03 [affa7317] - INFO -   - Líneas decorativas: 0
+20:58:03 [affa7317] - INFO - 
+20:58:03 [affa7317] - INFO - Rechazos por validación Lark:
+20:58:03 [affa7317] - INFO -   - Parse error genérico: 0
+20:58:03 [affa7317] - INFO -   - Unexpected input: 0
+20:58:03 [affa7317] - INFO -   - Unexpected characters: 0
+20:58:03 [affa7317] - INFO - ================================================================================
+20:58:03 [affa7317] - INFO - Cache de parsing exportado: 514 árboles válidos.
+20:58:04 [affa7317] - INFO - [affa7317] ■ Step finished: load_data (success) in 6.041979s
+20:58:04 [affa7317] - INFO - ✓ load_data (5975ms)
+20:58:04 [affa7317] - INFO - Orchestrating step [3/8]: audited_merge
+20:58:04 [affa7317] - INFO - Executing step: audited_merge
+20:58:04 [affa7317] - INFO - 🧮 Entropía pre-merge: APUs=28.568, Insumos=28.189
+20:58:08 [affa7317] - INFO - ✅ Merge óptimo: fuzzy (calidad=0.649)
+20:58:08 [affa7317] - INFO - Iniciando auditoría homológica (Mayer-Vietoris)...
+20:58:08 [affa7317] - INFO - [affa7317] ■ Step finished: audited_merge (success) in 4.314393s
+20:58:08 [affa7317] - INFO - ✓ audited_merge (4241ms)
+20:58:08 [affa7317] - INFO - Orchestrating step [4/8]: calculate_costs
+20:58:08 [affa7317] - INFO - Executing step: calculate_costs
+20:58:08 [affa7317] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'TACTICS' (nivel 4). Estratos faltantes: PHYSICS. Validados: ninguno.
+20:58:08 [affa7317] - INFO - Fallback a APUProcessor
+20:58:08 [affa7317] - INFO - ⚔️ TACTICS: Calculando vectores algebraicos (Costos/Tiempos)...
+20:58:08 [affa7317] - INFO - Cobertura topológica completa validada sobre grilla 50×50.
+20:58:08 [affa7317] - INFO - 📊 Clasificación de insumos: 71.1% cubiertos. Distribución: {'MATERIALES': 43.57142857142857, 'OTROS': 28.92857142857143, 'EQUIPO': 27.500000000000004}
+20:58:08 [affa7317] - INFO - ============================================================
+20:58:08 [affa7317] - INFO - CALIDAD DE CLASIFICACIÓN APU (107 registros)
+20:58:08 [affa7317] - INFO - ============================================================
+20:58:08 [affa7317] - INFO - INSTALACION              65 ( 60.7%) ██████████████████████████████░░░░░░░░░░░░░░░░░░░░
+20:58:08 [affa7317] - INFO - OBRA_COMPLETA            34 ( 31.8%) ███████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+20:58:08 [affa7317] - INFO - SUMINISTRO                6 (  5.6%) ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+20:58:08 [affa7317] - INFO - SUMINISTRO_PREFABRICADO      1 (  0.9%) ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+20:58:08 [affa7317] - INFO - CONSTRUCCION_MIXTO        1 (  0.9%) ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+20:58:08 [affa7317] - INFO - 📈 Métricas de calidad: {'total_apus': 107, 'classified_percentage': 100.0, 'distribution': {'INSTALACION': 65, 'OBRA_COMPLETA': 34, 'SUMINISTRO': 6, 'SUMINISTRO_PREFABRICADO': 1, 'CONSTRUCCION_MIXTO': 1}, 'cost_coverage': {'materiales': 1359378.7999999998, 'mano_obra': 0.0, 'equipo': 1881404519.2972, 'otros': 1177573343.9799998}}
+20:58:09 [affa7317] - INFO - [affa7317] ■ Step finished: calculate_costs (success) in 0.437253s
+20:58:09 [affa7317] - INFO - ✓ calculate_costs (352ms)
+20:58:09 [affa7317] - INFO - Orchestrating step [5/8]: final_merge
+20:58:09 [affa7317] - INFO - Executing step: final_merge
+20:58:09 [affa7317] - INFO - ⚔️ TACTICS: Consolidando resultados en presupuesto...
+20:58:09 [affa7317] - INFO - ✅ Merge 1:1 exitoso: 104 filas
+20:58:09 [affa7317] - INFO - [affa7317] ■ Step finished: final_merge (success) in 0.325968s
+20:58:09 [affa7317] - INFO - ✓ final_merge (245ms)
+20:58:09 [affa7317] - INFO - Orchestrating step [6/8]: business_topology
+20:58:09 [affa7317] - INFO - Executing step: business_topology
+20:58:10 [affa7317] - INFO - Iniciando construcción del Grafo Piramidal...
+20:58:10 [affa7317] - INFO - Grafo Piramidal construido: {'chapter_count': 0, 'apu_count': 135, 'insumo_count': 54, 'inferred_count': 31, 'total_nodes': 190, 'total_edges': 415}
+20:58:10 [affa7317] - INFO - 🤖 Iniciando evaluación de proyecto...
+20:58:10 [affa7317] - WARNING - ⚠️ Validación: APUs en detalle sin referencia en presupuesto: 31
+20:58:10 [affa7317] - WARNING - ⚠️ Validación: APUs en presupuesto sin detalle: 28
+20:58:10 [affa7317] - INFO - 🏗️ Construyendo topología del presupuesto...
+20:58:10 [affa7317] - INFO - Iniciando construcción del Grafo Piramidal...
+20:58:10 [affa7317] - INFO - Grafo Piramidal construido: {'chapter_count': 0, 'apu_count': 135, 'insumo_count': 54, 'inferred_count': 31, 'total_nodes': 190, 'total_edges': 415}
+20:58:10 [affa7317] - WARNING - ⚠️ Alto número de ciclos: β₁=226 > √n≈14
+20:58:10 [affa7317] - ERROR - ❌ Fase topológica: Patología crítica: β₁=226 > |V|=190
+20:58:10 [affa7317] - ERROR - [affa7317] ERROR in topology: Patología crítica: β₁=226 > |V|=190
+20:58:10 [affa7317] - INFO - ✓ BusinessAgent completó evaluación
+20:58:10 [affa7317] - INFO - [affa7317] ■ Step finished: business_topology (success) in 0.597887s
+20:58:10 [affa7317] - INFO - ✓ business_topology (512ms)
+20:58:10 [affa7317] - INFO - Orchestrating step [7/8]: materialization
+20:58:10 [affa7317] - INFO - Executing step: materialization
+20:58:10 [affa7317] - WARNING - business_topology_report ausente. Materialización omitida
+20:58:11 [affa7317] - INFO - [affa7317] ■ Step finished: materialization (success) in 0.262050s
+20:58:11 [affa7317] - INFO - ✓ materialization (175ms)
+20:58:11 [affa7317] - INFO - Orchestrating step [8/8]: build_output
+20:58:11 [affa7317] - INFO - Executing step: build_output
+20:58:11 [affa7317] - CRITICAL - [FILTRATION ABORT] Estrato=WISDOM | Faltantes=['STRATEGY'] | Validados=['TACTICS', 'PHYSICS']
+20:58:11 [affa7317] - CRITICAL - [PIPELINE ABORT] FiltrationAbortSignal en 'build_output'. Retornando CategoricalEqualizerSeed con status=ERROR.
+20:58:11 [affa7317] - INFO - 📡 Métricas globales persistidas en Redis para el Agente
+20:58:11 [affa7317] - INFO - 📡 Métricas globales persistidas en Redis para el Agente
+20:58:11 [affa7317] - INFO - Procesamiento completado en 13.10s
+20:58:11 [affa7317] - INFO - Procesamiento completado en 13.10s
+20:58:11 [affa7317] - ERROR - Esquema inválido: ['Clave requerida faltante: presupuesto', 'Clave requerida faltante: apus_detail', 'Clave requerida faltante: insumos']
+20:58:11 [affa7317] - ERROR - Esquema inválido: ['Clave requerida faltante: presupuesto', 'Clave requerida faltante: apus_detail', 'Clave requerida faltante: insumos']
+20:58:11 [affa7317] - ERROR - [affa7317] ERROR in response_preparation: Invalid schema
+20:58:11 [SYSTEM] - INFO - 📊 Telemetry for affa7317: {"request_id": "affa7317", "steps": [{"step": "upload_request_validation", "status": "success", "stratum": "PHYSICS", "duration_seconds": 0.013826, "timestamp": "2026-04-23T20:57:58.034488", "perf_counter": 37164.168961743}, {"step": "lithological_baseline", "status": "success", "stratum": "PHYSICS", "duration_seconds": 0.002727, "timestamp": "2026-04-23T20:57:58.051498", "perf_counter": 37164.185986922}, {"step": "load_data", "status": "success", "stratum": "PHYSICS", "duration_seconds": 6.041979, "timestamp": "2026-04-23T20:58:04.095283", "perf_counter": 37170.229683452}, {"step": "audited_merge", "status": "success", "stratum": "PHYSICS", "duration_seconds": 4.314393, "timestamp": "2026-04-23T20:58:08.529249", "perf_counter": 37174.663717548}, {"step": "calculate_costs", "status": "success", "stratum": "PHYSICS", "duration_seconds": 0.437253, "timestamp": "2026-04-23T20:58:09.082795", "perf_counter": 37175.21724024}, {"step": "final_merge", "status": "success", "stratum": "PHYSICS", "duration_seconds": 0.325968, "timestamp": "2026-04-23T20:58:09.519737", "perf_counter": 37175.654153642}, {"step": "business_topology", "status": "success", "stratum": "PHYSICS", "duration_seconds": 0.597887, "timestamp": "2026-04-23T20:58:10.615013", "perf_counter": 37176.749418708}, {"step": "materialization", "status": "success", "stratum": "PHYSICS", "duration_seconds": 0.26205, "timestamp": "2026-04-23T20:58:11.002103", "perf_counter": 37177.136524751}], "metrics": {"load_data.presupuesto_rows": 104, "load_data.insumos_rows": 115, "load_data.apus_raw_rows": 280, "load_data.raw_records_count": 909, "audited_merge.merged_rows": 280, "calculate_costs.costos_rows": 107, "final_merge.final_rows": 104, "business_topology.graph_nodes": 190, "business_topology.graph_edges": 415, "app.total_processing_time": 13.101338624954224}, "errors": [{"step": "topology", "message": "Patolog\u00eda cr\u00edtica: \u03b2\u2081=226 > |V|=190", "timestamp": "2026-04-23T20:58:10.439211", "perf_counter": 37176.573728161, "severity": "ERROR", "stratum": "PHYSICS"}, {"step": "response_preparation", "message": "Invalid schema", "timestamp": "2026-04-23T20:58:11.141811", "perf_counter": 37177.276326347, "severity": "ERROR", "stratum": "PHYSICS"}], "events": [], "spans": [], "total_duration_seconds": 11.996083, "created_at": 37164.151874948, "age_seconds": 13.12665, "summary": {"request_id": "affa7317", "total_steps": 8, "total_errors": 2, "total_metrics": 10, "total_events": 0, "total_spans": 0, "active_timers": 1, "stale_timers": 0, "total_duration_seconds": 11.996083, "step_statuses": {"success": 8}, "error_types": {"unknown": 2}, "has_errors": true, "has_failures": false, "success_rate": 1.0, "age_seconds": 13.126669, "limits": {"steps": "8/1000", "errors": "2/100", "metrics": "10/500"}}, "active_timers": ["response_preparation"], "active_timers_info": {"response_preparation": {"duration_so_far": 0.002742, "has_metadata": false}}}
+20:58:11 [SYSTEM] - INFO - 📊 Telemetry for affa7317: {"request_id": "affa7317", "steps": [{"step": "upload_request_validation", "status": "success", "stratum": "PHYSICS", "duration_seconds": 0.013826, "timestamp": "2026-04-23T20:57:58.034488", "perf_counter": 37164.168961743}, {"step": "lithological_baseline", "status": "success", "stratum": "PHYSICS", "duration_seconds": 0.002727, "timestamp": "2026-04-23T20:57:58.051498", "perf_counter": 37164.185986922}, {"step": "load_data", "status": "success", "stratum": "PHYSICS", "duration_seconds": 6.041979, "timestamp": "2026-04-23T20:58:04.095283", "perf_counter": 37170.229683452}, {"step": "audited_merge", "status": "success", "stratum": "PHYSICS", "duration_seconds": 4.314393, "timestamp": "2026-04-23T20:58:08.529249", "perf_counter": 37174.663717548}, {"step": "calculate_costs", "status": "success", "stratum": "PHYSICS", "duration_seconds": 0.437253, "timestamp": "2026-04-23T20:58:09.082795", "perf_counter": 37175.21724024}, {"step": "final_merge", "status": "success", "stratum": "PHYSICS", "duration_seconds": 0.325968, "timestamp": "2026-04-23T20:58:09.519737", "perf_counter": 37175.654153642}, {"step": "business_topology", "status": "success", "stratum": "PHYSICS", "duration_seconds": 0.597887, "timestamp": "2026-04-23T20:58:10.615013", "perf_counter": 37176.749418708}, {"step": "materialization", "status": "success", "stratum": "PHYSICS", "duration_seconds": 0.26205, "timestamp": "2026-04-23T20:58:11.002103", "perf_counter": 37177.136524751}], "metrics": {"load_data.presupuesto_rows": 104, "load_data.insumos_rows": 115, "load_data.apus_raw_rows": 280, "load_data.raw_records_count": 909, "audited_merge.merged_rows": 280, "calculate_costs.costos_rows": 107, "final_merge.final_rows": 104, "business_topology.graph_nodes": 190, "business_topology.graph_edges": 415, "app.total_processing_time": 13.101338624954224}, "errors": [{"step": "topology", "message": "Patolog\u00eda cr\u00edtica: \u03b2\u2081=226 > |V|=190", "timestamp": "2026-04-23T20:58:10.439211", "perf_counter": 37176.573728161, "severity": "ERROR", "stratum": "PHYSICS"}, {"step": "response_preparation", "message": "Invalid schema", "timestamp": "2026-04-23T20:58:11.141811", "perf_counter": 37177.276326347, "severity": "ERROR", "stratum": "PHYSICS"}], "events": [], "spans": [], "total_duration_seconds": 11.996083, "created_at": 37164.151874948, "age_seconds": 13.12665, "summary": {"request_id": "affa7317", "total_steps": 8, "total_errors": 2, "total_metrics": 10, "total_events": 0, "total_spans": 0, "active_timers": 1, "stale_timers": 0, "total_duration_seconds": 11.996083, "step_statuses": {"success": 8}, "error_types": {"unknown": 2}, "has_errors": true, "has_failures": false, "success_rate": 1.0, "age_seconds": 13.126669, "limits": {"steps": "8/1000", "errors": "2/100", "metrics": "10/500"}}, "active_timers": ["response_preparation"], "active_timers_info": {"response_preparation": {"duration_so_far": 0.002742, "has_metadata": false}}}
+20:58:11 [SYSTEM] - INFO - 📊 Telemetry for eff2da5c: {"request_id": "eff2da5c", "steps": [], "metrics": {"load_data.presupuesto_rows": 104, "load_data.insumos_rows": 115, "load_data.apus_raw_rows": 280, "load_data.raw_records_count": 909, "audited_merge.merged_rows": 280, "calculate_costs.costos_rows": 107, "final_merge.final_rows": 104, "business_topology.graph_nodes": 190, "business_topology.graph_edges": 415, "app.total_processing_time": 13.101338624954224}, "errors": [], "events": [], "spans": [], "total_duration_seconds": 0, "created_at": 37177.542780201, "age_seconds": 0.002169, "summary": {"request_id": "eff2da5c", "total_steps": 0, "total_errors": 0, "total_metrics": 10, "total_events": 0, "total_spans": 0, "active_timers": 0, "stale_timers": 0, "total_duration_seconds": 0.0, "step_statuses": {}, "error_types": {}, "has_errors": false, "has_failures": false, "success_rate": 1.0, "age_seconds": 0.002175, "limits": {"steps": "0/1000", "errors": "0/100", "metrics": "10/500"}}}
+20:58:11 [SYSTEM] - INFO - 📊 Telemetry for eff2da5c: {"request_id": "eff2da5c", "steps": [], "metrics": {"load_data.presupuesto_rows": 104, "load_data.insumos_rows": 115, "load_data.apus_raw_rows": 280, "load_data.raw_records_count": 909, "audited_merge.merged_rows": 280, "calculate_costs.costos_rows": 107, "final_merge.final_rows": 104, "business_topology.graph_nodes": 190, "business_topology.graph_edges": 415, "app.total_processing_time": 13.101338624954224}, "errors": [], "events": [], "spans": [], "total_duration_seconds": 0, "created_at": 37177.542780201, "age_seconds": 0.002169, "summary": {"request_id": "eff2da5c", "total_steps": 0, "total_errors": 0, "total_metrics": 10, "total_events": 0, "total_spans": 0, "active_timers": 0, "stale_timers": 0, "total_duration_seconds": 0.0, "step_statuses": {}, "error_types": {}, "has_errors": false, "has_failures": false, "success_rate": 1.0, "age_seconds": 0.002175, "limits": {"steps": "0/1000", "errors": "0/100", "metrics": "10/500"}}}
+20:58:21 [SYSTEM] - INFO - 📊 Telemetry for 7f545d3a: {"request_id": "7f545d3a", "steps": [], "metrics": {"load_data.presupuesto_rows": 104, "load_data.insumos_rows": 115, "load_data.apus_raw_rows": 280, "load_data.raw_records_count": 909, "audited_merge.merged_rows": 280, "calculate_costs.costos_rows": 107, "final_merge.final_rows": 104, "business_topology.graph_nodes": 190, "business_topology.graph_edges": 415, "app.total_processing_time": 13.101338624954224}, "errors": [], "events": [], "spans": [], "total_duration_seconds": 0, "created_at": 37187.551958375, "age_seconds": 0.003572, "summary": {"request_id": "7f545d3a", "total_steps": 0, "total_errors": 0, "total_metrics": 10, "total_events": 0, "total_spans": 0, "active_timers": 0, "stale_timers": 0, "total_duration_seconds": 0.0, "step_statuses": {}, "error_types": {}, "has_errors": false, "has_failures": false, "success_rate": 1.0, "age_seconds": 0.003583, "limits": {"steps": "0/1000", "errors": "0/100", "metrics": "10/500"}}}
+20:58:21 [SYSTEM] - INFO - 📊 Telemetry for 7f545d3a: {"request_id": "7f545d3a", "steps": [], "metrics": {"load_data.presupuesto_rows": 104, "load_data.insumos_rows": 115, "load_data.apus_raw_rows": 280, "load_data.raw_records_count": 909, "audited_merge.merged_rows": 280, "calculate_costs.costos_rows": 107, "final_merge.final_rows": 104, "business_topology.graph_nodes": 190, "business_topology.graph_edges": 415, "app.total_processing_time": 13.101338624954224}, "errors": [], "events": [], "spans": [], "total_duration_seconds": 0, "created_at": 37187.551958375, "age_seconds": 0.003572, "summary": {"request_id": "7f545d3a", "total_steps": 0, "total_errors": 0, "total_metrics": 10, "total_events": 0, "total_spans": 0, "active_timers": 0, "stale_timers": 0, "total_duration_seconds": 0.0, "step_statuses": {}, "error_types": {}, "has_errors": false, "has_failures": false, "success_rate": 1.0, "age_seconds": 0.003583, "limits": {"steps": "0/1000", "errors": "0/100", "metrics": "10/500"}}}
+(base) gerardo@gerardo-HP-EliteBook-840-G1:~/Documentos/GitHub/apu_filter$ 
+
+# podman logs apu_agent
+
+/usr/local/lib/python3.10/site-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (2.6.3) or chardet (7.1.0)/charset_normalizer (3.4.5) doesn't match a supported version!
+  warnings.warn(
