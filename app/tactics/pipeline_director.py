@@ -370,7 +370,7 @@ _STRATUM_ORDER: Final[Dict[Stratum, int]] = {
 
 _STRATUM_EVIDENCE: Final[Dict[Stratum, Tuple[str, ...]]] = {
     Stratum.PHYSICS: ("df_presupuesto", "df_insumos", "df_apus_raw"),
-    Stratum.TACTICS: ("df_apu_costos", "df_tiempo", "df_rendimiento"),
+    Stratum.TACTICS: ("df_apu_costos",),
     Stratum.STRATEGY: ("graph", "business_topology_report"),
     Stratum.WISDOM: ("final_result",),
 }
@@ -1740,11 +1740,14 @@ class CalculateCostsStep(BaseProcessingStep):
         else:
             self.logger.info("Fallback a APUProcessor")
             processor = APUProcessor(self.config.raw_config)
+            from app.tactics.apu_processor import ProcessingThresholds, calculate_insumo_costs
+            thresholds = ProcessingThresholds(self.config.raw_config.get("validation_thresholds", {}))
+            state.df_merged = calculate_insumo_costs(state.df_merged, thresholds)
             (
                 state.df_apu_costos,
                 state.df_tiempo,
                 state.df_rendimiento,
-            ) = processor.process_vectors(df_merged)
+            ) = processor.process_vectors(state.df_merged)
         
         telemetry.record_metric("calculate_costs", "costos_rows", len(state.df_apu_costos))
         
