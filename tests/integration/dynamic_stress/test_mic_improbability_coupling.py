@@ -168,9 +168,9 @@ class NumericalTolerances:
 # ════════════════════════════════════════════════════════════════════════════
 
 @dataclass(frozen=True)
-class TestCase:
+class ImprobabilityScenario:
     """
-    Caso de prueba parametrizado.
+    Representa un punto discreto en el hiperespacio de probabilidad para evaluación parametrizada.
     
     Attributes:
         name: Identificador descriptivo del caso.
@@ -241,8 +241,8 @@ def tensor_factory() -> Type[TensorFactory]:
 
 
 # Casos de prueba predefinidos para parametrización
-STANDARD_TEST_CASES: List[TestCase] = [
-    TestCase(
+STANDARD_TEST_CASES: List[ImprobabilityScenario] = [
+    ImprobabilityScenario(
         name="nominal_stable_high_roi",
         psi=0.95,
         roi=1.5,
@@ -250,7 +250,7 @@ STANDARD_TEST_CASES: List[TestCase] = [
         expected_veto=False,
         description="Estado estable con alta rentabilidad"
     ),
-    TestCase(
+    ImprobabilityScenario(
         name="nominal_equal",
         psi=1.0,
         roi=1.0,
@@ -258,7 +258,7 @@ STANDARD_TEST_CASES: List[TestCase] = [
         expected_veto=False,
         description="Punto unitario del espacio"
     ),
-    TestCase(
+    ImprobabilityScenario(
         name="unstable_high_roi",
         psi=0.01,
         roi=10.0,
@@ -266,7 +266,7 @@ STANDARD_TEST_CASES: List[TestCase] = [
         expected_veto=True,
         description="Alta rentabilidad sobre baja estabilidad"
     ),
-    TestCase(
+    ImprobabilityScenario(
         name="very_stable_low_roi",
         psi=100.0,
         roi=0.5,
@@ -274,7 +274,7 @@ STANDARD_TEST_CASES: List[TestCase] = [
         expected_veto=False,
         description="Estabilidad extrema con baja rentabilidad"
     ),
-    TestCase(
+    ImprobabilityScenario(
         name="asymptotic_psi_zero",
         psi=_EPS_MACH,
         roi=3.0,
@@ -456,7 +456,7 @@ class TestMICImprobabilityCoupling:
     def test_functorial_projection_parametric(
         self,
         active_mic_registry: MICRegistry,
-        test_case: TestCase
+        test_case: ImprobabilityScenario
     ) -> None:
         """
         Invariante B: Proyección Funtorial (parametrizada).
