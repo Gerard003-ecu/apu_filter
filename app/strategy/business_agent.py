@@ -1501,6 +1501,30 @@ class RiskChallenger:
                 n_nodes=n_nodes or 1
             )
         
+        # ═══ REGLA 5: Evaluación del Motor de Improbabilidad (Fat-Tail Risk) ═══
+        if stability is not None and financial is not None:
+            # ROI normalized: use annual ROI if available or generic proxy
+            roi_raw = financial.get("roi") or (financial.get("npv", 0.0) / max(1.0, financial.get("amount", 1.0)))
+
+            # Intention Projection to the OMEGA stratum
+            improbability_monad = self._project_to_mic(
+                "compute_improbability_penalty",
+                {"psi": stability, "roi": roi_raw},
+                mic_context
+            )
+
+            if improbability_monad and improbability_monad.get("success") and improbability_monad.get("is_vetoed"):
+                self._logger.critical("🚨 VETO CRÍTICO: El Motor de Improbabilidad detectó colapso de la función de onda.")
+                current_report = self._emit_veto(
+                    report=current_report,
+                    veto_type="VETO_IMPROBABILITY_DRIVE",
+                    severity=VetoSeverity.CRITICO,
+                    stability=stability,
+                    financial_class=financial_class,
+                    penalty=0.99, # Near-total integrity collapse
+                    reason="Fractura del hiperespacio de decisión financiera ante socavones lógicos del presupuesto."
+                )
+
         return current_report
     
     def _extract_metrics(

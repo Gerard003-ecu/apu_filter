@@ -9,6 +9,8 @@ markers = [
     "algebraic: algebraic tests",
     "regression: regression tests",
     "stress: stress tests",
+    "concurrent: concurrent tests",
+    "edge_cases: edge case tests",
 ]
 filterwarnings = [
     "ignore:builtin type SwigPy.*:DeprecationWarning",
