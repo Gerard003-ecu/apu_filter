@@ -633,19 +633,14 @@ class TestParameterSensitivity:
 
     def test_zeta_sensitivity_to_R_is_unity(self, underdamped_oracle):
         """Verifica S_R^ζ = 1 (sensibilidad normalizada de ζ a R)."""
-        stability = underdamped_oracle.analyze_stability()
-        sensitivity = stability["parameter_sensitivity"]
+        sensitivity_tensor = underdamped_oracle.calculate_parametric_sensitivities()
         
-        # Buscar sensibilidad de ζ a R
-        if "sensitivity_matrix" in sensitivity:
-            s_r_zeta = sensitivity["sensitivity_matrix"].get("R", {}).get("zeta", None)
-        elif "normalized_sensitivities" in sensitivity:
-            s_r_zeta = sensitivity["normalized_sensitivities"]["zeta"]["R"]
-        else:
-            pytest.skip("Formato de sensibilidad no reconocido")
+        # Extraer específicamente S_R^zeta garantizando la navegación del formato canónico
+        s_r_zeta = sensitivity_tensor.get("damping_ratio", {}).get("resistance", None)
         
-        if s_r_zeta is not None:
-            assert_close(s_r_zeta, 1.0, rtol=0.01, msg="S_R^ζ debe ser 1")
+        assert s_r_zeta is not None, "Contrato roto: Falta el vector de sensibilidad de la resistencia."
+        assert math.isclose(s_r_zeta, 1.0, rel_tol=1e-5), \
+            f"Violación de sensibilidad paramétrica. Esperado 1.0, obtenido: {s_r_zeta}"
 
     def test_robustness_classification_exists(self, underdamped_oracle):
         """Verifica que existe clasificación de robustez."""

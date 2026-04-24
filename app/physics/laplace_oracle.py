@@ -581,20 +581,20 @@ class SensitivityMatrix:
     def to_dict(self) -> Dict[str, Any]:
         """Serializa a diccionario."""
         return {
-            "omega_n": {
-                "R": self.S_R_omega_n,
-                "L": self.S_L_omega_n, 
-                "C": self.S_C_omega_n
+            "natural_frequency": {
+                "resistance": self.S_R_omega_n,
+                "inductance": self.S_L_omega_n,
+                "capacitance": self.S_C_omega_n
             },
-            "zeta": {
-                "R": self.S_R_zeta,
-                "L": self.S_L_zeta,
-                "C": self.S_C_zeta
+            "damping_ratio": {
+                "resistance": self.S_R_zeta,
+                "inductance": self.S_L_zeta,
+                "capacitance": self.S_C_zeta
             },
             "scalar_sensitivities": {
-                "R": self.scalar_R,
-                "L": self.scalar_L,
-                "C": self.scalar_C
+                "resistance": self.scalar_R,
+                "inductance": self.scalar_L,
+                "capacitance": self.scalar_C
             },
             "most_sensitive_parameter": self.most_sensitive_parameter,
             "condition_number": self.condition_number,
@@ -1710,6 +1710,16 @@ class LaplaceOracle:
     # MÉTODOS DE ANÁLISIS
     # ─────────────────────────────────────────────────────────────────────────
     
+    def calculate_parametric_sensitivities(self) -> Dict[str, Any]:
+        """
+        Calcula el tensor de sensibilidades paramétricas en formato canónico.
+
+        Mide el impacto de las variaciones de R, L y C sobre los autoestados
+        del sistema (ωₙ, ζ).
+        """
+        sensitivity_matrix = self._sensitivity_calc.calculate_sensitivity_matrix()
+        return sensitivity_matrix.to_dict()
+
     def analyze_stability(self) -> Dict[str, Any]:
         """
         Análisis completo de estabilidad del sistema.

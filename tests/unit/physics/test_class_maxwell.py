@@ -137,6 +137,13 @@ def octahedron() -> Dict[int, Set[int]]:
 
 
 @pytest.fixture
+def maxwell_solver(single_triangle) -> MaxwellFDTDSolver:
+    """Fixture para un solver de Maxwell base."""
+    calc = DiscreteVectorCalculus(single_triangle)
+    return MaxwellFDTDSolver(calc)
+
+
+@pytest.fixture
 def grid_2x2() -> Dict[int, Set[int]]:
     """Malla 2x2 triangulada."""
     # Nodos: 0-1-2
@@ -328,19 +335,19 @@ class TestBoundaryOperators:
             assert np.sum(column == -1) == 1
             assert np.sum(column == 0) == calc.num_nodes - 2
 
-    def test_boundary2_column_sum_zero(self, single_triangle):
+    def test_cochain_complex_exactness(self, maxwell_solver: MaxwellFDTDSolver) -> None:
         """
-        Cada columna de ∂₂ debe sumar 0 (∂[σ] es ciclo cerrado).
-        NOTA: Esto solo es cierto si las aristas se orientan para formar un ciclo aditivo.
-        En la práctica, la suma de coeficientes depende de la orientación relativa.
-        Se omite este test estricto en favor de boundary1 @ boundary2 == 0.
+        Axioma Topológico: El borde de un borde es el conjunto vacío (d_1 ∘ d_2 = 0).
+        Verifica que la matriz de incidencia B1 y la matriz de ciclos B2 son ortogonales.
         """
-        pytest.skip("La suma de coeficientes de columna no es 0 para un triángulo simple en esta base")
-        calc = DiscreteVectorCalculus(single_triangle)
+        B1 = maxwell_solver.calc.boundary1  # Matriz Nodos x Aristas
+        B2 = maxwell_solver.calc.boundary2  # Matriz Aristas x Caras
 
-        if calc.num_faces > 0:
-            col_sums = np.array(calc.boundary2.sum(axis=0)).flatten()
-            # np.testing.assert_allclose(col_sums, 0, atol=1e-14)
+        # La norma de Frobenius del producto debe colapsar asintóticamente al cero
+        producto = B1 @ B2
+        norma_frob = sparse_norm(producto)
+        assert norma_frob < 1e-12, \
+            f"Fuga dimensional: La variedad no es cerrada. Norma: {norma_frob}"
 
     def test_boundary_composition_zero(self, tetrahedron):
         """∂₁ ∘ ∂₂ = 0 (propiedad fundamental de complejos de cadenas)."""

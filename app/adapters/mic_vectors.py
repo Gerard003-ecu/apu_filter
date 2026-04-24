@@ -1241,13 +1241,45 @@ def vector_lateral_pivot(
                 metrics=collector.build_metrics()
             )
 
-        # ─── Extracción de subespacios ───
-        report_state = payload.get("report_state", {})
-        thermal_metrics = payload.get("thermal_metrics", {})
-        financial_metrics = payload.get("financial_metrics", {})
+        # ─── Extracción y Validación de subespacios (Prevención de Entropía) ───
+        report_state = payload.get("report_state")
+        thermal_metrics = payload.get("thermal_metrics")
+        financial_metrics = payload.get("financial_metrics")
         synergy_risk = payload.get("synergy_risk", {})
         
         pivot_type = PivotType.from_string(str(payload.get("pivot_type", "UNKNOWN")))
+
+        # Validación de homogeneidad algebraica de los subespacios inyectados
+        # Solo requerimos diccionarios si el pivot_type no es UNKNOWN
+        if pivot_type != PivotType.UNKNOWN:
+            if not isinstance(report_state, dict):
+                return _build_error(
+                    stratum=Stratum.STRATEGY,
+                    status=VectorResultStatus.VALIDATION_ERROR,
+                    error=f"Morfismo inválido: 'report_state' debe ser dict, obtenido {type(report_state).__name__}",
+                    metrics=collector.build_metrics()
+                )
+
+            if pivot_type == PivotType.MONOPOLIO_COBERTURADO and not isinstance(thermal_metrics, dict):
+                return _build_error(
+                    stratum=Stratum.STRATEGY,
+                    status=VectorResultStatus.VALIDATION_ERROR,
+                    error=f"Morfismo inválido: 'thermal_metrics' debe ser dict, obtenido {type(thermal_metrics).__name__}",
+                    metrics=collector.build_metrics()
+                )
+
+            if pivot_type == PivotType.OPCION_ESPERA and not isinstance(financial_metrics, dict):
+                return _build_error(
+                    stratum=Stratum.STRATEGY,
+                    status=VectorResultStatus.VALIDATION_ERROR,
+                    error=f"Morfismo inválido: 'financial_metrics' debe ser dict, obtenido {type(financial_metrics).__name__}",
+                    metrics=collector.build_metrics()
+                )
+
+        # Defaults para evitar KeyErrors
+        report_state = report_state or {}
+        thermal_metrics = thermal_metrics or {}
+        financial_metrics = financial_metrics or {}
         
         # Variables de estado
         stability = float(report_state.get("stability", PhysicsConstants.DEFAULT_STABILITY))
