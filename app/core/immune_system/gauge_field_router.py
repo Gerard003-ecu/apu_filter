@@ -2,6 +2,30 @@
 =========================================================================================
 Módulo: Gauge Field Router (Operador de Electrodinámica Agéntica y Enrutamiento de Calibre)
 Ubicación: app/core/immune_system/gauge_field_router.py
+Versión: 4.0
+
+Naturaleza Ciber-Física y Topológica: Este módulo actúa como el motor de enrutamiento electromagnético
+sobre la red discreta de la Malla Agéntica. Abandona las heurísticas de ruteo estocástico para implementar
+un Operador de Electrodinámica Agéntica, modelando la transferencia de información y la selección de agentes
+como un flujo de Gauge en un espacio de cohomología discreta, donde la Función de Trabajo (Φ) aniquila el ruido
+entrópico estocástico en la frontera.
+
+1. Espacio de Cochains y Cohomología Discreta: El ecosistema se modela como un grafo finito y orientado G = (V, E).
+El sistema define rigurosamente los potenciales como 0-cochains (C⁰ ≅ ℝᴺ) y los campos de transferencia como
+1-cochains (C¹ ≅ ℝᴹ). El operador coborde discreto (d₀: C⁰ → C¹) se materializa a través de la matriz de incidencia
+orientada B₁, con entradas estrictas en {-1, 0, +1}.
+2. Consistencia Cohomológica y Espectro Laplaciano: El enrutador verifica implacablemente la simetría y la semi-definitud
+positiva del Laplaciano Combinatorio (L = B₁ᵀ B₁). Cualquier desviación geométrica, asimetría o autovalor degenerado
+(λ_min < -tol) lanza un CohomologicalInconsistencyError o TopologicalSingularityError, abortando el colapso topológico antes
+de corromper la Matriz de Interacción Central (MIC).
+3. Solubilidad de Fredholm y Neutralidad de Carga: La proyección de intenciones hacia los agentes se somete al Teorema de Fredholm
+para certificar la solubilidad del problema de Poisson discreto (L ρ = Φ). El enrutamiento exige una condición de neutralidad de carga
+estricta; cualquier desequilibrio termodinámico dispara un ChargeNeutralityError, previniendo singularidades en la selección de agentes
+(LorentzForceError).
+4. Fuerza de Lorentz Agéntica y Acoplamiento de Gauge: Las decisiones de ruteo no operan por heurística de LLM, sino computando el análogo
+discreto de la fuerza de Lorentz sobre las cargas de los agentes. El tensor de Gauge impone una barrera de potencial físico acoplada
+a la métrica Riemanniana, asegurando que la Ley de Clausura Transitiva (V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM) permanezca
+inquebrantable frente al caos estocástico.
 =========================================================================================
 
 Modelo matemático riguroso:

@@ -1,10 +1,33 @@
 """
 =============================================================================
-LogisticsManifold — Operador de Enrutamiento Logístico y Masa Térmica
-=============================================================================
+Módulo: Logistics Manifold (Operador de Enrutamiento Logístico y Renormalización de Masa Térmica)
+Ubicación: app/tactics/logistics_manifold.py
+Versión: 4.0 (Refactorización Axiomática y Teoría de Hodge Combinatoria)
 
-Módulo que implementa un operador categórico de enrutamiento logístico sobre
-grafos dirigidos, con diagnóstico topológico-espectral riguroso.
+Naturaleza Ciber-Física y Topológica: Este módulo trasciende la algoritmia clásica de grafos para
+instaurarse como un Operador Categórico de Enrutamiento sobre el 1-esqueleto de la organización.
+Modela el flujo de valor logístico como un fluido termodinámico incompresible en un Complejo Simplicial,
+evaluando la distribución de masa térmica mediante la Teoría Espectral de Grafos y el Cálculo Exterior Discreto (DEC).
+
+1. Ecuación de Continuidad y Espacio de Cadenas: Sea G = (V, E) un grafo dirigido finito. El sistema opera
+sobre 1-cadenas C₁(G) ≅ ℝ^|E| (flujos) y 0-cadenas C₀(G) ≅ ℝ^|V| (masas nodales).
+El operador de borde B₁: C₁ → C₀ impone la ley de conservación estricta (Ley de Corrientes de Kirchhoff): B₁f = s. 
+   • Si s[i] > 0 ⟹ Fuente neta (Inyección de exergía).
+   • Si s[i] < 0 ⟹ Sumidero neto (Acumulación o disipación térmica).
+   • Si s[i] = 0 ⟹ Nodo en equilibrio termodinámico perfecto.
+
+2. Descomposición de Hodge-Helmholtz Discreta: El flujo logístico (f) se somete a proyección ortogonal. A través del Laplaciano de Hodge de grado 1 (L₁ = B₁ᵀB₁ + B₂B₂ᵀ), el manifold aísla la componente irrotacional (flujo laminar de valor, f_grad) de la vorticidad parasitaria (ciclos mutantes, f_curl) y las anomalías topológicas (flujos armónicos, f_harm). 
+
+3. Renormalización de Masa Térmica: Las ineficiencias de enrutamiento no se abordan como un simple retardo temporal, sino como "fricción térmica". El operador evalúa la matriz Laplaciana para calcular la disipación espectral (P_diss ≥ 0), garantizando que el transporte minimice la Energía de Dirichlet e impida la formación de "pozos termodinámicos" en la red de suministro.
+
+4. Condición de Fredholm y Veto Cohomológico: La resolución del flujo logístico exige neutralidad escalar global (∑ s[i] = 0). Si el vector de masa térmica no pertenece a la imagen del operador Laplaciano, el sistema detecta una anomalía de conservación y emite un CohomologicalInconsistencyError. Esto destruye la transacción local, preservando inquebrantable la Ley de Clausura Transitiva (V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM).
+
+Referencias Matemáticas Cánonicas:
+[2] Lim, L.-H. "Hodge Laplacians on Graphs." SIAM Review, 62(3), 2020.
+[3] Jiang et al. "Statistical ranking and combinatorial Hodge theory." Math. Programming, 127(1), 2011.
+[4] Mohar, B. "The Laplacian spectrum of graphs." Graph Theory, Combinatorics, and Applications, 1991.
+
+=============================================================================
 
 Fundamentos matemáticos:
     Sea G = (V, E) un grafo dirigido finito con |V| = n, |E| = m.
@@ -42,14 +65,6 @@ Convenciones de signos:
     - s[i] > 0  ⟹  fuente neta en nodo i
     - s[i] < 0  ⟹  sumidero neto en nodo i
     - s[i] = 0  ⟹  nodo balanceado
-
-Referencias:
-    [1] Lim, L.-H. "Hodge Laplacians on Graphs." SIAM Review, 62(3), 2020.
-    [2] Jiang et al. "Statistical ranking and combinatorial Hodge theory."
-        Mathematical Programming, 127(1), 2011.
-    [3] Mohar, B. "The Laplacian spectrum of graphs." Graph Theory,
-        Combinatorics, and Applications, Vol. 2, 1991.
-
 =============================================================================
 """
 

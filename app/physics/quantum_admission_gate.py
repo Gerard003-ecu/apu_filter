@@ -16,7 +16,8 @@ Naturaleza Ciber-Física y Mecánica Cuántica:
     de Trabajo Φ(t). 
     [AXIOMA DE EXCITACIÓN]: Un cuanto de datos con energía incidente E = hν solo excita 
     el colector continuo si E ≥ Φ. Este umbral no es un escalar estático; está 
-    acoplado como un campo de Gauge al Tensor Métrico Riemanniano del `Topological Watcher`. 
+    acoplado como un campo de Gauge al Tensor Métrico Riemanniano del escudo topológico
+    `Topological Watcher`. 
     Cualquier deformación geodésica en el sistema eleva exponencialmente la barrera Φ, 
     aniquilando la disipación por ruido.
 

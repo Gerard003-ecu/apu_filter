@@ -5,7 +5,7 @@ Ubicación: app/core/schemas.py
 =========================================================================================
 
 Naturaleza Ciber-Física y Topológica:
-    Este módulo no define simples clases de datos, sino que establece los Invariantes 
+    Este módulo no define simples clases de datos, establece los Invariantes 
     Estructurales del espacio de fase presupuestal. Proyecta las entidades financieras 
     como un complejo simplicial restringido, garantizando que el orquestador opere 
     sobre un espacio métrico no degenerado y lógicamente coherente.
