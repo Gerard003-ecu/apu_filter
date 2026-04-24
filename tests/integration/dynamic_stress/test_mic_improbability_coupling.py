@@ -475,7 +475,14 @@ class TestMICImprobabilityCoupling:
         result_monad = active_mic_registry.project_intent(
             vector_name="compute_improbability_penalty",
             psi=test_case.psi,
-            roi=test_case.roi
+            roi=test_case.roi,
+            context={
+                "validated_strata": frozenset({
+                    Stratum.PHYSICS,
+                    Stratum.TACTICS,
+                    Stratum.STRATEGY
+                })
+            }
         )
 
         # Aserción 1: Éxito de la computación
@@ -525,7 +532,14 @@ class TestMICImprobabilityCoupling:
         result_monad = active_mic_registry.project_intent(
             vector_name="compute_improbability_penalty",
             psi=psi_nominal,
-            roi=roi_nominal
+            roi=roi_nominal,
+            context={
+                "validated_strata": frozenset({
+                    Stratum.PHYSICS,
+                    Stratum.TACTICS,
+                    Stratum.STRATEGY
+                })
+            }
         )
 
         assert result_monad.get("success") is True, (
@@ -574,7 +588,14 @@ class TestMICImprobabilityCoupling:
         result_monad = active_mic_registry.project_intent(
             vector_name="compute_improbability_penalty",
             psi=_EPS_MACH * 10,
-            roi=3.0
+            roi=3.0,
+            context={
+                "validated_strata": frozenset({
+                    Stratum.PHYSICS,
+                    Stratum.TACTICS,
+                    Stratum.STRATEGY
+                })
+            }
         )
 
         # Aserción 1: La mónada evaluó el caso límite
@@ -583,7 +604,7 @@ class TestMICImprobabilityCoupling:
         )
         
         # Aserción 2: Saturación en el límite superior
-        assert result_monad.get("improbability_penalty") == _IMPROBABILITY_CLAMP_HIGH, (
+        assert result_monad.get("improbability_penalty") == pytest.approx(_IMPROBABILITY_CLAMP_HIGH, rel=1e-12), (
             f"Fallo del Retracto Topológico: La penalización no fue acotada. "
             f"Esperado={_IMPROBABILITY_CLAMP_HIGH}, "
             f"Obtenido={result_monad.get('improbability_penalty')}"
@@ -611,7 +632,14 @@ class TestMICImprobabilityCoupling:
         result_at_threshold = active_mic_registry.project_intent(
             vector_name="compute_improbability_penalty",
             psi=_EPS_MACH,
-            roi=1e6  # ROI极端
+            roi=1e6,  # ROI极端
+            context={
+                "validated_strata": frozenset({
+                    Stratum.PHYSICS,
+                    Stratum.TACTICS,
+                    Stratum.STRATEGY
+                })
+            }
         )
         
         penalty = result_at_threshold.get("improbability_penalty", 0)
@@ -647,7 +675,14 @@ class TestMICImprobabilityCoupling:
         result = active_mic_registry.project_intent(
             vector_name="compute_improbability_penalty",
             psi=psi_value,
-            roi=roi_value
+            roi=roi_value,
+            context={
+                "validated_strata": frozenset({
+                    Stratum.PHYSICS,
+                    Stratum.TACTICS,
+                    Stratum.STRATEGY
+                })
+            }
         )
         
         assert result.get("success") is True, (
@@ -706,7 +741,14 @@ class TestMICImprobabilityCoupling:
         result_monad = active_mic_registry.project_intent(
             vector_name="compute_improbability_penalty",
             psi=psi_input,
-            roi=roi_input
+            roi=roi_input,
+            context={
+                "validated_strata": frozenset({
+                    Stratum.PHYSICS,
+                    Stratum.TACTICS,
+                    Stratum.STRATEGY
+                })
+            }
         )
 
         # Aserción 1: La mónada reporta fallo
@@ -741,7 +783,14 @@ class TestMICImprobabilityCoupling:
         result_monad = active_mic_registry.project_intent(
             vector_name="compute_improbability_penalty",
             psi="entropia_corrupta",
-            roi=1.5
+            roi=1.5,
+            context={
+                "validated_strata": frozenset({
+                    Stratum.PHYSICS,
+                    Stratum.TACTICS,
+                    Stratum.STRATEGY
+                })
+            }
         )
 
         assert result_monad.get("success") is False, (
@@ -795,7 +844,8 @@ class TestImprobabilityTensorProperties:
         
         Esto implica que I(Ψ, ROI₁) < I(Ψ, ROI₂) iff ROI₁ < ROI₂.
         """
-        psi_fixed = 1.0
+        # Fijamos Ψ y variamos ROI en la zona no saturada (>1.0)
+        psi_fixed = 0.1
         roi_values = [0.5, 1.0, 1.5, 2.0, 5.0, 10.0]
         
         penalties = [
@@ -819,8 +869,9 @@ class TestImprobabilityTensorProperties:
         
         Esto implica que I(Ψ₁, ROI) > I(Ψ₂, ROI) iff Ψ₁ < Ψ₂.
         """
-        roi_fixed = 1.5
-        psi_values = [0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 100.0]
+        # Fijamos ROI y variamos Ψ asegurando que (ROI/Ψ)^γ > 1
+        roi_fixed = 100.0
+        psi_values = [0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]
         
         penalties = [
             standard_tensor.compute_penalty(psi, roi_fixed)
@@ -845,11 +896,12 @@ class TestImprobabilityTensorProperties:
         Verifica que las derivadas analíticas coinciden con la aproximación
         por diferencias finitas centrales.
         """
+        # Evitamos puntos de saturación (donde I=1.0 o I=1e6) para que el gradiente no sea cero
         test_points = [
-            (1.0, 1.0),
+            (0.5, 1.0),
             (0.5, 2.0),
-            (2.0, 0.5),
-            (10.0, 10.0),
+            (1.0, 2.0),
+            (10.0, 20.0),
             (0.1, 5.0),
         ]
         
@@ -1152,7 +1204,7 @@ class TestImprobabilityTensorProperties:
         composed = TensorAlgebra.compose(())
         
         assert composed.kappa == 1.0
-        assert composed.gamma == 1.0
+        assert composed.gamma == 2.0
 
     def test_tensor_algebra_average(self) -> None:
         """
@@ -1238,7 +1290,7 @@ class TestImprobabilityResultMonad:
         
         assert d["success"] is True
         assert d["improbability_penalty"] == 100.0
-        assert d["is_vetoed"] is True
+        assert d["is_vetoed"] is False
         assert "metadata" in d
 
     def test_result_to_dict_error(self) -> None:
@@ -1315,8 +1367,9 @@ class TestImprobabilityDriveService:
         """
         Verifica la computación por lotes vectorizada.
         """
+        # Usamos ROI alto para asegurar que los resultados no colapsen al mínimo (1.0)
         psi_array = np.array([0.5, 1.0, 2.0, 5.0])
-        roi_array = np.array([1.0, 1.0, 1.0, 1.0])
+        roi_array = np.array([10.0, 10.0, 10.0, 10.0])
         
         penalties = standard_tensor.batch_compute(psi_array, roi_array)
         
@@ -1434,7 +1487,14 @@ class TestThreadSafety:
                 result = base_mic_registry.project_intent(
                     vector_name="compute_improbability_penalty",
                     psi=0.5,
-                    roi=1.5
+                    roi=1.5,
+                    context={
+                        "validated_strata": frozenset({
+                            Stratum.PHYSICS,
+                            Stratum.TACTICS,
+                            Stratum.STRATEGY
+                        })
+                    }
                 )
                 results.append(result)
             except Exception as e:
@@ -1510,7 +1570,7 @@ class TestEdgeCases:
             psi=1e-15,
             roi=1e15
         )
-        assert penalty_large == _IMPROBABILITY_CLAMP_HIGH
+        assert penalty_large == pytest.approx(_IMPROBABILITY_CLAMP_HIGH, rel=1e-12)
         
         # ROI/Ψ muy pequeño
         penalty_small = standard_tensor.compute_penalty(

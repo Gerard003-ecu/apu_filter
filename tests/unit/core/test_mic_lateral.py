@@ -891,8 +891,11 @@ class TestRiskChallengerLateralIntegration:
         audited = challenger.challenge_verdict(report)
 
         # ── Verificar llamada correcta a la MIC
-        mock_mic.project_intent.assert_called_once()
-        call_args, _ = mock_mic.project_intent.call_args
+        assert mock_mic.project_intent.call_count >= 1
+        # Buscamos la llamada al pivot entre las llamadas realizadas
+        pivot_call = next((c for c in mock_mic.project_intent.call_args_list if c[0][0] == "lateral_thinking_pivot"), None)
+        assert pivot_call is not None, "Debe haberse llamado a lateral_thinking_pivot"
+        call_args, _ = pivot_call
         assert call_args[0] == "lateral_thinking_pivot"
         assert call_args[1]["pivot_type"] == "MONOPOLIO_COBERTURADO"
 

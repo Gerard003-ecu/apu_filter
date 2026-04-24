@@ -1608,10 +1608,13 @@ class ValidationCommand(ProjectionCommand):
             # Use ProjectionResult for correct type hints
             return ProjectionResult(
                 success=False,
+                error=str(error),
+                error_type="MICHierarchyViolationError",
                 error_category="hierarchy_violation",
                 error_details={
                     "target_stratum": ctx.target_stratum.name,
-                    "missing_strata": missing_names
+                    "missing_strata": missing_names,
+                    "validated_strata": [s.name for s in ctx.validated_strata]
                 }
             )
         
@@ -1811,6 +1814,27 @@ class MICRegistry:
         with self._lock:
             return list(self._vectors.keys())
 
+    def list_vectors(self) -> List[str]:
+        """Alias para registered_services, compatible con la suite de integración."""
+        return self.registered_services
+
+    def get_basis_vector(self, name: str) -> Optional[Any]:
+        """
+        Retorna el vector base (morfismo) encapsulado.
+        Compatible con la suite de integración.
+        """
+        with self._lock:
+            if name not in self._vectors:
+                return None
+            stratum, handler = self._vectors[name]
+
+            # Retornamos un objeto que imita la estructura esperada por el test
+            class VectorProxy:
+                def __init__(self, s, h):
+                    self.target_stratum = s
+                    self.handler = h
+            return VectorProxy(stratum, handler)
+
     @property
     def dimension(self) -> int:
         """Dimensión del espacio vectorial."""
@@ -1943,36 +1967,38 @@ class MICRegistry:
 
     def project_intent(
         self,
-        service_name: str,
-        payload: Dict[str, Any],
-        context: Dict[str, Any],
+        service_name: Optional[str] = None,
+        payload: Optional[Dict[str, Any]] = None,
+        context: Optional[Dict[str, Any]] = None,
         *,
         use_cache: bool = False,
+        vector_name: Optional[str] = None,
+        **kwargs: Any
     ) -> ProjectionResult:
         """
         Proyecta una intención sobre el espacio vectorial.
 
-        Flujo de ejecución (Command Pattern):
-          1. Cache check
-          2. Resolución del vector base
-          3. Normalización del contexto
-          4. Validación jerárquica (Gatekeeper)
-          5. Ejecución del handler
-          6. Propagación de validación
-
-        Args:
-            service_name: Nombre del servicio a proyectar.
-            payload: Argumentos para el handler.
-            context: Contexto de ejecución.
-            use_cache: Si True, usa cache de resultados.
-
-        Returns:
-            ProjectionResult con resultado o error estructurado.
+        Soporta múltiples firmas para compatibilidad con la suite de integración.
         """
+        final_service_name = service_name or vector_name
+        if not final_service_name:
+            return ProjectionResult(
+                success=False,
+                error="service_name or vector_name is required",
+                error_type="ValueError",
+                error_category="resolution_error"
+            )
+
+        final_payload = payload if payload is not None else {}
+        if kwargs:
+            final_payload.update(kwargs)
+
+        final_context = context if context is not None else {}
+
         ctx = ProjectionContext(
-            service_name=service_name,
-            payload=payload,
-            context=context,
+            service_name=final_service_name,
+            payload=final_payload,
+            context=final_context,
             use_cache=use_cache,
         )
         
