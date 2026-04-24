@@ -1099,17 +1099,17 @@ class TestComputeImprobabilityLever:
     """Tests para palanca de improbabilidad."""
 
     def test_minimum_clamp(self, manifold):
-        result = manifold._compute_improbability_lever(1.0, 1.0, 1.0)
+        result = manifold._compute_improbability_lever(1.0, 1.0, 1.0, 1.0, 1.0)
         expected = (1.0 * 1.0 * 1.0) / _IMPROBABILITY_SCALE_FACTOR
         clamped = _clamp(expected, _IMPROBABILITY_CLAMP_LOW, _IMPROBABILITY_CLAMP_HIGH)
         assert result == pytest.approx(clamped)
 
     def test_maximum_clamp(self, manifold):
-        result = manifold._compute_improbability_lever(100.0, 100.0, 100.0)
+        result = manifold._compute_improbability_lever(1.0, 100.0, 100.0, 100.0, 100.0)
         assert result == _IMPROBABILITY_CLAMP_HIGH
 
     def test_within_range(self, manifold):
-        result = manifold._compute_improbability_lever(1.5, 2.0, 1.2)
+        result = manifold._compute_improbability_lever(1.0, 2.0, 1.5, 2.0, 1.2)
         assert _IMPROBABILITY_CLAMP_LOW <= result <= _IMPROBABILITY_CLAMP_HIGH
 
 

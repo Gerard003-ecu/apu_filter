@@ -2727,6 +2727,14 @@ def register_core_vectors(
             logger.warning("⚠️ Vectores semánticos no disponibles: %s", e)
 
     try:
+        from app.core.immune_system.improbability_drive import ImprobabilityDriveService
+        improbability_drive = ImprobabilityDriveService(mic)
+        improbability_drive.register_in_mic()
+        logger.info("✅ Motor de Improbabilidad (Estrato Ω) registrado en la MIC")
+    except Exception as e:
+        logger.warning("⚠️ Motor de Improbabilidad no disponible: %s", e)
+
+    try:
         from app.wisdom.semantic_dictionary import SemanticDictionaryService
         semantic_dict = SemanticDictionaryService()
         semantic_dict.register_in_mic(mic)
