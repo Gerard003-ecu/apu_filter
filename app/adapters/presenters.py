@@ -55,6 +55,8 @@ from typing import Any, Callable, Dict, FrozenSet, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
+from app.core.constants import ColumnNames
+
 # =============================================================================
 # CONFIGURACIÓN INMUTABLE
 # =============================================================================
@@ -75,21 +77,26 @@ class APUProcessingConfig:
     required_columns: FrozenSet[str] = field(
         default_factory=lambda: frozenset(
             [
-                "CATEGORIA",
-                "DESCRIPCION_INSUMO",
-                "CANTIDAD_APU",
-                "VALOR_TOTAL_APU",
-                "UNIDAD_APU",
-                "PRECIO_UNIT_APU",
-                "CODIGO_APU",
-                "UNIDAD_INSUMO",
-                "RENDIMIENTO",
+                ColumnNames.CATEGORIA,
+                ColumnNames.DESCRIPCION_INSUMO,
+                ColumnNames.CANTIDAD_APU,
+                ColumnNames.VALOR_TOTAL_APU,
+                ColumnNames.UNIDAD_APU,
+                ColumnNames.PRECIO_UNIT_APU,
+                ColumnNames.CODIGO_APU,
+                ColumnNames.UNIDAD_INSUMO,
+                ColumnNames.RENDIMIENTO,
             ]
         )
     )
     numeric_columns: FrozenSet[str] = field(
         default_factory=lambda: frozenset(
-            ["CANTIDAD_APU", "VALOR_TOTAL_APU", "PRECIO_UNIT_APU", "RENDIMIENTO"]
+            [
+                ColumnNames.CANTIDAD_APU,
+                ColumnNames.VALOR_TOTAL_APU,
+                ColumnNames.PRECIO_UNIT_APU,
+                ColumnNames.RENDIMIENTO,
+            ]
         )
     )
     default_category: str = "INDEFINIDO"
@@ -238,7 +245,7 @@ class APUPresenter:
             df = self._create_and_sanitize_dataframe(apu_details, apu_code)
 
             # --- INVARIANTE GLOBAL: suma total original ---
-            original_total = self._safe_sum(df["VALOR_TOTAL_APU"])
+            original_total = self._safe_sum(df[ColumnNames.VALOR_TOTAL_APU])
 
             processed_items = self._group_by_category(df, apu_code)
 
@@ -420,8 +427,8 @@ class APUPresenter:
             df[col] = df[col].map(self._sanitize_text)
 
         # 2. Normalización categórica
-        if "CATEGORIA" in df.columns:
-            df["CATEGORIA"] = df["CATEGORIA"].map(self._normalize_category)
+        if ColumnNames.CATEGORIA in df.columns:
+            df[ColumnNames.CATEGORIA] = df[ColumnNames.CATEGORIA].map(self._normalize_category)
 
         # 3. Conversión numérica
         for col in self._config.numeric_columns:
@@ -475,7 +482,7 @@ class APUPresenter:
         processed: List[Dict[str, Any]] = []
 
         # Rellenar NaN de CATEGORIA con la categoría por defecto
-        categoria_filled = df["CATEGORIA"].fillna(self._config.default_category)
+        categoria_filled = df[ColumnNames.CATEGORIA].fillna(self._config.default_category)
         categories = sorted(categoria_filled.unique())
 
         if not categories:
@@ -485,10 +492,10 @@ class APUPresenter:
             return processed
 
         df_work = df.copy()
-        df_work["CATEGORIA"] = categoria_filled
+        df_work[ColumnNames.CATEGORIA] = categoria_filled
 
         for categoria in categories:
-            df_cat = df_work.loc[df_work["CATEGORIA"] == categoria].copy()
+            df_cat = df_work.loc[df_work[ColumnNames.CATEGORIA] == categoria].copy()
             if df_cat.empty:
                 continue
 
@@ -524,37 +531,31 @@ class APUPresenter:
             - Validación de unicidad para campos cualitativos.
             - Consolidación de alertas.
         """
-        # Definir funciones de agregación
-        def weighted_price_agg(
-            price_series: pd.Series,
-            quantity_series: pd.Series = df_categoria.loc[price_series.index, "CANTIDAD_APU"]
-            if "CANTIDAD_APU" in df_categoria.columns
-            else None,
-        ) -> Callable[[pd.Series], Optional[float]]:
-            return lambda x: self._aggregate_price(x, quantity_series, categoria_name)
+        # Estrictamente: instancia el vector extrayéndolo explícitamente usando la ontología de columnas
+        price_series = df_categoria[ColumnNames.VALOR_TOTAL_APU]
 
         aggregations = {
-            "CANTIDAD_APU": "sum",
-            "VALOR_TOTAL_APU": "sum",
-            "RENDIMIENTO": "sum",
-            "UNIDAD_APU": lambda x: self._validate_consistency(x, "UNIDAD_APU"),
-            "PRECIO_UNIT_APU": lambda x: self._aggregate_price(
+            ColumnNames.CANTIDAD_APU: "sum",
+            ColumnNames.VALOR_TOTAL_APU: "sum",
+            ColumnNames.RENDIMIENTO: "sum",
+            ColumnNames.UNIDAD_APU: lambda x: self._validate_consistency(x, ColumnNames.UNIDAD_APU),
+            ColumnNames.PRECIO_UNIT_APU: lambda x: self._aggregate_price(
                 x,
-                df_categoria.loc[x.index, "CANTIDAD_APU"]
-                if "CANTIDAD_APU" in df_categoria.columns
+                df_categoria.loc[x.index, ColumnNames.CANTIDAD_APU]
+                if ColumnNames.CANTIDAD_APU in df_categoria.columns
                 else None,
                 categoria_name,
             ),
-            "CATEGORIA": "first",
-            "CODIGO_APU": lambda x: self._validate_consistency(x, "CODIGO_APU"),
-            "UNIDAD_INSUMO": lambda x: self._validate_consistency(x, "UNIDAD_INSUMO"),
+            ColumnNames.CATEGORIA: "first",
+            ColumnNames.CODIGO_APU: lambda x: self._validate_consistency(x, ColumnNames.CODIGO_APU),
+            ColumnNames.UNIDAD_INSUMO: lambda x: self._validate_consistency(x, ColumnNames.UNIDAD_INSUMO),
         }
 
         if "alerta" in df_categoria.columns:
             aggregations["alerta"] = self._aggregate_alerts
 
         grouped = (
-            df_categoria.groupby("DESCRIPCION_INSUMO", dropna=False)
+            df_categoria.groupby(ColumnNames.DESCRIPCION_INSUMO, dropna=False)
             .agg(aggregations)
             .reset_index()
         )
@@ -562,15 +563,15 @@ class APUPresenter:
         # Renombrar columnas al contrato de salida
         grouped.rename(
             columns={
-                "DESCRIPCION_INSUMO": "descripcion",
-                "CANTIDAD_APU": "cantidad",
-                "VALOR_TOTAL_APU": "valor_total",
-                "UNIDAD_INSUMO": "unidad",
-                "PRECIO_UNIT_APU": "valor_unitario",
-                "CATEGORIA": "categoria",
-                "CODIGO_APU": "codigo_apu",
-                "UNIDAD_APU": "unidad_apu",
-                "RENDIMIENTO": "rendimiento",
+                ColumnNames.DESCRIPCION_INSUMO: "descripcion",
+                ColumnNames.CANTIDAD_APU: "cantidad",
+                ColumnNames.VALOR_TOTAL_APU: "valor_total",
+                ColumnNames.UNIDAD_INSUMO: "unidad",
+                ColumnNames.PRECIO_UNIT_APU: "valor_unitario",
+                ColumnNames.CATEGORIA: "categoria",
+                ColumnNames.CODIGO_APU: "codigo_apu",
+                ColumnNames.UNIDAD_APU: "unidad_apu",
+                ColumnNames.RENDIMIENTO: "rendimiento",
             },
             inplace=True,
         )
@@ -797,10 +798,10 @@ class APUPresenter:
         processed_count = len(processed_items)
 
         # Cobertura de categorías
-        has_cat = "CATEGORIA" in df_original.columns
+        has_cat = ColumnNames.CATEGORIA in df_original.columns
         if original_rows > 0 and has_cat:
-            categories_count = int(df_original["CATEGORIA"].nunique(dropna=True))
-            classified_rows = int(df_original["CATEGORIA"].notna().sum())
+            categories_count = int(df_original[ColumnNames.CATEGORIA].nunique(dropna=True))
+            classified_rows = int(df_original[ColumnNames.CATEGORIA].notna().sum())
             classification_coverage = classified_rows / original_rows
         else:
             categories_count = 0

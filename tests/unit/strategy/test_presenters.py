@@ -756,7 +756,7 @@ class TestCalculateMetadata:
         df = pd.DataFrame([minimal_apu_record])
         df = presenter._sanitize_dataframe(df)
         items = [{"valor_total": 500.0, "categoria": "MATERIALES"}]
-        meta = presenter._calculate_metadata(df, items)
+        meta = presenter._calculate_metadata(df, items, 500.0)
 
         expected_keys = {
             "original_rows",
@@ -766,6 +766,8 @@ class TestCalculateMetadata:
             "classification_coverage",
             "total_value",
             "avg_value_per_item",
+            "original_total",
+            "global_total_discrepancy_frac",
         }
         assert set(meta.keys()) == expected_keys
 
@@ -775,7 +777,7 @@ class TestCalculateMetadata:
         minimal_apu_record: Dict[str, Any],
     ) -> None:
         df = pd.DataFrame([minimal_apu_record])
-        meta = presenter._calculate_metadata(df, [])
+        meta = presenter._calculate_metadata(df, [], 500.0)
         assert meta["processed_items"] == 0
         assert meta["total_value"] == 0.0
         assert meta["avg_value_per_item"] == 0.0
@@ -805,7 +807,7 @@ class TestCalculateMetadata:
             {"valor_total": 20.0},
             {"valor_total": 30.0},
         ]
-        meta = presenter._calculate_metadata(df, items)
+        meta = presenter._calculate_metadata(df, items, 10.0)
         assert 0.0 <= meta["reduction_rate"] <= 1.0
 
     def test_total_value_sums_correctly(
@@ -832,7 +834,7 @@ class TestCalculateMetadata:
             {"valor_total": 200.0},
             {"valor_total": None},
         ]
-        meta = presenter._calculate_metadata(df, items)
+        meta = presenter._calculate_metadata(df, items, 30.0)
         assert meta["total_value"] == pytest.approx(300.0)
 
     def test_classification_coverage(
@@ -851,7 +853,7 @@ class TestCalculateMetadata:
                 "RENDIMIENTO": [1] * 4,
             }
         )
-        meta = presenter._calculate_metadata(df, [{"valor_total": 40.0}])
+        meta = presenter._calculate_metadata(df, [{"valor_total": 40.0}], 40.0)
         assert meta["classification_coverage"] == pytest.approx(0.5)
 
     def test_empty_dataframe_metadata(
@@ -870,7 +872,7 @@ class TestCalculateMetadata:
                 "RENDIMIENTO",
             ]
         )
-        meta = presenter._calculate_metadata(df, [])
+        meta = presenter._calculate_metadata(df, [], 0.0)
         assert meta["original_rows"] == 0
         assert meta["reduction_rate"] == 0.0
 
