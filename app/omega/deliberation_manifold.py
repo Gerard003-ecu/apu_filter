@@ -1673,11 +1673,11 @@ class OmegaDeliberationManifold(Morphism):
             return 4.0
 
         try:
-            from app.core.immune_system.improbability_drive import ImprobabilityTensor, ImprobabilityResult
+            from app.omega.improbability_drive import ImprobabilityTensor, ImprobabilityResult
             tensor = ImprobabilityTensor(kappa=1.0, gamma=2.0)
 
             result = ImprobabilityResult.success(
-                penalty=tensor.compute_penalty(psi, roi),
+                penalty=tensor.compute_penalty(psi=psi, roi=roi),
                 kappa=tensor.kappa,
                 gamma=tensor.gamma,
                 psi=psi,
