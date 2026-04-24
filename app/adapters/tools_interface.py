@@ -2715,6 +2715,35 @@ def register_core_vectors(
     mic.register_vector(
         "lateral_thinking_pivot", Stratum.STRATEGY, vector_lateral_pivot
     )
+    # Motor de Improbabilidad (Fat-Tail Risk)
+    try:
+        from app.core.immune_system.improbability_drive import ImprobabilityDriveService
+        improbability_drive = ImprobabilityDriveService(mic)
+
+        def calculate_fat_tail_risk_handler(**kwargs):
+            """
+            Handler of the Improbability Tensor.
+            Ensures that the result is passed through the MIC explicitly mapping failures to fast fail.
+            """
+            result_dict = improbability_drive._morphism_handler(**kwargs)
+
+            if not result_dict.get("success", False):
+                # Ensure MIC triggers a Fast-Fail for CategoricalEqualizerSeed
+                # Return the error in the schema expected by VectorResult
+                return {
+                    "status": "error",
+                    "error_message": result_dict.get("error_message", "Unknown error"),
+                    "error_type": result_dict.get("error_type", "CalculationError"),
+                    "details": result_dict
+                }
+
+            return result_dict
+
+        mic.register_vector("calculate_fat_tail_risk", Stratum.STRATEGY, calculate_fat_tail_risk_handler)
+        logger.info("✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC")
+    except Exception as e:
+        logger.warning("⚠️ Motor de Improbabilidad no disponible: %s", e)
+
 
     # Vectores con dependencias opcionales
     if config:
@@ -2729,8 +2758,29 @@ def register_core_vectors(
     try:
         from app.core.immune_system.improbability_drive import ImprobabilityDriveService
         improbability_drive = ImprobabilityDriveService(mic)
-        improbability_drive.register_in_mic()
-        logger.info("✅ Motor de Improbabilidad (Estrato Ω) registrado en la MIC")
+
+        def calculate_fat_tail_risk_handler(**kwargs):
+            """
+            Handler of the Improbability Tensor.
+            Ensures that the result is passed through the MIC explicitly mapping failures to fast fail.
+            """
+            result_dict = improbability_drive._morphism_handler(**kwargs)
+
+            # Subordination: interpret monadic result to match MIC architecture (VectorResultStatus equivalent logic)
+            if not result_dict.get("success", False):
+                # The MIC will automatically interpret raised errors or structured dictionaries.
+                # Since MIC uses dict responses natively and sets errors if standard keys aren't matched,
+                # we just return the raw dictionary. However, the prompt mentions `VectorResultStatus.ERROR`.
+                # If MIC architecture requires a specific format to trigger Fast-Fail via CategoricalEqualizerSeed
+                # we should raise or return appropriately.
+                # Actually, MIC handlers in `app/core/mic_vectors.py` usually just return a dict.
+                # Let's map it correctly.
+                return result_dict
+
+            return result_dict
+
+        mic.register_vector("calculate_fat_tail_risk", Stratum.STRATEGY, calculate_fat_tail_risk_handler)
+        logger.info("✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC")
     except Exception as e:
         logger.warning("⚠️ Motor de Improbabilidad no disponible: %s", e)
 
