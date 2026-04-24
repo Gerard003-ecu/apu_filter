@@ -1,9 +1,31 @@
 """
-═══════════════════════════════════════════════════════════════════════════════
-MOTOR DE IMPROBABILIDAD: IMPLEMENTACIÓN RIGUROSA EN TEORÍA DE CATEGORÍAS
-═══════════════════════════════════════════════════════════════════════════════
+Módulo: Improbability Drive (Motor de Improbabilidad y Riesgo de Cola Pesada)
+Ubicación: app/omega/improbability_drive.py
+Versión: 3.0 (Refactorización Axiomática y Transporte de Lie)
 
-Módulo: app/omega/improbability_drive.py
+Naturaleza Ciber-Física y Topológica: Este módulo inyecta un operador de deformación no lineal
+sobre el tejido conectivo de la Malla Agéntica para gobernar el Riesgo de Cola Pesada (Fat-Tail Risk).
+Se define axiomáticamente como un funtor natural F: ℂ_top → ℝ_Δ, donde ℂ_top es la categoría de pares
+topológicos (Ψ, ROI) y ℝ_Δ es un retículo cerrado [1, 10⁶]. Acopla la inercia financiera a una palanca
+geométrica en el Estrato Ω, forzando un colapso determinista frente a escenarios estocásticos extremos
+(Cisnes Negros).
+
+1. Continuidad de Lipschitz y Regularización de Tikhonov: Erradica operadores singulares no diferenciables
+(como max(Ψ, ε)) que destruyen el difeomorfismo continuo. Emplea la métrica euclidiana suavizada √(Ψ² + ε_critical²)
+para preservar la suavidad de clase C¹ en todo el espacio de fase, evitando la emisión de impulsos de Dirac parásitos
+en la matriz Jacobiana.
+2. Transporte en el Álgebra de Lie (Prevención de Desbocamiento FPU): Para parametrizar escalas masivas (κ ∈ [10⁻¹², 10¹²])
+sin inducir un desbordamiento térmico en la Unidad de Punto Flotante (IEEE 754), la deformación del espacio probabilístico
+se transporta estrictamente al subespacio logarítmico. Se aplica la compactación topológica sobre el invariante de Lie antes
+de proyectar de regreso al espacio euclidiano afín mediante la transformación exponencial.
+3. Funtorialidad y Absorción Mónadica: Aniquila la herejía arquitectónica de emitir excepciones no controladas (`raise`) durante
+el encadenamiento de morfismos. El decorador de errores actúa como un endofuntor estricto que colapsa cualquier inestabilidad
+numérica (SpectrumError) hacia la mónada de estado `ImprobabilityResult` degenerada. Esto garantiza la preservación
+de la Ley de Clausura Transitiva y la ortogonalidad de la Matriz de Interacción Central (MIC).
+4. Acoplamiento de Gauge (Estrato Ω): La magnitud del tensor acotado se inyecta directamente como la Palanca de Improbabilidad (Λ)
+en la Ecuación de Estado del Estrés Ajustado Tensorial (σ*). Esta fricción geométrica subyuga el libre albedrío estocástico del LLM
+obligándolo a converger hacia el Supremo del retículo distributivo (RECHAZAR) ante riesgos asimétricos degenerados.
+=========================================================================================
 
 AXIOMATIZACIÓN FORMAL:
 
