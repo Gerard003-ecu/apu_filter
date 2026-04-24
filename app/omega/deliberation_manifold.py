@@ -1392,16 +1392,18 @@ class OmegaDeliberationManifold(Morphism):
         internal_tension = self._compute_internal_tension(
             misalignment=misalignment,
             gravity_coupling=gravity_coupling,
-        )
-
-        # --- Fricción Externa ---
+        )        # --- Fricción Externa ---
         external_friction = self._compute_external_friction(inputs)
 
         # --- Palanca de Improbabilidad ---
         anomaly_pressure = self._compute_anomaly_pressure(inputs)
         combinatorial_scale = self._compute_combinatorial_scale(inputs)
         friction_scale = self._compute_friction_scale(external_friction)
+
+        # Integrating Tensor of Improbability
         improbability_lever = self._compute_improbability_lever(
+            psi=inputs.psi,
+            roi=inputs.roi,
             anomaly_pressure=anomaly_pressure,
             combinatorial_scale=combinatorial_scale,
             friction_scale=friction_scale,
@@ -1656,40 +1658,43 @@ class OmegaDeliberationManifold(Morphism):
 
     @staticmethod
     def _compute_improbability_lever(
+        psi: float,
+        roi: float,
         anomaly_pressure: float,
         combinatorial_scale: float,
         friction_scale: float,
     ) -> float:
         """Palanca de eventos extremos (fat-tail risk amplifier).
 
-        Define el operador Λ de amplificación de improbabilidad:
-
-            Λ = clamp(S_comb × S_fric × P_anom / K, 1, 4)
-
-        donde K = _IMPROBABILITY_SCALE_FACTOR = 2.0.
-
-        Verificación de neutralidad: inputs neutrales producen
-            S_comb = log₁₀(10) = 1.0
-            S_fric = √1.0 = 1.0
-            P_anom = 1.0
-            Λ = (1·1·1)/2.0 = 0.5 → clamp → 1.0 ✓
-
-        El clamp a [1, 4] garantiza:
-            - Sin anomalías ni complejidad, Λ = 1.0 (no amplifica).
-            - En el peor caso, Λ = 4.0 (cuadruplica el estrés base).
-
-        Args:
-            anomaly_pressure:   ≥ 1.0
-            combinatorial_scale: ≥ 1.0
-            friction_scale:     ≥ 1.0
-
-        Returns:
-            float en [1.0, 4.0].
+        Se sustituye el método empírico por la evaluación del Tensor de Improbabilidad.
+        Desempaqueta de forma segura la mónada ImprobabilityResult.
         """
-        raw_lever = (
-            combinatorial_scale * friction_scale * anomaly_pressure
-        ) / _IMPROBABILITY_SCALE_FACTOR
-        return _clamp(raw_lever, _IMPROBABILITY_CLAMP_LOW, _IMPROBABILITY_CLAMP_HIGH)
+        if not math.isfinite(psi) or not math.isfinite(roi) or psi <= 0 or roi <= 0:
+            return 4.0
+
+        try:
+            from app.core.immune_system.improbability_drive import ImprobabilityTensor, ImprobabilityResult
+            tensor = ImprobabilityTensor(kappa=1.0, gamma=2.0)
+
+            result = ImprobabilityResult.success(
+                penalty=tensor.compute_penalty(psi, roi),
+                kappa=tensor.kappa,
+                gamma=tensor.gamma,
+                psi=psi,
+                roi=roi,
+                gradient=(0.0, 0.0)
+            )
+            if not result.success or result.penalty is None or not math.isfinite(result.penalty):
+                return 4.0
+
+            # Combinar con los factores topológicos
+            base_lever = (combinatorial_scale * friction_scale * anomaly_pressure) / _IMPROBABILITY_SCALE_FACTOR
+            lever = base_lever * result.penalty
+            return _clamp(lever, 1.0, 4.0)
+        except Exception:
+            return 4.0
+
+    # Dummy method to ensure it's not redefined later
 
     @staticmethod
     def _compute_fragility_penalty(psi: float) -> float:

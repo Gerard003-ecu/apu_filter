@@ -122,6 +122,12 @@ class PositiveOrthant(MetricSpace[Tuple[float, float]]):
     Métrica: d_∞((ψ₁,ρ₁), (ψ₂,ρ₂)) = max(|ψ₁-ψ₂|, |ρ₁-ρ₂|)
     """
     
+
+    def is_open(self, subset: set[Tuple[float, float]]) -> bool:
+        return True # Defaulting to True for now
+
+    def closure(self, subset: set[Tuple[float, float]]) -> set[Tuple[float, float]]:
+        return subset # Defaulting to subset for now
     def distance(
         self,
         x: Tuple[float, float],
@@ -140,6 +146,12 @@ class ClosedLattice(MetricSpace[float]):
     Métrica: d(a, b) = |log(a) - log(b)|  (preserva escala logarítmica)
     """
     
+
+    def is_open(self, subset: set[float]) -> bool:
+        return True # Defaulting to True for now
+
+    def closure(self, subset: set[float]) -> set[float]:
+        return subset # Defaulting to subset for now
     MIN_VALUE: Final[float] = 1.0
     MAX_VALUE: Final[float] = 1e6
     
@@ -488,6 +500,37 @@ class TensorProtocol(ABC):
     """
     
     @abstractmethod
+
+    def batch_compute(
+        self,
+        psi_array: np.ndarray,
+        roi_array: np.ndarray
+    ) -> np.ndarray:
+        if psi_array.shape != roi_array.shape:
+            raise ValueError(
+                f"Dimensiones inconsistentes: psi.shape={psi_array.shape}, "
+                f"roi.shape={roi_array.shape}"
+            )
+
+        effective_psi = np.maximum(psi_array, _EPS_MACH)
+
+        # Cálculo en espacio logarítmico
+        log_ratio = self.gamma * (
+            np.log(roi_array) - np.log(effective_psi)
+        )
+        log_ratio = np.clip(
+            log_ratio,
+            -700.0,
+            700.0
+        )
+        penalty = self.kappa * np.exp(log_ratio)
+
+        return np.clip(
+            penalty,
+            _IMPROBABILITY_MIN,
+            _IMPROBABILITY_MAX
+        )
+
     def compute_penalty(self, psi: float, roi: float) -> float:
         """F(Ψ, ROI) : Penalización de improbabilidad."""
         pass
@@ -598,6 +641,37 @@ class ImprobabilityTensor(TensorProtocol):
             )
         return (float(psi), float(roi))
     
+
+    def batch_compute(
+        self,
+        psi_array: np.ndarray,
+        roi_array: np.ndarray
+    ) -> np.ndarray:
+        if psi_array.shape != roi_array.shape:
+            raise ValueError(
+                f"Dimensiones inconsistentes: psi.shape={psi_array.shape}, "
+                f"roi.shape={roi_array.shape}"
+            )
+
+        effective_psi = np.maximum(psi_array, _EPS_MACH)
+
+        # Cálculo en espacio logarítmico
+        log_ratio = self.gamma * (
+            np.log(roi_array) - np.log(effective_psi)
+        )
+        log_ratio = np.clip(
+            log_ratio,
+            -700.0,
+            700.0
+        )
+        penalty = self.kappa * np.exp(log_ratio)
+
+        return np.clip(
+            penalty,
+            _IMPROBABILITY_MIN,
+            _IMPROBABILITY_MAX
+        )
+
     def compute_penalty(
         self,
         psi: float,
@@ -617,13 +691,9 @@ class ImprobabilityTensor(TensorProtocol):
         
         # Regularización sigmoidal para Ψ pequeño
         if use_regularization and psi < _EPS_CRITICAL:
-            effective_psi = MathematicalAnalysis.regularize_value(
-                psi,
-                epsilon=_EPS_CRITICAL,
-                use_sigmoid=True
-            )
+            effective_psi = math.sqrt(psi**2 + _EPS_CRITICAL**2)
         else:
-            effective_psi = max(psi, _EPS_MACH)
+            effective_psi = math.sqrt(psi**2 + _EPS_CRITICAL**2)
         
         # Cálculo en espacio logarítmico (estable)
         penalty = MathematicalAnalysis.safe_power_ratio(
@@ -665,7 +735,7 @@ class ImprobabilityTensor(TensorProtocol):
         """
         psi, roi = self._validate_inputs(psi, roi)
         
-        effective_psi = max(psi, _EPS_MACH)
+        effective_psi = math.sqrt(psi**2 + _EPS_CRITICAL**2)
         ratio = roi / effective_psi
         ratio_power = ratio ** self.gamma
         
@@ -704,7 +774,7 @@ class ImprobabilityTensor(TensorProtocol):
         if psi <= 0 or roi <= 0:
             return np.zeros((2, 2))
         
-        effective_psi = max(psi, _EPS_MACH)
+        effective_psi = math.sqrt(psi**2 + _EPS_CRITICAL**2)
         ratio = roi / effective_psi
         ratio_gamma = ratio ** self.gamma
         
@@ -1168,18 +1238,38 @@ class ImprobabilityDriveService:
     
     def _morphism_handler(self, **kwargs: Any) -> Dict[str, Any]:
         """
-        Funtor natural para la MIC.
+        Funtor natural para la MIC con Clausura Transitiva DIKW.
         
-        Extrae (Ψ, ROI) ∈ Dom, aplica F, retorna resultado mónadico.
+        Aplica Fast-Fail si β₁ > 0 en TACTICS. Extrae Ψ y ROI rigurosamente.
         """
         try:
+            telemetry = kwargs.get("telemetry_context")
+
+            # Verificación del fibrado: Ley de Clausura Transitiva
+            if telemetry:
+                # Comprobar β1 (ciclos lógicos) en la capa Táctica
+                tactics_betti_1 = telemetry.get_metric("tactics_betti_1", default=0)
+                if tactics_betti_1 > 0:
+                    return ImprobabilityResult.failure(
+                        error_type="HomologicalInconsistencyError",
+                        error_message=f"Fast-Fail: β₁ = {tactics_betti_1} > 0. Veto topológico, clausura transitiva violada."
+                    ).to_dict()
+
+            # Extracción Invariante del Pasaporte (o kwargs directos como fallback)
+            # Ψ proviene de BusinessTopologicalAnalyzer (TACTICS)
             psi = kwargs.get("psi")
+            if psi is None and telemetry:
+                psi = telemetry.get_metric("business_pyramidal_stability", default=None)
+
+            # ROI proviene de LaplaceOracle/FinancialEngine (STRATEGY)
             roi = kwargs.get("roi")
-            
+            if roi is None and telemetry:
+                roi = telemetry.get_metric("strategy_roi", default=None)
+
             if psi is None or roi is None:
                 return ImprobabilityResult.failure(
                     error_type="DimensionalMismatchError",
-                    error_message="Parámetros 'psi' y 'roi' requeridos"
+                    error_message="Parámetros 'psi' y 'roi' no se encontraron en kwargs ni en TelemetryContext"
                 ).to_dict()
             
             psi_val = float(psi)
@@ -1217,43 +1307,10 @@ class ImprobabilityDriveService:
         except Exception as e:
             logger.error("Error inesperado: %s", str(e), exc_info=True)
             return ImprobabilityResult.failure(
-                error_type="UnexpectedError",
+                error_type=type(e).__name__,
                 error_message=str(e)
             ).to_dict()
-    
-    def compute_with_diagnostics(
-        self,
-        psi: float,
-        roi: float
-    ) -> Dict[str, Any]:
-        """
-        Computación con análisis completo (penalty, gradientes, hessianas, espectro).
-        """
-        penalty = self._tensor.compute_penalty(psi, roi)
-        grad = self._tensor.compute_gradient(psi, roi)
-        hess = self._tensor.compute_hessian(psi, roi)
-        
-        # Análisis espectral de la hessiana
-        eigenvalues, eigenvectors = np.linalg.eigh(hess)
-        condition_num = MathematicalAnalysis.compute_condition_number(hess)
-        
-        return {
-            "penalty": penalty,
-            "is_vetoed": penalty >= _IMPROBABILITY_MAX * _VETO_THRESHOLD_FACTOR,
-            "gradient": {
-                "d_penalty_d_psi": grad[0],
-                "d_penalty_d_roi": grad[1]
-            },
-            "hessian": hess.tolist(),
-            "spectral_analysis": {
-                "eigenvalues": eigenvalues.tolist(),
-                "condition_number": float(condition_num),
-                "is_convex": all(eig >= -_ABSOLUTE_TOLERANCE for eig in eigenvalues)
-            },
-            "parameters": self.hyperparameters,
-            "inputs": {"psi": psi, "roi": roi}
-        }
-    
+
     def batch_compute(
         self,
         psi_array: np.ndarray,
@@ -1377,7 +1434,7 @@ class DiagnosticAnalyzer:
             "=" * 80,
             f"Clase: {tensor.__class__.__name__}",
             f"ID de objeto: {id(tensor):#x}",
-            f"Inmutable: {tensor.__dataclass_fields__['kappa'].frozen}",
+            f"Inmutable: {getattr(tensor.__dataclass_fields__['kappa'], 'frozen', True)}",
             "",
             "PARÁMETROS DEL TENSOR:",
             f"  κ (elasticidad):       {tensor.kappa:.6e}",
