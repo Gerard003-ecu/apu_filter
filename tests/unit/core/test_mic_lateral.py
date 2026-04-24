@@ -715,14 +715,10 @@ class TestVectorLateralPivot:
               - Valores None inesperados
               - Estructuras incompletas
             """
-            try:
-                result = vector_lateral_pivot(payload)
-                assert result["success"] is False, (
-                    f"Payload malformado aceptado incorrectamente: {description}"
-                )
-            except (TypeError, KeyError, AttributeError) as e:
-                # Excepciones explícitas son aceptables para inputs muy corruptos
-                pytest.skip(f"Excepción aceptable para {description}: {type(e).__name__}")
+            result = vector_lateral_pivot(payload)
+            assert result["success"] is False, (
+                f"Payload malformado aceptado incorrectamente: {description}"
+            )
 
 
 # =============================================================================
