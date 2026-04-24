@@ -211,6 +211,7 @@ except ImportError:
 # ── Vectores mock para testing standalone ─────────────────────────────────
 try:
     from app.adapters.mic_vectors import (
+    vector_calculate_improbability_tensor,
         vector_audit_homological_fusion,
         vector_lateral_pivot,
         vector_parse_raw_structure,
@@ -228,6 +229,7 @@ except ImportError:
     vector_structure_logic = _mock_vector
     vector_lateral_pivot = _mock_vector
     vector_audit_homological_fusion = _mock_vector
+    vector_calculate_improbability_tensor = _mock_vector
 
 
 # =============================================================================
@@ -2715,34 +2717,12 @@ def register_core_vectors(
     mic.register_vector(
         "lateral_thinking_pivot", Stratum.STRATEGY, vector_lateral_pivot
     )
+
     # Motor de Improbabilidad (Fat-Tail Risk)
-    try:
-        from app.core.immune_system.improbability_drive import ImprobabilityDriveService
-        improbability_drive = ImprobabilityDriveService(mic)
+    mic.register_vector(
+        "calculate_fat_tail_risk", Stratum.STRATEGY, vector_calculate_improbability_tensor
+    )
 
-        def calculate_fat_tail_risk_handler(**kwargs):
-            """
-            Handler of the Improbability Tensor.
-            Ensures that the result is passed through the MIC explicitly mapping failures to fast fail.
-            """
-            result_dict = improbability_drive._morphism_handler(**kwargs)
-
-            if not result_dict.get("success", False):
-                # Ensure MIC triggers a Fast-Fail for CategoricalEqualizerSeed
-                # Return the error in the schema expected by VectorResult
-                return {
-                    "status": "error",
-                    "error_message": result_dict.get("error_message", "Unknown error"),
-                    "error_type": result_dict.get("error_type", "CalculationError"),
-                    "details": result_dict
-                }
-
-            return result_dict
-
-        mic.register_vector("calculate_fat_tail_risk", Stratum.STRATEGY, calculate_fat_tail_risk_handler)
-        logger.info("✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC")
-    except Exception as e:
-        logger.warning("⚠️ Motor de Improbabilidad no disponible: %s", e)
 
 
     # Vectores con dependencias opcionales
