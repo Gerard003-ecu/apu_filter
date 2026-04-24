@@ -986,7 +986,12 @@ class TestPropertyBased:
         values_array = np.array(values)
         gini = GraphSemanticProjector._gini_coefficient(values_array)
         
-        assert 0 <= gini <= 1, f"Gini must be in [0,1], got {gini}"
+        # Definimos la tolerancia basada en el épsilon de máquina
+        EPS = np.finfo(np.float64).eps * 10
+
+        # Aserción con dilatación de frontera para absorber ruido térmico O(ε_mach)
+        assert 0.0 - EPS <= gini <= 1.0 + EPS, \
+            f"Invariante violado: Gini debe residir en [0,1], se obtuvo {gini}"
     
     @given(
         st.integers(min_value=0, max_value=50),

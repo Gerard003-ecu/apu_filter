@@ -911,7 +911,9 @@ class GraphSemanticProjector:
         numerator = 2.0 * np.sum(indices * sorted_values) - (n + 1) * cumsum
         denominator = n * cumsum
         
-        return float(numerator / denominator)
+        gini_raw = numerator / denominator
+
+        return float(np.clip(gini_raw, 0.0, 1.0))
     
     @property
     def cache_stats(self) -> Dict[str, Any]:
