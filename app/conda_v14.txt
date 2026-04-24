@@ -1,0 +1,38 @@
+====================================================== short test summary info ======================================================
+FAILED tests/unit/omega/test_deliberation_manifold.py::TestComputeImprobabilityLever::test_minimum_clamp - assert 4.0 == 1.0 ± 1.0e-06
+  
+  comparison failed
+  Obtained: 4.0
+  Expected: 1.0 ± 1.0e-06
+FAILED tests/unit/omega/test_deliberation_manifold.py::TestCollapse::test_ideal_is_viable - AssertionError: assert <VerdictLevel.CONDICIONAL: 1> == <VerdictLevel.VIABLE: 0>
+ +  where <VerdictLevel.CONDICIONAL: 1> = OmegaResult(inputs=OmegaInputs(psi=3.0, n_nodes=5, n_edges=4, cycle_count=0, isolated_count=0, stressed_count=0, roi=2.0, logistics_friction=1.0, social_friction=1.0, climate_entropy=1.0, territory_present=False, focus_node_id=None, zoom_level=None, topo_data={}, fin_data={}, territory_data={}), metrics=OmegaMetrics(fragility_norm=0.41503749927884376, roi_norm=0.5849625007211562, misalignment=0.16992500144231243, gravity_coupling=1.1253743253712618, internal_tension=0.19122923386185303, external_friction=1.0, anomaly_pressure=1.0, combinatorial_scale=1.3010299956639813, friction_scale=1.0, improbability_lever=4.0, base_stress=0.19122923386185303, fragility_penalty=1.0, total_stress=0.7649169354474121, gauge_deflection=1.0, adjusted_stress=0.7649169354474121), diagnostics=OmegaDiagnostics(topology_status='robusto', financial_status='retorno_fuerte', territory_status='territorio_favorable', stress_status='tension_moderada', dominant_risk_axis='extremes', risk_contribution_breakdown={'internal': 1.0, 'territory': 0.0, 'extremes': 3.0, 'fragility': 0.0}, summary='Veredicto=CONDICIONAL; topologia=robusto; finanzas=retorno_fuerte; territorio=territorio_favorable; estres=tension_moderada; eje_dominante=extremes', inputs_snapshot={'psi': 3.0, 'roi': 2.0, 'n_nodes': 5, 'n_edges': 4, 'cycle_count': 0, 'isolated_count': 0, 'stressed_count': 0, 'territory_present': False, 'logistics_friction': 1.0, 'social_friction': 1.0, 'climate_entropy': 1.0}, derived_snapshot={'fragility_norm': 0.415037, 'roi_norm': 0.584963, 'misalignment': 0.169925, 'gravity_coupling': 1.125374, 'internal_tension': 0.191229, 'external_friction': 1.0, 'anomaly_pressure': 1.0, 'combinatorial_scale': 1.30103, 'friction_scale': 1.0, 'improbability_lever': 4.0, 'base_stress': 0.191229, 'fragility_penalty': 1.0, 'total_stress': 0.764917, 'gauge_deflection': 1.0, 'adjusted_stress': 0.764917}), verdict=<VerdictLevel.CONDICIONAL: 1>).verdict
+ +  and   <VerdictLevel.VIABLE: 0> = VerdictLevel.VIABLE
+FAILED tests/unit/strategy/test_app.py::TestAPUPresenter::test_process_apu_details_basic - RuntimeError: Fallo en procesamiento de APU APU-001
+FAILED tests/unit/strategy/test_app.py::TestAPUPresenter::test_process_apu_details_categories - RuntimeError: Fallo en procesamiento de APU APU-001
+FAILED tests/unit/strategy/test_app.py::TestAPUPresenter::test_group_by_category - NameError: name 'price_series' is not defined
+FAILED tests/unit/strategy/test_app.py::TestAPUPresenter::test_group_by_category_aggregation - NameError: name 'price_series' is not defined
+FAILED tests/unit/strategy/test_app.py::TestAPUPresenter::test_organize_breakdown - NameError: name 'price_series' is not defined
+FAILED tests/unit/strategy/test_app.py::TestAPUPresenter::test_process_apu_details_with_nan - RuntimeError: Fallo en procesamiento de APU APU-001
+FAILED tests/unit/strategy/test_app.py::TestAPUPresenter::test_process_apu_details_with_alerts - RuntimeError: Fallo en procesamiento de APU APU-001
+FAILED tests/unit/strategy/test_app.py::TestEndpoints::test_get_apu_detail_success - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/unit/strategy/test_app.py::TestIntegration::test_full_workflow - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/unit/strategy/test_presenters.py::TestCalculateMetadata::test_basic_metadata_structure - TypeError: APUPresenter._calculate_metadata() missing 1 required positional argument: 'original_total'
+FAILED tests/unit/strategy/test_presenters.py::TestCalculateMetadata::test_no_processed_items - TypeError: APUPresenter._calculate_metadata() missing 1 required positional argument: 'original_total'
+FAILED tests/unit/strategy/test_presenters.py::TestCalculateMetadata::test_reduction_rate_clamped_to_zero_one - TypeError: APUPresenter._calculate_metadata() missing 1 required positional argument: 'original_total'
+FAILED tests/unit/strategy/test_presenters.py::TestCalculateMetadata::test_total_value_sums_correctly - TypeError: APUPresenter._calculate_metadata() missing 1 required positional argument: 'original_total'
+FAILED tests/unit/strategy/test_presenters.py::TestCalculateMetadata::test_classification_coverage - TypeError: APUPresenter._calculate_metadata() missing 1 required positional argument: 'original_total'
+FAILED tests/unit/strategy/test_presenters.py::TestCalculateMetadata::test_empty_dataframe_metadata - TypeError: APUPresenter._calculate_metadata() missing 1 required positional argument: 'original_total'
+FAILED tests/unit/strategy/test_presenters.py::TestProcessApuDetailsIntegration::test_successful_processing - RuntimeError: Fallo en procesamiento de APU APU-001
+FAILED tests/unit/strategy/test_presenters.py::TestProcessApuDetailsIntegration::test_output_contains_expected_categories - RuntimeError: Fallo en procesamiento de APU APU-001
+FAILED tests/unit/strategy/test_presenters.py::TestProcessApuDetailsIntegration::test_metadata_original_rows_correct - RuntimeError: Fallo en procesamiento de APU APU-001
+FAILED tests/unit/strategy/test_presenters.py::TestProcessApuDetailsIntegration::test_serialization_produces_json_safe_output - RuntimeError: Fallo en procesamiento de APU APU-001
+FAILED tests/unit/strategy/test_presenters.py::TestProcessApuDetailsIntegration::test_duplicate_descriptions_aggregated - RuntimeError: Fallo en procesamiento de APU APU-AGG
+FAILED tests/unit/strategy/test_presenters.py::TestProcessApuDetailsIntegration::test_category_normalization_in_pipeline - RuntimeError: Fallo en procesamiento de APU APU-NORM
+FAILED tests/unit/strategy/test_presenters.py::TestProcessApuDetailsIntegration::test_with_alerts_column - RuntimeError: Fallo en procesamiento de APU APU-ALERT
+FAILED tests/unit/strategy/test_presenters.py::TestSystemProperties::test_deterministic_output - RuntimeError: Fallo en procesamiento de APU APU-DET
+FAILED tests/unit/strategy/test_presenters.py::TestSystemProperties::test_no_numpy_types_in_output - RuntimeError: Fallo en procesamiento de APU APU-NP
+FAILED tests/unit/strategy/test_presenters.py::TestSystemProperties::test_all_items_have_consistent_keys - RuntimeError: Fallo en procesamiento de APU APU-KEYS
+FAILED tests/unit/strategy/test_presenters.py::TestSystemProperties::test_total_items_equals_sum_of_breakdown - RuntimeError: Fallo en procesamiento de APU APU-SUM
+================================ 28 failed, 9463 passed, 18 skipped, 1 warning in 129.49s (0:02:09) =================================

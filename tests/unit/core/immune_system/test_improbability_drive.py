@@ -33,7 +33,7 @@ import logging
 from dataclasses import replace
 
 # Import del módulo bajo prueba
-from app.core.immune_system.improbability_drive import (
+from app.omega.improbability_drive import (
     ImprobabilityTensor,
     ImprobabilityDriveService,
     ImprobabilityResult,
