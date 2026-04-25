@@ -1499,7 +1499,9 @@ class HamiltonianSynthesizer:
         """
         Computa la suma tensorial de gradientes: ∇V_total = Σ ∇Vi(x).
 
-        Integra la entropía global del sistema sin interrupciones por 'Fast-Fail'.
+        Integra la entropía global del sistema sin interrupciones por 'Fast-Fail' y
+        aplica la Renormalización de Masa Térmica (Proyección sobre ker(L)^⊥)
+        para garantizar la Neutralidad de Carga.
         """
         grad_total = np.zeros(num_nodes, dtype=np.float64)
 
@@ -1520,6 +1522,19 @@ class HamiltonianSynthesizer:
             except Exception as e:
                 logger.warning(f"[HAMILTONIAN] Error computando gradiente en {evaluator.name}: {e}")
                 continue
+
+        # FASE DECIDE: Renormalización de Masa Térmica (Invarianza de Gauge)
+        # Proyectamos ortogonalmente sobre el complemento del espacio nulo ker(L)^⊥
+        # sustrayendo la media escalar para satisfacer la condición de Fredholm: ⟨Φ, 𝟙⟩ = 0.
+        if num_nodes > 0:
+            mean_force = np.mean(grad_total)
+            grad_renormalized = grad_total - mean_force
+
+            logger.debug(
+                "[HAMILTONIAN:RENORM] ∇V_total renormalizado: media_removida=%.4e, norma_final=%.4e",
+                mean_force, np.linalg.norm(grad_renormalized)
+            )
+            return grad_renormalized
 
         return grad_total
 
@@ -2069,20 +2084,19 @@ class AutonomousAgent:
                 result_state = self._gauge_router.route_gradient(initial_state, grad_total)
 
                 # FASE IV: Certificación de Estabilidad del Lazo Cerrado
-                # Verificación de Disipación de Entropía: ⟨∇V_total, M_act⟩ ≥ 0
+                # Verificación de Disipación de Entropía (Segunda Ley): ⟨ρ, ∇V_total⟩ ≥ 0
+                # ρ es el potencial escalar (gauge_potential) que resuelve la Poisson.
                 selected_agent = result_state.context.get("gauge_selected_agent")
-                m_act_charge = self._gauge_router.get_agent_charge(selected_agent)
-                e_field = np.array(result_state.context.get("e_field", []))
+                rho = np.array(result_state.context.get("gauge_potential", []))
 
-                if m_act_charge is not None and e_field.size > 0:
-                    # El trabajo realizado por el morfismo es el producto interno en el 1-esqueleto
-                    # En el espacio de Gauge, Pdiss = ⟨Q_k, E⟩
-                    p_diss = float(np.dot(m_act_charge, e_field))
+                if rho.size > 0:
+                    # Pdiss = ⟨ρ, ∇V_total⟩ representa el trabajo inyectado disipando la entropía.
+                    p_diss = float(np.dot(rho, grad_total))
 
                     if p_diss < -EPSILON:
                         logger.critical("[ACT:STABILITY] Frustración Cohomológica detectada! Pdiss=%.4e < 0", p_diss)
                         # Invocación al Hilbert Watcher para colapso determinista (simulado vía excepción de seguridad)
-                        raise AgentError(f"Degeneración insalvable: Pdiss={p_diss:.4e}. Veto por Hilbert Watcher.")
+                        raise AgentError(f"Degeneración insalvable: Pdiss={p_diss:.4e}. Violación de la Segunda Ley. Veto por Hilbert Watcher.")
 
                     logger.debug("[ACT:STABILITY] Certificación de estabilidad exitosa: Pdiss=%.4e", p_diss)
 
