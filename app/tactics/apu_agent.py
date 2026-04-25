@@ -78,10 +78,15 @@ from typing import (
 )
 from urllib.parse import urlparse
 
+import numpy as np
 import requests
+import scipy.sparse as sp
+from scipy.sparse import lil_matrix
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from app.core.immune_system.gauge_field_router import GaugeFieldRouter
+from app.core.mic_algebra import CategoricalState
 from app.core.schemas import Stratum
 from app.tactics.topological_analyzer import (
     HealthLevel,
@@ -878,10 +883,11 @@ class ObservationResult:
 @runtime_checkable
 class StateEvaluator(Protocol):
     """
-    Protocolo para evaluadores de estado del sistema.
+    Protocolo para evaluadores de estado del sistema basado en Teoría del Potencial.
     
-    Cada evaluador implementa un morfismo parcial E: (T, H, P) → S ∪ {⊥}
-    donde ⊥ indica que el evaluador no aplica.
+    Cada evaluador implementa un Funtor de Gradiente Penalizador que mapea el
+    estado multidimensional del sistema a un gradiente de penalización parcial
+    ∇Vi(x) en el espacio cotangente de la variedad.
     """
     
     @property
@@ -893,7 +899,32 @@ class StateEvaluator(Protocol):
     def priority(self) -> int:
         """Prioridad (menor = se evalúa primero)."""
         ...
-    
+
+    def compute_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int,
+    ) -> np.ndarray:
+        """
+        Calcula el gradiente de penalización parcial ∇Vi(x) ∈ ℝᴺ.
+
+        Cada componente del vector representa la derivada direccional de una
+        función candidata de Lyapunov local Vi, cuantificando la urgencia y
+        dirección del esfuerzo correctivo en cada nodo.
+
+        Args:
+            num_nodes: Dimensión N del espacio de fase (número de nodos).
+
+        Returns:
+            Vector gradiente ∇Vi(x) ∈ ℝᴺ.
+        """
+        ...
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -904,7 +935,7 @@ class StateEvaluator(Protocol):
         metrics: AgentMetrics,
     ) -> Optional[Tuple[SystemStatus, str]]:
         """
-        Evalúa el estado del sistema.
+        Evalúa el estado del sistema (Retrocompatibilidad).
         
         Returns:
             Tupla (status, summary) si aplica, None si no aplica.
@@ -913,12 +944,49 @@ class StateEvaluator(Protocol):
 
 
 @dataclass(frozen=True)
-class FragmentationEvaluator:
+class BaseEvaluator:
+    """Clase base para evaluadores con lógica de mapeo de nodos."""
+
+    NODE_INDEX_MAP: Final[Mapping[str, int]] = field(
+        default_factory=lambda: {
+            NODE_AGENT: 0,
+            NODE_CORE: 1,
+            NODE_REDIS: 2,
+            NODE_FILESYSTEM: 3,
+        }
+    )
+
+    def _get_node_idx(self, node_name: str) -> Optional[int]:
+        return self.NODE_INDEX_MAP.get(node_name)
+
+
+@dataclass(frozen=True)
+class FragmentationEvaluator(BaseEvaluator):
     """Evalúa fragmentación topológica (β₀ > 1)."""
     
     name: str = "FragmentationEvaluator"
     priority: int = 10
     
+    def compute_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int,
+    ) -> np.ndarray:
+        grad = np.zeros(num_nodes, dtype=np.float64)
+        if not topo_health.betti.is_connected:
+            # Penalización proporcional a la fragmentación en nodos desconectados
+            severity = (topo_health.betti.b0 - 1) / max(1, num_nodes - 1)
+            for node in topo_health.disconnected_nodes:
+                idx = self._get_node_idx(node)
+                if idx is not None and idx < num_nodes:
+                    grad[idx] = severity
+        return grad
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -938,12 +1006,29 @@ class FragmentationEvaluator:
 
 
 @dataclass(frozen=True)
-class NoTelemetryEvaluator:
+class NoTelemetryEvaluator(BaseEvaluator):
     """Evalúa ausencia de telemetría."""
     
     name: str = "NoTelemetryEvaluator"
     priority: int = 20
     
+    def compute_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int,
+    ) -> np.ndarray:
+        grad = np.zeros(num_nodes, dtype=np.float64)
+        if telemetry is None:
+            # Penalización global (uniforme) por falta de observabilidad
+            severity = min(1.0, metrics.consecutive_failures * 0.2)
+            grad.fill(severity / num_nodes)
+        return grad
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -964,12 +1049,30 @@ class NoTelemetryEvaluator:
 
 
 @dataclass(frozen=True)
-class CriticalVoltageEvaluator:
+class CriticalVoltageEvaluator(BaseEvaluator):
     """Evalúa voltaje crítico instantáneo (safety net)."""
     
     name: str = "CriticalVoltageEvaluator"
     priority: int = 30
     
+    def compute_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int,
+    ) -> np.ndarray:
+        grad = np.zeros(num_nodes, dtype=np.float64)
+        if telemetry and telemetry.flyback_voltage > config.flyback_voltage_critical:
+            # La anomalía de voltaje se localiza primariamente en el Core
+            idx = self._get_node_idx(NODE_CORE)
+            if idx is not None and idx < num_nodes:
+                grad[idx] = telemetry.flyback_voltage
+        return grad
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -988,12 +1091,30 @@ class CriticalVoltageEvaluator:
 
 
 @dataclass(frozen=True)
-class CriticalSaturationEvaluator:
+class CriticalSaturationEvaluator(BaseEvaluator):
     """Evalúa saturación crítica instantánea (safety net)."""
     
     name: str = "CriticalSaturationEvaluator"
     priority: int = 31
     
+    def compute_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int,
+    ) -> np.ndarray:
+        grad = np.zeros(num_nodes, dtype=np.float64)
+        if telemetry and telemetry.saturation > config.saturation_critical:
+            # La saturación afecta al Core (buffer overflow proyectado)
+            idx = self._get_node_idx(NODE_CORE)
+            if idx is not None and idx < num_nodes:
+                grad[idx] = telemetry.saturation
+        return grad
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -1012,12 +1133,29 @@ class CriticalSaturationEvaluator:
 
 
 @dataclass(frozen=True)
-class TopologyHealthCriticalEvaluator:
+class TopologyHealthCriticalEvaluator(BaseEvaluator):
     """Evalúa salud topológica crítica."""
     
     name: str = "TopologyHealthCriticalEvaluator"
     priority: int = 40
     
+    def compute_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int,
+    ) -> np.ndarray:
+        grad = np.zeros(num_nodes, dtype=np.float64)
+        if topo_health.level == HealthLevel.CRITICAL:
+            # Penalización inversamente proporcional al health score, distribuida
+            severity = 1.0 - topo_health.health_score
+            grad.fill(severity / num_nodes)
+        return grad
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -1036,12 +1174,32 @@ class TopologyHealthCriticalEvaluator:
 
 
 @dataclass(frozen=True)
-class PersistentSaturationCriticalEvaluator:
+class PersistentSaturationCriticalEvaluator(BaseEvaluator):
     """Evalúa saturación persistente crítica."""
     
     name: str = "PersistentSaturationCriticalEvaluator"
     priority: int = 50
     
+    def compute_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int,
+    ) -> np.ndarray:
+        grad = np.zeros(num_nodes, dtype=np.float64)
+        if saturation_analysis.state == MetricState.CRITICAL:
+            # Penalización proporcional a la duración de la saturación
+            duration = float(saturation_analysis.metadata.get("active_duration", 1.0))
+            severity = min(1.0, duration / 10.0)
+            idx = self._get_node_idx(NODE_CORE)
+            if idx is not None and idx < num_nodes:
+                grad[idx] = severity
+        return grad
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -1061,12 +1219,31 @@ class PersistentSaturationCriticalEvaluator:
 
 
 @dataclass(frozen=True)
-class SaturationFeatureEvaluator:
+class SaturationFeatureEvaluator(BaseEvaluator):
     """Evalúa saturación con característica estructural."""
     
     name: str = "SaturationFeatureEvaluator"
     priority: int = 51
     
+    def compute_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int,
+    ) -> np.ndarray:
+        grad = np.zeros(num_nodes, dtype=np.float64)
+        if saturation_analysis.state == MetricState.FEATURE:
+            # Penalización por patrón estructural en el colector
+            severity = min(1.0, saturation_analysis.total_persistence / 50.0)
+            idx = self._get_node_idx(NODE_REDIS)  # Proyección hacia Redis (colector persistente)
+            if idx is not None and idx < num_nodes:
+                grad[idx] = severity
+        return grad
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -1086,12 +1263,31 @@ class SaturationFeatureEvaluator:
 
 
 @dataclass(frozen=True)
-class PersistentVoltageCriticalEvaluator:
+class PersistentVoltageCriticalEvaluator(BaseEvaluator):
     """Evalúa voltaje persistente crítico."""
     
     name: str = "PersistentVoltageCriticalEvaluator"
     priority: int = 60
     
+    def compute_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int,
+    ) -> np.ndarray:
+        grad = np.zeros(num_nodes, dtype=np.float64)
+        if voltage_analysis.state == MetricState.CRITICAL:
+            duration = float(voltage_analysis.metadata.get("active_duration", 1.0))
+            severity = min(1.0, duration / 10.0)
+            idx = self._get_node_idx(NODE_CORE)
+            if idx is not None and idx < num_nodes:
+                grad[idx] = severity
+        return grad
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -1111,12 +1307,30 @@ class PersistentVoltageCriticalEvaluator:
 
 
 @dataclass(frozen=True)
-class VoltageFeatureEvaluator:
+class VoltageFeatureEvaluator(BaseEvaluator):
     """Evalúa voltaje con característica estructural."""
     
     name: str = "VoltageFeatureEvaluator"
     priority: int = 61
     
+    def compute_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int,
+    ) -> np.ndarray:
+        grad = np.zeros(num_nodes, dtype=np.float64)
+        if voltage_analysis.state == MetricState.FEATURE:
+            severity = min(1.0, voltage_analysis.max_lifespan / 20.0)
+            idx = self._get_node_idx(NODE_CORE)
+            if idx is not None and idx < num_nodes:
+                grad[idx] = severity
+        return grad
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -1135,13 +1349,40 @@ class VoltageFeatureEvaluator:
 
 
 @dataclass(frozen=True)
-class RetryLoopEvaluator:
+class RetryLoopEvaluator(BaseEvaluator):
     """Evalúa patrones de reintentos excesivos."""
     
     name: str = "RetryLoopEvaluator"
     priority: int = 70
     min_loop_count: int = 5
     
+    def compute_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int,
+    ) -> np.ndarray:
+        grad = np.zeros(num_nodes, dtype=np.float64)
+        if topo_health.request_loops:
+            first_loop = topo_health.request_loops[0]
+            if (
+                first_loop.count >= self.min_loop_count
+                and first_loop.request_id.startswith("FAIL_")
+            ):
+                # Bucles de reintento inducen vorticidad en el flujo Agent-Core
+                severity = min(1.0, first_loop.count / 20.0)
+                idx_agent = self._get_node_idx(NODE_AGENT)
+                idx_core = self._get_node_idx(NODE_CORE)
+                if idx_agent is not None and idx_agent < num_nodes:
+                    grad[idx_agent] = severity * 0.5
+                if idx_core is not None and idx_core < num_nodes:
+                    grad[idx_core] = severity * 0.5
+        return grad
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -1167,12 +1408,28 @@ class RetryLoopEvaluator:
 
 
 @dataclass(frozen=True)
-class UnhealthyTopologyEvaluator:
+class UnhealthyTopologyEvaluator(BaseEvaluator):
     """Evalúa salud topológica degradada."""
     
     name: str = "UnhealthyTopologyEvaluator"
     priority: int = 80
     
+    def compute_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int,
+    ) -> np.ndarray:
+        grad = np.zeros(num_nodes, dtype=np.float64)
+        if topo_health.level == HealthLevel.UNHEALTHY:
+            severity = 1.0 - topo_health.health_score
+            grad.fill(severity / num_nodes)
+        return grad
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -1190,25 +1447,27 @@ class UnhealthyTopologyEvaluator:
         return None
 
 
-class EvaluatorChain:
+class HamiltonianSynthesizer:
     """
-    Cadena de evaluadores ordenada por prioridad.
+    Sintetizador Hamiltoniano de Acción.
     
-    Implementa el patrón Chain of Responsibility para evaluación de estado.
+    Reemplaza la estructura iterativa secuencial por una integración de campos
+    vectoriales de penalización. Consolida el campo de fuerza conservativo ∇Vtotal
+    que empuja al sistema fuera de la degeneración térmica o topológica,
+    asegurando estabilidad de Lyapunov.
     """
     
     def __init__(self, evaluators: Optional[List[StateEvaluator]] = None):
         """
-        Inicializa la cadena.
+        Inicializa el sintetizador.
         
         Args:
-            evaluators: Lista de evaluadores. Si es None, usa los defaults.
+            evaluators: Lista de evaluadores de gradiente.
         """
         if evaluators is None:
             evaluators = self._create_default_evaluators()
         
-        # Ordenar por prioridad
-        self._evaluators = sorted(evaluators, key=lambda e: e.priority)
+        self._evaluators = evaluators
     
     @staticmethod
     def _create_default_evaluators() -> List[StateEvaluator]:
@@ -1226,7 +1485,44 @@ class EvaluatorChain:
             RetryLoopEvaluator(),
             UnhealthyTopologyEvaluator(),
         ]
-    
+
+    def synthesize_gradient(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+        config: ThresholdConfig,
+        metrics: AgentMetrics,
+        num_nodes: int = 4,
+    ) -> np.ndarray:
+        """
+        Computa la suma tensorial de gradientes: ∇V_total = Σ ∇Vi(x).
+
+        Integra la entropía global del sistema sin interrupciones por 'Fast-Fail'.
+        """
+        grad_total = np.zeros(num_nodes, dtype=np.float64)
+
+        for evaluator in self._evaluators:
+            try:
+                grad_i = evaluator.compute_gradient(
+                    telemetry,
+                    topo_health,
+                    voltage_analysis,
+                    saturation_analysis,
+                    config,
+                    metrics,
+                    num_nodes,
+                )
+                if np.any(grad_i > 0):
+                    logger.debug(f"[HAMILTONIAN:GRAD] {evaluator.name} inyectando: {grad_i}")
+                grad_total += grad_i
+            except Exception as e:
+                logger.warning(f"[HAMILTONIAN] Error computando gradiente en {evaluator.name}: {e}")
+                continue
+
+        return grad_total
+
     def evaluate(
         self,
         telemetry: Optional[TelemetryData],
@@ -1237,11 +1533,10 @@ class EvaluatorChain:
         metrics: AgentMetrics,
     ) -> Tuple[SystemStatus, str]:
         """
-        Evalúa el estado del sistema recorriendo la cadena.
+        Evalúa el estado del sistema (Retrocompatibilidad).
         
-        Returns:
-            Tupla (status, summary) del primer evaluador que aplica,
-            o (NOMINAL, summary) si ninguno aplica.
+        Conserva la lógica de selección del peor estado para asegurar la
+        estabilidad de los lazos de control superiores.
         """
         worst_status = SystemStatus.NOMINAL
         worst_summary = f"Sistema nominal: β₀={topo_health.betti.b0}, h={topo_health.health_score:.2f}"
@@ -1258,19 +1553,11 @@ class EvaluatorChain:
                 )
                 if result is not None:
                     status, summary = result
-                    log_level = (
-                        logging.CRITICAL
-                        if status == SystemStatus.CRITICO
-                        else logging.WARNING
-                    )
-                    logger.log(log_level, f"[EVAL:{evaluator.name}] {summary}")
-
                     if status > worst_status:
                         worst_status = status
                         worst_summary = summary
-
             except Exception as e:
-                logger.warning(f"[EVAL] Error en {evaluator.name}: {e}")
+                logger.warning(f"[HAMILTONIAN] Error en {evaluator.name}: {e}")
                 continue
         
         return worst_status, worst_summary
@@ -1300,14 +1587,14 @@ class AutonomousAgent:
     def __init__(
         self,
         config: Optional[AgentConfig] = None,
-        evaluator_chain: Optional[EvaluatorChain] = None,
+        synthesizer: Optional[HamiltonianSynthesizer] = None,
     ) -> None:
         """
         Inicializa el agente autónomo.
         
         Args:
             config: Configuración del agente. Si es None, se crea desde env vars.
-            evaluator_chain: Cadena de evaluadores. Si es None, usa los defaults.
+            synthesizer: Sintetizador Hamiltonian de gradientes.
             
         Raises:
             ConfigurationError: Si la configuración es inválida.
@@ -1335,7 +1622,8 @@ class AutonomousAgent:
         self.persistence = PersistenceHomology(
             window_size=self._topo_config.persistence_window
         )
-        self._evaluator_chain = evaluator_chain or EvaluatorChain()
+        self._synthesizer = synthesizer or HamiltonianSynthesizer()
+        self._gauge_router: Optional[GaugeFieldRouter] = None
         
         # Inicializar topología esperada
         self._initialize_expected_topology()
@@ -1359,7 +1647,7 @@ class AutonomousAgent:
     # =========================================================================
 
     def _initialize_expected_topology(self) -> None:
-        """Establece la topología inicial esperada del sistema."""
+        """Establece la topología inicial esperada del sistema y el GaugeFieldRouter."""
         edges_added, warnings = self.topology.update_connectivity(
             list(self._topo_config.expected_edges),
             validate_nodes=True,
@@ -1372,6 +1660,78 @@ class AutonomousAgent:
         logger.debug(
             f"[TOPO-INIT] Topología inicial: {edges_added} conexiones activas"
         )
+
+        # Sincronización del GaugeFieldRouter con el Complejo Simplicial actual
+        self._sync_gauge_router()
+
+    def _sync_gauge_router(self) -> None:
+        """Sincroniza el GaugeFieldRouter con el estado actual del Complejo Simplicial."""
+        try:
+            nodes = sorted(list(self.topology.nodes))
+            edges = sorted(list(self.topology.edges))
+            n = len(nodes)
+            m = len(edges)
+
+            if n == 0 or m == 0:
+                logger.warning("[GAUGE:SYNC] Topología degenerada (n=%d, m=%d), posponiendo sync.", n, m)
+                return
+
+            node_to_idx = {node: i for i, node in enumerate(nodes)}
+
+            # Construcción del Operador Coborde Discreto (Matriz de Incidencia Orientada B1)
+            b1 = lil_matrix((m, n), dtype=np.float64)
+            for i, (u, v) in enumerate(edges):
+                b1[i, node_to_idx[u]] = -1.0
+                b1[i, node_to_idx[v]] = 1.0
+
+            b1_csr = b1.tocsr()
+            l0_csr = (b1_csr.T @ b1_csr).tocsr()
+
+            # Generación de la Base de Fock de Cargas Agénticas
+            # Mapeamos vectores de intención a cargas en el 1-esqueleto
+            agent_charges = {}
+            # Definimos roles específicos para los agentes en la malla
+            edge_roles = {
+                (NODE_AGENT, NODE_CORE): ["clean", "reconnect"],
+                (NODE_CORE, NODE_REDIS): ["configure"],
+                (NODE_CORE, NODE_FILESYSTEM): ["configure"]
+            }
+
+            for i, edge in enumerate(edges):
+                role_key = tuple(sorted(edge))
+                agents_for_edge = edge_roles.get(role_key, ["clean"])
+                for agent_prefix in agents_for_edge:
+                    agent_id = f"{agent_prefix}_on_edge_{i}"
+                    charge = np.zeros(m, dtype=np.float64)
+                    charge[i] = 1.0
+                    agent_charges[agent_id] = charge
+
+            from app.adapters.tools_interface import get_global_mic
+            mic = get_global_mic()
+
+            # Re-registrar morfismos virtuales si es necesario para el router
+            # En una implementación real, esto mapearía a servicios MIC reales
+            for agent_id in agent_charges:
+                if not mic.is_registered(agent_id):
+                    # Registramos un morfismo de fallback que redirige al vector base real
+                    base_vector = agent_id.split("_on_edge_")[0]
+                    def virtual_handler(bv=base_vector, **kwargs):
+                        return mic.project_intent(service_name=bv, **kwargs)
+
+                    stratum = mic.get_stratum(base_vector) or Stratum.PHYSICS
+                    mic.register_vector(agent_id, stratum, virtual_handler)
+
+            self._gauge_router = GaugeFieldRouter(
+                mic_registry=mic,
+                laplacian=l0_csr,
+                incidence_matrix=b1_csr,
+                agent_charges=agent_charges,
+                verify_cohomology=True
+            )
+            logger.info("[GAUGE:SYNC] Router sincronizado: N=%d, M=%d, Agentes=%d", n, m, len(agent_charges))
+
+        except Exception as e:
+            logger.error(f"[GAUGE:SYNC] Fallo crítico en sincronización: {e}", exc_info=True)
 
     def _create_robust_session(self) -> requests.Session:
         """Crea sesión HTTP con política de reintentos."""
@@ -1573,8 +1933,8 @@ class AutonomousAgent:
             self._thresholds.saturation_warning,
         )
         
-        # Evaluar estado mediante la cadena
-        status, summary = self._evaluator_chain.evaluate(
+        # Evaluar estado mediante el sintetizador (Retrocompatibilidad DECIDE)
+        status, summary = self._synthesizer.evaluate(
             telemetry,
             topo_health,
             voltage_analysis,
@@ -1671,23 +2031,73 @@ class AutonomousAgent:
 
     def act(self, decision: AgentDecision) -> bool:
         """
-        ACT - Cuarta fase del ciclo OODA.
+        ACT - Cuarta fase del ciclo OODA (Resolución Hamiltoniana).
         
-        Implementa el morfismo A: Decisión × Diagnóstico → Efectos
-        
-        Args:
-            decision: Decisión a ejecutar.
-            
-        Returns:
-            True si la acción se ejecutó, False si fue suprimida.
+        Implementa el morfismo A: Decisión × Gradiente → Morfismo Irrotacional.
+        Utiliza el GaugeFieldRouter para resolver ΔMact = ∇Vtotal y obtener
+        el morfismo de corrección óptimo.
         """
         if self._should_debounce(decision):
             logger.debug(f"[ACT] Suprimido por debounce: {decision.name}")
             return False
+
+        # Intentar Síntesis Hamiltoniana del gradiente global solo si existe diagnóstico
+        if self._last_diagnosis is not None:
+            num_nodes = len(self.topology.nodes)
+            grad_total = self._synthesizer.synthesize_gradient(
+                self._last_telemetry,
+                self._last_diagnosis.health,
+                self._last_diagnosis.voltage_persistence,
+                self._last_diagnosis.saturation_persistence,
+                self._thresholds,
+                self._metrics,
+                num_nodes=num_nodes
+            )
+        else:
+            grad_total = np.array([])
+
+        # Inyección de Control vía Gauge Field Router
+        if self._gauge_router and grad_total.size > 0 and np.any(grad_total > 0):
+            try:
+                logger.info("[ACT:HAMILTONIAN] Resolviendo Poisson para ∇V_total (norm=%.4e)", np.linalg.norm(grad_total))
+                initial_state = CategoricalState(
+                    payload={"action": decision.name},
+                    context={"diagnosis": self._last_diagnosis.summary}
+                )
+
+                # Resolución de ΔMact = ∇Vtotal
+                result_state = self._gauge_router.route_gradient(initial_state, grad_total)
+
+                # FASE IV: Certificación de Estabilidad del Lazo Cerrado
+                # Verificación de Disipación de Entropía: ⟨∇V_total, M_act⟩ ≥ 0
+                selected_agent = result_state.context.get("gauge_selected_agent")
+                m_act_charge = self._gauge_router.get_agent_charge(selected_agent)
+                e_field = np.array(result_state.context.get("e_field", []))
+
+                if m_act_charge is not None and e_field.size > 0:
+                    # El trabajo realizado por el morfismo es el producto interno en el 1-esqueleto
+                    # En el espacio de Gauge, Pdiss = ⟨Q_k, E⟩
+                    p_diss = float(np.dot(m_act_charge, e_field))
+
+                    if p_diss < -EPSILON:
+                        logger.critical("[ACT:STABILITY] Frustración Cohomológica detectada! Pdiss=%.4e < 0", p_diss)
+                        # Invocación al Hilbert Watcher para colapso determinista (simulado vía excepción de seguridad)
+                        raise AgentError(f"Degeneración insalvable: Pdiss={p_diss:.4e}. Veto por Hilbert Watcher.")
+
+                    logger.debug("[ACT:STABILITY] Certificación de estabilidad exitosa: Pdiss=%.4e", p_diss)
+
+                logger.info("[ACT:GAUGE] Morfismo de corrección aplicado: %s", selected_agent)
+
+                self._last_decision = decision
+                self._last_decision_time = datetime.now()
+                return True
+
+            except Exception as e:
+                logger.error("[ACT:GAUGE] Fallo en resolución de Poisson: %s", e)
+                # Fallback a heurísticas legacy
         
+        # Fallback a lógica procedural legacy si el router falla o no hay gradiente
         diagnosis_msg = self._build_diagnosis_message()
-        
-        # Ejecutar acción
         action_handlers: Dict[AgentDecision, Callable[[], None]] = {
             AgentDecision.HEARTBEAT: self._emit_heartbeat,
             AgentDecision.EJECUTAR_LIMPIEZA: lambda: self._execute_cleanup(diagnosis_msg),
@@ -1700,10 +2110,8 @@ class AutonomousAgent:
         handler = action_handlers.get(decision, action_handlers[AgentDecision.WAIT])
         handler()
         
-        # Actualizar estado temporal
         self._last_decision = decision
         self._last_decision_time = datetime.now()
-        
         return True
 
     def _should_debounce(self, decision: AgentDecision) -> bool:
@@ -2264,19 +2672,19 @@ class AutonomousAgent:
 
 def create_agent(
     config: Optional[AgentConfig] = None,
-    evaluator_chain: Optional[EvaluatorChain] = None,
+    synthesizer: Optional[HamiltonianSynthesizer] = None,
 ) -> AutonomousAgent:
     """
     Factory function para crear un agente configurado.
     
     Args:
         config: Configuración del agente.
-        evaluator_chain: Cadena de evaluadores personalizada.
+        synthesizer: Sintetizador de gradientes Hamiltoniano.
         
     Returns:
         Agente configurado.
     """
-    return AutonomousAgent(config=config, evaluator_chain=evaluator_chain)
+    return AutonomousAgent(config=config, synthesizer=synthesizer)
 
 
 def create_minimal_agent(core_url: str) -> AutonomousAgent:
