@@ -174,10 +174,11 @@ except ImportError:
         deben estar validados todos los estratos j con valor > k.
         """
         WISDOM = 0
-        OMEGA = 1
-        STRATEGY = 2
-        TACTICS = 3
-        PHYSICS = 4
+        ALPHA = 1
+        OMEGA = 2
+        STRATEGY = 3
+        TACTICS = 4
+        PHYSICS = 5
 
         @classmethod
         def base_stratum(cls) -> "Stratum":
@@ -1550,7 +1551,17 @@ class NormalizationCommand(ProjectionCommand):
                 elif isinstance(item, int):
                     normalized.add(Stratum(item))
                 elif isinstance(item, str):
-                    normalized.add(Stratum[item.upper().strip()])
+                    # Coerción robusta mediante getattr para evitar problemas con __getitem__ en algunos entornos.
+                    name = item.upper().strip()
+                    member = getattr(Stratum, name, None)
+                    if member is not None:
+                        normalized.add(member)
+                    else:
+                        # Fallback a búsqueda por nombre si getattr falla (poco probable para Enum)
+                        try:
+                            normalized.add(Stratum[name])
+                        except (KeyError, ValueError):
+                            logger.debug("Nombre de estrato no reconocido: %s", name)
             except (ValueError, KeyError):
                 logger.debug("Ignorando estrato inválido: %r", item)
 
@@ -2762,7 +2773,7 @@ def register_core_vectors(
             logger.warning("⚠️ Vectores semánticos no disponibles: %s", e)
 
     try:
-        from app.core.immune_system.improbability_drive import ImprobabilityDriveService
+        from app.omega.improbability_drive import ImprobabilityDriveService
         improbability_drive = ImprobabilityDriveService(mic)
 
         def calculate_fat_tail_risk_handler(**kwargs):
