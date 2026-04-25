@@ -1855,6 +1855,80 @@ class GaugeFieldRouter:
     # ORQUESTACIÓN PRINCIPAL (PIPELINE DE ENRUTAMIENTO)
     # ──────────────────────────────────────────────────────────────────────────
 
+    def route_gradient(
+        self,
+        state: CategoricalState,
+        gradient_vector: np.ndarray,
+    ) -> CategoricalState:
+        """
+        Pipeline de enrutamiento basado en síntesis Hamiltoniana de gradientes.
+
+        Resuelve ΔMact = ∇Vtotal sobre el Laplaciano combinatorio para obtener
+        un morfismo de corrección irrotacional (∇×Mact = 0).
+        """
+        trace_id = uuid.uuid4().hex[:12]
+
+        if state is None or not isinstance(state, CategoricalState):
+            raise GaugeFieldError("Estado categórico inválido o nulo.")
+
+        rho = np.asarray(gradient_vector, dtype=np.float64)
+        if rho.shape != (self._num_nodes,):
+            raise TopologicalSingularityError(f"Dimensión de gradiente incorrecta: {rho.shape}")
+
+        # Forzar neutralidad de carga para solubilidad de Poisson
+        rho_neutral = rho - np.mean(rho)
+        severity = float(np.linalg.norm(rho_neutral, ord=2))
+
+        # [3] Resolución de Poisson
+        poisson_result = self._solve_discrete_poisson(rho_neutral)
+        phi = poisson_result.phi
+
+        # [4] Cálculo del campo irrotacional
+        e_field = self._compute_potential_gradient(phi)
+        field_norm = float(np.linalg.norm(e_field, ord=2))
+
+        # [5] Selección de agente (Fuerza de Lorentz)
+        coupling_result = self._calculate_lorentz_attraction(e_field)
+        agent_id = coupling_result.selected_agent
+
+        # [6] Resolución del morfismo
+        morphism = self._resolve_morphism(agent_id)
+
+        # [7] Momentum y contexto
+        momentum = self._compute_cyber_momentum(max(severity, 1e-6), field_norm)
+
+        from app.core.telemetry_schemas import PhotonCartridge
+        import dataclasses
+
+        photon = PhotonCartridge(
+            policy_id=f"HamiltonianGauge_{agent_id}",
+            spectral_frequency=float(field_norm),
+            governance_weight=float(momentum)
+        )
+
+        mutated_context = {
+            **_safe_context(state),
+            "gauge_trace_id": trace_id,
+            "cyber_momentum": momentum,
+            "gradient_norm": severity,
+            "gauge_selected_agent": agent_id,
+            "e_field": e_field.tolist(),
+            "photon_cartridge": dataclasses.asdict(photon),
+        }
+
+        intermediate_state = CategoricalState(
+            payload=state.payload,
+            context=mutated_context,
+            validated_strata=state.validated_strata,
+        )
+
+        logger.info(
+            "[%s] Enrutamiento Hamiltoniano exitoso: Agente='%s', Momentum=%.4e",
+            trace_id, agent_id, momentum
+        )
+
+        return morphism(intermediate_state)
+
     def route_perturbation(
         self,
         state: CategoricalState,
