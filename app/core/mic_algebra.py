@@ -104,10 +104,11 @@ except ImportError:
         """
 
         WISDOM = 0
-        OMEGA = 1
-        STRATEGY = 2
-        TACTICS = 3
-        PHYSICS = 4
+        ALPHA = 1
+        OMEGA = 2
+        STRATEGY = 3
+        TACTICS = 4
+        PHYSICS = 5
 
         def requires(self) -> FrozenSet[Stratum]:
             """
@@ -339,12 +340,20 @@ class CategoricalState:
 
     def __post_init__(self):
         # Proyección coercitiva al espacio topológico correcto para strata validados
+        # Garantiza la Ortogonalidad Funcional y el tipado rígido de la MIC.
         if self.validated_strata:
             corrected_strata = []
             for s in self.validated_strata:
-                if isinstance(s, int):
-                    corrected_strata.append(Stratum(s))
-                else:
+                try:
+                    if isinstance(s, int):
+                        corrected_strata.append(Stratum(s))
+                    elif isinstance(s, str):
+                        corrected_strata.append(Stratum[s.upper().strip()])
+                    else:
+                        corrected_strata.append(s)
+                except (ValueError, KeyError):
+                    # Preservar el valor original si la coerción falla,
+                    # dejando que el validador de la MIC lo rechace.
                     corrected_strata.append(s)
             # Como es frozen, debemos usar object.__setattr__
             object.__setattr__(self, 'validated_strata', frozenset(corrected_strata))

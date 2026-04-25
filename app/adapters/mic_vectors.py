@@ -1843,7 +1843,7 @@ def vector_calculate_improbability_tensor(
             )
 
         try:
-            from app.core.immune_system.improbability_drive import ImprobabilityDriveService
+            from app.omega.improbability_drive import ImprobabilityDriveService
             # Se necesita la instancia de MIC, pero en vectores puros no la tenemos inyectada directamente,
             # pero el servicio puede instanciarse sin MICRegistry usando kwargs de context/payload
             # o simplemente utilizando el Tensor matemáticamente.
