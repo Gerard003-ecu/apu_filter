@@ -1913,6 +1913,7 @@ class GaugeFieldRouter:
             "gradient_norm": severity,
             "gauge_selected_agent": agent_id,
             "e_field": e_field.tolist(),
+            "gauge_potential": phi.tolist(),
             "photon_cartridge": dataclasses.asdict(photon),
         }
 
