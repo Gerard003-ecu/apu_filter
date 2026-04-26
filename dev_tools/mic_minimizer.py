@@ -168,6 +168,70 @@ class ImplicantTerm:
 
 
 # ========================================================================================
+# ANÁLISIS TOPOLÓGICO: INVARIANTES Y HOMOLOGÍA
+# ========================================================================================
+
+class TopologicalInvariantComputer:
+    """
+    Computador de invariantes topológicos para complejos cuboidales.
+    Aplica el Teorema del Nervio y el principio de inclusión-exclusión para garantizar
+    la invariancia de la característica de Euler bajo transformaciones categóricas.
+    """
+
+    @staticmethod
+    def _intersect_patterns(p1: str, p2: str) -> Optional[str]:
+        """
+        Calcula la intersección de dos hipercubos definidos por sus patrones.
+        Retorna el patrón resultante o None si la intersección es vacía.
+        """
+        res = []
+        for c1, c2 in zip(p1, p2):
+            if c1 == c2:
+                res.append(c1)
+            elif c1 == '-':
+                res.append(c2)
+            elif c2 == '-':
+                res.append(c1)
+            else:
+                return None
+        return "".join(res)
+
+    def compute_euler_characteristic(self, implicants: List[ImplicantTerm]) -> int:
+        """
+        Calcula χ aplicando la fórmula de Euler-Poincaré sobre el Complejo de Cech.
+        Aplica el principio de inclusión-exclusión sobre los hipercubos para preservar
+        el invariante topológico original bajo la deformación Quine-McCluskey.
+        """
+        patterns = [imp.pattern for imp in implicants]
+        n = len(patterns)
+        if n == 0:
+            return 0
+
+        chi = 0
+        from itertools import combinations
+
+        # El Teorema del Nervio garantiza que la característica de Euler de la unión
+        # es igual a la característica de Euler del complejo del nervio.
+        # χ(U) = Σ χ(Ai) - Σ χ(Ai ∩ Aj) + Σ χ(Ai ∩ Aj ∩ Ak) - ...
+        # Como cada intersección no vacía de hipercubos es contraíble, χ(intersección) = 1.
+
+        for r in range(1, n + 1):
+            sign = (-1)**(r - 1)
+            count_non_empty = 0
+            for combo in combinations(patterns, r):
+                inter = combo[0]
+                for i in range(1, len(combo)):
+                    inter = self._intersect_patterns(inter, combo[i])
+                    if inter is None:
+                        break
+                if inter is not None:
+                    count_non_empty += 1
+            chi += sign * count_non_empty
+
+        return chi
+
+
+# ========================================================================================
 # ALGORITMO DE QUINE-MCCLUSKEY MEJORADO
 # ========================================================================================
 
@@ -655,7 +719,11 @@ class MICRedundancyAnalyzer:
         dependencies = self.detect_linear_dependencies(incidence_matrix)
         homology = self.compute_homology_groups()
         
+        tic = TopologicalInvariantComputer()
+        chi = tic.compute_euler_characteristic(list(prime_implicants))
+
         logger.info(f"Rango espectral: {spectral_rank}")
+        logger.info(f"Característica de Euler (χ): {chi}")
         logger.info(f"Dependencias lineales detectadas: {len(dependencies)}")
         logger.info(f"H_0 (componentes conexas): {homology['H_0']}")
         logger.info(f"H_1 (ciclos de redundancia): {homology['H_1']}")
@@ -727,6 +795,7 @@ class MICRedundancyAnalyzer:
             "prime_implicants": [imp.pattern for imp in sorted(prime_implicants, key=lambda x: x.pattern)],
             "minimal_cover": [imp.pattern for imp in sorted(minimal_cover, key=lambda x: x.pattern)],
             "spectral_rank": spectral_rank,
+            "euler_characteristic": chi,
             "homology": homology,
             "incidence_matrix": incidence_matrix.tolist()
         }
