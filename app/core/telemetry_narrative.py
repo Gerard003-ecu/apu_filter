@@ -323,7 +323,15 @@ class SeverityLevel(IntEnum):
             return cls.OPTIMO  # ⊥ es identidad del join
 
         try:
-            max_value = max(level.value for level in levels)
+            safe_levels = []
+            for level in levels:
+                if hasattr(level, 'value'):
+                    safe_levels.append(level)
+                elif hasattr(level, 'item'):  # NumPy scalars
+                    safe_levels.append(cls(int(level.item())))
+                else:
+                    safe_levels.append(cls(int(level)))
+            max_value = max(lvl.value for lvl in safe_levels)
             return cls(max_value)
         except (ValueError, TypeError):
             return cls.OPTIMO
@@ -340,7 +348,15 @@ class SeverityLevel(IntEnum):
             return cls.CRITICO  # ⊤ es identidad del meet
 
         try:
-            min_value = min(level.value for level in levels)
+            safe_levels = []
+            for level in levels:
+                if hasattr(level, 'value'):
+                    safe_levels.append(level)
+                elif hasattr(level, 'item'):  # NumPy scalars
+                    safe_levels.append(cls(int(level.item())))
+                else:
+                    safe_levels.append(cls(int(level)))
+            min_value = min(lvl.value for lvl in safe_levels)
             return cls(min_value)
         except (ValueError, TypeError):
             return cls.CRITICO
