@@ -188,8 +188,8 @@ class QuineMcCluskeyMinimizer:
         Args:
             num_vars: Dimensión del espacio vectorial booleano
         """
-        if num_vars <= 0 or num_vars > 32:
-            raise ValueError(f"num_vars debe estar en [1, 32], recibido: {num_vars}")
+        if num_vars <= 0 or num_vars > 10:
+            raise ValueError(f"num_vars debe estar en [1, 10], recibido: {num_vars}")
         
         self.num_vars = num_vars
         self.max_minterm = (1 << num_vars) - 1

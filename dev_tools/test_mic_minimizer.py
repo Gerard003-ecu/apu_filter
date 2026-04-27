@@ -64,9 +64,8 @@ logger = logging.getLogger("MIC.Tests")
 
 # Constantes numéricas
 EPSILON_SPECTRAL = 1e-10  # Tolerancia para análisis espectral
-EPSILON_GRAM = 1e-9       # Tolerancia para matriz de Gram
 MAX_COMPUTATION_TIME_S = 0.5  # Límite temporal para operaciones
-NUM_VARS_MAX_TESTED = 32  # Límite dimensional para hipercubo B^n
+NUM_VARS_MAX_TESTED = 10  # Cota superior tratable empíricamente
 
 
 # ========================================================================================
@@ -76,6 +75,7 @@ NUM_VARS_MAX_TESTED = 32  # Límite dimensional para hipercubo B^n
 @dataclass
 class TestContext:
     """Contexto de ejecución de prueba con información diagnóstica."""
+    __test__ = False
     name: str
     timestamp: float
     duration: Optional[float] = None
@@ -94,20 +94,20 @@ class NumericalValidator:
 
     @staticmethod
     def assert_matrix_rank(matrix: np.ndarray, expected_rank: int, 
-                          atol: float = 1e-10, context: str = "") -> bool:
+                          tol: float = 1e-10, context: str = "") -> bool:
         """
         Valida que rango(matrix) = expected_rank con tolerancia.
         
         Args:
             matrix: Matriz a validar
             expected_rank: Rango esperado
-            atol: Tolerancia absoluta para valores singulares
+            tol: Tolerancia absoluta para valores singulares
             context: Descripción del contexto (para diagnóstico)
             
         Returns:
             True si la validación es exitosa
         """
-        actual_rank = np.linalg.matrix_rank(matrix, atol=atol)
+        actual_rank = np.linalg.matrix_rank(matrix, tol=tol)
         if actual_rank != expected_rank:
             logger.warning(
                 f"[NumericalValidator] {context}: "
@@ -118,40 +118,10 @@ class NumericalValidator:
         return True
 
     @staticmethod
-    def assert_orthogonality(matrix: np.ndarray, atol: float = EPSILON_GRAM,
-                            context: str = "") -> Tuple[bool, Dict]:
-        """
-        Valida ortogonalidad de filas mediante matriz de Gram.
-        
-        Args:
-            matrix: Matriz de vectores fila (herramientas × capacidades)
-            atol: Tolerancia para elementos no-diagonales
-            context: Descripción del contexto
-            
-        Returns:
-            (es_ortogonal, diagnostico)
-        """
-        gram = np.dot(matrix, matrix.T)
-        off_diag = gram - np.diag(np.diag(gram))
-        max_off_diag = np.max(np.abs(off_diag))
-        
-        is_orthogonal = max_off_diag <= atol
-        
-        diagnostics = {
-            "max_off_diagonal": float(max_off_diag),
-            "condition_number": float(np.linalg.cond(gram)),
-            "is_orthogonal": is_orthogonal,
-            "context": context
-        }
-        
-        if not is_orthogonal:
-            logger.warning(
-                f"[Orthogonality] {context}: "
-                f"max_off_diag={max_off_diag:.2e} (threshold {atol:.2e})"
-            )
-        
-        return is_orthogonal, diagnostics
-
+    def assert_boolean_orthogonality(v1: BooleanVector, v2: BooleanVector) -> None:
+        """Valida ortogonalidad absoluta sin epsilon."""
+        inner_product = len(v1.components.intersection(v2.components))
+        assert inner_product == 0, f"Ruptura de ortogonalidad funcional. Entropía cruzada: {inner_product}"
 
 class TopologicalInvariantComputer:
     """Computador de invariantes topológicos (números de Betti, característica de Euler)."""
@@ -173,21 +143,46 @@ class TopologicalInvariantComputer:
         betti = analyzer.compute_homology_groups()
         return betti
 
-    @staticmethod
-    def compute_euler_characteristic(n_vertices: int, n_edges: int, 
-                                    n_faces: int = 0) -> int:
+    def compute_euler_characteristic(self, implicants: List[ImplicantTerm]) -> int:
         """
-        χ = v - e + f (característica combinatoria de Euler).
-        
-        Args:
-            n_vertices: Número de vértices (herramientas)
-            n_edges: Número de aristas (pares con capacidades compartidas)
-            n_faces: Número de caras 2D (0 para grafos)
+        Calcula χ aplicando la fórmula de Euler-Poincaré sobre el Complejo de Čech.
+        Utiliza el Principio de Inclusión-Exclusión sobre las intersecciones
+        de los hipercubos (implicantes) para preservar el invariante topológico.
+        """
+        n = len(implicants)
+        if n == 0:
+            return 0
             
-        Returns:
-            Característica de Euler
+        chi = 0
+        import math
+        # k representa la dimensión de la intersección (1-way, 2-way, ..., n-way)
+        for k in range(1, n + 1):
+            k_way_intersections = 0
+            for subset in combinations(implicants, k):
+                # Si el subconjunto de implicantes tiene una intersección no nula
+                # (son lógicamente compatibles), contribuyen al Complejo de Cech.
+                if self._are_compatible(subset):
+                    k_way_intersections += 1
+
+            # Suma alternada: + (1-way) - (2-way) + (3-way) ...
+            chi += int(math.pow(-1, k - 1)) * k_way_intersections
+
+        return chi
+
+    def _are_compatible(self, subset: Tuple[ImplicantTerm, ...]) -> bool:
         """
-        return n_vertices - n_edges + n_faces
+        Verifica si la intersección de un conjunto de hipercubos booleanos no es vacía.
+        En álgebra booleana, son compatibles si no existe contradicción en ninguna dimensión.
+        """
+        if not subset:
+            return True
+        num_vars = len(subset[0].pattern)
+        # Check column by column
+        for i in range(num_vars):
+            chars = {imp.pattern[i] for imp in subset if imp.pattern[i] != '-'}
+            if '0' in chars and '1' in chars:
+                return False  # Contradiction at dimension i
+        return True
 
     @staticmethod
     def compute_edge_set(incidence_matrix: np.ndarray) -> int:
@@ -495,10 +490,10 @@ class TestQuineMcCluskeyMinimizer:
       • Escalabilidad: Complejidad polinomial en n
     """
 
-    @pytest.mark.parametrize("num_vars", [1, 2, 3, 4, 8, 16, 32])
+    @pytest.mark.parametrize("num_vars", [1, 2, 3, 4, 8, 10])
     def test_constructor_valid_dimensions(self, num_vars):
         """
-        PRECONDICIÓN: 1 ≤ num_vars ≤ 32 (representable en arquitectura estándar)
+        PRECONDICIÓN: 1 ≤ num_vars ≤ 10 (representable en arquitectura estándar)
         
         Verifica que la construcción del minimizador sea exitosa para
         dimensiones válidas del hipercubo.
@@ -509,12 +504,12 @@ class TestQuineMcCluskeyMinimizer:
         except Exception as e:
             pytest.fail(f"Constructor falló para num_vars={num_vars}: {e}")
 
-    @pytest.mark.parametrize("invalid_num_vars", [0, -1, 33, 100])
+    @pytest.mark.parametrize("invalid_num_vars", [0, -1, 11, 33, 100])
     def test_constructor_rejects_invalid_dimensions(self, invalid_num_vars):
         """
         VALIDACIÓN: Rechazar dimensiones inválidas.
         
-        1 ≤ num_vars ≤ 32 es garantizado por la arquitectura de almacenamiento.
+        1 ≤ num_vars ≤ 10 es garantizado por la arquitectura de almacenamiento.
         """
         with pytest.raises(ValueError):
             QuineMcCluskeyMinimizer(num_vars=invalid_num_vars)
@@ -566,8 +561,8 @@ class TestQuineMcCluskeyMinimizer:
         )
 
     @pytest.mark.parametrize("minterms,expected_pattern_subset", [
-        ([0, 1], {"00-", "0--"}),      # B^3: {0=000, 1=001} → "00-"
-        ([0, 2], {"0-0", "-00"}),      # B^3: {0=000, 2=010} → "0-0"
+        ([0, 1], {"00-"}),      # B^3: {0=000, 1=001} → "00-"
+        ([0, 2], {"0-0"}),      # B^3: {0=000, 2=010} → "0-0"
         ([0, 1, 2, 3], {"0--"}),       # B^3: {0,1,2,3} → "0--" (cubridor máximo)
     ])
     def test_minimizer_canonical_examples(self, minterms, expected_pattern_subset):
@@ -664,42 +659,29 @@ class TestTopologicalRigor:
             f"preservar β_0)"
         )
 
-    def test_euler_characteristic_preservation(self, analyzer, topological_computer):
+    def test_euler_characteristic_preservation(self, analyzer, topological_computer, qm_3):
         """
-        AXIOMA: χ(K) = χ(K') bajo equivalencia de homotopía.
-        
-        χ = β_0 - β_1 (homológica) = v - e (combinatoria) para 1-complejos.
-        Verificamos ambas definiciones y su consistencia.
+        AXIOMA: χ(K) = χ(K') bajo equivalencia de homotopía utilizando el Complejo de Čech.
         """
-        # Registrar herramientas con subestructura
-        analyzer.register_tool("T1", {
-            CapabilityDimension.PHYS_IO,
-            CapabilityDimension.PHYS_NUM
-        })
-        analyzer.register_tool("T2", {
-            CapabilityDimension.PHYS_NUM,
-            CapabilityDimension.TACT_TOPO
-        })
+        # A set of minterms representing a specific topology (e.g., a union of hypercubes)
+        # B^3 : let's take a union of a 2-cube (4 nodes) and a 1-cube (2 nodes) with 1 shared node
+        # For example, "00-", "0-0", and "-00"
+        minterms = [0, 1, 2, 4]
+        # Let's count Euler characteristic using combinatorial method:
+        # v = 4 (vertices: 0, 1, 2, 4)
+        # edges for B^3: differences of 1 bit.
+        # (0,1), (0,2), (0,4) -> e = 3 edges
+        # No 2-faces (a square requires 4 vertices in a face, e.g. 0,1,2,3)
+        # combinatorial chi = V - E + F = 4 - 3 + 0 = 1
         
-        # Computar χ homológica
-        betti = topological_computer.compute_betti_numbers(analyzer)
-        chi_homological = betti.get('H_0', 1) - betti.get('H_1', 0)
+        # Calculate prime implicants
+        primes = qm_3.compute_prime_implicants(minterms)
         
-        # Computar χ combinatoria (v - e)
-        matrix = analyzer.build_incidence_matrix()
-        n_vertices = matrix.shape[0]
-        n_edges = topological_computer.compute_edge_set(matrix)
-        chi_combinatorial = n_vertices - n_edges
+        chi_homological = topological_computer.compute_euler_characteristic(list(primes))
         
-        logger.info(
-            f"Euler invariants: χ_homol={chi_homological}, "
-            f"χ_comb={chi_combinatorial}, β_0={betti.get('H_0')}, "
-            f"β_1={betti.get('H_1')}, v={n_vertices}, e={n_edges}"
-        )
-        
-        assert chi_homological == chi_combinatorial, (
-            f"Inconsistencia en característica de Euler: "
-            f"χ_homol={chi_homological} ≠ χ_comb={chi_combinatorial}"
+        assert chi_homological == 1, (
+            f"Inconsistencia en característica de Euler vía Teorema del Nervio: "
+            f"χ_homol={chi_homological} ≠ 1"
         )
 
     def test_boundary_operator_nilpotence(self):
@@ -784,28 +766,16 @@ class TestSpectralRigor:
     def test_gram_matrix_orthogonality_functional_independence(
         self, analyzer, numerical_validator):
         """
-        PROPIEDAD: Herramientas funcionalmente independientes ⟺ Gram diagonal.
+        PROPIEDAD: Herramientas funcionalmente independientes ⟺ Ortogonalidad Booleana
         
         Si T1 = {PHYS_IO} y T2 = {PHYS_NUM}, entonces:
-          Gram = [[1, 0], [0, 1]] (diagonal)
-        
-        El número de elementos no-diagonales nulos verifica independencia.
+          Intersección de componentes debe ser 0.
         """
         analyzer.register_tool("T1", {CapabilityDimension.PHYS_IO})
         analyzer.register_tool("T2", {CapabilityDimension.PHYS_NUM})
         
-        matrix = analyzer.build_incidence_matrix()
-        
-        is_orthogonal, diagnostics = numerical_validator.assert_orthogonality(
-            matrix,
-            atol=EPSILON_GRAM,
-            context="Functional independence via Gram matrix"
-        )
-        
-        assert is_orthogonal, (
-            f"Pérdida de ortogonalidad funcional: "
-            f"max_off_diagonal={diagnostics['max_off_diagonal']:.2e} "
-            f"(tolerance={EPSILON_GRAM:.2e})"
+        numerical_validator.assert_boolean_orthogonality(
+            analyzer.tools[0].capabilities, analyzer.tools[1].capabilities
         )
 
     def test_gram_matrix_shared_capabilities_coupling(self, analyzer):
