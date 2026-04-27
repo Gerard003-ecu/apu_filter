@@ -194,7 +194,36 @@ class QuineMcCluskeyMinimizer:
         self.num_vars = num_vars
         self.max_minterm = (1 << num_vars) - 1
         logger.info(f"Inicializado minimizador para espacio 𝔹^{num_vars}")
-    
+
+        # Define antisymmetric bilinear form matrix for Lie Commutator [A, B] = A^T * Omega * B
+        self.omega = np.zeros((self.num_vars, self.num_vars), dtype=int)
+
+        # Construct non-commuting rules.
+        # Example: TACT_TOPO (2) and PHYS_IO (0) do not commute.
+        if self.num_vars > CapabilityDimension.TACT_TOPO.value:
+            # Setting non-zero entries for the Lie Bracket
+            self.omega[CapabilityDimension.TACT_TOPO.value, CapabilityDimension.PHYS_IO.value] = 1
+            self.omega[CapabilityDimension.PHYS_IO.value, CapabilityDimension.TACT_TOPO.value] = -1
+
+    def evaluate_lie_commutator(self, term1: str, term2: str) -> int:
+        """
+        Evaluación del Conmutador Cuántico: [A, B] = AB - BA.
+        Verifica si dos minitérminos conmutan sobre el estado físico del clúster.
+        """
+        if '-' in term1 or '-' in term2:
+            # Lie commutator is strictly applied to definite pure states.
+            # For simplicity, if either term has a Don't Care ('-'), treat it as a superposition
+            # and project strictly onto the known dimensions.
+            vec1 = np.array([1 if c == '1' else 0 for c in term1])
+            vec2 = np.array([1 if c == '1' else 0 for c in term2])
+        else:
+            vec1 = np.array([int(c) for c in term1])
+            vec2 = np.array([int(c) for c in term2])
+
+        # Computes the symplectic form representing [A, B]
+        commutator = vec1.T @ self.omega @ vec2
+        return int(commutator)
+
     def hamming_distance(self, term1: str, term2: str) -> int:
         """
         Calcula la distancia de Hamming entre dos términos.
@@ -236,6 +265,12 @@ class QuineMcCluskeyMinimizer:
         
         # Solo combinamos si difieren en exactamente una posición
         if len(differences) == 1:
+            # Evaluación del Conmutador Cuántico
+            commutator_value = self.evaluate_lie_commutator(term1, term2)
+            if commutator_value != 0:
+                logger.warning(f"Veto Algebraico: [{term1}, {term2}] = {commutator_value} ≠ 0. Interferencia detectada.")
+                return None
+
             result = list(term1)
             result[differences[0]] = '-'
             return "".join(result)

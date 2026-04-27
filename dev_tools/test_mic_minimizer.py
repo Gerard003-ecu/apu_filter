@@ -143,7 +143,7 @@ class TopologicalInvariantComputer:
         betti = analyzer.compute_homology_groups()
         return betti
 
-    def compute_euler_characteristic(self, implicants: List[ImplicantTerm]) -> int:
+    def compute_euler_characteristic(self, implicants: List[str]) -> int:
         """
         Calcula χ aplicando la fórmula de Euler-Poincaré sobre el Complejo de Čech.
         Utiliza el Principio de Inclusión-Exclusión sobre las intersecciones
@@ -169,19 +169,30 @@ class TopologicalInvariantComputer:
 
         return chi
 
-    def _are_compatible(self, subset: Tuple[ImplicantTerm, ...]) -> bool:
+    def evaluate_lie_commutator(self, tensor_a: str, tensor_b: str) -> float:
         """
-        Verifica si la intersección de un conjunto de hipercubos booleanos no es vacía.
-        En álgebra booleana, son compatibles si no existe contradicción en ninguna dimensión.
+        Computa [A, B] midiendo el entrelazamiento destructivo.
+        Si la dimensión i de tensor_a choca topológicamente con la de tensor_b
+        (ej. '1' vs '0' simultáneo sin aislamiento '-'), no conmutan.
+        """
+        # Lógica simpléctica operando estrictamente sobre tipos 'str'
+        for bit_a, bit_b in zip(tensor_a, tensor_b):
+            if bit_a != '-' and bit_b != '-' and bit_a != bit_b:
+                return 1.0 # Conmutador no nulo (Singularidad / Incompatibilidad)
+        return 0.0 # Conmutación perfecta (Ortogonalidad preservada)
+
+    def _are_compatible(self, subset: Tuple[str, ...]) -> bool:
+        """
+        Evalúa la ortogonalidad y conmutatividad cuántica directamente
+        sobre los tensores booleanos de las capacidades en B^n.
         """
         if not subset:
             return True
-        num_vars = len(subset[0].pattern)
-        # Check column by column
-        for i in range(num_vars):
-            chars = {imp.pattern[i] for imp in subset if imp.pattern[i] != '-'}
-            if '0' in chars and '1' in chars:
-                return False  # Contradiction at dimension i
+
+        # Comparamos todos los pares dentro del subset
+        for a, b in combinations(subset, 2):
+            if self.evaluate_lie_commutator(a, b) != 0.0:
+                return False
         return True
 
     @staticmethod
@@ -659,10 +670,13 @@ class TestTopologicalRigor:
             f"preservar β_0)"
         )
 
-    def test_euler_characteristic_preservation(self, analyzer, topological_computer, qm_3):
+    def test_euler_characteristic_preservation(self, analyzer, topological_computer):
         """
         AXIOMA: χ(K) = χ(K') bajo equivalencia de homotopía utilizando el Complejo de Čech.
         """
+        # Instanciación determinista del hiperespacio paramétrico
+        compiler = QuineMcCluskeyMinimizer(num_vars=3)
+
         # A set of minterms representing a specific topology (e.g., a union of hypercubes)
         # B^3 : let's take a union of a 2-cube (4 nodes) and a 1-cube (2 nodes) with 1 shared node
         # For example, "00-", "0-0", and "-00"
@@ -675,9 +689,11 @@ class TestTopologicalRigor:
         # combinatorial chi = V - E + F = 4 - 3 + 0 = 1
         
         # Calculate prime implicants
-        primes = qm_3.compute_prime_implicants(minterms)
+        primes = compiler.compute_prime_implicants(minterms)
         
-        chi_homological = topological_computer.compute_euler_characteristic(list(primes))
+        # Mapeo a subespacio de representaciones puras (str)
+        prime_patterns = [p.pattern for p in primes]
+        chi_homological = topological_computer.compute_euler_characteristic(prime_patterns)
         
         assert chi_homological == 1, (
             f"Inconsistencia en característica de Euler vía Teorema del Nervio: "
