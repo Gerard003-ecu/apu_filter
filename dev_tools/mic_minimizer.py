@@ -2,7 +2,7 @@
 =========================================================================================
 Módulo: Auditoría de Redundancia MIC (Algoritmo de Quine-McCluskey Rigorizado)
 Ubicación: dev_tools/mic_minimizer.py
-Versión: 3.0 - Rigorización Matemática Completa
+Versión: 3.1 - Rigorización Matemática Completa con Manejo Estricto de Excepciones
 =========================================================================================
 
 FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
@@ -49,8 +49,14 @@ from itertools import combinations, chain
 from functools import lru_cache, total_ordering
 import warnings
 
-# Suprimir warnings de álgebra lineal numérica
-warnings.filterwarnings('ignore', category=RuntimeWarning)
+class HomologicalInconsistencyError(Exception):
+    """Excepción lanzada cuando ocurre una singularidad numérica o inconsistencia homológica."""
+    pass
+
+# Elevar warnings de álgebra lineal numérica a excepciones para captura estricta
+warnings.filterwarnings('error', category=RuntimeWarning)
+# Asegurar que numpy use el sistema de warnings de Python
+np.seterr(all='warn')
 
 # ========================================================================================
 # CONFIGURACIÓN DE LOGGING MEJORADA
@@ -80,7 +86,7 @@ handler.setFormatter(ColoredFormatter(
     datefmt='%H:%M:%S'
 ))
 
-logger = logging.getLogger("MIC.Minimizer.v3.0")
+logger = logging.getLogger("MIC.Minimizer.v3.1")
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 logger.propagate = False
@@ -242,7 +248,12 @@ class BooleanVector:
         - d(a, b) = d(b, a)
         - d(a, c) ≤ d(a, b) + d(b, c) (desigualdad triangular)
         """
-        return self.symmetric_difference(other).hamming_weight()
+        # Verificación de finitud estricta: el peso de Hamming en B^n retorna un valor canónico estricto.
+        dist = self.symmetric_difference(other).hamming_weight()
+        # El valor debe estar acotado por la dimensión máxima del espacio (20 según QuineMcCluskeyMinimizer)
+        if not (0 <= dist <= 20):
+             raise HomologicalInconsistencyError(f"Métrica de Hamming fuera de límites canónicos: {dist}")
+        return dist
 
     def is_subset_of(self, other: 'BooleanVector') -> bool:
         """
@@ -255,8 +266,13 @@ class BooleanVector:
         Producto escalar en ℤ₂.
         
         ⟨a, b⟩ = (∑ᵢ aᵢbᵢ) mod 2
+
+        Verificación de finitud estricta: retorna un valor canónico estricto {0, 1}.
         """
-        return len(self.components & other.components) % 2
+        val = len(self.components & other.components) % 2
+        if val not in {0, 1}:
+            raise HomologicalInconsistencyError(f"Producto escalar en Z2 inconsistente: {val}")
+        return val
 
     # Métodos para ordering total
 
@@ -960,8 +976,11 @@ class MICRedundancyAnalyzer:
         self._incidence_matrix_cache = matrix
         self._tools_hash = current_hash
         
-        logger.debug(f"Matriz de incidencia: shape={matrix.shape}, "
-                    f"sparsity={1 - np.count_nonzero(matrix)/matrix.size:.2%}")
+        if matrix.size > 0:
+            logger.debug(f"Matriz de incidencia: shape={matrix.shape}, "
+                        f"sparsity={1 - np.count_nonzero(matrix)/matrix.size:.2%}")
+        else:
+            logger.debug(f"Matriz de incidencia: shape={matrix.shape}, sparsity=100%")
         
         return matrix
 
@@ -991,15 +1010,15 @@ class MICRedundancyAnalyzer:
                 'is_full_rank': False
             }
 
-        # Conversión a float para SVD
-        M = matrix.astype(np.float64)
-        
-        # Rango
-        rank = np.linalg.matrix_rank(M)
-        nullity = min(M.shape) - rank
-        
-        # Descomposición en valores singulares
         try:
+            # Conversión a float para SVD
+            M = matrix.astype(np.float64)
+
+            # Rango
+            rank = np.linalg.matrix_rank(M)
+            nullity = min(M.shape) - rank
+
+            # Descomposición en valores singulares
             singular_values = np.linalg.svd(M, compute_uv=False)
             
             # Número de condición
@@ -1008,9 +1027,15 @@ class MICRedundancyAnalyzer:
                 condition_number = nonzero_sv[0] / nonzero_sv[-1]
             else:
                 condition_number = float('inf')
-        except np.linalg.LinAlgError:
-            singular_values = np.array([])
-            condition_number = float('inf')
+        except RuntimeWarning as rw:
+            # Transmutar el fallo de máquina en una singularidad de dominio
+            raise HomologicalInconsistencyError(
+                f"Degeneración en el cálculo de homología simplicial (RuntimeWarning): {rw}"
+            )
+        except np.linalg.LinAlgError as le:
+            raise HomologicalInconsistencyError(
+                f"Error en álgebra lineal: {le}"
+            )
 
         is_full_rank = (rank == min(M.shape))
 
@@ -1123,8 +1148,10 @@ class MICRedundancyAnalyzer:
         
         for i in range(n_tools):
             for j in range(i + 1, n_tools):
-                # Producto escalar > 0 indica capacidades compartidas
-                if np.dot(matrix[i], matrix[j]) > 0:
+                # Producto escalar en 𝔹: 1 si comparten alguna capacidad, 0 si son ortogonales.
+                # Se garantiza el retorno de un valor canónico estricto {0, 1} antes de la unión.
+                shared_support = int(np.dot(matrix[i], matrix[j]) > 0)
+                if shared_support == 1:
                     uf.union(i, j)
 
         # Extraer componentes
@@ -1184,7 +1211,7 @@ class MICRedundancyAnalyzer:
             Diccionario completo con resultados del análisis
         """
         logger.info("=" * 80)
-        logger.info("INICIANDO ANÁLISIS DE REDUNDANCIA MIC v3.0")
+        logger.info("INICIANDO ANÁLISIS DE REDUNDANCIA MIC v3.1")
         logger.info("=" * 80)
 
         if not self.tools:
@@ -1506,7 +1533,7 @@ if __name__ == "__main__":
         print(f"✓ Herramientas esenciales:  {stats['essential_count']}")
         print(f"✗ Herramientas redundantes: {stats['redundant_count']}")
         print(f"📊 Tasa de reducción:       {stats['reduction_rate']:.1%}")
-        print(f"🔢 Rango espectral:         {stats['spectral_rank']}/{analyzer.num_capabilities}")
+        print(f"🔢 Rango espectral:         {stats['spectral_rank']}/{len(CapabilityDimension)}")
         print(f"🔄 Componentes (H₀):        {stats['betti_numbers'][0]}")
         print(f"⭕ Ciclos (H₁):             {stats['betti_numbers'][1]}")
         

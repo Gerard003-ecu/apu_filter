@@ -49,7 +49,8 @@ try:
         UnionFind,
         QuineMcCluskeyMinimizer,
         MICRedundancyAnalyzer,
-        validate_boolean_lattice_axioms
+    validate_boolean_lattice_axioms,
+    HomologicalInconsistencyError
     )
 except ImportError as e:
     print(f"Error importando mic_minimizer: {e}")
@@ -57,7 +58,7 @@ except ImportError as e:
     sys.exit(1)
 
 # Suprimir logs durante testing
-logging.getLogger("MIC.Minimizer.v3.0").setLevel(logging.CRITICAL)
+logging.getLogger("MIC.Minimizer.v3.1").setLevel(logging.CRITICAL)
 
 
 # ========================================================================================
@@ -511,28 +512,28 @@ class TestImplicantTerm(TestBase):
     def test_covers_minterm_exact(self):
         """Cobertura exacta sin don't cares."""
         impl = ImplicantTerm("101")
-        self.assertTrue(impl.covers_minterm(0b101, 3))   # 5
-        self.assertFalse(impl.covers_minterm(0b100, 3))  # 4
-        self.assertFalse(impl.covers_minterm(0b111, 3))  # 7
+        self.assertTrue(impl.covers_minterm(0b101))   # 5
+        self.assertFalse(impl.covers_minterm(0b100))  # 4
+        self.assertFalse(impl.covers_minterm(0b111))  # 7
     
     def test_covers_minterm_with_dont_care(self):
         """Cobertura con don't cares."""
         impl = ImplicantTerm("1-1")
         
         # Debe cubrir 101 y 111
-        self.assertTrue(impl.covers_minterm(0b101, 3))  # 5
-        self.assertTrue(impl.covers_minterm(0b111, 3))  # 7
+        self.assertTrue(impl.covers_minterm(0b101))  # 5
+        self.assertTrue(impl.covers_minterm(0b111))  # 7
         
         # No debe cubrir otros
-        self.assertFalse(impl.covers_minterm(0b001, 3))  # 1
-        self.assertFalse(impl.covers_minterm(0b100, 3))  # 4
+        self.assertFalse(impl.covers_minterm(0b001))  # 1
+        self.assertFalse(impl.covers_minterm(0b100))  # 4
     
     def test_covers_minterm_all_dont_care(self):
         """Todos don't care cubre todo."""
         impl = ImplicantTerm("---")
         
         for minterm in range(8):  # 2^3
-            self.assertTrue(impl.covers_minterm(minterm, 3))
+            self.assertTrue(impl.covers_minterm(minterm))
     
     def test_count_literals(self):
         """Conteo de literales (complejidad)."""
@@ -778,7 +779,7 @@ class TestQuineMcCluskeyMinimizer(TestBase):
         
         # No combinables → None
         result = self.minimizer._combine_terms("0000", "0011")
-        self.assertNone(result)
+        self.assertIsNone(result)
     
     def test_combine_terms_with_dont_care(self):
         """Combinación de términos con don't cares."""
@@ -788,7 +789,7 @@ class TestQuineMcCluskeyMinimizer(TestBase):
         
         # No combinables si tienen '-' en posiciones diferentes
         result = self.minimizer._combine_terms("0-00", "01-0")
-        self.assertNone(result)
+        self.assertIsNone(result)
     
     def test_compute_prime_implicants_simple(self):
         """Cálculo de implicantes primos: caso simple."""
@@ -1195,7 +1196,42 @@ class TestMICRedundancyAnalyzer(TestBase):
 
 class TestMathematicalProperties(TestBase):
     """Tests de propiedades matemáticas generales."""
-    
+
+    def test_strict_finiteness_checks(self):
+        """Verifica que los checks de finitud estricta funcionan."""
+        v1 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+        v2 = BooleanVector(frozenset([CapabilityDimension.PHYS_NUM]))
+
+        # Test inner_product_z2 returns 0 or 1
+        self.assertIn(v1.inner_product_z2(v2), {0, 1})
+        self.assertIn(v1.inner_product_z2(v1), {0, 1})
+
+        # Test hamming_distance
+        self.assertGreaterEqual(v1.hamming_distance(v2), 0)
+
+    def test_runtime_warning_elevation(self):
+        """Verifica que RuntimeWarning se eleva a HomologicalInconsistencyError en el analizador."""
+        analyzer = MICRedundancyAnalyzer()
+        analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        matrix = analyzer.build_incidence_matrix()
+
+        import warnings
+        from unittest.mock import patch
+
+        # Simulamos que una operación de numpy emite un RuntimeWarning
+        with patch('numpy.linalg.svd') as mock_svd:
+            def side_effect(*args, **kwargs):
+                # Forzamos que se eleve la excepción RuntimeWarning
+                raise RuntimeWarning("Simulated singularity")
+
+            mock_svd.side_effect = side_effect
+
+            with self.assertRaises(HomologicalInconsistencyError) as cm:
+                analyzer.compute_spectral_properties(matrix)
+
+            self.assertIn("RuntimeWarning", str(cm.exception))
+            self.assertIn("Simulated singularity", str(cm.exception))
+
     def test_boolean_lattice_axioms(self):
         """Verificación de axiomas del retículo booleano."""
         # Esto ejecuta la función de validación
@@ -1444,7 +1480,15 @@ class TestIntegration(TestBase):
         self.assertEqual(result['status'], 'success')
         
         # audit_fusion es redundante con structure_logic
-        self.assertIn('audit_fusion', result['redundant_tools'])
+        # Nota: La clasificación depende del orden de selección en Quine-McCluskey.
+        # Ambas herramientas tienen la misma firma topológica.
+        all_tools = set(result['essential_tools']) | set(result['redundant_tools'])
+        self.assertIn('audit_fusion', all_tools)
+        self.assertIn('structure_logic', all_tools)
+
+        # Al menos una de las dos con firma idéntica debe ser redundante
+        redundant = result['redundant_tools']
+        self.assertTrue('audit_fusion' in redundant or 'structure_logic' in redundant)
         
         # Cobertura completa
         all_tools = set(result['essential_tools']) | set(result['redundant_tools'])
