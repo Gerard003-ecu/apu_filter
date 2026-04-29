@@ -1,18 +1,18 @@
 r"""
 Módulo: Sheaf Cohomology Orchestrator (Interferómetro de Holonomía de Gauge) v4.0
-Ubicación: app/core/immune_system/calibration/sheaf_cohomology_orchestrator.py
+Ubicación: app/boole/strategy/sheaf_cohomology_orchestrator.py
 
 Naturaleza Ciber-Física y Topología Diferencial:
-Actúa como el sistema de propiocepción invariante de la Malla Agéntica mediante la 
-Teoría de Haces Celulares (Cellular Sheaves). Abandona la validación nodo a nodo para 
-evaluar el consenso global del hiperespacio. Discrimina matemáticamente entre ruido 
+Actúa como el sistema de propiocepción invariante de la Malla Agéntica mediante la
+Teoría de Haces Celulares (Cellular Sheaves). Abandona la validación nodo a nodo para
+evaluar el consenso global del hiperespacio. Discrimina matemáticamente entre ruido
 termodinámico resoluble y obstrucciones topológicas absolutas (paradojas lógicas).
 
 Fundamentación Matemática y Álgebra Lineal Numérica:
 
 1. El Fibrado y el Operador Cofrontera (δ):
-   Sea G = (V, E) el grafo de la malla de decisión. Un haz celular ℱ asigna espacios 
-   vectoriales a vértices F(v) ≅ ℝ^{d_v} y aristas F(e) ≅ ℝ^{d_e}. El desacuerdo 
+   Sea G = (V, E) el grafo de la malla de decisión. Un haz celular ℱ asigna espacios
+   vectoriales a vértices F(v) ≅ ℝ^{d_v} y aristas F(e) ≅ ℝ^{d_e}. El desacuerdo
    local se mide mediante los mapas de restricción lineales F_{v ◁ e}.
    El operador cofrontera δ: C⁰ → C¹ cuantifica la divergencia del consenso:
    (δx)_e = F_{v ◁ e}(x_v) − F_{u ◁ e}(x_u)
@@ -20,30 +20,31 @@ Fundamentación Matemática y Álgebra Lineal Numérica:
 2. Invariantes Cohomológicos y Teorema de Rango-Nulidad:
    • H⁰(G; ℱ) ≅ ker(δ): Espacio nulo. Dimensión de los grados de libertad del consenso global.
    • H¹(G; ℱ) ≅ coker(δ): Obstrucciones topológicas.
-   [AXIOMA DE VETO]: Si dim H¹ > 0, el sistema alberga dependencias circulares insalvables 
+   [AXIOMA DE VETO]: Si dim H¹ > 0, el sistema alberga dependencias circulares insalvables
    o contratos mutuamente excluyentes. Se emite un Veto Absoluto sin posibilidad de sanación.
 
 3. Preservación del Número de Condición (Censura del Laplaciano):
-   El Laplaciano del Haz L = δᵀδ ⪰ 0 es el operador teórico de energía, pero su 
-   ensamblaje explícito está PROSCRITO computacionalmente, ya que cuadra el número de 
+   El Laplaciano del Haz L = δᵀδ ⪰ 0 es el operador teórico de energía, pero su
+   ensamblaje explícito está PROSCRITO computacionalmente, ya que cuadra el número de
    condición κ(L) = κ(δ)², induciendo colapso en la Unidad de Punto Flotante (IEEE 754).
-   La Energía de Dirichlet E(x) = ‖δx‖² y el espectro se evalúan aplicando SVD disperso 
+   La Energía de Dirichlet E(x) = ‖δx‖² y el espectro se evalúan aplicando SVD disperso
    y métodos iterativos de Krylov (shift-invert con σ=0) exclusivamente sobre δ.
 
 4. Proyección de Hodge-Helmholtz Acotada Termodinámicamente:
-   Si el haz no presenta defectos estructurales (H¹ = 0) pero exhibe frustración térmica 
-   (E(x) > ε), el sistema ejecuta una Proyección de Hodge sobre el núcleo ker(δ) usando 
-   LSQR. 
-   [CONDICIÓN LIPSCHITZ]: Esta proyección está sometida a un límite isoperimétrico. Si la 
-   distancia de sanación ‖x - x*‖₂ excede la inercia financiera permitida del estrato físico, 
+   Si el haz no presenta defectos estructurales (H¹ = 0) pero exhibe frustración térmica
+   (E(x) > ε), el sistema ejecuta una Proyección de Hodge sobre el núcleo ker(δ) usando
+   LSQR.
+   [CONDICIÓN LIPSCHITZ]: Esta proyección está sometida a un límite isoperimétrico. Si la
+   distancia de sanación ‖x - x*‖₂ excede la inercia financiera permitida del estrato físico,
    la proyección se aborta, garantizando la conservación de masa y energía del presupuesto real.
 =========================================================================================
 
 """
+
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, Final, List, Optional, Tuple
 
 import numpy as np
@@ -115,6 +116,7 @@ _EPSILON: Final[float] = 1e-15
 # SECCIÓN 2: EXCEPCIONES ALGEBRAICAS
 # =============================================================================
 
+
 class SheafCohomologyError(Exception):
     """Excepción base para fallos en el análisis cohomológico del haz.
 
@@ -157,6 +159,7 @@ class SpectralComputationError(SheafCohomologyError):
 # =============================================================================
 # SECCIÓN 3: ESTRUCTURAS DE DATOS INMUTABLES
 # =============================================================================
+
 
 @dataclass(frozen=True, slots=True)
 class RestrictionMap:
@@ -310,9 +313,7 @@ class SpectralInvariants:
                 f"method debe ser 'dense' o 'sparse'; recibido={self.method!r}."
             )
         if self.delta_rank < 0:
-            raise ValueError(
-                f"delta_rank debe ser ≥ 0; recibido={self.delta_rank}."
-            )
+            raise ValueError(f"delta_rank debe ser ≥ 0; recibido={self.delta_rank}.")
 
 
 @dataclass(frozen=True, slots=True)
@@ -348,6 +349,7 @@ class GlobalFrustrationAssessment:
 # =============================================================================
 # SECCIÓN 4: EL COMPLEJO DEL HAZ (CellularSheaf)
 # =============================================================================
+
 
 class CellularSheaf:
     """Estructura matemática de un haz celular sobre una malla agéntica.
@@ -398,9 +400,7 @@ class CellularSheaf:
         self._node_dims: Final[Dict[int, int]] = self._validate_node_dims(
             node_dims, num_nodes
         )
-        self._edge_dims: Final[Dict[int, int]] = self._validate_edge_dims(
-            edge_dims
-        )
+        self._edge_dims: Final[Dict[int, int]] = self._validate_edge_dims(edge_dims)
         self._edges: List[SheafEdge] = []
         self._added_edge_ids: set[int] = set()
         self._added_node_pairs: set[frozenset] = set()
@@ -408,8 +408,8 @@ class CellularSheaf:
         self._node_offsets: Final[np.ndarray] = self._compute_offsets(
             self._node_dims, self._num_nodes
         )
-        self._edge_offsets: Final[Dict[int, int]] = (
-            self._compute_edge_offsets_static(self._edge_dims)
+        self._edge_offsets: Final[Dict[int, int]] = self._compute_edge_offsets_static(
+            self._edge_dims
         )
 
         self._total_node_dim: Final[int] = int(self._node_offsets[-1])
@@ -656,9 +656,7 @@ class CellularSheaf:
 
         # Precondición 2: no duplicado.
         if edge_id in self._added_edge_ids:
-            raise SheafDegeneracyError(
-                f"La arista {edge_id} ya fue añadida al haz."
-            )
+            raise SheafDegeneracyError(f"La arista {edge_id} ya fue añadida al haz.")
 
         # Precondición 3: nodos válidos.
         for label, node in (("u", u), ("v", v)):
@@ -710,7 +708,10 @@ class CellularSheaf:
                 logger.warning(
                     "Arista %d, mapa %s: κ₂ = %.3e > %.3e. "
                     "El cálculo de E(x) puede degradarse numéricamente.",
-                    edge_id, label, kappa, _CONDITION_WARN_THRESHOLD,
+                    edge_id,
+                    label,
+                    kappa,
+                    _CONDITION_WARN_THRESHOLD,
                 )
 
         # Registrar arista.
@@ -730,10 +731,13 @@ class CellularSheaf:
         self._cached_coboundary = None
 
         logger.debug(
-            "Arista %d añadida: (%d → %d), dim(F(e))=%d, "
-            "dim(F(u))=%d, dim(F(v))=%d",
-            edge_id, u, v, edge_dim,
-            self._node_dims[u], self._node_dims[v],
+            "Arista %d añadida: (%d → %d), dim(F(e))=%d, " "dim(F(u))=%d, dim(F(v))=%d",
+            edge_id,
+            u,
+            v,
+            edge_dim,
+            self._node_dims[u],
+            self._node_dims[v],
         )
 
     # -------------------------------------------------------------------------
@@ -785,8 +789,7 @@ class CellularSheaf:
 
         # Pre-estimar nnz para pre-asignación de arrays.
         estimated_nnz = sum(
-            self._edge_dims[e.edge_id]
-            * (self._node_dims[e.u] + self._node_dims[e.v])
+            self._edge_dims[e.edge_id] * (self._node_dims[e.u] + self._node_dims[e.v])
             for e in self._edges
         )
 
@@ -813,9 +816,9 @@ class CellularSheaf:
                 np.arange(d_u, dtype=np.int64) + u_col_off,
                 indexing="ij",
             )
-            data[ptr: ptr + bsz_u] = (-F_u).ravel()
-            row_idx[ptr: ptr + bsz_u] = rows_u.ravel()
-            col_idx[ptr: ptr + bsz_u] = cols_u.ravel()
+            data[ptr : ptr + bsz_u] = (-F_u).ravel()
+            row_idx[ptr : ptr + bsz_u] = rows_u.ravel()
+            col_idx[ptr : ptr + bsz_u] = cols_u.ravel()
             ptr += bsz_u
 
             # ── Bloque +F_{v▷e} ──
@@ -825,9 +828,9 @@ class CellularSheaf:
                 np.arange(d_v, dtype=np.int64) + v_col_off,
                 indexing="ij",
             )
-            data[ptr: ptr + bsz_v] = F_v.ravel()
-            row_idx[ptr: ptr + bsz_v] = rows_v.ravel()
-            col_idx[ptr: ptr + bsz_v] = cols_v.ravel()
+            data[ptr : ptr + bsz_v] = F_v.ravel()
+            row_idx[ptr : ptr + bsz_v] = rows_v.ravel()
+            col_idx[ptr : ptr + bsz_v] = cols_v.ravel()
             ptr += bsz_v
 
         # Verificar que ptr == estimated_nnz (coherencia del ensamblaje).
@@ -897,6 +900,7 @@ class CellularSheaf:
 # =============================================================================
 # SECCIÓN 5: ANÁLISIS ESPECTRAL (_SpectralAnalyzer)
 # =============================================================================
+
 
 class _SpectralAnalyzer:
     """Analizador espectral interno para el Laplaciano del haz L = δᵀδ.
@@ -1041,7 +1045,10 @@ class _SpectralAnalyzer:
 
         try:
             singular_values = spla.svds(
-                delta, k=k, which="LM", return_singular_vectors=False,
+                delta,
+                k=k,
+                which="LM",
+                return_singular_vectors=False,
                 tol=_ARPACK_TOLERANCE,
             )
             singular_values = np.sort(singular_values)[::-1]  # desc
@@ -1056,9 +1063,11 @@ class _SpectralAnalyzer:
         # Estimar rango: σ_i > _SPECTRAL_TOLERANCE.
         rank_est = int(np.sum(singular_values > _SPECTRAL_TOLERANCE))
         sigma_max = float(singular_values[0]) if singular_values.size > 0 else 0.0
-        sigma_min_pos = float(
-            singular_values[singular_values > _SPECTRAL_TOLERANCE][-1]
-        ) if rank_est > 0 else 0.0
+        sigma_min_pos = (
+            float(singular_values[singular_values > _SPECTRAL_TOLERANCE][-1])
+            if rank_est > 0
+            else 0.0
+        )
         cond_est = (
             sigma_max / sigma_min_pos if sigma_min_pos > _EPSILON else float("inf")
         )
@@ -1090,9 +1099,7 @@ class _SpectralAnalyzer:
         L_dense = L.toarray()
         cls._verify_laplacian_symmetry(L_dense)
 
-        eigenvalues = np.sort(
-            np.linalg.eigvalsh(L_dense).astype(np.float64)
-        )
+        eigenvalues = np.sort(np.linalg.eigvalsh(L_dense).astype(np.float64))
 
         lambda_max_est = float(eigenvalues[-1]) if eigenvalues.size > 0 else 1.0
         cls._verify_semidefinite_positivity(
@@ -1156,9 +1163,13 @@ class _SpectralAnalyzer:
             empty = np.array([], dtype=np.float64)
             empty.setflags(write=False)
             return SpectralInvariants(
-                h0_dimension=0, h1_dimension=0, spectral_gap=0.0,
-                smallest_eigenvalues=empty, method="sparse",
-                delta_rank=0, condition_number_est=0.0,
+                h0_dimension=0,
+                h1_dimension=0,
+                spectral_gap=0.0,
+                smallest_eigenvalues=empty,
+                method="sparse",
+                delta_rank=0,
+                condition_number_est=0.0,
             )
 
         if n == 1:
@@ -1169,9 +1180,13 @@ class _SpectralAnalyzer:
             gap = 0.0 if h0 == 1 else float(eigs[0])
             rank_est, cond_est = cls._estimate_delta_rank_and_condition(delta)
             return SpectralInvariants(
-                h0_dimension=h0, h1_dimension=max(0, delta.shape[0] - rank_est),
-                spectral_gap=gap, smallest_eigenvalues=eigs, method="sparse",
-                delta_rank=rank_est, condition_number_est=cond_est,
+                h0_dimension=h0,
+                h1_dimension=max(0, delta.shape[0] - rank_est),
+                spectral_gap=gap,
+                smallest_eigenvalues=eigs,
+                method="sparse",
+                delta_rank=rank_est,
+                condition_number_est=cond_est,
             )
 
         k = min(_SPARSE_MAX_EIGENVALUES, max(2, n - 1))
@@ -1255,6 +1270,7 @@ class _SpectralAnalyzer:
 # SECCIÓN 6: PROYECCIÓN DE HODGE-HELMHOLTZ
 # =============================================================================
 
+
 def hodge_projection(
     sheaf: CellularSheaf,
     x: np.ndarray,
@@ -1295,9 +1311,7 @@ def hodge_projection(
         SheafCohomologyError: Si la proyección no converge.
     """
     # Validar estado.
-    x_valid = SheafCohomologyOrchestrator._validate_global_state_vector(
-        sheaf, x
-    )
+    x_valid = SheafCohomologyOrchestrator._validate_global_state_vector(sheaf, x)
 
     delta = sheaf.build_coboundary_operator()  # (m, n), m = dim C¹, n = dim C⁰
 
@@ -1305,12 +1319,13 @@ def hodge_projection(
     r = delta.dot(x_valid)
     residual_norm = float(np.linalg.norm(r))
 
-    if residual_norm <= _FRUSTRATION_TOLERANCE ** 0.5:
+    if residual_norm <= _FRUSTRATION_TOLERANCE**0.5:
         # x ya es (aproximadamente) una sección global: retornar sin modificar.
         logger.debug(
             "hodge_projection: ‖δx‖ = %.6e ≤ tol^0.5 = %.6e. "
             "No se requiere proyección.",
-            residual_norm, _FRUSTRATION_TOLERANCE ** 0.5,
+            residual_norm,
+            _FRUSTRATION_TOLERANCE**0.5,
         )
         return x_valid.copy()
 
@@ -1345,7 +1360,7 @@ def hodge_projection(
 
     # Verificar reducción de energía.
     energy_after = float(np.linalg.norm(delta.dot(x_hat)) ** 2)
-    energy_before = float(residual_norm ** 2)
+    energy_before = float(residual_norm**2)
 
     logger.info(
         "hodge_projection: E(x) antes=%.6e, E(x̂) después=%.6e, "
@@ -1369,6 +1384,7 @@ def hodge_projection(
 # =============================================================================
 # SECCIÓN 7: ORQUESTADOR PRINCIPAL
 # =============================================================================
+
 
 class SheafCohomologyOrchestrator:
     """Inspector cohomológico del haz celular.
@@ -1503,8 +1519,7 @@ class SheafCohomologyOrchestrator:
 
         if x.ndim != 1:
             raise SheafDegeneracyError(
-                f"El estado global debe ser un vector 1D; "
-                f"forma recibida={x.shape}."
+                f"El estado global debe ser un vector 1D; " f"forma recibida={x.shape}."
             )
 
         expected_dim = sheaf.total_node_dim
@@ -1556,20 +1571,22 @@ class SheafCohomologyOrchestrator:
         Raises:
             SheafCohomologyError: Si E(x) es significativamente negativa.
         """
-        residual = delta.dot(x)              # δx ∈ C¹
+        residual = delta.dot(x)  # δx ∈ C¹
         residual_norm_sq = float(np.dot(residual, residual))
         residual_norm = float(np.linalg.norm(residual))
 
         # Verificación de consistencia interna: ‖r‖² ≈ (‖r‖)²
-        discrepancy = abs(residual_norm_sq - residual_norm ** 2)
+        discrepancy = abs(residual_norm_sq - residual_norm**2)
         consistency_tol = _FRUSTRATION_TOLERANCE * max(1.0, residual_norm_sq)
         if discrepancy > consistency_tol:
             logger.warning(
                 "Inconsistencia numérica en E(x): "
                 "rᵀr = %.6e, (‖r‖)² = %.6e, discrepancia = %.6e > tol = %.6e. "
                 "Posible cancelación catastrófica.",
-                residual_norm_sq, residual_norm ** 2,
-                discrepancy, consistency_tol,
+                residual_norm_sq,
+                residual_norm**2,
+                discrepancy,
+                consistency_tol,
             )
 
         # Clamp de energía ligeramente negativa (ruido de redondeo).
@@ -1640,9 +1657,7 @@ class SheafCohomologyOrchestrator:
         x = cls._validate_global_state_vector(sheaf, global_state_vector)
 
         # ── Etapa 4: Energía de frustración ──
-        frustration_energy, residual_norm = cls._compute_frustration_energy(
-            delta, x
-        )
+        frustration_energy, residual_norm = cls._compute_frustration_energy(delta, x)
         is_coherent = frustration_energy <= _FRUSTRATION_TOLERANCE
 
         # ── Etapa 5: Rechazar si incoherente ──
@@ -1650,7 +1665,9 @@ class SheafCohomologyOrchestrator:
             logger.critical(
                 "FRUSTRACIÓN DE HAZ: E(x) = ‖δx‖² = %.6e > ε = %.6e, "
                 "‖δx‖ = %.6e. El estado global no es una sección compatible.",
-                frustration_energy, _FRUSTRATION_TOLERANCE, residual_norm,
+                frustration_energy,
+                _FRUSTRATION_TOLERANCE,
+                residual_norm,
             )
             raise HomologicalInconsistencyError(
                 "Fractura del consenso global: x no es sección compatible del haz. "
@@ -1667,9 +1684,12 @@ class SheafCohomologyOrchestrator:
         logger.info(
             "Auditoría cohomológica exitosa: E(x)=%.6e, ‖δx‖=%.6e, "
             "dim H⁰=%d, dim H¹=%d, λ₁=%.6e, κ₂(δ)=%.3e, método=%s",
-            frustration_energy, residual_norm,
-            spectral.h0_dimension, spectral.h1_dimension,
-            spectral.spectral_gap, spectral.condition_number_est,
+            frustration_energy,
+            residual_norm,
+            spectral.h0_dimension,
+            spectral.h1_dimension,
+            spectral.spectral_gap,
+            spectral.condition_number_est,
             spectral.method,
         )
 

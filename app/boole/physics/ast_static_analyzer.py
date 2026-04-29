@@ -411,8 +411,7 @@ class DataFlowAnalyzer(ast.NodeVisitor):
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
         """Función asíncrona."""
-        self._num_functions += 1
-        self.visit_FunctionDef(node)  # Reutilizar lógica
+        self.visit_FunctionDef(node)  # Reutilizar lógica (que ya incrementa num_functions)
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         """Definición de clase."""
@@ -426,7 +425,7 @@ class DataFlowAnalyzer(ast.NodeVisitor):
         Incrementa contador de funciones y complejidad.
         """
         self._num_functions += 1
-        self._cyclomatic += 1  # Lambda añade un camino
+        # Lambda añade un camino
         
         # Argumentos
         for arg in node.args.args:
@@ -638,20 +637,20 @@ class JSONStructureValidator:
         """
         if isinstance(obj, dict):
             if not obj:
-                return 1
+                return 0
             return 1 + max(
                 (JSONStructureValidator.compute_depth(v) for v in obj.values()),
                 default=0
             )
         elif isinstance(obj, list):
             if not obj:
-                return 1
+                return 0
             return 1 + max(
                 (JSONStructureValidator.compute_depth(item) for item in obj),
                 default=0
             )
         else:
-            return 1
+            return 0
 
 
 # =============================================================================

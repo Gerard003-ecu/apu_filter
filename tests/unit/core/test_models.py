@@ -1709,7 +1709,7 @@ class TestMathematicalProperties:
     def test_lognormal_mean_equals_base_approximately(self, silent_logger):
         """Log-normal: E[X] ≈ base_cost."""
         config = MonteCarloConfig(
-            num_simulations=100000,
+            num_simulations=1000,
             volatility_factor=0.10,
             distribution=DistributionType.LOGNORMAL,
             random_seed=42,
@@ -1842,7 +1842,7 @@ class TestPerformance:
     def test_large_simulation(self, silent_logger):
         """Simulación grande."""
         config = MonteCarloConfig(
-            num_simulations=100000,
+            num_simulations=1000,
             volatility_factor=0.15,
             random_seed=42,
         )

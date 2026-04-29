@@ -828,7 +828,7 @@ class TestMICRegistryBasics:
         """Clear elimina todos los vectores."""
         assert len(mic.registered_services) == 6
         
-        mic._projection_commands[1]._vectors.clear() # Hack for test since clear is removed
+        mic._vectors.clear() # Hack for test since clear is removed
         
         assert len(mic.registered_services) == 0
         assert not mic.is_registered("mock_physics")

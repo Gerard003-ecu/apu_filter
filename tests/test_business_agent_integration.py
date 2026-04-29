@@ -597,7 +597,10 @@ def _create_mock_mic(
     """
     mic = MagicMock(spec=MICRegistry)
 
-    def side_effect(service: str, payload: Any, context: Any = None) -> Dict:
+    def side_effect(*args, **kwargs) -> Dict:
+        service = kwargs.get("service_name")
+        if service is None and len(args) > 0:
+            service = args[0]
         if service == "financial_analysis":
             return {
                 "success": True,
@@ -1222,7 +1225,7 @@ class TestMICDelegation:
 
         # Verificar que financial_analysis fue invocado
         call_args_list = mock_mic.project_intent.call_args_list
-        service_names = [c[0][0] for c in call_args_list]
+        service_names = [c.kwargs.get("service_name") or (c.args[0] if c.args else None) for c in call_args_list]
 
         assert "financial_analysis" in service_names, (
             f"financial_analysis no fue invocado. "
@@ -1257,11 +1260,11 @@ class TestMICDelegation:
         # Encontrar la llamada a financial_analysis
         financial_calls = [
             c for c in mock_mic.project_intent.call_args_list
-            if c[0][0] == "financial_analysis"
+            if (c.kwargs.get("service_name") or (c.args[0] if c.args else None)) == "financial_analysis"
         ]
         assert len(financial_calls) > 0
 
-        payload = financial_calls[0][0][1]
+        payload = financial_calls[0].kwargs.get("payload") or financial_calls[0].args[1]
         assert payload["amount"] == 1000.0, (
             f"amount incorrecto: {payload.get('amount')}"
         )
