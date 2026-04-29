@@ -26,6 +26,7 @@ Convenciones:
 - Tests autocontenidos (sin dependencia inter-test)
 - Semillas fijas para reproducibilidad estocástica
 """
+
 from __future__ import annotations
 
 import os
@@ -39,13 +40,19 @@ os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
 import logging
-from typing import Dict, Final
+from typing import Final
 
 import numpy as np
 import pytest
 import scipy.sparse as sp
 
-from app.core.immune_system.calibration.sheaf_cohomology_orchestrator import (
+from app.boole.strategy.sheaf_cohomology_orchestrator import (
+    _ARPACK_TOLERANCE,
+    _DENSE_SPECTRAL_MAX_DIM,
+    _FRUSTRATION_TOLERANCE,
+    _SPARSE_MAX_EIGENVALUES,
+    _SPECTRAL_TOLERANCE,
+    _SYMMETRY_TOLERANCE_ABS,
     CellularSheaf,
     GlobalFrustrationAssessment,
     HomologicalInconsistencyError,
@@ -57,14 +64,7 @@ from app.core.immune_system.calibration.sheaf_cohomology_orchestrator import (
     SpectralComputationError,
     SpectralInvariants,
     _SpectralAnalyzer,
-    _ARPACK_TOLERANCE,
-    _DENSE_SPECTRAL_MAX_DIM,
-    _FRUSTRATION_TOLERANCE,
-    _SPARSE_MAX_EIGENVALUES,
-    _SPECTRAL_TOLERANCE,
-    _SYMMETRY_TOLERANCE_ABS,
 )
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONSTANTES DE PRUEBA
@@ -77,6 +77,7 @@ _FLOAT64_ATOL: Final[float] = 1e-14
 # ═══════════════════════════════════════════════════════════════════════════════
 # HELPERS DE CONSTRUCCIÓN
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _build_simple_sheaf_2_nodes_1_edge(
     d_nodes: int = 2,
@@ -102,7 +103,9 @@ def _build_simple_sheaf_2_nodes_1_edge(
         edge_dims={0: d_edge},
     )
     sheaf.add_edge(
-        edge_id=0, u=0, v=1,
+        edge_id=0,
+        u=0,
+        v=1,
         F_ue=RestrictionMap(F_u),
         F_ve=RestrictionMap(F_v),
     )
@@ -156,7 +159,9 @@ def _build_path_sheaf(
     )
     for i in range(n_nodes - 1):
         sheaf.add_edge(
-            i, u=i, v=i + 1,
+            i,
+            u=i,
+            v=i + 1,
             F_ue=RestrictionMap(I),
             F_ve=RestrictionMap(I),
         )
@@ -175,10 +180,13 @@ def _build_heterogeneous_sheaf() -> CellularSheaf:
     F_{1▷e}: ℝ³ → ℝ² (proyección, primeras 2 componentes)
     """
     F_0 = np.eye(2, dtype=np.float64)
-    F_1 = np.array([
-        [1.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0],
-    ], dtype=np.float64)
+    F_1 = np.array(
+        [
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+        ],
+        dtype=np.float64,
+    )
 
     sheaf = CellularSheaf(
         num_nodes=2,
@@ -186,7 +194,9 @@ def _build_heterogeneous_sheaf() -> CellularSheaf:
         edge_dims={0: 2},
     )
     sheaf.add_edge(
-        0, u=0, v=1,
+        0,
+        u=0,
+        v=1,
         F_ue=RestrictionMap(F_0),
         F_ve=RestrictionMap(F_1),
     )
@@ -196,6 +206,7 @@ def _build_heterogeneous_sheaf() -> CellularSheaf:
 # ═══════════════════════════════════════════════════════════════════════════════
 # FIXTURES
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @pytest.fixture
 def simple_sheaf():
@@ -230,6 +241,7 @@ def orchestrator():
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 1: RESTRICTION MAP
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestRestrictionMap:
     """Verifica la construcción, validación e inmutabilidad de RestrictionMap."""
@@ -315,6 +327,7 @@ class TestRestrictionMap:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 2: CELLULAR SHEAF - CONSTRUCCIÓN Y VALIDACIÓN
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestCellularSheafConstruction:
     """Verifica la construcción y validación del CellularSheaf."""
@@ -453,6 +466,7 @@ class TestCellularSheafConstruction:
 # CLASE 3: ADD_EDGE - VALIDACIONES
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestAddEdge:
     """Verifica todas las validaciones de add_edge."""
 
@@ -543,15 +557,17 @@ class TestAddEdge:
         )
         I = RestrictionMap(np.eye(1))
         sheaf.add_edge(0, 0, 1, I, I)
-        with pytest.raises(SheafDegeneracyError, match="no está completamente ensamblado"):
-             _ = sheaf.build_coboundary_operator()
+        with pytest.raises(
+            SheafDegeneracyError, match="no está completamente ensamblado"
+        ):
+            _ = sheaf.build_coboundary_operator()
 
         sheaf.add_edge(1, 1, 2, I, I)
         _ = sheaf.build_coboundary_operator()
         assert sheaf._cached_coboundary is not None
 
         # Add an extra edge to invalidate
-        sheaf._edge_dims[2] = 1 # Hack to allow adding
+        sheaf._edge_dims[2] = 1  # Hack to allow adding
         sheaf.add_edge(2, 0, 2, I, I)
         assert sheaf._cached_coboundary is None
 
@@ -559,6 +575,7 @@ class TestAddEdge:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 4: OPERADOR DE COFRONTERA δ
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestCoboundaryOperator:
     """
@@ -600,10 +617,13 @@ class TestCoboundaryOperator:
         """
         sheaf = _build_path_sheaf(n_nodes=3, dim=1)
         delta = sheaf.build_coboundary_operator()
-        expected = np.array([
-            [-1.0, 1.0, 0.0],
-            [0.0, -1.0, 1.0],
-        ], dtype=np.float64)
+        expected = np.array(
+            [
+                [-1.0, 1.0, 0.0],
+                [0.0, -1.0, 1.0],
+            ],
+            dtype=np.float64,
+        )
         np.testing.assert_array_equal(delta.toarray(), expected)
 
     def test_incidence_matrix_for_constant_sheaf_triangle(self, triangle_sheaf):
@@ -614,11 +634,14 @@ class TestCoboundaryOperator:
              [-1, 0, 1]]   # e=2: v=2 − u=0
         """
         delta = triangle_sheaf.build_coboundary_operator()
-        expected = np.array([
-            [-1.0, 1.0, 0.0],
-            [0.0, -1.0, 1.0],
-            [-1.0, 0.0, 1.0],
-        ], dtype=np.float64)
+        expected = np.array(
+            [
+                [-1.0, 1.0, 0.0],
+                [0.0, -1.0, 1.0],
+                [-1.0, 0.0, 1.0],
+            ],
+            dtype=np.float64,
+        )
         np.testing.assert_array_equal(delta.toarray(), expected)
 
     def test_block_structure_heterogeneous_sheaf(self, heterogeneous_sheaf):
@@ -637,10 +660,12 @@ class TestCoboundaryOperator:
         # Bloque u (nodo 0): -I₂ en columnas 0,1
         np.testing.assert_array_equal(D[:, :2], -np.eye(2))
         # Bloque v (nodo 1): proyección en columnas 2,3,4
-        expected_v = np.array([
-            [1.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0],
-        ])
+        expected_v = np.array(
+            [
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0],
+            ]
+        )
         np.testing.assert_array_equal(D[:, 2:], expected_v)
 
     def test_rejects_incomplete_sheaf(self):
@@ -670,9 +695,7 @@ class TestCoboundaryOperator:
         # x = (c, c, c) para c = 3.14
         x = np.full(3, 3.14, dtype=np.float64)
         residual = delta.dot(x)
-        np.testing.assert_allclose(
-            residual, np.zeros(3), atol=_FLOAT64_ATOL
-        )
+        np.testing.assert_allclose(residual, np.zeros(3), atol=_FLOAT64_ATOL)
 
     def test_delta_x_disagreement_nonzero(self, simple_sheaf):
         """
@@ -687,6 +710,7 @@ class TestCoboundaryOperator:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 5: LAPLACIANO DEL HAZ L = δᵀδ
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestSheafLaplacian:
     """
@@ -703,9 +727,7 @@ class TestSheafLaplacian:
         """L = δᵀδ es simétrica."""
         L = triangle_sheaf.compute_sheaf_laplacian()
         L_dense = L.toarray()
-        np.testing.assert_allclose(
-            L_dense, L_dense.T, atol=_SYMMETRY_TOLERANCE_ABS
-        )
+        np.testing.assert_allclose(L_dense, L_dense.T, atol=_SYMMETRY_TOLERANCE_ABS)
 
     def test_is_semidefinite_positive(self, triangle_sheaf):
         """Todos los eigenvalores de L son ≥ 0."""
@@ -721,9 +743,7 @@ class TestSheafLaplacian:
         L = triangle_sheaf.compute_sheaf_laplacian()
         ones = np.ones(triangle_sheaf.total_node_dim, dtype=np.float64)
         result = L.dot(ones)
-        np.testing.assert_allclose(
-            result, np.zeros_like(result), atol=_FLOAT64_ATOL
-        )
+        np.testing.assert_allclose(result, np.zeros_like(result), atol=_FLOAT64_ATOL)
 
     def test_kernel_dimension_connected_constant_sheaf(self, triangle_sheaf):
         """
@@ -749,8 +769,10 @@ class TestSheafLaplacian:
             energy_delta = float(np.dot(residual, residual))
             energy_L = float(x @ L.toarray() @ x)
             np.testing.assert_allclose(
-                energy_delta, energy_L,
-                rtol=_FLOAT64_RTOL, atol=_FLOAT64_ATOL,
+                energy_delta,
+                energy_L,
+                rtol=_FLOAT64_RTOL,
+                atol=_FLOAT64_ATOL,
             )
 
     def test_laplacian_path_graph(self, path_sheaf_4):
@@ -764,15 +786,16 @@ class TestSheafLaplacian:
              [ 0,  0, -1,  1]]
         """
         L = path_sheaf_4.compute_sheaf_laplacian()
-        expected = np.array([
-            [1, -1, 0, 0],
-            [-1, 2, -1, 0],
-            [0, -1, 2, -1],
-            [0, 0, -1, 1],
-        ], dtype=np.float64)
-        np.testing.assert_allclose(
-            L.toarray(), expected, atol=_FLOAT64_ATOL
+        expected = np.array(
+            [
+                [1, -1, 0, 0],
+                [-1, 2, -1, 0],
+                [0, -1, 2, -1],
+                [0, 0, -1, 1],
+            ],
+            dtype=np.float64,
         )
+        np.testing.assert_allclose(L.toarray(), expected, atol=_FLOAT64_ATOL)
 
     def test_trace_equals_sum_of_squared_norms(self, triangle_sheaf):
         """
@@ -782,9 +805,7 @@ class TestSheafLaplacian:
         L = triangle_sheaf.compute_sheaf_laplacian()
         trace_L = float(L.diagonal().sum())
         frobenius_sq = float(np.sum(delta.toarray() ** 2))
-        np.testing.assert_allclose(
-            trace_L, frobenius_sq, rtol=_FLOAT64_RTOL
-        )
+        np.testing.assert_allclose(trace_L, frobenius_sq, rtol=_FLOAT64_RTOL)
 
     def test_laplacian_all_entries_finite(self, heterogeneous_sheaf):
         """Todas las entradas de L son finitas."""
@@ -796,6 +817,7 @@ class TestSheafLaplacian:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 6: ENERGÍA DE FRUSTRACIÓN
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestFrustrationEnergy:
     """
@@ -832,9 +854,7 @@ class TestFrustrationEnergy:
         rng = np.random.default_rng(seed=42)
         x = rng.standard_normal(triangle_sheaf.total_node_dim)
         energy, norm = orchestrator._compute_frustration_energy(delta, x)
-        np.testing.assert_allclose(
-            energy, norm ** 2, rtol=_FLOAT64_RTOL
-        )
+        np.testing.assert_allclose(energy, norm**2, rtol=_FLOAT64_RTOL)
 
     def test_energy_non_negative(self, triangle_sheaf, orchestrator):
         """E(x) ≥ 0 para todo x."""
@@ -855,12 +875,15 @@ class TestFrustrationEnergy:
         for c in [0.5, 2.0, 3.0]:
             energy_cx, _ = orchestrator._compute_frustration_energy(delta, c * x)
             np.testing.assert_allclose(
-                energy_cx, c ** 2 * energy_x,
+                energy_cx,
+                c**2 * energy_x,
                 rtol=_FLOAT64_RTOL,
             )
 
     def test_energy_satisfies_parallelogram_law(
-        self, triangle_sheaf, orchestrator,
+        self,
+        triangle_sheaf,
+        orchestrator,
     ):
         """
         La forma bilineal B(x,y) = xᵀLy satisface la ley del paralelogramo:
@@ -891,6 +914,7 @@ class TestFrustrationEnergy:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 7: VALIDACIÓN DEL ESTADO GLOBAL
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestGlobalStateValidation:
     """Verifica _validate_global_state_vector."""
@@ -945,13 +969,23 @@ class TestGlobalStateValidation:
 # CLASE 8: ANÁLISIS ESPECTRAL DENSO
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestDenseSpectralAnalysis:
     """Verifica _SpectralAnalyzer.compute_dense."""
 
     def test_identity_laplacian(self):
         """L = I tiene todos eigenvalores = 1, h0_dim = 0."""
         L = sp.csc_matrix(np.eye(3, dtype=np.float64))
-        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_dense(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         assert result.h0_dimension == 0
         assert result.method == "dense"
         np.testing.assert_allclose(result.spectral_gap, 1.0, rtol=_FLOAT64_RTOL)
@@ -959,14 +993,32 @@ class TestDenseSpectralAnalysis:
     def test_zero_laplacian(self):
         """L = 0 tiene todos eigenvalores = 0, h0_dim = n."""
         L = sp.csc_matrix((3, 3), dtype=np.float64)
-        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_dense(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         assert result.h0_dimension == 3
         assert result.spectral_gap == 0.0
 
     def test_path_graph_laplacian_h0(self, path_sheaf_4):
         """El camino P₄ (conexo) tiene dim H⁰ = 1."""
         L = path_sheaf_4.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_dense(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         assert result.h0_dimension == 1
         assert result.spectral_gap > 0.0
 
@@ -987,7 +1039,16 @@ class TestDenseSpectralAnalysis:
         sheaf.add_edge(1, 2, 3, RestrictionMap(I), RestrictionMap(I))
 
         L = sheaf.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_dense(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         assert result.h0_dimension == 2
 
     def test_triangle_spectral_gap(self, triangle_sheaf):
@@ -996,21 +1057,41 @@ class TestDenseSpectralAnalysis:
         (0 con multiplicidad 1, 3 con multiplicidad 2).
         """
         L = triangle_sheaf.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_dense(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
 
         # FASE 1: asertar que h0_dimension coincide exactamente con la multiplicidad algebraica de λ=0
-        multiplicity_zero = int(np.sum(np.abs(result.smallest_eigenvalues) <= _SPECTRAL_TOLERANCE))
-        assert result.h0_dimension == multiplicity_zero, "Multiplicidad algebraica no coincide con h0_dimension"
+        multiplicity_zero = int(
+            np.sum(np.abs(result.smallest_eigenvalues) <= _SPECTRAL_TOLERANCE)
+        )
+        assert (
+            result.h0_dimension == multiplicity_zero
+        ), "Multiplicidad algebraica no coincide con h0_dimension"
 
         assert result.h0_dimension == 1
-        np.testing.assert_allclose(
-            result.spectral_gap, 3.0, rtol=1e-10
-        )
+        np.testing.assert_allclose(result.spectral_gap, 3.0, rtol=1e-10)
 
     def test_eigenvalues_immutable(self):
         """Los eigenvalores en SpectralInvariants son read-only."""
         L = sp.csc_matrix(np.eye(2, dtype=np.float64))
-        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_dense(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         with pytest.raises(ValueError, match="read-only|not writeable"):
             result.smallest_eigenvalues[0] = 999.0
 
@@ -1019,18 +1100,49 @@ class TestDenseSpectralAnalysis:
         L_dense = np.array([[1.0, 0.5], [0.0, 1.0]])
         L = sp.csc_matrix(L_dense)
         with pytest.raises(SheafCohomologyError, match="simétrico"):
-            _SpectralAnalyzer.compute_dense(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
+            _SpectralAnalyzer.compute_dense(
+                L,
+                (
+                    sheaf.build_coboundary_operator()
+                    if "sheaf" in locals()
+                    else (
+                        path_sheaf_4.build_coboundary_operator()
+                        if "path_sheaf_4" in locals()
+                        else (
+                            triangle_sheaf.build_coboundary_operator()
+                            if "triangle_sheaf" in locals()
+                            else sp.csc_matrix(np.zeros_like(L.toarray()))
+                        )
+                    )
+                ),
+            )
 
     def test_rejects_negative_definite(self):
         """Laplaciano negativo definido es rechazado."""
         L = sp.csc_matrix(-np.eye(2, dtype=np.float64))
         with pytest.raises(SpectralComputationError, match="semidefinido"):
-            _SpectralAnalyzer.compute_dense(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
+            _SpectralAnalyzer.compute_dense(
+                L,
+                (
+                    sheaf.build_coboundary_operator()
+                    if "sheaf" in locals()
+                    else (
+                        path_sheaf_4.build_coboundary_operator()
+                        if "path_sheaf_4" in locals()
+                        else (
+                            triangle_sheaf.build_coboundary_operator()
+                            if "triangle_sheaf" in locals()
+                            else sp.csc_matrix(np.zeros_like(L.toarray()))
+                        )
+                    )
+                ),
+            )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 9: ANÁLISIS ESPECTRAL DISPERSO
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestSparseSpectralAnalysis:
     """Verifica _SpectralAnalyzer.compute_sparse."""
@@ -1038,7 +1150,16 @@ class TestSparseSpectralAnalysis:
     def test_zero_dimensional(self):
         """Matriz 0×0 retorna invariantes triviales."""
         L = sp.csc_matrix((0, 0), dtype=np.float64)
-        result = _SpectralAnalyzer.compute_sparse(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_sparse(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         assert result.h0_dimension == 0
         assert result.spectral_gap == 0.0
         assert result.method == "sparse"
@@ -1046,27 +1167,63 @@ class TestSparseSpectralAnalysis:
     def test_one_dimensional(self):
         """Matriz 1×1 con L[0,0] = 0 tiene h0_dim = 1."""
         L = sp.csc_matrix(np.array([[0.0]]))
-        result = _SpectralAnalyzer.compute_sparse(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_sparse(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         assert result.h0_dimension == 1
 
     def test_one_dimensional_nonzero(self):
         """Matriz 1×1 con L[0,0] > 0 tiene h0_dim = 0."""
         L = sp.csc_matrix(np.array([[5.0]]))
-        result = _SpectralAnalyzer.compute_sparse(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_sparse(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         assert result.h0_dimension == 0
         np.testing.assert_allclose(result.spectral_gap, 5.0, rtol=1e-6)
 
     def test_path_graph_sparse(self, path_sheaf_4):
         """El camino P₄ tiene dim H⁰ = 1 (también via disperso)."""
         L = path_sheaf_4.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_sparse(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_sparse(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         assert result.h0_dimension == 1
         assert result.spectral_gap > 0.0
 
     def test_eigenvalues_immutable_sparse(self, path_sheaf_4):
         """Eigenvalores son inmutables en modo disperso."""
         L = path_sheaf_4.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_sparse(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_sparse(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         with pytest.raises(ValueError, match="read-only|not writeable"):
             result.smallest_eigenvalues[0] = 999.0
 
@@ -1074,12 +1231,28 @@ class TestSparseSpectralAnalysis:
         """Eigenvalores negativos severos lanzan error."""
         L = sp.csc_matrix(-5.0 * np.eye(3, dtype=np.float64))
         with pytest.raises(SpectralComputationError, match="semidefinido"):
-            _SpectralAnalyzer.compute_sparse(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
+            _SpectralAnalyzer.compute_sparse(
+                L,
+                (
+                    sheaf.build_coboundary_operator()
+                    if "sheaf" in locals()
+                    else (
+                        path_sheaf_4.build_coboundary_operator()
+                        if "path_sheaf_4" in locals()
+                        else (
+                            triangle_sheaf.build_coboundary_operator()
+                            if "triangle_sheaf" in locals()
+                            else sp.csc_matrix(np.zeros_like(L.toarray()))
+                        )
+                    )
+                ),
+            )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 10: ESTRATEGIA HÍBRIDA
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestHybridSpectralStrategy:
     """Verifica que compute() selecciona correctamente dense vs sparse."""
@@ -1088,29 +1261,97 @@ class TestHybridSpectralStrategy:
         """Matrices pequeñas (n ≤ threshold) usan método denso."""
         L = triangle_sheaf.compute_sheaf_laplacian()
         assert L.shape[0] <= _DENSE_SPECTRAL_MAX_DIM
-        result = _SpectralAnalyzer.compute(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         assert result.method == "dense"
 
     def test_dense_and_sparse_agree_on_h0(self, path_sheaf_4):
         """Ambos métodos coinciden en dim H⁰ para problemas pequeños."""
         L = path_sheaf_4.compute_sheaf_laplacian()
-        dense = _SpectralAnalyzer.compute_dense(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
-        sparse = _SpectralAnalyzer.compute_sparse(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
+        dense = _SpectralAnalyzer.compute_dense(
+            L,
+            (
+                sheaf.build_coboundary_operator()
+                if "sheaf" in locals()
+                else (
+                    path_sheaf_4.build_coboundary_operator()
+                    if "path_sheaf_4" in locals()
+                    else (
+                        triangle_sheaf.build_coboundary_operator()
+                        if "triangle_sheaf" in locals()
+                        else sp.csc_matrix(np.zeros_like(L.toarray()))
+                    )
+                )
+            ),
+        )
+        sparse = _SpectralAnalyzer.compute_sparse(
+            L,
+            (
+                sheaf.build_coboundary_operator()
+                if "sheaf" in locals()
+                else (
+                    path_sheaf_4.build_coboundary_operator()
+                    if "path_sheaf_4" in locals()
+                    else (
+                        triangle_sheaf.build_coboundary_operator()
+                        if "triangle_sheaf" in locals()
+                        else sp.csc_matrix(np.zeros_like(L.toarray()))
+                    )
+                )
+            ),
+        )
         assert dense.h0_dimension == sparse.h0_dimension
 
     def test_dense_and_sparse_agree_on_gap(self, triangle_sheaf):
         """Ambos métodos coinciden en brecha espectral."""
         L = triangle_sheaf.compute_sheaf_laplacian()
-        dense = _SpectralAnalyzer.compute_dense(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
-        sparse = _SpectralAnalyzer.compute_sparse(L, sheaf.build_coboundary_operator() if 'sheaf' in locals() else (path_sheaf_4.build_coboundary_operator() if 'path_sheaf_4' in locals() else (triangle_sheaf.build_coboundary_operator() if 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))))
-        np.testing.assert_allclose(
-            dense.spectral_gap, sparse.spectral_gap, rtol=1e-4
+        dense = _SpectralAnalyzer.compute_dense(
+            L,
+            (
+                sheaf.build_coboundary_operator()
+                if "sheaf" in locals()
+                else (
+                    path_sheaf_4.build_coboundary_operator()
+                    if "path_sheaf_4" in locals()
+                    else (
+                        triangle_sheaf.build_coboundary_operator()
+                        if "triangle_sheaf" in locals()
+                        else sp.csc_matrix(np.zeros_like(L.toarray()))
+                    )
+                )
+            ),
         )
+        sparse = _SpectralAnalyzer.compute_sparse(
+            L,
+            (
+                sheaf.build_coboundary_operator()
+                if "sheaf" in locals()
+                else (
+                    path_sheaf_4.build_coboundary_operator()
+                    if "path_sheaf_4" in locals()
+                    else (
+                        triangle_sheaf.build_coboundary_operator()
+                        if "triangle_sheaf" in locals()
+                        else sp.csc_matrix(np.zeros_like(L.toarray()))
+                    )
+                )
+            ),
+        )
+        np.testing.assert_allclose(dense.spectral_gap, sparse.spectral_gap, rtol=1e-4)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 11: SPECTRAL INVARIANTS DATACLASS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestSpectralInvariants:
     """Verifica la estructura SpectralInvariants."""
@@ -1198,6 +1439,7 @@ class TestSpectralInvariants:
 # CLASE 12: ORQUESTADOR - AUDITORÍA COMPLETA
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestOrchestrator:
     """Verifica el pipeline completo de audit_global_state."""
 
@@ -1246,7 +1488,9 @@ class TestOrchestrator:
         assert result.residual_norm == 0.0
 
     def test_heterogeneous_sheaf_consensus(
-        self, heterogeneous_sheaf, orchestrator,
+        self,
+        heterogeneous_sheaf,
+        orchestrator,
     ):
         """
         Para el haz heterogéneo (nodo 0: dim 2, nodo 1: dim 3),
@@ -1261,7 +1505,9 @@ class TestOrchestrator:
         )
 
     def test_heterogeneous_sheaf_inconsistent(
-        self, heterogeneous_sheaf, orchestrator,
+        self,
+        heterogeneous_sheaf,
+        orchestrator,
     ):
         """
         Para el haz heterogéneo, x = (1, 2, 3, 4, 5) viola restricciones:
@@ -1296,6 +1542,7 @@ class TestOrchestrator:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 13: INVARIANTES COHOMOLÓGICOS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestCohomologicalInvariants:
     """
@@ -1337,7 +1584,9 @@ class TestCohomologicalInvariants:
         assert result.h0_dimension == 2
 
     def test_spectral_gap_positive_for_connected(
-        self, triangle_sheaf, orchestrator,
+        self,
+        triangle_sheaf,
+        orchestrator,
     ):
         """
         Grafo conexo tiene brecha espectral λ₁ > 0.
@@ -1354,9 +1603,7 @@ class TestCohomologicalInvariants:
         """
         x = np.ones(3, dtype=np.float64)
         result = orchestrator.audit_global_state(triangle_sheaf, x)
-        np.testing.assert_allclose(
-            result.spectral_gap, 3.0, rtol=1e-8
-        )
+        np.testing.assert_allclose(result.spectral_gap, 3.0, rtol=1e-8)
 
     def test_h0_dim_multidimensional_fiber(self):
         """
@@ -1372,7 +1619,16 @@ class TestCohomologicalInvariants:
         sheaf.add_edge(0, 0, 1, RestrictionMap(I2), RestrictionMap(I2))
 
         L = sheaf.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_dense(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         assert result.h0_dimension == 2
 
     def test_nontrivial_restriction_changes_h0(self):
@@ -1400,13 +1656,23 @@ class TestCohomologicalInvariants:
         sheaf.add_edge(0, 0, 1, F_0, F_1)
 
         L = sheaf.compute_sheaf_laplacian()
-        result = _SpectralAnalyzer.compute_dense(L, locals().get('path_sheaf_4', locals().get('triangle_sheaf')).build_coboundary_operator() if 'path_sheaf_4' in locals() or 'triangle_sheaf' in locals() else sp.csc_matrix(np.zeros_like(L.toarray())))
+        result = _SpectralAnalyzer.compute_dense(
+            L,
+            (
+                locals()
+                .get("path_sheaf_4", locals().get("triangle_sheaf"))
+                .build_coboundary_operator()
+                if "path_sheaf_4" in locals() or "triangle_sheaf" in locals()
+                else sp.csc_matrix(np.zeros_like(L.toarray()))
+            ),
+        )
         assert result.h0_dimension == 0
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 14: HACES CON FIBRAS HETEROGÉNEAS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestHeterogeneousFibers:
     """
@@ -1467,6 +1733,7 @@ class TestHeterogeneousFibers:
 # CLASE 15: GLOBAL FRUSTRATION ASSESSMENT
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestGlobalFrustrationAssessment:
     """Verifica la estructura GlobalFrustrationAssessment."""
 
@@ -1511,6 +1778,7 @@ class TestGlobalFrustrationAssessment:
 # CLASE 16: SHEAF EDGE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestSheafEdge:
     """Verifica la estructura SheafEdge."""
 
@@ -1518,8 +1786,11 @@ class TestSheafEdge:
         """SheafEdge es inmutable."""
         I = RestrictionMap(np.eye(2))
         edge = SheafEdge(
-            edge_id=0, u=0, v=1,
-            restriction_u=I, restriction_v=I,
+            edge_id=0,
+            u=0,
+            v=1,
+            restriction_u=I,
+            restriction_v=I,
         )
         with pytest.raises(AttributeError):
             edge.edge_id = 5
@@ -1529,8 +1800,11 @@ class TestSheafEdge:
         F_u = RestrictionMap(np.eye(2))
         F_v = RestrictionMap(np.ones((2, 3)))
         edge = SheafEdge(
-            edge_id=7, u=3, v=5,
-            restriction_u=F_u, restriction_v=F_v,
+            edge_id=7,
+            u=3,
+            v=5,
+            restriction_u=F_u,
+            restriction_v=F_v,
         )
         assert edge.edge_id == 7
         assert edge.u == 3
@@ -1542,6 +1816,7 @@ class TestSheafEdge:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 17: CASOS LÍMITE Y PATOLOGÍAS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestEdgeCases:
     """Verifica comportamiento en situaciones extremas."""
@@ -1665,6 +1940,7 @@ class TestEdgeCases:
 # CLASE 18: PROPIEDADES DEL CONO SEMIDEFINIDO POSITIVO
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestSDPConeProperties:
     """
     Verifica propiedades del cono de matrices semidefinidas positivas
@@ -1716,6 +1992,7 @@ class TestSDPConeProperties:
 # CLASE 19: EXCEPCIONES
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestExceptionHierarchy:
     """Verifica la jerarquía de excepciones."""
 
@@ -1755,6 +2032,7 @@ class TestExceptionHierarchy:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 20: CONSTANTES DEL MÓDULO
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestModuleConstants:
     """Verifica coherencia de las constantes del módulo."""
@@ -1806,6 +2084,7 @@ class TestModuleConstants:
 # CLASE 21: DETERMINISMO Y REPRODUCIBILIDAD
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestDeterminism:
     """Verifica que los cálculos son deterministas."""
 
@@ -1818,9 +2097,7 @@ class TestDeterminism:
         delta1 = sheaf1.build_coboundary_operator()
         delta2 = sheaf2.build_coboundary_operator()
 
-        np.testing.assert_array_equal(
-            delta1.toarray(), delta2.toarray()
-        )
+        np.testing.assert_array_equal(delta1.toarray(), delta2.toarray())
 
     def test_laplacian_deterministic(self, triangle_sheaf):
         """Construcciones repetidas de L producen el mismo resultado."""
@@ -1830,9 +2107,7 @@ class TestDeterminism:
         L1 = sheaf1.compute_sheaf_laplacian()
         L2 = sheaf2.compute_sheaf_laplacian()
 
-        np.testing.assert_array_equal(
-            L1.toarray(), L2.toarray()
-        )
+        np.testing.assert_array_equal(L1.toarray(), L2.toarray())
 
     def test_audit_deterministic(self, triangle_sheaf, orchestrator):
         """Auditorías repetidas del mismo estado producen el mismo resultado."""
@@ -1850,6 +2125,7 @@ class TestDeterminism:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 22: PROPIEDADES ALGEBRAICAS DE δ
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestCoboundaryAlgebraicProperties:
     """
@@ -1922,7 +2198,7 @@ class TestCoboundaryAlgebraicProperties:
         null_mask = s < _FLOAT64_ATOL
         # Las filas de Vh correspondientes a valores singulares ≈ 0
         # forman una base de ker(δᵀ)
-        kernel_vectors = Vh[len(s) - int(np.sum(null_mask)):]
+        kernel_vectors = Vh[len(s) - int(np.sum(null_mask)) :]
 
         if kernel_vectors.shape[0] > 0:
             rng = np.random.default_rng(seed=42)
@@ -1932,7 +2208,9 @@ class TestCoboundaryAlgebraicProperties:
                 for y in kernel_vectors:
                     dot = np.dot(delta_x, y)
                     np.testing.assert_allclose(
-                        dot, 0.0, atol=_FLOAT64_ATOL,
+                        dot,
+                        0.0,
+                        atol=_FLOAT64_ATOL,
                         err_msg="Im(δ) no ortogonal a ker(δᵀ)",
                     )
 
@@ -1941,22 +2219,27 @@ class TestCoboundaryAlgebraicProperties:
 # CLASE 23: TESTS DE LOGGING
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestLogging:
     """Verifica que los mensajes de logging se emiten correctamente."""
 
     def test_coherent_state_logs_info(
-        self, triangle_sheaf, orchestrator, caplog,
+        self,
+        triangle_sheaf,
+        orchestrator,
+        caplog,
     ):
         """Estado coherente emite log INFO con diagnóstico."""
         x = np.ones(3, dtype=np.float64)
-        with caplog.at_level(
-            logging.INFO, logger="MIC.ImmuneSystem.SheafCohomology"
-        ):
+        with caplog.at_level(logging.INFO, logger="MIC.ImmuneSystem.SheafCohomology"):
             orchestrator.audit_global_state(triangle_sheaf, x)
         assert "Auditoría cohomológica exitosa" in caplog.text
 
     def test_incoherent_state_logs_critical(
-        self, triangle_sheaf, orchestrator, caplog,
+        self,
+        triangle_sheaf,
+        orchestrator,
+        caplog,
     ):
         """Estado incoherente emite log CRITICAL."""
         x = np.array([1.0, 100.0, -50.0], dtype=np.float64)
@@ -1971,6 +2254,7 @@ class TestLogging:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLASE 24: INTEGRACIÓN COMPLETA
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestIntegration:
     """Tests de integración que ejercitan el pipeline completo."""
@@ -1991,7 +2275,9 @@ class TestIntegration:
         assert result.spectral_method == "dense"
 
     def test_full_pipeline_heterogeneous(
-        self, heterogeneous_sheaf, orchestrator,
+        self,
+        heterogeneous_sheaf,
+        orchestrator,
     ):
         """Pipeline completo para haz heterogéneo."""
         # Estado coherente: (a,b, a,b,0)
@@ -2027,6 +2313,4 @@ class TestIntegration:
         assert result.is_coherent
         assert result.h0_dimension == 1
         # K₄ tiene brecha espectral = n = 4
-        np.testing.assert_allclose(
-            result.spectral_gap, 4.0, rtol=1e-8
-        )
+        np.testing.assert_allclose(result.spectral_gap, 4.0, rtol=1e-8)

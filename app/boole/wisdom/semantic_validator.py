@@ -788,6 +788,10 @@ def create_default_knowledge_graph() -> nx.DiGraph:
         ("data_validation", "DATA_QUALITY_ENHANCEMENT", 0.9),
         ("data_validation", "RELIABILITY_IMPROVEMENT", 0.7),
     ]
+
+    # Inyectar isomorfismo dimensional conectando las islas para tener B_0 = 1
+    mappings.append(("caching", "SCALABILITY_ENHANCEMENT", 0.6))
+    mappings.append(("encryption", "DATA_QUALITY_ENHANCEMENT", 0.5))
     
     for concept, problem, weight in mappings:
         kg.add_edge(concept, problem, weight=weight)
@@ -866,9 +870,14 @@ class OntologicalDiffeomorphismEngine:
 
 
 # Alias para compatibilidad
-VerdictLevel = Verdict
-SemanticMorphism = BusinessPurpose
-ToleranceProfile = RiskProfile
+def __getattr__(name):
+    if name in ["VerdictLevel", "SemanticMorphism", "ToleranceProfile"]:
+        import warnings
+        warnings.warn(f"'{name}' is deprecated. Please use the modernized equivalents.", DeprecationWarning, stacklevel=2)
+        if name == "VerdictLevel": return Verdict
+        if name == "SemanticMorphism": return BusinessPurpose
+        if name == "ToleranceProfile": return RiskProfile
+    raise AttributeError(f"module {__name__} has no attribute {name}")
 
 
 # =============================================================================

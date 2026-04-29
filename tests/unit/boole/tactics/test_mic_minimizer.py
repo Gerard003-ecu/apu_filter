@@ -40,22 +40,17 @@ import io
 import logging
 
 # Importar módulo a testear
-try:
-    from mic_minimizer import (
-        CapabilityDimension,
-        BooleanVector,
-        Tool,
-        ImplicantTerm,
-        UnionFind,
-        QuineMcCluskeyMinimizer,
-        MICRedundancyAnalyzer,
+from app.boole.tactics.mic_minimizer import (
+    CapabilityDimension,
+    BooleanVector,
+    Tool,
+    ImplicantTerm,
+    UnionFind,
+    QuineMcCluskeyMinimizer,
+    MICRedundancyAnalyzer,
     validate_boolean_lattice_axioms,
     HomologicalInconsistencyError
-    )
-except ImportError as e:
-    print(f"Error importando mic_minimizer: {e}")
-    print("Asegúrate de que mic_minimizer.py está en el mismo directorio o en PYTHONPATH")
-    sys.exit(1)
+)
 
 # Suprimir logs durante testing
 logging.getLogger("MIC.Minimizer.v3.1").setLevel(logging.CRITICAL)

@@ -1489,7 +1489,7 @@ class TestMICAgentConvenienceMethods:
 # TESTS: INTEGRACIÓN
 # =============================================================================
 
-from app.core.immune_system.calibration.sheaf_cohomology_orchestrator import (
+from app.boole.strategy.sheaf_cohomology_orchestrator import (
     CellularSheaf,
     RestrictionMap,
     HomologicalInconsistencyError,
