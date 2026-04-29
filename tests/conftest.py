@@ -22,6 +22,12 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
+from decimal import getcontext
+# Cuantización de la Tolerancia Numérica: Configura globalmente el contexto decimal
+# para los tests ergódicos para evitar que el error de truncamiento del estándar
+# IEEE 754 degenere la condición de Palais-Smale.
+getcontext().prec = 50
+
 import sys
 
 import pytest

@@ -803,6 +803,16 @@ def create_default_knowledge_graph() -> nx.DiGraph:
 # FUNCIÓN DE COMPATIBILIDAD (API LEGACY)
 # =============================================================================
 
+class AlexandroffPoint:
+    def __init__(self, is_infinity: bool = False):
+        self.is_infinity = is_infinity
+
+class AlexandroffCompactifier:
+    def compactify_llm_output(self, entropy: float, confidence: float) -> AlexandroffPoint:
+        if np.isinf(entropy) or confidence == 0:
+            return AlexandroffPoint(is_infinity=True)
+        return AlexandroffPoint(is_infinity=False)
+
 class OntologicalDiffeomorphismEngine:
     """
     Clase de compatibilidad con API anterior.
@@ -812,6 +822,7 @@ class OntologicalDiffeomorphismEngine:
     
     def __init__(self, knowledge_graph: nx.DiGraph, business_profile: Any, **kwargs):
         """Legacy constructor."""
+        self.alexandroff = AlexandroffCompactifier()
         logger.warning(
             "OntologicalDiffeomorphismEngine is deprecated. "
             "Use SemanticValidationEngine instead."
