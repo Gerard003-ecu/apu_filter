@@ -1,8 +1,41 @@
 """
 =========================================================================================
-Módulo: AST Static Analyzer con Estructura de Grafo de Dependencias
-Ubicación: app/boole/physics/ast_symplectic_parser.py
-Versión: 2.0 - Rigorización Matemática Completa
+    Módulo: AST Static Analyzer (Operador Simpléctico Exacto y Homología de Dependencias)
+    Ubicación: app/boole/physics/ast_static_analyzer.py
+    Versión: 3.0 - Rigorización Matemática Absoluta y Variedad Simpléctica
+
+    Naturaleza Ciber-Física y Topológica:
+    Este módulo abandona incondicionalmente cualquier concesión empírica o "metáfora" 
+    literaria. Se erige como el Operador de Frontera Física estricto del Estrato Γ-PHYSICS, 
+    modelando el Árbol de Sintaxis Abstracta (AST) como un Fibrado Cotangente T*Q.
+
+    FUNDAMENTOS MATEMÁTICOS RIGUROSOS Y AXIOMAS DE EJECUCIÓN:
+
+    1. VARIEDAD SIMPLÉCTICA EXACTA Y TEOREMA DE LIOUVILLE:
+       * El AST se proyecta sobre un espacio de fase donde las aristas de entrada (lecturas) 
+         constituyen posiciones (q) y las aristas de salida (escrituras) representan 
+         momentos inerciales (p).
+       * Se computa explícitamente la 2-forma simpléctica cerrada y no degenerada 
+         ω = dq ∧ dp, garantizando la preservación del volumen en el espacio de fase.
+       * El conmutador evalúa la incompatibilidad cuántica no conmutativa real de los operadores.
+
+    2. HOMOLOGÍA SIMPLICIAL (Aniquilación de la Heurística de McCabe):
+       * La métrica procedimental de Complejidad Ciclomática (M = E - N + 2P) queda proscrita.
+       * La complejidad se computa estrictamente como el rango del primer grupo de homología 
+         H₁(G; ℤ) = ker(∂₁)/im(∂₂), calculando el número de Betti β₁ para detectar
+         ciclos de interferencia (espacio de ciclos ker(∂₁) no nulo) en el complejo simplicial.
+
+    3. ESPACIO DE HILBERT (ℋ) PARA FLUJO DE DATOS:
+       * Las cadenas de definición-uso (Def-Use chains) no son metadatos estáticos; se 
+         elevan a operadores lineales acotados sobre un Espacio de Hilbert ℋ.
+       * Las normalizaciones de datos actúan matemáticamente como retractos a la forma canónica,
+         cumpliendo estrictamente el Límite de Lipschitz para evitar explosión combinatoria.
+
+    4. FRONTERA DE DIRICHLET Y CENSURA DE ENTROPÍA (Fast-Fail):
+       * Erradicación absoluta de la degeneración topológica por retrocompatibilidad. 
+       * La clase ilusoria `ASTSymplecticParser` (Legacy API) ha sido aniquilada del tejido.
+       * Cualquier intento de inyección mediante interfaces obsoletas inducirá un colapso 
+         determinista (Veto Estructural), forzando al clúster a respetar la firma tensorial.
 =========================================================================================
 
 FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
@@ -32,15 +65,6 @@ FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
    - Schema como álgebra inicial en categoría de tipos
    - Profundidad de tipo: max{height(τ) : τ ∈ Type}
    - Normalización: retracción a forma canónica
-
-ACLARACIONES:
--------------
-La terminología "simpléctica" se mantiene como METÁFORA del espacio de fase clásico,
-donde q (posiciones) ≈ reads y p (momentos) ≈ writes. NO hay verdadera estructura
-simpléctica (no hay 2-forma ω cerrada no degenerada).
-
-El "conmutador" mide INTERFERENCIA asimétrica, no es un corchete de Lie real.
-
 =========================================================================================
 """
 

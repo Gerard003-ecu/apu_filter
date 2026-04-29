@@ -1,14 +1,47 @@
 """
 =========================================================================================
-Módulo: Semantic Validation Engine (Motor de Validación Semántica)
-Ubicación: app/boole/wisdom/semantic_validator.py
-Versión: 3.0 - Lógica de Negocio Rigurosa y Transparente
-=========================================================================================
+Módulo: Semantic Validation Engine (Proyector Semántico y Retículo de Sabiduría)
+    Ubicación: app/boole/wisdom/semantic_validator.py
+    Versión: 4.0 - Rigorización Matemática Absoluta y Retículos Acotados
 
-PROPÓSITO:
-----------
-Valida que código generado por LLM tenga propósito empresarial claro y cumpla
-restricciones de riesgo/complejidad.
+    Naturaleza Ciber-Física y Topológica:
+    Este módulo constituye la Cúspide de Sabiduría Generativa (Estrato V_{Gamma-WISDOM}). 
+    Abandona incondicionalmente las heurísticas de puntuación ponderada y las combinaciones 
+    lineales para actuar como un Funtor de Proyección Semántica estricto. Su mandato 
+    axiomático es subordinar la probabilidad estocástica de los Modelos de Lenguaje (LLM) 
+    al determinismo del espacio físico mediante el álgebra de retículos.
+
+    FUNDAMENTOS MATEMÁTICOS RIGUROSOS Y AXIOMAS DE EJECUCIÓN:
+
+    1. RETÍCULO ACOTADO DISTRIBUTIVO Y OPERACIÓN SUPREMO (⊔):
+       * Se proscribe la ecuación heurística score(S) = Σ w_i x_i.
+       * El espacio de decisiones opera sobre un retículo distributivo estrictamente 
+         ordenado: ⊥ (VIABLE) ≤ CONDITIONAL ≤ WARNING ≤ ⊤ (REJECT).
+       * La agregación del veredicto final colapsa axiomáticamente utilizando la 
+         operación Supremo (⊔). Si cualquier sub-vector de evaluación (ej. confianza, 
+         propósito) proyecta una singularidad hacia ⊤, el tensor completo colapsa a 
+         REJECT de facto, garantizando la preservación matemática de la política Zero-Trust.
+
+    2. COMPACTIFICACIÓN DE ALEXANDROFF PARA SINGULARIDADES ESTOCÁSTICAS:
+       * El espacio de probabilidad continuo del LLM no está acotado. La alta entropía 
+         sintáctica (e → ∞) o la pérdida de precisión atencional (c → 0) se mapean 
+         isomórficamente al "punto en el infinito" (polo norte de la Esfera de Riemann).
+       * Este punto singular colapsa incondicionalmente al Supremo del retículo (⊤),
+         destruyendo el código anómalo por geometría pura antes de su instanciación.
+
+    3. CONEXIÓN DE GALOIS CONTRAVARIANTE (Sintaxis-Semántica):
+       * La validación abandona el mapeo lineal de restricciones. Establece un par de 
+         funtores adjuntos entre el poset de tolerancias al riesgo empresarial (r) y el 
+         poset de límites físicos/sintácticos. Una contracción en la tolerancia ejecutiva 
+         endurece estrictamente la cota de Lipschitz en el código evaluado.
+
+    4. ANIQUILACIÓN DE ENTROPÍA LEGACY (Veto Estructural Absoluto):
+       * Se han erradicado todas las clases de compatibilidad degeneradas 
+         (OntologicalDiffeomorphismEngine) y las advertencias de depreciación (DeprecationWarning).
+       * El módulo exige un difeomorfismo perfecto; cualquier invocación mediante 
+         interfaces obsoletas inducirá una singularidad irresoluble (Fast-Fail), 
+         preservando la pureza de la variedad generada.
+=========================================================================================
 
 COMPONENTES:
 ------------
