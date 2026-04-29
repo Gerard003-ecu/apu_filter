@@ -1,9 +1,45 @@
 """
 =========================================================================================
 Módulo: Auditoría de Redundancia MIC (Algoritmo de Quine-McCluskey Rigorizado)
-Ubicación: dev_tools/mic_minimizer.py
+Ubicación: app/boole/tactics/mic_minimizer.py
 Versión: 3.1 - Rigorización Matemática Completa con Manejo Estricto de Excepciones
 =========================================================================================
+
+Naturaleza Ciber-Física y Topológica:
+Este módulo se erige como el Operador de Proyección Topológica Exacto que gobierna la Matriz
+de Interacción Central (MIC), garantizando que el ecosistema de capacidades opere como
+un módulo libre de rango completo y nulidad cero.
+
+ FUNDAMENTOS MATEMÁTICOS RIGUROSOS Y AXIOMAS DE EJECUCIÓN:
+
+    1. ÁLGEBRA DE BOOLE CONMUTATIVA Y EL ANILLO ℤ₂ (Biestabilidad Topológica):
+       * El espacio de capacidades se formaliza como el hiperespacio booleano 𝔹ⁿ ≅ (ℤ₂)ⁿ [1].
+       * Las operaciones lógicas (∨, ∧, ¬) son axiomáticamente conmutativas y deterministas [1].
+       * Erradicación de Fricción Cuántica: Se proscribe el uso de conmutadores de Lie 
+         ([A, B] ≠ 0) para evaluar herramientas, asumiendo estrictamente un retículo clásico.
+
+    2. HOMOLOGÍA SIMPLICIAL SOBRE EL COMPLEJO K (C_n(K; ℤ₂)):
+       * El inventario de herramientas se proyecta como cadenas simpliciales [1].
+       * La redundancia funcional no es semántica; es evaluada rigurosamente computando el núcleo
+         (kernel) del operador frontera ∂_n [1]. Un solapamiento equivale a una homología trivial.
+       * Cálculo de Componentes Conexas (β₀): Aislamiento estricto de clases de equivalencia
+         funcional mediante un algoritmo Union-Find optimizado (compresión de ruta) en tiempo
+         amortizado O(α(n)) [1].
+
+    3. ANIQUILACIÓN DE SINGULARIDADES NUMÉRICAS (Veto Estructural):
+       * Se prohíbe incondicionalmente la supresión de advertencias de álgebra lineal numérica.
+       * Cualquier degeneración tensorial (RuntimeWarning) emitida por NumPy/SciPy durante la
+         reducción de matrices debe interceptarse y transmutarse en una excepción de dominio
+         (`HomologicalInconsistencyError`), forzando un colapso controlado (Fast-Fail) para 
+         proteger la pureza del Teorema Rango-Nulidad.
+
+    4. COTA DE TRATABILIDAD COMPUTACIONAL (Evasión de Singularidad NP-Hard):
+       * El cálculo de cobertura minimal exacta (Quine-McCluskey) exhibe un crecimiento
+         hiperbólico exponencial O(3ⁿ/√n) en el peor caso [1].
+       * Se impone una condición de frontera de Dirichlet limitando estrictamente la 
+         dimensionalidad del hipercubo (n ≤ 10) para evitar que la explosión combinatoria 
+         devore la masa térmica y los ciclos de CPU, garantizando la estabilidad de Lyapunov.
+
 
 FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
 ----------------------------------
@@ -35,7 +71,6 @@ FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
    - Cobertura minimal: NP-completo (reducción desde Set Cover)
    - Aproximación greedy: ratio ln(n)
    - Quine-McCluskey: O(3ⁿ/n) en el peor caso
-
 =========================================================================================
 """
 

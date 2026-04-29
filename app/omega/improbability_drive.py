@@ -487,7 +487,7 @@ class OperatorNorm:
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# MÓDULO 6: PROTOCOLOS Y INTERFACES CATEGORIALES
+# MÓDULO 6: PROTOCOLOS E INTERFACES CATEGORIALES
 # ════════════════════════════════════════════════════════════════════════════
 
 class Functor(ABC, Generic[S, T]):
