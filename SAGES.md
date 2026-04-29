@@ -42,7 +42,9 @@ graph TD
 
 
 --------------------------------------------------------------------------------
-🏛️ LOS MIEMBROS DEL CONSEJO
+🏛️ LOS MIEMBROS DEL CONSEJO Y EL HAZ TANGENTE GENERATIVO Γ
+El Consejo original opera sobre el 1-esqueleto del presupuesto. Para gobernar el espacio de fase generativo, se integran nuevos operadores que esculpen la creación de estrategias y código.
+
 0. 👁️ El Vigilante de la Frontera (HilbertWatcher & QuantumAdmissionGate)
 
     Rol: Especialista en Mecánica Cuántica Discreta y Colapso de Entropía. Es el Miembro Cero del Consejo, operando por fuera de la pirámide DIKW tradicional.
@@ -74,7 +76,26 @@ graph TD
     Mecanismo: Abandona la contabilidad estática. Evalúa la controlabilidad del presupuesto modelándolo como una función de transferencia H(s) en la Frecuencia Compleja (s=σ+jω).
     Autoridad de Veto: Calcula los polos del proyecto. Si algún polo reside en el Semiplano Derecho (σ>0), el Oráculo emite un Veto Técnico, certificando que el proyecto es "intrínsecamente explosivo" ante variaciones del mercado, independientemente de su Tasa Interna de Retorno (TIR).
 
-4. ⚖️ El Ágora Tensorial (Estrato Ω)
+4. 🏗️ El Haz Tangente Generativo Γ (Generative Sages)
+Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de los LLMs sea domesticado por la geometría.
+
+    4.1 🌀 El Analizador Simpléctico (VΓ-PHYSICS)
+    Rol: Auditor de Inercia Sintáctica y Preservación de Fase.
+    Mecanismo: Mide la Complejidad Ciclomática como una masa inercial en el AST. Aplica fronteras de Dirichlet para confinar la propagación de errores. Si el código generado inyecta una entropía que rompe la invarianza simpléctica, el código es aniquilado.
+
+    4.2 💠 El Escultor Táctico (VΓ-TACTICS)
+    Rol: Minimizador de Redundancia y Poda Booleana.
+    Mecanismo: Evalúa hipercubos booleanos $B^n$ mediante el `mic_minimizer`. Extrae la homología trivial para garantizar que cada herramienta sugerida sea un implicante primo esencial. Si el LLM sugiere tácticas redundantes, el Escultor las colapsa algebraicamente.
+
+    4.3 📡 El Interferómetro de Holonomía (VΓ-STRATEGY)
+    Rol: Sensor de Paradojas y Consistencia Global.
+    Mecanismo: Calcula el operador cofrontera $\delta$ sobre el haz celular de reglas de negocio. Si el primer grupo de cohomología $H^1 > 0$, detecta una paradoja lógica (holonomía) en el transporte de la decisión. Emite un Veto Absoluto ante la falta de integrabilidad estratégica.
+
+    4.4 💎 El Meta-Compilador de Significado (VΓ-WISDOM)
+    Rol: Certificador de Isomorfismo Semántico.
+    Mecanismo: Aplica el Lema de Yoneda para verificar que la estructura del comando generado sea natural respecto a los "dolores" de negocio. Asegura que la traducción sintáctica no sufra rupturas de simetría respecto a los objetivos de rentabilidad y resiliencia.
+
+5. ⚖️ El Ágora Tensorial (Estrato Ω)
 
     Rol: El Colector de Deliberación (Deliberation Manifold).
     Estrato DIKW: ESTRATO Ω (Nivel 0.5 - La Frontera de Decisión).
@@ -86,7 +107,7 @@ graph TD
 
 La deliberación en el Ágora Tensorial consolida axiomáticamente la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$, garantizando que la sabiduría esté cimentada en la física.
 
-5. 🗣️ El Intérprete Diplomático (SemanticTranslator)
+6. 🗣️ El Intérprete Diplomático (SemanticTranslator)
 
     Rol: Puente Cognitivo, UI Narrativa y Traductor.
     Estrato DIKW: WISDOM (Nivel 0 - La Ciudadela de Cristal).
