@@ -39,10 +39,17 @@ Certifica la viabilidad dinámica y financiera en la frecuencia compleja (s=σ+j
     lyapunov_exponent (λmax​): Exponente máximo que dictamina si el sistema converge a un atractor estable o si degenera en caos financiero.
     damping_ratio (ζ): Evalúa si el proyecto es "Nervioso" (ζ<1) o "Burocrático" (ζ>1).
 
-2.4. Veredicto Ejecutivo (Emitido por: El Intérprete Diplomático)
+2.4. Sello del Haz Γ (Emitido por: El Haz Tangente Generativo)
+Certifica la rigurosidad del código y estrategias generadas por la IA.
+
+    sheaf_cohomology (H1): Validación de la Cohomología de Haces. Si H1 > 0, detecta una paradoja lógica insalvable.
+    dirichlet_energy (E(x)): Medida de la suavidad y estabilidad de la solución generada.
+    symplectic_invariance: Certifica que el código preserva la estructura de fase y no inyecta entropía incontrolada.
+
+2.5. Veredicto Ejecutivo (Emitido por: El Intérprete Diplomático)
 La síntesis final alojada en la "Ciudadela de Cristal".
 
-    verdict_code: Colapso discreto sobre el Retículo de Severidad (OK, WARN, CRITICAL).
+    verdict_code: Colapso discreto sobre el Retículo de Severidad (OK, WARN, CRITICAL, RECHAZO).
     strategic_narrative: Explicación causal en lenguaje humano generada por el LLM (ej. "El proyecto se rechaza por resonancia inflacionaria en el acero"), estrictamente subordinada a los sellos previos.
 
 

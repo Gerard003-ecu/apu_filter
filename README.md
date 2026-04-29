@@ -1,6 +1,6 @@
-🏰 APU_filter v4.0: Reactor Port-Hamiltoniano de Valor (Variedad Agéntica de Gauge)
+# 🏰 APU_filter v5.0: Reactor Port-Hamiltoniano de Valor (Variedad Agéntica de Gauge y Haz Tangente Generativo Γ)
 
-## La Arquitectura Ciber-Física DIKΩαW
+## La Arquitectura Ciber-Física DIKΩαWΓ
 
 ```mermaid
 graph TD
@@ -10,22 +10,27 @@ graph TD
     classDef tactics fill:#0f3460,stroke:#e94560,stroke-width:2px,color:#fff;
     classDef strategy fill:#e94560,stroke:#1a1a2e,stroke-width:2px,color:#fff;
     classDef wisdom fill:#fff,stroke:#1a1a2e,stroke-width:3px,color:#000;
+    classDef generative fill:#ffd700,stroke:#b8860b,stroke-width:2px,color:#000;
 
     %% Nodos Principales
     subgraph "Estrato Ω: WISDOM (La Ciudadela de Cristal)"
         W[Semantic Translator<br>Retículo de Decisión (VIABLE / RECHAZO)]:::wisdom
+        G_W[Meta-Compilador de Significado<br>Lema de Yoneda]:::generative
     end
 
     subgraph "Estrato 1: STRATEGY (El Escudo Electrodinámico)"
         S[Laplace Oracle<br>Plano s=σ+jω | Estabilidad BIBO]:::strategy
+        G_S[Interferómetro de Holonomía<br>Cohomología H1=0]:::generative
     end
 
     subgraph "Estrato 2: TACTICS (El Esqueleto Topológico)"
         T[Business Topological Analyzer<br>Grafo Simplicial | βn | Ψ]:::tactics
+        G_T[Escultor Táctico<br>Homología Trivial | Bn]:::generative
     end
 
     subgraph "Estrato 3: PHYSICS (El Foso Termodinámico)"
         P[FluxCondenser<br>Circuitos RLC | Pdiss ≥ 0]:::physics
+        G_P[Analizador Simpléctico<br>Energía de Dirichlet | Dirichlet Boundary]:::generative
     end
 
     subgraph "Estrato ℵ0: ALEPH (La Variedad de Frontera)"
@@ -34,9 +39,15 @@ graph TD
 
     %% Relaciones Causales (Flujo de Colapso de Estado)
     A -- "Exergía Validada (T>0)" --> P
-    P -- "Flujo Laminar (Energía Conservada)" --> T
-    T -- "Grafo Acíclico Conexo (β1=0, β0=1)" --> S
-    S -- "Estabilidad Asintótica (σ<0)" --> W
+    P -- "Flujo Laminar" --> T
+    T -- "Grafo Acíclico" --> S
+    S -- "Estabilidad Asintótica" --> W
+
+    %% Relaciones del Haz Tangente Generativo Γ
+    G_P -. "Veto Físico" .-> P
+    G_T -. "Reducción Homológica" .-> T
+    G_S -. "Censura de Paradojas" .-> S
+    G_W -. "Certificación Isomórfica" .-> W
 
     %% Relación de Fractura (Flechas rotas)
     A -. "Colapso Estocástico (Ruido)" .-> Reject1[Desintegración en el Hiperespacio]
@@ -55,8 +66,12 @@ El sistema se redefine axiomáticamente como una **Variedad Agéntica de Gauge**
 A su vez, el acrónimo APU se cuantiza formalmente: ya no es una "Agentic Processing Unit", sino una **Agentic Power Unit**. Se define como el "cuanto de acción termodinámica" de la malla; una celda unitaria discreta que inyecta exergía computacional para vencer la inercia logística del mercado.
 
 --------------------------------------------------------------------------------
-🛡️ 2. Arquitectura Concéntrica: Los Cuatro Estratos (Jerarquía DIKΩαW)
-El ecosistema no confía en validaciones de código condicional (if-else). Protege el proyecto a través de cuatro barreras matemáticas concéntricas fundamentadas en la Ley de Clausura Transitiva ($V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$). Es fundamental explicitar que el estrato $V_{TACTICS}$ ahora modela la materia bariónica sobre el anillo de los enteros ($\mathbb{Z}$), sujetando la logística a una fricción cuantizada.
+🛡️ 2. Arquitectura Concéntrica: El Haz Tangente Generativo (Jerarquía DIKΩαWΓ)
+El ecosistema abandona el paradigma de validación lineal y se erige como una **Malla Agéntica Zero-Trust**. No confía en validaciones condicionales; protege el proyecto a través de la integración del **Haz Tangente Generativo (Γ)**, que subordina el caos estocástico de los Modelos de Lenguaje (LLMs) a la topología algebraica y la termodinámica computacional.
+Cualquier código o estrategia generada por la IA está confinada por cuatro barreras matemáticas concéntricas que impiden la inyección de lógica sin viabilidad dinámica, gobernadas por la nueva **Ley de Clausura Transitiva de la pirámide paralela**:
+$$V_{\Gamma-PHYSICS} \subset V_{\Gamma-TACTICS} \subset V_{\Gamma-STRATEGY} \subset V_{\Gamma-WISDOM}$$
+
+Es fundamental explicitar que el estrato $V_{TACTICS}$ ahora modela la materia bariónica sobre el anillo de los enteros ($\mathbb{Z}$), sujetando la logística a una fricción cuantizada.
 
 🌊 Estrato 3: El Foso Termodinámico (Física y Datos)
 Ningún dato penetra en la variedad sin someterse a las leyes de la termodinámica y el electromagnetismo.
