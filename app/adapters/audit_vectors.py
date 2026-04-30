@@ -595,7 +595,9 @@ def _compute_connectivity_ratio(
     # Sigmoide centrada en ratio=1
     # k=3 da buena discriminación: κ(0.5) ≈ 0.18, κ(1.5) ≈ 0.82
     k = 3.0
-    kappa = 1.0 / (1.0 + np.exp(-k * (ratio - 1.0)))
+    # Clamping del exponente para evitar FPU underflows (np.exp)
+    exponent = np.clip(-k * (ratio - 1.0), -700.0, 700.0)
+    kappa = 1.0 / (1.0 + np.exp(exponent))
     
     return float(kappa)
 

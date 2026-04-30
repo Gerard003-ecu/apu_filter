@@ -2769,17 +2769,20 @@ class TestPropertyMahalanobisPositivity:
         assume(np.all(d > 0) and np.all(np.isfinite(dv)) and weight > 0)
 
         try:
-            mt = MetricTensor(d, validate=True)
-            spec = SubspaceSpec("t", slice(0, n), weight, np.zeros(n), metric=mt)
-            threat = spec.compute_threat(dv)
-            # Fórmula analítica: √(max(Σ d·δ², 0)) para robustez numérica
-            quad_form = float(np.sum(d * dv * dv))
-            manual = weight * float(np.sqrt(max(quad_form, 0.0)))
+            import warnings
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=RuntimeWarning, message="underflow encountered in multiply")
+                mt = MetricTensor(d, validate=True)
+                spec = SubspaceSpec("t", slice(0, n), weight, np.zeros(n), metric=mt)
+                threat = spec.compute_threat(dv)
+                # Fórmula analítica: √(max(Σ d·δ², 0)) para robustez numérica
+                quad_form = float(np.sum(d * dv * dv))
+                manual = weight * float(np.sqrt(max(quad_form, 0.0)))
 
-            if np.isfinite(manual) and np.isfinite(threat):
-                assert threat == pytest.approx(manual, rel=1e-8, abs=1e-14), (
-                    f"Fórmula violada: threat={threat:.4e} ≠ {manual:.4e}"
-                )
+                if np.isfinite(manual) and np.isfinite(threat):
+                    assert threat == pytest.approx(manual, rel=1e-8, abs=1e-14), (
+                        f"Fórmula violada: threat={threat:.4e} ≠ {manual:.4e}"
+                    )
         except (MetricTensorError, DimensionalMismatchError, ValueError):
             pass
 
@@ -2948,17 +2951,20 @@ class TestPropertyQuadraticFormPositivity:
         assume(np.all(d > 0) and np.all(np.isfinite(v_arr)) and np.isfinite(alpha))
 
         try:
-            mt = MetricTensor(d, validate=True)
-            qf_v = mt.quadratic_form(v_arr)
-            qf_av = mt.quadratic_form(alpha * v_arr)
-            expected = alpha ** 2 * qf_v
+            import warnings
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=RuntimeWarning, message="underflow encountered in multiply")
+                mt = MetricTensor(d, validate=True)
+                qf_v = mt.quadratic_form(v_arr)
+                qf_av = mt.quadratic_form(alpha * v_arr)
+                expected = alpha ** 2 * qf_v
 
-            # Solo verificar si no hay overflow
-            if np.isfinite(expected) and np.isfinite(qf_av):
-                assert qf_av == pytest.approx(expected, rel=1e-8, abs=1e-14), (
-                    f"Homogeneidad violada: (αv)ᵀG(αv)={qf_av:.4e} ≠ "
-                    f"α²·vᵀGv={expected:.4e} (α={alpha:.2f})"
-                )
+                # Solo verificar si no hay overflow
+                if np.isfinite(expected) and np.isfinite(qf_av):
+                    assert qf_av == pytest.approx(expected, rel=1e-8, abs=1e-14), (
+                        f"Homogeneidad violada: (αv)ᵀG(αv)={qf_av:.4e} ≠ "
+                        f"α²·vᵀGv={expected:.4e} (α={alpha:.2f})"
+                    )
         except (MetricTensorError, ValueError):
             pass
 

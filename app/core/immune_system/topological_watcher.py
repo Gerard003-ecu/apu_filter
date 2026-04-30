@@ -873,11 +873,14 @@ class MetricTensor:
         -------
         float ≥ 0 (clampeado para absorber error numérico).
         """
-        if self._is_diagonal:
-            # Σᵢ dᵢ vᵢ²: más eficiente que v @ diag(d) @ v
-            result = float(np.dot(self._matrix * v, v))
-        else:
-            result = float(v @ self._matrix @ v)
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=RuntimeWarning, message="underflow encountered in multiply")
+            if self._is_diagonal:
+                # Σᵢ dᵢ vᵢ²: más eficiente que v @ diag(d) @ v
+                result = float(np.dot(self._matrix * v, v))
+            else:
+                result = float(v @ self._matrix @ v)
 
         # CORRECCIÓN N5: clamping para absorber errores numéricos sub-epsilon
         return max(result, 0.0)

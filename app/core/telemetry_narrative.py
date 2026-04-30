@@ -783,8 +783,12 @@ class TelemetryNarrator:
         """Helper to fetch narrative from MIC."""
         # Restablece la Ley de Clausura Transitiva: se inyecta un contexto de validación
         # completo en lugar de utilizar force_physics_override (Prohibido en WISDOM).
-        # Usamos valores enteros para máxima robustez contra discrepancias de clases Enum.
-        lawful_context = {"validated_strata": [0, 1, 2, 3, 4, 5]}
+        lawful_context = {
+            "validated_strata": frozenset([
+                Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY,
+                Stratum.OMEGA, Stratum.ALPHA, Stratum.WISDOM
+            ])
+        }
 
         response = self.mic.project_intent(
             service_name="fetch_narrative",
