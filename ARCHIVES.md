@@ -52,11 +52,12 @@ Estructura del Acta: Expone la tensión dialéctica donde la matemática colapsa
 4. 🛡️ La Bitácora de Gobernanza (Compliance Ledger)
 
     Fuente: Generado por el GovernanceEngine bajo un ecosistema de Gobernanza Federada.
-    Concepto: Un registro de auditoría inmutable basado en el paradigma de Política como Código (Policy-as-Code). Se documenta el mecanismo de aniquilación topológica en la RAM.
+    Concepto: Un registro de auditoría inmutable basado en el paradigma de Política como Código (Policy-as-Code). Se documenta el mecanismo de aniquilación topológica en la RAM y las resoluciones del Haz Γ.
 
 Atributos de Auditoría:
 
-    Fotón Gamma de Auditoría: La Bitácora registrará inmutablemente la emisión del Fotón Gamma, desencadenada por una Ruptura de Simetría Exógena. Almacena el `data_hash` y el `timestamp_entry` exactos, probando criptográficamente que la colisión de invalidación (aniquilación de un ElectronCartridge en memoria) fue ejecutada por el libre albedrío del Meta-Controlador (human-in-the-loop) y no por una alucinación estocástica de un agente.
+    Resoluciones del sheaf_cohomology_orchestrator: Registra formalmente los vetos emitidos por holonomía estratégica ($H^1 > 0$).
+    Fotón Gamma de Auditoría: La Bitácora registrará inmutablemente la emisión del Fotón Gamma, desencadenada por una Ruptura de Simetría Exógena. Almacena el `data_hash` y el `timestamp_entry` exactos, probando criptographically que la colisión de invalidación (aniquilación de un ElectronCartridge en memoria) fue ejecutada por el libre albedrío del Meta-Controlador (human-in-the-loop) y no por una alucinación estocástica de un agente.
     Contratos de Datos Estrictos: Verifica mediante JSON Schema si las importaciones crudas (ej. Insumos.csv) cumplen con la estructura formal (VPHYSICS​) dictada por la oficina central de la compañía. Genera un sello de Pass/Fail inquebrantable.
     Traza de Linaje (OpenLineage): Mapeo topológico completo de las transformaciones del dato. Rastrea desde la ingesta cruda del flujo hasta el cálculo de los KPIs. Garantiza que el agente de IA no ha alucinado ni "inventado" ningún número.
 
@@ -66,7 +67,7 @@ Atributos de Auditoría:
 
     Fuente: Generado por la estructura ciber-física (`telemetry.h` en el ESP32, `app/core/telemetry.py` y `telemetry_schemas.py` en la nube).
     Concepto: Es la Cadena de Custodia Inmutable de la información. Actúa como el Gemelo Digital transaccional, bloqueado irreversiblemente mediante hashes criptográficos en cada transición de fase a lo largo de la variedad diferenciable.
-    La Ley de Clausura Transitiva Axiomática: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$. El Pasabordo almacena las métricas de todos los estratos y exige que la sabiduría dependa ineludiblemente de la física subyacente. Por contrato matemático de difeomorfismo estricto, el sistema aborta de facto la emisión de un Acta de Deliberación si los sellos criptográficos del estrato Físico (ej. Energía disipada $P_{diss} < 0$, u anomalías termodinámicas) se encuentran comprometidos o rotos.
+    La Ley de Clausura Transitiva Axiomática: $V_{\Gamma-PHYSICS} \subset V_{\Gamma-TACTICS} \subset V_{\Gamma-STRATEGY} \subset V_{\Gamma-WISDOM}$. El Pasabordo almacena las métricas de todos los estratos, incluyendo el Haz Tangente Generativo, y exige que la sabiduría dependa ineludiblemente de la física subyacente. Por contrato matemático de difeomorfismo estricto, el sistema aborta de facto la emisión de un Acta de Deliberación si los sellos criptográficos del estrato Físico (ej. Energía disipada $P_{diss} < 0$, u anomalías termodinámicas) o los invariantes del Haz Γ presentan singularidades Jacobianas o rompen la Ley de Clausura Transitiva.
 
 
 --------------------------------------------------------------------------------

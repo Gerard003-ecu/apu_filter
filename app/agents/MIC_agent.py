@@ -82,7 +82,7 @@ from typing import (
 )
 
 from app.core.schemas import Stratum
-from app.core.immune_system.calibration.sheaf_cohomology_orchestrator import (
+from app.boole.strategy.sheaf_cohomology_orchestrator import (
     SheafCohomologyOrchestrator,
     HomologicalInconsistencyError,
     SpectralComputationError,

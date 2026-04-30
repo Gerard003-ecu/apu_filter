@@ -22,6 +22,7 @@ Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta 
 | **Fricción Cuantizada sobre $\mathbb{Z}$ ($Tor(H_0, \mathbb{Z}) > 0$)** | "Incompatibilidad discreta de empaque." | **"El fluido no es líquido, es sólido:"** "Se ha detectado una fricción cuantizada residual inevitable por el cruce de submúltiplos de APUs; el exceso generará sobrecostos por desperdicio de materiales que no se pueden fraccionar." |
 | **Resonancia Fuerte de Rabi (Polaritón)** | "Atasco absorbido por política de contingencia." | **"La Ola Verde Sincronizada:"** "El retraso severo (Polarón) logístico detectado fue envuelto exitosamente por el Fotón de Gobernanza, permitiendo al sistema fluir con cero fricción corporativa a través del presupuesto." |
 | **Acoplamiento Viscoelástico de Fröhlich ($\alpha \to \infty$)** | "El riesgo se ha acoplado termodinámicamente a la inercia del negocio." | **"La Avalancha de Retrasos:"** "Un proveedor local ha generado un sumidero gravitacional que afectará la latencia global. El retraso ya no es local, sino que compromete la red entera." |
+| **Compactificación de Alexandroff** | "Singularidad estocástica proyectada al infinito." | **"Veto Ontológico:"** "La estrategia sugerida por la IA ha divergido hacia una entropía sintáctica infinita (S→∞). El agente ha intentado proponer una solución estocástica inestable, rechazada por política Zero-Trust." |
 
 
 --------------------------------------------------------------------------------

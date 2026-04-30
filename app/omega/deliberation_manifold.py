@@ -57,7 +57,7 @@ from typing import Any, Dict, FrozenSet, List, Mapping, Optional, Tuple
 from app.core.mic_algebra import CategoricalState, Morphism
 from app.core.schemas import Stratum
 from app.wisdom.semantic_translator import VerdictLevel
-from app.core.immune_system.calibration.sheaf_cohomology_orchestrator import (
+from app.boole.strategy.sheaf_cohomology_orchestrator import (
     HomologicalInconsistencyError,
     SheafCohomologyOrchestrator,
     SheafDegeneracyError,

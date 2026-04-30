@@ -1,14 +1,18 @@
 [tool.pytest.ini_options]
 pythonpath = "."
 markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: integration tests",
-    "categorical: categorical state tests",
-    "order_theory: order theory tests",
-    "unit: unit tests",
+    "unit: Pruebas unitarias de funtores individuales (aislamiento estricto).",
+    "integration: Pruebas de integración del pipeline completo (cohomología y funtores compuestos).",
+    "stress: Casos adversariales bajo perturbaciones extremas (ruido de Cauchy, vuelos de Lévy).",
+    "slow: Pruebas de convergencia asintótica y Monte Carlo que exigen alto tiempo computacional.",
+    "categorical: Validación de axiomas de teoría de categorías (funtorialidad, adjunción).",
+    "order_theory: Verificación de cadenas y retículos en la jerarquía DIKΩαW.",
+    "physics: Evaluación del estrato base y ecuaciones de Maxwell discretizadas.",
+    "tactics: Evaluación de topología algebraica, homología y números de Betti.",
+    "strategy: Evaluación de teoría espectral de grafos y espacios de probabilidad.",
+    "wisdom: Evaluación de difeomorfismos semánticos y colapso de retículos de veredictos.",
     "algebraic: algebraic tests",
     "regression: regression tests",
-    "stress: stress tests",
     "concurrent: concurrent tests",
     "edge_cases: edge case tests",
 ]
@@ -16,6 +20,7 @@ filterwarnings = [
     "ignore:builtin type SwigPy.*:DeprecationWarning",
     "ignore:builtin type swigvarlink.*:DeprecationWarning",
     "ignore:The 'use_signer' option is deprecated:DeprecationWarning:flask_session.*",
+    "error::RuntimeWarning",
 ]
 
 [tool.ruff]

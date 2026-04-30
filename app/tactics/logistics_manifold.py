@@ -1040,19 +1040,45 @@ class LogisticsManifold(Morphism):
         # Integramos usando BDF para asegurar L-estabilidad
         t_span = (0.0, 100.0) # Tiempo virtual suficiente para relajar
 
+        def jacobian(t: float, y: np.ndarray) -> np.ndarray:
+            """Jacobiano analítico aproximado para evitar underflow por diferencias finitas."""
+            J = np.zeros((n, n), dtype=float)
+            if y[target_idx] >= 0.99:
+                return J
+            for i in range(n):
+                if i == target_idx:
+                    continue
+                for j in range(n):
+                    if A[i, j] > 0:
+                        grad = y[i] - y[j]
+                        critical_gradient = 0.5
+                        C_eff = A[i, j] * np.exp(-max(0, abs(grad) - critical_gradient))
+                        # Aproximación del Jacobiano considerando p=3
+                        dflux_dyi = C_eff * (p - 1) * (abs(grad)**(p - 2))
+                        J[i, i] -= dflux_dyi
+                        J[i, j] += dflux_dyi
+                        J[j, i] += dflux_dyi
+                        J[j, j] -= dflux_dyi
+            return J
+
         try:
-            # Patch time if testing mock dynamic stress
-            # Using BDF is crucial here for Stiff ODEs and damping
-            sol = spi.solve_ivp(
-                flow_dynamics,
-                t_span,
-                y0,
-                method='BDF',
-                rtol=1e-3,
-                atol=1e-6,
-                dense_output=True,
-                max_step=0.5 # Limitar paso para observar trayectoria
-            )
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=RuntimeWarning)
+                # Patch time if testing mock dynamic stress
+                # Using BDF is crucial here for Stiff ODEs and damping
+                sol = spi.solve_ivp(
+                    flow_dynamics,
+                    t_span,
+                    y0,
+                    method='BDF',
+                    jac=jacobian,
+                    rtol=1e-3,
+                    atol=1e-6,
+                    dense_output=True,
+                    max_step=0.5, # Limitar paso para observar trayectoria
+                    first_step=1e-3
+                )
         except Exception as e:
             raise ValueError(f"Fallo en integrador BDF de geodésica: {e}")
 

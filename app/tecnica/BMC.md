@@ -36,11 +36,7 @@ De la "Caja Negra" a la Confianza Radical:
 
 5. 💵 Fuentes de Ingresos (Revenue Streams)
 
-    Pricing Dinámico por Entropía Topológica: El modelo de monetización abandona el licenciamiento clásico por usuario. Se cobra con base en la **Característica de Euler-Poincaré Extendida** del presupuesto como 2-complejo simplicial:
-    $$\chi(K) = \beta_0 - \beta_1 + \beta_2$$
-    donde $\beta_2 > 0$ diagnostica cavidades ternarias (interdependencias trilaterales irresolubles). El "peaje termodinámico" es proporcional a:
-    $$\text{Tarifa} \propto |\chi| \cdot \mathbf{1}[\chi < 0] + \beta_2 \cdot \kappa_2$$
-    donde $\kappa_2$ es el coeficiente de penalización por cavidad ternaria. Esta fórmula reemplaza la versión reducida $\chi = \beta_0 - \beta_1$ (válida solo para 1-complejos).
+    Pricing Dinámico por Entropía Topológica: El modelo de monetización abandona el licenciamiento clásico por usuario. Se cobra con base en la **Característica de Euler-Poincaré Extendida** del presupuesto como 2-complejo simplicial ($\chi(K) = \beta_0 - \beta_1 + \beta_2$) y la validación de código generado. El "peaje termodinámico" escala proporcionalmente al volumen de entropía generativa colapsada y al Defecto de Euler evitado. El uso de proyectores simplécticos y cohomología para curar alucinaciones de la IA se capitaliza como un activo de "Certeza de Generación".
     Estabilidad Espectral y Retorno Seguro: Evalúa el flujo de caja en el plano de frecuencia compleja ($s = \sigma + j\omega$). Exige Estabilidad Asintótica BIBO (polos en el semiplano izquierdo, $\sigma < 0$) y multiplicadores de Floquet $|\mu_k| < 1 \; \forall k$. El Exponente Máximo de Lyapunov previene el caos determinísta, activando un "Crowbar Físico" en el hardware perimetral si el sistema diverge (implementado en `app/physics/laplace_oracle.py`).
     Suscripción a la Malla Agéntica (SaaS/On-Premise): Planes escalonados para CDOs basados en el volumen de procesamiento termodinámico de la base de datos y la orquestación del Agentic Mesh.
 
