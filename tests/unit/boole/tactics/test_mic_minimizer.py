@@ -45,7 +45,6 @@ from app.boole.tactics.mic_minimizer import (
     BooleanVector,
     Tool,
     ImplicantTerm,
-    UnionFind,
     QuineMcCluskeyMinimizer,
     TopologicalInvariantComputer,
     MICRedundancyAnalyzer,
