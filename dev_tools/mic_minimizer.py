@@ -440,80 +440,71 @@ class ImplicantTerm:
 
 
 # ========================================================================================
-# UNION-FIND OPTIMIZADO (para componentes conexas)
+# ANÁLISIS TOPOLÓGICO: INVARIANTES Y HOMOLOGÍA
 # ========================================================================================
 
-class UnionFind:
+class TopologicalInvariantComputer:
     """
-    Estructura de datos Union-Find con path compression y union by rank.
-    
-    Complejidad: O(α(n)) amortizado, donde α es la inversa de Ackermann.
-    
-    Aplicación: detección eficiente de componentes conexas.
+    Computador de invariantes topológicos para complejos cuboidales.
+    Aplica el Teorema del Nervio y el principio de inclusión-exclusión para garantizar
+    la invariancia de la característica de Euler bajo transformaciones categóricas.
     """
-    
-    def __init__(self, n: int):
-        """
-        Inicializa n conjuntos disjuntos.
-        
-        Args:
-            n: Número de elementos
-        """
-        self.parent = list(range(n))
-        self.rank = [0] * n
-        self.size = [1] * n
-        self.num_components = n
 
-    def find(self, x: int) -> int:
+    @staticmethod
+    def _intersect_patterns(p1: str, p2: str) -> Optional[str]:
         """
-        Encuentra representante con path compression.
-        
-        Complejidad: O(α(n)) amortizado
+        Calcula la intersección de dos hipercubos definidos por sus patrones.
+        Retorna el patrón resultante o None si la intersección es vacía.
         """
-        if self.parent[x] != x:
-            self.parent[x] = self.find(self.parent[x])  # Path compression
-        return self.parent[x]
+        res = []
+        for c1, c2 in zip(p1, p2):
+            if c1 == c2:
+                res.append(c1)
+            elif c1 == '-':
+                res.append(c2)
+            elif c2 == '-':
+                res.append(c1)
+            else:
+                return None
+        return "".join(res)
 
-    def union(self, x: int, y: int) -> bool:
+    def compute_euler_characteristic(self, implicants: List[ImplicantTerm]) -> int:
         """
-        Une dos conjuntos con union by rank.
-        
-        Returns:
-            True si se realizó la unión, False si ya estaban unidos
+        Calcula χ aplicando la fórmula de Euler-Poincaré sobre el Complejo de Cech.
+        Aplica el principio de inclusión-exclusión sobre los hipercubos para preservar
+        el invariante topológico original bajo la deformación Quine-McCluskey.
         """
-        root_x, root_y = self.find(x), self.find(y)
-        
-        if root_x == root_y:
-            return False
-        
-        # Union by rank
-        if self.rank[root_x] < self.rank[root_y]:
-            root_x, root_y = root_y, root_x
-        
-        self.parent[root_y] = root_x
-        self.size[root_x] += self.size[root_y]
-        
-        if self.rank[root_x] == self.rank[root_y]:
-            self.rank[root_x] += 1
-        
-        self.num_components -= 1
-        return True
+        patterns = [imp.pattern for imp in implicants]
+        n = len(patterns)
+        if n == 0:
+            return 0
 
-    def get_components(self) -> List[List[int]]:
-        """
-        Obtiene todas las componentes conexas.
-        
-        Returns:
-            Lista de listas de índices
-        """
-        components = defaultdict(list)
-        for i in range(len(self.parent)):
-            components[self.find(i)].append(i)
-        return list(components.values())
+        chi = 0
+        from itertools import combinations
+
+        # El Teorema del Nervio garantiza que la característica de Euler de la unión
+        # es igual a la característica de Euler del complejo del nervio.
+        # χ(U) = Σ χ(Ai) - Σ χ(Ai ∩ Aj) + Σ χ(Ai ∩ Aj ∩ Ak) - ...
+        # Como cada intersección no vacía de hipercubos es contraíble, χ(intersección) = 1.
+
+        for r in range(1, n + 1):
+            sign = (-1)**(r - 1)
+            count_non_empty = 0
+            for combo in combinations(patterns, r):
+                inter = combo[0]
+                for i in range(1, len(combo)):
+                    inter = self._intersect_patterns(inter, combo[i])
+                    if inter is None:
+                        break
+                if inter is not None:
+                    count_non_empty += 1
+            chi += sign * count_non_empty
+
+        return chi
 
 
 # ========================================================================================
-# ALGORITMO DE QUINE-MCCLUSKEY CORREGIDO Y OPTIMIZADO
+# ALGORITMO DE QUINE-MCCLUSKEY MEJORADO
 # ========================================================================================
 
 class QuineMcCluskeyMinimizer:
@@ -1298,16 +1289,14 @@ class MICRedundancyAnalyzer:
         logger.info("\n[FASE 5] Minimización Booleana (Quine-McCluskey)")
         logger.info("-" * 80)
         
-        # Extraer minitérminos
-        minterms = [tool.capabilities.to_minterm() for tool in self.tools]
-        unique_minterms = sorted(set(minterms))
-        
-        redundancy_rate = 1 - len(unique_minterms) / len(self.tools) if self.tools else 0
-        logger.info(f"Minitérminos únicos: {len(unique_minterms)}/{len(self.tools)}")
-        logger.info(f"Tasa de redundancia: {redundancy_rate:.1%}")
-        
-        # Calcular implicantes primos
-        prime_implicants = self.minimizer.compute_prime_implicants(unique_minterms)
+        tic = TopologicalInvariantComputer()
+        chi = tic.compute_euler_characteristic(list(prime_implicants))
+
+        logger.info(f"Rango espectral: {spectral_rank}")
+        logger.info(f"Característica de Euler (χ): {chi}")
+        logger.info(f"Dependencias lineales detectadas: {len(dependencies)}")
+        logger.info(f"H_0 (componentes conexas): {homology['H_0']}")
+        logger.info(f"H_1 (ciclos de redundancia): {homology['H_1']}")
         
         # Encontrar esenciales
         essential_impls, covered_by_essential = \
@@ -1411,26 +1400,14 @@ class MICRedundancyAnalyzer:
 
         # ===== RESULTADO COMPLETO =====
         return {
-            'essential_tools': sorted(essential_tools),
-            'redundant_tools': sorted(redundant_tools),
-            'prime_implicants': [impl.pattern for impl in 
-                                sorted(prime_implicants, key=lambda x: x.pattern)],
-            'minimal_cover': [impl.pattern for impl in 
-                            sorted(minimal_cover, key=lambda x: x.pattern)],
-            'spectral_properties': spectral_props,
-            'linear_dependencies': dependencies,
-            'homology': homology,
-            'incidence_matrix': incidence_matrix.tolist(),
-            'recommendations': recommendations,
-            'statistics': {
-                'total_tools': len(self.tools),
-                'essential_count': len(essential_tools),
-                'redundant_count': len(redundant_tools),
-                'reduction_rate': redundancy_rate,
-                'spectral_rank': spectral_props['rank'],
-                'betti_numbers': homology['betti_numbers']
-            },
-            'status': 'success'
+            "essential_tools": sorted(essential_tools),
+            "redundant_tools": sorted(redundant_tools),
+            "prime_implicants": [imp.pattern for imp in sorted(prime_implicants, key=lambda x: x.pattern)],
+            "minimal_cover": [imp.pattern for imp in sorted(minimal_cover, key=lambda x: x.pattern)],
+            "spectral_rank": spectral_rank,
+            "euler_characteristic": chi,
+            "homology": homology,
+            "incidence_matrix": incidence_matrix.tolist()
         }
 
 
