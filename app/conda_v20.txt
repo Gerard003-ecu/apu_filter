@@ -1,0 +1,462 @@
+=================================== FAILURES ===================================
+_____ TestAdvancedComparativeAnalysis.test_normalized_performance_metrics ______
+
+self = <test_KP_narrative_semantic.TestAdvancedComparativeAnalysis object at 0x7ea6ce95abc0>
+narrator = <app.core.telemetry_narrative.TelemetryNarrator object at 0x7ea6aa323c40>
+translator = <app.wisdom.semantic_translator.SemanticTranslator object at 0x7ea6aa322050>
+
+    def test_normalized_performance_metrics(self, narrator: TelemetryNarrator, translator: SemanticTranslator):
+        """
+        Métricas de rendimiento normalizadas para comparación justa.
+        """
+        # Definir unidad de trabajo estándar
+        STANDARD_UNIT = {
+            "narrator": {"spans": 100, "depth": 2, "metrics": 10},
+            "translator": {"topology_complexity": 1.0, "financial_items": 5}
+        }
+    
+        # Medir narrator por unidad de trabajo
+        context = create_test_context(
+            num_spans=STANDARD_UNIT["narrator"]["spans"],
+            span_depth=STANDARD_UNIT["narrator"]["depth"],
+            num_metrics=STANDARD_UNIT["narrator"]["metrics"]
+        )
+    
+        narrator_times = []
+        for _ in range(50):
+            start = time.perf_counter_ns()
+            _ = narrator.summarize_execution(context)
+            narrator_times.append((time.perf_counter_ns() - start) / 1_000_000)
+    
+        narrator_perf = {
+            "mean_ms": np.mean(narrator_times),
+            "std_ms": np.std(narrator_times),
+            "throughput_ups": 1000 / np.mean(narrator_times) if np.mean(narrator_times) > 0 else 0,
+            "efficiency": STANDARD_UNIT["narrator"]["spans"] / np.mean(narrator_times)
+        }
+    
+        # Medir translator por unidad de trabajo
+        translator_times = []
+        for _ in range(50):
+            start = time.perf_counter_ns()
+            _ = translator.compose_strategic_narrative(
+                topological_metrics=TopologicalMetrics(
+                    beta_0=int(STANDARD_UNIT["translator"]["topology_complexity"]),
+                    beta_1=0
+                ),
+                financial_metrics={
+                    "wacc": 0.12,
+                    "performance": {"recommendation": "ACEPTAR", "profitability_index": 1.3},
+                    "contingency": {"recommended": 15000.0}
+                },
+                stability=10.0
+            )
+            translator_times.append((time.perf_counter_ns() - start) / 1_000_000)
+    
+        translator_perf = {
+            "mean_ms": np.mean(translator_times),
+            "std_ms": np.std(translator_times),
+            "throughput_tps": 1000 / np.mean(translator_times) if np.mean(translator_times) > 0 else 0,
+            "efficiency": STANDARD_UNIT["translator"]["financial_items"] / np.mean(translator_times)
+        }
+    
+        # Métricas comparativas normalizadas
+        comparative_metrics = {
+            "speed_ratio": narrator_perf["mean_ms"] / translator_perf["mean_ms"],
+            "throughput_ratio": translator_perf["throughput_tps"] / narrator_perf["throughput_ups"],
+            "stability_ratio": narrator_perf["std_ms"] / translator_perf["std_ms"],
+            "efficiency_ratio": narrator_perf["efficiency"] / translator_perf["efficiency"],
+            "complexity_adjusted_score": (
+                narrator_perf["throughput_ups"] * STANDARD_UNIT["narrator"]["spans"] /
+                translator_perf["throughput_tps"] / STANDARD_UNIT["translator"]["financial_items"]
+            )
+        }
+    
+        # Verificaciones de equilibrio del sistema
+        assert 0.1 < comparative_metrics["speed_ratio"] < 10.0, \
+            f"Desbalance extremo en velocidad: {comparative_metrics['speed_ratio']:.2f}"
+    
+>       assert comparative_metrics["stability_ratio"] < 3.0, \
+            f"Desbalance en estabilidad: {comparative_metrics['stability_ratio']:.2f}"
+E       AssertionError: Desbalance en estabilidad: 3.15
+E       assert np.float64(3.152339753025563) < 3.0
+
+tests/unit/wisdom/test_KP_narrative_semantic.py:2088: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'structure_logic' [TACTICS]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+19:27:12 [SYSTEM] - INFO - ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+19:27:12 [SYSTEM] - WARNING - Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+19:27:12 [SYSTEM] - INFO - ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+19:27:12 [SYSTEM] - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'resolve_template' [WISDOM]
+19:27:12 [SYSTEM] - INFO - ✅ Diccionario semántico registrado
+19:27:12 [SYSTEM] - INFO - ✅ MIC inicializada con 9 vectores (dimensión=9)
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'structure_logic' [TACTICS]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+19:27:12 [SYSTEM] - INFO - ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+19:27:12 [SYSTEM] - WARNING - Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+19:27:12 [SYSTEM] - INFO - ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+19:27:12 [SYSTEM] - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+19:27:12 [SYSTEM] - INFO - Vector registrado: 'resolve_template' [WISDOM]
+19:27:12 [SYSTEM] - INFO - ✅ Diccionario semántico registrado
+19:27:12 [SYSTEM] - INFO - ✅ MIC inicializada con 9 vectores (dimensión=9)
+------------------------------ Captured log setup ------------------------------
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     app.omega.improbability_drive:improbability_drive.py:1229 ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+WARNING  MIC.Registry:tools_interface.py:2145 Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     MIC:tools_interface.py:2999 ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+INFO     SemanticDictionary:semantic_dictionary.py:1249 ✅ SemanticDictionaryService v2.0 initialized successfully
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'translate_semantic_term' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'resolve_template' [WISDOM]
+INFO     MIC:tools_interface.py:3007 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:3011 ✅ MIC inicializada con 9 vectores (dimensión=9)
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     app.omega.improbability_drive:improbability_drive.py:1229 ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+WARNING  MIC.Registry:tools_interface.py:2145 Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     MIC:tools_interface.py:2999 ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+INFO     SemanticDictionary:semantic_dictionary.py:1249 ✅ SemanticDictionaryService v2.0 initialized successfully
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'translate_semantic_term' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'resolve_template' [WISDOM]
+INFO     MIC:tools_interface.py:3007 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:3011 ✅ MIC inicializada con 9 vectores (dimensión=9)
+----------------------------- Captured stderr call -----------------------------
+19:27:12 [SYSTEM] - ERROR - Missing parameter in SPECTRAL_RESONANCE.safe: 'ratio'
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+19:27:12 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+------------------------------ Captured log call -------------------------------
+ERROR    SemanticDictionary:semantic_dictionary.py:1699 Missing parameter in SPECTRAL_RESONANCE.safe: 'ratio'
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+=============================== warnings summary ===============================
+app/adapters/tools_interface.py:1322
+  /home/gerardo/Documentos/GitHub/apu_filter/app/adapters/tools_interface.py:1322: DeprecationWarning: invalid escape sequence '\m'
+    """
+
+<unknown>:1322
+  <unknown>:1322: DeprecationWarning: invalid escape sequence '\m'
+
+tests/integration/dynamic_stress/test_ekf_divergence_under_non_newtonian_data_flux.py: 4 warnings
+tests/unit/physics/test_flux_condenser.py: 18 warnings
+tests/unit/physics/test_thermodynamics.py: 1 warning
+tests/unit/tactics/test_logistics_manifold.py: 5 warnings
+  /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/scipy/integrate/_ivp/bdf.py:313: RuntimeWarning: underflow encountered in nextafter
+    min_step = 10 * np.abs(np.nextafter(t, self.direction * np.inf) - t)
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.5810836778186077090914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0475671439072442090914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0368817227901740290914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0151884959589463530914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0047777343822062890914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0116901702120104890914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.3303031976587942090914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0213111385305014890914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0960935094122373290914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0083187165152800990914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0000821252583446450914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0632491858015903790914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.1610254065791538690914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.7983925652389668090914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0046926295927810230914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0158420076248105590914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0516355522485667490914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0135695517739942540914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0437185803925370590914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0959220293271790190914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0485504067544992290914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.5634901071640146090914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0082525635275136690914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0137834647308362130914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0214142804863360090914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0218559812189596790914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0130943496445915790914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.1617708095198460090914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py::TestDynamicPassivityLyapunovRigorous::test_lyapunov_exponent_and_dissipation_rigorous
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/integration/dynamic_stress/test_gamma_dynamic_ergodicity.py:375: RuntimeWarning: Pérdida de contracción: ρ(J) = 1.0624143952917131090914253197796521606570874493404 ≥ 1. Perturbación demasiado grande.
+    warnings.warn(
+
+tests/unit/core/immune_system/test_topological_watcher.py::TestPropertyMahalanobisPositivity::test_threat_always_nonnegative
+tests/unit/core/immune_system/test_topological_watcher.py::TestPropertyMahalanobisPositivity::test_threat_formula_diagonal_metric
+tests/unit/core/immune_system/test_topological_watcher.py::TestPropertyQuadraticFormPositivity::test_quadratic_form_nonnegative
+  /home/gerardo/Documentos/GitHub/apu_filter/app/core/immune_system/topological_watcher.py:878: RuntimeWarning: underflow encountered in multiply
+    result = float(np.dot(self._matrix * v, v))
+
+tests/unit/core/immune_system/test_topological_watcher.py::TestPropertyMahalanobisPositivity::test_threat_formula_diagonal_metric
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/immune_system/test_topological_watcher.py:2776: RuntimeWarning: underflow encountered in multiply
+    quad_form = float(np.sum(d * dv * dv))
+
+tests/unit/core/immune_system/test_topological_watcher.py::TestPropertyQuadraticFormPositivity::test_quadratic_form_homogeneity_degree_2
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/unit/core/immune_system/test_topological_watcher.py:2953: RuntimeWarning: underflow encountered in multiply
+    qf_av = mt.quadratic_form(alpha * v_arr)
+
+tests/unit/core/test_audit_vectors.py::TestMathematicalProperties::test_connectivity_bounds
+  /home/gerardo/Documentos/GitHub/apu_filter/app/adapters/audit_vectors.py:598: RuntimeWarning: underflow encountered in exp
+    kappa = 1.0 / (1.0 + np.exp(-k * (ratio - 1.0)))
+
+tests/unit/wisdom/test_KP_narrative_semantic.py::TestComplexityAnalysisRefined::test_memory_complexity_analysis
+  /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but tests/unit/wisdom/test_KP_narrative_semantic.py::TestComplexityAnalysisRefined::test_memory_complexity_analysis returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/unit/wisdom/test_KP_narrative_semantic.py::TestAmortizationAnalysis::test_amortized_cost_lattice_operations
+  /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but tests/unit/wisdom/test_KP_narrative_semantic.py::TestAmortizationAnalysis::test_amortized_cost_lattice_operations returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/unit/wisdom/test_KP_narrative_semantic.py::TestAmortizationAnalysis::test_caching_effectiveness_narrator
+  /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but tests/unit/wisdom/test_KP_narrative_semantic.py::TestAmortizationAnalysis::test_caching_effectiveness_narrator returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/unit/wisdom/test_KP_narrative_semantic.py::TestStochasticPerformanceAnalysis::test_performance_distribution_analysis
+  /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but tests/unit/wisdom/test_KP_narrative_semantic.py::TestStochasticPerformanceAnalysis::test_performance_distribution_analysis returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/unit/wisdom/test_KP_narrative_semantic.py::TestStochasticPerformanceAnalysis::test_monte_carlo_performance_simulation
+  /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but tests/unit/wisdom/test_KP_narrative_semantic.py::TestStochasticPerformanceAnalysis::test_monte_carlo_performance_simulation returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/unit/wisdom/test_KP_narrative_semantic.py::TestBoundaryAndEdgeCaseAnalysis::test_narrator_extreme_inputs
+  /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but tests/unit/wisdom/test_KP_narrative_semantic.py::TestBoundaryAndEdgeCaseAnalysis::test_narrator_extreme_inputs returned <class 'list'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/unit/wisdom/test_KP_narrative_semantic.py::TestBoundaryAndEdgeCaseAnalysis::test_translator_boundary_conditions
+  /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but tests/unit/wisdom/test_KP_narrative_semantic.py::TestBoundaryAndEdgeCaseAnalysis::test_translator_boundary_conditions returned <class 'list'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/unit/wisdom/test_KP_narrative_semantic.py::TestAdvancedComparativeAnalysis::test_scalability_comparison_matrix
+  /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but tests/unit/wisdom/test_KP_narrative_semantic.py::TestAdvancedComparativeAnalysis::test_scalability_comparison_matrix returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/unit/wisdom/test_KP_narrative_semantic.py::TestHeatAndLoadDistributionAnalysis::test_computational_heat_map_narrator
+  /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but tests/unit/wisdom/test_KP_narrative_semantic.py::TestHeatAndLoadDistributionAnalysis::test_computational_heat_map_narrator returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/wisdom/test_KP_narrative_semantic.py::TestAdvancedComparativeAnalysis::test_normalized_performance_metrics - AssertionError: Desbalance en estabilidad: 3.15
+assert np.float64(3.152339753025563) < 3.0
+===== 1 failed, 9851 passed, 15 skipped, 74 warnings in 138.31s (0:02:18) ======
