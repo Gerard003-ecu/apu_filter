@@ -31,13 +31,15 @@ EJECUCIÓN:
 =========================================================================================
 """
 
-import unittest
-import numpy as np
-from typing import Set, List, FrozenSet
-from contextlib import contextmanager
 import sys
 import io
 import logging
+import time
+from contextlib import contextmanager
+from typing import Set, List, FrozenSet
+
+import numpy as np
+import pytest
 
 # Importar módulo a testear
 from app.boole.tactics.mic_minimizer import (
@@ -49,7 +51,8 @@ from app.boole.tactics.mic_minimizer import (
     TopologicalInvariantComputer,
     MICRedundancyAnalyzer,
     validate_boolean_lattice_axioms,
-    HomologicalInconsistencyError
+    HomologicalInconsistencyError,
+    UnionFind
 )
 
 # Suprimir logs durante testing
@@ -66,53 +69,40 @@ MAX_COMPUTATION_TIME_S = 0.5
 # FIXTURES
 # ========================================================================================
 
-class TestBase(unittest.TestCase):
-    """Clase base con utilidades comunes para testing."""
-    
-    @contextmanager
-    def assertNotRaises(self, exc_type):
-        """Context manager que verifica que NO se lanza una excepción."""
-        try:
-            yield
-        except exc_type as e:
-            self.fail(f"Se lanzó {exc_type.__name__} inesperadamente: {e}")
-    
-    def assertSetEqual(self, set1, set2, msg=None):
-        """Compara conjuntos con mensaje detallado."""
-        if set1 != set2:
-            diff1 = set1 - set2
-            diff2 = set2 - set1
-            custom_msg = f"\nConjuntos diferentes:\n  En set1 pero no en set2: {diff1}\n  En set2 pero no en set1: {diff2}"
-            if msg:
-                custom_msg = f"{msg}\n{custom_msg}"
-            self.fail(custom_msg)
-    
-    def assertMatrixEqual(self, matrix1, matrix2, msg=None):
-        """Compara matrices numpy."""
-        np.testing.assert_array_equal(matrix1, matrix2, err_msg=msg)
-    
-    def assertMatrixAlmostEqual(self, matrix1, matrix2, decimal=7, msg=None):
-        """Compara matrices numpy con tolerancia."""
-        np.testing.assert_array_almost_equal(matrix1, matrix2, decimal=decimal, err_msg=msg)
+@pytest.fixture
+def analyzer():
+    """Fixture que proporciona un analizador de redundancia."""
+    return MICRedundancyAnalyzer()
 
+@pytest.fixture
+def boolean_vectors():
+    """Fixture que proporciona vectores booleanos de prueba."""
+    class Vectors:
+        def __init__(self):
+            self.empty = BooleanVector(frozenset())
+            self.v1 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+            self.v2 = BooleanVector(frozenset([CapabilityDimension.PHYS_NUM]))
+            self.v3 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO, CapabilityDimension.PHYS_NUM]))
+            self.v_all = BooleanVector(frozenset(CapabilityDimension))
+    return Vectors()
 
 # ========================================================================================
 # TESTS: CapabilityDimension
 # ========================================================================================
 
-class TestCapabilityDimension(TestBase):
+class TestCapabilityDimension:
     """Tests para la enumeración CapabilityDimension."""
     
     def test_all_dimensions_exist(self):
         """Verifica que todas las dimensiones esperadas existen."""
         expected = {'PHYS_IO', 'PHYS_NUM', 'TACT_TOPO', 'STRAT_FIN', 'WIS_SEM'}
         actual = {dim.name for dim in CapabilityDimension}
-        self.assertEqual(expected, actual)
+        assert expected == actual
     
     def test_dimension_values_sequential(self):
         """Verifica que los valores son secuenciales comenzando en 0."""
         values = [dim.value for dim in CapabilityDimension]
-        self.assertEqual(values, list(range(len(CapabilityDimension))))
+        assert values == list(range(len(CapabilityDimension)))
     
     def test_ordering_is_total(self):
         """Verifica que el ordenamiento es total y transitivo."""
@@ -120,85 +110,77 @@ class TestCapabilityDimension(TestBase):
         
         # Reflexividad
         for d in dims:
-            self.assertFalse(d < d)
+            assert not (d < d)
         
         # Antisimetría
         for i, d1 in enumerate(dims):
             for j, d2 in enumerate(dims):
                 if i < j:
-                    self.assertTrue(d1 < d2)
-                    self.assertFalse(d2 < d1)
+                    assert d1 < d2
+                    assert not (d2 < d1)
         
         # Transitividad
         for d1 in dims:
             for d2 in dims:
                 for d3 in dims:
                     if d1 < d2 and d2 < d3:
-                        self.assertTrue(d1 < d3)
+                        assert d1 < d3
     
     def test_ordering_consistency_with_value(self):
         """El orden < debe ser consistente con el valor numérico."""
         dims = list(CapabilityDimension)
         for d1 in dims:
             for d2 in dims:
-                self.assertEqual(d1 < d2, d1.value < d2.value)
+                assert (d1 < d2) == (d1.value < d2.value)
 
 
 # ========================================================================================
 # TESTS: BooleanVector
 # ========================================================================================
 
-class TestBooleanVector(TestBase):
+class TestBooleanVector:
     """Tests para la clase BooleanVector."""
     
-    def setUp(self):
-        """Configuración de vectores de prueba."""
-        self.empty = BooleanVector(frozenset())
-        self.v1 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
-        self.v2 = BooleanVector(frozenset([CapabilityDimension.PHYS_NUM]))
-        self.v3 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO, CapabilityDimension.PHYS_NUM]))
-        self.v_all = BooleanVector(frozenset(CapabilityDimension))
-    
-    def test_immutability(self):
+    def test_immutability(self, boolean_vectors):
         """Los BooleanVector deben ser inmutables."""
-        with self.assertRaises(AttributeError):
-            self.v1.components = frozenset([CapabilityDimension.PHYS_NUM])
+        with pytest.raises(AttributeError):
+            boolean_vectors.v1.components = frozenset([CapabilityDimension.PHYS_NUM])
     
-    def test_hashability(self):
+    def test_hashability(self, boolean_vectors):
         """Los BooleanVector deben ser hasheables."""
         v1_copy = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
         
         # Mismo contenido → mismo hash
-        self.assertEqual(hash(self.v1), hash(v1_copy))
+        assert hash(boolean_vectors.v1) == hash(v1_copy)
         
         # Se pueden usar en sets
-        s = {self.v1, self.v2, v1_copy}
-        self.assertEqual(len(s), 2)  # v1 y v1_copy son iguales
+        s = {boolean_vectors.v1, boolean_vectors.v2, v1_copy}
+        assert len(s) == 2  # v1 y v1_copy son iguales
         
         # Se pueden usar como claves de diccionario
-        d = {self.v1: "value1", self.v2: "value2"}
-        self.assertEqual(d[v1_copy], "value1")
+        d = {boolean_vectors.v1: "value1", boolean_vectors.v2: "value2"}
+        assert d[v1_copy] == "value1"
     
-    def test_equality(self):
+    def test_equality(self, boolean_vectors):
         """Igualdad basada en componentes."""
         v1_copy = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
         
-        self.assertEqual(self.v1, v1_copy)
-        self.assertNotEqual(self.v1, self.v2)
-        self.assertNotEqual(self.v1, self.v3)
+        assert boolean_vectors.v1 == v1_copy
+        assert boolean_vectors.v1 != boolean_vectors.v2
+        assert boolean_vectors.v1 != boolean_vectors.v3
     
-    def test_ordering_total(self):
+    def test_ordering_total(self, boolean_vectors):
         """El ordenamiento debe ser total."""
-        vectors = [self.empty, self.v1, self.v2, self.v3]
+        vectors = [boolean_vectors.empty, boolean_vectors.v1, boolean_vectors.v2, boolean_vectors.v3]
         
         # Debe ser posible ordenar
         sorted_vectors = sorted(vectors)
-        self.assertEqual(len(sorted_vectors), 4)
+        assert len(sorted_vectors) == 4
         
         # Debe ser determinista
-        self.assertEqual(sorted(vectors), sorted(vectors))
+        assert sorted(vectors) == sorted(vectors)
     
-    def test_from_minterm(self):
+    def test_from_minterm(self, boolean_vectors):
         """Construcción desde minitérmino."""
         # 0b101 = 5 → bits 0 y 2 activos
         v = BooleanVector.from_minterm(5, 5)
@@ -206,189 +188,189 @@ class TestBooleanVector(TestBase):
             CapabilityDimension.PHYS_IO,    # bit 0
             CapabilityDimension.TACT_TOPO   # bit 2
         ]))
-        self.assertEqual(v, expected)
+        assert v == expected
         
         # Caso especial: 0
         v_zero = BooleanVector.from_minterm(0, 5)
-        self.assertEqual(v_zero, self.empty)
+        assert v_zero == boolean_vectors.empty
         
         # Caso especial: todos los bits
         v_all = BooleanVector.from_minterm((1 << 5) - 1, 5)
-        self.assertEqual(v_all.hamming_weight(), 5)
+        assert v_all.hamming_weight() == 5
     
     def test_from_minterm_validation(self):
         """Validación de rango en from_minterm."""
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             BooleanVector.from_minterm(-1, 5)
         
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             BooleanVector.from_minterm(32, 5)  # 32 = 2^5, fuera de rango
     
-    def test_to_binary_string(self):
+    def test_to_binary_string(self, boolean_vectors):
         """Conversión a string binario."""
-        self.assertEqual(self.empty.to_binary_string(5), "00000")
-        self.assertEqual(self.v1.to_binary_string(5), "10000")
-        self.assertEqual(self.v2.to_binary_string(5), "01000")
-        self.assertEqual(self.v3.to_binary_string(5), "11000")
-        self.assertEqual(self.v_all.to_binary_string(5), "11111")
+        assert boolean_vectors.empty.to_binary_string(5) == "00000"
+        assert boolean_vectors.v1.to_binary_string(5) == "10000"
+        assert boolean_vectors.v2.to_binary_string(5) == "01000"
+        assert boolean_vectors.v3.to_binary_string(5) == "11000"
+        assert boolean_vectors.v_all.to_binary_string(5) == "11111"
     
-    def test_to_minterm(self):
+    def test_to_minterm(self, boolean_vectors):
         """Conversión a minitérmino."""
-        self.assertEqual(self.empty.to_minterm(), 0)
-        self.assertEqual(self.v1.to_minterm(), 1)    # 2^0
-        self.assertEqual(self.v2.to_minterm(), 2)    # 2^1
-        self.assertEqual(self.v3.to_minterm(), 3)    # 2^0 + 2^1
+        assert boolean_vectors.empty.to_minterm() == 0
+        assert boolean_vectors.v1.to_minterm() == 1    # 2^0
+        assert boolean_vectors.v2.to_minterm() == 2    # 2^1
+        assert boolean_vectors.v3.to_minterm() == 3    # 2^0 + 2^1
     
     def test_roundtrip_minterm(self):
         """from_minterm y to_minterm son inversos."""
         for minterm in range(32):  # 2^5
             v = BooleanVector.from_minterm(minterm, 5)
-            self.assertEqual(v.to_minterm(), minterm)
+            assert v.to_minterm() == minterm
     
-    def test_hamming_weight(self):
+    def test_hamming_weight(self, boolean_vectors):
         """Peso de Hamming = número de componentes."""
-        self.assertEqual(self.empty.hamming_weight(), 0)
-        self.assertEqual(self.v1.hamming_weight(), 1)
-        self.assertEqual(self.v2.hamming_weight(), 1)
-        self.assertEqual(self.v3.hamming_weight(), 2)
-        self.assertEqual(self.v_all.hamming_weight(), 5)
+        assert boolean_vectors.empty.hamming_weight() == 0
+        assert boolean_vectors.v1.hamming_weight() == 1
+        assert boolean_vectors.v2.hamming_weight() == 1
+        assert boolean_vectors.v3.hamming_weight() == 2
+        assert boolean_vectors.v_all.hamming_weight() == 5
     
     # ===== OPERACIONES DEL RETÍCULO BOOLEANO =====
     
-    def test_union_commutative(self):
+    def test_union_commutative(self, boolean_vectors):
         """OR es conmutativo: a ∨ b = b ∨ a."""
-        self.assertEqual(self.v1.union(self.v2), self.v2.union(self.v1))
-        self.assertEqual(self.v1.union(self.v3), self.v3.union(self.v1))
+        assert boolean_vectors.v1.union(boolean_vectors.v2) == boolean_vectors.v2.union(boolean_vectors.v1)
+        assert boolean_vectors.v1.union(boolean_vectors.v3) == boolean_vectors.v3.union(boolean_vectors.v1)
     
-    def test_union_associative(self):
+    def test_union_associative(self, boolean_vectors):
         """OR es asociativo: (a ∨ b) ∨ c = a ∨ (b ∨ c)."""
-        left = self.v1.union(self.v2).union(self.v3)
-        right = self.v1.union(self.v2.union(self.v3))
-        self.assertEqual(left, right)
+        left = boolean_vectors.v1.union(boolean_vectors.v2).union(boolean_vectors.v3)
+        right = boolean_vectors.v1.union(boolean_vectors.v2.union(boolean_vectors.v3))
+        assert left == right
     
-    def test_union_identity(self):
+    def test_union_identity(self, boolean_vectors):
         """Identidad: a ∨ 0 = a."""
-        self.assertEqual(self.v1.union(self.empty), self.v1)
-        self.assertEqual(self.empty.union(self.v1), self.v1)
+        assert boolean_vectors.v1.union(boolean_vectors.empty) == boolean_vectors.v1
+        assert boolean_vectors.empty.union(boolean_vectors.v1) == boolean_vectors.v1
     
-    def test_union_idempotent(self):
+    def test_union_idempotent(self, boolean_vectors):
         """Idempotencia: a ∨ a = a."""
-        self.assertEqual(self.v1.union(self.v1), self.v1)
-        self.assertEqual(self.v3.union(self.v3), self.v3)
+        assert boolean_vectors.v1.union(boolean_vectors.v1) == boolean_vectors.v1
+        assert boolean_vectors.v3.union(boolean_vectors.v3) == boolean_vectors.v3
     
-    def test_intersection_commutative(self):
+    def test_intersection_commutative(self, boolean_vectors):
         """AND es conmutativo: a ∧ b = b ∧ a."""
-        self.assertEqual(self.v1.intersection(self.v2), self.v2.intersection(self.v1))
+        assert boolean_vectors.v1.intersection(boolean_vectors.v2) == boolean_vectors.v2.intersection(boolean_vectors.v1)
     
-    def test_intersection_associative(self):
+    def test_intersection_associative(self, boolean_vectors):
         """AND es asociativo: (a ∧ b) ∧ c = a ∧ (b ∧ c)."""
-        left = self.v1.intersection(self.v2).intersection(self.v3)
-        right = self.v1.intersection(self.v2.intersection(self.v3))
-        self.assertEqual(left, right)
+        left = boolean_vectors.v1.intersection(boolean_vectors.v2).intersection(boolean_vectors.v3)
+        right = boolean_vectors.v1.intersection(boolean_vectors.v2.intersection(boolean_vectors.v3))
+        assert left == right
     
-    def test_intersection_identity(self):
+    def test_intersection_identity(self, boolean_vectors):
         """Identidad: a ∧ 1 = a."""
-        self.assertEqual(self.v1.intersection(self.v_all), self.v1)
+        assert boolean_vectors.v1.intersection(boolean_vectors.v_all) == boolean_vectors.v1
     
-    def test_intersection_zero(self):
+    def test_intersection_zero(self, boolean_vectors):
         """Aniquilador: a ∧ 0 = 0."""
-        self.assertEqual(self.v1.intersection(self.empty), self.empty)
+        assert boolean_vectors.v1.intersection(boolean_vectors.empty) == boolean_vectors.empty
     
-    def test_intersection_idempotent(self):
+    def test_intersection_idempotent(self, boolean_vectors):
         """Idempotencia: a ∧ a = a."""
-        self.assertEqual(self.v1.intersection(self.v1), self.v1)
+        assert boolean_vectors.v1.intersection(boolean_vectors.v1) == boolean_vectors.v1
     
-    def test_absorption_law(self):
+    def test_absorption_law(self, boolean_vectors):
         """Absorción: a ∨ (a ∧ b) = a."""
-        result = self.v1.union(self.v1.intersection(self.v2))
-        self.assertEqual(result, self.v1)
+        result = boolean_vectors.v1.union(boolean_vectors.v1.intersection(boolean_vectors.v2))
+        assert result == boolean_vectors.v1
         
         # Forma dual: a ∧ (a ∨ b) = a
-        result_dual = self.v1.intersection(self.v1.union(self.v2))
-        self.assertEqual(result_dual, self.v1)
+        result_dual = boolean_vectors.v1.intersection(boolean_vectors.v1.union(boolean_vectors.v2))
+        assert result_dual == boolean_vectors.v1
     
-    def test_distributive_law(self):
+    def test_distributive_law(self, boolean_vectors):
         """Distributividad: a ∧ (b ∨ c) = (a ∧ b) ∨ (a ∧ c)."""
-        left = self.v1.intersection(self.v2.union(self.v3))
-        right = self.v1.intersection(self.v2).union(self.v1.intersection(self.v3))
-        self.assertEqual(left, right)
+        left = boolean_vectors.v1.intersection(boolean_vectors.v2.union(boolean_vectors.v3))
+        right = boolean_vectors.v1.intersection(boolean_vectors.v2).union(boolean_vectors.v1.intersection(boolean_vectors.v3))
+        assert left == right
         
         # Forma dual: a ∨ (b ∧ c) = (a ∨ b) ∧ (a ∨ c)
-        left_dual = self.v1.union(self.v2.intersection(self.v3))
-        right_dual = self.v1.union(self.v2).intersection(self.v1.union(self.v3))
-        self.assertEqual(left_dual, right_dual)
+        left_dual = boolean_vectors.v1.union(boolean_vectors.v2.intersection(boolean_vectors.v3))
+        right_dual = boolean_vectors.v1.union(boolean_vectors.v2).intersection(boolean_vectors.v1.union(boolean_vectors.v3))
+        assert left_dual == right_dual
     
-    def test_complement(self):
+    def test_complement(self, boolean_vectors):
         """Complemento: a ∨ ¬a = 1, a ∧ ¬a = 0."""
         num_vars = 5
         
         # a ∨ ¬a = 1
-        result = self.v1.union(self.v1.complement(num_vars))
+        result = boolean_vectors.v1.union(boolean_vectors.v1.complement(num_vars))
         expected_all = BooleanVector(frozenset(CapabilityDimension))
-        self.assertEqual(result, expected_all)
+        assert result == expected_all
         
         # a ∧ ¬a = 0
-        result_zero = self.v1.intersection(self.v1.complement(num_vars))
-        self.assertEqual(result_zero, self.empty)
+        result_zero = boolean_vectors.v1.intersection(boolean_vectors.v1.complement(num_vars))
+        assert result_zero == boolean_vectors.empty
     
-    def test_complement_involution(self):
+    def test_complement_involution(self, boolean_vectors):
         """Doble complemento: ¬(¬a) = a."""
         num_vars = 5
-        double_complement = self.v1.complement(num_vars).complement(num_vars)
-        self.assertEqual(double_complement, self.v1)
+        double_complement = boolean_vectors.v1.complement(num_vars).complement(num_vars)
+        assert double_complement == boolean_vectors.v1
     
-    def test_de_morgan_laws(self):
+    def test_de_morgan_laws(self, boolean_vectors):
         """Leyes de De Morgan: ¬(a ∨ b) = ¬a ∧ ¬b, ¬(a ∧ b) = ¬a ∨ ¬b."""
         num_vars = 5
         
         # ¬(a ∨ b) = ¬a ∧ ¬b
-        left = self.v1.union(self.v2).complement(num_vars)
-        right = self.v1.complement(num_vars).intersection(self.v2.complement(num_vars))
-        self.assertEqual(left, right)
+        left = boolean_vectors.v1.union(boolean_vectors.v2).complement(num_vars)
+        right = boolean_vectors.v1.complement(num_vars).intersection(boolean_vectors.v2.complement(num_vars))
+        assert left == right
         
         # ¬(a ∧ b) = ¬a ∨ ¬b
-        left2 = self.v1.intersection(self.v2).complement(num_vars)
-        right2 = self.v1.complement(num_vars).union(self.v2.complement(num_vars))
-        self.assertEqual(left2, right2)
+        left2 = boolean_vectors.v1.intersection(boolean_vectors.v2).complement(num_vars)
+        right2 = boolean_vectors.v1.complement(num_vars).union(boolean_vectors.v2.complement(num_vars))
+        assert left2 == right2
     
-    def test_symmetric_difference(self):
+    def test_symmetric_difference(self, boolean_vectors):
         """XOR (suma en ℤ₂): a ⊕ b."""
         # Propiedades del grupo
         # Conmutatividad
-        self.assertEqual(self.v1.symmetric_difference(self.v2), 
-                        self.v2.symmetric_difference(self.v1))
+        assert boolean_vectors.v1.symmetric_difference(boolean_vectors.v2) == \
+                        boolean_vectors.v2.symmetric_difference(boolean_vectors.v1)
         
         # Asociatividad
-        left = self.v1.symmetric_difference(self.v2).symmetric_difference(self.v3)
-        right = self.v1.symmetric_difference(self.v2.symmetric_difference(self.v3))
-        self.assertEqual(left, right)
+        left = boolean_vectors.v1.symmetric_difference(boolean_vectors.v2).symmetric_difference(boolean_vectors.v3)
+        right = boolean_vectors.v1.symmetric_difference(boolean_vectors.v2.symmetric_difference(boolean_vectors.v3))
+        assert left == right
         
         # Identidad: a ⊕ 0 = a
-        self.assertEqual(self.v1.symmetric_difference(self.empty), self.v1)
+        assert boolean_vectors.v1.symmetric_difference(boolean_vectors.empty) == boolean_vectors.v1
         
         # Inverso: a ⊕ a = 0
-        self.assertEqual(self.v1.symmetric_difference(self.v1), self.empty)
+        assert boolean_vectors.v1.symmetric_difference(boolean_vectors.v1) == boolean_vectors.empty
     
-    def test_hamming_distance(self):
+    def test_hamming_distance(self, boolean_vectors):
         """Distancia de Hamming: d(a, b) = ||a ⊕ b||."""
         # Propiedades métricas
         # d(a, a) = 0
-        self.assertEqual(self.v1.hamming_distance(self.v1), 0)
+        assert boolean_vectors.v1.hamming_distance(boolean_vectors.v1) == 0
         
         # d(a, b) = d(b, a) (simetría)
-        self.assertEqual(self.v1.hamming_distance(self.v2), self.v2.hamming_distance(self.v1))
+        assert boolean_vectors.v1.hamming_distance(boolean_vectors.v2) == boolean_vectors.v2.hamming_distance(boolean_vectors.v1)
         
         # d(a, b) ≥ 0
-        self.assertGreaterEqual(self.v1.hamming_distance(self.v2), 0)
+        assert boolean_vectors.v1.hamming_distance(boolean_vectors.v2) >= 0
         
         # Casos específicos
-        self.assertEqual(self.v1.hamming_distance(self.v2), 2)  # Disjuntos, 1+1
-        self.assertEqual(self.v1.hamming_distance(self.v3), 1)  # v3 contiene v1
-        self.assertEqual(self.empty.hamming_distance(self.v1), 1)
+        assert boolean_vectors.v1.hamming_distance(boolean_vectors.v2) == 2  # Disjuntos, 1+1
+        assert boolean_vectors.v1.hamming_distance(boolean_vectors.v3) == 1  # v3 contiene v1
+        assert boolean_vectors.empty.hamming_distance(boolean_vectors.v1) == 1
     
-    def test_hamming_distance_triangle_inequality(self):
+    def test_hamming_distance_triangle_inequality(self, boolean_vectors):
         """Desigualdad triangular: d(a, c) ≤ d(a, b) + d(b, c)."""
-        vectors = [self.empty, self.v1, self.v2, self.v3, self.v_all]
+        vectors = [boolean_vectors.empty, boolean_vectors.v1, boolean_vectors.v2, boolean_vectors.v3, boolean_vectors.v_all]
         
         for a in vectors:
             for b in vectors:
@@ -397,49 +379,49 @@ class TestBooleanVector(TestBase):
                     d_ab = a.hamming_distance(b)
                     d_bc = b.hamming_distance(c)
                     
-                    self.assertLessEqual(d_ac, d_ab + d_bc,
-                        f"Falla desigualdad triangular: d({a}, {c}) > d({a}, {b}) + d({b}, {c})")
+                    assert d_ac <= d_ab + d_bc, \
+                        f"Falla desigualdad triangular: d({a}, {c}) > d({a}, {b}) + d({b}, {c})"
     
-    def test_is_subset_of(self):
+    def test_is_subset_of(self, boolean_vectors):
         """Orden parcial: a ⊆ b."""
         # Reflexividad
-        self.assertTrue(self.v1.is_subset_of(self.v1))
+        assert boolean_vectors.v1.is_subset_of(boolean_vectors.v1)
         
         # Antisimetría
-        self.assertTrue(self.v1.is_subset_of(self.v3))
-        self.assertFalse(self.v3.is_subset_of(self.v1))
+        assert boolean_vectors.v1.is_subset_of(boolean_vectors.v3)
+        assert not boolean_vectors.v3.is_subset_of(boolean_vectors.v1)
         
         # Transitividad
         v4 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO, 
                                       CapabilityDimension.PHYS_NUM,
                                       CapabilityDimension.TACT_TOPO]))
-        self.assertTrue(self.v1.is_subset_of(self.v3))
-        self.assertTrue(self.v3.is_subset_of(v4))
-        self.assertTrue(self.v1.is_subset_of(v4))
+        assert boolean_vectors.v1.is_subset_of(boolean_vectors.v3)
+        assert boolean_vectors.v3.is_subset_of(v4)
+        assert boolean_vectors.v1.is_subset_of(v4)
         
         # Vacío es subconjunto de todo
-        self.assertTrue(self.empty.is_subset_of(self.v1))
-        self.assertTrue(self.empty.is_subset_of(self.empty))
+        assert boolean_vectors.empty.is_subset_of(boolean_vectors.v1)
+        assert boolean_vectors.empty.is_subset_of(boolean_vectors.empty)
     
-    def test_inner_product_z2(self):
+    def test_inner_product_z2(self, boolean_vectors):
         """Producto escalar en ℤ₂."""
         # Conmutatividad
-        self.assertEqual(self.v1.inner_product_z2(self.v2), 
-                        self.v2.inner_product_z2(self.v1))
+        assert boolean_vectors.v1.inner_product_z2(boolean_vectors.v2) == \
+                        boolean_vectors.v2.inner_product_z2(boolean_vectors.v1)
         
         # a · a = |a| mod 2
-        self.assertEqual(self.v1.inner_product_z2(self.v1), 1)  # peso 1
-        self.assertEqual(self.v3.inner_product_z2(self.v3), 0)  # peso 2
+        assert boolean_vectors.v1.inner_product_z2(boolean_vectors.v1) == 1  # peso 1
+        assert boolean_vectors.v3.inner_product_z2(boolean_vectors.v3) == 0  # peso 2
         
         # Disjuntos → 0
-        self.assertEqual(self.v1.inner_product_z2(self.v2), 0)
+        assert boolean_vectors.v1.inner_product_z2(boolean_vectors.v2) == 0
         
         # Con overlap
-        self.assertEqual(self.v1.inner_product_z2(self.v3), 1)  # 1 bit común
+        assert boolean_vectors.v1.inner_product_z2(boolean_vectors.v3) == 1  # 1 bit común
     
     def test_invalid_construction(self):
         """Validación de construcción inválida."""
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             BooleanVector(frozenset([1, 2, 3]))  # No son CapabilityDimension
 
 
@@ -447,59 +429,64 @@ class TestBooleanVector(TestBase):
 # TESTS: Tool
 # ========================================================================================
 
-class TestTool(TestBase):
+class TestTool:
     """Tests para la clase Tool."""
     
-    def setUp(self):
-        """Configuración de herramientas de prueba."""
-        self.cap1 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
-        self.cap2 = BooleanVector(frozenset([CapabilityDimension.PHYS_NUM]))
-        
-        self.tool1 = Tool("tool_a", self.cap1)
-        self.tool2 = Tool("tool_b", self.cap2)
-        self.tool3 = Tool("tool_a", self.cap1)  # Igual a tool1
+    @pytest.fixture
+    def tools(self):
+        """Fixture que proporciona herramientas de prueba."""
+        class Tools:
+            def __init__(self):
+                self.cap1 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+                self.cap2 = BooleanVector(frozenset([CapabilityDimension.PHYS_NUM]))
+
+                self.tool1 = Tool("tool_a", self.cap1)
+                self.tool2 = Tool("tool_b", self.cap2)
+                self.tool3 = Tool("tool_a", self.cap1)  # Igual a tool1
+        return Tools()
     
-    def test_immutability(self):
+    def test_immutability(self, tools):
         """Las herramientas deben ser inmutables."""
-        with self.assertRaises(AttributeError):
-            self.tool1.name = "new_name"
+        with pytest.raises(AttributeError):
+            tools.tool1.name = "new_name"
         
-        with self.assertRaises(AttributeError):
-            self.tool1.capabilities = self.cap2
+        with pytest.raises(AttributeError):
+            tools.tool1.capabilities = tools.cap2
     
-    def test_equality(self):
+    def test_equality(self, tools):
         """Igualdad basada en nombre y capacidades."""
-        self.assertEqual(self.tool1, self.tool3)
-        self.assertNotEqual(self.tool1, self.tool2)
+        assert tools.tool1 == tools.tool3
+        assert tools.tool1 != tools.tool2
     
-    def test_hashability(self):
+    def test_hashability(self, tools):
         """Las herramientas deben ser hasheables."""
-        tool_set = {self.tool1, self.tool2, self.tool3}
-        self.assertEqual(len(tool_set), 2)  # tool1 y tool3 son iguales
+        tool_set = {tools.tool1, tools.tool2, tools.tool3}
+        assert len(tool_set) == 2  # tool1 y tool3 son iguales
         
-        tool_dict = {self.tool1: "value1", self.tool2: "value2"}
-        self.assertEqual(tool_dict[self.tool3], "value1")
+        tool_dict = {tools.tool1: "value1", tools.tool2: "value2"}
+        assert tool_dict[tools.tool3] == "value1"
     
-    def test_ordering(self):
+    def test_ordering(self, tools):
         """Ordenamiento lexicográfico."""
-        tools = [self.tool2, self.tool1, self.tool3]
-        sorted_tools = sorted(tools)
+        tools_list = [tools.tool2, tools.tool1, tools.tool3]
+        sorted_tools = sorted(tools_list)
         
         # tool_a < tool_b
-        self.assertEqual(sorted_tools[0].name, "tool_a")
-        self.assertEqual(sorted_tools[-1].name, "tool_b")
+        assert sorted_tools[0].name == "tool_a"
+        assert sorted_tools[-1].name == "tool_b"
     
     def test_invalid_name(self):
         """Validación de nombre inválido."""
-        with self.assertRaises(ValueError):
-            Tool("", self.cap1)
+        cap1 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+        with pytest.raises(ValueError):
+            Tool("", cap1)
         
-        with self.assertRaises(ValueError):
-            Tool(None, self.cap1)
+        with pytest.raises(ValueError):
+            Tool(None, cap1)
     
     def test_invalid_capabilities(self):
         """Validación de capacidades inválidas."""
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             Tool("tool", "not_a_boolean_vector")
 
 
@@ -517,331 +504,226 @@ class TestQuineMcCluskeyMinimizer:
 # TESTS: UnionFind
 # ========================================================================================
 
-class TestUnionFind(TestBase):
+class TestUnionFind:
     """Tests para la estructura Union-Find."""
     
     def test_initial_state(self):
         """Estado inicial: n componentes disjuntas."""
         uf = UnionFind(5)
-        
-        self.assertEqual(uf.num_components, 5)
-        
-        # Cada elemento es su propio representante
+        assert uf.num_components == 5
         for i in range(5):
-            self.assertEqual(uf.find(i), i)
+            assert uf.find(i) == i
     
     def test_union_simple(self):
         """Unión básica de dos elementos."""
         uf = UnionFind(5)
-        
         result = uf.union(0, 1)
-        self.assertTrue(result)  # Unión exitosa
-        self.assertEqual(uf.num_components, 4)
-        
-        # Mismo representante
-        self.assertEqual(uf.find(0), uf.find(1))
+        assert result  # Unión exitosa
+        assert uf.num_components == 4
+        assert uf.find(0) == uf.find(1)
     
     def test_union_already_connected(self):
         """Unir elementos ya conectados no cambia nada."""
         uf = UnionFind(5)
-        
         uf.union(0, 1)
         num_comp_before = uf.num_components
-        
         result = uf.union(0, 1)
-        self.assertFalse(result)  # No se realizó unión
-        self.assertEqual(uf.num_components, num_comp_before)
+        assert not result  # No se realizó unión
+        assert uf.num_components == num_comp_before
     
     def test_union_transitive(self):
         """Transitividad: si 0~1 y 1~2, entonces 0~2."""
         uf = UnionFind(5)
-        
         uf.union(0, 1)
         uf.union(1, 2)
-        
-        self.assertEqual(uf.find(0), uf.find(2))
-        self.assertEqual(uf.num_components, 3)
+        assert uf.find(0) == uf.find(2)
+        assert uf.num_components == 3
     
     def test_path_compression(self):
         """Path compression optimiza búsquedas."""
         uf = UnionFind(10)
-        
-        # Crear cadena: 0-1-2-3-4
         for i in range(4):
             uf.union(i, i + 1)
-        
-        # Primera búsqueda
         root = uf.find(4)
-        
-        # Después de path compression, parent[4] debería apuntar directamente a root
-        self.assertEqual(uf.parent[4], root)
+        assert uf.parent[4] == root
     
     def test_union_by_rank(self):
         """Union by rank mantiene árboles balanceados."""
         uf = UnionFind(8)
-        
-        # Crear dos árboles balanceados
         uf.union(0, 1)
         uf.union(2, 3)
-        uf.union(0, 2)  # Une dos árboles de rank 1
-        
+        uf.union(0, 2)
         uf.union(4, 5)
         uf.union(6, 7)
         uf.union(4, 6)
-        
-        # Unir los dos árboles grandes
         uf.union(0, 4)
-        
-        self.assertEqual(uf.num_components, 1)
+        assert uf.num_components == 1
     
     def test_get_components(self):
         """Obtener todas las componentes conexas."""
         uf = UnionFind(6)
-        
         uf.union(0, 1)
         uf.union(1, 2)
         uf.union(3, 4)
-        # 5 queda solo
-        
         components = uf.get_components()
-        
-        self.assertEqual(len(components), 3)
-        
-        # Verificar componentes
+        assert len(components) == 3
         components_sets = [set(comp) for comp in components]
-        self.assertIn({0, 1, 2}, components_sets)
-        self.assertIn({3, 4}, components_sets)
-        self.assertIn({5}, components_sets)
+        assert {0, 1, 2} in components_sets
+        assert {3, 4} in components_sets
+        assert {5} in components_sets
     
     def test_size_tracking(self):
         """Tamaño de componentes se actualiza correctamente."""
         uf = UnionFind(5)
-        
         uf.union(0, 1)
         uf.union(1, 2)
-        
         root = uf.find(0)
-        self.assertEqual(uf.size[root], 3)
+        assert uf.size[root] == 3
 
 
 # ========================================================================================
 # TESTS: QuineMcCluskeyMinimizer
 # ========================================================================================
 
-class TestQuineMcCluskeyMinimizer(TestBase):
+class TestQuineMcCluskeyMinimizerTests:
     """Tests para el algoritmo de Quine-McCluskey."""
     
-    def setUp(self):
-        """Configuración del minimizador."""
-        self.minimizer = QuineMcCluskeyMinimizer(4)
+    @pytest.fixture
+    def minimizer(self):
+        """Fixture que proporciona un minimizador de 4 variables."""
+        return QuineMcCluskeyMinimizer(4)
     
-    def test_initialization(self):
+    def test_initialization(self, minimizer):
         """Inicialización correcta."""
-        self.assertEqual(self.minimizer.num_vars, 4)
-        self.assertEqual(self.minimizer.max_minterm, 15)
+        assert minimizer.num_vars == 4
+        assert minimizer.max_minterm == 15
     
     def test_initialization_validation(self):
         """Validación de parámetros de inicialización."""
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             QuineMcCluskeyMinimizer(0)
-        
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             QuineMcCluskeyMinimizer(21)
     
-    def test_hamming_distance_ternary(self):
+    def test_hamming_distance_ternary(self, minimizer):
         """Distancia de Hamming entre términos ternarios."""
-        # Sin don't cares
-        self.assertEqual(self.minimizer._hamming_distance_ternary("0000", "0000"), 0)
-        self.assertEqual(self.minimizer._hamming_distance_ternary("0000", "0001"), 1)
-        self.assertEqual(self.minimizer._hamming_distance_ternary("0000", "1111"), 4)
-        
-        # Con don't cares (no cuentan)
-        self.assertEqual(self.minimizer._hamming_distance_ternary("00-0", "00-1"), 1)
-        self.assertEqual(self.minimizer._hamming_distance_ternary("0-0-", "1-1-"), 2)
-        self.assertEqual(self.minimizer._hamming_distance_ternary("----", "1111"), 0)
+        assert minimizer._hamming_distance_ternary("0000", "0000") == 0
+        assert minimizer._hamming_distance_ternary("0000", "0001") == 1
+        assert minimizer._hamming_distance_ternary("0000", "1111") == 4
+        assert minimizer._hamming_distance_ternary("00-0", "00-1") == 1
+        assert minimizer._hamming_distance_ternary("0-0-", "1-1-") == 2
+        assert minimizer._hamming_distance_ternary("----", "1111") == 0
     
-    def test_hamming_distance_validation(self):
+    def test_hamming_distance_validation(self, minimizer):
         """Validación de longitudes en distancia de Hamming."""
-        with self.assertRaises(ValueError):
-            self.minimizer._hamming_distance_ternary("00", "000")
+        with pytest.raises(ValueError):
+            minimizer._hamming_distance_ternary("00", "000")
     
-    def test_can_combine_basic(self):
+    def test_can_combine_basic(self, minimizer):
         """Verificación básica de combinabilidad."""
-        # Difieren en 1 bit → combinables
-        self.assertTrue(self.minimizer._can_combine("0000", "0001"))
-        self.assertTrue(self.minimizer._can_combine("0100", "0000"))
-        
-        # Difieren en >1 bit → no combinables
-        self.assertFalse(self.minimizer._can_combine("0000", "0011"))
-        self.assertFalse(self.minimizer._can_combine("0000", "1111"))
-        
-        # Idénticos → no combinables
-        self.assertFalse(self.minimizer._can_combine("0000", "0000"))
+        assert minimizer._can_combine("0000", "0001")
+        assert minimizer._can_combine("0100", "0000")
+        assert not minimizer._can_combine("0000", "0011")
+        assert not minimizer._can_combine("0000", "1111")
+        assert not minimizer._can_combine("0000", "0000")
     
-    def test_can_combine_with_dont_care(self):
+    def test_can_combine_with_dont_care(self, minimizer):
         """Combinabilidad con don't cares."""
-        # Con don't care en la misma posición → pueden ser combinables
-        self.assertTrue(self.minimizer._can_combine("0-00", "0-01"))
-        
-        # Con don't care en posiciones diferentes → no combinables
-        self.assertFalse(self.minimizer._can_combine("0-00", "01-0"))
-        
-        # Un término con '-' y otro con valor concreto en esa posición → no combinables
-        self.assertFalse(self.minimizer._can_combine("0-00", "0100"))
+        assert minimizer._can_combine("0-00", "0-01")
+        assert not minimizer._can_combine("0-00", "01-0")
+        assert not minimizer._can_combine("0-00", "0100")
     
-    def test_combine_terms_basic(self):
+    def test_combine_terms_basic(self, minimizer):
         """Combinación básica de términos."""
-        # 0000 y 0001 → 000-
-        result = self.minimizer._combine_terms("0000", "0001")
-        self.assertEqual(result, "000-")
-        
-        # 0100 y 0000 → 0-00
-        result = self.minimizer._combine_terms("0100", "0000")
-        self.assertEqual(result, "0-00")
-        
-        # No combinables → None
-        result = self.minimizer._combine_terms("0000", "0011")
-        self.assertIsNone(result)
+        assert minimizer._combine_terms("0000", "0001") == "000-"
+        assert minimizer._combine_terms("0100", "0000") == "0-00"
+        assert minimizer._combine_terms("0000", "0011") is None
     
-    def test_combine_terms_with_dont_care(self):
+    def test_combine_terms_with_dont_care(self, minimizer):
         """Combinación de términos con don't cares."""
-        # Ambos tienen '-' en la misma posición
-        result = self.minimizer._combine_terms("0-00", "0-01")
-        self.assertEqual(result, "0-0-")
-        
-        # No combinables si tienen '-' en posiciones diferentes
-        result = self.minimizer._combine_terms("0-00", "01-0")
-        self.assertIsNone(result)
+        assert minimizer._combine_terms("0-00", "0-01") == "0-0-"
+        assert minimizer._combine_terms("0-00", "01-0") is None
     
-    def test_compute_prime_implicants_simple(self):
+    def test_compute_prime_implicants_simple(self, minimizer):
         """Cálculo de implicantes primos: caso simple."""
-        # Función: f = m(0, 1) = x₃x₂x₁x̄₀ + x₃x₂x₁x₀ = x₃x₂x₁
         minterms = [0, 1]
-        
-        prime_impls = self.minimizer.compute_prime_implicants(minterms)
-        
-        self.assertEqual(len(prime_impls), 1)
+        prime_impls = minimizer.compute_prime_implicants(minterms)
+        assert len(prime_impls) == 1
         impl = list(prime_impls)[0]
-        self.assertEqual(impl.pattern, "000-")
+        assert impl.pattern == "000-"
     
-    def test_compute_prime_implicants_no_reduction(self):
+    def test_compute_prime_implicants_no_reduction(self, minimizer):
         """Implicantes sin reducción posible."""
-        # Minterms que no se pueden combinar
-        minterms = [0, 3, 5, 6]  # 0000, 0011, 0101, 0110
-        
-        prime_impls = self.minimizer.compute_prime_implicants(minterms)
-        
-        # Verificar que se encontraron implicantes
-        self.assertGreater(len(prime_impls), 0)
-        
-        # Todos los minterms deben estar cubiertos
+        minterms = [0, 3, 5, 6]
+        prime_impls = minimizer.compute_prime_implicants(minterms)
+        assert len(prime_impls) > 0
         covered = set()
         for impl in prime_impls:
             covered.update(impl.covered_minterms)
-        
-        self.assertEqual(covered, set(minterms))
+        assert covered == set(minterms)
     
-    def test_compute_prime_implicants_complete_reduction(self):
+    def test_compute_prime_implicants_complete_reduction(self, minimizer):
         """Reducción completa a un solo implicante."""
-        # Todos los minterms → patrón "----"
-        minterms = list(range(16))  # 2^4 = 16
-        
-        prime_impls = self.minimizer.compute_prime_implicants(minterms)
-        
-        self.assertEqual(len(prime_impls), 1)
+        minterms = list(range(16))
+        prime_impls = minimizer.compute_prime_implicants(minterms)
+        assert len(prime_impls) == 1
         impl = list(prime_impls)[0]
-        self.assertEqual(impl.pattern, "----")
-        self.assertEqual(len(impl.covered_minterms), 16)
+        assert impl.pattern == "----"
+        assert len(impl.covered_minterms) == 16
     
-    def test_compute_prime_implicants_empty(self):
+    def test_compute_prime_implicants_empty(self, minimizer):
         """Conjunto vacío de minterms."""
-        prime_impls = self.minimizer.compute_prime_implicants([])
-        self.assertEqual(len(prime_impls), 0)
+        assert len(minimizer.compute_prime_implicants([])) == 0
     
-    def test_compute_prime_implicants_validation(self):
+    def test_compute_prime_implicants_validation(self, minimizer):
         """Validación de minterms fuera de rango."""
-        with self.assertRaises(ValueError):
-            self.minimizer.compute_prime_implicants([16])  # Fuera de [0, 15]
-        
-        with self.assertRaises(ValueError):
-            self.minimizer.compute_prime_implicants([-1])
+        with pytest.raises(ValueError):
+            minimizer.compute_prime_implicants([16])
+        with pytest.raises(ValueError):
+            minimizer.compute_prime_implicants([-1])
     
-    def test_find_essential_prime_implicants(self):
+    def test_find_essential_prime_implicants(self, minimizer):
         """Identificación de implicantes esenciales."""
-        # Caso simple: cada minterm cubierto por un solo implicante
         impl1 = ImplicantTerm("00--", frozenset([0, 1, 4, 5]))
         impl2 = ImplicantTerm("01--", frozenset([2, 3, 6, 7]))
-        
         minterms = {0, 1, 2, 3, 4, 5, 6, 7}
-        
-        # Ambos son esenciales
-        essential, covered = self.minimizer.find_essential_prime_implicants(
-            {impl1, impl2}, minterms
-        )
-        
-        self.assertEqual(len(essential), 2)
-        self.assertEqual(covered, minterms)
+        essential, covered = minimizer.find_essential_prime_implicants({impl1, impl2}, minterms)
+        assert len(essential) == 2
+        assert covered == minterms
     
-    def test_find_essential_prime_implicants_partial(self):
+    def test_find_essential_prime_implicants_partial(self, minimizer):
         """Solo algunos implicantes son esenciales."""
-        # impl1 es esencial para cubrir 0
-        # impl2 y impl3 ambos cubren 1 → ninguno es esencial para 1
         impl1 = ImplicantTerm("000-", frozenset([0]))
         impl2 = ImplicantTerm("00-1", frozenset([1]))
         impl3 = ImplicantTerm("-001", frozenset([1, 9]))
-        
         minterms = {0, 1}
-        
-        essential, covered = self.minimizer.find_essential_prime_implicants(
-            {impl1, impl2, impl3}, minterms
-        )
-        
-        # Solo impl1 es esencial
-        self.assertIn(impl1, essential)
-        self.assertIn(0, covered)
+        essential, covered = minimizer.find_essential_prime_implicants({impl1, impl2, impl3}, minterms)
+        assert impl1 in essential
+        assert 0 in covered
     
-    def test_minimal_cover_greedy(self):
+    def test_minimal_cover_greedy(self, minimizer):
         """Cobertura minimal greedy."""
         impl1 = ImplicantTerm("00--", frozenset([0, 1, 4, 5]))
         impl2 = ImplicantTerm("01--", frozenset([2, 3, 6, 7]))
         impl3 = ImplicantTerm("-0-0", frozenset([0, 2, 4, 6]))
-        
         minterms = {0, 1, 2, 3, 4, 5, 6, 7}
-        essential = set()
-        already_covered = set()
-        
-        cover = self.minimizer.minimal_cover_greedy(
-            {impl1, impl2, impl3}, minterms, essential, already_covered
-        )
-        
-        # Debe cubrir todos los minterms
+        cover = minimizer.minimal_cover_greedy({impl1, impl2, impl3}, minterms, set(), set())
         covered = set()
         for impl in cover:
             covered.update(impl.covered_minterms)
-        
-        self.assertEqual(covered, minterms)
+        assert covered == minterms
     
-    def test_minimal_cover_with_essentials(self):
+    def test_minimal_cover_with_essentials(self, minimizer):
         """Cobertura minimal con esenciales ya seleccionados."""
         impl1 = ImplicantTerm("00--", frozenset([0, 1, 4, 5]))
         impl2 = ImplicantTerm("01--", frozenset([2, 3, 6, 7]))
-        
         minterms = {0, 1, 2, 3, 4, 5, 6, 7}
-        essential = {impl1}
-        already_covered = impl1.covered_minterms
-        
-        cover = self.minimizer.minimal_cover_greedy(
-            {impl1, impl2}, minterms, essential, already_covered
-        )
-        
-        # Debe incluir esenciales
-        self.assertIn(impl1, cover)
-        
-        # Debe cubrir todos
+        cover = minimizer.minimal_cover_greedy({impl1, impl2}, minterms, {impl1}, impl1.covered_minterms)
+        assert impl1 in cover
         covered = set()
         for impl in cover:
             covered.update(impl.covered_minterms)
-        self.assertEqual(covered, minterms)
+        assert covered == minterms
 
 
 # ========================================================================================
@@ -922,7 +804,7 @@ class TestTopologicalRigor:
 # TESTS: Propiedades Matemáticas Globales
 # ========================================================================================
 
-class TestMathematicalProperties(TestBase):
+class TestMathematicalProperties:
     """Tests de propiedades matemáticas generales."""
 
     def test_strict_finiteness_checks(self):
@@ -931,20 +813,21 @@ class TestMathematicalProperties(TestBase):
         v2 = BooleanVector(frozenset([CapabilityDimension.PHYS_NUM]))
 
         # Test inner_product_z2 returns 0 or 1
-        self.assertIn(v1.inner_product_z2(v2), {0, 1})
-        self.assertIn(v1.inner_product_z2(v1), {0, 1})
+        assert v1.inner_product_z2(v2) in {0, 1}
+        assert v1.inner_product_z2(v1) in {0, 1}
 
         # Test hamming_distance
-        self.assertGreaterEqual(v1.hamming_distance(v2), 0)
+        assert v1.hamming_distance(v2) >= 0
 
     def test_runtime_warning_elevation(self):
         """Verifica que RuntimeWarning se eleva a HomologicalInconsistencyError en el analizador."""
         analyzer = MICRedundancyAnalyzer()
         analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
-        matrix = analyzer.build_incidence_matrix()
 
-        import warnings
-        from unittest.mock import patch
+        with pytest.raises(HomologicalInconsistencyError):
+            # Activamos el flag interno para disparar el warning
+            analyzer._trigger_rigor_warning = True
+            analyzer.compute_homology_groups()
 
     def assert_boolean_orthogonality(self, v1: BooleanVector, v2: BooleanVector) -> None:
         """
@@ -964,23 +847,20 @@ class TestMathematicalProperties(TestBase):
         analyzer.register_tool("T2", {CapabilityDimension.PHYS_NUM})
         analyzer.register_tool("T3", {CapabilityDimension.PHYS_NUM}) # Redundante
         
-        analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
-        analyzer.register_tool("tool2", {CapabilityDimension.PHYS_NUM})
-        
         homology = analyzer.compute_homology_groups()
         
         for betti in homology['betti_numbers']:
-            self.assertGreaterEqual(betti, 0)
+            assert betti >= 0
         
         # β₀ ≥ 1 si hay herramientas
-        self.assertGreaterEqual(homology['H_0'], 1)
+        assert homology['H_0'] >= 1
 
 
 # ========================================================================================
 # TESTS: Casos Extremos (Edge Cases)
 # ========================================================================================
 
-class TestEdgeCases(TestBase):
+class TestEdgeCases:
     """Tests de casos extremos y límite."""
     
     def test_single_minterm(self):
@@ -988,10 +868,10 @@ class TestEdgeCases(TestBase):
         minimizer = QuineMcCluskeyMinimizer(4)
         prime_impls = minimizer.compute_prime_implicants([5])
         
-        self.assertEqual(len(prime_impls), 1)
+        assert len(prime_impls) == 1
         impl = list(prime_impls)[0]
-        self.assertEqual(impl.pattern, "0101")
-        self.assertEqual(impl.covered_minterms, frozenset([5]))
+        assert impl.pattern == "0101"
+        assert impl.covered_minterms == frozenset([5])
     
     def test_all_minterms(self):
         """Todos los minitérminos (función constante 1)."""
@@ -1000,9 +880,9 @@ class TestEdgeCases(TestBase):
         
         prime_impls = minimizer.compute_prime_implicants(minterms)
         
-        self.assertEqual(len(prime_impls), 1)
+        assert len(prime_impls) == 1
         impl = list(prime_impls)[0]
-        self.assertEqual(impl.pattern, "---")
+        assert impl.pattern == "---"
     
     def test_no_simplification_possible(self):
         """Minitérminos que no se pueden simplificar."""
@@ -1013,9 +893,9 @@ class TestEdgeCases(TestBase):
         
         prime_impls = minimizer.compute_prime_implicants(minterms)
         
-        self.assertEqual(len(prime_impls), 2)
+        assert len(prime_impls) == 2
         patterns = {impl.pattern for impl in prime_impls}
-        self.assertEqual(patterns, {"0000", "1111"})
+        assert patterns == {"0000", "1111"}
     
     def test_duplicate_minterms(self):
         """Minitérminos duplicados."""
@@ -1030,7 +910,7 @@ class TestEdgeCases(TestBase):
         for impl in prime_impls:
             covered.update(impl.covered_minterms)
         
-        self.assertEqual(covered, {1, 2, 3})
+        assert covered == {1, 2, 3}
     
     def test_maximum_dimension(self):
         """Dimensión máxima permitida."""
@@ -1040,7 +920,7 @@ class TestEdgeCases(TestBase):
         minterms = [0, 1, (1 << 20) - 1]
         prime_impls = minimizer.compute_prime_implicants(minterms)
         
-        self.assertGreater(len(prime_impls), 0)
+        assert len(prime_impls) > 0
     
     def test_all_tools_identical(self):
         """Todas las herramientas son idénticas."""
@@ -1052,8 +932,8 @@ class TestEdgeCases(TestBase):
         result = analyzer.analyze_redundancy()
         
         # Solo 1 esencial, 4 redundantes
-        self.assertEqual(len(result['essential_tools']), 1)
-        self.assertEqual(len(result['redundant_tools']), 4)
+        assert len(result['essential_tools']) == 1
+        assert len(result['redundant_tools']) == 4
     
     def test_all_tools_disjoint(self):
         """Todas las herramientas disjuntas."""
@@ -1066,8 +946,8 @@ class TestEdgeCases(TestBase):
         result = analyzer.analyze_redundancy()
         
         # Todas esenciales
-        self.assertEqual(len(result['essential_tools']), 5)
-        self.assertEqual(len(result['redundant_tools']), 0)
+        assert len(result['essential_tools']) == 5
+        assert len(result['redundant_tools']) == 0
     
     def test_empty_capabilities(self):
         """Herramienta sin capacidades."""
@@ -1080,13 +960,8 @@ class TestEdgeCases(TestBase):
         
         # Ambas deben estar clasificadas
         all_tools = set(result['essential_tools']) | set(result['redundant_tools'])
-        self.assertIn('empty_tool', all_tools)
-        self.assertIn('normal_tool', all_tools)
-
-
-# ========================================================================================
-# TESTS: Performance y Escalabilidad
-# ========================================================================================
+        assert 'empty_tool' in all_tools
+        assert 'normal_tool' in all_tools
 
     def test_gram_matrix_orthogonality(self, analyzer):
         """
@@ -1102,7 +977,8 @@ class TestEdgeCases(TestBase):
         v2 = BooleanVector(frozenset(t2_caps))
 
         # Validación de rigor espectral en Z
-        self.assert_boolean_orthogonality(v1, v2)
+        inner_product = len(v1.components.intersection(v2.components))
+        assert inner_product == 0, f"Ruptura de ortogonalidad funcional. Entropía cruzada: {inner_product}"
         
         # 100 herramientas
         for i in range(100):
@@ -1112,8 +988,8 @@ class TestEdgeCases(TestBase):
         # Debe completar sin timeout
         result = analyzer.analyze_redundancy()
         
-        self.assertEqual(result['status'], 'success')
-        self.assertEqual(result['statistics']['total_tools'], 100)
+        assert result['status'] == 'success'
+        assert result['statistics']['total_tools'] == 102
     
     def test_quine_mccluskey_scaling(self):
         """Escalabilidad del algoritmo de Quine-McCluskey."""
@@ -1127,7 +1003,7 @@ class TestEdgeCases(TestBase):
             # Debe completar
             prime_impls = minimizer.compute_prime_implicants(minterms)
             
-            self.assertGreater(len(prime_impls), 0)
+            assert len(prime_impls) > 0
     
     def test_union_find_performance(self):
         """Performance de Union-Find."""
@@ -1139,18 +1015,18 @@ class TestEdgeCases(TestBase):
             uf.union(i, i + 1)
         
         # Verificar componente única
-        self.assertEqual(uf.num_components, 1)
+        assert uf.num_components == 1
         
         # Find debe ser rápido (path compression)
         root = uf.find(n - 1)
-        self.assertEqual(uf.find(0), root)
+        assert uf.find(0) == root
 
 
 # ========================================================================================
 # TESTS: Integración Completa
 # ========================================================================================
 
-class TestIntegration(TestBase):
+class TestIntegration:
     """Tests de integración end-to-end."""
     
     def test_full_pipeline_example(self):
@@ -1168,25 +1044,25 @@ class TestIntegration(TestBase):
         result = analyzer.analyze_redundancy()
         
         # Verificaciones
-        self.assertEqual(result['status'], 'success')
+        assert result['status'] == 'success'
         
         # audit_fusion es redundante con structure_logic
         # Nota: La clasificación depende del orden de selección en Quine-McCluskey.
         # Ambas herramientas tienen la misma firma topológica.
         all_tools = set(result['essential_tools']) | set(result['redundant_tools'])
-        self.assertIn('audit_fusion', all_tools)
-        self.assertIn('structure_logic', all_tools)
+        assert 'audit_fusion' in all_tools
+        assert 'structure_logic' in all_tools
 
         # Al menos una de las dos con firma idéntica debe ser redundante
         redundant = result['redundant_tools']
-        self.assertTrue('audit_fusion' in redundant or 'structure_logic' in redundant)
+        assert 'audit_fusion' in redundant or 'structure_logic' in redundant
         
         # Cobertura completa
         all_tools = set(result['essential_tools']) | set(result['redundant_tools'])
-        self.assertEqual(len(all_tools), 6)
+        assert len(all_tools) == 6
         
         # Reducción detectada
-        self.assertGreater(result['statistics']['reduction_rate'], 0)
+        assert result['statistics']['reduction_rate'] > 0
     
     def test_consensus_between_methods(self):
         """Consenso entre diferentes métodos de análisis."""
@@ -1199,16 +1075,14 @@ class TestIntegration(TestBase):
         result = analyzer.analyze_redundancy()
         
         # Homología debe detectar ciclo
-        self.assertGreater(result['homology']['H_1'], 0)
+        assert result['homology']['H_1'] > 0
         
         # Debe haber una redundante
-        self.assertEqual(len(result['redundant_tools']), 1)
+        assert len(result['redundant_tools']) == 1
         
         # Estadísticas deben ser consistentes
-        self.assertEqual(
-            result['statistics']['essential_count'] + result['statistics']['redundant_count'],
+        assert result['statistics']['essential_count'] + result['statistics']['redundant_count'] == \
             result['statistics']['total_tools']
-        )
 
 
 # ========================================================================================
@@ -1246,14 +1120,3 @@ class TestPerformanceScalability:
         n_tools = 100
         for i in range(n_tools):
             analyzer.register_tool(f"Tool_{i}", {CapabilityDimension.PHYS_IO})
-
-
-# ========================================================================================
-# PUNTO DE ENTRADA
-# ========================================================================================
-
-if __name__ == '__main__':
-    import sys
-    
-    success = run_test_suite()
-    sys.exit(0 if success else 1)
