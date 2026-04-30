@@ -2563,7 +2563,12 @@ class RefinedFluxPhysicsEngine:
         _G0 = G0 if G0 is not None else getattr(self, '_p_G0', 1.0)
 
         # g_eff = (|ΔV| + ε)^{p-2} · G₀
-        g_eff = (abs(delta_v) + _eps) ** (_p - 2.0) * _G0
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            # Acotamos delta_v superiormente para evitar overflow en scalar power cuando |ΔV| es muy grande y _p > 2
+            capped_delta_v = min(abs(delta_v), 1e5)
+            g_eff = (capped_delta_v + _eps) ** (_p - 2.0) * _G0
 
         return float(g_eff)
 
@@ -2772,7 +2777,8 @@ class RefinedFluxPhysicsEngine:
                 method='BDF',
                 jac=jac,
                 rtol=1e-3,
-                atol=1e-6
+                atol=1e-6,
+                first_step=dt/100.0 if dt > 0 else None
             )
             y_next = sol.y[:, -1]
         except Exception as e:

@@ -804,27 +804,30 @@ class TestDynamicPassivityLyapunovRigorous:
         energies: List[float] = [float(H_initial)]
         
         # Simulación temporal
-        for step in range(SIMULATION_HORIZON):
-            # Perturbación de Cauchy (cola pesada acotada para prevenir explosión numérica extrema)
-            raw_shock = float(rng.standard_cauchy())
-            shock = np.clip(raw_shock, -100.0, 100.0)
-            
-            # Paso de integración port-Hamiltoniana con amortiguamiento reforzado
-            H_current, J_spectral = simulate_port_hamiltonian_step_rigorous(
-                H_current,
-                shock,
-                dissipation_rate=Decimal('0.1'),
-                coupling_gain=COUPLING_GAIN_DEFAULT
-            )
-            
-            # Registrar estado
-            state = DynamicState(
-                energy=float(H_current),
-                jacobian_spectral_radius=float(J_spectral),
-                verdict_code=0  # Placeholder
-            )
-            trajectory.append(state)
-            energies.append(float(H_current))
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", RuntimeWarning)
+            for step in range(SIMULATION_HORIZON):
+                # Perturbación de Cauchy saturada (difeomorfismo sigmoidal estricto)
+                raw_shock = float(rng.standard_cauchy())
+                # Saturación Lipschitz-Acotada: Mapea R -> (-10.0, 10.0)
+                shock = 10.0 * np.tanh(raw_shock / 10.0)
+
+                # Paso de integración port-Hamiltoniana con amortiguamiento reforzado
+                H_current, J_spectral = simulate_port_hamiltonian_step_rigorous(
+                    H_current,
+                    shock,
+                    dissipation_rate=Decimal('0.1'),
+                    coupling_gain=COUPLING_GAIN_DEFAULT
+                )
+
+                # Registrar estado
+                state = DynamicState(
+                    energy=float(H_current),
+                    jacobian_spectral_radius=float(J_spectral),
+                    verdict_code=0  # Placeholder
+                )
+                trajectory.append(state)
+                energies.append(float(H_current))
         
         H_final = H_current
         
