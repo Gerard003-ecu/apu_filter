@@ -1749,6 +1749,7 @@ class TestGlobalFrustrationAssessment:
             spectral_method="dense",
             delta_rank=0,
             condition_number_est=1.0,
+            euler_characteristic=1,
         )
         with pytest.raises(AttributeError):
             gfa.frustration_energy = 999.0
@@ -1765,6 +1766,7 @@ class TestGlobalFrustrationAssessment:
             spectral_method="sparse",
             delta_rank=1,
             condition_number_est=2.0,
+            euler_characteristic=1,
         )
         assert gfa.frustration_energy == 0.001
         assert gfa.h0_dimension == 2
