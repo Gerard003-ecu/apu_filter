@@ -504,6 +504,8 @@ def build_context(
     physics_ok: bool = True,
     tactics_ok: bool = True,
     strategy_ok: bool = True,
+    omega_ok: bool = True,
+    alpha_ok: bool = True,
     wisdom_ok: bool = True,
 ) -> TelemetryContext:
     """
@@ -513,6 +515,8 @@ def build_context(
         physics_ok: True si PHYSICS está OK.
         tactics_ok: True si TACTICS está OK.
         strategy_ok: True si STRATEGY está OK.
+        omega_ok: True si OMEGA está OK.
+        alpha_ok: True si ALPHA está OK.
         wisdom_ok: True si WISDOM está OK.
     
     Returns:
@@ -592,6 +596,18 @@ def build_context(
             ],
         )
 
+    # OMEGA
+    if omega_ok:
+        add_ok_span(context, "omega_deliberation", Stratum.OMEGA)
+    else:
+        add_failed_span(context, "omega_deliberation", Stratum.OMEGA, "Omega failure", "Error")
+
+    # ALPHA
+    if alpha_ok:
+        add_ok_span(context, "alpha_viability", Stratum.ALPHA)
+    else:
+        add_failed_span(context, "alpha_viability", Stratum.ALPHA, "Alpha failure", "Error")
+
     # WISDOM
     if wisdom_ok:
         add_ok_span(context, "build_output", Stratum.WISDOM)
@@ -621,6 +637,8 @@ def build_context_from_failures(failing_strata: frozenset[Stratum]) -> Telemetry
         physics_ok=Stratum.PHYSICS not in failing_strata,
         tactics_ok=Stratum.TACTICS not in failing_strata,
         strategy_ok=Stratum.STRATEGY not in failing_strata,
+        omega_ok=Stratum.OMEGA not in failing_strata,
+        alpha_ok=Stratum.ALPHA not in failing_strata,
         wisdom_ok=Stratum.WISDOM not in failing_strata,
     )
 

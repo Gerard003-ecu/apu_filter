@@ -1987,8 +1987,13 @@ class SemanticTranslator:
         # Obtener del MIC
         # Restablece la Ley de Clausura Transitiva: se inyecta un contexto de validación
         # completo en lugar de utilizar force_physics_override (Prohibido en WISDOM).
-        # Usamos nombres de estrato canónicos para evitar colisiones entre versiones del Enum Stratum.
-        lawful_context = {"validated_strata": ["PHYSICS", "TACTICS", "STRATEGY", "OMEGA", "ALPHA", "WISDOM"]}
+        # Usamos frozenset de Stratum enums para asegurar cumplimiento estricto.
+        lawful_context = {
+            "validated_strata": frozenset([
+                Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY,
+                Stratum.OMEGA, Stratum.ALPHA, Stratum.WISDOM
+            ])
+        }
 
         response = self.mic.project_intent(
             service_name="fetch_narrative",
@@ -2088,8 +2093,13 @@ class SemanticTranslator:
 
         # Restablece la Ley de Clausura Transitiva: se inyecta un contexto de validación
         # completo en lugar de utilizar force_physics_override (Prohibido en WISDOM).
-        # Usamos nombres de estrato canónicos para evitar colisiones entre versiones del Enum Stratum.
-        lawful_context = {"validated_strata": ["PHYSICS", "TACTICS", "STRATEGY", "OMEGA", "ALPHA", "WISDOM"]}
+        # Usamos frozenset de Stratum enums para asegurar cumplimiento estricto.
+        lawful_context = {
+            "validated_strata": frozenset([
+                Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY,
+                Stratum.OMEGA, Stratum.ALPHA, Stratum.WISDOM
+            ])
+        }
 
         response = self.mic.project_intent(
             service_name="project_graph_narrative",
@@ -2128,8 +2138,13 @@ class SemanticTranslator:
 
         # Restablece la Ley de Clausura Transitiva: se inyecta un contexto de validación
         # completo en lugar de utilizar force_physics_override (Prohibido en WISDOM).
-        # Usamos nombres de estrato canónicos para evitar colisiones entre versiones del Enum Stratum.
-        lawful_context = {"validated_strata": ["PHYSICS", "TACTICS", "STRATEGY", "OMEGA", "ALPHA", "WISDOM"]}
+        # Usamos frozenset de Stratum enums para asegurar cumplimiento estricto.
+        lawful_context = {
+            "validated_strata": frozenset([
+                Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY,
+                Stratum.OMEGA, Stratum.ALPHA, Stratum.WISDOM
+            ])
+        }
 
         response = self.mic.project_intent(
             "project_graph_narrative",
@@ -2409,11 +2424,13 @@ class SemanticTranslator:
         )
 
         resonance_type = "risk" if resonance_risk else "safe"
+        # Ratio λ_max / λ_min where λ_min is fiedler and λ_max is 1/wavelength
+        ratio = 1.0 / (wavelength * fiedler) if (wavelength > 0 and fiedler > 0) else 1.0
         parts.append(
             self._fetch_narrative(
                 "SPECTRAL_RESONANCE",
                 resonance_type,
-                {"wavelength": round(wavelength, 4)},
+                {"ratio": round(ratio, 4)},
             )
         )
         return " ".join(parts)

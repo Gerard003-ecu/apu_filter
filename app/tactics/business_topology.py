@@ -2224,15 +2224,22 @@ class BusinessTopologicalAnalyzer:
         
         # Penalizaciones
         penalty = 0.0
+        force_critical = False
         if betti.beta_1 > 0:
-            penalty += min(cfg.penalty_max_cycles, betti.beta_1 * cfg.penalty_per_cycle)
+            # Veto topológico duro: β₁ > 0 es inadmisible
+            penalty += 100.0
+            force_critical = True
         if synergy.synergy_detected:
             penalty += min(cfg.penalty_max_synergy, synergy.synergy_score * cfg.penalty_synergy_factor)
         if spectral.resonance_risk:
             penalty += cfg.penalty_resonance
         
         integrity_score = max(0.0, min(100.0, base_score - penalty))
-        complexity_level = ComplexityLevel.from_integrity_score(integrity_score)
+
+        if force_critical:
+            complexity_level = ComplexityLevel.CRITICAL
+        else:
+            complexity_level = ComplexityLevel.from_integrity_score(integrity_score)
         
         # Alertas y riesgos
         waste_alerts = []

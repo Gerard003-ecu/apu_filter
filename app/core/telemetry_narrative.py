@@ -145,6 +145,7 @@ class StratumTopology:
         Stratum.TACTICS,
         Stratum.STRATEGY,
         Stratum.OMEGA,
+        Stratum.ALPHA,
         Stratum.WISDOM,
     )
 
@@ -517,7 +518,6 @@ class Issue:
         if self.context:
             result["context"] = self.context
 
-        return result
 
 
 @dataclass
@@ -940,8 +940,8 @@ class TelemetryNarrator:
             return self._generate_empty_report().to_dict()
 
         # INCISIÓN A: Isomorfismo de Identidad Pura en O(1)
-        # Usamos id(context) como clave primaria asumiendo inmutabilidad durante el reporte.
-        context_id = id(context)
+        # Usamos hash(context) como clave primaria asumiendo inmutabilidad durante el reporte.
+        context_id = hash(context)
         if context_id in self._execution_cache:
             return self._execution_cache[context_id]
 
@@ -1009,11 +1009,9 @@ class TelemetryNarrator:
             # Almacenar en caché de instancia (Incisión B)
             self._execution_cache[context_id] = result
             return result
-
         except Exception as e:
             logger.error(f"Error in summarize_execution: {e}", exc_info=True)
             return self._generate_error_report(str(e)).to_dict()
-
     def _analyze_global_context(self, context: TelemetryContext) -> Dict[Stratum, List[Issue]]:
         """
         Analiza los vectores de estado globales buscando anomalías.
@@ -1526,9 +1524,7 @@ class TelemetryNarrator:
             )
 
         return results
-
-    def _aggregate_stratum_metrics(
-        self,
+    def _aggregate_stratum_metrics(self,
         phases: List[PhaseAnalysis],
     ) -> Dict[str, Any]:
         """Agrega métricas de las fases de un estrato."""
