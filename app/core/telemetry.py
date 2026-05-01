@@ -49,6 +49,7 @@ import threading
 import time
 import traceback
 import uuid
+import weakref
 from contextlib import contextmanager
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -302,6 +303,7 @@ class TelemetrySpan:
     metadata: Dict[str, Any] = field(default_factory=dict)
     status: StepStatus = StepStatus.IN_PROGRESS
     errors: List[Dict[str, Any]] = field(default_factory=list)
+    _parent: Optional[weakref.ReferenceType["TelemetrySpan"]] = field(default=None, init=False, repr=False)
 
     # Nuevos campos para tracking
     _node_count: int = field(default=1, repr=False)
@@ -339,6 +341,7 @@ class TelemetrySpan:
         # Validar nivel del hijo
         if child.level != self.level + 1:
             child.level = self.level + 1
+        child._parent = weakref.ref(self)
 
         self.children.append(child)
         self._update_tree_metrics()
@@ -415,6 +418,7 @@ class TelemetryContext:
     steps: List[Dict[str, Any]] = field(default_factory=list)
     metrics: Dict[str, Any] = field(default_factory=dict)
     errors: List[Dict[str, Any]] = field(default_factory=list)
+    _parent: Optional[weakref.ReferenceType["TelemetrySpan"]] = field(default=None, init=False, repr=False)
     events: List[Dict[str, Any]] = field(default_factory=list)
 
     root_spans: List[TelemetrySpan] = field(default_factory=list)
