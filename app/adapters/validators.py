@@ -128,12 +128,15 @@ from typing import (
     ClassVar,
     Final,
     FrozenSet,
+    TYPE_CHECKING,
     Iterable,
     Mapping,
     Optional,
     Sequence,
     TypeVar,
 )
+
+from functools import total_ordering
 
 import numpy as np
 import pandas as pd
@@ -146,6 +149,12 @@ from numpy.typing import NDArray
 
 # Tolerancia para comparaciones de punto flotante (épsilon de máquina × 10)
 FLOAT_TOLERANCE: Final[float] = np.finfo(np.float64).eps * 10
+
+# Umbral de número de condición para detectar degeneración (κ > 1e12)
+CONDITION_NUMBER_THRESHOLD: Final[float] = 1e12
+
+# Constante de saturación de Lipschitz para evitar explosión termodinámica (10^150)
+LIPSCHITZ_LIMIT: Final[float] = 1e150
 
 # Mínimo número normal positivo IEEE 754 (barrera subnormal)
 MIN_NORMAL_FLOAT: Final[float] = sys.float_info.min
@@ -162,6 +171,7 @@ MAX_SAFE_RANGE: Final[float] = 1e308
 # ══════════════════════════════════════════════════════════════════════════════
 
 
+@total_ordering
 class ValidationSeverity(str, Enum):
     """
     Niveles de severidad que forman un RETÍCULO COMPLETO ordenado.
@@ -192,17 +202,41 @@ class ValidationSeverity(str, Enum):
         """Rango ordinal en el retículo (menor = menos severo)."""
         return _SEVERITY_RANKS[self]
 
-    def __lt__(self, other: ValidationSeverity) -> bool:
-        """Orden parcial estricto."""
-        if not isinstance(other, ValidationSeverity):
-            return NotImplemented
-        return self.rank < other.rank
+    def __lt__(self, other: Any) -> bool:
+        """Orden parcial estricto basado en el rango del retículo."""
+        if isinstance(other, ValidationSeverity):
+            return self.rank < other.rank
+        return NotImplemented
 
-    def __le__(self, other: ValidationSeverity) -> bool:
+    def __le__(self, other: Any) -> bool:
         """Orden parcial no estricto."""
-        if not isinstance(other, ValidationSeverity):
-            return NotImplemented
-        return self.rank <= other.rank
+        if isinstance(other, ValidationSeverity):
+            return self.rank <= other.rank
+        return NotImplemented
+
+    def __gt__(self, other: Any) -> bool:
+        """Orden parcial estricto inverso."""
+        if isinstance(other, ValidationSeverity):
+            return self.rank > other.rank
+        return NotImplemented
+
+    def __ge__(self, other: Any) -> bool:
+        """Orden parcial no estricto inverso."""
+        if isinstance(other, ValidationSeverity):
+            return self.rank >= other.rank
+        return NotImplemented
+
+    def __eq__(self, other: Any) -> bool:
+        """Igualdad estructural en el retículo."""
+        if isinstance(other, ValidationSeverity):
+            return self.rank == other.rank
+        if isinstance(other, str):
+            return self.value == other
+        return False
+
+    def __hash__(self) -> int:
+        """Hash consistente con la igualdad."""
+        return hash(self.value)
 
     def join(self, other: ValidationSeverity) -> ValidationSeverity:
         """Supremo (∨) en el retículo: max(self, other)."""
@@ -532,6 +566,8 @@ class ValidationResult:
         Returns:
             ValidationResult.IDENTITY (sin issues, válido)
         """
+        if hasattr(cls, "IDENTITY"):
+            return cls.IDENTITY
         return cls(is_valid=True, issues=())
 
     @classmethod
@@ -746,16 +782,21 @@ class DataFrameValidator:
        └─ Garantiza valores en conjunto compacto
     
     6. **validate_linear_independence** (Conexidad)
-       ├─ Calcula rank(matriz_columnas)
-       ├─ Verifica rank = num_columnas
+       ├─ Calcula el espectro (SVD) de la matriz de columnas
+       ├─ Verifica el número de condición κ < threshold
        └─ Garantiza espacio vectorial conexo (no degenerado)
-    
-    7. **validate_survival_threshold** (Preservación de Medida)
+
+    7. **apply_thermodynamic_clamping** (Estabilidad de Lipschitz)
+       ├─ Identifica impulsos masivos que exceden LIPSCHITZ_LIMIT
+       ├─ Aplica saturación (clamping) para prevenir divergencia térmica
+       └─ Garantiza estabilidad termodinámica del flujo
+
+    8. **validate_survival_threshold** (Preservación de Medida)
        ├─ Calcula μ(filas_limpias) / μ(filas_totales)
        ├─ Verifica ratio ≥ threshold
        └─ Garantiza masa suficiente post-filtrado
-    
-    8. **validate_domain** (Composición Orquestada)
+
+    9. **validate_domain** (Composición Orquestada)
        └─ Ejecuta secuencialmente todas las anteriores
        └─ Combina resultados vía monoide merge (⊕)
     
@@ -1404,6 +1445,69 @@ class DataFrameValidator:
         return ValidationResult.from_issues(tuple(issues))
 
     @classmethod
+    def apply_thermodynamic_clamping(
+        cls,
+        df: pd.DataFrame,
+        columns: Iterable[str],
+        *,
+        limit: float = LIPSCHITZ_LIMIT,
+    ) -> tuple[pd.DataFrame, ValidationResult]:
+        """
+        Aplica SATURACIÓN TERMODINÁMICA (Clamping) a impulsos masivos.
+
+        Garantiza que los valores cumplan con una condición de acotación
+        Lipschitz |x| ≤ limit para prevenir que el motor FluxCondenser
+        explote al integrar energía térmica infinita por impulsos no-Newtonianos.
+
+        Args:
+            df: DataFrame a procesar
+            columns: Columnas a saturar
+            limit: Límite de saturación (default 10^150)
+
+        Returns:
+            Tuple con (DataFrame saturado, ValidationResult con issues de saturación)
+        """
+        # Precondición: df es DataFrame válido
+        df_result = cls._validate_dataframe_object(df)
+        if not df_result.is_valid:
+            return df, df_result
+
+        cols = cls._normalize_columns_argument(columns, "columns")
+        df_saturated = df.copy()
+        issues: list[ValidationIssue] = []
+
+        for col in cols:
+            if col not in df.columns:
+                continue
+
+            series = pd.to_numeric(df[col], errors="coerce")
+
+            # Identificar valores que exceden el límite de Lipschitz
+            upper_mask = series > limit
+            lower_mask = series < -limit
+            total_violations = int(upper_mask.sum() + lower_mask.sum())
+
+            if total_violations > 0:
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.WARNING,
+                        code=ValidationCode.RANGE_VIOLATION,
+                        message=(
+                            f"Columna '{col}' contiene {total_violations} impulsos "
+                            f"masivos que violan la cota de Lipschitz ({limit:.2e}). "
+                            "Se ha aplicado saturación termodinámica (clamping)."
+                        ),
+                        column=col,
+                        count=total_violations,
+                    )
+                )
+
+                # Aplicar saturación (clamping)
+                df_saturated[col] = series.clip(lower=-limit, upper=limit)
+
+        return df_saturated, ValidationResult.from_issues(tuple(issues))
+
+    @classmethod
     def validate_ranges(
         cls,
         df: pd.DataFrame,
@@ -1558,40 +1662,39 @@ class DataFrameValidator:
         df: pd.DataFrame,
         columns: Iterable[str],
         *,
-        tolerance: float = FLOAT_TOLERANCE,
+        condition_threshold: float = CONDITION_NUMBER_THRESHOLD,
         severity: ValidationSeverity = ValidationSeverity.ERROR,
         missing_as_warning: bool = True,
     ) -> ValidationResult:
         """
-        Verifica CONEXIDAD del espacio vectorial (independencia lineal).
+        Verifica CONEXIDAD del espacio vectorial mediante ESTABILIDAD ESPECTRAL.
         
-        Calcula el rango numérico de la matriz formada por las columnas
-        especificadas. Si rank < num_columnas, el espacio está DEGENERADO
-        (columnas linealmente dependientes), lo que colapsa la matriz de
-        covarianza y puede invalidar análisis estadísticos.
+        En lugar de un cálculo de rango ingenuo, evalúa el Condicionamiento
+        Espectral κ(A) = σ_max / σ_min vía Descomposición en Valores Singulares
+        (SVD). Si κ(A) → ∞, la matriz es numéricamente singular y el espacio
+        está DEGENERADO.
         
         Invariante Verificado:
         ---------------------
-        rank(df[columns]) = |columns|
+        κ(df[columns]) < condition_threshold (Estabilidad del Kernel)
         
         Contexto Matemático:
         -------------------
-        Un conjunto de vectores {v₁, v₂, ..., vₙ} es linealmente independiente
-        si y solo si la única solución de:
-            α₁v₁ + α₂v₂ + ... + αₙvₙ = 0
-        es α₁ = α₂ = ... = αₙ = 0.
-        
-        Equivalentemente, rank(matriz) = n.
+        La independencia lineal en espacios aproximados (IEEE 754) se mide
+        por la distancia al conjunto de matrices de rango deficiente. Un
+        número de condición elevado indica que los vectores son
+        "casi" colineales, lo que amplifica catastróficamente el ruido
+        numérico en inversiones de matrices.
         
         Args:
             df: DataFrame a validar
             columns: Columnas que deben ser linealmente independientes
-            tolerance: Tolerancia para el cálculo del rango (épsilon)
+            condition_threshold: Umbral máximo para el número de condición
             severity: Severidad si hay dependencia (default ERROR)
             missing_as_warning: Si True, columnas ausentes generan WARNING
         
         Returns:
-            ValidationResult con diagnóstico de independencia lineal
+            ValidationResult con diagnóstico de estabilidad espectral
         """
         # Precondición: df es DataFrame válido
         df_result = cls._validate_dataframe_object(df)
@@ -1648,15 +1751,16 @@ class DataFrameValidator:
         sub_complete = sub.dropna()
         
         # Verificar que haya suficientes filas
-        if sub_complete.shape[0] < 2:
+        if sub_complete.shape[0] < len(present_cols):
             issues.append(
                 ValidationIssue(
                     severity=ValidationSeverity.WARNING,
                     code=ValidationCode.LINEAR_DEPENDENCY,
                     message=(
                         f"Insuficientes filas completas ({sub_complete.shape[0]}) "
-                        f"para calcular rango de {len(present_cols)} columnas. "
-                        "Se requieren al menos 2 filas."
+                        f"para calcular el espectro de {len(present_cols)} columnas. "
+                        f"Se requieren al menos {len(present_cols)} filas para "
+                        "rango completo."
                     ),
                     count=sub_complete.shape[0],
                 )
@@ -1664,39 +1768,46 @@ class DataFrameValidator:
             return ValidationResult.from_issues(tuple(issues))
         
         # ────────────────────────────────────────────────────────────────────
-        # Cálculo del Rango Numérico
+        # Análisis Espectral vía SVD (Singular Value Decomposition)
         # ────────────────────────────────────────────────────────────────────
         matrix: NDArray[np.float64] = sub_complete.values.astype(np.float64)
         
         try:
-            rank = np.linalg.matrix_rank(matrix, tol=tolerance)
+            # Cálculo asintóticamente estable de valores singulares
+            singular_values = np.linalg.svd(matrix, compute_uv=False)
+
+            sigma_max = singular_values[0]
+            sigma_min = singular_values[-1]
+
+            # Número de condición κ = σ_max / σ_min
+            # Se inyecta epsilon de máquina para evitar división por cero inducida por el kernel
+            condition_number = sigma_max / (sigma_min + sys.float_info.epsilon)
+
         except Exception as exc:
             issues.append(
                 ValidationIssue(
                     severity=ValidationSeverity.WARNING,
                     code=ValidationCode.LINEAR_DEPENDENCY,
-                    message=f"Error al calcular rango de matriz: {exc}",
+                    message=f"Error en la descomposición espectral (SVD): {exc}",
                 )
             )
             return ValidationResult.from_issues(tuple(issues))
         
         # ────────────────────────────────────────────────────────────────────
-        # Verificar Degeneración
+        # Verificar Degeneración del Kernel
         # ────────────────────────────────────────────────────────────────────
-        expected_rank = len(present_cols)
-        if rank < expected_rank:
-            deficiency = expected_rank - rank
+        if condition_number > condition_threshold:
             issues.append(
                 ValidationIssue(
                     severity=severity,
                     code=ValidationCode.LINEAR_DEPENDENCY,
                     message=(
                         f"Las columnas {present_cols} NO son linealmente independientes. "
-                        f"Rango numérico: {rank} < {expected_rank} (deficiencia: {deficiency}). "
-                        "El espacio vectorial está DEGENERADO, lo que puede colapsar "
-                        "la matriz de covarianza."
+                        f"Número de condición crítico: κ={condition_number:.2e} > "
+                        f"{condition_threshold:.2e}. El espacio vectorial está "
+                        "topológicamente DEGENERADO (casi singular)."
                     ),
-                    count=deficiency,
+                    count=1, # Deficiencia detectada
                 )
             )
         
@@ -1771,21 +1882,26 @@ class DataFrameValidator:
         clean_mask = pd.Series(True, index=df.index)
         
         for col in cols:
-            # Excluir nulos
-            not_null = df[col].notna()
+            series = df[col]
+
+            # Excluir nulos (Singularidades Fuertes)
+            # NOTA: pd.isna() es universal para None, NaN y pd.NA
+            not_null = ~pd.isna(series.values)
             clean_mask &= not_null
             
-            # Excluir strings vacíos (si está habilitado)
+            # Excluir strings vacíos (Singularidades de Cadena)
             if include_empty_strings:
-                series = df[col]
-                
-                # Solo verificar si puede contener strings
+                # Solo verificar si la columna contiene strings o es genérica
                 if series.dtype == object or pd.api.types.is_string_dtype(series):
-                    # Máscara de valores que son strings
-                    str_mask = series.apply(type) == str
-                    # Máscara de strings vacíos (o solo espacios)
-                    empty_mask = str_mask & (series.str.strip() == "")
-                    # Excluir strings vacíos
+                    # Identificar strings efectivamente presentes
+                    is_str = series.apply(lambda x: isinstance(x, str))
+
+                    # Identificar strings vacíos entre los que son strings
+                    # OJO: no usamos .astype(str) en toda la serie para evitar convertir NaN -> "nan"
+                    # Usamos acceso directo a .str que solo opera sobre strings
+                    empty_mask = is_str & (series.str.strip() == "")
+
+                    # Invalidar filas con strings vacíos
                     clean_mask &= ~empty_mask
         
         # ────────────────────────────────────────────────────────────────────
@@ -1798,6 +1914,9 @@ class DataFrameValidator:
             surviving_rows / total_rows if total_rows > 0 else 1.0
         )
         
+        # Rigorización: redondeo a 10 decimales para evitar ruido de punto flotante
+        survival_ratio = round(survival_ratio, 10)
+
         # ────────────────────────────────────────────────────────────────────
         # Verificar Umbral
         # ────────────────────────────────────────────────────────────────────
@@ -1836,6 +1955,8 @@ class DataFrameValidator:
             Mapping[str, tuple[Optional[float], Optional[float]]]
         ] = None,
         linear_dependency_columns: Optional[Iterable[str]] = None,
+        lipschitz_columns: Optional[Iterable[str]] = None,
+        lipschitz_limit: float = LIPSCHITZ_LIMIT,
         survival_critical_columns: Optional[Iterable[str]] = None,
         survival_min_threshold: float = DEFAULT_SURVIVAL_THRESHOLD,
     ) -> ValidationResult:
@@ -1855,6 +1976,7 @@ class DataFrameValidator:
              ├─→ validate_non_negative ──────┤
              ├─→ validate_ranges ────────────┤
              ├─→ validate_linear_independence┤
+             ├─→ apply_thermodynamic_clamping┤
              └─→ validate_survival_threshold ┘
                             ↓
                     ⊕ (monoide merge)
@@ -1875,6 +1997,8 @@ class DataFrameValidator:
             non_negative_columns: Columnas no negativas (termodinámica)
             range_rules: Reglas de rango (compacidad)
             linear_dependency_columns: Columnas para independencia (conexidad)
+            lipschitz_columns: Columnas para saturación (Lipschitz)
+            lipschitz_limit: Límite de saturación termodinámica
             survival_critical_columns: Columnas para supervivencia (medida)
             survival_min_threshold: Umbral de supervivencia (default 90%)
         
@@ -1894,6 +2018,7 @@ class DataFrameValidator:
         num_cols = _materialize_iterable(numeric_columns)
         nn_cols = _materialize_iterable(non_negative_columns)
         lin_cols = _materialize_iterable(linear_dependency_columns or ())
+        lip_cols = _materialize_iterable(lipschitz_columns or ())
         surv_cols = _materialize_iterable(survival_critical_columns or ())
         
         # ────────────────────────────────────────────────────────────────────
@@ -1929,7 +2054,14 @@ class DataFrameValidator:
         if lin_cols:
             composite = composite + cls.validate_linear_independence(df, lin_cols)
         
-        # 7. Preservación de Medida (Supervivencia)
+        # 7. Estabilidad de Lipschitz (Saturación Termodinámica)
+        if lip_cols:
+            _, lip_result = cls.apply_thermodynamic_clamping(
+                df, lip_cols, limit=lipschitz_limit
+            )
+            composite = composite + lip_result
+
+        # 8. Preservación de Medida (Supervivencia)
         if surv_cols:
             composite = composite + cls.validate_survival_threshold(
                 df,
@@ -1977,6 +2109,8 @@ __all__ = [
     "DataFrameValidator",
     # Constantes
     "FLOAT_TOLERANCE",
+    "CONDITION_NUMBER_THRESHOLD",
+    "LIPSCHITZ_LIMIT",
     "MIN_NORMAL_FLOAT",
     "DEFAULT_SURVIVAL_THRESHOLD",
 ]
