@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import collections
 import copy
+import functools
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -786,6 +787,9 @@ class TelemetryNarrator:
         self.step_mapping = step_mapping or {}
         self.config = config or NarratorConfig()
 
+        # Caché de instancia para ejecuciones completas (O(1) lookup por puntero de contexto)
+        self._execution_cache: Dict[int, Dict[str, Any]] = {}
+
         if mic:
             self.mic = mic
         else:
@@ -793,8 +797,12 @@ class TelemetryNarrator:
             self.mic = MICRegistry()
             register_core_vectors(self.mic, config={})
 
-    def _fetch_narrative(self, domain: str, classification: str, params: Dict[str, Any] = None) -> str:
-        """Helper to fetch narrative from MIC."""
+    @functools.lru_cache(maxsize=1024)
+    def _fetch_narrative(self, domain: str, classification: str, params_tuple: Optional[Tuple[Tuple[str, Any], ...]] = None) -> str:
+        """
+        Helper memoizado para recuperar narrativas desde la MIC.
+        Reduce el overhead de 'project_intent' en recorridos densos.
+        """
         # Restablece la Ley de Clausura Transitiva: se inyecta un contexto de validación
         # completo en lugar de utilizar force_physics_override (Prohibido en WISDOM).
         lawful_context = {
@@ -804,13 +812,16 @@ class TelemetryNarrator:
             ])
         }
 
+        # Re-construir payload
+        payload = {
+            "domain": domain,
+            "classification": classification,
+            "params": dict(params_tuple) if params_tuple else {}
+        }
+
         response = self.mic.project_intent(
             service_name="fetch_narrative",
-            payload={
-                "domain": domain,
-                "classification": classification,
-                "params": params or {}
-            },
+            payload=payload,
             context=lawful_context
         )
         return response.get("narrative", f"[{domain}.{classification}]")
@@ -834,7 +845,8 @@ class TelemetryNarrator:
             domain = f"TELEMETRY_FAILURES_{stratum.name}"
             classification = self._detect_failure_type(stratum, issues)
 
-        return self._fetch_narrative(domain, classification)
+        # Convertir params a tupla de items para hashing en lru_cache
+        return self._fetch_narrative(domain, classification, params_tuple=None)
 
     def _detect_failure_type(self, stratum: Stratum, issues: List[Issue]) -> str:
         """Detecta el tipo específico de fallo basado en los issues."""
@@ -864,9 +876,10 @@ class TelemetryNarrator:
 
         return "default"
 
+    @functools.lru_cache(maxsize=32)
     def _get_verdict_info(self, verdict_code: str) -> Tuple[str, str]:
         """Obtiene título y descripción del veredicto desde MIC."""
-        full_text = self._fetch_narrative("TELEMETRY_VERDICTS", verdict_code)
+        full_text = self._fetch_narrative("TELEMETRY_VERDICTS", verdict_code, params_tuple=None)
         # Parse based on assuming a newline separator if present, or just split.
         # Format in Dictionary: "Title\nDescription"
         if "\n" in full_text:
@@ -920,10 +933,17 @@ class TelemetryNarrator:
         Punto de entrada principal.
         
         Ejecuta la síntesis piramidal y retorna el reporte estructurado.
+        Implementa caching O(1) por puntero de contexto para optimizar speedup amortizado.
         """
         if context is None:
             logger.warning("TelemetryNarrator received None context")
             return self._generate_empty_report().to_dict()
+
+        # INCISIÓN A: Isomorfismo de Identidad Pura en O(1)
+        # Usamos id(context) como clave primaria asumiendo inmutabilidad durante el reporte.
+        context_id = id(context)
+        if context_id in self._execution_cache:
+            return self._execution_cache[context_id]
 
         root_spans = getattr(context, "root_spans", [])
 
@@ -984,7 +1004,11 @@ class TelemetryNarrator:
                 recommendations=recommendations,
             )
 
-            return report.to_dict()
+            result = report.to_dict()
+
+            # Almacenar en caché de instancia (Incisión B)
+            self._execution_cache[context_id] = result
+            return result
 
         except Exception as e:
             logger.error(f"Error in summarize_execution: {e}", exc_info=True)
