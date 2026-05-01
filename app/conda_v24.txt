@@ -1,0 +1,855 @@
+======================================== FAILURES =========================================
+____________ TestVerdictMonotonicity.test_adding_cycles_never_improves_verdict ____________
+
+self = <test_boarding_pass_hierarchy.TestVerdictMonotonicity object at 0x7d19ae2d40d0>
+narrator = <app.core.telemetry_narrative.TelemetryNarrator object at 0x7d1988baf400>
+
+    def test_adding_cycles_never_improves_verdict(self, narrator):
+        """
+        Aumentar β₁ (más ciclos) no debe mejorar el veredicto.
+        """
+        beta1_values = [0, 1, 3]
+        verdicts = []
+    
+        for beta1 in beta1_values:
+            ctx = TelemetryContext()
+            _safely_update_physics(ctx, hamiltonian_excess=0.0)
+            topology_set = _safely_update_topology(ctx, beta_1=beta1)
+            if not topology_set:
+                pytest.skip("Cannot update topology metrics")
+    
+            report = narrator.summarize_execution(ctx)
+            verdict_code = _extract_verdict_code(report)
+            score = _verdict_severity_score(verdict_code)
+            verdicts.append((beta1, verdict_code, score))
+    
+        for i in range(1, len(verdicts)):
+            prev_beta, prev_verdict, prev_score = verdicts[i - 1]
+            curr_beta, curr_verdict, curr_score = verdicts[i]
+    
+            if prev_score >= 0 and curr_score >= 0:
+>               assert curr_score >= prev_score, (
+                    f"Monotonicity violation: "
+                    f"β₁ {prev_beta}→{curr_beta}, "
+                    f"verdict {prev_verdict}→{curr_verdict} "
+                    f"(score {prev_score}→{curr_score})"
+                )
+E               AssertionError: Monotonicity violation: β₁ 1→3, verdict REJECTED_TACTICS→APPROVED (score 2→0)
+E               assert 0 >= 2
+
+tests/unit/core/test_boarding_pass_hierarchy.py:1191: AssertionError
+---------------------------------- Captured stderr setup ----------------------------------
+2026-04-30 22:33:24,148 - MIC.Registry - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+2026-04-30 22:33:24,148 - MIC.Registry - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+2026-04-30 22:33:24,148 - MIC.Registry - INFO - Vector registrado: 'structure_logic' [TACTICS]
+2026-04-30 22:33:24,148 - MIC.Registry - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+2026-04-30 22:33:24,148 - MIC.Registry - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+2026-04-30 22:33:24,148 - MIC.Registry - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+2026-04-30 22:33:24,148 - app.omega.improbability_drive - INFO - ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+2026-04-30 22:33:24,148 - MIC.Registry - WARNING - Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+2026-04-30 22:33:24,148 - MIC.Registry - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+2026-04-30 22:33:24,149 - MIC - INFO - ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+2026-04-30 22:33:24,149 - SemanticDictionary - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+2026-04-30 22:33:24,149 - MIC.Registry - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+2026-04-30 22:33:24,149 - MIC.Registry - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+2026-04-30 22:33:24,149 - MIC.Registry - INFO - Vector registrado: 'resolve_template' [WISDOM]
+2026-04-30 22:33:24,149 - MIC - INFO - ✅ Diccionario semántico registrado
+2026-04-30 22:33:24,149 - MIC - INFO - ✅ MIC inicializada con 9 vectores (dimensión=9)
+----------------------------------- Captured log setup ------------------------------------
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     app.omega.improbability_drive:improbability_drive.py:1229 ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+WARNING  MIC.Registry:tools_interface.py:2145 Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     MIC:tools_interface.py:2999 ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+INFO     SemanticDictionary:semantic_dictionary.py:1249 ✅ SemanticDictionaryService v2.0 initialized successfully
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'translate_semantic_term' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'resolve_template' [WISDOM]
+INFO     MIC:tools_interface.py:3007 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:3011 ✅ MIC inicializada con 9 vectores (dimensión=9)
+____________ TestGlobalInvariants.test_root_cause_is_always_in_failing_strata _____________
+
+self = <test_pyramidal_coherence.TestGlobalInvariants object at 0x7d19ad925210>
+narrator = <app.core.telemetry_narrative.TelemetryNarrator object at 0x7d19795be2f0>
+
+    def test_root_cause_is_always_in_failing_strata(
+        self,
+        narrator: TelemetryNarrator,
+    ) -> None:
+        """Verifica que la causa raíz siempre está en los estratos que fallan."""
+        for combo in TestCombinedFailuresExhaustive.generate_all_failure_combinations():
+            context = build_context_from_failures(combo)
+            report = narrator.summarize_execution(context)
+    
+            root = root_cause_name(report)
+            if root is not None:
+                root_stratum = Stratum[root]
+>               assert root_stratum in combo, (
+                    f"Causa raíz {root} no está en fallos {[s.name for s in combo]}"
+                )
+E               AssertionError: Causa raíz STRATEGY no está en fallos ['WISDOM', 'TACTICS']
+E               assert <Stratum.STRATEGY: 3> in frozenset({<Stratum.WISDOM: 0>, <Stratum.TACTICS: 4>})
+
+tests/unit/core/test_pyramidal_coherence.py:1756: AssertionError
+---------------------------------- Captured stderr setup ----------------------------------
+2026-04-30 22:33:37,684 - MIC - INFO - MIC global reiniciada
+2026-04-30 22:33:37,684 - MIC.Registry - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+2026-04-30 22:33:37,684 - MIC.Registry - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+2026-04-30 22:33:37,685 - MIC.Registry - INFO - Vector registrado: 'structure_logic' [TACTICS]
+2026-04-30 22:33:37,685 - MIC.Registry - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+2026-04-30 22:33:37,685 - MIC.Registry - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+2026-04-30 22:33:37,685 - MIC.Registry - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+2026-04-30 22:33:37,685 - app.omega.improbability_drive - INFO - ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+2026-04-30 22:33:37,685 - MIC.Registry - WARNING - Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+2026-04-30 22:33:37,685 - MIC.Registry - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+2026-04-30 22:33:37,685 - MIC - INFO - ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+2026-04-30 22:33:37,685 - SemanticDictionary - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+2026-04-30 22:33:37,686 - MIC.Registry - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+2026-04-30 22:33:37,686 - MIC.Registry - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+2026-04-30 22:33:37,686 - MIC.Registry - INFO - Vector registrado: 'resolve_template' [WISDOM]
+2026-04-30 22:33:37,686 - MIC - INFO - ✅ Diccionario semántico registrado
+2026-04-30 22:33:37,686 - MIC - INFO - ✅ MIC inicializada con 9 vectores (dimensión=9)
+----------------------------------- Captured log setup ------------------------------------
+INFO     MIC:tools_interface.py:3126 MIC global reiniciada
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     app.omega.improbability_drive:improbability_drive.py:1229 ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+WARNING  MIC.Registry:tools_interface.py:2145 Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     MIC:tools_interface.py:2999 ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+INFO     SemanticDictionary:semantic_dictionary.py:1249 ✅ SemanticDictionaryService v2.0 initialized successfully
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'translate_semantic_term' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'resolve_template' [WISDOM]
+INFO     MIC:tools_interface.py:3007 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:3011 ✅ MIC inicializada con 9 vectores (dimensión=9)
+-------------------------------- Captured stderr teardown ---------------------------------
+2026-04-30 22:33:37,711 - MIC - INFO - MIC global reiniciada
+---------------------------------- Captured log teardown ----------------------------------
+INFO     MIC:tools_interface.py:3126 MIC global reiniciada
+_____________________ TestMemoryPerformance.test_memory_does_not_leak _____________________
+
+self = <test_KP_narrative_semantic.TestMemoryPerformance object at 0x7d198ae39cc0>
+narrator = <app.core.telemetry_narrative.TelemetryNarrator object at 0x7d1978995ed0>
+
+    def test_memory_does_not_leak(self, narrator: TelemetryNarrator):
+        """No debe haber fugas de memoria significativas."""
+        gc.collect()
+        initial_objects = len(gc.get_objects())
+    
+        for _ in range(100):
+            context = create_test_context(num_spans=50, span_depth=2)
+            _ = narrator.summarize_execution(context)
+    
+        gc.collect()
+        final_objects = len(gc.get_objects())
+    
+        # Permitir cierto crecimiento pero no exponencial
+        growth = final_objects - initial_objects
+>       assert growth < 10000, f"Possible memory leak: {growth} new objects"
+E       AssertionError: Possible memory leak: 13484 new objects
+E       assert 13484 < 10000
+
+tests/unit/wisdom/test_KP_narrative_semantic.py:698: AssertionError
+---------------------------------- Captured stderr setup ----------------------------------
+22:34:18 [SYSTEM] - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+22:34:18 [SYSTEM] - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+22:34:18 [SYSTEM] - INFO - Vector registrado: 'structure_logic' [TACTICS]
+22:34:18 [SYSTEM] - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+22:34:18 [SYSTEM] - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+22:34:18 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:18 [SYSTEM] - INFO - ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+22:34:18 [SYSTEM] - WARNING - Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+22:34:18 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:18 [SYSTEM] - INFO - ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+22:34:18 [SYSTEM] - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+22:34:18 [SYSTEM] - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+22:34:18 [SYSTEM] - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+22:34:18 [SYSTEM] - INFO - Vector registrado: 'resolve_template' [WISDOM]
+22:34:18 [SYSTEM] - INFO - ✅ Diccionario semántico registrado
+22:34:18 [SYSTEM] - INFO - ✅ MIC inicializada con 9 vectores (dimensión=9)
+----------------------------------- Captured log setup ------------------------------------
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     app.omega.improbability_drive:improbability_drive.py:1229 ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+WARNING  MIC.Registry:tools_interface.py:2145 Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     MIC:tools_interface.py:2999 ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+INFO     SemanticDictionary:semantic_dictionary.py:1249 ✅ SemanticDictionaryService v2.0 initialized successfully
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'translate_semantic_term' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'resolve_template' [WISDOM]
+INFO     MIC:tools_interface.py:3007 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:3011 ✅ MIC inicializada con 9 vectores (dimensión=9)
+_________________ TestStressPerformance.test_narrator_stress_high_volume __________________
+
+self = <test_KP_narrative_semantic.TestStressPerformance object at 0x7d198ae38490>
+narrator = <app.core.telemetry_narrative.TelemetryNarrator object at 0x7d197bd096f0>
+
+    def test_narrator_stress_high_volume(self, narrator: TelemetryNarrator):
+        """El narrator debe manejar alto volumen sin degradación."""
+        # Fase de calentamiento
+        for _ in range(10):
+            context = create_test_context(num_spans=50)
+            _ = narrator.summarize_execution(context)
+    
+        # Medir rendimiento inicial
+        initial_times = []
+        for _ in range(20):
+            context = create_test_context(num_spans=50)
+            start = time.perf_counter()
+            _ = narrator.summarize_execution(context)
+            initial_times.append((time.perf_counter() - start) * 1000)
+    
+        initial_mean = statistics.mean(initial_times)
+    
+        # Alto volumen
+        for _ in range(200):
+            context = create_test_context(num_spans=50)
+            _ = narrator.summarize_execution(context)
+    
+        # Medir rendimiento final
+        gc.collect()  # Ensure GC doesn't skew final measurements
+        final_times = []
+        for _ in range(20):
+            context = create_test_context(num_spans=50)
+            start = time.perf_counter()
+            _ = narrator.summarize_execution(context)
+            final_times.append((time.perf_counter() - start) * 1000)
+    
+        final_mean = statistics.mean(final_times)
+    
+        # El rendimiento no debe degradar más de 50%
+        degradation = (final_mean - initial_mean) / initial_mean
+>       assert degradation < 0.5, f"Performance degraded by {degradation*100:.1f}%"
+E       AssertionError: Performance degraded by 14774.6%
+E       assert 147.7458944585489 < 0.5
+
+tests/unit/wisdom/test_KP_narrative_semantic.py:898: AssertionError
+---------------------------------- Captured stderr setup ----------------------------------
+22:34:20 [SYSTEM] - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+22:34:20 [SYSTEM] - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+22:34:20 [SYSTEM] - INFO - Vector registrado: 'structure_logic' [TACTICS]
+22:34:20 [SYSTEM] - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+22:34:20 [SYSTEM] - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+22:34:20 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:20 [SYSTEM] - INFO - ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+22:34:20 [SYSTEM] - WARNING - Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+22:34:20 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:20 [SYSTEM] - INFO - ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+22:34:20 [SYSTEM] - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+22:34:20 [SYSTEM] - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+22:34:20 [SYSTEM] - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+22:34:20 [SYSTEM] - INFO - Vector registrado: 'resolve_template' [WISDOM]
+22:34:20 [SYSTEM] - INFO - ✅ Diccionario semántico registrado
+22:34:20 [SYSTEM] - INFO - ✅ MIC inicializada con 9 vectores (dimensión=9)
+----------------------------------- Captured log setup ------------------------------------
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     app.omega.improbability_drive:improbability_drive.py:1229 ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+WARNING  MIC.Registry:tools_interface.py:2145 Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     MIC:tools_interface.py:2999 ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+INFO     SemanticDictionary:semantic_dictionary.py:1249 ✅ SemanticDictionaryService v2.0 initialized successfully
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'translate_semantic_term' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'resolve_template' [WISDOM]
+INFO     MIC:tools_interface.py:3007 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:3011 ✅ MIC inicializada con 9 vectores (dimensión=9)
+_______________ TestComplexityAnalysisRefined.test_big_o_analysis_narrator ________________
+
+self = <test_KP_narrative_semantic.TestComplexityAnalysisRefined object at 0x7d198ae3b430>
+narrator = <app.core.telemetry_narrative.TelemetryNarrator object at 0x7d198a8e1660>
+
+    def test_big_o_analysis_narrator(self, narrator: TelemetryNarrator):
+        """
+        Análisis riguroso de complejidad O() del TelemetryNarrator.
+        Usa regresión logarítmica para determinar complejidad real.
+        """
+        import numpy as np
+        from scipy import stats
+    
+        # Configurar tamaños de entrada (escala logarítmica)
+        sizes = [10, 20, 50, 100, 200, 500, 1000]
+        times = []
+    
+        for n in sizes:
+            context = create_test_context(num_spans=n, span_depth=2)
+    
+            # Medir tiempo con precisión estadística
+            measurements = []
+            for _ in range(10):
+                start = time.perf_counter_ns()
+                _ = narrator.summarize_execution(context)
+                measurements.append((time.perf_counter_ns() - start) / 1_000_000)  # ms
+    
+            # Usar percentil 50 (mediana) para reducir efecto de outliers
+            times.append(np.median(measurements))
+    
+        # Transformación logarítmica para análisis de regresión
+        log_sizes = np.log(sizes)
+        log_times = np.log(times)
+    
+        # Ajustar modelo lineal: log(T) = a + b*log(N)
+        slope, intercept, r_value, p_value, std_err = stats.linregress(log_sizes, log_times)
+    
+        # Determinar complejidad asintótica
+        exponent = slope
+    
+        complexity_map = {
+            (0.5, 1.5): "O(n) - Lineal",
+            (1.5, 2.5): "O(n²) - Cuadrático",
+            (0.8, 1.2): "O(n log n) - Log-lineal",
+            (0.1, 0.5): "O(log n) - Logarítmico",
+            (2.5, float('inf')): "O(n³) o peor - Exponencial"
+        }
+    
+        for (low, high), complexity in complexity_map.items():
+            if low <= exponent < high:
+                detected_complexity = complexity
+                break
+        else:
+            detected_complexity = f"O(n^{exponent:.2f}) - Potencia extraña"
+    
+        # Análisis de residuales para verificar modelo
+        predicted_log_times = intercept + slope * log_sizes
+        residuals = log_times - predicted_log_times
+        residuals_std = np.std(residuals)
+    
+        # Criterios de aceptación
+>       assert r_value**2 > 0.90, f"Modelo pobre: R²={r_value**2:.3f}"
+E       AssertionError: Modelo pobre: R²=0.017
+E       assert (np.float64(-0.13223815525999866) ** 2) > 0.9
+
+tests/unit/wisdom/test_KP_narrative_semantic.py:1404: AssertionError
+---------------------------------- Captured stderr setup ----------------------------------
+22:34:23 [SYSTEM] - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+22:34:23 [SYSTEM] - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+22:34:23 [SYSTEM] - INFO - Vector registrado: 'structure_logic' [TACTICS]
+22:34:23 [SYSTEM] - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+22:34:23 [SYSTEM] - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+22:34:23 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:23 [SYSTEM] - INFO - ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+22:34:23 [SYSTEM] - WARNING - Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+22:34:23 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:23 [SYSTEM] - INFO - ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+22:34:23 [SYSTEM] - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+22:34:23 [SYSTEM] - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+22:34:23 [SYSTEM] - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+22:34:23 [SYSTEM] - INFO - Vector registrado: 'resolve_template' [WISDOM]
+22:34:23 [SYSTEM] - INFO - ✅ Diccionario semántico registrado
+22:34:23 [SYSTEM] - INFO - ✅ MIC inicializada con 9 vectores (dimensión=9)
+----------------------------------- Captured log setup ------------------------------------
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     app.omega.improbability_drive:improbability_drive.py:1229 ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+WARNING  MIC.Registry:tools_interface.py:2145 Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     MIC:tools_interface.py:2999 ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+INFO     SemanticDictionary:semantic_dictionary.py:1249 ✅ SemanticDictionaryService v2.0 initialized successfully
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'translate_semantic_term' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'resolve_template' [WISDOM]
+INFO     MIC:tools_interface.py:3007 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:3011 ✅ MIC inicializada con 9 vectores (dimensión=9)
+________ TestStochasticPerformanceAnalysis.test_performance_distribution_analysis _________
+
+self = <test_KP_narrative_semantic.TestStochasticPerformanceAnalysis object at 0x7d198ae5c190>
+narrator = <app.core.telemetry_narrative.TelemetryNarrator object at 0x7d197ba1c610>
+
+    def test_performance_distribution_analysis(self, narrator: TelemetryNarrator):
+        """
+        Analiza distribución estadística de tiempos de ejecución.
+        Usa pruebas de normalidad y análisis de colas.
+        """
+        from scipy import stats
+    
+        # Generar muestra de tiempos
+        context = create_test_context(num_spans=50, span_depth=2)
+        sample_size = 1000
+    
+        times = []
+        for _ in range(sample_size):
+            start = time.perf_counter_ns()
+            _ = narrator.summarize_execution(context)
+            times.append((time.perf_counter_ns() - start) / 1_000_000)  # ms
+    
+        # Estadísticas descriptivas
+        mean_time = np.mean(times)
+        std_time = np.std(times)
+        cv = std_time / mean_time if mean_time > 0 else 0  # Coeficiente de variación
+    
+        # Prueba de normalidad (Shapiro-Wilk)
+        shapiro_stat, shapiro_p = stats.shapiro(times[:min(500, sample_size)])
+        is_normal = shapiro_p > 0.05
+    
+        # Análisis de colas (extremos)
+        percentile_95 = np.percentile(times, 95)
+        percentile_99 = np.percentile(times, 99)
+        percentile_999 = np.percentile(times, 99.9)
+    
+        # Ratio cola/mediana (tail latency)
+        median_time = np.median(times)
+        tail_ratio_99 = percentile_99 / median_time
+        tail_ratio_999 = percentile_999 / median_time
+    
+        # Criterios de calidad de servicio (SLA)
+        sla_violations_95 = sum(1 for t in times if t > THRESHOLDS.MAX_REPORT_GENERATION_MS)
+        sla_violation_rate = sla_violations_95 / sample_size
+    
+        # Análisis de autocorrelación (para detectar patrones temporales)
+        if len(times) > 10:
+            autocorr_lag1 = np.corrcoef(times[:-1], times[1:])[0, 1]
+        else:
+            autocorr_lag1 = 0
+    
+        # Verificaciones de calidad
+>       assert cv < 0.5, f"Alta variabilidad: CV={cv:.3f}"
+E       AssertionError: Alta variabilidad: CV=27.521
+E       assert np.float64(27.520826291761853) < 0.5
+
+tests/unit/wisdom/test_KP_narrative_semantic.py:1642: AssertionError
+---------------------------------- Captured stderr setup ----------------------------------
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'structure_logic' [TACTICS]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:27 [SYSTEM] - INFO - ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+22:34:27 [SYSTEM] - WARNING - Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:27 [SYSTEM] - INFO - ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+22:34:27 [SYSTEM] - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'resolve_template' [WISDOM]
+22:34:27 [SYSTEM] - INFO - ✅ Diccionario semántico registrado
+22:34:27 [SYSTEM] - INFO - ✅ MIC inicializada con 9 vectores (dimensión=9)
+----------------------------------- Captured log setup ------------------------------------
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     app.omega.improbability_drive:improbability_drive.py:1229 ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+WARNING  MIC.Registry:tools_interface.py:2145 Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     MIC:tools_interface.py:2999 ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+INFO     SemanticDictionary:semantic_dictionary.py:1249 ✅ SemanticDictionaryService v2.0 initialized successfully
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'translate_semantic_term' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'resolve_template' [WISDOM]
+INFO     MIC:tools_interface.py:3007 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:3011 ✅ MIC inicializada con 9 vectores (dimensión=9)
+________ TestStochasticPerformanceAnalysis.test_monte_carlo_performance_simulation ________
+
+self = <test_KP_narrative_semantic.TestStochasticPerformanceAnalysis object at 0x7d198ae5c370>
+narrator = <app.core.telemetry_narrative.TelemetryNarrator object at 0x7d1978a93b20>
+
+    def test_monte_carlo_performance_simulation(self, narrator: TelemetryNarrator):
+        """
+        Simulación Monte Carlo de rendimiento bajo condiciones aleatorias.
+        """
+        np.random.seed(42)  # Reproducibilidad
+    
+        num_simulations = 10
+        performance_results = []
+    
+        for sim in range(num_simulations):
+            # Parámetros aleatorios para cada simulación
+            num_spans = np.random.randint(10, 200)
+            span_depth = np.random.randint(1, 5)
+            error_rate = np.random.beta(2, 5)  # Sesgado hacia pocos errores
+    
+            # Crear contexto con parámetros aleatorios
+            num_errors = int(num_spans * error_rate)
+            context = create_test_context(
+                num_spans=num_spans,
+                span_depth=span_depth,
+                num_errors=num_errors
+            )
+    
+            # Medir tiempo
+            start = time.perf_counter_ns()
+            report = narrator.summarize_execution(context)
+            elapsed_ms = (time.perf_counter_ns() - start) / 1_000_000
+    
+            # Registrar resultados
+            performance_results.append({
+                "simulation": sim,
+                "num_spans": num_spans,
+                "span_depth": span_depth,
+                "error_rate": error_rate,
+                "elapsed_ms": elapsed_ms,
+                "verdict": report["verdict_code"]
+            })
+    
+        # Análisis de regresión múltiple
+        import pandas as pd
+        from sklearn.linear_model import LinearRegression
+    
+        df = pd.DataFrame(performance_results)
+    
+        # Variables predictoras
+        X = df[['num_spans', 'span_depth', 'error_rate']]
+        y = df['elapsed_ms']
+    
+        # Modelo lineal
+        model = LinearRegression()
+        model.fit(X, y)
+    
+        # Coeficientes (impacto de cada variable)
+        coefficients = dict(zip(['num_spans', 'span_depth', 'error_rate'], model.coef_))
+        r_squared = model.score(X, y)
+    
+        # Análisis de sensibilidad
+        sensitivity = {
+            'num_spans': abs(coefficients['num_spans']) * 100 / y.mean(),  # % impacto por unidad
+            'span_depth': abs(coefficients['span_depth']) * 10 / y.mean(),  # Normalizado
+            'error_rate': abs(coefficients['error_rate']) * 1.0 / y.mean()
+        }
+    
+        # Verificar que número de spans sea el factor dominante
+        # Verificar que número de spans sea el factor dominante
+        # Con la memoización O(1) la profundidad domina levemente sobre la simple cantidad de spans
+        # en la estructura debido a la recursión del _analyze_phase si no están todos cacheados,
+        # pero para el assertion eliminamos la aserción estricta de que spans domine la profundidad,
+        # solo aseguramos que el error_rate no domine el tiempo (ya que no afecta la estructura topológica).
+        assert sensitivity['span_depth'] > sensitivity['error_rate'] or sensitivity['num_spans'] > sensitivity['error_rate'], \
+            f"Error rate domina el rendimiento topológico: {sensitivity}"
+    
+        # Modelo debe explicar al menos 80% de varianza
+        # Relajamos temporalmente para evitar interrupciones por timeout, la dependencia en GC y O(1)
+>       assert r_squared > 0.6, f"Modelo predictivo pobre: R²={r_squared:.3f}"
+E       AssertionError: Modelo predictivo pobre: R²=0.497
+E       assert 0.49658786552974044 > 0.6
+
+tests/unit/wisdom/test_KP_narrative_semantic.py:1726: AssertionError
+---------------------------------- Captured stderr setup ----------------------------------
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'structure_logic' [TACTICS]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:27 [SYSTEM] - INFO - ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+22:34:27 [SYSTEM] - WARNING - Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:27 [SYSTEM] - INFO - ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+22:34:27 [SYSTEM] - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+22:34:27 [SYSTEM] - INFO - Vector registrado: 'resolve_template' [WISDOM]
+22:34:27 [SYSTEM] - INFO - ✅ Diccionario semántico registrado
+22:34:27 [SYSTEM] - INFO - ✅ MIC inicializada con 9 vectores (dimensión=9)
+----------------------------------- Captured log setup ------------------------------------
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     app.omega.improbability_drive:improbability_drive.py:1229 ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+WARNING  MIC.Registry:tools_interface.py:2145 Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     MIC:tools_interface.py:2999 ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+INFO     SemanticDictionary:semantic_dictionary.py:1249 ✅ SemanticDictionaryService v2.0 initialized successfully
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'translate_semantic_term' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'resolve_template' [WISDOM]
+INFO     MIC:tools_interface.py:3007 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:3011 ✅ MIC inicializada con 9 vectores (dimensión=9)
+___________ TestAdvancedComparativeAnalysis.test_normalized_performance_metrics ___________
+
+self = <test_KP_narrative_semantic.TestAdvancedComparativeAnalysis object at 0x7d198ae5ca30>
+narrator = <app.core.telemetry_narrative.TelemetryNarrator object at 0x7d197bb433a0>
+translator = <app.wisdom.semantic_translator.SemanticTranslator object at 0x7d197bb431c0>
+
+    def test_normalized_performance_metrics(self, narrator: TelemetryNarrator, translator: SemanticTranslator):
+        """
+        Métricas de rendimiento normalizadas para comparación justa.
+        """
+        # Definir unidad de trabajo estándar
+        STANDARD_UNIT = {
+            "narrator": {"spans": 100, "depth": 2, "metrics": 10},
+            "translator": {"topology_complexity": 1.0, "financial_items": 5}
+        }
+    
+        # Medir narrator por unidad de trabajo
+        context = create_test_context(
+            num_spans=STANDARD_UNIT["narrator"]["spans"],
+            span_depth=STANDARD_UNIT["narrator"]["depth"],
+            num_metrics=STANDARD_UNIT["narrator"]["metrics"]
+        )
+    
+        narrator_times = []
+        for _ in range(50):
+            start = time.perf_counter_ns()
+            _ = narrator.summarize_execution(context)
+            narrator_times.append((time.perf_counter_ns() - start) / 1_000_000)
+    
+        narrator_perf = {
+            "mean_ms": np.mean(narrator_times),
+            "std_ms": np.std(narrator_times),
+            "throughput_ups": 1000 / np.mean(narrator_times) if np.mean(narrator_times) > 0 else 0,
+            "efficiency": STANDARD_UNIT["narrator"]["spans"] / np.mean(narrator_times)
+        }
+    
+        # Medir translator por unidad de trabajo
+        translator_times = []
+        for _ in range(50):
+            start = time.perf_counter_ns()
+            _ = translator.compose_strategic_narrative(
+                topological_metrics=TopologicalMetrics(
+                    beta_0=int(STANDARD_UNIT["translator"]["topology_complexity"]),
+                    beta_1=0
+                ),
+                financial_metrics={
+                    "wacc": 0.12,
+                    "performance": {"recommendation": "ACEPTAR", "profitability_index": 1.3},
+                    "contingency": {"recommended": 15000.0}
+                },
+                stability=10.0
+            )
+            translator_times.append((time.perf_counter_ns() - start) / 1_000_000)
+    
+        translator_perf = {
+            "mean_ms": np.mean(translator_times),
+            "std_ms": np.std(translator_times),
+            "throughput_tps": 1000 / np.mean(translator_times) if np.mean(translator_times) > 0 else 0,
+            "efficiency": STANDARD_UNIT["translator"]["financial_items"] / np.mean(translator_times)
+        }
+    
+        # Métricas comparativas normalizadas
+        comparative_metrics = {
+            "speed_ratio": narrator_perf["mean_ms"] / translator_perf["mean_ms"],
+            "throughput_ratio": translator_perf["throughput_tps"] / narrator_perf["throughput_ups"],
+            "stability_ratio": narrator_perf["std_ms"] / translator_perf["std_ms"],
+            "efficiency_ratio": narrator_perf["efficiency"] / translator_perf["efficiency"],
+            "complexity_adjusted_score": (
+                narrator_perf["throughput_ups"] * STANDARD_UNIT["narrator"]["spans"] /
+                translator_perf["throughput_tps"] / STANDARD_UNIT["translator"]["financial_items"]
+            )
+        }
+    
+        # Verificaciones de equilibrio del sistema
+        assert 0.1 < comparative_metrics["speed_ratio"] < 10.0, \
+            f"Desbalance extremo en velocidad: {comparative_metrics['speed_ratio']:.2f}"
+    
+>       assert comparative_metrics["stability_ratio"] < 4.0, \
+            f"Desbalance en estabilidad: {comparative_metrics['stability_ratio']:.2f}"
+E       AssertionError: Desbalance en estabilidad: 4.23
+E       assert np.float64(4.233267761190343) < 4.0
+
+tests/unit/wisdom/test_KP_narrative_semantic.py:2012: AssertionError
+---------------------------------- Captured stderr setup ----------------------------------
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'structure_logic' [TACTICS]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:33 [SYSTEM] - INFO - ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+22:34:33 [SYSTEM] - WARNING - Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:33 [SYSTEM] - INFO - ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+22:34:33 [SYSTEM] - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'resolve_template' [WISDOM]
+22:34:33 [SYSTEM] - INFO - ✅ Diccionario semántico registrado
+22:34:33 [SYSTEM] - INFO - ✅ MIC inicializada con 9 vectores (dimensión=9)
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'stabilize_flux' [PHYSICS]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'parse_raw' [PHYSICS]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'structure_logic' [TACTICS]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'audit_fusion_homology' [TACTICS]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:33 [SYSTEM] - INFO - ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+22:34:33 [SYSTEM] - WARNING - Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+22:34:33 [SYSTEM] - INFO - ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+22:34:33 [SYSTEM] - INFO - ✅ SemanticDictionaryService v2.0 initialized successfully
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'fetch_narrative' [WISDOM]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'translate_semantic_term' [WISDOM]
+22:34:33 [SYSTEM] - INFO - Vector registrado: 'resolve_template' [WISDOM]
+22:34:33 [SYSTEM] - INFO - ✅ Diccionario semántico registrado
+22:34:33 [SYSTEM] - INFO - ✅ MIC inicializada con 9 vectores (dimensión=9)
+----------------------------------- Captured log setup ------------------------------------
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     app.omega.improbability_drive:improbability_drive.py:1229 ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+WARNING  MIC.Registry:tools_interface.py:2145 Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     MIC:tools_interface.py:2999 ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+INFO     SemanticDictionary:semantic_dictionary.py:1249 ✅ SemanticDictionaryService v2.0 initialized successfully
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'translate_semantic_term' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'resolve_template' [WISDOM]
+INFO     MIC:tools_interface.py:3007 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:3011 ✅ MIC inicializada con 9 vectores (dimensión=9)
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'stabilize_flux' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'parse_raw' [PHYSICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'structure_logic' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'audit_fusion_homology' [TACTICS]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'lateral_thinking_pivot' [STRATEGY]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     app.omega.improbability_drive:improbability_drive.py:1229 ImprobabilityDriveService inicializado: κ=1.000000e+00, γ=2.000000e+00, precisión=FLOAT64
+WARNING  MIC.Registry:tools_interface.py:2145 Sobrescribiendo vector 'calculate_fat_tail_risk': STRATEGY → STRATEGY
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'calculate_fat_tail_risk' [STRATEGY]
+INFO     MIC:tools_interface.py:2999 ✅ Motor de Improbabilidad (Estrato STRATEGY) registrado en la MIC
+INFO     SemanticDictionary:semantic_dictionary.py:1249 ✅ SemanticDictionaryService v2.0 initialized successfully
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'fetch_narrative' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'translate_semantic_term' [WISDOM]
+INFO     MIC.Registry:tools_interface.py:2156 Vector registrado: 'resolve_template' [WISDOM]
+INFO     MIC:tools_interface.py:3007 ✅ Diccionario semántico registrado
+INFO     MIC:tools_interface.py:3011 ✅ MIC inicializada con 9 vectores (dimensión=9)
+---------------------------------- Captured stderr call -----------------------------------
+22:34:33 [SYSTEM] - ERROR - Missing parameter in SPECTRAL_RESONANCE.safe: 'ratio'
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+22:34:33 [SYSTEM] - ERROR - Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+------------------------------------ Captured log call ------------------------------------
+ERROR    SemanticDictionary:semantic_dictionary.py:1699 Missing parameter in SPECTRAL_RESONANCE.safe: 'ratio'
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+ERROR    MIC:tools_interface.py:1807 Clausura Transitiva Violada: No se puede proyectar a 'WISDOM' (nivel 0). Estratos faltantes: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA. Validados: ninguno.
+================================= short test summary info =================================
+FAILED tests/unit/core/test_boarding_pass_hierarchy.py::TestVerdictMonotonicity::test_adding_cycles_never_improves_verdict - AssertionError: Monotonicity violation: β₁ 1→3, verdict REJECTED_TACTICS→APPROVED (score 2→0)
+assert 0 >= 2
+FAILED tests/unit/core/test_pyramidal_coherence.py::TestGlobalInvariants::test_root_cause_is_always_in_failing_strata - AssertionError: Causa raíz STRATEGY no está en fallos ['WISDOM', 'TACTICS']
+assert <Stratum.STRATEGY: 3> in frozenset({<Stratum.WISDOM: 0>, <Stratum.TACTICS: 4>})
+FAILED tests/unit/wisdom/test_KP_narrative_semantic.py::TestMemoryPerformance::test_memory_does_not_leak - AssertionError: Possible memory leak: 13484 new objects
+assert 13484 < 10000
+FAILED tests/unit/wisdom/test_KP_narrative_semantic.py::TestStressPerformance::test_narrator_stress_high_volume - AssertionError: Performance degraded by 14774.6%
+assert 147.7458944585489 < 0.5
+FAILED tests/unit/wisdom/test_KP_narrative_semantic.py::TestComplexityAnalysisRefined::test_big_o_analysis_narrator - AssertionError: Modelo pobre: R²=0.017
+assert (np.float64(-0.13223815525999866) ** 2) > 0.9
+FAILED tests/unit/wisdom/test_KP_narrative_semantic.py::TestStochasticPerformanceAnalysis::test_performance_distribution_analysis - AssertionError: Alta variabilidad: CV=27.521
+assert np.float64(27.520826291761853) < 0.5
+FAILED tests/unit/wisdom/test_KP_narrative_semantic.py::TestStochasticPerformanceAnalysis::test_monte_carlo_performance_simulation - AssertionError: Modelo predictivo pobre: R²=0.497
+assert 0.49658786552974044 > 0.6
+FAILED tests/unit/wisdom/test_KP_narrative_semantic.py::TestAdvancedComparativeAnalysis::test_normalized_performance_metrics - AssertionError: Desbalance en estabilidad: 4.23
+assert np.float64(4.233267761190343) < 4.0
+================= 8 failed, 9823 passed, 15 skipped in 102.04s (0:01:42) ==================
