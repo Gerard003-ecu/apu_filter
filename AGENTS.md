@@ -23,3 +23,7 @@ Ejecuta “python -m pytest -vv”. En este punto, no esperamos que todas las pr
 Cada vez que finalices una actualización de métodos, clases o integraciones de nuevos microservicios debes garantizar que las pruebas aisladas y globales pasen todas en verde.
 
 python -m pytest -vv
+
+## 4. Limpieza de archivos patch y misceláneos
+
+Cada vez que generes archivos patch tipo ".sh" o archivos con extensión ".log" o ".txt" debe ser eliminados antes de generar el commmit y el push.
