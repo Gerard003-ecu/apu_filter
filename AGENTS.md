@@ -26,4 +26,4 @@ python -m pytest -vv
 
 ## 4. Limpieza de archivos patch y misceláneos
 
-Cada vez que generes archivos patch tipo ".sh" o archivos con extensión ".log" o ".txt" debe ser eliminados antes de generar el commmit y el push.
+Cada vez que generes archivos patch tipo ".sh" o archivos con extensión ".log", ".txt" o test scripts con extensión ".py" debe ser eliminados antes de generar el commmit y el push.
