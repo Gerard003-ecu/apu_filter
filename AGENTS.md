@@ -26,4 +26,4 @@ python -m pytest -vv
 
 ## 4. Limpieza de archivos patch y misceláneos
 
-Cada vez que generes archivos patch tipo ".sh" o archivos con extensión ".log", ".txt" o test scripts con extensión ".py" debe ser eliminados antes de generar el commmit y el push.
+Cada vez que generes archivos patch tipo ".sh" o archivos con extensión ".log", ".txt" o scripts con extensión ".py" que no hacen parte de la arquitectura APU Filter deben ser eliminados antes de generar el commmit y el push.
