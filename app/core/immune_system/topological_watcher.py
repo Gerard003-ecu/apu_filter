@@ -2473,6 +2473,56 @@ class ImmuneWatcherMorphism(Morphism):
 
         return "\n".join(lines)
 
+    def evaluate_manifold_deformation(self, state_tensor: np.ndarray, reference_chi: Optional[int] = None) -> "app.boole.strategy.sheaf_cohomology_orchestrator.ThreatMetrics":
+        """
+        Intercepción Riemanniana y Auditoría de Bifurcación (FASE IV).
+
+        Implementa el pullback categórico recibiendo el tensor ψ ∈ ℝ⁷.
+        """
+        # Evitar circular import si fuera necesario, pero aquí ThreatMetrics está en el orquestador.
+        # Por simplicidad, importamos localmente lo que necesitemos o usamos duck typing.
+        from app.boole.strategy.sheaf_cohomology_orchestrator import ThreatMetrics
+
+        psi = np.asarray(state_tensor, dtype=np.float64).ravel()
+
+        # 1. Distancia de Mahalanobis Global
+        # Usamos el proyector interno para evaluar el tensor
+        assessment = self._projector.project(
+            psi,
+            warning_threshold=self._warning,
+            critical_threshold=self._critical,
+            hysteresis=self._hysteresis,
+            previous_status=self._previous_status
+        )
+
+        # 2. Auditoría de Bifurcación Topológica (Δχ)
+        current_chi = assessment.euler_char
+
+        # Priorizar reference_chi si se proporciona (FASE IV Pullback)
+        # CORRECCIÓN: self._euler_history puede estar vacío o contener Nones
+        last_stable_chi = current_chi
+        if reference_chi is not None:
+            last_stable_chi = reference_chi
+        elif self._euler_history:
+            # Buscar el último no-None
+            for past_chi in reversed(self._euler_history):
+                if past_chi is not None:
+                    last_stable_chi = past_chi
+                    break
+
+        delta_chi = (current_chi - last_stable_chi) if (current_chi is not None and last_stable_chi is not None) else 0
+
+        # Estabilidad: Δχ == 0 Y estado no crítico
+        is_stable = (delta_chi == 0) and (assessment.status != HealthStatus.CRITICAL)
+
+        return ThreatMetrics(
+            mahalanobis_distance=assessment.total_threat,
+            is_stable=is_stable,
+            structural_alteration=int(delta_chi),
+            threat_level=assessment.status.name,
+            details=assessment.to_dict()
+        )
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # FACTORY CON PERFILES DE CONFIGURACIÓN

@@ -44,8 +44,8 @@ Fundamentación Matemática y Álgebra Lineal Numérica:
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
-from typing import Dict, Final, List, Optional, Tuple
+from dataclasses import dataclass, field
+from typing import Dict, Final, List, Optional, Tuple, Protocol, runtime_checkable, Any
 
 import numpy as np
 import scipy.sparse as sp
@@ -153,6 +153,15 @@ class SpectralComputationError(SheafCohomologyError):
     Ejemplos:
         - No convergencia de ARPACK (Lanczos).
         - Eigenvalores negativos significativos (L no semidefinida positiva).
+    """
+
+
+class TopologicalBifurcationError(SheafCohomologyError):
+    """Lanzada cuando se detecta una alteración estructural prohibida (Δχ ≠ 0).
+
+    Semántica: El pullback categórico identifica que la inyección de la
+    herramienta colapsa la estabilidad de la variedad o induce ciclos
+    homológicos (Δβ1 > 0) que violan la causalidad del estrato.
     """
 
 
@@ -333,6 +342,7 @@ class GlobalFrustrationAssessment:
         spectral_method:       'dense' o 'sparse'.
         delta_rank:            rank(δ) estimado.
         condition_number_est:  κ₂(δ) estimado.
+        euler_characteristic:  χ = β0 - β1 + β2 (estimado).
     """
 
     frustration_energy: float
@@ -344,6 +354,29 @@ class GlobalFrustrationAssessment:
     spectral_method: str
     delta_rank: int
     condition_number_est: float
+    euler_characteristic: int
+
+
+# =============================================================================
+# SECCIÓN 3.5: PROTOCOLOS CATEGÓRICOS (FASE III)
+# =============================================================================
+
+@dataclass(frozen=True)
+class ThreatMetrics:
+    """Métricas de amenaza devueltas por el Observador Topológico."""
+    mahalanobis_distance: float
+    is_stable: bool
+    structural_alteration: int  # Δχ
+    threat_level: str  # 'HEALTHY', 'WARNING', 'CRITICAL'
+    details: Dict[str, Any] = field(default_factory=dict)
+
+
+@runtime_checkable
+class ITopologicalWatcher(Protocol):
+    """Protocolo del Sistema Inmunológico (Pullback Categórico)."""
+    def evaluate_manifold_deformation(self, state_tensor: np.ndarray, reference_chi: Optional[int] = None) -> ThreatMetrics:
+        """Evalúa la deformación de la variedad dado un tensor ψ ∈ ℝ⁷."""
+        ...
 
 
 # =============================================================================
@@ -1405,6 +1438,10 @@ class SheafCohomologyOrchestrator:
     MEJORA: El diagnóstico ahora incluye h1_dimension y condition_number_est.
     """
 
+    def __init__(self, watcher: Optional[ITopologicalWatcher] = None) -> None:
+        """Inicializa el orquestador con un observador inyectado (FASE III)."""
+        self._watcher = watcher
+
     # -------------------------------------------------------------------------
     # 7.1 Validación local (Mapa de Restricción)
     # -------------------------------------------------------------------------
@@ -1694,6 +1731,9 @@ class SheafCohomologyOrchestrator:
         )
 
         # ── Etapa 8: Diagnóstico ──
+        # χ = β0 - β1 (aproximación simplicial del 1-esqueleto)
+        euler_char = spectral.h0_dimension - spectral.h1_dimension
+
         return GlobalFrustrationAssessment(
             frustration_energy=frustration_energy,
             h0_dimension=spectral.h0_dimension,
@@ -1704,4 +1744,88 @@ class SheafCohomologyOrchestrator:
             spectral_method=spectral.method,
             delta_rank=spectral.delta_rank,
             condition_number_est=spectral.condition_number_est,
+            euler_characteristic=euler_char,
         )
+
+    def evaluate_tool_injection(
+        self,
+        base_sheaf: CellularSheaf,
+        base_state: np.ndarray,
+        new_edge: SheafEdge,
+    ) -> ThreatMetrics:
+        """
+        Ejecuta el Pullback Categórico (FASE I-V) para evaluar una nueva herramienta.
+
+        1. FASE I: Construcción del Fibrado Tangente de Simulación (Mayer-Vietoris).
+        2. FASE II: Extracción del Tensor de Estado ψ ∈ ℝ⁷.
+        3. FASE III: Pullback Categórico invocando al Observador.
+        4. FASE V: Colapso de la Función de Onda (Veto Absoluto).
+        """
+        if self._watcher is None:
+            logger.warning("No se ha inyectado un ITopologicalWatcher. Omitiendo auditoría.")
+            return ThreatMetrics(0.0, True, 0, "HEALTHY")
+
+        import networkx as nx
+
+        # --- FASE I: Simulación (Secuencia de Mayer-Vietoris Equivalente) ---
+        # Auditamos el estado base para obtener invariantes de referencia.
+        base_audit = self.audit_global_state(base_sheaf, base_state)
+
+        # Construimos el 1-esqueleto simplicial del haz base.
+        G = nx.Graph()
+        G.add_nodes_from(range(base_sheaf.num_nodes))
+        for edge in base_sheaf.edges:
+            G.add_edge(edge.u, edge.v)
+
+        # Analizamos el impacto de la unión K ∪ {e}.
+        u, v = new_edge.u, new_edge.v
+        has_path = nx.has_path(G, u, v) if (u in G and v in G) else False
+
+        # Según el Teorema de Mayer-Vietoris para grafos:
+        # Si u y v están en la misma componente, se crea un ciclo: Δβ1 = 1, Δβ0 = 0.
+        # Si están en componentes distintas, se fusionan: Δβ1 = 0, Δβ0 = -1.
+        if has_path:
+            delta_beta0 = 0
+            delta_beta1 = 1
+        else:
+            delta_beta0 = -1
+            delta_beta1 = 0
+
+        sim_h0 = base_audit.h0_dimension + delta_beta0
+        sim_h1 = base_audit.h1_dimension + delta_beta1
+
+        # [AXIOMA DE VETO]: Abortar si se induce un defecto topológico (Δβ1 > 0).
+        if delta_beta1 > 0:
+            logger.error("VETO PREVENTIVO (FASE I): La herramienta induce un ciclo homológico (Δβ1=%d).", delta_beta1)
+            raise TopologicalBifurcationError(
+                f"Obstrucción detectada en FASE I: Inyección induce ciclo homológico (Δβ1={delta_beta1})."
+            )
+
+        # --- FASE II: Construcción del Tensor ψ ∈ ℝ⁷ ---
+        # Mapeo al vector ψ de 7 dimensiones esperado por el Watcher:
+        # [saturation, flyback, dissipated_power, beta_0, beta_1, entropy, exergy_loss]
+        psi = np.zeros(7, dtype=np.float64)
+        psi[3] = float(sim_h0)  # beta_0
+        psi[4] = float(sim_h1)  # beta_1
+
+        # Proyectamos métricas termodinámicas desde la auditoría base.
+        psi[0] = 0.05  # Saturación nominal simulada
+        psi[2] = base_audit.frustration_energy  # Disipación inicial
+        psi[5] = 0.1   # Entropía inicial simulada
+
+        # --- FASE III & IV: Pullback al Observador ---
+        metrics = self._watcher.evaluate_manifold_deformation(psi, reference_chi=base_audit.euler_characteristic)
+
+        # --- FASE V: Colapso de la Función de Onda (Fast-Fail) ---
+        if not metrics.is_stable or metrics.threat_level == "CRITICAL":
+            logger.critical(
+                "VETO TOPOLÓGICO (FASE V): Abortando inyección. Δχ=%d, d_M=%.4f, Status=%s",
+                metrics.structural_alteration,
+                metrics.mahalanobis_distance,
+                metrics.threat_level
+            )
+            raise TopologicalBifurcationError(
+                f"Bifurcación detectada en la simulación pullback: Δχ={metrics.structural_alteration}, d_M={metrics.mahalanobis_distance:.4f}"
+            )
+
+        return metrics
