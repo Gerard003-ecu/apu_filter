@@ -2764,6 +2764,13 @@ class TelemetryContext:
 
         return False
 
+    def __hash__(self) -> int:
+        """
+        Retorna hash basado en la identidad del objeto.
+        Permite el uso de TelemetryContext como clave en caches de forma O(1).
+        """
+        return id(self)
+
     def __repr__(self) -> str:
         """Representación concisa del contexto."""
         with self._lock:
