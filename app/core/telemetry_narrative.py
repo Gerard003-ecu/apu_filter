@@ -320,21 +320,27 @@ class SeverityLevel(IntEnum):
         Propiedad: a ⊔ ⊥ = a (OPTIMO es identidad)
         """
         if not levels:
-            return cls.OPTIMO  # ⊥ es identidad del join
-
-        try:
-            safe_levels = []
-            for level in levels:
-                if hasattr(level, 'value'):
-                    safe_levels.append(level)
-                elif hasattr(level, 'item'):  # NumPy scalars
-                    safe_levels.append(cls(int(level.item())))
-                else:
-                    safe_levels.append(cls(int(level)))
-            max_value = max(lvl.value for lvl in safe_levels)
-            return cls(max_value)
-        except (ValueError, TypeError):
             return cls.OPTIMO
+
+        # Optimización O(N) con shortcut: si ya hay un CRITICO, el supremo es CRITICO.
+        # Evita la creación de listas intermedias y múltiples comprobaciones de tipo.
+        max_val = 0
+        for lvl in levels:
+            # Fast-path: acceso directo a .value para SeverityLevel o int
+            try:
+                v = lvl.value
+            except AttributeError:
+                try:
+                    v = int(lvl)
+                except (ValueError, TypeError):
+                    continue
+
+            if v > max_val:
+                max_val = v
+                if max_val == 2:  # SeverityLevel.CRITICO
+                    return cls.CRITICO
+
+        return cls(max_val)
 
     @classmethod
     def infimum(cls, *levels: SeverityLevel) -> SeverityLevel:
@@ -530,6 +536,10 @@ class PhaseAnalysis:
     child_count: int = 0
     metrics: Dict[str, Any] = field(default_factory=dict)
 
+    # Caché de issues filtrados para evitar overhead O(I) repetitivo
+    _critical_issues: List[Issue] = field(default_factory=list, init=False, repr=False)
+    _warnings: List[Issue] = field(default_factory=list, init=False, repr=False)
+
     def __post_init__(self) -> None:
         """Validación post-inicialización."""
         if isinstance(self.stratum, int):
@@ -542,15 +552,19 @@ class PhaseAnalysis:
         if len(self.issues) > NarratorConfig.MAX_ISSUES_PER_PHASE:
             self.issues = self.issues[:NarratorConfig.MAX_ISSUES_PER_PHASE]
 
+        # Pre-filtrado O(I) una sola vez
+        self._critical_issues = [i for i in self.issues if i.is_critical]
+        self._warnings = [i for i in self.issues if not i.is_critical]
+
     @property
     def critical_issues(self) -> List[Issue]:
-        """Filtra issues críticos."""
-        return [i for i in self.issues if i.is_critical]
+        """Retorna issues críticos desde caché."""
+        return self._critical_issues
 
     @property
     def warnings(self) -> List[Issue]:
-        """Filtra warnings (no críticos)."""
-        return [i for i in self.issues if not i.is_critical]
+        """Retorna warnings desde caché."""
+        return self._warnings
 
     @property
     def has_failures(self) -> bool:
@@ -926,9 +940,13 @@ class TelemetryNarrator:
             # OPTIMIZACIÓN O(N): Uso de memoización para evitar re-procesar sub-árboles de spans
             # compartidos o procesados múltiples veces durante la consolidación.
             memo_severity: Dict[int, SeverityLevel] = {}
+            memo_issues: Dict[int, List[Issue]] = {}
 
             # 1. Análisis por Fases
-            phases_analysis = [self._analyze_phase(span, memo_severity) for span in root_spans]
+            phases_analysis = [
+                self._analyze_phase(span, memo_severity, memo_issues)
+                for span in root_spans
+            ]
 
             # 2. Agrupación por Estratos
             strata_results = self._group_by_stratum(phases_analysis)
@@ -1127,7 +1145,8 @@ class TelemetryNarrator:
     def _analyze_phase(
         self,
         span: TelemetrySpan,
-        memo_severity: Optional[Dict[int, SeverityLevel]] = None
+        memo_severity: Optional[Dict[int, SeverityLevel]] = None,
+        memo_issues: Optional[Dict[int, List[Issue]]] = None
     ) -> PhaseAnalysis:
         """
         Analiza un span y su subárbol completo.
@@ -1142,6 +1161,7 @@ class TelemetryNarrator:
             span,
             depth=0,
             path_prefix=(),
+            memo_issues=memo_issues
         ))
 
         # Separar críticos y warnings
@@ -1192,17 +1212,30 @@ class TelemetryNarrator:
         span: TelemetrySpan,
         depth: int,
         path_prefix: Tuple[str, ...],
+        memo_issues: Optional[Dict[int, List[Issue]]] = None
     ) -> Iterator[Issue]:
         """
         Recolecta issues del span y sus descendientes.
         
-        Implementa DFS con límite de profundidad.
+        Implementa DFS con memoización O(N) para evitar redundancia en grafos compartidos.
         """
+        if memo_issues is None:
+            memo_issues = {}
+
+        span_id = id(span)
+        if span_id in memo_issues:
+            # NOTA: Los issues memoizados tienen paths relativos al primer ancestro analizado.
+            # En TelemetryContext, los spans forman un bosque, por lo que la memoización
+            # es segura si no se comparten sub-árboles entre raíces.
+            yield from memo_issues[span_id]
+            return
+
         current_path = path_prefix + (span.name,)
+        collected = []
 
         # Verificar límite de recursión
         if depth > self.config.MAX_RECURSION_DEPTH:
-            yield Issue(
+            issue = Issue(
                 source=span.name,
                 message=f"Profundidad máxima excedida ({self.config.MAX_RECURSION_DEPTH})",
                 issue_type="RecursionLimit",
@@ -1210,14 +1243,17 @@ class TelemetryNarrator:
                 topological_path=current_path,
                 severity=SeverityLevel.ADVERTENCIA,
             )
+            yield issue
             return
 
         # Extraer errores explícitos
-        yield from self._extract_explicit_errors(span, depth, current_path)
+        for err in self._extract_explicit_errors(span, depth, current_path):
+            collected.append(err)
+            yield err
 
         # Detectar fallos silenciosos
         if self._is_silent_failure(span):
-            yield Issue(
+            issue = Issue(
                 source=span.name,
                 message="Fallo estructural sin traza explícita (Silent Failure)",
                 issue_type="SilentFailure",
@@ -1225,10 +1261,12 @@ class TelemetryNarrator:
                 topological_path=current_path,
                 severity=SeverityLevel.CRITICO,
             )
+            collected.append(issue)
+            yield issue
 
         # Detectar warnings implícitos
         if self._is_implicit_warning(span):
-            yield Issue(
+            issue = Issue(
                 source=span.name,
                 message="Advertencia de fase (Estado WARNING)",
                 issue_type="Warning",
@@ -1236,17 +1274,23 @@ class TelemetryNarrator:
                 topological_path=current_path,
                 severity=SeverityLevel.ADVERTENCIA,
             )
+            collected.append(issue)
+            yield issue
 
         # Extraer métricas anómalas
-        yield from self._extract_anomalous_metrics(span, depth, current_path)
+        for anomaly in self._extract_anomalous_metrics(span, depth, current_path):
+            collected.append(anomaly)
+            yield anomaly
 
         # Recursión en hijos
         for child in span.children:
-            yield from self._collect_issues_recursive(
-                child,
-                depth + 1,
-                current_path,
-            )
+            for child_issue in self._collect_issues_recursive(
+                child, depth + 1, current_path, memo_issues
+            ):
+                collected.append(child_issue)
+                yield child_issue
+
+        memo_issues[span_id] = collected
 
     def _extract_explicit_errors(
         self,

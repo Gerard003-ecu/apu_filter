@@ -1929,7 +1929,10 @@ class PortHamiltonianController:
         V(x) = ½(H(x) - H*)²
         """
         H = self.hamiltonian()
-        return 0.5 * (H - self.H_target) ** 2
+        # Saturación Lipschitziana para evitar desbordamiento IEEE 754 (H >> 1e150)
+        # 1e150 al cuadrado es 1e300, cerca del límite de float64 (~1.8e308)
+        error_clamped = np.clip(H - self.H_target, -1e150, 1e150)
+        return 0.5 * error_clamped ** 2
 
     def compute_control(self) -> np.ndarray:
         """
@@ -2782,9 +2785,20 @@ class RefinedFluxPhysicsEngine:
             )
             y_next = sol.y[:, -1]
         except Exception as e:
-            self.logger.error(f"Solver BDF falló: {e}. Fallback a Euler.")
-            f_val = f(0, [Q, I])
-            y_next = np.array([Q, I]) + dt * f_val
+            self.logger.error(f"Solver BDF falló: {e}. Aplicando reducción de paso (Sub-stepping RK4).")
+            # ERRADICACIÓN DE FALLBACK A EULER:
+            # Implementamos sub-stepping con RK4 para preservar la estabilidad
+            # cuando el solver rígido falla bajo perturbaciones de cola pesada.
+            n_substeps = 20
+            dt_sub = dt / n_substeps
+            y_curr = np.array([Q, I])
+            for _ in range(n_substeps):
+                k1 = f(0, y_curr)
+                k2 = f(0, y_curr + 0.5 * dt_sub * k1)
+                k3 = f(0, y_curr + 0.5 * dt_sub * k2)
+                k4 = f(0, y_curr + dt_sub * k3)
+                y_curr = y_curr + (dt_sub / 6.0) * (k1 + 2*k2 + 2*k3 + k4)
+            y_next = y_curr
 
         # Actualizar UnifiedPhysicalState
         self._unified_state.charge = y_next[0]
@@ -2999,7 +3013,10 @@ class RefinedFluxPhysicsEngine:
         gradient_magnitude = abs(v_inertial) + 1e-9 # Evitar división por cero
 
         # Factor de modulación no lineal: g(|grad|) ~ |grad|^(p-2)
-        viscosity_modulation = math.pow(gradient_magnitude, p_factor - 2.0)
+        # Saturación Lipschitziana para evitar overflow en potencias p=3
+        SAFE_GRADIENT_MAX = 1e50
+        gradient_clamped = min(gradient_magnitude, SAFE_GRADIENT_MAX)
+        viscosity_modulation = math.pow(gradient_clamped, p_factor - 2.0)
 
         # Resistencia efectiva dinámica
         # R_mem incluye la resistencia base del circuito + la ESR de los condensadores
