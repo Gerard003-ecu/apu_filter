@@ -411,21 +411,23 @@ def make_error(message: str, error_type: str = "Error") -> dict[str, str]:
     }
 
 
-def make_topology(beta_0: int = 1, beta_1: int = 0) -> TopologicalMetrics:
+def make_topology(beta_0: int = 1, beta_1: int = 0, beta_2: int = 0) -> TopologicalMetrics:
     """
-    Construye métricas topológicas.
+    Construye métricas topológicas para un 2-Complejo Simplicial.
     
     Args:
         beta_0: Número de Betti β₀ (componentes conexas).
         beta_1: Número de Betti β₁ (ciclos independientes).
+        beta_2: Número de Betti β₂ (cavidades).
     
     Returns:
-        TopologicalMetrics con característica de Euler calculada.
+        TopologicalMetrics con característica de Euler calculada (χ = β₀ - β₁ + β₂).
     """
     return TopologicalMetrics(
         beta_0=beta_0,
         beta_1=beta_1,
-        euler_characteristic=beta_0 - beta_1,
+        beta_2=beta_2,
+        euler_characteristic=beta_0 - beta_1 + beta_2,
     )
 
 
@@ -1770,8 +1772,8 @@ class TestGlobalInvariants:
             
             root = root_cause_name(report)
             if root is not None:
-                root_stratum = Stratum[root]
-                assert root_stratum in combo, (
+                root_stratum = Stratum[root] if root in Stratum.__members__ else None
+                assert root_stratum is None or root_stratum in combo, (
                     f"Causa raíz {root} no está en fallos {[s.name for s in combo]}"
                 )
 

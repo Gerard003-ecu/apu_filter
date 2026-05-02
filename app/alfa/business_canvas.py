@@ -362,17 +362,11 @@ class ChainComplex1D:
 @dataclass(frozen=True)
 class HomologyMetrics:
     """
-    Invariantes homológicos del 1-complejo simplicial K.
+    Invariantes homológicos del 2-complejo simplicial K.
     
     Teorema de Euler-Poincaré:
-        χ(K) = Σₖ (-1)ᵏ βₖ = β₀ - β₁
-    
-    Para 1-complejos finitos:
-        β₀ = |componentes conexas|
-        β₁ = |ciclos independientes| = número ciclomático
-    
-    Identidad rank-nullity:
-        rank(∂₁) + nullity(∂₁) = |E|
+        χ(K) = Σₖ (-1)ᵏ βₖ = β₀ - β₁ + β₂
+    ... (omitted) ...
     """
     n_vertices: int
     n_edges: int
@@ -380,6 +374,7 @@ class HomologyMetrics:
     nullity_boundary_1: int
     beta_0: int
     beta_1: int
+    beta_2: int = 0
     euler_char: int
     euler_from_betti: int
     
@@ -795,7 +790,8 @@ class AlphaTopologyVector(Morphism):
         beta_1 = nullity_d1
         
         euler_char = n_v - n_e
-        euler_from_betti = beta_0 - beta_1
+        beta_2 = 0 # Default for 1-skeleton
+        euler_from_betti = beta_0 - beta_1 + beta_2
         
         return HomologyMetrics(
             n_vertices=n_v,

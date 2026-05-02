@@ -158,6 +158,10 @@ class TestValidationCode:
             "NON_FINITE_VALUES",
             "NEGATIVE_VALUES",
             "RANGE_VIOLATION",
+            "SUBNORMAL_VALUES",
+            "LINEAR_DEPENDENCY",
+            "RANK_DEFICIENCY",
+            "SURVIVAL_THRESHOLD_VIOLATION",
         }
         actual = {c.value for c in ValidationCode}
         assert actual == expected_codes
@@ -1777,3 +1781,64 @@ class TestSystemProperties:
             assert issue_dict["message"] == issue_obj.message
             assert issue_dict["column"] == issue_obj.column
             assert issue_dict["count"] == issue_obj.count
+# ======================================================================
+# Tests: Spectral Independence (SVD)
+# ======================================================================
+
+class TestSpectralIndependence:
+    """Verifica la detección de deficiencia de rango vía SVD."""
+
+    def test_linear_independence_valid(self) -> None:
+        """Matriz identidad debe ser independiente."""
+        df = pd.DataFrame({
+            "A": [1.0, 0.0, 0.0],
+            "B": [0.0, 1.0, 0.0],
+            "C": [0.0, 0.0, 1.0],
+        })
+        result = DataFrameValidator.validate_linear_independence(df, ["A", "B", "C"])
+        assert result.is_valid
+        assert len(result.issues) == 0
+
+    def test_linear_dependency_detected(self) -> None:
+        """Detección de colinealidad exacta."""
+        df = pd.DataFrame({
+            "A": [1.0, 2.0, 3.0],
+            "B": [2.0, 4.0, 6.0], # B = 2*A
+            "C": [1.0, 0.0, 1.0],
+        })
+        result = DataFrameValidator.validate_linear_independence(
+            df, ["A", "B", "C"], severity=ValidationSeverity.ERROR
+        )
+        assert not result.is_valid
+        assert any(issue.code == ValidationCode.LINEAR_DEPENDENCY for issue in result.issues)
+        assert any("κ=" in issue.message for issue in result.issues)
+
+    def test_near_singularity_detected(self) -> None:
+        """Detección de casi-singularidad (mal condicionamiento)."""
+        eps = 1e-12
+        df = pd.DataFrame({
+            "A": [1.0, 0.0],
+            "B": [1.0, eps], # Casi igual a A
+        })
+        # κ ≈ 1/eps ≈ 1e12. Si threshold es 1e10, debe fallar.
+        result = DataFrameValidator.validate_linear_independence(
+            df, ["A", "B"], condition_threshold=1e10
+        )
+        assert not result.is_valid
+        assert any(issue.code == ValidationCode.LINEAR_DEPENDENCY for issue in result.issues)
+
+
+class TestNumericalPathologies:
+    """Verifica la detección de singularidades numéricas (Subnormales, etc)."""
+
+    def test_subnormal_values_detected(self) -> None:
+        """Valores < float_info.min deben detectarse."""
+        import sys
+        subnormal = sys.float_info.min / 10.0
+        df = pd.DataFrame({"A": [1.0, subnormal, 0.0]}) # 0.0 no es subnormal
+
+        # validate_numeric_values detecta subnormales
+        result = DataFrameValidator.validate_numeric_columns(df, ["A"])
+
+        assert any(issue.code == ValidationCode.SUBNORMAL_VALUES for issue in result.issues)
+        assert any(issue.count == 1 for issue in result.issues) # Solo el subnormal

@@ -1226,10 +1226,8 @@ class TestAlgebraicProperties:
 
     def test_euler_characteristic_consistency(self):
         """
-        Para el 1-esqueleto de un grafo:
-        χ = β₀ − β₁ = |V| − |E|
-
-        (Característica de Euler del complejo simplicial 1-dimensional)
+        Para el 2-esqueleto de un grafo:
+        χ = β₀ − β₁ + β₂ = |V| − |E| + |F|
         """
         test_cases = [
             [("A", "B"), ("B", "C")],                      # Cadena
@@ -1241,11 +1239,13 @@ class TestAlgebraicProperties:
         for edges in test_cases:
             G = create_labeled_dag(edges)
             beta_0, beta_1 = compute_betti_numbers(G)
+            beta_2 = 0 # Graphs are 1-skeletons
 
             V = G.number_of_nodes()
             E = G.to_undirected().number_of_edges()
-            chi_euler = V - E
-            chi_betti = beta_0 - beta_1
+            F = 0 # Faces in a graph seen as 1-complex
+            chi_euler = V - E + F
+            chi_betti = beta_0 - beta_1 + beta_2
 
             assert chi_euler == chi_betti, (
                 f"Euler: χ = V−E = {V}−{E} = {chi_euler}, "

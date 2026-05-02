@@ -572,6 +572,7 @@ class TestBettiNumbers:
     def test_euler_characteristic(self):
         """χ = β₀ - β₁ + β₂."""
         betti = BettiNumbers(beta_0=5, beta_1=2, beta_2=1)
+        assert betti.beta_2 == 1
         assert betti.euler_characteristic == 5 - 2 + 1  # = 4
     
     def test_total_rank(self):
