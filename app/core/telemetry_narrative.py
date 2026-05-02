@@ -72,6 +72,7 @@ from typing import (
     Tuple,
     Union,
 )
+import weakref
 
 from app.core.schemas import Stratum
 from app.core.telemetry import StepStatus, TelemetryContext, TelemetrySpan
@@ -518,6 +519,8 @@ class Issue:
         if self.context:
             result["context"] = self.context
 
+        return result
+
 
 
 @dataclass
@@ -788,7 +791,8 @@ class TelemetryNarrator:
         self.config = config or NarratorConfig()
 
         # Caché de instancia para ejecuciones completas (O(1) lookup por puntero de contexto)
-        self._execution_cache: Dict[int, Dict[str, Any]] = {}
+        # Se utiliza WeakKeyDictionary para evitar fugas de memoria al liberar el contexto.
+        self._execution_cache = weakref.WeakKeyDictionary()
 
         if mic:
             self.mic = mic
@@ -940,10 +944,9 @@ class TelemetryNarrator:
             return self._generate_empty_report().to_dict()
 
         # INCISIÓN A: Isomorfismo de Identidad Pura en O(1)
-        # Usamos hash(context) como clave primaria asumiendo inmutabilidad durante el reporte.
-        context_id = hash(context)
-        if context_id in self._execution_cache:
-            return self._execution_cache[context_id]
+        # Usamos el objeto context directamente como clave en el WeakKeyDictionary.
+        if context in self._execution_cache:
+            return self._execution_cache[context]
 
         root_spans = getattr(context, "root_spans", [])
 
@@ -1007,7 +1010,11 @@ class TelemetryNarrator:
             result = report.to_dict()
 
             # Almacenar en caché de instancia (Incisión B)
-            self._execution_cache[context_id] = result
+            try:
+                self._execution_cache[context] = result
+            except TypeError:
+                # Si el contexto no es weak-referenceable (raro para TelemetryContext)
+                pass
             return result
         except Exception as e:
             logger.error(f"Error in summarize_execution: {e}", exc_info=True)

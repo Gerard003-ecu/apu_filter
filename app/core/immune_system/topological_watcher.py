@@ -1210,7 +1210,7 @@ class OrthogonalProjector:
         self,
         dimensions: int,
         subspaces: Dict[str, SubspaceSpec],
-        topo_indices: Optional[Tuple[int, int]] = None,
+        topo_indices: Optional[Tuple[int, int, int]] = None,
         cache_projections: bool = True,
     ) -> None:
         """
@@ -1234,8 +1234,8 @@ class OrthogonalProjector:
 
         # CORRECCIÓN T4: validar topo_indices contra dimensiones
         if topo_indices is not None:
-            idx_b0, idx_b1 = topo_indices
-            for idx, name in [(idx_b0, "β₀"), (idx_b1, "β₁")]:
+            idx_b0, idx_b1, idx_b2 = (topo_indices if len(topo_indices) == 3 else (*topo_indices, dimensions-1))
+            for idx, name in [(idx_b0, "β₀"), (idx_b1, "β₁"), (idx_b2, "β₂")]:
                 if not (0 <= idx < dimensions):
                     raise ValueError(
                         f"topo_indices[{name}]={idx} fuera de rango [0, {dimensions})"
@@ -1405,12 +1405,13 @@ class OrthogonalProjector:
         if self._topo_indices is None:
             return None
 
-        idx_b0, idx_b1 = self._topo_indices
+        idx_b0, idx_b1, idx_b2 = (self._topo_indices if len(self._topo_indices) == 3 else (*self._topo_indices, 0))
 
         try:
             # CORRECCIÓN T1: int() para obtener tipo Python nativo
             beta_0 = int(round(float(psi[idx_b0])))
             beta_1 = int(round(float(psi[idx_b1])))
+            beta_2 = int(round(float(psi[idx_b2]))) if len(self._topo_indices) == 3 else 0
         except (IndexError, ValueError) as exc:
             logger.warning(
                 "Error extrayendo números de Betti de ψ: %s", exc,
@@ -1432,7 +1433,7 @@ class OrthogonalProjector:
             )
 
         # Resultado es int nativo de Python (garantía de tipo)
-        chi: int = beta_0 - beta_1
+        chi: int = beta_0 - beta_1 + beta_2
         return chi
 
     @contextmanager

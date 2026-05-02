@@ -1108,12 +1108,12 @@ class TestBettiNumberConsistency:
     """
 
     @pytest.mark.parametrize(
-        "beta_0, beta_1, expected_chi",
+        "beta_0, beta_1, beta_2, expected_chi",
         [
-            (1, 0, 1),    # Árbol conexo
-            (1, 3, -2),   # Conexo con 3 ciclos
-            (3, 2, 1),    # 3 componentes, 2 ciclos
-            (1, 1, 0),    # Conexo con 1 ciclo
+            (1, 0, 0, 1),    # Árbol conexo (beta2=0)
+            (1, 3, 0, -2),   # Conexo con 3 ciclos
+            (3, 2, 0, 1),    # 3 componentes, 2 ciclos
+            (1, 1, 0, 0),    # Conexo con 1 ciclo
         ],
         ids=["tree", "3-cycles", "3-components", "1-cycle"],
     )
@@ -1122,12 +1122,13 @@ class TestBettiNumberConsistency:
         translator: SemanticTranslator,
         beta_0: int,
         beta_1: int,
+        beta_2: int,
         expected_chi: int,
     ) -> None:
         """
-        χ = β₀ - β₁ es consistente para todos los casos.
+        χ = β₀ - β₁ + β₂ es consistente para todos los casos.
         """
-        calculated_chi = beta_0 - beta_1
+        calculated_chi = beta_0 - beta_1 + beta_2
         assert calculated_chi == expected_chi, (
             f"χ inconsistente: β₀={beta_0}, β₁={beta_1}, "
             f"χ calculado={calculated_chi}, esperado={expected_chi}."
@@ -1136,6 +1137,7 @@ class TestBettiNumberConsistency:
         topology = TopologicalMetrics(
             beta_0=beta_0,
             beta_1=beta_1,
+            beta_2=beta_2,
             euler_characteristic=expected_chi,
         )
 
