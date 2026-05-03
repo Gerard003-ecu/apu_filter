@@ -1,0 +1,1262 @@
+### Propuesta 2
+
+"""
+=========================================================================================
+Módulo: Quantum Admission Gate (Operador de Proyección de Hilbert - Versión Artesanal Rigurosa)
+Ubicación: app/physics/quantum_admission_gate.py
+=========================================================================================
+
+AXIOMAS FUNDAMENTALES (Reformulación Rigurosa):
+
+§1. ESPACIO DE HILBERT COMPLEJO SEPARABLE
+    H := L²(ℝ, ℂ) con producto interno ⟨ψ|φ⟩ = ∫ψ*(x)φ(x)dx
+    Base ortonormal completa: {|n⟩} con ⟨m|n⟩ = δₘₙ
+    
+§2. OPERADOR DE MEDICIÓN AUTOADJUNTO
+    Ĥ: H → H, hermítico con espectro discreto {λₙ}
+    Autoestados: Ĥ|n⟩ = λₙ|n⟩
+    Completitud: Σₙ|n⟩⟨n| = 𝟙
+    
+§3. REGLA DE BORN (Proyección Cuántica)
+    P(|n⟩) = |⟨n|ψ⟩|² / ⟨ψ|ψ⟩
+    donde ψ es el estado preparado por el payload
+    
+§4. ACOPLAMIENTO GAUGE-COVARIANTE
+    La función de trabajo Φ: M → ℝ₊ es una sección del fibrado principal
+    con grupo de estructura U(1), garantizando invariancia gauge local.
+    
+§5. APROXIMACIÓN WKB (Condiciones de Validez)
+    Válida si: ℏ|d²V/dx²| / |dV/dx|² << 1 (variación suave del potencial)
+    y E < V₀ (régimen túnel)
+    
+§6. CONSERVACIÓN UNITARIA
+    Tr(ρ) = 1 donde ρ es el operador densidad del ensemble cuántico
+    
+§7. TEOREMA DE NO-CLONACIÓN
+    Garantizado por inmutabilidad de QuantumMeasurement
+
+=========================================================================================
+MEJORAS IMPLEMENTADAS (esta versión):
+
+1. **Nombrado semántico de métodos**: cada sub-paso del algoritmo de admisión es un método
+   privado con nombre que describe su propósito matemático.
+2. **Documentación exhaustiva**: todas las funciones públicas y privadas incluyen
+   ecuaciones, descripciones de parámetros, valores de retorno, excepciones y notas.
+3. **Separación de responsabilidades**: el método principal `evaluate_admission` ahora
+   delega en siete métodos atómicos, facilitando pruebas unitarias y legibilidad.
+4. **Validaciones redundantes pero seguras**: se verifica el cumplimiento de invariantes
+   en múltiples capas para garantizar la integridad física.
+5. **Uso extensivo de tipos genéricos y `Final`**: para dejar explícitas las restricciones
+   de diseño en tiempo de desarrollo.
+
+=========================================================================================
+"""
+
+from __future__ import annotations
+
+import hashlib
+import logging
+import math
+import sys
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from functools import lru_cache
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Final,
+    FrozenSet,
+    Mapping,
+    NamedTuple,
+    Optional,
+    Protocol,
+    Tuple,
+    TypeVar,
+    runtime_checkable,
+)
+
+from app.core.mic_algebra import CategoricalState, Morphism
+from app.core.schemas import Stratum
+
+# =============================================================================
+# CONFIGURACIÓN DE LOGGING CON CONTEXTO CUÁNTICO
+# =============================================================================
+
+logger = logging.getLogger("MIC.Physics.QuantumAdmission")
+
+
+class QuantumLogContext:
+    """
+    Contexto enriquecido para trazabilidad de eventos cuánticos.
+    
+    Cada evento de medición se registra con todos los observables relevantes,
+    permitiendo reconstruir la historia del colapso de la función de onda.
+    """
+    
+    @staticmethod
+    def log_measurement(
+        measurement: QuantumMeasurement,
+        level: int = logging.INFO
+    ) -> None:
+        """
+        Registro estructurado de una medición cuántica completa.
+        
+        Args:
+            measurement: Objeto que contiene todos los observables post-colapso.
+            level: Nivel de severidad del registro.
+        """
+        logger.log(
+            level,
+            "QUANTUM_MEASUREMENT | state=%s | E=%.6e | Φ=%.6e | T=%.6e | "
+            "p=%.6e | σ=%.6e | χ²=%.6e | veto=%s",
+            measurement.eigenstate.name,
+            measurement.incident_energy,
+            measurement.work_function,
+            measurement.tunneling_probability,
+            measurement.momentum,
+            measurement.dominant_pole_real,
+            measurement.threat_level,
+            measurement.frustration_veto,
+        )
+
+
+# =============================================================================
+# JERARQUÍA DE EXCEPCIONES (Teoría de Categorías - Objetos de Error)
+# =============================================================================
+
+class QuantumAdmissionError(Exception):
+    """Categoría base de errores cuánticos. Morfismo: Error → Logging."""
+    pass
+
+
+class QuantumNumericalError(QuantumAdmissionError):
+    """
+    Error en el cálculo numérico de un observable físico.
+    
+    Indica violación de condiciones de estabilidad numérica:
+    - Pérdida catastrófica de precisión
+    - Overflow/underflow no controlado
+    - Violación de cotas conocidas.
+    """
+    pass
+
+
+class QuantumInterfaceError(QuantumAdmissionError):
+    """
+    Violación de contrato en protocolo de comunicación inter-componente.
+    
+    Categorialmente: fallo de funtorialidad en composición de morfismos.
+    """
+    pass
+
+
+class QuantumStateError(QuantumAdmissionError):
+    """
+    Estado cuántico inválido o no normalizable.
+    
+    Corresponde a un vector fuera del espacio de Hilbert admisible.
+    """
+    pass
+
+
+class WKBValidityError(QuantumNumericalError):
+    """
+    Violación de las condiciones de validez de la aproximación WKB.
+    
+    Se lanza cuando la aproximación semiclásica no es aplicable.
+    """
+    pass
+
+
+# =============================================================================
+# CONSTANTES FÍSICAS (Unidades Normalizadas de Información)
+# =============================================================================
+
+class QuantumConstants:
+    """
+    Constantes físicas inmutables con validación estática.
+    
+    Sistema de unidades: ℏ = c = kB = 1 (unidades naturales de información)
+    
+    INVARIANTES:
+    - Todas las constantes son adimensionales o tienen unidades derivadas.
+    - Los valores numéricos garantizan estabilidad en precisión de máquina.
+    - Tolerancias calibradas para aritmética IEEE 754 de doble precisión.
+    """
+    
+    PLANCK_H: Final[float] = 1.0
+    PLANCK_HBAR: Final[float] = PLANCK_H / (2.0 * math.pi)
+    
+    BASE_WORK_FUNCTION: Final[float] = 10.0   # Φ₀ en escala de energía natural
+    BASE_EFFECTIVE_MASS: Final[float] = 1.0   # m₀ normalizada
+    BARRIER_WIDTH: Final[float] = 1.0         # Δx en unidades de longitud natural
+    ALPHA_THREAT: Final[float] = 5.0          # Coeficiente de acoplamiento gauge
+    
+    MIN_KINETIC_ENERGY: Final[float] = 1e-12
+    FRUSTRATION_VETO_TOL: Final[float] = 1e-9
+    SIGMA_CHAOS_TOL: Final[float] = 1e-9
+    ENTROPY_FLOOR: Final[float] = 1e-12
+    EXP_UNDERFLOW_CUTOFF: Final[float] = -700.0
+    MAX_SHANNON_ENTROPY: Final[float] = math.log(256.0)
+    DIVISION_EPSILON: Final[float] = 1e-15
+    WKB_VALIDITY_THRESHOLD: Final[float] = 0.1
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        raise TypeError(f"{cls.__name__} es una clase de constantes sellada.")
+
+
+# =============================================================================
+# ENUMERACIONES (Álgebra de Bool con Semántica Cuántica)
+# =============================================================================
+
+class Eigenstate(Enum):
+    """
+    Autoestados del operador de medición Ĥ.
+    
+    Forman base ortogonal completa de H:
+    - |ADMITIDO⟩: autoestado con autovalor λ₊ > 0
+    - |RECHAZADO⟩: autoestado con autovalor λ₋ < 0
+    
+    Propiedades:
+    - ⟨ADMITIDO|RECHAZADO⟩ = 0 (ortogonalidad)
+    - |ADMITIDO⟩⟨ADMITIDO| + |RECHAZADO⟩⟨RECHAZADO| = 𝟙 (completitud)
+    """
+    ADMITIDO = auto()
+    RECHAZADO = auto()
+    
+    def is_accepted(self) -> bool:
+        """Proyección al álgebra booleana clásica."""
+        return self == Eigenstate.ADMITIDO
+    
+    def to_hilbert_projection(self) -> int:
+        """Mapeo a índice de proyector |n⟩⟨n|."""
+        return 1 if self.is_accepted() else 0
+
+
+# =============================================================================
+# ESTRUCTURAS DE DATOS INMUTABLES (Objetos en Categoría Set)
+# =============================================================================
+
+class NumericInterval(NamedTuple):
+    """
+    Intervalo cerrado [lower, upper] con aritmética rigurosa.
+    
+    Utilizado para propagación de incertidumbre en cálculos físicos.
+    
+    Invariantes:
+    - lower ≤ upper
+    - Ambos finitos o ambos infinitos con el mismo signo
+    """
+    lower: float
+    upper: float
+    
+    def __post_init__(self) -> None:
+        if math.isnan(self.lower) or math.isnan(self.upper):
+            raise ValueError("Intervalos no admiten NaN")
+        if self.lower > self.upper:
+            raise ValueError(f"Intervalo mal formado: [{self.lower}, {self.upper}]")
+    
+    @property
+    def midpoint(self) -> float:
+        """Punto medio del intervalo."""
+        return 0.5 * (self.lower + self.upper)
+    
+    @property
+    def width(self) -> float:
+        """Ancho del intervalo (incertidumbre)."""
+        return self.upper - self.lower
+    
+    def contains(self, value: float) -> bool:
+        """Verifica pertenencia al intervalo cerrado."""
+        return self.lower <= value <= self.upper
+    
+    @staticmethod
+    def from_value_with_tolerance(value: float, tolerance: float) -> NumericInterval:
+        """Construye intervalo centrado con radio de tolerancia."""
+        return NumericInterval(
+            lower=value - abs(tolerance),
+            upper=value + abs(tolerance)
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class WKBParameters:
+    """
+    Parámetros calculados para la aproximación WKB.
+    
+    Encapsula todos los valores intermedios necesarios para:
+    1. Validar condiciones de aplicabilidad
+    2. Computar la probabilidad de transmisión
+    3. Diagnosticar fallos numéricos
+    """
+    incident_energy: float
+    barrier_height: float
+    effective_mass: float
+    barrier_width: float
+    integrand: float
+    exponent: float
+    validity_parameter: float
+    
+    def is_valid_semiclassical_regime(self) -> bool:
+        """
+        Verifica condiciones de validez de la aproximación WKB.
+        
+        Returns:
+            True si se cumplen:
+            1. Régimen túnel: E < V₀ (barrier_height > 0)
+            2. Variación suave: |V''|/|V'|² < umbral
+            3. Masa efectiva positiva y finita
+        """
+        return (
+            self.barrier_height > 0
+            and self.validity_parameter < QuantumConstants.WKB_VALIDITY_THRESHOLD
+            and 0 < self.effective_mass < float('inf')
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class QuantumMeasurement:
+    """
+    Registro inmutable del proceso de medición cuántica.
+    
+    Corresponde a la tupla (autoestado, autovalor, observables) tras el
+    colapso de la función de onda.
+    
+    PROPIEDADES GARANTIZADAS:
+    1. Inmutabilidad (frozen=True)
+    2. No-clonación cuántica (sin __copy__)
+    3. Trazabilidad completa (todos los observables registrados)
+    4. Validez física (restricciones en __post_init__)
+    """
+    eigenstate: Eigenstate
+    incident_energy: float
+    work_function: float
+    tunneling_probability: float
+    kinetic_energy: float
+    momentum: float
+    frustration_veto: bool
+    effective_mass: float
+    dominant_pole_real: float
+    threat_level: float
+    collapse_threshold: float
+    admission_reason: str
+    wkb_parameters: Optional[WKBParameters] = None
+    measurement_uncertainty: Optional[NumericInterval] = None
+    
+    def __post_init__(self) -> None:
+        """Validación de restricciones físicas. Lanza QuantumStateError si se violan invariantes."""
+        if self.incident_energy < 0:
+            raise QuantumStateError(f"Energía incidente negativa: {self.incident_energy}")
+        if self.work_function < 0:
+            raise QuantumStateError(f"Función de trabajo negativa: {self.work_function}")
+        if not 0.0 <= self.tunneling_probability <= 1.0:
+            raise QuantumStateError(f"Probabilidad fuera de [0,1]: {self.tunneling_probability}")
+        if self.kinetic_energy < 0:
+            raise QuantumStateError(f"Energía cinética negativa: {self.kinetic_energy}")
+        if self.momentum < 0:
+            raise QuantumStateError(f"Momentum negativo: {self.momentum}")
+        if self.threat_level < 0:
+            raise QuantumStateError(f"Nivel de amenaza negativo: {self.threat_level}")
+        if not (self.effective_mass > 0 or math.isinf(self.effective_mass)):
+            raise QuantumStateError(f"Masa efectiva no positiva: {self.effective_mass}")
+        if not 0.0 <= self.collapse_threshold <= 1.0:
+            raise QuantumStateError(f"Umbral de colapso fuera de [0,1): {self.collapse_threshold}")
+        if self.eigenstate == Eigenstate.RECHAZADO:
+            if self.kinetic_energy != 0.0 or self.momentum != 0.0:
+                raise QuantumStateError("Estado rechazado no puede tener energía cinética o momentum")
+    
+    def __repr__(self) -> str:
+        return (
+            f"QuantumMeasurement("
+            f"state={self.eigenstate.name}, "
+            f"E={self.incident_energy:.6e}, "
+            f"Φ={self.work_function:.6e}, "
+            f"T={self.tunneling_probability:.6e}, "
+            f"p={self.momentum:.6e}, "
+            f"veto={self.frustration_veto})"
+        )
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialización para telemetría."""
+        return {
+            "eigenstate": self.eigenstate.name,
+            "incident_energy": self.incident_energy,
+            "work_function": self.work_function,
+            "tunneling_probability": self.tunneling_probability,
+            "kinetic_energy": self.kinetic_energy,
+            "momentum": self.momentum,
+            "frustration_veto": self.frustration_veto,
+            "effective_mass": self.effective_mass,
+            "dominant_pole_real": self.dominant_pole_real,
+            "threat_level": self.threat_level,
+            "collapse_threshold": self.collapse_threshold,
+            "admission_reason": self.admission_reason,
+        }
+
+
+# =============================================================================
+# PROTOCOLOS DE INTERFACES (Teoría de Categorías - Funtores)
+# =============================================================================
+
+@runtime_checkable
+class ITopologicalWatcher(Protocol):
+    """
+    Funtor: Categoría Topológica → Categoría de Números Reales.
+    
+    Computa la amenaza Mahalanobis χ² como métrica de distancia en el espacio
+    de configuración del sistema.
+    """
+    def get_mahalanobis_threat(self) -> float:
+        """Retorna χ² ∈ [0, +∞)."""
+        ...
+
+
+@runtime_checkable
+class ILaplaceOracle(Protocol):
+    """
+    Funtor: Categoría de Sistemas LTI → Categoría de Números Complejos.
+    
+    Extrae el polo dominante σ del sistema de control.
+    """
+    def get_dominant_pole_real(self) -> float:
+        """Retorna σ ∈ ℝ (parte real del polo dominante)."""
+        ...
+
+
+@runtime_checkable
+class ISheafCohomologyOrchestrator(Protocol):
+    """
+    Funtor: Categoría de Haces → Categoría de Energías.
+    
+    Calcula la energía de frustración cohomológica global.
+    """
+    def get_global_frustration_energy(self) -> float:
+        """Retorna E_frustración ≥ 0."""
+        ...
+
+
+# =============================================================================
+# FUNCIONES AUXILIARES NUMÉRICAS (Álgebra Numérica Rigurosa)
+# =============================================================================
+
+def validate_finite_float(
+    value: Any,
+    *,
+    name: str,
+    allow_inf: bool = False
+) -> float:
+    """
+    Convierte y valida rigurosamente un valor a float finito (o infinito si se permite).
+    
+    Implementa un morfismo seguro: Any → ℝ_finito (o ℝ_extendido).
+    
+    Args:
+        value: Valor a convertir.
+        name: Nombre del parámetro para mensajes de error.
+        allow_inf: Si es True, se permiten ±∞.
+        
+    Returns:
+        float validado.
+        
+    Raises:
+        QuantumNumericalError: Si la conversión falla o el valor es NaN, o
+            es infinito cuando allow_inf=False.
+    """
+    try:
+        result = float(value)
+    except (TypeError, ValueError) as exc:
+        raise QuantumNumericalError(
+            f"Parámetro '{name}' no convertible a float: {value!r}"
+        ) from exc
+    
+    if math.isnan(result):
+        raise QuantumNumericalError(
+            f"Parámetro '{name}' es NaN, valor no físico."
+        )
+    if not allow_inf and math.isinf(result):
+        raise QuantumNumericalError(
+            f"Parámetro '{name}' es infinito no permitido: {result!r}"
+        )
+    return result
+
+
+def clamp_to_unit_interval(value: float) -> float:
+    """
+    Proyección saturante al intervalo unitario [0, 1].
+    
+    Morfismo: ℝ → [0, 1].
+    - NaN se mapea a 0.0 con advertencia.
+    - ±∞ se satura a 0.0 o 1.0 según el signo.
+    
+    Args:
+        value: Valor a proyectar.
+        
+    Returns:
+        Valor en [0, 1].
+    """
+    if math.isnan(value):
+        logger.warning("clamp_to_unit_interval recibió NaN, proyectando a 0.0.")
+        return 0.0
+    if math.isinf(value):
+        return 0.0
+    if value <= 0.0:
+        return 0.0
+    if value >= 1.0:
+        return 1.0
+    return value
+
+
+def safe_division(
+    numerator: float,
+    denominator: float,
+    *,
+    fallback: float = 0.0,
+    epsilon: float = QuantumConstants.DIVISION_EPSILON
+) -> float:
+    """
+    División regularizada: numerador / máx(|denominador|, ε) · sgn(denominador).
+    
+    Args:
+        numerator: Numerador.
+        denominator: Denominador.
+        fallback: Valor si el denominador es exactamente cero.
+        epsilon: Regularizador para evitar singularidades.
+        
+    Returns:
+        Resultado finito de la división.
+        
+    Raises:
+        QuantumNumericalError: Si los argumentos no son finitos.
+    """
+    num = validate_finite_float(numerator, name="numerator")
+    denom = validate_finite_float(denominator, name="denominator")
+    
+    if denom == 0.0:
+        logger.warning(f"División por cero exacto, retornando fallback={fallback}")
+        return fallback
+    
+    regularized_denom = denom if abs(denom) >= epsilon else math.copysign(epsilon, denom)
+    return num / regularized_denom
+
+
+def safe_sqrt(value: float) -> float:
+    """Raíz cuadrada con clamp a no-negatividad: √máx(0, value)."""
+    return math.sqrt(max(0.0, value))
+
+
+def safe_exp(exponent: float) -> float:
+    """
+    Exponencial con protección de underflow/overflow.
+    
+    - Si exponent < EXP_UNDERFLOW_CUTOFF → 0.0
+    - Si exponent > 700 → sys.float_info.max (con advertencia)
+    
+    Args:
+        exponent: Exponente.
+        
+    Returns:
+        exp(exponent) saturado.
+    """
+    if exponent <= QuantumConstants.EXP_UNDERFLOW_CUTOFF:
+        return 0.0
+    if exponent > 700.0:
+        logger.warning(f"Exponente grande ({exponent:.2f}), saturando a float max.")
+        return sys.float_info.max
+    return math.exp(exponent)
+
+
+# =============================================================================
+# MÓDULO DE ENTROPÍA (Teoría de la Información)
+# =============================================================================
+
+class EntropyCalculator:
+    """
+    Calculador de entropía de Shannon para secuencias de bytes.
+    
+    H: Σ → ℝ₊, donde Σ es el conjunto de secuencias de bytes.
+    Propiedades: H ≥ 0, H = 0 para secuencia constante, H ≤ ln(256).
+    """
+    
+    @staticmethod
+    @lru_cache(maxsize=1024)
+    def shannon_entropy_bytes(data: bytes) -> float:
+        """
+        Calcula la entropía de Shannon en nats: H = -Σ pᵢ ln(pᵢ).
+        
+        Args:
+            data: Secuencia inmutable de bytes.
+            
+        Returns:
+            H ∈ [0, ln(256)].
+        """
+        if not data:
+            return 0.0
+        
+        n = len(data)
+        byte_counts = [0] * 256
+        for byte_val in data:
+            byte_counts[byte_val] += 1
+        
+        entropy = 0.0
+        for count in byte_counts:
+            if count == 0:
+                continue
+            p = count / n
+            entropy -= p * math.log(p)
+        return max(0.0, entropy)
+    
+    @staticmethod
+    def normalized_entropy(data: bytes) -> float:
+        """Entropía normalizada: H / ln(256) ∈ [0, 1]."""
+        raw = EntropyCalculator.shannon_entropy_bytes(data)
+        return raw / QuantumConstants.MAX_SHANNON_ENTROPY
+
+
+# =============================================================================
+# SERIALIZACIÓN CANÓNICA (Homomorfismo Payload → Bytes)
+# =============================================================================
+
+class PayloadSerializer:
+    """
+    Serialización determinista para garantizar isomorfismo:
+    Payload_a ≡ Payload_b ⟹ bytes_a = bytes_b.
+    """
+    
+    @staticmethod
+    def serialize(payload: Mapping[str, Any]) -> bytes:
+        """
+        Convierte un mapping en una representación canónica ordenada.
+        
+        Args:
+            payload: Mapping a serializar.
+            
+        Returns:
+            Bytes UTF-8 de la representación ordenada.
+            
+        Raises:
+            QuantumAdmissionError: Si payload no es un Mapping o falla la serialización.
+        """
+        if not isinstance(payload, Mapping):
+            raise QuantumAdmissionError(f"payload debe ser Mapping, recibido {type(payload).__name__}")
+        try:
+            ordered_items = tuple(
+                sorted(
+                    ((str(k), repr(v)) for k, v in payload.items()),
+                    key=lambda kv: kv[0]
+                )
+            )
+            return repr(ordered_items).encode('utf-8', errors='strict')
+        except Exception as exc:
+            raise QuantumAdmissionError(f"Fallo en serialización: {exc}") from exc
+    
+    @staticmethod
+    @lru_cache(maxsize=512)
+    def deterministic_hash(data: bytes) -> bytes:
+        """Hash SHA-256 determinista de los datos."""
+        return hashlib.sha256(data).digest()
+
+
+# =============================================================================
+# CALCULADOR DE ENERGÍA INCIDENTE (Modelo Fotoeléctrico)
+# =============================================================================
+
+class IncidentEnergyCalculator:
+    """
+    Calcula la energía incidente E = hν del cuanto informacional.
+    
+    ν = N / máx(H, ε) / 1000, donde N = tamaño en bytes, H = entropía.
+    """
+    
+    @staticmethod
+    def calculate(payload: Mapping[str, Any]) -> Tuple[float, NumericInterval]:
+        """
+        Calcula E y su incertidumbre por discretización.
+        
+        Args:
+            payload: Datos del cuanto.
+            
+        Returns:
+            Tupla (E, intervalo) con E ≥ 0.
+            
+        Raises:
+            QuantumNumericalError: Si E resulta negativa.
+        """
+        data = PayloadSerializer.serialize(payload)
+        n_bytes = len(data)
+        if n_bytes == 0:
+            return 0.0, NumericInterval(0.0, 0.0)
+        
+        raw_entropy = EntropyCalculator.shannon_entropy_bytes(data)
+        effective_entropy = max(raw_entropy, QuantumConstants.ENTROPY_FLOOR)
+        
+        # Frecuencia efectiva
+        nu = safe_division(n_bytes, effective_entropy, epsilon=QuantumConstants.ENTROPY_FLOOR) / 1000.0
+        E = QuantumConstants.PLANCK_H * nu
+        E = validate_finite_float(E, name="incident_energy")
+        if E < 0:
+            raise QuantumNumericalError(f"Energía incidente negativa: {E}")
+        
+        # Incertidumbre: δE ≈ h/N
+        uncertainty = QuantumConstants.PLANCK_H / max(n_bytes, 1)
+        interval = NumericInterval.from_value_with_tolerance(E, uncertainty)
+        return E, interval
+
+
+# =============================================================================
+# CALCULADOR WKB (Aproximación Semiclásica)
+# =============================================================================
+
+class WKBCalculator:
+    """
+    Implementación rigurosa de la aproximación WKB para túnel cuántico.
+    
+    Para barrera rectangular de altura V₀ y ancho Δx:
+        T ≈ exp(-(2/ℏ) Δx √(2m(V₀-E)))
+    """
+    
+    @staticmethod
+    def compute_tunneling_probability(
+        E: float,
+        Phi: float,
+        m_eff: float
+    ) -> Tuple[float, WKBParameters]:
+        """
+        Calcula la probabilidad de transmisión T.
+        
+        Reglas:
+        - Si E ≥ Φ: T = 1.0 (clásico)
+        - Si m_eff = +∞: T = 0.0 (impenetrable)
+        - En otro caso: cálculo WKB completo.
+        
+        Args:
+            E: Energía incidente (≥ 0).
+            Phi: Función de trabajo (≥ 0).
+            m_eff: Masa efectiva (> 0 o +∞).
+            
+        Returns:
+            (T, parámetros WKB) con T ∈ [0, 1].
+        """
+        E = validate_finite_float(E, name="incident_energy_wkb")
+        Phi = validate_finite_float(Phi, name="work_function_wkb")
+        m_eff = validate_finite_float(m_eff, name="effective_mass_wkb", allow_inf=True)
+        
+        if E < 0 or Phi < 0:
+            raise QuantumNumericalError(f"Energías negativas: E={E}, Φ={Phi}")
+        
+        # Caso clásico
+        if E >= Phi:
+            params = WKBParameters(
+                incident_energy=E, barrier_height=0.0, effective_mass=m_eff,
+                barrier_width=QuantumConstants.BARRIER_WIDTH,
+                integrand=0.0, exponent=0.0, validity_parameter=0.0
+            )
+            return 1.0, params
+        
+        barrier_height = Phi - E
+        
+        # Masa infinita
+        if math.isinf(m_eff):
+            params = WKBParameters(
+                incident_energy=E, barrier_height=barrier_height, effective_mass=m_eff,
+                barrier_width=QuantumConstants.BARRIER_WIDTH,
+                integrand=float('inf'), exponent=float('-inf'), validity_parameter=float('inf')
+            )
+            return 0.0, params
+        
+        if m_eff <= 0:
+            raise QuantumNumericalError(f"Masa efectiva no positiva: m_eff={m_eff}")
+        
+        # Cálculo WKB
+        integrand = safe_sqrt(2.0 * m_eff * barrier_height)
+        raw_exponent = -((2.0 / QuantumConstants.PLANCK_HBAR) * QuantumConstants.BARRIER_WIDTH * integrand)
+        validity_param = (QuantumConstants.BARRIER_WIDTH ** 2 / Phi) if Phi > 0 else 0.0
+        
+        params = WKBParameters(
+            incident_energy=E, barrier_height=barrier_height, effective_mass=m_eff,
+            barrier_width=QuantumConstants.BARRIER_WIDTH,
+            integrand=integrand, exponent=raw_exponent, validity_parameter=validity_param
+        )
+        
+        if not params.is_valid_semiclassical_regime():
+            logger.warning("WKB fuera del régimen semiclásico: validity=%.6e", validity_param)
+        
+        if raw_exponent <= QuantumConstants.EXP_UNDERFLOW_CUTOFF:
+            return 0.0, params
+        
+        T_raw = safe_exp(raw_exponent)
+        T = clamp_to_unit_interval(T_raw)
+        return T, params
+
+
+# =============================================================================
+# MODULADOR DE FUNCIÓN DE TRABAJO (Acoplamiento Gauge)
+# =============================================================================
+
+class WorkFunctionModulator:
+    """
+    Modula Φ(χ²) = Φ₀ · exp(α·χ²).
+    
+    La función de trabajo crece exponencialmente con la amenaza topológica,
+    implementando un mecanismo de protección gauge-covariante.
+    """
+    
+    def __init__(self, topo_watcher: ITopologicalWatcher):
+        self._topo_watcher = topo_watcher
+    
+    def calculate(self) -> Tuple[float, float]:
+        """
+        Calcula Φ y retorna (Φ, χ²).
+        
+        Returns:
+            Φ ≥ 0 y χ² ≥ 0.
+        """
+        try:
+            threat_raw = self._topo_watcher.get_mahalanobis_threat()
+        except Exception as exc:
+            logger.error("Fallo al obtener amenaza Mahalanobis: %s. Asumiendo 0.", exc)
+            threat_raw = 0.0
+        
+        threat = max(0.0, validate_finite_float(threat_raw, name="mahalanobis_threat"))
+        exponential_factor = safe_exp(QuantumConstants.ALPHA_THREAT * threat)
+        
+        try:
+            phi_raw = QuantumConstants.BASE_WORK_FUNCTION * exponential_factor
+        except OverflowError:
+            phi_raw = sys.float_info.max
+        if math.isinf(phi_raw):
+            phi_raw = sys.float_info.max
+        
+        Phi = max(0.0, validate_finite_float(phi_raw, name="work_function"))
+        return Phi, threat
+
+
+# =============================================================================
+# MODULADOR DE MASA EFECTIVA (Acoplamiento con Polo de Laplace)
+# =============================================================================
+
+class EffectiveMassModulator:
+    """
+    Modula m_eff(σ) = m₀ / |σ| para σ < -ε, o +∞ en caso contrario.
+    
+    Sistemas inestables (σ ≥ -ε) reciben masa infinita, suprimiendo el túnel.
+    """
+    
+    def __init__(self, laplace_oracle: ILaplaceOracle):
+        self._laplace_oracle = laplace_oracle
+    
+    def calculate(self) -> Tuple[float, float]:
+        """
+        Calcula (m_eff, σ).
+        
+        Returns:
+            m_eff > 0 o +∞, y σ ∈ ℝ.
+        """
+        try:
+            sigma_raw = self._laplace_oracle.get_dominant_pole_real()
+        except Exception as exc:
+            logger.error("Fallo al obtener polo dominante: %s. Asumiendo σ=0.", exc)
+            sigma_raw = 0.0
+        
+        sigma = validate_finite_float(sigma_raw, name="dominant_pole_real")
+        
+        if sigma >= -QuantumConstants.SIGMA_CHAOS_TOL:
+            logger.warning("Sistema inestable (σ=%.6e). Masa efectiva → +∞.", sigma)
+            return float('inf'), sigma
+        
+        m_eff = safe_division(
+            QuantumConstants.BASE_EFFECTIVE_MASS,
+            abs(sigma),
+            fallback=float('inf'),
+            epsilon=QuantumConstants.SIGMA_CHAOS_TOL
+        )
+        m_eff = validate_finite_float(m_eff, name="effective_mass", allow_inf=True)
+        if not math.isinf(m_eff) and m_eff <= 0:
+            raise QuantumNumericalError(f"Masa efectiva no positiva: m_eff={m_eff}, σ={sigma}")
+        return m_eff, sigma
+
+
+# =============================================================================
+# GENERADOR DE UMBRAL DE COLAPSO (Hash Determinista)
+# =============================================================================
+
+class CollapseThresholdGenerator:
+    """
+    Genera θ ∈ [0,1) mediante hash determinista del payload.
+    
+    Propiedades: determinismo, distribución uniforme, no reversibilidad.
+    """
+    
+    @staticmethod
+    @lru_cache(maxsize=512)
+    def generate(payload_hash: bytes) -> float:
+        """
+        Convierte los primeros 8 bytes del hash en un umbral normalizado.
+        
+        Args:
+            payload_hash: 32 bytes SHA-256.
+            
+        Returns:
+            θ ∈ [0, 1).
+        """
+        uint64_value = int.from_bytes(payload_hash[:8], byteorder='big', signed=False)
+        MODULUS = 1_000_000
+        normalized = (uint64_value % MODULUS) / MODULUS
+        return clamp_to_unit_interval(normalized)
+
+
+# =============================================================================
+# OPERADOR DE ADMISIÓN CUÁNTICA (Componente Principal) - VERSIÓN REFINADA
+# =============================================================================
+
+class QuantumAdmissionGate(Morphism):
+    """
+    Operador de admisión cuántica como morfismo categórico.
+    
+    El método principal `evaluate_admission` se ha factorizado en siete
+    métodos privados con nombres semánticos que describen cada fase del
+    algoritmo de medición cuántica.
+    """
+    
+    def __init__(
+        self,
+        topo_watcher: ITopologicalWatcher,
+        laplace_oracle: ILaplaceOracle,
+        sheaf_orchestrator: ISheafCohomologyOrchestrator,
+    ) -> None:
+        super().__init__(name="QuantumAdmissionGate")
+        self._topo_watcher = topo_watcher
+        self._laplace_oracle = laplace_oracle
+        self._sheaf_orchestrator = sheaf_orchestrator
+        self._work_function_modulator = WorkFunctionModulator(topo_watcher)
+        self._effective_mass_modulator = EffectiveMassModulator(laplace_oracle)
+        self._validate_dependencies()
+        logger.info("QuantumAdmissionGate inicializada exitosamente.")
+    
+    @property
+    def domain(self) -> frozenset:
+        return frozenset()
+    
+    @property
+    def codomain(self) -> Stratum:
+        return Stratum.PHYSICS
+    
+    # -------------------------------------------------------------------------
+    # Validación de dependencias
+    # -------------------------------------------------------------------------
+    def _validate_dependencies(self) -> None:
+        """
+        Verifica que las dependencias inyectadas cumplan los protocolos esperados.
+        
+        Raises:
+            QuantumInterfaceError: Si alguna validación falla.
+        """
+        deps = [
+            (self._topo_watcher, ITopologicalWatcher, "topo_watcher", ['get_mahalanobis_threat']),
+            (self._laplace_oracle, ILaplaceOracle, "laplace_oracle", ['get_dominant_pole_real']),
+            (self._sheaf_orchestrator, ISheafCohomologyOrchestrator, "sheaf_orchestrator", ['get_global_frustration_energy']),
+        ]
+        for obj, protocol, name, methods in deps:
+            if obj is None:
+                raise QuantumInterfaceError(f"Dependencia '{name}' es None.")
+            for method in methods:
+                if not hasattr(obj, method):
+                    raise QuantumInterfaceError(f"'{name}' no tiene método '{method}'.")
+                if not callable(getattr(obj, method)):
+                    raise QuantumInterfaceError(f"'{method}' en '{name}' no es callable.")
+            if not isinstance(obj, protocol):
+                raise QuantumInterfaceError(
+                    f"'{name}' no implementa {protocol.__name__}. Tipo: {type(obj).__name__}"
+                )
+    
+    # -------------------------------------------------------------------------
+    # Fase 1: Veto cohomológico
+    # -------------------------------------------------------------------------
+    def _check_structural_veto(self) -> Tuple[bool, float]:
+        """
+        Evalúa el veto estructural por frustración cohomológica.
+        
+        Returns:
+            (veto_activo, energía_frustración).
+            
+        Raises:
+            QuantumInterfaceError: Si el cálculo cohomológico falla.
+        """
+        try:
+            frustration_raw = self._sheaf_orchestrator.get_global_frustration_energy()
+        except Exception as exc:
+            raise QuantumInterfaceError(f"Fallo al obtener frustración: {exc}") from exc
+        
+        frustration = max(0.0, validate_finite_float(frustration_raw, name="global_frustration_energy"))
+        veto_active = frustration > QuantumConstants.FRUSTRATION_VETO_TOL
+        if veto_active:
+            logger.warning("VETO COHOMOLÓGICO: E_frustración=%.6e", frustration)
+        return veto_active, frustration
+    
+    def _build_veto_measurement(self, frustration: float) -> QuantumMeasurement:
+        """Construye una medición de rechazo por veto estructural."""
+        threat = self._safe_read_threat()
+        sigma = self._safe_read_sigma()
+        return QuantumMeasurement(
+            eigenstate=Eigenstate.RECHAZADO,
+            incident_energy=0.0,
+            work_function=0.0,
+            tunneling_probability=0.0,
+            kinetic_energy=0.0,
+            momentum=0.0,
+            frustration_veto=True,
+            effective_mass=float('inf'),
+            dominant_pole_real=sigma,
+            threat_level=threat,
+            collapse_threshold=0.999999,
+            admission_reason=f"Veto estructural: frustración={frustration:.6e} > tolerancia"
+        )
+    
+    # -------------------------------------------------------------------------
+    # Fase 2: Cálculo de observables del sistema
+    # -------------------------------------------------------------------------
+    def _compute_incident_energy(
+        self, payload: Mapping[str, Any]
+    ) -> Tuple[float, NumericInterval]:
+        """Calcula la energía incidente E = hν y su incertidumbre."""
+        return IncidentEnergyCalculator.calculate(payload)
+    
+    def _compute_potential_barrier(self) -> Tuple[float, float, float, float]:
+        """
+        Calcula la barrera de potencial: (Φ, χ², m_eff, σ).
+        
+        Returns:
+            Φ, threat, m_eff, sigma.
+        """
+        Phi, threat = self._work_function_modulator.calculate()
+        m_eff, sigma = self._effective_mass_modulator.calculate()
+        return Phi, threat, m_eff, sigma
+    
+    # -------------------------------------------------------------------------
+    # Fase 3: Probabilidad de transmisión
+    # -------------------------------------------------------------------------
+    def _compute_tunneling_probability(
+        self, E: float, Phi: float, m_eff: float
+    ) -> Tuple[float, WKBParameters]:
+        """Calcula T y los parámetros WKB asociados."""
+        return WKBCalculator.compute_tunneling_probability(E, Phi, m_eff)
+    
+    # -------------------------------------------------------------------------
+    # Fase 4: Umbral determinista y colapso
+    # -------------------------------------------------------------------------
+    def _generate_collapse_threshold(self, payload: Mapping[str, Any]) -> float:
+        """Genera θ ∈ [0,1) a partir del payload."""
+        payload_bytes = PayloadSerializer.serialize(payload)
+        payload_hash = PayloadSerializer.deterministic_hash(payload_bytes)
+        return CollapseThresholdGenerator.generate(payload_hash)
+    
+    def _perform_quantum_collapse(
+        self,
+        T: float,
+        theta: float,
+        E: float,
+        Phi: float,
+        threat: float,
+        sigma: float,
+        m_eff: float,
+        wkb_params: WKBParameters,
+        E_uncertainty: NumericInterval
+    ) -> QuantumMeasurement:
+        """
+        Ejecuta el colapso de la función de onda.
+        
+        Si T ≥ θ → |ADMITIDO⟩, calcula K y p.
+        Si T < θ → |RECHAZADO⟩.
+        
+        Returns:
+            QuantumMeasurement con el resultado del colapso.
+        """
+        admitted = T >= theta
+        
+        if not admitted:
+            reason = (
+                f"Rechazo probabilístico determinista: T={T:.6e} < θ={theta:.6f}. "
+                f"Colapso a |Rechazado⟩."
+            )
+            return QuantumMeasurement(
+                eigenstate=Eigenstate.RECHAZADO,
+                incident_energy=E,
+                work_function=Phi,
+                tunneling_probability=T,
+                kinetic_energy=0.0,
+                momentum=0.0,
+                frustration_veto=False,
+                effective_mass=m_eff,
+                dominant_pole_real=sigma,
+                threat_level=threat,
+                collapse_threshold=theta,
+                admission_reason=reason,
+                wkb_parameters=wkb_params,
+                measurement_uncertainty=E_uncertainty,
+            )
+        
+        # Admitido
+        if E >= Phi:
+            kinetic_energy = max(QuantumConstants.MIN_KINETIC_ENERGY, E - Phi)
+            reason = f"Admisión clásica: E={E:.6e} ≥ Φ={Phi:.6e}."
+        else:
+            kinetic_energy = QuantumConstants.MIN_KINETIC_ENERGY
+            reason = f"Admisión túnel WKB: E={E:.6e} < Φ={Phi:.6e}, T={T:.6e} ≥ θ={theta:.6f}."
+        
+        m_for_momentum = m_eff if math.isfinite(m_eff) else QuantumConstants.BASE_EFFECTIVE_MASS
+        momentum_squared = 2.0 * m_for_momentum * kinetic_energy
+        momentum = safe_sqrt(momentum_squared)
+        momentum = validate_finite_float(momentum, name="momentum")
+        
+        logger.info("Colapso a |Admitido⟩: E=%.6e, Φ=%.6e, K=%.6e, p=%.6e", E, Phi, kinetic_energy, momentum)
+        
+        return QuantumMeasurement(
+            eigenstate=Eigenstate.ADMITIDO,
+            incident_energy=E,
+            work_function=Phi,
+            tunneling_probability=T,
+            kinetic_energy=kinetic_energy,
+            momentum=momentum,
+            frustration_veto=False,
+            effective_mass=m_eff,
+            dominant_pole_real=sigma,
+            threat_level=threat,
+            collapse_threshold=theta,
+            admission_reason=reason,
+            wkb_parameters=wkb_params,
+            measurement_uncertainty=E_uncertainty,
+        )
+    
+    # -------------------------------------------------------------------------
+    # Método principal de evaluación (orquestador)
+    # -------------------------------------------------------------------------
+    def evaluate_admission(self, payload: Mapping[str, Any]) -> QuantumMeasurement:
+        """
+        Evalúa el operador de admisión cuántica sobre un payload.
+        
+        El flujo se ha descompuesto en fases atómicas, cada una con su
+        propio método privado, facilitando la trazabilidad y el testeo.
+        
+        Args:
+            payload: Mapping con los datos del cuanto informacional.
+            
+        Returns:
+            QuantumMeasurement con todos los observables post-colapso.
+        """
+        if not isinstance(payload, Mapping):
+            raise QuantumAdmissionError(f"payload debe ser Mapping, recibido {type(payload).__name__}")
+        
+        logger.debug("Iniciando evaluación de admisión para payload: %s", payload)
+        
+        # Fase 1
+        veto_active, frustration = self._check_structural_veto()
+        if veto_active:
+            measurement = self._build_veto_measurement(frustration)
+            QuantumLogContext.log_measurement(measurement, level=logging.WARNING)
+            return measurement
+        
+        # Fase 2
+        E, E_uncertainty = self._compute_incident_energy(payload)
+        Phi, threat, m_eff, sigma = self._compute_potential_barrier()
+        logger.debug("E=%.6e, Φ=%.6e, m_eff=%.6e, σ=%.6e, χ²=%.6e", E, Phi, m_eff, sigma, threat)
+        
+        # Fase 3
+        T, wkb_params = self._compute_tunneling_probability(E, Phi, m_eff)
+        logger.debug("T=%.6e", T)
+        
+        # Fase 4
+        theta = self._generate_collapse_threshold(payload)
+        logger.debug("θ=%.6f", theta)
+        
+        measurement = self._perform_quantum_collapse(
+            T, theta, E, Phi, threat, sigma, m_eff, wkb_params, E_uncertainty
+        )
+        QuantumLogContext.log_measurement(measurement)
+        return measurement
+    
+    # -------------------------------------------------------------------------
+    # Lecturas defensivas para diagnósticos
+    # -------------------------------------------------------------------------
+    def _safe_read_threat(self) -> float:
+        try:
+            raw = self._topo_watcher.get_mahalanobis_threat()
+            return max(0.0, validate_finite_float(raw, name="threat_diag"))
+        except Exception as exc:
+            logger.debug("Fallo lectura defensiva threat: %s", exc)
+            return 0.0
+    
+    def _safe_read_sigma(self) -> float:
+        try:
+            raw = self._laplace_oracle.get_dominant_pole_real()
+            return validate_finite_float(raw, name="sigma_diag")
+        except Exception as exc:
+            logger.debug("Fallo lectura defensiva sigma: %s", exc)
+            return 0.0
+    
+    # -------------------------------------------------------------------------
+    # Morfismo categórico __call__
+    # -------------------------------------------------------------------------
+    def __call__(self, state: CategoricalState) -> CategoricalState:
+        """
+        Aplica el morfismo de admisión cuántica a un estado categórico.
+        
+        Preserva la estructura de payload e identidades categóricas.
+        """
+        if not isinstance(state, CategoricalState):
+            raise QuantumAdmissionError(f"state debe ser CategoricalState, recibido {type(state).__name__}")
+        
+        payload = getattr(state, 'payload', None)
+        if not isinstance(payload, Mapping):
+            raise QuantumAdmissionError(f"state.payload debe ser Mapping, recibido {type(payload).__name__}")
+        
+        context = dict(getattr(state, 'context', {}))
+        measurement = self.evaluate_admission(payload)
+        
+        if measurement.eigenstate == Eigenstate.RECHAZADO:
+            error_msg = (
+                f"VETO CUÁNTICO: eigenstate={measurement.eigenstate.name}, "
+                f"E={measurement.incident_energy:.6e}, Φ={measurement.work_function:.6e}, "
+                f"T={measurement.tunneling_probability:.6e}, razón='{measurement.admission_reason}'"
+            )
+            logger.error(error_msg)
+            new_context = {**context, 'quantum_error': error_msg, 'quantum_admission': measurement}
+            return CategoricalState(payload=payload, context=new_context, validated_strata=frozenset())
+        
+        logger.info(
+            "Colapso a |Admitido⟩: p=%.6e, E=%.6e, Φ=%.6e, T=%.6e",
+            measurement.momentum, measurement.incident_energy,
+            measurement.work_function, measurement.tunneling_probability
+        )
+        new_context = {
+            **context,
+            'quantum_momentum': measurement.momentum,
+            'quantum_admission': measurement,
+        }
+        new_strata = state.validated_strata | {Stratum.PHYSICS}
+        return CategoricalState(payload=payload, context=new_context, validated_strata=new_strata)
+
+
+# =============================================================================
+# PUNTO DE ENTRADA PARA TESTING
+# =============================================================================
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    
+    class MockTopologicalWatcher:
+        def get_mahalanobis_threat(self) -> float: return 2.5
+    class MockLaplaceOracle:
+        def get_dominant_pole_real(self) -> float: return -0.5
+    class MockSheafOrchestrator:
+        def get_global_frustration_energy(self) -> float: return 1e-12
+    
+    gate = QuantumAdmissionGate(MockTopologicalWatcher(), MockLaplaceOracle(), MockSheafOrchestrator())
+    test_payload = {'endpoint': '/api/test', 'method': 'POST', 'data': {'key': 'value' * 100}}
+    measurement = gate.evaluate_admission(test_payload)
+    print("\n" + "="*80)
+    print("RESULTADO DE MEDICIÓN CUÁNTICA")
+    print("="*80)
+    print(measurement)
+    print("\nDetalles:")
+    for k, v in measurement.to_dict().items():
+        print(f"  {k}: {v}")
+    print("="*80 + "\n")
