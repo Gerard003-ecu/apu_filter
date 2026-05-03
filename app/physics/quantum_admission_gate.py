@@ -443,7 +443,7 @@ class QuantumMeasurement:
             )
         
         # Validación de umbral
-        if not 0.0 <= self.collapse_threshold < 1.0:
+        if not 0.0 <= self.collapse_threshold <= 1.0:
             raise QuantumStateError(
                 f"Umbral de colapso fuera de [0,1): {self.collapse_threshold}"
             )
@@ -654,7 +654,7 @@ def clamp_to_unit_interval(value: float) -> float:
         return 0.0
     
     if math.isinf(value):
-        return 1.0 if value > 0 else 0.0
+        return 0.0
     
     if value <= 0.0:
         return 0.0
@@ -1166,7 +1166,7 @@ class WorkFunctionModulator:
     
     def calculate(self) -> Tuple[float, float]:
         """
-        Calcula función de trabajo modulada y nivel de amenaza.
+        Calcula función de trabajo modulada exponencialmente y nivel de amenaza.
         
         Returns:
             Tupla (Φ, χ²) donde:
@@ -1192,16 +1192,27 @@ class WorkFunctionModulator:
             validate_finite_float(threat_raw, name="mahalanobis_threat")
         )
         
-        # Cálculo de función de trabajo modulada
-        Phi = (
-            QuantumConstants.BASE_WORK_FUNCTION
-            + QuantumConstants.ALPHA_THREAT * threat
-        )
+        # Modulación exponencial de barrera (Pullback de Gauge)
+        # Se restringe el exponente para no desbordar el cálculo.
+        # safe_exp ya aplica un clamp al máximo representable del float.
+        # El clamp a `allow_inf=False` asegura que se quede en el conjunto de los reales IEEE 754.
+        # Φ₀ * exp(α · χ²)
+        exponential_factor = safe_exp(QuantumConstants.ALPHA_THREAT * threat)
         
+        # Si la multiplicación excede float_info.max, saturamos al max_float.
+        try:
+            phi_raw = QuantumConstants.BASE_WORK_FUNCTION * exponential_factor
+        except OverflowError:
+            phi_raw = sys.float_info.max
+
+        # Para evitar propagar inf, limitamos al valor máximo seguro:
+        if math.isinf(phi_raw):
+             phi_raw = sys.float_info.max
+
         # Validación final
         Phi = max(
             0.0,
-            validate_finite_float(Phi, name="work_function")
+            validate_finite_float(phi_raw, name="work_function")
         )
         
         return Phi, threat
@@ -1442,19 +1453,29 @@ class QuantumAdmissionGate(Morphism):
             QuantumInterfaceError: Si alguna validación falla
         """
         dependencies = [
-            (self._topo_watcher, ITopologicalWatcher, "topo_watcher"),
-            (self._laplace_oracle, ILaplaceOracle, "laplace_oracle"),
-            (self._sheaf_orchestrator, ISheafCohomologyOrchestrator, "sheaf_orchestrator"),
+            (self._topo_watcher, ITopologicalWatcher, "topo_watcher", ['get_mahalanobis_threat']),
+            (self._laplace_oracle, ILaplaceOracle, "laplace_oracle", ['get_dominant_pole_real']),
+            (self._sheaf_orchestrator, ISheafCohomologyOrchestrator, "sheaf_orchestrator", ['get_global_frustration_energy']),
         ]
         
-        for obj, protocol, name in dependencies:
+        for obj, protocol, name, methods in dependencies:
             # Validación de no-nulidad
             if obj is None:
                 raise QuantumInterfaceError(
                     f"Dependencia '{name}' no puede ser None."
                 )
             
-            # Validación de conformidad con protocolo
+            # Validación de conformidad con protocolo estructural
+            for method in methods:
+                if not hasattr(obj, method):
+                    raise QuantumInterfaceError(
+                        f"Dependencia '{name}' no implementa el método '{method}'. "
+                    )
+                if not callable(getattr(obj, method)):
+                    raise QuantumInterfaceError(
+                        f"El atributo '{method}' de '{name}' no es callable."
+                    )
+
             if not isinstance(obj, protocol):
                 raise QuantumInterfaceError(
                     f"Dependencia '{name}' no implementa el protocolo "
@@ -1544,7 +1565,7 @@ class QuantumAdmissionGate(Morphism):
             effective_mass=float('inf'),
             dominant_pole_real=sigma,
             threat_level=threat,
-            collapse_threshold=1.0,  # Umbral inalcanzable
+            collapse_threshold=0.999999,  # Umbral inalcanzable
             admission_reason=(
                 f"Veto estructural cohomológico: "
                 f"E_frustración={frustration:.6e} > "
