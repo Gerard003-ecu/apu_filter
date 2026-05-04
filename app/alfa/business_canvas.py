@@ -374,9 +374,9 @@ class HomologyMetrics:
     nullity_boundary_1: int
     beta_0: int
     beta_1: int
-    beta_2: int = 0
     euler_char: int
     euler_from_betti: int
+    beta_2: int = 0
     
     def __post_init__(self) -> None:
         """Validación de consistencia algebraica."""
