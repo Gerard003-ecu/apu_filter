@@ -1,1251 +1,1457 @@
 """
-Módulo: Solenoide Acústico v3.0 — Descomposición de Hodge-Helmholtz Completa y Membrana P-Laplaciana
-Ubicación: app/physics/solenoid_acustic.py
+═════════════════════════════════════════════════════════════════════════════
+MÓDULO: Solenoide Acústico — Operador de Descomposición de Hodge-Helmholtz
+VERSIÓN: 4.0.0 - Refactorización Rigurosa con Validación Topológica Completa
+UBICACIÓN: app/physics/solenoid_acoustic.py
+═════════════════════════════════════════════════════════════════════════════
 
-Naturaleza Ciber-Física y Topológica:
-Este módulo opera como un Operador de Proyección Ortogonal invocado bajo demanda (Morfismo de Pullback)
-en el espacio de 1-cadenas (flujos de datos) del 1-esqueleto logístico del grafo de negocio. 
-Su mandato axiomático es aislar la vorticidad parasitaria (ruido inductivo y ciclos mutantes) sin estrangular 
-los flujos laminares legítimos ni inducir singularidades numéricas.
+FUNDAMENTOS MATEMÁTICOS Y TOPOLÓGICOS:
 
-Fundamentación Matemática y Dinámica de Fluidos:
+§1. COMPLEJO DE CADENAS Y COHOMOLOGÍA
+    ───────────────────────────────────
+    
+    Dado un grafo dirigido finito G = (V, E) con |V| = n, |E| = m, definimos
+    el complejo de cadenas simpliciales de dimensión 1:
+    
+        C₀(G; ℝ) ←─∂₁─ C₁(G; ℝ) ←─∂₂─ C₂(G; ℝ)
+    
+    donde:
+        • C₀(G; ℝ) = ℝⁿ: espacio de 0-cadenas (funciones sobre vértices)
+        • C₁(G; ℝ) = ℝᵐ: espacio de 1-cadenas (flujos sobre aristas)
+        • C₂(G; ℝ) = ℝᵏ: espacio de 2-cadenas (ciclos fundamentales)
+    
+    Operadores de borde:
+        ∂₁: C₁ → C₀  (matriz de incidencia B₁ ∈ ℝⁿˣᵐ)
+            (B₁)ᵥₑ = +1 si head(e) = v
+                    -1 si tail(e) = v
+                     0 en otro caso
+        
+        ∂₂: C₂ → C₁  (matriz de ciclos B₂ ∈ ℝᵐˣᵏ)
+    
+    Axioma Fundamental (Condición de Complejo):
+        ∂₁ ∘ ∂₂ = 0  ⟺  B₁ · B₂ = 0
+    
+    Esta condición es exacta en ℝ (con orientaciones consistentes) y
+    garantiza que la imagen de ∂₂ está contenida en el kernel de ∂₁.
 
-1. Invariante del Complejo de Cadenas: 
-   Dado un grafo dirigido finito G = (V, E), el operador rige sobre el complejo 
-   C₂ xrightarrow{∂₂} C₁ xrightarrow{∂₁} C₀. Se garantiza incondicionalmente la 
-   identidad nilpotente ∂₁ ∘ ∂₂ = 0, lo que matricialmente impone B₁ · B₂ = 0 (exacto en ℝ).
+§2. HOMOLOGÍA Y NÚMEROS DE BETTI
+    ──────────────────────────────
+    
+    Grupos de homología:
+        H₀(G; ℝ) = ker(∂₁) / im(∂₂) ≅ ℝᶜ
+        H₁(G; ℝ) = ker(∂₂) / im(∂₃) ≅ ℝᵝ¹
+    
+    donde c es el número de componentes conexas y β₁ es el primer número
+    de Betti (rango de ciclos independientes).
+    
+    Números de Betti:
+        β₀ = dim H₀(G; ℝ) = c (componentes conexas)
+        β₁ = dim H₁(G; ℝ) = m - n + c (ciclos independientes)
+        β₂ = 0 (para grafos sin 2-símplices)
+    
+    Característica de Euler-Poincaré:
+        χ(G) = Σᵢ (-1)ⁱ βᵢ = β₀ - β₁ = n - m
 
-2. Completitud Cohomológica de Hodge-Helmholtz: 
-   Abandona la falsa dicotomía escalar rotacional/irrotacional. Cualquier flujo informacional I ∈ C₁ 
-   se descompone estrictamente en tres subespacios ortogonales: I = I_{grad} + I_{curl} + I_{harm}.
-   El módulo proyecta el estado sobre el Laplaciano de Hodge L₁ = B₁ᵀB₁ + B₂B₂ᵀ. Para evitar
-   falsos positivos en variedades con un primer grupo de cohomología no trivial (H¹(G; ℝ) ≠ 0),
-   el sistema computa un proyector armónico (Π_{harm}) derivado de ker(L₁), aislando los flujos válidos
-   que atraviesan "túneles" organizacionales del verdadero flujo rotacional parasitario Π_{curl}(I).
+§3. TEOREMA DE DESCOMPOSICIÓN DE HODGE
+    ────────────────────────────────────
+    
+    TEOREMA (Hodge, 1941; Eckmann, 1944):
+        Para un complejo de cadenas finito sobre ℝ, existe una descomposición
+        ortogonal única:
+        
+            C₁(G; ℝ) = im(∂₂*) ⊕ im(∂₁) ⊕ ker(Δ₁)
+        
+        donde:
+            • im(∂₂*) = im(B₂): subespacio de ciclos (solenoidal, curl)
+            • im(∂₁) = im(B₁ᵀ): subespacio de gradientes (irrotacional)
+            • ker(Δ₁): subespacio armónico (flujos harmónicos)
+        
+        y Δ₁ = ∂₁*∂₁ + ∂₂∂₂* es el Laplaciano de Hodge.
+    
+    Laplaciano de Hodge sobre 1-cadenas:
+        L₁ = B₁ᵀB₁ + B₂B₂ᵀ ∈ ℝᵐˣᵐ
+        
+        Propiedades:
+            1. L₁ = L₁ᵀ (simétrico)
+            2. L₁ ≥ 0 (semi-definido positivo)
+            3. λᵢ ≥ 0 ∀i (autovalores no negativos)
+            4. ker(L₁) ≅ H₁(G; ℝ) (isomorfismo de Hodge)
+            5. dim ker(L₁) = β₁
 
-3. Optimización Combinatoria y Esparsidad (MWCB): 
-   La extracción de la matriz de ciclos-aristas (B₂) repudia las búsquedas de profundidad (DFS) 
-   estocásticas. Exige la construcción matemática de una Base de Ciclos de Peso Mínimo (MWCB). 
-   Esto preserva axiomáticamente la hiper-esparsidad del soporte del operador L_{curl} = B₂B₂ᵀ,
-   evitando una explosión combinatoria (O(N³)) y garantizando que la proyección ortogonal se evalúe 
-   en tiempo cuasi-lineal O(E) para proteger el ancho de banda atencional y la memoria caché.
+§4. PROYECTORES ORTOGONALES
+    ────────────────────────
+    
+    Proyector sobre im(B₂) (subespacio solenoidal):
+        P_curl: ℝᵐ → im(B₂)
+        
+    Construcción estable vía SVD (Golub & Van Loan, §5.5):
+        B₂ = U Σ Vᵀ  (SVD completo)
+        P_curl = Uᵣ Uᵣᵀ
+        
+        donde Uᵣ = columnas de U con σᵢ > tol.
+    
+    Propiedades verificables:
+        1. P_curl² = P_curl (idempotencia)
+        2. P_curl = P_curlᵀ (simetría)
+        3. P_curl L₁ = L₁ P_curl (conmutatividad con Laplaciano)
 
-4. Membrana P-Laplaciana y Amortiguamiento Anisotrópico: 
-   Para evitar la inyección de ondas de choque espectrales (fenómeno de Golpe de Ariete computacional) 
-   inducidas por umbrales de corte rígidos, el operador actúa como un fluido no-newtoniano. Emplea el 
-   P-Laplaciano discreto (p > 2), donde la conductancia efectiva es función no lineal del gradiente 
-   de estrés local (g_eff ∝ |∇V|^(p-2)). Esto disipa como calor termodinámico los armónicos de 
-   resonancia severa mientras preserva la continuidad temporal del flujo laminar.
+§5. ANÁLISIS NUMÉRICO Y ESTABILIDAD
+    ─────────────────────────────────
+    
+    Tolerancia adaptativa (convención LAPACK):
+        tol = max(m, n) · σ_max · ε_machine
+    
+    donde:
+        • ε_machine ≈ 2.22×10⁻¹⁶ (IEEE 754 double precision)
+        • σ_max = máximo valor singular de la matriz
+    
+    Número de condición espectral:
+        κ₂(A) = σ_max / σ_min
+    
+    Análisis de error backward (Trefethen & Bau, Lec. 14):
+        Si fl(x) es el resultado en punto flotante, entonces:
+            fl(x) = (x + Δx)(1 + δ)
+        con |δ| ≤ u·cond(problema) donde u = ε_machine/2.
 
-Emisión de Cuasipartículas (La Medición Cuántica):
-Si la energía cinética del subespacio rotacional (E_{curl} = Iᵀ(B₂B₂ᵀ)I) sobrepasa la tolerancia 
-isoperimétrica admisible, el operador colapsa el estado de superposición emitiendo un bosón 
-denominado `MagnonCartridge`. Esta cuasipartícula inyecta un Veto de Enrutamiento absoluto 
-hacia el estrato superior (`GaugeFieldRouter`), asegurando que la derivada de la función de 
-Lyapunov permanezca estrictamente negativa (estabilidad asintótica) y paralizando el caos 
-determinista antes de que contamine la Matriz de Interacción Central (MIC).
+§6. COMPLEJIDAD COMPUTACIONAL
+    ──────────────────────────
+    
+    Matriz de Incidencia B₁:
+        • Construcción: O(m) tiempo, O(nm) espacio (sparse)
+        • SVD: O(min(n², m²)m) tiempo
+    
+    Matriz de Ciclos B₂ (Fundamental Cycle Basis):
+        • MST: O(m log n) con Kruskal/Prim
+        • Ciclos: O(mk) donde k = β₁ = m - n + c
+        • Total: O(m log n + mk) = O(m(log n + m - n))
+    
+    Laplaciano de Hodge L₁:
+        • Construcción: O(m²) tiempo (productos matriciales)
+        • Eigendecomposición: O(m³) tiempo (eigh)
 
-Fundamentos Matemáticos
------------------------
-Dado un grafo dirigido finito G = (V, E) con |V| = n, |E| = m, definimos el
-complejo de cadenas de dimensión 1:
+§7. FÍSICA DEL FLUJO
+    ─────────────────
+    
+    Ley de Stokes discreta:
+        ∮_γ I = (B₂ᵀI)_γ = Γ_γ
+    
+    donde γ es un ciclo y Γ_γ es la circulación del flujo alrededor de γ.
+    
+    Energía cinética de vorticidad:
+        E_curl = ‖B₂ᵀI‖² = Iᵀ L_curl I = Iᵀ (B₂B₂ᵀ) I
+    
+    Índice de vorticidad (adimensional):
+        ω = E_curl / ‖I‖² ∈ [0, 1]
+    
+    Interpretación física:
+        ω ≈ 0: flujo irrotacional (laminar, potencial)
+        ω ≈ 1: flujo completamente rotacional (turbulento)
 
-    C₀(G; ℝ) ←─∂₁─ C₁(G; ℝ) ←─∂₂─ C₂(G; ℝ)
+REFERENCIAS:
+    [1] Hodge, W. V. D. (1941). The Theory and Applications of Harmonic Integrals.
+    [2] Eckmann, B. (1944). Harmonische Funktionen und Randwertaufgaben in einem Komplex.
+    [3] Lim, L.-H. (2020). Hodge Laplacians on graphs. SIAM Review, 62(3), 685-715.
+    [4] Golub, G. H., & Van Loan, C. F. (2013). Matrix Computations (4th ed.).
+    [5] Trefethen, L. N., & Bau III, D. (1997). Numerical Linear Algebra.
+    [6] Gross, J. L., & Yellen, J. (2005). Graph Theory and Its Applications (2nd ed.).
 
-donde:
-  • ∂₁ : C₁ → C₀  es el operador de borde (Matriz de Incidencia B₁ ∈ ℝⁿˣᵐ)
-         (B₁)_{v,e} = +1 si head(e)=v, -1 si tail(e)=v, 0 en otro caso
-  • ∂₂ : C₂ → C₁  mapea 2-cadenas (ciclos) a 1-cadenas (B₂ ∈ ℝᵐˣᵏ)
-
-Invariante fundamental (cochain complex):
-    ∂₁ ∘ ∂₂ = 0  ⟺  B₁ · B₂ = 0  (mod 2 en ℤ, exacto en ℝ con orientaciones)
-
-Laplaciano de Hodge sobre 1-cocadenas:
-    L₁ = B₁ᵀB₁ + B₂B₂ᵀ  ∈ ℝᵐˣᵐ   (simétrico, PSD)
-       = L_grad + L_curl
-
-Isomorfismo de Hodge (para complejos finitos sobre ℝ):
-    H₁(G; ℝ) ≅ ker(L₁) ≅ ker(B₁ᵀ) ∩ ker(B₂ᵀ)
-
-Números de Betti verificados vía Euler–Poincaré:
-    χ(G) = n - m = β₀ - β₁    (β₂ = 0 para grafos)
-
-Descomposición de Hodge–Helmholtz (ortogonal):
-    ℝᵐ = im(B₁ᵀ) ⊕ im(B₂) ⊕ ker(L₁)
-
-Propiedades Espectrales de L₁:
-    • L₁ PSD  ⟹  λᵢ ≥ 0 ∀i
-    • dim ker(L₁) = β₁  (para G conexo)
-    • Gap espectral λ₁ > 0  ⟺  β₁ = 0 (flujo irrotacional)
-
-Referencias:
-    [1] Lim, L.-H. (2020). Hodge Laplacians on graphs. SIAM Review.
-    [2] Eckmann, B. (1944). Harmonische Funktionen und Randwertaufgaben.
-    [3] Golub & Van Loan (2013). Matrix Computations, 4th ed.
-    [4] Trefethen & Bau (1997). Numerical Linear Algebra.
-=========================================================================================
+═════════════════════════════════════════════════════════════════════════════
 """
 
 from __future__ import annotations
 
-# ─────────────────────────────────────────────
-# Stdlib
-# ─────────────────────────────────────────────
+import hashlib
 import logging
 import math
 import sys
 from dataclasses import dataclass, field
-from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Union
+from enum import Enum, auto
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    FrozenSet,
+    List,
+    Mapping,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
-# ─────────────────────────────────────────────
-# Third-party
-# ─────────────────────────────────────────────
 import networkx as nx
 import numpy as np
 import scipy.linalg as la
 import scipy.sparse as sp
-from scipy.sparse.linalg import svds
+from scipy.sparse.linalg import eigsh, svds
 
 from app.core.schemas import Stratum
 from app.core.telemetry import TelemetryContext, StepStatus
 
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 1: CONFIGURACIÓN Y LOGGING
+# ═════════════════════════════════════════════════════════════════════════════
+
 logger = logging.getLogger("MIC.Physics.AcousticSolenoid")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PARTE I · ÁLGEBRA LINEAL NUMÉRICA RIGUROSA
-# ─────────────────────────────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 2: CONSTANTES Y TOLERANCIAS NUMÉRICAS
+# ═════════════════════════════════════════════════════════════════════════════
+
+class NumericalConstants:
+    """
+    Constantes numéricas fundamentales con fundamento en análisis de error.
+    
+    Todas las constantes están calibradas para aritmética IEEE 754
+    de doble precisión (binary64).
+    
+    Invariantes:
+        - Todas las tolerancias > 0
+        - Todas las tolerancias < 1
+        - ε_machine es constante de la arquitectura
+    """
+    
+    MACHINE_EPSILON: float = np.finfo(np.float64).eps
+    """
+    Épsilon de máquina para float64.
+    
+    ε_machine ≈ 2.220446049250313×10⁻¹⁶
+    
+    Definición: Mínimo ε > 0 tal que fl(1 + ε) > 1.
+    """
+    
+    FLOAT_MIN: float = np.finfo(np.float64).tiny
+    """Mínimo float positivo normalizado ≈ 2.225×10⁻³⁰⁸."""
+    
+    FLOAT_MAX: float = np.finfo(np.float64).max
+    """Máximo float representable ≈ 1.798×10³⁰⁸."""
+    
+    # Tolerancias derivadas con margen de seguridad
+    BASE_TOLERANCE: float = 1e-10
+    """Tolerancia base para comparaciones numéricas."""
+    
+    SVD_TOLERANCE: float = 1e-12
+    """Tolerancia para truncamiento SVD."""
+    
+    ORTHOGONALITY_TOLERANCE: float = 1e-9
+    """Tolerancia para verificación de ortogonalidad."""
+    
+    IDEMPOTENCY_TOLERANCE: float = 1e-8
+    """Tolerancia para verificación de idempotencia de proyectores."""
+    
+    SYMMETRY_TOLERANCE: float = 1e-10
+    """Tolerancia para verificación de simetría."""
+    
+    ENERGY_FLOOR: float = 1e-14
+    """Piso de energía para evitar underflow."""
+    
+    VORTICITY_SIGNIFICANCE_THRESHOLD: float = 1e-9
+    """Umbral mínimo de energía de vorticidad significativa."""
+    
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Sellado de clase para inmutabilidad."""
+        raise TypeError(
+            f"La clase {cls.__name__} está sellada. "
+            "No se permite herencia."
+        )
+
+
+# Alias corto
+NC = NumericalConstants
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 3: EXCEPCIONES ESPECIALIZADAS
+# ═════════════════════════════════════════════════════════════════════════════
+
+class HodgeDecompositionError(Exception):
+    """
+    Error base para problemas en descomposición de Hodge.
+    
+    Categoría de errores relacionados con:
+        - Construcción del complejo de cadenas
+        - Violación de axiomas topológicos
+        - Fallos en cálculos de homología
+    """
+    
+    def __init__(self, message: str, context: Optional[Dict[str, Any]] = None):
+        super().__init__(message)
+        self.context = context or {}
+        self.message = message
+
+
+class TopologicalInvariantError(HodgeDecompositionError):
+    """
+    Violación de invariantes topológicos.
+    
+    Ejemplos:
+        - Característica de Euler incorrecta
+        - Isomorfismo de Hodge no satisfecho
+        - Números de Betti inconsistentes
+    """
+    pass
+
+
+class NumericalStabilityError(HodgeDecompositionError):
+    """
+    Inestabilidad numérica crítica.
+    
+    Ejemplos:
+        - Número de condición > 10¹⁶
+        - Pérdida catastrófica de ortogonalidad
+        - Overflow/underflow no manejado
+    """
+    pass
+
+
+class GraphStructureError(HodgeDecompositionError):
+    """
+    Estructura de grafo inválida o inesperada.
+    
+    Ejemplos:
+        - Grafo no dirigido cuando se espera dirigido
+        - Multigrafos no soportados
+        - Self-loops problemáticos
+    """
+    pass
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 4: ESTRUCTURAS DE DATOS ALGEBRAICAS
+# ═════════════════════════════════════════════════════════════════════════════
+
+class SpectralDecomposition(NamedTuple):
+    """
+    Descomposición espectral completa de una matriz simétrica.
+    
+    Para A = A^T, representa:
+        A = Q Λ Q^T
+    
+    donde:
+        Q: matriz de autovectores ortonormales
+        Λ: matriz diagonal de autovalores
+    
+    Invariantes:
+        - eigenvalues ordenados (creciente o decreciente según contexto)
+        - eigenvectors ortonormales: Q^T Q = I
+        - len(eigenvalues) = eigenvectors.shape[1]
+    """
+    
+    eigenvalues: np.ndarray
+    """Autovalores λᵢ (ordenados)."""
+    
+    eigenvectors: np.ndarray
+    """Autovectores correspondientes (columnas de Q)."""
+    
+    def __post_init__(self) -> None:
+        """Validación de invariantes."""
+        if len(self.eigenvalues) != self.eigenvectors.shape[1]:
+            raise ValueError(
+                f"Dimensión inconsistente: {len(self.eigenvalues)} eigenvalues, "
+                f"{self.eigenvectors.shape[1]} eigenvectors"
+            )
+    
+    @property
+    def kernel_dimension(self) -> int:
+        """
+        Dimensión del kernel (número de autovalores ≈ 0).
+        
+        Returns:
+            Cuenta de λᵢ ≤ tolerance.
+        """
+        return int(np.sum(np.abs(self.eigenvalues) <= NC.SVD_TOLERANCE))
+    
+    @property
+    def spectral_gap(self) -> float:
+        """
+        Gap espectral: diferencia entre primer y segundo autovalor no nulo.
+        
+        Returns:
+            λ₁ - λ₀ si existen al menos 2 autovalores no nulos, else 0.
+        """
+        nonzero = self.eigenvalues[np.abs(self.eigenvalues) > NC.SVD_TOLERANCE]
+        if len(nonzero) < 2:
+            return 0.0
+        return float(nonzero[1] - nonzero[0])
+    
+    @property
+    def condition_number(self) -> float:
+        """
+        Número de condición κ = λ_max / λ_min.
+        
+        Returns:
+            κ ∈ [1, +∞].
+        """
+        nonzero = self.eigenvalues[np.abs(self.eigenvalues) > NC.SVD_TOLERANCE]
+        if len(nonzero) == 0:
+            return float('inf')
+        return float(np.max(np.abs(nonzero)) / np.min(np.abs(nonzero)))
+
+
+@dataclass(frozen=True, slots=True)
+class BettiNumbers:
+    """
+    Números de Betti del complejo de cadenas.
+    
+    Para un grafo 1-dimensional:
+        β₀ = número de componentes conexas
+        β₁ = número de ciclos independientes = m - n + c
+        β₂ = 0 (sin 2-símplices)
+    
+    Invariantes:
+        - β₀ > 0 (al menos una componente)
+        - β₁ ≥ 0 (ciclos no negativos)
+        - Euler-Poincaré: χ = β₀ - β₁
+    """
+    
+    beta_0: int
+    """β₀: número de componentes conexas."""
+    
+    beta_1: int
+    """β₁: número de ciclos independientes."""
+    
+    beta_2: int = 0
+    """β₂: siempre 0 para grafos 1-dimensionales."""
+    
+    def __post_init__(self) -> None:
+        """Validación de invariantes."""
+        if self.beta_0 <= 0:
+            raise ValueError(f"β₀ debe ser positivo: {self.beta_0}")
+        if self.beta_1 < 0:
+            raise ValueError(f"β₁ no puede ser negativo: {self.beta_1}")
+        if self.beta_2 != 0:
+            raise ValueError(f"β₂ debe ser 0 para grafos: {self.beta_2}")
+    
+    def euler_characteristic(self) -> int:
+        """
+        Característica de Euler: χ = Σᵢ (-1)ⁱ βᵢ.
+        
+        Para grafos: χ = β₀ - β₁.
+        
+        Returns:
+            χ ∈ ℤ.
+        """
+        return self.beta_0 - self.beta_1
+    
+    def verify_euler_poincare(self, n: int, m: int) -> bool:
+        """
+        Verifica fórmula de Euler-Poincaré: χ = n - m.
+        
+        Args:
+            n: Número de vértices.
+            m: Número de aristas.
+            
+        Returns:
+            True si χ = n - m.
+        """
+        chi_topological = self.euler_characteristic()
+        chi_geometric = n - m
+        return chi_topological == chi_geometric
+
+
+@dataclass(frozen=True, slots=True)
+class ChainComplex:
+    """
+    Complejo de cadenas C₀ ← C₁ ← C₂ con matrices de borde.
+    
+    Representa:
+        C₀(G; ℝ) ←─∂₁─ C₁(G; ℝ) ←─∂₂─ C₂(G; ℝ)
+    
+    Invariantes verificables:
+        1. B₁ B₂ = 0 (∂₁ ∘ ∂₂ = 0)
+        2. rank(B₁) = n - c
+        3. rank(B₂) = β₁
+        4. Dimensiones consistentes
+    """
+    
+    B1: np.ndarray
+    """Matriz de incidencia B₁ ∈ ℝⁿˣᵐ."""
+    
+    B2: np.ndarray
+    """Matriz de ciclos B₂ ∈ ℝᵐˣᵏ."""
+    
+    betti: BettiNumbers
+    """Números de Betti del complejo."""
+    
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    """Metadatos de construcción y verificación."""
+    
+    def __post_init__(self) -> None:
+        """Validación exhaustiva del complejo."""
+        n, m = self.B1.shape
+        m2, k = self.B2.shape
+        
+        # Verificar dimensiones consistentes
+        if m != m2:
+            raise GraphStructureError(
+                f"Dimensiones inconsistentes: B₁ ∈ ℝ{n}×{m}, B₂ ∈ ℝ{m2}×{k}",
+                context={"B1_shape": self.B1.shape, "B2_shape": self.B2.shape}
+            )
+        
+        # Verificar β₁ = k
+        if k != self.betti.beta_1:
+            raise TopologicalInvariantError(
+                f"β₁ inconsistente: k={k}, β₁={self.betti.beta_1}",
+                context={"k": k, "beta_1": self.betti.beta_1}
+            )
+        
+        # Verificar ∂₁ ∘ ∂₂ = 0
+        if k > 0:
+            B1B2 = self.B1 @ self.B2
+            B1B2_norm = float(np.linalg.norm(B1B2, 'fro'))
+            
+            if B1B2_norm > NC.BASE_TOLERANCE:
+                raise TopologicalInvariantError(
+                    f"Violación de ∂₁∘∂₂ = 0: ‖B₁B₂‖_F = {B1B2_norm:.2e}",
+                    context={"B1B2_norm": B1B2_norm}
+                )
+    
+    @property
+    def hodge_laplacian(self) -> np.ndarray:
+        """
+        Laplaciano de Hodge: L₁ = B₁ᵀB₁ + B₂B₂ᵀ.
+        
+        Returns:
+            L₁ ∈ ℝᵐˣᵐ (simétrico, PSD).
+        """
+        L_grad = self.B1.T @ self.B1
+        L_curl = self.B2 @ self.B2.T
+        return L_grad + L_curl
+    
+    def verify_invariants(self) -> Dict[str, bool]:
+        """
+        Verifica todos los invariantes del complejo.
+        
+        Returns:
+            Dict con resultados de verificación.
+        """
+        B1B2 = self.B1 @ self.B2 if self.B2.shape[1] > 0 else np.zeros((self.B1.shape[0], 0))
+        B1B2_norm = float(np.linalg.norm(B1B2, 'fro'))
+        
+        L1 = self.hodge_laplacian
+        is_symmetric = bool(np.allclose(L1, L1.T, atol=NC.SYMMETRY_TOLERANCE))
+        
+        eigenvalues = np.linalg.eigvalsh(L1)
+        is_psd = bool(np.all(eigenvalues >= -NC.BASE_TOLERANCE))
+        
+        return {
+            "boundary_composition_zero": B1B2_norm < NC.BASE_TOLERANCE,
+            "B1B2_norm": B1B2_norm,
+            "laplacian_symmetric": is_symmetric,
+            "laplacian_psd": is_psd,
+            "min_eigenvalue": float(eigenvalues[0]),
+        }
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 5: UTILIDADES NUMÉRICAS CON ANÁLISIS DE ERROR
+# ═════════════════════════════════════════════════════════════════════════════
 
 class NumericalUtilities:
     """
-    Álgebra lineal numérica con análisis de error riguroso.
-
-    Todos los métodos son *stateless* y toman matrices densas o sparse.
-    Las tolerancias siguen la convención de LAPACK/dgelsd:
-
-        tol = max(m, n) · σ_max · ε_mach
-
-    con ε_mach = 2.220446049250313e-16 (IEEE-754 double precision).
+    Álgebra lineal numérica con análisis de estabilidad riguroso.
+    
+    Todos los métodos implementan:
+        1. Validación de entrada
+        2. Elección de algoritmo estable
+        3. Análisis de error backward
+        4. Verificación de postcondiciones
+    
+    Referencias:
+        [Golub & Van Loan, 2013] para algoritmos
+        [Trefethen & Bau, 1997] para análisis de estabilidad
     """
-
-    #: Épsilon de máquina para IEEE-754 double precision
-    EPS_MACH: float = np.finfo(np.float64).eps  # 2.220446049250313e-16
-
-    # ──────────────────────────────────────────────────────────────────────
-    # 1. Tolerancia adaptativa
-    # ──────────────────────────────────────────────────────────────────────
-
+    
     @staticmethod
-    def adaptive_tolerance(matrix: Union[sp.spmatrix, np.ndarray]) -> float:
+    def adaptive_tolerance(
+        matrix: Union[sp.spmatrix, np.ndarray],
+        base_tolerance: Optional[float] = None
+    ) -> float:
         """
-        Tolerancia numérica adaptativa siguiendo la convención LAPACK.
-
-        Definición:
-            tol = max(m, n) · σ_max · ε_mach
-
-        donde σ_max es el valor singular máximo, m, n las dimensiones de la
-        matriz y ε_mach el épsilon de máquina en doble precisión.
-
-        Esta elección garantiza que perturbaciones de orden O(ε_mach · ‖A‖)
-        — inherentes a la aritmética de punto flotante — no sean clasificadas
-        erróneamente como singularidades.
-
+        Tolerancia numérica adaptativa según convención LAPACK.
+        
+        Fórmula:
+            tol = max(base_tol, max(m, n) · σ_max · ε_machine)
+        
+        Esta tolerancia garantiza que perturbaciones de orden O(ε‖A‖)
+        inherentes a la aritmética de punto flotante no sean clasificadas
+        como singularidades reales.
+        
         Args:
-            matrix: Matriz densa o sparse sobre ℝ.
-
+            matrix: Matriz densa o sparse.
+            base_tolerance: Tolerancia base mínima (default: NC.BASE_TOLERANCE).
+            
         Returns:
-            Tolerancia ≥ ε_mach.
-
+            Tolerancia adaptativa ≥ base_tolerance.
+            
         Raises:
-            ValueError: Si la matriz no es 2-D.
+            ValueError: Si matrix no es 2-D.
         """
-        eps = NumericalUtilities.EPS_MACH
-
+        if base_tolerance is None:
+            base_tolerance = NC.BASE_TOLERANCE
+        
         if isinstance(matrix, sp.spmatrix):
             m, n = matrix.shape
-            # σ_max via norma-2 sparse (potencia de iteración es costosa;
-            # usamos norma de Frobenius como cota superior rápida).
-            # ‖A‖_2 ≤ ‖A‖_F  siempre, por lo que sobrestimamos tol de forma
-            # conservadora (seguro: clasifica menos valores como cero).
+            # Norma de Frobenius como cota superior de σ_max
             sigma_max_ub = sp.linalg.norm(matrix, 'fro')
         else:
             arr = np.asarray(matrix, dtype=np.float64)
             if arr.ndim != 2:
                 raise ValueError(
-                    f"Se esperaba matriz 2-D, se recibió shape={arr.shape}"
+                    f"Se esperaba matriz 2-D, recibido shape={arr.shape}"
                 )
             m, n = arr.shape
+            
             if m == 0 or n == 0:
-                return eps
-            # SVD completo: σ_max exacto
+                return base_tolerance
+            
             try:
-                sigma_max_ub = np.linalg.svd(arr, compute_uv=False)[0]
+                # Calcular σ_max exacto vía SVD
+                sigma_max_ub = float(np.linalg.svd(arr, compute_uv=False)[0])
             except np.linalg.LinAlgError:
                 # Fallback: norma de Frobenius
-                sigma_max_ub = np.linalg.norm(arr, 'fro')
-
-        return max(eps, max(m, n) * sigma_max_ub * eps)
-
-    # ──────────────────────────────────────────────────────────────────────
-    # 2. Rango numérico
-    # ──────────────────────────────────────────────────────────────────────
-
+                sigma_max_ub = float(np.linalg.norm(arr, 'fro'))
+        
+        adaptive_tol = max(m, n) * sigma_max_ub * NC.MACHINE_EPSILON
+        return max(base_tolerance, adaptive_tol)
+    
     @staticmethod
-    def compute_rank(
+    def compute_numerical_rank(
         matrix: Union[sp.spmatrix, np.ndarray],
-        tolerance: Optional[float] = None,
+        tolerance: Optional[float] = None
     ) -> Tuple[int, np.ndarray]:
         """
-        Rango numérico r = #{σᵢ > tol} mediante SVD.
-
-        Theorem (Eckart–Young–Mirsky):
-            La mejor aproximación de rango r de A en norma de Frobenius
-            (o norma-2) es Aᵣ = Σᵢ≤ᵣ σᵢ uᵢvᵢᵀ.  El rango numérico es el
-            mínimo r tal que ‖A − Aᵣ‖ ≤ tol.
-
+        Rango numérico mediante SVD con análisis de gap.
+        
+        Teorema (Eckart-Young-Mirsky):
+            rank_num(A) = #{σᵢ > tol}
+        
+        donde tol es la tolerancia adaptativa.
+        
         Args:
-            matrix:    Matriz densa o sparse.
-            tolerance: Umbral para σᵢ. Si None, se usa ``adaptive_tolerance``.
-
+            matrix: Matriz a analizar.
+            tolerance: Umbral para σᵢ (default: adaptativo).
+            
         Returns:
-            Tupla (rank, singular_values) donde singular_values está ordenado
-            de mayor a menor.
+            (rank, singular_values) con singular_values ordenado desc.
         """
         if isinstance(matrix, sp.spmatrix):
             dense = matrix.toarray().astype(np.float64)
         else:
             dense = np.asarray(matrix, dtype=np.float64)
-
+        
         if tolerance is None:
             tolerance = NumericalUtilities.adaptive_tolerance(dense)
-
-        singular_values: np.ndarray = np.linalg.svd(dense, compute_uv=False)
+        
+        try:
+            singular_values = np.linalg.svd(dense, compute_uv=False)
+        except np.linalg.LinAlgError as exc:
+            logger.error(f"SVD falló: {exc}")
+            return 0, np.array([])
+        
         rank = int(np.sum(singular_values > tolerance))
+        
+        logger.debug(
+            f"Rango numérico: {rank} de {min(dense.shape)} "
+            f"(tol={tolerance:.2e}, σ_max={singular_values[0]:.2e})"
+        )
+        
         return rank, singular_values
-
-    # ──────────────────────────────────────────────────────────────────────
-    # 3. Pseudoinversa de Moore–Penrose
-    # ──────────────────────────────────────────────────────────────────────
-
+    
     @staticmethod
     def moore_penrose_pseudoinverse(
         matrix: Union[sp.spmatrix, np.ndarray],
-        tolerance: Optional[float] = None,
+        tolerance: Optional[float] = None
     ) -> np.ndarray:
         """
-        Pseudoinversa A⁺ mediante SVD truncado (algoritmo de Golub–Reinsch).
-
-        Construcción:
+        Pseudoinversa A⁺ vía SVD con regularización.
+        
+        Construcción (Golub-Reinsch):
             A = U Σ Vᵀ  (SVD completo)
             A⁺ = V Σ⁺ Uᵀ
-            Σ⁺ = diag(σᵢ⁻¹ si σᵢ > tol, 0 en otro caso)
-
-        Las 4 condiciones de Penrose se satisfacen exactamente en aritmética
-        exacta y con error O(ε_mach) en punto flotante:
-            (i)   A A⁺ A  = A
-            (ii)  A⁺ A A⁺ = A⁺
-            (iii) (A A⁺)ᵀ = A A⁺
-            (iv)  (A⁺ A)ᵀ = A⁺ A
-
+            
+            donde (Σ⁺)ᵢᵢ = 1/σᵢ si σᵢ > tol, 0 en caso contrario.
+        
+        Propiedades de Penrose (en aritmética exacta):
+            1. A A⁺ A = A
+            2. A⁺ A A⁺ = A⁺
+            3. (A A⁺)ᵀ = A A⁺
+            4. (A⁺ A)ᵀ = A⁺ A
+        
         Args:
-            matrix:    Matriz densa o sparse m×n.
-            tolerance: Umbral SVD. Si None, se usa ``adaptive_tolerance``.
-
+            matrix: Matriz m×n.
+            tolerance: Umbral SVD (default: adaptativo).
+            
         Returns:
-            Pseudoinversa densa n×m.
+            Pseudoinversa n×m.
         """
         if isinstance(matrix, sp.spmatrix):
             dense = matrix.toarray().astype(np.float64)
         else:
             dense = np.asarray(matrix, dtype=np.float64)
-
+        
         if tolerance is None:
             tolerance = NumericalUtilities.adaptive_tolerance(dense)
-
-        # Implementar truncamiento espectral estricto exigido en Fase 3
-        tolerance = max(tolerance, 1e-10)
-
-        U, s, Vt = np.linalg.svd(dense, full_matrices=False)
-        # Invertir únicamente singulares sobre el umbral
-        # Protección contra evaluación ansiosa (eager evaluation) en el espectro degenerado
-        s_safe = np.where(s > tolerance, s, 1.0)
-        inv_s = np.where(s > tolerance, 1.0 / s_safe, 0.0)
-        # A⁺ = V diag(Σ⁺) Uᵀ
-        return (Vt.T * inv_s) @ U.T  # equivalente a Vt.T @ diag(inv_s) @ U.T
-
-    # ──────────────────────────────────────────────────────────────────────
-    # 4. Proyección ortogonal numéricamente estable
-    # ──────────────────────────────────────────────────────────────────────
-
+        
+        # Tolerancia mínima absoluta para evitar división extrema
+        tolerance = max(tolerance, NC.SVD_TOLERANCE)
+        
+        try:
+            U, s, Vt = np.linalg.svd(dense, full_matrices=False)
+        except np.linalg.LinAlgError as exc:
+            raise NumericalStabilityError(
+                f"SVD falló en pseudoinversa: {exc}",
+                context={"matrix_shape": dense.shape}
+            ) from exc
+        
+        # Inversión segura con regularización
+        s_inv = np.where(s > tolerance, 1.0 / s, 0.0)
+        
+        # A⁺ = V Σ⁺ Uᵀ = (Vt.T * s_inv) @ U.T
+        pseudoinverse = (Vt.T * s_inv) @ U.T
+        
+        return pseudoinverse
+    
     @staticmethod
     def orthogonal_projection(
         vector: np.ndarray,
         subspace_basis: np.ndarray,
-        tolerance: Optional[float] = None,
+        tolerance: Optional[float] = None
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Proyección ortogonal P_S(v) sobre S = col(B) usando SVD thin.
-
-        Dado B ∈ ℝⁿˣᵏ con columnas (posiblemente) linealmente dependientes:
-
-            B = U_r Σ_r V_rᵀ   (SVD thin, r = rank(B))
-            P_S = U_r U_rᵀ      (proyector ortogonal sobre col(B))
-            P_S(v) = U_r U_rᵀ v
-
-        Esta formulación es numéricamente superior a B(BᵀB)⁻¹Bᵀ porque
-        evita el cuadrado del número de condición κ(B)² que aparece en
-        la matriz de Gram BᵀB.
-
+        Proyección ortogonal P_S(v) vía SVD thin (estable).
+        
+        Dado B ∈ ℝⁿˣᵏ con columnas generando S:
+            B = U Σ Vᵀ  (SVD thin)
+            P_S = Uᵣ Uᵣᵀ  (proyector ortogonal)
+            P_S(v) = Uᵣ (Uᵣᵀ v)
+        
+        Esta formulación evita el cuadrado del número de condición
+        que aparece al usar BᵀB (Trefethen & Bau, Lec. 18).
+        
         Args:
-            vector:          Vector v ∈ ℝⁿ a proyectar.
-            subspace_basis:  Matriz B ∈ ℝⁿˣᵏ cuyas columnas generan S.
-            tolerance:       Umbral SVD para determinar rank(B).
-
+            vector: v ∈ ℝⁿ.
+            subspace_basis: B ∈ ℝⁿˣᵏ (columnas de S).
+            tolerance: Umbral SVD (default: adaptativo).
+            
         Returns:
-            (projected, residual) con projected + residual = vector.
-
+            (projected, residual) con v = projected + residual.
+            
         Raises:
-            ValueError: Si las dimensiones son inconsistentes.
+            ValueError: Si dimensiones inconsistentes.
         """
-        v = np.asarray(vector, dtype=np.float64)
+        v = np.asarray(vector, dtype=np.float64).ravel()
         B = np.asarray(subspace_basis, dtype=np.float64)
-
-        if B.ndim != 2 or v.ndim != 1:
-            raise ValueError(
-                f"Se esperaba B 2-D y v 1-D; "
-                f"recibidos B.shape={B.shape}, v.shape={v.shape}"
-            )
+        
+        if B.ndim != 2:
+            raise ValueError(f"subspace_basis debe ser 2-D: shape={B.shape}")
+        
         if B.shape[0] != v.shape[0]:
             raise ValueError(
-                f"Dimensión inconsistente: B.shape[0]={B.shape[0]}, "
+                f"Dimensiones inconsistentes: B.shape[0]={B.shape[0]}, "
                 f"v.shape[0]={v.shape[0]}"
             )
-
-        # Subespacio vacío
+        
+        # Subespacio vacío → proyección trivial
         if B.size == 0 or B.shape[1] == 0:
             return np.zeros_like(v), v.copy()
-
+        
         if tolerance is None:
             tolerance = NumericalUtilities.adaptive_tolerance(B)
-
-        # SVD thin de B
-        U, s, _ = np.linalg.svd(B, full_matrices=False)
-
-        # Retener solo columnas de U correspondientes a valores singulares > tol
+        
+        try:
+            U, s, _ = np.linalg.svd(B, full_matrices=False)
+        except np.linalg.LinAlgError as exc:
+            raise NumericalStabilityError(
+                f"SVD falló en proyección: {exc}",
+                context={"B_shape": B.shape}
+            ) from exc
+        
+        # Filtrar columnas de U con σᵢ > tol
         U_r = U[:, s > tolerance]
-
+        
         if U_r.shape[1] == 0:
-            # B es numéricamente nula: proyección trivial
+            # B numéricamente nula
             return np.zeros_like(v), v.copy()
-
+        
         # P_S v = U_r (U_rᵀ v)
         projected = U_r @ (U_r.T @ v)
         residual = v - projected
+        
+        # Verificar ortogonalidad
+        inner = float(np.dot(projected, residual))
+        if abs(inner) > NC.ORTHOGONALITY_TOLERANCE * np.linalg.norm(v)**2:
+            logger.warning(
+                f"Pérdida de ortogonalidad en proyección: "
+                f"⟨P_S v, v - P_S v⟩ = {inner:.2e}"
+            )
+        
         return projected, residual
-
-    # ──────────────────────────────────────────────────────────────────────
-    # 5. Número de condición
-    # ──────────────────────────────────────────────────────────────────────
-
+    
     @staticmethod
-    def matrix_condition_number(
+    def null_space_basis(
         matrix: Union[sp.spmatrix, np.ndarray],
-    ) -> Tuple[float, float, float]:
+        tolerance: Optional[float] = None
+    ) -> np.ndarray:
         """
-        Número de condición espectral κ₂(A) = σ_max / σ_min.
-
-        Para matrices singulares (σ_min = 0) se retorna κ₂ = +∞.
-
+        Base ortonormal del kernel ker(A) vía SVD completo.
+        
+        Teorema:
+            ker(A) = span{vᵢ : σᵢ ≤ tol}
+        
+        donde A = U Σ Vᵀ es la SVD completa.
+        
         Args:
-            matrix: Matriz densa o sparse.
-
+            matrix: A ∈ ℝᵐˣⁿ.
+            tolerance: Umbral para σᵢ (default: adaptativo).
+            
         Returns:
-            (κ₂, σ_min, σ_max)
+            Matriz n×d con base ortonormal de ker(A),
+            donde d = n - rank(A). Si ker(A) = {0}, retorna n×0.
         """
         if isinstance(matrix, sp.spmatrix):
             dense = matrix.toarray().astype(np.float64)
         else:
             dense = np.asarray(matrix, dtype=np.float64)
-
+        
+        if tolerance is None:
+            tolerance = NumericalUtilities.adaptive_tolerance(dense)
+        
+        try:
+            _, s, Vt = np.linalg.svd(dense, full_matrices=True)
+        except np.linalg.LinAlgError as exc:
+            raise NumericalStabilityError(
+                f"SVD falló en cálculo de kernel: {exc}",
+                context={"matrix_shape": dense.shape}
+            ) from exc
+        
+        # Rellenar s para que tenga longitud igual a número de filas de Vt
+        n = Vt.shape[0]
+        s_extended = np.append(s, np.zeros(n - s.size))
+        
+        # Máscara para σᵢ ≤ tol
+        null_mask = s_extended <= tolerance
+        
+        # Vectores correspondientes (filas de Vt, transpuestas a columnas)
+        kernel_basis = Vt[null_mask].T
+        
+        logger.debug(
+            f"Dimensión del kernel: {kernel_basis.shape[1]} de {n} "
+            f"(tol={tolerance:.2e})"
+        )
+        
+        return kernel_basis
+    
+    @staticmethod
+    def condition_number(
+        matrix: Union[sp.spmatrix, np.ndarray]
+    ) -> Tuple[float, float, float]:
+        """
+        Número de condición espectral κ₂(A) = σ_max / σ_min.
+        
+        Args:
+            matrix: Matriz a analizar.
+            
+        Returns:
+            (κ₂, σ_min, σ_max).
+        """
+        if isinstance(matrix, sp.spmatrix):
+            dense = matrix.toarray().astype(np.float64)
+        else:
+            dense = np.asarray(matrix, dtype=np.float64)
+        
         try:
             s = np.linalg.svd(dense, compute_uv=False)
         except np.linalg.LinAlgError:
             return math.inf, 0.0, 0.0
-
+        
         sigma_max = float(s[0]) if s.size > 0 else 0.0
         sigma_min = float(s[-1]) if s.size > 0 else 0.0
-        kappa = sigma_max / sigma_min if sigma_min > 0.0 else math.inf
+        
+        kappa = sigma_max / sigma_min if sigma_min > NC.SVD_TOLERANCE else math.inf
+        
         return kappa, sigma_min, sigma_max
 
-    # ──────────────────────────────────────────────────────────────────────
-    # 6. Base ortonormal del núcleo
-    # ──────────────────────────────────────────────────────────────────────
 
-    @staticmethod
-    def null_space_basis(
-        matrix: Union[sp.spmatrix, np.ndarray],
-        tolerance: Optional[float] = None,
-    ) -> np.ndarray:
-        """
-        Base ortonormal de ker(A) via SVD.
-
-        ker(A) = span{ vᵢ : σᵢ ≤ tol }
-
-        donde A = U Σ Vᵀ es la SVD completa.
-
-        Args:
-            matrix:    Matriz densa o sparse m×n.
-            tolerance: Umbral para σᵢ.
-
-        Returns:
-            Matriz n×d cuyas columnas forman base ortonormal de ker(A),
-            donde d = n - rank(A).  Si ker(A) = {0}, retorna array n×0.
-        """
-        if isinstance(matrix, sp.spmatrix):
-            dense = matrix.toarray().astype(np.float64)
-        else:
-            dense = np.asarray(matrix, dtype=np.float64)
-
-        if tolerance is None:
-            tolerance = NumericalUtilities.adaptive_tolerance(dense)
-
-        _, s, Vt = np.linalg.svd(dense, full_matrices=True)
-        # Columnas de Vᵀ correspondientes a σ ≤ tol
-        null_mask = np.append(s, np.zeros(Vt.shape[0] - s.size)) <= tolerance
-        return Vt[null_mask].T
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PARTE II · CONSTRUCCIÓN DE MATRICES DE INCIDENCIA Y CICLOS
-# ─────────────────────────────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 6: CONSTRUCTOR DEL COMPLEJO DE CADENAS
+# ═════════════════════════════════════════════════════════════════════════════
 
 class HodgeDecompositionBuilder:
     """
-    Construye el complejo de cadenas C₀ ←B₁— C₁ ←B₂— C₂ sobre un grafo
-    dirigido G y calcula el Laplaciano de Hodge L₁ = B₁ᵀB₁ + B₂B₂ᵀ.
-
-    Convenciones (compatibles con [Lim 2020]):
-        (B₁)_{v,e} = +1 si head(e) = v
-                   = -1 si tail(e) = v
-                   =  0 en otro caso
-
-    Invariantes garantizados post-construcción:
-    1. B₁ ∈ ℝⁿˣᵐ, B₂ ∈ ℝᵐˣ⁰ (para complejos 1D)
-        2. ‖B₁ B₂‖_F ≤ tol  (cochain complex)
-    3. rank(B₂) = 0 (Herejía topológica evitada: B₂ es nula en 1-esqueletos)
-    4. χ = n - m = β₀ - β₁  (Euler–Poincaré, donde β₁ = dim ker(B₁))
-
-    Args:
-        graph: Grafo dirigido (nx.DiGraph).
-
-    Raises:
-        ValueError: Si el grafo no es DiGraph o tiene auto-lazos.
+    Constructor del complejo de cadenas C₀ ← C₁ ← C₂ sobre grafo dirigido.
+    
+    Implementa algoritmos para:
+        1. Matriz de incidencia B₁ (∂₁: C₁ → C₀)
+        2. Matriz de ciclos B₂ (∂₂: C₂ → C₁) vía FCB
+        3. Laplaciano de Hodge L₁ = B₁ᵀB₁ + B₂B₂ᵀ
+        4. Verificación de invariantes topológicos
+    
+    Complejidad:
+        - B₁: O(m) construcción
+        - B₂: O(m log n + mk) con FCB desde MST
+        - L₁: O(m²) construcción, O(m³) eigendecomposición
+    
+    Invariantes garantizados:
+        1. B₁ B₂ = 0 (∂₁ ∘ ∂₂ = 0)
+        2. rank(B₁) = n - c
+        3. rank(B₂) = β₁
+        4. dim ker(L₁) = β₁
+        5. χ = n - m = β₀ - β₁
     """
-
+    
     def __init__(self, graph: nx.DiGraph) -> None:
+        """
+        Constructor con validación de estructura de grafo.
+        
+        Args:
+            graph: Grafo dirigido (nx.DiGraph).
+            
+        Raises:
+            GraphStructureError: Si graph no es nx.DiGraph o tiene estructura inválida.
+        """
         if not isinstance(graph, nx.DiGraph):
-            raise TypeError(
-                f"Se esperaba nx.DiGraph, se recibió {type(graph).__name__}"
+            raise GraphStructureError(
+                f"Se esperaba nx.DiGraph, recibido {type(graph).__name__}",
+                context={"type": type(graph).__name__}
             )
+        
         self.G: nx.DiGraph = graph
         self.n: int = graph.number_of_nodes()
         self.m: int = graph.number_of_edges()
-
-        # Mapeos ordenados y deterministas
-        self._nodes: List[Any] = list(graph.nodes())
-        self._edges: List[Tuple[Any, Any]] = list(graph.edges())
+        
+        # Validar grafo no vacío
+        if self.n == 0:
+            raise GraphStructureError(
+                "Grafo vacío (0 vértices)",
+                context={"nodes": self.n, "edges": self.m}
+            )
+        
+        # Ordenamiento determinista para reproducibilidad
+        self._nodes: List[Any] = sorted(graph.nodes())
+        self._edges: List[Tuple[Any, Any]] = sorted(graph.edges())
+        
+        # Mapeos bidireccionales
         self._node_index: Dict[Any, int] = {
             node: idx for idx, node in enumerate(self._nodes)
         }
         self._edge_index: Dict[Tuple[Any, Any], int] = {
             edge: idx for idx, edge in enumerate(self._edges)
         }
-
-    # ──────────────────────────────────────────────────────────────────────
-    # 2.1 Matriz de Incidencia B₁
-    # ──────────────────────────────────────────────────────────────────────
-
+        
+        # Caché para evitar recálculos
+        self._cached_incidence: Optional[Tuple[np.ndarray, Dict]] = None
+        self._cached_cycles: Optional[Tuple[np.ndarray, Dict]] = None
+        self._cached_laplacian: Optional[Tuple[np.ndarray, SpectralDecomposition]] = None
+        
+        logger.debug(
+            f"HodgeDecompositionBuilder inicializado: "
+            f"n={self.n}, m={self.m}, directed={graph.is_directed()}"
+        )
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.1 Matriz de Incidencia B₁
+    # ─────────────────────────────────────────────────────────────────────────
+    
     def build_incidence_matrix(self) -> Tuple[np.ndarray, Dict[str, Any]]:
         """
-        Matriz de Incidencia Orientada B₁ ∈ ℝⁿˣᵐ.
-
+        Construye matriz de incidencia orientada B₁ ∈ ℝⁿˣᵐ.
+        
         Definición (operador de borde ∂₁):
-            ∂₁(e) = head(e) − tail(e)
-
-        Codificada en B₁:
-            (B₁)_{v,e} = +1  si v = head(e)
-                       = −1  si v = tail(e)
-                       =  0  en otro caso
-
+            (B₁)ᵥₑ = +1 si v = head(e)
+                    -1 si v = tail(e)
+                     0 en otro caso
+        
         Propiedades verificadas:
-            • Σ_v (B₁)_{v,e} = 0  ∀e  (cada columna suma cero)
-            • rank(B₁) = n − c,  c = número de componentes conexas
-            • ker(B₁ᵀ) ≅ H₀(G; ℝ)  (c-dimensional)
-
+            1. Suma de columnas = 0 (∀e: ∂₁(e) = head - tail)
+            2. rank(B₁) = n - c (c componentes)
+            3. Sparsidad alta (≤ 2m entradas no nulas)
+        
         Returns:
             (B1, metadata) con:
-                metadata["rank_B1"]:  rango numérico
-                metadata["column_sum_max"]:  ‖Σ_v B₁[:,e]‖_∞  (≈0)
+                - shape: (n, m)
+                - rank_B1: rango numérico
+                - column_sum_max: ‖Σᵥ B₁[:,e]‖_∞
+                - singular_values: espectro completo
+                
+        Raises:
+            NumericalStabilityError: Si cálculo de rango falla.
         """
+        if self._cached_incidence is not None:
+            return self._cached_incidence
+        
         B1 = np.zeros((self.n, self.m), dtype=np.float64)
-
+        
         for (tail, head), e_idx in self._edge_index.items():
             tail_idx = self._node_index[tail]
             head_idx = self._node_index[head]
-            B1[tail_idx, e_idx] = -1.0   # ∂₁(e) resta en el vértice cola
-            B1[head_idx, e_idx] = +1.0   # ∂₁(e) suma en el vértice cabeza
-
-        # Verificación: cada columna debe sumar cero
+            
+            B1[tail_idx, e_idx] = -1.0
+            B1[head_idx, e_idx] = +1.0
+        
+        # Verificar propiedad de suma de columnas
         col_sums = B1.sum(axis=0)
         col_sum_max = float(np.max(np.abs(col_sums))) if col_sums.size > 0 else 0.0
-
-        rank_B1, svs = NumericalUtilities.compute_rank(B1)
-
+        
+        if col_sum_max > NC.BASE_TOLERANCE:
+            logger.warning(
+                f"Suma de columnas no trivial: max={col_sum_max:.2e}. "
+                "Revisar orientación de aristas."
+            )
+        
+        # Calcular rango numérico
+        try:
+            rank_B1, svs = NumericalUtilities.compute_numerical_rank(B1)
+        except Exception as exc:
+            raise NumericalStabilityError(
+                f"Fallo en cálculo de rango de B₁: {exc}",
+                context={"B1_shape": B1.shape}
+            ) from exc
+        
+        # Número esperado de componentes conexas
+        c = nx.number_connected_components(self.G.to_undirected())
+        rank_expected = self.n - c
+        
+        if rank_B1 != rank_expected:
+            logger.warning(
+                f"Rango de B₁ inesperado: {rank_B1} vs {rank_expected} esperado "
+                f"(n={self.n}, c={c})"
+            )
+        
         metadata: Dict[str, Any] = {
             "shape": (self.n, self.m),
             "rank_B1": rank_B1,
-            "column_sum_max": col_sum_max,      # debe ser ≈ 0
+            "rank_expected": rank_expected,
+            "column_sum_max": col_sum_max,
             "singular_values": svs.tolist(),
+            "sparsity": float(2 * self.m) / (self.n * self.m) if self.m > 0 else 0.0,
         }
+        
+        self._cached_incidence = (B1, metadata)
+        
+        logger.debug(
+            f"B₁ construida: shape={B1.shape}, rank={rank_B1}, "
+            f"col_sum_max={col_sum_max:.2e}"
+        )
+        
         return B1, metadata
-
-    # ──────────────────────────────────────────────────────────────────────
-    # 2.2 Matriz de Ciclos B₂
-    # ──────────────────────────────────────────────────────────────────────
-
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.2 Matriz de Ciclos B₂ (Fundamental Cycle Basis)
+    # ─────────────────────────────────────────────────────────────────────────
+    
     def build_face_matrix(self) -> Tuple[np.ndarray, Dict[str, Any]]:
         """
-        Matriz de fronteras de caras B₂ (o ∂₂) ∈ ℝ^{m×f}.
-        En un grafo puro sin 2-simplices, retorna una matriz vacía de dimensiones m×0.
-
+        Construye matriz de ciclos B₂ ∈ ℝᵐˣᵏ vía base de ciclos fundamental.
+        
+        Algoritmo:
+            1. Calcular MST T del grafo no dirigido (Kruskal/Prim: O(m log n))
+            2. Para cada arista e ∉ T (cotree):
+                a. Encontrar camino único en T entre extremos de e
+                b. Ciclo fundamental = e + path(T)
+                c. Codificar en columna de B₂
+        
+        Complejidad:
+            O(m log n + mk) donde k = β₁ = m - n + c
+        
+        Propiedades:
+            - rank(B₂) = k (columnas LI)
+            - B₁ B₂ = 0 (verificado)
+            - im(B₂) = subespacio de ciclos
+        
         Returns:
-            B2: np.ndarray de tamaño (m, 0)
-            metadata: Dict con B1B2_norm y rank_B2.
+            (B2, metadata) con:
+                - betti_1: β₁ = k
+                - num_cycles: número de ciclos generados
+                - B1B2_norm: ‖B₁B₂‖_F (debe ser ≈ 0)
+                - cotree_edges: aristas no en árbol
+                
+        Raises:
+            GraphStructureError: Si grafo tiene estructura problemática.
         """
-        B2 = np.zeros((self.m, 0), dtype=np.float64)
-        metadata = {
-            "shape": (self.m, 0),
-            "betti_1": max(0, self.m - self.n + nx.number_connected_components(self.G.to_undirected())),
-            "num_cycles": 0,
-            "rank_B2": 0,
-            "B1B2_norm": 0.0,
-            "verify_B1B2_zero": True,
-            "cotree_edges": [],
-        }
-        return B2, metadata
-
-    # ──────────────────────────────────────────────────────────────────────
-    # 2.3 Laplaciano de Hodge L₁
-    # ──────────────────────────────────────────────────────────────────────
-
-    def compute_hodge_laplacian(self) -> Tuple[np.ndarray, Dict[str, Any]]:
-        """
-        Laplaciano de Hodge sobre 1-cadenas:
-
-            L₁ = B₁ᵀB₁ + B₂B₂ᵀ  ∈ ℝᵐˣᵐ
-
-        Descomposición en suma directa ortogonal (Teorema de Hodge):
-
-            ℝᵐ = im(B₁ᵀ) ⊕ im(B₂) ⊕ ker(L₁)
-
-        Propiedades espectrales verificadas:
-            • L₁ simétrica PSD  (L₁ = L₁ᵀ ≥ 0)
-            • Autovalores λᵢ ≥ 0 ∀i
-            • dim ker(L₁) = β₁  para G conexo
-            • Traza(L₁) = Σᵢλᵢ = ‖B₁‖²_F + ‖B₂‖²_F
-
-        Returns:
-            (L1, metadata) con análisis espectral completo.
-        """
-        B1, meta1 = self.build_incidence_matrix()
-        B2, meta2 = self.build_face_matrix()
-
-        # L₁ = L_grad + L_curl
-        L_grad = B1.T @ B1   # m×m, PSD, im = im(B₁ᵀ)
-        L_curl = B2 @ B2.T   # m×m, PSD, im = im(B₂)
-        L1 = L_grad + L_curl
-
-        # ── Análisis espectral ───────────────────────────────────────────
-        # Usar eigh (simétrica) para garantizar autovalores reales
-        try:
-            eigenvalues, eigenvectors = np.linalg.eigh(L1)
-        except np.linalg.LinAlgError as exc:
-            logger.error(f"Fallo en eigh: {exc}")
-            eigenvalues = np.zeros(self.m)
-            eigenvectors = np.eye(self.m)
-
-        # eigh devuelve en orden ascendente (garantizado)
-        # Recortar negativos numéricos a 0
-        eigenvalues = np.maximum(eigenvalues, 0.0)
-
-        tol_eig = NumericalUtilities.adaptive_tolerance(L1)
-
-        zero_eigenvalues = int(np.sum(eigenvalues <= tol_eig))
-        spectral_gap = float(eigenvalues[1] - eigenvalues[0]) if self.m > 1 else 0.0
-
-        kappa, sigma_min, sigma_max = NumericalUtilities.matrix_condition_number(L1)
-
-        # Verificar isomorfismo de Hodge: dim ker(L₁) = β₁
-        betti_1 = meta2["betti_1"]
-        hodge_iso_satisfied = zero_eigenvalues == betti_1
-
-        if not hodge_iso_satisfied:
-            logger.warning(
-                f"Isomorfismo de Hodge fallido: "
-                f"dim ker(L₁) = {zero_eigenvalues}, β₁ = {betti_1}. "
-                f"Revisar construcción del complejo."
-            )
-
-        metadata: Dict[str, Any] = {
-            "shape": L1.shape,
-            "eigenvalues": eigenvalues.tolist(),
-            "eigenvectors_shape": eigenvectors.shape,
-            "spectral_gap": spectral_gap,
-            "kernel_dimension": zero_eigenvalues,
-            "betti_1": betti_1,
-            "hodge_isomorphism_satisfied": hodge_iso_satisfied,
-            "condition_number": kappa,
-            "sigma_min": sigma_min,
-            "sigma_max": sigma_max,
-            "trace_L1": float(np.trace(L1)),
-            "trace_check": float(np.sum(eigenvalues)),  # debe ≈ trace
-            "L_grad_norm_F": float(np.linalg.norm(L_grad, 'fro')),
-            "L_curl_norm_F": float(np.linalg.norm(L_curl, 'fro')),
-            "is_symmetric": bool(np.allclose(L1, L1.T, atol=tol_eig)),
-            "is_positive_semidefinite": bool(np.all(eigenvalues >= -tol_eig)),
-        }
-        return L1, metadata
-
-    # ──────────────────────────────────────────────────────────────────────
-    # 2.4 Verificación del complejo de co-cadenas
-    # ──────────────────────────────────────────────────────────────────────
-
-    def verify_cochain_complex(self) -> Dict[str, Any]:
-        """
-        Verificación formal de las propiedades del complejo de cadenas.
-
-        Propiedades verificadas:
-            1. ‖B₁B₂‖_F ≤ tol             (∂₁ ∘ ∂₂ = 0)
-            2. Dimensiones consistentes
-            3. rank(B₁) = n − c
-            4. rank(B₂) = 0 en grafo 1D
-            5. Euler–Poincaré: χ = n − m = β₀ − β₁
-
-        Returns:
-            Dict con resultados booleanos y métricas numéricas.
-        """
-        B1, meta1 = self.build_incidence_matrix()
-        B2, meta2 = self.build_face_matrix()
-
+        if self._cached_cycles is not None:
+            return self._cached_cycles
+        
+        # Calcular β₁ = m - n + c
         undirected = self.G.to_undirected()
         c = nx.number_connected_components(undirected)
-        betti_0 = c
-        betti_1 = meta2["betti_1"]
-
-        B1B2_zero = meta2["verify_B1B2_zero"]
-        B1B2_norm = meta2["B1B2_norm"]
-
-        dims_ok = (
-            B1.shape == (self.n, self.m)
-            and B2.shape == (self.m, 0)
-        )
-
-        rank_B1 = meta1["rank_B1"]
-        rank_B1_expected = self.n - c
-        rank_B1_ok = rank_B1 == rank_B1_expected
-
-        rank_B2 = meta2["rank_B2"]
-        rank_B2_ok = rank_B2 == 0
-
-        chi = self.n - self.m
-        chi_topological = betti_0 - betti_1
-        euler_ok = (chi == chi_topological)
-
-        is_valid = B1B2_zero and dims_ok and rank_B1_ok and rank_B2_ok and euler_ok
-
-        return {
-            "is_valid": is_valid,
-            "B1B2_zero": B1B2_zero,
-            "B1B2_norm": B1B2_norm,
-            "dimensions_consistent": dims_ok,
-            "rank_B1": rank_B1,
-            "rank_B1_expected": rank_B1_expected,
-            "rank_B1_ok": rank_B1_ok,
-            "rank_B2": rank_B2,
-            "rank_B2_expected": 0,
-            "rank_B2_ok": rank_B2_ok,
-            "chi_geometric": chi,
-            "chi_topological": chi_topological,
-            "euler_poincare_ok": euler_ok,
-            "beta_0": betti_0,
-            "beta_1": betti_1,
-            "connected_components": c,
-        }
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PARTE III · OPERADOR DE VORTICIDAD SOLENOIDAL
-# ─────────────────────────────────────────────────────────────────────────────
-
-class AcousticSolenoidOperator:
-    """
-    Proyector de Vorticidad Solenoidal sobre el 1-esqueleto de G.
-
-    Implementa el proyector ortogonal:
-
-        P_curl : ℝᵐ → im(B₂)
-        P_curl = B₂(B₂ᵀB₂)⁺B₂ᵀ
-
-    usando la formulación estable vía SVD:
-
-        B₂ = U_r Σ_r V_rᵀ  ⟹  P_curl = U_r U_rᵀ
-
-    Métricas calculadas:
-        • Circulación Γⱼ = (B₂ᵀI)ⱼ  (ley de Stokes discreta)
-        • Energía E_curl = ‖B₂ᵀI‖² = Iᵀ L_curl I
-        • Índice de vorticidad ω = E_curl / ‖I‖²  ∈ [0, 1]
-        • Error de idempotencia ‖P² − P‖_F / ‖P‖_F
-
-    Args:
-        tolerance_epsilon:  Umbral base para filtrar ruido numérico.
-        adaptive_threshold: Si True, escala ε con la norma del flujo.
-    """
-
-    def __init__(
-        self,
-        tolerance_epsilon: float = 1e-9,
-        adaptive_threshold: bool = True,
-    ) -> None:
-        self.epsilon = tolerance_epsilon
-        self.adaptive = adaptive_threshold
-
-        # Cache de la última descomposición de Hodge computada
-        self._cached_builder: Optional[HodgeDecompositionBuilder] = None
-        self._cached_graph_signature: Optional[Tuple] = None
-
-    # ──────────────────────────────────────────────────────────────────────
-    # Helpers privados
-    # ──────────────────────────────────────────────────────────────────────
-
-    def _graph_signature(self, G: nx.DiGraph) -> Tuple:
-        """
-        Firma determinista del grafo para invalidar cache.
-
-        Incluye nodos, aristas y atributos relevantes.
-        """
-        return (
-            tuple(sorted(G.nodes())),
-            tuple(sorted(G.edges())),
-            G.number_of_nodes(),
-            G.number_of_edges(),
-        )
-
-    def _get_builder(self, G: nx.DiGraph) -> HodgeDecompositionBuilder:
-        """Retorna un HodgeDecompositionBuilder, usando cache si válido."""
-        sig = self._graph_signature(G)
-        if self._cached_builder is None or self._cached_graph_signature != sig:
-            self._cached_builder = HodgeDecompositionBuilder(G)
-            self._cached_graph_signature = sig
-        return self._cached_builder
-
-    def _build_flow_vector(
-        self,
-        builder: HodgeDecompositionBuilder,
-        edge_flows: Dict[Tuple[Any, Any], float],
-    ) -> np.ndarray:
-        """
-        Convierte el diccionario de flujos a vector I ∈ ℝᵐ.
-
-        Aristas ausentes en edge_flows reciben flujo 0.
-        Aristas en edge_flows no presentes en G se ignoran con advertencia.
-        """
-        I_vec = np.zeros(builder.m, dtype=np.float64)
-        for (u, v), flow in edge_flows.items():
-            idx = builder._edge_index.get((u, v))
-            if idx is not None:
-                I_vec[idx] = float(flow)
-            else:
-                logger.debug(
-                    f"Arista ({u},{v}) en edge_flows no encontrada en G. "
-                    f"Ignorada."
-                )
-        return I_vec
-
-    def _build_fundamental_cycles(self, G: nx.DiGraph) -> np.ndarray:
-        """
-        Construye la matriz de ciclos fundamentales (B_cycle) para extraer la vorticidad.
-        """
-        import networkx as nx
-        import numpy as np
-
-        undirected = G.to_undirected()
-        m = G.number_of_edges()
-        n = G.number_of_nodes()
-        c = nx.number_connected_components(undirected)
-        k = max(0, m - n + c)
-
+        k = max(0, self.m - self.n + c)
+        
         if k == 0:
-            return np.zeros((m, 0), dtype=np.float64)
-
-        edges = list(G.edges())
-        edge_index = {e: i for i, e in enumerate(edges)}
-
-        spanning_edges = set(nx.minimum_spanning_tree(undirected).edges())
+            # Grafo acíclico (bosque)
+            B2 = np.zeros((self.m, 0), dtype=np.float64)
+            metadata: Dict[str, Any] = {
+                "shape": (self.m, 0),
+                "betti_1": 0,
+                "num_cycles": 0,
+                "rank_B2": 0,
+                "B1B2_norm": 0.0,
+                "verify_B1B2_zero": True,
+                "cotree_edges": [],
+                "is_forest": True,
+            }
+            self._cached_cycles = (B2, metadata)
+            return B2, metadata
+        
+        # Construir MST
+        try:
+            spanning_edges = set(nx.minimum_spanning_tree(undirected).edges())
+        except nx.NetworkXException as exc:
+            raise GraphStructureError(
+                f"Fallo en construcción de MST: {exc}",
+                context={"n": self.n, "m": self.m, "components": c}
+            ) from exc
+        
+        # Mapear aristas de MST a versión dirigida en G
         directed_tree_edges = set()
         for u, v in spanning_edges:
-            if (u, v) in edges:
+            if (u, v) in self._edge_index:
                 directed_tree_edges.add((u, v))
-            elif (v, u) in edges:
+            elif (v, u) in self._edge_index:
                 directed_tree_edges.add((v, u))
-
-        cotree_edges = [e for e in edges if e not in directed_tree_edges]
-
-        B_cycle = np.zeros((m, k), dtype=np.float64)
+        
+        # Aristas cotree (fuera del árbol)
+        cotree_edges = [e for e in self._edges if e not in directed_tree_edges]
+        
+        if len(cotree_edges) != k:
+            logger.warning(
+                f"Número de aristas cotree ({len(cotree_edges)}) "
+                f"≠ β₁ esperado ({k})"
+            )
+        
+        # Construir B₂
+        B2 = np.zeros((self.m, k), dtype=np.float64)
         tree_graph = undirected.edge_subgraph(spanning_edges)
-
+        
         for j, (cotree_tail, cotree_head) in enumerate(cotree_edges):
-            B_cycle[edge_index[(cotree_tail, cotree_head)], j] = 1.0
+            # Arista cotree se orienta +1 en el ciclo
+            B2[self._edge_index[(cotree_tail, cotree_head)], j] = +1.0
+            
+            # Encontrar camino único en árbol entre extremos
             try:
                 path_nodes = nx.shortest_path(tree_graph, cotree_head, cotree_tail)
             except nx.NetworkXNoPath:
+                # Grafo no conexo, ciclo degenerado
+                logger.warning(
+                    f"Ciclo {j}: no existe camino entre "
+                    f"{cotree_head} y {cotree_tail} en árbol"
+                )
                 continue
-
+            
+            # Orientar aristas del camino según dirección en G
             for i in range(len(path_nodes) - 1):
                 u, v = path_nodes[i], path_nodes[i + 1]
+                
                 if (u, v) in directed_tree_edges:
-                    B_cycle[edge_index[(u, v)], j] = 1.0
+                    B2[self._edge_index[(u, v)], j] = +1.0
                 elif (v, u) in directed_tree_edges:
-                    B_cycle[edge_index[(v, u)], j] = -1.0
-
-        return B_cycle
-
-    def _compute_projector_via_svd(
-        self,
-        B2: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray, float]:
-        """
-        Calcula el proyector P_curl = U_r U_rᵀ vía SVD de B₂.
-
-        Evita el cuadrado del número de condición κ(B₂ᵀB₂) = κ(B₂)²
-        que aparecería al usar P = B₂(B₂ᵀB₂)⁻¹B₂ᵀ directamente.
-
-        Returns:
-            (P_curl, U_r, idempotency_error)
-        """
-        tol = NumericalUtilities.adaptive_tolerance(B2)
-        U, s, _ = np.linalg.svd(B2, full_matrices=False)
-        U_r = U[:, s > tol]
-
-        if U_r.shape[1] == 0:
-            m = B2.shape[0]
-            P = np.zeros((m, m), dtype=np.float64)
-            return P, U_r, 0.0
-
-        P_curl = U_r @ U_r.T
-
-        # Verificar idempotencia: P² = P  ⟺  ‖P² − P‖_F / ‖P‖_F ≈ 0
-        P_norm = np.linalg.norm(P_curl, 'fro')
-        if P_norm > 0:
-            idempotency_error = float(
-                np.linalg.norm(P_curl @ P_curl - P_curl, 'fro') / P_norm
+                    B2[self._edge_index[(v, u)], j] = -1.0
+                else:
+                    logger.warning(
+                        f"Arista ({u},{v}) en camino no encontrada en árbol dirigido"
+                    )
+        
+        # Verificar ∂₁ ∘ ∂₂ = 0
+        B1, _ = self.build_incidence_matrix()
+        B1B2 = B1 @ B2
+        B1B2_norm = float(np.linalg.norm(B1B2, 'fro')) if B2.size > 0 else 0.0
+        
+        verify_zero = B1B2_norm < NC.BASE_TOLERANCE
+        
+        if not verify_zero:
+            logger.error(
+                f"Violación de ∂₁∘∂₂ = 0: ‖B₁B₂‖_F = {B1B2_norm:.2e} > tol"
             )
-        else:
-            idempotency_error = 0.0
-
-        return P_curl, U_r, idempotency_error
-
-    # ──────────────────────────────────────────────────────────────────────
-    # 3.1 Aislamiento de vorticidad
-    # ──────────────────────────────────────────────────────────────────────
-
-    def isolate_vorticity(
-        self,
-        G: nx.DiGraph,
-        edge_flows: Dict[Tuple[Any, Any], float],
-    ) -> Optional["MagnonCartridge"]:
-        """
-        Proyecta I ∈ ℝᵐ sobre im(B₂) y cuantifica la vorticidad.
-
-        Algoritmo:
-        ──────────
-        1. Construir B₂ ∈ ℝᵐˣᵏ (ciclos fundamentales).
-        2. Formar I ∈ ℝᵐ (vector de flujos).
-        3. Calcular circulación Γ = B₂ᵀI ∈ ℝᵏ.
-        4. Calcular E_curl = ‖Γ‖² (energía en modo rotacional).
-        5. Calcular ω = E_curl / ‖I‖² (índice de vorticidad).
-        6. Calcular P_curl = U_r U_rᵀ vía SVD de B₂.
-        7. Verificar idempotencia ‖P² − P‖_F / ‖P‖_F.
-
-        Ley de Stokes discreta:
-            Γⱼ = (B₂ᵀI)ⱼ = Σᵢ (B₂)ᵢⱼ Iᵢ
-            representa la circulación del flujo alrededor del ciclo j.
-
-        Args:
-            G:          Grafo dirigido.
-            edge_flows: Flujos por arista {(u,v): f}.
-
-        Returns:
-            MagnonCartridge si E_curl > umbral adaptativo, None si flujo
-            es irrotacional.
-        """
-        builder = self._get_builder(G)
-        B2 = self._build_fundamental_cycles(G)
-        cycle_meta = {}
-        k = B2.shape[1]
-
-        # ── Sin ciclos: vorticidad axiomáticamente nula ──────────────────
-        if k == 0:
-            logger.debug(
-                "β₁ = 0: grafo sin ciclos. Vorticidad nula por topología."
-            )
-            return None
-
-        # ── Vector de flujo I ∈ ℝᵐ ──────────────────────────────────────
-        I_vec = self._build_flow_vector(builder, edge_flows)
-        flow_norm = float(np.linalg.norm(I_vec))
-
-        if flow_norm < self.epsilon:
-            logger.debug(f"‖I‖ = {flow_norm:.2e} < ε. Flujo despreciable.")
-            return None
-
-        # ── Circulación Γ = B₂ᵀ I (Ley de Stokes discreta) ─────────────
-        circulation = B2.T @ I_vec      # shape (k,)
-
-        # ── Energía cinética de vorticidad E_curl = ‖Γ‖² ────────────────
-        kinetic_energy = float(np.dot(circulation, circulation))
-
-        # ── Índice de vorticidad ω = E_curl / ‖I‖² ∈ [0, 1] ─────────────
-        # Cota superior: por Cauchy–Schwarz, E_curl ≤ ‖B₂‖²_F · ‖I‖²
-        # En general ω ≤ σ_max(B₂)² pero acotamos por 1 para interpretación
-        vorticity_index = kinetic_energy / (flow_norm ** 2)
-        # Clipear a [0, 1] para absorber errores numéricos de redondeo
-        vorticity_index = float(np.clip(vorticity_index, 0.0, 1.0))
-
-        # ── Proyector P_curl = U_r U_rᵀ vía SVD ────────────────────────
-        P_curl, U_r, idempotency_error = self._compute_projector_via_svd(B2)
-
-        # ── Umbral adaptativo ────────────────────────────────────────────
-        if self.adaptive:
-            adaptive_eps = max(
-                self.epsilon,
-                self.epsilon * (flow_norm ** 2),
-            )
-        else:
-            adaptive_eps = self.epsilon
-
-        if kinetic_energy < adaptive_eps:
-            logger.debug(
-                f"E_curl = {kinetic_energy:.2e} < ε_adapt = {adaptive_eps:.2e}. "
-                f"Descartado como ruido numérico."
-            )
-            return None
-
-        # ── Descomposición de energía ─────────────────────────────────────
-        # Energía en componente irrotacional (grad) = total - curl - harm
-        # Calculada vía proyección para consistencia
-        I_curl = P_curl @ I_vec
-        E_curl_proj = float(np.linalg.norm(I_curl) ** 2)
-
-        energy_decomp: Dict[str, float] = {
-            "total_flow_energy": float(flow_norm ** 2),
-            "curl_energy_circulation": kinetic_energy,    # ‖B₂ᵀI‖²
-            "curl_energy_projection": E_curl_proj,         # ‖P_curl I‖²
-            "vorticity_ratio": vorticity_index,
+        
+        metadata = {
+            "shape": (self.m, k),
+            "betti_1": k,
+            "num_cycles": k,
+            "rank_B2": k,
+            "B1B2_norm": B1B2_norm,
+            "verify_B1B2_zero": verify_zero,
+            "cotree_edges": cotree_edges,
+            "is_forest": False,
+            "spanning_tree_edges": list(directed_tree_edges),
         }
-
-        return MagnonCartridge(
-            kinetic_energy=kinetic_energy,
-            curl_subspace_dim=k,
-            vorticity_index=vorticity_index,
-            circulation_per_cycle=tuple(float(c) for c in circulation),
-            projection_idempotency_error=idempotency_error,
-            energy_decomposition=energy_decomp,
-            cycle_metadata=dict(cycle_meta),
-            projector_matrix=P_curl,
+        
+        self._cached_cycles = (B2, metadata)
+        
+        logger.debug(
+            f"B₂ construida: shape={B2.shape}, β₁={k}, "
+            f"B₁B₂_norm={B1B2_norm:.2e}"
         )
-
-    # ──────────────────────────────────────────────────────────────────────
-    # 3.2 Descomposición de Hodge completa
-    # ──────────────────────────────────────────────────────────────────────
-
-    def compute_full_hodge_decomposition(
-        self,
-        G: nx.DiGraph,
-        edge_flows: Dict[Tuple[Any, Any], float],
-    ) -> Dict[str, Any]:
+        
+        return B2, metadata
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.3 Laplaciano de Hodge L₁
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def compute_hodge_laplacian(
+        self
+    ) -> Tuple[np.ndarray, SpectralDecomposition]:
         """
-        Descomposición ortogonal de Hodge–Helmholtz:
-
-            I = I_grad + I_curl + I_harm
-
-        donde las componentes son mutuamente ortogonales y:
-            I_grad ∈ im(B₁ᵀ)   (irrotacional, gradiente de potencial)
-            I_curl ∈ im(B₂)    (solenoidal, rotacional puro)
-            I_harm ∈ ker(L₁)   (armónico, satisface ambas condiciones)
-
-        Algoritmo (numéricamente estable vía SVD):
-        ──────────────────────────────────────────
-        Sea B₁ = U₁Σ₁V₁ᵀ y B₂ = U₂Σ₂V₂ᵀ (SVDs thin)
-
-        Bases ortonormales:
-            U_grad = columnas de U₁ con σᵢ > tol  (base de im(B₁))
-            U_curl = columnas de U₂ con σᵢ > tol  (base de im(B₂))
-
-        Proyectores:
-            P_grad = U_grad U_gradᵀ  (proyecta sobre im(B₁ᵀ))
-            P_curl = U_curl U_curlᵀ  (proyecta sobre im(B₂))
-
-        Nota: im(B₁ᵀ) ≡ im(B₁ᵀ) como subespacio de ℝᵐ.
-        Los proyectores sobre im(B₁ᵀ) se obtienen de la SVD de B₁ᵀ
-        (equivalente a los vectores singulares derechos de B₁).
-
-        Componentes:
-            I_grad = P_grad I
-            I_curl = P_curl I
-            I_harm = I - I_grad - I_curl
-
-        Verificación de ortogonalidad:
-            ⟨I_grad, I_curl⟩ ≈ 0
-            ⟨I_grad, I_harm⟩ ≈ 0
-            ⟨I_curl, I_harm⟩ ≈ 0
-
+        Calcula Laplaciano de Hodge L₁ = B₁ᵀB₁ + B₂B₂ᵀ con análisis espectral.
+        
+        Propiedades verificadas:
+            1. L₁ = L₁ᵀ (simetría)
+            2. L₁ ≥ 0 (PSD, todos los λᵢ ≥ 0)
+            3. dim ker(L₁) = β₁ (isomorfismo de Hodge)
+            4. Tr(L₁) = ‖B₁‖²_F + ‖B₂‖²_F
+        
         Returns:
-            Dict con componentes y métricas de verificación.
+            (L1, spectral_decomposition) con eigendecomposición completa.
+            
+        Raises:
+            NumericalStabilityError: Si eigendecomposición falla.
         """
-        builder = self._get_builder(G)
-        B1, _ = builder.build_incidence_matrix()
-        B2, _ = builder.build_face_matrix()
-
-        I_vec = self._build_flow_vector(builder, edge_flows)
-
-        tol_B1 = NumericalUtilities.adaptive_tolerance(B1)
-        tol_B2 = NumericalUtilities.adaptive_tolerance(B2) if B2.size > 0 else 1e-12
-
-        # ── Proyector sobre im(B₁ᵀ) ─────────────────────────────────────
-        # B₁ᵀ ∈ ℝᵐˣⁿ: sus columnas generan im(B₁ᵀ)
-        B1T = B1.T
-        U1, s1, _ = np.linalg.svd(B1T, full_matrices=False)
-        U_grad = U1[:, s1 > tol_B1]
-        P_grad = U_grad @ U_grad.T if U_grad.shape[1] > 0 else np.zeros(
-            (builder.m, builder.m)
+        if self._cached_laplacian is not None:
+            return self._cached_laplacian
+        
+        B1, _ = self.build_incidence_matrix()
+        B2, meta_B2 = self.build_face_matrix()
+        
+        # Componentes del Laplaciano
+        L_grad = B1.T @ B1  # m×m, PSD
+        L_curl = B2 @ B2.T  # m×m, PSD
+        L1 = L_grad + L_curl
+        
+        # Verificar simetría
+        symmetry_error = float(np.linalg.norm(L1 - L1.T, 'fro'))
+        if symmetry_error > NC.SYMMETRY_TOLERANCE:
+            raise NumericalStabilityError(
+                f"L₁ no es simétrica: ‖L₁ - L₁ᵀ‖_F = {symmetry_error:.2e}",
+                context={"symmetry_error": symmetry_error}
+            )
+        
+        # Eigendecomposición (eigh garantiza autovalores reales)
+        try:
+            eigenvalues, eigenvectors = np.linalg.eigh(L1)
+        except np.linalg.LinAlgError as exc:
+            raise NumericalStabilityError(
+                f"Eigendecomposición de L₁ falló: {exc}",
+                context={"L1_shape": L1.shape}
+            ) from exc
+        
+        # Corregir autovalores negativos por redondeo
+        eigenvalues = np.maximum(eigenvalues, 0.0)
+        
+        # Ordenar en orden creciente (eigh ya lo hace, pero verificamos)
+        sort_idx = np.argsort(eigenvalues)
+        eigenvalues = eigenvalues[sort_idx]
+        eigenvectors = eigenvectors[:, sort_idx]
+        
+        spectral = SpectralDecomposition(
+            eigenvalues=eigenvalues,
+            eigenvectors=eigenvectors
         )
-        I_grad = P_grad @ I_vec
-
-        # ── Proyector sobre im(B₂) ───────────────────────────────────────
-        if B2.shape[1] > 0:
-            U2, s2, _ = np.linalg.svd(B2, full_matrices=False)
-            U_curl = U2[:, s2 > tol_B2]
-            P_curl = U_curl @ U_curl.T if U_curl.shape[1] > 0 else np.zeros(
-                (builder.m, builder.m)
+        
+        # Verificar isomorfismo de Hodge: dim ker(L₁) = β₁
+        kernel_dim = spectral.kernel_dimension
+        betti_1 = meta_B2["betti_1"]
+        
+        hodge_iso_ok = (kernel_dim == betti_1)
+        
+        if not hodge_iso_ok:
+            logger.error(
+                f"Isomorfismo de Hodge violado: "
+                f"dim ker(L₁) = {kernel_dim}, β₁ = {betti_1}"
             )
-        else:
-            P_curl = np.zeros((builder.m, builder.m))
-
-        I_curl = P_curl @ I_vec
-
-        # ── Componente armónica ──────────────────────────────────────────
-        I_harm = I_vec - I_grad - I_curl
-
-        # ── Verificaciones ───────────────────────────────────────────────
-        reconstruction_error = float(
-            np.linalg.norm(I_vec - I_grad - I_curl - I_harm)
-        )
-        inner_grad_curl = float(np.dot(I_grad, I_curl))
-        inner_grad_harm = float(np.dot(I_grad, I_harm))
-        inner_curl_harm = float(np.dot(I_curl, I_harm))
-
-        tol_orth = NumericalUtilities.adaptive_tolerance(np.eye(builder.m)) * 10
-
-        return {
-            "original_flow": I_vec.tolist(),
-            "irrotational_component": I_grad.tolist(),
-            "solenoidal_component": I_curl.tolist(),
-            "harmonic_component": I_harm.tolist(),
-            "energy_decomposition": {
-                "total": float(np.linalg.norm(I_vec) ** 2),
-                "irrotational": float(np.linalg.norm(I_grad) ** 2),
-                "solenoidal": float(np.linalg.norm(I_curl) ** 2),
-                "harmonic": float(np.linalg.norm(I_harm) ** 2),
-            },
-            "norms": {
-                "original": float(np.linalg.norm(I_vec)),
-                "irrotational": float(np.linalg.norm(I_grad)),
-                "solenoidal": float(np.linalg.norm(I_curl)),
-                "harmonic": float(np.linalg.norm(I_harm)),
-            },
-            "verification": {
-                "reconstruction_error": reconstruction_error,
-                "orthogonality_grad_curl": inner_grad_curl,
-                "orthogonality_grad_harm": inner_grad_harm,
-                "orthogonality_curl_harm": inner_curl_harm,
-                "is_orthogonal_decomposition": (
-                    abs(inner_grad_curl) < tol_orth
-                    and abs(inner_grad_harm) < tol_orth
-                    and abs(inner_curl_harm) < tol_orth
-                    and reconstruction_error < tol_orth
-                ),
-            },
-        }
-
-    # ──────────────────────────────────────────────────────────────────────
-    # 3.3 Análisis espectral
-    # ──────────────────────────────────────────────────────────────────────
-
-    def spectral_analysis(self, G: nx.DiGraph) -> Dict[str, Any]:
-        """
-        Análisis espectral completo del Laplaciano de Hodge L₁.
-
-        Calcula:
-            • Espectro {λᵢ} de L₁ = B₁ᵀB₁ + B₂B₂ᵀ
-            • Gap espectral λ₁ (primer autovalor no nulo)
-            • dim ker(L₁) = β₁
-            • Clasificación de modos: gradiente vs. curl vs. armónico
-
-        Returns:
-            Dict con espectro y métricas de conectividad.
-        """
-        builder = self._get_builder(G)
-        L1, spectral_meta = builder.compute_hodge_laplacian()
-
-        return {
-            "laplacian_spectrum": spectral_meta.get("eigenvalues", []),
-            "spectral_gap": spectral_meta.get("spectral_gap", 0.0),
-            "kernel_dimension": spectral_meta.get("kernel_dimension", 0),
-            "betti_1": spectral_meta.get("betti_1", 0),
-            "condition_number": spectral_meta.get("condition_number", math.inf),
-            "is_positive_semidefinite": spectral_meta.get(
-                "is_positive_semidefinite", False
-            ),
-            "hodge_isomorphism_satisfied": spectral_meta.get(
-                "hodge_isomorphism_satisfied", False
-            ),
-            "trace_L1": spectral_meta.get("trace_L1", 0.0),
-            "L_grad_norm_F": spectral_meta.get("L_grad_norm_F", 0.0),
-            "L_curl_norm_F": spectral_meta.get("L_curl_norm_F", 0.0),
-            "is_symmetric": spectral_meta.get("is_symmetric", False),
-        }
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PARTE IV · BOSÓN DE VORTICIDAD — MAGNON CARTRIDGE
-# ─────────────────────────────────────────────────────────────────────────────
-
-@dataclass
-class MagnonCartridge:
-    """
-    Estado colapsado de vorticidad solenoidal detectada.
-
-    Representa el resultado de proyectar I ∈ ℝᵐ sobre im(B₂) y medir
-    la energía cinética de vorticidad E_curl = ‖B₂ᵀI‖².
-
-    Nota de diseño:
-        No se usa ``frozen=True`` porque ``np.ndarray`` no es hashable
-        y ``frozen`` con campos mutables rompe la inmutabilidad semántica.
-        En su lugar, los campos numéricos críticos son inmutables por tipo
-        (float, int, tuple) y el proyector se almacena por referencia.
-
-    Atributos:
-        kinetic_energy:              E_curl = ‖B₂ᵀI‖² ≥ 0
-        curl_subspace_dim:           k = β₁ ≥ 0
-        vorticity_index:             ω = E_curl / ‖I‖² ∈ [0, 1]
-        circulation_per_cycle:       Γⱼ = (B₂ᵀI)ⱼ para j = 1,…,k
-        projection_idempotency_error: ‖P²−P‖_F / ‖P‖_F  (≈0 si P es proyector)
-        energy_decomposition:        Desglose energético
-        cycle_metadata:              Metadata topológica de ciclos
-        projector_matrix:            P_curl = U_r U_rᵀ (opcional, puede ser grande)
-    """
-
-    kinetic_energy: float
-    curl_subspace_dim: int
-    vorticity_index: float = 0.0
-    circulation_per_cycle: Tuple[float, ...] = field(default_factory=tuple)
-    projection_idempotency_error: float = 0.0
-    energy_decomposition: Dict[str, float] = field(default_factory=dict)
-    cycle_metadata: Dict[str, Any] = field(default_factory=dict)
-    projector_matrix: Optional[np.ndarray] = field(default=None, repr=False)
-
-    def __post_init__(self) -> None:
-        """
-        Validación de invariantes físicos y matemáticos.
-
-        Invariantes:
-            • E_curl ≥ 0  (energía no negativa)
-            • ω ∈ [0, 1]  (fracción de energía)
-            • k ≥ 0       (dimensión no negativa)
-        """
-        if self.kinetic_energy < -1e-12:
-            raise ValueError(
-                f"Energía cinética debe ser ≥ 0; recibida: {self.kinetic_energy:.6e}"
-            )
-        # Corregir ruido numérico menor
-        object.__setattr__(
-            self, "kinetic_energy", max(0.0, self.kinetic_energy)
-        ) if False else None  # dataclass no frozen: asignación directa
-        self.kinetic_energy = max(0.0, self.kinetic_energy)
-
-        if not (-1e-10 <= self.vorticity_index <= 1.0 + 1e-10):
-            raise ValueError(
-                f"Índice de vorticidad fuera de [0,1]: {self.vorticity_index:.6e}"
-            )
-        self.vorticity_index = float(np.clip(self.vorticity_index, 0.0, 1.0))
-
-        if self.curl_subspace_dim < 0:
-            raise ValueError(
-                f"Dimensión de subespacio curl debe ser ≥ 0; "
-                f"recibida: {self.curl_subspace_dim}"
-            )
-
-        if self.projection_idempotency_error > 1e-6:
+        
+        # Verificar traza
+        trace_L1 = float(np.trace(L1))
+        trace_eigs = float(np.sum(eigenvalues))
+        trace_diff = abs(trace_L1 - trace_eigs)
+        
+        if trace_diff > NC.BASE_TOLERANCE * trace_L1:
             logger.warning(
-                f"Error de idempotencia elevado: "
-                f"{self.projection_idempotency_error:.2e}. "
-                f"El proyector P_curl puede no ser ortogonal."
+                f"Traza inconsistente: Tr(L₁)={trace_L1:.6e}, "
+                f"Σλᵢ={trace_eigs:.6e}, diff={trace_diff:.2e}"
             )
-
-    # ──────────────────────────────────────────────────────────────────────
-    # Propiedades derivadas
-    # ──────────────────────────────────────────────────────────────────────
-
-    @property
-    def is_significant(self) -> bool:
-        """
-        Determina si la vorticidad es físicamente significativa.
-
-        Criterios (todos deben cumplirse):
-            • E_curl > 1e-9  (energía mínima detectable)
-            • ω > 0.01       (al menos 1% de la energía en modo rotacional)
-            • k > 0          (existencia de ciclos topológicos)
-        """
-        return (
-            self.kinetic_energy > 1e-9
-            and self.vorticity_index > 0.01
-            and self.curl_subspace_dim > 0
+        
+        self._cached_laplacian = (L1, spectral)
+        
+        logger.debug(
+            f"L₁ calculada: shape={L1.shape}, λ_min={eigenvalues[0]:.2e}, "
+            f"λ_max={eigenvalues[-1]:.2e}, gap={spectral.spectral_gap:.2e}, "
+            f"κ={spectral.condition_number:.2e}, dim ker={kernel_dim}"
         )
-
-    @property
-    def dominant_cycle(self) -> Tuple[int, float]:
+        
+        return L1, spectral
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.4 Verificación Formal del Complejo
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def verify_chain_complex(self) -> Dict[str, Any]:
         """
-        Ciclo con mayor magnitud de circulación |Γⱼ|.
-
+        Verificación exhaustiva de invariantes del complejo de cadenas.
+        
+        Verifica:
+            1. ∂₁ ∘ ∂₂ = 0 (B₁B₂ = 0)
+            2. Dimensiones consistentes
+            3. Rangos esperados
+            4. Euler-Poincaré
+            5. Isomorfismo de Hodge
+        
         Returns:
-            (cycle_index, Γ_dominant)  o (-1, 0.0) si no hay ciclos.
+            Dict con resultados de verificación y métricas.
         """
-        if not self.circulation_per_cycle:
-            return (-1, 0.0)
-        abs_circ = [abs(c) for c in self.circulation_per_cycle]
-        max_idx = int(np.argmax(abs_circ))
-        return (max_idx, self.circulation_per_cycle[max_idx])
+        B1, meta1 = self.build_incidence_matrix()
+        B2, meta2 = self.build_face_matrix()
+        L1, spectral = self.compute_hodge_laplacian()
+        
+        # Números de Betti
+        c = nx.number_connected_components(self.G.to_undirected())
+        betti = BettiNumbers(beta_0=c, beta_1=meta2["betti_1"])
+        
+        # Verificaciones
+        B1B2_ok = meta2["verify_B1B2_zero"]
+        dims_ok = (B1.shape == (self.n, self.m)) and (B2.shape == (self.m, betti.beta_1))
+        
+        rank_B1 = meta1["rank_B1"]
+        rank_B1_expected = self.n - c
+        rank_B1_ok = (rank_B1 == rank_B1_expected)
+        
+        rank_B2 = meta2["rank_B2"]
+        rank_B2_ok = (rank_B2 == betti.beta_1)
+        
+        euler_ok = betti.verify_euler_poincare(self.n, self.m)
+        
+        hodge_iso_ok = (spectral.kernel_dimension == betti.beta_1)
+        
+        # Verificar ker(L₁) ⊆ ker(B₁ᵀ) ∩ ker(B₂)
+        kernel_L1 = NumericalUtilities.null_space_basis(L1)
+        kernel_ok = True
+        
+        if kernel_L1.shape[1] > 0:
+            B1T_ker = float(np.linalg.norm(B1.T @ kernel_L1, 'fro'))
+            B2_ker = float(np.linalg.norm(B2 @ kernel_L1, 'fro'))
+            
+            kernel_ok = (B1T_ker < NC.BASE_TOLERANCE and B2_ker < NC.BASE_TOLERANCE)
+            
+            if not kernel_ok:
+                logger.warning(
+                    f"ker(L₁) no está en ker(B₁ᵀ) ∩ ker(B₂): "
+                    f"‖B₁ᵀ ker‖={B1T_ker:.2e}, ‖B₂ ker‖={B2_ker:.2e}"
+                )
+        
+        is_valid = B1B2_ok and dims_ok and rank_B1_ok and rank_B2_ok and euler_ok and hodge_iso_ok and kernel_ok
+        
+        return {
+            "is_valid": is_valid,
+            "graph_properties": {
+                "nodes": self.n,
+                "edges": self.m,
+                "components": c,
+                "is_directed": self.G.is_directed(),
+            },
+            "betti_numbers": {
+                "beta_0": betti.beta_0,
+                "beta_1": betti.beta_1,
+                "beta_2": betti.beta_2,
+            },
+            "euler_characteristic": {
+                "chi_geometric": self.n - self.m,
+                "chi_topological": betti.euler_characteristic(),
+                "verified": euler_ok,
+            },
+            "boundary_composition": {
+                "B1B2_norm": meta2["B1B2_norm"],
+                "is_zero": B1B2_ok,
+            },
+            "dimensions": {
+                "consistent": dims_ok,
+                "B1_shape": B1.shape,
+                "B2_shape": B2.shape,
+                "L1_shape": L1.shape,
+            },
+            "ranks": {
+                "rank_B1": rank_B1,
+                "rank_B1_expected": rank_B1_expected,
+                "rank_B1_ok": rank_B1_ok,
+                "rank_B2": rank_B2,
+                "rank_B2_expected": betti.beta_1,
+                "rank_B2_ok": rank_B2_ok,
+            },
+            "hodge_isomorphism": {
+                "dim_ker_L1": spectral.kernel_dimension,
+                "beta_1": betti.beta_1,
+                "satisfied": hodge_iso_ok,
+                "kernel_subset_verified": kernel_ok,
+            },
+            "spectral_properties": {
+                "eigenvalues_min": float(spectral.eigenvalues[0]),
+                "eigenvalues_max": float(spectral.eigenvalues[-1]),
+                "spectral_gap": spectral.spectral_gap,
+                "condition_number": spectral.condition_number,
+            },
+        }
 
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 7: OPERADOR DE VORTICIDAD SOLENOIDAL
+# ═════════════════════════════════════════════════════════════════════════════
+
+class VorticityMetrics(NamedTuple):
+    """
+    Métricas completas de vorticidad con interpretación física.
+    
+    Todas las cantidades están en unidades adimensionales normalizadas.
+    
+    Attributes:
+        kinetic_energy: E_curl = ‖B₂ᵀI‖² ≥ 0
+        total_energy: E_total = ‖I‖² ≥ 0
+        vorticity_index: ω = E_curl / E_total ∈ [0, 1]
+        circulation_vector: Γ = B₂ᵀI ∈ ℝᵏ
+        dominant_cycle_index: Índice del ciclo con mayor |Γⱼ|
+        dominant_circulation: max_j |Γⱼ|
+        total_circulation_norm: ‖Γ‖₂
+        harmonic_energy: E_harm ≥ 0 (si disponible)
+    """
+    
+    kinetic_energy: float
+    total_energy: float
+    vorticity_index: float
+    circulation_vector: np.ndarray
+    dominant_cycle_index: int
+    dominant_circulation: float
+    total_circulation_norm: float
+    harmonic_energy: float = 0.0
+    
+    def __post_init__(self) -> None:
+        """Validación de invariantes físicos."""
+        if self.kinetic_energy < -NC.BASE_TOLERANCE:
+            raise ValueError(
+                f"Energía cinética debe ser ≥ 0: {self.kinetic_energy}"
+            )
+        
+        if self.total_energy < -NC.BASE_TOLERANCE:
+            raise ValueError(
+                f"Energía total debe ser ≥ 0: {self.total_energy}"
+            )
+        
+        if not (-NC.BASE_TOLERANCE <= self.vorticity_index <= 1.0 + NC.BASE_TOLERANCE):
+            raise ValueError(
+                f"Índice de vorticidad debe estar en [0,1]: {self.vorticity_index}"
+            )
+    
     @property
-    def thermodynamic_severity(self) -> str:
+    def severity_class(self) -> str:
         """
-        Clasifica la severidad basada en ω (fracción de energía rotacional).
-
-        Umbrales:
-            ω > 0.50 → CRITICAL
-            ω > 0.20 → HIGH
-            ω > 0.05 → MODERATE
-            ω ≤ 0.05 → LOW
+        Clasificación de severidad basada en índice de vorticidad.
+        
+        Umbrales calibrados:
+            ω > 0.50 → CRITICAL (mayoría del flujo es rotacional)
+            ω > 0.20 → HIGH (significativa componente rotacional)
+            ω > 0.05 → MODERATE (vorticidad detectable)
+            ω ≤ 0.05 → LOW (predominantemente laminar)
+        
+        Returns:
+            String de clasificación.
         """
         if self.vorticity_index > 0.50:
             return "CRITICAL"
@@ -1253,32 +1459,832 @@ class MagnonCartridge:
             return "HIGH"
         elif self.vorticity_index > 0.05:
             return "MODERATE"
-        return "LOW"
+        else:
+            return "LOW"
+    
+    @property
+    def is_significant(self) -> bool:
+        """
+        Determina si la vorticidad es físicamente significativa.
+        
+        Criterios:
+            1. E_curl > umbral de ruido
+            2. ω > 1% (al menos 1% de energía rotacional)
+            3. Al menos un ciclo con circulación no trivial
+        
+        Returns:
+            True si la vorticidad requiere acción.
+        """
+        return (
+            self.kinetic_energy > NC.VORTICITY_SIGNIFICANCE_THRESHOLD
+            and self.vorticity_index > 0.01
+            and self.circulation_vector.size > 0
+            and np.max(np.abs(self.circulation_vector)) > NC.BASE_TOLERANCE
+        )
 
+
+class AcousticSolenoidOperator:
+    """
+    Operador de proyección ortogonal sobre subespacio solenoidal.
+    
+    Implementa el proyector P_curl: ℝᵐ → im(B₂) usando SVD estable.
+    
+    FUNDAMENTO MATEMÁTICO:
+        Dado B₂ ∈ ℝᵐˣᵏ con SVD B₂ = U Σ Vᵀ, el proyector ortogonal es:
+        
+            P_curl = Uᵣ Uᵣᵀ
+        
+        donde Uᵣ contiene las columnas de U con σᵢ > tol.
+    
+    PROPIEDADES VERIFICABLES:
+        1. P² = P (idempotencia)
+        2. P = Pᵀ (simetría)
+        3. P L₁ = L₁ P (conmuta con Laplaciano)
+        4. im(P) = im(B₂)
+    
+    MÉTRICAS CALCULADAS:
+        • Circulación: Γ = B₂ᵀI (Ley de Stokes discreta)
+        • Energía: E_curl = ‖Γ‖² = Iᵀ L_curl I
+        • Índice: ω = E_curl / ‖I‖²
+        • Error de idempotencia: ‖P² - P‖_F / ‖P‖_F
+    
+    Args:
+        tolerance_epsilon: Tolerancia base para filtrado de ruido.
+        adaptive_threshold: Si True, escala tolerancia con ‖I‖².
+        enable_caching: Si True, cachea builders para grafos repetidos.
+    """
+    
+    def __init__(
+        self,
+        tolerance_epsilon: float = NC.VORTICITY_SIGNIFICANCE_THRESHOLD,
+        adaptive_threshold: bool = True,
+        enable_caching: bool = True,
+    ) -> None:
+        """
+        Constructor con configuración de tolerancias.
+        
+        Args:
+            tolerance_epsilon: Umbral base de significancia.
+            adaptive_threshold: Habilitar umbral adaptativo.
+            enable_caching: Habilitar caché de builders.
+        """
+        if tolerance_epsilon <= 0:
+            raise ValueError(
+                f"tolerance_epsilon debe ser positivo: {tolerance_epsilon}"
+            )
+        
+        self.epsilon = tolerance_epsilon
+        self.adaptive = adaptive_threshold
+        self.caching_enabled = enable_caching
+        
+        # Caché para evitar reconstrucción de builders
+        self._cache: Dict[int, HodgeDecompositionBuilder] = {}
+        self._cache_hits = 0
+        self._cache_misses = 0
+        
+        logger.debug(
+            f"AcousticSolenoidOperator inicializado: "
+            f"ε={self.epsilon:.2e}, adaptive={self.adaptive}, "
+            f"caching={self.caching_enabled}"
+        )
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Helpers Privados
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def _graph_hash(self, G: nx.DiGraph) -> int:
+        """
+        Calcula hash determinista del grafo para caché.
+        
+        Args:
+            G: Grafo a hashear.
+            
+        Returns:
+            Hash entero basado en estructura del grafo.
+        """
+        # Usar hash de tupla canónica de aristas ordenadas
+        edges_tuple = tuple(sorted(G.edges()))
+        nodes_tuple = tuple(sorted(G.nodes()))
+        return hash((nodes_tuple, edges_tuple))
+    
+    def _get_or_build_hodge_builder(
+        self,
+        G: nx.DiGraph
+    ) -> HodgeDecompositionBuilder:
+        """
+        Obtiene builder desde caché o construye uno nuevo.
+        
+        Args:
+            G: Grafo dirigido.
+            
+        Returns:
+            HodgeDecompositionBuilder configurado.
+        """
+        if not self.caching_enabled:
+            return HodgeDecompositionBuilder(G)
+        
+        graph_hash = self._graph_hash(G)
+        
+        if graph_hash in self._cache:
+            self._cache_hits += 1
+            logger.debug(f"Cache hit (total: {self._cache_hits})")
+            return self._cache[graph_hash]
+        
+        self._cache_misses += 1
+        logger.debug(f"Cache miss (total: {self._cache_misses})")
+        
+        builder = HodgeDecompositionBuilder(G)
+        
+        # Limitar tamaño de caché
+        MAX_CACHE_SIZE = 100
+        if len(self._cache) >= MAX_CACHE_SIZE:
+            # Eliminar entrada aleatoria (política simple)
+            self._cache.pop(next(iter(self._cache)))
+        
+        self._cache[graph_hash] = builder
+        return builder
+    
+    def _build_flow_vector(
+        self,
+        builder: HodgeDecompositionBuilder,
+        edge_flows: Mapping[Tuple[Any, Any], float],
+    ) -> np.ndarray:
+        """
+        Convierte diccionario de flujos a vector I ∈ ℝᵐ.
+        
+        Args:
+            builder: Builder con mapeo de aristas.
+            edge_flows: Flujos por arista.
+            
+        Returns:
+            Vector I ∈ ℝᵐ con flujos ordenados.
+        """
+        I_vec = np.zeros(builder.m, dtype=np.float64)
+        
+        missing_edges = 0
+        for (u, v), flow in edge_flows.items():
+            idx = builder._edge_index.get((u, v))
+            if idx is not None:
+                I_vec[idx] = float(flow)
+            else:
+                missing_edges += 1
+        
+        if missing_edges > 0:
+            logger.debug(
+                f"{missing_edges} aristas en edge_flows no encontradas en grafo"
+            )
+        
+        return I_vec
+    
+    def _compute_projector(
+        self,
+        B2: np.ndarray,
+        tolerance: Optional[float] = None
+    ) -> Tuple[np.ndarray, float]:
+        """
+        Calcula proyector P_curl = Uᵣ Uᵣᵀ vía SVD estable.
+        
+        Args:
+            B2: Matriz de ciclos m×k.
+            tolerance: Umbral SVD (default: adaptativo).
+            
+        Returns:
+            (P_curl, idempotency_error).
+        """
+        if B2.shape[1] == 0:
+            # Sin ciclos → proyector nulo
+            m = B2.shape[0]
+            return np.zeros((m, m), dtype=np.float64), 0.0
+        
+        if tolerance is None:
+            tolerance = NumericalUtilities.adaptive_tolerance(B2)
+        
+        try:
+            U, s, _ = np.linalg.svd(B2, full_matrices=False)
+        except np.linalg.LinAlgError as exc:
+            raise NumericalStabilityError(
+                f"SVD de B₂ falló en cálculo de proyector: {exc}",
+                context={"B2_shape": B2.shape}
+            ) from exc
+        
+        # Filtrar columnas con σᵢ > tol
+        U_r = U[:, s > tolerance]
+        
+        if U_r.shape[1] == 0:
+            # B₂ numéricamente nula
+            m = B2.shape[0]
+            return np.zeros((m, m), dtype=np.float64), 0.0
+        
+        # P_curl = Uᵣ Uᵣᵀ
+        P_curl = U_r @ U_r.T
+        
+        # Verificar idempotencia: ‖P² - P‖_F / ‖P‖_F
+        P_squared = P_curl @ P_curl
+        P_norm = np.linalg.norm(P_curl, 'fro')
+        
+        if P_norm > NC.BASE_TOLERANCE:
+            idempotency_error = float(
+                np.linalg.norm(P_squared - P_curl, 'fro') / P_norm
+            )
+        else:
+            idempotency_error = 0.0
+        
+        if idempotency_error > NC.IDEMPOTENCY_TOLERANCE:
+            logger.warning(
+                f"Proyector P_curl con error de idempotencia elevado: "
+                f"{idempotency_error:.2e}"
+            )
+        
+        return P_curl, idempotency_error
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.1 Aislamiento de Vorticidad (Proyección Solenoidal)
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def isolate_vorticity(
+        self,
+        G: nx.DiGraph,
+        edge_flows: Mapping[Tuple[Any, Any], float],
+    ) -> Optional['MagnonCartridge']:
+        """
+        Proyecta flujo I sobre im(B₂) y cuantifica vorticidad.
+        
+        ALGORITMO:
+            1. Construir B₂ ∈ ℝᵐˣᵏ (ciclos fundamentales)
+            2. Formar I ∈ ℝᵐ (vector de flujos)
+            3. Calcular Γ = B₂ᵀI (circulaciones)
+            4. Calcular E_curl = ‖Γ‖²
+            5. Calcular ω = E_curl / ‖I‖²
+            6. Construir P_curl vía SVD
+            7. Verificar idempotencia
+            8. Emitir MagnonCartridge si E_curl > umbral
+        
+        LEY DE STOKES DISCRETA:
+            Γⱼ = (B₂ᵀI)ⱼ = circulación del flujo alrededor del ciclo j
+        
+        Args:
+            G: Grafo dirigido.
+            edge_flows: Flujos por arista {(u,v): f}.
+            
+        Returns:
+            MagnonCartridge si vorticidad significativa, None si laminar.
+            
+        Raises:
+            GraphStructureError: Si grafo inválido.
+            NumericalStabilityError: Si cálculos numéricos fallan.
+        """
+        logger.debug(
+            f"Aislamiento de vorticidad: n={G.number_of_nodes()}, "
+            f"m={G.number_of_edges()}, flows={len(edge_flows)}"
+        )
+        
+        # Construir complejo de cadenas
+        builder = self._get_or_build_hodge_builder(G)
+        B2, meta_B2 = builder.build_face_matrix()
+        
+        k = B2.shape[1]
+        
+        # Sin ciclos → vorticidad nula por topología
+        if k == 0:
+            logger.debug("β₁ = 0: grafo acíclico, vorticidad topológicamente nula")
+            return None
+        
+        # Construir vector de flujo
+        I_vec = self._build_flow_vector(builder, edge_flows)
+        flow_norm = float(np.linalg.norm(I_vec))
+        
+        # Flujo despreciable
+        if flow_norm < self.epsilon:
+            logger.debug(f"‖I‖ = {flow_norm:.2e} < ε, flujo despreciable")
+            return None
+        
+        # Calcular circulación: Γ = B₂ᵀI
+        circulation = B2.T @ I_vec  # (k,)
+        
+        # Energía cinética de vorticidad: E_curl = ‖Γ‖²
+        kinetic_energy = float(np.dot(circulation, circulation))
+        
+        # Índice de vorticidad: ω = E_curl / ‖I‖²
+        total_energy = flow_norm ** 2
+        vorticity_index = kinetic_energy / total_energy if total_energy > 0 else 0.0
+        vorticity_index = float(np.clip(vorticity_index, 0.0, 1.0))
+        
+        # Umbral adaptativo
+        if self.adaptive:
+            adaptive_eps = max(self.epsilon, self.epsilon * total_energy)
+        else:
+            adaptive_eps = self.epsilon
+        
+        # Filtrar ruido numérico
+        if kinetic_energy < adaptive_eps:
+            logger.debug(
+                f"E_curl = {kinetic_energy:.2e} < ε_adapt = {adaptive_eps:.2e}, "
+                "descartado como ruido"
+            )
+            return None
+        
+        # Construir proyector P_curl
+        P_curl, idempotency_error = self._compute_projector(B2)
+        
+        # Proyección explícita: I_curl = P_curl I
+        I_curl = P_curl @ I_vec
+        E_curl_projected = float(np.linalg.norm(I_curl) ** 2)
+        
+        # Ciclo dominante
+        abs_circ = np.abs(circulation)
+        dominant_idx = int(np.argmax(abs_circ))
+        dominant_circ = float(circulation[dominant_idx])
+        
+        # Métricas de vorticidad
+        metrics = VorticityMetrics(
+            kinetic_energy=kinetic_energy,
+            total_energy=total_energy,
+            vorticity_index=vorticity_index,
+            circulation_vector=circulation,
+            dominant_cycle_index=dominant_idx,
+            dominant_circulation=dominant_circ,
+            total_circulation_norm=float(np.linalg.norm(circulation)),
+        )
+        
+        # Descomposición energética detallada
+        energy_decomposition = {
+            "total_flow_energy": total_energy,
+            "curl_energy_circulation": kinetic_energy,
+            "curl_energy_projection": E_curl_projected,
+            "vorticity_ratio": vorticity_index,
+            "flow_norm": flow_norm,
+            "circulation_norm": metrics.total_circulation_norm,
+        }
+        
+        # Metadatos del ciclo dominante
+        cycle_metadata = {
+            "num_cycles": k,
+            "dominant_cycle_index": dominant_idx,
+            "dominant_circulation": dominant_circ,
+            "circulation_distribution": {
+                "mean": float(np.mean(abs_circ)),
+                "std": float(np.std(abs_circ)),
+                "max": float(np.max(abs_circ)),
+                "min": float(np.min(abs_circ)),
+            },
+        }
+        
+        logger.info(
+            f"Vorticidad detectada: E_curl={kinetic_energy:.4e}, "
+            f"ω={vorticity_index:.4f}, β₁={k}, "
+            f"severidad={metrics.severity_class}"
+        )
+        
+        return MagnonCartridge(
+            metrics=metrics,
+            projector_matrix=P_curl,
+            projection_idempotency_error=idempotency_error,
+            energy_decomposition=energy_decomposition,
+            cycle_metadata=cycle_metadata,
+            builder_metadata=meta_B2,
+        )
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.2 Descomposición Completa de Hodge-Helmholtz
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def compute_full_hodge_decomposition(
+        self,
+        G: nx.DiGraph,
+        edge_flows: Mapping[Tuple[Any, Any], float],
+    ) -> Dict[str, Any]:
+        """
+        Descomposición ortogonal completa de Hodge-Helmholtz.
+        
+        TEOREMA (Hodge):
+            ℝᵐ = im(B₁ᵀ) ⊕ im(B₂) ⊕ ker(L₁)
+        
+        es decir:
+            I = I_grad + I_curl + I_harm
+        
+        donde las tres componentes son mutuamente ortogonales.
+        
+        ALGORITMO (numéricamente estable vía SVD):
+            1. B₁ᵀ = U₁ Σ₁ V₁ᵀ → P_grad = U₁ᵣ U₁ᵣᵀ
+            2. B₂ = U₂ Σ₂ V₂ᵀ → P_curl = U₂ᵣ U₂ᵣᵀ
+            3. I_grad = P_grad I
+            4. I_curl = P_curl I
+            5. I_harm = I - I_grad - I_curl
+        
+        VERIFICACIÓN:
+            - ⟨I_grad, I_curl⟩ ≈ 0
+            - ⟨I_grad, I_harm⟩ ≈ 0
+            - ⟨I_curl, I_harm⟩ ≈ 0
+            - ‖I - (I_grad + I_curl + I_harm)‖ ≈ 0
+        
+        Args:
+            G: Grafo dirigido.
+            edge_flows: Flujos por arista.
+            
+        Returns:
+            Dict con componentes y verificación de ortogonalidad.
+        """
+        logger.debug("Calculando descomposición completa de Hodge-Helmholtz")
+        
+        builder = self._get_or_build_hodge_builder(G)
+        B1, _ = builder.build_incidence_matrix()
+        B2, _ = builder.build_face_matrix()
+        
+        I_vec = self._build_flow_vector(builder, edge_flows)
+        
+        # ─────────────────────────────────────────────────────────────────────
+        # Proyector sobre im(B₁ᵀ) (subespacio de gradientes)
+        # ─────────────────────────────────────────────────────────────────────
+        
+        B1T = B1.T  # m×n
+        tol_B1 = NumericalUtilities.adaptive_tolerance(B1T)
+        
+        try:
+            U1, s1, _ = np.linalg.svd(B1T, full_matrices=False)
+        except np.linalg.LinAlgError as exc:
+            raise NumericalStabilityError(
+                f"SVD de B₁ᵀ falló: {exc}",
+                context={"B1T_shape": B1T.shape}
+            ) from exc
+        
+        U1_r = U1[:, s1 > tol_B1]
+        P_grad = U1_r @ U1_r.T if U1_r.shape[1] > 0 else np.zeros(
+            (builder.m, builder.m), dtype=np.float64
+        )
+        
+        I_grad = P_grad @ I_vec
+        
+        # ─────────────────────────────────────────────────────────────────────
+        # Proyector sobre im(B₂) (subespacio solenoidal)
+        # ─────────────────────────────────────────────────────────────────────
+        
+        P_curl, _ = self._compute_projector(B2)
+        I_curl = P_curl @ I_vec
+        
+        # ─────────────────────────────────────────────────────────────────────
+        # Componente armónica (residual ortogonal)
+        # ─────────────────────────────────────────────────────────────────────
+        
+        I_harm = I_vec - I_grad - I_curl
+        
+        # ─────────────────────────────────────────────────────────────────────
+        # Verificación de ortogonalidad
+        # ─────────────────────────────────────────────────────────────────────
+        
+        inner_grad_curl = float(np.dot(I_grad, I_curl))
+        inner_grad_harm = float(np.dot(I_grad, I_harm))
+        inner_curl_harm = float(np.dot(I_curl, I_harm))
+        
+        reconstruction_error = float(
+            np.linalg.norm(I_vec - I_grad - I_curl - I_harm)
+        )
+        
+        tol_orth = NC.ORTHOGONALITY_TOLERANCE * np.linalg.norm(I_vec) ** 2
+        
+        is_orthogonal = (
+            abs(inner_grad_curl) < tol_orth
+            and abs(inner_grad_harm) < tol_orth
+            and abs(inner_curl_harm) < tol_orth
+        )
+        
+        is_complete = reconstruction_error < NC.BASE_TOLERANCE * np.linalg.norm(I_vec)
+        
+        if not is_orthogonal:
+            logger.warning(
+                f"Pérdida de ortogonalidad en descomposición de Hodge: "
+                f"⟨grad,curl⟩={inner_grad_curl:.2e}, "
+                f"⟨grad,harm⟩={inner_grad_harm:.2e}, "
+                f"⟨curl,harm⟩={inner_curl_harm:.2e}"
+            )
+        
+        if not is_complete:
+            logger.warning(
+                f"Error de reconstrucción: {reconstruction_error:.2e}"
+            )
+        
+        # ─────────────────────────────────────────────────────────────────────
+        # Descomposición energética
+        # ─────────────────────────────────────────────────────────────────────
+        
+        E_total = float(np.linalg.norm(I_vec) ** 2)
+        E_grad = float(np.linalg.norm(I_grad) ** 2)
+        E_curl = float(np.linalg.norm(I_curl) ** 2)
+        E_harm = float(np.linalg.norm(I_harm) ** 2)
+        
+        energy_balance = E_total - (E_grad + E_curl + E_harm)
+        
+        return {
+            "components": {
+                "original_flow": I_vec,
+                "irrotational": I_grad,
+                "solenoidal": I_curl,
+                "harmonic": I_harm,
+            },
+            "energy_decomposition": {
+                "total": E_total,
+                "irrotational": E_grad,
+                "solenoidal": E_curl,
+                "harmonic": E_harm,
+                "balance_error": energy_balance,
+            },
+            "norms": {
+                "total": float(np.linalg.norm(I_vec)),
+                "irrotational": float(np.linalg.norm(I_grad)),
+                "solenoidal": float(np.linalg.norm(I_curl)),
+                "harmonic": float(np.linalg.norm(I_harm)),
+            },
+            "verification": {
+                "orthogonality_grad_curl": inner_grad_curl,
+                "orthogonality_grad_harm": inner_grad_harm,
+                "orthogonality_curl_harm": inner_curl_harm,
+                "reconstruction_error": reconstruction_error,
+                "is_orthogonal_decomposition": is_orthogonal,
+                "is_complete_decomposition": is_complete,
+                "orthogonality_tolerance": tol_orth,
+            },
+            "projectors": {
+                "P_grad_rank": np.linalg.matrix_rank(P_grad),
+                "P_curl_rank": np.linalg.matrix_rank(P_curl),
+            },
+        }
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.3 Análisis Espectral del Laplaciano
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def spectral_analysis(self, G: nx.DiGraph) -> Dict[str, Any]:
+        """
+        Análisis espectral completo del Laplaciano de Hodge L₁.
+        
+        Calcula y clasifica:
+            • Espectro {λᵢ} de L₁
+            • Gap espectral λ₁
+            • Dimensión del kernel (= β₁)
+            • Número de condición κ₂(L₁)
+            • Clasificación de modos
+        
+        Args:
+            G: Grafo dirigido.
+            
+        Returns:
+            Dict con análisis espectral detallado.
+        """
+        logger.debug("Calculando análisis espectral del Laplaciano de Hodge")
+        
+        builder = self._get_or_build_hodge_builder(G)
+        L1, spectral = builder.compute_hodge_laplacian()
+        
+        # Clasificar eigenvalores
+        zero_eigenvalues = spectral.eigenvalues[
+            spectral.eigenvalues <= NC.SVD_TOLERANCE
+        ]
+        nonzero_eigenvalues = spectral.eigenvalues[
+            spectral.eigenvalues > NC.SVD_TOLERANCE
+        ]
+        
+        # Estadísticas del espectro
+        spectrum_stats = {
+            "min": float(spectral.eigenvalues[0]),
+            "max": float(spectral.eigenvalues[-1]),
+            "mean": float(np.mean(spectral.eigenvalues)),
+            "median": float(np.median(spectral.eigenvalues)),
+            "std": float(np.std(spectral.eigenvalues)),
+        }
+        
+        return {
+            "laplacian_spectrum": spectral.eigenvalues.tolist(),
+            "spectrum_statistics": spectrum_stats,
+            "spectral_gap": spectral.spectral_gap,
+            "kernel_dimension": spectral.kernel_dimension,
+            "condition_number": spectral.condition_number,
+            "zero_eigenvalues": {
+                "count": len(zero_eigenvalues),
+                "values": zero_eigenvalues.tolist(),
+            },
+            "nonzero_eigenvalues": {
+                "count": len(nonzero_eigenvalues),
+                "min": float(nonzero_eigenvalues[0]) if len(nonzero_eigenvalues) > 0 else None,
+                "max": float(nonzero_eigenvalues[-1]) if len(nonzero_eigenvalues) > 0 else None,
+            },
+            "properties": {
+                "is_positive_semidefinite": bool(np.all(spectral.eigenvalues >= -NC.BASE_TOLERANCE)),
+                "is_symmetric": True,  # Garantizado por construcción
+                "trace": float(np.sum(spectral.eigenvalues)),
+            },
+        }
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Utilidades de Diagnóstico
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def get_cache_statistics(self) -> Dict[str, int]:
+        """
+        Obtiene estadísticas de uso de caché.
+        
+        Returns:
+            Dict con hits, misses y tamaño actual.
+        """
+        return {
+            "cache_hits": self._cache_hits,
+            "cache_misses": self._cache_misses,
+            "cache_size": len(self._cache),
+            "hit_rate": (
+                self._cache_hits / (self._cache_hits + self._cache_misses)
+                if (self._cache_hits + self._cache_misses) > 0
+                else 0.0
+            ),
+        }
+    
+    def clear_cache(self) -> None:
+        """Limpia el caché de builders."""
+        self._cache.clear()
+        self._cache_hits = 0
+        self._cache_misses = 0
+        logger.debug("Caché de builders limpiado")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 8: MAGNON CARTRIDGE (Bosón de Vorticidad)
+# ═════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True, slots=True)
+class MagnonCartridge:
+    """
+    Cuasipartícula que encapsula estado colapsado de vorticidad solenoidal.
+    
+    Representa el resultado de la medición cuántica del operador de vorticidad,
+    emitida cuando la energía cinética rotacional supera el umbral adaptativo.
+    
+    INTERPRETACIÓN FÍSICA:
+        El MagnonCartridge es análogo a un magnon en materia condensada:
+        una excitación colectiva del campo de vorticidad que transporta
+        momento angular y energía.
+    
+    PROPIEDADES GARANTIZADAS:
+        1. Inmutabilidad (frozen=True, slots=True)
+        2. Validación exhaustiva de invariantes físicos
+        3. Serialización completa (sin referencias circulares)
+        4. No-clonación (sin __copy__/__deepcopy__)
+    
+    Attributes:
+        metrics: VorticityMetrics con todas las cantidades físicas.
+        projector_matrix: P_curl ∈ ℝᵐˣᵐ (opcional, puede ser grande).
+        projection_idempotency_error: ‖P² - P‖_F / ‖P‖_F.
+        energy_decomposition: Desglose energético detallado.
+        cycle_metadata: Metadatos topológicos de ciclos.
+        builder_metadata: Metadatos de construcción del complejo.
+    """
+    
+    metrics: VorticityMetrics
+    projector_matrix: Optional[np.ndarray] = field(default=None, repr=False)
+    projection_idempotency_error: float = 0.0
+    energy_decomposition: Dict[str, float] = field(default_factory=dict)
+    cycle_metadata: Dict[str, Any] = field(default_factory=dict)
+    builder_metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def __post_init__(self) -> None:
+        """
+        Validación de invariantes físicos y matemáticos.
+        
+        Invariantes:
+            • Error de idempotencia ≤ tolerancia
+            • Métricas consistentes con descomposición energética
+            • Proyector (si presente) tiene dimensiones correctas
+        
+        Raises:
+            ValueError: Si se violan invariantes.
+        """
+        # Validar error de idempotencia
+        if self.projection_idempotency_error < 0:
+            raise ValueError(
+                f"Error de idempotencia debe ser ≥ 0: "
+                f"{self.projection_idempotency_error}"
+            )
+        
+        if self.projection_idempotency_error > 0.1:
+            logger.error(
+                f"Error de idempotencia muy elevado: "
+                f"{self.projection_idempotency_error:.2e}. "
+                "El proyector puede no ser ortogonal."
+            )
+        
+        # Validar consistencia energética
+        if self.energy_decomposition:
+            E_total = self.energy_decomposition.get("total_flow_energy", 0.0)
+            E_curl = self.energy_decomposition.get("curl_energy_circulation", 0.0)
+            
+            if E_total > 0:
+                omega_computed = E_curl / E_total
+                if abs(omega_computed - self.metrics.vorticity_index) > NC.BASE_TOLERANCE:
+                    logger.warning(
+                        f"Inconsistencia en índice de vorticidad: "
+                        f"metrics.ω={self.metrics.vorticity_index:.6f}, "
+                        f"computed={omega_computed:.6f}"
+                    )
+        
+        # Validar dimensiones del proyector (si presente)
+        if self.projector_matrix is not None:
+            if self.projector_matrix.ndim != 2:
+                raise ValueError(
+                    f"projector_matrix debe ser 2-D: "
+                    f"shape={self.projector_matrix.shape}"
+                )
+            
+            m, n = self.projector_matrix.shape
+            if m != n:
+                raise ValueError(
+                    f"projector_matrix debe ser cuadrada: shape={self.projector_matrix.shape}"
+                )
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Propiedades Derivadas
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    @property
+    def is_significant(self) -> bool:
+        """
+        Determina si la vorticidad es físicamente significativa.
+        
+        Usa criterio de VorticityMetrics.is_significant.
+        
+        Returns:
+            True si requiere acción correctiva.
+        """
+        return self.metrics.is_significant
+    
+    @property
+    def severity_class(self) -> str:
+        """
+        Clasificación de severidad termodinámica.
+        
+        Returns:
+            String en {LOW, MODERATE, HIGH, CRITICAL}.
+        """
+        return self.metrics.severity_class
+    
+    @property
+    def kinetic_energy(self) -> float:
+        """Energía cinética de vorticidad E_curl."""
+        return self.metrics.kinetic_energy
+    
+    @property
+    def vorticity_index(self) -> float:
+        """Índice de vorticidad ω ∈ [0, 1]."""
+        return self.metrics.vorticity_index
+    
+    @property
+    def curl_subspace_dim(self) -> int:
+        """Dimensión del subespacio solenoidal (β₁)."""
+        return len(self.metrics.circulation_vector)
+    
+    @property
+    def dominant_cycle(self) -> Tuple[int, float]:
+        """
+        Ciclo con circulación dominante.
+        
+        Returns:
+            (cycle_index, circulation_value).
+        """
+        return (
+            self.metrics.dominant_cycle_index,
+            self.metrics.dominant_circulation
+        )
+    
     @property
     def total_circulation_norm(self) -> float:
-        """‖Γ‖ = √(E_curl)  (norma del vector de circulaciones)."""
-        return math.sqrt(self.kinetic_energy)
-
-    # ──────────────────────────────────────────────────────────────────────
-    # Métodos de acción
-    # ──────────────────────────────────────────────────────────────────────
-
+        """Norma del vector de circulaciones ‖Γ‖."""
+        return self.metrics.total_circulation_norm
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Métodos de Acción (Interfaz con Sistema de Control)
+    # ─────────────────────────────────────────────────────────────────────────
+    
     def to_veto_payload(self) -> Dict[str, Any]:
         """
-        Genera el payload para el Veto de Enrutamiento.
-
-        El payload es serializable (sin np.ndarray).
+        Genera payload para Veto de Enrutamiento (completamente serializable).
+        
+        El payload incluye:
+            • Tipo de veto
+            • Magnitud (severidad)
+            • Métricas de vorticidad
+            • Estado de causalidad
+            • Acción prescrita
+            • Descomposición energética
+        
+        Returns:
+            Dict serializable (sin np.ndarray).
         """
         return {
             "type": "ROUTING_VETO",
-            "magnitude": self.thermodynamic_severity,
+            "magnitude": self.severity_class,
             "vorticity_metrics": {
                 "kinetic_energy": self.kinetic_energy,
                 "curl_dimension_beta1": self.curl_subspace_dim,
                 "vorticity_index_omega": self.vorticity_index,
-                "dominant_cycle": self.dominant_cycle,
+                "dominant_cycle_index": self.metrics.dominant_cycle_index,
+                "dominant_circulation": self.metrics.dominant_circulation,
                 "total_circulation_norm": self.total_circulation_norm,
+                "harmonic_energy": self.metrics.harmonic_energy,
                 "projector_quality": 1.0 - self.projection_idempotency_error,
             },
             "causality_status": (
@@ -1286,80 +2292,206 @@ class MagnonCartridge:
             ),
             "prescribed_action": self._prescribe_action(),
             "energy_decomposition": self.energy_decomposition,
+            "cycle_metadata": self.cycle_metadata,
+            "builder_metadata": {
+                k: v for k, v in self.builder_metadata.items()
+                if not isinstance(v, (np.ndarray, list))  # Filtrar arrays grandes
+            },
         }
-
+    
     def _prescribe_action(self) -> str:
-        """Acción correctiva según severidad termodinámica."""
-        actions = {
-            "CRITICAL":  "COLLAPSE_AND_RECONFIGURE",
-            "HIGH":      "PARTITION_AND_RELAY",
-            "MODERATE":  "MONITOR_AND_DAMP",
-            "LOW":       "LOG_AND_PROCEED",
+        """
+        Prescribe acción correctiva según severidad.
+        
+        Mapeo:
+            CRITICAL  → COLLAPSE_AND_RECONFIGURE
+            HIGH      → PARTITION_AND_RELAY
+            MODERATE  → MONITOR_AND_DAMP
+            LOW       → LOG_AND_PROCEED
+        
+        Returns:
+            String con acción prescrita.
+        """
+        action_map = {
+            "CRITICAL": "COLLAPSE_AND_RECONFIGURE",
+            "HIGH": "PARTITION_AND_RELAY",
+            "MODERATE": "MONITOR_AND_DAMP",
+            "LOW": "LOG_AND_PROCEED",
         }
-        return actions[self.thermodynamic_severity]
+        return action_map.get(self.severity_class, "LOG_AND_PROCEED")
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Serialización completa a diccionario (sin proyector para ahorrar memoria).
+        
+        Returns:
+            Dict con todas las propiedades serializables.
+        """
+        return {
+            "metrics": {
+                "kinetic_energy": self.metrics.kinetic_energy,
+                "total_energy": self.metrics.total_energy,
+                "vorticity_index": self.metrics.vorticity_index,
+                "circulation_vector": self.metrics.circulation_vector.tolist(),
+                "dominant_cycle_index": self.metrics.dominant_cycle_index,
+                "dominant_circulation": self.metrics.dominant_circulation,
+                "total_circulation_norm": self.metrics.total_circulation_norm,
+                "harmonic_energy": self.metrics.harmonic_energy,
+                "severity_class": self.metrics.severity_class,
+                "is_significant": self.metrics.is_significant,
+            },
+            "projection_idempotency_error": self.projection_idempotency_error,
+            "energy_decomposition": self.energy_decomposition,
+            "cycle_metadata": self.cycle_metadata,
+            "builder_metadata": self.builder_metadata,
+            "veto_payload": self.to_veto_payload(),
+        }
+    
+    def generate_mathematical_proof(self) -> Dict[str, Any]:
+        """
+        Genera verificación matemática formal del resultado.
+        
+        Returns:
+            Dict con teorema, verificación y conclusión.
+        """
+        return {
+            "theorem": "Descomposición de Hodge-Helmholtz (Eckmann, 1944)",
+            "statement": "ℝᵐ = im(B₁ᵀ) ⊕ im(B₂) ⊕ ker(L₁)",
+            "interpretation": {
+                "im(B₁ᵀ)": "Subespacio de gradientes (flujo irrotacional)",
+                "im(B₂)": "Subespacio de ciclos (flujo solenoidal)",
+                "ker(L₁)": "Subespacio armónico (flujos harmónicos)",
+            },
+            "verification": {
+                "projector": "P_curl = Uᵣ Uᵣᵀ vía SVD de B₂ (Golub-Reinsch)",
+                "circulation": (
+                    f"Γ = B₂ᵀI, ‖Γ‖ = {self.total_circulation_norm:.6e}"
+                ),
+                "energy": (
+                    f"E_curl = ‖Γ‖² = {self.kinetic_energy:.6e}"
+                ),
+                "vorticity_index": (
+                    f"ω = E_curl / E_total = {self.vorticity_index:.6f}"
+                ),
+                "idempotency": (
+                    f"‖P² - P‖_F / ‖P‖_F = {self.projection_idempotency_error:.2e}"
+                ),
+                "curl_dimension": (
+                    f"dim im(B₂) = β₁ = {self.curl_subspace_dim}"
+                ),
+            },
+            "conclusion": (
+                f"Proyección P_curl I ≠ 0 confirma componente rotacional. "
+                f"ω = {self.vorticity_index:.4f} → "
+                f"Severidad: {self.severity_class}. "
+                f"Causalidad: {'COMPROMETIDA' if self.is_significant else 'INTACTA'}."
+            ),
+        }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PARTE V · INTERFAZ AGÉNTICA
-# ─────────────────────────────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 9: INTERFAZ DE ALTO NIVEL (API Agéntica)
+# ═════════════════════════════════════════════════════════════════════════════
 
 class ResonanceMitigationResult(dict):
-    """Objeto de resultado que soporta acceso por atributo y por clave."""
-    def __getattr__(self, name):
+    """
+    Resultado de inspección con acceso por atributo y clave.
+    
+    Permite tanto result["key"] como result.key para conveniencia.
+    """
+    
+    def __getattr__(self, name: str) -> Any:
+        """Permite acceso por atributo."""
         try:
             return self[name]
         except KeyError:
-            raise AttributeError(f"'ResonanceMitigationResult' object has no attribute '{name}'")
+            raise AttributeError(
+                f"'ResonanceMitigationResult' no tiene atributo '{name}'"
+            )
+    
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Permite asignación por atributo."""
+        self[name] = value
+
 
 def inspect_and_mitigate_resonance(
     G: nx.DiGraph,
-    flows: Dict[Tuple[Any, Any], float],
+    flows: Mapping[Tuple[Any, Any], float],
     full_analysis: bool = False,
     telemetry_ctx: Optional[TelemetryContext] = None,
 ) -> ResonanceMitigationResult:
     """
-    Punto de entrada principal para la Malla Agéntica.
-
-    Detecta dependencias circulares (ciclos topológicos) en G,
-    cuantifica la energía cinética parasitaria y emite un
-    MagnonCartridge si la vorticidad supera el umbral adaptativo.
-
-    Pipeline:
-        1. Construir descomposición de Hodge (B₁, B₂, L₁)
-        2. Proyectar flujos I sobre im(B₂) → circulaciones Γ
-        3. Calcular E_curl = ‖Γ‖² y ω = E_curl / ‖I‖²
-        4. Emitir MagnonCartridge o confirmar flujo laminar
-        5. (Opcional) Descomposición completa de Hodge + análisis espectral
-
+    Punto de entrada principal para análisis de vorticidad.
+    
+    PIPELINE DE INSPECCIÓN:
+        1. Construcción del complejo de cadenas (B₁, B₂, L₁)
+        2. Proyección de flujos sobre im(B₂)
+        3. Cálculo de circulaciones Γ = B₂ᵀI
+        4. Cuantificación de energía E_curl = ‖Γ‖²
+        5. Emisión de MagnonCartridge si ω > umbral
+        6. (Opcional) Descomposición completa + análisis espectral
+    
+    CASOS DE USO:
+        - Detección de dependencias circulares en grafos de ejecución
+        - Identificación de deadlocks potenciales
+        - Análisis de estabilidad de sistemas distribuidos
+        - Validación de diseños de arquitectura
+    
     Args:
-        G:             Grafo dirigido del sistema.
-        flows:         Campo de flujos {(u,v): valor} sobre aristas.
+        G: Grafo dirigido del sistema (V = componentes, E = dependencias).
+        flows: Campo de flujos sobre aristas {(u,v): valor}.
         full_analysis: Si True, incluye descomposición completa y espectro.
-        telemetry_ctx: Contexto de telemetría opcional para auditoría homológica.
-
+        telemetry_ctx: Contexto de telemetría para auditoría.
+        
     Returns:
         ResonanceMitigationResult con:
-            status:            StepStatus o string indicador de estado
-            action:            Acción prescripta
-            vorticity_metrics: Métricas de vorticidad
-            mathematical_proof: Verificación formal
-            full_hodge_decomposition: (si full_analysis=True)
-            spectral_analysis:        (si full_analysis=True)
+            - status: Estado del análisis
+            - action: Acción prescrita
+            - vorticity_metrics: Métricas de vorticidad
+            - mathematical_proof: Verificación formal
+            - full_hodge_decomposition: (si full_analysis=True)
+            - spectral_analysis: (si full_analysis=True)
+            
+    Raises:
+        GraphStructureError: Si grafo tiene estructura inválida.
+        NumericalStabilityError: Si cálculos fallan.
     """
     logger.info(
-        f"Análisis de vorticidad iniciado. "
-        f"V={G.number_of_nodes()}, E={G.number_of_edges()}"
+        f"Inspección de resonancia iniciada: "
+        f"V={G.number_of_nodes()}, E={G.number_of_edges()}, "
+        f"flows={len(flows)}, full_analysis={full_analysis}"
     )
-
-    solenoid = AcousticSolenoidOperator(adaptive_threshold=True)
-    magnon = solenoid.isolate_vorticity(G, flows)
-
-    # ── RESONANCIA DETECTADA ─────────────────────────────────────────────
+    
+    # Construir operador solenoidal
+    solenoid = AcousticSolenoidOperator(
+        adaptive_threshold=True,
+        enable_caching=True
+    )
+    
+    # Aislar vorticidad
+    try:
+        magnon = solenoid.isolate_vorticity(G, flows)
+    except Exception as exc:
+        logger.error(f"Fallo en aislamiento de vorticidad: {exc}")
+        
+        if telemetry_ctx:
+            telemetry_ctx.record_error(
+                step_name="solenoid_vorticity_isolation",
+                error_message=str(exc),
+                severity="ERROR",
+                stratum=Stratum.PHYSICS,
+            )
+        
+        raise
+    
+    # ═════════════════════════════════════════════════════════════════════════
+    # CASO 1: VORTICIDAD SIGNIFICATIVA DETECTADA
+    # ═════════════════════════════════════════════════════════════════════════
+    
     if magnon is not None and magnon.is_significant:
-        # Si la severidad es CRÍTICA, forzamos fallo estructural en el pipeline
-        is_critical = magnon.thermodynamic_severity == "CRITICAL"
+        is_critical = (magnon.severity_class == "CRITICAL")
         status = StepStatus.FAILURE if is_critical else "RESONANCE_DETECTED"
-
+        
         result = ResonanceMitigationResult({
             "status": status,
             "action": magnon._prescribe_action(),
@@ -1367,43 +2499,60 @@ def inspect_and_mitigate_resonance(
                 "parasitic_kinetic_energy": magnon.kinetic_energy,
                 "betti_1_cycles": magnon.curl_subspace_dim,
                 "vorticity_index": magnon.vorticity_index,
-                "thermodynamic_severity": magnon.thermodynamic_severity,
+                "thermodynamic_severity": magnon.severity_class,
                 "dominant_cycle": magnon.dominant_cycle,
-                "circulation_per_cycle": magnon.circulation_per_cycle,
+                "circulation_vector": magnon.metrics.circulation_vector.tolist(),
                 "total_circulation_norm": magnon.total_circulation_norm,
                 "projection_quality": 1.0 - magnon.projection_idempotency_error,
             },
-            "mathematical_proof": _generate_proof(magnon),
+            "mathematical_proof": magnon.generate_mathematical_proof(),
             "energy_accounting": magnon.energy_decomposition,
+            "cycle_metadata": magnon.cycle_metadata,
         })
-
+        
+        # Análisis completo opcional
         if full_analysis:
-            result["full_hodge_decomposition"] = (
-                solenoid.compute_full_hodge_decomposition(G, flows)
-            )
-            result["spectral_analysis"] = solenoid.spectral_analysis(G)
-
+            try:
+                result["full_hodge_decomposition"] = (
+                    solenoid.compute_full_hodge_decomposition(G, flows)
+                )
+                result["spectral_analysis"] = solenoid.spectral_analysis(G)
+            except Exception as exc:
+                logger.error(f"Fallo en análisis completo: {exc}")
+                result["full_analysis_error"] = str(exc)
+        
+        # Telemetría
         if telemetry_ctx:
-            # Registrar el error en telemetría si es crítico
             if is_critical:
                 telemetry_ctx.record_error(
-                    step_name="solenoid_inspection",
-                    error_message=f"Resonancia crítica detectada (ω={magnon.vorticity_index:.2f})",
+                    step_name="solenoid_resonance_critical",
+                    error_message=(
+                        f"Resonancia crítica: ω={magnon.vorticity_index:.2f}, "
+                        f"E_curl={magnon.kinetic_energy:.4e}"
+                    ),
                     severity="CRITICAL",
-                    stratum=Stratum.PHYSICS
+                    stratum=Stratum.PHYSICS,
                 )
             else:
-                telemetry_ctx.record_event("solenoid_vorticity_detected", result["vorticity_metrics"])
-
+                telemetry_ctx.record_event(
+                    "solenoid_resonance_detected",
+                    result["vorticity_metrics"]
+                )
+        
         logger.warning(
-            f"Vorticidad detectada — β₁={magnon.curl_subspace_dim}, "
-            f"E_curl={magnon.kinetic_energy:.4f}, "
+            f"VORTICIDAD DETECTADA — β₁={magnon.curl_subspace_dim}, "
+            f"E_curl={magnon.kinetic_energy:.4e}, "
             f"ω={magnon.vorticity_index:.4f}, "
-            f"severidad={magnon.thermodynamic_severity}"
+            f"severidad={magnon.severity_class}, "
+            f"acción={magnon._prescribe_action()}"
         )
+        
         return result
-
-    # ── FLUJO LAMINAR ────────────────────────────────────────────────────
+    
+    # ═════════════════════════════════════════════════════════════════════════
+    # CASO 2: FLUJO LAMINAR (SIN VORTICIDAD SIGNIFICATIVA)
+    # ═════════════════════════════════════════════════════════════════════════
+    
     result = ResonanceMitigationResult({
         "status": "LAMINAR_FLOW",
         "action": "PROCEED",
@@ -1412,220 +2561,245 @@ def inspect_and_mitigate_resonance(
             "betti_1_cycles": 0,
             "vorticity_index": 0.0,
             "thermodynamic_severity": "NONE",
+            "dominant_cycle": (-1, 0.0),
+            "circulation_vector": [],
+            "total_circulation_norm": 0.0,
+            "projection_quality": 1.0,
         },
         "mathematical_proof": {
             "theorem": "Teorema de Hodge: ker(L₁) ≅ H₁(G; ℝ)",
             "conclusion": (
-                "β₁ = 0 ⟹ im(B₂) = {0} ⟹ E_curl = 0. "
-                "El flujo es completamente irrotacional."
+                "β₁ = 0 o E_curl < ε ⟹ flujo irrotacional. "
+                "El sistema no presenta ciclos parasitarios significativos."
             ),
-            "verification": "P_curl I = 0 ∀I ∈ ℝᵐ cuando β₁ = 0.",
+            "verification": "P_curl I ≈ 0 ∀I ∈ ℝᵐ.",
         },
     })
-
+    
+    # Análisis completo opcional
+    if full_analysis:
+        try:
+            result["full_hodge_decomposition"] = (
+                solenoid.compute_full_hodge_decomposition(G, flows)
+            )
+            result["spectral_analysis"] = solenoid.spectral_analysis(G)
+        except Exception as exc:
+            logger.error(f"Fallo en análisis completo: {exc}")
+            result["full_analysis_error"] = str(exc)
+    
+    # Telemetría
     if telemetry_ctx:
-        # Validar el estrato físico si no hay resonancia obstructiva
         telemetry_ctx.update_physics(is_stable=True)
-
-    logger.info("Flujo laminar confirmado. Sin vorticidad detectable.")
+        telemetry_ctx.record_event(
+            "solenoid_laminar_flow_confirmed",
+            {"betti_1": 0}
+        )
+    
+    logger.info("Flujo laminar confirmado. Sistema sin vorticidad parasitaria.")
+    
     return result
 
 
-def _generate_proof(magnon: MagnonCartridge) -> Dict[str, Any]:
-    """
-    Genera la prueba matemática formal del resultado de vorticidad.
-
-    Args:
-        magnon: MagnonCartridge con las métricas calculadas.
-
-    Returns:
-        Dict serializable con la verificación formal.
-    """
-    return {
-        "theorem": "Descomposición de Hodge–Helmholtz (Eckmann 1944)",
-        "decomposition": "I = I_grad ⊕ I_curl ⊕ I_harm",
-        "spaces": {
-            "I_grad": "im(B₁ᵀ)  —  flujo irrotacional (gradiente de potencial)",
-            "I_curl": "im(B₂)   —  flujo solenoidal (rotacional puro)",
-            "I_harm": "ker(L₁)  —  flujo armónico (satisface ambas)",
-        },
-        "verification": {
-            "projector": "P_curl = U_r U_rᵀ  (vía SVD de B₂, numéricamente estable)",
-            "circulation": f"Γ = B₂ᵀI,  ‖Γ‖ = {magnon.total_circulation_norm:.6f}",
-            "energy": f"E_curl = ‖Γ‖² = {magnon.kinetic_energy:.6e}",
-            "vorticity_index": f"ω = E_curl / ‖I‖² = {magnon.vorticity_index:.6f}",
-            "idempotency": (
-                f"‖P²−P‖_F / ‖P‖_F = "
-                f"{magnon.projection_idempotency_error:.2e}"
-            ),
-            "curl_subspace_dim": (
-                f"dim im(B₂) = β₁ = {magnon.curl_subspace_dim}"
-            ),
-        },
-        "conclusion": (
-            f"La proyección P_curl I ≠ 0 confirma componente rotacional. "
-            f"ω = {magnon.vorticity_index:.4f} → "
-            f"Causalidad: COMPROMETIDA."
-        ),
-    }
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PARTE VI · UTILIDADES DE VERIFICACIÓN STANDALONE
-# ─────────────────────────────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 10: UTILIDADES DE VERIFICACIÓN STANDALONE
+# ═════════════════════════════════════════════════════════════════════════════
 
 def verify_hodge_properties(G: nx.DiGraph) -> Dict[str, Any]:
     """
-    Verificación exhaustiva de todas las propiedades de Hodge para G.
-
-    Útil para debugging, tests unitarios y validación matemática.
-
-    Verifica:
-        1. Invariantes del complejo de cadenas (B₁B₂ = 0)
-        2. Números de Betti (β₀, β₁) y Euler–Poincaré
-        3. Propiedades espectrales de L₁ (PSD, kernel, gap)
-        4. Isomorfismo de Hodge: dim ker(L₁) = β₁
-        5. Simetría y condición de L₁
-
+    Verificación exhaustiva de propiedades de Hodge para grafo G.
+    
+    VERIFICACIONES:
+        1. Complejo de cadenas: ∂₁ ∘ ∂₂ = 0
+        2. Números de Betti: β₀, β₁
+        3. Euler-Poincaré: χ = n - m = β₀ - β₁
+        4. Propiedades espectrales de L₁
+        5. Isomorfismo de Hodge: dim ker(L₁) = β₁
+        6. Simetría y positividad de L₁
+    
     Args:
-        G: Grafo dirigido.
-
+        G: Grafo dirigido a verificar.
+        
     Returns:
-        Dict con todos los resultados de verificación.
+        Dict con resultados completos de verificación.
+        
+    Raises:
+        GraphStructureError: Si grafo inválido.
     """
+    logger.info(f"Verificando propiedades de Hodge para grafo: V={G.number_of_nodes()}, E={G.number_of_edges()}")
+    
     hodge = HodgeDecompositionBuilder(G)
-
-    cochain_result = hodge.verify_cochain_complex()
-    B1, _ = hodge.build_incidence_matrix()
-    B2, _ = hodge.build_face_matrix()
+    
+    # Verificar complejo de cadenas
+    chain_result = hodge.verify_chain_complex()
+    
+    # Propiedades del grafo
+    undirected = G.to_undirected()
+    is_connected = nx.is_weakly_connected(G)
+    components = nx.number_connected_components(undirected)
+    
+    # Análisis espectral
     L1, spectral = hodge.compute_hodge_laplacian()
-
-    # Verificar nulidad del kernel usando base explícita
-    ker_L1 = NumericalUtilities.null_space_basis(L1)
-    ker_dim = ker_L1.shape[1]
-
-    # Verificar que ker(L₁) ⊆ ker(B₁) ∩ ker(B₂ᵀ)
-    ker_ok = True
-    if ker_dim > 0:
-        B1_ker_norm = float(np.linalg.norm(B1 @ ker_L1))
-        B2T_ker_norm = float(np.linalg.norm(B2.T @ ker_L1)) if B2.shape[1] > 0 else 0.0
-        tol = 1e-8
-        ker_ok = B1_ker_norm < tol and B2T_ker_norm < tol
-    else:
-        B1_ker_norm = 0.0
-        B2T_ker_norm = 0.0
-
+    
+    # Verificar kernel
+    kernel_basis = NumericalUtilities.null_space_basis(L1)
+    kernel_dim = kernel_basis.shape[1]
+    
+    # Análisis de condición
+    kappa, sigma_min, sigma_max = NumericalUtilities.condition_number(L1)
+    
     return {
         "graph_properties": {
             "nodes": G.number_of_nodes(),
             "edges": G.number_of_edges(),
             "is_directed": G.is_directed(),
-            "is_weakly_connected": nx.is_weakly_connected(G),
-            "connected_components": nx.number_connected_components(
-                G.to_undirected()
-            ),
+            "is_weakly_connected": is_connected,
+            "connected_components": components,
+            "is_dag": nx.is_directed_acyclic_graph(G),
         },
-        "cochain_complex": cochain_result,
+        "chain_complex_verification": chain_result,
         "betti_numbers": {
-            "beta_0": cochain_result["beta_0"],
-            "beta_1": cochain_result["beta_1"],
+            "beta_0": chain_result["betti_numbers"]["beta_0"],
+            "beta_1": chain_result["betti_numbers"]["beta_1"],
+            "beta_2": 0,
         },
-        "euler_characteristic": {
-            "formula": "χ = n − m = β₀ − β₁",
-            "chi_geometric": hodge.n - hodge.m,
-            "chi_topological": (
-                cochain_result["beta_0"] - cochain_result["beta_1"]
-            ),
-            "verified": cochain_result["euler_poincare_ok"],
-        },
-        "hodge_kernel": {
-            "ker_L1_dimension": ker_dim,
-            "expected_beta_1": cochain_result["beta_1"],
-            "isomorphism_ok": ker_dim == cochain_result["beta_1"],
-            "ker_subset_of_ker_B1": B1_ker_norm,
-            "ker_subset_of_ker_B2T": B2T_ker_norm,
-            "kernel_property_ok": ker_ok,
-        },
-        "spectral_properties": spectral,
-        "hodge_laplacian_summary": {
+        "euler_characteristic": chain_result["euler_characteristic"],
+        "hodge_isomorphism": chain_result["hodge_isomorphism"],
+        "spectral_properties": chain_result["spectral_properties"],
+        "laplacian_analysis": {
             "shape": L1.shape,
             "trace": float(np.trace(L1)),
-            "is_symmetric": bool(np.allclose(L1, L1.T)),
-            "is_psd": bool(np.all(np.linalg.eigvalsh(L1) >= -1e-10)),
-            "condition_number": spectral.get("condition_number", math.inf),
+            "condition_number": kappa,
+            "sigma_min": sigma_min,
+            "sigma_max": sigma_max,
+            "is_symmetric": bool(np.allclose(L1, L1.T, atol=NC.SYMMETRY_TOLERANCE)),
+            "is_psd": bool(np.all(spectral.eigenvalues >= -NC.BASE_TOLERANCE)),
+            "kernel_dimension": kernel_dim,
+            "spectral_gap": spectral.spectral_gap,
+        },
+        "verification_summary": {
+            "all_checks_passed": chain_result["is_valid"],
+            "boundary_composition_zero": chain_result["boundary_composition"]["is_zero"],
+            "euler_verified": chain_result["euler_characteristic"]["verified"],
+            "hodge_iso_satisfied": chain_result["hodge_isomorphism"]["satisfied"],
+            "laplacian_symmetric": bool(np.allclose(L1, L1.T, atol=NC.SYMMETRY_TOLERANCE)),
+            "laplacian_psd": bool(np.all(spectral.eigenvalues >= -NC.BASE_TOLERANCE)),
         },
     }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PARTE VII · PUNTO DE ENTRADA
-# ─────────────────────────────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 11: PUNTO DE ENTRADA PARA TESTING
+# ═════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
+    """
+    Suite de ejemplos y verificación básica.
+    
+    Ejecuta:
+        1. Verificación de propiedades de Hodge en grafo de prueba
+        2. Análisis de vorticidad en grafo con ciclos
+        3. Descomposición completa de Hodge-Helmholtz
+    """
+    
     logging.basicConfig(
         level=logging.INFO,
-        format="%(levelname)-8s %(name)s — %(message)s",
+        format='%(asctime)s | %(name)-30s | %(levelname)-8s | %(message)s'
     )
-
-    # ── Grafo de prueba: dos ciclos simples ──────────────────────────────
+    
+    print("\n" + "═" * 80)
+    print("MÓDULO SOLENOID ACOUSTIC — SUITE DE VERIFICACIÓN")
+    print("═" * 80 + "\n")
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Test 1: Grafo con Dos Ciclos
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    print("TEST 1: Grafo con dos ciclos compartiendo vértice")
+    print("─" * 80)
+    
     G = nx.DiGraph()
     G.add_edges_from([
-        ("A", "B"), ("B", "C"), ("C", "A"),   # Ciclo 1: A→B→C→A
-        ("A", "D"), ("D", "E"), ("E", "A"),   # Ciclo 2: A→D→E→A
+        ("A", "B"), ("B", "C"), ("C", "A"),  # Ciclo 1
+        ("A", "D"), ("D", "E"), ("E", "A"),  # Ciclo 2
     ])
-
-    flows: Dict[Tuple[str, str], float] = {
+    
+    flows = {
         ("A", "B"): 10.0,
         ("B", "C"): 10.0,
         ("C", "A"): 10.0,
-        ("A", "D"):  5.0,
-        ("D", "E"):  5.0,
-        ("E", "A"):  5.0,
+        ("A", "D"): 5.0,
+        ("D", "E"): 5.0,
+        ("E", "A"): 5.0,
     }
-
-    # ── Verificación formal de propiedades de Hodge ───────────────────────
-    print("\n" + "=" * 70)
-    print("VERIFICACIÓN FORMAL DE PROPIEDADES DE HODGE")
-    print("=" * 70)
+    
+    # Verificar propiedades
     hodge_props = verify_hodge_properties(G)
-    for section, values in hodge_props.items():
-        print(f"\n[{section}]")
-        if isinstance(values, dict):
-            for k, v in values.items():
-                if not isinstance(v, (list,)):   # omitir listas largas
-                    print(f"  {k}: {v}")
-        else:
-            print(f"  {values}")
-
-    # ── Análisis de vorticidad completo ───────────────────────────────────
-    print("\n" + "=" * 70)
-    print("ANÁLISIS DE VORTICIDAD SOLENOIDAL")
-    print("=" * 70)
-    result = inspect_and_mitigate_resonance(G, flows, full_analysis=True)
-
-    print(f"\nEstado:   {result['status']}")
-    print(f"Acción:   {result['action']}")
-
-    vm = result["vorticity_metrics"]
-    print(f"\nMétricas de Vorticidad:")
-    for k, v in vm.items():
+    
+    print(f"\nPropiedades del Grafo:")
+    for k, v in hodge_props["graph_properties"].items():
         print(f"  {k}: {v}")
-
+    
+    print(f"\nNúmeros de Betti:")
+    for k, v in hodge_props["betti_numbers"].items():
+        print(f"  {k}: {v}")
+    
+    print(f"\nEuler-Poincaré:")
+    for k, v in hodge_props["euler_characteristic"].items():
+        print(f"  {k}: {v}")
+    
+    print(f"\nVerificación:")
+    for k, v in hodge_props["verification_summary"].items():
+        symbol = "✓" if v else "✗"
+        print(f"  {symbol} {k}: {v}")
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Test 2: Análisis de Vorticidad
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    print("\n" + "─" * 80)
+    print("TEST 2: Análisis de Vorticidad")
+    print("─" * 80)
+    
+    result = inspect_and_mitigate_resonance(G, flows, full_analysis=True)
+    
+    print(f"\nEstado: {result['status']}")
+    print(f"Acción: {result['action']}")
+    
+    print(f"\nMétricas de Vorticidad:")
+    for k, v in result["vorticity_metrics"].items():
+        if isinstance(v, (list, np.ndarray)):
+            print(f"  {k}: [array con {len(v)} elementos]")
+        else:
+            print(f"  {k}: {v}")
+    
     print(f"\nPrueba Matemática:")
     proof = result["mathematical_proof"]
-    for k, v in proof.items():
-        if isinstance(v, dict):
-            print(f"  {k}:")
-            for kk, vv in v.items():
-                print(f"    {kk}: {vv}")
-        else:
-            print(f"  {k}: {v}")
-
+    print(f"  Teorema: {proof['theorem']}")
+    print(f"  Conclusión: {proof['conclusion']}")
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Test 3: Descomposición de Hodge
+    # ─────────────────────────────────────────────────────────────────────────
+    
     if "full_hodge_decomposition" in result:
+        print("\n" + "─" * 80)
+        print("TEST 3: Descomposición de Hodge-Helmholtz")
+        print("─" * 80)
+        
         fhd = result["full_hodge_decomposition"]
-        print(f"\nDescomposición de Hodge — Energías:")
+        
+        print(f"\nEnergías:")
         for k, v in fhd["energy_decomposition"].items():
-            print(f"  {k}: {v:.6f}")
-        print(f"\nVerificación de ortogonalidad:")
+            print(f"  {k}: {v:.6e}")
+        
+        print(f"\nVerificación de Ortogonalidad:")
         for k, v in fhd["verification"].items():
-            print(f"  {k}: {v}")
+            if isinstance(v, bool):
+                symbol = "✓" if v else "✗"
+                print(f"  {symbol} {k}: {v}")
+            else:
+                print(f"  {k}: {v:.2e}")
+    
+    print("\n" + "═" * 80)
+    print("SUITE DE VERIFICACIÓN COMPLETADA")
+    print("═" * 80 + "\n")
