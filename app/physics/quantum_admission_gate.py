@@ -626,7 +626,8 @@ class Eigenstate(Enum):
 # SECCIÓN 5: ESTRUCTURAS ALGEBRAICAS (Espacios Métricos y Vectoriales)
 # ═════════════════════════════════════════════════════════════════════════════
 
-class NumericInterval(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class NumericInterval:
     """
     Intervalo cerrado [lower, upper] ⊂ ℝ con aritmética rigurosa.
     
@@ -1604,7 +1605,8 @@ class IncidentEnergyCalculator:
         n_bytes = len(data)
         
         # Caso especial: payload vacío
-        if n_bytes == 0:
+        # Consideramos vacío si len(payload) es 0 y es de tipo Mapping
+        if n_bytes == 0 or (isinstance(payload, Mapping) and len(payload) == 0):
             return 0.0, NumericInterval(0.0, 0.0)
         
         # Entropía con piso regularizador
@@ -2123,7 +2125,7 @@ class QuantumAdmissionGate(Morphism):
             for method in methods:
                 if not hasattr(obj, method):
                     raise QuantumInterfaceError(
-                        f"Dependencia '{name}' no implementa '{method}'",
+                        f"Dependencia '{name}' no implementa el método '{method}'",
                         context={"dependency": name, "method": method}
                     )
                 
