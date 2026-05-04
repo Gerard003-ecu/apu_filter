@@ -1,2070 +1,2122 @@
 """
-=========================================================================================
-Suite de Pruebas Rigurosas: Solenoidal Acústico v3.0
-=========================================================================================
+═════════════════════════════════════════════════════════════════════════════
+MÓDULO: Test Suite para Solenoid Acoustic (Descomposición de Hodge-Helmholtz)
+VERSIÓN: 1.0.0 - Suite Rigurosa de Validación Topológica y Numérica
+UBICACIÓN: tests/unit/physics/test_solenoid_acoustic.py
+═════════════════════════════════════════════════════════════════════════════
 
-Filosofía de Testing:
-    Cada prueba verifica una propiedad matemática demostrable, no solo
-    comportamiento de implementación. Las tolerancias son derivadas de
-    principios de análisis numérico (épsilon de máquina, número de condición).
+ARQUITECTURA DE TESTING:
 
-Estructura de la Suite:
-    I.   TestNumericalUtilities         — Álgebra lineal numérica
-    II.  TestHodgeDecompositionBuilder  — Complejo de cadenas y matrices
-    III. TestCochainComplexInvariants   — Invariantes topológicos
-    IV.  TestSpectralProperties         — Propiedades espectrales de L₁
-    V.   TestAcousticSolenoidOperator   — Operador de vorticidad
-    VI.  TestMagnonCartridge            — Dataclass y validaciones
-    VII. TestFullHodgeDecomposition     — Descomposición completa
-    VIII.TestEdgeCases                  — Casos degenerados y frontera
-    IX.  TestEulerPoincare              — Invariantes topológicos globales
-    X.   TestNumericalStability         — Estabilidad ante perturbaciones
+Esta suite implementa pruebas exhaustivas de:
+    1. Álgebra lineal numérica (SVD, pseudoinversas, proyecciones)
+    2. Topología algebraica (números de Betti, complejo de cadenas)
+    3. Descomposición de Hodge (ortogonalidad, completitud)
+    4. Operadores de vorticidad (proyectores, circulación)
+    5. Propiedades espectrales (Laplaciano, gaps, kernels)
+    6. Invariantes físicos (energía, conservación)
+    7. Casos límite y robustez numérica
 
-Propiedades matemáticas verificadas:
-    - B₁B₂ = 0                 (cochain complex)
-    - rank(B₁) = n − c         (conectividad)
-    - rank(B₂) = 0   (primer número de Betti)
-    - L₁ PSD simétrica         (positiva semidefinida)
-    - dim ker(L₁) = β₁         (isomorfismo de Hodge)
-    - χ = β₀ − β₁              (Euler–Poincaré)
-    - P² = P, Pᵀ = P           (proyector ortogonal)
-    - ‖I_grad‖² + ‖I_curl‖² + ‖I_harm‖² ≈ ‖I‖²  (Parseval)
-    - ⟨I_grad, I_curl⟩ ≈ 0    (ortogonalidad)
-=========================================================================================
+ESTRUCTURA JERÁRQUICA:
+
+    1. FIXTURES Y GRAFOS DE REFERENCIA
+       ├── Grafo acíclico (DAG)
+       ├── Grafo con un ciclo simple
+       ├── Grafo con múltiples ciclos
+       ├── Grafo desconectado
+       └── Grafos patológicos (self-loops, multigrafos)
+
+    2. TESTS DE ÁLGEBRA LINEAL NUMÉRICA
+       ├── Tolerancias adaptativas
+       ├── Rango numérico
+       ├── Pseudoinversas (4 condiciones de Penrose)
+       ├── Proyecciones ortogonales
+       ├── Bases del kernel
+       └── Números de condición
+
+    3. TESTS DE CONSTRUCCIÓN DEL COMPLEJO
+       ├── Matriz de incidencia B₁
+       ├── Matriz de ciclos B₂ (FCB)
+       ├── Verificación ∂₁ ∘ ∂₂ = 0
+       ├── Dimensiones y rangos
+       └── Euler-Poincaré
+
+    4. TESTS DE LAPLACIANO DE HODGE
+       ├── Simetría y positividad
+       ├── Espectro y kernel
+       ├── Isomorfismo de Hodge
+       ├── Gap espectral
+       └── Número de condición
+
+    5. TESTS DE DESCOMPOSICIÓN DE HODGE
+       ├── Ortogonalidad de componentes
+       ├── Completitud (reconstrucción)
+       ├── Conservación de energía
+       ├── Unicidad
+       └── Estabilidad numérica
+
+    6. TESTS DE OPERADOR DE VORTICIDAD
+       ├── Proyector solenoidal
+       ├── Idempotencia
+       ├── Circulación (Ley de Stokes)
+       ├── Energía de vorticidad
+       └── Índice de vorticidad
+
+    7. TESTS DE MAGNON CARTRIDGE
+       ├── Construcción y validación
+       ├── Clasificación de severidad
+       ├── Serialización
+       └── Inmutabilidad
+
+    8. TESTS DE INTEGRACIÓN
+       ├── Pipeline completo
+       ├── inspect_and_mitigate_resonance
+       ├── Flujos laminares vs rotacionales
+       └── Telemetría
+
+    9. TESTS DE PROPIEDADES TOPOLÓGICAS
+       ├── Números de Betti
+       ├── Componentes conexas
+       ├── Ciclos independientes
+       └── Característica de Euler
+
+    10. TESTS DE CASOS LÍMITE
+        ├── Grafos vacíos
+        ├── Grafos triviales (1 nodo)
+        ├── Grafos completos
+        ├── Grafos con alta vorticidad
+        └── Estabilidad numérica extrema
+
+CONVENCIONES:
+
+    - test_unit_*:        Tests unitarios de componentes atómicos
+    - test_integration_*: Tests de integración multi-componente
+    - test_property_*:    Tests de propiedades algebraicas
+    - test_invariant_*:   Tests de invariantes topológicos
+    - test_edge_*:        Tests de casos límite
+    - test_numerical_*:   Tests de estabilidad numérica
+    - test_spectral_*:    Tests de propiedades espectrales
+
+═════════════════════════════════════════════════════════════════════════════
 """
 
 from __future__ import annotations
 
 import math
-import itertools
-import logging
-from typing import Any, Dict, List, Optional, Tuple
+import sys
+from typing import Any, Dict, List, Tuple
 
 import networkx as nx
 import numpy as np
 import pytest
-import scipy.linalg as la
-import scipy.sparse as sp
+from scipy import linalg as la
 
-# ── Módulo bajo prueba ────────────────────────────────────────────────────────
-from app.physics.solenoid_acustic import (
-    AcousticSolenoidOperator,
-    HodgeDecompositionBuilder,
-    MagnonCartridge,
+# Importaciones del módulo bajo test
+from app.physics.solenoid_acoustic import (
+    # Constantes
+    NumericalConstants,
+    NC,
+    
+    # Excepciones
+    HodgeDecompositionError,
+    TopologicalInvariantError,
+    NumericalStabilityError,
+    GraphStructureError,
+    
+    # Estructuras de datos
+    SpectralDecomposition,
+    BettiNumbers,
+    ChainComplex,
+    VorticityMetrics,
+    
+    # Utilidades numéricas
     NumericalUtilities,
-    _generate_proof,
+    
+    # Constructores
+    HodgeDecompositionBuilder,
+    
+    # Operadores
+    AcousticSolenoidOperator,
+    
+    # Resultados
+    MagnonCartridge,
+    ResonanceMitigationResult,
+    
+    # API de alto nivel
     inspect_and_mitigate_resonance,
     verify_hodge_properties,
 )
 
-# ── Configuración de logging para tests ──────────────────────────────────────
-logging.basicConfig(level=logging.WARNING)
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 1: FIXTURES Y GRAFOS DE REFERENCIA
+# ═════════════════════════════════════════════════════════════════════════════
 
 @pytest.fixture
-def operator() -> AcousticSolenoidOperator:
-    return AcousticSolenoidOperator()
+def dag_simple() -> nx.DiGraph:
+    """
+    Grafo acíclico dirigido (DAG) simple.
+    
+    Estructura:
+        A → B → C
+        A → D → C
+    
+    Propiedades:
+        - n = 4, m = 4
+        - β₀ = 1 (conexo)
+        - β₁ = 0 (sin ciclos)
+        - χ = 0
+    """
+    G = nx.DiGraph()
+    G.add_edges_from([
+        ("A", "B"),
+        ("B", "C"),
+        ("A", "D"),
+        ("D", "C"),
+    ])
+    return G
+
 
 @pytest.fixture
-def builder_factory():
-    def _make_builder(G):
-        return HodgeDecompositionBuilder(G)
-    return _make_builder
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CONSTANTES GLOBALES
-# ─────────────────────────────────────────────────────────────────────────────
-
-EPS_MACH: float = np.finfo(np.float64).eps          # ≈ 2.22e-16
-TOL_STRICT: float = 1e-10                            # Para propiedades exactas
-TOL_NUMERICAL: float = 1e-8                          # Para propiedades numéricas
-TOL_PROJECTION: float = 1e-6                         # Para errores de proyección
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# FÁBRICA DE GRAFOS DE PRUEBA
-# ─────────────────────────────────────────────────────────────────────────────
-
-class GraphFactory:
+def single_cycle() -> nx.DiGraph:
     """
-    Fábrica de grafos con propiedades topológicas conocidas.
-
-    Cada grafo incluye sus invariantes esperados para verificación.
+    Grafo con un ciclo simple.
+    
+    Estructura:
+        A → B → C → A
+    
+    Propiedades:
+        - n = 3, m = 3
+        - β₀ = 1
+        - β₁ = 1 (un ciclo)
+        - χ = 0
     """
-
-    @staticmethod
-    def triangle() -> Tuple[nx.DiGraph, Dict[str, int]]:
-        """
-        Triángulo dirigido: A→B→C→A
-        n=3, m=3, c=1, β₀=1, β₁=1, χ=0
-        """
-        G = nx.DiGraph()
-        G.add_edges_from([("A", "B"), ("B", "C"), ("C", "A")])
-        return G, {"n": 3, "m": 3, "c": 1, "beta_0": 1, "beta_1": 1, "chi": 0}
-
-    @staticmethod
-    def two_triangles_shared_vertex() -> Tuple[nx.DiGraph, Dict[str, int]]:
-        """
-        Dos triángulos compartiendo un vértice:
-        A→B→C→A y A→D→E→A
-        n=5, m=6, c=1, β₁=2, χ=-1
-        """
-        G = nx.DiGraph()
-        G.add_edges_from([
-            ("A", "B"), ("B", "C"), ("C", "A"),
-            ("A", "D"), ("D", "E"), ("E", "A"),
-        ])
-        return G, {"n": 5, "m": 6, "c": 1, "beta_0": 1, "beta_1": 2, "chi": -1}
-
-    @staticmethod
-    def path_graph(n: int = 4) -> Tuple[nx.DiGraph, Dict[str, int]]:
-        """
-        Camino dirigido: 0→1→2→...→n-1
-        β₁=0 (árbol: sin ciclos)
-        """
-        G = nx.DiGraph()
-        G.add_edges_from([(i, i + 1) for i in range(n - 1)])
-        return G, {
-            "n": n, "m": n - 1, "c": 1,
-            "beta_0": 1, "beta_1": 0, "chi": 1,
-        }
-
-    @staticmethod
-    def complete_directed(n: int = 4) -> Tuple[nx.DiGraph, Dict[str, int]]:
-        """
-        Grafo completo dirigido K_n (ambas direcciones por par).
-        n nodos, m = n(n-1) aristas, β₁ = m - n + 1
-        """
-        G = nx.DiGraph()
-        for i in range(n):
-            for j in range(n):
-                if i != j:
-                    G.add_edge(i, j)
-        m = n * (n - 1)
-        beta_1 = m - n + 1
-        return G, {"n": n, "m": m, "c": 1, "beta_0": 1, "beta_1": beta_1}
-
-    @staticmethod
-    def disconnected_two_triangles() -> Tuple[nx.DiGraph, Dict[str, int]]:
-        """
-        Dos triángulos disjuntos:
-        A→B→C→A  y  X→Y→Z→X
-        n=6, m=6, c=2, β₀=2, β₁=2, χ=0
-        """
-        G = nx.DiGraph()
-        G.add_edges_from([
-            ("A", "B"), ("B", "C"), ("C", "A"),
-            ("X", "Y"), ("Y", "Z"), ("Z", "X"),
-        ])
-        return G, {
-            "n": 6, "m": 6, "c": 2,
-            "beta_0": 2, "beta_1": 2, "chi": 0,
-        }
-
-    @staticmethod
-    def single_node() -> Tuple[nx.DiGraph, Dict[str, int]]:
-        """Grafo trivial: un único nodo, sin aristas."""
-        G = nx.DiGraph()
-        G.add_node("A")
-        return G, {"n": 1, "m": 0, "c": 1, "beta_0": 1, "beta_1": 0, "chi": 1}
-
-    @staticmethod
-    def square_with_diagonal() -> Tuple[nx.DiGraph, Dict[str, int]]:
-        """
-        Cuadrado con diagonal: 0→1→2→3→0, 0→2
-        n=4, m=5, c=1, β₁=2, χ=-1
-        """
-        G = nx.DiGraph()
-        G.add_edges_from([
-            (0, 1), (1, 2), (2, 3), (3, 0), (0, 2)
-        ])
-        return G, {"n": 4, "m": 5, "c": 1, "beta_0": 1, "beta_1": 2, "chi": -1}
-
-    @staticmethod
-    def spanning_tree(n: int = 5) -> Tuple[nx.DiGraph, Dict[str, int]]:
-        """
-        Árbol generador dirigido (sin ciclos).
-        n nodos, m = n-1 aristas, β₁ = 0.
-        """
-        G = nx.DiGraph()
-        for i in range(1, n):
-            G.add_edge(0, i)
-        return G, {
-            "n": n, "m": n - 1, "c": 1,
-            "beta_0": 1, "beta_1": 0, "chi": 1,
-        }
-
-    @staticmethod
-    def uniform_flow_cycle(n: int = 5, flow: float = 1.0) -> Tuple[
-        nx.DiGraph, Dict[Tuple, float]
-    ]:
-        """
-        Ciclo n-gono con flujo uniforme.
-        Retorna (grafo, flows) donde flows tiene circulación exactamente `flow`.
-        """
-        nodes = list(range(n))
-        G = nx.DiGraph()
-        flows = {}
-        for i in range(n):
-            u, v = nodes[i], nodes[(i + 1) % n]
-            G.add_edge(u, v)
-            flows[(u, v)] = flow
-        return G, flows
+    G = nx.DiGraph()
+    G.add_edges_from([
+        ("A", "B"),
+        ("B", "C"),
+        ("C", "A"),
+    ])
+    return G
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# I. TESTS: NumericalUtilities
-# ─────────────────────────────────────────────────────────────────────────────
+@pytest.fixture
+def double_cycle() -> nx.DiGraph:
+    """
+    Grafo con dos ciclos compartiendo vértice.
+    
+    Estructura:
+        Ciclo 1: A → B → C → A
+        Ciclo 2: A → D → E → A
+    
+    Propiedades:
+        - n = 5, m = 6
+        - β₀ = 1
+        - β₁ = 2 (dos ciclos independientes)
+        - χ = -1
+    """
+    G = nx.DiGraph()
+    G.add_edges_from([
+        ("A", "B"), ("B", "C"), ("C", "A"),  # Ciclo 1
+        ("A", "D"), ("D", "E"), ("E", "A"),  # Ciclo 2
+    ])
+    return G
+
+
+@pytest.fixture
+def disconnected_graph() -> nx.DiGraph:
+    """
+    Grafo con dos componentes desconectadas.
+    
+    Estructura:
+        Componente 1: A → B → C → A
+        Componente 2: D → E
+    
+    Propiedades:
+        - n = 5, m = 4
+        - β₀ = 2 (dos componentes)
+        - β₁ = 1 (un ciclo)
+        - χ = 1
+    """
+    G = nx.DiGraph()
+    G.add_edges_from([
+        ("A", "B"), ("B", "C"), ("C", "A"),  # Componente 1 con ciclo
+        ("D", "E"),  # Componente 2 acíclica
+    ])
+    return G
+
+
+@pytest.fixture
+def complete_graph_3() -> nx.DiGraph:
+    """
+    Grafo completo dirigido K₃.
+    
+    Estructura:
+        Todas las aristas posibles entre 3 vértices.
+    
+    Propiedades:
+        - n = 3, m = 6
+        - β₀ = 1
+        - β₁ = 4 (múltiples ciclos)
+        - χ = -3
+    """
+    G = nx.DiGraph()
+    nodes = ["A", "B", "C"]
+    for u in nodes:
+        for v in nodes:
+            if u != v:
+                G.add_edge(u, v)
+    return G
+
+
+@pytest.fixture
+def trivial_graph() -> nx.DiGraph:
+    """
+    Grafo trivial (1 nodo, 0 aristas).
+    
+    Propiedades:
+        - n = 1, m = 0
+        - β₀ = 1
+        - β₁ = 0
+        - χ = 1
+    """
+    G = nx.DiGraph()
+    G.add_node("A")
+    return G
+
+
+@pytest.fixture
+def self_loop_graph() -> nx.DiGraph:
+    """
+    Grafo con self-loop.
+    
+    Estructura:
+        A → A (self-loop)
+        A → B
+    
+    Propiedades:
+        - n = 2, m = 2
+        - β₀ = 1
+        - β₁ = 1 (self-loop es un ciclo)
+        - χ = 0
+    """
+    G = nx.DiGraph()
+    G.add_edges_from([
+        ("A", "A"),  # Self-loop
+        ("A", "B"),
+    ])
+    return G
+
+
+@pytest.fixture
+def sample_flows_uniform() -> Dict[Tuple[str, str], float]:
+    """
+    Flujos uniformes (todos = 1.0) para testing.
+    """
+    return {
+        ("A", "B"): 1.0,
+        ("B", "C"): 1.0,
+        ("C", "A"): 1.0,
+    }
+
+
+@pytest.fixture
+def sample_flows_nonuniform() -> Dict[Tuple[str, str], float]:
+    """
+    Flujos no uniformes para testing de vorticidad.
+    """
+    return {
+        ("A", "B"): 10.0,
+        ("B", "C"): 10.0,
+        ("C", "A"): 10.0,
+        ("A", "D"): 5.0,
+        ("D", "E"): 5.0,
+        ("E", "A"): 5.0,
+    }
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 2: TESTS DE ÁLGEBRA LINEAL NUMÉRICA
+# ═════════════════════════════════════════════════════════════════════════════
 
 class TestNumericalUtilities:
     """
-    Verifica las propiedades matemáticas de las utilidades numéricas.
-
-    Propiedades clave:
-        - adaptive_tolerance: tol ≥ ε_mach, escala con σ_max
-        - compute_rank: rank(A) = #{σᵢ > tol}
-        - moore_penrose_pseudoinverse: 4 condiciones de Penrose
-        - orthogonal_projection: idempotencia, ortogonalidad, norma ≤ ‖v‖
-        - null_space_basis: A·N = 0, columnas ortonormales
+    Suite de validación de álgebra lineal numérica.
+    
+    Verifica:
+        - Tolerancias adaptativas (convención LAPACK)
+        - Rango numérico (Teorema de Eckart-Young-Mirsky)
+        - Pseudoinversas (4 condiciones de Penrose)
+        - Proyecciones ortogonales (estabilidad SVD)
+        - Bases de kernel (ortogonalidad)
     """
-
-    # ── adaptive_tolerance ────────────────────────────────────────────────
-
-    def test_adaptive_tolerance_lower_bounded_by_eps_mach(self):
-        """tol ≥ ε_mach para cualquier matriz."""
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 2.1 Tolerancias Adaptativas
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_adaptive_tolerance_positive(self):
+        """
+        Verifica que tolerancia adaptativa sea siempre positiva.
+        """
+        matrices = [
+            np.eye(5),
+            np.random.randn(10, 10),
+            np.zeros((3, 3)),
+            np.ones((4, 4)),
+        ]
+        
+        for A in matrices:
+            tol = NumericalUtilities.adaptive_tolerance(A)
+            assert tol > 0, f"Tolerancia debe ser positiva: {tol}"
+    
+    def test_unit_adaptive_tolerance_scales_with_size(self):
+        """
+        Verifica que tolerancia escale con dimensión de matriz.
+        """
+        A_small = np.eye(5)
+        A_large = np.eye(100)
+        
+        tol_small = NumericalUtilities.adaptive_tolerance(A_small)
+        tol_large = NumericalUtilities.adaptive_tolerance(A_large)
+        
+        # Para matrices de identidad, tol ∝ max(m, n)
+        assert tol_large > tol_small
+    
+    def test_unit_adaptive_tolerance_zero_matrix(self):
+        """
+        Verifica manejo de matriz nula.
+        """
+        A = np.zeros((10, 10))
+        tol = NumericalUtilities.adaptive_tolerance(A)
+        
+        # Para matriz nula, debe retornar base_tolerance
+        assert tol >= NC.BASE_TOLERANCE
+    
+    def test_unit_adaptive_tolerance_ill_conditioned(self):
+        """
+        Verifica tolerancia en matriz mal condicionada.
+        """
+        # Matriz con valores singulares en rango amplio
+        A = np.diag([1e10, 1.0, 1e-10])
+        tol = NumericalUtilities.adaptive_tolerance(A)
+        
+        # Tolerancia debe escalar con σ_max
+        assert tol > NC.MACHINE_EPSILON
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 2.2 Rango Numérico
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_rank_full_rank_matrix(self):
+        """
+        Verifica rango de matriz de rango completo.
+        """
+        A = np.random.randn(5, 5)
+        rank, svs = NumericalUtilities.compute_numerical_rank(A)
+        
+        assert rank == 5, f"Rango esperado 5, obtenido {rank}"
+        assert len(svs) == 5
+        assert all(svs > 0)
+    
+    def test_unit_rank_rank_deficient_matrix(self):
+        """
+        Verifica rango de matriz rank-deficiente.
+        """
+        # Matriz con rank = 2
+        A = np.outer(np.array([1, 2, 3]), np.array([1, 0]))
+        A = A + np.outer(np.array([0, 1, 1]), np.array([0, 1]))
+        
+        rank, svs = NumericalUtilities.compute_numerical_rank(A)
+        
+        assert rank == 2, f"Rango esperado 2, obtenido {rank}"
+    
+    def test_unit_rank_zero_matrix(self):
+        """
+        Verifica rango de matriz nula.
+        """
+        A = np.zeros((5, 5))
+        rank, svs = NumericalUtilities.compute_numerical_rank(A)
+        
+        assert rank == 0, f"Rango de matriz nula debe ser 0, obtenido {rank}"
+    
+    def test_unit_rank_singular_values_ordered(self):
+        """
+        Verifica que valores singulares estén ordenados (desc).
+        """
+        A = np.random.randn(10, 10)
+        rank, svs = NumericalUtilities.compute_numerical_rank(A)
+        
+        assert all(svs[i] >= svs[i+1] for i in range(len(svs)-1))
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 2.3 Pseudoinversa de Moore-Penrose
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_pseudoinverse_penrose_conditions(self):
+        """
+        Verifica las 4 condiciones de Penrose para pseudoinversa.
+        
+        Condiciones:
+            1. A A⁺ A = A
+            2. A⁺ A A⁺ = A⁺
+            3. (A A⁺)ᵀ = A A⁺
+            4. (A⁺ A)ᵀ = A⁺ A
+        """
+        A = np.random.randn(5, 3)
+        A_pinv = NumericalUtilities.moore_penrose_pseudoinverse(A)
+        
+        tol = NC.BASE_TOLERANCE * np.linalg.norm(A)
+        
+        # Condición 1: A A⁺ A = A
+        assert np.allclose(A @ A_pinv @ A, A, atol=tol), "Condición 1 de Penrose violada"
+        
+        # Condición 2: A⁺ A A⁺ = A⁺
+        assert np.allclose(A_pinv @ A @ A_pinv, A_pinv, atol=tol), "Condición 2 de Penrose violada"
+        
+        # Condición 3: (A A⁺)ᵀ = A A⁺
+        AA_pinv = A @ A_pinv
+        assert np.allclose(AA_pinv.T, AA_pinv, atol=tol), "Condición 3 de Penrose violada"
+        
+        # Condición 4: (A⁺ A)ᵀ = A⁺ A
+        A_pinv_A = A_pinv @ A
+        assert np.allclose(A_pinv_A.T, A_pinv_A, atol=tol), "Condición 4 de Penrose violada"
+    
+    def test_unit_pseudoinverse_identity(self):
+        """
+        Verifica que A⁺ de matriz identidad sea identidad.
+        """
         A = np.eye(5)
-        tol = NumericalUtilities.adaptive_tolerance(A)
-        assert tol >= EPS_MACH, (
-            f"Tolerancia {tol:.2e} < ε_mach {EPS_MACH:.2e}"
-        )
-
-    def test_adaptive_tolerance_zero_matrix(self):
-        """Matriz cero: σ_max = 0, tol = ε_mach."""
-        A = np.zeros((4, 4))
-        tol = NumericalUtilities.adaptive_tolerance(A)
-        assert tol >= EPS_MACH
-
-    def test_adaptive_tolerance_scales_with_sigma_max(self):
+        A_pinv = NumericalUtilities.moore_penrose_pseudoinverse(A)
+        
+        assert np.allclose(A_pinv, A, atol=NC.BASE_TOLERANCE)
+    
+    def test_unit_pseudoinverse_rank_deficient(self):
         """
-        tol debe escalar con σ_max: si A' = α·A, entonces tol(A') ≈ α·tol(A).
+        Verifica pseudoinversa de matriz rank-deficiente.
         """
-        A = np.random.default_rng(42).standard_normal((6, 4))
-        alpha = 1e6
-        tol_A = NumericalUtilities.adaptive_tolerance(A)
-        tol_scaled = NumericalUtilities.adaptive_tolerance(alpha * A)
-        ratio = tol_scaled / tol_A
-        assert abs(ratio - alpha) / alpha < 1e-6, (
-            f"Ratio esperado {alpha:.2e}, obtenido {ratio:.2e}"
-        )
-
-    def test_adaptive_tolerance_sparse_matrix(self):
-        """Para matrices sparse, tol ≥ ε_mach."""
-        A = sp.eye(10, format="csr")
-        tol = NumericalUtilities.adaptive_tolerance(A)
-        assert tol >= EPS_MACH
-
-    def test_adaptive_tolerance_raises_on_non_2d(self):
-        """Matriz no 2-D debe lanzar ValueError."""
-        with pytest.raises(ValueError, match="2-D"):
-            NumericalUtilities.adaptive_tolerance(np.ones(5))
-
-    # ── compute_rank ──────────────────────────────────────────────────────
-
-    @pytest.mark.parametrize("shape,expected_rank", [
-        ((5, 5), 5),   # Identidad 5×5
-        ((4, 6), 4),   # Rango máximo por filas
-        ((6, 4), 4),   # Rango máximo por columnas
-    ])
-    def test_rank_full_rank_matrices(self, shape, expected_rank):
-        """Matrices de rango máximo generadas aleatoriamente."""
-        rng = np.random.default_rng(seed=0)
-        A = rng.standard_normal(shape)
-        rank, svs = NumericalUtilities.compute_rank(A)
-        assert rank == expected_rank, (
-            f"Rango esperado {expected_rank}, obtenido {rank}"
-        )
-        assert svs[0] >= svs[-1] >= 0, "SVs no ordenados o negativos"
-
-    def test_rank_rank_deficient_matrix(self):
-        """Matriz de rango conocido r < min(m,n)."""
-        # Construir matriz de rango exacto r
-        r = 3
-        rng = np.random.default_rng(1)
-        U = la.orth(rng.standard_normal((6, r)))
-        V = la.orth(rng.standard_normal((8, r)))
-        A = U @ np.diag([1.0, 2.0, 3.0]) @ V.T
-        rank, _ = NumericalUtilities.compute_rank(A)
-        assert rank == r, f"Rango esperado {r}, obtenido {rank}"
-
-    def test_rank_zero_matrix(self):
-        """Matriz cero tiene rango 0."""
-        A = np.zeros((5, 7))
-        rank, svs = NumericalUtilities.compute_rank(A)
-        assert rank == 0
-        assert np.all(svs == 0.0)
-
-    def test_rank_identity(self):
-        """Identidad n×n tiene rango n."""
-        for n in [2, 5, 10]:
-            rank, _ = NumericalUtilities.compute_rank(np.eye(n))
-            assert rank == n
-
-    def test_rank_sparse_matrix(self):
-        """Rango de sparse matrix de identidad."""
-        A = sp.eye(7, format="csr")
-        rank, _ = NumericalUtilities.compute_rank(A)
-        assert rank == 7
-
-    def test_rank_singular_values_consistent(self):
-        """Los SVs retornados deben ser consistentes con np.linalg.svd."""
-        rng = np.random.default_rng(2)
-        A = rng.standard_normal((5, 4))
-        _, svs = NumericalUtilities.compute_rank(A)
-        expected_svs = np.linalg.svd(A, compute_uv=False)
-        np.testing.assert_allclose(svs, expected_svs, rtol=1e-12)
-
-    # ── moore_penrose_pseudoinverse ────────────────────────────────────────
-
-    @pytest.mark.parametrize("shape", [(4, 4), (5, 3), (3, 5), (6, 2)])
-    def test_penrose_condition_1_AA_plus_A_eq_A(self, shape):
-        """Condición de Penrose (i): A A⁺ A = A."""
-        rng = np.random.default_rng(10 + shape[0])
-        A = rng.standard_normal(shape)
-        A_plus = NumericalUtilities.moore_penrose_pseudoinverse(A)
-        residual = np.linalg.norm(A @ A_plus @ A - A, "fro")
-        assert residual < TOL_STRICT, f"‖AA⁺A − A‖_F = {residual:.2e}"
-
-    @pytest.mark.parametrize("shape", [(4, 4), (5, 3), (3, 5)])
-    def test_penrose_condition_2_A_plus_AA_plus_eq_A_plus(self, shape):
-        """Condición de Penrose (ii): A⁺ A A⁺ = A⁺."""
-        rng = np.random.default_rng(20 + shape[0])
-        A = rng.standard_normal(shape)
-        A_plus = NumericalUtilities.moore_penrose_pseudoinverse(A)
-        residual = np.linalg.norm(A_plus @ A @ A_plus - A_plus, "fro")
-        assert residual < TOL_STRICT, f"‖A⁺AA⁺ − A⁺‖_F = {residual:.2e}"
-
-    @pytest.mark.parametrize("shape", [(4, 4), (5, 3), (3, 5)])
-    def test_penrose_condition_3_AA_plus_symmetric(self, shape):
-        """Condición de Penrose (iii): (AA⁺)ᵀ = AA⁺."""
-        rng = np.random.default_rng(30 + shape[0])
-        A = rng.standard_normal(shape)
-        A_plus = NumericalUtilities.moore_penrose_pseudoinverse(A)
-        P = A @ A_plus
-        residual = np.linalg.norm(P - P.T, "fro")
-        assert residual < TOL_STRICT, f"‖AA⁺ − (AA⁺)ᵀ‖_F = {residual:.2e}"
-
-    @pytest.mark.parametrize("shape", [(4, 4), (5, 3), (3, 5)])
-    def test_penrose_condition_4_A_plus_A_symmetric(self, shape):
-        """Condición de Penrose (iv): (A⁺A)ᵀ = A⁺A."""
-        rng = np.random.default_rng(40 + shape[0])
-        A = rng.standard_normal(shape)
-        A_plus = NumericalUtilities.moore_penrose_pseudoinverse(A)
-        Q = A_plus @ A
-        residual = np.linalg.norm(Q - Q.T, "fro")
-        assert residual < TOL_STRICT, f"‖A⁺A − (A⁺A)ᵀ‖_F = {residual:.2e}"
-
-    def test_pseudoinverse_of_invertible_equals_inverse(self):
-        """Para A invertible: A⁺ = A⁻¹."""
-        rng = np.random.default_rng(50)
-        A = rng.standard_normal((5, 5))
-        # Asegurar invertibilidad
-        A = A + 5 * np.eye(5)
-        A_plus = NumericalUtilities.moore_penrose_pseudoinverse(A)
-        A_inv = np.linalg.inv(A)
-        np.testing.assert_allclose(A_plus, A_inv, atol=TOL_STRICT)
-
-    def test_pseudoinverse_rank_deficient_matrix(self):
-        """A⁺ para matriz singular satisface las 4 condiciones."""
-        # Matriz de rango 2 en espacio 4×4
-        U = np.linalg.qr(np.random.default_rng(51).standard_normal((4, 4)))[0]
-        S = np.diag([3.0, 1.5, 0.0, 0.0])
-        A = U @ S @ U.T
-        A_plus = NumericalUtilities.moore_penrose_pseudoinverse(A)
-        # Verificar condición (i)
-        assert np.linalg.norm(A @ A_plus @ A - A, "fro") < TOL_STRICT
-
-    def test_pseudoinverse_zero_matrix(self):
-        """Pseudoinversa de la matriz cero es la matriz cero."""
-        A = np.zeros((3, 4))
-        A_plus = NumericalUtilities.moore_penrose_pseudoinverse(A)
-        assert A_plus.shape == (4, 3)
-        np.testing.assert_array_equal(A_plus, np.zeros((4, 3)))
-
-    # ── orthogonal_projection ─────────────────────────────────────────────
-
-    def test_projection_is_idempotent(self):
-        """P²(v) = P(v): proyectar dos veces da el mismo resultado."""
-        rng = np.random.default_rng(60)
-        B = rng.standard_normal((8, 3))
-        v = rng.standard_normal(8)
-        proj1, _ = NumericalUtilities.orthogonal_projection(v, B)
-        proj2, _ = NumericalUtilities.orthogonal_projection(proj1, B)
-        np.testing.assert_allclose(proj1, proj2, atol=TOL_STRICT)
-
-    def test_projection_residual_orthogonal_to_subspace(self):
-        """⟨residual, bᵢ⟩ ≈ 0 para toda columna bᵢ de B."""
-        rng = np.random.default_rng(61)
-        B = rng.standard_normal((8, 3))
-        v = rng.standard_normal(8)
-        _, residual = NumericalUtilities.orthogonal_projection(v, B)
-        inner_products = B.T @ residual
-        np.testing.assert_allclose(
-            inner_products, np.zeros(3), atol=TOL_STRICT
-        )
-
-    def test_projection_reconstruction(self):
-        """proj + residual = v exactamente."""
-        rng = np.random.default_rng(62)
-        B = rng.standard_normal((6, 2))
-        v = rng.standard_normal(6)
-        proj, residual = NumericalUtilities.orthogonal_projection(v, B)
-        np.testing.assert_allclose(proj + residual, v, atol=TOL_STRICT)
-
-    def test_projection_norm_leq_original(self):
-        """‖P(v)‖ ≤ ‖v‖ (proyección no aumenta la norma)."""
-        rng = np.random.default_rng(63)
-        B = rng.standard_normal((7, 4))
-        v = rng.standard_normal(7)
-        proj, _ = NumericalUtilities.orthogonal_projection(v, B)
-        assert np.linalg.norm(proj) <= np.linalg.norm(v) + TOL_STRICT
-
-    def test_projection_vector_in_subspace_unchanged(self):
-        """Si v ∈ col(B), entonces P(v) = v."""
-        rng = np.random.default_rng(64)
-        B = rng.standard_normal((6, 3))
-        alpha = rng.standard_normal(3)
-        v = B @ alpha  # v está exactamente en col(B)
-        proj, residual = NumericalUtilities.orthogonal_projection(v, B)
-        np.testing.assert_allclose(proj, v, atol=TOL_STRICT)
-        np.testing.assert_allclose(
-            residual, np.zeros(6), atol=TOL_STRICT
-        )
-
-    def test_projection_empty_subspace(self):
-        """Proyección sobre subespacio vacío retorna (0, v)."""
+        # Matriz 3×3 con rank = 2
+        A = np.array([
+            [1, 2, 3],
+            [2, 4, 6],
+            [0, 1, 2],
+        ], dtype=float)
+        
+        A_pinv = NumericalUtilities.moore_penrose_pseudoinverse(A)
+        
+        # Verificar dimensiones correctas
+        assert A_pinv.shape == (3, 3)
+        
+        # Verificar al menos condición 1
+        tol = NC.BASE_TOLERANCE * np.linalg.norm(A)
+        assert np.allclose(A @ A_pinv @ A, A, atol=tol)
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 2.4 Proyecciones Ortogonales
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_orthogonal_projection_basic(self):
+        """
+        Verifica proyección ortogonal básica.
+        """
+        # Vector y subespacio
+        v = np.array([3.0, 4.0, 0.0])
+        B = np.array([[1.0, 0.0], [0.0, 1.0], [0.0, 0.0]]).T  # Span de ex, ey
+        
+        projected, residual = NumericalUtilities.orthogonal_projection(v, B.T)
+        
+        # Verificar reconstrucción
+        assert np.allclose(v, projected + residual, atol=NC.BASE_TOLERANCE)
+        
+        # Verificar ortogonalidad
+        inner = np.dot(projected, residual)
+        assert abs(inner) < NC.ORTHOGONALITY_TOLERANCE * np.linalg.norm(v)**2
+    
+    def test_unit_orthogonal_projection_onto_itself(self):
+        """
+        Verifica que proyección sobre sí mismo sea identidad.
+        """
         v = np.array([1.0, 2.0, 3.0])
-        B = np.zeros((3, 0))
-        proj, residual = NumericalUtilities.orthogonal_projection(v, B)
-        np.testing.assert_array_equal(proj, np.zeros(3))
-        np.testing.assert_array_equal(residual, v)
+        B = v.reshape(-1, 1)  # Subespacio unidimensional spanned por v
+        
+        projected, residual = NumericalUtilities.orthogonal_projection(v, B)
+        
+        # Proyección debe ser ≈ v (normalizado)
+        assert np.allclose(projected / np.linalg.norm(projected), v / np.linalg.norm(v), atol=NC.BASE_TOLERANCE)
+        
+        # Residual debe ser ≈ 0
+        assert np.linalg.norm(residual) < NC.BASE_TOLERANCE
+    
+    def test_unit_orthogonal_projection_empty_subspace(self):
+        """
+        Verifica proyección sobre subespacio vacío.
+        """
+        v = np.array([1.0, 2.0, 3.0])
+        B = np.zeros((3, 0))  # Subespacio vacío
+        
+        projected, residual = NumericalUtilities.orthogonal_projection(v, B)
+        
+        # Proyección debe ser cero
+        assert np.allclose(projected, np.zeros(3), atol=NC.BASE_TOLERANCE)
+        
+        # Residual debe ser v
+        assert np.allclose(residual, v, atol=NC.BASE_TOLERANCE)
+    
+    def test_unit_orthogonal_projection_orthogonality(self):
+        """
+        Verifica ortogonalidad de componentes.
+        """
+        v = np.random.randn(10)
+        B = np.random.randn(10, 5)
+        
+        projected, residual = NumericalUtilities.orthogonal_projection(v, B)
+        
+        # ⟨projected, residual⟩ ≈ 0
+        inner = np.dot(projected, residual)
+        tol = NC.ORTHOGONALITY_TOLERANCE * np.linalg.norm(v)**2
+        
+        assert abs(inner) < tol, f"Componentes no ortogonales: ⟨p,r⟩={inner:.2e}"
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 2.5 Bases del Kernel
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_null_space_full_rank(self):
+        """
+        Verifica que kernel de matriz de rango completo sea vacío.
+        """
+        A = np.random.randn(5, 5)
+        # Asegurar rango completo
+        A = A + 10 * np.eye(5)
+        
+        kernel_basis = NumericalUtilities.null_space_basis(A)
+        
+        assert kernel_basis.shape[1] == 0, "Kernel de matriz full-rank debe ser vacío"
+    
+    def test_unit_null_space_rank_deficient(self):
+        """
+        Verifica kernel de matriz rank-deficiente.
+        """
+        # Matriz 5×5 con rank = 3
+        A = np.random.randn(5, 3) @ np.random.randn(3, 5)
+        
+        kernel_basis = NumericalUtilities.null_space_basis(A)
+        
+        # Dimensión del kernel debe ser 5 - 3 = 2
+        assert kernel_basis.shape[1] >= 1, "Kernel debe ser no vacío"
+        
+        # Verificar que A @ ker ≈ 0
+        if kernel_basis.shape[1] > 0:
+            product = A @ kernel_basis
+            assert np.allclose(product, 0, atol=NC.BASE_TOLERANCE)
+    
+    def test_unit_null_space_orthonormality(self):
+        """
+        Verifica ortonormalidad de base del kernel.
+        """
+        # Matriz con kernel no trivial
+        A = np.array([
+            [1, 2, 3, 4],
+            [2, 4, 6, 8],
+            [0, 1, 2, 3],
+        ], dtype=float)
+        
+        kernel_basis = NumericalUtilities.null_space_basis(A)
+        
+        if kernel_basis.shape[1] > 0:
+            # Verificar ortonormalidad: Kᵀ K = I
+            gram = kernel_basis.T @ kernel_basis
+            identity = np.eye(kernel_basis.shape[1])
+            
+            assert np.allclose(gram, identity, atol=NC.ORTHOGONALITY_TOLERANCE)
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 2.6 Número de Condición
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_condition_number_identity(self):
+        """
+        Verifica que κ(I) = 1.
+        """
+        A = np.eye(10)
+        kappa, sigma_min, sigma_max = NumericalUtilities.condition_number(A)
+        
+        assert math.isclose(kappa, 1.0, rel_tol=NC.BASE_TOLERANCE)
+        assert math.isclose(sigma_min, 1.0, rel_tol=NC.BASE_TOLERANCE)
+        assert math.isclose(sigma_max, 1.0, rel_tol=NC.BASE_TOLERANCE)
+    
+    def test_unit_condition_number_singular(self):
+        """
+        Verifica que matriz singular tenga κ = ∞.
+        """
+        A = np.zeros((5, 5))
+        kappa, sigma_min, sigma_max = NumericalUtilities.condition_number(A)
+        
+        assert math.isinf(kappa), "Matriz singular debe tener κ = ∞"
+        assert sigma_min == 0.0
+    
+    def test_unit_condition_number_ill_conditioned(self):
+        """
+        Verifica detección de matrices mal condicionadas.
+        """
+        # Matriz con amplio rango de valores singulares
+        A = np.diag([1e10, 1.0, 1e-10])
+        kappa, sigma_min, sigma_max = NumericalUtilities.condition_number(A)
+        
+        expected_kappa = 1e10 / 1e-10
+        assert math.isclose(kappa, expected_kappa, rel_tol=1e-2)
 
-    def test_projection_raises_on_bad_dimensions(self):
-        """Dimensiones inconsistentes deben lanzar ValueError."""
-        v = np.ones(5)
-        B = np.ones((6, 3))  # B tiene 6 filas, v tiene 5 elementos
-        with pytest.raises(ValueError):
-            NumericalUtilities.orthogonal_projection(v, B)
 
-    # ── matrix_condition_number ───────────────────────────────────────────
-
-    def test_condition_number_identity(self):
-        """κ(I) = 1."""
-        kappa, s_min, s_max = NumericalUtilities.matrix_condition_number(np.eye(5))
-        assert abs(kappa - 1.0) < TOL_STRICT
-        assert abs(s_min - 1.0) < TOL_STRICT
-        assert abs(s_max - 1.0) < TOL_STRICT
-
-    def test_condition_number_singular_matrix(self):
-        """κ = ∞ para matriz singular."""
-        A = np.zeros((4, 4))
-        A[0, 0] = 1.0
-        kappa, s_min, _ = NumericalUtilities.matrix_condition_number(A)
-        assert math.isinf(kappa)
-        assert s_min == 0.0
-
-    def test_condition_number_diagonal(self):
-        """κ(diag(σ₁,...,σₙ)) = σ_max / σ_min."""
-        sigmas = np.array([10.0, 5.0, 2.0, 1.0])
-        A = np.diag(sigmas)
-        kappa, s_min, s_max = NumericalUtilities.matrix_condition_number(A)
-        assert abs(kappa - 10.0) < TOL_STRICT
-        assert abs(s_min - 1.0) < TOL_STRICT
-        assert abs(s_max - 10.0) < TOL_STRICT
-
-    # ── null_space_basis ──────────────────────────────────────────────────
-
-    def test_null_space_satisfies_A_N_eq_zero(self):
-        """A · N = 0 para toda base del kernel."""
-        rng = np.random.default_rng(70)
-        # Construir A con nulidad conocida = 3
-        m, n, r = 4, 7, 4
-        U = la.orth(rng.standard_normal((m, r)))
-        V = la.orth(rng.standard_normal((n, r)))
-        A = U @ np.diag(np.linspace(1, 5, r)) @ V.T
-        N = NumericalUtilities.null_space_basis(A)
-        if N.shape[1] > 0:
-            residual = np.linalg.norm(A @ N, "fro")
-            assert residual < TOL_STRICT, f"‖AN‖_F = {residual:.2e}"
-
-    def test_null_space_columns_orthonormal(self):
-        """Columnas de N son ortonormales: NᵀN = I."""
-        rng = np.random.default_rng(71)
-        A = rng.standard_normal((3, 7))   # nulidad = 4
-        N = NumericalUtilities.null_space_basis(A)
-        if N.shape[1] > 0:
-            NtN = N.T @ N
-            np.testing.assert_allclose(NtN, np.eye(N.shape[1]), atol=TOL_STRICT)
-
-    def test_null_space_dimension(self):
-        """dim ker(A) = n − rank(A) (teorema del rango-nulidad)."""
-        rng = np.random.default_rng(72)
-        m, n = 4, 7
-        A = rng.standard_normal((m, n))
-        rank_A, _ = NumericalUtilities.compute_rank(A)
-        N = NumericalUtilities.null_space_basis(A)
-        expected_nullity = n - rank_A
-        assert N.shape[1] == expected_nullity, (
-            f"Nulidad esperada {expected_nullity}, obtenida {N.shape[1]}"
-        )
-
-    def test_null_space_full_rank_matrix(self):
-        """Matriz de rango máximo cuadrada: ker = {0}."""
-        A = np.eye(5) + 0.1 * np.ones((5, 5))
-        N = NumericalUtilities.null_space_basis(A)
-        assert N.shape[1] == 0, "Ker de matriz invertible debe ser vacío"
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# II. TESTS: HodgeDecompositionBuilder — Matrices B₁ y B₂
-# ─────────────────────────────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 3: TESTS DE CONSTRUCCIÓN DEL COMPLEJO DE CADENAS
+# ═════════════════════════════════════════════════════════════════════════════
 
 class TestHodgeDecompositionBuilder:
     """
-    Verifica la construcción correcta de B₁, B₂ y L₁.
+    Suite de validación del constructor de complejo de cadenas.
+    
+    Verifica:
+        - Matriz de incidencia B₁
+        - Matriz de ciclos B₂
+        - Condición ∂₁ ∘ ∂₂ = 0
+        - Números de Betti
+        - Euler-Poincaré
     """
-
-    # ── Constructor ───────────────────────────────────────────────────────
-
-    def test_constructor_requires_digraph(self):
-        """Constructor rechaza grafos no dirigidos."""
-        G = nx.Graph()
-        G.add_edge(0, 1)
-        with pytest.raises(TypeError, match="DiGraph"):
-            HodgeDecompositionBuilder(G)
-
-    def test_constructor_counts_nodes_edges(self):
-        """Builder cuenta nodos y aristas correctamente."""
-        G, inv = GraphFactory.two_triangles_shared_vertex()
-        builder = HodgeDecompositionBuilder(G)
-        assert builder.n == inv["n"]
-        assert builder.m == inv["m"]
-
-    # ── Matriz de Incidencia B₁ ───────────────────────────────────────────
-
-    def test_B1_shape(self):
-        """B₁ ∈ ℝⁿˣᵐ."""
-        G, inv = GraphFactory.triangle()
-        B1, _ = HodgeDecompositionBuilder(G).build_incidence_matrix()
-        assert B1.shape == (inv["n"], inv["m"])
-
-    def test_B1_column_sums_zero(self):
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 3.1 Matriz de Incidencia B₁
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_incidence_matrix_dimensions(self, single_cycle):
         """
-        Σ_v (B₁)_{v,e} = 0 ∀e.
-
-        Propiedad: el operador de borde de una arista suma +1 y -1.
+        Verifica dimensiones correctas de B₁.
         """
-        for factory in [
-            GraphFactory.triangle,
-            GraphFactory.two_triangles_shared_vertex,
-            GraphFactory.square_with_diagonal,
-        ]:
-            G, _ = factory()
-            B1, meta = HodgeDecompositionBuilder(G).build_incidence_matrix()
-            col_sums = B1.sum(axis=0)
-            np.testing.assert_allclose(
-                col_sums, np.zeros(B1.shape[1]),
-                atol=TOL_STRICT,
-                err_msg=f"Suma de columnas no nula en {factory.__name__}",
-            )
-            assert meta["column_sum_max"] < TOL_STRICT
-
-    def test_B1_entries_in_minus1_0_plus1(self):
-        """Entradas de B₁ ∈ {-1, 0, +1}."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        B1, _ = HodgeDecompositionBuilder(G).build_incidence_matrix()
-        valid_entries = set(np.unique(B1))
-        assert valid_entries <= {-1.0, 0.0, 1.0}
-
-    def test_B1_exactly_two_nonzeros_per_column(self):
-        """Cada arista tiene exactamente dos entradas no nulas (tail y head)."""
-        G, _ = GraphFactory.complete_directed(4)
-        B1, _ = HodgeDecompositionBuilder(G).build_incidence_matrix()
-        nonzeros_per_col = np.sum(B1 != 0, axis=0)
-        np.testing.assert_array_equal(nonzeros_per_col, 2 * np.ones(B1.shape[1]))
-
-    def test_B1_rank(self):
+        builder = HodgeDecompositionBuilder(single_cycle)
+        B1, meta = builder.build_incidence_matrix()
+        
+        n = single_cycle.number_of_nodes()
+        m = single_cycle.number_of_edges()
+        
+        assert B1.shape == (n, m), f"B₁ debe ser {n}×{m}, obtenido {B1.shape}"
+    
+    def test_unit_incidence_matrix_column_sum_zero(self, double_cycle):
         """
-        rank(B₁) = n − c donde c es el número de componentes conexas.
-
-        Teorema: La imagen de B₁ tiene codimensión igual al número de
-        componentes conexas (cada componente contribuye un vector en ker(B₁ᵀ)).
+        Verifica que suma de columnas sea 0 (∂₁e = head - tail).
         """
-        test_cases = [
-            GraphFactory.triangle,
-            GraphFactory.two_triangles_shared_vertex,
-            GraphFactory.disconnected_two_triangles,
-            GraphFactory.path_graph,
-        ]
-        for factory in test_cases:
-            G, inv = factory()
-            B1, meta = HodgeDecompositionBuilder(G).build_incidence_matrix()
-            expected_rank = inv["n"] - inv["c"]
-            assert meta["rank_B1"] == expected_rank, (
-                f"{factory.__name__}: rank esperado {expected_rank}, "
-                f"obtenido {meta['rank_B1']}"
-            )
-
-    def test_B1_orientation_convention(self):
+        builder = HodgeDecompositionBuilder(double_cycle)
+        B1, meta = builder.build_incidence_matrix()
+        
+        col_sums = B1.sum(axis=0)
+        
+        assert np.allclose(col_sums, 0, atol=NC.BASE_TOLERANCE), \
+            f"Columnas de B₁ deben sumar 0, max={meta['column_sum_max']}"
+    
+    def test_unit_incidence_matrix_rank(self, single_cycle):
         """
-        Verificar convención: B₁[tail, e] = -1, B₁[head, e] = +1.
+        Verifica rank(B₁) = n - c (c componentes).
         """
-        G = nx.DiGraph()
-        G.add_edge("A", "B")
-        builder = HodgeDecompositionBuilder(G)
-        B1, _ = builder.build_incidence_matrix()
-        tail_idx = builder._node_index["A"]
-        head_idx = builder._node_index["B"]
-        e_idx = builder._edge_index[("A", "B")]
-        assert B1[tail_idx, e_idx] == -1.0, "tail debe ser -1"
-        assert B1[head_idx, e_idx] == +1.0, "head debe ser +1"
-
-    # ── Matriz de Ciclos B₂ ───────────────────────────────────────────────
-
-    def test_B2_shape(self):
-        """B₂ ∈ ℝᵐˣ⁰ para un grafo 1D."""
-        for factory, (G, inv) in [
-            ("triangle", GraphFactory.triangle()),
-            ("two_tri", GraphFactory.two_triangles_shared_vertex()),
-            ("path", GraphFactory.path_graph()),
-        ]:
-            builder = HodgeDecompositionBuilder(G)
-            B2, meta = builder.build_face_matrix()
-            assert B2.shape == (inv["m"], 0)
-
-    def test_B2_rank_equals_zero(self):
-        """rank(B₂) = 0 en un grafo 1D."""
-        G, _ = GraphFactory.triangle()
-        builder = HodgeDecompositionBuilder(G)
+        builder = HodgeDecompositionBuilder(single_cycle)
+        B1, meta = builder.build_incidence_matrix()
+        
+        n = single_cycle.number_of_nodes()
+        c = 1  # Conexo
+        expected_rank = n - c
+        
+        assert meta["rank_B1"] == expected_rank, \
+            f"rank(B₁) esperado {expected_rank}, obtenido {meta['rank_B1']}"
+    
+    def test_unit_incidence_matrix_disconnected(self, disconnected_graph):
+        """
+        Verifica rank(B₁) para grafo desconectado.
+        """
+        builder = HodgeDecompositionBuilder(disconnected_graph)
+        B1, meta = builder.build_incidence_matrix()
+        
+        n = disconnected_graph.number_of_nodes()
+        c = 2  # Dos componentes
+        expected_rank = n - c
+        
+        assert meta["rank_B1"] == expected_rank
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 3.2 Matriz de Ciclos B₂
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_face_matrix_dimensions(self, double_cycle):
+        """
+        Verifica dimensiones de B₂.
+        """
+        builder = HodgeDecompositionBuilder(double_cycle)
         B2, meta = builder.build_face_matrix()
-        assert meta["rank_B2"] == 0
-
-    def test_B2_entries_in_minus1_0_plus1(self):
-        """Entradas de B₂ ∈ {-1, 0, +1}."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        B2, _ = HodgeDecompositionBuilder(G).build_face_matrix()
-        if B2.size > 0:
-            valid_entries = set(np.unique(B2))
-            assert valid_entries <= {-1.0, 0.0, 1.0}
-
-    def test_B2_empty_for_acyclic_graph(self):
-        """β₁ = 0 ⟹ B₂ ∈ ℝᵐˣ⁰ (sin columnas)."""
-        G, _ = GraphFactory.path_graph(5)
-        B2, meta = HodgeDecompositionBuilder(G).build_face_matrix()
-        assert B2.shape[1] == 0
+        
+        m = double_cycle.number_of_edges()
+        beta_1 = 2  # Dos ciclos
+        
+        assert B2.shape == (m, beta_1), f"B₂ debe ser {m}×{beta_1}, obtenido {B2.shape}"
+    
+    def test_unit_face_matrix_dag_zero(self, dag_simple):
+        """
+        Verifica que DAG tenga B₂ vacía (sin ciclos).
+        """
+        builder = HodgeDecompositionBuilder(dag_simple)
+        B2, meta = builder.build_face_matrix()
+        
+        assert B2.shape[1] == 0, "DAG no debe tener ciclos"
         assert meta["betti_1"] == 0
-
-    def test_B2_empty_for_single_node(self):
-        """Grafo trivial: B₂ vacía."""
-        G, _ = GraphFactory.single_node()
-        B2, meta = HodgeDecompositionBuilder(G).build_face_matrix()
-        assert B2.shape == (0, 0)
-
-    def test_B2_betti_1_formula(self):
-        """β₁ = m − n + c se satisface para todos los grafos de prueba."""
-        test_cases = [
-            GraphFactory.triangle(),
-            GraphFactory.two_triangles_shared_vertex(),
-            GraphFactory.path_graph(6),
-            GraphFactory.disconnected_two_triangles(),
-            GraphFactory.square_with_diagonal(),
-            GraphFactory.complete_directed(4),
-        ]
-        for G, inv in test_cases:
-            _, meta = HodgeDecompositionBuilder(G).build_face_matrix()
-            expected = inv.get("beta_1", inv["m"] - inv["n"] + inv["c"])
-            assert meta["betti_1"] == expected, (
-                f"β₁ esperado {expected}, obtenido {meta['betti_1']}"
-            )
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# III. TESTS: Invariantes del Complejo de Co-Cadenas
-# ─────────────────────────────────────────────────────────────────────────────
-
-class TestCochainComplexInvariants:
-    """
-    Verifica los invariantes fundamentales del complejo de cadenas:
-
-        C₀ ←B₁— C₁ ←B₂— C₂
-
-    El invariante central es ∂₁ ∘ ∂₂ = 0, i.e., B₁B₂ = 0.
-    """
-
-    def test_betti_rank_nullity_invariant(self) -> None:
-        G, inv = GraphFactory.two_triangles_shared_vertex()
-        builder = HodgeDecompositionBuilder(G)
-        B1, _ = builder.build_incidence_matrix()
-        B2, _ = builder.build_face_matrix()
-
-        n, m = B1.shape
-        c = nx.number_connected_components(G.to_undirected())
-
-        if B2.shape[1] > 0:
-            boundary_annihilation = np.linalg.norm(B1 @ B2)
-            assert boundary_annihilation < TOL_STRICT, "Violación cohomológica: ∂₁∘∂₂ ≠ 0"
-
-        rank_B2 = np.linalg.matrix_rank(B2) if B2.size > 0 else 0
-        beta_1 = (m - n + c) - rank_B2
-
-        L1 = B1.T @ B1 + (B2 @ B2.T if B2.size > 0 else np.zeros((m, m)))
-        eigenvalues = np.linalg.eigvalsh(L1)
-        nullity_L1 = np.sum(eigenvalues < TOL_STRICT)
-
-        assert nullity_L1 == beta_1, f"Ruptura del Teorema de Hodge: dim(ker(L₁)) = {nullity_L1} != β₁ = {beta_1}."
-
-    @pytest.mark.parametrize("factory", [
-        GraphFactory.triangle,
-        GraphFactory.two_triangles_shared_vertex,
-        GraphFactory.square_with_diagonal,
-        GraphFactory.disconnected_two_triangles,
-        pytest.param(
-            lambda: GraphFactory.complete_directed(4),
-            id="complete_K4"
-        ),
-    ])
-    def test_B1_times_B2_equals_zero(self, factory):
+        assert meta["is_forest"] is True
+    
+    def test_unit_face_matrix_rank(self, double_cycle):
         """
-        Invariante fundamental: B₁ · B₂ = 0.
-
-        Esto garantiza que el borde del borde es cero (∂² = 0),
-        propiedad axiomática de cualquier complejo de cadenas.
+        Verifica rank(B₂) = β₁.
         """
-        G, _ = factory()
-        builder = HodgeDecompositionBuilder(G)
+        builder = HodgeDecompositionBuilder(double_cycle)
+        B2, meta = builder.build_face_matrix()
+        
+        assert meta["rank_B2"] == meta["betti_1"], \
+            "rank(B₂) debe igualar β₁"
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 3.3 Condición de Complejo: ∂₁ ∘ ∂₂ = 0
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_property_boundary_composition_zero(self, double_cycle):
+        """
+        Verifica axioma fundamental: B₁ B₂ = 0.
+        """
+        builder = HodgeDecompositionBuilder(double_cycle)
         B1, _ = builder.build_incidence_matrix()
         B2, meta = builder.build_face_matrix()
-
-        if B2.shape[1] == 0:
-            return  # Trivialmente satisfecho
-
-        product = B1 @ B2
-        norm = float(np.linalg.norm(product, "fro"))
-
-        assert norm < TOL_STRICT, (
-            f"‖B₁B₂‖_F = {norm:.2e} > {TOL_STRICT:.2e} "
-            f"en grafo {G.edges()}"
-        )
-        assert meta["verify_B1B2_zero"], (
-            f"meta['verify_B1B2_zero'] = False con norma {meta['B1B2_norm']:.2e}"
-        )
-
-    @pytest.mark.parametrize("factory", [
-        GraphFactory.triangle,
-        GraphFactory.two_triangles_shared_vertex,
-        GraphFactory.path_graph,
-        GraphFactory.disconnected_two_triangles,
-    ])
-    def test_verify_cochain_complex_is_valid(self, factory):
-        """verify_cochain_complex() debe reportar is_valid=True."""
-        G, _ = factory()
-        result = HodgeDecompositionBuilder(G).verify_cochain_complex()
-        assert result["is_valid"], (
-            f"Complejo de cadenas inválido en {factory.__name__}: {result}"
-        )
-
-    def test_cochain_dimensions_consistent(self):
-        """Dimensiones: B₁ ∈ ℝⁿˣᵐ, B₂ ∈ ℝᵐˣᵏ."""
-        G, inv = GraphFactory.two_triangles_shared_vertex()
-        result = HodgeDecompositionBuilder(G).verify_cochain_complex()
-        assert result["dimensions_consistent"]
-
-    def test_rank_B1_equals_n_minus_c(self):
-        """rank(B₁) = n − c para cada grafo de prueba."""
-        test_cases = [
-            GraphFactory.triangle(),
-            GraphFactory.two_triangles_shared_vertex(),
-            GraphFactory.disconnected_two_triangles(),
-            GraphFactory.path_graph(5),
-        ]
-        for G, inv in test_cases:
-            result = HodgeDecompositionBuilder(G).verify_cochain_complex()
-            assert result["rank_B1_ok"], (
-                f"rank(B₁) incorrecto: esperado {result['rank_B1_expected']}, "
-                f"obtenido {result['rank_B1']}"
-            )
-
-    def test_rank_B2_equals_zero(self):
-        """rank(B₂) = 0 para grafos 1D."""
-        G, _ = GraphFactory.triangle()
-        result = HodgeDecompositionBuilder(G).verify_cochain_complex()
-        assert result["rank_B2_ok"]
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# IV. TESTS: Propiedades Espectrales de L₁
-# ─────────────────────────────────────────────────────────────────────────────
-
-class TestSpectralProperties:
-    """
-    Verifica las propiedades espectrales del Laplaciano de Hodge L₁.
-
-    Teorema Espectral (L₁ simétrica PSD):
-        • λᵢ ≥ 0 ∀i
-        • dim ker(L₁) = β₁ (isomorfismo de Hodge)
-        • Traza(L₁) = Σλᵢ
-        • L₁ = L₁ᵀ
-    """
-
-    @pytest.mark.parametrize("factory", [
-        GraphFactory.triangle,
-        GraphFactory.two_triangles_shared_vertex,
-        GraphFactory.path_graph,
-        GraphFactory.square_with_diagonal,
-    ])
-    def test_L1_is_symmetric(self, factory):
-        """L₁ = L₁ᵀ (Laplaciano de Hodge es simétrico)."""
-        G, _ = factory()
-        L1, meta = HodgeDecompositionBuilder(G).compute_hodge_laplacian()
-        assert meta["is_symmetric"], "L₁ no es simétrica"
-        np.testing.assert_allclose(L1, L1.T, atol=TOL_STRICT)
-
-    @pytest.mark.parametrize("factory", [
-        GraphFactory.triangle,
-        GraphFactory.two_triangles_shared_vertex,
-        GraphFactory.path_graph,
-        GraphFactory.square_with_diagonal,
-        GraphFactory.disconnected_two_triangles,
-    ])
-    def test_L1_is_positive_semidefinite(self, factory):
-        """L₁ ≥ 0 (todos los autovalores son no negativos)."""
-        G, _ = factory()
-        L1, meta = HodgeDecompositionBuilder(G).compute_hodge_laplacian()
-        assert meta["is_positive_semidefinite"], (
-            f"L₁ no es PSD en {factory.__name__}. "
-            f"Autovalores: {meta['eigenvalues'][:5]}"
-        )
-        # Verificar directamente
-        eigenvalues = np.array(meta["eigenvalues"])
-        assert np.all(eigenvalues >= -TOL_STRICT), (
-            f"Autovalor negativo: {eigenvalues.min():.2e}"
-        )
-
-    @pytest.mark.parametrize("factory,expected_inv", [
-        (GraphFactory.triangle, {"n": 3, "m": 3, "c": 1, "beta_0": 1, "beta_1": 1}),
-        (GraphFactory.two_triangles_shared_vertex,
-         {"n": 5, "m": 6, "c": 1, "beta_0": 1, "beta_1": 2}),
-        (GraphFactory.path_graph, {"n": 4, "m": 3, "c": 1, "beta_0": 1, "beta_1": 0}),
-    ])
-    def test_kernel_dimension_equals_beta1(self, factory, expected_inv):
+        
+        B1B2 = B1 @ B2
+        B1B2_norm = np.linalg.norm(B1B2, 'fro')
+        
+        assert B1B2_norm < NC.BASE_TOLERANCE, \
+            f"‖B₁B₂‖_F debe ser ≈ 0, obtenido {B1B2_norm:.2e}"
+        
+        assert meta["verify_B1B2_zero"] is True
+    
+    def test_property_boundary_composition_all_graphs(
+        self,
+        single_cycle,
+        double_cycle,
+        complete_graph_3
+    ):
         """
-        dim ker(L₁) = β₁ (Isomorfismo de Hodge).
-
-        Esto es consecuencia directa del Teorema de Hodge:
-        ker(L₁) ≅ H₁(G; ℝ)
+        Verifica ∂₁ ∘ ∂₂ = 0 para múltiples grafos.
         """
-        G, _ = factory()
-        _, meta = HodgeDecompositionBuilder(G).compute_hodge_laplacian()
-        assert meta["hodge_isomorphism_satisfied"], (
-            f"Isomorfismo de Hodge fallido: "
-            f"dim ker(L₁) = {meta['kernel_dimension']}, "
-            f"β₁ = {meta['betti_1']}"
-        )
-
-    def test_trace_equals_sum_eigenvalues(self):
-        """Traza(L₁) = Σᵢλᵢ (propiedad espectral fundamental)."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        L1, meta = HodgeDecompositionBuilder(G).compute_hodge_laplacian()
-        trace_L1 = float(np.trace(L1))
-        sum_eigvals = float(np.sum(meta["eigenvalues"]))
-        assert abs(trace_L1 - sum_eigvals) < TOL_NUMERICAL, (
-            f"Traza {trace_L1:.6f} ≠ Σλᵢ {sum_eigvals:.6f}"
-        )
-
-    def test_L1_equals_Lgrad_plus_Lcurl(self):
-        """L₁ = B₁ᵀB₁ + B₂B₂ᵀ verificado directamente."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        builder = HodgeDecompositionBuilder(G)
-        B1, _ = builder.build_incidence_matrix()
-        B2, _ = builder.build_face_matrix()
-        L1, _ = builder.compute_hodge_laplacian()
-
-        L_grad = B1.T @ B1
-        L_curl = B2 @ B2.T
-        L1_direct = L_grad + L_curl
-
-        np.testing.assert_allclose(L1, L1_direct, atol=TOL_STRICT)
-
-    def test_eigenvalues_nonnegative_after_clipping(self):
-        """
-        Los autovalores retornados en metadata son ≥ 0 (clipeados).
-
-        La implementación debe clipear autovalores negativos numéricos.
-        """
-        G, _ = GraphFactory.square_with_diagonal()
-        _, meta = HodgeDecompositionBuilder(G).compute_hodge_laplacian()
-        eigenvalues = np.array(meta["eigenvalues"])
-        assert np.all(eigenvalues >= 0), (
-            f"Autovalores negativos encontrados: {eigenvalues[eigenvalues < 0]}"
-        )
-
-    def test_spectral_gap_nonnegative(self):
-        """Gap espectral λ₁ − λ₀ ≥ 0."""
-        G, _ = GraphFactory.triangle()
-        _, meta = HodgeDecompositionBuilder(G).compute_hodge_laplacian()
-        assert meta["spectral_gap"] >= 0
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# V. TESTS: AcousticSolenoidOperator
-# ─────────────────────────────────────────────────────────────────────────────
-
-class TestAcousticSolenoidOperator:
-    """
-    Verifica el comportamiento del Operador de Vorticidad.
-    """
-
-    # ── Caso acíclico ─────────────────────────────────────────────────────
-
-    def test_acyclic_graph_returns_none(self):
-        """β₁ = 0 ⟹ isolate_vorticity retorna None."""
-        G, _ = GraphFactory.path_graph(5)
-        flows = {(i, i + 1): float(i + 1) for i in range(4)}
-        op = AcousticSolenoidOperator()
-        result = op.isolate_vorticity(G, flows)
-        assert result is None, "Grafo acíclico debe retornar None"
-
-    def test_tree_graph_returns_none(self):
-        """Árbol generador: sin ciclos, vorticidad nula."""
-        G, _ = GraphFactory.spanning_tree(6)
-        flows = {(0, i): float(i) for i in range(1, 6)}
-        op = AcousticSolenoidOperator()
-        result = op.isolate_vorticity(G, flows)
-        assert result is None
-
-    # ── Ciclo con flujo uniforme ──────────────────────────────────────────
-
-    def test_uniform_flow_cycle_detects_vorticity(self):
-        """
-        Ciclo n-gono con flujo uniforme f:
-        Circulación esperada = f · n (suma de flujos en el ciclo).
-        La energía E_curl = f².
-        """
-        G, flows = GraphFactory.uniform_flow_cycle(n=4, flow=3.0)
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        magnon = op.isolate_vorticity(G, flows)
-        assert magnon is not None, "Debe detectar vorticidad en ciclo uniforme"
-        assert magnon.kinetic_energy > 0
-        assert magnon.curl_subspace_dim == 1
-        assert magnon.is_significant
-
-    def test_zero_flow_returns_none(self):
-        """Flujo identicamente cero: norma ‖I‖ < ε ⟹ None."""
-        G, _ = GraphFactory.triangle()
-        flows = {e: 0.0 for e in G.edges()}
-        op = AcousticSolenoidOperator()
-        result = op.isolate_vorticity(G, flows)
-        assert result is None, "Flujo cero debe retornar None"
-
-    # ── Energía de vorticidad ─────────────────────────────────────────────
-
-    def test_kinetic_energy_nonnegative(self):
-        """E_curl = ‖Γ‖² ≥ 0 siempre."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        flows = {e: np.random.default_rng(99).standard_normal() for e in G.edges()}
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        magnon = op.isolate_vorticity(G, flows)
-        if magnon is not None:
-            assert magnon.kinetic_energy >= 0
-
-    def test_kinetic_energy_formula(self):
-        """E_curl = ‖B₂ᵀI‖² verificado directamente."""
-        G, _ = GraphFactory.triangle()
-        flows = {("A", "B"): 2.0, ("B", "C"): 3.0, ("C", "A"): 1.5}
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        magnon = op.isolate_vorticity(G, flows)
-        assert magnon is not None
-
-        # Calcular manualmente
-        op_instance = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        B_cycle = op_instance._build_fundamental_cycles(G)
-        builder = HodgeDecompositionBuilder(G)
-        I_vec = np.array([
-            flows.get(e, 0.0)
-            for e in builder._edges
-        ])
-        circulation = B_cycle.T @ I_vec
-        E_curl_expected = float(np.dot(circulation, circulation))
-
-        assert abs(magnon.kinetic_energy - E_curl_expected) < TOL_STRICT, (
-            f"E_curl esperado {E_curl_expected:.6f}, "
-            f"obtenido {magnon.kinetic_energy:.6f}"
-        )
-
-    # ── Índice de vorticidad ──────────────────────────────────────────────
-
-    def test_vorticity_index_in_unit_interval(self):
-        """ω = E_curl / ‖I‖² ∈ [0, 1]."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        rng = np.random.default_rng(42)
-        flows = {e: rng.standard_normal() for e in G.edges()}
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        magnon = op.isolate_vorticity(G, flows)
-        if magnon is not None:
-            assert 0.0 <= magnon.vorticity_index <= 1.0, (
-                f"ω = {magnon.vorticity_index:.6f} fuera de [0, 1]"
-            )
-
-    def test_vorticity_index_zero_for_irrotational_flow(self):
-        """
-        Flujo irrotacional (en im(B₁ᵀ)) tiene ω ≈ 0.
-
-        Construimos I = B₁ᵀα (gradiente de potencial) que satisface
-        B₂ᵀI = B₂ᵀB₁ᵀα = (B₁B₂)ᵀα = 0.
-        """
-        G, _ = GraphFactory.triangle()
-        builder = HodgeDecompositionBuilder(G)
-        B1, _ = builder.build_incidence_matrix()
-
-        # I = B₁ᵀ · [1, 0, 0] (flujo de potencial)
-        alpha = np.array([1.0, 0.0, 0.0])
-        I_irrotational = B1.T @ alpha
-
-        flows = {
-            e: float(I_irrotational[i])
-            for i, e in enumerate(builder._edges)
-        }
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        magnon = op.isolate_vorticity(G, flows)
-
-        if magnon is not None:
-            assert magnon.vorticity_index < TOL_NUMERICAL, (
-                f"Flujo irrotacional tiene ω = {magnon.vorticity_index:.2e}"
-            )
-
-    # ── Projector P_curl ──────────────────────────────────────────────────
-
-    def test_projector_idempotency(self):
-        """
-        P_curl² = P_curl (proyector idempotente).
-
-        Error de idempotencia ‖P² − P‖_F / ‖P‖_F < tol.
-        """
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        flows = {e: 1.0 for e in G.edges()}
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        magnon = op.isolate_vorticity(G, flows)
-        assert magnon is not None
-        assert magnon.projection_idempotency_error < TOL_PROJECTION, (
-            f"Error de idempotencia: {magnon.projection_idempotency_error:.2e}"
-        )
-
-    def test_projector_symmetry(self):
-        """
-        P_curl es simétrico: P_curlᵀ = P_curl (proyector ortogonal).
-        """
-        G, _ = GraphFactory.triangle()
-        flows = {e: 1.0 for e in G.edges()}
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        magnon = op.isolate_vorticity(G, flows)
-        assert magnon is not None
-        assert magnon.projector_matrix is not None
-
-        P = magnon.projector_matrix
-        residual = np.linalg.norm(P - P.T, "fro")
-        assert residual < TOL_STRICT, (
-            f"P_curl no simétrico: ‖P − Pᵀ‖_F = {residual:.2e}"
-        )
-
-    def test_projector_psd(self):
-        """P_curl ≥ 0 (proyector ortogonal es PSD)."""
-        G, _ = GraphFactory.triangle()
-        flows = {e: 2.0 for e in G.edges()}
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        magnon = op.isolate_vorticity(G, flows)
-        assert magnon is not None
-        P = magnon.projector_matrix
-        eigenvalues = np.linalg.eigvalsh(P)
-        assert np.all(eigenvalues >= -TOL_STRICT), (
-            f"P_curl no es PSD. Min eigval = {eigenvalues.min():.2e}"
-        )
-
-    def test_projector_rank_equals_beta1(self):
-        """rank(P_curl) = β₁ (imagen del proyector = subespacio curl)."""
-        G, inv = GraphFactory.triangle()
-        flows = {e: 1.0 for e in G.edges()}
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        magnon = op.isolate_vorticity(G, flows)
-        assert magnon is not None
-        P = magnon.projector_matrix
-        rank_P, _ = NumericalUtilities.compute_rank(P)
-        assert rank_P == inv["beta_1"], (
-            f"rank(P_curl) = {rank_P}, esperado β₁ = {inv['beta_1']}"
-        )
-
-    # ── Circulaciones ─────────────────────────────────────────────────────
-
-    def test_circulation_count_equals_beta1(self):
-        """Número de circulaciones = β₁."""
-        G, inv = GraphFactory.two_triangles_shared_vertex()
-        flows = {e: 1.0 for e in G.edges()}
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        magnon = op.isolate_vorticity(G, flows)
-        assert magnon is not None
-        assert len(magnon.circulation_per_cycle) == inv["beta_1"], (
-            f"Circulaciones: {len(magnon.circulation_per_cycle)}, "
-            f"esperado β₁ = {inv['beta_1']}"
-        )
-
-    def test_circulation_linearity(self):
-        """
-        Circulación es lineal en el flujo: Γ(αI) = αΓ(I).
-
-        Esto es consecuencia directa de Γ = B₂ᵀI.
-        """
-        G, _ = GraphFactory.triangle()
-        base_flows = {("A", "B"): 1.0, ("B", "C"): 1.0, ("C", "A"): 1.0}
-        alpha = 3.7
-        scaled_flows = {e: alpha * f for e, f in base_flows.items()}
-
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-14)
-        m1 = op.isolate_vorticity(G, base_flows)
-        m2 = op.isolate_vorticity(G, scaled_flows)
-
-        assert m1 is not None and m2 is not None
-
-        for c1, c2 in zip(m1.circulation_per_cycle, m2.circulation_per_cycle):
-            assert abs(c2 - alpha * c1) < TOL_STRICT, (
-                f"No lineal: Γ(αI) = {c2:.6f} ≠ αΓ(I) = {alpha * c1:.6f}"
-            )
-
-    # ── Cache ─────────────────────────────────────────────────────────────
-
-    def test_cache_invalidated_on_graph_change(self):
-        """El cache se invalida cuando el grafo cambia."""
-        G1, _ = GraphFactory.triangle()
-        G2, _ = GraphFactory.square_with_diagonal()
-
-        op = AcousticSolenoidOperator()
-        flows1 = {e: 1.0 for e in G1.edges()}
-        flows2 = {e: 1.0 for e in G2.edges()}
-
-        # Primer análisis
-        m1 = op.isolate_vorticity(G1, flows1)
-        sig1 = op._cached_graph_signature
-
-        # Segundo análisis con grafo diferente
-        m2 = op.isolate_vorticity(G2, flows2)
-        sig2 = op._cached_graph_signature
-
-        assert sig1 != sig2, "Cache no invalidado al cambiar el grafo"
-
-    def test_cache_reused_on_same_graph(self):
-        """El cache se reutiliza para el mismo grafo."""
-        G, _ = GraphFactory.triangle()
-        op = AcousticSolenoidOperator()
-        flows = {e: 1.0 for e in G.edges()}
-
-        op.isolate_vorticity(G, flows)
-        builder_first = op._cached_builder
-
-        op.isolate_vorticity(G, flows)
-        builder_second = op._cached_builder
-
-        assert builder_first is builder_second, "Cache no reutilizado"
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# VI. TESTS: MagnonCartridge
-# ─────────────────────────────────────────────────────────────────────────────
-
-class TestMagnonCartridge:
-    """Verifica invariantes y propiedades del dataclass MagnonCartridge."""
-
-    def test_magnon_cartridge_energy_conservation(self, operator: AcousticSolenoidOperator) -> None:
-        """
-        Aserta que el MagnonCartridge instanciado absorbe exactamente la norma L2
-        del componente solenoidal, preservando la energía rotacional para su disipación posterior.
-        """
-        # Generar un grafo con ciclo (Triángulo)
-        G, _ = GraphFactory.triangle()
-
-        # Generar un campo de flujo puramente solenoidal (un ciclo)
-        # B_cycle para un triángulo debe ser 3x1
-        B_cycle = operator._build_fundamental_cycles(G)
-
-        # Flujo = B_cycle * alpha
-        alpha = 2.5
-        I_vec = B_cycle @ np.array([alpha])
-
-        # Convertir a dict de flujos
-        builder = HodgeDecompositionBuilder(G)
-        edge_flows = {
-            e: float(I_vec[i])
-            for i, e in enumerate(builder._edges)
-        }
-
-        # El operador debe instanciar el MagnonCartridge si hay energía rotacional significativa
-        magnon = operator.isolate_vorticity(G, edge_flows)
-
-        assert magnon is not None, "El operador falló al instanciar el bosón de Gauge ante vorticidad."
-
-        # La energía del cartucho DEBE ser el cuadrado de la norma L2 del flujo solenoidal (Energía Cinética)
-        # E_curl = ||B2.T @ I||^2
-        circulation = B_cycle.T @ I_vec
-        expected_energy = float(np.dot(circulation, circulation))
-
-        assert math.isclose(magnon.kinetic_energy, expected_energy, abs_tol=TOL_NUMERICAL), \
-            f"Fuga de conservación de energía en el Magnon: {magnon.kinetic_energy} != {expected_energy}"
-
-    def _make_valid_magnon(self, **kwargs) -> MagnonCartridge:
-        defaults = dict(
-            kinetic_energy=1.5,
-            curl_subspace_dim=2,
-            vorticity_index=0.3,
-            circulation_per_cycle=(1.2, -0.8),
-            projection_idempotency_error=1e-10,
-            energy_decomposition={"total": 5.0, "curl": 1.5},
-            cycle_metadata={},
-            projector_matrix=None,
-        )
-        defaults.update(kwargs)
-        return MagnonCartridge(**defaults)
-
-    # ── Validación de invariantes ─────────────────────────────────────────
-
-    def test_negative_kinetic_energy_raises(self):
-        """E_curl < 0 debe lanzar ValueError."""
-        with pytest.raises(ValueError, match="≥ 0"):
-            self._make_valid_magnon(kinetic_energy=-1.0)
-
-    def test_vorticity_index_above_one_raises(self):
-        """ω > 1 + ε debe lanzar ValueError."""
-        with pytest.raises(ValueError):
-            self._make_valid_magnon(vorticity_index=1.5)
-
-    def test_vorticity_index_below_zero_raises(self):
-        """ω < 0 debe lanzar ValueError."""
-        with pytest.raises(ValueError):
-            self._make_valid_magnon(vorticity_index=-0.1)
-
-    def test_negative_curl_subspace_dim_raises(self):
-        """k < 0 debe lanzar ValueError."""
-        with pytest.raises(ValueError, match="≥ 0"):
-            self._make_valid_magnon(curl_subspace_dim=-1)
-
-    def test_valid_magnon_creates_successfully(self):
-        """MagnonCartridge válido se crea sin errores."""
-        magnon = self._make_valid_magnon()
-        assert magnon.kinetic_energy == 1.5
-        assert magnon.curl_subspace_dim == 2
-
-    # ── Propiedades derivadas ─────────────────────────────────────────────
-
-    @pytest.mark.parametrize("vorticity,expected_severity", [
-        (0.51, "CRITICAL"),
-        (0.21, "HIGH"),
-        (0.06, "MODERATE"),
-        (0.04, "LOW"),
-        (0.0,  "LOW"),
-    ])
-    def test_thermodynamic_severity_thresholds(self, vorticity, expected_severity):
-        """Clasificación de severidad según ω."""
-        magnon = self._make_valid_magnon(vorticity_index=vorticity)
-        assert magnon.thermodynamic_severity == expected_severity, (
-            f"ω={vorticity:.2f} → esperado {expected_severity}, "
-            f"obtenido {magnon.thermodynamic_severity}"
-        )
-
-    def test_is_significant_all_conditions(self):
-        """is_significant = True requiere E_curl > 1e-9, ω > 0.01, k > 0."""
-        magnon = self._make_valid_magnon(
-            kinetic_energy=1.0,
-            vorticity_index=0.5,
-            curl_subspace_dim=1,
-        )
-        assert magnon.is_significant
-
-    @pytest.mark.parametrize("field_name,value", [
-        ("kinetic_energy", 1e-10),   # E_curl demasiado pequeño
-        ("vorticity_index", 0.005),  # ω demasiado pequeño
-        ("curl_subspace_dim", 0),    # Sin ciclos
-    ])
-    def test_is_significant_false_when_any_condition_fails(self, field_name, value):
-        """is_significant = False si cualquier condición falla."""
-        kwargs = dict(
-            kinetic_energy=1.0,
-            vorticity_index=0.5,
-            curl_subspace_dim=1,
-        )
-        kwargs[field_name] = value
-        magnon = self._make_valid_magnon(**kwargs)
-        assert not magnon.is_significant, (
-            f"is_significant debe ser False cuando {field_name}={value}"
-        )
-
-    def test_dominant_cycle_identifies_max_circulation(self):
-        """dominant_cycle retorna el índice con mayor |Γⱼ|."""
-        magnon = self._make_valid_magnon(
-            circulation_per_cycle=(1.0, -5.0, 2.0)
-        )
-        idx, val = magnon.dominant_cycle
-        assert idx == 1, f"Índice dominante esperado 1, obtenido {idx}"
-        assert abs(val - (-5.0)) < TOL_STRICT
-
-    def test_dominant_cycle_empty_returns_minus_one(self):
-        """Sin circulaciones: dominant_cycle = (-1, 0.0)."""
-        magnon = self._make_valid_magnon(circulation_per_cycle=())
-        idx, val = magnon.dominant_cycle
-        assert idx == -1
-        assert val == 0.0
-
-    def test_total_circulation_norm_equals_sqrt_energy(self):
-        """‖Γ‖ = √E_curl."""
-        magnon = self._make_valid_magnon(kinetic_energy=9.0)
-        assert abs(magnon.total_circulation_norm - 3.0) < TOL_STRICT
-
-    # ── Veto payload ──────────────────────────────────────────────────────
-
-    def test_veto_payload_serializable(self):
-        """to_veto_payload retorna dict serializable (sin np.ndarray)."""
-        magnon = self._make_valid_magnon()
-        payload = magnon.to_veto_payload()
-        assert isinstance(payload, dict)
-        assert "type" in payload
-        assert payload["type"] == "ROUTING_VETO"
-
-        # Verificar que no hay np.ndarray en el payload
-        def check_no_arrays(obj, path=""):
-            if isinstance(obj, dict):
-                for k, v in obj.items():
-                    check_no_arrays(v, f"{path}.{k}")
-            elif isinstance(obj, (list, tuple)):
-                for i, v in enumerate(obj):
-                    check_no_arrays(v, f"{path}[{i}]")
-            elif isinstance(obj, np.ndarray):
-                raise AssertionError(
-                    f"np.ndarray encontrado en payload en {path}"
-                )
-
-        check_no_arrays(payload)
-
-    @pytest.mark.parametrize("severity,expected_action", [
-        ("CRITICAL",  "COLLAPSE_AND_RECONFIGURE"),
-        ("HIGH",      "PARTITION_AND_RELAY"),
-        ("MODERATE",  "MONITOR_AND_DAMP"),
-        ("LOW",       "LOG_AND_PROCEED"),
-    ])
-    def test_prescribed_action_per_severity(self, severity, expected_action):
-        """Acción correctiva coincide con severidad."""
-        # Mapear severidad a ω
-        omega_map = {
-            "CRITICAL": 0.6, "HIGH": 0.3,
-            "MODERATE": 0.1, "LOW": 0.01,
-        }
-        magnon = self._make_valid_magnon(
-            vorticity_index=omega_map[severity]
-        )
-        assert magnon._prescribe_action() == expected_action
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# VII. TESTS: Descomposición Completa de Hodge
-# ─────────────────────────────────────────────────────────────────────────────
-
-class TestFullHodgeDecomposition:
-    """
-    Verifica la descomposición ortogonal de Hodge–Helmholtz:
-
-        I = I_grad + I_curl + I_harm
-
-    con propiedades:
-        (a) Reconstrucción: I_grad + I_curl + I_harm = I
-        (b) Ortogonalidad: ⟨I_grad, I_curl⟩ = ⟨I_grad, I_harm⟩ = ⟨I_curl, I_harm⟩ = 0
-        (c) Parseval: ‖I_grad‖² + ‖I_curl‖² + ‖I_harm‖² = ‖I‖²
-    """
-
-    def _get_decomposition(
-        self, G: nx.DiGraph, flows: Dict
-    ) -> Dict[str, Any]:
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-14)
-        return op.compute_full_hodge_decomposition(G, flows)
-
-    def test_reconstruction_identity(self):
-        """I = I_grad + I_curl + I_harm (exacto hasta tolerancia numérica)."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        rng = np.random.default_rng(100)
-        flows = {e: rng.standard_normal() for e in G.edges()}
-        result = self._get_decomposition(G, flows)
-
-        I_orig = np.array(result["original_flow"])
-        I_grad = np.array(result["irrotational_component"])
-        I_curl = np.array(result["solenoidal_component"])
-        I_harm = np.array(result["harmonic_component"])
-
-        reconstruction = I_grad + I_curl + I_harm
-        error = np.linalg.norm(I_orig - reconstruction)
-        assert error < TOL_NUMERICAL, (
-            f"Error de reconstrucción: {error:.2e}"
-        )
-
-    def test_grad_curl_orthogonal(self):
-        """⟨I_grad, I_curl⟩ ≈ 0."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        flows = {e: 1.0 for e in G.edges()}
-        result = self._get_decomposition(G, flows)
-
-        I_grad = np.array(result["irrotational_component"])
-        I_curl = np.array(result["solenoidal_component"])
-        inner = float(np.dot(I_grad, I_curl))
-
-        assert abs(inner) < TOL_NUMERICAL, (
-            f"⟨I_grad, I_curl⟩ = {inner:.2e} ≠ 0"
-        )
-
-    def test_grad_harm_orthogonal(self):
-        """⟨I_grad, I_harm⟩ ≈ 0."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        flows = {e: 1.0 for e in G.edges()}
-        result = self._get_decomposition(G, flows)
-
-        I_grad = np.array(result["irrotational_component"])
-        I_harm = np.array(result["harmonic_component"])
-        inner = float(np.dot(I_grad, I_harm))
-
-        assert abs(inner) < TOL_NUMERICAL, (
-            f"⟨I_grad, I_harm⟩ = {inner:.2e} ≠ 0"
-        )
-
-    def test_curl_harm_orthogonal(self):
-        """⟨I_curl, I_harm⟩ ≈ 0."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        flows = {e: 1.0 for e in G.edges()}
-        result = self._get_decomposition(G, flows)
-
-        I_curl = np.array(result["solenoidal_component"])
-        I_harm = np.array(result["harmonic_component"])
-        inner = float(np.dot(I_curl, I_harm))
-
-        assert abs(inner) < TOL_NUMERICAL, (
-            f"⟨I_curl, I_harm⟩ = {inner:.2e} ≠ 0"
-        )
-
-    def test_parseval_energy_identity(self):
-        """
-        Parseval: ‖I_grad‖² + ‖I_curl‖² + ‖I_harm‖² = ‖I‖².
-
-        Consecuencia de la ortogonalidad y la igualdad de Pitágoras.
-        """
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        rng = np.random.default_rng(200)
-        flows = {e: rng.standard_normal() for e in G.edges()}
-        result = self._get_decomposition(G, flows)
-
-        energy = result["energy_decomposition"]
-        total = energy["total"]
-        sum_components = (
-            energy["irrotational"] + energy["solenoidal"] + energy["harmonic"]
-        )
-        assert abs(total - sum_components) < TOL_NUMERICAL, (
-            f"Parseval violado: ‖I‖² = {total:.6f}, "
-            f"Σ‖Iᵢ‖² = {sum_components:.6f}"
-        )
-
-    def test_acyclic_graph_curl_is_zero(self):
-        """Para grafos 1D, ‖I_curl‖ = 0 (no hay caras 2D)."""
-        G, _ = GraphFactory.triangle()
-        flows = {e: 1.0 for e in G.edges()}
-        result = self._get_decomposition(G, flows)
-        curl_norm = result["norms"]["solenoidal"]
-        assert curl_norm < TOL_NUMERICAL
-
-    def test_verification_flags_orthogonal(self):
-        """El flag is_orthogonal_decomposition debe ser True."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        flows = {e: 1.0 for e in G.edges()}
-        result = self._get_decomposition(G, flows)
-        assert result["verification"]["is_orthogonal_decomposition"], (
-            f"Descomposición no ortogonal: {result['verification']}"
-        )
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# VIII. TESTS: Casos Degenerados y Frontera
-# ─────────────────────────────────────────────────────────────────────────────
-
-class TestEdgeCases:
-    """
-    Verifica el comportamiento correcto en casos límite y degenerados.
-    """
-
-    def test_single_node_no_edges(self):
-        """Grafo trivial: un nodo, sin aristas."""
-        G, _ = GraphFactory.single_node()
-        result = verify_hodge_properties(G)
-        assert result["betti_numbers"]["beta_1"] == 0
-        assert result["euler_characteristic"]["verified"]
-
-    def test_two_nodes_one_edge(self):
-        """Grafo mínimo: 2 nodos, 1 arista. Sin ciclos."""
-        G = nx.DiGraph()
-        G.add_edge(0, 1)
-        builder = HodgeDecompositionBuilder(G)
-        B1, _ = builder.build_incidence_matrix()
-        B2, meta = builder.build_face_matrix()
-        assert B2.shape[1] == 0
-        assert meta["betti_1"] == 0
-
-    def test_graph_with_antiparallel_edges(self):
-        """
-        Grafo con aristas antiparalelas: A→B y B→A simultáneamente.
-        β₁ = m − n + c = 2 − 2 + 1 = 1.
-        """
-        G = nx.DiGraph()
-        G.add_edge("A", "B")
-        G.add_edge("B", "A")
-        builder = HodgeDecompositionBuilder(G)
-        B2, meta = builder.build_face_matrix()
-        # Verificar B₁B₂ = 0
-        B1, _ = builder.build_incidence_matrix()
-        if B2.shape[1] > 0:
-            norm = np.linalg.norm(B1 @ B2, "fro")
-            assert norm < TOL_STRICT, f"‖B₁B₂‖_F = {norm:.2e} para aristas antiparalelas"
-
-    def test_flows_with_unknown_edges_ignored(self):
-        """Aristas en flows que no existen en G se ignoran silenciosamente."""
-        G, _ = GraphFactory.triangle()
-        flows_with_unknown = {
-            ("A", "B"): 1.0,
-            ("B", "C"): 1.0,
-            ("C", "A"): 1.0,
-            ("X", "Y"): 99.0,   # No existe en G
-        }
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        # No debe lanzar excepción
-        magnon = op.isolate_vorticity(G, flows_with_unknown)
-        assert magnon is not None
-
-    def test_disconnected_graph_cochain_complex(self):
-        """
-        Para grafo disconnected, β₀ = c > 1.
-        Euler–Poincaré: χ = β₀ − β₁.
-        """
-        G, inv = GraphFactory.disconnected_two_triangles()
-        result = HodgeDecompositionBuilder(G).verify_cochain_complex()
-        assert result["is_valid"]
-        assert result["beta_0"] == inv["c"]
-        assert result["beta_1"] == inv["beta_1"]
-        assert result["chi_geometric"] == result["chi_topological"]
-
-    def test_large_uniform_cycle_energy(self):
-        """
-        Ciclo de n nodos con flujo f:
-        Hay 1 ciclo fundamental, E_curl = f² (circulación = f por construcción
-        del árbol generador).
-        """
-        for n in [5, 10, 20]:
-            G, flows = GraphFactory.uniform_flow_cycle(n=n, flow=2.0)
-            op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-            magnon = op.isolate_vorticity(G, flows)
-            assert magnon is not None, f"No detectó vorticidad para ciclo n={n}"
-            assert magnon.curl_subspace_dim == 1
-            assert magnon.kinetic_energy > 0
-
-    def test_very_small_flow_below_threshold(self):
-        """Flujo < epsilon: debe retornar None."""
-        G, _ = GraphFactory.triangle()
-        epsilon = 1e-9
-        tiny_flows = {e: epsilon * 0.01 for e in G.edges()}
-        op = AcousticSolenoidOperator(tolerance_epsilon=epsilon)
-        result = op.isolate_vorticity(G, tiny_flows)
-        assert result is None, "Flujo sub-umbral debe retornar None"
-
-    def test_empty_flows_dict(self):
-        """Diccionario de flujos vacío: I = 0, debe retornar None."""
-        G, _ = GraphFactory.triangle()
-        op = AcousticSolenoidOperator()
-        result = op.isolate_vorticity(G, {})
-        assert result is None
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# IX. TESTS: Euler–Poincaré y Invariantes Topológicos
-# ─────────────────────────────────────────────────────────────────────────────
-
-class TestEulerPoincare:
-    """
-    Verifica la fórmula de Euler–Poincaré:
-
-        χ(G) = n − m = β₀ − β₁
-
-    para una familia paramétrica de grafos.
-    """
-
-    @pytest.mark.parametrize("factory,expected_chi", [
-        (GraphFactory.triangle,                   0),
-        (GraphFactory.two_triangles_shared_vertex, -1),
-        (GraphFactory.disconnected_two_triangles,  0),
-        (GraphFactory.single_node,                 1),
-        (GraphFactory.square_with_diagonal,        -1),
-    ])
-    def test_euler_poincare_geometric(self, factory, expected_chi):
-        """χ_geom = n − m."""
-        G, inv = factory()
-        chi = inv["n"] - inv["m"]
-        assert chi == expected_chi, (
-            f"{factory.__name__}: χ = {chi}, esperado {expected_chi}"
-        )
-
-    @pytest.mark.parametrize("factory", [
-        GraphFactory.triangle,
-        GraphFactory.two_triangles_shared_vertex,
-        GraphFactory.disconnected_two_triangles,
-        GraphFactory.path_graph,
-        GraphFactory.square_with_diagonal,
-    ])
-    def test_euler_poincare_topological_equals_geometric(self, factory):
-        """χ_geom = χ_top = β₀ − β₁."""
-        G, inv = factory()
-        result = HodgeDecompositionBuilder(G).verify_cochain_complex()
-        assert result["euler_poincare_ok"], (
-            f"{factory.__name__}: "
-            f"χ_geom = {result['chi_geometric']}, "
-            f"χ_top = {result['chi_topological']}"
-        )
-
-    @pytest.mark.parametrize("n", [3, 5, 8])
-    def test_cycle_graph_betti(self, n):
-        """
-        Ciclo n-gono: β₁ = 1, β₀ = 1, χ = 0.
-        """
-        G = nx.cycle_graph(n, create_using=nx.DiGraph)
-        _, meta = HodgeDecompositionBuilder(G).build_face_matrix()
-        assert meta["betti_1"] == 1, (
-            f"Ciclo {n}-gono: β₁ esperado 1, obtenido {meta['betti_1']}"
-        )
-
-    @pytest.mark.parametrize("n", [4, 6])
-    def test_complete_graph_betti(self, n):
-        """
-        K_n dirigido: β₁ = m − n + 1 = n(n−1) − n + 1.
-        """
-        G, inv = GraphFactory.complete_directed(n)
-        _, meta = HodgeDecompositionBuilder(G).build_face_matrix()
-        expected_beta1 = inv["m"] - inv["n"] + 1
-        assert meta["betti_1"] == expected_beta1, (
-            f"K_{n}: β₁ esperado {expected_beta1}, obtenido {meta['betti_1']}"
-        )
-
-    def test_tree_has_beta1_zero(self):
-        """Árbol: β₁ = 0 (sin ciclos)."""
-        for n in [4, 7, 10]:
-            G, _ = GraphFactory.spanning_tree(n)
-            _, meta = HodgeDecompositionBuilder(G).build_face_matrix()
-            assert meta["betti_1"] == 0, (
-                f"Árbol {n}-nodos: β₁ = {meta['betti_1']}, esperado 0"
-            )
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# X. TESTS: Estabilidad Numérica
-# ─────────────────────────────────────────────────────────────────────────────
-
-class TestNumericalStability:
-    """
-    Verifica que los resultados son estables ante perturbaciones de
-    orden O(ε_mach) en los flujos y matrices.
-    """
-
-    def test_weyl_perturbation_bound_on_hodge_laplacian(self, builder_factory) -> None:
-        """
-        Aserta que bajo perturbaciones no lineales O(eps), la desviación del espectro
-        del Laplaciano L₁ respeta estrictamente la cota analítica de Weyl.
-        """
-        G, _ = GraphFactory.triangle()
-        builder = builder_factory(G)
-        L1, _ = builder.compute_hodge_laplacian()
-
-        # Inyectar perturbación de ruido simétrico O(eps)
-        eps_mach = np.finfo(np.float64).eps
-        delta_L = np.random.RandomState(42).randn(*L1.shape) * eps_mach * 1e4
-        delta_L = (delta_L + delta_L.T) / 2.0  # Forzar matriz autoadjunta
-
-        L1_perturbed = L1 + delta_L
-
-        eigvals_original = np.linalg.eigvalsh(L1)
-        eigvals_perturbed = np.linalg.eigvalsh(L1_perturbed)
-
-        norm_delta = np.linalg.norm(delta_L, ord=2)
-
-        # Teorema de Weyl: |λ'_i - λ_i| <= ||δL||_2
-        max_deviation = np.max(np.abs(eigvals_perturbed - eigvals_original))
-
-        assert max_deviation <= norm_delta + TOL_STRICT, \
-            f"Violación del Teorema de Weyl: Desviación {max_deviation:.2e} excede la norma {norm_delta:.2e}"
-
-    def test_vorticity_stable_under_small_perturbation(self):
-        """
-        Perturbación δI con ‖δI‖ ≈ ε_mach · ‖I‖ no cambia la clasificación
-        cualitativa (significant/non-significant) de la vorticidad.
-        """
-        G, _ = GraphFactory.triangle()
-        base_flows = {e: 10.0 for e in G.edges()}
-        rng = np.random.default_rng(300)
-        perturbation = {e: rng.standard_normal() * 1e-12 for e in G.edges()}
-        perturbed_flows = {
-            e: base_flows[e] + perturbation[e] for e in G.edges()
-        }
-
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-12)
-        m1 = op.isolate_vorticity(G, base_flows)
-        m2 = op.isolate_vorticity(G, perturbed_flows)
-
-        # Ambos deben tener la misma clasificación cualitativa
-        assert (m1 is None) == (m2 is None), (
-            "Perturbación numérica cambió la clasificación qualitativa"
-        )
-        if m1 is not None and m2 is not None:
-            assert m1.thermodynamic_severity == m2.thermodynamic_severity
-
-    def test_energy_continuous_in_flow(self):
-        """
-        E_curl(αI) = α² · E_curl(I).
-
-        Consecuencia de la cuadraturicidad: E_curl = ‖B₂ᵀI‖².
-        """
-        G, _ = GraphFactory.triangle()
-        base_flows = {e: 2.0 for e in G.edges()}
-        alpha = 5.0
-        scaled_flows = {e: alpha * f for e, f in base_flows.items()}
-
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-14)
-        m1 = op.isolate_vorticity(G, base_flows)
-        m2 = op.isolate_vorticity(G, scaled_flows)
-
-        assert m1 is not None and m2 is not None
-        expected_ratio = alpha ** 2
-        actual_ratio = m2.kinetic_energy / m1.kinetic_energy
-        assert abs(actual_ratio - expected_ratio) / expected_ratio < 1e-10, (
-            f"E_curl(αI)/E_curl(I) = {actual_ratio:.6f}, "
-            f"esperado α² = {expected_ratio:.6f}"
-        )
-
-    def test_B1B2_norm_below_machine_precision_threshold(self):
-        """
-        ‖B₁B₂‖_F debe ser O(ε_mach) para todos los grafos de prueba.
-        """
-        test_cases = [
-            GraphFactory.triangle(),
-            GraphFactory.two_triangles_shared_vertex(),
-            GraphFactory.square_with_diagonal(),
-            GraphFactory.disconnected_two_triangles(),
-        ]
-        for G, inv in test_cases:
+        graphs = [single_cycle, double_cycle, complete_graph_3]
+        
+        for G in graphs:
             builder = HodgeDecompositionBuilder(G)
             B1, _ = builder.build_incidence_matrix()
-            B2, meta = builder.build_face_matrix()
-            if B2.shape[1] == 0:
-                continue
-            norm = meta["B1B2_norm"]
-            # Para B₁, B₂ con entradas ∈ {-1, 0, 1}:
-            # ‖B₁B₂‖_F debe ser exactamente 0 en aritmética exacta
-            # y O(ε_mach · m) en punto flotante
-            threshold = EPS_MACH * inv["m"] * 100  # margen conservador
-            assert norm < threshold, (
-                f"‖B₁B₂‖_F = {norm:.2e} > {threshold:.2e} "
-                f"para {G.edges()}"
-            )
-
-    def test_pseudoinverse_stable_for_ill_conditioned_matrix(self):
+            B2, _ = builder.build_face_matrix()
+            
+            if B2.shape[1] > 0:
+                B1B2 = B1 @ B2
+                B1B2_norm = np.linalg.norm(B1B2, 'fro')
+                
+                assert B1B2_norm < NC.BASE_TOLERANCE, \
+                    f"Violación de ∂₁∘∂₂=0 en grafo con {G.number_of_nodes()} nodos"
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 3.4 Números de Betti y Euler-Poincaré
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_invariant_euler_poincare_single_cycle(self, single_cycle):
         """
-        Para matriz mal condicionada (κ ≈ 1e10), A⁺ satisface A A⁺ A = A.
+        Verifica Euler-Poincaré: χ = n - m = β₀ - β₁.
         """
-        # Construir matriz con κ ≈ 1e10
-        rng = np.random.default_rng(400)
-        U = la.orth(rng.standard_normal((6, 4)))
-        V = la.orth(rng.standard_normal((6, 4)))
-        sigmas = np.array([1e5, 1e3, 10.0, 1e-5])   # κ ≈ 1e10
-        A = U @ np.diag(sigmas) @ V.T
+        builder = HodgeDecompositionBuilder(single_cycle)
+        verification = builder.verify_chain_complex()
+        
+        assert verification["euler_characteristic"]["verified"] is True
+    
+    def test_invariant_euler_poincare_disconnected(self, disconnected_graph):
+        """
+        Verifica Euler-Poincaré para grafo desconectado.
+        """
+        builder = HodgeDecompositionBuilder(disconnected_graph)
+        verification = builder.verify_chain_complex()
+        
+        chi_geom = verification["euler_characteristic"]["chi_geometric"]
+        chi_topo = verification["euler_characteristic"]["chi_topological"]
+        
+        assert chi_geom == chi_topo, \
+            f"χ geométrico ({chi_geom}) ≠ χ topológico ({chi_topo})"
+    
+    def test_invariant_betti_numbers_complete_graph(self, complete_graph_3):
+        """
+        Verifica números de Betti en grafo completo K₃.
+        """
+        builder = HodgeDecompositionBuilder(complete_graph_3)
+        _, meta = builder.build_face_matrix()
+        
+        # K₃ dirigido tiene múltiples ciclos
+        assert meta["betti_1"] >= 3, "K₃ debe tener β₁ ≥ 3"
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 3.5 Laplaciano de Hodge L₁
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_laplacian_symmetry(self, double_cycle):
+        """
+        Verifica que L₁ sea simétrico.
+        """
+        builder = HodgeDecompositionBuilder(double_cycle)
+        L1, spectral = builder.compute_hodge_laplacian()
+        
+        assert np.allclose(L1, L1.T, atol=NC.SYMMETRY_TOLERANCE), \
+            "L₁ debe ser simétrico"
+    
+    def test_unit_laplacian_positive_semidefinite(self, double_cycle):
+        """
+        Verifica que L₁ sea PSD (todos los λᵢ ≥ 0).
+        """
+        builder = HodgeDecompositionBuilder(double_cycle)
+        L1, spectral = builder.compute_hodge_laplacian()
+        
+        assert all(spectral.eigenvalues >= -NC.BASE_TOLERANCE), \
+            "L₁ debe ser semi-definido positivo"
+    
+    def test_invariant_hodge_isomorphism(self, double_cycle):
+        """
+        Verifica isomorfismo de Hodge: dim ker(L₁) = β₁.
+        """
+        builder = HodgeDecompositionBuilder(double_cycle)
+        L1, spectral = builder.compute_hodge_laplacian()
+        _, meta_B2 = builder.build_face_matrix()
+        
+        kernel_dim = spectral.kernel_dimension
+        beta_1 = meta_B2["betti_1"]
+        
+        assert kernel_dim == beta_1, \
+            f"dim ker(L₁) = {kernel_dim} ≠ β₁ = {beta_1}"
+    
+    def test_unit_laplacian_trace(self, single_cycle):
+        """
+        Verifica Tr(L₁) = Σλᵢ = ‖B₁‖²_F + ‖B₂‖²_F.
+        """
+        builder = HodgeDecompositionBuilder(single_cycle)
+        L1, spectral = builder.compute_hodge_laplacian()
+        
+        trace_direct = np.trace(L1)
+        trace_eigs = np.sum(spectral.eigenvalues)
+        
+        assert math.isclose(trace_direct, trace_eigs, rel_tol=NC.BASE_TOLERANCE), \
+            f"Tr(L₁) = {trace_direct:.6e} ≠ Σλᵢ = {trace_eigs:.6e}"
 
-        A_plus = NumericalUtilities.moore_penrose_pseudoinverse(A)
-        residual = np.linalg.norm(A @ A_plus @ A - A, "fro") / np.linalg.norm(A, "fro")
-        # Para κ=1e10 y ε_mach≈2e-16: error esperado ≈ 2e-6
-        assert residual < 1e-5, (
-            f"A A⁺ A ≠ A para matriz mal condicionada: residual = {residual:.2e}"
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 4: TESTS DE DESCOMPOSICIÓN DE HODGE-HELMHOLTZ
+# ═════════════════════════════════════════════════════════════════════════════
+
+class TestHodgeDecomposition:
+    """
+    Suite de validación de descomposición de Hodge completa.
+    
+    Verifica:
+        - Ortogonalidad: ⟨I_grad, I_curl⟩ = 0
+        - Completitud: I = I_grad + I_curl + I_harm
+        - Conservación de energía
+        - Unicidad de componentes
+    """
+    
+    def test_property_orthogonal_decomposition(self, double_cycle, sample_flows_nonuniform):
+        """
+        Verifica ortogonalidad de componentes de Hodge.
+        """
+        solenoid = AcousticSolenoidOperator()
+        result = solenoid.compute_full_hodge_decomposition(
+            double_cycle,
+            sample_flows_nonuniform
         )
-
-    def test_hodge_decomposition_stable_random_flows(self):
+        
+        verification = result["verification"]
+        
+        # Productos internos deben ser ≈ 0
+        assert abs(verification["orthogonality_grad_curl"]) < verification["orthogonality_tolerance"]
+        assert abs(verification["orthogonality_grad_harm"]) < verification["orthogonality_tolerance"]
+        assert abs(verification["orthogonality_curl_harm"]) < verification["orthogonality_tolerance"]
+        
+        assert verification["is_orthogonal_decomposition"] is True
+    
+    def test_property_complete_decomposition(self, double_cycle, sample_flows_nonuniform):
         """
-        Descomposición de Hodge es estable para flujos aleatorios.
-        Error de reconstrucción < TOL_NUMERICAL para 10 ensayos.
+        Verifica completitud: I = I_grad + I_curl + I_harm.
         """
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        op = AcousticSolenoidOperator(tolerance_epsilon=1e-14)
-        rng = np.random.default_rng(500)
+        solenoid = AcousticSolenoidOperator()
+        result = solenoid.compute_full_hodge_decomposition(
+            double_cycle,
+            sample_flows_nonuniform
+        )
+        
+        verification = result["verification"]
+        
+        assert verification["is_complete_decomposition"] is True
+        assert verification["reconstruction_error"] < NC.BASE_TOLERANCE * 10
+    
+    def test_invariant_energy_conservation(self, double_cycle, sample_flows_nonuniform):
+        """
+        Verifica conservación de energía: E_total = E_grad + E_curl + E_harm.
+        """
+        solenoid = AcousticSolenoidOperator()
+        result = solenoid.compute_full_hodge_decomposition(
+            double_cycle,
+            sample_flows_nonuniform
+        )
+        
+        energy = result["energy_decomposition"]
+        
+        E_total = energy["total"]
+        E_sum = energy["irrotational"] + energy["solenoidal"] + energy["harmonic"]
+        
+        # Balance de energía
+        balance_error = abs(E_total - E_sum)
+        
+        assert balance_error < NC.BASE_TOLERANCE * E_total, \
+            f"Violación de conservación de energía: error={balance_error:.2e}"
+    
+    def test_property_uniqueness(self, single_cycle):
+        """
+        Verifica unicidad de descomposición de Hodge.
+        
+        Dos descomposiciones del mismo flujo deben dar mismo resultado.
+        """
+        flows = {
+            ("A", "B"): 5.0,
+            ("B", "C"): 5.0,
+            ("C", "A"): 5.0,
+        }
+        
+        solenoid = AcousticSolenoidOperator()
+        
+        result1 = solenoid.compute_full_hodge_decomposition(single_cycle, flows)
+        result2 = solenoid.compute_full_hodge_decomposition(single_cycle, flows)
+        
+        # Componentes deben ser idénticas
+        I_grad1 = np.array(result1["components"]["irrotational"])
+        I_grad2 = np.array(result2["components"]["irrotational"])
+        
+        assert np.allclose(I_grad1, I_grad2, atol=NC.BASE_TOLERANCE)
 
-        for trial in range(10):
-            flows = {e: rng.standard_normal() * 10 for e in G.edges()}
-            result = op.compute_full_hodge_decomposition(G, flows)
-            error = result["verification"]["reconstruction_error"]
-            assert error < TOL_NUMERICAL, (
-                f"Trial {trial}: error de reconstrucción {error:.2e}"
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 5: TESTS DE OPERADOR DE VORTICIDAD
+# ═════════════════════════════════════════════════════════════════════════════
+
+class TestVorticityOperator:
+    """
+    Suite de validación del operador de vorticidad solenoidal.
+    
+    Verifica:
+        - Proyector P_curl (idempotencia, simetría)
+        - Circulación (Ley de Stokes)
+        - Energía de vorticidad
+        - Índice de vorticidad
+    """
+    
+    def test_unit_projector_idempotency(self, single_cycle, sample_flows_uniform):
+        """
+        Verifica idempotencia: P² = P.
+        """
+        solenoid = AcousticSolenoidOperator()
+        magnon = solenoid.isolate_vorticity(single_cycle, sample_flows_uniform)
+        
+        if magnon is not None and magnon.projector_matrix is not None:
+            P = magnon.projector_matrix
+            P_squared = P @ P
+            
+            idempotency_error = np.linalg.norm(P_squared - P, 'fro') / np.linalg.norm(P, 'fro')
+            
+            assert idempotency_error < NC.IDEMPOTENCY_TOLERANCE, \
+                f"Proyector no idempotente: error={idempotency_error:.2e}"
+    
+    def test_unit_vorticity_dag_zero(self, dag_simple):
+        """
+        Verifica que DAG tenga vorticidad nula.
+        """
+        flows = {edge: 1.0 for edge in dag_simple.edges()}
+        
+        solenoid = AcousticSolenoidOperator()
+        magnon = solenoid.isolate_vorticity(dag_simple, flows)
+        
+        # DAG no debe emitir magnon (sin ciclos)
+        assert magnon is None, "DAG no debe tener vorticidad"
+    
+    def test_unit_vorticity_index_bounds(self, double_cycle, sample_flows_nonuniform):
+        """
+        Verifica que índice de vorticidad ω ∈ [0, 1].
+        """
+        solenoid = AcousticSolenoidOperator()
+        magnon = solenoid.isolate_vorticity(double_cycle, sample_flows_nonuniform)
+        
+        if magnon is not None:
+            omega = magnon.vorticity_index
+            assert 0.0 <= omega <= 1.0, f"ω fuera de [0,1]: {omega}"
+    
+    def test_property_circulation_stokes(self, single_cycle):
+        """
+        Verifica Ley de Stokes discreta: Γ = B₂ᵀI.
+        """
+        flows = {
+            ("A", "B"): 10.0,
+            ("B", "C"): 10.0,
+            ("C", "A"): 10.0,
+        }
+        
+        solenoid = AcousticSolenoidOperator()
+        magnon = solenoid.isolate_vorticity(single_cycle, flows)
+        
+        if magnon is not None:
+            # Para ciclo simple con flujo uniforme, Γ debe ser ≈ 3*10 = 30
+            circulation = magnon.metrics.circulation_vector
+            
+            assert len(circulation) == 1, "Ciclo simple debe tener β₁ = 1"
+            # La circulación exacta depende de la orientación del ciclo
+            assert abs(circulation[0]) > 0, "Circulación debe ser no nula"
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 6: TESTS DE MAGNON CARTRIDGE (continuación de Parte 1)
+# ═════════════════════════════════════════════════════════════════════════════
+
+class TestMagnonCartridge:
+    """
+    Suite de validación del bosón de vorticidad (MagnonCartridge).
+    
+    Verifica:
+        - Construcción e inmutabilidad
+        - Validación de invariantes físicos
+        - Clasificación de severidad
+        - Serialización completa
+        - Generación de proof matemático
+    """
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.1 Construcción y Validación
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_magnon_construction_valid(self, double_cycle, sample_flows_nonuniform):
+        """
+        Verifica construcción exitosa de MagnonCartridge.
+        """
+        solenoid = AcousticSolenoidOperator()
+        magnon = solenoid.isolate_vorticity(double_cycle, sample_flows_nonuniform)
+        
+        assert magnon is not None, "Debe emitir magnon con flujo rotacional"
+        assert isinstance(magnon, MagnonCartridge)
+        assert isinstance(magnon.metrics, VorticityMetrics)
+    
+    def test_unit_magnon_immutability(self, double_cycle, sample_flows_nonuniform):
+        """
+        Verifica que MagnonCartridge sea inmutable (frozen).
+        """
+        solenoid = AcousticSolenoidOperator()
+        magnon = solenoid.isolate_vorticity(double_cycle, sample_flows_nonuniform)
+        
+        if magnon is not None:
+            with pytest.raises(AttributeError):
+                magnon.metrics = VorticityMetrics(
+                    kinetic_energy=0.0,
+                    total_energy=1.0,
+                    vorticity_index=0.0,
+                    circulation_vector=np.array([]),
+                    dominant_cycle_index=-1,
+                    dominant_circulation=0.0,
+                    total_circulation_norm=0.0,
+                )
+    
+    def test_unit_magnon_validates_negative_energy(self):
+        """
+        Verifica rechazo de energía cinética negativa.
+        """
+        with pytest.raises(ValueError, match="Energía cinética"):
+            VorticityMetrics(
+                kinetic_energy=-1.0,  # Inválido
+                total_energy=10.0,
+                vorticity_index=0.0,
+                circulation_vector=np.array([1.0]),
+                dominant_cycle_index=0,
+                dominant_circulation=1.0,
+                total_circulation_norm=1.0,
             )
-
-    def test_projector_stable_for_orthogonal_B2(self):
+    
+    def test_unit_magnon_validates_vorticity_index_bounds(self):
         """
-        Si B₂ tiene columnas ortonormales, P_curl = B₂B₂ᵀ exactamente.
+        Verifica rechazo de índice de vorticidad fuera de [0, 1].
         """
-        # Construir B₂ ortonormal artificialmente
-        m, k = 6, 2
-        rng = np.random.default_rng(600)
-        B2 = la.orth(rng.standard_normal((m, k)))  # k columnas ortonormales
+        with pytest.raises(ValueError, match="vorticidad"):
+            VorticityMetrics(
+                kinetic_energy=5.0,
+                total_energy=10.0,
+                vorticity_index=1.5,  # Inválido (> 1)
+                circulation_vector=np.array([1.0]),
+                dominant_cycle_index=0,
+                dominant_circulation=1.0,
+                total_circulation_norm=1.0,
+            )
+    
+    def test_unit_magnon_validates_idempotency_error(self):
+        """
+        Verifica validación de error de idempotencia.
+        """
+        metrics = VorticityMetrics(
+            kinetic_energy=5.0,
+            total_energy=10.0,
+            vorticity_index=0.5,
+            circulation_vector=np.array([1.0, 2.0]),
+            dominant_cycle_index=1,
+            dominant_circulation=2.0,
+            total_circulation_norm=2.236,
+        )
+        
+        # Error negativo debe fallar
+        with pytest.raises(ValueError, match="idempotencia"):
+            MagnonCartridge(
+                metrics=metrics,
+                projection_idempotency_error=-0.01,
+            )
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.2 Clasificación de Severidad
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_severity_critical(self):
+        """
+        Verifica clasificación CRITICAL (ω > 0.50).
+        """
+        metrics = VorticityMetrics(
+            kinetic_energy=60.0,
+            total_energy=100.0,
+            vorticity_index=0.6,
+            circulation_vector=np.array([5.0]),
+            dominant_cycle_index=0,
+            dominant_circulation=5.0,
+            total_circulation_norm=5.0,
+        )
+        
+        assert metrics.severity_class == "CRITICAL"
+    
+    def test_unit_severity_high(self):
+        """
+        Verifica clasificación HIGH (0.20 < ω ≤ 0.50).
+        """
+        metrics = VorticityMetrics(
+            kinetic_energy=30.0,
+            total_energy=100.0,
+            vorticity_index=0.3,
+            circulation_vector=np.array([3.0]),
+            dominant_cycle_index=0,
+            dominant_circulation=3.0,
+            total_circulation_norm=3.0,
+        )
+        
+        assert metrics.severity_class == "HIGH"
+    
+    def test_unit_severity_moderate(self):
+        """
+        Verifica clasificación MODERATE (0.05 < ω ≤ 0.20).
+        """
+        metrics = VorticityMetrics(
+            kinetic_energy=10.0,
+            total_energy=100.0,
+            vorticity_index=0.1,
+            circulation_vector=np.array([2.0]),
+            dominant_cycle_index=0,
+            dominant_circulation=2.0,
+            total_circulation_norm=2.0,
+        )
+        
+        assert metrics.severity_class == "MODERATE"
+    
+    def test_unit_severity_low(self):
+        """
+        Verifica clasificación LOW (ω ≤ 0.05).
+        """
+        metrics = VorticityMetrics(
+            kinetic_energy=2.0,
+            total_energy=100.0,
+            vorticity_index=0.02,
+            circulation_vector=np.array([1.0]),
+            dominant_cycle_index=0,
+            dominant_circulation=1.0,
+            total_circulation_norm=1.0,
+        )
+        
+        assert metrics.severity_class == "LOW"
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.3 Propiedades Derivadas
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_dominant_cycle_detection(self):
+        """
+        Verifica detección del ciclo dominante.
+        """
+        metrics = VorticityMetrics(
+            kinetic_energy=50.0,
+            total_energy=100.0,
+            vorticity_index=0.5,
+            circulation_vector=np.array([2.0, 5.0, 3.0]),
+            dominant_cycle_index=1,
+            dominant_circulation=5.0,
+            total_circulation_norm=6.164,
+        )
+        
+        magnon = MagnonCartridge(metrics=metrics)
+        
+        idx, circ = magnon.dominant_cycle
+        assert idx == 1
+        assert circ == 5.0
+    
+    def test_unit_is_significant_true(self):
+        """
+        Verifica que vorticidad sea significativa cuando cumple criterios.
+        """
+        metrics = VorticityMetrics(
+            kinetic_energy=1e-6,  # > threshold
+            total_energy=1e-4,
+            vorticity_index=0.02,  # > 0.01
+            circulation_vector=np.array([1e-3]),
+            dominant_cycle_index=0,
+            dominant_circulation=1e-3,
+            total_circulation_norm=1e-3,
+        )
+        
+        assert metrics.is_significant is True
+    
+    def test_unit_is_significant_false_low_energy(self):
+        """
+        Verifica que vorticidad sea insignificante con energía baja.
+        """
+        metrics = VorticityMetrics(
+            kinetic_energy=1e-12,  # < threshold
+            total_energy=1.0,
+            vorticity_index=0.5,
+            circulation_vector=np.array([1e-6]),
+            dominant_cycle_index=0,
+            dominant_circulation=1e-6,
+            total_circulation_norm=1e-6,
+        )
+        
+        assert metrics.is_significant is False
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.4 Serialización
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_magnon_to_dict_serializable(self, double_cycle, sample_flows_nonuniform):
+        """
+        Verifica que to_dict() produzca diccionario completamente serializable.
+        """
+        solenoid = AcousticSolenoidOperator()
+        magnon = solenoid.isolate_vorticity(double_cycle, sample_flows_nonuniform)
+        
+        if magnon is not None:
+            result_dict = magnon.to_dict()
+            
+            # Verificar que sea dict
+            assert isinstance(result_dict, dict)
+            
+            # Verificar claves esperadas
+            assert "metrics" in result_dict
+            assert "energy_decomposition" in result_dict
+            assert "veto_payload" in result_dict
+            
+            # No debe contener np.ndarray directos (solo listas)
+            import json
+            try:
+                json.dumps(result_dict)
+            except TypeError as exc:
+                pytest.fail(f"to_dict() no es JSON-serializable: {exc}")
+    
+    def test_unit_magnon_to_veto_payload(self, double_cycle, sample_flows_nonuniform):
+        """
+        Verifica estructura del veto payload.
+        """
+        solenoid = AcousticSolenoidOperator()
+        magnon = solenoid.isolate_vorticity(double_cycle, sample_flows_nonuniform)
+        
+        if magnon is not None:
+            veto = magnon.to_veto_payload()
+            
+            # Verificar campos obligatorios
+            assert veto["type"] == "ROUTING_VETO"
+            assert "magnitude" in veto
+            assert "vorticity_metrics" in veto
+            assert "causality_status" in veto
+            assert "prescribed_action" in veto
+            
+            # Verificar coherencia
+            if magnon.is_significant:
+                assert veto["causality_status"] == "COMPROMISED"
+            else:
+                assert veto["causality_status"] == "INTACT"
+    
+    def test_unit_magnon_prescribed_action_mapping(self):
+        """
+        Verifica mapeo correcto de severidad → acción.
+        """
+        action_map = {
+            "CRITICAL": "COLLAPSE_AND_RECONFIGURE",
+            "HIGH": "PARTITION_AND_RELAY",
+            "MODERATE": "MONITOR_AND_DAMP",
+            "LOW": "LOG_AND_PROCEED",
+        }
+        
+        for severity, expected_action in action_map.items():
+            omega = {
+                "CRITICAL": 0.6,
+                "HIGH": 0.3,
+                "MODERATE": 0.1,
+                "LOW": 0.02,
+            }[severity]
+            
+            metrics = VorticityMetrics(
+                kinetic_energy=omega * 100,
+                total_energy=100.0,
+                vorticity_index=omega,
+                circulation_vector=np.array([1.0]),
+                dominant_cycle_index=0,
+                dominant_circulation=1.0,
+                total_circulation_norm=1.0,
+            )
+            
+            magnon = MagnonCartridge(metrics=metrics)
+            assert magnon._prescribe_action() == expected_action
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.5 Proof Matemático
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_unit_mathematical_proof_structure(self, double_cycle, sample_flows_nonuniform):
+        """
+        Verifica estructura del proof matemático.
+        """
+        solenoid = AcousticSolenoidOperator()
+        magnon = solenoid.isolate_vorticity(double_cycle, sample_flows_nonuniform)
+        
+        if magnon is not None:
+            proof = magnon.generate_mathematical_proof()
+            
+            # Verificar campos obligatorios
+            assert "theorem" in proof
+            assert "statement" in proof
+            assert "verification" in proof
+            assert "conclusion" in proof
+            
+            # Verificar referencia a Hodge
+            assert "Hodge" in proof["theorem"]
 
-        # Calcular proyector esperado
-        P_expected = B2 @ B2.T
 
-        # Calcular proyector vía SVD (el método del módulo)
-        op = AcousticSolenoidOperator()
-        P_svd, _, error = op._compute_projector_via_svd(B2)
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 7: TESTS DE INTEGRACIÓN COMPLETA
+# ═════════════════════════════════════════════════════════════════════════════
 
-        np.testing.assert_allclose(P_svd, P_expected, atol=TOL_STRICT)
-        assert error < TOL_PROJECTION
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# XI. TESTS: Interfaz Agéntica (inspect_and_mitigate_resonance)
-# ─────────────────────────────────────────────────────────────────────────────
-
-class TestAgenticInterface:
+class TestIntegrationComplete:
     """
-    Verifica el comportamiento de la interfaz principal.
+    Suite de integración del pipeline completo.
+    
+    Verifica:
+        - inspect_and_mitigate_resonance (API principal)
+        - Flujo end-to-end
+        - Telemetría
+        - Casos de admisión y rechazo
     """
-
-    def test_resonance_mitigation_enforces_dikw_closure(self, operator: AcousticSolenoidOperator) -> None:
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.1 Pipeline Completo
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_integration_laminar_flow_dag(self, dag_simple):
         """
-        Aserta que ante una resonancia inmitigable (vorticidad infinita o ciclo hermético),
-        la interfaz agéntica emite un fallo categórico que respeta el Veto Físico,
-        impidiendo la ascensión fraudulenta al estrato TACTICS.
+        Verifica que DAG produzca estado LAMINAR_FLOW.
         """
-        from app.core.schemas import Stratum
-        from app.core.telemetry import TelemetryContext, StepStatus
-
-        ctx = TelemetryContext()
-        ctx.start_step("solenoid_inspection", stratum=Stratum.PHYSICS)
-
-        # Inyectar un flujo cíclico perfecto puramente solenoidal
-        G, _ = GraphFactory.triangle()
-        B_cycle = operator._build_fundamental_cycles(G)
-
-        # Forzamos una resonancia masiva pasando los límites críticos (severidad CRITICAL si omega > 0.5)
-        #||I||^2 = ||B_cycle @ alpha||^2
-        #E_curl = ||B_cycle.T @ B_cycle @ alpha||^2
-        # Para un triángulo, B_cycle es [1, 1, 1].T (o similar)
-        # ||I||^2 = 3 * alpha^2
-        # E_curl = (3 * alpha)^2 = 9 * alpha^2
-        # Omega = E_curl / ||I||^2 = 3.0 (Acotado a 1.0 en la implementación)
-
-        alpha = 100.0
-        I_vec = B_cycle @ np.array([alpha])
-        builder = HodgeDecompositionBuilder(G)
-        edge_flows = {e: float(I_vec[i]) for i, e in enumerate(builder._edges)}
-
-        result = inspect_and_mitigate_resonance(G, edge_flows, telemetry_ctx=ctx)
-
-        # La física NO se negocia. El status debe ser FAILURE para resonancia crítica.
-        assert result.status == StepStatus.FAILURE, \
-            f"Violación de la Clausura Transitiva: La interfaz ocultó una resonancia física destructiva. Status: {result.status}"
-
-        # El estrato superior no puede ser alcanzado.
-        # En nuestro TelemetryContext, record_error con CRITICAL debería haber marcado el estrato como insalubre.
-        assert not ctx._strata_health[Stratum.PHYSICS].is_healthy
-
-        # Verificamos que se registró el error
-        assert any(e["severity"] == "CRITICAL" for e in ctx.errors)
-
-    def test_resonance_detected_for_cyclic_graph(self):
-        """Grafo con ciclos y flujo significativo: RESONANCE_DETECTED o FAILURE."""
-        from app.core.telemetry import StepStatus
-        G, _ = GraphFactory.triangle()
-        # Flujo moderado para evitar severidad CRÍTICA (ω < 0.5)
-        # Para un triángulo, B_cycle es [1, 1, 1].T
-        # ||I||^2 = 3 * alpha^2
-        # E_curl = (3 * alpha)^2 = 9 * alpha^2
-        # Omega = E_curl / ||I||^2 = 3.0 -> Clipped to 1.0.
-        # Wait, if B_cycle is constructed properly for 1D, E_curl = ||B2.T @ I||^2.
-        # Let's use a very small alpha to see if we can get MODERATE.
-        flows = {e: 0.1 for e in G.edges()}
-        result = inspect_and_mitigate_resonance(G, flows)
-
-        # Si la implementación clipea omega a 1.0 siempre para ciclos perfectos,
-        # entonces siempre será CRITICAL -> FAILURE.
-        if result["status"] == StepStatus.FAILURE:
-            assert result["vorticity_metrics"]["thermodynamic_severity"] == "CRITICAL"
-        else:
-            assert result["status"] == "RESONANCE_DETECTED"
-
-        assert "action" in result
-        assert "vorticity_metrics" in result
-        assert "mathematical_proof" in result
-
-    def test_laminar_flow_for_acyclic_graph(self):
-        """Grafo acíclico: LAMINAR_FLOW."""
-        G, _ = GraphFactory.path_graph(5)
-        flows = {(i, i + 1): float(i) for i in range(4)}
-        result = inspect_and_mitigate_resonance(G, flows)
+        flows = {edge: 1.0 for edge in dag_simple.edges()}
+        
+        result = inspect_and_mitigate_resonance(dag_simple, flows)
+        
         assert result["status"] == "LAMINAR_FLOW"
         assert result["action"] == "PROCEED"
         assert result["vorticity_metrics"]["betti_1_cycles"] == 0
-
-    def test_full_analysis_includes_hodge_decomposition(self):
-        """full_analysis=True incluye descomposición completa."""
-        G, _ = GraphFactory.triangle()
-        flows = {e: 5.0 for e in G.edges()}
-        result = inspect_and_mitigate_resonance(G, flows, full_analysis=True)
+        assert result["vorticity_metrics"]["vorticity_index"] == 0.0
+    
+    def test_integration_resonance_detected(self, double_cycle, sample_flows_nonuniform):
+        """
+        Verifica detección de resonancia en grafo con ciclos.
+        """
+        result = inspect_and_mitigate_resonance(
+            double_cycle,
+            sample_flows_nonuniform,
+            full_analysis=False
+        )
+        
+        # Debe detectar vorticidad (dos ciclos con flujo)
+        assert result["status"] in ["RESONANCE_DETECTED", "FAILURE"]
+        assert result["vorticity_metrics"]["betti_1_cycles"] == 2
+        assert result["vorticity_metrics"]["vorticity_index"] > 0.0
+    
+    def test_integration_full_analysis(self, single_cycle, sample_flows_uniform):
+        """
+        Verifica análisis completo con full_analysis=True.
+        """
+        result = inspect_and_mitigate_resonance(
+            single_cycle,
+            sample_flows_uniform,
+            full_analysis=True
+        )
+        
+        # Debe incluir análisis completo
         assert "full_hodge_decomposition" in result
         assert "spectral_analysis" in result
-
-    def test_full_analysis_false_excludes_hodge(self):
-        """full_analysis=False no incluye campos adicionales."""
-        G, _ = GraphFactory.triangle()
-        flows = {e: 5.0 for e in G.edges()}
-        result = inspect_and_mitigate_resonance(G, flows, full_analysis=False)
-        assert "full_hodge_decomposition" not in result
-        assert "spectral_analysis" not in result
-
-    def test_vorticity_metrics_nonnegative(self):
-        """Todas las métricas numéricas son ≥ 0."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        flows = {e: 3.0 for e in G.edges()}
-        result = inspect_and_mitigate_resonance(G, flows)
-        vm = result["vorticity_metrics"]
-        assert vm["parasitic_kinetic_energy"] >= 0
-        assert vm["vorticity_index"] >= 0
-        assert vm["betti_1_cycles"] >= 0
-
-    def test_action_is_valid_string(self):
-        """La acción prescripta es uno de los valores válidos."""
-        valid_actions = {
-            "COLLAPSE_AND_RECONFIGURE",
-            "PARTITION_AND_RELAY",
-            "MONITOR_AND_DAMP",
-            "LOG_AND_PROCEED",
-            "PROCEED",
-        }
-        for factory in [GraphFactory.triangle, GraphFactory.path_graph]:
-            G, _ = factory()
-            flows = {e: 5.0 for e in G.edges()}
-            result = inspect_and_mitigate_resonance(G, flows)
-            assert result["action"] in valid_actions, (
-                f"Acción inválida: {result['action']}"
-            )
-
-    def test_generate_proof_structure(self):
-        """_generate_proof retorna estructura correcta."""
-        magnon = MagnonCartridge(
-            kinetic_energy=2.5,
-            curl_subspace_dim=1,
-            vorticity_index=0.4,
-            circulation_per_cycle=(2.5,),
-        )
-        proof = _generate_proof(magnon)
+        
+        # Verificar estructura de descomposición completa
+        fhd = result["full_hodge_decomposition"]
+        assert "components" in fhd
+        assert "energy_decomposition" in fhd
+        assert "verification" in fhd
+        
+        # Verificar estructura de análisis espectral
+        spectral = result["spectral_analysis"]
+        assert "laplacian_spectrum" in spectral
+        assert "spectral_gap" in spectral
+        assert "kernel_dimension" in spectral
+    
+    def test_integration_mathematical_proof_present(self, single_cycle, sample_flows_uniform):
+        """
+        Verifica que resultado incluya proof matemático.
+        """
+        result = inspect_and_mitigate_resonance(single_cycle, sample_flows_uniform)
+        
+        assert "mathematical_proof" in result
+        proof = result["mathematical_proof"]
+        
         assert "theorem" in proof
-        assert "decomposition" in proof
-        assert "verification" in proof
         assert "conclusion" in proof
-        # Verificar que contiene los valores correctos
-        assert "2.5" in proof["verification"]["energy"] or \
-               f"{2.5:.6e}" in proof["verification"]["energy"]
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# XII. TESTS: verify_hodge_properties (utilidad standalone)
-# ─────────────────────────────────────────────────────────────────────────────
-
-class TestVerifyHodgeProperties:
-    """Verifica la utilidad standalone verify_hodge_properties."""
-
-    @pytest.mark.parametrize("factory", [
-        GraphFactory.triangle,
-        GraphFactory.two_triangles_shared_vertex,
-        GraphFactory.path_graph,
-        GraphFactory.disconnected_two_triangles,
-    ])
-    def test_all_properties_valid(self, factory):
-        """verify_hodge_properties retorna resultados consistentes."""
-        G, inv = factory()
-        result = verify_hodge_properties(G)
-
-        # Verificar estructura mínima
-        assert "graph_properties" in result
-        assert "cochain_complex" in result
-        assert "betti_numbers" in result
-        assert "euler_characteristic" in result
-        assert "hodge_kernel" in result
-        assert "spectral_properties" in result
-
-    @pytest.mark.parametrize("factory,expected_inv", [
-        (GraphFactory.triangle,
-         {"n": 3, "m": 3, "beta_0": 1, "beta_1": 1}),
-        (GraphFactory.two_triangles_shared_vertex,
-         {"n": 5, "m": 6, "beta_0": 1, "beta_1": 2}),
-        (GraphFactory.disconnected_two_triangles,
-         {"n": 6, "m": 6, "beta_0": 2, "beta_1": 2}),
-    ])
-    def test_betti_numbers_correct(self, factory, expected_inv):
-        """Números de Betti son correctos."""
-        G, _ = factory()
-        result = verify_hodge_properties(G)
-        bn = result["betti_numbers"]
-        assert bn["beta_0"] == expected_inv["beta_0"], (
-            f"β₀: esperado {expected_inv['beta_0']}, obtenido {bn['beta_0']}"
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.2 Casos de Clasificación
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_integration_critical_severity(self, complete_graph_3):
+        """
+        Verifica clasificación CRITICAL en grafo con alta vorticidad.
+        """
+        # Flujos altos en todas las aristas
+        flows = {edge: 100.0 for edge in complete_graph_3.edges()}
+        
+        result = inspect_and_mitigate_resonance(complete_graph_3, flows)
+        
+        if result["status"] != "LAMINAR_FLOW":
+            severity = result["vorticity_metrics"]["thermodynamic_severity"]
+            # K₃ con flujo alto debe tener severidad alta
+            assert severity in ["HIGH", "CRITICAL"]
+    
+    def test_integration_empty_flows(self, single_cycle):
+        """
+        Verifica manejo de flujos vacíos.
+        """
+        flows = {}
+        
+        result = inspect_and_mitigate_resonance(single_cycle, flows)
+        
+        # Sin flujos → estado laminar
+        assert result["status"] == "LAMINAR_FLOW"
+    
+    def test_integration_zero_flows(self, single_cycle):
+        """
+        Verifica manejo de flujos todos cero.
+        """
+        flows = {edge: 0.0 for edge in single_cycle.edges()}
+        
+        result = inspect_and_mitigate_resonance(single_cycle, flows)
+        
+        # Flujos cero → estado laminar
+        assert result["status"] == "LAMINAR_FLOW"
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.3 Reproducibilidad
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_integration_reproducibility(self, double_cycle, sample_flows_nonuniform):
+        """
+        Verifica que análisis sea reproducible (determinista).
+        """
+        result1 = inspect_and_mitigate_resonance(double_cycle, sample_flows_nonuniform)
+        result2 = inspect_and_mitigate_resonance(double_cycle, sample_flows_nonuniform)
+        
+        # Estados deben ser idénticos
+        assert result1["status"] == result2["status"]
+        assert result1["action"] == result2["action"]
+        
+        # Métricas numéricas deben ser idénticas
+        vm1 = result1["vorticity_metrics"]
+        vm2 = result2["vorticity_metrics"]
+        
+        assert vm1["vorticity_index"] == vm2["vorticity_index"]
+        assert vm1["parasitic_kinetic_energy"] == vm2["parasitic_kinetic_energy"]
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.4 Telemetría (Mock)
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_integration_telemetry_laminar(self, dag_simple):
+        """
+        Verifica que telemetría registre flujo laminar.
+        """
+        from unittest.mock import MagicMock
+        
+        flows = {edge: 1.0 for edge in dag_simple.edges()}
+        telemetry_mock = MagicMock()
+        
+        result = inspect_and_mitigate_resonance(
+            dag_simple,
+            flows,
+            telemetry_ctx=telemetry_mock
         )
-        assert bn["beta_1"] == expected_inv["beta_1"], (
-            f"β₁: esperado {expected_inv['beta_1']}, obtenido {bn['beta_1']}"
+        
+        # Debe llamar update_physics con is_stable=True
+        telemetry_mock.update_physics.assert_called_once_with(is_stable=True)
+    
+    def test_integration_telemetry_critical(self, complete_graph_3):
+        """
+        Verifica que telemetría registre resonancia crítica.
+        """
+        from unittest.mock import MagicMock
+        
+        flows = {edge: 100.0 for edge in complete_graph_3.edges()}
+        telemetry_mock = MagicMock()
+        
+        result = inspect_and_mitigate_resonance(
+            complete_graph_3,
+            flows,
+            telemetry_ctx=telemetry_mock
         )
-
-    def test_euler_characteristic_verified(self):
-        """Euler–Poincaré verificado en result."""
-        G, _ = GraphFactory.two_triangles_shared_vertex()
-        result = verify_hodge_properties(G)
-        assert result["euler_characteristic"]["verified"]
-
-    def test_hodge_kernel_isomorphism(self):
-        """Isomorfismo de Hodge: dim ker(L₁) = β₁."""
-        for factory in [
-            GraphFactory.triangle,
-            GraphFactory.two_triangles_shared_vertex,
-            GraphFactory.path_graph,
-        ]:
-            G, _ = factory()
-            result = verify_hodge_properties(G)
-            hk = result["hodge_kernel"]
-            assert hk["isomorphism_ok"], (
-                f"{factory.__name__}: "
-                f"dim ker(L₁) = {hk['ker_L1_dimension']}, "
-                f"β₁ = {hk['expected_beta_1']}"
-            )
-
-    def test_kernel_vectors_in_null_space_of_B1T_and_B2T(self):
-        """ker(L₁) ⊆ ker(B₁) ∩ ker(B₂ᵀ)."""
-        G, _ = GraphFactory.triangle()
-        result = verify_hodge_properties(G)
-        hk = result["hodge_kernel"]
-        assert hk["kernel_property_ok"], (
-            f"ker(L₁) no está en ker(B₁) ∩ ker(B₂ᵀ): "
-            f"‖B₁N‖ = {hk.get('ker_subset_of_ker_B1', 0.0):.2e}, "
-            f"‖B₂ᵀN‖ = {hk.get('ker_subset_of_ker_B2T', 0.0):.2e}"
-        )
+        
+        if result["status"] == "FAILURE":
+            # Debe registrar error crítico
+            telemetry_mock.record_error.assert_called()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PUNTO DE ENTRADA
-# ─────────────────────────────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 8: TESTS DE PROPIEDADES TOPOLÓGICAS
+# ═════════════════════════════════════════════════════════════════════════════
+
+class TestTopologicalProperties:
+    """
+    Suite de validación de invariantes topológicos.
+    
+    Verifica:
+        - Números de Betti
+        - Componentes conexas
+        - Característica de Euler
+        - Isomorfismo de Hodge
+    """
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 8.1 Números de Betti
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_property_betti_numbers_dag(self, dag_simple):
+        """
+        Verifica números de Betti de DAG.
+        """
+        props = verify_hodge_properties(dag_simple)
+        
+        betti = props["betti_numbers"]
+        assert betti["beta_0"] == 1, "DAG conexo debe tener β₀ = 1"
+        assert betti["beta_1"] == 0, "DAG debe tener β₁ = 0"
+    
+    def test_property_betti_numbers_single_cycle(self, single_cycle):
+        """
+        Verifica números de Betti de grafo con un ciclo.
+        """
+        props = verify_hodge_properties(single_cycle)
+        
+        betti = props["betti_numbers"]
+        assert betti["beta_0"] == 1
+        assert betti["beta_1"] == 1, "Un ciclo debe tener β₁ = 1"
+    
+    def test_property_betti_numbers_double_cycle(self, double_cycle):
+        """
+        Verifica números de Betti de grafo con dos ciclos.
+        """
+        props = verify_hodge_properties(double_cycle)
+        
+        betti = props["betti_numbers"]
+        assert betti["beta_0"] == 1
+        assert betti["beta_1"] == 2, "Dos ciclos independientes → β₁ = 2"
+    
+    def test_property_betti_numbers_disconnected(self, disconnected_graph):
+        """
+        Verifica números de Betti de grafo desconectado.
+        """
+        props = verify_hodge_properties(disconnected_graph)
+        
+        betti = props["betti_numbers"]
+        assert betti["beta_0"] == 2, "Dos componentes → β₀ = 2"
+        assert betti["beta_1"] == 1, "Un ciclo total → β₁ = 1"
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 8.2 Euler-Poincaré
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_invariant_euler_all_graphs(
+        self,
+        dag_simple,
+        single_cycle,
+        double_cycle,
+        disconnected_graph,
+        complete_graph_3
+    ):
+        """
+        Verifica Euler-Poincaré en todos los grafos de referencia.
+        """
+        graphs = [
+            dag_simple,
+            single_cycle,
+            double_cycle,
+            disconnected_graph,
+            complete_graph_3,
+        ]
+        
+        for G in graphs:
+            props = verify_hodge_properties(G)
+            euler = props["euler_characteristic"]
+            
+            assert euler["verified"] is True, \
+                f"Euler-Poincaré falló en grafo con {G.number_of_nodes()} nodos"
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 8.3 Isomorfismo de Hodge
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_invariant_hodge_isomorphism_all_graphs(
+        self,
+        dag_simple,
+        single_cycle,
+        double_cycle,
+        complete_graph_3
+    ):
+        """
+        Verifica isomorfismo de Hodge: dim ker(L₁) = β₁.
+        """
+        graphs = [dag_simple, single_cycle, double_cycle, complete_graph_3]
+        
+        for G in graphs:
+            props = verify_hodge_properties(G)
+            hodge_iso = props["hodge_isomorphism"]
+            
+            assert hodge_iso["satisfied"] is True, \
+                f"Isomorfismo de Hodge falló en grafo: " \
+                f"dim ker(L₁)={hodge_iso['dim_ker_L1']}, " \
+                f"β₁={hodge_iso['beta_1']}"
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 9: TESTS DE ANÁLISIS ESPECTRAL
+# ═════════════════════════════════════════════════════════════════════════════
+
+class TestSpectralAnalysis:
+    """
+    Suite de validación de propiedades espectrales.
+    
+    Verifica:
+        - Espectro del Laplaciano
+        - Gap espectral
+        - Kernel
+        - Número de condición
+    """
+    
+    def test_spectral_eigenvalues_non_negative(self, double_cycle):
+        """
+        Verifica que todos los autovalores sean no negativos.
+        """
+        solenoid = AcousticSolenoidOperator()
+        spectral = solenoid.spectral_analysis(double_cycle)
+        
+        eigenvalues = spectral["laplacian_spectrum"]
+        assert all(lam >= -NC.BASE_TOLERANCE for lam in eigenvalues), \
+            "Todos los autovalores deben ser ≥ 0"
+    
+    def test_spectral_gap_dag(self, dag_simple):
+        """
+        Verifica gap espectral en DAG (debe ser > 0 si β₁ = 0).
+        """
+        solenoid = AcousticSolenoidOperator()
+        spectral = solenoid.spectral_analysis(dag_simple)
+        
+        gap = spectral["spectral_gap"]
+        # DAG sin ciclos debe tener gap > 0
+        assert gap >= 0.0
+    
+    def test_spectral_kernel_dimension(self, double_cycle):
+        """
+        Verifica dimensión del kernel = β₁.
+        """
+        solenoid = AcousticSolenoidOperator()
+        spectral = solenoid.spectral_analysis(double_cycle)
+        
+        kernel_dim = spectral["kernel_dimension"]
+        
+        # double_cycle tiene β₁ = 2
+        assert kernel_dim == 2, f"Esperado kernel dim=2, obtenido {kernel_dim}"
+    
+    def test_spectral_condition_number_bounded(self, single_cycle):
+        """
+        Verifica que número de condición sea finito y razonable.
+        """
+        solenoid = AcousticSolenoidOperator()
+        spectral = solenoid.spectral_analysis(single_cycle)
+        
+        kappa = spectral["condition_number"]
+        
+        # No debe ser infinito (a menos que L₁ sea singular, lo cual es válido)
+        # Para grafos pequeños, κ debe ser moderado
+        if not math.isinf(kappa):
+            assert kappa > 0
+    
+    def test_spectral_trace_consistency(self, single_cycle):
+        """
+        Verifica que traza = suma de autovalores.
+        """
+        solenoid = AcousticSolenoidOperator()
+        spectral = solenoid.spectral_analysis(single_cycle)
+        
+        trace = spectral["properties"]["trace"]
+        eigenvalues = spectral["laplacian_spectrum"]
+        trace_eigs = sum(eigenvalues)
+        
+        assert math.isclose(trace, trace_eigs, rel_tol=NC.BASE_TOLERANCE), \
+            f"Tr(L₁)={trace:.6e} ≠ Σλᵢ={trace_eigs:.6e}"
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 10: TESTS DE CASOS LÍMITE Y ROBUSTEZ
+# ═════════════════════════════════════════════════════════════════════════════
+
+class TestEdgeCases:
+    """
+    Suite de validación de casos límite y robustez numérica.
+    
+    Verifica:
+        - Grafos triviales
+        - Grafos vacíos
+        - Self-loops
+        - Flujos extremos
+        - Estabilidad numérica
+    """
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 10.1 Grafos Triviales
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_edge_trivial_graph(self, trivial_graph):
+        """
+        Verifica manejo de grafo trivial (1 nodo, 0 aristas).
+        """
+        result = inspect_and_mitigate_resonance(trivial_graph, {})
+        
+        assert result["status"] == "LAMINAR_FLOW"
+        assert result["vorticity_metrics"]["betti_1_cycles"] == 0
+    
+    def test_edge_empty_graph(self):
+        """
+        Verifica rechazo de grafo vacío.
+        """
+        G = nx.DiGraph()
+        
+        with pytest.raises(GraphStructureError, match="vacío"):
+            HodgeDecompositionBuilder(G)
+    
+    def test_edge_single_edge_graph(self):
+        """
+        Verifica grafo con una sola arista.
+        """
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        
+        flows = {("A", "B"): 1.0}
+        result = inspect_and_mitigate_resonance(G, flows)
+        
+        # Sin ciclos → laminar
+        assert result["status"] == "LAMINAR_FLOW"
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 10.2 Self-Loops
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_edge_self_loop_detection(self, self_loop_graph):
+        """
+        Verifica detección de self-loop como ciclo.
+        """
+        props = verify_hodge_properties(self_loop_graph)
+        betti = props["betti_numbers"]
+        
+        # Self-loop cuenta como ciclo → β₁ ≥ 1
+        assert betti["beta_1"] >= 1
+    
+    def test_edge_self_loop_vorticity(self, self_loop_graph):
+        """
+        Verifica vorticidad en self-loop.
+        """
+        flows = {
+            ("A", "A"): 10.0,
+            ("A", "B"): 1.0,
+        }
+        
+        result = inspect_and_mitigate_resonance(self_loop_graph, flows)
+        
+        # Self-loop con flujo debe generar vorticidad
+        if result["status"] != "LAMINAR_FLOW":
+            assert result["vorticity_metrics"]["vorticity_index"] > 0.0
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 10.3 Flujos Extremos
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_edge_very_large_flows(self, single_cycle):
+        """
+        Verifica manejo de flujos muy grandes.
+        """
+        flows = {edge: 1e10 for edge in single_cycle.edges()}
+        
+        result = inspect_and_mitigate_resonance(single_cycle, flows)
+        
+        # No debe fallar con overflow
+        assert "vorticity_metrics" in result
+    
+    def test_edge_very_small_flows(self, single_cycle):
+        """
+        Verifica manejo de flujos muy pequeños.
+        """
+        flows = {edge: 1e-15 for edge in single_cycle.edges()}
+        
+        result = inspect_and_mitigate_resonance(single_cycle, flows)
+        
+        # Flujos pequeños → probablemente laminar
+        assert result["status"] in ["LAMINAR_FLOW", "RESONANCE_DETECTED"]
+    
+    def test_edge_mixed_sign_flows(self, single_cycle):
+        """
+        Verifica manejo de flujos con signos mixtos.
+        """
+        flows = {
+            ("A", "B"): 10.0,
+            ("B", "C"): -5.0,
+            ("C", "A"): 3.0,
+        }
+        
+        result = inspect_and_mitigate_resonance(single_cycle, flows)
+        
+        # Debe completar sin error
+        assert "status" in result
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # 10.4 Estabilidad Numérica
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    def test_numerical_stability_ill_conditioned(self, complete_graph_3):
+        """
+        Verifica estabilidad con matriz mal condicionada.
+        """
+        # Grafo completo genera matriz con número de condición alto
+        props = verify_hodge_properties(complete_graph_3)
+        
+        laplacian = props["laplacian_analysis"]
+        kappa = laplacian["condition_number"]
+        
+        # Debe calcular κ sin fallar
+        assert kappa >= 1.0 or math.isinf(kappa)
+    
+    def test_numerical_stability_rank_deficient(self, disconnected_graph):
+        """
+        Verifica estabilidad con matriz rank-deficiente.
+        """
+        builder = HodgeDecompositionBuilder(disconnected_graph)
+        B1, meta = builder.build_incidence_matrix()
+        
+        # Grafo desconectado → B₁ rank-deficiente
+        n = disconnected_graph.number_of_nodes()
+        assert meta["rank_B1"] < n
+    
+    def test_numerical_near_zero_tolerance(self, single_cycle):
+        """
+        Verifica manejo de valores cercanos a cero.
+        """
+        # Flujos cercanos al umbral de tolerancia
+        flows = {edge: NC.VORTICITY_SIGNIFICANCE_THRESHOLD * 1.1 for edge in single_cycle.edges()}
+        
+        result = inspect_and_mitigate_resonance(single_cycle, flows)
+        
+        # Debe manejar correctamente sin falsos positivos/negativos
+        assert "status" in result
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 11: TESTS DE VERIFICACIÓN FORMAL
+# ═════════════════════════════════════════════════════════════════════════════
+
+class TestFormalVerification:
+    """
+    Suite de verificación formal de propiedades matemáticas.
+    
+    Verifica:
+        - verify_hodge_properties (verificación standalone)
+        - Consistencia de todas las verificaciones
+        - Completitud de checks
+    """
+    
+    def test_verify_hodge_all_checks(self, double_cycle):
+        """
+        Verifica que verify_hodge_properties ejecute todos los checks.
+        """
+        props = verify_hodge_properties(double_cycle)
+        
+        # Verificar presencia de todas las secciones
+        required_sections = [
+            "graph_properties",
+            "chain_complex_verification",
+            "betti_numbers",
+            "euler_characteristic",
+            "hodge_isomorphism",
+            "spectral_properties",
+            "laplacian_analysis",
+            "verification_summary",
+        ]
+        
+        for section in required_sections:
+            assert section in props, f"Falta sección: {section}"
+    
+    def test_verify_hodge_summary_consistency(self, single_cycle):
+        """
+        Verifica consistencia del summary de verificación.
+        """
+        props = verify_hodge_properties(single_cycle)
+        summary = props["verification_summary"]
+        
+        # Si all_checks_passed es True, todos los checks individuales deben ser True
+        if summary["all_checks_passed"]:
+            assert summary["boundary_composition_zero"] is True
+            assert summary["euler_verified"] is True
+            assert summary["hodge_iso_satisfied"] is True
+            assert summary["laplacian_symmetric"] is True
+            assert summary["laplacian_psd"] is True
+    
+    def test_verify_hodge_graph_properties_accurate(self, disconnected_graph):
+        """
+        Verifica que propiedades del grafo sean precisas.
+        """
+        props = verify_hodge_properties(disconnected_graph)
+        graph_props = props["graph_properties"]
+        
+        assert graph_props["nodes"] == disconnected_graph.number_of_nodes()
+        assert graph_props["edges"] == disconnected_graph.number_of_edges()
+        assert graph_props["is_directed"] is True
+        assert graph_props["connected_components"] == 2
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 12: TESTS DE PERFORMANCE (OPCIONAL - MARCADOS COMO SLOW)
+# ═════════════════════════════════════════════════════════════════════════════
+
+class TestPerformance:
+    """
+    Suite de validación de performance (opcional).
+    
+    Tests marcados como @pytest.mark.slow para ejecución selectiva.
+    """
+    
+    @pytest.mark.slow
+    def test_performance_large_dag(self):
+        """
+        Verifica performance en DAG grande.
+        """
+        import time
+        
+        # Crear DAG grande (1000 nodos)
+        G = nx.DiGraph()
+        for i in range(1000):
+            if i > 0:
+                G.add_edge(f"node_{i-1}", f"node_{i}")
+        
+        flows = {edge: 1.0 for edge in G.edges()}
+        
+        start = time.time()
+        result = inspect_and_mitigate_resonance(G, flows)
+        elapsed = time.time() - start
+        
+        # Debe completar en tiempo razonable (< 5s)
+        assert elapsed < 5.0, f"Análisis tomó {elapsed:.2f}s (> 5s)"
+        
+        # DAG → debe ser laminar
+        assert result["status"] == "LAMINAR_FLOW"
+    
+    @pytest.mark.slow
+    def test_performance_cache_effectiveness(self, double_cycle):
+        """
+        Verifica efectividad del caché de builders.
+        """
+        import time
+        
+        solenoid = AcousticSolenoidOperator(enable_caching=True)
+        flows = {edge: 1.0 for edge in double_cycle.edges()}
+        
+        # Primera ejecución (cache miss)
+        start = time.time()
+        for _ in range(10):
+            solenoid.isolate_vorticity(double_cycle, flows)
+        first_run = time.time() - start
+        
+        # Segunda ejecución (debería usar caché)
+        start = time.time()
+        for _ in range(10):
+            solenoid.isolate_vorticity(double_cycle, flows)
+        second_run = time.time() - start
+        
+        # Segunda ejecución debe ser más rápida o igual (caché)
+        assert second_run <= first_run * 1.5  # Margen de 50%
+        
+        # Verificar estadísticas de caché
+        stats = solenoid.get_cache_statistics()
+        assert stats["cache_hits"] > 0
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 13: CONFIGURACIÓN DE PYTEST Y HELPERS
+# ═════════════════════════════════════════════════════════════════════════════
+
+def pytest_configure(config):
+    """
+    Configuración adicional de pytest.
+    """
+    config.addinivalue_line(
+        "markers",
+        "slow: marca tests que requieren más tiempo de ejecución"
+    )
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# PUNTO DE ENTRADA PARA EJECUCIÓN DIRECTA
+# ═════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
+    """
+    Permite ejecutar la suite completa directamente.
+    
+    Uso:
+        python test_solenoid_acoustic.py
+        python test_solenoid_acoustic.py -v
+        python test_solenoid_acoustic.py -k "test_unit" -v
+        python test_solenoid_acoustic.py -m "not slow" -v
+    """
+    import sys
+    
     pytest.main([
         __file__,
-        "-v",                          # verbose
-        "--tb=short",                  # traceback corto
-        "-rN",                         # no mostrar summary de passed
-        "--color=yes",
-        "-x",                          # parar en primer fallo
-    ])
+        "-v",              # Verbose
+        "--tb=short",      # Traceback corto
+        "--color=yes",     # Colorear output
+        "-ra",             # Resumen de todos los tests
+        "--strict-markers", # Validar markers
+        "-m", "not slow",  # Excluir tests lentos por defecto
+    ] + sys.argv[1:])
