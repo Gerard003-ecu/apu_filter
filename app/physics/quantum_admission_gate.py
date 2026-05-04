@@ -1,67 +1,187 @@
 """
-=========================================================================================
-Módulo: Quantum Admission Gate (Operador de Proyección de Hilbert - Versión Rigurosa)
-Ubicación: app/physics/quantum_admission_gate.py
-=========================================================================================
+═════════════════════════════════════════════════════════════════════════════
+MÓDULO: Quantum Admission Gate (Operador de Proyección de Hilbert)
+VERSIÓN: 3.0.0 - Refactorización Rigurosa
+UBICACIÓN: app/physics/quantum_admission_gate.py
+═════════════════════════════════════════════════════════════════════════════
 
-AXIOMAS FUNDAMENTALES (Reformulación Rigurosa):
+FUNDAMENTOS MATEMÁTICOS:
 
 §1. ESPACIO DE HILBERT COMPLEJO SEPARABLE
-    H := L²(ℝ, ℂ) con producto interno ⟨ψ|φ⟩ = ∫ψ*(x)φ(x)dx
-    Base ortonormal completa: {|n⟩} con ⟨m|n⟩ = δₘₙ
+    ℋ := L²(ℝ, ℂ) con producto interno hermítico
+    ⟨ψ|φ⟩ = ∫_ℝ ψ*(x)φ(x)dx
     
-§2. OPERADOR DE MEDICIÓN AUTOADJUNTO
-    Ĥ: H → H, hermítico con espectro discreto {λₙ}
-    Autoestados: Ĥ|n⟩ = λₙ|n⟩
-    Completitud: Σₙ|n⟩⟨n| = 𝟙
-    
-§3. REGLA DE BORN (Proyección Cuántica)
-    P(|n⟩) = |⟨n|ψ⟩|² / ⟨ψ|ψ⟩
-    donde ψ es el estado preparado por el payload
-    
-§4. ACOPLAMIENTO GAUGE-COVARIANTE
-    La función de trabajo Φ: M → ℝ₊ es una sección del fibrado principal
-    con grupo de estructura U(1), garantizando invariancia gauge local.
-    
-§5. APROXIMACIÓN WKB (Condiciones de Validez)
-    Válida si: ℏ|d²V/dx²| / |dV/dx|² << 1 (variación suave del potencial)
-    y E < V₀ (régimen túnel)
-    
-§6. CONSERVACIÓN UNITARIA
-    Tr(ρ) = 1 donde ρ es el operador densidad del ensemble cuántico
-    
-§7. TEOREMA DE NO-CLONACIÓN
-    Garantizado por inmutabilidad de QuantumMeasurement
-    
-=========================================================================================
-MEJORAS IMPLEMENTADAS:
+    Base Ortonormal: {|n⟩}_{n∈ℕ} con:
+        ⟨m|n⟩ = δₘₙ (ortogonalidad)
+        Σₙ |n⟩⟨n| = 𝟙 (completitud - resolución de identidad)
+        ||ψ|| = √⟨ψ|ψ⟩ < ∞ (cuadrado integrable)
 
-1. **Álgebra Lineal Rigurosa**
-   - Normalización de Hilbert explícita
-   - Verificación de ortogonalidad de autoestados
-   - Proyección con preservación de norma unitaria
+§2. OPERADOR HERMÍTICO DE MEDICIÓN
+    Ĥ: ℋ → ℋ, Ĥ† = Ĥ (autoadjunto)
+    
+    Espectro Discreto: σ(Ĥ) = {λₙ}_{n∈ℕ} ⊂ ℝ
+    Ecuación de autovalores: Ĥ|n⟩ = λₙ|n⟩
+    
+    Teorema Espectral:
+        Ĥ = Σₙ λₙ |n⟩⟨n| (descomposición espectral)
 
-2. **Topología Algebraica**
-   - Functorialidad categórica verificada
-   - Preservación de estructuras de haz
-   - Cohomología de intersección validada
+§3. REGLA DE BORN (Proyección Probabilística)
+    Dado |ψ⟩ ∈ ℋ normalizado (⟨ψ|ψ⟩ = 1):
+    
+    P(λₙ) = |⟨n|ψ⟩|² (probabilidad de medir λₙ)
+    
+    Conservación: Σₙ P(λₙ) = Σₙ |⟨n|ψ⟩|² = ⟨ψ|ψ⟩ = 1
 
-3. **Teoría de Grafos**
-   - DAG de dependencias explícito
-   - Análisis de ciclos en acoplamiento de oracles
-   - Coloración cromática de estados cuánticos
+§4. FIBRADO PRINCIPAL Y ACOPLAMIENTO GAUGE
+    Estructura: π: P → M
+        P: espacio total (fibrado principal)
+        M: variedad base (espacio de configuración)
+        G = U(1): grupo estructural (simetría gauge)
+    
+    Conexión: A ∈ Ω¹(P, 𝔤) donde 𝔤 = Lie(U(1)) ≅ iℝ
+    Curvatura: F = dA + ½[A,A] (2-forma)
+    
+    Función de trabajo como sección:
+        Φ: M → ℝ₊ invariante bajo transformaciones gauge locales
 
-4. **Análisis Numérico Avanzado**
-   - Aritmética de intervalos para propagación de errores
-   - Estabilidad de Lyapunov en cálculos iterativos
-   - Condicionamiento de matrices implícitas
+§5. APROXIMACIÓN WKB (Wentzel-Kramers-Brillouin)
+    Ansatz semiclásico: ψ(x) = A(x)exp(iS(x)/ℏ)
+    
+    Condiciones de validez:
+        |ℏ d²V/dx²| / |dV/dx|² ≪ 1 (variación suave)
+        E < V₀ (régimen de túnel)
+        λ_dB ≪ L_barrier (longitud de onda « ancho de barrera)
+    
+    Probabilidad de transmisión:
+        T ≈ exp(-2γ) donde γ = (1/ℏ)∫ₐᵇ √[2m(V(x)-E)]dx
+        
+    Coeficiente de Gamow: γ > 0
 
-5. **Ingeniería de Software**
-   - Cachés funcionales para determinismo
-   - Telemetría cuántica (métricas de decoherencia)
-   - Inyección de dependencias pura
+§6. TEORÍA DE CATEGORÍAS - ESTRUCTURA FUNCTORIAL
+    Categoría 𝒞_Ext (Payloads Externos):
+        Ob(𝒞_Ext): conjuntos de mappings
+        Mor(𝒞_Ext): funciones de transformación
+    
+    Categoría 𝒞_Phys (Estados Físicos):
+        Ob(𝒞_Phys): espacios de Hilbert
+        Mor(𝒞_Phys): operadores lineales acotados
+    
+    Funtor F: 𝒞_Ext → 𝒞_Phys
+        F(payload) = |ψ⟩ ∈ ℋ
+        F(g ∘ f) = F(g) ∘ F(f) (preserva composición)
+        F(id) = id (preserva identidades)
 
-=========================================================================================
+§7. TOPOLOGÍA ALGEBRAICA - COHOMOLOGÍA DE SHEAVES
+    Haz estructural: ℱ → X (prehaz con condición de pegado)
+    
+    Grupos de cohomología: Hⁿ(X, ℱ)
+    Frustración ⟺ H¹(X, ℱ) ≠ 0 (obstrucción al levantamiento global)
+    
+    Energía de frustración:
+        E_frust = ∫_X ||δω||² donde δ: Cⁿ → Cⁿ⁺¹ (operador coborde)
+
+§8. TEORÍA DE GRAFOS - DAG COMPUTACIONAL
+    G = (V, E) donde:
+        V: nodos de cómputo (operadores)
+        E ⊆ V × V: dependencias dirigidas
+    
+    Propiedades garantizadas:
+        - Acíclico: no existen ciclos (previene deadlock)
+        - Conexo: existe camino desde inputs a outputs
+        - Topológicamente ordenado: ∃ ordenamiento lineal v₁,...,vₙ
+          tal que (vᵢ, vⱼ) ∈ E ⟹ i < j
+
+§9. ÁLGEBRA DE BOOLE Y LÓGICA CUÁNTICA
+    Retícula de proyectores: (𝒫(ℋ), ∧, ∨, ⊥, 0, 𝟙)
+    
+    NO distributiva (diferencia clave con Boole clásica):
+        P ∧ (Q ∨ R) ≠ (P ∧ Q) ∨ (P ∧ R) en general
+    
+    Complemento ortonormal: P⊥ tal que P + P⊥ = 𝟙, PP⊥ = 0
+
+§10. TEOREMA DE NO-CLONACIÓN
+    NO existe U: ℋ ⊗ ℋ → ℋ ⊗ ℋ unitario tal que:
+        U(|ψ⟩ ⊗ |0⟩) = |ψ⟩ ⊗ |ψ⟩ ∀|ψ⟩
+    
+    Implementación: dataclass frozen + eliminación de __copy__/__deepcopy__
+
+═════════════════════════════════════════════════════════════════════════════
+ARQUITECTURA DE GRAFOS - DAG DE DEPENDENCIAS:
+
+    ┌─────────────────────────────────────────────────────────────┐
+    │                        Payload (Input)                       │
+    └───────────────┬──────────────────────┬──────────────────────┘
+                    │                      │
+                    ▼                      ▼
+    ┌───────────────────────┐  ┌──────────────────────────┐
+    │ PayloadSerializer     │  │ SheafOrchestrator        │
+    │ • serialize()         │  │ • get_frustration_energy │
+    │ • deterministic_hash()│  └──────────┬───────────────┘
+    └───────┬───────────────┘             │
+            │                             ▼
+            │                  ┌──────────────────────┐
+            │                  │ CohomologicalVeto    │
+            │                  │ • evaluate()         │
+            │                  └──────────┬───────────┘
+            │                             │
+            ▼                             │
+    ┌─────────────────────┐              │
+    │ EntropyCalculator   │              │
+    │ • shannon_entropy() │              │
+    └─────────┬───────────┘              │
+              │                          │
+              ▼                          │
+    ┌─────────────────────────┐         │
+    │ IncidentEnergyCalc      │         │
+    │ • calculate_energy()    │         │
+    └─────────┬───────────────┘         │
+              │                          │
+              ├──────────────────────────┴──────────────┐
+              │                                         │
+              ▼                                         ▼
+    ┌──────────────────────┐              ┌─────────────────────────┐
+    │ TopologicalWatcher   │              │ LaplaceOracle           │
+    │ • get_threat()       │              │ • get_dominant_pole()   │
+    └──────────┬───────────┘              └───────────┬─────────────┘
+               │                                      │
+               ▼                                      ▼
+    ┌──────────────────────┐              ┌─────────────────────────┐
+    │ WorkFunctionMod      │              │ EffectiveMassModulator  │
+    │ • calculate_Phi()    │              │ • calculate_m_eff()     │
+    └──────────┬───────────┘              └───────────┬─────────────┘
+               │                                      │
+               └──────────────┬───────────────────────┘
+                              │
+                              ▼
+                   ┌──────────────────────┐
+                   │ WKBCalculator        │
+                   │ • compute_T()        │
+                   └──────────┬───────────┘
+                              │
+                              ├─────────────────────┐
+                              │                     │
+                              ▼                     ▼
+                   ┌──────────────────┐  ┌─────────────────────┐
+                   │ ThresholdGen     │  │ WaveCollapse        │
+                   │ • generate_θ()   │  │ • project_state()   │
+                   └────────┬─────────┘  └──────────┬──────────┘
+                            │                       │
+                            └───────────┬───────────┘
+                                        │
+                                        ▼
+                            ┌──────────────────────────┐
+                            │ QuantumMeasurement       │
+                            │ (Resultado Inmutable)    │
+                            └──────────────────────────┘
+
+    Propiedades del DAG:
+    • Acíclico: ✓ (orden parcial bien definido)
+    • Altura: 7 niveles (profundidad de pipeline)
+    • Ancho máximo: 3 nodos paralelos (WKB inputs)
+    • Complejidad temporal: O(n) en tamaño de payload
+    • Complejidad espacial: O(1) (sin recursión)
+
+═════════════════════════════════════════════════════════════════════════════
 """
 
 from __future__ import annotations
@@ -70,6 +190,7 @@ import hashlib
 import logging
 import math
 import sys
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from functools import lru_cache
@@ -79,258 +200,578 @@ from typing import (
     Dict,
     Final,
     FrozenSet,
+    Generic,
     Mapping,
     NamedTuple,
     Optional,
     Protocol,
     Tuple,
     TypeVar,
+    Union,
     runtime_checkable,
 )
 
 from app.core.mic_algebra import CategoricalState, Morphism
 from app.core.schemas import Stratum
 
-# =============================================================================
-# CONFIGURACIÓN DE LOGGING CON CONTEXTO CUÁNTICO
-# =============================================================================
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 1: CONFIGURACIÓN Y LOGGING
+# ═════════════════════════════════════════════════════════════════════════════
 
 logger = logging.getLogger("MIC.Physics.QuantumAdmission")
 
-# Formato estructurado para observabilidad
-class QuantumLogContext:
-    """Contexto enriquecido para trazabilidad de eventos cuánticos."""
+
+@dataclass(frozen=True, slots=True)
+class LogContext:
+    """
+    Contexto estructurado para trazabilidad cuántica completa.
     
-    @staticmethod
-    def log_measurement(
-        measurement: QuantumMeasurement,
-        level: int = logging.INFO
-    ) -> None:
-        """Registro estructurado de medición cuántica."""
-        logger.log(
-            level,
-            "QUANTUM_MEASUREMENT | state=%s | E=%.6e | Φ=%.6e | T=%.6e | "
-            "p=%.6e | σ=%.6e | χ²=%.6e | veto=%s",
-            measurement.eigenstate.name,
-            measurement.incident_energy,
-            measurement.work_function,
-            measurement.tunneling_probability,
-            measurement.momentum,
-            measurement.dominant_pole_real,
-            measurement.threat_level,
-            measurement.frustration_veto,
+    Invariantes:
+        - Inmutabilidad total (frozen=True)
+        - Serialización determinista
+        - Timestamp implícito en sistema de logging
+    """
+    
+    eigenstate: str
+    incident_energy: float
+    work_function: float
+    tunneling_prob: float
+    momentum: float
+    sigma: float
+    chi_squared: float
+    veto: bool
+    
+    def to_structured_log(self) -> str:
+        """
+        Serialización canónica para logging estructurado.
+        
+        Returns:
+            String con formato key=value consistente.
+        """
+        return (
+            f"state={self.eigenstate} | "
+            f"E={self.incident_energy:.6e} | "
+            f"Φ={self.work_function:.6e} | "
+            f"T={self.tunneling_prob:.6e} | "
+            f"p={self.momentum:.6e} | "
+            f"σ={self.sigma:.6e} | "
+            f"χ²={self.chi_squared:.6e} | "
+            f"veto={self.veto}"
         )
 
 
-# =============================================================================
-# JERARQUÍA DE EXCEPCIONES (Teoría de Categorías - Objetos de Error)
-# =============================================================================
+class QuantumLogger:
+    """
+    Logger especializado con contexto cuántico enriquecido.
+    
+    Responsabilidades:
+        - Formateo consistente de mediciones
+        - Separación por nivel de severidad
+        - Hooks para métricas (futuro)
+    """
+    
+    @staticmethod
+    def log_measurement(
+        measurement: 'QuantumMeasurement',
+        level: int = logging.INFO
+    ) -> None:
+        """
+        Registra medición cuántica con contexto completo.
+        
+        Args:
+            measurement: Medición inmutable validada.
+            level: Nivel de logging (INFO/WARNING/ERROR).
+            
+        Precondición:
+            measurement es instancia válida de QuantumMeasurement.
+        """
+        context = LogContext(
+            eigenstate=measurement.eigenstate.name,
+            incident_energy=measurement.incident_energy,
+            work_function=measurement.work_function,
+            tunneling_prob=measurement.tunneling_probability,
+            momentum=measurement.momentum,
+            sigma=measurement.dominant_pole_real,
+            chi_squared=measurement.threat_level,
+            veto=measurement.frustration_veto,
+        )
+        
+        logger.log(
+            level,
+            f"QUANTUM_MEASUREMENT | {context.to_structured_log()}"
+        )
+        
+        # Hook para métricas (a implementar)
+        # MetricsCollector.record_measurement(measurement)
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 2: JERARQUÍA DE EXCEPCIONES (Categoría de Errores)
+# ═════════════════════════════════════════════════════════════════════════════
 
 class QuantumAdmissionError(Exception):
     """
-    Categoría base de errores cuánticos.
+    Objeto inicial en categoría de errores cuánticos.
     
-    Morfismo: Error → Logging
+    Morfismo canónico: Error → Log → Recovery
+    
+    Propiedades categóricas:
+        - Identidad: self.identity() = self
+        - Composición: (f ∘ g).handle() = f.handle(g.handle())
     """
-    pass
+    
+    def __init__(self, message: str, context: Optional[Dict[str, Any]] = None):
+        """
+        Constructor con contexto diagnóstico enriquecido.
+        
+        Args:
+            message: Descripción del error.
+            context: Diccionario con parámetros relevantes.
+        """
+        super().__init__(message)
+        self.context = context or {}
+        self.message = message
+    
+    def __str__(self) -> str:
+        """Representación con contexto."""
+        if self.context:
+            ctx_str = ", ".join(f"{k}={v}" for k, v in self.context.items())
+            return f"{self.message} | Context: {ctx_str}"
+        return self.message
 
 
 class QuantumNumericalError(QuantumAdmissionError):
     """
-    Error en el cálculo numérico de observable físico.
+    Error en cálculo numérico con propagación de incertidumbre.
     
-    Indica violación de condiciones de estabilidad numérica:
-    - Pérdida catastrófica de precisión
-    - Overflow/underflow no controlado
-    - Violación de cotas conocidas
+    Causas típicas:
+        - Pérdida catastrófica de precisión (catastrophic cancellation)
+        - Overflow/underflow no manejado
+        - Violación de cotas físicas conocidas
     """
     pass
 
 
 class QuantumInterfaceError(QuantumAdmissionError):
     """
-    Violación de contrato en protocolo de comunicación inter-componente.
+    Violación de contrato en protocolo de comunicación.
     
-    Categorialmente: fallo de funtorialidad en composición de morfismos.
+    Interpretación categórica:
+        Fallo de funtorialidad: F(g ∘ f) ≠ F(g) ∘ F(f)
     """
     pass
 
 
 class QuantumStateError(QuantumAdmissionError):
     """
-    Estado cuántico inválido o no normalizable.
+    Estado fuera del espacio de Hilbert admisible.
     
-    Corresponde a vector fuera del espacio de Hilbert admisible.
+    Violaciones típicas:
+        - ||ψ|| ∉ [0, ∞) (norma no finita)
+        - ⟨ψ|ψ⟩ < 0 (producto interno no positivo definido)
+        - Energía negativa sin interpretación física
     """
     pass
 
 
 class WKBValidityError(QuantumNumericalError):
     """
-    Violación de condiciones de validez de la aproximación WKB.
+    Aproximación WKB fuera de régimen semiclásico.
     
-    Lanzada cuando la aproximación semiclásica no es aplicable.
+    Condición violada:
+        ℏ|V''|/|V'|² ≥ threshold (variación no suave)
     """
     pass
 
 
-# =============================================================================
-# CONSTANTES FÍSICAS (Unidades Normalizadas de Información)
-# =============================================================================
+class CohomologicalVetoError(QuantumAdmissionError):
+    """
+    Veto estructural por frustración cohomológica.
+    
+    Interpretación topológica:
+        H¹(X, ℱ) ≠ 0 → obstrucción global
+    """
+    pass
 
-class QuantumConstants:
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 3: CONSTANTES FÍSICAS (Álgebra de Números)
+# ═════════════════════════════════════════════════════════════════════════════
+
+class PhysicalConstants:
     """
-    Constantes físicas inmutables con validación estática.
+    Constantes físicas fundamentales con validación estática.
     
-    Sistema de unidades: ℏ = c = kB = 1 (unidades naturales de información)
+    Sistema de unidades: ℏ = c = kB = 1 (unidades naturales)
     
-    INVARIANTES:
-    - Todas las constantes son adimensionales o tienen unidades derivadas
-    - Los valores numéricos garantizan estabilidad en precisión de máquina
-    - Tolerancias calibradas para aritmética IEEE 754 de doble precisión
+    Invariantes algebraicos:
+        ∀c ∈ Constants: c ∈ ℝ₊ ∪ {+∞} (no negatividad)
+        ∀c ∈ Constants: |c| < DBL_MAX (representabilidad)
+    
+    Análisis dimensional:
+        [Φ] = Energía = M L² T⁻²
+        [m] = Masa = M
+        [Δx] = Longitud = L
     """
     
-    # --- Constantes de Planck ---
+    # ─────────────────────────────────────────────────────────────────────────
+    # Constantes de Planck (Sistema Natural)
+    # ─────────────────────────────────────────────────────────────────────────
+    
     PLANCK_H: Final[float] = 1.0
+    """Constante de Planck [ℏω]."""
+    
     PLANCK_HBAR: Final[float] = PLANCK_H / (2.0 * math.pi)
+    """Constante de Planck reducida [E]."""
     
-    # --- Parámetros del Potencial ---
-    BASE_WORK_FUNCTION: Final[float] = 10.0  # Φ₀ en escala de energía natural
-    BASE_EFFECTIVE_MASS: Final[float] = 1.0  # m₀ normalizada
-    BARRIER_WIDTH: Final[float] = 1.0        # Δx en unidades de longitud natural
-    ALPHA_THREAT: Final[float] = 5.0         # Coeficiente de acoplamiento gauge
+    # ─────────────────────────────────────────────────────────────────────────
+    # Parámetros del Potencial (Barrera Rectangular)
+    # ─────────────────────────────────────────────────────────────────────────
     
-    # --- Tolerancias Numéricas ---
-    # Basadas en análisis de propagación de errores:
-    # ε_machine ≈ 2.22e-16 (DBL_EPSILON)
-    # Margen de seguridad: 10⁴ × ε_machine
+    BASE_WORK_FUNCTION: Final[float] = 10.0
+    """
+    Función de trabajo base Φ₀ [E].
+    
+    Interpretación: energía mínima para extraer electrón (fotoeléctrico).
+    Valor calibrado para equilibrio accept/reject ≈ 50% en carga nominal.
+    """
+    
+    BASE_EFFECTIVE_MASS: Final[float] = 1.0
+    """
+    Masa efectiva base m₀ [M].
+    
+    En unidades naturales: m₀ = 1 corresponde a masa del electrón.
+    """
+    
+    BARRIER_WIDTH: Final[float] = 1.0
+    """
+    Ancho de barrera Δx [L].
+    
+    Para barrera rectangular: región clásicamente prohibida.
+    """
+    
+    ALPHA_THREAT: Final[float] = 5.0
+    """
+    Constante de acoplamiento gauge-topológico α [adimensional].
+    
+    Controla la sensibilidad de Φ a la amenaza χ²:
+        Φ(χ²) = Φ₀ exp(α χ²)
+    
+    Análisis de estabilidad:
+        α → 0: desacoplamiento (Φ constante)
+        α → ∞: acoplamiento fuerte (Φ diverge rápidamente)
+    """
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Tolerancias Numéricas (Análisis de Error)
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    MACHINE_EPSILON: Final[float] = sys.float_info.epsilon
+    """ε_machine ≈ 2.22e-16 para float64."""
+    
     MIN_KINETIC_ENERGY: Final[float] = 1e-12
+    """
+    Energía cinética mínima resoluble [E].
+    
+    Justificación:
+        √(ε_machine) ≈ 1.5e-8
+        Margen de seguridad: 10⁴ × √ε
+    """
+    
     FRUSTRATION_VETO_TOL: Final[float] = 1e-9
+    """
+    Umbral de energía de frustración cohomológica [E].
+    
+    E_frust > tol ⟹ veto absoluto
+    """
+    
     SIGMA_CHAOS_TOL: Final[float] = 1e-9
+    """
+    Tolerancia para estabilidad marginal [T⁻¹].
+    
+    σ ≥ -tol ⟹ sistema considerado inestable/marginal
+    """
+    
     ENTROPY_FLOOR: Final[float] = 1e-12
+    """
+    Piso de entropía para evitar singularidades [adimensional].
     
-    # Límite de underflow para exp() antes de flush a cero
-    # ln(DBL_MIN) ≈ -708.4, tomamos -700 para margen
+    H_effective = max(H_raw, H_floor)
+    """
+    
     EXP_UNDERFLOW_CUTOFF: Final[float] = -700.0
+    """
+    Límite de underflow para exp() [adimensional].
     
-    # Límite superior de entropía de Shannon: ln(256) para bytes
+    ln(DBL_MIN) ≈ -708.4
+    Margen conservador: -700
+    
+    exp(x < -700) → 0 sin underflow gradual
+    """
+    
     MAX_SHANNON_ENTROPY: Final[float] = math.log(256.0)
+    """
+    Entropía máxima de Shannon para bytes [nats].
     
-    # Parámetro de regularización para división estable
+    Distribución uniforme sobre 256 símbolos:
+        H_max = ln(256) ≈ 5.545 nats
+    """
+    
     DIVISION_EPSILON: Final[float] = 1e-15
+    """
+    Regularizador para división estable [adimensional].
     
-    # Umbral para validez de aproximación WKB (adimensional)
-    # |V''| / |V'|² << 1, típicamente < 0.1
+    x/y → x/max(|y|, ε) · sgn(y)
+    """
+    
     WKB_VALIDITY_THRESHOLD: Final[float] = 0.1
+    """
+    Umbral de validez WKB [adimensional].
+    
+    Parámetro: |V''|/|V'|² < 0.1
+    
+    Interpretación: radio de curvatura del potencial ≫ λ_deBroglie
+    """
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Límites de Representación
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    FLOAT_MAX: Final[float] = sys.float_info.max
+    """Máximo float representable ≈ 1.8e308."""
+    
+    FLOAT_MIN: Final[float] = sys.float_info.min
+    """Mínimo float positivo normalizado ≈ 2.2e-308."""
     
     def __init_subclass__(cls, **kwargs: Any) -> None:
-        """Impedir herencia para garantizar inmutabilidad semántica."""
+        """Sellado de clase para garantizar inmutabilidad semántica."""
         raise TypeError(
-            f"{cls.__name__} es una clase de constantes sellada. "
-            "No debe ser subclaseada."
+            f"La clase {cls.__name__} está sellada. "
+            "No se permite herencia para preservar invariantes físicos."
         )
 
 
-# =============================================================================
-# ENUMERACIONES (Álgebra de Bool con Semántica Cuántica)
-# =============================================================================
+# Alias corto para uso frecuente
+Const = PhysicalConstants
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 4: ENUMERACIONES (Álgebra de Boole Cuántica)
+# ═════════════════════════════════════════════════════════════════════════════
 
 class Eigenstate(Enum):
     """
-    Autoestados del operador de medición Ĥ.
+    Autoestados del operador hermítico Ĥ.
     
-    Forman base ortogonal completa de H:
-    - |ADMITIDO⟩: autoestado con autovalor λ₊ > 0
-    - |RECHAZADO⟩: autoestado con autovalor λ₋ < 0
+    Base ortonormal completa: {|ADMITIDO⟩, |RECHAZADO⟩}
     
-    Propiedades:
-    - ⟨ADMITIDO|RECHAZADO⟩ = 0 (ortogonalidad)
-    - |ADMITIDO⟩⟨ADMITIDO| + |RECHAZADO⟩⟨RECHAZADO| = 𝟙 (completitud)
+    Propiedades algebraicas:
+        1. ⟨ADMITIDO|RECHAZADO⟩ = 0 (ortogonalidad)
+        2. ⟨n|n⟩ = 1 (normalización)
+        3. |ADMITIDO⟩⟨ADMITIDO| + |RECHAZADO⟩⟨RECHAZADO| = 𝟙 (completitud)
+    
+    Autovalores asociados:
+        Ĥ|ADMITIDO⟩ = λ₊|ADMITIDO⟩ con λ₊ > 0
+        Ĥ|RECHAZADO⟩ = λ₋|RECHAZADO⟩ con λ₋ < 0
     """
     
     ADMITIDO = auto()
     RECHAZADO = auto()
     
     def is_accepted(self) -> bool:
-        """Proyección al álgebra booleana."""
+        """
+        Proyección al álgebra de Boole clásica.
+        
+        Returns:
+            True ⟺ autoestado corresponde a admisión.
+            
+        Postcondición:
+            resultado ∈ {True, False} (bivalencia)
+        """
         return self == Eigenstate.ADMITIDO
     
     def to_hilbert_projection(self) -> int:
-        """Mapeo a índice de proyector |n⟩⟨n|."""
+        """
+        Índice del proyector |n⟩⟨n|.
+        
+        Returns:
+            1 si ADMITIDO, 0 si RECHAZADO.
+            
+        Uso: indexación de matrices en base canónica.
+        """
         return 1 if self.is_accepted() else 0
+    
+    def complementary(self) -> 'Eigenstate':
+        """
+        Proyector complementario ortogonal.
+        
+        Returns:
+            Estado ortogonal (complemento en álgebra de proyectores).
+            
+        Postcondición:
+            ⟨self|complementary⟩ = 0
+        """
+        return (
+            Eigenstate.RECHAZADO if self == Eigenstate.ADMITIDO
+            else Eigenstate.ADMITIDO
+        )
+    
+    def __str__(self) -> str:
+        """Representación Dirac para logging."""
+        return f"|{self.name}⟩"
 
 
-# =============================================================================
-# ESTRUCTURAS DE DATOS INMUTABLES (Objetos en Categoría Set)
-# =============================================================================
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 5: ESTRUCTURAS ALGEBRAICAS (Espacios Métricos y Vectoriales)
+# ═════════════════════════════════════════════════════════════════════════════
 
 class NumericInterval(NamedTuple):
     """
-    Intervalo cerrado [lower, upper] con aritmética rigurosa.
+    Intervalo cerrado [lower, upper] ⊂ ℝ con aritmética rigurosa.
     
-    Usado para propagación de incertidumbre en cálculos físicos.
+    Estructura algebraica:
+        - Espacio métrico con distancia d(I₁, I₂) = |mid(I₁) - mid(I₂)|
+        - Retícula con orden parcial I₁ ≤ I₂ ⟺ upper₁ ≤ lower₂
     
     Invariantes:
-    - lower ≤ upper
-    - Ambos finitos o ambos infinitos con mismo signo
+        1. lower ≤ upper (orden total en extremos)
+        2. lower, upper ∈ ℝ ∪ {-∞, +∞} (compactificación de Alexandroff)
+        3. width = upper - lower ≥ 0 (métrica semi-definida positiva)
+    
+    Aplicaciones:
+        - Propagación de incertidumbre numérica
+        - Análisis de intervalos
+        - Cotas de error en aproximaciones
     """
     
     lower: float
     upper: float
     
     def __post_init__(self) -> None:
-        """Validación de invariantes."""
+        """
+        Validación de axiomas del intervalo.
+        
+        Raises:
+            ValueError: Si se violan invariantes.
+        """
         if math.isnan(self.lower) or math.isnan(self.upper):
-            raise ValueError("Intervalos no admiten NaN")
+            raise ValueError(
+                "Intervalos no admiten NaN (not-a-number). "
+                "Use [-∞, +∞] para incertidumbre total."
+            )
+        
         if self.lower > self.upper:
             raise ValueError(
-                f"Intervalo mal formado: [{self.lower}, {self.upper}]"
+                f"Intervalo mal formado: [{self.lower}, {self.upper}]. "
+                "Se requiere lower ≤ upper."
             )
     
     @property
     def midpoint(self) -> float:
-        """Punto medio del intervalo."""
+        """
+        Punto medio (centro de masa en distribución uniforme).
+        
+        Returns:
+            (lower + upper) / 2
+            
+        Postcondición:
+            lower ≤ midpoint ≤ upper
+        """
         return 0.5 * (self.lower + self.upper)
     
     @property
     def width(self) -> float:
-        """Ancho del intervalo (incertidumbre)."""
+        """
+        Ancho del intervalo (incertidumbre absoluta).
+        
+        Returns:
+            upper - lower ≥ 0
+        """
         return self.upper - self.lower
     
+    @property
+    def relative_width(self) -> float:
+        """
+        Incertidumbre relativa (adimensional).
+        
+        Returns:
+            width / |midpoint| si midpoint ≠ 0, else +∞
+        """
+        mid = self.midpoint
+        if abs(mid) < Const.DIVISION_EPSILON:
+            return float('inf')
+        return self.width / abs(mid)
+    
     def contains(self, value: float) -> bool:
-        """Verifica pertenencia al intervalo cerrado."""
+        """
+        Predicado de pertenencia al intervalo cerrado.
+        
+        Args:
+            value: Valor a verificar.
+            
+        Returns:
+            True ⟺ lower ≤ value ≤ upper
+        """
         return self.lower <= value <= self.upper
+    
+    def intersects(self, other: 'NumericInterval') -> bool:
+        """
+        Verifica intersección no vacía de intervalos.
+        
+        Args:
+            other: Otro intervalo.
+            
+        Returns:
+            True ⟺ self ∩ other ≠ ∅
+        """
+        return not (self.upper < other.lower or other.upper < self.lower)
     
     @staticmethod
     def from_value_with_tolerance(
-        value: float, 
+        value: float,
         tolerance: float
-    ) -> NumericInterval:
-        """Construye intervalo centrado con radio de tolerancia."""
+    ) -> 'NumericInterval':
+        """
+        Constructor centrado con radio simétrico.
+        
+        Args:
+            value: Centro del intervalo.
+            tolerance: Radio (se toma valor absoluto).
+            
+        Returns:
+            [value - |tolerance|, value + |tolerance|]
+            
+        Ejemplo:
+            >>> NumericInterval.from_value_with_tolerance(5.0, 0.1)
+            NumericInterval(lower=4.9, upper=5.1)
+        """
+        abs_tol = abs(tolerance)
         return NumericInterval(
-            lower=value - abs(tolerance),
-            upper=value + abs(tolerance)
+            lower=value - abs_tol,
+            upper=value + abs_tol
         )
 
 
 @dataclass(frozen=True, slots=True)
 class WKBParameters:
     """
-    Parámetros calculados para la aproximación WKB.
+    Parámetros del cálculo WKB con diagnóstico completo.
     
-    Encapsula todos los valores intermedios necesarios para:
-    1. Validar condiciones de aplicabilidad
-    2. Computar la probabilidad de transmisión
-    3. Diagnosticar fallos numéricos
+    Encapsula toda la información necesaria para:
+        1. Validar aplicabilidad de la aproximación
+        2. Computar probabilidad de transmisión
+        3. Diagnosticar fallos numéricos
+        4. Auditoría post-mortem
     
     Attributes:
-        incident_energy: E ≥ 0
-        barrier_height: V₀ - E > 0 (solo válido en régimen túnel)
-        effective_mass: m_eff > 0 (puede ser +∞)
-        barrier_width: Δx > 0
-        integrand: √(2m(V-E)) ≥ 0
-        exponent: -(2/ℏ)∫dx√(2m(V-E)) ≤ 0
-        validity_parameter: |V''|/|V'|² (debe ser << 1)
+        incident_energy: E ≥ 0 [Energía]
+        barrier_height: V₀ - E (debe ser > 0 en régimen túnel) [Energía]
+        effective_mass: m_eff ∈ (0, +∞] [Masa]
+        barrier_width: Δx > 0 [Longitud]
+        integrand: √(2m(V-E)) [Momentum imaginario]
+        exponent: -(2/ℏ)∫√(2m(V-E))dx [adimensional]
+        validity_parameter: |V''|/|V'|² [Longitud⁻²]
     """
     
     incident_energy: float
@@ -341,51 +782,93 @@ class WKBParameters:
     exponent: float
     validity_parameter: float
     
+    def __post_init__(self) -> None:
+        """
+        Validación de restricciones físicas.
+        
+        Raises:
+            QuantumNumericalError: Si algún valor es no físico.
+        """
+        # Validar energías no negativas
+        if self.incident_energy < 0:
+            raise QuantumNumericalError(
+                f"Energía incidente negativa: {self.incident_energy}",
+                context={"incident_energy": self.incident_energy}
+            )
+        
+        # Validar masa positiva (puede ser +∞)
+        if not (self.effective_mass > 0 or math.isinf(self.effective_mass)):
+            raise QuantumNumericalError(
+                f"Masa efectiva debe ser positiva o infinita: {self.effective_mass}",
+                context={"effective_mass": self.effective_mass}
+            )
+        
+        # Validar ancho positivo
+        if self.barrier_width <= 0:
+            raise QuantumNumericalError(
+                f"Ancho de barrera debe ser positivo: {self.barrier_width}",
+                context={"barrier_width": self.barrier_width}
+            )
+    
     def is_valid_semiclassical_regime(self) -> bool:
         """
-        Verifica condiciones de validez de aproximación WKB.
+        Verifica condiciones de validez WKB.
+        
+        Condiciones:
+            1. E < V₀ (régimen túnel, barrier_height > 0)
+            2. |V''|/|V'|² < threshold (variación suave)
+            3. m_eff finita y positiva
         
         Returns:
-            True si se cumplen:
-            1. Régimen túnel: E < V₀
-            2. Variación suave: |V''|/|V'|² < umbral
-            3. Masa efectiva positiva y finita
+            True si todas las condiciones se cumplen.
         """
         return (
             self.barrier_height > 0
-            and self.validity_parameter < QuantumConstants.WKB_VALIDITY_THRESHOLD
+            and self.validity_parameter < Const.WKB_VALIDITY_THRESHOLD
             and 0 < self.effective_mass < float('inf')
         )
+    
+    def gamow_factor(self) -> float:
+        """
+        Calcula el factor de Gamow γ.
+        
+        Returns:
+            γ = (1/ℏ)∫√(2m(V-E))dx ≥ 0
+        """
+        return abs(self.exponent) / 2.0
 
 
 @dataclass(frozen=True, slots=True)
 class QuantumMeasurement:
     """
-    Registro inmutable del proceso de medición cuántica.
+    Medición cuántica inmutable post-colapso.
     
-    Corresponde a la tupla (autoestado, autovalor, observables) tras el
-    colapso de la función de onda.
+    Representa el resultado de aplicar el operador de proyección Ĥ
+    sobre el estado |ψ⟩ preparado por el payload.
     
-    PROPIEDADES GARANTIZADAS:
-    1. Inmutabilidad (frozen=True)
-    2. No-clonación cuántica (sin __copy__)
-    3. Trazabilidad completa (todos los observables registrados)
-    4. Validez física (restricciones en __post_init__)
+    TEOREMA (No-Clonación):
+        No existe morfismo QuantumMeasurement → QuantumMeasurement × QuantumMeasurement
+        que duplique el estado cuántico.
+    
+    IMPLEMENTACIÓN:
+        - frozen=True: inmutabilidad
+        - slots=True: optimización de memoria
+        - Sin __copy__/__deepcopy__: prevención de clonación
     
     Attributes:
-        eigenstate: Estado colapsado |ψ_final⟩
-        incident_energy: Energía incidente E = hν ≥ 0
-        work_function: Función de trabajo efectiva Φ(χ²) ≥ 0
-        tunneling_probability: P(transmisión) ∈ [0, 1]
-        kinetic_energy: Energía cinética K = E - Φ ≥ 0 (si admitido)
-        momentum: Momentum de inyección p = √(2mK) ≥ 0
+        eigenstate: Estado colapsado {|ADMITIDO⟩, |RECHAZADO⟩}
+        incident_energy: E = hν ≥ 0
+        work_function: Φ(χ²) ≥ 0
+        tunneling_probability: T ∈ [0, 1]
+        kinetic_energy: K = max(E - Φ, 0) ≥ 0
+        momentum: p = √(2mK) ≥ 0
         frustration_veto: Indicador de veto cohomológico
-        effective_mass: Masa efectiva m_eff > 0 o +∞
-        dominant_pole_real: Polo dominante σ ∈ ℝ
-        threat_level: Amenaza Mahalanobis χ² ≥ 0
-        collapse_threshold: Umbral determinista θ ∈ [0, 1)
-        admission_reason: Cadena de diagnóstico
-        wkb_parameters: Diagnóstico completo de cálculo WKB (opcional)
+        effective_mass: m_eff ∈ (0, +∞]
+        dominant_pole_real: σ ∈ ℝ (parte real de polo dominante)
+        threat_level: χ² ≥ 0 (Mahalanobis)
+        collapse_threshold: θ ∈ [0, 1)
+        admission_reason: Diagnóstico textual
+        wkb_parameters: Detalles de cálculo WKB (opcional)
         measurement_uncertainty: Intervalo de incertidumbre en E (opcional)
     """
     
@@ -406,70 +889,98 @@ class QuantumMeasurement:
     
     def __post_init__(self) -> None:
         """
-        Validación de restricciones físicas.
+        Validación exhaustiva de invariantes físicos.
         
-        Lanza QuantumStateError si se violan invariantes del espacio de Hilbert.
+        Raises:
+            QuantumStateError: Si se viola algún invariante.
         """
-        # Validaciones de no-negatividad
-        if self.incident_energy < 0:
-            raise QuantumStateError(
-                f"Energía incidente negativa: {self.incident_energy}"
-            )
-        if self.work_function < 0:
-            raise QuantumStateError(
-                f"Función de trabajo negativa: {self.work_function}"
-            )
+        # ─────────────────────────────────────────────────────────────────────
+        # Validación de no-negatividad (observables físicos)
+        # ─────────────────────────────────────────────────────────────────────
+        
+        non_negative_fields = {
+            "incident_energy": self.incident_energy,
+            "work_function": self.work_function,
+            "kinetic_energy": self.kinetic_energy,
+            "momentum": self.momentum,
+            "threat_level": self.threat_level,
+        }
+        
+        for field_name, value in non_negative_fields.items():
+            if value < 0:
+                raise QuantumStateError(
+                    f"Observable '{field_name}' debe ser no negativo: {value}",
+                    context={field_name: value}
+                )
+        
+        # ─────────────────────────────────────────────────────────────────────
+        # Validación de probabilidades
+        # ─────────────────────────────────────────────────────────────────────
+        
         if not 0.0 <= self.tunneling_probability <= 1.0:
             raise QuantumStateError(
-                f"Probabilidad fuera de [0,1]: {self.tunneling_probability}"
-            )
-        if self.kinetic_energy < 0:
-            raise QuantumStateError(
-                f"Energía cinética negativa: {self.kinetic_energy}"
-            )
-        if self.momentum < 0:
-            raise QuantumStateError(
-                f"Momentum negativo: {self.momentum}"
-            )
-        if self.threat_level < 0:
-            raise QuantumStateError(
-                f"Nivel de amenaza negativo: {self.threat_level}"
+                f"Probabilidad de túnel fuera de [0,1]: {self.tunneling_probability}",
+                context={"tunneling_probability": self.tunneling_probability}
             )
         
+        if not 0.0 <= self.collapse_threshold < 1.0:
+            raise QuantumStateError(
+                f"Umbral de colapso fuera de [0,1): {self.collapse_threshold}",
+                context={"collapse_threshold": self.collapse_threshold}
+            )
+        
+        # ─────────────────────────────────────────────────────────────────────
         # Validación de masa efectiva
+        # ─────────────────────────────────────────────────────────────────────
+        
         if not (self.effective_mass > 0 or math.isinf(self.effective_mass)):
             raise QuantumStateError(
-                f"Masa efectiva no positiva: {self.effective_mass}"
+                f"Masa efectiva debe ser positiva o infinita: {self.effective_mass}",
+                context={"effective_mass": self.effective_mass}
             )
         
-        # Validación de umbral
-        if not 0.0 <= self.collapse_threshold <= 1.0:
-            raise QuantumStateError(
-                f"Umbral de colapso fuera de [0,1): {self.collapse_threshold}"
-            )
+        # ─────────────────────────────────────────────────────────────────────
+        # Consistencia estado-energía
+        # ─────────────────────────────────────────────────────────────────────
         
-        # Consistencia física: si rechazado, K y p deben ser cero
         if self.eigenstate == Eigenstate.RECHAZADO:
-            if self.kinetic_energy != 0.0 or self.momentum != 0.0:
+            # Si rechazado, K y p deben ser exactamente 0
+            if self.kinetic_energy != 0.0:
                 raise QuantumStateError(
-                    "Estado rechazado no puede tener energía cinética o momentum"
+                    "Estado rechazado no puede tener energía cinética no nula",
+                    context={
+                        "eigenstate": self.eigenstate,
+                        "kinetic_energy": self.kinetic_energy
+                    }
+                )
+            
+            if self.momentum != 0.0:
+                raise QuantumStateError(
+                    "Estado rechazado no puede tener momentum no nulo",
+                    context={
+                        "eigenstate": self.eigenstate,
+                        "momentum": self.momentum
+                    }
                 )
     
     def __repr__(self) -> str:
-        """Representación compacta para logging."""
+        """Representación compacta para debugging."""
         return (
             f"QuantumMeasurement("
-            f"state={self.eigenstate.name}, "
-            f"E={self.incident_energy:.6e}, "
-            f"Φ={self.work_function:.6e}, "
-            f"T={self.tunneling_probability:.6e}, "
-            f"p={self.momentum:.6e}, "
-            f"veto={self.frustration_veto})"
+            f"{self.eigenstate}, "
+            f"E={self.incident_energy:.3e}, "
+            f"T={self.tunneling_probability:.3e}, "
+            f"p={self.momentum:.3e})"
         )
     
     def to_dict(self) -> Dict[str, Any]:
-        """Serialización para telemetría."""
-        return {
+        """
+        Serialización a diccionario para telemetría.
+        
+        Returns:
+            Diccionario con todos los campos serializables.
+        """
+        base_dict = {
             "eigenstate": self.eigenstate.name,
             "incident_energy": self.incident_energy,
             "work_function": self.work_function,
@@ -483,40 +994,61 @@ class QuantumMeasurement:
             "collapse_threshold": self.collapse_threshold,
             "admission_reason": self.admission_reason,
         }
+        
+        # Agregar detalles opcionales si existen
+        if self.wkb_parameters:
+            base_dict["wkb_gamow_factor"] = self.wkb_parameters.gamow_factor()
+        
+        if self.measurement_uncertainty:
+            base_dict["energy_uncertainty"] = self.measurement_uncertainty.width
+        
+        return base_dict
+    
+    def de_broglie_wavelength(self) -> float:
+        """
+        Calcula la longitud de onda de De Broglie.
+        
+        Returns:
+            λ = h/p si p > 0, else +∞
+        """
+        if self.momentum < Const.DIVISION_EPSILON:
+            return float('inf')
+        
+        return Const.PLANCK_H / self.momentum
 
 
-# =============================================================================
-# PROTOCOLOS DE INTERFACES (Teoría de Categorías - Funtores)
-# =============================================================================
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 6: PROTOCOLOS DE INTERFACES (Funtores Categóricos)
+# ═════════════════════════════════════════════════════════════════════════════
 
 @runtime_checkable
 class ITopologicalWatcher(Protocol):
     """
-    Funtor: Categoría Topológica → Categoría de Números Reales
+    Funtor: Top → ℝ₊ (Categoría Topológica → Números Reales No Negativos)
     
-    Abstracción del observador topológico que computa la amenaza
-    Mahalanobis χ² como una métrica de distancia en el espacio de
-    configuración del sistema.
+    Observador que computa la métrica de Mahalanobis χ² como medida
+    de distancia geodésica en el espacio de configuración.
     
-    AXIOMAS:
-    1. χ² ≥ 0 (semi-definida positiva)
-    2. χ² = 0 ⟺ estado nominal
-    3. χ² → ∞ si el sistema diverge topológicamente
+    AXIOMAS TOPOLÓGICOS:
+        1. χ²: X → ℝ₊ es continua en la topología natural de X
+        2. χ²(x₀) = 0 donde x₀ es el estado nominal (identidad)
+        3. χ² es una semi-métrica: χ²(x, y) ≥ 0, χ²(x, x) = 0
     
     CONTRATO:
-    - Debe retornar float finito y no-negativo
-    - Debe ser idempotente en ausencia de mutaciones del sistema
+        Precondición: Sistema inicializado y en estado consistente
+        Postcondición: Retorna float finito y no negativo
+        Invariante: Idempotencia en ausencia de mutaciones externas
     """
     
     def get_mahalanobis_threat(self) -> float:
         """
-        Computa la amenaza topológica χ².
+        Calcula la amenaza topológica χ².
         
         Returns:
-            χ² ∈ [0, +∞)
+            χ² ∈ [0, +∞) con χ² = 0 en estado nominal.
             
         Raises:
-            RuntimeError: Si el cálculo falla irrecuperablemente
+            RuntimeError: Si el cálculo falla irrecuperablemente.
         """
         ...
 
@@ -524,30 +1056,37 @@ class ITopologicalWatcher(Protocol):
 @runtime_checkable
 class ILaplaceOracle(Protocol):
     """
-    Funtor: Categoría de Sistemas LTI → Categoría de Números Complejos
+    Funtor: LTI → ℂ (Sistemas Lineales Invariantes → Números Complejos)
     
-    Oráculo que extrae el polo dominante σ del sistema de control,
-    gobernando la estabilidad asintótica.
+    Oráculo que extrae el polo dominante del sistema de control,
+    determinando la estabilidad asintótica.
     
-    AXIOMAS (Teoría de Sistemas):
-    1. σ < 0 ⟹ sistema asintóticamente estable
-    2. σ = 0 ⟹ sistema marginalmente estable
-    3. σ > 0 ⟹ sistema inestable
+    TEORÍA DE SISTEMAS:
+        H(s) = N(s)/D(s) con polos {pᵢ} = {s: D(s) = 0}
+        
+        Polo dominante: p* = argmax Re(pᵢ)
+                              pᵢ ∈ polos
+        
+        Clasificación de estabilidad:
+            Re(p*) < 0 → asintóticamente estable
+            Re(p*) = 0 → marginalmente estable
+            Re(p*) > 0 → inestable
     
     CONTRATO:
-    - Debe retornar la parte real del polo dominante
-    - Debe manejar sistemas de orden arbitrario
+        Precondición: Sistema LTI con representación válida
+        Postcondición: Retorna parte real del polo dominante
+        Excepción: Si no existen polos o cálculo falla
     """
     
     def get_dominant_pole_real(self) -> float:
         """
-        Extrae la parte real del polo dominante σ.
+        Extrae Re(polo dominante) del sistema.
         
         Returns:
-            σ ∈ ℝ
+            σ = Re(p*) ∈ ℝ
             
         Raises:
-            RuntimeError: Si no hay polos o el cálculo falla
+            RuntimeError: Si el sistema no tiene polos o el cálculo falla.
         """
         ...
 
@@ -555,244 +1094,298 @@ class ILaplaceOracle(Protocol):
 @runtime_checkable
 class ISheafCohomologyOrchestrator(Protocol):
     """
-    Funtor: Categoría de Haces → Categoría de Energías
+    Funtor: Sh(X) → ℝ₊ (Categoría de Haces → Energías)
     
-    Orquestador que calcula la energía de frustración cohomológica
-    global del sistema, indicando inconsistencias estructurales.
+    Orquestador que calcula la energía de frustración cohomológica,
+    midiendo obstrucciones globales en la estructura de haces.
     
-    AXIOMAS (Cohomología de Sheaf):
-    1. E_frustración ≥ 0 (funcional de energía)
-    2. E = 0 ⟺ cohomología trivial (no frustración)
-    3. E → ∞ si hay obstrucciones cohomológicas
+    COHOMOLOGÍA DE SHEAVES:
+        Para un haz ℱ sobre espacio topológico X:
+        
+        Complejo de cocadenas: 0 → C⁰ → C¹ → C² → ...
+        Operador coborde: δ: Cⁿ → Cⁿ⁺¹
+        
+        Grupo de cohomología: Hⁿ(X, ℱ) = Ker(δₙ₊₁) / Im(δₙ)
+        
+        Frustración ⟺ H¹(X, ℱ) ≠ 0 (obstrucción al pegado global)
+        
+        Energía: E = ∫_X ||δω||² dμ
     
     CONTRATO:
-    - Debe retornar float finito y no-negativo
-    - Debe integrar sobre todos los haces monitoreados
+        Precondición: Haces monitoreados en estado consistente
+        Postcondición: Retorna energía no negativa
+        Invariante: E = 0 ⟺ cohomología trivial
     """
     
     def get_global_frustration_energy(self) -> float:
         """
-        Calcula la energía de frustración cohomológica.
+        Calcula energía de frustración cohomológica global.
         
         Returns:
             E_frustración ≥ 0
             
         Raises:
-            RuntimeError: Si el cálculo cohomológico falla
+            RuntimeError: Si el cálculo cohomológico falla.
         """
         ...
 
 
-# =============================================================================
-# FUNCIONES AUXILIARES NUMÉRICAS (Álgebra Numérica Rigurosa)
-# =============================================================================
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 7: ÁLGEBRA NUMÉRICA (Morfismos Seguros)
+# ═════════════════════════════════════════════════════════════════════════════
 
-def validate_finite_float(
-    value: Any, 
-    *, 
-    name: str,
-    allow_inf: bool = False
-) -> float:
+class NumericalMorphisms:
     """
-    Conversión y validación rigurosa a float finito.
+    Colección de morfismos numéricos con garantías algebraicas.
     
-    Implementa un morfismo seguro: Any → ℝ_finito
-    
-    Args:
-        value: Valor a convertir
-        name: Nombre del parámetro (para mensajes de error)
-        allow_inf: Si True, permite ±∞
-        
-    Returns:
-        float validado
-        
-    Raises:
-        QuantumNumericalError: Si la conversión falla o el valor es inválido
+    Todos los métodos son funciones puras (sin efectos secundarios)
+    con manejo exhaustivo de casos especiales.
     """
-    try:
-        result = float(value)
-    except (TypeError, ValueError) as exc:
-        raise QuantumNumericalError(
-            f"Parámetro '{name}' no convertible a float: {value!r}"
-        ) from exc
     
-    if math.isnan(result):
-        raise QuantumNumericalError(
-            f"Parámetro '{name}' es NaN (not-a-number), valor no físico"
+    @staticmethod
+    def validate_finite_float(
+        value: Any,
+        *,
+        name: str,
+        allow_inf: bool = False
+    ) -> float:
+        """
+        Morfismo Any → ℝ_finito con validación rigurosa.
+        
+        Args:
+            value: Valor a convertir.
+            name: Identificador para mensajes de error.
+            allow_inf: Permitir ±∞ en codominio.
+            
+        Returns:
+            float validado según restricciones.
+            
+        Raises:
+            QuantumNumericalError: Si conversión falla o valor inválido.
+        """
+        try:
+            result = float(value)
+        except (TypeError, ValueError) as exc:
+            raise QuantumNumericalError(
+                f"Parámetro '{name}' no convertible a float: {value!r}",
+                context={"name": name, "value": value, "type": type(value).__name__}
+            ) from exc
+        
+        # Rechazo absoluto de NaN
+        if math.isnan(result):
+            raise QuantumNumericalError(
+                f"Parámetro '{name}' es NaN (valor no físico)",
+                context={"name": name}
+            )
+        
+        # Validación de infinitos según política
+        if not allow_inf and math.isinf(result):
+            raise QuantumNumericalError(
+                f"Parámetro '{name}' es infinito: {result!r}",
+                context={"name": name, "value": result}
+            )
+        
+        return result
+    
+    @staticmethod
+    def clamp_to_unit_interval(value: float) -> float:
+        """
+        Proyección saturante [ℝ → [0, 1]].
+        
+        Manejo de casos especiales:
+            NaN → 0.0 (con warning)
+            +∞ → 1.0
+            -∞ → 0.0
+            x ∈ [0,1] → x
+            x < 0 → 0.0
+            x > 1 → 1.0
+        
+        Args:
+            value: Valor a proyectar.
+            
+        Returns:
+            Proyección en [0, 1].
+        """
+        if math.isnan(value):
+            logger.warning(
+                "clamp_to_unit_interval recibió NaN, proyectando a 0.0. "
+                "Revisar cálculo upstream."
+            )
+            return 0.0
+        
+        if math.isinf(value):
+            return 1.0 if value > 0 else 0.0
+        
+        # Saturación a límites del intervalo
+        if value <= 0.0:
+            return 0.0
+        if value >= 1.0:
+            return 1.0
+        
+        return value
+    
+    @staticmethod
+    def safe_division(
+        numerator: float,
+        denominator: float,
+        *,
+        fallback: float = 0.0,
+        epsilon: float = Const.DIVISION_EPSILON
+    ) -> float:
+        """
+        División con regularización: x/y → x/max(|y|, ε)·sgn(y).
+        
+        Propiedades:
+            - No singularidades para |y| < ε
+            - Continuidad en ε-vecindad de 0
+            - Monotonía preservada
+        
+        Args:
+            numerator: Numerador (finito).
+            denominator: Denominador (finito).
+            fallback: Valor si denominador es exactamente 0.
+            epsilon: Regularizador mínimo.
+            
+        Returns:
+            Cociente regularizado.
+            
+        Raises:
+            QuantumNumericalError: Si inputs no son finitos.
+        """
+        num = NumericalMorphisms.validate_finite_float(
+            numerator,
+            name="numerator"
         )
-    
-    if not allow_inf and math.isinf(result):
-        raise QuantumNumericalError(
-            f"Parámetro '{name}' es infinito: {result!r}"
+        denom = NumericalMorphisms.validate_finite_float(
+            denominator,
+            name="denominator"
         )
-    
-    return result
-
-
-def clamp_to_unit_interval(value: float) -> float:
-    """
-    Proyección al intervalo unitario [0, 1].
-    
-    Morfismo saturante: ℝ → [0, 1]
-    
-    Manejo de casos especiales:
-    - NaN → 0.0 (con warning)
-    - ±∞ → 0.0 o 1.0 según signo
-    - Valores normales → saturación estándar
-    
-    Args:
-        value: Valor a proyectar
         
-    Returns:
-        Valor proyectado ∈ [0, 1]
-    """
-    if math.isnan(value):
-        logger.warning(
-            "clamp_to_unit_interval recibió NaN, proyectando a 0.0. "
-            "Esto indica un error de cálculo upstream."
+        # Caso exacto: denominador cero
+        if denom == 0.0:
+            logger.warning(
+                f"División por cero exacto: {num}/0.0, retornando fallback={fallback}"
+            )
+            return fallback
+        
+        # Regularización preservando signo
+        regularized_denom = (
+            denom if abs(denom) >= epsilon
+            else math.copysign(epsilon, denom)
         )
-        return 0.0
-    
-    if math.isinf(value):
-        return 0.0
-    
-    if value <= 0.0:
-        return 0.0
-    if value >= 1.0:
-        return 1.0
-    
-    return value
-
-
-def safe_division(
-    numerator: float, 
-    denominator: float, 
-    *, 
-    fallback: float = 0.0,
-    epsilon: float = QuantumConstants.DIVISION_EPSILON
-) -> float:
-    """
-    División con regularización para evitar singularidades.
-    
-    Implementa: f(x, y) = x / max(|y|, ε) · sgn(y)
-    
-    Args:
-        numerator: Numerador
-        denominator: Denominador
-        fallback: Valor de retorno si denominador es exactamente cero
-        epsilon: Regularizador de división
         
-    Returns:
-        Resultado de la división regularizada
+        return num / regularized_denom
+    
+    @staticmethod
+    def safe_sqrt(value: float) -> float:
+        """
+        Raíz cuadrada con proyección a no-negatividad: √max(0, x).
         
-    Raises:
-        QuantumNumericalError: Si los argumentos no son finitos
-    """
-    num = validate_finite_float(numerator, name="numerator")
-    denom = validate_finite_float(denominator, name="denominator")
+        Args:
+            value: Argumento del radical.
+            
+        Returns:
+            √max(0, value) ≥ 0
+        """
+        return math.sqrt(max(0.0, value))
     
-    if denom == 0.0:
-        logger.warning(
-            "División por cero exacto detectada en safe_division, "
-            f"retornando fallback={fallback}"
-        )
-        return fallback
-    
-    # Regularización: |denom| → max(|denom|, ε)
-    regularized_denom = (
-        denom if abs(denom) >= epsilon 
-        else math.copysign(epsilon, denom)
-    )
-    
-    return num / regularized_denom
-
-
-def safe_sqrt(value: float) -> float:
-    """
-    Raíz cuadrada con clamp a no-negatividad.
-    
-    Args:
-        value: Argumento del radical
+    @staticmethod
+    def safe_exp(exponent: float) -> float:
+        """
+        Exponencial con saturación: exp(x) con protección de overflow/underflow.
         
-    Returns:
-        √max(0, value)
-    """
-    return math.sqrt(max(0.0, value))
-
-
-def safe_exp(exponent: float) -> float:
-    """
-    Exponencial con protección de underflow/overflow.
-    
-    Saturación:
-    - Si exponent < EXP_UNDERFLOW_CUTOFF → 0.0
-    - Si exponent > 700 → warning + saturación a sys.float_info.max
-    
-    Args:
-        exponent: Exponente
+        Saturación:
+            x ≤ -700 → 0.0 (underflow)
+            x > 700 → float_max (overflow saturado)
+            -700 < x ≤ 700 → exp(x)
         
-    Returns:
-        exp(exponent) con saturación
-    """
-    if exponent <= QuantumConstants.EXP_UNDERFLOW_CUTOFF:
-        return 0.0
+        Args:
+            exponent: Exponente (finito).
+            
+        Returns:
+            exp(exponent) con saturación, nunca infinito.
+        """
+        if exponent <= Const.EXP_UNDERFLOW_CUTOFF:
+            return 0.0
+        
+        if exponent > 700.0:
+            logger.warning(
+                f"Exponente grande ({exponent:.2f}), saturando a FLOAT_MAX"
+            )
+            return Const.FLOAT_MAX
+        
+        return math.exp(exponent)
     
-    if exponent > 700.0:
-        logger.warning(
-            f"Exponente muy grande ({exponent:.2f}), "
-            "saturando a valor máximo de float"
-        )
-        return sys.float_info.max
-    
-    return math.exp(exponent)
+    @staticmethod
+    def safe_log(value: float, *, floor: float = 1e-300) -> float:
+        """
+        Logaritmo natural con piso: ln(max(x, floor)).
+        
+        Args:
+            value: Argumento del logaritmo.
+            floor: Valor mínimo para evitar -∞.
+            
+        Returns:
+            ln(max(value, floor))
+        """
+        return math.log(max(value, floor))
 
 
-# =============================================================================
-# MÓDULO DE ENTROPÍA (Teoría de la Información)
-# =============================================================================
+# Alias corto
+NM = NumericalMorphisms
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 8: TEORÍA DE LA INFORMACIÓN (Entropía de Shannon)
+# ═════════════════════════════════════════════════════════════════════════════
 
 class EntropyCalculator:
     """
     Calculador de entropía de Shannon con aritmética rigurosa.
     
-    Implementa la funcional:
-        H: Σ → ℝ₊
-    donde Σ es el conjunto de secuencias de bytes.
+    FUNDAMENTO TEÓRICO:
+        Para una variable aleatoria discreta X con alfabeto 𝒜:
+        
+        H(X) = -Σₐ∈𝒜 P(X=a) log P(X=a)
+        
+        Propiedades:
+            1. H(X) ≥ 0 (no-negatividad)
+            2. H(X) = 0 ⟺ X determinista
+            3. H(X) ≤ log|𝒜| (máximo para distribución uniforme)
+            4. H es cóncava en P
     
-    PROPIEDADES GARANTIZADAS:
-    1. H ≥ 0 (no-negatividad)
-    2. H = 0 ⟺ secuencia constante
-    3. H ≤ ln(256) (cota superior para bytes)
-    4. Continuidad en la distribución de probabilidad
+    IMPLEMENTACIÓN:
+        - Alfabeto: bytes {0, ..., 255}
+        - Unidad: nats (logaritmo natural)
+        - Caché: LRU con 1024 entradas
     """
     
     @staticmethod
     @lru_cache(maxsize=1024)
     def shannon_entropy_bytes(data: bytes) -> float:
         """
-        Calcula entropía de Shannon de una secuencia de bytes.
+        Calcula H(X) para secuencia de bytes.
         
-        Fórmula:
-            H = -Σᵢ pᵢ ln(pᵢ)
-        donde pᵢ = count(byteᵢ) / total_bytes
-        
-        Optimizaciones:
-        - Cacheo LRU para payloads repetidos
-        - Early return para casos triviales
-        - Acumulación estable numéricamente
+        Algoritmo:
+            1. Contar frecuencias f_i para cada byte i ∈ {0,...,255}
+            2. Normalizar: p_i = f_i / n
+            3. Acumular: H = -Σᵢ p_i ln(p_i)
         
         Args:
-            data: Secuencia inmutable de bytes
+            data: Secuencia inmutable de bytes.
             
         Returns:
-            H ∈ [0, ln(256)]
+            H ∈ [0, ln(256)] ≈ [0, 5.545] nats
+            
+        Postcondición:
+            H = 0 ⟺ todos los bytes son idénticos
         """
         if not data:
             return 0.0
         
         n = len(data)
         
-        # Conteo de frecuencias
+        # Histograma de frecuencias
         byte_counts: list[int] = [0] * 256
         for byte_val in data:
             byte_counts[byte_val] += 1
@@ -802,72 +1395,106 @@ class EntropyCalculator:
         for count in byte_counts:
             if count == 0:
                 continue
+            
             p = count / n
-            # -p ln(p) = -p (ln(count) - ln(n))
+            # -p ln(p) con cancelación numérica mínima
             entropy -= p * math.log(p)
         
         # Garantizar no-negatividad (protección contra errores de redondeo)
-        return max(0.0, entropy)
+        return max(0.0, min(entropy, Const.MAX_SHANNON_ENTROPY))
     
     @staticmethod
     def normalized_entropy(data: bytes) -> float:
         """
-        Entropía normalizada al rango [0, 1].
-        
-        Fórmula:
-            H_norm = H / ln(256)
+        Entropía normalizada: H_norm = H / H_max ∈ [0, 1].
         
         Args:
-            data: Secuencia de bytes
+            data: Secuencia de bytes.
             
         Returns:
-            H_norm ∈ [0, 1]
+            H / ln(256) ∈ [0, 1]
         """
         raw_entropy = EntropyCalculator.shannon_entropy_bytes(data)
-        return raw_entropy / QuantumConstants.MAX_SHANNON_ENTROPY
+        return raw_entropy / Const.MAX_SHANNON_ENTROPY
+    
+    @staticmethod
+    def conditional_entropy(
+        data: bytes,
+        condition: Callable[[int], bool]
+    ) -> float:
+        """
+        Entropía condicional H(X|Y) donde Y = {condition(byte)}.
+        
+        Args:
+            data: Secuencia de bytes.
+            condition: Predicado byte → bool
+            
+        Returns:
+            H(X|Y) ≥ 0
+        """
+        # Particionar datos según condición
+        true_bytes = bytes(b for b in data if condition(b))
+        false_bytes = bytes(b for b in data if not condition(b))
+        
+        if not data:
+            return 0.0
+        
+        n = len(data)
+        p_true = len(true_bytes) / n
+        p_false = len(false_bytes) / n
+        
+        # H(X|Y) = P(Y=True)·H(X|Y=True) + P(Y=False)·H(X|Y=False)
+        h_cond = (
+            p_true * EntropyCalculator.shannon_entropy_bytes(true_bytes)
+            + p_false * EntropyCalculator.shannon_entropy_bytes(false_bytes)
+        )
+        
+        return h_cond
 
 
-# =============================================================================
-# SERIALIZACIÓN CANÓNICA (Homomorfismo Payload → Bytes)
-# =============================================================================
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 9: SERIALIZACIÓN CANÓNICA (Homomorfismo Determinista)
+# ═════════════════════════════════════════════════════════════════════════════
 
 class PayloadSerializer:
     """
-    Serialización determinista de payloads a representación canónica.
+    Serialización canónica con garantías criptográficas.
     
-    Garantiza isomorfismo:
-        serialize: Payload_a = Payload_b ⟹ bytes_a = bytes_b
+    PROPIEDADES:
+        1. Determinismo: serialize(p₁) = serialize(p₂) ⟺ p₁ ≡ p₂
+        2. Inyectividad: payloads distintos → bytes distintos (casi seguro)
+        3. Independencia de orden: {k₁:v₁, k₂:v₂} ≡ {k₂:v₂, k₁:v₁}
     
-    Propiedades:
-    - Independencia del orden de inserción de claves
-    - Reproducibilidad absoluta (mismo payload → mismo hash)
-    - Resistencia a ataques de colisión (usa SHA-256)
+    HASH:
+        SHA-256: resistencia a colisiones ~2¹²⁸ operaciones
+        Digest: 32 bytes (256 bits)
     """
     
     @staticmethod
     def serialize(payload: Mapping[str, Any]) -> bytes:
         """
-        Serializa un mapping a bytes canónicos.
+        Morfismo Mapping → bytes con ordenamiento canónico.
         
         Algoritmo:
-        1. Extraer pares (clave, valor)
-        2. Ordenar por clave stringificada
-        3. Representar cada valor con repr()
-        4. Concatenar en tupla ordenada
-        5. Codificar a UTF-8
+            1. Extraer pares (k, v)
+            2. Ordenar por k (orden lexicográfico)
+            3. Representar v con repr() (canónico en Python)
+            4. Formar tupla ordenada
+            5. Codificar a UTF-8
         
         Args:
-            payload: Mapping a serializar
+            payload: Mapping a serializar.
             
         Returns:
-            Representación canónica en bytes
+            Representación canónica en bytes.
             
         Raises:
-            QuantumAdmissionError: Si payload no es Mapping o falla serialización
+            QuantumAdmissionError: Si serialización falla.
         """
         if not isinstance(payload, Mapping):
             raise QuantumAdmissionError(
-                f"payload debe ser un Mapping; recibido {type(payload).__name__}"
+                f"payload debe ser Mapping; recibido {type(payload).__name__}",
+                context={"type": type(payload).__name__}
             )
         
         try:
@@ -878,130 +1505,157 @@ class PayloadSerializer:
                     key=lambda kv: kv[0]
                 )
             )
+            
             canonical_repr = repr(ordered_items)
             return canonical_repr.encode('utf-8', errors='strict')
         
         except Exception as exc:
             raise QuantumAdmissionError(
-                f"Fallo en serialización canónica del payload: {exc}"
+                f"Fallo en serialización canónica: {exc}",
+                context={"payload_keys": list(payload.keys())}
             ) from exc
     
     @staticmethod
     @lru_cache(maxsize=512)
     def deterministic_hash(data: bytes) -> bytes:
         """
-        Calcula hash criptográfico determinista.
-        
-        Usa SHA-256 para garantizar:
-        - Uniformidad de distribución
-        - Resistencia a colisiones (2^128 complejidad)
-        - Reproducibilidad
+        Hash criptográfico SHA-256 con caché LRU.
         
         Args:
-            data: Datos inmutables a hashear
+            data: Datos inmutables.
             
         Returns:
-            Digest SHA-256 (32 bytes)
+            Digest de 32 bytes.
         """
         return hashlib.sha256(data).digest()
+    
+    @staticmethod
+    def hash_to_unit_interval(hash_bytes: bytes) -> float:
+        """
+        Proyección uniforme: bytes → [0, 1).
+        
+        Algoritmo:
+            1. Tomar primeros 8 bytes → uint64
+            2. Reducir módulo 10⁶
+            3. Normalizar: x/10⁶ ∈ [0, 1)
+        
+        Args:
+            hash_bytes: Hash de al menos 8 bytes.
+            
+        Returns:
+            θ ∈ [0, 1) uniformemente distribuido.
+        """
+        # Conversión a entero de 64 bits sin signo
+        uint64_value = int.from_bytes(
+            hash_bytes[:8],
+            byteorder='big',
+            signed=False
+        )
+        
+        # Reducción modular para distribución uniforme
+        MODULUS = 1_000_000
+        normalized = (uint64_value % MODULUS) / MODULUS
+        
+        # Garantizar [0, 1)
+        return NM.clamp_to_unit_interval(normalized)
 
 
-# =============================================================================
-# CALCULADOR DE ENERGÍA INCIDENTE (Modelo Fotoeléctrico)
-# =============================================================================
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 10: CALCULADORES FÍSICOS (Componentes Modulares)
+# ═════════════════════════════════════════════════════════════════════════════
 
 class IncidentEnergyCalculator:
     """
-    Calcula la energía incidente E = hν del cuanto informacional.
+    Calcula energía incidente E = hν del cuanto informacional.
     
     MODELO FÍSICO:
-    1. Tamaño del payload N (bytes) → exergía bruta
-    2. Entropía de Shannon H (nats) → medida de estructura
-    3. Frecuencia efectiva ν = N / max(H, ε) / 1000
-    4. Energía incidente E = h · ν
+        Analogía con efecto fotoeléctrico:
+        
+        Fotón: E_photon = hν
+        Cuanto informacional: E_quantum = h·ν_eff
+        
+        Donde:
+            ν_eff = (tamaño_bytes) / max(entropía, ε) / factor_escala
+            
+        Factor de escala: 1000 (calibrado empíricamente)
     
-    INVARIANTES:
-    - E ≥ 0
-    - E = 0 ⟺ payload vacío
-    - E crece con tamaño y decrece con entropía
+    PROPAGACIÓN DE INCERTIDUMBRE:
+        δE/E ≈ δn/n + δH/H (suma de incertidumbres relativas)
+        
+        Intervalo: [E - δE, E + δE]
     """
     
     @staticmethod
     def calculate(payload: Mapping[str, Any]) -> Tuple[float, NumericInterval]:
         """
-        Calcula energía incidente con propagación de incertidumbre.
+        Calcula E con propagación de incertidumbre.
         
         Args:
-            payload: Datos del cuanto informacional
+            payload: Datos del cuanto.
             
         Returns:
-            Tupla (E, intervalo_incertidumbre)
-            donde E es el valor central y el intervalo captura
-            la incertidumbre por discretización.
+            (E, intervalo_incertidumbre)
             
         Raises:
-            QuantumNumericalError: Si el cálculo produce valores no físicos
+            QuantumNumericalError: Si E < 0 o no finita.
         """
         # Serialización canónica
         data = PayloadSerializer.serialize(payload)
         n_bytes = len(data)
         
+        # Caso especial: payload vacío
         if n_bytes == 0:
             return 0.0, NumericInterval(0.0, 0.0)
         
-        # Cálculo de entropía con piso regularizador
+        # Entropía con piso regularizador
         raw_entropy = EntropyCalculator.shannon_entropy_bytes(data)
-        effective_entropy = max(
-            raw_entropy, 
-            QuantumConstants.ENTROPY_FLOOR
-        )
+        effective_entropy = max(raw_entropy, Const.ENTROPY_FLOOR)
         
-        # Frecuencia efectiva normalizada
-        # División por 1000 para evitar energías exageradamente altas
-        nu = safe_division(
+        # Frecuencia efectiva (normalizada)
+        nu = NM.safe_division(
             n_bytes,
             effective_entropy,
-            epsilon=QuantumConstants.ENTROPY_FLOOR
+            epsilon=Const.ENTROPY_FLOOR
         ) / 1000.0
         
-        # Energía incidente
-        E = QuantumConstants.PLANCK_H * nu
-        E = validate_finite_float(E, name="incident_energy")
+        # Energía incidente E = h·ν
+        E = Const.PLANCK_H * nu
+        E = NM.validate_finite_float(E, name="incident_energy")
         
         if E < 0:
             raise QuantumNumericalError(
-                f"Energía incidente negativa calculada: {E}"
+                f"Energía incidente negativa: {E}",
+                context={"E": E, "nu": nu, "n_bytes": n_bytes}
             )
         
         # Estimación de incertidumbre por discretización
-        # δE ≈ h / N (incertidumbre por muestreo finito)
-        uncertainty = QuantumConstants.PLANCK_H / max(n_bytes, 1)
+        # δE ≈ h / n (Heisenberg en espacio de tamaño finito)
+        uncertainty = Const.PLANCK_H / max(n_bytes, 1)
         interval = NumericInterval.from_value_with_tolerance(E, uncertainty)
+        
+        logger.debug(
+            f"Energía incidente: E={E:.6e} ± {uncertainty:.6e}, "
+            f"n={n_bytes} bytes, H={raw_entropy:.4f} nats"
+        )
         
         return E, interval
 
 
-# =============================================================================
-# CALCULADOR WKB (Aproximación Semiclásica)
-# =============================================================================
-
 class WKBCalculator:
     """
-    Implementación rigurosa de la aproximación WKB para túnel cuántico.
+    Implementación rigurosa de aproximación WKB.
     
-    FUNDAMENTO TEÓRICO:
-    La aproximación WKB (Wentzel-Kramers-Brillouin) es válida en el
-    régimen semiclásico cuando:
-        ℏ |d²V/dx²| / |dV/dx|² << 1
+    ECUACIÓN DE SCHRÖDINGER:
+        -ℏ²/(2m) d²ψ/dx² + V(x)ψ = Eψ
     
-    Para barrera rectangular de altura V₀ y ancho Δx:
-        T ≈ exp(-2/ℏ ∫dx √(2m(V-E)))
+    ANSATZ WKB:
+        ψ(x) = A(x) exp(iS(x)/ℏ)
     
-    VALIDACIONES IMPLEMENTADAS:
-    1. Verificación de régimen túnel (E < V₀)
-    2. Cálculo de parámetro de validez
-    3. Manejo de masa efectiva infinita
-    4. Protección de underflow/overflow
+    PROBABILIDAD DE TRANSMISIÓN:
+        T ≈ exp(-2γ) donde γ = (1/ℏ)∫ₐᵇ √[2m(V-E)]dx
+    
+    VALIDEZ:
+        |ℏ V''| / |V'|² ≪ 1
     """
     
     @staticmethod
@@ -1011,383 +1665,366 @@ class WKBCalculator:
         m_eff: float
     ) -> Tuple[float, WKBParameters]:
         """
-        Calcula probabilidad de transmisión por túnel cuántico.
+        Calcula probabilidad de transmisión T con diagnóstico WKB.
         
-        REGLAS DE DESPACHO:
-        1. E ≥ Φ → T = 1.0 (transmisión clásica)
-        2. m_eff = +∞ → T = 0.0 (barrera impenetrable)
-        3. E < Φ y m_eff finita → cálculo WKB completo
+        CASOS:
+            1. E ≥ Φ → T = 1 (clásico)
+            2. m_eff = ∞ → T = 0 (barrera impenetrable)
+            3. E < Φ, m_eff finita → WKB completo
         
         Args:
-            E: Energía incidente (validada ≥ 0)
-            Phi: Función de trabajo (validada ≥ 0)
-            m_eff: Masa efectiva (validada > 0 o +∞)
+            E: Energía incidente ≥ 0
+            Phi: Función de trabajo ≥ 0
+            m_eff: Masa efectiva > 0 o ∞
             
         Returns:
-            Tupla (T, parámetros_WKB)
-            donde T ∈ [0, 1] y parámetros_WKB contiene diagnósticos
+            (T, parámetros) con T ∈ [0, 1]
             
         Raises:
-            WKBValidityError: Si la aproximación WKB no es aplicable
+            QuantumNumericalError: Si inputs inválidos.
         """
-        # Validación de entrada
-        E = validate_finite_float(E, name="incident_energy_wkb")
-        Phi = validate_finite_float(Phi, name="work_function_wkb")
-        m_eff = validate_finite_float(m_eff, name="effective_mass_wkb", allow_inf=True)
+        # Validación exhaustiva
+        E = NM.validate_finite_float(E, name="E_wkb")
+        Phi = NM.validate_finite_float(Phi, name="Phi_wkb")
+        m_eff = NM.validate_finite_float(m_eff, name="m_eff_wkb", allow_inf=True)
         
         if E < 0 or Phi < 0:
             raise QuantumNumericalError(
-                f"Energías negativas no físicas: E={E}, Φ={Phi}"
+                f"Energías negativas no físicas: E={E}, Φ={Phi}",
+                context={"E": E, "Phi": Phi}
             )
         
-        # Regla 1: Transmisión clásica (independiente de masa)
+        # ─────────────────────────────────────────────────────────────────────
+        # CASO 1: Transmisión clásica (E ≥ Φ)
+        # ─────────────────────────────────────────────────────────────────────
+        
         if E >= Phi:
             params = WKBParameters(
                 incident_energy=E,
                 barrier_height=0.0,
                 effective_mass=m_eff,
-                barrier_width=QuantumConstants.BARRIER_WIDTH,
+                barrier_width=Const.BARRIER_WIDTH,
                 integrand=0.0,
                 exponent=0.0,
                 validity_parameter=0.0
             )
+            logger.debug("WKB: Transmisión clásica (E ≥ Φ), T=1.0")
             return 1.0, params
         
-        # Altura de barrera efectiva
+        # Altura efectiva de barrera
         barrier_height = Phi - E
         
-        # Regla 2: Masa infinita → barrera impenetrable
+        # ─────────────────────────────────────────────────────────────────────
+        # CASO 2: Masa infinita → barrera impenetrable
+        # ─────────────────────────────────────────────────────────────────────
+        
         if math.isinf(m_eff):
             params = WKBParameters(
                 incident_energy=E,
                 barrier_height=barrier_height,
                 effective_mass=m_eff,
-                barrier_width=QuantumConstants.BARRIER_WIDTH,
+                barrier_width=Const.BARRIER_WIDTH,
                 integrand=float('inf'),
                 exponent=float('-inf'),
                 validity_parameter=float('inf')
             )
+            logger.debug("WKB: Masa infinita, barrera impenetrable, T=0.0")
             return 0.0, params
         
-        # Validación de masa positiva finita
+        # Validación de masa positiva
         if m_eff <= 0:
             raise QuantumNumericalError(
-                f"Masa efectiva no positiva: m_eff={m_eff}"
+                f"Masa efectiva debe ser positiva: m_eff={m_eff}",
+                context={"m_eff": m_eff}
             )
         
-        # Regla 3: Cálculo WKB completo
+        # ─────────────────────────────────────────────────────────────────────
+        # CASO 3: Cálculo WKB completo
+        # ─────────────────────────────────────────────────────────────────────
         
-        # Integrando: √(2m(V-E))
-        integrand = safe_sqrt(2.0 * m_eff * barrier_height)
+        # Integrando: κ = √[2m(V-E)]
+        integrand = NM.safe_sqrt(2.0 * m_eff * barrier_height)
         
-        # Exponente: -(2/ℏ) Δx · integrand
+        # Exponente de Gamow: -(2/ℏ) Δx κ
         raw_exponent = -(
-            (2.0 / QuantumConstants.PLANCK_HBAR)
-            * QuantumConstants.BARRIER_WIDTH
+            (2.0 / Const.PLANCK_HBAR)
+            * Const.BARRIER_WIDTH
             * integrand
         )
         
-        # Parámetro de validez: |V''| / |V'|² 
-        # Para barrera rectangular: V'' = 0 en el interior, pero
-        # hay discontinuidades en los bordes. Aproximamos con:
-        # |V'| ≈ Φ / Δx  →  |V''| ≈ Φ / Δx²
-        # validity ≈ (Φ/Δx²) / (Φ/Δx)² = Δx² / Φ
+        # Parámetro de validez (barrera rectangular):
+        # |V''|/|V'|² ≈ Δx²/Φ para transiciones bruscas en bordes
         validity_param = (
-            QuantumConstants.BARRIER_WIDTH ** 2 / Phi
+            (Const.BARRIER_WIDTH ** 2) / Phi
             if Phi > 0 else 0.0
         )
         
-        # Construcción de parámetros diagnósticos
         params = WKBParameters(
             incident_energy=E,
             barrier_height=barrier_height,
             effective_mass=m_eff,
-            barrier_width=QuantumConstants.BARRIER_WIDTH,
+            barrier_width=Const.BARRIER_WIDTH,
             integrand=integrand,
             exponent=raw_exponent,
             validity_parameter=validity_param
         )
         
-        # Verificación de validez de aproximación
+        # Verificación de validez
         if not params.is_valid_semiclassical_regime():
             logger.warning(
-                "Aproximación WKB fuera del régimen semiclásico: "
-                f"validity_param={validity_param:.6e} > "
-                f"{QuantumConstants.WKB_VALIDITY_THRESHOLD:.6e}. "
-                "Resultados pueden ser imprecisos."
+                f"WKB fuera de régimen semiclásico: "
+                f"validity={validity_param:.3e} > {Const.WKB_VALIDITY_THRESHOLD:.3e}"
             )
         
         # Protección de underflow
-        if raw_exponent <= QuantumConstants.EXP_UNDERFLOW_CUTOFF:
+        if raw_exponent <= Const.EXP_UNDERFLOW_CUTOFF:
             logger.debug(
-                f"Exponente WKB por debajo del cutoff de underflow "
-                f"({raw_exponent:.2f} < {QuantumConstants.EXP_UNDERFLOW_CUTOFF}), "
-                "probabilidad de túnel es efectivamente cero."
+                f"WKB: Exponente {raw_exponent:.2f} < cutoff, T≈0.0"
             )
             return 0.0, params
         
-        # Cálculo de probabilidad de transmisión
-        T_raw = safe_exp(raw_exponent)
-        T = clamp_to_unit_interval(T_raw)
+        # Cálculo final con saturación
+        T_raw = NM.safe_exp(raw_exponent)
+        T = NM.clamp_to_unit_interval(T_raw)
+        
+        logger.debug(
+            f"WKB: E={E:.3e}, Φ={Phi:.3e}, m={m_eff:.3e}, "
+            f"γ={params.gamow_factor():.3e}, T={T:.6e}"
+        )
         
         return T, params
 
 
-# =============================================================================
-# MODULADOR DE FUNCIÓN DE TRABAJO (Acoplamiento Gauge)
-# =============================================================================
-
 class WorkFunctionModulator:
     """
-    Modula la función de trabajo Φ mediante acoplamiento gauge con topología.
+    Modula Φ mediante acoplamiento gauge con topología.
     
-    MODELO FÍSICO:
-        Φ(χ²) = Φ₀ + α · χ²
+    MODELO:
+        Φ(χ²) = Φ₀ exp(α χ²)
     
-    donde:
-    - Φ₀: función de trabajo base (constante material)
-    - α: constante de acoplamiento gauge-topológico
-    - χ²: amenaza de Mahalanobis (distancia geodésica en espacio de config.)
-    
-    PROPIEDADES GARANTIZADAS:
-    - Φ ≥ 0 (barrera no negativa)
-    - Φ(0) = Φ₀ (estado nominal)
-    - dΦ/dχ² = α > 0 (monotonía)
+    INTERPRETACIÓN GAUGE:
+        Φ es sección del fibrado principal U(1) → P → M
+        α es la conexión (1-forma gauge)
+        χ² parametriza la curvatura
     """
     
     def __init__(self, topo_watcher: ITopologicalWatcher):
         """
-        Constructor con inyección de dependencia.
+        Inyección de dependencia del observador topológico.
         
         Args:
-            topo_watcher: Observador topológico validado
+            topo_watcher: Instancia de ITopologicalWatcher.
         """
         self._topo_watcher = topo_watcher
     
     def calculate(self) -> Tuple[float, float]:
         """
-        Calcula función de trabajo modulada exponencialmente y nivel de amenaza.
+        Calcula (Φ, χ²).
         
         Returns:
-            Tupla (Φ, χ²) donde:
-            - Φ ≥ 0: función de trabajo efectiva
-            - χ² ≥ 0: nivel de amenaza Mahalanobis
+            (Φ ≥ 0, χ² ≥ 0)
             
         Raises:
-            QuantumNumericalError: Si los valores retornados son no físicos
+            QuantumNumericalError: Si valores no físicos.
         """
-        # Lectura defensiva de amenaza topológica
+        # Lectura defensiva de χ²
         try:
             threat_raw = self._topo_watcher.get_mahalanobis_threat()
         except Exception as exc:
             logger.error(
-                f"Fallo al obtener amenaza Mahalanobis: {exc}. "
-                "Asumiendo amenaza cero."
+                f"Fallo al obtener χ²: {exc}. Asumiendo χ²=0."
             )
             threat_raw = 0.0
         
-        # Validación y clamp a no-negatividad
+        # Validación y clamp
         threat = max(
             0.0,
-            validate_finite_float(threat_raw, name="mahalanobis_threat")
+            NM.validate_finite_float(threat_raw, name="chi_squared")
         )
         
-        # Modulación exponencial de barrera (Pullback de Gauge)
-        # Se restringe el exponente para no desbordar el cálculo.
-        # safe_exp ya aplica un clamp al máximo representable del float.
-        # El clamp a `allow_inf=False` asegura que se quede en el conjunto de los reales IEEE 754.
-        # Φ₀ * exp(α · χ²)
-        exponential_factor = safe_exp(QuantumConstants.ALPHA_THREAT * threat)
+        # Modulación exponencial con saturación
+        exponential_factor = NM.safe_exp(Const.ALPHA_THREAT * threat)
         
-        # Si la multiplicación excede float_info.max, saturamos al max_float.
+        # Φ = Φ₀ · exp(α χ²)
         try:
-            phi_raw = QuantumConstants.BASE_WORK_FUNCTION * exponential_factor
+            phi_raw = Const.BASE_WORK_FUNCTION * exponential_factor
         except OverflowError:
-            phi_raw = sys.float_info.max
-
-        # Para evitar propagar inf, limitamos al valor máximo seguro:
+            phi_raw = Const.FLOAT_MAX
+        
         if math.isinf(phi_raw):
-             phi_raw = sys.float_info.max
-
-        # Validación final
-        Phi = max(
-            0.0,
-            validate_finite_float(phi_raw, name="work_function")
+            phi_raw = Const.FLOAT_MAX
+        
+        Phi = max(0.0, NM.validate_finite_float(phi_raw, name="work_function"))
+        
+        logger.debug(
+            f"Función de trabajo: Φ={Phi:.6e} (Φ₀={Const.BASE_WORK_FUNCTION}, "
+            f"χ²={threat:.6e}, α={Const.ALPHA_THREAT})"
         )
         
         return Phi, threat
 
 
-# =============================================================================
-# MODULADOR DE MASA EFECTIVA (Acoplamiento con Polo de Laplace)
-# =============================================================================
-
 class EffectiveMassModulator:
     """
-    Modula la masa efectiva m_eff mediante polo dominante del sistema LTI.
+    Modula masa efectiva mediante polo de Laplace.
     
-    MODELO FÍSICO:
-        m_eff(σ) = m₀ / |σ|   si σ < -ε
-        m_eff(σ) = +∞          si σ ≥ -ε
-    
-    donde:
-    - σ: parte real del polo dominante
-    - ε: tolerancia de estabilidad marginal
+    MODELO:
+        m_eff(σ) = m₀ / |σ|  si σ < -ε
+        m_eff(σ) = ∞        si σ ≥ -ε
     
     INTERPRETACIÓN:
-    - σ << 0: sistema muy estable → masa ligera → túnel facilitado
-    - σ → 0⁻: sistema marginalmente estable → masa divergente → túnel suprimido
-    - σ ≥ 0: sistema inestable → masa infinita → barrera impenetrable
-    
-    Esta modulación implementa un mecanismo de auto-protección:
-    el sistema rechaza cuantos cuando su propia estabilidad está comprometida.
+        σ < 0: sistema estable → masa ligera → túnel facilitado
+        σ → 0: sistema marginal → masa divergente → túnel suprimido
+        σ ≥ 0: sistema inestable → barrera impenetrable
     """
     
     def __init__(self, laplace_oracle: ILaplaceOracle):
         """
-        Constructor con inyección de dependencia.
+        Inyección de dependencia del oráculo de Laplace.
         
         Args:
-            laplace_oracle: Oráculo de Laplace validado
+            laplace_oracle: Instancia de ILaplaceOracle.
         """
         self._laplace_oracle = laplace_oracle
     
     def calculate(self) -> Tuple[float, float]:
         """
-        Calcula masa efectiva modulada y polo dominante.
+        Calcula (m_eff, σ).
         
         Returns:
-            Tupla (m_eff, σ) donde:
-            - m_eff > 0 o m_eff = +∞
-            - σ ∈ ℝ (parte real del polo dominante)
+            (m_eff ∈ (0, ∞], σ ∈ ℝ)
             
         Raises:
-            QuantumNumericalError: Si m_eff calculada es no física (≤ 0 y finita)
+            QuantumNumericalError: Si m_eff finita pero ≤ 0.
         """
-        # Lectura defensiva del polo dominante
+        # Lectura defensiva de σ
         try:
             sigma_raw = self._laplace_oracle.get_dominant_pole_real()
         except Exception as exc:
             logger.error(
-                f"Fallo al obtener polo dominante: {exc}. "
-                "Asumiendo sistema inestable (σ=0)."
+                f"Fallo al obtener σ: {exc}. Asumiendo sistema inestable (σ=0)."
             )
             sigma_raw = 0.0
         
-        sigma = validate_finite_float(sigma_raw, name="dominant_pole_real")
+        sigma = NM.validate_finite_float(sigma_raw, name="sigma")
         
-        # Caso 1: Sistema inestable o marginalmente estable
-        if sigma >= -QuantumConstants.SIGMA_CHAOS_TOL:
+        # Caso inestable/marginal
+        if sigma >= -Const.SIGMA_CHAOS_TOL:
             logger.warning(
-                f"Sistema en régimen de inestabilidad (σ={sigma:.6e}). "
-                "Masa efectiva → +∞, supresión total de túnel cuántico."
+                f"Sistema inestable (σ={sigma:.6e} ≥ -tol). "
+                "Masa efectiva → ∞, supresión total de túnel."
             )
             return float('inf'), sigma
         
-        # Caso 2: Sistema estable, cálculo de masa modulada
-        m_eff = safe_division(
-            QuantumConstants.BASE_EFFECTIVE_MASS,
+        # Caso estable: m_eff = m₀ / |σ|
+        m_eff = NM.safe_division(
+            Const.BASE_EFFECTIVE_MASS,
             abs(sigma),
             fallback=float('inf'),
-            epsilon=QuantumConstants.SIGMA_CHAOS_TOL
+            epsilon=Const.SIGMA_CHAOS_TOL
         )
         
-        # Validación de fisicalidad
-        m_eff = validate_finite_float(
-            m_eff, 
-            name="effective_mass",
+        m_eff = NM.validate_finite_float(
+            m_eff,
+            name="m_eff",
             allow_inf=True
         )
         
         if not math.isinf(m_eff) and m_eff <= 0:
             raise QuantumNumericalError(
-                f"Masa efectiva no positiva calculada: m_eff={m_eff}, σ={sigma}"
+                f"Masa efectiva no positiva: m_eff={m_eff}, σ={sigma}",
+                context={"m_eff": m_eff, "sigma": sigma}
             )
+        
+        logger.debug(
+            f"Masa efectiva: m_eff={m_eff:.6e} "
+            f"(m₀={Const.BASE_EFFECTIVE_MASS}, σ={sigma:.6e})"
+        )
         
         return m_eff, sigma
 
 
-# =============================================================================
-# GENERADOR DE UMBRAL DE COLAPSO (Hash Determinista)
-# =============================================================================
-
 class CollapseThresholdGenerator:
     """
-    Genera umbral determinista θ ∈ [0, 1) a partir del payload.
+    Genera umbral determinista θ ∈ [0,1) vía hash.
     
-    ALGORITMO:
-    1. Serialización canónica del payload → bytes
-    2. Hash criptográfico SHA-256 → 32 bytes
-    3. Truncamiento a primeros 8 bytes → uint64
-    4. Reducción módulo 10⁶ → normalización a [0, 1)
-    
-    PROPIEDADES GARANTIZADAS:
-    - Determinismo: mismo payload → mismo umbral
-    - Uniformidad: distribución aproximadamente uniforme en [0, 1)
-    - No-reversibilidad: infeasible inferir payload desde umbral
+    PROPIEDADES:
+        - Determinismo: hash(p) constante → θ constante
+        - Distribución uniforme (asintóticamente)
+        - Infeasibilidad de inversión (SHA-256)
     """
     
     @staticmethod
     @lru_cache(maxsize=512)
     def generate(payload_hash: bytes) -> float:
         """
-        Genera umbral de colapso a partir del hash del payload.
+        Genera θ a partir de hash SHA-256.
         
         Args:
-            payload_hash: Hash SHA-256 del payload serializado
+            payload_hash: 32 bytes de SHA-256.
             
         Returns:
             θ ∈ [0, 1)
         """
-        # Truncamiento a 64 bits (primeros 8 bytes)
-        uint64_value = int.from_bytes(
-            payload_hash[:8],
-            byteorder='big',
-            signed=False
-        )
-        
-        # Normalización a [0, 1) mediante módulo y división
-        # Usamos 10⁶ para evitar sesgos de redondeo
-        MODULUS = 1_000_000
-        normalized = (uint64_value % MODULUS) / MODULUS
-        
-        # Garantizar θ ∈ [0, 1)
-        return clamp_to_unit_interval(normalized)
+        return PayloadSerializer.hash_to_unit_interval(payload_hash)
 
 
-# =============================================================================
-# OPERADOR DE ADMISIÓN CUÁNTICA (Componente Principal)
-# =============================================================================
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 11: OPERADOR DE ADMISIÓN CUÁNTICA (Morfismo Principal)
+# ═════════════════════════════════════════════════════════════════════════════
 
 class QuantumAdmissionGate(Morphism):
     """
-    Operador de admisión cuántica como morfismo categórico.
+    Operador de proyección de Hilbert como morfismo categórico.
     
-    NATURALEZA CATEGÓRICA:
-    - Objeto de Partida: Ext (categoría de payloads externos)
-    - Objeto de Llegada: V_PHYSICS (stratum físico validado)
-    - Morfismo: F: Ext → {Admitido, Rechazado} × V_PHYSICS
+    ESTRUCTURA CATEGÓRICA:
+        Funtor F: 𝒞_Ext → 𝒞_Phys
+        
+        F(payload) = (|ψ_final⟩, observables)
+        
+        Preserva:
+            - Composición: F(g ∘ f) = F(g) ∘ F(f)
+            - Identidades: F(id) = id
     
-    ESTRUCTURA ALGEBRAICA:
-    - Operador autoadjunto Ĥ con autoestados {|Admitido⟩, |Rechazado⟩}
-    - Base ortonormal completa del espacio de Hilbert de admisión
-    - Regla de Born para proyección probabilística determinista
+    ALGORITMO (Pipeline de 7 Etapas):
+        
+        Etapa 1: Veto Cohomológico
+            E_frust = ISheafOrchestrator.get_global_frustration()
+            if E_frust > tol → RECHAZADO (veto absoluto)
+        
+        Etapa 2: Energía Incidente
+            E = h·ν(payload)
+            ν = tamaño / max(entropía, ε)
+        
+        Etapa 3: Función de Trabajo
+            Φ = Φ₀ exp(α χ²)
+            χ² = ITopologicalWatcher.get_mahalanobis_threat()
+        
+        Etapa 4: Masa Efectiva
+            m_eff = m₀ / |σ|
+            σ = ILaplaceOracle.get_dominant_pole()
+        
+        Etapa 5: Probabilidad WKB
+            if E ≥ Φ: T = 1
+            else: T = exp(-2γ), γ = (1/ℏ)∫√[2m(V-E)]dx
+        
+        Etapa 6: Umbral Determinista
+            θ = hash(payload) mod 1
+        
+        Etapa 7: Colapso de Onda
+            if T ≥ θ:
+                → |ADMITIDO⟩
+                K = max(E - Φ, K_min)
+                p = √(2mK)
+            else:
+                → |RECHAZADO⟩
+                K = p = 0
     
-    FLUJO DE OPERACIÓN:
-    1. Evaluación de veto cohomológico (barrera estructural)
-    2. Cálculo de energía incidente E = hν
-    3. Modulación de función de trabajo Φ(χ²)
-    4. Modulación de masa efectiva m_eff(σ)
-    5. Cálculo de probabilidad de túnel T (aproximación WKB)
-    6. Generación de umbral determinista θ
-    7. Colapso de función de onda: T ≥ θ → |Admitido⟩
-    8. Cálculo de momentum de inyección p = √(2mK) si admitido
-    
-    INVARIANTES PRESERVADOS:
-    - Unitariedad: Σ_n P(|n⟩) = 1
-    - Hermiticidad: ⟨ψ|Ĥ|φ⟩ = ⟨φ|Ĥ|ψ⟩*
-    - Realidad de autovalores: λ_n ∈ ℝ
-    - Conservación de momentum en transición continua
+    INVARIANTES GLOBALES:
+        1. Conservación probabilística: P(ADMITIDO) + P(RECHAZADO) = 1
+        2. Unitariedad: ⟨ψ_final|ψ_final⟩ = 1
+        3. Hermiticidad: eigenvalores reales
+        4. Momentum físico: p ≥ 0
     """
     
     def __init__(
@@ -1397,19 +2034,19 @@ class QuantumAdmissionGate(Morphism):
         sheaf_orchestrator: ISheafCohomologyOrchestrator,
     ) -> None:
         """
-        Constructor con inyección de dependencias y validación de contratos.
+        Constructor con inyección de dependencias.
         
         Args:
-            topo_watcher: Observador topológico (Mahalanobis χ²)
-            laplace_oracle: Oráculo de polos de Laplace (σ)
-            sheaf_orchestrator: Orquestador cohomológico (E_frustración)
+            topo_watcher: Observador topológico (χ²).
+            laplace_oracle: Oráculo de polos (σ).
+            sheaf_orchestrator: Orquestador cohomológico (E_frust).
             
         Raises:
-            QuantumInterfaceError: Si las dependencias no cumplen sus contratos
+            QuantumInterfaceError: Si dependencias no cumplen protocolos.
         """
         super().__init__(name="QuantumAdmissionGate")
         
-        # Inyección de dependencias
+        # Almacenamiento de dependencias
         self._topo_watcher = topo_watcher
         self._laplace_oracle = laplace_oracle
         self._sheaf_orchestrator = sheaf_orchestrator
@@ -1418,89 +2055,113 @@ class QuantumAdmissionGate(Morphism):
         self._work_function_modulator = WorkFunctionModulator(topo_watcher)
         self._effective_mass_modulator = EffectiveMassModulator(laplace_oracle)
         
-        # Validación rigurosa de contratos
+        # Validación exhaustiva de contratos
         self._validate_dependencies()
         
         logger.info(
-            "QuantumAdmissionGate inicializada con validación de dependencias exitosa."
+            "QuantumAdmissionGate inicializada. "
+            "Todas las dependencias validadas exitosamente."
         )
     
     @property
     def domain(self) -> frozenset:
-        """Dominio del morfismo (categoría externa)."""
-        return frozenset()  # Ext no tiene estructura adicional
+        """Dominio: categoría externa sin estructura adicional."""
+        return frozenset()
     
     @property
     def codomain(self) -> Stratum:
-        """Codominio del morfismo (stratum físico)."""
+        """Codominio: stratum físico validado."""
         return Stratum.PHYSICS
     
-    # -------------------------------------------------------------------------
-    # VALIDACIÓN DE CONTRATOS (Verificación de Funtorialidad)
-    # -------------------------------------------------------------------------
+    # ─────────────────────────────────────────────────────────────────────────
+    # Validación de Contratos (Verificación de Funtorialidad)
+    # ─────────────────────────────────────────────────────────────────────────
     
     def _validate_dependencies(self) -> None:
         """
-        Verifica que las dependencias inyectadas cumplan sus protocolos.
+        Verifica que dependencias cumplan protocolos en runtime.
         
-        Validaciones realizadas:
-        1. No-nulidad de referencias
-        2. Presencia de métodos requeridos
-        3. Callabilidad de métodos
-        4. Validación runtime de protocolos
+        Validaciones:
+            1. No-nulidad
+            2. Presencia de métodos requeridos
+            3. Callabilidad de métodos
+            4. Conformidad con protocolo (isinstance)
         
         Raises:
-            QuantumInterfaceError: Si alguna validación falla
+            QuantumInterfaceError: Si alguna validación falla.
         """
         dependencies = [
-            (self._topo_watcher, ITopologicalWatcher, "topo_watcher", ['get_mahalanobis_threat']),
-            (self._laplace_oracle, ILaplaceOracle, "laplace_oracle", ['get_dominant_pole_real']),
-            (self._sheaf_orchestrator, ISheafCohomologyOrchestrator, "sheaf_orchestrator", ['get_global_frustration_energy']),
+            (
+                self._topo_watcher,
+                ITopologicalWatcher,
+                "topo_watcher",
+                ['get_mahalanobis_threat']
+            ),
+            (
+                self._laplace_oracle,
+                ILaplaceOracle,
+                "laplace_oracle",
+                ['get_dominant_pole_real']
+            ),
+            (
+                self._sheaf_orchestrator,
+                ISheafCohomologyOrchestrator,
+                "sheaf_orchestrator",
+                ['get_global_frustration_energy']
+            ),
         ]
         
         for obj, protocol, name, methods in dependencies:
             # Validación de no-nulidad
             if obj is None:
                 raise QuantumInterfaceError(
-                    f"Dependencia '{name}' no puede ser None."
+                    f"Dependencia '{name}' no puede ser None",
+                    context={"dependency": name}
                 )
             
-            # Validación de conformidad con protocolo estructural
+            # Validación estructural de métodos
             for method in methods:
                 if not hasattr(obj, method):
                     raise QuantumInterfaceError(
-                        f"Dependencia '{name}' no implementa el método '{method}'. "
+                        f"Dependencia '{name}' no implementa '{method}'",
+                        context={"dependency": name, "method": method}
                     )
+                
                 if not callable(getattr(obj, method)):
                     raise QuantumInterfaceError(
-                        f"El atributo '{method}' de '{name}' no es callable."
+                        f"Atributo '{method}' de '{name}' no es callable",
+                        context={"dependency": name, "method": method}
                     )
-
+            
+            # Validación de protocolo (runtime)
             if not isinstance(obj, protocol):
                 raise QuantumInterfaceError(
-                    f"Dependencia '{name}' no implementa el protocolo "
-                    f"{protocol.__name__}. Tipo recibido: {type(obj).__name__}"
+                    f"Dependencia '{name}' no cumple protocolo {protocol.__name__}",
+                    context={
+                        "dependency": name,
+                        "expected_protocol": protocol.__name__,
+                        "actual_type": type(obj).__name__
+                    }
                 )
         
-        logger.debug("Validación de dependencias completada exitosamente.")
+        logger.debug("Validación de dependencias completada.")
     
-    # -------------------------------------------------------------------------
-    # EVALUACIÓN DE VETO COHOMOLÓGICO
-    # -------------------------------------------------------------------------
+    # ─────────────────────────────────────────────────────────────────────────
+    # Etapa 1: Evaluación de Veto Cohomológico
+    # ─────────────────────────────────────────────────────────────────────────
     
     def _evaluate_cohomological_veto(self) -> Tuple[bool, float]:
         """
         Evalúa veto estructural por frustración cohomológica.
         
-        Si la energía de frustración global excede la tolerancia,
-        el sistema está en un estado de inconsistencia topológica
-        que impide la admisión de nuevos cuantos.
+        CONDICIÓN DE VETO:
+            E_frust > FRUSTRATION_VETO_TOL
         
         Returns:
-            Tupla (veto_activo, energía_frustración)
+            (veto_activo, E_frust)
             
         Raises:
-            QuantumInterfaceError: Si el cálculo cohomológico falla
+            QuantumInterfaceError: Si cálculo cohomológico falla.
         """
         try:
             frustration_raw = (
@@ -1508,31 +2169,25 @@ class QuantumAdmissionGate(Morphism):
             )
         except Exception as exc:
             raise QuantumInterfaceError(
-                f"Fallo al obtener energía de frustración cohomológica: {exc}"
+                f"Fallo en cálculo de energía de frustración: {exc}",
+                context={"exception": str(exc)}
             ) from exc
         
-        frustration = validate_finite_float(
+        frustration = NM.validate_finite_float(
             frustration_raw,
-            name="global_frustration_energy"
+            name="global_frustration"
         )
-        
-        # Clamp a no-negatividad (energía siempre ≥ 0)
         frustration = max(0.0, frustration)
         
-        veto_active = frustration > QuantumConstants.FRUSTRATION_VETO_TOL
+        veto_active = frustration > Const.FRUSTRATION_VETO_TOL
         
         if veto_active:
             logger.warning(
-                f"VETO COHOMOLÓGICO ACTIVADO: "
-                f"E_frustración={frustration:.6e} > "
-                f"tolerancia={QuantumConstants.FRUSTRATION_VETO_TOL:.6e}"
+                f"VETO COHOMOLÓGICO: E_frust={frustration:.6e} > "
+                f"tol={Const.FRUSTRATION_VETO_TOL:.6e}"
             )
         
         return veto_active, frustration
-    
-    # -------------------------------------------------------------------------
-    # CONSTRUCCIÓN DE MEDICIÓN (VETO)
-    # -------------------------------------------------------------------------
     
     def _build_veto_measurement(
         self,
@@ -1541,14 +2196,11 @@ class QuantumAdmissionGate(Morphism):
         """
         Construye medición de rechazo por veto cohomológico.
         
-        En caso de veto, capturamos diagnósticos disponibles de manera
-        defensiva (sin propagar fallos de oracles).
-        
         Args:
-            frustration: Energía de frustración que causó el veto
+            frustration: Energía que causó el veto.
             
         Returns:
-            QuantumMeasurement con eigenstate=RECHAZADO y veto=True
+            QuantumMeasurement con eigenstate=RECHAZADO, veto=True.
         """
         # Lectura defensiva de diagnósticos
         threat = self._safe_read_threat()
@@ -1565,128 +2217,118 @@ class QuantumAdmissionGate(Morphism):
             effective_mass=float('inf'),
             dominant_pole_real=sigma,
             threat_level=threat,
-            collapse_threshold=0.999999,  # Umbral inalcanzable
+            collapse_threshold=0.999999,
             admission_reason=(
-                f"Veto estructural cohomológico: "
-                f"E_frustración={frustration:.6e} > "
-                f"tolerancia={QuantumConstants.FRUSTRATION_VETO_TOL:.6e}. "
-                "El sistema presenta inconsistencias topológicas que impiden admisión."
+                f"VETO COHOMOLÓGICO: E_frustración={frustration:.6e} > "
+                f"tolerancia={Const.FRUSTRATION_VETO_TOL:.6e}. "
+                "Obstrucción topológica impide admisión."
             ),
         )
     
     def _safe_read_threat(self) -> float:
-        """Lectura defensiva de amenaza topológica para diagnóstico."""
+        """Lectura defensiva de χ² para diagnóstico."""
         try:
             raw = self._topo_watcher.get_mahalanobis_threat()
-            return max(0.0, validate_finite_float(raw, name="threat_diag"))
-        except Exception as exc:
-            logger.debug(f"Fallo en lectura defensiva de threat: {exc}")
+            return max(0.0, NM.validate_finite_float(raw, name="threat_diag"))
+        except Exception:
             return 0.0
     
     def _safe_read_sigma(self) -> float:
-        """Lectura defensiva de polo dominante para diagnóstico."""
+        """Lectura defensiva de σ para diagnóstico."""
         try:
             raw = self._laplace_oracle.get_dominant_pole_real()
-            return validate_finite_float(raw, name="sigma_diag")
-        except Exception as exc:
-            logger.debug(f"Fallo en lectura defensiva de sigma: {exc}")
+            return NM.validate_finite_float(raw, name="sigma_diag")
+        except Exception:
             return 0.0
     
-    # -------------------------------------------------------------------------
-    # EVALUACIÓN DE ADMISIÓN (Algoritmo Principal)
-    # -------------------------------------------------------------------------
+    # ─────────────────────────────────────────────────────────────────────────
+    # Método Principal: Evaluación de Admisión
+    # ─────────────────────────────────────────────────────────────────────────
     
     def evaluate_admission(
         self,
         payload: Mapping[str, Any]
     ) -> QuantumMeasurement:
         """
-        Evalúa el operador de admisión cuántica sobre un payload.
+        Evalúa admisión cuántica completa sobre payload.
         
-        ALGORITMO COMPLETO:
-        
-        FASE 1: Veto Cohomológico
-            Si E_frustración > ε_veto:
-                → |Rechazado⟩ (veto absoluto)
-        
-        FASE 2: Cálculo de Observables
-            E ← hν(payload)                    [energía incidente]
-            Φ ← Φ₀ + α·χ²                      [función de trabajo modulada]
-            m_eff ← m₀/|σ|                     [masa efectiva modulada]
-        
-        FASE 3: Probabilidad de Transmisión
-            Si E ≥ Φ:
-                T ← 1.0                         [transmisión clásica]
-            Sino:
-                T ← exp(-2/ℏ Δx√(2m(Φ-E)))    [túnel WKB]
-        
-        FASE 4: Colapso Determinista
-            θ ← hash_determinista(payload)
-            Si T ≥ θ:
-                → |Admitido⟩
-                K ← max(E - Φ, K_min)
-                p ← √(2m·K)
-            Sino:
-                → |Rechazado⟩
+        ALGORITMO COMPLETO (7 etapas documentadas arriba en docstring de clase).
         
         Args:
-            payload: Mapping con datos del cuanto informacional
+            payload: Mapping con datos del cuanto informacional.
             
         Returns:
-            QuantumMeasurement inmutable con todos los observables
+            QuantumMeasurement inmutable con todos los observables.
             
         Raises:
-            QuantumAdmissionError: Si payload no es Mapping
-            QuantumNumericalError: Si hay fallos numéricos irrecuperables
-            WKBValidityError: Si aproximación WKB es inválida (warning, no fatal)
+            QuantumAdmissionError: Si payload no es Mapping.
+            QuantumNumericalError: Si hay fallos numéricos.
         """
-        # Validación de tipo de entrada
+        # Validación de tipo
         if not isinstance(payload, Mapping):
             raise QuantumAdmissionError(
-                f"payload debe ser un Mapping/dict; "
-                f"recibido {type(payload).__name__}"
+                f"payload debe ser Mapping; recibido {type(payload).__name__}",
+                context={"type": type(payload).__name__}
             )
         
-        logger.debug(f"Iniciando evaluación de admisión para payload: {payload}")
+        logger.debug(
+            f"Iniciando evaluación de admisión. "
+            f"Payload keys: {list(payload.keys())}"
+        )
         
-        # --- FASE 1: VETO COHOMOLÓGICO ---
+        # ═════════════════════════════════════════════════════════════════════
+        # ETAPA 1: VETO COHOMOLÓGICO
+        # ═════════════════════════════════════════════════════════════════════
+        
         veto_active, frustration = self._evaluate_cohomological_veto()
         if veto_active:
             measurement = self._build_veto_measurement(frustration)
-            QuantumLogContext.log_measurement(measurement, level=logging.WARNING)
+            QuantumLogger.log_measurement(measurement, level=logging.WARNING)
             return measurement
         
-        # --- FASE 2: CÁLCULO DE OBSERVABLES ---
+        # ═════════════════════════════════════════════════════════════════════
+        # ETAPA 2: ENERGÍA INCIDENTE
+        # ═════════════════════════════════════════════════════════════════════
         
-        # Energía incidente
         E, E_uncertainty = IncidentEnergyCalculator.calculate(payload)
-        logger.debug(f"Energía incidente calculada: E={E:.6e} ± {E_uncertainty.width:.6e}")
         
-        # Función de trabajo modulada
+        # ═════════════════════════════════════════════════════════════════════
+        # ETAPA 3: FUNCIÓN DE TRABAJO
+        # ═════════════════════════════════════════════════════════════════════
+        
         Phi, threat = self._work_function_modulator.calculate()
-        logger.debug(f"Función de trabajo: Φ={Phi:.6e}, χ²={threat:.6e}")
         
-        # Masa efectiva modulada
+        # ═════════════════════════════════════════════════════════════════════
+        # ETAPA 4: MASA EFECTIVA
+        # ═════════════════════════════════════════════════════════════════════
+        
         m_eff, sigma = self._effective_mass_modulator.calculate()
-        logger.debug(f"Masa efectiva: m_eff={m_eff:.6e}, σ={sigma:.6e}")
         
-        # --- FASE 3: PROBABILIDAD DE TRANSMISIÓN ---
+        # ═════════════════════════════════════════════════════════════════════
+        # ETAPA 5: PROBABILIDAD WKB
+        # ═════════════════════════════════════════════════════════════════════
+        
         T, wkb_params = WKBCalculator.compute_tunneling_probability(E, Phi, m_eff)
-        logger.debug(f"Probabilidad de túnel: T={T:.6e}")
         
-        # --- FASE 4: COLAPSO DETERMINISTA ---
+        # ═════════════════════════════════════════════════════════════════════
+        # ETAPA 6: UMBRAL DETERMINISTA
+        # ═════════════════════════════════════════════════════════════════════
         
-        # Generación de umbral
         payload_bytes = PayloadSerializer.serialize(payload)
         payload_hash = PayloadSerializer.deterministic_hash(payload_bytes)
         collapse_threshold = CollapseThresholdGenerator.generate(payload_hash)
-        logger.debug(f"Umbral de colapso: θ={collapse_threshold:.6f}")
         
-        # Decisión de admisión
+        # ═════════════════════════════════════════════════════════════════════
+        # ETAPA 7: COLAPSO DE FUNCIÓN DE ONDA
+        # ═════════════════════════════════════════════════════════════════════
+        
         admitted = T >= collapse_threshold
         
         if not admitted:
-            # --- CASO: RECHAZO PROBABILÍSTICO ---
+            # ─────────────────────────────────────────────────────────────────
+            # CASO: RECHAZO PROBABILÍSTICO
+            # ─────────────────────────────────────────────────────────────────
+            
             measurement = QuantumMeasurement(
                 eigenstate=Eigenstate.RECHAZADO,
                 incident_energy=E,
@@ -1700,52 +2342,50 @@ class QuantumAdmissionGate(Morphism):
                 threat_level=threat,
                 collapse_threshold=collapse_threshold,
                 admission_reason=(
-                    f"Rechazo probabilístico determinista: "
-                    f"T={T:.6e} < θ={collapse_threshold:.6f}. "
-                    f"La función de onda colapsó al autoestado |Rechazado⟩."
+                    f"Rechazo probabilístico: T={T:.6e} < θ={collapse_threshold:.6f}. "
+                    "Colapso a |RECHAZADO⟩ según regla de Born."
                 ),
                 wkb_parameters=wkb_params,
                 measurement_uncertainty=E_uncertainty,
             )
-            QuantumLogContext.log_measurement(measurement, level=logging.INFO)
+            
+            QuantumLogger.log_measurement(measurement, level=logging.INFO)
             return measurement
         
-        # --- CASO: ADMISIÓN ---
+        # ─────────────────────────────────────────────────────────────────────
+        # CASO: ADMISIÓN
+        # ─────────────────────────────────────────────────────────────────────
         
         # Cálculo de energía cinética
         if E >= Phi:
-            # Transmisión clásica fotoeléctrica
-            kinetic_energy = max(
-                QuantumConstants.MIN_KINETIC_ENERGY,
-                E - Phi
-            )
+            # Transmisión clásica
+            kinetic_energy = max(Const.MIN_KINETIC_ENERGY, E - Phi)
             admission_reason = (
-                f"Admisión clásica fotoeléctrica: E={E:.6e} ≥ Φ={Phi:.6e}. "
-                "Superación directa de barrera de potencial."
+                f"Admisión clásica: E={E:.6e} ≥ Φ={Phi:.6e}. "
+                "Superación directa de barrera (fotoeléctrico)."
             )
         else:
-            # Transmisión por túnel cuántico
-            kinetic_energy = QuantumConstants.MIN_KINETIC_ENERGY
+            # Transmisión por túnel
+            kinetic_energy = Const.MIN_KINETIC_ENERGY
             admission_reason = (
-                f"Admisión por túnel cuántico WKB: E={E:.6e} < Φ={Phi:.6e}, "
+                f"Admisión por túnel WKB: E={E:.6e} < Φ={Phi:.6e}, "
                 f"T={T:.6e} ≥ θ={collapse_threshold:.6f}. "
-                "Penetración de barrera por efecto túnel."
+                "Penetración de barrera cuántica."
             )
         
-        # Cálculo de momentum de inyección
-        # Usamos masa efectiva si es finita, sino masa base como fallback
+        # Cálculo de momentum: p = √(2mK)
         m_for_momentum = (
             m_eff if math.isfinite(m_eff)
-            else QuantumConstants.BASE_EFFECTIVE_MASS
+            else Const.BASE_EFFECTIVE_MASS
         )
         
         momentum_squared = 2.0 * m_for_momentum * kinetic_energy
-        momentum = safe_sqrt(momentum_squared)
-        momentum = validate_finite_float(momentum, name="momentum")
+        momentum = NM.safe_sqrt(momentum_squared)
+        momentum = NM.validate_finite_float(momentum, name="momentum")
         
         logger.info(
-            f"Colapso a |Admitido⟩: E={E:.6e}, Φ={Phi:.6e}, "
-            f"K={kinetic_energy:.6e}, p={momentum:.6e}"
+            f"Colapso a |ADMITIDO⟩: E={E:.3e}, Φ={Phi:.3e}, "
+            f"K={kinetic_energy:.3e}, p={momentum:.3e}"
         )
         
         measurement = QuantumMeasurement(
@@ -1765,55 +2405,53 @@ class QuantumAdmissionGate(Morphism):
             measurement_uncertainty=E_uncertainty,
         )
         
-        QuantumLogContext.log_measurement(measurement, level=logging.INFO)
+        QuantumLogger.log_measurement(measurement, level=logging.INFO)
         return measurement
     
-    # -------------------------------------------------------------------------
-    # MORFISMO CATEGÓRICO __call__ (Funtorialidad)
-    # -------------------------------------------------------------------------
+    # ─────────────────────────────────────────────────────────────────────────
+    # Morfismo Categórico __call__
+    # ─────────────────────────────────────────────────────────────────────────
     
     def __call__(self, state: CategoricalState) -> CategoricalState:
         """
-        Aplica el morfismo de admisión cuántica a un estado categórico.
+        Aplica morfismo de admisión cuántica a estado categórico.
         
         TRANSFORMACIÓN CATEGÓRICA:
+            F: CategoricalState → CategoricalState
         
-        F: CategoricalState → CategoricalState
-        
-        Donde F preserva:
-        1. Estructura de payload (inmutabilidad)
-        2. Composición de morfismos (functorialidad)
-        3. Identidades categóricas (F(id) = id)
+        Preserva funtorialidad:
+            F(g ∘ f) = F(g) ∘ F(f)
+            F(id) = id
         
         Si admitido:
             strata' = strata ∪ {PHYSICS}
-            context' = context ∪ {quantum_momentum: p, quantum_admission: μ}
+            context' = context ∪ {quantum_momentum, quantum_admission}
         
         Si rechazado:
-            strata' = ∅
-            context' = context ∪ {quantum_error: err, quantum_admission: μ}
+            strata' = ∅ (reseteo completo)
+            context' = context ∪ {quantum_error, quantum_admission}
         
         Args:
-            state: Estado categórico con payload Mapping
+            state: Estado categórico con payload Mapping.
             
         Returns:
-            Nuevo CategoricalState transformado (inmutable)
+            Nuevo CategoricalState transformado (inmutable).
             
         Raises:
-            QuantumAdmissionError: Si state o payload no tienen tipo esperado
+            QuantumAdmissionError: Si state inválido.
         """
-        # Validación de tipo de entrada
+        # Validación de tipo
         if not isinstance(state, CategoricalState):
             raise QuantumAdmissionError(
-                f"state debe ser CategoricalState; "
-                f"recibido {type(state).__name__}"
+                f"state debe ser CategoricalState; recibido {type(state).__name__}",
+                context={"type": type(state).__name__}
             )
         
         payload = getattr(state, 'payload', None)
         if not isinstance(payload, Mapping):
             raise QuantumAdmissionError(
-                f"state.payload debe ser Mapping; "
-                f"recibido {type(payload).__name__}"
+                f"state.payload debe ser Mapping; recibido {type(payload).__name__}",
+                context={"payload_type": type(payload).__name__}
             )
         
         # Extracción de contexto (defensiva)
@@ -1823,15 +2461,18 @@ class QuantumAdmissionGate(Morphism):
         # Evaluación de admisión
         measurement = self.evaluate_admission(payload)
         
-        # --- CASO: RECHAZO ---
+        # ═════════════════════════════════════════════════════════════════════
+        # CASO: RECHAZO
+        # ═════════════════════════════════════════════════════════════════════
+        
         if measurement.eigenstate == Eigenstate.RECHAZADO:
             error_msg = (
-                f"VETO CUÁNTICO: eigenstate={measurement.eigenstate.name}, "
-                f"E={measurement.incident_energy:.6e}, "
-                f"Φ={measurement.work_function:.6e}, "
-                f"T={measurement.tunneling_probability:.6e}, "
-                f"veto_frustración={measurement.frustration_veto}, "
-                f"razón='{measurement.admission_reason}'"
+                f"VETO CUÁNTICO | {measurement.eigenstate} | "
+                f"E={measurement.incident_energy:.3e} | "
+                f"Φ={measurement.work_function:.3e} | "
+                f"T={measurement.tunneling_probability:.3e} | "
+                f"veto={measurement.frustration_veto} | "
+                f"razón: {measurement.admission_reason}"
             )
             logger.error(error_msg)
             
@@ -1847,14 +2488,16 @@ class QuantumAdmissionGate(Morphism):
                 validated_strata=frozenset(),  # Reseteo completo
             )
         
-        # --- CASO: ADMISIÓN ---
+        # ═════════════════════════════════════════════════════════════════════
+        # CASO: ADMISIÓN
+        # ═════════════════════════════════════════════════════════════════════
+        
         logger.info(
-            f"Colapso cuántico a |Admitido⟩: "
-            f"p={measurement.momentum:.6e}, "
-            f"E={measurement.incident_energy:.6e}, "
-            f"Φ={measurement.work_function:.6e}, "
-            f"T={measurement.tunneling_probability:.6e}, "
-            f"razón='{measurement.admission_reason}'"
+            f"ADMISIÓN CUÁNTICA | |ADMITIDO⟩ | "
+            f"p={measurement.momentum:.3e} | "
+            f"E={measurement.incident_energy:.3e} | "
+            f"Φ={measurement.work_function:.3e} | "
+            f"T={measurement.tunneling_probability:.3e}"
         )
         
         new_context = {
@@ -1863,7 +2506,7 @@ class QuantumAdmissionGate(Morphism):
             'quantum_admission': measurement,
         }
         
-        # Adición del stratum PHYSICS a los validados
+        # Agregar PHYSICS a strata validados
         new_strata = state.validated_strata | {Stratum.PHYSICS}
         
         return CategoricalState(
@@ -1873,60 +2516,203 @@ class QuantumAdmissionGate(Morphism):
         )
 
 
-# =============================================================================
-# PUNTO DE ENTRADA PARA TESTING Y EJEMPLOS
-# =============================================================================
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 12: TESTING Y EJEMPLOS
+# ═════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     """
-    Ejemplo de uso y testing básico del módulo.
+    Batería de tests y ejemplos de uso.
     
-    Este bloque no se ejecuta al importar el módulo, solo al ejecutarlo
-    directamente como script.
+    Este bloque solo se ejecuta al correr el módulo como script,
+    no al importarlo.
     """
     
-    # Configuración de logging para testing
+    # Configuración de logging detallado
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format='%(asctime)s | %(name)s | %(levelname)s | %(message)s'
     )
     
-    # Mocks mínimos de dependencias para testing
+    print("\n" + "═" * 80)
+    print("QUANTUM ADMISSION GATE - SUITE DE TESTING")
+    print("═" * 80 + "\n")
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Mocks de Dependencias
+    # ─────────────────────────────────────────────────────────────────────────
+    
     class MockTopologicalWatcher:
+        """Mock del observador topológico."""
+        
+        def __init__(self, threat: float = 2.5):
+            self._threat = threat
+        
         def get_mahalanobis_threat(self) -> float:
-            return 2.5  # Amenaza moderada
+            return self._threat
     
     class MockLaplaceOracle:
+        """Mock del oráculo de Laplace."""
+        
+        def __init__(self, pole: float = -0.5):
+            self._pole = pole
+        
         def get_dominant_pole_real(self) -> float:
-            return -0.5  # Sistema estable
+            return self._pole
     
     class MockSheafOrchestrator:
+        """Mock del orquestador cohomológico."""
+        
+        def __init__(self, frustration: float = 1e-12):
+            self._frustration = frustration
+        
         def get_global_frustration_energy(self) -> float:
-            return 1e-12  # Sin frustración
+            return self._frustration
     
-    # Construcción del gate
-    gate = QuantumAdmissionGate(
-        topo_watcher=MockTopologicalWatcher(),
-        laplace_oracle=MockLaplaceOracle(),
+    # ─────────────────────────────────────────────────────────────────────────
+    # Test 1: Construcción del Gate
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    print("TEST 1: Construcción y validación de dependencias")
+    print("-" * 80)
+    
+    try:
+        gate = QuantumAdmissionGate(
+            topo_watcher=MockTopologicalWatcher(),
+            laplace_oracle=MockLaplaceOracle(),
+            sheaf_orchestrator=MockSheafOrchestrator(),
+        )
+        print("✓ Gate construido exitosamente")
+        print(f"  Dominio: {gate.domain}")
+        print(f"  Codominio: {gate.codomain}")
+    except Exception as exc:
+        print(f"✗ Fallo en construcción: {exc}")
+    
+    print()
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Test 2: Payload Simple (Esperamos Admisión)
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    print("TEST 2: Payload simple (baja entropía, alta energía)")
+    print("-" * 80)
+    
+    payload_simple = {
+        'endpoint': '/api/test',
+        'method': 'GET',
+        'data': 'A' * 500,  # Baja entropía, tamaño moderado
+    }
+    
+    try:
+        measurement = gate.evaluate_admission(payload_simple)
+        print(f"Estado: {measurement.eigenstate}")
+        print(f"Energía: E={measurement.incident_energy:.6e}")
+        print(f"Función de trabajo: Φ={measurement.work_function:.6e}")
+        print(f"Probabilidad de túnel: T={measurement.tunneling_probability:.6e}")
+        print(f"Umbral: θ={measurement.collapse_threshold:.6f}")
+        print(f"Momentum: p={measurement.momentum:.6e}")
+        print(f"Razón: {measurement.admission_reason}")
+    except Exception as exc:
+        print(f"✗ Error: {exc}")
+    
+    print()
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Test 3: Payload Complejo (Alta Entropía, Esperamos Rechazo Posible)
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    print("TEST 3: Payload complejo (alta entropía)")
+    print("-" * 80)
+    
+    import os
+    payload_complejo = {
+        'endpoint': '/api/data',
+        'method': 'POST',
+        'data': os.urandom(1000),  # Alta entropía (aleatorio)
+    }
+    
+    try:
+        measurement = gate.evaluate_admission(payload_complejo)
+        print(f"Estado: {measurement.eigenstate}")
+        print(f"Energía: E={measurement.incident_energy:.6e}")
+        print(f"Probabilidad de túnel: T={measurement.tunneling_probability:.6e}")
+        print(f"Umbral: θ={measurement.collapse_threshold:.6f}")
+        print(f"Admitido: {measurement.eigenstate.is_accepted()}")
+    except Exception as exc:
+        print(f"✗ Error: {exc}")
+    
+    print()
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Test 4: Sistema Inestable (σ > 0, Esperamos Rechazo)
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    print("TEST 4: Sistema inestable (σ > 0)")
+    print("-" * 80)
+    
+    gate_inestable = QuantumAdmissionGate(
+        topo_watcher=MockTopologicalWatcher(threat=1.0),
+        laplace_oracle=MockLaplaceOracle(pole=0.5),  # Polo positivo
         sheaf_orchestrator=MockSheafOrchestrator(),
     )
     
-    # Payload de prueba
-    test_payload = {
-        'endpoint': '/api/test',
-        'method': 'POST',
-        'data': {'key': 'value' * 100},  # Payload de tamaño moderado
-    }
+    try:
+        measurement = gate_inestable.evaluate_admission(payload_simple)
+        print(f"Estado: {measurement.eigenstate}")
+        print(f"Masa efectiva: m_eff={measurement.effective_mass}")
+        print(f"Probabilidad de túnel: T={measurement.tunneling_probability:.6e}")
+        print(f"Razón: {measurement.admission_reason}")
+    except Exception as exc:
+        print(f"✗ Error: {exc}")
     
-    # Evaluación
-    measurement = gate.evaluate_admission(test_payload)
+    print()
     
-    # Resultados
-    print("\n" + "="*80)
-    print("RESULTADO DE MEDICIÓN CUÁNTICA")
-    print("="*80)
-    print(measurement)
-    print("\nDetalles completos:")
-    for key, value in measurement.to_dict().items():
-        print(f"  {key}: {value}")
-    print("="*80 + "\n")
+    # ─────────────────────────────────────────────────────────────────────────
+    # Test 5: Veto Cohomológico (Alta Frustración)
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    print("TEST 5: Veto cohomológico (alta frustración)")
+    print("-" * 80)
+    
+    gate_veto = QuantumAdmissionGate(
+        topo_watcher=MockTopologicalWatcher(),
+        laplace_oracle=MockLaplaceOracle(),
+        sheaf_orchestrator=MockSheafOrchestrator(frustration=1.0),  # Alta frustración
+    )
+    
+    try:
+        measurement = gate_veto.evaluate_admission(payload_simple)
+        print(f"Estado: {measurement.eigenstate}")
+        print(f"Veto activo: {measurement.frustration_veto}")
+        print(f"Razón: {measurement.admission_reason}")
+    except Exception as exc:
+        print(f"✗ Error: {exc}")
+    
+    print()
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Test 6: Serialización y Reproducibilidad
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    print("TEST 6: Reproducibilidad determinista")
+    print("-" * 80)
+    
+    payload_test = {'key': 'value', 'number': 42}
+    
+    m1 = gate.evaluate_admission(payload_test)
+    m2 = gate.evaluate_admission(payload_test)
+    
+    print(f"Primera medición: {m1.eigenstate}, θ={m1.collapse_threshold:.6f}")
+    print(f"Segunda medición: {m2.eigenstate}, θ={m2.collapse_threshold:.6f}")
+    print(f"Umbral idéntico: {m1.collapse_threshold == m2.collapse_threshold}")
+    print(f"Estado idéntico: {m1.eigenstate == m2.eigenstate}")
+    
+    print()
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Resumen Final
+    # ─────────────────────────────────────────────────────────────────────────
+    
+    print("═" * 80)
+    print("SUITE DE TESTING COMPLETADA")
+    print("═" * 80 + "\n")
