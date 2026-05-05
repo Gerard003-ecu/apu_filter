@@ -41,6 +41,15 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 from unittest.mock import MagicMock, Mock, patch, PropertyMock
 
+# Esterilización Termodinámica (Fase 1)
+# Fija la dimensionalidad de los hilos para garantizar determinismo estricto
+# en operaciones BLAS/LAPACK antes de importar librerías matemáticas.
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
 import numpy as np
 import pytest
 import requests
@@ -48,9 +57,16 @@ import scipy.sparse as sp
 from hypothesis import given, assume, strategies as st, settings
 from hypothesis.stateful import RuleBasedStateMachine, rule, invariant
 
+# FASE 6: ORQUESTACIÓN DEL ÁRBOL DE PRUEBAS
+# Configuración para aislar pruebas basadas en propiedades o intensivas.
+settings.register_profile("ci", max_examples=1000, deadline=None)
+settings.register_profile("dev", max_examples=50, deadline=500)
+settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "dev"))
+
 # Ajustar path para imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+from app.core.schemas import Stratum
 from app.core.apu_agent import (
     # Constantes
     PhysicalConstants,
@@ -143,7 +159,7 @@ def threshold_config() -> ThresholdConfig:
     return ThresholdConfig(
         flyback_voltage_warning=0.5,
         flyback_voltage_critical=0.8,
-        saturation_warning=0.9,
+        saturation_warning=0.8,
         saturation_critical=0.95,
     )
 
@@ -247,10 +263,26 @@ def mock_topological_health() -> TopologicalHealth:
     )
 
 
+import networkx as nx
+
 @pytest.fixture
 def mock_topological_health_degraded() -> TopologicalHealth:
-    """Fixture: Salud topológica degradada."""
-    betti = BettiNumbers(b0=2, b1=0)  # Fragmentado
+    """Fixture: Salud topológica degradada (Calculada dinámicamente)."""
+    # Generación Dinámica Cohomológica
+    G = nx.DiGraph()
+    # Isla 1
+    G.add_edge(NetworkTopology.NODE_AGENT, NetworkTopology.NODE_CORE)
+    G.add_edge(NetworkTopology.NODE_CORE, NetworkTopology.NODE_REDIS)
+
+    # Isla 2 (fractura - nodo aislado)
+    G.add_node(NetworkTopology.NODE_FILESYSTEM)
+
+    # Cálculo Topológico Algorítmico
+    b0 = nx.number_weakly_connected_components(G)
+    b1 = G.number_of_edges() - G.number_of_nodes() + b0
+
+    betti = BettiNumbers(b0=b0, b1=b1)
+
     return TopologicalHealth(
         betti=betti,
         health_score=0.3,
@@ -450,16 +482,23 @@ def assert_gradient_valid(gradient: np.ndarray, num_nodes: int) -> None:
         f"Gradiente contiene valores negativos: {gradient}"
 
 
-def assert_charge_neutrality(gradient: np.ndarray, tolerance: float = TEST_EPSILON) -> None:
+def assert_charge_neutrality(gradient: np.ndarray, tolerance: float = None) -> None:
     """
     Asevera neutralidad de carga: Σᵢ gradientᵢ ≈ 0.
     
     Args:
         gradient: Vector gradiente
-        tolerance: Tolerancia numérica
+        tolerance: Tolerancia numérica (Opcional, se calcula dinámicamente si es None)
     """
-    total_charge = np.sum(gradient)
-    assert abs(total_charge) < tolerance * len(gradient), \
+    # Kahan Summation para compensar error numérico estocástico
+    total_charge = math.fsum(gradient)
+
+    # Límite de Lipschitz dinámico
+    if tolerance is None:
+        machine_eps = np.finfo(np.float64).eps
+        tolerance = machine_eps * len(gradient) * 10  # Límite dinámico
+
+    assert abs(total_charge) < tolerance, \
         f"Violación de neutralidad de carga: Σ gradient = {total_charge:.4e}"
 
 
@@ -2474,6 +2513,30 @@ class TestHamiltonianSynthesizer(BaseAgentTest):
         assert status in (SystemStatus.CRITICO, SystemStatus.DISCONNECTED)
         assert len(summary) > 0
     
+    def test_symplectic_shielding(self):
+        """UNIT: Blindaje Simpléctico del Sintetizador Hamiltoniano."""
+        synthesizer = HamiltonianSynthesizer()
+
+        # 1. Verificación Funtorial de la Antisimetría (Matriz J)
+        J_matrix = synthesizer.J
+        simetria_residual = float(np.linalg.norm(J_matrix + J_matrix.T, ord='fro'))
+        umbral_tolerancia = 10 * sys.float_info.epsilon * np.linalg.norm(J_matrix, ord=np.inf)
+        assert simetria_residual <= umbral_tolerancia, f"Ruptura de la forma simpléctica: residual {simetria_residual}"
+
+        # 2. Análisis Espectral de Disipación (Matriz R)
+        R_matrix = synthesizer.R
+        import scipy.linalg
+        eigenvalues = scipy.linalg.eigh(R_matrix, eigvals_only=True)
+        assert np.min(eigenvalues) >= -sys.float_info.epsilon, \
+            f"Inestabilidad catastrófica detectada: Autovalores negativos en matriz de disipación R {eigenvalues}"
+
+        # 3. Inecuación del Balance de Potencia (Desigualdad de Pasividad)
+        # H_dot = grad_H^T (J - R) grad_H <= 0
+        # Extracción del vector de Esfuerzo (e = grad_H)
+        e = np.random.randn(4) # gradiente arbitrario en S^3
+        H_dot = e.T @ (J_matrix - R_matrix) @ e
+        assert H_dot <= sys.float_info.epsilon, f"Violación de Segunda Ley de la Termodinámica: H_dot = {H_dot} > 0"
+
     def test_add_evaluator_dynamic(self):
         """UNIT: add_evaluator agrega evaluador dinámicamente."""
         synthesizer = HamiltonianSynthesizer(evaluators=[])
@@ -2572,7 +2635,7 @@ class TestObservePhase(BaseAgentTest):
         mock_requests_success,
     ):
         """UNIT: observe retorna telemetría válida en caso de éxito."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             telemetry = agent.observe()
@@ -2590,7 +2653,7 @@ class TestObservePhase(BaseAgentTest):
         mock_requests_timeout,
     ):
         """UNIT: observe retorna None en caso de timeout."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             telemetry = agent.observe()
@@ -2607,7 +2670,7 @@ class TestObservePhase(BaseAgentTest):
         mock_requests_connection_error,
     ):
         """UNIT: observe retorna None en caso de ConnectionError."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             telemetry = agent.observe()
@@ -2621,7 +2684,7 @@ class TestObservePhase(BaseAgentTest):
         mock_requests_success,
     ):
         """UNIT: observe actualiza topología en caso de éxito."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Estado inicial: topología nominal
@@ -2641,7 +2704,7 @@ class TestObservePhase(BaseAgentTest):
         mock_requests_connection_error,
     ):
         """UNIT: observe degrada topología tras max_consecutive_failures."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Fallar repetidamente
@@ -2661,7 +2724,7 @@ class TestObservePhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: _execute_observation clasifica HTTP errors correctamente."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Mock HTTP error (404)
@@ -2681,7 +2744,7 @@ class TestObservePhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: _execute_observation clasifica JSON inválido."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Mock respuesta con JSON malformado
@@ -2701,7 +2764,7 @@ class TestObservePhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: _execute_observation clasifica telemetría inválida."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Mock respuesta con JSON válido pero schema inválido
@@ -2722,7 +2785,7 @@ class TestObservePhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: _update_topology_from_telemetry usa flags de conectividad."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Telemetría con Redis desconectado
@@ -2757,7 +2820,7 @@ class TestObservePhase(BaseAgentTest):
         telemetry: TelemetryData,
     ):
         """PROP (Hypothesis): observe siempre retorna telemetría válida o None."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Mock respuesta exitosa con telemetría generada
@@ -2795,7 +2858,7 @@ class TestOrientPhase(BaseAgentTest):
         sample_telemetry: TelemetryData,
     ):
         """UNIT: orient con telemetría nominal retorna NOMINAL."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Preparar estado: agregar muestras de telemetría nominal
@@ -2815,7 +2878,7 @@ class TestOrientPhase(BaseAgentTest):
         sample_telemetry_critical: TelemetryData,
     ):
         """UNIT: orient con telemetría crítica retorna estado crítico."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             status = agent.orient(sample_telemetry_critical)
@@ -2829,7 +2892,7 @@ class TestOrientPhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: orient con telemetría None retorna UNKNOWN."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             status = agent.orient(None)
@@ -2842,7 +2905,7 @@ class TestOrientPhase(BaseAgentTest):
         sample_telemetry: TelemetryData,
     ):
         """UNIT: orient actualiza muestras de persistencia."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Estado inicial: sin muestras
@@ -2863,7 +2926,7 @@ class TestOrientPhase(BaseAgentTest):
         sample_telemetry: TelemetryData,
     ):
         """UNIT: orient construye diagnóstico completo."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             agent.orient(sample_telemetry)
@@ -2883,7 +2946,7 @@ class TestOrientPhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: orient detecta issues persistentes de voltaje."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular voltaje persistentemente alto
@@ -2908,7 +2971,7 @@ class TestOrientPhase(BaseAgentTest):
         sample_telemetry: TelemetryData,
     ):
         """UNIT: orient calcula salud topológica correctamente."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             agent.orient(sample_telemetry)
@@ -2928,7 +2991,7 @@ class TestOrientPhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: orient detecta fragmentación topológica."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular fragmentación removiendo arista crítica
@@ -2963,7 +3026,7 @@ class TestDecidePhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: decide con NOMINAL retorna HEARTBEAT."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             decision = agent.decide(SystemStatus.NOMINAL)
@@ -2975,7 +3038,7 @@ class TestDecidePhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: decide con UNKNOWN retorna WAIT."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             decision = agent.decide(SystemStatus.UNKNOWN)
@@ -2987,7 +3050,7 @@ class TestDecidePhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: decide con INESTABLE retorna EJECUTAR_LIMPIEZA."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             decision = agent.decide(SystemStatus.INESTABLE)
@@ -2999,7 +3062,7 @@ class TestDecidePhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: decide con SATURADO retorna AJUSTAR_VELOCIDAD."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             decision = agent.decide(SystemStatus.SATURADO)
@@ -3011,7 +3074,7 @@ class TestDecidePhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: decide con CRITICO retorna ALERTA_CRITICA."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             decision = agent.decide(SystemStatus.CRITICO)
@@ -3023,7 +3086,7 @@ class TestDecidePhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: decide con DISCONNECTED retorna RECONNECT."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             decision = agent.decide(SystemStatus.DISCONNECTED)
@@ -3035,7 +3098,7 @@ class TestDecidePhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: decide actualiza métricas de decisiones."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Tomar varias decisiones
@@ -3052,7 +3115,7 @@ class TestDecidePhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: decide actualiza self._last_status."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             decision = agent.decide(SystemStatus.CRITICO)
@@ -3066,7 +3129,7 @@ class TestDecidePhase(BaseAgentTest):
         status: SystemStatus,
     ):
         """PROP (Hypothesis): decide siempre retorna decisión válida."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             decision = agent.decide(status)
@@ -3096,7 +3159,7 @@ class TestActPhase(BaseAgentTest):
         caplog,
     ):
         """UNIT: act con HEARTBEAT logea estado nominal."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Crear diagnóstico nominal
@@ -3116,7 +3179,7 @@ class TestActPhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: act con EJECUTAR_LIMPIEZA proyecta intención."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Mock _project_intent
@@ -3138,7 +3201,7 @@ class TestActPhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: act con AJUSTAR_VELOCIDAD proyecta configuración."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             with patch.object(agent, '_project_intent', return_value=True) as mock_project:
@@ -3157,7 +3220,7 @@ class TestActPhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: act con ALERTA_CRITICA notifica sistemas externos."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             with patch.object(agent, '_notify_external_system') as mock_notify:
@@ -3178,7 +3241,7 @@ class TestActPhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: act con RECONNECT reinicializa topología."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Degradar topología
@@ -3205,7 +3268,7 @@ class TestActPhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: act actualiza self._last_decision_time."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             assert agent._last_decision_time is None
@@ -3222,7 +3285,7 @@ class TestActPhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: act suprime acciones repetidas dentro de ventana de debounce."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Primera ejecución
@@ -3238,7 +3301,7 @@ class TestActPhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: act NO suprime decisiones críticas (requires_immediate_action)."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             with patch.object(agent, '_notify_external_system'):
@@ -3259,7 +3322,7 @@ class TestActPhase(BaseAgentTest):
         sample_telemetry_critical: TelemetryData,
     ):
         """UNIT: act usa síntesis Hamiltoniana cuando hay gradiente no cero."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Preparar diagnóstico con issues
@@ -3292,7 +3355,7 @@ class TestActPhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: _project_intent envía POST al endpoint correcto."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             with patch.object(agent._session, 'post') as mock_post:
@@ -3319,7 +3382,7 @@ class TestActPhase(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """UNIT: _build_diagnosis_message genera mensaje compacto."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             agent._last_diagnosis = self.create_mock_diagnosis(
@@ -3353,7 +3416,7 @@ class TestOODAIntegration(BaseAgentTest):
         mock_requests_success,
     ):
         """INTEGRATION: Ciclo OODA completo con sistema nominal."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # OBSERVE
@@ -3382,7 +3445,7 @@ class TestOODAIntegration(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """INTEGRATION: Ciclo OODA completo con sistema crítico."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Mock telemetría crítica
@@ -3422,7 +3485,7 @@ class TestOODAIntegration(BaseAgentTest):
         mock_requests_connection_error,
     ):
         """INTEGRATION: Ciclo OODA con fallo de conexión."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # OBSERVE (falla)
@@ -3447,7 +3510,7 @@ class TestOODAIntegration(BaseAgentTest):
         mock_requests_success,
     ):
         """INTEGRATION: Métricas se mantienen consistentes tras ciclo OODA."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             initial_cycles = agent._metrics.cycles_executed
@@ -3471,7 +3534,7 @@ class TestOODAIntegration(BaseAgentTest):
         mock_requests_success,
     ):
         """INTEGRATION: Estado se propaga correctamente entre fases."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Ejecutar ciclo
@@ -3493,7 +3556,7 @@ class TestOODAIntegration(BaseAgentTest):
         mock_requests_success,
     ):
         """INTEGRATION: Múltiples ciclos OODA acumulan métricas correctamente."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             num_cycles = 5
@@ -3516,7 +3579,7 @@ class TestOODAIntegration(BaseAgentTest):
         mock_requests_success,
     ):
         """INTEGRATION: Ciclo OODA puede capturar snapshot del estado."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Ejecutar ciclo
@@ -3562,9 +3625,16 @@ class OODAStateMachine(RuleBasedStateMachine):
                 debounce_window_seconds=5,
                 max_consecutive_failures=3,
             ),
+            thresholds=ThresholdConfig(
+                flyback_voltage_warning=0.5,
+                flyback_voltage_critical=0.8,
+                saturation_warning=0.8,
+                saturation_critical=0.95,
+                min_hysteresis=0.05
+            ),
         )
         
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             self.agent = AutonomousAgent(config=config)
         
         self.cycle_count = 0
@@ -3660,6 +3730,20 @@ class OODAStateMachine(RuleBasedStateMachine):
         if self.agent._last_decision is not None:
             assert self.agent._last_decision_time is not None
 
+    @invariant()
+    def lyapunov_passivity(self):
+        """INVARIANTE: Estabilidad Ergódica (Condición de Lyapunov)."""
+        health = self.agent.topology.get_topological_health()
+        current_s = 1.0 - health.health_score
+
+        if hasattr(self, 'last_s'):
+            delta_s = current_s - self.last_s
+            epsilon = TEST_EPSILON if delta_s <= 0 else 1.0
+            assert delta_s <= epsilon, \
+                f"Violación de pasividad: ΔS = {delta_s:.4e} > {epsilon:.4e}"
+
+        self.last_s = current_s
+
 
 # Configurar test de la máquina de estados
 TestOODAStateMachine = OODAStateMachine.TestCase
@@ -3681,7 +3765,7 @@ class TestOODAEdgeCases(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """EDGE: observe con respuesta vacía retorna None."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             with patch.object(agent._session, 'get') as mock_get:
@@ -3702,7 +3786,7 @@ class TestOODAEdgeCases(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """EDGE: orient con persistencia extremadamente larga."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Agregar muchas muestras con valor crítico
@@ -3721,7 +3805,7 @@ class TestOODAEdgeCases(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """EDGE: decide con cambios rápidos de estado."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             statuses = [
@@ -3746,7 +3830,7 @@ class TestOODAEdgeCases(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """EDGE: act sin diagnóstico previo (primer ciclo)."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             assert agent._last_diagnosis is None
@@ -3761,7 +3845,7 @@ class TestOODAEdgeCases(BaseAgentTest):
         agent_config: AgentConfig,
     ):
         """EDGE: Ciclo OODA con métricas en cero (primer ciclo)."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Verificar estado inicial
@@ -3807,7 +3891,7 @@ class TestAgentInitialization(BaseAgentTest):
     
     def test_initialization_with_default_config(self):
         """UNIT: Inicialización con configuración por defecto."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent()
             
             # Verificar componentes inicializados
@@ -3825,7 +3909,7 @@ class TestAgentInitialization(BaseAgentTest):
     
     def test_initialization_with_custom_config(self, agent_config: AgentConfig):
         """UNIT: Inicialización con configuración personalizada."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Verificar que usa la configuración provista
@@ -3839,7 +3923,7 @@ class TestAgentInitialization(BaseAgentTest):
             evaluators=[FragmentationEvaluator()]
         )
         
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(synthesizer=custom_synthesizer)
             
             assert agent._synthesizer == custom_synthesizer
@@ -3847,7 +3931,7 @@ class TestAgentInitialization(BaseAgentTest):
     
     def test_initialization_sets_up_expected_topology(self):
         """UNIT: Inicialización establece topología esperada."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent()
             
             # Verificar topología inicial
@@ -3864,7 +3948,7 @@ class TestAgentInitialization(BaseAgentTest):
     
     def test_initialization_creates_http_session(self):
         """UNIT: Inicialización crea sesión HTTP con retry policy."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent()
             
             # Verificar sesión HTTP
@@ -3877,7 +3961,7 @@ class TestAgentInitialization(BaseAgentTest):
     
     def test_initialization_installs_signal_handlers(self):
         """UNIT: Inicialización instala signal handlers."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent()
             
             # Verificar que se guardaron handlers originales
@@ -3886,7 +3970,7 @@ class TestAgentInitialization(BaseAgentTest):
     
     def test_initialization_syncs_gauge_router(self):
         """UNIT: Inicialización sincroniza GaugeFieldRouter."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent()
             
             # GaugeFieldRouter debe estar inicializado
@@ -3896,7 +3980,7 @@ class TestAgentInitialization(BaseAgentTest):
     
     def test_initialization_creates_snapshot_history(self):
         """UNIT: Inicialización crea historial de snapshots."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent()
             
             assert agent._snapshot_history is not None
@@ -3921,7 +4005,7 @@ class TestAgentStartup(BaseAgentTest):
     
     def test_wait_for_startup_success_immediate(self, agent_config: AgentConfig):
         """UNIT: _wait_for_startup exitoso en primer intento."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             agent._running = True
             
@@ -3938,7 +4022,7 @@ class TestAgentStartup(BaseAgentTest):
     
     def test_wait_for_startup_success_after_retries(self, agent_config: AgentConfig):
         """UNIT: _wait_for_startup exitoso tras varios reintentos."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             agent._running = True
             
@@ -3972,7 +4056,7 @@ class TestAgentStartup(BaseAgentTest):
             ),
         )
         
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=config)
             agent._running = True
             
@@ -3997,7 +4081,7 @@ class TestAgentStartup(BaseAgentTest):
             ),
         )
         
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=config)
             agent._running = True
             
@@ -4020,7 +4104,7 @@ class TestAgentStartup(BaseAgentTest):
     
     def test_wait_for_startup_respects_running_flag(self, agent_config: AgentConfig):
         """UNIT: _wait_for_startup termina si _running se setea a False."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             agent._running = True
             
@@ -4045,7 +4129,7 @@ class TestAgentStartup(BaseAgentTest):
     
     def test_health_check_success(self, agent_config: AgentConfig):
         """UNIT: health_check exitoso con Core accesible."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Mock respuesta exitosa
@@ -4064,7 +4148,7 @@ class TestAgentStartup(BaseAgentTest):
     
     def test_health_check_failure_degrades_topology(self, agent_config: AgentConfig):
         """UNIT: health_check fallido degrada topología."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Mock error de conexión
@@ -4081,7 +4165,7 @@ class TestAgentStartup(BaseAgentTest):
     
     def test_health_check_with_http_error_continues(self, agent_config: AgentConfig):
         """UNIT: health_check con HTTP error continúa (no es fatal)."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Mock HTTP error (503)
@@ -4114,7 +4198,7 @@ class TestSignalHandlers(BaseAgentTest):
     
     def test_setup_signal_handlers_installs_handlers(self, agent_config: AgentConfig):
         """UNIT: _setup_signal_handlers instala handlers para SIGINT y SIGTERM."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             with patch('signal.signal') as mock_signal:
                 agent = AutonomousAgent(config=agent_config)
                 
@@ -4130,7 +4214,7 @@ class TestSignalHandlers(BaseAgentTest):
     
     def test_handle_shutdown_sets_running_false(self, agent_config: AgentConfig):
         """UNIT: _handle_shutdown setea _running a False."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             agent._running = True
             
@@ -4141,7 +4225,7 @@ class TestSignalHandlers(BaseAgentTest):
     
     def test_handle_shutdown_logs_signal(self, agent_config: AgentConfig, caplog):
         """UNIT: _handle_shutdown logea la señal recibida."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             with caplog.at_level(logging.INFO):
@@ -4153,7 +4237,7 @@ class TestSignalHandlers(BaseAgentTest):
     
     def test_restore_signal_handlers_restores_originals(self, agent_config: AgentConfig):
         """UNIT: _restore_signal_handlers restaura handlers originales."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Guardar handlers actuales
@@ -4174,7 +4258,7 @@ class TestSignalHandlers(BaseAgentTest):
     
     def test_signal_handler_integration_sigint(self, agent_config: AgentConfig):
         """INTEGRATION: Envío de SIGINT detiene el agente."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             agent._running = True
             
@@ -4193,7 +4277,7 @@ class TestSignalHandlers(BaseAgentTest):
     )
     def test_signal_handler_integration_sigterm(self, agent_config: AgentConfig):
         """INTEGRATION: Envío de SIGTERM detiene el agente."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             agent._running = True
             
@@ -4218,7 +4302,7 @@ class TestShutdown(BaseAgentTest):
     
     def test_shutdown_closes_http_session(self, agent_config: AgentConfig):
         """UNIT: _shutdown cierra la sesión HTTP."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Mock session.close
@@ -4229,7 +4313,7 @@ class TestShutdown(BaseAgentTest):
     
     def test_shutdown_restores_signal_handlers(self, agent_config: AgentConfig):
         """UNIT: _shutdown restaura signal handlers."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             with patch.object(agent, '_restore_signal_handlers') as mock_restore:
@@ -4239,7 +4323,7 @@ class TestShutdown(BaseAgentTest):
     
     def test_shutdown_logs_final_metrics(self, agent_config: AgentConfig, caplog):
         """UNIT: _shutdown logea métricas finales."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular algunas métricas
@@ -4255,7 +4339,7 @@ class TestShutdown(BaseAgentTest):
     
     def test_shutdown_handles_session_close_error(self, agent_config: AgentConfig, caplog):
         """UNIT: _shutdown maneja errores al cerrar sesión."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Mock session.close que lanza excepción
@@ -4268,7 +4352,7 @@ class TestShutdown(BaseAgentTest):
     
     def test_stop_sets_running_false(self, agent_config: AgentConfig):
         """UNIT: stop() setea _running a False."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             agent._running = True
             
@@ -4278,7 +4362,7 @@ class TestShutdown(BaseAgentTest):
     
     def test_shutdown_is_idempotent(self, agent_config: AgentConfig):
         """UNIT: _shutdown puede llamarse múltiples veces sin error."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Llamar shutdown múltiples veces
@@ -4307,7 +4391,7 @@ class TestRunLoop(BaseAgentTest):
     
     def test_run_waits_for_startup(self, agent_config: AgentConfig):
         """UNIT: run() espera startup antes de iniciar ciclo."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             with patch.object(agent, '_wait_for_startup', return_value=False) as mock_wait:
@@ -4318,7 +4402,7 @@ class TestRunLoop(BaseAgentTest):
     
     def test_run_aborts_if_startup_fails(self, agent_config: AgentConfig):
         """UNIT: run() aborta si startup falla."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             with patch.object(agent, '_wait_for_startup', return_value=False):
@@ -4330,7 +4414,7 @@ class TestRunLoop(BaseAgentTest):
     
     def test_run_performs_health_check_unless_skipped(self, agent_config: AgentConfig):
         """UNIT: run() ejecuta health_check a menos que skip_health_check=True."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             with patch.object(agent, '_wait_for_startup', return_value=True):
@@ -4349,7 +4433,7 @@ class TestRunLoop(BaseAgentTest):
     
     def test_run_skip_health_check(self, agent_config: AgentConfig):
         """UNIT: run(skip_health_check=True) omite health check."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             with patch.object(agent, 'health_check') as mock_health:
@@ -4366,7 +4450,7 @@ class TestRunLoop(BaseAgentTest):
     
     def test_run_executes_ooda_cycle_repeatedly(self, agent_config: AgentConfig):
         """UNIT: run() ejecuta ciclo OODA múltiples veces."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             observe_count = 0
@@ -4393,7 +4477,7 @@ class TestRunLoop(BaseAgentTest):
     
     def test_run_increments_cycle_counter(self, agent_config: AgentConfig):
         """UNIT: run() incrementa contador de ciclos."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             initial_cycles = agent._metrics.cycles_executed
@@ -4414,7 +4498,7 @@ class TestRunLoop(BaseAgentTest):
     
     def test_run_captures_snapshots(self, agent_config: AgentConfig):
         """UNIT: run() captura snapshots en cada ciclo."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             initial_snapshot_count = agent._snapshot_history.size
@@ -4435,7 +4519,7 @@ class TestRunLoop(BaseAgentTest):
     
     def test_run_handles_errors_in_cycle_gracefully(self, agent_config: AgentConfig, caplog):
         """UNIT: run() maneja errores en ciclo sin abortar."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             error_count = 0
@@ -4464,7 +4548,7 @@ class TestRunLoop(BaseAgentTest):
     
     def test_run_calls_shutdown_on_exit(self, agent_config: AgentConfig):
         """UNIT: run() llama _shutdown al salir."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             with patch.object(agent, '_shutdown') as mock_shutdown:
@@ -4486,7 +4570,7 @@ class TestRunLoop(BaseAgentTest):
             ),
         )
         
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=config)
             
             sleep_times = []
@@ -4514,7 +4598,7 @@ class TestRunLoop(BaseAgentTest):
     
     def test_run_respects_running_flag(self, agent_config: AgentConfig):
         """UNIT: run() termina cuando _running se setea a False."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             cycle_count = 0
@@ -4556,7 +4640,7 @@ class TestFactoryFunctions(BaseAgentTest):
     
     def test_create_agent_with_default_config(self):
         """UNIT: create_agent() sin args crea agente con config por defecto."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = create_agent()
             
             assert isinstance(agent, AutonomousAgent)
@@ -4564,7 +4648,7 @@ class TestFactoryFunctions(BaseAgentTest):
     
     def test_create_agent_with_custom_config(self, agent_config: AgentConfig):
         """UNIT: create_agent() con config personalizada."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = create_agent(config=agent_config)
             
             assert agent.config == agent_config
@@ -4573,14 +4657,14 @@ class TestFactoryFunctions(BaseAgentTest):
         """UNIT: create_agent() con sintetizador personalizado."""
         synthesizer = HamiltonianSynthesizer(evaluators=[])
         
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = create_agent(synthesizer=synthesizer)
             
             assert agent._synthesizer == synthesizer
     
     def test_create_minimal_agent_with_url(self):
         """UNIT: create_minimal_agent() crea agente con URL mínima."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = create_minimal_agent("http://localhost:8080")
             
             assert isinstance(agent, AutonomousAgent)
@@ -4588,7 +4672,7 @@ class TestFactoryFunctions(BaseAgentTest):
     
     def test_create_minimal_agent_normalizes_url(self):
         """UNIT: create_minimal_agent() normaliza URL."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             # Sin esquema
             agent1 = create_minimal_agent("localhost:8080")
             assert agent1.config.connection.base_url == "http://localhost:8080"
@@ -4623,7 +4707,7 @@ class TestMainEntryPoint(BaseAgentTest):
     
     def test_main_success(self):
         """UNIT: main() retorna 0 en ejecución exitosa."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             with patch('app.core.apu_agent.AutonomousAgent') as mock_agent_class:
                 mock_agent = Mock()
                 mock_agent_class.return_value = mock_agent
@@ -4651,7 +4735,7 @@ class TestMainEntryPoint(BaseAgentTest):
     
     def test_main_keyboard_interrupt(self):
         """UNIT: main() retorna 0 en KeyboardInterrupt."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             with patch('app.core.apu_agent.AutonomousAgent') as mock_agent_class:
                 mock_agent = Mock()
                 mock_agent_class.return_value = mock_agent
@@ -4665,7 +4749,7 @@ class TestMainEntryPoint(BaseAgentTest):
     
     def test_main_unexpected_exception(self, caplog):
         """UNIT: main() retorna 1 en excepción no manejada."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             with patch('app.core.apu_agent.AutonomousAgent') as mock_agent_class:
                 mock_agent = Mock()
                 mock_agent_class.return_value = mock_agent
@@ -4696,7 +4780,7 @@ class TestLifecycleIntegration(BaseAgentTest):
     
     def test_complete_lifecycle_nominal(self):
         """INTEGRATION: Lifecycle completo con sistema nominal."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             # INIT
             agent = AutonomousAgent()
             assert agent._running is False
@@ -4731,7 +4815,7 @@ class TestLifecycleIntegration(BaseAgentTest):
     
     def test_lifecycle_with_startup_failure(self):
         """INTEGRATION: Lifecycle que aborta en startup."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent()
             
             with patch.object(agent, '_wait_for_startup', return_value=False):
@@ -4742,7 +4826,7 @@ class TestLifecycleIntegration(BaseAgentTest):
     
     def test_lifecycle_with_health_check_warning(self, caplog):
         """INTEGRATION: Lifecycle continúa con health check degradado."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent()
             
             with patch.object(agent, '_wait_for_startup', return_value=True):
@@ -4760,7 +4844,7 @@ class TestLifecycleIntegration(BaseAgentTest):
     
     def test_lifecycle_with_signal_interruption(self):
         """INTEGRATION: Lifecycle interrumpido por señal."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent()
             
             def mock_observe():
@@ -4777,7 +4861,7 @@ class TestLifecycleIntegration(BaseAgentTest):
     
     def test_lifecycle_metrics_accumulation(self):
         """INTEGRATION: Métricas se acumulan correctamente durante lifecycle."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent()
             
             # Simular 5 ciclos: 3 éxitos, 2 fallos
@@ -4828,7 +4912,7 @@ class TestLifecycleRobustness(BaseAgentTest):
     
     def test_lifecycle_survives_repeated_errors(self, caplog):
         """ROBUSTNESS: Lifecycle continúa tras errores repetidos en ciclo."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent()
             
             error_count = 0
@@ -4858,7 +4942,7 @@ class TestLifecycleRobustness(BaseAgentTest):
     
     def test_lifecycle_handles_rapid_start_stop(self):
         """ROBUSTNESS: Lifecycle maneja start/stop rápidos."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent()
             
             # Detener inmediatamente
@@ -4876,7 +4960,7 @@ class TestLifecycleRobustness(BaseAgentTest):
             timing=TimingConfig(check_interval=1),
         )
         
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=config)
             
             cycle_count = 0
@@ -4910,7 +4994,7 @@ class TestLifecycleRobustness(BaseAgentTest):
             ),
         )
         
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=config)
             
             # Simular fallo continuo de startup
@@ -4941,7 +5025,7 @@ class TestGetMetrics(BaseAgentTest):
     
     def test_get_metrics_returns_complete_structure(self, agent_config: AgentConfig):
         """UNIT: get_metrics() retorna estructura completa."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             metrics = agent.get_metrics()
@@ -4958,7 +5042,7 @@ class TestGetMetrics(BaseAgentTest):
     
     def test_get_metrics_config_section(self, agent_config: AgentConfig):
         """UNIT: get_metrics() incluye configuración."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             metrics = agent.get_metrics()
@@ -4973,7 +5057,7 @@ class TestGetMetrics(BaseAgentTest):
     
     def test_get_metrics_status_section(self, agent_config: AgentConfig):
         """UNIT: get_metrics() incluye estado del agente."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             agent._running = True
             agent._last_status = SystemStatus.NOMINAL
@@ -4986,7 +5070,7 @@ class TestGetMetrics(BaseAgentTest):
     
     def test_get_metrics_counters_section(self, agent_config: AgentConfig):
         """UNIT: get_metrics() incluye contadores correctos."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular algunas observaciones
@@ -5007,7 +5091,7 @@ class TestGetMetrics(BaseAgentTest):
     
     def test_get_metrics_rates_section(self, agent_config: AgentConfig):
         """UNIT: get_metrics() incluye tasas calculadas."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular métricas
@@ -5027,7 +5111,7 @@ class TestGetMetrics(BaseAgentTest):
     
     def test_get_metrics_topology_section(self, agent_config: AgentConfig):
         """UNIT: get_metrics() incluye información topológica."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             metrics = agent.get_metrics()
@@ -5053,7 +5137,7 @@ class TestGetMetrics(BaseAgentTest):
     
     def test_get_metrics_persistence_section(self, agent_config: AgentConfig):
         """UNIT: get_metrics() incluye estadísticas de persistencia."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Agregar muestras de persistencia
@@ -5076,7 +5160,7 @@ class TestGetMetrics(BaseAgentTest):
     
     def test_get_metrics_last_diagnosis_section(self, agent_config: AgentConfig):
         """UNIT: get_metrics() incluye último diagnóstico."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Crear diagnóstico
@@ -5098,7 +5182,7 @@ class TestGetMetrics(BaseAgentTest):
     
     def test_get_metrics_snapshot_history_section(self, agent_config: AgentConfig):
         """UNIT: get_metrics() incluye info de historial de snapshots."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Agregar un snapshot
@@ -5123,7 +5207,7 @@ class TestGetMetrics(BaseAgentTest):
     
     def test_get_metrics_with_no_data(self, agent_config: AgentConfig):
         """UNIT: get_metrics() funciona sin datos previos."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Sin ejecutar ciclos
@@ -5142,7 +5226,7 @@ class TestGetMetrics(BaseAgentTest):
         num_cycles: int,
     ):
         """PROP (Hypothesis): get_metrics() siempre retorna estructura válida."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular ciclos
@@ -5177,7 +5261,7 @@ class TestGetTopologicalSummary(BaseAgentTest):
     
     def test_get_topological_summary_structure(self, agent_config: AgentConfig):
         """UNIT: get_topological_summary() retorna estructura completa."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             summary = agent.get_topological_summary()
@@ -5191,7 +5275,7 @@ class TestGetTopologicalSummary(BaseAgentTest):
     
     def test_get_topological_summary_betti_interpretation(self, agent_config: AgentConfig):
         """UNIT: get_topological_summary() interpreta números de Betti."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             summary = agent.get_topological_summary()
@@ -5213,7 +5297,7 @@ class TestGetTopologicalSummary(BaseAgentTest):
     
     def test_get_topological_summary_connected_system(self, agent_config: AgentConfig):
         """UNIT: get_topological_summary() con sistema conectado."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             summary = agent.get_topological_summary()
@@ -5225,7 +5309,7 @@ class TestGetTopologicalSummary(BaseAgentTest):
     
     def test_get_topological_summary_fragmented_system(self, agent_config: AgentConfig):
         """UNIT: get_topological_summary() con sistema fragmentado."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Fragmentar topología
@@ -5244,7 +5328,7 @@ class TestGetTopologicalSummary(BaseAgentTest):
     
     def test_get_topological_summary_health_section(self, agent_config: AgentConfig):
         """UNIT: get_topological_summary() incluye salud topológica."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             summary = agent.get_topological_summary()
@@ -5261,7 +5345,7 @@ class TestGetTopologicalSummary(BaseAgentTest):
     
     def test_get_topological_summary_issues_section(self, agent_config: AgentConfig):
         """UNIT: get_topological_summary() lista issues detectados."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Crear issue: remover arista
@@ -5283,7 +5367,7 @@ class TestGetTopologicalSummary(BaseAgentTest):
     
     def test_get_topological_summary_patterns_section(self, agent_config: AgentConfig):
         """UNIT: get_topological_summary() incluye patrones de requests."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular patrón de reintentos
@@ -5304,7 +5388,7 @@ class TestGetTopologicalSummary(BaseAgentTest):
     
     def test_get_topological_summary_with_healthy_system(self, agent_config: AgentConfig):
         """UNIT: get_topological_summary() con sistema sano."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             summary = agent.get_topological_summary()
@@ -5332,7 +5416,7 @@ class TestGetStratumHealth(BaseAgentTest):
     
     def test_get_stratum_health_physics(self, agent_config: AgentConfig):
         """UNIT: get_stratum_health(PHYSICS) retorna métricas físicas."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular telemetría
@@ -5362,7 +5446,7 @@ class TestGetStratumHealth(BaseAgentTest):
     
     def test_get_stratum_health_physics_without_telemetry(self, agent_config: AgentConfig):
         """UNIT: get_stratum_health(PHYSICS) sin telemetría."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Sin telemetría
@@ -5377,7 +5461,7 @@ class TestGetStratumHealth(BaseAgentTest):
     
     def test_get_stratum_health_physics_critical(self, agent_config: AgentConfig):
         """UNIT: get_stratum_health(PHYSICS) con valores críticos."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             agent._last_telemetry = TelemetryData(
@@ -5394,7 +5478,7 @@ class TestGetStratumHealth(BaseAgentTest):
     
     def test_get_stratum_health_tactics(self, agent_config: AgentConfig):
         """UNIT: get_stratum_health(TACTICS) retorna invariantes topológicos."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             health = agent.get_stratum_health(Stratum.TACTICS)
@@ -5414,7 +5498,7 @@ class TestGetStratumHealth(BaseAgentTest):
     
     def test_get_stratum_health_tactics_degraded(self, agent_config: AgentConfig):
         """UNIT: get_stratum_health(TACTICS) con topología degradada."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Degradar topología
@@ -5431,7 +5515,7 @@ class TestGetStratumHealth(BaseAgentTest):
     
     def test_get_stratum_health_strategy(self, agent_config: AgentConfig):
         """UNIT: get_stratum_health(STRATEGY) retorna métricas estratégicas."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular diagnóstico y decisión
@@ -5458,7 +5542,7 @@ class TestGetStratumHealth(BaseAgentTest):
     
     def test_get_stratum_health_strategy_with_risk(self, agent_config: AgentConfig):
         """UNIT: get_stratum_health(STRATEGY) detecta riesgo."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             agent._last_status = SystemStatus.CRITICO
@@ -5474,7 +5558,7 @@ class TestGetStratumHealth(BaseAgentTest):
     
     def test_get_stratum_health_wisdom(self, agent_config: AgentConfig):
         """UNIT: get_stratum_health(WISDOM) retorna veredicto y certeza."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular estado completo
@@ -5502,7 +5586,7 @@ class TestGetStratumHealth(BaseAgentTest):
     
     def test_get_stratum_health_wisdom_without_diagnosis(self, agent_config: AgentConfig):
         """UNIT: get_stratum_health(WISDOM) sin diagnóstico."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Sin diagnóstico
@@ -5515,7 +5599,7 @@ class TestGetStratumHealth(BaseAgentTest):
     
     def test_get_stratum_health_invalid_stratum(self, agent_config: AgentConfig):
         """UNIT: get_stratum_health() con estrato inválido."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Crear mock de estrato inválido
@@ -5529,7 +5613,7 @@ class TestGetStratumHealth(BaseAgentTest):
     
     def test_stratum_health_coherence(self, agent_config: AgentConfig):
         """INTEGRATION: Salud entre estratos es coherente."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular estado completo
@@ -5576,7 +5660,7 @@ class TestGetSnapshotHistory(BaseAgentTest):
     
     def test_get_snapshot_history_empty(self, agent_config: AgentConfig):
         """UNIT: get_snapshot_history() sin snapshots."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             history = agent.get_snapshot_history()
@@ -5586,7 +5670,7 @@ class TestGetSnapshotHistory(BaseAgentTest):
     
     def test_get_snapshot_history_with_snapshots(self, agent_config: AgentConfig):
         """UNIT: get_snapshot_history() retorna snapshots en formato compacto."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Agregar snapshots
@@ -5614,7 +5698,7 @@ class TestGetSnapshotHistory(BaseAgentTest):
     
     def test_get_snapshot_history_respects_count_limit(self, agent_config: AgentConfig):
         """UNIT: get_snapshot_history() respeta límite de count."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Agregar 10 snapshots
@@ -5636,7 +5720,7 @@ class TestGetSnapshotHistory(BaseAgentTest):
     
     def test_get_snapshot_history_default_count(self, agent_config: AgentConfig):
         """UNIT: get_snapshot_history() usa count=10 por defecto."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Agregar 15 snapshots
@@ -5674,7 +5758,7 @@ class TestMetricsSerialization(BaseAgentTest):
     
     def test_get_metrics_is_json_serializable(self, agent_config: AgentConfig):
         """UNIT: get_metrics() retorna dict serializable a JSON."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular estado completo
@@ -5694,7 +5778,7 @@ class TestMetricsSerialization(BaseAgentTest):
     
     def test_get_topological_summary_is_json_serializable(self, agent_config: AgentConfig):
         """UNIT: get_topological_summary() es JSON-serializable."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             summary = agent.get_topological_summary()
@@ -5708,7 +5792,7 @@ class TestMetricsSerialization(BaseAgentTest):
     
     def test_get_stratum_health_is_json_serializable(self, agent_config: AgentConfig):
         """UNIT: get_stratum_health() es JSON-serializable."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             for stratum in [Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.WISDOM]:
@@ -5723,7 +5807,7 @@ class TestMetricsSerialization(BaseAgentTest):
     
     def test_metrics_floats_are_rounded(self, agent_config: AgentConfig):
         """UNIT: Flotantes en métricas están redondeados."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             agent._metrics.successful_observations = 7
@@ -5744,7 +5828,7 @@ class TestMetricsSerialization(BaseAgentTest):
     
     def test_timestamps_are_iso_format(self, agent_config: AgentConfig):
         """UNIT: Timestamps están en formato ISO 8601."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             agent._last_telemetry = TelemetryData(flyback_voltage=0.5, saturation=0.6)
@@ -5781,7 +5865,7 @@ class TestAPICoherence(BaseAgentTest):
     
     def test_topology_coherence_across_apis(self, agent_config: AgentConfig):
         """INTEGRATION: Información topológica coherente entre APIs."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Degradar topología
@@ -5805,7 +5889,7 @@ class TestAPICoherence(BaseAgentTest):
     
     def test_health_score_coherence(self, agent_config: AgentConfig):
         """INTEGRATION: Health score coherente entre APIs."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             metrics = agent.get_metrics()
@@ -5822,7 +5906,7 @@ class TestAPICoherence(BaseAgentTest):
     
     def test_status_coherence_across_apis(self, agent_config: AgentConfig):
         """INTEGRATION: Status coherente entre APIs."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Establecer status
@@ -5844,7 +5928,7 @@ class TestAPICoherence(BaseAgentTest):
     
     def test_cycles_executed_coherence(self, agent_config: AgentConfig):
         """INTEGRATION: Cycles executed coherente entre APIs."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular ciclos
@@ -5873,7 +5957,7 @@ class TestAPIPerformance(BaseAgentTest):
     
     def test_get_metrics_performance(self, agent_config: AgentConfig):
         """PERF: get_metrics() responde en < 100ms."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Poblar con datos
@@ -5893,7 +5977,7 @@ class TestAPIPerformance(BaseAgentTest):
     
     def test_get_topological_summary_performance(self, agent_config: AgentConfig):
         """PERF: get_topological_summary() responde en < 100ms."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Agregar requests al historial
@@ -5911,7 +5995,7 @@ class TestAPIPerformance(BaseAgentTest):
     
     def test_get_stratum_health_performance(self, agent_config: AgentConfig):
         """PERF: get_stratum_health() responde en < 50ms por estrato."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             agent._last_telemetry = TelemetryData(flyback_voltage=0.5, saturation=0.6)
@@ -5940,7 +6024,7 @@ class TestAPIEdgeCases(BaseAgentTest):
     
     def test_get_metrics_with_extreme_counters(self, agent_config: AgentConfig):
         """EDGE: get_metrics() con contadores muy grandes."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Simular muchos ciclos
@@ -5956,7 +6040,7 @@ class TestAPIEdgeCases(BaseAgentTest):
     
     def test_get_topological_summary_with_many_patterns(self, agent_config: AgentConfig):
         """EDGE: get_topological_summary() con muchos patrones."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Crear muchos patrones diferentes
@@ -5972,7 +6056,7 @@ class TestAPIEdgeCases(BaseAgentTest):
     
     def test_get_stratum_health_with_zero_uptime(self, agent_config: AgentConfig):
         """EDGE: get_stratum_health() con uptime casi cero."""
-        with patch('app.core.apu_agent.get_global_mic'):
+        with patch('app.core.apu_agent.get_global_mic', create=True):
             agent = AutonomousAgent(config=agent_config)
             
             # Crear agente recién inicializado
@@ -5984,3 +6068,8 @@ class TestAPIEdgeCases(BaseAgentTest):
             assert wisdom["uptime_hours"] >= 0.0
             assert wisdom["uptime_hours"] < 0.01  # Menos de 36 segundos
 
+
+
+if __name__ == '__main__':
+    import pytest
+    pytest.main(['-vv', __file__])

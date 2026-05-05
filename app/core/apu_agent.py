@@ -97,6 +97,7 @@ Esto garantiza composicionalidad de decisiones.
 from __future__ import annotations
 
 import logging
+from app.adapters.tools_interface import get_global_mic
 import math
 import os
 import signal
