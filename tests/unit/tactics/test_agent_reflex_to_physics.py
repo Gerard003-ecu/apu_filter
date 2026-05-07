@@ -134,7 +134,7 @@ from typing import (
 
 import pytest
 
-from app.tactics.apu_agent import (
+from app.core.apu_agent import (
     AgentDecision,
     AutonomousAgent,
     SystemStatus,

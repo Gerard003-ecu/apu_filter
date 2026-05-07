@@ -32,7 +32,7 @@ import numpy as np
 from collections import defaultdict
 
 from app.core.schemas import Stratum
-from app.tactics.apu_agent import AutonomousAgent, SystemStatus
+from app.core.apu_agent import AutonomousAgent, SystemStatus
 from app.core.telemetry_narrative import TelemetryNarrator
 from app.core.telemetry import TelemetryContext, StepStatus, TelemetrySpan
 from app.adapters.topology_viz import convert_graph_to_cytoscape_elements, AnomalyData
