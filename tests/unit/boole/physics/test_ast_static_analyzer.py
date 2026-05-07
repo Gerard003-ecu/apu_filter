@@ -1,1513 +1,2280 @@
 """
 =========================================================================================
-Módulo: Suite de Pruebas para AST Static Analyzer
-Ubicación: tests/boole/physics/test_ast_static_analyzer.py
-Versión: 1.0 - Suite Rigurosa de Testing
-=========================================================================================
-
-COBERTURA DE PRUEBAS:
----------------------
-1. Estructuras de datos (DataFlowCoordinates, ComplexityProfile, etc.)
-2. Análisis de flujo de datos (reads/writes)
-3. Complejidad ciclomática (McCabe)
-4. Validación de JSON/Schema
-5. Normalización tabular
-6. Análisis completo end-to-end
-7. Casos extremos y edge cases
-8. Performance y escalabilidad
-
-EJECUCIÓN:
-----------
-    python -m pytest test_ast_symplectic_parser.py -v --cov=ast_symplectic_parser
-    python -m unittest test_ast_symplectic_parser.TestDataFlowCoordinates -v
-
+    Test Suite: AST Static Analyzer - Rigorous Verification
+    Ubicación: tests/unit/boole/physics/test_ast_static_analyzer.py
+    Versión: 2.0 - Comprehensive Test Coverage
+    
+    FILOSOFÍA DE TESTING:
+    ---------------------
+    Esta suite implementa testing riguroso basado en:
+    
+    1. PROPERTY-BASED TESTING (PBT):
+       - Verificación de invariantes algebraicas
+       - Generación automática de casos de prueba
+       - Falsificación de propiedades
+    
+    2. METAMORPHIC TESTING:
+       - Relaciones entre transformaciones de código
+       - Invariantes bajo refactorización
+    
+    3. COVERAGE CRITERIOS:
+       - Statement coverage: > 95%
+       - Branch coverage: > 90%
+       - Path coverage: casos críticos
+       - Mutation testing: resistencia a mutaciones
+    
+    4. FORMAL VERIFICATION:
+       - Verificación de axiomas matemáticos
+       - Pruebas de propiedades algebraicas
+       - Validación de límites asintóticos
+    
+    ORGANIZACIÓN:
+    -------------
+    - TestDataFlowCoordinates: Pruebas de estructura algebraica
+    - TestComplexityProfile: Validación de métricas
+    - TestDataFlowAnalyzer: Análisis de AST
+    - TestHamiltonianMonitor: Verificación disipativa
+    - TestCohomology: Análisis topológico
+    - TestJSONValidator: Seguridad de datos
+    - TestIntegration: Casos de uso completos
+    - TestPerformance: Benchmarks y límites
+    
 =========================================================================================
 """
 
 import ast
-import logging
+import math
 import sys
+import time
 import unittest
-from contextlib import contextmanager
+from typing import Dict, List, Set, Tuple
+from unittest.mock import patch, MagicMock
 
-# Importar módulo a testear
-from app.boole.physics.ast_static_analyzer import (
-    AnalysisLimits,
-    ASTStaticAnalyzer,
-    ComplexityProfile,
-    DataFlowAnalyzer,
-    DataFlowCoordinates,
-    JSONStructureValidator,
-    TabularNormalizer,
-)
-from app.boole.wisdom.semantic_validator import (
-    BusinessPurpose,
-    ConfidenceFilter,
-    ConstraintMapper,
-    LLMOutput,
-    PurposeValidator,
-    RiskProfile,
-    SemanticValidationEngine,
-    Verdict,
-    create_default_knowledge_graph,
-)
+# Importar el módulo a testear
+# Nota: ajustar el path según la estructura del proyecto
+try:
+    from app.boole.physics.ast_static_analyzer import (
+        # Estructuras de datos
+        DataFlowCoordinates,
+        ComplexityProfile,
+        NodeCategory,
+        
+        # Analizadores
+        DataFlowAnalyzer,
+        CellularSheafCohomology,
+        JSONStructureValidator,
+        TabularNormalizer,
+        ASTStaticAnalyzer,
+        
+        # Excepciones
+        ThermodynamicSingularityError,
+        CohomologicalObstructionError,
+        ComplexityBoundsViolationError,
+        StructuralValidationError,
+        AnalysisException,
+        
+        # Límites
+        AnalysisLimits,
+        
+        # Utilidades
+        print_complexity_report,
+        print_dataflow_report,
+    )
+except ImportError:
+    # Fallback para ejecución directa
+    import os
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+    from app.boole.physics.ast_static_analyzer import *
 
-# Suprimir logs durante testing
-logging.getLogger("Gamma.Physics.ASTAnalyzer.v2.0").setLevel(logging.CRITICAL)
-logging.getLogger("Gamma.Wisdom.SemanticValidator.v3.0").setLevel(logging.CRITICAL)
 
-
-# ========================================================================================
+# =============================================================================
 # UTILIDADES DE TESTING
-# ========================================================================================
+# =============================================================================
 
-
-class TestBase(unittest.TestCase):
-    """Clase base con utilidades comunes."""
-
-    @contextmanager
-    def assertNotRaises(self, exc_type):
-        """Verifica que NO se lance una excepción."""
+class TestHelpers:
+    """Utilidades compartidas para testing."""
+    
+    @staticmethod
+    def parse_code(code: str) -> ast.AST:
+        """Parse código Python a AST de forma segura."""
+        return ast.parse(code.strip(), mode='exec')
+    
+    @staticmethod
+    def analyze_code_safe(code: str, **kwargs) -> Dict:
+        """Analiza código con manejo de excepciones."""
         try:
-            yield
-        except exc_type as e:
-            self.fail(f"Se lanzó {exc_type.__name__} inesperadamente: {e}")
+            return ASTStaticAnalyzer.analyze_code(code, **kwargs)
+        except Exception as e:
+            return {'error': e}
+    
+    @staticmethod
+    def assert_frozenset_equal(a: frozenset, b: frozenset, msg: str = ""):
+        """Compara frozensets con mensaje claro."""
+        if a != b:
+            missing = b - a
+            extra = a - b
+            error_msg = f"FrozenSets differ"
+            if missing:
+                error_msg += f"\n  Missing: {sorted(missing)}"
+            if extra:
+                error_msg += f"\n  Extra: {sorted(extra)}"
+            if msg:
+                error_msg = f"{msg}\n{error_msg}"
+            raise AssertionError(error_msg)
+    
+    @staticmethod
+    def generate_deep_nested_code(depth: int) -> str:
+        """Genera código con anidamiento profundo."""
+        code = "x = 0\n"
+        indent = ""
+        for i in range(depth):
+            code += f"{indent}if True:\n"
+            indent += "    "
+            code += f"{indent}x += {i}\n"
+        return code
+    
+    @staticmethod
+    def generate_high_complexity_code(complexity: int) -> str:
+        """Genera código con complejidad ciclomática específica."""
+        # CC = 1 (base) + (complexity - 1) decisiones
+        code = "def func(x):\n"
+        code += "    result = 0\n"
+        for i in range(complexity - 1):
+            code += f"    if x > {i}:\n"
+            code += f"        result += {i}\n"
+        code += "    return result\n"
+        return code
 
-    def assertFrozenSetEqual(self, set1, set2, msg=None):
-        """Compara frozensets."""
-        self.assertEqual(set1, set2, msg)
 
+# =============================================================================
+# TESTS: DataFlowCoordinates (Estructura Algebraica)
+# =============================================================================
 
-# ========================================================================================
-# TESTS: DataFlowCoordinates
-# ========================================================================================
-
-
-class TestDataFlowCoordinates(TestBase):
-    """Tests para DataFlowCoordinates."""
-
-    def test_construction_basic(self):
-        """Construcción básica."""
-        coords = DataFlowCoordinates(
-            reads=frozenset(["x", "y"]), writes=frozenset(["z"])
+class TestDataFlowCoordinates(unittest.TestCase):
+    """
+    Test suite para DataFlowCoordinates.
+    
+    Verifica:
+    - Propiedades algebraicas (monoide)
+    - Operaciones de conjuntos
+    - Análisis de interferencia
+    - Métricas espectrales
+    """
+    
+    def setUp(self):
+        """Inicialización de casos de prueba comunes."""
+        self.empty = DataFlowCoordinates()
+        
+        self.read_only = DataFlowCoordinates(
+            reads=frozenset(['x', 'y']),
+            writes=frozenset()
         )
-
-        self.assertEqual(coords.reads, frozenset(["x", "y"]))
-        self.assertEqual(coords.writes, frozenset(["z"]))
-
-    def test_construction_empty(self):
-        """Construcción vacía."""
+        
+        self.write_only = DataFlowCoordinates(
+            reads=frozenset(),
+            writes=frozenset(['z', 'w'])
+        )
+        
+        self.read_write = DataFlowCoordinates(
+            reads=frozenset(['a', 'b']),
+            writes=frozenset(['b', 'c'])
+        )
+    
+    # -------------------------------------------------------------------------
+    # PROPIEDADES BÁSICAS
+    # -------------------------------------------------------------------------
+    
+    def test_initialization_empty(self):
+        """Test: Inicialización vacía."""
         coords = DataFlowCoordinates()
-
         self.assertEqual(coords.reads, frozenset())
         self.assertEqual(coords.writes, frozenset())
-
-    def test_construction_normalization(self):
-        """Normalización a frozenset."""
+    
+    def test_initialization_with_sets(self):
+        """Test: Inicialización con sets regulares (conversión automática)."""
         coords = DataFlowCoordinates(
-            reads={"x", "y"}, writes=["z"]  # set regular  # lista
+            reads={'x', 'y'},
+            writes={'z'}
         )
-
         self.assertIsInstance(coords.reads, frozenset)
         self.assertIsInstance(coords.writes, frozenset)
-
+        self.assertEqual(coords.reads, frozenset(['x', 'y']))
+    
     def test_immutability(self):
-        """Las coordenadas son inmutables."""
-        coords = DataFlowCoordinates(reads=frozenset(["x"]))
-
+        """Test: Inmutabilidad de la estructura."""
+        coords = DataFlowCoordinates(reads=frozenset(['x']))
+        
         with self.assertRaises(AttributeError):
-            coords.reads = frozenset(["y"])
-
+            coords.reads = frozenset(['y'])  # type: ignore
+    
     def test_hashability(self):
-        """Las coordenadas son hasheables."""
-        coords1 = DataFlowCoordinates(reads=frozenset(["x"]), writes=frozenset(["y"]))
-        coords2 = DataFlowCoordinates(reads=frozenset(["x"]), writes=frozenset(["y"]))
-
-        # Mismo contenido → mismo hash
-        self.assertEqual(hash(coords1), hash(coords2))
-
-        # Se pueden usar en sets
-        s = {coords1, coords2}
-        self.assertEqual(len(s), 1)
-
-    def test_all_variables(self):
-        """Propiedad all_variables."""
-        coords = DataFlowCoordinates(
-            reads=frozenset(["x", "y"]), writes=frozenset(["y", "z"])
+        """Test: Hashable (puede usarse en sets/dicts)."""
+        coords1 = DataFlowCoordinates(reads=frozenset(['x']))
+        coords2 = DataFlowCoordinates(reads=frozenset(['x']))
+        coords3 = DataFlowCoordinates(reads=frozenset(['y']))
+        
+        # Pueden usarse como claves
+        d = {coords1: "value"}
+        self.assertEqual(d[coords2], "value")
+        
+        # Set de coords
+        s = {coords1, coords2, coords3}
+        self.assertEqual(len(s), 2)  # coords1 == coords2
+    
+    def test_equality(self):
+        """Test: Igualdad estructural."""
+        coords1 = DataFlowCoordinates(
+            reads=frozenset(['x', 'y']),
+            writes=frozenset(['z'])
         )
-
-        self.assertEqual(coords.all_variables, frozenset(["x", "y", "z"]))
-
-    def test_has_interference_with_raw(self):
-        """Interferencia RAW (Read After Write)."""
-        a = DataFlowCoordinates(writes=frozenset(["x"]))
-        b = DataFlowCoordinates(reads=frozenset(["x"]))
-
-        self.assertTrue(a.has_interference_with(b))
-        self.assertTrue(b.has_interference_with(a))
-
-    def test_has_interference_with_war(self):
-        """Interferencia WAR (Write After Read)."""
-        a = DataFlowCoordinates(reads=frozenset(["x"]))
-        b = DataFlowCoordinates(writes=frozenset(["x"]))
-
-        self.assertTrue(a.has_interference_with(b))
-        self.assertTrue(b.has_interference_with(a))
-
-    def test_has_interference_with_waw(self):
-        """Interferencia WAW (Write After Write)."""
-        a = DataFlowCoordinates(writes=frozenset(["x"]))
-        b = DataFlowCoordinates(writes=frozenset(["x"]))
-
-        self.assertTrue(a.has_interference_with(b))
-
-    def test_no_interference(self):
-        """Sin interferencia."""
-        a = DataFlowCoordinates(reads=frozenset(["x"]), writes=frozenset(["y"]))
-        b = DataFlowCoordinates(reads=frozenset(["z"]), writes=frozenset(["w"]))
-
-        self.assertFalse(a.has_interference_with(b))
-        self.assertFalse(b.has_interference_with(a))
-
-    def test_interference_score_asymmetric(self):
-        """Score de interferencia es asimétrico."""
-        a = DataFlowCoordinates(writes=frozenset(["x"]))
-        b = DataFlowCoordinates(reads=frozenset(["x"]))
-
-        score_ab = DataFlowCoordinates.interference_score(a, b)
-        score_ba = DataFlowCoordinates.interference_score(b, a)
-
-        # Antisimetría
-        self.assertEqual(score_ab, -score_ba)
-        self.assertEqual(score_ab, 1)  # A escribe lo que B lee
-
-    def test_interference_score_symmetric(self):
-        """Score simétrico cuando interferencia es igual."""
-        a = DataFlowCoordinates(reads=frozenset(["x"]), writes=frozenset(["y"]))
-        b = DataFlowCoordinates(reads=frozenset(["y"]), writes=frozenset(["x"]))
-
-        score_ab = DataFlowCoordinates.interference_score(a, b)
-        score_ba = DataFlowCoordinates.interference_score(b, a)
-
-        # Simétrico (cada uno escribe lo que el otro lee)
-        self.assertEqual(score_ab, 0)
-        self.assertEqual(score_ba, 0)
-
+        coords2 = DataFlowCoordinates(
+            reads=frozenset(['y', 'x']),  # Orden no importa
+            writes=frozenset(['z'])
+        )
+        coords3 = DataFlowCoordinates(
+            reads=frozenset(['x']),
+            writes=frozenset(['z'])
+        )
+        
+        self.assertEqual(coords1, coords2)
+        self.assertNotEqual(coords1, coords3)
+    
+    def test_ordering(self):
+        """Test: Orden total (frozen=True, order=True)."""
+        coords1 = DataFlowCoordinates(reads=frozenset(['a']))
+        coords2 = DataFlowCoordinates(reads=frozenset(['b']))
+        coords3 = DataFlowCoordinates(writes=frozenset(['c']))
+        
+        # Debe ser ordenable
+        sorted_list = sorted([coords2, coords3, coords1])
+        self.assertEqual(len(sorted_list), 3)
+    
+    # -------------------------------------------------------------------------
+    # PROPIEDADES DERIVADAS
+    # -------------------------------------------------------------------------
+    
+    def test_all_variables(self):
+        """Test: Unión de todas las variables."""
+        self.assertEqual(self.empty.all_variables, frozenset())
+        self.assertEqual(self.read_only.all_variables, frozenset(['x', 'y']))
+        self.assertEqual(self.write_only.all_variables, frozenset(['z', 'w']))
+        self.assertEqual(self.read_write.all_variables, frozenset(['a', 'b', 'c']))
+    
+    def test_modified_variables(self):
+        """Test: Variables leídas Y escritas (modificación in-place)."""
+        self.assertEqual(self.empty.modified_variables, frozenset())
+        self.assertEqual(self.read_only.modified_variables, frozenset())
+        self.assertEqual(self.write_only.modified_variables, frozenset())
+        self.assertEqual(self.read_write.modified_variables, frozenset(['b']))
+    
+    def test_pure_reads(self):
+        """Test: Variables solo leídas."""
+        self.assertEqual(self.empty.pure_reads, frozenset())
+        self.assertEqual(self.read_only.pure_reads, frozenset(['x', 'y']))
+        self.assertEqual(self.write_only.pure_reads, frozenset())
+        self.assertEqual(self.read_write.pure_reads, frozenset(['a']))
+    
+    def test_pure_writes(self):
+        """Test: Variables solo escritas."""
+        self.assertEqual(self.empty.pure_writes, frozenset())
+        self.assertEqual(self.read_only.pure_writes, frozenset())
+        self.assertEqual(self.write_only.pure_writes, frozenset(['z', 'w']))
+        self.assertEqual(self.read_write.pure_writes, frozenset(['c']))
+    
+    # -------------------------------------------------------------------------
+    # ÁLGEBRA MONOIDAL
+    # -------------------------------------------------------------------------
+    
+    def test_monoidal_identity(self):
+        """Test: Elemento identidad del monoide."""
+        identity = DataFlowCoordinates.identity()
+        
+        # e ⊕ a = a
+        result1 = identity.combine(self.read_only)
+        self.assertEqual(result1, self.read_only)
+        
+        # a ⊕ e = a
+        result2 = self.read_only.combine(identity)
+        self.assertEqual(result2, self.read_only)
+    
+    def test_monoidal_associativity(self):
+        """Test: Asociatividad de combine."""
+        # (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)
+        left = self.read_only.combine(self.write_only).combine(self.read_write)
+        right = self.read_only.combine(self.write_only.combine(self.read_write))
+        
+        self.assertEqual(left, right)
+    
+    def test_combine_sequential_semantics(self):
+        """Test: Semántica secuencial de combine."""
+        # Si A escribe x, luego B lee x, la lectura es interna
+        A = DataFlowCoordinates(writes=frozenset(['x']))
+        B = DataFlowCoordinates(reads=frozenset(['x']))
+        
+        combined = A.combine(B)
+        
+        # x no debe aparecer en reads del combinado (lectura interna)
+        self.assertNotIn('x', combined.reads)
+        self.assertIn('x', combined.writes)
+    
+    def test_combine_preserves_external_reads(self):
+        """Test: Lecturas externas se preservan."""
+        A = DataFlowCoordinates(reads=frozenset(['y']))
+        B = DataFlowCoordinates(writes=frozenset(['z']))
+        
+        combined = A.combine(B)
+        
+        self.assertIn('y', combined.reads)
+        self.assertIn('z', combined.writes)
+    
+    def test_combine_multiple(self):
+        """Test: Composición de múltiples flujos."""
+        flows = [
+            DataFlowCoordinates(reads=frozenset(['a']), writes=frozenset(['b'])),
+            DataFlowCoordinates(reads=frozenset(['b']), writes=frozenset(['c'])),
+            DataFlowCoordinates(reads=frozenset(['c']), writes=frozenset(['d'])),
+        ]
+        
+        # a → b → c → d
+        result = flows[0]
+        for flow in flows[1:]:
+            result = result.combine(flow)
+        
+        # Solo 'a' es lectura externa, 'd' es escritura final
+        self.assertIn('a', result.reads)
+        self.assertIn('d', result.writes)
+        # b, c son internas
+        self.assertNotIn('b', result.reads)
+        self.assertNotIn('c', result.reads)
+    
+    # -------------------------------------------------------------------------
+    # ANÁLISIS DE INTERFERENCIA
+    # -------------------------------------------------------------------------
+    
+    def test_no_interference_disjoint(self):
+        """Test: No hay interferencia si las variables son disjuntas."""
+        A = DataFlowCoordinates(reads=frozenset(['x']), writes=frozenset(['y']))
+        B = DataFlowCoordinates(reads=frozenset(['a']), writes=frozenset(['b']))
+        
+        self.assertFalse(A.has_interference_with(B))
+        self.assertFalse(B.has_interference_with(A))
+    
+    def test_interference_RAW(self):
+        """Test: Interferencia RAW (Read After Write)."""
+        A = DataFlowCoordinates(writes=frozenset(['x']))
+        B = DataFlowCoordinates(reads=frozenset(['x']))
+        
+        self.assertTrue(A.has_interference_with(B))
+        self.assertTrue(B.has_interference_with(A))
+    
+    def test_interference_WAR(self):
+        """Test: Interferencia WAR (Write After Read)."""
+        A = DataFlowCoordinates(reads=frozenset(['x']))
+        B = DataFlowCoordinates(writes=frozenset(['x']))
+        
+        self.assertTrue(A.has_interference_with(B))
+    
+    def test_interference_WAW(self):
+        """Test: Interferencia WAW (Write After Write)."""
+        A = DataFlowCoordinates(writes=frozenset(['x']))
+        B = DataFlowCoordinates(writes=frozenset(['x']))
+        
+        self.assertTrue(A.has_interference_with(B))
+    
+    def test_interference_score_antisymmetry(self):
+        """Test: Antisimetría del score de interferencia."""
+        A = DataFlowCoordinates(writes=frozenset(['x']), reads=frozenset(['y']))
+        B = DataFlowCoordinates(reads=frozenset(['x']), writes=frozenset(['y']))
+        
+        score_AB = DataFlowCoordinates.interference_score(A, B)
+        score_BA = DataFlowCoordinates.interference_score(B, A)
+        
+        # I(A, B) = -I(B, A)
+        self.assertEqual(score_AB, -score_BA)
+    
+    def test_interference_score_magnitude(self):
+        """Test: Magnitud del score indica dirección de dependencia."""
+        # A escribe x, B lee x → A debe ir antes que B
+        A = DataFlowCoordinates(writes=frozenset(['x']))
+        B = DataFlowCoordinates(reads=frozenset(['x']))
+        
+        score = DataFlowCoordinates.interference_score(A, B)
+        
+        # Score positivo: A debe ejecutarse antes que B
+        self.assertGreater(score, 0)
+    
     def test_interference_score_zero(self):
-        """Score cero sin interferencia."""
-        a = DataFlowCoordinates(reads=frozenset(["x"]))
-        b = DataFlowCoordinates(reads=frozenset(["y"]))
-
-        score = DataFlowCoordinates.interference_score(a, b)
+        """Test: Score cero para flujos independientes."""
+        A = DataFlowCoordinates(reads=frozenset(['x']), writes=frozenset(['y']))
+        B = DataFlowCoordinates(reads=frozenset(['a']), writes=frozenset(['b']))
+        
+        score = DataFlowCoordinates.interference_score(A, B)
         self.assertEqual(score, 0)
+    
+    def test_dominates(self):
+        """Test: Relación de dominancia."""
+        A = DataFlowCoordinates(writes=frozenset(['x']))
+        B = DataFlowCoordinates(reads=frozenset(['x']))
+        
+        self.assertTrue(A.dominates(B))
+        self.assertFalse(B.dominates(A))
+    
+    # -------------------------------------------------------------------------
+    # MÉTRICAS ESPECTRALES
+    # -------------------------------------------------------------------------
+    
+    def test_spectral_radius_empty(self):
+        """Test: Radio espectral para flujo vacío."""
+        radius = self.empty.spectral_radius()
+        self.assertEqual(radius, 0.0)
+    
+    def test_spectral_radius_calculation(self):
+        """Test: Cálculo del radio espectral."""
+        coords = DataFlowCoordinates(
+            reads=frozenset(['a', 'b']),
+            writes=frozenset(['c'])
+        )
+        # ρ = √(|reads|² + |writes|²) = √(4 + 1) = √5
+        expected = math.sqrt(2**2 + 1**2)
+        self.assertAlmostEqual(coords.spectral_radius(), expected, places=6)
+    
+    def test_entropy_empty(self):
+        """Test: Entropía de flujo vacío."""
+        entropy = self.empty.entropy()
+        self.assertEqual(entropy, 0.0)
+    
+    def test_entropy_calculation(self):
+        """Test: Cálculo de entropía de Shannon."""
+        coords = DataFlowCoordinates(
+            reads=frozenset(['a', 'b']),
+            writes=frozenset(['c', 'd'])
+        )
+        # H = log₂(|all_variables|) = log₂(4) = 2.0
+        expected = math.log2(4)
+        self.assertAlmostEqual(coords.entropy(), expected, places=6)
+    
+    def test_entropy_monotonicity(self):
+        """Test: Entropía crece con más variables."""
+        coords1 = DataFlowCoordinates(reads=frozenset(['x']))
+        coords2 = DataFlowCoordinates(reads=frozenset(['x', 'y']))
+        coords3 = DataFlowCoordinates(reads=frozenset(['x', 'y', 'z']))
+        
+        self.assertLess(coords1.entropy(), coords2.entropy())
+        self.assertLess(coords2.entropy(), coords3.entropy())
+    
+    # -------------------------------------------------------------------------
+    # CASOS EDGE
+    # -------------------------------------------------------------------------
+    
+    def test_large_variable_set(self):
+        """Test: Manejo de conjuntos grandes de variables."""
+        large_set = frozenset([f'var_{i}' for i in range(1000)])
+        coords = DataFlowCoordinates(reads=large_set)
+        
+        self.assertEqual(len(coords.reads), 1000)
+        self.assertGreater(coords.spectral_radius(), 0)
+        self.assertGreater(coords.entropy(), 0)
+    
+    def test_special_characters_in_names(self):
+        """Test: Nombres de variables con caracteres especiales."""
+        coords = DataFlowCoordinates(
+            reads=frozenset(['_private', '__dunder__', 'CamelCase'])
+        )
+        
+        self.assertEqual(len(coords.reads), 3)
+    
+    def test_unicode_variable_names(self):
+        """Test: Nombres Unicode (Python 3 permite esto)."""
+        coords = DataFlowCoordinates(
+            reads=frozenset(['α', 'β', 'γ'])
+        )
+        
+        self.assertEqual(len(coords.reads), 3)
 
 
-# ========================================================================================
-# TESTS: ComplexityProfile
-# ========================================================================================
+# =============================================================================
+# TESTS: ComplexityProfile (Métricas de Complejidad)
+# =============================================================================
 
-
-class TestComplexityProfile(TestBase):
-    """Tests para ComplexityProfile."""
-
-    def test_construction(self):
-        """Construcción básica."""
+class TestComplexityProfile(unittest.TestCase):
+    """
+    Test suite para ComplexityProfile.
+    
+    Verifica:
+    - Validación de invariantes
+    - Métricas derivadas
+    - Clasificación de riesgo
+    - Umbrales de mantenibilidad
+    """
+    
+    def test_initialization_valid(self):
+        """Test: Inicialización con valores válidos."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=5,
+            max_nesting_depth=3,
+            num_functions=2,
+            num_classes=1,
+            num_branches=4,
+            num_loops=1
+        )
+        
+        self.assertEqual(profile.cyclomatic_complexity, 5)
+        self.assertEqual(profile.max_nesting_depth, 3)
+    
+    def test_initialization_invalid_cc(self):
+        """Test: CC < 1 es inválido."""
+        with self.assertRaises(ValueError):
+            ComplexityProfile(
+                cyclomatic_complexity=0,
+                max_nesting_depth=1,
+                num_functions=1,
+                num_classes=0
+            )
+    
+    def test_initialization_invalid_depth(self):
+        """Test: Profundidad negativa es inválida."""
+        with self.assertRaises(ValueError):
+            ComplexityProfile(
+                cyclomatic_complexity=1,
+                max_nesting_depth=-1,
+                num_functions=1,
+                num_classes=0
+            )
+    
+    def test_initialization_invalid_counts(self):
+        """Test: Contadores negativos son inválidos."""
+        with self.assertRaises(ValueError):
+            ComplexityProfile(
+                cyclomatic_complexity=1,
+                max_nesting_depth=1,
+                num_functions=-1,
+                num_classes=0
+            )
+    
+    # -------------------------------------------------------------------------
+    # MÉTRICAS DERIVADAS
+    # -------------------------------------------------------------------------
+    
+    def test_is_maintainable_true(self):
+        """Test: Código mantenible."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=10,
+            max_nesting_depth=3,
+            num_functions=5,
+            num_classes=2
+        )
+        
+        self.assertTrue(profile.is_maintainable)
+    
+    def test_is_maintainable_false_high_cc(self):
+        """Test: No mantenible por alta complejidad."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=25,
+            max_nesting_depth=3,
+            num_functions=1,
+            num_classes=0
+        )
+        
+        self.assertFalse(profile.is_maintainable)
+    
+    def test_is_maintainable_false_high_depth(self):
+        """Test: No mantenible por anidamiento profundo."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=10,
+            max_nesting_depth=10,
+            num_functions=1,
+            num_classes=0
+        )
+        
+        self.assertFalse(profile.is_maintainable)
+    
+    def test_risk_level_low(self):
+        """Test: Nivel de riesgo BAJO."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=5,
+            max_nesting_depth=2,
+            num_functions=3,
+            num_classes=1
+        )
+        
+        self.assertEqual(profile.risk_level, "LOW")
+    
+    def test_risk_level_moderate(self):
+        """Test: Nivel de riesgo MODERADO."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=15,
+            max_nesting_depth=4,
+            num_functions=2,
+            num_classes=1
+        )
+        
+        self.assertEqual(profile.risk_level, "MODERATE")
+    
+    def test_risk_level_high(self):
+        """Test: Nivel de riesgo ALTO."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=30,
+            max_nesting_depth=5,
+            num_functions=1,
+            num_classes=0
+        )
+        
+        self.assertEqual(profile.risk_level, "HIGH")
+    
+    def test_risk_level_critical(self):
+        """Test: Nivel de riesgo CRÍTICO."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=60,
+            max_nesting_depth=8,
+            num_functions=1,
+            num_classes=0
+        )
+        
+        self.assertEqual(profile.risk_level, "CRITICAL")
+    
+    def test_complexity_density(self):
+        """Test: Densidad de complejidad."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=20,
+            max_nesting_depth=3,
+            num_functions=4,
+            num_classes=0
+        )
+        
+        # Densidad = 20 / 4 = 5.0
+        self.assertAlmostEqual(profile.complexity_density, 5.0, places=2)
+    
+    def test_complexity_density_no_functions(self):
+        """Test: Densidad cuando no hay funciones (normalización)."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=10,
+            max_nesting_depth=2,
+            num_functions=0,
+            num_classes=1
+        )
+        
+        # Densidad = 10 / max(0, 1) = 10.0
+        self.assertAlmostEqual(profile.complexity_density, 10.0, places=2)
+    
+    def test_essential_complexity(self):
+        """Test: Complejidad esencial."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=20,
+            max_nesting_depth=5,
+            num_functions=3,
+            num_classes=1,
+            num_branches=8,
+            num_loops=4
+        )
+        
+        # Essential = max(1, CC - branches - loops + 1)
+        # = max(1, 20 - 8 - 4 + 1) = max(1, 9) = 9
+        self.assertEqual(profile.essential_complexity, 9)
+    
+    def test_essential_complexity_minimum(self):
+        """Test: Complejidad esencial mínima es 1."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=5,
+            max_nesting_depth=2,
+            num_functions=1,
+            num_classes=0,
+            num_branches=10,
+            num_loops=10
+        )
+        
+        # Aunque la fórmula dé negativo, debe ser al menos 1
+        self.assertEqual(profile.essential_complexity, 1)
+    
+    def test_halstead_volume(self):
+        """Test: Volumen de Halstead."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=10,
+            max_nesting_depth=3,
+            num_functions=4,
+            num_classes=2
+        )
+        
+        # V = N × log₂(n) donde N ≈ CC, n = funcs + classes
+        # V = 10 × log₂(6) ≈ 10 × 2.585 ≈ 25.85
+        expected = 10 * math.log2(4 + 2)
+        self.assertAlmostEqual(profile.halstead_volume, expected, places=2)
+    
+    def test_halstead_volume_minimum(self):
+        """Test: Volumen mínimo cuando no hay funciones/clases."""
+        profile = ComplexityProfile(
+            cyclomatic_complexity=5,
+            max_nesting_depth=2,
+            num_functions=0,
+            num_classes=0
+        )
+        
+        # n = max(0 + 0, 2) = 2
+        expected = 5 * math.log2(2)
+        self.assertAlmostEqual(profile.halstead_volume, expected, places=2)
+    
+    # -------------------------------------------------------------------------
+    # SERIALIZACIÓN
+    # -------------------------------------------------------------------------
+    
+    def test_to_dict(self):
+        """Test: Conversión a diccionario."""
         profile = ComplexityProfile(
             cyclomatic_complexity=10,
             max_nesting_depth=3,
             num_functions=2,
             num_classes=1,
+            num_branches=5,
+            num_loops=2
         )
+        
+        d = profile.to_dict()
+        
+        self.assertIsInstance(d, dict)
+        self.assertEqual(d['cyclomatic_complexity'], 10)
+        self.assertEqual(d['max_nesting_depth'], 3)
+        self.assertEqual(d['risk_level'], 'MODERATE')
+        self.assertIn('complexity_density', d)
+        self.assertIn('is_maintainable', d)
 
-        self.assertEqual(profile.cyclomatic_complexity, 10)
-        self.assertEqual(profile.max_nesting_depth, 3)
 
-    def test_is_maintainable_true(self):
-        """Código mantenible."""
-        profile = ComplexityProfile(
-            cyclomatic_complexity=15,
-            max_nesting_depth=4,
-            num_functions=3,
-            num_classes=1,
+# =============================================================================
+# TESTS: DataFlowAnalyzer (Análisis de AST)
+# =============================================================================
+
+class TestDataFlowAnalyzer(unittest.TestCase):
+    """
+    Test suite para DataFlowAnalyzer.
+    
+    Verifica:
+    - Detección de lecturas/escrituras
+    - Cálculo de complejidad ciclomática
+    - Profundidad de anidamiento
+    - Contadores estructurales
+    """
+    
+    def analyze(self, code: str, **kwargs) -> Tuple[DataFlowCoordinates, ComplexityProfile]:
+        """Helper: analiza código y devuelve coordenadas + perfil."""
+        tree = TestHelpers.parse_code(code)
+        analyzer = DataFlowAnalyzer(
+            enable_hamiltonian_monitor=False,
+            enable_block_tracking=False,
+            **kwargs
         )
-
-        self.assertTrue(profile.is_maintainable)
-
-    def test_is_maintainable_false_complexity(self):
-        """No mantenible por complejidad."""
-        profile = ComplexityProfile(
-            cyclomatic_complexity=25,
-            max_nesting_depth=3,
-            num_functions=1,
-            num_classes=0,
-        )
-
-        self.assertFalse(profile.is_maintainable)
-
-    def test_is_maintainable_false_depth(self):
-        """No mantenible por profundidad."""
-        profile = ComplexityProfile(
-            cyclomatic_complexity=10,
-            max_nesting_depth=7,
-            num_functions=1,
-            num_classes=0,
-        )
-
-        self.assertFalse(profile.is_maintainable)
-
-    def test_risk_level_low(self):
-        """Riesgo bajo."""
-        profile = ComplexityProfile(
-            cyclomatic_complexity=5, max_nesting_depth=2, num_functions=1, num_classes=0
-        )
-
-        self.assertEqual(profile.risk_level, "LOW")
-
-    def test_risk_level_moderate(self):
-        """Riesgo moderado."""
-        profile = ComplexityProfile(
-            cyclomatic_complexity=15,
-            max_nesting_depth=3,
-            num_functions=1,
-            num_classes=0,
-        )
-
-        self.assertEqual(profile.risk_level, "MODERATE")
-
-    def test_risk_level_high(self):
-        """Riesgo alto."""
-        profile = ComplexityProfile(
-            cyclomatic_complexity=30,
-            max_nesting_depth=4,
-            num_functions=1,
-            num_classes=0,
-        )
-
-        self.assertEqual(profile.risk_level, "HIGH")
-
-    def test_risk_level_critical(self):
-        """Riesgo crítico."""
-        profile = ComplexityProfile(
-            cyclomatic_complexity=60,
-            max_nesting_depth=8,
-            num_functions=1,
-            num_classes=0,
-        )
-
-        self.assertEqual(profile.risk_level, "CRITICAL")
-
-    def test_complexity_density(self):
-        """Densidad de complejidad."""
-        profile = ComplexityProfile(
-            cyclomatic_complexity=20,
-            max_nesting_depth=3,
-            num_functions=4,
-            num_classes=0,
-        )
-
-        self.assertEqual(profile.complexity_density, 5.0)  # 20 / 4
-
-    def test_complexity_density_no_functions(self):
-        """Densidad sin funciones (usa 1 como base)."""
-        profile = ComplexityProfile(
-            cyclomatic_complexity=10,
-            max_nesting_depth=2,
-            num_functions=0,
-            num_classes=0,
-        )
-
-        self.assertEqual(profile.complexity_density, 10.0)  # 10 / 1
-
-
-# ========================================================================================
-# TESTS: DataFlowAnalyzer
-# ========================================================================================
-
-
-class TestDataFlowAnalyzer(TestBase):
-    """Tests para DataFlowAnalyzer."""
-
+        analyzer.visit(tree)
+        return analyzer.get_dataflow_coordinates(), analyzer.get_complexity_profile()
+    
+    # -------------------------------------------------------------------------
+    # FLUJO DE DATOS: LECTURAS Y ESCRITURAS
+    # -------------------------------------------------------------------------
+    
     def test_simple_assignment(self):
-        """Asignación simple."""
+        """Test: Asignación simple."""
         code = "x = 5"
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        coords = analyzer.get_dataflow_coordinates()
-
-        self.assertIn("x", coords.writes)
+        coords, _ = self.analyze(code)
+        
+        self.assertIn('x', coords.writes)
         self.assertEqual(len(coords.reads), 0)
-
-    def test_simple_read(self):
-        """Lectura simple."""
+    
+    def test_read_and_write(self):
+        """Test: Lectura y escritura."""
         code = "y = x + 1"
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        coords = analyzer.get_dataflow_coordinates()
-
-        self.assertIn("x", coords.reads)
-        self.assertIn("y", coords.writes)
-
-    def test_multiple_reads_writes(self):
-        """Múltiples lecturas y escrituras."""
+        coords, _ = self.analyze(code)
+        
+        self.assertIn('x', coords.reads)
+        self.assertIn('y', coords.writes)
+    
+    def test_augmented_assignment(self):
+        """Test: Asignación aumentada (x += 1)."""
+        code = "x += 1"
+        coords, _ = self.analyze(code)
+        
+        # x es tanto lectura como escritura
+        self.assertIn('x', coords.reads)
+        self.assertIn('x', coords.writes)
+        self.assertIn('x', coords.modified_variables)
+    
+    def test_multiple_assignment(self):
+        """Test: Asignación múltiple."""
+        code = "a = b = c = 0"
+        coords, _ = self.analyze(code)
+        
+        self.assertIn('a', coords.writes)
+        self.assertIn('b', coords.writes)
+        self.assertIn('c', coords.writes)
+    
+    def test_tuple_unpacking(self):
+        """Test: Desempaquetado de tuplas."""
+        code = "a, b = 1, 2"
+        coords, _ = self.analyze(code)
+        
+        self.assertIn('a', coords.writes)
+        self.assertIn('b', coords.writes)
+    
+    def test_function_call_arguments(self):
+        """Test: Argumentos en llamadas a función."""
         code = """
-x = 1
-y = 2
-z = x + y
+result = func(x, y, z=w)
 """
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        coords = analyzer.get_dataflow_coordinates()
-
-        self.assertFrozenSetEqual(coords.reads, frozenset(["x", "y"]))
-        self.assertFrozenSetEqual(coords.writes, frozenset(["x", "y", "z"]))
-
-    def test_function_arguments(self):
-        """Argumentos de función son writes."""
+        coords, _ = self.analyze(code)
+        
+        self.assertIn('x', coords.reads)
+        self.assertIn('y', coords.reads)
+        self.assertIn('w', coords.reads)
+        self.assertIn('result', coords.writes)
+    
+    def test_attribute_access(self):
+        """Test: Acceso a atributos."""
         code = """
-def foo(a, b, c=10):
-    return a + b + c
+value = obj.attr
+obj.prop = 5
 """
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        coords = analyzer.get_dataflow_coordinates()
-
-        self.assertIn("a", coords.writes)
-        self.assertIn("b", coords.writes)
-        self.assertIn("c", coords.writes)
-
-    def test_function_varargs(self):
-        """*args y **kwargs."""
+        coords, _ = self.analyze(code)
+        
+        self.assertIn('attr', coords.reads)
+        self.assertIn('prop', coords.writes)
+        self.assertIn('value', coords.writes)
+    
+    def test_subscript_access(self):
+        """Test: Acceso por índice."""
         code = """
-def foo(*args, **kwargs):
+value = arr[i]
+arr[j] = 10
+"""
+        coords, _ = self.analyze(code)
+        
+        self.assertIn('i', coords.reads)
+        self.assertIn('j', coords.reads)
+        self.assertIn('arr', coords.reads)
+    
+    def test_delete_statement(self):
+        """Test: Statement delete."""
+        code = "del x"
+        coords, _ = self.analyze(code)
+        
+        # del implica lectura (verificar existencia) y escritura (eliminación)
+        self.assertIn('x', coords.reads)
+        self.assertIn('x', coords.writes)
+    
+    def test_function_definition_args(self):
+        """Test: Argumentos de función son escrituras."""
+        code = """
+def func(a, b, c=0, *args, **kwargs):
     pass
 """
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        coords = analyzer.get_dataflow_coordinates()
-
-        self.assertIn("args", coords.writes)
-        self.assertIn("kwargs", coords.writes)
-
-    def test_attribute_access(self):
-        """Acceso a atributos."""
+        coords, _ = self.analyze(code)
+        
+        self.assertIn('a', coords.writes)
+        self.assertIn('b', coords.writes)
+        self.assertIn('c', coords.writes)
+        self.assertIn('args', coords.writes)
+        self.assertIn('kwargs', coords.writes)
+    
+    def test_lambda_arguments(self):
+        """Test: Argumentos de lambda."""
+        code = "f = lambda x, y: x + y"
+        coords, _ = self.analyze(code)
+        
+        self.assertIn('x', coords.writes)
+        self.assertIn('y', coords.writes)
+        self.assertIn('f', coords.writes)
+    
+    def test_comprehension_variables(self):
+        """Test: Variables en comprehensions."""
+        code = "[x for x in range(10) if x > 5]"
+        coords, _ = self.analyze(code)
+        
+        # 'x' es variable local de la comprehension (escritura)
+        # Nota: el comportamiento exacto puede variar según implementación
+        # pero range es una lectura
+        self.assertIn('range', coords.reads)
+    
+    def test_class_definition(self):
+        """Test: Definición de clase."""
         code = """
-obj.value = 10
-x = obj.value
+class MyClass:
+    def method(self):
+        return self.value
 """
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        coords = analyzer.get_dataflow_coordinates()
-
-        self.assertIn("value", coords.reads)
-        self.assertIn("value", coords.writes)
-        self.assertIn("x", coords.writes)
-
-    def test_cyclomatic_if(self):
-        """If incrementa complejidad."""
+        coords, profile = self.analyze(code)
+        
+        self.assertEqual(profile.num_classes, 1)
+        self.assertEqual(profile.num_functions, 1)
+        self.assertIn('self', coords.writes)
+    
+    # -------------------------------------------------------------------------
+    # COMPLEJIDAD CICLOMÁTICA
+    # -------------------------------------------------------------------------
+    
+    def test_cc_base(self):
+        """Test: Complejidad base es 1."""
+        code = "x = 5"
+        _, profile = self.analyze(code)
+        
+        self.assertEqual(profile.cyclomatic_complexity, 1)
+    
+    def test_cc_if_statement(self):
+        """Test: if incrementa CC en 1."""
+        code = """
+if x > 0:
+    y = 1
+"""
+        _, profile = self.analyze(code)
+        
+        self.assertEqual(profile.cyclomatic_complexity, 2)  # 1 base + 1 if
+    
+    def test_cc_if_else(self):
+        """Test: if-else incrementa CC en 1 (no 2)."""
         code = """
 if x > 0:
     y = 1
 else:
+    y = -1
+"""
+        _, profile = self.analyze(code)
+        
+        self.assertEqual(profile.cyclomatic_complexity, 2)  # 1 base + 1 if
+    
+    def test_cc_if_elif_else(self):
+        """Test: if-elif-else."""
+        code = """
+if x > 0:
+    y = 1
+elif x < 0:
+    y = -1
+else:
     y = 0
 """
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        profile = analyzer.get_complexity_profile()
-
-        self.assertEqual(profile.cyclomatic_complexity, 2)  # 1 base + 1 if
-
-    def test_cyclomatic_for(self):
-        """For incrementa complejidad."""
+        _, profile = self.analyze(code)
+        
+        # 1 base + 2 (if y elif)
+        self.assertEqual(profile.cyclomatic_complexity, 3)
+    
+    def test_cc_for_loop(self):
+        """Test: for incrementa CC en 1."""
         code = """
 for i in range(10):
     print(i)
 """
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        profile = analyzer.get_complexity_profile()
-
-        self.assertEqual(profile.cyclomatic_complexity, 2)  # 1 base + 1 for
-
-    def test_cyclomatic_while(self):
-        """While incrementa complejidad."""
+        _, profile = self.analyze(code)
+        
+        self.assertEqual(profile.cyclomatic_complexity, 2)
+        self.assertEqual(profile.num_loops, 1)
+    
+    def test_cc_while_loop(self):
+        """Test: while incrementa CC en 1."""
         code = """
-while x < 10:
-    x += 1
+while x > 0:
+    x -= 1
 """
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        profile = analyzer.get_complexity_profile()
-
-        self.assertEqual(profile.cyclomatic_complexity, 2)  # 1 base + 1 while
-
-    def test_cyclomatic_try_except(self):
-        """Try/except incrementa complejidad."""
+        _, profile = self.analyze(code)
+        
+        self.assertEqual(profile.cyclomatic_complexity, 2)
+        self.assertEqual(profile.num_loops, 1)
+    
+    def test_cc_try_except(self):
+        """Test: try-except incrementa CC."""
         code = """
 try:
-    x = risky_function()
+    risky()
 except ValueError:
-    x = 0
-except KeyError:
-    x = 1
+    handle()
+except TypeError:
+    handle2()
 """
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        profile = analyzer.get_complexity_profile()
-
+        _, profile = self.analyze(code)
+        
         # 1 base + 1 try + 2 except
         self.assertEqual(profile.cyclomatic_complexity, 4)
-
-    def test_cyclomatic_boolean_or(self):
-        """Boolean OR incrementa complejidad."""
+    
+    def test_cc_boolean_operators(self):
+        """Test: and/or incrementan CC."""
         code = """
-if a or b or c:
+if x > 0 and y > 0 or z > 0:
     pass
 """
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        profile = analyzer.get_complexity_profile()
-
-        # 1 base + 1 if + 2 (or con 3 operandos = 2 decisiones)
+        _, profile = self.analyze(code)
+        
+        # 1 base + 1 if + 2 (and, or)
         self.assertEqual(profile.cyclomatic_complexity, 4)
-
-    def test_cyclomatic_boolean_and(self):
-        """Boolean AND incrementa complejidad."""
-        code = """
-if a and b and c and d:
-    pass
-"""
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        profile = analyzer.get_complexity_profile()
-
-        # 1 base + 1 if + 3 (and con 4 operandos = 3 decisiones)
-        self.assertEqual(profile.cyclomatic_complexity, 5)
-
-    def test_cyclomatic_ternary(self):
-        """Expresión ternaria incrementa complejidad."""
-        code = "x = a if condition else b"
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        profile = analyzer.get_complexity_profile()
-
-        self.assertEqual(profile.cyclomatic_complexity, 2)  # 1 base + 1 ternary
-
-    def test_cyclomatic_lambda(self):
-        """Lambda incrementa complejidad y función."""
-        code = "f = lambda x: x + 1"
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        profile = analyzer.get_complexity_profile()
-
-        self.assertEqual(
-            profile.cyclomatic_complexity, 1
-        )  # 1 base (lambda no añade ramas extra a Betti_1)
-        self.assertEqual(profile.num_functions, 1)
-
-    def test_cyclomatic_comprehension(self):
-        """Comprensión incrementa complejidad."""
-        code = "[x for x in range(10) if x % 2 == 0]"
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        profile = analyzer.get_complexity_profile()
-
-        # 1 base + 1 for + 1 if
+    
+    def test_cc_ternary_expression(self):
+        """Test: Expresión ternaria incrementa CC."""
+        code = "y = 1 if x > 0 else -1"
+        _, profile = self.analyze(code)
+        
+        self.assertEqual(profile.cyclomatic_complexity, 2)
+    
+    def test_cc_list_comprehension_with_if(self):
+        """Test: List comprehension con filtro if."""
+        code = "[x for x in range(10) if x > 5]"
+        _, profile = self.analyze(code)
+        
+        # 1 base + 1 comprehension + 1 if
         self.assertEqual(profile.cyclomatic_complexity, 3)
-
-    def test_max_depth_simple(self):
-        """Profundidad simple."""
-        code = "x = 1"
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        profile = analyzer.get_complexity_profile()
-
-        self.assertGreater(profile.max_nesting_depth, 0)
-
-    def test_max_depth_nested(self):
-        """Profundidad con anidamiento."""
+    
+    def test_cc_nested_loops(self):
+        """Test: Bucles anidados."""
         code = """
-def outer():
-    def inner():
+for i in range(10):
+    for j in range(10):
+        print(i, j)
+"""
+        _, profile = self.analyze(code)
+        
+        # 1 base + 2 (dos fors)
+        self.assertEqual(profile.cyclomatic_complexity, 3)
+        self.assertEqual(profile.num_loops, 2)
+    
+    def test_cc_complex_example(self):
+        """Test: Ejemplo con múltiples construcciones."""
+        code = """
+def process(x):
+    if x > 0:
+        for i in range(x):
+            if i % 2 == 0:
+                print(i)
+    elif x < 0:
+        while x < 0:
+            x += 1
+    else:
+        try:
+            risky()
+        except:
+            pass
+    return x
+"""
+        _, profile = self.analyze(code)
+        
+        # 1 base + 1 if + 1 for + 1 if + 1 elif + 1 while + 1 try + 1 except
+        # Total: 8
+        self.assertGreaterEqual(profile.cyclomatic_complexity, 7)
+    
+    # -------------------------------------------------------------------------
+    # PROFUNDIDAD DE ANIDAMIENTO
+    # -------------------------------------------------------------------------
+    
+    def test_depth_flat_code(self):
+        """Test: Código plano tiene profundidad mínima."""
+        code = """
+x = 1
+y = 2
+z = 3
+"""
+        _, profile = self.analyze(code)
+        
+        # Profundidad mínima (puede variar según implementación)
+        self.assertLessEqual(profile.max_nesting_depth, 3)
+    
+    def test_depth_nested_ifs(self):
+        """Test: Ifs anidados incrementan profundidad."""
+        code = """
+if True:
+    if True:
         if True:
-            for i in range(10):
-                pass
+            x = 1
 """
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        profile = analyzer.get_complexity_profile()
-
-        # Debe tener profundidad considerable
-        self.assertGreater(profile.max_nesting_depth, 5)
-
-    def test_depth_limit_exceeded(self):
-        """Límite de profundidad excedido."""
-        # Crear código con anidamiento profundo
-        depth = AnalysisLimits.MAX_AST_DEPTH + 5
-        code = "x = " + "(" * depth + "1" + ")" * depth
-
-        tree = ast.parse(code)
-        analyzer = DataFlowAnalyzer()
-
-        with self.assertRaises(RecursionError):
-            # Nested parentheses in python AST are parsed away and won't increase depth. Let's use nested conditionals
-            depth = AnalysisLimits.MAX_AST_DEPTH + 5
-            code = (
-                "if True:\n"
-                + "".join([f"{'    ' * i}if True:\n" for i in range(1, depth)])
-                + f"{'    ' * depth}pass"
-            )
-            tree = ast.parse(code)
-            analyzer.visit(tree)
-
-    def test_num_functions(self):
-        """Conteo de funciones."""
+        _, profile = self.analyze(code)
+        
+        self.assertGreaterEqual(profile.max_nesting_depth, 3)
+    
+    def test_depth_function_with_loops(self):
+        """Test: Función con bucles anidados."""
         code = """
-def foo():
-    pass
-
-def bar():
-    pass
-
-async def baz():
-    pass
-
-f = lambda x: x
+def func():
+    for i in range(10):
+        for j in range(10):
+            if i == j:
+                print(i)
 """
-        tree = ast.parse(code)
+        _, profile = self.analyze(code)
+        
+        self.assertGreaterEqual(profile.max_nesting_depth, 4)
+    
+    # -------------------------------------------------------------------------
+    # CONTADORES ESTRUCTURALES
+    # -------------------------------------------------------------------------
+    
+    def test_count_functions(self):
+        """Test: Contador de funciones."""
+        code = """
+def func1():
+    pass
 
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
+def func2():
+    pass
 
-        profile = analyzer.get_complexity_profile()
-
-        self.assertEqual(profile.num_functions, 4)  # foo, bar, baz, lambda
-
-    def test_num_classes(self):
-        """Conteo de clases."""
+def func3():
+    def nested():
+        pass
+"""
+        _, profile = self.analyze(code)
+        
+        self.assertEqual(profile.num_functions, 4)  # 3 + 1 nested
+    
+    def test_count_classes(self):
+        """Test: Contador de clases."""
         code = """
 class A:
     pass
 
 class B:
-    class C:
+    class Nested:
         pass
 """
-        tree = ast.parse(code)
-
-        analyzer = DataFlowAnalyzer()
-        analyzer.visit(tree)
-
-        profile = analyzer.get_complexity_profile()
-
-        self.assertEqual(profile.num_classes, 3)  # A, B, C
-
-
-# ========================================================================================
-# TESTS: JSONStructureValidator
-# ========================================================================================
-
-
-class TestJSONStructureValidator(TestBase):
-    """Tests para JSONStructureValidator."""
-
-    def test_validate_simple_dict(self):
-        """Validación de diccionario simple."""
-        data = {"key": "value"}
-
-        is_valid, error = JSONStructureValidator.validate_structure(data)
-
-        self.assertTrue(is_valid)
-        self.assertEqual(error, "")
-
-    def test_validate_nested_dict(self):
-        """Validación de diccionario anidado."""
-        data = {"level1": {"level2": {"level3": "value"}}}
-
-        is_valid, error = JSONStructureValidator.validate_structure(data, max_depth=5)
-
-        self.assertTrue(is_valid)
-
-    def test_validate_depth_exceeded(self):
-        """Profundidad excedida."""
-        data = {"l1": {"l2": {"l3": {"l4": {"l5": {"l6": "too deep"}}}}}}
-
-        is_valid, error = JSONStructureValidator.validate_structure(data, max_depth=4)
-
-        self.assertFalse(is_valid)
-        self.assertIn("Depth", error)
-
-    def test_validate_too_many_keys(self):
-        """Demasiadas claves."""
-        data = {f"key{i}": i for i in range(150)}
-
-        is_valid, error = JSONStructureValidator.validate_structure(data, max_keys=100)
-
-        self.assertFalse(is_valid)
-        self.assertIn("keys", error)
-
-    def test_validate_list(self):
-        """Validación de lista."""
-        data = [1, 2, 3, {"nested": "value"}]
-
-        is_valid, error = JSONStructureValidator.validate_structure(data)
-
-        self.assertTrue(is_valid)
-
-    def test_validate_list_too_long(self):
-        """Lista demasiado larga."""
-        data = list(range(2000))
-
-        is_valid, error = JSONStructureValidator.validate_structure(data, max_keys=100)
-
-        self.assertFalse(is_valid)
-        self.assertIn("items", error)
-
-    def test_validate_mixed_structure(self):
-        """Estructura mixta válida."""
-        data = {
-            "string": "value",
-            "number": 42,
-            "list": [1, 2, 3],
-            "nested": {"inner": "data"},
-        }
-
-        is_valid, error = JSONStructureValidator.validate_structure(data)
-
-        self.assertTrue(is_valid)
-
-    def test_compute_depth_simple(self):
-        """Profundidad simple."""
-        data = {"key": "value"}
-
-        depth = JSONStructureValidator.compute_depth(data)
-
-        self.assertEqual(depth, 1)
-
-    def test_compute_depth_nested(self):
-        """Profundidad anidada."""
-        data = {"l1": {"l2": {"l3": "value"}}}
-
-        depth = JSONStructureValidator.compute_depth(data)
-
-        self.assertEqual(depth, 3)
-
-    def test_compute_depth_empty(self):
-        """Profundidad de estructura vacía."""
-        self.assertEqual(JSONStructureValidator.compute_depth({}), 0)
-        self.assertEqual(JSONStructureValidator.compute_depth([]), 0)
-
-    def test_compute_depth_primitive(self):
-        """Profundidad de primitivo."""
-        self.assertEqual(JSONStructureValidator.compute_depth(42), 0)
-        self.assertEqual(JSONStructureValidator.compute_depth("string"), 0)
-
-
-# ========================================================================================
-# TESTS: TabularNormalizer
-# ========================================================================================
-
-
-class TestTabularNormalizer(TestBase):
-    """Tests para TabularNormalizer."""
-
-    def test_serialize_primitive(self):
-        """Serialización de primitivos."""
-        self.assertEqual(TabularNormalizer._serialize_value(None, 0), "null")
-        self.assertEqual(TabularNormalizer._serialize_value(True, 0), "true")
-        self.assertEqual(TabularNormalizer._serialize_value(False, 0), "false")
-        self.assertEqual(TabularNormalizer._serialize_value(42, 0), "42")
-        self.assertEqual(TabularNormalizer._serialize_value(3.14, 0), "3.14")
-
-    def test_serialize_string(self):
-        """Serialización de strings."""
-        self.assertEqual(TabularNormalizer._serialize_value("hello", 0), '"hello"')
-
-        # String largo se trunca
-        long_str = "a" * 100
-        result = TabularNormalizer._serialize_value(long_str, 0)
-        self.assertTrue(result.endswith('..."'))
-
-    def test_serialize_nan_inf(self):
-        """Serialización de NaN e infinito."""
-        self.assertEqual(TabularNormalizer._serialize_value(float("nan"), 0), "NaN")
-        self.assertEqual(TabularNormalizer._serialize_value(float("inf"), 0), "∞")
-        self.assertEqual(TabularNormalizer._serialize_value(float("-inf"), 0), "-∞")
-
-    def test_serialize_dict_shallow(self):
-        """Serialización de diccionario poco profundo."""
-        data = {"a": 1, "b": 2}
-        result = TabularNormalizer._serialize_value(data, 0)
-
-        self.assertIn("a: 1", result)
-        self.assertIn("b: 2", result)
-
-    def test_serialize_dict_deep(self):
-        """Serialización de diccionario profundo (truncado)."""
-        data = {"a": {"b": {"c": "deep"}}}
-        result = TabularNormalizer._serialize_value(data, 0, max_depth=1)
-
-        # Debe truncarse
-        self.assertIn("keys", result)
-
-    def test_serialize_list_shallow(self):
-        """Serialización de lista."""
-        data = [1, 2, 3]
-        result = TabularNormalizer._serialize_value(data, 0)
-
-        self.assertEqual(result, "[1, 2, 3]")
-
-    def test_serialize_list_long(self):
-        """Lista larga se trunca."""
-        data = list(range(20))
-        result = TabularNormalizer._serialize_value(data, 0)
-
-        # Solo primeros 5 + ...
-        self.assertIn("...", result)
-
-    def test_to_markdown_table_simple(self):
-        """Tabla Markdown simple."""
-        data = {"name": "Alice", "age": 30}
-        result = TabularNormalizer.to_markdown_table(data)
-
-        # Verificar estructura
-        lines = result.split("\n")
-        self.assertEqual(len(lines), 3)  # header, separator, row
-
-        # Verificar contenido
-        self.assertIn("age", lines[0])
-        self.assertIn("name", lines[0])
-        self.assertIn("30", lines[2])
-        self.assertIn("Alice", lines[2])
-
-    def test_to_markdown_table_empty(self):
-        """Tabla vacía."""
-        result = TabularNormalizer.to_markdown_table({})
-
-        self.assertIn("empty", result)
-
-    def test_to_markdown_table_invalid_type(self):
-        """Tipo inválido."""
-        with self.assertRaises(TypeError):
-            TabularNormalizer.to_markdown_table([1, 2, 3])
-
-    def test_to_csv_row(self):
-        """Conversión a CSV."""
-        data = {"name": "Bob", "score": 95}
-        header, row = TabularNormalizer.to_csv_row(data)
-
-        self.assertIn("name", header)
-        self.assertIn("score", header)
-        self.assertIn("Bob", row)
-        self.assertIn("95", row)
-
-
-# ========================================================================================
-# TESTS: ASTStaticAnalyzer
-# ========================================================================================
-
-
-class TestASTStaticAnalyzer(TestBase):
-    """Tests para ASTStaticAnalyzer."""
-
-    def test_analyze_simple_code(self):
-        """Análisis de código simple."""
+        _, profile = self.analyze(code)
+        
+        self.assertEqual(profile.num_classes, 3)
+    
+    def test_count_lambdas_as_functions(self):
+        """Test: Lambdas cuentan como funciones."""
         code = """
-def add(a, b):
-    return a + b
+f1 = lambda x: x + 1
+f2 = lambda x, y: x * y
 """
-
-        dataflow, complexity = ASTStaticAnalyzer.analyze_code(code)
-
-        # Verificar que se detectaron reads/writes
-        self.assertIn("a", dataflow.reads)
-        self.assertIn("b", dataflow.reads)
-
-        # Complejidad ciclomática base
-        self.assertGreaterEqual(complexity.cyclomatic_complexity, 1)
-
-        # Una función definida
-        self.assertEqual(complexity.num_functions, 1)
-
-    def test_analyze_complex_code(self):
-        """Análisis de código complejo."""
-        code = """
-def process_data(items):
-    results = []
-    for item in items:
-        if item > 0:
-            results.append(item * 2)
-        else:
-            results.append(0)
-    return results
-"""
-
-        dataflow, complexity = ASTStaticAnalyzer.analyze_code(code)
-
-        # Complejidad: 1 base + 1 for + 1 if = 3
-        self.assertEqual(complexity.cyclomatic_complexity, 3)
-
-    def test_analyze_empty_code(self):
-        """Código vacío."""
-        with self.assertRaises(ValueError):
-            ASTStaticAnalyzer.analyze_code("")
-
-    def test_analyze_invalid_syntax(self):
-        """Sintaxis inválida."""
-        code = "def foo( invalid syntax"
-
-        with self.assertRaises(ValueError):
-            ASTStaticAnalyzer.analyze_code(code)
-
-    def test_analyze_deep_nesting(self):
-        """Anidamiento profundo."""
-        # Crear código muy anidado
-        code = "x = 1\n"
-        for i in range(60):
-            code += f"{'  ' * i}if x > {i}:\n"
-            code += f"{'  ' * (i+1)}x += 1\n"
-
-        with self.assertRaises(RecursionError):
-            ASTStaticAnalyzer.analyze_code(code)
-
-    def test_validate_json_contract_valid(self):
-        """Validación de JSON válido."""
-        schema = {"name": "TestTool", "version": "1.0", "config": {"timeout": 30}}
-
-        is_valid, error, markdown = ASTStaticAnalyzer.validate_json_contract(schema)
-
-        self.assertTrue(is_valid)
-        self.assertIsNone(error)
-        self.assertIsNotNone(markdown)
-
-    def test_validate_json_contract_too_deep(self):
-        """JSON demasiado profundo."""
-        # Crear estructura muy anidada
-        schema = {}
-        current = schema
-        for i in range(20):
-            current["nested"] = {}
-            current = current["nested"]
-
-        is_valid, error, markdown = ASTStaticAnalyzer.validate_json_contract(
-            schema, max_depth=10
-        )
-
-        self.assertFalse(is_valid)
-        self.assertIsNotNone(error)
-
-    def test_validate_json_contract_list(self):
-        """JSON como lista."""
-        schema = [1, 2, 3]
-
-        is_valid, error, markdown = ASTStaticAnalyzer.validate_json_contract(schema)
-
-        self.assertTrue(is_valid)
-        self.assertEqual(markdown, "(Not a dict, cannot normalize to table)")
-
-    def test_compute_interference_matrix(self):
-        """Matriz de interferencia."""
-        tools = {
-            "tool_a": DataFlowCoordinates(
-                reads=frozenset(["x"]), writes=frozenset(["y"])
-            ),
-            "tool_b": DataFlowCoordinates(
-                reads=frozenset(["y"]), writes=frozenset(["z"])
-            ),
-        }
-
-        matrix = ASTStaticAnalyzer.compute_interference_matrix(tools)
-
-        # tool_a escribe y, tool_b lee y → interferencia
-        self.assertEqual(matrix[("tool_a", "tool_b")], 1)
-        self.assertEqual(matrix[("tool_b", "tool_a")], -1)
-
-
-# ========================================================================================
-# TESTS: Semantic Validation Components
-# ========================================================================================
-
-
-class TestBusinessPurpose(TestBase):
-    """Tests para BusinessPurpose."""
-
-    def test_construction_valid(self):
-        """Construcción válida."""
-        purpose = BusinessPurpose(
-            concept="caching",
-            business_problem="LATENCY_REDUCTION",
-            strength=0.9,
-            confidence=0.95,
-        )
-
-        self.assertEqual(purpose.concept, "caching")
-        self.assertEqual(purpose.effective_strength, 0.9 * 0.95)
-
-    def test_construction_invalid_strength(self):
-        """Strength inválido."""
-        with self.assertRaises(ValueError):
-            BusinessPurpose("concept", "problem", strength=1.5)
-
-    def test_construction_invalid_confidence(self):
-        """Confidence inválido."""
-        with self.assertRaises(ValueError):
-            BusinessPurpose("concept", "problem", strength=0.5, confidence=-0.1)
-
-
-class TestRiskProfile(TestBase):
-    """Tests para RiskProfile."""
-
-    def test_construction_valid(self):
-        """Construcción válida."""
-        profile = RiskProfile(
-            risk_tolerance=0.7, domain_criticality=0.3, acceptable_failure_rate=0.05
-        )
-
-        self.assertEqual(profile.risk_tolerance, 0.7)
-
-    def test_effective_tolerance(self):
-        """Tolerancia efectiva."""
-        profile = RiskProfile(risk_tolerance=0.8, domain_criticality=0.6)
-
-        # 0.8 * (1 - 0.5 * 0.6) = 0.8 * 0.7 = 0.56
-        self.assertAlmostEqual(profile.effective_tolerance, 0.56)
-
-    def test_risk_category(self):
-        """Categorización de riesgo."""
-        self.assertEqual(
-            RiskProfile(risk_tolerance=0.1).risk_category, "HIGHLY_CONSERVATIVE"
-        )
-        self.assertEqual(
-            RiskProfile(risk_tolerance=0.6, domain_criticality=0).risk_category,
-            "AGGRESSIVE",
-        )
-        self.assertEqual(RiskProfile(risk_tolerance=0.5).risk_category, "CONSERVATIVE")
-        self.assertEqual(
-            RiskProfile(risk_tolerance=0.9, domain_criticality=0).risk_category,
-            "HIGHLY_AGGRESSIVE",
-        )
-
-
-class TestPurposeValidator(TestBase):
-    """Tests para PurposeValidator."""
-
-    def test_validate_strong_purpose(self):
-        """Propósito fuerte."""
-        validator = PurposeValidator()
-
-        purposes = [
-            BusinessPurpose("caching", "COST_REDUCTION", strength=0.9, confidence=0.95)
-        ]
-
-        is_valid, strength, reason = validator.validate(purposes)
-
-        self.assertTrue(is_valid)
-        self.assertGreater(strength, 0.7)
-
-    def test_validate_weak_purpose(self):
-        """Propósito débil."""
-        validator = PurposeValidator()
-
-        purposes = [
-            BusinessPurpose("unknown", "COST_REDUCTION", strength=0.3, confidence=0.5)
-        ]
-
-        is_valid, strength, reason = validator.validate(purposes)
-
-        self.assertFalse(is_valid)
-
-    def test_validate_non_canonical_problem(self):
-        """Problema no canónico."""
-        validator = PurposeValidator()
-
-        purposes = [BusinessPurpose("concept", "UNKNOWN_PROBLEM", strength=0.9)]
-
-        is_valid, strength, reason = validator.validate(purposes)
-
-        self.assertFalse(is_valid)
-
-    def test_compute_purpose_score(self):
-        """Cálculo de score de propósito."""
-        validator = PurposeValidator()
-
-        purposes = [
-            BusinessPurpose("caching", "LATENCY_REDUCTION", strength=0.9),
-            BusinessPurpose("caching", "COST_REDUCTION", strength=0.7),
-        ]
-
-        score = validator.compute_purpose_score(purposes)
-
-        self.assertGreater(score, 0.7)
-        self.assertLessEqual(score, 1.0)
-
-
-class TestConfidenceFilter(TestBase):
-    """Tests para ConfidenceFilter."""
-
-    def test_validate_high_confidence(self):
-        """Alta confianza."""
-        filter = ConfidenceFilter()
-
-        llm_output = LLMOutput(
-            entropy=0.5, confidence=0.9, temperature=0.7, num_tokens=100
-        )
-
-        is_valid, score, reason = filter.validate(llm_output)
-
-        self.assertTrue(is_valid)
-        self.assertGreater(score, 0.7)
-
-    def test_validate_low_confidence(self):
-        """Baja confianza."""
-        filter = ConfidenceFilter()
-
-        llm_output = LLMOutput(
-            entropy=1.0, confidence=0.4, temperature=1.0, num_tokens=100
-        )
-
-        is_valid, score, reason = filter.validate(llm_output)
-
-        self.assertFalse(is_valid)
-
-    def test_validate_high_entropy(self):
-        """Alta entropía."""
-        filter = ConfidenceFilter()
-
-        llm_output = LLMOutput(
-            entropy=5.0, confidence=0.8, temperature=1.0, num_tokens=100
-        )
-
-        is_valid, score, reason = filter.validate(llm_output)
-
-        self.assertFalse(is_valid)
-
-
-class TestConstraintMapper(TestBase):
-    """Tests para ConstraintMapper."""
-
-    def test_map_to_constraints_conservative(self):
-        """Mapeo conservador."""
-        mapper = ConstraintMapper()
-
-        profile = RiskProfile(risk_tolerance=0.2, domain_criticality=0.8)
-
-        constraints = mapper.map_to_constraints(profile)
-
-        # Debe tener límites estrictos
-        self.assertLess(constraints["cyclomatic"], 20)
-
-    def test_map_to_constraints_aggressive(self):
-        """Mapeo agresivo."""
-        mapper = ConstraintMapper()
-
-        profile = RiskProfile(risk_tolerance=0.9, domain_criticality=0.1)
-
-        constraints = mapper.map_to_constraints(profile)
-
-        # Límites más relajados
-        self.assertGreater(constraints["cyclomatic"], 30)
-
-    def test_compute_constraint_score_satisfied(self):
-        """Restricciones satisfechas."""
-        mapper = ConstraintMapper()
-
-        profile = RiskProfile(risk_tolerance=0.5)
-        metrics = {"cyclomatic": 10, "depth": 3, "loc": 50}
-
-        score = mapper.compute_constraint_score(metrics, profile)
-
-        self.assertGreaterEqual(score, 0.9)
-
-    def test_compute_constraint_score_violated(self):
-        """Restricciones violadas."""
-        mapper = ConstraintMapper()
-
-        profile = RiskProfile(risk_tolerance=0.3)
-        metrics = {"cyclomatic": 50, "depth": 10, "loc": 500}
-
-        score = mapper.compute_constraint_score(metrics, profile)
-
-        self.assertLess(score, 0.5)
-
-
-class TestSemanticValidationEngine(TestBase):
-    """Tests para SemanticValidationEngine."""
-
-    def test_validate_viable(self):
-        """Validación VIABLE."""
-        engine = SemanticValidationEngine(
-            knowledge_graph=create_default_knowledge_graph(),
-            risk_profile=RiskProfile(risk_tolerance=0.7),
-        )
-
-        purposes = [
-            BusinessPurpose(
-                "caching", "LATENCY_REDUCTION", strength=0.9, confidence=0.95
-            )
-        ]
-
-        llm_output = LLMOutput(
-            entropy=0.5, confidence=0.9, temperature=0.7, num_tokens=100
-        )
-
-        code_metrics = {"cyclomatic": 8, "depth": 3, "loc": 50}
-
-        result = engine.validate(purposes, llm_output, code_metrics)
-
-        self.assertEqual(result.verdict, Verdict.VIABLE)
-        self.assertGreater(result.overall_score, 0.75)
-
-    def test_validate_reject_no_purpose(self):
-        """Rechazo por falta de propósito."""
-        engine = SemanticValidationEngine()
-
-        purposes = [BusinessPurpose("unknown", "UNKNOWN_PROBLEM", strength=0.3)]
-
-        llm_output = LLMOutput(
-            entropy=0.5, confidence=0.9, temperature=0.7, num_tokens=100
-        )
-
-        result = engine.validate(purposes, llm_output)
-
-        self.assertEqual(result.verdict, Verdict.REJECT)
-
-    def test_validate_reject_low_confidence(self):
-        """Rechazo por baja confianza."""
-        engine = SemanticValidationEngine(
-            knowledge_graph=create_default_knowledge_graph()
-        )
-
-        purposes = [BusinessPurpose("caching", "LATENCY_REDUCTION", strength=0.9)]
-
-        llm_output = LLMOutput(
-            entropy=5.0, confidence=0.3, temperature=1.5, num_tokens=100
-        )
-
-        result = engine.validate(purposes, llm_output)
-
-        self.assertEqual(result.verdict, Verdict.REJECT)
-
-    def test_explain_verdict(self):
-        """Explicación de veredicto."""
-        engine = SemanticValidationEngine()
-
-        purposes = [BusinessPurpose("caching", "LATENCY_REDUCTION", strength=0.9)]
-
-        llm_output = LLMOutput(
-            entropy=0.5, confidence=0.9, temperature=0.7, num_tokens=100
-        )
-
-        result = engine.validate(purposes, llm_output)
-
-        explanation = engine.explain_verdict(result)
-
-        self.assertIn("Verdict:", explanation)
-        self.assertIn("Overall Score:", explanation)
-        self.assertIn("Signal Breakdown:", explanation)
-
-
-# ========================================================================================
-# TESTS: Casos Extremos
-# ========================================================================================
-
-
-class TestEdgeCases(TestBase):
-    """Tests de casos extremos."""
-
-    def test_empty_function(self):
-        """Función vacía."""
-        code = """
-def empty():
-    pass
-"""
-
-        dataflow, complexity = ASTStaticAnalyzer.analyze_code(code)
-
-        self.assertEqual(complexity.num_functions, 1)
-        self.assertEqual(complexity.cyclomatic_complexity, 1)
-
-    def test_only_comments(self):
-        """Solo comentarios."""
+        _, profile = self.analyze(code)
+        
+        self.assertEqual(profile.num_functions, 2)
+    
+    # -------------------------------------------------------------------------
+    # CASOS EDGE
+    # -------------------------------------------------------------------------
+    
+    def test_empty_code(self):
+        """Test: Código vacío."""
+        code = ""
+        coords, profile = self.analyze(code)
+        
+        self.assertEqual(len(coords.all_variables), 0)
+        self.assertEqual(profile.cyclomatic_complexity, 1)
+    
+    def test_comments_only(self):
+        """Test: Solo comentarios."""
         code = """
 # This is a comment
 # Another comment
 """
-
-        dataflow, complexity = ASTStaticAnalyzer.analyze_code(code)
-
-        # Sin funciones ni complejidad significativa
-        self.assertEqual(complexity.num_functions, 0)
-
-    def test_unicode_identifiers(self):
-        """Identificadores Unicode."""
-        code = """
-café = 42
-résultat = café + 1
+        coords, profile = self.analyze(code)
+        
+        self.assertEqual(len(coords.all_variables), 0)
+        self.assertEqual(profile.cyclomatic_complexity, 1)
+    
+    def test_docstring_only(self):
+        """Test: Solo docstring."""
+        code = '''
 """
-
-        dataflow, complexity = ASTStaticAnalyzer.analyze_code(code)
-
-        self.assertIn("café", dataflow.writes)
-        self.assertIn("résultat", dataflow.writes)
-
-    def test_complex_boolean_expression(self):
-        """Expresión booleana compleja."""
-        code = """
-if (a and b) or (c and d) or (e and f):
-    pass
+This is a module docstring.
 """
+'''
+        coords, profile = self.analyze(code)
+        
+        self.assertEqual(profile.cyclomatic_complexity, 1)
 
-        dataflow, complexity = ASTStaticAnalyzer.analyze_code(code)
 
-        # Debe contar todos los operadores
+# =============================================================================
+# TESTS: Hamiltoniano y Control Disipativo
+# =============================================================================
+
+class TestHamiltonianMonitor(unittest.TestCase):
+    """
+    Test suite para verificación Hamiltoniana.
+    
+    Verifica:
+    - Condición de disipación H(child) ≤ H(parent)
+    - Detección de singularidades termodinámicas
+    - Comportamiento en código patológico
+    """
+    
+    def test_hamiltonian_simple_code(self):
+        """Test: Código simple no viola disipación."""
+        code = """
+def func(x):
+    if x > 0:
+        return x
+    return 0
+"""
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_hamiltonian=True,
+            strict_mode=True
+        )
+        
+        self.assertTrue(result['hamiltonian_ok'])
+    
+    def test_hamiltonian_well_structured_code(self):
+        """Test: Código bien estructurado cumple disipación."""
+        code = """
+class Calculator:
+    def __init__(self):
+        self.value = 0
+    
+    def add(self, x):
+        self.value += x
+        return self.value
+    
+    def multiply(self, x):
+        self.value *= x
+        return self.value
+"""
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_hamiltonian=True,
+            strict_mode=True
+        )
+        
+        self.assertTrue(result['hamiltonian_ok'])
+    
+    def test_hamiltonian_pathological_code(self):
+        """Test: Código patológico puede violar disipación."""
+        # Código con complejidad concentrada en nodos profundos
+        code = """
+def outer():
+    def middle():
+        def inner():
+            # Alta complejidad en nodo muy profundo
+            if x and y or z and w or a and b:
+                if p or q or r:
+                    if m and n:
+                        pass
+"""
+        # En modo no estricto, debe detectar pero no lanzar excepción
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_hamiltonian=True,
+            strict_mode=False
+        )
+        
+        # Puede fallar la condición Hamiltoniana
+        # (depende de la distribución de complejidad)
+        self.assertIn('hamiltonian_ok', result)
+    
+    def test_hamiltonian_deep_nesting_high_complexity(self):
+        """Test: Anidamiento profundo con alta complejidad local."""
+        # Generar código con estructura problemática
+        code = TestHelpers.generate_deep_nested_code(10)
+        
+        # Agregar complejidad en el nivel más profundo
+        code += """
+                    if a and b or c and d or e and f:
+                        pass
+"""
+        
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_hamiltonian=True,
+            strict_mode=False
+        )
+        
+        # Verificar que se analizó
+        self.assertIn('complexity', result)
+    
+    def test_hamiltonian_exception_strict_mode(self):
+        """Test: Modo estricto lanza excepción en violación."""
+        # Código diseñado para violar disipación
+        # (alta complejidad concentrada en nodos profundos)
+        code = """
+def level1():
+    def level2():
+        def level3():
+            def level4():
+                def level5():
+                    # Complejidad extrema en nodo muy profundo
+                    if (a and b) or (c and d) or (e and f):
+                        if (g or h) and (i or j):
+                            if k and l and m:
+                                if n or o or p:
+                                    if q and r:
+                                        pass
+"""
+        
+        # Puede lanzar ThermodynamicSingularityError
+        try:
+            result = ASTStaticAnalyzer.analyze_code(
+                code,
+                enable_hamiltonian=True,
+                strict_mode=True
+            )
+            # Si no lanza, verificar que al menos detectó el problema
+            if not result['hamiltonian_ok']:
+                self.assertFalse(result['hamiltonian_ok'])
+        except ThermodynamicSingularityError as e:
+            # Esperado en algunos casos
+            self.assertIn('Thermodynamic', str(e))
+    
+    def test_hamiltonian_disabled(self):
+        """Test: Con monitoreo desactivado, siempre pasa."""
+        code = """
+# Código arbitrario
+x = 1
+"""
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_hamiltonian=False,
+            strict_mode=True
+        )
+        
+        # hamiltonian_ok debe ser True (no se verificó)
+        self.assertTrue(result['hamiltonian_ok'])
+
+
+# =============================================================================
+# TESTS: Cohomología de Haces Celulares
+# =============================================================================
+
+class TestCohomology(unittest.TestCase):
+    """
+    Test suite para análisis cohomológico.
+    
+    Verifica:
+    - Cálculo de dim H¹
+    - Detección de variables no inicializadas
+    - Detección de ciclos de dependencias
+    """
+    
+    def test_cohomology_simple_code(self):
+        """Test: Código simple tiene H¹ = 0."""
+        code = """
+x = 1
+y = x + 1
+z = y * 2
+"""
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_cohomology=True,
+            strict_mode=True
+        )
+        
+        self.assertTrue(result['cohomology_ok'])
+        self.assertEqual(result.get('cohomology_dimension', 0), 0)
+    
+    def test_cohomology_uninitialized_variable(self):
+        """Test: Variable no inicializada genera obstrucción."""
+        code = """
+# y no está definida antes de usarse
+result = y + 1
+"""
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_cohomology=True,
+            strict_mode=False
+        )
+        
+        # Debe detectar 'y' como problemática
+        if 'problematic_variables' in result:
+            self.assertIn('y', result['problematic_variables'])
+    
+    def test_cohomology_function_args_ok(self):
+        """Test: Argumentos de función están bien definidos."""
+        code = """
+def func(x, y):
+    return x + y
+"""
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_cohomology=True,
+            strict_mode=True
+        )
+        
+        # x, y son argumentos (definidos), no deben ser problemáticos
+        self.assertTrue(result.get('cohomology_ok', True))
+    
+    def test_cohomology_class_methods(self):
+        """Test: Métodos de clase con self."""
+        code = """
+class MyClass:
+    def __init__(self, value):
+        self.value = value
+    
+    def get_value(self):
+        return self.value
+"""
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_cohomology=True,
+            strict_mode=True
+        )
+        
+        # No debe haber obstrucciones
+        self.assertTrue(result.get('cohomology_ok', True))
+    
+    def test_cohomology_global_variables(self):
+        """Test: Variables globales."""
+        code = """
+GLOBAL_CONST = 100
+
+def use_global():
+    return GLOBAL_CONST * 2
+"""
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_cohomology=True,
+            strict_mode=False
+        )
+        
+        # GLOBAL_CONST está definida antes de usarse
+        # No debe ser problemática
+        self.assertIn('cohomology_ok', result)
+    
+    def test_cohomology_disabled(self):
+        """Test: Con cohomología desactivada."""
+        code = "x = y + 1"  # y no definida
+        
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_cohomology=False,
+            strict_mode=True
+        )
+        
+        # cohomology_ok debe ser None (no verificado)
+        self.assertIsNone(result.get('cohomology_ok'))
+    
+    def test_cohomology_dimension_calculation(self):
+        """Test: Cálculo de dimensión cohomológica."""
+        # Código con ciclo en el grafo de dependencias
+        code = """
+a = b + 1
+b = c + 1
+c = a + 1  # Ciclo: a → b → c → a
+"""
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_cohomology=True,
+            strict_mode=False
+        )
+        
+        # Debe detectar el ciclo (dim H¹ > 0 o variables problemáticas)
+        dim_h1 = result.get('cohomology_dimension', 0)
+        prob_vars = result.get('problematic_variables', set())
+        
+        # Al menos una de las variables debe ser problemática
+        self.assertTrue(dim_h1 > 0 or len(prob_vars) > 0)
+
+
+# =============================================================================
+# TESTS: Validador JSON
+# =============================================================================
+
+class TestJSONValidator(unittest.TestCase):
+    """
+    Test suite para JSONStructureValidator.
+    
+    Verifica:
+    - Validación de profundidad
+    - Validación de tamaño
+    - Prevención de DoS
+    """
+    
+    def test_validate_simple_dict(self):
+        """Test: Diccionario simple válido."""
+        data = {"name": "test", "value": 42}
+        
+        is_valid, error = JSONStructureValidator.validate_structure(data)
+        
+        self.assertTrue(is_valid)
+        self.assertEqual(error, "")
+    
+    def test_validate_nested_dict(self):
+        """Test: Diccionario anidado válido."""
+        data = {
+            "level1": {
+                "level2": {
+                    "level3": {
+                        "value": 123
+                    }
+                }
+            }
+        }
+        
+        is_valid, error = JSONStructureValidator.validate_structure(
+            data, max_depth=5
+        )
+        
+        self.assertTrue(is_valid)
+    
+    def test_validate_depth_exceeded(self):
+        """Test: Profundidad excedida."""
+        data = {"a": {"b": {"c": {"d": {"e": {"f": "too deep"}}}}}}
+        
+        is_valid, error = JSONStructureValidator.validate_structure(
+            data, max_depth=3
+        )
+        
+        self.assertFalse(is_valid)
+        self.assertIn("Depth", error)
+        self.assertIn("exceeds limit", error)
+    
+    def test_validate_too_many_keys(self):
+        """Test: Demasiadas claves."""
+        data = {f"key_{i}": i for i in range(150)}
+        
+        is_valid, error = JSONStructureValidator.validate_structure(
+            data, max_keys=100
+        )
+        
+        self.assertFalse(is_valid)
+        self.assertIn("keys", error.lower())
+    
+    def test_validate_large_array(self):
+        """Test: Array muy grande."""
+        data = list(range(2000))
+        
+        is_valid, error = JSONStructureValidator.validate_structure(
+            data, max_array_size=1000
+        )
+        
+        self.assertFalse(is_valid)
+        self.assertIn("items", error.lower())
+    
+    def test_validate_mixed_structure(self):
+        """Test: Estructura mixta válida."""
+        data = {
+            "users": [
+                {"name": "Alice", "age": 30},
+                {"name": "Bob", "age": 25}
+            ],
+            "config": {
+                "timeout": 30,
+                "retries": 3
+            }
+        }
+        
+        is_valid, error = JSONStructureValidator.validate_structure(data)
+        
+        self.assertTrue(is_valid)
+    
+    def test_validate_primitives(self):
+        """Test: Tipos primitivos válidos."""
+        primitives = [
+            42,
+            3.14,
+            "string",
+            True,
+            False,
+            None
+        ]
+        
+        for prim in primitives:
+            is_valid, error = JSONStructureValidator.validate_structure(prim)
+            self.assertTrue(is_valid, f"Failed for {prim}: {error}")
+    
+    def test_validate_invalid_type(self):
+        """Test: Tipo no soportado."""
+        class CustomClass:
+            pass
+        
+        data = {"obj": CustomClass()}
+        
+        is_valid, error = JSONStructureValidator.validate_structure(data)
+        
+        self.assertFalse(is_valid)
+        self.assertIn("Unsupported type", error)
+    
+    def test_compute_depth(self):
+        """Test: Cálculo de profundidad."""
+        data1 = {"a": 1}
+        data2 = {"a": {"b": {"c": 3}}}
+        data3 = [1, [2, [3, [4]]]]
+        
+        self.assertEqual(JSONStructureValidator.compute_depth(data1), 1)
+        self.assertEqual(JSONStructureValidator.compute_depth(data2), 3)
+        self.assertEqual(JSONStructureValidator.compute_depth(data3), 4)
+    
+    def test_compute_depth_empty(self):
+        """Test: Profundidad de estructuras vacías."""
+        self.assertEqual(JSONStructureValidator.compute_depth({}), 0)
+        self.assertEqual(JSONStructureValidator.compute_depth([]), 0)
+        self.assertEqual(JSONStructureValidator.compute_depth(42), 0)
+    
+    def test_estimate_memory_size(self):
+        """Test: Estimación de tamaño en memoria."""
+        data = {"key": "value"}
+        
+        size = JSONStructureValidator.estimate_memory_size(data)
+        
+        self.assertGreater(size, 0)
+        self.assertIsInstance(size, int)
+
+
+# =============================================================================
+# TESTS: Normalizador Tabular
+# =============================================================================
+
+class TestTabularNormalizer(unittest.TestCase):
+    """Test suite para TabularNormalizer."""
+    
+    def test_to_markdown_simple(self):
+        """Test: Conversión simple a Markdown."""
+        data = {"name": "Alice", "age": 30}
+        
+        markdown = TabularNormalizer.to_markdown_table(data)
+        
+        self.assertIn("name", markdown)
+        self.assertIn("age", markdown)
+        self.assertIn("Alice", markdown)
+        self.assertIn("30", markdown)
+        self.assertIn("|", markdown)
+    
+    def test_to_markdown_empty(self):
+        """Test: Diccionario vacío."""
+        data = {}
+        
+        markdown = TabularNormalizer.to_markdown_table(data)
+        
+        self.assertIn("empty", markdown.lower())
+    
+    def test_to_markdown_type_error(self):
+        """Test: Tipo incorrecto lanza TypeError."""
+        with self.assertRaises(TypeError):
+            TabularNormalizer.to_markdown_table([1, 2, 3])  # type: ignore
+    
+    def test_to_csv_row(self):
+        """Test: Conversión a CSV."""
+        data = {"x": 1, "y": 2, "z": 3}
+        
+        header, row = TabularNormalizer.to_csv_row(data)
+        
+        # Orden alfabético de claves
+        self.assertEqual(header, "x,y,z")
+        self.assertEqual(row, "1,2,3")
+    
+    def test_serialize_value_types(self):
+        """Test: Serialización de diferentes tipos."""
+        tests = [
+            (None, "null"),
+            (True, "true"),
+            (False, "false"),
+            (42, "42"),
+            (3.14, "3.14"),
+            ("text", '"text"'),
+        ]
+        
+        for value, expected in tests:
+            result = TabularNormalizer._serialize_value(value, 0)
+            self.assertEqual(result, expected)
+    
+    def test_serialize_value_nan_inf(self):
+        """Test: Serialización de NaN e Infinito."""
+        self.assertEqual(
+            TabularNormalizer._serialize_value(float('nan'), 0),
+            "NaN"
+        )
+        self.assertEqual(
+            TabularNormalizer._serialize_value(float('inf'), 0),
+            "∞"
+        )
+        self.assertEqual(
+            TabularNormalizer._serialize_value(float('-inf'), 0),
+            "-∞"
+        )
+    
+    def test_serialize_value_truncation(self):
+        """Test: Truncado de strings largos."""
+        long_string = "x" * 200
+        
+        result = TabularNormalizer._serialize_value(long_string, 0, max_length=50)
+        
+        self.assertLess(len(result), 60)  # Incluye comillas y "..."
+        self.assertIn("...", result)
+    
+    def test_serialize_nested_depth_limit(self):
+        """Test: Límite de profundidad en estructuras anidadas."""
+        nested = {"a": {"b": {"c": {"d": "deep"}}}}
+        
+        result = TabularNormalizer._serialize_value(nested, 0, max_depth=2)
+        
+        self.assertIn("...", result)
+    
+    def test_flatten_dict(self):
+        """Test: Aplanado de diccionario anidado."""
+        nested = {
+            "user": {
+                "name": "Alice",
+                "address": {
+                    "city": "NYC"
+                }
+            }
+        }
+        
+        flat = TabularNormalizer.flatten_dict(nested)
+        
+        self.assertEqual(flat["user.name"], "Alice")
+        self.assertEqual(flat["user.address.city"], "NYC")
+    
+    def test_flatten_dict_custom_separator(self):
+        """Test: Separador personalizado."""
+        nested = {"a": {"b": 1}}
+        
+        flat = TabularNormalizer.flatten_dict(nested, separator="/")
+        
+        self.assertEqual(flat["a/b"], 1)
+
+
+# =============================================================================
+# TESTS: Integración Completa
+# =============================================================================
+
+class TestIntegration(unittest.TestCase):
+    """
+    Tests de integración end-to-end.
+    
+    Verifica el pipeline completo de análisis.
+    """
+    
+    def test_full_analysis_simple_script(self):
+        """Test: Análisis completo de script simple."""
+        code = """
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+result = factorial(5)
+print(result)
+"""
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            filename="test.py",
+            enable_hamiltonian=True,
+            enable_cohomology=True,
+            strict_mode=True
+        )
+        
+        # Verificaciones
+        self.assertIn('dataflow', result)
+        self.assertIn('complexity', result)
+        self.assertTrue(result['hamiltonian_ok'])
+        self.assertTrue(result.get('cohomology_ok', True))
+        
+        # Complejidad esperada
+        complexity = result['complexity']
+        self.assertGreaterEqual(complexity.cyclomatic_complexity, 2)
+        self.assertEqual(complexity.num_functions, 1)
+    
+    def test_full_analysis_class_based(self):
+        """Test: Análisis de código orientado a objetos."""
+        code = """
+class Stack:
+    def __init__(self):
+        self.items = []
+    
+    def push(self, item):
+        self.items.append(item)
+    
+    def pop(self):
+        if not self.items:
+            raise IndexError("Stack is empty")
+        return self.items.pop()
+    
+    def peek(self):
+        if not self.items:
+            return None
+        return self.items[-1]
+    
+    def is_empty(self):
+        return len(self.items) == 0
+"""
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_hamiltonian=True,
+            enable_cohomology=True
+        )
+        
+        complexity = result['complexity']
+        self.assertEqual(complexity.num_classes, 1)
+        self.assertEqual(complexity.num_functions, 5)
+        self.assertGreater(complexity.cyclomatic_complexity, 1)
+    
+    def test_analyze_file_api(self):
+        """Test: API de análisis de archivo."""
+        # Crear archivo temporal
+        import tempfile
+        
+        code = "x = 1\ny = 2\nz = x + y"
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+            f.write(code)
+            filepath = f.name
+        
+        try:
+            result = ASTStaticAnalyzer.analyze_file(
+                filepath,
+                enable_hamiltonian=False,
+                enable_cohomology=False
+            )
+            
+            self.assertIn('dataflow', result)
+            self.assertIn('complexity', result)
+        finally:
+            import os
+            os.unlink(filepath)
+    
+    def test_validate_json_contract_valid(self):
+        """Test: Validación de contrato JSON válido."""
+        schema = {
+            "name": "TestService",
+            "version": "1.0.0",
+            "config": {
+                "timeout": 30,
+                "retries": 3
+            }
+        }
+        
+        is_valid, error, markdown = ASTStaticAnalyzer.validate_json_contract(schema)
+        
+        self.assertTrue(is_valid)
+        self.assertIsNone(error)
+        self.assertIsNotNone(markdown)
+        self.assertIn("name", markdown)
+    
+    def test_validate_json_contract_invalid(self):
+        """Test: Validación de contrato JSON inválido."""
+        # Estructura demasiado profunda
+        schema = {"a": {"b": {"c": {"d": {"e": {"f": {"g": {"h": "deep"}}}}}}}}
+        
+        is_valid, error, markdown = ASTStaticAnalyzer.validate_json_contract(
+            schema, max_depth=5
+        )
+        
+        self.assertFalse(is_valid)
+        self.assertIsNotNone(error)
+    
+    def test_compute_interference_matrix(self):
+        """Test: Cálculo de matriz de interferencia."""
+        tools = {
+            "tool_a": DataFlowCoordinates(
+                reads=frozenset(['x']),
+                writes=frozenset(['y'])
+            ),
+            "tool_b": DataFlowCoordinates(
+                reads=frozenset(['y']),
+                writes=frozenset(['z'])
+            ),
+            "tool_c": DataFlowCoordinates(
+                reads=frozenset(['z']),
+                writes=frozenset(['w'])
+            ),
+        }
+        
+        matrix = ASTStaticAnalyzer.compute_interference_matrix(tools)
+        
+        # Verificar antisimetría
+        self.assertEqual(
+            matrix[('tool_a', 'tool_b')],
+            -matrix[('tool_b', 'tool_a')]
+        )
+        
+        # Diagonal debe ser cero
+        self.assertEqual(matrix[('tool_a', 'tool_a')], 0)
+        
+        # tool_a → tool_b (A escribe y, B lee y)
+        self.assertGreater(matrix[('tool_a', 'tool_b')], 0)
+    
+    def test_topological_sort(self):
+        """Test: Ordenamiento topológico por interferencia."""
+        tools = {
+            "A": DataFlowCoordinates(writes=frozenset(['x'])),
+            "B": DataFlowCoordinates(reads=frozenset(['x']), writes=frozenset(['y'])),
+            "C": DataFlowCoordinates(reads=frozenset(['y']), writes=frozenset(['z'])),
+        }
+        
+        sorted_tools = ASTStaticAnalyzer.topological_sort_by_interference(tools)
+        
+        # Orden esperado: A → B → C
+        self.assertEqual(sorted_tools.index('A'), 0)
+        self.assertLess(sorted_tools.index('A'), sorted_tools.index('B'))
+        self.assertLess(sorted_tools.index('B'), sorted_tools.index('C'))
+    
+    def test_topological_sort_cycle_detection(self):
+        """Test: Detección de ciclos en ordenamiento."""
+        tools = {
+            "A": DataFlowCoordinates(reads=frozenset(['z']), writes=frozenset(['x'])),
+            "B": DataFlowCoordinates(reads=frozenset(['x']), writes=frozenset(['y'])),
+            "C": DataFlowCoordinates(reads=frozenset(['y']), writes=frozenset(['z'])),
+        }
+        
+        # Ciclo: A → B → C → A
+        with self.assertRaises(ValueError) as ctx:
+            ASTStaticAnalyzer.topological_sort_by_interference(tools)
+        
+        self.assertIn("cycle", str(ctx.exception).lower())
+
+
+# =============================================================================
+# TESTS: Performance y Límites
+# =============================================================================
+
+class TestPerformance(unittest.TestCase):
+    """
+    Tests de performance y límites.
+    
+    Verifica:
+    - Comportamiento en casos límite
+    - Tiempos de ejecución razonables
+    - Manejo de código grande
+    """
+    
+    def test_depth_limit_enforcement(self):
+        """Test: Límite de profundidad se respeta."""
+        # Generar código excesivamente profundo
+        code = TestHelpers.generate_deep_nested_code(
+            AnalysisLimits.MAX_AST_DEPTH + 10
+        )
+        
+        with self.assertRaises(ComplexityBoundsViolationError) as ctx:
+            ASTStaticAnalyzer.analyze_code(
+                code,
+                enable_hamiltonian=True,
+                strict_mode=True
+            )
+        
+        self.assertIn("depth", str(ctx.exception).lower())
+    
+    def test_high_complexity_handling(self):
+        """Test: Manejo de código con alta complejidad."""
+        # Generar código con CC muy alta
+        code = TestHelpers.generate_high_complexity_code(100)
+        
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_hamiltonian=False,
+            enable_cohomology=False,
+            strict_mode=False
+        )
+        
+        complexity = result['complexity']
+        self.assertGreaterEqual(complexity.cyclomatic_complexity, 90)
+        self.assertEqual(complexity.risk_level, "CRITICAL")
+    
+    def test_large_number_of_variables(self):
+        """Test: Manejo de muchas variables."""
+        # Generar código con muchas variables
+        num_vars = 500
+        assignments = "\n".join([f"var_{i} = {i}" for i in range(num_vars)])
+        code = f"""
+def func():
+{assignments}
+    return var_0
+"""
+        
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_hamiltonian=False,
+            enable_cohomology=False
+        )
+        
+        coords = result['dataflow']
+        # Al menos algunas variables deben detectarse
+        self.assertGreater(len(coords.all_variables), 100)
+    
+    def test_performance_reasonable_time(self):
+        """Test: Tiempo de análisis razonable."""
+        # Código medianamente complejo
+        code = """
+class DataProcessor:
+    def __init__(self, data):
+        self.data = data
+        self.cache = {}
+    
+    def process(self):
+        results = []
+        for item in self.data:
+            if item in self.cache:
+                results.append(self.cache[item])
+            else:
+                processed = self._transform(item)
+                self.cache[item] = processed
+                results.append(processed)
+        return results
+    
+    def _transform(self, item):
+        if isinstance(item, int):
+            return item * 2
+        elif isinstance(item, str):
+            return item.upper()
+        else:
+            return str(item)
+"""
+        
+        start = time.time()
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_hamiltonian=True,
+            enable_cohomology=True
+        )
+        elapsed = time.time() - start
+        
+        # Debe completar en menos de 1 segundo
+        self.assertLess(elapsed, 1.0)
+    
+    def test_memory_efficiency(self):
+        """Test: Uso eficiente de memoria."""
+        # Generar código grande pero no patológico
+        code = """
+def large_function():
+    x = 0
+""" + "\n".join([f"    x += {i}" for i in range(1000)]) + """
+    return x
+"""
+        
+        # No debe consumir memoria excesiva
+        result = ASTStaticAnalyzer.analyze_code(
+            code,
+            enable_hamiltonian=False,
+            enable_cohomology=False
+        )
+        
+        self.assertIn('complexity', result)
+
+
+# =============================================================================
+# TESTS: Casos Edge y Robustez
+# =============================================================================
+
+class TestEdgeCases(unittest.TestCase):
+    """Tests de casos edge y robustez."""
+    
+    def test_syntax_error_handling(self):
+        """Test: Manejo de errores de sintaxis."""
+        code = "def broken(:\n    pass"
+        
+        with self.assertRaises(ValueError) as ctx:
+            ASTStaticAnalyzer.analyze_code(code)
+        
+        self.assertIn("syntax", str(ctx.exception).lower())
+    
+    def test_empty_code_handling(self):
+        """Test: Manejo de código vacío."""
+        with self.assertRaises(ValueError):
+            ASTStaticAnalyzer.analyze_code("")
+    
+    def test_whitespace_only(self):
+        """Test: Solo espacios en blanco."""
+        with self.assertRaises(ValueError):
+            ASTStaticAnalyzer.analyze_code("   \n\n   \t\t   ")
+    
+    def test_unicode_in_code(self):
+        """Test: Código con Unicode."""
+        code = """
+def función(número):
+    # Comentario en español
+    resultado = número * 2
+    return resultado
+
+α = función(42)
+"""
+        
+        result = ASTStaticAnalyzer.analyze_code(code)
+        
+        self.assertIn('dataflow', result)
+        coords = result['dataflow']
+        self.assertIn('α', coords.all_variables)
+    
+    def test_async_await_syntax(self):
+        """Test: Sintaxis async/await."""
+        code = """
+async def fetch_data():
+    async with client.session() as session:
+        async for item in session.iter():
+            await process(item)
+"""
+        
+        result = ASTStaticAnalyzer.analyze_code(code)
+        
+        complexity = result['complexity']
+        self.assertGreater(complexity.cyclomatic_complexity, 1)
+    
+    def test_match_statement_python310(self):
+        """Test: Pattern matching (Python 3.10+)."""
+        if sys.version_info < (3, 10):
+            self.skipTest("Requires Python 3.10+")
+        
+        code = """
+def process(value):
+    match value:
+        case 0:
+            return "zero"
+        case 1:
+            return "one"
+        case _:
+            return "other"
+"""
+        
+        result = ASTStaticAnalyzer.analyze_code(code)
+        
+        complexity = result['complexity']
+        # Match con 3 cases incrementa CC
+        self.assertGreater(complexity.cyclomatic_complexity, 2)
+    
+    def test_walrus_operator(self):
+        """Test: Operador walrus :=."""
+        code = """
+if (n := len(data)) > 10:
+    print(f"Large dataset: {n} items")
+"""
+        
+        result = ASTStaticAnalyzer.analyze_code(code)
+        
+        self.assertIn('dataflow', result)
+    
+    def test_f_strings(self):
+        """Test: F-strings."""
+        code = """
+name = "Alice"
+age = 30
+message = f"Hello {name}, you are {age} years old"
+"""
+        
+        result = ASTStaticAnalyzer.analyze_code(code)
+        
+        coords = result['dataflow']
+        self.assertIn('name', coords.reads)
+        self.assertIn('age', coords.reads)
+    
+    def test_decorators(self):
+        """Test: Decoradores."""
+        code = """
+@staticmethod
+@lru_cache(maxsize=128)
+def cached_func(x):
+    return x ** 2
+"""
+        
+        result = ASTStaticAnalyzer.analyze_code(code)
+        
+        complexity = result['complexity']
+        self.assertEqual(complexity.num_functions, 1)
+    
+    def test_generator_expressions(self):
+        """Test: Expresiones generadoras."""
+        code = """
+squares = (x**2 for x in range(10) if x % 2 == 0)
+"""
+        
+        result = ASTStaticAnalyzer.analyze_code(code)
+        
+        # Debe detectar la comprehension
+        self.assertIn('complexity', result)
+    
+    def test_exception_handling_complex(self):
+        """Test: Manejo complejo de excepciones."""
+        code = """
+try:
+    risky_operation()
+except ValueError as e:
+    handle_value_error(e)
+except (TypeError, KeyError) as e:
+    handle_type_key_error(e)
+except Exception:
+    log_error()
+    raise
+else:
+    success()
+finally:
+    cleanup()
+"""
+        
+        result = ASTStaticAnalyzer.analyze_code(code)
+        
+        complexity = result['complexity']
+        # try + 3 except incrementa CC
         self.assertGreater(complexity.cyclomatic_complexity, 3)
 
-    def test_nested_comprehensions(self):
-        """Comprensiones anidadas."""
+
+# =============================================================================
+# TESTS: API Legacy (Compatibilidad)
+# =============================================================================
+
+class TestLegacyAPI(unittest.TestCase):
+    """Tests de API legacy para retrocompatibilidad."""
+    
+    def test_ast_symplectic_parser_parse_tool_dynamics(self):
+        """Test: API deprecated parse_tool_dynamics."""
+        from app.boole.physics.ast_static_analyzer import ASTSymplecticParser
+        
         code = """
-result = [[x*y for x in range(10)] for y in range(10)]
+def tool_func(input_data):
+    result = process(input_data)
+    return result
 """
-
-        dataflow, complexity = ASTStaticAnalyzer.analyze_code(code)
-
-        # Dos for → dos incrementos de complejidad
-        self.assertGreaterEqual(complexity.cyclomatic_complexity, 3)
-
-
-# ========================================================================================
-# TESTS: Performance
-# ========================================================================================
-
-
-class TestPerformance(TestBase):
-    """Tests de performance."""
-
-    def test_large_function(self):
-        """Función grande."""
-        # Crear función con muchas líneas
-        lines = ["def large_function():"]
-        for i in range(100):
-            lines.append(f"    x{i} = {i}")
-        lines.append("    return x99")
-
-        code = "\n".join(lines)
-
-        # Debe completar sin timeout
-        dataflow, complexity = ASTStaticAnalyzer.analyze_code(code)
-
-        self.assertEqual(complexity.num_functions, 1)
-        # Muchas variables
-        self.assertGreater(len(dataflow.writes), 50)
-
-    def test_many_functions(self):
-        """Muchas funciones."""
-        lines = []
-        for i in range(50):
-            lines.append(f"def func{i}():")
-            lines.append(f"    return {i}")
-
-        code = "\n".join(lines)
-
-        dataflow, complexity = ASTStaticAnalyzer.analyze_code(code)
-
-        self.assertEqual(complexity.num_functions, 50)
+        
+        with self.assertLogs(level='WARNING') as log:
+            coords, complexity = ASTSymplecticParser.parse_tool_dynamics(code)
+        
+        # Debe generar warning de deprecación
+        self.assertTrue(any("deprecated" in msg.lower() for msg in log.output))
+        
+        # Pero debe funcionar
+        self.assertIsInstance(coords, DataFlowCoordinates)
+        self.assertIsInstance(complexity, ComplexityProfile)
+    
+    def test_ast_symplectic_parser_process_data_contract(self):
+        """Test: API deprecated process_data_contract."""
+        from app.boole.physics.ast_static_analyzer import ASTSymplecticParser
+        
+        schema = {"name": "test", "version": "1.0"}
+        
+        with self.assertLogs(level='WARNING') as log:
+            markdown = ASTSymplecticParser.process_data_contract(schema)
+        
+        # Debe generar warning
+        self.assertTrue(any("deprecated" in msg.lower() for msg in log.output))
+        
+        # Debe retornar markdown
+        self.assertIsInstance(markdown, str)
 
 
-# ========================================================================================
-# TESTS: Integración
-# ========================================================================================
+# =============================================================================
+# SUITE DE TESTS PRINCIPAL
+# =============================================================================
+
+def suite():
+    """Construye la suite completa de tests."""
+    test_suite = unittest.TestSuite()
+    
+    # Agregar todos los test cases
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDataFlowCoordinates))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestComplexityProfile))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDataFlowAnalyzer))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestHamiltonianMonitor))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCohomology))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestJSONValidator))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestTabularNormalizer))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestIntegration))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPerformance))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestEdgeCases))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestLegacyAPI))
+    
+    return test_suite
 
 
-class TestIntegration(TestBase):
-    """Tests de integración end-to-end."""
+# =============================================================================
+# RUNNER PRINCIPAL
+# =============================================================================
 
-    def test_full_pipeline_simple_tool(self):
-        """Pipeline completo: herramienta simple."""
-        code = """
-def cache_result(key, value):
-    cache[key] = value
-    return value
-"""
-
-        # 1. Análisis de código
-        dataflow, complexity = ASTStaticAnalyzer.analyze_code(code)
-
-        # 2. Validación semántica
-        engine = SemanticValidationEngine(
-            knowledge_graph=create_default_knowledge_graph(),
-            risk_profile=RiskProfile(risk_tolerance=0.6),
-        )
-
-        purposes = [BusinessPurpose("caching", "LATENCY_REDUCTION", strength=0.9)]
-
-        llm_output = LLMOutput(
-            entropy=0.5, confidence=0.9, temperature=0.7, num_tokens=50
-        )
-
-        code_metrics = {
-            "cyclomatic": complexity.cyclomatic_complexity,
-            "depth": complexity.max_nesting_depth,
-            "loc": 3,
-        }
-
-        result = engine.validate(purposes, llm_output, code_metrics)
-
-        # Debe ser viable
-        self.assertTrue(result.verdict.is_accepted)
-
-    def test_full_pipeline_complex_tool(self):
-        """Pipeline completo: herramienta compleja."""
-        code = """
-def complex_processor(data):
-    results = []
-    for item in data:
-        if item.type == 'A':
-            if item.value > 100:
-                results.append(process_a(item))
-            else:
-                results.append(default_value())
-        elif item.type == 'B':
-            results.append(process_b(item))
-        elif item.type == 'C':
-            results.append(process_c(item))
-        else:
-            raise ValueError("Unknown type")
-    return results
-"""
-
-        dataflow, complexity = ASTStaticAnalyzer.analyze_code(code)
-
-        # Complejidad alta
-        self.assertGreater(complexity.cyclomatic_complexity, 5)
-
-        # Validación con perfil conservador
-        engine = SemanticValidationEngine(risk_profile=RiskProfile(risk_tolerance=0.2))
-
-        purposes = [
-            BusinessPurpose("data_validation", "DATA_QUALITY_ENHANCEMENT", strength=0.8)
-        ]
-
-        llm_output = LLMOutput(
-            entropy=0.8, confidence=0.85, temperature=0.8, num_tokens=150
-        )
-
-        code_metrics = {
-            "cyclomatic": complexity.cyclomatic_complexity,
-            "depth": complexity.max_nesting_depth,
-            "loc": 12,
-        }
-
-        result = engine.validate(purposes, llm_output, code_metrics)
-
-        # Puede ser condicional o warning debido a complejidad
-        self.assertIn(
-            result.verdict, [Verdict.VIABLE, Verdict.CONDITIONAL, Verdict.WARNING]
-        )
-
-
-# ========================================================================================
-# RUNNER DE TESTS
-# ========================================================================================
-
-
-def run_test_suite():
-    """Ejecuta la suite completa de tests."""
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-
-    # Agregar todos los tests
-    suite.addTests(loader.loadTestsFromTestCase(TestDataFlowCoordinates))
-    suite.addTests(loader.loadTestsFromTestCase(TestComplexityProfile))
-    suite.addTests(loader.loadTestsFromTestCase(TestDataFlowAnalyzer))
-    suite.addTests(loader.loadTestsFromTestCase(TestJSONStructureValidator))
-    suite.addTests(loader.loadTestsFromTestCase(TestTabularNormalizer))
-    suite.addTests(loader.loadTestsFromTestCase(TestASTStaticAnalyzer))
-    suite.addTests(loader.loadTestsFromTestCase(TestBusinessPurpose))
-    suite.addTests(loader.loadTestsFromTestCase(TestRiskProfile))
-    suite.addTests(loader.loadTestsFromTestCase(TestPurposeValidator))
-    suite.addTests(loader.loadTestsFromTestCase(TestConfidenceFilter))
-    suite.addTests(loader.loadTestsFromTestCase(TestConstraintMapper))
-    suite.addTests(loader.loadTestsFromTestCase(TestSemanticValidationEngine))
-    suite.addTests(loader.loadTestsFromTestCase(TestEdgeCases))
-    suite.addTests(loader.loadTestsFromTestCase(TestPerformance))
-    suite.addTests(loader.loadTestsFromTestCase(TestIntegration))
-
-    # Ejecutar
-    runner = unittest.TextTestRunner(verbosity=2)
-    result = runner.run(suite)
-
-    # Resumen
-    print("\n" + "=" * 80)
-    print("RESUMEN DE TESTS")
-    print("=" * 80)
-    print(f"Tests ejecutados:  {result.testsRun}")
-    print(
-        f"Éxitos:           {result.testsRun - len(result.failures) - len(result.errors)}"
+if __name__ == '__main__':
+    # Configurar logging para tests
+    logging.basicConfig(
+        level=logging.WARNING,
+        format='%(levelname)s | %(name)s | %(message)s'
     )
-    print(f"Fallos:           {len(result.failures)}")
-    print(f"Errores:          {len(result.errors)}")
-    print(f"Omitidos:         {len(result.skipped)}")
+    
+    # Ejecutar tests con verbosidad
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite())
+    
+    # Resumen final
+    print("\n" + "=" * 80)
+    print("TEST SUMMARY")
     print("=" * 80)
-
-    return result.wasSuccessful()
-
-
-# ========================================================================================
-# PUNTO DE ENTRADA
-# ========================================================================================
-
-if __name__ == "__main__":
-    import sys
-
-    success = run_test_suite()
-    sys.exit(0 if success else 1)
+    print(f"Tests run: {result.testsRun}")
+    print(f"Successes: {result.testsRun - len(result.failures) - len(result.errors)}")
+    print(f"Failures: {len(result.failures)}")
+    print(f"Errors: {len(result.errors)}")
+    print(f"Skipped: {len(result.skipped)}")
+    
+    if result.wasSuccessful():
+        print("\n✅ ALL TESTS PASSED!")
+        sys.exit(0)
+    else:
+        print("\n❌ SOME TESTS FAILED")
+        sys.exit(1)

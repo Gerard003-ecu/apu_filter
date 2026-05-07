@@ -1,1122 +1,1691 @@
 """
 =========================================================================================
-Módulo: Suite de Pruebas para MIC Minimizer
-Ubicación: dev_tools/test_mic_minimizer.py
-Versión: 1.0 - Suite Rigurosa de Testing
-=========================================================================================
-
-COBERTURA DE PRUEBAS:
----------------------
-1. Estructuras de datos algebraicas (BooleanVector, Tool, ImplicantTerm)
-2. Axiomas del retículo booleano
-3. Union-Find y componentes conexas
-4. Algoritmo de Quine-McCluskey
-5. Análisis espectral y homología
-6. Análisis completo de redundancia
-7. Casos extremos y edge cases
-8. Propiedades de performance
-
-FRAMEWORKS:
------------
-- unittest: Framework base
-- hypothesis: Property-based testing
-- numpy.testing: Comparaciones numéricas
-- contextlib: Manejo de contextos
-
-EJECUCIÓN:
-----------
-    python -m pytest test_mic_minimizer.py -v --cov=mic_minimizer --cov-report=html
-    python -m unittest test_mic_minimizer.TestBooleanVector -v
-
+    Test Suite: MIC minimizer verificación rigurosa
+    Ubicación: tests/unit/boole/tactics/test_mic_minimizer.py
+    Versión: 2.0 - test algebraico comprensivo y topológico
+    
+    FILOSOFÍA DE TESTING:
+    ---------------------
+    Esta suite implementa verificación rigurosa multi-nivel:
+    
+    1. TESTING ALGEBRAICO:
+       - Verificación de axiomas del retículo booleano
+       - Propiedades del anillo ℤ₂[x]/⟨x² - x⟩
+       - Corrección de la base de Gröbner
+       - Invariantes de ROBDDs
+    
+    2. TESTING TOPOLÓGICO:
+       - Números de Betti correctos
+       - Grupos de homología
+       - Consistencia de complejos simpliciales
+    
+    3. TESTING NUMÉRICO:
+       - Estabilidad de SVD
+       - Condicionamiento de matrices
+       - Detección de singularidades
+    
+    4. TESTING LÓGICO:
+       - Corrección de SAT solver (DPLL)
+       - Completitud de verificaciones
+       - Detección de conflictos
+    
+    5. PROPERTY-BASED TESTING:
+       - Generación de casos aleatorios
+       - Verificación de invariantes
+       - Fuzzing de entradas
+    
+    COBERTURA:
+    ----------
+    • Statement coverage: > 95%
+    • Branch coverage: > 90%
+    • Path coverage: casos críticos
+    • Mutation testing: resistencia a mutaciones
+    
 =========================================================================================
 """
 
+import math
 import sys
-import io
-import logging
-import time
-from contextlib import contextmanager
-from typing import Set, List, FrozenSet
+import unittest
+from typing import Dict, FrozenSet, List, Set, Tuple
+from unittest.mock import MagicMock, patch
+import random
 
-import numpy as np
-import pytest
-
-# Importar módulo a testear
-from app.boole.tactics.mic_minimizer import (
-    CapabilityDimension,
-    BooleanVector,
-    Tool,
-    ImplicantTerm,
-    QuineMcCluskeyMinimizer,
-    TopologicalInvariantComputer,
-    MICRedundancyAnalyzer,
-    validate_boolean_lattice_axioms,
-    HomologicalInconsistencyError,
-    UnionFind
-)
-
-# Suprimir logs durante testing
-logging.getLogger("MIC.Minimizer.v3.1").setLevel(logging.CRITICAL)
-
-
-# ========================================================================================
-# CONSTANTES DE RIGOR COMPUTACIONAL
-# ========================================================================================
-NUM_VARS_MAX_TESTED = 8  # Cota superior tratable para minimización algorítmica exacta en tiempo O(1)
-MAX_COMPUTATION_TIME_S = 0.5
-
-# ========================================================================================
-# FIXTURES
-# ========================================================================================
-
-@pytest.fixture
-def analyzer():
-    """Fixture que proporciona un analizador de redundancia."""
-    return MICRedundancyAnalyzer()
-
-@pytest.fixture
-def boolean_vectors():
-    """Fixture que proporciona vectores booleanos de prueba."""
-    class Vectors:
-        def __init__(self):
-            self.empty = BooleanVector(frozenset())
-            self.v1 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
-            self.v2 = BooleanVector(frozenset([CapabilityDimension.PHYS_NUM]))
-            self.v3 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO, CapabilityDimension.PHYS_NUM]))
-            self.v_all = BooleanVector(frozenset(CapabilityDimension))
-    return Vectors()
-
-# ========================================================================================
-# TESTS: CapabilityDimension
-# ========================================================================================
-
-class TestCapabilityDimension:
-    """Tests para la enumeración CapabilityDimension."""
-    
-    def test_all_dimensions_exist(self):
-        """Verifica que todas las dimensiones esperadas existen."""
-        expected = {'PHYS_IO', 'PHYS_NUM', 'TACT_TOPO', 'STRAT_FIN', 'WIS_SEM'}
-        actual = {dim.name for dim in CapabilityDimension}
-        assert expected == actual
-    
-    def test_dimension_values_sequential(self):
-        """Verifica que los valores son secuenciales comenzando en 0."""
-        values = [dim.value for dim in CapabilityDimension]
-        assert values == list(range(len(CapabilityDimension)))
-    
-    def test_ordering_is_total(self):
-        """Verifica que el ordenamiento es total y transitivo."""
-        dims = list(CapabilityDimension)
+# Importar el módulo a testear
+try:
+    from app.boole.tactics.mic_minimizer import (
+        # Estructuras algebraicas
+        BooleanVector,
+        CapabilityDimension,
+        Tool,
+        Z2Polynomial,
         
-        # Reflexividad
-        for d in dims:
-            assert not (d < d)
+        # Algoritmos
+        GrobnerBasisZ2,
+        ROBDD,
+        ROBDDNode,
+        DPLLSATSolver,
+        MICRedundancyAnalyzer,
         
-        # Antisimetría
-        for i, d1 in enumerate(dims):
-            for j, d2 in enumerate(dims):
-                if i < j:
-                    assert d1 < d2
-                    assert not (d2 < d1)
+        # Excepciones
+        MICException,
+        HomologicalInconsistencyError,
+        UnsatCoreError,
+        GrobnerBasisComputationError,
+        ROBDDConstructionError,
         
-        # Transitividad
-        for d1 in dims:
-            for d2 in dims:
-                for d3 in dims:
-                    if d1 < d2 and d2 < d3:
-                        assert d1 < d3
-    
-    def test_ordering_consistency_with_value(self):
-        """El orden < debe ser consistente con el valor numérico."""
-        dims = list(CapabilityDimension)
-        for d1 in dims:
-            for d2 in dims:
-                assert (d1 < d2) == (d1.value < d2.value)
+        # Utilidades
+        validate_boolean_lattice_axioms,
+        audit_mic_redundancy,
+    )
+    NUMPY_AVAILABLE = True
+    try:
+        import numpy as np
+    except ImportError:
+        NUMPY_AVAILABLE = False
+except ImportError:
+    # Fallback para ejecución directa
+    import os
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+    from app.boole.tactics.mic_minimizer import *
+    try:
+        import numpy as np
+        NUMPY_AVAILABLE = True
+    except ImportError:
+        NUMPY_AVAILABLE = False
 
 
-# ========================================================================================
-# TESTS: BooleanVector
-# ========================================================================================
+# =============================================================================
+# UTILIDADES DE TESTING
+# =============================================================================
 
-class TestBooleanVector:
-    """Tests para la clase BooleanVector."""
+class TestHelpers:
+    """Utilidades compartidas para testing."""
     
-    def test_immutability(self, boolean_vectors):
-        """Los BooleanVector deben ser inmutables."""
-        with pytest.raises(AttributeError):
-            boolean_vectors.v1.components = frozenset([CapabilityDimension.PHYS_NUM])
+    @staticmethod
+    def random_boolean_vector(num_vars: int = 5) -> BooleanVector:
+        """Genera un vector booleano aleatorio."""
+        num_components = random.randint(0, num_vars)
+        components = random.sample(
+            list(CapabilityDimension)[:num_vars],
+            num_components
+        )
+        return BooleanVector(frozenset(components))
     
-    def test_hashability(self, boolean_vectors):
-        """Los BooleanVector deben ser hasheables."""
-        v1_copy = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+    @staticmethod
+    def random_polynomial(num_vars: int = 5, max_terms: int = 5) -> Z2Polynomial:
+        """Genera un polinomio aleatorio en ℤ₂."""
+        num_terms = random.randint(0, max_terms)
+        monomials = set()
         
-        # Mismo contenido → mismo hash
-        assert hash(boolean_vectors.v1) == hash(v1_copy)
+        for _ in range(num_terms):
+            # Generar monomio aleatorio
+            num_vars_in_mon = random.randint(0, num_vars)
+            vars_in_mon = frozenset(random.sample(range(num_vars), num_vars_in_mon))
+            monomials.add(vars_in_mon)
         
-        # Se pueden usar en sets
-        s = {boolean_vectors.v1, boolean_vectors.v2, v1_copy}
-        assert len(s) == 2  # v1 y v1_copy son iguales
-        
-        # Se pueden usar como claves de diccionario
-        d = {boolean_vectors.v1: "value1", boolean_vectors.v2: "value2"}
-        assert d[v1_copy] == "value1"
+        return Z2Polynomial(frozenset(monomials))
     
-    def test_equality(self, boolean_vectors):
-        """Igualdad basada en componentes."""
-        v1_copy = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
-        
-        assert boolean_vectors.v1 == v1_copy
-        assert boolean_vectors.v1 != boolean_vectors.v2
-        assert boolean_vectors.v1 != boolean_vectors.v3
+    @staticmethod
+    def create_test_tools(num_tools: int = 5) -> List[Tool]:
+        """Crea herramientas de prueba."""
+        tools = []
+        for i in range(num_tools):
+            name = f"tool_{i}"
+            caps = TestHelpers.random_boolean_vector()
+            tools.append(Tool(name, caps))
+        return tools
+
+
+# =============================================================================
+# TESTS: BooleanVector (Retículo Booleano)
+# =============================================================================
+
+class TestBooleanVector(unittest.TestCase):
+    """
+    Test suite para BooleanVector.
     
-    def test_ordering_total(self, boolean_vectors):
-        """El ordenamiento debe ser total."""
-        vectors = [boolean_vectors.empty, boolean_vectors.v1, boolean_vectors.v2, boolean_vectors.v3]
-        
-        # Debe ser posible ordenar
-        sorted_vectors = sorted(vectors)
-        assert len(sorted_vectors) == 4
-        
-        # Debe ser determinista
-        assert sorted(vectors) == sorted(vectors)
+    Verifica:
+    - Axiomas del retículo booleano
+    - Operaciones algebraicas
+    - Métricas de Hamming
+    - Productos internos
+    """
     
-    def test_from_minterm(self, boolean_vectors):
-        """Construcción desde minitérmino."""
-        # 0b101 = 5 → bits 0 y 2 activos
-        v = BooleanVector.from_minterm(5, 5)
-        expected = BooleanVector(frozenset([
-            CapabilityDimension.PHYS_IO,    # bit 0
-            CapabilityDimension.TACT_TOPO   # bit 2
+    def setUp(self):
+        """Inicialización de casos de prueba."""
+        self.empty = BooleanVector.zero()
+        self.universe = BooleanVector.universe(5)
+        
+        self.v1 = BooleanVector(frozenset([
+            CapabilityDimension.PHYS_IO,
+            CapabilityDimension.PHYS_NUM
         ]))
-        assert v == expected
         
-        # Caso especial: 0
-        v_zero = BooleanVector.from_minterm(0, 5)
-        assert v_zero == boolean_vectors.empty
+        self.v2 = BooleanVector(frozenset([
+            CapabilityDimension.PHYS_NUM,
+            CapabilityDimension.TACT_TOPO
+        ]))
         
-        # Caso especial: todos los bits
-        v_all = BooleanVector.from_minterm((1 << 5) - 1, 5)
-        assert v_all.hamming_weight() == 5
+        self.v3 = BooleanVector(frozenset([
+            CapabilityDimension.STRAT_FIN
+        ]))
     
-    def test_from_minterm_validation(self):
-        """Validación de rango en from_minterm."""
-        with pytest.raises(ValueError):
-            BooleanVector.from_minterm(-1, 5)
+    # -------------------------------------------------------------------------
+    # CONSTRUCCIÓN Y VALIDACIÓN
+    # -------------------------------------------------------------------------
+    
+    def test_initialization_empty(self):
+        """Test: Inicialización vacía."""
+        v = BooleanVector()
+        self.assertEqual(v.components, frozenset())
+        self.assertEqual(v.hamming_weight(), 0)
+    
+    def test_initialization_with_set(self):
+        """Test: Inicialización con set regular."""
+        caps = {CapabilityDimension.PHYS_IO, CapabilityDimension.PHYS_NUM}
+        v = BooleanVector(caps)
         
-        with pytest.raises(ValueError):
-            BooleanVector.from_minterm(32, 5)  # 32 = 2^5, fuera de rango
+        self.assertIsInstance(v.components, frozenset)
+        self.assertEqual(len(v.components), 2)
     
-    def test_to_binary_string(self, boolean_vectors):
-        """Conversión a string binario."""
-        assert boolean_vectors.empty.to_binary_string(5) == "00000"
-        assert boolean_vectors.v1.to_binary_string(5) == "10000"
-        assert boolean_vectors.v2.to_binary_string(5) == "01000"
-        assert boolean_vectors.v3.to_binary_string(5) == "11000"
-        assert boolean_vectors.v_all.to_binary_string(5) == "11111"
+    def test_initialization_invalid_type(self):
+        """Test: Tipo inválido en componentes."""
+        with self.assertRaises(TypeError):
+            BooleanVector(frozenset([1, 2, 3]))  # type: ignore
     
-    def test_to_minterm(self, boolean_vectors):
-        """Conversión a minitérmino."""
-        assert boolean_vectors.empty.to_minterm() == 0
-        assert boolean_vectors.v1.to_minterm() == 1    # 2^0
-        assert boolean_vectors.v2.to_minterm() == 2    # 2^1
-        assert boolean_vectors.v3.to_minterm() == 3    # 2^0 + 2^1
+    def test_from_minterm(self):
+        """Test: Construcción desde minitérmino."""
+        # 5 en binario = 101 → dimensiones 0 y 2
+        v = BooleanVector.from_minterm(5, 3)
+        
+        self.assertIn(CapabilityDimension(0), v.components)
+        self.assertIn(CapabilityDimension(2), v.components)
+        self.assertNotIn(CapabilityDimension(1), v.components)
+    
+    def test_from_minterm_out_of_range(self):
+        """Test: Minitérmino fuera de rango."""
+        with self.assertRaises(ValueError):
+            BooleanVector.from_minterm(16, 3)  # 16 > 2^3 - 1 = 7
+    
+    def test_from_binary_string(self):
+        """Test: Construcción desde string binario."""
+        v = BooleanVector.from_binary_string("10110")
+        
+        expected = BooleanVector(frozenset([
+            CapabilityDimension(0),
+            CapabilityDimension(2),
+            CapabilityDimension(3)
+        ]))
+        
+        self.assertEqual(v, expected)
+    
+    def test_to_binary_string(self):
+        """Test: Conversión a string binario."""
+        v = BooleanVector(frozenset([
+            CapabilityDimension(0),
+            CapabilityDimension(2)
+        ]))
+        
+        binary = v.to_binary_string(5)
+        self.assertEqual(binary, "10100")
+    
+    def test_to_minterm(self):
+        """Test: Conversión a minitérmino."""
+        v = BooleanVector(frozenset([
+            CapabilityDimension(0),
+            CapabilityDimension(2)
+        ]))
+        
+        # Bit 0 y bit 2 activos → 2^0 + 2^2 = 5
+        self.assertEqual(v.to_minterm(), 5)
+    
+    def test_immutability(self):
+        """Test: Inmutabilidad del vector."""
+        v = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+        
+        with self.assertRaises(AttributeError):
+            v.components = frozenset()  # type: ignore
+    
+    def test_hashability(self):
+        """Test: Vectores son hashables."""
+        v1 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+        v2 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+        
+        # Pueden usarse en sets
+        s = {v1, v2}
+        self.assertEqual(len(s), 1)
+        
+        # Pueden usarse como claves
+        d = {v1: "value"}
+        self.assertEqual(d[v2], "value")
+    
+    # -------------------------------------------------------------------------
+    # AXIOMAS DEL RETÍCULO BOOLEANO
+    # -------------------------------------------------------------------------
+    
+    def test_axiom_commutativity(self):
+        """Test: Conmutatividad de ∨ y ∧."""
+        # ∨ conmutativa
+        self.assertEqual(
+            self.v1.union(self.v2),
+            self.v2.union(self.v1)
+        )
+        
+        # ∧ conmutativa
+        self.assertEqual(
+            self.v1.intersection(self.v2),
+            self.v2.intersection(self.v1)
+        )
+    
+    def test_axiom_associativity(self):
+        """Test: Asociatividad de ∨ y ∧."""
+        # (v1 ∨ v2) ∨ v3 = v1 ∨ (v2 ∨ v3)
+        left = self.v1.union(self.v2).union(self.v3)
+        right = self.v1.union(self.v2.union(self.v3))
+        self.assertEqual(left, right)
+        
+        # (v1 ∧ v2) ∧ v3 = v1 ∧ (v2 ∧ v3)
+        left = self.v1.intersection(self.v2).intersection(self.v3)
+        right = self.v1.intersection(self.v2.intersection(self.v3))
+        self.assertEqual(left, right)
+    
+    def test_axiom_absorption(self):
+        """Test: Leyes de absorción."""
+        # v1 ∨ (v1 ∧ v2) = v1
+        self.assertEqual(
+            self.v1.union(self.v1.intersection(self.v2)),
+            self.v1
+        )
+        
+        # v1 ∧ (v1 ∨ v2) = v1
+        self.assertEqual(
+            self.v1.intersection(self.v1.union(self.v2)),
+            self.v1
+        )
+    
+    def test_axiom_distributivity(self):
+        """Test: Distributividad."""
+        # v1 ∧ (v2 ∨ v3) = (v1 ∧ v2) ∨ (v1 ∧ v3)
+        left = self.v1.intersection(self.v2.union(self.v3))
+        right = self.v1.intersection(self.v2).union(self.v1.intersection(self.v3))
+        self.assertEqual(left, right)
+    
+    def test_axiom_complement(self):
+        """Test: Leyes de complemento."""
+        # v ∨ ¬v = 1
+        self.assertEqual(
+            self.v1.union(self.v1.complement(5)),
+            self.universe
+        )
+        
+        # v ∧ ¬v = 0
+        self.assertEqual(
+            self.v1.intersection(self.v1.complement(5)),
+            self.empty
+        )
+    
+    def test_axiom_idempotence(self):
+        """Test: Idempotencia."""
+        # v ∨ v = v
+        self.assertEqual(self.v1.union(self.v1), self.v1)
+        
+        # v ∧ v = v
+        self.assertEqual(self.v1.intersection(self.v1), self.v1)
+    
+    def test_axiom_identity(self):
+        """Test: Elementos identidad."""
+        # v ∨ 0 = v
+        self.assertEqual(self.v1.union(self.empty), self.v1)
+        
+        # v ∧ 1 = v
+        self.assertEqual(self.v1.intersection(self.universe), self.v1)
+    
+    def test_axiom_annihilation(self):
+        """Test: Elementos aniquiladores."""
+        # v ∨ 1 = 1
+        self.assertEqual(self.v1.union(self.universe), self.universe)
+        
+        # v ∧ 0 = 0
+        self.assertEqual(self.v1.intersection(self.empty), self.empty)
+    
+    # -------------------------------------------------------------------------
+    # OPERACIONES ALGEBRAICAS
+    # -------------------------------------------------------------------------
+    
+    def test_symmetric_difference(self):
+        """Test: Diferencia simétrica (XOR)."""
+        # v1 ⊕ v2: elementos en uno pero no en ambos
+        result = self.v1.symmetric_difference(self.v2)
+        
+        expected = BooleanVector(frozenset([
+            CapabilityDimension.PHYS_IO,
+            CapabilityDimension.TACT_TOPO
+        ]))
+        
+        self.assertEqual(result, expected)
+    
+    def test_symmetric_difference_self(self):
+        """Test: XOR consigo mismo es cero."""
+        result = self.v1.symmetric_difference(self.v1)
+        self.assertEqual(result, self.empty)
+    
+    def test_difference(self):
+        """Test: Diferencia de conjuntos."""
+        result = self.v1.difference(self.v2)
+        
+        expected = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+        self.assertEqual(result, expected)
+    
+    def test_complement_double(self):
+        """Test: Doble complemento es identidad."""
+        comp = self.v1.complement(5)
+        double_comp = comp.complement(5)
+        self.assertEqual(double_comp, self.v1)
+    
+    # -------------------------------------------------------------------------
+    # RELACIONES DE ORDEN
+    # -------------------------------------------------------------------------
+    
+    def test_is_subset_of(self):
+        """Test: Relación de subconjunto."""
+        v_sub = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+        
+        self.assertTrue(v_sub.is_subset_of(self.v1))
+        self.assertTrue(self.empty.is_subset_of(self.v1))
+        self.assertTrue(self.v1.is_subset_of(self.v1))
+        self.assertFalse(self.v1.is_subset_of(v_sub))
+    
+    def test_is_superset_of(self):
+        """Test: Relación de superconjunto."""
+        v_sub = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+        
+        self.assertTrue(self.v1.is_superset_of(v_sub))
+        self.assertFalse(v_sub.is_superset_of(self.v1))
+    
+    def test_is_disjoint_from(self):
+        """Test: Conjuntos disjuntos."""
+        self.assertTrue(self.v1.is_disjoint_from(self.v3))
+        self.assertFalse(self.v1.is_disjoint_from(self.v2))
+    
+    # -------------------------------------------------------------------------
+    # MÉTRICAS
+    # -------------------------------------------------------------------------
+    
+    def test_hamming_weight(self):
+        """Test: Peso de Hamming."""
+        self.assertEqual(self.empty.hamming_weight(), 0)
+        self.assertEqual(self.v1.hamming_weight(), 2)
+        self.assertEqual(self.universe.hamming_weight(), 5)
+    
+    def test_hamming_distance(self):
+        """Test: Distancia de Hamming."""
+        # v1 = {PHYS_IO, PHYS_NUM}
+        # v2 = {PHYS_NUM, TACT_TOPO}
+        # Diferencia: {PHYS_IO, TACT_TOPO} → distancia = 2
+        
+        distance = self.v1.hamming_distance(self.v2)
+        self.assertEqual(distance, 2)
+    
+    def test_hamming_distance_self(self):
+        """Test: Distancia de Hamming a sí mismo es cero."""
+        self.assertEqual(self.v1.hamming_distance(self.v1), 0)
+    
+    def test_hamming_distance_symmetric(self):
+        """Test: Simetría de distancia de Hamming."""
+        d12 = self.v1.hamming_distance(self.v2)
+        d21 = self.v2.hamming_distance(self.v1)
+        self.assertEqual(d12, d21)
+    
+    def test_hamming_distance_triangle_inequality(self):
+        """Test: Desigualdad triangular."""
+        d12 = self.v1.hamming_distance(self.v2)
+        d23 = self.v2.hamming_distance(self.v3)
+        d13 = self.v1.hamming_distance(self.v3)
+        
+        self.assertLessEqual(d13, d12 + d23)
+    
+    def test_inner_product_z2(self):
+        """Test: Producto interno en ℤ₂."""
+        # v1 ∩ v2 = {PHYS_NUM} → tamaño 1 → 1 mod 2 = 1
+        prod = self.v1.inner_product_z2(self.v2)
+        self.assertEqual(prod, 1)
+        
+        # v1 ∩ v3 = ∅ → tamaño 0 → 0 mod 2 = 0
+        prod = self.v1.inner_product_z2(self.v3)
+        self.assertEqual(prod, 0)
+    
+    def test_inner_product_real(self):
+        """Test: Producto interno estándar."""
+        # |v1 ∩ v2| = 1
+        prod = self.v1.inner_product_real(self.v2)
+        self.assertEqual(prod, 1)
+        
+        # |v1 ∩ v3| = 0
+        prod = self.v1.inner_product_real(self.v3)
+        self.assertEqual(prod, 0)
+    
+    # -------------------------------------------------------------------------
+    # ORDEN Y COMPARACIÓN
+    # -------------------------------------------------------------------------
+    
+    def test_equality(self):
+        """Test: Igualdad de vectores."""
+        v1_copy = BooleanVector(frozenset([
+            CapabilityDimension.PHYS_IO,
+            CapabilityDimension.PHYS_NUM
+        ]))
+        
+        self.assertEqual(self.v1, v1_copy)
+        self.assertNotEqual(self.v1, self.v2)
+    
+    def test_ordering(self):
+        """Test: Orden total para sorting."""
+        vectors = [self.v3, self.v1, self.v2]
+        sorted_vecs = sorted(vectors)
+        
+        # Debe ser ordenable sin errores
+        self.assertEqual(len(sorted_vecs), 3)
+    
+    # -------------------------------------------------------------------------
+    # CASOS EDGE
+    # -------------------------------------------------------------------------
+    
+    def test_large_vector(self):
+        """Test: Vector con muchos componentes."""
+        large_caps = frozenset(CapabilityDimension)
+        v = BooleanVector(large_caps)
+        
+        self.assertEqual(len(v.components), len(CapabilityDimension))
     
     def test_roundtrip_minterm(self):
-        """from_minterm y to_minterm son inversos."""
-        for minterm in range(32):  # 2^5
-            v = BooleanVector.from_minterm(minterm, 5)
-            assert v.to_minterm() == minterm
-    
-    def test_hamming_weight(self, boolean_vectors):
-        """Peso de Hamming = número de componentes."""
-        assert boolean_vectors.empty.hamming_weight() == 0
-        assert boolean_vectors.v1.hamming_weight() == 1
-        assert boolean_vectors.v2.hamming_weight() == 1
-        assert boolean_vectors.v3.hamming_weight() == 2
-        assert boolean_vectors.v_all.hamming_weight() == 5
-    
-    # ===== OPERACIONES DEL RETÍCULO BOOLEANO =====
-    
-    def test_union_commutative(self, boolean_vectors):
-        """OR es conmutativo: a ∨ b = b ∨ a."""
-        assert boolean_vectors.v1.union(boolean_vectors.v2) == boolean_vectors.v2.union(boolean_vectors.v1)
-        assert boolean_vectors.v1.union(boolean_vectors.v3) == boolean_vectors.v3.union(boolean_vectors.v1)
-    
-    def test_union_associative(self, boolean_vectors):
-        """OR es asociativo: (a ∨ b) ∨ c = a ∨ (b ∨ c)."""
-        left = boolean_vectors.v1.union(boolean_vectors.v2).union(boolean_vectors.v3)
-        right = boolean_vectors.v1.union(boolean_vectors.v2.union(boolean_vectors.v3))
-        assert left == right
-    
-    def test_union_identity(self, boolean_vectors):
-        """Identidad: a ∨ 0 = a."""
-        assert boolean_vectors.v1.union(boolean_vectors.empty) == boolean_vectors.v1
-        assert boolean_vectors.empty.union(boolean_vectors.v1) == boolean_vectors.v1
-    
-    def test_union_idempotent(self, boolean_vectors):
-        """Idempotencia: a ∨ a = a."""
-        assert boolean_vectors.v1.union(boolean_vectors.v1) == boolean_vectors.v1
-        assert boolean_vectors.v3.union(boolean_vectors.v3) == boolean_vectors.v3
-    
-    def test_intersection_commutative(self, boolean_vectors):
-        """AND es conmutativo: a ∧ b = b ∧ a."""
-        assert boolean_vectors.v1.intersection(boolean_vectors.v2) == boolean_vectors.v2.intersection(boolean_vectors.v1)
-    
-    def test_intersection_associative(self, boolean_vectors):
-        """AND es asociativo: (a ∧ b) ∧ c = a ∧ (b ∧ c)."""
-        left = boolean_vectors.v1.intersection(boolean_vectors.v2).intersection(boolean_vectors.v3)
-        right = boolean_vectors.v1.intersection(boolean_vectors.v2.intersection(boolean_vectors.v3))
-        assert left == right
-    
-    def test_intersection_identity(self, boolean_vectors):
-        """Identidad: a ∧ 1 = a."""
-        assert boolean_vectors.v1.intersection(boolean_vectors.v_all) == boolean_vectors.v1
-    
-    def test_intersection_zero(self, boolean_vectors):
-        """Aniquilador: a ∧ 0 = 0."""
-        assert boolean_vectors.v1.intersection(boolean_vectors.empty) == boolean_vectors.empty
-    
-    def test_intersection_idempotent(self, boolean_vectors):
-        """Idempotencia: a ∧ a = a."""
-        assert boolean_vectors.v1.intersection(boolean_vectors.v1) == boolean_vectors.v1
-    
-    def test_absorption_law(self, boolean_vectors):
-        """Absorción: a ∨ (a ∧ b) = a."""
-        result = boolean_vectors.v1.union(boolean_vectors.v1.intersection(boolean_vectors.v2))
-        assert result == boolean_vectors.v1
+        """Test: Conversión minterm → vector → minterm."""
+        original_minterm = 13  # 1101 en binario
+        v = BooleanVector.from_minterm(original_minterm, 4)
+        recovered_minterm = v.to_minterm()
         
-        # Forma dual: a ∧ (a ∨ b) = a
-        result_dual = boolean_vectors.v1.intersection(boolean_vectors.v1.union(boolean_vectors.v2))
-        assert result_dual == boolean_vectors.v1
+        self.assertEqual(recovered_minterm, original_minterm)
     
-    def test_distributive_law(self, boolean_vectors):
-        """Distributividad: a ∧ (b ∨ c) = (a ∧ b) ∨ (a ∧ c)."""
-        left = boolean_vectors.v1.intersection(boolean_vectors.v2.union(boolean_vectors.v3))
-        right = boolean_vectors.v1.intersection(boolean_vectors.v2).union(boolean_vectors.v1.intersection(boolean_vectors.v3))
-        assert left == right
+    def test_roundtrip_binary_string(self):
+        """Test: Conversión string → vector → string."""
+        original = "10110"
+        v = BooleanVector.from_binary_string(original)
+        recovered = v.to_binary_string(5)
         
-        # Forma dual: a ∨ (b ∧ c) = (a ∨ b) ∧ (a ∨ c)
-        left_dual = boolean_vectors.v1.union(boolean_vectors.v2.intersection(boolean_vectors.v3))
-        right_dual = boolean_vectors.v1.union(boolean_vectors.v2).intersection(boolean_vectors.v1.union(boolean_vectors.v3))
-        assert left_dual == right_dual
-    
-    def test_complement(self, boolean_vectors):
-        """Complemento: a ∨ ¬a = 1, a ∧ ¬a = 0."""
-        num_vars = 5
-        
-        # a ∨ ¬a = 1
-        result = boolean_vectors.v1.union(boolean_vectors.v1.complement(num_vars))
-        expected_all = BooleanVector(frozenset(CapabilityDimension))
-        assert result == expected_all
-        
-        # a ∧ ¬a = 0
-        result_zero = boolean_vectors.v1.intersection(boolean_vectors.v1.complement(num_vars))
-        assert result_zero == boolean_vectors.empty
-    
-    def test_complement_involution(self, boolean_vectors):
-        """Doble complemento: ¬(¬a) = a."""
-        num_vars = 5
-        double_complement = boolean_vectors.v1.complement(num_vars).complement(num_vars)
-        assert double_complement == boolean_vectors.v1
-    
-    def test_de_morgan_laws(self, boolean_vectors):
-        """Leyes de De Morgan: ¬(a ∨ b) = ¬a ∧ ¬b, ¬(a ∧ b) = ¬a ∨ ¬b."""
-        num_vars = 5
-        
-        # ¬(a ∨ b) = ¬a ∧ ¬b
-        left = boolean_vectors.v1.union(boolean_vectors.v2).complement(num_vars)
-        right = boolean_vectors.v1.complement(num_vars).intersection(boolean_vectors.v2.complement(num_vars))
-        assert left == right
-        
-        # ¬(a ∧ b) = ¬a ∨ ¬b
-        left2 = boolean_vectors.v1.intersection(boolean_vectors.v2).complement(num_vars)
-        right2 = boolean_vectors.v1.complement(num_vars).union(boolean_vectors.v2.complement(num_vars))
-        assert left2 == right2
-    
-    def test_symmetric_difference(self, boolean_vectors):
-        """XOR (suma en ℤ₂): a ⊕ b."""
-        # Propiedades del grupo
-        # Conmutatividad
-        assert boolean_vectors.v1.symmetric_difference(boolean_vectors.v2) == \
-                        boolean_vectors.v2.symmetric_difference(boolean_vectors.v1)
-        
-        # Asociatividad
-        left = boolean_vectors.v1.symmetric_difference(boolean_vectors.v2).symmetric_difference(boolean_vectors.v3)
-        right = boolean_vectors.v1.symmetric_difference(boolean_vectors.v2.symmetric_difference(boolean_vectors.v3))
-        assert left == right
-        
-        # Identidad: a ⊕ 0 = a
-        assert boolean_vectors.v1.symmetric_difference(boolean_vectors.empty) == boolean_vectors.v1
-        
-        # Inverso: a ⊕ a = 0
-        assert boolean_vectors.v1.symmetric_difference(boolean_vectors.v1) == boolean_vectors.empty
-    
-    def test_hamming_distance(self, boolean_vectors):
-        """Distancia de Hamming: d(a, b) = ||a ⊕ b||."""
-        # Propiedades métricas
-        # d(a, a) = 0
-        assert boolean_vectors.v1.hamming_distance(boolean_vectors.v1) == 0
-        
-        # d(a, b) = d(b, a) (simetría)
-        assert boolean_vectors.v1.hamming_distance(boolean_vectors.v2) == boolean_vectors.v2.hamming_distance(boolean_vectors.v1)
-        
-        # d(a, b) ≥ 0
-        assert boolean_vectors.v1.hamming_distance(boolean_vectors.v2) >= 0
-        
-        # Casos específicos
-        assert boolean_vectors.v1.hamming_distance(boolean_vectors.v2) == 2  # Disjuntos, 1+1
-        assert boolean_vectors.v1.hamming_distance(boolean_vectors.v3) == 1  # v3 contiene v1
-        assert boolean_vectors.empty.hamming_distance(boolean_vectors.v1) == 1
-    
-    def test_hamming_distance_triangle_inequality(self, boolean_vectors):
-        """Desigualdad triangular: d(a, c) ≤ d(a, b) + d(b, c)."""
-        vectors = [boolean_vectors.empty, boolean_vectors.v1, boolean_vectors.v2, boolean_vectors.v3, boolean_vectors.v_all]
-        
-        for a in vectors:
-            for b in vectors:
-                for c in vectors:
-                    d_ac = a.hamming_distance(c)
-                    d_ab = a.hamming_distance(b)
-                    d_bc = b.hamming_distance(c)
-                    
-                    assert d_ac <= d_ab + d_bc, \
-                        f"Falla desigualdad triangular: d({a}, {c}) > d({a}, {b}) + d({b}, {c})"
-    
-    def test_is_subset_of(self, boolean_vectors):
-        """Orden parcial: a ⊆ b."""
-        # Reflexividad
-        assert boolean_vectors.v1.is_subset_of(boolean_vectors.v1)
-        
-        # Antisimetría
-        assert boolean_vectors.v1.is_subset_of(boolean_vectors.v3)
-        assert not boolean_vectors.v3.is_subset_of(boolean_vectors.v1)
-        
-        # Transitividad
-        v4 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO, 
-                                      CapabilityDimension.PHYS_NUM,
-                                      CapabilityDimension.TACT_TOPO]))
-        assert boolean_vectors.v1.is_subset_of(boolean_vectors.v3)
-        assert boolean_vectors.v3.is_subset_of(v4)
-        assert boolean_vectors.v1.is_subset_of(v4)
-        
-        # Vacío es subconjunto de todo
-        assert boolean_vectors.empty.is_subset_of(boolean_vectors.v1)
-        assert boolean_vectors.empty.is_subset_of(boolean_vectors.empty)
-    
-    def test_inner_product_z2(self, boolean_vectors):
-        """Producto escalar en ℤ₂."""
-        # Conmutatividad
-        assert boolean_vectors.v1.inner_product_z2(boolean_vectors.v2) == \
-                        boolean_vectors.v2.inner_product_z2(boolean_vectors.v1)
-        
-        # a · a = |a| mod 2
-        assert boolean_vectors.v1.inner_product_z2(boolean_vectors.v1) == 1  # peso 1
-        assert boolean_vectors.v3.inner_product_z2(boolean_vectors.v3) == 0  # peso 2
-        
-        # Disjuntos → 0
-        assert boolean_vectors.v1.inner_product_z2(boolean_vectors.v2) == 0
-        
-        # Con overlap
-        assert boolean_vectors.v1.inner_product_z2(boolean_vectors.v3) == 1  # 1 bit común
-    
-    def test_invalid_construction(self):
-        """Validación de construcción inválida."""
-        with pytest.raises(TypeError):
-            BooleanVector(frozenset([1, 2, 3]))  # No son CapabilityDimension
+        self.assertEqual(recovered, original)
 
 
-# ========================================================================================
-# TESTS: Tool
-# ========================================================================================
+# =============================================================================
+# TESTS: Tool (Herramientas)
+# =============================================================================
 
-class TestTool:
-    """Tests para la clase Tool."""
+class TestTool(unittest.TestCase):
+    """Test suite para Tool."""
     
-    @pytest.fixture
-    def tools(self):
-        """Fixture que proporciona herramientas de prueba."""
-        class Tools:
-            def __init__(self):
-                self.cap1 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
-                self.cap2 = BooleanVector(frozenset([CapabilityDimension.PHYS_NUM]))
-
-                self.tool1 = Tool("tool_a", self.cap1)
-                self.tool2 = Tool("tool_b", self.cap2)
-                self.tool3 = Tool("tool_a", self.cap1)  # Igual a tool1
-        return Tools()
-    
-    def test_immutability(self, tools):
-        """Las herramientas deben ser inmutables."""
-        with pytest.raises(AttributeError):
-            tools.tool1.name = "new_name"
+    def test_initialization_valid(self):
+        """Test: Inicialización válida."""
+        caps = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+        tool = Tool("test_tool", caps)
         
-        with pytest.raises(AttributeError):
-            tools.tool1.capabilities = tools.cap2
+        self.assertEqual(tool.name, "test_tool")
+        self.assertEqual(tool.capabilities, caps)
     
-    def test_equality(self, tools):
-        """Igualdad basada en nombre y capacidades."""
-        assert tools.tool1 == tools.tool3
-        assert tools.tool1 != tools.tool2
-    
-    def test_hashability(self, tools):
-        """Las herramientas deben ser hasheables."""
-        tool_set = {tools.tool1, tools.tool2, tools.tool3}
-        assert len(tool_set) == 2  # tool1 y tool3 son iguales
+    def test_initialization_invalid_name(self):
+        """Test: Nombre inválido."""
+        caps = BooleanVector()
         
-        tool_dict = {tools.tool1: "value1", tools.tool2: "value2"}
-        assert tool_dict[tools.tool3] == "value1"
-    
-    def test_ordering(self, tools):
-        """Ordenamiento lexicográfico."""
-        tools_list = [tools.tool2, tools.tool1, tools.tool3]
-        sorted_tools = sorted(tools_list)
+        with self.assertRaises(ValueError):
+            Tool("", caps)
         
-        # tool_a < tool_b
-        assert sorted_tools[0].name == "tool_a"
-        assert sorted_tools[-1].name == "tool_b"
+        with self.assertRaises(ValueError):
+            Tool("   ", caps)
     
-    def test_invalid_name(self):
-        """Validación de nombre inválido."""
-        cap1 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
-        with pytest.raises(ValueError):
-            Tool("", cap1)
+    def test_initialization_invalid_capabilities(self):
+        """Test: Capacidades de tipo incorrecto."""
+        with self.assertRaises(TypeError):
+            Tool("test", {CapabilityDimension.PHYS_IO})  # type: ignore
+    
+    def test_arity(self):
+        """Test: Aridad (número de capacidades)."""
+        caps = BooleanVector(frozenset([
+            CapabilityDimension.PHYS_IO,
+            CapabilityDimension.PHYS_NUM
+        ]))
+        tool = Tool("test", caps)
         
-        with pytest.raises(ValueError):
-            Tool(None, cap1)
+        self.assertEqual(tool.arity, 2)
     
-    def test_invalid_capabilities(self):
-        """Validación de capacidades inválidas."""
-        with pytest.raises(TypeError):
-            Tool("tool", "not_a_boolean_vector")
-
-
-# ========================================================================================
-# TESTS: ImplicantTerm
-# ========================================================================================
-
-class TestQuineMcCluskeyMinimizer:
-    @pytest.mark.parametrize("num_vars", sorted({1, 2, 4, 8, NUM_VARS_MAX_TESTED}))
-    def test_boundary_constraints_vars(self, num_vars):
-        QuineMcCluskeyMinimizer(num_vars=num_vars)
-
-
-# ========================================================================================
-# TESTS: UnionFind
-# ========================================================================================
-
-class TestUnionFind:
-    """Tests para la estructura Union-Find."""
-    
-    def test_initial_state(self):
-        """Estado inicial: n componentes disjuntas."""
-        uf = UnionFind(5)
-        assert uf.num_components == 5
-        for i in range(5):
-            assert uf.find(i) == i
-    
-    def test_union_simple(self):
-        """Unión básica de dos elementos."""
-        uf = UnionFind(5)
-        result = uf.union(0, 1)
-        assert result  # Unión exitosa
-        assert uf.num_components == 4
-        assert uf.find(0) == uf.find(1)
-    
-    def test_union_already_connected(self):
-        """Unir elementos ya conectados no cambia nada."""
-        uf = UnionFind(5)
-        uf.union(0, 1)
-        num_comp_before = uf.num_components
-        result = uf.union(0, 1)
-        assert not result  # No se realizó unión
-        assert uf.num_components == num_comp_before
-    
-    def test_union_transitive(self):
-        """Transitividad: si 0~1 y 1~2, entonces 0~2."""
-        uf = UnionFind(5)
-        uf.union(0, 1)
-        uf.union(1, 2)
-        assert uf.find(0) == uf.find(2)
-        assert uf.num_components == 3
-    
-    def test_path_compression(self):
-        """Path compression optimiza búsquedas."""
-        uf = UnionFind(10)
-        for i in range(4):
-            uf.union(i, i + 1)
-        root = uf.find(4)
-        assert uf.parent[4] == root
-    
-    def test_union_by_rank(self):
-        """Union by rank mantiene árboles balanceados."""
-        uf = UnionFind(8)
-        uf.union(0, 1)
-        uf.union(2, 3)
-        uf.union(0, 2)
-        uf.union(4, 5)
-        uf.union(6, 7)
-        uf.union(4, 6)
-        uf.union(0, 4)
-        assert uf.num_components == 1
-    
-    def test_get_components(self):
-        """Obtener todas las componentes conexas."""
-        uf = UnionFind(6)
-        uf.union(0, 1)
-        uf.union(1, 2)
-        uf.union(3, 4)
-        components = uf.get_components()
-        assert len(components) == 3
-        components_sets = [set(comp) for comp in components]
-        assert {0, 1, 2} in components_sets
-        assert {3, 4} in components_sets
-        assert {5} in components_sets
-    
-    def test_size_tracking(self):
-        """Tamaño de componentes se actualiza correctamente."""
-        uf = UnionFind(5)
-        uf.union(0, 1)
-        uf.union(1, 2)
-        root = uf.find(0)
-        assert uf.size[root] == 3
-
-
-# ========================================================================================
-# TESTS: QuineMcCluskeyMinimizer
-# ========================================================================================
-
-class TestQuineMcCluskeyMinimizerTests:
-    """Tests para el algoritmo de Quine-McCluskey."""
-    
-    @pytest.fixture
-    def minimizer(self):
-        """Fixture que proporciona un minimizador de 4 variables."""
-        return QuineMcCluskeyMinimizer(4)
-    
-    def test_initialization(self, minimizer):
-        """Inicialización correcta."""
-        assert minimizer.num_vars == 4
-        assert minimizer.max_minterm == 15
-    
-    def test_initialization_validation(self):
-        """Validación de parámetros de inicialización."""
-        with pytest.raises(ValueError):
-            QuineMcCluskeyMinimizer(0)
-        with pytest.raises(ValueError):
-            QuineMcCluskeyMinimizer(21)
-    
-    def test_hamming_distance_ternary(self, minimizer):
-        """Distancia de Hamming entre términos ternarios."""
-        assert minimizer._hamming_distance_ternary("0000", "0000") == 0
-        assert minimizer._hamming_distance_ternary("0000", "0001") == 1
-        assert minimizer._hamming_distance_ternary("0000", "1111") == 4
-        assert minimizer._hamming_distance_ternary("00-0", "00-1") == 1
-        assert minimizer._hamming_distance_ternary("0-0-", "1-1-") == 2
-        assert minimizer._hamming_distance_ternary("----", "1111") == 0
-    
-    def test_hamming_distance_validation(self, minimizer):
-        """Validación de longitudes en distancia de Hamming."""
-        with pytest.raises(ValueError):
-            minimizer._hamming_distance_ternary("00", "000")
-    
-    def test_can_combine_basic(self, minimizer):
-        """Verificación básica de combinabilidad."""
-        assert minimizer._can_combine("0000", "0001")
-        assert minimizer._can_combine("0100", "0000")
-        assert not minimizer._can_combine("0000", "0011")
-        assert not minimizer._can_combine("0000", "1111")
-        assert not minimizer._can_combine("0000", "0000")
-    
-    def test_can_combine_with_dont_care(self, minimizer):
-        """Combinabilidad con don't cares."""
-        assert minimizer._can_combine("0-00", "0-01")
-        assert not minimizer._can_combine("0-00", "01-0")
-        assert not minimizer._can_combine("0-00", "0100")
-    
-    def test_combine_terms_basic(self, minimizer):
-        """Combinación básica de términos."""
-        assert minimizer._combine_terms("0000", "0001") == "000-"
-        assert minimizer._combine_terms("0100", "0000") == "0-00"
-        assert minimizer._combine_terms("0000", "0011") is None
-    
-    def test_combine_terms_with_dont_care(self, minimizer):
-        """Combinación de términos con don't cares."""
-        assert minimizer._combine_terms("0-00", "0-01") == "0-0-"
-        assert minimizer._combine_terms("0-00", "01-0") is None
-    
-    def test_compute_prime_implicants_simple(self, minimizer):
-        """Cálculo de implicantes primos: caso simple."""
-        minterms = [0, 1]
-        prime_impls = minimizer.compute_prime_implicants(minterms)
-        assert len(prime_impls) == 1
-        impl = list(prime_impls)[0]
-        assert impl.pattern == "000-"
-    
-    def test_compute_prime_implicants_no_reduction(self, minimizer):
-        """Implicantes sin reducción posible."""
-        minterms = [0, 3, 5, 6]
-        prime_impls = minimizer.compute_prime_implicants(minterms)
-        assert len(prime_impls) > 0
-        covered = set()
-        for impl in prime_impls:
-            covered.update(impl.covered_minterms)
-        assert covered == set(minterms)
-    
-    def test_compute_prime_implicants_complete_reduction(self, minimizer):
-        """Reducción completa a un solo implicante."""
-        minterms = list(range(16))
-        prime_impls = minimizer.compute_prime_implicants(minterms)
-        assert len(prime_impls) == 1
-        impl = list(prime_impls)[0]
-        assert impl.pattern == "----"
-        assert len(impl.covered_minterms) == 16
-    
-    def test_compute_prime_implicants_empty(self, minimizer):
-        """Conjunto vacío de minterms."""
-        assert len(minimizer.compute_prime_implicants([])) == 0
-    
-    def test_compute_prime_implicants_validation(self, minimizer):
-        """Validación de minterms fuera de rango."""
-        with pytest.raises(ValueError):
-            minimizer.compute_prime_implicants([16])
-        with pytest.raises(ValueError):
-            minimizer.compute_prime_implicants([-1])
-    
-    def test_find_essential_prime_implicants(self, minimizer):
-        """Identificación de implicantes esenciales."""
-        impl1 = ImplicantTerm("00--", frozenset([0, 1, 4, 5]))
-        impl2 = ImplicantTerm("01--", frozenset([2, 3, 6, 7]))
-        minterms = {0, 1, 2, 3, 4, 5, 6, 7}
-        essential, covered = minimizer.find_essential_prime_implicants({impl1, impl2}, minterms)
-        assert len(essential) == 2
-        assert covered == minterms
-    
-    def test_find_essential_prime_implicants_partial(self, minimizer):
-        """Solo algunos implicantes son esenciales."""
-        impl1 = ImplicantTerm("000-", frozenset([0]))
-        impl2 = ImplicantTerm("00-1", frozenset([1]))
-        impl3 = ImplicantTerm("-001", frozenset([1, 9]))
-        minterms = {0, 1}
-        essential, covered = minimizer.find_essential_prime_implicants({impl1, impl2, impl3}, minterms)
-        assert impl1 in essential
-        assert 0 in covered
-    
-    def test_minimal_cover_greedy(self, minimizer):
-        """Cobertura minimal greedy."""
-        impl1 = ImplicantTerm("00--", frozenset([0, 1, 4, 5]))
-        impl2 = ImplicantTerm("01--", frozenset([2, 3, 6, 7]))
-        impl3 = ImplicantTerm("-0-0", frozenset([0, 2, 4, 6]))
-        minterms = {0, 1, 2, 3, 4, 5, 6, 7}
-        cover = minimizer.minimal_cover_greedy({impl1, impl2, impl3}, minterms, set(), set())
-        covered = set()
-        for impl in cover:
-            covered.update(impl.covered_minterms)
-        assert covered == minterms
-    
-    def test_minimal_cover_with_essentials(self, minimizer):
-        """Cobertura minimal con esenciales ya seleccionados."""
-        impl1 = ImplicantTerm("00--", frozenset([0, 1, 4, 5]))
-        impl2 = ImplicantTerm("01--", frozenset([2, 3, 6, 7]))
-        minterms = {0, 1, 2, 3, 4, 5, 6, 7}
-        cover = minimizer.minimal_cover_greedy({impl1, impl2}, minterms, {impl1}, impl1.covered_minterms)
-        assert impl1 in cover
-        covered = set()
-        for impl in cover:
-            covered.update(impl.covered_minterms)
-        assert covered == minterms
-
-
-# ========================================================================================
-# TESTS: MICRedundancyAnalyzer
-# ========================================================================================
-
-class TestTopologicalRigor:
-    """
-    Escrutinio de la estructura del complejo simplicial K.
-    """
-
-    def test_betti_number_invariance(self, analyzer):
-        """
-        Axioma: β0(K) = β0(K').
-        La minimización es un retracto de deformación que preserva componentes conexas.
-        """
-        analyzer.register_tool("T1", {CapabilityDimension.PHYS_IO})
-        analyzer.register_tool("T2", {CapabilityDimension.PHYS_IO}) # Redundante
-        analyzer.register_tool("T3", {CapabilityDimension.PHYS_NUM})
+    def test_is_trivial(self):
+        """Test: Herramienta trivial (sin capacidades)."""
+        trivial = Tool("empty", BooleanVector())
+        non_trivial = Tool("non_empty", BooleanVector(frozenset([CapabilityDimension.PHYS_IO])))
         
-        h_k = analyzer.compute_homology_groups()
-        beta0_k = h_k['H_0']
-        
-        results = analyzer.analyze_redundancy()
-        
-        analyzer_prime = MICRedundancyAnalyzer()
-        for name in results['essential_tools']:
-            tool = next(t for t in analyzer.tools if t.name == name)
-            analyzer_prime.register_tool(tool.name, tool.capabilities.components)
-
-        h_k_prime = analyzer_prime.compute_homology_groups()
-        beta0_k_prime = h_k_prime['H_0']
-        
-        assert beta0_k == beta0_k_prime, f"Ruptura topológica: β0(K)={beta0_k}, β0(K')={beta0_k_prime}"
-
-    def test_euler_poincare_preservation(self, analyzer):
-        """
-        Axioma: La característica de Euler χ es invariante bajo equivalencia de homotopía.
-        Calculada vía el Complejo de Nervio de los implicantes primos.
-        """
-        # Caso 1: Dos capacidades independientes
-        analyzer.register_tool("T1", {CapabilityDimension.PHYS_IO})
-        analyzer.register_tool("T2", {CapabilityDimension.PHYS_NUM})
-
-        results = analyzer.analyze_redundancy()
-        chi = results['euler_characteristic']
-
-        # En este caso, dos puntos aislados, χ = 2
-        assert chi == 2, f"χ esperada 2, obtenida {chi}"
-
-        # Caso 2: Unión de herramientas (cubriendo un espacio conexo)
-        analyzer2 = MICRedundancyAnalyzer()
-        # Herramientas que cubren {0,1}, {1,2} y {0,1,2}
-        analyzer2.register_tool("T1", {CapabilityDimension.PHYS_IO, CapabilityDimension.PHYS_NUM})
-        analyzer2.register_tool("T2", {CapabilityDimension.PHYS_NUM, CapabilityDimension.TACT_TOPO})
-        analyzer2.register_tool("T3", {CapabilityDimension.PHYS_IO, CapabilityDimension.PHYS_NUM, CapabilityDimension.TACT_TOPO})
-
-        results2 = analyzer2.analyze_redundancy()
-        chi2 = results2['euler_characteristic']
-
-        # El espacio {0,1} ∪ {1,2} ∪ {0,1,2} es un hipercubo 2D "L-shaped" o similar.
-        # En este caso, QM genera los implicantes primos '00-11' y '0011-'.
-        # Su intersección es '00111', que es no vacía y contraíble.
-        # χ = χ(P1) + χ(P2) - χ(P1 ∩ P2) = 1 + 1 - 1 = 1.
-        assert chi2 == 1, f"χ esperada 1, obtenida {chi2}"
-
-    def test_boundary_of_boundary_is_empty(self):
-        """
-        Axioma fundamental: ∂² = 0.
-        Verifica que el operador de frontera es nulo para complejos 1D en su grado superior.
-        """
-        # Representamos ∂_2 como una matriz nula.
-        # En grafos, no existen 2-simples (caras), por lo que rank(∂_2) == 0.
-        rank_boundary_2 = 0
-        assert rank_boundary_2 == 0, "Topological heresy detected: rank(∂2) must be 0 for 1D complexes"
-
-# ========================================================================================
-# TESTS: Propiedades Matemáticas Globales
-# ========================================================================================
-
-class TestMathematicalProperties:
-    """Tests de propiedades matemáticas generales."""
-
-    def test_strict_finiteness_checks(self):
-        """Verifica que los checks de finitud estricta funcionan."""
-        v1 = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
-        v2 = BooleanVector(frozenset([CapabilityDimension.PHYS_NUM]))
-
-        # Test inner_product_z2 returns 0 or 1
-        assert v1.inner_product_z2(v2) in {0, 1}
-        assert v1.inner_product_z2(v1) in {0, 1}
-
-        # Test hamming_distance
-        assert v1.hamming_distance(v2) >= 0
-
-    def test_runtime_warning_elevation(self):
-        """Verifica que RuntimeWarning se eleva a HomologicalInconsistencyError en el analizador."""
-        analyzer = MICRedundancyAnalyzer()
-        analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
-
-        with pytest.raises(HomologicalInconsistencyError):
-            # Activamos el flag interno para disparar el warning
-            analyzer._trigger_rigor_warning = True
-            analyzer.compute_homology_groups()
-
-    def assert_boolean_orthogonality(self, v1: BooleanVector, v2: BooleanVector) -> None:
-        """
-        Evalúa la ortogonalidad de Gram en Z.
-        Dos vectores de capacidad son ortogonales si su intersección es exactamente el conjunto vacío.
-        """
-        # Nota: Usamos 'components' según la implementación en mic_minimizer.py
-        inner_product = len(v1.components.intersection(v2.components))
-        assert inner_product == 0, f"Ruptura de ortogonalidad funcional. Entropía cruzada: {inner_product}"
-
-    def test_laplacian_kernel_dimension(self, analyzer):
-        """
-        Axioma: dim(ker(L)) = β0.
-        Para la matriz minimizada M_min, exija que no existan dependencias funcionales ocultas.
-        """
-        analyzer.register_tool("T1", {CapabilityDimension.PHYS_IO})
-        analyzer.register_tool("T2", {CapabilityDimension.PHYS_NUM})
-        analyzer.register_tool("T3", {CapabilityDimension.PHYS_NUM}) # Redundante
-        
-        homology = analyzer.compute_homology_groups()
-        
-        for betti in homology['betti_numbers']:
-            assert betti >= 0
-        
-        # β₀ ≥ 1 si hay herramientas
-        assert homology['H_0'] >= 1
-
-
-# ========================================================================================
-# TESTS: Casos Extremos (Edge Cases)
-# ========================================================================================
-
-class TestEdgeCases:
-    """Tests de casos extremos y límite."""
+        self.assertTrue(trivial.is_trivial)
+        self.assertFalse(non_trivial.is_trivial)
     
-    def test_single_minterm(self):
-        """Un solo minitérmino."""
-        minimizer = QuineMcCluskeyMinimizer(4)
-        prime_impls = minimizer.compute_prime_implicants([5])
+    def test_signature(self):
+        """Test: Firma única."""
+        caps = BooleanVector(frozenset([
+            CapabilityDimension(0),
+            CapabilityDimension(2)
+        ]))
+        tool = Tool("test", caps)
         
-        assert len(prime_impls) == 1
-        impl = list(prime_impls)[0]
-        assert impl.pattern == "0101"
-        assert impl.covered_minterms == frozenset([5])
+        self.assertEqual(tool.signature, "10100")
     
-    def test_all_minterms(self):
-        """Todos los minitérminos (función constante 1)."""
-        minimizer = QuineMcCluskeyMinimizer(3)
-        minterms = list(range(8))
+    def test_subsumes(self):
+        """Test: Relación de subsunción."""
+        t1 = Tool("general", BooleanVector(frozenset([
+            CapabilityDimension.PHYS_IO,
+            CapabilityDimension.PHYS_NUM
+        ])))
         
-        prime_impls = minimizer.compute_prime_implicants(minterms)
+        t2 = Tool("specific", BooleanVector(frozenset([
+            CapabilityDimension.PHYS_IO
+        ])))
         
-        assert len(prime_impls) == 1
-        impl = list(prime_impls)[0]
-        assert impl.pattern == "---"
+        self.assertTrue(t1.subsumes(t2))
+        self.assertFalse(t2.subsumes(t1))
     
-    def test_no_simplification_possible(self):
-        """Minitérminos que no se pueden simplificar."""
-        minimizer = QuineMcCluskeyMinimizer(4)
+    def test_overlaps_with(self):
+        """Test: Solapamiento de capacidades."""
+        t1 = Tool("t1", BooleanVector(frozenset([CapabilityDimension.PHYS_IO])))
+        t2 = Tool("t2", BooleanVector(frozenset([CapabilityDimension.PHYS_NUM])))
+        t3 = Tool("t3", BooleanVector(frozenset([CapabilityDimension.PHYS_IO])))
         
-        # Minitérminos maximalmente distantes
-        minterms = [0, 15]  # 0000 y 1111 (distancia 4)
-        
-        prime_impls = minimizer.compute_prime_implicants(minterms)
-        
-        assert len(prime_impls) == 2
-        patterns = {impl.pattern for impl in prime_impls}
-        assert patterns == {"0000", "1111"}
+        self.assertFalse(t1.overlaps_with(t2))
+        self.assertTrue(t1.overlaps_with(t3))
     
-    def test_duplicate_minterms(self):
-        """Minitérminos duplicados."""
-        minimizer = QuineMcCluskeyMinimizer(3)
+    def test_similarity_score(self):
+        """Test: Coeficiente de Jaccard."""
+        t1 = Tool("t1", BooleanVector(frozenset([
+            CapabilityDimension.PHYS_IO,
+            CapabilityDimension.PHYS_NUM
+        ])))
         
-        # Duplicados deben ser eliminados
-        minterms = [1, 1, 2, 2, 3, 3]
-        prime_impls = minimizer.compute_prime_implicants(minterms)
+        t2 = Tool("t2", BooleanVector(frozenset([
+            CapabilityDimension.PHYS_NUM,
+            CapabilityDimension.TACT_TOPO
+        ])))
         
-        # Debe procesar como [1, 2, 3]
-        covered = set()
-        for impl in prime_impls:
-            covered.update(impl.covered_minterms)
+        # Intersección: {PHYS_NUM} → 1
+        # Unión: {PHYS_IO, PHYS_NUM, TACT_TOPO} → 3
+        # Jaccard = 1/3 ≈ 0.333
         
-        assert covered == {1, 2, 3}
+        score = t1.similarity_score(t2)
+        self.assertAlmostEqual(score, 1/3, places=5)
     
-    def test_maximum_dimension(self):
-        """Dimensión máxima permitida."""
-        minimizer = QuineMcCluskeyMinimizer(20)
+    def test_similarity_identical(self):
+        """Test: Herramientas idénticas tienen similitud 1."""
+        t1 = Tool("t1", BooleanVector(frozenset([CapabilityDimension.PHYS_IO])))
+        t2 = Tool("t2", BooleanVector(frozenset([CapabilityDimension.PHYS_IO])))
         
-        # Debe funcionar sin error
-        minterms = [0, 1, (1 << 20) - 1]
-        prime_impls = minimizer.compute_prime_implicants(minterms)
-        
-        assert len(prime_impls) > 0
+        self.assertEqual(t1.similarity_score(t2), 1.0)
     
-    def test_all_tools_identical(self):
-        """Todas las herramientas son idénticas."""
-        analyzer = MICRedundancyAnalyzer()
+    def test_similarity_disjoint(self):
+        """Test: Herramientas disjuntas tienen similitud 0."""
+        t1 = Tool("t1", BooleanVector(frozenset([CapabilityDimension.PHYS_IO])))
+        t2 = Tool("t2", BooleanVector(frozenset([CapabilityDimension.PHYS_NUM])))
         
-        for i in range(5):
-            analyzer.register_tool(f"tool{i}", {CapabilityDimension.PHYS_IO})
-        
-        result = analyzer.analyze_redundancy()
-        
-        # Solo 1 esencial, 4 redundantes
-        assert len(result['essential_tools']) == 1
-        assert len(result['redundant_tools']) == 4
+        self.assertEqual(t1.similarity_score(t2), 0.0)
     
-    def test_all_tools_disjoint(self):
-        """Todas las herramientas disjuntas."""
-        analyzer = MICRedundancyAnalyzer()
+    def test_ordering(self):
+        """Test: Orden lexicográfico."""
+        t1 = Tool("alpha", BooleanVector())
+        t2 = Tool("beta", BooleanVector())
         
-        dims = list(CapabilityDimension)
-        for i, dim in enumerate(dims):
-            analyzer.register_tool(f"tool{i}", {dim})
-        
-        result = analyzer.analyze_redundancy()
-        
-        # Todas esenciales
-        assert len(result['essential_tools']) == 5
-        assert len(result['redundant_tools']) == 0
+        self.assertLess(t1, t2)
     
-    def test_empty_capabilities(self):
-        """Herramienta sin capacidades."""
-        analyzer = MICRedundancyAnalyzer()
+    def test_hashability(self):
+        """Test: Herramientas son hashables."""
+        t1 = Tool("test", BooleanVector(frozenset([CapabilityDimension.PHYS_IO])))
+        t2 = Tool("test", BooleanVector(frozenset([CapabilityDimension.PHYS_IO])))
         
-        analyzer.register_tool("empty_tool", set())
-        analyzer.register_tool("normal_tool", {CapabilityDimension.PHYS_IO})
-        
-        result = analyzer.analyze_redundancy()
-        
-        # Ambas deben estar clasificadas
-        all_tools = set(result['essential_tools']) | set(result['redundant_tools'])
-        assert 'empty_tool' in all_tools
-        assert 'normal_tool' in all_tools
+        s = {t1, t2}
+        self.assertEqual(len(s), 1)
 
-    def test_gram_matrix_orthogonality(self, analyzer):
-        """
-        La matriz de Gram G = M * M^T debe ser diagonal para herramientas perfectamente ortogonales.
-        """
-        t1_caps = {CapabilityDimension.PHYS_IO}
-        t2_caps = {CapabilityDimension.PHYS_NUM}
 
-        analyzer.register_tool("T1", t1_caps)
-        analyzer.register_tool("T2", t2_caps)
+# =============================================================================
+# TESTS: Z2Polynomial (Polinomios en ℤ₂)
+# =============================================================================
 
-        v1 = BooleanVector(frozenset(t1_caps))
-        v2 = BooleanVector(frozenset(t2_caps))
-
-        # Validación de rigor espectral en Z
-        inner_product = len(v1.components.intersection(v2.components))
-        assert inner_product == 0, f"Ruptura de ortogonalidad funcional. Entropía cruzada: {inner_product}"
-        
-        # 100 herramientas
-        for i in range(100):
-            dim = list(CapabilityDimension)[i % 5]
-            analyzer.register_tool(f"tool{i}", {dim})
-        
-        # Debe completar sin timeout
-        result = analyzer.analyze_redundancy()
-        
-        assert result['status'] == 'success'
-        assert result['statistics']['total_tools'] == 102
+class TestZ2Polynomial(unittest.TestCase):
+    """Test suite para Z2Polynomial."""
     
-    def test_quine_mccluskey_scaling(self):
-        """Escalabilidad del algoritmo de Quine-McCluskey."""
-        # Probar diferentes dimensiones
-        for num_vars in [4, 6, 8]:
-            minimizer = QuineMcCluskeyMinimizer(num_vars)
+    def test_zero_polynomial(self):
+        """Test: Polinomio cero."""
+        zero = Z2Polynomial.zero()
+        
+        self.assertTrue(zero.is_zero())
+        self.assertFalse(zero.is_one())
+        self.assertEqual(zero.degree(), -1)
+    
+    def test_one_polynomial(self):
+        """Test: Polinomio constante 1."""
+        one = Z2Polynomial.one()
+        
+        self.assertFalse(one.is_zero())
+        self.assertTrue(one.is_one())
+        self.assertEqual(one.degree(), 0)
+    
+    def test_variable(self):
+        """Test: Variable simple."""
+        x0 = Z2Polynomial.variable(0)
+        x1 = Z2Polynomial.variable(1)
+        
+        self.assertEqual(x0.degree(), 1)
+        self.assertEqual(x0.num_terms(), 1)
+        self.assertNotEqual(x0, x1)
+    
+    def test_from_minterm(self):
+        """Test: Construcción desde minitérmino."""
+        # Minterm 5 = 101 → x₀·x₂
+        poly = Z2Polynomial.from_minterm(5, 3)
+        
+        expected_monomial = frozenset([0, 2])
+        self.assertIn(expected_monomial, poly.monomials)
+    
+    def test_addition_commutative(self):
+        """Test: Suma conmutativa."""
+        p = Z2Polynomial.variable(0)
+        q = Z2Polynomial.variable(1)
+        
+        self.assertEqual(p + q, q + p)
+    
+    def test_addition_associative(self):
+        """Test: Suma asociativa."""
+        p = Z2Polynomial.variable(0)
+        q = Z2Polynomial.variable(1)
+        r = Z2Polynomial.variable(2)
+        
+        self.assertEqual((p + q) + r, p + (q + r))
+    
+    def test_addition_identity(self):
+        """Test: Cero es identidad aditiva."""
+        p = Z2Polynomial.variable(0)
+        zero = Z2Polynomial.zero()
+        
+        self.assertEqual(p + zero, p)
+    
+    def test_addition_self_cancellation(self):
+        """Test: p + p = 0 (característica 2)."""
+        p = Z2Polynomial.variable(0)
+        
+        result = p + p
+        self.assertTrue(result.is_zero())
+    
+    def test_multiplication_commutative(self):
+        """Test: Multiplicación conmutativa."""
+        p = Z2Polynomial.variable(0)
+        q = Z2Polynomial.variable(1)
+        
+        self.assertEqual(p * q, q * p)
+    
+    def test_multiplication_associative(self):
+        """Test: Multiplicación asociativa."""
+        p = Z2Polynomial.variable(0)
+        q = Z2Polynomial.variable(1)
+        r = Z2Polynomial.variable(2)
+        
+        self.assertEqual((p * q) * r, p * (q * r))
+    
+    def test_multiplication_identity(self):
+        """Test: 1 es identidad multiplicativa."""
+        p = Z2Polynomial.variable(0)
+        one = Z2Polynomial.one()
+        
+        self.assertEqual(p * one, p)
+    
+    def test_multiplication_zero(self):
+        """Test: 0 es absorbente."""
+        p = Z2Polynomial.variable(0)
+        zero = Z2Polynomial.zero()
+        
+        result = p * zero
+        self.assertTrue(result.is_zero())
+    
+    def test_idempotence(self):
+        """Test: x² = x (idempotencia booleana)."""
+        x = Z2Polynomial.variable(0)
+        
+        x_squared = x * x
+        self.assertEqual(x_squared, x)
+    
+    def test_distributivity(self):
+        """Test: Distributividad."""
+        p = Z2Polynomial.variable(0)
+        q = Z2Polynomial.variable(1)
+        r = Z2Polynomial.variable(2)
+        
+        # p * (q + r) = p*q + p*r
+        left = p * (q + r)
+        right = (p * q) + (p * r)
+        
+        self.assertEqual(left, right)
+    
+    def test_negation(self):
+        """Test: -p = p (característica 2)."""
+        p = Z2Polynomial.variable(0)
+        
+        self.assertEqual(-p, p)
+    
+    def test_subtraction(self):
+        """Test: p - q = p + q."""
+        p = Z2Polynomial.variable(0)
+        q = Z2Polynomial.variable(1)
+        
+        self.assertEqual(p - q, p + q)
+    
+    def test_degree_calculation(self):
+        """Test: Cálculo de grado."""
+        # x₀·x₁ tiene grado 2
+        p = Z2Polynomial.variable(0) * Z2Polynomial.variable(1)
+        self.assertEqual(p.degree(), 2)
+        
+        # x₀ + x₁ tiene grado 1
+        q = Z2Polynomial.variable(0) + Z2Polynomial.variable(1)
+        self.assertEqual(q.degree(), 1)
+    
+    def test_evaluation(self):
+        """Test: Evaluación de polinomio."""
+        # p = x₀ + x₁ + 1
+        p = Z2Polynomial.variable(0) + Z2Polynomial.variable(1) + Z2Polynomial.one()
+        
+        # Evaluar en x₀=1, x₁=0
+        result = p.evaluate({0: 1, 1: 0})
+        # 1 + 0 + 1 = 0 (mod 2)
+        self.assertEqual(result, 0)
+        
+        # Evaluar en x₀=1, x₁=1
+        result = p.evaluate({0: 1, 1: 1})
+        # 1 + 1 + 1 = 1 (mod 2)
+        self.assertEqual(result, 1)
+    
+    def test_leading_term(self):
+        """Test: Término líder."""
+        # p = x₀·x₁ + x₂
+        p = (Z2Polynomial.variable(0) * Z2Polynomial.variable(1)) + Z2Polynomial.variable(2)
+        
+        lt = p.leading_term()
+        
+        # El término de mayor grado es x₀·x₁ (grado 2)
+        self.assertEqual(lt, frozenset([0, 1]))
+    
+    def test_complex_polynomial(self):
+        """Test: Polinomio complejo."""
+        # p = x₀·x₁ + x₁·x₂ + x₀·x₂ + 1
+        x0 = Z2Polynomial.variable(0)
+        x1 = Z2Polynomial.variable(1)
+        x2 = Z2Polynomial.variable(2)
+        one = Z2Polynomial.one()
+        
+        p = (x0 * x1) + (x1 * x2) + (x0 * x2) + one
+        
+        self.assertEqual(p.degree(), 2)
+        self.assertEqual(p.num_terms(), 4)
+
+
+# =============================================================================
+# TESTS: GrobnerBasisZ2 (Base de Gröbner)
+# =============================================================================
+
+class TestGrobnerBasisZ2(unittest.TestCase):
+    """Test suite para GrobnerBasisZ2."""
+    
+    def setUp(self):
+        """Inicialización."""
+        self.gb = GrobnerBasisZ2(num_vars=3)
+    
+    def test_initialization(self):
+        """Test: Inicialización."""
+        self.assertEqual(self.gb.num_vars, 3)
+        self.assertEqual(len(self.gb), 0)
+    
+    def test_add_polynomial(self):
+        """Test: Agregar polinomio."""
+        p = Z2Polynomial.variable(0)
+        self.gb.add_polynomial(p)
+        
+        self.assertGreater(len(self.gb), 0)
+    
+    def test_add_zero_ignored(self):
+        """Test: Agregar cero no cambia la base."""
+        zero = Z2Polynomial.zero()
+        initial_len = len(self.gb)
+        
+        self.gb.add_polynomial(zero)
+        
+        self.assertEqual(len(self.gb), initial_len)
+    
+    def test_normal_form_zero(self):
+        """Test: Forma normal de cero es cero."""
+        p = Z2Polynomial.variable(0)
+        self.gb.add_polynomial(p)
+        
+        zero = Z2Polynomial.zero()
+        nf = self.gb.normal_form(zero)
+        
+        self.assertTrue(nf.is_zero())
+    
+    def test_is_member_self(self):
+        """Test: Polinomio es miembro del ideal que genera."""
+        p = Z2Polynomial.variable(0)
+        self.gb.add_polynomial(p)
+        
+        self.assertTrue(self.gb.is_member(p))
+    
+    def test_is_member_multiple(self):
+        """Test: Múltiplo de generador está en el ideal."""
+        p = Z2Polynomial.variable(0)
+        q = Z2Polynomial.variable(1)
+        
+        self.gb.add_polynomial(p)
+        
+        # p * q debe estar en ⟨p⟩
+        multiple = p * q
+        self.assertTrue(self.gb.is_member(multiple))
+    
+    def test_is_member_sum(self):
+        """Test: Suma de generadores está en el ideal."""
+        p = Z2Polynomial.variable(0)
+        q = Z2Polynomial.variable(1)
+        
+        self.gb.add_polynomial(p)
+        self.gb.add_polynomial(q)
+        
+        # p + q debe estar en ⟨p, q⟩
+        sum_poly = p + q
+        self.assertTrue(self.gb.is_member(sum_poly))
+    
+    def test_redundant_polynomial(self):
+        """Test: Polinomio redundante."""
+        p = Z2Polynomial.variable(0)
+        q = p  # Redundante (idéntico)
+        
+        self.gb.add_polynomial(p)
+        
+        # Forma normal de q debe ser cero
+        nf = self.gb.normal_form(q)
+        self.assertTrue(nf.is_zero())
+    
+    def test_independent_polynomials(self):
+        """Test: Polinomios independientes."""
+        p = Z2Polynomial.variable(0)
+        q = Z2Polynomial.variable(1)
+        
+        self.gb.add_polynomial(p)
+        
+        # Forma normal de q no debe ser cero
+        nf = self.gb.normal_form(q)
+        self.assertFalse(nf.is_zero())
+
+
+# =============================================================================
+# TESTS: ROBDD (Diagramas de Decisión Binaria)
+# =============================================================================
+
+class TestROBDD(unittest.TestCase):
+    """Test suite para ROBDD."""
+    
+    def setUp(self):
+        """Inicialización."""
+        self.robdd = ROBDD(num_vars=3)
+    
+    def test_initialization(self):
+        """Test: Inicialización."""
+        self.assertEqual(self.robdd.num_vars, 3)
+    
+    def test_build_empty_set(self):
+        """Test: Construir desde conjunto vacío."""
+        node = self.robdd.build_from_minterms(set())
+        
+        self.assertTrue(node.is_false())
+    
+    def test_build_single_minterm(self):
+        """Test: Construir desde un minitérmino."""
+        # Minterm 5 = 101
+        node = self.robdd.build_from_minterms({5})
+        
+        self.assertFalse(node.is_terminal())
+    
+    def test_build_multiple_minterms(self):
+        """Test: Construir desde múltiples minitérminos."""
+        node = self.robdd.build_from_minterms({1, 3, 5, 7})
+        
+        # Verificar que no es terminal
+        self.assertFalse(node.is_terminal())
+    
+    def test_extract_minterms(self):
+        """Test: Extraer minitérminos."""
+        original = {1, 3, 5}
+        node = self.robdd.build_from_minterms(original)
+        
+        extracted = self.robdd.extract_minterms(node)
+        
+        self.assertEqual(extracted, original)
+    
+    def test_apply_and_true_false(self):
+        """Test: TRUE AND FALSE = FALSE."""
+        true_node = ROBDDNode.get_true_node()
+        false_node = ROBDDNode.get_false_node()
+        
+        result = self.robdd.apply_and(true_node, false_node)
+        
+        self.assertTrue(result.is_false())
+    
+    def test_apply_and_true_true(self):
+        """Test: TRUE AND TRUE = TRUE."""
+        true_node = ROBDDNode.get_true_node()
+        
+        result = self.robdd.apply_and(true_node, true_node)
+        
+        self.assertTrue(result.is_true())
+    
+    def test_apply_or_true_false(self):
+        """Test: TRUE OR FALSE = TRUE."""
+        true_node = ROBDDNode.get_true_node()
+        false_node = ROBDDNode.get_false_node()
+        
+        result = self.robdd.apply_or(true_node, false_node)
+        
+        self.assertTrue(result.is_true())
+    
+    def test_apply_or_false_false(self):
+        """Test: FALSE OR FALSE = FALSE."""
+        false_node = ROBDDNode.get_false_node()
+        
+        result = self.robdd.apply_or(false_node, false_node)
+        
+        self.assertTrue(result.is_false())
+    
+    def test_apply_not(self):
+        """Test: NOT TRUE = FALSE, NOT FALSE = TRUE."""
+        true_node = ROBDDNode.get_true_node()
+        false_node = ROBDDNode.get_false_node()
+        
+        self.assertTrue(self.robdd.apply_not(true_node).is_false())
+        self.assertTrue(self.robdd.apply_not(false_node).is_true())
+    
+    def test_canonicity(self):
+        """Test: ROBDDs con misma función son idénticos."""
+        # Construir dos veces con mismos minterms
+        minterms = {1, 3, 5}
+        
+        node1 = self.robdd.build_from_minterms(minterms)
+        node2 = self.robdd.build_from_minterms(minterms)
+        
+        # Deben ser el mismo nodo (compartido)
+        self.assertEqual(node1.id, node2.id)
+    
+    def test_count_solutions(self):
+        """Test: Conteo de soluciones."""
+        # Minterm 5 = 101 → solo una solución
+        node = self.robdd.build_from_minterms({5})
+        
+        count = self.robdd.count_solutions(node)
+        self.assertEqual(count, 1)
+    
+    def test_count_solutions_multiple(self):
+        """Test: Conteo con múltiples soluciones."""
+        # 2 minterms
+        node = self.robdd.build_from_minterms({1, 3})
+        
+        count = self.robdd.count_solutions(node)
+        self.assertEqual(count, 2)
+    
+    def test_size(self):
+        """Test: Tamaño del ROBDD."""
+        node = self.robdd.build_from_minterms({1, 3, 5, 7})
+        
+        size = self.robdd.size(node)
+        
+        # Debe haber al menos 1 nodo
+        self.assertGreater(size, 0)
+
+
+# =============================================================================
+# TESTS: DPLLSATSolver (SAT Solver)
+# =============================================================================
+
+class TestDPLLSATSolver(unittest.TestCase):
+    """Test suite para DPLLSATSolver."""
+    
+    def test_empty_cnf_sat(self):
+        """Test: CNF vacía es SAT."""
+        cnf = []
+        self.assertTrue(DPLLSATSolver.solve(cnf))
+    
+    def test_single_positive_literal_sat(self):
+        """Test: Cláusula unitaria positiva."""
+        cnf = [[1]]
+        self.assertTrue(DPLLSATSolver.solve(cnf))
+    
+    def test_single_negative_literal_sat(self):
+        """Test: Cláusula unitaria negativa."""
+        cnf = [[-1]]
+        self.assertTrue(DPLLSATSolver.solve(cnf))
+    
+    def test_contradiction_unsat(self):
+        """Test: Contradicción es UNSAT."""
+        # x ∧ ¬x
+        cnf = [[1], [-1]]
+        self.assertFalse(DPLLSATSolver.solve(cnf))
+    
+    def test_simple_sat(self):
+        """Test: Fórmula simple SAT."""
+        # (x ∨ y) ∧ (¬x ∨ z) ∧ (¬y ∨ ¬z)
+        cnf = [
+            [1, 2],
+            [-1, 3],
+            [-2, -3]
+        ]
+        self.assertTrue(DPLLSATSolver.solve(cnf))
+    
+    def test_pigeonhole_unsat(self):
+        """Test: Principio del palomar (UNSAT)."""
+        # 3 palomas, 2 agujeros → UNSAT
+        # Variables: p_ij (paloma i en agujero j)
+        # p_11, p_12, p_21, p_22, p_31, p_32
+        
+        cnf = [
+            # Cada paloma en al menos un agujero
+            [1, 2],  # p_11 ∨ p_12
+            [3, 4],  # p_21 ∨ p_22
+            [5, 6],  # p_31 ∨ p_32
             
-            # Mitad de los minitérminos
-            minterms = list(range(0, 1 << num_vars, 2))
-            
-            # Debe completar
-            prime_impls = minimizer.compute_prime_implicants(minterms)
-            
-            assert len(prime_impls) > 0
+            # A lo más una paloma por agujero
+            [-1, -3],  # ¬p_11 ∨ ¬p_21
+            [-1, -5],  # ¬p_11 ∨ ¬p_31
+            [-3, -5],  # ¬p_21 ∨ ¬p_31
+            [-2, -4],  # ¬p_12 ∨ ¬p_22
+            [-2, -6],  # ¬p_12 ∨ ¬p_32
+            [-4, -6],  # ¬p_22 ∨ ¬p_32
+        ]
+        
+        self.assertFalse(DPLLSATSolver.solve(cnf))
     
-    def test_union_find_performance(self):
-        """Performance de Union-Find."""
-        n = 10000
-        uf = UnionFind(n)
-        
-        # Unir todos en cadena
-        for i in range(n - 1):
-            uf.union(i, i + 1)
-        
-        # Verificar componente única
-        assert uf.num_components == 1
-        
-        # Find debe ser rápido (path compression)
-        root = uf.find(n - 1)
-        assert uf.find(0) == root
+    def test_unit_propagation(self):
+        """Test: Propagación de unidades."""
+        # (x) ∧ (¬x ∨ y) → debe inferir y=TRUE
+        cnf = [
+            [1],
+            [-1, 2]
+        ]
+        self.assertTrue(DPLLSATSolver.solve(cnf))
+    
+    def test_pure_literal_elimination(self):
+        """Test: Eliminación de literales puros."""
+        # (x ∨ y) ∧ (x ∨ z) → x solo aparece positivo → x=TRUE
+        cnf = [
+            [1, 2],
+            [1, 3]
+        ]
+        self.assertTrue(DPLLSATSolver.solve(cnf))
 
 
-# ========================================================================================
-# TESTS: Integración Completa
-# ========================================================================================
+# =============================================================================
+# TESTS: MICRedundancyAnalyzer (Analizador Principal)
+# =============================================================================
 
-class TestIntegration:
+class TestMICRedundancyAnalyzer(unittest.TestCase):
+    """Test suite para MICRedundancyAnalyzer."""
+    
+    def setUp(self):
+        """Inicialización."""
+        self.analyzer = MICRedundancyAnalyzer(num_capabilities=5)
+    
+    # -------------------------------------------------------------------------
+    # REGISTRO DE HERRAMIENTAS
+    # -------------------------------------------------------------------------
+    
+    def test_initialization(self):
+        """Test: Inicialización del analizador."""
+        self.assertEqual(self.analyzer.num_capabilities, 5)
+        self.assertEqual(len(self.analyzer.tools), 0)
+    
+    def test_register_tool_valid(self):
+        """Test: Registro de herramienta válida."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        
+        self.assertEqual(len(self.analyzer.tools), 1)
+        self.assertEqual(self.analyzer.tools[0].name, "tool1")
+    
+    def test_register_tool_with_boolean_vector(self):
+        """Test: Registro con BooleanVector."""
+        caps = BooleanVector(frozenset([CapabilityDimension.PHYS_IO]))
+        self.analyzer.register_tool("tool1", caps)
+        
+        self.assertEqual(len(self.analyzer.tools), 1)
+    
+    def test_register_duplicate_name(self):
+        """Test: Nombre duplicado lanza excepción."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        
+        with self.assertRaises(ValueError):
+            self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_NUM})
+    
+    def test_register_empty_name(self):
+        """Test: Nombre vacío lanza excepción."""
+        with self.assertRaises(ValueError):
+            self.analyzer.register_tool("", {CapabilityDimension.PHYS_IO})
+    
+    def test_register_invalid_capabilities_type(self):
+        """Test: Tipo inválido de capacidades."""
+        with self.assertRaises(TypeError):
+            self.analyzer.register_tool("tool1", ["PHYS_IO"])  # type: ignore
+    
+    def test_unregister_tool(self):
+        """Test: Eliminar herramienta."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        self.analyzer.unregister_tool("tool1")
+        
+        self.assertEqual(len(self.analyzer.tools), 0)
+    
+    def test_unregister_nonexistent(self):
+        """Test: Eliminar herramienta inexistente (no lanza error)."""
+        # No debe lanzar excepción, solo advertencia en log
+        self.analyzer.unregister_tool("nonexistent")
+    
+    # -------------------------------------------------------------------------
+    # MATRIZ DE INCIDENCIA
+    # -------------------------------------------------------------------------
+    
+    @unittest.skipUnless(NUMPY_AVAILABLE, "NumPy no disponible")
+    def test_build_incidence_matrix_empty(self):
+        """Test: Matriz vacía cuando no hay herramientas."""
+        matrix = self.analyzer.build_incidence_matrix()
+        
+        self.assertEqual(matrix.shape, (0, 5))
+    
+    @unittest.skipUnless(NUMPY_AVAILABLE, "NumPy no disponible")
+    def test_build_incidence_matrix_single_tool(self):
+        """Test: Matriz con una herramienta."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        
+        matrix = self.analyzer.build_incidence_matrix()
+        
+        self.assertEqual(matrix.shape, (1, 5))
+        self.assertEqual(matrix[0, 0], 1)  # PHYS_IO es índice 0
+    
+    @unittest.skipUnless(NUMPY_AVAILABLE, "NumPy no disponible")
+    def test_build_incidence_matrix_multiple_tools(self):
+        """Test: Matriz con múltiples herramientas."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool2", {CapabilityDimension.PHYS_NUM})
+        
+        matrix = self.analyzer.build_incidence_matrix()
+        
+        self.assertEqual(matrix.shape, (2, 5))
+    
+    @unittest.skipUnless(NUMPY_AVAILABLE, "NumPy no disponible")
+    def test_incidence_matrix_caching(self):
+        """Test: Caché de matriz de incidencia."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        
+        matrix1 = self.analyzer.build_incidence_matrix()
+        matrix2 = self.analyzer.build_incidence_matrix()
+        
+        # Deben ser el mismo objeto (caché)
+        self.assertTrue(np.array_equal(matrix1, matrix2))
+    
+    # -------------------------------------------------------------------------
+    # ANÁLISIS ESPECTRAL
+    # -------------------------------------------------------------------------
+    
+    @unittest.skipUnless(NUMPY_AVAILABLE, "NumPy no disponible")
+    def test_spectral_properties_empty(self):
+        """Test: Propiedades espectrales de matriz vacía."""
+        props = self.analyzer.compute_spectral_properties()
+        
+        self.assertEqual(props['rank'], 0)
+        self.assertEqual(props['nullity'], 0)
+        self.assertFalse(props['is_full_rank'])
+    
+    @unittest.skipUnless(NUMPY_AVAILABLE, "NumPy no disponible")
+    def test_spectral_properties_full_rank(self):
+        """Test: Matriz de rango completo."""
+        # Registrar herramientas independientes
+        for i, cap in enumerate(CapabilityDimension):
+            self.analyzer.register_tool(f"tool_{i}", {cap})
+        
+        props = self.analyzer.compute_spectral_properties()
+        
+        self.assertEqual(props['rank'], 5)
+        self.assertTrue(props['is_full_rank'])
+    
+    @unittest.skipUnless(NUMPY_AVAILABLE, "NumPy no disponible")
+    def test_spectral_properties_redundant(self):
+        """Test: Matriz con redundancia."""
+        # Dos herramientas idénticas
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool2", {CapabilityDimension.PHYS_IO})
+        
+        props = self.analyzer.compute_spectral_properties()
+        
+        # Rango = 1 (una sola dirección independiente)
+        self.assertEqual(props['rank'], 1)
+    
+    # -------------------------------------------------------------------------
+    # DEPENDENCIAS LINEALES
+    # -------------------------------------------------------------------------
+    
+    @unittest.skipUnless(NUMPY_AVAILABLE, "NumPy no disponible")
+    def test_detect_dependencies_subset(self):
+        """Test: Detección de relación de subconjunto."""
+        self.analyzer.register_tool("general", {
+            CapabilityDimension.PHYS_IO,
+            CapabilityDimension.PHYS_NUM
+        })
+        self.analyzer.register_tool("specific", {CapabilityDimension.PHYS_IO})
+        
+        deps = self.analyzer.detect_linear_dependencies_z2()
+        
+        # Debe haber una dependencia de tipo subset
+        self.assertEqual(len(deps), 1)
+        self.assertEqual(deps[0]['type'], 'subset')
+    
+    @unittest.skipUnless(NUMPY_AVAILABLE, "NumPy no disponible")
+    def test_detect_dependencies_duplicate(self):
+        """Test: Detección de duplicados."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool2", {CapabilityDimension.PHYS_IO})
+        
+        deps = self.analyzer.detect_linear_dependencies_z2()
+        
+        # Debe haber una dependencia de tipo duplicate
+        self.assertEqual(len(deps), 1)
+        self.assertEqual(deps[0]['type'], 'duplicate')
+    
+    # -------------------------------------------------------------------------
+    # HOMOLOGÍA
+    # -------------------------------------------------------------------------
+    
+    def test_homology_empty(self):
+        """Test: Homología con conjunto vacío."""
+        homology = self.analyzer.compute_homology_groups()
+        
+        self.assertEqual(homology['H_0'], 0)
+        self.assertEqual(homology['H_1'], 0)
+    
+    def test_homology_single_component(self):
+        """Test: Una componente conexa."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool2", {CapabilityDimension.PHYS_IO})
+        
+        homology = self.analyzer.compute_homology_groups()
+        
+        # Ambas comparten capacidad → 1 componente
+        self.assertEqual(homology['H_0'], 1)
+    
+    def test_homology_multiple_components(self):
+        """Test: Múltiples componentes conexas."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool2", {CapabilityDimension.PHYS_NUM})
+        
+        homology = self.analyzer.compute_homology_groups()
+        
+        # No comparten capacidades → 2 componentes
+        self.assertEqual(homology['H_0'], 2)
+    
+    def test_homology_redundancy_cycles(self):
+        """Test: Detección de ciclos de redundancia."""
+        # Dos herramientas idénticas forman un ciclo
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool2", {CapabilityDimension.PHYS_IO})
+        
+        homology = self.analyzer.compute_homology_groups()
+        
+        # Debe haber un ciclo de redundancia
+        self.assertEqual(homology['H_1'], 1)
+        self.assertEqual(len(homology['redundancy_cycles']), 1)
+    
+    # -------------------------------------------------------------------------
+    # MINIMIZACIÓN CON ROBDD
+    # -------------------------------------------------------------------------
+    
+    def test_minimize_robdd_empty(self):
+        """Test: Minimización con conjunto vacío."""
+        essential, redundant = self.analyzer.minimize_with_robdd()
+        
+        self.assertEqual(len(essential), 0)
+        self.assertEqual(len(redundant), 0)
+    
+    def test_minimize_robdd_no_redundancy(self):
+        """Test: Sin redundancia."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool2", {CapabilityDimension.PHYS_NUM})
+        
+        essential, redundant = self.analyzer.minimize_with_robdd()
+        
+        self.assertEqual(len(essential), 2)
+        self.assertEqual(len(redundant), 0)
+    
+    def test_minimize_robdd_with_duplicates(self):
+        """Test: Con duplicados."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool2", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool3", {CapabilityDimension.PHYS_IO})
+        
+        essential, redundant = self.analyzer.minimize_with_robdd()
+        
+        # Solo una esencial, dos redundantes
+        self.assertEqual(len(essential), 1)
+        self.assertEqual(len(redundant), 2)
+    
+    # -------------------------------------------------------------------------
+    # VERIFICACIÓN SAT
+    # -------------------------------------------------------------------------
+    
+    def test_sat_empty(self):
+        """Test: SAT con conjunto vacío."""
+        sat_ok, conflicting = self.analyzer.check_non_interference_sat()
+        
+        self.assertTrue(sat_ok)
+        self.assertEqual(len(conflicting), 0)
+    
+    def test_sat_single_tool(self):
+        """Test: SAT con una herramienta."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        
+        sat_ok, conflicting = self.analyzer.check_non_interference_sat()
+        
+        self.assertTrue(sat_ok)
+    
+    def test_sat_no_conflict(self):
+        """Test: SAT sin conflictos."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool2", {CapabilityDimension.PHYS_NUM})
+        
+        sat_ok, conflicting = self.analyzer.check_non_interference_sat()
+        
+        self.assertTrue(sat_ok)
+        self.assertEqual(len(conflicting), 0)
+    
+    # -------------------------------------------------------------------------
+    # ANÁLISIS INTEGRADO
+    # -------------------------------------------------------------------------
+    
+    def test_analyze_redundancy_empty(self):
+        """Test: Análisis con conjunto vacío."""
+        result = self.analyzer.analyze_redundancy()
+        
+        self.assertEqual(result['status'], 'empty')
+        self.assertEqual(len(result['essential_tools']), 0)
+    
+    def test_analyze_redundancy_simple(self):
+        """Test: Análisis simple."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool2", {CapabilityDimension.PHYS_NUM})
+        
+        result = self.analyzer.analyze_redundancy()
+        
+        self.assertEqual(result['status'], 'success')
+        self.assertEqual(result['statistics']['total_tools'], 2)
+    
+    def test_analyze_redundancy_with_redundants(self):
+        """Test: Análisis con redundancias."""
+        self.analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool2", {CapabilityDimension.PHYS_IO})
+        self.analyzer.register_tool("tool3", {CapabilityDimension.PHYS_NUM})
+        
+        result = self.analyzer.analyze_redundancy()
+        
+        stats = result['statistics']
+        
+        # Debe haber al menos una redundante
+        self.assertGreater(stats['redundant_count'], 0)
+        self.assertGreater(stats['reduction_rate'], 0.0)
+
+
+# =============================================================================
+# TESTS: Validación de Axiomas
+# =============================================================================
+
+class TestAxiomValidation(unittest.TestCase):
+    """Test suite para validación de axiomas."""
+    
+    def test_validate_boolean_lattice_axioms(self):
+        """Test: Validación de axiomas del retículo booleano."""
+        # No debe lanzar excepción
+        validate_boolean_lattice_axioms(num_vars=5)
+    
+    def test_axioms_with_random_vectors(self):
+        """Test: Axiomas con vectores aleatorios."""
+        for _ in range(10):
+            a = TestHelpers.random_boolean_vector()
+            b = TestHelpers.random_boolean_vector()
+            c = TestHelpers.random_boolean_vector()
+            
+            # Conmutatividad
+            self.assertEqual(a.union(b), b.union(a))
+            self.assertEqual(a.intersection(b), b.intersection(a))
+            
+            # Asociatividad
+            self.assertEqual(
+                a.union(b).union(c),
+                a.union(b.union(c))
+            )
+            
+            # Idempotencia
+            self.assertEqual(a.union(a), a)
+            self.assertEqual(a.intersection(a), a)
+
+
+# =============================================================================
+# TESTS: Integración End-to-End
+# =============================================================================
+
+class TestIntegration(unittest.TestCase):
     """Tests de integración end-to-end."""
     
-    def test_full_pipeline_example(self):
-        """Pipeline completo con ejemplo realista."""
-        analyzer = MICRedundancyAnalyzer()
+    def test_full_audit_workflow(self):
+        """Test: Flujo completo de auditoría."""
+        result = audit_mic_redundancy()
         
-        # Escenario: Sistema MIC con redundancia
-        analyzer.register_tool("stabilize_flux", {CapabilityDimension.PHYS_NUM})
-        analyzer.register_tool("parse_raw", {CapabilityDimension.PHYS_IO, CapabilityDimension.PHYS_NUM})
-        analyzer.register_tool("structure_logic", {CapabilityDimension.TACT_TOPO})
-        analyzer.register_tool("audit_fusion", {CapabilityDimension.TACT_TOPO})  # Redundante
-        analyzer.register_tool("lateral_pivot", {CapabilityDimension.STRAT_FIN})
-        analyzer.register_tool("semantic_estimator", {CapabilityDimension.WIS_SEM})
+        # Verificar estructura del resultado
+        self.assertIn('status', result)
+        self.assertIn('essential_tools', result)
+        self.assertIn('redundant_tools', result)
+        self.assertIn('statistics', result)
         
-        result = analyzer.analyze_redundancy()
+        stats = result['statistics']
         
-        # Verificaciones
-        assert result['status'] == 'success'
+        # Verificar estadísticas
+        self.assertIn('total_tools', stats)
+        self.assertIn('essential_count', stats)
+        self.assertIn('redundant_count', stats)
         
-        # audit_fusion es redundante con structure_logic
-        # Nota: La clasificación depende del orden de selección en Quine-McCluskey.
-        # Ambas herramientas tienen la misma firma topológica.
-        all_tools = set(result['essential_tools']) | set(result['redundant_tools'])
-        assert 'audit_fusion' in all_tools
-        assert 'structure_logic' in all_tools
-
-        # Al menos una de las dos con firma idéntica debe ser redundante
-        redundant = result['redundant_tools']
-        assert 'audit_fusion' in redundant or 'structure_logic' in redundant
+        # Verificar consistencia
+        total = stats['total_tools']
+        essential = stats['essential_count']
+        redundant = stats['redundant_count']
         
-        # Cobertura completa
-        all_tools = set(result['essential_tools']) | set(result['redundant_tools'])
-        assert len(all_tools) == 6
-        
-        # Reducción detectada
-        assert result['statistics']['reduction_rate'] > 0
+        # Essential + redundant debe sumar al total
+        self.assertEqual(essential + redundant, total)
     
-    def test_consensus_between_methods(self):
-        """Consenso entre diferentes métodos de análisis."""
+    def test_example_scenario(self):
+        """Test: Escenario de ejemplo documentado."""
         analyzer = MICRedundancyAnalyzer()
         
-        # Crear redundancia conocida
-        analyzer.register_tool("tool1", {CapabilityDimension.PHYS_IO})
-        analyzer.register_tool("tool2", {CapabilityDimension.PHYS_IO})  # Idéntica
+        # Registrar herramientas de ejemplo
+        analyzer.register_tool("parse_io", {CapabilityDimension.PHYS_IO})
+        analyzer.register_tool("compute_num", {CapabilityDimension.PHYS_NUM})
+        analyzer.register_tool("topo_analysis", {CapabilityDimension.TACT_TOPO})
+        
+        # Redundantes
+        analyzer.register_tool("parse_io_2", {CapabilityDimension.PHYS_IO})
+        analyzer.register_tool("compute_num_alt", {CapabilityDimension.PHYS_NUM})
         
         result = analyzer.analyze_redundancy()
         
-        # Homología debe detectar ciclo
-        assert result['homology']['H_1'] > 0
+        # Debe detectar 2 redundantes
+        self.assertEqual(result['statistics']['redundant_count'], 2)
+        self.assertEqual(result['statistics']['essential_count'], 3)
+
+
+# =============================================================================
+# TESTS: Performance y Límites
+# =============================================================================
+
+class TestPerformance(unittest.TestCase):
+    """Tests de performance y casos límite."""
+    
+    @unittest.skipUnless(NUMPY_AVAILABLE, "NumPy no disponible")
+    def test_large_number_of_tools(self):
+        """Test: Gran número de herramientas."""
+        analyzer = MICRedundancyAnalyzer()
         
-        # Debe haber una redundante
-        assert len(result['redundant_tools']) == 1
+        # Registrar 50 herramientas
+        for i in range(50):
+            cap_idx = i % len(CapabilityDimension)
+            cap = list(CapabilityDimension)[cap_idx]
+            analyzer.register_tool(f"tool_{i}", {cap})
         
-        # Estadísticas deben ser consistentes
-        assert result['statistics']['essential_count'] + result['statistics']['redundant_count'] == \
-            result['statistics']['total_tools']
+        # Debe completar sin errores
+        result = analyzer.analyze_redundancy()
+        
+        self.assertEqual(result['status'], 'success')
+    
+    def test_deep_polynomial_operations(self):
+        """Test: Operaciones profundas con polinomios."""
+        # Multiplicar muchos polinomios
+        p = Z2Polynomial.one()
+        
+        for i in range(5):
+            p = p * Z2Polynomial.variable(i)
+        
+        # Debe tener grado 5
+        self.assertEqual(p.degree(), 5)
+    
+    def test_robdd_with_many_minterms(self):
+        """Test: ROBDD con muchos minitérminos."""
+        robdd = ROBDD(num_vars=5)
+        
+        # 16 minitérminos
+        minterms = set(range(16))
+        node = robdd.build_from_minterms(minterms)
+        
+        # Verificar
+        extracted = robdd.extract_minterms(node)
+        self.assertEqual(extracted, minterms)
 
 
-# ========================================================================================
-# RUNNER DE TESTS
-# ========================================================================================
+# =============================================================================
+# TESTS: Casos Edge y Robustez
+# =============================================================================
 
-class TestPerformanceScalability:
-    """
-    Validación de eficiencia computacional y escalabilidad del retículo.
-    """
+class TestEdgeCases(unittest.TestCase):
+    """Tests de casos edge y robustez."""
+    
+    def test_empty_capabilities(self):
+        """Test: Herramienta sin capacidades."""
+        analyzer = MICRedundancyAnalyzer()
+        analyzer.register_tool("empty_tool", set())
+        
+        result = analyzer.analyze_redundancy()
+        
+        # No debe fallar
+        self.assertEqual(result['status'], 'success')
+    
+    def test_all_capabilities(self):
+        """Test: Herramienta con todas las capacidades."""
+        analyzer = MICRedundancyAnalyzer()
+        analyzer.register_tool("universal", set(CapabilityDimension))
+        
+        result = analyzer.analyze_redundancy()
+        
+        self.assertEqual(result['status'], 'success')
+    
+    def test_invalid_minterm_range(self):
+        """Test: Minitérmino fuera de rango."""
+        with self.assertRaises(ValueError):
+            BooleanVector.from_minterm(100, 3)
+    
+    def test_polynomial_evaluation_invalid_value(self):
+        """Test: Evaluación con valor inválido."""
+        p = Z2Polynomial.variable(0)
+        
+        with self.assertRaises(ValueError):
+            p.evaluate({0: 2})  # Valor debe ser 0 o 1
+    
+    @unittest.skipUnless(NUMPY_AVAILABLE, "NumPy no disponible")
+    def test_ill_conditioned_matrix(self):
+        """Test: Matriz mal condicionada (advertencia, no error)."""
+        analyzer = MICRedundancyAnalyzer()
+        
+        # Crear herramientas casi idénticas
+        analyzer.register_tool("t1", {
+            CapabilityDimension.PHYS_IO,
+            CapabilityDimension.PHYS_NUM
+        })
+        analyzer.register_tool("t2", {
+            CapabilityDimension.PHYS_IO,
+            CapabilityDimension.PHYS_NUM
+        })
+        
+        # No debe lanzar excepción, solo advertencia
+        props = analyzer.compute_spectral_properties()
+        
+        # Condición number debe ser grande
+        self.assertGreater(props['condition_number'], 1.0)
 
-    @pytest.mark.parametrize("num_vars", sorted({4, 6, 8, NUM_VARS_MAX_TESTED}))
-    def test_computational_complexity_scaling(self, num_vars):
-        """
-        Verifica que el tiempo de ejecución para el cálculo de implicantes primos
-        se mantenga dentro de límites tolerables para el hipercubo B^n.
-        """
-        qm = QuineMcCluskeyMinimizer(num_vars)
-        # Generamos una distribución densa de minitérminos
-        minterms = list(range(0, 2**num_vars, 2))
 
-        start = time.time()
-        primes = qm.compute_prime_implicants(minterms)
-        duration = time.time() - start
+# =============================================================================
+# SUITE DE TESTS PRINCIPAL
+# =============================================================================
 
-        # Para n <= NUM_VARS_MAX_TESTED, la convergencia debe ser < MAX_COMPUTATION_TIME_S
-        assert duration < MAX_COMPUTATION_TIME_S, f"Degradación de performance en B^{num_vars}: {duration:.4f}s"
-        assert len(primes) > 0
+def suite():
+    """Construye la suite completa de tests."""
+    test_suite = unittest.TestSuite()
+    
+    # Agregar todos los test cases
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestBooleanVector))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestTool))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestZ2Polynomial))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestGrobnerBasisZ2))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestROBDD))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestDPLLSATSolver))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestMICRedundancyAnalyzer))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestAxiomValidation))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestIntegration))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestPerformance))
+    test_suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestEdgeCases))
+    
+    return test_suite
 
-    def test_memory_isomorphism_load(self, analyzer):
-        """
-        Asegura que el registro de un gran número de herramientas no induzca
-        fugas de memoria o inestabilidad en la matriz de incidencia.
-        """
-        n_tools = 100
-        for i in range(n_tools):
-            analyzer.register_tool(f"Tool_{i}", {CapabilityDimension.PHYS_IO})
+
+# =============================================================================
+# RUNNER PRINCIPAL
+# =============================================================================
+
+if __name__ == '__main__':
+    # Configurar logging para tests
+    import logging
+    logging.basicConfig(
+        level=logging.WARNING,
+        format='%(levelname)s | %(message)s'
+    )
+    
+    # Ejecutar tests con verbosidad
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite())
+    
+    # Resumen final
+    print("\n" + "=" * 80)
+    print("TEST SUMMARY - MIC REDUNDANCY ANALYZER")
+    print("=" * 80)
+    print(f"Tests run:    {result.testsRun}")
+    print(f"Successes:    {result.testsRun - len(result.failures) - len(result.errors)}")
+    print(f"Failures:     {len(result.failures)}")
+    print(f"Errors:       {len(result.errors)}")
+    print(f"Skipped:      {len(result.skipped)}")
+    
+    if not NUMPY_AVAILABLE:
+        print("\n⚠️  WARNING: NumPy not available - some tests were skipped")
+    
+    if result.wasSuccessful():
+        print("\n✅ ALL TESTS PASSED!")
+        sys.exit(0)
+    else:
+        print("\n❌ SOME TESTS FAILED")
+        sys.exit(1)

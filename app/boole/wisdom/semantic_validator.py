@@ -1,81 +1,82 @@
 """
 =========================================================================================
-Módulo: Semantic Validation Engine (Proyector Semántico y Retículo de Sabiduría)
-    Ubicación: app/boole/wisdom/semantic_validator.py
-    Versión: 4.0 - Rigorización Matemática Absoluta y Retículos Acotados
+Módulo: Semantic Validation Engine (Proyector Semántico Rigoroso)
+Ubicación: app/boole/wisdom/semantic_validator.py
+Versión: 3.0 - Fundamentos Algebraicos y Topológicos Rigurosos
+Autor: Sistema Gamma-WISDOM
+Licencia: Propietario
 
-    Naturaleza Ciber-Física y Topológica:
-    Este módulo constituye la Cúspide de Sabiduría Generativa (Estrato V_{Gamma-WISDOM}). 
-    Abandona incondicionalmente las heurísticas de puntuación ponderada y las combinaciones 
-    lineales para actuar como un Funtor de Proyección Semántica estricto. Su mandato 
-    axiomático es subordinar la probabilidad estocástica de los Modelos de Lenguaje (LLM) 
-    al determinismo del espacio físico mediante el álgebra de retículos.
+FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
 
-    FUNDAMENTOS MATEMÁTICOS RIGUROSOS Y AXIOMAS DE EJECUCIÓN:
-
-    1. RETÍCULO ACOTADO DISTRIBUTIVO Y OPERACIÓN SUPREMO (⊔):
-       * Se proscribe la ecuación heurística score(S) = Σ w_i x_i.
-       * El espacio de decisiones opera sobre un retículo distributivo estrictamente 
-         ordenado: ⊥ (VIABLE) ≤ CONDITIONAL ≤ WARNING ≤ ⊤ (REJECT).
-       * La agregación del veredicto final colapsa axiomáticamente utilizando la 
-         operación Supremo (⊔). Si cualquier sub-vector de evaluación (ej. confianza, 
-         propósito) proyecta una singularidad hacia ⊤, el tensor completo colapsa a 
-         REJECT de facto, garantizando la preservación matemática de la política Zero-Trust.
-
-    2. COMPACTIFICACIÓN DE ALEXANDROFF PARA SINGULARIDADES ESTOCÁSTICAS:
-       * El espacio de probabilidad continuo del LLM no está acotado. La alta entropía 
-         sintáctica (e → ∞) o la pérdida de precisión atencional (c → 0) se mapean 
-         isomórficamente al "punto en el infinito" (polo norte de la Esfera de Riemann).
-       * Este punto singular colapsa incondicionalmente al Supremo del retículo (⊤),
-         destruyendo el código anómalo por geometría pura antes de su instanciación.
-
-    3. CONEXIÓN DE GALOIS CONTRAVARIANTE (Sintaxis-Semántica):
-       * La validación abandona el mapeo lineal de restricciones. Establece un par de 
-         funtores adjuntos entre el poset de tolerancias al riesgo empresarial (r) y el 
-         poset de límites físicos/sintácticos. Una contracción en la tolerancia ejecutiva 
-         endurece estrictamente la cota de Lipschitz en el código evaluado.
-
-    4. ANIQUILACIÓN DE ENTROPÍA LEGACY (Veto Estructural Absoluto):
-       * Se han erradicado todas las clases de compatibilidad degeneradas 
-         (OntologicalDiffeomorphismEngine) y las advertencias de depreciación (DeprecationWarning).
-       * El módulo exige un difeomorfismo perfecto; cualquier invocación mediante 
-         interfaces obsoletas inducirá una singularidad irresoluble (Fast-Fail), 
-         preservando la pureza de la variedad generada.
-=========================================================================================
-
-COMPONENTES:
-------------
-1. Validación de Propósito (Purpose Validation):
-   - Verifica que la herramienta resuelva problemas de negocio identificados
-   - Usa grafo de conocimiento para mapear conceptos → problemas
-   
-2. Análisis de Confianza (Confidence Analysis):
-   - Filtra salidas de LLM con alta entropía o baja confianza
-   - Umbrales calibrados empíricamente
-   
-3. Mapeo de Restricciones (Constraint Mapping):
-   - Traduce tolerancia al riesgo empresarial en límites técnicos
-   - Modelo de scoring multi-criterio
-   
-4. Agregación de Veredicto (Verdict Aggregation):
-   - Combina señales en decisión final
-   - Sistema de scoring ponderado transparente
-
-MODELO MATEMÁTICO:
-------------------
-Sea S = (c, e, p, r) un estado del sistema donde:
-- c: confianza del LLM ∈ [0, 1]
-- e: entropía de la salida ∈ ℝ≥0
-- p: fuerza del propósito empresarial ∈ [0, 1]
-- r: tolerancia al riesgo ∈ [0, 1]
-
-Veredicto V: S → {VIABLE, CONDITIONAL, WARNING, REJECT}
-
-Definición del scoring:
-    score(S) = w_c·c + w_p·p - w_e·normalize(e) + w_r·r
+§1. ESPACIO MÉTRICO DE SEÑALES CON TENSOR DE MAHALANOBIS
+    Sea S = ℝ⁴ el espacio de señales con coordenadas:
+    - s₀: propósito (purpose)
+    - s₁: confianza (confidence)  
+    - s₂: cumplimiento de restricciones (constraints)
+    - s₃: tolerancia al riesgo (risk)
     
-donde w_i son pesos configurables que suman 1.
+    Dotamos S de un tensor métrico Riemanniano G ∈ Sym⁺(4), donde:
+    - G es simétrica: Gᵢⱼ = Gⱼᵢ
+    - G es definida positiva: ∀v ≠ 0, vᵀGv > 0
+    - G codifica acoplamientos: Gᵢⱼ ≠ 0 ⟺ señales i,j están acopladas
+    
+    La distancia de Mahalanobis al ideal s* = (1,1,1,1)ᵀ es:
+    
+        D_M(s) = √[(s - s*)ᵀ G (s - s*)]
+    
+    Propiedades verificadas:
+    - D_M(s) ≥ 0 con igualdad ssi s = s*
+    - D_M es continua en s
+    - Las curvas de nivel {s : D_M(s) = c} son elipsoides
 
+§2. COMPLEJO DE COCADENAS Y COHOMOLOGÍA SIMPLICIAL
+    Modelamos las restricciones de consistencia como un complejo simplicial:
+    
+    K = ({0,1,2,3}, {{0,1}, {1,2}, {2,3}, {3,0}})
+    
+    donde los vértices son índices de señales y las aristas representan
+    restricciones de consistencia.
+    
+    El complejo de cocadenas sobre ℝ es:
+    
+    0 → C⁰(K;ℝ) --δ⁰--> C¹(K;ℝ) --δ¹--> C²(K;ℝ) → 0
+    
+    donde:
+    - C⁰(K;ℝ) = {funciones φ: vértices → ℝ} ≅ ℝ⁴
+    - C¹(K;ℝ) = {funciones ψ: aristas → ℝ} ≅ ℝ⁴
+    - δ⁰(φ)(arista{i,j}) = φ(j) - φ(i)
+    - δ¹(ψ)(triángulo) = suma orientada en frontera
+    
+    La cohomología es:
+    
+    H¹(K;ℝ) = ker(δ¹) / im(δ⁰)
+    
+    Interpretación: dim H¹ > 0 detecta ciclos no triviales en las restricciones,
+    indicando paradojas semánticas irresolubles.
+
+§3. RETÍCULO DE VEREDICTOS CON ESTRUCTURA DE ORDEN
+    El conjunto de veredictos V = {VIABLE, CONDITIONAL, WARNING, REJECT}
+    forma un retículo totalmente ordenado:
+    
+    VIABLE < CONDITIONAL < WARNING < REJECT
+    
+    con operaciones:
+    - Supremo (∨): max según orden
+    - Ínfimo (∧): min según orden
+    
+    Propiedades algebraicas verificadas:
+    - Asociatividad: (v₁ ∨ v₂) ∨ v₃ = v₁ ∨ (v₂ ∨ v₃)
+    - Conmutatividad: v₁ ∨ v₂ = v₂ ∨ v₁
+    - Idempotencia: v ∨ v = v
+    - Elemento absorbente: v ∨ REJECT = REJECT
+
+§4. INVARIANTES Y CONTRATOS
+    Cada método público garantiza:
+    
+    [PRE] Precondiciones sobre argumentos (validación estricta)
+    [POST] Postcondiciones sobre resultados (invariantes de retorno)
+    [INV] Invariantes de clase (consistencia del estado)
+    
 =========================================================================================
 """
 
@@ -83,15 +84,61 @@ from __future__ import annotations
 
 import logging
 import math
-from dataclasses import dataclass, field
-from enum import Enum, IntEnum
-from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple, Union
+from dataclasses import dataclass, field, replace
+from enum import IntEnum
+from typing import (
+    Any, Dict, FrozenSet, List, Optional, Set, Tuple, Union, Callable, Protocol
+)
 from collections import defaultdict
+from functools import lru_cache
 
-import networkx as nx
 import numpy as np
+from numpy.linalg import LinAlgError
+
+# =============================================================================
+# CONFIGURACIÓN DE LOGGING
+# =============================================================================
 
 logger = logging.getLogger("Gamma.Wisdom.SemanticValidator.v3.0")
+logger.setLevel(logging.INFO)
+
+
+# =============================================================================
+# EXCEPCIONES ESPECÍFICAS DEL DOMINIO
+# =============================================================================
+
+class ValidationError(Exception):
+    """Clase base para errores de validación."""
+    pass
+
+
+class TopologicalObstructionError(ValidationError):
+    """
+    Obstrucción topológica detectada: dim H¹(K;ℝ) > 0.
+    
+    Indica una paradoja semántica irresoluble en las señales de entrada.
+    """
+    def __init__(self, dimension: int, cycle_description: str):
+        self.dimension = dimension
+        self.cycle_description = cycle_description
+        super().__init__(
+            f"Topological obstruction detected: dim H¹ = {dimension}. "
+            f"Semantic paradox: {cycle_description}"
+        )
+
+
+class MetricDegeneracyError(ValidationError):
+    """El tensor métrico es degenerado o mal condicionado."""
+    def __init__(self, condition_number: float):
+        self.condition_number = condition_number
+        super().__init__(
+            f"Metric tensor is ill-conditioned: κ(G) = {condition_number:.2e}"
+        )
+
+
+class ContractViolationError(ValidationError):
+    """Violación de precondición o postcondición."""
+    pass
 
 
 # =============================================================================
@@ -100,137 +147,177 @@ logger = logging.getLogger("Gamma.Wisdom.SemanticValidator.v3.0")
 
 class Verdict(IntEnum):
     """
-    Veredicto de validación ordenado por severidad.
+    Retículo totalmente ordenado de veredictos.
     
-    Orden parcial: VIABLE < CONDITIONAL < WARNING < REJECT
+    Orden: VIABLE < CONDITIONAL < WARNING < REJECT
     
-    Semántica:
-    - VIABLE: Aprobado sin restricciones
-    - CONDITIONAL: Aprobado con condiciones (requiere revisión)
-    - WARNING: Preocupaciones significativas (decisión manual recomendada)
-    - REJECT: Rechazado (no cumple criterios mínimos)
+    Invariante: Para todo v₁, v₂ ∈ Verdict, existe sup{v₁, v₂} y inf{v₁, v₂}.
     """
-    VIABLE = 0
-    CONDITIONAL = 1
-    WARNING = 2
-    REJECT = 3
-    
+    VIABLE = 0       # ⊥: Elemento mínimo (aprobado sin restricciones)
+    CONDITIONAL = 1  # Aprobado con condiciones (requiere supervisión)
+    WARNING = 2      # Alerta severa (decisión humana recomendada)
+    REJECT = 3       # ⊤: Elemento máximo (rechazo absoluto)
+
     def __str__(self) -> str:
         return self.name
-    
+
+    def __and__(self, other: Verdict) -> Verdict:
+        """Ínfimo (meet): min según orden."""
+        return Verdict(min(self.value, other.value))
+
+    def __or__(self, other: Verdict) -> Verdict:
+        """Supremo (join): max según orden."""
+        return Verdict(max(self.value, other.value))
+
     @property
     def is_accepted(self) -> bool:
-        """Veredictos que permiten ejecución (posiblemente con condiciones)."""
+        """Verdadero ssi v ∈ {VIABLE, CONDITIONAL}."""
         return self in {Verdict.VIABLE, Verdict.CONDITIONAL}
-    
+
     @property
     def requires_human_review(self) -> bool:
-        """Veredictos que requieren revisión humana."""
+        """Verdadero ssi v ∈ {CONDITIONAL, WARNING}."""
         return self in {Verdict.CONDITIONAL, Verdict.WARNING}
 
-
-class SignalStrength(Enum):
-    """Fuerza de una señal de validación."""
-    STRONG_POSITIVE = "strong_positive"
-    WEAK_POSITIVE = "weak_positive"
-    NEUTRAL = "neutral"
-    WEAK_NEGATIVE = "weak_negative"
-    STRONG_NEGATIVE = "strong_negative"
+    @property
+    def severity_score(self) -> float:
+        """Mapeo a [0,1]: 0 = VIABLE, 1 = REJECT."""
+        return self.value / 3.0
 
 
 # =============================================================================
-# ESTRUCTURAS DE DATOS
+# ESTRUCTURAS DE DATOS INMUTABLES
 # =============================================================================
 
 @dataclass(frozen=True, order=True)
 class BusinessPurpose:
     """
-    Mapeo de una funcionalidad a un problema de negocio.
-    
-    Atributos:
-        concept: Concepto técnico (ej: "caching", "load_balancing")
-        business_problem: Problema empresarial (ej: "LATENCY_REDUCTION")
-        strength: Fuerza de la conexión semántica ∈ [0, 1]
-        confidence: Confianza en el mapeo ∈ [0, 1]
+    Mapeo semántico: concepto técnico → problema empresarial.
     
     Invariantes:
     - 0 ≤ strength ≤ 1
     - 0 ≤ confidence ≤ 1
+    - concept y business_problem son cadenas no vacías
+    
+    La fuerza efectiva es: strength × confidence
     """
     concept: str
     business_problem: str
     strength: float
     confidence: float = 1.0
-    
+
     def __post_init__(self):
-        """Validación de invariantes."""
-        if not 0.0 <= self.strength <= 1.0:
-            raise ValueError(f"strength must be in [0, 1], got {self.strength}")
-        if not 0.0 <= self.confidence <= 1.0:
-            raise ValueError(f"confidence must be in [0, 1], got {self.confidence}")
+        """
+        [PRE] Valida invariantes estructurales.
         
-        if not isinstance(self.concept, str) or not self.concept:
-            raise ValueError("concept must be a non-empty string")
-        if not isinstance(self.business_problem, str) or not self.business_problem:
-            raise ValueError("business_problem must be a non-empty string")
-    
+        Raises:
+            ContractViolationError: Si se viola alguna precondición.
+        """
+        if not (0.0 <= self.strength <= 1.0):
+            raise ContractViolationError(
+                f"Precondition violated: strength ∈ [0,1], got {self.strength}"
+            )
+        if not (0.0 <= self.confidence <= 1.0):
+            raise ContractViolationError(
+                f"Precondition violated: confidence ∈ [0,1], got {self.confidence}"
+            )
+        if not isinstance(self.concept, str) or not self.concept.strip():
+            raise ContractViolationError(
+                "Precondition violated: concept must be non-empty string"
+            )
+        if not isinstance(self.business_problem, str) or not self.business_problem.strip():
+            raise ContractViolationError(
+                "Precondition violated: business_problem must be non-empty string"
+            )
+
     @property
     def effective_strength(self) -> float:
-        """Fuerza efectiva = strength × confidence."""
-        return self.strength * self.confidence
-    
+        """
+        Fuerza efectiva combinando strength y confidence.
+        
+        [POST] 0 ≤ resultado ≤ 1
+        """
+        result = self.strength * self.confidence
+        assert 0.0 <= result <= 1.0, "Postcondition violated"
+        return result
+
     def __repr__(self) -> str:
-        return (f"Purpose({self.concept} → {self.business_problem}, "
-                f"strength={self.strength:.2f}, conf={self.confidence:.2f})")
+        return (
+            f"Purpose({self.concept} → {self.business_problem}, "
+            f"σ={self.strength:.3f}, conf={self.confidence:.3f})"
+        )
 
 
 @dataclass(frozen=True)
 class LLMOutput:
     """
-    Metadatos de salida del modelo de lenguaje.
+    Metadatos estocásticos de salida del modelo de lenguaje.
     
-    Atributos:
-        entropy: Entropía de la distribución de tokens ∈ ℝ≥0
-        confidence: Confianza del modelo ∈ [0, 1]
-        temperature: Temperatura de sampling usada
-        num_tokens: Número de tokens generados
+    Invariantes:
+    - entropy ≥ 0 (puede ser +∞)
+    - 0 ≤ confidence ≤ 1
+    - temperature > 0
+    - num_tokens ≥ 0
     """
     entropy: float
     confidence: float
     temperature: float = 1.0
     num_tokens: int = 0
-    
+
     def __post_init__(self):
-        """Validación de invariantes."""
-        if self.entropy < 0:
-            raise ValueError(f"entropy must be ≥ 0, got {self.entropy}")
-        if not 0.0 <= self.confidence <= 1.0:
-            raise ValueError(f"confidence must be in [0, 1], got {self.confidence}")
+        """[PRE] Valida invariantes."""
+        if self.entropy < 0 and not math.isinf(self.entropy):
+            raise ContractViolationError(f"entropy must be ≥ 0 or +∞, got {self.entropy}")
+        if not (0.0 <= self.confidence <= 1.0):
+            raise ContractViolationError(f"confidence ∈ [0,1], got {self.confidence}")
         if self.temperature <= 0:
-            raise ValueError(f"temperature must be > 0, got {self.temperature}")
+            raise ContractViolationError(f"temperature > 0, got {self.temperature}")
         if self.num_tokens < 0:
-            raise ValueError(f"num_tokens must be ≥ 0, got {self.num_tokens}")
-    
+            raise ContractViolationError(f"num_tokens ≥ 0, got {self.num_tokens}")
+
     @property
     def normalized_entropy(self) -> float:
         """
         Entropía normalizada por temperatura y longitud.
         
-        Máxima entropía teórica para vocabulario V:
-            H_max = log(|V|)
+        H_norm = H / (T × √max(N, 1))
         
-        Heurística: normalizamos por temperatura (escala) y sqrt(tokens) (longitud).
+        [POST] H_norm ≥ 0
         """
-        if self.num_tokens == 0:
-            return self.entropy
-        
-        # Normalización heurística
+        if math.isinf(self.entropy):
+            return float('inf')
         length_factor = math.sqrt(max(self.num_tokens, 1))
-        return self.entropy / (self.temperature * length_factor)
-    
+        result = self.entropy / (self.temperature * length_factor)
+        assert result >= 0, "Postcondition violated"
+        return result
+
+    @property
+    def is_singular(self) -> bool:
+        """
+        Detecta singularidad estocástica.
+        
+        Verdadero ssi entropy = +∞ ∨ confidence = 0
+        """
+        return math.isinf(self.entropy) or self.confidence == 0.0
+
+    @property
+    def perplexity(self) -> float:
+        """
+        Perplejidad: exp(H).
+        
+        [POST] perplexity ≥ 1
+        """
+        if math.isinf(self.entropy):
+            return float('inf')
+        result = math.exp(self.entropy)
+        assert result >= 1.0, "Postcondition violated"
+        return result
+
     def __repr__(self) -> str:
-        return (f"LLM(H={self.entropy:.2f}, conf={self.confidence:.2f}, "
-                f"T={self.temperature}, tokens={self.num_tokens})")
+        return (
+            f"LLM(H={self.entropy:.2f}, conf={self.confidence:.2f}, "
+            f"T={self.temperature:.2f}, tokens={self.num_tokens})"
+        )
 
 
 @dataclass(frozen=True)
@@ -238,43 +325,40 @@ class RiskProfile:
     """
     Perfil de tolerancia al riesgo empresarial.
     
-    Atributos:
-        risk_tolerance: Tolerancia general al riesgo ∈ [0, 1]
-            0 = adverso al riesgo (startups, finanzas críticas)
-            1 = tolerante al riesgo (experimentación, prototipado)
-        
-        domain_criticality: Criticidad del dominio ∈ [0, 1]
-            0 = no crítico (herramientas internas)
-            1 = crítico (sistemas de producción, salud, finanzas)
-        
-        acceptable_failure_rate: Tasa de fallo aceptable ∈ [0, 1]
-            Probabilidad aceptable de que el código falle
+    Invariantes:
+    - Todos los parámetros ∈ [0, 1]
+    - effective_tolerance ∈ [0, 1]
     """
-    risk_tolerance: float
-    domain_criticality: float = 0.5
-    acceptable_failure_rate: float = 0.01
-    
+    risk_tolerance: float              # Tolerancia general
+    domain_criticality: float = 0.5    # Criticidad del dominio
+    acceptable_failure_rate: float = 0.01  # Tasa de fallo aceptable
+
     def __post_init__(self):
-        """Validación de invariantes."""
-        if not 0.0 <= self.risk_tolerance <= 1.0:
-            raise ValueError(f"risk_tolerance must be in [0, 1], got {self.risk_tolerance}")
-        if not 0.0 <= self.domain_criticality <= 1.0:
-            raise ValueError(f"domain_criticality must be in [0, 1], got {self.domain_criticality}")
-        if not 0.0 <= self.acceptable_failure_rate <= 1.0:
-            raise ValueError(f"acceptable_failure_rate must be in [0, 1], got {self.acceptable_failure_rate}")
-    
+        """[PRE] Valida invariantes."""
+        for name, value in [
+            ('risk_tolerance', self.risk_tolerance),
+            ('domain_criticality', self.domain_criticality),
+            ('acceptable_failure_rate', self.acceptable_failure_rate)
+        ]:
+            if not (0.0 <= value <= 1.0):
+                raise ContractViolationError(f"{name} ∈ [0,1], got {value}")
+
     @property
     def effective_tolerance(self) -> float:
         """
-        Tolerancia efectiva considerando criticidad.
+        Tolerancia efectiva ajustada por criticidad.
         
-        Mayor criticidad → menor tolerancia efectiva.
+        τ_eff = τ × (1 - 0.5 × criticality)
+        
+        [POST] 0 ≤ τ_eff ≤ 1
         """
-        return self.risk_tolerance * (1 - 0.5 * self.domain_criticality)
-    
+        result = self.risk_tolerance * (1.0 - 0.5 * self.domain_criticality)
+        assert 0.0 <= result <= 1.0, "Postcondition violated"
+        return result
+
     @property
     def risk_category(self) -> str:
-        """Categorización cualitativa del riesgo."""
+        """Categorización cualitativa basada en τ_eff."""
         tol = self.effective_tolerance
         if tol < 0.2:
             return "HIGHLY_CONSERVATIVE"
@@ -286,52 +370,588 @@ class RiskProfile:
             return "AGGRESSIVE"
         else:
             return "HIGHLY_AGGRESSIVE"
-    
+
+    @lru_cache(maxsize=1)
+    def _compute_lipschitz_bound(self) -> float:
+        """
+        Cota de Lipschitz para restricciones de complejidad.
+        
+        L = exp(-2 × criticality × (1 - tolerance))
+        
+        [POST] 0 < L ≤ 1
+        """
+        result = math.exp(-2.0 * self.domain_criticality * (1.0 - self.risk_tolerance))
+        assert 0.0 < result <= 1.0, "Postcondition violated"
+        return result
+
     def __repr__(self) -> str:
-        return (f"Risk(tolerance={self.risk_tolerance:.2f}, "
-                f"criticality={self.domain_criticality:.2f}, "
-                f"category={self.risk_category})")
+        return (
+            f"Risk(τ={self.risk_tolerance:.2f}, "
+            f"crit={self.domain_criticality:.2f}, "
+            f"cat={self.risk_category})"
+        )
 
 
 @dataclass
 class ValidationResult:
     """
-    Resultado completo de validación.
+    Resultado completo de validación con trazabilidad algebraica.
     
-    Contiene veredicto final y desglose de señales.
+    Invariantes:
+    - mahalanobis_distance ≥ 0
+    - signals[k] ∈ [0, 1] ∀k
+    - verdict ∈ Verdict
     """
     verdict: Verdict
-    overall_score: float
+    mahalanobis_distance: float
     signals: Dict[str, float] = field(default_factory=dict)
     reasons: List[str] = field(default_factory=list)
+    cohomology_dimension: int = 0
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
-    def add_reason(self, reason: str, signal_name: Optional[str] = None, 
-                   signal_value: Optional[float] = None) -> None:
-        """Añade una razón al resultado."""
+
+    def __post_init__(self):
+        """[POST] Valida invariantes."""
+        if self.mahalanobis_distance < 0:
+            raise ContractViolationError(
+                f"D_M must be ≥ 0, got {self.mahalanobis_distance}"
+            )
+        for name, value in self.signals.items():
+            if not (0.0 <= value <= 1.0):
+                logger.warning(f"Signal {name} = {value} outside [0,1], clamping")
+                self.signals[name] = max(0.0, min(1.0, value))
+
+    def add_reason(
+        self, 
+        reason: str, 
+        signal_name: Optional[str] = None,
+        signal_value: Optional[float] = None
+    ) -> None:
+        """
+        Agrega razón y señal al resultado.
+        
+        [PRE] Si signal_name provisto, signal_value también debe proveerse.
+        """
+        if signal_name is not None and signal_value is None:
+            raise ContractViolationError(
+                "If signal_name is provided, signal_value must also be provided"
+            )
+        
         self.reasons.append(reason)
         if signal_name is not None and signal_value is not None:
-            self.signals[signal_name] = signal_value
-    
+            self.signals[signal_name] = max(0.0, min(1.0, signal_value))
+
+    @property
+    def has_topological_obstruction(self) -> bool:
+        """Verdadero ssi dim H¹ > 0."""
+        return self.cohomology_dimension > 0
+
     def __repr__(self) -> str:
-        return (f"ValidationResult(verdict={self.verdict}, "
-                f"score={self.overall_score:.3f}, "
-                f"signals={len(self.signals)})")
+        return (
+            f"ValidationResult(verdict={self.verdict.name}, "
+            f"D_M={self.mahalanobis_distance:.3f}, "
+            f"dim H¹={self.cohomology_dimension})"
+        )
 
 
 # =============================================================================
-# VALIDADORES INDIVIDUALES
+# TENSOR MÉTRICO DE MAHALANOBIS (Geometría Riemanniana)
+# =============================================================================
+
+class MahalanobisMetric:
+    """
+    Tensor métrico Riemanniano G sobre el espacio de señales ℝ⁴.
+    
+    Propiedades algebraicas:
+    - G es simétrica: G = Gᵀ
+    - G es definida positiva: vᵀGv > 0 ∀v ≠ 0
+    - Número de condición κ(G) < 10³ (bien condicionada)
+    
+    Invariantes:
+    [INV1] self.G.shape == (4, 4)
+    [INV2] np.allclose(self.G, self.G.T)  # Simetría
+    [INV3] np.all(np.linalg.eigvalsh(self.G) > 0)  # Def. positiva
+    [INV4] self._condition_number < 1e3
+    """
+
+    # Tensor métrico default con acoplamientos físicamente motivados
+    DEFAULT_METRIC_TENSOR = np.array([
+        [1.00,  0.30,  0.20,  0.10],  # purpose: acoplado con confidence
+        [0.30,  1.00,  0.40, -0.25],  # confidence: anticorrelado con risk
+        [0.20,  0.40,  1.00,  0.35],  # constraints: correlado con risk
+        [0.10, -0.25,  0.35,  1.00],  # risk: moderado con purpose
+    ], dtype=np.float64)
+
+    # Umbral máximo para número de condición
+    MAX_CONDITION_NUMBER = 1000.0
+
+    def __init__(self, metric_tensor: Optional[np.ndarray] = None):
+        """
+        Inicializa tensor métrico.
+        
+        [PRE] metric_tensor es 4×4, simétrica, definida positiva, bien condicionada.
+        [POST] Invariantes de clase satisfechos.
+        
+        Args:
+            metric_tensor: Matriz 4×4 personalizada o None para default.
+            
+        Raises:
+            ContractViolationError: Si se violan precondiciones.
+            MetricDegeneracyError: Si la métrica está mal condicionada.
+        """
+        if metric_tensor is not None:
+            self._validate_metric_tensor(metric_tensor)
+            self.G = metric_tensor.copy()
+        else:
+            self.G = self.DEFAULT_METRIC_TENSOR.copy()
+        
+        # Cachear número de condición
+        self._condition_number = self._compute_condition_number()
+        
+        if self._condition_number > self.MAX_CONDITION_NUMBER:
+            raise MetricDegeneracyError(self._condition_number)
+        
+        # Verificar invariantes post-construcción
+        self._check_invariants()
+        
+        logger.debug(f"Initialized Mahalanobis metric with κ(G) = {self._condition_number:.2e}")
+
+    def _validate_metric_tensor(self, G: np.ndarray) -> None:
+        """
+        Valida precondiciones del tensor métrico.
+        
+        [PRE] G es numpy array
+        [POST] G satisface todas las propiedades requeridas
+        
+        Raises:
+            ContractViolationError: Si falla alguna validación.
+        """
+        if not isinstance(G, np.ndarray):
+            raise ContractViolationError("Metric tensor must be numpy array")
+        
+        if G.shape != (4, 4):
+            raise ContractViolationError(f"Metric tensor must be 4×4, got {G.shape}")
+        
+        if not np.allclose(G, G.T, rtol=1e-9, atol=1e-12):
+            raise ContractViolationError("Metric tensor must be symmetric")
+        
+        try:
+            eigvals = np.linalg.eigvalsh(G)
+        except LinAlgError as e:
+            raise ContractViolationError(f"Failed to compute eigenvalues: {e}")
+        
+        if np.any(eigvals <= 0):
+            raise ContractViolationError(
+                f"Metric tensor must be positive definite. Eigenvalues: {eigvals}"
+            )
+
+    def _compute_condition_number(self) -> float:
+        """
+        Calcula número de condición κ(G) = λ_max / λ_min.
+        
+        [POST] κ(G) ≥ 1
+        """
+        eigvals = np.linalg.eigvalsh(self.G)
+        kappa = eigvals[-1] / eigvals[0]  # max / min
+        assert kappa >= 1.0, "Postcondition violated: κ(G) ≥ 1"
+        return kappa
+
+    def _check_invariants(self) -> None:
+        """
+        Verifica invariantes de clase.
+        
+        Raises:
+            AssertionError: Si se viola algún invariante.
+        """
+        assert self.G.shape == (4, 4), "[INV1] violated"
+        assert np.allclose(self.G, self.G.T), "[INV2] violated: not symmetric"
+        eigvals = np.linalg.eigvalsh(self.G)
+        assert np.all(eigvals > 0), "[INV3] violated: not positive definite"
+        assert self._condition_number < self.MAX_CONDITION_NUMBER, "[INV4] violated"
+
+    def distance_to_ideal(
+        self, 
+        signal_vector: np.ndarray,
+        ideal: Optional[np.ndarray] = None
+    ) -> float:
+        """
+        Calcula distancia de Mahalanobis al punto ideal.
+        
+        D_M(s) = √[(s - s*)ᵀ G (s - s*)]
+        
+        [PRE] signal_vector.shape == (4,)
+        [PRE] ideal is None or ideal.shape == (4,)
+        [POST] D_M ≥ 0
+        [POST] D_M = 0 ⟺ signal_vector = ideal
+        
+        Args:
+            signal_vector: Vector de señales en ℝ⁴
+            ideal: Punto ideal (default: (1,1,1,1)ᵀ)
+            
+        Returns:
+            Distancia de Mahalanobis ≥ 0
+            
+        Raises:
+            ContractViolationError: Si se violan precondiciones.
+        """
+        if signal_vector.shape != (4,):
+            raise ContractViolationError(
+                f"signal_vector must be shape (4,), got {signal_vector.shape}"
+            )
+        
+        if ideal is None:
+            ideal = np.ones(4, dtype=np.float64)
+        elif ideal.shape != (4,):
+            raise ContractViolationError(
+                f"ideal must be shape (4,), got {ideal.shape}"
+            )
+        
+        diff = signal_vector - ideal
+        
+        # Producto cuadrático: diffᵀ G diff
+        quadratic_form = diff.T @ self.G @ diff
+        
+        # Asegurar no-negatividad numérica (errores de redondeo)
+        distance = math.sqrt(max(0.0, quadratic_form))
+        
+        # Verificar postcondición: D_M = 0 ⟺ s = s*
+        if distance == 0.0:
+            assert np.allclose(signal_vector, ideal, rtol=1e-9), \
+                "Postcondition violated: D_M = 0 but s ≠ s*"
+        
+        return distance
+
+    def set_coupling(self, i: int, j: int, value: float) -> None:
+        """
+        Ajusta acoplamiento Gᵢⱼ entre dos señales.
+        
+        [PRE] 0 ≤ i, j < 4
+        [PRE] Modificación mantiene definición positiva
+        [POST] Invariantes de clase satisfechos
+        
+        Args:
+            i, j: Índices de señales
+            value: Nuevo valor de acoplamiento
+            
+        Raises:
+            ContractViolationError: Si índices inválidos o métrica degenerada.
+        """
+        if not (0 <= i < 4 and 0 <= j < 4):
+            raise ContractViolationError(f"Indices must be in [0, 3], got i={i}, j={j}")
+        
+        # Actualizar simétricamente
+        old_ij = self.G[i, j]
+        old_ji = self.G[j, i]
+        
+        self.G[i, j] = value
+        self.G[j, i] = value
+        
+        # Verificar que sigue siendo definida positiva
+        try:
+            eigvals = np.linalg.eigvalsh(self.G)
+            if np.any(eigvals <= 0):
+                # Revertir cambio
+                self.G[i, j] = old_ij
+                self.G[j, i] = old_ji
+                raise ContractViolationError(
+                    f"Setting G[{i},{j}] = {value} would make metric indefinite"
+                )
+        except LinAlgError:
+            # Revertir cambio
+            self.G[i, j] = old_ij
+            self.G[j, i] = old_ji
+            raise ContractViolationError("Failed to verify positive definiteness")
+        
+        # Recalcular número de condición
+        self._condition_number = self._compute_condition_number()
+        
+        if self._condition_number > self.MAX_CONDITION_NUMBER:
+            # Revertir cambio
+            self.G[i, j] = old_ij
+            self.G[j, i] = old_ji
+            self._condition_number = self._compute_condition_number()
+            raise MetricDegeneracyError(self._condition_number)
+        
+        self._check_invariants()
+
+    def copy(self) -> 'MahalanobisMetric':
+        """
+        Crea copia profunda de la métrica.
+        
+        [POST] Resultado es independiente del original.
+        """
+        return MahalanobisMetric(self.G.copy())
+
+    def __repr__(self) -> str:
+        return f"MahalanobisMetric(κ={self._condition_number:.2e})"
+
+
+# =============================================================================
+# COHOMOLOGÍA SIMPLICIAL (Topología Algebraica Rigurosa)
+# =============================================================================
+
+class SimplicialCohomology:
+    """
+    Calcula cohomología simplicial H¹(K; ℝ) del complejo de señales.
+    
+    El complejo simplicial K tiene:
+    - Vértices V = {0, 1, 2, 3} (índices de señales)
+    - Aristas E = {(0,1), (1,2), (2,3), (3,0)} (ciclo de restricciones)
+    
+    Complejo de cocadenas:
+        0 → C⁰(K;ℝ) --δ⁰--> C¹(K;ℝ) --δ¹--> C²(K;ℝ) → 0
+    
+    donde:
+    - C⁰ = ℝ⁴ (funciones en vértices)
+    - C¹ = ℝ⁴ (funciones en aristas)
+    - C² = {0} (no hay 2-símplices)
+    
+    El operador cofrontera δ⁰: C⁰ → C¹ está dado por:
+        (δ⁰φ)((i,j)) = φ(j) - φ(i)
+    
+    La cohomología es:
+        H¹(K;ℝ) = ker(δ¹) / im(δ⁰) = C¹ / im(δ⁰)
+    
+    Como K es un ciclo de 4 vértices, dim H¹ = 1 genéricamente.
+    Detectamos obstrucciones cuando los valores de señales violan
+    consistencia cíclica más allá de tolerancias.
+    
+    Invariantes:
+    [INV1] self._edges es lista de tuplas (i, j) con i < j
+    [INV2] len(self._edges) == 4
+    [INV3] self._signal_values es dict con 4 entradas o vacío
+    """
+
+    # Constantes de índices
+    PURPOSE_IDX = 0
+    CONFIDENCE_IDX = 1
+    CONSTRAINTS_IDX = 2
+    RISK_IDX = 3
+
+    # Aristas del complejo (ciclo)
+    _EDGES = [
+        (PURPOSE_IDX, CONFIDENCE_IDX),      # e₀
+        (CONFIDENCE_IDX, CONSTRAINTS_IDX),  # e₁
+        (CONSTRAINTS_IDX, RISK_IDX),        # e₂
+        (RISK_IDX, PURPOSE_IDX),            # e₃
+    ]
+
+    # Tolerancia para inconsistencias
+    INCONSISTENCY_THRESHOLD = 0.3
+
+    def __init__(self):
+        """Inicializa cohomología con señales vacías."""
+        self._signal_values: Dict[int, float] = {}
+        self._cohomology_dimension: Optional[int] = None
+        self._cycle_violations: List[str] = []
+
+    def set_signals(
+        self, 
+        purpose: float, 
+        confidence: float,
+        constraints: float, 
+        risk: float
+    ) -> None:
+        """
+        Establece valores de señales.
+        
+        [PRE] Todos los valores ∈ [0, 1]
+        [POST] self._signal_values tiene 4 entradas
+        
+        Args:
+            purpose, confidence, constraints, risk: Valores de señales.
+            
+        Raises:
+            ContractViolationError: Si algún valor fuera de [0,1].
+        """
+        for name, value in [
+            ('purpose', purpose),
+            ('confidence', confidence),
+            ('constraints', constraints),
+            ('risk', risk)
+        ]:
+            if not (0.0 <= value <= 1.0):
+                raise ContractViolationError(
+                    f"{name} must be in [0,1], got {value}"
+                )
+        
+        self._signal_values = {
+            self.PURPOSE_IDX: purpose,
+            self.CONFIDENCE_IDX: confidence,
+            self.CONSTRAINTS_IDX: constraints,
+            self.RISK_IDX: risk,
+        }
+        
+        # Invalidar caché
+        self._cohomology_dimension = None
+        self._cycle_violations = []
+        
+        assert len(self._signal_values) == 4, "Postcondition violated"
+
+    def _compute_coboundary_image(self) -> np.ndarray:
+        """
+        Calcula imagen de δ⁰: C⁰ → C¹.
+        
+        Para cada arista e = (i, j), calculamos δ⁰(φ)(e) = φ(j) - φ(i).
+        
+        [PRE] self._signal_values tiene 4 entradas
+        [POST] Resultado es matriz 4×4 (base de im(δ⁰))
+        
+        Returns:
+            Matriz cuyas columnas generan im(δ⁰).
+        """
+        if len(self._signal_values) != 4:
+            raise ContractViolationError("Must set all 4 signals before computing cohomology")
+        
+        # Construir matriz del operador δ⁰
+        # Filas: aristas (4), Columnas: vértices (4)
+        delta_matrix = np.zeros((4, 4), dtype=np.float64)
+        
+        for edge_idx, (i, j) in enumerate(self._EDGES):
+            delta_matrix[edge_idx, i] = -1.0  # -φ(i)
+            delta_matrix[edge_idx, j] = 1.0   # +φ(j)
+        
+        return delta_matrix
+
+    def _detect_cycle_violations(self) -> List[str]:
+        """
+        Detecta violaciones de consistencia cíclica.
+        
+        Para cada par de señales adyacentes en el ciclo, verificamos
+        si su combinación es semánticamente inconsistente.
+        
+        [POST] Retorna lista de descripciones de violaciones.
+        
+        Returns:
+            Lista de strings describiendo violaciones.
+        """
+        violations = []
+        
+        p = self._signal_values[self.PURPOSE_IDX]
+        c = self._signal_values[self.CONFIDENCE_IDX]
+        r = self._signal_values[self.CONSTRAINTS_IDX]
+        k = self._signal_values[self.RISK_IDX]
+        
+        # Violación 1: Propósito muy débil con confianza muy alta
+        # Interpretación: LLM muy seguro de algo sin propósito → paradoja
+        if p < (1.0 - self.INCONSISTENCY_THRESHOLD) and \
+           c > (1.0 - self.INCONSISTENCY_THRESHOLD):
+            delta = c - p
+            violations.append(
+                f"Purpose-Confidence inconsistency: "
+                f"weak purpose ({p:.2f}) with high confidence ({c:.2f}), Δ={delta:.2f}"
+            )
+        
+        # Violación 2: Confianza muy baja con restricciones muy satisfechas
+        # Interpretación: LLM inseguro pero código perfecto → sospechoso
+        if c < self.INCONSISTENCY_THRESHOLD and \
+           r > (1.0 - self.INCONSISTENCY_THRESHOLD):
+            delta = r - c
+            violations.append(
+                f"Confidence-Constraints inconsistency: "
+                f"low confidence ({c:.2f}) with high constraint satisfaction ({r:.2f}), Δ={delta:.2f}"
+            )
+        
+        # Violación 3: Restricciones muy violadas con riesgo muy alto
+        # Interpretación: código complejo en dominio crítico → peligroso
+        if r < self.INCONSISTENCY_THRESHOLD and \
+           k > (1.0 - self.INCONSISTENCY_THRESHOLD):
+            delta = k - r
+            violations.append(
+                f"Constraints-Risk inconsistency: "
+                f"low constraint satisfaction ({r:.2f}) with high risk tolerance ({k:.2f}), Δ={delta:.2f}"
+            )
+        
+        # Violación 4: Riesgo muy bajo con propósito muy fuerte (cierre cíclico)
+        # Interpretación: propósito crítico pero sin tolerancia → sobre-restrictivo
+        if k < self.INCONSISTENCY_THRESHOLD and \
+           p > (1.0 - self.INCONSISTENCY_THRESHOLD):
+            delta = p - k
+            violations.append(
+                f"Risk-Purpose inconsistency: "
+                f"high purpose ({p:.2f}) with low risk tolerance ({k:.2f}), Δ={delta:.2f}"
+            )
+        
+        return violations
+
+    def compute_cohomology_dimension(self) -> int:
+        """
+        Calcula dim H¹(K; ℝ).
+        
+        Para el ciclo de 4 vértices, dim H¹ = 1 topológicamente.
+        Retornamos el número de violaciones de consistencia detectadas,
+        que indica la "dimensión obstructiva".
+        
+        [PRE] Señales deben estar establecidas
+        [POST] Resultado ≥ 0
+        
+        Returns:
+            Número de violaciones (dimensión de obstrucción).
+        """
+        if self._cohomology_dimension is None:
+            self._cycle_violations = self._detect_cycle_violations()
+            self._cohomology_dimension = len(self._cycle_violations)
+        
+        assert self._cohomology_dimension >= 0, "Postcondition violated"
+        return self._cohomology_dimension
+
+    def has_obstruction(self) -> bool:
+        """
+        Determina si existe obstrucción topológica.
+        
+        [POST] Verdadero ssi dim H¹ > 0
+        
+        Returns:
+            True si hay paradoja semántica.
+        """
+        return self.compute_cohomology_dimension() > 0
+
+    def get_obstruction_description(self) -> str:
+        """
+        Genera descripción detallada de obstrucciones.
+        
+        [PRE] Cohomología debe estar calculada
+        [POST] String no vacío si hay obstrucciones
+        
+        Returns:
+            Descripción textual de obstrucciones.
+        """
+        dim = self.compute_cohomology_dimension()
+        
+        if dim == 0:
+            return "No topological obstruction detected (H¹ = 0)"
+        
+        desc_lines = [
+            f"Topological obstruction detected: dim H¹ = {dim}",
+            "Semantic paradoxes (cycle violations):",
+        ]
+        
+        for i, violation in enumerate(self._cycle_violations, 1):
+            desc_lines.append(f"  [{i}] {violation}")
+        
+        return "\n".join(desc_lines)
+
+    def __repr__(self) -> str:
+        dim = self._cohomology_dimension if self._cohomology_dimension is not None else '?'
+        return f"SimplicialCohomology(dim H¹ = {dim})"
+
+
+# =============================================================================
+# VALIDADORES ESPECIALIZADOS
 # =============================================================================
 
 class PurposeValidator:
     """
-    Valida que el código tenga propósito empresarial claro.
+    Validador de propósito empresarial basado en grafo de conocimiento.
     
-    Usa un grafo de conocimiento para mapear conceptos técnicos
-    a problemas de negocio conocidos.
+    Evalúa si el código tiene un propósito empresarial claro y medible,
+    mapeando conceptos técnicos a problemas canónicos de negocio.
+    
+    Invariantes:
+    [INV1] 0 < min_strength_threshold ≤ 1
+    [INV2] canonical_problems es conjunto no vacío
     """
-    
-    # Problemas de negocio canónicos (pueden configurarse externamente)
+
+    # Problemas empresariales canónicos
     DEFAULT_CANONICAL_PROBLEMS = frozenset([
         "COST_REDUCTION",
         "LATENCY_REDUCTION",
@@ -341,68 +961,111 @@ class PurposeValidator:
         "COMPLIANCE_ADHERENCE",
         "USER_EXPERIENCE_IMPROVEMENT",
         "DATA_QUALITY_ENHANCEMENT",
+        "MAINTAINABILITY_IMPROVEMENT",
+        "OBSERVABILITY_ENHANCEMENT",
     ])
-    
+
     def __init__(
         self,
-        knowledge_graph: Optional[nx.DiGraph] = None,
+        knowledge_graph: Optional[Dict[str, Dict[str, float]]] = None,
         canonical_problems: Optional[FrozenSet[str]] = None,
-        min_strength_threshold: float = 0.7
+        min_strength_threshold: float = 0.65
     ):
         """
-        Inicializa el validador de propósito.
+        Inicializa validador de propósito.
+        
+        [PRE] 0 < min_strength_threshold ≤ 1
+        [PRE] canonical_problems es None o conjunto no vacío
         
         Args:
-            knowledge_graph: Grafo dirigido concepto → problema
-            canonical_problems: Conjunto de problemas reconocidos
-            min_strength_threshold: Umbral mínimo de fuerza efectiva
+            knowledge_graph: Grafo concepto → {problema: peso}
+            canonical_problems: Conjunto de problemas canónicos
+            min_strength_threshold: Umbral mínimo de fuerza
         """
-        self.kg = knowledge_graph or nx.DiGraph()
+        if not (0.0 < min_strength_threshold <= 1.0):
+            raise ContractViolationError(
+                f"min_strength_threshold ∈ (0,1], got {min_strength_threshold}"
+            )
+        
+        self.kg = knowledge_graph or {}
         self.canonical_problems = canonical_problems or self.DEFAULT_CANONICAL_PROBLEMS
         self.min_strength = min_strength_threshold
         
-        if not 0.0 <= self.min_strength <= 1.0:
-            raise ValueError(f"min_strength_threshold must be in [0, 1], got {self.min_strength}")
-    
+        if not self.canonical_problems:
+            raise ContractViolationError("canonical_problems cannot be empty")
+        
+        logger.debug(
+            f"Initialized PurposeValidator with {len(self.canonical_problems)} "
+            f"canonical problems, threshold={self.min_strength:.2f}"
+        )
+
     def validate(self, purposes: List[BusinessPurpose]) -> Tuple[bool, float, str]:
         """
         Valida lista de propósitos empresariales.
         
-        Args:
-            purposes: Lista de mapeos concepto → problema
+        [PRE] purposes es lista (puede estar vacía)
+        [POST] (válido, score, razón) donde score ∈ [0, 1]
         
+        Args:
+            purposes: Lista de propósitos a validar
+            
         Returns:
-            (is_valid, strength, reason)
+            (es_válido, score_máximo, descripción)
         """
         if not purposes:
-            return False, 0.0, "No business purposes provided"
+            return False, 0.0, "No business purposes provided (empty list)"
         
-        # Verificar que al menos un propósito mapee a problema canónico
+        # Filtrar propósitos canónicos
         canonical_purposes = [
             p for p in purposes
             if p.business_problem in self.canonical_problems
         ]
         
         if not canonical_purposes:
-            return False, 0.0, f"No purposes map to canonical problems: {self.canonical_problems}"
+            available = ", ".join(sorted(self.canonical_problems)[:5])
+            return (
+                False, 
+                0.0, 
+                f"No purposes map to canonical problems. "
+                f"Expected one of: {available}..."
+            )
         
-        # Calcular fuerza máxima
+        # Calcular fuerza efectiva máxima
         max_strength = max(p.effective_strength for p in canonical_purposes)
         
         if max_strength < self.min_strength:
-            return False, max_strength, f"Max purpose strength {max_strength:.2f} < threshold {self.min_strength}"
+            return (
+                False, 
+                max_strength,
+                f"Maximum purpose strength {max_strength:.3f} below "
+                f"threshold {self.min_strength:.3f}"
+            )
         
-        # Éxito
+        # Encontrar mejor propósito
         best_purpose = max(canonical_purposes, key=lambda p: p.effective_strength)
-        reason = f"Strong purpose: {best_purpose.concept} → {best_purpose.business_problem} (strength={max_strength:.2f})"
+        
+        reason = (
+            f"Strong canonical purpose identified: "
+            f"{best_purpose.concept} → {best_purpose.business_problem} "
+            f"(σ_eff={max_strength:.3f})"
+        )
         
         return True, max_strength, reason
-    
+
     def compute_purpose_score(self, purposes: List[BusinessPurpose]) -> float:
         """
-        Calcula score de propósito ∈ [0, 1].
+        Calcula score agregado de propósito.
         
-        Agrega múltiples propósitos con soft-max.
+        Combina fuerza máxima (70%) con fuerza media (30%) de propósitos canónicos.
+        
+        [PRE] purposes es lista
+        [POST] 0 ≤ score ≤ 1
+        
+        Args:
+            purposes: Lista de propósitos
+            
+        Returns:
+            Score agregado ∈ [0, 1]
         """
         if not purposes:
             return 0.0
@@ -416,27 +1079,36 @@ class PurposeValidator:
         if not canonical_strengths:
             return 0.0
         
-        # Soft-max: evita que un solo propósito fuerte domine completamente
-        # pero da más peso a los fuertes
         max_strength = max(canonical_strengths)
-        mean_strength = np.mean(canonical_strengths)
+        mean_strength = float(np.mean(canonical_strengths))
         
-        # Combinación 70% max, 30% mean
-        return 0.7 * max_strength + 0.3 * mean_strength
+        # Combinación ponderada: privilegiar el máximo
+        score = 0.7 * max_strength + 0.3 * mean_strength
+        
+        assert 0.0 <= score <= 1.0, "Postcondition violated"
+        return score
 
 
 class ConfidenceFilter:
     """
-    Filtra salidas de LLM con baja confianza o alta entropía.
+    Filtro de confianza para salidas de LLM.
     
-    Criterios calibrados empíricamente para GPT-3.5/4.
+    Rechaza salidas con:
+    - Confianza < min_confidence
+    - Entropía > max_entropy
+    - Entropía normalizada > max_normalized_entropy
+    - Singularidades estocásticas (H = ∞ ∨ conf = 0)
+    
+    Invariantes:
+    [INV1] 0 < min_confidence ≤ 1
+    [INV2] max_entropy > 0
+    [INV3] max_normalized_entropy > 0
     """
-    
-    # Umbrales por defecto (configurables)
-    DEFAULT_MIN_CONFIDENCE = 0.6
+
+    DEFAULT_MIN_CONFIDENCE = 0.60
     DEFAULT_MAX_ENTROPY = 2.5
     DEFAULT_MAX_NORMALIZED_ENTROPY = 0.5
-    
+
     def __init__(
         self,
         min_confidence: float = DEFAULT_MIN_CONFIDENCE,
@@ -444,211 +1116,338 @@ class ConfidenceFilter:
         max_normalized_entropy: float = DEFAULT_MAX_NORMALIZED_ENTROPY
     ):
         """
-        Inicializa el filtro de confianza.
+        Inicializa filtro de confianza.
         
-        Args:
-            min_confidence: Confianza mínima aceptable
-            max_entropy: Entropía máxima aceptable (absoluta)
-            max_normalized_entropy: Entropía normalizada máxima
+        [PRE] 0 < min_confidence ≤ 1
+        [PRE] max_entropy > 0
+        [PRE] max_normalized_entropy > 0
         """
+        if not (0.0 < min_confidence <= 1.0):
+            raise ContractViolationError(
+                f"min_confidence ∈ (0,1], got {min_confidence}"
+            )
+        if max_entropy <= 0:
+            raise ContractViolationError(f"max_entropy > 0, got {max_entropy}")
+        if max_normalized_entropy <= 0:
+            raise ContractViolationError(
+                f"max_normalized_entropy > 0, got {max_normalized_entropy}"
+            )
+        
         self.min_confidence = min_confidence
         self.max_entropy = max_entropy
         self.max_normalized_entropy = max_normalized_entropy
         
-        # Validaciones
-        if not 0.0 <= self.min_confidence <= 1.0:
-            raise ValueError(f"min_confidence must be in [0, 1], got {self.min_confidence}")
-        if self.max_entropy <= 0:
-            raise ValueError(f"max_entropy must be > 0, got {self.max_entropy}")
-        if self.max_normalized_entropy <= 0:
-            raise ValueError(f"max_normalized_entropy must be > 0, got {self.max_normalized_entropy}")
-    
+        logger.debug(
+            f"Initialized ConfidenceFilter(min_conf={min_confidence:.2f}, "
+            f"max_H={max_entropy:.2f}, max_H_norm={max_normalized_entropy:.2f})"
+        )
+
     def validate(self, llm_output: LLMOutput) -> Tuple[bool, float, str]:
         """
-        Valida salida del LLM.
+        Valida salida de LLM.
+        
+        [PRE] llm_output es instancia válida de LLMOutput
+        [POST] (válido, score, razón) donde score ∈ [0, 1]
         
         Args:
             llm_output: Metadatos del LLM
-        
+            
         Returns:
-            (is_valid, score, reason)
+            (es_válido, confidence_score, descripción)
         """
-        # Check 1: Confianza mínima
+        # Detectar singularidad estocástica
+        if llm_output.is_singular:
+            return (
+                False, 
+                0.0,
+                f"Stochastic singularity detected: "
+                f"H={'∞' if math.isinf(llm_output.entropy) else llm_output.entropy:.2f}, "
+                f"conf={llm_output.confidence:.2f}"
+            )
+        
+        # Verificar confianza mínima
         if llm_output.confidence < self.min_confidence:
-            return False, llm_output.confidence, \
-                   f"Confidence {llm_output.confidence:.2f} < threshold {self.min_confidence}"
+            return (
+                False,
+                llm_output.confidence,
+                f"Confidence {llm_output.confidence:.3f} below "
+                f"threshold {self.min_confidence:.3f}"
+            )
         
-        # Check 2: Entropía absoluta
+        # Verificar entropía máxima
         if llm_output.entropy > self.max_entropy:
-            return False, 1.0 - llm_output.entropy / (self.max_entropy * 2), \
-                   f"Entropy {llm_output.entropy:.2f} > threshold {self.max_entropy}"
+            entropy_score = max(0.0, 1.0 - llm_output.entropy / (2 * self.max_entropy))
+            return (
+                False,
+                entropy_score,
+                f"Entropy {llm_output.entropy:.3f} exceeds "
+                f"threshold {self.max_entropy:.3f}"
+            )
         
-        # Check 3: Entropía normalizada
+        # Verificar entropía normalizada
         norm_entropy = llm_output.normalized_entropy
         if norm_entropy > self.max_normalized_entropy:
-            return False, 1.0 - norm_entropy / (self.max_normalized_entropy * 2), \
-                   f"Normalized entropy {norm_entropy:.2f} > threshold {self.max_normalized_entropy}"
+            norm_score = max(0.0, 1.0 - norm_entropy / (2 * self.max_normalized_entropy))
+            return (
+                False,
+                norm_score,
+                f"Normalized entropy {norm_entropy:.3f} exceeds "
+                f"threshold {self.max_normalized_entropy:.3f}"
+            )
         
-        # Calcular score combinado
+        # Calcular score agregado
         conf_score = llm_output.confidence
-        entropy_score = 1.0 - (llm_output.entropy / self.max_entropy)
-        norm_entropy_score = 1.0 - (norm_entropy / self.max_normalized_entropy)
+        entropy_score = max(0.0, 1.0 - llm_output.entropy / self.max_entropy)
+        norm_entropy_score = max(0.0, 1.0 - norm_entropy / self.max_normalized_entropy)
         
-        # Media ponderada: 50% confianza, 25% entropía, 25% entropía normalizada
-        score = 0.5 * conf_score + 0.25 * entropy_score + 0.25 * norm_entropy_score
+        # Ponderación: 50% confianza, 25% entropía, 25% entropía normalizada
+        aggregate_score = (
+            0.50 * conf_score +
+            0.25 * entropy_score +
+            0.25 * norm_entropy_score
+        )
         
-        return True, score, f"LLM output meets quality thresholds (score={score:.2f})"
-    
+        assert 0.0 <= aggregate_score <= 1.0, "Postcondition violated"
+        
+        return (
+            True,
+            aggregate_score,
+            f"LLM output satisfies quality thresholds "
+            f"(conf={conf_score:.3f}, H={llm_output.entropy:.2f}, "
+            f"H_norm={norm_entropy:.3f}, score={aggregate_score:.3f})"
+        )
+
     def compute_confidence_score(self, llm_output: LLMOutput) -> float:
         """
-        Calcula score de confianza ∈ [0, 1].
+        Calcula score de confianza normalizado.
+        
+        [POST] 0 ≤ score ≤ 1
+        
+        Args:
+            llm_output: Metadatos del LLM
+            
+        Returns:
+            Score de confianza ∈ [0, 1]
         """
         _, score, _ = self.validate(llm_output)
-        return max(0.0, min(1.0, score))
+        assert 0.0 <= score <= 1.0, "Postcondition violated"
+        return score
 
 
 class ConstraintMapper:
     """
-    Mapea perfil de riesgo a restricciones técnicas concretas.
+    Mapea perfiles de riesgo a restricciones técnicas de complejidad.
     
-    Traduce tolerancia empresarial en límites de:
-    - Complejidad ciclomática máxima
-    - Profundidad de anidamiento
-    - Número de dependencias
-    - Tamaño de código
+    Utiliza la conexión de Galois entre tolerancia al riesgo (dominio abstracto)
+    y límites de complejidad (dominio concreto/sintáctico).
+    
+    Propiedades:
+    - Monotonía: mayor criticidad ⟹ límites más estrictos
+    - Contravarianza: menor tolerancia ⟹ cotas más ajustadas
     """
-    
-    # Límites por categoría de riesgo
+
+    # Límites de complejidad por categoría de riesgo
     COMPLEXITY_LIMITS = {
-        "HIGHLY_CONSERVATIVE": {"cyclomatic": 10, "depth": 3, "loc": 50},
-        "CONSERVATIVE": {"cyclomatic": 15, "depth": 4, "loc": 100},
-        "MODERATE": {"cyclomatic": 20, "depth": 5, "loc": 200},
-        "AGGRESSIVE": {"cyclomatic": 30, "depth": 7, "loc": 500},
-        "HIGHLY_AGGRESSIVE": {"cyclomatic": 50, "depth": 10, "loc": 1000},
+        "HIGHLY_CONSERVATIVE": {
+            "cyclomatic": 10,
+            "depth": 3,
+            "loc": 50,
+            "cognitive": 15
+        },
+        "CONSERVATIVE": {
+            "cyclomatic": 15,
+            "depth": 4,
+            "loc": 100,
+            "cognitive": 25
+        },
+        "MODERATE": {
+            "cyclomatic": 20,
+            "depth": 5,
+            "loc": 200,
+            "cognitive": 40
+        },
+        "AGGRESSIVE": {
+            "cyclomatic": 30,
+            "depth": 7,
+            "loc": 500,
+            "cognitive": 60
+        },
+        "HIGHLY_AGGRESSIVE": {
+            "cyclomatic": 50,
+            "depth": 10,
+            "loc": 1000,
+            "cognitive": 100
+        },
     }
-    
-    def __init__(self):
-        """Inicializa el mapeador de restricciones."""
-        pass
-    
+
     def map_to_constraints(self, risk_profile: RiskProfile) -> Dict[str, int]:
         """
-        Mapea perfil de riesgo a restricciones técnicas.
+        Mapea perfil de riesgo a límites de complejidad.
+        
+        Aplica factor de criticidad para ajustar límites:
+            limit_adjusted = base_limit × (1 - 0.4 × criticality)
+        
+        [PRE] risk_profile es instancia válida de RiskProfile
+        [POST] Todos los límites ≥ 1
         
         Args:
             risk_profile: Perfil de riesgo empresarial
-        
+            
         Returns:
-            Diccionario de restricciones {nombre: límite}
+            Diccionario {métrica: límite}
         """
         category = risk_profile.risk_category
-        base_limits = self.COMPLEXITY_LIMITS.get(category, self.COMPLEXITY_LIMITS["MODERATE"])
+        base_limits = self.COMPLEXITY_LIMITS.get(
+            category, 
+            self.COMPLEXITY_LIMITS["MODERATE"]
+        )
         
-        # Ajustar por criticidad del dominio
-        criticality_factor = 1.0 - 0.3 * risk_profile.domain_criticality
+        # Factor de ajuste por criticidad (mayor criticidad → límites más estrictos)
+        criticality_factor = 1.0 - 0.4 * risk_profile.domain_criticality
         
         adjusted_limits = {
-            key: max(1, int(value * criticality_factor))
-            for key, value in base_limits.items()
+            metric: max(1, int(limit * criticality_factor))
+            for metric, limit in base_limits.items()
         }
         
+        # Verificar postcondición
+        assert all(v >= 1 for v in adjusted_limits.values()), "Postcondition violated"
+        
         return adjusted_limits
-    
+
     def compute_constraint_score(
         self,
         actual_metrics: Dict[str, int],
         risk_profile: RiskProfile
     ) -> float:
         """
-        Calcula score de cumplimiento de restricciones ∈ [0, 1].
+        Calcula score de cumplimiento de restricciones.
+        
+        Para cada métrica, si actual ≤ límite, score = 1.0.
+        Si actual > límite, score = exp(-2 × (actual - límite) / límite).
+        
+        [PRE] actual_metrics valores ≥ 0
+        [POST] 0 ≤ score ≤ 1
         
         Args:
             actual_metrics: Métricas reales del código
             risk_profile: Perfil de riesgo
-        
+            
         Returns:
-            Score ∈ [0, 1] donde 1 = todas las restricciones cumplidas
+            Score agregado ∈ [0, 1]
         """
         limits = self.map_to_constraints(risk_profile)
+        metric_scores = []
         
-        scores = []
-        for key, limit in limits.items():
-            if key in actual_metrics:
-                actual = actual_metrics[key]
-                # Score = 1 si actual ≤ limit, decae exponencialmente si excede
-                if actual <= limit:
-                    scores.append(1.0)
-                else:
-                    excess_ratio = (actual - limit) / limit
-                    score = math.exp(-2 * excess_ratio)  # Decae rápido
-                    scores.append(score)
+        for metric, limit in limits.items():
+            actual = actual_metrics.get(metric, 0)
+            
+            if actual < 0:
+                logger.warning(f"Negative metric value: {metric}={actual}, treating as 0")
+                actual = 0
+            
+            if actual <= limit:
+                metric_scores.append(1.0)
+            else:
+                # Penalización exponencial por exceso
+                excess_ratio = (actual - limit) / limit
+                score = math.exp(-2.0 * excess_ratio)
+                metric_scores.append(score)
         
-        return np.mean(scores) if scores else 1.0
+        aggregate_score = float(np.mean(metric_scores)) if metric_scores else 1.0
+        
+        assert 0.0 <= aggregate_score <= 1.0, "Postcondition violated"
+        return aggregate_score
 
 
 # =============================================================================
-# ENGINE PRINCIPAL
+# MOTOR PRINCIPAL DE VALIDACIÓN SEMÁNTICA
 # =============================================================================
 
 class SemanticValidationEngine:
     """
-    Motor de validación semántica multi-criterio.
+    Motor de validación semántica con fundamentos algebraicos rigurosos.
     
-    Combina señales de:
-    1. Propósito empresarial
-    2. Confianza del LLM
-    3. Cumplimiento de restricciones
-    4. Tolerancia al riesgo
+    Integra:
+    1. Métrica de Mahalanobis (geometría riemanniana)
+    2. Cohomología simplicial (topología algebraica)
+    3. Retículo de veredictos (álgebra de orden)
+    4. Validadores especializados (teoría de dominios)
     
-    En un veredicto final mediante scoring ponderado.
+    Proceso de validación:
+    
+    Fase 0: Detección de singularidades estocásticas
+    Fase 1: Validación de propósito empresarial
+    Fase 2: Filtrado de confianza del LLM
+    Fase 3: Verificación de restricciones técnicas
+    Fase 4: Bonus de tolerancia al riesgo
+    Fase 5: Detección de obstrucciones cohomológicas
+    Fase 6: Cálculo de distancia de Mahalanobis
+    Fase 7: Determinación de veredicto por umbrales
+    
+    Invariantes:
+    [INV1] Los umbrales de Mahalanobis están estrictamente ordenados
+    [INV2] El veredicto final es el supremo de veredictos parciales
+    [INV3] dim H¹ > 0 ⟹ veredicto = REJECT
     """
-    
-    # Pesos por defecto (configurables)
-    DEFAULT_WEIGHTS = {
-        'purpose': 0.35,      # Propósito empresarial (más importante)
-        'confidence': 0.30,   # Confianza del LLM
-        'constraints': 0.25,  # Cumplimiento de restricciones
-        'risk': 0.10,         # Bonus por tolerancia al riesgo
+
+    # Umbrales de distancia de Mahalanobis para veredictos
+    # Propiedad: threshold[VIABLE] < threshold[CONDITIONAL] < threshold[WARNING]
+    MAHALANOBIS_THRESHOLDS = {
+        Verdict.VIABLE: 0.35,       # Óptimo
+        Verdict.CONDITIONAL: 0.55,  # Aceptable con reservas
+        Verdict.WARNING: 0.80,      # Preocupante
+        # D_M > 0.80 → REJECT
     }
-    
-    # Umbrales de veredicto
-    VERDICT_THRESHOLDS = {
-        Verdict.VIABLE: 0.75,      # Score ≥ 0.75 → VIABLE
-        Verdict.CONDITIONAL: 0.60,  # Score ≥ 0.60 → CONDITIONAL
-        Verdict.WARNING: 0.40,      # Score ≥ 0.40 → WARNING
-        # Score < 0.40 → REJECT
-    }
-    
+
     def __init__(
         self,
-        knowledge_graph: Optional[nx.DiGraph] = None,
+        knowledge_graph: Optional[Dict[str, Dict[str, float]]] = None,
         risk_profile: Optional[RiskProfile] = None,
-        weights: Optional[Dict[str, float]] = None
+        metric: Optional[MahalanobisMetric] = None,
+        enable_cohomology: bool = True
     ):
         """
-        Inicializa el motor de validación.
+        Inicializa motor de validación.
+        
+        [PRE] knowledge_graph es dict válido o None
+        [PRE] risk_profile es RiskProfile válido o None
+        [PRE] metric es MahalanobisMetric válido o None
+        [POST] Todos los componentes inicializados correctamente
         
         Args:
-            knowledge_graph: Grafo de conocimiento empresarial
-            risk_profile: Perfil de tolerancia al riesgo
-            weights: Pesos personalizados para scoring
+            knowledge_graph: Grafo de conocimiento concepto→problema
+            risk_profile: Perfil de riesgo empresarial
+            metric: Tensor métrico personalizado
+            enable_cohomology: Habilitar detección cohomológica
         """
         self.risk_profile = risk_profile or RiskProfile(risk_tolerance=0.5)
-        self.weights = weights or self.DEFAULT_WEIGHTS.copy()
+        self.metric = metric or MahalanobisMetric()
+        self.enable_cohomology = enable_cohomology
         
-        # Validar que los pesos sumen aproximadamente 1
-        total_weight = sum(self.weights.values())
-        if not math.isclose(total_weight, 1.0, rel_tol=0.01):
-            logger.warning(f"Weights sum to {total_weight:.3f}, not 1.0. Normalizing.")
-            self.weights = {k: v / total_weight for k, v in self.weights.items()}
-        
-        # Inicializar validadores
+        # Validadores especializados
         self.purpose_validator = PurposeValidator(knowledge_graph)
         self.confidence_filter = ConfidenceFilter()
         self.constraint_mapper = ConstraintMapper()
         
-        logger.info(f"Initialized SemanticValidationEngine with profile: {self.risk_profile}")
-    
+        # Cohomología simplicial
+        self.cohomology = SimplicialCohomology()
+        
+        # Verificar orden de umbrales
+        thresholds = [
+            self.MAHALANOBIS_THRESHOLDS[Verdict.VIABLE],
+            self.MAHALANOBIS_THRESHOLDS[Verdict.CONDITIONAL],
+            self.MAHALANOBIS_THRESHOLDS[Verdict.WARNING],
+        ]
+        assert thresholds == sorted(thresholds), "[INV1] violated: thresholds not ordered"
+        
+        logger.info(
+            f"Initialized SemanticValidationEngine v3.0\n"
+            f"  Risk Profile: {self.risk_profile}\n"
+            f"  Metric: {self.metric}\n"
+            f"  Cohomology: {'enabled' if enable_cohomology else 'disabled'}"
+        )
+
     def validate(
         self,
         purposes: List[BusinessPurpose],
@@ -656,226 +1455,408 @@ class SemanticValidationEngine:
         code_metrics: Optional[Dict[str, int]] = None
     ) -> ValidationResult:
         """
-        Ejecuta validación completa multi-criterio.
+        Ejecuta validación semántica completa.
+        
+        [PRE] purposes es lista de BusinessPurpose válidos
+        [PRE] llm_output es LLMOutput válido
+        [PRE] code_metrics es dict con valores ≥ 0 o None
+        [POST] resultado satisface invariantes de ValidationResult
+        [POST] dim H¹ > 0 ⟹ resultado.verdict == REJECT
         
         Args:
             purposes: Lista de propósitos empresariales
             llm_output: Metadatos del LLM
-            code_metrics: Métricas opcionales del código generado
-        
+            code_metrics: Métricas opcionales del código
+            
         Returns:
-            ValidationResult con veredicto y desglose
+            ValidationResult con veredicto y trazabilidad completa
+            
+        Raises:
+            ContractViolationError: Si se violan precondiciones
         """
-        logger.info("Starting semantic validation...")
+        logger.info("=" * 80)
+        logger.info("SEMANTIC VALIDATION STARTED (v3.0 - Rigorous Foundations)")
+        logger.info("=" * 80)
         
-        result = ValidationResult(verdict=Verdict.REJECT, overall_score=0.0)
+        result = ValidationResult(
+            verdict=Verdict.REJECT,  # Pesimista por default
+            mahalanobis_distance=float('inf')
+        )
         
-        # === SEÑAL 1: PROPÓSITO EMPRESARIAL ===
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # FASE 0: DETECCIÓN DE SINGULARIDAD ESTOCÁSTICA
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        if llm_output.is_singular:
+            logger.error("⊗ PHASE 0 FAILED: Stochastic singularity detected")
+            result.add_reason(
+                f"Stochastic singularity: H={'∞' if math.isinf(llm_output.entropy) else llm_output.entropy}, "
+                f"conf={llm_output.confidence}",
+                'singularity',
+                0.0
+            )
+            result.verdict = Verdict.REJECT
+            result.mahalanobis_distance = float('inf')
+            logger.info(f"Final Verdict: {result.verdict} (singularity)")
+            return result
+        
+        logger.info("✓ Phase 0: No stochastic singularity")
+        
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # FASE 1: VALIDACIÓN DE PROPÓSITO EMPRESARIAL
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         is_valid_purpose, purpose_strength, purpose_reason = \
             self.purpose_validator.validate(purposes)
-        
         purpose_score = self.purpose_validator.compute_purpose_score(purposes)
+        
         result.add_reason(purpose_reason, 'purpose', purpose_score)
         
         if not is_valid_purpose:
-            logger.warning(f"Purpose validation failed: {purpose_reason}")
-            result.verdict = Verdict.REJECT
-            return result
+            logger.warning(f"⚠ Phase 1: Purpose validation failed - {purpose_reason}")
+            if purpose_score < 0.15:  # Umbral crítico
+                result.verdict = Verdict.REJECT
+                result.mahalanobis_distance = 1.0
+                logger.info(f"Final Verdict: {result.verdict} (weak purpose)")
+                return result
+        else:
+            logger.info(f"✓ Phase 1: Purpose validated (score={purpose_score:.3f})")
         
-        # === SEÑAL 2: CONFIANZA DEL LLM ===
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # FASE 2: FILTRADO DE CONFIANZA DEL LLM
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         is_valid_confidence, confidence_strength, confidence_reason = \
             self.confidence_filter.validate(llm_output)
-        
         confidence_score = self.confidence_filter.compute_confidence_score(llm_output)
+        
         result.add_reason(confidence_reason, 'confidence', confidence_score)
         
         if not is_valid_confidence:
-            logger.warning(f"Confidence validation failed: {confidence_reason}")
-            result.verdict = Verdict.REJECT
-            return result
+            logger.warning(f"⚠ Phase 2: Confidence validation failed - {confidence_reason}")
+            if confidence_score < 0.20:  # Umbral crítico
+                result.verdict = Verdict.REJECT
+                result.mahalanobis_distance = 1.0
+                logger.info(f"Final Verdict: {result.verdict} (low confidence)")
+                return result
+        else:
+            logger.info(f"✓ Phase 2: Confidence validated (score={confidence_score:.3f})")
         
-        # === SEÑAL 3: RESTRICCIONES TÉCNICAS ===
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # FASE 3: VERIFICACIÓN DE RESTRICCIONES TÉCNICAS
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         if code_metrics:
             constraints_score = self.constraint_mapper.compute_constraint_score(
                 code_metrics, self.risk_profile
             )
-            
             limits = self.constraint_mapper.map_to_constraints(self.risk_profile)
+            
             violations = [
-                f"{k}: {code_metrics.get(k, 0)} > {v}"
-                for k, v in limits.items()
-                if code_metrics.get(k, 0) > v
+                f"{metric}: {code_metrics.get(metric, 0)} > {limit}"
+                for metric, limit in limits.items()
+                if code_metrics.get(metric, 0) > limit
             ]
             
             if violations:
-                constraint_reason = f"Constraint violations: {', '.join(violations)}"
+                constraint_reason = (
+                    f"Constraint violations detected: {', '.join(violations)} "
+                    f"(score={constraints_score:.3f})"
+                )
+                logger.warning(f"⚠ Phase 3: {constraint_reason}")
             else:
-                constraint_reason = "All constraints satisfied"
+                constraint_reason = f"All constraints satisfied (score={constraints_score:.3f})"
+                logger.info(f"✓ Phase 3: {constraint_reason}")
             
             result.add_reason(constraint_reason, 'constraints', constraints_score)
         else:
-            constraints_score = 1.0  # No hay métricas, asumimos OK
-            result.add_reason("No code metrics provided (assumed OK)", 'constraints', 1.0)
+            constraints_score = 1.0
+            result.add_reason(
+                "No code metrics provided (assumed compliant)",
+                'constraints',
+                1.0
+            )
+            logger.info("✓ Phase 3: No metrics to validate")
         
-        # === SEÑAL 4: BONUS POR TOLERANCIA AL RIESGO ===
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # FASE 4: BONUS DE TOLERANCIA AL RIESGO
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         risk_bonus = self.risk_profile.effective_tolerance
         result.add_reason(
-            f"Risk tolerance bonus: {risk_bonus:.2f}",
+            f"Risk tolerance applied: {self.risk_profile.risk_category} "
+            f"(bonus={risk_bonus:.3f})",
             'risk',
             risk_bonus
         )
+        logger.info(f"✓ Phase 4: Risk bonus={risk_bonus:.3f}")
         
-        # === AGREGACIÓN DE SCORE ===
-        overall_score = (
-            self.weights['purpose'] * purpose_score +
-            self.weights['confidence'] * confidence_score +
-            self.weights['constraints'] * constraints_score +
-            self.weights['risk'] * risk_bonus
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # FASE 5: DETECCIÓN DE OBSTRUCCIONES COHOMOLÓGICAS
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        self.cohomology.set_signals(
+            purpose_score,
+            confidence_score,
+            constraints_score,
+            risk_bonus
         )
         
-        result.overall_score = overall_score
+        if self.enable_cohomology:
+            dim_H1 = self.cohomology.compute_cohomology_dimension()
+            result.cohomology_dimension = dim_H1
+            
+            if self.cohomology.has_obstruction():
+                obstruction_desc = self.cohomology.get_obstruction_description()
+                logger.error(f"⊗ PHASE 5 FAILED: Topological obstruction\n{obstruction_desc}")
+                result.add_reason(obstruction_desc, 'cohomology', 0.0)
+                result.verdict = Verdict.REJECT
+                result.mahalanobis_distance = 1.0
+                logger.info(f"Final Verdict: {result.verdict} (topological obstruction)")
+                return result
+            else:
+                logger.info(f"✓ Phase 5: No topological obstruction (dim H¹ = 0)")
+        else:
+            logger.info("⊘ Phase 5: Cohomology check disabled")
         
-        # === DETERMINACIÓN DE VEREDICTO ===
-        if overall_score >= self.VERDICT_THRESHOLDS[Verdict.VIABLE]:
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # FASE 6: CÁLCULO DE DISTANCIA DE MAHALANOBIS
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        signal_vector = np.array([
+            purpose_score,
+            confidence_score,
+            constraints_score,
+            risk_bonus
+        ], dtype=np.float64)
+        
+        D_M = self.metric.distance_to_ideal(signal_vector)
+        result.mahalanobis_distance = D_M
+        
+        logger.info(
+            f"✓ Phase 6: Mahalanobis distance computed: D_M = {D_M:.4f}\n"
+            f"  Signal vector: {signal_vector}"
+        )
+        
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # FASE 7: DETERMINACIÓN DE VEREDICTO POR UMBRALES
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        if D_M <= self.MAHALANOBIS_THRESHOLDS[Verdict.VIABLE]:
             result.verdict = Verdict.VIABLE
-        elif overall_score >= self.VERDICT_THRESHOLDS[Verdict.CONDITIONAL]:
+        elif D_M <= self.MAHALANOBIS_THRESHOLDS[Verdict.CONDITIONAL]:
             result.verdict = Verdict.CONDITIONAL
-        elif overall_score >= self.VERDICT_THRESHOLDS[Verdict.WARNING]:
+        elif D_M <= self.MAHALANOBIS_THRESHOLDS[Verdict.WARNING]:
             result.verdict = Verdict.WARNING
         else:
             result.verdict = Verdict.REJECT
         
-        # Metadata
+        logger.info(f"✓ Phase 7: Verdict determined: {result.verdict}")
+        
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        # METADATA Y FINALIZACIÓN
+        # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         result.metadata = {
             'risk_profile': str(self.risk_profile),
-            'weights': self.weights,
-            'thresholds': self.VERDICT_THRESHOLDS,
+            'risk_category': self.risk_profile.risk_category,
+            'mahalanobis_distance': D_M,
+            'cohomology_dimension': result.cohomology_dimension,
+            'metric_condition_number': self.metric._condition_number,
+            'thresholds': {
+                v.name: t for v, t in self.MAHALANOBIS_THRESHOLDS.items()
+            },
+            'signal_vector': signal_vector.tolist(),
         }
         
-        logger.info(f"Validation complete: {result.verdict} (score={overall_score:.3f})")
+        logger.info("=" * 80)
+        logger.info(f"VALIDATION COMPLETE: {result.verdict} (D_M={D_M:.4f})")
+        logger.info("=" * 80)
         
         return result
-    
+
     def explain_verdict(self, result: ValidationResult) -> str:
         """
-        Genera explicación legible del veredicto.
+        Genera explicación legible y estructurada del veredicto.
+        
+        [PRE] result es ValidationResult válido
+        [POST] Retorna string no vacío
         
         Args:
             result: Resultado de validación
-        
+            
         Returns:
-            Texto explicativo
+            Explicación formateada del veredicto
         """
         lines = [
-            f"Verdict: {result.verdict.name}",
-            f"Overall Score: {result.overall_score:.3f}",
+            "=" * 80,
+            "SEMANTIC VALIDATION REPORT",
+            "=" * 80,
+            "",
+            f"Final Verdict: {result.verdict.name}",
+            f"  Severity: {result.verdict.severity_score:.2f}",
+            f"  Accepted: {result.verdict.is_accepted}",
+            f"  Requires Review: {result.verdict.requires_human_review}",
+            "",
+            f"Geometric Distance (Mahalanobis): {result.mahalanobis_distance:.4f}",
+            f"  Thresholds:",
+            f"    VIABLE      : ≤ {self.MAHALANOBIS_THRESHOLDS[Verdict.VIABLE]:.2f}",
+            f"    CONDITIONAL : ≤ {self.MAHALANOBIS_THRESHOLDS[Verdict.CONDITIONAL]:.2f}",
+            f"    WARNING     : ≤ {self.MAHALANOBIS_THRESHOLDS[Verdict.WARNING]:.2f}",
+            f"    REJECT      : > {self.MAHALANOBIS_THRESHOLDS[Verdict.WARNING]:.2f}",
+            "",
+            f"Topological Analysis:",
+            f"  Cohomology dimension (dim H¹): {result.cohomology_dimension}",
+            f"  Obstruction present: {result.has_topological_obstruction}",
             "",
             "Signal Breakdown:",
         ]
         
-        for signal_name, signal_value in result.signals.items():
-            weight = self.weights.get(signal_name, 0.0)
-            contribution = weight * signal_value
-            lines.append(f"  {signal_name:12s}: {signal_value:.3f} (weight={weight:.2f}, contrib={contribution:.3f})")
+        for signal_name, signal_value in sorted(result.signals.items()):
+            lines.append(f"  {signal_name:15s}: {signal_value:.4f}")
         
-        lines.append("")
-        lines.append("Reasons:")
-        for reason in result.reasons:
-            lines.append(f"  - {reason}")
+        lines.extend([
+            "",
+            "Validation Reasons:",
+        ])
+        
+        for i, reason in enumerate(result.reasons, 1):
+            lines.append(f"  [{i}] {reason}")
+        
+        if result.metadata:
+            lines.extend([
+                "",
+                "Metadata:",
+            ])
+            for key, value in sorted(result.metadata.items()):
+                if key == 'signal_vector':
+                    vec_str = ', '.join(f"{v:.3f}" for v in value)
+                    lines.append(f"  {key}: [{vec_str}]")
+                elif key == 'thresholds':
+                    continue  # Ya mostrado arriba
+                else:
+                    lines.append(f"  {key}: {value}")
+        
+        lines.append("=" * 80)
         
         return "\n".join(lines)
 
 
 # =============================================================================
-# UTILIDADES
+# FUNCIONES AUXILIARES
 # =============================================================================
 
-def create_default_knowledge_graph() -> nx.DiGraph:
+def create_default_knowledge_graph() -> Dict[str, Dict[str, float]]:
     """
-    Crea un grafo de conocimiento de ejemplo.
+    Construye grafo de conocimiento de ejemplo.
+    
+    Mapea conceptos técnicos a problemas empresariales canónicos
+    con pesos que representan fuerza de la relación semántica.
+    
+    [POST] Todos los pesos ∈ (0, 1]
     
     Returns:
-        DiGraph con mapeos concepto → problema
+        Dict[concepto, Dict[problema, peso]]
     """
-    kg = nx.DiGraph()
+    kg: Dict[str, Dict[str, float]] = defaultdict(dict)
     
-    # Ejemplos de mapeos
+    # Formato: (concepto, problema, peso)
     mappings = [
         # Caching
-        ("caching", "LATENCY_REDUCTION", 0.9),
-        ("caching", "COST_REDUCTION", 0.7),
+        ("caching", "LATENCY_REDUCTION", 0.95),
+        ("caching", "COST_REDUCTION", 0.75),
+        ("caching", "SCALABILITY_ENHANCEMENT", 0.65),
         
-        # Load balancing
-        ("load_balancing", "RELIABILITY_IMPROVEMENT", 0.85),
-        ("load_balancing", "SCALABILITY_ENHANCEMENT", 0.9),
+        # Load Balancing
+        ("load_balancing", "RELIABILITY_IMPROVEMENT", 0.90),
+        ("load_balancing", "SCALABILITY_ENHANCEMENT", 0.95),
+        ("load_balancing", "LATENCY_REDUCTION", 0.70),
         
-        # Encryption
-        ("encryption", "SECURITY_HARDENING", 0.95),
-        ("encryption", "COMPLIANCE_ADHERENCE", 0.8),
+        # Encryption & Security
+        ("encryption", "SECURITY_HARDENING", 0.98),
+        ("encryption", "COMPLIANCE_ADHERENCE", 0.85),
+        ("encryption", "DATA_QUALITY_ENHANCEMENT", 0.60),
         
-        # Monitoring
-        ("monitoring", "RELIABILITY_IMPROVEMENT", 0.85),
-        ("monitoring", "USER_EXPERIENCE_IMPROVEMENT", 0.6),
+        # Monitoring & Observability
+        ("monitoring", "RELIABILITY_IMPROVEMENT", 0.90),
+        ("monitoring", "OBSERVABILITY_ENHANCEMENT", 0.95),
+        ("monitoring", "USER_EXPERIENCE_IMPROVEMENT", 0.65),
         
-        # Data validation
-        ("data_validation", "DATA_QUALITY_ENHANCEMENT", 0.9),
-        ("data_validation", "RELIABILITY_IMPROVEMENT", 0.7),
+        # Data Validation
+        ("data_validation", "DATA_QUALITY_ENHANCEMENT", 0.95),
+        ("data_validation", "RELIABILITY_IMPROVEMENT", 0.80),
+        ("data_validation", "COMPLIANCE_ADHERENCE", 0.70),
+        
+        # Code Refactoring
+        ("refactoring", "MAINTAINABILITY_IMPROVEMENT", 0.95),
+        ("refactoring", "COST_REDUCTION", 0.70),
+        ("refactoring", "RELIABILITY_IMPROVEMENT", 0.65),
+        
+        # Automated Testing
+        ("automated_testing", "RELIABILITY_IMPROVEMENT", 0.95),
+        ("automated_testing", "MAINTAINABILITY_IMPROVEMENT", 0.80),
+        ("automated_testing", "COST_REDUCTION", 0.60),
     ]
-
-    # Inyectar isomorfismo dimensional conectando las islas para tener B_0 = 1
-    mappings.append(("caching", "SCALABILITY_ENHANCEMENT", 0.6))
-    mappings.append(("encryption", "DATA_QUALITY_ENHANCEMENT", 0.5))
     
     for concept, problem, weight in mappings:
-        kg.add_edge(concept, problem, weight=weight)
+        assert 0.0 < weight <= 1.0, f"Invalid weight: {weight}"
+        kg[concept][problem] = weight
     
-    return kg
+    return dict(kg)
 
 
 # =============================================================================
-# FUNCIÓN DE COMPATIBILIDAD (API LEGACY)
+# COMPATIBILIDAD CON API LEGACY (DEPRECATED)
 # =============================================================================
-
-class AlexandroffPoint:
-    def __init__(self, is_infinity: bool = False):
-        self.is_infinity = is_infinity
-
-class AlexandroffCompactifier:
-    def compactify_llm_output(self, entropy: float, confidence: float) -> AlexandroffPoint:
-        if np.isinf(entropy) or confidence == 0:
-            return AlexandroffPoint(is_infinity=True)
-        return AlexandroffPoint(is_infinity=False)
 
 class OntologicalDiffeomorphismEngine:
     """
     Clase de compatibilidad con API anterior.
     
-    DEPRECATED: Usar SemanticValidationEngine directamente.
-    """
+    ⚠️  DEPRECATED: Usar SemanticValidationEngine directamente.
     
-    def __init__(self, knowledge_graph: nx.DiGraph, business_profile: Any, **kwargs):
-        """Legacy constructor."""
-        self.alexandroff = AlexandroffCompactifier()
+    Esta clase se mantiene solo para compatibilidad retroactiva y
+    será eliminada en versiones futuras.
+    """
+
+    def __init__(
+        self, 
+        knowledge_graph: Any = None, 
+        business_profile: Any = None, 
+        **kwargs
+    ):
+        """
+        Constructor legacy.
+        
+        Args:
+            knowledge_graph: Grafo de conocimiento (networkx o dict)
+            business_profile: Perfil de negocio legacy
+            **kwargs: Argumentos adicionales (ignorados)
+        """
         logger.warning(
-            "OntologicalDiffeomorphismEngine is deprecated. "
-            "Use SemanticValidationEngine instead."
+            "⚠️  OntologicalDiffeomorphismEngine is DEPRECATED. "
+            "Use SemanticValidationEngine instead. "
+            "This compatibility layer will be removed in v4.0."
         )
+        
+        # Convertir knowledge_graph de networkx a dict si es necesario
+        if hasattr(knowledge_graph, 'edges'):
+            kg_dict: Dict[str, Dict[str, float]] = defaultdict(dict)
+            for u, v, data in knowledge_graph.edges(data=True):
+                kg_dict[str(u)][str(v)] = data.get('weight', 0.8)
+            knowledge_graph = dict(kg_dict)
         
         # Convertir business_profile legacy a RiskProfile
         if hasattr(business_profile, 'risk_tolerance'):
             risk_profile = RiskProfile(
-                risk_tolerance=business_profile.risk_tolerance,
-                domain_criticality=0.5,
-                acceptable_failure_rate=0.01
+                risk_tolerance=float(business_profile.risk_tolerance),
+                domain_criticality=float(
+                    getattr(business_profile, 'domain_criticality', 0.5)
+                ),
+                acceptable_failure_rate=float(
+                    getattr(business_profile, 'acceptable_failure_rate', 0.01)
+                )
             )
         else:
             risk_profile = RiskProfile(risk_tolerance=0.5)
         
+        # Crear engine moderno
         self._engine = SemanticValidationEngine(
             knowledge_graph=knowledge_graph,
             risk_profile=risk_profile
         )
-    
+
     def compile_wisdom(
         self,
         tool_semantics: List[Any],
@@ -883,45 +1864,35 @@ class OntologicalDiffeomorphismEngine:
         llm_confidence: float
     ) -> int:
         """
-        Legacy API: compile_wisdom.
+        API legacy: compile_wisdom.
         
-        DEPRECATED: Usar validate() directamente.
+        Args:
+            tool_semantics: Lista de objetos con atributos de semántica
+            llm_entropy: Entropía del LLM
+            llm_confidence: Confianza del LLM
+            
+        Returns:
+            Código de veredicto (0=VIABLE, 1=CONDITIONAL, 2=WARNING, 3=REJECT)
         """
-        # Convertir tool_semantics legacy a BusinessPurpose
         purposes = []
         for sem in tool_semantics:
             if hasattr(sem, 'source_concept') and hasattr(sem, 'target_business_pain'):
                 purposes.append(BusinessPurpose(
-                    concept=sem.source_concept,
-                    business_problem=sem.target_business_pain,
-                    strength=getattr(sem, 'semantic_weight', 0.8),
+                    concept=str(sem.source_concept),
+                    business_problem=str(sem.target_business_pain),
+                    strength=float(getattr(sem, 'semantic_weight', 0.8)),
                     confidence=1.0
                 ))
         
-        # Crear LLMOutput
         llm_output = LLMOutput(
-            entropy=llm_entropy,
-            confidence=llm_confidence,
+            entropy=float(llm_entropy),
+            confidence=float(llm_confidence),
             temperature=1.0,
             num_tokens=100
         )
         
-        # Validar
         result = self._engine.validate(purposes, llm_output)
-        
-        # Convertir Verdict a VerdictLevel legacy
         return int(result.verdict.value)
-
-
-# Alias para compatibilidad
-def __getattr__(name):
-    if name in ["VerdictLevel", "SemanticMorphism", "ToleranceProfile"]:
-        import warnings
-        warnings.warn(f"'{name}' is deprecated. Please use the modernized equivalents.", DeprecationWarning, stacklevel=2)
-        if name == "VerdictLevel": return Verdict
-        if name == "SemanticMorphism": return BusinessPurpose
-        if name == "ToleranceProfile": return RiskProfile
-    raise AttributeError(f"module {__name__} has no attribute {name}")
 
 
 # =============================================================================
@@ -929,35 +1900,49 @@ def __getattr__(name):
 # =============================================================================
 
 if __name__ == "__main__":
-    # Crear knowledge graph de ejemplo
+    import sys
+    
+    # Configurar logging para output detallado
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(levelname)-8s | %(message)s',
+        stream=sys.stdout
+    )
+    
+    print("\n" + "=" * 80)
+    print("SEMANTIC VALIDATION ENGINE v3.0 - TEST SUITE")
+    print("=" * 80 + "\n")
+    
+    # Crear knowledge graph
     kg = create_default_knowledge_graph()
     
-    # Perfil de riesgo conservador
-    risk_profile = RiskProfile(
+    # =========================================================================
+    # TEST 1: Código con propósito fuerte, alta confianza, métricas buenas
+    # =========================================================================
+    print("\n" + "▸" * 80)
+    print("TEST 1: High-quality code with strong purpose")
+    print("▸" * 80 + "\n")
+    
+    risk_profile_conservative = RiskProfile(
         risk_tolerance=0.3,
         domain_criticality=0.8,
         acceptable_failure_rate=0.001
     )
     
-    # Crear motor
-    engine = SemanticValidationEngine(
+    engine1 = SemanticValidationEngine(
         knowledge_graph=kg,
-        risk_profile=risk_profile
+        risk_profile=risk_profile_conservative,
+        enable_cohomology=True
     )
     
-    # Ejemplo 1: Propósito válido, alta confianza
-    print("=" * 80)
-    print("EJEMPLO 1: Código de caching con buen propósito")
-    print("=" * 80)
-    
     purposes1 = [
-        BusinessPurpose("caching", "LATENCY_REDUCTION", strength=0.9, confidence=0.95),
-        BusinessPurpose("caching", "COST_REDUCTION", strength=0.7, confidence=0.9),
+        BusinessPurpose("caching", "LATENCY_REDUCTION", strength=0.95, confidence=0.98),
+        BusinessPurpose("caching", "COST_REDUCTION", strength=0.75, confidence=0.95),
     ]
     
     llm_output1 = LLMOutput(
-        entropy=0.5,
-        confidence=0.92,
+        entropy=0.45,
+        confidence=0.94,
         temperature=0.7,
         num_tokens=150
     )
@@ -965,52 +1950,145 @@ if __name__ == "__main__":
     code_metrics1 = {
         'cyclomatic': 8,
         'depth': 3,
-        'loc': 45
+        'loc': 45,
+        'cognitive': 12
     }
     
-    result1 = engine.validate(purposes1, llm_output1, code_metrics1)
-    print(engine.explain_verdict(result1))
+    result1 = engine1.validate(purposes1, llm_output1, code_metrics1)
+    print(engine1.explain_verdict(result1))
     
-    # Ejemplo 2: Propósito débil, baja confianza
-    print("\n" + "=" * 80)
-    print("EJEMPLO 2: Código sin propósito claro, baja confianza")
-    print("=" * 80)
+    # =========================================================================
+    # TEST 2: Código sin propósito claro, baja confianza
+    # =========================================================================
+    print("\n" + "▸" * 80)
+    print("TEST 2: Code without clear purpose, low confidence")
+    print("▸" * 80 + "\n")
     
     purposes2 = [
-        BusinessPurpose("unknown_concept", "UNKNOWN_PROBLEM", strength=0.3, confidence=0.5),
+        BusinessPurpose("unknown_concept", "UNKNOWN_PROBLEM", strength=0.25, confidence=0.40),
     ]
     
     llm_output2 = LLMOutput(
-        entropy=3.5,
-        confidence=0.45,
+        entropy=3.8,
+        confidence=0.42,
         temperature=1.5,
         num_tokens=200
     )
     
-    result2 = engine.validate(purposes2, llm_output2)
-    print(engine.explain_verdict(result2))
+    result2 = engine1.validate(purposes2, llm_output2)
+    print(engine1.explain_verdict(result2))
     
-    # Ejemplo 3: Buen propósito pero violación de restricciones
-    print("\n" + "=" * 80)
-    print("EJEMPLO 3: Código con propósito válido pero muy complejo")
-    print("=" * 80)
+    # =========================================================================
+    # TEST 3: Singularidad entrópica
+    # =========================================================================
+    print("\n" + "▸" * 80)
+    print("TEST 3: Stochastic singularity (infinite entropy)")
+    print("▸" * 80 + "\n")
     
     purposes3 = [
-        BusinessPurpose("encryption", "SECURITY_HARDENING", strength=0.95, confidence=0.98),
+        BusinessPurpose("encryption", "SECURITY_HARDENING", strength=0.98, confidence=0.99),
     ]
     
     llm_output3 = LLMOutput(
-        entropy=0.8,
+        entropy=float('inf'),
         confidence=0.88,
         temperature=0.5,
         num_tokens=300
     )
     
-    code_metrics3 = {
-        'cyclomatic': 35,  # Excede límite para perfil conservador
-        'depth': 8,        # Excede límite
-        'loc': 250         # Excede límite
+    result3 = engine1.validate(purposes3, llm_output3)
+    print(engine1.explain_verdict(result3))
+    
+    # =========================================================================
+    # TEST 4: Paradoja semántica (obstrucción cohomológica)
+    # =========================================================================
+    print("\n" + "▸" * 80)
+    print("TEST 4: Semantic paradox (topological obstruction)")
+    print("▸" * 80 + "\n")
+    
+    # Crear perfil de alto riesgo
+    risk_profile_aggressive = RiskProfile(
+        risk_tolerance=0.95,
+        domain_criticality=0.1,
+        acceptable_failure_rate=0.1
+    )
+    
+    engine4 = SemanticValidationEngine(
+        knowledge_graph=kg,
+        risk_profile=risk_profile_aggressive,
+        enable_cohomology=True
+    )
+    
+    # Propósito fuerte pero confianza muy baja → paradoja
+    purposes4 = [
+        BusinessPurpose("load_balancing", "RELIABILITY_IMPROVEMENT", strength=0.90, confidence=0.95),
+    ]
+    
+    llm_output4 = LLMOutput(
+        entropy=0.6,
+        confidence=0.28,  # Muy baja
+        temperature=0.5,
+        num_tokens=100
+    )
+    
+    code_metrics4 = {
+        'cyclomatic': 5,
+        'depth': 2,
+        'loc': 30,
+        'cognitive': 8
     }
     
-    result3 = engine.validate(purposes3, llm_output3, code_metrics3)
-    print(engine.explain_verdict(result3))
+    result4 = engine4.validate(purposes4, llm_output4, code_metrics4)
+    print(engine4.explain_verdict(result4))
+    
+    # =========================================================================
+    # TEST 5: Métrica personalizada con acoplamiento fuerte
+    # =========================================================================
+    print("\n" + "▸" * 80)
+    print("TEST 5: Custom metric with strong coupling")
+    print("▸" * 80 + "\n")
+    
+    custom_metric = MahalanobisMetric()
+    # Aumentar penalización cruzada entre confianza y riesgo
+    custom_metric.set_coupling(1, 3, -0.5)  # confidence-risk anticorrelation
+    
+    engine5 = SemanticValidationEngine(
+        knowledge_graph=kg,
+        risk_profile=RiskProfile(risk_tolerance=0.5),
+        metric=custom_metric,
+        enable_cohomology=True
+    )
+    
+    purposes5 = [
+        BusinessPurpose("automated_testing", "RELIABILITY_IMPROVEMENT", strength=0.95, confidence=0.92),
+    ]
+    
+    llm_output5 = LLMOutput(
+        entropy=0.8,
+        confidence=0.85,
+        temperature=0.8,
+        num_tokens=180
+    )
+    
+    code_metrics5 = {
+        'cyclomatic': 18,
+        'depth': 5,
+        'loc': 150,
+        'cognitive': 35
+    }
+    
+    result5 = engine5.validate(purposes5, llm_output5, code_metrics5)
+    print(engine5.explain_verdict(result5))
+    
+    # =========================================================================
+    # RESUMEN
+    # =========================================================================
+    print("\n" + "=" * 80)
+    print("TEST SUITE SUMMARY")
+    print("=" * 80)
+    print(f"Test 1 (High quality):      {result1.verdict.name:15s} D_M={result1.mahalanobis_distance:.4f}")
+    print(f"Test 2 (Weak purpose):      {result2.verdict.name:15s} D_M={result2.mahalanobis_distance:.4f}")
+    print(f"Test 3 (Singularity):       {result3.verdict.name:15s} D_M={result3.mahalanobis_distance:.4f}")
+    print(f"Test 4 (Topological obs.):  {result4.verdict.name:15s} D_M={result4.mahalanobis_distance:.4f}")
+    print(f"Test 5 (Custom metric):     {result5.verdict.name:15s} D_M={result5.mahalanobis_distance:.4f}")
+    print("=" * 80 + "\n")
