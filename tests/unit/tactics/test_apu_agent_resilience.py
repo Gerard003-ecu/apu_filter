@@ -187,7 +187,7 @@ from unittest.mock import MagicMock, Mock, call, patch
 import pytest
 import requests
 
-from app.tactics.apu_agent import AutonomousAgent
+from app.core.apu_agent import AutonomousAgent
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -1019,7 +1019,7 @@ def agent(
     AutonomousAgent
         Instancia configurada y lista para pruebas
     """
-    from app.tactics.apu_agent import AgentConfig, ConnectionConfig, TimingConfig
+    from app.core.apu_agent import AgentConfig, ConnectionConfig, TimingConfig
 
     config = AgentConfig(
         connection=ConnectionConfig(base_url="http://test-core:5000", request_timeout=5),

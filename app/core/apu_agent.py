@@ -465,7 +465,7 @@ class ObservationErrorType(Enum):
 # ============================================================================
 
 class SystemStatus(Enum):
-    """
+    r"""
     Estados del sistema formando un Orden Parcial Estricto (Poset).
     
     ESTRUCTURA ALGEBRAICA
