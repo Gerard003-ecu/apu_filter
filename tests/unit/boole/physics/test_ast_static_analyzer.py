@@ -1,8 +1,8 @@
 """
 =========================================================================================
-    Test Suite: AST Static Analyzer - Rigorous Verification
+    Test Suite: Analizador estático AST - Verificación rigurosa
     Ubicación: tests/unit/boole/physics/test_ast_static_analyzer.py
-    Versión: 2.0 - Comprehensive Test Coverage
+    Versión: 2.0 - Cobertura comprensiva
     
     FILOSOFÍA DE TESTING:
     ---------------------
