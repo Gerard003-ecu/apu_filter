@@ -1,7 +1,7 @@
 """
 =========================================================================================
 Módulo: Autonomous Agent - Controlador OODA con Fibrado Gauge
-Ubicación: app/tactics/apu_agent.py
+Ubicación: app/core/apu_agent.py
 Versión: 2.0.0 (Refactorización Rigurosa)
 =========================================================================================
 
