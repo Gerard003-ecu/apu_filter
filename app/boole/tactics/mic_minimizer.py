@@ -1200,23 +1200,34 @@ class GrobnerBasisZ2:
                     if i >= j:
                         continue
                     
-                    # En ℤ₂, S-polynomial simplifica a: p + q
-                    s_poly = p + q
+                    lt_p = p.leading_term()
+                    lt_q = q.leading_term()
                     
-                    if not s_poly.is_zero() and s_poly not in self.basis:
-                        new_polys.add(s_poly)
-                        changed = True
-                
-                # Multiplicar por variables para saturar el ideal
-                for var_idx in range(self.num_vars):
-                    var_poly = Z2Polynomial.variable(var_idx)
-                    product = p * var_poly
+                    if lt_p is None or lt_q is None:
+                        continue
+
+                    # Mínimo Común Múltiplo de los términos líderes (unión de variables)
+                    lcm = lt_p.union(lt_q)
+
+                    # Multiplicadores para p y q (LCM / LT)
+                    mult_p = lcm.difference(lt_p)
+                    mult_q = lcm.difference(lt_q)
+
+                    # Construir los monomios como Z2Polynomials
+                    poly_mult_p = Z2Polynomial(frozenset([mult_p]))
+                    poly_mult_q = Z2Polynomial(frozenset([mult_q]))
                     
-                    if not product.is_zero() and product not in self.basis:
-                        new_polys.add(product)
+                    # S-polynomial = (LCM/LT(p)) * p + (LCM/LT(q)) * q
+                    s_poly = (poly_mult_p * p) + (poly_mult_q * q)
+
+                    # Reducir S-polinomio por la base actual
+                    nf_s_poly = self._reduce_poly_by_basis(s_poly, self.basis)
+
+                    if not nf_s_poly.is_zero() and nf_s_poly not in self.basis:
+                        new_polys.add(nf_s_poly)
                         changed = True
             
-            # Agregar nuevos polinomios
+            # Agregar nuevos polinomios reducidos
             for poly in new_polys:
                 if poly not in self.basis:
                     self.basis.append(poly)
@@ -1829,22 +1840,31 @@ class ROBDD:
         current_minterm: int,
         result: Set[int]
     ) -> None:
-        """Recolección recursiva de minitérminos."""
-        # Caso base: FALSE
+        """
+        Recolección recursiva de minitérminos mediante pullback topológico.
+        Expande el hipercubo B^n para dimensiones omitidas (Teorema de Shannon).
+        """
         if node.is_false():
             return
+
+        target_idx = self.num_vars if node.is_terminal() else node.var
         
-        # Caso base: TRUE o fin de variables
-        if node.is_true() or var_idx >= self.num_vars:
+        # Reconstrucción del Vacío Combinatorio: Expandir producto tensorial para variables omitidas
+        if var_idx < target_idx:
+            # Rama 0
+            self._collect_minterms(node, var_idx + 1, current_minterm, result)
+            # Rama 1
+            minterm_with_var = current_minterm | (1 << var_idx)
+            self._collect_minterms(node, var_idx + 1, minterm_with_var, result)
+            return
+
+        if node.is_true() and var_idx == self.num_vars:
             result.add(current_minterm)
             return
-        
-        # Caso recursivo: seguir ambos hijos
+
         if not node.is_terminal():
-            # Rama low (var = 0)
+            # Descender por el nodo existente en la variedad
             self._collect_minterms(node.low, var_idx + 1, current_minterm, result)
-            
-            # Rama high (var = 1)
             minterm_with_var = current_minterm | (1 << var_idx)
             self._collect_minterms(node.high, var_idx + 1, minterm_with_var, result)
     
@@ -2872,28 +2892,23 @@ class MICRedundancyAnalyzer:
         
         # --- 7. Integración de Resultados ---
         
-        # Herramientas dependientes según Gröbner
+        # Herramientas dependientes según Gröbner (construcción incremental de base)
         dependent_grobner = []
         independent_grobner = []
         
+        temp_basis = GrobnerBasisZ2(self.num_capabilities)
+
         for tool in self.tools:
             poly = self._tool_polynomials[tool.name]
             
-            # Verificar si es miembro del ideal (excluyendo a sí mismo)
-            other_basis = [
-                p for name, p in self._tool_polynomials.items()
-                if name != tool.name
-            ]
-            
-            # Crear base temporal
-            temp_basis = GrobnerBasisZ2(self.num_capabilities)
-            for p in other_basis:
-                temp_basis.add_polynomial(p)
-            
+            # Verificar si es miembro del ideal generado por las herramientas YA procesadas
             if temp_basis.is_member(poly):
+                # Es redundante respecto a la base construida hasta ahora
                 dependent_grobner.append(tool.name)
             else:
+                # Aporta nuevas capacidades, es independiente
                 independent_grobner.append(tool.name)
+                temp_basis.add_polynomial(poly)
         
         # Herramientas esenciales: intersección de independientes (Gröbner) y ROBDD
         essential_final = sorted(
