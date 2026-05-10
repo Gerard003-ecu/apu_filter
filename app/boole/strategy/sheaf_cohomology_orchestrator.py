@@ -1066,32 +1066,40 @@ class _SpectralAnalyzer:
         if dim_C1 == 0 or dim_C0 == 0:
             return 0, 0.0
 
-        # Número de valores singulares a estimar.
-        k = min(20, min(m, n) - 1)
+        if min(m, n) <= _DENSE_SPECTRAL_MAX_DIM:
+            # Matriz pequeña, usar SVD densa exacta para obtener todos los SV
+            try:
+                singular_values = np.linalg.svd(delta.toarray(), compute_uv=False)
+            except Exception as exc:
+                logger.warning(f"SVD densa de δ falló: {exc}")
+                return 0, float("inf")
+        else:
+            # Número de valores singulares a estimar para dispersas muy grandes.
+            k = min(20, min(m, n) - 1)
 
-        if k < 1:
-            # Matriz 1×1 o vacía.
-            val = float(abs(delta[0, 0])) if (m >= 1 and n >= 1) else 0.0
-            rank_est = 1 if val > _SPECTRAL_TOLERANCE else 0
-            cond_est = 1.0 if rank_est == 0 else float("inf")
-            return rank_est, cond_est
+            if k < 1:
+                # Matriz 1×1 o vacía.
+                val = float(abs(delta[0, 0])) if (m >= 1 and n >= 1) else 0.0
+                rank_est = 1 if val > _SPECTRAL_TOLERANCE else 0
+                cond_est = 1.0 if rank_est == 0 else float("inf")
+                return rank_est, cond_est
 
-        try:
-            singular_values = spla.svds(
-                delta,
-                k=k,
-                which="LM",
-                return_singular_vectors=False,
-                tol=_ARPACK_TOLERANCE,
-            )
-            singular_values = np.sort(singular_values)[::-1]  # desc
-        except Exception as exc:
-            logger.warning(
-                "SVD truncada de δ falló: %s. "
-                "Usando estimaciones por defecto (rank=0, cond=∞).",
-                exc,
-            )
-            return 0, float("inf")
+            try:
+                singular_values = spla.svds(
+                    delta,
+                    k=k,
+                    which="LM",
+                    return_singular_vectors=False,
+                    tol=_ARPACK_TOLERANCE,
+                )
+                singular_values = np.sort(singular_values)[::-1]  # desc
+            except Exception as exc:
+                logger.warning(
+                    "SVD truncada de δ falló: %s. "
+                    "Usando estimaciones por defecto (rank=0, cond=∞).",
+                    exc,
+                )
+                return 0, float("inf")
 
         # Estimar rango: σ_i > _SPECTRAL_TOLERANCE.
         rank_est = int(np.sum(singular_values > _SPECTRAL_TOLERANCE))
@@ -1651,6 +1659,7 @@ class SheafCohomologyOrchestrator:
         cls,
         sheaf: CellularSheaf,
         global_state_vector: np.ndarray,
+        strict_topology: bool = True,
     ) -> GlobalFrustrationAssessment:
         """Evalúa si x ∈ C⁰ es transversalmente compatible con el haz.
 
@@ -1730,7 +1739,19 @@ class SheafCohomologyOrchestrator:
             spectral.method,
         )
 
-        # ── Etapa 8: Diagnóstico ──
+        # ── Etapa 8: Censura de Paradojas Topológicas ──
+        if strict_topology and spectral.h1_dimension > 0:
+            logger.critical(
+                "OBSTRUCCIÓN TOPOLÓGICA: H¹(F) = %d > 0. "
+                "El transporte de decisiones no es integrable a nivel global.",
+                spectral.h1_dimension
+            )
+            raise HomologicalInconsistencyError(
+                f"Paradoja de Holonomía: El grupo de cohomología H¹ tiene dimensión {spectral.h1_dimension} > 0. "
+                f"El LLM ha generado un ciclo estratégico lógicamente imposible."
+            )
+
+        # ── Etapa 9: Diagnóstico ──
         # χ = β0 - β1 (aproximación simplicial del 1-esqueleto)
         euler_char = spectral.h0_dimension - spectral.h1_dimension
 

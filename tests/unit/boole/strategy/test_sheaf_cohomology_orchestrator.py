@@ -1446,7 +1446,7 @@ class TestOrchestrator:
     def test_coherent_consensus_state(self, triangle_sheaf, orchestrator):
         """Estado de consenso pasa auditoría."""
         x = np.ones(triangle_sheaf.total_node_dim, dtype=np.float64) * 2.5
-        result = orchestrator.audit_global_state(triangle_sheaf, x)
+        result = orchestrator.audit_global_state(triangle_sheaf, x, strict_topology=False)
 
         assert isinstance(result, GlobalFrustrationAssessment)
         assert result.is_coherent is True
@@ -1456,6 +1456,15 @@ class TestOrchestrator:
         assert result.residual_norm >= 0.0
         assert result.spectral_method in ("dense", "sparse")
 
+    def test_h1_greater_than_zero_raises(self, triangle_sheaf, orchestrator):
+        """Si H^1 > 0 y strict_topology=True, se lanza HomologicalInconsistencyError."""
+        x = np.array([2.5, 2.5, 2.5], dtype=np.float64)
+        with pytest.raises(
+            HomologicalInconsistencyError,
+            match="Paradoja de Holonomía",
+        ):
+            orchestrator.audit_global_state(triangle_sheaf, x, strict_topology=True)
+
     def test_incoherent_state_raises(self, triangle_sheaf, orchestrator):
         """Estado incoherente lanza HomologicalInconsistencyError."""
         x = np.array([1.0, 100.0, -50.0], dtype=np.float64)
@@ -1463,7 +1472,7 @@ class TestOrchestrator:
             HomologicalInconsistencyError,
             match="sección compatible",
         ):
-            orchestrator.audit_global_state(triangle_sheaf, x)
+            orchestrator.audit_global_state(triangle_sheaf, x, strict_topology=False)
 
     def test_rejects_incomplete_sheaf(self, orchestrator):
         """Haz incompleto lanza error."""
@@ -1477,12 +1486,12 @@ class TestOrchestrator:
 
         x = np.ones(2, dtype=np.float64)
         with pytest.raises(SheafDegeneracyError, match="no está completamente"):
-            orchestrator.audit_global_state(sheaf, x)
+            orchestrator.audit_global_state(sheaf, x, strict_topology=False)
 
     def test_zero_vector_is_coherent(self, simple_sheaf, orchestrator):
         """El vector cero es trivialmente coherente: δ·0 = 0."""
         x = np.zeros(simple_sheaf.total_node_dim, dtype=np.float64)
-        result = orchestrator.audit_global_state(simple_sheaf, x)
+        result = orchestrator.audit_global_state(simple_sheaf, x, strict_topology=False)
         assert result.is_coherent is True
         assert result.frustration_energy == 0.0
         assert result.residual_norm == 0.0
@@ -1498,7 +1507,7 @@ class TestOrchestrator:
         F_0·(a,b) = (a,b) y F_1·(a,b,0) = (a,b).
         """
         x = np.array([1.0, 2.0, 1.0, 2.0, 0.0], dtype=np.float64)
-        result = orchestrator.audit_global_state(heterogeneous_sheaf, x)
+        result = orchestrator.audit_global_state(heterogeneous_sheaf, x, strict_topology=False)
         assert result.is_coherent is True
         np.testing.assert_allclose(
             result.frustration_energy, 0.0, atol=_FRUSTRATION_TOLERANCE
@@ -1515,7 +1524,7 @@ class TestOrchestrator:
         """
         x = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float64)
         with pytest.raises(HomologicalInconsistencyError):
-            orchestrator.audit_global_state(heterogeneous_sheaf, x)
+            orchestrator.audit_global_state(heterogeneous_sheaf, x, strict_topology=False)
 
     def test_path_graph_consistent_gradient(self, path_sheaf_4, orchestrator):
         """
@@ -1524,12 +1533,12 @@ class TestOrchestrator:
         """
         x = np.array([0.0, 1.0, 2.0, 3.0], dtype=np.float64)
         with pytest.raises(HomologicalInconsistencyError):
-            orchestrator.audit_global_state(path_sheaf_4, x)
+            orchestrator.audit_global_state(path_sheaf_4, x, strict_topology=False)
 
     def test_assessment_fields_types(self, simple_sheaf, orchestrator):
         """Verifica tipos de todos los campos del assessment."""
         x = np.ones(simple_sheaf.total_node_dim, dtype=np.float64)
-        result = orchestrator.audit_global_state(simple_sheaf, x)
+        result = orchestrator.audit_global_state(simple_sheaf, x, strict_topology=False)
 
         assert isinstance(result.frustration_energy, float)
         assert isinstance(result.h0_dimension, int)
@@ -1555,13 +1564,13 @@ class TestCohomologicalInvariants:
     def test_connected_graph_h0_equals_1(self, triangle_sheaf, orchestrator):
         """Grafo conexo con haz constante tiene dim H⁰ = 1."""
         x = np.ones(3, dtype=np.float64)
-        result = orchestrator.audit_global_state(triangle_sheaf, x)
+        result = orchestrator.audit_global_state(triangle_sheaf, x, strict_topology=False)
         assert result.h0_dimension == 1
 
     def test_path_h0_equals_1(self, path_sheaf_4, orchestrator):
         """P₄ (conexo) tiene dim H⁰ = 1."""
         x = np.ones(4, dtype=np.float64)
-        result = orchestrator.audit_global_state(path_sheaf_4, x)
+        result = orchestrator.audit_global_state(path_sheaf_4, x, strict_topology=False)
         assert result.h0_dimension == 1
 
     def test_two_components_h0_equals_2(self, orchestrator):
@@ -1580,7 +1589,7 @@ class TestCohomologicalInvariants:
 
         # Consenso por componente: (c₁, c₁, c₂, c₂)
         x = np.array([5.0, 5.0, -3.0, -3.0], dtype=np.float64)
-        result = orchestrator.audit_global_state(sheaf, x)
+        result = orchestrator.audit_global_state(sheaf, x, strict_topology=False)
         assert result.h0_dimension == 2
 
     def test_spectral_gap_positive_for_connected(
@@ -1593,7 +1602,7 @@ class TestCohomologicalInvariants:
         La brecha mide la tasa de convergencia al consenso.
         """
         x = np.ones(3, dtype=np.float64)
-        result = orchestrator.audit_global_state(triangle_sheaf, x)
+        result = orchestrator.audit_global_state(triangle_sheaf, x, strict_topology=False)
         assert result.spectral_gap > 0.0
 
     def test_spectral_gap_k3_equals_3(self, triangle_sheaf, orchestrator):
@@ -1602,7 +1611,7 @@ class TestCohomologicalInvariants:
         Eigenvalores de L(K₃): {0, 3, 3}.
         """
         x = np.ones(3, dtype=np.float64)
-        result = orchestrator.audit_global_state(triangle_sheaf, x)
+        result = orchestrator.audit_global_state(triangle_sheaf, x, strict_topology=False)
         np.testing.assert_allclose(result.spectral_gap, 3.0, rtol=1e-8)
 
     def test_h0_dim_multidimensional_fiber(self):
@@ -1827,14 +1836,14 @@ class TestEdgeCases:
         """Grafo minimal: 2 nodos, 1 arista, fibra dim=1."""
         sheaf = _build_simple_sheaf_2_nodes_1_edge(d_nodes=1, d_edge=1)
         x = np.array([3.14, 3.14], dtype=np.float64)
-        result = orchestrator.audit_global_state(sheaf, x)
+        result = orchestrator.audit_global_state(sheaf, x, strict_topology=False)
         assert result.is_coherent is True
         assert result.h0_dimension == 1
 
     def test_large_equal_state(self, triangle_sheaf, orchestrator):
         """Consenso con valor grande sigue siendo coherente."""
         x = np.ones(3, dtype=np.float64) * 1e12
-        result = orchestrator.audit_global_state(triangle_sheaf, x)
+        result = orchestrator.audit_global_state(triangle_sheaf, x, strict_topology=False)
         assert result.is_coherent is True
 
     def test_large_disagreement_energy(self, simple_sheaf, orchestrator):
@@ -1843,7 +1852,7 @@ class TestEdgeCases:
         x = np.zeros(n, dtype=np.float64)
         x[0] = 1e6
         with pytest.raises(HomologicalInconsistencyError):
-            orchestrator.audit_global_state(simple_sheaf, x)
+            orchestrator.audit_global_state(simple_sheaf, x, strict_topology=False)
 
     def test_zero_restriction_maps(self, orchestrator):
         """
@@ -1859,7 +1868,7 @@ class TestEdgeCases:
         sheaf.add_edge(0, 0, 1, RestrictionMap(Z), RestrictionMap(Z))
 
         x = np.array([42.0, -17.0], dtype=np.float64)
-        result = orchestrator.audit_global_state(sheaf, x)
+        result = orchestrator.audit_global_state(sheaf, x, strict_topology=False)
         assert result.is_coherent is True
         assert result.h0_dimension == 2
 
@@ -1897,7 +1906,7 @@ class TestEdgeCases:
         sheaf = _build_path_sheaf(2, dim=1)
         epsilon = np.sqrt(_FRUSTRATION_TOLERANCE) * 0.99
         x = np.array([0.0, epsilon], dtype=np.float64)
-        result = orchestrator.audit_global_state(sheaf, x)
+        result = orchestrator.audit_global_state(sheaf, x, strict_topology=False)
         assert result.is_coherent is True
 
     def test_just_above_tolerance_rejects(self, orchestrator):
@@ -1906,7 +1915,7 @@ class TestEdgeCases:
         epsilon = np.sqrt(_FRUSTRATION_TOLERANCE) * 1.1
         x = np.array([0.0, epsilon], dtype=np.float64)
         with pytest.raises(HomologicalInconsistencyError):
-            orchestrator.audit_global_state(sheaf, x)
+            orchestrator.audit_global_state(sheaf, x, strict_topology=False)
 
     def test_orthogonal_restriction_maps(self, orchestrator):
         """
@@ -1934,7 +1943,7 @@ class TestEdgeCases:
         # x_v0 = 0
         # So x_v should be (0, -1). Let's fix this in the test.
         x = np.array([1.0, 0.0, 0.0, -1.0], dtype=np.float64)
-        result = orchestrator.audit_global_state(sheaf, x)
+        result = orchestrator.audit_global_state(sheaf, x, strict_topology=False)
         assert result.is_coherent
 
 
@@ -2115,8 +2124,8 @@ class TestDeterminism:
         """Auditorías repetidas del mismo estado producen el mismo resultado."""
         x = np.ones(3, dtype=np.float64) * 2.0
 
-        result1 = orchestrator.audit_global_state(triangle_sheaf, x)
-        result2 = orchestrator.audit_global_state(triangle_sheaf, x)
+        result1 = orchestrator.audit_global_state(triangle_sheaf, x, strict_topology=False)
+        result2 = orchestrator.audit_global_state(triangle_sheaf, x, strict_topology=False)
 
         assert result1.frustration_energy == result2.frustration_energy
         assert result1.h0_dimension == result2.h0_dimension
@@ -2234,7 +2243,7 @@ class TestLogging:
         """Estado coherente emite log INFO con diagnóstico."""
         x = np.ones(3, dtype=np.float64)
         with caplog.at_level(logging.INFO, logger="MIC.ImmuneSystem.SheafCohomology"):
-            orchestrator.audit_global_state(triangle_sheaf, x)
+            orchestrator.audit_global_state(triangle_sheaf, x, strict_topology=False)
         assert "Auditoría cohomológica exitosa" in caplog.text
 
     def test_incoherent_state_logs_critical(
@@ -2249,7 +2258,7 @@ class TestLogging:
             logging.CRITICAL, logger="MIC.ImmuneSystem.SheafCohomology"
         ):
             with pytest.raises(HomologicalInconsistencyError):
-                orchestrator.audit_global_state(triangle_sheaf, x)
+                orchestrator.audit_global_state(triangle_sheaf, x, strict_topology=False)
         assert "FRUSTRACIÓN DE HAZ" in caplog.text
 
 
@@ -2268,7 +2277,7 @@ class TestIntegration:
 
         # Consenso: todos los nodos con el mismo vector (1, 2)
         x = np.tile([1.0, 2.0], 3)
-        result = orchestrator.audit_global_state(sheaf, x)
+        result = orchestrator.audit_global_state(sheaf, x, strict_topology=False)
 
         assert result.is_coherent
         assert result.frustration_energy < _FRUSTRATION_TOLERANCE
@@ -2284,7 +2293,7 @@ class TestIntegration:
         """Pipeline completo para haz heterogéneo."""
         # Estado coherente: (a,b, a,b,0)
         x = np.array([3.0, -1.0, 3.0, -1.0, 0.0], dtype=np.float64)
-        result = orchestrator.audit_global_state(heterogeneous_sheaf, x)
+        result = orchestrator.audit_global_state(heterogeneous_sheaf, x, strict_topology=False)
         assert result.is_coherent
 
     def test_build_audit_cycle(self, orchestrator):
@@ -2310,7 +2319,7 @@ class TestIntegration:
 
         # Consenso
         x = np.ones(n, dtype=np.float64) * np.pi
-        result = orchestrator.audit_global_state(sheaf, x)
+        result = orchestrator.audit_global_state(sheaf, x, strict_topology=False)
 
         assert result.is_coherent
         assert result.h0_dimension == 1

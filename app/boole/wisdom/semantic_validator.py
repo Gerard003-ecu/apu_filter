@@ -1142,80 +1142,90 @@ class ConfidenceFilter:
             f"max_H={max_entropy:.2f}, max_H_norm={max_normalized_entropy:.2f})"
         )
 
-    def validate(self, llm_output: LLMOutput) -> Tuple[bool, float, str]:
+    def validate(self, llm_output: LLMOutput, state_metrics: Optional[Dict[str, Any]] = None) -> Tuple[Verdict, float, str]:
         """
-        Valida salida de LLM.
+        Valida salida de LLM utilizando la Temperatura de Gobernanza y la Distribución de Gibbs.
         
         [PRE] llm_output es instancia válida de LLMOutput
-        [POST] (válido, score, razón) donde score ∈ [0, 1]
+        [POST] (Verdict, score, razón) donde score ∈ [0, 1]
         
         Args:
             llm_output: Metadatos del LLM
+            state_metrics: Métricas del estado de estratos inferiores (Axioma M5)
             
         Returns:
-            (es_válido, confidence_score, descripción)
+            (Verdict, confidence_score, descripción)
         """
+        T_gov = 1.0  # Temperatura de mercado por defecto
+
+        if state_metrics:
+            beta_1 = state_metrics.get('beta_1', 0)
+            p_diss = state_metrics.get('p_diss', 0.0)
+
+            # Axioma M5: Colapso si invariantes fallan
+            if beta_1 > 0 or p_diss < 0:
+                T_gov = 0.0
+
+        # Manejo explícito de la singularidad cuando T_gov -> 0 (Colapso Termodinámico de Heaviside)
+        if T_gov == 0.0:
+            return (
+                Verdict.REJECT,
+                0.0,
+                "Heaviside Thermodynamic Collapse: T_gov=0 due to underlying physical/topological singularity (beta_1 > 0 or P_diss < 0)."
+            )
+
         # Detectar singularidad estocástica
         if llm_output.is_singular:
             return (
-                False, 
+                Verdict.REJECT,
                 0.0,
                 f"Stochastic singularity detected: "
-                f"H={'∞' if math.isinf(llm_output.entropy) else llm_output.entropy:.2f}, "
+                f"H={'∞' if math.isinf(llm_output.entropy) else f'{llm_output.entropy:.2f}'}, "
                 f"conf={llm_output.confidence:.2f}"
             )
         
-        # Verificar confianza mínima
+        # Función de Partición Z y Distribución de Gibbs sobre el retículo
+        E_reject = 5.0  # Energía base del sumidero (estado seguro)
+        E_viable = 0.0  # Energía de aceptación (se incrementa si hay anomalías)
+        
+        # Penalizaciones de energía (frustración por baja calidad)
         if llm_output.confidence < self.min_confidence:
-            return (
-                False,
-                llm_output.confidence,
-                f"Confidence {llm_output.confidence:.3f} below "
-                f"threshold {self.min_confidence:.3f}"
-            )
-        
-        # Verificar entropía máxima
+            E_viable += (self.min_confidence - llm_output.confidence) * 30.0
+
         if llm_output.entropy > self.max_entropy:
-            entropy_score = max(0.0, 1.0 - llm_output.entropy / (2 * self.max_entropy))
-            return (
-                False,
-                entropy_score,
-                f"Entropy {llm_output.entropy:.3f} exceeds "
-                f"threshold {self.max_entropy:.3f}"
-            )
-        
-        # Verificar entropía normalizada
+            E_viable += (llm_output.entropy - self.max_entropy) * 10.0
+
         norm_entropy = llm_output.normalized_entropy
         if norm_entropy > self.max_normalized_entropy:
-            norm_score = max(0.0, 1.0 - norm_entropy / (2 * self.max_normalized_entropy))
-            return (
-                False,
-                norm_score,
-                f"Normalized entropy {norm_entropy:.3f} exceeds "
-                f"threshold {self.max_normalized_entropy:.3f}"
-            )
+            E_viable += (norm_entropy - self.max_normalized_entropy) * 30.0
+
+        # Interpolación de energías para estados intermedios
+        E_conditional = E_viable * 0.7 + E_reject * 0.3
+        E_warning = E_viable * 0.3 + E_reject * 0.7
         
-        # Calcular score agregado
-        conf_score = llm_output.confidence
-        entropy_score = max(0.0, 1.0 - llm_output.entropy / self.max_entropy)
-        norm_entropy_score = max(0.0, 1.0 - norm_entropy / self.max_normalized_entropy)
+        energies = {
+            Verdict.VIABLE: E_viable,
+            Verdict.CONDITIONAL: E_conditional,
+            Verdict.WARNING: E_warning,
+            Verdict.REJECT: E_reject
+        }
         
-        # Ponderación: 50% confianza, 25% entropía, 25% entropía normalizada
-        aggregate_score = (
-            0.50 * conf_score +
-            0.25 * entropy_score +
-            0.25 * norm_entropy_score
-        )
+        k_B = 1.0
+        Z = sum(math.exp(-np.clip(E / (k_B * T_gov), -700.0, 700.0)) for E in energies.values())
         
-        assert 0.0 <= aggregate_score <= 1.0, "Postcondition violated"
+        probs = {v: math.exp(-np.clip(E / (k_B * T_gov), -700.0, 700.0)) / Z for v, E in energies.items()}
         
-        return (
-            True,
-            aggregate_score,
-            f"LLM output satisfies quality thresholds "
-            f"(conf={conf_score:.3f}, H={llm_output.entropy:.2f}, "
-            f"H_norm={norm_entropy:.3f}, score={aggregate_score:.3f})"
-        )
+        # Seleccionar veredicto según Máxima Probabilidad a Posteriori (MAP)
+        chosen_verdict = max(probs, key=probs.get)
+
+        # Score de confianza probabilístico
+        score = probs[Verdict.VIABLE] + 0.5 * probs[Verdict.CONDITIONAL]
+
+        reason = (f"Gibbs Distribution mapped. "
+                  f"P(VIABLE)={probs[Verdict.VIABLE]:.2f}, "
+                  f"P(REJECT)={probs[Verdict.REJECT]:.2f}")
+
+        return chosen_verdict, score, reason
 
     def compute_confidence_score(self, llm_output: LLMOutput) -> float:
         """
@@ -1405,6 +1415,7 @@ class SemanticValidationEngine:
         knowledge_graph: Optional[Dict[str, Dict[str, float]]] = None,
         risk_profile: Optional[RiskProfile] = None,
         metric: Optional[MahalanobisMetric] = None,
+        confidence_filter: Optional[ConfidenceFilter] = None,
         enable_cohomology: bool = True
     ):
         """
@@ -1419,6 +1430,7 @@ class SemanticValidationEngine:
             knowledge_graph: Grafo de conocimiento concepto→problema
             risk_profile: Perfil de riesgo empresarial
             metric: Tensor métrico personalizado
+            confidence_filter: Inyección de dependencias para el filtro de confianza
             enable_cohomology: Habilitar detección cohomológica
         """
         self.risk_profile = risk_profile or RiskProfile(risk_tolerance=0.5)
@@ -1427,7 +1439,7 @@ class SemanticValidationEngine:
         
         # Validadores especializados
         self.purpose_validator = PurposeValidator(knowledge_graph)
-        self.confidence_filter = ConfidenceFilter()
+        self.confidence_filter = confidence_filter or ConfidenceFilter()
         self.constraint_mapper = ConstraintMapper()
         
         # Cohomología simplicial
@@ -1452,7 +1464,8 @@ class SemanticValidationEngine:
         self,
         purposes: List[BusinessPurpose],
         llm_output: LLMOutput,
-        code_metrics: Optional[Dict[str, int]] = None
+        code_metrics: Optional[Dict[str, int]] = None,
+        state_metrics: Optional[Dict[str, Any]] = None
     ) -> ValidationResult:
         """
         Ejecuta validación semántica completa.
@@ -1467,6 +1480,7 @@ class SemanticValidationEngine:
             purposes: Lista de propósitos empresariales
             llm_output: Metadatos del LLM
             code_metrics: Métricas opcionales del código
+            state_metrics: Métricas del estado de estratos inferiores (Axioma M5)
             
         Returns:
             ValidationResult con veredicto y trazabilidad completa
@@ -1521,21 +1535,22 @@ class SemanticValidationEngine:
             logger.info(f"✓ Phase 1: Purpose validated (score={purpose_score:.3f})")
         
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        # FASE 2: FILTRADO DE CONFIANZA DEL LLM
+        # FASE 2: FILTRADO DE CONFIANZA DEL LLM (Colapso Termodinámico)
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        is_valid_confidence, confidence_strength, confidence_reason = \
-            self.confidence_filter.validate(llm_output)
-        confidence_score = self.confidence_filter.compute_confidence_score(llm_output)
+        verdict_confidence, confidence_strength, confidence_reason = \
+            self.confidence_filter.validate(llm_output, state_metrics)
         
+        confidence_score = confidence_strength
         result.add_reason(confidence_reason, 'confidence', confidence_score)
         
-        if not is_valid_confidence:
-            logger.warning(f"⚠ Phase 2: Confidence validation failed - {confidence_reason}")
-            if confidence_score < 0.20:  # Umbral crítico
-                result.verdict = Verdict.REJECT
-                result.mahalanobis_distance = 1.0
-                logger.info(f"Final Verdict: {result.verdict} (low confidence)")
-                return result
+        if verdict_confidence == Verdict.REJECT:
+            logger.warning(f"⚠ Phase 2: Confidence validation rejected - {confidence_reason}")
+            result.verdict = Verdict.REJECT
+            result.mahalanobis_distance = 1.0
+            logger.info(f"Final Verdict: {result.verdict} (rejected by confidence filter)")
+            return result
+        elif verdict_confidence in (Verdict.WARNING, Verdict.CONDITIONAL):
+            logger.warning(f"⚠ Phase 2: Confidence validation marginal - {confidence_reason}")
         else:
             logger.info(f"✓ Phase 2: Confidence validated (score={confidence_score:.3f})")
         
@@ -1824,11 +1839,14 @@ class OntologicalDiffeomorphismEngine:
             business_profile: Perfil de negocio legacy
             **kwargs: Argumentos adicionales (ignorados)
         """
-        logger.warning(
+        import warnings
+        msg = (
             "⚠️  OntologicalDiffeomorphismEngine is DEPRECATED. "
             "Use SemanticValidationEngine instead. "
             "This compatibility layer will be removed in v4.0."
         )
+        logger.warning(msg)
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
         
         # Convertir knowledge_graph de networkx a dict si es necesario
         if hasattr(knowledge_graph, 'edges'):

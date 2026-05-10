@@ -55,15 +55,14 @@ from app.boole.physics.ast_static_analyzer import (
     ComplexityProfile as ThermodynamicProfile,
 )
 from app.boole.tactics.mic_minimizer import (
-    QuineMcCluskeyMinimizer,
-    HomologicalInconsistencyError,
     BooleanVector,
 )
 from app.boole.strategy.sheaf_cohomology_orchestrator import (
     SheafCohomologyOrchestrator,
     CellularSheaf,
-    SheafDegeneracyError,
+    HomologicalInconsistencyError,
     RestrictionMap,
+    HomologicalInconsistencyError,
 )
 from app.boole.wisdom.semantic_validator import (
     OntologicalDiffeomorphismEngine,
@@ -71,10 +70,14 @@ from app.boole.wisdom.semantic_validator import (
     RiskProfile as ToleranceProfile,
     BusinessPurpose as SemanticMorphism,
     create_default_knowledge_graph,
-    AlexandroffPoint,
 )
 
 # Mocking missing types that are not in the current codebase but used in tests
+@dataclass
+class AlexandroffPoint:
+    is_infinity: bool
+    value: float
+
 @dataclass
 class PhaseSpace:
     symplectic_form: Optional[NDArray[np.float64]] = None
@@ -739,7 +742,7 @@ def run_strategy_stage_certified(
     
     Raises:
         AssertionError: Si hay inconsistencia entre métodos de cálculo
-        SheafDegeneracyError: Si β₁ > 0 (esperado)
+        HomologicalInconsistencyError: Si β₁ > 0 (esperado)
     """
     G = build_graph_with_betti_certified(beta_1, graph_label, verify_construction=True)
     
@@ -775,16 +778,9 @@ def run_strategy_stage_certified(
 
     orchestrator = SheafCohomologyOrchestrator()
     
-    if beta_1 > 0:
-        # Debe lanzar excepción (veto cohomológico)
-        x = np.zeros(sheaf.total_node_dim)
-        assessment = orchestrator.audit_global_state(sheaf, x)
-        if assessment.h1_dimension > 0:
-            raise SheafDegeneracyError("H1 > 0 (Cohomological Obstruction)")
-    else:
-        # No debe lanzar excepción (trivial cohomology)
-        x = np.zeros(sheaf.total_node_dim)
-        orchestrator.audit_global_state(sheaf, x)
+    x = np.zeros(sheaf.total_node_dim)
+    # Dejamos que levante la excepción para que sea manejada por el que llama
+    orchestrator.audit_global_state(sheaf, x, strict_topology=True)
 
 
 def run_wisdom_stage_certified(
@@ -1019,11 +1015,11 @@ def test_tactical_to_strategic_cohomology_rigorous() -> None:
 
     orchestrator = SheafCohomologyOrchestrator()
     
-    with pytest.raises(SheafDegeneracyError) as exc_info:
+    with pytest.raises(HomologicalInconsistencyError) as exc_info:
         x = np.zeros(sheaf.total_node_dim)
         assessment = orchestrator.audit_global_state(sheaf, x)
         if assessment.h1_dimension > 0:
-            raise SheafDegeneracyError("H1 > 0 (Cohomological Obstruction)")
+            raise HomologicalInconsistencyError("H1 > 0 (Cohomological Obstruction)")
     
     error_msg = str(exc_info.value).lower()
     assert any(keyword in error_msg for keyword in ["h1", "h¹", "obstrucción", "cohomology"]), (
@@ -1383,7 +1379,7 @@ def test_full_pipeline_integration_certified(
     # ── ETAPA 3: F_strategy ──
     print("\n[3/4] Ejecutando F_strategy...")
     if params.expect_degeneracy and params.beta_1 > 0:
-        with pytest.raises(SheafDegeneracyError):
+        with pytest.raises(HomologicalInconsistencyError):
             run_strategy_stage_certified(params.beta_1, graph_label=f"t7_{test_id}")
     else:
         run_strategy_stage_certified(params.beta_1, graph_label=f"t7_{test_id}")
