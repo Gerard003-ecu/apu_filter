@@ -3,9 +3,6 @@ Módulo: tests/integration/dynamic_stress/test_adversarial_homology_and_thermal_
 ==============================================================================================
 SUITE DE INTEGRACIÓN: HOMOLOGÍA ADVERSARIAL Y COLAPSO TÉRMICO
 (Versión Rigurosa MEJORADA - Correcciones Críticas y Optimizaciones)
-
-Autor: Artesano Programador Senior (Nivel Doctorado)
-Revisión: 2024 - Correcciones matemáticas y validaciones exhaustivas
 """
 from __future__ import annotations
 
