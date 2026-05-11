@@ -1,0 +1,819 @@
+"""
+Módulo: tests/integration/mic/test_mic_functional_orthogonality_during_basis_change.py
+========================================================================================
+SUITE DE INTEGRACIÓN: ORTOGONALIDAD FUNCIONAL Y CAMBIO DE BASE EN LA MIC
+(Versión Rigurosa MEJORADA - Correcciones de Implementación y Optimizaciones)
+"""
+from __future__ import annotations
+
+# =============================================================================
+# IMPORTS EXTERNOS
+# =============================================================================
+import math
+import warnings
+from dataclasses import dataclass, field
+from decimal import Decimal, getcontext, ROUND_HALF_EVEN
+from enum import Enum, auto
+from typing import (
+    TypeVar, Generic, List, Dict, Optional, Set, Tuple,
+    Callable, Protocol, Iterator, Any, Union, Literal
+)
+from typing_extensions import Self
+import pytest
+import numpy as np
+from numpy.typing import NDArray
+
+# =============================================================================
+# IMPORTS INTERNOS (Mocking mejorado)
+# =============================================================================
+try:
+    from app.core.schemas import Stratum
+except ImportError:
+    class Stratum(Enum):
+        PHYSICS = auto()
+        TACTICS = auto()
+        STRATEGY = auto()
+        WISDOM = auto()
+
+try:
+    from app.core.mic_algebra import (
+        CategoricalState,
+        Morphism,
+        ComposedMorphism,
+        create_morphism_from_handler,
+    )
+except ImportError:
+    @dataclass(frozen=True, slots=True)
+    class CategoricalState:
+        payload: Dict[str, float]
+        
+        def __call__(self, **kwargs) -> 'CategoricalState':
+            new_payload = dict(self.payload)
+            new_payload.update(kwargs)
+            return CategoricalState(payload=new_payload)
+    
+    class Morphism:
+        def __init__(self, handler: Callable, name: str = ""):
+            self.handler = handler
+            self.name = name
+        
+        def __call__(self, state: CategoricalState) -> CategoricalState:
+            result = self.handler(**state.payload)
+            return CategoricalState(payload=result)
+    
+    class ComposedMorphism:
+        def __init__(self, f: Morphism, g: Morphism):
+            self.f = f
+            self.g = g
+        
+        def __call__(self, state: CategoricalState) -> CategoricalState:
+            return self.g(self.f(state))
+    
+    def create_morphism_from_handler(
+        name: str,
+        target_stratum: Stratum,
+        handler: Callable,
+        required_keys: List[str],
+        optional_keys: List[str]
+    ) -> Morphism:
+        return Morphism(handler=handler, name=name)
+
+try:
+    from app.adapters.tools_interface import MICRegistry
+except ImportError:
+    class MICRegistry:
+        def __init__(self):
+            self.vectors: Dict[str, Morphism] = {}
+        
+        def register_vector(
+            self,
+            name: str,
+            stratum: Stratum,
+            handler: Callable
+        ) -> None:
+            self.vectors[name] = Morphism(handler=handler, name=name)
+
+# =============================================================================
+# CONFIGURACIÓN NUMÉRICA GLOBAL
+# =============================================================================
+getcontext().prec = 50
+getcontext().rounding = ROUND_HALF_EVEN
+
+# =============================================================================
+# CONSTANTES MATEMÁTICAS Y NUMÉRICAS
+# =============================================================================
+EPSILON_FLOAT64 = np.finfo(np.float64).eps
+ORTHOGONALITY_TOLERANCE = 1e-12
+SPECTRAL_TOLERANCE = 1e-10
+RANK_TOLERANCE = 1e-10
+DETERMINANT_TOLERANCE = 1e-10
+
+_CANONICAL_DIMENSIONS: List[str] = ["dim_1", "dim_2", "dim_3"]
+_SPACE_DIMENSION: int = len(_CANONICAL_DIMENSIONS)
+
+_PERTURBATION_VALUES: List[float] = [3.14, -2.71, 42.0]
+
+# =============================================================================
+# TIPOS ALGEBRAICOS
+# =============================================================================
+T = TypeVar('T')
+V = TypeVar('V', bound=np.generic)
+
+RealVector = NDArray[np.float64]
+IntVector = NDArray[np.int64]
+
+
+# =============================================================================
+# CLASES DE DATOS MATEMÁTICOS
+# =============================================================================
+@dataclass(frozen=True, slots=True)
+class CanonicalVectorSpec:
+    """Especificación de vector canónico."""
+    name: str
+    stratum: Stratum
+    handler: Callable[[Any], Dict[str, Any]]
+    target_dimension: str
+    
+    def __post_init__(self) -> None:
+        if not self.name:
+            raise ValueError("Nombre de vector vacío")
+        
+        if self.target_dimension not in _CANONICAL_DIMENSIONS:
+            raise ValueError(
+                f"Dimensión inválida: {self.target_dimension} ∉ {_CANONICAL_DIMENSIONS}"
+            )
+        
+        if not callable(self.handler):
+            raise TypeError(f"Handler no callable: {type(self.handler).__name__}")
+    
+    def __repr__(self) -> str:
+        return (
+            f"CanonicalVectorSpec(name='{self.name}', "
+            f"stratum={self.stratum.name}, "
+            f"target_dim='{self.target_dimension}')"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class OrthogonalityMetrics:
+    """Métricas de ortogonalidad."""
+    gram_matrix: NDArray[np.float64]
+    gram_deviation: float
+    min_eigenvalue: float
+    max_eigenvalue: float
+    condition_number: float
+    
+    def __post_init__(self) -> None:
+        if self.gram_deviation < 0:
+            raise ValueError(f"Desviación Gram negativa: {self.gram_deviation}")
+        
+        if self.min_eigenvalue < 0:
+            raise ValueError(
+                f"Eigenvalor mínimo negativo: {self.min_eigenvalue}. G debe ser PSD."
+            )
+        
+        if self.condition_number < 1.0:
+            raise ValueError(f"κ(G) = {self.condition_number} < 1")
+    
+    def is_orthonormal(self, tolerance: float = ORTHOGONALITY_TOLERANCE) -> bool:
+        """Verifica ortonormalidad."""
+        return (
+            self.gram_deviation < tolerance and
+            self.condition_number < 1.0 + tolerance
+        )
+    
+    def __repr__(self) -> str:
+        return (
+            f"OrthogonalityMetrics(‖G-I‖_F={self.gram_deviation:.2e}, "
+            f"λ∈[{self.min_eigenvalue:.6f}, {self.max_eigenvalue:.6f}], "
+            f"κ={self.condition_number:.4f})"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class SpectralMetrics:
+    """Métricas espectrales."""
+    eigenvalues: NDArray[np.float64]
+    spectral_radius: float
+    spectral_deviation: float
+    is_stable: bool
+    
+    def __post_init__(self) -> None:
+        if self.spectral_radius < 0:
+            raise ValueError(f"Radio espectral negativo: {self.spectral_radius}")
+        
+        if self.spectral_deviation < 0:
+            raise ValueError(f"Desviación espectral negativa: {self.spectral_deviation}")
+    
+    def __repr__(self) -> str:
+        return (
+            f"SpectralMetrics(ρ(T)={self.spectral_radius:.6f}, "
+            f"max|λ-1|={self.spectral_deviation:.2e}, "
+            f"stable={self.is_stable})"
+        )
+
+
+# =============================================================================
+# HANDLERS CANÓNICOS (CORREGIDOS)
+# =============================================================================
+def _handler_e1(**kwargs) -> Dict[str, Any]:
+    """
+    Proyección canónica sobre eje 1.
+    
+    CORRECCIÓN CRÍTICA:
+    ------------------
+    • Uso explícito de valores por defecto 0.0 para dimensiones no target
+    • Comportamiento determinista independiente de presencia/ausencia de keys
+    • Preserva valores existentes en dimensiones no modificadas
+    """
+    return {
+        "dim_1": 1.0,
+        "dim_2": kwargs.get("dim_2", 0.0) if "dim_2" in kwargs else 0.0,
+        "dim_3": kwargs.get("dim_3", 0.0) if "dim_3" in kwargs else 0.0,
+    }
+
+
+def _handler_e2(**kwargs) -> Dict[str, Any]:
+    """Proyección canónica sobre eje 2."""
+    return {
+        "dim_1": kwargs.get("dim_1", 0.0) if "dim_1" in kwargs else 0.0,
+        "dim_2": 1.0,
+        "dim_3": kwargs.get("dim_3", 0.0) if "dim_3" in kwargs else 0.0,
+    }
+
+
+def _handler_e3(**kwargs) -> Dict[str, Any]:
+    """Proyección canónica sobre eje 3."""
+    return {
+        "dim_1": kwargs.get("dim_1", 0.0) if "dim_1" in kwargs else 0.0,
+        "dim_2": kwargs.get("dim_2", 0.0) if "dim_2" in kwargs else 0.0,
+        "dim_3": 1.0,
+    }
+
+
+# =============================================================================
+# DEFINICIÓN DE BASE ESTÁNDAR
+# =============================================================================
+_CANONICAL_BASIS: List[CanonicalVectorSpec] = [
+    CanonicalVectorSpec(
+        name="search_tool",
+        stratum=Stratum.PHYSICS,
+        handler=_handler_e1,
+        target_dimension="dim_1",
+    ),
+    CanonicalVectorSpec(
+        name="calc_tool",
+        stratum=Stratum.TACTICS,
+        handler=_handler_e2,
+        target_dimension="dim_2",
+    ),
+    CanonicalVectorSpec(
+        name="strategy_tool",
+        stratum=Stratum.STRATEGY,
+        handler=_handler_e3,
+        target_dimension="dim_3",
+    ),
+]
+
+
+# =============================================================================
+# FUNCIONES AUXILIARES (MEJORADAS)
+# =============================================================================
+def _create_zero_state() -> CategoricalState:
+    """Crea estado cero (origen)."""
+    return CategoricalState(
+        payload={dim: 0.0 for dim in _CANONICAL_DIMENSIONS},
+    )
+
+
+def _create_perturbed_state(perturbation: List[float]) -> CategoricalState:
+    """Crea estado perturbado."""
+    if len(perturbation) != _SPACE_DIMENSION:
+        raise ValueError(
+            f"Requiere {_SPACE_DIMENSION} valores, recibidos {len(perturbation)}"
+        )
+    
+    payload = {dim: val for dim, val in zip(_CANONICAL_DIMENSIONS, perturbation)}
+    return CategoricalState(payload=payload)
+
+
+def _extract_state_vector(state: CategoricalState) -> RealVector:
+    """Extrae vector de estado."""
+    return np.array(
+        [state.payload.get(dim, 0.0) for dim in _CANONICAL_DIMENSIONS],
+        dtype=np.float64,
+    )
+
+
+def _detect_dimensional_leaks(
+    state: CategoricalState,
+    allowed_dimensions: Set[str],
+) -> List[str]:
+    """Detecta dimensiones no autorizadas."""
+    return [
+        key for key in state.payload.keys()
+        if key not in allowed_dimensions
+    ]
+
+
+def _compute_gram_matrix_optimized(vectors: List[RealVector]) -> NDArray[np.float64]:
+    """
+    Calcula matriz de Gram con optimización de simetría.
+    
+    CORRECCIÓN CRÍTICA:
+    ------------------
+    • Aprovecha simetría: G_ij = G_ji
+    • Complejidad reducida de O(n³) a O(n²·m)
+    • Usa operaciones vectorizadas de NumPy
+    """
+    n = len(vectors)
+    if n == 0:
+        raise ValueError("Lista de vectores vacía")
+    
+    # Convertir a matriz (vectores como filas)
+    V = np.array(vectors, dtype=np.float64)
+    
+    # G = V·V^T (producto matricial optimizado)
+    G = V @ V.T
+    
+    # Asegurar simetría numérica exacta
+    G = (G + G.T) / 2.0
+    
+    return G
+
+
+def _compute_transformation_matrix(
+    atomic_vectors: List[Morphism],
+    base_state: CategoricalState,
+) -> NDArray[np.float64]:
+    """
+    Construye matriz de transformación.
+    
+    CORRECCIÓN CRÍTICA:
+    ------------------
+    • Validación de precondiciones
+    • Mensaje de error claro para casos vacíos
+    """
+    if not atomic_vectors:
+        raise ValueError(
+            "Lista de vectores atómicos vacía. "
+            "No se puede construir matriz de transformación."
+        )
+    
+    columns = [_extract_state_vector(vec(base_state)) for vec in atomic_vectors]
+    
+    if not columns:
+        raise ValueError("No se extrajeron columnas de vectores atómicos")
+    
+    return np.column_stack(columns)
+
+
+def _compute_orthogonality_metrics(
+    vectors: List[RealVector],
+) -> OrthogonalityMetrics:
+    """
+    Calcula métricas de ortogonalidad.
+    
+    MEJORA: Usa versión optimizada de matriz de Gram.
+    """
+    if not vectors:
+        raise ValueError("Lista de vectores vacía")
+    
+    G = _compute_gram_matrix_optimized(vectors)
+    n = len(vectors)
+    I_n = np.eye(n, dtype=np.float64)
+    
+    gram_deviation = float(np.linalg.norm(G - I_n, ord='fro'))
+    
+    eigenvalues = np.linalg.eigvalsh(G)
+    min_eig = float(np.min(eigenvalues))
+    max_eig = float(np.max(eigenvalues))
+    
+    if min_eig > EPSILON_FLOAT64:
+        condition_number = max_eig / min_eig
+    else:
+        condition_number = float('inf')
+    
+    return OrthogonalityMetrics(
+        gram_matrix=G,
+        gram_deviation=gram_deviation,
+        min_eigenvalue=min_eig,
+        max_eigenvalue=max_eig,
+        condition_number=condition_number,
+    )
+
+
+def _compute_spectral_metrics(T: NDArray[np.float64]) -> SpectralMetrics:
+    """
+    Calcula métricas espectrales.
+    
+    MEJORA: Manejo robusto de eigenvalores complejos.
+    """
+    if T.size == 0:
+        raise ValueError("Matriz vacía")
+    
+    eigenvalues = np.linalg.eigvals(T)
+    eigenvalues_abs = np.abs(eigenvalues)
+    
+    spectral_radius = float(np.max(eigenvalues_abs))
+    spectral_deviation = float(np.max(np.abs(eigenvalues - 1.0)))
+    
+    is_stable = spectral_radius <= 1.0 + SPECTRAL_TOLERANCE
+    
+    return SpectralMetrics(
+        eigenvalues=eigenvalues,
+        spectral_radius=spectral_radius,
+        spectral_deviation=spectral_deviation,
+        is_stable=is_stable,
+    )
+
+
+def _verify_handler_isolation(
+    handler: Callable,
+    target_dim: str,
+    all_dims: List[str],
+    *,
+    tolerance: float = ORTHOGONALITY_TOLERANCE
+) -> Tuple[bool, str]:
+    """
+    Verifica que un handler solo modifique su dimensión target.
+    
+    NUEVA FUNCIÓN: Validación explícita de aislamiento dimensional.
+    
+    Args:
+        handler: Handler a verificar
+        target_dim: Dimensión que debe modificar
+        all_dims: Todas las dimensiones canónicas
+        tolerance: Tolerancia para comparaciones
+    
+    Returns:
+        (is_isolated, diagnostic): Tupla con resultado y diagnóstico
+    """
+    # Estado cero
+    zero_payload = {dim: 0.0 for dim in all_dims}
+    result_zero = handler(**zero_payload)
+    
+    # Verificar que target_dim = 1.0
+    if abs(result_zero.get(target_dim, 0.0) - 1.0) > tolerance:
+        return False, (
+            f"Handler no establece {target_dim} = 1.0. "
+            f"Valor: {result_zero.get(target_dim, 0.0)}"
+        )
+    
+    # Verificar que otras dimensiones = 0.0
+    for dim in all_dims:
+        if dim == target_dim:
+            continue
+        
+        if abs(result_zero.get(dim, 0.0)) > tolerance:
+            return False, (
+                f"Handler contamina {dim} = {result_zero.get(dim, 0.0)} ≠ 0.0"
+            )
+    
+    # Estado perturbado
+    perturbed_payload = {dim: 3.14 + i for i, dim in enumerate(all_dims)}
+    result_perturbed = handler(**perturbed_payload)
+    
+    # Verificar preservación de dimensiones no target
+    for dim in all_dims:
+        if dim == target_dim:
+            continue
+        
+        expected_val = perturbed_payload[dim]
+        actual_val = result_perturbed.get(dim, 0.0)
+        
+        if abs(actual_val - expected_val) > tolerance:
+            return False, (
+                f"Handler no preserva {dim}. "
+                f"Esperado: {expected_val}, Actual: {actual_val}"
+            )
+    
+    return True, "Handler aislado correctamente"
+
+
+# =============================================================================
+# FIXTURES
+# =============================================================================
+@pytest.fixture(scope="module")
+def canonical_basis() -> List[Morphism]:
+    """Construye base canónica."""
+    return [
+        create_morphism_from_handler(
+            name=spec.name,
+            target_stratum=Stratum.PHYSICS,
+            handler=spec.handler,
+            required_keys=[],
+            optional_keys=list(_CANONICAL_DIMENSIONS)
+        )
+        for spec in _CANONICAL_BASIS
+    ]
+
+
+@pytest.fixture(scope="module")
+def mic_registry(canonical_basis: List[Morphism]) -> MICRegistry:
+    """Inicializa MIC."""
+    registry = MICRegistry()
+    for spec in _CANONICAL_BASIS:
+        registry.register_vector(spec.name, spec.stratum, spec.handler)
+    return registry
+
+
+@pytest.fixture(scope="module")
+def zero_state() -> CategoricalState:
+    """Estado cero."""
+    return _create_zero_state()
+
+
+@pytest.fixture(scope="module")
+def perturbed_state() -> CategoricalState:
+    """Estado perturbado."""
+    return _create_perturbed_state(_PERTURBATION_VALUES)
+
+
+# =============================================================================
+# SUITE DE TESTS (MEJORADA)
+# =============================================================================
+@pytest.mark.integration
+@pytest.mark.stress
+class TestMICFunctionalOrthogonality:
+    """Suite de ortogonalidad funcional."""
+    
+    def test_canonical_basis_orthonormality_rigorous(
+        self,
+        canonical_basis: List[Morphism],
+        zero_state: CategoricalState,
+    ) -> None:
+        """Verifica ortonormalidad de base canónica."""
+        vectors: List[RealVector] = [
+            _extract_state_vector(vec(zero_state))
+            for vec in canonical_basis
+        ]
+        
+        metrics = _compute_orthogonality_metrics(vectors)
+        
+        assert metrics.is_orthonormal(ORTHOGONALITY_TOLERANCE), (
+            f"VIOLACIÓN DE ORTONORMALIDAD:\n"
+            f"  • ‖G - I₃‖_F = {metrics.gram_deviation:.2e}\n"
+            f"  • Tolerancia = {ORTHOGONALITY_TOLERANCE:.2e}\n"
+            f"  • λ_min(G) = {metrics.min_eigenvalue:.6f}\n"
+            f"  • λ_max(G) = {metrics.max_eigenvalue:.6f}\n"
+            f"  • κ(G) = {metrics.condition_number:.4f}\n"
+            f"  • Matriz de Gram:\n{metrics.gram_matrix}\n"
+            f"  • Vectores:\n" + "\n".join(f"    v_{i+1} = {v}" for i, v in enumerate(vectors))
+        )
+        
+        G = metrics.gram_matrix
+        asymmetry = np.linalg.norm(G - G.T, ord='fro')
+        assert asymmetry < EPSILON_FLOAT64, (
+            f"Matriz Gram no simétrica: ‖G - Gᵀ‖_F = {asymmetry:.2e}"
+        )
+        
+        print(f"\n{'='*70}")
+        print(f"TEST PASADO: Ortonormalidad")
+        print(f"  • ‖G - I₃‖_F = {metrics.gram_deviation:.2e}")
+        print(f"  • λ ∈ [{metrics.min_eigenvalue:.6f}, {metrics.max_eigenvalue:.6f}]")
+        print(f"  • κ(G) = {metrics.condition_number:.4f}")
+        print(f"{'='*70}\n")
+    
+    def test_spectral_stability_identity_spectrum_rigorous(
+        self,
+        canonical_basis: List[Morphism],
+        zero_state: CategoricalState,
+    ) -> None:
+        """Verifica estabilidad espectral."""
+        T: NDArray[np.float64] = _compute_transformation_matrix(
+            canonical_basis, zero_state
+        )
+        
+        metrics = _compute_spectral_metrics(T)
+        
+        assert metrics.is_stable, (
+            f"INESTABILIDAD ESPECTRAL:\n"
+            f"  • ρ(T) = {metrics.spectral_radius:.6f} > 1\n"
+            f"  • max|λ - 1| = {metrics.spectral_deviation:.2e}\n"
+            f"  • Eigenvalores: {metrics.eigenvalues}"
+        )
+        
+        for idx, eig in enumerate(metrics.eigenvalues):
+            assert np.isclose(eig.real, 1.0, atol=SPECTRAL_TOLERANCE), (
+                f"λ_{idx+1} real = {eig.real:.10f} ≠ 1.0. "
+                f"Desviación: {abs(eig.real - 1.0):.2e}"
+            )
+            
+            assert np.isclose(eig.imag, 0.0, atol=SPECTRAL_TOLERANCE), (
+                f"λ_{idx+1} imag = {eig.imag:.10f} ≠ 0"
+            )
+        
+        print(f"\n{'='*70}")
+        print(f"TEST PASADO: Estabilidad Espectral")
+        print(f"  • ρ(T) = {metrics.spectral_radius:.6f}")
+        print(f"  • max|λ - 1| = {metrics.spectral_deviation:.2e}")
+        print(f"{'='*70}\n")
+    
+    def test_full_rank_no_blind_spots_rigorous(
+        self,
+        canonical_basis: List[Morphism],
+        zero_state: CategoricalState,
+    ) -> None:
+        """Verifica rango completo."""
+        T: NDArray[np.float64] = _compute_transformation_matrix(
+            canonical_basis, zero_state
+        )
+        
+        rank: int = np.linalg.matrix_rank(T, tol=RANK_TOLERANCE)
+        det_T: float = float(np.linalg.det(T))
+        
+        assert rank == _SPACE_DIMENSION, (
+            f"COLAPSO DIMENSIONAL: rank(T) = {rank} < {_SPACE_DIMENSION}. "
+            f"Nulidad = {_SPACE_DIMENSION - rank}. "
+            f"det(T) = {det_T:.6f}"
+        )
+        
+        assert abs(det_T - 1.0) < DETERMINANT_TOLERANCE, (
+            f"det(T) = {det_T:.10f} ≠ 1.0"
+        )
+        
+        print(f"\n{'='*70}")
+        print(f"TEST PASADO: Rango Completo")
+        print(f"  • rank(T) = {rank}")
+        print(f"  • det(T) = {det_T:.10f}")
+        print(f"{'='*70}\n")
+    
+    def test_orthogonality_invariance_under_perturbation_rigorous(
+        self,
+        canonical_basis: List[Morphism],
+        perturbed_state: CategoricalState,
+    ) -> None:
+        """Verifica invariancia bajo perturbación."""
+        base_vector: RealVector = _extract_state_vector(perturbed_state)
+        effect_vectors: List[RealVector] = []
+        
+        for vec in canonical_basis:
+            result_vector = _extract_state_vector(vec(perturbed_state))
+            delta = result_vector - base_vector
+            effect_vectors.append(delta)
+        
+        for i in range(_SPACE_DIMENSION):
+            for j in range(i + 1, _SPACE_DIMENSION):
+                dot_ij: float = float(np.dot(effect_vectors[i], effect_vectors[j]))
+                assert abs(dot_ij) < ORTHOGONALITY_TOLERANCE, (
+                    f"FUGA DIMENSIONAL: ⟨Δ_{i+1}, Δ_{j+1}⟩ = {dot_ij:.2e} ≠ 0"
+                )
+        
+        for i, delta in enumerate(effect_vectors):
+            nonzero_count = int(np.count_nonzero(np.abs(delta) > ORTHOGONALITY_TOLERANCE))
+            assert nonzero_count == 1, (
+                f"Handler '{_CANONICAL_BASIS[i].name}' modifica "
+                f"{nonzero_count} dimensiones (esperado 1)"
+            )
+        
+        print(f"\n{'='*70}")
+        print(f"TEST PASADO: Invariancia bajo Perturbación")
+        print(f"{'='*70}\n")
+    
+    def test_no_dimensional_leaks_rigorous(
+        self,
+        canonical_basis: List[Morphism],
+        zero_state: CategoricalState,
+    ) -> None:
+        """Verifica ausencia de fugas dimensionales."""
+        allowed_dims: Set[str] = set(_CANONICAL_DIMENSIONS)
+        
+        for i, vec in enumerate(canonical_basis):
+            result_state = vec(zero_state)
+            leaks = _detect_dimensional_leaks(result_state, allowed_dims)
+            
+            assert len(leaks) == 0, (
+                f"FUGA DIMENSIONAL en '{_CANONICAL_BASIS[i].name}': {leaks}"
+            )
+        
+        print("  ✓ No fugas dimensionales detectadas")
+    
+    def test_composition_preserves_complement_orthogonality_rigorous(
+        self,
+        canonical_basis: List[Morphism],
+        zero_state: CategoricalState,
+    ) -> None:
+        """Verifica ortogonalidad del complemento bajo composición."""
+        composed = ComposedMorphism(canonical_basis[0], canonical_basis[1])
+        
+        v_composite: RealVector = _extract_state_vector(composed(zero_state))
+        v_complement: RealVector = _extract_state_vector(canonical_basis[2](zero_state))
+        
+        dot_product: float = float(np.dot(v_composite, v_complement))
+        assert abs(dot_product) < ORTHOGONALITY_TOLERANCE, (
+            f"CONTAMINACIÓN: ⟨v_composite, e₃⟩ = {dot_product:.2e} ≠ 0"
+        )
+        
+        assert abs(v_composite[2]) < ORTHOGONALITY_TOLERANCE, (
+            f"v_composite tiene componente en dim_3 = {v_composite[2]:.2e}"
+        )
+        
+        effect_1 = _extract_state_vector(canonical_basis[0](zero_state))
+        effect_2 = _extract_state_vector(canonical_basis[1](zero_state))
+        v_sum: RealVector = effect_1 + effect_2
+        
+        np.testing.assert_allclose(
+            v_composite,
+            v_sum,
+            atol=ORTHOGONALITY_TOLERANCE,
+            err_msg="RUPTURA DE ADITIVIDAD: e₂ ∘ e₁ ≠ e₁ + e₂"
+        )
+        
+        print("  ✓ Composición preserva ortogonalidad")
+    
+    def test_handler_commutativity_rigorous(
+        self,
+        canonical_basis: List[Morphism],
+        zero_state: CategoricalState,
+        perturbed_state: CategoricalState,
+    ) -> None:
+        """Verifica conmutatividad de handlers."""
+        for initial_state, state_name in [
+            (zero_state, "cero"),
+            (perturbed_state, "perturbado"),
+        ]:
+            for i in range(_SPACE_DIMENSION):
+                for j in range(i + 1, _SPACE_DIMENSION):
+                    e_i = canonical_basis[i]
+                    e_j = canonical_basis[j]
+                    
+                    result_ij = _extract_state_vector(e_j(e_i(initial_state)))
+                    result_ji = _extract_state_vector(e_i(e_j(initial_state)))
+                    
+                    np.testing.assert_allclose(
+                        result_ij,
+                        result_ji,
+                        atol=ORTHOGONALITY_TOLERANCE,
+                        err_msg=(
+                            f"NO CONMUTATIVIDAD desde {state_name}: "
+                            f"(e_{j+1} ∘ e_{i+1}) ≠ (e_{i+1} ∘ e_{j+1})"
+                        )
+                    )
+        
+        print("  ✓ Conmutatividad verificada")
+    
+    def test_handler_idempotence_rigorous(
+        self,
+        canonical_basis: List[Morphism],
+        zero_state: CategoricalState,
+    ) -> None:
+        """Verifica idempotencia."""
+        for i, vec in enumerate(canonical_basis):
+            once = vec(zero_state)
+            v_once = _extract_state_vector(once)
+            
+            twice = vec(once)
+            v_twice = _extract_state_vector(twice)
+            
+            np.testing.assert_allclose(
+                v_twice,
+                v_once,
+                atol=ORTHOGONALITY_TOLERANCE,
+                err_msg=(
+                    f"NO IDEMPOTENCIA: e_{i+1}(e_{i+1}(0)) ≠ e_{i+1}(0)"
+                )
+            )
+        
+        print("  ✓ Idempotencia verificada")
+    
+    def test_handler_isolation_explicit(self) -> None:
+        """
+        Verifica aislamiento dimensional de cada handler.
+        
+        NUEVO TEST: Validación explícita de contratos de handlers.
+        """
+        for spec in _CANONICAL_BASIS:
+            is_isolated, diagnostic = _verify_handler_isolation(
+                spec.handler,
+                spec.target_dimension,
+                _CANONICAL_DIMENSIONS
+            )
+            
+            assert is_isolated, (
+                f"VIOLACIÓN DE AISLAMIENTO en '{spec.name}':\n"
+                f"  • {diagnostic}\n"
+                f"  • Target: {spec.target_dimension}"
+            )
+        
+        print("  ✓ Aislamiento dimensional verificado")
+
+
+# =============================================================================
+# CONFIGURACIÓN PYTEST
+# =============================================================================
+def pytest_configure(config: pytest.Config) -> None:
+    """Configuración personalizada."""
+    markers = {
+        "unit": "Tests unitarios",
+        "integration": "Tests de integración",
+        "stress": "Tests de estrés",
+        "algebra": "Tests algebraicos",
+    }
+    
+    for marker, desc in markers.items():
+        config.addinivalue_line("markers", f"{marker}: {desc}")
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short", "-ra", "--strict-markers"])
