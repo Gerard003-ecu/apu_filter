@@ -26,7 +26,10 @@ from decimal import getcontext
 # Cuantización de la Tolerancia Numérica: Configura globalmente el contexto decimal
 # para los tests ergódicos para evitar que el error de truncamiento del estándar
 # IEEE 754 degenere la condición de Palais-Smale.
+# rank(BLAS_THREADS)≡1 ⟹ dim(ker(MKL))=0
+from decimal import ROUND_HALF_EVEN
 getcontext().prec = 50
+getcontext().rounding = ROUND_HALF_EVEN
 
 import sys
 
