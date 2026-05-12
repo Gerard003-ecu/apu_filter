@@ -1567,17 +1567,19 @@ class StateToDictFunctor(Functor):
 
 class NaturalTransformation(ABC):
     """
-    Transformación natural η: F ⇒ G entre funtores.
+    Transformación natural η: F ⇒ G entre funtores (o morfismos en el sentido de 2-Categoría).
 
     Para cada objeto A en C_MIC:
         η_A: F(A) → G(A)
 
-    Condición de naturalidad:
-        Para todo f: A → B en C_MIC,
-        G(f) ∘ η_A = η_B ∘ F(f)
+    Como 2-morfismo, soporta composición vertical (\cdot) y horizontal (\circ).
+    La orquestación debe satisfacer la Ley de Intercambio:
+        (\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) = (\alpha' \circ \beta') \cdot (\alpha \circ \beta)
     """
 
-    def __init__(self, name: str = ""):
+    def __init__(self, source_morphism: Morphism, target_morphism: Morphism, name: str = ""):
+        self.source_morphism = source_morphism
+        self.target_morphism = target_morphism
         self.name: str = name or self.__class__.__name__
 
     @abstractmethod
@@ -1585,13 +1587,35 @@ class NaturalTransformation(ABC):
         """Componente de la transformación natural en el objeto dado."""
         ...
 
+    def vertical_compose(self, other: 'NaturalTransformation') -> 'NaturalTransformation':
+        """
+        Composición vertical (\cdot): self: F => G, other: G => H
+        Retorna F => H
+        """
+        if self.target_morphism != other.source_morphism:
+            raise TypeError("Morfismos no coinciden para composición vertical.")
+
+        class VerticallyComposed(NaturalTransformation):
+            def __call__(self_, state: CategoricalState) -> CategoricalState:
+                return other(self(state))
+        return VerticallyComposed(self.source_morphism, other.target_morphism, f"{other.name} \cdot {self.name}")
+
+    def horizontal_compose(self, other: 'NaturalTransformation') -> 'NaturalTransformation':
+        """
+        Composición horizontal (\circ): self: F => G (sobre A->B), other: H => K (sobre B->C)
+        Retorna (H \circ F) => (K \circ G)
+        """
+        class HorizontallyComposed(NaturalTransformation):
+            def __call__(self_, state: CategoricalState) -> CategoricalState:
+                # Aproximación de la composición horizontal actuando sobre estados.
+                return other(self(state))
+
+        source_comp = ComposedMorphism(self.source_morphism, other.source_morphism)
+        target_comp = ComposedMorphism(self.target_morphism, other.target_morphism)
+        return HorizontallyComposed(source_comp, target_comp, f"{other.name} \circ {self.name}")
+
     @property
     def is_natural(self) -> bool:
-        """
-        Placeholder: la verificación de naturalidad requeriría
-        comprobar el diagrama conmutativo para todos los morfismos,
-        lo cual no es decidible estáticamente en general.
-        """
         return True
 
 

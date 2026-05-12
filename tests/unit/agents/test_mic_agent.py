@@ -345,10 +345,10 @@ class TestSchemaValidationResult:
 
     def test_immutability(self):
         """Resultados son inmutables."""
-        result = SchemaValidationResult(is_valid=True)
+        result = SchemaValidationResult(validity_degree=1.0)
         
         with pytest.raises(AttributeError):
-            result.is_valid = False
+            result.validity_degree = 0.5
 
 
 # =============================================================================

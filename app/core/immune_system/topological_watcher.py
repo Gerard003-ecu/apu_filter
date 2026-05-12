@@ -949,6 +949,29 @@ class MetricTensor:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @dataclass
+
+class IsolatingMembraneFunctor:
+    """
+    Funtor que evalúa el funcional de energía de p-Dirichlet y computa el estrés topológico.
+    """
+    def __init__(self, p: float = 1.5, eps: float = 1e-12):
+        if not (1 <= p < 2):
+            raise ValueError("El exponente p debe estar en [1, 2)")
+        self.p = p
+        self.eps = eps
+
+    def compute_topological_stress(self, psi: np.ndarray) -> np.ndarray:
+        """
+        Calcula S_p(\psi) = |\Delta \psi|^{p-2} + \epsilon_{mach}
+        """
+        # Aproximación del Laplaciano discreto
+        laplacian = psi - np.mean(psi)
+        abs_lap = np.maximum(np.abs(laplacian), self.eps)
+        S_p = abs_lap**(self.p - 2.0) + self.eps
+        return S_p
+
+
+@dataclass
 class SubspaceSpec:
     """
     Especificación de un subespacio de riesgo Vₖ ⊂ ℝⁿ.
@@ -1014,17 +1037,13 @@ class SubspaceSpec:
 
     def compute_threat(self, subvector: np.ndarray) -> float:
         """
-        Calcula la amenaza del subespacio Vₖ.
+        Calcula la amenaza del subespacio Vₖ usando un Tensor Métrico Riemanniano perturbado dinámicamente.
 
         Fórmula
         ───────
-        threatₖ = wₖ · d_{Gₖ}(v, ref) = wₖ · √[(v−ref)ᵀ Gₖ (v−ref)]
-
-        Propiedades
-        ───────────
-        • threatₖ ≥ 0  (distancia Mahalanobis no-negativa)
-        • threatₖ = 0  ⟺ v = ref  (solo en el punto de referencia)
-        • Escala linealmente con weight: threat(wv) = w · threat(v)
+        S_p = IsolatingMembraneFunctor(1.5).compute_topological_stress(v)
+        \tilde{G}_k(v) = G_k · [I_n + \gamma · \text{diag}(S_p(v))]
+        threatₖ = wₖ · \sqrt{ (\tilde{\pi}_k(v - \psi_{ref}))^T \tilde{G}_k(v) (\tilde{\pi}_k(v - \psi_{ref})) }
 
         Parameters
         ----------
@@ -1045,9 +1064,28 @@ class SubspaceSpec:
                 f"{sv.shape} ≠ {self.reference.shape}"
             )
 
-        delta = sv - self.reference
-        # quadratic_form ya clampea a 0 (CORRECCIÓN N5 en MetricTensor)
-        maha_sq = self.metric.quadratic_form(delta)
+        # Fase 1 y 2: Funtor Ortogonal Adaptativo
+        membrane = IsolatingMembraneFunctor(p=1.5, eps=EPS)
+        S_p = membrane.compute_topological_stress(sv)
+
+        # Proyectamos el desplazamiento: \tilde{\pi}_k(v - ref) = (v - ref) \odot S_p(v)^{-1}
+        delta = (sv - self.reference) * (1.0 / S_p)
+
+        # Fase 3: Deformación del Tensor Métrico
+        gamma = 0.1
+
+        # G_k base extraído del MetricTensor interno
+        base_G_k = self.metric.to_array()
+        if base_G_k.ndim == 1:
+            base_G_k = np.diag(base_G_k)
+
+        # \tilde{G}_k(v) = G_k \cdot [I_n + \gamma \cdot \text{diag}(S_p(v))]
+        perturbation = np.eye(len(S_p)) + gamma * np.diag(S_p)
+        tilde_G_k_matrix = base_G_k @ perturbation
+
+        # Calcular forma cuadrática: delta^T * tilde_G_k * delta
+        maha_sq = float(delta @ tilde_G_k_matrix @ delta)
+
         # Protección adicional contra negativos residuales
         return self.weight * float(np.sqrt(max(maha_sq, 0.0)))
 

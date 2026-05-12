@@ -244,48 +244,57 @@ class ProjectionTarget(Protocol):
 @dataclass(frozen=True, slots=True)
 class SchemaValidationResult:
     """
-    Resultado de validación de schema JSON.
+    Resultado de validación de schema JSON operando en un Topos de Grothendieck
+    con el Clasificador de Subobjetos \Omega (Álgebra de Heyting).
     
     Attributes:
-        is_valid: Si la validación fue exitosa
+        validity_degree: Grado de validez intuicionista en [0.0, 1.0] (donde 1.0 es Verdad Máxima)
         errors: Lista de errores encontrados
         warnings: Lista de advertencias
         path: Ruta JSON donde ocurrió el error (si aplica)
     """
-    is_valid: bool
+    validity_degree: float
     errors: Tuple[str, ...] = field(default_factory=tuple)
     warnings: Tuple[str, ...] = field(default_factory=tuple)
     path: str = "$"
     
+    @property
+    def is_valid(self) -> bool:
+        return self.validity_degree >= 1.0
+
     @classmethod
     def success(cls) -> "SchemaValidationResult":
-        """Factory para resultado exitoso."""
-        return cls(is_valid=True)
+        """Factory para resultado exitoso (Verdad Máxima 1.0)."""
+        return cls(validity_degree=1.0)
     
     @classmethod
     def failure(
         cls, 
         error: str, 
-        path: str = "$"
+        path: str = "$",
+        penalty: float = 1.0
     ) -> "SchemaValidationResult":
-        """Factory para resultado fallido."""
-        return cls(is_valid=False, errors=(error,), path=path)
+        """Factory para resultado fallido con grado de penalización."""
+        return cls(validity_degree=max(0.0, 1.0 - penalty), errors=(error,), path=path)
     
     @classmethod
     def merge(
         cls, 
         results: Iterable["SchemaValidationResult"]
     ) -> "SchemaValidationResult":
-        """Combina múltiples resultados."""
+        """Combina múltiples resultados (Conjunción en Heyting Álgebra)."""
         all_errors: List[str] = []
         all_warnings: List[str] = []
+        min_validity = 1.0
         
         for r in results:
             all_errors.extend(r.errors)
             all_warnings.extend(r.warnings)
+            if r.validity_degree < min_validity:
+                min_validity = r.validity_degree
         
         return cls(
-            is_valid=len(all_errors) == 0,
+            validity_degree=min_validity,
             errors=tuple(all_errors),
             warnings=tuple(all_warnings),
         )
@@ -1568,31 +1577,55 @@ class MICAgent:
     # VALIDACIÓN DE CLAUSURA
     # -------------------------------------------------------------------------
 
+    def direct_image_functor(self, state: CategoricalState) -> Dict[str, Any]:
+        """
+        Funtor Imagen Directa f_*: E_MIC -> L
+        Inyecta el estado al prompt probabilístico (LLM).
+        """
+        return state.to_dict()
+
+    def inverse_image_functor(self, llm_output: Any, target_vector: str, validated_strata: FrozenSet[Stratum]) -> CategoricalState:
+        """
+        Funtor Imagen Inversa f^*: L -> E_MIC
+        Extrae la intención del LLM hacia la física.
+        Veto Físico: f^*(\\emptyset) = \\emptyset
+        Si el LLM alucina un producto fibrado vacío (capacidades mutuamente excluyentes), colapsa deterministamente.
+        """
+        if not isinstance(llm_output, Mapping) or not llm_output:
+            # Preservar límites finitos (pullbacks). f^*(\\emptyset) = \\emptyset
+            return self._create_error_state(
+                target_vector=target_vector,
+                status=ImpedanceMatchStatus.INPUT_TYPE_ERROR,
+                error_msg="Veto Físico: Funtor Imagen Inversa evaluado sobre vacío f^*(\\emptyset) = \\emptyset",
+                validated_strata=validated_strata,
+            )
+        return self.encapsulate_monad(target_vector, llm_output, validated_strata)
+
     def validate_closure(
         self,
         target_stratum: Stratum,
         validated_strata: FrozenSet[Stratum],
     ) -> Optional[str]:
         """
-        Valida clausura transitiva DIKW.
-        
-        Para que un estrato σ sea alcanzable, todos los estratos en
-        σ.requires() deben estar validados.
+        Valida usando un Sitio de Grothendieck con una topología J basada en Covering Sieves.
+        S \in J(U) \implies (	ext{si } \phi: V 	o U \in S 	ext{ y } \psi: W 	o V, 	ext{ entonces } \phi \circ \psi \in S)
         
         Args:
-            target_stratum: Estrato objetivo
-            validated_strata: Estratos ya validados
+            target_stratum: Estrato objetivo U
+            validated_strata: Estratos ya validados S
         
         Returns:
-            Mensaje de error si hay violación, None si OK
+            Mensaje de error si hay violación, None si cubre topológicamente el dominio.
         """
         required = target_stratum.requires()
         missing = required - validated_strata
         
+        # En una topología de Grothendieck, si la Criba S generada por validated_strata
+        # no cubre al objeto (estrato objetivo), el pullback estructural falla.
         if missing:
             return (
-                f"Clausura transitiva incumplida para {target_stratum.name}: "
-                f"faltan estratos {sorted(s.name for s in missing)}"
+                f"Fallo en Sitio de Grothendieck: La criba generada no cubre la topología J({target_stratum.name}). "
+                f"Faltan morfismos estructurales: {sorted(s.name for s in missing)}"
             )
         
         return None

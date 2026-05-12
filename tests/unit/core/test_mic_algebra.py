@@ -199,6 +199,10 @@ class ConcreteMorphism(Morphism):
 
 class ConcreteNaturalTransformation(NaturalTransformation):
     """Transformación natural concreta para pruebas."""
+    def __init__(self, name=""):
+        from app.core.mic_algebra import IdentityMorphism, Stratum
+        id_m = IdentityMorphism(Stratum.PHYSICS)
+        super().__init__(id_m, id_m, name)
 
     def __call__(self, state: CategoricalState) -> CategoricalState:
         return state.with_update({"transformed": True})
