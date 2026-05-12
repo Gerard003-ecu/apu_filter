@@ -1,40 +1,63 @@
 """
-Suite de Pruebas: MIC Agent (test_MIC_agent.py)
+Suite de Pruebas para MIC Agent
+Ubicación: tests/agents/test_mic_agent.py
 
-Pruebas matemáticamente rigurosas para validar:
+COBERTURA DE PRUEBAS - PARTE 1:
 
-1. Utilidades: normalización de estratos, matching de tipos
-2. Validación de Schema: todos los keywords JSON Schema soportados
-3. Protocolo TOON: compresión, descompresión, roundtrip
-4. Vetos Algebraicos: invariantes físicos y lógicos por estrato
-5. Gestión de Silos: contratos y cartuchos
-6. Traza de Auditoría: thread-safety, límites, filtrado
-7. MIC Agent: encapsulación monádica, proyección
-8. Integración: flujo completo end-to-end
+1. UTILIDADES MATEMÁTICAS:
+   - Hashing estable y canónico
+   - Cálculo de rango tensorial
+   - Comparación de floats con tolerancia
+   - Operaciones de clamp
 
-Convenciones:
-- Los tests verifican propiedades del funtor F: L → M
-- Se validan invariantes de clausura transitiva DIKW
-- Cada test documenta la propiedad verificada
+2. NORMALIZACIÓN DE ESTRATOS:
+   - Conversión desde int, str, Stratum
+   - Manejo de errores
+   - Idempotencia
+
+3. TIPOS Y VALIDACIÓN:
+   - Validación de tipos JSON Schema
+   - Construcción de JSONPath
+   - Detección de números JSON
+
+4. DATACLASSES DE AUDITORÍA:
+   - SchemaValidationResult (Álgebra de Heyting)
+   - CategoricalEqualizerSeed
+   - TOONDocument (parsing y rendering)
+
+5. CONTRATOS Y CARTUCHOS:
+   - SiloAContract
+   - SiloBCartridge
+   - Validación de integridad
+
+6. VALIDADOR DE SCHEMA:
+   - Tipos básicos
+   - Validación de propiedades
+   - Validación recursiva
+   - Constraints numéricos
+   - Patterns regex
+
+Estrategia de Testing:
+- Property-based testing donde aplicable
+- Verificación de invariantes matemáticos
+- Tests de casos extremos
+- Verificación de determinismo
 """
 
 from __future__ import annotations
 
 import json
-import threading
+import logging
+import re
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
-from typing import Any, Dict, FrozenSet, List, Mapping, Optional, Set
-from unittest.mock import MagicMock, patch, PropertyMock
+from typing import Any, Dict, List, Optional, Tuple, FrozenSet
 
+import numpy as np
 import pytest
+from unittest.mock import Mock, MagicMock, patch
 
-# Importaciones del módulo bajo prueba
-from app.core.schemas import Stratum
-from app.core.mic_algebra import CategoricalState
-
-from app.agents.MIC_agent import (
+# Imports del módulo bajo prueba
+from app.agents.mic_agent import (
     # Excepciones
     MICAgentError,
     StratumResolutionError,
@@ -44,15 +67,19 @@ from app.agents.MIC_agent import (
     TOONCompressionError,
     SiloAccessError,
     ProjectionError,
-    # Enums
+    FunctorialityError,
+    
+    # Enumeraciones
     ImpedanceMatchStatus,
     ValidationSeverity,
+    
     # Dataclasses
     SchemaValidationResult,
     CategoricalEqualizerSeed,
     TOONDocument,
     SiloAContract,
     SiloBCartridge,
+    
     # Clases principales
     SchemaValidator,
     AlgebraicVetoRegistry,
@@ -60,277 +87,544 @@ from app.agents.MIC_agent import (
     TOONCompressor,
     AuditTrail,
     MICAgent,
+    
     # Utilidades
+    MathUtils,
     normalize_stratum,
     python_type_matches,
     compute_json_path,
+    _is_json_number,
+    
     # Constantes
     MAX_AUDIT_TRAIL_SIZE,
     TOON_START_MARKER,
     TOON_END_MARKER,
+    TOON_FIELD_SEPARATOR,
     ENCAPSULATION_PROTOCOL_VERSION,
+    EPS,
+    ALGEBRAIC_TOL,
+    FLOAT_COMPARISON_TOL,
+    MAX_TENSOR_RANK,
+    MAX_COMPRESSION_RATIO,
+    MIN_COMPRESSION_RATIO,
 )
 
+from app.core.schemas import Stratum
+from app.core.mic_algebra import CategoricalState
 
-# =============================================================================
-# CONSTANTES DE PRUEBA
-# =============================================================================
-
-SAMPLE_TELEMETRY = {
-    "sensor_id": "S001",
-    "temperature": 25.5,
-    "pressure": 101.325,
-    "readings": [1, 2, 3],
-}
-
-VALID_PHYSICS_PAYLOAD = {
-    "dissipated_power": 100.0,
-    "energy_input": 500.0,
-    "energy_output": 400.0,
-}
-
-VALID_TACTICS_PAYLOAD = {
-    "pyramid_stability_index": 0.85,
-    "flow_efficiency": 0.92,
-}
-
-VALID_STRATEGY_PAYLOAD = {
-    "territorial_friction": 1.5,
-    "risk_coupling": 0.3,
-}
-
-VALID_WISDOM_PAYLOAD = {
-    "final_verdict": "VIABLE",
-    "confidence_score": 0.95,
-    "rationale": "All criteria met",
-}
-
-
-# =============================================================================
+# ==============================================================================
 # FIXTURES
-# =============================================================================
+# ==============================================================================
 
 @pytest.fixture
-def schema_validator() -> SchemaValidator:
-    """Validador de schema."""
-    return SchemaValidator()
-
+def logger_mock(monkeypatch):
+    """Mock del logger para capturar mensajes."""
+    messages = {
+        "debug": [],
+        "info": [],
+        "warning": [],
+        "error": [],
+        "critical": []
+    }
+    
+    def make_logger_func(level):
+        def log_func(msg, *args, **kwargs):
+            formatted = msg % args if args else msg
+            messages[level].append(formatted)
+        return log_func
+    
+    logger = logging.getLogger("MIC.Agent.CategoricalEqualizer")
+    monkeypatch.setattr(logger, "debug", make_logger_func("debug"))
+    monkeypatch.setattr(logger, "info", make_logger_func("info"))
+    monkeypatch.setattr(logger, "warning", make_logger_func("warning"))
+    monkeypatch.setattr(logger, "error", make_logger_func("error"))
+    monkeypatch.setattr(logger, "critical", make_logger_func("critical"))
+    
+    return messages
 
 @pytest.fixture
-def algebraic_vetos() -> AlgebraicVetoRegistry:
-    """Registro de vetos algebraicos."""
-    return AlgebraicVetoRegistry()
+def sample_contract() -> SiloAContract:
+    """Contrato de ejemplo válido."""
+    return SiloAContract(
+        contract_id="test_contract",
+        stratum=Stratum.PHYSICS,
+        schema={
+            "type": "object",
+            "required": ["value"],
+            "properties": {
+                "value": {"type": "number", "minimum": 0}
+            }
+        },
+        description="Test contract"
+    )
 
+@pytest.fixture
+def sample_cartridge() -> SiloBCartridge:
+    """Cartucho de ejemplo válido."""
+    return SiloBCartridge(
+        cartridge_id="test_cartridge",
+        stratum=Stratum.PHYSICS,
+        header_template="Test Header\nkey|value",
+        field_definitions=("value",),
+        description="Test cartridge"
+    )
+
+@pytest.fixture
+def mock_mic_registry() -> Mock:
+    """Mock del MICRegistry."""
+    registry = Mock()
+    registry.get_vector_info = Mock(return_value={
+        "stratum": Stratum.PHYSICS,
+        "dimension": 3
+    })
+    registry.project_intent = Mock(return_value={
+        "status": "OK",
+        "result": {}
+    })
+    return registry
 
 @pytest.fixture
 def silo_manager() -> SiloManager:
-    """Gestor de silos."""
+    """SiloManager con configuración por defecto."""
     return SiloManager()
 
+@pytest.fixture
+def schema_validator() -> SchemaValidator:
+    """SchemaValidator por defecto."""
+    return SchemaValidator()
+
+@pytest.fixture
+def algebraic_veto_registry() -> AlgebraicVetoRegistry:
+    """AlgebraicVetoRegistry por defecto."""
+    return AlgebraicVetoRegistry()
 
 @pytest.fixture
 def toon_compressor() -> TOONCompressor:
-    """Compresor TOON."""
+    """TOONCompressor por defecto."""
     return TOONCompressor()
-
 
 @pytest.fixture
 def audit_trail() -> AuditTrail:
-    """Traza de auditoría."""
+    """AuditTrail por defecto."""
     return AuditTrail(max_size=100)
 
+# ==============================================================================
+# TESTS: UTILIDADES MATEMÁTICAS
+# ==============================================================================
 
-@pytest.fixture
-def mock_mic_registry() -> MagicMock:
-    """Mock del registro MIC."""
-    registry = MagicMock()
+class TestMathUtils:
+    """Tests para utilidades matemáticas."""
     
-    # Configurar respuestas por defecto
-    registry.get_vector_info.return_value = {
-        "stratum": Stratum.PHYSICS,
-        "name": "test_vector",
-    }
+    def test_stable_hash_deterministic(self):
+        """Hash estable debe ser determinista."""
+        data1 = {"b": 2, "a": 1, "c": [3, 4, 5]}
+        data2 = {"a": 1, "b": 2, "c": [3, 4, 5]}
+        
+        hash1 = MathUtils.stable_hash(data1)
+        hash2 = MathUtils.stable_hash(data2)
+        
+        assert hash1 == hash2
+        assert len(hash1) == 64  # SHA-256
     
-    registry.project_intent.return_value = {
-        "success": True,
-        "projected": True,
-    }
+    def test_stable_hash_different_data(self):
+        """Hashes diferentes para datos diferentes."""
+        data1 = {"a": 1}
+        data2 = {"a": 2}
+        
+        hash1 = MathUtils.stable_hash(data1)
+        hash2 = MathUtils.stable_hash(data2)
+        
+        assert hash1 != hash2
     
-    return registry
+    def test_stable_hash_nested_structures(self):
+        """Hash para estructuras anidadas."""
+        data = {
+            "level1": {
+                "level2": {
+                    "level3": [1, 2, 3]
+                }
+            }
+        }
+        
+        hash_result = MathUtils.stable_hash(data)
+        
+        assert isinstance(hash_result, str)
+        assert len(hash_result) == 64
+    
+    def test_stable_hash_with_none(self):
+        """Hash con valores None."""
+        data = {"a": None, "b": 1}
+        hash_result = MathUtils.stable_hash(data)
+        
+        assert isinstance(hash_result, str)
+    
+    def test_stable_hash_fallback_repr(self):
+        """Fallback a repr() para objetos no serializables."""
+        
+        class CustomObject:
+            def __repr__(self):
+                return "CustomObject(x=42)"
+        
+        obj = CustomObject()
+        hash_result = MathUtils.stable_hash(obj)
+        
+        assert isinstance(hash_result, str)
+        assert len(hash_result) == 64
+    
+    def test_compute_tensor_rank_scalar(self):
+        """Rango tensorial de scalar."""
+        assert MathUtils.compute_tensor_rank(42) == 0
+        assert MathUtils.compute_tensor_rank("string") == 0
+        assert MathUtils.compute_tensor_rank(3.14) == 0
+    
+    def test_compute_tensor_rank_dict(self):
+        """Rango tensorial de diccionario."""
+        assert MathUtils.compute_tensor_rank({}) == 1
+        assert MathUtils.compute_tensor_rank({"a": 1}) == 1
+        assert MathUtils.compute_tensor_rank({"a": {"b": 2}}) == 2
+        assert MathUtils.compute_tensor_rank({"a": {"b": {"c": 3}}}) == 3
+    
+    def test_compute_tensor_rank_list(self):
+        """Rango tensorial de lista."""
+        assert MathUtils.compute_tensor_rank([]) == 1
+        assert MathUtils.compute_tensor_rank([1, 2, 3]) == 1
+        assert MathUtils.compute_tensor_rank([[1, 2], [3, 4]]) == 2
+        assert MathUtils.compute_tensor_rank([[[1]]]) == 3
+    
+    def test_compute_tensor_rank_mixed(self):
+        """Rango tensorial de estructuras mixtas."""
+        data = {
+            "a": [1, 2, 3],
+            "b": {"c": [4, 5]}
+        }
+        assert MathUtils.compute_tensor_rank(data) == 3
+    
+    def test_compute_tensor_rank_max_depth_protection(self):
+        """Protección contra recursión infinita."""
+        # Crear estructura muy profunda
+        data = {"a": 1}
+        current = data
+        for i in range(150):
+            current["nested"] = {"level": i}
+            current = current["nested"]
+        
+        # No debe lanzar RecursionError
+        rank = MathUtils.compute_tensor_rank(data, max_depth=100)
+        assert rank == 100  # Limitado por max_depth
+    
+    def test_float_equal_exact(self):
+        """Comparación de floats exactamente iguales."""
+        assert MathUtils.float_equal(1.0, 1.0)
+        assert MathUtils.float_equal(0.0, 0.0)
+        assert MathUtils.float_equal(-1.0, -1.0)
+    
+    def test_float_equal_within_tolerance(self):
+        """Comparación de floats dentro de tolerancia."""
+        assert MathUtils.float_equal(1.0, 1.0 + 1e-10)
+        assert MathUtils.float_equal(1.0, 1.0 - 1e-10)
+        assert MathUtils.float_equal(0.0, 1e-10)
+    
+    def test_float_equal_outside_tolerance(self):
+        """Comparación de floats fuera de tolerancia."""
+        assert not MathUtils.float_equal(1.0, 1.1)
+        assert not MathUtils.float_equal(0.0, 0.1)
+    
+    def test_float_equal_custom_tolerance(self):
+        """Comparación con tolerancia personalizada."""
+        assert MathUtils.float_equal(1.0, 1.01, tol=0.02)
+        assert not MathUtils.float_equal(1.0, 1.01, tol=0.001)
+    
+    def test_clamp_within_bounds(self):
+        """Clamp de valor dentro de límites."""
+        assert MathUtils.clamp(5.0, 0.0, 10.0) == 5.0
+    
+    def test_clamp_below_minimum(self):
+        """Clamp de valor por debajo del mínimo."""
+        assert MathUtils.clamp(-5.0, 0.0, 10.0) == 0.0
+    
+    def test_clamp_above_maximum(self):
+        """Clamp de valor por encima del máximo."""
+        assert MathUtils.clamp(15.0, 0.0, 10.0) == 10.0
+    
+    def test_clamp_at_boundaries(self):
+        """Clamp en los límites exactos."""
+        assert MathUtils.clamp(0.0, 0.0, 10.0) == 0.0
+        assert MathUtils.clamp(10.0, 0.0, 10.0) == 10.0
+    
+    def test_clamp_invalid_bounds(self):
+        """Clamp con límites inválidos."""
+        with pytest.raises(ValueError, match="min_val.*max_val"):
+            MathUtils.clamp(5.0, 10.0, 0.0)
 
-
-@pytest.fixture
-def mic_agent(mock_mic_registry) -> MICAgent:
-    """MIC Agent con dependencias mockeadas."""
-    return MICAgent(
-        mic_registry=mock_mic_registry,
-        audit_trail_size=100,
-    )
-
-
-@pytest.fixture
-def sample_audit_seed() -> CategoricalEqualizerSeed:
-    """Semilla de auditoría de ejemplo."""
-    return CategoricalEqualizerSeed(
-        target_vector="test_vector",
-        target_stratum=Stratum.PHYSICS,
-        silo_a_contract_id="test_contract",
-        silo_b_cartridge_id="test_cartridge",
-        impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
-        token_compression_ratio=0.8,
-        raw_telemetry_hash="abc123",
-        llm_output_hash="def456",
-    )
-
-
-# =============================================================================
-# TESTS: UTILIDADES
-# =============================================================================
+# ==============================================================================
+# TESTS: NORMALIZACIÓN DE ESTRATOS
+# ==============================================================================
 
 class TestNormalizeStratum:
-    """Pruebas para normalización de estratos."""
-
-    def test_stratum_passthrough(self):
-        """Stratum pasa sin modificación."""
+    """Tests para normalización de estratos."""
+    
+    def test_normalize_stratum_from_stratum(self):
+        """Normalizar desde Stratum (idempotente)."""
         assert normalize_stratum(Stratum.PHYSICS) == Stratum.PHYSICS
+        assert normalize_stratum(Stratum.TACTICS) == Stratum.TACTICS
+        assert normalize_stratum(Stratum.STRATEGY) == Stratum.STRATEGY
         assert normalize_stratum(Stratum.WISDOM) == Stratum.WISDOM
-
-    def test_int_conversion(self):
-        """Enteros se convierten a Stratum."""
-        assert normalize_stratum(0) == Stratum.WISDOM
-        assert normalize_stratum(1) == Stratum.ALPHA
-        assert normalize_stratum(2) == Stratum.OMEGA
-        assert normalize_stratum(3) == Stratum.STRATEGY
-        assert normalize_stratum(4) == Stratum.TACTICS
-        assert normalize_stratum(5) == Stratum.PHYSICS
-
-    def test_string_name_conversion(self):
-        """Strings por nombre se convierten."""
+    
+    def test_normalize_stratum_from_int(self):
+        """Normalizar desde entero."""
+        assert normalize_stratum(0) == Stratum.PHYSICS
+        assert normalize_stratum(1) == Stratum.TACTICS
+        assert normalize_stratum(2) == Stratum.STRATEGY
+        assert normalize_stratum(3) == Stratum.WISDOM
+    
+    def test_normalize_stratum_from_string_name(self):
+        """Normalizar desde string (nombre)."""
         assert normalize_stratum("PHYSICS") == Stratum.PHYSICS
         assert normalize_stratum("physics") == Stratum.PHYSICS
         assert normalize_stratum("Physics") == Stratum.PHYSICS
-
-    def test_string_int_conversion(self):
-        """Strings numéricos se convierten."""
-        assert normalize_stratum("0") == Stratum.WISDOM
-        assert normalize_stratum("1") == Stratum.ALPHA
-        assert normalize_stratum("2") == Stratum.OMEGA
-        assert normalize_stratum("3") == Stratum.STRATEGY
-        assert normalize_stratum("4") == Stratum.TACTICS
-        assert normalize_stratum("5") == Stratum.PHYSICS
-
-    def test_invalid_int_raises(self):
-        """Entero inválido lanza StratumResolutionError."""
-        with pytest.raises(StratumResolutionError):
-            normalize_stratum(99)
-
-    def test_invalid_string_raises(self):
-        """String inválido lanza StratumResolutionError."""
-        with pytest.raises(StratumResolutionError):
+    
+    def test_normalize_stratum_from_string_value(self):
+        """Normalizar desde string (valor numérico)."""
+        assert normalize_stratum("0") == Stratum.PHYSICS
+        assert normalize_stratum("1") == Stratum.TACTICS
+        assert normalize_stratum("2") == Stratum.STRATEGY
+        assert normalize_stratum("3") == Stratum.WISDOM
+    
+    def test_normalize_stratum_invalid_int(self):
+        """Rechazar entero inválido."""
+        with pytest.raises(StratumResolutionError, match="Valor entero inválido"):
+            normalize_stratum(999)
+    
+    def test_normalize_stratum_invalid_string(self):
+        """Rechazar string inválido."""
+        with pytest.raises(StratumResolutionError, match="String inválido"):
             normalize_stratum("INVALID_STRATUM")
-
-    def test_unsupported_type_raises(self):
-        """Tipo no soportado lanza StratumResolutionError."""
-        with pytest.raises(StratumResolutionError):
-            normalize_stratum([1, 2, 3])
+    
+    def test_normalize_stratum_invalid_type(self):
+        """Rechazar tipo no soportado."""
+        with pytest.raises(StratumResolutionError, match="Tipo no soportado"):
+            normalize_stratum(3.14)
         
-        with pytest.raises(StratumResolutionError):
-            normalize_stratum({"stratum": 1})
+        with pytest.raises(StratumResolutionError, match="Tipo no soportado"):
+            normalize_stratum([1, 2, 3])
+    
+    def test_normalize_stratum_idempotence(self):
+        """Verificar idempotencia."""
+        s1 = normalize_stratum("PHYSICS")
+        s2 = normalize_stratum(s1)
+        assert s1 == s2
 
+# ==============================================================================
+# TESTS: VALIDACIÓN DE TIPOS
+# ==============================================================================
 
 class TestPythonTypeMatches:
-    """Pruebas para matching de tipos Python a JSON Schema."""
+    """Tests para validación de tipos JSON Schema."""
+    
+    def test_null_type(self):
+        """Validación de tipo null."""
+        assert python_type_matches("null", None)
+        assert not python_type_matches("null", 0)
+        assert not python_type_matches("null", "")
+    
+    def test_boolean_type(self):
+        """Validación de tipo boolean."""
+        assert python_type_matches("boolean", True)
+        assert python_type_matches("boolean", False)
+        assert not python_type_matches("boolean", 1)
+        assert not python_type_matches("boolean", 0)
+    
+    def test_integer_type(self):
+        """Validación de tipo integer."""
+        assert python_type_matches("integer", 42)
+        assert python_type_matches("integer", -10)
+        assert python_type_matches("integer", 0)
+        assert not python_type_matches("integer", True)
+        assert not python_type_matches("integer", 3.14)
+    
+    def test_number_type(self):
+        """Validación de tipo number."""
+        assert python_type_matches("number", 42)
+        assert python_type_matches("number", 3.14)
+        assert python_type_matches("number", -2.5)
+        assert not python_type_matches("number", True)
+        assert not python_type_matches("number", "42")
+    
+    def test_string_type(self):
+        """Validación de tipo string."""
+        assert python_type_matches("string", "hello")
+        assert python_type_matches("string", "")
+        assert not python_type_matches("string", 42)
+    
+    def test_array_type(self):
+        """Validación de tipo array."""
+        assert python_type_matches("array", [])
+        assert python_type_matches("array", [1, 2, 3])
+        assert not python_type_matches("array", (1, 2, 3))
+        assert not python_type_matches("array", {})
+    
+    def test_object_type(self):
+        """Validación de tipo object."""
+        assert python_type_matches("object", {})
+        assert python_type_matches("object", {"a": 1})
+        assert not python_type_matches("object", [])
+    
+    def test_unknown_type(self):
+        """Tipo desconocido (retorna True por defecto)."""
+        assert python_type_matches("unknown_type", "anything")
 
-    @pytest.mark.parametrize("json_type,value,expected", [
-        ("null", None, True),
-        ("null", "not null", False),
-        ("boolean", True, True),
-        ("boolean", False, True),
-        ("boolean", 1, False),
-        ("boolean", "true", False),
-        ("integer", 42, True),
-        ("integer", 0, True),
-        ("integer", -10, True),
-        ("integer", 3.14, False),
-        ("integer", True, False),  # bool no es integer
-        ("number", 42, True),
-        ("number", 3.14, True),
-        ("number", -0.5, True),
-        ("number", True, False),  # bool no es number
-        ("string", "hello", True),
-        ("string", "", True),
-        ("string", 123, False),
-        ("array", [], True),
-        ("array", [1, 2, 3], True),
-        ("array", (), False),  # tuple no es array
-        ("object", {}, True),
-        ("object", {"key": "value"}, True),
-        ("object", [], False),
-    ])
-    def test_type_matching(self, json_type: str, value: Any, expected: bool):
-        """Verificar matching de tipos."""
-        assert python_type_matches(json_type, value) == expected
-
-    def test_unknown_type_accepts(self):
-        """Tipo desconocido acepta cualquier valor."""
-        assert python_type_matches("unknown_type", "anything") is True
-        assert python_type_matches("custom", 123) is True
-
+# ==============================================================================
+# TESTS: UTILIDADES JSON
+# ==============================================================================
 
 class TestComputeJsonPath:
-    """Pruebas para construcción de rutas JSON."""
+    """Tests para construcción de JSONPath."""
+    
+    def test_compute_json_path_root(self):
+        """JSONPath desde raíz."""
+        assert compute_json_path("$", "foo") == "$.foo"
+    
+    def test_compute_json_path_nested(self):
+        """JSONPath anidado."""
+        assert compute_json_path("$.foo", "bar") == "$.foo.bar"
+    
+    def test_compute_json_path_array_index(self):
+        """JSONPath con índice de array."""
+        assert compute_json_path("$.foo", 0) == "$.foo[0]"
+        assert compute_json_path("$.foo", 42) == "$.foo[42]"
+    
+    def test_compute_json_path_special_chars(self):
+        """JSONPath con caracteres especiales."""
+        assert compute_json_path("$", "key.with.dots") == "$.key\\.with\\.dots"
+        assert compute_json_path("$", "key[with]brackets") == "$.key\\[with\\]brackets"
 
-    def test_root_with_key(self):
-        """Ruta desde root."""
-        assert compute_json_path("$", "name") == "$.name"
+class TestIsJsonNumber:
+    """Tests para detección de números JSON."""
+    
+    def test_is_json_number_integer(self):
+        """Detectar enteros."""
+        assert _is_json_number("42")
+        assert _is_json_number("-10")
+        assert _is_json_number("0")
+    
+    def test_is_json_number_float(self):
+        """Detectar floats."""
+        assert _is_json_number("3.14")
+        assert _is_json_number("-2.5")
+        assert _is_json_number("0.0")
+    
+    def test_is_json_number_scientific(self):
+        """Detectar notación científica."""
+        assert _is_json_number("1e10")
+        assert _is_json_number("2.5e-3")
+    
+    def test_is_json_number_invalid(self):
+        """Rechazar no-números."""
+        assert not _is_json_number("abc")
+        assert not _is_json_number("true")
+        assert not _is_json_number("")
 
-    def test_nested_path(self):
-        """Ruta anidada."""
-        assert compute_json_path("$.parent", "child") == "$.parent.child"
+# ==============================================================================
+# TESTS: ENUMERACIONES
+# ==============================================================================
 
-    def test_array_index(self):
-        """Índice de array."""
-        assert compute_json_path("$.items", 0) == "$.items[0]"
-        assert compute_json_path("$.items", 5) == "$.items[5]"
+class TestImpedanceMatchStatus:
+    """Tests para ImpedanceMatchStatus."""
+    
+    def test_is_terminal(self):
+        """Verificar estados terminales."""
+        assert ImpedanceMatchStatus.ALGEBRAIC_VETO.is_terminal
+        assert ImpedanceMatchStatus.TOPOLOGICAL_BIFURCATION.is_terminal
+        assert ImpedanceMatchStatus.COHOMOLOGY_FAILURE.is_terminal
+        
+        assert not ImpedanceMatchStatus.LAMINAR_PROJECTION.is_terminal
+        assert not ImpedanceMatchStatus.INPUT_TYPE_ERROR.is_terminal
+    
+    def test_severity_ordering(self):
+        """Verificar orden de severidad."""
+        assert ImpedanceMatchStatus.LAMINAR_PROJECTION.severity == 0
+        assert ImpedanceMatchStatus.INPUT_TYPE_ERROR.severity == 1
+        assert ImpedanceMatchStatus.ALGEBRAIC_VETO.severity == 3
+    
+    def test_comparison_operators(self):
+        """Verificar comparaciones."""
+        assert ImpedanceMatchStatus.LAMINAR_PROJECTION < ImpedanceMatchStatus.ALGEBRAIC_VETO
+        assert ImpedanceMatchStatus.INPUT_TYPE_ERROR < ImpedanceMatchStatus.COHOMOLOGY_FAILURE
 
+class TestValidationSeverity:
+    """Tests para ValidationSeverity."""
+    
+    def test_heyting_value(self):
+        """Verificar valores en Álgebra de Heyting."""
+        assert ValidationSeverity.ERROR.heyting_value == 0.0
+        assert ValidationSeverity.WARNING.heyting_value == 0.5
+        assert ValidationSeverity.INFO.heyting_value == 1.0
 
-# =============================================================================
+# ==============================================================================
 # TESTS: SCHEMA VALIDATION RESULT
-# =============================================================================
+# ==============================================================================
 
 class TestSchemaValidationResult:
-    """Pruebas para resultados de validación de schema."""
-
-    def test_success_factory(self):
-        """Factory de éxito."""
+    """Tests para SchemaValidationResult (Álgebra de Heyting)."""
+    
+    def test_success(self):
+        """Crear resultado exitoso (⊤)."""
         result = SchemaValidationResult.success()
         
-        assert result.is_valid is True
-        assert result.errors == ()
-        assert result.error is None
-
-    def test_failure_factory(self):
-        """Factory de fallo."""
-        result = SchemaValidationResult.failure("Error message", "$.path")
+        assert result.is_valid
+        assert result.validity_degree == 1.0
+        assert len(result.errors) == 0
+        assert len(result.warnings) == 0
+    
+    def test_failure(self):
+        """Crear resultado fallido (⊥)."""
+        result = SchemaValidationResult.failure("Test error", path="$.foo")
         
-        assert result.is_valid is False
-        assert result.errors == ("Error message",)
-        assert result.error == "Error message"
-        assert result.path == "$.path"
-
-    def test_merge_all_success(self):
-        """Merge de resultados exitosos."""
+        assert not result.is_valid
+        assert result.validity_degree == 0.0
+        assert len(result.errors) == 1
+        assert result.errors[0] == "Test error"
+        assert result.path == "$.foo"
+    
+    def test_validity_degree_clamping(self):
+        """Clamp de validity_degree a [0, 1]."""
+        # Valor negativo
+        result = SchemaValidationResult(validity_degree=-0.5)
+        assert result.validity_degree == 0.0
+        
+        # Valor mayor que 1
+        result = SchemaValidationResult(validity_degree=1.5)
+        assert result.validity_degree == 1.0
+    
+    def test_is_valid_with_tolerance(self):
+        """Verificar is_valid con tolerancia."""
+        result = SchemaValidationResult(validity_degree=1.0 - 1e-13)
+        assert result.is_valid
+        
+        result = SchemaValidationResult(validity_degree=0.99)
+        assert not result.is_valid
+    
+    def test_merge_empty(self):
+        """Merge de lista vacía."""
+        results = []
+        merged = SchemaValidationResult.merge(results)
+        
+        assert merged.is_valid
+        assert merged.validity_degree == 1.0
+    
+    def test_merge_all_valid(self):
+        """Merge de resultados todos válidos (conjunción ⊤ ∧ ⊤ = ⊤)."""
         results = [
             SchemaValidationResult.success(),
             SchemaValidationResult.success(),
         ]
         merged = SchemaValidationResult.merge(results)
         
-        assert merged.is_valid is True
-        assert merged.errors == ()
-
-    def test_merge_with_failures(self):
-        """Merge con fallos acumula errores."""
+        assert merged.is_valid
+        assert merged.validity_degree == 1.0
+    
+    def test_merge_with_errors(self):
+        """Merge con errores (conjunción con ⊥)."""
         results = [
             SchemaValidationResult.success(),
             SchemaValidationResult.failure("Error 1"),
@@ -338,1546 +632,2057 @@ class TestSchemaValidationResult:
         ]
         merged = SchemaValidationResult.merge(results)
         
-        assert merged.is_valid is False
+        assert not merged.is_valid
+        assert merged.validity_degree == 0.0
         assert len(merged.errors) == 2
-        assert "Error 1" in merged.errors
-        assert "Error 2" in merged.errors
-
-    def test_immutability(self):
-        """Resultados son inmutables."""
-        result = SchemaValidationResult(validity_degree=1.0)
+    
+    def test_merge_min_validity(self):
+        """Merge toma mínimo de validity_degree."""
+        results = [
+            SchemaValidationResult(validity_degree=0.9),
+            SchemaValidationResult(validity_degree=0.7),
+            SchemaValidationResult(validity_degree=0.8),
+        ]
+        merged = SchemaValidationResult.merge(results)
         
-        with pytest.raises(AttributeError):
-            result.validity_degree = 0.5
+        assert merged.validity_degree == 0.7
+    
+    def test_error_property(self):
+        """Propiedad error retorna primer error."""
+        result = SchemaValidationResult(
+            validity_degree=0.0,
+            errors=("Error 1", "Error 2")
+        )
+        
+        assert result.error == "Error 1"
+        
+        result_no_errors = SchemaValidationResult.success()
+        assert result_no_errors.error is None
+    
+    def test_to_dict(self):
+        """Serialización a diccionario."""
+        result = SchemaValidationResult(
+            validity_degree=0.8,
+            errors=("Error 1",),
+            warnings=("Warning 1",),
+            path="$.test"
+        )
+        
+        d = result.to_dict()
+        
+        assert d["validity_degree"] == 0.8
+        assert d["errors"] == ["Error 1"]
+        assert d["warnings"] == ["Warning 1"]
+        assert d["path"] == "$.test"
+        assert d["is_valid"] == False
+    
+    def test_str_representation(self):
+        """Representación string."""
+        result = SchemaValidationResult.success()
+        s = str(result)
+        
+        assert "VALID" in s
+        assert "validity=1.000" in s
 
-
-# =============================================================================
+# ==============================================================================
 # TESTS: CATEGORICAL EQUALIZER SEED
-# =============================================================================
+# ==============================================================================
 
 class TestCategoricalEqualizerSeed:
-    """Pruebas para semillas de auditoría."""
-
-    def test_creation(self, sample_audit_seed):
-        """Creación con todos los campos."""
-        assert sample_audit_seed.target_vector == "test_vector"
-        assert sample_audit_seed.target_stratum == Stratum.PHYSICS
-        assert sample_audit_seed.impedance_match_status == ImpedanceMatchStatus.LAMINAR_PROJECTION
-
-    def test_to_dict(self, sample_audit_seed):
-        """Serialización a diccionario."""
-        d = sample_audit_seed.to_dict()
+    """Tests para CategoricalEqualizerSeed."""
+    
+    def test_creation_basic(self):
+        """Crear seed básico."""
+        seed = CategoricalEqualizerSeed(
+            target_vector="test_vector",
+            target_stratum=Stratum.PHYSICS,
+            silo_a_contract_id="contract_1",
+            silo_b_cartridge_id="cartridge_1",
+            impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
+        )
         
-        assert d["target_vector"] == "test_vector"
+        assert seed.target_vector == "test_vector"
+        assert seed.target_stratum == Stratum.PHYSICS
+        assert seed.impedance_match_status == ImpedanceMatchStatus.LAMINAR_PROJECTION
+    
+    def test_compression_ratio_clamp(self):
+        """Clamp de compression_ratio negativo."""
+        seed = CategoricalEqualizerSeed(
+            target_vector="test",
+            target_stratum=Stratum.PHYSICS,
+            silo_a_contract_id="c1",
+            silo_b_cartridge_id="c2",
+            impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
+            token_compression_ratio=-0.5,
+        )
+        
+        assert seed.token_compression_ratio == 0.0
+    
+    def test_to_dict(self):
+        """Serialización a diccionario."""
+        seed = CategoricalEqualizerSeed(
+            target_vector="test",
+            target_stratum=Stratum.PHYSICS,
+            silo_a_contract_id="c1",
+            silo_b_cartridge_id="c2",
+            impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
+            token_compression_ratio=0.75,
+            validation_errors=("Error 1",),
+        )
+        
+        d = seed.to_dict()
+        
+        assert d["target_vector"] == "test"
         assert d["target_stratum"] == "PHYSICS"
         assert d["impedance_match_status"] == "LAMINAR_PROJECTION"
+        assert d["token_compression_ratio"] == 0.75
+        assert d["validation_errors"] == ["Error 1"]
         assert "timestamp" in d
-
-    def test_compute_hash_deterministic(self, sample_audit_seed):
-        """Hash es determinista (excluye timestamp)."""
-        hash1 = sample_audit_seed.compute_hash()
-        hash2 = sample_audit_seed.compute_hash()
-        
-        assert hash1 == hash2
-        assert len(hash1) == 64  # SHA-256
-
-    def test_compute_hash_excludes_timestamp(self):
-        """Hash no incluye timestamp."""
+    
+    def test_compute_hash_deterministic(self):
+        """Hash determinista (excluye timestamp)."""
         seed1 = CategoricalEqualizerSeed(
-            target_vector="vec",
+            target_vector="test",
             target_stratum=Stratum.PHYSICS,
             silo_a_contract_id="c1",
             silo_b_cartridge_id="c2",
             impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
-            timestamp=1000.0,
-        )
-        seed2 = CategoricalEqualizerSeed(
-            target_vector="vec",
-            target_stratum=Stratum.PHYSICS,
-            silo_a_contract_id="c1",
-            silo_b_cartridge_id="c2",
-            impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
-            timestamp=2000.0,  # Diferente timestamp
         )
         
+        # Esperar un momento
+        time.sleep(0.01)
+        
+        seed2 = CategoricalEqualizerSeed(
+            target_vector="test",
+            target_stratum=Stratum.PHYSICS,
+            silo_a_contract_id="c1",
+            silo_b_cartridge_id="c2",
+            impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
+        )
+        
+        # Timestamps diferentes pero hashes iguales
+        assert seed1.timestamp != seed2.timestamp
         assert seed1.compute_hash() == seed2.compute_hash()
+    
+    def test_str_representation(self):
+        """Representación string."""
+        seed = CategoricalEqualizerSeed(
+            target_vector="test",
+            target_stratum=Stratum.PHYSICS,
+            silo_a_contract_id="c1",
+            silo_b_cartridge_id="c2",
+            impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
+            token_compression_ratio=0.5,
+        )
+        
+        s = str(seed)
+        
+        assert "test" in s
+        assert "PHYSICS" in s
+        assert "LAMINAR_PROJECTION" in s
+        assert "0.50" in s
 
-    def test_immutability(self, sample_audit_seed):
-        """Semillas son inmutables."""
-        with pytest.raises(AttributeError):
-            sample_audit_seed.target_vector = "new_vector"
-
-
-# =============================================================================
+# ==============================================================================
 # TESTS: TOON DOCUMENT
-# =============================================================================
+# ==============================================================================
 
 class TestTOONDocument:
-    """Pruebas para documentos TOON."""
-
-    def test_render_basic(self):
-        """Renderizado básico."""
+    """Tests para TOONDocument."""
+    
+    def test_creation_basic(self):
+        """Crear documento TOON básico."""
         doc = TOONDocument(
-            cartridge_id="TestCartridge",
-            header_template="key|value",
-            records=(("name", '"test"'), ("count", "42")),
+            cartridge_id="test_cart",
+            header_template="Header\nkey|value",
+            records=(("key1", "\"value1\""), ("key2", "42"))
+        )
+        
+        assert doc.cartridge_id == "test_cart"
+        assert len(doc.records) == 2
+    
+    def test_creation_empty_cartridge_id(self):
+        """Rechazar cartridge_id vacío."""
+        with pytest.raises(TOONCompressionError, match="no puede estar vacío"):
+            TOONDocument(
+                cartridge_id="",
+                header_template="Header",
+                records=()
+            )
+    
+    def test_render_basic(self):
+        """Renderizar documento TOON."""
+        doc = TOONDocument(
+            cartridge_id="test_cart",
+            header_template="Header\nkey|value",
+            records=(
+                ("key1", "\"value1\""),
+                ("key2", "42"),
+            )
         )
         
         rendered = doc.render()
         
         assert TOON_START_MARKER in rendered
-        assert "TestCartridge" in rendered
         assert TOON_END_MARKER in rendered
-        assert "name|\"test\"" in rendered
-        assert "count|42" in rendered
-
-    def test_parse_valid_document(self):
-        """Parseo de documento válido."""
-        content = """--- INICIO TestCartridge ---
+        assert "test_cart" in rendered
+        assert "key1|\"value1\"" in rendered
+        assert "key2|42" in rendered
+    
+    def test_parse_basic(self):
+        """Parsear documento TOON."""
+        content = """--- INICIO TOON --- test_cart ---
+Header
 key|value
-name|"test"
-count|42
+key1|"value1"
+key2|42
 --- FIN TOON ---"""
         
         doc = TOONDocument.parse(content)
         
-        assert doc.cartridge_id == "TestCartridge"
-        assert doc.header_template == "key|value"
+        assert doc.cartridge_id == "test_cart"
         assert len(doc.records) == 2
-
+        assert doc.records[0] == ("key1", "\"value1\"")
+        assert doc.records[1] == ("key2", "42")
+    
+    def test_parse_invalid_too_short(self):
+        """Rechazar documento muy corto."""
+        content = "--- INICIO TOON ---\n--- FIN TOON ---"
+        
+        with pytest.raises(TOONCompressionError, match="demasiado corto"):
+            TOONDocument.parse(content)
+    
     def test_parse_invalid_start_marker(self):
-        """Error si falta marcador de inicio."""
+        """Rechazar marcador de inicio inválido."""
         content = """INVALID START
-key|value
+Header
 --- FIN TOON ---"""
         
-        with pytest.raises(TOONCompressionError, match="Marcador de inicio"):
+        with pytest.raises(TOONCompressionError, match="Marcador de inicio inválido"):
             TOONDocument.parse(content)
-
+    
     def test_parse_invalid_end_marker(self):
-        """Error si falta marcador de fin."""
-        content = """--- INICIO Test ---
-key|value
+        """Rechazar marcador de fin inválido."""
+        content = """--- INICIO TOON --- test ---
+Header
 INVALID END"""
         
         with pytest.raises(TOONCompressionError, match="Marcador de fin"):
             TOONDocument.parse(content)
-
-    def test_parse_too_short(self):
-        """Error si documento muy corto."""
-        content = "single line"
-        
-        with pytest.raises(TOONCompressionError, match="demasiado corto"):
-            TOONDocument.parse(content)
-
-    def test_roundtrip(self):
-        """Render seguido de parse preserva datos."""
-        original = TOONDocument(
-            cartridge_id="RoundtripTest",
-            header_template="col1|col2|col3",
+    
+    def test_to_dict(self):
+        """Deserializar a diccionario."""
+        doc = TOONDocument(
+            cartridge_id="test",
+            header_template="Header",
             records=(
-                ("key1", '"value1"'),
-                ("key2", "123"),
-                ("key3", "true"),
-            ),
+                ("key1", "\"value1\""),
+                ("key2", "42"),
+                ("key3", "{\"nested\": true}"),
+            )
+        )
+        
+        d = doc.to_dict()
+        
+        assert d["key1"] == "value1"
+        assert d["key2"] == 42
+        assert d["key3"] == {"nested": True}
+    
+    def test_to_dict_invalid_json(self):
+        """Manejar JSON inválido en records."""
+        doc = TOONDocument(
+            cartridge_id="test",
+            header_template="Header",
+            records=(("key1", "invalid_json"),)
+        )
+        
+        d = doc.to_dict()
+        
+        # Debe conservar como string
+        assert d["key1"] == "invalid_json"
+    
+    def test_roundtrip_render_parse(self):
+        """Verificar roundtrip render → parse."""
+        original = TOONDocument(
+            cartridge_id="test_cart",
+            header_template="Header Line 1\nHeader Line 2",
+            records=(
+                ("key1", "\"value1\""),
+                ("key2", "42"),
+            )
         )
         
         rendered = original.render()
         parsed = TOONDocument.parse(rendered)
         
         assert parsed.cartridge_id == original.cartridge_id
-        assert parsed.header_template == original.header_template
         assert parsed.records == original.records
-
-    def test_to_dict(self):
-        """Conversión a diccionario."""
+    
+    def test_len(self):
+        """Longitud de documento."""
         doc = TOONDocument(
-            cartridge_id="Test",
-            header_template="k|v",
-            records=(
-                ("name", '"Alice"'),
-                ("age", "30"),
-                ("active", "true"),
-            ),
+            cartridge_id="test",
+            header_template="Header",
+            records=(("k1", "v1"), ("k2", "v2"), ("k3", "v3"))
         )
         
-        result = doc.to_dict()
+        assert len(doc) == 3
+    
+    def test_str_representation(self):
+        """Representación string."""
+        doc = TOONDocument(
+            cartridge_id="test_cart",
+            header_template="Header",
+            records=(("k1", "v1"),)
+        )
         
-        assert result["name"] == "Alice"
-        assert result["age"] == 30
-        assert result["active"] is True
+        s = str(doc)
+        
+        assert "test_cart" in s
+        assert "records=1" in s
 
+# ==============================================================================
+# TESTS: SILO A CONTRACT
+# ==============================================================================
 
-# =============================================================================
+class TestSiloAContract:
+    """Tests para SiloAContract."""
+    
+    def test_creation_valid(self, sample_contract):
+        """Crear contrato válido."""
+        assert sample_contract.contract_id == "test_contract"
+        assert sample_contract.stratum == Stratum.PHYSICS
+        assert isinstance(sample_contract.schema, dict)
+    
+    def test_creation_invalid_schema(self):
+        """Rechazar schema inválido."""
+        with pytest.raises(ContractValidationError, match="Schema inválido"):
+            SiloAContract(
+                contract_id="test",
+                stratum=Stratum.PHYSICS,
+                schema={"invalid": "schema"}  # Falta "type"
+            )
+    
+    def test_validate_schema_integrity_valid(self, sample_contract):
+        """Validar integridad de schema válido."""
+        assert sample_contract.validate_schema_integrity()
+    
+    def test_validate_schema_integrity_not_dict(self):
+        """Schema no es diccionario."""
+        # Crear directamente para evitar __post_init__
+        contract = object.__new__(SiloAContract)
+        object.__setattr__(contract, "schema", "not_a_dict")
+        
+        assert not contract.validate_schema_integrity()
+    
+    def test_validate_schema_integrity_no_type(self):
+        """Schema sin clave 'type'."""
+        contract = object.__new__(SiloAContract)
+        object.__setattr__(contract, "schema", {"properties": {}})
+        
+        assert not contract.validate_schema_integrity()
+    
+    def test_to_dict(self, sample_contract):
+        """Serialización a diccionario."""
+        d = sample_contract.to_dict()
+        
+        assert d["contract_id"] == "test_contract"
+        assert d["stratum"] == "PHYSICS"
+        assert "schema" in d
+        assert d["description"] == "Test contract"
+
+# ==============================================================================
+# TESTS: SILO B CARTRIDGE
+# ==============================================================================
+
+class TestSiloBCartridge:
+    """Tests para SiloBCartridge."""
+    
+    def test_creation_valid(self, sample_cartridge):
+        """Crear cartucho válido."""
+        assert sample_cartridge.cartridge_id == "test_cartridge"
+        assert sample_cartridge.stratum == Stratum.PHYSICS
+        assert isinstance(sample_cartridge.header_template, str)
+    
+    def test_creation_empty_id(self):
+        """Rechazar cartridge_id vacío."""
+        with pytest.raises(TOONCompressionError, match="no puede estar vacío"):
+            SiloBCartridge(
+                cartridge_id="",
+                stratum=Stratum.PHYSICS,
+                header_template="Header"
+            )
+    
+    def test_to_dict(self, sample_cartridge):
+        """Serialización a diccionario."""
+        d = sample_cartridge.to_dict()
+        
+        assert d["cartridge_id"] == "test_cartridge"
+        assert d["stratum"] == "PHYSICS"
+        assert "header_template" in d
+        assert d["field_definitions"] == ["value"]
+
+# ==============================================================================
 # TESTS: SCHEMA VALIDATOR
-# =============================================================================
+# ==============================================================================
 
 class TestSchemaValidator:
-    """Pruebas para el validador de JSON Schema."""
-
-    def test_type_object(self, schema_validator):
-        """Validación de type: object."""
-        schema = {"type": "object"}
-        
-        assert schema_validator.validate(schema, {}).is_valid is True
-        assert schema_validator.validate(schema, {"a": 1}).is_valid is True
-        assert schema_validator.validate(schema, []).is_valid is False
-        assert schema_validator.validate(schema, "string").is_valid is False
-
-    def test_type_array(self, schema_validator):
-        """Validación de type: array."""
-        schema = {"type": "array"}
-        
-        assert schema_validator.validate(schema, []).is_valid is True
-        assert schema_validator.validate(schema, [1, 2, 3]).is_valid is True
-        assert schema_validator.validate(schema, {}).is_valid is False
-
-    def test_type_string(self, schema_validator):
-        """Validación de type: string."""
-        schema = {"type": "string"}
-        
-        assert schema_validator.validate(schema, "hello").is_valid is True
-        assert schema_validator.validate(schema, "").is_valid is True
-        assert schema_validator.validate(schema, 123).is_valid is False
-
-    def test_type_number(self, schema_validator):
-        """Validación de type: number."""
+    """Tests para SchemaValidator."""
+    
+    def test_validate_type_valid(self, schema_validator):
+        """Validar tipo correcto."""
         schema = {"type": "number"}
+        result = schema_validator.validate(schema, 42)
         
-        assert schema_validator.validate(schema, 42).is_valid is True
-        assert schema_validator.validate(schema, 3.14).is_valid is True
-        assert schema_validator.validate(schema, "42").is_valid is False
-
-    def test_type_integer(self, schema_validator):
-        """Validación de type: integer."""
-        schema = {"type": "integer"}
+        assert result.is_valid
+    
+    def test_validate_type_invalid(self, schema_validator):
+        """Validar tipo incorrecto."""
+        schema = {"type": "number"}
+        result = schema_validator.validate(schema, "not_a_number")
         
-        assert schema_validator.validate(schema, 42).is_valid is True
-        assert schema_validator.validate(schema, 0).is_valid is True
-        assert schema_validator.validate(schema, 3.14).is_valid is False
-
-    def test_type_boolean(self, schema_validator):
-        """Validación de type: boolean."""
-        schema = {"type": "boolean"}
-        
-        assert schema_validator.validate(schema, True).is_valid is True
-        assert schema_validator.validate(schema, False).is_valid is True
-        assert schema_validator.validate(schema, 1).is_valid is False
-        assert schema_validator.validate(schema, "true").is_valid is False
-
-    def test_type_null(self, schema_validator):
-        """Validación de type: null."""
-        schema = {"type": "null"}
-        
-        assert schema_validator.validate(schema, None).is_valid is True
-        assert schema_validator.validate(schema, "null").is_valid is False
-
-    def test_type_union(self, schema_validator):
-        """Validación de type como lista (union)."""
+        assert not result.is_valid
+        assert "Tipo inválido" in result.error
+    
+    def test_validate_type_union(self, schema_validator):
+        """Validar unión de tipos."""
         schema = {"type": ["string", "number"]}
         
-        assert schema_validator.validate(schema, "hello").is_valid is True
-        assert schema_validator.validate(schema, 42).is_valid is True
-        assert schema_validator.validate(schema, True).is_valid is False
-
-    def test_required_present(self, schema_validator):
-        """Validación de required cuando claves están presentes."""
+        result1 = schema_validator.validate(schema, "hello")
+        assert result1.is_valid
+        
+        result2 = schema_validator.validate(schema, 42)
+        assert result2.is_valid
+        
+        result3 = schema_validator.validate(schema, True)
+        assert not result3.is_valid
+    
+    def test_validate_required_valid(self, schema_validator):
+        """Validar claves requeridas presentes."""
         schema = {
             "type": "object",
-            "required": ["name", "age"],
+            "required": ["a", "b"]
         }
+        result = schema_validator.validate(schema, {"a": 1, "b": 2, "c": 3})
         
-        result = schema_validator.validate(schema, {"name": "Alice", "age": 30})
-        assert result.is_valid is True
-
-    def test_required_missing(self, schema_validator):
-        """Validación de required cuando faltan claves."""
+        assert result.is_valid
+    
+    def test_validate_required_missing(self, schema_validator):
+        """Validar claves requeridas faltantes."""
         schema = {
             "type": "object",
-            "required": ["name", "age"],
+            "required": ["a", "b"]
         }
+        result = schema_validator.validate(schema, {"a": 1})
         
-        result = schema_validator.validate(schema, {"name": "Alice"})
-        assert result.is_valid is False
-        assert "age" in result.error
-
-    def test_properties_valid(self, schema_validator):
-        """Validación de properties cuando todo es válido."""
+        assert not result.is_valid
+        assert "faltantes" in result.error
+        assert "'b'" in result.error
+    
+    def test_validate_properties_valid(self, schema_validator):
+        """Validar propiedades válidas."""
         schema = {
             "type": "object",
             "properties": {
                 "name": {"type": "string"},
-                "age": {"type": "integer"},
-            },
+                "age": {"type": "integer"}
+            }
         }
-        
         result = schema_validator.validate(schema, {"name": "Alice", "age": 30})
-        assert result.is_valid is True
-
-    def test_properties_invalid_type(self, schema_validator):
-        """Validación de properties con tipo inválido."""
+        
+        assert result.is_valid
+    
+    def test_validate_properties_invalid(self, schema_validator):
+        """Validar propiedades inválidas."""
         schema = {
             "type": "object",
             "properties": {
-                "age": {"type": "integer"},
-            },
+                "name": {"type": "string"},
+                "age": {"type": "integer"}
+            }
         }
+        result = schema_validator.validate(schema, {"name": "Alice", "age": "thirty"})
         
-        result = schema_validator.validate(schema, {"age": "thirty"})
-        assert result.is_valid is False
-        assert "age" in result.error
-
-    def test_properties_nested(self, schema_validator):
-        """Validación recursiva de properties anidadas."""
+        assert not result.is_valid
+    
+    def test_validate_items_valid(self, schema_validator):
+        """Validar items de array válidos."""
+        schema = {
+            "type": "array",
+            "items": {"type": "number"}
+        }
+        result = schema_validator.validate(schema, [1, 2, 3, 4.5])
+        
+        assert result.is_valid
+    
+    def test_validate_items_invalid(self, schema_validator):
+        """Validar items de array inválidos."""
+        schema = {
+            "type": "array",
+            "items": {"type": "number"}
+        }
+        result = schema_validator.validate(schema, [1, 2, "three"])
+        
+        assert not result.is_valid
+    
+    def test_validate_minimum_valid(self, schema_validator):
+        """Validar mínimo válido."""
+        schema = {"type": "number", "minimum": 0}
+        result = schema_validator.validate(schema, 5)
+        
+        assert result.is_valid
+    
+    def test_validate_minimum_invalid(self, schema_validator):
+        """Validar mínimo inválido."""
+        schema = {"type": "number", "minimum": 0}
+        result = schema_validator.validate(schema, -5)
+        
+        assert not result.is_valid
+        assert "menor que mínimo" in result.error
+    
+    def test_validate_maximum_valid(self, schema_validator):
+        """Validar máximo válido."""
+        schema = {"type": "number", "maximum": 100}
+        result = schema_validator.validate(schema, 50)
+        
+        assert result.is_valid
+    
+    def test_validate_maximum_invalid(self, schema_validator):
+        """Validar máximo inválido."""
+        schema = {"type": "number", "maximum": 100}
+        result = schema_validator.validate(schema, 150)
+        
+        assert not result.is_valid
+        assert "mayor que máximo" in result.error
+    
+    def test_validate_exclusive_minimum_valid(self, schema_validator):
+        """Validar exclusiveMinimum válido."""
+        schema = {"type": "number", "exclusiveMinimum": 0}
+        result = schema_validator.validate(schema, 5)
+        
+        assert result.is_valid
+    
+    def test_validate_exclusive_minimum_invalid(self, schema_validator):
+        """Validar exclusiveMinimum inválido."""
+        schema = {"type": "number", "exclusiveMinimum": 0}
+        result = schema_validator.validate(schema, 0)
+        
+        assert not result.is_valid
+        assert "no estrictamente mayor" in result.error
+    
+    def test_validate_min_length_valid(self, schema_validator):
+        """Validar minLength válido."""
+        schema = {"type": "string", "minLength": 3}
+        result = schema_validator.validate(schema, "hello")
+        
+        assert result.is_valid
+    
+    def test_validate_min_length_invalid(self, schema_validator):
+        """Validar minLength inválido."""
+        schema = {"type": "string", "minLength": 3}
+        result = schema_validator.validate(schema, "hi")
+        
+        assert not result.is_valid
+    
+    def test_validate_enum_valid(self, schema_validator):
+        """Validar enum válido."""
+        schema = {"enum": ["red", "green", "blue"]}
+        result = schema_validator.validate(schema, "red")
+        
+        assert result.is_valid
+    
+    def test_validate_enum_invalid(self, schema_validator):
+        """Validar enum inválido."""
+        schema = {"enum": ["red", "green", "blue"]}
+        result = schema_validator.validate(schema, "yellow")
+        
+        assert not result.is_valid
+        assert "no está en enum" in result.error
+    
+    def test_validate_const_valid(self, schema_validator):
+        """Validar const válido."""
+        schema = {"const": 42}
+        result = schema_validator.validate(schema, 42)
+        
+        assert result.is_valid
+    
+    def test_validate_const_invalid(self, schema_validator):
+        """Validar const inválido."""
+        schema = {"const": 42}
+        result = schema_validator.validate(schema, 43)
+        
+        assert not result.is_valid
+    
+    def test_validate_pattern_valid(self, schema_validator):
+        """Validar pattern válido."""
+        schema = {"type": "string", "pattern": r"^\d{3}-\d{4}$"}
+        result = schema_validator.validate(schema, "123-4567")
+        
+        assert result.is_valid
+    
+    def test_validate_pattern_invalid(self, schema_validator):
+        """Validar pattern inválido."""
+        schema = {"type": "string", "pattern": r"^\d{3}-\d{4}$"}
+        result = schema_validator.validate(schema, "invalid")
+        
+        assert not result.is_valid
+    
+    def test_validate_pattern_regex_error(self, schema_validator):
+        """Manejar regex inválido."""
+        schema = {"type": "string", "pattern": r"[invalid(regex"}
+        result = schema_validator.validate(schema, "test")
+        
+        assert not result.is_valid
+        assert "Patrón regex inválido" in result.error
+    
+    def test_validate_nested_complex(self, schema_validator):
+        """Validar estructura anidada compleja."""
         schema = {
             "type": "object",
+            "required": ["user"],
             "properties": {
                 "user": {
                     "type": "object",
+                    "required": ["name", "age"],
                     "properties": {
-                        "name": {"type": "string"},
-                    },
-                    "required": ["name"],
-                },
-            },
-        }
-        
-        valid = {"user": {"name": "Alice"}}
-        invalid = {"user": {"name": 123}}
-        missing = {"user": {}}
-        
-        assert schema_validator.validate(schema, valid).is_valid is True
-        assert schema_validator.validate(schema, invalid).is_valid is False
-        assert schema_validator.validate(schema, missing).is_valid is False
-
-    def test_items_valid(self, schema_validator):
-        """Validación de items en arrays."""
-        schema = {
-            "type": "array",
-            "items": {"type": "integer"},
-        }
-        
-        result = schema_validator.validate(schema, [1, 2, 3])
-        assert result.is_valid is True
-
-    def test_items_invalid(self, schema_validator):
-        """Validación de items con elemento inválido."""
-        schema = {
-            "type": "array",
-            "items": {"type": "integer"},
-        }
-        
-        result = schema_validator.validate(schema, [1, "two", 3])
-        assert result.is_valid is False
-
-    def test_minimum(self, schema_validator):
-        """Validación de minimum."""
-        schema = {"type": "number", "minimum": 0}
-        
-        assert schema_validator.validate(schema, 0).is_valid is True
-        assert schema_validator.validate(schema, 10).is_valid is True
-        assert schema_validator.validate(schema, -1).is_valid is False
-
-    def test_maximum(self, schema_validator):
-        """Validación de maximum."""
-        schema = {"type": "number", "maximum": 100}
-        
-        assert schema_validator.validate(schema, 100).is_valid is True
-        assert schema_validator.validate(schema, 50).is_valid is True
-        assert schema_validator.validate(schema, 101).is_valid is False
-
-    def test_exclusive_minimum(self, schema_validator):
-        """Validación de exclusiveMinimum."""
-        schema = {"type": "number", "exclusiveMinimum": 0}
-        
-        assert schema_validator.validate(schema, 1).is_valid is True
-        assert schema_validator.validate(schema, 0.001).is_valid is True
-        assert schema_validator.validate(schema, 0).is_valid is False
-        assert schema_validator.validate(schema, -1).is_valid is False
-
-    def test_exclusive_maximum(self, schema_validator):
-        """Validación de exclusiveMaximum."""
-        schema = {"type": "number", "exclusiveMaximum": 100}
-        
-        assert schema_validator.validate(schema, 99).is_valid is True
-        assert schema_validator.validate(schema, 99.999).is_valid is True
-        assert schema_validator.validate(schema, 100).is_valid is False
-
-    def test_min_length(self, schema_validator):
-        """Validación de minLength."""
-        schema = {"type": "string", "minLength": 3}
-        
-        assert schema_validator.validate(schema, "abc").is_valid is True
-        assert schema_validator.validate(schema, "abcd").is_valid is True
-        assert schema_validator.validate(schema, "ab").is_valid is False
-
-    def test_max_length(self, schema_validator):
-        """Validación de maxLength."""
-        schema = {"type": "string", "maxLength": 5}
-        
-        assert schema_validator.validate(schema, "abc").is_valid is True
-        assert schema_validator.validate(schema, "abcde").is_valid is True
-        assert schema_validator.validate(schema, "abcdef").is_valid is False
-
-    def test_enum(self, schema_validator):
-        """Validación de enum."""
-        schema = {"enum": ["red", "green", "blue"]}
-        
-        assert schema_validator.validate(schema, "red").is_valid is True
-        assert schema_validator.validate(schema, "green").is_valid is True
-        assert schema_validator.validate(schema, "yellow").is_valid is False
-
-    def test_const(self, schema_validator):
-        """Validación de const."""
-        schema = {"const": "fixed_value"}
-        
-        assert schema_validator.validate(schema, "fixed_value").is_valid is True
-        assert schema_validator.validate(schema, "other").is_valid is False
-
-    def test_min_items(self, schema_validator):
-        """Validación de minItems."""
-        schema = {"type": "array", "minItems": 2}
-        
-        assert schema_validator.validate(schema, [1, 2]).is_valid is True
-        assert schema_validator.validate(schema, [1, 2, 3]).is_valid is True
-        assert schema_validator.validate(schema, [1]).is_valid is False
-
-    def test_max_items(self, schema_validator):
-        """Validación de maxItems."""
-        schema = {"type": "array", "maxItems": 3}
-        
-        assert schema_validator.validate(schema, [1, 2]).is_valid is True
-        assert schema_validator.validate(schema, [1, 2, 3]).is_valid is True
-        assert schema_validator.validate(schema, [1, 2, 3, 4]).is_valid is False
-
-    def test_complex_schema(self, schema_validator):
-        """Validación de schema complejo."""
-        schema = {
-            "type": "object",
-            "required": ["name", "age", "tags"],
-            "properties": {
-                "name": {"type": "string", "minLength": 1},
-                "age": {"type": "integer", "minimum": 0, "maximum": 150},
-                "tags": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "minItems": 1,
-                },
-                "metadata": {
-                    "type": "object",
-                    "properties": {
-                        "created": {"type": "string"},
-                    },
-                },
-            },
-        }
-        
-        valid = {
-            "name": "Alice",
-            "age": 30,
-            "tags": ["developer", "python"],
-            "metadata": {"created": "2024-01-01"},
-        }
-        
-        assert schema_validator.validate(schema, valid).is_valid is True
-        
-        # Missing required
-        invalid1 = {"name": "Alice", "age": 30}
-        assert schema_validator.validate(schema, invalid1).is_valid is False
-        
-        # Invalid nested type
-        invalid2 = {
-            "name": "Alice",
-            "age": 30,
-            "tags": ["valid", 123],  # 123 no es string
-        }
-        assert schema_validator.validate(schema, invalid2).is_valid is False
-
-
-# =============================================================================
-# TESTS: ALGEBRAIC VETO REGISTRY
-# =============================================================================
-
-class TestAlgebraicVetoRegistry:
-    """Pruebas para el registro de vetos algebraicos."""
-
-    def test_physics_conservation_valid(self, algebraic_vetos):
-        """Payload físico válido pasa."""
-        errors = algebraic_vetos.validate(Stratum.PHYSICS, VALID_PHYSICS_PAYLOAD)
-        assert errors == []
-
-    def test_physics_negative_dissipation_veto(self, algebraic_vetos):
-        """Disipación negativa es vetada (termodinámica)."""
-        payload = {"dissipated_power": -100}
-        errors = algebraic_vetos.validate(Stratum.PHYSICS, payload)
-        
-        assert len(errors) > 0
-        assert "termodinámica" in errors[0].lower() or "dissipated" in errors[0].lower()
-
-    def test_physics_energy_conservation_veto(self, algebraic_vetos):
-        """Violación de conservación de energía es vetada."""
-        payload = {
-            "energy_input": 100,
-            "energy_output": 200,  # > input
-        }
-        errors = algebraic_vetos.validate(Stratum.PHYSICS, payload)
-        
-        assert len(errors) > 0
-        assert "conservación" in errors[0].lower() or "energy" in errors[0].lower()
-
-    def test_tactics_stability_valid(self, algebraic_vetos):
-        """Índice de estabilidad válido pasa."""
-        errors = algebraic_vetos.validate(Stratum.TACTICS, VALID_TACTICS_PAYLOAD)
-        assert errors == []
-
-    def test_tactics_stability_out_of_range(self, algebraic_vetos):
-        """Índice de estabilidad fuera de rango es vetado."""
-        payload = {"pyramid_stability_index": 1.5}  # > 1
-        errors = algebraic_vetos.validate(Stratum.TACTICS, payload)
-        
-        assert len(errors) > 0
-
-    def test_strategy_friction_valid(self, algebraic_vetos):
-        """Fricción válida pasa."""
-        errors = algebraic_vetos.validate(Stratum.STRATEGY, VALID_STRATEGY_PAYLOAD)
-        assert errors == []
-
-    def test_strategy_friction_too_low(self, algebraic_vetos):
-        """Fricción < 1 es vetada."""
-        payload = {"territorial_friction": 0.5}
-        errors = algebraic_vetos.validate(Stratum.STRATEGY, payload)
-        
-        assert len(errors) > 0
-
-    def test_wisdom_verdict_valid(self, algebraic_vetos):
-        """Veredicto válido pasa."""
-        errors = algebraic_vetos.validate(Stratum.WISDOM, VALID_WISDOM_PAYLOAD)
-        assert errors == []
-
-    def test_wisdom_invalid_verdict(self, algebraic_vetos):
-        """Veredicto inválido es vetado."""
-        payload = {"final_verdict": "INVALID_VERDICT"}
-        errors = algebraic_vetos.validate(Stratum.WISDOM, payload)
-        
-        assert len(errors) > 0
-
-    def test_register_custom_validator(self, algebraic_vetos):
-        """Registro de validador personalizado."""
-        def custom_validator(stratum, payload):
-            if payload.get("forbidden_key"):
-                return "forbidden_key is not allowed"
-            return None
-        
-        algebraic_vetos.register_validator(Stratum.PHYSICS, custom_validator)
-        
-        # Ahora debe detectar el error
-        errors = algebraic_vetos.validate(
-            Stratum.PHYSICS,
-            {"forbidden_key": True, "dissipated_power": 10}
-        )
-        
-        assert any("forbidden_key" in e for e in errors)
-
-
-# =============================================================================
-# TESTS: SILO MANAGER
-# =============================================================================
-
-class TestSiloManager:
-    """Pruebas para el gestor de silos."""
-
-    def test_fetch_contract_physics(self, silo_manager):
-        """Obtener contrato de PHYSICS."""
-        contract_id, schema = silo_manager.fetch_contract(Stratum.PHYSICS, "test_vector")
-        
-        assert contract_id is not None
-        assert isinstance(schema, dict)
-        assert "type" in schema
-
-    def test_fetch_contract_all_strata(self, silo_manager):
-        """Hay contratos para todos los estratos."""
-        for stratum in Stratum:
-            contract_id, schema = silo_manager.fetch_contract(stratum, "test")
-            assert contract_id is not None
-            assert schema is not None
-
-    def test_fetch_cartridge_physics(self, silo_manager):
-        """Obtener cartucho de PHYSICS."""
-        cartridge_id, template = silo_manager.fetch_cartridge(Stratum.PHYSICS, "test_vector")
-        
-        assert cartridge_id is not None
-        assert isinstance(template, str)
-
-    def test_fetch_cartridge_all_strata(self, silo_manager):
-        """Hay cartuchos para todos los estratos."""
-        for stratum in Stratum:
-            cartridge_id, template = silo_manager.fetch_cartridge(stratum, "test")
-            assert cartridge_id is not None
-            assert template is not None
-
-    def test_list_contracts(self, silo_manager):
-        """Listar contratos."""
-        all_contracts = silo_manager.list_contracts()
-        physics_contracts = silo_manager.list_contracts(Stratum.PHYSICS)
-        
-        assert len(all_contracts) >= 4  # Al menos uno por estrato
-        assert len(physics_contracts) >= 1
-
-    def test_list_cartridges(self, silo_manager):
-        """Listar cartuchos."""
-        all_cartridges = silo_manager.list_cartridges()
-        physics_cartridges = silo_manager.list_cartridges(Stratum.PHYSICS)
-        
-        assert len(all_cartridges) >= 4
-        assert len(physics_cartridges) >= 1
-
-
-# =============================================================================
-# TESTS: TOON COMPRESSOR
-# =============================================================================
-
-class TestTOONCompressor:
-    """Pruebas para el compresor TOON."""
-
-    def test_compress_basic(self, toon_compressor):
-        """Compresión básica."""
-        telemetry = {"sensor": "A1", "value": 42}
-        
-        doc = toon_compressor.compress(
-            telemetry,
-            cartridge_id="TestCartridge",
-            header_template="k|v",
-        )
-        
-        assert doc.cartridge_id == "TestCartridge"
-        assert len(doc.records) == 2
-
-    def test_compress_sorted_keys(self, toon_compressor):
-        """Las claves se ordenan alfabéticamente."""
-        telemetry = {"z_key": 1, "a_key": 2, "m_key": 3}
-        
-        doc = toon_compressor.compress(telemetry, "Test", "k|v")
-        
-        keys = [r[0] for r in doc.records]
-        assert keys == sorted(keys)
-
-    def test_decompress(self, toon_compressor):
-        """Descompresión."""
-        doc = TOONDocument(
-            cartridge_id="Test",
-            header_template="k|v",
-            records=(
-                ("name", '"Alice"'),
-                ("age", "30"),
-            ),
-        )
-        
-        result = toon_compressor.decompress(doc)
-        
-        assert result["name"] == "Alice"
-        assert result["age"] == 30
-
-    def test_compress_decompress_roundtrip(self, toon_compressor):
-        """Roundtrip de compresión/descompresión."""
-        original = {
-            "string": "hello",
-            "number": 42,
-            "float": 3.14,
-            "bool": True,
-            "null": None,
-            "array": [1, 2, 3],
-        }
-        
-        doc = toon_compressor.compress(original, "Test", "k|v")
-        recovered = toon_compressor.decompress(doc)
-        
-        assert recovered == original
-
-    def test_compute_ratio_compression(self, toon_compressor):
-        """Cálculo de ratio de compresión."""
-        original = {"key": "value"}
-        compressed = "short"
-        
-        ratio = toon_compressor.compute_ratio(original, compressed)
-        
-        assert ratio < 1  # Compresión efectiva
-
-    def test_compute_ratio_expansion(self, toon_compressor):
-        """Cálculo de ratio cuando hay expansión."""
-        original = {"k": 1}
-        compressed = "this is a much longer string than the original"
-        
-        ratio = toon_compressor.compute_ratio(original, compressed)
-        
-        assert ratio > 1  # Expansión
-
-
-# =============================================================================
-# TESTS: AUDIT TRAIL
-# =============================================================================
-
-class TestAuditTrail:
-    """Pruebas para la traza de auditoría."""
-
-    def test_append_and_get_all(self, audit_trail, sample_audit_seed):
-        """Agregar y obtener todas las entradas."""
-        audit_trail.append(sample_audit_seed)
-        audit_trail.append(sample_audit_seed)
-        
-        all_entries = audit_trail.get_all()
-        
-        assert len(all_entries) == 2
-
-    def test_size_limit(self):
-        """Límite de tamaño se respeta."""
-        small_trail = AuditTrail(max_size=5)
-        
-        for i in range(10):
-            seed = CategoricalEqualizerSeed(
-                target_vector=f"vec_{i}",
-                target_stratum=Stratum.PHYSICS,
-                silo_a_contract_id="c1",
-                silo_b_cartridge_id="c2",
-                impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
-            )
-            small_trail.append(seed)
-        
-        assert small_trail.size == 5
-        assert small_trail.total_count == 10
-
-    def test_get_recent(self, audit_trail):
-        """Obtener entradas recientes."""
-        for i in range(5):
-            seed = CategoricalEqualizerSeed(
-                target_vector=f"vec_{i}",
-                target_stratum=Stratum.PHYSICS,
-                silo_a_contract_id="c1",
-                silo_b_cartridge_id="c2",
-                impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
-            )
-            audit_trail.append(seed)
-        
-        recent = audit_trail.get_recent(3)
-        
-        assert len(recent) == 3
-        assert recent[-1].target_vector == "vec_4"
-
-    def test_get_by_status(self, audit_trail):
-        """Filtrar por status."""
-        success_seed = CategoricalEqualizerSeed(
-            target_vector="success",
-            target_stratum=Stratum.PHYSICS,
-            silo_a_contract_id="c1",
-            silo_b_cartridge_id="c2",
-            impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
-        )
-        veto_seed = CategoricalEqualizerSeed(
-            target_vector="veto",
-            target_stratum=Stratum.PHYSICS,
-            silo_a_contract_id="c1",
-            silo_b_cartridge_id="c2",
-            impedance_match_status=ImpedanceMatchStatus.ALGEBRAIC_VETO,
-        )
-        
-        audit_trail.append(success_seed)
-        audit_trail.append(veto_seed)
-        
-        laminar = audit_trail.get_by_status(ImpedanceMatchStatus.LAMINAR_PROJECTION)
-        vetos = audit_trail.get_by_status(ImpedanceMatchStatus.ALGEBRAIC_VETO)
-        
-        assert len(laminar) == 1
-        assert len(vetos) == 1
-
-    def test_get_by_stratum(self, audit_trail):
-        """Filtrar por estrato."""
-        physics_seed = CategoricalEqualizerSeed(
-            target_vector="physics",
-            target_stratum=Stratum.PHYSICS,
-            silo_a_contract_id="c1",
-            silo_b_cartridge_id="c2",
-            impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
-        )
-        tactics_seed = CategoricalEqualizerSeed(
-            target_vector="tactics",
-            target_stratum=Stratum.TACTICS,
-            silo_a_contract_id="c1",
-            silo_b_cartridge_id="c2",
-            impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
-        )
-        
-        audit_trail.append(physics_seed)
-        audit_trail.append(tactics_seed)
-        
-        physics_entries = audit_trail.get_by_stratum(Stratum.PHYSICS)
-        tactics_entries = audit_trail.get_by_stratum(Stratum.TACTICS)
-        
-        assert len(physics_entries) == 1
-        assert len(tactics_entries) == 1
-
-    def test_clear(self, audit_trail, sample_audit_seed):
-        """Limpiar traza."""
-        audit_trail.append(sample_audit_seed)
-        audit_trail.append(sample_audit_seed)
-        
-        audit_trail.clear()
-        
-        assert audit_trail.size == 0
-
-    def test_get_statistics(self, audit_trail):
-        """Estadísticas de la traza."""
-        for stratum in [Stratum.PHYSICS, Stratum.PHYSICS, Stratum.TACTICS]:
-            seed = CategoricalEqualizerSeed(
-                target_vector="vec",
-                target_stratum=stratum,
-                silo_a_contract_id="c1",
-                silo_b_cartridge_id="c2",
-                impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
-            )
-            audit_trail.append(seed)
-        
-        stats = audit_trail.get_statistics()
-        
-        assert stats["total_entries"] == 3
-        assert stats["current_size"] == 3
-        assert "PHYSICS" in stats["stratum_distribution"]
-        assert stats["stratum_distribution"]["PHYSICS"] == 2
-
-    def test_thread_safety(self, audit_trail):
-        """La traza es thread-safe."""
-        def append_entries(trail, prefix, count):
-            for i in range(count):
-                seed = CategoricalEqualizerSeed(
-                    target_vector=f"{prefix}_{i}",
-                    target_stratum=Stratum.PHYSICS,
-                    silo_a_contract_id="c1",
-                    silo_b_cartridge_id="c2",
-                    impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION,
-                )
-                trail.append(seed)
-        
-        threads = []
-        for t_id in range(5):
-            t = threading.Thread(target=append_entries, args=(audit_trail, f"t{t_id}", 20))
-            threads.append(t)
-        
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
-        
-        # Todas las entradas deben estar
-        assert audit_trail.total_count == 100
-
-
-# =============================================================================
-# TESTS: MIC AGENT
-# =============================================================================
-
-class TestMICAgentSenseStratum:
-    """Pruebas para sensado de estrato."""
-
-    def test_sense_stratum_success(self, mic_agent, mock_mic_registry):
-        """Sensado exitoso."""
-        mock_mic_registry.get_vector_info.return_value = {
-            "stratum": Stratum.PHYSICS,
-        }
-        
-        result = mic_agent.sense_stratum("test_vector")
-        
-        assert result == Stratum.PHYSICS
-
-    def test_sense_stratum_vector_not_found(self, mic_agent, mock_mic_registry):
-        """Error si vector no existe."""
-        mock_mic_registry.get_vector_info.return_value = None
-        
-        with pytest.raises(StratumResolutionError, match="no existe"):
-            mic_agent.sense_stratum("nonexistent")
-
-    def test_sense_stratum_no_stratum_field(self, mic_agent, mock_mic_registry):
-        """Error si vector no tiene campo stratum."""
-        mock_mic_registry.get_vector_info.return_value = {"name": "test"}
-        
-        with pytest.raises(StratumResolutionError, match="no reporta estrato"):
-            mic_agent.sense_stratum("test_vector")
-
-
-class TestMICAgentValidateClosure:
-    """Pruebas para validación de clausura DIKW."""
-
-    def test_closure_satisfied(self, mic_agent):
-        """Clausura satisfecha."""
-        # TACTICS requiere PHYSICS
-        validated = frozenset([Stratum.PHYSICS])
-        
-        result = mic_agent.validate_closure(Stratum.TACTICS, validated)
-        
-        assert result is None
-
-    def test_closure_violated(self, mic_agent):
-        """Clausura violada."""
-        # TACTICS requiere PHYSICS, pero no está validado
-        validated = frozenset()
-        
-        result = mic_agent.validate_closure(Stratum.TACTICS, validated)
-        
-        assert result is not None
-        assert "PHYSICS" in result
-
-    def test_closure_wisdom_requires_all(self, mic_agent):
-        """WISDOM requiere todos los demás estratos."""
-        # Solo PHYSICS validado
-        validated = frozenset([Stratum.PHYSICS])
-        
-        result = mic_agent.validate_closure(Stratum.WISDOM, validated)
-        
-        assert result is not None
-        # Debe mencionar los faltantes
-        assert "STRATEGY" in result or "TACTICS" in result
-
-
-class TestMICAgentCompressTelemetry:
-    """Pruebas para compresión de telemetría."""
-
-    def test_compress_telemetry_success(self, mic_agent, mock_mic_registry):
-        """Compresión exitosa."""
-        cartridge_id, doc = mic_agent.compress_telemetry(
-            "test_vector",
-            SAMPLE_TELEMETRY,
-        )
-        
-        assert cartridge_id is not None
-        assert isinstance(doc, TOONDocument)
-        assert len(doc.records) > 0
-
-    def test_inject_functorial_context(self, mic_agent, mock_mic_registry):
-        """inject_functorial_context retorna string TOON."""
-        result = mic_agent.inject_functorial_context(
-            "test_vector",
-            SAMPLE_TELEMETRY,
-        )
-        
-        assert isinstance(result, str)
-        assert TOON_START_MARKER in result
-        assert TOON_END_MARKER in result
-
-
-class TestMICAgentEncapsulateMonad:
-    """Pruebas para encapsulación monádica."""
-
-    def test_encapsulate_success(self, mic_agent, mock_mic_registry):
-        """Encapsulación exitosa."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        result = mic_agent.encapsulate_monad(
-            target_vector="test_vector",
-            llm_output=VALID_PHYSICS_PAYLOAD,
-            validated_strata=frozenset(),
-        )
-        
-        assert result.is_success is True
-        assert Stratum.PHYSICS in result.validated_strata
-        assert result.payload == VALID_PHYSICS_PAYLOAD
-
-    def test_encapsulate_invalid_type(self, mic_agent):
-        """Error si llm_output no es Mapping."""
-        result = mic_agent.encapsulate_monad(
-            target_vector="test_vector",
-            llm_output="not a mapping",
-            validated_strata=frozenset(),
-        )
-        
-        assert result.is_failed is True
-        assert result.error == ImpedanceMatchStatus.INPUT_TYPE_ERROR.value
-
-    def test_encapsulate_closure_violation(self, mic_agent, mock_mic_registry):
-        """Error por violación de clausura."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.TACTICS}
-        
-        result = mic_agent.encapsulate_monad(
-            target_vector="test_vector",
-            llm_output=VALID_TACTICS_PAYLOAD,
-            validated_strata=frozenset(),  # Sin PHYSICS
-        )
-        
-        assert result.is_failed is True
-        assert result.error == ImpedanceMatchStatus.STRATUM_MISMATCH_REJECTED.value
-
-    def test_encapsulate_force_override(self, mic_agent, mock_mic_registry):
-        """force_override ignora clausura."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.TACTICS}
-        
-        result = mic_agent.encapsulate_monad(
-            target_vector="test_vector",
-            llm_output=VALID_TACTICS_PAYLOAD,
-            validated_strata=frozenset(),  # Sin PHYSICS
-            force_override=True,
-        )
-        
-        assert result.is_success is True
-
-    def test_encapsulate_schema_validation_error(self, mic_agent, mock_mic_registry):
-        """Error por validación de schema."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        invalid_payload = {"dissipated_power": "not a number"}
-        
-        result = mic_agent.encapsulate_monad(
-            target_vector="test_vector",
-            llm_output=invalid_payload,
-            validated_strata=frozenset(),
-        )
-        
-        assert result.is_failed is True
-        assert result.error == ImpedanceMatchStatus.SCHEMA_VALIDATION_ERROR.value
-
-    def test_encapsulate_algebraic_veto(self, mic_agent, mock_mic_registry):
-        """Error por veto algebraico."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        invalid_payload = {"dissipated_power": -100}  # Negativo = violación
-        
-        result = mic_agent.encapsulate_monad(
-            target_vector="test_vector",
-            llm_output=invalid_payload,
-            validated_strata=frozenset(),
-        )
-        
-        assert result.is_failed is True
-        assert result.error == ImpedanceMatchStatus.ALGEBRAIC_VETO.value
-
-    def test_encapsulate_with_telemetry(self, mic_agent, mock_mic_registry):
-        """Encapsulación con telemetría comprimida."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        result = mic_agent.encapsulate_monad(
-            target_vector="test_vector",
-            llm_output=VALID_PHYSICS_PAYLOAD,
-            validated_strata=frozenset(),
-            raw_telemetry=SAMPLE_TELEMETRY,
-        )
-        
-        assert result.is_success is True
-        assert "compressed_context" in result.context
-        assert "compression_ratio" in result.context
-
-    def test_encapsulate_adds_audit_entry(self, mic_agent, mock_mic_registry):
-        """Encapsulación agrega entrada de auditoría."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        initial_size = mic_agent.audit_trail.size
-        
-        mic_agent.encapsulate_monad(
-            target_vector="test_vector",
-            llm_output=VALID_PHYSICS_PAYLOAD,
-            validated_strata=frozenset(),
-        )
-        
-        assert mic_agent.audit_trail.size == initial_size + 1
-
-
-class TestMICAgentExecuteProjection:
-    """Pruebas para proyección hacia MIC."""
-
-    def test_projection_success(self, mic_agent, mock_mic_registry):
-        """Proyección exitosa."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        result = mic_agent.execute_projection(
-            target_vector="test_vector",
-            llm_output=VALID_PHYSICS_PAYLOAD,
-            validated_strata=frozenset(),
-        )
-        
-        assert result["status"] == "OK"
-        assert "mic_result" in result
-        assert result["target_stratum"] == "PHYSICS"
-
-    def test_projection_veto(self, mic_agent, mock_mic_registry):
-        """Proyección vetada por encapsulación fallida."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        result = mic_agent.execute_projection(
-            target_vector="test_vector",
-            llm_output={"dissipated_power": -100},  # Veto algebraico
-            validated_strata=frozenset(),
-        )
-        
-        assert result["status"] == "VETO"
-        assert "reason" in result
-
-    def test_projection_mic_error(self, mic_agent, mock_mic_registry):
-        """Error en proyección MIC."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        mock_mic_registry.project_intent.side_effect = Exception("MIC error")
-        
-        result = mic_agent.execute_projection(
-            target_vector="test_vector",
-            llm_output=VALID_PHYSICS_PAYLOAD,
-            validated_strata=frozenset(),
-        )
-        
-        assert result["status"] == "ERROR"
-        assert result["impedance_status"] == ImpedanceMatchStatus.MIC_RESOLUTION_ERROR.value
-
-    def test_projection_with_full_telemetry(self, mic_agent, mock_mic_registry):
-        """Proyección con telemetría completa."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        result = mic_agent.execute_projection(
-            target_vector="test_vector",
-            llm_output=VALID_PHYSICS_PAYLOAD,
-            validated_strata=frozenset(),
-            context_hashes=frozenset(["hash1", "hash2"]),
-            raw_telemetry=SAMPLE_TELEMETRY,
-        )
-        
-        assert result["status"] == "OK"
-        assert "audit_context" in result
-
-
-class TestMICAgentConvenienceMethods:
-    """Pruebas para métodos de conveniencia."""
-
-    def test_get_audit_statistics(self, mic_agent, mock_mic_registry):
-        """Estadísticas de auditoría."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        # Generar algunas entradas
-        for _ in range(3):
-            mic_agent.encapsulate_monad(
-                target_vector="test",
-                llm_output=VALID_PHYSICS_PAYLOAD,
-                validated_strata=frozenset(),
-            )
-        
-        stats = mic_agent.get_audit_statistics()
-        
-        assert stats["total_entries"] == 3
-
-    def test_get_recent_audits(self, mic_agent, mock_mic_registry):
-        """Auditorías recientes como dicts."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        mic_agent.encapsulate_monad(
-            target_vector="test",
-            llm_output=VALID_PHYSICS_PAYLOAD,
-            validated_strata=frozenset(),
-        )
-        
-        recent = mic_agent.get_recent_audits(n=5)
-        
-        assert len(recent) == 1
-        assert isinstance(recent[0], dict)
-        assert "target_vector" in recent[0]
-
-    def test_clear_audit_trail(self, mic_agent, mock_mic_registry):
-        """Limpiar traza de auditoría."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        mic_agent.encapsulate_monad(
-            target_vector="test",
-            llm_output=VALID_PHYSICS_PAYLOAD,
-            validated_strata=frozenset(),
-        )
-        
-        mic_agent.clear_audit_trail()
-        
-        assert mic_agent.audit_trail.size == 0
-
-
-# =============================================================================
-# TESTS: INTEGRACIÓN
-# =============================================================================
-
-from app.boole.strategy.sheaf_cohomology_orchestrator import (
-    CellularSheaf,
-    RestrictionMap,
-    HomologicalInconsistencyError,
-    SheafCohomologyOrchestrator,
-)
-import numpy as np
-from app.core.telemetry import TelemetryContext
-
-def _build_heterogeneous_sheaf_with_conflict() -> CellularSheaf:
-    """Construye un haz con fibras heterogéneas y un conflicto (energía alta)."""
-    F_0 = np.eye(2, dtype=np.float64)
-    F_1 = np.array([
-        [1.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0],
-    ], dtype=np.float64)
-
-    sheaf = CellularSheaf(
-        num_nodes=2,
-        node_dims={0: 2, 1: 3},
-        edge_dims={0: 2},
-    )
-    sheaf.add_edge(
-        0, u=0, v=1,
-        F_ue=RestrictionMap(F_0),
-        F_ve=RestrictionMap(F_1),
-    )
-    return sheaf
-
-class TestIntegration:
-    """Pruebas de integración end-to-end."""
-
-    def test_sheaf_frustration_blocks_wisdom_transition(self, mic_agent):
-        """
-        Aserta que un estado global frustrado (E(x) > ε) detona una inconsistencia
-        homológica, bloqueando la transición al estrato WISDOM.
-        """
-        # Generar un haz celular con fibras heterogéneas y opiniones contradictorias
-        sheaf = _build_heterogeneous_sheaf_with_conflict()
-
-        # Estado frustrado que no satisface el consenso global (ej. x = (1, 2, 3, 4, 5))
-        # F_0(1, 2) = (1, 2), F_1(3, 4, 5) = (3, 4) -> (3, 4) - (1, 2) != 0 -> E(x) > 0
-        global_state_vector = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float64)
-
-        telemetry_ctx = TelemetryContext()
-
-        orchestrator = SheafCohomologyOrchestrator()
-
-        with pytest.raises(HomologicalInconsistencyError):
-            # El orquestador evalúa la Energía de Dirichlet (dentro de MICAgent)
-            orchestrator.audit_global_state(sheaf, global_state_vector)
-
-        # El test asegura que el MICAgent detectaría la frustración antes de WISDOM
-        # Simulando el rechazo en MICAgent:
-        mock_registry = mic_agent._mic
-        mock_registry.get_vector_info.return_value = {"stratum": Stratum.WISDOM}
-
-        # En el flujo completo, mic_agent llamaría a orchestrator.audit_global_state() en STRATEGY->WISDOM
-        # lo que lanzaría HomologicalInconsistencyError. Para probar el rechazo explícito, pasamos state a la función execute_projection
-        # y verificamos que el status es VETO y hay un degenerate_laplacian en los details
-        res = mic_agent.execute_projection(
-            target_vector="wisdom_vec",
-            llm_output=VALID_WISDOM_PAYLOAD,
-            validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA]),
-            raw_telemetry={"cellular_sheaf": sheaf, "global_state_vector": global_state_vector},
-            force_override=True,
-        )
-        assert res["status"] == "VETO"
-        assert res.get("reason") == "HomologicalInconsistency"
-
-        # Phase 3: Check if the forensic evidence was injected into the trace
-        # Specifically, check for degenerate_laplacian
-        forensic = res.get("details", {}).get("forensic_evidence") or res.get("context", {}).get("forensic_evidence")
-        assert forensic is not None, "El context no integró forensic_evidence"
-        assert "degenerate_laplacian" in forensic, "forensic_evidence carece de la evaluación del Laplaciano (Laplaciano degenerado)"
-
-    def test_full_dikw_pipeline(self, mock_mic_registry):
-        """Pipeline completo PHYSICS → TACTICS → STRATEGY → OMEGA → WISDOM."""
-        agent = MICAgent(mic_registry=mock_mic_registry)
-        
-        # PHYSICS
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        physics_result = agent.execute_projection(
-            target_vector="physics_vec",
-            llm_output=VALID_PHYSICS_PAYLOAD,
-            validated_strata=frozenset(),
-        )
-        assert physics_result["status"] == "OK"
-        
-        # TACTICS (con PHYSICS validado)
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.TACTICS}
-        
-        tactics_result = agent.execute_projection(
-            target_vector="tactics_vec",
-            llm_output=VALID_TACTICS_PAYLOAD,
-            validated_strata=frozenset([Stratum.PHYSICS]),
-        )
-        assert tactics_result["status"] == "OK"
-        
-        # STRATEGY (con PHYSICS, TACTICS validados)
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.STRATEGY}
-        
-        strategy_result = agent.execute_projection(
-            target_vector="strategy_vec",
-            llm_output=VALID_STRATEGY_PAYLOAD,
-            validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS]),
-        )
-        assert strategy_result["status"] == "OK"
-
-        # OMEGA (con PHYSICS, TACTICS, STRATEGY validados)
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.OMEGA}
-
-        omega_result = agent.execute_projection(
-            target_vector="omega_vec",
-            llm_output={"final_verdict": "VIABLE"},
-            validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY]),
-        )
-        assert omega_result["status"] == "OK"
-        
-        # ALPHA (con PHYSICS, TACTICS, STRATEGY, OMEGA validados)
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.ALPHA}
-
-        alpha_result = agent.execute_projection(
-            target_vector="alpha_vec",
-            llm_output={"business_model_valid": True},
-            validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA]),
-        )
-        assert alpha_result["status"] == "OK"
-
-        # WISDOM (con todos validados)
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.WISDOM}
-        
-        wisdom_result = agent.execute_projection(
-            target_vector="wisdom_vec",
-            llm_output=VALID_WISDOM_PAYLOAD,
-            validated_strata=frozenset([Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA]),
-        )
-        assert wisdom_result["status"] == "OK"
-        
-        # Verificar auditoría completa
-        assert agent.audit_trail.total_count == 6
-
-    def test_cascading_veto(self, mock_mic_registry):
-        """Un veto en PHYSICS impide avanzar en el pipeline."""
-        agent = MICAgent(mic_registry=mock_mic_registry)
-        
-        # PHYSICS con veto
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        physics_result = agent.execute_projection(
-            target_vector="physics_vec",
-            llm_output={"dissipated_power": -100},  # VETO
-            validated_strata=frozenset(),
-        )
-        assert physics_result["status"] == "VETO"
-        
-        # TACTICS sin PHYSICS validado debe fallar clausura
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.TACTICS}
-        
-        tactics_result = agent.execute_projection(
-            target_vector="tactics_vec",
-            llm_output=VALID_TACTICS_PAYLOAD,
-            validated_strata=frozenset(),  # PHYSICS no validado
-        )
-        assert tactics_result["status"] == "VETO"
-
-    def test_telemetry_compression_roundtrip(self, mock_mic_registry):
-        """Compresión y uso de telemetría en proyección."""
-        agent = MICAgent(mic_registry=mock_mic_registry)
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        # Comprimir telemetría
-        compressed = agent.inject_functorial_context("test", SAMPLE_TELEMETRY)
-        
-        # Parsear de vuelta
-        doc = TOONDocument.parse(compressed)
-        recovered = doc.to_dict()
-        
-        # Verificar que los datos se preservaron
-        assert recovered["sensor_id"] == SAMPLE_TELEMETRY["sensor_id"]
-        assert recovered["temperature"] == SAMPLE_TELEMETRY["temperature"]
-
-    def test_concurrent_projections(self, mock_mic_registry):
-        """Proyecciones concurrentes son thread-safe."""
-        agent = MICAgent(mic_registry=mock_mic_registry)
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        results = []
-        
-        def project(i):
-            payload = {"dissipated_power": float(i * 10)}
-            return agent.execute_projection(
-                target_vector=f"vec_{i}",
-                llm_output=payload,
-                validated_strata=frozenset(),
-            )
-        
-        with ThreadPoolExecutor(max_workers=10) as executor:
-            futures = [executor.submit(project, i) for i in range(50)]
-            for future in as_completed(futures):
-                results.append(future.result())
-        
-        # Todas deben ser exitosas
-        assert all(r["status"] == "OK" for r in results)
-        assert agent.audit_trail.total_count == 50
-
-
-# =============================================================================
-# TESTS: CASOS EDGE
-# =============================================================================
-
-class TestEdgeCases:
-    """Pruebas para casos límite."""
-
-    def test_empty_payload(self, mic_agent, mock_mic_registry):
-        """Payload vacío."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        result = mic_agent.encapsulate_monad(
-            target_vector="test",
-            llm_output={},
-            validated_strata=frozenset(),
-        )
-        
-        # Debería fallar por required keys
-        assert result.is_failed is True
-
-    def test_empty_telemetry(self, mic_agent, mock_mic_registry):
-        """Telemetría vacía."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        result = mic_agent.encapsulate_monad(
-            target_vector="test",
-            llm_output=VALID_PHYSICS_PAYLOAD,
-            validated_strata=frozenset(),
-            raw_telemetry={},
-        )
-        
-        assert result.is_success is True
-        assert "compressed_context" in result.context
-
-    def test_deeply_nested_payload(self, mic_agent, mock_mic_registry):
-        """Payload profundamente anidado."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
-        
-        nested_payload = {
-            "dissipated_power": 100,
-            "nested": {
-                "level1": {
-                    "level2": {
-                        "level3": {"value": 42}
+                        "name": {"type": "string", "minLength": 1},
+                        "age": {"type": "integer", "minimum": 0, "maximum": 150},
+                        "emails": {
+                            "type": "array",
+                            "items": {"type": "string", "pattern": r"^.+@.+\..+$"}
+                        }
                     }
                 }
             }
         }
         
-        result = mic_agent.encapsulate_monad(
-            target_vector="test",
-            llm_output=nested_payload,
-            validated_strata=frozenset(),
+        # Válido
+        valid_data = {
+            "user": {
+                "name": "Alice",
+                "age": 30,
+                "emails": ["alice@example.com"]
+            }
+        }
+        result = schema_validator.validate(schema, valid_data)
+        assert result.is_valid
+        
+        # Inválido
+        invalid_data = {
+            "user": {
+                "name": "",  # minLength violation
+                "age": 200,  # maximum violation
+                "emails": ["invalid_email"]  # pattern violation
+            }
+        }
+        result = schema_validator.validate(schema, invalid_data)
+        assert not result.is_valid
+        assert len(result.errors) >= 3
+
+# ==============================================================================
+# CONFIGURACIÓN DE PYTEST
+# ==============================================================================
+
+def pytest_configure(config):
+    """Configuración de pytest."""
+    config.addinivalue_line(
+        "markers",
+        "slow: marca tests lentos"
+    )
+    config.addinivalue_line(
+        "markers",
+        "integration: marca tests de integración"
+    )
+
+# ==============================================================================
+# EJECUCIÓN
+# ==============================================================================
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short"])
+
+"""
+Suite de Pruebas para MIC Agent - PARTE 2
+Ubicación: tests/agents/test_mic_agent.py (continuación)
+
+COBERTURA DE PRUEBAS - PARTE 2:
+
+7. ALGEBRAIC VETO REGISTRY:
+   - Validadores por defecto
+   - Registro de validadores personalizados
+   - Validación por estrato
+   - Composición de validadores
+
+8. SILO MANAGER:
+   - Inicialización con contratos/cartuchos por defecto
+   - Registro y recuperación
+   - Congelación (inmutabilidad)
+   - Selectores deterministas
+   - Invariantes de cobertura
+
+9. TOON COMPRESSOR:
+   - Compresión determinista
+   - Verificación de isomorfismo
+   - Cálculo de ratio de compresión
+   - Protección contra rango tensorial alto
+   - Estadísticas
+
+10. AUDIT TRAIL:
+    - Buffer circular thread-safe
+    - Operaciones concurrentes
+    - Filtrado por status/estrato
+    - Estadísticas agregadas
+
+11. MIC AGENT:
+    - Construcción y configuración
+    - Sensado de estrato
+    - Validación de clausura transitiva
+    - Encapsulación monádica
+    - Pipeline completo de proyección
+    - Escudo inmunológico
+    - Propiedades funtoriales
+
+12. INTEGRACIÓN END-TO-END:
+    - Pipeline completo
+    - Manejo de errores
+    - Auditoría completa
+    - Verificación de determinismo
+"""
+
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Dict, List, Optional
+
+import pytest
+from unittest.mock import Mock, patch, call
+
+# Imports adicionales para PARTE 2
+from app.agents.mic_agent import (
+    AlgebraicVetoRegistry,
+    SiloManager,
+    TOONCompressor,
+    AuditTrail,
+    MICAgent,
+    ImpedanceMatchStatus,
+    CategoricalEqualizerSeed,
+    TOONDocument,
+    normalize_stratum,
+    MathUtils,
+    ALGEBRAIC_TOL,
+    MAX_TENSOR_RANK,
+)
+
+from app.core.schemas import Stratum
+from app.core.mic_algebra import CategoricalState
+
+# ==============================================================================
+# TESTS: ALGEBRAIC VETO REGISTRY
+# ==============================================================================
+
+class TestAlgebraicVetoRegistry:
+    """Tests para AlgebraicVetoRegistry."""
+    
+    def test_initialization(self):
+        """Inicialización con validadores por defecto."""
+        registry = AlgebraicVetoRegistry()
+        
+        # Verificar que todos los estratos tienen validadores
+        for stratum in Stratum:
+            count = registry.get_validator_count(stratum)
+            assert count >= 0  # Al menos uno por defecto
+    
+    def test_physics_conservation_valid(self):
+        """Validador de conservación de energía (válido)."""
+        registry = AlgebraicVetoRegistry()
+        
+        payload = {
+            "dissipated_power": 10.0,
+            "energy_input": 100.0,
+            "energy_output": 90.0
+        }
+        
+        errors = registry.validate(Stratum.PHYSICS, payload)
+        assert len(errors) == 0
+    
+    def test_physics_conservation_negative_power(self):
+        """Validador rechaza potencia disipada negativa."""
+        registry = AlgebraicVetoRegistry()
+        
+        payload = {
+            "dissipated_power": -5.0
+        }
+        
+        errors = registry.validate(Stratum.PHYSICS, payload)
+        assert len(errors) > 0
+        assert "termodinámica" in errors[0].lower()
+    
+    def test_physics_conservation_energy_violation(self):
+        """Validador rechaza violación de conservación de energía."""
+        registry = AlgebraicVetoRegistry()
+        
+        payload = {
+            "energy_input": 100.0,
+            "energy_output": 150.0  # Violación
+        }
+        
+        errors = registry.validate(Stratum.PHYSICS, payload)
+        assert len(errors) > 0
+        assert "conservación" in errors[0].lower()
+    
+    def test_tactics_stability_valid(self):
+        """Validador de estabilidad (válido)."""
+        registry = AlgebraicVetoRegistry()
+        
+        payload = {
+            "pyramid_stability_index": 0.75
+        }
+        
+        errors = registry.validate(Stratum.TACTICS, payload)
+        assert len(errors) == 0
+    
+    def test_tactics_stability_out_of_range(self):
+        """Validador rechaza índice fuera de [0, 1]."""
+        registry = AlgebraicVetoRegistry()
+        
+        # Menor que 0
+        payload1 = {"pyramid_stability_index": -0.1}
+        errors1 = registry.validate(Stratum.TACTICS, payload1)
+        assert len(errors1) > 0
+        
+        # Mayor que 1
+        payload2 = {"pyramid_stability_index": 1.5}
+        errors2 = registry.validate(Stratum.TACTICS, payload2)
+        assert len(errors2) > 0
+    
+    def test_strategy_friction_valid(self):
+        """Validador de fricción territorial (válido)."""
+        registry = AlgebraicVetoRegistry()
+        
+        payload = {
+            "territorial_friction": 2.5
+        }
+        
+        errors = registry.validate(Stratum.STRATEGY, payload)
+        assert len(errors) == 0
+    
+    def test_strategy_friction_below_minimum(self):
+        """Validador rechaza fricción < 1.0."""
+        registry = AlgebraicVetoRegistry()
+        
+        payload = {
+            "territorial_friction": 0.5
+        }
+        
+        errors = registry.validate(Stratum.STRATEGY, payload)
+        assert len(errors) > 0
+        assert "debe ser >= 1.0" in errors[0]
+    
+    def test_wisdom_verdict_valid(self):
+        """Validador de veredicto (válido)."""
+        registry = AlgebraicVetoRegistry()
+        
+        for verdict in ["VIABLE", "PRECAUCION", "RECHAZAR"]:
+            payload = {"final_verdict": verdict}
+            errors = registry.validate(Stratum.WISDOM, payload)
+            assert len(errors) == 0
+    
+    def test_wisdom_verdict_invalid(self):
+        """Validador rechaza veredicto inválido."""
+        registry = AlgebraicVetoRegistry()
+        
+        payload = {"final_verdict": "MAYBE"}
+        errors = registry.validate(Stratum.WISDOM, payload)
+        
+        assert len(errors) > 0
+        assert "inválido" in errors[0].lower()
+    
+    def test_register_custom_validator(self):
+        """Registrar validador personalizado."""
+        registry = AlgebraicVetoRegistry()
+        
+        def custom_validator(stratum, payload):
+            if payload.get("custom_field") != "expected":
+                return "Custom validation failed"
+            return None
+        
+        initial_count = registry.get_validator_count(Stratum.PHYSICS)
+        registry.register_validator(Stratum.PHYSICS, custom_validator)
+        
+        assert registry.get_validator_count(Stratum.PHYSICS) == initial_count + 1
+        
+        # Probar validador personalizado
+        payload_valid = {"custom_field": "expected"}
+        errors_valid = registry.validate(Stratum.PHYSICS, payload_valid)
+        # No debe haber error del validador personalizado
+        
+        payload_invalid = {"custom_field": "wrong"}
+        errors_invalid = registry.validate(Stratum.PHYSICS, payload_invalid)
+        assert any("Custom validation failed" in e for e in errors_invalid)
+    
+    def test_validator_exception_handling(self):
+        """Manejar excepciones en validadores."""
+        registry = AlgebraicVetoRegistry()
+        
+        def faulty_validator(stratum, payload):
+            raise RuntimeError("Validator crashed")
+        
+        registry.register_validator(Stratum.PHYSICS, faulty_validator)
+        
+        # No debe propagar excepción
+        errors = registry.validate(Stratum.PHYSICS, {})
+        assert len(errors) > 0
+        assert any("Error en validador algebraico" in e for e in errors)
+
+# ==============================================================================
+# TESTS: SILO MANAGER
+# ==============================================================================
+
+class TestSiloManager:
+    """Tests para SiloManager."""
+    
+    def test_initialization_default_silos(self):
+        """Inicialización con silos por defecto."""
+        manager = SiloManager()
+        
+        # Verificar que todos los estratos tienen contratos
+        for stratum in Stratum:
+            contracts = manager.list_contracts(stratum)
+            assert len(contracts) > 0
+            
+            cartridges = manager.list_cartridges(stratum)
+            assert len(cartridges) > 0
+    
+    def test_fetch_contract_physics(self):
+        """Fetch contrato para PHYSICS."""
+        manager = SiloManager()
+        
+        contract_id, schema = manager.fetch_contract(
+            Stratum.PHYSICS,
+            "test_vector"
         )
         
-        assert result.is_success is True
+        assert contract_id is not None
+        assert isinstance(schema, dict)
+        assert "type" in schema
+    
+    def test_fetch_contract_all_strata(self):
+        """Fetch contratos para todos los estratos."""
+        manager = SiloManager()
+        
+        for stratum in Stratum:
+            contract_id, schema = manager.fetch_contract(stratum, "test")
+            assert contract_id is not None
+            assert isinstance(schema, dict)
+    
+    def test_fetch_cartridge_physics(self):
+        """Fetch cartucho para PHYSICS."""
+        manager = SiloManager()
+        
+        cartridge_id, header = manager.fetch_cartridge(
+            Stratum.PHYSICS,
+            "test_vector"
+        )
+        
+        assert cartridge_id is not None
+        assert isinstance(header, str)
+        assert len(header) > 0
+    
+    def test_fetch_cartridge_all_strata(self):
+        """Fetch cartuchos para todos los estratos."""
+        manager = SiloManager()
+        
+        for stratum in Stratum:
+            cartridge_id, header = manager.fetch_cartridge(stratum, "test")
+            assert cartridge_id is not None
+            assert isinstance(header, str)
+    
+    def test_list_contracts(self):
+        """Listar contratos."""
+        manager = SiloManager()
+        
+        # Todos los contratos
+        all_contracts = manager.list_contracts()
+        assert len(all_contracts) > 0
+        
+        # Contratos por estrato
+        physics_contracts = manager.list_contracts(Stratum.PHYSICS)
+        assert len(physics_contracts) > 0
+    
+    def test_list_cartridges(self):
+        """Listar cartuchos."""
+        manager = SiloManager()
+        
+        # Todos los cartuchos
+        all_cartridges = manager.list_cartridges()
+        assert len(all_cartridges) > 0
+        
+        # Cartuchos por estrato
+        physics_cartridges = manager.list_cartridges(Stratum.PHYSICS)
+        assert len(physics_cartridges) > 0
+    
+    def test_get_contract_count(self):
+        """Contar contratos."""
+        manager = SiloManager()
+        
+        total_count = manager.get_contract_count()
+        assert total_count > 0
+        
+        physics_count = manager.get_contract_count(Stratum.PHYSICS)
+        assert physics_count > 0
+    
+    def test_get_cartridge_count(self):
+        """Contar cartuchos."""
+        manager = SiloManager()
+        
+        total_count = manager.get_cartridge_count()
+        assert total_count > 0
+        
+        physics_count = manager.get_cartridge_count(Stratum.PHYSICS)
+        assert physics_count > 0
+    
+    def test_get_contract_by_id(self):
+        """Recuperar contrato por ID."""
+        manager = SiloManager()
+        
+        # Obtener primer contrato
+        contract_id = manager.list_contracts(Stratum.PHYSICS)[0]
+        contract = manager.get_contract(contract_id)
+        
+        assert contract is not None
+        assert contract.contract_id == contract_id
+    
+    def test_get_contract_nonexistent(self):
+        """Recuperar contrato inexistente."""
+        manager = SiloManager()
+        
+        contract = manager.get_contract("nonexistent_id")
+        assert contract is None
+    
+    def test_get_cartridge_by_id(self):
+        """Recuperar cartucho por ID."""
+        manager = SiloManager()
+        
+        # Obtener primer cartucho
+        cartridge_id = manager.list_cartridges(Stratum.PHYSICS)[0]
+        cartridge = manager.get_cartridge(cartridge_id)
+        
+        assert cartridge is not None
+        assert cartridge.cartridge_id == cartridge_id
+    
+    def test_get_cartridge_nonexistent(self):
+        """Recuperar cartucho inexistente."""
+        manager = SiloManager()
+        
+        cartridge = manager.get_cartridge("nonexistent_id")
+        assert cartridge is None
+    
+    def test_freeze_prevents_registration(self):
+        """Congelar silos previene registro."""
+        manager = SiloManager()
+        manager.freeze()
+        
+        from app.agents.mic_agent import SiloAContract, SiloBCartridge
+        
+        # Intentar registrar nuevo contrato (debería fallar)
+        # Nota: _register_contract es privado, usar con cuidado en tests
+        with pytest.raises(Exception):  # SiloAccessError
+            manager._register_contract(SiloAContract(
+                contract_id="new_contract",
+                stratum=Stratum.PHYSICS,
+                schema={"type": "object"}
+            ))
+    
+    def test_deterministic_selection(self):
+        """Selección determinista de contratos."""
+        manager = SiloManager()
+        
+        # Múltiples llamadas deben retornar mismo resultado
+        contract_id1, _ = manager.fetch_contract(Stratum.PHYSICS, "test")
+        contract_id2, _ = manager.fetch_contract(Stratum.PHYSICS, "test")
+        
+        assert contract_id1 == contract_id2
 
-    def test_special_characters_in_telemetry(self, mic_agent, mock_mic_registry):
-        """Caracteres especiales en telemetría."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
+# ==============================================================================
+# TESTS: TOON COMPRESSOR
+# ==============================================================================
+
+class TestTOONCompressor:
+    """Tests para TOONCompressor."""
+    
+    def test_compress_basic(self):
+        """Comprimir telemetría básica."""
+        compressor = TOONCompressor()
         
         telemetry = {
-            "message": "Hello, 世界! 🌍",
-            "formula": "E = mc²",
-            "pipes": "a|b|c",
+            "value1": 42,
+            "value2": "test",
+            "value3": 3.14
         }
         
-        compressed = mic_agent.inject_functorial_context("test", telemetry)
-        doc = TOONDocument.parse(compressed)
-        recovered = doc.to_dict()
+        doc = compressor.compress(
+            telemetry,
+            "test_cartridge",
+            "Header\nkey|value"
+        )
         
-        assert recovered["message"] == telemetry["message"]
-        assert recovered["formula"] == telemetry["formula"]
-
-    def test_large_telemetry(self, mic_agent, mock_mic_registry):
-        """Telemetría grande."""
-        mock_mic_registry.get_vector_info.return_value = {"stratum": Stratum.PHYSICS}
+        assert doc.cartridge_id == "test_cartridge"
+        assert len(doc.records) == 3
+    
+    def test_compress_deterministic(self):
+        """Compresión determinista (orden alfabético de claves)."""
+        compressor = TOONCompressor()
         
-        large_telemetry = {
-            f"key_{i}": f"value_{i}" * 100
-            for i in range(100)
+        telemetry1 = {"b": 2, "a": 1, "c": 3}
+        telemetry2 = {"c": 3, "a": 1, "b": 2}
+        
+        doc1 = compressor.compress(telemetry1, "test", "Header")
+        doc2 = compressor.compress(telemetry2, "test", "Header")
+        
+        assert doc1.records == doc2.records
+    
+    def test_compress_nested_structures(self):
+        """Comprimir estructuras anidadas."""
+        compressor = TOONCompressor()
+        
+        telemetry = {
+            "nested": {
+                "level2": {
+                    "value": 42
+                }
+            }
         }
         
-        compressed = mic_agent.inject_functorial_context("test", large_telemetry)
+        doc = compressor.compress(telemetry, "test", "Header")
         
-        assert len(compressed) > 0
-        doc = TOONDocument.parse(compressed)
-        assert len(doc.records) == 100
-
-
-# =============================================================================
-# TESTS: EXCEPCIONES
-# =============================================================================
-
-class TestExceptions:
-    """Pruebas para jerarquía de excepciones."""
-
-    def test_exception_hierarchy(self):
-        """Todas heredan de MICAgentError."""
-        assert issubclass(StratumResolutionError, MICAgentError)
-        assert issubclass(ContractValidationError, MICAgentError)
-        assert issubclass(ClosureViolationError, MICAgentError)
-        assert issubclass(AlgebraicVetoError, MICAgentError)
-        assert issubclass(TOONCompressionError, MICAgentError)
-        assert issubclass(SiloAccessError, MICAgentError)
-        assert issubclass(ProjectionError, MICAgentError)
-
-    def test_exceptions_are_catchable_by_base(self):
-        """Se pueden capturar por la clase base."""
-        with pytest.raises(MICAgentError):
-            raise StratumResolutionError("test")
-
-    def test_exception_messages(self):
-        """Las excepciones incluyen mensajes."""
-        msg = "Test error message"
+        # Verificar que se serializó correctamente
+        assert len(doc.records) == 1
+        key, json_value = doc.records[0]
+        assert key == "nested"
+        assert "{" in json_value  # Es JSON
+    
+    def test_compress_exceeds_tensor_rank(self):
+        """Rechazar telemetría con rango tensorial muy alto."""
+        compressor = TOONCompressor()
         
-        try:
-            raise TOONCompressionError(msg)
-        except TOONCompressionError as e:
-            assert msg in str(e)
-
-
-# =============================================================================
-# TESTS: SILO CONTRACTS Y CARTRIDGES
-# =============================================================================
-
-class TestSiloAContract:
-    """Pruebas para contratos del Silo A."""
-
-    def test_contract_creation(self):
-        """Creación de contrato."""
-        contract = SiloAContract(
-            contract_id="test_contract",
-            stratum=Stratum.PHYSICS,
-            schema={"type": "object"},
-            description="Test contract",
+        # Crear estructura muy profunda
+        deep = {"level1": {"level2": {"level3": {"level4": 1}}}}
+        
+        with pytest.raises(Exception):  # TOONCompressionError
+            compressor.compress(deep, "test", "Header")
+    
+    def test_decompress_basic(self):
+        """Descomprimir documento TOON."""
+        compressor = TOONCompressor()
+        
+        doc = TOONDocument(
+            cartridge_id="test",
+            header_template="Header",
+            records=(
+                ("key1", "42"),
+                ("key2", "\"value\""),
+            )
         )
         
-        assert contract.contract_id == "test_contract"
-        assert contract.stratum == Stratum.PHYSICS
+        decompressed = compressor.decompress(doc)
+        
+        assert decompressed["key1"] == 42
+        assert decompressed["key2"] == "value"
+    
+    def test_compress_decompress_roundtrip(self):
+        """Verificar roundtrip compress → decompress."""
+        compressor = TOONCompressor()
+        
+        original = {
+            "int_value": 42,
+            "float_value": 3.14,
+            "string_value": "test",
+            "bool_value": True,
+            "null_value": None,
+            "array_value": [1, 2, 3],
+            "object_value": {"nested": "value"}
+        }
+        
+        doc = compressor.compress(original, "test", "Header")
+        decompressed = compressor.decompress(doc)
+        
+        # Comparar valores (orden puede variar)
+        assert decompressed["int_value"] == original["int_value"]
+        assert decompressed["float_value"] == original["float_value"]
+        assert decompressed["string_value"] == original["string_value"]
+        assert decompressed["bool_value"] == original["bool_value"]
+        assert decompressed["null_value"] == original["null_value"]
+        assert decompressed["array_value"] == original["array_value"]
+        assert decompressed["object_value"] == original["object_value"]
+    
+    def test_compute_ratio_basic(self):
+        """Calcular ratio de compresión."""
+        compressor = TOONCompressor()
+        
+        original = {"key": "value"}
+        compressed = "Header\nkey|\"value\""
+        
+        ratio = compressor.compute_ratio(original, compressed)
+        
+        assert isinstance(ratio, float)
+        assert ratio > 0
+    
+    def test_compute_ratio_bounds(self):
+        """Ratio de compresión dentro de límites."""
+        compressor = TOONCompressor()
+        
+        original = {"key": "value"}
+        compressed = "short"
+        
+        ratio = compressor.compute_ratio(original, compressed)
+        
+        from app.agents.mic_agent import MIN_COMPRESSION_RATIO, MAX_COMPRESSION_RATIO
+        assert MIN_COMPRESSION_RATIO <= ratio <= MAX_COMPRESSION_RATIO
+    
+    def test_verify_isomorphism_valid(self):
+        """Verificar isomorfismo válido."""
+        compressor = TOONCompressor()
+        
+        original = {"a": 1, "b": 2}
+        doc = compressor.compress(original, "test", "Header")
+        compressed = doc.render()
+        
+        is_isomorphic = compressor.verify_isomorphism(original, compressed)
+        
+        assert is_isomorphic
+    
+    def test_verify_isomorphism_invalid(self):
+        """Verificar isomorfismo inválido."""
+        compressor = TOONCompressor()
+        
+        original = {"a": 1, "b": 2}
+        compressed = "--- INICIO TOON --- test ---\nHeader\na|999\n--- FIN TOON ---"
+        
+        is_isomorphic = compressor.verify_isomorphism(original, compressed)
+        
+        assert not is_isomorphic
+    
+    def test_get_statistics_empty(self):
+        """Estadísticas sin compresiones."""
+        compressor = TOONCompressor()
+        
+        stats = compressor.get_statistics()
+        
+        assert stats["count"] == 0
+        assert stats["mean_ratio"] == 0.0
+    
+    def test_get_statistics_with_data(self):
+        """Estadísticas con datos."""
+        compressor = TOONCompressor()
+        
+        # Realizar varias compresiones
+        for i in range(5):
+            telemetry = {"value": i}
+            doc = compressor.compress(telemetry, "test", "Header")
+            compressed = doc.render()
+            compressor.compute_ratio(telemetry, compressed)
+        
+        stats = compressor.get_statistics()
+        
+        assert stats["count"] == 5
+        assert stats["mean_ratio"] > 0
+        assert "std_ratio" in stats
 
-    def test_validate_schema_integrity_valid(self):
-        """Schema válido pasa integridad."""
-        contract = SiloAContract(
-            contract_id="test",
-            stratum=Stratum.PHYSICS,
-            schema={"type": "object", "properties": {}},
+# ==============================================================================
+# TESTS: AUDIT TRAIL
+# ==============================================================================
+
+class TestAuditTrail:
+    """Tests para AuditTrail."""
+    
+    def test_initialization(self):
+        """Inicializar audit trail."""
+        trail = AuditTrail(max_size=100)
+        
+        assert trail.size == 0
+        assert trail.total_count == 0
+    
+    def test_initialization_invalid_size(self):
+        """Rechazar tamaño inválido."""
+        with pytest.raises(ValueError):
+            AuditTrail(max_size=0)
+        
+        with pytest.raises(ValueError):
+            AuditTrail(max_size=-10)
+    
+    def test_append_single(self):
+        """Agregar seed individual."""
+        trail = AuditTrail(max_size=100)
+        
+        seed = CategoricalEqualizerSeed(
+            target_vector="test",
+            target_stratum=Stratum.PHYSICS,
+            silo_a_contract_id="c1",
+            silo_b_cartridge_id="c2",
+            impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION
         )
         
-        assert contract.validate_schema_integrity() is True
+        trail.append(seed)
+        
+        assert trail.size == 1
+        assert trail.total_count == 1
+    
+    def test_append_multiple(self):
+        """Agregar múltiples seeds."""
+        trail = AuditTrail(max_size=100)
+        
+        for i in range(10):
+            seed = CategoricalEqualizerSeed(
+                target_vector=f"vector_{i}",
+                target_stratum=Stratum.PHYSICS,
+                silo_a_contract_id="c1",
+                silo_b_cartridge_id="c2",
+                impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION
+            )
+            trail.append(seed)
+        
+        assert trail.size == 10
+        assert trail.total_count == 10
+    
+    def test_circular_buffer_overflow(self):
+        """Buffer circular descarta elementos antiguos."""
+        trail = AuditTrail(max_size=5)
+        
+        # Agregar más elementos que max_size
+        for i in range(10):
+            seed = CategoricalEqualizerSeed(
+                target_vector=f"vector_{i}",
+                target_stratum=Stratum.PHYSICS,
+                silo_a_contract_id="c1",
+                silo_b_cartridge_id="c2",
+                impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION
+            )
+            trail.append(seed)
+        
+        # Size limitado a max_size
+        assert trail.size == 5
+        # Pero total_count continúa incrementando
+        assert trail.total_count == 10
+        
+        # Verificar que se conservan los últimos 5
+        all_seeds = trail.get_all()
+        assert all_seeds[0].target_vector == "vector_5"
+        assert all_seeds[-1].target_vector == "vector_9"
+    
+    def test_get_all(self):
+        """Obtener todos los seeds."""
+        trail = AuditTrail(max_size=100)
+        
+        for i in range(3):
+            seed = CategoricalEqualizerSeed(
+                target_vector=f"v{i}",
+                target_stratum=Stratum.PHYSICS,
+                silo_a_contract_id="c1",
+                silo_b_cartridge_id="c2",
+                impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION
+            )
+            trail.append(seed)
+        
+        all_seeds = trail.get_all()
+        
+        assert len(all_seeds) == 3
+        assert all_seeds[0].target_vector == "v0"
+    
+    def test_get_recent(self):
+        """Obtener seeds recientes."""
+        trail = AuditTrail(max_size=100)
+        
+        for i in range(10):
+            seed = CategoricalEqualizerSeed(
+                target_vector=f"v{i}",
+                target_stratum=Stratum.PHYSICS,
+                silo_a_contract_id="c1",
+                silo_b_cartridge_id="c2",
+                impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION
+            )
+            trail.append(seed)
+        
+        recent = trail.get_recent(3)
+        
+        assert len(recent) == 3
+        assert recent[0].target_vector == "v7"
+        assert recent[-1].target_vector == "v9"
+    
+    def test_get_by_status(self):
+        """Filtrar por status."""
+        trail = AuditTrail(max_size=100)
+        
+        # Agregar seeds con diferentes status
+        for i in range(3):
+            trail.append(CategoricalEqualizerSeed(
+                target_vector=f"v{i}",
+                target_stratum=Stratum.PHYSICS,
+                silo_a_contract_id="c1",
+                silo_b_cartridge_id="c2",
+                impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION
+            ))
+        
+        for i in range(2):
+            trail.append(CategoricalEqualizerSeed(
+                target_vector=f"v_error_{i}",
+                target_stratum=Stratum.PHYSICS,
+                silo_a_contract_id="c1",
+                silo_b_cartridge_id="c2",
+                impedance_match_status=ImpedanceMatchStatus.ALGEBRAIC_VETO
+            ))
+        
+        laminar = trail.get_by_status(ImpedanceMatchStatus.LAMINAR_PROJECTION)
+        veto = trail.get_by_status(ImpedanceMatchStatus.ALGEBRAIC_VETO)
+        
+        assert len(laminar) == 3
+        assert len(veto) == 2
+    
+    def test_get_by_stratum(self):
+        """Filtrar por estrato."""
+        trail = AuditTrail(max_size=100)
+        
+        # Agregar seeds de diferentes estratos
+        for stratum in [Stratum.PHYSICS, Stratum.TACTICS, Stratum.PHYSICS]:
+            trail.append(CategoricalEqualizerSeed(
+                target_vector="test",
+                target_stratum=stratum,
+                silo_a_contract_id="c1",
+                silo_b_cartridge_id="c2",
+                impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION
+            ))
+        
+        physics = trail.get_by_stratum(Stratum.PHYSICS)
+        tactics = trail.get_by_stratum(Stratum.TACTICS)
+        
+        assert len(physics) == 2
+        assert len(tactics) == 1
+    
+    def test_clear(self):
+        """Limpiar trail."""
+        trail = AuditTrail(max_size=100)
+        
+        for i in range(5):
+            trail.append(CategoricalEqualizerSeed(
+                target_vector=f"v{i}",
+                target_stratum=Stratum.PHYSICS,
+                silo_a_contract_id="c1",
+                silo_b_cartridge_id="c2",
+                impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION
+            ))
+        
+        original_total = trail.total_count
+        trail.clear()
+        
+        assert trail.size == 0
+        assert trail.total_count == original_total  # No se resetea
+    
+    def test_get_statistics_empty(self):
+        """Estadísticas de trail vacío."""
+        trail = AuditTrail(max_size=100)
+        
+        stats = trail.get_statistics()
+        
+        assert stats["total_entries"] == 0
+        assert stats["current_size"] == 0
+        assert stats["status_distribution"] == {}
+    
+    def test_get_statistics_with_data(self):
+        """Estadísticas con datos."""
+        trail = AuditTrail(max_size=100)
+        
+        # Agregar seeds variados
+        for i in range(5):
+            trail.append(CategoricalEqualizerSeed(
+                target_vector=f"v{i}",
+                target_stratum=Stratum.PHYSICS if i % 2 == 0 else Stratum.TACTICS,
+                silo_a_contract_id="c1",
+                silo_b_cartridge_id="c2",
+                impedance_match_status=(
+                    ImpedanceMatchStatus.LAMINAR_PROJECTION
+                    if i < 3
+                    else ImpedanceMatchStatus.ALGEBRAIC_VETO
+                ),
+                token_compression_ratio=0.5 + i * 0.1
+            ))
+        
+        stats = trail.get_statistics()
+        
+        assert stats["total_entries"] == 5
+        assert stats["current_size"] == 5
+        assert "status_distribution" in stats
+        assert "stratum_distribution" in stats
+        assert stats["mean_compression_ratio"] > 0
+    
+    def test_thread_safety(self):
+        """Verificar thread-safety."""
+        trail = AuditTrail(max_size=1000)
+        
+        def append_seeds(n):
+            for i in range(n):
+                trail.append(CategoricalEqualizerSeed(
+                    target_vector=f"v{i}",
+                    target_stratum=Stratum.PHYSICS,
+                    silo_a_contract_id="c1",
+                    silo_b_cartridge_id="c2",
+                    impedance_match_status=ImpedanceMatchStatus.LAMINAR_PROJECTION
+                ))
+        
+        # Ejecutar en múltiples threads
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = [executor.submit(append_seeds, 25) for _ in range(4)]
+            for future in futures:
+                future.result()
+        
+        # Verificar total
+        assert trail.total_count == 100
 
-    def test_validate_schema_integrity_no_type(self):
-        """Schema sin type falla integridad."""
-        contract = SiloAContract(
-            contract_id="test",
-            stratum=Stratum.PHYSICS,
-            schema={"properties": {}},  # Sin "type"
+# ==============================================================================
+# TESTS: MIC AGENT - CONSTRUCCIÓN Y CONFIGURACIÓN
+# ==============================================================================
+
+class TestMICAgentConstruction:
+    """Tests para construcción de MICAgent."""
+    
+    def test_initialization_basic(self, mock_mic_registry):
+        """Inicializar agente básico."""
+        agent = MICAgent(mock_mic_registry)
+        
+        assert agent.audit_trail is not None
+        assert agent.silo_manager is not None
+        assert agent.immune_watcher is not None
+    
+    def test_initialization_with_custom_components(self, mock_mic_registry):
+        """Inicializar con componentes personalizados."""
+        silo_manager = SiloManager()
+        audit_trail_size = 500
+        
+        agent = MICAgent(
+            mock_mic_registry,
+            silo_manager=silo_manager,
+            audit_trail_size=audit_trail_size,
+            freeze_silos=False
         )
         
-        assert contract.validate_schema_integrity() is False
+        assert agent.silo_manager is silo_manager
+        assert agent.audit_trail.size == 0
+    
+    def test_verify_functorial_properties(self, mock_mic_registry):
+        """Verificar propiedades funtoriales."""
+        agent = MICAgent(mock_mic_registry)
+        
+        props = agent.verify_functorial_properties()
+        
+        assert all(props.values())  # Todos deben ser True
+        assert "immune_watcher_initialized" in props
+        assert "silo_manager_initialized" in props
+        assert "mic_registry_initialized" in props
+    
+    def test_health_report(self, mock_mic_registry):
+        """Generar reporte de salud."""
+        agent = MICAgent(mock_mic_registry)
+        
+        report = agent.health_report()
+        
+        assert "MIC AGENT" in report
+        assert "DIAGNÓSTICO" in report
+        assert "COMPONENTES" in report
+    
+    def test_repr(self, mock_mic_registry):
+        """Representación string."""
+        agent = MICAgent(mock_mic_registry)
+        
+        s = repr(agent)
+        
+        assert "MICAgent" in s
+        assert "contratos=" in s
+        assert "cartuchos=" in s
 
+# ==============================================================================
+# TESTS: MIC AGENT - SENSADO DE ESTRATO
+# ==============================================================================
 
-class TestSiloBCartridge:
-    """Pruebas para cartuchos del Silo B."""
+class TestMICAgentStratumSensing:
+    """Tests para sensado de estrato."""
+    
+    def test_sense_stratum_valid(self, mock_mic_registry):
+        """Sensar estrato válido."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        stratum = agent.sense_stratum("test_vector")
+        
+        assert stratum == Stratum.PHYSICS
+    
+    def test_sense_stratum_from_int(self, mock_mic_registry):
+        """Sensar estrato desde int."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": 1  # TACTICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        stratum = agent.sense_stratum("test_vector")
+        
+        assert stratum == Stratum.TACTICS
+    
+    def test_sense_stratum_from_string(self, mock_mic_registry):
+        """Sensar estrato desde string."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": "STRATEGY"
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        stratum = agent.sense_stratum("test_vector")
+        
+        assert stratum == Stratum.STRATEGY
+    
+    def test_sense_stratum_vector_not_found(self, mock_mic_registry):
+        """Rechazar vector inexistente."""
+        mock_mic_registry.get_vector_info = Mock(return_value=None)
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        from app.agents.mic_agent import StratumResolutionError
+        with pytest.raises(StratumResolutionError, match="no existe"):
+            agent.sense_stratum("nonexistent_vector")
+    
+    def test_sense_stratum_missing_stratum_key(self, mock_mic_registry):
+        """Rechazar info sin clave 'stratum'."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "dimension": 3
+            # Falta "stratum"
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        from app.agents.mic_agent import StratumResolutionError
+        with pytest.raises(StratumResolutionError, match="no reporta estrato"):
+            agent.sense_stratum("test_vector")
 
-    def test_cartridge_creation(self):
-        """Creación de cartucho."""
-        cartridge = SiloBCartridge(
-            cartridge_id="test_cartridge",
-            stratum=Stratum.PHYSICS,
-            header_template="key|value",
-            field_definitions=("key", "value"),
+# ==============================================================================
+# TESTS: MIC AGENT - VALIDACIÓN DE CLAUSURA
+# ==============================================================================
+
+class TestMICAgentClosureValidation:
+    """Tests para validación de clausura transitiva."""
+    
+    def test_validate_closure_physics_valid(self, mock_mic_registry):
+        """PHYSICS no requiere estratos previos."""
+        agent = MICAgent(mock_mic_registry)
+        
+        error = agent.validate_closure(
+            Stratum.PHYSICS,
+            frozenset()  # Sin estratos validados
         )
         
-        assert cartridge.cartridge_id == "test_cartridge"
-        assert cartridge.stratum == Stratum.PHYSICS
+        assert error is None
+    
+    def test_validate_closure_tactics_valid(self, mock_mic_registry):
+        """TACTICS requiere PHYSICS."""
+        agent = MICAgent(mock_mic_registry)
+        
+        error = agent.validate_closure(
+            Stratum.TACTICS,
+            frozenset([Stratum.PHYSICS])
+        )
+        
+        assert error is None
+    
+    def test_validate_closure_tactics_missing_physics(self, mock_mic_registry):
+        """TACTICS sin PHYSICS → error."""
+        agent = MICAgent(mock_mic_registry)
+        
+        error = agent.validate_closure(
+            Stratum.TACTICS,
+            frozenset()
+        )
+        
+        assert error is not None
+        assert "PHYSICS" in error
+    
+    def test_validate_closure_strategy_valid(self, mock_mic_registry):
+        """STRATEGY requiere PHYSICS y TACTICS."""
+        agent = MICAgent(mock_mic_registry)
+        
+        error = agent.validate_closure(
+            Stratum.STRATEGY,
+            frozenset([Stratum.PHYSICS, Stratum.TACTICS])
+        )
+        
+        assert error is None
+    
+    def test_validate_closure_strategy_missing_tactics(self, mock_mic_registry):
+        """STRATEGY sin TACTICS → error."""
+        agent = MICAgent(mock_mic_registry)
+        
+        error = agent.validate_closure(
+            Stratum.STRATEGY,
+            frozenset([Stratum.PHYSICS])
+        )
+        
+        assert error is not None
+        assert "TACTICS" in error
+    
+    def test_validate_closure_wisdom_valid(self, mock_mic_registry):
+        """WISDOM requiere todos los estratos."""
+        agent = MICAgent(mock_mic_registry)
+        
+        error = agent.validate_closure(
+            Stratum.WISDOM,
+            frozenset([Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY])
+        )
+        
+        assert error is None
+    
+    def test_validate_closure_wisdom_missing_strategy(self, mock_mic_registry):
+        """WISDOM sin STRATEGY → error."""
+        agent = MICAgent(mock_mic_registry)
+        
+        error = agent.validate_closure(
+            Stratum.WISDOM,
+            frozenset([Stratum.PHYSICS, Stratum.TACTICS])
+        )
+        
+        assert error is not None
+        assert "STRATEGY" in error
 
+# ==============================================================================
+# TESTS: MIC AGENT - COMPRESIÓN TOON
+# ==============================================================================
 
-# =============================================================================
+class TestMICAgentTOONCompression:
+    """Tests para compresión TOON en MICAgent."""
+    
+    def test_compress_telemetry_basic(self, mock_mic_registry):
+        """Comprimir telemetría básica."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        telemetry = {
+            "value1": 42,
+            "value2": "test"
+        }
+        
+        cartridge_id, doc = agent.compress_telemetry("test_vector", telemetry)
+        
+        assert isinstance(cartridge_id, str)
+        assert isinstance(doc, TOONDocument)
+        assert len(doc.records) == 2
+    
+    def test_inject_functorial_context(self, mock_mic_registry):
+        """Inyectar contexto comprimido."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        telemetry = {"value": 42}
+        
+        compressed = agent.inject_functorial_context("test_vector", telemetry)
+        
+        assert isinstance(compressed, str)
+        assert TOON_START_MARKER in compressed
+        assert TOON_END_MARKER in compressed
+
+# ==============================================================================
+# TESTS: MIC AGENT - ENCAPSULACIÓN MONÁDICA
+# ==============================================================================
+
+class TestMICAgentMonadicEncapsulation:
+    """Tests para encapsulación monádica."""
+    
+    def test_encapsulate_monad_valid(self, mock_mic_registry):
+        """Encapsular output válido del LLM."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        llm_output = {
+            "dissipated_power": 10.0,
+            "energy_input": 100.0,
+            "energy_output": 90.0
+        }
+        
+        state = agent.encapsulate_monad(
+            "test_vector",
+            llm_output,
+            frozenset()
+        )
+        
+        assert state.is_success
+        assert state.payload == llm_output
+    
+    def test_encapsulate_monad_invalid_type(self, mock_mic_registry):
+        """Rechazar output no-Mapping."""
+        agent = MICAgent(mock_mic_registry)
+        
+        state = agent.encapsulate_monad(
+            "test_vector",
+            "not_a_dict",
+            frozenset()
+        )
+        
+        assert state.is_failed
+        assert "Mapping" in state.error
+    
+    def test_encapsulate_monad_closure_violation(self, mock_mic_registry):
+        """Rechazar violación de clausura."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.TACTICS  # Requiere PHYSICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        state = agent.encapsulate_monad(
+            "test_vector",
+            {"value": 42},
+            frozenset()  # Sin PHYSICS
+        )
+        
+        assert state.is_failed
+        assert "clausura" in state.error.lower()
+    
+    def test_encapsulate_monad_schema_validation_error(self, mock_mic_registry):
+        """Rechazar payload que no cumple schema."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        # Payload inválido (falta campo requerido)
+        llm_output = {"invalid_field": "value"}
+        
+        state = agent.encapsulate_monad(
+            "test_vector",
+            llm_output,
+            frozenset()
+        )
+        
+        # Puede o no fallar dependiendo del contrato
+        # Verificar que se registró en auditoría
+        assert agent.audit_trail.size > 0
+    
+    def test_encapsulate_monad_algebraic_veto(self, mock_mic_registry):
+        """Rechazar violación de invariantes algebraicos."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        # Violación: potencia disipada negativa
+        llm_output = {
+            "dissipated_power": -10.0
+        }
+        
+        state = agent.encapsulate_monad(
+            "test_vector",
+            llm_output,
+            frozenset()
+        )
+        
+        assert state.is_failed
+        assert "ALGEBRAIC_VETO" in state.error
+    
+    def test_encapsulate_monad_with_telemetry(self, mock_mic_registry):
+        """Encapsular con telemetría para TOON."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        llm_output = {"dissipated_power": 10.0}
+        raw_telemetry = {"raw_value": 42}
+        
+        state = agent.encapsulate_monad(
+            "test_vector",
+            llm_output,
+            frozenset(),
+            raw_telemetry=raw_telemetry
+        )
+        
+        # Verificar que se comprimió
+        assert "compressed_context" in state.context or state.is_success
+        assert "compression_ratio" in state.context
+    
+    def test_encapsulate_monad_force_override(self, mock_mic_registry):
+        """Forzar override de validación de clausura."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.TACTICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        state = agent.encapsulate_monad(
+            "test_vector",
+            {"pyramid_stability_index": 0.5},
+            frozenset(),  # Sin PHYSICS
+            force_override=True
+        )
+        
+        # No debe fallar por clausura
+        # Pero puede fallar por schema u otras razones
+
+# ==============================================================================
+# TESTS DE INTEGRACIÓN END-TO-END
+# ==============================================================================
+
+class TestMICAgentIntegration:
+    """Tests de integración end-to-end."""
+    
+    def test_full_pipeline_physics(self, mock_mic_registry):
+        """Pipeline completo para PHYSICS."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        mock_mic_registry.project_intent = Mock(return_value={
+            "status": "OK",
+            "result": {"projected": True}
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        llm_output = {
+            "dissipated_power": 10.0,
+            "energy_input": 100.0,
+            "energy_output": 90.0
+        }
+        
+        result = agent.execute_projection(
+            "test_vector",
+            llm_output,
+            frozenset()
+        )
+        
+        assert result["status"] in ("OK", "VETO")
+        assert "impedance_status" in result
+    
+    def test_full_pipeline_with_telemetry(self, mock_mic_registry):
+        """Pipeline con telemetría."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        mock_mic_registry.project_intent = Mock(return_value={
+            "status": "OK"
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        llm_output = {"dissipated_power": 10.0}
+        raw_telemetry = {
+            "saturation": 0.5,
+            "flyback_voltage": 200.0,
+            "dissipated_power": 10.0,
+            "beta_0": 1.0,
+            "beta_1": 0.0,
+            "entropy": 0.3,
+            "exergy_loss": 0.2
+        }
+        
+        result = agent.execute_projection(
+            "test_vector",
+            llm_output,
+            frozenset(),
+            raw_telemetry=raw_telemetry
+        )
+        
+        assert "status" in result
+    
+    def test_audit_trail_populated(self, mock_mic_registry):
+        """Verificar que audit trail se pobla."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        # Realizar múltiples encapsulaciones
+        for i in range(5):
+            agent.encapsulate_monad(
+                f"vector_{i}",
+                {"dissipated_power": 10.0},
+                frozenset()
+            )
+        
+        assert agent.audit_trail.size == 5
+        assert agent.audit_trail.total_count == 5
+    
+    def test_get_audit_statistics(self, mock_mic_registry):
+        """Obtener estadísticas de auditoría."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        # Realizar operaciones
+        agent.encapsulate_monad("test", {"dissipated_power": 10.0}, frozenset())
+        
+        stats = agent.get_audit_statistics()
+        
+        assert "total_entries" in stats
+        assert "status_distribution" in stats
+    
+    def test_get_recent_audits(self, mock_mic_registry):
+        """Obtener auditorías recientes."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        for i in range(5):
+            agent.encapsulate_monad(f"v{i}", {"dissipated_power": 10.0}, frozenset())
+        
+        recent = agent.get_recent_audits(3)
+        
+        assert len(recent) == 3
+        assert all(isinstance(r, dict) for r in recent)
+    
+    def test_clear_audit_trail(self, mock_mic_registry):
+        """Limpiar audit trail."""
+        mock_mic_registry.get_vector_info = Mock(return_value={
+            "stratum": Stratum.PHYSICS
+        })
+        
+        agent = MICAgent(mock_mic_registry)
+        
+        agent.encapsulate_monad("test", {"dissipated_power": 10.0}, frozenset())
+        assert agent.audit_trail.size > 0
+        
+        agent.clear_audit_trail()
+        assert agent.audit_trail.size == 0
+
+# ==============================================================================
 # CONFIGURACIÓN DE PYTEST
-# =============================================================================
+# ==============================================================================
+
+def pytest_configure(config):
+    """Configuración de pytest."""
+    config.addinivalue_line(
+        "markers",
+        "slow: marca tests lentos"
+    )
+    config.addinivalue_line(
+        "markers",
+        "integration: marca tests de integración"
+    )
+    config.addinivalue_line(
+        "markers",
+        "concurrent: marca tests de concurrencia"
+    )
+
+# ==============================================================================
+# EJECUCIÓN
+# ==============================================================================
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

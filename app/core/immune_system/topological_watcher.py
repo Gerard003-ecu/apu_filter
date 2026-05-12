@@ -4,58 +4,27 @@ Módulo: Topological Watcher (Sistema Inmunológico Matemático)
 Ubicación: app/core/immune_system/topological_watcher.py
 =========================================================================================
 
-Naturaleza Ciber-Física:
-    Actúa como el "Escudo Deflector Matemático" de la Malla Agéntica. Rechaza la 
-    evaluación de métricas aisladas mediante heurísticas escalares. En su lugar, modela 
-    el estado del ecosistema como una variedad diferenciable, detectando anomalías ya sea 
-    como deformaciones continuas en un espacio curvo (Riemann) o como bifurcaciones 
-    estructurales abruptas (Morse).
+FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
 
-1. Geometría Riemanniana y Descomposición Ortogonal (Espacio de Hilbert ℝ⁷):
-    El estado computacional se proyecta como un vector de señal ψ ∈ ℝ⁷ sobre un 
-    hiperespacio descompuesto en suma directa ortogonal:
-        V = V_phys ⊕ V_topo ⊕ V_thermo
-    
-    Sea πₖ el proyector ortogonal sobre el subespacio Vₖ. El nivel de amenaza se 
-    cuantifica mediante la Distancia de Mahalanobis inducida por el Tensor Métrico 
-    Riemanniano Gₖ ≻ 0 (Simétrico Definido Positivo):
-        threatₖ = wₖ · √[(πₖψ - ψ_ref)ᵀ Gₖ (πₖψ - ψ_ref)]
-    Esta forma cuadrática garantiza la penalización asimétrica de riesgos acoplados, 
-    anulando la covarianza parasitaria.
+1. GEOMETRÍA RIEMANNIANA:
+   - Tensor métrico G ∈ Sym⁺(n) con λ_min(G) ≥ τ > 0
+   - Distancia geodésica: d_G(x,y) = inf{∫₀¹ √(γ'(t)ᵀ G γ'(t)) dt}
+   - Curvatura de Ricci: ∂_t g_{μν} = -2 Ric_{μν}
 
-2. Topología Algebraica y Teoría Discreta de Morse:
-    El sistema audita el 1-esqueleto del complejo simplicial del proyecto a través de 
-    los invariantes de Betti-Poincaré:
-        • β₀ ≥ 1 : Componentes conexas (Medida de fragmentación e integridad).
-        • β₁ ≥ 0 : Ciclos independientes (Detección de socavones lógicos).
-    
-    Aplicando la Teoría de Morse sobre la Característica de Euler (χ = β₀ - β₁), el 
-    sistema evalúa el diferencial topológico Δχ. Si Δχ ≠ 0 entre dos instantes de fase, 
-    se diagnostica una "Bifurcación Cualitativa". Toda mutación estructural topológica 
-    dispara un veto absoluto (Fast-Fail), independientemente de la métrica continua.
+2. TOPOLOGÍA ALGEBRAICA:
+   - Homología simplicial: H_k(K) = Ker(∂_k) / Im(∂_{k+1})
+   - Números de Betti: β_k = rank(H_k)
+   - Característica de Euler: χ = Σ(-1)^k β_k
 
-3. Funtorialidad Categórica y Propagación del Veto:
-    Implementado estrictamente como un Funtor F: Top → Narr entre categorías estratificadas:
-        Dom(F) = Stratum.PHYSICS  ⟶  Codom(F) = Stratum.WISDOM
-    El morfismo respeta la Mónada de Error dictando la Clausura Transitiva: F(⊥) = ⊥. 
-    Si el estado base colapsa, la función propaga el fallo de forma idempotente, 
-    suprimiendo el libre albedrío probabilístico de los modelos de lenguaje (LLMs).
+3. ANÁLISIS FUNCIONAL:
+   - Proyectores ortogonales: P² = P, P* = P
+   - Descomposición espectral: G = QΛQ^T, Q^TQ = I
+   - Condición espectral: κ(G) = λ_max/λ_min
 
-4. Teoría de Control (Histéresis y Estabilidad Asintótica):
-    Para prevenir la resonancia de alta frecuencia (flapping) en la frontera del caos 
-    operativo, la transición de estados de salud incorpora bandas de histéresis 
-    asimétricas (δ > 0):
-        • Condición de Saneamiento: Amenaza < (Umbral - δ) [2]
-        • Condición de Alerta:      Amenaza > (Umbral + δ) [2]
-
-5. Invariantes Matemáticos y Físicos Garantizados:
-    • Álgebra Lineal: 
-      Σπₖ = I (Resolución de identidad), πᵢπⱼ = δᵢⱼπᵢ (Ortogonalidad estricta).
-    • Análisis Espectral: 
-      G ≻ 0 (λ_min > 0, evitando singularidades en el tensor métrico).
-    • Termodinámica de Datos: 
-      ΔS ≥ 0 (Segunda Ley), P_diss ≥ 0 (Potencia disipada no negativa).
-=========================================================================================
+4. TEORÍA DE CATEGORÍAS:
+   - Funtor F: C → D preserva identidades y composición
+   - Transformación natural: η: F ⇒ G
+   - Mónada (T, η, μ) con leyes de asociatividad
 """
 
 from __future__ import annotations
@@ -66,1055 +35,1009 @@ import warnings
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Dict, FrozenSet, Generator, List, Optional, Tuple, Union
+from typing import (
+    Any, Dict, FrozenSet, Generator, List, Optional, 
+    Tuple, Union, Protocol, TypeVar
+)
 from abc import ABC, abstractmethod
 
 import numpy as np
+from numpy.typing import NDArray
 
+# Imports relativos
 from app.core.schemas import Stratum
 from app.core.mic_algebra import CategoricalState, Morphism
 from app.core.telemetry_schemas import ElectronCartridge
 
 logger = logging.getLogger("MIC.ImmuneSystem")
-
-# Referencia al módulo actual para el context manager de tolerancias
 _THIS_MODULE = sys.modules[__name__]
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# ÁRBOL DE EXCEPCIONES ESPECIALIZADAS
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
+# JERARQUÍA DE EXCEPCIONES CON CONTEXTO MATEMÁTICO
+# ==============================================================================
 
 class ImmuneSystemError(Exception):
-    """Base exception para el sistema inmunológico."""
-
+    """Base para excepciones del sistema inmunológico."""
+    def __init__(self, message: str, **context: Any):
+        super().__init__(message)
+        self.context = context
 
 class NumericalStabilityError(ImmuneSystemError):
-    """Error de estabilidad numérica detectado."""
-
+    """Violación de cotas de estabilidad numérica."""
+    pass
 
 class DimensionalMismatchError(ImmuneSystemError):
-    """Inconsistencia dimensional entre espacios vectoriales."""
-
+    """Incompatibilidad dimensional en espacios vectoriales."""
+    pass
 
 class PhysicalBoundsError(ImmuneSystemError):
-    """Valor viola límites físicos teóricos."""
-
+    """Violación de límites físicos teóricos."""
+    pass
 
 class TopologicalInvariantError(ImmuneSystemError):
-    """Violación de invariantes topológicos (Betti, Euler)."""
-
+    """Violación de invariantes topológicos."""
+    pass
 
 class MetricTensorError(ImmuneSystemError):
-    """Error en tensor métrico Riemanniano (no SPD, condición alta, etc.)."""
+    """Error en propiedades del tensor métrico."""
+    pass
 
+class SpectralDecompositionError(ImmuneSystemError):
+    """Error en descomposición espectral."""
+    pass
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# CONSTANTES FÍSICAS
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
+# CONSTANTES FÍSICAS CON UNIDADES SI
+# ==============================================================================
 
 class PhysicalConstants:
-    """
-    Constantes físicas de referencia para circuitos de potencia.
-
-    Todas las constantes tienen unidades SI documentadas.
-    P_NOMINAL es classmethod (no property) para uso sin instancia.
-    """
-
-    # CORRECCIÓN A1: __slots__ en clase con solo atributos de clase no aplica,
-    # pero sí en instancias. Sin instancias, la clase es solo un namespace.
-    # Se preserva como namespace sin __slots__ para acceso de clase correcto.
-
-    Z_CHARACTERISTIC: float = 50.0        # Impedancia característica [Ω]
-    V_NOMINAL: float = 100.0              # Voltaje nominal [V]
-    SATURATION_CRITICAL: float = 0.85    # Factor de saturación crítico [-]
-    FLYBACK_MAX_SAFE: float = 400.0      # Voltaje de flyback máximo [V]
-    I_THERMAL_LIMIT: float = 10.0        # Corriente límite térmica [A]
-    THERMAL_SAFETY_FACTOR: float = 1.25  # Factor de seguridad térmica [-]
-    TURN_RATIO: float = 5.0              # Relación de transformación [-]
-
+    """Constantes físicas con verificación dimensional."""
+    
+    # Constantes electromagnéticas
+    Z_CHARACTERISTIC: float = 50.0        # [Ω]
+    V_NOMINAL: float = 100.0              # [V]
+    I_THERMAL_LIMIT: float = 10.0         # [A]
+    
+    # Constantes magnéticas
+    SATURATION_CRITICAL: float = 0.85     # [-] adimensional
+    FLYBACK_MAX_SAFE: float = 400.0       # [V]
+    
+    # Factores de seguridad
+    THERMAL_SAFETY_FACTOR: float = 1.25   # [-]
+    TURN_RATIO: float = 5.0               # [-]
+    
     @classmethod
     def P_NOMINAL(cls) -> float:
+        """Potencia nominal [W] = V²/Z con verificación."""
+        P = cls.V_NOMINAL ** 2 / cls.Z_CHARACTERISTIC
+        assert P > 0, "Potencia nominal debe ser positiva"
+        return P
+    
+    @classmethod
+    def validate_physical_consistency(cls) -> None:
+        """Verifica consistencia dimensional de constantes."""
+        # Ley de Ohm: P = V²/Z = I²Z debe ser consistente
+        P_from_V = cls.V_NOMINAL**2 / cls.Z_CHARACTERISTIC
+        I_max = cls.V_NOMINAL / cls.Z_CHARACTERISTIC
+        P_from_I = I_max**2 * cls.Z_CHARACTERISTIC
+        
+        relative_error = abs(P_from_V - P_from_I) / P_from_V
+        if relative_error > 1e-10:
+            raise PhysicalBoundsError(
+                "Inconsistencia en constantes físicas",
+                P_from_V=P_from_V, P_from_I=P_from_I
+            )
+
+# Inicializar validación
+PhysicalConstants.validate_physical_consistency()
+
+# ==============================================================================
+# CONSTANTES NUMÉRICAS CON JUSTIFICACIÓN TEÓRICA
+# ==============================================================================
+
+# Tolerancias espectrales (basadas en análisis de error backward)
+EPS: float = np.finfo(np.float64).eps * 4  # ≈ 8.88e-16
+ALGEBRAIC_TOL: float = 1e-10               # ‖P² - P‖_F para idempotencia
+COND_NUM_TOL: float = 1e14                 # κ_max antes de singularidad práctica
+MIN_EIGVAL_TOL: float = 1e-12              # λ_min para definición positiva estricta
+
+# Parámetros de regularización
+TIKHONOV_DELTA: float = MIN_EIGVAL_TOL     # Regularización espectral
+RICCI_FLOW_DT: float = 0.01                # Paso temporal para flujo de Ricci
+
+# ==============================================================================
+# PROTOCOLO DE MÉTRICA RIEMANNIANA
+# ==============================================================================
+
+class RiemannianMetric(Protocol):
+    """Protocolo para tensores métricos Riemannianos."""
+    
+    @property
+    def dimension(self) -> int: ...
+    
+    @property
+    def condition_number(self) -> float: ...
+    
+    def quadratic_form(self, v: NDArray[np.float64]) -> float: ...
+    
+    def apply(self, v: NDArray[np.float64]) -> NDArray[np.float64]: ...
+    
+    def inverse_sqrt_apply(self, v: NDArray[np.float64]) -> NDArray[np.float64]: ...
+
+# ==============================================================================
+# ÁLGEBRA LINEAL ESTABLE
+# ==============================================================================
+
+class StableLinearAlgebra:
+    """Operaciones de álgebra lineal con garantías numéricas."""
+    
+    @staticmethod
+    def safe_normalize(
+        vector: NDArray[np.float64],
+        eps: float = EPS,
+        norm_type: str = 'inf'
+    ) -> Tuple[NDArray[np.float64], float]:
         """
-        Potencia nominal [W] = V²/Z.
-
-        Classmethod garantiza uso sin instancia y sin dependencia de estado.
-        Invariante: P_NOMINAL > 0 dado que V_NOMINAL > 0 y Z_CHARACTERISTIC > 0.
+        Normalización numéricamente estable.
+        
+        Teorema: Para v ∈ ℝⁿ, ‖v‖_∞ = max_i |v_i|
+        Garantía: Si s = ‖v‖_∞ > ε, entonces ‖v/s‖_∞ = 1 exactamente
+        
+        Returns:
+            (normalized_vector, scale_factor)
         """
-        return cls.V_NOMINAL ** 2 / cls.Z_CHARACTERISTIC
+        if vector.size == 0:
+            return vector.copy(), 0.0
+        
+        if norm_type == 'inf':
+            scale = float(np.max(np.abs(vector)))
+        elif norm_type == '2':
+            scale = float(np.linalg.norm(vector, ord=2))
+        else:
+            raise ValueError(f"Tipo de norma no soportado: {norm_type}")
+        
+        if scale < eps:
+            warnings.warn(
+                f"Vector degenerado: ‖v‖_{norm_type} = {scale:.2e} < {eps:.2e}",
+                RuntimeWarning,
+                stacklevel=2
+            )
+            return np.zeros_like(vector, dtype=np.float64), 0.0
+        
+        normalized = vector / scale
+        
+        # Verificación post-condición
+        if norm_type == 'inf':
+            assert abs(np.max(np.abs(normalized)) - 1.0) < eps, "Fallo en normalización"
+        
+        return normalized, scale
+    
+    @staticmethod
+    def stable_reciprocal(
+        x: NDArray[np.float64],
+        eps: float = EPS
+    ) -> NDArray[np.float64]:
+        """
+        Recíproco 1/x con protección contra división por cero.
+        
+        Definición: reciprocal(x) = sign(x) / max(|x|, ε)
+        """
+        x_arr = np.asarray(x, dtype=np.float64)
+        abs_x = np.abs(x_arr)
+        sign_x = np.sign(x_arr)
+        sign_safe = np.where(sign_x == 0.0, 1.0, sign_x)
+        safe_denom = np.where(abs_x >= eps, x_arr, sign_safe * eps)
+        
+        result = 1.0 / safe_denom
+        assert np.all(np.isfinite(result)), "Resultado no finito en reciprocal"
+        return result
+    
+    @staticmethod
+    def stable_divide(
+        numerator: NDArray[np.float64],
+        denominator: NDArray[np.float64],
+        eps: float = EPS
+    ) -> NDArray[np.float64]:
+        """División vectorial estable: a/b con protección."""
+        return np.asarray(numerator) * StableLinearAlgebra.stable_reciprocal(denominator, eps)
+    
+    @staticmethod
+    def stable_quadratic_form(
+        vector: NDArray[np.float64],
+        metric: NDArray[np.float64],
+        eps: float = EPS
+    ) -> float:
+        """
+        Forma cuadrática Q(v) = vᵀ G v con pre-escalado.
+        
+        Algoritmo:
+        1. v_norm, s = normalize(v)
+        2. Q = s² · (v_norm)ᵀ G (v_norm)
+        3. Clamp Q ≥ 0 por errores numéricos
+        
+        Garantía: |Q_computed - Q_exact| ≤ ε_mach · κ(G) · ‖v‖²
+        """
+        v = np.asarray(vector, dtype=np.float64).ravel()
+        G = np.asarray(metric, dtype=np.float64)
+        
+        # Pre-escalado
+        v_norm, scale = StableLinearAlgebra.safe_normalize(v, eps=eps, norm_type='inf')
+        if scale < eps:
+            return 0.0
+        
+        # Forma cuadrática en espacio normalizado
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=RuntimeWarning)
+            Q_normalized = float(v_norm @ G @ v_norm)
+        
+        # Re-escalado y clamp por seguridad
+        Q = (scale ** 2) * Q_normalized
+        return max(Q, 0.0)
+    
+    @staticmethod
+    def compute_condition_spectral(
+        matrix: NDArray[np.float64],
+        method: str = 'eig'
+    ) -> float:
+        """
+        Número de condición espectral: κ(A) = λ_max / λ_min.
+        
+        Para matrices simétricas: κ(A) = ‖A‖₂ · ‖A⁻¹‖₂
+        """
+        if matrix.ndim != 2 or matrix.shape[0] != matrix.shape[1]:
+            raise DimensionalMismatchError(
+                "Matriz debe ser cuadrada",
+                shape=matrix.shape
+            )
+        
+        if method == 'eig':
+            # Asumiendo simetría
+            eigenvalues = np.linalg.eigvalsh(matrix)
+            lam_min = float(eigenvalues.min())
+            lam_max = float(eigenvalues.max())
+            
+            if lam_min <= MIN_EIGVAL_TOL:
+                return float('inf')
+            
+            return lam_max / lam_min
+        
+        elif method == 'svd':
+            sv = np.linalg.svd(matrix, compute_uv=False)
+            nonzero = sv[sv > MIN_EIGVAL_TOL]
+            
+            if nonzero.size == 0:
+                return float('inf')
+            
+            return float(nonzero.max() / nonzero.min())
+        
+        else:
+            raise ValueError(f"Método desconocido: {method}")
+    
+    @staticmethod
+    def regularize_spd_matrix(
+        matrix: NDArray[np.float64],
+        min_eig: float = MIN_EIGVAL_TOL,
+        method: str = 'spectral'
+    ) -> NDArray[np.float64]:
+        """
+        Regularización de matriz simétrica definida positiva (SPD).
+        
+        Método 'spectral': G_reg = Q(Λ + δI)Q^T donde δ = max(0, min_eig - λ_min)
+        Método 'tikhonov': G_reg = G + δI
+        
+        Garantía: λ_min(G_reg) ≥ min_eig
+        """
+        mat = np.asarray(matrix, dtype=np.float64)
+        
+        # Forzar simetría
+        mat = (mat + mat.T) * 0.5
+        
+        if method == 'spectral':
+            # Descomposición espectral
+            eigenvalues, eigenvectors = np.linalg.eigh(mat)
+            min_eigval = float(eigenvalues.min())
+            
+            if min_eigval >= min_eig:
+                return mat.copy()
+            
+            # Desplazamiento espectral
+            delta = min_eig - min_eigval
+            eigenvalues_reg = eigenvalues + delta
+            
+            # Reconstrucción
+            mat_reg = eigenvectors @ np.diag(eigenvalues_reg) @ eigenvectors.T
+            
+            # Forzar simetría exacta
+            mat_reg = (mat_reg + mat_reg.T) * 0.5
+            
+            logger.debug(
+                "Regularización espectral: δ=%.4e, λ_min: %.4e → %.4e",
+                delta, min_eigval, eigenvalues_reg.min()
+            )
+            
+            return mat_reg
+        
+        elif method == 'tikhonov':
+            eigenvalues = np.linalg.eigvalsh(mat)
+            min_eigval = float(eigenvalues.min())
+            
+            if min_eigval >= min_eig:
+                return mat.copy()
+            
+            delta = min_eig - min_eigval
+            mat_reg = mat + delta * np.eye(mat.shape[0], dtype=np.float64)
+            
+            return (mat_reg + mat_reg.T) * 0.5
+        
+        else:
+            raise ValueError(f"Método de regularización desconocido: {method}")
+    
+    @staticmethod
+    def verify_orthogonality(
+        Q: NDArray[np.float64],
+        tol: float = ALGEBRAIC_TOL
+    ) -> Tuple[bool, float]:
+        """
+        Verifica ortogonalidad: Q^T Q = I.
+        
+        Returns:
+            (is_orthogonal, residual_norm)
+        """
+        n = Q.shape[1]
+        QtQ = Q.T @ Q
+        residual = QtQ - np.eye(n, dtype=np.float64)
+        residual_norm = float(np.linalg.norm(residual, 'fro'))
+        
+        is_orthogonal = residual_norm < tol
+        
+        if not is_orthogonal:
+            logger.warning(
+                "Matriz no ortogonal: ‖Q^TQ - I‖_F = %.4e > %.4e",
+                residual_norm, tol
+            )
+        
+        return is_orthogonal, residual_norm
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# PARÁMETROS NUMÉRICOS — Tolerancias algebraicas y espectrales
-# ═══════════════════════════════════════════════════════════════════════════════
-
-# CORRECCIÓN N1: Definidas como constantes de módulo (no en clase) para acceso
-# directo por _THIS_MODULE en el context manager de tolerancias.
-EPS: float = 1e-12           # Tolerancia aritmética básica (≈ 4·ε_mach para float64)
-ALGEBRAIC_TOL: float = 1e-10  # Tolerancia para propiedades algebraicas (‖P²−P‖_F)
-COND_NUM_TOL: float = 1e14   # Número de condición máximo admisible
-MIN_EIGVAL_TOL: float = 1e-12  # Eigenvalor mínimo para definición positiva
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# FUNCIONES DE ESTABILIDAD NUMÉRICA
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def _safe_normalize(
-    vector: np.ndarray,
-    eps: float = EPS,
-) -> Tuple[np.ndarray, float]:
-    """
-    Normaliza vector por norma L∞ para evitar underflow/overflow.
-
-    Propiedades Garantizadas
-    ─────────────────────────
-    1. scale = ‖v‖_∞ = max|vᵢ| ≥ 0
-    2. Si scale > eps: max|normed_i| = 1 exactamente
-    3. Reconstrucción: v = normed · scale (dentro de rtol=1e-14)
-    4. Vector nulo: emite RuntimeWarning, retorna (zeros, 0.0)
-
-    Nota de implementación
-    ──────────────────────
-    Se usa L∞ (no L²) porque evita suma de cuadrados que puede overflow
-    para vectores con elementos ≥ sqrt(float_max) ≈ 1.3e154.
-
-    Parameters
-    ----------
-    vector : array 1D de cualquier longitud
-    eps    : umbral de degeneración (default = EPS del módulo)
-
-    Returns
-    -------
-    normalized : np.ndarray, misma shape que vector
-    scale      : float ≥ 0, factor de escala (0.0 indica degeneración)
-    """
-    if vector.size == 0:
-        return vector.copy(), 0.0
-
-    scale = float(np.max(np.abs(vector)))
-
-    if scale < eps:
-        warnings.warn(
-            f"Norma L∞ por debajo del umbral de degeneración "
-            f"({scale:.2e} < {eps:.2e}). Retornando vector nulo.",
-            RuntimeWarning,
-            stacklevel=2,
-        )
-        return np.zeros_like(vector, dtype=np.float64), 0.0
-
-    return (vector / scale), scale
-
-
-def _stable_reciprocal(x: np.ndarray, eps: float = EPS) -> np.ndarray:
-    """
-    Recíproco numéricamente estable, preservando signo.
-
-    Estrategia
-    ──────────
-    Para |xᵢ| ≥ eps: 1/xᵢ (exacto)
-    Para |xᵢ| < eps: sign(xᵢ)/eps (cota con signo correcto)
-    Para xᵢ = 0:     1/eps (positivo, caso límite)
-
-    Invariante: todos los valores de salida son finitos.
-
-    Parameters
-    ----------
-    x   : array de entrada (cualquier shape)
-    eps : umbral de denominador mínimo (default = EPS)
-
-    Returns
-    -------
-    np.ndarray, misma shape que x, dtype=float64, todos finitos.
-    """
-    x_arr = np.asarray(x, dtype=np.float64)
-    abs_x = np.abs(x_arr)
-
-    # Denominador con cota inferior |eps|, preservando signo
-    sign_x = np.sign(x_arr)
-    # sign(0) = 0 → usar +1 para evitar denominador cero
-    sign_safe = np.where(sign_x == 0.0, 1.0, sign_x)
-    safe_denom = np.where(abs_x >= eps, x_arr, sign_safe * eps)
-
-    return 1.0 / safe_denom
-
-
-def _stable_divide(
-    numerator: np.ndarray,
-    denominator: np.ndarray,
-    eps: float = EPS,
-) -> np.ndarray:
-    """
-    División vectorial numéricamente estable.
-
-    Garantía: |denom| ≥ eps antes de dividir. El signo de denom se preserva.
-
-    Invariante (para |denom| >> eps):
-        |resultado − resultado_exacto| ≤ ε_mach · |resultado_exacto|
-
-    Parameters
-    ----------
-    numerator   : array numerador
-    denominator : array denominador (misma shape o broadcastable)
-    eps         : tolerancia de denominador mínimo
-
-    Returns
-    -------
-    np.ndarray de misma shape, todos los valores finitos si inputs son finitos.
-    """
-    denominator = np.asarray(denominator, dtype=np.float64)
-    abs_denom = np.abs(denominator)
-
-    # CORRECCIÓN N4: evitar denominador exactamente cero con cota eps
-    # Preservar signo: si denom >= 0 usar +eps, si denom < 0 usar -eps
-    safe_denom = np.where(
-        abs_denom >= eps,
-        denominator,
-        np.where(denominator >= 0.0, eps, -eps),
-    )
-    return np.asarray(numerator, dtype=np.float64) / safe_denom
-
-
-def _stable_norm(
-    vector: np.ndarray,
-    metric: Optional[np.ndarray] = None,
-    eps: float = EPS,
-) -> float:
-    """
-    Norma L² numéricamente estable, con métrica Riemanniana opcional.
-
-    Algoritmo de Pre-Escalado
-    ─────────────────────────
-    ‖v‖_G = max|vᵢ| · ‖v/max|vᵢ|‖_G
-
-    Esto evita overflow en la forma cuadrática:
-    - Sin pre-escalado: vᵀGv puede overflow para |v| ~ 1e150
-    - Con pre-escalado: (v/s)ᵀG(v/s) ∈ [0, n] para v normalizado
-
-    CORRECCIÓN N2: el pre-escalado se aplica ANTES de la forma cuadrática,
-    no después, para capturar correctamente ‖v‖² = scale² · ‖normed‖².
-
-    Parameters
-    ----------
-    vector : vector de entrada
-    metric : matriz G (SPD) para norma de Mahalanobis, o None para L²
-    eps    : umbral de degeneración
-
-    Returns
-    -------
-    float ≥ 0, norma del vector.
-    """
-    if vector.size == 0:
-        return 0.0
-
-    normalized, scale = _safe_normalize(vector, eps)
-    if scale < eps:
-        return 0.0
-
-    if metric is None:
-        # L² euclidiana: ‖v‖ = scale · ‖normed‖₂
-        return float(scale * np.sqrt(np.dot(normalized, normalized)))
-
-    # CORRECCIÓN N2: forma cuadrática con vector normalizado
-    # ‖v‖_G² = scale² · normedᵀ G normed
-    quadratic = float(normalized @ metric @ normalized)
-
-    if quadratic < 0.0:
-        # Protección: G debería ser SPD. Si quadratic < 0, error numérico.
-        logger.warning(
-            "Forma cuadrática negativa (%.2e) con vector normalizado: "
-            "posible pérdida de SPD en G. Se retorna 0.",
-            quadratic,
-        )
-        return 0.0
-
-    return float(scale * np.sqrt(quadratic))
-
-
-def _compute_condition_number(
-    matrix: np.ndarray,
-    method: str = "eig",
-) -> float:
-    """
-    Número de condición κ(G) para matrices cuadradas.
-
-    CORRECCIÓN A3
-    ─────────────
-    Para matrices singulares: λ_min puede ser 0 o muy cercano a cero.
-    La singularidad se detecta comprobando si el espectro COMPLETO
-    tiene elementos > MIN_EIGVAL_TOL, no solo los positivos filtrados.
-
-    Si ningún eigenvalor supera MIN_EIGVAL_TOL (matrix singular):
-        → retorna float('inf')
-
-    Métodos
-    ───────
-    'eig' : eigvalsh para SPD — garantiza eigenvalores reales (O(n³))
-    'svd' : SVD completo — robusto para matrices generales (O(n³))
-
-    Parameters
-    ----------
-    matrix : np.ndarray, shape (n,n)
-    method : 'eig' o 'svd'
-
-    Returns
-    -------
-    κ ≥ 1 para matrices invertibles, float('inf') para singulares.
-
-    Raises
-    ------
-    ValueError : matrix no cuadrada o method desconocido.
-    """
-    if matrix.ndim != 2 or matrix.shape[0] != matrix.shape[1]:
-        raise ValueError(
-            f"Matriz debe ser cuadrada, recibida shape={matrix.shape}"
-        )
-
-    if method == "eig":
-        # eigvalsh garantiza eigenvalores reales para matrices simétricas
-        eigenvalues = np.linalg.eigvalsh(matrix)
-        # CORRECCIÓN A3: verificar TODOS los eigenvalores, no solo positivos
-        lam_min = float(eigenvalues.min())
-        if lam_min <= MIN_EIGVAL_TOL:
-            return float("inf")
-        lam_max = float(eigenvalues.max())
-        # κ = λ_max / λ_min para matrices SPD
-        return lam_max / lam_min
-
-    if method == "svd":
-        # SVD: σ_i = √λ_i para matrices SPD
-        sv = np.linalg.svd(matrix, compute_uv=False)
-        nonzero = sv[sv > MIN_EIGVAL_TOL]
-        if nonzero.size == 0:
-            return float("inf")
-        return float(nonzero.max() / nonzero.min())
-
-    raise ValueError(
-        f"Método de condición desconocido: '{method}'. "
-        f"Disponibles: 'eig', 'svd'"
-    )
-
-
-def _regularize_metric(
-    matrix: np.ndarray,
-    min_eig: float = MIN_EIGVAL_TOL,
-) -> np.ndarray:
-    """
-    Regularización de Tikhonov: G_reg = G + δ·I, δ = max(0, min_eig − λ_min).
-
-    Propiedades Garantizadas
-    ─────────────────────────
-    • Preserva autovectores: G·v = λv ⟹ (G+δI)·v = (λ+δ)v
-    • Minimiza perturbación en norma de Frobenius: ‖G_reg − G‖_F = δ·√n
-    • Garantiza λ_min(G_reg) ≥ min_eig
-
-    CORRECCIÓN N3
-    ─────────────
-    La copia explícita con dtype=float64 garantiza que el resultado
-    hereda el tipo correcto independientemente del dtype de entrada.
-
-    Parameters
-    ----------
-    matrix  : array 2D simétrico (cualquier dtype numérico)
-    min_eig : eigenvalor mínimo objetivo (default = MIN_EIGVAL_TOL)
-
-    Returns
-    -------
-    np.ndarray, shape = matrix.shape, dtype=float64, SPD con λ_min ≥ min_eig.
-
-    References
-    ----------
-    Tikhonov & Arsenin (1977), Golub & Van Loan (2013) §5.3.
-    """
-    mat = np.asarray(matrix, dtype=np.float64)
-
-    # eigvalsh para matrices simétricas: eigenvalores reales garantizados
-    eigenvalues = np.linalg.eigvalsh(mat)
-    min_eigval = float(eigenvalues.min())
-
-    if min_eigval >= min_eig:
-        # Ya SPD: retornar copia sin modificación
-        return mat.copy()
-
-    delta = min_eig - min_eigval
-    logger.debug(
-        "Regularización Tikhonov: λ_min=%.4e < %.4e → δ=%.4e",
-        min_eigval, min_eig, delta,
-    )
-    # CORRECCIÓN N3: resultado explícitamente float64
-    regularized = mat + delta * np.eye(mat.shape[0], dtype=np.float64)
-    return regularized
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# VALIDADORES DE RESTRICCIONES FÍSICAS
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
+# VALIDADORES CON RESTRICCIONES FÍSICAS
+# ==============================================================================
 
 class Validator(ABC):
-    """Interfaz para validadores de restricciones físicas y matemáticas."""
-
+    """Interfaz para validadores de restricciones."""
+    
     @abstractmethod
     def validate(
-        self, value: float, name: str,
+        self,
+        value: float,
+        name: str
     ) -> Tuple[float, bool, Optional[str]]:
         """
-        Valida un valor y retorna (validated, was_modified, message).
-
-        Returns
-        -------
-        validated_value : float, posiblemente corregido
-        was_modified    : True si el valor fue ajustado
-        error_msg       : descripción si hubo corrección, None si no
-
-        Raises
-        ------
-        PhysicalBoundsError : valor viola límite fundamental (NaN, Inf)
+        Valida y corrige valor.
+        
+        Returns:
+            (corrected_value, was_modified, message)
         """
-
+        pass
+    
     @abstractmethod
     def get_bounds(self) -> Tuple[Optional[float], Optional[float]]:
-        """Retorna (lower_bound, upper_bound), None = sin límite."""
-
+        """Retorna (lower_bound, upper_bound)."""
+        pass
 
 class UnitIntervalValidator(Validator):
-    """
-    Valida v ∈ [0, 1] con clamping automático.
-
-    Invariante: valor retornado ∈ [0.0, 1.0] siempre.
-    Lanza PhysicalBoundsError si v es NaN o Inf.
-    """
-
+    """Valida v ∈ [0, 1]."""
+    
     def validate(
-        self, value: float, name: str,
+        self,
+        value: float,
+        name: str
     ) -> Tuple[float, bool, Optional[str]]:
         if not np.isfinite(value):
             raise PhysicalBoundsError(
-                f"[{name}] Valor no finito: {value!r}"
+                f"{name}: valor no finito",
+                value=value
             )
+        
         if value < 0.0:
             return 0.0, True, f"{name}={value:.6g} → clamp a 0.0"
         if value > 1.0:
             return 1.0, True, f"{name}={value:.6g} → clamp a 1.0"
+        
         return value, False, None
-
+    
     def get_bounds(self) -> Tuple[Optional[float], Optional[float]]:
         return (0.0, 1.0)
 
-
 class NonNegativeValidator(Validator):
-    """
-    Valida v ≥ 0 con clamping automático.
-
-    Invariante: valor retornado ≥ 0.0 siempre.
-    """
-
+    """Valida v ≥ 0."""
+    
     def validate(
-        self, value: float, name: str,
+        self,
+        value: float,
+        name: str
     ) -> Tuple[float, bool, Optional[str]]:
         if not np.isfinite(value):
             raise PhysicalBoundsError(
-                f"[{name}] Valor no finito: {value!r}"
+                f"{name}: valor no finito",
+                value=value
             )
+        
         if value < 0.0:
             return 0.0, True, f"{name}={value:.6g} → clamp a 0.0"
+        
         return value, False, None
-
+    
     def get_bounds(self) -> Tuple[Optional[float], Optional[float]]:
         return (0.0, None)
 
-
 class PositiveIntValidator(Validator):
-    """
-    Valida entero positivo ≥ 1 con redondeo automático.
-
-    Invariante: valor retornado es un float con valor entero ≥ 1.0.
-    """
-
+    """Valida entero n ≥ 1."""
+    
     def validate(
-        self, value: float, name: str,
+        self,
+        value: float,
+        name: str
     ) -> Tuple[float, bool, Optional[str]]:
         if not np.isfinite(value):
             raise PhysicalBoundsError(
-                f"[{name}] Valor no finito: {value!r}"
+                f"{name}: valor no finito",
+                value=value
             )
+        
         rounded = max(1, int(round(value)))
-        # CORRECCIÓN P1: usar threshold relativo para detectar modificación
-        was_modified = (rounded != value) or (abs(rounded - value) > 0.5 * EPS)
+        was_modified = abs(rounded - value) > EPS
+        
         if was_modified:
-            return float(rounded), True, f"{name}={value:.6g} → redondeo a {rounded}"
+            return float(rounded), True, f"{name}={value:.6g} → {rounded}"
+        
         return float(rounded), False, None
-
+    
     def get_bounds(self) -> Tuple[Optional[float], Optional[float]]:
-        return (1, None)
-
+        return (1.0, None)
 
 class NonNegativeIntValidator(Validator):
-    """
-    Valida entero no-negativo ≥ 0 con redondeo automático.
-
-    Invariante: valor retornado es un float con valor entero ≥ 0.0.
-    """
-
+    """Valida entero n ≥ 0."""
+    
     def validate(
-        self, value: float, name: str,
+        self,
+        value: float,
+        name: str
     ) -> Tuple[float, bool, Optional[str]]:
         if not np.isfinite(value):
             raise PhysicalBoundsError(
-                f"[{name}] Valor no finito: {value!r}"
+                f"{name}: valor no finito",
+                value=value
             )
+        
         rounded = max(0, int(round(value)))
-        was_modified = (rounded != value) or (abs(rounded - value) > 0.5 * EPS)
+        was_modified = abs(rounded - value) > EPS
+        
         if was_modified:
-            return float(rounded), True, f"{name}={value:.6g} → redondeo a {rounded}"
+            return float(rounded), True, f"{name}={value:.6g} → {rounded}"
+        
         return float(rounded), False, None
-
+    
     def get_bounds(self) -> Tuple[Optional[float], Optional[float]]:
-        return (0, None)
-
+        return (0.0, None)
 
 VALIDATOR_REGISTRY: Dict[str, Validator] = {
-    "unit_interval":   UnitIntervalValidator(),
-    "non_negative":    NonNegativeValidator(),
-    "positive_int":    PositiveIntValidator(),
+    "unit_interval": UnitIntervalValidator(),
+    "non_negative": NonNegativeValidator(),
+    "positive_int": PositiveIntValidator(),
     "non_negative_int": NonNegativeIntValidator(),
 }
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 # ENUMERACIÓN DE ESTADO DE SALUD
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 
 class HealthStatus(Enum):
-    """
-    Estados de salud del sistema inmunológico.
-
-    Orden total: HEALTHY < WARNING < CRITICAL (por severidad numérica).
-
-    CORRECCIÓN A1
-    ─────────────
-    En versiones anteriores, HealthStatus._severity_map_ era un enum member
-    envuelto automáticamente en un Value, por lo que el acceso correcto era:
-        HealthStatus._severity_map_.value.get(...)
-
-    Esta implementación reemplaza el dict-como-member por un dict de clase
-    real (fuera del namespace de Enum), evitando el wrapping automático.
-    Se accede como atributo de clase directamente: _SEVERITY_MAP[name].
-
-    Representación: HEALTHY=0, WARNING=1, CRITICAL=2 (severidad ascendente).
-    """
+    """Estados de salud con orden total."""
+    
     HEALTHY = auto()
     WARNING = auto()
     CRITICAL = auto()
-
+    
     @property
     def severity(self) -> int:
-        """
-        Nivel de severidad numérico: 0=sano, 1=alerta, 2=crítico.
-
-        Invariante: severity ∈ {0, 1, 2} para todos los miembros.
-        """
-        # CORRECCIÓN A1: acceder al dict de clase, no al member envuelto
-        return _HEALTH_SEVERITY_MAP[self.name]
-
+        return {
+            "HEALTHY": 0,
+            "WARNING": 1,
+            "CRITICAL": 2
+        }[self.name]
+    
     def __lt__(self, other: "HealthStatus") -> bool:
         if not isinstance(other, HealthStatus):
             return NotImplemented
         return self.severity < other.severity
-
-    def __le__(self, other: "HealthStatus") -> bool:
-        if not isinstance(other, HealthStatus):
-            return NotImplemented
-        return self.severity <= other.severity
-
-    def __gt__(self, other: "HealthStatus") -> bool:
-        if not isinstance(other, HealthStatus):
-            return NotImplemented
-        return self.severity > other.severity
-
-    def __ge__(self, other: "HealthStatus") -> bool:
-        if not isinstance(other, HealthStatus):
-            return NotImplemented
-        return self.severity >= other.severity
-
+    
     def __str__(self) -> str:
-        return _HEALTH_STATUS_SYMBOLS[self.name]
+        return {
+            "HEALTHY": "✓ HEALTHY",
+            "WARNING": "⚠ WARNING",
+            "CRITICAL": "✗ CRITICAL"
+        }[self.name]
 
+# ==============================================================================
+# TENSOR MÉTRICO RIEMANNIANO CON INVARIANTES VERIFICADOS
+# ==============================================================================
 
-# Definición fuera del enum para evitar wrapping automático de Enum
-# CORRECCIÓN A1: dict de clase accesible directamente sin .value
-_HEALTH_SEVERITY_MAP: Dict[str, int] = {
-    "HEALTHY":  0,
-    "WARNING":  1,
-    "CRITICAL": 2,
-}
-
-_HEALTH_STATUS_SYMBOLS: Dict[str, str] = {
-    "HEALTHY":  "✓ HEALTHY",
-    "WARNING":  "⚠ WARNING",
-    "CRITICAL": "✗ CRITICAL",
-}
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# TENSOR MÉTRICO RIEMANNIANO
-# ═══════════════════════════════════════════════════════════════════════════════
+@dataclass(frozen=True)
+class SpectralDecomposition:
+    """Descomposición espectral verificada."""
+    
+    eigenvalues: NDArray[np.float64]
+    eigenvectors: NDArray[np.float64]
+    orthogonality_residual: float
+    
+    def __post_init__(self):
+        """Verifica invariantes post-construcción."""
+        # Verificar orden decreciente de eigenvalores
+        if not np.all(np.diff(self.eigenvalues) <= 0):
+            raise SpectralDecompositionError("Eigenvalores no ordenados")
+        
+        # Verificar ortogonalidad
+        is_orth, residual = StableLinearAlgebra.verify_orthogonality(
+            self.eigenvectors,
+            tol=ALGEBRAIC_TOL
+        )
+        
+        if not is_orth:
+            raise SpectralDecompositionError(
+                "Eigenvectores no ortogonales",
+                residual=residual
+            )
 
 class MetricTensor:
     """
-    Tensor métrico Riemanniano G para un subespacio Vₖ ⊂ ℝⁿ.
-
-    Propiedades Garantizadas
-    ─────────────────────────
-    • Gᵀ = G              (simetría, impuesta por promedio (G+Gᵀ)/2)
-    • λ_min(G) ≥ MIN_EIGVAL_TOL  (definida positiva)
-    • κ(G) < COND_NUM_TOL        (condición controlada)
-    • to_array() retorna copia mutable (no referencia al array interno)
-
-    Representaciones
-    ─────────────────
-    Diagonal (1D): almacena vector de diagonales. O(n) memoria, O(n) operaciones.
-    Densa (2D)   : almacena matriz completa. O(n²) memoria, O(n²) operaciones.
-
-    CORRECCIÓN N4
-    ─────────────
-    Para representación densa: regularización se aplica ANTES de verificar
-    el número de condición, garantizando que κ se mida sobre G ya SPD.
+    Tensor métrico Riemanniano G con propiedades verificadas.
+    
+    Invariantes:
+    1. Simetría: G = G^T
+    2. Definición positiva: λ_min(G) ≥ MIN_EIGVAL_TOL
+    3. Condición: κ(G) < COND_NUM_TOL
+    4. Orto-normalidad de eigenvectores: Q^T Q = I
     """
-
+    
     __slots__ = (
-        "_matrix",
-        "_is_diagonal",
-        "_dim",
-        "_condition_number",
-        "_eigen_cache",
+        "_matrix", "_is_diagonal", "_dim",
+        "_condition_number", "_spectral_decomposition",
+        "_frozen"
     )
-
+    
     def __init__(
         self,
-        matrix: Union[np.ndarray, list],
+        matrix: Union[NDArray[np.float64], List[float]],
         validate: bool = True,
-        regularization_threshold: float = COND_NUM_TOL,
+        regularization_threshold: float = COND_NUM_TOL
     ) -> None:
         arr = np.asarray(matrix, dtype=np.float64)
-
+        
         if arr.ndim == 1:
             self._init_diagonal(arr, validate, regularization_threshold)
         elif arr.ndim == 2:
             self._init_dense(arr, validate, regularization_threshold)
         else:
             raise MetricTensorError(
-                f"MetricTensor acepta 1D (diagonal) o 2D (densa): ndim={arr.ndim}"
+                "Dimensión inválida",
+                ndim=arr.ndim
             )
-
-        # Cache de descomposición espectral (inicialmente vacío)
-        self._eigen_cache: Optional[Tuple[np.ndarray, np.ndarray]] = None
-
+        
+        self._frozen = True
+    
     def _init_diagonal(
         self,
-        arr: np.ndarray,
+        arr: NDArray[np.float64],
         validate: bool,
-        regularization_threshold: float,
+        threshold: float
     ) -> None:
-        """
-        Inicialización para representación diagonal.
-
-        Invariante: todos los elementos dᵢ > MIN_EIGVAL_TOL.
-        κ(diag(d)) = max(d) / min(d) exactamente.
-        """
+        """Inicializa tensor diagonal."""
         self._dim = arr.shape[0]
         self._is_diagonal = True
-
+        
         if validate:
-            # CORRECCIÓN: verificar contra MIN_EIGVAL_TOL, no contra 0
-            bad_mask = arr <= MIN_EIGVAL_TOL
-            if bad_mask.any():
-                bad_vals = arr[bad_mask]
+            if np.any(arr <= MIN_EIGVAL_TOL):
                 raise MetricTensorError(
-                    f"Elementos diagonales deben ser > {MIN_EIGVAL_TOL:.2e}. "
-                    f"Valores inválidos: {bad_vals}"
+                    "Diagonal con eigenvalores no positivos",
+                    min_val=arr.min()
                 )
-
+        
         mat = arr.copy()
         mat.flags.writeable = False
         self._matrix = mat
-
-        # κ(diag(d)) = max(d)/min(d): exactamente calculable
+        
+        # Condición para matriz diagonal
         d_min = float(arr.min())
         d_max = float(arr.max())
         self._condition_number = d_max / max(d_min, MIN_EIGVAL_TOL)
-
-        if validate and self._condition_number > regularization_threshold:
+        
+        if validate and self._condition_number > threshold:
             logger.warning(
-                "Métrica diagonal mal condicionada: κ=%.2e > %.2e",
-                self._condition_number, regularization_threshold,
+                "Métrica diagonal mal condicionada: κ=%.2e",
+                self._condition_number
             )
-
+        
+        # Descomposición trivial para diagonal
+        self._spectral_decomposition = SpectralDecomposition(
+            eigenvalues=np.sort(arr)[::-1].copy(),
+            eigenvectors=np.eye(self._dim, dtype=np.float64),
+            orthogonality_residual=0.0
+        )
+    
     def _init_dense(
         self,
-        arr: np.ndarray,
+        arr: NDArray[np.float64],
         validate: bool,
-        regularization_threshold: float,
+        threshold: float
     ) -> None:
-        """
-        Inicialización para representación densa.
-
-        Orden de Operaciones (CORRECCIÓN N4)
-        ──────────────────────────────────────
-        1. Verificar forma cuadrada
-        2. Verificar simetría (si validate=True)
-        3. Imponer simetría exacta: sym = (arr + arrᵀ)/2
-        4. Regularizar (si validate=True): sym_reg = sym + δ·I
-        5. Calcular κ sobre la matriz REGULARIZADA
-        6. Advertir si κ es alto
-        """
+        """Inicializa tensor denso."""
         if arr.shape[0] != arr.shape[1]:
             raise MetricTensorError(
-                f"MetricTensor densa debe ser cuadrada: shape={arr.shape}"
+                "Matriz no cuadrada",
+                shape=arr.shape
             )
-
+        
+        # Forzar simetría
+        sym = (arr + arr.T) * 0.5
+        
         if validate:
+            # Verificar simetría residual
             asym = float(np.linalg.norm(arr - arr.T, "fro"))
             if asym > ALGEBRAIC_TOL:
-                raise MetricTensorError(
-                    f"Matriz no simétrica: ‖G − Gᵀ‖_F = {asym:.4e} > {ALGEBRAIC_TOL}"
+                logger.warning(
+                    "Asimetría corregida: ‖G - G^T‖_F = %.4e",
+                    asym
                 )
-
-        # Paso 3: Imponer simetría exacta (elimina errores de redondeo)
-        sym = (arr + arr.T) * 0.5
-
-        # Paso 4: Regularizar para garantizar SPD
-        if validate:
-            sym = _regularize_metric(sym, min_eig=MIN_EIGVAL_TOL)
-
+            
+            # Regularizar si necesario
+            sym = StableLinearAlgebra.regularize_spd_matrix(
+                sym,
+                min_eig=MIN_EIGVAL_TOL,
+                method='spectral'
+            )
+        
         self._dim = sym.shape[0]
         self._is_diagonal = False
-
+        
         mat = sym.copy()
         mat.flags.writeable = False
         self._matrix = mat
-
-        # Paso 5: κ sobre la matriz regularizada (CORRECCIÓN N4)
-        self._condition_number = _compute_condition_number(sym, method="eig")
-
-        if self._condition_number > regularization_threshold:
+        
+        # Descomposición espectral completa
+        eigenvalues, eigenvectors = np.linalg.eigh(sym)
+        
+        # Ordenar por eigenvalor decreciente
+        idx = np.argsort(eigenvalues)[::-1]
+        eigenvalues = eigenvalues[idx]
+        eigenvectors = eigenvectors[:, idx]
+        
+        # Verificar ortogonalidad
+        is_orth, residual = StableLinearAlgebra.verify_orthogonality(
+            eigenvectors,
+            tol=ALGEBRAIC_TOL
+        )
+        
+        self._spectral_decomposition = SpectralDecomposition(
+            eigenvalues=eigenvalues.copy(),
+            eigenvectors=eigenvectors.copy(),
+            orthogonality_residual=residual
+        )
+        
+        # Condición espectral
+        self._condition_number = StableLinearAlgebra.compute_condition_spectral(
+            sym,
+            method='eig'
+        )
+        
+        if self._condition_number > threshold:
             warnings.warn(
-                f"Métrica densa mal condicionada: κ={self._condition_number:.2e} "
-                f"> {regularization_threshold:.2e}",
-                UserWarning,
-                stacklevel=3,
+                f"Métrica mal condicionada: κ={self._condition_number:.2e}",
+                UserWarning
             )
-
-    # ── Propiedades de solo lectura ─────────────────────────────────────────
-
+    
     @property
     def dimension(self) -> int:
-        """Dimensión n del espacio (G es n×n)."""
         return self._dim
-
+    
     @property
     def is_diagonal(self) -> bool:
-        """True si la representación interna es diagonal (1D)."""
         return self._is_diagonal
-
+    
     @property
     def condition_number(self) -> float:
-        """κ(G) = λ_max/λ_min ≥ 1 para G invertible."""
         return self._condition_number
-
+    
     @property
-    def eigen_decomposition(self) -> Tuple[np.ndarray, np.ndarray]:
+    def spectral_decomposition(self) -> SpectralDecomposition:
+        return self._spectral_decomposition
+    
+    def quadratic_form(self, v: NDArray[np.float64]) -> float:
         """
-        Descomposición espectral G = V·diag(λ)·Vᵀ (perezosa, cacheada).
-
-        Para diagonal: λ = diagonal, V = I_n.
-        Para densa   : eigvalsh garantiza λ reales y V ortogonal.
-
-        Returns
-        -------
-        (eigenvalues, eigenvectors) : arrays de dtype float64, immutables.
+        Calcula Q(v) = v^T G v con garantías numéricas.
+        
+        Algoritmo: Q = s² · (v/s)^T G (v/s) donde s = ‖v‖_∞
         """
-        if self._eigen_cache is None:
-            if self._is_diagonal:
-                # Para diagonal: λᵢ = dᵢ, vᵢ = eᵢ (base canónica)
-                eigvals = self._matrix.copy()
-                eigvecs = np.eye(self._dim, dtype=np.float64)
-                self._eigen_cache = (eigvals, eigvecs)
-            else:
-                # eigvalsh para matrices simétricas: eigenvalores reales
-                eigvals, eigvecs = np.linalg.eigh(self._matrix)
-                self._eigen_cache = (
-                    eigvals.astype(np.float64),
-                    eigvecs.astype(np.float64),
-                )
-        return self._eigen_cache
-
-    # ── Operaciones Métricas ────────────────────────────────────────────────
-
-    def quadratic_form(self, v: np.ndarray) -> float:
-        """
-        Calcula vᵀ G v.
-
-        CORRECCIÓN N5
-        ─────────────
-        El resultado se clampea a max(result, 0.0) para absorber errores
-        numéricos sub-epsilon que producen vᵀGv = -ε ≈ 0 cuando G es SPD.
-        Sin este clamping, sqrt(vᵀGv) en compute_threat lanzaría RuntimeWarning.
-
-        Complejidad
-        ───────────
-        Diagonal: O(n) — producto elemento a elemento
-        Densa   : O(n²) — multiplicación matriz-vector + producto punto
-
-        Parameters
-        ----------
-        v : array 1D de longitud n
-
-        Returns
-        -------
-        float ≥ 0 (clampeado para absorber error numérico).
-        """
-        import warnings
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=RuntimeWarning, message="underflow encountered in multiply")
-            if self._is_diagonal:
-                # Σᵢ dᵢ vᵢ²: más eficiente que v @ diag(d) @ v
-                result = float(np.dot(self._matrix * v, v))
-            else:
-                result = float(v @ self._matrix @ v)
-
-        # CORRECCIÓN N5: clamping para absorber errores numéricos sub-epsilon
-        return max(result, 0.0)
-
-    def apply(self, v: np.ndarray) -> np.ndarray:
-        """
-        Calcula G·v.
-
-        Diagonal: dᵢ·vᵢ (O(n))
-        Densa   : G @ v  (O(n²))
-        """
+        return StableLinearAlgebra.stable_quadratic_form(
+            v,
+            self._matrix if not self._is_diagonal else np.diag(self._matrix),
+            eps=EPS
+        )
+    
+    def apply(self, v: NDArray[np.float64]) -> NDArray[np.float64]:
+        """Calcula G · v."""
         if self._is_diagonal:
             return self._matrix * v
         return self._matrix @ v
-
-    def inverse_sqrt_apply(self, v: np.ndarray) -> np.ndarray:
+    
+    def inverse_sqrt_apply(self, v: NDArray[np.float64]) -> NDArray[np.float64]:
         """
-        Calcula G^{-1/2}·v vía descomposición espectral.
-
-        Algoritmo
-        ─────────
-        G = V·Λ·Vᵀ  ⟹  G^{-1/2} = V·Λ^{-1/2}·Vᵀ
-
-        Regularización: λᵢ ← max(λᵢ, MIN_EIGVAL_TOL) antes de √,
-        evitando división por eigenvalores degenerados.
-
-        Parameters
-        ----------
-        v : array 1D, debe tener longitud = self.dimension
-
-        Returns
-        -------
-        np.ndarray de misma shape.
+        Calcula G^{-1/2} · v mediante descomposición espectral.
+        
+        Fórmula: G^{-1/2} = Q Λ^{-1/2} Q^T
         """
-        eigvals, eigvecs = self.eigen_decomposition
-        # Regularización espectral: evita división por eigenvalores cercanos a 0
-        safe_eigvals = np.maximum(eigvals, MIN_EIGVAL_TOL)
+        spec = self._spectral_decomposition
+        
+        # λ^{-1/2} con protección
+        safe_eigvals = np.maximum(spec.eigenvalues, MIN_EIGVAL_TOL)
         inv_sqrt_diag = 1.0 / np.sqrt(safe_eigvals)
-
+        
         if self._is_diagonal:
-            # Para diagonal: G^{-1/2} = diag(1/√dᵢ)
             return inv_sqrt_diag * v
-        # Para densa: G^{-1/2}v = V · diag(1/√λᵢ) · Vᵀv
-        return eigvecs @ (inv_sqrt_diag * (eigvecs.T @ v))
-
-    def to_array(self) -> np.ndarray:
-        """
-        Retorna copia mutable del array interno.
-
-        Garantía: modificar el array retornado NO afecta el estado interno
-        del tensor (la copia tiene flags.writeable = True).
-        """
-        result = self._matrix.copy()
+        
+        # G^{-1/2} v = Q Λ^{-1/2} Q^T v
+        return spec.eigenvectors @ (inv_sqrt_diag * (spec.eigenvectors.T @ v))
+    
+    def to_array(self) -> NDArray[np.float64]:
+        """Retorna copia mutable del tensor."""
+        if self._is_diagonal:
+            result = self._matrix.copy()
+        else:
+            result = self._matrix.copy()
+        
         result.flags.writeable = True
         return result
-
+    
+    def verify_invariants(self) -> Dict[str, bool]:
+        """Verifica todos los invariantes matemáticos."""
+        checks = {}
+        
+        # Simetría
+        if not self._is_diagonal:
+            asym = float(np.linalg.norm(self._matrix - self._matrix.T, 'fro'))
+            checks['symmetry'] = asym < ALGEBRAIC_TOL
+        else:
+            checks['symmetry'] = True
+        
+        # Definición positiva
+        checks['positive_definite'] = float(
+            self._spectral_decomposition.eigenvalues.min()
+        ) >= MIN_EIGVAL_TOL
+        
+        # Condición aceptable
+        checks['well_conditioned'] = self._condition_number < COND_NUM_TOL
+        
+        # Ortogonalidad de eigenvectores
+        checks['eigenvectors_orthogonal'] = (
+            self._spectral_decomposition.orthogonality_residual < ALGEBRAIC_TOL
+        )
+        
+        # Reconstrucción exacta: G = Q Λ Q^T
+        if not self._is_diagonal:
+            Q = self._spectral_decomposition.eigenvectors
+            Λ = np.diag(self._spectral_decomposition.eigenvalues)
+            G_reconstructed = Q @ Λ @ Q.T
+            reconstruction_error = float(
+                np.linalg.norm(G_reconstructed - self._matrix, 'fro')
+            )
+            checks['spectral_reconstruction'] = reconstruction_error < ALGEBRAIC_TOL
+        else:
+            checks['spectral_reconstruction'] = True
+        
+        return checks
+    
     def __repr__(self) -> str:
         kind = "diagonal" if self._is_diagonal else "densa"
         return (
-            f"MetricTensor({kind}, n={self._dim}, κ={self._condition_number:.2e})"
+            f"MetricTensor({kind}, n={self._dim}, "
+            f"κ={self._condition_number:.2e}, "
+            f"λ_min={self._spectral_decomposition.eigenvalues.min():.2e})"
         )
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# ESPECIFICACIÓN DE SUBESPACIO
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
+# FUNTOR DE MEMBRANA AISLANTE (p-Dirichlet)
+# ==============================================================================
 
 @dataclass
-
 class IsolatingMembraneFunctor:
     """
-    Funtor que evalúa el funcional de energía de p-Dirichlet y computa el estrés topológico.
+    Funtor que evalúa energía de p-Dirichlet.
+    
+    Funcional: E_p[ψ] = ∫ |∇ψ|^p dx
+    Discretización: Δψ ≈ d²ψ/dx² (diferencias finitas)
+    Estrés: S_p(ψ) = |Δψ|^{p-2} + ε
+    
+    Restricción: p ∈ [1, 2) para regularidad
     """
-    def __init__(self, p: float = 1.5, eps: float = 1e-12):
-        if not (1 <= p < 2):
-            raise ValueError("El exponente p debe estar en [1, 2)")
-        self.p = p
-        self.eps = eps
-
-    def compute_topological_stress(self, psi: np.ndarray) -> np.ndarray:
+    
+    p: float = 1.5
+    eps: float = 1e-12
+    
+    def __post_init__(self):
+        if not (1.0 <= self.p < 2.0):
+            raise ValueError(
+                "Exponente p debe estar en [1, 2)",
+                p=self.p
+            )
+    
+    def compute_topological_stress(
+        self,
+        psi: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
         """
-        Calcula S_p(\psi) = |\Delta \psi|^{p-2} + \epsilon_{mach}
+        Calcula S_p(ψ) = |Δψ|^{p-2} + ε.
+        
+        Laplaciano discreto: Δψ_i ≈ ψ_{i+1} - 2ψ_i + ψ_{i-1}
         """
-        # Aproximación del Laplaciano discreto
-        laplacian = psi - np.mean(psi)
+        # Gradiente (primera derivada)
+        grad = np.gradient(psi)
+        
+        # Laplaciano (segunda derivada)
+        laplacian = np.gradient(grad)
+        
+        # Magnitud absoluta con regularización
         abs_lap = np.maximum(np.abs(laplacian), self.eps)
-        S_p = abs_lap**(self.p - 2.0) + self.eps
-        return S_p
+        
+        # Estrés topológico
+        stress = abs_lap ** (self.p - 2.0) + self.eps
+        
+        return stress
 
+# ==============================================================================
+# ESPECIFICACIÓN DE SUBESPACIO CON MÉTRICA PERTURBADA
+# ==============================================================================
 
 @dataclass
 class SubspaceSpec:
     """
-    Especificación de un subespacio de riesgo Vₖ ⊂ ℝⁿ.
-
-    Invarianzas Dimensionales (verificadas en __post_init__)
-    ─────────────────────────────────────────────────────────
-    dim(reference) = dim(metric) = len(range(indices))
-
-    Distancia de Mahalanobis
-    ─────────────────────────
-    d_G(x, ref) = √[(x−ref)ᵀ G (x−ref)]
-
-    Con scale=[s₀,...,sₙ₋₁]:
-        G = diag(1/s₀², ..., 1/sₙ₋₁²)
-        d_G(δ) = ‖D⁻¹δ‖₂  donde D = diag(s)
+    Especificación de subespacio V_k ⊂ ℝⁿ con métrica Riemanniana.
+    
+    Propiedades:
+    - Proyector: π_k: ℝⁿ → V_k
+    - Métrica perturbada: G̃_k = G_k (I + γ diag(S_p))
+    - Referencia: ψ_ref ∈ V_k
     """
+    
     name: str
     indices: slice
     weight: float
-    reference: np.ndarray
+    reference: NDArray[np.float64]
     metric: Optional[MetricTensor] = field(default=None)
-    scale: Optional[np.ndarray] = field(default=None, repr=False)
-
+    scale: Optional[NDArray[np.float64]] = field(default=None, repr=False)
+    
     def __post_init__(self) -> None:
-        # Normalizar referencia a array 1D float64 inmutable
-        self.reference = np.asarray(
-            self.reference, dtype=np.float64,
-        ).ravel().copy()
+        # Inmutabilidad de referencia
+        self.reference = np.asarray(self.reference, dtype=np.float64).ravel().copy()
         self.reference.flags.writeable = False
+        
         dim = self.reference.shape[0]
-
-        # Validar peso: debe ser estrictamente positivo
+        
+        # Validar peso
         if not np.isfinite(self.weight) or self.weight <= 0.0:
             raise ValueError(
-                f"[{self.name}] weight debe ser finito y > 0: recibido {self.weight}"
+                f"[{self.name}] peso debe ser finito y positivo",
+                weight=self.weight
             )
-
-        # Construir métrica desde scale si metric no se proporciona explícitamente
+        
+        # Construir métrica si no existe
         if self.metric is None:
             if self.scale is not None:
                 scale_arr = np.asarray(self.scale, dtype=np.float64).ravel()
+                
                 if scale_arr.shape[0] != dim:
                     raise DimensionalMismatchError(
-                        f"[{self.name}] dim(scale)={scale_arr.shape[0]} "
-                        f"≠ dim(reference)={dim}"
+                        f"[{self.name}] dim(scale) ≠ dim(reference)",
+                        dim_scale=scale_arr.shape[0],
+                        dim_ref=dim
                     )
-                # G = diag(1/s²): distancia Mahalanobis = ‖D⁻¹δ‖₂
-                # Protección: si sᵢ ≈ 0 → gᵢ → ∞ (insensible en esa dirección)
-                metric_diag = _stable_reciprocal(scale_arr ** 2, eps=EPS)
-                # Garantizar definición positiva estricta
+                
+                # Métrica diagonal: G_diag = (1/scale²)
+                metric_diag = StableLinearAlgebra.stable_reciprocal(scale_arr ** 2, eps=EPS)
                 metric_diag = np.maximum(metric_diag, MIN_EIGVAL_TOL)
+                
                 self.metric = MetricTensor(metric_diag, validate=True)
             else:
-                # Sin scale ni metric: métrica euclidiana estándar G = I_n
-                self.metric = MetricTensor(np.ones(dim, dtype=np.float64), validate=True)
-
-        # Verificación cruzada de dimensión (aún si metric se pasó explícitamente)
+                # Métrica identidad por defecto
+                self.metric = MetricTensor(
+                    np.ones(dim, dtype=np.float64),
+                    validate=True
+                )
+        
+        # Verificar dimensión métrica
         if self.metric.dimension != dim:
             raise DimensionalMismatchError(
-                f"[{self.name}] dim(metric)={self.metric.dimension} "
-                f"≠ dim(reference)={dim}"
+                f"[{self.name}] dim(metric) ≠ dim(reference)",
+                dim_metric=self.metric.dimension,
+                dim_ref=dim
             )
-
-    def compute_threat(self, subvector: np.ndarray) -> float:
+    
+    def compute_threat(
+        self,
+        subvector: NDArray[np.float64],
+        gamma: float = 0.1
+    ) -> float:
         """
-        Calcula la amenaza del subespacio Vₖ usando un Tensor Métrico Riemanniano perturbado dinámicamente.
-
-        Fórmula
-        ───────
-        S_p = IsolatingMembraneFunctor(1.5).compute_topological_stress(v)
-        \tilde{G}_k(v) = G_k · [I_n + \gamma · \text{diag}(S_p(v))]
-        threatₖ = wₖ · \sqrt{ (\tilde{\pi}_k(v - \psi_{ref}))^T \tilde{G}_k(v) (\tilde{\pi}_k(v - \psi_{ref})) }
-
-        Parameters
-        ----------
-        subvector : array 1D de longitud = dim(reference)
-
-        Raises
-        ------
-        DimensionalMismatchError : si shape(subvector) ≠ shape(reference)
-
-        Returns
-        -------
-        float ≥ 0.
+        Calcula amenaza con métrica perturbada por estrés topológico.
+        
+        Distancia de Mahalanobis generalizada:
+        d²(v, ref) = (v - ref)^T G̃ (v - ref)
+        
+        donde G̃ = G (I + γ diag(S_p))
         """
         sv = np.asarray(subvector, dtype=np.float64).ravel()
+        
         if sv.shape != self.reference.shape:
             raise DimensionalMismatchError(
-                f"[{self.name}] shape incompatible: "
-                f"{sv.shape} ≠ {self.reference.shape}"
+                f"[{self.name}] shape incompatible",
+                expected=self.reference.shape,
+                received=sv.shape
             )
-
-        # Fase 1 y 2: Funtor Ortogonal Adaptativo
+        
+        # Funtor de membrana
         membrane = IsolatingMembraneFunctor(p=1.5, eps=EPS)
         S_p = membrane.compute_topological_stress(sv)
-
-        # Proyectamos el desplazamiento: \tilde{\pi}_k(v - ref) = (v - ref) \odot S_p(v)^{-1}
-        delta = (sv - self.reference) * (1.0 / S_p)
-
-        # Fase 3: Deformación del Tensor Métrico
-        gamma = 0.1
-
-        # G_k base extraído del MetricTensor interno
-        base_G_k = self.metric.to_array()
-        if base_G_k.ndim == 1:
-            base_G_k = np.diag(base_G_k)
-
-        # \tilde{G}_k(v) = G_k \cdot [I_n + \gamma \cdot \text{diag}(S_p(v))]
-        perturbation = np.eye(len(S_p)) + gamma * np.diag(S_p)
-        tilde_G_k_matrix = base_G_k @ perturbation
-
-        # Calcular forma cuadrática: delta^T * tilde_G_k * delta
-        maha_sq = float(delta @ tilde_G_k_matrix @ delta)
-
-        # Protección adicional contra negativos residuales
-        return self.weight * float(np.sqrt(max(maha_sq, 0.0)))
-
-    def normalize_to_reference(self, subvector: np.ndarray) -> np.ndarray:
+        
+        # Proyección ponderada por estrés
+        delta = (sv - self.reference) / S_p
+        
+        # Métrica perturbada
+        if self.metric.is_diagonal:
+            G_diag = self.metric.to_array()  # 1D
+            tilde_G_diag = G_diag * (1.0 + gamma * S_p)
+            maha_sq = np.sum(delta * delta * tilde_G_diag)
+        else:
+            base_G = self.metric.to_array()  # 2D
+            perturbation = np.eye(len(S_p)) + gamma * np.diag(S_p)
+            tilde_G = base_G @ perturbation
+            
+            # Forzar simetría
+            tilde_G = (tilde_G + tilde_G.T) * 0.5
+            
+            maha_sq = float(delta @ tilde_G @ delta)
+        
+        # Amenaza ponderada
+        threat = self.weight * float(np.sqrt(max(maha_sq, 0.0)))
+        
+        return threat
+    
+    def normalize_to_reference(
+        self,
+        subvector: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
         """
-        Proyecta subvector al espacio normalizado G^{-1/2}(v − ref).
-
-        Útil para visualización y análisis de sensibilidad.
+        Proyecta al espacio normalizado: G^{-1/2}(v - ref).
+        
+        Interpretación geométrica: distancia unitaria en métrica G.
         """
         sv = np.asarray(subvector, dtype=np.float64).ravel()
-        return self.metric.inverse_sqrt_apply(sv - self.reference)
+        delta = sv - self.reference
+        
+        return self.metric.inverse_sqrt_apply(delta)
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# RESULTADO INMUTABLE DE EVALUACIÓN
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
+# EVALUACIÓN DE AMENAZA INMUTABLE
+# ==============================================================================
 
 @dataclass(frozen=True)
 class ThreatAssessment:
     """
-    Resultado inmutable de la evaluación de amenazas topológicas.
-
-    Invarianzas
-    ───────────
-    • total_threat = ‖(threat₁,...,threatₙ)‖₂ ≥ 0
-    • max_source ∈ keys(levels), levels[max_source] = max_value
-    • status ∈ {HEALTHY, WARNING, CRITICAL}
-    • Todos los valores en levels son ≥ 0
+    Resultado inmutable de evaluación de amenazas.
+    
+    Invariantes:
+    - levels[k] ≥ 0 ∀k
+    - max_value = max(levels.values())
+    - total_threat = ‖levels‖₂ o norma Mahalanobis global
     """
+    
     levels: Dict[str, float]
     max_source: str
     max_value: float
@@ -1123,23 +1046,38 @@ class ThreatAssessment:
     status: HealthStatus = HealthStatus.HEALTHY
     metadata: Dict[str, Any] = field(default_factory=dict)
     electrons: Tuple[ElectronCartridge, ...] = field(default_factory=tuple)
-
+    
+    def __post_init__(self):
+        """Verifica invariantes post-construcción."""
+        # Verificar no negatividad
+        negative = {k: v for k, v in self.levels.items() if v < 0.0}
+        if negative:
+            raise ValueError(
+                "Niveles de amenaza deben ser no negativos",
+                negative_levels=negative
+            )
+        
+        # Verificar consistencia de máximo
+        computed_max = max(self.levels.values())
+        if abs(computed_max - self.max_value) > EPS:
+            raise ValueError(
+                "max_value inconsistente",
+                expected=computed_max,
+                received=self.max_value
+            )
+    
     def __repr__(self) -> str:
         items = ", ".join(f"{k}={v:.4f}" for k, v in self.levels.items())
         euler_str = f", χ={self.euler_char}" if self.euler_char is not None else ""
+        
         return (
             f"ThreatAssessment({items}{euler_str}) → {self.status} "
             f"(max: {self.max_source}={self.max_value:.4f}, "
             f"total={self.total_threat:.4f})"
         )
-
+    
     def to_dict(self) -> Dict[str, Any]:
-        """
-        Serialización JSON-compatible.
-
-        Todos los valores son tipos Python nativos: float, int, str, dict, list.
-        Ningún valor es numpy.float64, numpy.int64, o similar.
-        """
+        """Serialización JSON-compatible."""
         return {
             "threat_levels": {k: float(v) for k, v in self.levels.items()},
             "max_threat_source": str(self.max_source),
@@ -1154,7 +1092,7 @@ class ThreatAssessment:
                 for k, v in self.metadata.items()
             },
         }
-
+    
     @staticmethod
     def from_components(
         levels: Dict[str, float],
@@ -1163,46 +1101,32 @@ class ThreatAssessment:
         critical_threshold: float = 1.5,
         electrons: Tuple[ElectronCartridge, ...] = (),
     ) -> "ThreatAssessment":
-        """
-        Constructor que infiere atributos derivados automáticamente.
-
-        Parameters
-        ----------
-        levels             : dict de amenazas por subespacio (valores ≥ 0)
-        euler_char         : característica de Euler χ = β₀ - β₁ (o None)
-        warning_threshold  : umbral de alerta
-        critical_threshold : umbral crítico
-
-        Raises
-        ------
-        ValueError : si levels está vacío o tiene valores negativos.
-        """
+        """Factory method con clasificación automática."""
         if not levels:
-            raise ValueError(
-                "levels no puede estar vacío: se requiere ≥ 1 subespacio"
-            )
-
-        # Verificar no-negatividad de todos los niveles
+            raise ValueError("levels no puede estar vacío")
+        
+        # Verificar no negatividad
         negative = {k: v for k, v in levels.items() if v < 0.0}
         if negative:
             raise ValueError(
-                f"Niveles de amenaza negativos detectados: {negative}. "
-                "La distancia de Mahalanobis es siempre ≥ 0."
+                "Niveles de amenaza negativos",
+                negative=negative
             )
-
+        
         max_source = max(levels, key=lambda k: levels[k])
         max_value = float(levels[max_source])
         total_threat = float(np.linalg.norm(list(levels.values())))
-
+        
+        # Clasificación por umbrales
         if max_value > critical_threshold:
             status = HealthStatus.CRITICAL
         elif max_value > warning_threshold:
             status = HealthStatus.WARNING
         else:
             status = HealthStatus.HEALTHY
-
+        
         return ThreatAssessment(
-            levels=dict(levels),  # copia defensiva
+            levels=dict(levels),
             max_source=max_source,
             max_value=max_value,
             total_threat=total_threat,
@@ -1211,351 +1135,390 @@ class ThreatAssessment:
             electrons=electrons,
         )
 
+# ==============================================================================
+# CONSTRUCCIÓN BLOQUE-DIAGONAL PURA
+# ==============================================================================
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PROYECTOR ORTOGONAL
-# ═══════════════════════════════════════════════════════════════════════════════
+def block_diag_pure(*blocks: NDArray[np.float64]) -> NDArray[np.float64]:
+    """
+    Construye matriz bloque-diagonal sin dependencias externas.
+    
+    Soporta:
+    - Bloques 1D (convertidos a diag(block))
+    - Bloques 2D (matrices)
+    
+    Resultado: matriz bloque-diagonal de dimensión sum(dim(blocks))
+    """
+    sizes = []
+    for b in blocks:
+        if b.ndim == 1:
+            sizes.append(b.shape[0])
+        elif b.ndim == 2:
+            if b.shape[0] != b.shape[1]:
+                raise ValueError(
+                    "Bloques 2D deben ser cuadrados",
+                    shape=b.shape
+                )
+            sizes.append(b.shape[0])
+        else:
+            raise ValueError(
+                "Bloques deben ser 1D o 2D",
+                ndim=b.ndim
+            )
+    
+    total = sum(sizes)
+    result = np.zeros((total, total), dtype=np.float64)
+    
+    offset = 0
+    for b in blocks:
+        dim = b.shape[0]
+        
+        if b.ndim == 1:
+            # Diagonal
+            result[offset:offset+dim, offset:offset+dim] = np.diag(b)
+        else:
+            # Bloque denso
+            result[offset:offset+dim, offset:offset+dim] = b
+        
+        offset += dim
+    
+    return result
+
+# ==============================================================================
+# PROYECTOR ORTOGONAL CON VERIFICACIÓN ALGEBRAICA
+# ==============================================================================
 
 class OrthogonalProjector:
     """
-    Descompone ψ ∈ ℝⁿ en subespacios ortogonales y cuantifica amenazas.
-
-    Propiedades Algebraicas Garantizadas
-    ────────────────────────────────────
-    πₖ² = πₖ          : idempotencia (verificada en _validate_and_build)
-    πₖᵀ = πₖ          : autoadjunta (verificada en _validate_and_build)
-    πᵢ·πⱼ = 0 (i≠j)  : ortogonalidad (garantizada por disjuntividad de índices)
-    Σₖ πₖ = I_n       : resolución de identidad (verificada globalmente)
-
-    Invariantes Topológicos
-    ───────────────────────
-    β₀ ≥ 1  : componentes conexas (int Python nativo)
-    β₁ ≥ 0  : ciclos independientes (int Python nativo)
-    χ ∈ ℤ   : característica de Euler (int Python nativo)
+    Proyector ortogonal π: ℝⁿ → ⊕V_k con propiedades verificadas.
+    
+    Invariantes algebraicos:
+    1. Idempotencia: π_k² = π_k
+    2. Auto-adjunción: π_k^T = π_k
+    3. Ortogonalidad: π_i π_j = 0 si i ≠ j
+    4. Cobertura: Σ_k π_k = I_n
     """
-
+    
     __slots__ = (
-        "_dim",
-        "_subspaces",
-        "_topo_indices",
-        "_projection_matrices",
-        "_validation_report",
-        "_global_metric",
-        "_global_metric_tensor",
+        "_dim", "_subspaces", "_topo_indices",
+        "_projection_matrices", "_validation_report",
+        "_global_metric", "_global_metric_tensor"
     )
-
+    
     def __init__(
         self,
         dimensions: int,
         subspaces: Dict[str, SubspaceSpec],
-        topo_indices: Optional[Tuple[int, int, int]] = None,
+        topo_indices: Optional[Tuple[int, ...]] = None,
         cache_projections: bool = True,
     ) -> None:
-        """
-        Parameters
-        ----------
-        dimensions      : dimensión total del espacio ℝⁿ
-        subspaces       : dict de SubspaceSpec, con índices disjuntos
-        topo_indices    : (idx_β₀, idx_β₁) en el vector ψ, o None
-        cache_projections : precalcular matrices de proyección
-
-        Raises
-        ------
-        DimensionalMismatchError : índices solapados o dim(ref) ≠ dim(Vₖ)
-        NumericalStabilityError  : propiedades algebraicas violadas
-        ValueError               : topo_indices fuera de rango
-        """
         self._dim = dimensions
         self._subspaces: Dict[str, SubspaceSpec] = dict(subspaces)
-        self._projection_matrices: Dict[str, np.ndarray] = {}
+        self._projection_matrices: Dict[str, NDArray[np.float64]] = {}
         self._validation_report: Dict[str, float] = {}
-
-        # CORRECCIÓN T4: validar topo_indices contra dimensiones
+        
+        # Validar índices topológicos
         if topo_indices is not None:
-            idx_b0, idx_b1, idx_b2 = (topo_indices if len(topo_indices) == 3 else (*topo_indices, dimensions-1))
-            for idx, name in [(idx_b0, "β₀"), (idx_b1, "β₁"), (idx_b2, "β₂")]:
+            if len(topo_indices) not in (2, 3):
+                raise ValueError(
+                    "topo_indices debe tener 2 o 3 elementos",
+                    length=len(topo_indices)
+                )
+            
+            for i, idx in enumerate(topo_indices):
                 if not (0 <= idx < dimensions):
                     raise ValueError(
-                        f"topo_indices[{name}]={idx} fuera de rango [0, {dimensions})"
+                        f"topo_indices[{i}] fuera de rango",
+                        index=idx,
+                        range=(0, dimensions)
                     )
-        self._topo_indices = topo_indices
-
-        self._validate_and_build(cache_projections)
-
-        # Ensamblar tensor global para bloque-diagonal R7
-        self._build_global_tensor()
-
-    def _build_global_tensor(self) -> None:
-        """Construye un tensor métrico global G_{global} bloque-diagonal ponderado"""
-        import app.core.immune_system.metric_tensors as ext_metric_tensors
-        from scipy.linalg import block_diag
-
-        # Extraemos las matrices base usando los pesos y referencias en subespacios
-        blocks = []
-        # Para R7 nos aseguramos de seguir un orden canónico: phys, topo, thermo
-
-        ordered_keys = ["physics_core", "topology_core", "thermo_core"]
-        for key in ordered_keys:
-            if key in self._subspaces:
-                spec = self._subspaces[key]
-                # Modificamos la matriz multiplicando por w^2
-                # d_G(v, ref) = sqrt( (v-ref)^T G (v-ref) )
-                # threat = w * d_G = sqrt( (v-ref)^T (w^2 G) (v-ref) )
-                weighted_matrix = (spec.weight ** 2) * spec.metric.to_array()
-                blocks.append(weighted_matrix)
-
-        if len(blocks) == 3:
-            G_global_arr = block_diag(*blocks)
-            self._global_metric = ext_metric_tensors.MetricTensorFactory._validate_and_regularize("G_global", G_global_arr)
-            self._global_metric_tensor = MetricTensor(self._global_metric, validate=False)
+            
+            self._topo_indices = topo_indices
         else:
-            self._global_metric = None
-            self._global_metric_tensor = None
-
+            self._topo_indices = None
+        
+        # Validar y construir proyectores
+        self._validate_and_build(cache_projections)
+        
+        # Construir métrica global
+        self._build_global_tensor()
+    
     def _validate_and_build(self, cache_projections: bool) -> None:
         """
         Verifica propiedades algebraicas y construye matrices de proyección.
-
-        Orden de Verificación
-        ──────────────────────
-        1. Disjuntividad de índices  → garantiza πᵢπⱼ = 0
-        2. Consistencia dimensional  → dim(ref) = |Vₖ|
-        3. Idempotencia πₖ           → πₖ² = πₖ
-        4. Autoadjunta πₖ            → πₖᵀ = πₖ
-        5. Resolución de identidad   → Σₖ πₖ = I_n (si cobertura completa)
+        
+        Checks:
+        - Cobertura completa de índices
+        - No solapamiento de subespacios
+        - Idempotencia: ‖P² - P‖_F < tol
+        - Auto-adjunción: ‖P - P^T‖_F < tol
+        - Rango: tr(P) = dim(V_k)
         """
         covered: set = set()
-
+        
         for name, spec in self._subspaces.items():
+            # Extraer conjunto de índices
             idx_set = set(range(*spec.indices.indices(self._dim)))
-
-            # 1. Disjuntividad
+            
+            # Verificar no solapamiento
             overlap = covered & idx_set
             if overlap:
                 raise DimensionalMismatchError(
-                    f"Subespacio '{name}' se solapa en índices {sorted(overlap)}. "
-                    "Violación de ortogonalidad: πᵢπⱼ ≠ 0"
+                    f"Subespacio '{name}' se solapa",
+                    overlap=sorted(overlap)
                 )
+            
             covered |= idx_set
-
-            # 2. Consistencia dimensional
+            
+            # Verificar dimensión
             expected_dim = len(idx_set)
             if spec.reference.shape[0] != expected_dim:
                 raise DimensionalMismatchError(
-                    f"[{name}] dim(reference)={spec.reference.shape[0]} "
-                    f"≠ |Vₖ|={expected_dim}"
+                    f"[{name}] dim(reference) ≠ |V_k|",
+                    dim_ref=spec.reference.shape[0],
+                    dim_subspace=expected_dim
                 )
-
+            
+            # Construir matriz de proyección
             if cache_projections:
-                # Construir proyector diagonal: P[i,i]=1 ∀i ∈ idx_set
                 P = np.zeros((self._dim, self._dim), dtype=np.float64)
                 for i in idx_set:
                     P[i, i] = 1.0
-
-                # 3. Idempotencia: πₖ² = πₖ
-                # Para proyectores diagonales con {0,1}: P² = P exactamente.
-                idem_err = float(np.linalg.norm(P @ P - P, "fro"))
+                
+                # Verificar idempotencia: P² = P
+                P2 = P @ P
+                idem_err = float(np.linalg.norm(P2 - P, "fro"))
                 self._validation_report[f"{name}_idempotence"] = idem_err
+                
                 if idem_err > ALGEBRAIC_TOL:
                     raise NumericalStabilityError(
-                        f"[{name}] No idempotente: ‖π²−π‖_F={idem_err:.2e}"
+                        f"[{name}] Proyector no idempotente",
+                        error=idem_err
                     )
-
-                # 4. Autoadjunta: πₖᵀ = πₖ
+                
+                # Verificar auto-adjunción: P^T = P
                 self_adj_err = float(np.linalg.norm(P - P.T, "fro"))
                 self._validation_report[f"{name}_self_adjoint"] = self_adj_err
+                
                 if self_adj_err > ALGEBRAIC_TOL:
                     raise NumericalStabilityError(
-                        f"[{name}] No autoadjunta: ‖P−Pᵀ‖_F={self_adj_err:.2e}"
+                        f"[{name}] Proyector no autoadjunto",
+                        error=self_adj_err
                     )
-
-                # CORRECCIÓN A5: verificar rank = |idx_set| (tr(P) para proyector)
+                
+                # Verificar rango: tr(P) = dim(V_k)
                 rank_via_trace = int(round(float(np.trace(P))))
                 if rank_via_trace != expected_dim:
                     raise NumericalStabilityError(
-                        f"[{name}] rank(π)={rank_via_trace} ≠ |Vₖ|={expected_dim}"
+                        f"[{name}] rank(π) ≠ |V_k|",
+                        rank=rank_via_trace,
+                        expected=expected_dim
                     )
-
+                
                 self._projection_matrices[name] = P
-
-        # 5. Resolución de identidad (solo si cobertura completa)
+        
+        # Verificar cobertura completa
         uncovered = set(range(self._dim)) - covered
         if uncovered:
             logger.warning(
-                "Índices sin subespacio: %s — Σₖ πₖ ≠ I (cobertura parcial)",
-                sorted(uncovered),
+                "Índices sin subespacio asignado: %s",
+                sorted(uncovered)
             )
             self._validation_report["uncovered_index_count"] = float(len(uncovered))
-
-        elif self._projection_matrices:
-            # CORRECCIÓN A4: suma con acumulador np.zeros tipado (no sum() con int 0)
-            total_P = np.zeros((self._dim, self._dim), dtype=np.float64)
-            for P in self._projection_matrices.values():
-                total_P = total_P + P
-
-            coverage_err = float(np.linalg.norm(total_P - np.eye(self._dim), "fro"))
+        
+        # Verificar Σ π_k = I
+        if self._projection_matrices and not uncovered:
+            total_P = sum(self._projection_matrices.values())
+            coverage_err = float(np.linalg.norm(
+                total_P - np.eye(self._dim),
+                "fro"
+            ))
+            
             self._validation_report["coverage_identity_error"] = coverage_err
-
+            
             if coverage_err > ALGEBRAIC_TOL:
                 raise NumericalStabilityError(
-                    f"Σₖ πₖ ≠ I: ‖Σπₖ − I‖_F = {coverage_err:.2e}"
+                    "Σ π_k ≠ I",
+                    error=coverage_err
                 )
-
+        
         logger.info(
             "OrthogonalProjector validado: %s",
-            ", ".join(f"{k}={v:.2e}" for k, v in self._validation_report.items()),
+            ", ".join(f"{k}={v:.2e}" for k, v in self._validation_report.items())
         )
-
+    
+    def _build_global_tensor(self) -> None:
+        """
+        Construye tensor métrico global G_global bloque-diagonal ponderado.
+        
+        G_global = diag(w₁² G₁, w₂² G₂, ..., w_k² G_k)
+        """
+        blocks = []
+        ordered_keys = ["physics_core", "topology_core", "thermo_core"]
+        
+        for key in ordered_keys:
+            if key in self._subspaces:
+                spec = self._subspaces[key]
+                G_k = spec.metric.to_array()
+                
+                # Ponderación por peso al cuadrado
+                weighted_matrix = (spec.weight ** 2) * G_k
+                blocks.append(weighted_matrix)
+        
+        if len(blocks) == 3:
+            try:
+                G_global_arr = block_diag_pure(*blocks)
+            except Exception as e:
+                logger.error(
+                    "Falló construcción bloque-diagonal: %s",
+                    e
+                )
+                self._global_metric = None
+                self._global_metric_tensor = None
+                return
+            
+            # Regularizar matriz global
+            try:
+                G_global_arr = StableLinearAlgebra.regularize_spd_matrix(
+                    G_global_arr,
+                    min_eig=MIN_EIGVAL_TOL,
+                    method='spectral'
+                )
+            except Exception as e:
+                logger.warning(
+                    "Regularización de G_global falló: %s",
+                    e
+                )
+            
+            self._global_metric = G_global_arr
+            self._global_metric_tensor = MetricTensor(
+                self._global_metric,
+                validate=False
+            )
+        else:
+            self._global_metric = None
+            self._global_metric_tensor = None
+    
     @property
     def validation_report(self) -> Dict[str, float]:
-        """Copia del informe de validación algebraica (inmutable para el caller)."""
+        """Reporte de validación algebraica."""
         return dict(self._validation_report)
-
+    
     def _compute_euler_characteristic(
-        self, psi: np.ndarray,
+        self,
+        psi: NDArray[np.float64]
     ) -> Optional[int]:
         """
-        Calcula χ = β₀ − β₁ desde el vector de estado ψ.
-
-        Invariantes Topológicos
-        ───────────────────────
-        β₀ ≥ 1  : al menos una componente conexa (espacio no vacío)
-        β₁ ≥ 0  : ciclos no-negativos (definición de número de Betti)
-        χ ∈ ℤ   : entero, invariante bajo homotopía (Hatcher 2002, Cap. 2)
-
-        CORRECCIÓN T1
-        ─────────────
-        Se usa int() (Python nativo) y no np.int64 para garantizar que
-        isinstance(chi, int) retorne True en tests.
-
-        CORRECCIÓN T2/T3
-        ─────────────────
-        Los mensajes de error incluyen el valor detectado para diagnóstico.
-
-        Returns
-        -------
-        int (Python nativo) o None si topo_indices es None.
-
-        Raises
-        ------
-        TopologicalInvariantError : β₀ < 1 o β₁ < 0.
+        Calcula característica de Euler: χ = β₀ - β₁ + β₂.
+        
+        Validaciones:
+        - β₀ ≥ 1 (al menos una componente conexa)
+        - β₁ ≥ 0 (ciclos no negativos)
+        - β₂ ≥ 0 (cavidades no negativas)
         """
         if self._topo_indices is None:
             return None
-
-        idx_b0, idx_b1, idx_b2 = (self._topo_indices if len(self._topo_indices) == 3 else (*self._topo_indices, 0))
-
+        
+        idx_b0, idx_b1 = self._topo_indices[0], self._topo_indices[1]
+        idx_b2 = self._topo_indices[2] if len(self._topo_indices) == 3 else None
+        
         try:
-            # CORRECCIÓN T1: int() para obtener tipo Python nativo
             beta_0 = int(round(float(psi[idx_b0])))
             beta_1 = int(round(float(psi[idx_b1])))
-            beta_2 = int(round(float(psi[idx_b2]))) if len(self._topo_indices) == 3 else 0
+            beta_2 = int(round(float(psi[idx_b2]))) if idx_b2 is not None else 0
         except (IndexError, ValueError) as exc:
             logger.warning(
-                "Error extrayendo números de Betti de ψ: %s", exc,
+                "Error extrayendo números de Betti: %s",
+                exc
             )
             return None
-
-        # CORRECCIÓN T2: mensaje incluye valor detectado
+        
+        # Validar restricciones topológicas
         if beta_0 < 1:
             raise TopologicalInvariantError(
-                f"β₀={beta_0} inválido: debe ser ≥ 1 (componentes conexas). "
-                f"Índice ψ[{idx_b0}]={float(psi[idx_b0]):.6g}"
+                "β₀ debe ser ≥ 1",
+                beta_0=beta_0
             )
-
-        # CORRECCIÓN T3: mensaje incluye valor detectado
+        
         if beta_1 < 0:
             raise TopologicalInvariantError(
-                f"β₁={beta_1} inválido: debe ser ≥ 0 (ciclos independientes). "
-                f"Índice ψ[{idx_b1}]={float(psi[idx_b1]):.6g}"
+                "β₁ debe ser ≥ 0",
+                beta_1=beta_1
             )
-
-        # Resultado es int nativo de Python (garantía de tipo)
-        chi: int = beta_0 - beta_1 + beta_2
-        return chi
-
+        
+        if beta_2 < 0:
+            raise TopologicalInvariantError(
+                "β₂ debe ser ≥ 0",
+                beta_2=beta_2
+            )
+        
+        # Característica de Euler
+        euler_char = beta_0 - beta_1 + beta_2
+        
+        return euler_char
+    
     @contextmanager
     def temporary_algebraic_tolerance(
         self,
-        relaxed_tol: float = 1e-6,
+        relaxed_tol: float = 1e-6
     ) -> Generator[None, None, None]:
-        """
-        Context manager que modifica temporalmente ALGEBRAIC_TOL del módulo.
-
-        CORRECCIÓN I1
-        ─────────────
-        Se valida que relaxed_tol > 0 antes de modificar la variable global.
-        Una tolerancia ≤ 0 no tiene sentido matemático (cota superior de error).
-
-        Garantía de Restauración
-        ─────────────────────────
-        La cláusula finally garantiza restauración incluso ante excepciones,
-        manteniendo la idempotencia del módulo.
-
-        Usage
-        -----
-        with projector.temporary_algebraic_tolerance(1e-6):
-            ... # ALGEBRAIC_TOL = 1e-6 aquí
-        # ALGEBRAIC_TOL restaurado aquí
-
-        Raises
-        ------
-        ValueError : si relaxed_tol ≤ 0 (tolerancia inválida)
-        """
+        """Context manager para tolerancia algebraica temporal."""
         if relaxed_tol <= 0.0:
             raise ValueError(
-                f"relaxed_tol debe ser > 0: recibido {relaxed_tol}. "
-                "Una tolerancia de cero o negativa no tiene sentido matemático."
+                "relaxed_tol debe ser > 0",
+                value=relaxed_tol
             )
-
+        
         original = getattr(_THIS_MODULE, "ALGEBRAIC_TOL")
         setattr(_THIS_MODULE, "ALGEBRAIC_TOL", float(relaxed_tol))
-        logger.debug(
-            "ALGEBRAIC_TOL: %.2e → %.2e (context manager)",
-            original, relaxed_tol,
-        )
+        
         try:
             yield
         finally:
             setattr(_THIS_MODULE, "ALGEBRAIC_TOL", original)
-            logger.debug(
-                "ALGEBRAIC_TOL restaurado: %.2e", original,
-            )
-
-    def _quantize_anomaly_electrons(self, name: str, threat: float, psi: np.ndarray, euler_char: Optional[int], threshold: float) -> Optional[ElectronCartridge]:
+    
+    def _quantize_anomaly_electrons(
+        self,
+        name: str,
+        threat: float,
+        psi: NDArray[np.float64],
+        euler_char: Optional[int],
+        threshold: float
+    ) -> Optional[ElectronCartridge]:
         """
-        Emite un ElectronCartridge si la deformación excede el límite elástico (threshold).
+        Emite ElectronCartridge si deformación excede límite elástico.
+        
+        Cuantización:
+        - Masa inercial: m* = threat²
+        - Spin topológico: "sink" si β₁ > 0, "source" otherwise
+        - Carga homológica: Δχ = χ_current - χ_ref
         """
         if threat <= threshold:
             return None
-
-        # Masa inercial: m* ∝ ||δx||^2 ∝ threat^2
+        
+        # Masa inercial proporcional a energía de deformación
         m_star = threat ** 2
-
-        # Espín topológico
-        b0_idx = self._topo_indices[0] if self._topo_indices else -1
+        
+        # Spin basado en β₁
         b1_idx = self._topo_indices[1] if self._topo_indices else -1
-
-        spin = "source"
-        if b1_idx >= 0 and b1_idx < len(psi) and psi[b1_idx] > 0:
-            spin = "sink"
-
-        # Carga homológica: Δχ
-        delta_chi = 0
-        if euler_char is not None:
-            # Se asume delta_chi = chi - expected_chi (1 para grafos conexos sin ciclos)
-            delta_chi = euler_char - 1
-
+        if b1_idx >= 0 and b1_idx < len(psi):
+            spin = "sink" if psi[b1_idx] > 0 else "source"
+        else:
+            spin = "source"
+        
+        # Carga homológica
+        delta_chi = (euler_char - 1) if euler_char is not None else 0
+        
         return ElectronCartridge(
             inertial_mass=m_star,
             topological_spin=spin,
             homological_charge=delta_chi,
             source_subspace=name
         )
-
+    
     def project(
         self,
-        psi: np.ndarray,
+        psi: NDArray[np.float64],
         warning_threshold: float = 0.8,
         critical_threshold: float = 1.5,
         hysteresis: float = 0.05,
@@ -1563,109 +1526,88 @@ class OrthogonalProjector:
         verbose: bool = False,
     ) -> ThreatAssessment:
         """
-        Proyecta ψ ∈ ℝⁿ en subespacios y retorna evaluación de amenazas.
-
-        Algoritmo
-        ─────────
-        1. Validar ψ: shape=(n,), todos finitos
-        2. Para cada Vₖ: threatₖ = wₖ · d_{Gₖ}(ψₖ, refₖ)
-        3. total_threat = ‖(threat₁,...,threatₙ)‖₂
-        4. χ = β₀ − β₁ (si topo_indices ≠ None)
-        5. Clasificar con histéresis
-
-        Parameters
-        ----------
-        psi               : vector de estado ψ ∈ ℝⁿ
-        warning_threshold : umbral de alerta (default 0.8)
-        critical_threshold: umbral crítico (default 1.5)
-        hysteresis        : banda de histéresis δ ≥ 0 (default 0.05)
-        previous_status   : estado previo para histéresis (None = sin memoria)
-        verbose           : log detallado de subespacios
-
-        Raises
-        ------
-        DimensionalMismatchError : shape(ψ) ≠ (n,)
-        NumericalStabilityError  : ψ contiene NaN o Inf
-        TopologicalInvariantError: β₀ < 1 o β₁ < 0
-
-        Returns
-        -------
-        ThreatAssessment immutable con todos los atributos derivados.
+        Proyecta ψ ∈ ℝⁿ en subespacios y evalúa amenazas.
+        
+        Algoritmo:
+        1. Validar dimensión y finitud de ψ
+        2. Calcular χ = β₀ - β₁ + β₂
+        3. Para cada subespacio V_k:
+           a. Extraer πₖ(ψ)
+           b. Calcular d_Gₖ(πₖψ, ψ_ref)
+           c. Cuantizar electrones anómalos
+        4. Calcular amenaza total (Mahalanobis global o norma L²)
+        5. Clasificar estado con histéresis
         """
         psi = np.asarray(psi, dtype=np.float64).ravel()
-
+        
+        # Validar dimensión
         if psi.shape != (self._dim,):
             raise DimensionalMismatchError(
-                f"Shape incorrecto: esperado ({self._dim},), recibido {psi.shape}"
+                "Shape incorrecto",
+                expected=(self._dim,),
+                received=psi.shape
             )
-
+        
+        # Validar finitud
         if not np.all(np.isfinite(psi)):
             bad_indices = np.where(~np.isfinite(psi))[0].tolist()
             raise NumericalStabilityError(
-                f"ψ contiene valores no finitos en índices {bad_indices}: "
-                f"{psi[bad_indices]}"
+                "ψ contiene valores no finitos",
+                indices=bad_indices
             )
-
-        if verbose:
-            logger.debug(
-                "project(ψ): ‖ψ‖₂=%.4f, n_subespacios=%d",
-                float(np.linalg.norm(psi)),
-                len(self._subspaces),
-            )
-
-        # ── Invariante topológico (Fase 2: Cortafuegos Homológico) ────────────
-        # Calcular Euler *antes* de proyecciones para abortar si hay colapso
+        
+        # Característica de Euler
         euler_char = self._compute_euler_characteristic(psi)
-
-        # ── Amenazas por subespacio (cómputo único por subespacio) ───────────
+        
         levels: Dict[str, float] = {}
         electrons: List[ElectronCartridge] = []
+        
+        # Evaluar cada subespacio
         for name, spec in self._subspaces.items():
             subvec = psi[spec.indices]
-            threat = spec.compute_threat(subvec)  # único cómputo
+            threat = spec.compute_threat(subvec)
             levels[name] = threat
-
-            # Cuantizar anomalías en Electrones si exceden umbral elástico (warning_threshold)
-            electron = self._quantize_anomaly_electrons(name, threat, psi, euler_char, warning_threshold)
+            
+            # Cuantizar electrones
+            electron = self._quantize_anomaly_electrons(
+                name, threat, psi, euler_char, warning_threshold
+            )
             if electron:
                 electrons.append(electron)
-
+            
             if verbose:
-                logger.debug(
-                    "  [%s] threat=%.4f (weight=%.2f, mahal=%.4f)",
-                    name, threat, spec.weight,
-                    threat / spec.weight if spec.weight > EPS else float("inf"),
-                )
-
-        # ── Total de amenaza (distancia geométrica agregada en R7) ──────────────────────────────────────
-        threat_values = list(levels.values())
+                logger.debug("[%s] threat=%.4f", name, threat)
+        
+        # Identificar fuente de máxima amenaza
         max_source = max(levels, key=lambda k: levels[k])
         max_value = float(levels[max_source])
-
+        
+        # Amenaza total (métrica global si disponible)
         if self._global_metric_tensor is not None:
-            # Calcular la amenaza global proyectando el estado sobre el tensor global R7 ensamblado
+            # Construir vector de referencia global
             global_reference = np.zeros(self._dim, dtype=np.float64)
-            # Reensamblamos el vector de referencia global preservando el orden de los bloques
             for key in ["physics_core", "topology_core", "thermo_core"]:
                 if key in self._subspaces:
                     spec = self._subspaces[key]
                     global_reference[spec.indices] = spec.reference
-
+            
             delta = psi - global_reference
             maha_sq = self._global_metric_tensor.quadratic_form(delta)
             total_threat = float(np.sqrt(max(maha_sq, 0.0)))
         else:
-            total_threat = float(np.linalg.norm(threat_values))
-
-        # ── Clasificación con histéresis (usando total_threat como distancia geométrica agregada) ──────────────────────────────────────
+            # Norma L² de niveles
+            total_threat = float(np.linalg.norm(list(levels.values())))
+        
+        # Clasificar con histéresis
         status = self._classify_with_hysteresis(
             total_threat,
             warning_threshold,
             critical_threshold,
             hysteresis,
-            previous_status,
+            previous_status
         )
-
+        
+        # Metadata diagnóstico
         metadata: Dict[str, Any] = {
             "norm_psi": float(np.linalg.norm(psi)),
             "condition_numbers": {
@@ -1673,7 +1615,7 @@ class OrthogonalProjector:
                 for name, spec in self._subspaces.items()
             },
         }
-
+        
         return ThreatAssessment(
             levels=levels,
             max_source=max_source,
@@ -1684,7 +1626,7 @@ class OrthogonalProjector:
             metadata=metadata,
             electrons=tuple(electrons),
         )
-
+    
     @staticmethod
     def _classify_with_hysteresis(
         value: float,
@@ -1695,96 +1637,50 @@ class OrthogonalProjector:
     ) -> HealthStatus:
         """
         Clasificación con bandas de histéresis asimétricas.
-
-        Motivación
-        ──────────
-        Sin histéresis, el cruce frecuente de un umbral produce "chattering"
-        (oscilación rápida de estados). La histéresis δ crea zonas muertas
-        que eliminan este fenómeno sin penalizar la sensibilidad global.
-
-        Invariantes Algebraicos
-        ───────────────────────
-        Sea W = warning_th, C = critical_th, δ = hysteresis.
-        Precondición: 0 ≤ δ < (C−W)/2 (garantizada por __init__).
-
-        Bandas de Transición (asimétricas)
-        ───────────────────────────────────
-        Transición         Condición               Estado Destino
-        ─────────────────────────────────────────────────────────
-        ∅ → HEALTHY        value ≤ W               HEALTHY
-        ∅ → WARNING        W < value ≤ C            WARNING
-        ∅ → CRITICAL       value > C               CRITICAL
-        H → WARNING        value > W + δ            WARNING
-        H → CRITICAL       value > C + δ            CRITICAL
-        W → CRITICAL       value > C + δ            CRITICAL
-        W → HEALTHY        value < W − δ            HEALTHY
-        C → WARNING        C − δ > value ≥ W − δ   WARNING
-        C → HEALTHY        value < W − δ            HEALTHY (salto directo)
-
-        CORRECCIÓN H1
-        ─────────────
-        Para δ = 0 (modo laboratorio): no hay división por cero porque
-        δ se usa solo en comparaciones (>, <), no en divisiones.
-        Las condiciones value > W + 0 y value < W - 0 son correctas.
-
-        FIX-08 (desde CRITICAL)
-        ───────────────────────
-        El descenso desde CRITICAL es gradual:
-        - Si value < W − δ: salto directo a HEALTHY (pasó por debajo de TODO)
-        - Si C − δ > value ≥ W − δ: descenso a WARNING (zona intermedia)
-        - Si value ≥ C − δ: permanece CRITICAL
-
-        El orden de verificación es: HEALTHY primero (condición más restrictiva),
-        luego WARNING, luego CRITICAL por defecto.
+        
+        Transiciones:
+        - HEALTHY → WARNING: value > warning_th + h
+        - WARNING → HEALTHY: value < warning_th - h
+        - WARNING → CRITICAL: value > critical_th + h
+        - CRITICAL → WARNING: value < critical_th - h
         """
         if previous is None:
-            # Sin estado previo: clasificación por umbrales sin banda
+            # Clasificación inicial sin histéresis
             if value > critical_th:
                 return HealthStatus.CRITICAL
             if value > warning_th:
                 return HealthStatus.WARNING
             return HealthStatus.HEALTHY
-
+        
         if previous == HealthStatus.HEALTHY:
-            # Ascenso: bandas de entrada más altas (amortiguación)
             if value > critical_th + hysteresis:
                 return HealthStatus.CRITICAL
             if value > warning_th + hysteresis:
                 return HealthStatus.WARNING
             return HealthStatus.HEALTHY
-
+        
         if previous == HealthStatus.WARNING:
-            # Desde WARNING: ascenso o descenso amortiguados
             if value > critical_th + hysteresis:
                 return HealthStatus.CRITICAL
             if value < warning_th - hysteresis:
                 return HealthStatus.HEALTHY
             return HealthStatus.WARNING
-
+        
         # previous == HealthStatus.CRITICAL
-        # FIX-08: descenso gradual con verificación en orden correcto
-        # Primero verificar la condición más restrictiva (HEALTHY directo)
         if value < warning_th - hysteresis:
-            # Cayó por debajo de la banda inferior completa → HEALTHY
             return HealthStatus.HEALTHY
         if value < critical_th - hysteresis:
-            # Zona intermedia [W−δ, C−δ): descenso a WARNING
             return HealthStatus.WARNING
-        # Aún en zona CRITICAL [C−δ, ∞)
         return HealthStatus.CRITICAL
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 # ESQUEMA DE SEÑAL ψ ∈ ℝ⁷
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 
 @dataclass(frozen=True)
 class SignalComponent:
-    """
-    Especificación de una componente del vector de señal ψ ∈ ℝ⁷.
-
-    Define el isomorfismo: dict de telemetría ↔ ℝ⁷.
-    """
+    """Especificación de componente del vector de señal."""
+    
     key: str
     default: float
     unit: str
@@ -1792,213 +1688,180 @@ class SignalComponent:
     validator: Optional[str] = None
     physical_bounds: Optional[Tuple[float, float]] = None
 
-
-# Potencia nominal precalculada (evita llamada en cada evaluación)
 _P_NOMINAL: float = PhysicalConstants.P_NOMINAL()
 
-# Esquema canónico del vector de señal ψ ∈ ℝ⁷
-# CORRECCIÓN P2: flyback_voltage usa FLYBACK_MAX_SAFE como referencia consistente
 SIGNAL_SCHEMA: Tuple[SignalComponent, ...] = (
     SignalComponent(
         key="saturation",
         default=0.0,
         unit="1",
-        description="Saturación magnética [0, 1]",
+        description="Saturación magnética",
         validator="unit_interval",
-        physical_bounds=(0.0, 1.0),
+        physical_bounds=(0.0, 1.0)
     ),
     SignalComponent(
         key="flyback_voltage",
         default=0.0,
         unit="V",
-        description="Voltaje de flyback [V]",
+        description="Voltaje de flyback",
         validator="non_negative",
-        # CORRECCIÓN P2: usar FLYBACK_MAX_SAFE como cota superior física
-        physical_bounds=(0.0, PhysicalConstants.FLYBACK_MAX_SAFE),
+        physical_bounds=(0.0, PhysicalConstants.FLYBACK_MAX_SAFE)
     ),
     SignalComponent(
         key="dissipated_power",
         default=0.0,
         unit="W",
-        description="Potencia disipada [W]",
+        description="Potencia disipada",
         validator="non_negative",
-        physical_bounds=(0.0, _P_NOMINAL * 2.0),
+        physical_bounds=(0.0, _P_NOMINAL * 2.0)
     ),
     SignalComponent(
         key="beta_0",
         default=1.0,
         unit="1",
-        description="β₀: número de componentes conexas (entero ≥ 1)",
-        validator="positive_int",
+        description="β₀: componentes conexas",
+        validator="positive_int"
     ),
     SignalComponent(
         key="beta_1",
         default=0.0,
         unit="1",
-        description="β₁: número de ciclos independientes (entero ≥ 0)",
-        validator="non_negative_int",
+        description="β₁: ciclos independientes",
+        validator="non_negative_int"
     ),
     SignalComponent(
         key="entropy",
         default=0.0,
         unit="1",
-        description="Entropía normalizada [0, 1]",
+        description="Entropía normalizada",
         validator="unit_interval",
-        physical_bounds=(0.0, 1.0),
+        physical_bounds=(0.0, 1.0)
     ),
     SignalComponent(
         key="exergy_loss",
         default=0.0,
         unit="1",
-        description="Pérdida exergética normalizada [0, 1]",
+        description="Pérdida exergética",
         validator="unit_interval",
-        physical_bounds=(0.0, 1.0),
+        physical_bounds=(0.0, 1.0)
     ),
 )
 
-# Índices de β₀ y β₁ en SIGNAL_SCHEMA (verificar consistencia con el schema)
 BETTI_INDICES: Tuple[int, int] = (3, 4)
 
-# Verificación estática de consistencia de BETTI_INDICES
-assert SIGNAL_SCHEMA[BETTI_INDICES[0]].key == "beta_0", (
-    f"BETTI_INDICES[0]={BETTI_INDICES[0]} no apunta a 'beta_0' en SIGNAL_SCHEMA"
-)
-assert SIGNAL_SCHEMA[BETTI_INDICES[1]].key == "beta_1", (
-    f"BETTI_INDICES[1]={BETTI_INDICES[1]} no apunta a 'beta_1' en SIGNAL_SCHEMA"
-)
-
+# Verificación estática de consistencia
+assert SIGNAL_SCHEMA[BETTI_INDICES[0]].key == "beta_0", "Inconsistencia en β₀"
+assert SIGNAL_SCHEMA[BETTI_INDICES[1]].key == "beta_1", "Inconsistencia en β₁"
 
 def build_signal(
     telemetry: Dict[str, Any],
-    strict: bool = False,
-) -> np.ndarray:
+    strict: bool = False
+) -> NDArray[np.float64]:
     """
-    Construye ψ ∈ ℝ⁷ desde el diccionario de telemetría.
-
-    Pipeline de Procesamiento
-    ─────────────────────────
-    1. Extracción del valor bruto (con default si falta)
-    2. Conversión a float (con manejo de tipos arbitrarios)
-    3. Verificación de finitud (NaN, Inf → default o ValueError)
-    4. Validación de rango físico con corrección automática
-    5. Asignación al vector ψ
-
-    CORRECCIÓN P1
-    ─────────────
-    La variable error_msg se inicializa explícitamente a None ANTES del
-    bloque try/except del validador. Esto garantiza que siempre esté
-    definida en el bloque else (sin excepción), evitando NameError.
-
-    Parameters
-    ----------
-    telemetry : diccionario de métricas {str: Any}
-    strict    : si True, lanza excepción en lugar de usar defaults/clamping
-
-    Returns
-    -------
-    np.ndarray, shape=(7,), dtype=float64, todos los valores finitos.
-
-    Raises
-    ------
-    ValueError          : si strict=True y valor no convertible o no finito
-    PhysicalBoundsError : si strict=True y validador lanza PhysicalBoundsError
+    Construye ψ ∈ ℝ⁷ desde telemetría.
+    
+    Args:
+        telemetry: Diccionario de métricas
+        strict: Si True, lanza excepciones en errores de conversión
+    
+    Returns:
+        Vector de señal validado
     """
     psi = np.empty(len(SIGNAL_SCHEMA), dtype=np.float64)
-
+    
     for i, spec in enumerate(SIGNAL_SCHEMA):
         raw = telemetry.get(spec.key, spec.default)
-
-        # ── 1. Conversión de tipo ───────────────────────────────────────────
+        
+        # Conversión a float
         try:
             val = float(raw)
         except (TypeError, ValueError) as exc:
-            msg = (
-                f"Telemetría '{spec.key}' no convertible a float: "
-                f"{raw!r} (tipo: {type(raw).__name__})"
+            if strict:
+                raise ValueError(
+                    f"Telemetría '{spec.key}' no convertible",
+                    value=raw
+                ) from exc
+            
+            logger.warning(
+                "Telemetría '%s' no convertible → default",
+                spec.key
             )
-            if strict:
-                raise ValueError(msg) from exc
-            logger.warning("%s → usando default=%.6g", msg, spec.default)
-            psi[i] = spec.default
-            continue  # Saltar pasos siguientes para este componente
-
-        # ── 2. Verificación de finitud ──────────────────────────────────────
-        if not np.isfinite(val):
-            msg = f"Telemetría '{spec.key}' no finita: {val!r}"
-            if strict:
-                raise ValueError(msg)
-            logger.warning("%s → usando default=%.6g", msg, spec.default)
             psi[i] = spec.default
             continue
-
-        # ── 3. Validación de rango físico ───────────────────────────────────
+        
+        # Validar finitud
+        if not np.isfinite(val):
+            if strict:
+                raise ValueError(
+                    f"Telemetría '{spec.key}' no finita",
+                    value=val
+                )
+            
+            logger.warning(
+                "Telemetría '%s' no finita → default",
+                spec.key
+            )
+            psi[i] = spec.default
+            continue
+        
+        # Aplicar validador
         if spec.validator:
             validator = VALIDATOR_REGISTRY.get(spec.validator)
             if validator is None:
                 raise ValueError(
-                    f"Validador desconocido '{spec.validator}' en SIGNAL_SCHEMA[{i}]"
+                    f"Validador desconocido: {spec.validator}"
                 )
-
-            # CORRECCIÓN P1: inicializar error_msg ANTES del try/except
-            error_msg: Optional[str] = None
-
+            
             try:
                 val, was_modified, error_msg = validator.validate(val, spec.key)
+                
+                if was_modified and error_msg is not None:
+                    logger.debug(
+                        "Telemetría '%s' corregida: %s",
+                        spec.key,
+                        error_msg
+                    )
             except PhysicalBoundsError as exc:
                 if strict:
                     raise
+                
                 logger.warning(
-                    "PhysicalBoundsError en '%s': %s → usando default=%.6g",
-                    spec.key, exc, spec.default,
+                    "PhysicalBoundsError en '%s' → default",
+                    spec.key
                 )
                 psi[i] = spec.default
                 continue
-
-            # Sin excepción: registrar modificación si ocurrió
-            if was_modified and error_msg is not None:
-                logger.debug(
-                    "Telemetría '%s' corregida: %s",
-                    spec.key, error_msg,
-                )
-
+        
         psi[i] = val
-
+    
     return psi
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# MORFISMO INMUNOLÓGICO
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
+# MORFISMO INMUNOLÓGICO FUNTORIAL
+# ==============================================================================
 
 class ImmuneWatcherMorphism(Morphism):
     """
-    Morfismo categórico de vigilancia inmunológica.
-
-    Functorialidad
-    ──────────────
-    F: CategoricalState → CategoricalState
-    • F(error) IS error  (identidad exacta del objeto — no copia)
-    • F(success) = evaluate → emit_state
-
-    Monitoreo Topológico
-    ─────────────────────
-    χ(t) constante ⟹ estable
-    Δχ ≠ 0         ⟹ bifurcación cualitativa (Strogatz, cap. 8)
+    Morfismo categórico F: Top → Narr de vigilancia inmunológica.
+    
+    Propiedades funtoriales:
+    1. F(id_X) = id_F(X)  (preserva identidades)
+    2. F(g ∘ f) = F(g) ∘ F(f)  (preserva composición)
+    3. F(⊥) = ⊥  (preserva objeto inicial/error)
+    
+    Invariantes:
+    - Dom(F) = {PHYSICS}
+    - Codom(F) = WISDOM
+    - Estado crítico → cuarentena (error propagado)
     """
-
-    # CORRECCIÓN FIX-13: _enable_topology_monitoring incluido en __slots__
+    
     __slots__ = (
-        "_critical",
-        "_warning",
-        "_hysteresis",
-        "_enable_topology_monitoring",
-        "_projector",
-        "_previous_status",
-        "_euler_history",
-        "_evaluation_count",
-        "_metric_tensors_state",
+        "_critical", "_warning", "_hysteresis",
+        "_enable_topology_monitoring", "_projector",
+        "_previous_status", "_euler_history",
+        "_evaluation_count", "_metric_tensors_state"
     )
-
+    
     def __init__(
         self,
         name: str = "topological_immune_watcher",
@@ -2008,91 +1871,78 @@ class ImmuneWatcherMorphism(Morphism):
         hysteresis: float = 0.05,
         enable_topology_monitoring: bool = True,
     ) -> None:
-        """
-        Parameters
-        ----------
-        name                    : identificador del morfismo
-        critical_threshold      : umbral de cuarentena
-        warning_threshold       : umbral de alerta
-        hysteresis              : banda de amortiguación δ ≥ 0
-        enable_topology_monitoring : activar monitoreo de χ
-
-        Raises
-        ------
-        ValueError : si thresholds no son válidos o hysteresis fuera de rango.
-        """
+        # Validar ordenamiento de umbrales
         if warning_threshold >= critical_threshold:
             raise ValueError(
-                f"warning_threshold ({warning_threshold:.4f}) debe ser "
-                f"< critical_threshold ({critical_threshold:.4f})"
+                "warning_threshold debe ser < critical_threshold",
+                warning=warning_threshold,
+                critical=critical_threshold
             )
-
+        
+        # Validar rango de histéresis
         max_hysteresis = (critical_threshold - warning_threshold) / 2.0
-
-        # CORRECCIÓN H2: condición corregida
-        # hysteresis ∈ [0, max_hysteresis) es el rango válido.
-        # hysteresis = 0 es válido (modo laboratorio, sin banda).
-        # hysteresis = max_hysteresis es inválido (banda nula).
         if hysteresis < 0.0 or hysteresis >= max_hysteresis:
             raise ValueError(
-                f"hysteresis ({hysteresis:.4f}) debe estar en "
-                f"[0.0, {max_hysteresis:.4f}). "
-                f"Valor 0.0 = modo laboratorio (sin histéresis). "
-                f"Máximo permitido: {max_hysteresis:.4f} − ε"
+                f"hysteresis debe estar en [0, {max_hysteresis:.4f})",
+                hysteresis=hysteresis
             )
-
+        
         super().__init__(name)
-
+        
         self._critical = critical_threshold
         self._warning = warning_threshold
         self._hysteresis = hysteresis
         self._enable_topology_monitoring = enable_topology_monitoring
-
-        # Estado mutable interno
+        
         self._previous_status: Optional[HealthStatus] = None
         self._euler_history: List[Optional[int]] = []
         self._evaluation_count: int = 0
-
-        # Mantenimiento de tensores evolutivos G_mu_nu(t)
-        import app.core.immune_system.metric_tensors as ext_metric_tensors
-        self._metric_tensors_state = {
-            "G_PHYSICS": np.copy(ext_metric_tensors.G_PHYSICS),
-            "G_TOPOLOGY": np.copy(ext_metric_tensors.G_TOPOLOGY),
-            "G_THERMODYNAMICS": np.copy(ext_metric_tensors.G_THERMODYNAMICS),
-        }
-
+        
+        # Inicializar métricas evolutivas
+        self._metric_tensors_state = self._init_metric_tensors()
         self._projector = self._build_projector()
-
+    
+    def _init_metric_tensors(self) -> Dict[str, NDArray[np.float64]]:
+        """Inicializa tensores métricos base."""
+        try:
+            import app.core.immune_system.metric_tensors as ext_metric_tensors
+            return {
+                "G_PHYSICS": np.copy(ext_metric_tensors.G_PHYSICS),
+                "G_TOPOLOGY": np.copy(ext_metric_tensors.G_TOPOLOGY),
+                "G_THERMODYNAMICS": np.copy(ext_metric_tensors.G_THERMODYNAMICS),
+            }
+        except (ImportError, AttributeError):
+            # Fallback a métricas identidad
+            logger.warning("Métricas externas no disponibles, usando identidad")
+            return {
+                "G_PHYSICS": np.eye(3, dtype=np.float64),
+                "G_TOPOLOGY": np.eye(2, dtype=np.float64),
+                "G_THERMODYNAMICS": np.eye(2, dtype=np.float64),
+            }
+    
     def _build_projector(self) -> OrthogonalProjector:
-        """
-        Construye el proyector ortogonal con subespacios físicamente motivados.
-
-        Subespacios
-        ───────────
-        physics_core  [0:3] : saturación, flyback, potencia disipada
-        topology_core [3:5] : β₀, β₁ (peso 1.5 — cambios cualitativos)
-        thermo_core   [5:7] : entropía, pérdida exergética
-        """
-        import app.core.immune_system.metric_tensors as ext_metric_tensors
-
-        # Usamos los tensores evolutivos G_mu_nu(t)
-        # G_phys escalado: D^{-1} G_PHYSICS D^{-1} donde D = diag(scale)
+        """Construye proyector ortogonal con métricas escaladas."""
+        # Escalado físico
         scale_phys = np.array([
             PhysicalConstants.SATURATION_CRITICAL,
             PhysicalConstants.FLYBACK_MAX_SAFE,
-            _P_NOMINAL,
+            _P_NOMINAL
         ], dtype=np.float64)
+        
         D_inv_phys = np.diag(1.0 / scale_phys)
         scaled_G_phys = D_inv_phys @ self._metric_tensors_state["G_PHYSICS"] @ D_inv_phys
-
+        
+        # Escalado topológico
         scale_topo = np.array([1.0, 1.0], dtype=np.float64)
         D_inv_topo = np.diag(1.0 / scale_topo)
         scaled_G_topo = D_inv_topo @ self._metric_tensors_state["G_TOPOLOGY"] @ D_inv_topo
-
+        
+        # Escalado termodinámico
         scale_thermo = np.array([0.5, 0.5], dtype=np.float64)
         D_inv_thermo = np.diag(1.0 / scale_thermo)
         scaled_G_thermo = D_inv_thermo @ self._metric_tensors_state["G_THERMODYNAMICS"] @ D_inv_thermo
-
+        
+        # Definir subespacios
         subspaces: Dict[str, SubspaceSpec] = {
             "physics_core": SubspaceSpec(
                 name="physics_core",
@@ -2100,7 +1950,7 @@ class ImmuneWatcherMorphism(Morphism):
                 weight=1.0,
                 reference=np.zeros(3, dtype=np.float64),
                 scale=scale_phys,
-                metric=MetricTensor(scaled_G_phys, validate=False),
+                metric=MetricTensor(scaled_G_phys, validate=False)
             ),
             "topology_core": SubspaceSpec(
                 name="topology_core",
@@ -2108,7 +1958,7 @@ class ImmuneWatcherMorphism(Morphism):
                 weight=1.5,
                 reference=np.array([1.0, 0.0], dtype=np.float64),
                 scale=scale_topo,
-                metric=MetricTensor(scaled_G_topo, validate=False),
+                metric=MetricTensor(scaled_G_topo, validate=False)
             ),
             "thermo_core": SubspaceSpec(
                 name="thermo_core",
@@ -2116,81 +1966,64 @@ class ImmuneWatcherMorphism(Morphism):
                 weight=1.2,
                 reference=np.zeros(2, dtype=np.float64),
                 scale=scale_thermo,
-                metric=MetricTensor(scaled_G_thermo, validate=False),
+                metric=MetricTensor(scaled_G_thermo, validate=False)
             ),
         }
-
+        
         return OrthogonalProjector(
             dimensions=7,
             subspaces=subspaces,
             topo_indices=BETTI_INDICES if self._enable_topology_monitoring else None,
-            cache_projections=True,
+            cache_projections=True
         )
-
+    
     @property
     def domain(self) -> FrozenSet[Stratum]:
+        """Dominio categórico: {PHYSICS}."""
         return frozenset([Stratum.PHYSICS])
-
+    
     @property
     def codomain(self) -> Stratum:
+        """Codominio categórico: WISDOM."""
         return Stratum.WISDOM
-
+    
     def reset_state(self) -> None:
-        """Reinicia el estado interno del morfismo."""
+        """Reinicia estado interno (para testing)."""
         self._previous_status = None
         self._euler_history.clear()
         self._evaluation_count = 0
-        logger.debug("Estado inmunológico reiniciado.")
-
-    def _check_topology_change(
-        self, current_euler: Optional[int],
-    ) -> None:
-        """
-        Detecta cambios en χ entre evaluaciones consecutivas.
-
-        CORRECCIÓN C2
-        ─────────────
-        La comparación correcta es entre _euler_history[-2] y current_euler.
-        En el original se usaba _euler_history[-1] antes de añadir el elemento
-        actual, lo que era equivalente pero dependía del orden de llamadas.
-
-        Esta implementación verifica la historia DESPUÉS de que current_euler
-        fue añadido (llamada en __call__ DESPUÉS de .append).
-
-        Precondición: len(_euler_history) ≥ 2 (verificada antes de acceder).
-        """
+    
+    def _check_topology_change(self, current_euler: Optional[int]) -> None:
+        """Detecta bifurcaciones topológicas: Δχ ≠ 0."""
         if not self._enable_topology_monitoring:
             return
+        
         if len(self._euler_history) < 2:
             return
-
-        # El penúltimo es el anterior (actual es el último, ya añadido)
+        
         prev_euler = self._euler_history[-2]
-
+        
         if prev_euler is not None and current_euler is not None:
             if prev_euler != current_euler:
-                delta_chi = current_euler - prev_euler
                 logger.warning(
-                    "🔄 Bifurcación topológica detectada: χ %d → %d (Δχ=%+d). "
-                    "Evaluación #%d",
-                    prev_euler, current_euler, delta_chi,
-                    self._evaluation_count,
+                    "🔄 Bifurcación topológica detectada: χ %d → %d",
+                    prev_euler,
+                    current_euler
                 )
-
+    
     def _verify_functorial_properties(self) -> Dict[str, bool]:
-        """
-        Verifica las propiedades categóricas del morfismo.
-
-        Retorna dict {nombre_propiedad: bool} para auditoría.
-        """
+        """Verifica propiedades categóricas del morfismo."""
         val_report = self._projector.validation_report
+        
+        # Validez algebraica del proyector
         projector_ok = all(
             v < ALGEBRAIC_TOL
             for k, v in val_report.items()
             if any(kw in k for kw in ("error", "idempotence", "self_adjoint"))
         )
+        
         max_h = (self._critical - self._warning) / 2.0
-
+        
         return {
             "domain_includes_physics": Stratum.PHYSICS in self.domain,
             "codomain_is_wisdom": self.codomain == Stratum.WISDOM,
@@ -2198,334 +2031,281 @@ class ImmuneWatcherMorphism(Morphism):
             "thresholds_ordered": self._warning < self._critical,
             "hysteresis_in_valid_range": 0.0 <= self._hysteresis < max_h,
         }
-
-    def _compute_discrete_ricci_curvature(self, telemetry: Dict[str, Any]) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    
+    def _compute_discrete_ricci_curvature(
+        self,
+        telemetry: Dict[str, Any]
+    ) -> Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
         """
-        Calcula la Curvatura de Forman-Ricci/Ollivier-Ricci aproximada (Ric_mu_nu)
-        basado en la topología (Laplaciano) de entrada para evolucionar la métrica.
+        Aproximación de curvatura de Ricci mediante topología discreta.
+        
+        Modelo:
+        - Ric_ij ≈ -k · δ_ij · (información topológica)
+        - β₁ > 0 → curvatura negativa (hiperbólico)
+        - β₀ > 1 → fragmentación (curvatura negativa)
         """
-        betti_0 = telemetry.get('betti_0', 1.0)
-        betti_1 = telemetry.get('betti_1', 0.0)
-
-        Ric_PHYSICS = np.zeros((3, 3))
-        Ric_TOPOLOGY = np.zeros((2, 2))
-        Ric_THERMO = np.zeros((2, 2))
-
+        betti_0 = telemetry.get('beta_0', 1.0)
+        betti_1 = telemetry.get('beta_1', 0.0)
+        
+        Ric_PHYSICS = np.zeros((3, 3), dtype=np.float64)
+        Ric_TOPOLOGY = np.zeros((2, 2), dtype=np.float64)
+        Ric_THERMO = np.zeros((2, 2), dtype=np.float64)
+        
+        # Curvatura por ciclos (hiperbólico)
         if betti_1 > 0:
             Ric_TOPOLOGY[1, 1] = -0.5 * betti_1
-
+        
+        # Curvatura por fragmentación
         if betti_0 > 1:
-            Ric_TOPOLOGY[0, 0] = -1.0 * betti_0
-
+            Ric_TOPOLOGY[0, 0] = -1.0 * (betti_0 - 1)
+        
         return Ric_PHYSICS, Ric_TOPOLOGY, Ric_THERMO
-
-    def _evolve_metric_tensors_ricci_flow(self, telemetry: Dict[str, Any], dt: float = 0.01) -> None:
+    
+    def _evolve_metric_tensors_ricci_flow(
+        self,
+        telemetry: Dict[str, Any],
+        dt: float = RICCI_FLOW_DT
+    ) -> None:
         """
-        Evoluciona los tensores G_mu_nu(t) usando Integración de Euler Hacia Atrás (Backward Euler)
-        acoplado a la electrodinámica: G_mu_nu(t+dt) = G_mu_nu(t) - 2 * dt * Ric_mu_nu(t).
-
-        Aplica Tikhonov displacement para aniquilar singularidades si es necesario.
+        Evolución de Ricci Flow: ∂_t g_{μν} = -2 Ric_{μν}.
+        
+        Discretización: g^{n+1} = g^n - 2 dt Ric^n
+        Regularización: Tikhonov espectral para mantener SPD
         """
         Ric_P, Ric_T, Ric_Th = self._compute_discrete_ricci_curvature(telemetry)
-
+        
+        # Actualización Euler hacia atrás
         self._metric_tensors_state["G_PHYSICS"] -= 2 * dt * Ric_P
         self._metric_tensors_state["G_TOPOLOGY"] -= 2 * dt * Ric_T
         self._metric_tensors_state["G_THERMODYNAMICS"] -= 2 * dt * Ric_Th
-
-        # Síntesis Espectral Exacta (Desplazamiento de Tikhonov)
+        
+        # Regularización espectral para mantener SPD
         for key in self._metric_tensors_state:
             G = self._metric_tensors_state[key]
+            
+            # Forzar simetría
+            G = (G + G.T) * 0.5
+            
+            # Descomposición espectral
             eigvals, eigvecs = np.linalg.eigh(G)
             min_eig = np.min(eigvals)
-            epsilon = MIN_EIGVAL_TOL
-
-            if min_eig < epsilon:
-                delta = max(0.0, epsilon - min_eig)
+            
+            # Regularizar si necesario
+            if min_eig < MIN_EIGVAL_TOL:
+                delta = max(0.0, MIN_EIGVAL_TOL - min_eig)
                 G_reg = eigvecs @ np.diag(eigvals + delta) @ eigvecs.T
-                self._metric_tensors_state[key] = (G_reg + G_reg.T) / 2.0
-
-        # Reconstruir proyector
+                self._metric_tensors_state[key] = (G_reg + G_reg.T) * 0.5
+            else:
+                self._metric_tensors_state[key] = G
+        
+        # Reconstruir proyector con métricas actualizadas
         self._projector = self._build_projector()
-
+    
     def __call__(self, state: CategoricalState) -> CategoricalState:
         """
-        Aplica el morfismo F al estado categórico.
-
-        CORRECCIÓN C1 — Functorialidad
-        ────────────────────────────────
-        F(error) RETORNA EL MISMO OBJETO (identidad exacta, no copia).
-        `return state` (no `return state.copy()` ni similar).
-        Esto garantiza que `result is state` en los tests de functorialidad.
-
-        El contador se incrementa en TODAS las llamadas (exitosas o no),
-        para mantener el conteo exacto de evaluaciones.
+        Aplicación del morfismo F: Top → Narr.
+        
+        Garantía funtorial: F(⊥) = ⊥
         """
         self._evaluation_count += 1
-
-        # CORRECCIÓN C1: identidad exacta del objeto, no copia
+        
+        # Preservar objeto error (mónada)
         if not state.is_success:
-            logger.debug(
-                "F(error): estado fallido propagado sin evaluación (#%d)",
-                self._evaluation_count,
-            )
-            return state  # Identidad: mismo objeto, sin mutación
-
+            return state
+        
         try:
+            # Extraer telemetría
             telemetry = state.context.get("telemetry_metrics", {})
-
-            # Integración Numérica del Flujo de Ricci ANTES de la proyección
+            
+            # Evolucionar métricas (Ricci Flow)
             self._evolve_metric_tensors_ricci_flow(telemetry or {})
-
+            
+            # Construir señal
             signal = build_signal(telemetry or {}, strict=False)
-
+            
+            # Proyectar y evaluar
             assessment = self._projector.project(
                 signal,
                 warning_threshold=self._warning,
                 critical_threshold=self._critical,
                 hysteresis=self._hysteresis,
                 previous_status=self._previous_status,
-                verbose=False,
+                verbose=False
             )
-
-            # Actualizar estado interno ANTES de _check_topology_change
+            
+            # Actualizar estado
             self._previous_status = assessment.status
             self._euler_history.append(assessment.euler_char)
-
-            # CORRECCIÓN C2: _check_topology_change usa el euler ya añadido
             self._check_topology_change(assessment.euler_char)
-
+            
+            # Emitir estado transformado
             return self._emit_state(state, assessment)
-
+        
         except MetricTensorError as exc:
             logger.critical(
-                "🛡️ COLAPSO TENSORIAL (#%d): %s. Tensor métrico insalvable, deteniendo transición.",
-                self._evaluation_count, exc,
+                "🛡️ COLAPSO TENSORIAL (#%d): %s",
+                self._evaluation_count,
+                exc
             )
             return state.with_error(
-                error_msg=f"Colapso Tensorial (MetricTensorError): {exc}",
-                details={
-                    "morphism": self.name,
-                    "error_type": "metric_tensor_collapse",
-                    "exception_class": "MetricTensorError",
-                    "evaluation_number": self._evaluation_count,
-                    "action": "QUARANTINE",
-                    "severity": "CRITICO",
-                },
+                error_msg=f"Colapso Tensorial: {exc}",
+                details={"action": "QUARANTINE", "context": exc.context}
             )
-
+        
         except (ValueError, ImmuneSystemError) as exc:
             logger.error(
-                "Error de validación en sistema inmunológico (#%d): %s",
-                self._evaluation_count, exc,
+                "Error de validación (#%d): %s",
+                self._evaluation_count,
+                exc
             )
             return state.with_error(
-                error_msg=f"Validación inmunológica fallida: {exc}",
-                details={
-                    "morphism": self.name,
-                    "error_type": "validation",
-                    "exception_class": type(exc).__name__,
-                    "evaluation_number": self._evaluation_count,
-                },
+                error_msg=f"Validación fallida: {exc}",
+                details={"action": "ERROR"}
             )
-
+        
         except Exception as exc:
             logger.exception(
-                "Error inesperado en sistema inmunológico (#%d)",
-                self._evaluation_count,
+                "Error inesperado (#%d)",
+                self._evaluation_count
             )
             return state.with_error(
-                error_msg=f"Error inesperado: {type(exc).__name__}: {exc}",
-                details={
-                    "morphism": self.name,
-                    "error_type": "unexpected",
-                    "exception_class": type(exc).__name__,
-                    "evaluation_number": self._evaluation_count,
-                },
+                error_msg=f"Error inesperado: {exc}",
+                details={"action": "ERROR"}
             )
-
+    
     def _emit_state(
         self,
         state: CategoricalState,
-        assessment: ThreatAssessment,
+        assessment: ThreatAssessment
     ) -> CategoricalState:
-        """
-        Emite estado transformado según el nivel de amenaza.
-
-        CORRECCIÓN C3
-        ─────────────
-        with_update recibe el contexto como dict positional y new_stratum
-        como keyword argument, separando claramente los datos del routing.
-
-        Mapeo
-        ─────
-        HEALTHY  → with_update (contexto saludable enriquecido)
-        WARNING  → with_update (marcador de alerta visible)
-        CRITICAL → with_error  (cuarentena inmediata)
-        """
+        """Emite estado transformado según nivel de amenaza."""
         details = assessment.to_dict()
-
+        
         if assessment.status == HealthStatus.CRITICAL:
             logger.critical(
-                "🛡️ CUARENTENA ACTIVADA: fuente=%s amenaza=%.4f (umbral=%.4f) χ=%s",
+                "🛡️ CUARENTENA ACTIVADA: fuente=%s amenaza=%.4f",
                 assessment.max_source,
-                assessment.max_value,
-                self._critical,
-                assessment.euler_char,
+                assessment.max_value
             )
             return state.with_error(
-                error_msg=(
-                    f"Cuarentena inmunológica: "
-                    f"{assessment.max_source}={assessment.max_value:.4f}"
-                ),
-                details={
-                    **details,
-                    "action": "QUARANTINE",
-                    "threshold_exceeded": float(self._critical),
-                },
+                error_msg=f"Cuarentena: {assessment.max_source}",
+                details={**details, "action": "QUARANTINE"}
             )
-
+        
         if assessment.status == HealthStatus.WARNING:
             logger.warning(
-                "🛡️ ESTRÉS: fuente=%s amenaza=%.4f (umbral=%.4f) χ=%s",
+                "🛡️ ESTRÉS: fuente=%s amenaza=%.4f",
                 assessment.max_source,
-                assessment.max_value,
-                self._warning,
-                assessment.euler_char,
+                assessment.max_value
             )
-            # CORRECCIÓN C3: contexto y new_stratum separados
             return state.with_update(
-                {
-                    "immune_status": "warning",
-                    "immune_source": assessment.max_source,
-                    "immune_alert_level": "stress",
-                    **details,
-                },
-                new_stratum=self.codomain,
+                {"immune_status": "warning", **details},
+                new_stratum=self.codomain
             )
-
-        # HealthStatus.HEALTHY
+        
         logger.debug(
-            "🛡️ ESTABLE: max_threat=%.4f en '%s' χ=%s",
-            assessment.max_value,
-            assessment.max_source,
-            assessment.euler_char,
+            "🛡️ ESTABLE: max_threat=%.4f",
+            assessment.max_value
         )
-        # CORRECCIÓN C3: contexto y new_stratum separados
         return state.with_update(
             {"immune_status": "healthy", **details},
-            new_stratum=self.codomain,
+            new_stratum=self.codomain
         )
-
-    # ── Propiedades de Introspección ────────────────────────────────────────
-
+    
     @property
     def thresholds(self) -> Dict[str, float]:
+        """Umbrales de clasificación."""
         return {
-            "warning":    self._warning,
-            "critical":   self._critical,
-            "hysteresis": self._hysteresis,
+            "warning": self._warning,
+            "critical": self._critical,
+            "hysteresis": self._hysteresis
         }
-
+    
     @property
     def topology_history(self) -> Tuple[Optional[int], ...]:
-        """
-        Historial de χ como tupla inmutable.
-
-        CORRECCIÓN C4
-        ─────────────
-        Se retorna una copia de la lista como tupla, no una referencia.
-        Esto garantiza que el caller no puede mutar el estado interno.
-        """
+        """Historia de características de Euler."""
         return tuple(self._euler_history)
-
+    
     @property
     def evaluation_count(self) -> int:
+        """Contador de evaluaciones."""
         return self._evaluation_count
-
+    
     @property
     def current_status(self) -> Optional[HealthStatus]:
+        """Estado de salud actual."""
         return self._previous_status
-
+    
     def get_diagnostics(self) -> Dict[str, Any]:
-        """
-        Diagnóstico completo del estado interno del morfismo.
-
-        CORRECCIÓN I2
-        ─────────────
-        topology_history_last10 usa slice [-10:] sobre la tupla, que es
-        seguro incluso si len(history) < 10 (retorna todos los elementos).
-        """
-        history = self.topology_history  # copia inmutable
+        """Diagnóstico completo del sistema."""
+        history = self.topology_history
+        
         return {
             "name": self.name,
             "evaluation_count": self._evaluation_count,
             "current_status": (
-                str(self._previous_status) if self._previous_status else "none"
+                str(self._previous_status)
+                if self._previous_status
+                else "none"
             ),
             "thresholds": self.thresholds,
-            # CORRECCIÓN I2: slice seguro (no IndexError si len < 10)
             "topology_history_last10": history[-10:],
             "projector_validation": self._projector.validation_report,
             "functorial_properties": self._verify_functorial_properties(),
         }
-
+    
     def health_report(self) -> str:
-        """
-        Reporte legible para humanos del estado del morfismo.
-
-        CORRECCIÓN I4
-        ─────────────
-        Maneja historial vacío sin IndexError usando get con default.
-        """
+        """Reporte de salud formateado."""
         d = self.get_diagnostics()
         props = d["functorial_properties"]
-
-        # CORRECCIÓN I4: historia puede estar vacía
         history_last5 = d["topology_history_last10"][-5:]
         history_str = (
             " → ".join(str(c) for c in history_last5)
             if history_last5
             else "(sin evaluaciones)"
         )
-
+        
         lines = [
             "🛡️  IMMUNE WATCHER — DIAGNÓSTICO",
             "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
             f"  Nombre            : {d['name']}",
             f"  Evaluaciones      : {d['evaluation_count']}",
             f"  Estado Actual     : {d['current_status']}",
-            "",
             "  UMBRALES:",
             f"    ⚠  Warning    : {d['thresholds']['warning']:.3f}",
             f"    ✗  Critical   : {d['thresholds']['critical']:.3f}",
             f"    ↺  Hysteresis : {d['thresholds']['hysteresis']:.3f}",
-            "",
             "  TOPOLOGÍA (últimos 5):",
             f"    {history_str}",
-            "",
             "  PROPIEDADES CATEGÓRICAS:",
         ]
-
+        
         for prop, ok in props.items():
             symbol = "✓" if ok else "✗"
             lines.append(f"    [{symbol}] {prop}")
-
+        
         return "\n".join(lines)
-
-    def evaluate_manifold_deformation(self, state_tensor: np.ndarray, reference_chi: Optional[int] = None) -> "app.boole.strategy.sheaf_cohomology_orchestrator.ThreatMetrics":
+    
+    def evaluate_manifold_deformation(
+        self,
+        state_tensor: NDArray[np.float64],
+        reference_chi: Optional[int] = None
+    ) -> Any:
         """
         Intercepción Riemanniana y Auditoría de Bifurcación (FASE IV).
-
-        Implementa el pullback categórico recibiendo el tensor ψ ∈ ℝ⁷.
+        
+        Args:
+            state_tensor: Vector de estado ψ ∈ ℝⁿ
+            reference_chi: Característica de Euler de referencia
+        
+        Returns:
+            ThreatMetrics con análisis completo
         """
-        # Evitar circular import si fuera necesario, pero aquí ThreatMetrics está en el orquestador.
-        # Por simplicidad, importamos localmente lo que necesitemos o usamos duck typing.
         from app.boole.strategy.sheaf_cohomology_orchestrator import ThreatMetrics
-
+        
         psi = np.asarray(state_tensor, dtype=np.float64).ravel()
-
-        # 1. Distancia de Mahalanobis Global
-        # Usamos el proyector interno para evaluar el tensor
+        
+        # Proyectar y evaluar
         assessment = self._projector.project(
             psi,
             warning_threshold=self._warning,
@@ -2533,27 +2313,31 @@ class ImmuneWatcherMorphism(Morphism):
             hysteresis=self._hysteresis,
             previous_status=self._previous_status
         )
-
-        # 2. Auditoría de Bifurcación Topológica (Δχ)
+        
         current_chi = assessment.euler_char
-
-        # Priorizar reference_chi si se proporciona (FASE IV Pullback)
-        # CORRECCIÓN: self._euler_history puede estar vacío o contener Nones
-        last_stable_chi = current_chi
+        
+        # Determinar χ estable de referencia
         if reference_chi is not None:
             last_stable_chi = reference_chi
-        elif self._euler_history:
-            # Buscar el último no-None
-            for past_chi in reversed(self._euler_history):
-                if past_chi is not None:
-                    last_stable_chi = past_chi
-                    break
-
-        delta_chi = (current_chi - last_stable_chi) if (current_chi is not None and last_stable_chi is not None) else 0
-
-        # Estabilidad: Δχ == 0 Y estado no crítico
-        is_stable = (delta_chi == 0) and (assessment.status != HealthStatus.CRITICAL)
-
+        else:
+            # Buscar último χ válido en historia
+            last_stable_chi = next(
+                (c for c in reversed(self._euler_history) if c is not None),
+                current_chi
+            )
+        
+        # Calcular alteración estructural
+        if current_chi is not None and last_stable_chi is not None:
+            delta_chi = current_chi - last_stable_chi
+        else:
+            delta_chi = 0
+        
+        # Estabilidad: χ constante y no crítico
+        is_stable = (
+            delta_chi == 0 and
+            assessment.status != HealthStatus.CRITICAL
+        )
+        
         return ThreatMetrics(
             mahalanobis_distance=assessment.total_threat,
             is_stable=is_stable,
@@ -2562,87 +2346,62 @@ class ImmuneWatcherMorphism(Morphism):
             details=assessment.to_dict()
         )
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# FACTORY CON PERFILES DE CONFIGURACIÓN
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
+# FACTORY CON PERFILES
+# ==============================================================================
 
 def create_immune_watcher(
     profile: str = "default",
-    **overrides: Any,
+    **overrides: Any
 ) -> ImmuneWatcherMorphism:
     """
     Factory de morfismos inmunológicos con perfiles predefinidos.
-
-    Perfiles Predefinidos
-    ──────────────────────
-    'default'    : producción balanceada (W=0.8, C=1.5, δ=0.05)
-    'strict'     : mayor sensibilidad (W=0.5, C=1.0, δ=0.03)
-    'relaxed'    : menor sensibilidad (W=1.0, C=2.0, δ=0.08)
-    'laboratory' : sin histéresis para testing puro (δ=0.0)
-
-    CORRECCIÓN I3
-    ─────────────
-    Los overrides se validan implícitamente al construir ImmuneWatcherMorphism.
-    Si los overrides producen parámetros inválidos, el constructor lanza
-    ValueError con mensaje descriptivo antes de retornar el morfismo.
-
-    Parameters
-    ----------
-    profile   : nombre del perfil base
-    **overrides: parámetros que sobreescriben el perfil
-
-    Returns
-    -------
-    ImmuneWatcherMorphism configurado y validado.
-
-    Raises
-    ------
-    ValueError : perfil desconocido o overrides producen parámetros inválidos.
+    
+    Perfiles disponibles:
+    - default: Configuración estándar
+    - strict: Umbrales más restrictivos
+    - relaxed: Umbrales más permisivos
+    - laboratory: Sin histéresis (para testing)
     """
     _PROFILES: Dict[str, Dict[str, Any]] = {
         "default": {
             "warning_threshold": 0.8,
             "critical_threshold": 1.5,
-            "hysteresis": 0.05,
+            "hysteresis": 0.05
         },
         "strict": {
             "warning_threshold": 0.5,
             "critical_threshold": 1.0,
-            "hysteresis": 0.03,
+            "hysteresis": 0.03
         },
         "relaxed": {
             "warning_threshold": 1.0,
             "critical_threshold": 2.0,
-            "hysteresis": 0.08,
+            "hysteresis": 0.08
         },
-        # FIX-14: hysteresis=0.0 válido — modo laboratorio sin histéresis
         "laboratory": {
             "warning_threshold": 0.8,
             "critical_threshold": 1.5,
-            "hysteresis": 0.0,
+            "hysteresis": 0.0
         },
     }
-
+    
     if profile not in _PROFILES:
-        available = ", ".join(f"'{p}'" for p in sorted(_PROFILES))
         raise ValueError(
-            f"Perfil desconocido: '{profile}'. Perfiles disponibles: {available}"
+            f"Perfil desconocido: '{profile}'",
+            available=list(_PROFILES.keys())
         )
-
-    # Merge: overrides sobreescriben el perfil base
+    
     config: Dict[str, Any] = {**_PROFILES[profile], **overrides}
-
-    # CORRECCIÓN I3: la validación ocurre en __init__ (no se duplica aquí)
+    
     return ImmuneWatcherMorphism(
         name=f"immune_watcher_{profile}",
-        **config,
+        **config
     )
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# EXPORTACIÓN PÚBLICA CONTROLADA
-# ═══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
+# EXPORTACIÓN PÚBLICA
+# ==============================================================================
 
 __all__ = [
     # Excepciones
@@ -2652,32 +2411,43 @@ __all__ = [
     "PhysicalBoundsError",
     "TopologicalInvariantError",
     "MetricTensorError",
-    # Constantes y tolerancias
+    "SpectralDecompositionError",
+    
+    # Constantes
     "EPS",
     "ALGEBRAIC_TOL",
     "COND_NUM_TOL",
     "MIN_EIGVAL_TOL",
     "PhysicalConstants",
-    # Tipos principales
+    
+    # Álgebra lineal
+    "StableLinearAlgebra",
+    
+    # Validadores
+    "Validator",
+    "VALIDATOR_REGISTRY",
+    
+    # Estado de salud
     "HealthStatus",
+    
+    # Geometría Riemanniana
+    "SpectralDecomposition",
     "MetricTensor",
+    "RiemannianMetric",
+    
+    # Topología
+    "IsolatingMembraneFunctor",
     "SubspaceSpec",
     "ThreatAssessment",
     "OrthogonalProjector",
+    
+    # Señal
     "SignalComponent",
-    "ImmuneWatcherMorphism",
-    # Funciones utilitarias (expuestas para testing)
-    "_safe_normalize",
-    "_stable_reciprocal",
-    "_stable_divide",
-    "_stable_norm",
-    "_compute_condition_number",
-    "_regularize_metric",
-    # Interfaz pública principal
-    "build_signal",
-    "create_immune_watcher",
-    # Registros y esquemas
-    "VALIDATOR_REGISTRY",
     "SIGNAL_SCHEMA",
     "BETTI_INDICES",
+    "build_signal",
+    
+    # Morfismo
+    "ImmuneWatcherMorphism",
+    "create_immune_watcher",
 ]
