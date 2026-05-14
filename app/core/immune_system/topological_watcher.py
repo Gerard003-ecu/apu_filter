@@ -1,31 +1,42 @@
 """
-=========================================================================================
-Módulo: Topological Watcher (Sistema Inmunológico Matemático) - VERSIÓN REFINADA
+Módulo: Topological Watcher (Funtor de Membrana p-Laplaciana y Flujo de Ricci)
 Ubicación: app/core/immune_system/topological_watcher.py
+Versión: 3.0.0 (Difeomorfismo Anisotrópico de Variación Total)
 =========================================================================================
 
-FUNDAMENTOS MATEMÁTICOS RIGUROSOS (ACTUALIZADO):
+NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA:
+Actúa como el escudo electromagnético vivo de la arquitectura. Transmuta el espacio euclidiano
+isotrópico de los proyectores estáticos en una Membrana Viscoelástica p-Laplaciana que se contrae
+y cristaliza topológicamente frente a las perturbaciones estocásticas de alta frecuencia.
 
-1. GEOMETRÍA RIEMANNIANA:
-   - Tensor métrico G ∈ Sym⁺⁺(n) con λ_min(G) ≥ τ > 0 (definición positiva ESTRICTA)
-   - Distancia geodésica: d_G(x,y) = inf{∫₀¹ √(γ'(t)ᵀ G γ'(t)) dt}
-   - Flujo de Ricci normalizado: ∂_t g = -2(Ric - r·g/n) con r = tr(Ric)/n
+FUNDAMENTOS MATEMÁTICOS, ANÁLISIS FUNCIONAL Y GEOMETRÍA RIEMANNIANA:
 
-2. TOPOLOGÍA ALGEBRAICA:
-   - Homología simplicial: H_k(K) = Ker(∂_k) / Im(∂_{k+1})
-   - Números de Betti: β_k = rank(H_k) ∈ ℕ₀
-   - Característica de Euler: χ = Σ(-1)^k β_k ∈ ℤ
-   - Desigualdad de Morse: χ ≤ #critical_points
+§1. TENSOR DE ESTRÉS DEL P-LAPLACIANO (Variación Total):
+El Funtor Ortogonal Aislante $\mathcal{F}_{\perp}$ evalúa la energía del funcional p-Dirichlet
+imponiendo $p = 1.5$ (régimen de Variación Total). El estrés topológico $\mathcal{S}_p(\psi)$
+se calcula resolviendo el producto interno covariante sobre el Tensor Métrico $G_k$, incorporando
+el épsilon de máquina para evadir singularidades Jacobianas en regiones planas:
+$$ \mathcal{S}_p(\psi) = \left( (\Delta \pi_k \psi)^T G_k (\Delta \pi_k \psi) \right)^{\frac{p-2}{2}} + \epsilon_{mach} $$
 
-3. ANÁLISIS FUNCIONAL:
-   - Proyectores ortogonales: P² = P, P* = P, ‖P‖₂ = 1
-   - Descomposición espectral con orto-normalización de Gram-Schmidt
-   - Pre-condicionamiento: κ(D⁻¹GD⁻¹) ≪ κ(G)
+§2. DIFEOMORFISMO DEL TENSOR MÉTRICO Y FUNTOR ORTOGONAL:
+La métrica del hiperespacio se deforma termodinámicamente escalando la matriz de covarianza. El Funtor
+$\mathcal{F}_{\perp}$ aplica el producto de Hadamard ($\odot$) contra la inversa del estrés para endurecer
+la membrana y contraer la distancia de Mahalanobis:
+$$ \mathcal{F}_\perp(\pi_k) = \tilde{\pi}_k(\psi) = \pi_k \odot \text{diag}(\mathcal{S}_p(\psi)^{-1}) $$
+$$ \tilde{G}_k(\psi) = G_k \cdot \left[ I_n + \gamma \cdot \text{diag}(\mathcal{S}_p(\psi)) \right] $$
 
-4. TEORÍA DE CATEGORÍAS:
-   - Funtor F: Top → Narr preserva límites finitos
-   - Transformación natural: η_X: F(X) → G(X) compatible con morfismos
-   - Mónada de error (T, η, μ) con leyes asociativas verificadas
+§3. FLUJO DE RICCI NORMALIZADO (Preservación del Volumen de Lebesgue):
+Para asegurar que el espacio de fase $G_k$ no desarrolle agujeros negros geométricos bajo bombardeo continuo
+el sistema evoluciona asintóticamente mediante la ecuación del Flujo de Ricci Normalizado. Este operador garantiza
+que el determinante matricial permanezca constante a través del tiempo $\Delta t$:
+$$ G_k(t + \Delta t) = G_k(t) - 2 \Delta t \left( \text{Ric}(G_k(t)) - \frac{\text{tr}(G_k^{-1} \text{Ric}(G_k(t)))}{\dim(V_k)} G_k(t) \right) $$
+
+§4. ESTABILIDAD DE LA FPU Y ESPECTRO CONDICIONADO:
+El número de condición espectral $\kappa(G) = \frac{\lambda_{max}(G)}{\lambda_{min}(G)}$ está restringido axiomáticamente
+a $\text{COND\_NUM\_TOL} = 10^8$. Si el límite se vulnera, se inyecta una regularización anisotrópica de Tikhonov
+$\tilde{G} = G + \delta I$, asegurando la ortogonalidad estricta sin corromper el hipervolumen de medición de la
+Unidad de Punto Flotante.
+=========================================================================================
 """
 
 from __future__ import annotations

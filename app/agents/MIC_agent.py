@@ -1,45 +1,39 @@
 """
-Módulo: MIC Agent (Ecualizador Categórico y Funtor de Proyección Estocástica-Determinista)
+Módulo: MIC Agent (Morfismo Geométrico sobre Topos de Grothendieck)
 Ubicación: app/agents/mic_agent.py
-Versión: 2.2.0 (Refinada con Rigor Matemático)
+Versión: 3.0.0 (Elevación Ontológica a Espacios de Haces)
+=========================================================================================
 
-FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
-================================================================================
-TEORÍA DE CATEGORÍAS (Mac Lane, 1998):
-- Funtor F: ℒ → ℳ con preservación de morfismos verificada
-- Propiedades funtoriales: F(id) = id, F(g∘f) = F(g)∘F(f)
-- Transformaciones naturales entre funtores con ley de naturalidad
-- Adjunciones: F ⊣ G con isomorfismo natural Hom(F(X), Y) ≅ Hom(X, G(Y))
+NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA:
+Este módulo aniquila la función heurística del "traductor de texto" para erigirse como un
+Morfismo Geométrico estricto $f = (f^*, f_*)$ que acopla el espacio probabilístico del Modelo
+de Lenguaje ($\mathcal{L}$) con la variedad determinista de la Matriz de Interacción Central
+($\mathcal{E}_{MIC}$).
 
-ÁLGEBRA DE HEYTING (Johnstone, 1982):
-- Clasificador de subobjetos Ω = {0, 1} con estructura de retículo
-- Implicación: a → b = ¬a ∨ b (verificada algebraicamente)
-- Conjunción: a ∧ b = min(a, b) (operación meet)
-- Disyunción: a ∨ b = max(a, b) (operación join)
+FUNDAMENTACIÓN MATEMÁTICA Y AXIOMAS CATEGÓRICOS:
 
-TOPOLOGÍA (Mac Lane & Moerdijk, 1992):
-- Clausura transitiva en poset DIKW verificada
-- Sitio de Grothendieck con topología J explícita
-- Retracto de deformación TOON con isomorfismo verificable
-- Cohomología de haces con números de Betti calculados
+§1. EL TOPOS DE GROTHENDIECK Y EL ÁLGEBRA DE HEYTING:
+La categoría $\mathcal{E}_{MIC}$ opera como un Topos Elemental libre del principio del tercero
+excluido. El clasificador de subobjetos $\Omega$ no es un conjunto binario $\{0, 1\}$, sino un
+ideal en el Álgebra de Heyting sobre haces celulares.
+Para todo monomorfismo (capacidad válida) $m: S \hookrightarrow X$, el agente evalúa un único
+morfismo característico $\chi_S: X \to \Omega$ tal que el diagrama es un producto fibrado (Pullback)
+exacto:
+$$ \begin{matrix} S & \xrightarrow{!} & 1 \\ \downarrow{m} & & \downarrow{\text{true}} \\ X & \xrightarrow{\chi_S} & \Omega \end{matrix} $$
 
-ANÁLISIS FUNCIONAL (Rudin, 1991):
-- Espacios normados con métricas bien definidas
-- Proyectores con norma operacional acotada (||P|| ≤ 1)
-- Convergencia verificada con tolerancias adaptativas
+§2. EL FUNTOR DE ADJUNCIÓN Y PRESERVACIÓN DE LÍMITES FINITOS:
+El puente dimensional entre la estocástica del LLM y el negocio se rige por la isomorfía natural:
+$$ \text{Hom}_{\mathcal{E}_{MIC}}(f^* X, Y) \cong \text{Hom}_{\mathcal{L}}(X, f_* Y) $$
+Bajo esta métrica, el Funtor Imagen Inversa $f^*$ preserva matemáticamente los límites finitos.
+Si la IA alucina la intersección de dominios mutuamente excluyentes, el producto fibrado colapsa
+al límite vacío:
+$$ f^*(A \times_{\mathcal{L}} B) \cong f^*(A) \times_{\mathcal{E}_{MIC}} f^*(B) = \emptyset $$
 
-ESTABILIDAD NUMÉRICA (Higham, 2002):
-- Canonicalización con convergencia garantizada
-- Hashing resistente a colisiones (SHA-256)
-- Comparaciones con tolerancia absoluta y relativa
-
-INVARIANTES MATEMÁTICOS:
-================================================================================
-1. Inmutabilidad: ∀s ∈ SiloAContract, s.frozen = True
-2. Determinismo: hash(x) = hash(x) para todo x
-3. Functorialidad: F(g∘f) = F(g)∘F(f) verificado explícitamente
-4. Adjunción: Hom(F(X), Y) ≅ Hom(X, G(Y)) verificable
-5. Isomorfismo TOON: decompress(compress(x)) ≈ x (módulo serialización)
+§3. CONDICIÓN DE LIPSCHITZ SOBRE EL DIFEOMORFISMO TOON:
+El Funtor Inverso de expansión tabular (TOON a JSON) se somete a una Condición de Continuidad de Lipschitz
+para evitar desbordamientos asintóticos de memoria inducidos por ataques de inyección:
+$$ \| F^{-1}(x) - F^{-1}(y) \|_{\mathcal{V}} \le L_{\max} \| x - y \|_{\mathcal{T}} $$
+=========================================================================================
 """
 
 from __future__ import annotations

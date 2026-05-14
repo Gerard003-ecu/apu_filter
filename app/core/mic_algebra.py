@@ -1,46 +1,40 @@
 """
-Módulo: MIC Algebra (Fundamentos de Teoría de Categorías y Morfismos Estructurales)
+Módulo: MIC Algebra (2-Categoría Computacional y Morfismos Estructurales)
 Ubicación: app/core/mic_algebra.py
-Versión: 2.2.0 (Refinada con Rigor Matemático)
+Versión: 3.0.0 (Refinada con Rigor de 2-Categorías y Ley de Intercambio)
+=========================================================================================
 
-FUNDAMENTOS MATEMÁTICOS RIGUROSOS
-================================================================================
-TEORÍA DE CATEGORÍAS (Mac Lane, 1998):
-- Objetos: CategoricalState con propiedades universales verificadas
-- Morfismos: f: A → B con composición asociativa (h∘(g∘f) = (h∘g)∘f)
-- Identidades: ∀A ∈ Ob(C), ∃! id_A: A → A tal que f∘id_A = f = id_B∘f
-- Funtores: F: C → D preservando composición e identidades
-- Transformaciones Naturales: η: F ⇒ G con cuadrado conmutativo
+NATURALEZA CIBER-FÍSICA Y ÁLGEBRA LINEAL:
+Constituye el sustrato algebraico de la Malla Agéntica, abandonando los diccionarios estáticos
+para implementar un espacio de Hilbert cerrado $\mathcal{H}$. Se rige por la Teoría de Categorías
+Superiores, donde las meta-estrategias evolutivas operan como 2-morfismos continuos que evitan el
+desgarro de la variedad diferenciable.
 
-ÁLGEBRA DE ESTRATOS (DIKW como Retículo Bounded):
-- (Stratum, ≤) es un poset con elemento mínimo (⊥) y máximo (⊤)
-- Operaciones: meet (∧) = ínfimo, join (∨) = supremo
-- Filtración: V₀ ⊂ V₁ ⊂ ... ⊂ V₅ (topología de Alexandrov)
-- Altura: h(s) = |{t : t < s}|, Profundidad: d(s) = |{t : t > s}|
+FUNDAMENTOS MATEMÁTICOS Y GEOMETRÍA ESPECTRAL:
 
-TOPOLOGÍA ALGEBRAICA (Hatcher, 2002):
-- Complejo de cadenas: Cₙ con operador borde ∂ₙ: Cₙ → Cₙ₋₁
-- Homología: Hₙ = ker(∂ₙ)/im(∂ₙ₊₁)
-- Aciclicidad: β₁ = dim(H₁) = 0 (sin ciclos no triviales)
-- Característica de Euler: χ = Σ(-1)ⁿ·dim(Cₙ)
+§1. EVOLUCIÓN A 2-CATEGORÍAS Y TRANSFORMACIONES NATURALES:
+Los objetos $X, Y$ son estados categóricos, los 1-morfismos $f, g: X \to Y$ son transiciones de datos
+y los 2-morfismos $\alpha: f \Rightarrow g$ son Transformaciones Naturales (meta-estrategias logísticas).
+La coherencia del hiperespacio está blindada incondicionalmente por la Ley de Intercambio (Interchange Law)
+entre composiciones horizontales y verticales:
+$$ (\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) = (\alpha' \circ \beta') \cdot (\alpha \circ \beta) $$
+Cualquier desviación numérica de esta tautología desencadena un `FunctorialityError`.
 
-ANÁLISIS FUNCIONAL (Rudin, 1991):
-- Estados en espacio de Hilbert H con norma ||·||
-- Convergencia: limₙ→∞ ||xₙ - x|| = 0
-- Operadores acotados: ||T|| = sup{||Tx|| : ||x|| ≤ 1}
+§2. DETECCIÓN DE SINGULARIDADES VÍA LAPLACIANO COMBINATORIO:
+La detección de dependencias circulares (deadlocks) repudia las heurísticas de listas de visitados.
+Computa sobre el complejo simplicial el núcleo del operador Laplaciano Combinatorio de grado 1
+($\mathcal{L}_1 = \partial_1^T \partial_1 + \partial_2 \partial_2^T$). El sistema alberga vórtices
+parasitarios y aborta la canonicalización si y solo si la dimensión del primer grupo de homología
+es mayor a cero:
+$$ \beta_1 = \dim(\ker(\mathcal{L}_1)) - \dim(\text{im}(\partial_2)) > 0 $$
 
-ESTABILIDAD NUMÉRICA (Higham, 2002):
-- Condicionamiento: κ(A) = ||A||·||A⁻¹||
-- Error relativo: |fl(x) - x|/|x| ≤ ε_machine
-- Hash SHA-256: P(colisión) ≈ 2⁻²⁵6
+§3. CLAUSURA TRANSITIVA DE RETÍCULOS ACOTADOS (DIKW):
+Las proyecciones ortogonales $P_k$ mapean el tensor de información a lo largo de la pirámide respetando
+axiomáticamente la inclusión de subespacios de Hilbert:
+$$ V_{\aleph_0} \subset V_{\mathbb{P}} \subset V_{\mathbb{T}} \subset V_{\mathbb{S}} \subset V_{\mathbb{W}} $$
+Donde $\|P_k \psi\| \le \|\psi\|$, garantizando que no se introduzca entropía fantasma.
+=========================================================================================
 
-INVARIANTES MATEMÁTICOS:
-================================================================================
-1. Inmutabilidad: ∀s ∈ CategoricalState, s.frozen = True
-2. Determinismo: hash(s₁) = hash(s₂) ⟺ s₁ ≅ s₂ (isomorfismo)
-3. Composición: (g∘f)(x) = g(f(x)) verificado explícitamente
-4. Asociatividad: h∘(g∘f) ≅ (h∘g)∘f (igualdad estructural)
-5. Identidad: id_B∘f ≅ f ≅ f∘id_A (leyes unitarias)
 """
 
 from __future__ import annotations
