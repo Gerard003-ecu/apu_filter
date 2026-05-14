@@ -259,7 +259,7 @@ class MathUtils:
     def stable_hash(data: Any) -> str:
         """
         Hash SHA-256 canónico y determinista.
-        
+
         Propiedades:
         - Determinista: H(x) = H(x)
         - Colisión-resistente: P(H(x) = H(y) | x ≠ y) ≈ 2^-256
@@ -282,12 +282,12 @@ class MathUtils:
     def compute_tensor_rank(payload: Any, depth: int = 0, max_depth: int = 100) -> int:
         """
         Rango tensorial (profundidad de anidamiento) con protección contra recursión infinita.
-        
+
         Definición recursiva:
         rank(scalar) = 0
         rank(dict/list) = 1 + max(rank(child))
         rank(∅) = depth + 1
-        
+
         Invariante: 0 ≤ rank ≤ max_depth
         """
         if depth > max_depth:
@@ -325,7 +325,7 @@ class MathUtils:
 def normalize_stratum(value: Any) -> Stratum:
     """
     Normalización de estrato con validación estricta.
-    
+
     Propiedades:
     - Idempotente: normalize(normalize(x)) = normalize(x)
     - Sobreyectiva: ∀s ∈ Stratum, ∃x: normalize(x) = s
@@ -349,7 +349,7 @@ def normalize_stratum(value: Any) -> Stratum:
             return Stratum[value.upper()]
         except KeyError:
             pass
-        
+
         # Luego por valor numérico
         try:
             return Stratum(int(value))
@@ -367,7 +367,7 @@ def normalize_stratum(value: Any) -> Stratum:
 def python_type_matches(expected_type: str, value: Any) -> bool:
     """
     Verificación de tipo JSON Schema → Python.
-    
+
     Mapeo biyectivo:
     null    ↔ None
     boolean ↔ bool (excluyendo int)
@@ -397,7 +397,7 @@ def python_type_matches(expected_type: str, value: Any) -> bool:
 def compute_json_path(base: str, key: Union[str, int]) -> str:
     """
     Construcción de JSONPath según RFC 9535.
-    
+
     Ejemplos:
     - compute_json_path("$", "foo") → "$.foo"
     - compute_json_path("$.foo", 0) → "$.foo[0]"
@@ -416,17 +416,18 @@ def compute_json_path(base: str, key: Union[str, int]) -> str:
 class SchemaValidationResult:
     """
     Resultado de validación en Álgebra de Heyting.
-    
+
     Propiedades del Clasificador Ω:
     - validity_degree ∈ [0, 1]
     - Conjunción: merge([r1, r2]) = r1 ∧ r2
     - Implicación: valid → error = ¬valid ∨ error
-    
+
     Invariantes:
     - is_valid ⟺ validity_degree ≥ 1 - ε
     - errors y warnings son tuplas inmutables
     """
     validity_degree: float
+    frustration_ideal: float = 0.0
     errors: Tuple[str, ...] = field(default_factory=tuple)
     warnings: Tuple[str, ...] = field(default_factory=tuple)
     path: str = "$"
@@ -474,7 +475,7 @@ class SchemaValidationResult:
     ) -> "SchemaValidationResult":
         """
         Conjunción en Álgebra de Heyting: ⋀ results.
-        
+
         Definición:
         (⋀ rᵢ).validity = min(rᵢ.validity)
         (⋀ rᵢ).errors = ⋃ rᵢ.errors
@@ -482,13 +483,13 @@ class SchemaValidationResult:
         all_errors: List[str] = []
         all_warnings: List[str] = []
         min_validity = 1.0
-        
+
         for r in results:
             all_errors.extend(r.errors)
             all_warnings.extend(r.warnings)
             if r.validity_degree < min_validity:
                 min_validity = r.validity_degree
-        
+
         return cls(
             validity_degree=min_validity,
             errors=tuple(all_errors),
@@ -518,7 +519,7 @@ class SchemaValidationResult:
 class CategoricalEqualizerSeed:
     """
     Traza de auditoría inmutable con firma criptográfica.
-    
+
     Invariantes:
     - Todos los campos son deterministas excepto timestamp
     - compute_hash() excluye timestamp para reproducibilidad
@@ -542,7 +543,7 @@ class CategoricalEqualizerSeed:
         if self.token_compression_ratio < 0.0:
             object.__setattr__(self, "token_compression_ratio", 0.0)
             logger.warning("token_compression_ratio negativo, corregido a 0.0")
-        
+
         if self.token_compression_ratio > MAX_COMPRESSION_RATIO:
             logger.warning(
                 "Ratio de compresión muy alto: %.2f > %.2f",
@@ -587,12 +588,12 @@ class CategoricalEqualizerSeed:
 class TOONDocument:
     """
     Documento TOON con isomorfismo verificable.
-    
+
     Propiedades Matemáticas:
     - Retracto de deformación: JSON → Tabla 2D
     - Isomorfismo para rank(payload) ≤ 2
     - Determinista: render(parse(x)) = x
-    
+
     Invariantes:
     - cartridge_id es no vacío
     - records es tupla inmutable
@@ -613,7 +614,7 @@ class TOONDocument:
     def render(self) -> str:
         """
         Renderiza documento TOON en formato textual.
-        
+
         Formato:
         --- INICIO TOON --- {cartridge_id} ---
         {header_template}
@@ -635,17 +636,17 @@ class TOONDocument:
     def parse(cls, content: str) -> "TOONDocument":
         """
         Parsea documento TOON desde formato textual.
-        
+
         Invariante: parse(render(doc)) = doc
         """
         lines = content.strip().split("\n")
-        
+
         if len(lines) < 3:
             raise TOONCompressionError(
                 "Documento TOON demasiado corto (mínimo 3 líneas)",
                 details={"lines_received": len(lines)}
             )
-        
+
         # Parsear header
         header_line = lines[0]
         if not header_line.startswith(TOON_START_MARKER):
@@ -653,7 +654,7 @@ class TOONDocument:
                 f"Marcador de inicio inválido",
                 details={"header_line": header_line[:100]}
             )
-        
+
         try:
             cartridge_id = (
                 header_line
@@ -667,19 +668,19 @@ class TOONDocument:
                 "No se pudo extraer cartridge_id",
                 details={"header_line": header_line}
             ) from e
-        
+
         # Verificar marcador de fin
         if lines[-1].strip() != TOON_END_MARKER:
             raise TOONCompressionError(
                 "Marcador de fin faltante o inválido",
                 details={"last_line": lines[-1]}
             )
-        
+
         # Separar header y records
         header_lines: List[str] = []
         records: List[Tuple[str, str]] = []
         in_records = False
-        
+
         for line in lines[1:-1]:
             if not in_records:
                 # Detectar inicio de records
@@ -702,7 +703,7 @@ class TOONDocument:
                 header_lines.append(line)
 
         header_template = "\n".join(header_lines)
-        
+
         return cls(
             cartridge_id=cartridge_id,
             header_template=header_template,
@@ -746,7 +747,7 @@ def _is_json_number(s: str) -> bool:
 class SiloAContract:
     """
     Contrato JSON Schema con validación de integridad.
-    
+
     Invariantes:
     - schema es dict con clave "type"
     - stratum es válido
@@ -787,7 +788,7 @@ class SiloAContract:
 class SiloBCartridge:
     """
     Cartucho TOON con metadatos.
-    
+
     Invariantes:
     - cartridge_id no vacío
     - header_template válido
@@ -824,13 +825,13 @@ class SiloBCartridge:
 class SchemaValidator:
     """
     Validador JSON Schema Draft-07 determinista.
-    
+
     Subconjunto soportado:
     - type, required, properties, items
     - minimum, maximum, exclusiveMinimum, exclusiveMaximum
     - minLength, maxLength, minItems, maxItems
     - enum, const, pattern (regex básico)
-    
+
     Deliberadamente excluido (no determinista):
     - $ref, allOf, anyOf, oneOf
     - if/then/else
@@ -864,7 +865,7 @@ class SchemaValidator:
     ) -> SchemaValidationResult:
         """
         Valida payload contra schema.
-        
+
         Retorna resultado en Álgebra de Heyting con:
         - validity_degree ∈ [0, 1]
         - errors acumulados
@@ -874,9 +875,9 @@ class SchemaValidator:
                 f"Schema inválido: esperado dict, recibido {type(schema).__name__}",
                 path,
             )
-        
+
         results: List[SchemaValidationResult] = []
-        
+
         for keyword, constraint in schema.items():
             validator = self._validators.get(keyword)
             if validator is not None:
@@ -889,7 +890,7 @@ class SchemaValidator:
                         f"Error interno en validador '{keyword}': {e}",
                         path,
                     ))
-        
+
         return (
             SchemaValidationResult.merge(results)
             if results
@@ -905,11 +906,11 @@ class SchemaValidator:
     ) -> SchemaValidationResult:
         """Validación de tipo con soporte para uniones."""
         types = [expected_type] if isinstance(expected_type, str) else expected_type
-        
+
         for t in types:
             if python_type_matches(t, value):
                 return SchemaValidationResult.success()
-        
+
         actual_type = type(value).__name__
         return SchemaValidationResult.failure(
             f"Tipo inválido en '{path}': esperado {types}, recibido '{actual_type}'",
@@ -926,14 +927,14 @@ class SchemaValidator:
         """Validación de claves requeridas."""
         if not isinstance(value, Mapping):
             return SchemaValidationResult.success()
-        
+
         missing = [k for k in required_keys if k not in value]
         if missing:
             return SchemaValidationResult.failure(
                 f"Claves requeridas faltantes en '{path}': {missing}",
                 path,
             )
-        
+
         return SchemaValidationResult.success()
 
     def _validate_properties(
@@ -946,15 +947,15 @@ class SchemaValidator:
         """Validación recursiva de propiedades."""
         if not isinstance(value, Mapping):
             return SchemaValidationResult.success()
-        
+
         results: List[SchemaValidationResult] = []
-        
+
         for prop_name, prop_schema in properties.items():
             if prop_name in value:
                 prop_path = compute_json_path(path, prop_name)
                 result = self.validate(prop_schema, value[prop_name], prop_path)
                 results.append(result)
-        
+
         return (
             SchemaValidationResult.merge(results)
             if results
@@ -971,14 +972,14 @@ class SchemaValidator:
         """Validación de items de array."""
         if not isinstance(value, list):
             return SchemaValidationResult.success()
-        
+
         results: List[SchemaValidationResult] = []
-        
+
         for i, item in enumerate(value):
             item_path = compute_json_path(path, i)
             result = self.validate(items_schema, item, item_path)
             results.append(result)
-        
+
         return (
             SchemaValidationResult.merge(results)
             if results
@@ -995,7 +996,7 @@ class SchemaValidator:
         """Validación de valor mínimo con tolerancia."""
         if not isinstance(value, (int, float)) or isinstance(value, bool):
             return SchemaValidationResult.success()
-        
+
         if value < minimum - FLOAT_COMPARISON_TOL:
             return SchemaValidationResult.failure(
                 f"Valor en '{path}' ({value}) menor que mínimo ({minimum})",
@@ -1013,7 +1014,7 @@ class SchemaValidator:
         """Validación de valor máximo con tolerancia."""
         if not isinstance(value, (int, float)) or isinstance(value, bool):
             return SchemaValidationResult.success()
-        
+
         if value > maximum + FLOAT_COMPARISON_TOL:
             return SchemaValidationResult.failure(
                 f"Valor en '{path}' ({value}) mayor que máximo ({maximum})",
@@ -1031,7 +1032,7 @@ class SchemaValidator:
         """Validación de exclusión de mínimo."""
         if not isinstance(value, (int, float)) or isinstance(value, bool):
             return SchemaValidationResult.success()
-        
+
         if value <= minimum + FLOAT_COMPARISON_TOL:
             return SchemaValidationResult.failure(
                 f"Valor en '{path}' ({value}) no estrictamente mayor que {minimum}",
@@ -1049,7 +1050,7 @@ class SchemaValidator:
         """Validación de exclusión de máximo."""
         if not isinstance(value, (int, float)) or isinstance(value, bool):
             return SchemaValidationResult.success()
-        
+
         if value >= maximum - FLOAT_COMPARISON_TOL:
             return SchemaValidationResult.failure(
                 f"Valor en '{path}' ({value}) no estrictamente menor que {maximum}",
@@ -1067,7 +1068,7 @@ class SchemaValidator:
         """Validación de longitud mínima de string."""
         if not isinstance(value, str):
             return SchemaValidationResult.success()
-        
+
         if len(value) < min_length:
             return SchemaValidationResult.failure(
                 f"String en '{path}' (len={len(value)}) menor que minLength ({min_length})",
@@ -1085,7 +1086,7 @@ class SchemaValidator:
         """Validación de longitud máxima de string."""
         if not isinstance(value, str):
             return SchemaValidationResult.success()
-        
+
         if len(value) > max_length:
             return SchemaValidationResult.failure(
                 f"String en '{path}' (len={len(value)}) mayor que maxLength ({max_length})",
@@ -1133,7 +1134,7 @@ class SchemaValidator:
         """Validación de cantidad mínima de items."""
         if not isinstance(value, list):
             return SchemaValidationResult.success()
-        
+
         if len(value) < min_items:
             return SchemaValidationResult.failure(
                 f"Array en '{path}' (len={len(value)}) menor que minItems ({min_items})",
@@ -1151,7 +1152,7 @@ class SchemaValidator:
         """Validación de cantidad máxima de items."""
         if not isinstance(value, list):
             return SchemaValidationResult.success()
-        
+
         if len(value) > max_items:
             return SchemaValidationResult.failure(
                 f"Array en '{path}' (len={len(value)}) mayor que maxItems ({max_items})",
@@ -1169,7 +1170,7 @@ class SchemaValidator:
         """Validación de patrón regex."""
         if not isinstance(value, str):
             return SchemaValidationResult.success()
-        
+
         try:
             if not re.search(pattern, value):
                 return SchemaValidationResult.failure(
@@ -1181,7 +1182,7 @@ class SchemaValidator:
                 f"Patrón regex inválido '{pattern}': {e}",
                 path,
             )
-        
+
         return SchemaValidationResult.success()
 
 # ==============================================================================
@@ -1191,7 +1192,7 @@ class SchemaValidator:
 class AlgebraicVetoRegistry:
     """
     Registro de validadores de invariantes algebraicos.
-    
+
     Propiedades:
     - Cerradura bajo composición: v1 ∧ v2 es validador
     - Monotonicidad: más validadores → más restricciones
@@ -1206,23 +1207,23 @@ class AlgebraicVetoRegistry:
 
     def _register_default_validators(self) -> None:
         """Registra validadores por defecto para cada estrato."""
-        
+
         # PHYSICS: Leyes de conservación
         def physics_conservation(stratum: Stratum, payload: PayloadType) -> Optional[str]:
             dissipated = payload.get("dissipated_power")
             if isinstance(dissipated, (int, float)):
                 if dissipated < -ALGEBRAIC_TOL:
                     return f"Violación termodinámica: dissipated_power={dissipated} < 0"
-            
+
             energy_in = payload.get("energy_input", 0)
             energy_out = payload.get("energy_output", 0)
             if isinstance(energy_in, (int, float)) and isinstance(energy_out, (int, float)):
                 if energy_out > energy_in * (1.0 + ALGEBRAIC_TOL):
                     return f"Violación de conservación: energy_output={energy_out} > energy_input={energy_in}"
             return None
-        
+
         self._validators[Stratum.PHYSICS].append(physics_conservation)
-        
+
         # TACTICS: Restricciones de estabilidad
         def tactics_stability(stratum: Stratum, payload: PayloadType) -> Optional[str]:
             stability = payload.get("pyramid_stability_index")
@@ -1230,9 +1231,9 @@ class AlgebraicVetoRegistry:
                 if stability < -ALGEBRAIC_TOL or stability > 1.0 + ALGEBRAIC_TOL:
                     return f"Índice de estabilidad fuera de rango [0,1]: {stability}"
             return None
-        
+
         self._validators[Stratum.TACTICS].append(tactics_stability)
-        
+
         # STRATEGY: Restricciones de fricción territorial
         def strategy_friction(stratum: Stratum, payload: PayloadType) -> Optional[str]:
             friction = payload.get("territorial_friction")
@@ -1240,9 +1241,9 @@ class AlgebraicVetoRegistry:
                 if friction < 1.0 - ALGEBRAIC_TOL:
                     return f"Fricción territorial debe ser >= 1.0: {friction}"
             return None
-        
+
         self._validators[Stratum.STRATEGY].append(strategy_friction)
-        
+
         # WISDOM: Veredictos válidos
         def wisdom_verdict(stratum: Stratum, payload: PayloadType) -> Optional[str]:
             verdict = payload.get("final_verdict")
@@ -1250,7 +1251,7 @@ class AlgebraicVetoRegistry:
             if verdict is not None and verdict not in valid_verdicts:
                 return f"Veredicto inválido '{verdict}', debe ser uno de {valid_verdicts}"
             return None
-        
+
         self._validators[Stratum.WISDOM].append(wisdom_verdict)
 
     def register_validator(
@@ -1291,13 +1292,13 @@ class AlgebraicVetoRegistry:
 class SiloManager:
     """
     Gestor de Silos A (contratos) y B (cartuchos) con garantías de inmutabilidad.
-    
+
     Invariantes:
     - Cada estrato tiene ≥ 1 contrato
     - Cada estrato tiene ≥ 1 cartucho
     - Los silos son inmutables post-inicialización
     - Selectores son deterministas
-    
+
     Propiedades Categóricas:
     - fetch_contract: Stratum × String → (ContractID, Schema)
     - fetch_cartridge: Stratum × String → (CartridgeID, Template)
@@ -1306,7 +1307,7 @@ class SiloManager:
     def __init__(self) -> None:
         self._silo_a: Dict[Stratum, Dict[str, SiloAContract]] = {s: {} for s in Stratum}
         self._silo_b: Dict[Stratum, Dict[str, SiloBCartridge]] = {s: {} for s in Stratum}
-        
+
         # Selectores por defecto (deterministas)
         self._default_contract_selector: Callable[[Dict[str, SiloAContract], str], str] = (
             lambda contracts, vector: next(iter(sorted(contracts.keys())), "Generic_Contract")
@@ -1314,18 +1315,18 @@ class SiloManager:
         self._default_cartridge_selector: Callable[[Dict[str, SiloBCartridge], str], str] = (
             lambda cartridges, vector: next(iter(sorted(cartridges.keys())), "Generic_Cartridge")
         )
-        
+
         self._lock = threading.RLock()
         self._frozen = False
-        
+
         self._initialize_default_silos()
         self._verify_invariants()
 
     def _initialize_default_silos(self) -> None:
         """Inicializa silos con contratos y cartuchos por defecto."""
-        
+
         # ===== CONTRATOS SILO A =====
-        
+
         # PHYSICS
         self._register_contract(SiloAContract(
             contract_id="PHS_Conservation_Seed",
@@ -1359,7 +1360,7 @@ class SiloManager:
             },
             description="Contrato de conservación de energía y propiedades electromagnéticas",
         ))
-        
+
         # TACTICS
         self._register_contract(SiloAContract(
             contract_id="Logistical_Topology_Seed",
@@ -1394,7 +1395,7 @@ class SiloManager:
             },
             description="Contrato de topología logística y flujos",
         ))
-        
+
         # STRATEGY
         self._register_contract(SiloAContract(
             contract_id="Riemannian_Friction_Contract",
@@ -1423,7 +1424,7 @@ class SiloManager:
             },
             description="Contrato de fricción territorial y acoplamiento de riesgos",
         ))
-        
+
         # WISDOM
         self._register_contract(SiloAContract(
             contract_id="Acta_Deliberacion_Seed",
@@ -1456,9 +1457,9 @@ class SiloManager:
             },
             description="Acta de deliberación con veredicto final",
         ))
-        
+
         # ===== CARTUCHOS SILO B =====
-        
+
         # PHYSICS
         self._register_cartridge(SiloBCartridge(
             cartridge_id="Maxwell_FDTD_TOON_Cartridge",
@@ -1475,7 +1476,7 @@ class SiloManager:
             ),
             description="Cartucho para simulaciones FDTD electromagnéticas",
         ))
-        
+
         # TACTICS
         self._register_cartridge(SiloBCartridge(
             cartridge_id="Persistence_Barcode_TOON_Cartridge",
@@ -1492,7 +1493,7 @@ class SiloManager:
             ),
             description="Cartucho para análisis de persistencia topológica",
         ))
-        
+
         # STRATEGY
         self._register_cartridge(SiloBCartridge(
             cartridge_id="Riemannian_TOON_Cartridge",
@@ -1508,7 +1509,7 @@ class SiloManager:
             ),
             description="Cartucho para métricas Riemannianas de estrategia",
         ))
-        
+
         # WISDOM
         self._register_cartridge(SiloBCartridge(
             cartridge_id="Telemetry_Passport_TOON_Cartridge",
@@ -1531,14 +1532,14 @@ class SiloManager:
         with self._lock:
             if self._frozen:
                 raise SiloAccessError("Silo A está congelado, no se pueden agregar contratos")
-            
+
             if contract.contract_id in self._silo_a[contract.stratum]:
                 logger.warning(
                     "Contrato '%s' ya existe en estrato %s, sobrescribiendo",
                     contract.contract_id,
                     contract.stratum.name
                 )
-            
+
             self._silo_a[contract.stratum][contract.contract_id] = contract
 
     def _register_cartridge(self, cartridge: SiloBCartridge) -> None:
@@ -1546,14 +1547,14 @@ class SiloManager:
         with self._lock:
             if self._frozen:
                 raise SiloAccessError("Silo B está congelado, no se pueden agregar cartuchos")
-            
+
             if cartridge.cartridge_id in self._silo_b[cartridge.stratum]:
                 logger.warning(
                     "Cartucho '%s' ya existe en estrato %s, sobrescribiendo",
                     cartridge.cartridge_id,
                     cartridge.stratum.name
                 )
-            
+
             self._silo_b[cartridge.stratum][cartridge.cartridge_id] = cartridge
 
     def _verify_invariants(self) -> None:
@@ -1561,7 +1562,7 @@ class SiloManager:
         for stratum in Stratum:
             if not self._silo_a[stratum]:
                 logger.warning("Estrato %s no tiene contratos registrados", stratum.name)
-            
+
             if not self._silo_b[stratum]:
                 logger.warning("Estrato %s no tiene cartuchos registrados", stratum.name)
 
@@ -1578,31 +1579,31 @@ class SiloManager:
     ) -> Tuple[str, JSONSchema]:
         """
         Recupera contrato para estrato y vector objetivo.
-        
+
         Returns:
             (contract_id, schema)
-        
+
         Raises:
             SiloAccessError: Si no existe contrato
         """
         with self._lock:
             contracts = self._silo_a.get(stratum, {})
-            
+
             if not contracts:
                 # Fallback a contrato genérico
                 logger.warning("No hay contratos para estrato %s, usando genérico", stratum.name)
                 return "Generic_Contract", {"type": "object", "properties": {}}
-            
+
             # Selector determinista (orden alfabético)
             contract_id = self._default_contract_selector(contracts, target_vector)
             contract = contracts.get(contract_id)
-            
+
             if contract is None:
                 raise SiloAccessError(
                     f"Contrato '{contract_id}' no encontrado",
                     details={"stratum": stratum.name, "contract_id": contract_id}
                 )
-            
+
             return contract.contract_id, contract.schema
 
     def fetch_cartridge(
@@ -1612,31 +1613,31 @@ class SiloManager:
     ) -> Tuple[str, str]:
         """
         Recupera cartucho para estrato y vector objetivo.
-        
+
         Returns:
             (cartridge_id, header_template)
-        
+
         Raises:
             SiloAccessError: Si no existe cartucho
         """
         with self._lock:
             cartridges = self._silo_b.get(stratum, {})
-            
+
             if not cartridges:
                 # Fallback a cartucho genérico
                 logger.warning("No hay cartuchos para estrato %s, usando genérico", stratum.name)
                 return "Generic_Cartridge", "Tabla_Generica\nkey|value"
-            
+
             # Selector determinista (orden alfabético)
             cartridge_id = self._default_cartridge_selector(cartridges, target_vector)
             cartridge = cartridges.get(cartridge_id)
-            
+
             if cartridge is None:
                 raise SiloAccessError(
                     f"Cartucho '{cartridge_id}' no encontrado",
                     details={"stratum": stratum.name, "cartridge_id": cartridge_id}
                 )
-            
+
             return cartridge.cartridge_id, cartridge.header_template
 
     def list_contracts(self, stratum: Optional[Stratum] = None) -> List[str]:
@@ -1644,7 +1645,7 @@ class SiloManager:
         with self._lock:
             if stratum is not None:
                 return sorted(self._silo_a.get(stratum, {}).keys())
-            
+
             result: List[str] = []
             for contracts in self._silo_a.values():
                 result.extend(contracts.keys())
@@ -1655,7 +1656,7 @@ class SiloManager:
         with self._lock:
             if stratum is not None:
                 return sorted(self._silo_b.get(stratum, {}).keys())
-            
+
             result: List[str] = []
             for cartridges in self._silo_b.values():
                 result.extend(cartridges.keys())
@@ -1698,13 +1699,13 @@ class SiloManager:
 class TOONCompressor:
     """
     Compresor determinista con verificación de isomorfismo.
-    
+
     Propiedades Matemáticas:
     - Retracto de deformación: JSON → Tabla 2D
     - Isomorfismo verificable para rank ≤ 2
     - Determinismo: compress(x) = compress(x)
     - Reversibilidad: decompress(compress(x)) ≈ x
-    
+
     Invariantes:
     - Compresión preserva información
     - Ratio de compresión ∈ [MIN_COMPRESSION_RATIO, MAX_COMPRESSION_RATIO]
@@ -1722,15 +1723,15 @@ class TOONCompressor:
     ) -> TOONDocument:
         """
         Comprime telemetría a formato TOON.
-        
+
         Args:
             telemetry: Diccionario de telemetría
             cartridge_id: ID del cartucho
             header_template: Template del header
-        
+
         Returns:
             TOONDocument comprimido
-        
+
         Raises:
             TOONCompressionError: Si rank > MAX_TENSOR_RANK
         """
@@ -1748,16 +1749,16 @@ class TOONCompressor:
 
         # Serializar records con orden determinista
         records: List[Tuple[str, str]] = []
-        
+
         for key in sorted(telemetry.keys()):
             value = telemetry[key]
-            
+
             # Convertir dataclasses a dict
             if dataclasses.is_dataclass(value):
                 value = dataclasses.asdict(value)
             elif isinstance(value, tuple) and all(dataclasses.is_dataclass(item) for item in value):
                 value = [dataclasses.asdict(item) for item in value]
-            
+
             # Serializar a JSON con orden determinista
             try:
                 json_value = json.dumps(
@@ -1769,9 +1770,9 @@ class TOONCompressor:
             except (TypeError, ValueError) as e:
                 logger.warning("Error serializando clave '%s': %s", key, e)
                 json_value = json.dumps(str(value))
-            
+
             records.append((str(key), json_value))
-        
+
         return TOONDocument(
             cartridge_id=cartridge_id,
             header_template=header_template,
@@ -1781,7 +1782,7 @@ class TOONCompressor:
     def decompress(self, document: TOONDocument) -> Dict[str, Any]:
         """
         Descomprime documento TOON a diccionario.
-        
+
         Invariante: decompress(compress(x)) ≈ x (módulo serialización JSON)
         """
         return document.to_dict()
@@ -1793,12 +1794,12 @@ class TOONCompressor:
     ) -> float:
         """
         Calcula ratio de compresión.
-        
+
         Definición:
         ratio = |compressed| / |original|
-        
+
         donde |·| es longitud en caracteres UTF-8.
-        
+
         Returns:
             ratio ∈ [MIN_COMPRESSION_RATIO, MAX_COMPRESSION_RATIO]
         """
@@ -1808,21 +1809,21 @@ class TOONCompressor:
             ensure_ascii=False,
             default=str
         )
-        
+
         original_size = max(len(original_str), 1)
         compressed_size = max(len(compressed), 1)
-        
+
         ratio = compressed_size / original_size
-        
+
         # Clamp a rango válido
         ratio = MathUtils.clamp(ratio, MIN_COMPRESSION_RATIO, MAX_COMPRESSION_RATIO)
-        
+
         # Registrar estadísticas
         with self._lock:
             if "ratios" not in self._compression_stats:
                 self._compression_stats["ratios"] = []
             self._compression_stats["ratios"].append(ratio)
-        
+
         return ratio
 
     def verify_isomorphism(
@@ -1832,19 +1833,19 @@ class TOONCompressor:
     ) -> bool:
         """
         Verifica isomorfismo entre original y comprimido.
-        
+
         Test: decompress(parse(compressed)) == original (módulo orden de claves)
         """
         try:
             document = TOONDocument.parse(compressed)
             decompressed = self.decompress(document)
-            
+
             # Comparación profunda con canonicalización
             original_canon = _canonicalize(dict(original))
             decompressed_canon = _canonicalize(decompressed)
-            
+
             return original_canon == decompressed_canon
-        
+
         except Exception as e:
             logger.warning("Error verificando isomorfismo: %s", e)
             return False
@@ -1860,7 +1861,7 @@ class TOONCompressor:
                     "min_ratio": 0.0,
                     "max_ratio": 0.0,
                 }
-            
+
             return {
                 "count": len(ratios),
                 "mean_ratio": float(np.mean(ratios)),
@@ -1876,7 +1877,7 @@ class TOONCompressor:
 class AuditTrail:
     """
     Buffer circular thread-safe para auditoría.
-    
+
     Propiedades:
     - FIFO con tamaño máximo
     - Thread-safe mediante RLock
@@ -1886,7 +1887,7 @@ class AuditTrail:
     def __init__(self, max_size: int = MAX_AUDIT_TRAIL_SIZE) -> None:
         if max_size <= 0:
             raise ValueError(f"max_size debe ser > 0, recibido: {max_size}")
-        
+
         self._buffer: Deque[CategoricalEqualizerSeed] = deque(maxlen=max_size)
         self._lock = threading.RLock()
         self._total_count = 0
@@ -1949,21 +1950,21 @@ class AuditTrail:
                     "stratum_distribution": {},
                     "mean_compression_ratio": 0.0,
                 }
-            
+
             status_counts: Dict[str, int] = {}
             stratum_counts: Dict[str, int] = {}
             compression_ratios: List[float] = []
-            
+
             for seed in self._buffer:
                 status_name = seed.impedance_match_status.value
                 stratum_name = seed.target_stratum.name
-                
+
                 status_counts[status_name] = status_counts.get(status_name, 0) + 1
                 stratum_counts[stratum_name] = stratum_counts.get(stratum_name, 0) + 1
-                
+
                 if seed.token_compression_ratio > 0:
                     compression_ratios.append(seed.token_compression_ratio)
-            
+
             return {
                 "total_entries": self._total_count,
                 "current_size": len(self._buffer),
@@ -1983,12 +1984,12 @@ class AuditTrail:
 class MICAgent:
     """
     Agente categórico con funtor F: ℒ → ℳ verificado.
-    
+
     Propiedades Funtoriales:
     1. F(id_X) = id_F(X)  (preserva identidades)
     2. F(g ∘ f) = F(g) ∘ F(f)  (preserva composición)
     3. F(⊥) = ⊥  (preserva objeto inicial)
-    
+
     Invariantes:
     - Thread-safety en audit trail
     - Inmutabilidad de silos post-inicialización
@@ -2057,18 +2058,18 @@ class MICAgent:
     def sense_stratum(self, target_vector: str) -> Stratum:
         """
         Sensa estrato asociado a vector objetivo.
-        
+
         Morfismo: vector_name → Stratum
         Propiedades: Determinista, Total (con excepción si indefinido)
         """
         info = self._mic.get_vector_info(target_vector)
-        
+
         if info is None:
             raise StratumResolutionError(
                 f"Vector '{target_vector}' no existe en espacio MIC",
                 details={"target_vector": target_vector}
             )
-        
+
         if "stratum" not in info:
             raise StratumResolutionError(
                 f"Vector '{target_vector}' no reporta estrato",
@@ -2077,7 +2078,7 @@ class MICAgent:
                     "info_keys": list(info.keys())
                 }
             )
-        
+
         return normalize_stratum(info["stratum"])
 
     # -------------------------------------------------------------------------
@@ -2091,25 +2092,25 @@ class MICAgent:
     ) -> Optional[str]:
         """
         Valida clausura transitiva en poset DIKW.
-        
+
         Ley de Clausura: Si s_target requiere s_req, entonces s_req ∈ validated_strata
-        
+
         Topología de Grothendieck:
         J(s_target) = {morfismos cubrientes desde estratos inferiores}
-        
+
         Returns:
             None si válido, mensaje de error si inválido
         """
         required = target_stratum.requires()
         missing = required - validated_strata
-        
+
         if missing:
             return (
                 f"Violación de clausura transitiva: "
                 f"estrato '{target_stratum.name}' requiere {sorted(s.name for s in required)}, "
                 f"pero faltan {sorted(s.name for s in missing)}"
             )
-        
+
         return None
 
     # -------------------------------------------------------------------------
@@ -2123,7 +2124,7 @@ class MICAgent:
     ) -> Tuple[str, TOONDocument]:
         """
         Comprime telemetría a formato TOON.
-        
+
         Returns:
             (cartridge_id, toon_document)
         """
@@ -2132,7 +2133,7 @@ class MICAgent:
             stratum,
             target_vector
         )
-        
+
         try:
             document = self._toon_compressor.compress(
                 telemetry,
@@ -2140,7 +2141,7 @@ class MICAgent:
                 header_template
             )
             return cartridge_id, document
-        
+
         except Exception as e:
             raise TOONCompressionError(
                 f"Error comprimiendo telemetría: {e}",
@@ -2158,16 +2159,16 @@ class MICAgent:
     ) -> str:
         """
         Inyecta contexto comprimido en formato TOON.
-        
+
         Funtor: PayloadType → String
         Propiedades: Determinista, Compresión verificable
         """
         _, document = self.compress_telemetry(target_vector, raw_telemetry)
         compressed = document.render()
-        
+
         stratum = self.sense_stratum(target_vector)
         ratio = self._toon_compressor.compute_ratio(raw_telemetry, compressed)
-        
+
         logger.info(
             "Contexto TOON: vector=%s estrato=%s ratio=%.2f chars=%d",
             target_vector,
@@ -2175,7 +2176,7 @@ class MICAgent:
             ratio,
             len(compressed)
         )
-        
+
         return compressed
 
     # -------------------------------------------------------------------------
@@ -2189,16 +2190,16 @@ class MICAgent:
         validated_strata: FrozenSet[Stratum],
         context_hashes: Optional[FrozenSet[str]] = None,
         raw_telemetry: Optional[PayloadType] = None,
-        force_override: bool = False,
+
     ) -> CategoricalState:
         """
         Encapsula output del LLM en mónada CategoricalState.
-        
+
         Mónada T con:
         - η: A → T(A)  (unit)
         - μ: T(T(A)) → T(A)  (join)
         - bind: T(A) × (A → T(B)) → T(B)
-        
+
         Propiedades:
         1. Asociatividad: μ ∘ T(μ) = μ ∘ μ_T
         2. Identidad: μ ∘ η_T = μ ∘ T(η) = id_T
@@ -2242,12 +2243,13 @@ class MICAgent:
         validation_errors: List[str] = []
 
         # 1. Validar clausura transitiva
-        if not force_override:
-            closure_error = self.validate_closure(stratum, validated_strata)
-            if closure_error:
-                status = ImpedanceMatchStatus.STRATUM_MISMATCH_REJECTED
-                error_msg = closure_error
-                validation_errors.append(closure_error)
+
+
+        closure_error = self.validate_closure(stratum, validated_strata)
+        if closure_error:
+            status = ImpedanceMatchStatus.STRATUM_MISMATCH_REJECTED
+            error_msg = closure_error
+            validation_errors.append(closure_error)
 
         # 2. Validar schema JSON
         if status == ImpedanceMatchStatus.LAMINAR_PROJECTION:
@@ -2268,7 +2270,7 @@ class MICAgent:
         # 4. Compresión TOON (opcional)
         compressed_context = ""
         compression_ratio = 0.0
-        
+
         if raw_telemetry is not None:
             try:
                 compressed_context = self.inject_functorial_context(
@@ -2310,7 +2312,7 @@ class MICAgent:
             "audit_seed_hash": audit_seed.compute_hash(),
             "protocol_version": ENCAPSULATION_PROTOCOL_VERSION,
         }
-        
+
         if compressed_context:
             context["compressed_context"] = compressed_context
 
@@ -2322,7 +2324,7 @@ class MICAgent:
                 stratum.name,
                 status.value
             )
-            
+
             return CategoricalState(
                 payload={},
                 context=context,
@@ -2337,7 +2339,7 @@ class MICAgent:
 
         # Estado exitoso
         new_validated = validated_strata | frozenset([stratum])
-        
+
         return CategoricalState(
             payload=dict(llm_output),
             context=context,
@@ -2360,10 +2362,10 @@ class MICAgent:
             "impedance_status": status.value,
             "protocol_version": ENCAPSULATION_PROTOCOL_VERSION,
         }
-        
+
         if stratum:
             context["target_stratum"] = stratum.name
-        
+
         return CategoricalState(
             payload={},
             context=context,
@@ -2376,6 +2378,36 @@ class MICAgent:
     # PROYECCIÓN HACIA MIC (continuará...)
     # -------------------------------------------------------------------------
 
+
+    def f_star_inverse_image(self, llm_input: Any, target_vector: str, validated_strata: FrozenSet[Stratum], context_hashes: Optional[FrozenSet[str]] = None, raw_telemetry: Optional[PayloadType] = None) -> CategoricalState:
+        # Colapso si el input es None (Objeto Inicial)
+        if llm_input is None:
+            return self._create_error_state(target_vector, ImpedanceMatchStatus.SCHEMA_VALIDATION_ERROR, "Colapso de Límite Vacío", validated_strata).with_error("Colapso de Límite Vacío", details={"reason": "NullProductFibrado"})
+
+        state = self.encapsulate_monad(target_vector=target_vector, llm_output=llm_input, validated_strata=validated_strata, context_hashes=context_hashes, raw_telemetry=raw_telemetry)
+
+        # Colapso si el resultado es exitoso pero no contiene información (Identidad Vacía)
+        if state.is_success and not state.payload and isinstance(llm_input, (dict, list)) and not llm_input:
+             return state.with_error("Colapso de Límite Vacío", details={"reason": "NullProductFibrado"})
+        return state
+
+    def f_lower_star_direct_image(self, state: CategoricalState) -> Dict[str, Any]:
+        if state.is_failed: return {"verdict": "REJECTED", "reason": state.error}
+        return {"verdict": "ACCEPTED", "payload": state.payload, "hash": state.compute_hash()}
+
+    def verify_adjunction(self, X_llm: Any, Y_emic: CategoricalState) -> bool:
+        try:
+            f_star_X = self.f_star_inverse_image(X_llm, "topology_core", frozenset())
+            f_lower_star_Y = self.f_lower_star_direct_image(Y_emic)
+            return (f_star_X.is_success == (f_lower_star_Y["verdict"] == "ACCEPTED"))
+        except: return False
+
+    def characteristic_morphism(self, state: CategoricalState) -> SchemaValidationResult:
+        if state.is_failed: return SchemaValidationResult.failure(state.error or "UnknownError", penalty=1.0)
+        frustration = state.context.get("forensic_evidence", {}).get("frustration_energy", 0.0)
+        validity = max(0.0, 1.0 - frustration)
+        return SchemaValidationResult(validity_degree=validity, frustration_ideal=frustration, path="$")
+
     def execute_projection(
         self,
         target_vector: str,
@@ -2383,18 +2415,18 @@ class MICAgent:
         validated_strata: FrozenSet[Stratum],
         context_hashes: Optional[FrozenSet[str]] = None,
         raw_telemetry: Optional[PayloadType] = None,
-        force_override: bool = False,
+
     ) -> Dict[str, Any]:
         """
         Ejecuta proyección completa con escudo inmunológico.
-        
+
         Pipeline:
         1. Auditoría de haces celulares (si WISDOM)
         2. Encapsulación monádica (T)
         3. Pre-escudo inmunológico (F_immune ∘ T)
         4. Proyección MIC
         5. Post-escudo inmunológico
-        
+
         Propiedades Funtoriales:
         F_total = F_post ∘ F_MIC ∘ F_pre ∘ T
         F_total(id) = id
@@ -2403,10 +2435,10 @@ class MICAgent:
         # FASE 1: Auditoría de Cohomología de Haces (si WISDOM)
         forensic_evidence = None
         sheaf_error = None
-        
+
         try:
             stratum = self.sense_stratum(target_vector)
-            
+
             if stratum == Stratum.WISDOM and raw_telemetry is not None:
                 sheaf_obj = (
                     raw_telemetry.get("cellular_sheaf")
@@ -2418,16 +2450,16 @@ class MICAgent:
                     if isinstance(raw_telemetry, dict)
                     else None
                 )
-                
+
                 if sheaf_obj and global_state is not None:
                     orchestrator = SheafCohomologyOrchestrator()
-                    
+
                     try:
                         assessment = orchestrator.audit_global_state(
                             sheaf_obj,
                             global_state
                         )
-                        
+
                         forensic_evidence = {
                             "frustration_energy": assessment.frustration_energy,
                             "h0_dimension": assessment.h0_dimension,
@@ -2435,21 +2467,21 @@ class MICAgent:
                             "residual_norm": assessment.residual_norm,
                             "spectral_method": assessment.spectral_method,
                         }
-                    
+
                     except SheafCohomologyError as e:
                         sheaf_error = e
                         forensic_evidence = {
                             "error_type": e.__class__.__name__,
                             "message": str(e)
                         }
-                        
+
                         # Capturar Laplaciano degenerado si existe
                         try:
                             L = sheaf_obj.compute_sheaf_laplacian()
                             forensic_evidence["degenerate_laplacian"] = L.toarray().tolist()
                         except Exception:
                             pass
-        
+
         except StratumResolutionError:
             pass  # Continuar sin auditoría
 
@@ -2460,7 +2492,7 @@ class MICAgent:
             validated_strata=validated_strata,
             context_hashes=context_hashes,
             raw_telemetry=raw_telemetry,
-            force_override=force_override,
+
         )
 
         # Inyectar evidencia forense
@@ -2468,7 +2500,7 @@ class MICAgent:
             categorical_state = categorical_state.with_update(
                 new_context={"forensic_evidence": forensic_evidence}
             )
-            
+
             if categorical_state.is_failed and not categorical_state.forensic_evidence:
                 categorical_state = categorical_state.with_error(
                     error_msg=categorical_state.error,
@@ -2491,13 +2523,13 @@ class MICAgent:
 
         # FASE 3: Pre-Escudo Inmunológico (F_immune ∘ T)
         protected_state = self._immune_watcher(categorical_state)
-        
+
         if protected_state.is_failed:
             logger.warning(
                 "Proyección abortada en pre-escudo: %s",
                 protected_state.error
             )
-            
+
             return {
                 "status": "VETO",
                 "impedance_status": protected_state.error,
@@ -2513,13 +2545,13 @@ class MICAgent:
         # FASE 4: Proyección MIC
         try:
             stratum = self.sense_stratum(target_vector)
-            
+
             logger.info(
                 "Proyectando a MIC: vector=%s estrato=%s",
                 target_vector,
                 stratum.name
             )
-            
+
             mic_result = self._mic.project_intent(
                 target_basis_vector=target_vector,
                 stratum_target=stratum.value,
@@ -2533,7 +2565,7 @@ class MICAgent:
                 new_payload=mic_result,
                 merge_payload=False,
             )
-            
+
             # Actualizar telemetría post-proyección
             updated_telemetry = mic_result.get("telemetry_metrics", raw_telemetry)
             if updated_telemetry is not None:
@@ -2544,13 +2576,13 @@ class MICAgent:
 
             # FASE 6: Post-Escudo Inmunológico
             final_protected_state = self._immune_watcher(post_state)
-            
+
             if final_protected_state.is_failed:
                 logger.warning(
                     "Post-proyección abortada por fuga dimensional: %s",
                     final_protected_state.error
                 )
-                
+
                 return {
                     "status": "VETO",
                     "impedance_status": final_protected_state.error,
@@ -2579,13 +2611,13 @@ class MICAgent:
 
         except Exception as e:
             logger.exception("Error en proyección MIC")
-            
+
             # Registrar error en auditoría
             try:
                 stratum = self.sense_stratum(target_vector)
             except Exception:
                 stratum = Stratum.PHYSICS
-            
+
             error_seed = CategoricalEqualizerSeed(
                 target_vector=target_vector,
                 target_stratum=stratum,
@@ -2595,7 +2627,7 @@ class MICAgent:
                 validation_errors=(str(e),),
             )
             self._audit_trail.append(error_seed)
-            
+
             return {
                 "status": "ERROR",
                 "impedance_status": ImpedanceMatchStatus.MIC_RESOLUTION_ERROR.value,
@@ -2624,7 +2656,7 @@ class MICAgent:
     def verify_functorial_properties(self) -> Dict[str, bool]:
         """
         Verifica propiedades funtoriales del agente.
-        
+
         Checks:
         - Componentes inicializados
         - Preservación de identidades
@@ -2643,7 +2675,7 @@ class MICAgent:
     def health_report(self) -> str:
         """
         Reporte de salud del agente.
-        
+
         Incluye:
         - Estado de componentes
         - Estadísticas de auditoría
@@ -2652,7 +2684,7 @@ class MICAgent:
         props = self.verify_functorial_properties()
         stats = self.get_audit_statistics()
         compression_stats = self._toon_compressor.get_statistics()
-        
+
         lines = [
             "🔷 MIC AGENT — DIAGNÓSTICO",
             "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
@@ -2666,19 +2698,19 @@ class MICAgent:
             "  ",
             "  COMPONENTES:",
         ]
-        
+
         for prop, ok in props.items():
             symbol = "✓" if ok else "✗"
             lines.append(f"    [{symbol}] {prop}")
-        
+
         lines.extend([
             "  ",
             "  DISTRIBUCIÓN POR STATUS:",
         ])
-        
+
         for status, count in stats.get("status_distribution", {}).items():
             lines.append(f"    {status:30s} : {count}")
-        
+
         return "\n".join(lines)
 
     def __repr__(self) -> str:
@@ -2704,18 +2736,18 @@ __all__ = [
     "SiloAccessError",
     "ProjectionError",
     "FunctorialityError",
-    
+
     # Enumeraciones
     "ImpedanceMatchStatus",
     "ValidationSeverity",
-    
+
     # Dataclasses
     "SchemaValidationResult",
     "CategoricalEqualizerSeed",
     "TOONDocument",
     "SiloAContract",
     "SiloBCartridge",
-    
+
     # Clases principales
     "SchemaValidator",
     "AlgebraicVetoRegistry",
@@ -2723,13 +2755,13 @@ __all__ = [
     "TOONCompressor",
     "AuditTrail",
     "MICAgent",
-    
+
     # Utilidades
     "MathUtils",
     "normalize_stratum",
     "python_type_matches",
     "compute_json_path",
-    
+
     # Constantes
     "MAX_AUDIT_TRAIL_SIZE",
     "TOON_START_MARKER",

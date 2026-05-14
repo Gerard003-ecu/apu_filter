@@ -989,19 +989,19 @@ class SubspaceSpec:
         # Proyección ponderada por estrés
         delta = (sv - self.reference) / S_p
         
-        # Métrica perturbada
+        # Métrica perturbada vía Producto de Hadamard (Difeomorfismo Categórico)
+        # G_tilde = G * [I + gamma * diag(S_p)]
         if self.metric.is_diagonal:
-            G_diag = self.metric.to_array()  # 1D
+            G_diag = self.metric.to_array() # 1D
             tilde_G_diag = G_diag * (1.0 + gamma * S_p)
             maha_sq = np.sum(delta * delta * tilde_G_diag)
         else:
-            base_G = self.metric.to_array()  # 2D
+            base_G = self.metric.to_array() # 2D
+            # Deformación mediante Hadamard exclusivamente
             perturbation = np.eye(len(S_p)) + gamma * np.diag(S_p)
-            tilde_G = base_G @ perturbation
-            
-            # Forzar simetría
+            tilde_G = base_G * perturbation
+            # Re-simetrización para preservar la variedad
             tilde_G = (tilde_G + tilde_G.T) * 0.5
-            
             maha_sq = float(delta @ tilde_G @ delta)
         
         # Amenaza ponderada
@@ -1192,11 +1192,8 @@ class OrthogonalProjector:
     """
     Proyector ortogonal π: ℝⁿ → ⊕V_k con propiedades verificadas.
     
-    Invariantes algebraicos:
-    1. Idempotencia: π_k² = π_k
-    2. Auto-adjunción: π_k^T = π_k
-    3. Ortogonalidad: π_i π_j = 0 si i ≠ j
-    4. Cobertura: Σ_k π_k = I_n
+    Funtor Ortogonal Adaptativo (F_perp):
+    F_perp(pi) = pi ⊙ diag(S_p^-1)
     """
     
     __slots__ = (
@@ -1242,7 +1239,15 @@ class OrthogonalProjector:
         
         # Construir métrica global
         self._build_global_tensor()
-    
+
+    def f_perp(self, pi: NDArray[np.float64], stress: NDArray[np.float64]) -> NDArray[np.float64]:
+        """
+        Aplica el Funtor Ortogonal Adaptativo mediante producto de Hadamard.
+        """
+        # S_p^-1 para endurecimiento
+        inv_stress = 1.0 / np.maximum(stress, EPS)
+        return pi * inv_stress
+
     def _validate_and_build(self, cache_projections: bool) -> None:
         """
         Verifica propiedades algebraicas y construye matrices de proyección.
@@ -2064,41 +2069,63 @@ class ImmuneWatcherMorphism(Morphism):
     def _evolve_metric_tensors_ricci_flow(
         self,
         telemetry: Dict[str, Any],
-        dt: float = RICCI_FLOW_DT
+        psi: NDArray[np.float64],
+        dt: float = RICCI_FLOW_DT,
+        gamma: float = 0.1
     ) -> None:
         """
-        Evolución de Ricci Flow: ∂_t g_{μν} = -2 Ric_{μν}.
-        
-        Discretización: g^{n+1} = g^n - 2 dt Ric^n
-        Regularización: Tikhonov espectral para mantener SPD
+        Evolución asintótica mediante el Flujo de Ricci (Estabilización del Espacio de Fase).
+        G_k(t + Δt) = G_k(t) - 2·Δt·Ric(G_k(t)) + γ·diag(S_p(ψ))
         """
         Ric_P, Ric_T, Ric_Th = self._compute_discrete_ricci_curvature(telemetry)
         
-        # Actualización Euler hacia atrás
-        self._metric_tensors_state["G_PHYSICS"] -= 2 * dt * Ric_P
-        self._metric_tensors_state["G_TOPOLOGY"] -= 2 * dt * Ric_T
-        self._metric_tensors_state["G_THERMODYNAMICS"] -= 2 * dt * Ric_Th
+        # Funtor de membrana para estrés topológico Sp
+        membrane = IsolatingMembraneFunctor(p=1.5, eps=EPS)
+        S_p_full = membrane.compute_topological_stress(psi)
         
-        # Regularización espectral para mantener SPD
+        # Extraemos sub-vectores de estrés
+        S_p_P = S_p_full[0:3]
+        S_p_T = S_p_full[3:5]
+        S_p_Th = S_p_full[5:7]
+
+        # Actualización mediante Euler Explícito Axiomático
+        self._metric_tensors_state["G_PHYSICS"] = (
+            self._metric_tensors_state["G_PHYSICS"]
+            - 2 * dt * Ric_P
+            + gamma * np.diag(S_p_P)
+        )
+        self._metric_tensors_state["G_TOPOLOGY"] = (
+            self._metric_tensors_state["G_TOPOLOGY"]
+            - 2 * dt * Ric_T
+            + gamma * np.diag(S_p_T)
+        )
+        self._metric_tensors_state["G_THERMODYNAMICS"] = (
+            self._metric_tensors_state["G_THERMODYNAMICS"]
+            - 2 * dt * Ric_Th
+            + gamma * np.diag(S_p_Th)
+        )
+
+        # Regularización Espectral y Verificación de κ(G) <= 1e14
         for key in self._metric_tensors_state:
             G = self._metric_tensors_state[key]
+            G = (G + G.T) * 0.5 # Simetría
             
-            # Forzar simetría
-            G = (G + G.T) * 0.5
-            
-            # Descomposición espectral
             eigvals, eigvecs = np.linalg.eigh(G)
-            min_eig = np.min(eigvals)
+            lam_min = np.min(eigvals)
+            lam_max = np.max(eigvals)
             
-            # Regularizar si necesario
-            if min_eig < MIN_EIGVAL_TOL:
-                delta = max(0.0, MIN_EIGVAL_TOL - min_eig)
-                G_reg = eigvecs @ np.diag(eigvals + delta) @ eigvecs.T
-                self._metric_tensors_state[key] = (G_reg + G_reg.T) * 0.5
-            else:
-                self._metric_tensors_state[key] = G
+            # Protección contra singularidades (κ <= 1e14)
+            cond_num = lam_max / max(lam_min, EPS)
+            if cond_num > COND_NUM_TOL:
+                # Regularización Tikhonov forzada para restaurar el difeomorfismo
+                delta = lam_max / COND_NUM_TOL - lam_min
+                eigvals += max(delta, MIN_EIGVAL_TOL)
+                G = eigvecs @ np.diag(eigvals) @ eigvecs.T
+                G = (G + G.T) * 0.5
+
+            self._metric_tensors_state[key] = G
         
-        # Reconstruir proyector con métricas actualizadas
+        # Re-acoplamiento del proyector
         self._projector = self._build_projector()
     
     def __call__(self, state: CategoricalState) -> CategoricalState:
@@ -2117,12 +2144,12 @@ class ImmuneWatcherMorphism(Morphism):
             # Extraer telemetría
             telemetry = state.context.get("telemetry_metrics", {})
             
-            # Evolucionar métricas (Ricci Flow)
-            self._evolve_metric_tensors_ricci_flow(telemetry or {})
-            
-            # Construir señal
+            # Construir señal ψ antes del flujo para obtener S_p
             signal = build_signal(telemetry or {}, strict=False)
             
+            # Evolucionar métricas (Flujo de Ricci asintótico)
+            self._evolve_metric_tensors_ricci_flow(telemetry or {}, signal)
+
             # Proyectar y evaluar
             assessment = self._projector.project(
                 signal,
