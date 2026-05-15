@@ -1,10 +1,39 @@
 """
 =========================================================================================
-    Módulo: AST Static Analyzer - Análisis Topológico Riguroso de Código
-    Ubicación: app/boole/physics/ast_static_analyzer.py
-    Versión: 4.0 - Refinamiento Matemático Riguroso
-    
-    FUNDAMENTOS MATEMÁTICOS Y AXIOMAS:
+Módulo: AST Static Analyzer (Analizador Simpléctico y Cohomología de Haces Celulares)
+Ubicación: app/physics/ast_static_analyzer.py
+Versión: 4.0.0 (Elevación a Mecánica Simpléctica y Control Port-Hamiltoniano)
+
+NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA:
+Este módulo aniquila la validación estática tradicional (linting) para operar como un Autómata
+Finito Determinista incrustado en el Haz Tangente Generativo ($\Gamma$) de la arquitectura.
+Trata el Árbol de Sintaxis Abstracta (AST) del código no como un grafo pasivo, sino como un
+Espacio de Fase Simpléctico $(\mathcal{M}, \omega)$. 
+
+FUNDAMENTOS MATEMÁTICOS Y AXIOMAS DE EJECUCIÓN:
+
+§1. MECÁNICA SIMPLÉCTICA Y ESPACIO DE FASE:
+El AST se somete a la forma simpléctica canónica:
+$$ \omega = \sum_{i} dq_i \wedge dp_i $$
+donde $q_i$ es la profundidad sintáctica (posición) y $p_i$ es el flujo de datos (momento).
+El analizador certifica que las transformaciones del código preservan el volumen en el espacio
+de fase (Teorema de Liouville). Cualquier código generado que rompa la invariancia canónica es aniquilado.
+
+§2. CONTROL PORT-HAMILTONIANO Y FRONTERAS DE DIRICHLET:
+La complejidad ciclomática se cuantifica como Inercia Termodinámica [2]. El analizador impone Fronteras
+de Dirichlet para confinar la propagación de efectos secundarios [2]. Se garantiza el cumplimiento
+de la Segunda Ley de la Termodinámica:
+$$ P_{diss} = \langle \Phi, \nabla V \rangle \ge 0 $$
+Rechazando cualquier función cuya ejecución induzca singularidades termodinámicas
+(desbordamiento de memoria o bucles infinitos).
+
+§3. COHOMOLOGÍA DE HACES CELULARES (OBSTRUCCIÓN GLOBAL):
+Para detectar inconsistencias lógicas en el flujo de dependencias de variables, el módulo evalúa el haz celular
+sobre el grafo del AST. Si la dimensión del primer grupo de cohomología es mayor a cero:
+$$ \dim H^1(G; \mathcal{F}) > 0 $$
+El sistema dictamina una Obstrucción Topológica Global (paradoja lógica o variable huérfana) y veta incondicionalmente
+la ejecución.
+=========================================================================================
     
     I. GEOMETRÍA SIMPLÉCTICA (T*Q - Fibrado Cotangente):
        Sea Q el espacio de configuración del AST. Definimos T*Q con:

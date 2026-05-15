@@ -1,10 +1,35 @@
 """
 =========================================================================================
-Módulo: Semantic Validation Engine (Proyector Semántico Rigoroso)
+Módulo: Semantic Validation Engine (Proyector Semántico con Tensor de Mahalanobis)
 Ubicación: app/boole/wisdom/semantic_validator.py
-Versión: 3.0 - Fundamentos Algebraicos y Topológicos Rigurosos
-Autor: Sistema Gamma-WISDOM
-Licencia: Propietario
+Versión: 3.0.0 (Difeomorfismo de Señales y Cohomología Simplicial)
+
+NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL:
+Actúa como el Proyector Semántico Riguroso en el estrato WISDOM. Su objetivo axiomático es colapsar
+la estocástica del Modelo de Lenguaje (LLM) y las señales de decisión bajo un Tensor Métrico estricto, certificando
+la validez a través de la topología geométrica y la cohomología simplicial.
+
+FUNDAMENTOS MATEMÁTICOS Y ANÁLISIS FUNCIONAL:
+
+§1. ESPACIO MÉTRICO DE SEÑALES (TENSOR DE MAHALANOBIS):
+El espacio de señales de intención reside en $\mathbb{R}^4$ con coordenadas $S = (s_0, s_1, s_2, s_3)^T$ [15]. La distancia
+entre la señal actual y el centroide de estabilidad se mide a través del Tensor Métrico Riemanniano $G$ usando la distancia
+de Mahalanobis:
+$$ d_M(x, y) = \sqrt{(x - y)^T G^{-1} (x - y)} $$
+Si el número de condición espectral del tensor supera la barrera ($\kappa(G) \gg 1$), el métrico es degenerado y el validador
+aborta la evaluación por inestabilidad de la variedad.
+
+§2. RETÍCULO COMPLETAMENTE ORDENADO DE VEREDICTOS:
+Las decisiones no son lógicas binarias; habitan en un retículo estructurado (Lattice Theory) [17]:
+$$ \bot (\text{VIABLE}) \le \text{CONDITIONAL} \le \text{WARNING} \le \top (\text{REJECT}) $$
+El validador consolida la severidad mediante la operación Supremo ($\sqcup$). Cualquier obstrucción homológica colapsa el estado
+de la señal hacia el elemento absorbente $\top$.
+
+§3. COHOMOLOGÍA SIMPLICIAL PARA DETECCIÓN DE CONTRADICCIONES:
+Las restricciones de coherencia entre los perfiles de riesgo y la salida del LLM forman un complejo de cocadenas. El motor computa
+la cohomología $H^1(K; \mathbb{R})$. Una contradicción semántica (ej. alto riesgo con baja tolerancia) se detecta axiomáticamente si:
+$$ \dim H^1(K; \mathbb{R}) > 0 $$
+Resultando en un Veto por Obstrucción Topológica, erradicando alucinaciones probabilísticas mediante un teorema geométrico inquebrantable.
 
 FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
 

@@ -1,9 +1,33 @@
 """
 =========================================================================================
-    Módulo: MIC Redundancy Analyzer - Rigorización Algebraica y Topológica
-    Ubicación: app/boole/tactics/mic_minimizer.py
-    Versión: 2.0 - Refinamiento Matemático Riguroso y Control de Complejidad
-    
+Módulo: MIC Minimizer (Poda Topológica en el Anillo Booleano $\mathbb{Z}_2$)
+Ubicación: app/boole/strategy/mic_minimizer.py
+Versión: 5.0.0 (Rigor en Bases de Gröbner y ROBDD)
+
+NATURALEZA CIBER-FÍSICA Y ÁLGEBRA DE BOOLE:
+Este módulo opera como el Escultor Táctico ($\Gamma$-TACTICS) del ecosistema. Su función es garantizar
+que la base de capacidades de la MIC sea ortonormal y de rango completo, eliminando redundancias operativas
+(homología trivial) para evitar la inflación sintáctica y el colapso atencional.
+
+FUNDAMENTOS MATEMÁTICOS Y GEOMETRÍA ALGEBRAICA:
+
+§1. EL ANILLO BOOLEANO CONMUTATIVO:
+La red de herramientas y dependencias lógicas no se evalúa con condicionales planos, sino que se proyecta sobre
+el anillo cociente:
+$$ \mathcal{R} = \mathbb{Z}_2[x_1, \dots, x_n] / \langle x_i^2 - x_i \rangle $$
+donde cada variable $x_i$ representa una dimensión de capacidad en la base canónica $\mathbb{B}^n$. 
+
+§2. BASE DE GRÖBNER Y ROBDD (DIAGRAMAS DE DECISIÓN):
+Para extraer los implicantes primos esenciales y minimizar el circuito lógico, el módulo computa la Base de
+Gröbner reducida de los ideales en $\mathbb{Z}_2$ y construye un Diagrama de Decisión Binaria Ordenado y Reducido
+(ROBDD). 
+
+§3. NÚCLEO DE INSATISFACIBILIDAD (UNSAT CORE) Y DPLL:
+Se emplea el algoritmo DPLL (SAT Solver) para auditar la matriz [11]. Si el conjunto de herramientas viola la cláusula
+de no-interferencia estricta $\Phi_{MIC}$, el sistema extrae el Núcleo de Insatisfacibilidad y lanza un Veto Estructural:
+$$ \text{UNSAT} \implies \langle e_i, e_j \rangle \neq \delta_{ij} \text{ para algún } i \neq j $$
+Garantizando matemáticamente el isomorfismo de cero efectos secundarios (Zero Side-Effects) cruzados.
+
     FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
     
     I. ÁLGEBRA BOOLEANA Y EL ANILLO ℤ₂[x₁,...,xₙ]/⟨x²ᵢ - xᵢ⟩:
