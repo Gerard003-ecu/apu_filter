@@ -35,6 +35,18 @@ import json
 import logging
 import sys
 import time
+import os
+import decimal
+
+# Fase 1: Esterilización del Vacío Termodinámico y Condicionamiento Numérico
+os.environ['OMP_NUM_THREADS'] = '1'
+os.environ['MKL_NUM_THREADS'] = '1'
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
+# Cuantización Decimal
+decimal.getcontext().prec = 50
+decimal.getcontext().rounding = decimal.ROUND_HALF_EVEN
+
 import pytest
 from typing import Any, Dict, FrozenSet, List, Optional, Tuple
 from dataclasses import asdict
@@ -1417,7 +1429,7 @@ class TestCategoricalRegistry:
         def handler(**kwargs) -> Dict[str, Any]:
             return {}
         
-        m = AtomicVector("test", Stratum.TACTICS, handler)
+        m = AtomicVector("test_morphism", Stratum.TACTICS, handler)
         registry.register_morphism("test_morphism", m)
         
         retrieved = registry.get_morphism("test_morphism")

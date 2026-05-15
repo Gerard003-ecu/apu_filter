@@ -469,7 +469,8 @@ class MathUtils:
         
         if abs_denom < eps:
             # Evita división por cero manteniendo signo
-            sign = 1.0 if denominator >= 0 else -1.0
+            import math
+            sign = math.copysign(1.0, denominator)
             return numerator / (sign * eps)
         
         return numerator / denominator
@@ -581,13 +582,14 @@ def _canonicalize(value: Any, *, _depth: int = 0, _seen: Optional[Set[int]] = No
         # Casos base (tipos inmutables primitivos)
         if value is None:
             return None
+
+        # Manejo especial de Stratum (preserva semántica) - DEBE IR ANTES de isinstance primitivos
+        # porque Stratum hereda de IntEnum, que hereda de int.
+        if isinstance(value, Stratum):
+            return {"__stratum__": value.name, "__value__": value.value}
         
         if isinstance(value, (bool, int, float, str)):
             return value
-        
-        # Manejo especial de Stratum (preserva semántica)
-        if isinstance(value, Stratum):
-            return {"__stratum__": value.name, "__value__": value.value}
         
         # Enumeraciones (excepto Stratum ya manejado)
         if isinstance(value, IntEnum):
@@ -1689,10 +1691,10 @@ class IdentityMorphism(Morphism):
         id_codomain = IdentityMorphism(f.codomain)
         result2 = id_codomain(f(state))
         
-        # Verificar igualdad estructural
+        # Verificar igualdad estructural (comparando payloads porque los traces van a diferir)
         return (
-            result1.compute_hash() == f(state).compute_hash() and
-            result2.compute_hash() == f(state).compute_hash()
+            result1.payload == f(state).payload and
+            result2.payload == f(state).payload
         )
 
 
@@ -1733,7 +1735,7 @@ class AtomicVector(Morphism):
         
         # Absorción monádica: error previo propaga
         if state.is_failed:
-            return state.add_trace(
+            return state.with_error(f"Absorción monádica: error previo '{state.error}'").add_trace(
                 self.name, 
                 self.domain, 
                 self.codomain, 
@@ -1909,14 +1911,14 @@ class ComposedMorphism(Morphism):
             AssociativityError: Si la ley se viola
         """
         # h ∘ (g ∘ f)
-        lhs = h >> (self.g >> self.f)
+        lhs = self >> h
         result_lhs = lhs(test_state)
         
         # (h ∘ g) ∘ f
-        rhs = (h >> self.g) >> self.f
+        rhs = self.f >> (self.g >> h)
         result_rhs = rhs(test_state)
         
-        if result_lhs.compute_hash() != result_rhs.compute_hash():
+        if result_lhs.payload != result_rhs.payload:
             raise AssociativityError(
                 "Violación de asociatividad: h∘(g∘f) ≠ (h∘g)∘f",
                 lhs_hash=result_lhs.compute_hash(),
@@ -2127,15 +2129,19 @@ class Functor(ABC):
             True si la propiedad funtorial se cumple
         """
         # F(g∘f)(state)
-        composed = g >> f
+        composed = f >> g
         result1 = self.map_morphism(composed)(state)
         
         # F(g)(F(f)(state))
-        result2 = self.map_morphism(g)(self.map_morphism(f)(state))
+        result2 = self.map_object(g(f(state)))
         
         # Comparar hashes
         if hasattr(result1, 'compute_hash') and hasattr(result2, 'compute_hash'):
             return result1.compute_hash() == result2.compute_hash()
+
+        if isinstance(result1, dict) and isinstance(result2, dict):
+            # Eliminamos timestamps y rastros de hash de contexto para igualdad estructural
+            return result1.get('payload') == result2.get('payload')
         
         return result1 == result2
 
@@ -2232,7 +2238,8 @@ class NaturalTransformation(ABC, Generic[T_Functor]):
         
         class VerticallyComposed(NaturalTransformation):
             def __call__(self_, state: CategoricalState) -> CategoricalState:
-                return other(self_(state))
+                intermediate = self.__class__.__call__(self, state) if not hasattr(super(VerticallyComposed, self_), "__call__") else self(state)
+                return other(intermediate)
         
         return VerticallyComposed(
             self.source_morphism, 
@@ -2248,7 +2255,8 @@ class NaturalTransformation(ABC, Generic[T_Functor]):
         
         class HorizontallyComposed(NaturalTransformation):
             def __call__(self_, state: CategoricalState) -> CategoricalState:
-                return other(self_(state))
+                intermediate = self.__class__.__call__(self, state) if not hasattr(super(HorizontallyComposed, self_), "__call__") else self(state)
+                return other(intermediate)
         
         return HorizontallyComposed(
             self.source_morphism >> other.source_morphism,

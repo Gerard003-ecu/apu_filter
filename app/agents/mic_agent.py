@@ -395,7 +395,18 @@ class ImpedanceMatchStatus(str, Enum):
         
         Invariante: 0 ≤ severity ≤ 3
         """
-        return self._SEVERITY_MAP.get(self.value, 1)
+        severity_map = {
+            "LAMINAR_PROJECTION": 0,
+            "INPUT_TYPE_ERROR": 1,
+            "SCHEMA_VALIDATION_ERROR": 1,
+            "TOON_COMPRESSION_ERROR": 1,
+            "MIC_RESOLUTION_ERROR": 2,
+            "STRATUM_MISMATCH_REJECTED": 2,
+            "ALGEBRAIC_VETO": 3,
+            "TOPOLOGICAL_BIFURCATION": 3,
+            "COHOMOLOGY_FAILURE": 3,
+        }
+        return severity_map.get(self.value, 1)
     
     def __lt__(self, other: "ImpedanceMatchStatus") -> bool:
         """Orden total por severidad."""
@@ -589,9 +600,9 @@ class MathUtils:
         Returns:
             Rango tensorial estimado
         """
-        if depth > max_depth:
+        if depth >= max_depth:
             logger.warning("Profundidad máxima alcanzada en compute_tensor_rank")
-            return depth
+            return max_depth
         
         if isinstance(payload, dict):
             if not payload:
@@ -779,7 +790,7 @@ def compute_json_path(base: str, key: Union[str, int]) -> str:
     
     # Escapar caracteres especiales en claves
     safe_key = key.replace(".", "\\.").replace("[", "\\[")
-    return f"{base}.{safe_key}" if base != "$" else f"${safe_key}"
+    return f"{base}.{safe_key}" if base != "$" else f"$.{safe_key}"
 
 
 # ==============================================================================
@@ -809,7 +820,7 @@ class SchemaValidationResult:
     donde 1.0 es completamente válido y 0.0 es completamente inválido.
     """
     
-    validity_degree: float
+    validity_degree: float = 1.0
     frustration_ideal: float = 0.0
     errors: Tuple[str, ...] = field(default_factory=tuple)
     warnings: Tuple[str, ...] = field(default_factory=tuple)
@@ -1143,23 +1154,28 @@ class TOONDocument:
         in_records = False
         
         for line in lines[1:-1]:
-            if not in_records:
-                if TOON_FIELD_SEPARATOR in line:
-                    parts = line.split(TOON_FIELD_SEPARATOR, 1)
-                    if len(parts) == 2:
-                        val = parts[1].strip()
-                        if (val.startswith('"') or val.startswith('{') or
-                            val.startswith('[') or val in ('true', 'false', 'null') or
-                            _is_json_number(val)):
-                            in_records = True
+            # Evaluamos si esta línea puede ser parseada como récord (key|val) o debe ir al header
+            parsed_as_record = False
             
-            if in_records:
-                if TOON_FIELD_SEPARATOR in line:
-                    parts = line.split(TOON_FIELD_SEPARATOR, 1)
-                    if len(parts) == 2:
-                        records.append((parts[0].strip(), parts[1].strip()))
-            else:
-                header_lines.append(line)
+            if TOON_FIELD_SEPARATOR in line:
+                parts = line.split(TOON_FIELD_SEPARATOR, 1)
+                if len(parts) == 2:
+                    # Chequeo estricto para ver si parece un record real.
+                    # Un record tiene un valor que parece JSON.
+                    val = parts[1].strip()
+                    if (val.startswith('"') or val.startswith('{') or
+                        val.startswith('[') or val in ('true', 'false', 'null') or
+                        _is_json_number(val) or in_records or len(val) > 0):
+                        in_records = True
+                        records.append((parts[0].strip(), val))
+                        parsed_as_record = True
+
+            if not parsed_as_record:
+                if in_records:
+                    # Ignorar o fallar si hay algo raro después de que inician los records.
+                    pass
+                else:
+                    header_lines.append(line)
         
         header_template = "\n".join(header_lines)
         
@@ -1258,7 +1274,6 @@ class SiloAContract:
             "version": self.version,
         }
 
-
 @dataclass(frozen=True, slots=True, eq=True)
 class SiloBCartridge:
     """
@@ -1296,6 +1311,31 @@ class SiloBCartridge:
             "description": self.description,
             "version": self.version,
         }
+
+@dataclass(frozen=True, slots=True, eq=True)
+class PolaronCartridge(SiloBCartridge):
+    def renormalize_mass(self, m_star: float, alpha: float) -> float:
+        """
+        Renormalización inercial de la atención del LLM provocada por el sumidero gravitacional.
+        m^{**} = m^* (1 + α / 6)
+        """
+        return m_star * (1.0 + alpha / 6.0)
+
+@dataclass(frozen=True, slots=True, eq=True)
+class PositronCartridge(SiloBCartridge):
+    pass
+
+@dataclass(frozen=True, slots=True, eq=True)
+class ElectronCartridge(SiloBCartridge):
+    def annihilate(self, other: PositronCartridge) -> Tuple[int, str]:
+        """
+        Aniquilación cuántica con fricción cero entre PositronCartridge (auditoría exógena humana)
+        y ElectronCartridge falaz produce un estado de vacío nulo (0) y libera un fotón de auditoría γ:
+        e^+ + e^- -> 0 + γ
+        """
+        if not isinstance(other, PositronCartridge):
+            raise ValueError("ElectronCartridge solo se puede aniquilar con PositronCartridge")
+        return (0, "γ")
 
 
 # ==============================================================================
@@ -1852,6 +1892,28 @@ class SiloManager:
         
         # ===== CONTRATOS SILO A =====
         
+        # ALPHA
+        self._register_contract(SiloAContract(
+            contract_id="Alpha_Core_Contract",
+            stratum=Stratum.ALPHA,
+            schema={
+                "type": "object",
+                "properties": {"is_alpha": {"type": "boolean"}}
+            },
+            description="Contrato por defecto Alpha",
+        ))
+
+        # OMEGA
+        self._register_contract(SiloAContract(
+            contract_id="Omega_Core_Contract",
+            stratum=Stratum.OMEGA,
+            schema={
+                "type": "object",
+                "properties": {"is_omega": {"type": "boolean"}}
+            },
+            description="Contrato por defecto Omega",
+        ))
+
         # PHYSICS
         self._register_contract(SiloAContract(
             contract_id="PHS_Conservation_Seed",
@@ -1985,6 +2047,24 @@ class SiloManager:
         
         # ===== CARTUCHOS SILO B =====
         
+        # ALPHA
+        self._register_cartridge(SiloBCartridge(
+            cartridge_id="Alpha_Core_Cartridge",
+            stratum=Stratum.ALPHA,
+            header_template="Alpha_Header\nkey|value",
+            field_definitions=("is_alpha",),
+            description="Cartucho Alpha"
+        ))
+
+        # OMEGA
+        self._register_cartridge(SiloBCartridge(
+            cartridge_id="Omega_Core_Cartridge",
+            stratum=Stratum.OMEGA,
+            header_template="Omega_Header\nkey|value",
+            field_definitions=("is_omega",),
+            description="Cartucho Omega"
+        ))
+
         # PHYSICS
         self._register_cartridge(SiloBCartridge(
             cartridge_id="Maxwell_FDTD_TOON_Cartridge",

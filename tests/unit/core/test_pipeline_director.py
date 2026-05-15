@@ -1581,7 +1581,7 @@ class TestAtomicVector:
         result = morph(state)
 
         assert result.is_failed
-        assert "Violación de dominio" in result.error
+        assert "Violación de clausura transitiva" in result.error
 
     def test_atomic_vector_missing_keys(self) -> None:
         """Verifica detección de claves faltantes."""

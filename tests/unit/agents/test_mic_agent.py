@@ -38,6 +38,18 @@ import json
 import logging
 import sys
 import time
+import os
+import decimal
+
+# Fase 1: Esterilización del Vacío Termodinámico y Condicionamiento Numérico
+os.environ['OMP_NUM_THREADS'] = '1'
+os.environ['MKL_NUM_THREADS'] = '1'
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
+# Cuantización Decimal
+decimal.getcontext().prec = 50
+decimal.getcontext().rounding = decimal.ROUND_HALF_EVEN
+
 import pytest
 import threading
 from typing import Any, Dict, FrozenSet, List, Optional, Tuple
@@ -81,6 +93,9 @@ from app.agents.mic_agent import (
     TOONDocument,
     SiloAContract,
     SiloBCartridge,
+    PolaronCartridge,
+    PositronCartridge,
+    ElectronCartridge,
     
     # Clases principales
     SchemaValidator,
@@ -729,10 +744,10 @@ class TestSchemaValidationResult:
     
     def test_schema_validation_result_error_property(self) -> None:
         """Propiedad error (primer error)."""
-        result = SchemaValidationResult(errors=("e1", "e2", "e3"))
+        result = SchemaValidationResult(validity_degree=0.0, errors=("e1", "e2", "e3"))
         assert result.error == "e1"
         
-        result = SchemaValidationResult(errors=())
+        result = SchemaValidationResult(validity_degree=1.0, errors=())
         assert result.error is None
     
     def test_schema_validation_result_to_dict(self) -> None:
@@ -1138,6 +1153,29 @@ class TestSiloContractsAndCartridges:
         assert d["cartridge_id"] == "test"
         assert d["field_definitions"] == ["f1", "f2"]
         assert d["version"] == "1.5.0"
+
+    def test_silo_physics_particle_interactions(self) -> None:
+        """
+        Para el PolaronCartridge, verifique la renormalización inercial de la atención del LLM:
+        m^{**} = m^* (1 + \\frac{\\alpha}{6})
+        Para la aniquilación entre un PositronCartridge (auditoría exógena) y un ElectronCartridge falaz, aserte el retorno al estado de vacío:
+        e^+ + e^- \\rightarrow 0 + \\gamma
+        """
+        if Stratum is None:
+            pytest.skip("Stratum no disponible")
+
+        polaron = PolaronCartridge("polaron1", Stratum.PHYSICS, "Header")
+        m_star = 1.0
+        alpha = 0.6
+        m_renormalized = polaron.renormalize_mass(m_star, alpha)
+        assert MathUtils.float_equal(m_renormalized, m_star * (1.0 + alpha / 6.0))
+
+        positron = PositronCartridge("pos1", Stratum.PHYSICS, "Header")
+        electron = ElectronCartridge("elec1", Stratum.PHYSICS, "Header")
+
+        result, photon = electron.annihilate(positron)
+        assert result == 0
+        assert photon == "γ"
 
 
 # ==============================================================================
