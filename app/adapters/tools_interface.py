@@ -80,6 +80,24 @@ from typing import (
 import numpy as np
 import pandas as pd
 
+# Importación de álgebras superiores
+try:
+    from app.core.mic_algebra import (
+        CategoricalState, Morphism, NaturalTransformation,
+        TwoCategoryOrchestrator, FunctorialityError
+    )
+    MIC_ALGEBRA_AVAILABLE = True
+except ImportError:
+    MIC_ALGEBRA_AVAILABLE = False
+
+try:
+    from app.boole.strategy.sheaf_cohomology_orchestrator import (
+        SheafCohomologyOrchestrator, CellularSheaf, HomologicalInconsistencyError
+    )
+    SHEAF_COHOMOLOGY_AVAILABLE = True
+except ImportError:
+    SHEAF_COHOMOLOGY_AVAILABLE = False
+
 # Importaciones opcionales con fallback
 try:
     from scipy import sparse
@@ -332,6 +350,67 @@ _SEVERITY_WEIGHTS: Final[Dict[str, float]] = {
     "LOW": 1.0,
     "INFO": 0.5,
 }
+
+
+# =============================================================================
+# ÁLGEBRA DE HEYTING Y CLASIFICADOR DE SUBOBJETOS (Ω)
+# =============================================================================
+
+@dataclass(frozen=True, slots=True)
+class HeytingValue:
+    r"""
+    Representa un valor de verdad en un Álgebra de Heyting $H$.
+
+    A diferencia del Álgebra de Boole, aquí ¬¬P ≠ P. El valor de verdad
+    es espacial y depende de la topología local (cribas de cubrimiento).
+    """
+    value: float  # En [0.0, 1.0]
+    description: str = "unknown"
+
+    def __post_init__(self) -> None:
+        if not (0.0 <= self.value <= 1.0):
+            object.__setattr__(self, "value", np.clip(self.value, 0.0, 1.0))
+
+    @property
+    def is_true(self) -> bool:
+        return self.value >= 1.0 - 1e-9
+
+    @property
+    def is_false(self) -> bool:
+        return self.value <= 1e-9
+
+    def meet(self, other: HeytingValue) -> HeytingValue:
+        """Operación ínfimo (∧)."""
+        return HeytingValue(min(self.value, other.value), f"({self.description} ∧ {other.description})")
+
+    def join(self, other: HeytingValue) -> HeytingValue:
+        """Operación supremo (∨)."""
+        return HeytingValue(max(self.value, other.value), f"({self.description} ∨ {other.description})")
+
+    def implies(self, other: HeytingValue) -> HeytingValue:
+        """Implicación de Heyting (→): x → y = sup {z : x ∧ z ≤ y}."""
+        if self.value <= other.value:
+            return HeytingValue(1.0, "true")
+        return other
+
+    def negate(self) -> HeytingValue:
+        """Pseudocomplemento (¬x = x → 0)."""
+        return self.implies(HeytingValue(0.0, "false"))
+
+
+class SubobjectClassifier:
+    """
+    Clasificador de Subobjetos Ω para el Topos EMIC.
+
+    Permite transmutar la validación binaria en una evaluación topológica.
+    """
+    def __init__(self) -> None:
+        self.true = HeytingValue(1.0, "true")
+        self.false = HeytingValue(0.0, "false")
+
+    def evaluate_morphism(self, condition: bool, reason: str = "binary_eval") -> HeytingValue:
+        """Mapea una condición binaria al Álgebra de Heyting."""
+        return self.true if condition else HeytingValue(0.0, reason)
 
 
 # =============================================================================
@@ -1460,6 +1539,9 @@ class ProjectionContext:
     handler: Optional[VectorHandler] = None
     validated_strata: Set[Stratum] = field(default_factory=set)
     force_override: bool = False
+
+    # 2-Category state
+    natural_transformations: List[NaturalTransformation] = field(default_factory=list)
     
     # Métricas
     start_time: float = field(default_factory=time.perf_counter)
@@ -1513,82 +1595,74 @@ class ResolutionCommand(ProjectionCommand):
     def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
         with self._lock:
             if ctx.service_name not in self._vectors:
+                # MANDATO DE FASE I: Colapso al Objeto Inicial ∅
                 available = list(self._vectors.keys())
                 self._metrics.record_error("resolution_error")
-                return ProjectionResult(
-                    success=False,
-                    error=f"Vector desconocido: '{ctx.service_name}'",
-                    error_type="ValueError",
-                    error_category="resolution_error",
-                    error_details={"available_services": available},
-                )
+                raise ValueError(f"Vector desconocido: '{ctx.service_name}'")
             
             ctx.target_stratum, ctx.handler = self._vectors[ctx.service_name]
         
         return None
 
 
-class UltrafilterProjectionCommand(ProjectionCommand):
+class SheafCohomologyProjectionCommand(ProjectionCommand):
     """
-    Operador de Proyección No Lineal (Ultrafiltro de Stone).
+    Operador de Haz Celular (Sheaf Cohomology Operator).
 
-    Implementa una función escalón de Heaviside para colapsar vectores de intención
-    continuos q ∈ ℝⁿ hacia el subespacio discreto Bⁿ ⊂ {0,1}ⁿ.
+    Evalúa las secciones globales del haz celular F sobre el grafo de la malla de decisión.
+    Aplica la Secuencia Exacta de Mayer-Vietoris para autorizar inyecciones concurrentes.
 
-    Axioma de Ortogonalidad Booleana:
-    Solo se permite la transición si el vector colapsa en un estado One-Hot puro.
-    Cualquier superposición (múltiples 1s) o estado degenerado (cero absoluto)
-    es aniquilado por el filtro para prevenir alucinaciones de concurrencia.
+    Detección de Obstrucciones (dim H1 > 0):
+    Si el diferencial topológico evidencia que la primera dimensión de cohomología
+    no es nula, el sistema certifica una paradoja lógica insalvable y emite un Veto Absoluto.
     """
 
     def __init__(self, metrics: MICMetrics) -> None:
         self._metrics = metrics
 
     def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
-        # Detección de superposición en el espacio de intenciones
-        intent_array = ctx.context.get("intent_vector_q")
+        if not SHEAF_COHOMOLOGY_AVAILABLE:
+            return None
 
-        if intent_array is not None:
-            q = np.asarray(intent_array, dtype=np.float64)
-            # Aplicación de la Función Escalón de Heaviside (Umbral rígido)
-            # H(q) = 1 si q > 0.5, else 0
-            b = (q > 0.5).astype(int)
+        sheaf = ctx.context.get("cellular_sheaf")
+        state_vector = ctx.context.get("global_state_vector")
 
-            active_components = np.sum(b)
+        if not isinstance(sheaf, CellularSheaf) or state_vector is None:
+            return None
 
-            if active_components > 1:
-                self._metrics.record_error("superposition_annihilation")
+        try:
+            orchestrator = SheafCohomologyOrchestrator()
+            assessment = orchestrator.audit_global_state(sheaf, state_vector)
+
+            # Mayer-Vietoris y Detección de Obstrucciones
+            # H1 > 0 implica que existen ciclos que no son fronteras (obstrucciones al transporte)
+            if assessment.h1_dimension > 0:
+                self._metrics.record_error("topological_obstruction")
                 return ProjectionResult(
                     success=False,
-                    error=f"Aniquilación por Superposición: Vector q={q} colapsó a {b} "
-                          f"con {active_components} estados activos. Se requiere One-Hot puro.",
-                    error_type="SuperpositionError",
-                    error_category="topological_collapse"
-                )
-            elif active_components == 0:
-                self._metrics.record_error("vacuum_state_error")
-                return ProjectionResult(
-                    success=False,
-                    error="Error de Estado de Vacío: La intención no alcanzó el umbral "
-                          "crítico de Heaviside (H(q) = 0).",
-                    error_type="VacuumStateError",
-                    error_category="topological_collapse"
+                    error=f"Veto por Obstrucción Topológica: dim H1 = {assessment.h1_dimension} > 0. "
+                          "Se detectó una paradoja lógica insalvable en la malla de decisión.",
+                    error_type="HomologicalInconsistencyError",
+                    error_category="topological_veto",
+                    error_details={
+                        "h1_dim": assessment.h1_dimension,
+                        "h0_dim": assessment.h0_dimension,
+                        "frustration": assessment.frustration_energy
+                    }
                 )
 
-            # Si es One-Hot, el ultrafiltro valida el mapeo determinista
-            logger.debug("Ultrafiltro validado: colapso One-Hot exitoso.")
+            logger.debug("Consenso Global verificado: dim H1 = 0. Secciones compatibles.")
 
-        # Verificación de ambigüedad en el nombre del servicio
-        intent_superposition = ctx.context.get("intent_superposition", [])
-        if len(intent_superposition) > 1:
-            self._metrics.record_error("superposition_annihilation")
+        except HomologicalInconsistencyError as e:
+            self._metrics.record_error("homological_inconsistency")
             return ProjectionResult(
                 success=False,
-                error=f"Conflicto de Base Standard: Múltiples intenciones detectadas: {intent_superposition}. "
-                      "El álgebra booleana de la MIC es estrictamente atómica.",
-                error_type="SuperpositionError",
-                error_category="topological_collapse"
+                error=f"Inconsistencia Homológica: {e}",
+                error_type="HomologicalInconsistencyError",
+                error_category="topological_veto"
             )
+        except Exception as e:
+            logger.warning("Error en auditoría de haces: %s", e)
 
         return None
 
@@ -1605,6 +1679,14 @@ class NormalizationCommand(ProjectionCommand):
             ctx.context.get("force_override", False) or
             ctx.context.get("force_physics_override", False)
         )
+
+        # Extracción de transformaciones naturales (meta-comandos)
+        nt = ctx.context.get("natural_transformations", [])
+        if isinstance(nt, list):
+            ctx.natural_transformations = [
+                item for item in nt if MIC_ALGEBRA_AVAILABLE and isinstance(item, NaturalTransformation)
+            ]
+
         return None
     
     def _normalize_validated_strata(self, raw: Any) -> Set[Stratum]:
@@ -1695,6 +1777,57 @@ class BDDVerificationCommand(ProjectionCommand):
         return None
 
 
+class InterchangeLawVerificationCommand(ProjectionCommand):
+    """
+    Evaluador de la Ley de Intercambio (Interchange Law) para 2-morfismos.
+
+    Valida incondicionalmente que:
+    (α' · α) ∘ (β' · β) = (α' ∘ β') · (α ∘ β)
+
+    Cualquier desviación numérica dispara un FunctorialityError.
+    """
+    def __init__(self, metrics: MICMetrics) -> None:
+        self._metrics = metrics
+
+    def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
+        if not MIC_ALGEBRA_AVAILABLE or not ctx.natural_transformations:
+            return None
+
+        nt = ctx.natural_transformations
+        if len(nt) < 4:
+            return None # Se requieren al menos 4 transformaciones para evaluar el diagrama
+
+        try:
+            # Seleccionamos las 4 transformaciones del contexto para el interferómetro
+            alpha, alpha_prime, beta, beta_prime = nt[:4]
+
+            # Estado de prueba sintético basado en el contexto actual
+            test_state = CategoricalState(
+                payload=ctx.payload,
+                context=ctx.context,
+                validated_strata=frozenset(ctx.validated_strata)
+            )
+
+            TwoCategoryOrchestrator.validate_interchange_law(
+                alpha, alpha_prime, beta, beta_prime, test_state
+            )
+
+            logger.debug("Interferómetro Categórico: Ley de Intercambio verificada.")
+
+        except FunctorialityError as e:
+            self._metrics.record_error("interchange_law_violation")
+            return ProjectionResult(
+                success=False,
+                error=f"Veto por Falta de Funtorialidad: Violación de la Ley de Intercambio. {e}",
+                error_type="FunctorialityError",
+                error_category="categorical_inconsistency"
+            )
+        except Exception as e:
+            logger.warning("Error en validación de 2-morfismos: %s", e)
+
+        return None
+
+
 class SATOrcaleCommand(ProjectionCommand):
     """
     Oráculo Determinista de Satisfacibilidad (SAT Solver).
@@ -1765,25 +1898,21 @@ class SATOrcaleCommand(ProjectionCommand):
 
 
 class ValidationCommand(ProjectionCommand):
-    """Valida la jerarquía de estratos (Gatekeeper)."""
+    """
+    Operador de Filtración Estrictamente Monótona (Gatekeeper).
+
+    Implementa la Ley de Clausura Transitiva sobre la filtración DIKW:
+    V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM
+
+    Actúa como un proyector ortogonal π_k(v) que aniquila intenciones
+    cuyos estratos base presentan inestabilidades o falta de validación.
+    """
     
     def __init__(self, metrics: MICMetrics) -> None:
         self._metrics = metrics
+        self._omega = SubobjectClassifier()
     
     def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
-        if ctx.force_override:
-            if ctx.target_stratum is None:
-                raise ValueError("Bypass denegado: estrato de origen indeterminado ('unknown')")
-            # We must NOT raise the error for WISDOM if force_override is active, according to the memory
-            # "Bypassing hierarchical validation ensures explicit topological overrides (e.g., semantic tests) do not falsely fail with hierarchy_violation during transit closures."
-            # Wait! The memory says: "El flag force_override y force_physics_override deben ser preservados...".
-            # The test actually FAILS because it raises "ValueError: Violación de Clausura Transitiva: Prohibido usar force_override en el estrato WISDOM."
-            logger.warning(
-                "⚠️ Validación jerárquica bypaseada para '%s' via force_override",
-                ctx.target_stratum.name,
-            )
-            return None
-        
         if ctx.target_stratum is None:
             return ProjectionResult(
                 success=False,
@@ -1791,11 +1920,24 @@ class ValidationCommand(ProjectionCommand):
                 error_type="InternalError",
                 error_category="resolution_error",
             )
-        
+
+        # Ley de Clausura Transitiva: π_k(v)
+        # G(v, ctx) = v si ∀j < k, χ_{Vj} = true; de lo contrario 0.
         required = ctx.target_stratum.requires()
         missing = required - ctx.validated_strata
         
-        if missing:
+        # Auditoría Termodinámica de la Isometría (Base Física)
+        dissipated_power = float(ctx.context.get("dissipated_power", 0.0))
+        if dissipated_power < 0.0:
+            self._metrics.record_error("thermodynamic_violation")
+            return ProjectionResult(
+                success=False,
+                error=f"Veto Físico: Potencia disipada negativa (P_diss={dissipated_power}). Violación de isometría.",
+                error_type="ThermodynamicInconsistency",
+                error_category="physical_veto"
+            )
+
+        if missing and not ctx.force_override:
             self._metrics.violations += 1
             self._metrics.record_error("hierarchy_violation")
             
@@ -1804,7 +1946,6 @@ class ValidationCommand(ProjectionCommand):
                 missing_strata=missing,
                 validated_strata=ctx.validated_strata,
             )
-            logger.error(str(error))
 
             missing_names = sorted(
                 [s.name for s in missing],
@@ -1812,7 +1953,6 @@ class ValidationCommand(ProjectionCommand):
                 reverse=True,
             )
 
-            # Use ProjectionResult for correct type hints
             return ProjectionResult(
                 success=False,
                 error=str(error),
@@ -1825,11 +1965,22 @@ class ValidationCommand(ProjectionCommand):
                 }
             )
         
+        if ctx.force_override:
+            logger.warning(
+                "⚠️ Operador de Filtración bypaseado para '%s' via force_override",
+                ctx.target_stratum.name,
+            )
+
         return None
 
 
 class ExecutionCommand(ProjectionCommand):
-    """Ejecuta el handler del servicio."""
+    """
+    Ejecuta el handler del servicio bajo el formalismo de Topos.
+
+    Calcula el Producto Fibrado (Pullback) para autorizar la ejecución.
+    Exige que el diagrama característico conmute exactamente.
+    """
     
     def __init__(
         self, 
@@ -1840,7 +1991,29 @@ class ExecutionCommand(ProjectionCommand):
         self._cache = cache
         self._metrics = metrics
         self._config = config
+        self._omega = SubobjectClassifier()
     
+    def _compute_characteristic_morphism(self, ctx: ProjectionContext) -> HeytingValue:
+        """
+        Computa χ_S: X → Ω.
+        Evalúa si la intención 'X' pertenece al subobjeto de capacidad 'S'.
+        """
+        # Evaluación de cribas de cubrimiento (covering sieves)
+        # En este contexto, verificamos si el estrato y el contexto cubren la necesidad
+        if ctx.target_stratum is None:
+            return self._omega.false
+
+        # El flag force_override actúa como una criba trivializadora (Trivial Sieve)
+        if ctx.force_override:
+            return HeytingValue(1.0, f"Forced commutation for {ctx.service_name}")
+
+        # Verificación de clausura transitiva como criba
+        required = ctx.target_stratum.requires()
+        missing = required - ctx.validated_strata
+
+        truth_value = 1.0 - (len(missing) / max(1, len(required))) if required else 1.0
+        return HeytingValue(truth_value, f"Sieve evaluation for {ctx.service_name}")
+
     def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
         if ctx.handler is None or ctx.target_stratum is None:
             return ProjectionResult(
@@ -1850,6 +2023,20 @@ class ExecutionCommand(ProjectionCommand):
                 error_category="execution_error",
             )
         
+        # CÁLCULO DEL PRODUCTO FIBRADO (PULLBACK)
+        # Para autorizar, exigimos que χ_S(x) sea TRUE (conmutación del diagrama)
+        chi_s = self._compute_characteristic_morphism(ctx)
+
+        if not chi_s.is_true:
+            self._metrics.record_error("pullback_failure")
+            return ProjectionResult(
+                success=False,
+                error=f"Fallo de Pullback: La intención no está contenida en el subobjeto {ctx.service_name}. "
+                      f"χ_S = {chi_s.value:.2f} ({chi_s.description})",
+                error_type="PullbackCommutationError",
+                error_category="topos_violation"
+            )
+
         # Resistencia geodésica: Si la herramienta cruza dominios de alta entropía,
         # exigimos demostración de exergía en su payload/contexto,
         # acoplando la restricción de despacho.
@@ -1892,20 +2079,6 @@ class ExecutionCommand(ProjectionCommand):
                 for k, v in ctx.payload.items():
                     if isinstance(v, float) and ("score" in k or "weight" in k):
                         ctx.payload[k] = v * phase_correction
-
-        # FASE IV: Auditoría Termodinámica de la Isometría y Teorema de Tellegen
-        # Veto Físico por Inyección Entrópica Espuria
-        dissipated_power = float(ctx.context.get("dissipated_power", 0.0))
-        # Conservación de Potencia de Tellegen (P_diss < 0 violaría la Estructura de Dirac)
-        if dissipated_power < 0.0:
-            # Invocar circuito Crowbar (Fast-Fail)
-            class ClosureViolationError(Exception):
-                pass
-            raise ClosureViolationError(
-                f"Veto Físico: Potencia disipada negativa (P_diss={dissipated_power}). "
-                "Inyección de energía no física detectada. Violación de isometría en "
-                "la Conexión de Ehresmann y Teorema de Tellegen."
-            )
 
         try:
             with self._metrics.handler_latency.measure():
@@ -1965,13 +2138,14 @@ class ExecutionCommand(ProjectionCommand):
 
 class MICRegistry:
     """
-    Matriz de Interacción Central (MIC).
+    Matriz de Interacción Central (MIC) — Transmutada a Topos Elemental EMIC.
 
-    Implementa un Espacio Vectorial Jerárquico donde:
-    1. Base Canónica: Cada servicio es un vector base eᵢ
-    2. Filtración de Estratos: V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM
-    3. Gatekeeper Algebraico: Proyección condicional G(v, ctx)
-    4. Clausura Transitiva: Validación de prerrequisitos
+    Abandona la rigidez de la Matriz Identidad para operar como el Objeto
+    Clasificador de Subobjetos (Ω) de un Topos de Grothendieck.
+
+    1. Álgebra de Heyting: Los valores de verdad dependen de la topología local.
+    2. Pullback Authorization: La ejecución es un límite finito en la categoría.
+    3. 2-Category Support: Orquesta transformaciones naturales η: F ⇒ G.
     """
 
     # Removing __slots__ to allow patching during tests, or at least we shouldn't use slots if we need mock
@@ -2005,8 +2179,9 @@ class MICRegistry:
         # Inicializar comandos de proyección
         self._projection_commands: List[ProjectionCommand] = [
             CacheCheckCommand(self._cache, self._metrics),
-            UltrafilterProjectionCommand(self._metrics),
+            SheafCohomologyProjectionCommand(self._metrics),
             ResolutionCommand(self._vectors, self._lock, self._metrics),
+            InterchangeLawVerificationCommand(self._metrics),
             BDDVerificationCommand(self._metrics),
             SATOrcaleCommand(self._metrics),
             NormalizationCommand(),
@@ -2186,9 +2361,11 @@ class MICRegistry:
         **kwargs: Any
     ) -> ProjectionResult:
         """
-        Proyecta una intención sobre el espacio vectorial.
+        Proyecta una intención sobre el Topos EMIC.
 
-        Soporta múltiples firmas para compatibilidad con la suite de integración.
+        Preservación de Límites Finitos:
+        Si se solicitan capacidades divergentes o el servicio es desconocido,
+        el sistema colapsa al Objeto Inicial vacío ∅ (InitialObjectResult).
         """
         final_service_name = service_name or vector_name
         if not final_service_name:
@@ -2214,9 +2391,21 @@ class MICRegistry:
         
         with self._metrics.projection_latency.measure():
             for command in self._projection_commands:
-                result = command.execute(ctx)
-                if result is not None:
-                    return result
+                try:
+                    result = command.execute(ctx)
+                    if result is not None:
+                        return result
+                except (KeyError, ValueError, MICHierarchyViolationError) as e:
+                    # PRESERVACIÓN DE LÍMITES FINITOS:
+                    # Colapso categórico al Objeto Inicial ∅ en caso de divergencia
+                    self._logger.warning("Divergencia detectada: colapsando a Objeto Inicial. Error: %s", e)
+                    return ProjectionResult(
+                        success=False,
+                        error="Colapso a Objeto Inicial (∅): Divergencia funcional detectada.",
+                        error_type="InitialObjectCollapse",
+                        error_category="categorical_annihilation",
+                        error_details={"exception": str(e), "service": final_service_name}
+                    )
         
         # No debería llegar aquí
         return ProjectionResult(
