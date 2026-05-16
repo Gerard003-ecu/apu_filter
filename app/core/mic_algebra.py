@@ -108,7 +108,6 @@ class AlgebraicError(Exception):
         super().__init__(message)
         self.context: Dict[str, Any] = context
         self.timestamp: float = time.time()
-    
     def to_dict(self) -> Dict[str, Any]:
         """Serialización para logging estructurado."""
         return {
@@ -450,20 +449,13 @@ class MathUtils:
         1. Resultado finito: |result| < ∞ ✓
         2. Signo preservado: sign(result) = sign(a) · sign(b) ✓
         3. Límite continuo: lim_{b→0} safe_divide(a, b) = a/ε · sign(b) ✓
-        
-        Args:
-            numerator: Numerador
-            denominator: Denominador (puede ser cero)
-            eps: Valor mínimo para evitar división por cero
-        
-        Returns:
-            Resultado de división garantizado finito
         """
         abs_denom = abs(denominator)
         
         if abs_denom < eps:
-            # Evita división por cero manteniendo signo
-            sign = 1.0 if denominator >= 0 else -1.0
+            # Evita división por cero manteniendo signo (incluyendo -0.0)
+            import math
+            sign = math.copysign(1.0, denominator)
             return numerator / (sign * eps)
         
         return numerator / denominator
@@ -576,12 +568,12 @@ def _canonicalize(value: Any, *, _depth: int = 0, _seen: Optional[Set[int]] = No
         if value is None:
             return None
         
-        if isinstance(value, (bool, int, float, str)):
-            return value
-        
         # Manejo especial de Stratum (preserva semántica)
         if isinstance(value, Stratum):
             return {"__stratum__": value.name, "__value__": value.value}
+
+        if isinstance(value, (bool, int, float, str)):
+            return value
         
         # Enumeraciones (excepto Stratum ya manejado)
         if isinstance(value, IntEnum):
@@ -878,7 +870,6 @@ class CompositionTrace:
         """
         domain_strata = sorted(self.input_domain, key=lambda s: s.value)
         return (self.output_codomain,) + tuple(domain_strata)
-    
     def to_dict(self) -> Dict[str, Any]:
         """
         Serialización JSON-compatible para persistencia.
@@ -1360,6 +1351,28 @@ class CategoricalState:
         }
         return _stable_hash(data)
     
+
+
+    def compute_semantic_hash(self) -> str:
+        r'''
+        Operador de Proyección Ortogonal $\pi_{sem}$ hacia el Espacio Cociente $S/\sim$.
+
+        Aisla la homología pura del estado aniquilando el subespacio de la traza temporal
+        y la evidencia forense no invariante:
+
+        $$ \pi_{sem}(S) = \text{Hash}(P \oplus V) \implies (S_1 \sim S_2 \implies \pi_{sem}(S_1) = \pi_{sem}(S_2)) $$
+
+        Donde:
+        - $P$: Payload semántico canónico.
+        - $V$: Estratos validados ($Validated Strata$).
+        '''
+        data = {
+            "payload": _canonicalize(self.payload),
+            "validated_strata": sorted(s.name for s in self.validated_strata),
+            "error": self.error,
+        }
+        return _stable_hash(data)
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Serialización completa JSON-compatible para persistencia.
@@ -1485,13 +1498,13 @@ class CategoricalState:
     
     def __hash__(self) -> int:
         """Hash basado en compute_hash para uso en colecciones."""
-        return hash(self.compute_hash())
+        return hash(self.compute_semantic_hash())
     
     def __eq__(self, other: object) -> bool:
         """Igualdad estructural basada en serialización."""
         if not isinstance(other, CategoricalState):
             return NotImplemented
-        return self.compute_hash() == other.compute_hash()
+        return self.compute_semantic_hash() == other.compute_semantic_hash()
 
 # ==============================================================================
 # FACTORY CON VALIDACIÓN ESTRUCTURAL
@@ -1576,7 +1589,7 @@ class Morphism(ABC):
     """
     
     def __init__(self, name: str = "") -> None:
-        self.name: str = name or self.__class__.__name__
+        self._name: str = name or self.__class__.__name__
         self._logger: logging.Logger = logging.getLogger(
             f"MIC.Morphism.{self.name}"
         )
@@ -1594,6 +1607,15 @@ class Morphism(ABC):
         """Codominio del morfismo (estrato de salida)."""
         ...
     
+    @property
+    def name(self) -> str:
+        """Nombre del morfismo."""
+        return self._name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self._name = value
+
     @property
     def call_count(self) -> int:
         """Número de veces que este morfismo ha sido ejecutado."""
@@ -1685,8 +1707,8 @@ class IdentityMorphism(Morphism):
         
         # Verificar igualdad estructural
         return (
-            result1.compute_hash() == f(state).compute_hash() and
-            result2.compute_hash() == f(state).compute_hash()
+            result1.compute_semantic_hash() == f(state).compute_semantic_hash() and
+            result2.compute_semantic_hash() == f(state).compute_semantic_hash()
         )
 
 
@@ -1727,12 +1749,12 @@ class AtomicVector(Morphism):
         
         # Absorción monádica: error previo propaga
         if state.is_failed:
-            return state.add_trace(
+            return state.with_error(f"Absorción: {state.error}").add_trace(
                 self.name, 
                 self.domain, 
                 self.codomain, 
                 success=False, 
-                error=f"Absorción monádica: error previo '{state.error}'",
+                error=f"Absorción: {state.error}",
                 metadata={"absorbed": True}
             )
         
@@ -1903,18 +1925,18 @@ class ComposedMorphism(Morphism):
             AssociativityError: Si la ley se viola
         """
         # h ∘ (g ∘ f)
-        lhs = h >> (self.g >> self.f)
+        lhs = self.f >> self.g >> h
         result_lhs = lhs(test_state)
         
         # (h ∘ g) ∘ f
-        rhs = (h >> self.g) >> self.f
+        rhs = self.f >> (self.g >> h)
         result_rhs = rhs(test_state)
         
-        if result_lhs.compute_hash() != result_rhs.compute_hash():
+        if result_lhs.compute_semantic_hash() != result_rhs.compute_semantic_hash():
             raise AssociativityError(
                 "Violación de asociatividad: h∘(g∘f) ≠ (h∘g)∘f",
-                lhs_hash=result_lhs.compute_hash(),
-                rhs_hash=result_rhs.compute_hash(),
+                lhs_hash=result_lhs.compute_semantic_hash(),
+                rhs_hash=result_rhs.compute_semantic_hash(),
                 morphisms=[self.f.name, self.g.name, h.name]
             )
         
@@ -2115,23 +2137,45 @@ class Functor(ABC):
         state: CategoricalState
     ) -> bool:
         """
-        Verifica que F(g∘f) = F(g)∘F(f).
+        Verifica la ley de funtorialidad covariante: F(g∘f) = F(g)∘F(f).
+
+        En C_MIC, la composición g∘f se representa como f >> g (f primero, luego g).
         
+        Args:
+            f: Primer morfismo a aplicar.
+            g: Segundo morfismo a aplicar.
+            state: Objeto (estado) de prueba.
+
         Returns:
-            True si la propiedad funtorial se cumple
+            True si F(g∘f)(state) ≡ (F(g)∘F(f))(state).
         """
         # F(g∘f)(state)
-        composed = g >> f
+        # Recordar: f >> g es la composición g ∘ f
+        composed = f >> g
         result1 = self.map_morphism(composed)(state)
         
-        # F(g)(F(f)(state))
+        # (F(g)∘F(f))(state) = F(g)(F(f)(state))
         result2 = self.map_morphism(g)(self.map_morphism(f)(state))
         
-        # Comparar hashes
-        if hasattr(result1, 'compute_hash') and hasattr(result2, 'compute_hash'):
-            return result1.compute_hash() == result2.compute_hash()
-        
-        return result1 == result2
+        # Comparar resultados bajo el Proyector Semántico π_sem
+        # Esto aniquila el subespacio de la traza (entropía temporal)
+        def _pi_sem(obj: Any) -> Any:
+            if hasattr(obj, "compute_semantic_hash"):
+                return obj.compute_semantic_hash()
+
+            if isinstance(obj, dict):
+                # Si el diccionario tiene estructura de estado, proyectamos invariantes
+                if "payload" in obj and "validated_strata" in obj:
+                    return {
+                        "p": _canonicalize(obj.get("payload")),
+                        "v": sorted(obj.get("validated_strata", [])),
+                        "e": obj.get("error")
+                    }
+                return _canonicalize(obj)
+
+            return obj
+
+        return _pi_sem(result1) == _pi_sem(result2)
 
 
 class StateToDictFunctor(Functor):
@@ -2150,8 +2194,11 @@ class StateToDictFunctor(Functor):
     def map_morphism(
         self, 
         f: Morphism
-    ) -> Callable[[CategoricalState], Dict[str, Any]]:
-        return lambda s: f(s).to_dict()
+    ) -> Callable[[Union[CategoricalState, Dict[str, Any]]], Dict[str, Any]]:
+        def F_f(s: Union[CategoricalState, Dict[str, Any]]) -> Dict[str, Any]:
+            state = s if isinstance(s, CategoricalState) else CategoricalState.from_dict(s)
+            return f(state).to_dict()
+        return F_f
 
 
 # ==============================================================================
@@ -2207,7 +2254,7 @@ class NaturalTransformation(ABC, Generic[T_Functor]):
         # G(f) ∘ η_A
         rhs = f(self(state))
         
-        return lhs.compute_hash() == rhs.compute_hash()
+        return lhs.compute_semantic_hash() == rhs.compute_semantic_hash()
     
     def vertical_compose(
         self, 
@@ -2226,7 +2273,7 @@ class NaturalTransformation(ABC, Generic[T_Functor]):
         
         class VerticallyComposed(NaturalTransformation):
             def __call__(self_, state: CategoricalState) -> CategoricalState:
-                return other(self_(state))
+                return other(self(state))
         
         return VerticallyComposed(
             self.source_morphism, 
@@ -2242,7 +2289,7 @@ class NaturalTransformation(ABC, Generic[T_Functor]):
         
         class HorizontallyComposed(NaturalTransformation):
             def __call__(self_, state: CategoricalState) -> CategoricalState:
-                return other(self_(state))
+                return other(self(state))
         
         return HorizontallyComposed(
             self.source_morphism >> other.source_morphism,
@@ -2534,6 +2581,7 @@ class CategoricalRegistry:
     def register_morphism(self, name: str, m: Morphism) -> None:
         """Registra un morfismo con nombre único."""
         with self._lock:
+            m.name = name
             self._morphisms[name] = m
     
     def register_composition(self, name: str, c: Morphism) -> None:
@@ -2632,13 +2680,13 @@ class TwoCategoryOrchestrator:
             res_lhs = lhs(test_state)
             res_rhs = rhs(test_state)
             
-            is_valid = res_lhs.compute_hash() == res_rhs.compute_hash()
+            is_valid = res_lhs.compute_semantic_hash() == res_rhs.compute_semantic_hash()
             
             if not is_valid:
                 raise FunctorialityError(
                     "Violación de la Ley de Intercambio en 2-categoría",
-                    lhs_hash=res_lhs.compute_hash(),
-                    rhs_hash=res_rhs.compute_hash(),
+                    lhs_hash=res_lhs.compute_semantic_hash(),
+                    rhs_hash=res_rhs.compute_semantic_hash(),
                 )
             
             return True
