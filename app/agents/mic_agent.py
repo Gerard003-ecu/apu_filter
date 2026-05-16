@@ -1,4 +1,4 @@
-"""
+r"""
 Módulo: MIC Agent (Morfismo Geométrico sobre Topos de Grothendieck)
 Ubicación: app/agents/mic_agent.py
 Versión: 3.0.0 (Elevación Ontológica a Espacios de Haces)
@@ -49,6 +49,11 @@ from abc import ABC, abstractmethod
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum, auto, unique
+
+# Constantes de compresión y rango
+MAX_TENSOR_RANK: int = 2
+MAX_TENSOR_RANK_DEPTH: int = 100
+
 from typing import (
     Any,
     Callable,
@@ -321,6 +326,19 @@ class FunctorialityError(MICAgentError):
 # ==============================================================================
 # ENUMERACIONES CON ORDEN TOTAL Y PROPIEDADES VERIFICADAS
 # ==============================================================================
+# Mapeo de severidad global para ImpedanceMatchStatus
+_IMPEDANCE_SEVERITY_MAP: Dict[str, int] = {
+    "LAMINAR_PROJECTION": 0,
+    "INPUT_TYPE_ERROR": 1,
+    "SCHEMA_VALIDATION_ERROR": 1,
+    "TOON_COMPRESSION_ERROR": 1,
+    "MIC_RESOLUTION_ERROR": 2,
+    "STRATUM_MISMATCH_REJECTED": 2,
+    "ALGEBRAIC_VETO": 3,
+    "TOPOLOGICAL_BIFURCATION": 3,
+    "COHOMOLOGY_FAILURE": 3,
+}
+
 @unique
 class ImpedanceMatchStatus(str, Enum):
     """
@@ -354,17 +372,7 @@ class ImpedanceMatchStatus(str, Enum):
     COHOMOLOGY_FAILURE = "COHOMOLOGY_FAILURE"
     
     # Mapeo de severidad (invariante: 0 ≤ severity ≤ 3)
-    _SEVERITY_MAP: ClassVar[Dict[str, int]] = {
-        "LAMINAR_PROJECTION": 0,
-        "INPUT_TYPE_ERROR": 1,
-        "SCHEMA_VALIDATION_ERROR": 1,
-        "TOON_COMPRESSION_ERROR": 1,
-        "MIC_RESOLUTION_ERROR": 2,
-        "STRATUM_MISMATCH_REJECTED": 2,
-        "ALGEBRAIC_VETO": 3,
-        "TOPOLOGICAL_BIFURCATION": 3,
-        "COHOMOLOGY_FAILURE": 3,
-    }
+
     
     @property
     def is_terminal(self) -> bool:
@@ -389,7 +397,7 @@ class ImpedanceMatchStatus(str, Enum):
         
         Invariante: 0 ≤ severity ≤ 3
         """
-        return self._SEVERITY_MAP.get(self.value, 1)
+        return _IMPEDANCE_SEVERITY_MAP.get(self.name, 1)
     
     def __lt__(self, other: "ImpedanceMatchStatus") -> bool:
         """Orden total por severidad."""
@@ -561,47 +569,34 @@ class MathUtils:
         max_depth: int = 100
     ) -> int:
         """
-        Rango tensorial (profundidad de anidamiento) con protección contra recursión infinita.
+        Calcula el rango tensorial de una estructura de datos con clamping de Lipschitz.
         
-        Definición Recursiva:
-        ====================
-        rank(scalar) = 0
-        rank(dict/list) = 1 + max(rank(child))
-        rank(∅) = depth + 1
-        
-        Invariantes:
-        ============
-        1. 0 ≤ rank ≤ max_depth ✓
-        2. Monotonicidad: depth₁ ≤ depth₂ ⟹ rank(depth₁) ≤ rank(depth₂) ✓
-        3. Terminación: recursión siempre termina (límite de profundidad) ✓
-        
-        Args:
-            payload: Estructura a analizar
-            depth: Profundidad actual (interno)
-            max_depth: Límite máximo de profundidad
-        
-        Returns:
-            Rango tensorial estimado
+        Definición:
+        - Escalares (int, float, str, bool): rank = 0
+        - Dict/List/Tuple: rank = 1 + max(rank(children))
+        - Clamping: rank <= max_depth
         """
-        if depth > max_depth:
-            logger.warning("Profundidad máxima alcanzada en compute_tensor_rank")
-            return depth
-        
-        if isinstance(payload, dict):
+        if depth >= max_depth:
+            logger.warning("Frontera de Lipschitz alcanzada en compute_tensor_rank")
+            return max_depth
+
+        if isinstance(payload, (dict, list, tuple)):
             if not payload:
-                return depth + 1
-            return max(
-                (MathUtils.compute_tensor_rank(v, depth + 1, max_depth) for v in payload.values()),
-                default=depth + 1
-            )
-        elif isinstance(payload, list):
-            if not payload:
-                return depth + 1
-            return max(
-                (MathUtils.compute_tensor_rank(v, depth + 1, max_depth) for v in payload),
-                default=depth + 1
-            )
-        return depth
+                return 1
+
+            children = payload.values() if isinstance(payload, dict) else payload
+            max_child_rank = 0
+            for child in children:
+                child_rank = MathUtils.compute_tensor_rank(child, depth + 1, max_depth)
+                if child_rank >= max_depth:
+                    return max_depth
+                if child_rank > max_child_rank:
+                    max_child_rank = child_rank
+
+            res = 1 + max_child_rank
+            return min(res, max_depth)
+
+        return 0
     
     @staticmethod
     def float_equal(
@@ -773,7 +768,7 @@ def compute_json_path(base: str, key: Union[str, int]) -> str:
     
     # Escapar caracteres especiales en claves
     safe_key = key.replace(".", "\\.").replace("[", "\\[")
-    return f"{base}.{safe_key}" if base != "$" else f"${safe_key}"
+    return f"{base}.{safe_key}"
 
 
 # ==============================================================================
@@ -803,8 +798,8 @@ class SchemaValidationResult:
     donde 1.0 es completamente válido y 0.0 es completamente inválido.
     """
     
-    validity_degree: float
     frustration_ideal: float = 0.0
+    validity_degree: float = 1.0
     errors: Tuple[str, ...] = field(default_factory=tuple)
     warnings: Tuple[str, ...] = field(default_factory=tuple)
     path: str = "$"
@@ -1131,30 +1126,24 @@ class TOONDocument:
                 details={"last_line": lines[-1]}
             )
         
-        # Separar header y records
+                # Separar header y records
         header_lines: List[str] = []
         records: List[Tuple[str, str]] = []
-        in_records = False
         
-        for line in lines[1:-1]:
-            if not in_records:
-                if TOON_FIELD_SEPARATOR in line:
-                    parts = line.split(TOON_FIELD_SEPARATOR, 1)
-                    if len(parts) == 2:
-                        val = parts[1].strip()
-                        if (val.startswith('"') or val.startswith('{') or
-                            val.startswith('[') or val in ('true', 'false', 'null') or
-                            _is_json_number(val)):
-                            in_records = True
+        # En el formato renderizado, la línea 1 es el header_template
+        # Las líneas siguientes hasta la penúltima son records si contienen el separador
+        # PERO debemos ser cuidadosos si el header_template tuviera el separador (improbable pero posible)
+
+        # Asumimos que la primera línea después del marcador de inicio es el header
+        if len(lines) > 2:
+            header_lines.append(lines[1])
             
-            if in_records:
-                if TOON_FIELD_SEPARATOR in line:
-                    parts = line.split(TOON_FIELD_SEPARATOR, 1)
-                    if len(parts) == 2:
-                        records.append((parts[0].strip(), parts[1].strip()))
+        for line in lines[2:-1]:
+            if TOON_FIELD_SEPARATOR in line:
+                parts = line.split(TOON_FIELD_SEPARATOR, 1)
+                records.append((parts[0].strip(), parts[1].strip()))
             else:
                 header_lines.append(line)
-        
         header_template = "\n".join(header_lines)
         
         return cls(
@@ -1842,11 +1831,29 @@ class SiloManager:
         self._verify_invariants()
     
     def _initialize_default_silos(self) -> None:
-        """Inicializa silos con contratos y cartuchos por defecto."""
+        """Inicializa silos con contratos y cartuchos base para todo el retículo DIKW."""
+        from app.core.mic_algebra import Stratum
         
-        # ===== CONTRATOS SILO A =====
+        # 1. Poblar todo el retículo con vectores base (Vacío Termodinámico ⊥)
+        for stratum in Stratum:
+            self._register_contract(
+                SiloAContract(
+                    stratum=stratum,
+                    contract_id=f"base_contract_{stratum.name.lower()}",
+                    schema={"type": "object", "properties": {}, "additionalProperties": True},
+                    version="1.0.0"
+                )
+            )
+            self._register_cartridge(
+                SiloBCartridge(
+                    stratum=stratum,
+                    cartridge_id=f"base_cartridge_{stratum.name.lower()}",
+                    header_template=f"Base {stratum.name} Cartridge",
+                    field_definitions=()
+                )
+            )
         
-        # PHYSICS
+        # 2. Registrar vectores específicos históricos (Silo A)
         self._register_contract(SiloAContract(
             contract_id="PHS_Conservation_Seed",
             stratum=Stratum.PHYSICS,
