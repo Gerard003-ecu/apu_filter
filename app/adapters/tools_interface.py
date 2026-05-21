@@ -764,6 +764,11 @@ class HeytingValue:
         if not isinstance(other, HeytingValue):
             return NotImplemented
         return abs(self.value - other.value) < 1e-9
+    def verify_absorption_law(self, other: HeytingValue) -> bool:
+        law1 = self.meet(self.join(other)) == self
+        law2 = self.join(self.meet(other)) == self
+        return law1 and law2
+
 
 
 class SubobjectClassifier:
@@ -2842,6 +2847,16 @@ class MICException(Exception):
         )
 
 
+class TopologicalInvariantError(MICException):
+    r"""Excepcion para violaciones de invariantes topologicos fundamentales."""
+    def __init__(self, message: str, **kwargs: Any) -> None:
+        super().__init__(message, details=kwargs, category="topological_invariance")
+
+class FunctorialityError(MICException):
+    r"""Excepcion para fallos en la preservacion de la estructura funtorial."""
+    def __init__(self, message: str, **kwargs: Any) -> None:
+        super().__init__(message, details=kwargs, category="categorical_consistency")
+
 class FileNotFoundDiagnosticError(MICException):
     """
     Excepción para archivos no encontrados durante diagnóstico.
@@ -4717,7 +4732,7 @@ def clean_file(
                 "output_path": str(output_p),
                 "input_path": str(input_p),
                 "message": "Limpieza completada exitosamente",
-                **result if isinstance(result, dict) else {},
+                **(result if isinstance(result, dict) else {})
             }
         
         # Fallback: limpieza básica sin CSVCleaner
@@ -5877,6 +5892,9 @@ class StratumTransitionMatrix:
                 j = self._idx[s_to]
                 T[i, j] = w
         
+                # REGULARIZACION DE TIKHONOV
+        alpha_reg = 0.85
+        T = alpha_reg * T + (1.0 - alpha_reg) / self._n * np.ones((self._n, self._n))
         return T
     
     def stationary_distribution(
@@ -7251,6 +7269,21 @@ class ExecutionCommand(ProjectionCommand):
             )
 
 
+
+class ErrorMonadAuditCommand(ProjectionCommand):
+    r"""Auditor de Clausura Transitiva de Monadas de Error (Fase 6)."""
+    __slots__ = ("_metrics",)
+    def __init__(self, metrics: MICMetrics) -> None:
+        self._metrics = metrics
+    def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
+        prev_entropy = float(ctx.context.get("previous_persistence_entropy", 0.0))
+        curr_entropy = float(ctx.context.get("current_persistence_entropy", 0.0))
+        if curr_entropy < prev_entropy - 1e-7:
+            self._metrics.record_error("entropy_monotonicity_violation")
+            logger.warning("Inversion de entropia detectada: %.4f < %.4f", curr_entropy, prev_entropy)
+        return None
+
+
 # =============================================================================
 # MATRIZ DE INTERACCIÓN CENTRAL (MICRegistry)
 # =============================================================================
@@ -7355,6 +7388,7 @@ class MICRegistry:
             BDDVerificationCommand(self._metrics),
             SATOrcaleCommand(self._metrics),
             NormalizationCommand(),
+            ErrorMonadAuditCommand(self._metrics),
             ValidationCommand(self._metrics),
             ExecutionCommand(self._cache, self._metrics, self._config),
         ]
@@ -7368,6 +7402,7 @@ class MICRegistry:
         """
         Lista de servicios registrados.
         
+        self._rho = np.eye(4, dtype=np.complex128) / 4.0 if NUMPY_AVAILABLE else None
         Returns:
             Lista de nombres de servicios (copias thread-safe).
         
@@ -8324,7 +8359,7 @@ def clean_file(
                 "output_path": str(output_p),
                 "input_path": str(input_p),
                 "message": "Limpieza completada exitosamente",
-                **result if isinstance(result, dict) else {},
+                **(result if isinstance(result, dict) else {})
             }
         
         # Fallback: limpieza básica sin CSVCleaner
@@ -9122,7 +9157,6 @@ __all__: Final[List[str]] = [
     # =========================================================================
     "get_diagnostic_class",
     "register_diagnostic_class",
-    "_DIAGNOSTIC_REGISTRY",
     
     # =========================================================================
     # HANDLERS DE LA MIC
