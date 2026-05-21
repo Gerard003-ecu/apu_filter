@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 =========================================================================================
 Módulo: Central Interaction Matrix (Topos de Grothendieck Elemental $\mathcal{E}_{MIC}$)
@@ -209,6 +210,27 @@ try:
     SHEAF_COHOMOLOGY_AVAILABLE = True
 except ImportError:
     class CellularSheaf: pass
+SEMANTIC_ESTIMATOR_AVAILABLE = False
+try:
+    from app.tactics.semantic_estimator import SemanticEstimatorService
+    SEMANTIC_ESTIMATOR_AVAILABLE = True
+except ImportError:
+    pass
+
+IMPROBABILITY_DRIVE_AVAILABLE = False
+try:
+    from app.omega.improbability_drive import ImprobabilityDriveService
+    IMPROBABILITY_DRIVE_AVAILABLE = True
+except ImportError:
+    pass
+
+SEMANTIC_DICTIONARY_AVAILABLE = False
+try:
+    from app.wisdom.semantic_dictionary import SemanticDictionaryService
+    SEMANTIC_DICTIONARY_AVAILABLE = True
+except ImportError:
+    pass
+
     class SheafCohomologyOrchestrator: pass
     class HomologicalInconsistencyError(Exception): pass
 
@@ -961,25 +983,6 @@ class SubobjectClassifier:
         return HeytingValue(membership, description)
 
 # =============================================================================
-# FIN DE FASE 1/6
-
-# =============================================================================
-# IMPORTACIONES DE FASE 1 (Estructuras Fundamentales)
-# =============================================================================
-# Nota: En la implementación real, estas clases estarían definidas en Fase 1
-# Aquí las importamos asumiendo que Fase 1 ya fue cargada en el namespace
-
-try:
-    from .tools_interface_phase1 import (
-        Stratum, HeytingValue, SubobjectClassifier, MICConfiguration,
-        DEFAULT_MIC_CONFIG, StructuredLoggerAdapter, get_structured_logger
-    )
-except ImportError:
-    # Fallback para testing standalone - las clases se definen inline
-    pass
-
-# Logger para esta fase
-logger = get_structured_logger("MIC.Phase2") if 'get_structured_logger' in globals() else logging.getLogger("MIC.Phase2")
 
 # =============================================================================
 # VARIABLES DE TIPO GENÉRICO (Type Variables)
@@ -2673,41 +2676,11 @@ class MICMetrics:
 
 
 # =============================================================================
-# FIN DE FASE 2/6
 # =============================================================================
-
+# TIPO DE ARCHIVO (FileType) - Clasificación Algebraica
 # =============================================================================
-# IMPORTACIONES DE FASES 1 Y 2 (Estructuras Fundamentales)
-# =============================================================================
-
-try:
-    from .tools_interface_phase1 import (
-        Stratum, HeytingValue, SubobjectClassifier, MICConfiguration,
-        DEFAULT_MIC_CONFIG, StructuredLoggerAdapter, get_structured_logger
-    )
-except ImportError:
-    # Fallback para testing standalone
-    pass
-
-try:
-    from .tools_interface_phase2 import (
-        PersistenceInterval, BettiNumbers, TopologicalSummary,
-        ProjectionResult, DiagnosticResult, CacheStats, LatencyStats,
-        IntentVector, TTLCache, LatencyHistogram, MICMetrics
-    )
-except ImportError:
-    # Fallback para testing standalone
-    pass
-
-# Logger para esta fase
-logger = get_structured_logger("MIC.Phase3") if 'get_structured_logger' in globals() else logging.getLogger("MIC.Phase3")
-
-# =============================================================================
-# TIPO DE ARCHIVO (FileType) — Clasificación Algebraica
-# =============================================================================
-
 class FileType(str, Enum):
-    """
+    r"""
     Tipos de archivo soportados para diagnóstico en la MIC.
     
     Fundamentación de Teoría de Tipos:
@@ -2735,7 +2708,7 @@ class FileType(str, Enum):
         FileType.values() contiene todos los tipos soportados.
         Cualquier valor fuera de este conjunto es inválido.
     
-    Referencia: PEP 435 — Enum Type; [4] Ch. 1, Type Theory
+    Referencia: PEP 435 - Enum Type; [4] Ch. 1, Type Theory
     """
     
     APUS = "apus"
@@ -3932,54 +3905,6 @@ def analyze_topological_features(
 
 
 # =============================================================================
-# FIN DE FASE 3/6
-# =============================================================================
-
-# =============================================================================
-# IMPORTACIONES DE FASES 1, 2 Y 3 (Estructuras Fundamentales)
-# =============================================================================
-
-try:
-    from .tools_interface_phase1 import (
-        Stratum, HeytingValue, SubobjectClassifier, MICConfiguration,
-        DEFAULT_MIC_CONFIG, StructuredLoggerAdapter, get_structured_logger
-    )
-except ImportError:
-    # Fallback para testing standalone
-    pass
-
-try:
-    from .tools_interface_phase2 import (
-        PersistenceInterval, BettiNumbers, TopologicalSummary,
-        ProjectionResult, DiagnosticResult, CacheStats, LatencyStats,
-        IntentVector, TTLCache, LatencyHistogram, MICMetrics
-    )
-except ImportError:
-    # Fallback para testing standalone
-    pass
-
-try:
-    from .tools_interface_phase3 import (
-        FileType, MICException, FileNotFoundDiagnosticError,
-        UnsupportedFileTypeError, FileValidationError, FilePermissionError,
-        CleaningError, MICHierarchyViolationError, TimeoutError,
-        compute_shannon_entropy, compute_persistence_entropy,
-        detect_cyclic_patterns, estimate_intrinsic_dimension,
-        analyze_topological_features, distribution_from_counts,
-        _SEVERITY_WEIGHTS, SUPPORTED_ENCODINGS, _ENCODING_ALIASES,
-        VALID_DELIMITERS, VALID_EXTENSIONS
-    )
-except ImportError:
-    # Fallback para testing standalone
-    pass
-
-# Logger para esta fase
-logger = get_structured_logger("MIC.Phase4") if 'get_structured_logger' in globals() else logging.getLogger("MIC.Phase4")
-
-# =============================================================================
-# VALIDACIÓN DE ARCHIVOS — FUNTOR DE VALIDACIÓN
-# =============================================================================
-
 def normalize_path(path: Union[str, Path, None]) -> Path:
     """
     Normaliza una ruta a Path absoluto y resuelto.
@@ -4807,12 +4732,12 @@ def clean_file(
         # Intentar usar CSVCleaner si está disponible
         if 'CSVCleaner' in globals() and CSVCleaner is not None:
             cleaner = CSVCleaner(
-                input_file=str(input_p),
-                output_file=str(output_p),
+                input_path=str(input_p),
+                output_path=str(output_p),
                 delimiter=delimiter,
                 encoding=normalized_encoding,
-                remove_duplicates=remove_duplicates,
-                normalize_whitespace=normalize_whitespace,
+
+
                 **kwargs
             )
             result = cleaner.clean()
@@ -5384,84 +5309,6 @@ def compute_diagnostic_magnitude(diagnostic_data: Dict[str, Any]) -> float:
     return round(normalized, 4)
 
 
-# =============================================================================
-# FIN DE FASE 4/6
-# =============================================================================
-
-# =============================================================================
-# IMPORTACIONES DE FASES 1-4 (Estructuras Fundamentales)
-# =============================================================================
-
-try:
-    from .tools_interface_phase1 import (
-        Stratum, HeytingValue, SubobjectClassifier, MICConfiguration,
-        DEFAULT_MIC_CONFIG, StructuredLoggerAdapter, get_structured_logger
-    )
-except ImportError:
-    pass
-
-try:
-    from .tools_interface_phase2 import (
-        PersistenceInterval, BettiNumbers, TopologicalSummary,
-        ProjectionResult, DiagnosticResult, CacheStats, LatencyStats,
-        IntentVector, TTLCache, LatencyHistogram, MICMetrics
-    )
-except ImportError:
-    pass
-
-try:
-    from .tools_interface_phase3 import (
-        FileType, MICException, FileNotFoundDiagnosticError,
-        UnsupportedFileTypeError, FileValidationError, FilePermissionError,
-        CleaningError, MICHierarchyViolationError, TimeoutError,
-        compute_shannon_entropy, compute_persistence_entropy,
-        detect_cyclic_patterns, estimate_intrinsic_dimension,
-        analyze_topological_features
-    )
-except ImportError:
-    pass
-
-try:
-    from .tools_interface_phase4 import (
-        normalize_path, validate_file_exists, validate_file_permissions,
-        validate_file_extension, validate_file_size, normalize_encoding,
-        normalize_file_type, get_diagnostic_class, _DIAGNOSTIC_REGISTRY,
-        analyze_financial_viability, clean_file, get_telemetry_status,
-        diagnose_file, compute_homology_from_diagnostic,
-        compute_persistence_diagram, compute_diagnostic_magnitude
-    )
-except ImportError:
-    pass
-
-# Logger para esta fase
-logger = get_structured_logger("MIC.Phase5") if 'get_structured_logger' in globals() else logging.getLogger("MIC.Phase5")
-
-# =============================================================================
-# DEPENDENCIAS NUMÉRICAS CON FALLBACK ROBUSTO
-# =============================================================================
-
-try:
-    import numpy as np
-    NUMPY_AVAILABLE = True
-except ImportError:
-    NUMPY_AVAILABLE = False
-    warnings.warn(
-        "numpy no disponible — análisis espectral usará fallback puro",
-        ImportWarning,
-        stacklevel=2
-    )
-
-try:
-    from scipy import sparse
-    from scipy.sparse.linalg import eigsh
-    SCIPY_SPARSE_AVAILABLE = True
-except ImportError:
-    SCIPY_SPARSE_AVAILABLE = False
-    warnings.warn(
-        "scipy.sparse no disponible — análisis espectral usará matrices densas",
-        ImportWarning,
-        stacklevel=2
-    )
 
 try:
     import z3
@@ -8009,649 +7856,6 @@ class MICRegistry:
 
 
 # =============================================================================
-# FIN DE FASE 5/6
-# =============================================================================
-
-# =============================================================================
-# IMPORTACIONES DE FASES 1-5 (Estructuras Fundamentales)
-# =============================================================================
-
-try:
-    from .tools_interface_phase1 import (
-        Stratum, HeytingValue, SubobjectClassifier, MICConfiguration,
-        DEFAULT_MIC_CONFIG, StructuredLoggerAdapter, get_structured_logger
-    )
-except ImportError:
-    # Fallback para testing standalone - importar desde módulo actual
-    pass
-
-try:
-    from .tools_interface_phase2 import (
-        PersistenceInterval, BettiNumbers, TopologicalSummary,
-        ProjectionResult, DiagnosticResult, CacheStats, LatencyStats,
-        IntentVector, TTLCache, LatencyHistogram, MICMetrics
-    )
-except ImportError:
-    pass
-
-try:
-    from .tools_interface_phase3 import (
-        FileType, MICException, FileNotFoundDiagnosticError,
-        UnsupportedFileTypeError, FileValidationError, FilePermissionError,
-        CleaningError, MICHierarchyViolationError, TimeoutError,
-        compute_shannon_entropy, compute_persistence_entropy,
-        detect_cyclic_patterns, estimate_intrinsic_dimension,
-        analyze_topological_features, distribution_from_counts,
-        _SEVERITY_WEIGHTS, SUPPORTED_ENCODINGS, _ENCODING_ALIASES,
-        VALID_DELIMITERS, VALID_EXTENSIONS
-    )
-except ImportError:
-    pass
-
-try:
-    from .tools_interface_phase4 import (
-        normalize_path, validate_file_exists, validate_file_permissions,
-        validate_file_extension, validate_file_size, normalize_encoding,
-        normalize_file_type, get_diagnostic_class, _DIAGNOSTIC_REGISTRY,
-        analyze_financial_viability, clean_file, get_telemetry_status,
-        diagnose_file, compute_homology_from_diagnostic,
-        compute_persistence_diagram, compute_diagnostic_magnitude
-    )
-except ImportError:
-    pass
-
-try:
-    from .tools_interface_phase5 import (
-        SpectralGraphMetrics, StratumTransitionMatrix,
-        ProjectionCommand, ProjectionContext, CacheCheckCommand,
-        ResolutionCommand, SheafCohomologyProjectionCommand,
-        NormalizationCommand, BDDVerificationCommand,
-        InterchangeLawVerificationCommand, SATOrcaleCommand,
-        ValidationCommand, ExecutionCommand, MICRegistry,
-        MIC_ALGEBRA_AVAILABLE, SHEAF_COHOMOLOGY_AVAILABLE,
-        Z3_AVAILABLE, BDD_AVAILABLE, SCIPY_SPARSE_AVAILABLE,
-        NUMPY_AVAILABLE
-    )
-except ImportError:
-    pass
-
-# Logger para esta fase
-logger = get_structured_logger("MIC.Phase6") if 'get_structured_logger' in globals() else logging.getLogger("MIC.Phase6")
-
-# =============================================================================
-# IMPORTACIONES DE VECTORES CORE (Con Fallback Robusto)
-# =============================================================================
-
-# Vectores mock para testing standalone y fallback cuando mic_vectors no está disponible
-try:
-    from app.adapters.mic_vectors import (
-        vector_calculate_improbability_tensor,
-        vector_audit_homological_fusion,
-        vector_lateral_pivot,
-        vector_parse_raw_structure,
-        vector_stabilize_flux,
-        vector_structure_logic,
-    )
-except ImportError:
-    def _mock_vector(**kwargs: Any) -> Dict[str, Any]:
-        """
-        Vector mock que retorna éxito con los kwargs recibidos.
-        
-        Invariante: Los mocks deben preservar la firma y tipo de retorno
-        de los vectores reales para testing sin dependencias.
-        """
-        return {"success": True, "mock": True, **kwargs}
-
-    vector_stabilize_flux = _mock_vector
-    vector_parse_raw_structure = _mock_vector
-    vector_structure_logic = _mock_vector
-    vector_lateral_pivot = _mock_vector
-    vector_audit_homological_fusion = _mock_vector
-    vector_calculate_improbability_tensor = _mock_vector
-
-# Importaciones opcionales de servicios externos
-try:
-    from app.tactics.semantic_estimator import SemanticEstimatorService
-    SEMANTIC_ESTIMATOR_AVAILABLE = True
-except ImportError:
-    SEMANTIC_ESTIMATOR_AVAILABLE = False
-    logger.debug("SemanticEstimatorService no disponible")
-
-try:
-    from app.omega.improbability_drive import ImprobabilityDriveService
-    IMPROBABILITY_DRIVE_AVAILABLE = True
-except ImportError:
-    IMPROBABILITY_DRIVE_AVAILABLE = False
-    logger.debug("ImprobabilityDriveService no disponible")
-
-try:
-    from app.wisdom.semantic_dictionary import SemanticDictionaryService
-    SEMANTIC_DICTIONARY_AVAILABLE = True
-except ImportError:
-    SEMANTIC_DICTIONARY_AVAILABLE = False
-    logger.debug("SemanticDictionaryService no disponible")
-
-# Importaciones de handlers opcionales
-CSVCleaner = None
-FinancialConfig = None
-FinancialEngine = None
-APUFileDiagnostic = None
-InsumosFileDiagnostic = None
-PresupuestoFileDiagnostic = None
-
-try:
-    from scripts.clean_csv import CSVCleaner
-except ImportError:
-    logger.debug("CSVCleaner no disponible")
-
-try:
-    from scripts.diagnose_apus_file import APUFileDiagnostic
-except ImportError:
-    logger.debug("APUFileDiagnostic no disponible")
-
-try:
-    from scripts.diagnose_insumos_file import InsumosFileDiagnostic
-except ImportError:
-    logger.debug("InsumosFileDiagnostic no disponible")
-
-try:
-    from scripts.diagnose_presupuesto_file import PresupuestoFileDiagnostic
-except ImportError:
-    logger.debug("PresupuestoFileDiagnostic no disponible")
-
-try:
-    from .financial_engine import FinancialConfig, FinancialEngine
-except ImportError:
-    try:
-        from scripts.financial_engine import FinancialConfig, FinancialEngine
-    except ImportError:
-        logger.debug("FinancialEngine no disponible")
-
-# =============================================================================
-# REGISTRO DE DIAGNÓSTICOS (Actualizado con Fallback)
-# =============================================================================
-
-_DIAGNOSTIC_REGISTRY: Final[Dict[FileType, Optional[Type[DiagnosticProtocol]]]] = {
-    FileType.APUS: APUFileDiagnostic,
-    FileType.INSUMOS: InsumosFileDiagnostic,
-    FileType.PRESUPUESTO: PresupuestoFileDiagnostic,
-}
-
-
-def get_diagnostic_class(file_type: FileType) -> Type[DiagnosticProtocol]:
-    """
-    Obtiene la clase diagnóstica para un tipo de archivo.
-    
-    Fundamentación de Registro de Estrategias (Strategy Pattern):
-    -------------------------------------------------------------
-    Este registro implementa el patrón Strategy donde cada FileType 
-    se mapea a su algoritmo de diagnóstico correspondiente.
-    
-    Isomorfismo de Registro:
-    ------------------------
-    El registro establece una correspondencia biyectiva parcial:
-    
-        registry: FileType ↪ DiagnosticClass
-    
-    Es inyectiva (cada FileType tiene a lo sumo una clase) pero no 
-    necesariamente suryectiva (puede haber clases no registradas).
-    
-    Args:
-        file_type: Tipo de archivo para el cual obtener la clase diagnóstica.
-    
-    Returns:
-        La clase diagnóstica correspondiente al tipo de archivo.
-    
-    Raises:
-        UnsupportedFileTypeError: Si el tipo de archivo no tiene clase 
-                                 diagnóstica registrada.
-    
-    Invariante de Registro:
-        get_diagnostic_class(ft) ∈ {c | (ft, c) ∈ _DIAGNOSTIC_REGISTRY}
-    
-    Ejemplo:
-        >>> cls = get_diagnostic_class(FileType.APUS)
-        >>> diagnostic = cls("/path/to/file.csv")
-        >>> diagnostic.diagnose()
-    
-    Referencia: [10] Strategy Pattern; [8] Object Registration
-    """
-    diagnostic_class = _DIAGNOSTIC_REGISTRY.get(file_type)
-    
-    if diagnostic_class is None:
-        available = FileType.values()
-        raise UnsupportedFileTypeError(
-            file_type=file_type.value,
-            available=available,
-        )
-    
-    return diagnostic_class
-
-
-def register_diagnostic_class(
-    file_type: FileType, 
-    diagnostic_class: Type[DiagnosticProtocol],
-    override: bool = False,
-) -> None:
-    """
-    Registra una clase diagnóstica para un tipo de archivo.
-    
-    Fundamentación de Extensibilidad del Sistema:
-    ---------------------------------------------
-    Esta función permite extender el sistema con nuevos tipos de 
-    diagnóstico sin modificar el código base (Open/Closed Principle).
-    
-    Teorema de Extensibilidad Segura:
-    ---------------------------------
-    register_diagnostic_class(ft, cls) preserva:
-    1. Consistencia de tipos: cls implementa DiagnosticProtocol
-    2. No interferencia: registrar ft no afecta otros tipos
-    3. Idempotencia: registrar dos veces es seguro (con override)
-    
-    Args:
-        file_type: Tipo de archivo para el cual registrar la clase.
-        diagnostic_class: Clase que implementa DiagnosticProtocol.
-        override: Si True, permite sobrescribir registro existente.
-    
-    Raises:
-        ValueError: Si ya existe registro para file_type y override=False.
-        TypeError: Si diagnostic_class no implementa DiagnosticProtocol.
-    
-    Invariante de Protocolo:
-        diagnostic_class debe implementar diagnose() y to_dict()
-    
-    Ejemplo:
-        >>> class CustomDiagnostic:
-        ...     def diagnose(self): ...
-        ...     def to_dict(self): ...
-        >>> register_diagnostic_class(FileType.APUS, CustomDiagnostic, override=True)
-    
-    Referencia: [10] Open/Closed Principle; Protocol Structural Subtyping
-    """
-    # Validar que la clase implementa el protocolo
-    if not hasattr(diagnostic_class, "diagnose") or not callable(getattr(diagnostic_class, "diagnose")):
-        raise TypeError(
-            f"diagnostic_class debe implementar método 'diagnose()'. "
-            f"La clase {diagnostic_class.__name__!r} no lo implementa."
-        )
-    
-    if not hasattr(diagnostic_class, "to_dict") or not callable(getattr(diagnostic_class, "to_dict")):
-        raise TypeError(
-            f"diagnostic_class debe implementar método 'to_dict()'. "
-            f"La clase {diagnostic_class.__name__!r} no lo implementa."
-        )
-    
-    # Verificar registro existente
-    existing = _DIAGNOSTIC_REGISTRY.get(file_type)
-    if existing is not None and not override:
-        raise ValueError(
-            f"Ya existe una clase diagnóstica registrada para {file_type.value!r}: "
-            f"{existing.__name__!r}. Use override=True para reemplazar."
-        )
-    
-    # Registrar nueva clase
-    _DIAGNOSTIC_REGISTRY[file_type] = diagnostic_class
-    logger.info(
-        "Clase diagnóstica registrada: %s → %s", 
-        file_type.value, diagnostic_class.__name__
-    )
-
-
-# =============================================================================
-# HANDLERS DE LA MIC (Implementaciones Completas)
-# =============================================================================
-
-def analyze_financial_viability(
-    amount: float,
-    std_dev: float,
-    time_years: int,
-    risk_free_rate: float = 0.03,
-    **kwargs: Any
-) -> Dict[str, Any]:
-    """
-    Vector Estratégico: Analiza viabilidad financiera usando el FinancialEngine.
-    
-    Fundamentación de Análisis Financiero Cuantitativo:
-    ---------------------------------------------------
-    Este handler implementa un morfismo desde el espacio de parámetros 
-    financieros al espacio de decisiones de viabilidad.
-    
-    Métricas Calculadas:
-    --------------------
-    1. NPV (Net Present Value): Valor presente neto de flujos de caja
-       NPV = Σₜ (CFₜ / (1 + r)ᵗ) - Inversión_Inicial
-    
-    2. VaR (Value at Risk): Pérdida máxima esperada con confianza del 95%
-       VaR_95 = μ - 1.645 · σ (asumiendo distribución normal)
-    
-    3. CVaR (Conditional VaR): Pérdida esperada dado que se excede VaR
-       CVaR_95 = E[L | L > VaR_95]
-    
-    Criterio de Viabilidad:
-    -----------------------
-    is_viable = True ⟺ NPV > 0
-    
-    Esto sigue el criterio estándar de inversión: un proyecto es viable 
-    si su valor presente neto es positivo.
-    
-    Args:
-        amount: Monto de inversión inicial (debe ser > 0).
-        std_dev: Desviación estándar de retornos (volatilidad).
-        time_years: Horizonte temporal en años (debe ser ≥ 1).
-        risk_free_rate: Tasa libre de riesgo anual (default: 3%).
-        **kwargs: Parámetros adicionales para el motor financiero.
-    
-    Returns:
-        Diccionario con métricas financieras y decisión de viabilidad.
-    
-    Raises:
-        ValueError: Si amount ≤ 0 o time_years < 1.
-    
-    Invariante de Retorno:
-        result["is_viable"] = (result["npv"] > 0)
-    
-    Ejemplo:
-        >>> analyze_financial_viability(100000, 0.15, 5)
-        {'success': True, 'npv': 15000.0, 'var_95': 8000.0, 'is_viable': True, ...}
-    
-    Referencia: Corporate Finance Theory; Risk Management Standards
-    """
-    # Validar precondiciones
-    if amount <= 0:
-        return {
-            "success": False,
-            "error": f"El monto de inversión debe ser positivo, recibido: {amount}",
-            "error_category": "validation_error",
-        }
-    
-    if time_years < 1:
-        return {
-            "success": False,
-            "error": f"El horizonte temporal debe ser ≥ 1 año, recibido: {time_years}",
-            "error_category": "validation_error",
-        }
-    
-    try:
-        # Intentar usar FinancialEngine si está disponible
-        if FinancialEngine is not None and FinancialConfig is not None:
-            config = FinancialConfig(market_volatility=std_dev)
-            engine = FinancialEngine(config)
-            
-            # Generar flujos de caja simulados (simplificación)
-            # Año 0: -amount (inversión inicial)
-            # Años 1..n: amount * 0.3 (retorno anual estimado)
-            cash_flows = [-amount] + [amount * 0.3] * time_years
-            
-            # Calcular métricas
-            npv = engine.calculate_npv(cash_flows, initial_investment=amount)
-            var, cvar = engine.calculate_var(amount)
-            
-            return {
-                "success": True,
-                "npv": round(npv, 2),
-                "var_95": round(var, 2),
-                "cvar_95": round(cvar, 2),
-                "contingency_suggested": engine.suggest_contingency(amount),
-                "is_viable": npv > 0,
-                "time_years": time_years,
-                "risk_free_rate": risk_free_rate,
-            }
-        
-        # Fallback: cálculo simplificado sin FinancialEngine
-        # NPV aproximado con tasa de descuento fija
-        discount_rate = risk_free_rate + std_dev  # Tasa ajustada por riesgo
-        npv = -amount + sum(
-            amount * 0.3 / ((1 + discount_rate) ** t) 
-            for t in range(1, time_years + 1)
-        )
-        
-        # VaR aproximado (distribución normal)
-        var_95 = amount * std_dev * 1.645
-        cvar_95 = var_95 * 1.2  # Aproximación simple
-        
-        return {
-            "success": True,
-            "npv": round(npv, 2),
-            "var_95": round(var_95, 2),
-            "cvar_95": round(cvar_95, 2),
-            "contingency_suggested": amount * 0.1,  # 10% de contingencia
-            "is_viable": npv > 0,
-            "time_years": time_years,
-            "risk_free_rate": risk_free_rate,
-            "note": "Cálculo simplificado (FinancialEngine no disponible)",
-        }
-    
-    except Exception as e:
-        logger.exception("Error en análisis de viabilidad financiera")
-        return {
-            "success": False,
-            "error": str(e),
-            "error_category": "execution_error",
-            "error_type": type(e).__name__,
-        }
-
-
-def clean_file(
-    input_path: Union[str, Path],
-    output_path: Union[str, Path],
-    delimiter: str = ";",
-    encoding: str = "utf-8",
-    remove_duplicates: bool = True,
-    normalize_whitespace: bool = True,
-    **kwargs: Any
-) -> Dict[str, Any]:
-    """
-    Vector Físico: Limpia un archivo usando CSVCleaner.
-    
-    Fundamentación de Transformaciones de Datos:
-    --------------------------------------------
-    La limpieza de archivos es una transformación T: Raw → Cleaned que 
-    preserva la semántica de los datos mientras elimina ruido y 
-    inconsistencias.
-    
-    Transformaciones Aplicadas:
-    ---------------------------
-    1. Normalización de encoding: Conversión a encoding objetivo
-    2. Normalización de delimitadores: Consistencia en separadores
-    3. Eliminación de duplicados: Remover filas idénticas
-    4. Normalización de whitespace: Trim de espacios en blanco
-    
-    Teorema de Preservación Semántica:
-    ----------------------------------
-    clean(file) debe preservar:
-    - Número de columnas (estructura tabular)
-    - Tipos de datos implícitos
-    - Relaciones entre filas (orden puede cambiar si hay duplicados)
-    
-    Args:
-        input_path: Ruta del archivo de entrada.
-        output_path: Ruta del archivo de salida (limpio).
-        delimiter: Delimitador de columnas (default: ";").
-        encoding: Codificación de caracteres (default: "utf-8").
-        remove_duplicates: Si eliminar filas duplicadas (default: True).
-        normalize_whitespace: Si normalizar espacios en blanco (default: True).
-        **kwargs: Parámetros adicionales para CSVCleaner.
-    
-    Returns:
-        Diccionario con resultado de la limpieza.
-    
-    Invariante de Salida:
-        output_path.exists() ⇒ output_path es archivo válido
-    
-    Ejemplo:
-        >>> clean_file("raw.csv", "cleaned.csv", delimiter=",")
-        {'success': True, 'output_path': 'cleaned.csv', 'rows_processed': 1000, ...}
-    
-    Referencia: Data Cleaning Best Practices; ETL Standards
-    """
-    try:
-        # Normalizar rutas
-        input_p = normalize_path(input_path)
-        output_p = normalize_path(output_path)
-        
-        # Validar archivo de entrada
-        validate_file_exists(input_p)
-        validate_file_permissions(input_p, check_read=True)
-        
-        # Normalizar encoding
-        normalized_encoding = normalize_encoding(encoding)
-        
-        # Intentar usar CSVCleaner si está disponible
-        if CSVCleaner is not None:
-            cleaner = CSVCleaner(
-                input_path=str(input_p),
-                output_path=str(output_p),
-                delimiter=delimiter,
-                encoding=normalized_encoding,
-                **kwargs
-            )
-            result = cleaner.clean()
-            
-            return {
-                "success": True,
-                "output_path": str(output_p),
-                "input_path": str(input_p),
-                "message": "Limpieza completada exitosamente",
-                **(result if isinstance(result, dict) else {})
-            }
-        
-        # Fallback: limpieza básica sin CSVCleaner
-        # Leer archivo
-        with open(input_p, "r", encoding=normalized_encoding, errors="replace") as f:
-            lines = f.readlines()
-        
-        # Procesar líneas (limpieza básica)
-        cleaned_lines = []
-        seen = set() if remove_duplicates else None
-        
-        for line in lines:
-            # Normalizar whitespace
-            if normalize_whitespace:
-                line = " ".join(line.split())
-            
-            # Eliminar duplicados
-            if seen is not None:
-                if line in seen:
-                    continue
-                seen.add(line)
-            
-            cleaned_lines.append(line)
-        
-        # Escribir archivo limpio
-        with open(output_p, "w", encoding=normalized_encoding) as f:
-            f.writelines(cleaned_lines)
-        
-        return {
-            "success": True,
-            "output_path": str(output_p),
-            "input_path": str(input_p),
-            "rows_processed": len(lines),
-            "rows_cleaned": len(cleaned_lines),
-            "duplicates_removed": len(lines) - len(cleaned_lines) if seen else 0,
-            "message": "Limpieza básica completada (CSVCleaner no disponible)",
-        }
-    
-    except MICException as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "error_category": e.category,
-            "error_type": type(e).__name__,
-        }
-    except Exception as e:
-        logger.exception("Error en limpieza de archivo")
-        return {
-            "success": False,
-            "error": str(e),
-            "error_category": "execution_error",
-            "error_type": type(e).__name__,
-        }
-
-
-def get_telemetry_status(
-    telemetry_context: Optional[Any] = None,
-    include_business_report: bool = True,
-    **kwargs: Any
-) -> Dict[str, Any]:
-    """
-    Vector Físico: Obtiene el estado de telemetría actual.
-    
-    Fundamentación de Observabilidad de Sistemas:
-    ---------------------------------------------
-    Este handler implementa un morfismo desde el espacio de contextos 
-    de telemetría al espacio de reportes de estado.
-    
-    Métricas de Observabilidad:
-    ---------------------------
-    1. Status: Estado operativo del sistema (active, degraded, offline)
-    2. Metrics: Métricas cuantitativas (latencia, throughput, errors)
-    3. Report: Reporte cualitativo de negocio (KPIs, tendencias)
-    
-    Teorema de Completitud de Observabilidad:
-    -----------------------------------------
-    Un sistema es completamente observable si:
-        status ∧ metrics ∧ report son todos definidos
-    
-    Args:
-        telemetry_context: Contexto de telemetría (debe implementar Protocol).
-        include_business_report: Si incluir reporte de negocio (default: True).
-        **kwargs: Parámetros adicionales para filtrado de métricas.
-    
-    Returns:
-        Diccionario con estado de telemetría y métricas.
-    
-    Invariante de Retorno:
-        result["success"] = True ⇒ result["status"] está definido
-    
-    Ejemplo:
-        >>> get_telemetry_status(telemetry_context, include_business_report=True)
-        {'success': True, 'status': 'active', 'metrics': {...}, 'report': {...}}
-    
-    Referencia: Observability Best Practices; SRE Metrics
-    """
-    try:
-        metrics = {}
-        report = {}
-        status = "unknown"
-        
-        # Extraer métricas del contexto
-        if telemetry_context is not None:
-            metrics = getattr(telemetry_context, "metrics", {})
-            status = getattr(telemetry_context, "status", "active")
-            
-            # Extraer reporte de negocio si está disponible y solicitado
-            if include_business_report and hasattr(telemetry_context, "get_business_report"):
-                try:
-                    report = telemetry_context.get_business_report()
-                except Exception as e:
-                    logger.warning("Error obteniendo reporte de negocio: %s", e)
-                    report = {"error": str(e)}
-        else:
-            status = "no_context"
-        
-        return {
-            "success": True,
-            "status": status,
-            "metrics": metrics,
-            "report": report if include_business_report else None,
-            "timestamp": time.time(),
-        }
-    
-    except Exception as e:
-        logger.exception("Error obteniendo estado de telemetría")
-        return {
-            "success": False,
-            "error": str(e),
-            "error_category": "execution_error",
-            "error_type": type(e).__name__,
-            "status": "error",
-        }
-
-
-# =============================================================================
-# BOOTSTRAP Y REGISTRO DE VECTORES CORE
-# =============================================================================
-
 def register_core_vectors(
     mic: MICRegistry,
     config: Optional[Dict[str, Any]] = None,
@@ -9349,7 +8553,6 @@ __all__: Final[List[str]] = [
 
 
 # =============================================================================
-# FIN DE FASE 6/6 — MÓDULO COMPLETO
 # =============================================================================
 """
 ================================================================================
