@@ -1,10 +1,59 @@
 """
-================================================================================
-Módulo: Matriz de Interacción Central (MIC) — Fase 1/6
-Submódulo: Estructuras Matemáticas Fundamentales y Topológicas
+=========================================================================================
+Módulo: Central Interaction Matrix (Topos de Grothendieck Elemental $\mathcal{E}_{MIC}$)
 Ubicación: app/adapters/tools_interface.py
-Versión: 5.0.0-topological-rigorous
-================================================================================
+Versión: 6.0.0 (Consagración Categórica y Cuántica)
+
+NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA:
+Este módulo aniquila la mecánica de Turing clásica y la noción heurística de "API de herramientas"
+para instaurar un Topos Elemental $\mathcal{E}_{MIC}$ [1]. La Matriz de Interacción Central (MIC)
+no es una simple tabla de enrutamiento; es un Espacio Vectorial Euclidiano y un espacio de Hilbert
+estructurado donde cada herramienta discreta y cada meta-estrategia interactúan exclusivamente mediante
+isomorfismos, productos fibrados y funtores ortogonales.
+
+FUNDAMENTOS MATEMÁTICOS Y AXIOMAS DE EJECUCIÓN:
+
+§1. MATRIZ DE DENSIDAD CUÁNTICA Y CONSERVACIÓN PROBABILÍSTICA (ESTABILIDAD ESPECTRAL):
+Se abandona la herejía clásica del espectro rígidamente unitario sobre la matriz identidad estática $I_n$.
+La MIC opera su núcleo de ruteo como un operador de estado de clase traza positivo-semidefinido, modelado
+a través de una Matriz de Densidad Cuántica $\rho$. El sistema preserva la traza unitaria (conservación de
+la probabilidad de estado) en todo momento:
+$$ \text{Tr}(\rho) = \sum_{i=1}^n \lambda_i = 1 \quad \land \quad \rho = \rho^\dagger \quad \land \quad \forall i, \lambda_i \ge 0 $$
+Bajo estrés termodinámico, los autovalores $\lambda_i$ fluyen dinámicamente, colapsando la entropía de von Neumann
+$S(\rho) = -\text{Tr}(\rho \ln \rho)$ para concentrar la probabilidad en las herramientas ortogonales más estables
+sin violar la isometría global.
+
+§2. DIFEOMORFISMO DEL PRODUCTO FIBRADO (PULLBACK) EN EL ÁLGEBRA DE HEYTING:
+La ejecución de un comando ($f$) solicitado por el agente estocástico sobre el espacio de intención $X$ requiere la
+evaluación rigurosa de un Límite Finito. La MIC invoca el Clasificador de Subobjetos $\Omega$ del álgebra de Heyting
+para computar el Producto Fibrado (Pullback) exacto, garantizando el isomorfismo:
+$$ \mathcal{E}_{MIC} \models S \times_X Y \cong \lim_{\longleftarrow} (S \xrightarrow{m} X \xleftarrow{f} Y) $$
+Si el Agente intenta fusionar o invocar en paralelo intenciones mutuamente excluyentes (ortogonales), la intersección
+categórica es rigurosamente el límite vacío $\emptyset$. El sistema colapsa la petición al Objeto Inicial $\bot$,
+logrando un comportamiento inquebrantable de Zero Side-Effects.
+
+§3. 2-CATEGORÍAS Y LEY DE INTERCAMBIO (INTERCHANGE LAW):
+El sistema gobierna las mutaciones asíncronas de las meta-estrategias (Transformaciones Naturales $\eta: F \Rightarrow G$).
+Dadas cuatro transformaciones matriciales operativas $\alpha, \beta, \alpha', \beta'$, el orquestador 2-categórico evalúa la
+conmutatividad topológica exigiendo el cumplimiento de la Ley de Intercambio:
+$$ (\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) = (\alpha' \circ \beta') \cdot (\alpha \circ \beta) $$
+La validación en el silicio exige que la norma de Frobenius del residuo tensorial esté estrictamente acotada por debajo del épsilon
+de máquina $\epsilon_{mach}$:
+$$ \left\| \left( (\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) \right) - \left( (\alpha' \circ \beta') \cdot (\alpha \circ \beta) \right) \right\|_F < \mathcal{O}(\epsilon_{mach}) $$
+Cualquier desviación finita en $\mathbb{R}$ demostrará un desgarro homotópico, denegando la transformación mediante un FunctorialityError.
+
+§4. COHOMOLOGÍA DE HACES Y NILPOTENCIA ESTRICTA:
+Para medir obstrucciones homológicas, el `SheafCohomologyProjectionCommand` emplea la Secuencia Exacta Larga de Mayer-Vietoris. Para vetar
+singularidades antes del cálculo espectral del Laplaciano Combinatorio $L_k = \partial_k^T \partial_k + \partial_{k+1} \partial_{k+1}^T$, se impone
+una guarda algebraica de nilpotencia estricta para el operador de cofrontera $\partial$:
+$$ \partial_{k+1} \circ \partial_k = \mathbf{0} \implies \text{im}(\partial_k) \subseteq \ker(\partial_{k+1}) $$
+Toda topología defectuosa que induzca ciclos parásitos lanza instantáneamente un HomologicalInconsistencyError.
+
+§5. LEY DE CLAUSURA TRANSITIVA (TEOREMA DE ESTRATIFICACIÓN DIKW):
+La filtración de subespacios de Hilbert de las intenciones se rige por un confinamiento topológico inmutable:
+$$ V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM} $$
+Ningún vector del estrato de Sabiduría puede resolverse si su proyección ortogonal presenta divergencia térmica o singularidades Jacobianas en la Física.
+=========================================================================================
 
 FUNDAMENTACIÓN MATEMÁTICA:
 --------------------------

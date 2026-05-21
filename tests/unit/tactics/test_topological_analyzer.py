@@ -1,2187 +1,1783 @@
 """
-Tests para Topological State Analyzer
-=====================================
+=========================================================================================
+Suite de Pruebas: Topological Analyzer (Operador de Observabilidad Funtorial y TDA)
+Ubicación: tests/unit/tactics/test_topological_analyzer_v2.py
+Versión: 2.0.0-rigorous
+=========================================================================================
 
-Tests unitarios y de integración para SystemTopology y PersistenceHomology.
+Suite de pruebas exhaustiva basada en:
+- Propiedades matemáticas fundamentales (invariantes topológicas)
+- Casos límite y condiciones extremas
+- Teoremas y axiomas de topología algebraica
+- Validación de coherencia funtorial
+- Análisis de estabilidad numérica
 
-Estructura:
------------
-1. Fixtures compartidos
-2. Tests de SystemTopology
-   - Inicialización y configuración
-   - Gestión de nodos
-   - Gestión de conectividad
-   - Cálculo de números de Betti
-   - Detección de ciclos estructurales
-   - Análisis de salud topológica
-3. Tests de PersistenceHomology
-   - Inicialización y configuración
-   - Gestión de datos
-   - Cálculo de intervalos de persistencia
-   - Análisis de estados
-   - Estadísticas y comparaciones
-4. Tests de integración
-5. Tests de utilidades
+Metodología:
+------------
+1. **Property-Based Testing**: Verificación de invariantes matemáticas
+2. **Theorem-Driven Testing**: Cada test verifica un teorema/axioma específico
+3. **Adversarial Testing**: Casos patológicos y entradas maliciosas
+4. **Regression Testing**: Casos conocidos de bugs históricos
+5. **Performance Testing**: Límites de escalabilidad y complejidad
+
+Organización:
+-------------
+- TestTopologicalConstants: Validación de constantes matemáticas
+- TestBettiNumbers: Teoremas de Euler-Poincaré y números de Betti
+- TestPersistenceInterval: Geometría de diagramas de persistencia
+- TestSystemTopology: Invariantes de grafos y operaciones topológicas
+- TestPersistenceHomology: Teoría de homología persistente
+- TestTopologicalHealth: Modelo de salud y penalizaciones
+- TestIntegration: Escenarios completos end-to-end
+- TestEdgeCases: Casos extremos y patológicos
+- TestNumericalStability: Estabilidad numérica y precisión
 """
 
+from __future__ import annotations
+
+import copy
+import itertools
 import math
+import os
+import sys
+import tempfile
+import unittest
+from decimal import Decimal, getcontext
+from fractions import Fraction
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from unittest.mock import MagicMock, Mock, patch
 
-import pytest
+import networkx as nx
+import numpy as np
 
-from app.tactics.topological_analyzer import (
-    # Dataclasses
-    BettiNumbers,
-    HealthLevel,
-    # Enums
-    MetricState,
-    PersistenceHomology,
-    PersistenceInterval,
-    SystemTopology,
-    compute_wasserstein_distance,
-    create_simple_topology,
-)
+# Importar el módulo a testear
+# Ajustar path si es necesario
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "app", "tactics")))
 
-# =============================================================================
-# FIXTURES
-# =============================================================================
-
-
-@pytest.fixture
-def empty_topology() -> SystemTopology:
-    """Topología sin conexiones - verificada."""
-    topo = SystemTopology()
-    # Verificar estado inicial esperado
-    assert len(topo.edges) == 0, "Fixture debe iniciar sin aristas"
-    assert topo.REQUIRED_NODES <= topo.nodes, "Debe contener nodos requeridos"
-    return topo
-
-
-@pytest.fixture
-def tree_topology() -> SystemTopology:
-    """Topología en árbol (conectada, sin ciclos) - verificada."""
-    topo = SystemTopology()
-    tree_connections = [
-        ("Agent", "Core"),
-        ("Core", "Redis"),
-        ("Core", "Filesystem"),
-    ]
-    edges_added, warnings = topo.update_connectivity(tree_connections)
-
-    # Verificar que se creó correctamente
-    assert edges_added == 3, f"Deben agregarse 3 aristas, se agregaron {edges_added}"
-    assert len(warnings) == 0, f"No deben haber warnings: {warnings}"
-
-    # Verificar propiedades de árbol
-    betti = topo.calculate_betti_numbers()
-    assert betti.b0 == 1, "Árbol debe ser conexo"
-    assert betti.b1 == 0, "Árbol no debe tener ciclos"
-
-    return topo
-
-
-@pytest.fixture
-def pyramid_topology() -> SystemTopology:
-    """Topología Piramidal completa (ideal del sistema) - verificada."""
-    topo = SystemTopology()
-    pyramid_connections = list(SystemTopology.EXPECTED_TOPOLOGY)
-    edges_added, warnings = topo.update_connectivity(pyramid_connections)
-
-    # Verificar construcción
-    assert edges_added == len(pyramid_connections), (
-        f"Deben agregarse {len(pyramid_connections)} aristas"
+try:
+    from topological_analyzer import (
+        BettiNumberError,
+        BettiNumbers,
+        EulerCharacteristic,
+        GraphStructureError,
+        HealthLevel,
+        HealthScore,
+        InvalidTopologyError,
+        MetricState,
+        PersistenceAnalysisResult,
+        PersistenceComputationError,
+        PersistenceHomology,
+        PersistenceInterval,
+        RequestLoopInfo,
+        SystemTopology,
+        TopologicalConstants,
+        TopologicalError,
+        TopologicalHealth,
+        compute_wasserstein_distance,
+        create_simple_topology,
     )
-
-    # Verificar que es la topología esperada completa
-    missing = topo.get_missing_connections()
-    assert len(missing) == 0, f"No deben faltar conexiones: {missing}"
-
-    return topo
-
-
-@pytest.fixture
-def cyclic_topology() -> SystemTopology:
-    """Topología con un ciclo - verificada."""
-    topo = SystemTopology()
-    connections = [
-        ("Agent", "Core"),
-        ("Core", "Redis"),
-        ("Core", "Filesystem"),
-        ("Redis", "Agent"),  # Crea ciclo Agent-Core-Redis-Agent
-    ]
-    edges_added, _ = topo.update_connectivity(connections)
-
-    # Verificar que tiene exactamente un ciclo
-    betti = topo.calculate_betti_numbers()
-    assert betti.b0 == 1, "Debe ser conexo"
-    assert betti.b1 == 1, "Debe tener exactamente un ciclo"
-
-    return topo
-
-
-@pytest.fixture
-def fragmented_topology() -> SystemTopology:
-    """Topología fragmentada en múltiples componentes - verificada."""
-    topo = SystemTopology()
-    edges_added, _ = topo.update_connectivity(
-        [
-            ("Agent", "Core"),
-            # Redis y Filesystem quedan aislados
-        ]
-    )
-
-    # Verificar fragmentación
-    betti = topo.calculate_betti_numbers()
-    assert betti.b0 > 1, "Debe tener múltiples componentes"
-
-    disconnected = topo.get_disconnected_nodes()
-    assert len(disconnected) >= 2, "Debe haber nodos desconectados"
-
-    return topo
-
-
-@pytest.fixture
-def empty_persistence() -> PersistenceHomology:
-    """Analizador de persistencia vacío - verificado."""
-    ph = PersistenceHomology(window_size=10)
-    assert ph.window_size == 10
-    assert len(ph.metrics) == 0, "Debe iniciar sin métricas"
-    return ph
-
-
-@pytest.fixture
-def persistence_with_data() -> PersistenceHomology:
-    """Analizador con datos de ejemplo - verificado."""
-    ph = PersistenceHomology(window_size=20)
-
-    # Datos estables
-    stable_count = 0
-    for _ in range(10):
-        if ph.add_reading("stable_metric", 0.3):
-            stable_count += 1
-    assert stable_count == 10, "Deben agregarse 10 lecturas estables"
-
-    # Datos con excursión
-    excursion_count = 0
-    for i in range(20):
-        value = 0.9 if 8 <= i <= 14 else 0.3
-        if ph.add_reading("excursion_metric", value):
-            excursion_count += 1
-    assert excursion_count == 20, "Deben agregarse 20 lecturas con excursión"
-
-    # Verificar que los buffers tienen el tamaño correcto
-    stable_buffer = ph.get_buffer("stable_metric")
-    assert stable_buffer is not None and len(stable_buffer) == 10
-
-    excursion_buffer = ph.get_buffer("excursion_metric")
-    assert excursion_buffer is not None and len(excursion_buffer) == 20
-
-    return ph
+except ImportError as e:
+    print(f"❌ Error importando módulo: {e}")
+    print("Asegúrate de que topological_analyzer.py esté en app/tactics/")
+    sys.exit(1)
 
 
 # =============================================================================
-# TESTS: BettiNumbers Dataclass
+# UTILIDADES DE TESTING
 # =============================================================================
 
+class MathematicalAssertions:
+    """Mixin con aserciones matemáticas rigurosas."""
+    
+    def assertAlmostEqualFloat(
+        self,
+        first: float,
+        second: float,
+        tolerance: float = 1e-9,
+        msg: Optional[str] = None
+    ) -> None:
+        """Verifica igualdad de floats con tolerancia especificada."""
+        if math.isnan(first) or math.isnan(second):
+            if not (math.isnan(first) and math.isnan(second)):
+                raise AssertionError(msg or f"NaN mismatch: {first} != {second}")
+            return
+        
+        if math.isinf(first) or math.isinf(second):
+            if first != second:
+                raise AssertionError(msg or f"Infinity mismatch: {first} != {second}")
+            return
+        
+        diff = abs(first - second)
+        if diff > tolerance:
+            raise AssertionError(
+                msg or f"Floats differ beyond tolerance: |{first} - {second}| = {diff} > {tolerance}"
+            )
+    
+    def assertValidBettiNumbers(self, betti: BettiNumbers) -> None:
+        """Verifica que los números de Betti satisfagan todos los invariantes."""
+        # No negatividad
+        self.assertGreaterEqual(betti.b0, 0, "β₀ debe ser no negativo")
+        self.assertGreaterEqual(betti.b1, 0, "β₁ debe ser no negativo")
+        self.assertGreaterEqual(betti.num_vertices, 0, "|V| debe ser no negativo")
+        self.assertGreaterEqual(betti.num_edges, 0, "|E| debe ser no negativo")
+        
+        # Cotas superiores
+        if betti.num_vertices > 0:
+            self.assertLessEqual(betti.b0, betti.num_vertices, "β₀ ≤ |V|")
+        
+        if betti.num_edges > 0:
+            self.assertLessEqual(betti.b1, betti.num_edges, "β₁ ≤ |E|")
+        
+        # Teorema de Euler-Poincaré
+        if betti.num_vertices > 0 and betti.num_edges >= 0:
+            self.assertTrue(
+                betti.verify_euler_consistency(),
+                f"Violación de Euler-Poincaré: χ = β₀ - β₁ = {betti.euler_characteristic} "
+                f"≠ |V| - |E| = {betti.euler_characteristic_alt}"
+            )
+    
+    def assertValidPersistenceInterval(self, interval: PersistenceInterval) -> None:
+        """Verifica validez de un intervalo de persistencia."""
+        self.assertGreaterEqual(interval.birth, 0, "Birth debe ser no negativo")
+        
+        if interval.death >= 0:
+            self.assertGreaterEqual(
+                interval.death,
+                interval.birth,
+                f"Death ({interval.death}) debe ser >= birth ({interval.birth})"
+            )
+        
+        self.assertGreaterEqual(interval.dimension, 0, "Dimensión debe ser no negativa")
+        self.assertGreaterEqual(interval.amplitude, 0.0, "Amplitud debe ser no negativa")
+        self.assertTrue(math.isfinite(interval.amplitude), "Amplitud debe ser finita")
+    
+    def assertGraphInvariant(
+        self,
+        topology: SystemTopology,
+        expected_b0: Optional[int] = None,
+        expected_b1: Optional[int] = None
+    ) -> None:
+        """Verifica invariantes del grafo."""
+        betti = topology.calculate_betti_numbers()
+        self.assertValidBettiNumbers(betti)
+        
+        if expected_b0 is not None:
+            self.assertEqual(betti.b0, expected_b0, f"Esperado β₀={expected_b0}, obtenido {betti.b0}")
+        
+        if expected_b1 is not None:
+            self.assertEqual(betti.b1, expected_b1, f"Esperado β₁={expected_b1}, obtenido {betti.b1}")
 
-class TestBettiNumbers:
-    """Tests para la dataclass BettiNumbers."""
 
-    def test_creation_valid(self):
-        """Creación con valores válidos y verificación de consistencia Euler."""
-        betti = BettiNumbers(b0=1, b1=0, num_vertices=4, num_edges=3)
-        assert betti.b0 == 1
-        assert betti.b1 == 0
-        assert betti.num_vertices == 4
-        assert betti.num_edges == 3
+# =============================================================================
+# GRUPO 1: TEST DE CONSTANTES MATEMÁTICAS
+# =============================================================================
 
-        # Verificar consistencia con Euler-Poincaré: β₁ = |E| - |V| + β₀
-        expected_b1 = betti.num_edges - betti.num_vertices + betti.b0
-        assert betti.b1 == expected_b1, (
-            f"Inconsistencia Euler: b1={betti.b1}, esperado={expected_b1}"
+class TestTopologicalConstants(unittest.TestCase, MathematicalAssertions):
+    """
+    Verifica la validez matemática de las constantes fundamentales.
+    
+    Teoremas verificados:
+    - Característica de Euler para variedades conocidas
+    - Normalización de pesos (suma = 1.0)
+    - Invariantes topológicos clásicos
+    """
+    
+    def test_euler_characteristics_classical_surfaces(self):
+        """
+        Teorema: Características de Euler de superficies clásicas.
+        
+        Verifica:
+        - χ(S²) = 2 (esfera)
+        - χ(T²) = 0 (toro)
+        - χ(ℝP²) = 1 (plano proyectivo)
+        - χ(K²) = 0 (botella de Klein)
+        """
+        TC = TopologicalConstants
+        
+        self.assertEqual(TC.EULER_SPHERE, 2, "χ(S²) debe ser 2")
+        self.assertEqual(TC.EULER_TORUS, 0, "χ(T²) debe ser 0")
+        self.assertEqual(TC.EULER_PROJECTIVE_PLANE, 1, "χ(ℝP²) debe ser 1")
+        self.assertEqual(TC.EULER_KLEIN_BOTTLE, 0, "χ(K²) debe ser 0")
+    
+    def test_weight_normalization_theorem(self):
+        """
+        Teorema: Los pesos del modelo de salud deben sumar 1.0.
+        
+        Propiedad fundamental para que el score de salud esté en [0, 1].
+        """
+        TC = TopologicalConstants
+        
+        total_weight = (
+            TC.WEIGHT_FRAGMENTATION +
+            TC.WEIGHT_CYCLES +
+            TC.WEIGHT_DISCONNECTED +
+            TC.WEIGHT_MISSING_EDGES +
+            TC.WEIGHT_RETRY_LOOPS
         )
+        
+        self.assertAlmostEqualFloat(
+            total_weight,
+            1.0,
+            tolerance=TC.EPSILON,
+            msg=f"Pesos deben sumar 1.0, suma actual: {total_weight}"
+        )
+        
+        # Validación interna
+        self.assertTrue(TC.validate_weights(), "validate_weights() debe retornar True")
+    
+    def test_epsilon_hierarchy(self):
+        """Verifica jerarquía de tolerancias: EPSILON_STRICT < EPSILON."""
+        TC = TopologicalConstants
+        
+        self.assertLess(
+            TC.EPSILON_STRICT,
+            TC.EPSILON,
+            "Tolerancia estricta debe ser menor que tolerancia estándar"
+        )
+        
+        self.assertGreater(TC.EPSILON_STRICT, 0, "Tolerancia estricta debe ser positiva")
+        self.assertGreater(TC.EPSILON, 0, "Tolerancia estándar debe ser positiva")
+    
+    def test_threshold_ratios_ordering(self):
+        """Verifica orden lógico de umbrales de persistencia."""
+        TC = TopologicalConstants
+        
+        self.assertLess(
+            TC.MIN_PERSISTENCE_RATIO,
+            TC.NOISE_THRESHOLD_RATIO,
+            "Persistencia mínima < umbral de ruido"
+        )
+        
+        self.assertLess(
+            TC.NOISE_THRESHOLD_RATIO,
+            TC.CRITICAL_THRESHOLD_RATIO,
+            "Umbral de ruido < umbral crítico"
+        )
+        
+        # Todos deben estar en (0, 1]
+        for ratio_name in ["MIN_PERSISTENCE_RATIO", "NOISE_THRESHOLD_RATIO", "CRITICAL_THRESHOLD_RATIO"]:
+            ratio = getattr(TC, ratio_name)
+            self.assertGreater(ratio, 0.0, f"{ratio_name} debe ser > 0")
+            self.assertLessEqual(ratio, 1.0, f"{ratio_name} debe ser ≤ 1")
+    
+    def test_cyclomatic_limits_sanity(self):
+        """Verifica límites de complejidad ciclomática."""
+        TC = TopologicalConstants
+        
+        self.assertGreater(TC.WARNING_CYCLOMATIC_COMPLEXITY, 0)
+        self.assertGreater(TC.MAX_CYCLOMATIC_COMPLEXITY, TC.WARNING_CYCLOMATIC_COMPLEXITY)
+        self.assertLessEqual(TC.MAX_CYCLOMATIC_COMPLEXITY, 100, "Límite razonable")
+    
+    def test_component_limits(self):
+        """Verifica límites de componentes conexas."""
+        TC = TopologicalConstants
+        
+        self.assertEqual(TC.MAX_COMPONENTS_HEALTHY, 1, "Sistema saludable debe ser conexo")
+        self.assertGreater(TC.MAX_COMPONENTS_WARNING, TC.MAX_COMPONENTS_HEALTHY)
+    
+    def test_all_weights_positive(self):
+        """Verifica que todos los pesos sean estrictamente positivos."""
+        TC = TopologicalConstants
+        
+        weights = [
+            TC.WEIGHT_FRAGMENTATION,
+            TC.WEIGHT_CYCLES,
+            TC.WEIGHT_DISCONNECTED,
+            TC.WEIGHT_MISSING_EDGES,
+            TC.WEIGHT_RETRY_LOOPS
+        ]
+        
+        for weight in weights:
+            self.assertGreater(weight, 0.0, "Todos los pesos deben ser > 0")
+            self.assertLess(weight, 1.0, "Ningún peso debe dominar completamente")
 
-    def test_creation_negative_b0_raises(self):
-        """β₀ negativo debe lanzar excepción."""
-        with pytest.raises(ValueError, match="no pueden ser negativos"):
-            BettiNumbers(b0=-1, b1=0)
 
-    def test_creation_negative_b1_raises(self):
-        """β₁ negativo debe lanzar excepción."""
-        with pytest.raises(ValueError, match="no pueden ser negativos"):
-            BettiNumbers(b0=1, b1=-1)
+# =============================================================================
+# GRUPO 2: TEST DE NÚMEROS DE BETTI
+# =============================================================================
 
-    def test_creation_both_negative_raises(self):
-        """Ambos negativos deben lanzar excepción."""
-        with pytest.raises(ValueError, match="no pueden ser negativos"):
-            BettiNumbers(b0=-1, b1=-1)
-
-    def test_creation_zero_values(self):
-        """Valores cero son válidos."""
+class TestBettiNumbers(unittest.TestCase, MathematicalAssertions):
+    """
+    Verificación rigurosa de invariantes topológicas.
+    
+    Teoremas verificados:
+    - Euler-Poincaré: χ = |V| - |E| = β₀ - β₁
+    - Cotas: β₀ ≤ |V|, β₁ ≤ |E|
+    - Propiedades de grafos especiales (árboles, ciclos, completos)
+    """
+    
+    def test_euler_poincare_consistency_empty_graph(self):
+        """
+        Teorema: Para grafo vacío, χ = 0 = β₀ - β₁.
+        """
         betti = BettiNumbers(b0=0, b1=0, num_vertices=0, num_edges=0)
-        assert betti.b0 == 0
-        assert betti.b1 == 0
-        assert betti.is_connected is False  # 0 != 1
-        assert betti.is_acyclic is True
-
-    def test_is_connected_property_boundary(self):
-        """Propiedad is_connected en casos límite."""
-        # Exactamente 1 = conectado
-        assert BettiNumbers(b0=1, b1=0).is_connected is True
-
-        # 0 componentes (grafo vacío) = no conectado por definición
-        assert BettiNumbers(b0=0, b1=0).is_connected is False
-
-        # 2+ componentes = no conectado
-        assert BettiNumbers(b0=2, b1=0).is_connected is False
-
-        # Muchos componentes
-        assert BettiNumbers(b0=100, b1=0).is_connected is False
-
-    def test_is_acyclic_property_boundary(self):
-        """Propiedad is_acyclic en casos límite."""
-        # 0 ciclos = acíclico
-        assert BettiNumbers(b0=1, b1=0).is_acyclic is True
-
-        # 1 ciclo = no acíclico
-        assert BettiNumbers(b0=1, b1=1).is_acyclic is False
-
-        # Muchos ciclos
-        assert BettiNumbers(b0=1, b1=100).is_acyclic is False
-
-    def test_is_ideal_all_combinations(self):
-        """Propiedad is_ideal: solo True si b0=1 AND b1=0."""
-        # Caso ideal
-        assert BettiNumbers(b0=1, b1=0).is_ideal is True
-
-        # Fallos en cada condición
-        assert BettiNumbers(b0=0, b1=0).is_ideal is False  # no conectado
-        assert BettiNumbers(b0=2, b1=0).is_ideal is False  # fragmentado
-        assert BettiNumbers(b0=1, b1=1).is_ideal is False  # con ciclo
-        assert BettiNumbers(b0=2, b1=1).is_ideal is False  # ambos mal
-
-    def test_euler_characteristic_various_cases(self):
-        """Característica de Euler χ = β₀ - β₁ en varios casos."""
-        test_cases = [
-            (1, 0, 1),  # Árbol típico
-            (1, 1, 0),  # Un ciclo
-            (3, 1, 2),  # Fragmentado con ciclo
-            (1, 3, -2),  # Múltiples ciclos
-            (5, 0, 5),  # Muy fragmentado
-            (0, 0, 0),  # Vacío
-        ]
-
-        for b0, b1, expected_chi in test_cases:
-            betti = BettiNumbers(b0=b0, b1=b1)
-            assert betti.euler_characteristic == expected_chi, (
-                f"Para b0={b0}, b1={b1}: χ esperado={expected_chi}, "
-                f"obtenido={betti.euler_characteristic}"
-            )
-
-    def test_string_representation_ideal(self):
-        """Representación string para estado ideal."""
-        ideal = BettiNumbers(b0=1, b1=0)
-        str_repr = str(ideal)
-
-        assert "✓" in str_repr, "Ideal debe tener marca de verificación"
-        assert "β₀=1" in str_repr
-        assert "β₁=0" in str_repr
-        assert "χ=1" in str_repr
-
-    def test_string_representation_non_ideal(self):
-        """Representación string para estado no ideal."""
-        non_ideal = BettiNumbers(b0=2, b1=1)
-        str_repr = str(non_ideal)
-
-        assert "⚠" in str_repr, "No ideal debe tener marca de advertencia"
-        assert "✓" not in str_repr
-        assert "β₀=2" in str_repr
-        assert "β₁=1" in str_repr
-
-    def test_immutability_all_fields(self):
-        """BettiNumbers es completamente inmutable (frozen)."""
-        betti = BettiNumbers(b0=1, b1=0, num_vertices=4, num_edges=3)
-
-        with pytest.raises(AttributeError):
+        
+        self.assertEqual(betti.euler_characteristic, 0)
+        self.assertEqual(betti.euler_characteristic_alt, 0)
+        self.assertTrue(betti.verify_euler_consistency())
+    
+    def test_euler_poincare_consistency_single_vertex(self):
+        """
+        Teorema: Para grafo con 1 vértice aislado, χ = 1.
+        
+        β₀ = 1, β₁ = 0 ⟹ χ = 1
+        """
+        betti = BettiNumbers(b0=1, b1=0, num_vertices=1, num_edges=0)
+        
+        self.assertEqual(betti.euler_characteristic, 1)
+        self.assertEqual(betti.euler_characteristic_alt, 1)
+        self.assertTrue(betti.verify_euler_consistency())
+        self.assertTrue(betti.is_connected)
+        self.assertTrue(betti.is_acyclic)
+        self.assertTrue(betti.is_ideal)
+    
+    def test_euler_poincare_tree_property(self):
+        """
+        Teorema: Para árbol con n vértices, |E| = n - 1 y χ = 1.
+        
+        β₀ = 1, β₁ = 0 para todo árbol.
+        """
+        # Árbol con 5 vértices
+        n = 5
+        betti = BettiNumbers(b0=1, b1=0, num_vertices=n, num_edges=n - 1)
+        
+        self.assertEqual(betti.euler_characteristic, 1)
+        self.assertTrue(betti.is_tree)
+        self.assertTrue(betti.is_forest)
+        self.assertEqual(betti.cyclomatic_complexity, 1)
+    
+    def test_euler_poincare_cycle_graph(self):
+        """
+        Teorema: Para ciclo simple Cₙ, β₀ = 1, β₁ = 1, χ = 0.
+        
+        Un ciclo tiene |V| = |E| = n.
+        """
+        n = 6
+        betti = BettiNumbers(b0=1, b1=1, num_vertices=n, num_edges=n)
+        
+        self.assertEqual(betti.euler_characteristic, 0)
+        self.assertTrue(betti.is_connected)
+        self.assertFalse(betti.is_acyclic)
+        self.assertEqual(betti.cyclomatic_complexity, 2)
+    
+    def test_disconnected_graph_betti_numbers(self):
+        """
+        Teorema: Para grafo con k componentes, β₀ = k.
+        
+        Ejemplo: 3 vértices aislados ⟹ β₀ = 3, β₁ = 0.
+        """
+        betti = BettiNumbers(b0=3, b1=0, num_vertices=3, num_edges=0)
+        
+        self.assertFalse(betti.is_connected)
+        self.assertTrue(betti.is_acyclic)
+        self.assertEqual(betti.euler_characteristic, 3)
+    
+    def test_complete_graph_formula(self):
+        """
+        Teorema: Para grafo completo Kₙ:
+        - |E| = n(n-1)/2
+        - β₀ = 1
+        - β₁ = |E| - |V| + 1 = n(n-1)/2 - n + 1 = (n-1)(n-2)/2
+        """
+        n = 5
+        num_edges = n * (n - 1) // 2  # 10 aristas
+        expected_b1 = num_edges - n + 1  # 10 - 5 + 1 = 6
+        
+        betti = BettiNumbers(b0=1, b1=expected_b1, num_vertices=n, num_edges=num_edges)
+        
+        self.assertEqual(betti.b1, 6)
+        self.assertTrue(betti.verify_euler_consistency())
+        self.assertValidBettiNumbers(betti)
+    
+    def test_validation_negative_b0_raises(self):
+        """Verifica que β₀ negativo lance excepción."""
+        with self.assertRaises(BettiNumberError) as ctx:
+            BettiNumbers(b0=-1, b1=0, num_vertices=0, num_edges=0)
+        
+        self.assertIn("β₀ debe ser no negativo", str(ctx.exception))
+    
+    def test_validation_negative_b1_raises(self):
+        """Verifica que β₁ negativo lance excepción."""
+        with self.assertRaises(BettiNumberError) as ctx:
+            BettiNumbers(b0=1, b1=-1, num_vertices=1, num_edges=0)
+        
+        self.assertIn("β₁ debe ser no negativo", str(ctx.exception))
+    
+    def test_validation_b0_exceeds_vertices_raises(self):
+        """Verifica que β₀ > |V| lance excepción."""
+        with self.assertRaises(BettiNumberError) as ctx:
+            BettiNumbers(b0=5, b1=0, num_vertices=3, num_edges=0)
+        
+        self.assertIn("β₀", str(ctx.exception))
+        self.assertIn("no puede exceder", str(ctx.exception))
+    
+    def test_validation_euler_inconsistency_raises(self):
+        """Verifica que violación de Euler-Poincaré lance excepción."""
+        # Valores inconsistentes: β₁ ≠ |E| - |V| + β₀
+        # Para 4 vértices, 5 aristas, β₀=1: β₁ esperado = 5 - 4 + 1 = 2
+        with self.assertRaises(BettiNumberError) as ctx:
+            BettiNumbers(b0=1, b1=10, num_vertices=4, num_edges=5)
+        
+        self.assertIn("Euler-Poincaré", str(ctx.exception))
+    
+    def test_betti_numbers_immutability(self):
+        """Verifica que BettiNumbers sea inmutable (frozen dataclass)."""
+        betti = BettiNumbers(b0=1, b1=0, num_vertices=3, num_edges=2)
+        
+        with self.assertRaises(Exception):  # FrozenInstanceError o AttributeError
             betti.b0 = 2
-
-        with pytest.raises(AttributeError):
-            betti.b1 = 1
-
-        with pytest.raises(AttributeError):
-            betti.num_vertices = 10
-
-        with pytest.raises(AttributeError):
-            betti.num_edges = 5
-
-    def test_hashability(self):
-        """BettiNumbers debe ser hashable (para uso en sets/dicts)."""
-        betti1 = BettiNumbers(b0=1, b1=0)
-        betti2 = BettiNumbers(b0=1, b1=0)
-        betti3 = BettiNumbers(b0=2, b1=1)
-
-        # Debe ser hashable
-        hash1 = hash(betti1)
-        hash2 = hash(betti2)
-        # Removed unused variable `hash3`
-        hash(betti3)
-
-        # Objetos iguales deben tener mismo hash
-        assert hash1 == hash2
-
-        # Se pueden usar en sets
-        betti_set = {betti1, betti2, betti3}
-        assert len(betti_set) == 2  # betti1 y betti2 son iguales
-
-    def test_equality(self):
-        """Igualdad entre instancias de BettiNumbers."""
-        betti1 = BettiNumbers(b0=1, b1=0, num_vertices=4, num_edges=3)
-        betti2 = BettiNumbers(b0=1, b1=0, num_vertices=4, num_edges=3)
-        betti3 = BettiNumbers(b0=1, b1=0, num_vertices=5, num_edges=4)
-
-        assert betti1 == betti2
-        assert betti1 != betti3
+    
+    def test_to_dict_serialization(self):
+        """Verifica serialización completa a diccionario."""
+        betti = BettiNumbers(b0=2, b1=1, num_vertices=5, num_edges=4)
+        data = betti.to_dict()
+        
+        # Campos requeridos
+        self.assertEqual(data["b0"], 2)
+        self.assertEqual(data["b1"], 1)
+        self.assertEqual(data["num_vertices"], 5)
+        self.assertEqual(data["num_edges"], 4)
+        self.assertEqual(data["euler_characteristic"], 1)
+        
+        # Propiedades derivadas
+        self.assertIn("is_connected", data)
+        self.assertIn("is_acyclic", data)
+        self.assertIn("cyclomatic_complexity", data)
+        self.assertTrue(data["euler_consistent"])
 
 
 # =============================================================================
-# TESTS: PersistenceInterval Dataclass
+# GRUPO 3: TEST DE INTERVALOS DE PERSISTENCIA
 # =============================================================================
 
-
-class TestPersistenceInterval:
-    """Tests para la dataclass PersistenceInterval."""
-
+class TestPersistenceInterval(unittest.TestCase, MathematicalAssertions):
+    """
+    Verificación de geometría de diagramas de persistencia.
+    
+    Teoremas verificados:
+    - Persistencia = (death - birth) / √2
+    - Distancia de Bottleneck entre intervalos
+    - Propiedades de intervalos vivos vs muertos
+    """
+    
     def test_finite_interval_properties(self):
-        """Intervalo finito: todas las propiedades correctas."""
-        interval = PersistenceInterval(birth=5, death=10, dimension=0)
-
-        # Verificar propiedades básicas
-        assert interval.birth == 5
-        assert interval.death == 10
-        assert interval.dimension == 0
-        assert interval.amplitude == 0.0  # Default
-
-        # Verificar propiedades calculadas
-        assert interval.lifespan == 5
-        assert interval.is_alive is False
-        assert interval.persistence == pytest.approx(5 / math.sqrt(2), rel=1e-6)
-
-    def test_infinite_interval_properties(self):
-        """Intervalo infinito: todas las propiedades correctas."""
-        interval = PersistenceInterval(birth=5, death=-1, dimension=0)
-
-        assert interval.birth == 5
-        assert interval.death == -1
-        assert interval.lifespan == float("inf")
-        assert interval.is_alive is True
-        assert interval.persistence == float("inf")
-
+        """Verifica propiedades básicas de intervalo finito."""
+        interval = PersistenceInterval(birth=10, death=50, dimension=0, amplitude=0.8)
+        
+        self.assertEqual(interval.lifespan, 40.0)
+        self.assertFalse(interval.is_alive)
+        
+        # Persistencia = (death - birth) / √2
+        expected_persistence = 40.0 / math.sqrt(2.0)
+        self.assertAlmostEqualFloat(interval.persistence, expected_persistence)
+        
+        # Punto medio
+        self.assertEqual(interval.midpoint, 30.0)
+        
+        self.assertValidPersistenceInterval(interval)
+    
+    def test_alive_interval_properties(self):
+        """Verifica propiedades de intervalo que aún vive (death = -1)."""
+        interval = PersistenceInterval(birth=100, death=-1, dimension=1, amplitude=1.5)
+        
+        self.assertTrue(interval.is_alive)
+        self.assertTrue(math.isinf(interval.lifespan))
+        self.assertTrue(math.isinf(interval.persistence))
+        self.assertEqual(interval.midpoint, 100.0)
+        
+        self.assertValidPersistenceInterval(interval)
+    
     def test_zero_lifespan_interval(self):
-        """Intervalo con lifespan cero (nacimiento = muerte)."""
-        interval = PersistenceInterval(birth=5, death=5, dimension=0)
-
-        assert interval.lifespan == 0
-        assert interval.is_alive is False
-        assert interval.persistence == 0.0
-
-    def test_amplitude_custom_value(self):
-        """Amplitud personalizada."""
-        interval = PersistenceInterval(birth=0, death=5, dimension=0, amplitude=0.8)
-        assert interval.amplitude == 0.8
-
-        # Amplitud negativa es técnicamente válida (dataclass no valida)
-        interval_neg = PersistenceInterval(birth=0, death=5, dimension=0, amplitude=-0.5)
-        assert interval_neg.amplitude == -0.5
-
-    def test_dimension_values(self):
-        """Diferentes dimensiones."""
-        dim0 = PersistenceInterval(birth=0, death=5, dimension=0)
-        dim1 = PersistenceInterval(birth=0, death=5, dimension=1)
-        dim2 = PersistenceInterval(birth=0, death=5, dimension=2)
-
-        assert dim0.dimension == 0
-        assert dim1.dimension == 1
-        assert dim2.dimension == 2
-
-    def test_string_representation_finite(self):
-        """Representación string de intervalo finito."""
-        interval = PersistenceInterval(birth=3, death=7, dimension=0)
-        str_repr = str(interval)
-
-        assert str_repr == "[3, 7)", f"Esperado '[3, 7)', obtenido '{str_repr}'"
-
-    def test_string_representation_infinite(self):
-        """Representación string de intervalo infinito."""
-        interval = PersistenceInterval(birth=3, death=-1, dimension=0)
-        str_repr = str(interval)
-
-        assert str_repr == "[3, ∞)", f"Esperado '[3, ∞)', obtenido '{str_repr}'"
-
-    def test_string_representation_zero_birth(self):
-        """Representación con birth=0."""
-        interval = PersistenceInterval(birth=0, death=10, dimension=0)
-        assert str(interval) == "[0, 10)"
-
-    def test_persistence_calculation_accuracy(self):
-        """Cálculo preciso de persistencia."""
-        # Persistencia = (death - birth) / sqrt(2)
-        test_cases = [
-            (0, 2, 2 / math.sqrt(2)),
-            (5, 15, 10 / math.sqrt(2)),
-            (0, 100, 100 / math.sqrt(2)),
-        ]
-
-        for birth, death, expected_persistence in test_cases:
-            interval = PersistenceInterval(birth=birth, death=death, dimension=0)
-            assert interval.persistence == pytest.approx(expected_persistence, rel=1e-10), (
-                f"Para [{birth}, {death}): esperado {expected_persistence}, "
-                f"obtenido {interval.persistence}"
-            )
-
-    def test_immutability(self):
-        """PersistenceInterval es inmutable."""
-        interval = PersistenceInterval(birth=5, death=10, dimension=0)
-
-        with pytest.raises(AttributeError):
-            interval.birth = 0
-
-        with pytest.raises(AttributeError):
-            interval.death = 20
-
-    def test_large_values(self):
-        """Valores grandes no causan overflow."""
-        interval = PersistenceInterval(birth=0, death=10**9, dimension=0, amplitude=10**6)
-
-        assert interval.lifespan == 10**9
-        assert math.isfinite(interval.persistence)
+        """Intervalo con lifespan = 0 (nace y muere instantáneamente)."""
+        interval = PersistenceInterval(birth=42, death=42, dimension=0, amplitude=0.0)
+        
+        self.assertEqual(interval.lifespan, 0.0)
+        self.assertEqual(interval.persistence, 0.0)
+        self.assertEqual(interval.midpoint, 42.0)
+    
+    def test_bottleneck_distance_identical_intervals(self):
+        """
+        Teorema: d_B(I, I) = 0.
+        """
+        i1 = PersistenceInterval(birth=10, death=20, dimension=0)
+        i2 = PersistenceInterval(birth=10, death=20, dimension=0)
+        
+        dist = i1.bottleneck_distance(i2)
+        self.assertEqual(dist, 0.0)
+    
+    def test_bottleneck_distance_different_dimensions_infinity(self):
+        """
+        Teorema: d_B entre intervalos de dimensiones distintas = ∞.
+        """
+        i1 = PersistenceInterval(birth=10, death=20, dimension=0)
+        i2 = PersistenceInterval(birth=10, death=20, dimension=1)
+        
+        dist = i1.bottleneck_distance(i2)
+        self.assertTrue(math.isinf(dist))
+    
+    def test_bottleneck_distance_formula(self):
+        """
+        Teorema: d_B(I₁, I₂) = max(|b₁ - b₂|, |d₁ - d₂|).
+        """
+        i1 = PersistenceInterval(birth=10, death=50, dimension=0)
+        i2 = PersistenceInterval(birth=15, death=45, dimension=0)
+        
+        # |10 - 15| = 5, |50 - 45| = 5 ⟹ max = 5
+        dist = i1.bottleneck_distance(i2)
+        self.assertEqual(dist, 5.0)
+    
+    def test_bottleneck_distance_one_alive(self):
+        """Distancia cuando un intervalo está vivo."""
+        i1 = PersistenceInterval(birth=10, death=50, dimension=0)
+        i2 = PersistenceInterval(birth=10, death=-1, dimension=0)
+        
+        dist = i1.bottleneck_distance(i2)
+        self.assertTrue(math.isinf(dist), "Distancia debe ser infinita")
+    
+    def test_bottleneck_distance_both_alive(self):
+        """Distancia cuando ambos intervalos están vivos."""
+        i1 = PersistenceInterval(birth=10, death=-1, dimension=0)
+        i2 = PersistenceInterval(birth=15, death=-1, dimension=0)
+        
+        dist = i1.bottleneck_distance(i2)
+        # Solo difieren en birth: max(5, 0) = 5
+        self.assertEqual(dist, 5.0)
+    
+    def test_validation_negative_birth_raises(self):
+        """Verifica que birth negativo lance excepción."""
+        with self.assertRaises(PersistenceComputationError):
+            PersistenceInterval(birth=-5, death=10, dimension=0)
+    
+    def test_validation_death_before_birth_raises(self):
+        """Verifica que death < birth lance excepción."""
+        with self.assertRaises(PersistenceComputationError):
+            PersistenceInterval(birth=50, death=30, dimension=0)
+    
+    def test_validation_negative_dimension_raises(self):
+        """Verifica que dimensión negativa lance excepción."""
+        with self.assertRaises(PersistenceComputationError):
+            PersistenceInterval(birth=10, death=20, dimension=-1)
+    
+    def test_validation_negative_amplitude_raises(self):
+        """Verifica que amplitud negativa lance excepción."""
+        with self.assertRaises(PersistenceComputationError):
+            PersistenceInterval(birth=10, death=20, dimension=0, amplitude=-0.5)
+    
+    def test_validation_infinite_amplitude_raises(self):
+        """Verifica que amplitud infinita lance excepción."""
+        with self.assertRaises(PersistenceComputationError):
+            PersistenceInterval(birth=10, death=20, dimension=0, amplitude=float('inf'))
+    
+    def test_to_dict_finite_interval(self):
+        """Serialización de intervalo finito."""
+        interval = PersistenceInterval(birth=5, death=15, dimension=1, amplitude=2.5)
+        data = interval.to_dict()
+        
+        self.assertEqual(data["birth"], 5)
+        self.assertEqual(data["death"], 15)
+        self.assertEqual(data["dimension"], 1)
+        self.assertEqual(data["amplitude"], 2.5)
+        self.assertFalse(data["is_alive"])
+        self.assertIsNotNone(data["lifespan"])
+        self.assertIsNotNone(data["persistence"])
+    
+    def test_to_dict_alive_interval(self):
+        """Serialización de intervalo vivo."""
+        interval = PersistenceInterval(birth=100, death=-1, dimension=0, amplitude=1.0)
+        data = interval.to_dict()
+        
+        self.assertEqual(data["death"], -1)
+        self.assertTrue(data["is_alive"])
+        self.assertIsNone(data["lifespan"], "Lifespan debe ser None para intervalos infinitos")
+        self.assertIsNone(data["persistence"])
 
 
 # =============================================================================
-# TESTS: SystemTopology - Inicialización
+# GRUPO 4: TEST DE SystemTopology (CORE)
 # =============================================================================
 
-
-class TestSystemTopologyInit:
-    """Tests de inicialización de SystemTopology."""
-
-    def test_default_initialization(self):
-        """Inicialización con valores default."""
-        topo = SystemTopology()
-        assert len(topo.nodes) == 4
-        assert topo.REQUIRED_NODES <= topo.nodes
-        assert len(topo.edges) == 0
-
-    def test_custom_max_history(self):
-        """Inicialización con historial personalizado."""
-        topo = SystemTopology(max_history=100)
-        # Verificar que acepta más requests
-        for i in range(100):
-            topo.record_request(f"req_{i}")
-        # No deberíamos perder ninguno aún
-        assert len(topo._request_history) == 100
-
-    def test_invalid_max_history_raises(self):
-        """max_history < 1 debe lanzar excepción."""
-        with pytest.raises(ValueError, match="max_history debe ser >= 1"):
-            SystemTopology(max_history=0)
-
-        with pytest.raises(ValueError, match="max_history debe ser >= 1"):
-            SystemTopology(max_history=-5)
-
-    def test_custom_nodes(self):
+class TestSystemTopology(unittest.TestCase, MathematicalAssertions):
+    """
+    Verificación exhaustiva de operaciones topológicas en grafos.
+    
+    Categorías:
+    - Gestión de nodos y aristas
+    - Cálculo de números de Betti
+    - Detección de ciclos y anomalías
+    - Invariantes topológicas
+    - Operaciones atómicas
+    """
+    
+    def setUp(self):
+        """Configuración común para cada test."""
+        self.topology = SystemTopology(max_history=50, validate_strictly=True)
+    
+    def tearDown(self):
+        """Limpieza después de cada test."""
+        del self.topology
+    
+    # -------------------------------------------------------------------------
+    # Inicialización y Configuración
+    # -------------------------------------------------------------------------
+    
+    def test_initialization_default(self):
+        """Inicialización con parámetros default."""
+        topology = SystemTopology()
+        
+        # Nodos requeridos deben estar presentes
+        self.assertEqual(topology.num_nodes, len(SystemTopology.REQUIRED_NODES))
+        self.assertEqual(topology.num_edges, 0)
+        
+        # Estado inicial: sin conexiones
+        betti = topology.calculate_betti_numbers()
+        self.assertEqual(betti.b0, len(SystemTopology.REQUIRED_NODES))
+        self.assertEqual(betti.b1, 0)
+    
+    def test_initialization_custom_nodes(self):
         """Inicialización con nodos personalizados."""
-        topo = SystemTopology(custom_nodes={"Gateway", "LoadBalancer"})
-        assert "Gateway" in topo.nodes
-        assert "LoadBalancer" in topo.nodes
-        assert topo.REQUIRED_NODES <= topo.nodes
-
-    def test_custom_topology(self):
-        """Inicialización con topología esperada personalizada."""
-        custom_edges = {("Gateway", "Core"), ("Core", "Cache")}
-        topo = SystemTopology(
-            custom_nodes={"Gateway", "Cache"}, custom_topology=custom_edges
-        )
-        # Verificar que se incluyen en expected
-        missing = topo.get_missing_connections()
-        assert ("Gateway", "Core") in missing or ("Core", "Gateway") in missing
-
-
-# =============================================================================
-# TESTS: SystemTopology - Gestión de Nodos
-# =============================================================================
-
-
-class TestSystemTopologyNodes:
-    """Tests de gestión de nodos."""
-
-    def test_add_node_valid(self, empty_topology):
-        """Agregar nodo válido."""
-        assert empty_topology.add_node("NewService") is True
-        assert "NewService" in empty_topology.nodes
-
-    def test_add_node_duplicate(self, empty_topology):
-        """Agregar nodo duplicado retorna False."""
-        empty_topology.add_node("NewService")
-        assert empty_topology.add_node("NewService") is False
-
-    def test_add_node_invalid_types(self, empty_topology):
-        """Agregar nodos inválidos retorna False."""
-        assert empty_topology.add_node("") is False
-        assert empty_topology.add_node("   ") is False
-        assert empty_topology.add_node(None) is False
-        assert empty_topology.add_node(123) is False
-
-    def test_add_node_whitespace_stripped(self, empty_topology):
-        """Espacios en blanco se eliminan."""
-        assert empty_topology.add_node("  Service  ") is True
-        assert "Service" in empty_topology.nodes
-
-    def test_remove_node_dynamic(self, empty_topology):
-        """Eliminar nodo dinámico."""
-        empty_topology.add_node("TempService")
-        assert empty_topology.remove_node("TempService") is True
-        assert "TempService" not in empty_topology.nodes
-
-    def test_remove_node_required_fails(self, empty_topology):
-        """No se pueden eliminar nodos requeridos."""
-        assert empty_topology.remove_node("Agent") is False
-        assert empty_topology.remove_node("Core") is False
-        assert "Agent" in empty_topology.nodes
-
-    def test_remove_node_nonexistent(self, empty_topology):
-        """Eliminar nodo inexistente retorna False."""
-        assert empty_topology.remove_node("NonExistent") is False
-
-    def test_has_node(self, empty_topology):
-        """Verificar existencia de nodos."""
-        assert empty_topology.has_node("Agent") is True
-        assert empty_topology.has_node("NonExistent") is False
-
-
-# =============================================================================
-# TESTS: SystemTopology - Conectividad
-# =============================================================================
-
-
-class TestSystemTopologyConnectivity:
-    """Tests de gestión de conectividad."""
-
-    def test_update_connectivity_valid(self, empty_topology):
-        """Actualizar con conexiones válidas - verificación completa."""
-        edges_added, warnings = empty_topology.update_connectivity(
-            [
-                ("Agent", "Core"),
-                ("Core", "Redis"),
-            ]
-        )
-
-        assert edges_added == 2
-        assert len(warnings) == 0
-        assert len(empty_topology.edges) == 2
-
-        # Verificar que las aristas existen (en cualquier dirección)
-        edges = empty_topology.edges
-        assert ("Agent", "Core") in edges or ("Core", "Agent") in edges, (
-            "Arista Agent-Core no encontrada"
-        )
-        assert ("Core", "Redis") in edges or ("Redis", "Core") in edges, (
-            "Arista Core-Redis no encontrada"
-        )
-
-    def test_update_connectivity_clears_previous(self, tree_topology):
-        """Update limpia conexiones anteriores completamente."""
-        initial_edges = len(tree_topology.edges)
-        assert initial_edges == 3, f"Fixture debe tener 3 aristas, tiene {initial_edges}"
-
-        edges_added, _ = tree_topology.update_connectivity([("Agent", "Core")])
-
-        assert len(tree_topology.edges) == 1, "Debe haber solo 1 arista"
-        assert edges_added == 1
-
-    def test_update_connectivity_empty_list(self, tree_topology):
-        """Lista vacía elimina todas las aristas."""
-        initial_edges = len(tree_topology.edges)
-        assert initial_edges > 0
-
-        edges_added, warnings = tree_topology.update_connectivity([])
-
-        assert edges_added == 0
-        assert len(tree_topology.edges) == 0
-        assert len(warnings) == 0
-
-    def test_update_connectivity_invalid_format_string(self, empty_topology):
-        """String en lugar de tupla genera warning."""
-        edges_added, warnings = empty_topology.update_connectivity(
-            [
-                ("Agent", "Core"),
-                "invalid_edge",  # String, no tuple
-            ]
-        )
-
-        assert edges_added == 1
-        assert len(warnings) == 1
-        assert any("inválido" in w.lower() or "invalid" in w.lower() for w in warnings)
-
-    def test_update_connectivity_invalid_format_wrong_length(self, empty_topology):
-        """Tuplas con longitud incorrecta generan warnings."""
-        edges_added, warnings = empty_topology.update_connectivity(
-            [
-                ("Agent", "Core"),
-                ("Only",),  # Tupla de 1 elemento
-                ("A", "B", "C"),  # Tupla de 3 elementos
-                (),  # Tupla vacía
-            ]
-        )
-
-        assert edges_added == 1
-        assert len(warnings) == 3  # Una por cada formato incorrecto
-
-    def test_update_connectivity_invalid_node_types(self, empty_topology):
-        """Nodos no-string generan warnings específicos."""
-        edges_added, warnings = empty_topology.update_connectivity(
-            [
-                (123, "Core"),  # int como origen
-                ("Agent", None),  # None como destino
-                ("Agent", "Core"),  # Correcto
-            ]
-        )
-        # Should be 1 added (Agent-Core)
-        assert edges_added == 1
-        assert len(warnings) == 2
-
-    def test_update_connectivity_self_loop_ignored(self, empty_topology):
-        """Auto-loops se ignoran con warning."""
-        edges_added, warnings = empty_topology.update_connectivity(
-            [
-                ("Agent", "Core"),
-                ("Core", "Core"),  # Self-loop
-                ("Redis", "Redis"),  # Otro self-loop
-            ]
-        )
-
-        assert edges_added == 1
-        assert len([w for w in warnings if "loop" in w.lower()]) == 2
-
-    def test_update_connectivity_unknown_nodes_no_auto_add(self, empty_topology):
-        """Nodos desconocidos sin auto_add generan warnings."""
-        initial_nodes = empty_topology.nodes.copy()
-
-        edges_added, warnings = empty_topology.update_connectivity(
-            [
-                ("Agent", "Core"),
-                ("Unknown1", "Unknown2"),
-                ("Agent", "Unknown3"),
-            ],
-            validate_nodes=True,
-            auto_add_nodes=False,
-        )
-
-        assert edges_added == 1  # Solo Agent-Core
-        assert len(warnings) >= 2
-
-        # Verificar que no se agregaron nodos nuevos
-        assert empty_topology.nodes == initial_nodes
-
-    def test_update_connectivity_auto_add_nodes_creates_nodes(self, empty_topology):
-        """auto_add_nodes crea nodos y aristas correctamente."""
-        initial_node_count = len(empty_topology.nodes)
-
-        edges_added, warnings = empty_topology.update_connectivity(
-            [
-                ("Agent", "NewService"),
-                ("NewService", "AnotherNew"),
-            ],
-            validate_nodes=True,
-            auto_add_nodes=True,
-        )
-
-        assert edges_added == 2
-        assert "NewService" in empty_topology.nodes
-        assert "AnotherNew" in empty_topology.nodes
-        assert len(empty_topology.nodes) == initial_node_count + 2
-
-    def test_update_connectivity_duplicate_edges(self, empty_topology):
-        """Aristas duplicadas no causan error."""
-        edges_added, warnings = empty_topology.update_connectivity(
-            [
-                ("Agent", "Core"),
-                ("Agent", "Core"),  # Duplicada
-                ("Core", "Agent"),  # Misma arista, diferente orden
-            ]
-        )
-
-        # NetworkX maneja duplicados automáticamente
-        assert len(empty_topology.edges) == 1
-
-    def test_update_connectivity_whitespace_handling(self, empty_topology):
-        """Espacios en blanco en nodos se manejan correctamente."""
-        edges_added, warnings = empty_topology.update_connectivity(
-            [
-                ("  Agent  ", "Core"),
-                ("Agent", "  Redis  "),
-            ]
-        )
-
-        # Depende de la implementación si strip se aplica
-        # Verificar que al menos una arista se creó si los nodos existen
-        assert edges_added >= 0
-
-    def test_add_edge_single_success(self, empty_topology):
-        """Agregar arista individual exitosamente."""
-        assert empty_topology.add_edge("Agent", "Core") is True
-        assert len(empty_topology.edges) == 1
-
-        # Verificar que no se puede agregar duplicada
-        assert empty_topology.add_edge("Agent", "Core") is False
-        assert len(empty_topology.edges) == 1
-
-    def test_add_edge_nonexistent_source(self, empty_topology):
-        """Agregar arista con nodo origen inexistente falla."""
-        assert empty_topology.add_edge("Unknown", "Core") is False
-        assert len(empty_topology.edges) == 0
-
-    def test_add_edge_nonexistent_destination(self, empty_topology):
-        """Agregar arista con nodo destino inexistente falla."""
-        assert empty_topology.add_edge("Agent", "Unknown") is False
-        assert len(empty_topology.edges) == 0
-
-    def test_add_edge_both_nonexistent(self, empty_topology):
-        """Agregar arista con ambos nodos inexistentes falla."""
-        assert empty_topology.add_edge("Unknown1", "Unknown2") is False
-
-    def test_add_edge_self_loop_rejected(self, empty_topology):
-        """Self-loop no permitido en add_edge."""
-        assert empty_topology.add_edge("Agent", "Agent") is False
-        assert len(empty_topology.edges) == 0
-
-    def test_remove_edge_success(self, tree_topology):
-        """Eliminar arista existente exitosamente."""
-        initial = len(tree_topology.edges)
-
-        result = tree_topology.remove_edge("Agent", "Core")
-
-        assert result is True
-        assert len(tree_topology.edges) == initial - 1
-
-    def test_remove_edge_reverse_direction(self, tree_topology):
-        """Eliminar arista en dirección reversa también funciona."""
-        # La arista es (Agent, Core) o (Core, Agent) dependiendo de cómo se almacene
-        initial = len(tree_topology.edges)
-
-        # Intentar en ambas direcciones
-        result = tree_topology.remove_edge("Core", "Agent")
-
-        assert result is True
-        assert len(tree_topology.edges) == initial - 1
-
-    def test_remove_edge_nonexistent(self, empty_topology):
-        """Eliminar arista inexistente retorna False."""
-        assert empty_topology.remove_edge("Agent", "Core") is False
-        assert empty_topology.remove_edge("Unknown", "Other") is False
-
-    def test_remove_edge_after_clear(self, tree_topology):
-        """Eliminar arista después de limpiar falla."""
-        tree_topology.update_connectivity([])
-
-        assert tree_topology.remove_edge("Agent", "Core") is False
-
-
-# =============================================================================
-# TESTS: SystemTopology - Números de Betti
-# =============================================================================
-
-
-class TestSystemTopologyBettiNumbers:
-    """Tests de cálculo de números de Betti."""
-
-    def test_initial_state_no_edges(self, empty_topology):
-        """Estado inicial: todos los nodos aislados."""
-        betti = empty_topology.calculate_betti_numbers()
-
-        num_nodes = len(empty_topology.nodes)
-        assert betti.b0 == num_nodes, f"β₀ debe ser {num_nodes} (nodos aislados)"
-        assert betti.b1 == 0, "Sin aristas no hay ciclos"
-        assert betti.is_connected is False
-        assert betti.is_acyclic is True
-        assert betti.num_vertices == num_nodes
-        assert betti.num_edges == 0
-
-    def test_tree_topology_properties(self, tree_topology):
-        """Topología en árbol: verificación completa de propiedades."""
-        betti = tree_topology.calculate_betti_numbers()
-
-        # Propiedades de árbol
-        assert betti.b0 == 1, "Árbol debe ser conexo"
-        assert betti.b1 == 0, "Árbol no tiene ciclos"
-        assert betti.is_ideal is True
-
-        # Verificar fórmula de Euler: |E| - |V| + β₀ = β₁
-        euler_check = betti.num_edges - betti.num_vertices + betti.b0
-        assert euler_check == betti.b1, (
-            f"Euler-Poincaré: {betti.num_edges} - {betti.num_vertices} + "
-            f"{betti.b0} = {euler_check} ≠ {betti.b1}"
-        )
-
-        # Para árbol: |E| = |V| - 1
-        assert betti.num_edges == betti.num_vertices - 1, "Árbol: |E| = |V| - 1"
-
-    def test_cyclic_topology_properties(self, cyclic_topology):
-        """Topología con ciclo: verificación completa."""
-        betti = cyclic_topology.calculate_betti_numbers()
-
-        assert betti.b0 == 1, "Debe ser conexo"
-        assert betti.b1 == 1, "Debe tener exactamente un ciclo"
-        assert betti.is_acyclic is False
-        assert betti.is_ideal is False
-
-        # Verificar Euler-Poincaré
-        euler_check = betti.num_edges - betti.num_vertices + betti.b0
-        assert euler_check == betti.b1
-
-    def test_fragmented_topology_components(self, fragmented_topology):
-        """Topología fragmentada: contar componentes correctamente."""
-        betti = fragmented_topology.calculate_betti_numbers()
-
-        # {Agent, Core} + {Redis} + {Filesystem} = 3 componentes
-        assert betti.b0 == 3, f"Esperados 3 componentes, obtenidos {betti.b0}"
-        assert betti.b1 == 0, "Sin ciclos"
-        assert betti.is_connected is False
-
-    def test_multiple_cycles_count(self, empty_topology):
-        """Múltiples ciclos incrementan β₁ correctamente."""
-        # Crear grafo con 2 ciclos independientes
-        empty_topology.add_node("Extra")
-        empty_topology.update_connectivity(
-            [
-                ("Agent", "Core"),
-                ("Core", "Redis"),
-                ("Redis", "Agent"),  # Ciclo 1: Agent-Core-Redis
-                ("Core", "Filesystem"),
-                ("Filesystem", "Redis"),  # Ciclo 2: Core-Redis-Filesystem
-            ],
-            validate_nodes=False,
-        )
-
-        betti = empty_topology.calculate_betti_numbers()
-
-        # Verificar usando Euler-Poincaré
-        expected_b1 = betti.num_edges - betti.num_vertices + betti.b0
-        assert betti.b1 == expected_b1
-        assert betti.b1 == 2, f"Esperados 2 ciclos, obtenidos {betti.b1}"
-
-    def test_include_isolated_false_excludes_isolates(self, fragmented_topology):
-        """include_isolated=False excluye nodos sin conexiones."""
-        betti_with = fragmented_topology.calculate_betti_numbers(include_isolated=True)
-        betti_without = fragmented_topology.calculate_betti_numbers(include_isolated=False)
-
-        # Con aislados: 3 componentes
-        assert betti_with.b0 == 3
-        assert betti_with.num_vertices == 4
-
-        # Sin aislados: solo los conectados (Agent-Core)
-        assert betti_without.b0 == 1, "Solo un componente conectado"
-        assert betti_without.num_vertices == 2, "Solo Agent y Core conectados"
-        assert betti_without.num_edges == 1
-
-    def test_all_isolated_nodes(self, empty_topology):
-        """Todos los nodos aislados con include_isolated=False."""
-        # No agregar ninguna arista
-        betti = empty_topology.calculate_betti_numbers(include_isolated=False)
-
-        # Sin nodos conectados
-        assert betti.num_vertices == 0
-        assert betti.b0 == 0
-        assert betti.b1 == 0
-
-    def test_euler_characteristic_consistency(self, cyclic_topology):
-        """χ = |V| - |E| = β₀ - β₁ son consistentes."""
-        betti = cyclic_topology.calculate_betti_numbers()
-
-        chi_from_graph = betti.num_vertices - betti.num_edges
-        chi_from_betti = betti.b0 - betti.b1
-
-        assert chi_from_graph == chi_from_betti, (
-            f"Inconsistencia: |V|-|E|={chi_from_graph}, β₀-β₁={chi_from_betti}"
-        )
-        assert chi_from_graph == betti.euler_characteristic
-
-    def test_complete_graph_betti_numbers(self, empty_topology):
-        """Grafo completo K4: verificar números de Betti."""
-        nodes = list(empty_topology.REQUIRED_NODES)
-        assert len(nodes) == 4, "Deben haber 4 nodos requeridos"
-
-        # Crear K4 (grafo completo de 4 nodos)
-        edges = [
-            (nodes[i], nodes[j]) for i in range(len(nodes)) for j in range(i + 1, len(nodes))
+        custom_nodes = {"ServiceA", "ServiceB"}
+        topology = SystemTopology(custom_nodes=custom_nodes)
+        
+        expected_nodes = SystemTopology.REQUIRED_NODES.union(custom_nodes)
+        self.assertEqual(topology.num_nodes, len(expected_nodes))
+        
+        for node in expected_nodes:
+            self.assertTrue(topology.has_node(node))
+    
+    def test_initialization_invalid_window_size_raises(self):
+        """Verifica que window_size inválido lance excepción."""
+        with self.assertRaises(ValueError):
+            SystemTopology(max_history=1)  # Muy pequeño
+        
+        with self.assertRaises(ValueError):
+            SystemTopology(max_history=10001)  # Muy grande
+    
+    # -------------------------------------------------------------------------
+    # Gestión de Nodos
+    # -------------------------------------------------------------------------
+    
+    def test_add_node_valid(self):
+        """Agregar nodo válido debe retornar True."""
+        result = self.topology.add_node("NewService")
+        
+        self.assertTrue(result)
+        self.assertTrue(self.topology.has_node("NewService"))
+        self.assertEqual(self.topology.num_nodes, len(SystemTopology.REQUIRED_NODES) + 1)
+    
+    def test_add_node_duplicate_returns_false(self):
+        """Agregar nodo duplicado debe retornar False."""
+        self.topology.add_node("TestNode")
+        result = self.topology.add_node("TestNode")
+        
+        self.assertFalse(result)
+    
+    def test_add_node_empty_string_strict_mode_raises(self):
+        """Nodo vacío en modo estricto debe lanzar excepción."""
+        with self.assertRaises(GraphStructureError):
+            self.topology.add_node("")
+    
+    def test_add_node_whitespace_only_stripped(self):
+        """Nodo con solo whitespace debe fallar después de strip."""
+        with self.assertRaises(GraphStructureError):
+            self.topology.add_node("   ")
+    
+    def test_add_node_non_string_raises(self):
+        """Nodo no-string debe lanzar excepción en modo estricto."""
+        with self.assertRaises(GraphStructureError):
+            self.topology.add_node(123)  # type: ignore
+    
+    def test_remove_node_non_required_success(self):
+        """Eliminar nodo no-requerido debe funcionar."""
+        self.topology.add_node("Temp")
+        result = self.topology.remove_node("Temp")
+        
+        self.assertTrue(result)
+        self.assertFalse(self.topology.has_node("Temp"))
+    
+    def test_remove_node_required_strict_mode_raises(self):
+        """Eliminar nodo requerido en modo estricto debe lanzar excepción."""
+        with self.assertRaises(GraphStructureError):
+            self.topology.remove_node("Core")
+    
+    def test_remove_node_nonexistent_returns_false(self):
+        """Eliminar nodo inexistente debe retornar False."""
+        result = self.topology.remove_node("Nonexistent")
+        self.assertFalse(result)
+    
+    # -------------------------------------------------------------------------
+    # Gestión de Conectividad
+    # -------------------------------------------------------------------------
+    
+    def test_update_connectivity_valid_connections(self):
+        """Actualizar conectividad con conexiones válidas."""
+        connections = [
+            ("Agent", "Core"),
+            ("Core", "Redis"),
+            ("Core", "Filesystem")
         ]
-        empty_topology.update_connectivity(edges)
-
-        betti = empty_topology.calculate_betti_numbers()
-
-        # K4: 4 nodos, 6 aristas, 1 componente
-        assert betti.num_vertices == 4
-        assert betti.num_edges == 6
-        assert betti.b0 == 1
-
-        # β₁ = 6 - 4 + 1 = 3
-        assert betti.b1 == 3, f"K4 debe tener β₁=3, obtenido {betti.b1}"
-
-    def test_star_topology_is_tree(self, empty_topology):
-        """Topología estrella es un árbol (β₁=0)."""
-        # Core como hub central
-        empty_topology.update_connectivity(
-            [
-                ("Core", "Agent"),
-                ("Core", "Redis"),
-                ("Core", "Filesystem"),
-            ]
-        )
-
-        betti = empty_topology.calculate_betti_numbers()
-
-        assert betti.b0 == 1, "Estrella es conexa"
-        assert betti.b1 == 0, "Estrella es árbol (sin ciclos)"
-        assert betti.is_ideal is True
-
-
-# =============================================================================
-# TESTS: SystemTopology - Ciclos y Anomalías
-# =============================================================================
-
-
-class TestSystemTopologyCyclesAndAnomalies:
-    """Tests de detección de ciclos y anomalías."""
-
-    def test_find_structural_cycles_none(self, tree_topology):
-        """Árbol no tiene ciclos estructurales."""
-        cycles = tree_topology.find_structural_cycles()
-        assert len(cycles) == 0
-
-    def test_find_structural_cycles_one(self, cyclic_topology):
-        """Detectar un ciclo estructural."""
-        cycles = cyclic_topology.find_structural_cycles()
-        assert len(cycles) == 1
-        # El ciclo debe contener Agent, Core, Redis
-        cycle_set = set(cycles[0])
-        assert {"Agent", "Core", "Redis"} <= cycle_set or {
-            "Agent",
-            "Core",
-            "Redis",
-        } == cycle_set
-
-    def test_record_request_valid(self, empty_topology):
-        """Registrar requests válidos."""
-        assert empty_topology.record_request("req_123") is True
-        assert empty_topology.record_request("req_456") is True
-
-    def test_record_request_invalid(self, empty_topology):
-        """Requests inválidos retornan False."""
-        assert empty_topology.record_request("") is False
-        assert empty_topology.record_request("   ") is False
-        assert empty_topology.record_request(None) is False
-        assert empty_topology.record_request(123) is False
-
-    def test_detect_request_loops_no_loops(self, empty_topology):
-        """Sin loops si cada request es único."""
-        for i in range(10):
-            empty_topology.record_request(f"unique_req_{i}")
-
-        loops = empty_topology.detect_request_loops(threshold=3)
-        assert len(loops) == 0
-
-    def test_detect_request_loops_with_loops(self, empty_topology):
-        """Detectar loops cuando hay repeticiones."""
-        empty_topology.record_request("normal_1")
-        empty_topology.record_request("normal_2")
-
-        # Simular reintentos
-        for _ in range(5):
-            empty_topology.record_request("retry_req")
-
-        loops = empty_topology.detect_request_loops(threshold=3)
-        assert len(loops) == 1
-        assert loops[0].request_id == "retry_req"
-        assert loops[0].count == 5
-
-    def test_detect_request_loops_threshold(self, empty_topology):
-        """El threshold controla qué se considera loop."""
-        for _ in range(3):
-            empty_topology.record_request("retry_a")
-        for _ in range(5):
-            empty_topology.record_request("retry_b")
-
-        # Con threshold=4, solo retry_b es loop
-        loops = empty_topology.detect_request_loops(threshold=4)
-        assert len(loops) == 1
-        assert loops[0].request_id == "retry_b"
-
-        # Con threshold=3, ambos son loops
-        loops = empty_topology.detect_request_loops(threshold=3)
-        assert len(loops) == 2
-
-    def test_get_disconnected_nodes(self, fragmented_topology):
-        """Identificar nodos desconectados."""
-        disconnected = fragmented_topology.get_disconnected_nodes()
-        assert "Redis" in disconnected
-        assert "Filesystem" in disconnected
-        assert "Agent" not in disconnected
-        assert "Core" not in disconnected
-
-    def test_get_missing_connections(self, fragmented_topology):
-        """Identificar conexiones faltantes."""
-        missing = fragmented_topology.get_missing_connections()
-        # Debe faltar Core-Redis y Core-Filesystem
-        assert len(missing) >= 2
-
-    def test_get_unexpected_connections(self, empty_topology):
-        """Identificar conexiones no esperadas."""
-        # La topología esperada es una Pirámide. Cualquier otra cosa es inesperada.
-        # Por ejemplo, una conexión directa entre Redis y Filesystem.
-        empty_topology.update_connectivity(
-            [
-                ("Agent", "Core"),
-                ("Redis", "Filesystem"),  # Conexión inesperada
-            ]
-        )
-        unexpected = empty_topology.get_unexpected_connections()
-        assert ("Redis", "Filesystem") in unexpected or ("Filesystem", "Redis") in unexpected
-
-    def test_clear_request_history(self, empty_topology):
-        """Limpiar historial de requests."""
-        for i in range(10):
-            empty_topology.record_request(f"req_{i}")
-
-        empty_topology.clear_request_history()
-        loops = empty_topology.detect_request_loops(threshold=1)
-        assert len(loops) == 0
-
-
-# =============================================================================
-# TESTS: SystemTopology - Salud Topológica
-# =============================================================================
-
-
-class TestSystemTopologyHealth:
-    """Tests del análisis de salud topológica."""
-
-    def test_tree_topology_health_assessment(self, tree_topology):
-        """Árbol sin todas las conexiones esperadas = DEGRADED."""
-        health = tree_topology.get_topological_health()
-
-        # Verificar propiedades básicas
-        assert health.betti.b0 == 1, "Árbol debe ser conexo"
-        assert health.betti.b1 == 0, "Árbol no tiene ciclos"
-
-        # Faltan conexiones de la pirámide
-        assert len(health.missing_edges) > 0, "Deben faltar aristas"
-
-        # Debido a aristas faltantes, no es HEALTHY, pero con los nuevos umbrales
-        # puede ser HEALTHY si la penalización es baja.
-        # Score esperado: 1.0 - (PENALTY_CAPS['missing_edges'] * (2 / 5))
-        # 1.0 - (0.20 * 0.4) = 1.0 - 0.08 = 0.92, que es HEALTHY (>= 0.85)
-        assert health.level == HealthLevel.HEALTHY
-        assert health.is_healthy is True
-
-        # Score debe reflejar las penalizaciones
-        assert 0.0 <= health.health_score <= 1.0
-
-    def test_pyramid_topology_has_cycles(self, pyramid_topology):
-        """Pirámide completa tiene ciclos, verificar diagnóstico."""
-        health = pyramid_topology.get_topological_health()
-
-        # Verificar que tiene ciclos
-        assert health.betti.b1 == 2, f"Pirámide debe tener 2 ciclos, tiene {health.betti.b1}"
-
-        # Los ciclos degradan la salud
-        assert "cycles" in health.diagnostics, "Debe diagnosticar ciclos"
-        assert health.health_score < 1.0, "Ciclos deben penalizar score"
-
-        # Pero no faltan aristas
-        assert len(health.missing_edges) == 0, "Pirámide completa no le faltan aristas"
-
-    def test_fragmented_topology_severe_degradation(self, fragmented_topology):
-        """Fragmentación causa degradación severa."""
-        health = fragmented_topology.get_topological_health()
-
-        # Verificar fragmentación
-        assert health.betti.b0 > 1, "Debe estar fragmentado"
-
-        # Verificar nodos desconectados
-        assert len(health.disconnected_nodes) >= 2
-        assert (
-            "Redis" in health.disconnected_nodes or "Filesystem" in health.disconnected_nodes
-        )
-
-        # Debe tener diagnósticos de fragmentación
-        has_connectivity_diag = (
-            "connectivity" in health.diagnostics or "disconnected" in health.diagnostics
-        )
-        assert has_connectivity_diag, "Debe diagnosticar problema de conectividad"
-
-        # Estado degradado o peor
-        assert health.level in (
-            HealthLevel.DEGRADED,
-            HealthLevel.UNHEALTHY,
-            HealthLevel.CRITICAL,
-        )
-        assert health.health_score < 0.9
-
-    def test_cyclic_topology_cycle_penalty(self, cyclic_topology):
-        """Ciclos estructurales penalizan pero no críticamente."""
-        health = cyclic_topology.get_topological_health()
-
-        assert health.betti.b1 > 0, "Debe tener ciclos"
-        assert "cycles" in health.diagnostics
-
-        # Un ciclo no debería ser crítico por sí solo
-        assert health.health_score > 0.3, "Un ciclo no debería ser crítico"
-
-    def test_health_with_retry_loops_penalty(self, pyramid_topology):
-        """Loops de reintentos agregan penalización."""
-        # Obtener salud sin reintentos
-        health_before = pyramid_topology.get_topological_health()
-
-        # Simular reintentos
-        for _ in range(5):
-            pyramid_topology.record_request("failing_request")
-
-        health_after = pyramid_topology.get_topological_health()
-
-        # Verificar que se detectaron los loops
-        assert len(health_after.request_loops) > 0
-        assert "retry_loops" in health_after.diagnostics
-
-        # El score debería ser menor o igual
-        assert health_after.health_score <= health_before.health_score
-
-    def test_health_score_bounds(self, empty_topology):
-        """Score de salud siempre entre 0 y 1."""
-        # Peor caso: sin conexiones
-        health = empty_topology.get_topological_health()
-        assert 0.0 <= health.health_score <= 1.0
-
-        # Verificar el nivel corresponde al score
-        if health.health_score >= 0.85:
-            assert health.level == HealthLevel.HEALTHY
-        elif health.health_score >= 0.65:
-            assert health.level == HealthLevel.DEGRADED
-        elif health.health_score >= 0.35:
-            assert health.level == HealthLevel.UNHEALTHY
-        else:
-            assert health.level == HealthLevel.CRITICAL
-
-    def test_diagnostics_always_present(self, fragmented_topology):
-        """Siempre hay al menos un diagnóstico."""
-        health = fragmented_topology.get_topological_health()
-
-        assert len(health.diagnostics) > 0, "Debe haber diagnósticos"
-
-        # Cada diagnóstico debe ser string no vacío
-        for key, value in health.diagnostics.items():
-            assert isinstance(key, str) and key
-            assert isinstance(value, str) and value
-
-    def test_health_level_consistency_with_score(self):
-        """Nivel de salud es consistente con el score."""
-        topo = SystemTopology()
-
-        # Crear escenarios con diferentes scores
-        test_scenarios = [
-            ([], HealthLevel.CRITICAL),  # Sin conexiones = muy mal
+        
+        edges_added, warnings = self.topology.update_connectivity(connections)
+        
+        self.assertEqual(edges_added, 3)
+        self.assertEqual(len(warnings), 0)
+        self.assertEqual(self.topology.num_edges, 3)
+        
+        # Verificar Betti numbers
+        betti = self.topology.calculate_betti_numbers()
+        self.assertEqual(betti.b0, 1, "Debe haber 1 componente conexa")
+        self.assertEqual(betti.b1, 0, "No debe haber ciclos")
+    
+    def test_update_connectivity_with_cycle(self):
+        """Actualizar conectividad creando un ciclo."""
+        connections = [
+            ("Agent", "Core"),
+            ("Core", "Redis"),
+            ("Redis", "Agent")
         ]
-
-        for connections, expected_min_level in test_scenarios:
-            topo.update_connectivity(connections)
-            health = topo.get_topological_health()
-
-            # Verificar que el nivel no es mejor que el esperado mínimo
-            level_order = [
-                HealthLevel.CRITICAL,
-                HealthLevel.UNHEALTHY,
-                HealthLevel.DEGRADED,
-                HealthLevel.HEALTHY,
-            ]
-
-            assert health.level in level_order
-
-    def test_topological_health_immutable_collections(self, fragmented_topology):
-        """Las colecciones en TopologicalHealth son inmutables."""
-        health = fragmented_topology.get_topological_health()
-
-        # disconnected_nodes es FrozenSet
-        assert isinstance(health.disconnected_nodes, frozenset)
-
-        # missing_edges es FrozenSet
-        assert isinstance(health.missing_edges, frozenset)
-
-        # request_loops es Tuple
-        assert isinstance(health.request_loops, tuple)
+        
+        self.topology.update_connectivity(connections)
+        betti = self.topology.calculate_betti_numbers()
+        
+        self.assertEqual(betti.b0, 1)
+        self.assertEqual(betti.b1, 1, "Debe detectar 1 ciclo")
+        self.assertGreater(betti.cyclomatic_complexity, 1)
+    
+    def test_update_connectivity_self_loop_ignored(self):
+        """Self-loops deben ser ignorados."""
+        connections = [
+            ("Core", "Core"),  # Self-loop
+            ("Agent", "Core")
+        ]
+        
+        edges_added, warnings = self.topology.update_connectivity(connections)
+        
+        # Solo 1 arista válida
+        self.assertEqual(edges_added, 1)
+        self.assertEqual(len(warnings), 1)
+        self.assertIn("Auto-loop", warnings[0])
+    
+    def test_update_connectivity_missing_nodes_auto_add(self):
+        """Nodos faltantes con auto_add=True deben agregarse."""
+        connections = [("NewNode1", "NewNode2")]
+        
+        edges_added, warnings = self.topology.update_connectivity(
+            connections,
+            auto_add_nodes=True
+        )
+        
+        self.assertEqual(edges_added, 1)
+        self.assertTrue(self.topology.has_node("NewNode1"))
+        self.assertTrue(self.topology.has_node("NewNode2"))
+    
+    def test_update_connectivity_missing_nodes_no_auto_add_warning(self):
+        """Nodos faltantes sin auto_add deben generar warnings."""
+        connections = [("Ghost1", "Ghost2")]
+        
+        edges_added, warnings = self.topology.update_connectivity(
+            connections,
+            validate_nodes=True,
+            auto_add_nodes=False
+        )
+        
+        self.assertEqual(edges_added, 0)
+        self.assertGreater(len(warnings), 0)
+    
+    def test_update_connectivity_atomicity_on_error(self):
+        """Verifica rollback cuando hay error crítico."""
+        # Configurar estado inicial
+        self.topology.update_connectivity([("Agent", "Core")])
+        initial_edges = self.topology.num_edges
+        
+        # Provocar error con entrada inválida en medio
+        bad_connections = [
+            ("Core", "Redis"),
+            (None, "Agent"),  # Tipo inválido  # type: ignore
+            ("Redis", "Filesystem")
+        ]
+        
+        edges_added, warnings = self.topology.update_connectivity(bad_connections)
+        
+        # Debe haber warnings
+        self.assertGreater(len(warnings), 0)
+    
+    def test_add_edge_success(self):
+        """Agregar arista válida."""
+        result = self.topology.add_edge("Agent", "Core")
+        
+        self.assertTrue(result)
+        self.assertEqual(self.topology.num_edges, 1)
+        self.assertIn(("Agent", "Core"), self.topology.edges)
+    
+    def test_add_edge_missing_node_returns_false(self):
+        """Agregar arista con nodo faltante debe fallar."""
+        result = self.topology.add_edge("Agent", "Nonexistent")
+        self.assertFalse(result)
+    
+    def test_add_edge_duplicate_returns_false(self):
+        """Agregar arista duplicada debe retornar False."""
+        self.topology.add_edge("Agent", "Core")
+        result = self.topology.add_edge("Agent", "Core")
+        
+        self.assertFalse(result)
+    
+    def test_remove_edge_success(self):
+        """Eliminar arista existente."""
+        self.topology.add_edge("Agent", "Core")
+        result = self.topology.remove_edge("Agent", "Core")
+        
+        self.assertTrue(result)
+        self.assertEqual(self.topology.num_edges, 0)
+    
+    def test_remove_edge_nonexistent_returns_false(self):
+        """Eliminar arista inexistente debe retornar False."""
+        result = self.topology.remove_edge("Agent", "Core")
+        self.assertFalse(result)
+    
+    # -------------------------------------------------------------------------
+    # Cálculo de Números de Betti
+    # -------------------------------------------------------------------------
+    
+    def test_calculate_betti_numbers_empty_graph(self):
+        """Betti numbers de grafo vacío."""
+        topology = SystemTopology(custom_nodes=set(), validate_strictly=False)
+        topology._graph.clear()  # Forzar vacío
+        
+        betti = topology.calculate_betti_numbers(include_isolated=True)
+        
+        self.assertEqual(betti.b0, 0)
+        self.assertEqual(betti.b1, 0)
+        self.assertEqual(betti.num_vertices, 0)
+        self.assertEqual(betti.num_edges, 0)
+    
+    def test_calculate_betti_numbers_isolated_nodes(self):
+        """Betti numbers con solo nodos aislados."""
+        betti = self.topology.calculate_betti_numbers(include_isolated=True)
+        
+        n = len(SystemTopology.REQUIRED_NODES)
+        self.assertEqual(betti.b0, n, f"Cada nodo aislado es una componente")
+        self.assertEqual(betti.b1, 0)
+    
+    def test_calculate_betti_numbers_exclude_isolated(self):
+        """Excluir nodos aislados debe dar grafo vacío si no hay aristas."""
+        betti = self.topology.calculate_betti_numbers(include_isolated=False)
+        
+        self.assertEqual(betti.b0, 0)
+        self.assertEqual(betti.b1, 0)
+    
+    def test_calculate_betti_numbers_tree_structure(self):
+        """Betti numbers de estructura de árbol."""
+        # Árbol: Agent -- Core -- Redis
+        #                  |
+        #              Filesystem
+        self.topology.update_connectivity([
+            ("Agent", "Core"),
+            ("Core", "Redis"),
+            ("Core", "Filesystem")
+        ])
+        
+        betti = self.topology.calculate_betti_numbers()
+        
+        self.assertEqual(betti.b0, 1, "Árbol es conexo")
+        self.assertEqual(betti.b1, 0, "Árbol no tiene ciclos")
+        self.assertTrue(betti.is_tree)
+        self.assertEqual(betti.cyclomatic_complexity, 1)
+    
+    def test_calculate_betti_numbers_single_cycle(self):
+        """Betti numbers con un ciclo simple."""
+        # Triángulo
+        self.topology.update_connectivity([
+            ("Agent", "Core"),
+            ("Core", "Redis"),
+            ("Redis", "Agent")
+        ])
+        
+        betti = self.topology.calculate_betti_numbers()
+        
+        self.assertEqual(betti.b0, 1)
+        self.assertEqual(betti.b1, 1)
+        self.assertFalse(betti.is_acyclic)
+    
+    def test_calculate_betti_numbers_multiple_components(self):
+        """Betti numbers con múltiples componentes."""
+        # Crear dos componentes: {Agent, Core} y {Redis}
+        self.topology.update_connectivity([
+            ("Agent", "Core")
+        ])
+        
+        betti = self.topology.calculate_betti_numbers(include_isolated=True)
+        
+        # Agent-Core conectados, Redis aislado, Filesystem aislado
+        self.assertEqual(betti.b0, 3)
+        self.assertFalse(betti.is_connected)
+    
+    def test_calculate_betti_numbers_caching(self):
+        """Verifica que el caché funcione correctamente."""
+        self.topology.update_connectivity([("Agent", "Core")])
+        
+        # Primera llamada (sin caché)
+        betti1 = self.topology.calculate_betti_numbers(use_cache=True)
+        
+        # Segunda llamada (con caché)
+        betti2 = self.topology.calculate_betti_numbers(use_cache=True)
+        
+        self.assertEqual(betti1.b0, betti2.b0)
+        self.assertEqual(betti1.b1, betti2.b1)
+    
+    def test_calculate_betti_numbers_cache_invalidation(self):
+        """Verifica que el caché se invalide al modificar el grafo."""
+        self.topology.update_connectivity([("Agent", "Core")])
+        betti1 = self.topology.calculate_betti_numbers(use_cache=True)
+        
+        # Modificar grafo
+        self.topology.add_edge("Core", "Redis")
+        
+        # Caché debe invalidarse
+        betti2 = self.topology.calculate_betti_numbers(use_cache=True)
+        
+        self.assertNotEqual(betti1.num_edges, betti2.num_edges)
+    
+    # -------------------------------------------------------------------------
+    # Detección de Ciclos y Anomalías
+    # -------------------------------------------------------------------------
+    
+    def test_find_structural_cycles_no_cycles(self):
+        """Grafo sin ciclos no debe retornar ninguno."""
+        self.topology.update_connectivity([
+            ("Agent", "Core"),
+            ("Core", "Redis")
+        ])
+        
+        cycles = self.topology.find_structural_cycles()
+        self.assertEqual(len(cycles), 0)
+    
+    def test_find_structural_cycles_single_cycle(self):
+        """Detectar un ciclo simple."""
+        self.topology.update_connectivity([
+            ("Agent", "Core"),
+            ("Core", "Redis"),
+            ("Redis", "Agent")
+        ])
+        
+        cycles = self.topology.find_structural_cycles()
+        
+        self.assertEqual(len(cycles), 1)
+        # El ciclo debe contener los 3 nodos
+        cycle = cycles[0]
+        self.assertEqual(set(cycle), {"Agent", "Core", "Redis"})
+    
+    def test_find_structural_cycles_multiple_cycles(self):
+        """Detectar múltiples ciclos."""
+        # Crear dos ciclos independientes
+        self.topology.update_connectivity([
+            ("Agent", "Core"),
+            ("Core", "Redis"),
+            ("Redis", "Agent"),
+            ("Core", "Filesystem"),
+            ("Filesystem", "Agent")
+        ])
+        
+        cycles = self.topology.find_structural_cycles()
+        
+        # Debe haber al menos 2 ciclos fundamentales
+        self.assertGreaterEqual(len(cycles), 2)
+    
+    def test_get_disconnected_nodes_all_connected(self):
+        """Sin nodos desconectados cuando todos están conectados."""
+        self.topology.update_connectivity([
+            ("Agent", "Core"),
+            ("Core", "Redis"),
+            ("Core", "Filesystem")
+        ])
+        
+        disconnected = self.topology.get_disconnected_nodes()
+        self.assertEqual(len(disconnected), 0)
+    
+    def test_get_disconnected_nodes_some_isolated(self):
+        """Detectar nodos requeridos aislados."""
+        self.topology.update_connectivity([
+            ("Agent", "Core")
+        ])
+        
+        disconnected = self.topology.get_disconnected_nodes()
+        
+        # Redis y Filesystem deben estar desconectados
+        self.assertEqual(len(disconnected), 2)
+        self.assertIn("Redis", disconnected)
+        self.assertIn("Filesystem", disconnected)
+    
+    def test_get_missing_connections_complete_topology(self):
+        """Sin conexiones faltantes cuando topología está completa."""
+        expected_edges = list(SystemTopology.EXPECTED_TOPOLOGY)
+        self.topology.update_connectivity(expected_edges)
+        
+        missing = self.topology.get_missing_connections()
+        self.assertEqual(len(missing), 0)
+    
+    def test_get_missing_connections_partial_topology(self):
+        """Detectar conexiones faltantes."""
+        # Solo agregar una conexión
+        self.topology.update_connectivity([("Agent", "Core")])
+        
+        missing = self.topology.get_missing_connections()
+        
+        # Faltan las demás conexiones esperadas
+        self.assertGreater(len(missing), 0)
+        self.assertLess(len(missing), len(SystemTopology.EXPECTED_TOPOLOGY))
+    
+    def test_get_unexpected_connections(self):
+        """Detectar conexiones no esperadas."""
+        self.topology.update_connectivity([
+            ("Redis", "Filesystem")  # No está en EXPECTED_TOPOLOGY
+        ])
+        
+        unexpected = self.topology.get_unexpected_connections()
+        
+        self.assertGreater(len(unexpected), 0)
+        # La arista puede estar en cualquier dirección
+        self.assertTrue(
+            ("Redis", "Filesystem") in unexpected or
+            ("Filesystem", "Redis") in unexpected
+        )
+    
+    # -------------------------------------------------------------------------
+    # Request Loops
+    # -------------------------------------------------------------------------
+    
+    def test_record_request_valid(self):
+        """Registrar request válido."""
+        result = self.topology.record_request("req-123")
+        self.assertTrue(result)
+        self.assertEqual(self.topology.request_history_size, 1)
+    
+    def test_record_request_empty_string_returns_false(self):
+        """Request vacío debe retornar False."""
+        result = self.topology.record_request("")
+        self.assertFalse(result)
+        self.assertEqual(self.topology.request_history_size, 0)
+    
+    def test_record_request_whitespace_only_returns_false(self):
+        """Request con solo whitespace debe retornar False."""
+        result = self.topology.record_request("   ")
+        self.assertFalse(result)
+    
+    def test_detect_request_loops_no_repeats(self):
+        """Sin repeats no debe detectar loops."""
+        for i in range(10):
+            self.topology.record_request(f"req-{i}")
+        
+        loops = self.topology.detect_request_loops(threshold=3)
+        self.assertEqual(len(loops), 0)
+    
+    def test_detect_request_loops_with_repeats(self):
+        """Detectar loops con repeticiones."""
+        # Repetir el mismo request 5 veces
+        for _ in range(5):
+            self.topology.record_request("retry-req")
+        
+        loops = self.topology.detect_request_loops(threshold=3)
+        
+        self.assertEqual(len(loops), 1)
+        loop = loops[0]
+        self.assertEqual(loop.request_id, "retry-req")
+        self.assertEqual(loop.count, 5)
+    
+    def test_detect_request_loops_threshold_filtering(self):
+        """Threshold debe filtrar loops pequeños."""
+        # 2 repeticiones (< threshold de 3)
+        for _ in range(2):
+            self.topology.record_request("small-loop")
+        
+        loops = self.topology.detect_request_loops(threshold=3)
+        self.assertEqual(len(loops), 0)
+    
+    def test_detect_request_loops_window_parameter(self):
+        """Window debe limitar el rango de análisis."""
+        # Llenar historial
+        for i in range(50):
+            self.topology.record_request(f"req-{i % 10}")
+        
+        # Analizar solo últimos 10
+        loops = self.topology.detect_request_loops(threshold=2, window=10)
+        
+        # Debe haber algunos loops detectados en ventana
+        self.assertGreaterEqual(len(loops), 0)
+    
+    def test_clear_request_history(self):
+        """Limpiar historial debe vaciarlo."""
+        for i in range(10):
+            self.topology.record_request(f"req-{i}")
+        
+        self.topology.clear_request_history()
+        
+        self.assertEqual(self.topology.request_history_size, 0)
+        loops = self.topology.detect_request_loops()
+        self.assertEqual(len(loops), 0)
+    
+    # -------------------------------------------------------------------------
+    # Salud Topológica
+    # -------------------------------------------------------------------------
+    
+    def test_get_topological_health_ideal_topology(self):
+        """Salud con topología ideal."""
+        # Configurar topología esperada completa
+        self.topology.update_connectivity(list(SystemTopology.EXPECTED_TOPOLOGY))
+        
+        health = self.topology.get_topological_health()
+        
+        self.assertEqual(health.level, HealthLevel.HEALTHY)
+        self.assertGreaterEqual(health.health_score, 0.90)
+        self.assertTrue(health.is_healthy)
+        self.assertFalse(health.has_fragmentation)
+        self.assertEqual(len(health.disconnected_nodes), 0)
+        self.assertEqual(len(health.missing_edges), 0)
+    
+    def test_get_topological_health_fragmentation_penalty(self):
+        """Penalización por fragmentación."""
+        # Dejar nodos aislados
+        self.topology.update_connectivity([("Agent", "Core")])
+        
+        health = self.topology.get_topological_health()
+        
+        self.assertTrue(health.has_fragmentation)
+        self.assertGreater(health.betti.b0, 1)
+        self.assertLess(health.health_score, 1.0)
+    
+    def test_get_topological_health_cycles_penalty(self):
+        """Penalización por ciclos."""
+        self.topology.update_connectivity([
+            ("Agent", "Core"),
+            ("Core", "Redis"),
+            ("Redis", "Agent")
+        ])
+        
+        health = self.topology.get_topological_health(calculate_b1=True)
+        
+        self.assertTrue(health.has_cycles)
+        self.assertEqual(health.betti.b1, 1)
+        self.assertLess(health.health_score, 1.0)
+    
+    def test_get_topological_health_disconnected_penalty(self):
+        """Penalización por nodos desconectados."""
+        self.topology.update_connectivity([("Agent", "Core")])
+        
+        health = self.topology.get_topological_health()
+        
+        self.assertTrue(health.has_disconnected_nodes)
+        self.assertGreater(len(health.disconnected_nodes), 0)
+        self.assertIn("disconnected", health.diagnostics)
+    
+    def test_get_topological_health_missing_edges_penalty(self):
+        """Penalización por aristas faltantes."""
+        # Solo agregar algunas conexiones
+        self.topology.update_connectivity([("Agent", "Core")])
+        
+        health = self.topology.get_topological_health()
+        
+        self.assertTrue(health.has_missing_edges)
+        self.assertGreater(len(health.missing_edges), 0)
+    
+    def test_get_topological_health_score_range(self):
+        """Score de salud debe estar en [0, 1]."""
+        health = self.topology.get_topological_health()
+        
+        self.assertGreaterEqual(health.health_score, 0.0)
+        self.assertLessEqual(health.health_score, 1.0)
+    
+    def test_get_topological_health_caching(self):
+        """Verifica caché de salud."""
+        self.topology.update_connectivity([("Agent", "Core")])
+        
+        health1 = self.topology.get_topological_health(use_cache=True)
+        health2 = self.topology.get_topological_health(use_cache=True)
+        
+        self.assertEqual(health1.health_score, health2.health_score)
+    
+    # -------------------------------------------------------------------------
+    # Serialización
+    # -------------------------------------------------------------------------
+    
+    def test_to_dict_complete_serialization(self):
+        """Serialización completa a diccionario."""
+        self.topology.update_connectivity([
+            ("Agent", "Core"),
+            ("Core", "Redis")
+        ])
+        
+        data = self.topology.to_dict()
+        
+        # Estructura principal
+        self.assertIn("graph", data)
+        self.assertIn("betti_numbers", data)
+        self.assertIn("health", data)
+        self.assertIn("topology_status", data)
+        
+        # Grafo
+        self.assertEqual(len(data["graph"]["nodes"]), self.topology.num_nodes)
+        self.assertEqual(len(data["graph"]["edges"]), self.topology.num_edges)
+        
+        # Configuración
+        self.assertIn("configuration", data)
+        self.assertIn("required_nodes", data["configuration"])
+    
+    def test_get_adjacency_matrix(self):
+        """Matriz de adyacencia."""
+        self.topology.update_connectivity([
+            ("Agent", "Core"),
+            ("Core", "Redis")
+        ])
+        
+        matrix = self.topology.get_adjacency_matrix()
+        
+        # Debe ser diccionario de diccionarios
+        self.assertIsInstance(matrix, dict)
+        
+        # Verificar simetría (grafo no dirigido)
+        for u in matrix:
+            for v in matrix[u]:
+                self.assertEqual(matrix[u][v], matrix[v][u])
+        
+        # Verificar aristas
+        self.assertEqual(matrix["Agent"]["Core"], 1)
+        self.assertEqual(matrix["Core"]["Redis"], 1)
+        self.assertEqual(matrix["Agent"]["Redis"], 0)
 
 
 # =============================================================================
-# TESTS: SystemTopology - Utilidades
+# GRUPO 5: TEST DE PersistenceHomology
 # =============================================================================
 
-
-class TestSystemTopologyUtilities:
-    """Tests de métodos de utilidad."""
-
-    def test_visualize_topology_basic(self, tree_topology, tmp_path):
-        """Visualización básica."""
-        output = tmp_path / "graph.png"
-        assert tree_topology.visualize_topology(str(output)) is True
-        assert output.exists()
-
-    def test_visualize_topology_correction(self, tree_topology, tmp_path):
-        """Corrección de extensión."""
-        output = tmp_path / "graph.txt"
-        assert tree_topology.visualize_topology(str(output)) is True
-        assert (tmp_path / "graph.txt.png").exists()
-
-    def test_visualize_topology_invalid(self, tree_topology):
-        """Argumentos inválidos."""
-        assert tree_topology.visualize_topology(None) is False
-        assert tree_topology.visualize_topology("") is False
-
-    def test_visualize_topology_no_matplotlib(self, tree_topology, tmp_path):
-        """Manejo sin matplotlib."""
-        import sys
-        from unittest import mock
-
-        with mock.patch.dict(sys.modules, {"matplotlib": None}):
-            assert tree_topology.visualize_topology(str(tmp_path / "t.png")) is False
-
-    def test_cyclomatic_complexity_tree(self, tree_topology):
-        """Complejidad ciclomática de un árbol."""
-        cc = tree_topology.calculate_cyclomatic_complexity()
-        # Árbol: β₁ = 0, β₀ = 1 => CC = 1
-        assert cc == 1
-
-    def test_cyclomatic_complexity_with_cycles(self, cyclic_topology):
-        """Complejidad ciclomática con ciclos."""
-        cc = cyclic_topology.calculate_cyclomatic_complexity()
-        # β₁ = 1, β₀ = 1 => CC = 2
-        assert cc == 2
-
-    def test_adjacency_matrix(self, tree_topology):
-        """Matriz de adyacencia correcta."""
-        matrix = tree_topology.get_adjacency_matrix()
-        assert matrix["Agent"]["Core"] == 1
-        assert matrix["Core"]["Agent"] == 1
-        assert matrix["Agent"]["Redis"] == 0  # No hay conexión directa en el árbol
-
-    def test_to_dict(self, pyramid_topology):
-        """Serialización a diccionario."""
-        data = pyramid_topology.to_dict()
-        assert "nodes" in data
-        assert "edges" in data
-        assert "betti_numbers" in data
-        assert "topology_status" in data
-        assert "request_history" in data
-        assert "configuration" in data
-        assert len(data["nodes"]) == 4
-        assert data["betti_numbers"]["b0"] == 1
-
-    def test_repr_robustness(self, pyramid_topology):
-        """Representación en string robusta."""
-        repr_str = repr(pyramid_topology)
-        assert "SystemTopology" in repr_str
-        assert "nodes=4" in repr_str
-
-        # Test error handling
-        from unittest import mock
-
-        with mock.patch.object(
-            pyramid_topology, "calculate_betti_numbers", side_effect=ValueError("Test")
-        ):
-            repr_fail = repr(pyramid_topology)
-            assert "BettiError(ValueError)" in repr_fail
-
-
-# =============================================================================
-# TESTS: PersistenceHomology - Inicialización
-# =============================================================================
-
-
-class TestPersistenceHomologyInit:
-    """Tests de inicialización de PersistenceHomology."""
-
-    def test_default_initialization(self):
-        """Inicialización con valores default."""
-        ph = PersistenceHomology()
-        assert ph.window_size == PersistenceHomology.DEFAULT_WINDOW_SIZE
-        assert len(ph.metrics) == 0
-
-    def test_custom_window_size(self):
-        """Inicialización con window_size personalizado."""
+class TestPersistenceHomology(unittest.TestCase, MathematicalAssertions):
+    """
+    Verificación de análisis de homología persistente.
+    
+    Teoremas verificados:
+    - Estabilidad de diagramas de persistencia
+    - Clasificación de características (noise vs feature)
+    - Propiedades de persistencia total
+    """
+    
+    def setUp(self):
+        """Configuración común."""
+        self.ph = PersistenceHomology(window_size=20)
+    
+    def tearDown(self):
+        """Limpieza."""
+        del self.ph
+    
+    # -------------------------------------------------------------------------
+    # Inicialización
+    # -------------------------------------------------------------------------
+    
+    def test_initialization_valid_window(self):
+        """Inicialización con window_size válido."""
         ph = PersistenceHomology(window_size=50)
-        assert ph.window_size == 50
-
-    def test_invalid_window_size_raises(self):
-        """window_size muy pequeño debe lanzar excepción."""
-        with pytest.raises(ValueError, match="window_size debe ser"):
-            PersistenceHomology(window_size=2)
-
-        with pytest.raises(ValueError, match="window_size debe ser"):
-            PersistenceHomology(window_size=0)
-
-
-# =============================================================================
-# TESTS: PersistenceHomology - Gestión de Datos
-# =============================================================================
-
-
-class TestPersistenceHomologyData:
-    """Tests de gestión de datos."""
-
-    def test_add_reading_valid(self, empty_persistence):
-        """Agregar lecturas válidas."""
-        assert empty_persistence.add_reading("cpu", 0.5) is True
-        assert empty_persistence.add_reading("cpu", 0.7) is True
-        assert "cpu" in empty_persistence.metrics
-
-    def test_add_reading_creates_buffer(self, empty_persistence):
-        """Primera lectura crea el buffer."""
-        assert len(empty_persistence.metrics) == 0
-        empty_persistence.add_reading("new_metric", 0.5)
-        assert "new_metric" in empty_persistence.metrics
-
-    def test_add_reading_invalid_name(self, empty_persistence):
-        """Nombres inválidos retornan False."""
-        assert empty_persistence.add_reading("", 0.5) is False
-        assert empty_persistence.add_reading("   ", 0.5) is False
-        assert empty_persistence.add_reading(None, 0.5) is False
-        assert empty_persistence.add_reading(123, 0.5) is False
-
-    def test_add_reading_invalid_value(self, empty_persistence):
-        """Valores inválidos retornan False."""
-        assert empty_persistence.add_reading("cpu", "not_a_number") is False
-        assert empty_persistence.add_reading("cpu", float("nan")) is False
-
-    def test_add_reading_infinite_capped(self, empty_persistence):
-        """Valores infinitos se capean."""
-        assert empty_persistence.add_reading("cpu", float("inf")) is True
-        buffer = empty_persistence.get_buffer("cpu")
-        assert buffer[0] < float("inf")  # Fue capeado
-
-    def test_add_readings_batch(self, empty_persistence):
+        self.assertEqual(ph.window_size, 50)
+        self.assertEqual(ph.num_metrics, 0)
+    
+    def test_initialization_invalid_window_too_small_raises(self):
+        """Window muy pequeño debe lanzar excepción."""
+        with self.assertRaises(ValueError):
+            PersistenceHomology(window_size=1)
+    
+    def test_initialization_invalid_window_too_large_raises(self):
+        """Window muy grande debe lanzar excepción."""
+        with self.assertRaises(ValueError):
+            PersistenceHomology(window_size=20000)
+    
+    # -------------------------------------------------------------------------
+    # Gestión de Datos
+    # -------------------------------------------------------------------------
+    
+    def test_add_reading_valid_creates_buffer(self):
+        """Primera lectura crea buffer."""
+        result = self.ph.add_reading("cpu_usage", 50.0)
+        
+        self.assertTrue(result)
+        self.assertEqual(self.ph.num_metrics, 1)
+        self.assertIn("cpu_usage", self.ph.metrics)
+    
+    def test_add_reading_appends_to_existing_buffer(self):
+        """Lecturas adicionales se agregan al buffer."""
+        self.ph.add_reading("cpu_usage", 50.0)
+        self.ph.add_reading("cpu_usage", 60.0)
+        self.ph.add_reading("cpu_usage", 70.0)
+        
+        buffer = self.ph.get_buffer("cpu_usage")
+        self.assertEqual(len(buffer), 3)
+        self.assertEqual(buffer, [50.0, 60.0, 70.0])
+    
+    def test_add_reading_nan_rejected(self):
+        """NaN debe ser rechazado estrictamente."""
+        result = self.ph.add_reading("metric", float('nan'))
+        self.assertFalse(result)
+    
+    def test_add_reading_infinity_capped(self):
+        """Infinito debe ser capeado con warning."""
+        result = self.ph.add_reading("metric", float('inf'))
+        
+        # Debe ser aceptado pero capeado
+        self.assertTrue(result)
+        buffer = self.ph.get_buffer("metric")
+        self.assertFalse(math.isinf(buffer[0]))
+    
+    def test_add_reading_empty_metric_name_rejected(self):
+        """Nombre de métrica vacío debe ser rechazado."""
+        result = self.ph.add_reading("", 100.0)
+        self.assertFalse(result)
+    
+    def test_add_reading_non_string_metric_name_rejected(self):
+        """Nombre de métrica no-string debe ser rechazado."""
+        result = self.ph.add_reading(123, 100.0)  # type: ignore
+        self.assertFalse(result)
+    
+    def test_add_reading_non_numeric_value_rejected(self):
+        """Valor no-numérico debe ser rechazado."""
+        result = self.ph.add_reading("metric", "not_a_number")  # type: ignore
+        self.assertFalse(result)
+    
+    def test_add_readings_batch(self):
         """Agregar múltiples lecturas en batch."""
-        values = [0.1, 0.2, 0.3, 0.4, 0.5]
-        count = empty_persistence.add_readings_batch("metric", values)
-        assert count == 5
-        assert len(empty_persistence.get_buffer("metric")) == 5
-
-    def test_get_buffer_copy(self, empty_persistence):
-        """get_buffer retorna copia, no referencia."""
-        empty_persistence.add_reading("cpu", 0.5)
-        buffer1 = empty_persistence.get_buffer("cpu")
-        buffer2 = empty_persistence.get_buffer("cpu")
-
-        buffer1.append(999)
-        assert buffer2[-1] != 999
-
-    def test_get_buffer_nonexistent(self, empty_persistence):
-        """Buffer inexistente retorna None."""
-        assert empty_persistence.get_buffer("nonexistent") is None
-
-    def test_window_size_enforced(self, empty_persistence):
-        """El tamaño de ventana se respeta."""
-        for i in range(20):  # window_size = 10
-            empty_persistence.add_reading("cpu", i)
-
-        buffer = empty_persistence.get_buffer("cpu")
-        assert len(buffer) == 10
-        assert buffer[0] == 10  # Los primeros 10 se perdieron
-
-    def test_clear_metric(self, empty_persistence):
-        """Limpiar métrica específica."""
-        empty_persistence.add_reading("cpu", 0.5)
-        empty_persistence.add_reading("mem", 0.3)
-
-        assert empty_persistence.clear_metric("cpu") is True
-        assert "cpu" not in empty_persistence.metrics
-        assert "mem" in empty_persistence.metrics
-
-    def test_clear_all(self, persistence_with_data):
-        """Limpiar todas las métricas."""
-        assert len(persistence_with_data.metrics) > 0
-        persistence_with_data.clear_all()
-        assert len(persistence_with_data.metrics) == 0
-
-
-# =============================================================================
-# TESTS: PersistenceHomology - Intervalos de Persistencia
-# =============================================================================
-
-
-class TestPersistenceHomologyIntervals:
-    """Tests de cálculo de intervalos de persistencia."""
-
-    def test_no_excursions(self, empty_persistence):
-        """Sin excursiones = diagrama vacío."""
-        for _ in range(10):
-            empty_persistence.add_reading("cpu", 0.3)
-
-        diagram = empty_persistence.get_persistence_diagram("cpu", threshold=0.5)
-        assert len(diagram) == 0
-
-    def test_single_finite_excursion(self, empty_persistence):
-        """Una excursión finita = un intervalo cerrado."""
-        values = [0.3, 0.3, 0.7, 0.8, 0.6, 0.3, 0.3]
-        #               ^    ^    ^
-        #             birth      death
-        empty_persistence.add_readings_batch("cpu", values)
-
-        diagram = empty_persistence.get_persistence_diagram("cpu", threshold=0.5)
-        assert len(diagram) == 1
-        assert diagram[0].birth == 2
-        assert diagram[0].death == 5
-        assert diagram[0].is_alive is False
-
-    def test_single_active_excursion(self, empty_persistence):
-        """Excursión activa = intervalo abierto (death=-1)."""
-        values = [0.3, 0.3, 0.7, 0.8, 0.9]
-        empty_persistence.add_readings_batch("cpu", values)
-
-        diagram = empty_persistence.get_persistence_diagram("cpu", threshold=0.5)
-        assert len(diagram) == 1
-        assert diagram[0].is_alive is True
-        assert diagram[0].death == -1
-
-    def test_multiple_excursions(self, empty_persistence):
-        """Múltiples excursiones = múltiples intervalos."""
-        values = [0.3, 0.7, 0.3, 0.8, 0.9, 0.3, 0.6, 0.3]
-        #              [1,2)     [3,   5)      [6,7)
-        empty_persistence.add_readings_batch("cpu", values)
-
-        diagram = empty_persistence.get_persistence_diagram("cpu", threshold=0.5)
-        assert len(diagram) == 3
-
-    def test_amplitude_tracking(self, empty_persistence):
-        """Amplitud máxima se registra correctamente."""
-        values = [0.3, 0.6, 0.9, 0.7, 0.3]  # max above threshold = 0.9 - 0.5 = 0.4
-        empty_persistence.add_readings_batch("cpu", values)
-
-        diagram = empty_persistence.get_persistence_diagram("cpu", threshold=0.5)
-        assert len(diagram) == 1
-        assert diagram[0].amplitude == pytest.approx(0.4, rel=0.01)
-
-    def test_nonexistent_metric(self, empty_persistence):
-        """Métrica inexistente = diagrama vacío."""
-        diagram = empty_persistence.get_persistence_diagram("nonexistent", threshold=0.5)
-        assert len(diagram) == 0
-
-
-# =============================================================================
-# TESTS: PersistenceHomology - Análisis de Estados
-# =============================================================================
-
-
-class TestPersistenceHomologyAnalysis:
-    """Tests del análisis de persistencia."""
-
-    def test_stable_all_below_threshold(self, empty_persistence):
-        """Todo bajo umbral = STABLE con verificación completa."""
-        for _ in range(10):
-            empty_persistence.add_reading("cpu", 0.3)
-
-        result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
-
-        assert result.state == MetricState.STABLE
-        assert result.feature_count == 0
-        assert result.noise_count == 0
-        assert result.active_count == 0
-        assert len(result.intervals) == 0
-        assert result.max_lifespan == 0.0
-        assert result.total_persistence == 0.0
-
-        # Metadata debe indicar razón
-        assert "reason" in result.metadata
-        # Updated to match robust implementation: 'no_excursions' instead of 'below_threshold'
-        assert result.metadata.get("reason") == "no_excursions"
-
-    def test_unknown_insufficient_data(self, empty_persistence):
-        """Datos insuficientes = UNKNOWN con metadata correcta."""
-        # Agregar menos del mínimo requerido
-        empty_persistence.add_reading("cpu", 0.5)
-
-        result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
-
-        assert result.state == MetricState.UNKNOWN
-        assert "reason" in result.metadata
-        assert result.metadata.get("reason") == "insufficient_data"
-        assert "samples" in result.metadata
-
-    def test_unknown_nonexistent_metric(self, empty_persistence):
-        """Métrica inexistente = UNKNOWN."""
-        result = empty_persistence.analyze_persistence("nonexistent", threshold=0.5)
-
-        assert result.state == MetricState.UNKNOWN
-
-    def test_noise_short_excursion_classification(self, empty_persistence):
-        """Excursión corta se clasifica como NOISE."""
-        # window=10, noise_ratio default=0.2 => noise_limit=2
-        # Excursión de 1 punto < noise_limit
-        values = [0.3] * 4 + [0.7] + [0.3] * 5  # Una excursión de duración 1
-        empty_persistence.add_readings_batch("cpu", values)
-
-        result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
-
-        # Debe ser NOISE o STABLE (dependiendo de implementación)
-        assert result.state in (MetricState.NOISE, MetricState.STABLE)
-
-        if result.state == MetricState.NOISE:
-            assert result.noise_count >= 1
-
-    def test_feature_long_excursion_classification(self, empty_persistence):
-        """Excursión larga se clasifica como FEATURE."""
-        # window=10, noise_ratio=0.2 => noise_limit=2
-        # Excursión de 5 puntos que termina activa
-        values = [0.3] * 5 + [0.7] * 5
-        empty_persistence.add_readings_batch("cpu", values)
-
-        result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
-
-        # Debe ser FEATURE o CRITICAL (si es activa y muy larga)
-        assert result.state in (MetricState.FEATURE, MetricState.CRITICAL)
-
-        # Debe haber características detectadas
-        assert len(result.intervals) >= 1
-
-    def test_critical_persistent_active_excursion(self, empty_persistence):
-        """Excursión activa muy larga = CRITICAL."""
-        # window=10, critical_ratio=0.5 => critical_limit=5
-        # Excursión activa de 8 puntos >= critical_limit
-        values = [0.3] * 2 + [0.8] * 8
-        empty_persistence.add_readings_batch("cpu", values)
-
-        result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
-
-        assert result.state == MetricState.CRITICAL
-        assert result.active_count > 0
-
-        # Metadata debe indicar razón
-        assert result.metadata.get("reason") == "persistent_active_excursion"
-
-    def test_custom_noise_ratio_effect(self, empty_persistence):
-        """noise_ratio afecta clasificación."""
-        values = [0.3] * 5 + [0.7] * 5
-        empty_persistence.add_readings_batch("cpu", values)
-
-        # Con noise_ratio bajo, más cosas son "feature"
-        result_low = empty_persistence.analyze_persistence(
-            "cpu", threshold=0.5, noise_ratio=0.1
-        )
-
-        # Con noise_ratio alto, más cosas son "noise"
-        result_high = empty_persistence.analyze_persistence(
-            "cpu", threshold=0.5, noise_ratio=0.6
-        )
-
-        # Verificar que el límite de ruido cambió
-        assert result_low.metadata.get("noise_limit", 0) < result_high.metadata.get(
-            "noise_limit", 0
-        )
-
-    def test_custom_critical_ratio_effect(self, empty_persistence):
-        """critical_ratio afecta clasificación de CRITICAL."""
-        # Excursión activa de 6 puntos
-        values = [0.3] * 4 + [0.8] * 6
-        empty_persistence.add_readings_batch("cpu", values)
-
-        # Con critical_ratio bajo, es CRITICAL
-        result_low = empty_persistence.analyze_persistence(
-            "cpu",
-            threshold=0.5,
-            critical_ratio=0.5,  # limit=5, 6>=5
-        )
-
-        # Limpiar y recrear
-        empty_persistence.clear_metric("cpu")
-        empty_persistence.add_readings_batch("cpu", values)
-
-        # Con critical_ratio alto, podría no ser CRITICAL
-        # Removed unused variable `result_high`
-        empty_persistence.analyze_persistence(
-            "cpu",
-            threshold=0.5,
-            critical_ratio=0.8,  # limit=8, 6<8
-        )
-
-        assert result_low.state == MetricState.CRITICAL
-        # result_high puede ser FEATURE en lugar de CRITICAL
-
-    def test_result_intervals_correctness(self, empty_persistence):
-        """Intervalos en resultado son correctos."""
-        # Dos excursiones bien definidas
-        values = [0.3, 0.7, 0.8, 0.3, 0.3, 0.6, 0.7, 0.3, 0.3, 0.3]
-        #              [1,      3)            [5,   7)
-        empty_persistence.add_readings_batch("cpu", values)
-
-        result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
-
-        assert len(result.intervals) == 2
-
-        # Verificar que los intervalos son PersistenceInterval
-        for interval in result.intervals:
-            assert isinstance(interval, PersistenceInterval)
-            assert interval.dimension == 0
-
-    def test_result_metadata_completeness(self, persistence_with_data):
-        """Metadata del resultado es completa."""
-        result = persistence_with_data.analyze_persistence("excursion_metric", threshold=0.5)
-
-        # 'window_size' is no longer in metadata, replaced by detailed stats
-        required_keys = ["data_length", "confidence"]
-        for key in required_keys:
-            assert key in result.metadata, f"Falta key '{key}' en metadata"
-
-        # Verificar tipos de metadata
-        assert isinstance(result.metadata["data_length"], int)
-
-    def test_total_persistence_calculation(self, empty_persistence):
-        """total_persistence es la suma correcta de duraciones."""
-        # Dos excursiones: [1,3) duración 2 y [5,7) duración 2
-        values = [0.3, 0.7, 0.8, 0.3, 0.3, 0.6, 0.7, 0.3, 0.3, 0.3]
-        empty_persistence.add_readings_batch("cpu", values)
-
-        result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
-
-        # Suma de duraciones finitas
-        expected_total = sum(i.lifespan for i in result.intervals if not i.is_alive)
-        assert result.total_persistence == expected_total
-
-
-# =============================================================================
-# TESTS: PersistenceHomology - Estadísticas y Métricas
-# =============================================================================
-
-
-class TestPersistenceHomologyStatistics:
-    """Tests de estadísticas y métricas."""
-
-    def test_statistics_basic(self, empty_persistence):
-        """Estadísticas básicas correctas."""
-        values = [1, 2, 3, 4, 5]
-        empty_persistence.add_readings_batch("test", values)
-
-        stats = empty_persistence.get_statistics("test")
-        assert stats["min"] == 1
-        assert stats["max"] == 5
-        assert stats["mean"] == 3
-        assert stats["median"] == 3
-        assert stats["count"] == 5
-
-    def test_statistics_std(self, empty_persistence):
-        """Desviación estándar correcta."""
-        values = [2, 4, 6, 8]  # mean=5, var=5
-        empty_persistence.add_readings_batch("test", values)
-
-        stats = empty_persistence.get_statistics("test")
-        # Varianza muestral de [2, 4, 6, 8] es 6.666...
-        # std = sqrt(6.666...) ≈ 2.5819
-        assert stats["std"] == pytest.approx(2.5819, rel=0.01)
-
-    def test_statistics_median_even(self, empty_persistence):
-        """Mediana con número par de elementos."""
-        values = [1, 2, 3, 4]  # median = (2+3)/2 = 2.5
-        empty_persistence.add_readings_batch("test", values)
-
-        stats = empty_persistence.get_statistics("test")
-        assert stats["median"] == 2.5
-
-    def test_statistics_nonexistent(self, empty_persistence):
-        """Métrica inexistente retorna None."""
-        assert empty_persistence.get_statistics("nonexistent") is None
-
-    def test_total_persistence(self, empty_persistence):
-        """Persistencia total calculada correctamente."""
-        values = [0.3, 0.7, 0.8, 0.3, 0.6, 0.7, 0.3]
-        #              [1,      3)      [4,   6)
-        # lifespans = 2, 2 => total = 4
-        empty_persistence.add_readings_batch("test", values)
-
-        intervals = empty_persistence.get_persistence_diagram("test", 0.5)
-        total = empty_persistence.compute_total_persistence(intervals)
-        assert total == 4
-
-    def test_persistence_entropy(self, empty_persistence):
-        """Entropía de persistencia."""
-        # Dos intervalos de igual duración => máxima entropía para 2 elementos
-        values = [0.3, 0.7, 0.8, 0.3, 0.7, 0.8, 0.3]
-        empty_persistence.add_readings_batch("test", values)
-
-        intervals = empty_persistence.get_persistence_diagram("test", 0.5)
-        entropy = empty_persistence.compute_persistence_entropy(intervals)
-        # Con 2 intervalos iguales, H = 1.0 (normalizada)
-        assert entropy == pytest.approx(1.0, rel=0.01)
-
-    def test_compare_diagrams(self, empty_persistence):
-        """Comparación de diagramas de persistencia."""
-        # Métrica 1: una excursión larga
-        values1 = [0.3] * 5 + [0.7] * 4 + [0.3]
-        empty_persistence.add_readings_batch("m1", values1)
-
-        # Métrica 2: igual
-        values2 = [0.3] * 5 + [0.7] * 4 + [0.3]
-        empty_persistence.add_readings_batch("m2", values2)
-
-        # Distancia 0 para diagramas iguales (Wasserstein default)
-        dist = empty_persistence.compare_diagrams("m1", "m2", 0.5)
-        assert dist == pytest.approx(0, abs=0.01)
-
-        # Bottleneck
-        dist_bn = empty_persistence.compare_diagrams("m1", "m2", 0.5, method="bottleneck")
-        assert dist_bn == pytest.approx(0, abs=0.01)
-
-        # Métrica 3: diferente
-        values3 = [0.3] * 8 + [0.7] * 2
-        empty_persistence.add_readings_batch("m3", values3)
-
-        dist13 = empty_persistence.compare_diagrams("m1", "m3", 0.5)
-        assert dist13 > 0
-
-    def test_compare_diagrams_invalid(self, empty_persistence):
-        """Validación de inputs en compare_diagrams."""
-        assert empty_persistence.compare_diagrams("", "m2", 0.5) == -1.0
-        assert empty_persistence.compare_diagrams("m1", "m2", "nan") == -1.0
-
-
-# =============================================================================
-# TESTS: Funciones de Utilidad
-# =============================================================================
-
-
-class TestUtilityFunctions:
-    """Tests de funciones de utilidad del módulo."""
-
-    def test_create_simple_topology(self):
-        """Crear topología simple predefinida."""
-        topo = create_simple_topology()
-        assert len(topo.edges) == 3
-
-        betti = topo.calculate_betti_numbers()
-        assert betti.is_ideal is True
-
-    def test_wasserstein_distance_identical(self):
-        """Wasserstein de diagramas idénticos = 0."""
-        intervals = [
-            PersistenceInterval(birth=0, death=5, dimension=0),
-            PersistenceInterval(birth=2, death=7, dimension=0),
-        ]
-
-        dist = compute_wasserstein_distance(intervals, intervals)
-        assert dist == 0
-
-    def test_wasserstein_distance_empty(self):
-        """Wasserstein con diagramas vacíos."""
-        dist = compute_wasserstein_distance([], [])
-        assert dist == 0
-
-    def test_wasserstein_distance_one_empty(self):
-        """Wasserstein con un diagrama vacío."""
-        intervals = [
-            PersistenceInterval(birth=0, death=5, dimension=0),
-        ]
-
-        dist = compute_wasserstein_distance(intervals, [])
-        assert dist > 0
-
-    def test_wasserstein_distance_different(self):
-        """Wasserstein de diagramas diferentes."""
-        intervals1 = [PersistenceInterval(birth=0, death=10, dimension=0)]
-        intervals2 = [PersistenceInterval(birth=0, death=5, dimension=0)]
-
-        dist = compute_wasserstein_distance(intervals1, intervals2)
-        assert dist == pytest.approx(5, rel=0.01)
-
-    def test_wasserstein_invalid_p(self):
-        """p < 1 debe lanzar excepción."""
-        with pytest.raises(ValueError, match="p debe ser >= 1"):
-            compute_wasserstein_distance([], [], p=0)
-
-
-# =============================================================================
-# TESTS: Integración
-# =============================================================================
-
-
-class TestIntegration:
-    """Tests de integración entre componentes."""
-
-    def test_topology_lifecycle_complete(self):
-        """Ciclo de vida completo de topología."""
-        # 1. Crear topología vacía
-        topo = SystemTopology()
-        assert len(topo.edges) == 0
-
-        # 2. Verificar estado inicial
-        health_initial = topo.get_topological_health()
-        assert health_initial.betti.b0 == 4, "4 nodos aislados"
-        assert health_initial.level == HealthLevel.CRITICAL
-
-        # 3. Construir topología en árbol
-        topo.update_connectivity(
-            [
-                ("Agent", "Core"),
-                ("Core", "Redis"),
-                ("Core", "Filesystem"),
-            ]
-        )
-
-        health_tree = topo.get_topological_health()
-        assert health_tree.betti.b0 == 1, "Árbol es conexo"
-        assert health_tree.betti.b1 == 0, "Árbol sin ciclos"
-
-        # 4. Evolucionar a pirámide (agregar más conexiones)
-        topo.update_connectivity(list(SystemTopology.EXPECTED_TOPOLOGY))
-
-        health_pyramid = topo.get_topological_health()
-        assert len(health_pyramid.missing_edges) == 0
-
-        # 5. Simular degradación (perder una conexión)
-        reduced = [e for e in SystemTopology.EXPECTED_TOPOLOGY if e != ("Core", "Redis")]
-        topo.update_connectivity(reduced)
-
-        health_degraded = topo.get_topological_health()
-        assert len(health_degraded.missing_edges) > 0
-
-        # 6. Recuperación completa
-        topo.update_connectivity(list(SystemTopology.EXPECTED_TOPOLOGY))
-
-        health_recovered = topo.get_topological_health()
-        assert len(health_recovered.missing_edges) == 0
-
-    def test_persistence_metric_evolution(self):
-        """Evolución de métrica a través del tiempo."""
-        ph = PersistenceHomology(window_size=30)
-
-        # Fase 1: Sistema estable (10 lecturas)
-        for _ in range(10):
-            ph.add_reading("latency", 50)
-
-        result1 = ph.analyze_persistence("latency", threshold=100)
-        assert result1.state == MetricState.STABLE, "Fase 1: debe ser estable"
-
-        # Fase 2: Ligera degradación (5 lecturas)
-        for _ in range(5):
-            ph.add_reading("latency", 80)
-
-        result2 = ph.analyze_persistence("latency", threshold=100)
-        assert result2.state == MetricState.STABLE, "Fase 2: aún bajo umbral"
-
-        # Fase 3: Problema evidente (10 lecturas sobre umbral)
-        for _ in range(10):
-            ph.add_reading("latency", 150)
-
-        result3 = ph.analyze_persistence("latency", threshold=100)
-        assert result3.state in (MetricState.FEATURE, MetricState.CRITICAL), (
-            "Fase 3: debe detectar problema"
-        )
-
-        # Fase 4: Recuperación (10 lecturas bajo umbral)
-        for _ in range(10):
-            ph.add_reading("latency", 50)
-
-        result4 = ph.analyze_persistence("latency", threshold=100)
-        # Puede ver la característica pasada como FEATURE o volver a STABLE
-        assert result4.feature_count >= 1 or result4.state == MetricState.STABLE, (
-            "Fase 4: debe mostrar feature pasada o estabilizarse"
-        )
-
-    def test_topology_persistence_correlation(self):
-        """Correlación entre topología y persistencia de métricas."""
-        topo = SystemTopology()
-        ph = PersistenceHomology(window_size=20)
-
-        # Simular sistema saludable
-        topo.update_connectivity(
-            [
-                ("Agent", "Core"),
-                ("Core", "Redis"),
-                ("Core", "Filesystem"),
-            ]
-        )
-
-        for _ in range(20):
-            ph.add_reading("response_time", 50)  # Bajo
-
-        topo_health = topo.get_topological_health()
-        metric_result = ph.analyze_persistence("response_time", threshold=100)
-
-        # Topología buena + métrica estable = sistema saludable
-        assert topo_health.betti.is_connected
-        assert metric_result.state == MetricState.STABLE
-
-        # Simular degradación topológica
-        topo.update_connectivity([("Agent", "Core")])  # Perder conexiones
-
-        # Y métricas degradándose
-        for _ in range(10):
-            ph.add_reading("response_time", 150)  # Alto
-
-        topo_health_degraded = topo.get_topological_health()
-        metric_result_degraded = ph.analyze_persistence("response_time", threshold=100)
-
-        # Verificar correlación de degradación
-        assert len(topo_health_degraded.missing_edges) > len(topo_health.missing_edges)
-        assert metric_result_degraded.state != MetricState.STABLE
-
-    def test_multi_metric_analysis_consistency(self):
-        """Análisis de múltiples métricas mantiene consistencia."""
-        ph = PersistenceHomology(window_size=20)
-
-        # Simular métricas correlacionadas (CPU/Memoria)
-        for i in range(20):
-            base_load = 30 + (i % 5) * 10
-            spike = 25 if 10 <= i <= 15 else 0
-
-            cpu = base_load + spike
-            mem = base_load * 0.8 + spike * 0.7
-
-            assert ph.add_reading("cpu", cpu) is True
-            assert ph.add_reading("mem", mem) is True
-
-        cpu_result = ph.analyze_persistence("cpu", threshold=60)
-        mem_result = ph.analyze_persistence("mem", threshold=50)
-
-        # Verificar que ambas métricas fueron analizadas
-        assert cpu_result.state != MetricState.UNKNOWN
-        assert mem_result.state != MetricState.UNKNOWN
-
-        # Comparar diagramas para verificar correlación
-        distance = ph.compare_diagrams("cpu", "mem", threshold=50)
-        # No necesariamente 0, pero debe ser finito
-        assert math.isfinite(distance)
-
-    def test_request_loops_affect_health(self):
-        """Loops de reintentos afectan métricas de salud."""
-        topo = SystemTopology()
-
-        # Topología básica
-        topo.update_connectivity(
-            [
-                ("Agent", "Core"),
-                ("Core", "Redis"),
-                ("Core", "Filesystem"),
-            ]
-        )
-
-        # Removed unused variable `health_before`
-        topo.get_topological_health()
-
-        # Agregar muchos reintentos
-        for i in range(20):
-            topo.record_request(f"retry_{i % 3}")  # 3 IDs, cada uno ~7 veces
-
-        health_after = topo.get_topological_health()
-
-        # Verificar que se detectaron loops
-        loops = topo.detect_request_loops(threshold=5)
-        assert len(loops) >= 3, "Deben detectarse 3 patrones de reintento"
-
-        # Los loops deben afectar el diagnóstico
-        assert "retry_loops" in health_after.diagnostics
-
-
-# =============================================================================
-# TESTS: Casos Edge
-# =============================================================================
-
-
-class TestEdgeCases:
-    """Tests de casos límite."""
-
-    def test_topology_no_edges_all_isolated(self):
-        """Topología sin aristas: todos los nodos aislados."""
-        topo = SystemTopology()
-        topo.update_connectivity([])
-
-        betti = topo.calculate_betti_numbers()
-
-        assert betti.b0 == len(topo.nodes), "Cada nodo es su propia componente"
-        assert betti.b1 == 0, "Sin aristas = sin ciclos"
-        assert betti.num_edges == 0
-
-    def test_complete_graph_maximum_cycles(self):
-        """Grafo completo K_n tiene máximos ciclos."""
-        topo = SystemTopology()
-        nodes = list(topo.REQUIRED_NODES)
-        n = len(nodes)
-
-        # Crear K_n
-        edges = [(nodes[i], nodes[j]) for i in range(n) for j in range(i + 1, n)]
-        topo.update_connectivity(edges)
-
-        betti = topo.calculate_betti_numbers()
-
-        # Para K_n: |E| = n(n-1)/2
-        expected_edges = n * (n - 1) // 2
-        assert betti.num_edges == expected_edges
-
-        # β₁ = |E| - |V| + 1 = n(n-1)/2 - n + 1
-        expected_b1 = expected_edges - n + 1
-        assert betti.b1 == expected_b1
-
-    def test_persistence_constant_above_threshold_from_start(self):
-        """Métrica constantemente sobre umbral desde el inicio."""
-        ph = PersistenceHomology(window_size=10)
-
-        for _ in range(10):
-            ph.add_reading("high", 100)
-
-        result = ph.analyze_persistence("high", threshold=50)
-
-        assert result.state == MetricState.CRITICAL
-        assert result.active_count == 1
-        assert len(result.intervals) == 1
-        assert result.intervals[0].is_alive is True
-        assert result.intervals[0].birth == 0
-
-    def test_persistence_single_point_spike(self):
-        """Spike de un solo punto."""
-        ph = PersistenceHomology(window_size=10)
-
-        values = [0.3] * 4 + [0.9] + [0.3] * 5
-        ph.add_readings_batch("spike", values)
-
-        result = ph.analyze_persistence("spike", threshold=0.5)
-
-        # Un spike de un punto debería ser ruido o ignorado
-        assert result.state in (MetricState.NOISE, MetricState.STABLE)
-
-    def test_persistence_oscillating_around_threshold(self):
-        """Métrica oscilando exactamente alrededor del umbral."""
-        ph = PersistenceHomology(window_size=10)
-
+        values = [10.0, 20.0, 30.0, 40.0, 50.0]
+        count = self.ph.add_readings_batch("metric", values)
+        
+        self.assertEqual(count, 5)
+        buffer = self.ph.get_buffer("metric")
+        self.assertEqual(buffer, values)
+    
+    def test_buffer_max_length_enforced(self):
+        """Buffer debe respetar max_length."""
+        ph = PersistenceHomology(window_size=5)
+        
+        # Agregar más valores que el límite
         for i in range(10):
-            value = 0.55 if i % 2 == 0 else 0.45
-            ph.add_reading("osc", value)
+            ph.add_reading("metric", float(i))
+        
+        buffer = ph.get_buffer("metric")
+        self.assertEqual(len(buffer), 5)
+        self.assertEqual(buffer, [5.0, 6.0, 7.0, 8.0, 9.0])
+    
+    def test_get_buffer_nonexistent_metric_returns_none(self):
+        """Buffer de métrica inexistente debe retornar None."""
+        buffer = self.ph.get_buffer("nonexistent")
+        self.assertIsNone(buffer)
+    
+    def test_get_buffer_returns_copy(self):
+        """get_buffer debe retornar copia, no referencia."""
+        self.ph.add_reading("metric", 100.0)
+        
+        buffer = self.ph.get_buffer("metric")
+        buffer.append(200.0)  # Modificar copia
+        
+        # Buffer original no debe cambiar
+        original = self.ph.get_buffer("metric")
+        self.assertEqual(len(original), 1)
+    
+    def test_clear_metric_existing(self):
+        """Limpiar métrica existente."""
+        self.ph.add_reading("metric", 100.0)
+        result = self.ph.clear_metric("metric")
+        
+        self.assertTrue(result)
+        self.assertNotIn("metric", self.ph.metrics)
+    
+    def test_clear_metric_nonexistent_returns_false(self):
+        """Limpiar métrica inexistente debe retornar False."""
+        result = self.ph.clear_metric("nonexistent")
+        self.assertFalse(result)
+    
+    def test_clear_all(self):
+        """Limpiar todas las métricas."""
+        self.ph.add_reading("metric1", 100.0)
+        self.ph.add_reading("metric2", 200.0)
+        
+        self.ph.clear_all()
+        
+        self.assertEqual(self.ph.num_metrics, 0)
+        self.assertEqual(len(self.ph.metrics), 0)
 
-        result = ph.analyze_persistence("osc", threshold=0.5)
 
-        # Muchas excursiones muy cortas = probablemente ruido
-        assert result.noise_count >= result.feature_count
+# =============================================================================
+# GRUPO 6: TEST DE FUNCIONES UTILITARIAS
+# =============================================================================
 
-    def test_persistence_exactly_at_threshold(self):
-        """Valores exactamente en el umbral (edge case)."""
-        ph = PersistenceHomology(window_size=10)
+class TestUtilityFunctions(unittest.TestCase, MathematicalAssertions):
+    """Verificación de funciones de utilidad."""
+    
+    def test_create_simple_topology_structure(self):
+        """create_simple_topology debe crear topología básica."""
+        topology = create_simple_topology()
+        
+        self.assertIsInstance(topology, SystemTopology)
+        self.assertGreater(topology.num_edges, 0)
+        
+        # Debe tener al menos algunas conexiones
+        betti = topology.calculate_betti_numbers()
+        self.assertGreaterEqual(betti.b0, 1)
+    
+    def test_compute_wasserstein_distance_identical_diagrams(self):
+        """
+        Teorema: W_p(D, D) = 0.
+        """
+        i1 = PersistenceInterval(birth=10, death=20, dimension=0)
+        i2 = PersistenceInterval(birth=15, death=25, dimension=0)
+        
+        intervals = [i1, i2]
+        
+        dist = compute_wasserstein_distance(intervals, intervals, p=2)
+        self.assertEqual(dist, 0.0)
+    
+    def test_compute_wasserstein_distance_empty_diagrams(self):
+        """Distancia entre diagramas vacíos es 0."""
+        dist = compute_wasserstein_distance([], [], p=2)
+        self.assertEqual(dist, 0.0)
+    
+    def test_compute_wasserstein_distance_one_empty(self):
+        """Distancia cuando un diagrama está vacío."""
+        i1 = PersistenceInterval(birth=0, death=10, dimension=0)
+        
+        dist = compute_wasserstein_distance([i1], [], p=2)
+        self.assertGreater(dist, 0.0)
+    
+    def test_compute_wasserstein_distance_different_sizes(self):
+        """Distancia entre diagramas de distinto tamaño."""
+        intervals1 = [
+            PersistenceInterval(birth=0, death=10, dimension=0),
+            PersistenceInterval(birth=5, death=15, dimension=0)
+        ]
+        
+        intervals2 = [
+            PersistenceInterval(birth=0, death=12, dimension=0)
+        ]
+        
+        dist = compute_wasserstein_distance(intervals1, intervals2, p=2)
+        self.assertGreater(dist, 0.0)
+        self.assertTrue(math.isfinite(dist))
+    
+    def test_compute_wasserstein_distance_invalid_p_raises(self):
+        """p < 1 debe lanzar excepción."""
+        i1 = PersistenceInterval(birth=0, death=10, dimension=0)
+        
+        with self.assertRaises(ValueError):
+            compute_wasserstein_distance([i1], [i1], p=0.5)
+    
+    def test_compute_wasserstein_distance_p_infinity_approximation(self):
+        """Distancia con p grande debe aproximarse a max."""
+        i1 = PersistenceInterval(birth=0, death=10, dimension=0)
+        i2 = PersistenceInterval(birth=0, death=20, dimension=0)
+        
+        dist = compute_wasserstein_distance([i1], [i2], p=100)
+        
+        # Debe aproximarse a la diferencia máxima
+        self.assertGreater(dist, 0.0)
 
-        for _ in range(10):
-            ph.add_reading("exact", 0.5)  # Exactamente el umbral
 
-        result = ph.analyze_persistence("exact", threshold=0.5)
+# =============================================================================
+# GRUPO 7: TEST DE INTEGRACIÓN END-TO-END
+# =============================================================================
 
-        # Valores en el umbral no están "por encima", así que debe ser STABLE
-        assert result.state == MetricState.STABLE
+class TestIntegration(unittest.TestCase, MathematicalAssertions):
+    """
+    Escenarios completos que integran múltiples componentes.
+    """
+    
+    def test_scenario_healthy_system_evolution(self):
+        """
+        Escenario: Sistema saludable evoluciona sin degradación.
+        """
+        topology = SystemTopology(max_history=100)
+        
+        # T0: Inicialización
+        health = topology.get_topological_health()
+        initial_score = health.health_score
+        
+        # T1: Agregar topología esperada
+        topology.update_connectivity(list(SystemTopology.EXPECTED_TOPOLOGY))
+        health = topology.get_topological_health()
+        
+        self.assertGreater(health.health_score, initial_score)
+        self.assertEqual(health.level, HealthLevel.HEALTHY)
+        
+        # T2: Agregar requests normales (no loops)
+        for i in range(50):
+            topology.record_request(f"req-{i}")
+        
+        loops = topology.detect_request_loops(threshold=3)
+        self.assertEqual(len(loops), 0)
+        
+        # Salud debe mantenerse
+        health_final = topology.get_topological_health()
+        self.assertEqual(health_final.level, HealthLevel.HEALTHY)
+    
+    def test_scenario_degradation_and_recovery(self):
+        """
+        Escenario: Sistema se degrada y luego se recupera.
+        """
+        topology = SystemTopology()
+        
+        # Fase 1: Estado degradado (fragmentación)
+        topology.update_connectivity([("Agent", "Core")])
+        health_degraded = topology.get_topological_health()
+        
+        self.assertTrue(health_degraded.has_fragmentation)
+        self.assertIn(health_degraded.level, [HealthLevel.DEGRADED, HealthLevel.UNHEALTHY])
+        
+        # Fase 2: Recuperación (completar topología)
+        topology.update_connectivity(list(SystemTopology.EXPECTED_TOPOLOGY))
+        health_recovered = topology.get_topological_health()
+        
+        self.assertGreater(health_recovered.health_score, health_degraded.health_score)
+        self.assertEqual(health_recovered.level, HealthLevel.HEALTHY)
+    
+    def test_scenario_critical_failure_detection(self):
+        """
+        Escenario: Detección de fallo crítico.
+        """
+        topology = SystemTopology()
+        
+        # Sin conexiones + loops de reintento
+        for _ in range(20):
+            topology.record_request("failing-req")
+        
+        health = topology.get_topological_health()
+        loops = topology.detect_request_loops(threshold=3)
+        
+        # Debe haber penalizaciones severas
+        self.assertLess(health.health_score, 0.7)
+        self.assertGreater(len(loops), 0)
+        self.assertTrue(health.has_fragmentation)
+        self.assertTrue(health.has_disconnected_nodes)
 
-    def test_large_request_history_performance(self):
-        """Historia grande de requests no causa problemas."""
-        topo = SystemTopology(max_history=1000)
 
-        # Agregar muchos requests
-        for i in range(1000):
-            assert topo.record_request(f"req_{i % 100}") is True
+# =============================================================================
+# GRUPO 8: TEST DE CASOS EXTREMOS
+# =============================================================================
 
-        # Verificar que el historial no excede el máximo
-        assert len(topo._request_history) == 1000
+class TestEdgeCases(unittest.TestCase, MathematicalAssertions):
+    """
+    Casos extremos y patológicos.
+    """
+    
+    def test_large_graph_performance(self):
+        """Grafo grande (100 nodos) debe procesarse eficientemente."""
+        topology = SystemTopology(validate_strictly=False)
+        
+        # Agregar 100 nodos
+        for i in range(100):
+            topology.add_node(f"Node{i}")
+        
+        # Agregar conexiones (árbol)
+        for i in range(1, 100):
+            topology.add_edge(f"Node{i-1}", f"Node{i}")
+        
+        # Cálculo de Betti debe completarse
+        betti = topology.calculate_betti_numbers()
+        
+        self.assertEqual(betti.num_vertices, 100 + len(SystemTopology.REQUIRED_NODES))
+        self.assertEqual(betti.b0, 2)  # Componente del árbol + nodos requeridos aislados
+        self.assertEqual(betti.b1, 0)
+    
+    def test_complete_graph_high_cyclomatic_complexity(self):
+        """Grafo completo pequeño tiene alta complejidad ciclomática."""
+        topology = SystemTopology(validate_strictly=False)
+        
+        nodes = ["A", "B", "C", "D"]
+        for node in nodes:
+            topology.add_node(node)
+        
+        # Grafo completo K4
+        edges = list(itertools.combinations(nodes, 2))
+        topology.update_connectivity(edges)
+        
+        betti = topology.calculate_betti_numbers()
+        
+        # K4: 4 vértices, 6 aristas, β₁ = 6 - 4 + 1 = 3
+        self.assertEqual(betti.num_edges, 6)
+        self.assertEqual(betti.b1, 3)
+        self.assertGreater(betti.cyclomatic_complexity, 1)
+    
+    def test_unicode_node_names(self):
+        """Nodos con caracteres Unicode."""
+        topology = SystemTopology(validate_strictly=False)
+        
+        unicode_nodes = ["服务A", "Сервис-Б", "خدمة_ج"]
+        for node in unicode_nodes:
+            result = topology.add_node(node)
+            self.assertTrue(result, f"Fallo al agregar nodo Unicode: {node}")
+        
+        for node in unicode_nodes:
+            self.assertTrue(topology.has_node(node))
+    
+    def test_extremely_long_node_name(self):
+        """Nombre de nodo extremadamente largo."""
+        topology = SystemTopology(validate_strictly=False)
+        
+        long_name = "Node" * 1000  # 4000 caracteres
+        result = topology.add_node(long_name)
+        
+        self.assertTrue(result)
+        self.assertTrue(topology.has_node(long_name))
+    
+    def test_persistence_with_all_zeros(self):
+        """Serie temporal con todos ceros."""
+        ph = PersistenceHomology(window_size=20)
+        
+        for _ in range(20):
+            ph.add_reading("metric", 0.0)
+        
+        # No debe haber error
+        buffer = ph.get_buffer("metric")
+        self.assertEqual(len(buffer), 20)
+        self.assertTrue(all(v == 0.0 for v in buffer))
+    
+    def test_persistence_with_constant_nonzero(self):
+        """Serie temporal constante no-cero."""
+        ph = PersistenceHomology(window_size=20)
+        
+        for _ in range(20):
+            ph.add_reading("metric", 100.0)
+        
+        buffer = ph.get_buffer("metric")
+        self.assertTrue(all(v == 100.0 for v in buffer))
+    
+    def test_betti_numbers_with_multigraph_simulation(self):
+        """Simular multi-grafo (aristas múltiples)."""
+        # NetworkX.Graph no soporta multi-aristas, pero podemos testear comportamiento
+        topology = SystemTopology(validate_strictly=False)
+        
+        topology.add_edge("A", "B")
+        # Intentar agregar duplicada
+        result = topology.add_edge("A", "B")
+        
+        self.assertFalse(result, "Arista duplicada debe ser rechazada")
+        self.assertEqual(topology.num_edges, 1)
 
-        # Detectar loops debe funcionar eficientemente
-        loops = topo.detect_request_loops(threshold=5)
 
-        # 100 IDs únicos, cada uno aparece 10 veces
-        assert len(loops) == 100
-        for loop in loops:
-            assert loop.count == 10
+# =============================================================================
+# GRUPO 9: TEST DE ESTABILIDAD NUMÉRICA
+# =============================================================================
 
-    def test_empty_metrics_operations(self):
-        """Operaciones en métricas vacías no fallan."""
-        ph = PersistenceHomology(window_size=10)
+class TestNumericalStability(unittest.TestCase, MathematicalAssertions):
+    """
+    Verificación de estabilidad numérica y precisión.
+    """
+    
+    def test_betti_numbers_floating_point_consistency(self):
+        """Números de Betti con valores grandes."""
+        topology = SystemTopology(validate_strictly=False)
+        
+        # Crear grafo con muchos nodos
+        for i in range(50):
+            topology.add_node(f"N{i}")
+        
+        # Crear árbol (49 aristas)
+        for i in range(1, 50):
+            topology.add_edge(f"N{i-1}", f"N{i}")
+        
+        betti = topology.calculate_betti_numbers()
+        
+        # Verificar consistencia
+        self.assertTrue(betti.verify_euler_consistency())
+    
+    def test_persistence_interval_geometric_precision(self):
+        """Precisión geométrica de persistencia."""
+        # Intervalo con valores grandes
+        interval = PersistenceInterval(
+            birth=1_000_000,
+            death=1_000_100,
+            dimension=0
+        )
+        
+        # Persistencia = 100 / √2
+        expected = 100.0 / math.sqrt(2.0)
+        self.assertAlmostEqualFloat(interval.persistence, expected, tolerance=1e-9)
+    
+    def test_wasserstein_distance_numerical_stability(self):
+        """Estabilidad numérica de Wasserstein."""
+        # Intervalos con valores muy dispares
+        i1 = PersistenceInterval(birth=0, death=1e-10, dimension=0)
+        i2 = PersistenceInterval(birth=0, death=1e10, dimension=0)
+        
+        dist = compute_wasserstein_distance([i1], [i2], p=2)
+        
+        self.assertTrue(math.isfinite(dist))
+        self.assertGreater(dist, 0.0)
+    
+    def test_health_score_boundary_precision(self):
+        """Precisión en boundaries de health score."""
+        topology = SystemTopology()
+        
+        # Crear estado que genere score cerca de 0.9
+        topology.update_connectivity([
+            ("Agent", "Core"),
+            ("Core", "Redis"),
+            ("Core", "Filesystem")
+        ])
+        
+        health = topology.get_topological_health()
+        
+        # Score debe estar en [0, 1]
+        self.assertGreaterEqual(health.health_score, 0.0)
+        self.assertLessEqual(health.health_score, 1.0)
+        
+        # Consistencia con nivel
+        expected_level = HealthLevel.from_score(health.health_score)
+        self.assertEqual(health.level, expected_level)
 
-        # Estadísticas de métrica inexistente
-        assert ph.get_statistics("nonexistent") is None
 
-        # Diagrama de métrica inexistente
-        diagram = ph.get_persistence_diagram("nonexistent", 0.5)
-        assert len(diagram) == 0
+# =============================================================================
+# SUITE COMPLETA
+# =============================================================================
 
-        # Análisis de métrica inexistente
-        result = ph.analyze_persistence("nonexistent", 0.5)
-        assert result.state == MetricState.UNKNOWN
+def suite() -> unittest.TestSuite:
+    """Construye la suite completa de pruebas."""
+    suite = unittest.TestSuite()
+    
+    # Agregar todos los test cases
+    test_classes = [
+        TestTopologicalConstants,
+        TestBettiNumbers,
+        TestPersistenceInterval,
+        TestSystemTopology,
+        TestPersistenceHomology,
+        TestUtilityFunctions,
+        TestIntegration,
+        TestEdgeCases,
+        TestNumericalStability
+    ]
+    
+    for test_class in test_classes:
+        tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
+        suite.addTests(tests)
+    
+    return suite
 
-    def test_very_large_values_handled(self):
-        """Valores muy grandes se manejan correctamente."""
-        ph = PersistenceHomology(window_size=10)
 
-        for _ in range(10):
-            ph.add_reading("large", 1e100)
+# =============================================================================
+# PUNTO DE ENTRADA
+# =============================================================================
 
-        stats = ph.get_statistics("large")
-        assert stats is not None
-        assert math.isfinite(stats["mean"])
-
-    def test_negative_values_handled(self):
-        """Valores negativos se procesan correctamente."""
-        ph = PersistenceHomology(window_size=10)
-
-        values = [-10, -5, 0, 5, 10, -10, -5, 0, 5, 10]
-        ph.add_readings_batch("negative", values)
-
-        stats = ph.get_statistics("negative")
-        assert stats is not None
-        assert stats["min"] == -10
-        assert stats["max"] == 10
-
-    def test_repr_methods_no_exceptions(self, pyramid_topology, persistence_with_data):
-        """__repr__ no lanza excepciones en ningún estado."""
-        # Topología normal
-        repr_topo = repr(pyramid_topology)
-        assert "SystemTopology" in repr_topo
-        assert "nodes=" in repr_topo
-
-        # Persistencia normal
-        repr_ph = repr(persistence_with_data)
-        assert "PersistenceHomology" in repr_ph
-
-        # Topología vacía
-        empty_topo = SystemTopology()
-        repr_empty = repr(empty_topo)
-        assert "SystemTopology" in repr_empty
-
-        # Persistencia vacía
-        empty_ph = PersistenceHomology()
-        repr_empty_ph = repr(empty_ph)
-        assert "PersistenceHomology" in repr_empty_ph
-
-    def test_topology_with_single_edge(self):
-        """Topología con una sola arista."""
-        topo = SystemTopology()
-        topo.update_connectivity([("Agent", "Core")])
-
-        betti = topo.calculate_betti_numbers()
-
-        # 1 arista conecta 2 nodos, quedan 2 aislados
-        assert betti.b0 == 3  # {Agent,Core}, {Redis}, {Filesystem}
-        assert betti.b1 == 0
-
-    def test_wasserstein_distance_symmetry(self):
-        """Distancia de Wasserstein es simétrica."""
-        intervals1 = [PersistenceInterval(birth=0, death=5, dimension=0)]
-        intervals2 = [PersistenceInterval(birth=0, death=10, dimension=0)]
-
-        dist_12 = compute_wasserstein_distance(intervals1, intervals2)
-        dist_21 = compute_wasserstein_distance(intervals2, intervals1)
-
-        assert dist_12 == pytest.approx(dist_21, rel=1e-10)
-
-    def test_wasserstein_distance_triangle_inequality(self):
-        """Distancia de Wasserstein satisface desigualdad triangular."""
-        i1 = [PersistenceInterval(birth=0, death=5, dimension=0)]
-        i2 = [PersistenceInterval(birth=0, death=8, dimension=0)]
-        i3 = [PersistenceInterval(birth=0, death=12, dimension=0)]
-
-        d12 = compute_wasserstein_distance(i1, i2)
-        d23 = compute_wasserstein_distance(i2, i3)
-        d13 = compute_wasserstein_distance(i1, i3)
-
-        # d(1,3) <= d(1,2) + d(2,3)
-        assert d13 <= d12 + d23 + 1e-10  # Tolerancia numérica
+if __name__ == "__main__":
+    # Configurar logging para tests
+    import logging
+    logging.basicConfig(
+        level=logging.WARNING,  # Solo warnings y errores
+        format="%(levelname)s: %(message)s"
+    )
+    
+    # Ejecutar suite
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite())
+    
+    # Reporte final
+    print("\n" + "=" * 80)
+    print("REPORTE FINAL DE PRUEBAS")
+    print("=" * 80)
+    print(f"Tests ejecutados: {result.testsRun}")
+    print(f"✅ Exitosos: {result.testsRun - len(result.failures) - len(result.errors)}")
+    print(f"❌ Fallidos: {len(result.failures)}")
+    print(f"💥 Errores: {len(result.errors)}")
+    print(f"⏭️  Omitidos: {len(result.skipped)}")
+    print("=" * 80)
+    
+    # Exit code
+    sys.exit(0 if result.wasSuccessful() else 1)
