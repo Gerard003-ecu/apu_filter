@@ -3,10 +3,9 @@ import numpy as np
 
 """
 ================================================================================
-Módulo: test_tools_interface.py — Fase 1/6
+Módulo: test_tools_interface.py
 Submódulo: Pruebas de Estructuras Fundamentales y Configuración
-Ubicación: tests/adapters/test_tools_interface_phase1.py
-Autor: Artesano Programador Senior (PhD Mathematics & Physics)
+Ubicación: tests/unit/core/test_tools_interface.py
 Versión: 5.0.0-topological-rigorous
 ================================================================================
 
