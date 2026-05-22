@@ -1,7 +1,7 @@
 """
 =========================================================================================
 Suite de Pruebas: Topological Analyzer (Operador de Observabilidad Funtorial y TDA)
-Ubicación: tests/unit/tactics/test_topological_analyzer_v2.py
+Ubicación: tests/unit/tactics/test_topological_analyzer.py
 Versión: 2.0.0-rigorous
 =========================================================================================
 
