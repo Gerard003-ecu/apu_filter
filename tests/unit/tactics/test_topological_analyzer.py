@@ -55,7 +55,7 @@ import numpy as np
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "app", "tactics")))
 
 try:
-    from topological_analyzer import (
+    from app.tactics.topological_analyzer import (
         BettiNumberError,
         BettiNumbers,
         EulerCharacteristic,
