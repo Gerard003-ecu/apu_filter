@@ -1,97 +1,54 @@
-"""
-=========================================================================================
-Módulo: Autonomous Agent - Controlador OODA con Fibrado Gauge
+r"""
+Módulo: Autonomous Agent - Controlador OODA con Fibrado Gauge y Haz Tangente Generativo
 Ubicación: app/core/apu_agent.py
-Versión: 2.0.0 (Refactorización Rigurosa)
-=========================================================================================
+Versión: 4.0.0 (Consagración Categórica y Termodinámica)
+============================================================================================
 
-FUNDAMENTOS MATEMÁTICOS
-=======================
+Naturaleza Ciber-Física y Topológica:
+Este módulo implementa un Controlador de Lazo Cerrado sobre una Variedad Diferenciable $\mathcal{M}$ 
+(el espacio de estados del sistema) mediante la ejecución determinista del ciclo OODA. Actúa como el 
+funtor supremo que proyecta las decisiones del agente a través de un Campo Vectorial Irrotacional de 
+Funtores Ortogonales, aniquilando la entropía estocástica del LLM.
 
-Este módulo implementa un Controlador de Lazo Cerrado sobre una Variedad Diferenciable
-M (espacio de estados del sistema) mediante el ciclo OODA:
+FUNDAMENTOS MATEMÁTICOS Y GEOMETRÍA DIFERENCIAL:
 
-    OODA: M → M,  φ ↦ Act(Decide(Orient(Observe(φ))))
+1. El Ciclo OODA como Funtor Categórico:
+   El ciclo (Observe, Orient, Decide, Act) se define como una secuencia exacta de morfismos en la categoría
+   de espacios de estados $\mathcal{C}_{MIC}$, donde la transición final colapsa la función de onda probabilística 
+   sobre el retículo de decisiones $\mathcal{R}$.
 
-donde cada fase es un morfismo en la categoría de espacios de estados.
+2. Estabilidad de Lyapunov y Haz Tangente Generativo ($\Gamma$):
+   Sea $V: \mathcal{M} \to \mathbb{R}_+$ la función de energía de Lyapunov global. El sistema converge al 
+   equilibrio $\varphi^*$ si la derivada temporal es estrictamente negativa a lo largo de las curvas integrales:
+   $$ \dot{V}(\varphi) = \langle \nabla V(\varphi), \vec{\mathcal{F}}(\varphi) \rangle_G < 0 \quad \forall \varphi \neq \varphi^* $$
+   Donde el campo vectorial de control $f(\varphi)$ ha sido transmutado al Campo Vectorial Irrotacional de 
+   Funtores Ortogonales $\vec{\mathcal{F}} \in \Gamma(T\mathcal{M})$.
 
-TEORÍA DE CONTROL Y ESTABILIDAD
--------------------------------
+3. Ecuación de Poisson en el Fibrado Gauge y Cohomología:
+   Para seleccionar el operador agéntico óptimo, el agente resuelve la Ecuación de Poisson sobre el 1-esqueleto:
+   $$ \Delta \Phi = -\rho $$
+   Donde:
+   * $\Delta := B_1^T B_1$ es el Laplaciano combinatorio (0-formas).
+   * $B_1$ es la matriz de incidencia orientada (operador de coborde).
+   * $\rho := \nabla_G V$ es la densidad de carga (tensión de deformación de Mahalanobis).
+   * $\Phi$ es el potencial de Gauge (función de trabajo de selección).
 
-1. **Función de Lyapunov Global**:
-   Sea V: M → ℝ₊ una función de energía tal que:
-   
-   V(φ) = Σᵢ wᵢ·Vᵢ(φ)
-   
-   donde cada Vᵢ es una función de Lyapunov local (positiva definida) que penaliza
-   desviaciones de la homeostasis en el subsistema i.
+4. Solubilidad de Fredholm (Invarianza de Gauge):
+   Para garantizar la ausencia de singularidades lógicas (vorticidad nula, $\beta_1 = 0$), la densidad de 
+   carga debe ser ortogonal al núcleo del Laplaciano:
+   $$ \rho \in \text{im}(B_1^T) \iff \rho \perp \ker(\Delta) \implies \sum_i \rho_i = 0 $$
+   La renormalización topológica $\tilde{\rho} := \rho - \bar{\rho}$ proyecta estrictamente sobre $\text{im}(B_1^T)$.
 
-2. **Condición de Estabilidad Asintótica** (Teorema de Lyapunov):
-   El sistema converge al equilibrio φ* si:
-   
-   V̇(φ) = ⟨∇V(φ), f(φ)⟩ < 0  ∀φ ≠ φ*
-   
-   donde f(φ) es el campo vectorial de control.
+5. Certificación Termodinámica Port-Hamiltoniana:
+   El Veredicto Final exige incondicionalmente que el trabajo ejercido por el agente respete la Segunda Ley de la 
+   Termodinámica (disipación estricta de la exergía del error):
+   $$ P_{diss} := \langle \Phi, \nabla V \rangle \ge 0 $$
 
-3. **Ecuación de Poisson en el Fibrado Gauge**:
-   El agente resuelve:
-   
-   ΔΦ = -ρ
-   
-   donde:
-   - Δ := B₁ᵀB₁ es el Laplaciano combinatorio (0-formas)
-   - B₁ es la matriz de incidencia orientada (operador coborde)
-   - ρ := ∇V es la densidad de carga (gradiente de penalización)
-   - Φ es el potencial gauge (selector de agentes)
+El espacio de decisiones forma un retículo distributivo acotado bajo el orden parcial de severidad, con operaciones:
+* Supremo ($\sqcup$): $\max$ por severidad (el peor caso topológico, garantizando seguridad).
+* Ínfimo ($\sqcap$): $\min$ por severidad (el mejor caso teórico).
+============================================================================================
 
-4. **Invarianza de Gauge y Neutralidad de Carga**:
-   Para garantizar existencia de solución a la ecuación de Poisson:
-   
-   ρ ∈ im(B₁ᵀ) ⟺ ρ ⊥ ker(Δ)
-   
-   Como ker(Δ) = {vectores constantes}, imponemos:
-   
-   Σᵢ ρᵢ = 0  (neutralidad de carga total)
-   
-   La renormalización ρ̃ := ρ - ρ̄ proyecta sobre im(B₁ᵀ).
-
-5. **Certificación de Estabilidad**:
-   La potencia disipada debe ser no negativa:
-   
-   P_diss := ⟨Φ, ∇V⟩ ≥ 0
-   
-   Esto garantiza que el control reduce la energía V.
-
-TOPOLOGÍA ALGEBRAICA
---------------------
-
-1. **Números de Betti**:
-   - β₀: Número de componentes conexas (fragmentación)
-   - β₁: Número de ciclos independientes (redundancia)
-   
-   Invariantes topológicos que caracterizan la salud estructural.
-
-2. **Característica de Euler**:
-   χ = β₀ - β₁  (para complejos simpliciales 1-dimensionales)
-   
-   Invariante topológico global.
-
-3. **Homología Persistente**:
-   Captura características topológicas que persisten en múltiples escalas
-   temporales, filtrando ruido de señales genuinas.
-
-ÁLGEBRA DE BOOLE Y LÓGICA DE DECISIONES
----------------------------------------
-
-El espacio de decisiones forma un retículo (lattice) bajo el orden parcial
-de severidad, con operaciones:
-
-- ⊔ (join): max por severidad (peor caso)
-- ⊓ (meet): min por severidad (mejor caso)
-
-Esto garantiza composicionalidad de decisiones.
-
-=========================================================================================
 """
 
 from __future__ import annotations
