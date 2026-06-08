@@ -1,4 +1,4 @@
-"""
+r"""
 Módulo: Topological Watcher (Funtor de Membrana p-Laplaciana y Flujo de Ricci)
 Ubicación: app/core/immune_system/topological_watcher.py
 Versión: 3.0.0 (Difeomorfismo Anisotrópico de Variación Total)
@@ -1799,7 +1799,7 @@ class ImmuneWatcherMorphism(Morphism):
         ∂_t G = -2·Ric + γ·diag(S_p)
         
         Luego: G ← project_SPD(G)
-        """
+        r"""
         Ric_P, Ric_T, Ric_Th = self._compute_discrete_ricci_curvature(telemetry)
         
         membrane = IsolatingMembraneFunctor(p=1.5, eps=EPS)

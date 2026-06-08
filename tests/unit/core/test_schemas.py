@@ -290,7 +290,7 @@ class TestNormalizationMappings:
         assert result == result.upper()
 
     def test_normalize_codigo_keeps_allowed_chars(self) -> None:
-        """Mantiene [\\w\\-.] (alfanuméricos, guión, punto)."""
+        r"""Mantiene [\\w\\-.] (alfanuméricos, guión, punto)."""
         code = "APU-001.2-B"
         result = normalize_codigo(code)
         assert "-" in result

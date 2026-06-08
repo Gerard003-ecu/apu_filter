@@ -1,4 +1,4 @@
-"""
+r"""
 =========================================================================================
 Módulo: Semantic Validation Engine (Proyector Semántico con Tensor de Mahalanobis)
 Ubicación: app/boole/wisdom/semantic_validator.py
@@ -617,7 +617,7 @@ class MahalanobisMetric:
             
         Raises:
             ContractViolationError: Si se violan precondiciones.
-        """
+        r"""
         if signal_vector.shape != (4,):
             raise ContractViolationError(
                 f"signal_vector must be shape (4,), got {signal_vector.shape}"
@@ -848,7 +848,7 @@ class SimplicialCohomology:
         
         Returns:
             Lista de strings describiendo violaciones.
-        """
+        r"""
         violations = []
         
         p = self._signal_values[self.PURPOSE_IDX]
@@ -939,7 +939,7 @@ class SimplicialCohomology:
         
         Returns:
             Descripción textual de obstrucciones.
-        """
+        r"""
         dim = self.compute_cohomology_dimension()
         
         if dim == 0:
@@ -1457,7 +1457,7 @@ class SemanticValidationEngine:
             metric: Tensor métrico personalizado
             confidence_filter: Inyección de dependencias para el filtro de confianza
             enable_cohomology: Habilitar detección cohomológica
-        """
+        r"""
         self.risk_profile = risk_profile or RiskProfile(risk_tolerance=0.5)
         self.metric = metric or MahalanobisMetric()
         self.enable_cohomology = enable_cohomology
@@ -1512,7 +1512,7 @@ class SemanticValidationEngine:
             
         Raises:
             ContractViolationError: Si se violan precondiciones
-        """
+        r"""
         logger.info("=" * 80)
         logger.info("SEMANTIC VALIDATION STARTED (v3.0 - Rigorous Foundations)")
         logger.info("=" * 80)
@@ -1718,7 +1718,7 @@ class SemanticValidationEngine:
             
         Returns:
             Explicación formateada del veredicto
-        """
+        r"""
         lines = [
             "=" * 80,
             "SEMANTIC VALIDATION REPORT",

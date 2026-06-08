@@ -750,7 +750,7 @@ class SynapticRegistry:
         max_items: Optional[int] = None,
         max_chars: Optional[int] = None,
     ) -> str:
-        """Concatena los TOONs activos para inyección en prompt LLM.
+        r"""Concatena los TOONs activos para inyección en prompt LLM.
 
         Política de selección (orden de aplicación):
             1. Ordena por peso descendente; desempate lexicográfico por nombre
@@ -767,7 +767,7 @@ class SynapticRegistry:
         Returns:
             String con payloads concatenados por "\\n", o
             ``_EMPTY_CONTEXT`` si no hay contenido disponible.
-        """
+        r"""
         if not self._cartridges:
             return self._EMPTY_CONTEXT
 

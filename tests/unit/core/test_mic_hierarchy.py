@@ -1,4 +1,4 @@
-"""
+r"""
 Tests para MIC Hierarchy y Gatekeeper Logic
 =============================================
 
@@ -219,7 +219,7 @@ def validate_mic_result_structure(result: Dict[str, Any]) -> Dict[str, Any]:
           - is_valid: bool
           - violations: List[str]
           - success_value: bool | None
-    """
+    r"""
     violations = []
     
     # R₁: success obligatorio
@@ -1031,7 +1031,7 @@ class TestMICHierarchyPermissions:
         """
         Tabla de verdad exhaustiva: (target, validated) → allowed.
         Verifica la regla G₁ en todo el espacio de combinaciones relevantes.
-        """
+        r"""
         vector_name, payload = STRATUM_VECTOR_MAP[target]
         result = mic.project_intent(
             vector_name, payload, _build_context(validated=validated)
@@ -1278,7 +1278,7 @@ class TestMICAlgebraicProperties:
         """
         A₄: ∀ s₁ ≠ s₂, s₁ ∈ req(s₂) ∨ s₂ ∈ req(s₁).
         Todo par de estratos es comparable (orden total).
-        """
+        r"""
         strata = list(Stratum)
         for i, s1 in enumerate(strata):
             for s2 in strata[i + 1:]:
@@ -1297,7 +1297,7 @@ class TestMICAlgebraicProperties:
         
         Esto significa que existe una única secuencia
         s₀ < s₁ < s₂ < s₃ < s₄ que ordena todos los elementos.
-        """
+        r"""
         expected_order = [
             Stratum.PHYSICS,
             Stratum.TACTICS,
@@ -1345,7 +1345,7 @@ class TestMICAlgebraicProperties:
     # ── A₆: MAXIMALIDAD ───────────────────────────────────────────────
 
     def test_wisdom_is_maximum(self, registry):
-        """A₆: req(WISDOM) = P \\ {WISDOM}. Elemento máximo."""
+        r"""A₆: req(WISDOM) = P \\ {WISDOM}. Elemento máximo."""
         expected = {Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.OMEGA, Stratum.ALPHA}
         assert registry.get_required_strata(Stratum.WISDOM) == expected
 
@@ -1395,7 +1395,7 @@ class TestMICAlgebraicProperties:
         """
         |req(s)| es estrictamente creciente a lo largo de la cadena.
         Esto induce una biyección con {0, 1, 2, 3, 4, 5}.
-        """
+        r"""
         cardinalities = [
             (stratum, len(registry.get_required_strata(stratum)))
             for stratum in Stratum
@@ -1424,7 +1424,7 @@ class TestMICAlgebraicProperties:
     # ── VERIFICACIÓN COMPLETA ─────────────────────────────────────────
 
     def test_all_algebraic_properties(self, registry):
-        """Verificación compuesta de todas las propiedades."""
+        r"""Verificación compuesta de todas las propiedades"""
         results = verify_order_properties(registry)
         
         assert results["all_valid"], (
@@ -2090,7 +2090,7 @@ class TestMICResultInvariants:
     def test_result_structure_valid(self, mic, mic_failing, scenario):
         """
         Todo resultado tiene estructura válida según las reglas.
-        """
+        r"""
         if scenario == "success":
             result = mic.project_intent(
                 "mock_physics", {"val": 1}, _build_context()

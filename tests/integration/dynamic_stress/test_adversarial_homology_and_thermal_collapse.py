@@ -198,11 +198,7 @@ def compute_normalized_laplacian_spectrum_rigorous(graph: nx.Graph | nx.DiGraph)
 # ==============================================================================
 # INFRAESTRUCTURA MOCK AGÉNTICA (ESTRATO WISDOM/STRATEGY)
 # ==============================================================================
-class Stratum(Enum):
-    PHYSICS = 5
-    TACTICS = 4
-    STRATEGY = 3
-    WISDOM = 0
+from app.core.schemas import Stratum
 
 class ImpedanceMatchStatus(Enum):
     ALGEBRAIC_VETO = "ALGEBRAIC_VETO"

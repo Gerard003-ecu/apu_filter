@@ -1,4 +1,4 @@
-"""
+r"""
 =========================================================================================
 Módulo: Semantic Estimator (Proyector Topológico-Semántico y Asesor Táctico)
 Ubicación: app/tactics/semantic_estimator.py
@@ -447,7 +447,7 @@ class EstimationLog:
 
     Encapsula la lista mutable de líneas de log, evitando que se pase
     como parámetro mutable a través de toda la cadena de llamadas.
-    """
+    r"""
 
     __slots__ = ("_lines",)
 
@@ -1138,7 +1138,7 @@ class CostCalculator:
         data_store: Dict[str, Any],
         log: EstimationLog,
     ) -> float:
-        """
+        r"""
         Calcula rendimiento como inverso del tiempo total de mano de obra.
 
         .. math::
@@ -1531,7 +1531,7 @@ class CostCalculator:
         factors: EstimationFactors,
         log: EstimationLog,
     ) -> float:
-        """
+        r"""
         Calcula costo de mano de obra ajustado.
 
         .. math::

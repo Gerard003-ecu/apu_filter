@@ -61,36 +61,7 @@ from scipy import stats
 # =============================================================================
 # IMPORT SEGURO CON FALLBACK ROBUSTO
 # =============================================================================
-
-try:
-    from app.core.schemas import Stratum
-except ImportError:
-    class Stratum(IntEnum):
-        """
-        Estratificación DIKW con estructura de filtración topológica.
-        
-        Forma una cadena en el orden parcial de conocimiento:
-            WISDOM ⊂ OMEGA ⊂ STRATEGY ⊂ TACTICS ⊂ PHYSICS
-        
-        Propiedades Algebraicas:
-            - Conjunto totalmente ordenado (cadena)
-            - Induce una filtración ∅ ⊂ F₀ ⊂ F₁ ⊂ ... ⊂ F₄ = X
-            - Cada nivel hereda estructura del anterior (monotonía)
-        """
-        WISDOM = 0      # Σ⁴ - Síntesis estratégica (Cociente final)
-        OMEGA = 1       # Σ³ - Ágora tensorial (Espacio de decisión)
-        STRATEGY = 2    # Σ² - Planificación (Espacio de estados)
-        TACTICS = 3     # Σ¹ - Operaciones (Espacio de configuración)
-        PHYSICS = 4     # Σ⁰ - Datos crudos (Espacio base)
-        
-        @property
-        def filtration_level(self) -> int:
-            """Nivel de filtración (inverso del valor)."""
-            return 4 - self.value
-        
-        def __lt__(self, other: 'Stratum') -> bool:
-            """Orden de refinamiento: PHYSICS < TACTICS < ... < WISDOM."""
-            return self.filtration_level < other.filtration_level
+from app.core.schemas import Stratum
 
 
 logger = logging.getLogger("SemanticDictionary")

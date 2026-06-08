@@ -290,7 +290,7 @@ def generate_chain_dag(length: int) -> AlgebraicDAG:
 
 
 def generate_diamond_dag() -> AlgebraicDAG:
-    """
+    r"""
     Genera un DAG en forma de diamante.
     
     Topología:

@@ -60,11 +60,7 @@ getcontext().rounding = ROUND_HALF_EVEN
 try:
     from app.core.schemas import Stratum
 except ImportError:
-    class Stratum(Enum):
-        PHYSICS = 5
-        TACTICS = 4
-        STRATEGY = 3
-        WISDOM = 0
+    pass
 
 @dataclass(frozen=True, slots=True)
 class CategoricalState:

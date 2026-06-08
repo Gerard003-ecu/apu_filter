@@ -587,7 +587,7 @@ class ReportParserCrudo:
     # ── Cache semántico ──────────────────────────────────────────────────
 
     def _compute_semantic_cache_key(self, line: str) -> str:
-        """
+        r"""
         Computa clave de cache basada en invariantes topológicos.
 
         Define una relación de equivalencia sobre el espacio de líneas:
@@ -598,7 +598,7 @@ class ReportParserCrudo:
             - El lookahead `(?!\\.)` ahora es correcto: evita quitar el cero
               en "0.5" (que sería el dígito antes del punto decimal) pero sí
               quita ceros en enteros como "007" → "7".
-        """
+        r"""
         from app.core.utils import parse_number
 
         # Homeomorfismo de espaciado: colapsa variantes de blancos
@@ -866,7 +866,7 @@ class ReportParserCrudo:
         Corrección v3:
             Se añade guarda explícita para líneas con longitud < 10 que no
             permiten una subdivisión en tercios significativa.
-        """
+        r"""
         if not line:
             return False
 
@@ -977,7 +977,7 @@ class ReportParserCrudo:
             - El regex de `cantidad` busca en toda la línea (sin ancla `$`).
             - La normalización decimal se aplica a una copia, preservando
               la línea original para los demás checks.
-        """
+        r"""
         if not line or not isinstance(line, str):
             return 0.0
 
@@ -1225,7 +1225,7 @@ class ReportParserCrudo:
         Corrección v3:
             `LarkToken` se importa a nivel módulo (evita import por llamada).
             Si Lark no está disponible, se asume homeomorfismo por defecto.
-        """
+        r"""
         if not self._is_valid_tree(tree):
             return False
 
@@ -1305,7 +1305,7 @@ class ReportParserCrudo:
     # ── Resumen de validación ────────────────────────────────────────────
 
     def _log_validation_summary(self) -> None:
-        """Registra un resumen detallado de la validación al finalizar el parseo."""
+        r"""Registra un resumen detallado de la validación al finalizar el parseo"""
         total = self.validation_stats.total_evaluated
         # Counter soporta indexación directa; usar [] es idiomático y consistente
         valid = self.stats["insumos_extracted"]
@@ -1456,7 +1456,7 @@ class ReportParserCrudo:
 
         Raises:
             ParseStrategyError: Si ocurre un error irrecuperable durante el parseo.
-        """
+        r"""
         if self._parsed:
             return self.raw_records
 
@@ -1595,7 +1595,7 @@ class ReportParserCrudo:
         return best_category if best_score > 0.15 else None
 
     def _is_supremum_match(self, pattern: str, text: str) -> bool:
-        """
+        r"""
         Verifica si `pattern` (ya en mayúsculas) aparece en `text` (en mayúsculas).
 
         Corrección v3:
@@ -1603,7 +1603,7 @@ class ReportParserCrudo:
               escapa el punto literal y permite match sin \b al final (ya que
               el punto no es word-char y rompe el límite).
             - Para palabras normales, se usa \b en ambos extremos.
-        """
+        r"""
         escaped = re.escape(pattern)  # Escapa puntos y otros caracteres especiales
 
         if "." in pattern:
@@ -1816,7 +1816,7 @@ class ReportParserCrudo:
 
         Corrección v3:
             Se aplica `min(..., 1.0)` para garantizar el acotamiento superior.
-        """
+        r"""
         words = re.findall(r"\b[A-Za-z]{3,}\b", line)
         numbers = re.findall(r"\d+(?:[.,]\d+)?", line)
         semantic_units = len(words) + len(numbers)

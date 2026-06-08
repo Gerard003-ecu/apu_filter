@@ -1732,23 +1732,25 @@ class MaxwellSolver:
 
 
 class PortHamiltonianController:
-    """
+    r"""
     Controlador basado en sistemas Hamiltonianos con puertos (PHS).
 
-    Estructura:
-        ẋ = (J - R)∂H/∂x + g·u
-        y = gᵀ·∂H/∂x
+    Dinámica Estructural (Estructura de Dirac):
+    $$ \dot{x} = [J(x) - R(x)] \nabla H(x) + g(x)u $$
+    $$ y = g(x)^T \nabla H(x) $$
 
-    donde:
-        x = [E, B]ᵀ: estado
-        H(x): Hamiltoniano (energía)
-        J: matriz de interconexión (antisimétrica)
-        R: matriz de disipación (simétrica ≥ 0)
-        g: matriz de entrada
+    Donde:
+    - $x = [E, B]^T$: Vector de estado (Campos Eléctrico y Magnético).
+    - $J(x) = -J(x)^T$: Matriz de interconexión (Conservativa).
+    - $R(x) = R(x)^T \ge 0$: Matriz de disipación (Resistiva).
+    - $H(x)$: Hamiltoniano del sistema (Energía Total).
 
-    Control IDA-PBC:
-        u = -Kd·∇V
-        V(x) = ½(H(x) - H*)²
+    Estrategia de Control IDA-PBC:
+    $$ u = -K_d \nabla V(x) $$
+    $$ V(x) = \frac{1}{2}(H(x) - H^*)^2 $$
+
+    Desigualdad de Pasividad:
+    $$ \dot{V} = \nabla V^T \dot{x} = \nabla V^T (J-R) \nabla H + \nabla V^T g u \le u^T y $$
 
     Referencias:
         [1] van der Schaft, L²-Gain and Passivity Techniques (2000)
@@ -1962,7 +1964,7 @@ class PortHamiltonianController:
         return u
 
     def apply_control(self, dt: float, u_input: Optional[float] = None) -> float:
-        """
+        r"""
         Aplica señal de control (computada o forzada) como fuentes.
 
         Args:
@@ -1973,7 +1975,7 @@ class PortHamiltonianController:
         Returns:
             La salida del sistema y = g^T \\nabla H, que es necesaria para
             evaluar la desigualdad de pasividad empíricamente.
-        """
+        r"""
         if u_input is not None:
             # Control forzado externo (para validación de pasividad)
             # En el lazo cerrado estricto, u_input representa el esfuerzo (ganancia)
@@ -2472,7 +2474,7 @@ class RefinedFluxPhysicsEngine:
         self.muscle = FluxMuscleController()
 
     def _validate_physical_parameters(self, C: float, R: float, L: float) -> None:
-        """Validación de parámetros físicos con análisis dimensional."""
+        r"""Validación de parámetros físicos con análisis dimensional"""
         errors = []
 
         if C <= 0:
@@ -3415,7 +3417,7 @@ class DataFluxCondenser:
 
         Raises:
             ConfigurationError: Si la configuración no es apta para control
-        """
+        r"""
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # Configuración con defaults seguros

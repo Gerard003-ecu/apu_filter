@@ -335,179 +335,7 @@ FinancialEngine = _safe_import(".financial_engine", "FinancialEngine")
 # =============================================================================
 # ESTRATO DIKW — FILTRACIÓN TOPOLOGÓGICA JERÁRQUICA
 # =============================================================================
-
-class Stratum(IntEnum):
-    """
-    Representación jerárquica del modelo DIKW como Filtración de Subespacios.
-    
-    Definición Matemática:
-    ----------------------
-    Una filtración de un espacio vectorial V es una secuencia anidada de
-    subespacios cerrados:
-    
-        F₀ ⊆ F₁ ⊆ F₂ ⊆ ... ⊆ Fₙ = V
-    
-    En nuestro caso, la filtración es DESCENDENTE por valor numérico pero
-    ASCENDENTE por dependencia semántica:
-    
-        V_PHYSICS (5) ⊃ V_TACTICS (4) ⊃ V_STRATEGY (3) ⊃ V_WISDOM (0)
-    
-    Teorema de Clausura Transitiva:
-    -------------------------------
-    Para proyectar un vector v al estrato k, se requiere que todos los
-    estratos j con value(j) > value(k) estén validados (χ_{Vj} = true).
-    
-    Formalmente: πₖ(v) = v si ∀j < k: validated(Vⱼ) = True, else 0⃗
-    
-    Valores numéricos y su semántica en la filtración:
-      PHYSICS  = 5  →  Base de la pirámide (datos crudos, H₀ dominante)
-      TACTICS  = 4  →  Estructura operativa (H₁开始出现 ciclos)
-      STRATEGY = 3  →  Planificación financiera (H₂ cavidades emergen)
-      OMEGA    = 2  →  Ágora Tensorial (manifold de decisión)
-      ALPHA    = 1  →  Estructura de Negocio (topología comercial)
-      WISDOM   = 0  →  Síntesis estratégica (vértice, estado absorbente)
-    
-    Invariante de Monotonía:
-        Si stratum_k está validado, entonces ∀j > k: stratum_j está validado.
-    
-    Referencia: [1] Ch. 4, Persistent Homology Filtrations
-    """
-    
-    WISDOM = 0    # Vértice de la pirámide DIKW
-    ALPHA = 1     # Estructura de negocio
-    OMEGA = 2     # Ágora tensorial
-    STRATEGY = 3  # Planificación estratégica
-    TACTICS = 4   # Ejecución operativa
-    PHYSICS = 5   # Base física (datos crudos)
-    
-    @classmethod
-    def base_stratum(cls) -> Stratum:
-        """
-        Retorna el estrato base de la filtración (PHYSICS).
-        
-        Teorema: El estrato base es el único que no requiere validación
-        previa de ningún otro estrato (requires() = ∅).
-        """
-        return cls.PHYSICS
-    
-    @classmethod
-    def apex_stratum(cls) -> Stratum:
-        """
-        Retorna el estrato superior de la filtración (WISDOM).
-        
-        Teorema: El estrato ápice es estado absorbente en la cadena
-        de Markov de transición entre estratos.
-        """
-        return cls.WISDOM
-    
-    def requires(self) -> FrozenSet[Stratum]:
-        """
-        Retorna los estratos prerrequisito (clausura transitiva DIKW).
-        
-        Definición Formal:
-        ------------------
-        requires(k) = {s ∈ Stratum | s.value > k.value}
-        
-        Un estrato k requiere todos los estratos con valor numérico
-        mayor (más cercanos a la base física de la pirámide).
-        
-        Returns:
-            FrozenSet de estratos que deben estar validados antes
-            de poder proyectar al estrato actual.
-        
-        Ejemplo:
-            Stratum.STRATEGY.requires() = {PHYSICS, TACTICS}
-            Stratum.WISDOM.requires() = {PHYSICS, TACTICS, STRATEGY, OMEGA, ALPHA}
-        
-        Invariante de Transitividad:
-            Si s₁ ∈ requires(s₂) y s₂ ∈ requires(s₃), entonces s₁ ∈ requires(s₃).
-        """
-        return frozenset(s for s in Stratum if s.value > self.value)
-    
-    @classmethod
-    def ordered_bottom_up(cls) -> List[Stratum]:
-        """
-        Retorna estratos ordenados de base (PHYSICS) a cúspide (WISDOM).
-        
-        Ordenamiento: value descendente (5 → 0)
-        Uso: Iteración para validación secuencial en el pipeline de proyección.
-        """
-        return sorted(cls, key=lambda s: s.value, reverse=True)
-    
-    @classmethod
-    def ordered_top_down(cls) -> List[Stratum]:
-        """
-        Retorna estratos ordenados de cúspide (WISDOM) a base (PHYSICS).
-        
-        Ordenamiento: value ascendente (0 → 5)
-        Uso: Iteración para análisis de dependencias inversas.
-        """
-        return sorted(cls, key=lambda s: s.value)
-    
-    def __lt__(self, other: Stratum) -> bool:
-        """
-        Comparación por nivel de abstracción (no por valor numérico).
-        
-        Un estrato es "menor" que otro si está más cerca de la cúspide
-        (más abstracto, más cercano a WISDOM).
-        
-        Invariante: self < other ⟺ self.value < other.value
-        """
-        if not isinstance(other, Stratum):
-            return NotImplemented
-        return self.value < other.value
-    
-    def __le__(self, other: Stratum) -> bool:
-        """Comparación por nivel de abstracción con igualdad."""
-        if not isinstance(other, Stratum):
-            return NotImplemented
-        return self.value <= other.value
-    
-    def __gt__(self, other: Stratum) -> bool:
-        """
-        Un estrato es "mayor" que otro si está más cerca de la base
-        (más concreto, más cercano a PHYSICS).
-        """
-        if not isinstance(other, Stratum):
-            return NotImplemented
-        return self.value > other.value
-    
-    def __ge__(self, other: Stratum) -> bool:
-        """Comparación por nivel de abstracción con igualdad."""
-        if not isinstance(other, Stratum):
-            return NotImplemented
-        return self.value >= other.value
-
-
-# =============================================================================
-# VECTORES MOCK PARA TESTING STANDALONE
-# =============================================================================
-
-try:
-    from app.adapters.mic_vectors import (
-        vector_calculate_improbability_tensor,
-        vector_audit_homological_fusion,
-        vector_lateral_pivot,
-        vector_parse_raw_structure,
-        vector_stabilize_flux,
-        vector_structure_logic,
-    )
-except ImportError:
-    def _mock_vector(**kwargs: Any) -> Dict[str, Any]:
-        """
-        Vector mock que retorna éxito con los kwargs recibidos.
-        
-        Invariante: Los mocks deben preservar la firma y tipo de retorno
-        de los vectores reales para testing sin dependencias.
-        """
-        return {"success": True, "mock": True, **kwargs}
-
-    vector_stabilize_flux = _mock_vector
-    vector_parse_raw_structure = _mock_vector
-    vector_structure_logic = _mock_vector
-    vector_lateral_pivot = _mock_vector
-    vector_audit_homological_fusion = _mock_vector
-    vector_calculate_improbability_tensor = _mock_vector
+from app.core.schemas import Stratum
 
 # =============================================================================
 # CONFIGURACIÓN EXTERNALIZABLE CON VALIDACIÓN DE INVARIANTES
@@ -617,7 +445,7 @@ class MICConfiguration:
         - epsilon suficientemente pequeño (< 1e-8)
         - TTL de cache razonable (> 60s)
         - Límites de archivo definidos (> 10MB)
-        """
+        r"""
         return (
             self.epsilon < 1e-8 and
             self.cache_ttl_seconds >= 60.0 and
@@ -3649,7 +3477,7 @@ def _tokenize_line(line: str) -> FrozenSet[str]:
         frozenset({'a', 'b', 'c'})
     
     Referencia: NLP Tokenization Standards
-    """
+    r"""
     # Split por múltiples delimitadores (regex)
     tokens = re.split(r"[,;\t|:\s]+", line.strip())
     
@@ -3775,7 +3603,7 @@ def estimate_intrinsic_dimension(
         - No se detecta delimitador → 1 (asumir dimensión mínima)
     
     Referencia: [3] Ch. 7, Intrinsic Dimension Estimation
-    """
+    r"""
     config = config or MICConfiguration()
     
     # Caso degenerado: sin datos
@@ -3854,7 +3682,7 @@ def analyze_topological_features(
     Complejidad: O(n · max_period) donde n = número de líneas.
     
     Referencia: [3] Ch. 8; TDA Applications
-    """
+    r"""
     config = config or MICConfiguration()
     
     try:

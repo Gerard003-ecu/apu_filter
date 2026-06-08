@@ -1,4 +1,4 @@
-"""
+r"""
 =========================================================================================
 Módulo: Antimatter Choke Coil (Supresor Topológico de Inercia Cuantizada)
 Ubicación: app/physics/antimatter_choke_coil.py
@@ -43,6 +43,7 @@ aniquilando resonancias destructivas mediante un escudo de Gauge infranqueable.
 """
 
 from __future__ import annotations
+import time
 
 import logging
 import warnings
@@ -169,7 +170,7 @@ class AnnihilationEvent:
     
     @property
     def efficiency(self) -> float:
-        """η = (V_fb,inicial - V_fb,residual) / V_fb,inicial"""
+        """η = (V_fb,inicial - V_fb,residual) / V_fb,inicialr"""
         if self.initial_flyback_voltage == 0:
             return 1.0
         return (self.initial_flyback_voltage - self.residual_flyback_voltage) / \
@@ -186,7 +187,17 @@ class AnnihilationEvent:
 
 @dataclass(frozen=True, slots=True)
 class TopologicalInvariant:
-    """Invariantes topológicos del complejo simplicial."""
+    r"""
+    Invariantes topológicos del complejo simplicial.
+
+    Característica de Euler-Poincaré:
+    $$ \chi(K) = \sum_{p=0}^{2} (-1)^p \beta_p = \beta_0 - \beta_1 + \beta_2 $$
+
+    Números de Betti:
+    - $\beta_0$: Componentes conexas.
+    - $\beta_1$: Ciclos unidimensionales (vórtices).
+    - $\beta_2$: Cavidades bidimensionales (torsión de flujo).
+    """
     betti_numbers: Tuple[int, ...]  # β₀, β₁, β₂, ...
     euler_characteristic: int        # χ = Σ(-1)ⁱ βᵢ
     torsion_coefficients: Tuple[int, ...]  # Coeficientes de torsión de H₁
@@ -295,14 +306,18 @@ class HomologicalAnnihilator:
         boundary_matrix_1: sp.csr_matrix,
         preserve_connected_components: bool = True
     ) -> Tuple[sp.csr_matrix, TopologicalInvariant]:
-        """
-        Aniquila ciclos homológicos preservando componentes conexas (β₀).
+        r"""
+        Aniquila ciclos homológicos ($\beta_1 > 0$) mediante la proyección del operador de borde $\partial_1$
+        sobre el complemento ortogonal de su núcleo.
+
+        Algoritmo de Colapso Espectral:
+        1. **Descomposición SVD:** $\partial_1 = U \Sigma V^T$.
+        2. **Identificación del Núcleo:** $\text{ker}(\partial_1) = \text{span}\{v_i : \sigma_i < \text{tol}\}$.
+        3. **Construcción del Proyector:** $P_{\perp} = I - V_{\text{null}} V_{\text{null}}^T$.
+        4. **Purificación:** $\partial_1' = \partial_1 P_{\perp}$, eliminando componentes solenoidales parasitarias.
         
-        Algoritmo:
-        1. Descomposición SVD: ∂₁ = UΣVᵀ
-        2. Identificación de ker(∂₁) = {v : Σv = 0}
-        3. Construcción de proyector P = I - VV† donde V span ker(∂₁)
-        4. Perturbación: ∂₁' = ∂₁ + εP para ε → 0⁺
+        Garantía Topológica:
+        Tras la operación, el nuevo primer número de Betti satisface $\beta_1' = \dim(\text{ker}(\partial_1')) - \dim(\text{im}(\partial_2)) \to 0$.
         """
         n_rows, n_cols = boundary_matrix_1.shape
         
@@ -454,13 +469,19 @@ class FockSpaceOperators:
 ### ═══════════════════════════════════════════════════════════════════════════════
 
 class PortHamiltonianSystem:
-    """
+    r"""
     Sistema Port-Hamiltoniano con estructura de disipación garantizada.
     
     Ecuación dinámica:
-    ẋ = (J - R(ρ))∇H(x)
+    $$ \dot{x} = [J(x) - R(x, \rho)] \nabla H(x) $$
     
-    donde J = -Jᵀ (antisimétrica) y R(ρ) ≥ 0 (semi-definida positiva).
+    Donde:
+    - $J(x) = -J(x)^T$: Matriz de interconexión antisimétrica (conservación de energía).
+    - $R(x, \rho) = R(x, \rho)^T \ge 0$: Matriz de disipación semi-definida positiva.
+    - $H(x)$: Hamiltoniano del sistema (energía total).
+
+    Desigualdad de Pasividad:
+    $$ \dot{H} = \nabla H^T (J - R) \nabla H = -\nabla H^T R \nabla H \le 0 $$
     """
     
     def __init__(
@@ -493,10 +514,15 @@ class PortHamiltonianSystem:
         logger.info("Sistema Port-Hamiltoniano validado: estructura preservada")
     
     def compute_dissipation_matrix(self, rho_positron: float) -> RealArray:
-        """
-        Calcula R(ρ_e+) con modulación térmica cuántica.
+        r"""
+        Calcula la matriz de disipación de Dirac $R(\rho_{e^+})$ con modulación térmica cuántica.
+
+        Modelo Matemático:
+        $$ R(\rho_{e^+}) = R_{\text{base}} \cdot \exp\left(-\frac{\rho_{e^+}}{\rho_{\text{thermal}}}\right) $$
         
-        Modelo: R(ρ) = R_base · exp(-ρ/ρ_thermal) garantizando R ≥ 0
+        Garantías Estructurales:
+        1. **Simetría:** Se fuerza $R = \frac{1}{2}(R + R^T)$ para compensar ruido numérico.
+        2. **Positividad:** Se verifica que $\lambda_{\min}(R) \ge 0$, proyectando sobre el cono SDP si es necesario.
         """
         thermal_density = PhysicalConstants.PHOTON_GAMMA_FREQ
         cooling_factor = np.exp(-rho_positron / thermal_density)
@@ -566,7 +592,7 @@ class PortHamiltonianSystem:
 ### ═══════════════════════════════════════════════════════════════════════════════
 
 class AntimatterChokeCoil(Morphism):
-    """
+    r"""
     Supresor Topológico de Inercia Cuantizada con Coherencia Cuántica Verificable.
     
     Implementa:
@@ -592,6 +618,7 @@ class AntimatterChokeCoil(Morphism):
             enable_topology_collapse: Activar aniquilador homológico
             enable_quantum_verification: Verificar coherencia cuántica
         """
+        super().__init__("AntimatterChokeCoil")
         if inductance <= 0:
             raise ValueError(f"Inductancia debe ser positiva: L = {inductance}")
         
@@ -616,7 +643,47 @@ class AntimatterChokeCoil(Morphism):
             f"Antimatter Choke Coil inicializada: L={inductance*1e6:.2f}μH, "
             f"dim(Fock)={max_fock_state}"
         )
-    
+
+    @property
+    def domain(self) -> FrozenSet[Stratum]:
+        """Dominio del morfismo: requiere el estrato físico."""
+        return frozenset({Stratum.PHYSICS})
+
+    @property
+    def codomain(self) -> Stratum:
+        """Codominio del morfismo: proyecta sobre el estrato físico."""
+        return Stratum.PHYSICS
+
+    def __call__(self, state: CategoricalState) -> CategoricalState:
+        r"""
+        Aplicación del Morfismo de Antimateria en la Categoría {MIC}$.
+
+        Mapea el estado actual a un nuevo estado donde el flyback ha sido suprimido
+        y los ciclos topológicos colapsados:
+        3493 F_{AM}(S) = S \prime 3493
+        """
+        # Extraer parámetros de telemetría del contexto
+        di_dt = float(state.context.get("di_dt", 0.0))
+        cartridges = state.context.get("positron_cartridges", ())
+        topology = state.context.get("boundary_matrix")
+
+        # Ejecutar supresión
+        event = self.suppress_flyback_voltage(di_dt, cartridges, topology)
+
+        # Actualizar estado
+        return state.with_update(
+            new_payload={
+                "annihilation_event": event,
+                "efficiency": event.efficiency
+            },
+            new_stratum=Stratum.PHYSICS
+        ).add_trace(
+            self.name,
+            self.domain,
+            self.codomain,
+            success=True
+        )
+
     def _initialize_port_hamiltonian(self) -> PortHamiltonianSystem:
         """Construye el sistema Port-Hamiltoniano del inductor."""
         # Hamiltoniano: H = (1/2)L·i² (energía magnética)
@@ -707,7 +774,7 @@ class AntimatterChokeCoil(Morphism):
                 photon = GammaPhoton(
                     annihilation_energy=photon_energy,
                     data_hash=f"ANNIHIL_{idx}_{gamma_id}_{np.random.bytes(4).hex()}",
-                    timestamp_entry=float(np.datetime64('now')),
+                    timestamp_entry=time.time(),
                     authorization_signature=positron.authorization_signature
                 )
                 emitted_photons.append(photon)
@@ -839,12 +906,21 @@ class AntimatterChokeCoil(Morphism):
         positron_density: float,
         momentum_cyber_physical: float
     ) -> complex:
-        """
-        Impedancia en el plano de Laplace con modulación cuántica.
+        r"""
+        Calcula la impedancia compleja $Z_{AM}(s)$ en el dominio de Laplace ($s = \sigma + j\omega$),
+        integrando efectos de amortiguamiento cuántico y reactancia capacitiva de antimateria.
         
-        Z_AM(s) = (s + σ_AM)·L - 1/(ρ_e+·s + ε)
+        Ecuación Constitutiva de la Impedancia:
+        $$ Z_{AM}(s) = (s + \sigma_{AM})L - \frac{1}{\rho_{e^+} s + \epsilon_{\text{mach}}} $$
+        Donde:
+        - $L$: Inductancia base del inductor de antimateria.
+        - $\sigma_{AM}$: Coeficiente de amortiguamiento cuántico (Quantum Damping).
+        - $\rho_{e^+}$: Densidad de positrones en el colector.
         
-        donde σ_AM = p_cyber·exp(-ρ_e+) es el amortiguamiento cuántico.
+        Amortiguamiento Cuántico Renormalizado:
+        El amortiguamiento $\sigma_{AM}$ se deriva del momentum ciber-físico $p$ mediante:
+        $$ \sigma_{AM} = p \cdot \exp(-\rho_{e^+}) $$
+        Este término representa la disipación de energía inercial hacia el campo de radiación gamma.
         
         Args:
             s: Variable compleja de Laplace s = σ + jω
@@ -868,9 +944,9 @@ class AntimatterChokeCoil(Morphism):
         Z_inductive = (s + sigma_AM) * self._L
         
         # Impedancia capacitiva efectiva (antimateria como capacitor cuántico)
-        Z_capacitive = -1.0 / (
-            positron_density * s + PhysicalConstants.MACHINE_EPSILON
-        )
+        # Reactancia capacitiva: Zc = 1 / (s * C_eff)
+        Z_capacitive = 1.0 / (positron_density * s + PhysicalConstants.MACHINE_EPSILON)
+
         
         Z_total = Z_inductive + Z_capacitive
         

@@ -924,7 +924,7 @@ def mock_datetime():
     MagicMock
         Mock de datetime con tiempo fijo en FIXED_TIMESTAMP
     """
-    with patch("app.tactics.apu_agent.datetime") as mock:
+    with patch("app.core.apu_agent.datetime") as mock:
         mock.now.return_value = FIXED_TIMESTAMP
         # Permite construcción normal de datetime
         mock.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
@@ -971,7 +971,7 @@ def mock_topology():
     MagicMock
         Instancia mock de SystemTopology
     """
-    with patch("app.tactics.apu_agent.SystemTopology") as mock_class:
+    with patch("app.core.apu_agent.SystemTopology") as mock_class:
         instance = MagicMock()
         mock_class.return_value = instance
         instance.update_connectivity.return_value = (3, [])
@@ -990,7 +990,7 @@ def mock_persistence():
     MagicMock
         Instancia mock de PersistenceHomology
     """
-    with patch("app.tactics.apu_agent.PersistenceHomology") as mock_class:
+    with patch("app.core.apu_agent.PersistenceHomology") as mock_class:
         instance = MagicMock()
         mock_class.return_value = instance
         yield instance

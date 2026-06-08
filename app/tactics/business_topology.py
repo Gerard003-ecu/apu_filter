@@ -1,4 +1,4 @@
-"""
+r"""
 =========================================================================================
 Módulo: Business Topological Analyzer (El Arquitecto Estructural — Estrato TACTICS)
 Ubicación: app/tactics/business_topology.py
@@ -7,23 +7,28 @@ Ubicación: app/tactics/business_topology.py
 Naturaleza Ciber-Física y Geometría del Riesgo:
     Actúa como el Operador de Proyección Topológica del ecosistema (Nivel 2). 
     Rechaza axiomáticamente el análisis contable unidimensional, modelando la red 
-    de valor del proyecto como un Complejo Simplicial Abstracto K. Su función es 
-    identificar patologías estructurales críticas evaluando los invariantes homológicos 
-    y el espectro del Laplaciano Combinatorio, imponiendo un VETO TÉCNICO absoluto 
-    ante cualquier inestabilidad geométrica.
+    de valor del proyecto como un 2-Complejo Simplicial Abstracto $K$ sobre el anillo
+    de los enteros $\mathbb{Z}$. Su función es identificar patologías estructurales
+    críticas evaluando los invariantes homológicos y el espectro del Laplaciano
+    Combinatorio, imponiendo un VETO TÉCNICO absoluto ante cualquier inestabilidad geométrica.
 
-1. Homología Computacional e Invariantes de Betti (El ADN Estructural):
-    El módulo computa el rango de los grupos de homología Hₖ(K) para extraer los 
-    Números de Betti (βₙ), estableciendo las leyes de conectividad del ecosistema:
-        • β₀ (Componentes Conexas): Integridad del grafo. Si β₀ > 1, se detectan 
-          "Islas de Datos" (insumos huérfanos), evidenciando fragmentación logística 
-          y fuga de capital isotrópica.
-        • β₁ (Ciclos Independientes): Aciclicidad. Si β₁ > 0, el sistema alberga 
-          "Socavones Lógicos" (dependencias circulares). Esto viola la condición de 
-          Grafo Acíclico Dirigido (DAG) perfecto, imposibilitando la resolución de 
-          la matriz de costos.
+1. Homología Cuantizada y el Funtor de Torsión:
+    A diferencia de los modelos continuos, la logística de construcción opera con
+    unidades indivisibles. El Arquitecto somete la matriz de incidencia a una
+    reducción hacia la Forma Normal de Smith (SNF), revelando la estructura exacta
+    del primer grupo de homología:
+    $$ H_1(K; \mathbb{Z}) \cong \mathbb{Z}^{\beta_1} \oplus \text{Tor}(H_0, \mathbb{Z}) $$
+    La presencia de torsión no nula ($\text{Tor} \neq 0$) indica incompatibilidad en
+    el empaquetado logístico ("fricción cuantizada"), detonando un veto preventivo.
 
-2. Teoría de Grafos Espectrales (El Valor de Fiedler λ₂):
+2. Característica de Euler-Poincaré para 2-Complejos:
+    Se penaliza la entropía estructural considerando no solo grafos, sino cavidades
+    ternarias (interdependencias APU ↔ Proveedor ↔ Actividad):
+    $$ \chi(K) = \sum_{p=0}^{2} (-1)^p \beta_p = \beta_0 - \beta_1 + \beta_2 $$
+    Una cavidad $\beta_2 > 0$ representa un circuito de interdependencia irresoluble
+    mediante cortes bilaterales simples.
+
+3. Teoría de Grafos Espectrales (El Valor de Fiedler λ₂):
     La vulnerabilidad a la fractura organizativa no se evalúa por conectividad simple, 
     sino analizando el espectro de la Matriz Laplaciana L = D - A.
     El segundo autovalor más pequeño, o Valor de Fiedler (λ₂), cuantifica la conectividad 
@@ -461,15 +466,16 @@ class TopologyAnalyzerConfig:
 
 @dataclass(frozen=True)
 class ValidatedBettiNumbers:
-    """
-    Números de Betti validados con invariante de Euler.
+    r"""
+    Números de Betti validados con invariante de Euler para un 2-Complejo Simplicial.
     
-    Para grafos (1-complejos simpliciales):
-    - β₀: Componentes conexas
-    - β₁: Ciclos independientes (genus)
-    - β₂: Cavidades (siempre 0 para grafos)
+    Invariantes Topológicos:
+    - $\beta_0$: Componentes conexas (Fragmentación).
+    - $\beta_1$: Ciclos independientes (Vórtices de flujo).
+    - $\beta_2$: Cavidades bidimensionales (Torsión estructural).
     
-    Invariante: χ = β₀ - β₁ + β₂
+    Característica de Euler-Poincaré:
+    $$ \chi(K) = \beta_0 - \beta_1 + \beta_2 $$
     """
     
     beta_0: int
@@ -494,10 +500,16 @@ class ValidatedBettiNumbers:
     
     @classmethod
     def from_graph(cls, graph: nx.DiGraph) -> ValidatedBettiNumbers:
-        """
-        Calcula números de Betti desde un grafo dirigido.
+        r"""
+        Calcula los números de Betti e invariantes topológicos desde un grafo dirigido.
+
+        Característica de Euler-Poincaré para 2-Complejos Simpliciales:
+        $$ \chi(K) = \sum_{p=0}^{2} (-1)^p \beta_p = \beta_0 - \beta_1 + \beta_2 $$
         
-        Utiliza MultiGraph para preservar aristas múltiples.
+        Donde:
+        - $\beta_0$: Número de componentes conexas (Masa Crítica).
+        - $\beta_1$: Primer número de Betti (Ciclos Independientes o Vórtices).
+        - $\beta_2$: Segundo número de Betti (Cavidades o Torsión de Flujo).
         """
         if graph.number_of_nodes() == 0:
             return cls(beta_0=0, beta_1=0, beta_2=0, euler_characteristic=0)
@@ -830,7 +842,7 @@ class NumericParser:
             
         Returns:
             Valor numérico flotante.
-        """
+        r"""
         if value is None:
             return default
 

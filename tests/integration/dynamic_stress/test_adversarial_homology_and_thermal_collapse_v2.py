@@ -28,7 +28,7 @@ from typing import Dict, Any, List, Optional, Union
 from unittest.mock import MagicMock
 
 from app.core.schemas import Stratum
-from app.agents.MIC_agent import MICAgent, ImpedanceMatchStatus
+from app.agents.mic_agent import MICAgent, ImpedanceMatchStatus
 from app.tactics.business_topology import (
     BusinessTopologicalAnalyzer,
     TopologyAnalyzerConfig,

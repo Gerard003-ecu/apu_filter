@@ -762,7 +762,7 @@ def compute_json_path(base: str, key: Union[str, int]) -> str:
     
     Returns:
         JSONPath completo
-    """
+    r"""
     if isinstance(key, int):
         return f"{base}[{key}]"
     
@@ -1063,7 +1063,7 @@ class TOONDocument:
         
         Returns:
             Documento TOON como string
-        """
+        r"""
         lines = [
             f"{TOON_START_MARKER} {self.cartridge_id} ---",
             self.header_template,
@@ -1088,7 +1088,7 @@ class TOONDocument:
         
         Raises:
             TOONCompressionError: Si el formato es inválido
-        """
+        r"""
         lines = content.strip().split("\n")
         
         if len(lines) < 3:
@@ -1831,7 +1831,7 @@ class SiloManager:
         self._verify_invariants()
     
     def _initialize_default_silos(self) -> None:
-        """Inicializa silos con contratos y cartuchos base para todo el retículo DIKW."""
+        r"""Inicializa silos con contratos y cartuchos base para todo el retículo DIKW"""
         from app.core.mic_algebra import Stratum
         
         # 1. Poblar todo el retículo con vectores base (Vacío Termodinámico ⊥)
@@ -2151,7 +2151,7 @@ class SiloManager:
         
         Raises:
             SiloAccessError: Si no existe cartucho (con fallback)
-        """
+        r"""
         with self._lock:
             cartridges = self._silo_b.get(stratum, {})
             

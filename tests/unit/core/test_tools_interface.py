@@ -3246,7 +3246,7 @@ def temp_file_with_content() -> Path:
     
     Returns:
         Path al archivo temporal con contenido.
-    """
+    r"""
     fd, path = tempfile.mkstemp(suffix=".csv")
     with os.fdopen(fd, "w") as f:
         f.write("col1,col2,col3\n")
@@ -3264,7 +3264,7 @@ def temp_file_cyclic() -> Path:
     
     Returns:
         Path al archivo temporal con ciclos.
-    """
+    r"""
     fd, path = tempfile.mkstemp(suffix=".csv")
     with os.fdopen(fd, "w") as f:
         # Patrón que se repite cada 2 líneas
@@ -3743,7 +3743,7 @@ class TestFileTypeEnum:
         
         Asserts:
             - Espacios iniciales/finales se ignoran
-        """
+        r"""
         assert FileType.from_string("  apus  ") == FileType.APUS
         assert FileType.from_string("\tinsumos\n") == FileType.INSUMOS
     
@@ -4227,7 +4227,7 @@ class TestTopologicalAnalysis:
         assert tokens == frozenset({"a", "b", "c"})
     
     def test_tokenize_line_multiple_delimiters(self) -> None:
-        """
+        r"""
         Verifica tokenización con múltiples delimitadores.
         
         Args:
@@ -4235,7 +4235,7 @@ class TestTopologicalAnalysis:
         
         Asserts:
             - "a;b\tc|d:e" → {"a", "b", "c", "d", "e"}
-        """
+        r"""
         tokens = _tokenize_line("a;b\tc|d:e")
         assert tokens == frozenset({"a", "b", "c", "d", "e"})
     
@@ -5114,7 +5114,7 @@ def temp_csv_file() -> Path:
     
     Returns:
         Path al archivo CSV temporal.
-    """
+    r"""
     fd, path = tempfile.mkstemp(suffix=".csv")
     with os.fdopen(fd, "w") as f:
         f.write("col1,col2,col3\n")
@@ -8871,7 +8871,7 @@ def temp_csv_file() -> Path:
     
     Returns:
         Path al archivo CSV temporal.
-    """
+    r"""
     fd, path = tempfile.mkstemp(suffix=".csv")
     with os.fdopen(fd, "w") as f:
         f.write("col1,col2,col3\n")
@@ -9515,7 +9515,7 @@ class TestPublicAPI:
         Asserts:
             - Retorna lista ordenada
             - Contiene delimitadores comunes
-        """
+        r"""
         delimiters = get_supported_delimiters()
         
         assert isinstance(delimiters, list)

@@ -897,7 +897,7 @@ class TestHomotopicInvarianceLevyFlightsRigorous:
         self,
         rng_fixed: np.random.Generator
     ) -> None:
-        """Test de cotas espectrales bajo ruido de Cauchy."""
+        r"""Test de cotas espectrales bajo ruido de Cauchy"""
         n_nodes = 50
         
         # Construcción de grafo
@@ -1045,7 +1045,7 @@ class TestDynamicPassivityLyapunovRigorous:
         self,
         rng_fixed: np.random.Generator
     ) -> None:
-        """Test de pasividad y Lyapunov."""
+        r"""Test de pasividad y Lyapunov"""
         H_initial = Decimal('100.0')
         H_current = H_initial
         
@@ -1145,7 +1145,7 @@ class TestStatisticalGibbsCollapseRigorous:
         sample_energies: NDArray[np.float64],
         rng_fixed: np.random.Generator
     ) -> None:
-        """Test de convergencia a Gibbs."""
+        r"""Test de convergencia a Gibbs"""
         T_gov = Decimal('2.0')
         
         # Distribución teórica
@@ -1249,7 +1249,7 @@ class TestMarkovChainErgodicityProperties:
         self,
         rng_fixed: np.random.Generator
     ) -> None:
-        """Verifica balance detallado."""
+        r"""Verifica balance detallado"""
         energies = np.array([0.0, 1.0, 2.0], dtype=np.float64)
         T = Decimal('1.0')
         beta = float(1 / (K_BOLTZMANN * T))
@@ -1372,7 +1372,7 @@ class TestPerformanceOptimizations:
         Verifica que la ejecución paralela es más rápida.
         
         NUEVO: Test de speedup con paralelización.
-        """
+        r"""
         import time
         
         T = Decimal('1.0')

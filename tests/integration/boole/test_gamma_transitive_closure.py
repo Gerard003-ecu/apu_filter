@@ -955,7 +955,7 @@ def run_strategy_stage_certified(
     Raises:
         AssertionError: Inconsistencia topológica
         HomologicalInconsistencyError: β₁ > 0 con strict_topology=True
-    """
+    r"""
     G = build_graph_with_betti_certified(beta_1, graph_label, verify_construction=True)
     
     # Verificación dual
@@ -1168,7 +1168,7 @@ def test_physical_to_tactical_isomorphism_rigorous(
     ------------------
     F_physics → F_tactics preserva estructura simpléctica
     bajo discretización ℤ₂^n.
-    """
+    r"""
     params = parametrized_tactical_params
     
     # ETAPA 1: F_physics
@@ -1285,7 +1285,7 @@ def test_strategic_to_ontological_galois_connection_rigorous(
     MEJORAS:
     • Validación explícita de adjunción
     • Diagnóstico de régimen detallado
-    """
+    r"""
     params = parametrized_wisdom_params
     
     verdict = run_wisdom_stage_certified(
@@ -1367,7 +1367,7 @@ def test_global_transitive_closure_rigorous() -> None:
     Teorema Verificado:
     ------------------
     F_global = F_wisdom ∘ F_strategy ∘ F_tactics ∘ F_physics
-    """
+    r"""
     # ETAPA 1: F_physics
     code = "def read_only(state): return state.tensor"
     _, thermo = run_physics_stage_certified(code)
@@ -1414,7 +1414,7 @@ def test_numerical_stability_palais_smale_certified() -> None:
     MEJORAS:
     • Cálculo correcto de constante de Lipschitz
     • Muestreo Monte Carlo robusto
-    """
+    r"""
     rng = np.random.default_rng(42)
     epsilon = Decimal('1e-4')
     n = 10
@@ -1502,7 +1502,7 @@ def test_full_pipeline_integration_certified(
     • Funciones certificadas en todas las etapas
     • Manejo robusto de excepciones
     • Reporte detallado
-    """
+    r"""
     print(f"\n{'='*70}")
     print(f"TEST: {test_id}")
     print(f"{'='*70}")
