@@ -54,7 +54,6 @@ from app.physics.antimatter_choke_coil import (
     AnnihilationEvent,
     AntimatterAnalytics,
     AntimatterChokeCoil,
-    DiracDissipationMatrix,
     FockSpaceOperators,
     HomologicalAnnihilator,
     PhysicalConstants,

@@ -1947,7 +1947,7 @@ class TestRegressions:
         assert inputs.climate_entropy == 1.0
 
     def test_max_chars_includes_separator(self):
-        """Regresión: get_active_context no contaba el \\n entre payloads."""
+        r"""Regresión: get_active_context no contaba el \\n entre payloads"""
         sr = SynapticRegistry()
         sr.load_cartridge(
             ToonCartridge(name="a", domain="d", toon_payload="AAA", weight=2.0)

@@ -211,7 +211,7 @@ class TestHilbertSpace:
         logger.info("✓ Base canónica completa para N = %d", canonical_hilbert_space.dimension)
 
     def test_hilbert_space_rejects_non_orthogonal_basis(self, hilbert_dimension: int, default_epsilon: float) -> None:
-        """Verifica que se rechacen bases no ortogonales."""
+        r"""Verifica que se rechacen bases no ortogonales"""
         # Construcción de base no ortogonal (matriz aleatoria)
         rng = np.random.default_rng(seed=999)
         non_orthogonal_basis = rng.standard_normal((hilbert_dimension, hilbert_dimension)) + \
@@ -308,7 +308,7 @@ class TestQuantumDensityOperator:
         logger.info("✓ Hermiticidad verificada para estado maximal mixto")
 
     def test_density_operator_rejects_non_hermitian_matrix(self, hilbert_dimension: int, default_epsilon: float) -> None:
-        """Verifica que se rechacen matrices no hermíticas."""
+        r"""Verifica que se rechacen matrices no hermíticas"""
         # Construcción de matriz no hermítica
         rng = np.random.default_rng(seed=777)
         non_hermitian = rng.standard_normal((hilbert_dimension, hilbert_dimension)) + \
@@ -750,7 +750,7 @@ class TestQuantumRegistry:
     def test_quantum_registry_rejects_invalid_density_matrix(
         self, hilbert_dimension: int, default_epsilon: float
     ) -> None:
-        """Verifica que se rechacen matrices de densidad inválidas."""
+        r"""Verifica que se rechacen matrices de densidad inválidas"""
         # Matriz no hermítica
         rng = np.random.default_rng(seed=555)
         rho_invalid = rng.standard_normal((hilbert_dimension, hilbert_dimension)) + \

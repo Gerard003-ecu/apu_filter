@@ -1228,7 +1228,7 @@ class TestLegacyFallback:
         
         Para trazabilidad, es importante saber que se usó
         la API antigua vs la API de spans.
-        """
+        r"""
         ctx.start_step("Old Step")
         ctx.end_step("Old Step")
         ctx.record_error("Failing Step", "Timeout")

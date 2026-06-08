@@ -1062,7 +1062,7 @@ class TestPHSPassivity:
         Verifica que, bajo un vuelo de Lévy (distribución de Cauchy),
         el MICAgent proyecta el estado físico resultante validando el exponente de Lyapunov < 0.
         """
-        from app.agents.MIC_agent import MICAgent
+        from app.agents.mic_agent import MICAgent
         from app.core.mic_algebra import CategoricalState
         from app.core.schemas import Stratum
         from unittest.mock import MagicMock

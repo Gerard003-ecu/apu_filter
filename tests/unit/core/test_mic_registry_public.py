@@ -692,11 +692,11 @@ class TestBoundaryStrata:
         assert len(result) == 0
 
     def test_wisdom_is_apex(self, registry: MICRegistry) -> None:
-        """
+        r"""
         WISDOM es el ápice: requiere todos los demás estratos.
         
         required(WISDOM) = Stratum \\ {WISDOM}
-        """
+        r"""
         result = Stratum.WISDOM.requires()
         expected = set(Stratum) - {Stratum.WISDOM}
         
@@ -745,7 +745,7 @@ class TestChainProperties:
     def test_required_sets_form_chain(self, registry: MICRegistry) -> None:
         """
         Verifica que los conjuntos forman una cadena estricta.
-        """
+        r"""
         req = {s: s.requires() for s in Stratum}
         
         # Ordenar por cardinalidad ascendente
@@ -768,7 +768,7 @@ class TestChainProperties:
         Cualquier par de conjuntos required es comparable bajo ⊆.
         
         ∀ k₁, k₂: required(k₁) ⊆ required(k₂) ∨ required(k₂) ⊆ required(k₁)
-        """
+        r"""
         sets = list(all_required_sets.values())
         
         for i, set_i in enumerate(sets):
@@ -805,7 +805,7 @@ class TestLatticeProperties:
         Meet (∧) = intersección = required del estrato con valor mayor.
         
         required(k₁) ∧ required(k₂) = required(max(k₁, k₂))
-        """
+        r"""
         req_k1 = k1.requires()
         req_k2 = k2.requires()
         
@@ -833,7 +833,7 @@ class TestLatticeProperties:
         Join (∨) = unión = required del estrato con valor menor.
         
         required(k₁) ∨ required(k₂) = required(min(k₁, k₂))
-        """
+        r"""
         req_k1 = k1.requires()
         req_k2 = k2.requires()
         
@@ -860,11 +860,11 @@ class TestSetProperties:
     """
 
     def test_union_of_all_required(self, registry: MICRegistry) -> None:
-        """
+        r"""
         ⋃ { required(s) | s ∈ Stratum } = Stratum \\ {WISDOM}
         
         La unión cubre exactamente los estratos que son dependencia de algún otro.
-        """
+        r"""
         union = set().union(*(s.requires() for s in Stratum))
         expected = set(Stratum) - {Stratum.WISDOM}
         
@@ -893,7 +893,7 @@ class TestSetProperties:
         Para estratos adyacentes: required(k) ∩ required(k+1) = required(k+1).
         
         Consecuencia de monotonía.
-        """
+        r"""
         for higher, lower in DIKW.pairs_by_order():
             req_higher = higher.requires()
             req_lower = lower.requires()
@@ -913,7 +913,7 @@ class TestSetProperties:
             {k} ∪ required(k) ∪ upper(k) = Stratum
         
         El universo se particiona en: el estrato, sus inferiores, y sus superiores.
-        """
+        r"""
         for spec in DIKW.strata:
             stratum = spec.stratum
             required = stratum.requires()
@@ -1026,7 +1026,7 @@ class TestResultImmutability:
     ) -> None:
         """
         Mutar el set retornado no altera llamadas posteriores.
-        """
+        r"""
         first_result = set(stratum.requires())
         snapshot = frozenset(first_result)
         
@@ -1277,7 +1277,7 @@ class TestDAGProperties:
         El grafo de dependencias es transitivamente cerrado.
         
         Si s ∈ required(k) y t ∈ required(s), entonces t ∈ required(k).
-        """
+        r"""
         for k in Stratum:
             req_k = k.requires()
             
@@ -1469,7 +1469,7 @@ class TestSpecificationConsistency:
     """
 
     def test_spec_covers_all_strata(self) -> None:
-        """La especificación cubre todos los estratos del enum."""
+        r"""La especificación cubre todos los estratos del enum"""
         spec_strata = {spec.stratum for spec in DIKW.strata}
         enum_strata = set(Stratum)
         

@@ -3593,7 +3593,7 @@ class TestVetoRecord:
         
         record = VetoRecord(
             veto_type="VETO_TEST",
-            severity=VetoSeverity.SEVE RO,
+            severity=VetoSeverity.CRITICAL,
             stability_at_veto=0.68,
             financial_class=RiskClassification.HIGH,
             original_integrity=80.0,

@@ -105,7 +105,7 @@ import sys
 import time
 import uuid
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 from enum import Enum, IntEnum, auto
 from functools import cached_property
@@ -139,7 +139,7 @@ from urllib3.util.retry import Retry
 
 from app.core.immune_system.gauge_field_router import GaugeFieldRouter
 from app.core.mic_algebra import CategoricalState
-from app.core.schemas import Stratum
+from app.adapters.tools_interface import Stratum
 from app.tactics.topological_analyzer import (
     HealthLevel,
     MetricState,
@@ -843,7 +843,7 @@ class ThresholdConfig:
         
         # Validar histeresis
         hysteresis = critical - warning
-        if hysteresis < self.min_hysteresis:
+        if hysteresis <= self.min_hysteresis - 1e-9:
             raise ConfigurationError(
                 f"Histeresis {name} insuficiente: {hysteresis:.3f} < {self.min_hysteresis:.3f}. "
                 f"Riesgo de chattering en frontera."
@@ -1203,6 +1203,17 @@ class AgentConfig:
     connection: ConnectionConfig = field(default_factory=ConnectionConfig)
     topology: TopologyConfig = field(default_factory=TopologyConfig)
     timing: TimingConfig = field(default_factory=TimingConfig)
+
+    def __post_init__(self) -> None:
+        """
+        Valida y normaliza la configuración tras la construcción.
+        """
+        # Normalizar URL si es necesario
+        normalized_url = self._validate_and_normalize_url(self.connection.base_url)
+        if normalized_url != self.connection.base_url:
+            from dataclasses import replace
+            new_conn = replace(self.connection, base_url=normalized_url)
+            object.__setattr__(self, "connection", new_conn)
     
     @classmethod
     def from_environment(cls) -> AgentConfig:
@@ -1367,7 +1378,7 @@ class AgentConfig:
 # ESTRUCTURAS DE DATOS DE TELEMETRÍA
 # ============================================================================
 
-@dataclass
+@dataclass(frozen=True)
 class TelemetryData:
     """
     Datos de telemetría estructurados con normalización y validación.
@@ -2916,6 +2927,36 @@ class HamiltonianSynthesizer:
             UnhealthyTopologyEvaluator(),
         ]
     
+    @property
+    def J(self) -> np.ndarray:
+        """
+        Matriz de Interconexión Simpléctica (Antisimétrica).
+
+        Define la estructura conservativa del sistema:
+
+            J = -J^T
+        """
+        # En esta implementacion, usamos una forma canonica para R^4
+        # similar al operador rotacional.
+        dim = PhysicalConstants.PHASE_SPACE_DIM
+        j_mat = np.zeros((dim, dim))
+        for i in range(dim // 2):
+            j_mat[2*i, 2*i+1] = 1.0
+            j_mat[2*i+1, 2*i] = -1.0
+        return j_mat
+
+    @property
+    def R(self) -> np.ndarray:
+        """
+        Matriz de Disipación (Semidefinida Positiva).
+
+        Define la tasa de enfriamiento del sistema:
+
+            R = R^T >= 0
+        """
+        # Usamos una disipacion uniforme como base.
+        return 0.1 * np.eye(PhysicalConstants.PHASE_SPACE_DIM)
+
     def synthesize_gradient(
         self,
         telemetry: Optional[TelemetryData],
@@ -3128,7 +3169,7 @@ class HamiltonianSynthesizer:
 # ESTRUCTURAS DE OBSERVABILIDAD Y MÉTRICAS INTERNAS
 # ============================================================================
 
-@dataclass
+@dataclass(frozen=True)
 class AgentMetrics:
     """
     Métricas internas del agente para observabilidad y análisis de desempeño.
@@ -3189,7 +3230,7 @@ class AgentMetrics:
     start_time: datetime = field(default_factory=datetime.now)
     last_cycle_duration_ms: float = 0.0
     
-    def record_success(self) -> None:
+    def record_success(self) -> AgentMetrics:
         """
         Registra una observación exitosa.
         
@@ -3197,78 +3238,54 @@ class AgentMetrics:
             - Incrementa successful_observations
             - Actualiza last_successful_observation a now()
             - Resetea consecutive_failures a 0
-            
-        Postcondiciones:
-            - consecutive_failures == 0
-            - last_successful_observation == now()
         """
-        self.successful_observations += 1
-        self.last_successful_observation = datetime.now()
-        self.consecutive_failures = 0
-        
-        logger.debug(
-            f"[METRICS:SUCCESS] Total exitosas: {self.successful_observations}, "
-            f"tasa: {self.success_rate:.2%}"
+        return replace(
+            self,
+            successful_observations=self.successful_observations + 1,
+            last_successful_observation=datetime.now(),
+            consecutive_failures=0
         )
     
-    def record_failure(self) -> None:
+    def record_failure(self) -> AgentMetrics:
         """
         Registra una observación fallida.
         
         Efectos:
             - Incrementa failed_observations
             - Incrementa consecutive_failures
-            
-        Postcondiciones:
-            - consecutive_failures > 0
         """
-        self.failed_observations += 1
-        self.consecutive_failures += 1
-        
-        logger.debug(
-            f"[METRICS:FAILURE] Total fallidas: {self.failed_observations}, "
-            f"consecutivas: {self.consecutive_failures}, "
-            f"tasa: {self.success_rate:.2%}"
+        return replace(
+            self,
+            failed_observations=self.failed_observations + 1,
+            consecutive_failures=self.consecutive_failures + 1
         )
     
-    def record_decision(self, decision: AgentDecision) -> None:
+    def record_decision(self, decision: AgentDecision) -> AgentMetrics:
         """
         Registra una decisión tomada en el histograma.
         
         Args:
             decision: Decisión ejecutada
-            
-        Efectos:
-            - Incrementa decisions_count[decision.name]
         """
         key = decision.name
-        self.decisions_count[key] = self.decisions_count.get(key, 0) + 1
-        
-        logger.debug(
-            f"[METRICS:DECISION] {decision.name} registrada "
-            f"(total: {self.decisions_count[key]})"
-        )
+        new_counts = dict(self.decisions_count)
+        new_counts[key] = new_counts.get(key, 0) + 1
+        return replace(self, decisions_count=new_counts)
     
-    def increment_cycle(self) -> None:
+    def increment_cycle(self) -> AgentMetrics:
         """
         Incrementa el contador de ciclos OODA ejecutados.
-        
-        Efectos:
-            - Incrementa cycles_executed
         """
-        self.cycles_executed += 1
+        return replace(self, cycles_executed=self.cycles_executed + 1)
     
-    def record_cycle_duration(self, duration_seconds: float) -> None:
+    def record_cycle_duration(self, duration_seconds: float) -> AgentMetrics:
         """
         Registra la duración del último ciclo OODA.
         
         Args:
             duration_seconds: Duración en segundos
-            
-        Efectos:
-            - Actualiza last_cycle_duration_ms
         """
-        self.last_cycle_duration_ms = duration_seconds * 1000.0
+        return replace(self, last_cycle_duration_ms=duration_seconds * 1000.0)
     
     @property
     def total_observations(self) -> int:
@@ -3486,7 +3503,7 @@ class AgentMetrics:
 # RESULTADO DE OBSERVACIÓN
 # ============================================================================
 
-@dataclass
+@dataclass(frozen=True)
 class ObservationResult:
     """
     Resultado de una operación de observación (éxito o fallo).
@@ -3652,7 +3669,7 @@ class ObservationResult:
 # DIAGNÓSTICO TOPOLÓGICO
 # ============================================================================
 
-@dataclass
+@dataclass(frozen=True)
 class TopologicalDiagnosis:
     """
     Diagnóstico topológico consolidado para el ciclo OODA.
@@ -3892,7 +3909,7 @@ class TopologicalDiagnosis:
 # SNAPSHOT DE ESTADO DEL AGENTE
 # ============================================================================
 
-@dataclass
+@dataclass(frozen=True)
 class AgentSnapshot:
     """
     Snapshot inmutable del estado completo del agente en un instante.
@@ -4754,7 +4771,7 @@ class AutonomousAgent:
         """
         if result.success and result.telemetry:
             # Éxito
-            self._metrics.record_success()
+            object.__setattr__(self, "_metrics", self._metrics.record_success())
             self.topology.record_request(result.request_id)
             self._last_telemetry = result.telemetry
             
@@ -4778,7 +4795,7 @@ class AutonomousAgent:
             )
         else:
             # Fallo
-            self._metrics.record_failure()
+            object.__setattr__(self, "_metrics", self._metrics.record_failure())
             
             # Registrar request con ID de error para detección de patrones
             error_id = f"FAIL_{result.error_type.value if result.error_type else 'UNKNOWN'}"
@@ -4875,8 +4892,8 @@ class AutonomousAgent:
         """
         # Persistir muestras temporales ANTES de análisis (efecto temporal)
         if telemetry:
-            self.persistence.add_sample("flyback_voltage", telemetry.flyback_voltage)
-            self.persistence.add_sample("saturation", telemetry.saturation)
+            self.persistence.add_reading("flyback_voltage", telemetry.flyback_voltage)
+            self.persistence.add_reading("saturation", telemetry.saturation)
         
         # Calcular invariantes topológicos
         topo_health = self.topology.get_topological_health(calculate_b1=True)
@@ -4997,7 +5014,7 @@ class AutonomousAgent:
                 )
         
         # Registrar métricas
-        self._metrics.record_decision(decision)
+        object.__setattr__(self, "_metrics", self._metrics.record_decision(decision))
         self._last_status = status
         
         logger.debug(f"[DECIDE] {status.emoji} {status.name} → {decision.emoji} {decision.name}")
@@ -5624,7 +5641,7 @@ class AutonomousAgent:
         try:
             while self._running:
                 cycle_start = time.monotonic()
-                self._metrics.increment_cycle()
+                object.__setattr__(self, "_metrics", self._metrics.increment_cycle())
                 
                 try:
                     # ═══════════════════════════════════════════════════════
@@ -5665,7 +5682,7 @@ class AutonomousAgent:
                 
                 # Registrar duración del ciclo
                 cycle_duration = time.monotonic() - cycle_start
-                self._metrics.record_cycle_duration(cycle_duration)
+                object.__setattr__(self, "_metrics", self._metrics.record_cycle_duration(cycle_duration))
                 
                 # Sleep adaptativo (compensar duración del ciclo)
                 sleep_time = max(

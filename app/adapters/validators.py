@@ -1199,7 +1199,7 @@ class DataFrameValidator:
         missing_as_warning: bool = True,
         non_numeric_severity: ValidationSeverity = ValidationSeverity.WARNING,
     ) -> ValidationResult:
-        """
+        r"""
         Verifica CLAUSURA ALGEBRAICA del espacio numérico.
         
         Garantiza que las columnas designadas estén embebidas en el campo

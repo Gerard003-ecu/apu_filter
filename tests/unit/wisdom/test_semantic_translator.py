@@ -92,17 +92,7 @@ from app.wisdom.semantic_translator import (
 try:
     from app.core.schemas import Stratum
 except ImportError:
-    from enum import IntEnum as _StratumBase
-
-    class Stratum(_StratumBase):
-        WISDOM = 0
-        OMEGA = 1
-        ALPHA = 2
-        STRATEGY = 3
-        TACTICS = 4
-        PHYSICS = 5
-
-
+    pass
 # =========================================================================
 # FIXTURES COMPARTIDOS
 # =========================================================================

@@ -2251,8 +2251,19 @@ class QuantumAdmissionGate(Morphism):
         self,
         payload: Mapping[str, Any]
     ) -> QuantumMeasurement:
-        """
-        Evalúa admisión cuántica completa sobre payload.
+        r"""
+        Ejecuta el protocolo de admisión completo sobre un payload siguiendo la aproximación WKB.
+
+        Dinámica de Probabilidad de Tunelamiento:
+        $$ T = \begin{cases} 1 & \text{si } E \ge \Phi \\ \exp(-2\gamma) & \text{si } E < \Phi \end{cases} $$
+
+        Donde el exponente de Gamow $\gamma$ se define como:
+        $$ \gamma = \frac{1}{\hbar} \int_{x_1}^{x_2} \sqrt{2m_{\text{eff}}(V(x) - E)} \, dx $$
+
+        Criterio de Colapso (Regla de Born Determinista):
+        Un estado es admitido si y solo si la probabilidad de tunelamiento supera el umbral
+        de colapso generado por el hash del payload:
+        $$ |ADMITIDO\rangle \iff T \ge \theta_{\text{collapse}} $$
         
         ALGORITMO COMPLETO (7 etapas documentadas arriba en docstring de clase).
         
@@ -2528,7 +2539,7 @@ if __name__ == "__main__":
     
     Este bloque solo se ejecuta al correr el módulo como script,
     no al importarlo.
-    """
+    r"""
     
     # Configuración de logging detallado
     logging.basicConfig(

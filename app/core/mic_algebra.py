@@ -1,4 +1,4 @@
-"""
+r"""
 Módulo: MIC Algebra (2-Categoría Computacional y Morfismos Estructurales)
 Ubicación: app/core/mic_algebra.py
 Versión: 3.0.0 (Refinada con Rigor de 2-Categorías y Ley de Intercambio)
@@ -46,6 +46,7 @@ import time
 import threading
 import warnings
 from abc import ABC, abstractmethod
+from app.core.schemas import Stratum
 from dataclasses import dataclass, field
 from enum import IntEnum, unique
 from typing import (
@@ -165,71 +166,6 @@ class NumericalInstabilityError(AlgebraicError):
 # ==============================================================================
 # ESTRATIFICACIÓN DIKW CON PROPIEDADES DE RETÍCULO VERIFICADAS
 # ==============================================================================
-@unique
-class Stratum(IntEnum):
-    """
-    Estratificación DIKW como retículo acotado distributivo.
-    
-    Estructura Matemática:
-    =====================
-    - (Stratum, ≤) es un poset (orden parcial reflexivo, antisimétrico, transitivo)
-    - Es un retículo (lattice): ∀a,b ∈ Stratum, ∃(a∧b), ∃(a∨b)
-    - Es distributivo: a∧(b∨c) = (a∧b)∨(a∧c)
-    - Elemento mínimo: ⊥ = WISDOM (valor 0)
-    - Elemento máximo: ⊤ = PHYSICS (valor 5)
-    - Altura del retículo: h = 6 (número de elementos en cadena máxima)
-    
-    Convención Ordinal (DIKW Invertido para Flujo de Procesamiento):
-    =================================================================
-    - Valor MAYOR ↔ estrato más concreto/fundamental (PHYSICS = 5)
-    - Valor MENOR ↔ estrato más abstracto/derivado (WISDOM = 0)
-    - Flujo: PHYSICS → TACTICS → STRATEGY → OMEGA → ALPHA → WISDOM
-    
-    Filtración Topológica (Topología de Alexandrov):
-    ================================================
-    V₀ ⊃ V₁ ⊃ V₂ ⊃ V₃ ⊃ V₄ ⊃ V₅
-    donde Vᵢ = {s ∈ Stratum : s.value ≥ i}
-    
-    Esto define una topología donde los abiertos son los filtros del poset.
-    
-    Dependencias (Clausura Transitiva):
-    ===================================
-    requires(s) = {t ∈ Stratum : t.value > s.value}
-    - Un estrato requiere todos los estratos más concretos
-    - Ejemplo: WISDOM requiere {ALPHA, OMEGA, STRATEGY, TACTICS, PHYSICS}
-    """
-    
-    WISDOM = 0      # ⊥ - Máxima abstracción
-    ALPHA = 1       # Principios fundamentales
-    OMEGA = 2       # Límites y fronteras
-    STRATEGY = 3    # Planificación a largo plazo
-    TACTICS = 4     # Ejecución operativa
-    PHYSICS = 5     # ⊤ - Realidad fundamental
-    
-    # ======================================================================
-    # PROPIEDADES DE ORDEN PARCIAL
-    # ======================================================================
-    
-    def requires(self) -> FrozenSet[Stratum]:
-        """
-        Clausura transitiva de dependencias (estratos requeridos).
-        
-        Definición Matemática:
-        =====================
-        requires(s) = {t ∈ Stratum : t.value > s.value}
-        
-        Propiedades Verificadas:
-        =======================
-        1. Irreflexividad: s ∉ requires(s) ✓
-        2. Transitividad: t ∈ requires(s) ∧ u ∈ requires(t) ⟹ u ∈ requires(s) ✓
-        3. Antisimetría: s ∈ requires(t) ⟹ t ∉ requires(s) ✓
-        4. Cardinalidad: |requires(s)| = 5 - s.value ✓
-        
-        Returns:
-            FrozenSet de estratos que este estrato requiere
-        """
-        return frozenset(s for s in Stratum if s.value > self.value)
-    
     @property
     def level(self) -> int:
         """Nivel numérico del estrato (alias de value para compatibilidad)."""
@@ -1336,7 +1272,7 @@ class CategoricalState:
         
         Returns:
             Hash hexadecimal de 64 caracteres
-        """
+        r"""
         data = {
             "__schema_version__": _SCHEMA_VERSION,
             "payload": _canonicalize(self.payload),
@@ -1833,7 +1769,7 @@ class AtomicVector(Morphism):
 
 
 class ComposedMorphism(Morphism):
-    """
+    r"""
     Composición de dos morfismos: g ∘ f (aplicado como f luego g).
     
     Propiedades Categóricas:
@@ -2357,7 +2293,7 @@ class MorphismComposer:
         self._accumulated_strata = frozenset()
     
     def visualize(self) -> str:
-        """Representación visual del pipeline."""
+        r"""Representación visual del pipeline"""
         if not self.steps:
             return "(vacío)"
         return "\n".join(f"{i+1}. {m}" for i, m in enumerate(self.steps))

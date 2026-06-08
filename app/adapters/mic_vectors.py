@@ -56,6 +56,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from contextlib import contextmanager
 from copy import deepcopy
+from app.core.schemas import Stratum
 from dataclasses import dataclass, field, asdict
 from enum import Enum, IntEnum, auto
 from typing import (
@@ -125,32 +126,6 @@ if ReportParserCrudo is None:
         def __init__(self, *args, **kwargs): pass
         def parse_to_raw(self) -> List[Dict[str, Any]]: return []
         def get_parse_cache(self) -> Dict[str, Any]: return {}
-
-# Stratum fallback
-try:
-    from app.core.schemas import Stratum
-except ImportError:
-    class Stratum(IntEnum):
-        """Representación jerárquica del modelo DIKW."""
-        WISDOM = 0
-        OMEGA = 1
-        STRATEGY = 2
-        TACTICS = 3
-        PHYSICS = 4
-
-
-# =============================================================================
-# DEPENDENCIA OPCIONAL: PSUTIL
-# =============================================================================
-
-_HAS_PSUTIL: bool = False
-_psutil_module: Any = None
-
-try:
-    import psutil as _psutil_module
-    _HAS_PSUTIL = True
-except ImportError:
-    logger.debug("psutil no disponible - métricas de memoria retornarán 0.0")
 
 
 # =============================================================================

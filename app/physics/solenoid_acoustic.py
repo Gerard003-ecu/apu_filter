@@ -956,18 +956,22 @@ class HodgeDecompositionBuilder:
     # ─────────────────────────────────────────────────────────────────────────
     
     def build_incidence_matrix(self) -> Tuple[np.ndarray, Dict[str, Any]]:
-        """
-        Construye matriz de incidencia orientada B₁ ∈ ℝⁿˣᵐ.
+        r"""
+        Construye la matriz de incidencia orientada $B_1 \in \mathbb{R}^{n \times m}$, que representa
+        el operador de borde $\partial_1: C_1(G; \mathbb{R}) \to C_0(G; \mathbb{R})$.
         
-        Definición (operador de borde ∂₁):
-            (B₁)ᵥₑ = +1 si v = head(e)
-                    -1 si v = tail(e)
-                     0 en otro caso
+        Definición (Operador de Borde $\partial_1$):
+        Para cada arista $e = (u, v) \in E$, el operador asigna:
+        $$ \partial_1(e) = v - u $$
+        En términos matriciales, los elementos de $B_1$ se definen como:
+        $$ (B_1)_{v,e} = \begin{cases} +1 & \text{si } v = \text{head}(e) \\ -1 & \text{si } v = \text{tail}(e) \\ 0 & \text{en otro caso} \end{cases} $$
         
-        Propiedades verificadas:
-            1. Suma de columnas = 0 (∀e: ∂₁(e) = head - tail)
-            2. rank(B₁) = n - c (c componentes)
-            3. Sparsidad alta (≤ 2m entradas no nulas)
+        Propiedades Algebraicas y Topológicas:
+        1. **Conservación de Flujo Local:** La suma de las filas de $B_1$ es el vector nulo $\mathbf{1}^T B_1 = \mathbf{0}$,
+           lo que refleja que cada arista tiene exactamente un origen y un destino.
+        2. **Conectividad:** El rango numérico de $B_1$ satisface $\text{rank}(B_1) = n - c$, donde $c = \beta_0$
+           es el número de componentes conexas del grafo.
+        3. **Dualidad:** La matriz transpuesta $B_1^T$ representa el operador gradiente discreto $\delta_0: C^0 \to C^1$.
         
         Returns:
             (B1, metadata) con:
@@ -1043,23 +1047,21 @@ class HodgeDecompositionBuilder:
     # ─────────────────────────────────────────────────────────────────────────
     
     def build_face_matrix(self) -> Tuple[np.ndarray, Dict[str, Any]]:
-        """
-        Construye matriz de ciclos B₂ ∈ ℝᵐˣᵏ vía base de ciclos fundamental.
+        r"""
+        Construye la matriz de ciclos $B_2 \in \mathbb{R}^{m \times k}$ mediante una Base de Ciclos Fundamental (FCB),
+        representando el operador de borde $\partial_2: C_2(G; \mathbb{R}) \to C_1(G; \mathbb{R})$.
         
-        Algoritmo:
-            1. Calcular MST T del grafo no dirigido (Kruskal/Prim: O(m log n))
-            2. Para cada arista e ∉ T (cotree):
-                a. Encontrar camino único en T entre extremos de e
-                b. Ciclo fundamental = e + path(T)
-                c. Codificar en columna de B₂
+        Fundamento Matemático (Construcción de la FCB):
+        Dado un árbol de expansión (MST) $T \subset E$, para cada arista de la cuerda (chord) $e_j \in E \setminus T$,
+        existe un único ciclo elemental $z_j$ formado por $e_j$ y el camino único en $T$ que conecta sus extremos.
+        La matriz $B_2$ se construye con estos ciclos como columnas:
+        $$ (B_2)_{i,j} = \begin{cases} 1 & \text{si } e_i \in z_j \text{ con orientación concordante} \\ -1 & \text{si } e_i \in z_j \text{ con orientación opuesta} \\ 0 & \text{si } e_i \notin z_j \end{cases} $$
         
-        Complejidad:
-            O(m log n + mk) donde k = β₁ = m - n + c
-        
-        Propiedades:
-            - rank(B₂) = k (columnas LI)
-            - B₁ B₂ = 0 (verificado)
-            - im(B₂) = subespacio de ciclos
+        Axiomas de Coherencia:
+        1. **Condición de Complejo:** El operador frontera al cuadrado es nulo, $\partial_1 \circ \partial_2 = 0$.
+           Numéricamente, $\forall \epsilon > 0, \|B_1 B_2\|_F < \epsilon_{\text{mach}}$.
+        2. **Independencia Lineal:** El rango de $B_2$ es exactamente el primer número de Betti: $\text{rank}(B_2) = \beta_1 = m - n + c$.
+        3. **Isomorfismo de Ciclos:** La imagen $\text{im}(B_2)$ es precisamente el subespacio de flujos solenoidales (ciclos).
         
         Returns:
             (B2, metadata) con:
@@ -1193,14 +1195,24 @@ class HodgeDecompositionBuilder:
     def compute_hodge_laplacian(
         self
     ) -> Tuple[np.ndarray, SpectralDecomposition]:
-        """
-        Calcula Laplaciano de Hodge L₁ = B₁ᵀB₁ + B₂B₂ᵀ con análisis espectral.
+        r"""
+        Calcula el Laplaciano de Hodge de grado 1, $L_1 = \partial_1^* \partial_1 + \partial_2 \partial_2^* \in \mathbb{R}^{m \times m}$,
+        y realiza su descomposición espectral completa.
         
-        Propiedades verificadas:
-            1. L₁ = L₁ᵀ (simetría)
-            2. L₁ ≥ 0 (PSD, todos los λᵢ ≥ 0)
-            3. dim ker(L₁) = β₁ (isomorfismo de Hodge)
-            4. Tr(L₁) = ‖B₁‖²_F + ‖B₂‖²_F
+        Definición del Operador:
+        $$ L_1 = B_1^T B_1 + B_2 B_2^T $$
+        Donde $B_1^T B_1$ es el Laplaciano de grafos convencional sobre aristas (gradiente) y $B_2 B_2^T$ es el operador de curl.
+
+        Teorema de Hodge (Isomorfismo):
+        El núcleo del Laplaciano de Hodge es isomorfo al primer grupo de cohomología de Rham discreta:
+        $$ \text{ker}(L_1) \cong H^1(G; \mathbb{R}) $$
+        Consecuentemente, $\dim(\text{ker}(L_1)) = \beta_1$.
+
+        Propiedades Espectrales:
+        1. **Simetría y Positividad:** $L_1 = L_1^T$ y $\forall x \in \mathbb{R}^m, x^T L_1 x \ge 0$.
+        2. **Descomposición de Hodge:** El espacio de flujos se descompone en suma directa ortogonal:
+           $$ C_1(G; \mathbb{R}) = \text{im}(B_1^T) \oplus \text{im}(B_2) \oplus \text{ker}(L_1) $$
+        3. **Invariante de Traza:** $\text{Tr}(L_1) = \sum \lambda_i = \|B_1\|_F^2 + \|B_2\|_F^2$.
         
         Returns:
             (L1, spectral_decomposition) con eigendecomposición completa.
@@ -1853,16 +1865,17 @@ class AcousticSolenoidOperator:
         G: nx.DiGraph,
         edge_flows: Mapping[Tuple[Any, Any], float],
     ) -> Dict[str, Any]:
-        """
-        Descomposición ortogonal completa de Hodge-Helmholtz.
+        r"""
+        Realiza la Descomposición de Hodge-Helmholtz completa del campo de flujos $I$.
         
-        TEOREMA (Hodge):
-            ℝᵐ = im(B₁ᵀ) ⊕ im(B₂) ⊕ ker(L₁)
-        
-        es decir:
-            I = I_grad + I_curl + I_harm
-        
-        donde las tres componentes son mutuamente ortogonales.
+        Teorema de Descomposición de Hodge:
+        Para cualquier flujo $I \in C_1(G; \mathbb{R})$, existe una descomposición única en componentes
+        mutuamente ortogonales:
+        $$ I = I_{\text{grad}} + I_{\text{curl}} + I_{\text{harm}} $$
+        Donde:
+        - $I_{\text{grad}} \in \text{im}(B_1^T)$: Componente irrotacional (gradiente de potencial).
+        - $I_{\text{curl}} \in \text{im}(B_2)$: Componente solenoidal (vórtices de flujo).
+        - $I_{\text{harm}} \in \text{ker}(L_1)$: Componente armónica (flujo libre de fuentes y sumideros).
         
         ALGORITMO (numéricamente estable vía SVD):
             1. B₁ᵀ = U₁ Σ₁ V₁ᵀ → P_grad = U₁ᵣ U₁ᵣᵀ

@@ -894,22 +894,12 @@ class QuantumRegistry(MICRegistry):
 
     @property
     def quantum_state(self) -> QuantumDensityOperator:
-        """
-        Retorna el operador de densidad actual del sistema.
-
-        Returns:
-            Operador de densidad $\rho$ que describe el estado cuántico.
-        """
+        r"""Retorna el operador de densidad $\rho$ actual."""
         return self._state
 
     @property
     def hilbert_space(self) -> HilbertSpace:
-        """
-        Retorna el espacio de Hilbert subyacente.
-
-        Returns:
-            Espacio de Hilbert $\mathcal{H}_N$ del sistema.
-        """
+        r"""Retorna el espacio de Hilbert $\mathcal{H}_N$ subyacente."""
         return self._hilbert_space
 
     def apply_observational_projectors(

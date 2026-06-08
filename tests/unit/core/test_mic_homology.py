@@ -380,7 +380,7 @@ def assert_clean_merge(result: Dict[str, Any], context: str = ""):
 def assert_ghost_cycle_detected(result: Dict[str, Any], context: str = ""):
     """
     Aserción compuesta para detección de ciclos fantasma.
-    """
+    r"""
     prefix = f"[{context}] " if context else ""
     
     assert result[ResultKeys.SUCCESS] is False, (
@@ -848,7 +848,7 @@ class TestVectorAuditHomologicalFusion:
         
         Δβ₁ = 0 ↔ éxito
         Δβ₁ > 0 ↔ fallo con TOPOLOGY_ERROR
-        """
+        r"""
         graph_a = make_digraph(("A", "B"))
         graph_b = make_digraph(("B", "C"))
         payload = self._make_payload(graph_a=graph_a, graph_b=graph_b)

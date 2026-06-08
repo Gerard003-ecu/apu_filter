@@ -779,45 +779,49 @@ class PersistenceInterval:
 @dataclass(frozen=True, slots=True)
 class RequestLoopInfo:
     """
-    Información sobre bucles de reintentos detectados.
+    Información sobre bucles de reintentos detectados.
     
     Attributes:
         request_id: Identificador del request
-        count: Número de ocurrencias
-        first_seen: Índice de primera ocurrencia
-        last_seen: Índice de última ocurrencia
+        count: Número de ocurrencias
+        first_seen: Índice de primera ocurrencia
+        last_seen: Índice de última ocurrencia
+        severity: Grado de severidad calculado (0-1)
+        metadata: Metadatos adicionales del análisis
     """
     
     request_id: str
     count: int
     first_seen: BirthTime
     last_seen: int
+    severity: float = 0.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self) -> None:
-        """Validación de invariantes."""
+        """Validación de invariantes."""
         if self.count < 0:
             raise ValueError(f"count no puede ser negativo: {self.count}")
         
         if self.first_seen < 0 or self.last_seen < 0:
-            raise ValueError("Índices no pueden ser negativos")
+            raise ValueError("Índices no pueden ser negativos")
         
         if self.last_seen < self.first_seen:
             raise ValueError(
                 f"last_seen ({self.last_seen}) < first_seen ({self.first_seen})"
             )
-    
+
     @property
     def duration(self) -> int:
-        """Duración del bucle (last - first)."""
+        """Duración del bucle (last - first)."""
         return self.last_seen - self.first_seen
-    
+
     @property
     def frequency(self) -> float:
         """Frecuencia de reintentos (count / duration)."""
         if self.duration == 0:
-            return float('inf') if self.count > 1 else 0.0
+            return float("inf") if self.count > 1 else 0.0
         return self.count / self.duration
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Serializa a diccionario."""
         return {
@@ -826,8 +830,11 @@ class RequestLoopInfo:
             "first_seen": self.first_seen,
             "last_seen": self.last_seen,
             "duration": self.duration,
-            "frequency": self.frequency
+            "frequency": self.frequency,
+            "severity": self.severity,
+            "metadata": self.metadata,
         }
+
 
 
 # =============================================================================
@@ -1994,39 +2001,32 @@ class SystemTopology:
             frequency_score = min(1.0, info["count"] / 10.0)  # Normalizado a máx 10
             regularity_score = min(1.0, regularity / 5.0)
             density_score = min(1.0, density * 5.0)
-            
-            # Combinación ponderada
             severity = (
                 0.5 * frequency_score +
                 0.3 * regularity_score +
                 0.2 * density_score
             )
             
-            # Crear RequestLoopInfo
+            # Crear RequestLoopInfo con severidad y metadatos (Sustitución Funcional)
             loop_info = RequestLoopInfo(
                 request_id=req_id,
                 count=info["count"],
                 first_seen=info["first"],
-                last_seen=info["last"]
+                last_seen=info["last"],
+                severity=severity,
+                metadata={
+                    "avg_interval": avg_interval,
+                    "interval_std": interval_std,
+                    "regularity": regularity,
+                    "density": density,
+                    "severity": severity
+                }
             )
-            
-            # Agregar metadata para ordenamiento (usando atributo dinámico)
-            setattr(loop_info, "_severity", severity)
-            setattr(loop_info, "_metadata", {
-                "avg_interval": avg_interval,
-                "interval_std": interval_std,
-                "regularity": regularity,
-                "density": density,
-                "severity": severity
-            })
             
             loops.append(loop_info)
         
         # Ordenar por severidad (descendente) y luego por frecuencia
-        def get_severity(loop: RequestLoopInfo) -> float:
-            return getattr(loop, "_severity", 0.0)
-        
-        return sorted(loops, key=lambda x: (get_severity(x), x.count), reverse=True)
+        return sorted(loops, key=lambda x: (x.severity, x.count), reverse=True)
     
     def find_structural_cycles(self) -> List[List[str]]:
         """
@@ -2822,8 +2822,91 @@ class PersistenceHomology:
         num_metrics = len(self._buffers)
         self._buffers.clear()
         logger.debug(f"Todos los buffers limpiados ({num_metrics} métricas)")
-    
-    # ... (Continuará en siguiente respuesta debido a límite de longitud)
+
+    def get_statistics(self, metric_name: str) -> Optional[Dict[str, Any]]:
+        """
+        Calcula estadísticas descriptivas del buffer de una métrica.
+        """
+        buffer = self._buffers.get(metric_name)
+        if not buffer:
+            return None
+
+        vals = list(buffer)
+        return {
+            "count": len(vals),
+            "min": float(np.min(vals)),
+            "max": float(np.max(vals)),
+            "mean": float(np.mean(vals)),
+            "std": float(np.std(vals))
+        }
+
+    def analyze_persistence(
+        self,
+        metric_name: str,
+        threshold: float,
+        noise_ratio: float = 0.2,
+        critical_ratio: float = 0.5,
+    ) -> PersistenceAnalysisResult:
+        """
+        Realiza análisis de homología persistente sobre una métrica.
+        """
+        buffer = self._buffers.get(metric_name)
+        if not buffer or len(buffer) < 2:
+            return PersistenceAnalysisResult(
+                state=MetricState.UNKNOWN,
+                intervals=(),
+                feature_count=0,
+                noise_count=0,
+                active_count=0,
+                max_lifespan=0.0,
+                total_persistence=0.0,
+                metadata={"reason": "insufficient_data"}
+            )
+
+        vals = list(buffer)
+        intervals = []
+        is_active = False
+        birth = 0
+
+        for i, v in enumerate(vals):
+            if v > threshold and not is_active:
+                is_active = True
+                birth = i
+            elif v <= threshold and is_active:
+                is_active = False
+                intervals.append(PersistenceInterval(birth=birth, death=i, dimension=0, amplitude=float(np.max(vals[birth:i]))))
+
+        active_count = 0
+        if is_active:
+            active_count = 1
+            # Intervalo abierto (aún vivo)
+            intervals.append(PersistenceInterval(birth=birth, death=-1, dimension=0, amplitude=float(np.max(vals[birth:]))))
+
+        # Clasificación heurística
+        total_p = sum(i.persistence for i in intervals if not i.is_alive)
+        max_l = max([i.lifespan for i in intervals if not i.is_alive] or [0.0])
+
+        feature_count = len([i for i in intervals if not i.is_alive and i.lifespan > self.window_size * noise_ratio])
+        noise_count = len(intervals) - feature_count - active_count
+
+        state = MetricState.STABLE
+        if is_active and (len(vals) - birth) > self.window_size * critical_ratio:
+            state = MetricState.CRITICAL
+        elif feature_count > 0:
+            state = MetricState.FEATURE
+        elif noise_count > 0:
+            state = MetricState.NOISE
+
+        return PersistenceAnalysisResult(
+            state=state,
+            intervals=tuple(intervals),
+            feature_count=feature_count,
+            noise_count=noise_count,
+            active_count=active_count,
+            max_lifespan=float(max_l),
+            total_persistence=float(total_p),
+            metadata={"active_duration": len(vals) - birth if is_active else 0}
+        )
 
 
 # =============================================================================

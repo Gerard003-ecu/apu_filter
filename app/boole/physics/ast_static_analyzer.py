@@ -1,4 +1,4 @@
-"""
+r"""
 =========================================================================================
 Módulo: AST Static Analyzer (Analizador Simpléctico y Cohomología de Haces Celulares)
 Ubicación: app/physics/ast_static_analyzer.py
@@ -168,7 +168,7 @@ class AnalysisLimits:
 # =============================================================================
 
 class AnalysisException(Exception):
-    """Clase base para todas las excepciones de análisis."""
+    r"""Clase base para todas las excepciones de análisis"""
     
     def __init__(self, message: str, context: Optional[Dict[str, Any]] = None):
         super().__init__(message)
@@ -193,7 +193,7 @@ class ThermodynamicSingularityError(AnalysisException):
     Condición formal:
         ∃ trayectoria γ: [0,T] → T*Q tal que H(γ(t)) > H(γ(0))
         donde H es el Hamiltoniano de complejidad.
-    """
+    r"""
     
     def __init__(self, current_H: float, parent_H: float, 
                  depth: int, complexity: int):
@@ -229,7 +229,7 @@ class CohomologicalObstructionError(AnalysisException):
     Teorema (Obstrucción de Čech):
         Si H¹(T, F) ≠ 0, entonces no existe una sección global continua
         s: T → F que satisfaga las restricciones locales.
-    """
+    r"""
     
     def __init__(self, cohomology_dimension: int, 
                  problematic_variables: Optional[Set[str]] = None):
@@ -835,7 +835,7 @@ class DataFlowAnalyzer(ast.NodeVisitor):
         Verifica la condición disipativa: H(current) ≤ H(parent).
         
         Si falla y strict_mode=True, lanza ThermodynamicSingularityError.
-        """
+        r"""
         if not self._hamiltonian_stack:
             return  # Nodo raíz, sin restricción
         
@@ -1639,7 +1639,7 @@ class TabularNormalizer:
         
         Returns:
             Representación string del valor
-        """
+        r"""
         # None
         if value is None:
             return "null"
@@ -1708,7 +1708,7 @@ class TabularNormalizer:
         
         Raises:
             TypeError: Si data no es un diccionario
-        """
+        r"""
         if not isinstance(data, dict):
             raise TypeError(f"Expected dict, got {type(data).__name__}")
         
@@ -2188,7 +2188,7 @@ def print_complexity_report(
         complexity: Perfil de complejidad a reportar
         name: Nombre del código analizado
         file: Archivo de salida (default: sys.stdout)
-    """
+    r"""
     import sys
     output = file or sys.stdout
     
@@ -2231,7 +2231,7 @@ def print_dataflow_report(
         dataflow: Coordenadas de flujo de datos
         name: Nombre del módulo
         file: Archivo de salida (default: sys.stdout)
-    """
+    r"""
     import sys
     output = file or sys.stdout
     
@@ -2277,7 +2277,7 @@ def main():
     """Función principal de demostración."""
     
     # Código de ejemplo con diversas construcciones
-    example_code = """
+    example_code = r"""
 def fibonacci(n):
     \"\"\"Calcula el n-ésimo número de Fibonacci.\"\"\"
     if n <= 0:

@@ -18,6 +18,7 @@ Convenciones:
 """
 
 from __future__ import annotations
+import torch; torch.float8_e8m0fnu = getattr(torch, "float8_e8m0fnu", torch.float8_e4m3fn)
 
 import math
 import threading

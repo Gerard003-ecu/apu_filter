@@ -3250,18 +3250,8 @@ except ImportError:
         COSTO_INSUMO_EN_APU = "costo_insumo_en_apu"
 
 try:
-    from app.core.schemas import Stratum
     _HAS_SCHEMAS = True
-except ImportError:
-    _HAS_SCHEMAS = False
-    class Stratum(IntEnum):
-        WISDOM = 0
-        OMEGA = 1
-        STRATEGY = 2
-        TACTICS = 3
-        PHYSICS = 4
-
-try:
+    from app.core.schemas import Stratum
     from app.wisdom.semantic_translator import SemanticTranslator
     _HAS_TRANSLATOR = True
 except ImportError:

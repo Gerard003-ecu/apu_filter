@@ -61,6 +61,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from dataclasses import dataclass, field
+from app.core.schemas import Stratum
 from datetime import datetime, timezone
 from enum import IntEnum, Enum, auto
 from functools import total_ordering
@@ -94,20 +95,6 @@ from app.core.telemetry_schemas import (
     ControlMetrics,
     ThermodynamicMetrics,
 )
-from app.adapters.tools_interface import MICRegistry, register_core_vectors
-
-try:
-    from app.core.schemas import Stratum
-except ImportError:
-    from enum import IntEnum as _StratumBase
-
-    class Stratum(_StratumBase):  # type: ignore[no-redef]
-        WISDOM = 0
-        ALPHA = 1
-        OMEGA = 2
-        STRATEGY = 3
-        TACTICS = 4
-        PHYSICS = 5
 
 
 logger = logging.getLogger(__name__)
@@ -1082,7 +1069,7 @@ class GraphRAGCausalNarrator:
         r"""
         Orquesta el Colapso Semántico: traduce métricas puras en un
         Acta de Deliberación accionable.
-        """
+        r"""
         acta_sections: List[str] = [
             "--- ACTA DE DELIBERACIÓN DEL CONSEJO DE SABIOS ---"
         ]
@@ -1329,7 +1316,7 @@ class LatticeVerdictCollapse:
 
         Returns:
             Acta de Deliberación con veredicto y justificación
-        """
+        r"""
         # 1. Evaluación topológica (Fast-Fail)
         topo_verdict = SeverityLattice.VIABLE
         if betti_1 > 0 or psi < 1.0:
@@ -2178,7 +2165,7 @@ class SemanticTranslator:
 
         Returns:
             Tupla (narrativa, veredicto)
-        """
+        r"""
         # Normalizar a ValidatedTopology
         if isinstance(metrics, ValidatedTopology):
             topo = metrics
@@ -2591,7 +2578,7 @@ class SemanticTranslator:
     def translate_financial(
         self, metrics: Dict[str, Any],
     ) -> Tuple[str, VerdictLevel, FinancialVerdict]:
-        """Traduce métricas financieras a narrativa."""
+        r"""Traduce métricas financieras a narrativa"""
         validated = self._validate_financial_metrics(metrics)
         parts: List[str] = []
 
@@ -3082,7 +3069,7 @@ class SemanticTranslator:
     # GENERACIÓN DE NARRATIVAS COMPUESTAS
     # ==================================================================
     def _generate_report_header(self) -> str:
-        """Genera el encabezado del reporte."""
+        r"""Genera el encabezado del reporte"""
         return (
             "# 🏗 INFORME DE INGENIERÍA ESTRATÉGICA\n\n"
             f"*Análisis de Coherencia Fractal | "
@@ -3168,7 +3155,7 @@ class SemanticTranslator:
         synergy: Dict[str, Any],
         has_errors: bool,
     ) -> str:
-        """Genera el dictamen final del Ingeniero Jefe."""
+        r"""Genera el dictamen final del Ingeniero Jefe"""
         if has_errors:
             return self._fetch_narrative(
                 "FINAL_VERDICTS", "analysis_failed"
@@ -3226,7 +3213,7 @@ class SemanticTranslator:
         strata: Dict[Stratum, StratumAnalysisResult],
         errors: List[str],
     ) -> str:
-        """Genera resumen ejecutivo del reporte."""
+        r"""Genera resumen ejecutivo del reporte"""
         parts: List[str] = [
             f"**Veredicto: {final_verdict.emoji} "
             f"{final_verdict.name}**\n"
@@ -3341,7 +3328,7 @@ class SemanticTranslator:
 
         El veredicto final es el supremo (⊔) de todos los veredictos
         parciales, con veto incondicional si β₁ > 0 o Ψ < 1.0.
-        """
+        r"""
         # --- Normalización de entradas ---
         if isinstance(topological_metrics, ValidatedTopology):
             topo = topological_metrics

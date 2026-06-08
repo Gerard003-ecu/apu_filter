@@ -462,11 +462,11 @@ def normalize_description(desc: Optional[str]) -> str:
 
 @lru_cache(maxsize=256)
 def normalize_codigo(codigo: Optional[str]) -> str:
-    """
+    r"""
     Normaliza código APU (idempotente).
 
     Caracteres permitidos: [\\w\\-.] (alphanumeric, dash, dot).
-    """
+    r"""
     if not codigo or not isinstance(codigo, str):
         raise ValidationError("Código APU no puede ser vacío.")
 
@@ -1247,7 +1247,7 @@ class APUStructure(TopologicalNode):
 
 @dataclass
 class ManoDeObra(InsumoProcesado):
-    """Recurso de tipo Mano de Obra."""
+    r"""Recurso de tipo Mano de Obra"""
 
     EXPECTED_UNITS: ClassVar[FrozenSet[str]] = UNIDADES_TIEMPO
     REQUIRES_RENDIMIENTO: ClassVar[bool] = True

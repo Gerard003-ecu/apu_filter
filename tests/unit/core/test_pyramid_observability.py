@@ -507,7 +507,7 @@ class TestAgentObservabilityRefined:
         # Mock completo del sistema
         with patch.object(agent, 'observe') as mock_observe, \
              patch.object(agent, 'topology', create=True) as mock_topology, \
-             patch('app.tactics.apu_agent.SystemStatus') as mock_system_status:
+             patch('app.core.apu_agent.SystemStatus') as mock_system_status:
 
             # Configurar mocks por estrato
             mock_telemetry = MagicMock()

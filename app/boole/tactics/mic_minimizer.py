@@ -1,4 +1,4 @@
-"""
+r"""
 =========================================================================================
 Módulo: MIC Minimizer (Poda Topológica en el Anillo Booleano $\mathbb{Z}_2$)
 Ubicación: app/boole/strategy/mic_minimizer.py
@@ -234,7 +234,7 @@ class ColoredFormatter(logging.Formatter):
     Formatter con códigos ANSI para coloración en terminal.
     
     Soporta diferentes niveles con colores distintivos.
-    """
+    r"""
     
     COLORS = {
         'DEBUG': '\033[36m',    # Cyan
@@ -569,7 +569,7 @@ class BooleanVector:
         return BooleanVector(frozenset(universe - self.components))
     
     def difference(self, other: 'BooleanVector') -> 'BooleanVector':
-        """
+        r"""
         Diferencia de conjuntos: u \ v = u ∧ ¬v.
         """
         return BooleanVector(self.components - other.components)
@@ -1939,7 +1939,7 @@ class ROBDD:
         return self._size_recursive(node, visited)
     
     def _size_recursive(self, node: ROBDDNode, visited: Set[int]) -> int:
-        """Helper recursivo para contar nodos."""
+        r"""Helper recursivo para contar nodos"""
         if node.id in visited:
             return 0
         

@@ -100,12 +100,7 @@ class NumericalTolerances:
 try:
     from app.core.schemas import Stratum
 except ImportError:
-    class Stratum(Enum):
-        PHYSICS = 5
-        TACTICS = 4
-        STRATEGY = 3
-        WISDOM = 0
-        OMEGA = 6
+    pass
 
 try:
     from app.adapters.tools_interface import MICRegistry

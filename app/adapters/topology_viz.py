@@ -1008,12 +1008,12 @@ def _determine_node_color(
 
 
 def _build_node_label(node_id: str, attrs: Dict[str, Any]) -> str:
-    """
+    r"""
     Construye la etiqueta visual de un nodo.
 
     Formato: ``"{node_id}\\n{descripcion_truncada}"`` si hay descripción,
     o solo ``node_id`` en caso contrario.
-    """
+    r"""
     description = attrs.get("description")
     if description is None:
         return node_id
@@ -1042,7 +1042,7 @@ def _build_node_tooltip(
     Construye tooltip forense para auditoría humana.
 
     Incluye: ID, descripción, tipo, nivel, costo, score y estado de anomalías.
-    """
+    r"""
     description = attrs.get("description")
     desc = ""
     if description is not None:
@@ -1087,7 +1087,7 @@ def _build_edge_tooltip(
     score: float,
     is_evidence: bool,
 ) -> str:
-    """Construye tooltip forense para aristas."""
+    r"""Construye tooltip forense para aristas"""
     evidence_str = "sí" if is_evidence else "no"
     return "\n".join(
         [
@@ -1178,7 +1178,7 @@ def build_node_element(
 
 
 def _build_fallback_node(node_id_str: str) -> CytoscapeNode:
-    """Construye un nodo fallback para errores de serialización."""
+    r"""Construye un nodo fallback para errores de serialización"""
     return CytoscapeNode(
         id=node_id_str,
         label=node_id_str,
@@ -1201,7 +1201,7 @@ def _build_fallback_node(node_id_str: str) -> CytoscapeNode:
 def _build_fallback_edge(
     src_str: str, tgt_str: str
 ) -> CytoscapeEdge:
-    """Construye una arista fallback para errores de serialización."""
+    r"""Construye una arista fallback para errores de serialización"""
     return CytoscapeEdge(
         source=src_str,
         target=tgt_str,

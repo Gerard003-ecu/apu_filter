@@ -14,6 +14,7 @@ Convenciones:
 """
 
 import os
+import torch; torch.float8_e8m0fnu = getattr(torch, "float8_e8m0fnu", torch.float8_e4m3fn)
 # Fase 1: Esterilización del Espacio Vectorial (Vacío Termodinámico)
 # Inyectar variables de entorno ANTES de cargar numpy/scipy para forzar BLAS/LAPACK a 1 hilo
 os.environ["OMP_NUM_THREADS"] = "1"

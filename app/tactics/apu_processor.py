@@ -237,7 +237,7 @@ class OptionMonad(Generic[T]):
 
     @classmethod
     def pure(cls, value: T) -> "OptionMonad[T]":
-        """
+        r"""
         Inyección monádica (unit/return): $T \to M[T]$.
         """
         return cls(value=value)
@@ -268,7 +268,7 @@ class OptionMonad(Generic[T]):
         return self._value if self.is_valid() else default
 
     def bind(self, f: Callable[[T], "OptionMonad[U]"]) -> "OptionMonad[U]":
-        """
+        r"""
         Operación bind de la mónada ($\\gg=$).
 
         Permite encadenar operaciones secuenciales que pueden fallar.
@@ -286,7 +286,7 @@ class OptionMonad(Generic[T]):
             return OptionMonad.fail(f"Bind error [{self._error or 'root'}]: {e}")
 
     def map(self, f: Callable[[T], U]) -> "OptionMonad[U]":
-        """
+        r"""
         Operación map del functor: $(T \to U) \to M[T] \to M[U]$.
         """
         if not self.is_valid():
@@ -408,7 +408,7 @@ class PatternMatcher:
     corresponde a un encabezado, un resumen, una categoría o si contiene
     ciertos tipos de contenido (numérico, porcentajes), basándose en un
     conjunto de palabras clave y expresiones regulares predefinidas.
-    """
+    r"""
 
     # Palabras clave de encabezado de tabla
     HEADER_KEYWORDS = [
@@ -463,7 +463,7 @@ class PatternMatcher:
         self._compile_patterns()
 
     def _compile_patterns(self) -> None:
-        """Pre-compila todos los patrones regex para optimizar el rendimiento."""
+        r"""Pre-compila todos los patrones regex para optimizar el rendimiento"""
         summary_pattern = "|".join(self.SUMMARY_KEYWORDS)
         self._pattern_cache["summary"] = re.compile(summary_pattern, re.IGNORECASE)
 
@@ -1057,7 +1057,7 @@ class APUTransformer(Transformer):
         return is_valid
 
     def _classify_field_algebraic_type(self, field: str) -> str:
-        """Clasifica un campo en tipos algebraicos del anillo de campos."""
+        r"""Clasifica un campo en tipos algebraicos del anillo de campos"""
         if not field:
             return "EMPTY"
 
@@ -1142,7 +1142,7 @@ class APUTransformer(Transformer):
         return normalized
 
     def _looks_numeric(self, field: str) -> bool:
-        """Determina si un campo es numéricamente interpretable."""
+        r"""Determina si un campo es numéricamente interpretable"""
         if not field:
             return False
 
@@ -1214,7 +1214,7 @@ class APUTransformer(Transformer):
         return False
 
     def _normalize_numeric_representation(self, field: str) -> str:
-        """Normaliza representación numérica a forma canónica."""
+        r"""Normaliza representación numérica a forma canónica"""
         if not field:
             return field
 
@@ -1368,7 +1368,7 @@ class APUTransformer(Transformer):
         return OptionMonad.fail(f"Grafo no conexo: {len(components)} componentes, cohesión={cohesion:.2f}")
 
     def _build_field_dependency_graph(self, fields: List[str]) -> Dict[int, Set[int]]:
-        """Construye grafo de dependencias entre campos con poda eficiente."""
+        r"""Construye grafo de dependencias entre campos con poda eficiente"""
         n = len(fields)
         graph: Dict[int, Set[int]] = {i: set() for i in range(n)}
 
@@ -2527,7 +2527,7 @@ class PresupuestoProcessor:
         2. Filas con solo NaN/None
         3. Filas con patrones de placeholder
         4. Filas de metadatos (totales, subtotales)
-        """
+        r"""
         if df is None:
             return pd.DataFrame()
 
@@ -2606,7 +2606,7 @@ class PresupuestoProcessor:
         )
 
     def _clean_and_convert_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Limpia y convierte datos con validaciones robustas."""
+        r"""Limpia y convierte datos con validaciones robustas"""
         if df is None or df.empty:
             return pd.DataFrame()
 
@@ -3798,7 +3798,7 @@ class APUCostCalculator(BaseCostProcessor):
     def _normalize_tipo_insumo(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Normalización robusta de tipos de insumo usando patrones regex.
-        """
+        r"""
         df = df.copy()
 
         if ColumnNames.TIPO_INSUMO not in df.columns:
