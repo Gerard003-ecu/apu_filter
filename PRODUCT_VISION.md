@@ -65,7 +65,11 @@ Si esta adjunción se rompe, el sistema detecta una **Deriva Semántica** o **Co
 
 --------------------------------------------------------------------------------
 2. Los Horizontes de Evolución: La Arquitectura Concéntrica
-Nuestra hoja de ruta no añade funciones cosméticas; desbloquea niveles de profundidad física mediante una arquitectura de capas defensivas estructuradas bajo la Clausura Transitiva de la pirámide DIKW ($V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$).
+Nuestra hoja de ruta no añade funciones cosméticas; desbloquea niveles de profundidad física mediante una arquitectura de capas defensivas estructuradas bajo un **Topos de Grothendieck**. La transición entre estratos de la pirámide DIKW no es una simple inclusión de subconjuntos, sino un mapeo categórico gobernado por una **Adjunción de Galois**.
+
+Para asegurar que el Pasaporte de Telemetría no sufra pérdida de información (entropía fantasma) al escalar de un estrato inferior $\mathcal{C}$ (e.g., PHYSICS) a un estrato superior $\mathcal{D}$ (e.g., WISDOM), se define un funtor covariante $F: \mathcal{C} \to \mathcal{D}$ (abstracción) y su funtor olvidadizo o de descompresión asociado $G: \mathcal{D} \to \mathcal{C}$. La malla agéntica certifica una equivalencia de morfismos bajo la adjunción $F \dashv G$:
+$$\text{Hom}_{\mathcal{D}}(F(X), Y) \cong \text{Hom}_{\mathcal{C}}(X, G(Y))$$
+Esta relación garantiza que la "Empatía Táctica" (narrativa semántica) sea matemáticamente reversible: cualquier alerta ejecutiva en $\mathcal{D}$ debe permitir recuperar, a través de $G$, las coordenadas topológicas y físicas precisas en $\mathcal{C}$ que originaron el veredicto. Si la adjunción colapsa, el sistema detecta ruido retórico y veta la deliberación.
 Horizonte 1: La Cimentación (El Foso Termodinámico y las Murallas)
 
     Objetivo: Certificación de Viabilidad Dinámica, Integridad Estructural y Veto al Código Emergente.

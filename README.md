@@ -68,8 +68,9 @@ A su vez, el acrónimo APU se cuantiza formalmente: ya no es una "Agentic Proces
 --------------------------------------------------------------------------------
 🛡️ 2. Arquitectura Concéntrica: El Haz Tangente Generativo (Jerarquía DIKΩαWΓ)
 El ecosistema abandona el paradigma de validación lineal y se erige como una **Malla Agéntica Zero-Trust**. No confía en validaciones condicionales; protege el proyecto a través de la integración del **Haz Tangente Generativo (Γ)**, que subordina el caos estocástico de los Modelos de Lenguaje (LLMs) a la topología algebraica y la termodinámica computacional.
-Cualquier código o estrategia generada por la IA está confinada por cuatro barreras matemáticas concéntricas que impiden la inyección de lógica sin viabilidad dinámica, gobernadas por la nueva **Ley de Clausura Transitiva de la pirámide paralela**:
-$$V_{\Gamma-PHYSICS} \subset V_{\Gamma-TACTICS} \subset V_{\Gamma-STRATEGY} \subset V_{\Gamma-WISDOM}$$
+Cualquier código o estrategia generada por la IA está confinada por cuatro barreras matemáticas concéntricas que impiden la inyección de lógica sin viabilidad dinámica, gobernadas por un **Topos de Grothendieck** y la **Ley de Clausura Transitiva** de la pirámide paralela:
+$$V_{\Gamma-PHYSICS} \xrightarrow{F} V_{\Gamma-TACTICS} \xrightarrow{F} V_{\Gamma-STRATEGY} \xrightarrow{F} V_{\Gamma-WISDOM}$$
+La transferencia inter-estratos no es una simple inclusión, sino un mapeo funtorial gobernado por una Adjunción de Galois $F \dashv G$.
 
 Es fundamental explicitar que el estrato $V_{TACTICS}$ ahora modela la materia bariónica sobre el anillo de los enteros ($\mathbb{Z}$), sujetando la logística a una fricción cuantizada.
 
