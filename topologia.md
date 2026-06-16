@@ -32,7 +32,12 @@ Utilizamos homología computacional para calcular los Números de Betti (βn​)
     χ: Característica de Euler-Poincaré Extendida
         **Fórmula completa (2-complejo):** $\chi = \beta_0 - \beta_1 + \beta_2$
         **Nota crítica:** La fórmula reducida $\chi = \beta_0 - \beta_1$ solo es válida para 1-complejos simpliciales (grafos puros). El presupuesto es un 2-complejo; omitir $\beta_2$ subespecifica la entropía estructural.
-        Uso: Cuantifica la "Entropía Estructural" y la Complejidad Sistémica del proyecto. Sirve como métrica para el Pricing Dinámico SaaS (a mayor $|\chi|$ con $\chi < 0$, mayor es el valor que el sistema aporta al colapsar esa entropía topológica). La penalización de pricing escala linealmente con $\beta_2$ cuando $\beta_2 > 0$.
+        Uso: Cuantifica la "Entropía Estructural" y la Complejidad Sistémica del proyecto. Sirve como métrica para el Pricing Dinámico SaaS (a mayor $|\chi|$ con $\chi < 0$, mayor es el valor que el sistema aporta al colapsar esa entropía topológica). El modelo de ingresos escala en proporción directa al colapso de la entropía topológica y el Defecto de Euler evitado ($\chi(K)$). La penalización de pricing escala linealmente con $\beta_2$ cuando $\beta_2 > 0$.
+
+    **Homología Discreta via Smith Normal Form (SNF):**
+    El Arquitecto no evalúa dinero, evalúa formas. Para extraer la homología discreta, el sistema reduce la matriz de incidencia de frontera $\partial_k$ a su Forma Normal de Smith $D = S \cdot \partial_k \cdot T$, revelando el funtor de fricción cuantizada:
+    $$H_k(K;\mathbb{Z}) \cong \mathbb{Z}^{\beta_k} \oplus \bigoplus_{i} \mathbb{Z}/d_i\mathbb{Z}$$
+    Donde $\beta_k$ es el rango de la parte libre (Número de Betti) y los factores de torsión $\mathbb{Z}/d_i\mathbb{Z}$ revelan incompatibilidades de cuantización logística. Cualquier ciclo $\beta_1 > 0$ es reportado como una **patología parasitaria (Socavón Lógico)**.
 
 
 --------------------------------------------------------------------------------

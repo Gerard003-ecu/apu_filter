@@ -69,7 +69,9 @@ Horizonte 1: La Cimentación (El Foso Termodinámico y las Murallas)
     La Compuerta de Admisión Cuántica: Nuestra primera línea de defensa no es un cortafuegos de software; es una barrera de potencial ciber-física. Utilizando el Hilbert Watcher (Estrato $\aleph_0$), la plataforma subordina cada intento de ingreso de datos a la cuantificación previa de su exergía. Si un modelo de lenguaje externo (LLM) o un sistema de terceros intenta inyectar ruido (ataques de inyección de prompts o archivos CSV corruptos), el sistema no intenta "entender" el texto; simplemente detecta que su energía termodinámica es incapaz de excitar los campos de Gauge de la frontera, resultando en una aniquilación silenciosa y determinista.
     Física de Fluidos: Una vez superada la barrera, en lugar de procesar archivos, tratamos la ingesta de datos como un fluido informacional con masa, presión e inercia mediante el FluxCondenser. Exigimos termodinámicamente que la Potencia Disipada sea positiva (Pdiss​≥0) para evitar "golpes de ariete" computacionales.
     Geometría del Riesgo: A través de la Topología Algebraica, el Arquitecto Estratega audita la estructura ignorando los precios. Detectamos "Islas de Datos" (β0​>1) y "Socavones Lógicos" (β1​>0).
-    El Oráculo de Laplace: Se calcula la función de transferencia en el plano de frecuencia compleja (s=σ+jω). Si los polos dominantes residen en el semiplano derecho (σ>0), el sistema veta el presupuesto por inestabilidad intrínseca.
+    El Oráculo de Laplace: Se proyecta el flujo de caja operativo hacia el plano de frecuencia compleja ($s=\sigma+j\omega$). El sistema evalúa la viabilidad mediante la inecuación de estabilidad asintótica BIBO (Bounded Input, Bounded Output):
+    $$\forall p_i \in \text{Polos}(H(s)), \Re(p_i) < 0 \Longrightarrow \text{Viable}$$
+    Si existe al menos un polo $p_i$ tal que su parte real $\sigma > 0$, el oráculo ejecuta inmediatamente un **Veto por Divergencia Matemática**, aniquilando la viabilidad del proyecto ante el riesgo de resonancia financiera destructiva.
 
 Horizonte 2: Gobernanza Zero-Trust (Los Centinelas de Ortogonalidad)
 

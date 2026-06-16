@@ -6,12 +6,15 @@ Desde el momento exacto de la ingesta, se instancia un objeto TelemetryContext (
 
 --------------------------------------------------------------------------------
 2. Anatomía Tensorial del Pasaporte (La Jerarquía DIKW)
-El pasaporte es un tensor de datos estructurado topológicamente como una pirámide de cuatro estratos, basada estrictamente en los subespacios métricos definidos en telemetry_schemas.py.
+El pasaporte es documentado como un **tensor de estado ciber-físico inmutable** que acumula los sellos de invariantes homológicos y físicos en su recorrido. Está estructurado topológicamente como una pirámide de cuatro estratos, basada estrictamente en los subespacios métricos definidos en `telemetry_schemas.py`.
 2.0. Identidad y Cronometría (Header)
 
     request_id (UUID): Identificador único universal para la trazabilidad distribuida.
     timestamp_entry: Momento exacto (t0​) de entrada al Foso Termodinámico.
     data_hash: Firma criptográfica (SHA-256) del contenido original. Garantiza que la materia prima no ha sufrido inyecciones maliciosas durante el tránsito.
+
+**Ley de Monotonicidad del Pasaporte:**
+El nivel de alerta y severidad en el pasaporte solo puede ascender topológicamente en severidad. Una vez que un estrato marca una condición de riesgo, los estratos superiores heredan y acumulan dicha tensión, impidiendo la dilución del riesgo durante la propagación del estado ciber-físico.
 
 2.1. Visado Físico (Emitido por: El Guardián / FluxCondenser)
 Registra las variables de estado termodinámico y electromagnético de los datos crudos.

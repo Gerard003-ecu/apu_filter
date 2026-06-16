@@ -17,7 +17,7 @@ A continuación, se desglosan rigurosamente los 9 bloques del modelo estructurad
 2. 💎 Propuesta de Valor (Value Propositions)
 La Sabiduría como Servicio (Wisdom-as-a-Service):
 
-    Póliza de Seguro Pre-Construcción (Certificado de Estabilidad Física): No entregamos una simple opinión; entregamos una demostración matemática. A través del Oráculo de Laplace y el análisis topológico, certificamos si la "cimentación logística" soportará el peso de la obra, evitando colapsos antes de gastar el primer peso.
+    Póliza de Seguro Pre-Construcción (Certificación de Estabilidad Física): No entregamos una simple opinión; entregamos una demostración matemática. A través del Oráculo de Laplace y el análisis topológico, certificamos si la "cimentación logística" soportará el peso de la obra, evitando colapsos antes de gastar el primer peso.
     Gobernanza Computacional Federada (Policy-as-Code): Sustituimos la burocracia humana por código. Nuestros agentes actúan como "Sidecars" que bloquean transacciones inestables (con σ>0) o presupuestos fragmentados antes de que contaminen la salud financiera de la constructora.
     Simulador de Escenarios Dinámicos ("What-If" Gemelo Digital): Capacidad de pilotear el negocio simulando en tiempo real el impacto de cambiar un proveedor crítico. Convertimos el presupuesto estático en un simulador de futuros basado en el análisis de opciones reales.
 
@@ -36,7 +36,7 @@ De la "Caja Negra" a la Confianza Radical:
 
 5. 💵 Fuentes de Ingresos (Revenue Streams)
 
-    Pricing Dinámico por Entropía Topológica: El modelo de monetización abandona el licenciamiento clásico por usuario. Se cobra con base en la **Característica de Euler-Poincaré Extendida** del presupuesto como 2-complejo simplicial ($\chi(K) = \beta_0 - \beta_1 + \beta_2$) y la validación de código generado. El "peaje termodinámico" escala proporcionalmente al volumen de entropía generativa colapsada y al Defecto de Euler evitado. El uso de proyectores simplécticos y cohomología para curar alucinaciones de la IA se capitaliza como un activo de "Certeza de Generación".
+    Pricing Dinámico por Entropía Topológica: El modelo de monetización abandona el licenciamiento clásico por usuario. El modelo de ingresos escala en proporción directa al colapso de la entropía topológica y el Defecto de Euler evitado ($\chi(K)$). Se cobra con base en la **Característica de Euler-Poincaré Extendida** del presupuesto como 2-complejo simplicial ($\chi(K) = \beta_0 - \beta_1 + \beta_2$) y la validación de código generado. El "peaje termodinámico" escala proporcionalmente al volumen de entropía generativa colapsada y al Defecto de Euler evitado. El uso de proyectores simplécticos y cohomología para curar alucinaciones de la IA se capitaliza como un activo de "Certeza de Generación".
     Estabilidad Espectral y Retorno Seguro: Evalúa el flujo de caja en el plano de frecuencia compleja ($s = \sigma + j\omega$). Exige Estabilidad Asintótica BIBO (polos en el semiplano izquierdo, $\sigma < 0$) y multiplicadores de Floquet $|\mu_k| < 1 \; \forall k$. El Exponente Máximo de Lyapunov previene el caos determinísta, activando un "Crowbar Físico" en el hardware perimetral si el sistema diverge (implementado en `app/physics/laplace_oracle.py`).
     Suscripción a la Malla Agéntica (SaaS/On-Premise): Planes escalonados para CDOs basados en el volumen de procesamiento termodinámico de la base de datos y la orquestación del Agentic Mesh.
 
