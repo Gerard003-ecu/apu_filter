@@ -56,7 +56,8 @@ graph TD
     S -. "Resonancia Paramétrica (σ>0)" .-> Reject4[Veto Espectral]
 ```
 
-## 🌐 Sistema Operativo Ciber-Físico para la Gobernanza de Presupuestos e Infraestructura
+
+Sistema Operativo Ciber-Físico para la Gobernanza de Presupuestos e Infraestructura
 "En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica del mercado en un activo de gobernanza gobernable, inmutable y auditable."
 
 🧬 1. El Manifiesto del Sistema: El Reactor Port-Hamiltoniano de Valor
@@ -105,9 +106,7 @@ El sistema opera bajo un protocolo de Caja de Cristal Argumentativa. Los microse
 
     🛡️ El Guardián (Física): Rechaza el caos y la resonancia estocástica.
     🏗️ El Arquitecto (Topología): Veta estructuralmente dependencias frágiles.
-    🔮 El Oráculo (Finanzas): Proyecta el flujo de caja operativo hacia el plano de frecuencia compleja ($s=\sigma+j\omega$). El sistema evalúa la viabilidad mediante la inecuación de estabilidad asintótica BIBO:
-    $$\forall p_i \in \text{Polos}(H(s)), \Re(p_i) < 0 \Longrightarrow \text{Viable}$$
-    Si existe al menos un polo $p_i$ tal que su parte real $\sigma > 0$, el oráculo ejecuta inmediatamente un **Veto por Divergencia Matemática**.
+    🔮 El Oráculo (Finanzas): Valora escenarios probabilísticos usando Monte Carlo y Opciones Reales.
     🗣️ El Intérprete (Sabiduría): Traduce invariantes β1​>0 a advertencias corporativas de fácil comprensión.
 
 

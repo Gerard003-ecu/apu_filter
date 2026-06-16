@@ -6,15 +6,12 @@ Desde el momento exacto de la ingesta, se instancia un objeto TelemetryContext (
 
 --------------------------------------------------------------------------------
 2. Anatomía Tensorial del Pasaporte (La Jerarquía DIKW)
-El pasaporte es documentado como un **tensor de estado ciber-físico inmutable** que acumula los sellos de invariantes homológicos y físicos en su recorrido. Está estructurado topológicamente como una pirámide de cuatro estratos, basada estrictamente en los subespacios métricos definidos en `telemetry_schemas.py`.
+El pasaporte es un tensor de datos estructurado topológicamente como una pirámide de cuatro estratos, basada estrictamente en los subespacios métricos definidos en telemetry_schemas.py.
 2.0. Identidad y Cronometría (Header)
 
     request_id (UUID): Identificador único universal para la trazabilidad distribuida.
     timestamp_entry: Momento exacto (t0​) de entrada al Foso Termodinámico.
     data_hash: Firma criptográfica (SHA-256) del contenido original. Garantiza que la materia prima no ha sufrido inyecciones maliciosas durante el tránsito.
-
-**Ley de Monotonicidad del Pasaporte:**
-El nivel de alerta y severidad en el pasaporte solo puede ascender topológicamente en severidad. Una vez que un estrato marca una condición de riesgo, los estratos superiores heredan y acumulan dicha tensión, impidiendo la dilución del riesgo durante la propagación del estado ciber-físico.
 
 2.1. Visado Físico (Emitido por: El Guardián / FluxCondenser)
 Registra las variables de estado termodinámico y electromagnético de los datos crudos.
@@ -54,6 +51,13 @@ La síntesis final alojada en la "Ciudadela de Cristal".
 
     verdict_code: Colapso discreto sobre el Retículo de Severidad (OK, WARN, CRITICAL, RECHAZO).
     strategic_narrative: Explicación causal en lenguaje humano generada por el LLM (ej. "El proyecto se rechaza por resonancia inflacionaria en el acero"), estrictamente subordinada a los sellos previos.
+
+2.6. Auditoría Epistemológica (Emitido por: MAC Agent)
+Métricas de la Matriz Atómica de Conocimiento y pureza cuántica.
+
+    umegaki_divergence ($D(\rho\|\sigma)$): Entropía relativa entre el estado deliberado y la base atómica de conocimiento.
+    dirichlet_energy_wisd: Evaluación de la suavidad semántica sobre el haz celular.
+    state_purity ($\text{Tr}(\rho^2)$): Índice de coherencia del veredicto. Si decae ante una obstrucción cohomológica global ($H_1(X;\mathcal{F}) \neq 0$), dispara un **VETO ONTOLÓGICO**.
 
 
 --------------------------------------------------------------------------------

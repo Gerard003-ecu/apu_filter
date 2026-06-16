@@ -49,7 +49,8 @@ Estructura del Acta: Expone la tensión dialéctica donde la matemática colapsa
 
 Cada Acta de Deliberación debe incluir el registro inmutable de la **energía disipada de Rayleigh** evaluada en la base Port-Hamiltoniana para garantizar la consistencia física:
 $$P_{\text{diss}} = \nabla H(x)^\top R(x) \nabla H(x) \ge 0$$
-Donde una violación de esta ley ($\beta_n$ anómalo o disipación negativa) destruirá el paquete estocástico en la frontera (Fast-Fail).
+
+Además, se debe adjuntar el **CohomologyAuditReport** generado por el MAC Agent, incluyendo la **Auditoría de Entropía Relativa (Divergencia de Umegaki)** entre el estado predicho y el medido. Si se detecta una obstrucción cohomológica global no nula ($H_1(X;\mathcal{F}) \neq 0$) o una caída anómala en el índice de pureza post-medición $\text{Tr}(\rho_{\text{post}}^2)$, el sistema ejecuta un **VETO ONTOLÓGICO**, certificando forensemente la censura por paradoja termodinámica.
 
 
 --------------------------------------------------------------------------------
