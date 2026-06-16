@@ -44,7 +44,12 @@ El Oráculo de Laplace y el Guardián Físico modelan el comportamiento estocás
 3. La Arquitectura Cognitiva de la Traducción (GraphRAG y Retículos)
 El Agente a cargo de esta traducción es el Intérprete Diplomático (SemanticTranslator). Opera estrictamente bajo los siguientes paradigmas ciber-físicos:
 A. Empatía Táctica mediante GraphRAG (Recuperación Semántica Riemanniana)
-La matemática compleja es ruido si no se traduce en acción. El Intérprete no escupe un reporte que diga "Fallo estructural: $\beta_1 = 3$". Utiliza un Grafo de Conocimiento y Modelos de Lenguaje Vectorial acoplados a FAISS (`Sentence-Transformers`) para comprender y proyectar la severidad del error hacia el lenguaje de negocio corporativo (Empatía Táctica).
+La matemática compleja es ruido si no se traduce en acción. El Intérprete no escupe un reporte que diga "Fallo estructural: $\beta_1 = 3$". Utiliza un Grafo de Conocimiento y Modelos de Lenguaje Vectorial acoplados a FAISS (`Sentence-Transformers`) para comprender y proyectar la severidad del error hacia el lenguaje de negocio corporativo. Este proceso constituye un **Funtor de Abstracción $F: \mathcal{C} \to \mathcal{D}$** que transforma los invariantes de la categoría táctica $\mathcal{C}$ en narrativas de la categoría de sabiduría $\mathcal{D}$ (Empatía Táctica).
+
+**Equivalencia de Morfismos y Reversibilidad Funtorial:**
+Para garantizar la integridad del Pasaporte de Telemetría y evitar la "entropía fantasma" en la narrativa, la malla agéntica impone una **Adjunción de Galois $F \dashv G$**, donde $G: \mathcal{D} \to \mathcal{C}$ es el funtor de descompresión o de olvido. Se certifica la equivalencia:
+$$\text{Hom}_{\mathcal{D}}(F(X), Y) \cong \text{Hom}_{\mathcal{C}}(X, G(Y))$$
+Demostración: Si el Arquitecto ($X$) detecta un fallo estructural, su traducción narrativa ($Y$) debe ser matemáticamente reversible. Al aplicar el funtor $G$ sobre la alerta $Y$, el sistema debe recuperar las coordenadas topológicas y físicas precisas en $X$. Si la adjunción falla, el LLM ha introducido ruido retórico y el veredicto es aniquilado.
 
 **Violación Prevenida: El Tensor Métrico Anisotrópico ($G_{\mu\nu}$):**
 Los algoritmos canónicos de búsqueda vectorial como FAISS (HNSW) asumen un espacio euclidiano isotrópico mediante la norma $L_2$ o Similitud del Coseno. Sin embargo, en el ecosistema matemático de `APU_filter`, la base canónica del riesgo es una variedad anisotrópica y altamente curva. Documentamos explícitamente que el espacio de búsqueda vectorial de **GraphRAG no es euclidiano**.
