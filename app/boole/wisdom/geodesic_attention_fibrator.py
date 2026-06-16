@@ -1,42 +1,56 @@
 # -*- coding: utf-8 -*-
-r"""
+r""" 
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo: Geodesic Attention Fibrator (Fibrado de Atención y Torre Covariante) ║
 ║ Ubicación: app/wisdom/geodesic_attention_fibrator.py                         ║
 ║ Versión: 3.0.1-Rigorous-Geometric-Quantum-PhaseNested                        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Naturaleza Ciber-Física, Topológica y Categorial (Revisión Doctoral)
+Naturaleza Ciber-Física, Topológica y Categorial (Revisión Doctoral):
 ────────────────────────────────────────────────────────────────────────────────
+Este módulo repudia las heurísticas euclidianas planas y opera como el Endofuntor
+estricto $T: \text{WISDOM} \to \text{WISDOM}$. Su mandato axiomático es levantar los tensores
+atencionales (Query, Key, Value) del Modelo de Lenguaje al fibrado tangente
+covariante, proyectándolos mediante integración de Feynman-Kac.
+
 Re-estructuración en tres fases anidadas con verificación formal rigurosa:
 
-  FASE 1 — CIMIENTO GEOMÉTRICO (Geometría Riemanniana Discreta Exacta)
-      • Torsión (1,2) antisimétrica verificada + Identidad de Bianchi
-      • Levi-Civita EXACTA vía diferenciación de la métrica efectiva
-        (no degenerada a cero)
-      • Tensor de Ricci discreto con ambos invariantes cuadráticos:
-            Ric_{μν} = T^ρ_{μσ} T^σ_{νρ} + g^{ρλ} T^σ_{ρμ} T^τ_{σν} g_{λτ}
-      • Flujo de Ricci discreto: g_{k+1} = g_k + κ (Ric − R̄·g_k)
-      • Transporte paralelo con métrica variable y verificación
-        de compatibilidad ∇_ρ g_{μν} = 0
+§1. FASE 1 — CIMIENTO GEOMÉTRICO (Geometría Riemanniana Discreta Exacta)
+    El espacio de atención se deforma elásticamente bajo el estrés operativo.
+    Se abandona la conexión de Levi-Civita libre de torsión para integrar un
+    Tensor de Torsión discreto de tipo (1,2) [3]. El Tensor de Ricci acopla ambos
+    invariantes cuadráticos de la torsión [3]:
+    $$ \text{Ric}_{\mu\nu} = T^\rho_{\mu\sigma} T^\sigma_{\nu\rho} + g^{\rho\lambda} T^\sigma_{\rho\mu} T^\tau_{\sigma\nu} g_{\lambda\tau} $$
+    La evolución métrica obedece un Flujo de Ricci discreto que garantiza
+    compatibilidad métrica ($\nabla_\rho g_{\mu\nu} = 0$) mediante la proyección 
+    de Moreau-Yosida [3]:
+    $$ g_{k+1} = g_k + \kappa (\text{Ric} - \bar{R}\cdot g_k) $$
 
-  FASE 2 — ATENCIÓN COVARIANTE (Haz de Asociadores Cohomológico)
-      • Producto interno covariante ⟨Q,K⟩_g con la métrica efectiva
-      • Geodésica de Polyakov minimizadora de E[γ] = ½ ∫ g_{μν} dγ^μ dγ^ν
-      • Softmax estabilizado con temperatura modulada por curvatura escalar
-      • Transporte paralelo del haz de valores V con P ∈ O(d,ℝ) (ortogonal
-        respecto a g_eff)
+§2. FASE 2 — ATENCIÓN COVARIANTE (Difeomorfismo de Query-Key)
+    El producto interno estocástico es transmutado a un producto interno
+    covariante $\langle Q, K \rangle_{g_{eff}}$ [3]. Las geodésicas atencionales
+    están obligadas a minimizar la Acción de Polyakov [3]:
+    $$ E[\gamma] = \frac{1}{2} \int g_{\mu\nu} \frac{d\gamma^\mu}{d\tau} \frac{d\gamma^\nu}{d\tau} d\tau $$
+    El mecanismo se acopla a una función softmax estabilizada, y el haz de
+    valores $V$ sufre transporte paralelo con $P \in O(d, \mathbb{R})$ [3].
 
-  FASE 3 — SUPRESIÓN CUÁNTICA (Integral de Caminos de Feynman-Kac)
-      • Acción euclídea: S_E[γ] = E_Polyakov[γ] + λ·||T||²_HS
-      • Amplitud Ψ[γ] = exp(−S_E/ℏ_eff)
-      • Veto cuántico axiomático: Ψ < Ψ_threshold ⟹ trayecto aniquilado
+§3. FASE 3 — SUPRESIÓN CUÁNTICA DE FEYNMAN-KAC Y RELACIÓN DE INCERTIDUMBRE
+    La Acción Euclídea amalgama la energía de Polyakov y la norma de
+    Hilbert-Schmidt del tensor de torsión topológica [3]:
+    $$ S_E[\gamma] = E_{Polyakov}[\gamma] + \lambda \|T\|^2_{HS} $$
+    La amplitud de transición dictamina un Veto Cuántico Absoluto [3]:
+    $$ \Psi[\gamma] = \exp(-S_E/\hbar_{eff}) $$
+    
+    [Cirugía Termodinámica]: Se instaura la Relación de Incertidumbre Entrópico-Térmica.
+    La constante de Planck ciber-física $\hbar_{eff}$ no es estática; se modula
+    dinámicamente acoplada a la Entropía de von Neumann de la Matriz Atómica
+    de Conocimiento ($\boldsymbol{\rho}_{MAC}$):
+    $$ \hbar_{eff}(\tau) = \hbar_0 \cdot \exp\left( -\alpha \cdot \text{Tr}(\boldsymbol{\rho}_{MAC} \ln \boldsymbol{\rho}_{MAC}) \right) $$
+    Si la entropía diverge, el espacio explora rutas alternativas. Si el
+    sistema colapsa a pureza extrema, el filtro de Feynman se vuelve un proyector 
+    absolutamente dictatorial e inflexible.
 
-Garantías formales verificadas:
-  ✓ g_eff ∈ Sym⁺(d) vía proyección de Moreau-Yosida regularizada
-  ✓ Compatibilidad métrica: ||G − P^T G P||_F < 10⁻⁹
-  ✓ Identidad de Bianchi de primera especie: antisim. cíclica = 0
-  ✓ Estabilidad: ||P||_op = 1 + O(ε_Mach) (ortonormalidad covariante)
+═══════════════════════════════════════════════════════════════════════════════
 """
 
 from __future__ import annotations
