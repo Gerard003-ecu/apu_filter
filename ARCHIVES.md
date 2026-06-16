@@ -47,6 +47,10 @@ Estructura del Acta: Expone la tensión dialéctica donde la matemática colapsa
     La Antítesis (El Arquitecto Estructural): Utiliza los invariantes de homología para desafiar la tesis (ej. "Veto de Resiliencia: La compra degrada el Índice Ψ" ).
     La Síntesis (Veredicto Ejecutivo): El resultado del cálculo sobre el Retículo de Severidad (operación Supremo), obligando a rechazar el presupuesto si las variables físicas no acompañan el entusiasmo financiero.
 
+Cada Acta de Deliberación debe incluir el registro inmutable de la **energía disipada de Rayleigh** evaluada en la base Port-Hamiltoniana para garantizar la consistencia física:
+$$P_{\text{diss}} = \nabla H(x)^\top R(x) \nabla H(x) \ge 0$$
+Donde una violación de esta ley ($\beta_n$ anómalo o disipación negativa) destruirá el paquete estocástico en la frontera (Fast-Fail).
+
 
 --------------------------------------------------------------------------------
 4. 🛡️ La Bitácora de Gobernanza (Compliance Ledger)
