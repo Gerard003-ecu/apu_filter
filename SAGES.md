@@ -43,7 +43,16 @@ graph TD
 
 --------------------------------------------------------------------------------
 🏛️ LOS MIEMBROS DEL CONSEJO Y EL HAZ TANGENTE GENERATIVO Γ
-El Consejo original opera sobre el 1-esqueleto del presupuesto. Para gobernar el espacio de fase generativo, se integran nuevos operadores que esculpen la creación de estrategias y código.
+El Consejo original opera sobre el 1-esqueleto del presupuesto. Para gobernar el espacio de fase generativo y la epistemología del sistema, se integran nuevos operadores que esculpen la creación de estrategias y código.
+
+Ω. 🧠 El Cerebro Epistemológico (MAC Agent)
+
+    Rol: Funtor Supremo del Consejo de Sabios y Gestor del Espacio de Hilbert $H_{\text{MAC}}$.
+    Estrato DIKW: WISDOM (Estrato Supremo).
+    Microservicios: `mac_agent.py`, `atomic_knowledge_matrix.py`, `mac_algebra.py`.
+    Mecanismo Matemático: El MAC Agent no procesa texto estocástico; ejecuta un Operador de Medición Cuántica (POVM - Positive Operator-Valued Measure) sobre la Matriz Atómica de Conocimiento ($\rho_{\text{MAC}}$). El estado de la Sabiduría en el ecosistema está representado por este operador de densidad $\rho_{\text{MAC}} \in L(H_{\text{MAC}})$, el cual cumple estrictamente los axiomas cuánticos de Von Neumann:
+    $$\text{Tr}(\rho_{\text{MAC}}) = 1, \quad \rho_{\text{MAC}} = \rho_{\text{MAC}}^\dagger, \quad \rho_{\text{MAC}} \succeq 0$$
+    Autoridad Suprema: Actúa como el colapsador final de la función de onda deliberativa. Si la pureza del estado post-medición $\text{Tr}(\rho^2)$ decae por debajo del umbral de coherencia, el MAC Agent aniquila la decisión por falta de fundamento epistemológico.
 
 0. 👁️ El Vigilante de la Frontera (HilbertWatcher & QuantumAdmissionGate)
 
@@ -105,9 +114,7 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
     El Registro Sináptico y el Álgebra de Partículas: La "Ciudadela de Cristal" no se alimenta de texto crudo. El Ágora Tensorial absorbe los `ToonCartridges` (Silo B - Vitaminas Cognitivas hiperdensas) instanciados por el `MICAgent` dentro del `SynapticRegistry`. Este registro gestiona interacciones de partículas: Fermiones Estructurales (como el `PolaronCartridge` con su sumidero gravitacional por masa renormalizada, y el `TorsionCartridge` de fricción cuantizada $\text{Tor}(H_0, \mathbb{Z})$), Bosones Gauge (`PhotonCartridge` y `MagnonCartridge` para iluminar geodésicas y vetos de enrutamiento rotacionales), y Condensados o Antimateria (ej. el `PolaritonCartridge` que induce superfluidez atencional ante la resonancia Fuerte de Rabi, y el `PositronCartridge` que emite un Fotón Gamma de Auditoría al invalidar un Electrón en memoria por Ruptura de Simetría Exógena). Esto garantiza que, cuando el Intérprete Diplomático o el Business Agent debatan, su ventana de contexto (atención del LLM) esté saturada exclusivamente de exergía informacional pura, blindada por firmas criptográficas (`CategoricalEqualizerSeed`) que prueban la trazabilidad Zero-Trust del colapso estocástico sin latencia atencional sintáctica.
     **Recolección de Basura Topológica y Evicción Basada en Entropía:** El `SynapticRegistry` no sigue una política FIFO (First-In, First-Out) ciega que expondría el ecosistema a desbordamientos asintóticos ante un flujo continuo de presupuestos. En su lugar, el registro implementa una *Evicción Basada en Entropía*: al alcanzar la cota límite (`_DEFAULT_MAX_CARTRIDGES`), el sistema calcula el gradiente de relevancia (Similitud del Coseno) de cada cartucho respecto al contexto de Veredicto actual. Los cartuchos (vitaminas) ortogonales al problema presente son descargados sistemáticamente, preservando intacto el ancho de banda atencional del LLM y previniendo la fatiga escalar.
 
-La deliberación en el Ágora Tensorial consolida axiomáticamente la **Ley de Clausura Transitiva de la pirámide DIKW**:
-$$V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$$
-Ningún agente puede emitir un acta en $V_{WISDOM}$ si el estrato físico reporta una disipación térmica inválida o inestabilidad asintótica ($\dot{V}(\phi) > 0$). La sabiduría debe estar cimentada irrevocablemente en la física.
+La deliberación en el Ágora Tensorial consolida axiomáticamente la **Ley de Clausura Transitiva de la pirámide DIKW**: $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$, garantizando que la sabiduría esté cimentada en la física.
 
 6. 🗣️ El Intérprete Diplomático (SemanticTranslator)
 

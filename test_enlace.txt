@@ -1,0 +1,815 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+APU SENTINEL - Test de Enlace v4.0
+Script de validación de comunicación ESP32 <-> Python.
+
+Coherente con: firmware APU_SENTINEL_v4.0
+Plataforma:   Linux Mint / Ubuntu (pyserial)
+
+Protocolo de mensajes del firmware v4.0:
+  Firmware → Host:
+    APU:READY|V4.0
+    APU:HANDSHAKE|ACK|V4.0         (respuesta a PYTHON:HANDSHAKE)
+    APU:PONG                        (respuesta a PING)
+    APU:STATUS|<n>|<NOMBRE>|HB:<c> (respuesta a STATUS?)
+    APU:HEARTBEAT|<n>|STATE:<name>  (periódico, cada T_HEARTBEAT ms)
+    APU:RESET|ACK                   (respuesta a RESET)
+    [TRANS] <A> -> <B>              (log de transición de estado)
+    [INFO/WARN/ALRT] ...            (logs de diagnóstico)
+
+  Host → Firmware:
+    PYTHON:HANDSHAKE
+    PING
+    STATUS?
+    RESET
+"""
+
+import glob
+import os
+import re
+import signal
+import sys
+import time
+from dataclasses import dataclass, field
+from enum import IntEnum
+from typing import Optional, Tuple
+
+import serial
+
+# ============================================================================
+# SECCIÓN 1: CONFIGURACIÓN
+# Espejo exacto de las constantes del firmware (mismas unidades, ms→s).
+# ============================================================================
+
+@dataclass(frozen=True)
+class FirmwareProtocol:
+    """
+    Constantes del protocolo alineadas con el firmware v4.0.
+    Cambiar aquí si se modifica el firmware.
+    """
+    VERSION:              str   = "V4.0"
+
+    # Prefijos de respuesta del firmware (para matching preciso)
+    PREFIX_READY:         str   = "APU:READY"
+    PREFIX_HB_ACK:        str   = "APU:HANDSHAKE|ACK"
+    PREFIX_PONG:          str   = "APU:PONG"
+    PREFIX_STATUS:        str   = "APU:STATUS"
+    PREFIX_HEARTBEAT:     str   = "APU:HEARTBEAT"
+    PREFIX_RESET_ACK:     str   = "APU:RESET|ACK"
+
+    # Comandos del host → firmware
+    CMD_HANDSHAKE:        str   = "PYTHON:HANDSHAKE"
+    CMD_PING:             str   = "PING"
+    CMD_STATUS:           str   = "STATUS?"
+    CMD_RESET:            str   = "RESET"
+
+    # Umbrales temporales (segundos) — espejo de T_HEARTBEAT, T_DEGRADED, etc.
+    # INVARIANTE: T_HEARTBEAT_S < T_DEGRADED_S < T_CRITICAL_S
+    T_HEARTBEAT_S:        float = 5.0
+    T_DEGRADED_S:         float = 15.0
+    T_CRITICAL_S:         float = 30.0
+
+
+@dataclass(frozen=True)
+class SerialConfig:
+    """Parámetros de la conexión serial."""
+    PORT_DEFAULT:         str   = "/dev/ttyUSB0"
+    BAUDRATE:             int   = 115200
+    TIMEOUT_READ:         float = 1.0
+
+    # Tiempos de espera del test
+    TIMEOUT_CONNECT:      float = 10.0
+    TIMEOUT_RESPONSE:     float = 5.0
+    DELAY_BOOT:           float = 3.0    # Tiempo de arranque del ESP32
+    DELAY_CLEANUP:        float = 0.2    # Estabilización tras reset
+
+    # Ventana de observación de heartbeats:
+    # T_HEARTBEAT_S * 2 ciclos + 10% de margen = 11s
+    # Garantiza captura estadística de al menos 2 heartbeats.
+    HEARTBEAT_OBS_WINDOW: float = FirmwareProtocol.T_HEARTBEAT_S * 2.2
+
+    # Número de PINGs enviados durante la ventana de observación
+    PINGS_DURING_OBS:     int   = 3
+
+
+# Instancias globales inmutables
+PROTO  = FirmwareProtocol()
+CONFIG = SerialConfig()
+
+
+# ============================================================================
+# SECCIÓN 2: ESTADO DEL SISTEMA
+# Espejo exacto del enum SystemState del firmware.
+# ============================================================================
+
+class SystemState(IntEnum):
+    INITIALIZING = 0
+    WAITING      = 1
+    ACTIVE       = 2
+    DEGRADED     = 3
+    CRITICAL     = 4
+
+    def label(self) -> str:
+        return self.name  # IntEnum.name devuelve el nombre del miembro
+
+    @classmethod
+    def from_value(cls, value: int) -> "SystemState":
+        try:
+            return cls(value)
+        except ValueError:
+            # Valor desconocido: lo representamos sin lanzar excepción
+            return cls.CRITICAL  # Estado conservador ante incertidumbre
+
+
+# ============================================================================
+# SECCIÓN 3: ESTRUCTURA DE RESULTADOS DEL TEST
+# Evita variables sueltas con ciclo de vida indefinido.
+# ============================================================================
+
+@dataclass
+class TestResult:
+    """
+    Acumula resultados de cada etapa.
+    Invariante: todos los campos tienen valor por defecto → sin NameError.
+    """
+    port:                 str           = ""
+    firmware_version:     str           = "N/A"
+    handshake_ok:         bool          = False
+    ping_latency_ms:      float         = -1.0
+    system_state:         Optional[SystemState] = None
+    heartbeats_observed:  int           = 0
+    heartbeats_expected:  int           = 0
+    pings_sent_obs:       int           = 0
+    elapsed_total_s:      float         = 0.0
+    failure_reason:       str           = ""
+
+    def is_success(self) -> bool:
+        return (
+            self.handshake_ok
+            and self.ping_latency_ms >= 0
+            and self.system_state == SystemState.ACTIVE
+            and self.heartbeats_observed >= 1
+        )
+
+
+# ============================================================================
+# SECCIÓN 4: GESTIÓN DE SEÑALES Y CICLO DE VIDA
+# ============================================================================
+
+class ConnectionManager:
+    """
+    Propietario del recurso serial. Garantiza cierre limpio ante:
+      - SIGINT (Ctrl+C)
+      - SIGTERM
+      - Excepción no capturada
+    """
+
+    def __init__(self) -> None:
+        self.ser:     Optional[serial.Serial] = None
+        self.running: bool = True
+        signal.signal(signal.SIGINT,  self._signal_handler)
+        signal.signal(signal.SIGTERM, self._signal_handler)
+
+    def _signal_handler(self, signum, frame) -> None:
+        print("\n\n[SIGNAL] Señal de interrupción recibida — cerrando...")
+        self.running = False
+        self.close()
+        sys.exit(0)
+
+    def open(self, port: str) -> "serial.Serial":
+        """
+        Abre el puerto serial y lo registra en el manager.
+        Lanza serial.SerialException si falla.
+        """
+        self.ser = serial.Serial(
+            port,
+            CONFIG.BAUDRATE,
+            timeout=CONFIG.TIMEOUT_READ,
+        )
+        return self.ser
+
+    def close(self) -> None:
+        """
+        Cierre limpio.
+        FIX: No enviamos PYTHON:DISCONNECT porque el firmware v4.0
+        no reconoce ese comando — lo ignoraría silenciosamente pero
+        contamina el buffer de entrada del ESP32.
+        """
+        if self.ser and self.ser.is_open:
+            try:
+                self.ser.close()
+            except Exception:
+                pass
+            finally:
+                print("[INFO] Conexión serial cerrada")
+
+
+# ============================================================================
+# SECCIÓN 5: CAPA DE COMUNICACIÓN SERIAL
+# Primitivas de bajo nivel: limpiar, leer, enviar.
+# ============================================================================
+
+def purge_buffers(ser: serial.Serial) -> int:
+    """
+    Descarta todo el contenido pendiente en los buffers hardware y software.
+    Returns: bytes descartados (para diagnóstico).
+    """
+    ser.reset_input_buffer()
+    ser.reset_output_buffer()
+    time.sleep(CONFIG.DELAY_CLEANUP)
+
+    discarded = 0
+    while ser.in_waiting > 0:
+        chunk = ser.read(ser.in_waiting)
+        discarded += len(chunk)
+        time.sleep(0.02)
+
+    if discarded > 0:
+        print(f"[PURGE] {discarded} bytes descartados del buffer")
+
+    return discarded
+
+
+def read_line(ser: serial.Serial,
+              timeout: float = CONFIG.TIMEOUT_RESPONSE
+              ) -> Optional[str]:
+    """
+    Lee una línea completa con timeout propio (no depende del timeout
+    del objeto serial, que puede variar).
+
+    Returns: Línea decodificada y sin espacios extremos, o None si timeout.
+    """
+    deadline = time.monotonic() + timeout
+
+    while time.monotonic() < deadline:
+        if ser.in_waiting > 0:
+            try:
+                raw   = ser.readline()
+                line  = raw.decode("utf-8", errors="replace").strip()
+                if line:
+                    return line
+            except serial.SerialException as exc:
+                print(f"[ERROR] Lectura serial: {exc}")
+                return None
+        time.sleep(0.01)
+
+    return None
+
+
+def send_command(ser:      serial.Serial,
+                 command:  str) -> bool:
+    """
+    Transmite un comando al firmware con terminador de línea.
+    Returns: True si la escritura fue exitosa.
+    """
+    try:
+        payload = f"{command}\n".encode("utf-8")
+        ser.write(payload)
+        ser.flush()
+        print(f"[TX] {command}")
+        return True
+    except serial.SerialException as exc:
+        print(f"[ERROR] No se pudo enviar '{command}': {exc}")
+        return False
+
+
+def wait_for_prefix(ser:      serial.Serial,
+                    prefix:   str,
+                    timeout:  float = CONFIG.TIMEOUT_RESPONSE,
+                    verbose:  bool  = True
+                    ) -> Tuple[bool, str]:
+    """
+    Espera una línea cuyo contenido COMIENCE con `prefix`.
+
+    FIX respecto a la versión anterior:
+      - Usa `str.startswith()` en lugar de `in` para evitar falsos positivos.
+        Ejemplo: "APU:HANDSHAKE|V4.0|READY" y "APU:HANDSHAKE|ACK|V4.0"
+        ambas contenían "APU:HANDSHAKE", haciendo imposible distinguirlas.
+
+    Returns: (encontrado, línea_completa)
+    """
+    deadline    = time.monotonic() + timeout
+    last_line   = ""
+
+    print(f"[WAIT] Esperando prefijo '{prefix}' (timeout={timeout:.1f}s)...")
+
+    while time.monotonic() < deadline:
+        line = read_line(ser, timeout=min(0.5, deadline - time.monotonic()))
+        if line is None:
+            continue
+        if verbose:
+            print(f"[RX]   {line}")
+        last_line = line
+        if line.startswith(prefix):
+            print(f"[OK]   Prefijo '{prefix}' encontrado")
+            return True, line
+
+    print(f"[FAIL] Timeout — prefijo '{prefix}' no recibido")
+    return False, last_line
+
+
+# ============================================================================
+# SECCIÓN 6: PARSERS DE MENSAJES DEL FIRMWARE
+# Cada parser valida y extrae datos de un formato específico.
+# ============================================================================
+
+def parse_ready_line(line: str) -> Optional[str]:
+    """
+    Parsea: APU:READY|V4.0
+    Returns: versión del firmware, o None si el formato no coincide.
+    """
+    # Formato: APU:READY|<VERSION>
+    match = re.match(r"^APU:READY\|(.+)$", line)
+    return match.group(1) if match else None
+
+
+def parse_status_line(line: str) -> Optional[Tuple[SystemState, str, int]]:
+    """
+    Parsea: APU:STATUS|<n>|<NOMBRE>|HB:<counter>
+    Returns: (SystemState, nombre, heartbeat_count) o None si falla.
+
+    FIX: La versión anterior solo extraía split("|")[1] (valor numérico)
+    e ignoraba el nombre y el contador de heartbeats que el firmware v4.0
+    incluye en su respuesta.
+    """
+    match = re.match(
+        r"^APU:STATUS\|(\d+)\|(\w+)\|HB:(\d+)$",
+        line
+    )
+    if not match:
+        return None
+    state_val  = int(match.group(1))
+    state_name = match.group(2)
+    hb_count   = int(match.group(3))
+    return SystemState.from_value(state_val), state_name, hb_count
+
+
+def parse_heartbeat_line(line: str) -> Optional[Tuple[int, str]]:
+    """
+    Parsea: APU:HEARTBEAT|<n>|STATE:<nombre>
+    Returns: (contador, nombre_estado) o None si falla.
+    """
+    match = re.match(r"^APU:HEARTBEAT\|(\d+)\|STATE:(\w+)$", line)
+    if not match:
+        return None
+    return int(match.group(1)), match.group(2)
+
+
+def parse_handshake_ack(line: str) -> Optional[str]:
+    """
+    Parsea: APU:HANDSHAKE|ACK|V4.0
+    Returns: versión confirmada, o None.
+    """
+    match = re.match(r"^APU:HANDSHAKE\|ACK\|(.+)$", line)
+    return match.group(1) if match else None
+
+
+# ============================================================================
+# SECCIÓN 7: DIAGNÓSTICO DE FALLOS
+# ============================================================================
+
+def diagnose_failure(ser: serial.Serial) -> str:
+    """
+    Intenta determinar la causa de un fallo de conexión.
+    Se ejecuta solo cuando etapas previas han fallado.
+    """
+    print("\n[DIAG] Ejecutando diagnóstico avanzado...")
+
+    # ¿El firmware envía heartbeats? (está vivo pero desincronizado)
+    found, line = wait_for_prefix(ser, PROTO.PREFIX_HEARTBEAT,
+                                  timeout=PROTO.T_HEARTBEAT_S + 1.0,
+                                  verbose=True)
+    if found:
+        return (
+            "Firmware activo pero protocolo desincronizado. "
+            "¿Versión del firmware es V4.0?"
+        )
+
+    # ¿Hay algún dato ilegible?
+    time.sleep(0.5)
+    if ser.in_waiting > 0:
+        raw = ser.read(min(ser.in_waiting, 128))
+        snippet = raw.decode("utf-8", errors="replace").strip()
+        return f"Datos recibidos pero no reconocidos: '{snippet[:60]}'"
+
+    return "Sin comunicación — verificar cable, puerto y firmware cargado"
+
+
+# ============================================================================
+# SECCIÓN 8: LÓGICA DE TEST POR ETAPAS
+# Cada etapa es una función pura con entrada/salida explícita.
+# ============================================================================
+
+def stage_open_port(manager: ConnectionManager,
+                    port:    str) -> Optional[serial.Serial]:
+    """
+    Etapa 1: Apertura del puerto serial.
+    Returns: objeto Serial abierto, o None si falla.
+    """
+    print(f"\n[E1] Abriendo puerto {port} @ {CONFIG.BAUDRATE} baud...")
+    try:
+        ser = manager.open(port)
+        print(f"[E1] Puerto abierto correctamente")
+        return ser
+    except serial.SerialException as exc:
+        print(f"[E1][FAIL] {exc}")
+        print("  Verifica:")
+        print("  1. Monitor Serial de Arduino IDE cerrado")
+        print("  2. Permisos: sudo usermod -aG dialout $USER && newgrp dialout")
+        print("  3. Puerto existente: ls -l /dev/ttyUSB* /dev/ttyACM*")
+        return None
+
+
+def stage_wait_boot(ser: serial.Serial,
+                    result: TestResult) -> bool:
+    """
+    Etapa 2: Espera el banner de arranque del firmware.
+    Extrae y valida la versión del firmware.
+    """
+    print(f"\n[E2] Esperando arranque del ESP32 ({CONFIG.DELAY_BOOT:.1f}s)...")
+    time.sleep(CONFIG.DELAY_BOOT)
+    purge_buffers(ser)
+
+    # Ahora capturamos APU:READY|V4.0
+    found, line = wait_for_prefix(ser, PROTO.PREFIX_READY,
+                                  timeout=5.0, verbose=True)
+
+    if not found:
+        # Puede que el ESP32 ya haya arrancado antes de abrir el puerto.
+        # Intentamos un reset hardware vía líneas de control DTR/RTS.
+        print("[E2] APU:READY no detectado — intentando reset por DTR/RTS...")
+        try:
+            ser.dtr = False
+            ser.rts = True
+            time.sleep(0.15)
+            ser.dtr = True
+            ser.rts = False
+            time.sleep(0.15)
+            time.sleep(CONFIG.DELAY_BOOT)
+            purge_buffers(ser)
+
+            found, line = wait_for_prefix(ser, PROTO.PREFIX_READY,
+                                          timeout=5.0, verbose=True)
+        except Exception as exc:
+            print(f"[E2] Reset DTR/RTS no disponible: {exc}")
+
+    if not found:
+        result.failure_reason = "Firmware no envió APU:READY — ¿firmware v4.0 cargado?"
+        return False
+
+    version = parse_ready_line(line)
+    result.firmware_version = version or "formato_desconocido"
+
+    if version != PROTO.VERSION:
+        print(f"[E2][WARN] Versión detectada: {version}, esperada: {PROTO.VERSION}")
+        print("           Continuando — puede haber incompatibilidades")
+    else:
+        print(f"[E2] Firmware v{version} confirmado")
+
+    return True
+
+
+def stage_python_handshake(ser: serial.Serial,
+                            result: TestResult) -> bool:
+    """
+    Etapa 3: Handshake bidireccional Python → ESP32.
+    Envía PYTHON:HANDSHAKE, espera APU:HANDSHAKE|ACK|V4.0.
+    """
+    print("\n[E3] Iniciando handshake Python → ESP32...")
+
+    for attempt in range(1, 3):  # Máximo 2 intentos
+        print(f"[E3] Intento {attempt}/2")
+        if not send_command(ser, PROTO.CMD_HANDSHAKE):
+            result.failure_reason = "Error de escritura serial en handshake"
+            return False
+
+        found, line = wait_for_prefix(ser, PROTO.PREFIX_HB_ACK,
+                                      timeout=CONFIG.TIMEOUT_RESPONSE,
+                                      verbose=True)
+        if found:
+            ack_version = parse_handshake_ack(line)
+            if ack_version and ack_version != PROTO.VERSION:
+                print(f"[E3][WARN] ACK version={ack_version}, "
+                      f"esperada={PROTO.VERSION}")
+            result.handshake_ok = True
+            print("[E3] Handshake bidireccional completado")
+            return True
+
+        if attempt < 2:
+            time.sleep(0.5)
+
+    result.failure_reason = "No se recibió APU:HANDSHAKE|ACK|V4.0"
+    return False
+
+
+def stage_ping_pong(ser: serial.Serial, result: TestResult) -> bool:
+    """
+    Etapa 4: Medición de latencia PING/PONG.
+    """
+    print("\n[E4] Prueba de latencia PING/PONG...")
+
+    if not send_command(ser, PROTO.CMD_PING):
+        result.failure_reason = "Error enviando PING"
+        return False
+
+    t0 = time.monotonic()
+    found, _ = wait_for_prefix(ser, PROTO.PREFIX_PONG,
+                                timeout=CONFIG.TIMEOUT_RESPONSE,
+                                verbose=True)
+    latency = (time.monotonic() - t0) * 1000.0
+
+    if not found:
+        result.failure_reason = "No se recibió APU:PONG"
+        return False
+
+    result.ping_latency_ms = latency
+    print(f"[E4] Latencia round-trip: {latency:.2f} ms")
+    return True
+
+
+def stage_query_status(ser: serial.Serial, result: TestResult) -> bool:
+    """
+    Etapa 5: Consulta y parseo de estado del sistema.
+
+    FIX: La versión anterior esperaba APU:STATUS pasivamente sin
+    enviar STATUS? — el firmware solo responde bajo demanda.
+    """
+    print("\n[E5] Consultando estado del sistema...")
+
+    if not send_command(ser, PROTO.CMD_STATUS):
+        result.failure_reason = "Error enviando STATUS?"
+        return False
+
+    found, line = wait_for_prefix(ser, PROTO.PREFIX_STATUS,
+                                  timeout=CONFIG.TIMEOUT_RESPONSE,
+                                  verbose=True)
+    if not found:
+        print("[E5][WARN] No se recibió respuesta a STATUS?")
+        return False
+
+    parsed = parse_status_line(line)
+    if parsed is None:
+        print(f"[E5][WARN] Formato inesperado: '{line}'")
+        print("           Esperado: APU:STATUS|<n>|<NOMBRE>|HB:<counter>")
+        return False
+
+    state, name, hb_count = parsed
+    result.system_state = state
+    print(f"[E5] Estado: {name} ({int(state)}) | "
+          f"Heartbeats enviados por firmware: {hb_count}")
+
+    if state >= SystemState.DEGRADED:
+        print("[E5][WARN] Sistema en estado degradado/crítico")
+        print("           Causa probable: silencio serial > "
+              f"{PROTO.T_DEGRADED_S:.0f}s sin PING")
+
+    return True
+
+
+def stage_observe_heartbeats(ser: serial.Serial,
+                              result: TestResult) -> bool:
+    """
+    Etapa 6: Observación de heartbeats en ventana temporal definida.
+
+    FIX 1: Enviamos PINGs periódicos durante la observación para
+            mantener el watchdog del firmware activo y evitar que
+            el estado transite a DEGRADED mientras observamos.
+
+    FIX 2: La ventana se calcula como T_HEARTBEAT_S * 2.2 para
+            garantizar estadísticamente al menos 2 heartbeats.
+    """
+    window    = CONFIG.HEARTBEAT_OBS_WINDOW
+    expected  = int(window / PROTO.T_HEARTBEAT_S)  # Esperados estadísticos
+    ping_interval = window / (CONFIG.PINGS_DURING_OBS + 1)
+
+    result.heartbeats_expected = expected
+
+    print(f"\n[E6] Observando heartbeats durante {window:.1f}s...")
+    print(f"     Esperados: ~{expected} | "
+          f"PINGs keepalive: {CONFIG.PINGS_DURING_OBS}")
+
+    t_start       = time.monotonic()
+    t_last_ping   = t_start
+    hb_count      = 0
+    pings_sent    = 0
+
+    while time.monotonic() - t_start < window:
+        # Enviar PING periódico para mantener watchdog del firmware
+        if (time.monotonic() - t_last_ping >= ping_interval
+                and pings_sent < CONFIG.PINGS_DURING_OBS):
+            send_command(ser, PROTO.CMD_PING)
+            t_last_ping = time.monotonic()
+            pings_sent += 1
+
+        line = read_line(ser, timeout=0.3)
+        if line is None:
+            continue
+
+        print(f"[RX]   {line}")
+
+        if line.startswith(PROTO.PREFIX_HEARTBEAT):
+            parsed_hb = parse_heartbeat_line(line)
+            if parsed_hb:
+                hb_num, hb_state = parsed_hb
+                print(f"[E6]   Heartbeat #{hb_num} | Estado firmware: {hb_state}")
+                hb_count += 1
+
+    elapsed = time.monotonic() - t_start
+    result.heartbeats_observed = hb_count
+    result.pings_sent_obs      = pings_sent
+
+    print(f"[E6] Observación completa: {hb_count}/{expected} "
+          f"heartbeats en {elapsed:.1f}s")
+
+    if hb_count == 0:
+        print("[E6][WARN] Sin heartbeats — ¿estado CRITICAL en firmware?")
+        return False
+
+    return True
+
+
+# ============================================================================
+# SECCIÓN 9: ORQUESTADOR PRINCIPAL DEL TEST
+# ============================================================================
+
+def run_test(manager: ConnectionManager, port: str) -> TestResult:
+    """
+    Ejecuta todas las etapas en orden.
+    Garantía: TestResult siempre tiene valores por defecto —
+    nunca se lanza NameError en el resumen final.
+    """
+    result      = TestResult(port=port)
+    t_start     = time.monotonic()
+
+    _separator  = "=" * 62
+    print(f"\n{_separator}")
+    print(f"  APU SENTINEL — TEST DE ENLACE v4.0")
+    print(f"{_separator}")
+    print(f"  Puerto:  {port}")
+    print(f"  Baudios: {CONFIG.BAUDRATE}")
+    print(f"  Firmware esperado: {PROTO.VERSION}")
+    print(f"{_separator}\n")
+
+    try:
+        # E1: Apertura de puerto
+        ser = stage_open_port(manager, port)
+        if ser is None:
+            result.failure_reason = "No se pudo abrir el puerto serial"
+            return result
+
+        # E2: Arranque y validación de versión
+        if not stage_wait_boot(ser, result):
+            print(f"\n[DIAG] {diagnose_failure(ser)}")
+            return result
+
+        # E3: Handshake bidireccional
+        if not stage_python_handshake(ser, result):
+            print(f"\n[DIAG] {diagnose_failure(ser)}")
+            return result
+
+        # E4: Latencia PING/PONG
+        if not stage_ping_pong(ser, result):
+            return result
+
+        # E5: Estado del sistema
+        stage_query_status(ser, result)   # No fatal si falla
+
+        # E6: Heartbeats (con keepalive activo)
+        stage_observe_heartbeats(ser, result)  # No fatal si cuenta < esperado
+
+    except serial.SerialException as exc:
+        result.failure_reason = f"Error serial inesperado: {exc}"
+    except Exception as exc:
+        result.failure_reason = f"Error inesperado: {exc}"
+        import traceback
+        traceback.print_exc()
+    finally:
+        result.elapsed_total_s = time.monotonic() - t_start
+        manager.close()
+
+    return result
+
+
+# ============================================================================
+# SECCIÓN 10: REPORTE FINAL
+# ============================================================================
+
+def print_report(result: TestResult) -> None:
+    """Imprime el resumen estructurado del test."""
+    sep   = "=" * 62
+    ok    = result.is_success()
+    emoji = "EXITO" if ok else "FALLO"
+
+    # Estado del sistema: siempre definido (TestResult tiene valor por defecto)
+    state_str = (result.system_state.label()
+                 if result.system_state is not None
+                 else "N/A")
+
+    latency_str = (f"{result.ping_latency_ms:.2f} ms"
+                   if result.ping_latency_ms >= 0
+                   else "N/A")
+
+    print(f"\n{sep}")
+    print(f"  RESULTADO: {emoji}")
+    print(f"{sep}")
+    print(f"  Puerto:           {result.port}")
+    print(f"  Firmware:         {result.firmware_version}")
+    print(f"  Handshake:        {'SI' if result.handshake_ok else 'NO'}")
+    print(f"  Latencia PING:    {latency_str}")
+    print(f"  Estado firmware:  {state_str}")
+    print(f"  Heartbeats:       {result.heartbeats_observed}"
+          f" / {result.heartbeats_expected} esperados")
+    print(f"  PINGs keepalive:  {result.pings_sent_obs}")
+    print(f"  Tiempo total:     {result.elapsed_total_s:.1f}s")
+
+    if not ok and result.failure_reason:
+        print(f"\n  Causa de fallo:   {result.failure_reason}")
+
+    print(f"{sep}\n")
+
+
+# ============================================================================
+# SECCIÓN 11: DETECCIÓN DE PUERTOS DISPONIBLES (Linux)
+# ============================================================================
+
+def find_serial_ports() -> list[str]:
+    """Lista puertos seriales disponibles en Linux."""
+    patterns = ["/dev/ttyUSB*", "/dev/ttyACM*"]
+    ports    = []
+    for pattern in patterns:
+        ports.extend(sorted(glob.glob(pattern)))
+    return ports
+
+
+def validate_port(port: str) -> bool:
+    """
+    Verifica que el puerto existe y es accesible.
+    En Linux, revisa permisos de grupo 'dialout'.
+    """
+    if not os.path.exists(port):
+        print(f"[ERROR] Puerto {port} no existe")
+        available = find_serial_ports()
+        if available:
+            print("  Puertos detectados:")
+            for p in available:
+                print(f"    • {p}")
+        else:
+            print("  Ningún puerto serial detectado")
+            print("  Verifica: cable USB, driver CH340/CP2102, módulo kernel")
+        return False
+
+    if not os.access(port, os.R_OK | os.W_OK):
+        print(f"[ERROR] Sin permisos en {port}")
+        print("  Solución: sudo usermod -aG dialout $USER && newgrp dialout")
+        print("  (Requiere cerrar sesión y volver a entrar)")
+        return False
+
+    return True
+
+
+# ============================================================================
+# SECCIÓN 12: PUNTO DE ENTRADA
+# ============================================================================
+
+def main() -> int:
+    """
+    Punto de entrada.
+    Returns: 0 (éxito) o 1 (fallo) — compatible con CI/CD.
+    """
+    sep = "=" * 62
+    print(f"\n{sep}")
+    print("  APU SENTINEL — Herramienta de Test de Enlace v4.0")
+    print(f"{sep}\n")
+
+    # Determinar puerto
+    port = SerialConfig.PORT_DEFAULT
+    if len(sys.argv) > 1:
+        port = sys.argv[1]
+        print(f"[ARG]  Puerto especificado: {port}")
+    else:
+        print(f"[INFO] Puerto por defecto: {port}")
+        print(f"       Uso: python3 test_enlace.py /dev/ttyUSB1\n")
+
+    # Validación de plataforma y puerto
+    if sys.platform.startswith("linux"):
+        if not validate_port(port):
+            return 1
+
+    # Ejecutar test
+    manager = ConnectionManager()
+    result  = run_test(manager, port)
+
+    # Reporte
+    print_report(result)
+
+    if result.is_success():
+        print("[OK]  Sistema listo para operar\n")
+        return 0
+    else:
+        print("[KO]  Revisa configuracion e intenta de nuevo\n")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

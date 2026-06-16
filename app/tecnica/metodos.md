@@ -5,23 +5,6 @@
 Este documento técnico desglosa la maquinaria matemática que permite al Consejo de Sabios transformar datos crudos en veredictos estratégicos, basándose en la convergencia de la Dinámica de Sistemas (Laplace), la Topología Algebraica, la Estocástica Financiera y el Hardware en el Borde.
 
 --------------------------------------------------------------------------------
-0. El Endofuntor de Transición de Fase: Dinámica del Curado y Costo Laboral
-
-    Base Teórica: Ecuación del Calor sobre Variedades, Laplaciano de Hodge ($ \Delta_{\text{Hodge}} $), y Condiciones de Frontera de Dirichlet.
-    Concepto: Modela el fracaso de los sistemas estáticos de APUs tradicionales ante restricciones de curado físico en materiales complejos (Caso Pembertty).
-
-**Ecuación de Evolución Térmica del Costo:**
-El cálculo del costo laboral durante el proceso de curado pasivo se formula como un problema resuelto sobre el Laplaciano de Hodge para la Ecuación del Calor:
-$$\frac{\partial T}{\partial t} = \alpha \Delta_{\text{Hodge}} T$$
-Donde $T$ representa el campo de temperatura/madurez del material y $\alpha$ la difusividad térmica.
-
-**Difeomorfismo de Anulación de Tiempo Laboral:**
-El sistema implementa un mecanismo diferencial que anula el tiempo lineal contable. Durante la ventana temporal inactiva ($\Delta t_{\text{inactivo}}$) de curado, el endofuntor impone una frontera de Dirichlet absoluta, forzando axiomáticamente la derivada del costo de mano de obra a cero:
-$$\dot{C}_{\text{mo}} = \frac{dC_{\text{mo}}}{dt} = 0$$
-Esto garantiza un cálculo exergético 100% puro para la rentabilidad de las opciones reales, separando el tiempo físico de maduración del material del tiempo financiero de devengo laboral.
-
-
---------------------------------------------------------------------------------
 1. El Guardián: Física de Fluidos y Computación Neuromórfica (Edge)
 
     Base Teórica: Ecuaciones de Maxwell discretizadas, Control Port-Hamiltoniano (PHS) y Física de Semiconductores.

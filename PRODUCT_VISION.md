@@ -59,6 +59,10 @@ esto asegura que ningún agente es linealmente dependiente de otro (información
 
 Todo este diseño obedece al cimiento axiomático de la **Ley de Clausura Transitiva de la pirámide DIKW** (tabla canónica): $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$. Resulta imperativo destacar que el estrato $V_{\mathbb{T}}$ ahora modela la materia bariónica como un **2-complejo simplicial** sobre el anillo de los enteros ($\mathbb{Z}$), capturando no solo dependencias binarias (aristas) sino interdependencias ternarias (triángulos) con fricción cuantizada.
 
+La Sabiduría del sistema (Estrato $V_{\mathbb{W}}$) se acopla a la realidad táctica mediante una **Adjunción de Galois** entre la Matriz de Interacción Central (MIC) y la Matriz Atómica de Conocimiento (MAC). Todo difeomorfismo inferencial debe preservar la relación funtorial:
+$$\text{Hom}_{\mathcal{C}}(F(\text{MIC}), \text{MAC}) \cong \text{Hom}_{\mathcal{D}}(\text{MIC}, G(\text{MAC}))$$
+Si esta adjunción se rompe, el sistema detecta una **Deriva Semántica** o **Contradicción Lógica**, ejecutando la aniquilación inmediata de la sugerencia generativa para proteger la integridad ontológica del proyecto.
+
 --------------------------------------------------------------------------------
 2. Los Horizontes de Evolución: La Arquitectura Concéntrica
 Nuestra hoja de ruta no añade funciones cosméticas; desbloquea niveles de profundidad física mediante una arquitectura de capas defensivas estructuradas bajo la Clausura Transitiva de la pirámide DIKW ($V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$).
@@ -69,9 +73,7 @@ Horizonte 1: La Cimentación (El Foso Termodinámico y las Murallas)
     La Compuerta de Admisión Cuántica: Nuestra primera línea de defensa no es un cortafuegos de software; es una barrera de potencial ciber-física. Utilizando el Hilbert Watcher (Estrato $\aleph_0$), la plataforma subordina cada intento de ingreso de datos a la cuantificación previa de su exergía. Si un modelo de lenguaje externo (LLM) o un sistema de terceros intenta inyectar ruido (ataques de inyección de prompts o archivos CSV corruptos), el sistema no intenta "entender" el texto; simplemente detecta que su energía termodinámica es incapaz de excitar los campos de Gauge de la frontera, resultando en una aniquilación silenciosa y determinista.
     Física de Fluidos: Una vez superada la barrera, en lugar de procesar archivos, tratamos la ingesta de datos como un fluido informacional con masa, presión e inercia mediante el FluxCondenser. Exigimos termodinámicamente que la Potencia Disipada sea positiva (Pdiss​≥0) para evitar "golpes de ariete" computacionales.
     Geometría del Riesgo: A través de la Topología Algebraica, el Arquitecto Estratega audita la estructura ignorando los precios. Detectamos "Islas de Datos" (β0​>1) y "Socavones Lógicos" (β1​>0).
-    El Oráculo de Laplace: Se proyecta el flujo de caja operativo hacia el plano de frecuencia compleja ($s=\sigma+j\omega$). El sistema evalúa la viabilidad mediante la inecuación de estabilidad asintótica BIBO (Bounded Input, Bounded Output):
-    $$\forall p_i \in \text{Polos}(H(s)), \Re(p_i) < 0 \Longrightarrow \text{Viable}$$
-    Si existe al menos un polo $p_i$ tal que su parte real $\sigma > 0$, el oráculo ejecuta inmediatamente un **Veto por Divergencia Matemática**, aniquilando la viabilidad del proyecto ante el riesgo de resonancia financiera destructiva.
+    El Oráculo de Laplace: Se calcula la función de transferencia en el plano de frecuencia compleja (s=σ+jω). Si los polos dominantes residen en el semiplano derecho (σ>0), el sistema veta el presupuesto por inestabilidad intrínseca.
 
 Horizonte 2: Gobernanza Zero-Trust (Los Centinelas de Ortogonalidad)
 

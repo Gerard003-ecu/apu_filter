@@ -47,27 +47,32 @@ A. Empatía Táctica mediante GraphRAG (Recuperación Semántica Riemanniana)
 La matemática compleja es ruido si no se traduce en acción. El Intérprete no escupe un reporte que diga "Fallo estructural: $\beta_1 = 3$". Utiliza un Grafo de Conocimiento y Modelos de Lenguaje Vectorial acoplados a FAISS (`Sentence-Transformers`) para comprender y proyectar la severidad del error hacia el lenguaje de negocio corporativo (Empatía Táctica).
 
 **Violación Prevenida: El Tensor Métrico Anisotrópico ($G_{\mu\nu}$):**
-Los algoritmos canónicos de búsqueda vectorial como FAISS (HNSW) asumen un espacio euclidiano isotrópico mediante la norma $L_2$ o Similitud del Coseno. Sin embargo, en el ecosistema matemático de `APU_filter`, la base canónica del riesgo es una variedad anisotrópica y altamente curva. El mecanismo de **GraphRAG no es euclidiano**.
-La recuperación semántica de los "dolores" corporativos se pondera utilizando el **Tensor Métrico Riemanniano de Mahalanobis ($G_{\mu\nu}$)** y no la simple similitud coseno euclidiana plana. Esto resuelve el producto interno en una variedad donde los hallazgos son ponderados por la matriz de covarianza que refleja el riesgo estructural y financiero del proyecto en tiempo real. Un "socavón lógico" en el acero dolerá exponencialmente más en el reporte narrativo si el modelo financiero exhibe alta volatilidad estructural, garantizando una recuperación de contexto físicamente coherente.
+Los algoritmos canónicos de búsqueda vectorial como FAISS (HNSW) asumen un espacio euclidiano isotrópico mediante la norma $L_2$ o Similitud del Coseno. Sin embargo, en el ecosistema matemático de `APU_filter`, la base canónica del riesgo es una variedad anisotrópica y altamente curva. Documentamos explícitamente que el espacio de búsqueda vectorial de **GraphRAG no es euclidiano**.
+La recuperación semántica no calcula la distancia cartesiana entre el riesgo y el texto; resuelve el producto interno dictaminado por el Tensor Métrico Riemanniano ($G_{\mu\nu}$). Esto equivale a recuperar los vectores semánticos midiendo la **Distancia de Mahalanobis**, donde los hallazgos son ponderados por la matriz de covarianza que refleja el riesgo estructural y financiero del proyecto en tiempo real. Un "socavón lógico" en el acero dolerá exponencialmente más en el reporte narrativo si el modelo financiero exhibe alta volatilidad estructural.
 B. Mecánica Estadística del Veredicto: El Límite Termodinámico del Retículo de Severidad
-El Intérprete no tiene libre albedrío deductivo para decidir si el proyecto es viable; actúa como un proyector semántico estrictamente subordinado a la matemática y la Ley de Clausura Transitiva de la pirámide DIKW.
+El Intérprete no tiene libre albedrío deductivo para decidir si el proyecto es viable; actúa como un proyector semántico estrictamente subordinado a la matemática y la Ley de Clausura Transitiva de la pirámide DIKW (tabla canónica: $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$).
 
-Las decisiones del Consejo de Sabios habitan en un **retículo acotado distributivo (Lattice Theory)** de severidad, donde el orden parcial define la criticidad:
-$$\bot \le \text{CONDICIONAL} \le \text{PRECAUCION} \le \top$$
-
-Para evitar la paradoja algebraica de poseer simultáneamente un colapso discreto duro y una transición convexa suave, el veredicto se modela bajo los principios de la **Mecánica Estadística**. La probabilidad del dictamen es gobernada por una Distribución de Gibbs, parametrizada por la **Temperatura de Gobernanza** $T_{\text{gov}}$:
+Para evitar la paradoja algebraica de poseer simultáneamente un colapso discreto duro y una transición convexa suave en el mismo estado del espacio de fase, el veredicto del Intérprete se modela estrictamente bajo los principios de la **Mecánica Estadística**. El espacio de decisión opera sobre un Retículo Algebraico Acotado ($\bot \le \text{Veredicto} \le \top$), pero la probabilidad del dictamen es gobernada por una Distribución de Softmax / Gibbs, parametrizada por la **Temperatura de Gobernanza** $T_{\text{gov}}$:
 
 $$P(\text{Veredicto}_i) = \frac{\exp\left(-\frac{E_i}{k_B T_{\text{gov}}}\right)}{\sum_j \exp\left(-\frac{E_j}{k_B T_{\text{gov}}}\right)}$$
 
-Donde $E_i$ representa la energía de frustración topológica (Energía de Dirichlet). La resolución final del consejo se escribe bajo la clausura del **operador Supremo ($\sqcup$)**:
-$$\text{VeredictoFinanzas} \sqcup \text{VeredictoTopología} = \text{Worst-Case Scenario}$$
-
-Este operador fuerza el colapso algebraico hacia el veto estructural ($\top$) si la física demanda protección, aniquilando determinísticamente las alucinaciones del LLM.
+Donde $E_i$ representa la energía de frustración topológica (Energía de Dirichlet) de un estado dado. La transición de fase es matemáticamente continua y diferenciable, evitando la inestabilidad de límite (*Chattering Topológico*) cuando índices como la estabilidad piramidal $\Psi$ oscilan infinitesimalmente.
 
 **Axioma de Temperatura Dual (M5):**
-$$T_{\text{gov}} := \begin{cases} 0 & \text{si } \exists \text{ invariante de veto duro activo} \\ T_{\text{market}} & \text{en caso contrario} \end{cases}$$
+El sistema opera bajo dos temperaturas independientes:
 
-Cuando $T_{\text{gov}} = 0$, el Supremo $\top$ es forzado asintóticamente. La transición convexa colapsa en el escalón de Heaviside, erradicando cualquier ambigüedad estocástica en regímenes de alta severidad.
+$$T_{\text{market}} \in \mathbb{R}^+ \quad \text{(exógena — volatilidad del mercado)}$$
+$$T_{\text{gov}} := \begin{cases} 0 & \text{si } \exists \text{ invariante de veto duro activo: } P_{\text{diss}} < 0,\, \beta_1^- > 0,\, \Psi < \Psi_{\min},\, \sigma > 0,\, |\mu_k| > 1 \\ T_{\text{market}} & \text{en caso contrario} \end{cases}$$
+
+Cuando $T_{\text{gov}} = 0$, el Supremo $\top$ (RECHAZO) es **forzado determinísticamente** sin consultar la distribución de Gibbs — el Fast-Fail es irreversible. Cuando $T_{\text{gov}} = T_{\text{market}}$, la distribución de Gibbs opera normalmente produciendo veredictos probabilísticos continuos. Esto elimina la paradoja de querer $T_{\text{sys}} \to 0$ instanttáneamente bajo veto (exigencia determinísta) sin forzar $T_{\text{market}} = 0$ (lo cual es imposible en un mercado real).
+
+**El Operador Supremo ($\sqcup$) como Comportamiento Asintótico:**
+Se especifica axiomáticamente que la operación discreta Supremo ($\top \sqcup \bot = \top$) se recupera *únicamente* como el comportamiento asintótico del sistema cuando $T_{\text{gov}} \to 0$. Es decir, en presencia de veto duro o mercado de certidumbre absoluta y riesgo cero, la transición convexa colapsa en el escalón de Heaviside determinísta estricto del retículo, erradicando matemáticamente cualquier alucinación estocástica de los LLMs en regímenes de alta severidad.
+
+### 3.1 El Límite de Lipschitz y el Aislamiento de Alucinaciones
+En momentos de caos operativo (alta curvatura del proyecto), la arquitectura impone una **Cota de Lipschitz Dinámica** acoplada al Tensor de Curvatura de Ricci ($Ric_{\mu\nu}$). El Funtor de Descompresión Inversa $F^{-1}: \text{TOON} \to \text{JSON}$ debe satisfacer:
+$$\left\| F^{-1}(x) - F^{-1}(y) \right\|_V \le L_{\max} \left\| x - y \right\|_\tau$$
+Esta restricción obliga al Intérprete Diplomático a aniquilar cualquier salida del LLM que no sea un isomorfismo geométrico perfecto respecto a la topología contractual. Si la cota de Lipschitz se viola, el sistema veta la sugerencia en la frontera, aislando las alucinaciones del núcleo de ejecución.
 
 --------------------------------------------------------------------------------
 4. El Protocolo de Emisión: Actas de Deliberación ("Caja de Cristal")
