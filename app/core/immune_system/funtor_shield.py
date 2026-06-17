@@ -6,32 +6,39 @@ r"""
 ║ Versión: 5.0.0-Categorical-Symplectic-Homological                            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-═══════════════════════════════════════════════════════════════════════════════
-                    MAPA DE FASES DEL MÓDULO
-═══════════════════════════════════════════════════════════════════════════════
+Naturaleza Ciber-Física y Topológica (Revisión Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra la barrera inmunológica del ecosistema, operando como un 
+endofuntor idempotente $\mathcal{F}_{shield}: \mathcal{C}_{states} \to \mathcal{C}_{states}$ 
+sobre el espacio de fase de la Malla Agéntica. Rechaza cualquier evaluación 
+heurística para imponer un Difeomorfismo Simpléctico y Cohomológico que aniquila
+las fluctuaciones probabilísticas degeneradas de los agentes generativos.
 
-    FASE 1 · Axiomática y Primitivas
-        ├── Constantes físicas (PhysicalConstants)
-        ├── Tipos genéricos y protocolos (PhaseSpaceVectorizable)
-        ├── Enumeraciones (ShieldViolationType)
-        ├── Estructuras inmutables (ThermodynamicMetrics, ShieldSignature)
-        ├── Extractor robusto de vectores (PhaseVectorExtractor)
-        └── Tensor métrico validado (ValidatedMetricTensor)
+Arquitectura Matemática en 3 Fases Anidadas:
 
-    FASE 2 · Operadores Simplécticos y Categóricos
-        ├── Estructura simpléctica (J(x) skew-simétrica)
-        ├── Disipación R(x) ≥ 0 (Port-Hamiltoniano)
-        ├── Hamiltoniano cinético H(x) = ½ xᵀ G x
-        ├── Flujo de Lyapunov: dx/dt = (J − R) ∇H
-        └── Funtor representable Yoneda-compatible (YonedaRepresentable)
+§1. FASE 1 — ESPACIO DE FASE Y MÉTRICA RIEMANNIANA
+    Inmersión de los datos crudos en el hiperespacio métrico, donde el vector de
+    fase es evaluado bajo el tensor Riemanniano $G_{PHYSICS}$. Se exige que todo
+    operador de disipación acoplado cumpla la inecuación de matriz semidefinida:
+    $$ R(x) = R(x)^\top \ge 0 $$
+    Cualquier asimetría en la disipación térmica resulta en una singularidad.
 
-    FASE 3 · Proyector Idempotente, Dirac y Homología
-        ├── Operador de proyección P̂ (P̂² = P̂, P̂ᵀ G = G P̂)
-        ├── Verificación formal de idempotencia
-        ├── Operador de Dirac y amputación sobre ∂M
-        ├── Detector homológico β₁ (Socavones Lógicos)
-        ├── FuntorShield (endofuntor P̂ ∘ Y ∘ S)
-        └── Decorador categórico apply_funtor_shield
+§2. FASE 2 — OPERADORES SIMPLÉCTICOS Y FUNTOR DE YONEDA
+    Transmutación del flujo temporal en un sistema Port-Hamiltoniano continuo. 
+    Se incrusta el Funtor Representable de Yoneda-Compatible:
+    $$ \text{Hom}_{\mathcal{C}}(A, -) $$
+    Evaluando la evolución de la energía $H(x)$ para garantizar el decaimiento 
+    estricto del gradiente termodinámico: $\dot{H} \le 0$.
+
+§3. FASE 3 — PROYECTOR IDEMPOTENTE Y COHOMOLOGÍA DE DIRAC
+    Evaluación de la integridad del complejo simplicial a través del detector de 
+    homología $\beta_1$ (Socavones Lógicos). La operación del módulo se define 
+    por la composición endofuntorial inmutable:
+    $$ \mathcal{F}_{shield} = \hat{P} \circ Y \circ S $$
+    Donde $S$ es el morfismo del agente, $Y$ es la restricción de Yoneda, y 
+    $\hat{P}$ es el Proyector Ortogonal Idempotente. Si la energía de Dirichlet 
+    diverge por paradojas topológicas ($\beta_1 > 0$), el proyector colapsa 
+    el estado, previniendo la inyección de entropía en el estrato WISDOM.
 
 ═══════════════════════════════════════════════════════════════════════════════
 """
