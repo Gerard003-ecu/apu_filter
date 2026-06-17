@@ -3,37 +3,46 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo: MAC Agent (Operador de Medición Cuántica y Gestor Epistemológico)    ║
 ║ Ubicación: app/wisdom/mac_agent.py                                           ║
-║ Versión: 2.0.0-Quantum-Epistemic-Functor-Enhanced                            ║
+║ Versión: 3.0.0-Quantum-Epistemic-Functor-Rigorous                            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Naturaleza Ciber-Física y Topológica Refinada:
-────────────────────────────────────────────────
-Este agente opera como el endofuntor de medición sobre el estado cuántico de la 
-Matriz Atómica de Conocimiento (MAC). Implementa rigurosamente:
+Naturaleza Ciber-Física, Topológica y Categorial (Revisión Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo destituye al Modelo de Lenguaje (LLM) como un agente estocástico de 
+toma de decisiones libre, relegándolo a operar como el Endofuntor de Medición 
+sobre el estado cuántico de la Matriz Atómica de Conocimiento (MAC).
 
-1. TEORÍA DE MEDICIONES CUÁNTICAS: POVM generalizadas con completitud verificada
-2. SISTEMAS ABIERTOS: Ecuación maestra de Lindblad-Kossakowski (forma GKSL)
-3. TOPOLOGÍA ALGEBRAICA: Auditoría cohomológica de consistencia semántica
-4. GEOMETRÍA DE INFORMACIÓN: Métricas de Bures-Wasserstein y fidelidad cuántica
-5. TEORÍA DE CATEGORÍAS: Adjunción de Galois entre espacios de estados
+Se instaura la epistemología del sistema mediante un álgebra de von Neumann, 
+estructurada axiomáticamente en tres fases:
 
-Axiomas Matemáticos Implementados y Extendidos:
-────────────────────────────────────────────────
-A1. Resolución de Identidad (POVM): Σₖ Mₖ† Mₖ = I
-A2. Mapa CPTP (Lindblad): dρ/dt = -i/ℏ[H,ρ] + Σₖ γₖ 𝒟[Lₖ](ρ)
-A3. Holonomía de Haces: ‖δx‖² = 0 ⟺ x ∈ H⁰(X;ℱ)
-A4. Distancia de Bures: d²ʙᴡ(ρ,σ) = Tr(ρ+σ) - 2Tr√(√ρ σ √ρ)
-A5. Positividad Completa: ℰ ⊗ id es positivo ∀ dimensión de ancilla
-A6. Conservación de Traza: Tr(ℰ(ρ)) = Tr(ρ) ∀ρ
+§1. FASE 1 — OPERADOR DE DENSIDAD Y ESPACIO DE HILBERT (ℋ_MAC)
+    La "Sabiduría" del proyecto no es un vector de texto, sino un operador de 
+    densidad $\boldsymbol{\rho}_{MAC} \in \mathcal{L}(\mathcal{H}_{MAC})$. Este 
+    estado debe satisfacer incondicionalmente los tres postulados de conservación 
+    cuántica:
+    $$ \text{Tr}(\boldsymbol{\rho}_{MAC}) = 1, \quad \boldsymbol{\rho}_{MAC} = \boldsymbol{\rho}_{MAC}^\dagger, \quad \boldsymbol{\rho}_{MAC} \succeq 0 $$
+    Cualquier "alucinación" que induzca a la matriz a violar su semi-definitud 
+    positiva o genere una traza anómala es aniquilada axiomáticamente.
 
-Referencias Teóricas:
-─────────────────────
-- Kraus (1983): "States, Effects, and Operations"
-- Lindblad (1976): "Generators of quantum dynamical semigroups"
-- Gorini et al. (1976): "Completely positive dynamical semigroups"
-- Bures (1969): "An extension of Kakutani's theorem on infinite product measures"
-- Uhlmann (1976): "The transition probability in the state space of a *-algebra"
-- Hansen & Ghrist (2019): "Toward a spectral theory of cellular sheaves"
+§2. FASE 2 — TERMOMETRÍA EPISTEMOLÓGICA Y DINÁMICA DE LINDBLAD
+    La asimilación de conocimiento y la pérdida de coherencia del LLM inducida 
+    por el estrés logístico no se evalúan empíricamente. La evolución temporal 
+    de la atención se somete a la Ecuación Maestra de Lindblad-Kossakowski para 
+    sistemas cuánticos abiertos:
+    $$ \frac{d\boldsymbol{\rho}_{MAC}}{dt} = -\frac{i}{\hbar} [\mathbf{H}_{eff}, \boldsymbol{\rho}_{MAC}] + \sum_k \gamma_k \left( \mathbf{L}_k \boldsymbol{\rho}_{MAC} \mathbf{L}_k^\dagger - \frac{1}{2} \{\mathbf{L}_k^\dagger \mathbf{L}_k, \boldsymbol{\rho}_{MAC}\} \right) $$
+    Esta dinámica certifica que la disipación de información cumple con la 
+    Segunda Ley de la Termodinámica computacional ($\Delta S \ge 0$).
+
+§3. FASE 3 — ADJUNCIÓN DE GALOIS Y MEDIDA POVM
+    El agente extrae veredictos colapsando la función de onda informacional a 
+    través de Medidas Valuadas en Operadores Positivos (POVM). La solidez 
+    estructural del veredicto exige que la topología de la Matriz de Interacción 
+    Central (MIC) mantenga un isomorfismo categorial con la MAC mediante la 
+    Adjunción de Galois:
+    $$ \text{Hom}_{\mathcal{C}}(F(\text{MIC}), \text{MAC}) \cong \text{Hom}_{\mathcal{D}}(\text{MIC}, G(\text{MAC})) $$
+    Si el diferencial de la energía de Dirichlet reporta una obstrucción 
+    cohomológica ($H^1 \neq \mathbf{0}$) que fractura esta adjunción, se 
+    ejecuta un VETO ONTOLÓGICO, paralizando cualquier deducción.
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
