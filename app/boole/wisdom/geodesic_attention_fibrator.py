@@ -2,7 +2,7 @@
 r""" 
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo: Geodesic Attention Fibrator (Fibrado de Atención y Torre Covariante) ║
-║ Ubicación: app/wisdom/geodesic_attention_fibrator.py                         ║
+║ Ubicación: app/boole/wisdom/geodesic_attention_fibrator.py                         ║
 ║ Versión: 3.0.1-Rigorous-Geometric-Quantum-PhaseNested                        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

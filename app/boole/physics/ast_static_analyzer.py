@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 =========================================================================================
 Módulo: AST Static Analyzer (Analizador Simpléctico y Cohomología de Haces Celulares)

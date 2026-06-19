@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 =========================================================================================
 Módulo: MIC Minimizer (Poda Topológica en el Anillo Booleano $\mathbb{Z}_2$)

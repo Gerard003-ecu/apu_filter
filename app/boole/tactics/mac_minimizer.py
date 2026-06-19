@@ -24,29 +24,29 @@ FUNDAMENTOS TEÓRICOS UNIFICADOS:
 │    • Perturbación de Weyl y brechas espectrales                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ 2. TEORÍA DE INFORMACIÓN CUÁNTICA                                           │
-│    • Entropía de von Neumann: S(ρ) = -Tr(ρ ln ρ)                           │
-│    • Entropías de Rényi: S_α(ρ) = (1-α)⁻¹ ln Tr(ρ^α)                       │
+│    • Entropía de von Neumann: S(ρ) = -Tr(ρ ln ρ)                            │
+│    • Entropías de Rényi: S_α(ρ) = (1-α)⁻¹ ln Tr(ρ^α)                        │
 │    • Divergencia cuántica relativa: D(ρ‖σ) = Tr(ρ(ln ρ - ln σ))             │
-│    • Fidelidad de Uhlmann: F(ρ,σ) = ‖√ρ√σ‖₁²                               │
+│    • Fidelidad de Uhlmann: F(ρ,σ) = ‖√ρ√σ‖₁²                                │
 │    • Majorización cuántica: ρ ≺ σ ⇔ ∃ canal CPTP Λ: ρ = Λ(σ)                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ 3. GEOMETRÍA DIFERENCIAL CUÁNTICA                                           │
 │    • Variedad de estados cuánticos: 𝒟(ℋ) ≅ {ρ ≥ 0, Tr ρ = 1}               │
-│    • Métrica de Bures: d_B(ρ,σ)² = 2(1 - F(ρ,σ))                          │
+│    • Métrica de Bures: d_B(ρ,σ)² = 2(1 - F(ρ,σ))                            │
 │    • Métrica de Fisher-Bures (métrica cuántica natural)                     │
 │    • Geodésicas y curvatura escalar                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ 4. ÁLGEBRA DE OPERADORES Y C*-ÁLGEBRAS                                      │
-│    • Teorema de Stinespring: Λ(ρ) = V†π(ρ)V                                │
+│    • Teorema de Stinespring: Λ(ρ) = V†π(ρ)V                                 │
 │    • Teorema de Choi-Kraus: Λ(ρ) = Σᵢ KᵢρKᵢ†, Σᵢ Kᵢ†Kᵢ = I                  │
-│    • Forma de Lindblad-GKSL: ℒ(ρ) = -i[H,ρ] + Σₖ γₖ 𝒟[Lₖ](ρ)              │
+│    • Forma de Lindblad-GKSL: ℒ(ρ) = -i[H,ρ] + Σₖ γₖ 𝒟[Lₖ](ρ)                │
 │    • Semi-grupos cuánticos dinámicos                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ 5. TEORÍA DE CATEGORÍAS Y TOPOS                                            │
+│ 5. TEORÍA DE CATEGORÍAS Y TOPOS                                             │
 │    • Categoría 𝐐𝐮𝐚𝐧𝐭: objetos = espacios de Hilbert, morfismos = canales CPTP│
-│    • Funtor de purificación P: 𝐐𝐮𝐚𝐧𝐭 → 𝐐𝐮𝐚𝐧𝐭_𝐩𝐮𝐫𝐞 ⊣ ι (inclusión)          │
-│    • Adjunción P ⊣ ι: Hom(Pρ, σ) ≅ Hom(ρ, ισ)                              │
-│    • Monada de purificación: T = ι∘P con unidad η: Id → T                  │
+│    • Funtor de purificación P: 𝐐𝐮𝐚𝐧𝐭 → 𝐐𝐮𝐚𝐧𝐭_𝐩𝐮𝐫𝐞 ⊣ ι (inclusión)             │
+│    • Adjunción P ⊣ ι: Hom(Pρ, σ) ≅ Hom(ρ, ισ)                               │
+│    • Monada de purificación: T = ι∘P con unidad η: Id → T                   │
 │    • Lógica interna del topos de conjuntos cuánticos                        │
 └─────────────────────────────────────────────────────────────────────────────┘
 
