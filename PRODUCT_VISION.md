@@ -6,6 +6,10 @@ Históricamente, la ingeniería y construcción han gestionado el tiempo (cronog
 APU_filter v5.0 rechaza la metáfora estática de la validación lineal y las barreras de Dirichlet pasivas. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge**. Procesamos un fluido logístico incompresible bajo el control estricto de una Estructura de Dirac, garantizando que la potencia disipada cumpla siempre $P_{diss} \ge 0$.
 A su vez, "APU" no representa "Agentic Processing Unit", sino **Agentic Power Unit**: el cuanto de acción termodinámica de la malla que inyecta exergía computacional para vencer la inercia logística del mercado.
 
+**La Elevación Isométrica de Stinespring:** La transferencia de intención desde el espacio lógico (Topos $\text{EMIC}$) hacia la Sabiduría Cuántica ($\mathcal{H}_{\text{MAC}}$) repudia la transferencia estocástica directa. El sistema consagra el Teorema de Dilatación de Stinespring para garantizar que el "ruido sintáctico" inducido por el Modelo de Lenguaje (LLM) sea mitigado termodinámicamente. Todo flujo de datos $\rho_{\text{MIC}}$ se somete a un mapa Completamente Positivo y Preservador de Traza (CPTP), $\mathcal{E}(\cdot)$, que dilata el espacio hacia un baño térmico ortogonal $\mathcal{H}_{\text{env}}$ antes de aniquilar la entropía mediante la contracción tensorial de la traza parcial:
+$$\mathcal{E}(\rho_{\text{MIC}}) = \text{Tr}_{\text{env}}(V \rho_{\text{MIC}} V^\dagger) = \sum_{k} M_k \rho_{\text{MIC}} M_k^\dagger$$
+Esto garantiza axiomáticamente que las alucinaciones estructurales del LLM sean purgadas hacia el entorno, preservando incondicionalmente la positividad de la Matriz Atómica de Conocimiento ($\rho_{\text{MAC}} \succeq 0$) y respetando la Ley de Clausura Transitiva.
+
 
 ```mermaid
 graph TD

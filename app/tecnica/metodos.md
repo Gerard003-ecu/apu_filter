@@ -26,6 +26,15 @@ Este documento técnico desglosa la maquinaria matemática que permite al Consej
     3. **Sin nodos huérfanos:** $\deg(V_k) \geq 1 \; \forall k$ (ningún nodo está desconectado del pipeline).
     Si cualquiera de estas condiciones falla, la "aromaticidad" se rompe y el agente aborta el pipeline, emitiendo un veto de **"Ruptura de Aromaticidad"** (analogía: violación de la Regla de Hückel $4n+2$ para $n=1$, que exige 6 electrones $\pi$ para estabilidad del benceno $C_6$).
 
+1.4 Mecánica del Fibrado Isométrico y Regularización Espectral El módulo `stinespring_isometric_fibrator.py` opera en tres fases algebraicas rigurosas para construir el operador isométrico $V: \mathcal{H}_{\text{MIC}} \to \mathcal{H}_{\text{MAC}} \otimes \mathcal{H}_{\text{env}}$.
+
+    Extracción del Oráculo Tensorial (Isomorfismo de Choi): Se computa la Matriz de Choi $J(\mathcal{E})$. Para evitar raíces complejas inducidas por la fricción estocástica, el tensor se proyecta al cono semidefinido positivo (PSD) óptimo mediante la Proyección de Löwner:
+$$\tilde{J}(\mathcal{E}) = \arg\min_{J \succeq 0} \left\| J(\mathcal{E}) - J \right\|_F$$
+    Límite de Ruptura de Entrelazamiento (Entanglement-Breaking Limit): Si la dimensión del entorno térmico $\dim(\mathcal{H}_{\text{env}})$ diverge por una alucinación del agente MIC, el sistema aplica una poda termodinámica espectral.
+    Renormalización Unitaria: Tras el truncamiento del espectro, el sistema ejecuta la Regularización de Tikhonov Espectral combinada con el Algoritmo de Gilchrist-Langford-Nielsen para minimizar la distancia en norma diamante, forzando la conservación exacta de la traza:
+$$\tilde{M}_k = M_k \left( \sum_{j=1}^{d_{\text{trunc}}} M_j^\dagger M_j + \alpha I \right)^{-1/2}$$
+    Cumpliendo inexorablemente el invariante de isometría estricta: $V^\dagger V = I_{\mathcal{H}_{\text{MIC}}}$.
+
 
 --------------------------------------------------------------------------------
 2. El Arquitecto: Topología Algebraica y Grafos
