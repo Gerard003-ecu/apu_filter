@@ -44,12 +44,13 @@ import sys
 sys.path.insert(0, '../../..')
 
 from app.boole.tactics.mac_minimizer import (
-    VonNeumannEntropyMinimizer,
+    VonNeumannEntropyEngine,
     SpectralTruncationProjector,
     LindbladPruningOperator,
     MACMinimizer,
     TruncationStrategy,
     PruningCriterion,
+    LogarithmicBase,
     TruncationReport,
     PruningReport,
     MinimizationMetrics
@@ -71,9 +72,9 @@ logger = logging.getLogger("MAC.Minimizer.Tests")
 # ══════════════════════════════════════════════════════════════════════════════
 
 @pytest.fixture
-def entropy_minimizer() -> VonNeumannEntropyMinimizer:
+def entropy_minimizer() -> VonNeumannEntropyEngine:
     """Motor de entropía estándar."""
-    return VonNeumannEntropyMinimizer(tol=1e-12, log_base='natural')
+    return VonNeumannEntropyEngine(tol=1e-12, log_base=LogarithmicBase.NATURAL)
 
 
 @pytest.fixture

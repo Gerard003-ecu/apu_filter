@@ -77,6 +77,13 @@ class QuantumMetrics:
         assert self.von_neumann_entropy >= 0, "Entropía negativa"
         assert self.participation_ratio >= 1, "Razón de participación inválida"
 
+    @property
+    def is_valid(self) -> bool:
+        """Retorna True si las métricas satisfacen los axiomas cuánticos básicos."""
+        return (0 <= self.purity <= 1 and
+                self.von_neumann_entropy >= 0 and
+                self.participation_ratio >= 1)
+
 
 class HilbertSpaceOperator(Protocol):
     """Protocolo para operadores en espacios de Hilbert."""
