@@ -1318,7 +1318,7 @@ def test_projector_idempotence_varios_tamanos(
 
 @pytest.mark.parametrize(
     "dim,seed",
-    [2, 4, 6, 8, 10],
+    [(2, 1), (4, 2), (6, 3), (8, 4), (10, 5)],
 )
 def test_port_hamiltonian_lyapunov_varias_dimensiones(dim: int, seed: int) -> None:
     """Regresión: T3 se mantiene para varias dimensiones."""
