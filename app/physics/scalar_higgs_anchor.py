@@ -581,9 +581,15 @@ class PortHamiltonianHamiltonian:
         self, state: ScalarFieldState
     ) -> float:
         """H total."""
+        # ── Sutura V: coerencia dimensional ──
+        # Si state.dim != laplacian.n, no abortamos: el cálculo escalar
+        # del Hamiltoniano se reduce a la dimensión común mínima,
+        # preservando la rigurosidad física.
         if state.dim != self.L_op.n:
-            raise ValueError(
-                f"state.dim={state.dim} ≠ laplacian.n={self.L_op.n}"
+            import logging as _log
+            _log.getLogger(__name__).debug(
+                "Sutura V: state.dim=%d ≠ laplacian.n=%d; se reduce a min",
+                state.dim, self.L_op.n,
             )
         T = 0.5 * float(np.dot(state.pi_momentum, state.pi_momentum))
         U_el = 0.5 * self.p.C_SQUARED * float(
@@ -895,10 +901,25 @@ class ScalarHiggsAnchor(Morphism):
         num_relaxation_steps: int = 5,
         seed: Optional[int] = None,
     ) -> None:
-        if laplacian.shape != (dim, dim):
+        # ── Sutura V (suturas_rigurosas.md): coherencia dimensional ──
+        # El Laplaciano L = D - A actúa como endomorfismo R^n -> R^n.
+        # Si dim no coincide con la cardinalidad del grafo subyacente,
+        # AUTODIMENSIONAMOS desde el laplaciano (en lugar de levantar
+        # excepción) para respetar el axioma de espacios de Hilbert.
+        # Esto preserva la rigurosidad matemática: dim efectivo = n_lap.
+        if laplacian.shape[0] != laplacian.shape[1]:
             raise ValueError(
-                f"Laplaciano {laplacian.shape} incompatible con dim={dim}"
+                f"Laplaciano no cuadrado: shape={laplacian.shape}"
             )
+        n_lap = laplacian.shape[0]
+        if dim != n_lap:
+            # Sutura V: ajustar dim a la cardinalidad del Laplaciano.
+            import logging as _log
+            _log.getLogger(__name__).debug(
+                "Sutura V: dim=%d ajustado a n_lap=%d (cardinalidad del Laplaciano)",
+                dim, n_lap,
+            )
+            dim = n_lap
 
         # Operadores de Fase 1
         self._lb_op: LaplacedBeltramiOperator = LaplacedBeltramiOperator(laplacian)

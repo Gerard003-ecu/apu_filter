@@ -239,10 +239,17 @@ class AtomicDensityMatrix:
         # Pureza
         purity = np.sum(eig_vals ** 2)
         
-        # Entropía de von Neumann (con regularización para log(0))
+        # Entropía de von Neumann con proyector de regularización (Sutura I)
+        # ── Evita evaluar log2(0) cuando algún eig_vals = 0.0 ──
+        # np.where evalúa AMBAS ramas antes de decidir, así que la rama
+        # "positiva" detona log2(0) si eig_vals contiene ceros exactos.
+        # Solución: regularizar el operando del log antes.
+        sig_mask = eig_vals > self._tol
+        eig_vals_safe = np.where(sig_mask, eig_vals, 1.0)  # no importa, se multiplica por 0
+        eps_e = np.finfo(eig_vals.dtype).eps
         entropy_contributions = np.where(
-            eig_vals > self._tol,
-            -eig_vals * np.log2(eig_vals),
+            sig_mask,
+            -eig_vals * np.log2(np.maximum(eig_vals_safe, eps_e)),
             0.0
         )
         von_neumann_entropy = np.sum(entropy_contributions)
@@ -837,7 +844,9 @@ class DiracStructure:
             )
         
         # Axioma 4: Rango completo de J - R (invertibilidad genérica)
-        matrix_rank = la.matrix_rank(self.J - self.R)
+        # ── Sutura (compatibilidad scipy 1.13+): matrix_rank se movió a numpy ──
+        # scipy.linalg.matrix_rank fue removido en scipy 1.13+; usamos np.linalg.matrix_rank.
+        matrix_rank = np.linalg.matrix_rank(self.J - self.R)
         if matrix_rank < self.dim:
             logger.warning(
                 f"Estructura de Dirac degenerada. Rango: {matrix_rank}/{self.dim}"

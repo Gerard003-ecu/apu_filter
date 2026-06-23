@@ -507,16 +507,22 @@ class VonNeumannEntropyEngine:
         if len(pos_eigs) == 0:
             return 0.0
         
+        # ── Sutura I: proyector de regularización sobre el espectro ──
+        # Cota inferior de precisión de máquina para el operando del log.
+        eps = np.finfo(pos_eigs.dtype).eps
+        lambda_safe = np.maximum(pos_eigs, eps)
+        
         # Usar log-sum-exp para estabilidad: -Σ λᵢ ln λᵢ
         # En precisión extendida si está habilitado
         if self._use_extended_precision:
             pos_eigs = pos_eigs.astype(np.float128)
-            log_eigs = np.log(pos_eigs)
+            lambda_safe = lambda_safe.astype(np.float128)
+            log_eigs = np.log(lambda_safe)
             entropy = -np.sum(pos_eigs * log_eigs)
             return float(entropy * self._log_factor)
         else:
             # Truco numérico: λ ln λ = λ (ln λ) donde ln λ se calcula seguramente
-            log_eigs = np.log(pos_eigs)
+            log_eigs = np.log(lambda_safe)
             entropy = -np.sum(pos_eigs * log_eigs)
             return float(entropy * self._log_factor)
 

@@ -830,7 +830,10 @@ class GraphSemanticProjector:
             probabilities = sizes_array / total
             # Evitar log(0)
             probabilities = probabilities[probabilities > 0]
-            entropy = -np.sum(probabilities * np.log2(probabilities))
+            # Sutura I: proyector de regularización para evitar log2(0)
+            eps_p = np.finfo(probabilities.dtype).eps
+            prob_safe = np.maximum(probabilities, eps_p)
+            entropy = -np.sum(probabilities * np.log2(prob_safe))
             max_entropy = np.log2(len(sizes))
             analysis["shannon_entropy"] = float(entropy)
             analysis["normalized_entropy"] = float(

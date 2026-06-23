@@ -245,13 +245,23 @@ class VectorMetrics:
     topological_coherence: float = 1.0
     algebraic_integrity: float = 1.0
     
+    # ── Sutura IV: alias execution_ms ──
+    # Tests legacy pasan execution_ms como kwarg; lo aceptamos y lo copiamos
+    # a processing_time_ms en __post_init__.
+    execution_ms: Optional[float] = None
+    
     def __post_init__(self) -> None:
-        """Valida invariantes de las métricas."""
+        """Valida invariantes de las métricas.
+        
+        Sutura IV: si execution_ms fue provisto, se promueve a processing_time_ms.
+        """
+        if self.execution_ms is not None:
+            object.__setattr__(self, "processing_time_ms", float(self.execution_ms))
         # Usar object.__setattr__ porque es frozen
         if self.processing_time_ms < 0:
-            object.__setattr__(self, 'processing_time_ms', 0.0)
+            object.__setattr__(self, "processing_time_ms", 0.0)
         if self.memory_usage_mb < 0:
-            object.__setattr__(self, 'memory_usage_mb', 0.0)
+            object.__setattr__(self, "memory_usage_mb", 0.0)
         
         # Clamp de coherencia e integridad
         tc = max(0.0, min(1.0, self.topological_coherence))

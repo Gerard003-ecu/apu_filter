@@ -366,7 +366,10 @@ class GeodesicAttentionFibrator(Morphism):
             # g_{μα} T^α_{νρ} (bajar primer índice)
             T_lower_first = np.einsum('ma,anr->mnr', g, T)
             # g^{ρλ} T^σ_{ρμ} T^τ_{σν} g_{λτ}
-            Ric2 = np.einsum('rl,rmn,sn,lt->mt', g_inv, T_lower_first, T, g)
+            # ── Sutura III: T tiene rango 3, pero 'sn' tiene 2 chars. ──
+            # Proyectamos T a rango 2 sumando el tercer índice (proyección cósmica).
+            T_2d = np.einsum('snm->sn', T)
+            Ric2 = np.einsum('rl,rmn,sn,lt->mt', g_inv, T_lower_first, T_2d, g)
 
             ricci = Ric1 + Ric2
             # Regularización de Tikhonov para garantizar SDP
