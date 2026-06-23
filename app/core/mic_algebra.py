@@ -892,13 +892,28 @@ class CategoricalState:
     forensic_evidence: Optional[Dict[str, Any]] = None
     composition_trace: Tuple[CompositionTrace, ...] = field(default_factory=tuple)
     
+    # ── Sutura IV (suturas_rigurosas.md): kwarg opcional stratum ──
+    # Acepta un Stratum escalar para compatibilidad con fixtures de tests legacy
+    # (p.ej. CategoricalState(payload=..., stratum=Stratum.PHYSICS)). Internamente
+    # se inyecta en validated_strata como frozenset({stratum}).
+    stratum: Optional["Stratum"] = None
+    
     def __post_init__(self) -> None:
         """
         Normalización y validación de estratos validados.
         
+        Sutura IV: si se pasó stratum escalar y validated_strata está vacío,
+        se promueve a frozenset({stratum}) para mantener coherencia algebraica.
+        
         Garantiza que validated_strata contenga solo objetos Stratum válidos,
         convirtiendo desde int/str si es necesario.
         """
+        # ── Sutura IV: promover stratum escalar a validated_strata ──
+        if self.stratum is not None and not self.validated_strata:
+            object.__setattr__(
+                self, "validated_strata", frozenset({self.stratum})
+            )
+        
         if not self.validated_strata:
             return
         
@@ -1524,24 +1539,46 @@ class Morphism(ABC):
     - Call count: trazabilidad de ejecuciones
     """
     
-    def __init__(self, name: str = "") -> None:
+    def __init__(self, name: str = "", stratum: Optional["Stratum"] = None) -> None:
+        r"""Inicializa el morfismo.
+        
+        Args:
+            name: nombre del morfismo.
+            stratum: opcional, Sutura IV \u2014 kwarg legacy para subclases que
+                propagan el estrato categórico al constructor base (p.ej.
+                GeodesicAttentionFibrator). Se almacena en ``_stratum``.
+        """
         self._name: str = name or self.__class__.__name__
         self._logger: logging.Logger = logging.getLogger(
             f"MIC.Morphism.{self.name}"
         )
         self._call_count: int = 0
+        # Sutura IV: almacenar stratum si se proporciona.
+        self._stratum: Optional["Stratum"] = stratum
     
     @property
-    @abstractmethod
     def domain(self) -> FrozenSet[Stratum]:
-        """Dominio del morfismo (estratos de entrada requeridos)."""
-        ...
+        r"""Dominio del morfismo (estratos de entrada requeridos).
+        
+        Sutura IV (suturas_rigurosas.md): default que devuelve frozenset
+        conteniendo el _stratum si fue provisto, sino vacío. Las subclases
+        deben sobreescribir este método para reflejar su contrato real.
+        Antes era @abstractmethod; se relajó para que las subclases
+        existentes (p.ej. GeodesicAttentionFibrator) puedan instanciarse.
+        """
+        if self._stratum is not None:
+            return frozenset({self._stratum})
+        return frozenset()
     
     @property
-    @abstractmethod
-    def codomain(self) -> Stratum:
-        """Codominio del morfismo (estrato de salida)."""
-        ...
+    def codomain(self) -> Optional["Stratum"]:
+        r"""Codominio del morfismo (estrato de salida).
+        
+        Sutura IV: default devuelve _stratum si fue provisto. Las subclases
+        especializadas (p.ej. IdentityMorphism) deben sobreescribir para
+        declarar el codominio exacto de su contrato categórico.
+        """
+        return self._stratum
     
     @property
     def name(self) -> str:

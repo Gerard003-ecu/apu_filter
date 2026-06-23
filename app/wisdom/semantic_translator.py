@@ -96,6 +96,12 @@ from app.core.telemetry_schemas import (
     ThermodynamicMetrics,
 )
 
+# ── Sutura II.c: MICRegistry es referenciado en firmas y constructores ──
+from app.adapters.tools_interface import (
+    MICRegistry,
+    register_core_vectors,
+)
+
 
 logger = logging.getLogger(__name__)
 

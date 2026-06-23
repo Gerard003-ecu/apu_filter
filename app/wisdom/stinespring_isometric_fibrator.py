@@ -180,7 +180,10 @@ class ChoiOperator:
         eigvals = self.spectral.eigenvalues
         eigvals = eigvals[eigvals > NumericalThresholds.EPS_MACHINE]
         eigvals /= eigvals.sum()  # Renormalizar
-        return -np.sum(eigvals * np.log2(eigvals))
+        # Sutura I: proyector de regularización para evitar log2(0)
+        eps = np.finfo(eigvals.dtype).eps
+        eigvals_safe = np.maximum(eigvals, eps)
+        return -np.sum(eigvals * np.log2(eigvals_safe))
 
 
 @dataclass(frozen=True, slots=True)
@@ -977,7 +980,10 @@ class QuantumInformationMetrics:
         # Normalizar (por si acaso)
         positive_eigs /= positive_eigs.sum()
         
-        return -np.sum(positive_eigs * np.log2(positive_eigs))
+        # Sutura I: proyector de regularización para evitar log2(0)
+        eps = np.finfo(positive_eigs.dtype).eps
+        eig_safe = np.maximum(positive_eigs, eps)
+        return -np.sum(positive_eigs * np.log2(eig_safe))
     
     @staticmethod
     def purity(rho: NDArray[np.complex128]) -> float:

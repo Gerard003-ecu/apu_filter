@@ -338,6 +338,21 @@ FinancialEngine = _safe_import(".financial_engine", "FinancialEngine")
 from app.core.schemas import Stratum
 
 # =============================================================================
+# SUTURA II.a — Vectores core del espacio vectorial MIC
+# =============================================================================
+# Doctrina: estos vectores estaban referenciados sin importarse, lo que
+# provocaba NameError en producción cuando get_global_mic() invocaba
+# register_core_vectors() (770+ fallos en conda_v3). Se importan de su
+# módulo de definición (app/adapters/mic_vectors.py).
+from app.adapters.mic_vectors import (
+    vector_stabilize_flux,
+    vector_parse_raw_structure,
+    vector_structure_logic,
+    vector_audit_homological_fusion,
+    vector_lateral_pivot,
+    vector_calculate_improbability_tensor,
+)
+# =============================================================================
 # CONFIGURACIÓN EXTERNALIZABLE CON VALIDACIÓN DE INVARIANTES
 # =============================================================================
 

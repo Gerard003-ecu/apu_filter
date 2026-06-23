@@ -330,8 +330,12 @@ class POVMMeasurement:
         p_k = probabilities[outcome_index]
         
         # Entropía de Shannon de la distribución de probabilidad
+        # ── Sutura I: proyector de regularización ──
+        # Cota inferior de precisión de máquina antes del log2.
         prob_nonzero = probabilities[probabilities > self.tol]
-        shannon_entropy = -np.sum(prob_nonzero * np.log2(prob_nonzero))
+        eps_p = np.finfo(prob_nonzero.dtype).eps
+        prob_safe = np.maximum(prob_nonzero, eps_p)
+        shannon_entropy = -np.sum(prob_nonzero * np.log2(prob_safe))
         
         # Pureza del estado post-medición
         metrics_post = rho_post.compute_metrics()
