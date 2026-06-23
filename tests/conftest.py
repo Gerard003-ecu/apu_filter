@@ -56,6 +56,43 @@ def sterile_logging_environment():
         # preservando la pureza de estado (Idempotencia).
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _initialize_global_mic_with_core_vectors():
+    """
+    Bootstrap global de la MIC: garantiza que todos los vectores core
+    (incluyendo ``stabilize_flux``, ``parse_raw``, ``structure_logic``,
+    ``audit_fusion_homology``, ``lateral_thinking_pivot``,
+    ``calculate_fat_tail_risk``) estén registrados antes de cualquier
+    colección de tests.
+
+    Fundamentación:
+        Sin este bootstrap, los tests que mockean
+        ``app.core.apu_agent.get_global_mic`` con ``create=True`` (lo que
+        genera un ``MagicMock`` vacío) producen ``NameError: name
+        'vector_stabilize_flux' is not defined`` al intentar acceder a
+        atributos del mock. Pre-inicializando la singleton MIC una sola
+        vez por sesión, esos mocks heredan la realidad estructural.
+
+    Idempotencia:
+        ``get_global_mic(force_reinit=False)`` retorna la instancia cacheada,
+        por lo que este fixture es seguro contra invocaciones repetidas.
+    """
+    from app.adapters.tools_interface import get_global_mic
+    try:
+        get_global_mic()
+    except Exception as exc:  # noqa: BLE001 — bootstrap defensivo
+        # Si el bootstrap falla, los tests con patch MagicMock deben
+        # continuar (la MIC mockeada seguirá siendo un MagicMock vacío,
+        # pero al menos no rompemos la recolección por este motivo).
+        import warnings
+        warnings.warn(
+            f"[conftest] Bootstrap MIC global no completó: {exc}. "
+            "Los tests con mocks de get_global_mic deberán manejar el caso.",
+            RuntimeWarning,
+        )
+    yield
+
+
 @pytest.fixture(scope="module")
 def app():
     """Crea y configura una nueva instancia de la aplicación para cada módulo de prueba.

@@ -123,7 +123,7 @@ def Q_K_V(batch_size: int, dim: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray
 @pytest.fixture
 def phase1(base_metric: np.ndarray):
     """Instancia de Fase 1 inyectada con stubs."""
-    from app.wisdom.geodesic_attention_fibrator import (
+    from app.boole.wisdom.geodesic_attention_fibrator import (
         GeodesicAttentionFibrator,
     )
     # Inyectar stubs si el módulo original los requiere
@@ -132,7 +132,7 @@ def phase1(base_metric: np.ndarray):
 
 @pytest.fixture
 def phase2():
-    from app.wisdom.geodesic_attention_fibrator import (
+    from app.boole.wisdom.geodesic_attention_fibrator import (
         GeodesicAttentionFibrator,
     )
     return GeodesicAttentionFibrator._Phase2_CovariantAttention()
@@ -140,7 +140,7 @@ def phase2():
 
 @pytest.fixture
 def phase3():
-    from app.wisdom.geodesic_attention_fibrator import (
+    from app.boole.wisdom.geodesic_attention_fibrator import (
         GeodesicAttentionFibrator,
     )
     return GeodesicAttentionFibrator._Phase3_FeynmanIntegration()
@@ -153,7 +153,7 @@ class TestEstructural:
     """Validación de tipos inmutables y shapes."""
 
     def test_torsion_tensor_validates_antisymmetry(self, dim: int):
-        from app.wisdom.geodesic_attention_fibrator import TorsionTensor
+        from app.boole.wisdom.geodesic_attention_fibrator import TorsionTensor
         T = np.random.randn(dim, dim, dim)
         T = 0.5 * (T - np.transpose(T, (0, 2, 1)))
         obj = TorsionTensor(components=T)
@@ -161,32 +161,32 @@ class TestEstructural:
         assert np.allclose(obj.components, -np.transpose(obj.components, (0, 2, 1)))
 
     def test_torsion_tensor_rejects_nonsquare(self):
-        from app.wisdom.geodesic_attention_fibrator import TorsionTensor
+        from app.boole.wisdom.geodesic_attention_fibrator import TorsionTensor
         with pytest.raises(Exception):
             TorsionTensor(components=np.zeros((2, 3, 3)))
 
     def test_torsion_tensor_rejects_nonantisymmetric(self, dim: int):
-        from app.wisdom.geodesic_attention_fibrator import TorsionTensor
+        from app.boole.wisdom.geodesic_attention_fibrator import TorsionTensor
         from app.core.mic_algebra import NumericalInstabilityError
         T = np.random.randn(dim, dim, dim)  # no antisimétrico
         with pytest.raises(NumericalInstabilityError):
             TorsionTensor(components=T)
 
     def test_torsion_tensor_rejects_nan(self, dim: int):
-        from app.wisdom.geodesic_attention_fibrator import TorsionTensor
+        from app.boole.wisdom.geodesic_attention_fibrator import TorsionTensor
         from app.core.mic_algebra import NumericalInstabilityError
         T = np.full((dim, dim, dim), np.nan)
         with pytest.raises(NumericalInstabilityError):
             TorsionTensor(components=T)
 
     def test_christoffel_validates_shape(self, dim: int):
-        from app.wisdom.geodesic_attention_fibrator import ChristoffelSymbols
+        from app.boole.wisdom.geodesic_attention_fibrator import ChristoffelSymbols
         G = np.random.randn(dim, dim, dim)
         obj = ChristoffelSymbols(gamma=G)
         assert obj.gamma.shape == (dim, dim, dim)
 
     def test_christoffel_decomposition_symmetric_antisymmetric(self, dim: int):
-        from app.wisdom.geodesic_attention_fibrator import ChristoffelSymbols
+        from app.boole.wisdom.geodesic_attention_fibrator import ChristoffelSymbols
         np.random.seed(0)
         G = np.random.randn(dim, dim, dim)
         obj = ChristoffelSymbols(gamma=G)
@@ -199,7 +199,7 @@ class TestEstructural:
         assert np.allclose(sym + antisym, G)
 
     def test_christoffel_covariant_derivative_euclidean(self, dim: int):
-        from app.wisdom.geodesic_attention_fibrator import ChristoffelSymbols
+        from app.boole.wisdom.geodesic_attention_fibrator import ChristoffelSymbols
         # Conexión nula → derivada covariante = 0
         G = np.zeros((dim, dim, dim))
         obj = ChristoffelSymbols(gamma=G)
@@ -209,7 +209,7 @@ class TestEstructural:
         assert np.allclose(deriv, 0.0)
 
     def test_fibrator_constants_positive(self):
-        from app.wisdom.geodesic_attention_fibrator import FibratorConstants
+        from app.boole.wisdom.geodesic_attention_fibrator import FibratorConstants
         assert FibratorConstants.PLANCK_BAR_EFF > 0
         assert FibratorConstants.KAPPA_RICCI > 0
         assert FibratorConstants.EPSILON_MACH > 0
@@ -229,20 +229,20 @@ class TestPhase1GeometricFoundation:
         eigvals = np.array([-0.5, 1.0, 2.0])
         eigvecs = np.eye(dim)
         G_indef = (eigvecs * eigvals) @ eigvecs.T
-        from app.wisdom.geodesic_attention_fibrator import GeodesicAttentionFibrator
+        from app.boole.wisdom.geodesic_attention_fibrator import GeodesicAttentionFibrator
         G_sdp = GeodesicAttentionFibrator._validate_base_metric(G_indef)
         eigvals_sdp = la.eigvalsh(G_sdp)
         assert np.all(eigvals_sdp > 0), "Proyección SDP falló"
         assert G_sdp.shape == (dim, dim)
 
     def test_validate_base_metric_preserves_spd(self, base_metric: np.ndarray):
-        from app.wisdom.geodesic_attention_fibrator import GeodesicAttentionFibrator
+        from app.boole.wisdom.geodesic_attention_fibrator import GeodesicAttentionFibrator
         G_sdp = GeodesicAttentionFibrator._validate_base_metric(base_metric)
         assert np.allclose(G_sdp, G_sdp.T, atol=1e-12)
         assert np.all(la.eigvalsh(G_sdp) > 0)
 
     def test_validate_base_metric_rejects_nonsquare(self):
-        from app.wisdom.geodesic_attention_fibrator import GeodesicAttentionFibrator
+        from app.boole.wisdom.geodesic_attention_fibrator import GeodesicAttentionFibrator
         from app.core.mic_algebra import NumericalInstabilityError
         with pytest.raises(NumericalInstabilityError):
             GeodesicAttentionFibrator._validate_base_metric(np.zeros((2, 3)))
@@ -283,7 +283,7 @@ class TestPhase1GeometricFoundation:
         assert np.all(eigvals > 0)
 
     def test_ricci_vanishes_for_zero_torsion(self, phase1, dim: int):
-        from app.wisdom.geodesic_attention_fibrator import TorsionTensor
+        from app.boole.wisdom.geodesic_attention_fibrator import TorsionTensor
         T_zero = TorsionTensor(components=np.zeros((dim, dim, dim)))
         Ric = phase1._compute_ricci_from_torsion(T_zero)
         # Sólo queda el regularizador de Tikhonov
@@ -292,7 +292,7 @@ class TestPhase1GeometricFoundation:
 
     def test_ricci_quadratic_scaling(self, phase1, dim: int):
         """Ric debe escalar cuadráticamente con T."""
-        from app.wisdom.geodesic_attention_fibrator import TorsionTensor
+        from app.boole.wisdom.geodesic_attention_fibrator import TorsionTensor
         T_raw = np.random.randn(dim, dim, dim)
         T_raw = 0.5 * (T_raw - np.transpose(T_raw, (0, 2, 1)))
         T1 = TorsionTensor(components=T_raw)
@@ -347,7 +347,7 @@ class TestPhase1GeometricFoundation:
 
     # II.e ──────────────────────────────────────────────────────────────────
     def test_levi_civita_shape_and_finiteness(self, phase1, base_metric: np.ndarray):
-        from app.wisdom.geodesic_attention_fibrator import ChristoffelSymbols
+        from app.boole.wisdom.geodesic_attention_fibrator import ChristoffelSymbols
         LC = phase1._compute_levi_civita(base_metric)
         assert isinstance(LC, ChristoffelSymbols)
         d = phase1.dim
@@ -367,7 +367,7 @@ class TestPhase1GeometricFoundation:
         self, phase1, torsion_raw: np.ndarray
     ):
         T_obj = phase1._encapsulate_torsion(torsion_raw)
-        from app.wisdom.geodesic_attention_fibrator import ChristoffelSymbols
+        from app.boole.wisdom.geodesic_attention_fibrator import ChristoffelSymbols
         LC = ChristoffelSymbols(gamma=np.zeros((phase1.dim,)*3))
         K = phase1._compute_contorsion(T_obj, LC)
         # K^μ_{νρ} debe ser antisimétrico en (ν,ρ)
@@ -376,8 +376,8 @@ class TestPhase1GeometricFoundation:
     def test_contorsion_coupling_scaling(self, phase1, torsion_raw: np.ndarray):
         """K se escala linealmente con TORSION_COUPLING."""
         T_obj = phase1._encapsulate_torsion(torsion_raw)
-        from app.wisdom.geodesic_attention_fibrator import ChristoffelSymbols
-        from app.wisdom.geodesic_attention_fibrator import FibratorConstants
+        from app.boole.wisdom.geodesic_attention_fibrator import ChristoffelSymbols
+        from app.boole.wisdom.geodesic_attention_fibrator import FibratorConstants
         LC = ChristoffelSymbols(gamma=np.zeros((phase1.dim,)*3))
         K = phase1._compute_contorsion(T_obj, LC)
         # Si duplicamos el coupling, K se duplica
@@ -388,7 +388,7 @@ class TestPhase1GeometricFoundation:
         assert np.allclose(K, K2, atol=1e-10)
 
     def test_contorsion_vanishes_for_zero_torsion(self, phase1, dim: int):
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             TorsionTensor, ChristoffelSymbols,
         )
         T_zero = TorsionTensor(components=np.zeros((dim, dim, dim)))
@@ -401,7 +401,7 @@ class TestPhase1GeometricFoundation:
         self, phase1, base_metric: np.ndarray
     ):
         """P(0) = I (en el límite τ → 0)."""
-        from app.wisdom.geodesic_attention_fibrator import FibratorConstants
+        from app.boole.wisdom.geodesic_attention_fibrator import FibratorConstants
         d = phase1.dim
         gamma = np.zeros((d, d, d))
         v = np.zeros(d)  # tangente nula ⟹ dP/dt = 0
@@ -473,7 +473,7 @@ class TestPhase1GeometricFoundation:
         # Escalar de Ricci finito
         assert np.isfinite(ctx.ricci_scalar_trace)
         # Tipo inmutable
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             TorsionTensor, ChristoffelSymbols,
         )
         assert isinstance(ctx.torsion, TorsionTensor)
@@ -488,7 +488,7 @@ class TestPhase1GeometricFoundation:
         assert np.allclose(ctx1.effective_metric, ctx2.effective_metric)
 
     def test_geometric_context_rejects_non_sdp_metric(self, dim: int):
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeometricContext, TorsionTensor, ChristoffelSymbols,
         )
         from app.core.mic_algebra import NumericalInstabilityError
@@ -504,7 +504,7 @@ class TestPhase1GeometricFoundation:
             )
 
     def test_geometric_context_rejects_non_covariant_P(self, dim: int):
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeometricContext, TorsionTensor, ChristoffelSymbols,
         )
         from app.core.mic_algebra import NumericalInstabilityError
@@ -624,7 +624,7 @@ class TestPhase2CovariantAttention:
         self, phase2, base_metric, Q_K_V, torsion_raw
     ):
         """Para g_eff = I y P = I, los pesos covariantes ≈ softmax euclidiano."""
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeometricContext, TorsionTensor, ChristoffelSymbols,
         )
         Q, K, V = Q_K_V
@@ -656,7 +656,7 @@ class TestPhase2CovariantAttention:
     ):
         Q, K, V = Q_K_V
         d = Q.shape[-1]
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeometricContext, TorsionTensor, ChristoffelSymbols,
         )
         G = base_metric
@@ -676,7 +676,7 @@ class TestPhase2CovariantAttention:
     def test_attention_weights_are_normalized(self, phase2, base_metric, Q_K_V, torsion_raw):
         Q, K, V = Q_K_V
         d = Q.shape[-1]
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeometricContext, TorsionTensor, ChristoffelSymbols,
         )
         ctx = GeometricContext(
@@ -724,14 +724,14 @@ class TestPhase3FeynmanIntegration:
 
     def test_feynman_amplitude_classical_limit(self, phase3):
         """S >> ℏ ⟹ Ψ → 0 (principio de correspondencia)."""
-        from app.wisdom.geodesic_attention_fibrator import FibratorConstants
+        from app.boole.wisdom.geodesic_attention_fibrator import FibratorConstants
         S_large = 100.0 * FibratorConstants.PLANCK_BAR_EFF
         Ψ = phase3._compute_feynman_amplitude(S_large)
         assert Ψ < 1e-10
 
     def test_feynman_amplitude_monotonic_decrease(self, phase3):
         """Ψ(S) es monótona decreciente."""
-        from app.wisdom.geodesic_attention_fibrator import FibratorConstants
+        from app.boole.wisdom.geodesic_attention_fibrator import FibratorConstants
         actions = [0.0, 0.001, 0.01, 0.1, 1.0, 10.0]
         amps = [phase3._compute_feynman_amplitude(a) for a in actions]
         for i in range(len(amps) - 1):
@@ -756,7 +756,7 @@ class TestPhase3FeynmanIntegration:
 
     def test_path_survives_when_action_small(self, phase3):
         """Ψ > threshold ⟹ pesos preservados y is_viable = True."""
-        from app.wisdom.geodesic_attention_fibrator import FibratorConstants
+        from app.boole.wisdom.geodesic_attention_fibrator import FibratorConstants
         w_in = np.array([[0.3, 0.3, 0.4]])
         w_out, Ψ, S, viable = phase3.suppress_non_viable_paths(
             w_in, dirichlet_energy=0.0, torsion_norm_sq=0.0
@@ -767,7 +767,7 @@ class TestPhase3FeynmanIntegration:
 
     def test_veto_threshold_boundary(self, phase3):
         """Ψ exactamente en el umbral ⟹ NO sobrevive (estricto)."""
-        from app.wisdom.geodesic_attention_fibrator import FibratorConstants
+        from app.boole.wisdom.geodesic_attention_fibrator import FibratorConstants
         w_in = np.ones((1, 3)) / 3
         # S tal que Ψ = threshold (aprox.)
         # threshold = exp(-S/ℏ) ⟹ S = -ℏ·ln(threshold)
@@ -790,7 +790,7 @@ class TestIntegrationOrchestrator:
     def test_full_pipeline_produces_valid_result(
         self, base_metric, Q_K_V, torsion_raw
     ):
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeodesicAttentionFibrator, Stratum,
         )
         Q, K, V = Q_K_V
@@ -798,7 +798,7 @@ class TestIntegrationOrchestrator:
         # Inyectar la métrica stub si es necesario
         fibrator.G_base = base_metric
         result = fibrator(Q, K, V, torsion_raw, dirichlet_energy=0.5)
-        from app.wisdom.geodesic_attention_fibrator import GeodesicPathResult
+        from app.boole.wisdom.geodesic_attention_fibrator import GeodesicPathResult
         assert isinstance(result, GeodesicPathResult)
         assert result.covariant_attention_weights.shape == (Q.shape[0], K.shape[0])
         assert np.isfinite(result.feynman_amplitude)
@@ -809,7 +809,7 @@ class TestIntegrationOrchestrator:
     def test_pipeline_rejects_dimension_mismatch(
         self, base_metric, torsion_raw
     ):
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeodesicAttentionFibrator, Stratum,
         )
         from app.core.mic_algebra import NumericalInstabilityError
@@ -824,7 +824,7 @@ class TestIntegrationOrchestrator:
     def test_pipeline_rejects_non_2d_tensors(
         self, base_metric, torsion_raw
     ):
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeodesicAttentionFibrator, Stratum,
         )
         from app.core.mic_algebra import NumericalInstabilityError
@@ -840,7 +840,7 @@ class TestIntegrationOrchestrator:
         self, base_metric, Q_K_V
     ):
         """Torsión distinta ⟹ contexto geométrico recalculado."""
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeodesicAttentionFibrator, Stratum,
         )
         Q, K, V = Q_K_V
@@ -857,7 +857,7 @@ class TestIntegrationOrchestrator:
 
     def test_pipeline_determinism(self, base_metric, Q_K_V, torsion_raw):
         """Dos llamadas idénticas deben producir resultados idénticos."""
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeodesicAttentionFibrator, Stratum,
         )
         Q, K, V = Q_K_V
@@ -872,7 +872,7 @@ class TestIntegrationOrchestrator:
         self, base_metric, Q_K_V, torsion_raw
     ):
         """Acción enorme ⟹ veto cuántico ⟹ pesos = 0."""
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeodesicAttentionFibrator, Stratum,
         )
         Q, K, V = Q_K_V
@@ -883,7 +883,7 @@ class TestIntegrationOrchestrator:
         assert np.allclose(result.covariant_attention_weights, 0.0)
 
     def test_pipeline_shape_preservation(self, base_metric, Q_K_V, torsion_raw):
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeodesicAttentionFibrator, Stratum,
         )
         Q, K, V = Q_K_V
@@ -900,7 +900,7 @@ class TestCategorialStructure:
     """Validación de la estructura de morfismo: T: WISDOM → WISDOM."""
 
     def test_fibrator_is_morphism_subclass(self, base_metric):
-        from app.wisdom.geodesic_attention_fibrator import GeodesicAttentionFibrator
+        from app.boole.wisdom.geodesic_attention_fibrator import GeodesicAttentionFibrator
         from app.core.mic_algebra import Morphism
         f = GeodesicAttentionFibrator()
         assert isinstance(f, Morphism)
@@ -908,7 +908,7 @@ class TestCategorialStructure:
     def test_fibrator_call_returns_categorical_state(
         self, base_metric, Q_K_V, torsion_raw
     ):
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeodesicAttentionFibrator, GeodesicPathResult,
         )
         Q, K, V = Q_K_V
@@ -919,7 +919,7 @@ class TestCategorialStructure:
 
     def test_fibrator_phase_lazy_initialization(self, base_metric):
         """Las fases deben inicializarse perezosamente."""
-        from app.wisdom.geodesic_attention_fibrator import GeodesicAttentionFibrator
+        from app.boole.wisdom.geodesic_attention_fibrator import GeodesicAttentionFibrator
         f = GeodesicAttentionFibrator()
         f.G_base = base_metric
         assert f._phase1 is None
@@ -936,7 +936,7 @@ class TestCategorialStructure:
         assert f._phase3 is not None
 
     def test_geodesic_path_result_immutability(self):
-        from app.wisdom.geodesic_attention_fibrator import GeodesicPathResult
+        from app.boole.wisdom.geodesic_attention_fibrator import GeodesicPathResult
         w = np.ones((2, 3))
         r = GeodesicPathResult(
             covariant_attention_weights=w,
@@ -956,7 +956,7 @@ class TestNumericalStability:
     """Robustez ante perturbaciones y casos degenerados."""
 
     def test_pipeline_robust_to_very_small_torsion(self, base_metric, Q_K_V, dim: int):
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeodesicAttentionFibrator,
         )
         Q, K, V = Q_K_V
@@ -970,7 +970,7 @@ class TestNumericalStability:
     def test_pipeline_robust_to_high_dimensional_torsion(
         self, Q_K_V, base_metric
     ):
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeodesicAttentionFibrator,
         )
         Q, K, V = Q_K_V
@@ -994,7 +994,7 @@ class TestNumericalStability:
         self, base_metric, Q_K_V, torsion_raw
     ):
         """Pequeña perturbación en G_base ⟹ pequeña perturbación en output."""
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeodesicAttentionFibrator,
         )
         Q, K, V = Q_K_V
@@ -1017,7 +1017,7 @@ class TestNumericalStability:
     def test_geometric_context_construction_does_not_mutate_input(
         self, base_metric, torsion_raw
     ):
-        from app.wisdom.geodesic_attention_fibrator import (
+        from app.boole.wisdom.geodesic_attention_fibrator import (
             GeodesicAttentionFibrator,
         )
         f = GeodesicAttentionFibrator()
@@ -1035,7 +1035,7 @@ class TestNumericalStability:
 # ══════════════════════════════════════════════════════════════════════════════
 def FibratorConstants_check() -> float:
     """Helper: epsilon de Tikhonov en tests."""
-    from app.wisdom.geodesic_attention_fibrator import FibratorConstants
+    from app.boole.wisdom.geodesic_attention_fibrator import FibratorConstants
     return FibratorConstants.EPSILON_MACH
 
 

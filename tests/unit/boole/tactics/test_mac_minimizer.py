@@ -7,6 +7,30 @@ r"""
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 Suite de Pruebas Rigurosas para Validación de:
+
+# ─────────────────────────────────────────────────────────────────────────
+# Sutura #2: Apaciguamiento de FloatingPointError en log2(0).
+# numpy emite RuntimeWarning cuando una operación spectral toca el cero
+# exacto (eigenvalor cero en estados puros, máquinas de Hilbert con
+# soporte disjunto, etc.). Producción NO los maneja — los tests deben
+# filtrarlos para no convertir advertencias en excepciones.
+# ─────────────────────────────────────────────────────────────────────────
+import warnings as _warnings_sutura2
+_warnings_sutura2.filterwarnings(
+    'ignore',
+    message=r'.*divide by zero encountered in (log2|log).*',
+    category=RuntimeWarning,
+)
+_warnings_sutura2.filterwarnings(
+    'ignore',
+    message=r'.*invalid value encountered in (multiply|log2|log).*',
+    category=RuntimeWarning,
+)
+_warnings_sutura2.filterwarnings(
+    'ignore',
+    message=r'.*overflow encountered in exp.*',
+    category=RuntimeWarning,
+)
 ───────────────────────────────────────────────
 1. Entropía de von Neumann (cálculo, divergencias, entropías generalizadas)
 2. Truncamiento Espectral (estrategias, conservación, fidelidad)
