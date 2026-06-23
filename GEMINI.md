@@ -47,6 +47,3 @@ A continuación, se deconstruye la dimensionalidad de cada uno de los 7 estratos
 Respeta la Clausura Transitiva entre ellos.
 
 4. **Solo Lectura por Defecto:** A menos que se te ordene explícitamente refactorizar, tu rol principal es auditar, explicar y diagnosticar el código existente.
-
-## Configuración del Modelo
-thinking_level: high

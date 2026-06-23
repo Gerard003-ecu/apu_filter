@@ -1,65 +1,73 @@
-Este plan no es un mero "tablero de tareas"; es el ordenamiento topológico estricto (un Grafo Acíclico Dirigido) que debemos ejecutar para garantizar la invulnerabilidad de la Ciudadela de Cristal.
-A continuación, expongo el plan de integración por fases, gobernado por la mecánica cuántica de sistemas abiertos, la topología algebraica y la termodinámica de la información.
-I. FASE ALFA: Transmutación Propioceptiva y Campos de Gauge (El Estrato Discreto)
-La falacia de tratar el formato TOON como un simple algoritmo de compresión para salvaguardar la memoria (KV-Cache) debe ser erradicada inmediatamente. El sistema debe asimilar el entorno físico dotando a la inteligencia artificial de una verdadera "propiocepción geométrica del mercado".
-1. Instanciación de la Atención Covariante (geodesic_attention_fibrator.py y cartuchos_toon.md):
+La variedad de test no logró siquiera inicializar la matriz de evaluación; experimentó una Singularidad por Degeneración Escalar en el módulo test_funtor_shield.py, acompañada de una fuga masiva de entropía léxica (24 advertencias) por subespacios de medida no registrados.
+Procedo a diseccionar las patologías encontradas y dicto las suturas categóricas obligatorias para restaurar la ortogonalidad del sistema.
 
-    Acción: Reescribir el mecanismo de auto-atención del Modelo de Lenguaje (LLM) para que ingiera los ToonCartridges no como cadenas de texto, sino como tensores métricos GTOON​ en el Espacio de Fock F(H).
-    Rigor Matemático: El producto interno de la atención se deformará utilizando la métrica que codifica la inercia logística y los socavones lógicos (β1​>0):
-    A(Q, K, V) = \text{Softmax}\left( \frac{Q G_{\text{TOON}} K^T}{\sqrt{d}} \right) V
+1. La Singularidad del Funtor de Parametrización (TypeError: object of type 'int' has no len())
+El motor de pytest ha abortado la recolección en tests/unit/core/immune_system/test_funtor_shield.py. Este error es la manifestación de una violación fundamental en la Teoría de Categorías aplicada a la inyección de dependencias.
+En la parametrización de pruebas, el decorador @pytest.mark.parametrize actúa como un funtor covariante F:V→T, que mapea un espacio de valores de prueba V hacia un espacio de aserciones instanciadas T. Para que este mapeo sea matemáticamente válido, el dominio V debe ser un espacio topológico discreto con cardinalidad medible (un iterable). Se ha inyectado un escalar puro (un entero de dimensión cero) donde la signatura del operador exigía un colector unidimensional.
+Si definimos el operador cardinalidad ∣⋅∣, la evaluación sobre un conjunto de parámetros P es estricta:
 
-    Criterio de Éxito: La probabilidad atencional gravitará matemáticamente hacia los nodos de estrés antes de la emisión léxica.
+|P| \ge 1 \implies \text{Bien definido}
 
-2. Acoplamiento de Curvatura de Ricci (mic_agent.py):
+ Al inyectar un escalar c∈Z, el analizador de Pytest evalúa ∣c∣, lo cual carece de sentido topológico:
 
-    Acción: Forzar que toda descompresión inversa F^−1:TOON→JSON se someta a una Cota de Lipschitz dinámica.
-    Rigor Matemático: La constante de Lipschitz Lmax​ será un funcional dependiente de la Curvatura de Ricci del mercado logístico Ricμν​:
-    \| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\max}(\text{Ric}_{\mu\nu}) \| x - y \|_{\tau}
+ |c| = \text{Indefinido}  \implies \text{Bien definido}
 
-II. FASE BETA: Sutura del Fibrado Isométrico de Stinespring (La Transición de Fase)
-El Funtor de Elevación Cuántica debe garantizar incondicionalmente la preservación de probabilidad (V†V=IHMIC​​) durante la inyección de información estocástica hacia el álgebra de von Neumann MAC.
-1. Proyección de Löwner y Purificación del Cono Autodual (stinespring_isometric_fibrator.py):
+ La Sutura Quirúrgica: Revise inmediatamente los decoradores @pytest.mark.parametrize inyectados en test_funtor_shield.py. Es altamente probable que en su afán por instanciar una semilla o una dimensión, se haya escrito:
 
-    Acción: Interceptar la Matriz de Choi J(E) antes de la extracción de los operadores de Kraus e instanciar un algoritmo de Newton iterativo.
-    Rigor Matemático: Proyectar la matriz hacia el cono semidefinido positivo (PSD) óptimo para aniquilar autovalores espurios λk​<0 nacidos de la fricción de punto flotante:
-    \tilde{J}(E) = \arg\min_{J \succeq 0} \| J(E) - J \|_F
+@pytest.mark.parametrize("seed", 42) # DEGENERACIÓN ESCALAR FATAL
 
-2. Acoplamiento Termodinámico-Topológico del Entorno:
+O, alternativamente, al proveer una tupla de valores para un solo argumento sin encapsularla en una lista de tuplas. Debe envolver, con rigurosidad, los escalares en el complejo simplicial unidimensional correcto (una lista o tupla contenedora):
 
-    Acción: Eliminar el truncamiento estático del baño térmico. La entropía permitida (Choi Rank) debe reparametrizarse dinámicamente conectando la dilatación cuántica con el análisis topológico del presupuesto.
-    Rigor Matemático: La dimensión máxima del entorno dim(Henv​)max​ se calculará a partir de la Distancia de Bottleneck dB​ y el Valor de Fiedler λ1​:
-    \dim(H_{\text{env}})_{\max} = \left\lfloor d_0 \cdot \exp(-\alpha \cdot d_B(\text{Dgm}(f), \text{Dgm}(g))) \cdot \tanh(\kappa \cdot \lambda_1) \right\rfloor
+@pytest.mark.parametrize("seed", [1]) # INMERSIÓN TOPOLÓGICA VÁLIDA
 
-Renormalización Modular-Acoplada (KMS-Tikhonov):
+O, si maneja múltiples parámetros:
 
-    Acción: Inyectar la Energía de Dirichlet EMAC​ (evaluada en mac_audit_vectors.py) y la temperatura epistemológica en la regularización espectral del canal CPTP.
-    Rigor Matemático: Emplear el operador modular de Tomita-Takesaki Δ−βKMS​ para la renormalización unitaria de la isometría:
-    \tilde{M}_k = M_k \left( \sum_{j=1}^{d_{\text{trunc}}} M_j^{\dagger} M_j + \alpha(E_{\text{MAC}}) \cdot \Delta^{-\beta_{\text{KMS}}} \right)^{-1/2}
+@pytest.mark.parametrize("dim,seed", [(2, 42), (4, 123)]) 
 
-III. FASE GAMMA: Estabilización del Colector Clásico y Homología (El Blindaje)
-Para que el espacio de Hilbert HMAC​ no asimile ruido estructural, el foso físico y la barrera topológica deben ser algebraicamente irrompibles.
-1. Evaluación de Fricción Cuantizada y Hodge-de Rham (topologia.md y topological_analyzer.py):
+2. Ruptura de la σ-Álgebra de Marcadores (PytestUnknownMarkWarning)
+La terminal irradia ruido térmico indicando que marcadores categóricos como @pytest.mark.entropy, @pytest.mark.symplectic, @pytest.mark.cptp, @pytest.mark.cohomology, y @pytest.mark.bures son desconocidos para el sistema.
+Se ha diseñado una taxonomía brillante para el hiperespacio de pruebas, estratificando el dominio mediante marcadores avanzados. Sin embargo, en la Teoría de la Medida, para poder integrar sobre un espacio de fase Ω, los subconjuntos medibles deben pertenecer a una σ-álgebra Σ formalmente declarada.
 
-    Acción: Extender la medición de la conectividad en Complejos Simpliciales más allá del número de Betti (β0​).
-    Rigor Matemático: Implementar el Laplaciano de Hodge-de Rham para cuantificar la energía exacta de fractura de la red de proveedores:
-    \Delta_k = \partial_{k+1} \partial_{k+1}^* + \partial_k^* \partial_k
+A \in \Sigma \implies \int_A d\mu \quad \text{es computable}
 
-2. Integración Simpléctica y Disipación Port-Hamiltoniana (teoria_control.md y ehresmann_connection_manifold.py):
+ Al no registrar estos marcadores en la frontera del entorno de pruebas (pytest.ini o conftest.py), el evaluador los trata como variables libres no acotadas, inyectando entropía sintáctica (warnings) en el recolector de basura.
+La Sutura Quirúrgica: Debe expandir el espacio de medida registrando axiomáticamente la existencia de estas topologías. En su archivo pytest.ini o en el bloque pytest_configure de su conftest.py, inyecte la base ortogonal de sus marcadores:
 
-    Acción: Substituir los algoritmos de integración temporal ingenuos por un Integrador Simpléctico (Implicit Midpoint Rule).
-    Rigor Matemático: Preservar algebraicamente exacta la 2-forma simpléctica ω=dq∧dp y asegurar la inecuación de disipación proyectando la matriz Rdynamic​ forzosamente al cono de matrices semidefinidas positivas:
-    \dot{H} = -\nabla H^{\top} R(x) \nabla H \le 0, \quad \forall R(x) \succeq 0
+def pytest_configure(config):
+    markers = [
+        "entropy: marca pruebas de minimización de Von Neumann",
+        "truncation: marca pruebas de truncamiento espectral",
+        "pruning: marca pruebas de poda de Lindblad",
+        "minimization: marca pruebas de optimización de matriz de densidad",
+        "quantum: marca axiomas de mecánica cuántica",
+        "cohomology: marca pruebas de haces celulares y De Rham",
+        "symplectic: marca pruebas de conservación geométrica",
+        "povm: marca pruebas de medidas valoradas en operadores positivos",
+        "lindblad: marca pruebas de semigrupos dinámicos CPTP",
+        "information_geometry: marca pruebas de distancia de Bures y Uhlmann",
+        "cptp: marca validación de preservación de traza",
+        "tomita: marca teoría modular de Tomita-Takesaki",
+        "orthomodular: marca lógica de retículos cuánticos",
+        "algebra: marca propiedades de C*-álgebras",
+        "umegaki: marca divergencia de entropía relativa",
+        "sheaf: marca estructuras de haces y topología",
+        "stability: marca índices de estabilidad cuántica"
+    ]
+    for marker in markers:
+        config.addinivalue_line("markers", marker)
 
-3. Diagramas de Decisión Binaria para la Malla de Datos (mic_minimizer.py y Gobernanza):
+3. Ruido Térmico C++ / Python (DeprecationWarning: SwigPyPacked)
+Las advertencias relativas a SwigPyPacked y SwigPyObject provienen de un desgarro en el Funtor de Interfaz (probablemente de la librería FAISS o alguna extensión en C/C++ inyectada en su Malla Agéntica). SWIG está inicializando objetos que carecen del atributo __module__ en Python 3.10+. Aunque es una inestabilidad ajena a su lógica Port-Hamiltoniana, añade "fricción numérica" a su terminal.
+Este ruido se aniquila imponiendo un filtro de paso bajo (Low-pass filter) en la configuración de sus advertencias en pytest.ini:
 
-    Acción: Abandonar la evaluación NP-completa del problema SAT en el Supremo del Álgebra de Boole.
-    Rigor Matemático: Compilar todas las políticas de gobernanza_data_mesh.md en Diagramas de Decisión Binaria Ordenados y Reducidos (ROBDD) sobre el anillo Z2​, garantizando resoluciones de tautología en tiempo O(1) absoluto.
+[pytest]
+filterwarnings =
+    ignore:builtin type SwigPy.* has no __module__ attribute:DeprecationWarning
+    ignore:builtin type swigvarlink has no __module__ attribute:DeprecationWarning
 
-IV. FASE OMEGA: Evolución Epistemológica de Lindblad (mac_agent.py)
-1. Retroalimentación de Decoherencia Asintótica:
+Dictamen de Intervención Quirúrgica
+El error que ha colapsado su recolección es una trivialidad sintáctica que esconde una violación profunda del álgebra de tensores esperada por el test runner.
 
-    Acción: Acoplar la pérdida de memoria de la Sabiduría al estrés sintáctico original.
-    Rigor Matemático: El tensor de disipación γk​ de la ecuación de Lindblad-Kossakowski será un funcional de la dilatación del entorno en el paso de Stinespring:
-    \gamma_k(\tau) = \gamma_0 \cdot \exp\left( \alpha \cdot \frac{\dim(H_{\text{env}})}{\dim(H_{\text{MAC}})} \right)
-
- Forzando el colapso inmediato a un estado MeasurementOutcome.INCONCLUSIVE si la alucinación inyectada era severa.
+    Repare el Difeomorfismo: Navegue inmediatamente a test_funtor_shield.py, rastree la línea que parametriza escalares desnudos y envuélvalos en vectores [].
+    Selle la σ-Álgebra: Inyecte el registro de los más de 15 marcadores cuánticos/topológicos en su configuración de pytest para purgar los warnings.
+    Conserve el Vacío Termodinámico: Reanude la detonación masiva forzando el confinamiento estricto a un solo hilo: dim(ker(MKL))=0⟹OMP_NUM_THREADS=1
