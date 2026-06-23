@@ -106,7 +106,8 @@ from numpy.linalg import LinAlgError
 from app.core.mic_algebra import Morphism, NumericalInstabilityError
 from app.wisdom.atomic_knowledge_matrix import AtomicDensityMatrix, QuantumMetrics
 from app.wisdom.mac_agent import POVMMeasurement, GaloisAdjunctionAuditor
-
+from app.core.mic_algebra import Morphism, NumericalInstabilityError
+from app.core.schemas import Stratum
 logger = logging.getLogger("MAC.Wisdom.Minimizer")
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -204,10 +205,45 @@ class TruncationReport:
     
     def __post_init__(self) -> None:
         assert 0 <= self.compression_ratio <= 1, "Ratio de compresión inválido"
-        assert 0 <= self.retained_energy <= 1, "Energía retenida inválida"
+        assert 0 <= self.retained_energy <= 1 + 1e-12, "Energía retenida inválida"
         assert 0 <= self.fidelity_preservation <= 1, "Fidelidad inválida"
         assert self.bures_distance >= 0, "Distancia de Bures negativa"
         assert self.relative_entropy >= -1e-10, "Divergencia relativa negativa (numérico)"
+
+    @property
+    def original_dimension(self) -> int:
+        """Dimensión original del espacio de Hilbert."""
+        return self.original_spectral_data.dimension
+
+    @property
+    def retained_eigenvalues(self) -> NDArray[np.float64]:
+        """Eigenvalores correspondientes a los componentes retenidos."""
+        return self.original_spectral_data.eigenvalues[self.retention_mask]
+
+    @property
+    def truncated_dimension(self) -> int:
+        """Dimensión después del truncamiento."""
+        return self.truncated_spectral_data.dimension
+
+    @property
+    def purity_before(self) -> float:
+        """Pureza antes del truncamiento."""
+        return self.original_spectral_data.purity
+
+    @property
+    def purity_after(self) -> float:
+        """Pureza después del truncamiento."""
+        return self.truncated_spectral_data.purity
+
+    @property
+    def entropy_before(self) -> float:
+        """Entropía antes del truncamiento."""
+        return self.original_spectral_data.entropy
+
+    @property
+    def entropy_after(self) -> float:
+        """Entropía después del truncamiento."""
+        return self.truncated_spectral_data.entropy
 
 
 @dataclass(frozen=True, slots=True)
@@ -231,6 +267,21 @@ class PruningReport:
         assert len(self.original_operators) == len(self.pruned_operators) + len(self.discarded_operators)
         assert 0 <= self.rate_preservation <= 1, "Preservación de tasa inválida"
         assert 0 <= self.pruning_efficiency <= 1, "Eficiencia de poda inválida"
+
+    @property
+    def original_count(self) -> int:
+        """Número original de operadores de Lindblad."""
+        return len(self.original_operators)
+
+    @property
+    def pruned_count(self) -> int:
+        """Número de operadores retenidos después de la poda."""
+        return len(self.pruned_operators)
+
+    @property
+    def discarded_count(self) -> int:
+        """Número de operadores descartados."""
+        return len(self.discarded_operators)
 
 
 @dataclass(frozen=True, slots=True)
@@ -396,12 +447,9 @@ class VonNeumannEntropyEngine:
         
         # Descomposición espectral con estabilidad numérica
         try:
+            eigenvalues, eigenvectors = la.eigh(matrix)
             if self._use_extended_precision:
-                eigenvalues, eigenvectors = la.eigh(matrix.astype(np.float128))
-                eigenvalues = eigenvalues.astype(np.float64)
-                eigenvectors = eigenvectors.astype(np.complex128)
-            else:
-                eigenvalues, eigenvectors = la.eigh(matrix)
+                eigenvalues = eigenvalues.astype(np.float128)
         except LinAlgError as e:
             raise NumericalInstabilityError(
                 f"Fallo en descomposición espectral: {e}. "
@@ -491,9 +539,11 @@ class VonNeumannEntropyEngine:
             # Validación rápida usando métricas del AtomicDensityMatrix
             metrics = rho.compute_metrics()
             if not metrics.is_valid:
+                trace = np.trace(rho.matrix).real
+                hermiticity_error = la.norm(rho.matrix - rho.matrix.conj().T, ord='fro')
                 raise NumericalInstabilityError(
                     f"Estado inválido: pureza={metrics.purity:.6f}, "
-                    f"traza={metrics.trace:.6f}, hermeticidad={metrics.hermiticity_error:.2e}"
+                    f"traza={trace:.6f}, hermeticidad={hermiticity_error:.2e}"
                 )
         
         spectral = self.compute_spectral_data(rho)
@@ -617,10 +667,10 @@ class VonNeumannEntropyEngine:
             rho.compute_metrics()
             sigma.compute_metrics()
         
-        # Término 1: Tr(ρ ln ρ) = -S(ρ)
+        # Término 1: Tr(ρ ln ρ) = -S(ρ) (en nats)
         eig_rho = la.eigvalsh(rho.matrix)
         pos_rho = eig_rho[eig_rho > self._tol]
-        term1 = -np.sum(pos_rho * np.log(pos_rho))  # = S(ρ) en nats
+        term1 = np.sum(pos_rho * np.log(pos_rho))  # = Tr(ρ ln ρ) en nats
         
         # Término 2: Tr(ρ ln σ) — requiere ln(σ)
         eig_sigma, vec_sigma = la.eigh(sigma.matrix)
@@ -1013,57 +1063,58 @@ class SpectralTruncationProjector:
             if proj_error > 1e-10:
                 logger.warning(f"Proyector no idempotente: ‖Π²-Π‖_F = {proj_error:.2e}")
         
-        # 4. Aplicar mapa CPTP: ρ̃ = Π ρ Π / Tr(Π ρ Π)
-        rho_matrix = rho.matrix
-        rho_truncated_matrix = projector @ rho_matrix @ projector.conj().T
-        
-        trace_truncated = np.trace(rho_truncated_matrix).real
-        
-        if trace_truncated < 1e-14:
-            raise NumericalInstabilityError(
-                f"Traza post-truncamiento prácticamente nula: {trace_truncated:.2e}. "
-                f"Energía retenida: {np.sum(eigenvalues[retention_mask]):.2e}"
-            )
-        
-        # Renormalizar
-        rho_purified_matrix = rho_truncated_matrix / trace_truncated
-        
-        # Imponer hermeticidad (corrección numérica)
-        rho_purified_matrix = (rho_purified_matrix + rho_purified_matrix.conj().T) / 2.0
-        
-        # Crear AtomicDensityMatrix válido
-        rho_purified = AtomicDensityMatrix(
-            rho_purified_matrix,
-            auto_renormalize=True,
+        # 4. Form the embedded state's density matrix in the original basis (for fidelity calculations)
+        retained_eigenvalues = eigenvalues[retention_mask]
+        # Renormalize to trace 1
+        retained_eigenvalues = retained_eigenvalues / np.sum(retained_eigenvalues)
+        retained_eigenvectors = eigenvectors[:, retention_mask]
+
+        # Construct the density matrix in the original basis (embedded state)
+        rho_embedded_matrix = retained_eigenvectors @ np.diag(retained_eigenvalues) @ retained_eigenvectors.conj().T
+
+        # 5. Create the reduced state (in its own basis) and the embedded state (for fidelity calculations)
+        reduced_matrix = np.diag(retained_eigenvalues)
+        rho_reduced = AtomicDensityMatrix(
+            reduced_matrix,
+            auto_renormalize=False,
             validate=True
         )
-        
-        # 5. Datos espectrales del estado truncado
-        spectral_after = self._entropy_engine.compute_spectral_data(rho_purified)
-        
-        # 6. Calcular métricas de fidelidad e información
+        rho_embedded = AtomicDensityMatrix(
+            rho_embedded_matrix,
+            auto_renormalize=False,
+            validate=True
+        )
+
+        # 6. Compute spectral data for the reduced state (this will be the truncated_spectral_data in the report)
+        spectral_after = self._entropy_engine.compute_spectral_data(rho_reduced)
+
+        # 7. Compute fidelity, Bures distance, and relative entropy between original and embedded state
         if compute_fid:
-            fidelity = self._entropy_engine.compute_fidelity(rho, rho_purified)
-            bures_dist = self._entropy_engine.compute_bures_distance(rho, rho_purified)
-            rel_entropy = self._entropy_engine.compute_relative_entropy(rho, rho_purified)
+            fidelity = self._entropy_engine.compute_fidelity(rho, rho_embedded)
+            bures_dist = self._entropy_engine.compute_bures_distance(rho, rho_embedded)
+            rel_entropy = self._entropy_engine.compute_relative_entropy(rho, rho_embedded)
         else:
-            fidelity = np.sum(eigenvalues[retention_mask])  # Límite inferior: F ≥ Tr(Πρ)
+            # Lower bound for fidelity: F >= Tr(Πρ) = sum of retained eigenvalues
+            fidelity = np.sum(retained_eigenvalues)  # Should be 1.0 after renormalization
             bures_dist = np.sqrt(2.0 * (1.0 - np.sqrt(max(fidelity, 0.0))))
             rel_entropy = 0.0
-        
-        # Verificar majorización: ρ_purified ≺ ρ_original
-        majorization_ok = self._entropy_engine.verify_majorization(rho_purified, rho)
-        
-        # Energía retenida
+
+        # 8. Verify majorization: ρ_purified_embedded ≺ ρ_original
+        majorization_ok = self._entropy_engine.verify_majorization(rho_embedded, rho)
+
+        # 9. Retained energy (trace of the projector times rho)
+        retained_energy = float(np.sum(eigenvalues[retention_mask]))  # Before renormalization, but note we renormalized eigenvalues above.
+        # However, the retained energy is defined as Tr(Πρ) which is the sum of the original eigenvalues that are retained.
+        # We have not renormalized the eigenvalues for this quantity.
         retained_energy = float(np.sum(eigenvalues[retention_mask]))
-        
-        # Ratio de compresión
+
+        # 10. Compression ratio
         compression_ratio = n_retained / dim
-        
-        # Speedup computacional estimado (O(d³) para operaciones densas)
+
+        # 11. Computational speedup
         computational_speedup = (dim / n_retained) ** 3 if n_retained > 0 else 1.0
-        
-        # 7. Construir reporte
+
+        # 12. Build the report
         report = TruncationReport(
             original_spectral_data=spectral_before,
             truncated_spectral_data=spectral_after,
@@ -1086,17 +1137,17 @@ class SpectralTruncationProjector:
                 'n_discarded': n_discarded
             }
         )
-        
+
+        # 13. Log the result
         logger.info(
             f"Truncamiento espectral: {dim} → {n_retained} dims "
             f"(compresión={compression_ratio:.1%}, energía={retained_energy:.4f}, "
             f"F={fidelity:.6f}, ΔS={report.entropy_change:+.4f}, "
             f"majorización={'✓' if majorization_ok else '✗'})"
         )
-        
-        return rho_purified, report
 
-    # ═══════════════════════════════════════════════════════════════════════════
+        # 14. Return the reduced state and the report
+        return rho_reduced, report
     # MÉTODOS DE ALTO NIVEL: OPTIMIZACIÓN AUTOMÁTICA
     # ═══════════════════════════════════════════════════════════════════════════
     
@@ -1696,6 +1747,16 @@ class MACMinimizer(Morphism):
         '_auditor', '_minimization_count', '_total_compression',
         '_history', '_telemetry', '_pareto_frontier'
     )
+
+    @property
+    def domain(self) -> FrozenSet[Stratum]:
+        """Dominio del morfismo: categoría de estados MAC."""
+        return frozenset({Stratum.WISDOM})
+
+    @property
+    def codomain(self) -> FrozenSet[Stratum]:
+        """Codominio del morfismo: subcategoría de estados puros/efectivamente puros."""
+        return frozenset({Stratum.WISDOM})
     
     def __init__(
         self,

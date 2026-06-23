@@ -73,16 +73,19 @@ class QuantumMetrics:
     
     def __post_init__(self):
         """Validación física de las métricas."""
-        assert 0 <= self.purity <= 1, "Pureza fuera del rango físico"
-        assert self.von_neumann_entropy >= 0, "Entropía negativa"
-        assert self.participation_ratio >= 1, "Razón de participación inválida"
+        # Allow small floating point errors
+        tol = 1e-12
+        assert -tol <= self.purity <= 1 + tol, f"Pureza fuera del rango físico: {self.purity}"
+        assert self.von_neumann_entropy >= -tol, f"Entropía negativa: {self.von_neumann_entropy}"
+        assert self.participation_ratio >= 1 - tol, f"Razón de participación inválida: {self.participation_ratio}"
 
     @property
     def is_valid(self) -> bool:
         """Retorna True si las métricas satisfacen los axiomas cuánticos básicos."""
-        return (0 <= self.purity <= 1 and
-                self.von_neumann_entropy >= 0 and
-                self.participation_ratio >= 1)
+        tol = 1e-12
+        return (-tol <= self.purity <= 1 + tol and
+                self.von_neumann_entropy >= -tol and
+                self.participation_ratio >= 1 - tol)
 
 
 class HilbertSpaceOperator(Protocol):
