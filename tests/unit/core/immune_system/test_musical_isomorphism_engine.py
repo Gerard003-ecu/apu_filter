@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║  Suite de Pruebas: Musical Isomorphism Engine                                       ║
-║  Ruta   : tests/unit/physics/test_musical_isomorphism_engine.py                     ║
-║  Versión: 3.0.0-Topos-Spectral-Categorical                                          ║
+║  Suite de Pruebas: Musical Isomorphism Engine                                        ║
+║  Ruta   : tests/unit/core/immune_system/test_musical_isomorphism_engine.py           ║
+║  Versión: 3.0.0-Topos-Spectral-Categorical                                           ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
 Filosofía de Testing — Contratos Algebraicos como Axiomas:
