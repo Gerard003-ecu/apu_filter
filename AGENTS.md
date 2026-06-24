@@ -1,4 +1,4 @@
-# APU Filter - Manual de Operaciones para Jules
+# APU Filter - Manual de Operaciones
 
 Este repositorio contiene un sistema ciber-físico de procesamiento de presupuestos basado en Topología Algebraica, Termodinámica y Control Port-Hamiltoniano.
 
