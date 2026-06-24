@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║  Suite de Pruebas: Levi-Civita Connection Agent                                     ║
-║  Ruta   : tests/unit/omega/test_levi_civita_agent.py                              ║
-║  Versión: 2.0.0-Granular-Geodesic-Categorical                                       ║
+║  Suite de Pruebas: Levi-Civita Connection Agent                                      ║
+║  Ruta   : tests/unit/omega/test_levi_civita_agent.py                                 ║
+║  Versión: 2.0.0-Granular-Geodesic-Categorical                                        ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
 Filosofía de Testing — Axiomas Geométricos como Contratos Ejecutables:
