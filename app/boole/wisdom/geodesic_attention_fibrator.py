@@ -493,6 +493,11 @@ class GeodesicAttentionFibrator(Morphism):
                 - np.transpose(T_down, (1, 0, 2))
                 - np.transpose(T_down, (2, 0, 1))
             )
+            # ── Sutura I (suturas_rigurosas_2.md): proyector antisim₂trico en (ν,ρ) ──
+            # El c�lculo bilineal puede acumular errores ULP que violen la identidad
+            # K^μ_{νρ} = -K^μ_{ρν}. Aplicamos gauge fixing:
+            #   A(K)_{μνρ} = ½(K_{μνρ} - K_{μρν})
+            K = 0.5 * (K - np.transpose(K, (0, 2, 1)))
             return FibratorConstants.TORSION_COUPLING * K
 
         # ─────────────────────────────────────────────────────────────────────
