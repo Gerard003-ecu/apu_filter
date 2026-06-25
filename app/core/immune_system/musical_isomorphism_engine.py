@@ -327,6 +327,16 @@ class CovariantFunctor(Functor, Generic[S, T]):
         """Identificador nominal de la categoría codominio."""
         return "D"
 
+    def map_object(self, state: Any) -> Any:
+        """Mapeo de objetos canónico: identidad estructural del objeto."""
+        return state
+
+    def map_morphism(self, f: Any) -> Callable[[Any], Any]:
+        """Mapeo de morfismos canónico: devuelve un morphism-wrapped identity."""
+        if callable(f):
+            return f
+        return lambda x: x
+
 
 class ContravariantFunctor(Functor, Generic[S, T]):
     r"""
@@ -355,6 +365,16 @@ class ContravariantFunctor(Functor, Generic[S, T]):
     def codomain_category(self) -> str:
         """Identificador nominal de la categoría codominio."""
         return "D"
+
+    def map_object(self, state: Any) -> Any:
+        """Mapeo de objetos canónico: identidad estructural del objeto."""
+        return state
+
+    def map_morphism(self, f: Any) -> Callable[[Any], Any]:
+        """Mapeo de morfismos canónico: identidad funcional para la auditoría."""
+        if callable(f):
+            return f
+        return lambda x: x
 
 
 @dataclass(frozen=True, slots=True)
@@ -842,6 +862,10 @@ class MetricSpectralPreconditioner:
         """
         lambda_min: float = float(eigenvalues[0])
         lambda_max: float = float(eigenvalues[-1])
+        spectral_zero_tol: float = max(
+            100.0 * _MACHINE_EPSILON * max(abs(lambda_max), 1.0),
+            1e-14,
+        )
 
         # Número de condición (puede ser infinito para métricas singulares)
         if lambda_max <= 0:
@@ -851,7 +875,7 @@ class MetricSpectralPreconditioner:
                 lambda_max
             )
             cond_raw = np.inf
-        elif lambda_min <= 0:
+        elif lambda_min <= spectral_zero_tol:
             cond_raw = np.inf
         else:
             cond_raw = lambda_max / lambda_min
@@ -860,7 +884,7 @@ class MetricSpectralPreconditioner:
         gap_abs: float = (lambda_min / lambda_max) if lambda_max > 0 else 0.0
 
         # Gap espectral de Cheeger: segundo autovalor positivo / λ_max
-        positive_eigs: NDArray[np.float64] = eigenvalues[eigenvalues > 0]
+        positive_eigs: NDArray[np.float64] = eigenvalues[eigenvalues > spectral_zero_tol]
         if len(positive_eigs) >= 2:
             gap_chg = float(positive_eigs[1] / lambda_max) if lambda_max > 0 else 0.0
         elif len(positive_eigs) == 1:
@@ -869,7 +893,7 @@ class MetricSpectralPreconditioner:
             gap_chg = 0.0
 
         # Dimensión del kernel
-        null_dim: int = int(np.sum(eigenvalues <= 0))
+        null_dim: int = int(np.sum(eigenvalues <= spectral_zero_tol))
 
         logger.debug(
             "Diagnósticos espectrales: κ_raw=%.2e, Δ_abs=%.2e, Δ_chg=%.2e, null_dim=%d.",
@@ -914,9 +938,13 @@ class MetricSpectralPreconditioner:
         Tuple[NDArray[np.float64], float, bool]
             (eigenvalues_reg, epsilon, regularization_applied)
         """
+        spectral_zero_tol: float = max(
+            100.0 * _MACHINE_EPSILON * max(float(np.max(np.abs(eigenvalues))), 1.0),
+            1e-14,
+        )
         needs_regularization: bool = (
             condition_number > self.CONDITION_THRESHOLD
-            or np.any(eigenvalues <= 0)
+            or np.any(eigenvalues <= spectral_zero_tol)
         )
 
         if not needs_regularization:
