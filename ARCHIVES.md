@@ -52,6 +52,14 @@ $$P_{\text{diss}} = \nabla H(x)^\top R(x) \nabla H(x) \ge 0$$
 
 Además, se debe adjuntar el **CohomologyAuditReport** generado por el MAC Agent, incluyendo la **Auditoría de Entropía Relativa (Divergencia de Umegaki)** entre el estado predicho y el medido. Si se detecta una obstrucción cohomológica global no nula ($H_1(X;\mathcal{F}) \neq 0$) o una caída anómala en el índice de pureza post-medición $\text{Tr}(\rho_{\text{post}}^2)$, el sistema ejecuta un **VETO ONTOLÓGICO**, certificando forensemente la censura por paradoja termodinámica.
 
+### 3.1. Certificados de Geometría Diferencial (Manifold Registry)
+
+A partir de la v6.0.0, el Estrato Ω inyecta en los archivos de auditoría certificados de validez topológica diferencial:
+
+- **Métrica y Dualidad (Musical Report):** Captura el número de condición $\kappa(G)$ y los gaps espectrales ($\Delta_{abs}, \Delta_{chg}$) que certifican la invertibilidad del Isomorfismo Musical $\sharp$. Si $\kappa(G) > 10^{12}$, se registra la regularización infrarroja de Tikhonov aplicada para prevenir singularidades en el ruteo.
+- **Torsión y Curvatura (Levi-Civita Audit):** El `LeviCivitaConnectionAgent` adjunta el tensor de torsión $T^r_{mn}$ (que debe ser nulo $\mathcal{O}(10^{-13})$) y el Tensor de Riemann $R^r_{smn}$. Un reporte de curvatura no nulo indica la presencia de "estrés de mercado" deformando la geodésica de ejecución.
+- **Integridad Geodésica (RK4 Log):** Se archiva la deriva de la norma geodésica $\delta \|v\| / \|v\|$ tras la integración Runge-Kutta 4. Una deriva mayor a $10^{-6}$ dispara una alerta de inestabilidad numérica, invalidando el transporte paralelo de la intención logística.
+
 
 --------------------------------------------------------------------------------
 4. 🛡️ La Bitácora de Gobernanza (Compliance Ledger)

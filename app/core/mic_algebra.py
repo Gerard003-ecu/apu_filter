@@ -102,7 +102,7 @@ _MAX_CURVATURE_THRESHOLD: float = 1.0  # Umbral máximo de curvatura admisible
 # ==============================================================================
 # JERARQUÍA DE EXCEPCIONES MATEMÁTICAS (Árbol de Herencia)
 # ==============================================================================
-class AlgebraicError(Exception):
+class AlgebraicError(Exception, ABC):
     """Excepción base para errores algebraicos con contexto estructurado."""
     
     def __init__(self, message: str, **context: Any) -> None:
@@ -113,7 +113,7 @@ class AlgebraicError(Exception):
         """Serialización para logging estructurado."""
         return {
             "type": self.__class__.__name__,
-            "message": str(self),
+            "message": Exception.__str__(self),
             "context": self.context,
             "timestamp": self.timestamp,
         }
@@ -163,150 +163,15 @@ class NumericalInstabilityError(AlgebraicError):
     """Error por inestabilidad numérica (condicionamiento excesivo)."""
     pass
 
+
+class TopologicalInvariantError(AlgebraicError):
+    """Error por violación de invariantes topológicos."""
+    pass
+
+
 # ==============================================================================
 # ESTRATIFICACIÓN DIKW CON PROPIEDADES DE RETÍCULO VERIFICADAS
 # ==============================================================================
-    @property
-    def level(self) -> int:
-        """Nivel numérico del estrato (alias de value para compatibilidad)."""
-        return self.value
-    
-    @property
-    def height(self) -> int:
-        """
-        Altura en el retículo (distancia desde ⊥ = WISDOM).
-        
-        Definición: height(s) = |{t : t.value < s.value}| = s.value
-        
-        Invariante: 0 ≤ height(s) ≤ 5
-        """
-        return self.value
-    
-    @property
-    def depth(self) -> int:
-        """
-        Profundidad en el retículo (distancia desde ⊤ = PHYSICS).
-        
-        Definición: depth(s) = |{t : t.value > s.value}| = 5 - s.value
-        
-        Invariante: 0 ≤ depth(s) ≤ 5
-        """
-        return 5 - self.value
-    
-    def is_successor_of(self, other: Stratum) -> bool:
-        """
-        Verifica si self es sucesor inmediato de other en el retículo.
-        
-        Definición: is_successor_of(s, t) ⟺ s.value = t.value + 1
-        
-        Propiedades:
-        - Irreflexiva: ¬is_successor_of(s, s)
-        - Asimétrica: is_successor_of(s, t) ⟹ ¬is_successor_of(t, s)
-        """
-        return self.value == other.value + 1
-    
-    def is_predecessor_of(self, other: Stratum) -> bool:
-        """
-        Verifica si self es predecesor inmediato de other.
-        
-        Definición: is_predecessor_of(s, t) ⟺ s.value = t.value - 1
-        """
-        return self.value == other.value - 1
-    
-    def covers(self, other: Stratum) -> bool:
-        """
-        Relación de cobertura en el retículo (covering relation).
-        
-        Definición: s covers t ⟺ s > t ∧ ¬∃u: s > u > t
-        
-        Para este retículo lineal: covers ≡ is_successor_of
-        
-        Esto define las aristas del diagrama de Hasse.
-        """
-        return self.is_successor_of(other)
-    
-    def meet(self, other: Stratum) -> Stratum:
-        """
-        Ínfimo (meet) en el retículo: s ∧ t = greatest lower bound.
-        
-        Definición: s ∧ t = max{u : u ≤ s ∧ u ≤ t}
-        
-        Para orden lineal: meet(s, t) = min(s, t)
-        
-        Propiedades Algebraicas:
-        =======================
-        - Conmutativo: s ∧ t = t ∧ s ✓
-        - Asociativo: (s ∧ t) ∧ u = s ∧ (t ∧ u) ✓
-        - Idempotente: s ∧ s = s ✓
-        - Absorción: s ∧ (s ∨ t) = s ✓
-        """
-        return self if self.value <= other.value else other
-    
-    def join(self, other: Stratum) -> Stratum:
-        """
-        Supremo (join) en el retículo: s ∨ t = least upper bound.
-        
-        Definición: s ∨ t = min{u : s ≤ u ∧ t ≤ u}
-        
-        Para orden lineal: join(s, t) = max(s, t)
-        
-        Propiedades Algebraicas:
-        =======================
-        - Conmutativo: s ∨ t = t ∨ s ✓
-        - Asociativo: (s ∨ t) ∨ u = s ∨ (t ∨ u) ✓
-        - Idempotente: s ∨ s = s ✓
-        - Absorción: s ∨ (s ∧ t) = s ✓
-        """
-        return self if self.value >= other.value else other
-    
-    @classmethod
-    def bottom(cls) -> Stratum:
-        """Elemento mínimo del retículo (⊥ = WISDOM = 0)."""
-        return cls.WISDOM
-    
-    @classmethod
-    def top(cls) -> Stratum:
-        """Elemento máximo del retículo (⊤ = PHYSICS = 5)."""
-        return cls.PHYSICS
-    
-    @classmethod
-    def chain(cls) -> Tuple[Stratum, ...]:
-        """
-        Retorna la cadena máxima del retículo (ordenada por valor).
-        
-        Esto representa el camino más largo en el diagrama de Hasse.
-        """
-        return tuple(sorted(cls, key=lambda s: s.value))
-    
-    def __lt__(self, other: object) -> bool:
-        """Orden parcial estricto: s < t ⟺ s.value < t.value."""
-        if not isinstance(other, Stratum):
-            return NotImplemented
-        return self.value < other.value
-    
-    def __le__(self, other: object) -> bool:
-        """Orden parcial no estricto: s ≤ t ⟺ s.value ≤ t.value."""
-        if not isinstance(other, Stratum):
-            return NotImplemented
-        return self.value <= other.value
-    
-    def __ge__(self, other: object) -> bool:
-        """Orden parcial inverso: s ≥ t ⟺ s.value ≥ t.value."""
-        if not isinstance(other, Stratum):
-            return NotImplemented
-        return self.value >= other.value
-    
-    def __gt__(self, other: object) -> bool:
-        """Orden parcial estricto inverso: s > t ⟺ s.value > t.value."""
-        if not isinstance(other, Stratum):
-            return NotImplemented
-        return self.value > other.value
-    
-    def __str__(self) -> str:
-        return f"Stratum.{self.name}[{self.value}]"
-    
-    def __repr__(self) -> str:
-        return f"Stratum.{self.name}"
 
 # ==============================================================================
 # UTILIDADES MATEMÁTICAS RIGUROSAS CON GARANTÍAS NUMÉRICAS
@@ -2687,6 +2552,7 @@ __all__ = [
     "FunctorialityError",
     "HomologicalError",
     "NumericalInstabilityError",
+    "TopologicalInvariantError",
     
     # Estratificación
     "Stratum",

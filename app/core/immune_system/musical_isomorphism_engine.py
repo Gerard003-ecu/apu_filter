@@ -724,7 +724,7 @@ class MetricSpectralPreconditioner:
         """
         G_T:   NDArray[np.float64] = G.T
         diff:  NDArray[np.float64] = G - G_T
-        asym_norm: float = float(np.linalg.norm(diff, 'fro'))
+        asym_norm: float = float(np.linalg.norm(diff))
 
         if asym_norm > self.SYMMETRY_TOLERANCE:
             logger.warning(
@@ -734,7 +734,7 @@ class MetricSpectralPreconditioner:
             )
             G_sym: NDArray[np.float64] = (G + G_T) * 0.5
             # Verificación post-simetrización
-            residual = float(np.linalg.norm(G_sym - G_sym.T, 'fro'))
+            residual = float(np.linalg.norm(G_sym - G_sym.T))
             logger.debug("Asimetría residual post-proyección: %.2e", residual)
             return G_sym
 
@@ -1003,8 +1003,8 @@ class MetricSpectralPreconditioner:
         logger.debug(
             "Par métrico construido espectralmente. "
             "‖G_reg‖_F = %.3e, ‖G_inv‖_F = %.3e.",
-            float(np.linalg.norm(G_reg, 'fro')),
-            float(np.linalg.norm(G_inv, 'fro'))
+            float(np.linalg.norm(G_reg)),
+            float(np.linalg.norm(G_inv))
         )
         return G_reg, G_inv
 
@@ -1044,12 +1044,12 @@ class MetricSpectralPreconditioner:
         """
         product:  NDArray[np.float64] = G_reg @ G_inv
         I_n:      NDArray[np.float64] = np.eye(n, dtype=np.float64)
-        residual: float = float(np.linalg.norm(product - I_n, 'fro'))
+        residual: float = float(np.linalg.norm(product - I_n))
 
         # Tolerancia adaptativa al número de condición
         tol_inv: float = max(
             self.INVERSION_BASE_TOLERANCE,
-            condition_number_reg * _MACHINE_EPSILON * np.sqrt(float(n))
+            condition_number_reg * _MACHINE_EPSILON * n
         )
 
         if residual > tol_inv:
@@ -1349,7 +1349,7 @@ class SharpIsomorphism(FlatIsomorphism):
             raise NumericalInstabilityError(
                 f"Isomorfismo ♯ produjo valores no finitos: "
                 f"‖ω‖={covector.norm:.2e}, "
-                f"‖G_inv‖_F={np.linalg.norm(self._G_inv, 'fro'):.2e}."
+                f"‖G_inv‖_F={np.linalg.norm(self._G_inv):.2e}."
             )
 
         logger.debug(
