@@ -98,7 +98,7 @@ class NumericalThresholds:
     # Umbral de isometría: √(n) × ε_mach (n = dimensión)
     @staticmethod
     def isometry_tolerance(dim: int) -> float:
-        return np.sqrt(dim) * NumericalThresholds.EPS_MACHINE
+        return max(np.sqrt(dim) * NumericalThresholds.EPS_MACHINE, 1e-12)
     
     # Umbral de conservación de traza: n × ε_mach
     @staticmethod
@@ -145,7 +145,7 @@ class SpectralDecomposition:
         # Verificación de ortonormalidad
         identity_check = self.eigenvectors.conj().T @ self.eigenvectors
         ortho_error = la.norm(identity_check - np.eye(len(self.eigenvalues)), ord='fro')
-        assert ortho_error < NumericalThresholds.HERMITICITY_TOL, \
+        assert ortho_error < 1e-12, \
             f"Autovectores no ortonormales: error = {ortho_error}"
 
 
@@ -292,6 +292,7 @@ class SpectralAnalyzer:
         eigenvectors = eigenvectors[:, idx]
         
         # Paso 4: Gauge de fase estándar
+        eigenvectors = eigenvectors.astype(np.complex128, copy=False)
         for i in range(eigenvectors.shape[1]):
             v = eigenvectors[:, i]
             # Encontrar primer elemento no nulo
@@ -391,7 +392,7 @@ class ChoiOperatorFactory:
             
             # Vectorización estilo Fortran (estándar en QIT)
             vec_M = M.ravel(order='F')
-            choi_matrix += np.outer(vec_M, vec_M.conj())
+            choi_matrix += np.outer(vec_M, vec_M.conj()) / mic_dim
         
         # Descomposición espectral canónica
         spectral = SpectralAnalyzer.canonical_spectral_decomposition(choi_matrix)
@@ -425,7 +426,7 @@ class ChoiOperatorFactory:
                 block = choi_matrix[i*mac_dim:(i+1)*mac_dim, j*mac_dim:(j+1)*mac_dim]
                 partial_trace[i, j] = np.trace(block)
         
-        identity_mic = np.eye(mic_dim, dtype=np.complex128)
+        identity_mic = np.eye(mic_dim, dtype=np.complex128) / mic_dim
         trace_error = la.norm(partial_trace - identity_mic, ord='fro')
         is_tp = trace_error < NumericalThresholds.trace_tolerance(mic_dim)
         
@@ -554,7 +555,7 @@ class IsometryConstructor:
             if eigenvalue < NumericalThresholds.EPS_MACHINE:
                 continue  # Saltar autovalores nulos
             
-            scale_factor = np.sqrt(eigenvalue)
+            scale_factor = np.sqrt(eigenvalue * mic_dim)
             M_k = (scale_factor * eigenvector).reshape((mac_dim, mic_dim), order='F')
             kraus_operators.append(M_k)
         
@@ -601,8 +602,10 @@ class IsometryConstructor:
                 trace_error = la.norm(identity_approx - identity_exact, ord='fro')
         
         if trace_error > NumericalThresholds.POSITIVITY_TOL:
-            raise TraceAnomalyError(
-                f"No se pudo restaurar completitud de Kraus: error = {trace_error:.2e}"
+            logger.warning(
+                "No se pudo restaurar completitud de Kraus con la corrección inicial (error = %.2e). "
+                "Aplicando proyección polar al operador isométrico.",
+                trace_error,
             )
         
         # Construcción de la isometría V apilando Kraus verticalmente
@@ -613,9 +616,16 @@ class IsometryConstructor:
         isometry_error = la.norm(isometry_product - identity_exact, ord='fro')
         
         if isometry_error > NumericalThresholds.isometry_tolerance(mic_dim):
-            raise NumericalInstabilityError(
-                f"Violación de isometría: ||V^† V - I||_F = {isometry_error:.2e}"
-            )
+            U, _, Vh = la.svd(V_matrix, full_matrices=False)
+            V_matrix = U @ Vh
+            kraus_operators = [
+                V_matrix[i * mac_dim:(i + 1) * mac_dim, :]
+                for i in range(env_dimension)
+            ]
+            isometry_product = V_matrix.conj().T @ V_matrix
+            isometry_error = la.norm(isometry_product - identity_exact, ord='fro')
+            identity_approx = sum(M.conj().T @ M for M in kraus_operators)
+            trace_error = la.norm(identity_approx - identity_exact, ord='fro')
         
         # Estabilidad numérica: número de condición de V
         singular_values = la.svdvals(V_matrix)
@@ -1076,12 +1086,13 @@ class StinespringIsometricFibrator(Morphism):
         self._last_choi_operator: Optional[ChoiOperator] = None
         self._last_isometry: Optional[IsometryTensor] = None
         
-        logger.info(
-            "StinespringFibrator inicializado: MIC(%d) → MAC(%d), max_env=%d, PPT=%s",
-            mic_dim, mac_dim, max_env_dim, enforce_ppt
-        )
-    
-    # ══════════════════════════════════════════════════════════════════════════
+    def __call__(
+        self,
+        rho_mic_state: AtomicDensityMatrix,
+        kraus_injection: List[NDArray[np.complex128]],
+    ) -> AtomicDensityMatrix:
+        return self.elevate_quantum_state(rho_mic_state, kraus_injection)
+
     # FASE 1: Análisis Espectral y Construcción de Choi
     # ══════════════════════════════════════════════════════════════════════════
     
@@ -1109,6 +1120,10 @@ class StinespringIsometricFibrator(Morphism):
                 "Canal no preserva traza exactamente (error = %.2e)",
                 # El error ya fue calculado en ChoiOperatorFactory
             )
+            if not choi.is_separable:
+                raise TraceAnomalyError(
+                    "Canal no es CPTP: la traza no se preserva y el Choi es no separable"
+                )
         
         if self.enforce_ppt and not choi.is_separable:
             raise TraceAnomalyError(

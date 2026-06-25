@@ -753,6 +753,9 @@ class CategoricalState:
     context: Dict[str, Any] = field(default_factory=dict)
     validated_strata: FrozenSet[Stratum] = field(default_factory=frozenset)
     error: Optional[str] = None
+    error_msg: Optional[str] = None
+    success: Optional[bool] = None
+    metadata: Optional[Dict[str, Any]] = None
     error_details: Optional[Dict[str, Any]] = None
     forensic_evidence: Optional[Dict[str, Any]] = None
     composition_trace: Tuple[CompositionTrace, ...] = field(default_factory=tuple)
@@ -769,10 +772,22 @@ class CategoricalState:
         
         Sutura IV: si se pasó stratum escalar y validated_strata está vacío,
         se promueve a frozenset({stratum}) para mantener coherencia algebraica.
+        También se normalizan los alias success/error_msg/metadata para mantener
+        compatibilidad con la suite legacy.
         
         Garantiza que validated_strata contenga solo objetos Stratum válidos,
         convirtiendo desde int/str si es necesario.
         """
+        # Normalizar aliases contractuales
+        canonical_error = self.error if self.error is not None else self.error_msg
+        canonical_error_msg = self.error_msg if self.error_msg is not None else self.error
+        canonical_success = self.success if self.success is not None else (canonical_error is None)
+        object.__setattr__(self, "error", canonical_error)
+        object.__setattr__(self, "error_msg", canonical_error_msg)
+        object.__setattr__(self, "success", canonical_success)
+        if self.metadata is not None:
+            object.__setattr__(self, "metadata", dict(self.metadata))
+        
         # ── Sutura IV: promover stratum escalar a validated_strata ──
         if self.stratum is not None and not self.validated_strata:
             object.__setattr__(
@@ -812,6 +827,13 @@ class CategoricalState:
             "validated_strata",
             frozenset(corrected_strata)
         )
+
+        if self.stratum is None and self.validated_strata:
+            object.__setattr__(
+                self,
+                "stratum",
+                max(self.validated_strata, key=lambda item: item.value)
+            )
     
     # ==========================================================================
     # PROPIEDADES CATEGÓRICAS
@@ -985,6 +1007,9 @@ class CategoricalState:
             context=updated_context,
             validated_strata=updated_strata,
             error=self.error,
+            error_msg=self.error_msg,
+            success=self.success,
+            metadata=(dict(self.metadata) if self.metadata else None),
             error_details=(
                 dict(self.error_details)
                 if self.error_details
@@ -996,6 +1021,7 @@ class CategoricalState:
                 else None
             ),
             composition_trace=_copy_trace(self.composition_trace),
+            stratum=new_stratum if new_stratum is not None else self.stratum,
         )
     
     def with_error(
@@ -1028,9 +1054,12 @@ class CategoricalState:
         """
         return CategoricalState(
             payload=dict(self.payload),
-            context=dict(self.context),
+            context=dict(self.context) if details is None else _safe_merge_dicts(dict(self.context), dict(details)),
             validated_strata=self.validated_strata,
             error=error_msg,
+            error_msg=error_msg,
+            success=False,
+            metadata=(dict(self.metadata) if self.metadata else None),
             error_details=dict(details) if details else None,
             forensic_evidence=(
                 dict(forensic_evidence)
@@ -1064,6 +1093,9 @@ class CategoricalState:
             context=dict(self.context),
             validated_strata=self.validated_strata,
             error=None,
+            error_msg=None,
+            success=True,
+            metadata=(dict(self.metadata) if self.metadata else None),
             error_details=None,
             forensic_evidence=(
                 dict(self.forensic_evidence)
@@ -1119,6 +1151,9 @@ class CategoricalState:
             context=dict(self.context),
             validated_strata=self.validated_strata,
             error=self.error,
+            error_msg=self.error_msg,
+            success=self.success,
+            metadata=(dict(self.metadata) if self.metadata else None),
             error_details=(
                 dict(self.error_details)
                 if self.error_details
@@ -1159,6 +1194,9 @@ class CategoricalState:
             "context": _canonicalize(self.context),
             "validated_strata": sorted(s.name for s in self.validated_strata),
             "error": self.error,
+            "error_msg": self.error_msg,
+            "success": self.success,
+            "metadata": _canonicalize(self.metadata),
             "error_details": _canonicalize(self.error_details),
             "composition_trace": [
                 _canonicalize(t.to_dict())
@@ -1186,6 +1224,9 @@ class CategoricalState:
             "payload": _canonicalize(self.payload),
             "validated_strata": sorted(s.name for s in self.validated_strata),
             "error": self.error,
+            "error_msg": self.error_msg,
+            "success": self.success,
+            "metadata": _canonicalize(self.metadata),
         }
         return _stable_hash(data)
 
@@ -1204,6 +1245,9 @@ class CategoricalState:
             "context": _canonicalize(self.context),
             "validated_strata": sorted(s.name for s in self.validated_strata),
             "error": self.error,
+            "error_msg": self.error_msg,
+            "success": self.success,
+            "metadata": _canonicalize(self.metadata),
             "error_details": _canonicalize(self.error_details),
             "forensic_evidence": _canonicalize(self.forensic_evidence),
             "composition_trace": [t.to_dict() for t in self.composition_trace],
@@ -1288,6 +1332,9 @@ class CategoricalState:
             context=dict(data.get("context", {})),
             validated_strata=strata,
             error=data.get("error"),
+            error_msg=data.get("error_msg", data.get("error")),
+            success=data.get("success"),
+            metadata=data.get("metadata"),
             error_details=data.get("error_details"),
             forensic_evidence=data.get("forensic_evidence"),
             composition_trace=tuple(traces),

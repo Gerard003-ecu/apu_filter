@@ -1868,6 +1868,36 @@ class ImmuneWatcherMorphism(Morphism):
                 previous_status=self._previous_status,
                 verbose=False
             )
+            heuristic_levels = {
+                "physics_core": float(
+                    max(signal[0], signal[1] / 400.0, signal[2] / 200.0)
+                ),
+                "topology_core": float(
+                    max(max(signal[3] - 1.0, 0.0), signal[4], signal[5])
+                ),
+                "thermo_core": float(signal[6]),
+            }
+            heuristic_assessment = ThreatAssessment.from_components(
+                heuristic_levels,
+                euler_char=assessment.euler_char,
+                warning_threshold=self._warning,
+                critical_threshold=self._critical,
+                electrons=assessment.electrons,
+            )
+            if heuristic_assessment.status != assessment.status:
+                assessment = ThreatAssessment(
+                    levels=dict(assessment.levels),
+                    max_source=assessment.max_source,
+                    max_value=assessment.max_value,
+                    total_threat=assessment.total_threat,
+                    euler_char=assessment.euler_char,
+                    status=heuristic_assessment.status,
+                    metadata={
+                        **dict(assessment.metadata),
+                        "heuristic_levels": heuristic_levels,
+                    },
+                    electrons=assessment.electrons,
+                )
             
             self._previous_status = assessment.status
             self._euler_history.append(assessment.euler_char)
@@ -1929,13 +1959,13 @@ class ImmuneWatcherMorphism(Morphism):
                 assessment.max_value
             )
             return state.with_update(
-                {"immune_status": "warning", **details},
+                new_context={"immune_status": "warning", **details},
                 new_stratum=self.codomain
             )
         
         logger.debug("🛡️ ESTABLE: max_threat=%.4f", assessment.max_value)
         return state.with_update(
-            {"immune_status": "healthy", **details},
+            new_context={"immune_status": "healthy", **details},
             new_stratum=self.codomain
         )
     

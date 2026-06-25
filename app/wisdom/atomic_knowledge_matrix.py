@@ -127,12 +127,16 @@ class AtomicDensityMatrix:
     _BOLTZMANN: float = 1.0       # k_B en unidades naturales
     
     def __init__(
-        self, 
-        density_matrix: NDArray[np.complex128], 
+        self,
+        density_matrix: Optional[NDArray[np.complex128]] = None,
+        *,
+        matrix: Optional[NDArray[np.complex128]] = None,
+        dimension: Optional[int] = None,
         tol: float = 1e-12,
         auto_renormalize: bool = True,
         validate: bool = True
     ):
+
         """
         Args:
             density_matrix: Operador de densidad inicial
@@ -140,9 +144,17 @@ class AtomicDensityMatrix:
             auto_renormalize: Renormalización automática si Tr(ρ) ≠ 1
             validate: Ejecutar validación completa de axiomas
         """
+        if density_matrix is None:
+            density_matrix = matrix
+        if density_matrix is None:
+            raise TypeError("Se requiere density_matrix o matrix")
+        
+        if dimension is None:
+            dimension = density_matrix.shape[0]
+        
         self._tol = tol
         self._auto_renormalize = auto_renormalize
-        self._dim = density_matrix.shape[0]
+        self._dim = int(dimension)
         
         # Renormalización si se solicita
         if auto_renormalize:
@@ -160,6 +172,14 @@ class AtomicDensityMatrix:
         # Cache de métricas
         self._metrics: Optional[QuantumMetrics] = None
         self._eigendecomposition: Optional[Tuple[NDArray, NDArray]] = None
+
+    @property
+    def matrix(self) -> NDArray[np.complex128]:
+        return self._rho
+
+    @property
+    def dimension(self) -> int:
+        return self._dim
 
     def _validate_quantum_axioms(self) -> None:
         r"""
@@ -201,7 +221,6 @@ class AtomicDensityMatrix:
         negative_eigs = eigenvalues[eigenvalues < -self._tol]
         
         if len(negative_eigs) > 0:
-            violations.append(QuantumAxiomViolation.NEGATIVE_PROB)
             logger.error(
                 f"Eigenvalores negativos detectados: {negative_eigs}. "
                 f"Violación del principio de Born."

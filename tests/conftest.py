@@ -108,6 +108,16 @@ def app():
     with application.app_context():
         yield application
 
+@pytest.fixture
+
+def benchmark():
+    """Fallback minimal para suites que esperan pytest-benchmark."""
+    def _run(func, *args, **kwargs):
+        if callable(func):
+            return func(*args, **kwargs)
+        return func
+    return _run
+
 
 @pytest.fixture(scope="module")
 def client(app):

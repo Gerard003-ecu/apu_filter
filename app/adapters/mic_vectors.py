@@ -67,6 +67,13 @@ from typing import (
 
 import numpy as np
 
+try:
+    import psutil as _psutil_module  # type: ignore[import-not-found]
+    _HAS_PSUTIL = True
+except Exception:  # pragma: no cover - optional dependency
+    _psutil_module = None
+    _HAS_PSUTIL = False
+
 # =============================================================================
 # LOGGING
 # =============================================================================

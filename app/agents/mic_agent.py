@@ -2777,6 +2777,7 @@ class MICAgent:
         validated_strata: FrozenSet[Stratum],
         context_hashes: Optional[FrozenSet[str]] = None,
         raw_telemetry: Optional[PayloadType] = None,
+        force_override: bool = False,
     ) -> CategoricalState:
         """
         Encapsula output del LLM en mónada CategoricalState.

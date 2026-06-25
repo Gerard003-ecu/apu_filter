@@ -914,11 +914,19 @@ class TomitaTakesakiTheory:
 
     def _validate_faithful_state(self, tolerance: Optional[float] = None) -> None:
         tol = tolerance or self.tolerance
-        if not _is_hermitian(self.state, tol):
+        self.validate_faithful_state(self.state, tolerance=tol)
+
+    @staticmethod
+    def validate_faithful_state(state: NDArray[np.complex128], tolerance: float = 1e-12) -> None:
+        tol = tolerance
+        state_arr = np.asarray(state, dtype=np.complex128)
+        if state_arr.ndim != 2 or state_arr.shape[0] != state_arr.shape[1]:
+            raise ValueError("El estado no pertenece al álgebra.")
+        if not _is_hermitian(state_arr, tol):
             raise ValueError("Estado no hermitiano.")
-        if np.abs(self.algebra.trace(self.state) - 1.0) > tol:
+        if np.abs(np.trace(state_arr) - 1.0) > tol:
             raise TraceAnomalyError("Traza del estado distinta de 1.")
-        eigvals = la.eigvalsh(self.state)
+        eigvals = la.eigvalsh(state_arr)
         if np.any(eigvals <= tol):
             raise TraceAnomalyError(
                 f"Estado no fiel. Eigenvalor mínimo: {np.min(eigvals):.3e}"
