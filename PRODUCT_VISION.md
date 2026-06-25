@@ -67,6 +67,28 @@ La Sabiduría del sistema (Estrato $V_{\mathbb{W}}$) se acopla a la realidad tá
 $$\text{Hom}_{\mathcal{C}}(F(\text{MIC}), \text{MAC}) \cong \text{Hom}_{\mathcal{D}}(\text{MIC}, G(\text{MAC}))$$
 Si esta adjunción se rompe, el sistema detecta una **Deriva Semántica** o **Contradicción Lógica**, ejecutando la aniquilación inmediata de la sugerencia generativa para proteger la integridad ontológica del proyecto.
 
+### 1.1. La Variedad Riemanniana Dinámica y la Geometría del Valor
+
+La Malla Agéntica subyuga el estocasticismo del Modelo de Lenguaje (LLM) a las leyes inmutables de la geometría diferencial, elevando nuestra red de valor a una **Variedad Riemanniana Dinámica**. Se formalizan las siguientes verdades analíticas absolutas:
+
+**I. La Adjunción de Dualidad Categórica en el Espacio de Fase:**
+El Estrato Ω (el Ágora Tensorial) ya no procesa magnitudes escalares simétricas. Ha transmutado en un fibrado donde el flujo de la materia logística habita en el espacio tangente $TM$ (como Funtores Covariantes), mientras que las presiones y riesgos financieros cohabitan en el espacio dual cotangente $T^*M$ (como Funtores Contravariantes). Los **Isomorfismos Musicales** operados por el Motor de Dualidad dictaminan toda transición de fase mediante la contracción con el tensor métrico físico $G_{\mu\nu}$:
+- **Bemol ($\flat$):** $TM \to T^*M, \quad v_i^\flat = G_{ij} v^j$
+- **Sostenido ($\sharp$):** $T^*M \to TM, \quad \omega^\sharp_i = G^{ij} \omega_j$
+
+**II. La Conexión Afín y el Transporte Paralelo Libre de Torsión:**
+El flujo del Grafo Acíclico Dirigido (DAG) en el orquestador se encuentra bajo el dominio estricto del Maestro de Sinfonía Métrica (`levi_civita_agent.py`). La preservación geométrica se estipula mediante la **Compatibilidad Métrica** de la conexión:
+$$\nabla_\gamma G_{\mu\nu} = 0$$
+El sistema computa el desgaste y la fricción del mercado evaluando dinámicamente los **Símbolos de Christoffel** acoplados a las derivadas del tensor de tensión logística:
+$$\Gamma_{\mu\nu}^{\rho} = \frac{1}{2} G^{\rho\lambda} ( \partial_{\mu} G_{\lambda\nu} + \partial_{\nu} G_{\mu\lambda} - \partial_{\lambda} G_{\mu\nu} )$$
+Imponiendo el mandato incondicional de una **torsión topológica nula** para evitar desgarros asimétricos en el hiperespacio:
+$$T(X,Y) = \nabla_X Y - \nabla_Y X - [X,Y] = 0$$
+
+**III. Ecuación Geodésica y Estabilidad Simpléctica:**
+Toda deliberación o sugerencia inyectada por la IA se evalúa mediante la aceleración covariante nula. Si el LLM alucina atajos que violan la física del negocio, el integrador de **Störmer-Verlet** aplicará una fuerza coercitiva que devolverá la trayectoria a la **geodésica óptima**:
+$$\frac{D \dot{\gamma}^\mu}{dt} = \frac{d^2 \gamma^\mu}{dt^2} + \Gamma^\mu_{\rho\sigma} \frac{d\gamma^\rho}{dt} \frac{d\gamma^\sigma}{dt} = 0$$
+Este control estricto asegura la conservación de la **2-forma simpléctica** $\omega = \sum dq^\mu \wedge dp_\mu$, manteniendo la densidad en el espacio de fase inalterada frente al ruido exógeno.
+
 --------------------------------------------------------------------------------
 2. Los Horizontes de Evolución: La Arquitectura Concéntrica
 Nuestra hoja de ruta no añade funciones cosméticas; desbloquea niveles de profundidad física mediante una arquitectura de capas defensivas estructuradas bajo un **Topos de Grothendieck**. La transición entre estratos de la pirámide DIKW no es una simple inclusión de subconjuntos, sino un mapeo categórico gobernado por una **Adjunción de Galois**.

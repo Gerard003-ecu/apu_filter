@@ -761,7 +761,7 @@ class _ChristoffelEngine:
                 f"Considere aumentar la regularización de Tikhonov."
             )
 
-        frob_norm: float = float(np.linalg.norm(Gamma, 'fro'))
+        frob_norm: float = float(np.linalg.norm(Gamma))
 
         # Verificación de magnitud (overflow numérico suave)
         if frob_norm > _CHRISTOFFEL_FINITE_TOL:
@@ -950,7 +950,7 @@ class _TorsionFreeConnection(_ChristoffelEngine):
 
         # ── Diagnóstico adicional: Tensor de Riemann ─────────────────────────
         riemann_tensor: NDArray[np.float64] = self._compute_riemann_tensor(Gamma)
-        riemann_norm:   float               = float(np.linalg.norm(riemann_tensor, 'fro'))
+        riemann_norm:   float               = float(np.linalg.norm(riemann_tensor))
 
         return ConnectionDiagnostics(
             torsion_norm          = torsion_norm,
@@ -1019,7 +1019,7 @@ class _TorsionFreeConnection(_ChristoffelEngine):
         TopologicalTorsionError
             Si ‖T‖_F ≥ TORSION_TOLERANCE.
         """
-        torsion_norm: float = float(np.linalg.norm(torsion_tensor, 'fro'))
+        torsion_norm: float = float(np.linalg.norm(torsion_tensor))
 
         if torsion_norm >= self.TORSION_TOLERANCE:
             # Encontrar el índice (r, m, n) con la máxima asimetría
@@ -1091,7 +1091,7 @@ class _TorsionFreeConnection(_ChristoffelEngine):
 
         logger.debug(
             "Derivada covariante de G: ‖∇G‖_F = %.2e.",
-            float(np.linalg.norm(covd, 'fro'))
+            float(np.linalg.norm(covd))
         )
         return covd
 
@@ -1116,7 +1116,7 @@ class _TorsionFreeConnection(_ChristoffelEngine):
         MetricCompatibilityError
             Si ‖∇G‖_F ≥ METRIC_COMPAT_TOLERANCE.
         """
-        covd_norm: float = float(np.linalg.norm(covd_metric, 'fro'))
+        covd_norm: float = float(np.linalg.norm(covd_metric))
 
         if covd_norm >= self.METRIC_COMPAT_TOLERANCE:
             worst_idx = np.unravel_index(
@@ -1181,7 +1181,7 @@ class _TorsionFreeConnection(_ChristoffelEngine):
 
         logger.debug(
             "Tensor de Riemann (términos cuadráticos): ‖R‖_F = %.2e.",
-            float(np.linalg.norm(R, 'fro'))
+            float(np.linalg.norm(R))
         )
         return R
 
@@ -1250,6 +1250,35 @@ class LeviCivitaConnectionAgent(_TorsionFreeConnection, Morphism):
     """
 
     DEFAULT_DT: float = _DEFAULT_DT
+
+    def __call__(self, state: CategoricalState) -> CategoricalState:
+        r"""
+        Mapeo Funtorial de la Conexión de Levi-Civita sobre el Colector Agéntico.
+
+        Opera como un endomorfismo $\Phi: \mathcal{C} \to \mathcal{C}$ que proyecta
+        la trayectoria de deliberación hacia la geodésica de mínima acción. Ejecuta
+        la auditoría axiomática de la variedad Riemanniana (torsión y compatibilidad)
+        e inyecta los invariantes topológicos diferenciales en la traza de composición.
+
+        Axioma de Ejecución:
+        $$ \Phi(S) = S \oplus \text{Trace}(\nabla_{LC}, \mathcal{R}) $$
+
+        Args:
+            state: El objeto `CategoricalState` que representa el punto actual en el
+                   espacio de Hilbert del negocio.
+
+        Returns:
+            Un nuevo `CategoricalState` enriquecido con el reporte de flujo geodésico
+            en su metadata forense.
+        """
+        self._call_count += 1
+        return state.add_trace(
+            self.name,
+            self.domain,
+            self.codomain or Stratum.OMEGA,
+            success=True,
+            metadata=self.geodesic_flow_report()
+        )
 
     def __init__(
         self,
@@ -1621,7 +1650,7 @@ class LeviCivitaConnectionAgent(_TorsionFreeConnection, Morphism):
         ValueError                   : desde _validate_integration_step (dt ≤ _DT_MIN).
         GeodesicDeviationError       : si RK4 produce overflow.
         """
-        _dt: float = float(dt) if dt is not None else self.DEFAULT_DT
+        _dt = dt if dt is not None else self.DEFAULT_DT
 
         # Precondiciones
         self._validate_velocity_vector(velocity, caller="enforce_geodesic_flow")
@@ -1691,7 +1720,7 @@ class LeviCivitaConnectionAgent(_TorsionFreeConnection, Morphism):
         TypeError, ValueError : desde _validate_velocity_vector.
         GeodesicDeviationError: si el resultado es no finito.
         """
-        _dt: float = float(dt) if dt is not None else self.DEFAULT_DT
+        _dt = dt if dt is not None else self.DEFAULT_DT
         self._validate_velocity_vector(vector, caller="parallel_transport[vector]")
         self._validate_velocity_vector(
             tangent_to_curve, caller="parallel_transport[tangent_to_curve]"
