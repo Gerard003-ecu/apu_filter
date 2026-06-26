@@ -100,6 +100,11 @@ El `sheaf_cohomology_orchestrator` modela las reglas de negocio como secciones d
 Se aplica una **Conexión de Galois** para mapear la sintaxis generada (espacio de comandos) hacia la semántica estratégica (espacio de valor).
 - **Certificación Isomórfica:** Mediante el **Lema de Yoneda**, el sistema garantiza que la funcionalidad del código generado sea isomórfica a los requerimientos de negocio. Si el funtor de traducción detecta una ruptura de naturalidad, el código se colapsa a un estado de seguridad determinista, impidiendo alucinaciones que desvíen el capital de la infraestructura.
 
+6.5 Ansatz de WKB y Óptica Geométrica de la Intención
+El `eikonal_agent.py` no procesa texto estocástico, sino que evalúa la función de onda de probabilidad de la IA mediante la aproximación de Wentzel-Kramers-Brillouin (WKB):
+$$\psi(x) = A(x) e^{i S(x) / \hbar}$$
+Si el frente de onda choca contra una singularidad topológica (**Cáustica**), el sistema no crashea, sino que suma +1 al **Índice de Maslov** y rota la fase en $\pi/2$ para preservar la amplitud y la coherencia del veredicto.
+
 
 --------------------------------------------------------------------------------
 7. Ley de Gobernanza Algebraica (Isomorfismo de Esquemas)

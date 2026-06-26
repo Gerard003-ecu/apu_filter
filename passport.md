@@ -52,7 +52,15 @@ La síntesis final alojada en la "Ciudadela de Cristal".
     verdict_code: Colapso discreto sobre el Retículo de Severidad (OK, WARN, CRITICAL, RECHAZO).
     strategic_narrative: Explicación causal en lenguaje humano generada por el LLM (ej. "El proyecto se rechaza por resonancia inflacionaria en el acero"), estrictamente subordinada a los sellos previos.
 
-2.6. Auditoría Epistemológica (Emitido por: MAC Agent)
+2.6. Sello Óptico-Catadióptrico (Emitido por: Eikonal & Floquet Agents)
+Registra la integridad de la radiación semántica y la focalización de la intención.
+
+    kv_cache_compression: Nivel de compresión logrado por el retracto topológico.
+    monodromy_spectral_radius ($\rho(Mon)$): Autovalor máximo de la matriz de Monodromía. Si $\rho(Mon) > 1$, detecta resonancia inestable.
+    quantum_diaphragm_cutoff ($l_{cutoff}$): Límite de la expansión armónica forzada sobre el LLM para evitar dispersión estocástica.
+    fermat_geodesic_deviation: Medida de la divergencia respecto a la trayectoria de mínima acción estratégica.
+
+2.7. Auditoría Epistemológica (Emitido por: MAC Agent)
 Métricas de la Matriz Atómica de Conocimiento y pureza cuántica.
 
     umegaki_divergence ($D(\rho\|\sigma)$): Entropía relativa entre el estado deliberado y la base atómica de conocimiento.

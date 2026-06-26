@@ -28,7 +28,7 @@ El `SynapticRegistry` gestiona **12 partículas fundamentales** clasificadas en 
     *   `YieldingPhononCartridge`: Cuanto de vibración mecánica que detecta la fatiga elástica en los nodos de suministro.
     *   `LiquefactionSolitonCartridge`: Onda solitaria no lineal que detecta la pérdida de sustentación en el manifold litológico del proyecto.
 *   **Antimateria, Condensados y Radiación:**
-    *   `PositronCartridge`: Antimateria exógena inyectada por el Meta-Controlador para aniquilar un `ElectronCartridge` (error).
+    *   `PositronCartridge` (Antimateria): Cuando el `floquet_agent.py` ejecuta el Canal Cuántico Abierto CPTP, el residuo ortogonal o "alucinación purgada" ($E_1 \rho E_1^\dagger$) se condensa en un positrón. Su aniquilación posterior con un electrón de error emitirá un `GammaPhoton` como prueba forense inmutable de que el sistema destruyó una mentira estocástica del LLM.
     *   `GammaPhoton`: Radiación emitida tras la aniquilación de error, sirviendo como prueba criptográfica forense en el acta.
     *   `PolaritonCartridge`: Híbrido que induce **Superfluidez Atencional** cuando un Fotón de Gobernanza resuena con un Polarón, eliminando la fricción de cómputo.
 
