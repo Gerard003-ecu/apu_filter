@@ -370,16 +370,16 @@ class GeodesicStepReport:
 
 # ════════════════════════════════════════════════════════════════════════════════
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  FASE 1 — PREPARACIÓN MÉTRICA Y CÁLCULO DE SÍMBOLOS DE CHRISTOFFEL         ║
+# ║  FASE 1 — PREPARACIÓN MÉTRICA Y CÁLCULO DE SÍMBOLOS DE CHRISTOFFEL           ║
 # ║                                                                              ║
-# ║  Entrada  : NDArray (n×n), tensor métrico crudo G_raw                       ║
-# ║  Salida   : ChristoffelData (Gamma, dG, norms, flags)                       ║
+# ║  Entrada  : NDArray (n×n), tensor métrico crudo G_raw                        ║
+# ║  Salida   : ChristoffelData (Gamma, dG, norms, flags)                        ║
 # ║                                                                              ║
 # ║  Garantías:                                                                  ║
-# ║    1. G y G_inv son espectralmente estables (delegado a Preconditioner)     ║
-# ║    2. Gamma.shape == (n,n,n), dtype float64                                 ║
-# ║    3. Gamma es finito: ‖Gamma‖_F < _CHRISTOFFEL_FINITE_TOL                 ║
-# ║    4. dG[k,i,j] satisface la convención ∂_k G_{ij}                         ║
+# ║    1. G y G_inv son espectralmente estables (delegado a Preconditioner)      ║
+# ║    2. Gamma.shape == (n,n,n), dtype float64                                  ║
+# ║    3. Gamma es finito: ‖Gamma‖_F < _CHRISTOFFEL_FINITE_TOL                   ║
+# ║    4. dG[k,i,j] satisface la convención ∂_k G_{ij}                           ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 # ════════════════════════════════════════════════════════════════════════════════
 
@@ -836,16 +836,16 @@ class _ChristoffelEngine:
 
 # ════════════════════════════════════════════════════════════════════════════════
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  FASE 2 — VERIFICACIÓN AXIOMÁTICA: TORSIÓN NULA Y COMPATIBILIDAD MÉTRICA   ║
+# ║  FASE 2 — VERIFICACIÓN AXIOMÁTICA: TORSIÓN NULA Y COMPATIBILIDAD MÉTRICA     ║
 # ║                                                                              ║
-# ║  Entrada  : ChristoffelData (Gamma, dG) de Fase 1                           ║
-# ║  Salida   : ConnectionDiagnostics (torsion_norm, covd_norm, R_norm)         ║
+# ║  Entrada  : ChristoffelData (Gamma, dG) de Fase 1                            ║
+# ║  Salida   : ConnectionDiagnostics (torsion_norm, covd_norm, R_norm)          ║
 # ║                                                                              ║
 # ║  Garantías:                                                                  ║
-# ║    1. Torsión nula: ‖Gamma - Gamma^T_{(mn)}‖_F < _TORSION_TOLERANCE        ║
-# ║    2. Compatibilidad: ‖∇_γ G_{μν}‖_F < _METRIC_COMPAT_TOLERANCE           ║
+# ║    1. Torsión nula: ‖Gamma - Gamma^T_{(mn)}‖_F < _TORSION_TOLERANCE          ║
+# ║    2. Compatibilidad: ‖∇_γ G_{μν}‖_F < _METRIC_COMPAT_TOLERANCE              ║
 # ║    3. Operaciones vectorizadas (sin bucles Python sobre índices)             ║
-# ║    4. ConnectionDiagnostics es inmutable y completo para trazabilidad       ║
+# ║    4. ConnectionDiagnostics es inmutable y completo para trazabilidad        ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 # ════════════════════════════════════════════════════════════════════════════════
 
@@ -1205,16 +1205,16 @@ class _TorsionFreeConnection(_ChristoffelEngine):
 
 # ════════════════════════════════════════════════════════════════════════════════
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  FASE 3 — ORQUESTADOR GEODÉSICO Y TRANSPORTE CATEGÓRICO                    ║
+# ║  FASE 3 — ORQUESTADOR GEODÉSICO Y TRANSPORTE CATEGÓRICO                      ║
 # ║                                                                              ║
-# ║  Entrada  : TangentVector v (velocidad) / CotangentVector ω (forma)         ║
-# ║  Salida   : TangentVector v' (propagado) / CotangentVector ω' (dual)       ║
+# ║  Entrada  : TangentVector v (velocidad) / CotangentVector ω (forma)          ║
+# ║  Salida   : TangentVector v' (propagado) / CotangentVector ω' (dual)         ║
 # ║                                                                              ║
 # ║  Garantías:                                                                  ║
-# ║    1. dt ∈ (_DT_MIN, dt_max_stable] para estabilidad RK4                   ║
-# ║    2. ‖v(t+dt)‖ ≈ ‖v(t)‖ (conservación de norma aproximada, geodésica)    ║
-# ║    3. Transportes ♭ y ♯ delegan al MusicalIsomorphismEngine verificado     ║
-# ║    4. GeodesicStepReport inmutable para cada paso de integración            ║
+# ║    1. dt ∈ (_DT_MIN, dt_max_stable] para estabilidad RK4                     ║
+# ║    2. ‖v(t+dt)‖ ≈ ‖v(t)‖ (conservación de norma aproximada, geodésica)       ║
+# ║    3. Transportes ♭ y ♯ delegan al MusicalIsomorphismEngine verificado       ║
+# ║    4. GeodesicStepReport inmutable para cada paso de integración             ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 # ════════════════════════════════════════════════════════════════════════════════
 

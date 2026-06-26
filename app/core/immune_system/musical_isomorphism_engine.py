@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Musical Isomorphism Engine (Fibrador de Dualidad Categórica)              ║
-║  Ruta   : app/core/immune_system/musical_isomorphism_engine.py                      ║
-║  Versión: 3.0.0-Topos-Spectral-Categorical                                          ║
+║  Módulo : Musical Isomorphism Engine (Fibrador de Dualidad Categórica)               ║
+║  Ruta   : app/core/immune_system/musical_isomorphism_engine.py                       ║
+║  Versión: 3.0.0-Topos-Spectral-Categorical                                           ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
 Naturaleza Ciber-Física y Topológica Diferencial:
