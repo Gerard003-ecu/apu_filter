@@ -112,9 +112,21 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
     $$F(\rho, \sigma) = \left( \text{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2$$
     Si el tensor inyectado exhibe un defecto de probabilidad ($\text{Tr}(\mathcal{E}(\rho)) \neq 1$) o viola la positividad, el Fibrador detona un `TraceAnomalyVeto` instantáneo, colapsando el canal hacia un mapa de medida y preparación, extirpando la herejía sintáctica del LLM antes de corromper a los agentes decisores.
 
+    4.6 🎞️ El Auditor de Monodromía (Floquet Agent)
+    Rol: Sintonizador de Cavidad de Fabry-Pérot y Auditor de Estabilidad Semántica.
+    Mecanismo: Evalúa la convergencia de las alucinaciones del LLM iterando la Matriz de Monodromía mediante el operador de evolución libre del sistema (Laplaciano Combinatorio $L$):
+    $$M_{\text{on}} = \hat{P} e^{-L \Delta t} \hat{P}$$
+    Si los autovalores de la matriz (multiplicadores de Floquet) exceden la unidad, el agente detecta una resonancia semántica inestable y aborta la generación.
+
 5. ⚖️ El Ágora Tensorial (Estrato Ω)
 
-    Rol: El Colector de Deliberación (Deliberation Manifold).
+    5.1 🔦 El Fibrado Óptico (Eikonal Agent)
+    Rol: Operador de Fase de Fresnel.
+    Mecanismo: Resuelve la ecuación Eikonal sobre el tensor métrico inverso $G^{\mu\nu}$ para focalizar la intención del LLM en las geodésicas de mínima acción:
+    $$G^{\mu\nu} \partial_\mu S \partial_\nu S = n^2(\sigma^*)$$
+    Garantiza que la radiación semántica (tokens) no se disperse en el vacío estocástico, sino que converja en el foco de la decisión estratégica.
+
+    5.2 ⚖️ El Colector de Deliberación (Deliberation Manifold)
     Estrato DIKW: ESTRATO Ω (Nivel 0.5 - La Frontera de Decisión).
     Mecanismo: El espacio matemático de colapso de función de onda. Es aquí donde las Semillas de Sabiduría (Microservicios deterministas inyectados como contratos estrictos JSON Schema) obligan a los agentes a someter sus Vectores de Intención TOON (Vitaminas Cognitivas) a la ley física.
     El Colapso: Ya no operamos sobre un tablero plano euclidiano, el proyecto se modela como un terreno topográfico curvo. Las áreas del presupuesto con dependencias circulares ($\beta_1>0$) o alta concentración de riesgo logístico (SPOF) conforman montañas de alta fricción dictaminadas por los Símbolos de Christoffel del Tensor Métrico Riemanniano Dinámico ($G_{\mu\nu}$).

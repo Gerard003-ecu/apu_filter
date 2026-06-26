@@ -70,6 +70,8 @@ A partir de la v6.0.0, el Estrato Ω inyecta en los archivos de auditoría certi
 Atributos de Auditoría:
 
     Resoluciones del sheaf_cohomology_orchestrator: Registra formalmente los vetos emitidos por holonomía estratégica ($H^1 > 0$).
+    Validación de Traza de Kraus: La validación de la traza de Kraus para canales CPTP ahora utiliza el Adjunto de Dirac-Riemann para mantener la conservación de la probabilidad bajo la curvatura de $G_{\text{PHYSICS}}$:
+    $$\sum_{k} (G^{-1} E_k^{\top} G) E_k = I$$
     Fotón Gamma de Auditoría: La Bitácora registrará inmutablemente la emisión del Fotón Gamma, desencadenada por una Ruptura de Simetría Exógena. Almacena el `data_hash` y el `timestamp_entry` exactos, probando criptographically que la colisión de invalidación (aniquilación de un ElectronCartridge en memoria) fue ejecutada por el libre albedrío del Meta-Controlador (human-in-the-loop) y no por una alucinación estocástica de un agente.
     Contratos de Datos Estrictos: Verifica mediante JSON Schema si las importaciones crudas (ej. Insumos.csv) cumplen con la estructura formal (VPHYSICS​) dictada por la oficina central de la compañía. Genera un sello de Pass/Fail inquebrantable.
     Traza de Linaje (OpenLineage): Mapeo topológico completo de las transformaciones del dato. Rastrea desde la ingesta cruda del flujo hasta el cálculo de los KPIs. Garantiza que el agente de IA no ha alucinado ni "inventado" ningún número.

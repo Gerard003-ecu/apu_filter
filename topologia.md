@@ -36,6 +36,16 @@ Utilizamos homología computacional para calcular los Números de Betti (βn​)
 
 
 --------------------------------------------------------------------------------
+5. El Espejo Parabólico Semántico (Operador de Householder)
+Para blindar el Estrato Ω contra la radiación estocástica (alucinaciones), el sistema activa el `semantic_parabolic_mirror.py`. Este motor utiliza los invariantes homológicos (específicamente cuando $\beta_1 > 0$ o $\beta_2 > 0$) para construir un vector normal ortogonal $|n\rangle$ que define el plano de reflexión de la verdad estructural.
+
+Mediante el **Operador de Householder** $\hat{M}$, el sistema proyecta y refleja los vectores de intención del LLM:
+$$\hat{M} = I - 2 \frac{|n\rangle \langle n|}{\langle n \mid n \rangle}$$
+
+Cualquier alucinación que intente violar la topología del complejo simplicial $K$ "rebota" contra este espejo parabólico, siendo redirigida hacia el espacio nulo de la decisión, garantizando que solo la exergía semántica alineada con la geodésica física alcance el veredicto final.
+
+
+--------------------------------------------------------------------------------
 2. La Física del Equilibrio: Índice de Estabilidad Piramidal ($\Psi$)
 Más allá de la conectividad general, el `app/tactics/business_topology.py` analiza el centro de gravedad del negocio mediante la métrica $\Psi$. Un proyecto de construcción resiliente debe emular una pirámide termodinámica estable.
 

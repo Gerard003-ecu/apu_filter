@@ -23,6 +23,8 @@ Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta 
 | **Resonancia Fuerte de Rabi (Polaritón)** | "Atasco absorbido por política de contingencia." | **"La Ola Verde Sincronizada:"** "El retraso severo (Polarón) logístico detectado fue envuelto exitosamente por el Fotón de Gobernanza, permitiendo al sistema fluir con cero fricción corporativa a través del presupuesto." |
 | **Acoplamiento Viscoelástico de Fröhlich ($\alpha \to \infty$)** | "El riesgo se ha acoplado termodinámicamente a la inercia del negocio." | **"La Avalancha de Retrasos:"** "Un proveedor local ha generado un sumidero gravitacional que afectará la latencia global. El retraso ya no es local, sino que compromete la red entera." |
 | **Compactificación de Alexandroff** | "Singularidad estocástica proyectada al infinito." | **"Veto Ontológico:"** "La estrategia sugerida por la IA ha divergido hacia una entropía sintáctica infinita (S→∞). El agente ha intentado proponer una solución estocástica inestable, rechazada por política Zero-Trust." |
+| **Multiplicador de Floquet $|\mu_k| > 1$** | "Catástrofe de Resonancia Semántica." | **"Riesgo Circular Justificado:"** "La IA ha intentado justificar un riesgo circular que amplifica los costos; sugerencia vetada por inestabilidad de monodromía." |
+| **Divergencia de Fermat** | "Desviación Geodésica Extrema." | **"Logística de Energía Infinita:"** "La propuesta logística exige energía infinita y viola la física de la cadena de suministro; la geodésica semántica ha divergido del foco de rentabilidad." |
 
 
 --------------------------------------------------------------------------------
