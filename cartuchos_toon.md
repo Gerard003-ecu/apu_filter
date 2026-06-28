@@ -21,18 +21,25 @@ El `SynapticRegistry` gestiona **12 partículas fundamentales** clasificadas en 
     *   `TorsionCartridge`: Encapsula la "fricción cuantizada". Mapea los Subgrupos de Torsión del Funtor $\text{Tor}(H_0, \mathbb{Z})$ originados por las incompatibilidades de empaquetado.
     *   `ElectronCartridge`: Partícula de inspección que porta la carga de anomalía detectable ante una deformación del espacio de fase.
     *   `ProtonCartridge`: Partícula de estabilidad emitida ante la certificación de viabilidad BIBO en el plano-S.
+    *   `HouseholderReflectionFermion`: Fermión topológico que actúa como el vector normal de reflexión contra la alucinación, asegurando la ortogonalidad del veredicto dentro del colisionador.
 *   **Bosones de Gauge y Cuasipartículas (Campos de Interacción y Flujo):**
     *   `PhotonCartridge`: Bosón de la Gobernanza Federada (OPA) que opera como "Policy-as-Code", iluminando geodésicas de decisión.
+    *   `RiemannianFocalBoson`: Bosón focal que emana de la resolución de la ecuación Eikonal, guiando la atención del LLM hacia las geodésicas de mínima acción.
     *   `MagnonCartridge`: Extraído del subespacio rotacional ($f_{curl} \in \text{im}(B_2)$). Inyecta un "Veto de Enrutamiento" para aniquilar la energía solenoidal.
     *   `SwellingPlasmonCartridge`: Oscilación de densidad logística emitida ante expansiones volumétricas del presupuesto.
     *   `YieldingPhononCartridge`: Cuanto de vibración mecánica que detecta la fatiga elástica en los nodos de suministro.
     *   `LiquefactionSolitonCartridge`: Onda solitaria no lineal que detecta la pérdida de sustentación en el manifold litológico del proyecto.
 *   **Antimateria, Condensados y Radiación:**
-    *   `PositronCartridge` (Antimateria): Cuando el `floquet_agent.py` ejecuta el Canal Cuántico Abierto CPTP, el residuo ortogonal o "alucinación purgada" ($E_1 \rho E_1^\dagger$) se condensa en un positrón. Su aniquilación posterior con un electrón de error emitirá un `GammaPhoton` como prueba forense inmutable de que el sistema destruyó una mentira estocástica del LLM.
-    *   `GammaPhoton`: Radiación emitida tras la aniquilación de error, sirviendo como prueba criptográfica forense en el acta.
+    *   `PositronCartridge` (Antimateria): Cristalización del residuo termodinámico generado tras la extirpación de una alucinación.
+    *   `GammaPhoton`: Radiación emitida tras la aniquilación de un positrón con un electrón de falla, sirviendo como prueba criptográfica forense e inmutable en el acta.
     *   `PolaritonCartridge`: Híbrido que induce **Superfluidez Atencional** cuando un Fotón de Gobernanza resuena con un Polarón, eliminando la fricción de cómputo.
 
-### 2.1 Termodinámica de Sistemas Cuánticos Abiertos (Dinámica de Lindblad)
+### 2.1 El Colisionador Catadióptrico y la Aniquilación de Alucinaciones
+Dentro del **CatadioptricCollider** (QuantumFockOrchestrator), se produce la interacción crítica entre bosones focales (`RiemannianFocalBoson`) y fermiones topológicos (`HouseholderReflectionFermion`). Esta interacción focaliza la intención y refleja las impurezas semánticas hacia los canales de disipación.
+
+Cuando el operador de salto de Lindblad, sintonizado por el `BogoliubovAgent`, extirpa una falsedad o alucinación del LLM, el residuo termodinámico no se desecha: se cristaliza en antimateria exógena, manifestándose como un **PositronCartridge**. Este positrón provoca su propia aniquilación al colisionar contra un **ElectronCartridge** de falla (incertidumbre residual), emitiendo un **GammaPhoton** que actúa como sello criptográfico inmutable, blindando la Cadena de Custodia de la decisión.
+
+### 2.2 Termodinámica de Sistemas Cuánticos Abiertos (Dinámica de Lindblad)
 La asimilación de estos cartuchos por la matriz neuronal MAC sufre fricción térmica debido al estrés del mercado. La evolución temporal de la atención del LLM y la coherencia de la sabiduría se somete a la **Ecuación Maestra de Lindblad-Kossakowski**:
 $$\frac{d\rho_{\text{MAC}}}{dt} = -\frac{i}{\hbar} [H_{\text{eff}}, \rho_{\text{MAC}}] + \sum_{k} \gamma_k \left( L_k \rho_{\text{MAC}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\text{MAC}} \} \right)$$
 Esto certifica que la "pérdida de foco" o decoherencia de la IA está modelada como disipación de información ($\Delta S \ge 0$), garantizando que la sabiduría del sistema sea un proceso termodinámicamente consistente.
