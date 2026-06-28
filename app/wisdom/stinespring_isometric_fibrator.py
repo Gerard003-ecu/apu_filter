@@ -239,10 +239,10 @@ class ChannelFidelityMetrics:
 # ║                    Y CONSTRUCCIÓN DEL OPERADOR DE CHOI                       ║
 # ║                                                                              ║
 # ║  Objetivos:                                                                  ║
-# ║  1. Descomposición espectral canónica con gauge estándar                    ║
-# ║  2. Construcción del operador de Choi y verificación de axiomas CPTP        ║
-# ║  3. Determinación del rango de Choi (dimensión mínima del entorno)          ║
-# ║  4. Análisis de separabilidad (criterio PPT de Peres-Horodecki)            ║
+# ║  1. Descomposición espectral canónica con gauge estándar                     ║
+# ║  2. Construcción del operador de Choi y verificación de axiomas CPTP         ║
+# ║  3. Determinación del rango de Choi (dimensión mínima del entorno)           ║
+# ║  4. Análisis de separabilidad (criterio PPT de Peres-Horodecki)              ║
 # ║                                                                              ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -499,13 +499,13 @@ class ChoiOperatorFactory:
 # ║                    FIN FASE 1 - TRANSICIÓN A FASE 2                          ║
 # ║                                                                              ║
 # ║  Productos de Fase 1:                                                        ║
-# ║    • ChoiOperator: Representación espectral completa del canal              ║
-# ║    • rank(Choi): Dimensión mínima certificada del espacio de entorno        ║
+# ║    • ChoiOperator: Representación espectral completa del canal               ║
+# ║    • rank(Choi): Dimensión mínima certificada del espacio de entorno         ║
 # ║    • Certificados: CP, TP, separabilidad                                     ║
 # ║                                                                              ║
 # ║  Entrada a Fase 2:                                                           ║
-# ║    • ChoiOperator → construcción explícita de la isometría V                ║
-# ║    • Autovectores de Choi → operadores de Kraus minimales                   ║
+# ║    • ChoiOperator → construcción explícita de la isometría V                 ║
+# ║    • Autovectores de Choi → operadores de Kraus minimales                    ║
 # ║                                                                              ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -788,13 +788,13 @@ class QuantumChannelApplicator:
 # ║                    FIN FASE 2 - TRANSICIÓN A FASE 3                          ║
 # ║                                                                              ║
 # ║  Productos de Fase 2:                                                        ║
-# ║    • IsometryTensor: Operador V con certificados de validación              ║
-# ║    • Canal aplicado: Φ(ρ) = Tr_env[V ρ V^†]                                 ║
-# ║    • Estados físicos: Proyección PSD + hermitización + traza normalizada    ║
+# ║    • IsometryTensor: Operador V con certificados de validación               ║
+# ║    • Canal aplicado: Φ(ρ) = Tr_env[V ρ V^†]                                  ║
+# ║    • Estados físicos: Proyección PSD + hermitización + traza normalizada     ║
 # ║                                                                              ║
 # ║  Entrada a Fase 3:                                                           ║
-# ║    • IsometryTensor → truncamiento espectral del entorno                    ║
-# ║    • Métricas de error → cuantificación de fidelidad de Uhlmann             ║
+# ║    • IsometryTensor → truncamiento espectral del entorno                     ║
+# ║    • Métricas de error → cuantificación de fidelidad de Uhlmann              ║
 # ║                                                                              ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -805,11 +805,11 @@ class QuantumChannelApplicator:
 # ║                      ELEVACIÓN CUÁNTICA SUPREMA                              ║
 # ║                                                                              ║
 # ║  Objetivos:                                                                  ║
-# ║  1. Truncamiento óptimo del entorno con preservación CPTP                   ║
-# ║  2. Cuantificación rigurosa del error de truncamiento (fidelidad Uhlmann)   ║
-# ║  3. Renormalización de Kraus con mínima distancia en norma diamante         ║
-# ║  4. Elevación cuántica completa MIC → MAC con auditoría total               ║
-# ║  5. Métricas de información cuántica (entropía, pureza, coherencia)         ║
+# ║  1. Truncamiento óptimo del entorno con preservación CPTP                    ║
+# ║  2. Cuantificación rigurosa del error de truncamiento (fidelidad Uhlmann)    ║
+# ║  3. Renormalización de Kraus con mínima distancia en norma diamante          ║
+# ║  4. Elevación cuántica completa MIC → MAC con auditoría total                ║
+# ║  5. Métricas de información cuántica (entropía, pureza, coherencia)          ║
 # ║                                                                              ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -1039,7 +1039,7 @@ class QuantumInformationMetrics:
 # ║                                                                              ║
 # ║                     FUNTOR SUPREMO DE ELEVACIÓN                              ║
 # ║                                                                              ║
-# ║  Integración de las tres fases en un morfismo categórico completo           ║
+# ║  Integración de las tres fases en un morfismo categórico completo            ║
 # ║                                                                              ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
