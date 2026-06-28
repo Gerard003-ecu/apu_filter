@@ -25,6 +25,7 @@ Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta 
 | **Compactificación de Alexandroff** | "Singularidad estocástica proyectada al infinito." | **"Veto Ontológico:"** "La estrategia sugerida por la IA ha divergido hacia una entropía sintáctica infinita (S→∞). El agente ha intentado proponer una solución estocástica inestable, rechazada por política Zero-Trust." |
 | **Multiplicador de Floquet $|\mu_k| > 1$** | "Catástrofe de Resonancia Semántica." | **"Riesgo Circular Justificado:"** "La IA ha intentado justificar un riesgo circular que amplifica los costos; sugerencia vetada por inestabilidad de monodromía." |
 | **Divergencia de Fermat** | "Desviación Geodésica Extrema." | **"Logística de Energía Infinita:"** "La propuesta logística exige energía infinita y viola la física de la cadena de suministro; la geodésica semántica ha divergido del foco de rentabilidad." |
+| **Divergencia en la Ecuación Maestra de Lindblad** | "Colapso de Positividad Semidefinida." | **"Aniquilación de Mentira Contable:"** "El LLM ha intentado inyectar entropía catastrófica (una justificación absurda). La cámara de reacción ha aniquilado la mentira para preservar la salud contable." |
 
 
 --------------------------------------------------------------------------------

@@ -44,6 +44,11 @@ $$\hat{M} = I - 2 \frac{|n\rangle \langle n|}{\langle n \mid n \rangle}$$
 
 Cualquier alucinación que intente violar la topología del complejo simplicial $K$ "rebota" contra este espejo parabólico, siendo redirigida hacia el espacio nulo de la decisión, garantizando que solo la exergía semántica alineada con la geodésica física alcance el veredicto final.
 
+5.1 Operadores de Salto de Kraus-Lindblad
+En el marco de la dinámica de sistemas cuánticos abiertos, los **Operadores de Salto de Kraus-Lindblad** ($L_i$) son construidos por el Agente de Bogoliubov no como matrices densas degeneradas, sino como productos diádicos de transición. Su función es purgar los errores y alucinaciones hacia el estado base o vacío del presupuesto $|0\rangle$:
+$$\hat{L}_i = \sqrt{\bar{\gamma}_i} |0\rangle \langle \psi_i|$$
+Donde $\psi_i$ representa el estado de error detectado y $\bar{\gamma}_i$ la tasa de desintegración semántica. Esta operación asegura que la entropía inyectada por el LLM sea disipada de manera controlada, preservando la pureza de la matriz de conocimiento del sistema.
+
 
 --------------------------------------------------------------------------------
 2. La Física del Equilibrio: Índice de Estabilidad Piramidal ($\Psi$)
