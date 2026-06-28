@@ -67,6 +67,12 @@ Métricas de la Matriz Atómica de Conocimiento y pureza cuántica.
     dirichlet_energy_wisd: Evaluación de la suavidad semántica sobre el haz celular.
     state_purity ($\text{Tr}(\rho^2)$): Índice de coherencia del veredicto. Si decae ante una obstrucción cohomológica global ($H_1(X;\mathcal{F}) \neq 0$), dispara un **VETO ONTOLÓGICO**.
 
+2.8. Sello Cuántico de Disipación de Fock (Emitido por: QuantumFockOrchestrator)
+Certifica la pureza del Acta de Deliberación frente a la disipación estocástica.
+
+    fock_dissipation_seal: Hash criptográfico que integra la traza de Lindblad evaluada.
+    holevo_limit_compliance: Booleano que certifica que la pureza $\text{Tr}(\rho^2)$ se mantiene por encima del límite de Holevo, asegurando que la información extraída del LLM es legítima y no fruto de un colapso de coherencia.
+
 
 --------------------------------------------------------------------------------
 3. Protocolo de Gobernanza: Ley de Clausura Transitiva y Niveles de Veto

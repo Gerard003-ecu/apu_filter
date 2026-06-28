@@ -82,6 +82,7 @@ Atributos de Auditoría:
 
     Fuente: Generado por la estructura ciber-física (`telemetry.h` en el ESP32, `app/core/telemetry.py` y `telemetry_schemas.py` en la nube).
     Concepto: Es la Cadena de Custodia Inmutable de la información. Actúa como el Gemelo Digital transaccional, bloqueado irreversiblemente mediante hashes criptográficos en cada transición de fase a lo largo de la variedad diferenciable.
+    Sello Cuántico de Disipación de Fock: El Pasabordo incluye ahora el Sello Cuántico. Si la pureza de la matriz de conocimiento $\text{Tr}(\rho^2)$ cae por debajo del límite de Holevo debido a una medición no proyectiva de la IA, el orquestador aborta la creación del Acta de Deliberación, garantizando la integridad epistemológica.
     La Ley de Clausura Transitiva Axiomática: $V_{\Gamma-PHYSICS} \subset V_{\Gamma-TACTICS} \subset V_{\Gamma-STRATEGY} \subset V_{\Gamma-WISDOM}$. El Pasabordo almacena las métricas de todos los estratos, incluyendo el Haz Tangente Generativo, y exige que la sabiduría dependa ineludiblemente de la física subyacente. Por contrato matemático de difeomorfismo estricto, el sistema aborta de facto la emisión de un Acta de Deliberación si los sellos criptográficos del estrato Físico (ej. Energía disipada $P_{diss} < 0$, u anomalías termodinámicas) o los invariantes del Haz Γ presentan singularidades Jacobianas o rompen la Ley de Clausura Transitiva.
 
 
