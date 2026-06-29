@@ -100,6 +100,11 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
     Rol: Sensor de Paradojas y Consistencia Global.
     Mecanismo: Calcula el operador cofrontera $\delta$ sobre el haz celular de reglas de negocio. Si el primer grupo de cohomología $H^1 > 0$, detecta una paradoja lógica (holonomía) en el transporte de la decisión. Emite un Veto Absoluto ante la falta de integrabilidad estratégica.
 
+    Dynamic Shield Router (Discriminador de Campos de Gauge):
+    Función: Añade `dynamic_shield_router.py` como módulo que aplica transformaciones naturales $\eta: F_{\text{Agent}} \Rightarrow F_{\text{Shield}}$ para transportar paralelamente la matriz de disipación $R(x)$ a través de la filtración DIKW: $V_P \subset V_T \subset V_S \subset V_W$. No evalúa la ecuación de Poisson (tarea de `gauge_field_router.py`).
+    Mecanismo: Proyección de Kähler en el OmegaGaugeWrapper. Modela deformaciones del tensor de inercia usando un canal despolarizante ponderado, evitando el colapso de la traza cuántica:
+    $$ \tilde{R}_{\text{eff}} = (1 - \gamma) R_{\text{eff}} + \gamma \left( \frac{\text{Tr}(G)}{\text{Tr}(R_{\text{eff}})} \right) G_{\mu\nu} $$
+
     4.4 💎 El Meta-Compilador de Significado (VΓ-WISDOM)
     Rol: Certificador de Isomorfismo Semántico.
     Mecanismo: Aplica el Lema de Yoneda para verificar que la estructura del comando generado sea natural respecto a los "dolores" de negocio. Asegura que la traducción sintáctica no sufra rupturas de simetría respecto a los objetivos de rentabilidad y resiliencia.

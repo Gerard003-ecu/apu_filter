@@ -22,6 +22,8 @@ Desde la perspectiva matemática de control, esta topología de acoplamiento bli
 $$\dot{H} = \nabla H^T(J-R)\nabla H \le 0$$
 Para el gerente de obra, esto se traduce en que la plataforma no permite que un solo byte de información circule con velocidad inercial desbalanceada. Cada insumo entra impulsado de manera que las tuberías de compras lo absorban en un tiempo termodinámicamente óptimo. El hardware en el borde (ESP32) vigila esta Estructura de Dirac en tiempo real. Si una fluctuación induce $\dot{H} > 0$ (el flujo estocástico intenta violar la resistencia estructural del proyecto creando "energía de la nada"), el Veto Físico acciona el *Crowbar* y desintegra el paquete anómalo antes de la saturación matricial.
 La ley de control global del sistema se define como: u(t)=uPI​(e)+uFF​(ΔC)+uSafety​
+Además, el sintonizador dinámico de impedancias (PML) obedece incondicionalmente a las **Relaciones de Kramers-Kronig**, garantizando la causalidad termodinámica en el espectro de frecuencias complejas $s = \sigma + j\omega$ al vincular estrictamente la dispersión con la disipación.
+
 Diagrama de Bloques Lógico:
 
     Planta: El proceso de ingestión de datos masivos (Batch Processing).

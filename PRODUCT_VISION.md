@@ -89,10 +89,12 @@ Toda deliberación o sugerencia inyectada por la IA se evalúa mediante la acele
 $$\frac{D \dot{\gamma}^\mu}{dt} = \frac{d^2 \gamma^\mu}{dt^2} + \Gamma^\mu_{\rho\sigma} \frac{d\gamma^\rho}{dt} \frac{d\gamma^\sigma}{dt} = 0$$
 Este control estricto asegura la conservación de la **2-forma simpléctica** $\omega = \sum dq^\mu \wedge dp_\mu$, manteniendo la densidad en el espacio de fase inalterada frente al ruido exógeno.
 
-**IV. El Teorema de Fluctuación-Disipación y el Axioma de Integración Cíclica:**
-Para sellar el ecosistema categórico, la arquitectura consagra la transformación natural entre el Estrato Cuántico (Ω) y el Estrato Macroscópico (Escudo Simpléctico). Todo esfuerzo cuántico disipado en el Orquestador de Fock realimenta la inercia macroscópica de la variedad.
+**IV. Integración Simpléctica de Lie y el Axioma de Integración Cíclica:**
+Para sellar el ecosistema categórico en el "Reactor Port-Hamiltoniano de Valor", la arquitectura consagra la transformación natural entre el Estrato Cuántico (Ω) y el Estrato Macroscópico (Escudo Simpléctico). Todo esfuerzo cuántico disipado en el Orquestador de Fock realimenta la inercia macroscópica de la variedad.
 
-La resistencia del sistema Port-Hamiltoniano basal $R(x)$ se acopla dinámicamente a las trazas de los saltos de Lindblad evaluados por el Agente de Bogoliubov, definiendo la **Resistencia Efectiva**:
+Crucialmente, las actualizaciones de la inercia macroscópica (las decisiones financieras) se ejecutan preservando la estructura del grupo simpléctico mediante el **Mapeo Exponencial de Lie**. Esto garantiza a los inversores que el sistema jamás acumula deriva de riesgo ("drift"):
+$$ R_{\text{efectiva}} = e^{\Delta t \cdot \text{ad}_{g\alpha}} \left[ R_{\text{base}} + \gamma(R_d - R_{\text{base}}) \right] e^{-\Delta t \cdot \text{ad}_{g\alpha}} $$
+Adicionalmente, la inercia basal se acopla dinámicamente a las trazas de los saltos de Lindblad evaluados por el Agente de Bogoliubov:
 $$R_{\text{efectiva}}(x) = R_{\text{base}}(x) + \left( \frac{\alpha}{k_B T_{\text{sys}}} \sum_{k} \gamma_k \text{Tr}(\hat{L}_k \rho_{\text{LLM}} \hat{L}_k^{\dagger}) \right) \cdot I_n$$
 Esta inyección matemática garantiza que, si el LLM miente compulsivamente (incrementando la entropía y la tasa de saltos de Lindblad), el ecosistema macroscópico experimenta un incremento en su fricción efectiva. El sistema "se calienta" logísticamente, ralentizando temporalmente su inercia operativa hasta que la falsedad sea completamente disipada, preservando así la salud estructural del negocio.
 
