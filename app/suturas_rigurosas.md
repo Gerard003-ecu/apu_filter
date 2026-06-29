@@ -1,22 +1,41 @@
-El escrutinio topológico y espectral de la traza de ejecución conda_v5.md revela que la Malla Agéntica sigue atrapada en un atractor de fallos catastróficos, perpetuando singularidades homológicas y numéricas que destruyen la ortogonalidad de sus invariantes. A pesar de los esfuerzos previos, la variedad ciber-física presenta degeneraciones agudas en el cálculo de tensores isométricos, inestabilidades en el fibrado geodésico y divergencias termodinámicas al evaluar métricas de información cuántica. Como auditor matemático, dicto a continuación las cinco suturas quirúrgicas fundamentales que debe aplicar para erradicar esta entropía sistémica y forzar el colapso del hiperespacio de pruebas hacia el "Verde Absoluto".
-1. El Isomorfismo de Choi-Jamiołkowski y la Tipificación Categórica
-Dentro del Fibrado Isométrico de Stinespring, su sistema detona repetidamente el error Cannot cast ufunc 'multiply' output from dtype('complex128') to dtype('float64'), y falla al instanciar la clase StinespringIsometricFibrator por carecer del método abstracto __call__.
-En la mecánica cuántica de sistemas abiertos, el isomorfismo de Choi-Jamiołkowski establece una biyección entre canales Completamente Positivos Preservadores de Traza (CPTP) y operadores de densidad en un espacio producto. Matemáticamente, esto obliga a que el operador J procese componentes imaginarios: J : \operatorname{CPTP}(\mathcal{H}_{\text{in}}, \mathcal{H}_{\text{out}}) \cong \mathcal{D}(\mathcal{H}_{\text{out}} \otimes \mathcal{H}_{\text{in}})
- Se está forzando a que las raíces espectrales de un colector complejo sean absorbidas por arreglos de tipo float64, lo que viola la conservación del espacio de Hilbert. Además, en la Teoría de Categorías, el objeto StinespringIsometricFibrator actúa como un funtor, requiriendo axiomáticamente el morfismo de evaluación.
-La Sutura: Declare estrictamente la matriz espectral y el tensor del operador de Choi empleando dtype=np.complex128. Seguidamente, en la definición de su clase fibradora, inyecte el método de transición de fase esperado: def __call__(self, state: CategoricalState) -> CategoricalState:
-2. Degeneración Métrica en el Fibrador de Atención Geodésica
-Su oráculo de estabilidad rechaza la integración con los errores effective_metric no es definida positiva (min eigval = -7.236e+02) y P no es covariante-ortogonal respecto a g_eff.
-La métrica efectiva Riemanniana (g_μν)^eff​ está siendo deformada por un tensor de torsión (T_μν)^λ​ excesivo, inyectando curvatura escalar negativa que quiebra la Positividad Semidefinida del tensor. Para que el operador de proyección P resida rigurosamente en el espacio tangente de la variedad, debe satisfacer la simetría métrica inducida: P^T g_{\text{eff}} P = g_{\text{eff}} P
- Al colapsar el autovalor mínimo por debajo de cero (λmin​<0), el producto interno pierde su capacidad de medir normas, volviendo imaginaria la longitud de las geodésicas.
-La Sutura: Debe inyectar una regularización de Tikhonov dinámica estricta antes de calcular el proyector ortogonal. Modifique la métrica efectiva aplicando un operador de desplazamiento sobre el espectro: \tilde{g}_{\text{eff}} = g_{\text{eff}} + ( \lvert \min(0, \lambda_{\min}) \rvert + \epsilon_{\text{mach}} ) I
-3. Singularidades Logarítmicas en la Métrica de Información Cuántica
-El Minimizador MAC exhibe decenas de fallos de la forma FloatingPointError: divide by zero encountered in log y falsos negativos en la aserción de estados idénticos de Bures-Uhlmann donde 2.98e-08 != 0.0.
-La formulación de la entropía de von Neumann y las divergencias de información requieren que el límite del integrando contemple explícitamente el polo en cero: S(\rho) = -\operatorname{Tr}(\rho \ln \rho) = -\sum_{i=1}^{n} \lambda_i \ln \lambda_i \implies \lim_{\lambda_i \to 0^+} \lambda_i \ln \lambda_i = 0
-No se ha protegido el núcleo matemático contra los eigenvalores nulos procedentes de estados cuánticos puros o proyectores de truncamiento espectral. Asimismo, el cálculo de la Fidelidad de Uhlmann introduce inestabilidades de coma flotante por el producto de raíces matriciales.
-La Sutura: En VonNeumannEntropyEngine, evalúe el logaritmo únicamente sobre una proyección espectral regularizada: np.maximum(eigenvalues, np.finfo(float).eps). En TestBuresUhlmannAuditor, la tolerancia absoluta (atol) en la aserción de np.isclose para distancia cero debe ascender al menos a 1e-7 para absorber el ruido estocástico del espacio de Hilbert.
-4. Endomorfismo Dimensional en el Anclaje Escalar de Higgs
-El test test_p1_dict_stochastic_vector colapsa con ValueError: Φ.shape (4,) ≠ (5,).
-El operador Combinatorio de Laplace-Beltrami Δ, derivado de la matriz de adyacencia del grafo de V=5 nodos, es una transformación lineal que exige que el dominio y el codominio posean dimensionalidad idéntica. Usted le está inyectando a este endomorfismo un campo escalar ϕ∈R4, rompiendo las propiedades topológicas fundamentales de las formas diferenciales en la variedad.
-La Sutura: En los fixtures y métodos de extracción (como TestPsiExtraction), asegure que el vector de entrada y el arreglo ϕ posean longitud 5 exacta, garantizando el isomorfismo dimensional: dim(ker(L))=dim(H0​(K;R)).
-5. Ruptura Funtorial y Abstracciones Permeables
-La validación cruzada ha expuesto fallos de importación léxica como NameError: name '_HAS_PSUTIL' is not defined, fallos del Funtor de Identidad por atributos omitidos AttributeError: 'CategoricalState' object has no attribute 'metadata', e invocaciones a métodos no expuestos como AttributeError: type object 'TomitaTakesakiTheory' has no attribute 'validate_faithful_state'. Did you mean: '_validate_faithful_state'?.
+La telemetría de recolección conda_v6.md a un escrutinio topológico, categórico y léxico implacable. Su oráculo de pruebas, al intentar orquestar la variedad de evaluación, ha abortado la inicialización irradiando 5 colapsos letales de tipo ModuleNotFoundError.
+No nos enfrentamos a una transgresión termodinámica o a una inestabilidad en el espectro de los tensores de sus pruebas, sino a un Desgarro Fundamental en la Variedad del Espacio de Nombres (Namespace Manifold). La matriz de adyacencia de su Árbol de Sintaxis Abstracta (AST) exhibe componentes conexas completamente disjuntas (β0​>1), donde los funtores de importación (I:Caller→Target) apuntan hacia subespacios topológicos vacíos (∅).
+Al cruzar la ubicación física de sus scripts de prueba con las rutas de importación declaradas, se evidencia una asimetría estructural severa. Pruebas ubicadas en el estrato tests/unit/physics/ están ejecutando pull-backs hacia el dominio app.omega.*. En la Teoría de Categorías aplicada a la inyección de dependencias, si F es el funtor que mapea la topología de pruebas a la topología del dominio, el diagrama debe conmutar axiomáticamente preservando la Ley de Clausura Transitiva de la pirámide DIKW: VΓ−PHYSICS​⊂VΓ−TACTICS​⊂VΓ−STRATEGY​⊂VΓ−WISDOM​
+ Permitir que un artefacto puramente físico resida en el estrato Ω (Sabiduría/Orquestación) invierte la pirámide y destruye el isomorfismo.
+Para erradicar esta entropía léxica y forzar el colapso del sistema hacia el "Verde Absoluto", le ordeno ejecutar el siguiente plan de intervención granular:
+Sutura I: Rectificación del Fibrado Óptico Riemanniano
+Diagnóstico: Los archivos test_eikonal_agent.py y test_optical_riemann_lens.py colapsan al invocar from app.omega.optical_riemann_lens import .... La lente de Riemann es un operador puramente físico que manipula la métrica Gμν​; su existencia en el estrato Ω es una degeneración dimensional. Intervención Matemática: Redirija el fibrado de importación hacia el estrato bariónico. En ambos archivos de prueba, reemplace el mapeo defectuoso por la geodésica correcta:
+
+# Reemplazar:
+# from app.omega.optical_riemann_lens import OpticalRiemannLensFibrator, RefractedState
+# Inyectar isomorfismo:
+from app.physics.optical_riemann_lens import OpticalRiemannLensFibrator, RefractedState
+
+Sutura II: Re-alineación del Espejo Parabólico Semántico
+Diagnóstico: Idéntica patología. Los archivos test_floquet_agent.py y test_semantic_parabolic_mirror.py sufren una singularidad léxica al importar desde app.omega.semantic_parabolic_mirror. El reflector de Householder es una transformación ortogonal estricta P=I−2vv^T que opera en la base de la física computacional. Intervención Matemática: Restaure el operador de inclusión ι:A↪X. Navegue a ambos scripts y suture la importación:
+
+# Reemplazar:
+# from app.omega.semantic_parabolic_mirror import ...
+# Inyectar isomorfismo:
+from app.physics.semantic_parabolic_mirror import (
+    MetricAwareHouseholderReflector,
+    HouseholderSingularityError
+)
+
+Sutura III: Isomorfismo del Fibrado de Levi-Civita
+Diagnóstico: El archivo test_levi_civita_agent.py intenta materializar from app.omega.levi_civita_agent import ... y fracasa con ModuleNotFoundError. La conexión de Levi-Civita (Γ_μν)^λ​ es el único operador diferencial lineal invariante de torsión nula asociado al tensor métrico. Su naturaleza obliga a que resida en el foso termodinámico de la física. Intervención Matemática: Al igual que en los casos anteriores, el orquestador de conexión ha sido reubicado. Modifique la cabecera de importación en su test para apuntar a la variedad de fase correcta:
+
+# Inyectar isomorfismo:
+from app.physics.levi_civita_agent import (
+    LeviCivitaConnectionAgent,
+    TangentVector
+)
+
+Sutura IV: Sello del Hiperespacio de Nombres (__init__.py)
+Una vez reparadas las geodésicas de importación, debe garantizar matemáticamente que las clausuras de los módulos expongan las clases requeridas. La topología de módulos de Python exige que el espacio vectorial de exportaciones esté explícitamente acotado. Intervención Matemática: Verifique que el archivo app/physics/__init__.py contenga la base ortogonal de las exportaciones en su variable __all__, definiendo formalmente el subespacio público: Bpublic​=span{OpticalRiemannLensFibrator,MetricAwareHouseholderReflector,…}
+Dictamen de Ejecución y Colapso de Onda
+Usted está enfrentando un fallo de "recolección abstracta" (AST parsing). Para evitar inyectar energía térmica en forma de advertencias cruzadas o falsos positivos inducidos por rutinas de LAPACK estocásticas, imponga el Vacío Termodinámico durante la siguiente fase de verificación: dim(ker(MKL))=0⟹⎩⎨⎧​OMP_NUM_THREADS=1MKL_NUM_THREADS=1OPENBLAS_NUM_THREADS=1​
+Una vez inyectadas las suturas léxicas en los cinco archivos afectados, ejecute la recolección en modo puramente abstracto (sin detonar aserciones) para certificar que el desgarro topológico ha sanado:
+
+pytest tests/unit/omega/ -v --collect-only
+pytest tests/unit/physics/ -v --collect-only
