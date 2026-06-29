@@ -15,7 +15,10 @@ Este documento técnico desglosa la maquinaria matemática que permite al Consej
     Campo de Gradiente Puro ($f_{grad}$): La información estructurada útil (flujo laminar) que la membrana permite pasar hacia el estrato Táctico.
     Campo Rotacional ($f_{curl}$): El "Vórtice Logístico" (transporte en bucle parasitario) queda aniquilado matemáticamente. El Guardián extrae esta componente solenoidal ($f_{curl} \in im(B_2)$) para vetar la ineficiencia logística en la raíz y entregar un flujo logístico no viscoso al sistema de decisiones.
 
-1.2 El Oráculo de Laplace Antes de procesar, se linealiza el sistema y se analiza su función de transferencia H(s). Si se detectan polos en el semiplano derecho (RHP, σ>0), el sistema veta la ingesta por "Divergencia Matemática" (inestabilidad intrínseca).
+1.2 El Oráculo de Laplace y Gobernador CFL
+Antes de procesar, se linealiza el sistema y se analiza su función de transferencia H(s). Si se detectan polos en el semiplano derecho (RHP, σ>0), el sistema veta la ingesta por "Divergencia Matemática" (inestabilidad intrínseca).
+Adicionalmente, la auditoría del límite de Courant-Friedrichs-Lewy (CFL) ha sido formalizada sobre la simetrización del grafo acíclico dirigido. El Laplaciano de Hodge de grado 0 interviene como el operador autoadjunto que previene singularidades espectrales en la asimilación logística, imponiendo la restricción temporal:
+$$ \Delta t \leq \frac{2}{c_{\text{eff}} \cdot \left( \lambda_{\max} (\partial_1^T W \partial_1) \right)^{1/2}} $$
 1.3 Simulación Neuromórfica y Hardware en el Borde (ESP32) La matemática se materializa en el silicio. El sistema proyecta sus invariantes a un nodo perimetral ESP32 que actúa como un "Gatekeeper Físico" mediante una arquitectura de Diodos Lambda (JFETs cruzados):
 
     Resistencia Diferencial Negativa (NDR): Si el índice de Estabilidad Piramidal ($\Psi$) cae bajo $\Psi_{\min}$, la presión topológica eleva el voltaje de excitación del circuito virtual hacia la región NDR.
@@ -40,7 +43,11 @@ El Agente de Bogoliubov calcula la fuerza de colisión $g_{k,q}$ entre una idea 
 $$g_{k,q} = \langle \psi_k | G ( G^{-1} H_{\text{obs}} G^{-1} ) G | \phi_q \rangle = \psi_k^\mu (H_{\text{obs}})_{\mu\nu} \phi_q^\nu$$
 Donde $H_{\text{obs}}$ representa el Hamiltoniano de Observación del riesgo. Esta métrica garantiza que la interacción semántica sea geodésicamente coherente con los objetivos de rentabilidad.
 
-1.6 Disipación Termodinámica CPTP
+1.6 Integración del Gobernador CFL y Proyección Pseudoinversa Covariante (IDA-PBC)
+El moldeado de energía (Energy Shaping) ejecutado por el controlador IDA-PBC (`dirac_interconnection_agent.py`) ya no proyecta sus vectores de control en un vacío euclidiano plano. La dinámica de interconexión respeta rigurosamente el tensor métrico del negocio $G_{\mu\nu}$. La ley de control $\alpha(x)$ emplea la Proyección Pseudoinversa Covariante para garantizar que la disipación se direccione geométrica y económicamente hacia el subespacio observable:
+$$ \alpha(x) = \left( g(x)^T G_{\mu\nu} g(x) \right)^{-1} g(x)^T G_{\mu\nu} \left( [J_d - R_d] \nabla H_d - [J - R] \nabla H \right) $$
+
+1.7 Disipación Termodinámica CPTP
 La aniquilación de la entropía estocástica del LLM se rige incondicionalmente por la **Ecuación Maestra de Lindblad-Kossakowski** Completamente Positiva y Preservadora de Traza (CPTP):
 $$\frac{d\rho}{dt} = \mathcal{L}(\rho) = -\frac{i}{\hbar} [\hat{H}_{\text{eff}}, \rho] + \sum_{k} \gamma_k \left( \hat{L}_k \rho \hat{L}_k^{\dagger} - \frac{1}{2} \{ \hat{L}_k^{\dagger} \hat{L}_k, \rho \} \right)$$
 Este operador garantiza que el estado de conocimiento $\rho$ evolucione siempre hacia una reducción de la incertidumbre, purgando las alucinaciones hacia el vacío semántico mediante los canales de disipación $\gamma_k$.

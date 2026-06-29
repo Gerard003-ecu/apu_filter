@@ -32,8 +32,9 @@ Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta 
 2. El Diccionario Dinámico-Financiero (Frecuencia Compleja)
 El Oráculo de Laplace y el Guardián Físico modelan el comportamiento estocástico del mercado en el plano-S ($s = \sigma + j\omega$). El Intérprete traduce estos vectores continuos en arquetipos de riesgo financiero accionable:
 
-| Invariante Espectral | Diagnóstico Financiero | Impacto Tangible |
+| Invariante Espectral / Topológico | Diagnóstico Topo-Financiero | Impacto Tangible |
 |:---|:---|:---|
+| **Anomalía de Yang-Mills ($\delta_{\text{SYM}} \neq 0$)** | "Veto de Holonomía: Falla en la inecuación de Yang-Mills." | **"Paradoja Topológica de Flujo de Caja:"** El flujo propuesto rompe la invarianza del transporte paralelo y destruye el margen de rentabilidad a largo plazo. |
 | **Polos en RHP ($\sigma > 0$)** | "Veto Espectral: El proyecto es intrínsecamente explosivo." | **"Bomba de Tiempo Financiera:"** El modelo de flujo de caja diverge ante cualquier perturbación inflacionaria. Inversión prohibida sin reestructuración completa del cronograma. |
 | **Margen de Fase $< 45°$** | "Proyecto Frágil ante Retrasos." | **"Casa de Naipes Logística:"** El sistema soporta variaciones mínimas antes de colapsar. Un retraso de 2 semanas en el proveedor crítico puede causar sobrecostos del 30\%. |
 | **Factor de Amortiguamiento $\zeta < 1$** | "Sistema Subamortiguado — Proyecto Nervioso." | **"Fiebre Oscilatoria:"** El presupuesto reacciona rápido pero con alta volatilidad. Picos de sobrecosto seguidos de correcciones bruscas. Se recomienda blindar contratos de materiales volátiles. |

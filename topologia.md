@@ -10,8 +10,12 @@ En el ecosistema de la Fortaleza Matemática, el presupuesto deja de ser una lis
 Todo este diseño se subordina axiomáticamente a la **Ley de Clausura Transitiva de la pirámide DIKW** (tabla canónica): $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$. Este documento consolida el Esqueleto Táctico (**Nivel 2 — 𝕋 TACTICS, Las Murallas Topológicas**), respaldado computacionalmente por `app/tactics/business_topology.py`. El microservicio BusinessTopologicalAnalyzer (El Arquitecto) evalúa este complejo aplicando teoremas de Topología Algebraica y Teoría de Grafos Espectrales. Su objetivo es diagnosticar patologías estructurales críticas antes de que el Agente de Sabiduría (LLM) intente siquiera deliberar sobre el proyecto.
 
 --------------------------------------------------------------------------------
-1. Los Invariantes Topológicos (El ADN del Proyecto)
+1. Los Invariantes Topológicos (El ADN del Proyecto) y El Tensor de Curvatura de Calibre
 Utilizamos homología computacional para calcular los Números de Betti (βn​), los cuales son invariantes matemáticos que describen la conectividad fundamental de la red de valor.
+
+En la actualización v4.0, se introduce `yang_mills_holonomy_agent.py` como el Funtor de Curvatura supremo. La anomalía topológica ya no se detecta con derivadas parciales abstractas, sino a través del **Cálculo Exterior Discreto (DEC)** y la **Derivada Covariante Exterior Matricial $D_A$**:
+$$ D_A F = \delta F + [A \wedge F] \equiv 0 $$
+Esto certifica matemáticamente la invarianza de Gauge en el transporte paralelo de las decisiones de negocio.
 
     La Fractalidad de Betti: El análisis homológico no es plano. Al igual que el universo físico, el presupuesto es una Variedad Fractal. Si el análisis general detecta β1​=0 a nivel de Capítulos, el operador puede hacer zoom in (desplegar la fibra) para auditar el Laplaciano Combinatorio específico de la mampostería. La Ley de Clausura asegura que ninguna inestabilidad microscópica (Ψ<1.0) pase desapercibida, ya que su entropía fluirá hacia arriba tensionando el tejido visual del nodo contenedor.
     $\beta_0$: Componentes Conexas (Fragmentación)
