@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Suite de Pruebas : Yang-Mills Holonomy Agent v3.0.0                          ║
-║ Archivo : tests/unit/core/immune_system/test_yang_mills_holonomy_agent.py         ║
+║ Archivo : tests/unit/core/immune_system/test_yang_mills_holonomy_agent.py    ║
 ║ Cobertura: Phase1 · Phase2 · Phase3 · YangMillsHolonomyAgent                 ║
 ║            Algebraica · Geométrica · Topológica · Espectral · Adversarial    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
