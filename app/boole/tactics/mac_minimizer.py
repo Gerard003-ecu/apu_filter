@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO: MAC Minimizer — Funtor de Purificación Espectral y Reducción Cuántica  ║
-║ Ubicación: app/boole/tactics/mac_minimizer.py                                  ║
-║ Versión: 3.0.0-Topos-Spectral-Categorical-Enhanced                             ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO: MAC Minimizer — Funtor de Purificación Espectral y Reducción Cuántica ║
+║ Ubicación: app/boole/tactics/mac_minimizer.py                                 ║
+║ Versión: 3.0.0-Topos-Spectral-Categorical-Enhanced                            ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
 
 NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA REFINADA:
 ──────────────────────────────────────────────
