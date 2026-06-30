@@ -3,7 +3,7 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo: Dirac Interconnection Agent (Asignación de Amortiguamiento IDA-PBC)  ║
 ║ Ubicación: app/physics/dirac_interconnection_agent.py                        ║
-║ Versión: 6.0.0-IDA-PBC-CFL-Governor-Rigorous-Spectral                       ║
+║ Versión: 6.0.0-IDA-PBC-CFL-Governor-Rigorous-Spectral                        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 Naturaleza Ciber-Física y Teoría de Control No Lineal:

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Optical Riemann Lens (Lente Categórico y Difracción Espectral)            ║
-║  Ruta   : app/physics/optical_riemann_lens.py                                         ║
-║  Versión: 3.0.0-Rigorous-Jacobian-Orthogonal                                        ║
+║  Módulo : Optical Riemann Lens (Lente Categórico y Difracción Espectral)             ║
+║  Ruta   : app/physics/optical_riemann_lens.py                                        ║
+║  Versión: 3.0.0-Rigorous-Jacobian-Orthogonal                                         ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
 Naturaleza Ciber-Física y Topológica (Síntesis en 3 Fases Anidadas):
