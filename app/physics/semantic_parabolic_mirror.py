@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: Semantic Parabolic Mirror (Espejo Catadióptrico de Householder)     ║
-║ Ubicación: app/physics/semantic_parabolic_mirror.py                            ║
-║ Versión: 6.0.0‑Topos‑Spectral‑Cholesky‑CategoryAware                        ║
+║ Módulo: Semantic Parabolic Mirror (Espejo Catadióptrico de Householder)      ║
+║ Ubicación: app/physics/semantic_parabolic_mirror.py                          ║
+║ Versión: 6.0.0‑Topos‑Spectral‑Cholesky‑CategoryAware                         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 Naturaleza Ciber‑Física y Topológica Diferencial — Edición Granular:
