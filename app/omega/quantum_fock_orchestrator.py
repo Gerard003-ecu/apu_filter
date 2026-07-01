@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: Quantum Fock Orchestrator (Refactorización Doctoral)                  ║
+║ Módulo: Quantum Fock Orchestrator (Refactorización Doctoral)                 ║
 ║ Versión: 3.0.0-Rigorous-Lindblad-Spectral-Topos                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
