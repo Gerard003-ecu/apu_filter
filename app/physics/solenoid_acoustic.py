@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 ═════════════════════════════════════════════════════════════════════════════
 MÓDULO: Solenoide Acústico — Operador de Descomposición de Hodge-Helmholtz

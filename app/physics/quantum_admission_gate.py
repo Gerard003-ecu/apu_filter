@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 ═════════════════════════════════════════════════════════════════════════════
 MÓDULO: Quantum Admission Gate (Operador de Proyección de Hilbert)

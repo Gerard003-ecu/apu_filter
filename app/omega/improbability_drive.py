@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Módulo: Improbability Drive (Motor de Improbabilidad y Riesgo de Cola Pesada)
 Ubicación: app/omega/improbability_drive.py

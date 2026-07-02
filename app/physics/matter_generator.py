@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Matter Generator (Motor de Colapso de Onda Material y Proyector Logístico)

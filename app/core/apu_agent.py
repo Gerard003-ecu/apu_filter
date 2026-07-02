@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Módulo: Autonomous Agent - Controlador OODA con Fibrado Gauge y Haz Tangente Generativo
 Ubicación: app/core/apu_agent.py

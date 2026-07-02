@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: El Oráculo de Laplace (Tribunal de Estabilidad LTI y Dinámica de Control)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Módulo: Lithological Manifold
 Ubicación: app/physics/lithological_manifold.py
