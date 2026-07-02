@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 =========================================================================================
 Módulo: Antimatter Choke Coil (Supresor Topológico de Inercia Cuantizada)

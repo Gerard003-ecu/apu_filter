@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Data Flux Condenser (Motor de Dinámica de Campos y Control Port-Hamiltoniano)
