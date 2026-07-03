@@ -1,4 +1,4 @@
-"""
+r"""
 =========================================================================================
 Módulo: Presenters (Operador de Proyección a la Variedad de Salida y Fibración Semántica)
 Ubicación: app/adapters/presenters.py
