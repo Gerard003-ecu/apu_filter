@@ -1,7 +1,7 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo  : atomic_piston_service.py                                          ║
-║ Versión : 4.0.0-Lie-Geometric-Phase1                                        ║
+║ Módulo  : atomic_piston_service.py                                           ║
+║ Versión : 4.0.0-Lie-Geometric-Phase1                                         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 FASE 1 — HERRAMIENTAS FÍSICAS Y MATEMÁTICAS: CIRUGÍA GEOMÉTRICA DOCTORAL
@@ -126,22 +126,22 @@ logger = _configure_logger("atomic_piston_service")
 # ════════════════════════════════════════════════════════════════════════════════════
 # ╔══════════════════════════════════════════════════════════════════════════════════╗
 # ║                                                                                  ║
-# ║  FASE 1 — HERRAMIENTAS FÍSICAS Y MATEMÁTICAS (CIRUGÍA DOCTORAL v4.0.0)         ║
+# ║  FASE 1 — HERRAMIENTAS FÍSICAS Y MATEMÁTICAS (CIRUGÍA DOCTORAL v4.0.0)           ║
 # ║                                                                                  ║
-# ║  SUTURA 1: FrictionCalculator — Covarianza Tensorial (G_μν)                    ║
-# ║  SUTURA 2: LieGroupPIDController — Control PID Geométrico (Grupos de Lie)      ║
+# ║  SUTURA 1: FrictionCalculator — Covarianza Tensorial (G_μν)                      ║
+# ║  SUTURA 2: LieGroupPIDController — Control PID Geométrico (Grupos de Lie)        ║
 # ║                                                                                  ║
 # ║  Contrato formal (v4.0.0):                                                       ║
-# ║    Entrada : velocidad v ∈ T_xM (vector tangente), fuerza F ∈ T*_xM            ║
-# ║    Salida  : fricción F_fric ∈ T*_xM (covector) con norma métrica              ║
-# ║              señal de control u ∈ g (álgebra de Lie), ‖u‖_G ≤ u_max           ║
+# ║    Entrada : velocidad v ∈ T_xM (vector tangente), fuerza F ∈ T*_xM              ║
+# ║    Salida  : fricción F_fric ∈ T*_xM (covector) con norma métrica                ║
+# ║              señal de control u ∈ g (álgebra de Lie), ‖u‖_G ≤ u_max              ║
 # ║                                                                                  ║
 # ║  Garantías (v4.0.0):                                                             ║
-# ║    G1. smooth_sign_G: retorna covector normalizado en (T*M, G)                  ║
-# ║    G2. compute_friction: covector [N] invariante bajo reparametrización         ║
-# ║    G3. LieGroupPIDController.update: u acotado en bola geodésica ‖u‖≤u_max    ║
-# ║    G4. Integral PID acumulada via transporte paralelo (isometría)               ║
-# ║    G5. Anti-windup en g previene saturación integral Windup catastrófica        ║
+# ║    G1. smooth_sign_G: retorna covector normalizado en (T*M, G)                   ║
+# ║    G2. compute_friction: covector [N] invariante bajo reparametrización          ║
+# ║    G3. LieGroupPIDController.update: u acotado en bola geodésica ‖u‖≤u_max       ║
+# ║    G4. Integral PID acumulada via transporte paralelo (isometría)                ║
+# ║    G5. Anti-windup en g previene saturación integral Windup catastrófica         ║
 # ║                                                                                  ║
 # ╚══════════════════════════════════════════════════════════════════════════════════╝
 # ════════════════════════════════════════════════════════════════════════════════════

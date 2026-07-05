@@ -429,16 +429,16 @@ def _lsqr_solve(
 # ══════════════════════════════════════════════════════════════════════════════
 # ╔══════════════════════════════════════════════════════════════════════════╗
 # ║                                                                          ║
-# ║  ORQUESTADOR SUPREMO: HodgeHelmholtzInjectorAgent (v6.0.0)              ║
+# ║  ORQUESTADOR SUPREMO: HodgeHelmholtzInjectorAgent (v6.0.0)               ║
 # ║                                                                          ║
-# ║  Contiene anidadas las tres fases matemáticas encadenadas por DTOs.     ║
+# ║  Contiene anidadas las tres fases matemáticas encadenadas por DTOs.      ║
 # ║                                                                          ║
-# ║  Garantías v6.0.0:                                                        ║
-# ║    G1. ∂₁∘∂₂ = 0 certificado antes de operar (FIX 1)                    ║
-# ║    G2. L₀^W = ∂₁W∂₁ᵀ (Laplaciano ponderado) (FIX 4)                    ║
-# ║    G3. λ_min(L_red) > SPECTRAL_THRESHOLD (FIX 3)                        ║
-# ║    G4. ∑sᵢ = 0 antes de resolver (FIX 9)                                ║
-# ║    G5. Descomposición ortogonal en ⟨·,·⟩_W (FIX 6+8)                   ║
+# ║  Garantías v6.0.0:                                                       ║
+# ║    G1. ∂₁∘∂₂ = 0 certificado antes de operar (FIX 1)                     ║
+# ║    G2. L₀^W = ∂₁W∂₁ᵀ (Laplaciano ponderado) (FIX 4)                      ║
+# ║    G3. λ_min(L_red) > SPECTRAL_THRESHOLD (FIX 3)                         ║
+# ║    G4. ∑sᵢ = 0 antes de resolver (FIX 9)                                 ║
+# ║    G5. Descomposición ortogonal en ⟨·,·⟩_W (FIX 6+8)                     ║
 # ║    G6. LSQR con desempaquetado correcto (FIX 7)                          ║
 # ║    G7. Ortogonalidad verificada post-descomposición (FIX 8)              ║
 # ║                                                                          ║
