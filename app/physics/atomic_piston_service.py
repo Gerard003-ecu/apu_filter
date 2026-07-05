@@ -2700,28 +2700,28 @@ class AtomicPiston:
     # ════════════════════════════════════════════════════════════════════════════════════
 # ╔══════════════════════════════════════════════════════════════════════════════════╗
 # ║                                                                                  ║
-# ║  FASE 3 — MICROSERVICIO FLASK + ServiceContext (CIRUGÍA DOCTORAL v4.0.0)        ║
+# ║  FASE 3 — MICROSERVICIO FLASK + ServiceContext (CIRUGÍA DOCTORAL v4.0.0)         ║
 # ║                                                                                  ║
-# ║  SUTURA 5: Lock euclidiano → Buffer Circular Lock-Free (CAS atómico)            ║
-# ║  SUTURA 6: Endpoints directos → Medición POVM (operadores de Kraus)             ║
-# ║  SUTURA 7: Registro plano → Morfismo de Cohomología de Haces Celulares          ║
+# ║  SUTURA 5: Lock euclidiano → Buffer Circular Lock-Free (CAS atómico)             ║
+# ║  SUTURA 6: Endpoints directos → Medición POVM (operadores de Kraus)              ║
+# ║  SUTURA 7: Registro plano → Morfismo de Cohomología de Haces Celulares           ║
 # ║                                                                                  ║
 # ║  Contrato formal (v4.0.0):                                                       ║
-# ║    Entrada : estado x=[q,p,Q]ᵀ de Fase 2 + peticiones HTTP                     ║
-# ║    Salida  : respuestas JSON con estado POVM-colapsado + registro H¹=0          ║
+# ║    Entrada : estado x=[q,p,Q]ᵀ de Fase 2 + peticiones HTTP                       ║
+# ║    Salida  : respuestas JSON con estado POVM-colapsado + registro H¹=0           ║
 # ║                                                                                  ║
 # ║  Garantías (v4.0.0):                                                             ║
-# ║    G1. Buffer CAS lock-free: lectura sin fricción en O(1) amortizado            ║
-# ║    G2. simulation_loop: escritura atómica sin pausa del integrador              ║
-# ║    G3. POVM: [H, O_api] = 0 certificado → no demolición del estado             ║
-# ║    G4. Kraus: ρ_JSON = M_k ρ_sim M_k† / Tr(M_k ρ_sim M_k†)                   ║
-# ║    G5. Cohomología: H¹(X; F_IPU) = 0 antes de admitir registro                 ║
-# ║    G6. FIX 12 preservado: backpressure con conteo de ciclos lentos              ║
-# ║    G7. FIX 13 preservado: Content-Type validado en endpoints POST               ║
-# ║    G8. FIX 14 preservado: advertencia SSL explícita                             ║
+# ║    G1. Buffer CAS lock-free: lectura sin fricción en O(1) amortizado             ║
+# ║    G2. simulation_loop: escritura atómica sin pausa del integrador               ║
+# ║    G3. POVM: [H, O_api] = 0 certificado → no demolición del estado               ║
+# ║    G4. Kraus: ρ_JSON = M_k ρ_sim M_k† / Tr(M_k ρ_sim M_k†)                       ║
+# ║    G5. Cohomología: H¹(X; F_IPU) = 0 antes de admitir registro                   ║
+# ║    G6. FIX 12 preservado: backpressure con conteo de ciclos lentos               ║
+# ║    G7. FIX 13 preservado: Content-Type validado en endpoints POST                ║
+# ║    G8. FIX 14 preservado: advertencia SSL explícita                              ║
 # ║                                                                                  ║
-# ║  La Fase 3 recibe el estado port-Hamiltoniano de la Fase 2 y lo expone         ║
-# ║  via API RESTful con garantías de no-demolición y coherencia topológica.        ║
+# ║  La Fase 3 recibe el estado port-Hamiltoniano de la Fase 2 y lo expone           ║
+# ║  via API RESTful con garantías de no-demolición y coherencia topológica.         ║
 # ║                                                                                  ║
 # ╚══════════════════════════════════════════════════════════════════════════════════╝
 # ════════════════════════════════════════════════════════════════════════════════════
