@@ -1,165 +1,127 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : KApex Electrodynamic Agent (Director de Retorno y Expansión)        ║
-║ Ruta   : app/agents/alpha/kapex/kapex_electrodynamic_agent.py                ║
-║ Versión: 5.0.0-Gauge-Holonomy-Eikonal-Phased-Strict                          ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ Naturaleza Ciber-Física y Topológica Diferencial                             ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  Este módulo consagra el Ápice Estratégico del ecosistema (K_{APEX}).        ║
-║  Actúa como un Endofuntor de Campo de Calibre que encapsula a los tres       ║
-║  mini-agentes de la cúspide (P_{val}, P_{seg}, P_{ing}).                     ║
-║                                                                              ║
-║  El espacio de calibre local es el fibrado principal:                        ║
-║                                                                              ║
-║    π: P → M,   grupo de estructura G = GL(n, ℝ)                              ║
-║                                                                              ║
-║  con conexión de Ehresmann dada por la 1-forma de Lie:                       ║
-║                                                                              ║
-║    A = A_μ dx^μ ∈ Ω¹(M, g)                                                   ║
-║                                                                              ║
-║  La curvatura (2-forma de Yang-Mills) es:                                    ║
-║                                                                              ║
-║    F = dA + ½[A∧A]                                                           ║
-║    F_μν = ∂_μ A_ν − ∂_ν A_μ + [A_μ, A_ν]                                     ║
-║                                                                              ║
-║  La acción de Yang-Mills discreta es:                                        ║
-║                                                                              ║
-║    S_YM = ½ Tr(F^⊤ G_μν F G^μν)  (norma de Frobenius ponderada por G)        ║
-║                                                                              ║
-║  El tensor métrico G_μν satisface:                                           ║
-║    • G_μν = G_μν^⊤         (simetría riemanniana)                            ║
-║    • G_μν ≻ 0               (definición positiva: variedad no degenerada)    ║
-║    • G^μν = G_μν⁻¹          (consistencia métrica: G·G_inv = I)              ║
-║                                                                              ║
-║  La inyección de FEM suprime la propuesta de valor según:                    ║
-║                                                                              ║
-║    s_val = dΦ · exp(−½ Tr(G_μν))                                             ║
-║                                                                              ║
-║  La ecuación Eikonal de absorción de mercado:                                ║
-║                                                                              ║
-║    G^μν ∂_μ S ∂_ν S = n²(σ*)   con   n = 1 + tanh(α σ*)                      ║
-║                                                                              ║
-║  El flujo de Poynting (exergía operativa):                                   ║
-║                                                                              ║
-║    P_exergia = E·H − ∇H^⊤ R_cost ∇H                                          ║
-║                                                                              ║
-║  Implementación estructurada en 3 FASES ANIDADAS de rigor creciente:         ║
-║    Fase 1 – Validación Métrica y de Calibre:                                 ║
-║             simetría, SPD, inversa consistente, κ, raíz de R_cost.           ║
-║    Fase 2 – Síntesis Electrodinámica:                                        ║
-║             inyección FEM, Eikonal, Poynting, Yang-Mills.                    ║
-║    Fase 3 – Proyección en Haces:                                             ║
-║             cofrontera δ_{APEX} = G_μν^{-1/2}, verificación métrica.         ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-"""
++==============================================================================+
+| Módulo : KApex Electrodynamic Agent (Director de Retorno y Expansión)        |
+| Ruta   : app/agents/alpha/kapex/kapex_electrodynamic_agent.py                |
+| Versión: 5.0.0-Rigorous-Gauge-Holonomy-Eikonal                               |
++==============================================================================+
 
+NATURALEZA CIBER-FÍSICA Y ÓPTICA GEOMÉTRICA:
+Este módulo consagra el Ápice Estratégico como un Endofuntor de Campo de Calibre que
+inyecta Fuerza Electromotriz (FEM), resuelve la refracción y audita el retorno.
+
+ECUACIÓN EIKONAL DE ABSORCIÓN:
+\[ G^{\mu\nu} \partial_\mu S \partial_\nu S = N^{\mu\nu} \sigma_{\mu\nu}^* \]
+
+FLUJO EXERGÉTICO DE POYNTING:
+\[ P_{exergia} = \langle E \smile \star H, [\partial K] \rangle - \int_K \nabla H^\top R_{cost} \nabla H \ge 0 \]
+
+CURVATURA DE YANG-MILLS:
+\[ S_{YM} = \frac{1}{2} \int_M Tr(F \wedge \star F) \quad \text{donde} \quad F = dA + A \wedge A \]
+"""
 from __future__ import annotations
 
-# ── Biblioteca estándar ──────────────────────────────────────────────────────
+#    Biblioteca est ndar
 import logging
 from typing import Optional, Tuple
 
-# ── Álgebra numérica de alta precisión ──────────────────────────────────────
+#     lgebra num rica de alta precisi n
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
-# ── Estructuras de datos inmutables ─────────────────────────────────────────
+#    Estructuras de datos inmutables
 from dataclasses import dataclass
 
-# ── Dependencias arquitectónicas del ecosistema APU Filter ──────────────────
+#    Dependencias arquitect nicas del ecosistema APU Filter
 try:
     from app.core.mic_algebra import CategoricalState, Morphism
 except ImportError:
     class CategoricalState:  # type: ignore[no-redef]
-        """Stub: estado categórico del ecosistema MIC."""
+        """Stub: estado categ rico del ecosistema MIC."""
 
     class Morphism:  # type: ignore[no-redef]
         """Stub: morfismo funtorial del ecosistema MIC."""
 
 
-# ── Logger del módulo ────────────────────────────────────────────────────────
+#    Logger del m dulo
 logger = logging.getLogger("MIC.Alpha.KApexElectrodynamicAgent")
 
 
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  SECCIÓN 0 – EXCEPCIONES ELECTRODINÁMICAS ESTRICTAS                     ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+#    SECCI N 0   EXCEPCIONES ELECTRODIN MICAS ESTRICTAS
+#
 
 
 class ElectrodynamicApexError(Exception):
     """
-    Excepción categórica raíz para violaciones en el Estrato K_APEX.
+    Excepci n categ rica ra z para violaciones en el Estrato K_APEX.
 
-    Toda excepción de este módulo hereda de esta clase, permitiendo que
-    los manejadores de nivel superior capturen cualquier fallo electrodinámico
-    con un único ``except ElectrodynamicApexError``.
+    Toda excepci n de este m dulo hereda de esta clase, permitiendo que
+    los manejadores de nivel superior capturen cualquier fallo electrodin mico
+    con un  nico ``except ElectrodynamicApexError``.
     """
 
 
 class ApexDimensionError(ElectrodynamicApexError):
     """
     Lanzada cuando las dimensiones de las matrices constitutivas son
-    inconsistentes entre sí o con los vectores de campo recibidos.
+    inconsistentes entre s  o con los vectores de campo recibidos.
 
-    Diagnóstico incluye las formas detectadas y las esperadas.
+    Diagn stico incluye las formas detectadas y las esperadas.
     """
 
 
 class ApexSymmetryError(ElectrodynamicApexError):
     """
-    Lanzada cuando G_μν o R_cost violan su propiedad de simetría,
-    con diagnóstico cuantitativo normalizado al Frobenius.
+    Lanzada cuando G_   o R_cost violan su propiedad de simetr a,
+    con diagn stico cuantitativo normalizado al Frobenius.
     """
 
 
 class ApexConditionError(ElectrodynamicApexError):
     """
-    Lanzada cuando el número de condición espectral κ(G_μν) supera
+    Lanzada cuando el n mero de condici n espectral  (G_  ) supera
     el umbral admisible, comprometiendo la coherencia de la variedad.
     """
 
 
 class MetricInverseError(ElectrodynamicApexError):
     """
-    Lanzada cuando G_inv no es la inversa de G_μν dentro de la tolerancia
-    de máquina relativa: ‖G·G_inv − I‖_F / n > tol.
+    Lanzada cuando G_inv no es la inversa de G_   dentro de la tolerancia
+    de m quina relativa:  G G_inv - I _F / n > tol.
 
-    Incluye el residuo cuantitativo para diagnóstico.
+    Incluye el residuo cuantitativo para diagn stico.
     """
 
 
 class GaugePotentialError(ElectrodynamicApexError):
     """
-    Lanzada cuando el estrés estructural Tr(G_μν) colapsa la inyección
-    de valor suprimiéndola por debajo de la resolución numérica.
+    Lanzada cuando el estr s estructural Tr(G_  ) colapsa la inyecci n
+    de valor suprimi ndola por debajo de la resoluci n num rica.
 
-    Condición de disparo:
-        ‖s_val‖_∞ / ‖dΦ‖_∞ < ε_mach  (supresión total relativa)
+    Condici n de disparo:
+         s_val _  /  d  _  <  _mach  (supresi n total relativa)
     """
 
 
 class EikonalRefractionError(ElectrodynamicApexError):
     """
-    Lanzada cuando el mercado objetivo es topológicamente inalcanzable:
-    la norma riemanniana del gradiente de fase no satisface la ecuación
-    Eikonal con el índice de refracción calculado.
+    Lanzada cuando el mercado objetivo es topol gicamente inalcanzable:
+    la norma riemanniana del gradiente de fase no satisface la ecuaci n
+    Eikonal con el  ndice de refracci n calculado.
 
-    Condición de disparo:
-        G^μν ∂_μS ∂_νS < n²(σ*) · (1 − ε_eikonal)
+    Condici n de disparo:
+        G^    _ S  _ S < n ( *)   (1 -  _eikonal)
     """
 
 
 class FinancialBlackHoleError(ElectrodynamicApexError):
     """
     Lanzada cuando el flujo de Poynting (ingresos) no compensa la
-    disipación termodinámica (costes):
+    disipaci n termodin mica (costes):
 
-        P_exergia = E·H − ∇H^⊤ R_cost ∇H < −tol_poynting
+        P_exergia = E H -  H^  R_cost  H < -tol_poynting
 
     La tolerancia es relativa a max(|P_in|, |P_diss|, 1) para evitar
     disparos espurios por errores de redondeo.
@@ -168,29 +130,29 @@ class FinancialBlackHoleError(ElectrodynamicApexError):
 
 class HolonomyVetoError(ElectrodynamicApexError):
     """
-    Lanzada cuando la acción de Yang-Mills discreta:
+    Lanzada cuando la acci n de Yang-Mills discreta:
 
-        S_YM = ½ Tr(F^⊤ G_μν F G^μν)
+        S_YM =   Tr(F^  G_   F G^  )
 
-    supera el umbral relativo a ‖A_gauge‖_F², revelando curvatura de
-    calibre no nula (ciclos parásitos en la logística estratégica).
+    supera el umbral relativo a  A_gauge _F , revelando curvatura de
+    calibre no nula (ciclos par sitos en la log stica estrat gica).
     """
 
 
 class SheafMetricError(ElectrodynamicApexError):
     """
-    Lanzada cuando la cofrontera δ_{APEX} no satisface la identidad
-    de la métrica de Hodge local:
+    Lanzada cuando la cofrontera  _{APEX} no satisface la identidad
+    de la m trica de Hodge local:
 
-        δ_{APEX}^⊤ G_μν δ_{APEX} ≈ I
+         _{APEX}^  G_    _{APEX} ~= I
 
-    dentro de la tolerancia de máquina.
+    dentro de la tolerancia de m quina.
     """
 
 
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  SECCIÓN 1 – ESTRUCTURAS INMUTABLES (DTOs TENSORIALES)                  ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+#    SECCI N 1   ESTRUCTURAS INMUTABLES (DTOs TENSORIALES)
+#
 
 
 @dataclass(frozen=True, slots=True)
@@ -329,10 +291,10 @@ class SheafStalkApex:
     rank_delta: int
 
 
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  SECCIÓN 2 – ORQUESTADOR: KApexElectrodynamicAgent                      ║
-# ║              Tres fases anidadas de rigor creciente                      ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+#    SECCI N 2   ORQUESTADOR: KApexElectrodynamicAgent
+#                Tres fases anidadas de rigor creciente
+#
 
 
 class KApexElectrodynamicAgent(Morphism):
@@ -378,7 +340,7 @@ class KApexElectrodynamicAgent(Morphism):
         S_YM / max(‖A_gauge‖_F², 1) < holonomy_tol_rel.
     """
 
-    FRIENDLY_NAME: str = "Director de Retorno y Expansión de Mercado"
+    FRIENDLY_NAME: str = "Director de Retorno y Expansi n de Mercado"
 
     def __init__(
         self,
@@ -402,7 +364,7 @@ class KApexElectrodynamicAgent(Morphism):
         self.eikonal_slack: float = eikonal_slack
         self.holonomy_tol_rel: float = holonomy_tol_rel
 
-        # ── Fase 1: Validación Métrica y de Calibre (inmediata) ──────────
+        #    Fase 1: Validaci n M trica y de Calibre (inmediata)
         self.phase1: KApexElectrodynamicAgent.Phase1_MetricValidation = (
             KApexElectrodynamicAgent.Phase1_MetricValidation(
                 G_mu_nu=G_mu_nu,
@@ -413,7 +375,7 @@ class KApexElectrodynamicAgent(Morphism):
         )
         self.context: ApexPreparationContext = self.phase1.build_context()
 
-        # ── Fase 2: Síntesis Electrodinámica (instanciación inmediata) ───
+        #    Fase 2: S ntesis Electrodin mica (instanciaci n inmediata)
         self.phase2: KApexElectrodynamicAgent.Phase2_ElectrodynamicSynthesis = (
             KApexElectrodynamicAgent.Phase2_ElectrodynamicSynthesis(
                 context=self.context,
@@ -422,23 +384,23 @@ class KApexElectrodynamicAgent(Morphism):
             )
         )
 
-        # ── Fase 3: instanciación perezosa ────────────────────────────────
+        #    Fase 3: instanciaci n perezosa
         self.phase3: Optional[
             KApexElectrodynamicAgent.Phase3_SheafProjection
         ] = None
 
         logger.info(
             "[KApexElectrodynamicAgent] Inicializado: dim=%d, "
-            "κ(G)=%.3e, rank(R)=%d, inv_residual=%.3e.",
+            " (G)=%.3e, rank(R)=%d, inv_residual=%.3e.",
             self.context.dim,
             self.context.kappa_G,
             self.context.rank_R,
             self.context.inverse_residual,
         )
 
-    # ═════════════════════════════════════════════════════════════════════════
-    # FASE 1 – VALIDACIÓN MÉTRICA Y DE CALIBRE
-    # ═════════════════════════════════════════════════════════════════════════
+    #
+    # FASE 1   VALIDACI N M TRICA Y DE CALIBRE
+    #
 
     class Phase1_MetricValidation:
         r"""
@@ -476,9 +438,9 @@ class KApexElectrodynamicAgent(Morphism):
             self._R: NDArray[np.float64] = R_cost
             self._kappa_max: float = kappa_max
 
-        # ─────────────────────────────────────────────────────────────────
-        # Métodos privados de validación (orden lógico de ejecución)
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # M todos privados de validaci n (orden l gico de ejecuci n)
+        #
 
         def _check_dimensions(self) -> int:
             r"""
@@ -515,13 +477,13 @@ class KApexElectrodynamicAgent(Morphism):
 
             if self._G_inv.shape[0] != n:
                 raise ApexDimensionError(
-                    f"G_inv debe tener shape ({n},{n}) coherente con G_μν; "
+                    f"G_inv debe tener shape ({n},{n}) coherente con G_  ; "
                     f"se obtuvo {self._G_inv.shape}."
                 )
 
             if self._R.shape[0] != n:
                 raise ApexDimensionError(
-                    f"R_cost debe tener shape ({n},{n}) coherente con G_μν; "
+                    f"R_cost debe tener shape ({n},{n}) coherente con G_  ; "
                     f"se obtuvo {self._R.shape}."
                 )
 
@@ -549,12 +511,12 @@ class KApexElectrodynamicAgent(Morphism):
 
             if residual > tol:
                 raise ApexSymmetryError(
-                    f"La matriz '{name}' no es simétrica. "
-                    f"‖A − A^⊤‖_F = {residual:.6e}, tol = {tol:.6e}, "
-                    f"asimetría relativa = {residual / max(norm_A, 1e-300):.6e}."
+                    f"La matriz '{name}' no es sim trica. "
+                    f" A - A^  _F = {residual:.6e}, tol = {tol:.6e}, "
+                    f"asimetr a relativa = {residual / max(norm_A, 1e-300):.6e}."
                 )
             logger.debug(
-                "[Fase1] Simetría de '%s': residual=%.3e, tol=%.3e.",
+                "[Fase1] Simetr a de '%s': residual=%.3e, tol=%.3e.",
                 name, residual, tol,
             )
 
@@ -587,22 +549,22 @@ class KApexElectrodynamicAgent(Morphism):
             lambda_min: float = float(eigvals[0])
             lambda_max: float = float(eigvals[-1])
 
-            # Tolerancia de definición positiva: ε_mach · λ_max
+            # Tolerancia de definici n positiva:  _mach    _max
             tol_pd: float = self._EPS * max(lambda_max, 1.0)
             if lambda_min <= tol_pd:
                 raise ElectrodynamicApexError(
                     f"'{name}' no es Definida Positiva (SPD). "
-                    f"λ_min = {lambda_min:.6e} ≤ tol_pd = {tol_pd:.6e}. "
-                    f"λ_max = {lambda_max:.6e}."
+                    f" _min = {lambda_min:.6e} <= tol_pd = {tol_pd:.6e}. "
+                    f" _max = {lambda_max:.6e}."
                 )
 
             kappa: float = lambda_max / lambda_min
             if kappa > self._kappa_max:
                 raise ApexConditionError(
-                    f"'{name}' está numéricamente mal condicionada: "
-                    f"κ = {kappa:.6e} > κ_max = {self._kappa_max:.6e}. "
-                    f"λ_min = {lambda_min:.6e}, λ_max = {lambda_max:.6e}. "
-                    f"Considere regularización de Tikhonov."
+                    f"'{name}' est  num ricamente mal condicionada: "
+                    f"  = {kappa:.6e} >  _max = {self._kappa_max:.6e}. "
+                    f" _min = {lambda_min:.6e},  _max = {lambda_max:.6e}. "
+                    f"Considere regularizaci n de Tikhonov."
                 )
 
             try:
@@ -610,11 +572,11 @@ class KApexElectrodynamicAgent(Morphism):
             except la.LinAlgError as exc:
                 raise ElectrodynamicApexError(
                     f"Fallo de Cholesky (LAPACK dpotrf) en '{name}' "
-                    f"tras validación espectral positiva. Error: {exc}"
+                    f"tras validaci n espectral positiva. Error: {exc}"
                 ) from exc
 
             logger.debug(
-                "[Fase1] Cholesky '%s': κ=%.3e, λ_min=%.3e, λ_max=%.3e.",
+                "[Fase1] Cholesky '%s':  =%.3e,  _min=%.3e,  _max=%.3e.",
                 name, kappa, lambda_min, lambda_max,
             )
             return L, kappa, lambda_min, lambda_max
@@ -651,16 +613,16 @@ class KApexElectrodynamicAgent(Morphism):
             MetricInverseError
                 Si el residuo supera la tolerancia, con diagnóstico cuantitativo.
             """
-            # G_μν · G_inv usando L_G: G·x = L_G·(L_G^⊤·x) → solve system
-            # Más eficiente: directo por multiplicación (ya tenemos G_μν)
+            # G_     G_inv usando L_G: G x = L_G (L_G^  x)   solve system
+            # M s eficiente: directo por multiplicaci n (ya tenemos G_  )
             prod: NDArray[np.float64] = self._G @ self._G_inv
             I_n: NDArray[np.float64] = np.eye(n, dtype=np.float64)
             residual_mat: NDArray[np.float64] = prod - I_n
             residual: float = float(la.norm(residual_mat, "fro")) / n
 
-            # Tolerancia basada en análisis de error hacia atrás de Wilkinson
-            # κ_G se extrae del factor Cholesky: κ ≈ (L[-1,-1]/L[0,0])²
-            # Usamos la estimación directa por eigvalsh (ya calculada)
+            # Tolerancia basada en an lisis de error hacia atr s de Wilkinson
+            #  _G se extrae del factor Cholesky:   ~= (L[-1,-1]/L[0,0])
+            # Usamos la estimaci n directa por eigvalsh (ya calculada)
             kappa_G_est: float = (
                 float(L_G[-1, -1] / L_G[0, 0]) ** 2
             )
@@ -668,14 +630,14 @@ class KApexElectrodynamicAgent(Morphism):
 
             if residual > tol_inv:
                 raise MetricInverseError(
-                    f"G_inv no es la inversa de G_μν. "
-                    f"‖G·G_inv − I‖_F / n = {residual:.6e} > "
-                    f"tol_inv = {tol_inv:.6e} (κ_est·ε·n). "
-                    f"Inconsistencia métrica que compromete la variedad."
+                    f"G_inv no es la inversa de G_  . "
+                    f" G G_inv - I _F / n = {residual:.6e} > "
+                    f"tol_inv = {tol_inv:.6e} ( _est   n). "
+                    f"Inconsistencia m trica que compromete la variedad."
                 )
 
             logger.debug(
-                "[Fase1] Consistencia métrica: residual/n=%.3e, tol=%.3e.",
+                "[Fase1] Consistencia m trica: residual/n=%.3e, tol=%.3e.",
                 residual, tol_inv,
             )
             return residual
@@ -720,8 +682,8 @@ class KApexElectrodynamicAgent(Morphism):
             if lambda_min < -tol_psd:
                 raise ApexSymmetryError(
                     f"'{name}' no es Semidefinida Positiva (PSD). "
-                    f"λ_min = {lambda_min:.6e} < −tol = {−tol_psd:.6e}. "
-                    f"Entropía negativa detectada (ganancia fantasma)."
+                    f" _min = {lambda_min:.6e} < -tol = {-tol_psd:.6e}. "
+                    f"Entrop a negativa detectada (ganancia fantasma)."
                 )
 
             eigvals_clamped: NDArray[np.float64] = np.maximum(eigvals, 0.0)
@@ -733,14 +695,14 @@ class KApexElectrodynamicAgent(Morphism):
             rank_R: int = int(np.sum(eigvals_clamped > tol_psd))
 
             logger.debug(
-                "[Fase1] PSD '%s': rank=%d/%d, λ_min=%.3e, λ_max=%.3e.",
+                "[Fase1] PSD '%s': rank=%d/%d,  _min=%.3e,  _max=%.3e.",
                 name, rank_R, n, lambda_min, float(eigvals[-1]),
             )
             return R_sqrt, rank_R
 
-        # ─────────────────────────────────────────────────────────────────
-        # Método terminal de la Fase 1 → entrada directa de la Fase 2
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # M todo terminal de la Fase 1   entrada directa de la Fase 2
+        #
 
         def build_context(self) -> "ApexPreparationContext":
             r"""
@@ -769,28 +731,28 @@ class KApexElectrodynamicAgent(Morphism):
             ApexPreparationContext
                 Contexto métrico completo, inmutable y listo para Fase 2.
             """
-            # ── Paso 1: Dimensiones ────────────────────────────────────────
+            #    Paso 1: Dimensiones
             n: int = self._check_dimensions()
 
-            # ── Paso 2: Simetría ───────────────────────────────────────────
+            #    Paso 2: Simetr a
             self._validate_symmetry(self._G, "G_mu_nu")
             self._validate_symmetry(self._G_inv, "G_inv")
             self._validate_symmetry(self._R, "R_cost")
 
-            # ── Paso 3: SPD de G_μν + factor Cholesky ─────────────────────
+            #    Paso 3: SPD de G_   + factor Cholesky
             L_G, kappa_G, _, _ = self._cholesky_spd(self._G, "G_mu_nu")
 
-            # ── Paso 4: SPD de G_inv ───────────────────────────────────────
+            #    Paso 4: SPD de G_inv
             _, kappa_G_inv, _, _ = self._cholesky_spd(self._G_inv, "G_inv")
-            logger.debug("[Fase1] κ(G_inv)=%.3e (debe ser ≈ κ(G)=%.3e).", kappa_G_inv, kappa_G)
+            logger.debug("[Fase1]  (G_inv)=%.3e (debe ser ~=  (G)=%.3e).", kappa_G_inv, kappa_G)
 
-            # ── Paso 5: Consistencia métrica ───────────────────────────────
+            #    Paso 5: Consistencia m trica
             inv_residual: float = self._validate_inverse_consistency(L_G, n)
 
-            # ── Paso 6: PSD de R_cost + raíz espectral ─────────────────────
+            #    Paso 6: PSD de R_cost + ra z espectral
             R_sqrt, rank_R = self._validate_psd_and_sqrt(self._R, "R_cost", n)
 
-            # ── Paso 7: Empaquetado ────────────────────────────────────────
+            #    Paso 7: Empaquetado
             context = ApexPreparationContext(
                 G_mu_nu=self._G.copy(),
                 G_inv=self._G_inv.copy(),
@@ -805,16 +767,16 @@ class KApexElectrodynamicAgent(Morphism):
 
             logger.info(
                 "[Fase1] ApexPreparationContext ensamblado: "
-                "dim=%d, κ(G)=%.3e, rank(R)=%d, inv_res=%.3e.",
+                "dim=%d,  (G)=%.3e, rank(R)=%d, inv_res=%.3e.",
                 n, kappa_G, rank_R, inv_residual,
             )
 
-            # ── Contrato de interfaz Fase 1 → Fase 2 ─────────────────────
+            #    Contrato de interfaz Fase 1   Fase 2
             return context
 
-    # ═════════════════════════════════════════════════════════════════════════
-    # FASE 2 – SÍNTESIS ELECTRODINÁMICA
-    # ═════════════════════════════════════════════════════════════════════════
+    #
+    # FASE 2   S NTESIS ELECTRODIN MICA
+    #
 
     class Phase2_ElectrodynamicSynthesis:
         r"""
@@ -867,11 +829,11 @@ class KApexElectrodynamicAgent(Morphism):
             self._eikonal_slack: float = eikonal_slack
             self._holonomy_tol_rel: float = holonomy_tol_rel
 
-            # Precomputa Tr(G_μν) una sola vez (invariante durante la vida del agente)
+            # Precomputa Tr(G_  ) una sola vez (invariante durante la vida del agente)
             self._trace_G: float = float(np.trace(context.G_mu_nu))
 
-            # Factor de supresión de Gauge: exp(−½ Tr(G))
-            # Evaluado con protección de desbordamiento aritmético
+            # Factor de supresi n de Gauge: exp(-  Tr(G))
+            # Evaluado con protecci n de desbordamiento aritm tico
             self._suppression_factor: float = float(
                 np.exp(-0.5 * self._trace_G)
             )
@@ -886,9 +848,9 @@ class KApexElectrodynamicAgent(Morphism):
                 holonomy_tol_rel,
             )
 
-        # ─────────────────────────────────────────────────────────────────
-        # Subproceso 1: Inyección de Potencial de Gauge
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # Subproceso 1: Inyecci n de Potencial de Gauge
+        #
 
         def inject_gauge_potential(
             self,
@@ -941,35 +903,35 @@ class KApexElectrodynamicAgent(Morphism):
 
             s_val: NDArray[np.float64] = d_Phi * self._suppression_factor
 
-            # Verificación de supresión relativa (no absoluta)
+            # Verificaci n de supresi n relativa (no absoluta)
             norm_s: float = float(la.norm(s_val, np.inf))
             norm_dPhi: float = float(la.norm(d_Phi, np.inf))
             suppression_rel: float = norm_s / max(norm_dPhi, 1.0)
 
             if suppression_rel < self._EPS:
                 logger.warning(
-                    "[Fase2] Supresión de Gauge total: "
-                    "‖s_val‖_∞/‖dΦ‖_∞ = %.3e < ε_mach. "
-                    "Tr(G_μν) = %.6e (estrés extremo).",
+                    "[Fase2] Supresi n de Gauge total: "
+                    " s_val _ / d  _  = %.3e <  _mach. "
+                    "Tr(G_  ) = %.6e (estr s extremo).",
                     suppression_rel, self._trace_G,
                 )
                 raise GaugePotentialError(
-                    f"Estrés estructural extremo: Tr(G_μν) = {self._trace_G:.6e}. "
-                    f"Factor de supresión = {self._suppression_factor:.6e}. "
-                    f"Supresión relativa ‖s_val‖/‖dΦ‖ = {suppression_rel:.6e} < ε_mach. "
-                    f"Inyección de propuesta de valor completamente colapsada."
+                    f"Estr s estructural extremo: Tr(G_  ) = {self._trace_G:.6e}. "
+                    f"Factor de supresi n = {self._suppression_factor:.6e}. "
+                    f"Supresi n relativa  s_val / d   = {suppression_rel:.6e} <  _mach. "
+                    f"Inyecci n de propuesta de valor completamente colapsada."
                 )
 
             logger.debug(
-                "[Fase2] Inyección de calibre: suppression=%.6e, "
-                "‖s_val‖_∞=%.6e, ‖dΦ‖_∞=%.6e.",
+                "[Fase2] Inyecci n de calibre: suppression=%.6e, "
+                " s_val _ =%.6e,  d  _ =%.6e.",
                 self._suppression_factor, norm_s, norm_dPhi,
             )
             return s_val, self._suppression_factor
 
-        # ─────────────────────────────────────────────────────────────────
-        # Subproceso 2: Refracción Eikonal de Mercado
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # Subproceso 2: Refracci n Eikonal de Mercado
+        #
 
         def compute_eikonal_absorption(
             self,
@@ -1026,11 +988,11 @@ class KApexElectrodynamicAgent(Morphism):
                     f"se obtuvo {phase_gradient.shape}."
                 )
 
-            # Índice de refracción de Fermat: n(σ*) = 1 + tanh(α · σ*)
+            #  ndice de refracci n de Fermat: n( *) = 1 + tanh(     *)
             n_refract: float = 1.0 + float(np.tanh(alpha_fermat * sigma_stress))
 
-            # Norma riemanniana cuadrada: phase_gradient^⊤ G_inv phase_gradient
-            # G_inv ya está validado como SPD; esta forma cuadrática es ≥ 0
+            # Norma riemanniana cuadrada: phase_gradient^  G_inv phase_gradient
+            # G_inv ya est  validado como SPD; esta forma cuadr tica es >= 0
             G_inv_grad: NDArray[np.float64] = self._ctx.G_inv @ phase_gradient
             eikonal_norm_sq: float = float(np.dot(phase_gradient, G_inv_grad))
 
@@ -1040,21 +1002,21 @@ class KApexElectrodynamicAgent(Morphism):
 
             if eikonal_norm_sq < eikonal_threshold:
                 logger.error(
-                    "[Fase2] Fallo Eikonal: ‖∂S‖²_{G_inv}=%.6e < "
-                    "n²·(1-slack)=%.6e (n=%.4f, slack=%.3f).",
+                    "[Fase2] Fallo Eikonal:   S  _{G_inv}=%.6e < "
+                    "n  (1-slack)=%.6e (n=%.4f, slack=%.3f).",
                     eikonal_norm_sq, eikonal_threshold,
                     n_refract, self._eikonal_slack,
                 )
                 raise EikonalRefractionError(
-                    f"El mercado objetivo exhibe fricción extrema (fallo Eikonal). "
-                    f"‖∂S‖²_{{G_inv}} = {eikonal_norm_sq:.6e} < "
-                    f"n²·(1−slack) = {eikonal_threshold:.6e}. "
-                    f"n(σ*) = {n_refract:.6f}, σ* = {sigma_stress:.6f}. "
-                    f"La campaña se dispersó antes de alcanzar el colector."
+                    f"El mercado objetivo exhibe fricci n extrema (fallo Eikonal). "
+                    f"  S  _{{G_inv}} = {eikonal_norm_sq:.6e} < "
+                    f"n  (1-slack) = {eikonal_threshold:.6e}. "
+                    f"n( *) = {n_refract:.6f},  * = {sigma_stress:.6f}. "
+                    f"La campa a se dispers  antes de alcanzar el colector."
                 )
 
             logger.debug(
-                "[Fase2] Eikonal OK: ‖∂S‖²=%.6e, n²=%.6e, "
+                "[Fase2] Eikonal OK:   S  =%.6e, n =%.6e, "
                 "n_refract=%.6f, margen=%.1f%%.",
                 eikonal_norm_sq, n_sq,
                 n_refract,
@@ -1062,9 +1024,9 @@ class KApexElectrodynamicAgent(Morphism):
             )
             return n_refract, eikonal_norm_sq
 
-        # ─────────────────────────────────────────────────────────────────
-        # Subproceso 3: Exergía de Poynting
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # Subproceso 3: Exerg a de Poynting
+        #
 
         def evaluate_poynting_exergy(
             self,
@@ -1126,11 +1088,11 @@ class KApexElectrodynamicAgent(Morphism):
             # Potencia de entrada: producto escalar euclidiano
             P_in: float = float(np.dot(E_field, H_field))
 
-            # Potencia disipada: forma cuadrática R_cost (≥ 0 pues R_cost ⪰ 0)
+            # Potencia disipada: forma cuadr tica R_cost (>= 0 pues R_cost   0)
             R_grad: NDArray[np.float64] = self._ctx.R_cost @ grad_H
             P_diss: float = float(np.dot(grad_H, R_grad))
 
-            # Exergía neta
+            # Exerg a neta
             P_exergia: float = P_in - P_diss
 
             # Tolerancia relativa para detectar agujero negro genuino
@@ -1143,10 +1105,10 @@ class KApexElectrodynamicAgent(Morphism):
                     P_in, P_diss, P_exergia, -tol_exergy,
                 )
                 raise FinancialBlackHoleError(
-                    f"La entropía operativa devora la energía inyectada. "
+                    f"La entrop a operativa devora la energ a inyectada. "
                     f"P_in = {P_in:.6e}, P_diss = {P_diss:.6e}, "
-                    f"P_exergia = {P_exergia:.6e} < −tol = {−tol_exergy:.6e}. "
-                    f"Veto termodinámico absoluto emitido."
+                    f"P_exergia = {P_exergia:.6e} < -tol = {-tol_exergy:.6e}. "
+                    f"Veto termodin mico absoluto emitido."
                 )
 
             logger.debug(
@@ -1157,9 +1119,9 @@ class KApexElectrodynamicAgent(Morphism):
             )
             return P_in, P_diss, P_exergia
 
-        # ─────────────────────────────────────────────────────────────────
-        # Subproceso 4: Auditoría de Holonomía Yang-Mills
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # Subproceso 4: Auditor a de Holonom a Yang-Mills
+        #
 
         def audit_yang_mills_holonomy(
             self,
@@ -1217,13 +1179,13 @@ class KApexElectrodynamicAgent(Morphism):
                     f"se obtuvo {A_gauge.shape}."
                 )
 
-            # ── Curvatura discreta F = (A − A^⊤) + [A, A^⊤] ─────────────
-            # Parte antisimétrica: discretización de dA en un plaqueta
+            #    Curvatura discreta F = (A - A^ ) + [A, A^ ]
+            # Parte antisim trica: discretizaci n de dA en un plaqueta
             A_antisym: NDArray[np.float64] = A_gauge - A_gauge.T
 
-            # Conmutador de Lie: [A, A^⊤] = A·A^⊤ − A^⊤·A
-            # Nota: en la teoría de Yang-Mills abeliana, [A, A] = 0;
-            # en la no-abeliana (grupo GL(n,ℝ)), el conmutador es no nulo.
+            # Conmutador de Lie: [A, A^ ] = A A^  - A^  A
+            # Nota: en la teor a de Yang-Mills abeliana, [A, A] = 0;
+            # en la no-abeliana (grupo GL(n, )), el conmutador es no nulo.
             A_AT: NDArray[np.float64] = A_gauge @ A_gauge.T
             AT_A: NDArray[np.float64] = A_gauge.T @ A_gauge
             commutator_lie: NDArray[np.float64] = A_AT - AT_A
@@ -1231,45 +1193,45 @@ class KApexElectrodynamicAgent(Morphism):
             # 2-forma de curvatura discreta
             F_mu_nu: NDArray[np.float64] = A_antisym + commutator_lie
 
-            # ── Acción de Yang-Mills ponderada por G_μν ───────────────────
-            # S_YM = ½ Tr(F^⊤ · G_μν · F · G^μν)
-            # Equivalente a: ½ ‖F‖²_{G,G_inv} = ½ Tr((G^{1/2} F G^{-1/2})^⊤ (G^{1/2} F G^{-1/2}))
+            #    Acci n de Yang-Mills ponderada por G_
+            # S_YM =   Tr(F^    G_     F   G^  )
+            # Equivalente a:    F  _{G,G_inv} =   Tr((G^{1/2} F G^{-1/2})^  (G^{1/2} F G^{-1/2}))
             G_F: NDArray[np.float64] = self._ctx.G_mu_nu @ F_mu_nu
             F_G_inv: NDArray[np.float64] = F_mu_nu @ self._ctx.G_inv
             S_ym: float = 0.5 * float(np.trace(F_mu_nu.T @ G_F @ F_G_inv))
 
-            # S_YM debe ser no negativo por construcción (norma matricial ponderada)
+            # S_YM debe ser no negativo por construcci n (norma matricial ponderada)
             # Si es levemente negativo por errores de redondeo, lo clampeamos
             S_ym = max(S_ym, 0.0)
 
-            # ── Umbral relativo ────────────────────────────────────────────
+            #    Umbral relativo
             norm_A_sq: float = float(la.norm(A_gauge, "fro") ** 2)
             tol_ym: float = self._holonomy_tol_rel * max(norm_A_sq, 1.0)
 
             if S_ym > tol_ym:
                 logger.error(
-                    "[Fase2] Holonomía no nula: S_YM=%.6e > tol=%.6e "
-                    "(‖A‖_F²=%.6e).",
+                    "[Fase2] Holonom a no nula: S_YM=%.6e > tol=%.6e "
+                    "( A _F =%.6e).",
                     S_ym, tol_ym, norm_A_sq,
                 )
                 raise HolonomyVetoError(
                     f"El bucle de Wilson revela curvatura de calibre no nula. "
                     f"S_YM = {S_ym:.6e} > tol_rel = {tol_ym:.6e}. "
-                    f"‖A_gauge‖_F² = {norm_A_sq:.6e}. "
-                    f"Fugas logísticas ocultas (ciclos parásitos) detectadas."
+                    f" A_gauge _F  = {norm_A_sq:.6e}. "
+                    f"Fugas log sticas ocultas (ciclos par sitos) detectadas."
                 )
 
             logger.debug(
-                "[Fase2] Holonomía: S_YM=%.6e, tol=%.6e, "
+                "[Fase2] Holonom a: S_YM=%.6e, tol=%.6e, "
                 "margen=%.1f%%.",
                 S_ym, tol_ym,
                 100.0 * (1.0 - S_ym / max(tol_ym, 1e-300)),
             )
             return S_ym
 
-        # ─────────────────────────────────────────────────────────────────
-        # Método terminal de la Fase 2 → entrada directa de la Fase 3
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # M todo terminal de la Fase 2   entrada directa de la Fase 3
+        #
 
         def synthesize(
             self,
@@ -1317,32 +1279,32 @@ class KApexElectrodynamicAgent(Morphism):
             ApexStateTensor
                 Estado electrodinámico completo, inmutable.
             """
-            # ── Subproceso 1: Inyección de Gauge ──────────────────────────
+            #    Subproceso 1: Inyecci n de Gauge
             s_val, suppression = self.inject_gauge_potential(d_Phi)
 
-            # ── Subproceso 2: Refracción Eikonal ──────────────────────────
+            #    Subproceso 2: Refracci n Eikonal
             n_refract, eikonal_norm_sq = self.compute_eikonal_absorption(
                 phase_gradient, sigma_stress, alpha_fermat
             )
 
-            # ── Subproceso 3: Exergía de Poynting ─────────────────────────
+            #    Subproceso 3: Exerg a de Poynting
             P_in, P_diss, P_exergia = self.evaluate_poynting_exergy(
                 E_field, H_field, grad_H
             )
 
-            # ── Subproceso 4: Holonomía Yang-Mills ────────────────────────
+            #    Subproceso 4: Holonom a Yang-Mills
             S_ym = self.audit_yang_mills_holonomy(A_gauge)
 
             logger.info(
-                "[Fase2] Síntesis electrodinámica completada: "
+                "[Fase2] S ntesis electrodin mica completada: "
                 "suppression=%.3e, n_refract=%.4f, "
                 "P_exergia=%.6e, S_YM=%.6e.",
                 suppression, n_refract, P_exergia, S_ym,
             )
 
-            # ── Contrato de interfaz Fase 2 → Fase 3 ─────────────────────
+            #    Contrato de interfaz Fase 2   Fase 3
             # `gauge_injection_vector = s_val` es el argumento directo de
-            # Phase3_SheafProjection.export_stalk(). Esta devolución es la
+            # Phase3_SheafProjection.export_stalk(). Esta devoluci n es la
             # frontera formal entre ambas fases anidadas.
             return ApexStateTensor(
                 gauge_injection_vector=s_val,
@@ -1356,9 +1318,9 @@ class KApexElectrodynamicAgent(Morphism):
                 is_electrodynamically_viable=True,
             )
 
-    # ═════════════════════════════════════════════════════════════════════════
-    # FASE 3 – PROYECCIÓN EN HACES Y COFRONTERA DISCRETA δ_{APEX}
-    # ═════════════════════════════════════════════════════════════════════════
+    #
+    # FASE 3   PROYECCI N EN HACES Y COFRONTERA DISCRETA  _{APEX}
+    #
 
     class Phase3_SheafProjection:
         r"""
@@ -1422,23 +1384,23 @@ class KApexElectrodynamicAgent(Morphism):
             self._ctx: "ApexPreparationContext" = context
             n: int = context.dim
 
-            # ── δ_{APEX} = L_G^{-⊤} (triangular superior) ────────────────
-            # L_G^{-1}: solución de L_G · X = I (sustitución hacia adelante)
+            #     _{APEX} = L_G^{- } (triangular superior)
+            # L_G^{-1}: soluci n de L_G   X = I (sustituci n hacia adelante)
             I_n: NDArray[np.float64] = np.eye(n, dtype=np.float64)
             L_G_inv: NDArray[np.float64] = la.solve_triangular(
                 context.L_G, I_n, lower=True, check_finite=False
             )
-            # L_G^{-⊤} = (L_G^{-1})^⊤: triangular superior
+            # L_G^{- } = (L_G^{-1})^ : triangular superior
             self._delta_apex: NDArray[np.float64] = L_G_inv.T
 
-            # Rango: δ_{APEX} es cuadrada y no singular (G_μν ≻ 0 implica L_G no singular)
+            # Rango:  _{APEX} es cuadrada y no singular (G_     0 implica L_G no singular)
             self._rank_delta: int = n
 
-            # ── Verificación de la identidad de Hodge local ───────────────
+            #    Verificaci n de la identidad de Hodge local
             self._hodge_residual: float = self._verify_hodge_identity()
 
             logger.debug(
-                "[Fase3] δ_{APEX} precalculada: dim=%d, rank=%d, "
+                "[Fase3]  _{APEX} precalculada: dim=%d, rank=%d, "
                 "Hodge_residual=%.3e.",
                 n, self._rank_delta, self._hodge_residual,
             )
@@ -1466,7 +1428,7 @@ class KApexElectrodynamicAgent(Morphism):
             """
             n: int = self._ctx.dim
 
-            # δ^⊤ · G · δ = L_G^{-1} · (L_G · L_G^⊤) · L_G^{-⊤} = I (exacto)
+            #  ^    G     = L_G^{-1}   (L_G   L_G^ )   L_G^{- } = I (exacto)
             delta_T_G_delta: NDArray[np.float64] = (
                 self._delta_apex.T
                 @ self._ctx.G_mu_nu
@@ -1481,15 +1443,15 @@ class KApexElectrodynamicAgent(Morphism):
             if rel_error > tol_hodge:
                 raise SheafMetricError(
                     f"Identidad de Hodge violada: "
-                    f"‖δ^⊤ G δ − I‖_F / n = {rel_error:.6e} > tol = {tol_hodge:.6e}. "
-                    f"Error de ensamble en la cofrontera δ_{{APEX}}."
+                    f"  ^  G   - I _F / n = {rel_error:.6e} > tol = {tol_hodge:.6e}. "
+                    f"Error de ensamble en la cofrontera  _{{APEX}}."
                 )
 
             return rel_error
 
-        # ─────────────────────────────────────────────────────────────────
-        # Método terminal de la Fase 3 (salida pública del ecosistema)
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # M todo terminal de la Fase 3 (salida p blica del ecosistema)
+        #
 
         def export_stalk(
             self,
@@ -1530,19 +1492,19 @@ class KApexElectrodynamicAgent(Morphism):
                     f"s_val debe tener shape ({n},); se obtuvo {s_val.shape}."
                 )
 
-            # Proyección sobre la fibra: δ_{APEX} · s_val
+            # Proyecci n sobre la fibra:  _{APEX}   s_val
             projected: NDArray[np.float64] = self._delta_apex @ s_val
 
             logger.info(
                 "[Fase3] SheafStalkApex exportado: dim=%d, rank=%d, "
-                "Hodge_res=%.3e, ‖δ·s‖=%.6e.",
+                "Hodge_res=%.3e,    s =%.6e.",
                 n,
                 self._rank_delta,
                 self._hodge_residual,
                 float(la.norm(projected, 2)),
             )
 
-            # ── Contrato de salida del agente completo ────────────────────
+            #    Contrato de salida del agente completo
             return SheafStalkApex(
                 delta_apex=self._delta_apex,
                 hodge_metric_residual=self._hodge_residual,
@@ -1551,9 +1513,9 @@ class KApexElectrodynamicAgent(Morphism):
                 rank_delta=self._rank_delta,
             )
 
-    # ═════════════════════════════════════════════════════════════════════════
-    # INTERFAZ PÚBLICA DEL AGENTE (punto de entrada externo)
-    # ═════════════════════════════════════════════════════════════════════════
+    #
+    # INTERFAZ P BLICA DEL AGENTE (punto de entrada externo)
+    #
 
     def synthesize_apex_field(
         self,
