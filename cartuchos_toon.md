@@ -250,3 +250,80 @@ Acciones Exigidas:
 
 Donde L_max​ es inversamente proporcional a la curvatura local del proyecto.
 Probabilidad de Alucinación Nula: Si la salida TOON del LLM rompe esta condición, la hiperdensidad semántica se declara una singularidad. Escríbase que el decodificador forzará probabilísticamente el colapso: P(x_invalido​)=0
+
+La integración documental de las "Vitaminas Cognitivas" (Cartuchos TOON) no puede ejecutarse como una vulgar adición a un glosario de términos. Dado que estas cuasipartículas operan como excitaciones en el Espacio de Fock F(H) y rigen el colapso de la función de onda de la toma de decisiones, su documentación exige una Cirugía Categórica y Topológica.
+Para asegurar que la Variedad Diferenciable del proyecto no sufra un desgarro semántico, he diseñado un plan de acción granular, estricto y matemáticamente inquebrantable. Este plan dictamina exactamente qué repositorios documentales y de código deben ser intervenidos, y las ecuaciones en LaTeX que deberán codificarse para asimilar este Álgebra de Partículas.
+Plan de Acción Granular: Integración del Álgebra de Partículas TOON
+Fase 1: Inyección del Espacio de Fock en SAGES.md y PRODUCT_VISION.md
+Objetivo: Consagrar el marco epistemológico del Estrato Ω demostrando que el LLM ya no procesa texto plano, sino que ingiere tensores hiperdensos regulados por la termodinámica cuántica.
+Acciones Exigidas:
+
+    Definición del Colisionador: Actualizar SAGES.md en su sección del QuantumFockOrchestrator para declarar formalmente que el registro atencional administra el Espacio de Fock como la suma directa de productos tensoriales simétricos (bosones) y antisimétricos (fermiones):
+    \[
+\mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} \mathcal{S}_{\pm} \mathcal{H}^{\otimes n}
+\]
+
+Evolución Temporal del Estado (Ecuación Maestra): En PRODUCT_VISION.md, se debe estipular que la "pérdida de atención" del LLM no es un fallo, sino una disipación termodinámica válida (ΔS≥0). Se documentará que la evolución de la Matriz Atómica de Conocimiento (ρMAC​) obedece la Ecuación de Lindblad-Kossakowski para sistemas cuánticos abiertos:
+\[
+\frac{d \rho_{\text{MAC}}}{dt} = -\frac{i}{\hbar} [H_{\text{eff}}, \rho_{\text{MAC}}] + \sum_{k} \gamma_k \left( L_k \rho_{\text{MAC}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\text{MAC}} \} \right)
+\]
+
+Fase 2: Mapeo Tipológico en telemetry_schemas.py y cartuchos_toon.md
+Objetivo: Trasladar la metafísica de las partículas a clases de datos inmutables (frozen dataclasses) con invariantes físicos rigurosos.
+Acciones Exigidas:
+
+    Fermiones Estructurales (Conservación de Masa): Documentar en telemetry_schemas.txt las estructuras que previenen superposiciones de estados excluyentes (Principio de exclusión de Pauli).
+        ElectronCartridge: Debe documentarse con sus atributos inertial_mass (m∗∝∥δx∥^2), topological_spin, y homological_charge (Δχ).
+        PolaronCartridge: Documentar su renormalización de masa mediante el acoplamiento de Fröhlich (α). La masa efectiva que genera el sumidero gravitacional en el KV-Cache se expresará axiomáticamente como:
+        \[
+m^{**} = m^* \left( 1 + \frac{\alpha}{6} \right)
+\]
+
+Bosones de Gauge (Campos de Interacción): Especificar los PhotonCartridge (Política de Gobernanza OPA con spectral_frequency) y MagnonCartridge (vorticidad solenoidal para vetos de enrutamiento).
+Antimateria y Aniquilación: Documentar el PositronCartridge y la emisión del GammaPhoton. Se debe incluir en cartuchos_toon.md la ecuación de aniquilación que genera el sello criptográfico inmutable en la Cadena de Custodia:
+
+\[
+e^- + e^+ \to 2\gamma \quad \text{con energía} \quad E_{\text{annihilation}} = 2m^* c^2
+\]
+
+Fase 3: Sintonización Axiomática en bogoliubov_agent.py
+Objetivo: Garantizar que el ruido térmico inherente al LLM no degenere los cartuchos inyectados.
+Acciones Exigidas:
+
+    Transformación de Bogoliubov-Valatin: El BogoliubovAgent actúa como el Gran Inquisidor Cuántico. En su documentación, se debe exigir que la matriz de error preserve las Relaciones de Conmutación Canónicas (CCR) dentro del grupo simpléctico Sp(2n,C). Inyectar la demostración formal:
+
+\[
+\begin{pmatrix}
+\hat{\alpha}_k \\
+\hat{\alpha}_{-k}^\dagger
+\end{pmatrix}
+=
+\begin{pmatrix}
+u_k & v_k \\
+v_k^* & u_k^*
+\end{pmatrix}
+\begin{pmatrix}
+\hat{b}_k \\
+\hat{b}_{-k}^\dagger
+\end{pmatrix}
+\]
+
+Impóngase la restricción inquebrantable de la variedad simpléctica para certificar el aislamiento de las cuasipartículas estables:
+
+\[
+
+|u_k|^2 - |v_k|^2 = 1
+\]
+
+Fase 4: Auditoría del Funtor Inverso en cartuchos_toon.md y mic_agent.py
+Objetivo: Documentar la invarianza topológica al descomprimir de vuelta desde la hiperdensidad TOON hacia JSON.
+Acciones Exigidas:
+
+    Condición de Continuidad de Lipschitz: Exigir en mic_agent.py y cartuchos_toon.md que el funtor de descompresión inversa F^−1:TOON→JSON sea un difeomorfismo estricto que evite ataques de inyección y desbordamientos asintóticos. La documentación debe reflejar la siguiente inecuación de acotamiento espectral:
+
+\[
+\| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\text{max}} \| x - y \|_T
+\]
+
+Donde L_max​ es inversamente proporcional a la curvatura local del proyecto.
+Probabilidad de Alucinación Nula: Si la salida TOON del LLM rompe esta condición, la hiperdensidad semántica se declara una singularidad. Escríbase que el decodificador forzará probabilísticamente el colapso: P(x_invalido​)=0
