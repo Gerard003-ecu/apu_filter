@@ -1,119 +1,21 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo  : Alpha Boundary Agent (Operador de Holonomía de Euler-Poincaré)     ║
-║ Ruta    : app/agents/alpha/alpha_agent.py                                    ║
-║ Versión : 3.0.0-Rigorous-Simplicial-Cohomology-Weighted                      ║
-╚══════════════════════════════════════════════════════════════════════════════╝
++==============================================================================+
+| Módulo  : Alpha Boundary Agent (Orquestador de Haces Celulares)              |
+| Ruta    : app/agents/alpha/alpha_agent.py                                    |
+| Versión : 4.0.0-Rigorous-Sheaf-Cohomology-Consensus                          |
++==============================================================================+
 
-NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Dictamen Doctoral v3.0.0):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra el Estrato α (La Condición de Frontera Macroscópica) del
-ecosistema APU_filter. El `AlphaBoundaryAgent` transfiere isométricamente el
-Business Model Canvas a la categoría de los complejos simpliciales ponderados,
-donde la topología del valor empresarial se somete a las leyes inmutables del
-Álgebra Homológica y la Teoría Espectral de Grafos.
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA DE HACES:
+Este módulo transmuta el Estrato alpha en un Orquestador de Haces Celulares. Ensambla
+la cofrontera global y somete a los agentes a test topológicos rigurosos.
 
-FUNDAMENTACIÓN AXIOMÁTICA v3.0.0 — CORRECCIONES CRÍTICAS:
-────────────────────────────────────────────────────────────────────────────────
+LAPLACIANO DEL HAZ (CELLULAR SHEAF):
+\[ L_F = \delta^\top \delta \succeq 0 \]
 
-§1. EL FIBRADO DEL MODELO DE NEGOCIO (1-COMPLEJO SIMPLICIAL PONDERADO):
-El grafo de negocio G = (V, E, w) se proyecta a un 1-complejo simplicial
-finito K con pesos estrictamente positivos w_k > 0 en cada flujo. Se exige:
-    (a) Ausencia de auto-bucles: u ≠ v para toda arista (u,v,w).
-    (b) Ausencia de multi-aristas: (u,v) aparece a lo sumo una vez.
-    (c) Ausencia de vértices duplicados: |V| = |{nodes}|.
-    (d) Pesos estrictamente positivos: w > 0 para toda arista activa.
-
-La condición (d) es nueva en v3.0.0: aristas con w=0 son degeneradas y no
-pertenecen al 1-complejo simplicial ponderado (una arista sin intensidad de
-flujo no es una arista topológica real). Se rechazan con PreconditionError.
-
-La matriz de incidencia orientada ponderada ∂₁ ∈ ℝ^{|V|×|E|} satisface:
-    ∂₁(i,k) = -√w_k   si v_i es el origen de e_k
-    ∂₁(j,k) = +√w_k   si v_j es el destino de e_k
-    ∂₁(m,k) = 0        para m ≠ i,j
-
-El escalamiento por √w_k garantiza que L₀ = ∂₁∂₁ᵀ sea el Laplaciano
-combinatorio ponderado: L₀[i,j] = -w_{ij} para i≠j, L₀[i,i] = Σ_j w_{ij}.
-
-§2. TEOREMA DE RANGO-NULIDAD Y NÚMEROS DE BETTI (CORREGIDO):
-Para un 1-complejo simplicial K sin 2-simplices (∂₂ = 0):
-
-    rank(∂₁) calculado por SVD con umbral τ = max(|V|,|E|)·ε_mach·σ_max
-
-    β₀ = dim(H₀(K;ℝ)) = dim(coker(∂₁ᵀ)) = |V| - rank(∂₁)
-         (número de componentes conexas)
-
-    β₁ = dim(H₁(K;ℝ)) = dim(ker(∂₁)) - dim(im(∂₂)) = (|E| - rank(∂₁)) - 0
-         = |E| - rank(∂₁)
-         (dimensión del espacio de ciclos)
-
-    χ(K) = β₀ - β₁ = (|V| - rank) - (|E| - rank) = |V| - |E|
-
-NOTA v3.0.0: χ(K) = |V| - |E| es independiente del rango (teorema de
-Euler-Poincaré). La implementación v2.0.0 calculaba β₀ - β₁ correctamente
-pero la fórmula es tautológicamente β₀ - β₁ = |V| - |E| para 1-complejos.
-
-[AXIOMA DE VETO 1]: β₁ > 0 → ToxicCycleVetoError
-[AXIOMA DE VETO 2]: χ(K) ≤ 0 → EulerPoincareDegeneracyError
-
-§3. INVARIANTE DE EULER-POINCARÉ (DEMOSTRACIÓN PARA 1-COMPLEJOS):
-χ(K) = |V| - |E| porque:
-    β₀ - β₁ = (|V| - r) - (|E| - r) = |V| - |E|
-Independiente de r = rank(∂₁). Esta observación permite calcular χ directamente
-sin SVD, lo que v3.0.0 hace explícitamente con verificación cruzada.
-
-§4. TEORÍA ESPECTRAL — LAPLACIANO PONDERADO (CORREGIDO):
-L₀ = ∂₁∂₁ᵀ ∈ ℝ^{|V|×|V|} es el Laplaciano combinatorio ponderado. Sus
-propiedades algebraicas garantizadas:
-    (P1) Simetría: L₀ = L₀ᵀ  (por construcción)
-    (P2) PSD: xᵀL₀x = ‖∂₁ᵀx‖² ≥ 0 ∀x  (semidefinida positiva)
-    (P3) Espectro: 0 = λ₁ ≤ λ₂ ≤ ... ≤ λ_n  (autovalores no negativos)
-    (P4) Multiplicidad de λ=0: igual a β₀ (número de componentes conexas)
-
-Valor de Fiedler λ₂: el menor autovalor estrictamente positivo. Mide la
-conectividad algebraica (constante de Cheeger). Su ausencia (λ₂=0 para n≥2)
-indica desconexión.
-
-CORRECCIÓN v3.0.0: La tolerancia de cero para autovalores se calibra como:
-    zero_tol = n · ε_mach · ‖L₀‖_F
-donde ‖L₀‖_F es la norma de Frobenius de L₀. Esto es más robusto que usar
-max(eigenvalues) porque max(eigenvalues) puede ser cero si L₀ = 0.
-
-§5. GRAFO CON UN SOLO VÉRTICE (CASO DEGENERADO v3.0.0):
-Si |V| = 1, L₀ es una matriz 1×1 con L₀[0,0] = 0. No existe Valor de Fiedler
-(no hay λ₂). En este caso el agente verifica solo los vetos §2. El veto
-espectral (§4) se omite con advertencia explícita.
-
-══════════════════════════════════════════════════════════════════════════════
-ARQUITECTURA DE FASES ANIDADAS v3.0.0:
-══════════════════════════════════════════════════════════════════════════════
-
-  ┌─── FASE 1: _Phase1_CanvasSimplicialFibrator ───────────────────────────┐
-  │  _validate_canvas_input()       → tipos, duplicados, auto-bucles       │
-  │  _validate_flow_semantics()     → pesos > 0, nodos existentes          │
-  │  _build_boundary_operator()     → ∂₁ ∈ ℝ^{|V|×|E|}, Jacobiano √w_k  │
-  │  project_canvas_to_simplicial_complex() → SimplicialComplexData        │
-  └──────────────────────────┬─────────────────────────────────────────────┘
-                             │ SimplicialComplexData
-                             ▼
-  ┌─── FASE 2: _Phase2_HomologicalBettiAuditor ────────────────────────────┐
-  │  _compute_numerical_rank()      → SVD robusto, σ_max=0 manejado        │
-  │  _compute_betti_numbers()       → β₀, β₁ con verificación cruzada      │
-  │  _verify_euler_identity()       → χ = |V|-|E| = β₀-β₁ (consistencia)  │
-  │  audit_betti_invariants()       → HomologicalInvariants + veto 1 y 2   │
-  └──────────────────────────┬─────────────────────────────────────────────┘
-                             │ HomologicalInvariants
-                             ▼
-  ┌─── FASE 3: _Phase3_SpectralFiedlerAuditor ─────────────────────────────┐
-  │  _build_laplacian()             → L₀ = ∂₁∂₁ᵀ, verificar PSD          │
-  │  _compute_zero_tolerance()      → τ = n·ε_mach·‖L₀‖_F                 │
-  │  _extract_fiedler_value()       → λ₂ con manejo de n=1                 │
-  │  audit_fiedler_connectivity()   → SpectralFiedlerData + veto 3         │
-  └────────────────────────────────────────────────────────────────────────┘
+SOLUBILIDAD DE FREDHOLM:
+\[ \langle s_{val}, \psi_{ker} \rangle = 0 \quad \forall \psi_{ker} \in \ker(L_F) \]
 """
-
 from __future__ import annotations
 
 import logging
@@ -137,7 +39,7 @@ import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
-# ── Dependencias arquitectónicas del ecosistema APU Filter ───────────────────
+#    Dependencias arquitect nicas del ecosistema APU Filter
 try:
     from app.core.mic_algebra import (
         Morphism,
@@ -146,9 +48,9 @@ try:
     )
     from app.core.schemas import Stratum
 except ImportError:
-    # Stubs rigurosos para ejecución aislada y prueba unitaria analítica
+    # Stubs rigurosos para ejecuci n aislada y prueba unitaria anal tica
     class TopologicalInvariantError(Exception):  # type: ignore[no-redef]
-        """Excepción base del ecosistema MIC para violaciones topológicas."""
+        """Excepci n base del ecosistema MIC para violaciones topol gicas."""
         pass
 
     class Morphism:  # type: ignore[no-redef]
@@ -156,7 +58,7 @@ except ImportError:
         pass
 
     class CategoricalState:  # type: ignore[no-redef]
-        """Estado categórico del ecosistema MIC."""
+        """Estado categ rico del ecosistema MIC."""
         payload: Dict[str, Any]
         metadata: Dict[str, Any]
         stratum: Any
@@ -178,9 +80,9 @@ except ImportError:
 logger = logging.getLogger("MIC.Alpha.BoundaryAgent")
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §A. CONSTANTES FÍSICAS Y NUMÉRICAS DEL ESTRATO ALFA
-# ════════════════════════════════════════════════════════════════════════════════
+#
+#  A. CONSTANTES F SICAS Y NUM RICAS DEL ESTRATO ALFA
+#
 
 class AlphaConstants:
     r"""
@@ -225,8 +127,8 @@ class AlphaConstants:
         if matrix.size == 0:
             return AlphaConstants.RANK_TOLERANCE
         m, n = matrix.shape if matrix.ndim == 2 else (matrix.size, 1)
-        # Obtener σ_max sin calcular U y V (eficiente)
-        sigma_max = float(np.linalg.norm(matrix, ord=2))  # = σ_1
+        # Obtener  _max sin calcular U y V (eficiente)
+        sigma_max = float(np.linalg.norm(matrix, ord=2))  # =  _1
         if sigma_max < AlphaConstants.RANK_TOLERANCE:
             return AlphaConstants.RANK_TOLERANCE
         tol_rel = max(m, n) * AlphaConstants.MACHINE_EPSILON * sigma_max
@@ -259,9 +161,9 @@ class AlphaConstants:
         return n * AlphaConstants.MACHINE_EPSILON * base
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §B. JERARQUÍA DE EXCEPCIONES TOPOLÓGICAS
-# ════════════════════════════════════════════════════════════════════════════════
+#
+#  B. JERARQU A DE EXCEPCIONES TOPOL GICAS
+#
 
 class AlphaBoundaryError(TopologicalInvariantError):
     r"""
@@ -326,9 +228,9 @@ class SpectralFragilityError(AlphaBoundaryError):
     pass
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §C. ESTRUCTURAS DE DATOS INMUTABLES (DTOs TOPOLÓGICOS)
-# ════════════════════════════════════════════════════════════════════════════════
+#
+#  C. ESTRUCTURAS DE DATOS INMUTABLES (DTOs TOPOL GICOS)
+#
 
 @dataclass(frozen=True, slots=True)
 class SimplicialComplexData:
@@ -359,17 +261,17 @@ class SimplicialComplexData:
         expected_shape = (self.n_vertices, self.n_edges)
         if self.boundary_operator.shape != expected_shape:
             raise PreconditionError(
-                f"∂₁.shape={self.boundary_operator.shape} ≠ "
+                f"  .shape={self.boundary_operator.shape}   "
                 f"({self.n_vertices},{self.n_edges})."
             )
         if not np.all(np.isfinite(self.boundary_operator)):
             raise PreconditionError(
-                "∂₁ contiene valores no finitos (NaN/Inf)."
+                "   contiene valores no finitos (NaN/Inf)."
             )
         for (u, v, w) in self.edges:
             if w <= 0.0:
                 raise PreconditionError(
-                    f"Arista ({u},{v}) tiene peso w={w} ≤ 0. "
+                    f"Arista ({u},{v}) tiene peso w={w} <= 0. "
                     f"Todas las aristas deben tener peso estrictamente positivo."
                 )
 
@@ -401,12 +303,12 @@ class HomologicalInvariants:
     rank_threshold      : float
 
     def __post_init__(self) -> None:
-        """Verifica la identidad de Euler-Poincaré como poscondición."""
+        """Verifica la identidad de Euler-Poincar  como poscondici n."""
         computed_euler = self.beta_0 - self.beta_1
         if computed_euler != self.euler_characteristic:
             raise TopologicalInvariantError(
-                f"Violación de Euler-Poincaré: β₀-β₁={computed_euler} ≠ "
-                f"χ={self.euler_characteristic}."
+                f"Violaci n de Euler-Poincar :   -  ={computed_euler}   "
+                f" ={self.euler_characteristic}."
             )
 
 
@@ -437,13 +339,13 @@ class SpectralFiedlerData:
     spectral_gap   : float
 
     def __post_init__(self) -> None:
-        """Verifica que el primer autovalor sea ≈ 0 (L₀ es PSD)."""
+        """Verifica que el primer autovalor sea ~= 0 (L  es PSD)."""
         if self.eigenvalues.size > 0:
             lambda_min = float(self.eigenvalues[0])
             if lambda_min < -self.zero_tolerance:
                 raise TopologicalInvariantError(
-                    f"L₀ no es semidefinida positiva: λ_min={lambda_min:.4e} < 0. "
-                    f"Error numérico en la construcción del Laplaciano."
+                    f"L  no es semidefinida positiva:  _min={lambda_min:.4e} < 0. "
+                    f"Error num rico en la construcci n del Laplaciano."
                 )
 
 
@@ -467,9 +369,9 @@ class AlphaBoundaryVerdict:
     veto_class  : Optional[Type[AlphaBoundaryError]]
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §D. PROTOCOLOS FUNTORIALES DE LAS 3 FASES
-# ════════════════════════════════════════════════════════════════════════════════
+#
+#  D. PROTOCOLOS FUNTORIALES DE LAS 3 FASES
+#
 
 @runtime_checkable
 class CanvasFibratorPort(Protocol):
@@ -495,15 +397,15 @@ class SpectralAuditorPort(Protocol):
     ) -> SpectralFiedlerData: ...
 
 
-# ════════════════════════════════════════════════════════════════════════════════════
-# ╔══════════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                                  ║
-# ║  ORQUESTADOR SUPREMO: ALPHA BOUNDARY AGENT                                      ║
-# ║  Mapeo Endofuntorial que impone la condición de frontera macroscópica.           ║
-# ║  Las tres fases anidadas están encadenadas por sus DTOs immutables.             ║
-# ║                                                                                  ║
-# ╚══════════════════════════════════════════════════════════════════════════════════╝
-# ════════════════════════════════════════════════════════════════════════════════════
+#
+#
+#
+#    ORQUESTADOR SUPREMO: ALPHA BOUNDARY AGENT
+#    Mapeo Endofuntorial que impone la condici n de frontera macrosc pica.
+#    Las tres fases anidadas est n encadenadas por sus DTOs immutables.
+#
+#
+#
 
 class AlphaBoundaryAgent(Morphism):
     r"""
@@ -531,25 +433,25 @@ class AlphaBoundaryAgent(Morphism):
     Hereda de Morphism para integrarse en la Malla Agéntica MIC.
     """
 
-    # ════════════════════════════════════════════════════════════════════════════
-    # ╔══════════════════════════════════════════════════════════════════════════╗
-    # ║                                                                          ║
-    # ║  FASE 1 — FIBRADOR DEL LIENZO SIMPLICIAL PONDERADO                      ║
-    # ║                                                                          ║
-    # ║  Contrato formal:                                                        ║
-    # ║    Entrada  : nodes: List[str], flows: List[Tuple[str,str,float]]       ║
-    # ║    Salida   : SimplicialComplexData (∂₁ ponderado, sin NaN/Inf)         ║
-    # ║                                                                          ║
-    # ║  Garantías:                                                              ║
-    # ║    G1. Sin duplicados en nodes.                                          ║
-    # ║    G2. Sin auto-bucles (u=v).                                            ║
-    # ║    G3. Sin multi-aristas.                                                ║
-    # ║    G4. Pesos w > 0 estrictamente.                                        ║
-    # ║    G5. Ambos extremos de cada arista ∈ nodes.                            ║
-    # ║    G6. ∂₁[i,k] = ±√w_k (Jacobiano ponderado).                          ║
-    # ║                                                                          ║
-    # ╚══════════════════════════════════════════════════════════════════════════╝
-    # ════════════════════════════════════════════════════════════════════════════
+    #
+    #
+    #
+    #    FASE 1   FIBRADOR DEL LIENZO SIMPLICIAL PONDERADO
+    #
+    #    Contrato formal:
+    #      Entrada  : nodes: List[str], flows: List[Tuple[str,str,float]]
+    #      Salida   : SimplicialComplexData (   ponderado, sin NaN/Inf)
+    #
+    #    Garant as:
+    #      G1. Sin duplicados en nodes.
+    #      G2. Sin auto-bucles (u=v).
+    #      G3. Sin multi-aristas.
+    #      G4. Pesos w > 0 estrictamente.
+    #      G5. Ambos extremos de cada arista   nodes.
+    #      G6.   [i,k] =   w_k (Jacobiano ponderado).
+    #
+    #
+    #
 
     class _Phase1_CanvasSimplicialFibrator:
         r"""
@@ -560,9 +462,9 @@ class AlphaBoundaryAgent(Morphism):
         con el Jacobiano de peso √w_k por arista.
         """
 
-        # ─────────────────────────────────────────────────────────────────────
-        # §1.1 — Validación de precondiciones estructurales
-        # ─────────────────────────────────────────────────────────────────────
+        #
+        #  1.1   Validaci n de precondiciones estructurales
+        #
 
         @staticmethod
         def _validate_canvas_input(
@@ -594,14 +496,14 @@ class AlphaBoundaryAgent(Morphism):
             -----
             PreconditionError : Si alguna condición es violada.
             """
-            # (C1) No vacío
+            # (C1) No vac o
             if not nodes:
                 raise PreconditionError(
-                    "El colector del BMC no puede ser el conjunto vacío ∅. "
-                    "Se requiere al menos un vértice (bloque de valor)."
+                    "El colector del BMC no puede ser el conjunto vac o  . "
+                    "Se requiere al menos un v rtice (bloque de valor)."
                 )
 
-            # (C2) Tipos de vértices
+            # (C2) Tipos de v rtices
             for i, node in enumerate(nodes):
                 if not isinstance(node, str):
                     raise PreconditionError(
@@ -614,11 +516,11 @@ class AlphaBoundaryAgent(Morphism):
                 duplicates = [n for n in nodes if nodes.count(n) > 1]
                 unique_dups = list(dict.fromkeys(duplicates))
                 raise PreconditionError(
-                    f"nodes contiene vértices duplicados: {unique_dups}. "
+                    f"nodes contiene v rtices duplicados: {unique_dups}. "
                     f"Cada bloque del BMC debe aparecer exactamente una vez."
                 )
 
-            # Validación de cada arista
+            # Validaci n de cada arista
             node_set: FrozenSet[str] = frozenset(nodes)
             seen_edges: Set[FrozenSet[str]] = set()  # para detectar multi-aristas
 
@@ -640,10 +542,10 @@ class AlphaBoundaryAgent(Morphism):
                     raise PreconditionError(
                         f"flows[{k}]=({u},{v},{w}) es un auto-bucle (u=v). "
                         f"Los 1-complejos simpliciales no admiten auto-bucles: "
-                        f"∂₁ produciría una columna nula que corrompe el rango."
+                        f"   producir a una columna nula que corrompe el rango."
                     )
 
-                # (C6) Sin multi-aristas (considerando también (v,u) como duplicado)
+                # (C6) Sin multi-aristas (considerando tambi n (v,u) como duplicado)
                 edge_key: FrozenSet[str] = frozenset({u, v})
                 if edge_key in seen_edges:
                     raise PreconditionError(
@@ -660,8 +562,8 @@ class AlphaBoundaryAgent(Morphism):
                     )
                 if w <= 0.0:
                     raise PreconditionError(
-                        f"flows[{k}]=({u},{v},{w}): el peso w={w} ≤ 0. "
-                        f"Aristas sin flujo no son aristas topológicas reales. "
+                        f"flows[{k}]=({u},{v},{w}): el peso w={w} <= 0. "
+                        f"Aristas sin flujo no son aristas topol gicas reales. "
                         f"Use w > 0 o elimine la arista del modelo."
                     )
 
@@ -669,17 +571,17 @@ class AlphaBoundaryAgent(Morphism):
                 if u not in node_set:
                     raise PreconditionError(
                         f"flows[{k}]: el nodo origen '{u}' no pertenece a nodes. "
-                        f"Todos los extremos de aristas deben ser vértices declarados."
+                        f"Todos los extremos de aristas deben ser v rtices declarados."
                     )
                 if v not in node_set:
                     raise PreconditionError(
                         f"flows[{k}]: el nodo destino '{v}' no pertenece a nodes. "
-                        f"Todos los extremos de aristas deben ser vértices declarados."
+                        f"Todos los extremos de aristas deben ser v rtices declarados."
                     )
 
-        # ─────────────────────────────────────────────────────────────────────
-        # §1.2 — Construcción del operador frontera ponderado
-        # ─────────────────────────────────────────────────────────────────────
+        #
+        #  1.2   Construcci n del operador frontera ponderado
+        #
 
         @staticmethod
         def _build_boundary_operator(
@@ -733,9 +635,9 @@ class AlphaBoundaryAgent(Morphism):
 
             return B
 
-        # ─────────────────────────────────────────────────────────────────────
-        # §1.3 — Punto de entrada de la Fase 1 (contrato de salida → Fase 2)
-        # ─────────────────────────────────────────────────────────────────────
+        #
+        #  1.3   Punto de entrada de la Fase 1 (contrato de salida   Fase 2)
+        #
 
         @staticmethod
         def project_canvas_to_simplicial_complex(
@@ -767,19 +669,19 @@ class AlphaBoundaryAgent(Morphism):
             -----
             PreconditionError : Si alguna precondición estructural es violada.
             """
-            # §1.3.1: Validación de precondiciones
+            #  1.3.1: Validaci n de precondiciones
             AlphaBoundaryAgent._Phase1_CanvasSimplicialFibrator._validate_canvas_input(
                 nodes, flows
             )
 
-            # §1.3.2: Construcción del operador frontera
+            #  1.3.2: Construcci n del operador frontera
             boundary_op = (
                 AlphaBoundaryAgent._Phase1_CanvasSimplicialFibrator._build_boundary_operator(
                     nodes, flows
                 )
             )
 
-            # §1.3.3: Construir el DTO (invariantes verificados en __post_init__)
+            #  1.3.3: Construir el DTO (invariantes verificados en __post_init__)
             complex_data = SimplicialComplexData(
                 vertices         = tuple(nodes),
                 edges            = tuple(
@@ -791,8 +693,8 @@ class AlphaBoundaryAgent(Morphism):
             )
 
             logger.debug(
-                "Fase 1 completada: K = (%d vértices, %d aristas). "
-                "‖∂₁‖_F = %.4f.",
+                "Fase 1 completada: K = (%d v rtices, %d aristas). "
+                "    _F = %.4f.",
                 complex_data.n_vertices,
                 complex_data.n_edges,
                 float(np.linalg.norm(boundary_op, 'fro')),
@@ -800,36 +702,36 @@ class AlphaBoundaryAgent(Morphism):
 
             return complex_data
 
-        # ─────────────────────────────────────────────────────────────────────
+        #
         # FIN FASE 1
-        # La salida canónica es SimplicialComplexData, que es la entrada formal
-        # del primer método de la Fase 2: _compute_numerical_rank recibe
+        # La salida can nica es SimplicialComplexData, que es la entrada formal
+        # del primer m todo de la Fase 2: _compute_numerical_rank recibe
         # complex_data.boundary_operator.
-        # ─────────────────────────────────────────────────────────────────────
+        #
 
 
-    # ════════════════════════════════════════════════════════════════════════════
-    # ╔══════════════════════════════════════════════════════════════════════════╗
-    # ║                                                                          ║
-    # ║  FASE 2 — AUDITOR HOMOLÓGICO (BETTI Y EULER-POINCARÉ)                   ║
-    # ║                                                                          ║
-    # ║  Contrato formal:                                                        ║
-    # ║    Entrada  : SimplicialComplexData (∂₁ ponderado de Fase 1)           ║
-    # ║    Salida   : HomologicalInvariants (β₀, β₁, χ, rank, σ_values)        ║
-    # ║                                                                          ║
-    # ║  Garantías:                                                              ║
-    # ║    G1. rank = card{σ_i : σ_i > τ} con τ robusto.                       ║
-    # ║    G2. β₀ = |V| - rank ≥ 1 (al menos 1 componente).                    ║
-    # ║    G3. β₁ = |E| - rank ≥ 0.                                             ║
-    # ║    G4. χ = β₀ - β₁ = |V| - |E| (verificado cruzado).                  ║
-    # ║    G5. σ_max = 0 manejado sin IndexError.                               ║
-    # ║                                                                          ║
-    # ║  La Fase 2 recibe la salida de la Fase 1 (SimplicialComplexData) y     ║
-    # ║  su último método (audit_betti_invariants) entrega HomologicalInvariants║
-    # ║  que es la referencia de los vetos 1 y 2 en el orquestador.            ║
-    # ║                                                                          ║
-    # ╚══════════════════════════════════════════════════════════════════════════╝
-    # ════════════════════════════════════════════════════════════════════════════
+    #
+    #
+    #
+    #    FASE 2   AUDITOR HOMOL GICO (BETTI Y EULER-POINCAR )
+    #
+    #    Contrato formal:
+    #      Entrada  : SimplicialComplexData (   ponderado de Fase 1)
+    #      Salida   : HomologicalInvariants (  ,   ,  , rank,  _values)
+    #
+    #    Garant as:
+    #      G1. rank = card{ _i :  _i >  } con   robusto.
+    #      G2.    = |V| - rank >= 1 (al menos 1 componente).
+    #      G3.    = |E| - rank >= 0.
+    #      G4.   =    -    = |V| - |E| (verificado cruzado).
+    #      G5.  _max = 0 manejado sin IndexError.
+    #
+    #    La Fase 2 recibe la salida de la Fase 1 (SimplicialComplexData) y
+    #    su  ltimo m todo (audit_betti_invariants) entrega HomologicalInvariants
+    #    que es la referencia de los vetos 1 y 2 en el orquestador.
+    #
+    #
+    #
 
     class _Phase2_HomologicalBettiAuditor:
         r"""
@@ -839,9 +741,9 @@ class AlphaBoundaryAgent(Morphism):
         Recibe como entrada el SimplicialComplexData de la Fase 1.
         """
 
-        # ─────────────────────────────────────────────────────────────────────
-        # §2.1 — Rango algebraico robusto via SVD
-        # ─────────────────────────────────────────────────────────────────────
+        #
+        #  2.1   Rango algebraico robusto via SVD
+        #
 
         @staticmethod
         def _compute_numerical_rank(
@@ -882,17 +784,17 @@ class AlphaBoundaryAgent(Morphism):
                 return 0, np.array([], dtype=np.float64), AlphaConstants.RANK_TOLERANCE
 
             # scipy.linalg.svd con compute_uv=False: solo los valores singulares
-            # en orden descendente σ₁ ≥ σ₂ ≥ ... ≥ 0
+            # en orden descendente    >=    >= ... >= 0
             singular_values: NDArray[np.float64] = la.svd(
                 boundary_operator, compute_uv=False
             )
 
-            # Umbral robusto (maneja σ_max = 0 internamente)
+            # Umbral robusto (maneja  _max = 0 internamente)
             threshold = AlphaConstants.svd_rank_threshold(boundary_operator)
             rank = int(np.sum(singular_values > threshold))
 
             logger.debug(
-                "SVD: σ_max=%.4e, σ_min=%.4e, threshold=%.4e, rank=%d.",
+                "SVD:  _max=%.4e,  _min=%.4e, threshold=%.4e, rank=%d.",
                 float(singular_values[0]) if singular_values.size > 0 else 0.0,
                 float(singular_values[-1]) if singular_values.size > 0 else 0.0,
                 threshold, rank,
@@ -900,9 +802,9 @@ class AlphaBoundaryAgent(Morphism):
 
             return rank, singular_values, threshold
 
-        # ─────────────────────────────────────────────────────────────────────
-        # §2.2 — Cálculo de números de Betti con verificación cruzada
-        # ─────────────────────────────────────────────────────────────────────
+        #
+        #  2.2   C lculo de n meros de Betti con verificaci n cruzada
+        #
 
         @staticmethod
         def _compute_betti_numbers(
@@ -952,15 +854,15 @@ class AlphaBoundaryAgent(Morphism):
 
             if euler_from_betti != euler_direct:
                 raise TopologicalInvariantError(
-                    f"Violación de identidad de Euler-Poincaré: "
-                    f"β₀-β₁={euler_from_betti} ≠ |V|-|E|={euler_direct}. "
-                    f"Error de implementación en el cálculo de Betti."
+                    f"Violaci n de identidad de Euler-Poincar : "
+                    f"  -  ={euler_from_betti}   |V|-|E|={euler_direct}. "
+                    f"Error de implementaci n en el c lculo de Betti."
                 )
             return beta_0, beta_1, euler_direct
 
-        # ─────────────────────────────────────────────────────────────────────
-        # §2.3 — Verificación de consistencia de Euler-Poincaré
-        # ─────────────────────────────────────────────────────────────────────
+        #
+        #  2.3   Verificaci n de consistencia de Euler-Poincar
+        #
 
         @staticmethod
         def _verify_euler_identity(
@@ -988,13 +890,13 @@ class AlphaBoundaryAgent(Morphism):
             expected_chi = n_vertices - n_edges
             if homology.euler_characteristic != expected_chi:
                 raise TopologicalInvariantError(
-                    f"Post-verificación Euler-Poincaré fallida: "
-                    f"χ={homology.euler_characteristic} ≠ |V|-|E|={expected_chi}."
+                    f"Post-verificaci n Euler-Poincar  fallida: "
+                    f" ={homology.euler_characteristic}   |V|-|E|={expected_chi}."
                 )
 
-        # ─────────────────────────────────────────────────────────────────────
-        # §2.4 — Punto de entrada de la Fase 2 (salida → Fase 3)
-        # ─────────────────────────────────────────────────────────────────────
+        #
+        #  2.4   Punto de entrada de la Fase 2 (salida   Fase 3)
+        #
 
         @staticmethod
         def audit_betti_invariants(
@@ -1046,51 +948,51 @@ class AlphaBoundaryAgent(Morphism):
                 rank_threshold      = threshold,
             )
 
-            # Segunda línea de defensa post-construcción
+            # Segunda l nea de defensa post-construcci n
             AlphaBoundaryAgent._Phase2_HomologicalBettiAuditor._verify_euler_identity(
                 homology, complex_data.n_vertices, complex_data.n_edges
             )
 
             logger.info(
-                "Homología computada: |V|=%d, |E|=%d, rank=%d → "
-                "β₀=%d, β₁=%d, χ=%d.",
+                "Homolog a computada: |V|=%d, |E|=%d, rank=%d   "
+                "  =%d,   =%d,  =%d.",
                 complex_data.n_vertices, complex_data.n_edges, rank,
                 beta_0, beta_1, euler_chi,
             )
 
             return homology
 
-        # ─────────────────────────────────────────────────────────────────────
+        #
         # FIN FASE 2
-        # La salida canónica es HomologicalInvariants. Los vetos 1 (β₁>0) y 2
-        # (χ≤0) se evalúan en el orquestador antes de invocar la Fase 3.
+        # La salida can nica es HomologicalInvariants. Los vetos 1 (  >0) y 2
+        # ( <=0) se eval an en el orquestador antes de invocar la Fase 3.
         # La Fase 3 recibe el mismo SimplicialComplexData de la Fase 1
-        # (complex_data.boundary_operator → _build_laplacian).
-        # ─────────────────────────────────────────────────────────────────────
+        # (complex_data.boundary_operator   _build_laplacian).
+        #
 
 
-    # ════════════════════════════════════════════════════════════════════════════
-    # ╔══════════════════════════════════════════════════════════════════════════╗
-    # ║                                                                          ║
-    # ║  FASE 3 — AUDITOR ESPECTRAL (LAPLACIANO Y VALOR DE FIEDLER)             ║
-    # ║                                                                          ║
-    # ║  Contrato formal:                                                        ║
-    # ║    Entrada  : SimplicialComplexData (∂₁ ponderado de Fase 1)           ║
-    # ║    Salida   : SpectralFiedlerData (L₀, eigenvalues, λ₂, conectividad)  ║
-    # ║                                                                          ║
-    # ║  Garantías:                                                              ║
-    # ║    G1. L₀ = ∂₁∂₁ᵀ es PSD (verificado en SpectralFiedlerData).         ║
-    # ║    G2. eigenvalues en orden ascendente (eigvalsh).                       ║
-    # ║    G3. zero_tolerance = n·ε_mach·‖L₀‖_F (robusto ante L₀=0).          ║
-    # ║    G4. fiedler_value = 0.0 si |V|=1 (sin λ₂ posible).                 ║
-    # ║    G5. is_connected = (fiedler_value > zero_tolerance).                 ║
-    # ║    G6. spectral_gap = λ_max - λ₂ si conectado, 0.0 si no.             ║
-    # ║                                                                          ║
-    # ║  La Fase 3 recibe SimplicialComplexData (de Fase 1) directamente.      ║
-    # ║  Esto garantiza la continuidad de la cadena: Fase 1 → Fase 2 → Fase 3. ║
-    # ║                                                                          ║
-    # ╚══════════════════════════════════════════════════════════════════════════╝
-    # ════════════════════════════════════════════════════════════════════════════
+    #
+    #
+    #
+    #    FASE 3   AUDITOR ESPECTRAL (LAPLACIANO Y VALOR DE FIEDLER)
+    #
+    #    Contrato formal:
+    #      Entrada  : SimplicialComplexData (   ponderado de Fase 1)
+    #      Salida   : SpectralFiedlerData (L , eigenvalues,   , conectividad)
+    #
+    #    Garant as:
+    #      G1. L  =       es PSD (verificado en SpectralFiedlerData).
+    #      G2. eigenvalues en orden ascendente (eigvalsh).
+    #      G3. zero_tolerance = n  _mach  L  _F (robusto ante L =0).
+    #      G4. fiedler_value = 0.0 si |V|=1 (sin    posible).
+    #      G5. is_connected = (fiedler_value > zero_tolerance).
+    #      G6. spectral_gap =  _max -    si conectado, 0.0 si no.
+    #
+    #    La Fase 3 recibe SimplicialComplexData (de Fase 1) directamente.
+    #    Esto garantiza la continuidad de la cadena: Fase 1   Fase 2   Fase 3.
+    #
+    #
+    #
 
     class _Phase3_SpectralFiedlerAuditor:
         r"""
@@ -1100,9 +1002,9 @@ class AlphaBoundaryAgent(Morphism):
         Recibe como entrada el mismo SimplicialComplexData de la Fase 1.
         """
 
-        # ─────────────────────────────────────────────────────────────────────
-        # §3.1 — Construcción y verificación del Laplaciano
-        # ─────────────────────────────────────────────────────────────────────
+        #
+        #  3.1   Construcci n y verificaci n del Laplaciano
+        #
 
         @staticmethod
         def _build_laplacian(
@@ -1136,23 +1038,23 @@ class AlphaBoundaryAgent(Morphism):
             """
             L = boundary_operator @ boundary_operator.T
 
-            # Forzar simetría exacta (elimina asimetría de punto flotante O(ε_mach))
+            # Forzar simetr a exacta (elimina asimetr a de punto flotante O( _mach))
             L_sym = (L + L.T) * 0.5
 
-            # Verificar que la asimetría era pequeña (diagnóstico)
+            # Verificar que la asimetr a era peque a (diagn stico)
             asym = float(np.max(np.abs(L - L.T)))
             if asym > 1e-10 * float(np.linalg.norm(L, 'fro')):
                 logger.warning(
-                    "L₀ tenía asimetría numérica significativa: %.2e. "
-                    "Simetrización aplicada.",
+                    "L  ten a asimetr a num rica significativa: %.2e. "
+                    "Simetrizaci n aplicada.",
                     asym,
                 )
 
             return L_sym
 
-        # ─────────────────────────────────────────────────────────────────────
-        # §3.2 — Tolerancia de cero robusta para autovalores
-        # ─────────────────────────────────────────────────────────────────────
+        #
+        #  3.2   Tolerancia de cero robusta para autovalores
+        #
 
         @staticmethod
         def _compute_zero_tolerance(laplacian: NDArray[np.float64]) -> float:
@@ -1190,9 +1092,9 @@ class AlphaBoundaryAgent(Morphism):
             frobenius = float(np.linalg.norm(laplacian, 'fro'))
             return AlphaConstants.laplacian_zero_tolerance(n, frobenius)
 
-        # ─────────────────────────────────────────────────────────────────────
-        # §3.3 — Extracción del Valor de Fiedler
-        # ─────────────────────────────────────────────────────────────────────
+        #
+        #  3.3   Extracci n del Valor de Fiedler
+        #
 
         @staticmethod
         def _extract_fiedler_value(
@@ -1236,18 +1138,18 @@ class AlphaBoundaryAgent(Morphism):
             """
             if n_vertices < 2:
                 logger.warning(
-                    "n_vertices=%d < 2: el Valor de Fiedler no está definido "
-                    "para grafos con un solo vértice. "
-                    "El veto espectral no se aplicará.",
+                    "n_vertices=%d < 2: el Valor de Fiedler no est  definido "
+                    "para grafos con un solo v rtice. "
+                    "El veto espectral no se aplicar .",
                     n_vertices,
                 )
                 return 0.0, False, 0.0
 
             positive_mask = eigenvalues > zero_tolerance
             if not np.any(positive_mask):
-                # Grafo completamente disconexo (todos λ ≈ 0)
+                # Grafo completamente disconexo (todos   ~= 0)
                 logger.warning(
-                    "Todos los autovalores del Laplaciano son ≈ 0. "
+                    "Todos los autovalores del Laplaciano son ~= 0. "
                     "El grafo es completamente disconexo (sin aristas activas)."
                 )
                 return 0.0, False, 0.0
@@ -1259,9 +1161,9 @@ class AlphaBoundaryAgent(Morphism):
 
             return fiedler, is_connected, spectral_gap
 
-        # ─────────────────────────────────────────────────────────────────────
-        # §3.4 — Punto de entrada de la Fase 3
-        # ─────────────────────────────────────────────────────────────────────
+        #
+        #  3.4   Punto de entrada de la Fase 3
+        #
 
         @staticmethod
         def audit_fiedler_connectivity(
@@ -1291,27 +1193,27 @@ class AlphaBoundaryAgent(Morphism):
             -----
             TopologicalInvariantError : Si L₀ no es PSD (error numérico severo).
             """
-            # §3.4.1: Construir Laplaciano
+            #  3.4.1: Construir Laplaciano
             L0 = AlphaBoundaryAgent._Phase3_SpectralFiedlerAuditor._build_laplacian(
                 complex_data.boundary_operator
             )
 
-            # §3.4.2: Autovalores en orden ascendente (eigvalsh garantiza esto)
+            #  3.4.2: Autovalores en orden ascendente (eigvalsh garantiza esto)
             eigenvalues: NDArray[np.float64] = la.eigvalsh(L0)
 
-            # §3.4.3: Tolerancia de cero
+            #  3.4.3: Tolerancia de cero
             zero_tol = (
                 AlphaBoundaryAgent._Phase3_SpectralFiedlerAuditor
                 ._compute_zero_tolerance(L0)
             )
 
-            # §3.4.4: Valor de Fiedler
+            #  3.4.4: Valor de Fiedler
             fiedler, is_connected, spectral_gap = (
                 AlphaBoundaryAgent._Phase3_SpectralFiedlerAuditor
                 ._extract_fiedler_value(eigenvalues, zero_tol, complex_data.n_vertices)
             )
 
-            # §3.4.5: Construir DTO (PSD verificado en __post_init__)
+            #  3.4.5: Construir DTO (PSD verificado en __post_init__)
             spectral_data = SpectralFiedlerData(
                 laplacian      = L0,
                 eigenvalues    = eigenvalues,
@@ -1322,8 +1224,8 @@ class AlphaBoundaryAgent(Morphism):
             )
 
             logger.info(
-                "Análisis espectral: λ₁=%.4e, λ₂(Fiedler)=%.6f, "
-                "λ_max=%.4f, gap=%.4f, conexo=%s.",
+                "An lisis espectral:   =%.4e,   (Fiedler)=%.6f, "
+                " _max=%.4f, gap=%.4f, conexo=%s.",
                 float(eigenvalues[0]) if eigenvalues.size > 0 else 0.0,
                 fiedler, float(eigenvalues[-1]) if eigenvalues.size > 0 else 0.0,
                 spectral_gap, is_connected,
@@ -1332,9 +1234,9 @@ class AlphaBoundaryAgent(Morphism):
             return spectral_data
 
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # §4. CONSTRUCTOR Y MÉTODOS PÚBLICOS DEL AGENTE
-    # ─────────────────────────────────────────────────────────────────────────
+    #
+    #  4. CONSTRUCTOR Y M TODOS P BLICOS DEL AGENTE
+    #
 
     def __init__(
         self,
@@ -1353,7 +1255,7 @@ class AlphaBoundaryAgent(Morphism):
         if fiedler_threshold is not None:
             if not isinstance(fiedler_threshold, (int, float)):
                 raise PreconditionError(
-                    f"fiedler_threshold debe ser numérico, "
+                    f"fiedler_threshold debe ser num rico, "
                     f"recibido {type(fiedler_threshold).__name__}."
                 )
             if float(fiedler_threshold) <= 0.0:
@@ -1371,9 +1273,9 @@ class AlphaBoundaryAgent(Morphism):
             self._fiedler_threshold,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # §4.1 — Validación de entrada del orquestador
-    # ─────────────────────────────────────────────────────────────────────────
+    #
+    #  4.1   Validaci n de entrada del orquestador
+    #
 
     @staticmethod
     def _validate_orchestrator_input(
@@ -1400,7 +1302,7 @@ class AlphaBoundaryAgent(Morphism):
         if not isinstance(nodes, list):
             raise PreconditionError(
                 f"nodes debe ser list, recibido {type(nodes).__name__}. "
-                f"El BMC debe representarse como una lista de bloques semánticos."
+                f"El BMC debe representarse como una lista de bloques sem nticos."
             )
         if not isinstance(flows, list):
             raise PreconditionError(
@@ -1408,9 +1310,9 @@ class AlphaBoundaryAgent(Morphism):
                 f"Los flujos de valor deben representarse como una lista de aristas."
             )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # §4.2 — Orquestador principal (evaluate_business_canvas)
-    # ─────────────────────────────────────────────────────────────────────────
+    #
+    #  4.2   Orquestador principal (evaluate_business_canvas)
+    #
 
     def evaluate_business_canvas(
         self,
@@ -1454,29 +1356,29 @@ class AlphaBoundaryAgent(Morphism):
         EulerPoincareDegeneracyError : χ ≤ 0 (Veto 2).
         SpectralFragilityError       : λ₂ < threshold (Veto 3).
         """
-        # §4.2.1: Validación de tipos
+        #  4.2.1: Validaci n de tipos
         self._validate_orchestrator_input(nodes, flows)
 
         homology: Optional[HomologicalInvariants] = None
         spectral: Optional[SpectralFiedlerData]   = None
 
         try:
-            # ── Fase 1: Fibración Simplicial ─────────────────────────────────
+            #    Fase 1: Fibraci n Simplicial
             complex_data: SimplicialComplexData = (
                 self._Phase1_CanvasSimplicialFibrator
                 .project_canvas_to_simplicial_complex(nodes, flows)
             )
 
-            # ── Fase 2: Auditoría Homológica ──────────────────────────────────
+            #    Fase 2: Auditor a Homol gica
             homology = (
                 self._Phase2_HomologicalBettiAuditor
                 .audit_betti_invariants(complex_data)
             )
 
-            # [VETO AXIOMÁTICO 1]: Ciclos Tóxicos (β₁ > 0)
+            # [VETO AXIOM TICO 1]: Ciclos T xicos (   > 0)
             if homology.beta_1 > 0:
                 veto_msg = (
-                    f"Veto de Canibalización [β₁={homology.beta_1}]: "
+                    f"Veto de Canibalizaci n [  ={homology.beta_1}]: "
                     f"El 1-complejo K contiene {homology.beta_1} ciclo(s) independiente(s). "
                     f"Esto evidencia dependencias circulares irreducibles en el BMC. "
                     f"Reduzca |E| a |E| < |V| para eliminar los ciclos. "
@@ -1490,16 +1392,16 @@ class AlphaBoundaryAgent(Morphism):
                     veto_reason= veto_msg,
                     veto_class = ToxicCycleVetoError,
                 )
-                logger.critical("COLAPSO ESTRATO α — %s", veto_msg)
+                logger.critical("COLAPSO ESTRATO     %s", veto_msg)
                 raise ToxicCycleVetoError(veto_msg)
 
-            # [VETO AXIOMÁTICO 2]: Degeneración de Euler-Poincaré (χ ≤ 0)
+            # [VETO AXIOM TICO 2]: Degeneraci n de Euler-Poincar  (  <= 0)
             if homology.euler_characteristic <= 0:
                 veto_msg = (
-                    f"Veto de Degeneración [χ={homology.euler_characteristic}]: "
-                    f"La característica de Euler es ≤ 0, indicando que el modelo "
-                    f"tiene más flujos que bloques de valor (|E|≥|V|). "
-                    f"El espacio de negocio está topológicamente degenerado. "
+                    f"Veto de Degeneraci n [ ={homology.euler_characteristic}]: "
+                    f"La caracter stica de Euler es <= 0, indicando que el modelo "
+                    f"tiene m s flujos que bloques de valor (|E|>=|V|). "
+                    f"El espacio de negocio est  topol gicamente degenerado. "
                     f"|V|={complex_data.n_vertices}, |E|={complex_data.n_edges}."
                 )
                 self._last_verdict = AlphaBoundaryVerdict(
@@ -1509,25 +1411,25 @@ class AlphaBoundaryAgent(Morphism):
                     veto_reason= veto_msg,
                     veto_class = EulerPoincareDegeneracyError,
                 )
-                logger.critical("COLAPSO ESTRATO α — %s", veto_msg)
+                logger.critical("COLAPSO ESTRATO     %s", veto_msg)
                 raise EulerPoincareDegeneracyError(veto_msg)
 
-            # ── Fase 3: Auditoría Espectral ───────────────────────────────────
+            #    Fase 3: Auditor a Espectral
             spectral = (
                 self._Phase3_SpectralFiedlerAuditor
                 .audit_fiedler_connectivity(complex_data)
             )
 
-            # [VETO AXIOMÁTICO 3]: Fragilidad Espectral (λ₂ < threshold)
-            # Solo aplica si |V| ≥ 2 (para |V|=1 no existe λ₂)
+            # [VETO AXIOM TICO 3]: Fragilidad Espectral (   < threshold)
+            # Solo aplica si |V| >= 2 (para |V|=1 no existe   )
             if (complex_data.n_vertices >= 2
                     and spectral.fiedler_value < self._fiedler_threshold):
                 veto_msg = (
                     f"Veto de Fragilidad Espectral "
-                    f"[λ₂={spectral.fiedler_value:.6f} < "
-                    f"θ={self._fiedler_threshold}]: "
+                    f"[  ={spectral.fiedler_value:.6f} < "
+                    f" ={self._fiedler_threshold}]: "
                     f"La conectividad algebraica es insuficiente. "
-                    f"El grafo tiene un corte de Cheeger pequeño: posible SPOF. "
+                    f"El grafo tiene un corte de Cheeger peque o: posible SPOF. "
                     f"Gap espectral: {spectral.spectral_gap:.4f}. "
                     f"Conexo: {spectral.is_connected}."
                 )
@@ -1538,13 +1440,13 @@ class AlphaBoundaryAgent(Morphism):
                     veto_reason= veto_msg,
                     veto_class = SpectralFragilityError,
                 )
-                logger.critical("COLAPSO ESTRATO α — %s", veto_msg)
+                logger.critical("COLAPSO ESTRATO     %s", veto_msg)
                 raise SpectralFragilityError(veto_msg)
 
-            # ── Éxito: todas las auditorías superadas ─────────────────────────
+            #     xito: todas las auditor as superadas
             logger.info(
-                "Business Model Canvas superó la auditoría de Holonomía "
-                "de Euler-Poincaré: β₀=%d, β₁=%d, χ=%d, λ₂=%.6f.",
+                "Business Model Canvas super  la auditor a de Holonom a "
+                "de Euler-Poincar :   =%d,   =%d,  =%d,   =%.6f.",
                 homology.beta_0, homology.beta_1,
                 homology.euler_characteristic,
                 spectral.fiedler_value if spectral else 0.0,
@@ -1565,9 +1467,9 @@ class AlphaBoundaryAgent(Morphism):
             # ya fue asignado antes del raise. Re-propagamos sin modificar.
             raise
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # §4.3 — Protocolo Morphism (integración en la Malla Agéntica MIC)
-    # ─────────────────────────────────────────────────────────────────────────
+    #
+    #  4.3   Protocolo Morphism (integraci n en la Malla Ag ntica MIC)
+    #
 
     def __call__(self, state: CategoricalState) -> CategoricalState:
         r"""
@@ -1602,7 +1504,7 @@ class AlphaBoundaryAgent(Morphism):
 
         if not nodes or not flows:
             raise PreconditionError(
-                "El CategoricalState no contiene una topología BMC válida. "
+                "El CategoricalState no contiene una topolog a BMC v lida. "
                 "Se requieren 'bmc_nodes' (List[str]) y 'bmc_flows' "
                 "(List[Tuple[str,str,float]]) en state.payload."
             )
@@ -1618,9 +1520,9 @@ class AlphaBoundaryAgent(Morphism):
             stratum  = Stratum.ALPHA,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # §4.4 — Propiedades de diagnóstico de solo lectura
-    # ─────────────────────────────────────────────────────────────────────────
+    #
+    #  4.4   Propiedades de diagn stico de solo lectura
+    #
 
     @property
     def last_verdict(self) -> Optional[AlphaBoundaryVerdict]:
@@ -1640,9 +1542,9 @@ class AlphaBoundaryAgent(Morphism):
         return self._fiedler_threshold
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# EXPORTACIÓN CANÓNICA DEL ESTRATO α
-# ════════════════════════════════════════════════════════════════════════════════
+#
+# EXPORTACI N CAN NICA DEL ESTRATO
+#
 __all__ = [
     # Constantes
     "AlphaConstants",
@@ -1652,7 +1554,7 @@ __all__ = [
     "ToxicCycleVetoError",
     "EulerPoincareDegeneracyError",
     "SpectralFragilityError",
-    # DTOs topológicos
+    # DTOs topol gicos
     "SimplicialComplexData",
     "HomologicalInvariants",
     "SpectralFiedlerData",

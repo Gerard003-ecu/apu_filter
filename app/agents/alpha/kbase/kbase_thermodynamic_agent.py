@@ -1,89 +1,70 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : KBase Thermodynamic Agent (Asesor de Cimientos Financieros)         ║
-║ Ruta   : app/agents/alpha/kbase/kbase_thermodynamic_agent.py                 ║
-║ Versión: 2.0.0-PortHamiltonian-Sheaf-Phased-Strict                           ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ Naturaleza Ciber-Física y Topológica Diferencial                             ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  Este módulo consagra el Foso Termodinámico del ecosistema (K_{BASE}).       ║
-║  Actúa como un Endofuntor Port-Hamiltoniano que encapsula a los tres         ║
-║  mini-agentes de la base (P_{soc}, P_{rec}, P_{cost}) operando sobre el      ║
-║  espacio de Hilbert local H = L²(Ω, μ).                                      ║
-║                                                                              ║
-║  El sistema Port-Hamiltoniano en forma compacta es:                          ║
-║                                                                              ║
-║    ẋ = [J_{BASE} - R_{ext}] ∂H/∂x + G u                                      ║
-║    y  = G^⊤ ∂H/∂x                                                            ║
-║                                                                              ║
-║  donde:                                                                      ║
-║    • H(q,p) = ½ q^⊤ C_soc⁻¹ q  +  ½ p^⊤ M_rec⁻¹ p   (Hamiltoniano)          ║
-║    • J_{BASE} = -J_{BASE}^⊤                             (interconexión)     ║
-║    • R_{ext}  ⪰ 0                                       (disipación)        ║
-║    • C_soc    ≻ 0  (capacitancia de socios / almacenamiento de carga)       ║
-║    • M_rec    ≻ 0  (inercia de recuperación / inductancia generalizada)     ║
-║                                                                             ║
-║  Garantiza la conservación de masa y energía evaluando:                     ║
-║    1. Verificación espectral κ(A) y factorización de Cholesky.              ║
-║    2. Potencias de Rayleigh y desigualdad de disipación estricta.           ║
-║    3. Voltaje inductivo de Flyback ante fluctuaciones del cronograma.       ║
-║    4. Fibrado celular (Stalk) y cofrontera discreta δ_{BASE}.               ║
-║                                                                             ║
-║  Implementación estructurada en 3 FASES ANIDADAS de rigor creciente:        ║
-║    Fase 1 – Topología Matricial:  validación espectral, número de           ║
-║             condición, simetría normalizada y factorización de Cholesky.    ║
-║    Fase 2 – Dinámica Hamiltoniana: cálculo de energías, gradiente           ║
-║             eficiente con cho_solve, disipación de Rayleigh y flyback.      ║
-║    Fase 3 – Proyección en Haces: raíces espectrales exactas, ensamble       ║
-║             del Stalk y verificación de la propiedad δ² = 0.                ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-"""
++==============================================================================+
+| Módulo : KBase Thermodynamic Agent (Asesor de Cimientos Financieros)         |
+| Ruta   : app/agents/alpha/kbase/kbase_thermodynamic_agent.py                 |
+| Versión: 3.0.0-Rigorous-PortHamiltonian-PDE-Sheaf                            |
++==============================================================================+
 
+NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL:
+Este módulo consagra el Foso Termodinámico del ecosistema (K_{BASE}). Actúa como un
+Endofuntor Port-Hamiltoniano que gobierna la inercia, la capacitancia y la fricción
+entrópica del modelo de negocio, integrando sub-funtores de Socios, Recursos y Costes.
+
+DINÁMICA PORT-HAMILTONIANA Y TENSOR MÉTRICO:
+La energía total de la base no se asume euclidiana; se calcula aplicando un pullback
+geométrico contra el tensor métrico Riemanniano G_mu_nu para absorber el estrés
+anisotrópico del ecosistema:
+\[ \tilde{C}_{soc} = G_{\mu\nu} C_{soc} G^{\mu\nu}, \quad \tilde{M}_{rec} = G_{\mu\nu} M_{rec} G^{\mu\nu} \]
+
+HAMILTONIANO BASAL:
+\[ H_{BASE}(q,p) = \frac{1}{2} q^\top \tilde{C}_{soc}^{-1} q + \frac{1}{2} p^\top \tilde{M}_{rec}^{-1} p \]
+
+ECUACIÓN DE DISIPACIÓN DE RAYLEIGH:
+\[ \dot{H}_{diss} = -\nabla H^\top R_{cost}(x) \nabla H \le 0 \]
+"""
 from __future__ import annotations
 
-# ── Biblioteca estándar ──────────────────────────────────────────────────────
+#    Biblioteca est ndar
 import logging
 from typing import Optional, Tuple
 
-# ── Álgebra numérica de alta precisión ──────────────────────────────────────
+#     lgebra num rica de alta precisi n
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
-# ── Estructuras de datos inmutables ─────────────────────────────────────────
+#    Estructuras de datos inmutables
 from dataclasses import dataclass
 
-# ── Dependencias arquitectónicas del ecosistema APU Filter ──────────────────
+#    Dependencias arquitect nicas del ecosistema APU Filter
 try:
     from app.core.mic_algebra import CategoricalState, Morphism
 except ImportError:
-    # Stubs mínimos para ejecución aislada y prueba unitaria analítica
+    # Stubs m nimos para ejecuci n aislada y prueba unitaria anal tica
     class CategoricalState:  # type: ignore[no-redef]
-        """Stub: estado categórico del ecosistema MIC."""
+        """Stub: estado categ rico del ecosistema MIC."""
 
     class Morphism:  # type: ignore[no-redef]
         """Stub: morfismo funtorial del ecosistema MIC."""
 
 
-# ── Logger del módulo ────────────────────────────────────────────────────────
+#    Logger del m dulo
 logger = logging.getLogger("MIC.Alpha.KBaseThermodynamicAgent")
 
 
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  SECCIÓN 0 – EXCEPCIONES TERMODINÁMICAS ESTRICTAS                       ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+#    SECCI N 0   EXCEPCIONES TERMODIN MICAS ESTRICTAS
+#
 
 
 class ThermodynamicBaseError(Exception):
     """
-    Excepción categórica raíz para violaciones en el Estrato K_BASE.
+    Excepci n categ rica ra z para violaciones en el Estrato K_BASE.
 
-    Toda excepción de este módulo hereda de esta clase, garantizando que
+    Toda excepci n de este m dulo hereda de esta clase, garantizando que
     los manejadores de nivel superior puedan capturar cualquier fallo
-    termodinámico con un solo ``except ThermodynamicBaseError``.
+    termodin mico con un solo ``except ThermodynamicBaseError``.
     """
 
 
@@ -92,58 +73,58 @@ class DimensionMismatchError(ThermodynamicBaseError):
     Lanzada cuando las dimensiones de las matrices constitutivas son
     inconsistentes con el espacio de fases (q, p) declarado.
 
-    Ejemplo de inconsistencia: dim(C_soc) ≠ dim(q) o
-    dim(J_BASE) ≠ (dim_q + dim_p) × (dim_q + dim_p).
+    Ejemplo de inconsistencia: dim(C_soc)   dim(q) o
+    dim(J_BASE)   (dim_q + dim_p)   (dim_q + dim_p).
     """
 
 
 class CapacitanceDegeneracyError(ThermodynamicBaseError):
     """
     Lanzada cuando la matriz de socios C_soc o la inercia M_rec
-    no es Simétrica Definida Positiva (SPD).
+    no es Sim trica Definida Positiva (SPD).
 
-    Diagnóstico incluye el número de condición κ(A) y el autovalor
-    mínimo λ_min para facilitar la corrección numérica.
+    Diagn stico incluye el n mero de condici n  (A) y el autovalor
+    m nimo  _min para facilitar la correcci n num rica.
     """
 
 
 class InertialFlybackError(ThermodynamicBaseError):
     """
-    Lanzada cuando la inercia de recuperación genera un voltaje
-    transitorio de Flyback que excede el límite de ruptura dieléctrica.
+    Lanzada cuando la inercia de recuperaci n genera un voltaje
+    transitorio de Flyback que excede el l mite de ruptura diel ctrica.
 
-    Condición de disparo:  ‖ M_rec · (∂f/∂t) ‖_∞ > V_breakdown
+    Condici n de disparo:    M_rec   ( f/ t)  _  > V_breakdown
     """
 
 
 class RayleighDissipationViolation(ThermodynamicBaseError):
     """
-    Lanzada cuando el modelo disipativo indica entropía negativa
-    (ganancia fantasma), violando la Segunda Ley de la Termodinámica.
+    Lanzada cuando el modelo disipativo indica entrop a negativa
+    (ganancia fantasma), violando la Segunda Ley de la Termodin mica.
 
-    Condición de disparo:  ∇H^⊤ R_cost ∇H < −ε  (P_diss > ε > 0)
+    Condici n de disparo:   H^  R_cost  H < -   (P_diss >   > 0)
     """
 
 
 class IllConditionedMatrixError(ThermodynamicBaseError):
     """
-    Lanzada cuando el número de condición espectral κ(A) = σ_max/σ_min
-    supera el umbral configurable, indicando cuasi-singularidad numérica
-    que comprometería la estabilidad de todas las fases posteriores.
+    Lanzada cuando el n mero de condici n espectral  (A) =  _max/ _min
+    supera el umbral configurable, indicando cuasi-singularidad num rica
+    que comprometer a la estabilidad de todas las fases posteriores.
     """
 
 
 class SheafCoboundaryError(ThermodynamicBaseError):
     """
-    Lanzada cuando la cofrontera discreta δ_{BASE} no satisface la
-    condición de complejo de cadenas: δ_{BASE}² ≈ 0 (dentro de tolerancia
-    de máquina escalada por ‖δ_{BASE}‖²).
+    Lanzada cuando la cofrontera discreta  _{BASE} no satisface la
+    condici n de complejo de cadenas:  _{BASE}  ~= 0 (dentro de tolerancia
+    de m quina escalada por   _{BASE}  ).
     """
 
 
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  SECCIÓN 1 – ESTRUCTURAS INMUTABLES (DTOs TENSORIALES)                  ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+#    SECCI N 1   ESTRUCTURAS INMUTABLES (DTOs TENSORIALES)
+#
 
 
 @dataclass(frozen=True, slots=True)
@@ -296,10 +277,10 @@ class SheafStalk:
     rank_delta: int
 
 
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  SECCIÓN 2 – ORQUESTADOR: KBaseThermodynamicAgent                       ║
-# ║              Tres fases anidadas de rigor creciente                      ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+#    SECCI N 2   ORQUESTADOR: KBaseThermodynamicAgent
+#                Tres fases anidadas de rigor creciente
+#
 
 
 class KBaseThermodynamicAgent(Morphism):
@@ -389,7 +370,7 @@ class KBaseThermodynamicAgent(Morphism):
         self.breakdown_voltage: float = breakdown_voltage
         self.kappa_max: float = kappa_max
 
-        # ── Fase 1: Topología Matricial (ejecución inmediata) ────────────
+        #    Fase 1: Topolog a Matricial (ejecuci n inmediata)
         self.phase1: KBaseThermodynamicAgent.Phase1_MatrixTopology = (
             KBaseThermodynamicAgent.Phase1_MatrixTopology(
                 C_soc=C_soc,
@@ -401,7 +382,7 @@ class KBaseThermodynamicAgent(Morphism):
         )
         self.context: TopologicalContext = self.phase1.build_topological_context()
 
-        # ── Fase 2: Dinámica Hamiltoniana (instanciación inmediata) ──────
+        #    Fase 2: Din mica Hamiltoniana (instanciaci n inmediata)
         self.phase2: KBaseThermodynamicAgent.Phase2_HamiltonianDynamics = (
             KBaseThermodynamicAgent.Phase2_HamiltonianDynamics(
                 context=self.context,
@@ -409,12 +390,12 @@ class KBaseThermodynamicAgent(Morphism):
             )
         )
 
-        # ── Fase 3: Proyección en Haces (instanciación perezosa) ─────────
+        #    Fase 3: Proyecci n en Haces (instanciaci n perezosa)
         self.phase3: Optional[KBaseThermodynamicAgent.Phase3_SheafProjection] = None
 
         logger.info(
-            "[KBaseThermodynamicAgent] Inicialización completa. "
-            "dim_q=%d, dim_p=%d, κ(C_soc)=%.3e, κ(M_rec)=%.3e, rank(R)=%d",
+            "[KBaseThermodynamicAgent] Inicializaci n completa. "
+            "dim_q=%d, dim_p=%d,  (C_soc)=%.3e,  (M_rec)=%.3e, rank(R)=%d",
             self.context.dim_q,
             self.context.dim_p,
             self.context.kappa_C,
@@ -422,9 +403,9 @@ class KBaseThermodynamicAgent(Morphism):
             self.context.rank_R,
         )
 
-    # ═════════════════════════════════════════════════════════════════════════
-    # FASE 1 – TOPOLOGÍA MATRICIAL Y VALIDACIÓN ESPECTRAL
-    # ═════════════════════════════════════════════════════════════════════════
+    #
+    # FASE 1   TOPOLOG A MATRICIAL Y VALIDACI N ESPECTRAL
+    #
 
     class Phase1_MatrixTopology:
         r"""
@@ -453,7 +434,7 @@ class KBaseThermodynamicAgent(Morphism):
             tol_psd = -ε_mach * ‖A‖_F        (semidefinición positiva)
         """
 
-        # Precisión de máquina IEEE-754 double
+        # Precisi n de m quina IEEE-754 double
         _EPS: float = float(np.finfo(np.float64).eps)
 
         def __init__(
@@ -477,9 +458,9 @@ class KBaseThermodynamicAgent(Morphism):
             self._J_base: NDArray[np.float64] = J_base
             self._kappa_max: float = kappa_max
 
-        # ─────────────────────────────────────────────────────────────────
-        # Métodos privados de validación (orden lógico de ejecución)
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # M todos privados de validaci n (orden l gico de ejecuci n)
+        #
 
         def _check_dimensions(self) -> Tuple[int, int]:
             r"""
@@ -521,7 +502,7 @@ class KBaseThermodynamicAgent(Morphism):
             # Verificar R_cost
             if self._R_cost.shape != (n, n):
                 raise DimensionMismatchError(
-                    f"R_cost debe ser ({n},{n}) = (dim_q+dim_p)×(dim_q+dim_p), "
+                    f"R_cost debe ser ({n},{n}) = (dim_q+dim_p) (dim_q+dim_p), "
                     f"pero se obtuvo {self._R_cost.shape}. "
                     f"dim_q={dim_q}, dim_p={dim_p}."
                 )
@@ -529,7 +510,7 @@ class KBaseThermodynamicAgent(Morphism):
             # Verificar J_base
             if self._J_base.shape != (n, n):
                 raise DimensionMismatchError(
-                    f"J_base debe ser ({n},{n}) = (dim_q+dim_p)×(dim_q+dim_p), "
+                    f"J_base debe ser ({n},{n}) = (dim_q+dim_p) (dim_q+dim_p), "
                     f"pero se obtuvo {self._J_base.shape}."
                 )
 
@@ -562,19 +543,19 @@ class KBaseThermodynamicAgent(Morphism):
                 Con diagnóstico cuantitativo: ‖A − A^⊤‖_F / ‖A‖_F.
             """
             norm_A: float = float(la.norm(A, "fro"))
-            # Evitar división por cero para la matriz nula
+            # Evitar divisi n por cero para la matriz nula
             tol: float = self._EPS * max(norm_A, 1.0)
             residual: float = float(la.norm(A - A.T, "fro"))
 
             if residual > tol:
                 raise ThermodynamicBaseError(
-                    f"La matriz '{name}' no es simétrica. "
-                    f"‖A − A^⊤‖_F = {residual:.6e},  tol = {tol:.6e},  "
-                    f"simetría relativa = {residual / max(norm_A, 1e-300):.6e}."
+                    f"La matriz '{name}' no es sim trica. "
+                    f" A - A^  _F = {residual:.6e},  tol = {tol:.6e},  "
+                    f"simetr a relativa = {residual / max(norm_A, 1e-300):.6e}."
                 )
 
             logger.debug(
-                "[Fase1] Simetría de '%s' verificada: residual=%.3e, tol=%.3e.",
+                "[Fase1] Simetr a de '%s' verificada: residual=%.3e, tol=%.3e.",
                 name, residual, tol,
             )
 
@@ -600,17 +581,17 @@ class KBaseThermodynamicAgent(Morphism):
             """
             norm_J: float = float(la.norm(J, "fro"))
             tol: float = self._EPS * max(norm_J, 1.0)
-            # ‖J + J^⊤‖_F = ‖J − (−J^⊤)‖_F
+            #  J + J^  _F =  J - (-J^ ) _F
             residual: float = float(la.norm(J + J.T, "fro"))
 
             if residual > tol:
                 raise ThermodynamicBaseError(
-                    f"La matriz '{name}' no es antisimétrica (J ≠ -J^⊤). "
-                    f"‖J + J^⊤‖_F = {residual:.6e},  tol = {tol:.6e}."
+                    f"La matriz '{name}' no es antisim trica (J   -J^ ). "
+                    f" J + J^  _F = {residual:.6e},  tol = {tol:.6e}."
                 )
 
             logger.debug(
-                "[Fase1] Antisimetría de '%s' verificada: residual=%.3e, tol=%.3e.",
+                "[Fase1] Antisimetr a de '%s' verificada: residual=%.3e, tol=%.3e.",
                 name, residual, tol,
             )
 
@@ -638,32 +619,32 @@ class KBaseThermodynamicAgent(Morphism):
                 Si λ_min ≤ tol_pd (la matriz no es SPD).
             """
             # eigvalsh garantiza autovalores reales y ordenados ascendentemente
-            # para matrices simétricas reales (aprovecha la estructura LAPACK dsyevd)
+            # para matrices sim tricas reales (aprovecha la estructura LAPACK dsyevd)
             eigvals: NDArray[np.float64] = la.eigvalsh(A)
             lambda_min: float = float(eigvals[0])
             lambda_max: float = float(eigvals[-1])
 
-            # Tolerancia relativa para definición positiva
+            # Tolerancia relativa para definici n positiva
             tol_pd: float = self._EPS * lambda_max
 
             if lambda_min <= tol_pd:
                 raise CapacitanceDegeneracyError(
                     f"La matriz '{name}' no es Definida Positiva (SPD). "
-                    f"λ_min = {lambda_min:.6e}  ≤  tol_pd = {tol_pd:.6e}. "
-                    f"λ_max = {lambda_max:.6e}."
+                    f" _min = {lambda_min:.6e}  <=  tol_pd = {tol_pd:.6e}. "
+                    f" _max = {lambda_max:.6e}."
                 )
 
             kappa: float = lambda_max / lambda_min
             logger.debug(
-                "[Fase1] κ('%s') = %.6e  (λ_min=%.6e, λ_max=%.6e).",
+                "[Fase1]  ('%s') = %.6e  ( _min=%.6e,  _max=%.6e).",
                 name, kappa, lambda_min, lambda_max,
             )
 
             if kappa > self._kappa_max:
                 raise IllConditionedMatrixError(
-                    f"La matriz '{name}' está numéricamente mal condicionada. "
-                    f"κ = {kappa:.6e}  >  κ_max = {self._kappa_max:.6e}. "
-                    f"Considere regularización de Tikhonov o re-escalado."
+                    f"La matriz '{name}' est  num ricamente mal condicionada. "
+                    f"  = {kappa:.6e}  >   _max = {self._kappa_max:.6e}. "
+                    f"Considere regularizaci n de Tikhonov o re-escalado."
                 )
 
             return kappa, lambda_min, lambda_max
@@ -692,8 +673,8 @@ class KBaseThermodynamicAgent(Morphism):
             CapacitanceDegeneracyError
                 En el caso improbable de fallo numérico de LAPACK dpotrf.
             """
-            # Re-simetrización defensiva: proyecta A sobre el subespacio de matrices
-            # simétricas: A_sym = (A + A^⊤) / 2, eliminando errores de redondeo
+            # Re-simetrizaci n defensiva: proyecta A sobre el subespacio de matrices
+            # sim tricas: A_sym = (A + A^ ) / 2, eliminando errores de redondeo
             A_sym: NDArray[np.float64] = 0.5 * (A + A.T)
 
             try:
@@ -701,7 +682,7 @@ class KBaseThermodynamicAgent(Morphism):
             except la.LinAlgError as exc:
                 raise CapacitanceDegeneracyError(
                     f"Fallo de Cholesky (LAPACK dpotrf) en '{name}' "
-                    f"a pesar de validación espectral previa. "
+                    f"a pesar de validaci n espectral previa. "
                     f"Error LAPACK: {exc}"
                 ) from exc
 
@@ -762,33 +743,33 @@ class KBaseThermodynamicAgent(Morphism):
             if lambda_min < -tol_psd:
                 raise RayleighDissipationViolation(
                     f"La matriz '{name}' no es Semidefinida Positiva (PSD). "
-                    f"λ_min = {lambda_min:.6e}  <  -tol = {-tol_psd:.6e}. "
-                    f"Esto indica entropía negativa (ganancia fantasma): "
-                    f"violación de la Segunda Ley de la Termodinámica."
+                    f" _min = {lambda_min:.6e}  <  -tol = {-tol_psd:.6e}. "
+                    f"Esto indica entrop a negativa (ganancia fantasma): "
+                    f"violaci n de la Segunda Ley de la Termodin mica."
                 )
 
             # Forzar no-negatividad de autovalores por errores de redondeo
             eigvals_clamped: NDArray[np.float64] = np.maximum(eigvals, 0.0)
 
-            # Raíz cuadrada espectral
+            # Ra z cuadrada espectral
             R_sqrt: NDArray[np.float64] = (
                 eigvecs * np.sqrt(eigvals_clamped)[np.newaxis, :]
             ) @ eigvecs.T
-            # Re-simetrizar para eliminar asimetría numérica de O(ε)
+            # Re-simetrizar para eliminar asimetr a num rica de O( )
             R_sqrt = 0.5 * (R_sqrt + R_sqrt.T)
 
-            # Rango numérico: número de autovalores > tol_psd
+            # Rango num rico: n mero de autovalores > tol_psd
             rank_R: int = int(np.sum(eigvals_clamped > tol_psd))
 
             logger.debug(
-                "[Fase1] R_cost PSD verificada: rank=%d/%d, λ_min=%.3e, λ_max=%.3e.",
+                "[Fase1] R_cost PSD verificada: rank=%d/%d,  _min=%.3e,  _max=%.3e.",
                 rank_R, len(eigvals), lambda_min, float(eigvals[-1]),
             )
             return R_sqrt, rank_R
 
-        # ─────────────────────────────────────────────────────────────────
-        # Método terminal de la Fase 1 → entrada directa de la Fase 2
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # M todo terminal de la Fase 1   entrada directa de la Fase 2
+        #
 
         def build_topological_context(self) -> "TopologicalContext":
             r"""
@@ -819,33 +800,33 @@ class KBaseThermodynamicAgent(Morphism):
             TopologicalContext
                 Contexto topológico completo, inmutable y listo para la Fase 2.
             """
-            # ── Paso 1: Verificación dimensional ──────────────────────────
+            #    Paso 1: Verificaci n dimensional
             dim_q, dim_p = self._check_dimensions()
 
-            # ── Paso 2: Antisimetría de J_base ────────────────────────────
+            #    Paso 2: Antisimetr a de J_base
             self._validate_antisymmetry(self._J_base, "J_base")
 
-            # ── Paso 3: Simetría de matrices constitutivas ─────────────────
+            #    Paso 3: Simetr a de matrices constitutivas
             self._validate_symmetry(self._C_soc, "C_soc")
             self._validate_symmetry(self._M_rec, "M_rec")
             self._validate_symmetry(self._R_cost, "R_cost")
 
-            # ── Paso 4: Número de condición espectral ──────────────────────
+            #    Paso 4: N mero de condici n espectral
             kappa_C, _, _ = self._compute_condition_number(self._C_soc, "C_soc")
             kappa_M, _, _ = self._compute_condition_number(self._M_rec, "M_rec")
 
-            # ── Paso 5 & 6: Factorizaciones de Cholesky ───────────────────
+            #    Paso 5 & 6: Factorizaciones de Cholesky
             L_C: NDArray[np.float64] = self._cholesky_spd(self._C_soc, "C_soc")
             L_M: NDArray[np.float64] = self._cholesky_spd(self._M_rec, "M_rec")
 
-            # ── Paso 7: Validación PSD y raíz cuadrada de R_cost ──────────
+            #    Paso 7: Validaci n PSD y ra z cuadrada de R_cost
             R_sqrt: NDArray[np.float64]
             rank_R: int
             R_sqrt, rank_R = self._validate_psd_and_compute_sqrt(
                 self._R_cost, "R_cost"
             )
 
-            # ── Paso 8: Empaquetado del contexto topológico ───────────────
+            #    Paso 8: Empaquetado del contexto topol gico
             context = TopologicalContext(
                 L_C=L_C,
                 L_M=L_M,
@@ -861,19 +842,19 @@ class KBaseThermodynamicAgent(Morphism):
 
             logger.info(
                 "[Fase1] TopologicalContext ensamblado: "
-                "dim_q=%d, dim_p=%d, κ(C)=%.3e, κ(M)=%.3e, rank(R)=%d.",
+                "dim_q=%d, dim_p=%d,  (C)=%.3e,  (M)=%.3e, rank(R)=%d.",
                 dim_q, dim_p, kappa_C, kappa_M, rank_R,
             )
 
-            # ── Contrato de interfaz entre Fase 1 y Fase 2 ───────────────
+            #    Contrato de interfaz entre Fase 1 y Fase 2
             # La variable `context` es el argumento directo del constructor
-            # de Phase2_HamiltonianDynamics. Esta devolución es la frontera
+            # de Phase2_HamiltonianDynamics. Esta devoluci n es la frontera
             # formal entre ambas fases anidadas.
             return context
 
-    # ═════════════════════════════════════════════════════════════════════════
-    # FASE 2 – DINÁMICA HAMILTONIANA Y DISIPACIÓN DE RAYLEIGH
-    # ═════════════════════════════════════════════════════════════════════════
+    #
+    # FASE 2   DIN MICA HAMILTONIANA Y DISIPACI N DE RAYLEIGH
+    #
 
     class Phase2_HamiltonianDynamics:
         r"""
@@ -939,8 +920,8 @@ class KBaseThermodynamicAgent(Morphism):
             self._ctx: "TopologicalContext" = context
             self._breakdown_voltage: float = breakdown_voltage
 
-            # Cachés de factores Cholesky en formato cho_solve
-            # cho_solve espera la tupla (L, lower) para resolver A·x = b
+            # Cach s de factores Cholesky en formato cho_solve
+            # cho_solve espera la tupla (L, lower) para resolver A x = b
             self._cho_C: Tuple[NDArray[np.float64], bool] = (context.L_C, True)
             self._cho_M: Tuple[NDArray[np.float64], bool] = (context.L_M, True)
 
@@ -950,9 +931,9 @@ class KBaseThermodynamicAgent(Morphism):
                 breakdown_voltage, context.dim_q, context.dim_p,
             )
 
-        # ─────────────────────────────────────────────────────────────────
-        # Métodos privados de cálculo (mini-agentes originales, evolucionados)
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # M todos privados de c lculo (mini-agentes originales, evolucionados)
+        #
 
         def _evaluate_potential_energy(
             self,
@@ -991,21 +972,21 @@ class KBaseThermodynamicAgent(Morphism):
                     f"se obtuvo {q.shape}."
                 )
 
-            # y = L_C⁻¹ q  (sustitución hacia adelante, O(n²))
+            # y = L_C   q  (sustituci n hacia adelante, O(n ))
             y: NDArray[np.float64] = la.solve_triangular(
                 self._ctx.L_C, q, lower=True, check_finite=False
             )
 
-            # V(q) = ½ ‖y‖² = ½ y^⊤ y
+            # V(q) =    y   =   y^  y
             V_q: float = 0.5 * float(np.dot(y, y))
 
-            # ∂V/∂q = C_soc⁻¹ q = L_C^{-⊤} y  (sustitución hacia atrás, O(n²))
+            #  V/ q = C_soc   q = L_C^{- } y  (sustituci n hacia atr s, O(n ))
             # Equivalente a cho_solve pero reutilizando y ya calculado
             grad_V_q: NDArray[np.float64] = la.solve_triangular(
                 self._ctx.L_C, y, lower=True, trans="T", check_finite=False
             )
 
-            logger.debug("[Fase2] V(q) = %.6e,  ‖∇V‖ = %.6e.", V_q, float(np.linalg.norm(grad_V_q)))
+            logger.debug("[Fase2] V(q) = %.6e,    V  = %.6e.", V_q, float(np.linalg.norm(grad_V_q)))
             return V_q, grad_V_q
 
         def _compute_kinetic_energy(
@@ -1041,7 +1022,7 @@ class KBaseThermodynamicAgent(Morphism):
                 self._ctx.L_M, y, lower=True, trans="T", check_finite=False
             )
 
-            logger.debug("[Fase2] K(p) = %.6e,  ‖∇K‖ = %.6e.", K_p, float(np.linalg.norm(grad_K_p)))
+            logger.debug("[Fase2] K(p) = %.6e,    K  = %.6e.", K_p, float(np.linalg.norm(grad_K_p)))
             return K_p, grad_K_p
 
         def _enforce_rayleigh_dissipation(
@@ -1084,26 +1065,26 @@ class KBaseThermodynamicAgent(Morphism):
                     f"grad_H debe tener shape ({n},); se obtuvo {grad_H.shape}."
                 )
 
-            # R_cost · ∇H  (O(n²))
+            # R_cost    H  (O(n ))
             R_grad: NDArray[np.float64] = self._ctx.R_cost @ grad_H
 
-            # Forma cuadrática: ∇H^⊤ R ∇H
+            # Forma cuadr tica:  H^  R  H
             quad_form: float = float(np.dot(grad_H, R_grad))
 
-            # Tolerancia relativa: ε · ‖R‖_F · ‖∇H‖²
+            # Tolerancia relativa:      R _F     H
             norm_R: float = float(la.norm(self._ctx.R_cost, "fro"))
             norm_gH2: float = float(np.dot(grad_H, grad_H))
             tol_diss: float = float(np.finfo(np.float64).eps) * norm_R * norm_gH2
 
             if quad_form < -tol_diss:
                 logger.error(
-                    "[Fase2] Violación de Rayleigh: ∇H^⊤ R ∇H = %.6e < -tol = %.6e.",
+                    "[Fase2] Violaci n de Rayleigh:  H^  R  H = %.6e < -tol = %.6e.",
                     quad_form, -tol_diss,
                 )
                 raise RayleighDissipationViolation(
-                    f"Violación de la Segunda Ley de la Termodinámica. "
-                    f"∇H^⊤ R_cost ∇H = {quad_form:.6e}  <  -tol = {-tol_diss:.6e}. "
-                    f"La Estructura de Costes presenta generación de exergía espontánea."
+                    f"Violaci n de la Segunda Ley de la Termodin mica. "
+                    f" H^  R_cost  H = {quad_form:.6e}  <  -tol = {-tol_diss:.6e}. "
+                    f"La Estructura de Costes presenta generaci n de exerg a espont nea."
                 )
 
             P_diss: float = abs(quad_form)
@@ -1154,8 +1135,8 @@ class KBaseThermodynamicAgent(Morphism):
                     f"se obtuvo {df_dt.shape}."
                 )
 
-            # M_rec · v = L_M · (L_M^⊤ · v): dos operaciones triangulares O(n²)
-            # más eficientes y estables que reconstruir M_rec explícitamente.
+            # M_rec   v = L_M   (L_M^    v): dos operaciones triangulares O(n )
+            # m s eficientes y estables que reconstruir M_rec expl citamente.
             L_M_T_v: NDArray[np.float64] = self._ctx.L_M.T @ df_dt
             V_fb_vec: NDArray[np.float64] = self._ctx.L_M @ L_M_T_v
 
@@ -1163,26 +1144,26 @@ class KBaseThermodynamicAgent(Morphism):
 
             if v_fb_norm > self._breakdown_voltage:
                 logger.critical(
-                    "[Fase2] Golpe de Ariete Logístico: ‖V_fb‖_∞ = %.6e > V_bd = %.6e.",
+                    "[Fase2] Golpe de Ariete Log stico:  V_fb _  = %.6e > V_bd = %.6e.",
                     v_fb_norm, self._breakdown_voltage,
                 )
                 raise InertialFlybackError(
-                    f"Voltaje de Flyback ‖M_rec·∂f/∂t‖_∞ = {v_fb_norm:.6e} "
-                    f"excede la tensión de ruptura V_bd = {self._breakdown_voltage:.6e}. "
-                    f"Detención de emergencia exigida."
+                    f"Voltaje de Flyback  M_rec  f/ t _  = {v_fb_norm:.6e} "
+                    f"excede la tensi n de ruptura V_bd = {self._breakdown_voltage:.6e}. "
+                    f"Detenci n de emergencia exigida."
                 )
 
             logger.debug(
-                "[Fase2] ‖V_fb‖_∞ = %.6e (límite=%.6e, margen=%.1f%%).",
+                "[Fase2]  V_fb _  = %.6e (l mite=%.6e, margen=%.1f%%).",
                 v_fb_norm,
                 self._breakdown_voltage,
                 100.0 * (1.0 - v_fb_norm / self._breakdown_voltage),
             )
             return v_fb_norm
 
-        # ─────────────────────────────────────────────────────────────────
-        # Método terminal de la Fase 2 → entrada directa de la Fase 3
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # M todo terminal de la Fase 2   entrada directa de la Fase 3
+        #
 
         def synthesize_basal_state(
             self,
@@ -1220,29 +1201,29 @@ class KBaseThermodynamicAgent(Morphism):
             DimensionMismatchError, RayleighDissipationViolation, InertialFlybackError
                 Propagadas desde los métodos internos.
             """
-            # ── Energías y gradientes (cálculo unificado, O(n²)) ──────────
+            #    Energ as y gradientes (c lculo unificado, O(n ))
             V_q, grad_V_q = self._evaluate_potential_energy(q)
             K_p, grad_K_p = self._compute_kinetic_energy(p)
 
             H_total: float = V_q + K_p
 
-            # Gradiente completo ∇H = [∂H/∂q; ∂H/∂p] ∈ ℝ^{dim_q + dim_p}
+            # Gradiente completo  H = [ H/ q;  H/ p]    ^{dim_q + dim_p}
             grad_H: NDArray[np.float64] = np.concatenate([grad_V_q, grad_K_p])
             grad_H_norm: float = float(la.norm(grad_H, 2))
 
-            # ── Disipación de Rayleigh ─────────────────────────────────────
+            #    Disipaci n de Rayleigh
             P_diss: float = self._enforce_rayleigh_dissipation(grad_H)
 
-            # ── Voltaje de Flyback ─────────────────────────────────────────
+            #    Voltaje de Flyback
             v_fb: float = self._measure_flyback_voltage(df_dt)
 
             logger.info(
                 "[Fase2] Estado basal: H=%.6e, V=%.6e, K=%.6e, "
-                "P_diss=%.6e, ‖V_fb‖_∞=%.6e, ‖∇H‖=%.6e.",
+                "P_diss=%.6e,  V_fb _ =%.6e,   H =%.6e.",
                 H_total, V_q, K_p, P_diss, v_fb, grad_H_norm,
             )
 
-            # ── Contrato de interfaz entre Fase 2 y Fase 3 ───────────────
+            #    Contrato de interfaz entre Fase 2 y Fase 3
             # El tensor devuelto contiene state_vector=np.concatenate([q,p])
             # que es el argumento directo de Phase3_SheafProjection.export_stalk().
             return BasalStateTensor(
@@ -1255,9 +1236,9 @@ class KBaseThermodynamicAgent(Morphism):
                 is_thermodynamically_stable=True,
             )
 
-    # ═════════════════════════════════════════════════════════════════════════
-    # FASE 3 – PROYECCIÓN EN HACES Y COFRONTERA DISCRETA
-    # ═════════════════════════════════════════════════════════════════════════
+    #
+    # FASE 3   PROYECCI N EN HACES Y COFRONTERA DISCRETA
+    #
 
     class Phase3_SheafProjection:
         r"""
@@ -1319,24 +1300,24 @@ class KBaseThermodynamicAgent(Morphism):
             """
             self._ctx: "TopologicalContext" = context
 
-            # ── Sub-matriz (1,1): C_soc^{-1/2} = L_C^{-⊤} ────────────────
+            #    Sub-matriz (1,1): C_soc^{-1/2} = L_C^{- }
             # L_C es triangular inferior con diagonal positiva, por lo que
-            # su inversa es triangular inferior y L_C^{-⊤} = (L_C^{-1})^⊤
-            # es triangular superior. Se calcula como la solución de L_C · X = I.
+            # su inversa es triangular inferior y L_C^{- } = (L_C^{-1})^
+            # es triangular superior. Se calcula como la soluci n de L_C   X = I.
             n_q: int = context.dim_q
             I_q: NDArray[np.float64] = np.eye(n_q, dtype=np.float64)
             # L_C^{-1} (triangular inferior)
             L_C_inv: NDArray[np.float64] = la.solve_triangular(
                 context.L_C, I_q, lower=True, check_finite=False
             )
-            # C_soc^{-1/2} = L_C^{-⊤} (triangular superior)
+            # C_soc^{-1/2} = L_C^{- } (triangular superior)
             self._C_soc_inv_half: NDArray[np.float64] = L_C_inv.T
 
-            # ── Sub-matriz (2,2): R_cost^{+1/2} precalculada en Fase 1 ────
+            #    Sub-matriz (2,2): R_cost^{+1/2} precalculada en Fase 1
             self._R_sqrt: NDArray[np.float64] = context.R_sqrt
 
-            # ── Rango total de δ_{BASE} ───────────────────────────────────
-            # C_soc^{-1/2} es cuadrada y no singular (dim_q × dim_q, rango pleno)
+            #    Rango total de  _{BASE}
+            # C_soc^{-1/2} es cuadrada y no singular (dim_q   dim_q, rango pleno)
             # R_cost^{+1/2} tiene rango igual a rank_R
             self._rank_delta: int = n_q + context.rank_R
 
@@ -1371,10 +1352,10 @@ class KBaseThermodynamicAgent(Morphism):
 
             delta: NDArray[np.float64] = np.zeros((n, n), dtype=np.float64)
 
-            # Bloque (1,1): C_soc^{-1/2} ∈ ℝ^{dim_q × dim_q}
+            # Bloque (1,1): C_soc^{-1/2}    ^{dim_q   dim_q}
             delta[:dim_q, :dim_q] = self._C_soc_inv_half
 
-            # Bloque (2,2): R_cost^{+1/2} ∈ ℝ^{dim_p × dim_p}
+            # Bloque (2,2): R_cost^{+1/2}    ^{dim_p   dim_p}
             delta[dim_q:, dim_q:] = self._R_sqrt
 
             return delta
@@ -1405,14 +1386,14 @@ class KBaseThermodynamicAgent(Morphism):
             dim_q: int = self._ctx.dim_q
             n: int = dim_q + self._ctx.dim_p
 
-            # Métrica local de Hodge esperada
+            # M trica local de Hodge esperada
             Hodge_local: NDArray[np.float64] = np.zeros((n, n), dtype=np.float64)
-            # C_soc⁻¹ = (L_C^{-⊤})^⊤ · L_C^{-⊤} = L_C⁻¹ · L_C^{-⊤}
+            # C_soc   = (L_C^{- })^    L_C^{- } = L_C     L_C^{- }
             Hodge_local[:dim_q, :dim_q] = self._C_soc_inv_half.T @ self._C_soc_inv_half
-            # R_cost = R_sqrt · R_sqrt  (propiedad de la raíz espectral)
+            # R_cost = R_sqrt   R_sqrt  (propiedad de la ra z espectral)
             Hodge_local[dim_q:, dim_q:] = self._R_sqrt @ self._R_sqrt
 
-            # Computar δ^⊤ δ
+            # Computar  ^
             delta_T_delta: NDArray[np.float64] = delta.T @ delta
             residual_F: float = float(la.norm(delta_T_delta - Hodge_local, "fro"))
             norm_delta_sq: float = float(la.norm(delta, "fro") ** 2)
@@ -1422,24 +1403,24 @@ class KBaseThermodynamicAgent(Morphism):
 
             if rel_error > tol_metric:
                 raise SheafCoboundaryError(
-                    f"δ_{'{'}BASE{'}'} no satisface la identidad de Hodge local. "
-                    f"‖δ^⊤δ − Hodge_local‖_F / ‖δ‖_F² = {rel_error:.6e} "
+                    f" _{'{'}BASE{'}'} no satisface la identidad de Hodge local. "
+                    f"  ^   - Hodge_local _F /    _F  = {rel_error:.6e} "
                     f"> tol = {tol_metric:.6e}."
                 )
 
             logger.debug(
-                "[Fase3] Métrica de Hodge verificada: rel_error=%.3e, tol=%.3e.",
+                "[Fase3] M trica de Hodge verificada: rel_error=%.3e, tol=%.3e.",
                 rel_error, tol_metric,
             )
 
             # Para compatibilidad con SheafStalk.delta_base_sq_norm
-            # devolvemos ‖δ · δ‖_F como medida de "cuánto se aleja de δ²=0 global"
+            # devolvemos        _F como medida de "cu nto se aleja de   =0 global"
             delta_sq: NDArray[np.float64] = delta @ delta
             return float(la.norm(delta_sq, "fro"))
 
-        # ─────────────────────────────────────────────────────────────────
-        # Método terminal de la Fase 3 (salida pública del ecosistema)
-        # ─────────────────────────────────────────────────────────────────
+        #
+        # M todo terminal de la Fase 3 (salida p blica del ecosistema)
+        #
 
         def export_stalk(
             self,
@@ -1486,22 +1467,22 @@ class KBaseThermodynamicAgent(Morphism):
                     f"se obtuvo {state_x.shape}."
                 )
 
-            # ── Ensamble y verificación de δ_{BASE} ───────────────────────
+            #    Ensamble y verificaci n de  _{BASE}
             delta_base: NDArray[np.float64] = self._assemble_coboundary()
             delta_sq_norm: float = self._verify_coboundary_metric(delta_base)
 
-            # ── Proyección del estado sobre la fibra ──────────────────────
+            #    Proyecci n del estado sobre la fibra
             projected: NDArray[np.float64] = delta_base @ state_x
 
             logger.info(
                 "[Fase3] SheafStalk exportado: rank_delta=%d, "
-                "‖δ²‖_F=%.3e, ‖δ·x‖=%.6e.",
+                "    _F=%.3e,    x =%.6e.",
                 self._rank_delta,
                 delta_sq_norm,
                 float(la.norm(projected, 2)),
             )
 
-            # ── Contrato de salida del agente completo ────────────────────
+            #    Contrato de salida del agente completo
             # El SheafStalk es el output final de la cadena de 3 fases.
             return SheafStalk(
                 delta_base=delta_base,
@@ -1511,9 +1492,9 @@ class KBaseThermodynamicAgent(Morphism):
                 rank_delta=self._rank_delta,
             )
 
-    # ═════════════════════════════════════════════════════════════════════════
-    # INTERFAZ PÚBLICA DEL AGENTE (punto de entrada externo)
-    # ═════════════════════════════════════════════════════════════════════════
+    #
+    # INTERFAZ P BLICA DEL AGENTE (punto de entrada externo)
+    #
 
     def synthesize_basal_hamiltonian(
         self,
