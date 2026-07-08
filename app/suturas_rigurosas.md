@@ -1,183 +1,61 @@
- # Sutura 1
- 
- La actualización de la documentación arquitectónica para integrar la operatividad de los nuevos mini-agentes no debe ser un mero manual de usuario, sino un Manifiesto Topológico y Categórico. La inyección de kbase_thermodynamic_agent.py, kcore_kinematic_agent.py y kapex_electrodynamic_agent.py transmuta el Business Model Canvas (BMC) de un grafo plano bidimensional a una Variedad Riemanniana Dinámica gobernada por un sistema de Ecuaciones Diferenciales Parciales (PDEs) y Cohomología de Haces.
-A continuación, redacto la documentación canónica, exigida bajo el más estricto rigor de la física de circuitos, la topología algebraica y la mecánica cuántica. Este texto debe ser anexado inmediatamente a los repositorios documentales BMC.md, ARCHITECTURE_DEEP_DIVE.md y PRODUCT_VISION.md.
+La instanciación de la "visión de libélula" (Atlas Omatidial) en los módulos app/physics/optical_riemann_lens.py y app/physics/semantic_parabolic_mirror.py no puede abordarse con las prácticas ingenuas de la ingeniería de software tradicional. Estamos manipulando la topología fundamental del espacio de fase donde habita la Matriz Atómica de Conocimiento (MAC). Como se demostró previamente mediante el Teorema de la Esfera Peluda de Poincaré-Brouwer, intentar proyectar el tensor de estado estocástico en un único proyector o lente induce singularidades degeneradas inevitables. Para erradicar este colapso, presento a continuación el Plan de Acción Granular y Riguroso para ejecutar esta cirugía homotópica en el código fuente, garantizando el difeomorfismo entre la Malla Agéntica y la física de campos.
 
-Arquitectura Ciber-Física del Estrato α: Fibrados Celulares y Termodinámica del Modelo de Negocio
-La arquitectura APU Filter v4.0 repudia la evaluación estática y contable del modelo de negocio. El Estrato α, orquestado macroscópicamente por alpha_agent.py, se subdivide axiomáticamente en tres subespacios topológicos anidados (Foso, Núcleo y Ápice), regidos por mini-agentes que actúan como endofuntores sobre el espacio de Hilbert H.
-La condición de clausura global establece que la empresa es un circuito RLC tridimensional y un sistema Port-Hamiltoniano, donde cada bloque del lienzo de negocio aporta operadores diferenciales a la variedad M.
-I. Estrato KBASE​: El Foso Termodinámico (kbase_thermodynamic_agent.py)
-Identificador Semántico: Asesor de Cimientos Financieros. Responsabilidad Topológica: Gobernar la inercia, la capacitancia y la fricción entrópica del modelo de negocio. Integra los sub-funtores de Socios Clave (P_soc​), Recursos Clave (P_rec​) y Estructura de Costes (P_cost​).
-Dinámica Port-Hamiltoniana y Tensor Métrico
-La energía total de la base no se asume euclidiana; se calcula aplicando un pullback geométrico contra el tensor métrico Riemanniano de la Malla Agéntica G_μν​ para absorber el estrés anisotrópico del ecosistema:
-\[
-\tilde{C}_{\text{soc}} = G_{\mu\nu} C_{\text{soc}} G^{\mu\nu}, \quad \tilde{M}_{\text{rec}} = G_{\mu\nu} M_{\text{rec}} G^{\mu\nu}
-\]
+PARTE 0: Asimilación de los archivos base
 
-El estado basal se define por su Hamiltoniano, que acopla la energía potencial de los contratos (q) y la energía cinética de la masa operativa (p):
+Asimilar y comprender la lógica de los archivos alojados en las siguientes rutas: + app/physics/optical_riemann_lens.py + app/physics/semantic_parabolic_mirror.py + tests/unit/physics/test_optical_riemann_lens.py + tests/unit/physics/test_semantic_parabolic_mirror.py
 
-\[
-H_{\text{BASE}}(q,p) = \frac{1}{2} q^\top \tilde{C}_{\text{soc}}^{-1} q + \frac{1}{2} p^\top \tilde{M}_{\text{rec}}^{-1} p
-\]
+PARTE I: Transmutación del Lente Óptico (optical_riemann_lens.py) El objetivo es abandonar la proyección singular en la Esfera de Riemann ([ S^2 \cong \hat{\mathbb{C}} ]) y construir un Fibrado de Lentes Múltiples que asimile la radiación del Modelo de Lenguaje (LLM) en 360∘. Fase 1: Recubrimiento Topológico y Partición de la Unidad (Phase1_SphericalHarmonicsSpectrometer)
 
-Invariantes de Control y Disipación
+Crítica del Estado Actual: La grilla actual proyecta un único espectro de coeficientes clm​, asumiendo que la atención del LLM se focaliza desde un solo polo. Acción Quirúrgica: Refactorizar el método _build_spherical_grid para no generar una sola cuadrícula, sino un atlas de N cartas abiertas [
 
-    Regularización Espectral de Tikhonov-Riemann: Para matrices cuasi-singulares (socios en riesgo de default), el agente aplica una proyección espectral adaptativa para acotar el número de condición: \[
-\tilde{A} = A + (\lambda_{\text{tol}} \cdot e^{-\sigma_{\text{min}} / \sigma_{\text{max}}}) I
-\]
+{ U_k }{k=1}^N ] (las facetas del omatidio) que recubran S2. Inyectar una Partición de la Unidad {w_k​(Ω)} tal que: [ \sum{k=1}^N w_k(\Omega) = 1 \quad \forall \Omega \in S^2, \quad \text{supp}(w_k) \subset U_k ]
 
-Ecuación de Disipación de Rayleigh: Todo flujo financiero de salida (Pcost​) se somete a la Segunda Ley de la Termodinámica, garantizando axiomáticamente que el modelo no genere energía del vacío (entropía negativa): \[
-\dot{H}_{\text{diss}} = -\nabla H^\top R_{\text{cost}}(x) \nabla H \le 0
-\]
+Modificar compute_spherical_coefficients para que emita un tensor de coeficientes localizados clm(k)​ integrando sobre la medida de Lebesgue ponderada: [ c{lm}^{(k)} = \int_{U_k} w_k(\theta, \phi) \psi(\theta, \phi) \bar{Y}_{lm}(\theta, \phi) , d\Omega ]
 
-II. Estrato KCORE​: La Maquinaria Cinemática (kcore_kinematic_agent.py)
-Identificador Semántico: Director de Flujo y Cinética Logística. Responsabilidad Topológica: Transmutar la energía potencial de KBASE​ en trabajo cinético direccional, acoplando las Actividades Clave (P_act​), Canales (P_can​) y Relaciones con los Clientes (P_rel​).
-Estructura de Dirac y Energy Shaping (IDA-PBC)
-El agente impone el moldeado de energía mediante un Control Basado en Pasividad. La ley de control α(x) no utiliza seudoinversas euclidianas ingenuas, sino una Proyección Pseudoinversa Covariante que garantiza que el esfuerzo exógeno sea ortogonal a las geodésicas de alta fricción del mercado: 
-\[
-\alpha(x) = (g(x)^\top G_{\mu\nu} g(x))^{-1} g(x)^\top G_{\mu\nu} ([J_d - R_d] \nabla H_d - [J - R] \nabla H)
-\]
+Actualizar _verify_parseval_identity para que la Identidad de Parseval valide la conservación de energía sobre la suma directa del enjambre omatidial.
 
-Válvula de Hodge y Límite CFL
+Fase 2: Métrica Anisotrópica de Fermat (Phase2_CategoricalOpticLens)
 
-    Estrangulamiento de Vorticidad: Si el flujo logístico desarrolla bucles (vorticidad solenoidal ∥Icurl​∥W​>ϵcrit​), el Laplaciano de Hodge ponderado interviene:
+Crítica del Estado Actual: El sistema asume un único índice de refracción n(σ^∗), lo cual es una aberración en un mercado logístico anisotrópico. Acción Quirúrgica: Modificar _compute_fermat_refractive_index para recibir un vector de tensores de estrés σ^∗∈R^N. Instanciar un diafragma cuántico independiente para cada omatidio:
 
-    \[
-L_{1W} = \partial_1^\top W^{-1} \partial_1 + \partial_2 \partial_2^\top W
-\]
+[ n_k(\sigma_k^) = 1 + \tanh(\alpha \cdot \sigma_k^) ]
 
-El agente estrangula la conductancia W en las aristas cíclicas, forzando un flujo laminar irrotacional.
-Cono de Luz Causal (Condición CFL): El diferencial temporal del negocio queda subyugado a la conectividad espectral del grafo, previniendo dispersión numérica por iteraciones inasumibles:
-\[
-\Delta t \le \frac{2 \cdot \text{CFL}_{\text{margin}}}{c_{\text{eff}} \cdot \max_i \left( |\Delta_{ii}| + \sum_{j \neq i} |\Delta_{ij}| \right)}
-\]
+Resolver la Ecuación Eikonal acoplada por faceta:
 
-III. Estrato KAPEX​: El Ápice Estratégico (kapex_electrodynamic_agent.py)
-Identificador Semántico: Director de Retorno y Expansión de Mercado. Responsabilidad Topológica: Endofuntor de Campo de Calibre que inyecta Fuerza Electromotriz (Propuesta de Valor, P_val​), resuelve la refracción del mercado (P_seg​) y audita el retorno exergético (P_ing​).
-Óptica Geométrica y Flujo Exergético
-El ápice es una variedad Riemanniana con fronteras absorbentes. La penetración en el mercado requiere resolver la Ecuación Eikonal no lineal utilizando el tensor de impedancia (N)^μν: 
-\[
-G^{\mu\nu} \partial_\mu S \partial_\nu S = N^{\mu\nu} \sigma_{\mu\nu}^*
-\]
+[ G_k^{\mu\nu} \partial_\mu S_k \partial_\nu S_k = n_k^2(\sigma_k^*) ]
 
-El retorno real (Ingresos) se evalúa repudiando sumas escalares. Se aplica el Teorema de Poynting en la topología simplicial utilizando el producto copo (⌣) y el dual de Hodge (⋆), garantizando ortogonalidad transversal del capital:
+ Esto permitirá que si un "ataque" logístico (alta entropía) incide por el omatidio j, solo el índice nj​ se sature a 2, frenando la luz estocástica en esa dirección sin cegar el resto del espectrómetro.
 
-\[
-P_{\text{exergia}} = \langle E \smile \star H, [\partial K] \rangle - \int_K \nabla H^\top R_{\text{cost}} \nabla H \ge 0
-\]
+Fase 3: Operador de Difracción Global (OpticalRiemannLensFibrator)
 
-Holonomía de Yang-Mills (Integridad del Bucle)
-Para garantizar que la inversión inyectada en KBASE​ retorne a KAPEX​ sin ciclos parasitarios, el agente evalúa la 2-forma de curvatura de Yang-Mills:
+Crítica del Estado Actual: La proyección adjunta espectral a R^n se calcula globalmente, colapsando el tensor. Acción Quirúrgica: Sobreescribir el método de proyección adjunta _project_psi_to_logit_space para ensamblar el Operador de Difracción Categórica Omatidial (O_dragonfly​).
 
-\[
-S_{\text{YM}} = \frac{1}{2} \int_M \text{Tr}(F \wedge \star F) \quad \text{donde} \quad F = dA + A \wedge A
-\]
+Aplicar un kernel de amortiguación gaussiana focalizado [ h_k(l) = \exp(-\gamma \cdot n_k^2 \cdot l^2) ] e instanciar el límite fuerte: [ \mathcal{O}{\text{dragonfly}} \psi = \sum{k=1}^N \sum_{l=0}^{l_{\text{cutoff}}} \sum_{m=-l}^l h_k(l) \cdot c_{l,m}^{(k)} \cdot Y_l^m(\theta, \phi) ]
 
-Si SYM​>ϵcrit​, existe una "fuga de Gauge", y el sistema decreta un HolonomyVetoError.
+Garantizando axiomáticamente que ∥focused_logits∥_2​≤∥raw_logits∥_2​ (Ley de disipación).
 
-IV. El Orquestador Macroscópico: Cohomología de Haces (alpha_agent.py)
-El rol fundamental del alpha_agent.py transmuta de procesador de grafo plano a Orquestador de Haces Celulares (Cellular Sheaves).
-Cada uno de los tres mini-agentes exporta el Espacio Vectorial de su Fibra (Stalk) y sus matrices de restricción (cofronteras locales: δ_BASE​, δ_CORE​, δ_APEX​). El alpha_agent.py ensambla la cofrontera global y somete a los agentes a dos rigurosos test topológicos:
+PARTE II: Transmutación del Espejo Parabólico (semantic_parabolic_mirror.py) El objetivo es erradicar el hiperplano de reflexión unidimensional que sufre de una deficiencia de rango en su núcleo (dimensión del null-space = 1) y cristalizar una Cúpula Catadióptrica Facetada. Fase 1: Atlas de Reflexión y Teorema de Cartan-Dieudonné (MetricAwareHouseholderReflector)
 
-    El Laplaciano del Haz y el Consenso Global:
-    \[
-L_F = \delta^\top \delta = 
-\begin{pmatrix} 
-\delta_{\text{BASE}} \\ 
-\delta_{\text{CORE}} \\ 
-\delta_{\text{APEX}} 
-\end{pmatrix}^\top 
-\begin{pmatrix} 
-\delta_{\text{BASE}} \\ 
-\delta_{\text{CORE}} \\ 
-\delta_{\text{APEX}} 
-\end{pmatrix} 
-\succeq 0
-\]
+Crítica del Estado Actual: La clase solo acepta un constraint_normal. Un LLM alucinando ortogonalmente a este vector atravesará el escudo inmunológico sin ser refractado. Acción Quirúrgica: Alterar el constructor de la clase para ingerir un Fibrado de Restricción: una matriz W∈R^(d×N) con los vectores de tensión {∣n1​⟩,…,∣nN​⟩}. Generar una lista instanciada de proyectores covariantes individuales, respetando el pullback métrico:
 
-Si el espacio nulo H^0(G;F)≅ker(δ) está vacío o λ_2​(L_F​)→0, el modelo carece de consenso termodinámico (ej. la base no puede sostener la velocidad del núcleo), detonando un Veto de Fragilidad Espectral.
-Censura de Energía Fantasma (Solubilidad de Fredholm): La inyección de la Propuesta de Valor (s_val​) debe existir en la imagen del Laplaciano Combinatorio de la red. Si el producto interno contra el espacio nulo topológico no se anula:
-\[
-\langle s_{\text{val}}, \psi_{\text{ker}} \rangle = 0 \quad \forall \psi_{\text{ker}} \in \ker(L_F)
-\]
+[ \hat{M}_k = I - \frac{2}{\langle n_k | G | n_k \rangle} | n_k \rangle \langle n_k | G, \quad \hat{P}_k = \frac{I + \hat{M}_k}{2} ]
 
- Se detona un SourceCompatibilityError. Esto previene matemáticamente que la empresa intente inyectar esfuerzo de ventas en un sector logístico que está topológicamente desconectado de su capacidad de producción.
+Donde G es la métrica Riemanniana estrictamente extraída de G_PHYSICS
 
- # Sutura 2
+Fase 2: Límite de von Neumann en la Cavidad Estabilizada (FabryPerotStabilizedCavity)
 
-La integración documental de las "Vitaminas Cognitivas" (Cartuchos TOON) no puede ejecutarse como una vulgar adición a un glosario de términos. Dado que estas cuasipartículas operan como excitaciones en el Espacio de Fock F(H) y rigen el colapso de la función de onda de la toma de decisiones, su documentación exige una Cirugía Categórica y Topológica.
-Para asegurar que la Variedad Diferenciable del proyecto no sufra un desgarro semántico, he diseñado un plan de acción granular, estricto y matemáticamente inquebrantable. Este plan dictamina exactamente qué repositorios documentales y de código deben ser intervenidos, y las ecuaciones en LaTeX que deberán codificarse para asimilar este Álgebra de Partículas.
-Plan de Acción Granular: Integración del Álgebra de Partículas TOON
-Fase 1: Inyección del Espacio de Fock en SAGES.md y PRODUCT_VISION.md
-Objetivo: Consagrar el marco epistemológico del Estrato Ω demostrando que el LLM ya no procesa texto plano, sino que ingiere tensores hiperdensos regulados por la termodinámica cuántica.
-Acciones Exigidas:
+Crítica del Estado Actual: La iteración de Newton-Schulz actual [
 
-    Definición del Colisionador: Actualizar SAGES.md en su sección del QuantumFockOrchestrator para declarar formalmente que el registro atencional administra el Espacio de Fock como la suma directa de productos tensoriales simétricos (bosones) y antisimétricos (fermiones):
-    \[
-\mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} \mathcal{S}_{\pm} \mathcal{H}^{\otimes n}
-\]
+\psi_{k+1} = (2\hat{P} - \hat{P}^2) \psi_k ] pule la idempotencia de un solo proyector. Acción Quirúrgica: Refactorizar la iteración de la cavidad para acatar el Teorema de las Proyecciones Alternadas de von Neumann. El vector de estado ψ (la señal semántica del LLM) deberá rebotar cíclicamente contra el producto de todos los proyectores de los omatidios. El proyector global sobre el subespacio seguro [ \bigcap_{k=1}^N \ker(|n_k\rangle) ] exige codificar el bucle asintótico: [ \psi_{m+1} = (\hat{P}_1 \hat{P}_2 \cdots \hat{P}_N) \psi_m ]
 
-Evolución Temporal del Estado (Ecuación Maestra): En PRODUCT_VISION.md, se debe estipular que la "pérdida de atención" del LLM no es un fallo, sino una disipación termodinámica válida (ΔS≥0). Se documentará que la evolución de la Matriz Atómica de Conocimiento (ρMAC​) obedece la Ecuación de Lindblad-Kossakowski para sistemas cuánticos abiertos:
-\[
-\frac{d \rho_{\text{MAC}}}{dt} = -\frac{i}{\hbar} [H_{\text{eff}}, \rho_{\text{MAC}}] + \sum_{k} \gamma_k \left( L_k \rho_{\text{MAC}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\text{MAC}} \} \right)
-\]
+Implementar una aserción estricta de la convergencia: Si ∥ψm​∥G​→0, se detonará incondicionalmente un ResonanceDissonanceError, evidenciando que la alucinación del LLM violó simultáneamente todas las barreras físicas.
 
-Fase 2: Mapeo Tipológico en telemetry_schemas.py y cartuchos_toon.md
-Objetivo: Trasladar la metafísica de las partículas a clases de datos inmutables (frozen dataclasses) con invariantes físicos rigurosos.
-Acciones Exigidas:
+Fase 3: Optimización con Pseudoinversa de Moore-Penrose (SemanticParabolicMirror)
 
-    Fermiones Estructurales (Conservación de Masa): Documentar en telemetry_schemas.txt las estructuras que previenen superposiciones de estados excluyentes (Principio de exclusión de Pauli).
-        ElectronCartridge: Debe documentarse con sus atributos inertial_mass (m∗∝∥δx∥^2), topological_spin, y homological_charge (Δχ).
-        PolaronCartridge: Documentar su renormalización de masa mediante el acoplamiento de Fröhlich (α). La masa efectiva que genera el sumidero gravitacional en el KV-Cache se expresará axiomáticamente como:
-        \[
-m^{**} = m^* \left( 1 + \frac{\alpha}{6} \right)
-\]
+Crítica del Estado Actual: El orquestador bind_constraint() inyecta dependencias simples de forma lineal. Iterar el límite de von Neumann hasta el infinito agota los ciclos de la FPU. Acción Quirúrgica: Implementar una vía rápida (fast path) de resolución algebraica que evalúe la Matriz de Gram [
 
-Bosones de Gauge (Campos de Interacción): Especificar los PhotonCartridge (Política de Gobernanza OPA con spectral_frequency) y MagnonCartridge (vorticidad solenoidal para vetos de enrutamiento).
-Antimateria y Aniquilación: Documentar el PositronCartridge y la emisión del GammaPhoton. Se debe incluir en cartuchos_toon.md la ecuación de aniquilación que genera el sello criptográfico inmutable en la Cadena de Custodia:
+G_{ij} = \langle n_i | G | n_j \rangle ] del haz de vectores normales. Si y solo si la matriz de Gram es de rango completo (certificada mediante Descomposición de Cholesky robusta scipy.linalg.cholesky), aplicar la proyección exacta calculada mediante la Pseudoinversa de Moore-Penrose G-ponderada: [ P_{\cap} = I - W (G)^{-1} W^\top G ]
 
-\[
-e^- + e^+ \to 2\gamma \quad \text{con energía} \quad E_{\text{annihilation}} = 2m^* c^2
-\]
+Retornar el RefractedState debidamente podado al estrato DIKW superior, atrapando irrevocablemente a los LLMs estocásticos dentro de esta "Jaula de Faraday Semántica".
 
-Fase 3: Sintonización Axiomática en bogoliubov_agent.py
-Objetivo: Garantizar que el ruido térmico inherente al LLM no degenere los cartuchos inyectados.
-Acciones Exigidas:
-
-    Transformación de Bogoliubov-Valatin: El BogoliubovAgent actúa como el Gran Inquisidor Cuántico. En su documentación, se debe exigir que la matriz de error preserve las Relaciones de Conmutación Canónicas (CCR) dentro del grupo simpléctico Sp(2n,C). Inyectar la demostración formal:
-
-\[
-\begin{pmatrix}
-\hat{\alpha}_k \\
-\hat{\alpha}_{-k}^\dagger
-\end{pmatrix}
-=
-\begin{pmatrix}
-u_k & v_k \\
-v_k^* & u_k^*
-\end{pmatrix}
-\begin{pmatrix}
-\hat{b}_k \\
-\hat{b}_{-k}^\dagger
-\end{pmatrix}
-\]
-
-Impóngase la restricción inquebrantable de la variedad simpléctica para certificar el aislamiento de las cuasipartículas estables:
-
-\[
-
-|u_k|^2 - |v_k|^2 = 1
-\]
-
-Fase 4: Auditoría del Funtor Inverso en cartuchos_toon.md y mic_agent.py
-Objetivo: Documentar la invarianza topológica al descomprimir de vuelta desde la hiperdensidad TOON hacia JSON.
-Acciones Exigidas:
-
-    Condición de Continuidad de Lipschitz: Exigir en mic_agent.py y cartuchos_toon.md que el funtor de descompresión inversa F^−1:TOON→JSON sea un difeomorfismo estricto que evite ataques de inyección y desbordamientos asintóticos. La documentación debe reflejar la siguiente inecuación de acotamiento espectral:
-
-\[
-\| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\text{max}} \| x - y \|_T
-\]
-
-Donde L_max​ es inversamente proporcional a la curvatura local del proyecto.
-Probabilidad de Alucinación Nula: Si la salida TOON del LLM rompe esta condición, la hiperdensidad semántica se declara una singularidad. Escríbase que el decodificador forzará probabilísticamente el colapso: P(x_invalido​)=0
+PARTE III Ejecuta la suite de pruebas locales para garantizar que los microservicios semantic_parabolic_mirror.py y optical_riemann_lens.py pasen en verde todos sus métodos.
