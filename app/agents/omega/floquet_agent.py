@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo: Floquet Monodromy Agent (Operador de Sintonización y Monodromía)     ║

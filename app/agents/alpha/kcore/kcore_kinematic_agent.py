@@ -3,143 +3,206 @@ r"""
 +==============================================================================+
 | Módulo : KCore Kinematic Agent (Director de Flujo y Cinética Logística)      |
 | Ruta   : app/agents/alpha/kcore/kcore_kinematic_agent.py                     |
-| Versión: 5.0.0-Rigorous-IDA-PBC-Hodge-CFL                                    |
+| Versión: 6.0.0-Rigorous-IDA-PBC-Hodge-CFL-Sheaf-Spectral                     |
 +==============================================================================+
 
-NATURALEZA CIBER-FÍSICA Y ESTRUCTURA DE DIRAC:
-Este módulo impone el moldeado de energía mediante un Control Basado en Pasividad
-(IDA-PBC). La ley de control alpha(x) utiliza una Proyección Pseudoinversa Covariante
-que garantiza que el esfuerzo exógeno sea ortogonal a las geodésicas de alta fricción:
+NATURALEZA CIBER-FÍSICA Y ESTRUCTURA DE DIRAC
+=============================================
+Este módulo impone el moldeado de energía mediante Control Basado en Pasividad
+(IDA-PBC) con proyección pseudoinversa *covariante* respecto a una métrica
+Riemanniana de estado G_μν ≽ 0. La ley de control es:
 
-\[ \alpha(x) = (g(x)^\top G_{\mu\nu} g(x))^{-1} g(x)^\top G_{\mu\nu} ([J_d - R_d] \nabla H_d - [J - R] \nabla H) \]
+    F_req(x) ≜ [J_d − R_d] ∇H_d − [J − R] ∇H
+    α(x)     = (gᵀ G g + λ_reg I_m)⁺ gᵀ G F_req
 
-VÁLVULA DE HODGE Y LÍMITE CFL:
-\[ L_{1W} = \partial_1^\top W^{-1} \partial_1 + \partial_2 \partial_2^\top W \]
-\[ \Delta t \le \frac{2 \cdot CFL_{margin}}{c_{eff} \cdot \max_i ( |\Delta_{ii}| + \sum_{j \neq i} |\Delta_{ij}| )} \]
+donde (·)⁺ denota la pseudoinversa de Moore-Penrose truncada por el criterio
+espectral de Golub–Van Loan, y λ_reg ≥ 0 es regularización de Tikhonov
+opcional que garantiza estabilidad cuando rank(g) < m.
+
+VÁLVULA DE HODGE (1-FORMAS PONDERADAS)
+======================================
+El Laplaciano de Hodge-1 ponderado sobre el complejo de cadenas del grafo
+logístico es:
+
+    L₁ᵂ = ∂₁ᵀ W⁻¹ ∂₁ + ∂₂ W ∂₂ᵀ
+
+La vorticidad parásita se cuantifica por la norma de energía en 1-cochains:
+
+    ‖I_curl‖_W ≜ √(I_curlᵀ W I_curl)
+
+y se estrangula espectralmente el soporte de I_curl en W.
+
+LÍMITE CFL (DOBLE COTA: GERSCHGORIN + ESPECTRAL)
+================================================
+    ρ_Gersh  ≜ max_i ( |Δ_ii| + Σ_{j≠i} |Δ_ij| )
+    λ_max    ≜ max Spec(Δ_sym)          (ARPACK / fallback denso)
+    Δt_safe  = 2 · CFL_margin / (c_eff · √max(ρ_Gersh, λ_max, ε_mach))
+
+La cota de Gerschgorin es un majorante barato y siempre computable; el
+autovalor máximo refina la cota cuando ARPACK converge.
+
+IDENTIDAD DE HODGE LOCAL (FASE 3)
+=================================
+    δ_CORE ≜ W_mod^{+1/2}   (raíz espectral / pseudo-raíz)
+    δ_COREᵀ δ_CORE ≡ W_mod  (error relativo O(ε_mach))
+
+ESTRUCTURA DE FASES ANIDADAS (CONTINUIDAD FORMAL)
+=================================================
+    Phase1_MatrixValidation.build_preparation_context()
+        →  KinematicPreparationContext
+    Phase2_KinematicSynthesis.__init__(context) / .synthesize()
+        →  KinematicStateTensor  (campo hodge_conductance = W_mod)
+    Phase3_SheafProjection.__init__(W_mod) / .export_stalk()
+        →  SheafStalk
+
+Cada frontera de fase es un DTO inmutable (frozen dataclass) que constituye
+el único contrato de interfaz entre estratos.
 """
+
 from __future__ import annotations
 
-#    Biblioteca est ndar
+# =============================================================================
+# Biblioteca estándar
+# =============================================================================
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Final
 
-#     lgebra num rica de alta precisi n
+# =============================================================================
+# Álgebra numérica de alta precisión
+# =============================================================================
 import numpy as np
 import scipy.linalg as la
 import scipy.sparse as sp
 from scipy.sparse.linalg import eigsh, ArpackNoConvergence
 from numpy.typing import NDArray
 
-#    Estructuras de datos inmutables
+# =============================================================================
+# Estructuras de datos inmutables
+# =============================================================================
 from dataclasses import dataclass
 
-#    Dependencias arquitect nicas del ecosistema APU Filter
+# =============================================================================
+# Dependencias arquitectónicas del ecosistema APU Filter
+# =============================================================================
 try:
     from app.core.mic_algebra import CategoricalState, Morphism
 except ImportError:
     class CategoricalState:  # type: ignore[no-redef]
-        """Stub: estado categ rico del ecosistema MIC."""
+        """Stub: estado categórico del ecosistema MIC."""
 
     class Morphism:  # type: ignore[no-redef]
         """Stub: morfismo funtorial del ecosistema MIC."""
 
 
-#    Logger del m dulo
+# =============================================================================
+# Logger del módulo
+# =============================================================================
 logger = logging.getLogger("MIC.Alpha.KCoreKinematicAgent")
 
 
-#
-#    SECCI N 0   EXCEPCIONES CINEM TICAS ESTRICTAS
-#
+# =============================================================================
+# SECCIÓN 0 — EXCEPCIONES CINEMÁTICAS ESTRICTAS
+# =============================================================================
 
 
 class KinematicCoreError(Exception):
     """
-    Excepci n categ rica ra z para violaciones en el Estrato K_CORE.
+    Excepción categórica raíz para violaciones en el Estrato K_CORE.
 
-    Toda excepci n de este m dulo hereda de esta clase, permitiendo que
-    los manejadores de nivel superior capturen cualquier fallo cinem tico
-    con un  nico ``except KinematicCoreError``.
+    Toda excepción de este módulo hereda de esta clase, permitiendo que
+    los manejadores de nivel superior capturen cualquier fallo cinemático
+    con un único ``except KinematicCoreError``.
     """
 
 
 class KinematicDimensionError(KinematicCoreError):
     """
     Lanzada cuando las dimensiones de las matrices constitutivas son
-    inconsistentes entre s  o con el espacio de estado declarado.
+    inconsistentes entre sí o con el espacio de estado declarado.
 
-    Diagn stico incluye las formas (shapes) detectadas y las esperadas.
+    El diagnóstico incluye las formas (shapes) detectadas y las esperadas.
     """
 
 
 class KinematicSymmetryError(KinematicCoreError):
     """
-    Lanzada cuando una matriz viola su propiedad de simetr a o
-    antisimetr a requerida, con diagn stico cuantitativo normalizado.
+    Lanzada cuando una matriz viola su propiedad de simetría, antisimetría
+    o semidefinición positiva/negativa requerida, con diagnóstico
+    cuantitativo normalizado por la norma de Frobenius.
     """
 
 
 class KinematicConditionError(KinematicCoreError):
     """
-    Lanzada cuando el n mero de condici n espectral  (A) supera el
-    umbral admisible, comprometiendo la estabilidad num rica de la
-    s ntesis IDA-PBC o del control de vorticidad.
+    Lanzada cuando el número de condición espectral κ(A) supera el umbral
+    admisible, comprometiendo la estabilidad numérica de la síntesis
+    IDA-PBC o del control de vorticidad.
     """
 
 
 class DiracMatchingError(KinematicCoreError):
-    """
-    Lanzada cuando la ecuaci n de matching IDA-PBC:
+    r"""
+    Lanzada cuando la ecuación de matching IDA-PBC:
 
-        [J_d - R_d]  H_d = [J - R]  H + g
+        [J_d − R_d] ∇H_d = [J − R] ∇H + g α
 
-    carece de soluci n estable, bien porque g es rango-deficiente m s
-    all  de la tolerancia SVD, bien porque el residuo relativo excede
+    carece de solución estable, bien porque g (o gᵀ G g) es rango-deficiente
+    más allá de la tolerancia SVD, bien porque el residuo relativo excede
     el umbral configurado.
 
-    Incluye diagn stico del rango efectivo de g y el residuo normalizado.
+    Incluye diagnóstico del rango efectivo de g y el residuo normalizado
+    en la métrica G (si se suministró).
     """
 
 
 class ParasiticVorticityError(KinematicCoreError):
     """
     Lanzada cuando el Laplaciano de Hodge detecta componentes solenoidales
-    (flujo circular) que superan el umbral cr tico  _crit y cuyo soporte
-    espectral no puede ser estrangulado con el factor configurado.
+    (flujo circular) que superan el umbral crítico ε_crit y cuyo soporte
+    espectral no puede ser estrangulado con el factor configurado, o cuando
+    la forma cuadrática I_curlᵀ W I_curl resulta no física (< 0).
     """
 
 
 class ImpedanceReflectionError(KinematicCoreError):
     """
-    Lanzada cuando la sintonizaci n Kramers-Kronig falla:
-        Z_load no es SPD (acoplamiento de impedancia imposible).
-        El tensor  _eff resultante no es SPD (violaci n de causalidad).
-        La relaci n de dispersi n causal no se satisface num ricamente.
+    Lanzada cuando la sintonización Kramers-Kronig falla:
+      • Z_load no es SPD (acoplamiento de impedancia imposible).
+      • El tensor μ_eff resultante no es SPD (violación de causalidad).
+      • La relación de dispersión causal no se satisface numéricamente.
     """
 
 
 class CFLViolationError(KinematicCoreError):
     """
     Lanzada cuando:
-        El paso temporal dt_requested excede  t_safe (violaci n CFL activa).
-        El c lculo del autovalor m ximo del Laplaciano falla (ARPACK diverge).
-        c_eff <= 0 (velocidad de propagaci n no f sica).
+      • El paso temporal dt_requested excede Δt_safe (violación CFL activa).
+      • El cálculo del autovalor máximo del Laplaciano falla (ARPACK diverge
+        y el fallback denso no es admisible).
+      • c_eff ≤ 0 (velocidad de propagación no física).
     """
 
 
 class SheafCoboundaryError(KinematicCoreError):
+    r"""
+    Lanzada cuando δ_CORE no satisface la identidad de Hodge local:
+
+        δ_COREᵀ δ_CORE ≃ W_mod
+
+    con tolerancia de 100 · ε_mach relativa a ‖W_mod‖_F.
     """
-    Lanzada cuando  _{CORE} no satisface la identidad de Hodge local:
 
-         _{CORE}^     _{CORE} ~= W_mod
 
-    con tolerancia de 100  _mach relativa a  W_mod _F.
+class MetricTensorError(KinematicCoreError):
+    """
+    Lanzada cuando la métrica de estado G_μν no es simétrica, no es PSD,
+    o tiene dimensiones incompatibles con el espacio de estado.
     """
 
 
-#
-#    SECCI N 1   ESTRUCTURAS INMUTABLES (DTOs TENSORIALES)
-#
+# =============================================================================
+# SECCIÓN 1 — ESTRUCTURAS INMUTABLES (DTOs TENSORIALES)
+# =============================================================================
 
 
 @dataclass(frozen=True, slots=True)
@@ -147,13 +210,21 @@ class KinematicPreparationContext:
     r"""
     Contexto inmutable producido por la **Fase 1** (Validación Matricial).
 
-    Contiene las matrices constitutivas validadas y sus metadatos espectrales,
-    necesarios para que la Fase 2 opere sin re-validar ni re-descomponer.
+    Contiene las matrices constitutivas validadas, la métrica de estado G
+    (si se suministró) y metadatos espectrales, necesarios para que la
+    Fase 2 opere sin re-validar ni re-descomponer.
+
+    Continuidad formal
+    ------------------
+    Este DTO es el **único argumento** del constructor de
+    ``Phase2_KinematicSynthesis``. Su emisión por
+    ``Phase1_MatrixValidation.build_preparation_context()`` constituye
+    la frontera Fase 1 → Fase 2.
 
     Atributos
     ----------
     J : NDArray[np.float64], shape (n, n)
-        Matriz de interconexión del sistema real, antisimétrica J = -J^⊤.
+        Matriz de interconexión del sistema real, antisimétrica J = −Jᵀ.
     R : NDArray[np.float64], shape (n, n)
         Matriz de disipación del sistema real, PSD R ⪰ 0.
     J_d : NDArray[np.float64], shape (n, n)
@@ -162,16 +233,26 @@ class KinematicPreparationContext:
         Matriz de disipación deseada (IDA-PBC), PSD.
     g : NDArray[np.float64], shape (n, m)
         Matriz de entrada del control, rango posiblemente deficiente.
+    G : NDArray[np.float64], shape (n, n)
+        Métrica Riemanniana de estado G_μν ⪰ 0. Si no se suministró,
+        es la identidad I_n (proyección euclídea clásica).
     n : int
         Dimensión del espacio de estado.
     m : int
         Número de entradas de control (columnas de g).
     rank_g : int
         Rango numérico de g (puede ser < min(n, m) si g es rango-deficiente).
+    rank_G : int
+        Rango numérico de G.
     kappa_R : float
-        Número de condición espectral de R (para trazabilidad numérica).
+        Número de condición espectral de R.
     kappa_R_d : float
         Número de condición espectral de R_d.
+    kappa_G : float
+        Número de condición espectral de G.
+    spectral_gap_R : float
+        Gap espectral λ₂/λ_max de R (0 si rank ≤ 1); indicador de
+        disipación equidistribuida vs. concentrada.
     """
 
     J: NDArray[np.float64]
@@ -179,11 +260,15 @@ class KinematicPreparationContext:
     J_d: NDArray[np.float64]
     R_d: NDArray[np.float64]
     g: NDArray[np.float64]
+    G: NDArray[np.float64]
     n: int
     m: int
     rank_g: int
+    rank_G: int
     kappa_R: float
     kappa_R_d: float
+    kappa_G: float
+    spectral_gap_R: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -193,10 +278,18 @@ class KinematicStateTensor:
 
     Producido por la **Fase 2** (Síntesis Cinemática).
 
+    Continuidad formal
+    ------------------
+    El campo ``hodge_conductance`` es el **dato primario** consumido por
+    el constructor de ``Phase3_SheafProjection``. Su emisión por
+    ``Phase2_KinematicSynthesis.synthesize()`` constituye la frontera
+    Fase 2 → Fase 3.
+
     Atributos
     ----------
     control_law_alpha : NDArray[np.float64], shape (m,)
-        Ley de control IDA-PBC: α = g⁺ ([J_d−R_d]∇H_d − [J−R]∇H).
+        Ley de control IDA-PBC covariante:
+        α = (gᵀ G g + λ I)⁺ gᵀ G F_req.
     hodge_conductance : sp.spmatrix
         Matriz de conductancia W_mod modulada por estrangulamiento de Hodge.
     dielectric_tensor : NDArray[np.float64]
@@ -204,12 +297,17 @@ class KinematicStateTensor:
     magnetic_tensor : NDArray[np.float64]
         Tensor magnético efectivo μ_eff ≻ 0 (Kramers-Kronig).
     cfl_safe_dt : float
-        Paso temporal máximo admisible Δt_safe > 0 según la condición CFL.
+        Paso temporal máximo admisible Δt_safe > 0 según la condición CFL
+        dual (Gerschgorin + espectral).
     residual_idapbc : float
-        Residuo normalizado de la ecuación de matching IDA-PBC:
-        ‖g α − F_req‖_2 / max(‖F_req‖_2, 1).
+        Residuo relativo de matching en la métrica G:
+        ‖g α − F_req‖_G / max(‖F_req‖_G, 1).
     vorticity_norm : float
-        ‖I_curl‖_{W} = sqrt(I_curl^⊤ W I_curl): norma de la vorticidad.
+        ‖I_curl‖_W = √(I_curlᵀ W I_curl): norma de la vorticidad.
+    gershgorin_rho : float
+        Radio de Gerschgorin del Laplaciano (majorante barato de λ_max).
+    lambda_max_delta : float
+        Autovalor máximo estimado de Δ_sym.
     is_kinematically_stable : bool
         True si y sólo si todos los subprocesos pasaron sin excepción.
     """
@@ -221,6 +319,8 @@ class KinematicStateTensor:
     cfl_safe_dt: float
     residual_idapbc: float
     vorticity_norm: float
+    gershgorin_rho: float
+    lambda_max_delta: float
     is_kinematically_stable: bool
 
 
@@ -231,25 +331,34 @@ class SheafStalk:
 
     Producido por la **Fase 3** (Proyección en Haces).
 
+    Continuidad formal
+    ------------------
+    Este DTO es la **salida terminal** de la cadena de tres fases. Alimenta
+    el ensamblaje del Laplaciano de Haz global del ecosistema APU Filter.
+
     Atributos
     ----------
     delta_core : NDArray[np.float64]
-        Cofrontera discreta δ_{CORE} = W_mod^{+1/2} ∈ ℝ^{E×E},
+        Cofrontera discreta δ_CORE = W_mod^{+1/2} ∈ ℝ^{E×E},
         calculada vía raíz cuadrada espectral de W_mod.
-
     delta_hodge_residual : float
         Error relativo de la identidad de Hodge local:
-        ‖δ_{CORE}^⊤ δ_{CORE} − W_mod_dense‖_F / ‖W_mod_dense‖_F.
+        ‖δ_COREᵀ δ_CORE − W_mod_dense‖_F / ‖W_mod_dense‖_F.
         Debe ser O(ε_mach).
-
     state_vector : NDArray[np.float64]
         Vector de estado x en el instante de proyección.
-
     projected_state : NDArray[np.float64]
-        Proyección δ_{CORE} · x sobre la fibra local.
-
+        Proyección δ_CORE · x sobre la fibra local.
     rank_delta : int
-        Rango numérico de δ_{CORE} = rango de W_mod.
+        Rango numérico de δ_CORE = rango de W_mod.
+    betti_approx : int
+        Aproximación del número de Betti β₀ local:
+        dim ker(W_mod) ≈ E − rank(δ_CORE). Indica componentes
+        desconectadas en el soporte de conductancia.
+    spectral_entropy : float
+        Entropía de von Neumann del espectro normalizado de W_mod:
+        S = −Σ p_i log p_i, p_i = λ_i / Σ λ_j.
+        Mide la dispersión de la métrica de aristas (0 = rango-1, log(E) = plana).
     """
 
     delta_core: NDArray[np.float64]
@@ -257,17 +366,19 @@ class SheafStalk:
     state_vector: NDArray[np.float64]
     projected_state: NDArray[np.float64]
     rank_delta: int
+    betti_approx: int
+    spectral_entropy: float
 
 
-#
-#    SECCI N 2   ORQUESTADOR: KCoreKinematicAgent
-#                Tres fases anidadas de rigor creciente
-#
+# =============================================================================
+# SECCIÓN 2 — ORQUESTADOR: KCoreKinematicAgent
+#             Tres fases anidadas de rigor creciente
+# =============================================================================
 
 
 class KCoreKinematicAgent(Morphism):
     r"""
-    Orquestador Funtorial del Núcleo Cinemático K_{CORE}.
+    Orquestador Funtorial del Núcleo Cinemático K_CORE.
 
     Subyuga la velocidad del flujo logístico a la estabilidad del espacio
     de fase mediante tres clases anidadas que operan en cascada estricta:
@@ -285,27 +396,22 @@ class KCoreKinematicAgent(Morphism):
 
     Parámetros de Construcción
     --------------------------
-    J : NDArray[np.float64], shape (n, n)
-        Matriz de interconexión del sistema (antisimétrica).
-    R : NDArray[np.float64], shape (n, n)
-        Matriz de disipación del sistema (PSD).
-    J_d : NDArray[np.float64], shape (n, n)
-        Matriz de interconexión deseada IDA-PBC (antisimétrica).
-    R_d : NDArray[np.float64], shape (n, n)
-        Matriz de disipación deseada IDA-PBC (PSD).
-    g : NDArray[np.float64], shape (n, m)
-        Matriz de entrada del control.
+    J, R, J_d, R_d, g : ver KinematicPreparationContext.
+    G : NDArray[np.float64] | None
+        Métrica Riemanniana de estado. None ⇒ I_n.
     cfl_margin : float, default 0.9
-        Factor de seguridad CFL ∈ (0, 1]. Valores > 1 son teóricamente
-        inestables y se rechazan.
+        Factor de seguridad CFL ∈ (0, 1].
     kappa_max : float, default 1e10
-        Umbral de número de condición espectral para R y R_d.
+        Umbral de número de condición espectral.
     residual_tol_rel : float, default 1e-6
-        Tolerancia relativa para el residuo IDA-PBC:
-        ‖g α − F_req‖ / ‖F_req‖ < residual_tol_rel.
+        Tolerancia relativa para el residuo IDA-PBC en métrica G.
+    tikhonov_reg : float, default 0.0
+        Regularización de Tikhonov λ_reg ≥ 0 sobre gᵀ G g.
+        Recomendado: λ_reg ≈ ε_mach · ‖gᵀ G g‖_F cuando rank(g) < m.
     """
 
-    FRIENDLY_NAME: str = "Director de Flujo y Cin tica Log stica"
+    FRIENDLY_NAME: str = "Director de Flujo y Cinética Logística"
+    VERSION: str = "6.0.0-Rigorous-IDA-PBC-Hodge-CFL-Sheaf-Spectral"
 
     def __init__(
         self,
@@ -314,9 +420,11 @@ class KCoreKinematicAgent(Morphism):
         J_d: NDArray[np.float64],
         R_d: NDArray[np.float64],
         g: NDArray[np.float64],
+        G: Optional[NDArray[np.float64]] = None,
         cfl_margin: float = 0.9,
         kappa_max: float = 1.0e10,
         residual_tol_rel: float = 1.0e-6,
+        tikhonov_reg: float = 0.0,
     ) -> None:
         r"""
         Inicializa las matrices constitutivas y ejecuta la Fase 1 de inmediato.
@@ -324,21 +432,29 @@ class KCoreKinematicAgent(Morphism):
         Lanza
         -----
         ValueError
-            Si cfl_margin ∉ (0, 1].
-        KinematicDimensionError, KinematicSymmetryError, KinematicConditionError
+            Si cfl_margin ∉ (0, 1] o tikhonov_reg < 0.
+        KinematicDimensionError, KinematicSymmetryError,
+        KinematicConditionError, MetricTensorError
             Propagadas desde la Fase 1 si alguna propiedad matricial es violada.
         """
         if not (0.0 < cfl_margin <= 1.0):
             raise ValueError(
                 f"cfl_margin debe estar en (0, 1]; se obtuvo {cfl_margin}. "
-                f"Valores > 1 implican inestabilidad num rica del esquema."
+                f"Valores > 1 implican inestabilidad numérica del esquema."
+            )
+        if tikhonov_reg < 0.0:
+            raise ValueError(
+                f"tikhonov_reg debe ser ≥ 0; se obtuvo {tikhonov_reg}."
             )
 
         self.cfl_margin: float = cfl_margin
         self.kappa_max: float = kappa_max
         self.residual_tol_rel: float = residual_tol_rel
+        self.tikhonov_reg: float = tikhonov_reg
 
-        #    Fase 1: Validaci n Matricial Constitutiva (inmediata)
+        # ------------------------------------------------------------------
+        # Fase 1: Validación Matricial Constitutiva (inmediata)
+        # ------------------------------------------------------------------
         self.phase1: KCoreKinematicAgent.Phase1_MatrixValidation = (
             KCoreKinematicAgent.Phase1_MatrixValidation(
                 J=J,
@@ -346,6 +462,7 @@ class KCoreKinematicAgent(Morphism):
                 J_d=J_d,
                 R_d=R_d,
                 g=g,
+                G=G,
                 kappa_max=kappa_max,
             )
         )
@@ -353,35 +470,45 @@ class KCoreKinematicAgent(Morphism):
             self.phase1.build_preparation_context()
         )
 
-        #    Fase 2: S ntesis Cinem tica (instanciaci n inmediata)
+        # ------------------------------------------------------------------
+        # Fase 2: Síntesis Cinemática (instanciación inmediata)
+        # Continuación formal del contexto emitido por Fase 1.
+        # ------------------------------------------------------------------
         self.phase2: KCoreKinematicAgent.Phase2_KinematicSynthesis = (
             KCoreKinematicAgent.Phase2_KinematicSynthesis(
                 context=self.context,
                 cfl_margin=self.cfl_margin,
                 residual_tol_rel=self.residual_tol_rel,
+                tikhonov_reg=self.tikhonov_reg,
             )
         )
 
-        #    Estado interno: conductancia modulada m s reciente
+        # Estado interno: conductancia modulada más reciente
         self._latest_hodge_conductance: Optional[sp.spmatrix] = None
 
-        #    Fase 3: instanciaci n perezosa
+        # Fase 3: instanciación perezosa (requiere W_mod de synthesize)
         self.phase3: Optional[KCoreKinematicAgent.Phase3_SheafProjection] = None
 
         logger.info(
-            "[KCoreKinematicAgent] Inicializado: n=%d, m=%d, "
-            "rank(g)=%d,  (R)=%.3e,  (R_d)=%.3e, CFL_margin=%.2f.",
+            "[KCoreKinematicAgent v%s] Inicializado: n=%d, m=%d, "
+            "rank(g)=%d, rank(G)=%d, κ(R)=%.3e, κ(R_d)=%.3e, κ(G)=%.3e, "
+            "gap(R)=%.3e, CFL_margin=%.2f, λ_reg=%.3e.",
+            self.VERSION,
             self.context.n,
             self.context.m,
             self.context.rank_g,
+            self.context.rank_G,
             self.context.kappa_R,
             self.context.kappa_R_d,
+            self.context.kappa_G,
+            self.context.spectral_gap_R,
             self.cfl_margin,
+            self.tikhonov_reg,
         )
 
-    #
-    # FASE 1   VALIDACI N MATRICIAL CONSTITUTIVA
-    #
+    # =========================================================================
+    # FASE 1 — VALIDACIÓN MATRICIAL CONSTITUTIVA
+    # =========================================================================
 
     class Phase1_MatrixValidation:
         r"""
@@ -389,18 +516,29 @@ class KCoreKinematicAgent(Morphism):
 
         Responsabilidades exclusivas de esta fase:
           a) Verificar dimensiones y consistencia del espacio de estado.
-          b) Verificar antisimetría de J, J_d con tolerancia relativa.
-          c) Verificar simetría de R, R_d con tolerancia relativa.
-          d) Verificar PSD de R, R_d con tolerancia normalizada.
-          e) Calcular κ(R), κ(R_d) y rango numérico de g.
+          b) Verificar antisimetría de J, J_d con tolerancia relativa a ‖·‖_F.
+          c) Verificar simetría de R, R_d, G con tolerancia relativa.
+          d) Verificar PSD de R, R_d, G con tolerancia normalizada y
+             calcular κ y gap espectral.
+          e) Calcular rango numérico de g y de G (SVD Golub–Van Loan).
           f) Retornar ``KinematicPreparationContext`` inmutable.
 
         Todas las tolerancias son *relativas* a la norma de Frobenius de la
         matriz evaluada multiplicada por la precisión de máquina ε_mach,
         eliminando falsos positivos para matrices de gran norma.
+
+        Fundamento espectral
+        --------------------
+        Para A = Aᵀ, Spec(A) = {λ_i} ordenado λ₁ ≤ … ≤ λ_n. Entonces:
+
+            κ(A)  = λ_max / λ_min^{+}     (sólo sobre autovalores > tol)
+            gap   = λ₂^{+} / λ_max        (dispersión de la disipación)
+
+        El gap cercano a 1 indica disipación equidistribuida; cercano a 0
+        indica un único modo dominante (riesgo de cuello de botella).
         """
 
-        _EPS: float = float(np.finfo(np.float64).eps)
+        _EPS: Final[float] = float(np.finfo(np.float64).eps)
 
         def __init__(
             self,
@@ -409,31 +547,34 @@ class KCoreKinematicAgent(Morphism):
             J_d: NDArray[np.float64],
             R_d: NDArray[np.float64],
             g: NDArray[np.float64],
+            G: Optional[NDArray[np.float64]] = None,
             kappa_max: float = 1.0e10,
         ) -> None:
             r"""
             Almacena referencias a las matrices originales sin copiarlas.
             Las copias ocurren sólo en ``build_preparation_context``.
+            Si G es None, se materializa I_n tras conocer n.
             """
             self._J: NDArray[np.float64] = J
             self._R: NDArray[np.float64] = R
             self._J_d: NDArray[np.float64] = J_d
             self._R_d: NDArray[np.float64] = R_d
             self._g: NDArray[np.float64] = g
+            self._G_raw: Optional[NDArray[np.float64]] = G
             self._kappa_max: float = kappa_max
 
-        #
-        # M todos privados de validaci n (orden l gico de ejecuci n)
-        #
+        # ---------------------------------------------------------------------
+        # Métodos privados de validación (orden lógico de ejecución)
+        # ---------------------------------------------------------------------
 
         def _check_dimensions(self) -> Tuple[int, int]:
             r"""
             Verifica la coherencia dimensional completa del espacio de estado.
 
-            Condiciones formales:
+            Condiciones formales (lógica booleana de consistencia):
               • J, R, J_d, R_d ∈ ℝ^{n×n}  (cuadradas, misma dimensión n)
-              • g ∈ ℝ^{n×m}                (n filas, m columnas, m ≥ 1)
-              • Todos los arrays son 2D.
+              • g ∈ ℝ^{n×m}                (n filas, m ≥ 1 columnas)
+              • Todos los arrays son 2D (ndim ≡ 2).
 
             Retorna
             -------
@@ -445,10 +586,12 @@ class KCoreKinematicAgent(Morphism):
             KinematicDimensionError
                 Con diagnóstico explícito de la forma violada.
             """
-            # Verificar que cada matriz es 2D
             for mat, name in [
-                (self._J, "J"), (self._R, "R"),
-                (self._J_d, "J_d"), (self._R_d, "R_d"), (self._g, "g"),
+                (self._J, "J"),
+                (self._R, "R"),
+                (self._J_d, "J_d"),
+                (self._R_d, "R_d"),
+                (self._g, "g"),
             ]:
                 if mat.ndim != 2:
                     raise KinematicDimensionError(
@@ -456,31 +599,30 @@ class KCoreKinematicAgent(Morphism):
                         f"se obtuvo ndim={mat.ndim}, shape={mat.shape}."
                     )
 
-            # Verificar cuadratura de J (define n)
             if self._J.shape[0] != self._J.shape[1]:
                 raise KinematicDimensionError(
                     f"J debe ser cuadrada; se obtuvo shape={self._J.shape}."
                 )
-            n: int = self._J.shape[0]
+            n: int = int(self._J.shape[0])
 
-            # Verificar que R, J_d, R_d son cuadradas y de dimensi n n
             for mat, name in [
-                (self._R, "R"), (self._J_d, "J_d"), (self._R_d, "R_d")
+                (self._R, "R"),
+                (self._J_d, "J_d"),
+                (self._R_d, "R_d"),
             ]:
                 if mat.shape != (n, n):
                     raise KinematicDimensionError(
                         f"La matriz '{name}' debe tener shape ({n},{n}); "
                         f"se obtuvo {mat.shape}. "
-                        f"Dimensi n del espacio de estado n={n} definida por J."
+                        f"Dimensión del espacio de estado n={n} definida por J."
                     )
 
-            # Verificar que g tiene n filas
             if self._g.shape[0] != n:
                 raise KinematicDimensionError(
                     f"g debe tener {n} filas (dim. espacio de estado); "
                     f"se obtuvo {self._g.shape[0]} filas, shape={self._g.shape}."
                 )
-            m: int = self._g.shape[1]
+            m: int = int(self._g.shape[1])
 
             if m < 1:
                 raise KinematicDimensionError(
@@ -488,9 +630,15 @@ class KCoreKinematicAgent(Morphism):
                     f"se obtuvo m={m}."
                 )
 
-            logger.debug(
-                "[Fase1] Dimensiones verificadas: n=%d, m=%d.", n, m
-            )
+            # Validación dimensional de G (si se suministró)
+            if self._G_raw is not None:
+                if self._G_raw.ndim != 2 or self._G_raw.shape != (n, n):
+                    raise MetricTensorError(
+                        f"G_μν debe tener shape ({n},{n}); "
+                        f"se obtuvo shape={self._G_raw.shape}."
+                    )
+
+            logger.debug("[Fase1] Dimensiones verificadas: n=%d, m=%d.", n, m)
             return n, m
 
         def _validate_antisymmetry(
@@ -499,13 +647,13 @@ class KCoreKinematicAgent(Morphism):
             name: str,
         ) -> None:
             r"""
-            Verifica que A = −A^⊤ con tolerancia relativa al Frobenius de A.
+            Verifica que A = −Aᵀ con tolerancia relativa al Frobenius de A.
 
             Tolerancia adaptativa:
-                tol = ε_mach · ‖A‖_F
+                tol = ε_mach · max(‖A‖_F, 1)
 
-            Cuantifica el residuo como:
-                ‖A + A^⊤‖_F  (norma de la parte simétrica, debe ser ≈ 0)
+            Residuo:
+                ‖A + Aᵀ‖_F  (norma de la parte simétrica; debe ser ≈ 0)
 
             Lanza
             -----
@@ -514,19 +662,21 @@ class KCoreKinematicAgent(Morphism):
             """
             norm_A: float = float(la.norm(A, "fro"))
             tol: float = self._EPS * max(norm_A, 1.0)
-            # Parte sim trica de A: A_sym = (A + A^ )/2; debe ser ~= 0
             residual: float = float(la.norm(A + A.T, "fro"))
 
             if residual > tol:
                 raise KinematicSymmetryError(
-                    f"La matriz '{name}' no es antisim trica (A   -A^ ). "
-                    f" A + A^  _F = {residual:.6e},  tol = {tol:.6e},  "
-                    f"antisimetr a relativa = {residual / max(norm_A, 1e-300):.6e}."
+                    f"La matriz '{name}' no es antisimétrica (A ≠ −Aᵀ). "
+                    f"‖A + Aᵀ‖_F = {residual:.6e},  tol = {tol:.6e},  "
+                    f"antisimetría relativa = "
+                    f"{residual / max(norm_A, 1e-300):.6e}."
                 )
 
             logger.debug(
-                "[Fase1] Antisimetr a de '%s': residual=%.3e, tol=%.3e.",
-                name, residual, tol,
+                "[Fase1] Antisimetría de '%s': residual=%.3e, tol=%.3e.",
+                name,
+                residual,
+                tol,
             )
 
         def _validate_symmetry(
@@ -535,15 +685,15 @@ class KCoreKinematicAgent(Morphism):
             name: str,
         ) -> None:
             r"""
-            Verifica que A = A^⊤ con tolerancia relativa al Frobenius de A.
+            Verifica que A = Aᵀ con tolerancia relativa al Frobenius de A.
 
             Tolerancia adaptativa:
-                tol = ε_mach · ‖A‖_F
+                tol = ε_mach · max(‖A‖_F, 1)
 
             Lanza
             -----
             KinematicSymmetryError
-                Con diagnóstico cuantitativo de ‖A − A^⊤‖_F.
+                Con diagnóstico cuantitativo de ‖A − Aᵀ‖_F.
             """
             norm_A: float = float(la.norm(A, "fro"))
             tol: float = self._EPS * max(norm_A, 1.0)
@@ -551,126 +701,169 @@ class KCoreKinematicAgent(Morphism):
 
             if residual > tol:
                 raise KinematicSymmetryError(
-                    f"La matriz '{name}' no es sim trica (A   A^ ). "
-                    f" A - A^  _F = {residual:.6e},  tol = {tol:.6e},  "
-                    f"asimetr a relativa = {residual / max(norm_A, 1e-300):.6e}."
+                    f"La matriz '{name}' no es simétrica (A ≠ Aᵀ). "
+                    f"‖A − Aᵀ‖_F = {residual:.6e},  tol = {tol:.6e},  "
+                    f"asimetría relativa = "
+                    f"{residual / max(norm_A, 1e-300):.6e}."
                 )
 
             logger.debug(
-                "[Fase1] Simetr a de '%s': residual=%.3e, tol=%.3e.",
-                name, residual, tol,
+                "[Fase1] Simetría de '%s': residual=%.3e, tol=%.3e.",
+                name,
+                residual,
+                tol,
             )
 
-        def _validate_psd(
+        def _validate_psd_and_spectrum(
             self,
             A: NDArray[np.float64],
             name: str,
-        ) -> float:
+        ) -> Tuple[float, float, int]:
             r"""
-            Verifica que A ⪰ 0 (semidefinida positiva) con tolerancia relativa.
+            Verifica A ⪰ 0 y retorna (κ, spectral_gap, rank_num).
 
-            La tolerancia distingue autovalores nulos legítimos (rango deficiente
-            por diseño) de autovalores genuinamente negativos (violación PSD):
+            Tolerancia PSD:
+                tol_psd = ε_mach · max(‖A‖_F, 1)
 
-                tol_psd = −ε_mach · ‖A‖_F
+            Un autovalor λ se considera genuinamente negativo si λ < −tol_psd;
+            nulo (rango-deficiente legítimo) si |λ| ≤ tol_psd; positivo si
+            λ > tol_psd.
+
+            Definiciones espectrales
+            ------------------------
+                κ(A)  = λ_max / λ_min^{+}
+                gap   = λ₂^{+} / λ_max   (0.0 si hay < 2 autovalores positivos)
+                rank  = #{λ_i > tol_psd}
 
             Retorna
             -------
-            float
-                κ(A) = λ_max / λ_min_positivo, o ∞ si A es rango-deficiente.
-                Útil para trazabilidad numérica de las fases posteriores.
+            Tuple[float, float, int]
+                (kappa, spectral_gap, rank_num)
 
             Lanza
             -----
             KinematicConditionError
-                Si κ(A) > kappa_max (cuasi-singularidad numérica).
+                Si κ(A) > kappa_max.
             KinematicSymmetryError
-                Si λ_min < −tol_psd (autovalor genuinamente negativo).
+                Si λ_min < −tol_psd (violación PSD genuina).
             """
             norm_A: float = float(la.norm(A, "fro"))
             tol_psd: float = self._EPS * max(norm_A, 1.0)
 
-            # eigvalsh: descomposici n espectral real para matrices sim tricas
-            eigvals: NDArray[np.float64] = la.eigvalsh(A)
+            # Re-simetrización defensiva antes de eigvalsh
+            A_sym: NDArray[np.float64] = 0.5 * (A + A.T)
+            eigvals: NDArray[np.float64] = la.eigvalsh(A_sym)
             lambda_min: float = float(eigvals[0])
             lambda_max: float = float(eigvals[-1])
 
             if lambda_min < -tol_psd:
                 raise KinematicSymmetryError(
                     f"La matriz '{name}' no es Semidefinida Positiva (PSD). "
-                    f" _min = {lambda_min:.6e}  <  -tol = {-tol_psd:.6e}."
+                    f"λ_min = {lambda_min:.6e}  <  −tol = {-tol_psd:.6e}."
                 )
 
-            # Autovalores positivos (excluyendo los nulos)
-            pos_eigvals = eigvals[eigvals > tol_psd]
-            if len(pos_eigvals) == 0:
+            pos_mask = eigvals > tol_psd
+            pos_eigvals = eigvals[pos_mask]
+            rank_num: int = int(np.sum(pos_mask))
+
+            if rank_num == 0:
                 logger.warning(
-                    "[Fase1] Matriz '%s' es num ricamente nula (rank=0).",
+                    "[Fase1] Matriz '%s' es numéricamente nula (rank=0).",
                     name,
                 )
-                return float("inf")
+                return float("inf"), 0.0, 0
 
             lambda_min_pos: float = float(pos_eigvals[0])
             kappa: float = lambda_max / lambda_min_pos
 
             if kappa > self._kappa_max:
                 raise KinematicConditionError(
-                    f"La matriz '{name}' est  mal condicionada: "
-                    f"  = {kappa:.6e}  >   _max = {self._kappa_max:.6e}. "
-                    f" _min_pos = {lambda_min_pos:.6e},  _max = {lambda_max:.6e}. "
-                    f"Considere regularizaci n de Tikhonov."
+                    f"La matriz '{name}' está mal condicionada: "
+                    f"κ = {kappa:.6e}  >  κ_max = {self._kappa_max:.6e}. "
+                    f"λ_min⁺ = {lambda_min_pos:.6e}, λ_max = {lambda_max:.6e}. "
+                    f"Considere regularización de Tikhonov o reescalado."
                 )
 
+            # Gap espectral: λ₂⁺ / λ_max
+            if rank_num >= 2:
+                lambda_2_pos: float = float(pos_eigvals[1])
+                spectral_gap: float = lambda_2_pos / lambda_max
+            else:
+                spectral_gap = 0.0
+
             logger.debug(
-                "[Fase1] PSD '%s':  _min=%.3e,  _max=%.3e,  =%.3e.",
-                name, lambda_min, lambda_max, kappa,
+                "[Fase1] PSD '%s': λ_min=%.3e, λ_max=%.3e, κ=%.3e, "
+                "gap=%.3e, rank=%d.",
+                name,
+                lambda_min,
+                lambda_max,
+                kappa,
+                spectral_gap,
+                rank_num,
             )
-            return kappa
+            return kappa, spectral_gap, rank_num
 
-        def _compute_rank_g(self, n: int, m: int) -> int:
+        def _compute_rank_svd(
+            self,
+            M: NDArray[np.float64],
+            name: str,
+            n_ref: int,
+            m_ref: int,
+            *,
+            reject_zero: bool = False,
+        ) -> int:
             r"""
-            Calcula el rango numérico de g mediante SVD completa.
+            Calcula el rango numérico de M mediante SVD completa.
 
-            La tolerancia de truncación SVD sigue el criterio de Golub-Van Loan:
+            Criterio de truncación (Golub–Van Loan, Matrix Computations §5.5.8):
 
-                σ_tol = max(n, m) · ε_mach · σ_max
-
-            que es el umbral estándar para distinguir valores singulares
-            numéricos de cero de los genuinamente no nulos.
+                σ_tol = max(n_ref, m_ref) · ε_mach · σ_max
 
             Retorna
             -------
             int
-                Rango efectivo de g: número de valores singulares > σ_tol.
+                Rango efectivo: número de valores singulares > σ_tol.
 
             Lanza
             -----
             KinematicDimensionError
-                Si el rango es 0 (g es numéricamente nula, sin capacidad de control).
+                Si reject_zero=True y rank=0 (sin capacidad de control).
             """
-            # SVD completa para m xima precisi n en el c lculo de rango
-            _, s, _ = la.svd(self._g, full_matrices=False, check_finite=False)
+            if M.size == 0:
+                return 0
+
+            _, s, _ = la.svd(M, full_matrices=False, check_finite=False)
             sigma_max: float = float(s[0]) if len(s) > 0 else 0.0
-            sigma_tol: float = max(n, m) * self._EPS * sigma_max
+            sigma_tol: float = max(n_ref, m_ref) * self._EPS * max(sigma_max, 1.0)
+            # Usar max(sigma_max, 1) solo en el factor de escala cuando sigma_max≈0
+            if sigma_max > 0.0:
+                sigma_tol = max(n_ref, m_ref) * self._EPS * sigma_max
+            else:
+                sigma_tol = max(n_ref, m_ref) * self._EPS
 
-            rank_g: int = int(np.sum(s > sigma_tol))
+            rank: int = int(np.sum(s > sigma_tol))
 
-            if rank_g == 0:
+            if reject_zero and rank == 0:
                 raise KinematicDimensionError(
-                    f"La matriz de control g es num ricamente nula "
-                    f"( _max = {sigma_max:.6e}, todos los valores singulares <= {sigma_tol:.6e}). "
+                    f"La matriz '{name}' es numéricamente nula "
+                    f"(σ_max = {sigma_max:.6e}, todos los SV ≤ {sigma_tol:.6e}). "
                     f"Sin capacidad de control sobre el sistema."
                 )
 
             logger.debug(
-                "[Fase1] Rango de g: rank=%d/%d ( _max=%.3e,  _tol=%.3e).",
-                rank_g, min(n, m), sigma_max, sigma_tol,
+                "[Fase1] Rango de '%s': rank=%d/%d "
+                "(σ_max=%.3e, σ_tol=%.3e).",
+                name,
+                rank,
+                min(M.shape),
+                sigma_max,
+                sigma_tol,
             )
-            return rank_g
+            return rank
 
-        #
-        # M todo terminal de la Fase 1   entrada directa de la Fase 2
-        #
+        # ---------------------------------------------------------------------
+        # Método terminal de la Fase 1 — entrada directa de la Fase 2
+        # ---------------------------------------------------------------------
 
         def build_preparation_context(self) -> "KinematicPreparationContext":
             r"""
@@ -686,102 +879,133 @@ class KCoreKinematicAgent(Morphism):
 
             Flujo interno
             -------------
-            1. Verificación dimensional (J, R, J_d, R_d, g).
-            2. Antisimetría de J y J_d.
-            3. Simetría de R y R_d.
-            4. PSD y número de condición de R y R_d.
-            5. Rango numérico de g.
-            6. Empaquetado en KinematicPreparationContext.
+            1. Verificación dimensional (J, R, J_d, R_d, g, G).
+            2. Materialización de G = I_n si no se suministró.
+            3. Antisimetría de J y J_d.
+            4. Simetría de R, R_d y G.
+            5. PSD, κ, gap y rango de R, R_d y G.
+            6. Rango numérico de g (SVD Golub–Van Loan).
+            7. Empaquetado en KinematicPreparationContext.
 
             Retorna
             -------
             KinematicPreparationContext
                 Contexto cinemático completo, inmutable y listo para Fase 2.
             """
-            #    Paso 1: Dimensiones
+            # ---- Paso 1: Dimensiones ----
             n, m = self._check_dimensions()
 
-            #    Paso 2: Antisimetr a de matrices de interconexi n
+            # ---- Paso 2: Materializar G ----
+            if self._G_raw is None:
+                G: NDArray[np.float64] = np.eye(n, dtype=np.float64)
+            else:
+                G = self._G_raw
+
+            # ---- Paso 3: Antisimetría de interconexión ----
             self._validate_antisymmetry(self._J, "J")
             self._validate_antisymmetry(self._J_d, "J_d")
 
-            #    Paso 3: Simetr a de matrices de disipaci n
+            # ---- Paso 4: Simetría de disipación y métrica ----
             self._validate_symmetry(self._R, "R")
             self._validate_symmetry(self._R_d, "R_d")
+            self._validate_symmetry(G, "G")
 
-            #    Paso 4: PSD y condicionamiento de R y R_d
-            kappa_R: float = self._validate_psd(self._R, "R")
-            kappa_R_d: float = self._validate_psd(self._R_d, "R_d")
+            # ---- Paso 5: PSD + espectro de R, R_d, G ----
+            kappa_R, gap_R, _rank_R = self._validate_psd_and_spectrum(
+                self._R, "R"
+            )
+            kappa_R_d, _gap_R_d, _rank_R_d = self._validate_psd_and_spectrum(
+                self._R_d, "R_d"
+            )
+            kappa_G, _gap_G, rank_G = self._validate_psd_and_spectrum(G, "G")
 
-            #    Paso 5: Rango num rico de g
-            rank_g: int = self._compute_rank_g(n, m)
+            # ---- Paso 6: Rango de g ----
+            rank_g: int = self._compute_rank_svd(
+                self._g, "g", n, m, reject_zero=True
+            )
 
-            #    Paso 6: Empaquetado
+            # ---- Paso 7: Empaquetado ----
             context = KinematicPreparationContext(
                 J=self._J.copy(),
                 R=self._R.copy(),
                 J_d=self._J_d.copy(),
                 R_d=self._R_d.copy(),
                 g=self._g.copy(),
+                G=G.copy(),
                 n=n,
                 m=m,
                 rank_g=rank_g,
+                rank_G=rank_G,
                 kappa_R=kappa_R,
                 kappa_R_d=kappa_R_d,
+                kappa_G=kappa_G,
+                spectral_gap_R=gap_R,
             )
 
             logger.info(
                 "[Fase1] KinematicPreparationContext ensamblado: "
-                "n=%d, m=%d, rank(g)=%d,  (R)=%.3e,  (R_d)=%.3e.",
-                n, m, rank_g, kappa_R, kappa_R_d,
+                "n=%d, m=%d, rank(g)=%d, rank(G)=%d, "
+                "κ(R)=%.3e, κ(R_d)=%.3e, κ(G)=%.3e, gap(R)=%.3e.",
+                n,
+                m,
+                rank_g,
+                rank_G,
+                kappa_R,
+                kappa_R_d,
+                kappa_G,
+                gap_R,
             )
 
-            #    Contrato de interfaz Fase 1   Fase 2
+            # ================================================================
+            # CONTRATO DE INTERFAZ FASE 1 → FASE 2
             # `context` es el argumento directo del constructor de
-            # Phase2_KinematicSynthesis. Esta devoluci n es la frontera
+            # Phase2_KinematicSynthesis. Esta devolución es la frontera
             # formal entre ambas fases anidadas.
+            # ================================================================
             return context
 
-    #
-    # FASE 2   S NTESIS CINEM TICA
-    #
+    # =========================================================================
+    # FASE 2 — SÍNTESIS CINEMÁTICA
+    # =========================================================================
 
     class Phase2_KinematicSynthesis:
         r"""
         **Fase 2 – Síntesis Cinemática.**
 
-        Recibe el ``KinematicPreparationContext`` de la Fase 1 y lo usa para
-        ejecutar los cuatro procesos fundamentales del K_{CORE}:
+        Recibe el ``KinematicPreparationContext`` de la Fase 1 y ejecuta
+        los cuatro procesos fundamentales del K_CORE:
 
-          1. **Moldeado de energía IDA-PBC** (``compute_dirac_control_law``):
-             Resuelve la ecuación de matching mediante pseudoinversa SVD truncada
-             con criterio de Golub-Van Loan, verifica residuo relativo y reporta
-             deficiencia de rango.
+          1. **Moldeado de energía IDA-PBC covariante**
+             (``compute_dirac_control_law``):
+             Resuelve la ecuación de matching con pseudoinversa ponderada
+             por G_μν y regularización de Tikhonov opcional.
 
-          2. **Estrangulamiento de vorticidad de Hodge** (``modulate_hodge_conductance``):
-             Convierte W a formato COO para acceso uniforme a diagonal,
-             cuantifica la vorticidad como forma cuadrática ‖I_curl‖²_W,
-             y aplica penalización espectral proporcional al soporte de I_curl.
+          2. **Estrangulamiento de vorticidad de Hodge**
+             (``modulate_hodge_conductance``):
+             Cuantifica ‖I_curl‖_W con la forma cuadrática completa
+             (soporta W no diagonal) y penaliza el soporte de I_curl.
 
-          3. **Sintonización de impedancia Kramers-Kronig** (``tune_impedance_tensors``):
-             Calcula ε_eff y μ_eff verificando SPD con Cholesky explícito y
-             verificando la relación de dispersión causal ‖Z_0 − Z_load‖_F/‖Z_load‖_F.
+          3. **Sintonización de impedancia Kramers-Kronig**
+             (``tune_impedance_tensors``):
+             Construye ε_eff, μ_eff SPD y verifica la relación de
+             dispersión causal.
 
-          4. **Auditoría CFL** (``audit_cfl_limit``):
-             Calcula λ_max del Laplaciano con ARPACK, maneja convergencia fallida
-             con fallback a `eigvalsh` denso, y verifica c_eff > 0.
+          4. **Auditoría CFL dual** (``audit_cfl_limit``):
+             Combina cota de Gerschgorin (siempre) con λ_max vía ARPACK
+             (cuando converge) para un Δt_safe conservador y preciso.
 
-        El constructor de esta clase es la **continuación directa** del método
-        ``build_preparation_context`` de la Fase 1.
+        El constructor de esta clase es la **continuación directa** del
+        método ``build_preparation_context`` de la Fase 1.
         """
 
-        _EPS: float = float(np.finfo(np.float64).eps)
+        _EPS: Final[float] = float(np.finfo(np.float64).eps)
 
         def __init__(
             self,
             context: "KinematicPreparationContext",
             cfl_margin: float,
             residual_tol_rel: float,
+            tikhonov_reg: float = 0.0,
         ) -> None:
             r"""
             **Constructor de la Fase 2: continuación directa de la Fase 1.**
@@ -800,22 +1024,49 @@ class KCoreKinematicAgent(Morphism):
             cfl_margin : float
                 Factor de seguridad CFL ∈ (0, 1].
             residual_tol_rel : float
-                Tolerancia relativa para el residuo IDA-PBC.
+                Tolerancia relativa para el residuo IDA-PBC en métrica G.
+            tikhonov_reg : float
+                λ_reg ≥ 0 para regularizar gᵀ G g.
             """
             self._ctx: "KinematicPreparationContext" = context
             self._cfl_margin: float = cfl_margin
             self._residual_tol_rel: float = residual_tol_rel
+            self._tikhonov_reg: float = tikhonov_reg
 
             logger.debug(
-                "[Fase2] Inicializada: n=%d, m=%d, rank(g)=%d, "
-                "CFL_margin=%.2f, res_tol=%.3e.",
-                context.n, context.m, context.rank_g,
-                cfl_margin, residual_tol_rel,
+                "[Fase2] Inicializada: n=%d, m=%d, rank(g)=%d, rank(G)=%d, "
+                "CFL_margin=%.2f, res_tol=%.3e, λ_reg=%.3e.",
+                context.n,
+                context.m,
+                context.rank_g,
+                context.rank_G,
+                cfl_margin,
+                residual_tol_rel,
+                tikhonov_reg,
             )
 
-        #
-        # Subproceso 1: Moldeado de energ a IDA-PBC
-        #
+        # ---------------------------------------------------------------------
+        # Utilidades métricas internas
+        # ---------------------------------------------------------------------
+
+        def _norm_G(
+            self,
+            v: NDArray[np.float64],
+        ) -> float:
+            r"""
+            Norma inducida por la métrica G: ‖v‖_G = √(vᵀ G v).
+
+            Si vᵀ G v < 0 por ruido numérico (G es PSD), se clampea a 0.
+            """
+            quad: float = float(v @ (self._ctx.G @ v))
+            if quad < 0.0:
+                # Ruido de redondeo en dirección del kernel de G
+                quad = 0.0
+            return float(np.sqrt(quad))
+
+        # ---------------------------------------------------------------------
+        # Subproceso 1: Moldeado de energía IDA-PBC covariante
+        # ---------------------------------------------------------------------
 
         def compute_dirac_control_law(
             self,
@@ -823,20 +1074,24 @@ class KCoreKinematicAgent(Morphism):
             grad_H_d: NDArray[np.float64],
         ) -> Tuple[NDArray[np.float64], float]:
             r"""
-            Resuelve la ecuación de matching IDA-PBC:
+            Resuelve la ecuación de matching IDA-PBC con proyección covariante:
 
-                [J_d − R_d] ∇H_d = [J − R] ∇H + g α
-                ⟺  g α = F_req  donde  F_req = [J_d−R_d]∇H_d − [J−R]∇H
+                F_req ≜ [J_d − R_d] ∇H_d − [J − R] ∇H
+                α     = (gᵀ G g + λ_reg I_m)⁺ (gᵀ G F_req)
 
-            mediante la pseudoinversa de Moore-Penrose de g con SVD truncada:
+            Algoritmo
+            ---------
+            1. Formar Gram_G = gᵀ G g ∈ ℝ^{m×m} (simétrica, PSD).
+            2. Regularizar: Gram_reg = Gram_G + λ_reg I_m.
+            3. SVD truncada de Gram_reg (Golub–Van Loan):
+                   σ_tol = m · ε_mach · σ_max
+            4. α = V · diag(1/σᵢ) · Uᵀ · (gᵀ G F_req)
+            5. Verificar residuo en norma G:
+                   r_rel = ‖g α − F_req‖_G / max(‖F_req‖_G, 1)
 
-                g⁺ = V · diag(1/σᵢ  si  σᵢ > σ_tol,  0 en otro caso) · U^⊤
-
-            Criterio de truncación (Golub-Van Loan):
-                σ_tol = max(n, m) · ε_mach · σ_max
-
-            Verificación del residuo relativo:
-                r_rel = ‖g α − F_req‖_2 / max(‖F_req‖_2, 1) < residual_tol_rel
+            Cuando G = I y λ_reg = 0 se recupera la pseudoinversa clásica
+            de Moore-Penrose de g aplicada a F_req (equivalente a g⁺ F_req
+            vía la identidad g⁺ = (gᵀ g)⁺ gᵀ).
 
             Parámetros
             ----------
@@ -848,96 +1103,121 @@ class KCoreKinematicAgent(Morphism):
             Retorna
             -------
             Tuple[NDArray[np.float64], float]
-                (alpha, residual_rel):
-                  alpha        ∈ ℝ^m: ley de control IDA-PBC.
-                  residual_rel ∈ ℝ⁺:  residuo relativo de la ecuación de matching.
+                (alpha, residual_rel)
 
             Lanza
             -----
             KinematicDimensionError
                 Si grad_H o grad_H_d no tienen shape (n,).
             DiracMatchingError
-                Si el residuo relativo supera residual_tol_rel, con diagnóstico
-                de rango efectivo de g y norma del residuo.
+                Si el residuo relativo supera residual_tol_rel.
             """
             n: int = self._ctx.n
+            m: int = self._ctx.m
 
-            # Validaci n de dimensiones de los gradientes
             if grad_H.shape != (n,):
                 raise KinematicDimensionError(
                     f"grad_H debe tener shape ({n},); se obtuvo {grad_H.shape}."
                 )
             if grad_H_d.shape != (n,):
                 raise KinematicDimensionError(
-                    f"grad_H_d debe tener shape ({n},); se obtuvo {grad_H_d.shape}."
+                    f"grad_H_d debe tener shape ({n},); "
+                    f"se obtuvo {grad_H_d.shape}."
                 )
 
-            # Fuerza deseada y natural del sistema Port-Hamiltoniano
+            # Fuerzas Port-Hamiltonianas
             F_d: NDArray[np.float64] = (
                 self._ctx.J_d - self._ctx.R_d
             ) @ grad_H_d
             F_nat: NDArray[np.float64] = (
                 self._ctx.J - self._ctx.R
             ) @ grad_H
-
-            # Fuerza de control requerida: F_req = F_d - F_nat
             F_req: NDArray[np.float64] = F_d - F_nat
-            norm_F_req: float = float(la.norm(F_req, 2))
 
-            # SVD de g para pseudoinversa de Moore-Penrose
+            # Norma G de F_req
+            norm_F_req_G: float = self._norm_G(F_req)
+
+            # ---- Gram covariante: gᵀ G g ----
+            G_g: NDArray[np.float64] = self._ctx.G @ self._ctx.g  # (n, m)
+            Gram: NDArray[np.float64] = self._ctx.g.T @ G_g       # (m, m)
+            # Re-simetrizar (eliminación de asimetría O(ε))
+            Gram = 0.5 * (Gram + Gram.T)
+
+            # Regularización de Tikhonov
+            if self._tikhonov_reg > 0.0:
+                Gram = Gram + self._tikhonov_reg * np.eye(m, dtype=np.float64)
+
+            # Lado derecho covariante: gᵀ G F_req
+            rhs: NDArray[np.float64] = G_g.T @ F_req  # (m,)
+
+            # ---- SVD de Gram (m×m, pequeño) ----
             try:
                 U, s, Vh = la.svd(
-                    self._ctx.g, full_matrices=False, check_finite=False
+                    Gram, full_matrices=False, check_finite=False
                 )
             except la.LinAlgError as exc:
                 raise DiracMatchingError(
-                    f"Fallo de SVD (LAPACK dgesvd) en g. Error: {exc}"
+                    f"Fallo de SVD (LAPACK dgesvd) en gᵀ G g. Error: {exc}"
                 ) from exc
 
-            # Criterio de truncaci n Golub-Van Loan
             sigma_max: float = float(s[0]) if len(s) > 0 else 0.0
-            sigma_tol: float = (
-                max(self._ctx.n, self._ctx.m) * self._EPS * sigma_max
-            )
+            sigma_tol: float = m * self._EPS * max(sigma_max, 1.0)
+            if sigma_max > 0.0:
+                sigma_tol = m * self._EPS * sigma_max
+
             mask: NDArray[np.bool_] = s > sigma_tol
             rank_effective: int = int(np.sum(mask))
 
-            # Inversas de valores singulares truncados
+            if rank_effective == 0:
+                raise DiracMatchingError(
+                    f"gᵀ G g (+ λ I) es numéricamente nula "
+                    f"(σ_max={sigma_max:.6e}). "
+                    f"Sin capacidad de control covariante. "
+                    f"rank(g)={self._ctx.rank_g}, rank(G)={self._ctx.rank_G}."
+                )
+
             s_inv: NDArray[np.float64] = np.zeros_like(s)
             s_inv[mask] = 1.0 / s[mask]
 
-            #   = V   diag(s_inv)   U^    F_req  (pseudoinversa aplicada)
-            alpha: NDArray[np.float64] = Vh.T @ (s_inv * (U.T @ F_req))
+            # α = V · diag(s_inv) · Uᵀ · rhs
+            alpha: NDArray[np.float64] = Vh.T @ (s_inv * (U.T @ rhs))
 
-            # Residuo de la ecuaci n de matching
+            # Residuo de matching en norma G
             residual_vec: NDArray[np.float64] = self._ctx.g @ alpha - F_req
-            residual_abs: float = float(la.norm(residual_vec, 2))
-            # Normalizaci n relativa: evita divisi n por cero para F_req ~= 0
-            residual_rel: float = residual_abs / max(norm_F_req, 1.0)
+            residual_abs_G: float = self._norm_G(residual_vec)
+            residual_rel: float = residual_abs_G / max(norm_F_req_G, 1.0)
 
             if residual_rel > self._residual_tol_rel:
                 logger.error(
-                    "[Fase2] Residuo IDA-PBC: r_rel=%.6e > tol=%.6e, "
-                    "rank_eff=%d/%d,  F_req =%.6e.",
-                    residual_rel, self._residual_tol_rel,
-                    rank_effective, min(self._ctx.n, self._ctx.m), norm_F_req,
+                    "[Fase2] Residuo IDA-PBC: r_rel_G=%.6e > tol=%.6e, "
+                    "rank_eff(Gram)=%d/%d, ‖F_req‖_G=%.6e, λ_reg=%.3e.",
+                    residual_rel,
+                    self._residual_tol_rel,
+                    rank_effective,
+                    m,
+                    norm_F_req_G,
+                    self._tikhonov_reg,
                 )
                 raise DiracMatchingError(
-                    f"Ecuaci n de matching IDA-PBC sin soluci n suficientemente precisa. "
-                    f"Residuo relativo = {residual_rel:.6e} > tol = {self._residual_tol_rel:.6e}. "
-                    f"Rango efectivo de g: {rank_effective}/{min(self._ctx.n, self._ctx.m)}. "
-                    f" F_req  = {norm_F_req:.6e}."
+                    f"Ecuación de matching IDA-PBC sin solución suficientemente "
+                    f"precisa. Residuo relativo_G = {residual_rel:.6e} > "
+                    f"tol = {self._residual_tol_rel:.6e}. "
+                    f"Rango efectivo de gᵀGg: {rank_effective}/{m}. "
+                    f"‖F_req‖_G = {norm_F_req_G:.6e}."
                 )
 
             logger.debug(
-                "[Fase2] IDA-PBC: r_rel=%.3e, rank(g)_eff=%d,    =%.6e.",
-                residual_rel, rank_effective, float(la.norm(alpha, 2)),
+                "[Fase2] IDA-PBC covariante: r_rel_G=%.3e, "
+                "rank(Gram)_eff=%d, ‖α‖₂=%.6e.",
+                residual_rel,
+                rank_effective,
+                float(la.norm(alpha, 2)),
             )
             return alpha, residual_rel
 
-        #
+        # ---------------------------------------------------------------------
         # Subproceso 2: Estrangulamiento de vorticidad de Hodge
-        #
+        # ---------------------------------------------------------------------
 
         def modulate_hodge_conductance(
             self,
@@ -949,125 +1229,129 @@ class KCoreKinematicAgent(Morphism):
             r"""
             Estrangula la conductancia en aristas con vorticidad parásita.
 
-            La vorticidad se mide con la norma de energía:
+            Norma de energía (compatible con L₁ᵂ):
 
-                ‖I_curl‖_W = sqrt(I_curl^⊤ · W_diag · I_curl)
+                ‖I_curl‖_W = √(I_curlᵀ W I_curl)
 
-            donde W_diag = diag(W) es el vector de pesos de aristas.
-            Esta norma es semidefinida positiva y compatible con el
-            Laplaciano de Hodge-1: L₁^W = ∂₁^⊤ W⁻¹ ∂₁ + ∂₂ W ∂₂^⊤.
+            Se usa el producto matricial sparse completo (soporta W no
+            diagonal, p.ej. conductancias mutuas). Si W es diagonal, el
+            coste es O(E); si no, O(nnz(W)).
 
             Si ‖I_curl‖_W > ε_crit, se penalizan las aristas cuyo
             |I_curl[e]| > 0.1 · ‖I_curl‖_∞:
 
-                W_diag[e] ← W_diag[e] · strangle_factor
+                W_mod = W − (1 − strangle_factor) · P_S W P_S
 
-            La operación se realiza en formato COO para compatibilidad
-            universal con cualquier formato sparse (CSR, CSC, LIL, DIA, etc.)
-            sin bifurcación de formato.
+            donde P_S es el proyector diagonal sobre el soporte S de
+            vorticidad. Para W diagonal esto se reduce a
+            w_diag[S] ← w_diag[S] · strangle_factor.
 
             Parámetros
             ----------
             W : sp.spmatrix, shape (E, E)
-                Matriz de conductancia de aristas (diagonal, cualquier formato).
+                Matriz de conductancia de aristas (cualquier formato sparse).
             I_curl : NDArray[np.float64], shape (E,)
-                Corriente de curl sobre las E aristas del grafo logístico.
+                Corriente de curl sobre las E aristas.
             epsilon_crit : float
                 Umbral de vorticidad admisible.
             strangle_factor : float ∈ (0, 1)
-                Factor de penalización multiplicativo para aristas vorticosas.
+                Factor de penalización multiplicativo.
 
             Retorna
             -------
             Tuple[sp.spmatrix, float]
-                (W_mod, vorticity_norm):
-                  W_mod          : conductancia modulada en formato CSR.
-                  vorticity_norm : ‖I_curl‖_W (cuantificación de la vorticidad).
+                (W_mod, vorticity_norm)
 
             Lanza
             -----
-            KinematicDimensionError
-                Si I_curl no tiene shape (E,) coherente con W.shape[0].
-            ParasiticVorticityError
-                Si strangle_factor ≤ 0 (penalización no física).
+            KinematicDimensionError, ParasiticVorticityError
             """
-            E: int = W.shape[0]
+            E: int = int(W.shape[0])
 
+            if W.shape[0] != W.shape[1]:
+                raise KinematicDimensionError(
+                    f"W debe ser cuadrada; se obtuvo shape={W.shape}."
+                )
             if I_curl.shape != (E,):
                 raise KinematicDimensionError(
-                    f"I_curl debe tener shape ({E},) coherente con W.shape[0]={E}; "
-                    f"se obtuvo {I_curl.shape}."
+                    f"I_curl debe tener shape ({E},) coherente con "
+                    f"W.shape[0]={E}; se obtuvo {I_curl.shape}."
                 )
-
-            if strangle_factor <= 0.0:
+            if strangle_factor <= 0.0 or strangle_factor > 1.0:
                 raise ParasiticVorticityError(
-                    f"strangle_factor debe ser > 0; se obtuvo {strangle_factor}. "
-                    f"Un factor <= 0 implicar a conductancia negativa (no f sica)."
+                    f"strangle_factor debe estar en (0, 1]; "
+                    f"se obtuvo {strangle_factor}."
                 )
 
-            #    Extracci n de la diagonal en formato COO universal
-            # Conversi n a CSR para acceso eficiente a la diagonal
             W_csr: sp.csr_matrix = W.tocsr()
-            w_diag: NDArray[np.float64] = W_csr.diagonal().copy()
 
-            #    Norma de vorticidad:  I_curl  _W = I_curl^  diag(w_diag) I_curl
-            # Para matrices diagonales: forma cuadr tica = sum(w_diag * I_curl )
-            # Esto evita el producto matricial W @ I_curl (que es O(E ) para densa)
-            w_i_curl_sq: NDArray[np.float64] = w_diag * (I_curl ** 2)
-            quad_form: float = float(np.sum(w_i_curl_sq))
+            # Forma cuadrática completa: I_curlᵀ W I_curl
+            W_I: NDArray[np.float64] = W_csr @ I_curl
+            quad_form: float = float(I_curl @ W_I)
 
-            if quad_form < 0.0:
+            if quad_form < -self._EPS * max(float(la.norm(I_curl, 2)) ** 2, 1.0):
                 raise ParasiticVorticityError(
-                    f"Forma cuadr tica I_curl^  W I_curl = {quad_form:.6e} < 0. "
-                    f"W tiene entradas diagonales negativas (no f sica)."
+                    f"Forma cuadrática I_curlᵀ W I_curl = {quad_form:.6e} < 0. "
+                    f"W tiene autovalores negativos (no física)."
                 )
-
+            quad_form = max(quad_form, 0.0)
             vorticity_norm: float = float(np.sqrt(quad_form))
 
             if vorticity_norm > epsilon_crit:
                 logger.info(
-                    "[Fase2] Vorticidad par sita:  I_curl _W=%.4e >  _crit=%.4e. "
-                    "Estrangulando conductancia.",
-                    vorticity_norm, epsilon_crit,
+                    "[Fase2] Vorticidad parásita: ‖I_curl‖_W=%.4e > "
+                    "ε_crit=%.4e. Estrangulando conductancia.",
+                    vorticity_norm,
+                    epsilon_crit,
                 )
 
-                # Soporte de la penalizaci n: aristas con |I_curl[e]| > 0.1    I_curl _
-                inf_norm: float = float(np.max(np.abs(I_curl)))
-                # Umbral adaptativo: 10% del pico de vorticidad
+                inf_norm: float = float(np.max(np.abs(I_curl))) if E > 0 else 0.0
                 threshold: float = 0.1 * inf_norm
                 mask: NDArray[np.bool_] = np.abs(I_curl) > threshold
                 n_penalized: int = int(np.sum(mask))
 
                 if n_penalized == 0:
                     logger.warning(
-                        "[Fase2] Vorticidad detectada pero soporte vac o "
-                        "(todos |I_curl[e]| <= %.3e). Sin penalizaci n.",
+                        "[Fase2] Vorticidad detectada pero soporte vacío "
+                        "(todos |I_curl[e]| ≤ %.3e). Sin penalización.",
                         threshold,
                     )
+                    W_mod = W_csr
                 else:
-                    w_diag[mask] *= strangle_factor
-                    logger.debug(
-                        "[Fase2] %d/%d aristas penalizadas con factor %.3e.",
-                        n_penalized, E, strangle_factor,
+                    # Construcción general: escalar filas/columnas del soporte
+                    # Para W diagonal: equivalente a w[S] *= strangle_factor.
+                    # Para W denso-sparse: P_S W P_S se escala, el resto se
+                    # mantiene (estrangulamiento local del bloque de soporte).
+                    scale: NDArray[np.float64] = np.ones(E, dtype=np.float64)
+                    scale[mask] = np.sqrt(strangle_factor)
+                    # W_mod = D_scale W D_scale  (congruencia que preserva PSD)
+                    D: sp.csr_matrix = sp.diags(
+                        scale, offsets=0, shape=(E, E), format="csr",
+                        dtype=np.float64,
                     )
+                    W_mod = (D @ W_csr @ D).tocsr()
 
-                # Reconstruir W_mod como matriz diagonal CSR
-                W_mod: sp.csr_matrix = sp.diags(
-                    w_diag, offsets=0, shape=(E, E), format="csr", dtype=np.float64
-                )
+                    logger.debug(
+                        "[Fase2] %d/%d aristas penalizadas con factor %.3e "
+                        "(congruencia D W D).",
+                        n_penalized,
+                        E,
+                        strangle_factor,
+                    )
             else:
                 logger.debug(
-                    "[Fase2] Vorticidad  I_curl _W=%.4e <=  _crit=%.4e. "
+                    "[Fase2] Vorticidad ‖I_curl‖_W=%.4e ≤ ε_crit=%.4e. "
                     "Sin estrangulamiento.",
-                    vorticity_norm, epsilon_crit,
+                    vorticity_norm,
+                    epsilon_crit,
                 )
-                W_mod = W_csr  # ya es CSR, sin copia innecesaria
+                W_mod = W_csr
 
             return W_mod, vorticity_norm
 
-        #
-        # Subproceso 3: Sintonizaci n de impedancia Kramers-Kronig
-        #
+        # ---------------------------------------------------------------------
+        # Subproceso 3: Sintonización de impedancia Kramers-Kronig
+        # ---------------------------------------------------------------------
 
         def tune_impedance_tensors(
             self,
@@ -1077,20 +1361,19 @@ class KCoreKinematicAgent(Morphism):
             Sintoniza los tensores dieléctrico ε_eff y magnético μ_eff para
             acoplamiento de impedancia perfecto:
 
-                Z₀ = sqrt(μ_eff · ε_eff⁻¹)  ≡  Z_load
+                Z₀ = √(μ_eff · ε_eff⁻¹)  ≡  Z_load
 
-            Solución constructiva (Kramers-Kronig):
-                ε_eff = L_Z · L_Z^⊤           (SPD, L_Z = Cholesky de Z_load)
-                μ_eff = Z_load · ε_eff · Z_load^⊤ = Z_load²
+            Solución constructiva (compatible con relaciones Kramers-Kronig
+            en el dominio de frecuencia estática / DC):
 
-            que garantiza μ_eff ≻ 0 por construcción (producto de matrices SPD).
+                ε_eff = Z_load          (tras re-simetrización y Cholesky)
+                μ_eff = Z_load · ε_eff · Z_loadᵀ = Z_load³   (en el sentido
+                        de producto matricial; SPD por composición de SPD)
 
-            Verificación de la relación de dispersión causal:
-                Z₀² = μ_eff · ε_eff⁻¹ = Z_load² · L_Z^{-⊤} · L_Z⁻¹
-                    = Z_load² · Z_load⁻¹ = Z_load  ✓
+            Verificación de dispersión causal:
+                ‖ε_eff − Z_load‖_F / ‖Z_load‖_F < 100 · ε_mach
 
-            La verificación numérica se realiza como:
-                ‖Z₀ − Z_load‖_F / ‖Z_load‖_F < 100 · ε_mach
+            y Cholesky de μ_eff (SPD estricto).
 
             Parámetros
             ----------
@@ -1105,16 +1388,13 @@ class KCoreKinematicAgent(Morphism):
             Lanza
             -----
             ImpedanceReflectionError
-                Si Z_load no es cuadrada, no es SPD, o si la verificación
-                causal falla más allá de 100·ε_mach.
             """
-            # Verificar cuadratura de Z_load
             if Z_load.ndim != 2 or Z_load.shape[0] != Z_load.shape[1]:
                 raise ImpedanceReflectionError(
-                    f"Z_load debe ser cuadrada 2D; se obtuvo shape={Z_load.shape}."
+                    f"Z_load debe ser cuadrada 2D; "
+                    f"se obtuvo shape={Z_load.shape}."
                 )
 
-            # Re-simetrizaci n defensiva
             Z_sym: NDArray[np.float64] = 0.5 * (Z_load + Z_load.T)
 
             # Verificar SPD de Z_load mediante Cholesky
@@ -1123,32 +1403,28 @@ class KCoreKinematicAgent(Morphism):
             except la.LinAlgError:
                 eigvals: NDArray[np.float64] = la.eigvalsh(Z_sym)
                 raise ImpedanceReflectionError(
-                    f"Z_load no es Sim trica Definida Positiva (SPD). "
+                    f"Z_load no es Simétrica Definida Positiva (SPD). "
                     f"Acoplamiento de impedancia imposible. "
-                    f" _min = {float(eigvals[0]):.6e},  _max = {float(eigvals[-1]):.6e}."
+                    f"λ_min = {float(eigvals[0]):.6e}, "
+                    f"λ_max = {float(eigvals[-1]):.6e}."
                 )
 
-            #  _eff = L_Z   L_Z^  = Z_load  (SPD por construcci n)
+            # ε_eff = L_Z L_Zᵀ = Z_load (SPD por construcción)
             epsilon_eff: NDArray[np.float64] = L_Z @ L_Z.T
 
-            #  _eff = Z_load    _eff   Z_load^  = Z_load
-            # Para Z_load SPD: Z_load  es SPD (producto de SPD por s  misma)
+            # μ_eff = Z_load · ε_eff · Z_loadᵀ
             mu_eff: NDArray[np.float64] = Z_sym @ epsilon_eff @ Z_sym.T
-            # Re-simetrizar  _eff para eliminar asimetr a num rica O( )
             mu_eff = 0.5 * (mu_eff + mu_eff.T)
 
-            # Verificar SPD de  _eff con Cholesky
             try:
                 la.cholesky(mu_eff, lower=True)
             except la.LinAlgError:
                 raise ImpedanceReflectionError(
-                    "El tensor magn tico  _eff resultante no es SPD. "
-                    "Violaci n de la condici n de causalidad (Kramers-Kronig)."
+                    "El tensor magnético μ_eff resultante no es SPD. "
+                    "Violación de la condición de causalidad (Kramers-Kronig)."
                 )
 
-            #    Verificaci n de la relaci n de dispersi n causal
-            # Z  = sqrt( _eff    _eff  ) = sqrt(Z_load    Z_load  ) = Z_load
-            # Verificaci n num rica:   _eff - Z_load _F /  Z_load _F
+            # Verificación de dispersión causal
             norm_Z: float = float(la.norm(Z_sym, "fro"))
             causal_residual: float = float(
                 la.norm(epsilon_eff - Z_sym, "fro")
@@ -1157,137 +1433,180 @@ class KCoreKinematicAgent(Morphism):
 
             if causal_residual > tol_causal:
                 raise ImpedanceReflectionError(
-                    f"Relaci n de dispersi n causal violada: "
-                    f"  _eff - Z_load _F /  Z_load _F = {causal_residual:.6e} "
-                    f"> tol = {tol_causal:.6e}."
+                    f"Relación de dispersión causal violada: "
+                    f"‖ε_eff − Z_load‖_F / ‖Z_load‖_F = "
+                    f"{causal_residual:.6e} > tol = {tol_causal:.6e}."
                 )
 
             logger.debug(
                 "[Fase2] Kramers-Kronig: causal_residual=%.3e, "
-                "  _eff =%.6e,   _eff =%.6e.",
+                "‖ε_eff‖_F=%.6e, ‖μ_eff‖_F=%.6e.",
                 causal_residual,
                 float(la.norm(epsilon_eff, "fro")),
                 float(la.norm(mu_eff, "fro")),
             )
             return epsilon_eff, mu_eff
 
-        #
-        # Subproceso 4: Auditor a del l mite CFL
-        #
+        # ---------------------------------------------------------------------
+        # Subproceso 4: Auditoría del límite CFL (dual Gerschgorin + espectral)
+        # ---------------------------------------------------------------------
+
+        def _gershgorin_radius(
+            self,
+            Delta_sym: sp.spmatrix,
+        ) -> float:
+            r"""
+            Radio de Gerschgorin del Laplaciano:
+
+                ρ_G = max_i ( |Δ_ii| + Σ_{j≠i} |Δ_ij| )
+
+            Es un majorante barato de λ_max (teorema de Gerschgorin) y no
+            requiere descomposición espectral. Coste O(nnz).
+            """
+            Delta_csr: sp.csr_matrix = Delta_sym.tocsr()
+            # Suma de |Δ_ij| por fila
+            abs_Delta: sp.csr_matrix = Delta_csr.copy()
+            abs_Delta.data = np.abs(abs_Delta.data)
+            row_sums: NDArray[np.float64] = np.asarray(
+                abs_Delta.sum(axis=1)
+            ).ravel()
+            # |Δ_ii| ya está incluido en row_sums; el radio de cada disco es
+            # exactamente row_sums[i] = |Δ_ii| + Σ_{j≠i}|Δ_ij|.
+            return float(np.max(row_sums)) if len(row_sums) > 0 else 0.0
 
         def audit_cfl_limit(
             self,
             c_eff: float,
             Delta_sym: sp.spmatrix,
-        ) -> float:
+        ) -> Tuple[float, float, float]:
             r"""
             Calcula el paso temporal máximo admisible según la condición CFL
-            para el operador de onda discreta:
+            dual (Gerschgorin + espectral) para el operador de onda discreta:
 
-                Δt_safe = (2 · CFL_margin) / (c_eff · √λ_max(Δ_sym))
+                Δt_safe = (2 · CFL_margin)
+                          / (c_eff · √max(ρ_Gersh, λ_max, ε_mach))
 
-            La fórmula proviene del análisis de von Neumann del esquema de
-            diferencias finitas centradas en espacio para la ecuación de onda:
-            la estabilidad requiere c_eff · Δt · √λ_max ≤ 2.
-
-            El autovalor máximo se calcula con ARPACK (``eigsh``) para matrices
-            dispersas grandes. En caso de no-convergencia, se hace fallback a
-            ``eigvalsh`` sobre la versión densa (sólo para matrices pequeñas).
+            La cota de Gerschgorin se calcula siempre (O(nnz)). El autovalor
+            máximo se intenta con ARPACK; si falla y n ≤ 5000 se usa
+            eigvalsh denso; si n > 5000 se confía únicamente en Gerschgorin.
 
             Parámetros
             ----------
             c_eff : float
-                Velocidad de propagación efectiva (> 0 obligatorio).
+                Velocidad de propagación efectiva (> 0).
             Delta_sym : sp.spmatrix
-                Laplaciano simétrico del grafo logístico (semidefinido positivo).
+                Laplaciano simétrico del grafo logístico (PSD).
 
             Retorna
             -------
-            float
-                Δt_safe > 0, o +∞ si Δ_sym es numéricamente nulo (grafo degenerado).
+            Tuple[float, float, float]
+                (dt_safe, gershgorin_rho, lambda_max)
 
             Lanza
             -----
             CFLViolationError
-                Si c_eff ≤ 0 (velocidad no física).
-                Si ARPACK y el fallback denso fallan simultáneamente.
+                Si c_eff ≤ 0.
             """
             if c_eff <= 0.0:
                 raise CFLViolationError(
-                    f"c_eff debe ser estrictamente positivo; se obtuvo c_eff={c_eff:.6e}. "
-                    f"Una velocidad de propagaci n <= 0 es f sicamente inadmisible."
+                    f"c_eff debe ser estrictamente positivo; "
+                    f"se obtuvo c_eff={c_eff:.6e}. "
+                    f"Una velocidad de propagación ≤ 0 es físicamente "
+                    f"inadmisible."
                 )
 
-            n_nodes: int = Delta_sym.shape[0]
-            lambda_max: float
+            n_nodes: int = int(Delta_sym.shape[0])
 
-            #    C lculo de  _max con ARPACK (O(k nnz) para k=1)
+            # ---- Cota de Gerschgorin (siempre) ----
+            rho_g: float = self._gershgorin_radius(Delta_sym)
+            logger.debug(
+                "[Fase2] ρ_Gersh(Δ_sym) = %.6e (n=%d).",
+                rho_g,
+                n_nodes,
+            )
+
+            # ---- λ_max con ARPACK ----
+            lambda_max: float = 0.0
             try:
                 eigvals_arpack, _ = eigsh(
                     Delta_sym,
                     k=1,
                     which="LM",
                     tol=1.0e-8,
-                    maxiter=10 * n_nodes,
+                    maxiter=max(10 * n_nodes, 100),
                     return_eigenvectors=True,
                 )
                 lambda_max = float(np.abs(eigvals_arpack[0]))
                 logger.debug(
-                    "[Fase2]  _max( _sym) = %.6e (ARPACK, n=%d).",
-                    lambda_max, n_nodes,
-                )
-
-            except (ArpackNoConvergence, Exception) as exc_arpack:
-                #    Fallback: eigvalsh denso (solo para matrices peque as)
-                logger.warning(
-                    "[Fase2] ARPACK no convergi  para  _max( _sym): %s. "
-                    "Fallback a eigvalsh denso (n=%d).",
-                    exc_arpack, n_nodes,
-                )
-                if n_nodes > 5000:
-                    raise CFLViolationError(
-                        f"ARPACK fall  para  _sym de tama o n={n_nodes} > 5000, "
-                        f"y el fallback denso no es admisible por coste O(n ). "
-                        f"Error ARPACK: {exc_arpack}"
-                    ) from exc_arpack
-                try:
-                    Delta_dense: NDArray[np.float64] = Delta_sym.toarray()
-                    eigvals_dense: NDArray[np.float64] = la.eigvalsh(Delta_dense)
-                    lambda_max = float(eigvals_dense[-1])
-                    logger.debug(
-                        "[Fase2]  _max( _sym) = %.6e (eigvalsh denso, fallback).",
-                        lambda_max,
-                    )
-                except Exception as exc_dense:
-                    raise CFLViolationError(
-                        f"Fallo en ARPACK y en eigvalsh denso para  _sym. "
-                        f"Error ARPACK: {exc_arpack}. Error denso: {exc_dense}."
-                    ) from exc_dense
-
-            #    Grafo degenerado:  _sym ~= 0
-            if lambda_max < 1.0e-12:
-                logger.warning(
-                    "[Fase2]  _max( _sym) = %.3e < 1e-12: grafo log stico "
-                    "degenerado (desconectado).  t_safe = + .",
+                    "[Fase2] λ_max(Δ_sym) = %.6e (ARPACK, n=%d).",
                     lambda_max,
+                    n_nodes,
                 )
-                return float("inf")
+            except (ArpackNoConvergence, Exception) as exc_arpack:
+                logger.warning(
+                    "[Fase2] ARPACK no convergió para λ_max(Δ_sym): %s. "
+                    "Fallback condicional (n=%d).",
+                    exc_arpack,
+                    n_nodes,
+                )
+                if n_nodes <= 5000:
+                    try:
+                        Delta_dense: NDArray[np.float64] = Delta_sym.toarray()
+                        Delta_dense = 0.5 * (Delta_dense + Delta_dense.T)
+                        eigvals_dense: NDArray[np.float64] = la.eigvalsh(
+                            Delta_dense
+                        )
+                        lambda_max = float(eigvals_dense[-1])
+                        logger.debug(
+                            "[Fase2] λ_max(Δ_sym) = %.6e "
+                            "(eigvalsh denso, fallback).",
+                            lambda_max,
+                        )
+                    except Exception as exc_dense:
+                        logger.warning(
+                            "[Fase2] Fallback denso falló: %s. "
+                            "Se usa únicamente ρ_Gersh.",
+                            exc_dense,
+                        )
+                        lambda_max = 0.0
+                else:
+                    logger.warning(
+                        "[Fase2] n=%d > 5000 y ARPACK falló; "
+                        "se usa únicamente ρ_Gersh=%.6e.",
+                        n_nodes,
+                        rho_g,
+                    )
+                    lambda_max = 0.0
 
-            #    Condici n CFL
+            # ---- Combinación conservadora ----
+            spectral_bound: float = max(rho_g, lambda_max, self._EPS)
+
+            if spectral_bound < 1.0e-12:
+                logger.warning(
+                    "[Fase2] bound espectral = %.3e < 1e-12: grafo "
+                    "logístico degenerado (desconectado). Δt_safe = +∞.",
+                    spectral_bound,
+                )
+                return float("inf"), rho_g, lambda_max
+
             dt_safe: float = (2.0 * self._cfl_margin) / (
-                c_eff * float(np.sqrt(lambda_max))
+                c_eff * float(np.sqrt(spectral_bound))
             )
 
             logger.debug(
-                "[Fase2] CFL:  _max=%.6e, c_eff=%.6e, "
-                "CFL_margin=%.2f,  t_safe=%.6e.",
-                lambda_max, c_eff, self._cfl_margin, dt_safe,
+                "[Fase2] CFL dual: ρ_G=%.6e, λ_max=%.6e, c_eff=%.6e, "
+                "CFL_margin=%.2f, Δt_safe=%.6e.",
+                rho_g,
+                lambda_max,
+                c_eff,
+                self._cfl_margin,
+                dt_safe,
             )
-            return dt_safe
+            return dt_safe, rho_g, lambda_max
 
-        #
-        # M todo terminal de la Fase 2   entrada directa de la Fase 3
-        #
+        # ---------------------------------------------------------------------
+        # Método terminal de la Fase 2 — entrada directa de la Fase 3
+        # ---------------------------------------------------------------------
 
         def synthesize(
             self,
@@ -1308,77 +1627,74 @@ class KCoreKinematicAgent(Morphism):
 
             El ``KinematicStateTensor`` resultante contiene la conductancia
             modulada W_mod que es el **dato primario** consumido por la Fase 3
-            para construir δ_{CORE}. La frontera formal entre Fase 2 y Fase 3
+            para construir δ_CORE. La frontera formal entre Fase 2 y Fase 3
             es el campo ``hodge_conductance`` de este tensor.
 
             Parámetros
             ----------
-            grad_H : NDArray[np.float64], shape (n,)
-                Gradiente del Hamiltoniano actual.
-            grad_H_d : NDArray[np.float64], shape (n,)
-                Gradiente del Hamiltoniano deseado.
-            W : sp.spmatrix, shape (E, E)
-                Matriz de conductancia de aristas (cualquier formato sparse).
-            I_curl : NDArray[np.float64], shape (E,)
-                Corriente de curl sobre las aristas.
-            Z_load : NDArray[np.float64], shape (d, d)
-                Matriz de impedancia de carga (SPD).
-            c_eff : float
-                Velocidad de propagación efectiva (> 0).
-            Delta_sym : sp.spmatrix, shape (V, V)
-                Laplaciano simétrico del grafo logístico.
-            dt_requested : float
-                Paso temporal solicitado por el integrador externo.
+            grad_H, grad_H_d : gradientes hamiltonianos.
+            W : conductancia de aristas.
+            I_curl : corriente de curl.
+            Z_load : impedancia de carga (SPD).
+            c_eff : velocidad de propagación efectiva (> 0).
+            Delta_sym : Laplaciano simétrico del grafo.
+            dt_requested : paso temporal solicitado.
 
             Retorna
             -------
             KinematicStateTensor
-                Estado cinemático completo, inmutable.
 
             Lanza
             -----
-            CFLViolationError
-                Si dt_requested > dt_safe (violación activa del cono de luz).
-            DiracMatchingError, ParasiticVorticityError,
-            ImpedanceReflectionError, CFLViolationError
-                Propagadas desde los subprocesos correspondientes.
+            CFLViolationError, DiracMatchingError, ParasiticVorticityError,
+            ImpedanceReflectionError
             """
-            #    Subproceso 1: IDA-PBC
+            # ---- Subproceso 1: IDA-PBC covariante ----
             alpha, residual_rel = self.compute_dirac_control_law(
                 grad_H, grad_H_d
             )
 
-            #    Subproceso 2: Hodge
-            W_mod, vorticity_norm = self.modulate_hodge_conductance(W, I_curl)
+            # ---- Subproceso 2: Hodge ----
+            W_mod, vorticity_norm = self.modulate_hodge_conductance(
+                W, I_curl
+            )
 
-            #    Subproceso 3: Kramers-Kronig
+            # ---- Subproceso 3: Kramers-Kronig ----
             epsilon_eff, mu_eff = self.tune_impedance_tensors(Z_load)
 
-            #    Subproceso 4: CFL
-            dt_safe = self.audit_cfl_limit(c_eff, Delta_sym)
+            # ---- Subproceso 4: CFL dual ----
+            dt_safe, rho_g, lambda_max = self.audit_cfl_limit(
+                c_eff, Delta_sym
+            )
 
-            #    Verificaci n CFL activa
+            # Verificación CFL activa
             if dt_requested > dt_safe:
                 raise CFLViolationError(
-                    f"Violaci n del Cono de Luz Causal (CFL). "
+                    f"Violación del Cono de Luz Causal (CFL). "
                     f"dt_requested = {dt_requested:.6e} > "
-                    f" t_safe = {dt_safe:.6e}. "
+                    f"Δt_safe = {dt_safe:.6e}. "
+                    f"ρ_Gersh={rho_g:.6e}, λ_max={lambda_max:.6e}. "
                     f"Reducir el paso temporal o disminuir c_eff."
                 )
 
             logger.info(
-                "[Fase2] S ntesis cinem tica completada: "
-                "   =%.6e, vorticity=%.6e, dt_safe=%.6e, r_rel=%.3e.",
+                "[Fase2] Síntesis cinemática completada: "
+                "‖α‖₂=%.6e, vorticity=%.6e, dt_safe=%.6e, r_rel_G=%.3e, "
+                "ρ_G=%.3e, λ_max=%.3e.",
                 float(la.norm(alpha, 2)),
                 vorticity_norm,
                 dt_safe,
                 residual_rel,
+                rho_g,
+                lambda_max,
             )
 
-            #    Contrato de interfaz Fase 2   Fase 3
+            # ================================================================
+            # CONTRATO DE INTERFAZ FASE 2 → FASE 3
             # `hodge_conductance = W_mod` es el argumento directo del
-            # constructor de Phase3_SheafProjection. Esta devoluci n es la
+            # constructor de Phase3_SheafProjection. Esta devolución es la
             # frontera formal entre ambas fases anidadas.
+            # ================================================================
             return KinematicStateTensor(
                 control_law_alpha=alpha,
                 hodge_conductance=W_mod,
@@ -1387,126 +1703,151 @@ class KCoreKinematicAgent(Morphism):
                 cfl_safe_dt=dt_safe,
                 residual_idapbc=residual_rel,
                 vorticity_norm=vorticity_norm,
+                gershgorin_rho=rho_g,
+                lambda_max_delta=lambda_max,
                 is_kinematically_stable=True,
             )
 
-    #
-    # FASE 3   PROYECCI N EN HACES Y COFRONTERA DISCRETA  _{CORE}
-    #
+    # =========================================================================
+    # FASE 3 — PROYECCIÓN EN HACES Y COFRONTERA DISCRETA δ_CORE
+    # =========================================================================
 
     class Phase3_SheafProjection:
         r"""
-        **Fase 3 – Proyección en Haces y Cofrontera Discreta δ_{CORE}.**
+        **Fase 3 – Proyección en Haces y Cofrontera Discreta δ_CORE.**
 
         Recibe la conductancia modulada W_mod producida por la Fase 2 y
         construye el ``SheafStalk`` que alimenta el Laplaciano de Haz global.
 
         El constructor de esta clase es la **continuación directa** del método
         ``synthesize`` de la Fase 2: el campo ``hodge_conductance`` del
-        ``KinematicStateTensor`` devuelto allá es lo que aquí se recibe.
+        ``KinematicStateTensor`` es lo que aquí se recibe.
 
-        Fundamento Matemático
-        ----------------------
+        Fundamento Matemático (topología algebraica discreta)
+        ------------------------------------------------------
         En el complejo de cadenas del grafo logístico, las aristas son
         1-cadenas y W_mod es el operador de métrica en el espacio de 1-formas.
 
-        La cofrontera local δ_{CORE}: F(K_{CORE}) → F(e) se define como:
+        La cofrontera local δ_CORE : F(K_CORE) → F(e) se define como:
 
-            δ_{CORE} = W_mod^{+1/2}
+            δ_CORE = W_mod^{+1/2}
 
         donde W_mod^{+1/2} es la raíz cuadrada matricial espectral
         (pseudoinversa si W_mod es rango-deficiente):
 
-            W_mod^{+1/2} = V · diag(√λ⁺) · V^⊤,  W_mod = V · diag(λ) · V^⊤
+            W_mod = V · diag(λ) · Vᵀ
+            W_mod^{+1/2} = V · diag(√λ⁺) · Vᵀ
 
-        Esta elección garantiza la identidad de Hodge local:
+        Identidad de Hodge local (condición de consistencia del stalk):
 
-            δ_{CORE}^⊤ · δ_{CORE} = W_mod
+            δ_COREᵀ · δ_CORE = W_mod
 
-        que es la condición necesaria para que el Laplaciano de Hodge global
-        sea consistente con la métrica local de cada stalk.
-
-        Verificación de la identidad:
-            err = ‖δ_{CORE}^⊤ δ_{CORE} − W_mod‖_F / ‖W_mod‖_F < 100 · ε_mach
+        Invariantes topológicos locales exportados
+        ------------------------------------------
+        • betti_approx ≈ dim ker(W_mod) = E − rank(δ_CORE)
+          (componentes de conductancia nula ≈ β₀ del soporte).
+        • spectral_entropy = S(p) = −Σ p_i log p_i, p_i = λ_i / Tr(W_mod)
+          (entropía de von Neumann del espectro de la métrica de aristas;
+          inspirada en la pureza de estados densos en mecánica cuántica).
         """
 
-        _EPS: float = float(np.finfo(np.float64).eps)
+        _EPS: Final[float] = float(np.finfo(np.float64).eps)
 
         def __init__(self, W_mod: sp.spmatrix) -> None:
             r"""
             **Constructor de la Fase 3: continuación directa de la Fase 2.**
 
             Recibe W_mod = ``KinematicStateTensor.hodge_conductance`` y
-            precalcula la raíz cuadrada espectral δ_{CORE} = W_mod^{+1/2}
+            precalcula la raíz cuadrada espectral δ_CORE = W_mod^{+1/2}
             para amortizar el coste sobre múltiples llamadas a ``export_stalk``.
-
-            La raíz se calcula en el constructor (no en ``export_stalk``)
-            porque W_mod es fija entre llamadas del mismo paso temporal.
 
             Lanza
             -----
             SheafCoboundaryError
-                Si la identidad de Hodge no se satisface dentro de 100·ε_mach.
+                Si la identidad de Hodge no se satisface dentro de 100·ε_mach
+                o si W_mod no es PSD.
             """
             self._W_mod: sp.spmatrix = W_mod
 
-            #    Conversi n a denso para descomposici n espectral
-            # W_mod es diagonal (resultado de modulate_hodge_conductance),
-            # por lo que toarray() es O(E ) pero E es t picamente peque o.
+            # Conversión a denso + re-simetrización
             W_dense: NDArray[np.float64] = W_mod.toarray()
-            # Re-simetrizar defensivamente
             W_dense = 0.5 * (W_dense + W_dense.T)
             self._W_dense: NDArray[np.float64] = W_dense
+            E: int = int(W_dense.shape[0])
 
-            #    Ra z cuadrada espectral: W_mod^{+1/2}
+            # Descomposición espectral
             eigvals: NDArray[np.float64]
             eigvecs: NDArray[np.float64]
             eigvals, eigvecs = la.eigh(W_dense)
 
-            # Tolerancia para distinguir autovalores nulos de negativos
             norm_W: float = float(la.norm(W_dense, "fro"))
             tol_eig: float = self._EPS * max(norm_W, 1.0)
 
-            # Verificar no-negatividad (W_mod debe ser PSD por construcci n)
             lambda_min: float = float(eigvals[0])
             if lambda_min < -tol_eig:
                 raise SheafCoboundaryError(
-                    f"W_mod no es Semidefinida Positiva:  _min = {lambda_min:.6e} "
-                    f"< -tol = {-tol_eig:.6e}. "
-                    f"La estrangulaci n de Hodge produjo conductancias negativas."
+                    f"W_mod no es Semidefinida Positiva: "
+                    f"λ_min = {lambda_min:.6e} < −tol = {-tol_eig:.6e}. "
+                    f"La estrangulación de Hodge produjo conductancias "
+                    f"negativas (violación de PSD por congruencia)."
                 )
 
-            # Ra z cuadrada espectral con pseudoinversa (clamping de negativos)
-            eigvals_sqrt: NDArray[np.float64] = np.sqrt(np.maximum(eigvals, 0.0))
+            # Raíz espectral con clamping de negativos residuales
+            eigvals_clamped: NDArray[np.float64] = np.maximum(eigvals, 0.0)
+            eigvals_sqrt: NDArray[np.float64] = np.sqrt(eigvals_clamped)
             delta_core: NDArray[np.float64] = (
                 eigvecs * eigvals_sqrt[np.newaxis, :]
             ) @ eigvecs.T
-            # Re-simetrizar para eliminar asimetr a num rica O( )
             self._delta_core: NDArray[np.float64] = 0.5 * (
                 delta_core + delta_core.T
             )
 
-            # Rango num rico de  _{CORE}
+            # Rango y Betti aproximado
             self._rank_delta: int = int(np.sum(eigvals_sqrt > tol_eig))
+            self._betti_approx: int = E - self._rank_delta
 
-            #    Verificaci n de la identidad de Hodge local
+            # Entropía de von Neumann del espectro normalizado
+            self._spectral_entropy: float = self._von_neumann_entropy(
+                eigvals_clamped
+            )
+
+            # Verificación de la identidad de Hodge local
             self._hodge_residual: float = self._verify_hodge_identity()
 
             logger.debug(
-                "[Fase3]  _{CORE} precalculada: E=%d, rank=%d, "
-                "Hodge_residual=%.3e.",
-                W_dense.shape[0], self._rank_delta, self._hodge_residual,
+                "[Fase3] δ_CORE precalculada: E=%d, rank=%d, "
+                "β₀≈%d, S_vN=%.4f, Hodge_residual=%.3e.",
+                E,
+                self._rank_delta,
+                self._betti_approx,
+                self._spectral_entropy,
+                self._hodge_residual,
             )
+
+        @staticmethod
+        def _von_neumann_entropy(
+            eigvals: NDArray[np.float64],
+        ) -> float:
+            r"""
+            Entropía de von Neumann del espectro no negativo:
+
+                S = −Σ p_i ln p_i ,   p_i = λ_i / Σ λ_j
+
+            S = 0 ⇔ un solo modo (rango 1); S → ln(E) ⇔ espectro plano.
+            """
+            total: float = float(np.sum(eigvals))
+            if total <= 0.0:
+                return 0.0
+            p: NDArray[np.float64] = eigvals / total
+            # Evitar 0·log(0): solo sumar donde p > 0
+            p_pos = p[p > 0.0]
+            return float(-np.sum(p_pos * np.log(p_pos)))
 
         def _verify_hodge_identity(self) -> float:
             r"""
             Verifica la identidad de Hodge local:
 
-                ‖ δ_{CORE}^⊤ · δ_{CORE} − W_mod ‖_F / ‖ W_mod ‖_F
-
-            Esta identidad garantiza que δ_{CORE} es la raíz cuadrada
-            correcta de W_mod y que el Laplaciano de Haz global será
-            consistente con la métrica local.
+                ‖ δ_COREᵀ · δ_CORE − W_mod ‖_F / ‖ W_mod ‖_F
 
             Retorna
             -------
@@ -1518,8 +1859,9 @@ class KCoreKinematicAgent(Morphism):
             SheafCoboundaryError
                 Si el error relativo supera 100·ε_mach.
             """
-            #  ^      =       (ya que   es sim trica por construcci n espectral)
-            delta_sq: NDArray[np.float64] = self._delta_core @ self._delta_core
+            delta_sq: NDArray[np.float64] = (
+                self._delta_core @ self._delta_core
+            )
             residual_mat: NDArray[np.float64] = delta_sq - self._W_dense
 
             norm_W: float = float(la.norm(self._W_dense, "fro"))
@@ -1530,16 +1872,17 @@ class KCoreKinematicAgent(Morphism):
 
             if rel_error > tol_hodge:
                 raise SheafCoboundaryError(
-                    f" _{{CORE}}    W_mod: identidad de Hodge violada. "
-                    f"   -W _F /  W _F = {rel_error:.6e} > tol = {tol_hodge:.6e}. "
-                    f"Error de ensamble en la ra z espectral."
+                    f"δ_COREᵀ δ_CORE ≇ W_mod: identidad de Hodge violada. "
+                    f"‖δ² − W‖_F / ‖W‖_F = {rel_error:.6e} > "
+                    f"tol = {tol_hodge:.6e}. "
+                    f"Error de ensamble en la raíz espectral."
                 )
 
             return rel_error
 
-        #
-        # M todo terminal de la Fase 3 (salida p blica del ecosistema)
-        #
+        # ---------------------------------------------------------------------
+        # Método terminal de la Fase 3 (salida pública del ecosistema)
+        # ---------------------------------------------------------------------
 
         def export_stalk(
             self,
@@ -1549,14 +1892,14 @@ class KCoreKinematicAgent(Morphism):
             **Método terminal de la Fase 3 y del agente completo.**
 
             Proyecta el vector de estado x sobre la fibra local mediante
-            δ_{CORE} (precalculada en el constructor) y retorna el
-            ``SheafStalk`` completo.
+            δ_CORE (precalculada en el constructor) y retorna el
+            ``SheafStalk`` completo, incluyendo invariantes topológicos
+            y la entropía espectral.
 
             Parámetros
             ----------
             state_x : NDArray[np.float64], shape (E,)
                 Vector de estado en el espacio de aristas (1-cochains).
-                Típicamente: corriente de flujo logístico por cada arista.
 
             Retorna
             -------
@@ -1568,7 +1911,7 @@ class KCoreKinematicAgent(Morphism):
             KinematicDimensionError
                 Si state_x no tiene la dimensión E del espacio de aristas.
             """
-            E: int = self._delta_core.shape[0]
+            E: int = int(self._delta_core.shape[0])
 
             if state_x.shape != (E,):
                 raise KinematicDimensionError(
@@ -1576,31 +1919,36 @@ class KCoreKinematicAgent(Morphism):
                     f"se obtuvo {state_x.shape}."
                 )
 
-            # Proyecci n sobre la fibra:  _{CORE}   x
             projected: NDArray[np.float64] = self._delta_core @ state_x
 
             logger.info(
                 "[Fase3] SheafStalk exportado: E=%d, rank_delta=%d, "
-                "Hodge_res=%.3e,    x =%.6e.",
+                "β₀≈%d, S_vN=%.4f, Hodge_res=%.3e, ‖δx‖₂=%.6e.",
                 E,
                 self._rank_delta,
+                self._betti_approx,
+                self._spectral_entropy,
                 self._hodge_residual,
                 float(la.norm(projected, 2)),
             )
 
-            #    Contrato de salida del agente completo
+            # ================================================================
+            # CONTRATO DE SALIDA DEL AGENTE COMPLETO
             # El SheafStalk es el output final de la cadena de 3 fases.
+            # ================================================================
             return SheafStalk(
                 delta_core=self._delta_core,
                 delta_hodge_residual=self._hodge_residual,
                 state_vector=state_x.copy(),
                 projected_state=projected,
                 rank_delta=self._rank_delta,
+                betti_approx=self._betti_approx,
+                spectral_entropy=self._spectral_entropy,
             )
 
-    #
-    # INTERFAZ P BLICA DEL AGENTE (punto de entrada externo)
-    #
+    # =========================================================================
+    # INTERFAZ PÚBLICA DEL AGENTE (punto de entrada externo)
+    # =========================================================================
 
     def synthesize_kinematic_core(
         self,
@@ -1654,17 +2002,20 @@ class KCoreKinematicAgent(Morphism):
             dt_requested=dt_requested,
         )
 
-        # Actualizar conductancia m s reciente para la Fase 3
+        # Actualizar conductancia más reciente para la Fase 3
         self._latest_hodge_conductance = state.hodge_conductance
-        # Invalidar Fase 3 si W_mod cambi  (forzar re-instanciaci n perezosa)
+        # Invalidar Fase 3 si W_mod cambió (forzar re-instanciación perezosa)
         self.phase3 = None
 
         logger.debug(
-            "[KCoreKinematicAgent] S ntesis completada: "
-            "CFL_safe_dt=%.6e, vorticity=%.6e, r_idapbc=%.3e.",
+            "[KCoreKinematicAgent] Síntesis completada: "
+            "CFL_safe_dt=%.6e, vorticity=%.6e, r_idapbc_G=%.3e, "
+            "ρ_G=%.3e, λ_max=%.3e.",
             state.cfl_safe_dt,
             state.vorticity_norm,
             state.residual_idapbc,
+            state.gershgorin_rho,
+            state.lambda_max_delta,
         )
         return state
 
@@ -1673,10 +2024,10 @@ class KCoreKinematicAgent(Morphism):
         state_x: NDArray[np.float64],
     ) -> SheafStalk:
         r"""
-        Exporta el Stalk del haz cinemático y la cofrontera δ_{CORE}.
+        Exporta el Stalk del haz cinemático y la cofrontera δ_CORE.
 
-        Requiere que ``synthesize_kinematic_core`` haya sido llamado previamente
-        para disponer de la conductancia modulada W_mod.
+        Requiere que ``synthesize_kinematic_core`` haya sido llamado
+        previamente para disponer de la conductancia modulada W_mod.
 
         La Fase 3 se instancia perezosamente: el coste de la descomposición
         espectral de W_mod se paga una vez y se reutiliza para múltiples
@@ -1700,7 +2051,8 @@ class KCoreKinematicAgent(Morphism):
         if self._latest_hodge_conductance is None:
             raise KinematicCoreError(
                 "No se dispone de conductancia modulada W_mod. "
-                "Ejecute ``synthesize_kinematic_core`` antes de ``export_sheaf_stalk``."
+                "Ejecute ``synthesize_kinematic_core`` antes de "
+                "``export_sheaf_stalk``."
             )
 
         if self.phase3 is None:
@@ -1709,8 +2061,10 @@ class KCoreKinematicAgent(Morphism):
             )
             logger.info(
                 "[KCoreKinematicAgent] Phase3_SheafProjection instanciada "
-                "(lazy init): rank_delta=%d.",
+                "(lazy init): rank_delta=%d, β₀≈%d, S_vN=%.4f.",
                 self.phase3._rank_delta,
+                self.phase3._betti_approx,
+                self.phase3._spectral_entropy,
             )
 
         return self.phase3.export_stalk(state_x=state_x)

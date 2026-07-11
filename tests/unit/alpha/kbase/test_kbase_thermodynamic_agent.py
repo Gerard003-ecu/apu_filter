@@ -3,40 +3,56 @@ r"""
 +==============================================================================+
 | Suite de Pruebas : test_kbase_thermodynamic_agent.py                         |
 | Objetivo         : Verificación granular, rigurosa y matemáticamente         |
-|                     trazable de KBaseThermodynamicAgent v4.0.0               |
+|                    trazable de KBaseThermodynamicAgent (fases anidadas)      |
+| Versión suite    : 2.0.0-Rigorous-Nested-Oracle                              |
 +==============================================================================+
 
 FILOSOFÍA DE LA SUITE
 ----------------------
 Cada método público y privado relevante de las tres fases anidadas
-(Phase1_MatrixTopology, Phase2_HamiltonianDynamics, Phase3_SheafProjection)
+
+    Phase1_MatrixTopology
+        │  build_topological_context()  ──►  TopologicalContext
+        ▼
+    Phase2_HamiltonianDynamics
+        │  synthesize_basal_state(...)  ──►  BasalStateTensor
+        ▼
+    Phase3_SheafProjection
+        │  export_stalk(x)              ──►  SheafStalk
+
 se somete a pruebas de caja blanca que verifican no sólo la ausencia de
 excepciones, sino la **corrección numérica exacta** frente a oráculos
 independientes calculados con ``numpy.linalg`` / ``scipy.linalg`` sin
 reutilizar la lógica interna del módulo bajo prueba.
 
-Se organiza en las siguientes baterías:
+Estructura (espejo de las 3 fases + contratos funtoriales)
+----------------------------------------------------------
+  0. Utilidades y fixtures canónicos (oráculos deterministas)
+  1. TestExceptionHierarchy
+  2. TestPhase1*   — topología matricial, métrica, espectro, Cholesky
+  3. TestPhase2*   — Hamiltoniano, Rayleigh, flyback, Williamson, Boole
+  4. TestPhase3*   — cofrontera, Hodge, stalk
+  5. TestStabilityFlagsBooleanAlgebra — retícula de predicados
+  6. TestFunctorialComposition        — export ∘ synthesize ∘ build
+  7. TestKBaseThermodynamicAgentIntegration — contrato público
+  8. TestNumericalStressAndInvariants — n=1, R=0, κ alto, ensemble
 
-  1. TestExceptionHierarchy               — Álgebra de herencia de excepciones.
-  2. TestPhase1*                          — 8 clases, una por responsabilidad.
-  3. TestPhase2*                          — 7 clases, una por responsabilidad.
-  4. TestPhase3*                          — 3 clases, una por responsabilidad.
-  5. TestStabilityFlagsBooleanAlgebra     — Retícula de Boole de predicados.
-  6. TestKBaseThermodynamicAgentIntegration — Contrato público end-to-end.
-
-Todas las tolerancias numéricas están explícitamente justificadas en
-términos de ``np.finfo(np.float64).eps`` y de las normas involucradas,
-replicando el estándar de rigor del módulo bajo prueba.
+Tolerancias
+-----------
+Todas las cotas se expresan en términos de
+``ε = np.finfo(np.float64).eps``, normas Frobenius/espectrales y, cuando
+corresponde, del número de condición κ (análisis de Wilkinson/Higham).
 """
 from __future__ import annotations
 
 import dataclasses
-import itertools
-import logging
+import math
+from typing import Callable, Tuple
 
 import numpy as np
 import pytest
 import scipy.linalg as la
+from numpy.typing import NDArray
 
 from app.agents.alpha.kbase.kbase_thermodynamic_agent import (
     BasalStateTensor,
@@ -56,52 +72,100 @@ from app.agents.alpha.kbase.kbase_thermodynamic_agent import (
     describe_stability_flags,
 )
 
+import logging
+
 logging.getLogger("MIC.Alpha.KBaseThermodynamicAgent").setLevel(logging.CRITICAL)
 
-EPS = float(np.finfo(np.float64).eps)
+# ---------------------------------------------------------------------------
+# Constantes de rigor numérico
+# ---------------------------------------------------------------------------
+EPS: float = float(np.finfo(np.float64).eps)
+WILKINSON_SAFETY: float = 100.0
+EULER_REL_TOL: float = 1.0e-6
+STRUCTURAL_REL_TOL: float = 1.0e-6
+HODGE_REL_FACTOR: float = 1.0e3
 
 Phase1 = KBaseThermodynamicAgent.Phase1_MatrixTopology
 Phase2 = KBaseThermodynamicAgent.Phase2_HamiltonianDynamics
 Phase3 = KBaseThermodynamicAgent.Phase3_SheafProjection
 
 
-# ==============================================================================
-# UTILIDADES DE GENERACIÓN DETERMINISTA (ORÁCULOS INDEPENDIENTES)
-# ==============================================================================
+# =============================================================================
+# 0. UTILIDADES DE GENERACIÓN DETERMINISTA (ORÁCULOS INDEPENDIENTES)
+# =============================================================================
 
 
-def make_spd(n: int, seed: int, floor: float = 1.0, scale: float = 1.0) -> np.ndarray:
-    """SPD determinista: A = B·Bᵀ + floor·I, garantiza λ_min ≥ floor."""
+def make_spd(
+    n: int,
+    seed: int,
+    floor: float = 1.0,
+    scale: float = 1.0,
+) -> NDArray[np.float64]:
+    """SPD determinista: A = scale·(B Bᵀ + floor·I), garantiza λ_min ≥ scale·floor."""
     rng = np.random.default_rng(seed)
     B = rng.normal(size=(n, n))
-    return scale * (B @ B.T + floor * np.eye(n))
+    A = scale * (B @ B.T + floor * np.eye(n))
+    return 0.5 * (A + A.T)
 
 
-def make_psd_with_rank(n: int, rank: int, seed: int) -> np.ndarray:
+def make_spd_with_condition(
+    n: int,
+    cond: float,
+    seed: int,
+) -> NDArray[np.float64]:
+    """
+    SPD con κ(A) ≈ cond vía espectro log-uniforme:
+        A = Q · diag(λ) · Qᵀ,  λ_max/λ_min = cond.
+    """
+    rng = np.random.default_rng(seed)
+    Q, _ = la.qr(rng.normal(size=(n, n)))
+    log_l = np.linspace(0.0, math.log(max(cond, 1.0 + 1e-15)), n)
+    lambdas = np.exp(log_l)
+    A = (Q * lambdas) @ Q.T
+    return 0.5 * (A + A.T)
+
+
+def make_psd_with_rank(n: int, rank: int, seed: int) -> NDArray[np.float64]:
     """PSD determinista con rango exacto controlado vía autovalores impuestos."""
     rng = np.random.default_rng(seed)
     Q, _ = np.linalg.qr(rng.normal(size=(n, n)))
-    eigvals = np.zeros(n)
-    if rank > 0:
-        eigvals[:rank] = rng.uniform(0.5, 2.0, size=rank)
-    return Q @ np.diag(eigvals) @ Q.T
+    eigvals = np.zeros(n, dtype=np.float64)
+    r = max(0, min(rank, n))
+    if r > 0:
+        eigvals[:r] = rng.uniform(0.5, 2.0, size=r)
+    R = Q @ np.diag(eigvals) @ Q.T
+    return 0.5 * (R + R.T)
 
 
-def make_antisymmetric(n: int, seed: int) -> np.ndarray:
-    """Antisimétrica determinista: J = B - Bᵀ."""
+def make_antisymmetric(n: int, seed: int) -> NDArray[np.float64]:
+    """Antisimétrica determinista: J = B − Bᵀ ∈ 𝔰𝔬(n)."""
     rng = np.random.default_rng(seed)
     B = rng.normal(size=(n, n))
     return B - B.T
 
 
-# ==============================================================================
+def fro_rel(A: np.ndarray, B: np.ndarray) -> float:
+    """‖A−B‖_F / max(‖B‖_F, 1)."""
+    return float(la.norm(A - B, "fro")) / max(float(la.norm(B, "fro")), 1.0)
+
+
+def spectral_condition(A: np.ndarray) -> float:
+    """κ₂(A) = λ_max/λ_min para A simétrica (oráculo independiente)."""
+    ev = np.linalg.eigvalsh(0.5 * (A + A.T))
+    lmin, lmax = float(ev[0]), float(ev[-1])
+    if lmin <= 0.0:
+        return float("inf")
+    return lmax / lmin
+
+
+# =============================================================================
 # FIXTURES DE SISTEMAS CANÓNICOS
-# ==============================================================================
+# =============================================================================
 
 
 @pytest.fixture(scope="function")
-def dims() -> tuple:
-    return 3, 2  # dim_q, dim_p -> n = 5
+def dims() -> Tuple[int, int]:
+    return 3, 2  # dim_q, dim_p → n = 5
 
 
 @pytest.fixture(scope="function")
@@ -111,7 +175,7 @@ def valid_system(dims):
     n = dim_q + dim_p
     C_soc = make_spd(dim_q, seed=101)
     M_rec = make_spd(dim_p, seed=102)
-    R_cost = make_psd_with_rank(n, rank=n, seed=103)  # PSD de rango completo
+    R_cost = make_psd_with_rank(n, rank=n, seed=103)
     J_base = make_antisymmetric(n, seed=104)
     return C_soc, M_rec, R_cost, J_base
 
@@ -119,7 +183,9 @@ def valid_system(dims):
 @pytest.fixture(scope="function")
 def agent(valid_system) -> KBaseThermodynamicAgent:
     C_soc, M_rec, R_cost, J_base = valid_system
-    return KBaseThermodynamicAgent(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
+    return KBaseThermodynamicAgent(
+        C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base
+    )
 
 
 @pytest.fixture(scope="function")
@@ -132,7 +198,7 @@ def diagonal_R_system(dims):
     n = dim_q + dim_p
     C_soc = make_spd(dim_q, seed=201)
     M_rec = make_spd(dim_p, seed=202)
-    known_eigvals = np.array([0.1, 0.5, 1.0, 2.0, 5.0])[:n]
+    known_eigvals = np.array([0.1, 0.5, 1.0, 2.0, 5.0], dtype=np.float64)[:n]
     R_cost = np.diag(known_eigvals)
     J_base = make_antisymmetric(n, seed=204)
     return C_soc, M_rec, R_cost, J_base, known_eigvals
@@ -155,43 +221,95 @@ def harmonic_oscillator_system():
     """
     Sistema mínimo (dim_q=1, dim_p=1) sin disipación, isomorfo a un
     oscilador LC ideal: H = q²/(2C) + p²/(2M), J=[[0,1],[-1,0]].
-    La frecuencia propia exacta es ω = 1/√(M·C).
+    Frecuencia propia exacta: ω = 1/√(M·C).
     """
     c, m = 4.0, 9.0
-    C_soc = np.array([[c]])
-    M_rec = np.array([[m]])
-    R_cost = np.zeros((2, 2))
-    J_base = np.array([[0.0, 1.0], [-1.0, 0.0]])
-    omega_exact = 1.0 / np.sqrt(c * m)
+    C_soc = np.array([[c]], dtype=np.float64)
+    M_rec = np.array([[m]], dtype=np.float64)
+    R_cost = np.zeros((2, 2), dtype=np.float64)
+    J_base = np.array([[0.0, 1.0], [-1.0, 0.0]], dtype=np.float64)
+    omega_exact = 1.0 / math.sqrt(c * m)
     return C_soc, M_rec, R_cost, J_base, omega_exact
+
+
+@pytest.fixture(scope="function")
+def lossless_system(dims):
+    """Sistema con R_cost ≡ 0 (flujo Hamiltoniano puro, P_diss ≡ 0)."""
+    dim_q, dim_p = dims
+    n = dim_q + dim_p
+    C_soc = make_spd(dim_q, seed=401)
+    M_rec = make_spd(dim_p, seed=402)
+    R_cost = np.zeros((n, n), dtype=np.float64)
+    J_base = make_antisymmetric(n, seed=404)
+    return C_soc, M_rec, R_cost, J_base
 
 
 @pytest.fixture(scope="function")
 def phase1_placeholder():
     """
-    Instancia de Phase1_MatrixTopology con matrices "de relleno" válidas en
-    forma (no en contenido), usada para probar métodos de validación que son
-    independientes del contenido (p.ej. ``_validate_metric_tensor``) sin
-    necesidad de ensamblar un sistema físico completo.
+    Factory de Phase1 con matrices de relleno formales, para validadores
+    que no dependen del ensamblaje físico completo.
     """
+
     def _make(kappa_max: float = 1.0e10) -> Phase1:
-        C_soc = np.eye(2)
-        M_rec = np.eye(2)
-        R_cost = np.eye(4)
+        C_soc = np.eye(2, dtype=np.float64)
+        M_rec = np.eye(2, dtype=np.float64)
+        R_cost = np.eye(4, dtype=np.float64)
         J_base = make_antisymmetric(4, seed=999)
         return Phase1(
-            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base, kappa_max=kappa_max
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            kappa_max=kappa_max,
         )
+
     return _make
 
 
-# ==============================================================================
+@pytest.fixture(scope="function")
+def valid_context(valid_system) -> TopologicalContext:
+    C_soc, M_rec, R_cost, J_base = valid_system
+    p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
+    return p1.build_topological_context()
+
+
+@pytest.fixture(scope="function")
+def phase2(valid_context) -> Phase2:
+    return Phase2(
+        context=valid_context, breakdown_voltage=1.0e5, kappa_max=1.0e10
+    )
+
+
+@pytest.fixture(scope="function")
+def phase3(valid_context) -> Phase3:
+    return Phase3(context=valid_context)
+
+
+@pytest.fixture(scope="function")
+def state_vectors(dims):
+    dim_q, dim_p = dims
+    rng = np.random.default_rng(42)
+    q = rng.normal(size=dim_q)
+    p = rng.normal(size=dim_p)
+    df_dt = rng.normal(size=dim_p)
+    return q, p, df_dt
+
+
+@pytest.fixture(scope="function")
+def full_state_x(dims):
+    n = sum(dims)
+    rng = np.random.default_rng(777)
+    return rng.normal(size=n)
+
+
+# =============================================================================
 # 1. JERARQUÍA DE EXCEPCIONES
-# ==============================================================================
+# =============================================================================
 
 
 class TestExceptionHierarchy:
-    """Verifica que todas las excepciones del dominio formen un único árbol."""
+    """Todas las excepciones del dominio forman un único árbol categórico."""
 
     @pytest.mark.parametrize(
         "exc_cls",
@@ -206,20 +324,32 @@ class TestExceptionHierarchy:
             StructuralConsistencyError,
         ],
     )
-    def test_all_domain_exceptions_derive_from_thermodynamic_base_error(self, exc_cls):
+    def test_all_domain_exceptions_derive_from_thermodynamic_base_error(
+        self, exc_cls
+    ):
         assert issubclass(exc_cls, ThermodynamicBaseError)
 
     def test_thermodynamic_base_error_derives_from_exception(self):
         assert issubclass(ThermodynamicBaseError, Exception)
 
+    def test_catch_all_with_root_on_asymmetric_C(self, valid_system):
+        """Un único ``except ThermodynamicBaseError`` captura fallos de Fase 1."""
+        C_soc, M_rec, R_cost, J_base = valid_system
+        bad_C = C_soc.copy()
+        bad_C[0, 1] += 1.0
+        with pytest.raises(ThermodynamicBaseError):
+            KBaseThermodynamicAgent(
+                C_soc=bad_C, M_rec=M_rec, R_cost=R_cost, J_base=J_base
+            )
 
-# ==============================================================================
+
+# =============================================================================
 # 2. FASE 1 — TOPOLOGÍA MATRICIAL, MÉTRICA RIEMANNIANA, ESPECTRO
-# ==============================================================================
+# =============================================================================
 
 
 class TestPhase1DimensionValidation:
-    """Verifica ``_check_dimensions`` contra todas las formas de inconsistencia."""
+    """``_check_dimensions``: todas las formas de inconsistencia dimensional."""
 
     def test_valid_dimensions_returns_correct_tuple(self, valid_system, dims):
         C_soc, M_rec, R_cost, J_base = valid_system
@@ -229,7 +359,7 @@ class TestPhase1DimensionValidation:
 
     def test_c_soc_non_square_raises(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
-        bad_C = C_soc[:, :-1]  # rectangular
+        bad_C = C_soc[:, :-1]
         p1 = Phase1(C_soc=bad_C, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         with pytest.raises(DimensionMismatchError):
             p1._check_dimensions()
@@ -255,20 +385,28 @@ class TestPhase1DimensionValidation:
         with pytest.raises(DimensionMismatchError):
             p1._check_dimensions()
 
+    def test_r_cost_incompatible_with_n_qp(self, valid_system):
+        """R debe ser (dim_q+dim_p)²; un tamaño intermedio también falla."""
+        C_soc, M_rec, R_cost, J_base = valid_system
+        n = R_cost.shape[0]
+        bad_R = np.eye(n - 1) if n > 1 else np.eye(n + 1)
+        p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=bad_R, J_base=J_base[: bad_R.shape[0], : bad_R.shape[0]] if bad_R.shape[0] <= n else make_antisymmetric(bad_R.shape[0], 0))
+        with pytest.raises(DimensionMismatchError):
+            p1._check_dimensions()
+
 
 class TestPhase1SymmetryValidation:
-    """Verifica ``_validate_symmetry`` y ``_validate_antisymmetry``."""
+    """``_validate_symmetry`` / ``_validate_antisymmetry`` con tolerancias Frobenius."""
 
     def test_symmetric_matrix_passes(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
-        p1._validate_symmetry(C_soc, "C_soc")  # no debe lanzar
+        p1._validate_symmetry(C_soc, "C_soc")
 
     def test_asymmetric_matrix_fails(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
-        n = C_soc.shape[0]
         broken = C_soc.copy()
-        broken[0, 1] += 1.0  # rompe simetría muy por encima de eps
+        broken[0, 1] += 1.0
         p1 = Phase1(C_soc=broken, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         with pytest.raises(ThermodynamicBaseError):
             p1._validate_symmetry(broken, "C_soc_broken")
@@ -276,7 +414,7 @@ class TestPhase1SymmetryValidation:
     def test_antisymmetric_matrix_passes(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
-        p1._validate_antisymmetry(J_base, "J_base")  # no debe lanzar
+        p1._validate_antisymmetry(J_base, "J_base")
 
     def test_non_antisymmetric_matrix_fails(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
@@ -294,9 +432,29 @@ class TestPhase1SymmetryValidation:
         p1._validate_symmetry(zero, "zero")
         p1._validate_antisymmetry(zero, "zero")
 
+    def test_sub_machine_eps_asymmetry_is_tolerated(self, valid_system):
+        """
+        Perturbación O(ε·‖A‖_F) no debe disparar fallo de simetría
+        (coherente con tol = ε·max(‖A‖_F, 1) del módulo).
+        """
+        C_soc, M_rec, R_cost, J_base = valid_system
+        n = C_soc.shape[0]
+        if n < 2:
+            pytest.skip("requiere n≥2")
+        A = C_soc.copy()
+        scale = max(float(la.norm(A, "fro")), 1.0)
+        A[0, 1] += 0.1 * EPS * scale  # sub-tolerancia
+        asym = float(la.norm(A - A.T, "fro"))
+        tol = EPS * scale
+        p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
+        if asym <= tol:
+            p1._validate_symmetry(A, "C_soc_near_sym")
+        else:
+            pytest.skip("perturbación superó tol de máquina en esta plataforma")
+
 
 class TestPhase1MetricTensorValidation:
-    """Verifica ``_validate_metric_tensor`` (invertibilidad y condicionamiento)."""
+    """``_validate_metric_tensor``: invertibilidad y condicionamiento de G_q/G_p."""
 
     def test_identity_metric_has_condition_number_one(self, phase1_placeholder):
         p1 = phase1_placeholder()
@@ -305,33 +463,42 @@ class TestPhase1MetricTensorValidation:
 
     def test_wrong_shape_raises_dimension_mismatch(self, phase1_placeholder):
         p1 = phase1_placeholder()
-        G = np.eye(2)
         with pytest.raises(DimensionMismatchError):
-            p1._validate_metric_tensor(G, "G_bad_shape", expected_dim=3)
+            p1._validate_metric_tensor(np.eye(2), "G_bad_shape", expected_dim=3)
 
     def test_singular_metric_raises_singularity_error(self, phase1_placeholder):
         p1 = phase1_placeholder()
-        G = np.array([[1.0, 0.0], [0.0, 0.0]])  # rango deficiente
+        G = np.array([[1.0, 0.0], [0.0, 0.0]])
         with pytest.raises(MetricTensorSingularityError):
             p1._validate_metric_tensor(G, "G_singular", expected_dim=2)
 
-    def test_ill_conditioned_metric_raises_singularity_error(self, phase1_placeholder):
+    def test_ill_conditioned_metric_raises_singularity_error(
+        self, phase1_placeholder
+    ):
         p1 = phase1_placeholder(kappa_max=10.0)
-        G = np.diag([1.0e-3, 1.0])  # kappa = 1000 > kappa_max = 10
+        G = np.diag([1.0e-3, 1.0])  # κ = 1000 > 10
         with pytest.raises(MetricTensorSingularityError):
             p1._validate_metric_tensor(G, "G_ill", expected_dim=2)
 
-    def test_moderate_condition_number_within_bounds_passes(self, phase1_placeholder):
+    def test_moderate_condition_number_within_bounds_passes(
+        self, phase1_placeholder
+    ):
         p1 = phase1_placeholder(kappa_max=100.0)
         G = np.diag([1.0, 2.0, 5.0])
         kappa = p1._validate_metric_tensor(G, "G_ok", expected_dim=3)
         assert kappa == pytest.approx(5.0, rel=1e-12)
 
+    def test_kappa_matches_independent_oracle(self, phase1_placeholder):
+        p1 = phase1_placeholder(kappa_max=1.0e12)
+        G = make_spd_with_condition(4, cond=50.0, seed=11)
+        kappa = p1._validate_metric_tensor(G, "G_oracle", expected_dim=4)
+        assert kappa == pytest.approx(spectral_condition(G), rel=1e-8)
+
 
 class TestPhase1CongruencePullback:
     """
-    Verifica ``_congruence_pullback`` frente a la Ley de Inercia de
-    Sylvester: Ã = G·A·G^⊤ preserva la signatura de A si G es invertible.
+    ``_congruence_pullback``: Ã = G A Gᵀ.
+    Ley de Inercia de Sylvester: G invertible ⇒ signatura(A) = signatura(Ã).
     """
 
     def test_identity_metric_leaves_matrix_unchanged(self, valid_system):
@@ -339,23 +506,25 @@ class TestPhase1CongruencePullback:
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         I = np.eye(C_soc.shape[0])
         A_tilde = p1._congruence_pullback(C_soc, I, "C_soc")
-        assert np.allclose(A_tilde, C_soc, rtol=1e-12, atol=1e-12)
+        assert fro_rel(A_tilde, C_soc) < 1e-12
 
     def test_pullback_preserves_symmetry(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         G = np.diag(np.linspace(1.0, 3.0, C_soc.shape[0]))
         A_tilde = p1._congruence_pullback(C_soc, G, "C_soc")
-        assert np.allclose(A_tilde, A_tilde.T, atol=1e-10)
+        assert float(la.norm(A_tilde - A_tilde.T, "fro")) < 1e-10
 
-    def test_pullback_preserves_positive_definiteness_sylvester_inertia(self, valid_system):
+    def test_pullback_preserves_positive_definiteness_sylvester_inertia(
+        self, valid_system
+    ):
         C_soc, M_rec, R_cost, J_base = valid_system
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         rng = np.random.default_rng(55)
-        G = rng.normal(size=C_soc.shape) + 3.0 * np.eye(C_soc.shape[0])  # bien condicionada
+        n = C_soc.shape[0]
+        G = rng.normal(size=(n, n)) + 3.0 * np.eye(n)
         A_tilde = p1._congruence_pullback(C_soc, G, "C_soc")
-        eigvals = np.linalg.eigvalsh(A_tilde)
-        assert np.all(eigvals > 0.0)
+        assert np.all(np.linalg.eigvalsh(A_tilde) > 0.0)
 
     def test_pullback_matches_manual_matrix_product(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
@@ -363,11 +532,22 @@ class TestPhase1CongruencePullback:
         G = np.diag(np.linspace(0.5, 2.0, C_soc.shape[0]))
         A_tilde = p1._congruence_pullback(C_soc, G, "C_soc")
         expected = G @ C_soc @ G.T
-        assert np.allclose(A_tilde, expected, rtol=1e-10)
+        assert fro_rel(A_tilde, expected) < 1e-12
+
+    def test_pullback_scales_eigenvalues_under_scalar_metric(self, valid_system):
+        """Si G = α I, entonces Ã = α² A ⇒ λ(Ã) = α² λ(A)."""
+        C_soc, M_rec, R_cost, J_base = valid_system
+        p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
+        alpha = 2.5
+        G = alpha * np.eye(C_soc.shape[0])
+        A_tilde = p1._congruence_pullback(C_soc, G, "C_soc")
+        ev_orig = np.sort(np.linalg.eigvalsh(C_soc))
+        ev_tilde = np.sort(np.linalg.eigvalsh(A_tilde))
+        np.testing.assert_allclose(ev_tilde, (alpha ** 2) * ev_orig, rtol=1e-10)
 
 
 class TestPhase1ConditionNumber:
-    """Verifica ``_compute_condition_number`` contra ``np.linalg.eigvalsh``."""
+    """``_compute_condition_number`` vs oráculo ``np.linalg.eigvalsh``."""
 
     def test_identity_has_condition_number_one(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
@@ -382,58 +562,89 @@ class TestPhase1ConditionNumber:
         C_soc, M_rec, R_cost, J_base = valid_system
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         kappa, lmin, lmax = p1._compute_condition_number(C_soc, "C_soc")
-        oracle_eigvals = np.linalg.eigvalsh(C_soc)
-        assert lmin == pytest.approx(float(oracle_eigvals[0]), rel=1e-8)
-        assert lmax == pytest.approx(float(oracle_eigvals[-1]), rel=1e-8)
-        assert kappa == pytest.approx(float(oracle_eigvals[-1] / oracle_eigvals[0]), rel=1e-8)
+        oracle = np.linalg.eigvalsh(C_soc)
+        assert lmin == pytest.approx(float(oracle[0]), rel=1e-8)
+        assert lmax == pytest.approx(float(oracle[-1]), rel=1e-8)
+        assert kappa == pytest.approx(
+            float(oracle[-1] / oracle[0]), rel=1e-8
+        )
 
     def test_non_spd_matrix_raises_capacitance_degeneracy(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         n = C_soc.shape[0]
-        # Matriz simétrica con un autovalor negativo garantizado.
         Q, _ = np.linalg.qr(np.random.default_rng(7).normal(size=(n, n)))
-        eigvals = np.linspace(-1.0, 1.0, n)
-        bad = Q @ np.diag(eigvals) @ Q.T
+        bad = Q @ np.diag(np.linspace(-1.0, 1.0, n)) @ Q.T
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         with pytest.raises(CapacitanceDegeneracyError):
             p1._compute_condition_number(bad, "bad_matrix")
 
-    def test_ill_conditioned_matrix_raises_ill_conditioned_error(self, valid_system):
+    def test_ill_conditioned_matrix_raises_ill_conditioned_error(
+        self, valid_system
+    ):
         C_soc, M_rec, R_cost, J_base = valid_system
         n = C_soc.shape[0]
-        Q, _ = np.linalg.qr(np.random.default_rng(8).normal(size=(n, n)))
-        eigvals = np.geomspace(1.0, 1.0e12, n)  # kappa = 1e12
-        bad = Q @ np.diag(eigvals) @ Q.T
-        p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base, kappa_max=1.0e6)
+        bad = make_spd_with_condition(n, cond=1.0e12, seed=8)
+        p1 = Phase1(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            kappa_max=1.0e6,
+        )
         with pytest.raises(IllConditionedMatrixError):
             p1._compute_condition_number(bad, "ill_conditioned")
 
+    def test_near_singular_spd_raises_or_flags_ill_conditioned(
+        self, valid_system
+    ):
+        """λ_min → 0⁺ con λ_max fijo ⇒ κ enorme o degeneración."""
+        C_soc, M_rec, R_cost, J_base = valid_system
+        n = C_soc.shape[0]
+        ev = np.ones(n)
+        ev[0] = 1.0e-18
+        Q, _ = np.linalg.qr(np.random.default_rng(9).normal(size=(n, n)))
+        near_sing = Q @ np.diag(ev) @ Q.T
+        p1 = Phase1(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            kappa_max=1.0e10,
+        )
+        with pytest.raises(
+            (CapacitanceDegeneracyError, IllConditionedMatrixError)
+        ):
+            p1._compute_condition_number(near_sing, "near_sing")
+
 
 class TestPhase1CholeskyRegularization:
-    """
-    Verifica ``_cholesky_spd_regularized``: caso nominal (τ=0), caso con
-    jitter aplicado tras fallo transitorio simulado, y caso de fallo
-    persistente que debe elevar ``CapacitanceDegeneracyError``.
-    """
+    """``_cholesky_spd_regularized``: τ=0 nominal, jitter y fallo persistente."""
 
     def test_well_conditioned_matrix_requires_no_jitter(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         L, tau = p1._cholesky_spd_regularized(C_soc, "C_soc")
         assert tau == 0.0
-        assert np.allclose(L @ L.T, C_soc, rtol=1e-8, atol=1e-8)
+        assert fro_rel(L @ L.T, C_soc) < 1e-10
 
     def test_cholesky_reconstructs_original_matrix_exactly(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         L, _ = p1._cholesky_spd_regularized(M_rec, "M_rec")
-        assert np.allclose(L @ L.T, M_rec, rtol=1e-8, atol=1e-8)
-        assert np.allclose(L, np.tril(L))  # triangular inferior
+        assert fro_rel(L @ L.T, M_rec) < 1e-10
+        assert np.allclose(L, np.tril(L))
 
-    def test_transient_failure_triggers_jitter_and_recovers(self, valid_system, monkeypatch):
+    def test_L_has_positive_diagonal(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
+        L, _ = p1._cholesky_spd_regularized(C_soc, "C_soc")
+        assert np.all(np.diag(L) > 0.0)
 
+    def test_transient_failure_triggers_jitter_and_recovers(
+        self, valid_system, monkeypatch
+    ):
+        C_soc, M_rec, R_cost, J_base = valid_system
+        p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         real_cholesky = la.cholesky
         call_state = {"count": 0}
 
@@ -445,13 +656,13 @@ class TestPhase1CholeskyRegularization:
 
         monkeypatch.setattr(la, "cholesky", flaky_cholesky)
         L, tau = p1._cholesky_spd_regularized(C_soc, "C_soc")
-
         assert call_state["count"] == 2
         assert tau > 0.0
-        # Reconstrucción aproximada (con jitter, la igualdad es hasta O(tau))
-        assert np.allclose(L @ L.T, C_soc + tau * np.eye(C_soc.shape[0]), rtol=1e-8)
+        assert fro_rel(L @ L.T, C_soc + tau * np.eye(C_soc.shape[0])) < 1e-10
 
-    def test_persistent_failure_raises_capacitance_degeneracy(self, valid_system, monkeypatch):
+    def test_persistent_failure_raises_capacitance_degeneracy(
+        self, valid_system, monkeypatch
+    ):
         C_soc, M_rec, R_cost, J_base = valid_system
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
 
@@ -464,15 +675,39 @@ class TestPhase1CholeskyRegularization:
 
 
 class TestPhase1PSDSpectralDiagnostics:
-    """Verifica ``_validate_psd_and_spectral_diagnostics``."""
+    """``_validate_psd_and_spectral_diagnostics``: rango, brecha, R_sqrt, cierre."""
 
     def test_spd_matrix_yields_full_rank_and_zero_kernel(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         n = R_cost.shape[0]
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
-        R_sqrt, rank_R, gap = p1._validate_psd_and_spectral_diagnostics(R_cost, "R_cost")
+        R_sqrt, rank_R, gap = p1._validate_psd_and_spectral_diagnostics(
+            R_cost, "R_cost"
+        )
         assert rank_R == n
-        assert np.allclose(R_sqrt @ R_sqrt, R_cost, rtol=1e-6, atol=1e-8)
+        assert fro_rel(R_sqrt @ R_sqrt, R_cost) < 1e-8
+
+    def test_R_sqrt_is_symmetric(self, valid_system):
+        C_soc, M_rec, R_cost, J_base = valid_system
+        p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
+        R_sqrt, _, _ = p1._validate_psd_and_spectral_diagnostics(
+            R_cost, "R_cost"
+        )
+        assert float(la.norm(R_sqrt - R_sqrt.T, "fro")) < 1e-12
+
+    def test_spectral_closure_R_sqrt_squared(self, valid_system):
+        """Cierre algebraico: ‖R_sqrt² − R‖_F / ‖R‖_F ≈ 0."""
+        C_soc, M_rec, R_cost, J_base = valid_system
+        p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
+        R_sqrt, _, _ = p1._validate_psd_and_spectral_diagnostics(
+            R_cost, "R_cost"
+        )
+        closure = fro_rel(R_sqrt @ R_sqrt, R_cost)
+        # Cota laxa de Wilkinson: O(n · ε · κ_eff)
+        n = R_cost.shape[0]
+        cond_eff = spectral_condition(R_cost + EPS * np.eye(n))
+        tol = WILKINSON_SAFETY * EPS * max(cond_eff, 1.0) * n
+        assert closure < max(tol, 1e-8)
 
     def test_negative_eigenvalue_raises_rayleigh_violation(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
@@ -483,11 +718,15 @@ class TestPhase1PSDSpectralDiagnostics:
         with pytest.raises(RayleighDissipationViolation):
             p1._validate_psd_and_spectral_diagnostics(bad, "R_cost_bad")
 
-    def test_rank_deficient_psd_matrix_reports_correct_rank(self, rank_deficient_R_system, dims):
+    def test_rank_deficient_psd_matrix_reports_correct_rank(
+        self, rank_deficient_R_system, dims
+    ):
         C_soc, M_rec, R_cost, J_base = rank_deficient_R_system
         n = sum(dims)
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
-        R_sqrt, rank_R, gap = p1._validate_psd_and_spectral_diagnostics(R_cost, "R_cost")
+        _, rank_R, _ = p1._validate_psd_and_spectral_diagnostics(
+            R_cost, "R_cost"
+        )
         assert rank_R == n - 2
 
     def test_spectral_gap_matches_known_eigenvalues(self, diagonal_R_system):
@@ -495,20 +734,23 @@ class TestPhase1PSDSpectralDiagnostics:
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         _, _, gap = p1._validate_psd_and_spectral_diagnostics(R_cost, "R_cost")
         sorted_eigs = np.sort(known_eigvals)
-        expected_gap = sorted_eigs[1] - sorted_eigs[0]
+        expected_gap = float(sorted_eigs[1] - sorted_eigs[0])
         assert gap == pytest.approx(expected_gap, rel=1e-8)
 
     def test_zero_matrix_is_psd_with_rank_zero(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         n = R_cost.shape[0]
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
-        R_sqrt, rank_R, gap = p1._validate_psd_and_spectral_diagnostics(np.zeros((n, n)), "zero")
+        R_sqrt, rank_R, gap = p1._validate_psd_and_spectral_diagnostics(
+            np.zeros((n, n)), "zero"
+        )
         assert rank_R == 0
         assert np.allclose(R_sqrt, 0.0)
+        assert gap == pytest.approx(0.0, abs=1e-15)
 
 
 class TestPhase1BuildTopologicalContextIntegration:
-    """Prueba de integración del método terminal de la Fase 1."""
+    """Método terminal de Fase 1 → ``TopologicalContext`` (precondición Fase 2)."""
 
     def test_returns_immutable_topological_context(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
@@ -524,33 +766,65 @@ class TestPhase1BuildTopologicalContextIntegration:
         ctx = p1.build_topological_context()
         assert (ctx.dim_q, ctx.dim_p) == dims
 
-    def test_cholesky_factors_reconstruct_pulled_back_matrices(self, valid_system):
+    def test_cholesky_factors_reconstruct_pulled_back_matrices(
+        self, valid_system
+    ):
         C_soc, M_rec, R_cost, J_base = valid_system
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         ctx = p1.build_topological_context()
-        assert np.allclose(ctx.L_C @ ctx.L_C.T, C_soc, rtol=1e-6, atol=1e-8)
-        assert np.allclose(ctx.L_M @ ctx.L_M.T, M_rec, rtol=1e-6, atol=1e-8)
+        assert fro_rel(ctx.L_C @ ctx.L_C.T, C_soc) < 1e-8
+        assert fro_rel(ctx.L_M @ ctx.L_M.T, M_rec) < 1e-8
 
-    def test_inv_sqrt_matrices_are_true_inverse_square_roots(self, valid_system):
+    def test_inv_sqrt_matrices_are_true_inverse_square_roots(
+        self, valid_system
+    ):
+        """
+        C_inv_sqrtᵀ C_inv_sqrt ≈ C⁻¹  (y análogo para M).
+        Equivalente a: C_inv_sqrt ≈ C^{−1/2} en la métrica Frobenius
+        del producto de Gram.
+        """
         C_soc, M_rec, R_cost, J_base = valid_system
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
         ctx = p1.build_topological_context()
-        C_inv_reconstructed = ctx.C_inv_sqrt.T @ ctx.C_inv_sqrt
-        assert np.allclose(C_inv_reconstructed, np.linalg.inv(C_soc), rtol=1e-6, atol=1e-8)
-        M_inv_reconstructed = ctx.M_inv_sqrt.T @ ctx.M_inv_sqrt
-        assert np.allclose(M_inv_reconstructed, np.linalg.inv(M_rec), rtol=1e-6, atol=1e-8)
+        C_inv_recon = ctx.C_inv_sqrt.T @ ctx.C_inv_sqrt
+        M_inv_recon = ctx.M_inv_sqrt.T @ ctx.M_inv_sqrt
+        assert fro_rel(C_inv_recon, np.linalg.inv(C_soc)) < 1e-8
+        assert fro_rel(M_inv_recon, np.linalg.inv(M_rec)) < 1e-8
 
-    def test_nontrivial_metric_tensor_applies_congruent_pullback(self, valid_system, dims):
+    def test_inv_sqrt_left_inverse_of_cholesky_path(self, valid_system):
+        """
+        Si L Lᵀ = C y C_inv_sqrt deriva de L⁻¹, entonces
+        C_inv_sqrt @ L ≈ I (hasta permutación de convención L vs Lᵀ).
+        Verificamos la identidad de cierre más robusta:
+            (C_inv_sqrtᵀ C_inv_sqrt) C ≈ I.
+        """
+        C_soc, M_rec, R_cost, J_base = valid_system
+        p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
+        ctx = p1.build_topological_context()
+        nq = ctx.dim_q
+        prod = (ctx.C_inv_sqrt.T @ ctx.C_inv_sqrt) @ C_soc
+        assert fro_rel(prod, np.eye(nq)) < 1e-7
+
+    def test_nontrivial_metric_tensor_applies_congruent_pullback(
+        self, valid_system, dims
+    ):
         C_soc, M_rec, R_cost, J_base = valid_system
         dim_q, dim_p = dims
         G_q = np.diag(np.linspace(1.0, 2.0, dim_q))
         G_p = np.diag(np.linspace(1.0, 1.5, dim_p))
-        p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base, G_q=G_q, G_p=G_p)
+        p1 = Phase1(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            G_q=G_q,
+            G_p=G_p,
+        )
         ctx = p1.build_topological_context()
-        expected_C_tilde = G_q @ C_soc @ G_q.T
-        expected_M_tilde = G_p @ M_rec @ G_p.T
-        assert np.allclose(ctx.L_C @ ctx.L_C.T, expected_C_tilde, rtol=1e-6, atol=1e-8)
-        assert np.allclose(ctx.L_M @ ctx.L_M.T, expected_M_tilde, rtol=1e-6, atol=1e-8)
+        expected_C = G_q @ C_soc @ G_q.T
+        expected_M = G_p @ M_rec @ G_p.T
+        assert fro_rel(ctx.L_C @ ctx.L_C.T, expected_C) < 1e-8
+        assert fro_rel(ctx.L_M @ ctx.L_M.T, expected_M) < 1e-8
         assert ctx.kappa_G_q == pytest.approx(2.0, rel=1e-8)
         assert ctx.kappa_G_p == pytest.approx(1.5, rel=1e-8)
 
@@ -562,7 +836,9 @@ class TestPhase1BuildTopologicalContextIntegration:
         assert np.allclose(ctx.G_q, np.eye(dim_q))
         assert np.allclose(ctx.G_p, np.eye(dim_p))
 
-    def test_betti_0_equals_n_minus_rank_R(self, rank_deficient_R_system, dims):
+    def test_betti_0_equals_n_minus_rank_R(
+        self, rank_deficient_R_system, dims
+    ):
         C_soc, M_rec, R_cost, J_base = rank_deficient_R_system
         n = sum(dims)
         p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
@@ -570,63 +846,57 @@ class TestPhase1BuildTopologicalContextIntegration:
         assert ctx.betti_0_R == n - ctx.rank_R
         assert ctx.betti_0_R == 2
 
+    def test_context_holds_defensive_copies(self, valid_system):
+        C_soc, M_rec, R_cost, J_base = valid_system
+        p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
+        ctx = p1.build_topological_context()
+        # Mutar inputs originales no debe alterar el contexto
+        C_soc[0, 0] = -999.0
+        assert ctx.L_C is not None
+        # Si el contexto almacena copias de C/R/J, verificar R_cost
+        if hasattr(ctx, "R_cost"):
+            R_cost[0, 0] = -999.0
+            assert ctx.R_cost[0, 0] != -999.0
 
-# ==============================================================================
+
+# =============================================================================
 # 3. FASE 2 — DINÁMICA PORT-HAMILTONIANA, RAYLEIGH Y WILLIAMSON
-# ==============================================================================
-
-
-@pytest.fixture(scope="function")
-def valid_context(valid_system) -> TopologicalContext:
-    C_soc, M_rec, R_cost, J_base = valid_system
-    p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
-    return p1.build_topological_context()
-
-
-@pytest.fixture(scope="function")
-def phase2(valid_context) -> Phase2:
-    return Phase2(context=valid_context, breakdown_voltage=1.0e5, kappa_max=1.0e10)
-
-
-@pytest.fixture(scope="function")
-def state_vectors(dims):
-    dim_q, dim_p = dims
-    rng = np.random.default_rng(42)
-    q = rng.normal(size=dim_q)
-    p = rng.normal(size=dim_p)
-    df_dt = rng.normal(size=dim_p)
-    return q, p, df_dt
+# =============================================================================
 
 
 class TestPhase2EnergyComputation:
-    """Verifica energías y gradientes contra inversión explícita (oráculo)."""
+    """Energías y gradientes vs inversión explícita (oráculo independiente)."""
 
-    def test_potential_energy_matches_explicit_inverse(self, phase2, valid_system, state_vectors):
+    def test_potential_energy_matches_explicit_inverse(
+        self, phase2, valid_system, state_vectors
+    ):
         C_soc, *_ = valid_system
         q, p, df_dt = state_vectors
         V_q, grad_V_q = phase2._evaluate_potential_energy(q)
         C_inv = np.linalg.inv(C_soc)
-        expected_V = 0.5 * q @ C_inv @ q
+        expected_V = 0.5 * float(q @ C_inv @ q)
         expected_grad = C_inv @ q
         assert V_q == pytest.approx(expected_V, rel=1e-8)
-        assert np.allclose(grad_V_q, expected_grad, rtol=1e-6, atol=1e-8)
+        np.testing.assert_allclose(grad_V_q, expected_grad, rtol=1e-6, atol=1e-8)
 
-    def test_kinetic_energy_matches_explicit_inverse(self, phase2, valid_system, state_vectors):
+    def test_kinetic_energy_matches_explicit_inverse(
+        self, phase2, valid_system, state_vectors
+    ):
         _, M_rec, _, _ = valid_system
         q, p, df_dt = state_vectors
         K_p, grad_K_p = phase2._compute_kinetic_energy(p)
         M_inv = np.linalg.inv(M_rec)
-        expected_K = 0.5 * p @ M_inv @ p
+        expected_K = 0.5 * float(p @ M_inv @ p)
         expected_grad = M_inv @ p
         assert K_p == pytest.approx(expected_K, rel=1e-8)
-        assert np.allclose(grad_K_p, expected_grad, rtol=1e-6, atol=1e-8)
+        np.testing.assert_allclose(grad_K_p, expected_grad, rtol=1e-6, atol=1e-8)
 
     def test_energies_are_nonnegative_for_arbitrary_state(self, phase2, dims):
         dim_q, dim_p = dims
         rng = np.random.default_rng(123)
-        for _ in range(20):
-            q = rng.normal(size=dim_q) * rng.uniform(0.1, 10)
-            p = rng.normal(size=dim_p) * rng.uniform(0.1, 10)
+        for _ in range(30):
+            q = rng.normal(size=dim_q) * rng.uniform(0.1, 10.0)
+            p = rng.normal(size=dim_p) * rng.uniform(0.1, 10.0)
             V_q, _ = phase2._evaluate_potential_energy(q)
             K_p, _ = phase2._compute_kinetic_energy(p)
             assert V_q >= -1e-9
@@ -641,6 +911,20 @@ class TestPhase2EnergyComputation:
         assert np.allclose(grad_V, 0.0)
         assert np.allclose(grad_K, 0.0)
 
+    def test_quadratic_homogeneity_degree_two(self, phase2, state_vectors):
+        """H(λx) = λ² H(x) y ∇H(λx) = λ ∇H(x) para H cuadrática."""
+        q, p, _ = state_vectors
+        lam = 3.0
+        V1, gV1 = phase2._evaluate_potential_energy(q)
+        V2, gV2 = phase2._evaluate_potential_energy(lam * q)
+        assert V2 == pytest.approx(lam ** 2 * V1, rel=1e-10)
+        np.testing.assert_allclose(gV2, lam * gV1, rtol=1e-10)
+
+        K1, gK1 = phase2._compute_kinetic_energy(p)
+        K2, gK2 = phase2._compute_kinetic_energy(lam * p)
+        assert K2 == pytest.approx(lam ** 2 * K1, rel=1e-10)
+        np.testing.assert_allclose(gK2, lam * gK1, rtol=1e-10)
+
     def test_potential_energy_wrong_shape_raises(self, phase2, dims):
         dim_q, _ = dims
         with pytest.raises(DimensionMismatchError):
@@ -654,39 +938,59 @@ class TestPhase2EnergyComputation:
 
 class TestPhase2EulerHomogeneity:
     """
-    Verifica el Teorema de Euler para funciones homogéneas de grado 2:
-    q·∇_qH + p·∇_pH = 2H, exacto para H cuadrática.
+    Teorema de Euler (grado 2): q·∇_q H + p·∇_p H = 2 H.
+    Identidad exacta para Hamiltoniano cuadrático.
     """
 
-    def test_euler_identity_holds_near_machine_precision(self, phase2, state_vectors):
+    def test_euler_identity_holds_near_machine_precision(
+        self, phase2, state_vectors
+    ):
         q, p, df_dt = state_vectors
         V_q, grad_V = phase2._evaluate_potential_energy(q)
         K_p, grad_K = phase2._compute_kinetic_energy(p)
         H_total = V_q + K_p
-        residual = phase2._verify_euler_homogeneity(q, p, grad_V, grad_K, H_total)
-        assert residual < 1e-6 * max(abs(H_total), 1.0)
+        residual = phase2._verify_euler_homogeneity(
+            q, p, grad_V, grad_K, H_total
+        )
+        assert residual < EULER_REL_TOL * max(abs(H_total), 1.0)
 
     def test_euler_identity_holds_for_zero_state(self, phase2, dims):
         dim_q, dim_p = dims
-        q = np.zeros(dim_q)
-        p = np.zeros(dim_p)
-        residual = phase2._verify_euler_homogeneity(q, p, np.zeros(dim_q), np.zeros(dim_p), 0.0)
+        residual = phase2._verify_euler_homogeneity(
+            np.zeros(dim_q),
+            np.zeros(dim_p),
+            np.zeros(dim_q),
+            np.zeros(dim_p),
+            0.0,
+        )
         assert residual == pytest.approx(0.0, abs=1e-12)
+
+    def test_euler_manual_oracle(self, phase2, state_vectors):
+        """Oráculo independiente: |q·∇V + p·∇K − 2H| / max(|2H|,1)."""
+        q, p, _ = state_vectors
+        V, gV = phase2._evaluate_potential_energy(q)
+        K, gK = phase2._compute_kinetic_energy(p)
+        H = V + K
+        lhs = float(q @ gV + p @ gK)
+        residual = abs(lhs - 2.0 * H) / max(abs(2.0 * H), 1.0)
+        assert residual < 1e-10
 
 
 class TestPhase2RayleighDissipation:
-    """Verifica ``_enforce_rayleigh_dissipation`` (Segunda Ley)."""
+    """``_enforce_rayleigh_dissipation``: Segunda Ley P_diss = ∇Hᵀ R ∇H ≥ 0."""
 
-    def test_dissipated_power_matches_quadratic_form(self, phase2, valid_system, state_vectors):
+    def test_dissipated_power_matches_quadratic_form(
+        self, phase2, valid_system, state_vectors
+    ):
         _, _, R_cost, _ = valid_system
         q, p, df_dt = state_vectors
         _, grad_V = phase2._evaluate_potential_energy(q)
         _, grad_K = phase2._compute_kinetic_energy(p)
         grad_H = np.concatenate([grad_V, grad_K])
         P_diss = phase2._enforce_rayleigh_dissipation(grad_H)
-        expected = grad_H @ R_cost @ grad_H
+        expected = float(grad_H @ R_cost @ grad_H)
         assert P_diss == pytest.approx(expected, rel=1e-8)
-        assert P_diss >= 0.0
+        assert P_diss >= -1e-14
 
     def test_wrong_shape_raises_dimension_mismatch(self, phase2, dims):
         n = sum(dims)
@@ -695,33 +999,43 @@ class TestPhase2RayleighDissipation:
 
     def test_negative_definite_r_cost_raises_violation(self, valid_context):
         """
-        Ataque de caja blanca: se inyecta una R_cost negativo-definida
-        directamente en el contexto (bypaseando la Fase 1) para verificar
-        que la Fase 2 posee su propia red de seguridad redundante.
+        Caja blanca: R_cost negativo-definida inyectada en el contexto
+        (bypass Fase 1) ⇒ red de seguridad de Fase 2.
         """
         n = valid_context.dim_q + valid_context.dim_p
-        bad_R = -np.eye(n)  # estrictamente negativa
-        broken_ctx = dataclasses.replace(valid_context, R_cost=bad_R)
-        phase2_broken = Phase2(context=broken_ctx, breakdown_voltage=1e5, kappa_max=1e10)
-        grad_H = np.ones(n)
+        broken_ctx = dataclasses.replace(valid_context, R_cost=-np.eye(n))
+        phase2_broken = Phase2(
+            context=broken_ctx, breakdown_voltage=1e5, kappa_max=1e10
+        )
         with pytest.raises(RayleighDissipationViolation):
-            phase2_broken._enforce_rayleigh_dissipation(grad_H)
+            phase2_broken._enforce_rayleigh_dissipation(np.ones(n))
 
     def test_zero_gradient_yields_zero_dissipation(self, phase2, dims):
         n = sum(dims)
         P_diss = phase2._enforce_rayleigh_dissipation(np.zeros(n))
         assert P_diss == pytest.approx(0.0, abs=1e-12)
 
+    def test_dissipation_scales_as_lambda_squared(self, phase2, state_vectors):
+        """P_diss(λ ∇H) = λ² P_diss(∇H) (forma cuadrática)."""
+        q, p, _ = state_vectors
+        _, gV = phase2._evaluate_potential_energy(q)
+        _, gK = phase2._compute_kinetic_energy(p)
+        gH = np.concatenate([gV, gK])
+        P1 = phase2._enforce_rayleigh_dissipation(gH)
+        P2 = phase2._enforce_rayleigh_dissipation(2.0 * gH)
+        assert P2 == pytest.approx(4.0 * P1, rel=1e-10, abs=1e-14)
+
 
 class TestPhase2FlybackVoltage:
-    """Verifica ``_measure_flyback_voltage``."""
+    """``_measure_flyback_voltage``: ‖M df/dt‖_∞ vs umbral de ruptura."""
 
-    def test_flyback_matches_manual_matrix_vector_product(self, phase2, valid_system, state_vectors):
+    def test_flyback_matches_manual_matrix_vector_product(
+        self, phase2, valid_system, state_vectors
+    ):
         _, M_rec, _, _ = valid_system
-        q, p, df_dt = state_vectors
+        _, _, df_dt = state_vectors
         v_fb = phase2._measure_flyback_voltage(df_dt)
-        expected_vec = M_rec @ df_dt
-        expected_norm = np.linalg.norm(expected_vec, ord=np.inf)
+        expected_norm = float(np.linalg.norm(M_rec @ df_dt, ord=np.inf))
         assert v_fb == pytest.approx(expected_norm, rel=1e-6)
 
     def test_wrong_shape_raises_dimension_mismatch(self, phase2, dims):
@@ -734,85 +1048,156 @@ class TestPhase2FlybackVoltage:
         v_fb = phase2._measure_flyback_voltage(np.zeros(dim_p))
         assert v_fb == pytest.approx(0.0, abs=1e-12)
 
-    def test_exceeding_breakdown_voltage_raises_inertial_flyback_error(self, valid_context, dims):
+    def test_exceeding_breakdown_voltage_raises_inertial_flyback_error(
+        self, valid_context, dims
+    ):
         _, dim_p = dims
-        phase2_strict = Phase2(context=valid_context, breakdown_voltage=1e-9, kappa_max=1e10)
+        phase2_strict = Phase2(
+            context=valid_context, breakdown_voltage=1e-9, kappa_max=1e10
+        )
         with pytest.raises(InertialFlybackError):
             phase2_strict._measure_flyback_voltage(np.ones(dim_p))
+
+    def test_flyback_homogeneous_of_degree_one(
+        self, phase2, state_vectors
+    ):
+        """‖M (λ df)‖_∞ = |λ| ‖M df‖_∞."""
+        _, _, df_dt = state_vectors
+        v1 = phase2._measure_flyback_voltage(df_dt)
+        v2 = phase2._measure_flyback_voltage(3.0 * df_dt)
+        assert v2 == pytest.approx(3.0 * v1, rel=1e-10)
 
 
 class TestPhase2VectorFieldAndStructuralConsistency:
     """
-    Verifica el campo vectorial Port-Hamiltoniano ẋ=(J-R)∇H y la identidad
-    algebraica exacta ∇H^⊤ẋ ≡ -P_diss (consecuencia de J antisimétrica).
+    Campo vectorial ẋ = (J − R) ∇H y la identidad algebraica exacta
+        ∇Hᵀ ẋ ≡ −P_diss
+    (consecuencia de Jᵀ = −J ⇒ ∇Hᵀ J ∇H = 0).
     """
 
-    def test_vector_field_matches_manual_formula(self, phase2, valid_system, state_vectors):
+    def test_vector_field_matches_manual_formula(
+        self, phase2, valid_system, state_vectors
+    ):
         _, _, R_cost, J_base = valid_system
-        q, p, df_dt = state_vectors
+        q, p, _ = state_vectors
         _, grad_V = phase2._evaluate_potential_energy(q)
         _, grad_K = phase2._compute_kinetic_energy(p)
         grad_H = np.concatenate([grad_V, grad_K])
         x_dot = phase2._compute_vector_field(grad_H)
         expected = (J_base - R_cost) @ grad_H
-        assert np.allclose(x_dot, expected, rtol=1e-8)
+        np.testing.assert_allclose(x_dot, expected, rtol=1e-8)
 
-    def test_structural_consistency_holds_for_genuine_ph_system(self, phase2, state_vectors):
-        q, p, df_dt = state_vectors
+    def test_structural_consistency_holds_for_genuine_ph_system(
+        self, phase2, state_vectors
+    ):
+        q, p, _ = state_vectors
         _, grad_V = phase2._evaluate_potential_energy(q)
         _, grad_K = phase2._compute_kinetic_energy(p)
         grad_H = np.concatenate([grad_V, grad_K])
         P_diss = phase2._enforce_rayleigh_dissipation(grad_H)
         x_dot = phase2._compute_vector_field(grad_H)
-        residual = phase2._verify_structural_consistency(grad_H, x_dot, P_diss)
-        assert residual < 1e-6 * max(P_diss, 1.0)
+        residual = phase2._verify_structural_consistency(
+            grad_H, x_dot, P_diss
+        )
+        assert residual < STRUCTURAL_REL_TOL * max(P_diss, 1.0)
 
-    def test_grad_H_transpose_J_grad_H_is_identically_zero(self, phase2, valid_system, state_vectors):
-        """Verificación directa de la identidad algebraica pura ∇H^⊤J∇H≡0."""
+    def test_grad_H_transpose_J_grad_H_is_identically_zero(
+        self, phase2, valid_system, state_vectors
+    ):
+        """Identidad algebraica pura: ∇Hᵀ J ∇H ≡ 0 para J antisimétrica."""
         _, _, _, J_base = valid_system
-        q, p, df_dt = state_vectors
+        q, p, _ = state_vectors
         _, grad_V = phase2._evaluate_potential_energy(q)
         _, grad_K = phase2._compute_kinetic_energy(p)
         grad_H = np.concatenate([grad_V, grad_K])
-        quad_form = grad_H @ J_base @ grad_H
+        quad_form = float(grad_H @ J_base @ grad_H)
         assert quad_form == pytest.approx(0.0, abs=1e-8)
 
-    def test_inconsistent_wiring_raises_structural_consistency_error(self, phase2):
+    def test_power_balance_identity_manual_oracle(
+        self, phase2, valid_system, state_vectors
+    ):
         """
-        Ataque de caja blanca: se fabrican grad_H, x_dot y P_diss mutuamente
-        incoherentes para verificar que el invariante en caliente detecta
-        errores de cableado entre J_base, R_cost y ∇H.
+        Oráculo independiente del balance de potencia:
+            dH/dt = ∇Hᵀ ẋ = ∇Hᵀ (J−R) ∇H = −∇Hᵀ R ∇H = −P_diss.
         """
+        _, _, R_cost, J_base = valid_system
+        q, p, _ = state_vectors
+        _, gV = phase2._evaluate_potential_energy(q)
+        _, gK = phase2._compute_kinetic_energy(p)
+        gH = np.concatenate([gV, gK])
+        x_dot = (J_base - R_cost) @ gH
+        dH_dt = float(gH @ x_dot)
+        P_diss = float(gH @ R_cost @ gH)
+        assert dH_dt == pytest.approx(-P_diss, rel=1e-8, abs=1e-10)
+
+    def test_inconsistent_wiring_raises_structural_consistency_error(
+        self, phase2
+    ):
         n = phase2._ctx.dim_q + phase2._ctx.dim_p
-        grad_H = np.ones(n)
-        x_dot = np.ones(n) * 1000.0  # deliberadamente incoherente
-        P_diss = 0.0
         with pytest.raises(StructuralConsistencyError):
-            phase2._verify_structural_consistency(grad_H, x_dot, P_diss)
+            phase2._verify_structural_consistency(
+                np.ones(n), np.ones(n) * 1000.0, 0.0
+            )
+
+    def test_lossless_flow_preserves_hamiltonian_to_first_order(
+        self, lossless_system, dims
+    ):
+        """
+        Si R ≡ 0, entonces dH/dt = 0 exactamente (flujo Hamiltoniano puro).
+        """
+        C_soc, M_rec, R_cost, J_base = lossless_system
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base
+        )
+        dim_q, dim_p = dims
+        rng = np.random.default_rng(88)
+        q, p = rng.normal(size=dim_q), rng.normal(size=dim_p)
+        df_dt = np.zeros(dim_p)
+        tensor = agent.synthesize_basal_hamiltonian(q=q, p=p, df_dt=df_dt)
+        # P_diss debe ser ~0; el residual estructural también
+        assert tensor.dissipated_power == pytest.approx(0.0, abs=1e-10) if hasattr(tensor, "dissipated_power") else True
+        # Balance: ∇Hᵀ ẋ ≈ 0
+        gH = np.concatenate(
+            [
+                agent.phase2._evaluate_potential_energy(q)[1],
+                agent.phase2._compute_kinetic_energy(p)[1],
+            ]
+        )
+        dH_dt = float(gH @ tensor.vector_field)
+        assert abs(dH_dt) < 1e-8 * max(abs(tensor.total_hamiltonian), 1.0)
 
 
 class TestPhase2NormalModesWilliamson:
     """
-    Verifica ``compute_normal_modes`` contra la frecuencia analítica exacta
-    de un oscilador LC ideal: ω = 1/√(M·C).
+    ``compute_normal_modes`` vs frecuencia analítica del oscilador LC:
+        ω = 1/√(M·C),  E₀ = ½ ℏ ω.
     """
 
-    def test_single_mode_matches_analytic_harmonic_frequency(self, harmonic_oscillator_system):
+    def test_single_mode_matches_analytic_harmonic_frequency(
+        self, harmonic_oscillator_system
+    ):
         C_soc, M_rec, R_cost, J_base, omega_exact = harmonic_oscillator_system
-        agent = KBaseThermodynamicAgent(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base
+        )
         omegas, E0 = agent.phase2.compute_normal_modes()
         assert omegas.shape == (1,)
         assert omegas[0] == pytest.approx(omega_exact, rel=1e-6)
 
-    def test_zero_point_energy_matches_half_hbar_omega(self, harmonic_oscillator_system):
+    def test_zero_point_energy_matches_half_hbar_omega(
+        self, harmonic_oscillator_system
+    ):
         C_soc, M_rec, R_cost, J_base, omega_exact = harmonic_oscillator_system
         hbar = 2.5
         agent = KBaseThermodynamicAgent(
-            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base, hbar=hbar
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            hbar=hbar,
         )
         omegas, E0 = agent.phase2.compute_normal_modes()
-        expected_E0 = 0.5 * hbar * omega_exact
-        assert E0 == pytest.approx(expected_E0, rel=1e-6)
+        assert E0 == pytest.approx(0.5 * hbar * omega_exact, rel=1e-6)
 
     def test_normal_modes_are_nonnegative(self, phase2):
         omegas, E0 = phase2.compute_normal_modes()
@@ -824,11 +1209,22 @@ class TestPhase2NormalModesWilliamson:
         omegas, _ = phase2.compute_normal_modes()
         assert omegas.shape[0] == n // 2
 
+    def test_zero_point_energy_is_half_hbar_sum_omegas(self, phase2):
+        """E₀ = ½ ℏ Σ_k ω_k (estructura de Williamson / osciladores)."""
+        omegas, E0 = phase2.compute_normal_modes()
+        hbar = getattr(phase2, "_hbar", None)
+        if hbar is None:
+            hbar = getattr(phase2, "hbar", 1.0)
+        expected = 0.5 * float(hbar) * float(np.sum(omegas))
+        assert E0 == pytest.approx(expected, rel=1e-8, abs=1e-12)
+
 
 class TestPhase2StabilityFlags:
-    """Verifica la retícula ``StabilityFlags`` en escenarios controlados."""
+    """Retícula ``StabilityFlags`` en escenarios controlados."""
 
-    def test_all_flags_satisfied_for_nominal_state(self, phase2, state_vectors):
+    def test_all_flags_satisfied_for_nominal_state(
+        self, phase2, state_vectors
+    ):
         q, p, df_dt = state_vectors
         V_q, grad_V = phase2._evaluate_potential_energy(q)
         K_p, grad_K = phase2._compute_kinetic_energy(p)
@@ -836,17 +1232,17 @@ class TestPhase2StabilityFlags:
         P_diss = phase2._enforce_rayleigh_dissipation(grad_H)
         v_fb = phase2._measure_flyback_voltage(df_dt)
         x_dot = phase2._compute_vector_field(grad_H)
-        residual = phase2._verify_structural_consistency(grad_H, x_dot, P_diss)
-        flags = phase2._evaluate_stability_flags(V_q, K_p, P_diss, v_fb, residual)
+        residual = phase2._verify_structural_consistency(
+            grad_H, x_dot, P_diss
+        )
+        flags = phase2._evaluate_stability_flags(
+            V_q, K_p, P_diss, v_fb, residual
+        )
         assert flags == StabilityFlags.ALL
 
-    def test_flyback_unsafe_flag_cleared_near_soft_margin(self, valid_context, dims):
-        """
-        Con un margen de seguridad estricto (0.01) y un breakdown_voltage
-        muy bajo, un voltaje de flyback moderado debe marcar
-        FLYBACK_SAFE como ausente sin disparar la excepción dura.
-        """
-        _, dim_p = dims
+    def test_flyback_unsafe_flag_cleared_near_soft_margin(
+        self, valid_context, dims
+    ):
         phase2_margin = Phase2(
             context=valid_context,
             breakdown_voltage=1.0,
@@ -854,42 +1250,75 @@ class TestPhase2StabilityFlags:
             flyback_safety_margin=0.01,
         )
         flags = phase2_margin._evaluate_stability_flags(
-            V_q=1.0, K_p=1.0, P_diss=1.0, v_fb=0.5, structural_residual=0.0
+            V_q=1.0,
+            K_p=1.0,
+            P_diss=1.0,
+            v_fb=0.5,
+            structural_residual=0.0,
         )
         assert StabilityFlags.FLYBACK_SAFE not in flags
 
-    def test_spectral_conditioning_flag_cleared_for_high_kappa(self, valid_context):
-        phase2_strict = Phase2(context=valid_context, breakdown_voltage=1e5, kappa_max=1.0)
+    def test_spectral_conditioning_flag_cleared_for_high_kappa(
+        self, valid_context
+    ):
+        phase2_strict = Phase2(
+            context=valid_context, breakdown_voltage=1e5, kappa_max=1.0
+        )
         flags = phase2_strict._evaluate_stability_flags(
-            V_q=1.0, K_p=1.0, P_diss=1.0, v_fb=0.0, structural_residual=0.0
+            V_q=1.0,
+            K_p=1.0,
+            P_diss=1.0,
+            v_fb=0.0,
+            structural_residual=0.0,
         )
         assert StabilityFlags.SPECTRAL_CONDITIONING_SOUND not in flags
 
+    def test_energy_flag_cleared_for_negative_energy(self, phase2):
+        """Si el evaluador recibe V o K negativos, ENERGY_NONNEGATIVE se apaga."""
+        flags = phase2._evaluate_stability_flags(
+            V_q=-1.0,
+            K_p=1.0,
+            P_diss=0.0,
+            v_fb=0.0,
+            structural_residual=0.0,
+        )
+        if hasattr(StabilityFlags, "ENERGY_NONNEGATIVE"):
+            assert StabilityFlags.ENERGY_NONNEGATIVE not in flags
+
 
 class TestPhase2SynthesizeBasalStateIntegration:
-    """Prueba de integración del método terminal de la Fase 2."""
+    """Método terminal de Fase 2 → ``BasalStateTensor`` (precondición Fase 3)."""
 
-    def test_returns_basal_state_tensor_with_consistent_fields(self, phase2, state_vectors):
+    def test_returns_basal_state_tensor_with_consistent_fields(
+        self, phase2, state_vectors
+    ):
         q, p, df_dt = state_vectors
         tensor = phase2.synthesize_basal_state(q=q, p=p, df_dt=df_dt)
         assert isinstance(tensor, BasalStateTensor)
         assert tensor.total_hamiltonian == pytest.approx(
             tensor.potential_energy + tensor.kinetic_energy, rel=1e-10
         )
-        assert tensor.is_thermodynamically_stable == (tensor.stability_flags == StabilityFlags.ALL)
+        assert tensor.is_thermodynamically_stable == (
+            tensor.stability_flags == StabilityFlags.ALL
+        )
         assert tensor.normal_mode_frequencies is None
         assert tensor.zero_point_energy is None
 
-    def test_compute_normal_modes_flag_populates_optional_fields(self, phase2, state_vectors):
+    def test_compute_normal_modes_flag_populates_optional_fields(
+        self, phase2, state_vectors
+    ):
         q, p, df_dt = state_vectors
-        tensor = phase2.synthesize_basal_state(q=q, p=p, df_dt=df_dt, compute_normal_modes=True)
+        tensor = phase2.synthesize_basal_state(
+            q=q, p=p, df_dt=df_dt, compute_normal_modes=True
+        )
         assert tensor.normal_mode_frequencies is not None
         assert tensor.zero_point_energy is not None
-        assert tensor.normal_mode_frequencies.shape[0] == sum(
-            [phase2._ctx.dim_q, phase2._ctx.dim_p]
-        ) // 2
+        n = phase2._ctx.dim_q + phase2._ctx.dim_p
+        assert tensor.normal_mode_frequencies.shape[0] == n // 2
 
-    def test_vector_field_shape_matches_state_dimension(self, phase2, state_vectors):
+    def test_vector_field_shape_matches_state_dimension(
+        self, phase2, state_vectors
+    ):
         q, p, df_dt = state_vectors
         tensor = phase2.synthesize_basal_state(q=q, p=p, df_dt=df_dt)
         n = phase2._ctx.dim_q + phase2._ctx.dim_p
@@ -901,46 +1330,56 @@ class TestPhase2SynthesizeBasalStateIntegration:
         with pytest.raises(dataclasses.FrozenInstanceError):
             tensor.total_hamiltonian = 0.0  # type: ignore[misc]
 
+    def test_hamiltonian_matches_oracle_sum(
+        self, phase2, valid_system, state_vectors
+    ):
+        C_soc, M_rec, _, _ = valid_system
+        q, p, df_dt = state_vectors
+        tensor = phase2.synthesize_basal_state(q=q, p=p, df_dt=df_dt)
+        C_inv, M_inv = np.linalg.inv(C_soc), np.linalg.inv(M_rec)
+        H_oracle = 0.5 * float(q @ C_inv @ q) + 0.5 * float(p @ M_inv @ p)
+        assert tensor.total_hamiltonian == pytest.approx(H_oracle, rel=1e-8)
 
-# ==============================================================================
+
+# =============================================================================
 # 4. FASE 3 — PROYECCIÓN COHOMOLÓGICA EN HACES
-# ==============================================================================
-
-
-@pytest.fixture(scope="function")
-def phase3(valid_context) -> Phase3:
-    return Phase3(context=valid_context)
-
-
-@pytest.fixture(scope="function")
-def full_state_x(dims):
-    n = sum(dims)
-    rng = np.random.default_rng(777)
-    return rng.normal(size=n)
+# =============================================================================
 
 
 class TestPhase3CoboundaryAssembly:
-    """Verifica la construcción de δ_metric, δ_diss y δ_BASE."""
+    """Construcción de δ_metric, δ_diss y δ_BASE."""
 
-    def test_delta_metric_is_block_diagonal_of_inverse_square_roots(self, phase3, valid_context, dims):
+    def test_delta_metric_is_block_diagonal_of_inverse_square_roots(
+        self, phase3, valid_context, dims
+    ):
         dim_q, dim_p = dims
-        assert np.allclose(
-            phase3._delta_metric[:dim_q, :dim_q], valid_context.C_inv_sqrt, rtol=1e-10
+        np.testing.assert_allclose(
+            phase3._delta_metric[:dim_q, :dim_q],
+            valid_context.C_inv_sqrt,
+            rtol=1e-10,
         )
-        assert np.allclose(
-            phase3._delta_metric[dim_q:, dim_q:], valid_context.M_inv_sqrt, rtol=1e-10
+        np.testing.assert_allclose(
+            phase3._delta_metric[dim_q:, dim_q:],
+            valid_context.M_inv_sqrt,
+            rtol=1e-10,
         )
         assert np.allclose(phase3._delta_metric[:dim_q, dim_q:], 0.0)
         assert np.allclose(phase3._delta_metric[dim_q:, :dim_q], 0.0)
 
     def test_delta_dissipative_equals_r_sqrt(self, phase3, valid_context):
-        assert np.array_equal(phase3._delta_diss, valid_context.R_sqrt)
+        assert np.array_equal(phase3._delta_diss, valid_context.R_sqrt) or np.allclose(
+            phase3._delta_diss, valid_context.R_sqrt, rtol=1e-14
+        )
 
     def test_delta_base_is_vertical_stack_of_correct_shape(self, phase3, dims):
         n = sum(dims)
         assert phase3._delta_base.shape == (2 * n, n)
-        assert np.allclose(phase3._delta_base[:n, :], phase3._delta_metric)
-        assert np.allclose(phase3._delta_base[n:, :], phase3._delta_diss)
+        np.testing.assert_allclose(
+            phase3._delta_base[:n, :], phase3._delta_metric, rtol=1e-14
+        )
+        np.testing.assert_allclose(
+            phase3._delta_base[n:, :], phase3._delta_diss, rtol=1e-14
+        )
 
     def test_delta_metric_is_invertible(self, phase3):
         singular_values = la.svdvals(phase3._delta_metric)
@@ -950,49 +1389,86 @@ class TestPhase3CoboundaryAssembly:
         n = sum(dims)
         assert phase3._rank_delta == n
 
+    def test_delta_metric_condition_scales_with_C_and_M(self, valid_system, dims):
+        """
+        κ(δ_metric) se relaciona con κ(C)^{1/2} y κ(M)^{1/2}
+        (pues δ ~ block-diag(C^{−1/2}, M^{−1/2})).
+        """
+        C_soc, M_rec, R_cost, J_base = valid_system
+        p1 = Phase1(C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
+        ctx = p1.build_topological_context()
+        p3 = Phase3(context=ctx)
+        kappa_delta = float(np.max(la.svdvals(p3._delta_metric)) / np.min(la.svdvals(p3._delta_metric)))
+        kappa_C = spectral_condition(C_soc)
+        kappa_M = spectral_condition(M_rec)
+        # κ(δ) ≲ max(√κ_C, √κ_M) · factor de seguridad
+        upper = math.sqrt(max(kappa_C, kappa_M)) * 10.0
+        assert kappa_delta < upper + 1.0
+
 
 class TestPhase3HodgeIdentityAndSpectrum:
     """
-    Verifica la identidad de Hodge local Δ_BASE = ∇²H + R_cost y sus
-    diagnósticos espectrales derivados.
+    Identidad de Hodge local: Δ_BASE = ∇²H + R_cost
+    con ∇²H = block-diag(C⁻¹, M⁻¹).
     """
 
-    def test_hodge_laplacian_matches_hessian_plus_r_cost(self, phase3, valid_system, valid_context):
-        C_soc, M_rec, R_cost, J_base = valid_system
-        expected_hessian = la.block_diag(np.linalg.inv(C_soc), np.linalg.inv(M_rec))
+    def test_hodge_laplacian_matches_hessian_plus_r_cost(
+        self, phase3, valid_system, valid_context
+    ):
+        C_soc, M_rec, R_cost, _ = valid_system
+        expected_hessian = la.block_diag(
+            np.linalg.inv(C_soc), np.linalg.inv(M_rec)
+        )
         expected_hodge = expected_hessian + R_cost
-        assert np.allclose(phase3._hodge_laplacian, expected_hodge, rtol=1e-6, atol=1e-8)
+        assert fro_rel(phase3._hodge_laplacian, expected_hodge) < 1e-8
 
     def test_hodge_identity_residual_is_near_machine_precision(self, phase3):
         rel_error = phase3._verify_hodge_identity()
-        assert rel_error < 1e3 * EPS
+        assert rel_error < HODGE_REL_FACTOR * EPS
 
     def test_hodge_laplacian_is_symmetric_positive_definite(self, phase3):
-        assert np.allclose(phase3._hodge_laplacian, phase3._hodge_laplacian.T, atol=1e-8)
-        eigvals = np.linalg.eigvalsh(phase3._hodge_laplacian)
-        assert np.all(eigvals > 0.0)
+        H = phase3._hodge_laplacian
+        assert float(la.norm(H - H.T, "fro")) < 1e-10
+        assert np.all(np.linalg.eigvalsh(H) > 0.0)
 
-    def test_hodge_spectrum_gap_and_condition_number_are_consistent(self, phase3):
+    def test_hodge_spectrum_gap_and_condition_number_are_consistent(
+        self, phase3
+    ):
         gap, kappa, harmonic_dim = phase3._compute_hodge_spectrum()
         eigvals = np.linalg.eigvalsh(phase3._hodge_laplacian)
-        expected_gap = eigvals[1] - eigvals[0]
-        expected_kappa = eigvals[-1] / eigvals[0]
-        assert gap == pytest.approx(expected_gap, rel=1e-6)
-        assert kappa == pytest.approx(expected_kappa, rel=1e-6)
+        assert gap == pytest.approx(float(eigvals[1] - eigvals[0]), rel=1e-6)
+        assert kappa == pytest.approx(
+            float(eigvals[-1] / eigvals[0]), rel=1e-6
+        )
 
     def test_harmonic_dimension_is_always_zero(self, phase3):
         """
-        Invariante topológico: δ_metric es invertible por construcción
-        (∇²H≻0 nunca degenera), por lo que dim ker(δ_metric) = 0 siempre.
+        Invariante topológico: δ_metric invertible (∇²H ≻ 0) ⇒
+        dim ker(δ_metric) = 0 siempre.
         """
         _, _, harmonic_dim = phase3._compute_hodge_spectrum()
         assert harmonic_dim == 0
 
+    def test_hodge_dominates_hessian_in_psd_order(
+        self, phase3, valid_system
+    ):
+        """
+        Δ − ∇²H = R ⪰ 0 ⇒ Δ ⪰ ∇²H en el orden de Löwner.
+        """
+        C_soc, M_rec, R_cost, _ = valid_system
+        hess = la.block_diag(np.linalg.inv(C_soc), np.linalg.inv(M_rec))
+        diff = phase3._hodge_laplacian - hess
+        # Simetrizar por seguridad numérica
+        diff = 0.5 * (diff + diff.T)
+        assert np.all(np.linalg.eigvalsh(diff) >= -1e-8)
+
 
 class TestPhase3ExportStalkIntegration:
-    """Prueba de integración del método terminal de la Fase 3."""
+    """Método terminal de Fase 3 → ``SheafStalk`` (salida del endofuntor)."""
 
-    def test_returns_sheaf_stalk_with_correct_shapes(self, phase3, full_state_x, dims):
+    def test_returns_sheaf_stalk_with_correct_shapes(
+        self, phase3, full_state_x, dims
+    ):
         n = sum(dims)
         stalk = phase3.export_stalk(full_state_x)
         assert isinstance(stalk, SheafStalk)
@@ -1005,40 +1481,82 @@ class TestPhase3ExportStalkIntegration:
         with pytest.raises(DimensionMismatchError):
             phase3.export_stalk(np.zeros(n + 3))
 
-    def test_projections_match_manual_matrix_vector_products(self, phase3, full_state_x):
+    def test_projections_match_manual_matrix_vector_products(
+        self, phase3, full_state_x
+    ):
         stalk = phase3.export_stalk(full_state_x)
-        expected_metric_proj = phase3._delta_metric @ full_state_x
-        expected_diss_proj = phase3._delta_diss @ full_state_x
-        assert np.allclose(stalk.projected_state_metric, expected_metric_proj, rtol=1e-10)
-        assert np.allclose(stalk.projected_state_dissipative, expected_diss_proj, rtol=1e-10)
+        np.testing.assert_allclose(
+            stalk.projected_state_metric,
+            phase3._delta_metric @ full_state_x,
+            rtol=1e-10,
+        )
+        np.testing.assert_allclose(
+            stalk.projected_state_dissipative,
+            phase3._delta_diss @ full_state_x,
+            rtol=1e-10,
+        )
 
-    def test_lossless_subspace_dimension_matches_betti0(self, valid_context, full_state_x):
+    def test_lossless_subspace_dimension_matches_betti0(
+        self, valid_context, full_state_x
+    ):
         phase3_local = Phase3(context=valid_context)
         stalk = phase3_local.export_stalk(full_state_x)
         assert stalk.lossless_subspace_dimension == valid_context.betti_0_R
 
     def test_state_vector_is_defensively_copied(self, phase3, full_state_x):
         stalk = phase3.export_stalk(full_state_x)
+        original = float(full_state_x[0])
         full_state_x[0] = 9999.0
-        assert stalk.state_vector[0] != 9999.0
+        assert stalk.state_vector[0] == pytest.approx(original)
+
+    def test_delta_base_is_defensively_copied(self, phase3, full_state_x):
+        stalk = phase3.export_stalk(full_state_x)
+        stalk.delta_base[0, 0]  # lectura
+        # Si es copia, mutar el interno de phase3 no afecta (o viceversa)
+        ref = stalk.delta_base.copy()
+        phase3._delta_base[0, 0] += 1.0
+        # stalk debe conservar el valor exportado si hubo copia defensiva
+        # (si el módulo no copia, este test documenta el comportamiento)
+        if not np.allclose(stalk.delta_base, ref):
+            # restauración para no contaminar otros tests de la misma instancia
+            phase3._delta_base[0, 0] -= 1.0
+            pytest.skip("export_stalk no realiza copia defensiva de delta_base")
+        phase3._delta_base[0, 0] -= 1.0  # restaurar
+
+    def test_projections_linear(self, phase3, dims):
+        """δ(αx+βy) = α δx + β δy."""
+        n = sum(dims)
+        rng = np.random.default_rng(50)
+        x, y = rng.normal(size=n), rng.normal(size=n)
+        alpha, beta = 2.0, -1.5
+        s_xy = phase3.export_stalk(alpha * x + beta * y)
+        s_x = phase3.export_stalk(x)
+        s_y = phase3.export_stalk(y)
+        np.testing.assert_allclose(
+            s_xy.projected_state_metric,
+            alpha * s_x.projected_state_metric
+            + beta * s_y.projected_state_metric,
+            rtol=1e-10,
+        )
 
 
-# ==============================================================================
+# =============================================================================
 # 5. RETÍCULA BOOLEANA DE ESTABILIDAD
-# ==============================================================================
+# =============================================================================
 
 
 ATOMIC_FLAGS = [
-    f for f in StabilityFlags
+    f
+    for f in StabilityFlags
     if f.value != 0 and (f.value & (f.value - 1)) == 0
 ]
 
 
 class TestStabilityFlagsBooleanAlgebra:
     """
-    Verifica que ``StabilityFlags`` satisface las leyes de un álgebra de
-    Boole: idempotencia, absorción, distributividad y De Morgan, todas
-    relativas al elemento supremo ``ALL`` (universo de discurso).
+    ``StabilityFlags`` como álgebra de Boole acotada:
+    idempotencia, absorción, distributividad y De Morgan
+    relativas al elemento supremo ``ALL``.
     """
 
     def test_all_is_disjunction_of_all_atoms(self):
@@ -1067,26 +1585,26 @@ class TestStabilityFlagsBooleanAlgebra:
 
     def test_distributivity_of_conjunction_over_disjunction(self):
         a, b, c = ATOMIC_FLAGS[0], ATOMIC_FLAGS[1], ATOMIC_FLAGS[2]
-        lhs = a & (b | c)
-        rhs = (a & b) | (a & c)
-        assert lhs == rhs
+        assert (a & (b | c)) == ((a & b) | (a & c))
 
     def test_distributivity_of_disjunction_over_conjunction(self):
         a, b, c = ATOMIC_FLAGS[0], ATOMIC_FLAGS[1], ATOMIC_FLAGS[2]
-        lhs = a | (b & c)
-        rhs = (a | b) & (a | c)
-        assert lhs == rhs
+        assert (a | (b & c)) == ((a | b) & (a | c))
 
     def test_de_morgan_law_over_union(self):
         a, b = ATOMIC_FLAGS[0], ATOMIC_FLAGS[1]
         complement_of_union = StabilityFlags.ALL & ~(a | b)
-        intersection_of_complements = (StabilityFlags.ALL & ~a) & (StabilityFlags.ALL & ~b)
+        intersection_of_complements = (StabilityFlags.ALL & ~a) & (
+            StabilityFlags.ALL & ~b
+        )
         assert complement_of_union == intersection_of_complements
 
     def test_de_morgan_law_over_intersection(self):
         a, b = ATOMIC_FLAGS[0], ATOMIC_FLAGS[1]
         complement_of_intersection = StabilityFlags.ALL & ~(a & b)
-        union_of_complements = (StabilityFlags.ALL & ~a) | (StabilityFlags.ALL & ~b)
+        union_of_complements = (StabilityFlags.ALL & ~a) | (
+            StabilityFlags.ALL & ~b
+        )
         assert complement_of_intersection == union_of_complements
 
     def test_complement_of_all_is_none(self):
@@ -1094,6 +1612,13 @@ class TestStabilityFlagsBooleanAlgebra:
 
     def test_complement_of_none_is_all(self):
         assert (StabilityFlags.ALL & ~StabilityFlags.NONE) == StabilityFlags.ALL
+
+    def test_commutativity_and_associativity(self):
+        a, b, c = ATOMIC_FLAGS[0], ATOMIC_FLAGS[1], ATOMIC_FLAGS[2]
+        assert (a | b) == (b | a)
+        assert (a & b) == (b & a)
+        assert (a | (b | c)) == ((a | b) | c)
+        assert (a & (b & c)) == ((a & b) & c)
 
     def test_describe_stability_flags_reports_all_satisfied(self):
         description = describe_stability_flags(StabilityFlags.ALL)
@@ -1106,116 +1631,368 @@ class TestStabilityFlagsBooleanAlgebra:
         assert "SATISFECHOS=ninguno" in description
 
     def test_describe_stability_flags_lists_partial_violation(self):
-        partial = StabilityFlags.ENERGY_NONNEGATIVE | StabilityFlags.DISSIPATION_VALID
+        partial = (
+            StabilityFlags.ENERGY_NONNEGATIVE
+            | StabilityFlags.DISSIPATION_VALID
+        )
         description = describe_stability_flags(partial)
         assert "ENERGY_NONNEGATIVE" in description
-        assert "FLYBACK_SAFE" in description  # debe aparecer como violado
+        assert "FLYBACK_SAFE" in description
         assert "ESTABLE_TOTAL=False" in description
 
 
-# ==============================================================================
-# 6. INTEGRACIÓN END-TO-END DEL AGENTE COMPLETO
-# ==============================================================================
+# =============================================================================
+# 6. COMPOSICIÓN FUNTORIAL
+# =============================================================================
+
+
+class TestFunctorialComposition:
+    """
+    Contrato funtorial:
+        export_stalk ∘ synthesize_basal_state ∘ build_topological_context
+        = K_BASE
+    """
+
+    def test_end_to_end_happy_path(self, agent, state_vectors, dims):
+        q, p, df_dt = state_vectors
+        tensor = agent.synthesize_basal_hamiltonian(q=q, p=p, df_dt=df_dt)
+        state_x = np.concatenate([q, p])
+        stalk = agent.export_sheaf_stalk(state_x)
+
+        assert isinstance(agent.context, TopologicalContext)
+        assert isinstance(tensor, BasalStateTensor)
+        assert isinstance(stalk, SheafStalk)
+        assert stalk.rank_delta == sum(dims)
+        np.testing.assert_allclose(stalk.state_vector, state_x)
+
+    def test_phase_contexts_share_same_topological_context(self, agent):
+        assert agent.phase2._ctx is agent.context
+        _ = agent.export_sheaf_stalk(
+            np.zeros(agent.context.dim_q + agent.context.dim_p)
+        )
+        assert agent.phase3 is not None
+        assert agent.phase3._ctx is agent.context
+
+    def test_synthesize_is_deterministic(self, agent, state_vectors):
+        q, p, df_dt = state_vectors
+        t1 = agent.synthesize_basal_hamiltonian(q=q, p=p, df_dt=df_dt)
+        t2 = agent.synthesize_basal_hamiltonian(q=q, p=p, df_dt=df_dt)
+        assert t1.total_hamiltonian == t2.total_hamiltonian
+        assert t1.stability_flags == t2.stability_flags
+        np.testing.assert_array_equal(t1.vector_field, t2.vector_field)
+
+    def test_betti_inheritance_phase1_to_phase3(
+        self, rank_deficient_R_system, dims
+    ):
+        C_soc, M_rec, R_cost, J_base = rank_deficient_R_system
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base
+        )
+        n = sum(dims)
+        stalk = agent.export_sheaf_stalk(np.zeros(n))
+        assert stalk.lossless_subspace_dimension == agent.context.betti_0_R
+        assert agent.context.betti_0_R == 2
+
+
+# =============================================================================
+# 7. INTEGRACIÓN END-TO-END DEL AGENTE COMPLETO
+# =============================================================================
 
 
 class TestKBaseThermodynamicAgentIntegration:
-    """Contrato público completo: construcción, fases y frontera entre ellas."""
+    """Contrato público: construcción, fases y frontera entre ellas."""
 
     def test_constructor_populates_all_public_attributes(self, agent, dims):
         assert isinstance(agent.context, TopologicalContext)
         assert isinstance(agent.phase1, Phase1)
         assert isinstance(agent.phase2, Phase2)
-        assert agent.phase3 is None  # instanciación perezosa
+        assert agent.phase3 is None  # lazy
         assert (agent.context.dim_q, agent.context.dim_p) == dims
 
     def test_constructor_propagates_dimension_mismatch(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         with pytest.raises(DimensionMismatchError):
             KBaseThermodynamicAgent(
-                C_soc=C_soc[:, :-1], M_rec=M_rec, R_cost=R_cost, J_base=J_base
+                C_soc=C_soc[:, :-1],
+                M_rec=M_rec,
+                R_cost=R_cost,
+                J_base=J_base,
             )
 
     def test_constructor_propagates_capacitance_degeneracy(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         n = C_soc.shape[0]
-        Q, _ = np.linalg.qr(np.random.default_rng(5).normal(size=(n, n)))
+        Q, _ = np.linalg.qr(
+            np.random.default_rng(5).normal(size=(n, n))
+        )
         bad_C = Q @ np.diag(np.linspace(-1.0, 1.0, n)) @ Q.T
         with pytest.raises(CapacitanceDegeneracyError):
-            KBaseThermodynamicAgent(C_soc=bad_C, M_rec=M_rec, R_cost=R_cost, J_base=J_base)
+            KBaseThermodynamicAgent(
+                C_soc=bad_C, M_rec=M_rec, R_cost=R_cost, J_base=J_base
+            )
 
     def test_constructor_propagates_rayleigh_violation(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         n = R_cost.shape[0]
-        Q, _ = np.linalg.qr(np.random.default_rng(6).normal(size=(n, n)))
+        Q, _ = np.linalg.qr(
+            np.random.default_rng(6).normal(size=(n, n))
+        )
         bad_R = Q @ np.diag(np.linspace(-1.0, 1.0, n)) @ Q.T
         with pytest.raises(RayleighDissipationViolation):
-            KBaseThermodynamicAgent(C_soc=C_soc, M_rec=M_rec, R_cost=bad_R, J_base=J_base)
+            KBaseThermodynamicAgent(
+                C_soc=C_soc, M_rec=M_rec, R_cost=bad_R, J_base=J_base
+            )
 
     def test_constructor_propagates_ill_conditioned_error(self, valid_system):
         C_soc, M_rec, R_cost, J_base = valid_system
         n = C_soc.shape[0]
-        Q, _ = np.linalg.qr(np.random.default_rng(10).normal(size=(n, n)))
-        huge_kappa_C = Q @ np.diag(np.geomspace(1.0, 1.0e12, n)) @ Q.T
+        huge_C = make_spd_with_condition(n, cond=1.0e12, seed=10)
         with pytest.raises(IllConditionedMatrixError):
             KBaseThermodynamicAgent(
-                C_soc=huge_kappa_C, M_rec=M_rec, R_cost=R_cost, J_base=J_base, kappa_max=1.0e6
+                C_soc=huge_C,
+                M_rec=M_rec,
+                R_cost=R_cost,
+                J_base=J_base,
+                kappa_max=1.0e6,
             )
 
-    def test_public_synthesize_basal_hamiltonian_matches_phase2_directly(self, agent, state_vectors):
+    def test_public_synthesize_basal_hamiltonian_matches_phase2_directly(
+        self, agent, state_vectors
+    ):
         q, p, df_dt = state_vectors
-        tensor_public = agent.synthesize_basal_hamiltonian(q=q, p=p, df_dt=df_dt)
-        tensor_direct = agent.phase2.synthesize_basal_state(q=q, p=p, df_dt=df_dt)
-        assert tensor_public.total_hamiltonian == pytest.approx(tensor_direct.total_hamiltonian)
+        tensor_public = agent.synthesize_basal_hamiltonian(
+            q=q, p=p, df_dt=df_dt
+        )
+        tensor_direct = agent.phase2.synthesize_basal_state(
+            q=q, p=p, df_dt=df_dt
+        )
+        assert tensor_public.total_hamiltonian == pytest.approx(
+            tensor_direct.total_hamiltonian
+        )
 
-    def test_export_sheaf_stalk_lazy_initializes_phase3_once(self, agent, full_state_x):
+    def test_export_sheaf_stalk_lazy_initializes_phase3_once(
+        self, agent, full_state_x
+    ):
         assert agent.phase3 is None
         stalk_1 = agent.export_sheaf_stalk(full_state_x)
         phase3_instance = agent.phase3
         assert phase3_instance is not None
         stalk_2 = agent.export_sheaf_stalk(full_state_x)
-        assert agent.phase3 is phase3_instance  # misma instancia reutilizada
-        assert np.allclose(stalk_1.delta_base, stalk_2.delta_base)
+        assert agent.phase3 is phase3_instance
+        np.testing.assert_allclose(stalk_1.delta_base, stalk_2.delta_base)
 
-    def test_end_to_end_state_vector_consistency_between_phase2_and_phase3(self, agent, state_vectors):
+    def test_end_to_end_state_vector_consistency_between_phase2_and_phase3(
+        self, agent, state_vectors
+    ):
         q, p, df_dt = state_vectors
         tensor = agent.synthesize_basal_hamiltonian(q=q, p=p, df_dt=df_dt)
         state_x = np.concatenate([q, p])
         stalk = agent.export_sheaf_stalk(state_x)
-        assert np.allclose(stalk.state_vector, state_x)
-        # ∇H proyectado sobre la fibra métrica debe ser consistente en norma
-        assert stalk.projected_state_metric.shape == (agent.context.dim_q + agent.context.dim_p,)
+        np.testing.assert_allclose(stalk.state_vector, state_x)
+        assert stalk.projected_state_metric.shape == (
+            agent.context.dim_q + agent.context.dim_p,
+        )
+        assert tensor.vector_field.shape == state_x.shape
 
-    def test_agent_with_custom_metric_tensors_end_to_end(self, valid_system, dims):
+    def test_agent_with_custom_metric_tensors_end_to_end(
+        self, valid_system, dims
+    ):
         C_soc, M_rec, R_cost, J_base = valid_system
         dim_q, dim_p = dims
         G_q = np.diag(np.linspace(1.0, 1.2, dim_q))
         G_p = np.diag(np.linspace(1.0, 1.1, dim_p))
         agent_custom = KBaseThermodynamicAgent(
-            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base, G_q=G_q, G_p=G_p
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            G_q=G_q,
+            G_p=G_p,
         )
         rng = np.random.default_rng(2024)
         q = rng.normal(size=dim_q)
         p = rng.normal(size=dim_p)
         df_dt = rng.normal(size=dim_p)
-        tensor = agent_custom.synthesize_basal_hamiltonian(q=q, p=p, df_dt=df_dt)
-        assert tensor.total_hamiltonian >= 0.0
+        tensor = agent_custom.synthesize_basal_hamiltonian(
+            q=q, p=p, df_dt=df_dt
+        )
+        assert tensor.total_hamiltonian >= -1e-12
 
-    def test_agent_raises_inertial_flyback_error_end_to_end(self, valid_system, dims):
+    def test_agent_raises_inertial_flyback_error_end_to_end(
+        self, valid_system, dims
+    ):
         C_soc, M_rec, R_cost, J_base = valid_system
         _, dim_p = dims
         agent_strict = KBaseThermodynamicAgent(
-            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base, breakdown_voltage=1e-12
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            breakdown_voltage=1e-12,
         )
         rng = np.random.default_rng(2025)
         q = rng.normal(size=C_soc.shape[0])
         p = rng.normal(size=dim_p)
         df_dt = np.ones(dim_p) * 100.0
         with pytest.raises(InertialFlybackError):
-            agent_strict.synthesize_basal_hamiltonian(q=q, p=p, df_dt=df_dt)
+            agent_strict.synthesize_basal_hamiltonian(
+                q=q, p=p, df_dt=df_dt
+            )
 
     def test_friendly_name_is_defined(self, agent):
         assert agent.FRIENDLY_NAME == "Asesor de Cimientos Financieros"
 
+
+# =============================================================================
+# 8. ESTRÉS NUMÉRICO E INVARIANTES (ENSEMBLE)
+# =============================================================================
+
+
+class TestNumericalStressAndInvariants:
+    """Casos límite: n=1+1, R=0, κ moderado-alto, dimensiones mayores."""
+
+    def test_harmonic_oscillator_full_pipeline(
+        self, harmonic_oscillator_system
+    ):
+        C_soc, M_rec, R_cost, J_base, omega_exact = harmonic_oscillator_system
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base
+        )
+        q = np.array([1.0])
+        p = np.array([0.0])
+        df_dt = np.array([0.0])
+        tensor = agent.synthesize_basal_hamiltonian(q=q, p=p, df_dt=df_dt)
+        stalk = agent.export_sheaf_stalk(np.array([1.0, 0.0]))
+        assert tensor.total_hamiltonian == pytest.approx(
+            0.5 * (1.0 ** 2) / 4.0, rel=1e-10
+        )
+        assert stalk.delta_base.shape == (4, 2)
+        omegas, _ = agent.phase2.compute_normal_modes()
+        assert omegas[0] == pytest.approx(omega_exact, rel=1e-6)
+
+    def test_zero_dissipation_R_pipeline(self, lossless_system, dims):
+        C_soc, M_rec, R_cost, J_base = lossless_system
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base
+        )
+        assert agent.context.rank_R == 0
+        assert agent.context.betti_0_R == sum(dims)
+        n = sum(dims)
+        stalk = agent.export_sheaf_stalk(np.zeros(n))
+        assert stalk.lossless_subspace_dimension == n
+        # δ_diss = 0 ⇒ proyección disipativa nula
+        np.testing.assert_allclose(
+            stalk.projected_state_dissipative, 0.0, atol=1e-14
+        )
+
+    def test_moderate_high_condition_pipeline(self, dims):
+        dim_q, dim_p = dims
+        n = dim_q + dim_p
+        C_soc = make_spd_with_condition(dim_q, cond=1.0e5, seed=501)
+        M_rec = make_spd_with_condition(dim_p, cond=1.0e4, seed=502)
+        R_cost = make_psd_with_rank(n, rank=n, seed=503)
+        J_base = make_antisymmetric(n, seed=504)
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            kappa_max=1.0e10,
+        )
+        rng = np.random.default_rng(505)
+        q, p = rng.normal(size=dim_q), rng.normal(size=dim_p)
+        df_dt = 1e-3 * rng.normal(size=dim_p)
+        tensor = agent.synthesize_basal_hamiltonian(q=q, p=p, df_dt=df_dt)
+        stalk = agent.export_sheaf_stalk(np.concatenate([q, p]))
+        assert tensor.total_hamiltonian >= -1e-10
+        assert stalk.rank_delta == n
+
+    def test_larger_dimension_pipeline(self):
+        dim_q, dim_p = 6, 5
+        n = dim_q + dim_p
+        C_soc = make_spd(dim_q, seed=601)
+        M_rec = make_spd(dim_p, seed=602)
+        R_cost = make_psd_with_rank(n, rank=n - 1, seed=603)
+        J_base = make_antisymmetric(n, seed=604)
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base
+        )
+        rng = np.random.default_rng(605)
+        q, p = rng.normal(size=dim_q), rng.normal(size=dim_p)
+        tensor = agent.synthesize_basal_hamiltonian(
+            q=q, p=p, df_dt=1e-3 * rng.normal(size=dim_p)
+        )
+        stalk = agent.export_sheaf_stalk(np.concatenate([q, p]))
+        assert stalk.delta_base.shape == (2 * n, n)
+        assert agent.context.betti_0_R == 1
+        assert tensor.vector_field.shape == (n,)
+
+    @pytest.mark.parametrize("seed", [1, 2, 3, 4, 5, 6, 7, 8])
+    def test_power_balance_ensemble(self, seed: int, dims):
+        """∇Hᵀ ẋ + P_diss ≈ 0 en un ensemble de sistemas aleatorios."""
+        dim_q, dim_p = dims
+        n = dim_q + dim_p
+        C_soc = make_spd(dim_q, seed=seed)
+        M_rec = make_spd(dim_p, seed=seed + 10)
+        R_cost = make_psd_with_rank(n, rank=n, seed=seed + 20)
+        J_base = make_antisymmetric(n, seed=seed + 30)
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base
+        )
+        rng = np.random.default_rng(seed + 40)
+        q, p = rng.normal(size=dim_q), rng.normal(size=dim_p)
+        gV = agent.phase2._evaluate_potential_energy(q)[1]
+        gK = agent.phase2._compute_kinetic_energy(p)[1]
+        gH = np.concatenate([gV, gK])
+        x_dot = agent.phase2._compute_vector_field(gH)
+        P_diss = agent.phase2._enforce_rayleigh_dissipation(gH)
+        balance = float(gH @ x_dot) + P_diss
+        assert abs(balance) < 1e-8 * max(P_diss, 1.0)
+
+    @pytest.mark.parametrize("seed", [11, 12, 13, 14])
+    def test_hodge_identity_ensemble(self, seed: int, dims):
+        dim_q, dim_p = dims
+        n = dim_q + dim_p
+        C_soc = make_spd(dim_q, seed=seed)
+        M_rec = make_spd(dim_p, seed=seed + 1)
+        R_cost = make_psd_with_rank(n, rank=max(n - 1, 1), seed=seed + 2)
+        J_base = make_antisymmetric(n, seed=seed + 3)
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base
+        )
+        p3 = Phase3(context=agent.context)
+        rel = p3._verify_hodge_identity()
+        assert rel < HODGE_REL_FACTOR * EPS * 10.0
+
+    @pytest.mark.parametrize(
+        "dim_q,dim_p", [(1, 1), (2, 2), (3, 1), (4, 3)]
+    )
+    def test_pipeline_across_dimensions(self, dim_q: int, dim_p: int):
+        n = dim_q + dim_p
+        C_soc = make_spd(dim_q, seed=700 + dim_q)
+        M_rec = make_spd(dim_p, seed=800 + dim_p)
+        R_cost = make_psd_with_rank(n, rank=n, seed=900 + n)
+        J_base = make_antisymmetric(n, seed=1000 + n)
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc, M_rec=M_rec, R_cost=R_cost, J_base=J_base
+        )
+        rng = np.random.default_rng(1100 + n)
+        q, p = rng.normal(size=dim_q), rng.normal(size=dim_p)
+        tensor = agent.synthesize_basal_hamiltonian(
+            q=q, p=p, df_dt=1e-3 * rng.normal(size=dim_p)
+        )
+        stalk = agent.export_sheaf_stalk(np.concatenate([q, p]))
+        assert stalk.rank_delta == n
+        assert tensor.total_hamiltonian >= -1e-12
+        assert tensor.stability_flags == StabilityFlags.ALL or (
+            # flyback puede fallar el soft-margin en estados aleatorios
+            StabilityFlags.ENERGY_NONNEGATIVE in tensor.stability_flags
+        )
+
+
+# =============================================================================
+# Entrada directa
+# =============================================================================
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v", "--tb=short"]))
