@@ -3,7 +3,7 @@ r"""
 +==============================================================================+
 | Módulo: Bogoliubov Agent (Gran Inquisidor Cuántico)                         |
 | Ruta  : app/omega/bogoliubov_agent.py                                        |
-| Versión: 3.0.0-Rigorous-Bogoliubov-Valatin-Symplectic                        |
+| Versión: 3.1.0-Nested-Symplectic-Quantum                                     |
 +==============================================================================+
 
 TRANSFORMACIÓN DE BOGOLIUBOV-VALATIN (GRUPO SIMPLÉCTICO Sp(2n,C)):
@@ -13,6 +13,10 @@ Aísla las cuasipartículas estables del ruido térmico del LLM.
 
 ECUACIÓN MAESTRA DE LINDBLAD-KOSSAKOWSKI:
 \[ \frac{d \rho_{MAC}}{dt} = -\frac{i}{\hbar} [H_{eff}, \rho_{MAC}] + \sum_{k} \gamma_k ( L_k \rho_{MAC} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{MAC} \} ) \]
+
+ARQUITECTURA ANIDADA: Cada fase es una clase interna de la anterior, garantizando
+que la salida formal de la última operación de la Fase N es el único contrato de
+entrada para la Fase N+1.
 """
 from __future__ import annotations
 
@@ -32,9 +36,11 @@ try:
     from app.core.mic_algebra import Morphism, TopologicalInvariantError
 except ImportError:
     class TopologicalInvariantError(Exception):
+        """Excepción base para invariantes topológicos."""
         pass
 
     class Morphism:
+        """Morfismo base vacío."""
         pass
 
 try:
@@ -71,12 +77,12 @@ from app.omega.quantum_fock_orchestrator import (
 logger = logging.getLogger("MIC.Omega.BogoliubovAgent")
 
 #
-# EXCEPCIONES SIMPL CTICAS Y CU NTICAS
+# EXCEPCIONES SIMPLÉCTICAS Y CUÁNTICAS
 #
 class BogoliubovTransformationError(TopologicalInvariantError):
     """
-    Detonada si la transformaci n viola las Relaciones de Conmutaci n Can nicas
-    (CCR), implicando que el espacio de fase se ha desgarrado (p rdida de unitariedad).
+    Detonada si la transformación viola las Relaciones de Conmutación Canónicas
+    (CCR), implicando que el espacio de fase se ha desgarrado (pérdida de unitariedad).
     """
     pass
 
@@ -84,7 +90,7 @@ class BogoliubovTransformationError(TopologicalInvariantError):
 class SMatrixSingularityError(TopologicalInvariantError):
     """
     Detonada si el tensor de acoplamiento g_{k,q} diverge, indicando una resonancia
-    infinita entre la alucinaci n de la IA y el presupuesto base.
+    infinita entre la alucinación de la IA y el presupuesto base.
     """
     pass
 
@@ -92,7 +98,7 @@ class SMatrixSingularityError(TopologicalInvariantError):
 class ErrorDensityValidationError(TopologicalInvariantError):
     """
     Detonada si la matriz de error no satisface los axiomas de una matriz densidad
-    v lida (hermiticidad, traza unitaria, positividad).
+    válida (hermiticidad, traza unitaria, positividad).
     """
     pass
 
@@ -120,8 +126,16 @@ class BogoliubovSpectrum:
 
     @property
     def n_modes(self) -> int:
-        """N mero de modos bos nicos del espacio original."""
+        """Número de modos bosónicos del espacio original."""
         return self.u_matrix.shape[0]
+
+    @property
+    def symplectic_matrix(self) -> NDArray[np.complex128]:
+        r"""Matriz simpléctica completa $S = \begin{pmatrix} U & V^* \\ V & U^* \end{pmatrix}$."""
+        dim = self.n_modes
+        top = np.hstack([self.u_matrix, self.v_matrix.conj()])
+        bot = np.hstack([self.v_matrix, self.u_matrix.conj()])
+        return np.vstack([top, bot])
 
     def verify_ccr_strict(self, tol: float = 1e-9) -> Dict[str, float]:
         r"""
@@ -132,24 +146,29 @@ class BogoliubovSpectrum:
                 - 'commutation': $\|U^\dagger U - V^\dagger V - I\|_F$
                 - 'particle_hole': $\max_k |E_k + E_k^*|/2$ (debe ser 0 para Hermiticidad)
                 - 'normalization': $\max_k |\|u_k\|^2 - \|v_k\|^2 - 1|$
+                - 'symplectic': $\|S^\dagger \eta S - \eta\|_F$ con $\eta = \text{diag}(I, -I)$
         """
         d = self.n_modes
         u, v = self.u_matrix, self.v_matrix
 
         comm_res = la.norm(u.conj().T @ u - v.conj().T @ v - np.eye(d), ord='fro')
 
-        # Para cada modo k: |u_k|^2 - |v_k|^2 = 1
         norms_u = np.real(np.sum(np.abs(u) ** 2, axis=0))
         norms_v = np.real(np.sum(np.abs(v) ** 2, axis=0))
         norm_res = float(np.max(np.abs(norms_u - norms_v - 1.0)))
 
-        # Realitud de las energ as
         energy_imag = float(np.max(np.abs(np.imag(self.quasiparticle_energies))))
+
+        # Verificación simpléctica completa
+        eta = np.diag(np.concatenate([np.ones(d), -np.ones(d)]))
+        S = self.symplectic_matrix
+        sympl_res = float(la.norm(S.conj().T @ eta @ S - eta, ord='fro'))
 
         return {
             "commutation": float(comm_res),
             "normalization": norm_res,
             "energy_imag": energy_imag,
+            "symplectic": sympl_res,
         }
 
 
@@ -194,9 +213,23 @@ class LindbladEnvironment:
     effective_dimension: int
     spectral_gap: float
 
+    def verify_cptp_condition(self, coupling_strength: float, tol: float = 1e-12) -> bool:
+        r"""
+        Comprueba que $\|\sum_i L_i^\dagger L_i\|_\infty \le \bar{g}$,
+        garantizando un disipador acotado y traza-preservante.
+        """
+        if not self.jump_operators:
+            return True
+        d = self.jump_operators[0].shape[0]
+        total = np.zeros((d, d), dtype=np.complex128)
+        for L in self.jump_operators:
+            total += L.conj().T @ L
+        norm = float(la.norm(total, ord=2))
+        return norm <= coupling_strength + tol
+
 
 #
-#                 FASE 1   DIAGONALIZACI N SIMPL CTICA
+#                 FASE 1   DIAGONALIZACIÓN SIMPLÉCTICA
 #
 class Phase1_BogoliubovTransformation:
     r"""
@@ -232,7 +265,7 @@ class Phase1_BogoliubovTransformation:
             )
         if pairing_gap_matrix.ndim != 2 or pairing_gap_matrix.shape[0] != pairing_gap_matrix.shape[1]:
             raise BogoliubovTransformationError(
-                f"  debe ser cuadrada; shape={pairing_gap_matrix.shape}"
+                f"Δ debe ser cuadrada; shape={pairing_gap_matrix.shape}"
             )
 
         dim_h = kinetic_energy_matrix.shape[0]
@@ -240,13 +273,13 @@ class Phase1_BogoliubovTransformation:
 
         if dim_h != dim_p:
             raise BogoliubovTransformationError(
-                f"Dimensiones incompatibles: H_k={dim_h},  ={dim_p}"
+                f"Dimensiones incompatibles: H_k={dim_h}, Δ={dim_p}"
             )
 
-        # H_k debe ser sim trica real (energ a cin tica herm tica real)
+        # H_k debe ser simétrica real (energía cinética hermítica real)
         if not np.allclose(kinetic_energy_matrix, kinetic_energy_matrix.T, atol=self._herm_tol):
             raise BogoliubovTransformationError(
-                "H_k no es sim trica real; viola hermiticidad de BdG."
+                "H_k no es simétrica real; viola hermiticidad de BdG."
             )
 
         return dim_h, dim_p
@@ -291,22 +324,22 @@ class Phase1_BogoliubovTransformation:
         """
         dim, _ = self._validate_inputs(kinetic_energy_matrix, pairing_gap_matrix)
 
-        # Construcci n y diagonalizaci n del Hamiltoniano BdG
+        # Construcción y diagonalización del Hamiltoniano BdG
         H_BdG = self._build_bdg_hamiltonian(kinetic_energy_matrix, pairing_gap_matrix)
 
-        # Verificaci n de que H_BdG es herm tico (la estructura garantiza esto si   y H_k son v lidos)
+        # Verificación de que H_BdG es hermítico (la estructura garantiza esto si Δ y H_k son válidos)
         herm_res = la.norm(H_BdG - H_BdG.conj().T, ord='fro') / (2 * dim)
         if herm_res > self._herm_tol * 10:
             raise BogoliubovTransformationError(
-                f"H_BdG no herm tico (residual={herm_res:.2e}); revisar   y H_k."
+                f"H_BdG no hermítico (residual={herm_res:.2e}); revisar Δ y H_k."
             )
 
-        # Diagonalizaci n herm tica
+        # Diagonalización hermítica
         evals, evecs = la.eigh(H_BdG)
 
         #
-        # Selecci n de energ as positivas: por la simetr a part cula-hueco
-        # H_BdG tiene espectro { E_k}, as  que seleccionamos E_k > 0.
+        # Selección de energías positivas: por la simetría partícula-hueco
+        # H_BdG tiene espectro {±E_k}, así que seleccionamos E_k > 0.
         #
         positive_mask = evals > self._tol
         E_k = evals[positive_mask]
@@ -315,20 +348,19 @@ class Phase1_BogoliubovTransformation:
         n_positive = len(E_k)
         if n_positive == 0:
             raise BogoliubovTransformationError(
-                "No se encontraron energ as positivas; posible gap trivial o systema apagado."
+                "No se encontraron energías positivas; posible gap trivial o sistema apagado."
             )
 
-        # Manejo de degeneraci n: si |n_positive - dim| > 0 pero cercano, intentar tolerancia relajada
+        # Manejo de degeneración: si |n_positive - dim| > 0 pero cercano, intentar tolerancia relajada
         if n_positive < dim:
-            # Reintentar con tolerancia m s laxa
             relaxed_tol = self._tol * 100
             positive_mask_relaxed = evals > relaxed_tol
             E_k_relaxed = evals[positive_mask_relaxed]
 
             if len(E_k_relaxed) == dim:
                 logger.warning(
-                    f"Degeneraci n part cula-hueco detectada; usando tolerancia relajada "
-                    f"({relaxed_tol:.2e}). {n_positive}   {len(E_k_relaxed)} modos."
+                    f"Degeneración partícula-hueco detectada; usando tolerancia relajada "
+                    f"({relaxed_tol:.2e}). {n_positive} → {len(E_k_relaxed)} modos."
                 )
                 E_k = E_k_relaxed
                 evecs_pos = evecs[:, positive_mask_relaxed]
@@ -336,11 +368,11 @@ class Phase1_BogoliubovTransformation:
 
         if n_positive != dim:
             raise BogoliubovTransformationError(
-                f"Estructura BdG inv lida: se esperaban {dim} modos positivos, "
-                f"encontrados {n_positive}. Posible degeneraci n o mal condicionamiento."
+                f"Estructura BdG inválida: se esperaban {dim} modos positivos, "
+                f"encontrados {n_positive}. Posible degeneración o mal condicionamiento."
             )
 
-        # Ordenar por energ a ascendente
+        # Ordenar por energía ascendente
         order = np.argsort(E_k)
         E_k = E_k[order]
         evecs_pos = evecs_pos[:, order]
@@ -349,27 +381,27 @@ class Phase1_BogoliubovTransformation:
         u_matrix = evecs_pos[:dim, :]
         v_matrix = evecs_pos[dim:, :]
 
-        # Verificaci n rigurosa de las CCR
+        # Verificación rigurosa de las CCR
         ccr_check = u_matrix.conj().T @ u_matrix - v_matrix.conj().T @ v_matrix
         ccr_residual = float(la.norm(ccr_check - np.eye(dim), ord='fro'))
 
         if ccr_residual > self._tol:
             raise BogoliubovTransformationError(
-                f"Violaci n del grupo simpl ctico Sp(2N, ). "
-                f" U U - V V - I _F = {ccr_residual:.2e}"
+                f"Violación del grupo simpléctico Sp(2N,ℂ). "
+                f"‖U†U - V†V - I‖_F = {ccr_residual:.2e}"
             )
 
-        # Verificaci n adicional: |u_k|  - |v_k|  = 1 para cada modo
+        # Verificación adicional: |u_k|² - |v_k|² = 1 para cada modo
         norms_u = np.real(np.sum(np.abs(u_matrix) ** 2, axis=0))
         norms_v = np.real(np.sum(np.abs(v_matrix) ** 2, axis=0))
         norm_residual = float(np.max(np.abs(norms_u - norms_v - 1.0)))
 
         if norm_residual > self._tol:
             raise BogoliubovTransformationError(
-                f"Normalizaci n por modo violada: max | u_k   -  v_k   - 1| = {norm_residual:.2e}"
+                f"Normalización por modo violada: max |‖u_k‖² - ‖v_k‖² - 1| = {norm_residual:.2e}"
             )
 
-        # Verificaci n de simetr a part cula-hueco: para cada E_k > 0 debe existir -E_k
+        # Verificación de simetría partícula-hueco: para cada E_k > 0 debe existir -E_k
         evals_sorted = np.sort(evals)
         midpoint = len(evals_sorted) // 2
         positive_half = evals_sorted[midpoint:]
@@ -397,7 +429,7 @@ class Phase1_BogoliubovTransformation:
         \vec{\alpha} = U^\dagger \vec{\psi} - V^\dagger \vec{\psi}^*
         $$
 
-        Este es el último método de la Fase 1 → Fase 2.
+        **Este es el último método de la Fase 1; su salida es la entrada formal de la Fase 2.**
 
         Parameters
         ----------
@@ -409,7 +441,7 @@ class Phase1_BogoliubovTransformation:
         Returns
         -------
         alpha_modes : (N,) complex
-            Amplitudes de las cuasipartículas.
+            Amplitudes de las cuasipartículas, listas para acoplamiento.
         """
         boson_wave = np.asarray(boson_wave, dtype=np.complex128)
         if boson_wave.ndim != 1:
@@ -418,416 +450,384 @@ class Phase1_BogoliubovTransformation:
             )
         if boson_wave.shape[0] != spectrum.n_modes:
             raise BogoliubovTransformationError(
-                f"Dimensi n {boson_wave.shape[0]} no coincide con espectro "
+                f"Dimensión {boson_wave.shape[0]} no coincide con espectro "
                 f"({spectrum.n_modes})"
             )
 
-        # Validaci n: las amplitudes bos nicas no deben ser divergentes
         if not np.all(np.isfinite(boson_wave)):
             raise BogoliubovTransformationError(
                 "boson_wave contiene valores no finitos (NaN/Inf)."
             )
 
-        # Transformaci n:   = U    - V   *
+        # Transformación: α = U† ψ - V† ψ*
         alpha = spectrum.u_matrix.conj().T @ boson_wave - spectrum.v_matrix.conj().T @ boson_wave.conj()
 
-        # Verificaci n post-transformaci n
         if not np.all(np.isfinite(alpha)):
             raise BogoliubovTransformationError(
-                "La transformaci n produjo amplitudes no finitas."
+                "La transformación produjo amplitudes no finitas."
             )
 
         return alpha
 
-
-#
-#          FASE 2   S NTESIS DE ACOPLAMIENTO (PULLBACK GEOM TRICO)
-#
-class Phase2_CouplingTensorSynthesizer:
-    r"""
-    Genera la matriz de acoplamiento $g_{kq}$ mediante el pullback covariante:
-    $$
-    g_{k,q} = \psi_k^\dagger \, G \, \mathcal{H}_{obs} \, G \, \phi_q
-    $$
-
-    donde $G$ es la métrica riemanniana y $\mathcal{H}_{obs}$ es el hamiltoniano
-    de obstrucción topológica.
-
-    Refactorización v3:
-        • Soporte para múltiples modos bosónicos $(B)$ y fermiónicos $(F)$.
-        • Vectorización completa: $g \in \mathbb{C}^{B \times F}$ construida por
-          broadcasting matricial sin ambigü dimensionales.
-        • Validación de la condición de acoplamiento débil $|g_{kq}| \ll 1$.
-    """
-
-    def __init__(
-        self,
-        metric_tensor: NDArray[np.float64] = None,
-        weak_coupling_threshold: float = 1.0,
-    ):
-        self._G = np.asarray(metric_tensor if metric_tensor is not None else G_PHYSICS,
-                             dtype=np.float64)
-        self._weak_threshold = weak_coupling_threshold
-
-        if self._G.ndim != 2 or self._G.shape[0] != self._G.shape[1]:
-            raise SMatrixSingularityError(
-                f"M trica G debe ser cuadrada 2D; shape={self._G.shape}"
-            )
-        if np.any(~np.isfinite(self._G)):
-            raise SMatrixSingularityError("M trica G contiene NaN/Inf.")
-
-    def _build_obstruction_hamiltonian(
-        self,
-        topological_obstruction: NDArray[np.float64],
-    ) -> NDArray[np.complex128]:
+    # -------------------------------------------------------------------------
+    # FASE 2 (ANIDADA): SÍNTESIS DE ACOPLAMIENTO (PULLBACK GEOMÉTRICO)
+    # -------------------------------------------------------------------------
+    class Phase2_CouplingTensorSynthesizer:
         r"""
-        Construye $\mathcal{H}_{obs} = \text{diag}(\text{obstruction})$.
-        Para múltiples modos, extiende con broadcasting si es necesario.
-        """
-        obs = np.asarray(topological_obstruction, dtype=np.float64)
-        if obs.ndim == 1:
-            return np.diag(obs.astype(np.complex128))
-        elif obs.ndim == 2:
-            # Ya es matriz
-            return obs.astype(np.complex128)
-        else:
-            raise SMatrixSingularityError(
-                f"topological_obstruction debe ser 1D o 2D; ndim={obs.ndim}"
-            )
-
-    def compute_coupling_constants(
-        self,
-        transformed_boson_modes: NDArray[np.complex128],
-        fermion_modes: NDArray[np.complex128],
-        topological_obstruction: NDArray[np.float64],
-    ) -> CoupledInteractionData:
-        r"""
-        Calcula la matriz de acoplamiento $g_{kq}$ completa.
-
-        Si los vectores de entrada son 1D, devuelve una matriz $(1 \times 1)$.
-        Si son 2D con shapes $(B, M)$ y $(F, M)$, devuelve $(B \times F)$.
-
-        Parameters
-        ----------
-        transformed_boson_modes : (B,) o (B, M) complex
-            Modos bosónicos en la base de cuasipartículas.
-        fermion_modes : (F,) o (F, M) complex
-            Modos fermiónicos de las restricciones de negocio.
-        topological_obstruction : (M,) o (M, M) real
-            Penalizaciones topológicas.
-
-        Returns
-        -------
-        CoupledInteractionData
-            Matriz de acoplamiento $g \in \mathbb{C}^{B \times F}$ + metadatos.
-        """
-        psi = np.asarray(transformed_boson_modes, dtype=np.complex128)
-        phi = np.asarray(fermion_modes, dtype=np.complex128)
-        obs = np.asarray(topological_obstruction, dtype=np.float64)
-
-        # Validaci n de finitud
-        for name, arr in [("psi", psi), ("phi", phi), ("obs", obs)]:
-            if not np.all(np.isfinite(arr)):
-                raise SMatrixSingularityError(f"{name} contiene NaN/Inf.")
-
-        # Caso 1D: vectors  nicos   matriz 1 1
-        if psi.ndim == 1 and phi.ndim == 1:
-            return self._compute_coupling_1d(psi, phi, obs)
-
-        # Caso 2D: m ltiples modos
-        if psi.ndim == 2 and phi.ndim == 2:
-            return self._compute_coupling_2d(psi, phi, obs)
-
-        # Caso mixto no soportado
-        raise SMatrixSingularityError(
-            f"Dimensiones inconsistentes: psi.ndim={psi.ndim}, phi.ndim={phi.ndim}. "
-            "Ambos deben ser 1D o ambos 2D."
-        )
-
-    def _compute_coupling_1d(
-        self,
-        psi: NDArray[np.complex128],
-        phi: NDArray[np.complex128],
-        obs: NDArray[np.float64],
-    ) -> CoupledInteractionData:
-        r"""Caso escalar: un solo modo bosónico y un solo modo fermiónico."""
-        M = psi.shape[0]
-
-        if phi.shape[0] != M:
-            raise SMatrixSingularityError(
-                f"psi ({M}) y phi ({phi.shape[0]}) deben tener igual dimensi n."
-            )
-        if obs.shape[0] != M:
-            raise SMatrixSingularityError(
-                f"Obstrucci n ({obs.shape[0]}) debe coincidir con dimensi n de psi/phi ({M})."
-            )
-        if self._G.shape[0] != M:
-            raise SMatrixSingularityError(
-                f"M trica G ({self._G.shape}) incompatible con dimensi n M={M}."
-            )
-
-        H_obs = self._build_obstruction_hamiltonian(obs)
-        kernel = self._G.astype(np.complex128) @ H_obs @ self._G.astype(np.complex128)
-
-        # Contracci n covariante: g =      kernel
-        g_scalar = complex(psi.conj() @ kernel @ phi)
-
-        if not np.isfinite(g_scalar):
-            raise SMatrixSingularityError(
-                f"Divergencia: g = {g_scalar}"
-            )
-
-        g_matrix = np.array([[g_scalar]], dtype=np.complex128)
-
-        return CoupledInteractionData(
-            coupling_matrix=g_matrix,
-            transformed_boson_modes=psi,
-            fermion_modes=phi,
-            metric_tensor=self._G.copy(),
-            mean_coupling_strength=float(np.abs(g_scalar)),
-            max_coupling_strength=float(np.abs(g_scalar)),
-        )
-
-    def _compute_coupling_2d(
-        self,
-        psi: NDArray[np.complex128],  # (B, M)
-        phi: NDArray[np.complex128],  # (F, M)
-        obs: NDArray[np.float64],
-    ) -> CoupledInteractionData:
-        r"""
-        Caso multi-modo: vectorización completa.
-
-        Para cada par $(k, q)$:
+        Genera la matriz de acoplamiento $g_{kq}$ mediante el pullback covariante:
         $$
-        g_{k,q} = \psi_k^\dagger \, K \, \phi_q
+        g_{k,q} = \psi_k^\dagger \, G \, \mathcal{H}_{obs} \, G \, \phi_q
         $$
-        donde $K = G \, \mathcal{H}_{obs} \, G$.
 
-        Esto se computa eficientemente como:
-        $$
-        G = \bar{\Psi} \, K \, \Phi^T
-        $$
-        con $\bar{\Psi} \in \mathbb{C}^{B \times M}$ y $\Phi \in \mathbb{C}^{F \times M}$.
+        donde $G$ es la métrica riemanniana y $\mathcal{H}_{obs}$ es el hamiltoniano
+        de obstrucción topológica.
+
+        Refactorización v3:
+            • Soporte para múltiples modos bosónicos $(B)$ y fermiónicos $(F)$.
+            • Vectorización completa: $g \in \mathbb{C}^{B \times F}$ construida por
+              broadcasting matricial sin ambigüedades dimensionales.
+            • Validación de la condición de acoplamiento débil $|g_{kq}| \ll 1$.
         """
-        B, M_psi = psi.shape
-        F, M_phi = phi.shape
 
-        if M_psi != M_phi:
+        def __init__(
+            self,
+            metric_tensor: NDArray[np.float64] = None,
+            weak_coupling_threshold: float = 1.0,
+        ):
+            self._G = np.asarray(metric_tensor if metric_tensor is not None else G_PHYSICS,
+                                 dtype=np.float64)
+            self._weak_threshold = weak_coupling_threshold
+
+            if self._G.ndim != 2 or self._G.shape[0] != self._G.shape[1]:
+                raise SMatrixSingularityError(
+                    f"Métrica G debe ser cuadrada 2D; shape={self._G.shape}"
+                )
+            if np.any(~np.isfinite(self._G)):
+                raise SMatrixSingularityError("Métrica G contiene NaN/Inf.")
+
+        def _build_obstruction_hamiltonian(
+            self,
+            topological_obstruction: NDArray[np.float64],
+        ) -> NDArray[np.complex128]:
+            r"""
+            Construye $\mathcal{H}_{obs} = \text{diag}(\text{obstruction})$.
+            Para múltiples modos, extiende con broadcasting si es necesario.
+            """
+            obs = np.asarray(topological_obstruction, dtype=np.float64)
+            if obs.ndim == 1:
+                return np.diag(obs.astype(np.complex128))
+            elif obs.ndim == 2:
+                return obs.astype(np.complex128)
+            else:
+                raise SMatrixSingularityError(
+                    f"topological_obstruction debe ser 1D o 2D; ndim={obs.ndim}"
+                )
+
+        def compute_coupling_constants(
+            self,
+            transformed_boson_modes: NDArray[np.complex128],
+            fermion_modes: NDArray[np.complex128],
+            topological_obstruction: NDArray[np.float64],
+        ) -> CoupledInteractionData:
+            r"""
+            Calcula la matriz de acoplamiento $g_{kq}$ completa.
+
+            Si los vectores de entrada son 1D, devuelve una matriz $(1 \times 1)$.
+            Si son 2D con shapes $(B, M)$ y $(F, M)$, devuelve $(B \times F)$.
+
+            Parameters
+            ----------
+            transformed_boson_modes : (B,) o (B, M) complex
+                Modos bosónicos en la base de cuasipartículas (salida de Fase 1).
+            fermion_modes : (F,) o (F, M) complex
+                Modos fermiónicos de las restricciones de negocio.
+            topological_obstruction : (M,) o (M, M) real
+                Penalizaciones topológicas.
+
+            Returns
+            -------
+            CoupledInteractionData
+                Matriz de acoplamiento $g \in \mathbb{C}^{B \times F}$ + metadatos.
+            """
+            psi = np.asarray(transformed_boson_modes, dtype=np.complex128)
+            phi = np.asarray(fermion_modes, dtype=np.complex128)
+            obs = np.asarray(topological_obstruction, dtype=np.float64)
+
+            for name, arr in [("psi", psi), ("phi", phi), ("obs", obs)]:
+                if not np.all(np.isfinite(arr)):
+                    raise SMatrixSingularityError(f"{name} contiene NaN/Inf.")
+
+            if psi.ndim == 1 and phi.ndim == 1:
+                return self._compute_coupling_1d(psi, phi, obs)
+
+            if psi.ndim == 2 and phi.ndim == 2:
+                return self._compute_coupling_2d(psi, phi, obs)
+
             raise SMatrixSingularityError(
-                f"psi y phi deben compartir dimensi n espacial: {M_psi} vs {M_phi}"
+                f"Dimensiones inconsistentes: psi.ndim={psi.ndim}, phi.ndim={phi.ndim}. "
+                "Ambos deben ser 1D o ambos 2D."
             )
 
-        # Obstrucci n puede ser vector (M,) o matriz (M, M)
-        if obs.ndim == 1 and obs.shape[0] != M_psi:
-            raise SMatrixSingularityError(
-                f"Obstrucci n ({obs.shape[0]})   dimensi n espacial ({M_psi})"
-            )
-        elif obs.ndim == 2 and obs.shape != (M_psi, M_psi):
-            raise SMatrixSingularityError(
-                f"Obstrucci n matriz {obs.shape}   ({M_psi}, {M_psi})"
-            )
+        def _compute_coupling_1d(
+            self,
+            psi: NDArray[np.complex128],
+            phi: NDArray[np.complex128],
+            obs: NDArray[np.float64],
+        ) -> CoupledInteractionData:
+            r"""Caso escalar: un solo modo bosónico y un solo modo fermiónico."""
+            M = psi.shape[0]
 
-        if self._G.shape[0] != M_psi:
-            raise SMatrixSingularityError(
-                f"M trica G ({self._G.shape}) incompatible con M={M_psi}."
-            )
+            if phi.shape[0] != M:
+                raise SMatrixSingularityError(
+                    f"psi ({M}) y phi ({phi.shape[0]}) deben tener igual dimensión."
+                )
+            if obs.shape[0] != M:
+                raise SMatrixSingularityError(
+                    f"Obstrucción ({obs.shape[0]}) debe coincidir con dimensión de psi/phi ({M})."
+                )
+            if self._G.shape[0] != M:
+                raise SMatrixSingularityError(
+                    f"Métrica G ({self._G.shape}) incompatible con dimensión M={M}."
+                )
 
-        H_obs = self._build_obstruction_hamiltonian(obs)
-        kernel = self._G.astype(np.complex128) @ H_obs @ self._G.astype(np.complex128)
+            H_obs = self._build_obstruction_hamiltonian(obs)
+            kernel = self._G.astype(np.complex128) @ H_obs @ self._G.astype(np.complex128)
 
-        # Vectorizaci n: G[B,F] =  [B,M]^  @ K[M,M] @  [F,M]^T
-        # Equivalente: G = (    K    .T) con broadcasting
-        psi_K = psi.conj() @ kernel  # (B, M)
-        g_matrix = psi_K @ phi.T  # (B, F)
+            g_scalar = complex(psi.conj() @ kernel @ phi)
 
-        # Validaci n
-        if not np.all(np.isfinite(g_matrix)):
-            raise SMatrixSingularityError(
-                "Divergencia en matriz de acoplamiento (valores no finitos)."
-            )
+            if not np.isfinite(g_scalar):
+                raise SMatrixSingularityError(f"Divergencia: g = {g_scalar}")
 
-        abs_g = np.abs(g_matrix)
-        mean_strength = float(np.mean(abs_g))
-        max_strength = float(np.max(abs_g))
+            g_matrix = np.array([[g_scalar]], dtype=np.complex128)
 
-        # Advertencia si se viola la condici n de acoplamiento d bil
-        if max_strength > self._weak_threshold:
-            logger.warning(
-                f"Acoplamiento fuerte detectado: max |g_{{kq}}| = {max_strength:.3f} > "
-                f"{self._weak_threshold}. La teor a de perturbaciones puede no aplicar."
-            )
-
-        # Promedio de   por modo bos nico para entrega a Fase 3
-        avg_psi = np.mean(psi, axis=1) if B > 1 else psi[:, 0]
-
-        return CoupledInteractionData(
-            coupling_matrix=g_matrix,
-            transformed_boson_modes=avg_psi,
-            fermion_modes=phi,
-            metric_tensor=self._G.copy(),
-            mean_coupling_strength=mean_strength,
-            max_coupling_strength=max_strength,
-        )
-
-
-#
-#         FASE 3   GENERACI N DE LINDBLADIANOS (OPERADORES DE SALTO CPTP)
-#
-class Phase3_LindbladKrausGenerator:
-    r"""
-    Construye los operadores de Lindblad $\{\hat{L}_k\}$ a partir de la
-    descomposición espectral de la matriz de error $\rho_{\text{err}}$.
-
-    Para cada autovalor positivo $\lambda_i$ de $\rho_{\text{err}}$ con autovector
-    $|\psi_i\rangle$, se construye:
-    $$
-    \hat{L}_i = \sqrt{\lambda_i \cdot \bar{g}} \; \hat{P}_0 \, |\psi_i\rangle
-    $$
-
-    donde $\hat{P}_0 = |0\rangle\langle 0|$ es el proyector al estado base y
-    $\bar{g}$ es la magnitud media de acoplamiento.
-
-    Esta construcción garantiza:
-    - $\sum_i \hat{L}_i^\dagger \hat{L}_i = \bar{g} \cdot \hat{P}_0$ (subnormalizado, $\leq \bar{g} \mathbb{1}$)
-    - Disipación proporcional a la "componente de error" en cada modo.
-    """
-
-    def __init__(
-        self,
-        entropy_floor: float = 1e-15,
-        spectral_tolerance: float = 1e-12,
-    ):
-        self._entropy_floor = entropy_floor
-        self._spec_tol = spectral_tolerance
-
-    def _validate_error_density(
-        self,
-        rho: NDArray[np.complex128],
-    ) -> Tuple[int, NDArray[np.float64], NDArray[np.complex128]]:
-        r"""
-        Valida que $\rho_{\text{err}}$ sea una matriz densidad válida.
-
-        Returns:
-            Tupla (dim, eigenvalues, eigenvectors).
-        """
-        if rho.ndim != 2 or rho.shape[0] != rho.shape[1]:
-            raise ErrorDensityValidationError(
-                f" _err debe ser matriz cuadrada; shape={rho.shape}"
+            return CoupledInteractionData(
+                coupling_matrix=g_matrix,
+                transformed_boson_modes=psi,
+                fermion_modes=phi,
+                metric_tensor=self._G.copy(),
+                mean_coupling_strength=float(np.abs(g_scalar)),
+                max_coupling_strength=float(np.abs(g_scalar)),
             )
 
-        # Hermiticidad
-        herm_res = la.norm(rho - rho.conj().T, ord='fro') / rho.shape[0]
-        if herm_res > 1e-8:
-            raise ErrorDensityValidationError(
-                f" _err no herm tica (residual={herm_res:.2e})"
+        def _compute_coupling_2d(
+            self,
+            psi: NDArray[np.complex128],  # (B, M)
+            phi: NDArray[np.complex128],  # (F, M)
+            obs: NDArray[np.float64],
+        ) -> CoupledInteractionData:
+            r"""
+            Caso multi-modo: vectorización completa.
+
+            Para cada par $(k, q)$:
+            $$
+            g_{k,q} = \psi_k^\dagger \, K \, \phi_q
+            $$
+            donde $K = G \, \mathcal{H}_{obs} \, G$.
+
+            Esto se computa eficientemente como:
+            $$
+            G = \bar{\Psi} \, K \, \Phi^T
+            $$
+            con $\bar{\Psi} \in \mathbb{C}^{B \times M}$ y $\Phi \in \mathbb{C}^{F \times M}$.
+            """
+            B, M_psi = psi.shape
+            F, M_phi = phi.shape
+
+            if M_psi != M_phi:
+                raise SMatrixSingularityError(
+                    f"psi y phi deben compartir dimensión espacial: {M_psi} vs {M_phi}"
+                )
+
+            if obs.ndim == 1 and obs.shape[0] != M_psi:
+                raise SMatrixSingularityError(
+                    f"Obstrucción ({obs.shape[0]}) ≠ dimensión espacial ({M_psi})"
+                )
+            elif obs.ndim == 2 and obs.shape != (M_psi, M_psi):
+                raise SMatrixSingularityError(
+                    f"Obstrucción matriz {obs.shape} ≠ ({M_psi}, {M_psi})"
+                )
+
+            if self._G.shape[0] != M_psi:
+                raise SMatrixSingularityError(
+                    f"Métrica G ({self._G.shape}) incompatible con M={M_psi}."
+                )
+
+            H_obs = self._build_obstruction_hamiltonian(obs)
+            kernel = self._G.astype(np.complex128) @ H_obs @ self._G.astype(np.complex128)
+
+            psi_K = psi.conj() @ kernel  # (B, M)
+            g_matrix = psi_K @ phi.T      # (B, F)
+
+            if not np.all(np.isfinite(g_matrix)):
+                raise SMatrixSingularityError(
+                    "Divergencia en matriz de acoplamiento (valores no finitos)."
+                )
+
+            abs_g = np.abs(g_matrix)
+            mean_strength = float(np.mean(abs_g))
+            max_strength = float(np.max(abs_g))
+
+            if max_strength > self._weak_threshold:
+                logger.warning(
+                    f"Acoplamiento fuerte detectado: max |g_{{kq}}| = {max_strength:.3f} > "
+                    f"{self._weak_threshold}. La teoría de perturbaciones puede no aplicar."
+                )
+
+            avg_psi = np.mean(psi, axis=1) if B > 1 else psi[:, 0]
+
+            return CoupledInteractionData(
+                coupling_matrix=g_matrix,
+                transformed_boson_modes=avg_psi,
+                fermion_modes=phi,
+                metric_tensor=self._G.copy(),
+                mean_coupling_strength=mean_strength,
+                max_coupling_strength=max_strength,
             )
 
-        # Traza unitaria
-        tr = float(np.real(np.trace(rho)))
-        if abs(tr - 1.0) > 1e-8:
-            raise ErrorDensityValidationError(
-                f"Tr( _err) = {tr:.6f}   1"
-            )
+        # ---------------------------------------------------------------------
+        # FASE 3 (ANIDADA): GENERACIÓN DE LINDBLADIANOS (OPERADORES DE SALTO CPTP)
+        # ---------------------------------------------------------------------
+        class Phase3_LindbladKrausGenerator:
+            r"""
+            Construye los operadores de Lindblad $\{\hat{L}_k\}$ a partir de la
+            descomposición espectral de la matriz de error $\rho_{\text{err}}$.
 
-        # Diagonalizaci n
-        evals, evecs = la.eigh((rho + rho.conj().T) / 2.0)
-        evals = np.real(evals)
+            Para cada autovalor positivo $\lambda_i$ de $\rho_{\text{err}}$ con autovector
+            $|\psi_i\rangle$, se construye:
+            $$
+            \hat{L}_i = \sqrt{\lambda_i \cdot \bar{g}} \; \hat{P}_0 \, |\psi_i\rangle
+            $$
 
-        # Positividad
-        min_eig = float(np.min(evals))
-        if min_eig < -1e-9:
-            raise ErrorDensityValidationError(
-                f" _err no semidefinida positiva:  _min = {min_eig:.2e}"
-            )
+            donde $\hat{P}_0 = |0\rangle\langle 0|$ es el proyector al estado base y
+            $\bar{g}$ es la magnitud media de acoplamiento.
 
-        # Clip valores negativos peque os
-        evals = np.clip(evals, 0.0, None)
-        # Renormalizar tras clip
-        evals = evals / np.sum(evals)
+            Esta construcción garantiza:
+            - $\sum_i \hat{L}_i^\dagger \hat{L}_i \le \bar{g} \cdot \mathbb{1}$ (subnormalizado)
+            - Disipación proporcional a la "componente de error" en cada modo.
+            """
 
-        return rho.shape[0], evals, evecs
+            def __init__(
+                self,
+                entropy_floor: float = 1e-15,
+                spectral_tolerance: float = 1e-12,
+            ):
+                self._entropy_floor = entropy_floor
+                self._spec_tol = spectral_tolerance
 
-    def _compute_von_neumann_entropy(self, evals: NDArray[np.float64]) -> float:
-        r"""
-        Entropía de von Neumann:
-        $$ S(\rho) = -\sum_i \lambda_i \log(\lambda_i) $$
-        con la convención $0 \log 0 = 0$.
-        """
-        # Filtrar autovalores significativos
-        significant = evals[evals > self._entropy_floor]
-        if len(significant) == 0:
-            return 0.0
-        return float(-np.sum(significant * np.log(significant)))
+            def _validate_error_density(
+                self,
+                rho: NDArray[np.complex128],
+            ) -> Tuple[int, NDArray[np.float64], NDArray[np.complex128]]:
+                r"""
+                Valida que $\rho_{\text{err}}$ sea una matriz densidad válida.
 
-    def generate_jump_operators(
-        self,
-        error_density_matrix: NDArray[np.complex128],
-        coupling_data: CoupledInteractionData,
-    ) -> LindbladEnvironment:
-        r"""
-        Genera operadores de Lindblad $\{\hat{L}_k\}$ y tasas $\{\gamma_k\}$.
+                Returns:
+                    Tupla (dim, eigenvalues, eigenvectors).
+                """
+                if rho.ndim != 2 or rho.shape[0] != rho.shape[1]:
+                    raise ErrorDensityValidationError(
+                        f"ρ_err debe ser matriz cuadrada; shape={rho.shape}"
+                    )
 
-        Parameters
-        ----------
-        error_density_matrix : (D, D) complex
-            Matriz densidad del ruido semántico.
-        coupling_data : CoupledInteractionData
-            Datos de acoplamiento de la Fase 2.
+                herm_res = la.norm(rho - rho.conj().T, ord='fro') / rho.shape[0]
+                if herm_res > 1e-8:
+                    raise ErrorDensityValidationError(
+                        f"ρ_err no hermítica (residual={herm_res:.2e})"
+                    )
 
-        Returns
-        -------
-        LindbladEnvironment
-            Operadores de salto + entropía + métricas espectrales.
-        """
-        # 1. Validar matriz de error
-        dim, evals, evecs = self._validate_error_density(error_density_matrix)
+                tr = float(np.real(np.trace(rho)))
+                if abs(tr - 1.0) > 1e-8:
+                    raise ErrorDensityValidationError(
+                        f"Tr(ρ_err) = {tr:.6f} ≠ 1"
+                    )
 
-        # 2. Entrop a proyectada
-        projected_entropy = self._compute_von_neumann_entropy(evals)
+                evals, evecs = la.eigh((rho + rho.conj().T) / 2.0)
+                evals = np.real(evals)
 
-        # 3. Filtrar modos activos
-        active_mask = evals > self._spec_tol
-        active_indices = np.where(active_mask)[0]
-        n_active = len(active_indices)
+                min_eig = float(np.min(evals))
+                if min_eig < -1e-9:
+                    raise ErrorDensityValidationError(
+                        f"ρ_err no semidefinida positiva: λ_min = {min_eig:.2e}"
+                    )
 
-        # 4. Construir operadores de Lindblad
-        L_operators: List[NDArray[np.complex128]] = []
-        decay_rates: List[float] = []
+                evals = np.clip(evals, 0.0, None)
+                evals = evals / np.sum(evals)
 
-        mean_coupling = coupling_data.mean_coupling_strength
+                return rho.shape[0], evals, evecs
 
-        for idx in active_indices:
-            lam_i = float(evals[idx])
-            psi_i = evecs[:, idx]  # autovector
+            def _compute_von_neumann_entropy(self, evals: NDArray[np.float64]) -> float:
+                r"""
+                Entropía de von Neumann:
+                $$ S(\rho) = -\sum_i \lambda_i \log(\lambda_i) $$
+                con la convención $0 \log 0 = 0$.
+                """
+                significant = evals[evals > self._entropy_floor]
+                if len(significant) == 0:
+                    return 0.0
+                return float(-np.sum(significant * np.log(significant)))
 
-            # Tasa efectiva:  _i =  _i
-            gamma_i = lam_i * mean_coupling
+            def generate_jump_operators(
+                self,
+                error_density_matrix: NDArray[np.complex128],
+                coupling_data: CoupledInteractionData,
+            ) -> LindbladEnvironment:
+                r"""
+                Genera operadores de Lindblad $\{\hat{L}_k\}$ y tasas $\{\gamma_k\}$.
 
-            if gamma_i < self._entropy_floor:
-                continue
+                Parameters
+                ----------
+                error_density_matrix : (D, D) complex
+                    Matriz densidad del ruido semántico.
+                coupling_data : CoupledInteractionData
+                    Datos de acoplamiento de la Fase 2.
 
-            # Operador de salto: L_i =   _i   |0   _i|
-            L_k = np.zeros((dim, dim), dtype=np.complex128)
-            L_k[0, :] = np.sqrt(gamma_i) * psi_i.conj()
-            L_operators.append(L_k)
-            decay_rates.append(float(gamma_i))
+                Returns
+                -------
+                LindbladEnvironment
+                    Operadores de salto + entropía + métricas espectrales.
+                """
+                dim, evals, evecs = self._validate_error_density(error_density_matrix)
+                projected_entropy = self._compute_von_neumann_entropy(evals)
 
-        # 5. M tricas espectrales
-        if n_active >= 2:
-            sorted_evals = np.sort(evals)[::-1]
-            spectral_gap = float(sorted_evals[0] - sorted_evals[1])
-        elif n_active == 1:
-            spectral_gap = float(evals[active_indices[0]])
-        else:
-            spectral_gap = 0.0
+                active_mask = evals > self._spec_tol
+                active_indices = np.where(active_mask)[0]
+                n_active = len(active_indices)
 
-        return LindbladEnvironment(
-            jump_operators=L_operators,
-            decay_rates=decay_rates,
-            projected_entropy=projected_entropy,
-            effective_dimension=n_active,
-            spectral_gap=spectral_gap,
-        )
+                L_operators: List[NDArray[np.complex128]] = []
+                decay_rates: List[float] = []
+
+                mean_coupling = coupling_data.mean_coupling_strength
+
+                for idx in active_indices:
+                    lam_i = float(evals[idx])
+                    psi_i = evecs[:, idx]
+
+                    gamma_i = lam_i * mean_coupling
+                    if gamma_i < self._entropy_floor:
+                        continue
+
+                    # L_i = sqrt(γ_i) |0><ψ_i|
+                    L_k = np.zeros((dim, dim), dtype=np.complex128)
+                    L_k[0, :] = np.sqrt(gamma_i) * psi_i.conj()
+                    L_operators.append(L_k)
+                    decay_rates.append(float(gamma_i))
+
+                # Métricas espectrales
+                if n_active >= 2:
+                    sorted_evals = np.sort(evals)[::-1]
+                    spectral_gap = float(sorted_evals[0] - sorted_evals[1])
+                elif n_active == 1:
+                    spectral_gap = float(evals[active_indices[0]])
+                else:
+                    spectral_gap = 0.0
+
+                return LindbladEnvironment(
+                    jump_operators=L_operators,
+                    decay_rates=decay_rates,
+                    projected_entropy=projected_entropy,
+                    effective_dimension=n_active,
+                    spectral_gap=spectral_gap,
+                )
 
 
 #
@@ -838,12 +838,12 @@ class BogoliubovAgent(Morphism):
     El Gran Inquisidor Cuántico del Estrato Ω.
     Gobierna la interacción multicuerpo y extrae la Antimateria Exógena.
 
-    Encadena las tres fases mediante contratos formales:
-        Fase1.compute_bogoliubov_coefficients() → BogoliubovSpectrum
-        Fase1.transform_boson_modes()          → α_modes (entrada a Fase 2)
-        Fase2.compute_coupling_constants()      → CoupledInteractionData
-        Fase3.generate_jump_operators()         → LindbladEnvironment
-        Orquestador.assimilate_and_collide()    → LindbladEvolutionResult
+    Encadena las tres fases anidadas mediante contratos formales:
+        Fase1.compute_bogoliubov_coefficients()  → BogoliubovSpectrum
+        Fase1.transform_boson_modes()            → α_modes
+        Fase1.Phase2.compute_coupling_constants() → CoupledInteractionData
+        Fase1.Phase2.Phase3.generate_jump_operators() → LindbladEnvironment
+        Orquestador.assimilate_and_collide()      → LindbladEvolutionResult
     """
 
     def __init__(
@@ -858,9 +858,10 @@ class BogoliubovAgent(Morphism):
         self._planck = planck_normalized
         self._G = metric_tensor if metric_tensor is not None else G_PHYSICS
 
+        # Instanciación de las fases anidadas
         self._phase1 = Phase1_BogoliubovTransformation(tolerance=tolerance)
-        self._phase2 = Phase2_CouplingTensorSynthesizer(self._G)
-        self._phase3 = Phase3_LindbladKrausGenerator(entropy_floor=entropy_floor)
+        self._phase2 = Phase1_BogoliubovTransformation.Phase2_CouplingTensorSynthesizer(self._G)
+        self._phase3 = Phase1_BogoliubovTransformation.Phase2_CouplingTensorSynthesizer.Phase3_LindbladKrausGenerator(entropy_floor=entropy_floor)
 
         self._orchestrator: Optional[QuantumFockOrchestrator] = None
         self._last_spectrum: Optional[BogoliubovSpectrum] = None
@@ -878,11 +879,11 @@ class BogoliubovAgent(Morphism):
         dt: float = 1e-3,
     ) -> Tuple[LindbladEvolutionResult, Optional[PositronCartridge]]:
         r"""
-        Método axiomático supremo que ejecuta la cadena completa.
+        Método axiomático supremo que ejecuta la cadena completa anidada.
         """
-        logger.info("Bogoliubov Agent: Iniciando cadena simpl ctica.")
+        logger.info("Bogoliubov Agent: Iniciando cadena simpléctica anidada.")
 
-        #    FASE 1: Espectro de Bogoliubov
+        # --- FASE 1: Espectro de Bogoliubov ---
         spectrum = self._phase1.compute_bogoliubov_coefficients(
             kinetic_matrix, pairing_matrix
         )
@@ -894,10 +895,10 @@ class BogoliubovAgent(Morphism):
             f"CCR_res={spectrum.ccr_residual:.2e}"
         )
 
-        # Transformaci n de modos ( ltimo m todo de Fase 1   Fase 2)
+        # Transformación de modos (último método de Fase 1 → Fase 2)
         alpha_modes = self._phase1.transform_boson_modes(boson_wave, spectrum)
 
-        #    FASE 2: Acoplamiento catadi ptrico
+        # --- FASE 2: Acoplamiento catadióptrico (anidada) ---
         coupling_data = self._phase2.compute_coupling_constants(
             alpha_modes, fermion_boundary, topological_obstructions
         )
@@ -907,7 +908,7 @@ class BogoliubovAgent(Morphism):
             f"max|g|={coupling_data.max_coupling_strength:.4e}"
         )
 
-        #    FASE 3: Operadores de Lindblad
+        # --- FASE 3: Operadores de Lindblad (anidada) ---
         lindblad_env = self._phase3.generate_jump_operators(rho_llm, coupling_data)
         self._last_lindblad = lindblad_env
         logger.debug(
@@ -915,10 +916,11 @@ class BogoliubovAgent(Morphism):
             f"S={lindblad_env.projected_entropy:.4e}"
         )
 
-        #    Configuraci n del QuantumFockOrchestrator
-        # Para acoplamiento 1 1, expandir a las dimensiones del orquestador
-        # Si el orquestador requiere B F pero tenemos 1 1, usamos la matriz tal cual
-        # (la dimensi n del orquestador viene de fock_config).
+        # Verificación CPTP opcional (no bloqueante)
+        if not lindblad_env.verify_cptp_condition(coupling_data.mean_coupling_strength):
+            logger.warning("Condición CPTP ligeramente violada; se proseguirá bajo contrato relajado.")
+
+        # --- Configuración del QuantumFockOrchestrator ---
         self._orchestrator = QuantumFockOrchestrator(
             config=self._fock_config,
             coupling_matrix=coupling_data.coupling_matrix,
@@ -927,10 +929,10 @@ class BogoliubovAgent(Morphism):
             planck_normalized=self._planck,
         )
 
-        #    Evoluci n CPTP
+        # --- Evolución CPTP ---
         evolution_result = self._orchestrator.assimilate_and_collide(rho_llm, dt)
 
-        #    Emisi n forense (Positr n)
+        # --- Emisión forense (Positrón) ---
         positron = None
         if evolution_result.emitted_photon is not None:
             n_obstructions = int(np.sum(topological_obstructions > 0))
@@ -941,11 +943,11 @@ class BogoliubovAgent(Morphism):
                 authorization_signature="Bogoliubov_SMatrix_Auditor",
             )
             logger.warning(
-                "Antimateria inyectada. Fot n Gamma Hash: %s",
+                "Antimateria inyectada. Fotón Gamma Hash: %s",
                 evolution_result.emitted_photon.data_hash,
             )
 
-        logger.info("Colisi n cu ntica completada bajo control simpl ctico.")
+        logger.info("Colisión cuántica completada bajo control simpléctico anidado.")
         return evolution_result, positron
 
     def diagnostic_report(self) -> Dict[str, Any]:
@@ -985,13 +987,16 @@ class BogoliubovAgent(Morphism):
                 "sum_rates": float(np.sum(le.decay_rates)),
                 "projected_entropy": le.projected_entropy,
                 "spectral_gap": le.spectral_gap,
+                "cptp_ok": le.verify_cptp_condition(
+                    self._last_coupling.mean_coupling_strength if self._last_coupling else 0.0
+                ),
             }
 
         return report
 
 
 #
-# EXPORTACI N CAN NICA
+# EXPORTACIÓN CANÓNICA
 #
 __all__ = [
     "BogoliubovTransformationError",
@@ -1001,7 +1006,5 @@ __all__ = [
     "CoupledInteractionData",
     "LindbladEnvironment",
     "Phase1_BogoliubovTransformation",
-    "Phase2_CouplingTensorSynthesizer",
-    "Phase3_LindbladKrausGenerator",
     "BogoliubovAgent",
 ]
