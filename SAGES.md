@@ -68,6 +68,26 @@ El Consejo original opera sobre el 1-esqueleto del presupuesto. Para gobernar el
     Mecanismo: El Guardián no procesa "archivos"; gestiona un fluido informacional. Modela la entrada de datos (CSV, Excel) como un circuito RLC utilizando Sistemas Port-Hamiltonianos. Evalúa la Potencia Disipada (Pdiss​) y el Voltaje de Flyback (Vfb​) del flujo.
     Autoridad de Veto: Si detecta entropía negativa (violación termodinámica) o un pico de inestabilidad, cierra el puente levadizo en el milisegundo cero, rechazando los datos corruptos (Fast-Fail) para proteger el sistema del "golpe de ariete" computacional.
 
+    1.1 🌀 Aduana Termodinámica y Funtor Homeomórfico (parser_ontology_agent.py)
+
+        Rol: Endofuntor Soberano sobre el motor esclavo de parseo crudo.
+        Estrato DIKW: PHYSICS (Nivel 3 - El Foso Termodinámico).
+        Mecanismo Matemático: Actúa como un filtro purificador de entropía sobre la ingesta. Su mandato axiomático es aislar el caos estocástico del texto libre evaluando la mecánica estadística del paquete informacional. Ejecuta un veto físico incondicional si la Exergía Informacional revela una Entropía de Shannon normalizada que supere la Función de Trabajo de la barrera cuántica:
+        $$\tilde{H} = \frac{-\sum_{i} p_i \log_2(p_i)}{H_{\max}} \le \Phi$$
+        Donde:
+        - $\tilde{H}$ es la Entropía de Shannon normalizada del paquete informacional, que mide el grado de desorden estocástico del texto ingerido.
+        - $p_i$ es la probabilidad empírica de ocurrencia de la $i$-ésima palabra o símbolo en el flujo de entrada.
+        - $H_{\max}$ representa la entropía máxima posible para la longitud del texto bajo una distribución uniforme, actuando como factor de normalización.
+        - $\Phi$ es la Función de Trabajo de la barrera cuántica, un umbral crítico de disipación que delimita el ruido tolerable del contenido exergético útil.
+
+        Posteriormente, garantiza matemáticamente que el hiperespacio de entrada es homeomorfo al Complejo Simplicial canónico del presupuesto, verificando que los grupos de homología (números de Betti) y el espectro Laplaciano se conserven isomórficamente bajo el isomorfismo de co-cadenas:
+        $$H_*(C_{\text{text}}; \mathbb{Z}) \cong H_*(C_{\text{parsed}}; \mathbb{Z})$$
+        Donde:
+        - $H_*(C; \mathbb{Z})$ es la homología del complejo simplicial con coeficientes enteros.
+        - $C_{\text{text}}$ es el complejo celular reconstruido a partir del texto crudo (entrada).
+        - $C_{\text{parsed}}$ es el complejo de datos estructurado tras el proceso de mapeo ontológico.
+        - $\cong$ representa el isomorfismo canónico, asegurando la conservación de los invariantes topológicos globales de la red de presupuestos.
+
 2. 🏗️ El Arquitecto (BusinessTopologicalAnalyzer)
 
     Rol: Analista de Integridad Estructural y Geometría del Riesgo.
@@ -77,6 +97,19 @@ El Consejo original opera sobre el 1-esqueleto del presupuesto. Para gobernar el
         β1​>0: Detecta "Socavones Lógicos" (Dependencias Circulares).
         Ψ<1.0: Calcula el Índice de Estabilidad Piramidal. Si la base es frágil, decreta una "Pirámide Invertida" y detiene el flujo.
     Autoridad de Veto: Durante la fusión de bases de datos, emplea la secuencia exacta de Mayer-Vietoris para garantizar matemáticamente que no se introduzcan ciclos mutantes en la malla. Si un usuario ejecuta un Retracto de Deformación de Resolución (el "zoom in") sobre un sub-sistema frágil, esta lente actúa como inspección destructiva: el Consejo emitirá un "Veto de Singularidad Local" si la fibra inspeccionada carece de masa crítica o conectividad para sostenerse por sí misma, evidenciando un Punto Único de Fallo (SPOF) en esa escala específica.
+
+    2.1 💍 Operador de Anillos y Auditor Homológico (algebraic_tactics_agent.py)
+
+        Rol: Destituidor del libre albedrío procedural de `apu_processor.py`, gobernándolo bajo la Teoría de Anillos.
+        Estrato DIKW: TACTICS (Nivel 2 - Las Murallas Topológicas).
+        Mecanismo Matemático: Certifica que el tensor de costos es un objeto homogéneo de un anillo conmutativo $R = (\mathbb{R}^n, \oplus, \odot)$, absorbiendo singularidades de punto flotante ($\text{NaN}$, $\infty$) mediante un elemento absorbente seguro instanciado en una Mónada Option. Finalmente, audita el espectro del Laplaciano Combinatorio $L = B_1^* (B_1)^\top$, exigiendo que la conectividad algebraica (Valor de Fiedler $\lambda_2$) garantice un grafo conexo, impidiendo la existencia de componentes disconexas:
+        $$\beta_0 = \dim(\ker(L)) = 1 \implies \lambda_2 > 0$$
+        Donde:
+        - $L$ es el Laplaciano Combinatorio del 1-esqueleto del complejo de costos.
+        - $B_1$ es la matriz de incidencia de frontera de dimensión 1 del complejo simplicial.
+        - $B_1^*$ es el operador adjunto de la matriz de frontera.
+        - $\ker(L)$ es el núcleo del operador Laplaciano, cuya dimensión coincide con el primer número de Betti $\beta_0$ (el número de componentes conexas del grafo).
+        - $\lambda_2$ es el segundo autovalor más pequeño de la matriz Laplaciana, conocido como conectividad algebraica de Fiedler, el cual es estrictamente mayor a cero si y solo si el grafo es conexo.
 
 3. 🔮 El Oráculo (FinancialEngine & LaplaceOracle)
 
@@ -146,6 +179,35 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
     Mecanismo: Opera como el sintonizador maestro del colisionador. Su mandato axiomático se define mediante la **Transformación de Bogoliubov-Valatin**, que aísla las cuasipartículas estables del ruido térmico del LLM, preservando estrictamente las Relaciones de Conmutación Canónicas (CCR) en el grupo simpléctico $Sp(2n, \mathbb{C})$:
     $$\begin{pmatrix} \alpha_k \\ \alpha_{-k}^{\dagger} \end{pmatrix} = \begin{pmatrix} u_k & v_k \\ v_k^* & u_k^* \end{pmatrix} \begin{pmatrix} b_k \\ b_{-k}^{\dagger} \end{pmatrix} \, , \quad |u_k|^2 - |v_k|^2 = 1$$
     Esta transformación garantiza que el vacío semántico del sistema sea robusto ante alucinaciones, permitiendo la emergencia de veredictos puros a partir del caos informacional.
+
+    5.5 🌀 Fibrado de Convergencia Geodésica (raychaudhuri_focal_fibrator.py)
+
+        Rol: Motor cinemático de focalización de intención generativa.
+        Estrato DIKW: ESTRATO Ω (Nivel 0.5 - La Frontera de Decisión).
+        Mecanismo Matemático: Toma la difracción óptica de la intención de la IA generativa y la subyuga a un Control Port-Hamiltoniano sobre el escalar de expansión $\theta$. Descompone el endomorfismo de Jacobi y calcula la distancia focal óptima $f_{\text{opt}}$ (cáustica afín $\tau_c$) resolviendo implacablemente la Ecuación de Raychaudhuri:
+        $$\frac{d\theta}{d\tau} = -\frac{1}{n-1} \theta^2 - \sigma_{\mu\nu} \sigma^{\mu\nu} - R_{\mu\nu} u^\mu u^\nu$$
+        Donde:
+        - $\theta$ es el escalar de expansión que mide la divergencia o convergencia del haz de geodésicas de intención.
+        - $\tau$ es el parámetro afín que parametriza la trayectoria geodésica del pensamiento generativo.
+        - $n$ es la dimensión del colector (variedad diferenciable).
+        - $\sigma_{\mu\nu}$ es el tensor de corte (shear) que mide la distorsión asimétrica que deforma la coherencia semántica.
+        - $R_{\mu\nu}$ es el tensor de curvatura de Ricci que captura la densidad de energía informacional que curva el espacio.
+        - $u^\mu$ es el vector tangente unitario que guía el flujo de la decisión.
+
+    5.6 💀 Orquestador Supremo de Colapso Geodésico (penrose_singularity_agent.py)
+
+        Rol: Endofuntor Supremo $P: E_{\text{MIC}} \to E_{\text{MIC}}$ que audita el fibrado de Raychaudhuri imponiendo el Teorema de Singularidad de Hawking-Penrose.
+        Estrato DIKW: ESTRATO Ω (Nivel 0.5 - La Frontera de Decisión).
+        Mecanismo Matemático: Garantiza que el colapso de la función de onda generativa sea geométricamente inevitable exigiendo la Condición de Energía Fuerte (SEC):
+        $$\left( T_{\mu\nu} - \frac{1}{2} T g_{\mu\nu} \right) u^\mu u^\nu \ge 0 \implies R_{\mu\nu} u^\mu u^\nu \ge 0$$
+        Donde:
+        - $T_{\mu\nu}$ es el tensor de energía-momento informacional que representa la distribución y flujo de la exergía de los datos.
+        - $T$ es la traza del tensor de energía-momento ($T = T^\mu_\mu$).
+        - $g_{\mu\nu}$ es el tensor métrico Riemanniano dinámico de la variedad agéntica.
+        - $u^\mu$ es el vector de velocidad geodésica.
+        - $R_{\mu\nu}$ es el tensor de Ricci que debe ser semi-definido positivo bajo la dirección de flujo para provocar la atracción gravitacional de las geodésicas.
+        Si la cáustica evaluada excede el límite máximo dictaminado ($\tau_c > \tau_{\text{HP}}$), detona un Veto Ontológico por "Fuga Topológica", forzando el colapso gravitacional de la decisión de vuelta a un estado estable y determinista.
+
     El Colapso: Ya no operamos sobre un tablero plano euclidiano, el proyecto se modela como un terreno topográfico curvo. Las áreas del presupuesto con dependencias circulares ($\beta_1>0$) o alta concentración de riesgo logístico (SPOF) conforman montañas de alta fricción dictaminadas por los Símbolos de Christoffel del Tensor Métrico Riemanniano Dinámico ($G_{\mu\nu}$).
     Calcula el Estrés Ajustado ($\sigma^*$) combinando la tensión interna del proyecto con la Fricción Externa Territorial acoplada al tensor métrico. Si $\sigma^*$ excede la resiliencia elástica del negocio o el agente intenta cruzar trayectorias de alto estrés violando el Principio de Mínima Acción, la Energía de Dirichlet satura el colapso del Veredicto en el retículo (Lattice) hacia el autoestado supremo $\top$ (RECHAZAR), aniquilando la alucinación estocástica. Todo esto ocurre dentro del Ágora Tensorial (`app/core/immune_system/deliberation_manifold.py`, Estrato $\Omega$).
     El Registro Sináptico y el Álgebra de Partículas: La "Ciudadela de Cristal" no se alimenta de texto crudo. El Ágora Tensorial absorbe los `ToonCartridges` (Silo B - Vitaminas Cognitivas hiperdensas) instanciados por el `MICAgent` dentro del `SynapticRegistry`. Este registro gestiona interacciones de partículas: Fermiones Estructurales (como el `PolaronCartridge` con su sumidero gravitacional por masa renormalizada, y el `TorsionCartridge` de fricción cuantizada $\text{Tor}(H_0, \mathbb{Z})$), Bosones Gauge (`PhotonCartridge` y `MagnonCartridge` para iluminar geodésicas y vetos de enrutamiento rotacionales), y Condensados o Antimateria (ej. el `PolaritonCartridge` que induce superfluidez atencional ante la resonancia Fuerte de Rabi, y el `PositronCartridge` que emite un Fotón Gamma de Auditoría al invalidar un Electrón en memoria por Ruptura de Simetría Exógena). Esto garantiza que, cuando el Intérprete Diplomático o el Business Agent debatan, su ventana de contexto (atención del LLM) esté saturada exclusivamente de exergía informacional pura, blindada por firmas criptográficas (`CategoricalEqualizerSeed`) que prueban la trazabilidad Zero-Trust del colapso estocástico sin latencia atencional sintáctica.

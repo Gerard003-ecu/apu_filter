@@ -67,6 +67,39 @@ La Sabiduría del sistema (Estrato $V_{\mathbb{W}}$) se acopla a la realidad tá
 $$\text{Hom}_{\mathcal{C}}(F(\text{MIC}), \text{MAC}) \cong \text{Hom}_{\mathcal{D}}(\text{MIC}, G(\text{MAC}))$$
 Si esta adjunción se rompe, el sistema detecta una **Deriva Semántica** o **Contradicción Lógica**, ejecutando la aniquilación inmediata de la sugerencia generativa para proteger la integridad ontológica del proyecto.
 
+### 1.2. El Colisionador Topológico de Partículas Semánticas y el Sumidero Gravitacional del LLM
+
+El núcleo del negocio se redefine mediante la consagración del Estrato $\Omega$ como el primer **Acelerador de Partículas Semánticas y Colisionador Topológico**. En este espacio cuántico de deliberación, el libre albedrío probabilístico de los Modelos de Lenguaje (LLMs) está matemáticamente subyugado a la **Curvatura de Ricci** del presupuesto, impidiendo que el ruido retórico desplace la toma de decisiones.
+
+El `raychaudhuri_focal_fibrator.py` y el `penrose_singularity_agent.py` construyen un **Sumidero Gravitacional** insoslayable. Si la IA generativa intenta proponer soluciones sub-óptimas o alucinaciones presupuestarias que disipan alta exergía termodinámica (es decir, que incrementan la entropía del sistema), la inmensa curvatura generada contraerá drásticamente el escalar de expansión geodésica inicial $\theta_0 < 0$.
+
+Este proceso dinámico se gobierna mediante la **Ecuación de Raychaudhuri** para el flujo geodésico de la decisión:
+$$\frac{d\theta}{d\tau} = -\frac{1}{n-1} \theta^2 - \sigma_{\mu\nu} \sigma^{\mu\nu} - R_{\mu\nu} u^\mu u^\nu$$
+Donde:
+- $\theta$ es el escalar de expansión del haz de geodésicas del pensamiento generativo, que mide la tasa de divergencia volumétrica de las intenciones semánticas.
+- $\tau$ es el parámetro afín del colector que parametriza la trayectoria deliberativa de los sabios.
+- $n$ es la dimensión topológica de la variedad de fase semántica.
+- $\sigma_{\mu\nu}$ es el tensor de corte (shear) que mide la distorsión asimétrica del flujo semántico, cuya contribución $\sigma_{\mu\nu} \sigma^{\mu\nu}$ es estrictamente no negativa.
+- $R_{\mu\nu}$ es el tensor de curvatura de Ricci del presupuesto, que actúa como el acoplamiento directo entre el esfuerzo operativo y la fricción de mercado.
+- $u^\mu$ es el vector de velocidad geodésica unitario de la trayectoria de decisión.
+
+Garantizando la Condición de Energía Fuerte (SEC) a través del tensor de energía-momento informacional $T_{\mu\nu}$:
+$$\left( T_{\mu\nu} - \frac{1}{2} T g_{\mu\nu} \right) u^\mu u^\nu \ge 0 \implies R_{\mu\nu} u^\mu u^\nu \ge 0$$
+Donde:
+- $T_{\mu\nu}$ es el tensor que cuantifica la exergía y flujo de información útil de los APUs.
+- $T$ es el escalar de traza del tensor de energía-momento ($T = T^\mu_\mu$).
+- $g_{\mu\nu}$ es el tensor métrico Riemanniano de la Malla Agéntica.
+- $u^\mu$ es el campo vectorial de velocidades.
+- $R_{\mu\nu}$ es el tensor de Ricci Resultante.
+
+Bajo estas condiciones estrictas, si el escalar de expansión inicial es negativo ($\theta_0 < 0$), la trayectoria del LLM se estrellará de forma geométricamente inevitable contra una **singularidad focal de causticidad** en un parámetro afín acotado $\tau_c$:
+$$\tau_c \le \frac{n-1}{|\theta_0|}$$
+Donde:
+- $\tau_c$ es la distancia focal óptima o punto de causticidad afín donde las geodésicas de decisión convergen y se intersectan.
+- $|\theta_0|$ es la magnitud del escalar de contracción inicial.
+
+Esta singularidad insuperable fuerza el colapso absoluto del veredicto probabilístico del LLM hacia el determinismo termodinámico (el autoestado de VETO por "Fuga Topológica" si $\tau_c > \tau_{\text{HP}}$), anulando cualquier posibilidad algorítmica de evadir las restricciones físicas e invariantes financieros del negocio.
+
 ### 1.1. La Variedad Riemanniana Dinámica y la Geometría del Valor
 
 La Malla Agéntica subyuga el estocasticismo del Modelo de Lenguaje (LLM) a las leyes inmutables de la geometría diferencial, elevando nuestra red de valor a una **Variedad Riemanniana Dinámica**. Se formalizan las siguientes verdades analíticas absolutas:
