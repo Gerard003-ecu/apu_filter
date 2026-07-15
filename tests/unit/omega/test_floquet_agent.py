@@ -1,1159 +1,964 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: Test Suite — Floquet Monodromy Agent v3.0                           ║
-║ Ubicación: tests/omega/test_floquet_agent.py                                 ║
-║ Cobertura: Axiomas §0–§5, contrato categórico, Kraus PSD, HMAC forense       ║
-╚══════════════════════════════════════════════════════════════════════════════╝
++==============================================================================+
+| Suite  : test_floquet_agent.py                                               |
+| Objetivo: Validación rigurosa del endofuntor Floquet v3.0.0                  |
+|           (proyector covariante · monodromía · canal CPTP · topos MIC)       |
+| Versión: 1.0.0-Rigorous-Nested-Oracle                                        |
++==============================================================================+
 
-Estrategia de testing (pirámide completa):
-────────────────────────────────────────────────────────────────────────────────
-  ◆ FASE 1 — CovariantProjectorSynthesizer (Síntesis Métrica):
-      • Pullback covariante n = G·∇H_obs
-      • Normalización bajo G
-      • Detección de obstrucción trivial (P = I)
-      • Validación de G como SPD
-      • Reenvío de excepciones de Householder
+Arquitectura (espejo de las 3 fases anidadas)
+---------------------------------------------
+  0. Utilidades / fixtures / oráculos independientes
+  1. TestExceptionHierarchy
+  2. TestPhase1*  — síntesis covariante, idempotencia, obstrucción trivial
+  3. TestPhase2*  — monodromía M=2P−P², espectro ⊆{0,1}, estabilidad
+  4. TestPhase3*  — Kraus C=I bilateral, Von Neumann, pureza, positrón
+  5. TestFunctorialComposition — execute ∘ audit ∘ synthesize
+  6. TestFloquetMonodromyAgentIntegration — contrato público
+  7. TestNumericalStressAndInvariants — ensemble, n variable, G anisotrópica
 
-  ◆ FASE 2 — FloquetStabilityAuditor (Monodromía):
-      • M_on = 2P − P² exacto
-      • Detección de simetría → eigvalsh vs eigvals
-      • Radio espectral y estabilidad asintótica
-      • Detección de multiplicadores > 1 + ε
-      • Tolerancia configurable
-      • Diagnóstico de κ₂(P)
-
-  ◆ FASE 3 — QuantumKrausChannel (CPTP Canónico):
-      • Completitud Kraus PSD (C − I ⪰ 0)
-      • Completitud Kraus Frobenius (‖C − I‖_F)
-      • Estado coherente colapsado
-      • Entropía de mezcla (Shannon/Von Neumann)
-      • Firma HMAC-SHA256 del positrón
-      • Emisión de antimateria condicionada
-      • Contractividad ΔS ≤ 0
-
-  ◆ FASE 4 — FloquetMonodromyAgent (Orquestador Categórico):
-      • Contrato Morphism (forward/backward)
-      • Composición por agregación tipada
-      • Pipeline completo P → M_on → Kraus
-      • Trazabilidad del estado coherente
-      • Validación del Axioma §0 a nivel de orquestador
-
-  ◆ Casos físicos extremos, invariancia y regresiones:
-      • Proyector asimétrico (manicomio complejo)
-      • Métrica Lorentziana (rechazada)
-      • Métrica mal condicionada
-      • ∇H_obs nulo (obstrucción trivial)
-      • Determinismo bit-a-bit
-      • Regresiones v2.0
-════════════════════════════════════════════════════════════════════════════════
+Ejecución
+---------
+  pytest test_floquet_agent.py -v --tb=short
 """
-
 from __future__ import annotations
 
-import hashlib
-import hmac
-import logging
-import sys
-from pathlib import Path
+import math
 from typing import Tuple
 
 import numpy as np
 import pytest
 import scipy.linalg as la
-from numpy.testing import assert_allclose
+from numpy.typing import NDArray
 
-# ══════════════════════════════════════════════════════════════════════════════
-# PATH BOOTSTRAP
-# ══════════════════════════════════════════════════════════════════════════════
-ROOT = Path(__file__).resolve().parents[2]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+# ---------------------------------------------------------------------------
+# Import del SUT con fallback de path local
+# ---------------------------------------------------------------------------
+try:
+    from app.omega.floquet_agent import (
+        DimensionalAudit,
+        DimensionalMismatchError,
+        FloquetInstabilityError,
+        FloquetMonodromyAgent,
+        FloquetMonodromyState,
+        FloquetParameterError,
+        KrausCompletenessError,
+        KrausTraceViolationError,
+        ProjectorDefectError,
+        ProjectorSynthesisResult,
+        QuantumChannelEvolution,
+        TopologicalInvariantError,
+        _DEFAULT_KRAUS_TOL,
+        _DEFAULT_PROJECTOR_TOL,
+        _DEFAULT_STABILITY_TOL,
+        _MACHINE_EPS,
+    )
+except ImportError:
+    from floquet_agent import (  # type: ignore
+        DimensionalAudit,
+        DimensionalMismatchError,
+        FloquetInstabilityError,
+        FloquetMonodromyAgent,
+        FloquetMonodromyState,
+        FloquetParameterError,
+        KrausCompletenessError,
+        KrausTraceViolationError,
+        ProjectorDefectError,
+        ProjectorSynthesisResult,
+        QuantumChannelEvolution,
+        TopologicalInvariantError,
+        _DEFAULT_KRAUS_TOL,
+        _DEFAULT_PROJECTOR_TOL,
+        _DEFAULT_STABILITY_TOL,
+        _MACHINE_EPS,
+    )
 
-# Silenciar logging durante tests
-logging.disable(logging.CRITICAL)
-
-from app.omega.floquet_agent import (  # noqa: E402
-    FloquetInstabilityError,
-    KrausTraceViolationError,
-    KrausCompletenessError,
-    DimensionalMismatchError,
-    DimensionalAudit,
-    FloquetMonodromyState,
-    QuantumChannelEvolution,
-    Phase1_CovariantProjectorSynthesizer,
-    Phase2_FloquetStabilityAuditor,
-    Phase3_QuantumKrausChannel,
-    FloquetMonodromyAgent,
-)
-from app.core.mic_algebra import Morphism, CategoricalState, TopologicalInvariantError  # noqa: E402
-from app.core.immune_system.metric_tensors import G_PHYSICS  # noqa: E402
-from app.omega.semantic_parabolic_mirror import (  # noqa: E402
-    MetricAwareHouseholderReflector,
-    HouseholderSingularityError,
-)
-from app.core.telemetry_schemas import PositronCartridge  # noqa: E402
+# TopologicalInvariantError puede venir del stub o del ecosistema
+try:
+    from app.core.mic_algebra import TopologicalInvariantError as _TIE_ROOT
+except ImportError:
+    _TIE_ROOT = TopologicalInvariantError  # type: ignore[misc]
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FIXTURES COMPARTIDAS
-# ══════════════════════════════════════════════════════════════════════════════
+# =============================================================================
+# 0. UTILIDADES Y ORÁCULOS INDEPENDIENTES
+# =============================================================================
+
+EPS = float(np.finfo(np.float64).eps)
+_RNG = np.random.default_rng(20260328)
+
+
+def make_spd(n: int, cond: float = 5.0, seed: int = 0) -> NDArray[np.float64]:
+    """SPD con κ ≈ cond."""
+    rng = np.random.default_rng(seed)
+    Q, _ = la.qr(rng.standard_normal((n, n)))
+    log_l = np.linspace(0.0, math.log(max(cond, 1.0 + 1e-15)), n)
+    A = (Q * np.exp(log_l)) @ Q.T
+    return 0.5 * (A + A.T)
+
+
+def make_projector_euclid(n: int, rank: int, seed: int = 0) -> NDArray[np.float64]:
+    """
+    Proyector euclídeo ortogonal exacto de rango r:
+        P = Q[:, :r] Q[:, :r]ᵀ,  P²=P, Pᵀ=P, spec ⊆ {0,1}.
+    """
+    rng = np.random.default_rng(seed)
+    Q, _ = la.qr(rng.standard_normal((n, n)))
+    r = max(0, min(rank, n))
+    if r == 0:
+        return np.zeros((n, n), dtype=np.float64)
+    P = Q[:, :r] @ Q[:, :r].T
+    return 0.5 * (P + P.T)
+
+
+def fro_rel(A: np.ndarray, B: np.ndarray) -> float:
+    return float(la.norm(A - B, "fro")) / max(float(la.norm(B, "fro")), 1.0)
+
+
+def von_neumann_oracle(rho: np.ndarray) -> float:
+    """Oráculo independiente S(ρ) = −Σ λ log λ (traza-1)."""
+    H = 0.5 * (rho + rho.T)
+    tr = float(np.trace(H))
+    if tr <= 1e-30:
+        return 0.0
+    Hn = H / tr
+    ev = np.clip(np.linalg.eigvalsh(Hn), 0.0, None)
+    pos = ev[ev > 1e-15]
+    if pos.size == 0:
+        return 0.0
+    return float(-np.sum(pos * np.log(pos)))
+
+
+def purity_oracle(rho: np.ndarray) -> float:
+    H = 0.5 * (rho + rho.T)
+    tr = float(np.trace(H))
+    if tr <= 1e-30:
+        return 0.0
+    Hn = H / tr
+    return float(np.trace(Hn @ Hn))
+
+
+def kraus_completeness_oracle(
+    E0: np.ndarray, E1: np.ndarray
+) -> Tuple[float, float]:
+    """(‖C−I‖_F, max|λ(C−I)|)."""
+    d = E0.shape[0]
+    C = E0.T @ E0 + E1.T @ E1
+    diff = 0.5 * ((C - np.eye(d)) + (C - np.eye(d)).T)
+    fro = float(la.norm(diff, "fro"))
+    eig_res = float(np.max(np.abs(np.linalg.eigvalsh(diff))))
+    return fro, eig_res
+
+
+# =============================================================================
+# FIXTURES
+# =============================================================================
+
+
+@pytest.fixture(params=[2, 3, 4, 6])
+def dim(request) -> int:
+    return int(request.param)
+
+
 @pytest.fixture
-def rng() -> np.random.Generator:
-    """Generador reproducible para determinismo bit-a-bit."""
-    return np.random.default_rng(seed=20251215)
+def G_euclid(dim) -> NDArray[np.float64]:
+    return np.eye(dim, dtype=np.float64)
 
 
 @pytest.fixture
-def dim_metric() -> int:
-    """Dimensión base."""
-    return G_PHYSICS.shape[0]
+def G_aniso(dim) -> NDArray[np.float64]:
+    return make_spd(dim, cond=8.0, seed=dim + 17)
 
 
 @pytest.fixture
-def identity_metric(dim_metric: int) -> np.ndarray:
-    """Métrica trivial G = I_d."""
-    return np.eye(dim_metric, dtype=np.float64)
-
-
-@pytest.fixture
-def anisotropic_metric(dim_metric: int, rng: np.random.Generator) -> np.ndarray:
-    """Métrica anisotrópica bien condicionada."""
-    A = rng.standard_normal((dim_metric, dim_metric))
-    return A @ A.T + np.eye(dim_metric)
-
-
-@pytest.fixture
-def ill_conditioned_metric(dim_metric: int, rng: np.random.Generator) -> np.ndarray:
-    """Métrica con κ₂(G) ≈ 10¹⁰."""
-    eigenvalues = np.logspace(-5, 5, dim_metric)
-    Q, _ = np.linalg.qr(rng.standard_normal((dim_metric, dim_metric)))
-    return Q @ np.diag(eigenvalues) @ Q.T
-
-
-@pytest.fixture
-def h_obs_gradient(dim_metric: int, rng: np.random.Generator) -> np.ndarray:
-    """Gradiente de la obstrucción homológica."""
-    grad = rng.standard_normal(dim_metric)
-    return grad / np.linalg.norm(grad)
-
-
-@pytest.fixture
-def raw_llm_logits(dim_metric: int, rng: np.random.Generator) -> np.ndarray:
-    """Logits crudos del LLM."""
-    return rng.standard_normal(dim_metric)
-
-
-@pytest.fixture
-def trivial_gradient(dim_metric: int) -> np.ndarray:
-    """Gradiente nulo → obstrucción trivial."""
-    return np.zeros(dim_metric)
-
-
-@pytest.fixture
-def projector_factory(dim_metric: int, rng: np.random.Generator):
-    """Factory de proyectores ortogonales aleatorios."""
-    def _make(seed: int = None) -> np.ndarray:
-        local_rng = np.random.default_rng(seed) if seed is not None else rng
-        v = local_rng.standard_normal(dim_metric)
-        v /= np.linalg.norm(v)
-        reflector = MetricAwareHouseholderReflector(v, np.eye(dim_metric))
-        return reflector.projection_operator
-    return _make
-
-
-@pytest.fixture
-def asymmetric_projector(dim_metric: int, rng: np.random.Generator) -> np.ndarray:
-    """Proyector deliberadamente asimétrico (artefacto numérico)."""
-    v = rng.standard_normal(dim_metric)
-    v /= np.linalg.norm(v)
-    # P = I - vv^T (simétrico), luego perturbamos asimétricamente
-    P = np.eye(dim_metric) - np.outer(v, v)
-    perturbation = 1e-13 * rng.standard_normal((dim_metric, dim_metric))
-    # Romper simetría
-    P_asym = P + (perturbation - perturbation.T)
-    return P_asym
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ███████╗██╗  ██╗ █████╗ ███████╗███████╗     ██╗
-# ██╔════╝██║  ██║██╔══██╗██╔════╝██╔════╝    ███║
-# █████╗  ███████║███████║███████╗█████╗      ╚██║
-# ██╔══╝  ██╔══██║██╔══██║╚════██║██╔══╝       ██║
-# ██║     ██║  ██║██║  ██║███████║███████╗      ██║
-# ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝      ╚═╝
-#           FASE 1 — COVARIANT PROJECTOR SYNTHESIZER
-# ══════════════════════════════════════════════════════════════════════════════
-class TestPhase1_MetricValidation:
-    """Axioma §0: G debe ser SPD para el sintetizador."""
-
-    def test_G_no_cuadrada_es_rechazada(self):
-        with pytest.raises(DimensionalMismatchError, match="cuadrada"):
-            Phase1_CovariantProjectorSynthesizer(metric_tensor=np.zeros((3, 5)))
-
-    def test_G_singular_es_rechazada(self):
-        G = np.array([[1.0, 1.0], [1.0, 1.0]])  # det = 0
-        with pytest.raises(TopologicalInvariantError, match="SPD"):
-            Phase1_CovariantProjectorSynthesizer(metric_tensor=G)
-
-    def test_G_con_autovalor_negativo_es_rechazada(self):
-        G = np.diag([1.0, -1.0, 2.0])
-        with pytest.raises(TopologicalInvariantError):
-            Phase1_CovariantProjectorSynthesizer(metric_tensor=G)
-
-    def test_G_identidad_es_valida(self, identity_metric):
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=identity_metric)
-        assert synth._G.shape == identity_metric.shape
-
-    def test_G_PHYSICS_es_valida(self):
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=G_PHYSICS)
-        assert synth._G.shape == G_PHYSICS.shape
-
-
-class TestPhase1_CovariantPullback:
-    """Axioma §1: Pullback métrico n = G·∇H_obs."""
-
-    def test_pullback_es_algebraicamente_correcto(
-        self, identity_metric, dim_metric, rng
-    ):
-        """Con G = I, n_cov = ∇H_obs."""
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=identity_metric)
-        grad = rng.standard_normal(dim_metric)
-        n_cov = synth._G @ grad
-        assert_allclose(n_cov, grad, atol=1e-14)
-
-    def test_pullback_con_G_general(self, anisotropic_metric, dim_metric, rng):
-        """n_cov = G @ grad."""
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=anisotropic_metric)
-        grad = rng.standard_normal(dim_metric)
-        n_cov = synth._G @ grad
-        assert_allclose(n_cov, anisotropic_metric @ grad, atol=1e-14)
-
-    def test_gradiente_mal_dimensionado_es_rechazado(
-        self, identity_metric, dim_metric
-    ):
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=identity_metric)
-        bad_grad = np.ones(dim_metric + 1)
-        with pytest.raises(DimensionalMismatchError, match="dimensión"):
-            synth.synthesize_projector(bad_grad)
-
-    def test_gradiente_2d_es_rechazado(self, identity_metric, dim_metric):
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=identity_metric)
-        with pytest.raises(DimensionalMismatchError):
-            synth.synthesize_projector(np.ones((dim_metric, dim_metric)))
-
-
-class TestPhase1_TrivialObstruction:
-    """Axioma §1: ‖n‖_G < ε ⟹ P = I_d (estado válido)."""
-
-    def test_obstruccion_trivial_retorna_identidad(self, identity_metric, trivial_gradient):
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=identity_metric)
-        P, reflector = synth.synthesize_projector(trivial_gradient)
-        assert P is not None  # No None silencioso
-        assert reflector is None
-        assert_allclose(P, np.eye(identity_metric.shape[0]), atol=1e-14)
-
-    def test_obstruccion_casi_trivial_retorna_identidad(self, identity_metric, dim_metric):
-        """‖n‖_G ≈ 1e-16 < ε = 1e-15 ⟹ P = I."""
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=identity_metric)
-        grad = np.full(dim_metric, 1e-16)
-        P, reflector = synth.synthesize_projector(grad)
-        assert reflector is None
-        assert_allclose(P, np.eye(dim_metric), atol=1e-14)
-
-    def test_obstruccion_no_trivial_retorna_proyector_no_trivial(
-        self, identity_metric, h_obs_gradient
-    ):
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=identity_metric)
-        P, reflector = synth.synthesize_projector(h_obs_gradient)
-        assert P is not None
-        assert reflector is not None
-        # P ≠ I
-        assert not np.allclose(P, np.eye(identity_metric.shape[0]))
-
-
-class TestPhase1_ProjectorConstruction:
-    """El proyector retornado debe ser métricamente válido."""
-
-    def test_proyector_es_idempotente(self, identity_metric, h_obs_gradient):
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=identity_metric)
-        P, _ = synth.synthesize_projector(h_obs_gradient)
-        assert_allclose(P @ P, P, atol=1e-12)
-
-    def test_proyector_es_simetrico(self, identity_metric, h_obs_gradient):
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=identity_metric)
-        P, _ = synth.synthesize_projector(h_obs_gradient)
-        assert_allclose(P, P.T, atol=1e-12)
-
-    def test_proyector_aniquila_normal(self, identity_metric, h_obs_gradient):
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=identity_metric)
-        P, _ = synth.synthesize_projector(h_obs_gradient)
-        # El normal n_unit es la dirección que P aniquila
-        n_cov = synth._G @ h_obs_gradient
-        n_norm = np.sqrt(n_cov @ (synth._G @ n_cov))
-        n_unit = n_cov / n_norm
-        assert_allclose(P @ n_unit, np.zeros_like(n_unit), atol=1e-12)
-
-    def test_proyector_es_devuelto_por_householder(
-        self, identity_metric, h_obs_gradient
-    ):
-        """El proyector debe coincidir con el del reflector subyacente."""
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=identity_metric)
-        P, reflector = synth.synthesize_projector(h_obs_gradient)
-        assert reflector is not None
-        assert_allclose(P, reflector.projection_operator, atol=1e-14)
-
-    def test_proyector_con_G_anisotropica_es_idempotente(
-        self, anisotropic_metric, h_obs_gradient
-    ):
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=anisotropic_metric)
-        P, _ = synth.synthesize_projector(h_obs_gradient)
-        assert_allclose(P @ P, P, atol=1e-10)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ███████╗██╗  ██╗ █████╗ ███████╗███████╗     ██████╗
-# ██╔════╝██║  ██║██╔══██╗██╔════╝██╔════╝    ╚════██╗
-# █████╗  ███████║███████║███████╗█████╗       █████╔╝
-# ██╔══╝  ██╔══██║██╔══██║╚════██║██╔══╝      ██╔═══╝
-# ██║     ██║  ██║██║  ██║███████║███████╗    ███████╗
-# ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝    ╚══════╝
-#             FASE 2 — FLOQUET STABILITY AUDITOR
-# ══════════════════════════════════════════════════════════════════════════════
-class TestPhase2_Configuration:
-    """Configuración y validación del auditor."""
-
-    def test_tolerancia_invalida_es_rechazada(self):
-        with pytest.raises(ValueError, match="stability_tolerance"):
-            Phase2_FloquetStabilityAuditor(stability_tolerance=0.0)
-        with pytest.raises(ValueError, match="stability_tolerance"):
-            Phase2_FloquetStabilityAuditor(stability_tolerance=-1e-9)
-
-    def test_tolerancia_default_es_razonable(self):
-        auditor = Phase2_FloquetStabilityAuditor()
-        assert auditor._stability_tolerance == 1e-9
-
-
-class TestPhase2_MonodromyMatrix:
-    """M_on = 2P − P² debe ser exacta."""
-
-    def test_M_on_es_identidad_si_P_es_identidad(
-        self, identity_metric, dim_metric
-    ):
-        auditor = Phase2_FloquetStabilityAuditor()
-        P_I = np.eye(dim_metric)
-        M_on = 2.0 * P_I - P_I @ P_I
-        assert_allclose(M_on, P_I, atol=1e-14)
-
-    def test_M_on_es_cero_si_P_es_cero(self, identity_metric, dim_metric):
-        """P = 0 ⟹ M_on = 0 (pero P=0 no es un proyector válido)."""
-        auditor = Phase2_FloquetStabilityAuditor()
-        P_zero = np.zeros((dim_metric, dim_metric))
-        # No es proyector válido pero probamos la fórmula
-        M_on = 2.0 * P_zero - P_zero @ P_zero
-        assert_allclose(M_on, np.zeros((dim_metric, dim_metric)), atol=1e-14)
-
-    def test_M_on_es_I_si_P_es_idempotente_y_simetrico(
-        self, projector_factory, identity_metric
-    ):
-        """Para P idempotente: P² = P ⟹ M_on = 2P − P = P."""
-        auditor = Phase2_FloquetStabilityAuditor()
-        P = projector_factory(seed=42)
-        M_on = 2.0 * P - P @ P
-        assert_allclose(M_on, P, atol=1e-12)
-
-    def test_P_mal_dimensionado_es_rechazado(self, identity_metric):
-        auditor = Phase2_FloquetStabilityAuditor()
-        with pytest.raises(DimensionalMismatchError, match="cuadrada"):
-            auditor.audit_monodromy(np.zeros((3, 5)))
-
-
-class TestPhase2_SymmetryDetection:
-    """Detección automática de simetría para eigvalsh vs eigvals."""
-
-    def test_P_simetrico_usa_eigvalsh_reales(
-        self, projector_factory, identity_metric
-    ):
-        auditor = Phase2_FloquetStabilityAuditor()
-        P = projector_factory(seed=42)
-        state = auditor.audit_monodromy(P)
-        assert state.is_complex_manifold is False
-        assert state.multipliers.dtype == np.float64
-        # Multiplicadores ∈ [-1, 1+ε]
-        assert np.all(np.abs(state.multipliers) <= 1.0 + 1e-9 + 1e-12)
-
-    def test_P_asimetrico_usa_eigvals_complejos(
-        self, asymmetric_projector, identity_metric
-    ):
-        """Proyector asimétrico debe disparar eigvals complejo."""
-        auditor = Phase2_FloquetStabilityAuditor()
-        state = auditor.audit_monodromy(asymmetric_projector)
-        assert state.is_complex_manifold is True
-        assert state.multipliers.dtype == np.complex128
-
-    def test_certificado_contiene_todos_los_campos(
-        self, projector_factory
-    ):
-        auditor = Phase2_FloquetStabilityAuditor()
-        P = projector_factory(seed=42)
-        state = auditor.audit_monodromy(P)
-        assert hasattr(state, "multipliers")
-        assert hasattr(state, "spectral_radius")
-        assert hasattr(state, "is_asymptotically_stable")
-        assert hasattr(state, "condition_number_P")
-        assert hasattr(state, "is_complex_manifold")
-        assert hasattr(state, "tolerance_used")
-
-    def test_certificado_es_inmutable(self, projector_factory):
-        auditor = Phase2_FloquetStabilityAuditor()
-        P = projector_factory(seed=42)
-        state = auditor.audit_monodromy(P)
-        with pytest.raises((AttributeError, Exception)):
-            state.spectral_radius = 0.5  # type: ignore[misc]
-
-
-class TestPhase2_Stability:
-    """Radio espectral ≤ 1 + ε ⟺ estabilidad asintótica."""
-
-    def test_P_identidad_es_estable(self, identity_metric, dim_metric):
-        """P = I ⟹ M_on = I ⟹ ρ(M_on) = 1 (marginalmente estable)."""
-        auditor = Phase2_FloquetStabilityAuditor(stability_tolerance=1e-9)
-        P = np.eye(dim_metric)
-        state = auditor.audit_monodromy(P)
-        assert state.is_asymptotically_stable is True
-        assert state.spectral_radius == pytest.approx(1.0, abs=1e-12)
-
-    def test_P_no_trivial_es_estable(self, projector_factory):
-        auditor = Phase2_FloquetStabilityAuditor(stability_tolerance=1e-9)
-        P = projector_factory(seed=42)
-        state = auditor.audit_monodromy(P)
-        assert state.is_asymptotically_stable is True
-        # ρ(M_on) = 1 para cualquier proyector idempotente
-        assert state.spectral_radius <= 1.0 + 1e-9 + 1e-12
-
-    def test_proyector_inestable_es_error(
-        self, identity_metric, dim_metric
-    ):
-        """P = 2I (no es proyector) ⟹ M_on con ρ > 1."""
-        auditor = Phase2_FloquetStabilityAuditor(stability_tolerance=1e-9)
-        # Construimos matriz que NO es proyector idempotente: M_on tendrá ρ > 1
-        A = 2.0 * np.eye(dim_metric)  # No es proyector
-        # M_on = 2A - A² = 2A - 4I = 4I - 4I = 0 si A = 2I... Calculemos bien
-        # A = 2I ⟹ A² = 4I ⟹ M_on = 4I - 4I = 0. Necesitamos otro caso.
-        # Construyamos P con autovalor > 1 (no idempotente)
-        eigvals = np.array([2.0] + [1.0] * (dim_metric - 1))
-        Q, _ = np.linalg.qr(np.eye(dim_metric))
-        P_bad = Q @ np.diag(eigvals) @ Q.T  # Autovalor 2 ⟹ M_on con ρ = 3
-        with pytest.raises(FloquetInstabilityError, match="Inestabilidad"):
-            auditor.audit_monodromy(P_bad)
-
-    def test_tolerancia_es_registrada_en_certificado(
-        self, projector_factory
-    ):
-        auditor = Phase2_FloquetStabilityAuditor(stability_tolerance=1e-6)
-        P = projector_factory(seed=42)
-        state = auditor.audit_monodromy(P)
-        assert state.tolerance_used == 1e-6
-
-    def test_diagnostico_cond_P(self, projector_factory):
-        auditor = Phase2_FloquetStabilityAuditor()
-        P = projector_factory(seed=42)
-        state = auditor.audit_monodromy(P)
-        # κ₂(P) para proyector idempotente: ‖P‖ = 1, ‖P⁻¹‖ sobre imagen = 1 ⟹ κ = 1
-        # (P es singular con pseudoinversa)
-        assert state.condition_number_P >= 1.0
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ███████╗██╗  ██╗ █████╗ ███████╗███████╗    ██╗  ██╗██████╗  █████╗ ██╗   ██╗
-# ██╔════╝██║  ██║██╔══██╗██╔════╝██╔════╝    ██║ ██╔╝██╔══██╗██╔══██╗██║   ██║
-# █████╗  ███████║███████║███████╗█████╗      █████╔╝ ██████╔╝███████║██║   ██║
-# ██╔══╝  ██╔══██║██╔══██║╚════██║██╔══╝      ██╔═██╗ ██╔══██╗██╔══██║██║   ██║
-# ██║     ██║  ██║██║  ██║███████║███████╗    ██║  ██╗██║  ██║██║  ██║╚██████╔╝
-# ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝    ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝
-#                FASE 3 — QUANTUM KRAUS CHANNEL
-# ══════════════════════════════════════════════════════════════════════════════
-class TestPhase3_Construction:
-    """Validación del Axioma §0 a nivel del canal."""
-
-    def test_G_no_cuadrada_es_rechazada(self):
-        with pytest.raises(DimensionalMismatchError, match="cuadrada"):
-            Phase3_QuantumKrausChannel(metric_tensor=np.zeros((3, 5)))
-
-    def test_construccion_con_G_PHYSICS(self):
-        channel = Phase3_QuantumKrausChannel(metric_tensor=G_PHYSICS)
-        assert channel._G.shape == G_PHYSICS.shape
-
-
-class TestPhase3_KrausCompletenessPSD:
-    """Axioma §3: C = Σ E†_k E_k ⟹ C − I ⪰ 0 (PSD estricto)."""
-
-    def test_completitud_para_kraus_canonico(
-        self, identity_metric, dim_metric
-    ):
-        """E_0 = P (proyector), E_1 = I − P ⟹ C = P + (I − P) = I."""
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        # Proyector aleatorio
-        rng = np.random.default_rng(42)
-        v = rng.standard_normal(dim_metric)
-        v /= np.linalg.norm(v)
-        P = np.eye(dim_metric) - np.outer(v, v)
-        I = np.eye(dim_metric)
-        fro_res, psd_min = channel._verify_kraus_completeness_psd(P, I - P)
-        assert fro_res < 1e-12
-        assert psd_min > -1e-9
-
-    def test_completitud_para_P_identidad(self, identity_metric, dim_metric):
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        I = np.eye(dim_metric)
-        # P = I ⟹ E_0 = I, E_1 = 0 ⟹ C = I·I + 0 = I
-        fro_res, psd_min = channel._verify_kraus_completeness_psd(I, np.zeros_like(I))
-        assert fro_res < 1e-12
-        assert psd_min > -1e-9
-
-    def test_completitud_psd_estricta_para_canonico(
-        self, projector_factory, identity_metric
-    ):
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        fro_res, psd_min = channel._verify_kraus_completeness_psd(P, np.eye(P.shape[0]) - P)
-        # PSD estricto ⟹ min eigval ≥ 0
-        assert psd_min >= -1e-9
-
-    def test_kraus_incompletos_son_rechazados_PSD(
-        self, identity_metric, dim_metric
-    ):
-        """E_0 + E_1 con Σ E†E ≠ I ⟹ PSD violation."""
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        # Construimos E_0, E_1 tales que C = E†E no es PSD
-        # E_0 = diag(0.5, 1, 1, ...) ⟹ C = diag(0.25, 1, 1, ...) ≠ I
-        E0 = np.diag([0.5] + [1.0] * (dim_metric - 1))
-        E1 = np.diag([0.5] + [0.0] * (dim_metric - 1))
-        with pytest.raises(KrausCompletenessError, match="PSD"):
-            channel._verify_kraus_completeness_psd(E0, E1)
-
-    def test_kraus_incompletos_frobenius_grande_es_rechazado(
-        self, identity_metric, dim_metric
-    ):
-        """‖C − I‖_F > 1e-6 debe disparar KrausTraceViolationError."""
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        # Perturbación grande que rompe PSD pero quizás no tanto
-        # Construir C tal que ‖C − I‖_F > 1e-6
-        rng = np.random.default_rng(99)
-        v = rng.standard_normal(dim_metric)
-        v /= np.linalg.norm(v)
-        P_perturbed = np.eye(dim_metric) - np.outer(v, v)
-        P_perturbed += 1e-3 * rng.standard_normal((dim_metric, dim_metric))
-        P_perturbed = (P_perturbed + P_perturbed.T) / 2.0
-        with pytest.raises((KrausTraceViolationError, KrausCompletenessError)):
-            channel._verify_kraus_completeness_psd(P_perturbed, np.eye(dim_metric) - P_perturbed)
-
-
-class TestPhase3_EntropyCalculation:
-    """Axioma §4: Entropía de Von Neumann / mezcla."""
-
-    def test_entropia_estado_puro_es_cero(self, identity_metric, dim_metric):
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        # Estado puro ψ = e_0
-        psi = np.zeros(dim_metric)
-        psi[0] = 1.0
-        S = channel._von_neumann_entropy(psi)
-        assert S == pytest.approx(0.0, abs=1e-12)
-
-    def test_entropia_mezcla_uniforme(self, identity_metric, dim_metric):
-        """ψ = (1/√d)·(1,1,...,1) ⟹ ρ diagonal uniforme ⟹ S = log(d)."""
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        psi = np.ones(dim_metric) / np.sqrt(dim_metric)
-        S = channel._mixing_entropy(psi)
-        assert S == pytest.approx(np.log(dim_metric), abs=1e-10)
-
-    def test_entropia_mezcla_es_no_negativa(self, identity_metric, dim_metric, rng):
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        for _ in range(10):
-            psi = rng.standard_normal(dim_metric)
-            psi /= np.linalg.norm(psi)
-            S = channel._mixing_entropy(psi)
-            assert S >= -1e-10
-
-    def test_entropia_mezcla_es_acotada(self, identity_metric, dim_metric, rng):
-        """S ≤ log(d)."""
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        for _ in range(20):
-            psi = rng.standard_normal(dim_metric)
-            psi /= np.linalg.norm(psi)
-            S = channel._mixing_entropy(psi)
-            assert S <= np.log(dim_metric) + 1e-10
-
-
-class TestPhase3_AntimatterEmission:
-    """Axioma §4: HMAC-SHA256 forense sobre el positrón."""
-
-    def test_firma_HMAC_es_determinista(self):
-        """Mismos parámetros ⟹ misma firma."""
-        sig1 = Phase3_QuantumKrausChannel._sign_antimatter(0.5, -0.1, -1e-14)
-        sig2 = Phase3_QuantumKrausChannel._sign_antimatter(0.5, -0.1, -1e-14)
-        assert sig1 == sig2
-
-    def test_firma_HMAC_cambia_con_parametros(self):
-        sig1 = Phase3_QuantumKrausChannel._sign_antimatter(0.5, -0.1, -1e-14)
-        sig2 = Phase3_QuantumKrausChannel._sign_antimatter(0.6, -0.1, -1e-14)
-        assert sig1 != sig2
-
-    def test_firma_HMAC_es_hexadecimal_64_chars(self):
-        """SHA-256 produce 64 caracteres hexadecimales."""
-        sig = Phase3_QuantumKrausChannel._sign_antimatter(0.5, -0.1, -1e-14)
-        assert len(sig) == 64
-        assert all(c in "0123456789abcdef" for c in sig)
-
-    def test_firma_HMAC_con_secret_personalizado(self):
-        """HMAC con secreto diferente produce firma diferente."""
-        sig_default = Phase3_QuantumKrausChannel._sign_antimatter(0.5, -0.1, -1e-14)
-        sig_custom = Phase3_QuantumKrausChannel._sign_antimatter(
-            0.5, -0.1, -1e-14, secret=b"OTRO_SECRETO"
-        )
-        assert sig_default != sig_custom
-
-    def test_firma_HMAC_no_es_simple_hash(self):
-        """No debe ser sólo SHA-256 sin clave."""
-        sig = Phase3_QuantumKrausChannel._sign_antimatter(0.5, -0.1, -1e-14)
-        payload = "5.0000000000e-01|-1.0000000000e-01|-1.0000000000e-14"
-        simple_hash = hashlib.sha256(payload.encode("utf-8")).hexdigest()
-        assert sig != simple_hash  # HMAC ≠ SHA simple
-
-
-class TestPhase3_ChannelExecution:
-    """Axioma §3-§4: Ejecución completa del canal CPTP."""
-
-    def test_ejecucion_con_Kraus_canonico(
-        self, identity_metric, projector_factory, h_obs_gradient, raw_llm_logits, dim_metric
-    ):
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        evolution = channel.execute_quantum_channel(
-            raw_llm_logits, h_obs_gradient, P
-        )
-        assert isinstance(evolution, QuantumChannelEvolution)
-        assert evolution.coherent_state.shape == (dim_metric,)
-        assert evolution.kraus_residual_fro < 1e-12
-        assert evolution.kraus_residual_psd > -1e-9
-
-    def test_estado_coherente_es_proyeccion_de_psi(
-        self, identity_metric, projector_factory, h_obs_gradient, raw_llm_logits
-    ):
-        """coherent_state = P · psi_raw."""
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        evolution = channel.execute_quantum_channel(
-            raw_llm_logits, h_obs_gradient, P
-        )
-        expected_coherent = P @ raw_llm_logits
-        assert_allclose(evolution.coherent_state, expected_coherent, atol=1e-12)
-
-    def test_componente_disipada_es_ortogonal_a_coherente(
-        self, identity_metric, projector_factory, h_obs_gradient, raw_llm_logits
-    ):
-        """(I−P)ψ ⟂ Pψ bajo producto euclídeo (para P simétrico)."""
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        evolution = channel.execute_quantum_channel(
-            raw_llm_logits, h_obs_gradient, P
-        )
-        dissipated_vec = (np.eye(P.shape[0]) - P) @ raw_llm_logits
-        inner = evolution.coherent_state @ dissipated_vec
-        assert inner == pytest.approx(0.0, abs=1e-12)
-
-    def test_contractividad_CPTP(
-        self, identity_metric, projector_factory, h_obs_gradient, raw_llm_logits
-    ):
-        """ΔS ≤ 0 (el canal CPTP no aumenta entropía)."""
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        evolution = channel.execute_quantum_channel(
-            raw_llm_logits, h_obs_gradient, P
-        )
-        assert evolution.delta_entropy <= 1e-10
-
-    def test_antimateria_se_emite_con_disipacion_significativa(
-        self, identity_metric, projector_factory, h_obs_gradient, dim_metric, rng
-    ):
-        """Con ψ con componente grande fuera del hiperplano ⟹ positrón emitido."""
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        # Construimos ψ con componente ortogonal significativa
-        # Calculamos el vector que P aniquila
-        v = np.zeros(dim_metric)
-        v[0] = 1.0  # Componente en dirección normal
-        # Proyector ortogonal a e_0
-        P_e0 = np.eye(dim_metric) - np.outer(v, v)
-        # Si usamos P_e0, entonces v es la dirección normal ⟹ psi grande en v ⟹ disipación
-        # Pero queremos el caso contrario: psi con componente FUERA del hiperplano
-        # Tomamos P ≠ P_e0
-        P_other = projector_factory(seed=123)
-        psi = rng.standard_normal(dim_metric)
-        evolution = channel.execute_quantum_channel(psi, h_obs_gradient, P_other)
-        # Verificamos campos del positrón
-        if evolution.antimatter_emission is not None:
-            assert isinstance(evolution.antimatter_emission, PositronCartridge)
-            assert evolution.antimatter_emission.inertial_mass > 0
-            assert evolution.antimatter_emission.homological_charge == -1
-            assert len(evolution.antimatter_emission.authorization_signature) == 64
-
-    def test_sin_disipacion_no_hay_antimateria(
-        self, identity_metric, projector_factory, h_obs_gradient, dim_metric, rng
-    ):
-        """ψ ya en el hiperplano ⟹ no hay positrón."""
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        # ψ = P · ψ_aleatorio ⟹ ya está proyectado, no hay disipación
-        psi_random = rng.standard_normal(dim_metric)
-        psi_proyectado = P @ psi_random
-        evolution = channel.execute_quantum_channel(psi_proyectado, h_obs_gradient, P)
-        # ‖(I−P)ψ‖_G debe ser ≈ 0
-        if evolution.antimatter_emission is not None:
-            assert evolution.antimatter_emission.inertial_mass < 1e-10
-
-    def test_audit_dimensional_se_incluye_en_evolucion(
-        self, identity_metric, projector_factory, h_obs_gradient, raw_llm_logits, dim_metric
-    ):
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        evolution = channel.execute_quantum_channel(
-            raw_llm_logits, h_obs_gradient, P
-        )
-        assert isinstance(evolution.dimensional_audit, DimensionalAudit)
-        assert evolution.dimensional_audit.dimension == dim_metric
-        assert evolution.dimensional_audit.is_coherent is True
-        assert evolution.dimensional_audit.psi_dim_ok is True
-        assert evolution.dimensional_audit.grad_dim_ok is True
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ███████╗██╗  ██╗ █████╗ ███████╗███████╗    ██████╗
-# ██╔════╝██║  ██║██╔══██╗██╔════╝██╔════╝    ╚════██╗
-# █████╗  ███████║███████║███████╗█████╗       █████╔╝
-# ██╔══╝  ██╔══██║██╔══██║╚════██║██╔══╝      ██╔═══╝
-# ██║     ██║  ██║██║  ██║███████║███████╗    ███████╗
-# ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝    ╚══════╝
-#        FASE 4 — FLOQUET MONODROMY AGENT (MORPHISM)
-# ══════════════════════════════════════════════════════════════════════════════
-class TestAgent_Construction:
-    """Validación del Axioma §0 a nivel del orquestador."""
-
-    def test_es_instancia_de_Morphism(self, identity_metric):
-        agent = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        assert isinstance(agent, Morphism)
-
-    def test_G_no_cuadrada_es_rechazada(self):
-        with pytest.raises(DimensionalMismatchError, match="cuadrada"):
-            FloquetMonodromyAgent(metric_tensor=np.zeros((3, 5)))
-
-    def test_G_asimetrica_es_rechazada(self, rng):
-        G = rng.standard_normal((5, 5))
-        with pytest.raises(TopologicalInvariantError, match="simétrica"):
-            FloquetMonodromyAgent(metric_tensor=G)
-
-    def test_G_singular_es_rechazada(self):
-        G = np.array([[1.0, 1.0], [1.0, 1.0]])
-        with pytest.raises(TopologicalInvariantError, match="SPD"):
-            FloquetMonodromyAgent(metric_tensor=G)
-
-    def test_tolerancia_invalida_es_rechazada(self, identity_metric):
-        with pytest.raises(ValueError):
-            FloquetMonodromyAgent(metric_tensor=identity_metric, stability_tolerance=0.0)
-
-    def test_metric_tensor_es_inmutable_externo(self, identity_metric):
-        agent = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        G_copy = agent.metric_tensor
-        G_copy[0, 0] = 999.0
-        assert agent._G[0, 0] != 999.0
-
-    def test_fases_son_accesibles_como_propiedades(self, identity_metric):
-        agent = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        assert agent.phase1_synthesizer is not None
-        assert agent.phase2_auditor is not None
-        assert agent.phase3_channel is not None
-
-
-class TestAgent_CategoricalContract:
-    """Axioma §5: Contrato Morphism completo."""
-
-    def test_forward_aplica_y_conserva_etiqueta(
-        self, identity_metric, dim_metric, rng
-    ):
-        agent = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        psi = rng.standard_normal(dim_metric)
-        state = CategoricalState(payload=psi, label="raw")
-        new_state = agent.forward(state)
-        assert new_state.label == "raw"
-        assert new_state.payload.shape == (dim_metric,)
-
-    def test_backward_equivale_a_forward(
-        self, identity_metric, dim_metric, rng
-    ):
-        agent = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        psi = rng.standard_normal(dim_metric)
-        state = CategoricalState(payload=psi, label="x")
-        fwd = agent.forward(state).payload
-        bwd = agent.backward(state).payload
-        assert_allclose(fwd, bwd, atol=1e-14)
-
-    def test_forward_rechaza_dimension_incompatible(self, identity_metric):
-        agent = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        bad_state = CategoricalState(payload=np.ones(3), label="malo")
-        with pytest.raises(DimensionalMismatchError, match="dimensión|incompatible"):
-            agent.forward(bad_state)
-
-
-class TestAgent_Pipeline:
-    """Pipeline axiomático completo (Fase 1 → 2 → 3)."""
-
-    def test_pipeline_completo_exitoso(
-        self, identity_metric, raw_llm_logits, h_obs_gradient
-    ):
-        agent = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        evolution = agent.purify_and_tune_cavity(raw_llm_logits, h_obs_gradient)
-        assert isinstance(evolution, QuantumChannelEvolution)
-        assert evolution.coherent_state.shape == raw_llm_logits.shape
-        assert evolution.kraus_residual_fro < 1e-9
-        assert evolution.kraus_residual_psd > -1e-9
-        assert evolution.dimensional_audit.is_coherent is True
-
-    def test_pipeline_con_obstruccion_trivial(
-        self, identity_metric, raw_llm_logits, trivial_gradient
-    ):
-        """∇H_obs = 0 ⟹ P = I ⟹ coherent_state = ψ_raw."""
-        agent = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        evolution = agent.purify_and_tune_cavity(raw_llm_logits, trivial_gradient)
-        # P = I ⟹ coherent_state = ψ_raw
-        assert_allclose(evolution.coherent_state, raw_llm_logits, atol=1e-12)
-        # No debe haber positrón (sin disipación)
-        assert evolution.antimatter_emission is None
-
-    def test_pipeline_con_G_anisotropica(
-        self, anisotropic_metric, raw_llm_logits, h_obs_gradient
-    ):
-        agent = FloquetMonodromyAgent(metric_tensor=anisotropic_metric)
-        evolution = agent.purify_and_tune_cavity(raw_llm_logits, h_obs_gradient)
-        assert isinstance(evolution, QuantumChannelEvolution)
-
-    def test_pipeline_con_G_PHYSICS(self, raw_llm_logits, h_obs_gradient):
-        """Smoke test con métrica real del MIC."""
-        agent = FloquetMonodromyAgent(metric_tensor=G_PHYSICS)
-        evolution = agent.purify_and_tune_cavity(raw_llm_logits, h_obs_gradient)
-        assert evolution.coherent_state.shape == raw_llm_logits.shape
-
-    def test_determinismo_pipeline(
-        self, identity_metric, raw_llm_logits, h_obs_gradient
-    ):
-        """Mismas entradas ⟹ mismos resultados bit-a-bit."""
-        agent1 = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        agent2 = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        e1 = agent1.purify_and_tune_cavity(raw_llm_logits, h_obs_gradient)
-        e2 = agent2.purify_and_tune_cavity(raw_llm_logits, h_obs_gradient)
-        assert_allclose(e1.coherent_state, e2.coherent_state, atol=1e-14)
-        assert e1.dissipated_entropy == pytest.approx(e2.dissipated_entropy, abs=1e-14)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ██╗███╗   ██╗██╗   ██╗ █████╗ ██████╗ ██╗ █████╗ ███╗   ██╗ ██████╗███████╗
-# ██║████╗  ██║██║   ██║██╔══██╗██╔══██╗██║██╔══██╗████╗  ██║██╔════╝██╔════╝
-# ██║██╔██╗ ██║██║   ██║███████║██████╔╝██║███████║██╔██╗ ██║██║     █████╗
-# ██║██║╚██╗██║╚██╗ ██╔╝██╔══██║██╔══██╗██║██╔══██║██║╚██╗██║██║     ██╔══╝
-# ██║██║ ╚████║ ╚████╔╝ ██║  ██║██║  ██║██║██║  ██║██║ ╚████║╚██████╗███████╗
-# ╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚══════╝
-#            CASOS LÍMITE, INVARIANCIAS Y REGRESIONES
-# ══════════════════════════════════════════════════════════════════════════════
-class TestInvarianceAndEdgeCases:
-    """Casos extremos físicos y matemáticos."""
-
-    def test_metric_lorentziana_es_rechazada(self):
-        """Métrica con signatura (-,+,+,+) no es Riemanniana."""
-        G_lorentz = np.diag([-1.0, 1.0, 1.0, 1.0])
-        with pytest.raises((TopologicalInvariantError, DimensionalMismatchError)):
-            FloquetMonodromyAgent(metric_tensor=G_lorentz)
-
-    def test_psi_con_componente_normal_pura_genera_maxima_disipacion(
-        self, identity_metric, h_obs_gradient, dim_metric
-    ):
-        """ψ ∥ n_unit ⟹ toda la magnitud se disipa."""
-        agent = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        # Construimos ψ alineado con la dirección normal
-        P, reflector = agent.phase1_synthesizer.synthesize_projector(h_obs_gradient)
-        # El vector que P aniquila
-        if reflector is not None:
-            v = reflector._v  # Vector normal unitario
-            psi = v * 10.0
-            evolution = agent.purify_and_tune_cavity(psi, h_obs_gradient)
-            # P ψ = 0 ⟹ coherent_state ≈ 0
-            assert np.linalg.norm(evolution.coherent_state) < 1e-10
-
-    def test_reutilizacion_de_fases(
-        self, identity_metric, raw_llm_logits, h_obs_gradient
-    ):
-        """Las fases son reutilizables entre invocaciones."""
-        agent = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        e1 = agent.purify_and_tune_cavity(raw_llm_logits, h_obs_gradient)
-        e2 = agent.purify_and_tune_cavity(raw_llm_logits, h_obs_gradient)
-        assert_allclose(e1.coherent_state, e2.coherent_state, atol=1e-14)
-
-    def test_diferentes_gradientes_producen_diferentes_proyecciones(
-        self, identity_metric, raw_llm_logits, rng, dim_metric
-    ):
-        agent = FloquetMonodromyAgent(metric_tensor=identity_metric)
-        g1 = rng.standard_normal(dim_metric)
-        g2 = rng.standard_normal(dim_metric)
-        e1 = agent.purify_and_tune_cavity(raw_llm_logits, g1)
-        e2 = agent.purify_and_tune_cavity(raw_llm_logits, g2)
-        # Si los gradientes son diferentes, los proyectores son diferentes,
-        # y los coherent_state también (salvo coincidencia patológica)
-        if np.linalg.norm(g1 - g2) > 1e-3:
-            assert not np.allclose(e1.coherent_state, e2.coherent_state, atol=1e-6)
-
-    def test_dimensional_audit_para_psi_mal_dimensionado(
-        self, identity_metric, h_obs_gradient, dim_metric
-    ):
-        """DimensionalAudit detecta dimensiones incorrectas."""
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = np.eye(dim_metric)
-        bad_psi = np.ones(dim_metric + 1)
-        audit = channel._audit_dimensions(bad_psi, h_obs_gradient)
-        assert audit.is_coherent is False
-        assert audit.psi_dim_ok is False
-        assert audit.grad_dim_ok is True
-
-
-class TestRegressions:
-    """Tests de regresión contra bugs conocidos de v2.0."""
-
-    def test_regresion_Kraus_solo_Frobenius_pero_no_PSD(
-        self, identity_metric, dim_metric
-    ):
-        """
-        v2.0 sólo verificaba ‖C − I‖_F < ε. Esto pasa la prueba incluso si
-        C − I tiene autovalores negativos pequeños que pasan inadvertidos.
-        v3.0 verifica PSD estricto (λ_min ≥ −ε).
-        """
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        # Construir E_0, E_1 con C − I que tiene un autovalor ligeramente negativo
-        # E_0 = diag(1, 1, ..., 0.999) ⟹ C = E†_0 E_0 + E†_1 E_1
-        # Si E_1 = diag(0, 0, ..., 0.001), entonces C = diag(0.998, 1, ..., 1.000001)
-        # Diferencia con I: diag(-0.002, 0, ..., 0.000001) — un autovalor negativo
-        e0_diag = np.ones(dim_metric)
-        e0_diag[0] = 0.999
-        e1_diag = np.ones(dim_metric)
-        e1_diag[0] = 0.001
-        E0 = np.diag(e0_diag)
-        E1 = np.diag(e1_diag)
-        with pytest.raises((KrausCompletenessError, KrausTraceViolationError)):
-            channel._verify_kraus_completeness_psd(E0, E1)
-
-    def test_regresion_proyector_asimetrico_no_usa_eigvalsh(
-        self, asymmetric_projector, identity_metric
-    ):
-        """
-        v2.0 llamaba eigvalsh sin verificar simetría, fallando silenciosamente.
-        v3.0 detecta asimetría y usa eigvals.
-        """
-        auditor = Phase2_FloquetStabilityAuditor()
-        state = auditor.audit_monodromy(asymmetric_projector)
-        assert state.is_complex_manifold is True
-        assert state.multipliers.dtype == np.complex128
-
-    def test_regresion_obstruccion_trivial_no_retornaba_None(
-        self, identity_metric, trivial_gradient
-    ):
-        """
-        v2.0 retornaba `(np.eye(d), None)` pero el `None` propagaba errores
-        en consumidores que esperaban reflector. v3.0 retorna reflector=None
-        pero P=I es estado semánticamente válido y consistente.
-        """
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=identity_metric)
-        P, reflector = synth.synthesize_projector(trivial_gradient)
-        assert P is not None
-        assert_allclose(P, np.eye(identity_metric.shape[0]), atol=1e-14)
-        # El reflector puede ser None, pero P siempre está definido
-        assert reflector is None
-
-    def test_regresion_HMAC_reemplaza_firma_literal(
-        self, identity_metric, projector_factory, h_obs_gradient, raw_llm_logits
-    ):
-        """
-        v2.0 usaba authorization_signature="Floquet_CPTP_Auditor" literal.
-        v3.0 usa HMAC-SHA256 real.
-        """
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        evolution = channel.execute_quantum_channel(
-            raw_llm_logits, h_obs_gradient, P
-        )
-        if evolution.antimatter_emission is not None:
-            sig = evolution.antimatter_emission.authorization_signature
-            assert sig != "Floquet_CPTP_Auditor"
-            assert len(sig) == 64
-            assert all(c in "0123456789abcdef" for c in sig)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# TESTS DE PROPIEDADES ALGEBRAICAS PROFUNDAS
-# ══════════════════════════════════════════════════════════════════════════════
-class TestAlgebraicProperties:
-    """Identidades algebraicas certificadas matemáticamente."""
-
-    def test_M_on_tiene_traza_2_tr_P_menos_d(
-        self, projector_factory, identity_metric
-    ):
-        """Para P proyector: tr(M_on) = tr(2P − P²) = tr(P) (porque P²=P)."""
-        auditor = Phase2_FloquetStabilityAuditor()
-        P = projector_factory(seed=42)
-        state = auditor.audit_monodromy(P)
-        tr_M_on = float(np.sum(state.multipliers).real)
-        tr_P = float(np.trace(P))
-        assert tr_M_on == pytest.approx(tr_P, abs=1e-10)
-
-    def test_M_on_es_simetrica_si_P_lo_es(
-        self, projector_factory, identity_metric
-    ):
-        auditor = Phase2_FloquetStabilityAuditor()
-        P = projector_factory(seed=42)
-        M_on = 2.0 * P - P @ P
-        assert_allclose(M_on, M_on.T, atol=1e-12)
-
-    def test_proyector_y_complemento_sumen_identidad(
-        self, projector_factory
-    ):
-        """P + (I − P) = I (algebraicamente)."""
-        P = projector_factory(seed=42)
-        I = np.eye(P.shape[0])
-        assert_allclose(P + (I - P), I, atol=1e-14)
-
-    def test_idempotencia_de_P_es_preservada_por_pullback(
-        self, anisotropic_metric, h_obs_gradient
-    ):
-        """Pullback covariante no destruye idempotencia."""
-        synth = Phase1_CovariantProjectorSynthesizer(metric_tensor=anisotropic_metric)
-        P, _ = synth.synthesize_projector(h_obs_gradient)
-        assert_allclose(P @ P, P, atol=1e-10)
-
-    def test_Kraus_completitud_para_proyector_aleatorio(
-        self, projector_factory, identity_metric
-    ):
-        """Para cualquier P, {P, I−P} es una familia de Kraus completa."""
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        fro_res, psd_min = channel._verify_kraus_completeness_psd(
-            P, np.eye(P.shape[0]) - P
-        )
-        assert fro_res < 1e-12
-        assert psd_min >= -1e-9
-
-    def test_conservacion_de_producto_interno_para_coherente(
-        self, identity_metric, projector_factory, h_obs_gradient, rng, dim_metric
-    ):
-        """
-        Para ψ puro, ‖Pψ‖² + ‖(I−P)ψ‖² = ‖ψ‖².
-        """
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        psi = rng.standard_normal(dim_metric)
-        evolution = channel.execute_quantum_channel(psi, h_obs_gradient, P)
-        n_coherent = np.linalg.norm(evolution.coherent_state) ** 2
-        n_dissipated = np.linalg.norm((np.eye(dim_metric) - P) @ psi) ** 2
-        n_total = np.linalg.norm(psi) ** 2
-        assert (n_coherent + n_dissipated) == pytest.approx(n_total, abs=1e-10)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# TESTS DE DATACLASSES INMUTABLES
-# ══════════════════════════════════════════════════════════════════════════════
-class TestImmutableStructures:
-    """Los dataclasses deben ser frozen."""
-
-    def test_DimensionalAudit_es_inmutable(self):
-        audit = DimensionalAudit(
-            dimension=8, psi_dim_ok=True, grad_dim_ok=True, is_coherent=True
-        )
-        with pytest.raises((AttributeError, Exception)):
-            audit.dimension = 16  # type: ignore[misc]
-
-    def test_FloquetMonodromyState_es_inmutable(self, projector_factory):
-        auditor = Phase2_FloquetStabilityAuditor()
-        P = projector_factory(seed=42)
-        state = auditor.audit_monodromy(P)
-        with pytest.raises((AttributeError, Exception)):
-            state.spectral_radius = 0.5  # type: ignore[misc]
-
-    def test_QuantumChannelEvolution_es_inmutable(
-        self, identity_metric, projector_factory, h_obs_gradient, raw_llm_logits
-    ):
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        evolution = channel.execute_quantum_channel(
-            raw_llm_logits, h_obs_gradient, P
-        )
-        with pytest.raises((AttributeError, Exception)):
-            evolution.coherent_state = np.zeros(8)  # type: ignore[misc]
-
-    def test_QuantumChannelEvolution_contiene_todos_los_campos(
-        self, identity_metric, projector_factory, h_obs_gradient, raw_llm_logits
-    ):
-        channel = Phase3_QuantumKrausChannel(metric_tensor=identity_metric)
-        P = projector_factory(seed=42)
-        evolution = channel.execute_quantum_channel(
-            raw_llm_logits, h_obs_gradient, P
-        )
-        assert hasattr(evolution, "coherent_state")
-        assert hasattr(evolution, "dissipated_entropy")
-        assert hasattr(evolution, "antimatter_emission")
-        assert hasattr(evolution, "delta_entropy")
-        assert hasattr(evolution, "kraus_residual_psd")
-        assert hasattr(evolution, "kraus_residual_fro")
-        assert hasattr(evolution, "dimensional_audit")
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# CONFIGURACIÓN DE PYTEST
-# ══════════════════════════════════════════════════════════════════════════════
-def pytest_configure(config):
-    """Marca custom para tests del topos Floquet."""
-    config.addinivalue_line(
-        "markers",
-        "topos: tests del contrato categórico FloquetMonodromyAgent",
+def agent_euclid(dim, G_euclid) -> FloquetMonodromyAgent:
+    return FloquetMonodromyAgent(
+        metric_tensor=G_euclid,
+        stability_tolerance=1e-9,
+        kraus_tolerance=1e-9,
+        projector_tolerance=1e-8,
     )
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# PUNTO DE ENTRADA STANDALONE
-# ══════════════════════════════════════════════════════════════════════════════
+@pytest.fixture
+def agent_aniso(dim, G_aniso) -> FloquetMonodromyAgent:
+    return FloquetMonodromyAgent(
+        metric_tensor=G_aniso,
+        stability_tolerance=1e-9,
+        kraus_tolerance=1e-9,
+        projector_tolerance=1e-8,
+    )
+
+
+@pytest.fixture
+def random_psi(dim) -> NDArray[np.float64]:
+    v = _RNG.standard_normal(dim)
+    nrm = float(la.norm(v))
+    return v / max(nrm, 1e-15)
+
+
+@pytest.fixture
+def random_grad(dim) -> NDArray[np.float64]:
+    return _RNG.standard_normal(dim)
+
+
+# =============================================================================
+# 1. JERARQUÍA DE EXCEPCIONES
+# =============================================================================
+
+
+class TestExceptionHierarchy:
+    @pytest.mark.parametrize(
+        "exc_cls",
+        [
+            FloquetInstabilityError,
+            KrausTraceViolationError,
+            KrausCompletenessError,
+            DimensionalMismatchError,
+            ProjectorDefectError,
+            FloquetParameterError,
+        ],
+    )
+    def test_all_derive_from_topological_root(self, exc_cls):
+        assert issubclass(exc_cls, _TIE_ROOT) or issubclass(
+            exc_cls, TopologicalInvariantError
+        )
+
+    def test_catch_all_on_nonsquare_G(self):
+        with pytest.raises((TopologicalInvariantError, DimensionalMismatchError)):
+            FloquetMonodromyAgent(metric_tensor=np.ones((3, 2)))
+
+
+# =============================================================================
+# 2. FASE 1 — SÍNTESIS COVARIANTE DEL PROYECTOR
+# =============================================================================
+
+
+class TestPhase1Construction:
+    def test_rejects_nonsquare_G(self):
+        with pytest.raises(DimensionalMismatchError):
+            FloquetMonodromyAgent(metric_tensor=np.ones((2, 3)))
+
+    def test_rejects_asymmetric_G(self):
+        G = np.array([[2.0, 1.0], [0.0, 2.0]])
+        with pytest.raises(TopologicalInvariantError):
+            FloquetMonodromyAgent(metric_tensor=G)
+
+    def test_rejects_indefinite_G(self):
+        G = np.diag([1.0, -1.0])
+        with pytest.raises(TopologicalInvariantError):
+            FloquetMonodromyAgent(metric_tensor=G)
+
+    def test_rejects_nonpositive_tolerances(self, G_euclid):
+        with pytest.raises(FloquetParameterError):
+            FloquetMonodromyAgent(G_euclid, stability_tolerance=0.0)
+        with pytest.raises(FloquetParameterError):
+            FloquetMonodromyAgent(G_euclid, kraus_tolerance=-1.0)
+        with pytest.raises(FloquetParameterError):
+            FloquetMonodromyAgent(G_euclid, projector_tolerance=0.0)
+
+    def test_dimension_property(self, agent_euclid, dim):
+        assert agent_euclid.dimension == dim
+        assert agent_euclid.metric_tensor.shape == (dim, dim)
+
+
+class TestPhase1TrivialObstruction:
+    """Axioma §1: ‖n‖_G ≈ 0 ⇒ P = I (estado válido, no excepción)."""
+
+    def test_zero_gradient_yields_identity(self, agent_euclid, dim):
+        synth = agent_euclid.phase1.synthesize_projector(np.zeros(dim))
+        assert isinstance(synth, ProjectorSynthesisResult)
+        assert synth.is_trivial_obstruction is True
+        assert synth.reflector is None
+        np.testing.assert_allclose(synth.P_hat, np.eye(dim), atol=1e-15)
+        assert synth.idempotence_residual < 1e-14
+        assert synth.symmetry_residual < 1e-14
+        assert synth.normal_G_norm < 1e-15
+
+    def test_near_zero_gradient_trivial(self, agent_euclid, dim):
+        grad = 1e-20 * np.ones(dim)
+        synth = agent_euclid.phase1.synthesize_projector(grad)
+        # Puede ser trivial o no según ‖G grad‖_G; si es trivial, P=I
+        if synth.is_trivial_obstruction:
+            np.testing.assert_allclose(synth.P_hat, np.eye(dim), atol=1e-14)
+
+
+class TestPhase1NontrivialProjector:
+    def test_wrong_grad_shape_raises(self, agent_euclid, dim):
+        with pytest.raises(DimensionalMismatchError):
+            agent_euclid.phase1.synthesize_projector(np.ones(dim + 1))
+
+    def test_projector_idempotent(self, agent_euclid, dim, random_grad):
+        synth = agent_euclid.phase1.synthesize_projector(random_grad)
+        if synth.is_trivial_obstruction:
+            pytest.skip("obstrucción trivial en esta semilla")
+        P = synth.P_hat
+        idem = float(la.norm(P @ P - P, "fro"))
+        assert idem == pytest.approx(synth.idempotence_residual, rel=1e-9, abs=1e-15)
+        assert idem < _DEFAULT_PROJECTOR_TOL * max(dim, 1)
+
+    def test_projector_nearly_symmetric(self, agent_euclid, dim, random_grad):
+        synth = agent_euclid.phase1.synthesize_projector(random_grad)
+        assert synth.symmetry_residual < 1e-6 * max(dim, 1)
+
+    def test_normal_G_norm_positive(self, agent_euclid, dim):
+        grad = np.ones(dim)
+        synth = agent_euclid.phase1.synthesize_projector(grad)
+        if not synth.is_trivial_obstruction:
+            assert synth.normal_G_norm > 0.0
+
+    def test_pullback_uses_metric(self, agent_aniso, dim, G_aniso):
+        """
+        n = G ∇H; ‖n‖_G = sqrt(nᵀ G n).
+        Oráculo independiente del normal_G_norm reportado.
+        """
+        grad = _RNG.standard_normal(dim)
+        synth = agent_aniso.phase1.synthesize_projector(grad)
+        n = G_aniso @ grad
+        expected_norm = float(np.sqrt(max(n @ (G_aniso @ n), 0.0)))
+        if expected_norm < 1e-15:
+            assert synth.is_trivial_obstruction
+        else:
+            assert synth.normal_G_norm == pytest.approx(expected_norm, rel=1e-10)
+
+    def test_result_is_frozen(self, agent_euclid, dim):
+        synth = agent_euclid.phase1.synthesize_projector(np.ones(dim))
+        with pytest.raises(Exception):
+            synth.dim = 99  # type: ignore[misc]
+
+
+class TestPhase1ProjectorDefect:
+    """Inyección de proyector defectuoso en Fase 2 (defensa en profundidad)."""
+
+    def test_phase2_rejects_non_idempotent_P(self, agent_euclid, dim):
+        # Fabricar un "synthesis" con P no idempotente
+        bad_P = np.ones((dim, dim)) / dim  # no es proyector si dim>1 de forma genérica
+        # Ajustar: matriz genérica no idempotente
+        bad_P = _RNG.standard_normal((dim, dim))
+        bad_P = 0.5 * (bad_P + bad_P.T)
+        # Forzar no-idempotencia
+        if float(la.norm(bad_P @ bad_P - bad_P, "fro")) < 1e-6:
+            bad_P = bad_P + 0.3 * np.eye(dim)
+
+        fake = ProjectorSynthesisResult(
+            P_hat=bad_P,
+            reflector=None,
+            normal_G_norm=1.0,
+            is_trivial_obstruction=False,
+            idempotence_residual=float(la.norm(bad_P @ bad_P - bad_P, "fro")),
+            symmetry_residual=float(la.norm(bad_P - bad_P.T, "fro")),
+            dim=dim,
+        )
+        with pytest.raises(ProjectorDefectError):
+            agent_euclid.phase2.audit_monodromy(fake)
+
+
+# =============================================================================
+# 3. FASE 2 — MONODROMÍA DE FLOQUET
+# =============================================================================
+
+
+class TestPhase2MonodromyAlgebra:
+    """
+    Identidad: si P²=P entonces M=2P−P²=P y spec(M)⊆{0,1}.
+    """
+
+    def test_monodromy_equals_P_for_idempotent(self, agent_euclid, dim):
+        P = make_projector_euclid(dim, rank=max(dim // 2, 1), seed=7)
+        synth = ProjectorSynthesisResult(
+            P_hat=P,
+            reflector=None,
+            normal_G_norm=1.0,
+            is_trivial_obstruction=False,
+            idempotence_residual=float(la.norm(P @ P - P, "fro")),
+            symmetry_residual=float(la.norm(P - P.T, "fro")),
+            dim=dim,
+        )
+        mono = agent_euclid.phase2.audit_monodromy(synth)
+        assert fro_rel(mono.monodromy_matrix, P) < 1e-10
+        assert mono.spectral_radius <= 1.0 + 1e-9
+        assert mono.is_asymptotically_stable is True
+        # Multiplicadores ≈ 0 o 1
+        for mu in np.real_if_close(mono.multipliers):
+            assert min(abs(mu - 0.0), abs(mu - 1.0)) < 1e-8
+
+    def test_identity_projector_spectral_radius_one(self, agent_euclid, dim):
+        P = np.eye(dim)
+        synth = ProjectorSynthesisResult(
+            P_hat=P,
+            reflector=None,
+            normal_G_norm=0.0,
+            is_trivial_obstruction=True,
+            idempotence_residual=0.0,
+            symmetry_residual=0.0,
+            dim=dim,
+        )
+        mono = agent_euclid.phase2.audit_monodromy(synth)
+        assert mono.spectral_radius == pytest.approx(1.0, abs=1e-12)
+        np.testing.assert_allclose(mono.multipliers, np.ones(dim), atol=1e-12)
+
+    def test_zero_projector_spectral_radius_zero(self, agent_euclid, dim):
+        P = np.zeros((dim, dim))
+        synth = ProjectorSynthesisResult(
+            P_hat=P,
+            reflector=None,
+            normal_G_norm=1.0,
+            is_trivial_obstruction=False,
+            idempotence_residual=0.0,
+            symmetry_residual=0.0,
+            dim=dim,
+        )
+        mono = agent_euclid.phase2.audit_monodromy(synth)
+        assert mono.spectral_radius == pytest.approx(0.0, abs=1e-12)
+
+    def test_rank_projector_multiplicity(self, agent_euclid, dim):
+        """#{μ≈1} = rank(P), #{μ≈0} = n−rank(P)."""
+        r = max(1, dim // 2)
+        P = make_projector_euclid(dim, rank=r, seed=11)
+        synth = ProjectorSynthesisResult(
+            P_hat=P,
+            reflector=None,
+            normal_G_norm=1.0,
+            is_trivial_obstruction=False,
+            idempotence_residual=float(la.norm(P @ P - P, "fro")),
+            symmetry_residual=0.0,
+            dim=dim,
+        )
+        mono = agent_euclid.phase2.audit_monodromy(synth)
+        mult = np.real_if_close(mono.multipliers)
+        n_one = int(np.sum(np.abs(mult - 1.0) < 1e-7))
+        n_zero = int(np.sum(np.abs(mult - 0.0) < 1e-7))
+        assert n_one == r
+        assert n_zero == dim - r
+
+    def test_pipeline_phase1_to_phase2_stable(
+        self, agent_euclid, dim, random_grad
+    ):
+        synth = agent_euclid.phase1.synthesize_projector(random_grad)
+        mono = agent_euclid.phase2.audit_monodromy(synth)
+        assert mono.is_asymptotically_stable
+        assert mono.spectral_radius <= 1.0 + mono.tolerance_used
+        assert mono.projector_idempotence_residual < 1e-6 * max(dim, 1)
+
+    def test_asymmetric_P_marks_complex_manifold(self, agent_euclid, dim):
+        if dim < 2:
+            pytest.skip("requiere d≥2")
+        # Proyector no simétrico artificial con P²≈P (proyección oblicua)
+        # Usamos un proyector oblicuo: P = u vᵀ / (vᵀ u) con u≠v
+        rng = np.random.default_rng(99)
+        u = rng.standard_normal(dim)
+        v = rng.standard_normal(dim)
+        denom = float(v @ u)
+        if abs(denom) < 1e-8:
+            v = u + 0.5 * np.ones(dim)
+            denom = float(v @ u)
+        P = np.outer(u, v) / denom
+        # Verificar idempotencia de proyector oblicuo: P²=P
+        assert float(la.norm(P @ P - P, "fro")) < 1e-8
+
+        synth = ProjectorSynthesisResult(
+            P_hat=P,
+            reflector=None,
+            normal_G_norm=1.0,
+            is_trivial_obstruction=False,
+            idempotence_residual=float(la.norm(P @ P - P, "fro")),
+            symmetry_residual=float(la.norm(P - P.T, "fro")),
+            dim=dim,
+        )
+        mono = agent_euclid.phase2.audit_monodromy(synth)
+        # Si M no es simétrica, is_complex_manifold=True
+        if float(la.norm(mono.monodromy_matrix - mono.monodromy_matrix.T, "fro")) > 1e-10:
+            assert mono.is_complex_manifold is True
+        assert mono.spectral_radius <= 1.0 + 1e-6
+
+
+class TestPhase2Instability:
+    def test_unstable_monodromy_raises(self, agent_euclid, dim):
+        """
+        P con radio espectral de M > 1 (no proyector): debe fallar
+        por ProjectorDefect o FloquetInstability.
+        """
+        # Matriz con autovalores grandes
+        bad = 3.0 * np.eye(dim)
+        fake = ProjectorSynthesisResult(
+            P_hat=bad,
+            reflector=None,
+            normal_G_norm=1.0,
+            is_trivial_obstruction=False,
+            idempotence_residual=float(la.norm(bad @ bad - bad, "fro")),
+            symmetry_residual=0.0,
+            dim=dim,
+        )
+        with pytest.raises((ProjectorDefectError, FloquetInstabilityError)):
+            agent_euclid.phase2.audit_monodromy(fake)
+
+
+# =============================================================================
+# 4. FASE 3 — CANAL CUÁNTICO CPTP
+# =============================================================================
+
+
+class TestPhase3KrausCompleteness:
+    """Axioma §3: C = E0ᵀE0 + E1ᵀE1 = I (bilateral)."""
+
+    def test_completeness_for_orthogonal_projector(self, agent_euclid, dim):
+        P = make_projector_euclid(dim, rank=max(1, dim // 2), seed=21)
+        E0, E1 = P, np.eye(dim) - P
+        fro, eig_res = kraus_completeness_oracle(E0, E1)
+        assert fro < 1e-10
+        assert eig_res < 1e-10
+
+        # Vía el método interno
+        f2, e2 = agent_euclid.phase3._verify_kraus_completeness(E0, E1)
+        assert f2 == pytest.approx(fro, abs=1e-12)
+        assert e2 == pytest.approx(eig_res, abs=1e-12)
+
+    def test_completeness_identity_and_zero(self, agent_euclid, dim):
+        for P in (np.eye(dim), np.zeros((dim, dim))):
+            E0, E1 = P, np.eye(dim) - P
+            fro, eig_res = agent_euclid.phase3._verify_kraus_completeness(E0, E1)
+            assert fro < 1e-12
+            assert eig_res < 1e-12
+
+    def test_algebraic_identity_for_symmetric_idempotent(self, dim):
+        """
+        Demostración numérica:
+          PᵀP+(I−P)ᵀ(I−P) = P²+(I−P)² = P+I−2P+P = I
+        si Pᵀ=P y P²=P.
+        """
+        P = make_projector_euclid(dim, rank=max(1, dim - 1), seed=22)
+        C = P.T @ P + (np.eye(dim) - P).T @ (np.eye(dim) - P)
+        assert fro_rel(C, np.eye(dim)) < 1e-12
+
+    def test_defective_operators_raise_completeness_error(self, agent_euclid, dim):
+        """E0, E1 arbitrarios que no completan la identidad."""
+        E0 = 2.0 * np.eye(dim)  # C = 4I + ... ≠ I
+        E1 = np.eye(dim)
+        with pytest.raises((KrausCompletenessError, KrausTraceViolationError)):
+            agent_euclid.phase3._verify_kraus_completeness(E0, E1)
+
+    def test_unilateral_psd_would_pass_but_bilateral_fails(self, agent_euclid, dim):
+        """
+        Guardia anti-regresión del bug v2:
+        C = 1.5 I ⇒ C−I = 0.5 I ⪰ 0 (pasaría el criterio unilateral)
+        pero max|λ(C−I)| = 0.5 ⇏ 0 (bilateral falla).
+        """
+        # Construir E0, E1 tales que C = 1.5 I
+        # E0 = sqrt(1.5) I, E1 = 0 ⇒ C = 1.5 I
+        E0 = math.sqrt(1.5) * np.eye(dim)
+        E1 = np.zeros((dim, dim))
+        with pytest.raises((KrausCompletenessError, KrausTraceViolationError)):
+            agent_euclid.phase3._verify_kraus_completeness(E0, E1)
+
+
+class TestPhase3VonNeumannEntropy:
+    def test_pure_state_entropy_zero(self, agent_euclid, dim, random_psi):
+        rho = agent_euclid.phase3._density_from_pure(random_psi)
+        S = agent_euclid.phase3._von_neumann_entropy_rho(rho)
+        assert S == pytest.approx(0.0, abs=1e-10)
+        assert S == pytest.approx(von_neumann_oracle(rho), abs=1e-10)
+
+    def test_maximally_mixed_entropy(self, agent_euclid, dim):
+        """S(I/d) = log(d)."""
+        rho = np.eye(dim) / dim
+        S = agent_euclid.phase3._von_neumann_entropy_rho(rho)
+        assert S == pytest.approx(math.log(dim), rel=1e-10)
+
+    def test_purity_pure_state_is_one(self, agent_euclid, dim, random_psi):
+        rho = agent_euclid.phase3._density_from_pure(random_psi)
+        assert agent_euclid.phase3._purity(rho) == pytest.approx(1.0, abs=1e-10)
+
+    def test_purity_mixed_less_than_one(self, agent_euclid, dim):
+        if dim < 2:
+            pytest.skip("requiere d≥2")
+        rho = np.eye(dim) / dim
+        assert agent_euclid.phase3._purity(rho) == pytest.approx(1.0 / dim, rel=1e-10)
+
+    def test_channel_preserves_trace(self, agent_euclid, dim, random_psi):
+        P = make_projector_euclid(dim, rank=max(1, dim // 2), seed=30)
+        E0, E1 = P, np.eye(dim) - P
+        rho = agent_euclid.phase3._density_from_pure(random_psi)
+        rho_post = agent_euclid.phase3._apply_kraus_channel(rho, E0, E1)
+        assert float(np.trace(rho_post)) == pytest.approx(
+            float(np.trace(rho)), rel=1e-10, abs=1e-12
+        )
+
+    def test_channel_preserves_hermiticity_and_psd(
+        self, agent_euclid, dim, random_psi
+    ):
+        P = make_projector_euclid(dim, rank=max(1, dim // 2), seed=31)
+        E0, E1 = P, np.eye(dim) - P
+        rho = agent_euclid.phase3._density_from_pure(random_psi)
+        rho_post = agent_euclid.phase3._apply_kraus_channel(rho, E0, E1)
+        H = 0.5 * (rho_post + rho_post.T)
+        assert float(la.norm(rho_post - rho_post.T, "fro")) < 1e-12
+        assert np.all(np.linalg.eigvalsh(H) >= -1e-12)
+
+
+class TestPhase3ExecuteChannel:
+    def _synth_mono(self, agent, grad):
+        synth = agent.phase1.synthesize_projector(grad)
+        mono = agent.phase2.audit_monodromy(synth)
+        return synth, mono
+
+    def test_execute_returns_evolution_dto(
+        self, agent_euclid, dim, random_psi, random_grad
+    ):
+        synth, mono = self._synth_mono(agent_euclid, random_grad)
+        evo = agent_euclid.phase3.execute_quantum_channel(
+            random_psi, random_grad, synth, mono
+        )
+        assert isinstance(evo, QuantumChannelEvolution)
+        assert evo.coherent_state.shape == (dim,)
+        assert evo.rho_post.shape == (dim, dim)
+        assert evo.dimensional_audit.is_coherent is True
+        assert evo.monodromy_state is mono
+        assert evo.kraus_residual_fro < 1e-8
+        assert evo.kraus_residual_eig < 1e-8
+
+    def test_coherent_state_equals_P_psi(
+        self, agent_euclid, dim, random_psi, random_grad
+    ):
+        synth, mono = self._synth_mono(agent_euclid, random_grad)
+        evo = agent_euclid.phase3.execute_quantum_channel(
+            random_psi, random_grad, synth, mono
+        )
+        expected = synth.P_hat @ random_psi
+        np.testing.assert_allclose(evo.coherent_state, expected, rtol=1e-10)
+
+    def test_von_neumann_fields_match_oracle(
+        self, agent_euclid, dim, random_psi, random_grad
+    ):
+        synth, mono = self._synth_mono(agent_euclid, random_grad)
+        evo = agent_euclid.phase3.execute_quantum_channel(
+            random_psi, random_grad, synth, mono
+        )
+        rho_pre = np.outer(random_psi, random_psi)
+        assert evo.von_neumann_pre == pytest.approx(
+            von_neumann_oracle(rho_pre), abs=1e-9
+        )
+        assert evo.von_neumann_post == pytest.approx(
+            von_neumann_oracle(evo.rho_post), abs=1e-9
+        )
+        assert evo.delta_entropy == pytest.approx(
+            evo.von_neumann_post - evo.von_neumann_pre, abs=1e-12
+        )
+        assert evo.purity_post == pytest.approx(
+            purity_oracle(evo.rho_post), abs=1e-9
+        )
+
+    def test_pure_input_has_zero_pre_entropy(
+        self, agent_euclid, dim, random_psi, random_grad
+    ):
+        synth, mono = self._synth_mono(agent_euclid, random_grad)
+        evo = agent_euclid.phase3.execute_quantum_channel(
+            random_psi, random_grad, synth, mono
+        )
+        # Estado puro ⇒ S_pre = 0
+        assert evo.von_neumann_pre == pytest.approx(0.0, abs=1e-10)
+
+    def test_dimensional_mismatch_blocks(self, agent_euclid, dim, random_grad):
+        synth, mono = self._synth_mono(agent_euclid, random_grad)
+        with pytest.raises(DimensionalMismatchError):
+            agent_euclid.phase3.execute_quantum_channel(
+                np.ones(dim + 2), random_grad, synth, mono
+            )
+
+    def test_antimatter_on_generic_state(
+        self, agent_euclid, dim, random_grad
+    ):
+        """
+        Si ψ no está en im(P), la componente disipada es no nula
+        ⇒ positrón forense (salvo casos degenerados).
+        """
+        if dim < 2:
+            pytest.skip("requiere d≥2")
+        synth, mono = self._synth_mono(agent_euclid, random_grad)
+        # ψ genérico
+        psi = _RNG.standard_normal(dim)
+        evo = agent_euclid.phase3.execute_quantum_channel(
+            psi, random_grad, synth, mono
+        )
+        diss = (np.eye(dim) - synth.P_hat) @ psi
+        diss_norm = float(la.norm(diss))
+        if diss_norm > 1e-10 and not synth.is_trivial_obstruction:
+            # P=I ⇒ E1=0 ⇒ sin disipación
+            assert evo.antimatter_emission is not None
+            assert evo.antimatter_emission.homological_charge == -1
+            assert len(evo.antimatter_emission.authorization_signature) == 64
+
+    def test_no_antimatter_when_psi_in_image(
+        self, agent_euclid, dim, random_grad
+    ):
+        """Si ψ = P ψ (ya proyectado), E1ψ=0 ⇒ sin positrón por norma."""
+        synth, mono = self._synth_mono(agent_euclid, random_grad)
+        psi = synth.P_hat @ _RNG.standard_normal(dim)
+        evo = agent_euclid.phase3.execute_quantum_channel(
+            psi, random_grad, synth, mono
+        )
+        diss = (np.eye(dim) - synth.P_hat) @ psi
+        if float(la.norm(diss)) < 1e-12:
+            # Puede no emitir si disipación nula
+            assert evo.dissipated_entropy == pytest.approx(0.0, abs=1e-9)
+
+
+# =============================================================================
+# 5. COMPOSICIÓN FUNTORIAL
+# =============================================================================
+
+
+class TestFunctorialComposition:
+    def test_end_to_end_happy_path(
+        self, agent_euclid, dim, random_psi, random_grad
+    ):
+        evo = agent_euclid.purify_and_tune_cavity(random_psi, random_grad)
+        assert isinstance(evo, QuantumChannelEvolution)
+        assert evo.dimensional_audit.is_coherent
+        assert evo.monodromy_state is not None
+        assert evo.monodromy_state.is_asymptotically_stable
+        assert evo.kraus_residual_eig < 1e-8
+        assert evo.coherent_state.shape == (dim,)
+        assert evo.rho_post.shape == (dim, dim)
+
+    def test_composition_matches_manual_phases(
+        self, agent_euclid, dim, random_psi, random_grad
+    ):
+        # Manual
+        s = agent_euclid.phase1.synthesize_projector(random_grad)
+        m = agent_euclid.phase2.audit_monodromy(s)
+        e_manual = agent_euclid.phase3.execute_quantum_channel(
+            random_psi, random_grad, s, m
+        )
+        # Pipeline
+        e_pipe = agent_euclid.purify_and_tune_cavity(random_psi, random_grad)
+        np.testing.assert_allclose(
+            e_pipe.coherent_state, e_manual.coherent_state, rtol=1e-12
+        )
+        assert e_pipe.von_neumann_post == pytest.approx(
+            e_manual.von_neumann_post, abs=1e-12
+        )
+        assert e_pipe.kraus_residual_fro == pytest.approx(
+            e_manual.kraus_residual_fro, abs=1e-15
+        )
+
+    def test_deterministic(self, agent_euclid, random_psi, random_grad):
+        e1 = agent_euclid.purify_and_tune_cavity(random_psi, random_grad)
+        e2 = agent_euclid.purify_and_tune_cavity(random_psi, random_grad)
+        np.testing.assert_array_equal(e1.coherent_state, e2.coherent_state)
+        assert e1.delta_entropy == e2.delta_entropy
+        assert e1.kraus_residual_eig == e2.kraus_residual_eig
+
+    def test_trivial_obstruction_full_pipeline(self, agent_euclid, dim, random_psi):
+        """∇H=0 ⇒ P=I ⇒ canal = identidad sobre ψ, S_post=S_pre=0."""
+        evo = agent_euclid.purify_and_tune_cavity(random_psi, np.zeros(dim))
+        np.testing.assert_allclose(
+            evo.coherent_state, random_psi, rtol=1e-12, atol=1e-12
+        )
+        assert evo.von_neumann_pre == pytest.approx(0.0, abs=1e-10)
+        assert evo.von_neumann_post == pytest.approx(0.0, abs=1e-10)
+        assert evo.purity_post == pytest.approx(1.0, abs=1e-10)
+        assert evo.monodromy_state is not None
+        assert evo.monodromy_state.spectral_radius == pytest.approx(1.0, abs=1e-12)
+
+    def test_anisotropic_metric_pipeline(
+        self, agent_aniso, dim, random_psi, random_grad
+    ):
+        evo = agent_aniso.purify_and_tune_cavity(random_psi, random_grad)
+        assert evo.dimensional_audit.dimension == dim
+        assert evo.kraus_residual_fro < 1e-7
+        assert evo.monodromy_state is not None
+        assert evo.monodromy_state.is_asymptotically_stable
+
+
+# =============================================================================
+# 6. INTEGRACIÓN DEL AGENTE (forward / propiedades)
+# =============================================================================
+
+
+class TestFloquetMonodromyAgentIntegration:
+    def test_metric_tensor_is_defensive_copy(self, agent_euclid, dim):
+        G = agent_euclid.metric_tensor
+        G[0, 0] = -999.0
+        assert agent_euclid.metric_tensor[0, 0] != -999.0
+
+    def test_phase_ports_exposed(self, agent_euclid):
+        assert agent_euclid.phase1_synthesizer is agent_euclid.phase1
+        assert agent_euclid.phase2_auditor is agent_euclid.phase2
+        assert agent_euclid.phase3_channel is agent_euclid.phase3
+
+    def test_forward_categorical_state(self, agent_euclid, dim, random_psi):
+        try:
+            from app.core.mic_algebra import CategoricalState
+        except ImportError:
+            from floquet_agent import CategoricalState  # type: ignore
+
+        state = CategoricalState(payload=random_psi, label="test")
+        out = agent_euclid.forward(state)
+        assert out.payload.shape == (dim,)
+        # forward usa grad canónico e_0
+        evo = agent_euclid.purify_and_tune_cavity(
+            random_psi, np.eye(dim)[0]
+        )
+        np.testing.assert_allclose(out.payload, evo.coherent_state, rtol=1e-12)
+
+    def test_forward_wrong_shape_raises(self, agent_euclid, dim):
+        try:
+            from app.core.mic_algebra import CategoricalState
+        except ImportError:
+            from floquet_agent import CategoricalState  # type: ignore
+
+        state = CategoricalState(payload=np.ones(dim + 3), label="bad")
+        with pytest.raises(DimensionalMismatchError):
+            agent_euclid.forward(state)
+
+    def test_backward_equals_forward_convention(
+        self, agent_euclid, dim, random_psi
+    ):
+        try:
+            from app.core.mic_algebra import CategoricalState
+        except ImportError:
+            from floquet_agent import CategoricalState  # type: ignore
+
+        state = CategoricalState(payload=random_psi, label="x")
+        np.testing.assert_allclose(
+            agent_euclid.backward(state).payload,
+            agent_euclid.forward(state).payload,
+            rtol=1e-12,
+        )
+
+
+# =============================================================================
+# 7. ESTRÉS NUMÉRICO E INVARIANTES
+# =============================================================================
+
+
+class TestNumericalStressAndInvariants:
+    def test_d1_full_pipeline(self):
+        G = np.array([[2.5]])
+        agent = FloquetMonodromyAgent(metric_tensor=G)
+        psi = np.array([1.5])
+        grad = np.array([0.3])
+        evo = agent.purify_and_tune_cavity(psi, grad)
+        assert evo.coherent_state.shape == (1,)
+        assert evo.rho_post.shape == (1, 1)
+        assert evo.kraus_residual_eig < 1e-12
+
+    def test_high_condition_metric(self):
+        d = 4
+        G = make_spd(d, cond=1e6, seed=77)
+        agent = FloquetMonodromyAgent(
+            metric_tensor=G, projector_tolerance=1e-6, kraus_tolerance=1e-7
+        )
+        psi = _RNG.standard_normal(d)
+        grad = _RNG.standard_normal(d)
+        evo = agent.purify_and_tune_cavity(psi, grad)
+        assert evo.monodromy_state is not None
+        assert evo.monodromy_state.is_asymptotically_stable
+        assert evo.kraus_residual_fro < 1e-5
+
+    @pytest.mark.parametrize("seed", [1, 2, 3, 4, 5, 6, 7, 8])
+    def test_kraus_completeness_ensemble(self, seed: int):
+        d = 5
+        G = make_spd(d, cond=4.0, seed=seed)
+        agent = FloquetMonodromyAgent(metric_tensor=G)
+        grad = np.random.default_rng(seed + 100).standard_normal(d)
+        psi = np.random.default_rng(seed + 200).standard_normal(d)
+        evo = agent.purify_and_tune_cavity(psi, grad)
+        assert evo.kraus_residual_eig < 1e-7
+        assert evo.kraus_residual_fro < 1e-6
+        # Traza de ρ_post ≈ ‖ψ‖²
+        assert float(np.trace(evo.rho_post)) == pytest.approx(
+            float(psi @ psi), rel=1e-8, abs=1e-10
+        )
+
+    @pytest.mark.parametrize("seed", [10, 11, 12, 13])
+    def test_monodromy_radius_le_one_ensemble(self, seed: int):
+        d = 4
+        agent = FloquetMonodromyAgent(metric_tensor=np.eye(d))
+        grad = np.random.default_rng(seed).standard_normal(d)
+        synth = agent.phase1.synthesize_projector(grad)
+        mono = agent.phase2.audit_monodromy(synth)
+        assert mono.spectral_radius <= 1.0 + 1e-9
+        assert mono.projector_idempotence_residual < 1e-7
+
+    @pytest.mark.parametrize("d", [2, 3, 5, 8])
+    def test_pipeline_across_dimensions(self, d: int):
+        agent = FloquetMonodromyAgent(metric_tensor=make_spd(d, cond=3.0, seed=d))
+        psi = np.random.default_rng(d + 50).standard_normal(d)
+        grad = np.random.default_rng(d + 60).standard_normal(d)
+        evo = agent.purify_and_tune_cavity(psi, grad)
+        assert evo.coherent_state.shape == (d,)
+        assert evo.dimensional_audit.dimension == d
+        assert 0.0 <= evo.purity_post <= 1.0 + 1e-10
+        assert evo.von_neumann_pre >= -1e-12
+        assert evo.von_neumann_post >= -1e-12
+
+    def test_projector_eigenvalues_in_unit_interval_via_monodromy(self):
+        """Para P ortogonal idempotente, μ_k ∈ {0,1} exactamente."""
+        d, r = 6, 2
+        P = make_projector_euclid(d, rank=r, seed=123)
+        agent = FloquetMonodromyAgent(metric_tensor=np.eye(d))
+        synth = ProjectorSynthesisResult(
+            P_hat=P,
+            reflector=None,
+            normal_G_norm=1.0,
+            is_trivial_obstruction=False,
+            idempotence_residual=float(la.norm(P @ P - P, "fro")),
+            symmetry_residual=0.0,
+            dim=d,
+        )
+        mono = agent.phase2.audit_monodromy(synth)
+        mult = np.sort(np.real_if_close(mono.multipliers))
+        expected = np.array([0.0] * (d - r) + [1.0] * r)
+        np.testing.assert_allclose(mult, expected, atol=1e-10)
+
+    def test_cp_map_increases_entropy_possible(self):
+        """
+        Documenta que CPTP **puede** aumentar S_vN (no se impone ΔS≤0).
+        Canal de proyección: estado puro fuera de im(P) → mezcla o puro en im(P).
+        """
+        d = 2
+        agent = FloquetMonodromyAgent(metric_tensor=np.eye(d))
+        # P = |0⟩⟨0|
+        P = np.array([[1.0, 0.0], [0.0, 0.0]])
+        synth = ProjectorSynthesisResult(
+            P_hat=P,
+            reflector=None,
+            normal_G_norm=1.0,
+            is_trivial_obstruction=False,
+            idempotence_residual=0.0,
+            symmetry_residual=0.0,
+            dim=d,
+        )
+        mono = agent.phase2.audit_monodromy(synth)
+        # Superposición equitativa
+        psi = np.array([1.0, 1.0]) / math.sqrt(2.0)
+        evo = agent.phase3.execute_quantum_channel(
+            psi, np.array([1.0, 0.0]), synth, mono
+        )
+        # S_pre = 0 (puro); S_post ≥ 0
+        assert evo.von_neumann_pre == pytest.approx(0.0, abs=1e-12)
+        assert evo.von_neumann_post >= -1e-12
+        # ΔS puede ser > 0 — no assert ΔS ≤ 0 (regresión del axioma falso de v2)
+        assert evo.delta_entropy == pytest.approx(
+            evo.von_neumann_post - evo.von_neumann_pre, abs=1e-12
+        )
+
+
+class TestMachineEpsConsistency:
+    def test_machine_eps_positive(self):
+        assert _MACHINE_EPS == float(np.finfo(np.float64).eps)
+
+    def test_default_tolerances_sane(self):
+        assert 0.0 < _DEFAULT_STABILITY_TOL < 1e-3
+        assert 0.0 < _DEFAULT_KRAUS_TOL < 1e-3
+        assert 0.0 < _DEFAULT_PROJECTOR_TOL < 1e-3
+
+
+# =============================================================================
+# Entrada directa
+# =============================================================================
+
 if __name__ == "__main__":
-    import unittest
-
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-    test_classes = [
-        TestPhase1_MetricValidation,
-        TestPhase1_CovariantPullback,
-        TestPhase1_TrivialObstruction,
-        TestPhase1_ProjectorConstruction,
-        TestPhase2_Configuration,
-        TestPhase2_MonodromyMatrix,
-        TestPhase2_SymmetryDetection,
-        TestPhase2_Stability,
-        TestPhase3_Construction,
-        TestPhase3_KrausCompletenessPSD,
-        TestPhase3_EntropyCalculation,
-        TestPhase3_AntimatterEmission,
-        TestPhase3_ChannelExecution,
-        TestAgent_Construction,
-        TestAgent_CategoricalContract,
-        TestAgent_Pipeline,
-        TestInvarianceAndEdgeCases,
-        TestRegressions,
-        TestAlgebraicProperties,
-        TestImmutableStructures,
-    ]
-    for cls in test_classes:
-        suite.addTests(loader.loadTestsFromTestCase(cls))
-
-    runner = unittest.TextTestRunner(verbosity=2)
-    result = runner.run(suite)
-    sys.exit(0 if result.wasSuccessful() else 1)
+    raise SystemExit(pytest.main([__file__, "-v", "--tb=short"]))
