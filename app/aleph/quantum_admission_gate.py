@@ -3,7 +3,7 @@
 ═════════════════════════════════════════════════════════════════════════════
 MÓDULO: Quantum Admission Gate (Operador de Proyección de Hilbert)
 VERSIÓN: 3.0.0 - Refactorización Rigurosa
-UBICACIÓN: app/physics/quantum_admission_gate.py
+UBICACIÓN: app/aleph/quantum_admission_gate.py
 ═════════════════════════════════════════════════════════════════════════════
 
 FUNDAMENTOS MATEMÁTICOS:

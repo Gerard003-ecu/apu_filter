@@ -47,7 +47,7 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from app.agents.hilbert_watcher import (
+from app.agents.aleph.hilbert_watcher import (
     HilbertEigenstate,
     HilbertInterfaceError,
     HilbertNumericalError,

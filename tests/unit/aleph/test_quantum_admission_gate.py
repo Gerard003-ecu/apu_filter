@@ -2,7 +2,7 @@
 ═════════════════════════════════════════════════════════════════════════════
 MÓDULO: Test Suite para Quantum Admission Gate
 VERSIÓN: 1.0.0 - Suite Rigurosa de Validación
-UBICACIÓN: tests/unit/physics/test_quantum_admission_gate.py
+UBICACIÓN: tests/unit/aleph/test_quantum_admission_gate.py
 ═════════════════════════════════════════════════════════════════════════════
 
 ARQUITECTURA DE TESTING:
@@ -99,7 +99,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 # Importaciones del módulo bajo test
-from app.physics.quantum_admission_gate import (
+from app.aleph.quantum_admission_gate import (
     # Constantes
     PhysicalConstants,
     Const,
