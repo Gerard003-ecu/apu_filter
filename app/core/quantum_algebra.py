@@ -13,107 +13,107 @@ Este módulo implementa el formalismo completo de la mecánica cuántica de sist
 cerrados y abiertos para modelar el espacio de deliberación agéntica mediante
 operadores actuando sobre espacios de Hilbert complejos.
 
-§1. ESPACIO DE HILBERT $\mathcal{H}_N$ Y ESTRUCTURA MÉTRICA
+§1. ESPACIO DE HILBERT $\\mathcal{H}_N$ Y ESTRUCTURA MÉTRICA
 ────────────────────────────────────────────────────────────────────────────────────
 
 Definición 1.1 (Espacio de Hilbert):
-    $\mathcal{H}_N \cong \mathbb{C}^N$ equipado con el producto interno hermítico:
-    $$ \langle \phi | \psi \rangle = \sum_{i=1}^{N} \overline{\phi_i} \psi_i $$
+    $\\mathcal{H}_N \\cong \\mathbb{C}^N$ equipado con el producto interno hermítico:
+    $$ \\langle \\phi | \\psi \\rangle = \\sum_{i=1}^{N} \\overline{\\phi_i} \\psi_i $$
     
-    donde $\overline{z}$ denota el conjugado complejo.
+    donde $\\overline{z}$ denota el conjugado complejo.
 
 Definición 1.2 (Base Ortonormal Canónica):
-    La base $\mathcal{B} = \{ |e_i\rangle \}_{i=1}^N$ satisface:
-    $$ \langle e_i | e_j \rangle = \delta_{ij} $$
+    La base $\\mathcal{B} = \\{ |e_i\\rangle \\}_{i=1}^N$ satisface:
+    $$ \\langle e_i | e_j \\rangle = \\delta_{ij} $$
     
-    donde $\delta_{ij}$ es el delta de Kronecker.
+    donde $\\delta_{ij}$ es el delta de Kronecker.
 
 Teorema 1.3 (Matriz de Gram):
-    Para una base ortonormal, la matriz de Gram $G \in \mathbb{C}^{N \times N}$ 
-    definida como $G_{ij} = \langle e_i | e_j \rangle$ es la identidad:
+    Para una base ortonormal, la matriz de Gram $G \\in \\mathbb{C}^{N \\times N}$ 
+    definida como $G_{ij} = \\langle e_i | e_j \\rangle$ es la identidad:
     $$ G = I_N $$
     
-    Prueba: Se construye explícitamente verificando que $G = B^{\dagger} B$ donde
+    Prueba: Se construye explícitamente verificando que $G = B^{\\dagger} B$ donde
     $B$ es la matriz cuyas columnas son los vectores de base.
 
 Teorema 1.4 (Integridad del Espacio - Criterio de Rango):
-    El espacio $\mathcal{H}_N$ es completo si y solo si:
-    $$ \text{rank}(B) = N $$
+    El espacio $\\mathcal{H}_N$ es completo si y solo si:
+    $$ \\text{rank}(B) = N $$
     
-    Verificación Numérica: Se utiliza SVD con tolerancia $\epsilon_{\text{mach}}$:
-    $$ \text{rank}_{\epsilon}(B) = |\{ \sigma_i : \sigma_i > \epsilon \}| = N $$
+    Verificación Numérica: Se utiliza SVD con tolerancia $\\epsilon_{\\text{mach}}$:
+    $$ \\text{rank}_{\\epsilon}(B) = |\\{ \\sigma_i : \\sigma_i > \\epsilon \\}| = N $$
 
-§2. OPERADOR DE DENSIDAD $\rho$ (FORMALISMO DE VON NEUMANN)
-────────────────────────────────────────────────────────────────────────────────────
+§2. OPERADOR DE DENSIDAD $\\rho$ (FORMALISMO DE VON NEUMANN)
+────────────────────────────────────────────────────────────────────────────────``
 
 Definición 2.1 (Operador de Densidad):
     El estado cuántico de un sistema se describe mediante un operador lineal
-    $\rho: \mathcal{H}_N \to \mathcal{H}_N$ que satisface:
+    $\\rho: \\mathcal{H}_N \\to \\mathcal{H}_N$ que satisface:
     
-    (A1) Hermiticidad: $\rho = \rho^{\dagger}$
-    (A2) Positividad Semidefinida: $\rho \geq 0$ (espectro no negativo)
-    (A3) Traza Unitaria: $\text{Tr}(\rho) = 1$
+    (A1) Hermiticidad: $\\rho = \\rho^{\\dagger}$
+    (A2) Positividad Semidefinida: $\\rho \\geq 0$ (espectro no negativo)
+    (A3) Traza Unitaria: $\\text{Tr}(\\rho) = 1$
 
 Lema 2.2 (Consecuencias de Hermiticidad):
-    Si $\rho = \rho^{\dagger}$, entonces:
-    (i)  El espectro es real: $\lambda_i \in \mathbb{R}$
-    (ii) Existe base ortonormal de autovectores: $\rho = \sum_i \lambda_i |i\rangle\langle i|$
+    Si $\\rho = \\rho^{\\dagger}$, entonces:
+    (i)  El espectro es real: $\\lambda_i \\in \\mathbb{R}$
+    (ii) Existe base ortonormal de autovectores: $\\rho = \\sum_i \\lambda_i |i\\rangle\\langle i|$
 
 Teorema 2.3 (Estados Puros vs Mixtos):
-    Sea $\rho$ un operador de densidad. Entonces:
+    Sea $\\rho$ un operador de densidad. Entonces:
     
-    (i)  $\rho$ es un estado puro $\iff$ $\rho^2 = \rho$ (idempotencia)
-    (ii) $\rho$ es un estado mixto $\iff$ $\text{Tr}(\rho^2) < 1$
+    (i)  $\\rho$ es un estado puro $\\iff$ $\\rho^2 = \\rho$ (idempotencia)
+    (ii) $\\rho$ es un estado mixto $\\iff$ $\\text{Tr}(\\rho^2) < 1$
     
-    Prueba: Para estado puro $|\psi\rangle$: $\rho = |\psi\rangle\langle\psi|$ 
-            implica $\rho^2 = \rho$ por ortonormalidad.
+    Prueba: Para estado puro $|\\psi\\rangle$: $\\rho = |\\psi\\rangle\\langle\\psi|$ 
+    implica $\\rho^2 = \\rho$ por ortonormalidad.
 
 §3. ENTROPÍA DE VON NEUMANN Y TERMODINÁMICA CUÁNTICA
-────────────────────────────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────────────────────``
 
 Definición 3.1 (Entropía de Von Neumann):
-    La entropía del estado cuántico $\rho$ se define como:
-    $$ S(\rho) = -\text{Tr}(\rho \ln \rho) = -\sum_{i} \lambda_i \ln \lambda_i $$
+    La entropía del estado cuántico $\\rho$ se define como:
+    $$ S(\\rho) = -\\text{Tr}(\\rho \\ln \\rho) = -\\sum_{i} \\lambda_i \\ln \\lambda_i $$
     
-    donde $\{\lambda_i\}$ son los autovalores de $\rho$ y por convención $0 \ln 0 = 0$.
+    donde $\\{\\lambda_i\\}$ son los autovalores de $\\rho$ y por convención $0 \\ln 0 = 0$.
 
 Teorema 3.2 (Propiedades de la Entropía):
-    (i)   $S(\rho) \geq 0$ con igualdad $\iff$ $\rho$ es un estado puro
-    (ii)  $S(\rho) \leq \ln N$ con igualdad $\iff$ $\rho = I_N / N$ (estado maximal mixto)
-    (iii) $S(\rho)$ es cóncava en el conjunto de estados cuánticos
+    (i)   $S(\\rho) \\geq 0$ con igualdad $\\iff$ $\\rho$ es un estado puro
+    (ii)  $S(\\rho) \\leq \\ln N$ con igualdad $\\iff$ $\\rho = I_N / N$ (estado maximal mixto)
+    (iii) $S(\\rho)$ es cóncava en el conjunto de estados cuánticos
 
 §4. PROYECTORES ORTOGONALES Y MEDICIÓN CUÁNTICA
-────────────────────────────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────────────────────``
 
 Definición 4.1 (Proyector Ortogonal):
-    Un operador $P: \mathcal{H}_N \to \mathcal{H}_N$ es un proyector ortogonal si:
+    Un operador $P: \\mathcal{H}_N \\to \\mathcal{H}_N$ es un proyector ortogonal si:
     (P1) $P^2 = P$ (idempotencia)
-    (P2) $P^{\dagger} = P$ (hermiticidad)
+    (P2) $P^{\\dagger} = P$ (hermiticidad)
 
 Teorema 4.2 (Resolución de la Identidad - POVM):
-    Una familia $\{P_k\}_{k=1}^m$ de proyectores forma una medición proyectiva si:
-    $$ \sum_{k=1}^m P_k = I_N \quad \text{y} \quad P_i P_j = \delta_{ij} P_i $$
+    Una familia $\\{P_k\\}_{k=1}^m$ de proyectores forma una medición proyectiva si:
+    $$ \\sum_{k=1}^m P_k = I_N \\quad \\text{y} \\quad P_i P_j = \\delta_{ij} P_i $$
 
 Corolario 4.3 (Conservación de Probabilidad):
-    Para cualquier estado $|\psi\rangle$ y medición proyectiva $\{P_k\}$:
-    $$ \sum_{k=1}^m \langle\psi|P_k|\psi\rangle = 1 $$
+    Para cualquier estado $|\\psi\\rangle$ y medición proyectiva $\\{P_k\\}$:
+    $$ \\sum_{k=1}^m \\langle\\psi|P_k|\\psi\\rangle = 1 $$
 
 §5. APROXIMACIÓN WKB Y EFECTO TÚNEL
-────────────────────────────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────────────────────``
 
 Teorema 5.1 (Coeficiente de Transmisión WKB):
     Para una barrera de potencial rectangular con altura $V_0$ y anchura $a$,
     la probabilidad de transmisión cuántica en el régimen $E < V_0$ es:
     
-    $$ T \approx \exp\left(-2\int_{x_1}^{x_2} \kappa(x) \, dx\right) $$
+    $$ T \\approx \\exp\\left(-2\\int_{x_1}^{x_2} \\kappa(x) \\, dx\\right) $$
     
-    donde $\kappa(x) = \sqrt{2m(V(x) - E)/\hbar^2}$ es el número de onda imaginario.
+    donde $\\kappa(x) = \\sqrt{2m(V(x) - E)/\\hbar^2}$ es el número de onda imaginario.
 
 Aproximación 5.2 (Barrera Rectangular):
-    Para barrera rectangular de altura $\Phi = V_0 - E$ y anchura $a$:
-    $$ T \approx \exp\left(-2a\sqrt{2m\Phi/\hbar^2}\right) = \exp(-2\gamma) $$
+    Para barrera rectangular de altura $\\Phi = V_0 - E$ y anchura $a$:
+    $$ T \\approx \\exp\\left(-2a\\sqrt{2m\\Phi/\\hbar^2}\\right) = \\exp(-2\\gamma) $$
     
-    donde $\gamma$ es el factor de Gamow.
+    donde $\\gamma$ es el factor de Gamow.
 
 =========================================================================================
 INVARIANTES TOPOLÓGICOS Y ASERCIONES AXIOMÁTICAS
@@ -121,11 +121,11 @@ INVARIANTES TOPOLÓGICOS Y ASERCIONES AXIOMÁTICAS
 
 Los siguientes invariantes deben ser preservados bajo transformaciones del sistema:
 
-(I1) Traza del Operador de Densidad: $\text{Tr}(\rho) = 1$ (conservación de probabilidad)
-(I2) Positividad del Espectro: $\lambda_{\min}(\rho) \geq 0$ (coherencia física)
-(I3) Hermiticidad: $\|\rho - \rho^{\dagger}\|_{\infty} \leq \epsilon_{\text{mach}}$
-(I4) Rango del Espacio: $\text{rank}_{\epsilon}(B) = N$ (completitud)
-(I5) Ortogonalidad: $\|B^{\dagger}B - I_N\|_{\infty} \leq \epsilon_{\text{mach}}$
+(I1) Traza del Operador de Densidad: $\\text{Tr}(\\rho) = 1$ (conservación de probabilidad)
+(I2) Positividad del Espectro: $\\lambda_{\\min}(\\rho) \\geq 0$ (coherencia física)
+(I3) Hermiticidad: $\\|\\rho - \\rho^{\\dagger}\\|_{\\infty} \\leq \\epsilon_{\\text{mach}}$
+(I4) Rango del Espacio: $\\text{rank}_{\\epsilon}(B) = N$ (completitud)
+(I5) Ortogonalidad: $\\|B^{\\dagger}B - I_N\\|_{\\infty} \\leq \\epsilon_{\\text{mach}}$
 
 =========================================================================================
 """
@@ -164,7 +164,6 @@ EPSILON_NORMALIZATION: Final[float] = 1e-15
 # Umbral para clasificar autovalores como cero en cálculos entrópicos
 EPSILON_ENTROPY: Final[float] = 1e-14
 
-
 # =========================================================================================
 # CLASE: HilbertSpace (Espacio de Hilbert con Validación Rigurosa)
 # =========================================================================================
@@ -173,7 +172,7 @@ EPSILON_ENTROPY: Final[float] = 1e-14
 @dataclass(frozen=True, slots=True)
 class HilbertSpace:
     r"""
-    Representación inmutable del espacio de Hilbert complejo $\mathcal{H}_N \cong \mathbb{C}^N$.
+    Representación inmutable del espacio de Hilbert complejo $\\mathcal{H}_N \\cong \\mathbb{C}^N$.
 
     Este objeto encapsula la estructura geométrica del espacio vectorial complejo
     equipado con el producto interno hermítico, garantizando la integridad mediante
@@ -181,13 +180,13 @@ class HilbertSpace:
 
     Attributes:
         dimension: Dimensión $N$ del espacio de Hilbert.
-        basis: Matriz $B \in \mathbb{C}^{N \times N}$ cuyas columnas forman la base
-               ortonormal $\{|e_i\rangle\}_{i=1}^N$.
-        epsilon: Tolerancia numérica $\epsilon_{\text{mach}}$ para validaciones.
+        basis: Matriz $B \\in \\mathbb{C}^{N \\times N}$ cuyas columnas forman la base
+               ortonormal $\\{|e_i\\rangle\\}_{i=1}^N$.
+        epsilon: Tolerancia numérica $\\epsilon_{\\text{mach}}$ para validaciones.
 
     Invariantes Verificados:
-        (H1) Ortogonalidad: $\|B^{\dagger}B - I_N\|_{\infty} \leq \epsilon$
-        (H2) Completitud: $\text{rank}_{\epsilon}(B) = N$
+        (H1) Ortogonalidad: $\\|B^{\\dagger}B - I_N\\|_{\\infty} \\leq \\epsilon$
+        (H2) Completeness: $\\text{rank}_{\\epsilon}(B) = N$
 
     Raises:
         TopologicalInvariantError: Si se viola algún invariante estructural.
@@ -212,7 +211,7 @@ class HilbertSpace:
 
         Validaciones Ejecutadas:
             1. Ortogonalidad Funcional (Matriz de Gram)
-            2. Completitud del Espacio (Criterio de Rango)
+            2. Completeness del Espacio (Criterio de Rango)
 
         Raises:
             TopologicalInvariantError: Si alguna validación falla.
@@ -225,12 +224,12 @@ class HilbertSpace:
         Verifica la ortogonalidad funcional mediante la matriz de Gram.
 
         Comprueba que:
-        $$ G = B^{\dagger}B = I_N $$
+        $$ G = B^{\\dagger}B = I_N $$
 
-        donde $G_{ij} = \langle e_i | e_j \rangle = \delta_{ij}$.
+        donde $G_{ij} = \\langle e_i | e_j \\rangle = \\delta_{ij}$.
 
         Raises:
-            TopologicalInvariantError: Si $\|G - I_N\|_{\infty} > \epsilon$.
+            TopologicalInvariantError: Si $\\|G - I_N\\|_{\\infty} > \\epsilon$.
         """
         gram_matrix: NDArray[np.complex128] = self.basis.conj().T @ self.basis
         identity_matrix: NDArray[np.complex128] = np.eye(
@@ -251,7 +250,7 @@ class HilbertSpace:
                 f"Violación del Invariante (H1) - Ortogonalidad Funcional: "
                 f"||B†B - I_N||_∞ = {deviation:.4e} > {self.epsilon:.4e}. "
                 f"La matriz de Gram se desvía de la identidad, indicando que "
-                f"la base no es ortonormal en el sentido del producto hermítico."
+                f"la base no es ortonormal en el sentido del producto hermético."
             )
 
         logger.debug(
@@ -261,10 +260,10 @@ class HilbertSpace:
 
     def _validate_completeness(self) -> None:
         r"""
-        Verifica la completitud del espacio mediante el criterio de rango.
+        Verifica la completeness del espacio mediante el criterio de rango.
 
         Utiliza la Descomposición en Valores Singulares (SVD) para comprobar que:
-        $$ \text{rank}_{\epsilon}(B) = |\{\sigma_i : \sigma_i > \epsilon\}| = N $$
+        $$ \\text{rank}_{\\epsilon}(B) = |\\{ \\sigma_i : \\sigma_i > \\epsilon\\}| = N $$
 
         Raises:
             TopologicalInvariantError: Si el rango numérico es menor que $N$.
@@ -281,7 +280,7 @@ class HilbertSpace:
                 self.dimension,
             )
             raise TopologicalInvariantError(
-                f"Violación del Invariante (H2) - Completitud del Espacio: "
+                f"Violación del Invariante (H2) - Completeness del Espacio: "
                 f"rank_ε(B) = {numerical_rank} < N = {self.dimension}. "
                 f"El tensor métrico presenta deficiencia de rango, lo que indica "
                 f"dependencia lineal en los vectores de la base bajo tolerancia ε = {self.epsilon:.4e}. "
@@ -289,7 +288,7 @@ class HilbertSpace:
             )
 
         logger.debug(
-            "Invariante (H2) verificado: Completitud con rank_ε(B) = %d",
+            "Invariante (H2) verificado: Completeness with rank_ε(B) = %d",
             numerical_rank,
         )
 
@@ -300,8 +299,8 @@ class HilbertSpace:
         r"""
         Constructor de la base ortonormal canónica (base computacional).
 
-        Genera el espacio de Hilbert $\mathcal{H}_N$ con la base estándar:
-        $$ |e_i\rangle = (0, \ldots, 0, 1, 0, \ldots, 0)^T $$
+        Genera el espacio de Hilbert $\\mathcal{H}_N$ con la base estándar:
+        $$ |e_i\\rangle = (0, \\ldots, 0, 1, 0, \\ldots, 0)^T $$
         donde el 1 está en la posición $i$-ésima.
 
         Args:
@@ -341,12 +340,12 @@ class HilbertSpace:
     @property
     def metric_tensor(self) -> NDArray[np.complex128]:
         """
-        Retorna la matriz de Gram (tensor métrico) $G = B^{\dagger}B$.
+        Retorna la matriz de Gram (tensor métrico) $G = B^{\\dagger}B$.
 
         Para una base ortonormal, debe coincidir con $I_N$.
 
         Returns:
-            Matriz de Gram $G \in \mathbb{C}^{N \times N}$.
+            Matriz de Gram $G \\in \\mathbb{C}^{N \\times N}$.
         """
         return self.basis.conj().T @ self.basis
 
@@ -359,20 +358,20 @@ class HilbertSpace:
 @dataclass(frozen=True, slots=True)
 class QuantumDensityOperator:
     r"""
-    Operador de Densidad Cuántica $\rho \in \mathcal{L}(\mathcal{H}_N)$.
+    Operador de Densidad Cuántico $\\rho \\in \\mathcal{L}(\\mathcal{H}_N)$.
 
     Implementa el formalismo de von Neumann para estados cuánticos puros y mixtos,
     garantizando el cumplimiento de los tres axiomas fundamentales mediante
     validación rigurosa en tiempo de construcción.
 
     Attributes:
-        rho: Matriz de densidad $\rho \in \mathbb{C}^{N \times N}$.
+        rho: Matriz de densidad $\\rho \\in \\mathbb{C}^{N \\times N}$.
         epsilon: Tolerancia numérica para validaciones axiomáticas.
 
     Axiomas Verificados (Hard Vetoes):
-        (A1) Hermiticidad: $\rho = \rho^{\dagger}$
-        (A2) Positividad Semidefinida: $\lambda_{\min}(\rho) \geq 0$
-        (A3) Traza Unitaria: $\text{Tr}(\rho) = 1$
+        (A1) Hermiticidad: $\\rho = \\rho^{\\dagger}$
+        (A2) Positividad Semidefinida: $\\lambda_{\\min}(\\rho) \\geq 0$
+        (A3) Traza Unitaria: $\\text{Tr}(\\rho) = 1$
 
     Raises:
         TopologicalInvariantError: Si se viola algún axioma cuántico.
@@ -404,7 +403,7 @@ class QuantumDensityOperator:
 
     def _validate_shape(self) -> None:
         """
-        Verifica que $\rho$ sea una matriz cuadrada.
+        Verifica que $\\rho$ sea una matriz cuadrada.
 
         Raises:
             TopologicalInvariantError: Si la matriz no es cuadrada.
@@ -417,10 +416,10 @@ class QuantumDensityOperator:
 
     def _validate_hermiticity(self) -> None:
         r"""
-        Verifica el Axioma (A1): Hermiticidad $\rho = \rho^{\dagger}$.
+        Verifica el Axioma (A1): Hermiticidad $\\rho = \\rho^{\\dagger}$.
 
         Comprueba que:
-        $$ \|\rho - \rho^{\dagger}\|_{\infty} \leq \epsilon $$
+        $$ \\|\\rho - \\rho^{\\dagger}\\|_{\\infty} \\leq \\epsilon $$
 
         Raises:
             TopologicalInvariantError: Si el residuo hermítico excede la tolerancia.
@@ -444,16 +443,16 @@ class QuantumDensityOperator:
             )
 
         logger.debug(
-            "Axioma (A1) verificado: Hermiticidad con ||ρ - ρ†||_∞ = %.4e",
+            "Axioma (A1) verificado: Hermiticidad with ||ρ - ρ†||_∞ = %.4e",
             hermiticity_residue,
         )
 
     def _validate_positive_semidefiniteness(self) -> None:
         r"""
-        Verifica el Axioma (A2): Positividad Semidefinida $\rho \geq 0$.
+        Verifica el Axioma (A2): Positividad Semidefinida $\\rho \\geq 0$.
 
         Comprueba que todos los autovalores sean no negativos:
-        $$ \lambda_{\min}(\rho) \geq -\epsilon $$
+        $$ \\lambda_{\\min}(\\rho) \\geq -\\epsilon $$
 
         Raises:
             TopologicalInvariantError: Si existen autovalores negativos significativos.
@@ -476,15 +475,15 @@ class QuantumDensityOperator:
             )
 
         logger.debug(
-            "Axioma (A2) verificado: Positividad con λ_min = %.4e", lambda_min
+            "Axioma (A2) verificado: Positividad with λ_min = %.4e", lambda_min
         )
 
     def _validate_unit_trace(self) -> None:
         r"""
-        Verifica el Axioma (A3): Traza Unitaria $\text{Tr}(\rho) = 1$.
+        Verifica el Axioma (A3): Traza Unitaria $\\text{Tr}(\\rho) = 1$.
 
         Comprueba que:
-        $$ |\text{Tr}(\rho) - 1| \leq \epsilon $$
+        $$ |\\text{Tr}(\\rho) - 1| \\leq \\epsilon $$
 
         Raises:
             TopologicalInvariantError: Si la traza se desvía de la unidad.
@@ -517,20 +516,20 @@ class QuantumDensityOperator:
         cls, psi: NDArray[np.complex128], epsilon: float = EPSILON_MACHINE
     ) -> QuantumDensityOperator:
         r"""
-        Construye el operador de densidad a partir de un estado puro $|\psi\rangle$.
+        Construye el operador de densidad a partir de un estado puro $|\\psi\\rangle$.
 
         Para un estado puro normalizado:
-        $$ \rho = |\psi\rangle\langle\psi| $$
+        $$ \\rho = |\\psi\\rangle\\langle\\psi| $$
 
         Args:
-            psi: Vector de estado $|\psi\rangle \in \mathbb{C}^N$.
+            psi: Vector de estado $|\\psi\\rangle \\in \\mathbb{C}^N$.
             epsilon: Tolerancia numérica.
 
         Returns:
             Operador de densidad correspondiente al estado puro.
 
         Raises:
-            TopologicalInvariantError: Si $\|\psi\| = 0$ (vector nulo).
+            TopologicalInvariantError: Si $\\|\\psi\\| = 0$ (vector nulo).
 
         Examples:
             >>> psi = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=complex)
@@ -571,14 +570,14 @@ class QuantumDensityOperator:
         r"""
         Construye el operador de densidad a partir de un ensamble estadístico (estado mixto).
 
-        Para un ensamble con probabilidades $\{p_i\}$ y estados $\{|\psi_i\rangle\}$:
-        $$ \rho = \sum_{i=1}^{k} p_i |\psi_i\rangle\langle\psi_i| $$
+        Para un ensamble con probabilidades $\\{p_i\\}$ y estados $\\{|\\psi_i\\rangle\\}$:
+        $$ \\rho = \\sum_{i=1}^{k} p_i |\\psi_i\\rangle\\langle\\psi_i| $$
 
-        donde $\sum_i p_i = 1$ y $p_i \geq 0$ para todo $i$.
+        donde $\\sum_i p_i = 1$ y $p_i \\geq 0$ para todo $i$.
 
         Args:
-            weights: Lista de probabilidades $\{p_i\}$ (serán normalizadas).
-            states: Lista de vectores de estado $\{|\psi_i\rangle\}$.
+            weights: Lista de probabilidades $\\{p_i\\}$ (serán normalizadas).
+            states: Lista de vectores de estado $\\{|\\psi_i\\rangle\\}$.
             epsilon: Tolerancia numérica.
 
         Returns:
@@ -643,7 +642,7 @@ class QuantumDensityOperator:
 
         logger.info(
             "Operador de densidad construido desde ensamble mixto de %d estados (dim N = %d)",
-            len(states),
+            len(stodes),
             dimension,
         )
 
@@ -658,7 +657,7 @@ class QuantumDensityOperator:
         autoestados del sistema.
 
         Returns:
-            Array de autovalores $\{\lambda_i\}$ ordenados.
+            Array de autovalores $\\{\\lambda_i\\}$ ordenados.
 
         Note:
             Para operadores hermíticos, eigvalsh es más eficiente que eig.
@@ -669,7 +668,7 @@ class QuantumDensityOperator:
     def eigensystem(
         self,
     ) -> Tuple[NDArray[np.float64], NDArray[np.complex128]]:
-        """
+        r"""
         Retorna el sistema completo de autovalores y autovectores.
 
         Returns:
@@ -688,18 +687,18 @@ class QuantumDensityOperator:
         Calcula la entropía de von Neumann del estado cuántico.
 
         La entropía cuantifica el grado de mezcla del estado:
-        $$ S(\rho) = -\text{Tr}(\rho \ln \rho) = -\sum_{i} \lambda_i \ln \lambda_i $$
+        $$ S(\\rho) = -\\text{Tr}(\\rho \\ln \\rho) = -\\sum_{i} \\lambda_i \\ln \\lambda_i $$
 
         Propiedades:
-            - $S(\rho) = 0$ $\iff$ estado puro ($\rho^2 = \rho$)
-            - $S(\rho) = \ln N$ $\iff$ estado maximal mixto ($\rho = I_N / N$)
-            - $0 \leq S(\rho) \leq \ln N$
+            - $S(\\rho) = 0$ $\\iff$ estado puro ($\\rho^2 = \\rho$)
+            - $S(\\rho) = \\ln N$ $\\iff$ estado maximal mixto ($\\rho = I_N / N$)
+            - $0 \\leq S(\\rho) \\leq \\ln N$
 
         Returns:
             Entropía de von Neumann en unidades de nats (logaritmo natural).
 
         Note:
-            Se utiliza la convención $0 \ln 0 = 0$ (límite termodinámico).
+            Se utiliza la convención $0 \\ln 0 = 0$ (límite termodinámico).
 
         Examples:
             >>> psi = np.array([1, 0], dtype=complex)
@@ -732,7 +731,7 @@ class QuantumDensityOperator:
         r"""
         Determina si el operador representa un estado puro.
 
-        Criterio: $S(\rho) \leq \epsilon$ $\iff$ $\rho^2 \approx \rho$
+        Criterio: $S(\\rho) \\leq \\epsilon$ $\\iff$ $\\rho^2 \\approx \\rho$
 
         Returns:
             True si el estado es puro, False si es mixto.
@@ -763,12 +762,12 @@ class QuantumDensityOperator:
         Calcula la pureza del estado cuántico.
 
         La pureza se define como:
-        $$ \gamma = \text{Tr}(\rho^2) = \sum_{i} \lambda_i^2 $$
+        $$ \\gamma = \\text{Tr}(\\rho^2) = \\sum_{i} \\lambda_i^2 $$
 
         Propiedades:
-            - $\gamma = 1$ $\iff$ estado puro
-            - $\gamma = 1/N$ $\iff$ estado maximal mixto
-            - $1/N \leq \gamma \leq 1$
+            - $\\gamma = 1$ $\\iff$ estado puro
+            - $\\gamma = 1/N$ $\\iff$ estado maximal mixto
+            - $1/N \\leq \\gamma \\leq 1$
 
         Returns:
             Pureza del estado en el rango [1/N, 1].
@@ -802,17 +801,17 @@ class QuantumRegistry(MICRegistry):
 
     Extiende el MICRegistry base para incorporar el formalismo de la mecánica
     cuántica en el núcleo de la deliberación agéntica. El sistema se modela
-    mediante un operador de densidad $\rho$ actuando sobre un espacio de Hilbert
-    $\mathcal{H}_N$, trascendiendo la lógica booleana clásica.
+    mediante un operador de densidad $\\rho$ actuando sobre un espacio de Hilbert
+    $\\mathcal{H}_N$, trascendiendo la lógica booleana clásica.
 
     Arquitectura Matemática:
-        - Estado del Sistema: $\rho \in \mathcal{L}(\mathcal{H}_N)$
-        - Espacio de Configuración: $\mathcal{H}_N \cong \mathbb{C}^N$
+        - Estado del Sistema: $\\rho \\in \\mathcal{L}(\\mathcal{H}_N)$
+        - Espacio de Configuración: $\\mathcal{H}_N \\cong \\mathbb{C}^N$
         - Dinámica: Evoluciones unitarias y proyecciones de medición
 
     Attributes:
-        _hilbert_space: Espacio de Hilbert subyacente $\mathcal{H}_N$.
-        _state: Operador de densidad actual $\rho$.
+        _hilbert_space: Espacio de Hilbert subyacente $\\mathcal{H}_N$.
+        _state: Operador de densidad actual $\\rho$.
 
     Examples:
         >>> rho_matrix = np.eye(3, dtype=complex) / 3  # Estado maximal mixto
@@ -834,16 +833,16 @@ class QuantumRegistry(MICRegistry):
         El proceso de construcción ejecuta las siguientes fases:
 
         1. Inicialización del MICRegistry base
-        2. Construcción y validación del espacio de Hilbert $\mathcal{H}_N$
-        3. Construcción y validación del operador de densidad $\rho$
+        2. Construcción y validación del espacio de Hilbert $\\mathcal{H}_N$
+        3. Construcción y validación del operador de densidad $\\rho$
         4. Verificación de consistencia dimensional
 
         Args:
-            rho: Matriz de densidad inicial $\rho \in \mathbb{C}^{N \times N}$.
+            rho: Matriz de densidad inicial $\\rho \\in \\mathbb{C}^{N \\times N}$.
             config: Configuración MIC (opcional, usa valores por defecto si es None).
 
         Raises:
-            TopologicalInvariantError: Si $\rho$ viola algún axioma cuántico o
+            TopologicalInvariantError: Si $\\rho$ viola algún axioma cuántico o
                                        hay inconsistencia dimensional.
 
         Note:
@@ -894,12 +893,16 @@ class QuantumRegistry(MICRegistry):
 
     @property
     def quantum_state(self) -> QuantumDensityOperator:
-        r"""Retorna el operador de densidad $\rho$ actual."""
+        r"""
+        Retorna el operador de densidad $\\rho$ actual.
+        """
         return self._state
 
     @property
     def hilbert_space(self) -> HilbertSpace:
-        r"""Retorna el espacio de Hilbert $\mathcal{H}_N$ subyacente."""
+        r"""
+        Retorna el espacio de Hilbert $\\mathcal{H}_N$ subyacente.
+        """
         return self._hilbert_space
 
     def apply_observational_projectors(
@@ -913,18 +916,18 @@ class QuantumRegistry(MICRegistry):
 
         Construcción de los Proyectores:
             Sea $N$ la dimensión del espacio. Definimos una partición:
-            - $P_1$: Proyector sobre el subespacio $\text{span}\{|e_i\rangle\}_{i=1}^{N/2}$
-            - $P_2$: Proyector sobre el subespacio $\text{span}\{|e_i\rangle\}_{i=N/2+1}^{N}$
+            - $P_1$: Proyector sobre el subespacio $\\text{span}\\{|e_i\\rangle\\}_{i=1}^{N/2}$
+            - $P_2$: Proyector sobre el subespacio $\\text{span}\\{|e_i\\rangle\\}_{i=N/2+1}^{N}$
 
         Axiomas Verificados:
             (R1) Resolución de la Identidad: $P_1 + P_2 = I_N$
             (R2) Exclusión Mutua: $P_1 P_2 = 0$
 
         Args:
-            psi: Vector de estado $|\psi\rangle \in \mathcal{H}_N$ a proyectar.
+            psi: Vector de estado $|\\psi\\rangle \\in \\mathcal{H}_N$ a proyectar.
 
         Returns:
-            Tupla $(P_1|\psi\rangle, P_2|\psi\rangle)$ de estados proyectados.
+            Tupla $(P_1|\\psi\\rangle, P_2|\\psi\\rangle)$ de estados proyectados.
 
         Raises:
             TopologicalInvariantError: Si los proyectores violan los axiomas.
@@ -1012,16 +1015,16 @@ class QuantumRegistry(MICRegistry):
         Calcula el coeficiente de transmisión cuántica mediante aproximación WKB.
 
         Aproximación WKB (Wentzel-Kramers-Brillouin):
-            Para una barrera de potencial rectangular con altura $\Phi = V_0 - E$
+            Para una barrera de potencial rectangular con altura $\\Phi = V_0 - E$
             y anchura $a$, el coeficiente de transmisión en el régimen túnel es:
 
-            $$ T \approx \exp(-2\gamma) $$
+            $$ T \\approx \\exp(-2\\gamma) $$
 
             donde el factor de Gamow es:
-            $$ \gamma = a \sqrt{2m\Phi/\hbar^2} $$
+            $$ \\gamma = a \\sqrt{2m\\Phi/\\hbar^2} $$
 
         Regímenes Físicos:
-            - Si $E \geq V_0$: Transmisión clásica $T = 1$ (sobre la barrera)
+            - Si $E \\geq V_0$: Transmisión clásica $T = 1$ (sobre la barrera)
             - Si $E < V_0$: Tunelamiento cuántico $T < 1$ (a través de la barrera)
 
         Args:
@@ -1030,10 +1033,10 @@ class QuantumRegistry(MICRegistry):
             barrier_width: Anchura $a$ de la barrera (en unidades reducidas).
 
         Returns:
-            Coeficiente de transmisión $T \in [0, 1]$.
+            Coeficiente de transmisión $T \\in [0, 1]$.
 
         Note:
-            En unidades naturales ($\hbar = 1$, $m = 1$), la expresión se simplifica.
+            En unidades naturales ($\\hbar = 1$, $m = 1$), la expresión se simplifica.
             Para recuperar unidades SI, se debe reescalar apropiadamente.
 
         Examples:
@@ -1079,12 +1082,12 @@ class QuantumRegistry(MICRegistry):
         Evoluciona el estado cuántico mediante un operador unitario.
 
         Aplica la transformación:
-        $$ \rho' = U \rho U^{\dagger} $$
+        $$ \\rho' = U \\rho U^{\\dagger} $$
 
-        donde $U$ es un operador unitario ($U^{\dagger}U = I$).
+        donde $U$ es un operador unitario ($U^{\\dagger}U = I$).
 
         Args:
-            unitary: Operador unitario $U \in \mathbb{C}^{N \times N}$.
+            unitary: Operador unitario $U \\in \\mathbb{C}^{N \\times N}$.
 
         Raises:
             ValueError: Si U no tiene la dimensión correcta.
@@ -1138,6 +1141,147 @@ class QuantumRegistry(MICRegistry):
             self._state.compute_von_neumann_entropy(),
         )
 
+    # =========================================================================================
+    # NUEVA FUNCIONALIDAD: Álgebra de Weyl-Heisenberg Covariante
+    # =========================================================================================
+
+    def compute_weyl_heisenberg_commutator(
+        self, position_operator: NDArray[np.complex128], momentum_operator: NDArray[np.complex128]
+    ) -> NDArray[np.complex128]:
+        """
+        Calcula el comutador de Weyl-Heisenberg covariante:
+        [X̂_μ, P̂_ν] = iℏ_eff G_μν
+        
+        Donde G_μν es el tensor métrico del espacio de Hilbert.
+        
+        Args:
+            position_operator: Operador de posición X̂_μ
+            momentum_operator: Operador de momento P̂_ν
+            
+        Returns:
+            El comutador [X̂_μ, P̂_ν] = iℏ_eff G_μν
+            
+        Raises:
+            TopologicalInvariantError: Si el comutador no satisface la invariancia de gauge
+        """
+        # Validar que los operadores tengan la dimensión correcta
+        N = self._hilbert_space.dimension
+        if position_operator.shape != (N, N) or momentum_operator.shape != (N, N):
+            raise ValueError(
+                f"Los operadores deben ser matrices {N}x{N}. "
+                f"Recibido: X̂_μ {position_operator.shape}, P̂_ν {momentum_operator.shape}"
+            )
+        
+        # Calcular el comutador estándar: [X̂_μ, P̂_ν] = X̂_μ P̂_ν - P̂_ν X̂_μ
+        commutator = position_operator @ momentum_operator - momentum_operator @ position_operator
+        
+        # Obtener el tensor métrico G_μν = B†B
+        metric_tensor = self._hilbert_space.metric_tensor
+        
+        # En unidades naturales, ℏ_eff = 1 (normalizado)
+        # En un sistema real, esto sería escalado por las constantes físicas del sistema
+        hbar_eff = 1.0
+        
+        # El comutador esperado según la Álgebra de Weyl-Heisenberg covariante
+        expected_commutator = 1j * hbar_eff * metric_tensor
+        
+        # Verificar que el comutador calculado coincida con el esperado
+        # (dentro de la tolerancia numérica)
+        error = np.linalg.norm(commutator - expected_commutator, ord=np.inf)
+        
+        if error > self._config.epsilon:
+            logger.error(
+                "Violación de la Álgebra de Weyl-Heisenberg Covariante: "
+                "||[X̂_μ, P̂_ν] - iℏ_eff G_μν||_∞ = %.4e > ε = %.4e",
+                error,
+                self._config.epsilon,
+            )
+            raise TopologicalInvariantError(
+                f"Violación de la Álgebra de Weyl-Heisenberg Covariante: "
+                f"||[X̂_μ, P̂_ν] - iℏ_eff G_μν||_∞ = {error:.4e} > {self._config.epsilon:.4e}. "
+                f"El comutador no preserva la invariancia de gauge requerida. "
+                f"Comutador calculado: {commutator}, "
+                f"Esperado: {expected_commutator}"
+            )
+        
+        logger.debug(
+            "Álgebra de Weyl-Heisenberg Covariante verificada: "
+            "||[X̂_μ, P̂_ν] - iℏ_eff G_μν||_∞ = %.4e",
+            error,
+        )
+        
+        return commutator
+
+    def validate_observable_gauge_invariance(
+        self, observable: NDArray[np.complex128]
+    ) -> bool:
+        """
+        Valida que un observable preserva la invariancia de gauge requerida.
+        
+        Según la Sutura Doctoral, cualquier observable generado en el vacío 
+        topológico del Estrato ALEPH debe preservar la invariancia de gauge:
+        Tr([X̂_μ, P̂_ν]) = iℏ_eff Tr(G_μν) = iℏ_eff * N
+        
+        Args:
+            observable: El observable a validar
+            
+        Returns:
+            True si el observable preserva la invariancia de gauge
+            
+        Raises:
+            TopologicalInvariantError: Si el observable no preserva la invariancia de gauge
+        """
+        N = self._hilbert_space.dimension
+        if observable.shape != (N, N):
+            raise ValueError(
+                f"El observable debe ser una matriz {N}x{N}. "
+                f"Recibido: {observable.shape}"
+            )
+        
+        # Para validar la invariancia de gauge, necesitamos verificar que
+        # el observable se deriva correctamente de operadores que satisfacen
+        # [X̂_μ, P̂_ν] = iℏ_eff G_μν
+        
+        # En la práctica, verificamos que el observable tenga la traza esperada
+        # cuando se deriva de operadores posición-momento
+        # Para un observable válido, su traza debería estar relacionada con
+        # la traza del tensor métrico
+        
+        # Calcular la traza del observable
+        trace_observable = np.trace(observable)
+        
+        # Calcular la traza esperada para un observable que preserva la invariancia de gauge
+        # Tr(G_μν) = Tr(I_N) = N (para base ortonormal)
+        # Por lo tanto, Tr(iℏ_eff G_μν) = iℏ_eff * N
+        hbar_eff = 1.0  # En unidades naturales
+        expected_trace = 1j * hbar_eff * N
+        
+        # Verificar que la traza coincida (dentro de tolerancia)
+        trace_error = abs(trace_observable - expected_trace)
+        
+        if trace_error > self._config.epsilon:
+            logger.error(
+                "Violación de la Invariancia de Gauge en Observable: "
+                "|Tr(observable) - iℏ_eff N| = %.4e > ε = %.4e",
+                trace_error,
+                self._config.epsilon,
+            )
+            raise TopologicalInvariantError(
+                f"Violación de la Invariancia de Gauge en Observable: "
+                f"|Tr(observable) - iℏ_eff N| = {trace_error:.4e} > {self._config.epsilon:.4e}. "
+                f"Traza del observable: {trace_observable}, "
+                f"Traza esperada: {expected_trace}. "
+                f"El observable no preserva la invariancia de gauge requerida "
+                f"para operadores en el vacío topológico del Estrato ALEPH."
+            )
+        
+        logger.debug(
+            "Invariancia de Gauge verificada en observable: "
+            "|Tr(observable) - iℏ_eff N| = %.4e",
+            trace_error,
+        )
+        
+        return True
 
 # =========================================================================================
 # FIN DEL MÓDULO

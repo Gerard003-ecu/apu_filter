@@ -2,7 +2,7 @@
 r"""
 =========================================================================================
 Módulo: Test Suite para Quantum Algebra (Validación Axiomática Exhaustiva)
-Ubicación: tests/core/test_quantum_algebra.py
+Ubicación: tests/unit/core/test_quantum_algebra.py
 Versión: 2.0.0 (Fase 2: Consagración Cuántica - Suite de Pruebas Rigurosa)
 
 =========================================================================================

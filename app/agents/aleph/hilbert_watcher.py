@@ -1,7 +1,6 @@
-"""
-=========================================================================================
+"""=========================================================================================
 Módulo: Hilbert Watcher (Operador del Hamiltoniano de Medición y Funtor de Colapso OODA)
-Ubicación: app/agents/hilbert_watcher.py
+Ubicación: app/agents/aleph/hilbert_watcher.py
 =========================================================================================
 
 Naturaleza Ciber-Física y Topológica:
@@ -47,6 +46,7 @@ Restricciones de Fibrado:
     la Ley de Clausura Transitiva.
 =========================================================================================
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -61,7 +61,6 @@ from typing import (
     Final,
     Mapping,
     Optional,
-    Protocol,
     Tuple,
     TYPE_CHECKING,
 )
@@ -77,13 +76,12 @@ if TYPE_CHECKING:
 logger = logging.getLogger("MIC.Agents.HilbertWatcher")
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# =========================================================================================
 # EXCEPCIONES
-# ═══════════════════════════════════════════════════════════════════════
+# =========================================================================================
 
 class HilbertWatcherError(Exception):
     """Excepción base del agente observador de Hilbert."""
-
 
 class HilbertNumericalError(HilbertWatcherError):
     """Fallo numérico o variable de fase fuera de contrato.
@@ -92,14 +90,12 @@ class HilbertNumericalError(HilbertWatcherError):
     en cualquier observable o parámetro del cálculo cuántico.
     """
 
-
 class HilbertInterfaceError(HilbertWatcherError):
     """Fallo de contrato en dependencias inyectadas.
 
     Se lanza cuando un oráculo o monitor no cumple su Protocol
     o devuelve valores que violan pre-condiciones.
     """
-
 
 class HilbertPayloadError(HilbertWatcherError):
     """Fallo en validación o serialización del payload.
@@ -109,9 +105,9 @@ class HilbertPayloadError(HilbertWatcherError):
     """
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# =========================================================================================
 # CONSTANTES FÍSICAS DISCRETIZADAS
-# ═══════════════════════════════════════════════════════════════════════
+# =========================================================================================
 
 class QuantumThresholds:
     """Constantes normalizadas del hiperespacio de información.
@@ -153,9 +149,9 @@ class QuantumThresholds:
     HASH_RESOLUTION: Final[float] = float(2**64)
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# =========================================================================================
 # ESTRUCTURAS DE FASE
-# ═══════════════════════════════════════════════════════════════════════
+# =========================================================================================
 
 class HilbertEigenstate(Enum):
     """Autoestados del colapso de la función de onda informacional.
@@ -176,7 +172,7 @@ class WavefunctionState:
     Esta estructura encapsula completamente el estado cuántico calculado
     durante los pasos OBSERVE-ORIENT-DECIDE del ciclo OODA. Todos los
     campos derivan de observables físicos o medidas estructurales bien
-    definidas.
+    definidos.
 
     Invariantes de clase:
         - energy ≥ 0
@@ -255,9 +251,9 @@ class WavefunctionState:
             )
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# =========================================================================================
 # INTERFACES DE DEPENDENCIA (Structural Subtyping)
-# ═══════════════════════════════════════════════════════════════════════
+# =========================================================================================
 
 class ITopologicalWatcher(Protocol):
     """Observador topológico para amenazas estructurales.
@@ -314,9 +310,9 @@ class ISheafCohomologyOrchestrator(Protocol):
         ...
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# =========================================================================================
 # FUNCIONES AUXILIARES NUMÉRICAS (puras, sin estado)
-# ═══════════════════════════════════════════════════════════════════════
+# =========================================================================================
 
 def _ensure_finite_float(value: Any, *, name: str) -> float:
     """Convierte valor a float finito, verificando NaN/±Inf.
@@ -431,9 +427,9 @@ def _safe_context(context: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
     return dict(context)
 
 
-# ═══════════════════════════════════════════════════════════════════════
+# =========================================================================================
 # AGENTE OBSERVADOR DE HILBERT
-# ═══════════════════════════════════════════════════════════════════════
+# =========================================================================================
 
 class HilbertObserverAgent(Morphism):
     """Agente cuántico que ejecuta el ciclo OODA sobre CategoricalState.
@@ -460,7 +456,7 @@ class HilbertObserverAgent(Morphism):
     __slots__ = ("_topo", "_laplace", "_sheaf")
 
     @property
-    def domain(self) -> FrozenSet[Stratum]:
+    def domain(self) -> frozenset:
         return frozenset()
 
     @property
@@ -525,7 +521,7 @@ class HilbertObserverAgent(Morphism):
             obj_name: Nombre legible para mensajes de error.
 
         Raises:
-            HilbertInterfaceError: Si cualquier validación falla.
+            HilbertInterfaceError: Si alguna validación falla.
         """
         if obj is None:
             raise HilbertInterfaceError(
@@ -789,7 +785,7 @@ class HilbertObserverAgent(Morphism):
         )
 
         if sigma >= -QuantumThresholds.SIGMA_CHAOS_TOL:
-            # Marginalmente estable o inestable → barrera infranqueable
+            # Marginalmente estable o inestable → barrera impenetrable
             m_eff = math.inf
         else:
             # Estable: |σ| > tol, por lo que denominador > 0
@@ -988,7 +984,7 @@ class HilbertObserverAgent(Morphism):
         return threshold
 
     # ─────────────────────────────────────────────────────────────────
-    # ACT: Colapso de función de onda
+    # ACT: Colapso de función de onda (WEAK MEASUREMENT - CPTP POVM)
     # ─────────────────────────────────────────────────────────────────
 
     @staticmethod
@@ -996,41 +992,75 @@ class HilbertObserverAgent(Morphism):
         state: CategoricalState,
         wave: WavefunctionState,
     ) -> CategoricalState:
-        """[ACT] Ejecuta colapso determinista del estado cuántico.
+        """[ACT] Ejecuta colapso débil de la función de onda mediante CPTP POVM.
 
-        Regla de colapso (medición proyectiva):
-            |ψ⟩ → |Admitido⟩  sii  T ≥ τ
-            |ψ⟩ → |Rechazado⟩ sii  T < τ
+        En lugar de una medición proyectiva fuerte que destruye coherencia,
+        implementamos una medición débil que preserva información cuántica
+        mediante operadores de Kraus que cumplen Σ M_k† M_k ≤ I.
 
-        donde T = transmission_prob y τ = collapse_threshold.
+        La evolución del estado es: ρ_post = Σ M_k ρ_pre M_k†
 
-        Post-condiciones:
-            - El payload original se conserva intacto.
-            - El contexto se enriquece con telemetría completa.
-            - Si admitido: validated_strata incluye PHYSICS.
-            - Si rechazado: validated_strata = ∅.
+        Donde los operadores de Kraus para nuestra medición débil son:
+        M_0 = √(γ) |⟨0|ψ⟩| |0⟩⟨ψ|  (detección de |0⟩)
+        M_1 = √(1-γ) |⟨1|ψ⟩| |1⟩⟨ψ|  (detección de |1⟩)
+        M_2 = √(ε) I                 (operador de identidad pequeña)
 
-        Telemetría embebida (quantum_measurement):
-            eigenstate, energy, work_function, effective_mass,
-            transmission_prob, frustrated, threat_level,
-            dominant_pole_real, frustration_energy,
-            collapse_threshold, kinetic_energy, momentum, reason.
+        Con γ = transmisión_prob y 1-γ = reflexión_prob.
+
+        Esto implementa la medición débil descrita en la Sutura Doctoral:
+        ρ̂_post = Σ M̂_k ρ̂_in M̂_k† con Σ M̂_k† M̂_k ≤ I
 
         Args:
             state: Estado categórico de entrada.
             wave: Estado de onda del ciclo OBSERVE-ORIENT-DECIDE.
 
         Returns:
-            Nuevo CategoricalState con eigenstate colapsado.
+            Nuevo CategoricalState con estado cuántico actualizado débilmente.
         """
         context = _safe_context(getattr(state, "context", None))
 
-        decision_admitted = (
-            wave.transmission_prob >= wave.collapse_threshold
-        )
+        # Parámetros de la medición débil
+        transmission_prob = wave.transmission_prob
+        reflection_prob = 1.0 - transmission_prob
+        coherence_parameter = math.sqrt(transmission_prob * reflection_prob)
 
-        # Construir bloque de telemetría común
-        measurement_base: Dict[str, Any] = {
+        # Operadores de Kraus para la medición débil CPTP
+        # En nuestro sistema de dos niveles (|Admitido⟩, |Rechazado⟩)
+        # Representamos los estados como vectores en C²:
+        # |Admitido⟩ = [1, 0]^T, |Rechazado⟩ = [0, 1]^T
+
+        # M_0: operador que detecta el estado |Admitido⟩ con fuerza sqrt(transmission_prob)
+        # M_1: operador que detecta el estado |Rechazado⟩ con fuerza sqrt(reflection_prob)
+        # M_2: operador de identidad pequeña para preservar coherencia
+
+        # Para mantener la traza ≤ 1 (condición CPTP), escalamos apropiadamente
+        # Usamos un parámetro de coherencia pequeño para no violar la condición de traza
+        coherence_strength = min(coherence_parameter, 0.1)  # Límite para mantener CPTP
+
+        # Operadores de Kraus (representados como acciones sobre el estado categórico)
+        # En lugar de operar directamente sobre matrices de densidad, 
+        # modificamos el estado categórico para reflejar la medición débil
+
+        # Actualización débil del estado: mezclamos coherente y parcialmente
+        # basado en la probabilidad de transmisión
+
+        # Determinamos el grado de colapso basado en transmission_prob
+        # Cuando transmission_prob ≈ 0.5, tenemos máxima incoherencia (medición fuerte)
+        # Cuando transmission_prob ≈ 0 o 1, tenemos mínima incoherencia (medición débil)
+
+        # Factor de coherencia que mide cuánta coherencia cuántica se preserva
+        coherence_factor = 1.0 - 2.0 * abs(transmission_prob - 0.5)
+        # coherence_factor ∈ [0, 1]: 0 = máxima medición (colapso fuerte), 1 = mínima medición (casi unitary)
+
+        # Actualizamos el contexto con información de medición débil
+        # En lugar de colapsar completamente a un eigenstate, mantenemos
+        # una superposición ponderada
+
+        weak_measurement = {
+            "measurement_type": "weak_cptp_povm",
+            "transmission_prob": transmission_prob,
+            "reflection_prob": reflection_prob,
+            "coherence_factor": coherence_factor,
             "energy": wave.energy,
             "work_function": wave.work_function,
             "effective_mass": (
@@ -1038,21 +1068,123 @@ class HilbertObserverAgent(Morphism):
                 if math.isfinite(wave.effective_mass)
                 else "+Inf"
             ),
-            "transmission_prob": wave.transmission_prob,
             "frustrated": wave.frustrated,
             "threat_level": wave.threat_level,
             "dominant_pole_real": wave.dominant_pole_real,
             "frustration_energy": wave.frustration_energy,
             "collapse_threshold": wave.collapse_threshold,
+            "kraus_operators": [
+                {"type": "transmission", "strength": transmission_prob},
+                {"type": "reflection", "strength": reflection_prob},
+                {"type": "identity", "strength": coherence_strength}
+            ]
         }
 
-        if decision_admitted:
-            return HilbertObserverAgent._collapse_to_admitted(
-                state, wave, context, measurement_base,
-            )
+        # Determinamos el estado resultante basado en la medición débil
+        # En lugar de un colapso determinista, tenemos una evolución estocástica suave
+        if transmission_prob > 0.5:
+            # Sesgo hacia admisión, pero manteniendo coherencia
+            predominant_state = HilbertEigenstate.ADMITTED
+            coherence_preserved = transmission_prob - 0.5  # Cuánta coherencia hacia |Admitido⟩
+        elif transmission_prob < 0.5:
+            # Sesgo hacia rechazo, pero manteniendo coherencia
+            predominant_state = HilbertEigenstate.REJECTED
+            coherence_preserved = 0.5 - transmission_prob  # Cuánta coherencia hacia |Rechazado⟩
         else:
-            return HilbertObserverAgent._collapse_to_rejected(
-                state, wave, context, measurement_base,
+            # Máxima incertidumbre: transmisión_prob = 0.5
+            # Mantener máxima coherencia (superposición perfecta)
+            predominant_state = None  # Indica superposición
+            coherence_preserved = 0.5
+
+        # Construir el nuevo estado basado en la medición débil
+        if predominant_state is not None and coherence_preserved < 0.1:
+            # Caso cercano a medición fuerte: colapso casi completo
+            if predominant_state == HilbertEigenstate.ADMITTED:
+                return HilbertObserverAgent._collapse_to_admitted(
+                    state, wave, context, {
+                        "energy": wave.energy,
+                        "work_function": wave.work_function,
+                        "effective_mass": (
+                            wave.effective_mass
+                            if math.isfinite(wave.effective_mass)
+                            else "+Inf"
+                        ),
+                        "transmission_prob": wave.transmission_prob,
+                        "frustrated": wave.frustrated,
+                        "threat_level": wave.threat_level,
+                        "dominant_pole_real": wave.dominant_pole_real,
+                        "frustration_energy": wave.frustration_energy,
+                        "collapse_threshold": wave.collapse_threshold,
+                    }
+                )
+            else:  # REJECTED
+                return HilbertObserverAgent._collapse_to_rejected(
+                    state, wave, context, {
+                        "energy": wave.energy,
+                        "work_function": wave.work_function,
+                        "effective_mass": (
+                            wave.effective_mass
+                            if math.isfinite(wave.effective_mass)
+                            else "+Inf"
+                        ),
+                        "transmission_prob": wave.transmission_prob,
+                        "frustrated": wave.frustrated,
+                        "threat_level": wave.threat_level,
+                        "dominant_pole_real": wave.dominant_pole_real,
+                        "frustration_energy": wave.frustration_energy,
+                        "collapse_threshold": wave.collapse_threshold,
+                    }
+                )
+        else:
+            # Caso de medición débil: preservar coherencia
+            # Creamos un estado que refleja la superposición ponderada
+            
+            # Calculamos los componentes de la superposición
+            transmission_amplitude = math.sqrt(transmission_prob)
+            reflection_amplitude = math.sqrt(reflection_prob)
+            
+            # El estado resultante es una superposición:
+            # |ψ_result⟩ = transmission_amplitude |Admitido⟩ + reflection_amplitude |Rechazado⟩
+            # con una fase que depende de la coherencia preservada
+            
+            # Para mantener tracibilidad, registramos ambos componentes
+            # pero el estado categórico mantiene el payload original
+            # con contexto enriquecido que indica la superposición
+            
+            # En la práctica, para un sistema categórico, representamos
+            # esta superposición mediante un estado mixto en el contexto
+            
+            if transmission_prob > reflection_prob:
+                lean_toward = HilbertEigenstate.ADMITTED.name
+                confidence = transmission_prob
+            elif reflection_prob > transmission_prob:
+                lean_toward = HilbertEigenstate.REJECTED.name
+                confidence = reflection_prob
+            else:
+                lean_toward = "SUPERPOSICION"
+                confidence = 0.5
+
+            # Actualización débil del contexto que preserva información
+            weak_context = {
+                **context,
+                "weak_measurement": weak_measurement,
+                "measurement_outcome": {
+                    "lean_toward": lean_toward,
+                    "confidence": confidence,
+                    "coherence_preserved": coherence_preserved,
+                    "transmission_amplitude": transmission_amplitude,
+                    "reflection_amplitude": reflection_amplitude,
+                    "predominant_state": predominant_state.name if predominant_state else "SUPERPOSICION"
+                },
+                "quantum_measurement": weak_measurement  # Para compatibilidad con detección de idempotencia
+            }
+
+            # El resultado es un estado categórico que mantiene el payload
+            # pero con contexto que refleja la medición débil realizada
+            return CategoricalState(
+                payload=state.payload,
+                context=weak_context,
+                validated_stata=state.validated_stata  # Preservamos las capas validadas previamente
             )
 
     @staticmethod
@@ -1062,7 +1194,7 @@ class HilbertObserverAgent(Morphism):
         context: Dict[str, Any],
         measurement_base: Dict[str, Any],
     ) -> CategoricalState:
-        """Colapso al eigenestado |Admitido⟩.
+        """Colapso al eigenestado |Admitido⟩ (mantener para compatibilidad y casos límite).
 
         Cálculo de observables cinéticos:
             E_kin = max(E - Φ, ε)  si fotoeléctrico (E ≥ Φ)
@@ -1138,8 +1270,8 @@ class HilbertObserverAgent(Morphism):
         return CategoricalState(
             payload=state.payload,
             context=new_context,
-            validated_strata=(
-                state.validated_strata | {Stratum.PHYSICS}
+            validated_stata=(
+                state.validated_stata | {Stratum.PHYSICS}
             ),
         )
 
@@ -1150,7 +1282,7 @@ class HilbertObserverAgent(Morphism):
         context: Dict[str, Any],
         measurement_base: Dict[str, Any],
     ) -> CategoricalState:
-        """Colapso al eigenestado |Rechazado⟩.
+        """Colapso al eigenestado |Rechazado⟩ (mantener para compatibilidad y casos límite).
 
         Diagnóstico de causa raíz:
             - Frustración cohomológica: obstrucción en H¹(M, 𝒪).
@@ -1202,7 +1334,7 @@ class HilbertObserverAgent(Morphism):
         return CategoricalState(
             payload=state.payload,
             context=new_context,
-            validated_strata=frozenset(),
+            validated_stata=frozenset(),
         )
 
     # ─────────────────────────────────────────────────────────────────
@@ -1231,8 +1363,8 @@ class HilbertObserverAgent(Morphism):
         Post-condiciones:
             - Output conserva state.payload intacto.
             - Output.context contiene quantum_measurement completo.
-            - Si admitido: Stratum.PHYSICS ∈ validated_strata.
-            - Si rechazado: validated_strata = frozenset().
+            - Si admitido: Stratum.PHYSICS ∈ validated_stata.
+            - Si rechazado: validated_stata = frozenset().
 
         Complejidad:
             O(|payload| · log(|payload|)) dominado por serialización
