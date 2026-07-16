@@ -1,61 +1,42 @@
-La instanciación de la "visión de libélula" (Atlas Omatidial) en los módulos app/physics/optical_riemann_lens.py y app/physics/semantic_parabolic_mirror.py no puede abordarse con las prácticas ingenuas de la ingeniería de software tradicional. Estamos manipulando la topología fundamental del espacio de fase donde habita la Matriz Atómica de Conocimiento (MAC). Como se demostró previamente mediante el Teorema de la Esfera Peluda de Poincaré-Brouwer, intentar proyectar el tensor de estado estocástico en un único proyector o lente induce singularidades degeneradas inevitables. Para erradicar este colapso, presento a continuación el Plan de Acción Granular y Riguroso para ejecutar esta cirugía homotópica en el código fuente, garantizando el difeomorfismo entre la Malla Agéntica y la física de campos.
+El Estrato ALEPH (ℵ0​) exige descender a su sustrato algebraico más profundo. Este estrato no es un filtro condicional de software; es el vacío topológico y la frontera cuántica que precede a la manifestación macroscópica del Estrato PHYSICS. Para que el Efecto Fotoeléctrico Ciber-Físico y el Funtor de Medición OODA operen sin fisuras termodinámicas, es mandatorio auditar no solo a los guardianes hilbert_watcher.py y quantum_admission_gate.py, sino al núcleo que les da existencia: quantum_algebra.py.
+Al someter este ecosistema primigenio a la rigurosidad de las álgebras C^∗, la mecánica cuántica de sistemas abiertos y la teoría de perturbaciones asintóticas, descubro y denuncio tres herejías de colapso y singularidad métrica. Procedo a la deconstrucción y exijo las suturas axiomáticas incondicionales.
 
-PARTE 0: Asimilación de los archivos base
+I. Deconstrucción de app/core/quantum_algebra.py: La Herejía del Conmutador Degenerado
 
-Asimilar y comprender la lógica de los archivos alojados en las siguientes rutas: + app/physics/optical_riemann_lens.py + app/physics/semantic_parabolic_mirror.py + tests/unit/physics/test_optical_riemann_lens.py + tests/unit/physics/test_semantic_parabolic_mirror.py
+El Diagnóstico: El módulo quantum_algebra.py implementa el formalismo de la mecánica cuántica para la Malla Agéntica. Sin embargo, al modelar sistemas cerrados y abiertos, asume implícitamente que los operadores de posición (semántica de datos) q^​ y momento (flujo) p^​ habitan en un espacio de Hilbert plano, donde sus relaciones de conmutación son independientes de la deformación del ecosistema constructivo. ¡Esto es una blasfemia contra la Geometría Simpléctica! Si el álgebra no acopla los observables a la métrica del negocio, el Principio de Incertidumbre colapsa. Esto permitiría que un Modelo de Lenguaje envenenado inyecte ruido sintáctico simulando una "precisión absoluta" ficticia, vulnerando ineludiblemente la clausura transitiva.
+La Sutura Doctoral (Álgebra de Weyl-Heisenberg Covariante): Exijo que el formalismo axiomático en quantum_algebra.py no defina operadores desnudos. Las Relaciones de Conmutación Canónicas (CCR) deben deformarse para obedecer a la forma simpléctica inducida por el Tensor Métrico Físico (GPHYSICS​). El conmutador fundamental debe redefinirse axiomáticamente en el código como:
+[\hat{X}_\mu, \hat{P}_\nu] = i\hbar_{\text{eff}} G_{\mu\nu}
 
-PARTE I: Transmutación del Lente Óptico (optical_riemann_lens.py) El objetivo es abandonar la proyección singular en la Esfera de Riemann ([ S^2 \cong \hat{\mathbb{C}} ]) y construir un Fibrado de Lentes Múltiples que asimile la radiación del Modelo de Lenguaje (LLM) en 360∘. Fase 1: Recubrimiento Topológico y Partición de la Unidad (Phase1_SphericalHarmonicsSpectrometer)
+Cualquier observable generado en el vacío topológico del Estrato ALEPH debe preservar esta invarianza de Gauge. Si la traza del conmutador no devuelve el invariante topológico acoplado a la inercia del proyecto, el álgebra de operadores debe arrojar un TopologicalInvariantError e impedir la instanciación de cualquier estado cuántico.
 
-Crítica del Estado Actual: La grilla actual proyecta un único espectro de coeficientes clm​, asumiendo que la atención del LLM se focaliza desde un solo polo. Acción Quirúrgica: Refactorizar el método _build_spherical_grid para no generar una sola cuadrícula, sino un atlas de N cartas abiertas [
+II. Extensión sobre app/agents/aleph/hilbert_watcher.py: La Falacia del Colapso Proyectivo Destructivo
 
-{ U_k }{k=1}^N ] (las facetas del omatidio) que recubran S2. Inyectar una Partición de la Unidad {w_k​(Ω)} tal que: [ \sum{k=1}^N w_k(\Omega) = 1 \quad \forall \Omega \in S^2, \quad \text{supp}(w_k) \subset U_k ]
+El Diagnóstico: El hilbert_watcher.py actúa como el Funtor de Medición OODA, evaluando la "Energía Semántica" (E=hν) del paquete incidente derivado de su Entropía de Shannon. Sin embargo, implementar esta medida como una proyección de von Neumann fuerte (proyectiva pura) para forzar un estado determinista es un desgarro termodinámico. Una medición proyectiva abrupta colapsa instantáneamente la superposición de intenciones semánticas válidas antes de que puedan ser analizadas integralmente. ¡Esto equivale a destruir la información cuántica (decoherencia violenta) sin haber extraído el trabajo útil (exergía)!
+La Sutura Doctoral (Medición Débil POVM y Preservación de Traza): Para mitigar la paradoja de la medición en el Estrato ℵ0​, la "observación" del archivo crudo no debe ser un colapso duro hacia autoestados rígidos. Exijo implementar un mapa Completamente Positivo y Preservador de Traza (CPTP) basado en Medidas Valuadas en Operadores Positivos (POVM). El estado posterior a la medición discreta (ρ^​post​) debe calcularse mediante operadores de Kraus M^k​ que interactúen débilmente con la matriz de conocimiento:
+\hat{\rho}_{\text{post}} = \sum_{k} \hat{M}_k \hat{\rho}_{\text{in}} \hat{M}_k^\dagger sujeto a la restricción \sum_{k} \hat{M}_k^\dagger \hat{M}_k \le I
 
-Modificar compute_spherical_coefficients para que emita un tensor de coeficientes localizados clm(k)​ integrando sobre la medida de Lebesgue ponderada: [ c{lm}^{(k)} = \int_{U_k} w_k(\theta, \phi) \psi(\theta, \phi) \bar{Y}_{lm}(\theta, \phi) , d\Omega ]
+La energía semántica observada a ser enviada a la compuerta de admisión será el valor esperado generalizado:\langle \hat{H}_{\text{obs}} \rangle = \text{Tr}(\hat{\rho}_{\text{post}} \hat{H}_{\text{obs}})
 
-Actualizar _verify_parseval_identity para que la Identidad de Parseval valide la conservación de energía sobre la suma directa del enjambre omatidial.
+Esto garantiza que el hilbert_watcher.py mida la entropía sin aniquilar la dimensionalidad útil de los datos, permitiendo que la función de probabilidad avance a la siguiente etapa de manera coherente.
 
-Fase 2: Métrica Anisotrópica de Fermat (Phase2_CategoricalOpticLens)
+III. Profundización en app/physics/quantum_admission_gate.py: La Singularidad de los Puntos de Retorno WKB
 
-Crítica del Estado Actual: El sistema asume un único índice de refracción n(σ^∗), lo cual es una aberración en un mercado logístico anisotrópico. Acción Quirúrgica: Modificar _compute_fermat_refractive_index para recibir un vector de tensores de estrés σ^∗∈R^N. Instanciar un diafragma cuántico independiente para cada omatidio:
+El Diagnóstico: Cuando un archivo no supera la barrera clásica (\langle \hat{H}_{\text{obs}} \rangle < \Phi), la compuerta cuántica resuelve la probabilidad de penetración aplicando el Efecto Túnel a través de la aproximación WKB (Wentzel-Kramers-Brillouin). ¡Pero aquí yace una singularidad matemática inaceptable! En los puntos de retorno clásicos (turning points), donde el potencial iguala a la energía incidente (\Phi(x_c) = \langle \hat{H}_{\text{obs}} \rangle), el vector de momento se anula (p(x)→0) y la amplitud de la función de onda WKB (ψ∝1/(p)^1/2​) explota hacia el infinito. Si un paquete de datos incide con una energía exactamente igual al umbral del veto termodinámico, el cálculo numérico divergirá, induciendo un fallo catastrófico en la Unidad de Punto Flotante (FPU) del hardware y bloqueando erróneamente el flujo de la Malla Agéntica.
+La Sutura Doctoral (Fórmulas de Conexión de Langer y Funciones de Airy): Es imperativo abandonar la integración WKB estricta y ciega en la vecindad tubular de la singularidad. Exijo que el método de transmisión en quantum_admission_gate.py suture el espacio de fase utilizando las Funciones de Airy. Alrededor del punto de retorno xc​, el potencial del ecosistema debe linealizarse, transformando la ecuación de Schrödinger para la onda de datos en la Ecuación Diferencial de Airy: 
 
-[ n_k(\sigma_k^) = 1 + \tanh(\alpha \cdot \sigma_k^) ]
+\frac{d^2\psi}{d\xi^2} - \xi\psi = 0 donde el paraˊmetro re-escalado es \xi = \left( \frac{2m_{\text{eff}}}{\hbar_{\text{eff}}^2} \Phi'(x_c) \right)^{1/3} (x - x_c)
 
-Resolver la Ecuación Eikonal acoplada por faceta:
+La función de onda que penetra la barrera debe definirse como un homeomorfismo C^∞ sin singularidades, construido mediante la combinación lineal de soluciones acotadas:
+\psi(\xi) = c_1 \text{Ai}(\xi) + c_2 \text{Bi}(\xi)
 
-[ G_k^{\mu\nu} \partial_\mu S_k \partial_\nu S_k = n_k^2(\sigma_k^*) ]
+Solo parcheando analíticamente los puntos de retorno mediante las Fórmulas de Conexión, el Coeficiente de Transmisión T^ será invariante a discontinuidades locales. Si la energía semántica roza la barrera, la función de Airy devolverá una probabilidad de penetración finita y rigurosamente continua, impidiendo el colapso numérico espurio de la barrera de admisión.
+Consecuencia Topológica Absoluta: Al inyectar el álgebra de Weyl-Heisenberg covariante, la medición no-demolidora POVM y las conexiones de Airy en estos tres motores fundacionales, el Estrato ALEPH (ℵ0​) alcanza el pináculo del rigor cuántico. El vacío topológico se blinda contra alucinaciones semánticas y singularidades de punto flotante, garantizando axiomáticamente que solo la materia informacional con exergía purificada logre materializarse en el Estrato PHYSICS. Proceda con la reimplementación inmediata de esta frontera.
 
- Esto permitirá que si un "ataque" logístico (alta entropía) incide por el omatidio j, solo el índice nj​ se sature a 2, frenando la luz estocástica en esa dirección sin cegar el resto del espectrómetro.
+**Nota importante**
+Se requiere actualizar, con rigurosidad, los métodos de las suite de pruebas correspondientes que evalúan la lógica de los microservicios anteriores. La ubicación es:
 
-Fase 3: Operador de Difracción Global (OpticalRiemannLensFibrator)
+1. tests/unit/core/test_quantum_algebra.py
+2. tests/unit/agents/aleph/test_hilbert_watcher.py
+3. tests/unit/physics/test_quantum_admission_gate.py
 
-Crítica del Estado Actual: La proyección adjunta espectral a R^n se calcula globalmente, colapsando el tensor. Acción Quirúrgica: Sobreescribir el método de proyección adjunta _project_psi_to_logit_space para ensamblar el Operador de Difracción Categórica Omatidial (O_dragonfly​).
-
-Aplicar un kernel de amortiguación gaussiana focalizado [ h_k(l) = \exp(-\gamma \cdot n_k^2 \cdot l^2) ] e instanciar el límite fuerte: [ \mathcal{O}{\text{dragonfly}} \psi = \sum{k=1}^N \sum_{l=0}^{l_{\text{cutoff}}} \sum_{m=-l}^l h_k(l) \cdot c_{l,m}^{(k)} \cdot Y_l^m(\theta, \phi) ]
-
-Garantizando axiomáticamente que ∥focused_logits∥_2​≤∥raw_logits∥_2​ (Ley de disipación).
-
-PARTE II: Transmutación del Espejo Parabólico (semantic_parabolic_mirror.py) El objetivo es erradicar el hiperplano de reflexión unidimensional que sufre de una deficiencia de rango en su núcleo (dimensión del null-space = 1) y cristalizar una Cúpula Catadióptrica Facetada. Fase 1: Atlas de Reflexión y Teorema de Cartan-Dieudonné (MetricAwareHouseholderReflector)
-
-Crítica del Estado Actual: La clase solo acepta un constraint_normal. Un LLM alucinando ortogonalmente a este vector atravesará el escudo inmunológico sin ser refractado. Acción Quirúrgica: Alterar el constructor de la clase para ingerir un Fibrado de Restricción: una matriz W∈R^(d×N) con los vectores de tensión {∣n1​⟩,…,∣nN​⟩}. Generar una lista instanciada de proyectores covariantes individuales, respetando el pullback métrico:
-
-[ \hat{M}_k = I - \frac{2}{\langle n_k | G | n_k \rangle} | n_k \rangle \langle n_k | G, \quad \hat{P}_k = \frac{I + \hat{M}_k}{2} ]
-
-Donde G es la métrica Riemanniana estrictamente extraída de G_PHYSICS
-
-Fase 2: Límite de von Neumann en la Cavidad Estabilizada (FabryPerotStabilizedCavity)
-
-Crítica del Estado Actual: La iteración de Newton-Schulz actual [
-
-\psi_{k+1} = (2\hat{P} - \hat{P}^2) \psi_k ] pule la idempotencia de un solo proyector. Acción Quirúrgica: Refactorizar la iteración de la cavidad para acatar el Teorema de las Proyecciones Alternadas de von Neumann. El vector de estado ψ (la señal semántica del LLM) deberá rebotar cíclicamente contra el producto de todos los proyectores de los omatidios. El proyector global sobre el subespacio seguro [ \bigcap_{k=1}^N \ker(|n_k\rangle) ] exige codificar el bucle asintótico: [ \psi_{m+1} = (\hat{P}_1 \hat{P}_2 \cdots \hat{P}_N) \psi_m ]
-
-Implementar una aserción estricta de la convergencia: Si ∥ψm​∥G​→0, se detonará incondicionalmente un ResonanceDissonanceError, evidenciando que la alucinación del LLM violó simultáneamente todas las barreras físicas.
-
-Fase 3: Optimización con Pseudoinversa de Moore-Penrose (SemanticParabolicMirror)
-
-Crítica del Estado Actual: El orquestador bind_constraint() inyecta dependencias simples de forma lineal. Iterar el límite de von Neumann hasta el infinito agota los ciclos de la FPU. Acción Quirúrgica: Implementar una vía rápida (fast path) de resolución algebraica que evalúe la Matriz de Gram [
-
-G_{ij} = \langle n_i | G | n_j \rangle ] del haz de vectores normales. Si y solo si la matriz de Gram es de rango completo (certificada mediante Descomposición de Cholesky robusta scipy.linalg.cholesky), aplicar la proyección exacta calculada mediante la Pseudoinversa de Moore-Penrose G-ponderada: [ P_{\cap} = I - W (G)^{-1} W^\top G ]
-
-Retornar el RefractedState debidamente podado al estrato DIKW superior, atrapando irrevocablemente a los LLMs estocásticos dentro de esta "Jaula de Faraday Semántica".
-
-PARTE III Ejecuta la suite de pruebas locales para garantizar que los microservicios semantic_parabolic_mirror.py y optical_riemann_lens.py pasen en verde todos sus métodos.
+Se deben ejecutar pruebas aisladas hasta que todas la pruebas pasen en verde. 
