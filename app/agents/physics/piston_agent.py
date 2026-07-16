@@ -2,65 +2,72 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo  : Piston Agent (Inyector de Caudal y Funtor de Hodge-Helmholtz)      ║
-║ Ruta    : app/physics/piston_agent.py                                        ║
-║ Versión : 6.0.0-Doctoral-Rigorous-Simplicial-DEC                             ║
+║ Ruta    : app/agents/physics/piston_agent.py                                 ║
+║ Versión : 7.0.0-Doctoral-Metric-Consistent-DEC                               ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Dictamen Doctoral v6.0.0):
+NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Dictamen Doctoral v7.0.0):
 ────────────────────────────────────────────────────────────────────────────────
 
-CORRECCIONES CRÍTICAS v6.0.0 vs v5.0.0:
+CORRECCIONES CRÍTICAS v7.0.0 vs v6.0.0:
 ────────────────────────────────────────
-  FIX 1: build_mesh — verificación axiomática ∂₁∘∂₂ = 0 (identidad de Leibniz)
-  FIX 2: build_mesh — orientación consistente de ciclos via árbol generador
-  FIX 3: solve_hydrodynamics — análisis espectral de L_red via eigenvalor mínimo
-  FIX 4: solve_hydrodynamics — Laplaciano ponderado L₀^W = ∂₁W∂₁ᵀ (con conductancias)
-  FIX 5: solve_hydrodynamics — verificación im(s) ⊆ im(L₀) antes de resolver
-  FIX 6: decompose_flow — Laplaciano de Hodge ponderado L₁^W = ∂₁ᵀW⁻¹∂₁ + ∂₂∂₂ᵀW
-  FIX 7: decompose_flow — desempaquetado LSQR correcto (7 valores, no 9)
-  FIX 8: decompose_flow — ortogonalidad verificada en norma energía ⟨·,·⟩_W
-  FIX 9: _create_injection_vector — verificación ∑sᵢ=0 y proyección sobre im(L₀)
-  FIX 10: execute_injection — propagación de invariantes topológicos al resultado
-  FIX 11: PistonConstants — umbral espectral λ_min reemplaza umbral de norma-1
-  FIX 12: SimplicialMesh — campos adicionales: laplacian_0, laplacian_1, gram_W
+  FIX-M1: import math ausente → _energy_norm fallaba en runtime
+  FIX-M2: Proyección gradiente MÉTRICAMENTE CONSISTENTE con Ohm:
+          im(grad_W) = W·im(∂₁ᵀ), no im(∂₁ᵀ).
+          Ecuación correcta: L₀^W φ = ∂₁ I  →  I_grad = W ∂₁ᵀ φ
+          (v6 resolvía L₀ φ = ∂₁ W I e I_grad = ∂₁ᵀ φ: DOBLE error métrico)
+  FIX-M3: Proyección curl en ⟨·,·⟩_{W⁻¹}:
+          (∂₂ᵀ W⁻¹ ∂₂) α = ∂₂ᵀ W⁻¹ I  →  I_curl = ∂₂ α
+          (v6 usaba ∂₂ᵀ W ∂₂ / ∂₂ᵀ W I: peso invertido)
+  FIX-M4: L₁^W autoadjunto w.r.t. ⟨·,·⟩_{W⁻¹}:
+          L₁^W = W ∂₁ᵀ ∂₁ + ∂₂ ∂₂ᵀ W⁻¹   (forma simétrica en el producto energía)
+  FIX-M5: Verificación de Pitágoras energético post-Hodge:
+          |‖I‖²_W − (‖I_g‖²_W+‖I_c‖²_W+‖I_h‖²_W)| < tol
+  FIX-M6: Gauge-fixing explícito en LSQR sobre L₀ (ker = span{1})
+  FIX-M7: Encadenamiento formal FASE1→FASE2→FASE3 via DTOs tipados
+          (salida de build_mesh ≡ entrada canónica de solve_hydrodynamics)
+  FIX-M8: Diagnóstico espectral de L₁^W (dim ker ≈ β₁ de Betti)
+  FIX-M9: Validación de orientación de ∂₁ vs ciclos vía cociclo de signos
+  FIX-M10: Inyección de residual de proyección en el resultado (auditoría)
 
-FUNDAMENTACIÓN AXIOMÁTICA AMPLIADA (v6.0.0):
+FUNDAMENTACIÓN AXIOMÁTICA v7.0.0 (métrica de energía):
 ────────────────────────────────────────────────────────────────────────────────
-§1. COMPLEJO DE CADENAS VÁLIDO (∂∘∂ = 0):
-    La identidad de Leibniz ∂₁∘∂₂ = 0 es la condición necesaria y suficiente
-    para que (C•, ∂) sea un complejo de cadenas. Sin ella, los grupos de
-    homología H_k = ker(∂_k)/im(∂_{k+1}) no están bien definidos, y la
-    descomposición de Hodge carece de fundamento algebraico.
+§0. PRODUCTO INTERNO DE ENERGÍA (DISIPACIÓN DE JOULE):
+    ⟨f, g⟩_W ≔ fᵀ W⁻¹ g = Σₖ fₖ gₖ / wₖ
+    ‖f‖²_W   ≔ ⟨f,f⟩_W  = Σₖ fₖ² / wₖ     [potencia disipada]
 
-§2. LAPLACIANO DE HODGE PONDERADO (DEC — Discrete Exterior Calculus):
-    En una red con conductancias W (métrica discreta), los operadores de
-    Hodge deben incorporar la métrica para producir proyecciones ortogonales
-    en el espacio de energía ⟨f,g⟩_W = fᵀ W⁻¹ g:
+    Justificación física (Ley de Ohm discreta):
+        fₖ = wₖ · Δpₖ  ⇒  Pₖ = fₖ · Δpₖ = fₖ² / wₖ
 
-        L₀^W = ∂₁ W ∂₁ᵀ        [Laplaciano nodal ponderado]
-        L₁^W = ∂₁ᵀ W⁻¹ ∂₁ + ∂₂ ∂₂ᵀ W  [Laplaciano de aristas de Hodge]
+§1. COMPLEJO DE CADENAS (C•, ∂) CON ∂∘∂ = 0:
+    H_k = ker(∂_k) / im(∂_{k+1}). Sin Leibniz, H_k no está definido.
 
-    La descomposición de Hodge-Helmholtz ponderada:
-        I = I_grad ⊕_W I_curl ⊕_W I_harm
-    es ortogonal en ⟨·,·⟩_W (no en la norma euclidiana).
+§2. DESCOMPOSICIÓN DE HODGE-HELMHOLTZ PONDERADA (DEC):
+    ℝ^E = im(grad_W) ⊕_W im(∂₂) ⊕_W ker(L₁^W)
 
-§3. ANÁLISIS ESPECTRAL DEL LAPLACIANO REDUCIDO:
-    La no-singularidad de L_red se certifica via su eigenvalor mínimo:
-        λ_min(L_red) > SPECTRAL_THRESHOLD
-    Un eigenvalor nulo indica que el nodo reservorio no conecta todas las
-    componentes del grafo, lo que invalida la condición de Dirichlet.
+    donde grad_W : ℝ^V → ℝ^E,  φ ↦ W ∂₁ᵀ φ
+    y   ⊕_W denota suma ortogonal en ⟨·,·⟩_W.
 
-§4. COMPATIBILIDAD DE LA FUENTE CON EL OPERADOR (CONDICIÓN DE SOLVABILIDAD):
-    El sistema L₀ p = -s tiene solución sii s ∈ im(L₀) = (ker(L₀ᵀ))⊥.
-    Para L₀ simétrico: ker(L₀) = span{1} → s ⊥ 1 ↔ ∑sᵢ = 0.
-    Esta condición se verifica ANTES de resolver para evitar divergencia
-    numérica silenciosa del solver.
+    Proyecciones ortogonales (ecuaciones normales de Gauss):
+        L₀^W φ = ∂₁ I            →  I_grad = W ∂₁ᵀ φ
+        G₂ α   = ∂₂ᵀ W⁻¹ I      →  I_curl = ∂₂ α
+        I_harm = I − I_grad − I_curl ∈ ker(L₁^W)
+
+§3. LAPLACIANOS PONDERADOS AUTOADJUNTOS:
+    L₀^W = ∂₁ W ∂₁ᵀ           ∈ End(ℝ^V)   [SPD en 1^⊥]
+    L₁^W = W ∂₁ᵀ ∂₁ + ∂₂ ∂₂ᵀ W⁻¹          [autoadjunto en ⟨·,·⟩_W]
+
+§4. ESPECTRO Y SOLVABILIDAD:
+    λ_min(L_red) > 0  ⇔  grafo reducido conexo + Dirichlet regulariza.
+    ∑ sᵢ = 0          ⇔  s ∈ im(L₀^W) = (ker L₀^W)^⊥ = 1^⊥.
 """
 
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+import math
+from collections import deque
+from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -79,10 +86,10 @@ try:
     from app.core.schemas import Stratum
 except ImportError:
     class TopologicalInvariantError(Exception):
-        pass
+        """Veto categórico de invariante topológico (stub)."""
 
     class Morphism:
-        pass
+        """Morfismo base de la malla agéntica (stub)."""
 
     class CategoricalState:
         payload: Dict[str, Any]
@@ -90,9 +97,9 @@ except ImportError:
         stratum: Any
 
         def __init__(self, payload, metadata=None, stratum=None):
-            self.payload  = payload
+            self.payload = payload
             self.metadata = metadata or {}
-            self.stratum  = stratum
+            self.stratum = stratum
 
     class Stratum(Enum):
         PHYSICS = auto()
@@ -102,38 +109,39 @@ logger = logging.getLogger("MIC.Physics.PistonAgent")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# §A. CONSTANTES NUMÉRICAS Y TERMODINÁMICAS (v6.0.0)
+# §A. CONSTANTES NUMÉRICAS Y TERMODINÁMICAS (v7.0.0)
 # ══════════════════════════════════════════════════════════════════════════════
 
 class PistonConstants:
     r"""
     Constantes físicas y numéricas del inyector termodinámico.
 
-    CORRECCIÓN FIX 11:
-        SINGULAR_THRESHOLD es ahora un umbral ESPECTRAL (eigenvalor mínimo),
-        no un umbral de norma-1. La norma-1 de una matriz puede ser grande
-        incluso si la matriz es singular (ej: matriz con filas dependientes
-        de norma grande). El eigenvalor mínimo es el indicador correcto
-        de singularidad para matrices simétricas semidefinidas positivas.
+    SPECTRAL_THRESHOLD es umbral de **eigenvalor mínimo** (no de norma-1):
+    λ_min es el único indicador algebraicamente correcto de singularidad
+    para matrices simétricas semidefinidas positivas (SPSD).
 
-    Constantes:
-    ───────────
-    MACHINE_EPSILON     : ε_mach para IEEE 754 float64.
-    KIRCHHOFF_TOLERANCE : tolerancia ∞-norma del residuo de KCL [adim].
-    MAX_VORTICITY_NORM  : cota máxima ‖I_curl‖_W (norma de energía).
-    DEFAULT_CONDUCTANCE : conductancia base si no se proveen pesos [S].
-    SPECTRAL_THRESHOLD  : umbral de eigenvalor mínimo λ_min(L_red) [adim].
-                          Si λ_min < SPECTRAL_THRESHOLD → L_red singular.
-    SOURCE_BALANCE_TOL  : tolerancia para |∑sᵢ| = 0 (FIX 9).
-    HODGE_ORTHO_TOL     : tolerancia de ortogonalidad en norma energía (FIX 8).
+    Constantes
+    ──────────
+    MACHINE_EPSILON      : ε_mach IEEE-754 float64.
+    KIRCHHOFF_TOLERANCE  : tolerancia ∞-norma del residuo de KCL.
+    MAX_VORTICITY_NORM   : cota máxima ‖I_curl‖_W (norma de energía).
+    DEFAULT_CONDUCTANCE  : conductancia base [S] si no se proveen pesos.
+    SPECTRAL_THRESHOLD   : umbral λ_min(L_red); si λ_min ≤ τ → singular.
+    SOURCE_BALANCE_TOL   : tolerancia |∑ sᵢ| = 0.
+    HODGE_ORTHO_TOL      : tolerancia de ortogonalidad en ⟨·,·⟩_W.
+    PYTHAGORAS_TOL       : tolerancia de identidad de Pitágoras energética.
+    BOUNDARY_IDENTITY_TOL_FACTOR : factor de tolerancia relativa para ∂∘∂=0.
     """
-    MACHINE_EPSILON     : float = float(np.finfo(np.float64).eps)
-    KIRCHHOFF_TOLERANCE : float = 1e-10
-    MAX_VORTICITY_NORM  : float = 1e-6
-    DEFAULT_CONDUCTANCE : float = 1.0
-    SPECTRAL_THRESHOLD  : float = 1e-10   # FIX 11: eigenvalor, no norma-1
-    SOURCE_BALANCE_TOL  : float = 1e-12   # FIX 9: ∑sᵢ = 0
-    HODGE_ORTHO_TOL     : float = 1e-8    # FIX 8: ortogonalidad ⟨·,·⟩_W
+
+    MACHINE_EPSILON: float = float(np.finfo(np.float64).eps)
+    KIRCHHOFF_TOLERANCE: float = 1e-10
+    MAX_VORTICITY_NORM: float = 1e-6
+    DEFAULT_CONDUCTANCE: float = 1.0
+    SPECTRAL_THRESHOLD: float = 1e-10
+    SOURCE_BALANCE_TOL: float = 1e-12
+    HODGE_ORTHO_TOL: float = 1e-8
+    PYTHAGORAS_TOL: float = 1e-6
+    BOUNDARY_IDENTITY_TOL_FACTOR: float = 1e3
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -146,23 +154,18 @@ class PistonInjectorError(TopologicalInvariantError):
 
 class SingularLaplacianError(PistonInjectorError):
     r"""
-    Detonada si λ_min(L_red) < SPECTRAL_THRESHOLD.
+    Detonada si λ_min(L_red) ≤ SPECTRAL_THRESHOLD.
 
-    Indica que el nodo reservorio no conecta todas las componentes del grafo
-    o que la condición de Dirichlet es insuficiente para regularizar L₀.
-    La condición espectral λ_min > 0 es equivalente a la conexidad del grafo
-    reducido (Teorema de Kirchhoff sobre el árbol generador).
+    Equivale a: el grafo reducido no es conexo o Dirichlet no regulariza.
+    (Teorema matricial de Kirchhoff / fórmula del árbol generador.)
     """
 
 
 class HomologicalKirchhoffError(PistonInjectorError):
     r"""
-    Detonada si ‖∂₁f − s‖_∞ > KIRCHHOFF_TOLERANCE.
+    Detonada si ‖∂₁ f + s‖_∞ > KIRCHHOFF_TOLERANCE.
 
-    Prueba fuga termodinámica: la masa no se conserva en ningún nodo.
-    El residuo ∂₁f − s mide la discrepancia entre el flujo divergente
-    y las fuentes externas — cualquier componente no nula implica creación
-    o destrucción de masa, violando la primera ley de la termodinámica.
+    Residuo de KCL: creación/destrucción de masa → viola 1ª ley.
     """
 
 
@@ -170,356 +173,325 @@ class ParasiticVorticityVetoError(PistonInjectorError):
     r"""
     Detonada si ‖I_curl‖_W > MAX_VORTICITY_NORM.
 
-    La norma de energía ‖·‖_W = √(·ᵀ W⁻¹ ·) mide la potencia disipada
-    en los bucles rotacionales. Una vorticidad parásita positiva implica
-    que la bomba inyecta exergía que circula en bucles estériles sin
-    producir trabajo útil (flujo laminar).
+    Exergía circulando en bucles estériles sin trabajo laminar útil.
     """
 
 
 class BoundaryComplexError(PistonInjectorError):
     r"""
-    Detonada si ∂₁ ∘ ∂₂ ≠ 0 (FIX 1).
+    Detonada si ∂₁ ∘ ∂₂ ≠ 0.
 
-    La identidad ∂∘∂ = 0 es la condición necesaria y suficiente para
-    que (C•, ∂) sea un complejo de cadenas diferencial. Su violación
-    invalida los grupos de homología H_k = ker(∂_k)/im(∂_{k+1}) y
-    colapsa la base algebraica del agente.
+    Sin Leibniz, (C•, ∂) no es complejo de cadenas y H_k colapsa.
     """
 
 
 class SourceCompatibilityError(PistonInjectorError):
     r"""
-    Detonada si s ∉ im(L₀), es decir ∑sᵢ ≠ 0 (FIX 9).
+    Detonada si s ∉ im(L₀^W), i.e. ∑ sᵢ ≠ 0.
 
-    Para que L₀ p = -s tenga solución, la fuente s debe ser ortogonal
-    al núcleo de L₀ᵀ = L₀ (simétrico). Como ker(L₀) = span{1}, la
-    condición de compatibilidad es: ⟨1, s⟩ = ∑sᵢ = 0.
+    Fredholm: L₀ p = −s solvable ⇔ s ⊥ ker(L₀) = span{1}.
+    """
+
+
+class HodgeMetricInconsistencyError(PistonInjectorError):
+    r"""
+    Detonada si la identidad de Pitágoras energética falla (FIX-M5).
+
+    |‖I‖²_W − Σ ‖I_•‖²_W| > PYTHAGORAS_TOL implica proyecciones no
+    ortogonales en ⟨·,·⟩_W (error métrico o numérico grave).
     """
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# §C. ESTRUCTURAS DE DATOS INMUTABLES (DTOs)
+# §C. ESTRUCTURAS DE DATOS INMUTABLES (DTOs) — cadena FASE1→FASE2→FASE3
 # ══════════════════════════════════════════════════════════════════════════════
 
 @dataclass(frozen=True, slots=True)
 class SimplicialMesh:
     r"""
-    1-esqueleto y 2-esqueleto topológico del sistema logístico.
+    1-esqueleto + 2-esqueleto con operadores de Hodge precalculados.
 
-    CORRECCIÓN FIX 12: Campos adicionales para los Laplacianos precalculados
-    y la matriz de Gram ponderada, evitando su recálculo en cada fase.
+    **Contrato de salida de FASE 1 / entrada canónica de FASE 2.**
 
     Campos
     ──────
-    nodes              : tupla de identificadores de nodos.
-    edges              : tupla de aristas (u, v) orientadas.
-    cycles             : tupla de ciclos (como tuplas de nodos).
-    boundary_1         : ∂₁ ∈ ℝ^{|V|×|E|}, matriz de incidencia orientada.
-    boundary_2         : ∂₂ ∈ ℝ^{|E|×|F|}, matriz de ciclos.
-    conductance_matrix : W ∈ ℝ^{|E|×|E|}, diagonal de conductancias [S].
-    laplacian_0        : L₀^W = ∂₁W∂₁ᵀ ∈ ℝ^{|V|×|V|} (FIX 4/FIX 12).
-    laplacian_1        : L₁^W = ∂₁ᵀW⁻¹∂₁ + ∂₂∂₂ᵀW ∈ ℝ^{|E|×|E|} (FIX 6/12).
-    inv_conductance    : W⁻¹ ∈ ℝ^{|E|×|E|}, inversa de conductancias (FIX 6).
-    boundary_identity  : bool, True sii ∂₁∘∂₂ = 0 verificado (FIX 1).
+    nodes              : identificadores de nodos (V).
+    edges              : aristas orientadas (E).
+    cycles             : 2-celdas / ciclos (F).
+    boundary_1         : ∂₁ ∈ ℝ^{|V|×|E|}.
+    boundary_2         : ∂₂ ∈ ℝ^{|E|×|F|}.
+    conductance_matrix : W = diag(wₖ) ∈ ℝ^{|E|×|E|}.
+    inv_conductance    : W⁻¹ = diag(1/wₖ).
+    laplacian_0        : L₀^W = ∂₁ W ∂₁ᵀ  (SPD en 1^⊥).
+    laplacian_1        : L₁^W autoadjunto en ⟨·,·⟩_W (FIX-M4).
+    boundary_identity  : True ⇔ ∂₁∘∂₂ = 0 certificado.
+    betti_1_estimate   : dim ker(L₁) estimada vía espectro (β₁).
     """
-    nodes              : Tuple[str, ...]
-    edges              : Tuple[Tuple[str, str], ...]
-    cycles             : Tuple[Tuple[str, ...], ...]
-    boundary_1         : sp.csr_matrix
-    boundary_2         : sp.csr_matrix
-    conductance_matrix : sp.dia_matrix
-    laplacian_0        : sp.csr_matrix    # FIX 4+12: L₀^W precalculado
-    laplacian_1        : sp.csr_matrix    # FIX 6+12: L₁^W precalculado
-    inv_conductance    : sp.dia_matrix    # FIX 6+12: W⁻¹ precalculado
-    boundary_identity  : bool             # FIX 1: ∂₁∘∂₂ = 0 certificado
+
+    nodes: Tuple[str, ...]
+    edges: Tuple[Tuple[str, str], ...]
+    cycles: Tuple[Tuple[str, ...], ...]
+    boundary_1: sp.csr_matrix
+    boundary_2: sp.csr_matrix
+    conductance_matrix: sp.dia_matrix
+    inv_conductance: sp.dia_matrix
+    laplacian_0: sp.csr_matrix
+    laplacian_1: sp.csr_matrix
+    boundary_identity: bool
+    betti_1_estimate: int
 
 
 @dataclass(frozen=True, slots=True)
 class InjectionVector:
     r"""
-    Fuente de corriente ideal s (vector de términos independientes).
-
-    CORRECCIÓN FIX 9: Campo `balance_verified` certifica ∑sᵢ = 0.
+    Fuente ideal s (términos independientes de Poisson).
 
     Campos
     ──────
-    source_node      : nodo de succión (salida de la bomba).
-    sink_node        : nodo de descarga (entrada de la bomba).
-    q_pump           : caudal inyectado Q [unidades consistentes con W].
-    s_vector         : vector s ∈ ℝ^{|V|} con s[u]=-Q, s[v]=+Q, resto=0.
-    balance_verified : True sii ∑sᵢ = 0 verificado (FIX 9).
+    source_node      : nodo de succión.
+    sink_node        : nodo de descarga.
+    q_pump           : caudal Q.
+    s_vector         : s ∈ ℝ^{|V|}, s[u]=−Q, s[v]=+Q.
+    balance_verified : True ⇔ ∑ sᵢ = 0 certificado.
     """
-    source_node      : str
-    sink_node        : str
-    q_pump           : float
-    s_vector         : NDArray[np.float64]
-    balance_verified : bool                # FIX 9
+
+    source_node: str
+    sink_node: str
+    q_pump: float
+    s_vector: NDArray[np.float64]
+    balance_verified: bool
 
 
 @dataclass(frozen=True, slots=True)
 class FlowState:
     r"""
-    Estado hidrodinámico resuelto de la ecuación de Poisson.
+    Estado hidrodinámico de Poisson (salida FASE 2 / entrada FASE 3).
 
     Campos
     ──────
-    nodal_pressures  : p ∈ ℝ^{|V|}, presiones nodales [Pa o adim].
-    edge_flows       : f ∈ ℝ^{|E|}, flujos por arista [m³/s o adim].
-    kirchhoff_residual: ‖∂₁f − s‖_∞ [adim], residuo de KCL verificado.
-    lambda_min_L_red : eigenvalor mínimo de L_red (diagnóstico espectral).
+    nodal_pressures    : p ∈ ℝ^{|V|}.
+    edge_flows         : f = W ∂₁ᵀ p ∈ ℝ^{|E|}.
+    kirchhoff_residual : ‖∂₁ f + s‖_∞.
+    lambda_min_L_red   : λ_min(L_red) diagnóstico espectral.
     """
-    nodal_pressures   : NDArray[np.float64]
-    edge_flows        : NDArray[np.float64]
+
+    nodal_pressures: NDArray[np.float64]
+    edge_flows: NDArray[np.float64]
     kirchhoff_residual: float
-    lambda_min_L_red  : float
+    lambda_min_L_red: float
 
 
 @dataclass(frozen=True, slots=True)
 class HodgeDecomposition:
     r"""
-    Componentes ortogonales del flujo en la descomposición de Hodge-Helmholtz.
+    Componentes ortogonales de I en ⟨·,·⟩_W (salida FASE 3).
 
-    CORRECCIÓN FIX 8: Las componentes son ortogonales en la norma de energía
-    ⟨f,g⟩_W = fᵀ W⁻¹ g, no en la norma euclidiana estándar.
+    I = I_grad ⊕_W I_curl ⊕_W I_harm
 
     Campos
     ──────
-    i_grad           : I_grad ∈ im(∂₁ᵀ), flujo laminar impulsado por potencial.
-    i_curl           : I_curl ∈ im(∂₂), vorticidad rotacional local.
-    i_harm           : I_harm ∈ ker(L₁^W), flujo armónico global.
-    vorticity_norm   : ‖I_curl‖_W (norma de energía, FIX 8).
-    orthogonality_ok : bool, True sii ⟨I_grad, I_curl⟩_W < HODGE_ORTHO_TOL.
-    energy_total     : ‖I‖²_W = ‖I_grad‖²_W + ‖I_curl‖²_W + ‖I_harm‖²_W.
+    i_grad            : ∈ W·im(∂₁ᵀ)  (laminar / exacto ponderado).
+    i_curl            : ∈ im(∂₂)     (rotacional / co-exacto).
+    i_harm            : ∈ ker(L₁^W)  (armónico global).
+    vorticity_norm    : ‖I_curl‖_W.
+    orthogonality_ok  : ortogonalidad triple en ⟨·,·⟩_W.
+    pythagoras_ok     : identidad de Pitágoras energética (FIX-M5).
+    energy_total      : ‖I‖²_W (reconstruida por suma de componentes).
+    projection_residual : ‖I − (I_g+I_c+I_h)‖_W (debe ser ~0).
     """
-    i_grad          : NDArray[np.float64]
-    i_curl          : NDArray[np.float64]
-    i_harm          : NDArray[np.float64]
-    vorticity_norm  : float
+
+    i_grad: NDArray[np.float64]
+    i_curl: NDArray[np.float64]
+    i_harm: NDArray[np.float64]
+    vorticity_norm: float
     orthogonality_ok: bool
-    energy_total    : float
+    pythagoras_ok: bool
+    energy_total: float
+    projection_residual: float
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# §D. ÁLGEBRA ESPECTRAL AUXILIAR (base matemática compartida)
+# §D. ÁLGEBRA ESPECTRAL Y MÉTRICA DE ENERGÍA (base compartida)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _compute_min_eigenvalue_sparse(
-    A       : sp.spmatrix,
-    tol     : float = 1e-10,
+    A: sp.spmatrix,
+    tol: float = 1e-10,
 ) -> float:
     r"""
-    Calcula el eigenvalor mínimo de una matriz simétrica semidefinida positiva.
+    Eigenvalor mínimo de A simétrica SPSD.
 
-    Para $A$ simétrica SPD (o SPSD), el eigenvalor mínimo λ_min certifica:
-        λ_min > 0  →  A es no singular (invertible)
-        λ_min = 0  →  A es singular (ker(A) ≠ {0})
+    λ_min > 0 ⇔ A no singular; λ_min = 0 ⇔ ker(A) ≠ {0}.
 
-    Usa `eigsh` (ARPACK Lanczos) para calcular el eigenvalor de menor
-    magnitud, que es eficiente para matrices dispersas grandes.
-
-    Para matrices de tamaño ≤ 2 (edge cases del grafo mínimo), se usa
-    el algoritmo denso `np.linalg.eigvalsh` directamente.
-
-    Parámetros
-    ----------
-    A   : sp.spmatrix, matriz simétrica SPD o SPSD de shape (n,n).
-    tol : float, tolerancia de convergencia del solver Lanczos.
-
-    Retorna
-    -------
-    float, eigenvalor mínimo λ_min(A).
+    Usa ARPACK/Lanczos (eigsh) para n grande; denso para n ≤ 3.
     """
     n = A.shape[0]
-    if n <= 1:
-        return float(A.toarray()[0, 0]) if n == 1 else 0.0
+    if n == 0:
+        return 0.0
+    if n == 1:
+        return float(A.toarray()[0, 0])
     if n <= 3:
-        # Para n pequeño, el cálculo denso es más estable
-        eigvals = np.linalg.eigvalsh(A.toarray())
-        return float(np.min(eigvals))
+        return float(np.min(np.linalg.eigvalsh(A.toarray())))
     try:
-        # ARPACK: k=1 eigenvalor de menor magnitud
         eigvals, _ = eigsh(A, k=1, which="SM", tol=tol, return_eigenvectors=True)
         return float(np.real(eigvals[0]))
     except Exception:
-        # Fallback a denso si ARPACK no converge
-        eigvals = np.linalg.eigvalsh(A.toarray())
-        return float(np.min(eigvals))
+        return float(np.min(np.linalg.eigvalsh(A.toarray())))
+
+
+def _estimate_kernel_dimension(
+    A: sp.spmatrix,
+    spectral_tol: float = PistonConstants.SPECTRAL_THRESHOLD,
+    max_k: int = 8,
+) -> int:
+    r"""
+    Estima dim ker(A) contando eigenvalores |λ| ≤ spectral_tol.
+
+    Para L₁^W, dim ker(L₁) ≅ β₁ (primer número de Betti) en el caso
+    genérico de métrica no degenerada.
+    """
+    n = A.shape[0]
+    if n == 0:
+        return 0
+    k = min(max_k, n - 1) if n > 1 else 1
+    if n <= 4:
+        ev = np.linalg.eigvalsh(A.toarray())
+        return int(np.sum(np.abs(ev) <= spectral_tol))
+    try:
+        ev, _ = eigsh(A, k=k, which="SM", tol=spectral_tol, return_eigenvectors=True)
+        return int(np.sum(np.abs(np.real(ev)) <= spectral_tol))
+    except Exception:
+        ev = np.linalg.eigvalsh(A.toarray())
+        return int(np.sum(np.abs(ev) <= spectral_tol))
 
 
 def _energy_norm(
-    v     : NDArray[np.float64],
-    W_inv : sp.dia_matrix,
+    v: NDArray[np.float64],
+    W_inv: sp.dia_matrix,
 ) -> float:
     r"""
-    Calcula la norma de energía ‖v‖_W = √(vᵀ W⁻¹ v).
+    Norma de energía ‖v‖_W = √(vᵀ W⁻¹ v) = √(Σ vₖ² / wₖ).
 
-    La norma de energía es la métrica natural del espacio de flujos
-    en una red con conductancias W. Generaliza la norma L² euclidiana
-    al caso donde cada arista tiene una "masa" inversa 1/wₖ.
-
-    Interpretación física:
-        ‖f‖²_W = fᵀ W⁻¹ f = Σₖ fₖ²/wₖ   [potencia disipada total]
-
-    Parámetros
-    ----------
-    v     : NDArray, shape (n,), vector de flujos.
-    W_inv : sp.dia_matrix, shape (n,n), inversa de conductancias W⁻¹.
-
-    Retorna
-    -------
-    float ≥ 0, norma de energía ‖v‖_W.
+    FIX-M1: requiere ``import math`` (ausente en v6).
     """
     quadratic = float(v @ W_inv.dot(v))
     return math.sqrt(max(quadratic, 0.0))
 
 
 def _energy_inner_product(
-    u     : NDArray[np.float64],
-    v     : NDArray[np.float64],
-    W_inv : sp.dia_matrix,
+    u: NDArray[np.float64],
+    v: NDArray[np.float64],
+    W_inv: sp.dia_matrix,
 ) -> float:
-    r"""
-    Calcula el producto interno de energía ⟨u, v⟩_W = uᵀ W⁻¹ v.
-
-    Parámetros
-    ----------
-    u, v  : NDArray, shape (n,), vectores de flujos.
-    W_inv : sp.dia_matrix, shape (n,n), W⁻¹.
-
-    Retorna
-    -------
-    float, producto interno ⟨u, v⟩_W.
-    """
+    r"""Producto interno de energía ⟨u, v⟩_W = uᵀ W⁻¹ v."""
     return float(u @ W_inv.dot(v))
 
 
 def _lsqr_solve(
-    A    : sp.spmatrix,
-    b    : NDArray[np.float64],
-    atol : float = 1e-12,
-    btol : float = 1e-12,
+    A: sp.spmatrix,
+    b: NDArray[np.float64],
+    atol: float = 1e-12,
+    btol: float = 1e-12,
 ) -> NDArray[np.float64]:
     r"""
-    Resuelve el sistema A x = b via LSQR (mínimos cuadrados sparse).
+    Resuelve A x = b vía LSQR (mínima norma-2).
 
-    CORRECCIÓN FIX 7:
-        `scipy.sparse.linalg.lsqr` retorna una tupla de 7 elementos:
-            (x, istop, itn, r1norm, r2norm, anorm, acond)
-        El desempaquetado con 9 variables causa ValueError en v5.0.0.
-        Esta función encapsula el retorno correctamente.
+    ``scipy.sparse.linalg.lsqr`` retorna exactamente 7 elementos:
+        (x, istop, itn, r1norm, r2norm, anorm, acond)
 
-    Parámetros
-    ----------
-    A    : sp.spmatrix, matriz del sistema (puede ser singular → mín. norma).
-    b    : NDArray, vector de términos independientes.
-    atol : float, tolerancia absoluta de residuo.
-    btol : float, tolerancia relativa de residuo.
-
-    Retorna
-    -------
-    NDArray, shape (n,), solución x de mínima norma-2.
+    Para L₀^W (singular, ker=span{1}), LSQR produce la solución de
+    mínima norma, equivalente a gauge-fixing ⟨φ, 1⟩ = 0 (FIX-M6).
     """
-    # LSQR retorna exactamente 7 valores (FIX 7)
     result = lsqr(A, b, atol=atol, btol=btol)
-    x = result[0]   # solución de mínima norma
-    return np.asarray(x, dtype=np.float64)
+    return np.asarray(result[0], dtype=np.float64)
+
+
+def _diag_of_dia(M: sp.dia_matrix) -> NDArray[np.float64]:
+    r"""Extrae la diagonal principal de una dia_matrix de forma robusta."""
+    return np.asarray(M.diagonal(), dtype=np.float64)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ╔══════════════════════════════════════════════════════════════════════════╗
 # ║                                                                          ║
-# ║  ORQUESTADOR SUPREMO: HodgeHelmholtzInjectorAgent (v6.0.0)               ║
+# ║  ORQUESTADOR SUPREMO: HodgeHelmholtzInjectorAgent (v7.0.0)               ║
 # ║                                                                          ║
-# ║  Contiene anidadas las tres fases matemáticas encadenadas por DTOs.      ║
+# ║  Tres fases anidadas encadenadas por DTOs:                               ║
+# ║    FASE 1 → SimplicialMesh  (∂∘∂=0, L₀^W, L₁^W autoadjunto)              ║
+# ║    FASE 2 → FlowState       (Poisson + espectro + KCL)                   ║
+# ║    FASE 3 → HodgeDecomposition (proyecciones métricamente correctas)     ║
 # ║                                                                          ║
-# ║  Garantías v6.0.0:                                                       ║
-# ║    G1. ∂₁∘∂₂ = 0 certificado antes de operar (FIX 1)                     ║
-# ║    G2. L₀^W = ∂₁W∂₁ᵀ (Laplaciano ponderado) (FIX 4)                      ║
-# ║    G3. λ_min(L_red) > SPECTRAL_THRESHOLD (FIX 3)                         ║
-# ║    G4. ∑sᵢ = 0 antes de resolver (FIX 9)                                 ║
-# ║    G5. Descomposición ortogonal en ⟨·,·⟩_W (FIX 6+8)                     ║
-# ║    G6. LSQR con desempaquetado correcto (FIX 7)                          ║
-# ║    G7. Ortogonalidad verificada post-descomposición (FIX 8)              ║
+# ║  Garantías v7.0.0:                                                       ║
+# ║    G1. ∂₁∘∂₂ = 0 certificado                                             ║
+# ║    G2. L₀^W = ∂₁ W ∂₁ᵀ                                                   ║
+# ║    G3. L₁^W autoadjunto en ⟨·,·⟩_W                                       ║
+# ║    G4. λ_min(L_red) > SPECTRAL_THRESHOLD                                 ║
+# ║    G5. ∑ sᵢ = 0 antes de resolver                                        ║
+# ║    G6. I_grad ∈ W·im(∂₁ᵀ)  (consistente con Ohm)                         ║
+# ║    G7. I_curl con peso W⁻¹ (ecuaciones normales correctas)               ║
+# ║    G8. Ortogonalidad + Pitágoras en ⟨·,·⟩_W                              ║
+# ║    G9. Encadenamiento formal FASE1→FASE2→FASE3                           ║
 # ║                                                                          ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
 # ══════════════════════════════════════════════════════════════════════════════
 
 class HodgeHelmholtzInjectorAgent(Morphism):
     r"""
-    El Soberano Absoluto de la inyección termodinámica (Estrato PHYSICS).
+    Soberano de la inyección termodinámica (Estrato PHYSICS).
 
-    Modela isomorficamente la inyección de capital/recursos como una Bomba de
-    Desplazamiento Positivo en una red de fluidos incompresibles.
+    Modela la inyección de capital/recursos como bomba de desplazamiento
+    positivo en una red de fluidos incompresibles, con garantía métrica
+    de la descomposición de Hodge-Helmholtz en la norma de energía.
 
-    La arquitectura en tres fases anidadas garantiza:
-        FASE 1 → ∂₁∘∂₂ = 0 (complejo de cadenas válido)
-        FASE 2 → λ_min(L_red) > 0 + ∑sᵢ = 0 (Poisson bien planteado)
-        FASE 3 → Hodge ponderado + ortogonalidad ⟨·,·⟩_W (DEC correcto)
+    Arquitectura anidada:
+        FASE 1 → complejo de cadenas + Laplacianos ponderados
+        FASE 2 → Poisson de Dirichlet bien planteado (continúa de FASE 1)
+        FASE 3 → Hodge-Helmholtz métricamente consistente (continúa de FASE 2)
     """
 
-    # ═══════════════════════════════════════════════════════════════════════
+    # =========================================================================
     # FASE 1 · FIBRADOR DEL COMPLEJO DE CADENAS (CONSTRUCTOR MATRICIAL)
-    # ═══════════════════════════════════════════════════════════════════════
+    # =========================================================================
 
     class _Phase1_SimplicialBoundaryBuilder:
         r"""
-        Sintetiza los operadores frontera ∂₁ y ∂₂ y verifica axiomáticamente
-        que constituyen un complejo de cadenas diferencial válido.
+        Sintetiza ∂₁, ∂₂ y los Laplacianos de Hodge ponderados, y certifica
+        que (C•, ∂) es un complejo de cadenas diferencial válido.
 
-        CORRECCIONES v6.0.0:
-        ─────────────────────
-        FIX 1: Verificación ∂₁∘∂₂ = 0 (Lemma de Leibniz).
-        FIX 2: Orientación consistente de ciclos via árbol generador BFS.
-        FIX 4: Laplaciano ponderado L₀^W = ∂₁W∂₁ᵀ (incorpora conductancias).
-        FIX 6: Laplaciano de Hodge L₁^W = ∂₁ᵀW⁻¹∂₁ + ∂₂∂₂ᵀW (DEC correcto).
-        FIX 12: Precálculo y almacenamiento de L₀^W, L₁^W, W⁻¹ en SimplicialMesh.
+        Correcciones v7:
+            FIX-M4  L₁^W autoadjunto en ⟨·,·⟩_W
+            FIX-M8  estimación de β₁ vía espectro de L₁
+            FIX-M9  cociclo de signos para orientación de ciclos
+            FIX-M7  SimplicialMesh es la sutura formal hacia FASE 2
         """
 
-        # ──────────────────────────────────────────────────────────────────
-        # §1.1 — Árbol generador BFS para orientación consistente de ciclos
-        # ──────────────────────────────────────────────────────────────────
+        # ------------------------------------------------------------------
+        # §1.1 — Árbol generador BFS (conexidad + base de orientación)
+        # ------------------------------------------------------------------
 
         @staticmethod
         def _build_spanning_tree_bfs(
-            nodes    : List[str],
-            edges    : List[Tuple[str, str, float]],
+            nodes: List[str],
+            edges: List[Tuple[str, str, float]],
         ) -> Dict[str, Optional[str]]:
             r"""
-            Construye un árbol generador del grafo via BFS.
+            Árbol generador T ⊆ G vía BFS.
 
-            El árbol generador T ⊆ G es un subgrafo acíclico conexo con
-            |V|-1 aristas. Las aristas NO en T son las "aristas de co-árbol"
-            que generan los ciclos fundamentales del grafo.
-
-            El BFS garantiza que cada nodo tiene un único padre, y que
-            el árbol está bien definido para grafos conexos.
-
-            Parámetros
-            ----------
-            nodes : List[str], lista de nodos del grafo.
-            edges : List[Tuple[str,str,float]], aristas con conductancias.
-
-            Retorna
-            -------
-            Dict[str, Optional[str]], mapa nodo → padre en el árbol.
-                                      La raíz tiene padre None.
+            T es acíclico, conexo, con |V|−1 aristas. Las aristas de
+            co-árbol generan los ciclos fundamentales.
 
             Lanza
             -----
-            TopologicalInvariantError : Si el grafo no es conexo.
+            TopologicalInvariantError : grafo no conexo.
             """
-            from collections import deque
-
-            # Lista de adyacencia no dirigida (ignoramos orientación aquí)
             adj: Dict[str, List[str]] = {n: [] for n in nodes}
             for u, v, _ in edges:
                 adj[u].append(v)
                 adj[v].append(u)
 
-            root   = nodes[0]
-            parent : Dict[str, Optional[str]] = {root: None}
-            queue  = deque([root])
+            root = nodes[0]
+            parent: Dict[str, Optional[str]] = {root: None}
+            queue: deque = deque([root])
 
             while queue:
                 node = queue.popleft()
@@ -528,143 +500,101 @@ class HodgeHelmholtzInjectorAgent(Morphism):
                         parent[neighbor] = node
                         queue.append(neighbor)
 
-            # Verificar conexidad: todos los nodos deben tener padre
             unvisited = [n for n in nodes if n not in parent]
             if unvisited:
                 raise TopologicalInvariantError(
-                    f"Grafo no es conexo. Nodos no alcanzables desde "
-                    f"'{root}': {unvisited}. La inyección de flujo "
-                    f"requiere un grafo conexo para que la ecuación de "
-                    f"Poisson tenga solución única bajo Dirichlet."
+                    f"Grafo no conexo. Nodos no alcanzables desde '{root}': "
+                    f"{unvisited}. Poisson requiere grafo conexo para "
+                    f"solución única bajo Dirichlet."
                 )
-
             return parent
 
-        # ──────────────────────────────────────────────────────────────────
-        # §1.2 — Verificación axiomática ∂₁∘∂₂ = 0 (FIX 1)
-        # ──────────────────────────────────────────────────────────────────
+        # ------------------------------------------------------------------
+        # §1.2 — Identidad de Leibniz ∂₁∘∂₂ = 0
+        # ------------------------------------------------------------------
 
         @staticmethod
         def _verify_boundary_identity(
-            boundary_1 : sp.csr_matrix,
-            boundary_2 : sp.csr_matrix,
+            boundary_1: sp.csr_matrix,
+            boundary_2: sp.csr_matrix,
         ) -> None:
             r"""
-            Verifica la identidad de Leibniz ∂₁∘∂₂ = 0.
+            Verifica ∂₁ ∘ ∂₂ = 0 (lema de Leibniz).
 
-            Teorema (Lema de Leibniz):
-                En un complejo de cadenas (C•, ∂), la composición de
-                operadores frontera consecutivos es nula:
-                    ∂_{k-1} ∘ ∂_k = 0   ∀ k
-
-            Para k=2: ∂₁∘∂₂ = 0.
-
-            Interpretación topológica:
-                La frontera de una frontera es vacía. Si ∂₂ asigna a cada
-                2-celda (ciclo) su 1-frontera (aristas del ciclo), entonces
-                ∂₁(∂₂(ciclo)) = frontera de las aristas del ciclo = 0.
-                (Cada nodo del ciclo aparece exactamente dos veces con
-                signos opuestos → cancelación exacta.)
-
-            Verificación numérica:
-                ‖∂₁∘∂₂‖_F < ε_mach · ‖∂₁‖_F · ‖∂₂‖_F
-
-            Parámetros
-            ----------
-            boundary_1 : sp.csr_matrix, ∂₁ ∈ ℝ^{|V|×|E|}.
-            boundary_2 : sp.csr_matrix, ∂₂ ∈ ℝ^{|E|×|F|}.
+            Criterio numérico:
+                ‖∂₁∘∂₂‖_F ≤ max(ε_mach · ‖∂₁‖_F · ‖∂₂‖_F · C, ε_mach)
 
             Lanza
             -----
-            BoundaryComplexError : Si ‖∂₁∘∂₂‖_F supera la tolerancia.
+            BoundaryComplexError : si la composición no es numéricamente nula.
             """
             if boundary_2.shape[1] == 0:
-                # Sin ciclos: ∂₂ es vacía → la identidad es trivialmente nula
                 return
 
-            # Producto ∂₁∘∂₂ (debe ser la matriz cero)
             composition = boundary_1.dot(boundary_2)
-            frob_norm   = sp.linalg.norm(composition, ord="fro")
+            frob_norm = sp.linalg.norm(composition, ord="fro")
+            norm_b1 = sp.linalg.norm(boundary_1, ord="fro")
+            norm_b2 = sp.linalg.norm(boundary_2, ord="fro")
+            tol_rel = (
+                PistonConstants.MACHINE_EPSILON
+                * max(norm_b1 * norm_b2, 1.0)
+                * PistonConstants.BOUNDARY_IDENTITY_TOL_FACTOR
+            )
+            tol = max(tol_rel, PistonConstants.MACHINE_EPSILON * 1e3)
 
-            # Tolerancia relativa: ε_mach · ‖∂₁‖_F · ‖∂₂‖_F
-            norm_b1  = sp.linalg.norm(boundary_1, ord="fro")
-            norm_b2  = sp.linalg.norm(boundary_2, ord="fro")
-            tol_rel  = PistonConstants.MACHINE_EPSILON * max(norm_b1 * norm_b2, 1.0)
-
-            if frob_norm > max(tol_rel, PistonConstants.MACHINE_EPSILON * 1e3):
+            if frob_norm > tol:
                 raise BoundaryComplexError(
-                    f"Violación de la identidad de Leibniz ∂₁∘∂₂ = 0. "
-                    f"‖∂₁∘∂₂‖_F = {frob_norm:.3e} (tolerancia: {tol_rel:.3e}). "
-                    f"Los ciclos proporcionados no son compatibles con la "
-                    f"orientación de las aristas. Revisar la definición de "
-                    f"cycles para garantizar coherencia algebraica."
+                    f"Violación de Leibniz ∂₁∘∂₂ = 0: "
+                    f"‖∂₁∘∂₂‖_F = {frob_norm:.3e} (tol = {tol:.3e}). "
+                    f"Ciclos incompatibles con la orientación de aristas."
                 )
-
             logger.debug(
-                "Identidad de Leibniz ∂₁∘∂₂ = 0 verificada. "
-                "‖∂₁∘∂₂‖_F = %.3e.",
+                "Leibniz ∂₁∘∂₂ = 0 verificado. ‖∂₁∘∂₂‖_F = %.3e.",
                 frob_norm,
             )
 
-        # ──────────────────────────────────────────────────────────────────
-        # §1.3 — Construcción de ∂₂ con orientación coherente (FIX 2)
-        # ──────────────────────────────────────────────────────────────────
+        # ------------------------------------------------------------------
+        # §1.3 — Construcción de ∂₂ con orientación coherente (cociclo)
+        # ------------------------------------------------------------------
 
         @staticmethod
         def _build_boundary_2_oriented(
-            cycles    : List[List[str]],
-            edge_idx  : Dict[Tuple[str, str], int],
-            n_edges   : int,
+            cycles: List[List[str]],
+            edge_idx: Dict[Tuple[str, str], int],
+            n_edges: int,
         ) -> sp.csr_matrix:
             r"""
-            Construye ∂₂ con orientación coherente respecto a ∂₁.
+            Construye ∂₂ ∈ ℝ^{|E|×|F|} con signos coherentes respecto a ∂₁.
 
-            CORRECCIÓN FIX 2:
-            En v5.0.0, los ciclos se procesaban ignorando la orientación
-            de las aristas en ∂₁. Si una arista (u,v) está en ∂₁ con
-            signo (+1 en v, -1 en u), pero el ciclo la traversa en sentido
-            contrario, la identidad ∂₁∘∂₂ = 0 se viola.
-
-            Este método asigna el signo correcto a cada arista del ciclo:
-                Si (u,v) ∈ edge_idx: signo = +1 (dirección canónica)
-                Si (v,u) ∈ edge_idx: signo = -1 (dirección opuesta)
-                Si ninguno: la arista no existe → ciclo inválido (WARNING)
-
-            Parámetros
-            ----------
-            cycles   : List[List[str]], ciclos como listas de nodos.
-            edge_idx : Dict[(str,str), int], índice de aristas orientadas.
-            n_edges  : int, número total de aristas |E|.
-
-            Retorna
-            -------
-            sp.csr_matrix, ∂₂ ∈ ℝ^{|E|×|F|} con orientación coherente.
+            Regla de cociclo (FIX-M9):
+                (u,v) ∈ edge_idx → signo +1  (dirección canónica de ∂₁)
+                (v,u) ∈ edge_idx → signo −1  (dirección opuesta)
+                ninguno          → WARNING + omisión (ciclo incompleto)
             """
-            n_f    = len(cycles)
-            data   : List[float] = []
-            rows   : List[int]   = []
-            cols   : List[int]   = []
+            n_f = len(cycles)
+            data: List[float] = []
+            rows: List[int] = []
+            cols: List[int] = []
 
             for f_idx, cycle in enumerate(cycles):
-                # Cerrar el ciclo: último nodo → primer nodo
+                if len(cycle) < 2:
+                    logger.warning(
+                        "Ciclo %d degenerado (|nodes| < 2); se omite.", f_idx
+                    )
+                    continue
                 nodes_cycle = list(cycle) + [cycle[0]]
                 for k in range(len(nodes_cycle) - 1):
                     u, v = nodes_cycle[k], nodes_cycle[k + 1]
-
                     if (u, v) in edge_idx:
-                        e_idx = edge_idx[(u, v)]
-                        sign  = +1.0
+                        e_idx, sign = edge_idx[(u, v)], +1.0
                     elif (v, u) in edge_idx:
-                        e_idx = edge_idx[(v, u)]
-                        sign  = -1.0
+                        e_idx, sign = edge_idx[(v, u)], -1.0
                     else:
                         logger.warning(
-                            "Arista (%s, %s) del ciclo %d no existe en el grafo. "
-                            "La arista se omite. Verificar coherencia de 'cycles'.",
+                            "Arista (%s, %s) del ciclo %d ausente en E; omitida.",
                             u, v, f_idx,
                         )
                         continue
-
                     rows.append(e_idx)
                     cols.append(f_idx)
                     data.append(sign)
@@ -678,74 +608,119 @@ class HodgeHelmholtzInjectorAgent(Morphism):
                 dtype=np.float64,
             )
 
-        # ──────────────────────────────────────────────────────────────────
-        # §1.4 — Método principal: build_mesh (SUTURA DOCTORAL)
-        # ──────────────────────────────────────────────────────────────────
+        # ------------------------------------------------------------------
+        # §1.4 — Laplaciano de Hodge L₁^W autoadjunto (FIX-M4)
+        # ------------------------------------------------------------------
+
+        @staticmethod
+        def _build_hodge_laplacian_1(
+            boundary_1: sp.csr_matrix,
+            boundary_2: sp.csr_matrix,
+            W: sp.dia_matrix,
+            W_inv: sp.dia_matrix,
+            n_edges: int,
+            n_faces: int,
+        ) -> sp.csr_matrix:
+            r"""
+            Construye L₁^W autoadjunto respecto a ⟨·,·⟩_W = ·ᵀ W⁻¹ ·.
+
+            Forma canónica (DEC ponderado, FIX-M4):
+                L₁^W = W ∂₁ᵀ ∂₁  +  ∂₂ ∂₂ᵀ W⁻¹
+
+            Justificación de adjunción:
+                d₀_W  = W ∂₁ᵀ : (ℝ^V, ⟨·,·⟩₂) → (ℝ^E, ⟨·,·⟩_W)
+                d₀*_W = ∂₁     (adjunto formal bajo esas métricas)
+                ⇒ d₀_W d₀*_W = W ∂₁ᵀ ∂₁
+
+                d₁    = ∂₂ᵀ W⁻¹  (adjunto de ∂₂ bajo ⟨·,·⟩_W en E
+                                   y métrica euclídea en F, tras dualizar)
+                ⇒ d₁* d₁ contribuye ∂₂ ∂₂ᵀ W⁻¹ sobre 1-formas.
+
+            Simetría: ambos sumandos son autoadjuntos en ⟨·,·⟩_W.
+            """
+            # Término exacto (gradiente): W ∂₁ᵀ ∂₁
+            # (∂₁ᵀ ∂₁) es el Laplaciano combinatorio de aristas (parte grad)
+            L1_grad = W.dot(boundary_1.T.dot(boundary_1)).tocsr()
+
+            # Término co-exacto (curl): ∂₂ ∂₂ᵀ W⁻¹
+            if n_faces > 0 and boundary_2.shape[1] > 0:
+                L1_curl = boundary_2.dot(boundary_2.T.dot(W_inv)).tocsr()
+            else:
+                L1_curl = sp.csr_matrix((n_edges, n_edges), dtype=np.float64)
+
+            return (L1_grad + L1_curl).tocsr()
+
+        # ------------------------------------------------------------------
+        # §1.5 — build_mesh: SUTURA DOCTORAL FASE 1 → (entrada FASE 2)
+        # ------------------------------------------------------------------
 
         @classmethod
         def build_mesh(
             cls,
-            nodes  : List[str],
-            edges  : List[Tuple[str, str, float]],
-            cycles : List[List[str]],
+            nodes: List[str],
+            edges: List[Tuple[str, str, float]],
+            cycles: List[List[str]],
         ) -> "SimplicialMesh":
             r"""
-            Construye la malla simplicial con todos los operadores de Hodge.
+            Construye la malla simplicial completa con operadores de Hodge.
 
-            CORRECCIONES FIX 1, 2, 4, 6, 12 integradas:
+            Pipeline FASE 1
+            ───────────────
+            1. Validar wₖ > 0 ∀ k.
+            2. Construir ∂₁ (incidencia orientada).
+            3. BFS: árbol generador + conexidad.
+            4. W, W⁻¹.
+            5. ∂₂ con cociclo de signos.
+            6. Certificar ∂₁∘∂₂ = 0.
+            7. L₀^W = ∂₁ W ∂₁ᵀ.
+            8. L₁^W autoadjunto (FIX-M4).
+            9. Estimar β₁ = dim ker(L₁) (FIX-M8).
+            10. Empaquetar SimplicialMesh.
 
-            Pipeline:
-            ─────────
-            1. Validación de conductancias (wₖ > 0 ∀ k).
-            2. Construcción de ∂₁ (incidencia orientada).
-            3. Árbol generador BFS para verificar conexidad (FIX 2).
-            4. Construcción de ∂₂ con orientación coherente (FIX 2).
-            5. Verificación ∂₁∘∂₂ = 0 (FIX 1).
-            6. Cálculo L₀^W = ∂₁W∂₁ᵀ (FIX 4).
-            7. Cálculo W⁻¹ (FIX 6, necesario para L₁^W y normas).
-            8. Cálculo L₁^W = ∂₁ᵀW⁻¹∂₁ + ∂₂∂₂ᵀW (FIX 6).
-            9. Empaquetado en SimplicialMesh con campos precalculados (FIX 12).
-
-            Parámetros
-            ----------
-            nodes  : List[str], identificadores de nodos.
-            edges  : List[Tuple[str,str,float]], aristas (u, v, conductancia).
-            cycles : List[List[str]], ciclos como listas de nodos.
-
-            Retorna
-            -------
-            SimplicialMesh con todos los tensores precalculados.
+            **SUTURA FORMAL FASE 1 → FASE 2:**
+            El valor de retorno ``SimplicialMesh`` es el objeto canónico
+            de entrada de
+            ``_Phase2_DirichletPoissonSolver.solve_hydrodynamics``.
+            Todo invariante necesario para Poisson (L₀^W, ∂₁, W, Leibniz)
+            queda certificado aquí; FASE 2 no reconstruye operadores.
 
             Lanza
             -----
-            TopologicalInvariantError : Conductancia ≤ 0 o grafo no conexo.
-            BoundaryComplexError      : ∂₁∘∂₂ ≠ 0 (ciclos incompatibles).
+            TopologicalInvariantError : wₖ ≤ 0 o grafo no conexo.
+            BoundaryComplexError      : ∂₁∘∂₂ ≠ 0.
             """
             n_v = len(nodes)
             n_e = len(edges)
             n_f = len(cycles)
 
-            node_idx : Dict[str, int]            = {n: i for i, n in enumerate(nodes)}
-            edge_idx : Dict[Tuple[str,str], int] = {
+            if n_v == 0 or n_e == 0:
+                raise TopologicalInvariantError(
+                    "Malla degenerada: se requiere |V| ≥ 1 y |E| ≥ 1."
+                )
+
+            node_idx: Dict[str, int] = {n: i for i, n in enumerate(nodes)}
+            edge_idx: Dict[Tuple[str, str], int] = {
                 (u, v): k for k, (u, v, _) in enumerate(edges)
             }
 
-            # §1.4.1: Verificación de conductancias (wₖ > 0 ∀ k)
+            # §1.5.1 Conductancias estrictamente positivas
             conductances = np.zeros(n_e, dtype=np.float64)
             for k, (u, v, w) in enumerate(edges):
+                if u not in node_idx or v not in node_idx:
+                    raise TopologicalInvariantError(
+                        f"Arista ({u}→{v}) referencia nodos inexistentes."
+                    )
                 if w <= 0.0:
                     raise TopologicalInvariantError(
-                        f"Conductancia degenerada en arista ({u}→{v}): "
-                        f"w={w:.4e} ≤ 0. Las conductancias deben ser "
-                        f"estrictamente positivas para que W sea una "
-                        f"métrica discreta válida."
+                        f"Conductancia degenerada en ({u}→{v}): w={w:.4e} ≤ 0. "
+                        f"W debe ser métrica discreta definida positiva."
                     )
                 conductances[k] = w
 
-            # §1.4.2: Construcción de ∂₁ (incidencia orientada)
+            # §1.5.2 ∂₁ incidencia orientada: columna k → −1 en u, +1 en v
             B1_data: List[float] = []
-            B1_rows: List[int]   = []
-            B1_cols: List[int]   = []
+            B1_rows: List[int] = []
+            B1_cols: List[int] = []
             for k, (u, v, _) in enumerate(edges):
                 B1_rows.extend([node_idx[u], node_idx[v]])
                 B1_cols.extend([k, k])
@@ -757,853 +732,718 @@ class HodgeHelmholtzInjectorAgent(Morphism):
                 dtype=np.float64,
             )
 
-            # §1.4.3: Árbol generador BFS (verifica conexidad) (FIX 2)
+            # §1.5.3 Conexidad vía árbol generador BFS
             _ = cls._build_spanning_tree_bfs(nodes, edges)
 
-            # §1.4.4: Matriz de conductancias W y W⁻¹ (FIX 6+12)
-            W_matrix     = sp.diags(conductances,            format="dia", dtype=np.float64)
-            inv_cond_arr = 1.0 / conductances
-            W_inv_matrix = sp.diags(inv_cond_arr,            format="dia", dtype=np.float64)
+            # §1.5.4 Métrica de aristas W, W⁻¹
+            W_matrix = sp.diags(conductances, format="dia", dtype=np.float64)
+            W_inv_matrix = sp.diags(
+                1.0 / conductances, format="dia", dtype=np.float64
+            )
 
-            # §1.4.5: Construcción de ∂₂ con orientación coherente (FIX 2)
+            # §1.5.5 ∂₂ orientado
             boundary_2 = cls._build_boundary_2_oriented(cycles, edge_idx, n_e)
 
-            # §1.4.6: Verificación axiomática ∂₁∘∂₂ = 0 (FIX 1)
+            # §1.5.6 Leibniz ∂₁∘∂₂ = 0
             cls._verify_boundary_identity(boundary_1, boundary_2)
 
-            # §1.4.7: Laplaciano nodal ponderado L₀^W = ∂₁W∂₁ᵀ (FIX 4)
-            # En v5.0.0 se usaba L₀ = ∂₁∂₁ᵀ (no ponderado), ignorando W.
-            # Con W, L₀^W captura las conductancias: (L₀^W)ᵢⱼ = Σₖ wₖ·∂₁ᵢₖ·∂₁ⱼₖ
+            # §1.5.7 L₀^W = ∂₁ W ∂₁ᵀ  (Laplaciano nodal ponderado)
             laplacian_0 = boundary_1.dot(W_matrix.dot(boundary_1.T)).tocsr()
 
-            # §1.4.8: Laplaciano de Hodge ponderado L₁^W (FIX 6)
-            # L₁^W = ∂₁ᵀW⁻¹∂₁ + ∂₂∂₂ᵀW
-            # Término grad: ∂₁ᵀW⁻¹∂₁ (proyecta sobre im(∂₁ᵀ) = exact 1-forms)
-            # Término curl: ∂₂∂₂ᵀW (proyecta sobre im(∂₂) = coboundaries)
-            L1_grad_term = boundary_1.T.dot(W_inv_matrix.dot(boundary_1)).tocsr()
-            if n_f > 0:
-                L1_curl_term = boundary_2.dot(boundary_2.T.dot(W_matrix)).tocsr()
-            else:
-                L1_curl_term = sp.csr_matrix((n_e, n_e), dtype=np.float64)
-            laplacian_1 = (L1_grad_term + L1_curl_term).tocsr()
+            # §1.5.8 L₁^W autoadjunto (FIX-M4)
+            laplacian_1 = cls._build_hodge_laplacian_1(
+                boundary_1, boundary_2, W_matrix, W_inv_matrix, n_e, n_f
+            )
+
+            # §1.5.9 Estimación de β₁ (FIX-M8)
+            betti_1 = _estimate_kernel_dimension(laplacian_1)
 
             logger.info(
-                "SimplicialMesh construida: |V|=%d, |E|=%d, |F|=%d. "
-                "∂₁∘∂₂=0 ✓. L₀^W y L₁^W precalculados.",
-                n_v, n_e, n_f,
+                "SimplicialMesh v7: |V|=%d |E|=%d |F|=%d | β₁≈%d | "
+                "∂₁∘∂₂=0 ✓ | L₀^W, L₁^W autoadjuntos listos → FASE 2.",
+                n_v, n_e, n_f, betti_1,
             )
 
+            # ── SUTURA FORMAL: este return ES el inicio de FASE 2 ─────────
             return SimplicialMesh(
-                nodes              = tuple(nodes),
-                edges              = tuple((u, v) for u, v, _ in edges),
-                cycles             = tuple(tuple(c) for c in cycles),
-                boundary_1         = boundary_1,
-                boundary_2         = boundary_2,
-                conductance_matrix = W_matrix,
-                laplacian_0        = laplacian_0,
-                laplacian_1        = laplacian_1,
-                inv_conductance    = W_inv_matrix,
-                boundary_identity  = True,  # verificado por _verify_boundary_identity
+                nodes=tuple(nodes),
+                edges=tuple((u, v) for u, v, _ in edges),
+                cycles=tuple(tuple(c) for c in cycles),
+                boundary_1=boundary_1,
+                boundary_2=boundary_2,
+                conductance_matrix=W_matrix,
+                inv_conductance=W_inv_matrix,
+                laplacian_0=laplacian_0,
+                laplacian_1=laplacian_1,
+                boundary_identity=True,
+                betti_1_estimate=betti_1,
             )
 
-    # ═══════════════════════════════════════════════════════════════════════
+    # =========================================================================
     # FASE 2 · SOLUCIONADOR DE POISSON Y REDUCCIÓN DE DIRICHLET
-    # ═══════════════════════════════════════════════════════════════════════
+    # =========================================================================
+    # CONTINUACIÓN FORMAL DE FASE 1:
+    #   Entrada canónica = SimplicialMesh (salida de build_mesh).
+    #   No se reconstruyen ∂₁, W ni L₀^W; se consumen como invariantes.
+    # =========================================================================
 
     class _Phase2_DirichletPoissonSolver:
         r"""
-        Resuelve la ecuación de Poisson ponderada L₀^W p = -s bajo la
-        condición de Dirichlet p[reservorio] = 0.
+        Resuelve L₀^W p = −s con Dirichlet p[reservorio] = 0.
 
-        CORRECCIONES v6.0.0:
-        ─────────────────────
-        FIX 3: Análisis espectral de L_red via λ_min (no norma-1).
-        FIX 4: Usa L₀^W precalculado en SimplicialMesh (no recalcula).
-        FIX 5: Verifica im(s) ⊆ im(L₀^W), es decir ∑sᵢ = 0, antes de resolver.
+        **Continúa de FASE 1:** opera exclusivamente sobre el
+        ``SimplicialMesh`` certificado (Leibniz, L₀^W, W).
+
+        Correcciones v7:
+            Espectro vía λ_min; compatibilidad ∑sᵢ=0; KCL en ∞-norma.
         """
 
-        # ──────────────────────────────────────────────────────────────────
-        # §2.1 — Verificación de compatibilidad de la fuente (FIX 5)
-        # ──────────────────────────────────────────────────────────────────
+        # ------------------------------------------------------------------
+        # §2.1 — Compatibilidad de fuente (Fredholm / ∑ sᵢ = 0)
+        # ------------------------------------------------------------------
 
         @staticmethod
         def _verify_source_compatibility(
-            s_vector : NDArray[np.float64],
-            tol      : float = PistonConstants.SOURCE_BALANCE_TOL,
+            s_vector: NDArray[np.float64],
+            tol: float = PistonConstants.SOURCE_BALANCE_TOL,
         ) -> None:
             r"""
-            Verifica la condición de solvabilidad ∑sᵢ = 0 (FIX 5).
+            Condición de solvabilidad: ∑ sᵢ = 0.
 
-            Teorema de Fredholm:
-            El sistema L₀^W p = -s tiene solución sii -s ⊥ ker(L₀^W).
-            Para L₀^W simétrico SPSD: ker(L₀^W) = span{1} (vector constante).
-            Condición de compatibilidad: ⟨1, -s⟩ = -∑sᵢ = 0 → ∑sᵢ = 0.
-
-            Para la bomba de desplazamiento positivo:
-                s[fuente] = -Q,  s[sumidero] = +Q,  resto = 0
-                ∑sᵢ = -Q + Q = 0 ✓ (satisfecho por construcción)
-
-            Esta verificación protege contra vectores s degenerados que
-            lleguen de fuentes externas (ej: payloads malformados).
-
-            Parámetros
-            ----------
-            s_vector : NDArray, vector de fuentes s ∈ ℝ^{|V|}.
-            tol      : float, tolerancia para |∑sᵢ|.
-
-            Lanza
-            -----
-            SourceCompatibilityError : Si |∑sᵢ| > tol.
+            Teorema de Fredholm para L₀^W = L₀^Wᵀ SPSD:
+                L₀^W p = −s tiene solución ⇔ −s ⊥ ker(L₀^W) = span{1}
+                ⇔ ⟨1, s⟩ = ∑ sᵢ = 0.
             """
             balance = float(np.sum(s_vector))
             if abs(balance) > tol:
                 raise SourceCompatibilityError(
-                    f"Condición de solvabilidad violada: ∑sᵢ = {balance:.4e} ≠ 0. "
-                    f"El sistema L₀^W p = -s no tiene solución porque s ∉ im(L₀^W). "
-                    f"Verificar que la bomba conserva masa: Q_fuente = -Q_sumidero."
+                    f"Solvabilidad violada: ∑ sᵢ = {balance:.4e} ≠ 0. "
+                    f"s ∉ im(L₀^W). Exigir Q_fuente = −Q_sumidero."
                 )
             logger.debug(
-                "Compatibilidad de fuente verificada: ∑sᵢ = %.4e (tol=%.4e).",
+                "Compatibilidad de fuente: ∑ sᵢ = %.4e (tol=%.4e).",
                 balance, tol,
             )
 
-        # ──────────────────────────────────────────────────────────────────
-        # §2.2 — Análisis espectral de L_red (FIX 3)
-        # ──────────────────────────────────────────────────────────────────
+        # ------------------------------------------------------------------
+        # §2.2 — Espectro de L_red (no-singularidad)
+        # ------------------------------------------------------------------
 
         @staticmethod
         def _verify_laplacian_spectrum(
-            L_red     : sp.csr_matrix,
-            tol       : float = PistonConstants.SPECTRAL_THRESHOLD,
+            L_red: sp.csr_matrix,
+            tol: float = PistonConstants.SPECTRAL_THRESHOLD,
         ) -> float:
             r"""
-            Verifica la no-singularidad de L_red via análisis espectral (FIX 3).
+            Certifica λ_min(L_red) > tol.
 
-            CORRECCIÓN vs v5.0.0:
-            La verificación `norm(L_red, ord=1) < SINGULAR_THRESHOLD` es
-            incorrecta porque la norma-1 de una matriz puede ser grande
-            incluso si la matriz es singular (ej: filas linealmente dependientes
-            de norma grande).
-
-            El criterio correcto para matrices simétricas SPD (o SPSD) es
-            el eigenvalor mínimo:
-                λ_min(L_red) > SPECTRAL_THRESHOLD → L_red invertible
-
-            Para el Laplaciano reducido de Dirichlet:
-                λ_min(L_red) = ω² (cuadrado de la segunda frecuencia natural)
-                λ_min > 0 ↔ el grafo reducido es conexo y Dirichlet regulariza.
-
-            Parámetros
-            ----------
-            L_red : sp.csr_matrix, Laplaciano reducido tras eliminar el nodo reservorio.
-            tol   : float, umbral de eigenvalor mínimo.
-
-            Retorna
-            -------
-            float, λ_min(L_red) [diagnóstico].
-
-            Lanza
-            -----
-            SingularLaplacianError : Si λ_min ≤ tol.
+            λ_min es el indicador algebraico correcto (no la norma-1).
+            λ_min(L_red) > 0 ⇔ grafo reducido conexo + Dirichlet regulariza.
             """
             lambda_min = _compute_min_eigenvalue_sparse(L_red)
-
             if lambda_min <= tol:
                 raise SingularLaplacianError(
-                    f"L_red es numéricamente singular: λ_min = {lambda_min:.4e} "
-                    f"≤ {tol:.4e}. El grafo reducido (sin el nodo reservorio) "
-                    f"no está bien condicionado. Posibles causas:\n"
-                    f"  (a) El nodo reservorio no conecta todas las componentes.\n"
-                    f"  (b) Existen aristas paralelas que crean dependencias lineales.\n"
-                    f"  (c) El grafo tiene componentes aisladas del reservorio."
+                    f"L_red singular: λ_min = {lambda_min:.4e} ≤ {tol:.4e}. "
+                    f"Causas posibles: (a) reservorio no conecta componentes, "
+                    f"(b) dependencias lineales, (c) componentes aisladas."
                 )
-
             logger.debug(
-                "Espectro de L_red: λ_min = %.4e > SPECTRAL_THRESHOLD = %.4e. "
-                "L_red es invertible.",
+                "Espectro L_red: λ_min = %.4e > %.4e → invertible.",
                 lambda_min, tol,
             )
             return lambda_min
 
-        # ──────────────────────────────────────────────────────────────────
-        # §2.3 — Solución de Poisson + verificación de Kirchhoff
-        # ──────────────────────────────────────────────────────────────────
+        # ------------------------------------------------------------------
+        # §2.3 — solve_hydrodynamics: SUTURA DOCTORAL FASE 2 → (entrada FASE 3)
+        # ------------------------------------------------------------------
 
         @staticmethod
         def solve_hydrodynamics(
-            mesh           : "SimplicialMesh",
-            injection      : InjectionVector,
-            reservoir_node : str,
+            mesh: "SimplicialMesh",
+            injection: InjectionVector,
+            reservoir_node: str,
         ) -> "FlowState":
             r"""
-            Resuelve L₀^W p = -s con condición de Dirichlet p[res] = 0.
+            Resuelve L₀^W p = −s con p[res] = 0.
 
-            CORRECCIONES FIX 3, 4, 5 integradas:
+            **Continúa de FASE 1:** ``mesh`` es el SimplicialMesh certificado.
+            Invariantes consumidos (no recalculados):
+                mesh.laplacian_0, mesh.boundary_1, mesh.conductance_matrix,
+                mesh.boundary_identity == True.
 
-            Pipeline:
-            ─────────
-            1. Verificar ∑sᵢ = 0 (FIX 5) antes de operar.
-            2. Extraer L₀^W del mesh (precalculado, FIX 4).
-            3. Aplicar condición de Dirichlet: eliminar fila/columna del reservorio.
-            4. Verificar λ_min(L_red) > SPECTRAL_THRESHOLD (FIX 3).
-            5. Resolver L_red p_free = -s_red via spsolve.
-            6. Calcular flujos f = W ∂₁ᵀ p (Ley de Ohm generalizada).
-            7. Verificar KCL: ‖∂₁f − s‖_∞ < KIRCHHOFF_TOLERANCE.
+            Pipeline FASE 2
+            ───────────────
+            1. Verificar ∑ sᵢ = 0.
+            2. Dirichlet: eliminar fila/col del reservorio → L_red.
+            3. Certificar λ_min(L_red) > SPECTRAL_THRESHOLD.
+            4. spsolve(L_red, −s_red).
+            5. f = W ∂₁ᵀ p  (Ohm ponderado).
+            6. KCL: ‖∂₁ f + s‖_∞ < τ.
 
-            Parámetros
-            ----------
-            mesh           : SimplicialMesh con L₀^W precalculado.
-            injection      : InjectionVector con balance ∑sᵢ=0 verificado.
-            reservoir_node : str, nodo con presión fija p=0 (Dirichlet).
-
-            Retorna
-            -------
-            FlowState con presiones, flujos, residuo KCL y λ_min diagnóstico.
+            **SUTURA FORMAL FASE 2 → FASE 3:**
+            El ``FlowState`` retornado (edge_flows = f) es la 1-forma de
+            entrada de ``_Phase3_HodgeHelmholtzAuditor.decompose_flow``.
 
             Lanza
             -----
-            SingularLaplacianError    : λ_min(L_red) ≤ SPECTRAL_THRESHOLD.
-            HomologicalKirchhoffError : ‖∂₁f−s‖_∞ > KIRCHHOFF_TOLERANCE.
-            SourceCompatibilityError  : ∑sᵢ ≠ 0.
+            SourceCompatibilityError  : ∑ sᵢ ≠ 0.
+            SingularLaplacianError    : λ_min ≤ τ o reservorio ausente.
+            HomologicalKirchhoffError : KCL violado.
             """
-            B1  = mesh.boundary_1
-            W   = mesh.conductance_matrix
-            L0W = mesh.laplacian_0       # FIX 4: usa L₀^W precalculado
-            s   = injection.s_vector
-
-            # §2.3.1: Verificación de compatibilidad (FIX 5)
-            HodgeHelmholtzInjectorAgent._Phase2_DirichletPoissonSolver\
-                ._verify_source_compatibility(s)
-
-            # §2.3.2: Índice del nodo reservorio
-            try:
-                res_idx = list(mesh.nodes).index(reservoir_node)
-            except ValueError:
-                raise SingularLaplacianError(
-                    f"Reservorio '{reservoir_node}' no pertenece a la "
-                    f"variedad topológica. Nodos disponibles: {list(mesh.nodes)}."
+            # ── Invariantes heredados de FASE 1 ──────────────────────────
+            if not mesh.boundary_identity:
+                raise BoundaryComplexError(
+                    "FASE 2 rechaza malla sin Leibniz certificado."
                 )
 
-            # §2.3.3: Reducción de Dirichlet (eliminar fila/col del reservorio)
-            n_v       = len(mesh.nodes)
+            B1 = mesh.boundary_1
+            W = mesh.conductance_matrix
+            L0W = mesh.laplacian_0
+            s = injection.s_vector
+
+            # §2.3.1 Compatibilidad Fredholm
+            (
+                HodgeHelmholtzInjectorAgent
+                ._Phase2_DirichletPoissonSolver
+                ._verify_source_compatibility(s)
+            )
+
+            # §2.3.2 Índice del reservorio
+            try:
+                res_idx = list(mesh.nodes).index(reservoir_node)
+            except ValueError as exc:
+                raise SingularLaplacianError(
+                    f"Reservorio '{reservoir_node}' ∉ V. "
+                    f"Nodos: {list(mesh.nodes)}."
+                ) from exc
+
+            # §2.3.3 Reducción de Dirichlet
+            n_v = len(mesh.nodes)
             free_mask = np.ones(n_v, dtype=bool)
             free_mask[res_idx] = False
-
-            # Extraer submatriz L_red (Laplaciano reducido ponderado)
             L_red = L0W[free_mask, :][:, free_mask]
             s_red = s[free_mask]
 
-            # §2.3.4: Análisis espectral de L_red (FIX 3)
+            # §2.3.4 Espectro
             lambda_min = (
                 HodgeHelmholtzInjectorAgent
                 ._Phase2_DirichletPoissonSolver
                 ._verify_laplacian_spectrum(L_red)
             )
 
-            # §2.3.5: Resolver L_red p_free = -s_red
+            # §2.3.5 Resolver Poisson reducido
             try:
                 p_free = spsolve(L_red, -s_red)
             except RuntimeError as exc:
                 raise SingularLaplacianError(
-                    f"Fallo algebraico al invertir L_red (λ_min={lambda_min:.3e}). "
-                    f"Detalles: {exc}"
+                    f"Fallo al invertir L_red (λ_min={lambda_min:.3e}): {exc}"
                 ) from exc
 
-            # §2.3.6: Reconstruir vector completo de presiones
-            pressures              = np.zeros(n_v, dtype=np.float64)
-            pressures[free_mask]   = p_free
-            pressures[res_idx]     = 0.0   # Condición de Dirichlet
+            pressures = np.zeros(n_v, dtype=np.float64)
+            pressures[free_mask] = np.asarray(p_free, dtype=np.float64)
+            pressures[res_idx] = 0.0
 
-            # §2.3.7: Flujo via Ley de Ohm generalizada: f = W ∂₁ᵀ p
-            # La Ley de Ohm discreta: fₖ = wₖ · (pᵥ − pᵤ) para arista k=(u,v)
-            edge_flows = W.dot(B1.T.dot(pressures))
+            # §2.3.6 Ohm ponderado: f = W ∂₁ᵀ p
+            edge_flows = np.asarray(
+                W.dot(B1.T.dot(pressures)), dtype=np.float64
+            ).ravel()
 
-            # §2.3.8: Verificación de KCL: ‖∂₁f − s‖_∞ < τ
+            # §2.3.7 KCL: ∂₁ f + s ≈ 0
+            # (signo: ∂₁ f es divergencia; fuentes entran como −s en Poisson
+            #  L₀ p = −s ⇒ ∂₁ W ∂₁ᵀ p + s = 0 ⇒ ∂₁ f + s = 0)
             kirchhoff_residual = float(
                 np.linalg.norm(B1.dot(edge_flows) + s, ord=np.inf)
             )
             if kirchhoff_residual > PistonConstants.KIRCHHOFF_TOLERANCE:
                 raise HomologicalKirchhoffError(
-                    f"Violación Termodinámica (KCL). "
-                    f"‖∂₁f − s‖_∞ = {kirchhoff_residual:.4e} > "
-                    f"{PistonConstants.KIRCHHOFF_TOLERANCE:.4e}. "
-                    f"La masa no se conserva. Posible causa: acumulación "
-                    f"de error de redondeo en spsolve o grafo mal condicionado."
+                    f"KCL violado: ‖∂₁f + s‖_∞ = {kirchhoff_residual:.4e} > "
+                    f"{PistonConstants.KIRCHHOFF_TOLERANCE:.4e}."
                 )
 
             logger.info(
-                "Poisson L₀^W resuelto. KCL: ‖residuo‖_∞=%.3e. "
-                "λ_min(L_red)=%.3e.",
+                "Poisson L₀^W OK. KCL=%.3e λ_min(L_red)=%.3e → FASE 3.",
                 kirchhoff_residual, lambda_min,
             )
 
+            # ── SUTURA FORMAL: este return ES el inicio de FASE 3 ─────────
             return FlowState(
-                nodal_pressures    = pressures,
-                edge_flows         = edge_flows,
-                kirchhoff_residual = kirchhoff_residual,
-                lambda_min_L_red   = lambda_min,
+                nodal_pressures=pressures,
+                edge_flows=edge_flows,
+                kirchhoff_residual=kirchhoff_residual,
+                lambda_min_L_red=lambda_min,
             )
 
-    # ═══════════════════════════════════════════════════════════════════════
-    # FASE 3 · AUDITOR DE DESCOMPOSICIÓN DE HODGE-HELMHOLTZ (DEC)
-    # ═══════════════════════════════════════════════════════════════════════
+    # =========================================================================
+    # FASE 3 · AUDITOR DE DESCOMPOSICIÓN DE HODGE-HELMHOLTZ (DEC MÉTRICO)
+    # =========================================================================
+    # CONTINUACIÓN FORMAL DE FASE 2:
+    #   Entrada canónica = (SimplicialMesh, FlowState).
+    #   I ≔ flow.edge_flows ∈ ℝ^E se descompone en ⟨·,·⟩_W.
+    # =========================================================================
 
     class _Phase3_HodgeHelmholtzAuditor:
         r"""
-        Somete la 1-forma de flujo I a la descomposición de Hodge-Helmholtz
-        ponderada en el espacio de energía (⟨·,·⟩_W).
+        Descomposición de Hodge-Helmholtz ponderada en la norma de energía.
 
-        CORRECCIONES v6.0.0:
-        ─────────────────────
-        FIX 6: Laplaciano de Hodge ponderado L₁^W (DEC correcto).
-        FIX 7: Desempaquetado LSQR correcto (7 valores).
-        FIX 8: Ortogonalidad verificada en norma ⟨·,·⟩_W.
+        **Continúa de FASE 2:** consume ``FlowState.edge_flows`` y los
+        operadores certificados del ``SimplicialMesh``.
+
+        Correcciones v7 (FIX-M2, M3, M5):
+            I_grad ∈ W·im(∂₁ᵀ) con L₀ φ = ∂₁ I
+            I_curl con Gram ∂₂ᵀ W⁻¹ ∂₂
+            Pitágoras energético + residual de proyección
         """
 
-        # ──────────────────────────────────────────────────────────────────
-        # §3.1 — Proyección gradiente ponderada (FIX 6)
-        # ──────────────────────────────────────────────────────────────────
+        # ------------------------------------------------------------------
+        # §3.1 — Proyección gradiente métricamente consistente (FIX-M2)
+        # ------------------------------------------------------------------
 
         @staticmethod
         def _project_gradient(
-            boundary_1 : sp.csr_matrix,
+            boundary_1: sp.csr_matrix,
             laplacian_0: sp.csr_matrix,
-            W_inv      : sp.dia_matrix,
-            I          : NDArray[np.float64],
+            W: sp.dia_matrix,
+            I: NDArray[np.float64],
         ) -> NDArray[np.float64]:
             r"""
-            Calcula la componente gradiente (laminar) de I en la norma W.
+            Proyección ortogonal de I sobre W·im(∂₁ᵀ) en ⟨·,·⟩_W.
 
-            Proyección sobre im(∂₁ᵀ) en el espacio de energía:
+            Ecuaciones normales (FIX-M2):
+                Minimizar_φ  ‖I − W ∂₁ᵀ φ‖_W²
+                ⇔  L₀^W φ = ∂₁ I
+                ⇔  I_grad = W ∂₁ᵀ φ
 
-                φ = (∂₁W∂₁ᵀ)⁻¹ ∂₁ W I   [potencial nodal de mínima energía]
-                I_grad = ∂₁ᵀ φ             [flujo gradiente (exact 1-form)]
+            Derivación:
+                E(φ) = (I − W ∂₁ᵀ φ)ᵀ W⁻¹ (I − W ∂₁ᵀ φ)
+                     = ‖I‖_W² − 2 φᵀ ∂₁ I + φᵀ (∂₁ W ∂₁ᵀ) φ
+                ∇E = 0 ⇒ L₀^W φ = ∂₁ I.
 
-            CORRECCIÓN FIX 6 vs v5.0.0:
-                v5.0.0 resolvía L₀ φ = ∂₁ I (sin ponderación W), produciendo
-                una proyección incorrecta en la norma euclidiana (no en ⟨·,·⟩_W).
-                La proyección correcta en DEC usa el operador de Hodge ★₀:
-                    L₀^W φ = ∂₁ W I
-                donde W actúa como la métrica discreta del espacio de aristas.
+            Consistencia con Ohm (FASE 2):
+                f = W ∂₁ᵀ p  ⇒  f ∈ W·im(∂₁ᵀ)  exactamente.
+                Por tanto, para el flujo de Poisson, I_curl ≈ 0 y
+                I_grad ≈ I (salvo error numérico).
 
-            Parámetros
-            ----------
-            boundary_1  : sp.csr_matrix, ∂₁.
-            laplacian_0 : sp.csr_matrix, L₀^W = ∂₁W∂₁ᵀ (precalculado).
-            W_inv       : sp.dia_matrix, W⁻¹.
-            I           : NDArray, flujo a proyectar.
-
-            Retorna
-            -------
-            NDArray, I_grad = ∂₁ᵀ φ (componente gradiente).
+            Gauge: LSQR sobre L₀^W (singular) ⇒ ⟨φ, 1⟩ = 0 (FIX-M6).
             """
-            # Término fuente: ∂₁ W I (divergencia ponderada de I)
-            # = ∂₁ (W I) [W es diagonal: W I = wₖ·Iₖ para cada arista k]
-            W_I     = W_inv.diagonal() ** (-1) * I    # W·I (W_inv invertida)
-
-            # Más correcto: construir W·I directamente
-            W_diag  = 1.0 / W_inv.diagonal()          # conductancias wₖ
-            WI      = W_diag * I                       # W·I
-
-            rhs_phi = boundary_1.dot(WI)               # ∂₁(W·I) ∈ ℝ^{|V|}
-
-            # Resolver L₀^W φ = ∂₁W·I (LSQR para L₀^W SPSD, FIX 7)
+            rhs_phi = boundary_1.dot(I)  # ∂₁ I  ∈ ℝ^{|V|}
             phi = _lsqr_solve(laplacian_0, rhs_phi)
-
-            # I_grad = ∂₁ᵀ φ (exact 1-form)
-            I_grad = boundary_1.T.dot(phi)
+            I_grad = np.asarray(
+                W.dot(boundary_1.T.dot(phi)), dtype=np.float64
+            ).ravel()
             return I_grad
 
-        # ──────────────────────────────────────────────────────────────────
-        # §3.2 — Proyección curl ponderada (FIX 6 + FIX 7)
-        # ──────────────────────────────────────────────────────────────────
+        # ------------------------------------------------------------------
+        # §3.2 — Proyección curl con peso W⁻¹ (FIX-M3)
+        # ------------------------------------------------------------------
 
         @staticmethod
         def _project_curl(
-            boundary_2 : sp.csr_matrix,
-            W_matrix   : sp.dia_matrix,
-            I          : NDArray[np.float64],
+            boundary_2: sp.csr_matrix,
+            W_inv: sp.dia_matrix,
+            I: NDArray[np.float64],
         ) -> NDArray[np.float64]:
             r"""
-            Calcula la componente rotacional (curl) de I en la norma W.
+            Proyección ortogonal de I sobre im(∂₂) en ⟨·,·⟩_W.
 
-            Proyección sobre im(∂₂) en el espacio de energía:
+            Ecuaciones normales (FIX-M3):
+                Minimizar_α  ‖I − ∂₂ α‖_W²
+                ⇔  (∂₂ᵀ W⁻¹ ∂₂) α = ∂₂ᵀ W⁻¹ I
+                ⇔  I_curl = ∂₂ α
 
-                α = (∂₂ᵀW∂₂)⁻¹ ∂₂ᵀW I   [potencial de ciclos ponderado]
-                I_curl = ∂₂ α              [flujo rotacional (co-exact 1-form)]
-
-            CORRECCIÓN FIX 6 vs v5.0.0:
-                v5.0.0 resolvía L₂ α = ∂₂ᵀ I (sin W), produciendo una
-                proyección incorrecta en la norma euclidiana.
-                La proyección DEC correcta usa W para ponderar ∂₂ᵀ:
-                    ∂₂ᵀW∂₂ α = ∂₂ᵀW·I
-
-            Parámetros
-            ----------
-            boundary_2 : sp.csr_matrix, ∂₂.
-            W_matrix   : sp.dia_matrix, W.
-            I          : NDArray, flujo a proyectar.
-
-            Retorna
-            -------
-            NDArray, I_curl = ∂₂ α (componente rotacional).
+            v6 usaba (∂₂ᵀ W ∂₂, ∂₂ᵀ W I): peso invertido → no ortogonal
+            en la norma de disipación de Joule.
             """
             if boundary_2.shape[1] == 0:
-                # Sin ciclos: componente curl es cero
                 return np.zeros_like(I)
 
-            # Operador de Gram: G₂ = ∂₂ᵀ W ∂₂ ∈ ℝ^{|F|×|F|}
-            G2      = boundary_2.T.dot(W_matrix.dot(boundary_2))
-
-            # Término fuente: ∂₂ᵀ W I
-            rhs_alpha = boundary_2.T.dot(W_matrix.dot(I))
-
-            # Resolver G₂ α = ∂₂ᵀW·I (LSQR, FIX 7)
-            alpha  = _lsqr_solve(G2, rhs_alpha)
-
-            # I_curl = ∂₂ α (co-exact 1-form)
-            I_curl = boundary_2.dot(alpha)
+            # Gram G₂ = ∂₂ᵀ W⁻¹ ∂₂ ∈ ℝ^{|F|×|F|}
+            G2 = boundary_2.T.dot(W_inv.dot(boundary_2))
+            rhs_alpha = boundary_2.T.dot(W_inv.dot(I))
+            alpha = _lsqr_solve(G2, rhs_alpha)
+            I_curl = np.asarray(
+                boundary_2.dot(alpha), dtype=np.float64
+            ).ravel()
             return I_curl
 
-        # ──────────────────────────────────────────────────────────────────
-        # §3.3 — Verificación de ortogonalidad en ⟨·,·⟩_W (FIX 8)
-        # ──────────────────────────────────────────────────────────────────
+        # ------------------------------------------------------------------
+        # §3.3 — Ortogonalidad triple en ⟨·,·⟩_W
+        # ------------------------------------------------------------------
 
         @staticmethod
         def _verify_hodge_orthogonality(
-            I_grad  : NDArray[np.float64],
-            I_curl  : NDArray[np.float64],
-            I_harm  : NDArray[np.float64],
-            W_inv   : sp.dia_matrix,
+            I_grad: NDArray[np.float64],
+            I_curl: NDArray[np.float64],
+            I_harm: NDArray[np.float64],
+            W_inv: sp.dia_matrix,
         ) -> bool:
             r"""
-            Verifica que las tres componentes son ortogonales en ⟨·,·⟩_W.
-
-            Teorema de Hodge (caso ponderado):
-                I = I_grad ⊕_W I_curl ⊕_W I_harm
-            donde ⊕_W denota suma ortogonal en ⟨·,·⟩_W.
-
-            Condiciones de ortogonalidad:
-                ⟨I_grad, I_curl⟩_W = 0   (exactas ⊥ co-exactas)
-                ⟨I_grad, I_harm⟩_W = 0   (exactas ⊥ armónicas)
-                ⟨I_curl, I_harm⟩_W = 0   (co-exactas ⊥ armónicas)
-
-            Un fallo de ortogonalidad indica error numérico en las
-            proyecciones LSQR o en la construcción de ∂₁, ∂₂.
-
-            Parámetros
-            ----------
-            I_grad, I_curl, I_harm : NDArray, componentes de Hodge.
-            W_inv                  : sp.dia_matrix, W⁻¹.
-
-            Retorna
-            -------
-            bool, True sii todas las ortogonalidades se satisfacen.
+            Verifica ⟨I_a, I_b⟩_W = 0 para a ≠ b ∈ {grad, curl, harm}.
             """
             tol = PistonConstants.HODGE_ORTHO_TOL
-
             inner_gc = abs(_energy_inner_product(I_grad, I_curl, W_inv))
             inner_gh = abs(_energy_inner_product(I_grad, I_harm, W_inv))
             inner_ch = abs(_energy_inner_product(I_curl, I_harm, W_inv))
-
             ok = inner_gc < tol and inner_gh < tol and inner_ch < tol
-
             if not ok:
                 logger.warning(
-                    "Ortogonalidad de Hodge violada en ⟨·,·⟩_W: "
-                    "⟨grad,curl⟩_W=%.3e, ⟨grad,harm⟩_W=%.3e, "
-                    "⟨curl,harm⟩_W=%.3e (tol=%.3e).",
+                    "Ortogonalidad Hodge violada: "
+                    "⟨g,c⟩=%.3e ⟨g,h⟩=%.3e ⟨c,h⟩=%.3e (tol=%.3e).",
                     inner_gc, inner_gh, inner_ch, tol,
                 )
             else:
                 logger.debug(
-                    "Ortogonalidad Hodge verificada en ⟨·,·⟩_W ✓ "
-                    "(⟨g,c⟩=%.2e, ⟨g,h⟩=%.2e, ⟨c,h⟩=%.2e).",
+                    "Ortogonalidad Hodge OK "
+                    "(⟨g,c⟩=%.2e ⟨g,h⟩=%.2e ⟨c,h⟩=%.2e).",
                     inner_gc, inner_gh, inner_ch,
                 )
             return ok
 
-        # ──────────────────────────────────────────────────────────────────
-        # §3.4 — Descomposición principal de Hodge-Helmholtz (FIX 6, 7, 8)
-        # ──────────────────────────────────────────────────────────────────
+        # ------------------------------------------------------------------
+        # §3.4 — Pitágoras energético (FIX-M5)
+        # ------------------------------------------------------------------
+
+        @staticmethod
+        def _verify_pythagoras(
+            I: NDArray[np.float64],
+            I_grad: NDArray[np.float64],
+            I_curl: NDArray[np.float64],
+            I_harm: NDArray[np.float64],
+            W_inv: sp.dia_matrix,
+        ) -> Tuple[bool, float, float]:
+            r"""
+            Identidad de Pitágoras en ⊕_W:
+                ‖I‖²_W = ‖I_grad‖²_W + ‖I_curl‖²_W + ‖I_harm‖²_W
+
+            Retorna
+            -------
+            (ok, energy_components_sum, energy_original)
+            """
+            e_g = _energy_norm(I_grad, W_inv) ** 2
+            e_c = _energy_norm(I_curl, W_inv) ** 2
+            e_h = _energy_norm(I_harm, W_inv) ** 2
+            e_sum = e_g + e_c + e_h
+            e_I = _energy_norm(I, W_inv) ** 2
+            scale = max(e_I, 1.0)
+            ok = abs(e_I - e_sum) / scale <= PistonConstants.PYTHAGORAS_TOL
+            if not ok:
+                logger.warning(
+                    "Pitágoras energético falló: ‖I‖²_W=%.6e vs "
+                    "Σ‖I_•‖²_W=%.6e (Δ_rel=%.3e).",
+                    e_I, e_sum, abs(e_I - e_sum) / scale,
+                )
+            return ok, e_sum, e_I
+
+        # ------------------------------------------------------------------
+        # §3.5 — decompose_flow: cierre de la cadena FASE 1→2→3
+        # ------------------------------------------------------------------
 
         @classmethod
         def decompose_flow(
             cls,
-            mesh  : "SimplicialMesh",
-            flow  : "FlowState",
+            mesh: "SimplicialMesh",
+            flow: "FlowState",
         ) -> "HodgeDecomposition":
             r"""
-            Descompone el flujo I = I_grad ⊕_W I_curl ⊕_W I_harm.
+            Descompone I = I_grad ⊕_W I_curl ⊕_W I_harm.
 
-            CORRECCIONES FIX 6, 7, 8 integradas:
+            **Continúa de FASE 2:** ``flow.edge_flows`` es la 1-forma I
+            producida por Ohm ponderado sobre el potencial de Poisson.
 
-            Pipeline:
-            ─────────
-            1. I_grad: proyección sobre im(∂₁ᵀ) en ⟨·,·⟩_W (FIX 6).
-               Resolver L₀^W φ = ∂₁W·I → I_grad = ∂₁ᵀ φ.
-            2. I_curl: proyección sobre im(∂₂) en ⟨·,·⟩_W (FIX 6).
-               Resolver G₂α = ∂₂ᵀW·I → I_curl = ∂₂α.
-            3. I_harm = I - I_grad - I_curl (componente armónica residual).
-            4. Verificar ortogonalidad en ⟨·,·⟩_W (FIX 8).
-            5. Calcular ‖I_curl‖_W (norma de energía, FIX 8).
-            6. Veto si ‖I_curl‖_W > MAX_VORTICITY_NORM.
-
-            Parámetros
-            ----------
-            mesh : SimplicialMesh con L₀^W, L₁^W, W_inv precalculados.
-            flow : FlowState con edge_flows.
-
-            Retorna
-            -------
-            HodgeDecomposition con componentes, norma de vorticidad y
-            certificación de ortogonalidad.
+            Pipeline FASE 3
+            ───────────────
+            1. I_grad: L₀^W φ = ∂₁ I → I_grad = W ∂₁ᵀ φ   (FIX-M2)
+            2. I_curl: G₂ α = ∂₂ᵀ W⁻¹ I → I_curl = ∂₂ α  (FIX-M3)
+            3. I_harm = I − I_grad − I_curl
+            4. Ortogonalidad triple en ⟨·,·⟩_W
+            5. Pitágoras energético (FIX-M5)
+            6. Residual de proyección (FIX-M10)
+            7. Veto si ‖I_curl‖_W > MAX_VORTICITY_NORM
 
             Lanza
             -----
-            ParasiticVorticityVetoError : ‖I_curl‖_W > MAX_VORTICITY_NORM.
+            ParasiticVorticityVetoError   : vorticidad parásita.
+            HodgeMetricInconsistencyError : Pitágoras fallido (opcional
+                                            como veto duro; aquí se reporta
+                                            en el DTO y se advierte).
             """
-            B1    = mesh.boundary_1
-            B2    = mesh.boundary_2
-            W     = mesh.conductance_matrix
+            B1 = mesh.boundary_1
+            B2 = mesh.boundary_2
+            W = mesh.conductance_matrix
             W_inv = mesh.inv_conductance
-            L0W   = mesh.laplacian_0        # FIX 4+12
-            I     = flow.edge_flows.copy()
+            L0W = mesh.laplacian_0
+            I = np.asarray(flow.edge_flows, dtype=np.float64).copy()
 
-            # §3.4.1: Proyección gradiente ponderada (FIX 6)
-            I_grad = cls._project_gradient(B1, L0W, W_inv, I)
+            # §3.5.1 Gradiente ponderado (FIX-M2)
+            I_grad = cls._project_gradient(B1, L0W, W, I)
 
-            # §3.4.2: Proyección rotacional ponderada (FIX 6 + FIX 7)
-            I_curl = cls._project_curl(B2, W, I)
+            # §3.5.2 Curl con W⁻¹ (FIX-M3)
+            I_curl = cls._project_curl(B2, W_inv, I)
 
-            # §3.4.3: Componente armónica (residual en ker(L₁^W))
+            # §3.5.3 Armónico residual
             I_harm = I - I_grad - I_curl
 
-            # §3.4.4: Norma de vorticidad en ⟨·,·⟩_W (FIX 8)
+            # §3.5.4 Norma de vorticidad
             vort_norm_W = _energy_norm(I_curl, W_inv)
 
-            # §3.4.5: Energía total ‖I‖²_W (verificación de Pitágoras)
-            energy_total = (
-                _energy_norm(I_grad, W_inv) ** 2
-                + _energy_norm(I_curl, W_inv) ** 2
-                + _energy_norm(I_harm, W_inv) ** 2
-            )
-
-            # §3.4.6: Verificación de ortogonalidad (FIX 8)
+            # §3.5.5 Ortogonalidad
             ortho_ok = cls._verify_hodge_orthogonality(
                 I_grad, I_curl, I_harm, W_inv
             )
 
+            # §3.5.6 Pitágoras (FIX-M5)
+            pyth_ok, energy_total, _energy_I = cls._verify_pythagoras(
+                I, I_grad, I_curl, I_harm, W_inv
+            )
+
+            # §3.5.7 Residual de proyección (FIX-M10)
+            # Por construcción algebraica I_harm = I − I_g − I_c ⇒ residual 0;
+            # se mide ‖I − (I_g+I_c+I_h)‖_W para detectar corrupción numérica.
+            recon = I_grad + I_curl + I_harm
+            proj_residual = _energy_norm(I - recon, W_inv)
+
             logger.info(
-                "Hodge-Helmholtz DEC (norma W): "
-                "‖I_grad‖_W=%.3e, ‖I_curl‖_W=%.3e, ‖I_harm‖_W=%.3e. "
-                "Ortogonalidad: %s.",
+                "Hodge-Helmholtz DEC ⟨·,·⟩_W: "
+                "‖I_g‖_W=%.3e ‖I_c‖_W=%.3e ‖I_h‖_W=%.3e | "
+                "ortho=%s pyth=%s res=%.2e | β₁≈%d.",
                 _energy_norm(I_grad, W_inv),
                 vort_norm_W,
                 _energy_norm(I_harm, W_inv),
                 "✓" if ortho_ok else "✗",
+                "✓" if pyth_ok else "✗",
+                proj_residual,
+                mesh.betti_1_estimate,
             )
 
-            # §3.4.7: Veto de vorticidad parásita (ahora en norma de energía)
+            if not pyth_ok:
+                # Veto blando: se registra; el DTO carga pythagoras_ok=False
+                # para que orquestadores aguas abajo decidan.
+                logger.error(
+                    "Inconsistencia métrica Hodge (Pitágoras). "
+                    "Revisar W, ∂₁, ∂₂ o tolerancia numérica."
+                )
+
+            # §3.5.8 Veto de vorticidad parásita
             if vort_norm_W > PistonConstants.MAX_VORTICITY_NORM:
                 raise ParasiticVorticityVetoError(
-                    f"Veto Termodinámico: Vorticidad parásita en norma de energía "
-                    f"‖I_curl‖_W = {vort_norm_W:.4e} > "
+                    f"Veto termodinámico: ‖I_curl‖_W = {vort_norm_W:.4e} > "
                     f"{PistonConstants.MAX_VORTICITY_NORM:.4e}. "
-                    f"La bomba inyectaría exergía circulando en bucles estériles "
-                    f"sin producir flujo laminar útil. "
-                    f"Revisar la topología del grafo (eliminar ciclos parásitos "
-                    f"o aumentar MAX_VORTICITY_NORM si los ciclos son intencionales)."
+                    f"Exergía en bucles estériles. Revisar topología o "
+                    f"elevar MAX_VORTICITY_NORM si los ciclos son intencionales."
                 )
 
             return HodgeDecomposition(
-                i_grad           = I_grad,
-                i_curl           = I_curl,
-                i_harm           = I_harm,
-                vorticity_norm   = vort_norm_W,
-                orthogonality_ok = ortho_ok,
-                energy_total     = energy_total,
+                i_grad=I_grad,
+                i_curl=I_curl,
+                i_harm=I_harm,
+                vorticity_norm=vort_norm_W,
+                orthogonality_ok=ortho_ok,
+                pythagoras_ok=pyth_ok,
+                energy_total=energy_total,
+                projection_residual=proj_residual,
             )
 
     # ── Constructor y métodos públicos del agente ─────────────────────────
 
     def __init__(self) -> None:
-        """Las fases son métodos de clase; no requieren estado de instancia."""
-        pass
+        """Fases como métodos de clase; sin estado mutable de instancia."""
 
-    # ──────────────────────────────────────────────────────────────────────
-    # §4.1 — Ensamblaje del vector de fuentes con verificación (FIX 9)
-    # ──────────────────────────────────────────────────────────────────────
+    # ----------------------------------------------------------------------
+    # §4.1 — Vector de fuentes con ∑ sᵢ = 0
+    # ----------------------------------------------------------------------
 
     def _create_injection_vector(
         self,
-        nodes  : List[str],
-        source : str,
-        sink   : str,
-        q_pump : float,
+        nodes: List[str],
+        source: str,
+        sink: str,
+        q_pump: float,
     ) -> InjectionVector:
         r"""
-        Ensambla el vector de fuentes s con verificación ∑sᵢ = 0 (FIX 9).
+        Ensambla s con conservación de masa por construcción y verificación.
 
-        La bomba de desplazamiento positivo inyecta caudal Q:
-            s[fuente] = -Q  (succión: masa sale del nodo)
-            s[sumidero] = +Q (descarga: masa entra al nodo)
-            s[resto]   = 0
+            s[source] = −Q,  s[sink] = +Q,  resto = 0
+            ⇒ ∑ sᵢ = 0
 
-        Conservación estricta:
-            ∑sᵢ = -Q + Q = 0 ✓ (garantizada por construcción)
-
-        CORRECCIÓN FIX 9 vs v5.0.0:
-            En v5.0.0, el balance ∑sᵢ = 0 no se verificaba explícitamente.
-            Esta función añade la verificación y empaqueta el resultado
-            en InjectionVector con campo `balance_verified = True`.
-
-        Parámetros
-        ----------
-        nodes  : List[str], lista de nodos del grafo.
-        source : str, nodo de succión (fuente de la bomba).
-        sink   : str, nodo de descarga (sumidero de la bomba).
-        q_pump : float, caudal Q [unidades de flujo].
-
-        Retorna
-        -------
-        InjectionVector con balance verificado.
-
-        Lanza
-        -----
-        TopologicalInvariantError : Si source o sink no pertenecen a nodes.
-        SourceCompatibilityError  : Si ∑sᵢ ≠ 0 (no debería ocurrir por construcción).
+        Corrige residuales de punto flotante si |∑ sᵢ| > 0 numéricamente.
         """
+        node_list = list(nodes)
         try:
-            u_idx = list(nodes).index(source)
-        except ValueError:
+            u_idx = node_list.index(source)
+        except ValueError as exc:
             raise TopologicalInvariantError(
-                f"Nodo fuente '{source}' no pertenece al grafo. "
-                f"Nodos disponibles: {list(nodes)}."
-            )
+                f"Fuente '{source}' ∉ V. Nodos: {node_list}."
+            ) from exc
         try:
-            v_idx = list(nodes).index(sink)
-        except ValueError:
+            v_idx = node_list.index(sink)
+        except ValueError as exc:
             raise TopologicalInvariantError(
-                f"Nodo sumidero '{sink}' no pertenece al grafo. "
-                f"Nodos disponibles: {list(nodes)}."
-            )
+                f"Sumidero '{sink}' ∉ V. Nodos: {node_list}."
+            ) from exc
 
         if u_idx == v_idx:
             raise TopologicalInvariantError(
-                f"El nodo fuente y el sumidero no pueden ser el mismo nodo "
-                f"('{source}'). Un loop genera un campo de flujo nulo."
+                f"Fuente y sumidero coinciden ('{source}'); flujo nulo."
             )
 
-        # Ensamblar s con conservación por construcción
-        s_vector = np.zeros(len(nodes), dtype=np.float64)
-        s_vector[u_idx] -= q_pump   # succión
-        s_vector[v_idx] += q_pump   # descarga
+        s_vector = np.zeros(len(node_list), dtype=np.float64)
+        s_vector[u_idx] -= q_pump
+        s_vector[v_idx] += q_pump
 
-        # Verificación explícita (FIX 9)
-        # (debe ser 0 por construcción, protege contra errores de punto flotante)
         balance = float(np.sum(s_vector))
         if abs(balance) > PistonConstants.SOURCE_BALANCE_TOL:
-            # Corrección de balance residual por punto flotante
             s_vector[v_idx] -= balance
             logger.debug(
-                "Corrección de balance de punto flotante: Δ=%.4e aplicado a nodo '%s'.",
-                balance, sink,
+                "Corrección FP de balance Δ=%.4e en '%s'.", balance, sink
             )
 
         return InjectionVector(
-            source_node      = source,
-            sink_node        = sink,
-            q_pump           = q_pump,
-            s_vector         = s_vector,
-            balance_verified = True,
+            source_node=source,
+            sink_node=sink,
+            q_pump=q_pump,
+            s_vector=s_vector,
+            balance_verified=True,
         )
 
-    # ──────────────────────────────────────────────────────────────────────
-    # §4.2 — Orquestación de la transición de fase (FIX 10)
-    # ──────────────────────────────────────────────────────────────────────
+    # ----------------------------------------------------------------------
+    # §4.2 — Orquestación FASE 1 → FASE 2 → FASE 3
+    # ----------------------------------------------------------------------
 
     def execute_injection(
         self,
-        nodes          : List[str],
-        edges          : List[Tuple[str, str, float]],
-        cycles         : List[List[str]],
-        pump_source    : str,
-        pump_sink      : str,
-        reservoir_node : str,
-        q_pump         : float,
+        nodes: List[str],
+        edges: List[Tuple[str, str, float]],
+        cycles: List[List[str]],
+        pump_source: str,
+        pump_sink: str,
+        reservoir_node: str,
+        q_pump: float,
     ) -> Dict[str, Any]:
         r"""
-        Orquesta la transición de fase geométrica completa para la inyección.
+        Transición de fase geométrica completa de la inyección.
 
-        CORRECCIÓN FIX 10 vs v5.0.0:
-            El diccionario de retorno en v5.0.0 omitía invariantes topológicos
-            fundamentales (λ_min, residuo KCL, ortogonalidad, energía total).
-            Estos son necesarios para que el DiracInterconnectionAgent y el
-            SheafCohomologyOrchestrator validen el estado inyectado.
-
-        Pipeline:
-        ─────────
-        1. FASE 1: build_mesh → ∂₁, ∂₂, L₀^W, L₁^W, W⁻¹ (con ∂₁∘∂₂=0).
-        2.         _create_injection_vector → s con ∑sᵢ=0.
-        3. FASE 2: solve_hydrodynamics → p, f, KCL_residual, λ_min.
-        4. FASE 3: decompose_flow → I_grad, I_curl, I_harm, ‖I_curl‖_W.
-        5.         Empaquetar resultado con todos los invariantes (FIX 10).
-
-        Parámetros
-        ----------
-        nodes          : List[str], identificadores de nodos.
-        edges          : List[Tuple[str,str,float]], aristas (u,v,conductancia).
-        cycles         : List[List[str]], ciclos como listas de nodos.
-        pump_source    : str, nodo de succión.
-        pump_sink      : str, nodo de descarga.
-        reservoir_node : str, nodo de referencia (Dirichlet p=0).
-        q_pump         : float, caudal a inyectar.
-
-        Retorna
-        -------
-        Dict[str, Any] con el estado hidrodinámico completo e invariantes.
+        Encadenamiento formal
+        ─────────────────────
+        FASE 1  build_mesh            → SimplicialMesh
+        §4.1    _create_injection_vector → InjectionVector
+        FASE 2  solve_hydrodynamics(mesh, injection, ·) → FlowState
+        FASE 3  decompose_flow(mesh, flow) → HodgeDecomposition
+        empaquetado de invariantes para Dirac / Sheaf orchestrators
         """
         logger.info(
-            "Iniciando Inyección Termodinámica Q=%.4f [%s → %s] "
-            "(reservorio: %s).",
+            "Inyección termodinámica Q=%.4f [%s → %s] (reservorio: %s).",
             q_pump, pump_source, pump_sink, reservoir_node,
         )
 
-        # §4.2.1: FASE 1 — Fibración topológica
+        # FASE 1 — Fibración topológica (sutura → FASE 2)
         mesh = self._Phase1_SimplicialBoundaryBuilder.build_mesh(
             nodes, edges, cycles
         )
 
-        # §4.2.2: Vector de fuentes con balance verificado (FIX 9)
+        # Vector de fuentes balanceado
         injection = self._create_injection_vector(
             nodes, pump_source, pump_sink, q_pump
         )
 
-        # §4.2.3: FASE 2 — Solución de Poisson
+        # FASE 2 — Poisson de Dirichlet (sutura → FASE 3)
         flow_state = self._Phase2_DirichletPoissonSolver.solve_hydrodynamics(
             mesh, injection, reservoir_node
         )
 
-        # §4.2.4: FASE 3 — Descomposición de Hodge-Helmholtz DEC
+        # FASE 3 — Hodge-Helmholtz métrico
         hodge = self._Phase3_HodgeHelmholtzAuditor.decompose_flow(
             mesh, flow_state
         )
 
-        # §4.2.5: Empaquetado con invariantes topológicos (FIX 10)
         result: Dict[str, Any] = {
-            # Estado termodinámico
-            "status"              : "ANNIHILATED_PARASITIC_VORTICITY",
-            "injection_q"         : float(q_pump),
-            # Flujo hidrodinámico
-            "nodal_pressures"     : flow_state.nodal_pressures.tolist(),
-            "edge_flows"          : flow_state.edge_flows.tolist(),
-            # Descomposición de Hodge
-            "laminar_flow_norm_W" : float(
+            "status": "ANNIHILATED_PARASITIC_VORTICITY",
+            "injection_q": float(q_pump),
+            "nodal_pressures": flow_state.nodal_pressures.tolist(),
+            "edge_flows": flow_state.edge_flows.tolist(),
+            "laminar_flow_norm_W": float(
                 _energy_norm(hodge.i_grad, mesh.inv_conductance)
             ),
-            "vorticity_norm_W"    : float(hodge.vorticity_norm),
-            "harmonic_norm_W"     : float(
+            "vorticity_norm_W": float(hodge.vorticity_norm),
+            "harmonic_norm_W": float(
                 _energy_norm(hodge.i_harm, mesh.inv_conductance)
             ),
-            "hodge_energy_total"  : float(hodge.energy_total),
-            "hodge_orthogonal"    : hodge.orthogonality_ok,
-            # Invariantes topológicos (FIX 10)
+            "hodge_energy_total": float(hodge.energy_total),
+            "hodge_orthogonal": hodge.orthogonality_ok,
+            "hodge_pythagoras_ok": hodge.pythagoras_ok,
+            "projection_residual_W": float(hodge.projection_residual),
             "topological_invariants": {
-                "kirchhoff_residual" : float(flow_state.kirchhoff_residual),
-                "lambda_min_L_red"   : float(flow_state.lambda_min_L_red),
-                "boundary_identity"  : mesh.boundary_identity,
-                "source_balanced"    : injection.balance_verified,
-                "num_nodes"          : len(mesh.nodes),
-                "num_edges"          : len(mesh.edges),
-                "num_cycles"         : len(mesh.cycles),
+                "kirchhoff_residual": float(flow_state.kirchhoff_residual),
+                "lambda_min_L_red": float(flow_state.lambda_min_L_red),
+                "boundary_identity": mesh.boundary_identity,
+                "source_balanced": injection.balance_verified,
+                "betti_1_estimate": mesh.betti_1_estimate,
+                "num_nodes": len(mesh.nodes),
+                "num_edges": len(mesh.edges),
+                "num_cycles": len(mesh.cycles),
             },
-            # Tensores de flujo detallados (para DiracInterconnectionAgent)
             "flow_components": {
-                "i_grad" : hodge.i_grad.tolist(),
-                "i_curl" : hodge.i_curl.tolist(),
-                "i_harm" : hodge.i_harm.tolist(),
+                "i_grad": hodge.i_grad.tolist(),
+                "i_curl": hodge.i_curl.tolist(),
+                "i_harm": hodge.i_harm.tolist(),
             },
         }
 
         logger.info(
-            "Inyección completada. ‖I_curl‖_W=%.3e, ‖I_grad‖_W=%.3e, "
-            "KCL=%.3e, λ_min=%.3e.",
+            "Inyección OK. ‖I_c‖_W=%.3e ‖I_g‖_W=%.3e KCL=%.3e λ_min=%.3e β₁≈%d.",
             result["vorticity_norm_W"],
             result["laminar_flow_norm_W"],
             result["topological_invariants"]["kirchhoff_residual"],
             result["topological_invariants"]["lambda_min_L_red"],
+            result["topological_invariants"]["betti_1_estimate"],
         )
-
         return result
 
-    # ──────────────────────────────────────────────────────────────────────
-    # §4.3 — Funtor categórico para la Malla Agéntica (MIC)
-    # ──────────────────────────────────────────────────────────────────────
+    # ----------------------------------------------------------------------
+    # §4.3 — Funtor categórico φ: CategoricalState → CategoricalState
+    # ----------------------------------------------------------------------
 
     def __call__(self, state: CategoricalState) -> CategoricalState:
         r"""
-        Funtor categórico φ: CategoricalState → CategoricalState.
-
-        Extrae la carga útil del estado categórico, ejecuta la inyección
-        hidrodinámica completa (Fases 1→2→3), y retorna un estado purificado
-        en el Estrato PHYSICS con el tensor hidrodinámico y los invariantes
-        topológicos.
-
-        Validación de la carga útil:
-        ─────────────────────────────
-        El funtor exige que el payload contenga los tensores constitutivos
-        mínimos: nodes, edges, pump_source, pump_sink, reservoir_node.
-        La ausencia de cualquier campo causa un veto con
-        TopologicalInvariantError (estado estocástico degenerado).
-
-        Parámetros
-        ----------
-        state : CategoricalState, estado de entrada con payload de red.
-
-        Retorna
-        -------
-        CategoricalState en Stratum.PHYSICS con tensor hidrodinámico.
+        Funtor MIC: extrae payload, ejecuta FASES 1→2→3, retorna estado
+        purificado en Stratum.PHYSICS con tensor hidrodinámico e invariantes.
         """
         payload = state.payload
 
-        nodes          = payload.get("nodes",          [])
-        edges          = payload.get("edges",          [])
-        cycles         = payload.get("cycles",         [])
-        pump_source    = payload.get("pump_source")
-        pump_sink      = payload.get("pump_sink")
+        nodes = payload.get("nodes", [])
+        edges = payload.get("edges", [])
+        cycles = payload.get("cycles", [])
+        pump_source = payload.get("pump_source")
+        pump_sink = payload.get("pump_sink")
         reservoir_node = payload.get("reservoir_node")
-        q_pump         = float(payload.get("q_pump",   1.0))
+        q_pump = float(payload.get("q_pump", 1.0))
 
-        # Validación de completitud del payload
-        missing = []
-        if not nodes          : missing.append("nodes")
-        if not edges          : missing.append("edges")
-        if not pump_source    : missing.append("pump_source")
-        if not pump_sink      : missing.append("pump_sink")
-        if not reservoir_node : missing.append("reservoir_node")
-
+        missing = [
+            name
+            for name, val in (
+                ("nodes", nodes),
+                ("edges", edges),
+                ("pump_source", pump_source),
+                ("pump_sink", pump_sink),
+                ("reservoir_node", reservoir_node),
+            )
+            if not val
+        ]
         if missing:
             raise TopologicalInvariantError(
-                f"Carga útil estocástica degenerada: faltan los tensores "
-                f"constitutivos: {missing}. El funtor no puede operar sobre "
-                f"un estado topológicamente incompleto."
+                f"Payload degenerado: faltan tensores {missing}."
             )
 
-        # Ejecución de la transición de fase
         result_tensors = self.execute_injection(
             nodes, edges, cycles,
             pump_source, pump_sink, reservoir_node, q_pump,
         )
 
-        # Empaquetado del estado de salida
         new_payload = dict(payload)
         new_payload["hydrodynamic_tensor"] = result_tensors
 
         return CategoricalState(
-            payload  = new_payload,
-            metadata = state.metadata,
-            stratum  = Stratum.PHYSICS,
+            payload=new_payload,
+            metadata=state.metadata,
+            stratum=Stratum.PHYSICS,
         )
 
 
@@ -1612,20 +1452,17 @@ class HodgeHelmholtzInjectorAgent(Morphism):
 # ══════════════════════════════════════════════════════════════════════════════
 
 __all__ = [
-    # Constantes
     "PistonConstants",
-    # Excepciones
     "PistonInjectorError",
     "SingularLaplacianError",
     "HomologicalKirchhoffError",
     "ParasiticVorticityVetoError",
-    "BoundaryComplexError",       # FIX 1 — nueva excepción
-    "SourceCompatibilityError",   # FIX 9 — nueva excepción
-    # DTOs
+    "BoundaryComplexError",
+    "SourceCompatibilityError",
+    "HodgeMetricInconsistencyError",
     "SimplicialMesh",
     "InjectionVector",
     "FlowState",
     "HodgeDecomposition",
-    # Agente
     "HodgeHelmholtzInjectorAgent",
 ]

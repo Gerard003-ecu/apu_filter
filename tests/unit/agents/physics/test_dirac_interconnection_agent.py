@@ -36,7 +36,7 @@ import sys
 sys.path.insert(0, ".")
 
 try:
-    from app.physics.dirac_interconnection_agent import (
+    from app.agents.physics.dirac_interconnection_agent import (
         # Excepciones
         DiracMatchingError,
         ImpedanceMismatchError,

@@ -26,7 +26,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 # ─── SUT ─────────────────────────────────────────────────────────────────────
-from app.tactics.algebraic_tactics_agent import (
+from app.agents.tactics.algebraic_tactics_agent import (
     AlgebraicConstants,
     OptionMonad,
     AlgebraicTacticsError,
@@ -46,7 +46,7 @@ try:
     from app.core.mic_algebra import CategoricalState, TopologicalInvariantError
     from app.core.schemas import Stratum
 except ImportError:
-    from app.tactics.algebraic_tactics_agent import (  # type: ignore[attr-defined]
+    from app.agents.tactics.algebraic_tactics_agent import (  # type: ignore[attr-defined]
         CategoricalState,
         TopologicalInvariantError,
         Stratum,
