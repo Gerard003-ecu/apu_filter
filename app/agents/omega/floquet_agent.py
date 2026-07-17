@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Floquet Monodromy Agent (Operador de Sintonización y Monodromía)    ║
-║ Ruta   : app/omega/floquet_agent.py                                           ║
+║ Ruta   : app/omega/floquet_agent.py                                          ║
 ║ Versión: 3.0.0-Topos-CPTP-Monodromy-Spectral-Nested                          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
