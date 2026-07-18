@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Suite de Pruebas: MatterAgent (Endofuntor de Colapso Hadrónico)              ║

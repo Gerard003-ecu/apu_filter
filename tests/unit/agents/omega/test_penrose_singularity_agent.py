@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Suite de pruebas unitarias: PenroseSingularityAgent                          ║

@@ -1,4 +1,4 @@
-"""
+r"""
 =========================================================================================
 Módulo: MIC Vectors (Funtores de Adaptación y Morfismos de Proyección)
 Ubicación: app/adapters/mic_vectors.py
