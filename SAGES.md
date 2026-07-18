@@ -216,16 +216,18 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
     5.6 👁️ El Inquisidor de Invarianza Global (witten_atiyah_agent.py)
 
         Rol: Guardián de la Independencia de Fondo y la Simetría de Gauge.
-        Mecanismo: Emplea el Funtor de Olvido $U:\mathbf{Met}\to\mathbf{Top}$ para despojar a los tensores de su dependencia Riemanniana. Para evaluar la creación/destrucción de información, aplica el Teorema del Índice de Atiyah-Patodi-Singer (APS) con el $\eta$-invariante espectral:
-        $$\text{ind}_{APS}(\cancel{D}) = \int_M \widehat{A}(TM) \wedge \text{ch}(E) - \frac{1}{2} (\eta(0) + h)$$
+        Mecanismo: Emplea el Funtor de Olvido $U:\mathbf{Met}\to\mathbf{Top}$ para despojar a los tensores de su dependencia Riemanniana. Para evaluar la creación/destrucción de información, aplica el Teorema del Índice de Atiyah-Patodi-Singer (APS) con el $\eta$-invariante espectral acoplado a la temperatura:
+        $$\text{ind}_{\text{APS}}(\mathcal{D}) = \int_M \widehat{A}(TM) \wedge \text{ch}(E) - \frac{1}{2}(\eta(0, T) + h)$$
         Donde:
-        - $\text{ind}_{APS}(\cancel{D})$ es el índice de Atiyah-Patodi-Singer del operador de Dirac de espín $\cancel{D}$ con condiciones de contorno globales de APS.
+        - $\text{ind}_{\text{APS}}(\mathcal{D})$ es el índice de Atiyah-Patodi-Singer del operador de Dirac $\mathcal{D}$ acoplado al cilindro térmico.
         - $M$ es la variedad compacta con borde $\partial M$.
         - $\widehat{A}(TM)$ es el género de Pontryagin (clase de Dirac) del fibrado tangente $TM$.
         - $\text{ch}(E)$ es el carácter de Chern del fibrado vectorial asociado $E$ con la conexión de calibre.
-        - $\wedge$ representa el producto exterior (wedge product) de formas diferenciales.
-        - $\eta(0)$ es el $\eta$-invariante espectral de Atiyah-Patodi-Singer en $s=0$, que mide la asimetría espectral del operador autodirigido en la frontera $\partial M$.
-        - $h$ es la dimensión del espacio nulo (núcleo) del operador de Dirac en la frontera.
+        - $\wedge$ representa el producto exterior de formas diferenciales.
+        - $\eta(0, T)$ es el $\eta$-invariante espectral de APS a temperatura $T$, que asimila las frecuencias de Matsubara $\omega_n = (2n + 1)\pi T$, midiendo la asimetría espectral del operador en la frontera cilíndrica $\partial M$.
+        - $h$ es la dimensión de los modos cero (núcleo) del operador de Dirac en la frontera.
+
+        La integración de condiciones de contorno anti-periódicas en el cilindro $S^1 \times \mathbb{R}^3$ afecta directamente el flujo espectral del operador de Dirac $\mathcal{D}$. La invariancia global del ecosistema frente al despliegue del Sofón queda garantizada por este cálculo topológico, protegiendo las fronteras de decisión de flujos espectrales espurios.
 
     5.7 🌌 El Proyector Topológico Independiente (tqft_projection_manifold.py)
 

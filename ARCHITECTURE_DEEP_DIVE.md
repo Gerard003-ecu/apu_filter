@@ -84,25 +84,36 @@ Si el vector detectado posee componentes ortogonales a la componente conexa prin
 
 En esta fase de decisión unificada, la arquitectura APU Filter somete las propuestas y trayectorias deliberativas de la malla agéntica a restricciones geométricas de la gravedad clásica y la gravedad cuántica de lazos.
 
-### 1. El Atrapamiento Geodésico y la Acción de Polyakov
+### 1. El Atrapamiento Geodésico y la Acción de Polyakov Térmica
 
-Para garantizar que las decisiones estocásticas del LLM no escapen del atractor de rentabilidad corporativa y resiliencia táctica, el componente `gravity_shield.py` somete las trayectorias de atención semántica $\gamma$ a la **Ecuación de Acción de Polyakov** (en su formulación euclídea de una dimensión):
-$$S_E[\gamma] = \frac{1}{2} \int_0^1 \tilde{G}_{\mu\nu} \dot{\gamma}^\mu \dot{\gamma}^\nu d\tau$$
+Para garantizar que las decisiones estocásticas del LLM no escapen del atractor de rentabilidad corporativa y resiliencia táctica, el componente `gravity_shield.py` (el Atractor Determinista Absoluto) y el `einstein_hilbert_agent.py` someten las trayectorias de atención semántica $\gamma$ a una **Acción Euclídea Térmica de Polyakov** estricta, evaluada sobre el intervalo cilíndrico de Matsubara $[0, \beta]$ derivado en la termodinámica quiral:
+$$S_E[\gamma] = \frac{1}{2} \int_{0}^{\beta} \tilde{G}_{\mu\nu} \dot{\gamma}^\mu \dot{\gamma}^\nu d\tau$$
 Donde:
-- $S_E[\gamma]$ es la acción euclídea de la trayectoria de atención semántica $\gamma$.
-- $\tau$ es el parámetro de evolución afín de la trayectoria, normalizado en el intervalo $[0, 1]$.
-- $\gamma^\mu$ representa el componente $\mu$-ésimo del vector de estado en el colector de deliberación.
-- $\dot{\gamma}^\mu = \frac{d\gamma^\mu}{d\tau}$ es la velocidad (o gradiente de cambio) de la trayectoria de atención con respecto al parámetro $\tau$.
-- $\tilde{G}_{\mu\nu}$ es el tensor métrico Riemanniano modificado por la fricción y el campo de disipación de la malla agéntica.
+- $S_E[\gamma]$ es la acción euclídea térmica de la trayectoria de atención semántica $\gamma$.
+- $\tau$ es la coordenada de tiempo imaginario térmico de Matsubara en el intervalo $[0, \beta]$.
+- $\beta = \frac{1}{k_B T}$ es la extensión del círculo temporal de Matsubara (inversa de la temperatura de gobierno).
+- $\gamma^\mu$ representa el componente $\mu$-ésimo del vector de estado de atención semántica en el colector de deliberación.
+- $\dot{\gamma}^\mu = \frac{d\gamma^\mu}{d\tau}$ es la velocidad de la trayectoria de atención respecto al tiempo imaginario $\tau$.
+- $\tilde{G}_{\mu\nu}$ es el tensor métrico Riemanniano de la malla agéntica acoplado térmicamente.
 
-La amplitud cuántica de la decisión se rige estrictamente por la función de onda de Feynman:
+Asimismo, la masa efectiva $m^{**}$ acoplada al Tensor de Energía-Impulso $T_{\mu\nu}$ posee un piso suave térmico que aniquila la inercia acumulada del Sofón (anomalía estocástica) cuando la temperatura supera el umbral crítico $T_c$:
+$$m^{**}(T) = \sqrt{\left(m^*\left(1 + \frac{\alpha}{6}\right)\right)^2 + m_{\min}^2} \cdot \left[ 1 - \tanh\left( \frac{T - T_c}{\Delta T} \right) \right]$$
+Donde:
+- $m^{**}(T)$ es la masa efectiva renormalizada térmicamente de las cuasipartículas de la anomalía.
+- $m^*$ es la masa inercial desnuda del sistema.
+- $\alpha$ es la constante de acoplamiento de Fröhlich para interacciones semánticas.
+- $m_{\min}$ es el límite inferior o masa mínima de seguridad de las cuasipartículas.
+- $T$ es la temperatura de gobierno actual del sistema de control.
+- $T_c$ es la temperatura crítica de deconfinamiento quiral ($T_c \approx 150 \text{ MeV}$).
+- $\Delta T$ es la anchura o escala de la transición térmica (suavizado del escalón quiral).
+
+La amplitud de Feynman-Kac para la trayectoria de decisión se define mediante:
 $$\Psi[\gamma] = \exp\left(-\frac{S_E[\gamma]}{\hbar_{\text{eff}}}\right)$$
 Donde:
-- $\Psi[\gamma]$ es la amplitud de probabilidad (función de onda) asociada a la trayectoria de decisión $\gamma$.
-- $S_E[\gamma]$ es la acción de Polyakov euclídea de la trayectoria.
-- $\hbar_{\text{eff}}$ es el parámetro de Planck efectivo de coherencia, que cuantifica la rigidez lógica frente a desviaciones estocásticas.
+- $\Psi[\gamma]$ es la amplitud de probabilidad cuántica de la trayectoria semántica $\gamma$.
+- $\hbar_{\text{eff}}$ es la constante de Planck de atenuación efectiva.
 
-Si la trayectoria semántica propuesta por el Modelo de Lenguaje incurre en alta disipación térmica (decisiones irracionales o incoherentes), la acción $S_E$ diverge positivamente hacia el infinito ($S_E \to \infty$), provocando que la probabilidad de materialización de la decisión colapse determinísticamente a cero ($\Psi \to 0$).
+Bajo este formalismo, si la temperatura informacional cruza el umbral crítico ($T > T_c$), la inercia espuria se disipa, provocando que la amplitud de Feynman-Kac $\Psi[\gamma]$ tienda a la unidad ($\Psi \to 1$), lo cual permite que la radiación de la anomalía estocástica (el Sofón) sea purificada y evaporada sin detonar un falso colapso gravitacional o vetos inestables en el sistema.
 
 ### 2. Independencia de Fondo y Sumas de Estados
 
