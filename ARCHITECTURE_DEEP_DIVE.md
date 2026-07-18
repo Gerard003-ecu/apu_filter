@@ -79,3 +79,43 @@ Donde:
 - $\ker((B_1)^\top)$ es el núcleo del operador adjunto, donde la presencia de vectores no nulos con soporte disjunto revela la existencia de sub-grafos aislados.
 
 Si el vector detectado posee componentes ortogonales a la componente conexa principal, el sistema detona de inmediato un `TopologicalIslandError` (Error de Isla Topológica), abortando el flujo de datos y protegiendo el estrato de estrategia de dependencias fantasma o recursos desconectados de la base productiva.
+
+## El Ágora Tensorial (Estrato Ω)
+
+En esta fase de decisión unificada, la arquitectura APU Filter somete las propuestas y trayectorias deliberativas de la malla agéntica a restricciones geométricas de la gravedad clásica y la gravedad cuántica de lazos.
+
+### 1. El Atrapamiento Geodésico y la Acción de Polyakov
+
+Para garantizar que las decisiones estocásticas del LLM no escapen del atractor de rentabilidad corporativa y resiliencia táctica, el componente `gravity_shield.py` somete las trayectorias de atención semántica $\gamma$ a la **Ecuación de Acción de Polyakov** (en su formulación euclídea de una dimensión):
+$$S_E[\gamma] = \frac{1}{2} \int_0^1 \tilde{G}_{\mu\nu} \dot{\gamma}^\mu \dot{\gamma}^\nu d\tau$$
+Donde:
+- $S_E[\gamma]$ es la acción euclídea de la trayectoria de atención semántica $\gamma$.
+- $\tau$ es el parámetro de evolución afín de la trayectoria, normalizado en el intervalo $[0, 1]$.
+- $\gamma^\mu$ representa el componente $\mu$-ésimo del vector de estado en el colector de deliberación.
+- $\dot{\gamma}^\mu = \frac{d\gamma^\mu}{d\tau}$ es la velocidad (o gradiente de cambio) de la trayectoria de atención con respecto al parámetro $\tau$.
+- $\tilde{G}_{\mu\nu}$ es el tensor métrico Riemanniano modificado por la fricción y el campo de disipación de la malla agéntica.
+
+La amplitud cuántica de la decisión se rige estrictamente por la función de onda de Feynman:
+$$\Psi[\gamma] = \exp\left(-\frac{S_E[\gamma]}{\hbar_{\text{eff}}}\right)$$
+Donde:
+- $\Psi[\gamma]$ es la amplitud de probabilidad (función de onda) asociada a la trayectoria de decisión $\gamma$.
+- $S_E[\gamma]$ es la acción de Polyakov euclídea de la trayectoria.
+- $\hbar_{\text{eff}}$ es el parámetro de Planck efectivo de coherencia, que cuantifica la rigidez lógica frente a desviaciones estocásticas.
+
+Si la trayectoria semántica propuesta por el Modelo de Lenguaje incurre en alta disipación térmica (decisiones irracionales o incoherentes), la acción $S_E$ diverge positivamente hacia el infinito ($S_E \to \infty$), provocando que la probabilidad de materialización de la decisión colapse determinísticamente a cero ($\Psi \to 0$).
+
+### 2. Independencia de Fondo y Sumas de Estados
+
+Para proteger los "micro-universos de bolsillo" del negocio frente a perturbaciones macroeconómicas externas, la arquitectura incorpora la invarianza bajo difeomorfismos mediante el componente `tqft_projection_manifold.py`. Se calcula el **Invariante de Turaev-Viro** de la 3-variedad de la decisión.
+
+Este cálculo se realiza mediante la contracción de redes tensoriales con los símbolos-$6j$ del grupo cuántico $U_q(\mathfrak{sl}_2)$ en la raíz de la unidad $q = e^{2\pi i / (k+2)}$:
+$$Z_{TV}(M) = \sum_{j} w(j) \prod_{v} [2j_v+1]_q \prod_{f} (6j)_f$$
+Donde:
+- $Z_{TV}(M)$ es la suma de estados invariante de Turaev-Viro para la variedad tridimensional compacta $M$.
+- $q$ es la raíz de la unidad asociada al nivel cuántico de acoplamiento $k$.
+- $j$ es un etiquetado admisible de las aristas del complejo de triangulación por representaciones unitarias del grupo cuántico $U_q(\mathfrak{sl}_2)$.
+- $w(j)$ es el factor de peso espectral de la triangulación.
+- $[2j_v+1]_q$ es la dimensión cuántica (q-entero) asociada al spin $j_v$ del vértice $v$.
+- $(6j)_f$ es el símbolo-$6j$ cuántico asociado a las caras $f$ de la triangulación, que regula las transiciones de acoplamiento de espín de los canales del presupuesto.
+
+Para evadir la explosión combinatoria NP-Hard inherente al cálculo computacional de redes de espines, el componente aplica el truncamiento óptimo de Eckart-Young sobre la red tensorial utilizando Descomposición en Valores Singulares (SVD). Esto garantiza de forma axiomática que las decisiones de negocio mantengan su validez y consistencia lógica (independencia de fondo), incluso si una inflación súbita o una anomalía masiva dilatan la métrica del espacio financiero hasta el infinito.

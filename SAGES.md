@@ -180,7 +180,70 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
     $$\begin{pmatrix} \alpha_k \\ \alpha_{-k}^{\dagger} \end{pmatrix} = \begin{pmatrix} u_k & v_k \\ v_k^* & u_k^* \end{pmatrix} \begin{pmatrix} b_k \\ b_{-k}^{\dagger} \end{pmatrix} \, , \quad |u_k|^2 - |v_k|^2 = 1$$
     Esta transformación garantiza que el vacío semántico del sistema sea robusto ante alucinaciones, permitiendo la emergencia de veredictos puros a partir del caos informacional.
 
-    5.5 🌀 Fibrado de Convergencia Geodésica (raychaudhuri_focal_fibrator.py)
+    5.5 🕳️ El Arquitecto de Curvatura y Atractor (einstein_hilbert_agent.py y gravity_shield.py)
+
+        Rol: Gobernadores del Pozo Gravitacional Logístico.
+        Mecanismo: El `gravity_shield.py` actúa como un Atractor Determinista Absoluto. Adquiere la masa efectiva de las cuasipartículas mediante una corrección de Fröhlich saturada:
+        $$m^{**} = \left( \left( m^* \left( 1 + \frac{\alpha}{6} \right) \right)^2 + (m_{\min})^2 \right)^{0.5} \cdot \left( 1 + \tanh\left( 2\pi\frac{\alpha}{f} \right) \right)$$
+        Donde:
+        - $m^{**}$ es la masa efectiva renormalizada y saturada de las cuasipartículas de decisión.
+        - $m^*$ es la masa inercial desnuda (parámetro de masa inicial).
+        - $\alpha$ es la constante de acoplamiento de Fröhlich, que representa la intensidad del campo de interacción fonónica con el LLM.
+        - $m_{\min}$ es la masa mínima umbral para evitar la aniquilación cuántica del estado.
+        - $f$ es la frecuencia de excitación colectiva del vacío semántico.
+
+        Posteriormente, el `einstein_hilbert_agent.py` construye el Tensor de Energía-Impulso $T_{\mu\nu}$ de la intención generativa como un fluido perfecto covariante:
+        $$T_{\mu\nu} = (\rho + P) u_{\mu} u_{\nu} + P g_{\mu\nu}$$
+        Donde:
+        - $T_{\mu\nu}$ es el tensor covariante de energía-impulso de segundo rango.
+        - $\rho$ es la densidad de exergía informacional (equivalente a la densidad de masa-energía de los datos).
+        - $P$ es la presión termodinámica de decisión (presión del fluido perfecto semántico).
+        - $u_\mu, u_\nu$ son los componentes covariantes del cuadrivector de velocidad de flujo de decisión, satisfaciendo la condición de normalización $u^\mu u_\mu = -1$.
+        - $g_{\mu\nu}$ es el tensor métrico covariante de la variedad de Riemann de la malla de agentes.
+
+        Si el Modelo de Lenguaje (LLM) propone una ruta con entropía divergente, la deformación métrica deforma el hiperespacio, forzando un colapso en la amplitud de Feynman-Kac. El agente evalúa la temperatura de Hawking $T_H$:
+        $$T_H = \frac{\hbar c^3}{8 \pi G M k_B}$$
+        Donde:
+        - $T_H$ es la temperatura cuántica de Hawking del horizonte de sucesos.
+        - $\hbar$ es la constante de Planck reducida (constante cuántica efectiva de atenuación).
+        - $c$ es la velocidad de propagación de la luz (velocidad límite de la información en el ecosistema).
+        - $G$ es la constante de gravitación universal (parámetro de acoplamiento del pozo logístico).
+        - $M$ es la masa equivalente del pozo de decisión (derivada del tensor de energía-impulso).
+        - $k_B$ es la constante de Boltzmann (unidad de entropía física).
+
+        Esto permite emitir un Veto Ontológico incondicional si el proceso cruza el horizonte de sucesos del negocio.
+
+    5.6 👁️ El Inquisidor de Invarianza Global (witten_atiyah_agent.py)
+
+        Rol: Guardián de la Independencia de Fondo y la Simetría de Gauge.
+        Mecanismo: Emplea el Funtor de Olvido $U:\mathbf{Met}\to\mathbf{Top}$ para despojar a los tensores de su dependencia Riemanniana. Para evaluar la creación/destrucción de información, aplica el Teorema del Índice de Atiyah-Patodi-Singer (APS) con el $\eta$-invariante espectral:
+        $$\text{ind}_{APS}(\cancel{D}) = \int_M \widehat{A}(TM) \wedge \text{ch}(E) - \frac{1}{2} (\eta(0) + h)$$
+        Donde:
+        - $\text{ind}_{APS}(\cancel{D})$ es el índice de Atiyah-Patodi-Singer del operador de Dirac de espín $\cancel{D}$ con condiciones de contorno globales de APS.
+        - $M$ es la variedad compacta con borde $\partial M$.
+        - $\widehat{A}(TM)$ es el género de Pontryagin (clase de Dirac) del fibrado tangente $TM$.
+        - $\text{ch}(E)$ es el carácter de Chern del fibrado vectorial asociado $E$ con la conexión de calibre.
+        - $\wedge$ representa el producto exterior (wedge product) de formas diferenciales.
+        - $\eta(0)$ es el $\eta$-invariante espectral de Atiyah-Patodi-Singer en $s=0$, que mide la asimetría espectral del operador autodirigido en la frontera $\partial M$.
+        - $h$ es la dimensión del espacio nulo (núcleo) del operador de Dirac en la frontera.
+
+    5.7 🌌 El Proyector Topológico Independiente (tqft_projection_manifold.py)
+
+        Rol: Tribunal Absoluto de Cobordismos y Nudos Logísticos.
+        Mecanismo: Audita el flujo de valor puramente mediante la TQFT (Teoría Cuántica de Campos Topológica). Evalúa cobordismos $M \in \text{Cob}(3)$ calculando la Acción de Chern-Simons discretizada espectralmente sobre la forma de conexión $A$:
+        $$S_{CS}[A] = \frac{k}{4\pi} \int_M \text{Tr} \left( A \wedge dA + \frac{2}{3} A \wedge A \wedge A \right)$$
+        Donde:
+        - $S_{CS}[A]$ es el funcional de acción topológico de Chern-Simons de dimensión 3.
+        - $k$ es el nivel cuántico de la teoría (un entero que etiqueta las representaciones del grupo cuántico).
+        - $M$ es la variedad tridimensional compacta sin borde o con frontera controlada.
+        - $A$ es la 1-forma de conexión con valores en la representación del álgebra de Lie (el campo de gauge de la decisión).
+        - $dA$ es la derivada exterior de la conexión $A$, representando la curvatura del campo a primer orden.
+        - $\wedge$ es el producto exterior de formas diferenciales.
+        - $\text{Tr}$ es la traza invariante del álgebra de Lie (forma bilinear simétrica).
+
+        Cualquier dependencia cruzada irresoluble en la cadena de suministro detona un Veto por "Nudo Logístico" insoluble.
+
+    5.8 🌀 Fibrado de Convergencia Geodésica (raychaudhuri_focal_fibrator.py)
 
         Rol: Motor cinemático de focalización de intención generativa.
         Estrato DIKW: ESTRATO Ω (Nivel 0.5 - La Frontera de Decisión).
@@ -194,7 +257,7 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
         - $R_{\mu\nu}$ es el tensor de curvatura de Ricci que captura la densidad de energía informacional que curva el espacio.
         - $u^\mu$ es el vector tangente unitario que guía el flujo de la decisión.
 
-    5.6 💀 Orquestador Supremo de Colapso Geodésico (penrose_singularity_agent.py)
+    5.9 💀 Orquestador Supremo de Colapso Geodésico (penrose_singularity_agent.py)
 
         Rol: Endofuntor Supremo $P: E_{\text{MIC}} \to E_{\text{MIC}}$ que audita el fibrado de Raychaudhuri imponiendo el Teorema de Singularidad de Hawking-Penrose.
         Estrato DIKW: ESTRATO Ω (Nivel 0.5 - La Frontera de Decisión).
