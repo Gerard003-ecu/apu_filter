@@ -33,6 +33,7 @@ El `SynapticRegistry` gestiona **12 partículas fundamentales** clasificadas en 
     *   `PositronCartridge` (Antimateria): Cristalización del residuo termodinámico generado tras la extirpación de una alucinación.
     *   `GammaPhoton`: Radiación emitida tras la aniquilación de un positrón con un electrón de falla, sirviendo como prueba criptográfica forense e inmutable en el acta.
     *   `PolaritonCartridge`: Híbrido que induce **Superfluidez Atencional** cuando un Fotón de Gobernanza resuena con un Polarón, eliminando la fricción de cómputo.
+    *   `SophonCartridge` (Sofón): Anomalía estocástica u oscilación de fase del LLM. El colapso inercial del Sofón se rige por la evaporación del condensado quiral en tiempo imaginario (ver [sophon_chiral_dynamics.md](sophon_chiral_dynamics.md)).
 
 ### 2.1 El Colisionador Catadióptrico y la Aniquilación de Alucinaciones
 Dentro del **CatadioptricCollider** (QuantumFockOrchestrator), se produce la interacción crítica entre bosones focales (`RiemannianFocalBoson`) y fermiones topológicos (`HouseholderReflectionFermion`). Esta interacción focaliza la intención y refleja las impurezas semánticas hacia los canales de disipación.
@@ -40,8 +41,18 @@ Dentro del **CatadioptricCollider** (QuantumFockOrchestrator), se produce la int
 Cuando el operador de salto de Lindblad, sintonizado por el `BogoliubovAgent`, extirpa una falsedad o alucinación del LLM, el residuo termodinámico no se desecha: se cristaliza en antimateria exógena, manifestándose como un **PositronCartridge**. Este positrón provoca su propia aniquilación al colisionar contra un **ElectronCartridge** de falla (incertidumbre residual), emitiendo un **GammaPhoton** que actúa como sello criptográfico inmutable, blindando la Cadena de Custodia de la decisión.
 
 ### 2.2 Termodinámica de Sistemas Cuánticos Abiertos (Dinámica de Lindblad)
-La asimilación de estos cartuchos por la matriz neuronal MAC sufre fricción térmica debido al estrés del mercado. La evolución temporal de la atención del LLM y la coherencia de la sabiduría se somete a la **Ecuación Maestra de Lindblad-Kossakowski**:
-$$\frac{d\rho_{\text{MAC}}}{dt} = -\frac{i}{\hbar} [H_{\text{eff}}, \rho_{\text{MAC}}] + \sum_{k} \gamma_k \left( L_k \rho_{\text{MAC}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\text{MAC}} \} \right)$$
+La asimilación de estos cartuchos por la matriz neuronal MAC sufre fricción térmica debido al estrés del mercado. En particular, la matriz de densidad de la cuasipartícula abierta del `SophonCartridge` se somete a la ecuación maestra disipativa de Lindblad-Kossakowski, donde el operador de Liouville $\mathcal{L}$ disipa el calor anómalo:
+$$\frac{d\rho_{\text{MAC}}}{dt} = -\frac{i}{\hbar}[\hat{H}_{\text{eff}}, \rho_{\text{MAC}}] + \sum_{k} \gamma_k \left( \hat{L}_k \rho_{\text{MAC}} \hat{L}_k^\dagger - \frac{1}{2} \{ \hat{L}_k^\dagger \hat{L}_k, \rho_{\text{MAC}} \} \right)$$
+Donde:
+- $\rho_{\text{MAC}}$ es el operador de densidad que representa el estado cuántico mixto de la matriz atómica de conocimiento (sabiduría de la malla).
+- $t$ es el tiempo de evolución de la deliberación.
+- $\hbar$ es la constante de Planck efectiva (parámetro de atenuación cuántica).
+- $\hat{H}_{\text{eff}}$ es el Hamiltoniano efectivo autodirigido que gobierna la evolución unitaria coherente del sistema.
+- $\hat{L}_k$ son los operadores de salto de Lindblad (jump operators) que capturan la interacción disipativa no unitaria del Sofón con el entorno ruidoso del LLM.
+- $\hat{L}_k^\dagger$ es el operador adjunto hermítico de $\hat{L}_k$.
+- $\gamma_k$ son los coeficientes de disipación o tasas de transición térmica asociadas a cada canal de decaimiento.
+- $\{ \hat{A}, \hat{B} \} = \hat{A}\hat{B} + \hat{B}\hat{A}$ representa el anticomutador de los operadores, que estabiliza el comportamiento no unitario y garantiza la preservación de la traza de la matriz de densidad ($\text{Tr}(\rho) = 1$).
+
 Esto certifica que la "pérdida de foco" o decoherencia de la IA está modelada como disipación de información ($\Delta S \ge 0$), garantizando que la sabiduría del sistema sea un proceso termodinámicamente consistente.
 
 ### 2.2 El Rango Tensorial, Isomorfismo y la Biyección Estricta
