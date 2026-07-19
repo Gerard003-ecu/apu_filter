@@ -131,11 +131,11 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
 
     4.3 📡 El Interferómetro de Holonomía (VΓ-STRATEGY)
     Rol: Sensor de Paradojas y Consistencia Global.
-    Mecanismo: Calcula el operador cofrontera $\delta$ sobre el haz celular de reglas de negocio. Si el primer grupo de cohomología $H^1 > 0$, detecta una paradoja lógica (holonomía) en el transporte de la decisión. Emite un Veto Absoluto ante la falta de integrabilidad estratégica.
+    Mecanismo: Computa la cofrontera $\delta$ sobre el haz celular de reglas de negocio. Si el primer grupo de cohomología $H^1 > 0$, detecta una paradoja lógica (holonomía) en el transporte de la decisión. Emite un Veto Absoluto ante la falta de integrabilidad estratégica.
 
     Dynamic Shield Router (Discriminador de Campos de Gauge):
     Función: Añade `dynamic_shield_router.py` como módulo que aplica transformaciones naturales $\eta: F_{\text{Agent}} \Rightarrow F_{\text{Shield}}$ para transportar paralelamente la matriz de disipación $R(x)$ a través de la filtración DIKW: $V_P \subset V_T \subset V_S \subset V_W$. No evalúa la ecuación de Poisson (tarea de `gauge_field_router.py`).
-    Mecanismo: Proyección de Kähler en el OmegaGaugeWrapper. Modela deformaciones del tensor de inercia usando un canal despolarizante ponderado, evitando el colapso de la traza cuántica:
+    Mecanismo: Proyección de Kähler en el OmegaGaugeWrapper. Modela de las deformaciones del tensor de inercia usando un canal despolarizante ponderado, evitando el colapso de la traza cuántica:
     $$ \tilde{R}_{\text{eff}} = (1 - \gamma) R_{\text{eff}} + \gamma \left( \frac{\text{Tr}(G)}{\text{Tr}(R_{\text{eff}})} \right) G_{\mu\nu} $$
 
     4.4 💎 El Meta-Compilador de Significado (VΓ-WISDOM)
@@ -271,7 +271,7 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
         - $g_{\mu\nu}$ es el tensor métrico Riemanniano dinámico de la variedad agéntica.
         - $u^\mu$ es el vector de velocidad geodésica.
         - $R_{\mu\nu}$ es el tensor de Ricci que debe ser semi-definido positivo bajo la dirección de flujo para provocar la atracción gravitacional de las geodésicas.
-        Si la cáustica evaluada excede el límite máximo dictaminado ($\tau_c > \tau_{\text{HP}}$), detona un Veto Ontológico por "Fuga Topológica", forzando el colapso gravitacional de la decisión de vuelta a un estado estable y determinista.
+        Si la cáustica evaluada excede el límite máximo dictaminado ($\tau_c > \tau_{\text{HP}}$), detona un Veto Ontológico por "Fuga Topológica", forzando el colapso gravitacional de la decisión de vuelta a un estado de equilibrio de fase.
 
     El Colapso: Ya no operamos sobre un tablero plano euclidiano, el proyecto se modela como un terreno topográfico curvo. Las áreas del presupuesto con dependencias circulares ($\beta_1>0$) o alta concentración de riesgo logístico (SPOF) conforman montañas de alta fricción dictaminadas por los Símbolos de Christoffel del Tensor Métrico Riemanniano Dinámico ($G_{\mu\nu}$).
     Calcula el Estrés Ajustado ($\sigma^*$) combinando la tensión interna del proyecto con la Fricción Externa Territorial acoplada al tensor métrico. Si $\sigma^*$ excede la resiliencia elástica del negocio o el agente intenta cruzar trayectorias de alto estrés violando el Principio de Mínima Acción, la Energía de Dirichlet satura el colapso del Veredicto en el retículo (Lattice) hacia el autoestado supremo $\top$ (RECHAZAR), aniquilando la alucinación estocástica. Todo esto ocurre dentro del Ágora Tensorial (`app/core/immune_system/deliberation_manifold.py`, Estrato $\Omega$).
@@ -481,11 +481,16 @@ Fase 4: Auditoría del Funtor Inverso en cartuchos_toon.md y mic_agent.py
 Objetivo: Documentar la invarianza topológica al descomprimir de vuelta desde la hiperdensidad TOON hacia JSON.
 Acciones Exigidas:
 
-    Condición de Continuidad de Lipschitz: Exigir en mic_agent.py y cartuchos_toon.md que el funtor de descompresión inversa F^−1:TOON→JSON sea un difeomorfismo estricto que evite ataques de inyección y desbordamientos asintóticos. La documentación debe reflejar la siguiente inecuación de acotamiento espectral:
+    Condición de Continuidad de Lipschitz Dinámica y Acoplamiento Espectral: Exigir en mic_agent.py y cartuchos_toon.md que el funtor de descompresión inversa $F^{-1}: \text{TOON} \to \text{JSON}$ sea un difeomorfismo estricto que evite ataques de inyección y desbordamientos asintóticos. La documentación debe reflejar que la constante de Lipschitz $L_{\max}$ no es un valor estático, sino que se acopla dinámicamente al espectro del operador de Dirac de Connes $\not\ D$ del triple espectral evaluado por el `connes_spectral_auditor_agent.py`:
+
+\[
+L_{\max} = \frac{C_{\text{base}}}{1 + \lambda_{\text{disp}}(\not\ D)} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(\not\ D) - \lambda_{\min}(\not\ D))}
+\]
+
+Esta constante rige el acotamiento espectral del funtor inverso:
 
 \[
 \| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\text{max}} \| x - y \|_T
 \]
 
-Donde L_max​ es inversamente proporcional a la curvatura local del proyecto.
-Probabilidad de Alucinación Nula: Si la salida TOON del LLM rompe esta condición, la hiperdensidad semántica se declara una singularidad. Escríbase que el decodificador forzará probabilísticamente el colapso: P(x_invalido​)=0
+Si el proyecto entra en una fase de alta entropía (vorticidad logística alta), la dispersión espectral del operador $\lambda_{\text{disp}}(\not\ D)$ se amplifica dramáticamente, forzando a $L_{\max} \to 0$. Esto restringe la "creatividad" semántica del LLM a un radio geodésico extremadamente estrecho y conservador, colapsando automáticamente cualquier alucinación a $P(x_{\text{invalid}}) = 0$.

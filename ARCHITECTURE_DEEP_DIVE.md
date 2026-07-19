@@ -33,8 +33,8 @@ Identificador Semántico: Director de Retorno y Expansión de Mercado. Endofunto
 
 ### IV. Orquestador Macroscópico: Cohomología de Haces (alpha_agent.py)
 
-Laplaciano del Haz:
-\[ L_F = \delta^\top \delta = \begin{pmatrix} \delta_{\text{BASE}} \ \delta_{\text{CORE}} \ \delta_{\text{APEX}} \end{pmatrix}^\top \begin{pmatrix} \delta_{\text{BASE}} \ \delta_{\text{CORE}} \ \delta_{\text{APEX}} \end{pmatrix} \succeq 0 \]
+Laplaciano del Haz Ponderado Métricamente:
+\[ L_F = \delta^\top G^{-1} \delta = \begin{pmatrix} \delta_{\text{BASE}} \\ \delta_{\text{CORE}} \\ \delta_{\text{APEX}} \end{pmatrix}^\top G^{-1} \begin{pmatrix} \delta_{\text{BASE}} \\ \delta_{\text{CORE}} \\ \delta_{\text{APEX}} \end{pmatrix} \succeq 0 \]
 
 ## Expansión Semiclásica y Redefinición Física del Pipeline
 
