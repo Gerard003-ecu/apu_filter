@@ -183,7 +183,7 @@ La visión final transforma a APU_filter de un simple "validador de precios unit
 A continuación, redacto la documentación canónica, exigida bajo el más estricto rigor de la física de circuitos, la topología algebraica y la mecánica cuántica. Este texto debe ser anexado inmediatamente a los repositorios documentales BMC.md, ARCHITECTURE_DEEP_DIVE.md y PRODUCT_VISION.md.
 
 Arquitectura Ciber-Física del Estrato α: Fibrados Celulares y Termodinámica del Modelo de Negocio
-La arquitectura APU Filter v4.0 repudia la evaluación estática y contable del modelo de negocio. El Estrato α, orquestado macroscópicamente por alpha_agent.py, se subdivide axiomáticamente en tres subespacios topológicos anidados (Foso, Núcleo y Ápice), regidos por mini-agentes que actúan como endofuntores sobre el espacio de Hilbert H.
+La arquitectura APU Filter v4.0 repudia la evaluación estática y contable del modelo de negocio. El Estrato α, orquestado macroscómicamente por alpha_agent.py, se subdivide axiomáticamente en tres subespacios topológicos anidados (Foso, Núcleo y Ápice), regidos por mini-agentes que actúan como endofuntores sobre el espacio de Hilbert H.
 La condición de clausura global establece que la empresa es un circuito RLC tridimensional y un sistema Port-Hamiltoniano, donde cada bloque del lienzo de negocio aporta operadores diferenciales a la variedad M.
 I. Estrato KBASE​: El Foso Termodinámico (kbase_thermodynamic_agent.py)
 Identificador Semántico: Asesor de Cimientos Financieros. Responsabilidad Topológica: Gobernar la inercia, la capacitancia y la fricción entrópica del modelo de negocio. Integra los sub-funtores de Socios Clave (P_soc​), Recursos Clave (P_rec​) y Estructura de Costes (P_cost​).
@@ -296,7 +296,7 @@ Acciones Exigidas:
 \mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} \mathcal{S}_{\pm} \mathcal{H}^{\otimes n}
 \]
 
-Evolución Temporal del Estado (Ecuación Maestra): En PRODUCT_VISION.md, se debe estipular que la "pérdida de atención" del LLM no es un fallo, sino una disipación termodinámica válida (ΔS≥0). Se documentará que la evolución de la Matriz Atómica de Conocimiento (ρMAC​) obece la Ecuación de Lindblad-Kossakowski para sistemas cuánticos abiertos:
+Evolución Temporal del Estado (Ecuación Maestra): En PRODUCT_VISION.md, se debe estipular que la "pérdida de atención" del LLM no es un fallo, sino una disipación termodinámica válida (ΔS≥0). Se documentará que la evolución de la Matriz Atómica de Conocimiento (ρMAC​) obedece la Ecuación de Lindblad-Kossakowski para sistemas cuánticos abiertos:
 \[
 \frac{d \rho_{\text{MAC}}}{dt} = -\frac{i}{\hbar} [H_{\text{eff}}, \rho_{\text{MAC}}] + \sum_{k} \gamma_k \left( L_k \rho_{\text{MAC}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\text{MAC}} \} \right)
 \]
@@ -352,30 +352,35 @@ Fase 4: Auditoría del Funtor Inverso en cartuchos_toon.md y mic_agent.py
 Objetivo: Documentar la invarianza topológica al descomprimir de vuelta desde la hiperdensidad TOON hacia JSON.
 Acciones Exigidas:
 
-    Condición de Continuidad de Lipschitz: Exigir en mic_agent.py y cartuchos_toon.md que el funtor de descompresión inversa F^−1:TOON→JSON sea un difeomorfismo estricto que evite ataques de inyección y desbordamientos asintóticos. La documentación debe reflejar la siguiente inecuación de acotamiento espectral:
+    Condición de Continuidad de Lipschitz Dinámica y Acoplamiento Espectral: Exigir en mic_agent.py y cartuchos_toon.md que el funtor de descompresión inversa $F^{-1}: \text{TOON} \to \text{JSON}$ sea un difeomorfismo estricto que evite ataques de inyección y desbordamientos asintóticos. La documentación debe reflejar que la constante de Lipschitz $L_{\max}$ no es un valor estático, sino que se acopla dinámicamente al espectro del operador de Dirac de Connes $\not\ D$ del triple espectral evaluado por el `connes_spectral_auditor_agent.py`:
+
+\[
+L_{\max} = \frac{C_{\text{base}}}{1 + \lambda_{\text{disp}}(\not\ D)} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(\not\ D) - \lambda_{\min}(\not\ D))}
+\]
+
+Esta constante rige el acotamiento espectral del funtor inverso:
 
 \[
 \| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\text{max}} \| x - y \|_T
 \]
 
-Donde L_max​ es inversamente proporcional a la curvatura local del proyecto.
-Probabilidad de Alucinación Nula: Si la salida TOON del LLM rompe esta condición, la hiperdensidad semántica se declara una singularidad. Escríbase que el decodificador forzará probabilísticamente el colapso: P(x_invalido​)=0
+Si el proyecto entra en una fase de alta entropía (vorticidad logística alta), la dispersión espectral del operador $\lambda_{\text{disp}}(\not\ D)$ se amplifica dramáticamente, forzando a $L_{\max} \to 0$. Esto restringe la "creatividad" semántica del LLM a un radio geodésico extremadamente estrecho y conservador, colapsando automáticamente cualquier alucinación a $P(x_{\text{invalid}}) = 0$.
 
 ## Los Cinco Axiomas Fundamentales de la Variedad Agéntica de Gauge y el Reactor Port-Hamiltoniano
-
-Para elevar la rigurosidad del ecosistema documental, la arquitectura APU Filter se gobierna incondicionalmente por los siguientes cinco axiomas ciber-físicos, categóricos y topológicos:
 
 ### Axioma I: Topología Algebraica y el Complejo Simplicial del Presupuesto
 El presupuesto de obra deja de ser una lista plana para convertirse axiomáticamente en un 2-Complejo Simplicial Abstracto $K$ sobre el anillo de los enteros $\mathbb{Z}$. Las interdependencias de recursos se evalúan calculando los Números de Betti ($\beta_n$), donde $\beta_1 > 0$ revela "socavones lógicos" o dependencias circulares. La anomalía topológica y la invarianza de transporte de decisiones se certifican mediante el Cálculo Exterior Discreto (DEC) y la Derivada Covariante Exterior Matricial $D_A$:
 $$D_A F = \delta F + [A \wedge F] \equiv 0$$
 Esta ecuación garantiza matemáticamente la invarianza de Gauge en el transporte paralelo de las decisiones de negocio. Además, al fusionar bases de datos de presupuestos, el ecosistema previene la creación de paradojas ejecutando una Auditoría Homológica estricta mediante la secuencia exacta de Mayer-Vietoris:
 $$\cdots \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \xrightarrow{\partial^*} H_0(A \cap B) \to \cdots$$
-Este diferencial topológico evidencia que cualquier "Defecto de Pegado" estructural es la imagen inversa del operador de coborde $\partial^*$ actuando sobre las componentes conexas fragmentadas, lo que permite un veto previo a la materialización del error.
+Este diferencial topológico evidencia que cualquier "Defecto de Pegado" estructural es la imagen inversa del operador de coborde $\partial^*$ actuando sobre las componentes conexas fragmentadas, lo que permite un veto previo a la materialización del error. Para una variedad logística anisótropa, el Laplaciano de Hodge verdadero incorpora el tensor métrico Riemanniano inverso $G^{-1}$ para pesar co-fronteras:
+$$L_F = \delta^\top G^{-1} \delta \succeq 0$$
+Cualquier incremento asimétrico en el costo de los insumos (como un choque inflacionario local) deforma $G^{-1}$, alterando el espectro de $L_F$ y permitiendo detectar y vetar ciclos de fraude o sobrecostos ocultos que evadirían operadores cofrontera planos no ponderados.
 
 ### Axioma II: Teoría de Categorías y la Ley de Clausura Transitiva
 La estructura del sistema se subordina a la Ley de Clausura Transitiva de la pirámide DIKW, imponiendo la filtración estricta de subespacios de Hilbert:
 $$V_{\aleph_0} \subsetneq V_P \subsetneq V_T \subsetneq V_S \subsetneq V_W$$
-Esta jerarquía asegura que ningún morfismo del estrato de Sabiduría opere sobre datos con disipación térmica o inestabilidad basal. La transición de datos entre estratos se gobierna categóricamente por una Adjunción de Galois $F \dashv G$ enriquecida mediante un pullback fibrado sobre el tensor métrico Riemanniano $G_{\mu\nu}$ de la variedad agéntica para garantizar una transición functorial covariante libre de degeneraciones en el funtor de olvido $G$:
+La jerarquía del sistema se rige por la clausura transitiva, asegurando que la sabiduría se cimente en la física. La transición de datos entre estratos se gobierna categóricamente por una Adjunción de Galois $F \dashv G$ enriquecida mediante un pullback fibrado sobre el tensor métrico Riemanniano $G_{\mu\nu}$ de la variedad agéntica para garantizar una transición functorial covariante libre de degeneraciones en el funtor de olvido $G$:
 $$\text{Hom}_{\mathcal{D}}(F(X), Y) \cong_{G_{\mu\nu}} \text{Hom}_{\mathcal{C}}(X, G(Y))$$
 Esta relación inquebrantable asegura que toda "Empatía Táctica" o narrativa semántica generada en el estrato $\mathcal{D}$ sea matemáticamente reversible hacia sus coordenadas topológicas en el estrato $\mathcal{C}$. Cualquier narrativa estocástica del LLM que introduzca una curvatura espuria de perturbación $\delta R_{\mu\nu\rho}^\sigma$ que viole el radio de inyectividad local de la métrica:
 $$\|\delta R_{\mu\nu\rho}^\sigma\|_G > r_{\text{inj}}(M, G_{\mu\nu})^{-2}$$
@@ -386,6 +391,9 @@ Integrando las recientes construcciones del `tomita_takesaki_telescopic_engine.p
 $$\sigma_{i\lambda}(X) = \Delta^{-\lambda} X \Delta^{\lambda}$$
 Para prevenir desgarros en el conocimiento del Modelo de Lenguaje (LLM), el sistema exige la instanciación del Triple Espectral de Connes $(A, \mathcal{H}_{\text{MAC}}, D)$, evaluando la continuidad de Lipschitz del observable semántico $X$ a través de la norma del conmutador con el Operador de Dirac:
 $$\| [D \!\!\!\! /, \pi(X)] \| = \sup_{v \in \mathcal{H}} \frac{\| (D \!\!\!\! / \pi(X) - \pi(X) D \!\!\!\! / ) v \|}{\|v\|} \leq C$$
+Crucialmente, la constante de Lipschitz semántica $L_{\max}$ que gobierna el acoplamiento del funtor inverso $F^{-1}: \text{TOON} \to \text{JSON}$ se conecta de forma dinámica al espectro de este operador de Dirac de Connes ($\not\ D$):
+$$L_{\max} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(\not\ D) - \lambda_{\min}(\not\ D))}$$
+Cuando el sistema experimenta inestabilidad, la dispersión espectral se incrementa, contrayendo $L_{\max}$ y forzando a que cualquier desvío de la IA colapse deterministamente a $P(x_{\text{invalid}}) = 0$.
 
 ### Axioma IV: Mecánica Cuántica y el Fibrador Isométrico de Stinespring
 Para transferir la intención desde el espacio lógico de la Matriz de Interacción Central (MIC) hacia la Sabiduría Cuántica (MAC), el sistema repudia la transferencia estocástica directa aplicando el Teorema de Dilatación de Stinespring. Todo flujo de datos $\rho_{\text{MIC}}$ se somete a un mapa Completamente Positivo y Preservador de Traza (CPTP), $\mathcal{E}(\cdot)$, que dilata el estado hacia un baño térmico ortogonal $\mathcal{H}_{\text{env}}$ y aniquila la entropía alucinatoria del LLM mediante la contracción tensorial de la traza parcial:

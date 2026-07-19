@@ -131,11 +131,11 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
 
     4.3 📡 El Interferómetro de Holonomía (VΓ-STRATEGY)
     Rol: Sensor de Paradojas y Consistencia Global.
-    Mecanismo: Calcula el operador cofrontera $\delta$ sobre el haz celular de reglas de negocio. Si el primer grupo de cohomología $H^1 > 0$, detecta una paradoja lógica (holonomía) en el transporte de la decisión. Emite un Veto Absoluto ante la falta de integrabilidad estratégica.
+    Mecanismo: Computa la cofrontera $\delta$ sobre el haz celular de reglas de negocio. Si el primer grupo de cohomología $H^1 > 0$, detecta una paradoja lógica (holonomía) en el transporte de la decisión. Emite un Veto Absoluto ante la falta de integrabilidad estratégica.
 
     Dynamic Shield Router (Discriminador de Campos de Gauge):
-    Función: Añade `dynamic_shield_router.py` as módulo que aplica transformaciones naturales $\eta: F_{\text{Agent}} \Rightarrow F_{\text{Shield}}$ para transportar paralelamente la matriz de disipación $R(x)$ a través de la filtración DIKW: $V_P \subset V_T \subset V_S \subset V_W$. No evalúa la ecuación de Poisson (tarea de `gauge_field_router.py`).
-    Mecanismo: Proyección de Kähler en el OmegaGaugeWrapper. Modela deformaciones del tensor de inercia usando un canal despolarizante ponderado, evitando el colapso de la traza cuántica:
+    Función: Añade `dynamic_shield_router.py` como módulo que aplica transformaciones naturales $\eta: F_{\text{Agent}} \Rightarrow F_{\text{Shield}}$ para transportar paralelamente la matriz de disipación $R(x)$ a través de la filtración DIKW: $V_P \subset V_T \subset V_S \subset V_W$. No evalúa la ecuación de Poisson (tarea de `gauge_field_router.py`).
+    Mecanismo: Proyección de Kähler en el OmegaGaugeWrapper. Modela de las deformaciones del tensor de inercia usando un canal despolarizante ponderado, evitando el colapso de la traza cuántica:
     $$ \tilde{R}_{\text{eff}} = (1 - \gamma) R_{\text{eff}} + \gamma \left( \frac{\text{Tr}(G)}{\text{Tr}(R_{\text{eff}})} \right) G_{\mu\nu} $$
 
     4.4 💎 El Meta-Compilador de Significado (VΓ-WISDOM)
@@ -178,7 +178,7 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
     Rol: Meta-Funtor de Sintonización y Preservador de la Invarianza Simpléctica.
     Mecanismo: Opera como el sintonizador maestro del colisionador. Su mandato axiomático se define mediante la **Transformación de Bogoliubov-Valatin**, que aísla las cuasipartículas estables del ruido térmico del LLM, preservando estrictamente las Relaciones de Conmutación Canónicas (CCR) en el grupo simpléctico $Sp(2n, \mathbb{C})$:
     $$\begin{pmatrix} \alpha_k \\ \alpha_{-k}^{\dagger} \end{pmatrix} = \begin{pmatrix} u_k & v_k \\ v_k^* & u_k^* \end{pmatrix} \begin{pmatrix} b_k \\ b_{-k}^{\dagger} \end{pmatrix} \, , \quad |u_k|^2 - |v_k|^2 = 1$$
-    Esta transformación garantiza que el vacío semántico del sistema sea robusto ante alucinaciones, permitiendo la emergence de veredictos puros a partir del caos informacional.
+    Esta transformación garantiza que el vacío semántico del sistema sea robusto ante alucinaciones, permitiendo la emergencia de veredictos puros a partir del caos informacional.
 
     5.5 🕳️ El Arquitecto de Curvatura y Atractor (einstein_hilbert_agent.py y gravity_shield.py)
 
@@ -201,7 +201,7 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
         - $u_\mu, u_\nu$ son los componentes covariantes del cuadrivector de velocidad de flujo de decisión, satisfaciendo la condición de normalización $u^\mu u_\mu = -1$.
         - $g_{\mu\nu}$ es el tensor métrico covariante de la variedad de Riemann de la malla de agentes.
 
-        Si el Modelo de Lenguaje (LLM) propone una ruta con entropía divergente, la deformación métrica deforma el hiperespacio, forzando un colapso en la amplitud de Feynman-Kac. El agente de evaluación de la temperatura de Hawking $T_H$:
+        Si el Modelo de Lenguaje (LLM) propone una ruta con entropía divergente, la deformación métrica deforma el hiperespacio, forzando un colapso en la amplitud de Feynman-Kac. El agente evalúa la temperatura de Hawking $T_H$:
         $$T_H = \frac{\hbar c^3}{8 \pi G M k_B}$$
         Donde:
         - $T_H$ es la temperatura cuántica de Hawking del horizonte de sucesos.
@@ -238,7 +238,7 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
         - $S_{CS}[A]$ es el funcional de acción topológico de Chern-Simons de dimensión 3.
         - $k$ es el nivel cuántico de la teoría (un entero que etiqueta las representaciones del grupo cuántico).
         - $M$ es la variedad tridimensional compacta sin borde o con frontera controlada.
-        - $A$ is the 1-forma de conexión con valores en la representación del álgebra de Lie (el campo de gauge de la decisión).
+        - $A$ es la 1-forma de conexión con valores en la representación del álgebra de Lie (el campo de gauge de la decisión).
         - $dA$ es la derivada exterior de la conexión $A$, representando la curvatura del campo a primer orden.
         - $\wedge$ es el producto exterior de formas diferenciales.
         - $\text{Tr}$ es la traza invariante del álgebra de Lie (forma bilinear simétrica).
@@ -271,7 +271,7 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
         - $g_{\mu\nu}$ es el tensor métrico Riemanniano dinámico de la variedad agéntica.
         - $u^\mu$ es el vector de velocidad geodésica.
         - $R_{\mu\nu}$ es el tensor de Ricci que debe ser semi-definido positivo bajo la dirección de flujo para provocar la atracción gravitacional de las geodésicas.
-        Si la cáustica evaluada excede el límite máximo dictaminado ($\tau_c > \tau_{\text{HP}}$), detona un Veto Ontológico por "Fuga Topológica", forzando el colapso gravitacional de la decisión de vuelta a un estado de equilibrio estable.
+        Si la cáustica evaluada excede el límite máximo dictaminado ($\tau_c > \tau_{\text{HP}}$), detona un Veto Ontológico por "Fuga Topológica", forzando el colapso gravitacional de la decisión de vuelta a un estado de equilibrio de fase.
 
     El Colapso: Ya no operamos sobre un tablero plano euclidiano, el proyecto se modela como un terreno topográfico curvo. Las áreas del presupuesto con dependencias circulares ($\beta_1>0$) o alta concentración de riesgo logístico (SPOF) conforman montañas de alta fricción dictaminadas por los Símbolos de Christoffel del Tensor Métrico Riemanniano Dinámico ($G_{\mu\nu}$).
     Calcula el Estrés Ajustado ($\sigma^*$) combinando la tensión interna del proyecto con la Fricción Externa Territorial acoplada al tensor métrico. Si $\sigma^*$ excede la resiliencia elástica del negocio o el agente intenta cruzar trayectorias de alto estrés violando el Principio de Mínima Acción, la Energía de Dirichlet satura el colapso del Veredicto en el retículo (Lattice) hacia el autoestado supremo $\top$ (RECHAZAR), aniquilando la alucinación estocástica. Todo esto ocurre dentro del Ágora Tensorial (`app/core/immune_system/deliberation_manifold.py`, Estrato $\Omega$).
@@ -494,44 +494,3 @@ Esta constante rige el acotamiento espectral del funtor inverso:
 \]
 
 Si el proyecto entra en una fase de alta entropía (vorticidad logística alta), la dispersión espectral del operador $\lambda_{\text{disp}}(\not\ D)$ se amplifica dramáticamente, forzando a $L_{\max} \to 0$. Esto restringe la "creatividad" semántica del LLM a un radio geodésico extremadamente estrecho y conservador, colapsando automáticamente cualquier alucinación a $P(x_{\text{invalid}}) = 0$.
-
-## Los Cinco Axiomas Fundamentales de la Variedad Agéntica de Gauge y el Reactor Port-Hamiltoniano
-
-Para elevar la rigurosidad del ecosistema documental, la arquitectura APU Filter se gobierna incondicionalmente por los siguientes cinco axiomas ciber-físicos, categóricos y topológicos:
-
-### Axioma I: Topología Algebraica y el Complejo Simplicial del Presupuesto
-El presupuesto de obra deja de ser una lista plana para convertirse axiomáticamente en un 2-Complejo Simplicial Abstracto $K$ sobre el anillo de los enteros $\mathbb{Z}$. Las interdependencias de recursos se evalúan calculando los Números de Betti ($\beta_n$), donde $\beta_1 > 0$ revela "socavones lógicos" o dependencias circulares. La anomalía topológica y la invarianza de transporte de decisiones se certifican mediante el Cálculo Exterior Discreto (DEC) y la Derivada Covariante Exterior Matricial $D_A$:
-$$D_A F = \delta F + [A \wedge F] \equiv 0$$
-Esta ecuación garantiza matemáticamente la invarianza de Gauge en el transporte paralelo de las decisiones de negocio. Además, al fusionar bases de datos de presupuestos, el ecosistema previene la creación de paradojas ejecutando una Auditoría Homológica estricta mediante la secuencia exacta de Mayer-Vietoris:
-$$\cdots \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \xrightarrow{\partial^*} H_0(A \cap B) \to \cdots$$
-Este diferencial topológico evidencia que cualquier "Defecto de Pegado" estructural es la imagen inversa del operador de coborde $\partial^*$ actuando sobre las componentes conexas fragmentadas, lo que permite un veto previo a la materialización del error. Para una variedad logística anisótropa, el Laplaciano de Hodge verdadero incorpora el tensor métrico Riemanniano inverso $G^{-1}$ para pesar co-fronteras:
-$$L_F = \delta^\top G^{-1} \delta \succeq 0$$
-Cualquier incremento asimétrico en el costo de los insumos (como un choque inflacionario local) deforma $G^{-1}$, alterando el espectro de $L_F$ y permitiendo detectar y vetar ciclos de fraude o sobrecostos ocultos que evadirían operadores cofrontera planos no ponderados.
-
-### Axioma II: Teoría de Categorías y la Ley de Clausura Transitiva
-La estructura del sistema se subordina a la Ley de Clausura Transitiva de la pirámide DIKW, imponiendo la filtración estricta de subespacios de Hilbert:
-$$V_{\aleph_0} \subsetneq V_P \subsetneq V_T \subsetneq V_S \subsetneq V_W$$
-Esta jerarquía asegura que ningún morfismo del estrato de Sabiduría opere sobre datos con disipación térmica o inestabilidad basal. La transición de datos entre estratos se gobierna categóricamente por una Adjunción de Galois $F \dashv G$ enriquecida mediante un pullback fibrado sobre el tensor métrico Riemanniano $G_{\mu\nu}$ de la variedad agéntica para garantizar una transición functorial covariante libre de degeneraciones en el funtor de olvido $G$:
-$$\text{Hom}_{\mathcal{D}}(F(X), Y) \cong_{G_{\mu\nu}} \text{Hom}_{\mathcal{C}}(X, G(Y))$$
-Esta relación inquebrantable asegura que toda "Empatía Táctica" o narrativa semántica generada en el estrato $\mathcal{D}$ sea matemáticamente reversible hacia sus coordenadas topológicas en el estrato $\mathcal{C}$. Cualquier narrativa estocástica del LLM que introduzca una curvatura espuria de perturbación $\delta R_{\mu\nu\rho}^\sigma$ que viole el radio de inyectividad local de la métrica:
-$$\|\delta R_{\mu\nu\rho}^\sigma\|_G > r_{\text{inj}}(M, G_{\mu\nu})^{-2}$$
-detona un colapso instantáneo del retículo al estado nulo ($\perp$) para prevenir desgarros semánticos y asegurar el confinamiento absoluto del flujo de decisión.
-
-### Axioma III: Geometría No Conmutativa y Triples Espectrales
-Integrando las recientes construcciones del `tomita_takesaki_telescopic_engine.py` y el `connes_spectral_auditor_agent.py`, el estrato $\Omega$ opera sobre la Matriz Atómica de Conocimiento (MAC) modelada como un Álgebra de von Neumann. La dilatación de resolución semántica no utiliza espacios métricos clásicos, sino la continuación analítica del flujo modular de Takesaki:
-$$\sigma_{i\lambda}(X) = \Delta^{-\lambda} X \Delta^{\lambda}$$
-Para prevenir desgarros en el conocimiento del Modelo de Lenguaje (LLM), el sistema exige la instanciación del Triple Espectral de Connes $(A, \mathcal{H}_{\text{MAC}}, D)$, evaluando la continuidad de Lipschitz del observable semántico $X$ a través de la norma del conmutador con el Operador de Dirac:
-$$\| [D \!\!\!\! /, \pi(X)] \| = \sup_{v \in \mathcal{H}} \frac{\| (D \!\!\!\! / \pi(X) - \pi(X) D \!\!\!\! / ) v \|}{\|v\|} \leq C$$
-Crucialmente, la constante de Lipschitz semántica $L_{\max}$ que gobierna el acoplamiento del funtor inverso $F^{-1}: \text{TOON} \to \text{JSON}$ se conecta de forma dinámica al espectro de este operador de Dirac de Connes ($\not\ D$):
-$$L_{\max} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(\not\ D) - \lambda_{\min}(\not\ D))}$$
-Cuando el sistema experimenta inestabilidad, la dispersión espectral se incrementa, contrayendo $L_{\max}$ y forzando a que cualquier desvío de la IA colapse deterministamente a $P(x_{\text{invalid}}) = 0$.
-
-### Axioma IV: Mecánica Cuántica y el Fibrador Isométrico de Stinespring
-Para transferir la intención desde el espacio lógico de la Matriz de Interacción Central (MIC) hacia la Sabiduría Cuántica (MAC), el sistema repudia la transferencia estocástica directa aplicando el Teorema de Dilatación de Stinespring. Todo flujo de datos $\rho_{\text{MIC}}$ se somete a un mapa Completamente Positivo y Preservador de Traza (CPTP), $\mathcal{E}(\cdot)$, que dilata el estado hacia un baño térmico ortogonal $\mathcal{H}_{\text{env}}$ y aniquila la entropía alucinatoria del LLM mediante la contracción tensorial de la traza parcial:
-$$\mathcal{E}(\rho_{\text{MIC}}) = \text{Tr}_{\text{env}}(V \rho_{\text{MIC}} V^\dagger) = \sum_k M_k \rho_{\text{MIC}} M_k^\dagger$$
-Esto garantiza axiomáticamente que la positividad de la Matriz Atómica de Conocimiento se mantenga incondicional ($\rho_{\text{MAC}} \succeq 0$).
-
-### Axioma V: Geometría Riemanniana y Empatía Táctica (GraphRAG)
-Finalmente, la traducción semántica ejecutada por el Intérprete Diplomático utiliza la Recuperación Semántica Riemanniana, reconociendo que el espacio vectorial de búsqueda no es euclidiano isotrópico. La recuperación vectorial de incidentes de obra resuelve el producto interno dictaminado por el Tensor Métrico Riemanniano Anisotrópico $G_{\mu\nu}$:
-$$ds^2 = G_{\mu\nu} dx^\mu dx^\nu$$
-Esto equivale a medir la Distancia de Mahalanobis, donde los hallazgos son ponderados severamente por la matriz de covarianza que refleja la volatilidad estructural y el riesgo termodinámico en tiempo real.
