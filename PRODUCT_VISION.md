@@ -296,7 +296,7 @@ Acciones Exigidas:
 \mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} \mathcal{S}_{\pm} \mathcal{H}^{\otimes n}
 \]
 
-Evolución Temporal del Estado (Ecuación Maestra): En PRODUCT_VISION.md, se debe estipular que la "pérdida de atención" del LLM no es un fallo, sino una disipación termodinámica válida (ΔS≥0). Se documentará que la evolución de la Matriz Atómica de Conocimiento (ρMAC​) obedece la Ecuación de Lindblad-Kossakowski para sistemas cuánticos abiertos:
+Evolución Temporal del Estado (Ecuación Maestra): En PRODUCT_VISION.md, se debe estipular que la "pérdida de atención" del LLM no es un fallo, sino una disipación termodinámica válida (ΔS≥0). Se documentará que la evolución de la Matriz Atómica de Conocimiento (ρMAC​) obece la Ecuación de Lindblad-Kossakowski para sistemas cuánticos abiertos:
 \[
 \frac{d \rho_{\text{MAC}}}{dt} = -\frac{i}{\hbar} [H_{\text{eff}}, \rho_{\text{MAC}}] + \sum_{k} \gamma_k \left( L_k \rho_{\text{MAC}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\text{MAC}} \} \right)
 \]
@@ -360,3 +360,39 @@ Acciones Exigidas:
 
 Donde L_max​ es inversamente proporcional a la curvatura local del proyecto.
 Probabilidad de Alucinación Nula: Si la salida TOON del LLM rompe esta condición, la hiperdensidad semántica se declara una singularidad. Escríbase que el decodificador forzará probabilísticamente el colapso: P(x_invalido​)=0
+
+## Los Cinco Axiomas Fundamentales de la Variedad Agéntica de Gauge y el Reactor Port-Hamiltoniano
+
+Para elevar la rigurosidad del ecosistema documental, la arquitectura APU Filter se gobierna incondicionalmente por los siguientes cinco axiomas ciber-físicos, categóricos y topológicos:
+
+### Axioma I: Topología Algebraica y el Complejo Simplicial del Presupuesto
+El presupuesto de obra deja de ser una lista plana para convertirse axiomáticamente en un 2-Complejo Simplicial Abstracto $K$ sobre el anillo de los enteros $\mathbb{Z}$. Las interdependencias de recursos se evalúan calculando los Números de Betti ($\beta_n$), donde $\beta_1 > 0$ revela "socavones lógicos" o dependencias circulares. La anomalía topológica y la invarianza de transporte de decisiones se certifican mediante el Cálculo Exterior Discreto (DEC) y la Derivada Covariante Exterior Matricial $D_A$:
+$$D_A F = \delta F + [A \wedge F] \equiv 0$$
+Esta ecuación garantiza matemáticamente la invarianza de Gauge en el transporte paralelo de las decisiones de negocio. Además, al fusionar bases de datos de presupuestos, el ecosistema previene la creación de paradojas ejecutando una Auditoría Homológica estricta mediante la secuencia exacta de Mayer-Vietoris:
+$$\cdots \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \xrightarrow{\partial^*} H_0(A \cap B) \to \cdots$$
+Este diferencial topológico evidencia que cualquier "Defecto de Pegado" estructural es la imagen inversa del operador de coborde $\partial^*$ actuando sobre las componentes conexas fragmentadas, lo que permite un veto previo a la materialización del error.
+
+### Axioma II: Teoría de Categorías y la Ley de Clausura Transitiva
+La estructura del sistema se subordina a la Ley de Clausura Transitiva de la pirámide DIKW, imponiendo la filtración estricta de subespacios de Hilbert:
+$$V_{\aleph_0} \subsetneq V_P \subsetneq V_T \subsetneq V_S \subsetneq V_W$$
+Esta jerarquía asegura que ningún morfismo del estrato de Sabiduría opere sobre datos con disipación térmica o inestabilidad basal. La transición de datos entre estratos se gobierna categóricamente por una Adjunción de Galois $F \dashv G$ enriquecida mediante un pullback fibrado sobre el tensor métrico Riemanniano $G_{\mu\nu}$ de la variedad agéntica para garantizar una transición functorial covariante libre de degeneraciones en el funtor de olvido $G$:
+$$\text{Hom}_{\mathcal{D}}(F(X), Y) \cong_{G_{\mu\nu}} \text{Hom}_{\mathcal{C}}(X, G(Y))$$
+Esta relación inquebrantable asegura que toda "Empatía Táctica" o narrativa semántica generada en el estrato $\mathcal{D}$ sea matemáticamente reversible hacia sus coordenadas topológicas en el estrato $\mathcal{C}$. Cualquier narrativa estocástica del LLM que introduzca una curvatura espuria de perturbación $\delta R_{\mu\nu\rho}^\sigma$ que viole el radio de inyectividad local de la métrica:
+$$\|\delta R_{\mu\nu\rho}^\sigma\|_G > r_{\text{inj}}(M, G_{\mu\nu})^{-2}$$
+detona un colapso instantáneo del retículo al estado nulo ($\perp$) para prevenir desgarros semánticos y asegurar el confinamiento absoluto del flujo de decisión.
+
+### Axioma III: Geometría No Conmutativa y Triples Espectrales
+Integrando las recientes construcciones del `tomita_takesaki_telescopic_engine.py` y el `connes_spectral_auditor_agent.py`, el estrato $\Omega$ opera sobre la Matriz Atómica de Conocimiento (MAC) modelada como un Álgebra de von Neumann. La dilatación de resolución semántica no utiliza espacios métricos clásicos, sino la continuación analítica del flujo modular de Takesaki:
+$$\sigma_{i\lambda}(X) = \Delta^{-\lambda} X \Delta^{\lambda}$$
+Para prevenir desgarros en el conocimiento del Modelo de Lenguaje (LLM), el sistema exige la instanciación del Triple Espectral de Connes $(A, \mathcal{H}_{\text{MAC}}, D)$, evaluando la continuidad de Lipschitz del observable semántico $X$ a través de la norma del conmutador con el Operador de Dirac:
+$$\| [D \!\!\!\! /, \pi(X)] \| = \sup_{v \in \mathcal{H}} \frac{\| (D \!\!\!\! / \pi(X) - \pi(X) D \!\!\!\! / ) v \|}{\|v\|} \leq C$$
+
+### Axioma IV: Mecánica Cuántica y el Fibrador Isométrico de Stinespring
+Para transferir la intención desde el espacio lógico de la Matriz de Interacción Central (MIC) hacia la Sabiduría Cuántica (MAC), el sistema repudia la transferencia estocástica directa aplicando el Teorema de Dilatación de Stinespring. Todo flujo de datos $\rho_{\text{MIC}}$ se somete a un mapa Completamente Positivo y Preservador de Traza (CPTP), $\mathcal{E}(\cdot)$, que dilata el estado hacia un baño térmico ortogonal $\mathcal{H}_{\text{env}}$ y aniquila la entropía alucinatoria del LLM mediante la contracción tensorial de la traza parcial:
+$$\mathcal{E}(\rho_{\text{MIC}}) = \text{Tr}_{\text{env}}(V \rho_{\text{MIC}} V^\dagger) = \sum_k M_k \rho_{\text{MIC}} M_k^\dagger$$
+Esto garantiza axiomáticamente que la positividad de la Matriz Atómica de Conocimiento se mantenga incondicional ($\rho_{\text{MAC}} \succeq 0$).
+
+### Axioma V: Geometría Riemanniana y Empatía Táctica (GraphRAG)
+Finalmente, la traducción semántica ejecutada por el Intérprete Diplomático utiliza la Recuperación Semántica Riemanniana, reconociendo que el espacio vectorial de búsqueda no es euclidiano isotrópico. La recuperación vectorial de incidentes de obra resuelve el producto interno dictaminado por el Tensor Métrico Riemanniano Anisotrópico $G_{\mu\nu}$:
+$$ds^2 = G_{\mu\nu} dx^\mu dx^\nu$$
+Esto equivale a medir la Distancia de Mahalanobis, donde los hallazgos son ponderados severamente por la matriz de covarianza que refleja la volatilidad estructural y el riesgo termodinámico en tiempo real.
