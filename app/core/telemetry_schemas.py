@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 r"""
 +==============================================================================+
-| Módulo : Telemetry Schemas (Álgebra de Partículas en el Espacio de Fock)      |
+| Módulo : Telemetry Schemas (Álgebra de Partículas en el Espacio de Fock)     |
 | Ruta   : app/core/telemetry_schemas.py                                       |
-| Versión: 4.0.0-Rigorous-Quantum-Particle-Algebra                            |
+| Versión: 4.0.0-Rigorous-Quantum-Particle-Algebra                             |
 +==============================================================================+
 
 NATURALEZA CIBER-FÍSICA Y ESPACIO DE FOCK:
