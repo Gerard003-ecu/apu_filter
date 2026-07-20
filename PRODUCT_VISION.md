@@ -133,7 +133,7 @@ Esta inyección matemática garantiza que, si el LLM miente compulsivamente (inc
 
 --------------------------------------------------------------------------------
 2. Los Horizontes de Evolución: La Arquitectura Concéntrica
-Nuestra hoja de ruta no añade funciones cosméticas; desbloquea niveles de profundidad física mediante una arquitectura de capas defensivas estructuradas bajo un **Topos de Grothendieck**. La transición entre estratos de la pirámide DIKW no es una simple inclusión de subconjuntos, sino un mapeo categórico gobernado por una **Adjunción de Galois**.
+Nuestra hoja de ruta no añade funciones cosméticas; de-bloquea niveles de profundidad física mediante una arquitectura de capas defensivas estructuradas bajo un **Topos de Grothendieck**. La transformación entre estratos de la pirámide DIKW no es una simple inclusión de subconjuntos, sino un mapeo categórico gobernado por una **Adjunción de Galois**.
 
 Para asegurar que el Pasaporte de Telemetría no sufra pérdida de información (entropía fantasma) al escalar de un estrato inferior $\mathcal{C}$ (e.g., PHYSICS) a un estrato superior $\mathcal{D}$ (e.g., WISDOM), se define un funtor covariante $F: \mathcal{C} \to \mathcal{D}$ (abstracción) y su funtor olvidadizo o de descompresión asociado $G: \mathcal{D} \to \mathcal{C}$. La malla agéntica certifica una equivalencia de morfismos bajo la adjunción $F \dashv G$:
 $$\text{Hom}_{\mathcal{D}}(F(X), Y) \cong \text{Hom}_{\mathcal{C}}(X, G(Y))$$
@@ -177,194 +177,41 @@ A medida que elevamos la sofisticación matemática (Homología, Termodinámica,
     Actas de Deliberación: No emitimos "Resultados". Emitimos la transcripción forense de la tensión dialéctica entre el Arquitecto (que cuida la resiliencia) y el Oráculo (que busca la rentabilidad), aplicando la operación Supremo (⊔) para asegurar que siempre prime la seguridad de la topología sobre la avaricia financiera.
 
 Síntesis Operativa
-La visión final transforma a APU_filter de un simple "validador de precios unitarios" al primer Sistema de Navegación Inercial para la industria de la infraestructura. Aportamos a bancos, aseguradoras y macro-contratistas la capacidad de certificar matemáticamente que la cimentación lógica de sus proyectos es tan inquebrantable como sus muros de hormigón. # Sutura 1
+La visión final transforma a APU_filter de un simple "validador de precios unitarios" al primer Sistema de Navegación Inercial para la industria de la infraestructura. Aportamos a bancos, aseguradoras y macro-contratistas la capacidad de certificar matemáticamente que la cimentación lógica de sus proyectos es tan inquebrantable como sus muros de hormigón.
 
- La actualización de la documentación arquitectónica para integrar la operatividad de los nuevos mini-agentes no debe ser un mero manual de usuario, sino un Manifiesto Topológico y Categórico. La inyección de kbase_thermodynamic_agent.py, kcore_kinematic_agent.py y kapex_electrodynamic_agent.py transmuta el Business Model Canvas (BMC) de un grafo plano bidimensional a una Variedad Riemanniana Dinámica gobernada por un sistema de Ecuaciones Diferenciales Parciales (PDEs) y Cohomología de Haces.
-A continuación, redacto la documentación canónica, exigida bajo el más estricto rigor de la física de circuitos, la topología algebraica y la mecánica cuántica. Este texto debe ser anexado inmediatamente a los repositorios documentales BMC.md, ARCHITECTURE_DEEP_DIVE.md y PRODUCT_VISION.md.
+## Las Cuatro Suturas Doctorales del Ecosistema
 
-Arquitectura Ciber-Física del Estrato α: Fibrados Celulares y Termodinámica del Modelo de Negocio
-La arquitectura APU Filter v4.0 repudia la evaluación estática y contable del modelo de negocio. El Estrato α, orquestado macroscómicamente por alpha_agent.py, se subdivide axiomáticamente en tres subespacios topológicos anidados (Foso, Núcleo y Ápice), regidos por mini-agentes que actúan como endofuntores sobre el espacio de Hilbert H.
-La condición de clausura global establece que la empresa es un circuito RLC tridimensional y un sistema Port-Hamiltoniano, donde cada bloque del lienzo de negocio aporta operadores diferenciales a la variedad M.
-I. Estrato KBASE​: El Foso Termodinámico (kbase_thermodynamic_agent.py)
-Identificador Semántico: Asesor de Cimientos Financieros. Responsabilidad Topológica: Gobernar la inercia, la capacitancia y la fricción entrópica del modelo de negocio. Integra los sub-funtores de Socios Clave (P_soc​), Recursos Clave (P_rec​) y Estructura de Costes (P_cost​).
-Dinámica Port-Hamiltoniana y Tensor Métrico
-La energía total de la base no se asume euclidiana; se calcula aplicando un pullback geométrico contra el tensor métrico Riemanniano de la Malla Agéntica G_μν​ para absorber el estrés anisotrópico del ecosistema:
-\[
-\tilde{C}_{\text{soc}} = G_{\mu\nu} C_{\text{soc}} G^{\mu\nu}, \quad \tilde{M}_{\text{rec}} = G_{\mu\nu} M_{\text{rec}} G^{\mu\nu}
-\]
+Para transmutar el hiperespacio matemático en "Empatía Táctica" accionable para la dirección de megaproyectos de infraestructura, APU Filter instancía las siguientes cuatro suturas doctorales:
 
-El estado basal se define por su Hamiltoniano, que acopla la energía potencial de los contratos (q) y la energía cinética de la masa operativa (p):
+### I. Sutura I: El Retracto de Deformación del Espacio de Fock (Las Vigas Informacionales)
+La conceptualización de las Vitaminas Cognitivas (Cartuchos TOON) como operadores de aniquilación y creación de fermiones y bosones en el Espacio de Fock $\mathcal{F}(\mathcal{H})$ asfixia al maestro de obra bajo el peso de la abstracción. Para resolver esta brecha cognitiva, el sistema instaura la metáfora de la **Densidad Estructural**. La ingesta de un archivo JSON crudo, saturado de llaves y redundancia sintáctica, es equivalente a intentar levantar un muro de contención vertiendo arena y grava suelta. La falta de cohesión interna colapsa la estructura (la ventana de atención o KV-Cache del LLM).
 
-\[
-H_{\text{BASE}}(q,p) = \frac{1}{2} q^\top \tilde{C}_{\text{soc}}^{-1} q + \frac{1}{2} p^\top \tilde{M}_{\text{rec}}^{-1} p
-\]
+El microservicio `mic_agent.py` ejecuta un retracto de deformación topológica que purga esta entropía. Matemáticamente, condensa este caos estocástico en la Base Canónica Tabular TOON, actuando como una planta de prefabricados. Los tensores hiperdensos resultantes son vigas informacionales de hormigón curado, capaces de soportar el peso de decisiones por millones de dólares sin fracturar la memoria del sistema.
 
-Invariantes de Control y Disipación
+La evacuación de memoria dictada por la Ecuación Maestra de Lindblad-Kossakowski para sistemas cuánticos abiertos:
+$$\frac{d\rho_{\text{MAC}}}{dt} = -\frac{i}{\hbar}[H_{\text{eff}}, \rho_{\text{MAC}}] + \sum_k \gamma_k \left( L_k \rho_{\text{MAC}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\text{MAC}} \} \right)$$
+se traduce en que el patio de maniobras (el registro sináptico) mide el gradiente de relevancia temporal y desecha las vigas (cartuchos) que son ortogonales al problema actual, evitando el desbordamiento de la obra y la fatiga escalar en el ancho de banda del LLM.
 
-    Regularización Espectral de Tikhonov-Riemann: Para matrices cuasi-singulares (socios en riesgo de default), el agente aplica una proyección espectral adaptativa para acotar el número de condición: \[
-\tilde{A} = A + (\lambda_{\text{tol}} \cdot e^{-\sigma_{\text{min}} / \sigma_{\text{max}}}) I
-\]
+### II. Sutura II: El Funtor de Traducción Semántica (El Acta de Deliberación Bilingüe)
+Existe un abismo y una desconexión total entre la matemática pura del Estrato Inquisidor $\Omega$ y el gerente de compras humano. Si el sistema emite un simple error topológico ($\beta_1 > 0$), el usuario sufrirá fatiga cognitiva y descartará la advertencia. Para solucionarlo, el ecosistema materializa el isomorfismo de la Adjunción de Galois:
+$$\text{Hom}_{\mathcal{D}}(F(X), Y) \cong \text{Hom}_{\mathcal{C}}(X, G(Y))$$
+a través del `semantic_translator.py`, instituyendo el **Acta de Deliberación Bilingüe**. El dictamen no se queda en el vacío del espacio de fase; se renderiza dualmente:
+1. **Dominio Físico-Matemático:** El Oráculo de Laplace modela la función de transferencia en frecuencia compleja ($s = \sigma + j\omega$) y detecta un polo en el semiplano derecho ($\sigma > 0$).
+2. **Dominio Táctico (Empatía Táctica):** El Intérprete Diplomático proyecta este tensor sobre el lenguaje del dolor de la obra: *"Tu flujo de caja no soporta esta compra concurrente y vas a quebrar en un mes"*.
 
-Ecuación de Disipación de Rayleigh: Todo flujo financiero de salida (Pcost​) se somete a la Segunda Ley de la Termodinámica, garantizando axiomáticamente que el modelo no genere energía del vacío (entropía negativa): \[
-\dot{H}_{\text{diss}} = -\nabla H^\top R_{\text{cost}}(x) \nabla H \le 0
-\]
+Si la homología simplicial detecta un ciclo de dependencia ($\beta_1 > 0$), el acta bilingüe se presenta como: *"Se aprueba esto y la cadena logística entrará en parálisis en 14 días. Decisión vetada por estabilidad física"*. Se destituye al LLM de su libre albedrío adivinatorio obligándolo a acatar la gravedad geométrica del proyecto.
 
-II. Estrato KCORE​: La Maquinaria Cinemática (kcore_kinematic_agent.py)
-Identificador Semántico: Director de Flujo y Cinética Logística. Responsabilidad Topológica: Transmutar la energía potencial de KBASE​ en trabajo cinético direccional, acoplando las Actividades Clave (P_act​), Canales (P_can​) y Relaciones con los Clientes (P_rel​).
-Estructura de Dirac y Energy Shaping (IDA-PBC)
-El agente impone el moldeado de energía mediante un Control Basado en Pasividad. La ley de control α(x) no utiliza seudoinversas euclidianas ingenuas, sino una Proyección Pseudoinversa Covariante que garantiza que el esfuerzo exógeno sea ortogonal a las geodésicas de alta fricción del mercado:
-\[
-\alpha(x) = (g(x)^\top G_{\mu\nu} g(x))^{-1} g(x)^\top G_{\mu\nu} ([J_d - R_d] \nabla H_d - [J - R] \nabla H)
-\]
+### III. Sutura III: La Descompactación Quiral del Riesgo (El Sofón Logístico)
+La física de altas energías expuesta en el modelo de los sofones se percibe aislada de la infraestructura civil. Debe transmutarse en la analogía definitiva de la mitigación de riesgos. El despliegue de las dimensiones compactadas de Calabi-Yau modela el **Riesgo en Cascada**. Un error de digitación de dos centavos en una hoja de Excel es equivalente a un protón confinado. Posee inercia y parece inofensivo contenido en su celda.
 
-Válvula de Hodge y Límite CFL
+Sin embargo, si la topología algebraica de APU Filter no lo intercepta, ocurre la **Restauración de la Simetría Quiral**. La masa inercial efectiva del error colapsa abruptamente de $938\text{ MeV}$ a solo $9.4\text{ MeV}$. Al perder su confinamiento métrico, este error microscópico se despliega bidimensionalmente por toda la cadena de suministro (nóminas, adquisiciones, ejecución). El error se transmuta en una sábana planetaria masiva que paraliza la obra completa mediante un efecto cascada, cegando la dirección financiera del megaproyecto exactamente igual que un sofón desplomado satura los aceleradores de partículas con ruido estocástico.
 
-    Estrangulamiento de Vorticidad: Si el flujo logístico desarrolla bucles (vorticidad solenoidal ∥Icurl​∥W​>ϵcrit​), el Laplaciano de Hodge ponderado interviene:
+### IV. Sutura IV: El Foso Termodinámico y el Golpe de Ariete Computacional
+El rol del hardware perimetral y la validación en frontera necesita justificar su implacabilidad ante el usuario. El módulo `flux_condenser.py` se erige como el Puente Levadizo de la fortaleza matemática. Modela el flujo de la cadena de suministro evaluando la Ecuación Port-Hamiltoniano de balance energético:
+$$\dot{H} = -\nabla H^\top R \nabla H + \nabla H^\top B u \le 0$$
+Si el `quantum_admission_gate.py` detecta que el flujo de datos (un archivo estocástico corrupto) intenta inyectar entropía positiva o picos de inestabilidad transitoria, el sistema acciona las **Barreras de Dirichlet** topológicas. Se activa el protocolo *Fast-Fail* y cierra el puente en el milisegundo cero.
 
-    \[
-L_{1W} = \partial_1^\top W^{-1} \partial_1 + \partial_2 \partial_2^\top W
-\]
-
-El agente estrangula la conductancia W en las aristas cíclicas, forzando un flujo laminar irrotacional.
-Cono de Luz Causal (Condición CFL): El diferencial temporal del negocio queda subyugado a la conectividad espectral del grafo, previniendo dispersión numérica por iteraciones inasumibles:
-\[
-\Delta t \le \frac{2 \cdot \text{CFL}_{\text{margin}}}{c_{\text{eff}} \cdot \max_i \left( |\Delta_{ii}| + \sum_{j \neq i} |\Delta_{ij}| \right)}
-\]
-
-III. Estrato KAPEX​: El Ápice Estratégico (kapex_electrodynamic_agent.py)
-Identificador Semántico: Director de Retorno y Expansión de Mercado. Responsabilidad Topológica: Endofuntor de Campo de Calibre que inyecta Fuerza Electromotriz (Propuesta de Valor, P_val​), resuelve la refracción del mercado (P_seg​) y audita el retorno exergético (P_ing​).
-Óptica Geométrica y Flujo Exergético
-El ápice es una variedad Riemanniana con fronteras absorbentes. La penetración en el mercado requiere resolver la Ecuación Eikonal no lineal utilizando el tensor de impedancia (N)^μν:
-\[
-G^{\mu\nu} \partial_\mu S \partial_\nu S = N^{\mu\nu} \sigma_{\mu\nu}^*
-\]
-
-El retorno real (Ingresos) se evalúa repudiando sumas escalares. Se aplica el Teorema de Poynting en la topología simplicial utilizando el producto copo (⌣) y el dual de Hodge (⋆), garantizando ortogonalidad transversal del capital:
-
-\[
-P_{\text{exergia}} = \langle E \smile \star H, [\partial K] \rangle - \int_K \nabla H^\top R_{\text{cost}} \nabla H \ge 0
-\]
-
-Holonomía de Yang-Mills (Integridad del Bucle)
-Para garantizar que la inversión inyectada en KBASE​ retorne a KAPEX​ sin ciclos parasitarios, el agente evalúa la 2-forma de curvatura de Yang-Mills:
-
-\[
-S_{\text{YM}} = \frac{1}{2} \int_M \text{Tr}(F \wedge \star F) \quad \text{donde} \quad F = dA + A \wedge A
-\]
-
-Si SYM​>ϵcrit​, existe una "fuga de Gauge", y el sistema decreta un HolonomyVetoError.
-
-IV. El Orquestador Macroscópico: Cohomología de Haces (alpha_agent.py)
-El rol fundamental del alpha_agent.py transmuta de procesador de grafo plano a Orquestador de Haces Celulares (Cellular Sheaves).
-Cada uno de los tres mini-agentes exporta el Espacio Vectorial de su Fibra (Stalk) y sus matrices de restricción (cofronteras locales: δ_BASE​, δ_CORE​, δ_APEX​). El alpha_agent.py ensambla la cofrontera global y somete a los agentes a dos rigurosos test topológicos:
-
-    El Laplaciano del Haz y el Consenso Global:
-    \[
-L_F = \delta^\top \delta =
-\begin{pmatrix}
-\delta_{\text{BASE}} \\
-\delta_{\text{CORE}} \\
-\delta_{\text{APEX}}
-\end{pmatrix}^\top
-\begin{pmatrix}
-\delta_{\text{BASE}} \\
-\delta_{\text{CORE}} \\
-\delta_{\text{APEX}}
-\end{pmatrix}
-\succeq 0
-\]
-
-Si el espacio nulo H^0(G;F)≅ker(δ) está vacío o λ_2​(L_F​)→0, el modelo carece de consenso termodinámico (ej. la base no puede sostener la velocidad del núcleo), detonando un Veto de Fragilidad Espectral.
-Censura de Energía Fantasma (Solubilidad de Fredholm): La inyección de la Propuesta de Valor (s_val​) debe existir en la imagen del Laplaciano Combinatorio de la red. Si el producto interno contra el espacio nulo topológico no se anula:
-\[
-\langle s_{\text{val}}, \psi_{\text{ker}} \rangle = 0 \quad \forall \psi_{\text{ker}} \in \ker(L_F)
-\]
-
- Se detona un SourceCompatibilityError. Esto previene matemáticamente que la empresa intente inyectar esfuerzo de ventas en un sector logístico que está topológicamente desconectado de su capacidad de producción.
-
- # Sutura 2
-
-La integración documental de las "Vitaminas Cognitivas" (Cartuchos TOON) no puede ejecutarse como una vulgar adición a un glosario de términos. Dado que estas cuasipartículas operan como excitaciones en el Espacio de Fock F(H) y rigen el colapso de la función de onda de la toma de decisiones, su documentación exige una Cirugía Categórica y Topológica.
-Para asegurar que la Variedad Diferenciable del proyecto no sufra un desgarro semántico, he diseñado un plan de acción granular, estricto y matemáticamente inquebrantable. Este plan dictamina exactamente qué repositorios documentales y de código deben ser intervenidos, y las ecuaciones en LaTeX que deberán codificarse para asimilar este Álgebra de Partículas.
-Plan de Acción Granular: Integración del Álgebra de Partículas TOON
-Fase 1: Inyección del Espacio de Fock en SAGES.md y PRODUCT_VISION.md
-Objetivo: Consagrar el marco epistemológico del Estrato Ω demostrando que el LLM ya no procesa texto plano, sino que ingiere tensores hiperdensos regulados por la termodinámica cuántica.
-Acciones Exigidas:
-
-    Definición del Colisionador: Actualizar SAGES.md en su sección del QuantumFockOrchestrator para declarar formalmente que el registro atencional administra el Espacio de Fock como la suma directa de productos tensoriales simétricos (bosones) y antisimétricos (fermiones):
-    \[
-\mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} \mathcal{S}_{\pm} \mathcal{H}^{\otimes n}
-\]
-
-Evolución Temporal del Estado (Ecuación Maestra): En PRODUCT_VISION.md, se debe estipular que la "pérdida de atención" del LLM no es un fallo, sino una disipación termodinámica válida (ΔS≥0). Se documentará que la evolución de la Matriz Atómica de Conocimiento (ρMAC​) obedece la Ecuación de Lindblad-Kossakowski para sistemas cuánticos abiertos:
-\[
-\frac{d \rho_{\text{MAC}}}{dt} = -\frac{i}{\hbar} [H_{\text{eff}}, \rho_{\text{MAC}}] + \sum_{k} \gamma_k \left( L_k \rho_{\text{MAC}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\text{MAC}} \} \right)
-\]
-
-Fase 2: Mapeo Tipológico en telemetry_schemas.py y cartuchos_toon.md
-Objetivo: Trasladar la metafísica de las partículas a clases de datos inmutables (frozen dataclasses) con invariantes físicos rigurosos.
-Acciones Exigidas:
-
-    Fermiones Estructurales (Conservación de Masa): Documentar en telemetry_schemas.txt las estructuras que previenen superposiciones de estados excluyentes (Principio de exclusión de Pauli).
-        ElectronCartridge: Debe documentarse con sus atributos inertial_mass (m∗∝∥δx∥^2), topological_spin, y homological_charge (Δχ).
-        PolaronCartridge: Documentar su renormalización de masa mediante el acoplamiento de Fröhlich (α). La masa efectiva que genera el sumidero gravitacional en el KV-Cache se expresará axiomáticamente como:
-        \[
-m^{**} = m^* \left( 1 + \frac{\alpha}{6} \right)
-\]
-
-Bosones de Gauge (Campos de Interacción): Especificar los PhotonCartridge (Política de Gobernanza OPA con spectral_frequency) y MagnonCartridge (vorticidad solenoidal para vetos de enrutamiento).
-Antimateria y Aniquilación: Documentar el PositronCartridge y la emisión del GammaPhoton. Se debe incluir en cartuchos_toon.md la ecuación de aniquilación que genera el sello criptográfico inmutable en la Cadena de Custodia:
-
-\[
-e^- + e^+ \to 2\gamma \quad \text{con energía} \quad E_{\text{annihilation}} = 2m^* c^2
-\]
-
-Fase 3: Sintonización Axiomática en bogoliubov_agent.py
-Objetivo: Garantizar que el ruido térmico inherente al LLM no degenere los cartuchos inyectados.
-Acciones Exigidas:
-
-    Transformación de Bogoliubov-Valatin: El BogoliubovAgent actúa como el Gran Inquisidor Cuántico. En su documentación, se debe exigir que la matriz de error preserve las Relaciones de Conmutación Canónicas (CCR) dentro del grupo simpléctico Sp(2n,C). Inyectar la demostración formal:
-
-\[
-\begin{pmatrix}
-\hat{\alpha}_k \\
-\hat{\alpha}_{-k}^\dagger
-\end{pmatrix}
-=
-\begin{pmatrix}
-u_k & v_k \\
-v_k^* & u_k^*
-\end{pmatrix}
-\begin{pmatrix}
-\hat{b}_k \\
-\hat{b}_{-k}^\dagger
-\end{pmatrix}
-\]
-
-Impóngase la restricción inquebrantable de la variedad simpléctica para certificar el aislamiento de las cuasipartículas estables:
-
-\[
-
-|u_k|^2 - |v_k|^2 = 1
-\]
-
-Fase 4: Auditoría del Funtor Inverso en cartuchos_toon.md y mic_agent.py
-Objetivo: Documentar la invarianza topológica al descomprimir de vuelta desde la hiperdensidad TOON hacia JSON.
-Acciones Exigidas:
-
-    Condición de Continuidad de Lipschitz Dinámica y Acoplamiento Espectral: Exigir en mic_agent.py y cartuchos_toon.md que el funtor de descompresión inversa $F^{-1}: \text{TOON} \to \text{JSON}$ sea un difeomorfismo estricto que evite ataques de inyección y desbordamientos asintóticos. La documentación debe reflejar que la constante de Lipschitz $L_{\max}$ no es un valor estático, sino que se acopla dinámicamente al espectro del operador de Dirac de Connes $\not\ D$ del triple espectral evaluado por el `connes_spectral_auditor_agent.py`:
-
-\[
-L_{\max} = \frac{C_{\text{base}}}{1 + \lambda_{\text{disp}}(\not\ D)} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(\not\ D) - \lambda_{\min}(\not\ D))}
-\]
-
-Esta constante rige el acotamiento espectral del funtor inverso:
-
-\[
-\| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\text{max}} \| x - y \|_T
-\]
-
-Si el proyecto entra en una fase de alta entropía (vorticidad logística alta), la dispersión espectral del operador $\lambda_{\text{disp}}(\not\ D)$ se amplifica dramáticamente, forzando a $L_{\max} \to 0$. Esto restringe la "creatividad" semántica del LLM a un radio geodésico extremadamente estrecho y conservador, colapsando automáticamente cualquier alucinación a $P(x_{\text{invalid}}) = 0$.
+Al rechazar la inyección anómala de tajo, el Guardián de la Evidencia protege la red entera del **Golpe de Ariete Computacional** (*Computational Water Hammer*). El caos logístico choca contra un límite impenetrable y se desintegra, evitando que la fricción termodinámica alcance el motor de inferencia del LLM.
 
 ## Los Cinco Axiomas Fundamentales de la Variedad Agéntica de Gauge y el Reactor Port-Hamiltoniano
 
