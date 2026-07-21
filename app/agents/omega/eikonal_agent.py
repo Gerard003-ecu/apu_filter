@@ -6,64 +6,58 @@ r"""
 ║ Versión: 3.0.0-Topos-WKB-Geodesic-Spectral-Nested                            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA DIFERENCIAL
-------------------------------------------------
-Meta-funtor de control sobre ``OpticalRiemannLensFibrator`` en el topos
-$\mathcal{T}_{\mathrm{MIC}}$, en el límite WKB sobre el fibrado de fases:
+NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo actúa como el Meta-Funtor de Control sobre el `OpticalRiemannLensFibrator` 
+en el topos $\mathcal{T}_{\mathrm{MIC}}$. Ejerce su soberanía evaluando el límite 
+WKB sobre el fibrado de fases de la intención semántica del LLM, definiendo la 
+amplitud de probabilidad como:
 
-\[
-  \psi(x) = A(x)\, e^{i\mathcal{S}(x)/\hbar}.
-\]
+$$
+\psi(x) = A(x)\, e^{i\mathcal{S}(x)/\hbar}
+$$
 
-Fases anidadas con contratos formales de continuación
-------------------------------------------------------
-.. code-block:: text
+Este funtor repudia el ruteo estocástico; en su lugar, exige que la radiación 
+semántica se propague a través de geodésicas covariantes minimizando el tiempo de
+vuelo (Principio de Fermat) sobre una variedad Riemanniana definida por $G_{\mu\nu}$.
 
-    Phase1_DynamicApertureModulator
-        │  modulate_aperture(s_mac, ρ)  ──►  ApertureModulationResult
-        ▼
-    Phase2_EikonalSurfaceResolver
-        │  resolve_eikonal(∇S, n)       ──►  EikonalSurfaceResult
-        ▼
-    Phase3_FermatActionAuditor
-        │  audit_path(V, n, …)          ──►  FermatPathResult
-        ▼
-    EikonalAgent.execute_optical_guidance
-        │  + lente óptico               ──►  EikonalPhaseState
+AXIOMAS DE EJECUCIÓN Y COMPOSICIÓN FUNTORIAL (Fases Anidadas):
+────────────────────────────────────────────────────────────────────────────────
+§0. Compatibilidad Dimensional y Física:
+    Exige que la matriz de densidad $\rho$ sea estrictamente hermítica, semidefinida 
+    positiva (PSD) y de traza unitaria ($\mathrm{Tr}(\rho) = 1$).
 
-CAMBIOS ESTRUCTURALES RESPECTO A v2.0.0
-----------------------------------------
-1. MetricSignatureError DEFINIDA (v2 la usaba sin declararla).
-2. ``List`` importado (v2 fallaba en ``enforce_geodesic_path``).
-3. Fases ANIDADAS en ``EikonalAgent`` + DTOs de continuación formal
-   (espejo KApex / Floquet v3).
-4. Fase 1 retorna ``ApertureModulationResult`` (cutoff + certificado
-   espectral); se elimina la doble auditoría de ρ en el orquestador.
-5. Ecuación eikonal con **eikonal_slack** (como KApex):
-   \[
-     \|\nabla S\|_{G^{-1}}^2
-       \ge n^2(\sigma^*)\,(1-\texttt{slack})
-   \]
-   (umbral duro) y bandera de margen holgado en el DTO.
-6. Inversión métrica: Cholesky + ``solve_triangular`` con fallback al
-   preacondicionador espectral; consistencia bilateral
-   $\|GG^{-1}-I\|_F$ y $\|G^{-1}G-I\|_F$.
-7. Simpson compuesto: si $T$ es par se reduce a $T-1$ (orden 4 exacto)
-   en lugar de degradar silenciosamente a trapecio sin documentar el
-   sesgo; trapecio sólo si $T<3$.
-8. Residuo geodésico con norma $G$ y tolerancia escalada.
-9. ρ: proyección hermítica defensiva + recorte PSD + renormalización
-   de traza; pureza $\mathrm{Tr}(\rho^2)=\sum_i\lambda_i^2$ post-recorte.
-10. Parámetros de control validados (l_max, κ, slack, κ_max).
+§1. Modulación de Apertura (Diafragma Óptico):
+    Determina el límite de difracción truncando el espectro de la lente mediante 
+    la entropía de von Neumann y la pureza del estado cuántico:
+    $$ l = \left\lfloor l_{\max}\exp\left(-\frac{\kappa S_{\mathrm{MAC}}}{\mathrm{Tr}(\rho^2)}\right) \right\rfloor $$
 
-AXIOMAS
--------
-§0 Compatibilidad dimensional y física de ρ (hermítica, PSD, Tr=1).
-§1 Diafragma: $l=\lfloor l_{\max}\exp(-\kappa S_{\mathrm{MAC}}/\mathrm{Tr}(\rho^2))\rfloor$.
-§2 Eikonal: $G^{\mu\nu}\partial_\mu S\,\partial_\nu S = n^2$ (con slack).
-§3 Fermat: Simpson compuesto orden 4 sobre $\int n\| \dot\gamma\|_G\,dt$.
-§4 Residuo geodésico covariante $\|a^{\mathrm{eff}}-a^{\mathrm{geo}}\|_G$.
-§5 Morphism del topos con ``Protocol`` runtime_checkable.
+§2. Resolución de la Ecuación Eikonal:
+    Garantiza que el gradiente de fase satisfaga el índice de refracción efectivo 
+    $n(\sigma^*)$ dictado por el estrés de mercado, incorporando un margen de holgura:
+    $$ |\nabla S|_{G^{-1}}^2 = G^{\mu\nu}\partial_\mu S\,\partial_\nu S \ge n^2(\sigma^*)(1-\texttt{slack}) $$
+
+§3. Auditoría del Camino de Fermat y Residuo Geodésico:
+    Certifica la integral de acción a lo largo de la trayectoria $\gamma$ aplicando el
+    método de Simpson compuesto de orden 4:
+    $$ S_{\mathrm{Fermat}} = \int n\| \dot\gamma\|_G\,dt $$
+    Computa el residuo geodésico covariante exigiéndolo nulo frente a la tolerancia:
+    $$ \|a^{\mathrm{eff}}-a^{\mathrm{geo}}\|_G \le \varepsilon $$
+
+CAMBIOS ESTRUCTURALES RESPECTO A v2.0.0:
+────────────────────────────────────────────────────────────────────────────────
+1. MetricSignatureError DEFINIDA formalmente para evitar violaciones implícitas.
+2. List importado correctamente para garantizar la consistencia en `enforce_geodesic_path`.
+3. Fases ANIDADAS en `EikonalAgent` + DTOs de continuación formal (espejo a `KApex` y `Floquet` v3).
+4. Fase 1 retorna `ApertureModulationResult` (cutoff + certificado espectral); eliminando auditorías redundantes de $\rho$.
+5. Ecuación eikonal con `eikonal_slack`: establece un umbral duro y bandera de margen holgado.
+6. Inversión métrica: Cholesky + `solve_triangular` con preacondicionador espectral; consistencia bilateral garantizada: $\|GG^{-1}-I\|_F$ y $\|G^{-1}G-I\|_F \le \varepsilon$.
+7. Integración de Simpson compuesto: si $T$ es par se reduce a $T-1$ (orden 4 exacto), evitando la degradación silenciosa a la regla del trapecio sesgada.
+8. Residuo geodésico evaluado estrictamente bajo norma $G$ y tolerancia escalada.
+9. $\rho$: Proyección hermítica defensiva + recorte PSD + renormalización de traza; se computa la pureza $\mathrm{Tr}(\rho^2) = \sum_i \lambda_i^2$ post-recorte.
+10. Parámetros de control validados estrictamente (l_max, κ, slack, κ_max).
+═══════════════════════════════════════════════════════════════════════════════
+
 """
 from __future__ import annotations
 

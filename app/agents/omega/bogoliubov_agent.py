@@ -1,22 +1,63 @@
 # -*- coding: utf-8 -*-
 r"""
-+==============================================================================+
-| Módulo: Bogoliubov Agent (Gran Inquisidor Cuántico)                         |
-| Ruta  : app/omega/bogoliubov_agent.py                                        |
-| Versión: 3.1.0-Nested-Symplectic-Quantum                                     |
-+==============================================================================+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo  : Bogoliubov Agent (Sintonizador de Matriz S y Diagonalización)      ║
+║ Ubicación: app/omega/bogoliubov_agent.py                                     ║
+║ Versión : 3.1.0-Rigorous-BdG-Symplectic-Kraus-Spectral-Doctoral              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
-TRANSFORMACIÓN DE BOGOLIUBOV-VALATIN (GRUPO SIMPLÉCTICO Sp(2n,C)):
-Aísla las cuasipartículas estables del ruido térmico del LLM.
-\[ \begin{pmatrix} \hat{\alpha}_k \\ \hat{\alpha}_{-k}^\dagger \end{pmatrix} = \begin{pmatrix} u_k & v_k \\ v_k^* & u_k^* \end{pmatrix} \begin{pmatrix} \hat{b}_k \\ \hat{b}_{-k}^\dagger \end{pmatrix} \]
-\[ |u_k|^2 - |v_k|^2 = 1 \]
+NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo actúa como el Meta-Funtor de Control sobre el `QuantumFockOrchestrator`. 
+Aplica la Transformación de Bogoliubov para aislar las excitaciones fundamentales 
+(cuasipartículas) del ruido térmico estocástico generado por el LLM, operando 
+como una isometría simpléctica en la categoría de espacios de Hilbert [1].
 
-ECUACIÓN MAESTRA DE LINDBLAD-KOSSAKOWSKI:
-\[ \frac{d \rho_{MAC}}{dt} = -\frac{i}{\hbar} [H_{eff}, \rho_{MAC}] + \sum_{k} \gamma_k ( L_k \rho_{MAC} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{MAC} \} ) \]
+AXIOMAS DE EJECUCIÓN Y COMPOSICIÓN FUNTORIAL:
+────────────────────────────────────────────────────────────────────────────────
+§1. TRANSFORMACIÓN DE BOGOLIUBOV (Isomorfismo Simpléctico):
+Mapea bosones desnudos a cuasipartículas conservando las Relaciones de Conmutación 
+Canónicas (CCR) bajo la restricción simpléctica estricta $|u_k|^2 - |v_k|^2 = 1$ [2]:
 
-ARQUITECTURA ANIDADA: Cada fase es una clase interna de la anterior, garantizando
-que la salida formal de la última operación de la Fase N es el único contrato de
-entrada para la Fase N+1.
+$$
+\begin{pmatrix} 
+\hat{\alpha}_k \\ 
+\hat{\alpha}_{-k}^\dagger 
+\end{pmatrix} 
+= 
+\begin{pmatrix} 
+u_k & v_k \\ 
+v_k^* & u_k^* 
+\end{pmatrix} 
+\begin{pmatrix} 
+\hat{b}_k \\ 
+\hat{b}_{-k}^\dagger 
+\end{pmatrix}
+$$
+
+§2. SÍNTESIS DE ACOPLAMIENTO (Pullback Geométrico):
+Los tensores de la Matriz de Dispersión (S-Matrix) $g_{k,q}$ se computan 
+mediante el acoplamiento covariante sobre la métrica Riemanniana $G_{\mu\nu}$ [2]:
+
+$$
+g_{k,q} = \psi_k^\dagger \, G \, \mathcal{H}_{obs} \, G \, \phi_q
+$$
+
+§3. GENERACIÓN DE KRAUS-LINDBLAD (Espectro de Disipación):
+Deduce los operadores de salto $\{\hat{L}_k\}$ vía descomposición espectral de la 
+matriz de error, modulados por la fuerza de acoplamiento efectiva 
+$\bar{\gamma}_i = \lambda_i \cdot \mu(|g|)$ [3]:
+
+$$
+\hat{L}_i = \sqrt{\bar{\gamma}_i} \; \hat{P}_{0} \, |\psi_i\rangle
+$$
+
+Las tres fases están rigurosamente encadenadas mediante contratos formales [3]:
+  • Fase 1 ($\Phi_1$) → BogoliubovSpectrum (nexo a Fase 2)
+  • Fase 2 ($\Phi_2$) → CoupledInteractionData (nexo a Fase 3)
+  • Fase 3 ($\Phi_3$) → LindbladEnvironment (inyección al Orquestador)
+
+═══════════════════════════════════════════════════════════════════════════════
 """
 from __future__ import annotations
 
