@@ -277,7 +277,7 @@ class _FiniteNumericalGuard:
 # ╔═════════════════════════════════════════════════════════════════════════════╗
 # ║   FASE 1: AUDITORÍA DE INVARIANZA SIMPLÉCTICA Y TEOREMA DE LIOUVILLE        ║
 # ║                                                                             ║
-# ║   Exige que la matriz Jacobiana M de la transformación del AST satisfaga:  ║
+# ║   Exige que la matriz Jacobiana M de la transformación del AST satisfaga:   ║
 # ║       Mᵀ Ω M = Ω                                                            ║
 # ║                                                                             ║
 # ║   El último método de esta fase retorna `SymplecticInvariantData`,          ║
