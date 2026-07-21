@@ -3,7 +3,7 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo  : Yang-Mills Holonomy Agent                                          ║
 ║           (Dinámica de Calibre, Holonomía y Ecuaciones de Campo)             ║
-║ Ubicación: app/core/immune_system/yang_mills_holonomy_agent.py               ║
+║ Ubicación: app/agents/core/immune_system/yang_mills_holonomy_agent.py               ║
 ║ Versión : 3.0.0-Bianchi-Higham-PathOrdered-Riguroso                          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

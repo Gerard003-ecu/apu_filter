@@ -2,7 +2,7 @@
 r"""
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║  Módulo : Dirac Interconnection Agent                                         ║
-║  Ruta   : app/agents/physics/dirac_interconnection_agent.py                          ║
+║  Ruta   : app/agents/physics/dirac_interconnection_agent.py                   ║
 ║  Versión: 3.0.0-IDA-PBC-CFL-Governor-Categorical-Spectral                     ║
 ╠═══════════════════════════════════════════════════════════════════════════════╣
 ║                                                                               ║

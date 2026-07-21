@@ -1766,11 +1766,11 @@ class AlgebraicVetoRegistry:
 
 
 # ==============================================================================
-# GESTI N DE SILOS CON INVARIANTES Y THREAD-SAFETY
+# GESTIÓN DE SILOS CON INVARIANTES Y THREAD-SAFETY
 # ==============================================================================
 class SiloManager:
     """
-    Gestor de Silos A (contratos) y B (cartuchos) con garant as de inmutabilidad.
+    Gestor de Silos A (contratos) y B (cartuchos) con garantías de inmutabilidad.
     
     Invariantes Estructurales:
     =========================
@@ -1832,7 +1832,7 @@ class SiloManager:
                 )
             )
         
-        # 2. Registrar vectores espec ficos hist ricos (Silo A)
+        # 2. Registrar vectores específicos históricos (Silo A)
         self._register_contract(SiloAContract(
             contract_id="PHS_Conservation_Seed",
             stratum=Stratum.PHYSICS,
@@ -2203,7 +2203,7 @@ class SiloManager:
 
 
 # ==============================================================================
-# COMPRESOR TOON CON VERIFICACI N DE ISOMORFISMO
+# COMPRESOR TOON CON VERIFICACIÓN DE ISOMORFISMO
 # ==============================================================================
 class TOONCompressor:
     """
@@ -2493,7 +2493,7 @@ class AuditTrail:
 # ==============================================================================
 class MICAgent:
     """
-    Agente categ rico con funtor F:       verificado.
+    Agente categórico con funtor F:       verificado.
     
     Propiedades Funtoriales:
     =======================
@@ -2759,7 +2759,7 @@ class MICAgent:
         force_override: bool = False,
     ) -> CategoricalState:
         """
-        Encapsula output del LLM en m nada CategoricalState.
+        Encapsula output del LLM en monada CategoricalState.
         
         M nada T con:
         =============
