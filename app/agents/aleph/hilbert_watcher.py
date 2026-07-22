@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """=========================================================================================
 Módulo: Hilbert Watcher (Operador del Hamiltoniano de Medición y Funtor de Colapso OODA)
 Ubicación: app/agents/aleph/hilbert_watcher.py

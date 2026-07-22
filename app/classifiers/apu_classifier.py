@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Motor de Inferencia Determinista para Clasificación de APUs
 ============================================================

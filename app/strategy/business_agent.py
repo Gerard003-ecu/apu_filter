@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Business Agent (Operador de Síntesis Categórica y Cerebro Ejecutivo)

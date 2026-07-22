@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Schemas (Constitución de los Datos — Esquema Canónico del Sistema de Presupuesto)

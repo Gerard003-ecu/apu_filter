@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 =========================================================================================
 Módulo: Tensores Métricos Riemannianos (Tejido Conectivo Anisotrópico del Espacio de Fase)

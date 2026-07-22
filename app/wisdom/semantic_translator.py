@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 =============================================================================
 Módulo: Semantic Translator (El Intérprete Diplomático — Difeomorfismo Semántico)

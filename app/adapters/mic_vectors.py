@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 =========================================================================================
 Módulo: MIC Vectors (Funtores de Adaptación y Morfismos de Proyección)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 =========================================================================================
 Módulo: Presenters (Operador de Proyección a la Variedad de Salida y Fibración Semántica)

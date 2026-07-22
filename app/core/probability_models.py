@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Este módulo provee la infraestructura matemática de bajo nivel que alimenta al 
 'Financial Engine'. Su función es transformar costos deterministas (precios fijos) 

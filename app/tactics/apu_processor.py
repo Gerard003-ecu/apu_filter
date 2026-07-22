@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: APU Processor (Funtor de Transformación Topológico-Algebraica y Mónada de Estado)

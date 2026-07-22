@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Audit Vectors (Proyector de Coherencia Topológica y Entropía Estructural)

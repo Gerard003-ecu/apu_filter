@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Módulo: Governance Engine (El Auditor de Datos)
 ================================================

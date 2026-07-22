@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 =========================================================================================
-Módulo: Central Interaction Matrix (Topos de Grothendieck Elemental $\mathcal{E}_{MIC}$)
+Módulo: Matrix de interacción central (Topos de Grothendieck Elemental $\mathcal{E}_{MIC}$)
 Ubicación: app/adapters/tools_interface.py
 Versión: 6.0.0 (Consagración Categórica y Cuántica)
 

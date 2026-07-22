@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Utils (Filtro de Entropía y Operadores de Proyección Métrica)

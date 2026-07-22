@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Report Parser Crudo (Autómata Topológico y Filtro de Entropía Sintáctica)

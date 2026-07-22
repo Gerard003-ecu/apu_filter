@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Financial Engine (El Oráculo Estocástico y Motor de Termodinámica Financiera)

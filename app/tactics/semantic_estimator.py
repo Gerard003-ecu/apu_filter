@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 =========================================================================================
 Módulo: Semantic Estimator (Proyector Topológico-Semántico y Asesor Táctico)

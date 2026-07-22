@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Data Loader (Funtor de Ingesta y Operador de Frontera Topológica)

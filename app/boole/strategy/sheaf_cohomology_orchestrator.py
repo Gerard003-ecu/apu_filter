@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Módulo: Sheaf Cohomology Orchestrator (Interferómetro de Holonomía de Gauge) v4.0
 Ubicación: app/boole/strategy/sheaf_cohomology_orchestrator.py

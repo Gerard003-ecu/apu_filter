@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 =========================================================================================
 Módulo: Business Topological Analyzer (El Arquitecto Estructural — Estrato TACTICS)

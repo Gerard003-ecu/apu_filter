@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Topological Analyzer (Operador de Observabilidad Funtorial y TDA)

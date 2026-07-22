@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Telemetry Context (Vector de Estado Ciber-Físico y Cadena de Custodia)

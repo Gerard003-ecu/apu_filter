@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Gauge Field Router (Operador de Electrodinámica Agéntica y Enrutamiento de Calibre)

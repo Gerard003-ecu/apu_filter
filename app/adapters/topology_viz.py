@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Topology Visualization (Operador de Inmersión Isomórfica y Semántica Cromática)

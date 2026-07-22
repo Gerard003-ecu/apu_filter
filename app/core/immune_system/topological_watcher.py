@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Módulo: Topological Watcher (Funtor de Membrana p-Laplaciana y Flujo de Ricci)
 Ubicación: app/core/immune_system/topological_watcher.py

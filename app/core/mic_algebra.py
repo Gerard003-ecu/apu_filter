@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Módulo: MIC Algebra (2-Categoría Computacional y Morfismos Estructurales)
 Ubicación: app/core/mic_algebra.py

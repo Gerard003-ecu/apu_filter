@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 =========================================================================================
 Módulo: Semantic Validation Engine (Proyector Semántico con Tensor de Mahalanobis)

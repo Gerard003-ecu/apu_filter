@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =============================================================================
 Módulo: Logistics Manifold (Operador de Enrutamiento Logístico y Renormalización de Masa Térmica)

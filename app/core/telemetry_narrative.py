@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Telemetry Narrative (El Intérprete Diplomático y Funtor de Difeomorfismo Semántico)

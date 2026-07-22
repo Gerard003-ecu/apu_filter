@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 =========================================================================================
 Módulo: Pipeline Director (Orquestador de la Variedad Diferenciable y DAG Algebraico)
