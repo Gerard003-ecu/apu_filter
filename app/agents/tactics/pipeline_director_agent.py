@@ -1247,18 +1247,18 @@ class Phase1_SpectralNilpotenceCertifier:
 
 
 # ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 2: AUDITORÍA DEL DIFEOMORFISMO DE FILTRACIÓN CATEGÓRICA              ║
-# ║                                                                           ║
-# ║ Fundamento matemático:                                                    ║
-# ║   El conjunto (V, ≤_strata) de nodos con la relación de orden por         ║
-# ║   estratos DIKW forma un Poset. El DAG debe ser compatible con este        ║
-# ║   Poset: toda arista (u→v) debe satisfacer stratum(u) ≤ stratum(v).       ║
-# ║                                                                           ║
-# ║   Esto es equivalente a exigir que la función estrato                     ║
-# ║       f: V → {0,1,2,3,4}  (PHYSICS=0,...,WISDOM=4)                       ║
-# ║   sea un morfismo de Posets entre (V, ≤_DAG) y (Z, ≤).                   ║
-# ║                                                                           ║
-# ║ El último método de esta fase es el puente formal hacia Fase 3.           ║
+# ║ FASE 2: AUDITORÍA DEL DIFEOMORFISMO DE FILTRACIÓN CATEGÓRICA                ║
+# ║                                                                             ║
+# ║ Fundamento matemático:                                                      ║
+# ║   El conjunto (V, ≤_strata) de nodos con la relación de orden por           ║
+# ║   estratos DIKW forma un Poset. El DAG debe ser compatible con este         ║
+# ║   Poset: toda arista (u→v) debe satisfacer stratum(u) ≤ stratum(v).         ║
+# ║                                                                             ║
+# ║   Esto es equivalente a exigir que la función estrato                       ║
+# ║       f: V → {0,1,2,3,4}  (PHYSICS=0,...,WISDOM=4)                          ║
+# ║   sea un morfismo de Posets entre (V, ≤_DAG) y (Z, ≤).                      ║
+# ║                                                                             ║
+# ║ El último método de esta fase es el puente formal hacia Fase 3.             ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
 
 
@@ -2035,20 +2035,20 @@ class Phase2_PosetFiltrationAuditor(Phase1_SpectralNilpotenceCertifier):
 
 
 # ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 3: INTERCEPCIÓN DE LA COHOMOLOGÍA DE FUSIÓN (MAYER-VIETORIS)         ║
-# ║                                                                           ║
-# ║ Fundamento matemático:                                                    ║
-# ║   Dada una descomposición de un espacio topológico X = A ∪ B,             ║
-# ║   la secuencia exacta larga de Mayer-Vietoris relaciona los grupos        ║
-# ║   de homología de A, B, A∩B y A∪B:                                        ║
-# ║                                                                           ║
-# ║   ... → H₁(A∩B) →^φ H₁(A)⊕H₁(B) →^ψ H₁(A∪B)                            ║
-# ║       →^∂ H₀(A∩B) → H₀(A)⊕H₀(B) → H₀(A∪B) → 0                          ║
-# ║                                                                           ║
-# ║   Por exactitud: ker(ψ) = im(φ), ker(∂) = im(ψ), im(∂) = ker(...).        ║
-# ║   Luego: β₁(A∪B) = β₁(A)+β₁(B) − rank(im φ) + rank(im ∂).               ║
-# ║                                                                           ║
-# ║ El último método de esta fase sintetiza el objeto final de gobernanza.    ║
+# ║ FASE 3: INTERCEPCIÓN DE LA COHOMOLOGÍA DE FUSIÓN (MAYER-VIETORIS)           ║
+# ║                                                                             ║
+# ║ Fundamento matemático:                                                      ║
+# ║   Dada una descomposición de un espacio topológico X = A ∪ B,               ║
+# ║   la secuencia exacta larga de Mayer-Vietoris relaciona los grupos          ║
+# ║   de homología de A, B, A∩B y A∪B:                                          ║
+# ║                                                                             ║
+# ║   ... → H₁(A∩B) →^φ H₁(A)⊕H₁(B) →^ψ H₁(A∪B)                                 ║
+# ║       →^∂ H₀(A∩B) → H₀(A)⊕H₀(B) → H₀(A∪B) → 0                               ║
+# ║                                                                             ║
+# ║   Por exactitud: ker(ψ) = im(φ), ker(∂) = im(ψ), im(∂) = ker(...).          ║
+# ║   Luego: β₁(A∪B) = β₁(A)+β₁(B) − rank(im φ) + rank(im ∂).                   ║
+# ║                                                                             ║
+# ║ El último método de esta fase sintetiza el objeto final de gobernanza.      ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
 
 
