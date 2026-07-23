@@ -568,8 +568,8 @@ class Phase1_InformationTheoreticLatticeProjector:
 # ╔═════════════════════════════════════════════════════════════════════════════╗
 # ║ FASE 2: AUDITORÍA COHOMOLÓGICA COMPLETA + TEORÍA DE HODGE DISCRETA          ║
 # ║ Exige dim H¹(G; F) = 0 y valida el resultado por doble vía numérica.        ║
-# ║                                                                            ║
-# ║ El último método de esta fase es el puente formal hacia Fase 3.            ║
+# ║                                                                             ║
+# ║ El último método de esta fase es el puente formal hacia Fase 3.             ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
 
 class Phase2_EulerCharacteristicCohomologyAuditor(Phase1_InformationTheoreticLatticeProjector):
@@ -1025,9 +1025,9 @@ class Phase2_EulerCharacteristicCohomologyAuditor(Phase1_InformationTheoreticLat
 # ╔═════════════════════════════════════════════════════════════════════════════╗
 # ║ FASE 3: FUNTOR DE POLÍTICA ESPECTRAL EN EL TOPOS DE GROTHENDIECK            ║
 # ║ Exige isomorfismo pullback: S ≅ X ×_Ω 1, certificado espectralmente.        ║
-# ║                                                                            ║
-# ║ El último método de esta fase sintetiza el objeto final de gobernanza      ║
-# ║ mediante un axioma de pegado (gluing axiom) sobre haces.                   ║
+# ║                                                                             ║
+# ║ El último método de esta fase sintetiza el objeto final de gobernanza       ║
+# ║ mediante un axioma de pegado (gluing axiom) sobre haces.                    ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
 
 class Phase3_SpectralToposPolicyFunctor(Phase2_EulerCharacteristicCohomologyAuditor):
