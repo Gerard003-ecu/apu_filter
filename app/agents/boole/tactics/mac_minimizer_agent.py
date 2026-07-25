@@ -675,17 +675,17 @@ class _AdvancedNumericalGuard:
 # ║                                                                             ║
 # ║   Teoría Matemática:                                                        ║
 # ║   ─────────────────                                                         ║
-# ║   Sea λ(ρ) = (λ₁, λ₂, ..., λₐ) el espectro ordenado descendentemente.     ║
+# ║   Sea λ(ρ) = (λ₁, λ₂, ..., λₐ) el espectro ordenado descendentemente.       ║
 # ║                                                                             ║
 # ║   Definición (Majorización de vectores):                                    ║
-# ║       x ≺ y ⟺ Σₖ₌₁ⁱ xₖ↓ ≤ Σₖ₌₁ⁱ yₖ↓, ∀i ∈ {1,...,d-1}                    ║
-# ║              y Σₖ₌₁ᵈ xₖ = Σₖ₌₁ᵈ yₖ                                         ║
+# ║       x ≺ y ⟺ Σₖ₌₁ⁱ xₖ↓ ≤ Σₖ₌₁ⁱ yₖ↓, ∀i ∈ {1,...,d-1}                      ║
+# ║              y Σₖ₌₁ᵈ xₖ = Σₖ₌₁ᵈ yₖ                                          ║
 # ║                                                                             ║
 # ║   Definición (Majorización de estados cuánticos):                           ║
 # ║       ρ ≺ σ ⟺ λ(ρ) ≺ λ(σ)                                                  ║
 # ║                                                                             ║
 # ║   Interpretación física:                                                    ║
-# ║       ρ ≺ σ significa que ρ es "más mezclado" que σ, i.e., ρ tiene         ║
+# ║       ρ ≺ σ significa que ρ es "más mezclado" que σ, i.e., ρ tiene          ║
 # ║       mayor entropía y está más alejado de un estado puro.                  ║
 # ║                                                                             ║
 # ║   Purificación espectral debe satisfacer:                                   ║
@@ -1350,7 +1350,7 @@ class Phase1_QuantumMajorizationAuditor(_AdvancedNumericalGuard):
 # ║   ─────────────────                                                         ║
 # ║   Fidelidad de Uhlmann entre estados cuánticos ρ y σ:                       ║
 # ║                                                                             ║
-# ║       F(ρ, σ) = (Tr √(√ρ σ √ρ))²                                           ║
+# ║       F(ρ, σ) = (Tr √(√ρ σ √ρ))²                                            ║
 # ║                                                                             ║
 # ║   Para estados puros |ψ⟩ y |φ⟩:                                             ║
 # ║       F(|ψ⟩⟨ψ|, |φ⟩⟨φ|) = |⟨ψ|φ⟩|²                                          ║
@@ -1359,13 +1359,13 @@ class Phase1_QuantumMajorizationAuditor(_AdvancedNumericalGuard):
 # ║       1. 0 ≤ F(ρ, σ) ≤ 1                                                    ║
 # ║       2. F(ρ, σ) = 1 ⟺ ρ = σ                                               ║
 # ║       3. F(ρ, σ) = F(σ, ρ)  (simetría)                                      ║
-# ║       4. F(ρ, σ)² ≤ F(ρ, τ)F(τ, σ)  (desigualdad triangular)               ║
+# ║       4. F(ρ, σ)² ≤ F(ρ, τ)F(τ, σ)  (desigualdad triangular)                ║
 # ║       5. F es continua en la topología de traza                             ║
 # ║                                                                             ║
 # ║   Relación con otras métricas:                                              ║
-# ║       - Distancia de Bures: D_B(ρ,σ) = √(2(1 - √F(ρ,σ)))                  ║
-# ║       - Distancia de Hellinger: D_H(ρ,σ) = √(1 - F(ρ,σ))                   ║
-# ║       - Distancia de traza: D_tr(ρ,σ) ≤ √(1 - F(ρ,σ))                      ║
+# ║       - Distancia de Bures: D_B(ρ,σ) = √(2(1 - √F(ρ,σ)))                    ║
+# ║       - Distancia de Hellinger: D_H(ρ,σ) = √(1 - F(ρ,σ))                    ║
+# ║       - Distancia de traza: D_tr(ρ,σ) ≤ √(1 - F(ρ,σ))                       ║
 # ║                                                                             ║
 # ║   Interpretación física:                                                    ║
 # ║       F(ρ, σ) mide la "distinguibilidad" cuántica entre estados.            ║
@@ -1812,7 +1812,7 @@ class Phase2_UhlmannFidelityCertifier(Phase1_QuantumMajorizationAuditor):
 # ║   Teoría Matemática:                                                        ║
 # ║   ─────────────────                                                         ║
 # ║   Entropía de von Neumann:                                                  ║
-# ║       S(ρ) = -Tr(ρ log ρ) = -Σᵢ λᵢ log λᵢ                                  ║
+# ║       S(ρ) = -Tr(ρ log ρ) = -Σᵢ λᵢ log λᵢ                                   ║
 # ║                                                                             ║
 # ║   Propiedades:                                                              ║
 # ║       1. S(ρ) ≥ 0 (no negatividad)                                          ║
@@ -1821,7 +1821,7 @@ class Phase2_UhlmannFidelityCertifier(Phase1_QuantumMajorizationAuditor):
 # ║       4. S es cóncava: S(Σᵢ pᵢρᵢ) ≥ Σᵢ pᵢS(ρᵢ)                              ║
 # ║                                                                             ║
 # ║   Capacidad de Holevo:                                                      ║
-# ║       χ({pᵢ, ρᵢ}) = S(Σᵢ pᵢρᵢ) - Σᵢ pᵢS(ρᵢ)                                ║
+# ║       χ({pᵢ, ρᵢ}) = S(Σᵢ pᵢρᵢ) - Σᵢ pᵢS(ρᵢ)                                 ║
 # ║                                                                             ║
 # ║   Interpretación:                                                           ║
 # ║       χ es la máxima información clásica transmisible usando estados        ║
