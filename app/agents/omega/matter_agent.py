@@ -1,48 +1,63 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Matter Agent (Endofuntor de Colapso Hadrónico)                      ║
-║ Ubicación : app/agents/omega/matter_agent.py                                 ║
-║ Versión : 5.0.0-Topos-Thermodynamic-Phased-Strict                            ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA (Rigor Doctoral)                        ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  Sea $\mathcal{E}_{MIC}$ el Topos de Grothendieck sobre el sitio de          ║
-║  Zariski del ecosistema MIC, con morfismos de cobertura que satisfacen       ║
-║  el axioma de descenso fiel-plano (faithfully flat descent).                 ║
-║                                                                              ║
-║  Este agente realiza el endofuntor:                                          ║
-║                                                                              ║
-║    F : Ob(𝒞_Ω) → Ob(𝒞_Ω)                                                    ║
-║    F(X) = CategoricalState ∘ π ∘ δ ∘ φ(X)                                    ║
-║                                                                              ║
-║  donde:                                                                      ║
-║    φ : X → BillOfMaterials  (motor físico, delegado)                         ║
-║    δ : BOM → HadronicDeliberationVerdict  (vetos termodinámicos, Fase 2)     ║
-║    π : Verdict → CategoricalState  (proyección categórica, Fase 3)           ║
-║                                                                              ║
-║  La composición F = π ∘ δ ∘ φ es un morfismo en la categoría de              ║
-║  estratos MIC si y solo si se preservan los tres invariantes:                ║
-║                                                                              ║
-║    [I1] Acotación de Gini:    G(BOM) < γ_c  ∈ (0,1]                          ║
-║    [I2] Fricción isotérmica:  Φ(BOM) ≤ Φ_max > 0                             ║
-║    [I3] Positividad exérgica: E_x(BOM) ≥ 0  (Segunda Ley)                    ║
-║                                                                              ║
-║  La violación de cualquier invariante induce un VETO que eleva una           ║
-║  subclase de HadronicCollapseVetoError, deteniendo la composición.           ║
-║                                                                              ║
-║  Estructura de 3 Fases Anidadas:                                             ║
-║   Fase 1 – Validación de Parámetros Constitutivos:                           ║
-║             Verifica [I1]∩[I2] sobre los umbrales; resuelve y reconcilia     ║
-║             el motor generador; produce MatterAgentContext inmutable.        ║
-║   Fase 2 – Deliberación Termodinámica:                                       ║
-║             Aplica vetos sobre BOM computado; modela fricción mediante       ║
-║             disipación de Rayleigh no-lineal; produce el Veredicto.          ║
-║   Fase 3 – Proyección Categórica:                                            ║
-║             Firma el morfismo con el invariante de Euler-Poincaré del        ║
-║             complejo simplicial logístico; empaqueta en CategoricalState.    ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Matter Agent (Endofuntor de Colapso Hadrónico)                                 ║
+║  Ruta   : app/agents/omega/matter_agent.py                                               ║
+║  Versión: 5.0.0-Topos-Thermodynamic-Phased-Strict                                        ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE TOPOS (Rigor Doctoral):                             ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Sea $\mathcal{E}_{MIC}$ el Topos de Grothendieck sobre el sitio de Zariski del          ║
+║  ecosistema MIC, con morfismos de cobertura que satisfacen el axioma de descenso         ║
+║  fiel-plano (faithfully flat descent).                                                   ║
+║                                                                                          ║
+║  Este agente materializa la estructura logística realizando el endofuntor:               ║
+║      $F : \text{Ob}(\mathcal{C}_\Omega) \to \text{Ob}(\mathcal{C}_\Omega)$               ║
+║      $F(X) = \text{CategoricalState} \circ \pi \circ \delta \circ \varphi(X)$            ║
+║                                                                                          ║
+║  Donde los morfismos intermedios se definen estrictamente como:                          ║
+║      $\varphi : X \to \text{BillOfMaterials}$ (motor físico logístico, delegado)         ║
+║      $\delta : \text{BOM} \to \text{HadronicDeliberationVerdict}$ (vetos termodinámicos) ║
+║      $\pi : \text{Verdict} \to \text{CategoricalState}$ (proyección categórica pura)     ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS E INVARIANTES TERMODINÁMICOS:                                   ║
+║                                                                                          ║
+║  La composición funtorial $F = \pi \circ \delta \circ \varphi$ es válida en la categoría ║
+║  de estratos MIC si y solo si preserva incondicionalmente tres invariantes:              ║
+║                                                                                          ║
+║  §1. Acotación de Gini (Singularidad Logística):                                         ║
+║      El desequilibrio termodinámico de Pareto sobre el BOM debe estar acotado:           ║
+║          $G(\text{BOM}) < \gamma_c \in (0,1]$                                            ║
+║      Su vulneración detona el colapso mediante un `LogisticSingularityVeto`.             ║
+║                                                                                          ║
+║  §2. Fricción Isotérmica (Disipación de Rayleigh):                                       ║
+║      La fricción acoplada a la variedad no debe divergir:                                ║
+║          $\Phi(\text{BOM}) \le \Phi_{\max} > 0$                                          ║
+║      Su vulneración detona el colapso mediante un `ThermodynamicFrictionVeto`.           ║
+║                                                                                          ║
+║  §3. Positividad Exérgica (Segunda Ley de la Termodinámica):                             ║
+║      El sistema exige conservación de energía útil (exergía) tras el colapso:            ║
+║          $E_x(\text{BOM}) \ge 0$                                                         ║
+║      Su vulneración detona el colapso mediante un `NegativeExergyVeto`.                  ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):               ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_ConstitutiveParameterValidation                                         ║
+║           Verifica los umbrales paramétricos de [I1] e [I2], resolviendo el motor        ║
+║           generador para emitir el dominio validado.                                     ║
+║           [Retorna: MatterAgentContext → puente inmutable de Fase 2]                     ║
+║                                                                                          ║
+║  Fase 2 → Phase2_ThermodynamicDeliberation                                               ║
+║           Aplica los vetos sobre el BOM computado, modelando la fricción mediante la     ║
+║           disipación no lineal de Rayleigh y consolidando el veredicto.                  ║
+║           [Retorna: HadronicDeliberationVerdict → puente inmutable de Fase 3]            ║
+║                                                                                          ║
+║  Fase 3 → Phase3_CategoricalProjection                                                   ║
+║           Firma el morfismo con el invariante de Euler-Poincaré del complejo simplicial  ║
+║           y empaqueta la transformación en el estado terminal.                           ║
+║           [Retorna: CategoricalState → objeto final del endofuntor]                      ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,41 +1,58 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Telemetry Agent (El Custodio de la Propagación Causal)              ║
-║ Ruta   : app/agents/core/telemetry_agent.py                                  ║
-║ Versión: 2.0.0-Causal-Cohomology-Port-Hamiltonian-Strict-Nested              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna a `telemetry.py`. Actúa como el Funtor de Propagación
-Topológica que administra el tránsito del Pasaporte de Telemetría, asegurando
-que la flecha del tiempo y la causalidad constituyan geodésicas válidas.
-
-ARQUITECTURA DE 3 FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Filtración de Clausura Transitiva:
-         Impone la inclusión estricta de subespacios anidados (Zero-Trust):
-             V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM.
-         Aniquila instanciaciones superiores si la base carece de coherencia.
-
-Fase 2 → Cohomología de Spans Causales:
-         Modela la jerarquía de ejecución como un complejo simplicial 1-dimensional.
-         Aplica la característica de Euler-Poincaré:
-             χ(K) = β₀ - β₁ = |V| - |E|.
-         Exige β₁ = 0 para certificar un bosque causal sin ciclos.
-
-Fase 3 → Disipación Port-Hamiltoniana:
-         Evalúa la irreversibilidad termodinámica del sistema calculando la
-         energía disipada de Rayleigh:
-             P_diss = ∇Hᵀ R ∇H ≥ 0,
-         con R simétrica y positiva semidefinida.
-
-COMPOSICIÓN:
-────────────
-El último método de la Fase 1 emite un puente formal que es consumido por el
-primer método de la Fase 2. El último método de la Fase 2 emite un puente que
-es consumido por el primer método de la Fase 3.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Telemetry Agent (Custodio de la Propagación Causal)                            ║
+║  Ruta   : app/agents/core/telemetry_agent.py                                             ║
+║  Versión: 2.0.0-Causal-Cohomology-Port-Hamiltonian-Strict-Nested                         ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, denotado como $\mathcal{Z}_{Telemetry}$, gobierna el ecosistema        ║
+║  `telemetry.py`. Actúa como el Funtor de Propagación Topológica que administra           ║
+║  el tránsito del Pasaporte de Telemetría, garantizando matemáticamente que la            ║
+║  flecha del tiempo y la causalidad algorítmica constituyan geodésicas válidas            ║
+║  en la variedad de ejecución.                                                            ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TERMODINÁMICAS:                                 ║
+║                                                                                          ║
+║  §1. Filtración de Clausura Transitiva (Topología Zero-Trust):                           ║
+║      Impone la inclusión estricta de subespacios anidados como un invariante             ║
+║      categórico para la propagación del contexto:                                        ║
+║          $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$       ║
+║      Cualquier intento de instanciación de un estrato superior sin el                    ║
+║      respaldo termométrico o topológico del estrato inferior es aniquilado.              ║
+║                                                                                          ║
+║  §2. Cohomología de Spans Causales (Invariancia de Grafo):                               ║
+║      Modela la jerarquía de ejecución como un complejo simplicial 1-dimensional          ║
+║      evaluando la Característica de Euler-Poincaré:                                      ║
+║          $\chi(K) = \beta_0 - \beta_1 = |V| - |E|$                                       ║
+║      Se exige el axioma $\beta_1 = 0$. Cualquier valor positivo evidencia                ║
+║      ciclos causales parasitarios (paradojas de tiempo), resultando en un                ║
+║      veto absoluto sobre la Malla Agéntica.                                              ║
+║                                                                                          ║
+║  §3. Disipación Port-Hamiltoniana (Irreversibilidad Termodinámica):                      ║
+║      Certifica la irreversibilidad del sistema computando la energía disipada            ║
+║      de Rayleigh sobre la matriz de disipación $R$:                                      ║
+║          $P_{diss} = \nabla H^\top R \nabla H \ge 0$                                     ║
+║      Se exige que $R$ sea una matriz simétrica y semidefinida positiva. Un               ║
+║      valor $P_{diss} < 0$ implica entropía negativa (creación de energía                 ║
+║      de la nada), rompiendo la Segunda Ley de la Termodinámica.                          ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial $\Phi_3 \circ \Phi_2 \circ \Phi_1$):              ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_TransitiveClosureEnforcer                                               ║
+║           Aplica la restricción topológica Zero-Trust sobre la jerarquía DIKW.           ║
+║           [Retorna: Phase1CausalBridge → objeto inicial de Fase 2]                       ║
+║                                                                                          ║
+║  Fase 2 → Phase2_CausalCohomologyAuditor                                                 ║
+║           Evalúa la característica $\chi(K)$ y proscribe $\beta_1 > 0$ en Spans Causales.║
+║           [Retorna: Phase2CohomologyBridge → objeto inicial de Fase 3]                   ║
+║                                                                                          ║
+║  Fase 3 → Phase3_PortHamiltonianVerifier                                                 ║
+║           Valida que la traza temporal exhiba disipación energética real y positiva.     ║
+║           [Retorna: CausalPropagationState → objeto final del endofuntor]                ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

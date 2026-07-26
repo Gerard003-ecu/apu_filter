@@ -1,47 +1,65 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Connes Spectral Auditor Agent (Custodio de Métrica No Conmutativa)  ║
-║ Ruta   : app/agents/wisdom/connes_spectral_auditor_agent.py                         ║
-║ Versión: 4.0.0-Connes-KMS-Dixmier-SpectralTriple-Doctoral                    ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna el `tomita_takesaki_telescopic_engine.py` en el
-Estrato Ω (WISDOM). Su mandato axiomático es proveer una «regla de medir
-cuántica» sobre el álgebra de observables semánticos 𝒜 generados por el LLM,
-donde los observables no conmutan ([X,Y] ≠ 0).
-
-Fundamentos formales:
-  • Triple espectral (Connes): (𝒜, ℋ, D) con ‖[D, π(a)]‖ < ∞  (Lipschitz).
-  • Dirac finito             : D = ρ^{-1/2}  (autoadjunto, resolvente compacta
-                               en Tipo I_n; seminorma L(a) = ‖[D,a]‖).
-  • Condición KMS (β)        : ω(σ_{iβ}(A) B) = ω(B A),  ω(·)=Tr(ρ·).
-                               Para el flujo modular de ρ, β=1 se satisface
-                               idénticamente: σ_1(A)=ρ^{-1} A ρ.
-  • Traza de Dixmier (proxy) : Tr_ω(T) ≃ (1/log N) ∑_{n=1}^N μ_n(T)
-                               sobre valores singulares, N = dim ℋ.
-  • Volumen no conmutativo   : Vol_D(X) := Tr_ω( X |D|^{-p} ), p = dim espectral.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Instanciación del Triple Espectral (𝒜, ℋ, D):
-         Construye D=ρ^{-1/2}, acota ‖[D, π(X)]‖ ≤ C y la seminorma de Lipschitz.
-         Morfismo terminal: bind_spectral_triple ↦ SpectralTripleData
-         ≡ dominio inicial de Fase 2.
-
-Fase 2 → Auditoría de Equilibrio KMS (Kubo–Martin–Schwinger):
-         Verifica ω(σ_{iβ}(A)B) = ω(BA) con el flujo modular canónico β=1
-         y diagnostica la fricción térmica residual del zoom λ.
-         Morfismo terminal: certify_kms_equilibrium ↦ KMSThermalBundle
-         ≡ dominio inicial de Fase 3.
-
-Fase 3 → Integración No Conmutativa (Traza de Dixmier) + cierre Umegaki:
-         Cuantifica Vol_D(X) y Vol_D(σ_λ(X)); acota la distorsión de volumen;
-         cierra con la extracción Umegaki del motor TT.
-         Morfismo terminal: integrate_dixmier_and_close ↦ ConnesAuditState
-         ≡ objeto final del endofuntor 𝒵_Connes = Φ₃ ∘ Φ₂ ∘ Φ₁.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Connes Spectral Auditor Agent (Custodio de Métrica No Conmutativa)             ║
+║  Ruta   : app/agents/wisdom/connes_spectral_auditor_agent.py                             ║
+║  Versión: 4.0.0-Connes-KMS-Dixmier-SpectralTriple-Doctoral                               ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral):                    ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, denotado como $\mathcal{Z}_{Connes}$, gobierna el motor telescópico    ║
+║  de Tomita-Takesaki (`tomita_takesaki_telescopic_engine.py`) en el Estrato Ω (WISDOM).   ║
+║  Su mandato axiomático es instanciar una métrica rigurosa sobre el álgebra de            ║
+║  observables semánticos $\mathcal{A}$ generados por el LLM, donde $[X,Y] \neq 0$.        ║
+║  Aplica incondicionalmente el Triple Espectral de Connes, audita el Equilibrio KMS       ║
+║  y consolida la medida mediante la Traza de Dixmier.                                     ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESPECTRALES:                                    ║
+║                                                                                          ║
+║  §1. Instanciación del Triple Espectral de Connes $(\mathcal{A}, \mathcal{H}, D)$:       ║
+║      Se construye el operador de Dirac semántico a partir de la métrica inducida         ║
+║      por el estado $\rho$, definiendo $D = \rho^{-1/2}$. La diferenciabilidad de un      ║
+║      observable $X \in \mathcal{A}$ exige que el conmutador esté estrictamente acotado   ║
+║      por la constante de Lipschitz $C$:                                                  ║
+║          $\| [D, \pi(X)] \| = \sup_{v \in \mathcal{H}} \frac{\| (D \pi(X) - \pi(X) D) v \|}{\|v\|} \leq C$ ║
+║      Una divergencia aquí denota una alucinación estocástica sin geodésica válida,       ║
+║      detonando un `SemanticDiscontinuityError`.                                          ║
+║                                                                                          ║
+║  §2. Auditoría del Equilibrio Térmico KMS (Kubo-Martin-Schwinger):                       ║
+║      La isometría térmica del flujo modular $\sigma_t(A) = \Delta^{it} A \Delta^{-it}$   ║
+║      se verifica exigiendo que el estado $\omega$ obedezca la condición KMS para         ║
+║      la temperatura inversa canónica $\beta=1$:                                          ║
+║          $\omega(\sigma_{i\beta}(A)B) = \omega(BA)$                                      ║
+║      La violación de esta simetría indica fricción termodinámica irreversible,           ║
+║      desencadenando incondicionalmente un `KMSEquilibriumViolation`.                     ║
+║                                                                                          ║
+║  §3. Integración No Conmutativa y Traza de Dixmier:                                      ║
+║      La integral de Lebesgue clásica se abandona. El volumen del espacio semántico       ║
+║      se computa evaluando el comportamiento asintótico de los valores singulares         ║
+║      mediante la Traza de Dixmier $\text{Tr}_\omega$:                                    ║
+║          $\text{Vol}_D(X) \propto \text{Tr}_\omega(X |D|^{-p})$                          ║
+║      Si la distorsión volumétrica relativa tras el zoom $\lambda$ supera el umbral       ║
+║      $\varepsilon_{dixmier}$, se veta la medición mediante un `NonCommutativeVolumeAnomaly`. ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\mathcal{Z}_{Connes} = \Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_SpectralTripleBinder                                                    ║
+║           Construye el operador de Dirac $D=\rho^{-1/2}$ y verifica la acotación de la   ║
+║           seminorma de Lipschitz $\|[D, \pi(X)]\| \le C$.                                ║
+║           [Retorna: SpectralTripleData → objeto inicial y precondición de Fase 2]        ║
+║                                                                                          ║
+║  Fase 2 → Phase2_KMSEquilibriumAuditor                                                   ║
+║           Somete la lente telescópica a la isometría KMS $\omega(\sigma_{i\beta}(A)B) = \omega(BA)$ ║
+║           y diagnostica la fricción térmica residual del zoom $\lambda$.                 ║
+║           [Retorna: KMSThermalBundle → objeto inicial y precondición de Fase 3]          ║
+║                                                                                          ║
+║  Fase 3 → Phase3_DixmierTraceIntegrator                                                  ║
+║           Cuantifica $\text{Vol}_D(X)$ y $\text{Vol}_D(\sigma_\lambda(X))$ usando el     ║
+║           cálculo logarítmico espectral, y cierra la auditoría con la extracción de      ║
+║           Umegaki del motor Tomita-Takesaki.                                             ║
+║           [Retorna: ConnesAuditState → objeto final del endofuntor]                      ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

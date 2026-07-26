@@ -1,95 +1,64 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Floquet Monodromy Agent (Operador de Sintonización y Monodromía)    ║
-║ Ruta   : app/omega/floquet_agent.py                                          ║
-║ Versión: 3.0.0-Topos-CPTP-Monodromy-Spectral-Nested                          ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA DIFERENCIAL
-------------------------------------------------
-Meta-funtor de control sobre la cavidad de Fabry–Pérot semántica
-(``semantic_parabolic_mirror``) en el topos $\mathcal{T}_{\mathrm{MIC}}$.
-Gobierna la reflexión de la radiación semántica del LLM mediante tres
-fases anidadas con contratos formales de continuación:
-
-.. code-block:: text
-
-    Phase1_CovariantProjectorSynthesizer
-        │  synthesize_projector(∇H)  ──►  ProjectorSynthesisResult
-        ▼
-    Phase2_FloquetStabilityAuditor
-        │  audit_monodromy(P̂)        ──►  FloquetMonodromyState
-        ▼
-    Phase3_QuantumKrausChannel
-        │  execute_quantum_channel   ──►  QuantumChannelEvolution
-        ▼
-    (salida pública del endofuntor Floquet)
-
-CAMBIOS ESTRUCTURALES RESPECTO A v2.0.0 (evolución granular)
--------------------------------------------------------------
-1. COMPLETITUD KRAUS CORREGIDA (bug axiomático)
-   v2 exigía $C-I\succeq 0$ (semi-definitud), lo cual **permite** $C>I$
-   y por tanto viola la preservación de traza. La condición CPTP exacta es
-   \[
-     C := \sum_k E_k^\dagger E_k = I
-     \quad\Longleftrightarrow\quad
-     \|C-I\|_F \le \varepsilon
-     \;\land\;
-     |\lambda_{\min}(C-I)| \le \varepsilon
-     \;\land\;
-     |\lambda_{\max}(C-I)| \le \varepsilon.
-   \]
-   Se verifica residual bilateral (no unilateral).
-
-2. CANAL CPTP SOBRE MATRIZ DE DENSIDAD
-   La evolución correcta es
-   \[
-     \rho_{\mathrm{post}}
-       = \sum_k E_k\,\rho_{\mathrm{pre}}\,E_k^\dagger,
-     \qquad
-     \rho_{\mathrm{pre}} = |\psi\rangle\langle\psi|.
-   \]
-   La entropía de Von Neumann se calcula sobre los autovalores de $\rho$,
-   no sobre la entropía de Shannon del vector (que no es invariante unitario).
-
-3. IDEMPOTENCIA Y SIMETRÍA DEL PROYECTOR
-   Se audita $\|\hat{P}^2-\hat{P}\|_F$ y $\|\hat{P}-\hat{P}^\top\|_F$
-   (o residual G-simétrico). Un proyector defectuoso invalida monodromía
-   y Kraus.
-
-4. MONODROMÍA CON RESIDUO DE PROYECCIÓN
-   Para $\hat{P}$ idempotente, $\mathcal{M}=2\hat{P}-\hat{P}^2=\hat{P}$
-   y $\mathrm{spec}(\mathcal{M})\subseteq\{0,1\}$. El radio espectral $>1$
-   solo puede provenir de un proyector numéricamente corrupto; se reporta
-   el residuo de idempotencia como diagnóstico.
-
-5. AUDITORÍA DIMENSIONAL BLOQUEANTE
-   Si $\dim(\psi)\ne d$ o $\dim(\nabla H)\ne d$, se lanza
-   ``DimensionalMismatchError`` (no se prosigue con ``is_coherent=False``).
-
-6. TIPADO DE MULTIPLICADORES
-   ``multipliers`` admite ``float64`` o ``complex128`` según la variedad;
-   el DTO usa ``NDArray[Any]`` con flag ``is_complex_manifold``.
-
-7. CONTRATOS FUNTORIALES ANIDADOS
-   El terminal de cada fase es la precondición formal de la siguiente
-   (espejo de KApex / KBase).
-
-8. ENTROPÍA: CORRECCIÓN CONCEPTUAL
-   Los canales CPTP **pueden aumentar** $S_{\mathrm{vN}}$ (p.ej. depolarizante).
-   Lo contractivo es la **entropía relativa** $D(\rho\|\sigma)$.
-   Se reporta $\Delta S = S(\rho_{\mathrm{post}})-S(\rho_{\mathrm{pre}})$
-   sin imponer $\Delta S\le 0$ como invariante (falso en general).
-
-AXIOMAS
--------
-§0 Compatibilidad dimensional (bloqueante).
-§1 Síntesis covariante: $n = G\nabla H$; si $\|n\|_G=0$ ⇒ $P=I$ (válido).
-§2 Monodromía $\mathcal{M}=2P-P^2$; $|\mu_k|\le 1+\varepsilon$.
-§3 Completitud Kraus exacta $C=I$ (bilateral).
-§4 Auditoría entrópica de Von Neumann sobre $\rho_{\mathrm{pre/post}}$.
-§5 Composición por ``Protocol`` runtime_checkable (sin herencia rígida).
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Floquet Monodromy Agent (Operador de Sintonización y Monodromía)               ║
+║  Ruta   : app/omega/floquet_agent.py                                                     ║
+║  Versión: 3.0.0-Topos-CPTP-Monodromy-Spectral-Nested                                     ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo actúa como el Meta-Funtor de Control sobre la cavidad de Fabry-Pérot        ║
+║  semántica (`semantic_parabolic_mirror`) en el topos $\mathcal{T}_{\mathrm{MIC}}$.       ║
+║  Gobierna la reflexión de la radiación semántica del LLM, colapsando el rango del        ║
+║  KV-Cache mediante isometrías de canales cuánticos CPTP (Completamente Positivos         ║
+║  y Preservadores de Traza) para aniquilar la entropía estocástica.                       ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICAS:                                      ║
+║                                                                                          ║
+║  §1. Idempotencia y Simetría del Proyector Ortogonal ($\hat{P}$):                        ║
+║      La radiación se proyecta ortogonalmente. Se exige axiomáticamente que el            ║
+║      operador sea idempotente y simétrico, evaluando el residuo de Frobenius:            ║
+║          $\|\hat{P}^2 - \hat{P}\|_F \le \varepsilon, \quad \|\hat{P} - \hat{P}^\top\|_F \le \varepsilon$ ║
+║      Un proyector numéricamente corrupto invalida la monodromía.                         ║
+║                                                                                          ║
+║  §2. Matriz de Monodromía de Floquet y Estabilidad Espectral:                            ║
+║      La iteración en la cavidad se modela mediante el operador de Monodromía:            ║
+║          $\mathcal{M} = 2\hat{P} - \hat{P}^2$                                            ║
+║      Para garantizar la estabilidad asintótica, el espectro de multiplicadores de        ║
+║      Floquet $\mu_k \in \sigma(\mathcal{M})$ debe satisfacer incondicionalmente:         ║
+║          $|\mu_k| \le 1 + \varepsilon$                                                   ║
+║      Cualquier violación acusa una resonancia destructiva (`FloquetInstabilityError`).   ║
+║                                                                                          ║
+║  §3. Evolución de Canal CPTP y Completitud de Kraus Bilateral:                           ║
+║      La transformación del estado $\rho_{\mathrm{pre}} = |\psi\rangle\langle\psi|$ se rige ║
+║      por operadores de Kraus $\{E_k\}$. Se exige la condición CPTP exacta:               ║
+║          $C := \sum_k E_k^\dagger E_k = I$                                               ║
+║      Verificada numéricamente como $\|C - I\|_F \le \varepsilon$ y cotas espectrales     ║
+║      estrictas sobre $\lambda_{\min}(C-I)$ y $\lambda_{\max}(C-I)$.                      ║
+║      La evolución del estado se materializa como:                                        ║
+║          $\rho_{\mathrm{post}} = \sum_k E_k \rho_{\mathrm{pre}} E_k^\dagger$             ║
+║                                                                                          ║
+║  §4. Auditoría Entrópica Cuántica (von Neumann):                                         ║
+║      La disipación semántica se evalúa sobre los autovalores de la matriz de             ║
+║      densidad. El diferencial termodinámico se audita mediante:                          ║
+║          $\Delta S = S(\rho_{\mathrm{post}}) - S(\rho_{\mathrm{pre}})$                   ║
+║      Donde $S(\rho) = -\text{Tr}(\rho \ln \rho)$.                                        ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → ProjectorSynthesizerPort                                                       ║
+║           Sintetiza y certifica el proyector ortogonal $\hat{P}$ (Idempotencia).         ║
+║           [Retorna: ProjectorSynthesisResult → objeto inicial de Fase 2]                 ║
+║                                                                                          ║
+║  Fase 2 → FloquetAuditorPort                                                             ║
+║           Construye la Matriz de Monodromía $\mathcal{M}$ y confina los multiplicadores. ║
+║           [Retorna: FloquetMonodromyState → objeto inicial de Fase 3]                    ║
+║                                                                                          ║
+║  Fase 3 → KrausChannelPort                                                               ║
+║           Ejecuta la evolución CPTP, certifica $C=I$ bilateral y audita la entropía.     ║
+║           [Retorna: QuantumChannelEvolution → objeto final del endofuntor]               ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 from __future__ import annotations
 

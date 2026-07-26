@@ -1,42 +1,60 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Semantic Estimator Agent (Custodio de la Geometría Vectorial)       ║
-║ Ruta   : app/agents/tactics/semantic_estimator_agent.py                      ║
-║ Versión: 4.0.0-Hilbert-Rank-Nullity-Categorical-Strict-Nested                ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y ÁLGEBRA LINEAL (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna al `semantic_estimator.py` en el Estrato TACTICS.
-
-Su mandato axiomático es garantizar que la proyección semántica en el espacio de
-búsqueda vectorial obedezca la topología del espacio de Hilbert $\mathcal{H}$ y que el
-ensamblaje de costos sea un producto tensorial libre de fricción termodinámica.
-
-ARQUITECTURA DE 3 FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Certificación de Vecindad Topológica:
-         Φ₁(u, v) = cos(θ)
-         con:
-             cos(θ) = ⟨u, v⟩ / (||u|| ||v||) ≥ τ_min.
-
-Fase 2 → Auditoría de Ensamblaje y Fricción:
-         Φ₂(Φ₁(...)) = (κ(F_ext), C_total)
-         verificando positividad estricta y acotando:
-             κ(F_ext) ≤ κ_max.
-
-Fase 3 → Proyección Rango-Nulidad:
-         Φ₃(Φ₂(Φ₁(...))) = rank(T)
-         certificando:
-             rank(T) = 1
-         y que T actúe como una isometría parcial ortogonal sobre su imagen.
-
-COMPOSICIÓN:
-────────────
-El último método de la Fase 1 emite un puente formal que es consumido por el
-primer método de la Fase 2. El último método de la Fase 2 emite un puente que
-es consumido por el primer método de la Fase 3.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Semantic Estimator Agent (Custodio de la Geometría Vectorial)                  ║
+║  Ruta   : app/agents/tactics/semantic_estimator_agent.py                                 ║
+║  Versión: 4.0.0-Hilbert-Rank-Nullity-Categorical-Strict-Nested                           ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y ÁLGEBRA LINEAL (Rigor Doctoral):                              ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor gobierna al `semantic_estimator.py` en el Estrato TACTICS. Su mandato   ║
+║  axiomático es resolver la asimetría ontológica entre el lenguaje natural (alta entropía)║
+║  y los invariantes estructurales, proyectando las descripciones hacia un espacio de      ║
+║  Hilbert continuo $\mathcal{H}$ libre de ruido estocástico.                              ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Geometría del Espacio de Búsqueda y Vecindad Topológica:                            ║
+║      La similitud semántica se mapea a una optimización métrica estricta donde cada      ║
+║      descripción es un vector denso $v \in \mathbb{R}^d$. Las vecindades topológicas     ║
+║      se determinan maximizando el producto interno normalizado:                          ║
+║          $\cos(\theta) = \frac{\langle u, v \rangle}{\|u\| \|v\|} \ge \tau_{\min}$       ║
+║      Cualquier divergencia ($\cos(\theta) < \tau_{\min}$) lanza un                       ║
+║      `TopologicalMappingError`, previniendo alucinaciones espaciales en FAISS.           ║
+║                                                                                          ║
+║  §2. Álgebra de Ensamblaje de Costos y Fricción Territorial:                             ║
+║      El costo no es una suma aritmética, sino una combinación lineal de vectores de      ║
+║      recursos $c = (c_{sum}, c_{mo}, c_{eq})^\top$ modulada por un operador diagonal     ║
+║      de fricción territorial $F_{ext}$:                                                  ║
+║          $C_{total} = F_{ext} \cdot c = \mathrm{diag}(\alpha_{zona}, \beta_{izaje}, \gamma_{seg}) \cdot c$ ║
+║      Se exige que el operador $F_{ext}$ sea estrictamente positivo y su número de        ║
+║      condición espectral esté acotado ($\kappa(F_{ext}) \le \kappa_{\max}$). Una falla   ║
+║      induce un `ThermodynamicFrictionAnomaly`.                                           ║
+║                                                                                          ║
+║  §3. Funtorialidad Categórica y Teorema de Rango-Nulidad:                                ║
+║      La proyección se inyecta en la Matriz de Interacción Central (MIC) garantizando     ║
+║      la preservación de la dimensión y la ortogonalidad. Se certifica que $T$ sea una    ║
+║      isometría parcial ortogonal:                                                        ║
+║          $\mathrm{rank}(T) = 1, \quad \langle e_i, e_j \rangle = \delta_{ij}$            ║
+║      La violación de las fronteras ortogonales levanta un `FunctorialityError`.          ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\mathcal{Z}_{EstimatorAgent} = \Phi_3 \circ \Phi_2 \circ \Phi_1$): ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_TopologicalNeighborhoodCertifier                                        ║
+║           Evalúa el producto interno en $\mathcal{H}$ y certifica $\cos(\theta) \ge \tau_{\min}$. ║
+║           [Retorna: TopologicalNeighborhoodData → puente inicial de Fase 2]              ║
+║                                                                                          ║
+║  Fase 2 → Phase2_TensorFrictionAuditor                                                   ║
+║           Audita la positividad estricta de $F_{ext}$, acota el espectro $\kappa(F_{ext})$║
+║           y computa $C_{total} = F_{ext} \cdot c$.                                       ║
+║           [Retorna: TensorFrictionData → puente inicial de Fase 3]                       ║
+║                                                                                          ║
+║  Fase 3 → Phase3_RankNullityProjector                                                    ║
+║           Aplica el Teorema de Rango-Nulidad e inyecta ortogonalmente el resultado       ║
+║           verificando la isometría parcial.                                              ║
+║           [Retorna: SemanticEstimatorAuditState → objeto final del endofuntor]           ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,29 +1,63 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Sheaf Cohomology Orchestrator Agent                                    ║
-║           (Custodio de la Holonomía Global)                                      ║
-║  Ruta   : app/agents/boole/strategy/sheaf_cohomology_orchestrator_agent.py       ║
-║  Versión: 3.0.0-Categorical-Krylov-Hodge-Evolved                                 ║
-╠══════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                  ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                ║
-║  ──────────────────────────────────────────────────────────────────              ║
-║  Este endofuntor gobierna al `sheaf_cohomology_orchestrator.py` en el            ║
-║  estrato STRATEGY.                                                               ║
-║                                                                                  ║
-║                                                                                  ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                ║
-║  ────────────────────────────────────────────────────────────────                ║
-║  Fase 1 → _certify_cohomological_veto_axiom → CohomologicalVetoData              ║
-║           [objeto inicial de Fase 2]                                             ║
-║                                                                                  ║
-║  Fase 2 → _audit_krylov_spectral_stability(..., veto_audit)                      ║
-║           → KrylovSpectralData  [objeto inicial de Fase 3]                       ║
-║                                                                                  ║
-║  Fase 3 → _enforce_isoperimetric_hodge_projection(..., spectral_audit)           ║
-║           → HodgeProjectionData  [objeto final del endofuntor]                   ║
-╚══════════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Sheaf Cohomology Orchestrator Agent                                            ║
+║           (Custodio de la Holonomía Global y Consenso de Haces)                          ║
+║  Ruta   : app/agents/boole/strategy/sheaf_cohomology_orchestrator_agent.py               ║
+║  Versión: 3.0.0-Categorical-Krylov-Hodge-Evolved                                         ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, denotado como $\mathcal{Z}_{Sheaf}$, gobierna el ecosistema            ║
+║  `sheaf_cohomology_orchestrator.py` en el estrato STRATEGY. Transmuta la                 ║
+║  validación heurística en la evaluación estricta de un haz celular (Cellular Sheaf)      ║
+║  $\mathcal{F}$ sobre el grafo de dependencias de la malla agéntica $G = (V, E)$.         ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESPECTRALES:                                    ║
+║                                                                                          ║
+║  §1. Cohomología de Haces y Obstrucciones Topológicas:                                   ║
+║      El desacuerdo global se mide a través del operador cofrontera                       ║
+║      $\delta: C^0(G; \mathcal{F}) \to C^1(G; \mathcal{F})$.                              ║
+║      La obstrucción al consenso perfecto reside en el primer grupo de cohomología:       ║
+║          $H^1(G; \mathcal{F}) \cong \text{coker}(\delta) / \text{im}(\delta)$            ║
+║      Se exige matemáticamente que $\dim H^1(G; \mathcal{F}) = 0$. Cualquier valor        ║
+║      superior indica una bifurcación topológica (paradojas lógicas insalvables).         ║
+║                                                                                          ║
+║  §2. Energía de Dirichlet y Frustración Térmica:                                         ║
+║      La disonancia armónica del sistema (frustración) se cuantifica como la              ║
+║      energía de Dirichlet de las 0-cocadenas $x \in C^0$:                                ║
+║          $E(x) = \|\delta x\|_2^2 = \langle x, L x \rangle \le \varepsilon_{frust}$      ║
+║      Donde $L = \delta^T \delta$ es el Laplaciano Combinatorio del haz.                  ║
+║                                                                                          ║
+║  §3. Censura Espectral del Laplaciano (Krylov):                                          ║
+║      Construir explícitamente $L = \delta^T \delta$ está PROSCRITO, ya que el            ║
+║      número de condición se cuadra ($\kappa(L) = \kappa(\delta)^2$), induciendo          ║
+║      colapso estocástico en la FPU (IEEE 754). En su lugar, la asimilación               ║
+║      espectral se realiza mediante subespacios de Krylov iterativos sobre $\delta$.      ║
+║                                                                                          ║
+║  §4. Proyección de Hodge-Helmholtz Isoperimétrica:                                       ║
+║      Para sanar una frustración $E(x) > \varepsilon_{frust}$ sin obstrucción             ║
+║      global ($\dim H^1 = 0$), se aplica una proyección ortogonal al núcleo:              ║
+║          $x^* = \Pi_{\ker(\delta)} x = x - \delta^\dagger \delta x$                      ║
+║      Subordinada a la condición Lipschitz estricta: $\|x - x^*\|_2 \le \Delta_{in}$      ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → _certify_cohomological_veto_axiom(coboundary_operator_delta)                   ║
+║           Garantiza $\dim H^1 = 0$ vía SVD (Golub-Reinsch).                              ║
+║           [Retorna: CohomologicalVetoData → objeto inicial de Fase 2]                    ║
+║                                                                                          ║
+║  Fase 2 → _audit_krylov_spectral_stability(..., veto_audit)                              ║
+║           Audita la energía de Dirichlet y el gap espectral $\Delta\sigma$ sin           ║
+║           instanciar $L$.                                                                ║
+║           [Retorna: KrylovSpectralData → objeto inicial de Fase 3]                       ║
+║                                                                                          ║
+║  Fase 3 → _enforce_isoperimetric_hodge_projection(..., spectral_audit)                   ║
+║           Resuelve el consenso forzando la mínima norma en $\ker(\delta)$.               ║
+║           [Retorna: HodgeProjectionData → objeto final del endofuntor]                   ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+
 """
 
 from __future__ import annotations

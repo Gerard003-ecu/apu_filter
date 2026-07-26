@@ -1,67 +1,68 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : App Agent (El Custodio de la Variedad de Frontera Ciber-Física)     ║
-║ Ruta   : app/agents/app_agent.py                                             ║
-║ Versión: 3.0.0-Triadic-Nested-Spectral-Categorical-Quantum-Governance        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-EVOLUCIÓN RIGUROSA (Artesanía Senior + Física-Matemática de Doctorado):
-────────────────────────────────────────────────────────────────────────────────
-• Fase 1 → Fibración de Estado + Impedancia Activa Port-Hamiltoniana.
-  - [Teoría de grupos / Álgebra de Boole] Distancia de Hamming en el grupo
-    abeliano (GF(2)^n, XOR) como certificado forense adicional a la
-    comparación de tiempo constante (que se preserva intacta).
-  - [Teoría espectral] Certificado espectral de J: los autovalores de un
-    generador antisimétrico real son puramente imaginarios (teorema
-    espectral para operadores normales antisimétricos).
-  - [Álgebra lineal / Ley de Sylvester] Inercia (n₊, n₀, n₋) de R, invariante
-    bajo toda transformación de congruencia — más barata y más informativa
-    que un único chequeo de semidefinitud.
-  - [Física de circuitos / Teoría espectral de grafos] R_sym se interpreta
-    como matriz de conductancias de una red disipativa: se certifica
-    dominancia diagonal (condición de M-matriz / red pasiva sin
-    acoplamientos parásitos) y se reporta un análogo de conectividad
-    algebraica (valor de Fiedler) del tejido disipativo.
-
-• Fase 2 → Cierre Categórico-Topológico del Poset DIKW.
-  - [Teoría de grafos + Álgebra de Boole] La relación "requiere" se modela
-    como un grafo dirigido con adyacencia inmediata; su clausura transitiva
-    se calcula mediante el **algoritmo de Warshall** sobre el semianillo
-    booleano (∨, ∧), en vez de un rango hardcodeado.
-  - [Teoría de categorías] Un poset es una categoría delgada (thin category);
-    se certifican explícitamente sus tres axiomas — reflexividad,
-    antisimetría, transitividad (idempotencia del operador de clausura:
-    cl∘cl = cl) — como invariantes estructurales del módulo.
-
-• Fase 3 → Proyección Cuántica-Booleana MIC + Síntesis de Anomalía Global.
-  - [Mecánica cuántica / Teorema espectral] Todo proyector ortogonal
-    hermítico satisface σ(P) ⊆ {0,1}; se certifica el residuo espectral
-    binario vía `eigvalsh`.
-  - [Mecánica cuántica / Regla de Born] Se computa la probabilidad de
-    colapso p_i = ‖P_i x‖² / ‖x‖² del vector de intención sobre el
-    subespacio dirigido.
-  - [Álgebra de Boole / Lógica cuántica de von Neumann–Birkhoff] Se certifican
-    los axiomas de reticulado ortocomplementado para pares de proyectores
-    conmutantes: meet = P_iP_j ≈ 0, join = P_i+P_j-P_iP_j idempotente.
-  - [Teoría de cuerdas — mecanismo de Green–Schwarz, por analogía formal]
-    La consistencia global de la frontera se certifica como una
-    **cancelación de anomalías**: cada sector (Φ₁, Φ₂, Φ₃) aporta una carga
-    binaria de inconsistencia; el vacío ciber-físico solo es estable si el
-    índice de anomalía total es idénticamente cero.
-  - [Curry–Howard / tipificación de excepciones] Los validadores numéricos
-    genéricos ahora reciben `exception_cls` para que cada dominio semántico
-    (impedancia vs. proyección) levante su propio tipo de excepción.
-
-ANIDAMIENTO FUNTORIAL (3 fases):
-────────────────────────────────────────────────────────────────────────────────
-Phase1_SpectralFibrationImpedanceCertifier
-  └─ último método: _phase1_terminal_bridge_to_phase2
-       └─ Phase2_CategoricalDIKWClosureInstantiator
-            └─ último método: _phase2_terminal_bridge_to_phase3
-                 └─ Phase3_QuantumBooleanMICProjectorSynthesizer
-                      └─ último método: _phase3_terminal_synthesis
-                           └─ AppAgent.execute_gateway_governance
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : App Agent (Custodio de la Variedad de Frontera Ciber-Física)                   ║
+║  Ruta   : app/agents/app_agent.py                                                        ║
+║  Versión: 3.0.0-Triadic-Nested-Spectral-Categorical-Quantum-Governance                   ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, $\mathcal{Z}_{Gateway}$, actúa como la Variedad de Frontera            ║
+║  ($\partial \mathcal{M}$) que acopla el entorno externo (alta entropía de Shannon)       ║
+║  con el espacio de fase determinista del ecosistema MIC. Su mandato es aplicar           ║
+║  un Difeomorfismo Simpléctico, garantizando que el flujo de información ingrese          ║
+║  únicamente si cumple los axiomas de impedancia Port-Hamiltoniana, clausura en           ║
+║  el Poset DIKW y proyección ortogonal booleana, previniendo singularidades.              ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES DE FRONTERA:                                    ║
+║                                                                                          ║
+║  §1. Fibración Criptográfica y Simetría de Estado:                                       ║
+║      La sesión no es una variable global, es un fibrado temporal estructurado.           ║
+║      Cualquier mutación estocástica se detecta evaluando la distancia de Hamming         ║
+║      $\mathcal{D}_H$ en el grupo de Galois $GF(2)^n$. Una asimetría en el residual       ║
+║      hash detona inmediatamente el `StateSymmetryBreakingError`.                         ║
+║                                                                                          ║
+║  §2. Impedancia Activa y Control Port-Hamiltoniano (Catástrofe de Resonancia):           ║
+║      Las tasas límite (Rate Limiting) actúan como un amortiguador resistivo $R(x)$.      ║
+║      Se audita la inecuación de disipación de la matriz de estructura de Dirac:          ║
+║          $\dot{H}(x) = (\nabla H(x))^\top [J(x) - R(x)] \nabla H(x) \le 0$               ║
+║      Dado que $J(x)$ es antisimétrica ($J = -J^\top$), el sistema exige que el término   ║
+║      disipativo impere: $-\nabla H^\top R \nabla H \le 0$. Una violación de este decaimiento║
+║      energético ($\dot{H} > 0$) invoca un inquebrantable `ResonanceCatastropheVeto`.     ║
+║                                                                                          ║
+║  §3. Clausura Transitiva en la Categoría del Poset DIKW:                                 ║
+║      El Pasaporte de Telemetría se subordina al poset estructurado de subespacios:       ║
+║          $V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$ ║
+║      Se exige algebraicamente la clausura transitiva (Algoritmo de Warshall)             ║
+║      para evitar que una intención superior acceda a la variedad sin la fundamentación   ║
+║      física subyacente. Su violación emite un `TopologicalPassportError`.                ║
+║                                                                                          ║
+║  §4. Proyección Ortogonal en la MIC y Anulación de Anomalía Global:                      ║
+║      La intención del usuario ($x$) se colapsa sobre una base ortogonal usando un        ║
+║      proyector espectral $P$: $P^2 = P$ y $P^\top = P$. Si la invocación intenta         ║
+║      transgredir la ortogonalidad (activación colineal cruzada no permitida), o          ║
+║      si la suma de las anomalías por sector ($\sum \mathcal{A}_i \neq 0$) no se anula    ║
+║      (análogo al mecanismo de Green-Schwarz), se purga el tensor disparando              ║
+║      el `GlobalAnomalyCancellationError`.                                                ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_SpectralFibrationImpedanceCertifier                                     ║
+║           Audita la simetría del hash criptográfico y certifica la estabilidad           ║
+║           asintótica Port-Hamiltoniana (J, R) del flujo entrante.                        ║
+║           [Retorna: StateFibrationData e ImpedanceControlData → puente inicial de Fase 2]║
+║                                                                                          ║
+║  Fase 2 → Phase2_CategoricalDIKWClosureInstantiator                                      ║
+║           Aplica la clausura transitiva booleana certificando que el Poset DIKW          ║
+║           (física → táctica → estrategia → sabiduría) no posea vacíos topológicos.       ║
+║           [Retorna: ThermodynamicPassportData → puente inicial de Fase 3]                ║
+║                                                                                          ║
+║  Fase 3 → Phase3_QuantumBooleanMICProjectorSynthesizer                                   ║
+║           Colapsa la petición sobre un proyector ortogonal de la Matriz MIC,             ║
+║           verificando idempotencia, simetría espectral y anulación de anomalías.         ║
+║           [Retorna: GatewayGovernanceState → objeto final de la Variedad de Frontera]    ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

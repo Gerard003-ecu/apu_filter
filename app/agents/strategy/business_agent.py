@@ -1,67 +1,59 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Business Agent (Operador de Síntesis Categórica y Cerebro Ejecutivo)
-Ubicación: app/strategy/business_agent.py
-Versión: 2.0.0-rigorous
-=========================================================================================
-
-Fundamentación Matemática (Teoría de Categorías y Topología Algebraica):
-    
-    Este módulo implementa un funtor covariante F: ℂ_Budget → ℂ_Decision que mapea
-    el complejo simplicial del presupuesto (categoría fuente) a un retículo de decisión
-    booleano (categoría objetivo). La construcción respeta los siguientes axiomas:
-    
-    1. **Preservación de Estructura (Functorialidad):**
-       ∀ morfismos f: A → B en ℂ_Budget, F(f ∘ g) = F(f) ∘ F(g)
-       F(id_A) = id_{F(A)}
-    
-    2. **Topos de Haces sobre el Sitio de Grothendieck:**
-       La topología del grafo presupuestario induce un topos Sh(𝒢, J) donde 𝒢 es
-       el grafo y J es la topología de Grothendieck canónica. Los haces representan
-       asignaciones coherentes de valores financieros a subestructuras abiertas.
-    
-    3. **Cohomología de De Rham Discreta:**
-       Los números de Betti β_k se interpretan como dimensiones de grupos de cohomología:
-       β_k = dim H^k(K; ℝ) para el complejo simplicial K
-       La característica de Euler χ = Σ(-1)^k β_k es un invariante homológico.
-    
-    4. **Teoría Espectral del Laplaciano:**
-       Λ = D - A (Matriz Laplaciana combinatoria)
-       donde D es diagonal de grados y A es la matriz de adyacencia.
-       
-       Espectro: 0 = λ₀ ≤ λ₁ ≤ ... ≤ λ_{n-1}
-       
-       El valor de Fiedler λ₁ cuantifica la conectividad algebraica:
-       - λ₁ = 0 ⇔ Grafo desconexo (múltiples componentes)
-       - λ₁ > 0 ⇔ Grafo conexo
-       
-       El gap espectral λ₁ - λ₀ mide la robustez de la conectividad ante perturbaciones.
-    
-    5. **Álgebra de Boole del Espacio de Decisión:**
-       El retículo de decisión D forma un álgebra de Boole completa con:
-       - Ínfimo: ⊓ (intersección de restricciones)
-       - Supremo: ⊔ (unión de oportunidades)
-       - Complemento: ¬ (negación de condición)
-       - Elementos extremos: ⊤ (aprobación total), ⊥ (veto absoluto)
-    
-    6. **Mecánica Cuántica del Colapso de Decisión:**
-       El estado del proyecto |Ψ⟩ ∈ ℋ (espacio de Hilbert) colapsa bajo medición:
-       
-       |Ψ⟩ = α|viable⟩ + β|inviable⟩
-       
-       Operador de proyección: P̂ = |viable⟩⟨viable|
-       Probabilidad de viabilidad: P(viable) = |⟨viable|Ψ⟩|²
-       
-       El Risk Challenger actúa como operador de medición que fuerza el colapso.
-
-Arquitectura de Módulos:
-    - Capa 1 (Física): Álgebra Lineal, Topología, Teoría de Grafos
-    - Capa 2 (Táctica): Análisis Financiero, Termodinámica Estadística
-    - Capa 3 (Estrategia): Síntesis Categórica, Auditoría Adversarial
-    - Capa 4 (Sabiduría): Traducción Semántica, Narrativa Ejecutiva
-
-=========================================================================================
+r"""
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Business Agent (Operador de Síntesis Categórica y Cerebro Ejecutivo)           ║
+║  Ruta   : app/strategy/business_agent.py                                                 ║
+║  Versión: 3.0.0-Categorical-Synthesis-Doctoral-Strict                                    ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CATEGORÍAS (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra el Cerebro Ejecutivo del Estrato STRATEGY. Orquesta la         ║
+║  inteligencia de negocio modelando las finanzas y la topología del proyecto como una     ║
+║  2-categoría computacional. Transmuta la evaluación estática mediante Opciones Reales    ║
+║  y somete el estado de la Malla Agéntica a un Retículo de Auditoría Adversarial.         ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y ÁLGEBRA DE DECISIONES:                                        ║
+║                                                                                          ║
+║  §1. Álgebra de Retículos y Severidad de Veto (Lattice Theory):                          ║
+║      La evaluación de riesgos no opera de manera heurística, sino que se proyecta sobre  ║
+║      un Retículo Booleano $\mathcal{B} = (V, \sqcap, \sqcup, \bot, \top)$ acotado.       ║
+║      Si cualquier dimensión estructural emite un veto, el álgebra de decisiones impone   ║
+║      el colapso hacia el elemento supremo (Worst-case / RECHAZO):                        ║
+║          $\mathcal{V}_{final} = \bigsqcup_{i \in \mathcal{I}} v_i$                       ║
+║      La violación de la monotonicidad en el retículo levanta un `MathematicalError`.     ║
+║                                                                                          ║
+║  §2. Termodinámica Financiera y Ecuación de Black-Scholes-Merton:                        ║
+║      El presupuesto se trata como un fluido en un espacio de fase estocástico. Para la   ║
+║      teoría de Opciones Reales (Opción de Espera, etc.), la evolución del valor $V$      ║
+║      está estrictamente acoplada a la Ecuación Diferencial Parcial de Black-Scholes:     ║
+║          $\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} + rS \frac{\partial V}{\partial S} - rV = 0$ ║
+║      Bajo la dinámica de Ito $dS = \mu S dt + \sigma S dW_t$. Desviaciones o singularidades ║
+║      en la volatilidad termodinámica se rechazan categóricamente.                        ║
+║                                                                                          ║
+║  §3. Auditoría Adversarial (Risk Challenger) y Estrategias de Pivote:                    ║
+║      Somete la topología a modelos de pensamiento lateral mediante estrategias de pivote ║
+║      (Monopolio Coberturado, Cuarentena Topológica). Exige que las anomalías             ║
+║      topológicas ($\beta_1 > 0$) sean confinadas mediante un proyector ortogonal a un    ║
+║      subespacio de "Cuarentena" para preservar la métrica del ecosistema sano.           ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Topological & Thermodynamic Engine                                             ║
+║           Integra el `TopologicalMetricsBundle` y el `ThermodynamicState`, mapeando      ║
+║           invariantes estructurales y calculando la entropía financiera.                 ║
+║           [Retorna: SynthesisContext → objeto inicial de Fase 2]                         ║
+║                                                                                          ║
+║  Fase 2 → Real Options & Financial Valuation                                             ║
+║           Aplica el motor Black-Scholes sobre los componentes de fricción. Transforma    ║
+║           incertidumbre escalar en distribuciones valoradas en el cuerpo $\mathbb{R}$.   ║
+║           [Retorna: ValuationManifold → objeto inicial de Fase 3]                        ║
+║                                                                                          ║
+║  Fase 3 → Risk Challenger & Executive Composition                                        ║
+║           Aplica la auditoría adversarial, extrae excepciones de pivote y computa el     ║
+║           supremo en el retículo de decisiones, delegando al `ReportComposer`.           ║
+║           [Retorna: StrategicReport → objeto final del endofuntor]                       ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

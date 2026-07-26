@@ -741,7 +741,7 @@ class _FiniteNumericalGuard:
 # ║   Una transformación sintáctica es representada por su Jacobiana M ∈ GL(2n).║
 # ║   La condición de simplecticidad es:                                        ║
 # ║       Mᵀ Ω M = Ω                                                            ║
-# ║   donde Ω = [[0, Iₙ], [−Iₙ, 0]] ∈ R^{2n×2n}.                                 ║
+# ║   donde Ω = [[0, Iₙ], [−Iₙ, 0]] ∈ R^{2n×2n}.                                ║
 # ║                                                                             ║
 # ║   Invariantes verificados en v3.0.0:                                        ║
 # ║   1. Residuo de Frobenius: ‖MᵀΩM − Ω‖_F                                     ║

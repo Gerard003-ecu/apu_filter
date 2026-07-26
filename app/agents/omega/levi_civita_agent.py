@@ -1,82 +1,61 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Levi-Civita Connection Agent (Maestro de Sinfonía Métrica)          ║
-║ Ruta   : app/omega/levi_civita_agent.py                                      ║
-║ Versión: 8.0.0-Granular-Geodesic-Categorical-Nested-Spectral                 ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA DIFERENCIAL
-------------------------------------------------
-Meta-funtor sobre el haz tangente generativo Γ en el Estrato Ω. Impone la
-ecuación geodésica y la compatibilidad métrica como axiomas de ejecución.
-
-Fases anidadas (continuación formal, espejo KApex / Floquet / Eikonal)
-----------------------------------------------------------------------
-.. code-block:: text
-
-    Phase1_ChristoffelEngine
-        │  build_christoffel(G)     ──►  ChristoffelData
-        ▼
-    Phase2_TorsionFreeConnection
-        │  verify_axioms(data)      ──►  ConnectionDiagnostics
-        ▼
-    Phase3_GeodesicOrchestrator  (LeviCivitaConnectionAgent)
-        │  enforce_geodesic_flow    ──►  TangentVector (+ report opcional)
-        │  geodesic_rhs             ──►  a = −Γ(v,v)   [API Eikonal]
-        │  parallel_transport / ♭♯  ──►  transportes categóricos
-
-CAMBIOS ESTRUCTURALES RESPECTO A v7.0.0
-----------------------------------------
-1. FASES ANIDADAS con DTOs de continuación formal (Phase1 → ChristoffelData
-   es precondición tipada de Phase2; ConnectionDiagnostics precondición
-   operativa de Phase3).
-
-2. NORMA G EN LA GEODÉSICA: conservación
-   \[
-     \|v\|_G = \sqrt{v^\top G v}
-   \]
-   con proyección métrica opcional post-RK4 (renormalización en la
-   elipsoide de nivel de \(G\)).
-
-3. API EIKONAL COMPATIBLE:
-   - ``enforce_geodesic_flow(v, dt) -> TangentVector``
-   - ``geodesic_rhs(v_coords) -> NDArray``
-   - ``enforce_geodesic_flow(..., return_report=True) -> (TangentVector, Report)``
-
-4. SIMETRIZACIÓN REAL DE dG: \(dG \leftarrow \tfrac12(dG + dG^{T_{ij}})\).
-
-5. RIEMANN + BIANCHI + RICCI:
-   - Parte algebraica \(R^r{}_{smn}\approx \Gamma^r_{mk}\Gamma^k_{ns}
-     -\Gamma^r_{nk}\Gamma^k_{ms}\) (exacta si \(\partial\Gamma=0\)).
-   - Primera identidad de Bianchi algebraica (torsión nula):
-     \(R^r{}_{s[mn]}+R^r{}_{m[ns]}+R^r{}_{n[sm]}\) diagnosticada.
-   - Contracción de Ricci \(R_{sn}=R^r{}_{srn}\).
-
-6. PASO ESTABLE RK4 VELOCIDAD-DEPENDIENTE:
-   \[
-     dt_{\max}(v)\sim
-       \frac{c}{\|\Gamma\|_\infty\cdot\|v\|_G+\varepsilon}.
-   \]
-
-7. TRANSPORTE PARALELO HEUN (orden 2) opcional; Euler conservado.
-
-8. HOOKS de derivada métrica: estático por defecto; interfaz
-   ``MetricDerivativeProvider`` para \(dG\) dinámico (curvatura no nula).
-
-9. RESIDUO DE INVERSA relativo a \(\varepsilon_{\mathrm{mach}}\kappa(G)\).
-
-10. STUBS de ecosistema para tests aislados.
-
-FUNDAMENTO
-----------
-§1 Levi-Civita: torsión nula + \(\nabla G=0\) ⇒ unicidad de \(\nabla\).
-§2 \(\Gamma^r_{mn}=\tfrac12 G^{rk}(\partial_m G_{kn}+\partial_n G_{mk}-\partial_k G_{mn})\)
-   (fórmula de Koszul).
-§3 \(\Gamma^r_{mn}=\Gamma^r_{nm}\).
-§4 Geodésica: \(\dot v^\mu=-\Gamma^\mu_{rs}v^r v^s\), RK4.
-§5 \(\|v\|_G\) constante a lo largo de geodésicas (energía cinética).
-§6 \(R^\rho{}_{\sigma\mu\nu}\) obstrucción local a holonomía trivial.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Levi-Civita Connection Agent (Maestro de Sinfonía Métrica)                     ║
+║  Ruta   : app/omega/levi_civita_agent.py                                                 ║
+║  Versión: 8.0.0-Granular-Geodesic-Categorical-Nested-Spectral                            ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo actúa como el Meta-Funtor de conexión sobre el haz tangente generativo      ║
+║  $\Gamma$ en el Estrato $\Omega$. Gobierna la curvatura del espacio de decisiones        ║
+║  exigiendo que todo vector de intención se desplace paralelamente, subordinado           ║
+║  axiomáticamente a la ecuación geodésica y a la compatibilidad métrica de la variedad.   ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Conexión Libre de Torsión y Compatibilidad Métrica:                                 ║
+║      Se exige que el tensor de torsión sea estrictamente nulo:                           ║
+║          $T^r_{mn} = \Gamma^r_{mn} - \Gamma^r_{nm} = 0$                                  ║
+║      Y que la conexión preserve el producto interno (compatibilidad métrica $\nabla G=0$). ║
+║      Si se viola la simetría, se detona un `TopologicalTorsionError`.                    ║
+║                                                                                          ║
+║  §2. Fórmula de Koszul para Símbolos de Christoffel:                                     ║
+║      La conexión afín $\Gamma$ es deducida unívocamente a partir de la métrica $G$:      ║
+║          $\Gamma^r_{mn} = \frac{1}{2} G^{rk}(\partial_m G_{kn} + \partial_n G_{mk} - \partial_k G_{mn})$ ║
+║      Garantizando que la cinemática dependa exclusivamente del tejido métrico.           ║
+║                                                                                          ║
+║  §3. Integración Geodésica RK4 y Conservación de la Norma-G:                             ║
+║      El flujo de la intención $\dot{v}^\mu = -\Gamma^\mu_{rs}v^r v^s$ se integra         ║
+║      mediante Runge-Kutta de 4to orden con paso de tiempo velocidad-dependiente:         ║
+║          $dt_{\max}(v) \sim \frac{c}{|\Gamma|_\infty\cdot|v|_G+\varepsilon}$             ║
+║      Imponiendo la conservación estricta de la energía cinética bajo la norma-$G$:       ║
+║          $|v|_G = \sqrt{v^\top G v} = \text{constante}$                                  ║
+║                                                                                          ║
+║  §4. Tensor de Riemann, Contracción de Ricci y Primera Identidad de Bianchi:             ║
+║      La obstrucción a la holonomía trivial se audita evaluando el Tensor de Riemann:     ║
+║          $R^r{}_{smn} \approx \Gamma^r_{mk}\Gamma^k_{ns} - \Gamma^r_{nk}\Gamma^k_{ms}$   ║
+║      Contrayendo a Ricci $R_{sn}=R^r{}_{srn}$ y exigiendo la identidad de Bianchi:       ║
+║          $R^r{}_{s[mn]} + R^r{}_{m[ns]} + R^r{}_{n[sm]} = 0$                             ║
+║      Violaciones de esta nulidad algebraica detonan un `BianchiIdentityError`.           ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_ChristoffelGenerator                                                    ║
+║           Construye los símbolos de Christoffel $\Gamma$ a partir de la métrica $G$ y su ║
+║           derivada $dG$.                                                                 ║
+║           [Retorna: ChristoffelData → objeto inicial y precondición de Fase 2]           ║
+║                                                                                          ║
+║  Fase 2 → Phase2_TorsionFreeConnection                                                   ║
+║           Verifica los axiomas de la conexión (torsión nula), evalúa Riemann, Ricci      ║
+║           y verifica la identidad de Bianchi.                                            ║
+║           [Retorna: ConnectionDiagnostics → objeto inicial y precondición de Fase 3]     ║
+║                                                                                          ║
+║  Fase 3 → Phase3_GeodesicIntegrator                                                      ║
+║           Orquesta el flujo geodésico mediante RK4 garantizando $|v|_G = \text{const}$.  ║
+║           [Retorna: GeodesicStepReport → objeto final del endofuntor]                    ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 from __future__ import annotations
 

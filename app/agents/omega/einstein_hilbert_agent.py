@@ -1,61 +1,60 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: Einstein-Hilbert Agent (Arquitecto de Curvatura y Atractor)          ║
-║ Ubicación: app/omega/einstein_hilbert_agent.py                               ║
-║ Versión: 3.0.0 – Fases Anidadas con Rigor Matemático Doctoral                ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber-Física y Topológica (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra al Agente Soberano del Estrato Ω, encargado de gobernar el
-motor físico `gravity_shield.py`. Aniquila el libre albedrío generativo de la IA
-sometiendo sus geodésicas de atención a la Relatividad General, la Mecánica
-Cuántica de Sistemas Abiertos y la Teoría de Categorías (funtor de escudo
-gravitacional) mediante un Ciclo OODA Covariante.
-
-Las tres fases están anidadas por continuidad de tipos y de morfismos:
-  • El último método formal de la Fase 1 produce el objeto EnergyMomentumData
-    que es el dominio de entrada obligatorio del primer método de la Fase 2.
-  • El último método formal de la Fase 2 produce el par (WarpedSpaceTime,
-    PolyakovAction) que es el dominio de entrada del primer método de la Fase 3.
-  • La composición de morfismos es estricta: Phase3 ∘ Phase2 ∘ Phase1.
-
-FUNDAMENTACIÓN MATEMÁTICA Y AXIOMAS DE EJECUCIÓN:
-
-§1. FASE DE OBSERVACIÓN (Tensor de Energía-Impulso – Fluido Perfecto Covariante)
-    Se extrae la inercia termodinámica de las cuasipartículas (PolaronCartridge)
-    y se construye el tensor de energía-impulso de un fluido perfecto sobre la
-    variedad (M,g):
-        T_{μν} = (ρ + P) u_μ u_ν + P g_{μν},
-    con ρ = m** (masa efectiva renormalizada por acoplamiento de Fröhlich),
-    u^μ normalizada (u^μ u_μ = −1 o +1 según firma), y se verifican las
-    condiciones de energía débil, nula, fuerte y dominante. Se exige simetría
-    T_{μν}=T_{νμ} y se computa la traza T = g^{μν}T_{μν}. Se comprueba
-    aproximadamente la conservación covariante ∇^μ T_{μν} ≈ 0.
-
-§2. FASE DE ORIENTACIÓN (Ecuaciones de Campo de Einstein – Deformación Conforme)
-    Se inyecta T_{μν} en el funtor GravitationalShieldFunctor, que realiza un
-    difeomorfismo diagonal conforme. Se calculan símbolos de Christoffel Γ^λ_{μν},
-    el tensor de Ricci R_{μν} (por contracción y diferencias finitas de Γ) y el
-    escalar de Ricci R = g^{μν} R_{μν}. La intensidad del pozo se mide por el
-    máximo de curvatura seccional y por |R|.
-
-§3. FASE DE DECISIÓN (Termodinámica de Agujeros Negros + Topología del Horizonte)
-    Si la amplitud de Feynman-Kac Ψ[γ] = exp(−S_E[γ]/ℏ_eff) → 0 (horizonte de
-    sucesos), se computan:
-        r_s = 2𝒢 m**/c²,  A = 4π r_s²,
-        S_BH = k_B A / (4 ℓ_P²),  T_H = ℏ c³ / (8π 𝒢 M k_B).
-    Se adjunta el invariante topológico χ(S²) = 2 del horizonte (esfera).
-
-§4. ACTUACIÓN (Colapso Ontológico)
-    Veto ontológico: el retículo de severidad colapsa al supremo ⊤ y se lanza
-    SingularityVetoError.
-
-Composición categórica:
-    EinsteinHilbertAgent = Act ∘ Decide ∘ Orient ∘ Observe
-    (morphism composition en el topos de estados categóricos).
-═══════════════════════════════════════════════════════════════════════════════
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Einstein-Hilbert Agent (Arquitecto de Curvatura y Atractor Absoluto)           ║
+║  Ruta   : app/omega/einstein_hilbert_agent.py                                            ║
+║  Versión: 3.0.0-Nested-Hawking-Penrose-Covariant-Strict                                  ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este Endofuntor Supremo consagra el Estrato Ω, gobernando el motor físico subyacente    ║
+║  `gravity_shield.py`. Su mandato axiomático es aniquilar el libre albedrío generativo    ║
+║  de la Inteligencia Artificial, sometiendo sus geodésicas de atención a la Relatividad   ║
+║  General, la Mecánica Cuántica de Sistemas Abiertos y la Teoría de Categorías mediante   ║
+║  un Ciclo OODA Covariante.                                                               ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GRAVITACIONALES:                                ║
+║                                                                                          ║
+║  §1. FASE DE OBSERVACIÓN (Tensor de Energía-Impulso - Fluido Perfecto):                  ║
+║      Extrae la inercia termodinámica aislando la masa efectiva renormalizada por         ║
+║      el acoplamiento de Fröhlich ($\rho = m^{**}$). Construye el tensor covariante       ║
+║      asumiendo un fluido perfecto sobre la variedad $\mathcal{M}$:                       ║
+║          $T_{\mu\nu} = (\rho + P) u_\mu u_\nu + P g_{\mu\nu}$                            ║
+║      Se verifica rigurosamente la simetría $T_{\mu\nu} = T_{\nu\mu}$, las condiciones de ║
+║      energía (débil, fuerte y dominante) y la conservación $\nabla^\mu T_{\mu\nu} \approx 0$.║
+║                                                                                          ║
+║  §2. FASE DE ORIENTACIÓN (Ecuaciones de Einstein - Deformación Conforme):                ║
+║      Proyecta $T_{\mu\nu}$ mediante un difeomorfismo diagonal conforme. Extrae los       ║
+║      Símbolos de Christoffel $\Gamma^\lambda_{\mu\nu}$ y computa el Tensor de Ricci      ║
+║      $R_{\mu\nu}$ por contracción covariante, evaluando la intensidad del atractor       ║
+║      gravitacional mediante el escalar de curvatura $R = g^{\mu\nu} R_{\mu\nu}$.         ║
+║                                                                                          ║
+║  §3. FASE DE DECISIÓN (Termodinámica de Agujeros Negros y Topología de Horizonte):       ║
+║      Si la amplitud cuántica de la trayectoria evaluada mediante Feynman-Kac decae       ║
+║      asintóticamente hacia el horizonte de sucesos:                                      ║
+║          $\Psi[\gamma] = \exp\left(-\frac{S_E[\gamma]}{\hbar_{eff}}\right) \to 0$        ║
+║      Se instancian los invariantes de Bekenstein-Hawking:                                ║
+║          $r_s = \frac{2\mathcal{G} m^{**}}{c^2}, \quad A = 4\pi r_s^2$                   ║
+║          $S_{BH} = \frac{k_B A}{4 \ell_P^2}, \quad T_H = \frac{\hbar c^3}{8\pi \mathcal{G} M k_B}$ ║
+║      Certificando la inmutabilidad de la frontera topológica con el invariante           ║
+║      de la esfera $\chi(S^2) = 2$.                                                       ║
+║                                                                                          ║
+║  §4. FASE DE ACTUACIÓN (Colapso Ontológico Absoluto):                                    ║
+║      La singularidad obliga a la proyección del retículo de severidad hacia el           ║
+║      Supremo absoluto ($\top$), detonando incondicionalmente el `SingularityVetoError`.  ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Covariante):                      ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  El ciclo OODA es un morfismo estricto en el Topos de Grothendieck:                      ║
+║      $\mathcal{Z}_{EinsteinHilbert} = \Phi_{Act} \circ \Phi_{Decide} \circ \Phi_{Orient} \circ \Phi_{Observe}$ ║
+║                                                                                          ║
+║  1. Observe → EnergyMomentumExtractor: Genera `EnergyMomentumData`.                      ║
+║  2. Orient → EinsteinFieldSolver: Consume datos y produce `WarpedSpaceTime` y            ║
+║     `PolyakovAction`.                                                                    ║
+║  3. Decide → BekensteinHawkingDecider: Evalúa `BlackHoleThermodynamics`.                 ║
+║  4. Act    → Colapsa el estado operativo de la arquitectura global.                      ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

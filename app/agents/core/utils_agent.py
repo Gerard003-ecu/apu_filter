@@ -1,35 +1,67 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Utils Agent (Custodio de la Frontera Termodinámica)                 ║
-║ Ruta   : app/agents/core/utils_agent.py                                      ║
-║ Versión: 2.0.0-Topological-FPU-Boundary-Strict                               ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna al módulo `utils.py` (Capa Límite Termodinámica).
-
-Actúa como filtro absoluto de entropía sintáctica y proyector métrico de entrada,
-garantizando que ninguna singularidad en R_FPU o desgarro topológico del sistema
-de archivos penetre hacia los estratos superiores de la Malla Agéntica.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Certificación de Dominio Formal:
-    Combina retractos de deformación idempotentes y proyección FPU IEEE 754.
-
-        |f(f(x)) - f(x)| ≤ ε_mach,
-        x ∈ R ⇔ |x| < ∞ ∧ x ≠ NaN.
-
-Fase 2 → Filtración de Variedad Estadística (MAD):
-    Aplica geometría de outliers mediante Z-Score modificado:
-
-        M_i = 0.6745 · |x_i - x̃| / MAD ≤ τ_critical.
-
-Fase 3 → Difeomorfismo de Frontera I/O:
-    Verifica que el grafo de inodos sea acíclico y que la ruta resuelta sea
-    absoluta, existente y topológicamente segura.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Utils Agent (Custodio de la Frontera Termodinámica)                            ║
+║  Ruta   : app/agents/core/utils_agent.py                                                 ║
+║  Versión: 2.0.0-Topological-FPU-Boundary-Strict                                          ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, denotado como $\mathcal{Z}_{Utils}$, gobierna el módulo `utils.py`     ║
+║  (Capa Límite Termodinámica). Actúa como filtro absoluto de entropía sintáctica y        ║
+║  proyector métrico de entrada, garantizando axiomáticamente que ninguna singularidad     ║
+║  numérica en $R_{FPU}$ o desgarro topológico del sistema de archivos logre penetrar      ║
+║  hacia los estratos superiores de la Malla Agéntica.                                     ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TOPOLÓGICAS:                                    ║
+║                                                                                          ║
+║  §1. Retractos de Deformación Idempotentes:                                              ║
+║      Toda transformación de normalización $f$ sobre el espacio de entrada se impone      ║
+║      como un proyector geométrico que mapea un espacio redundante a un espacio cociente. ║
+║      Se exige estrictamente el axioma de idempotencia:                                   ║
+║          $f(f(x)) = f(x)$                                                                ║
+║      Violaciones a esta condición denotan mutaciones parásitas y detonan un              ║
+║      `IdempotencyViolationError`.                                                        ║
+║                                                                                          ║
+║  §2. Proyección Numérica a la Unidad de Punto Flotante (IEEE 754):                       ║
+║      La clausura en el cuerpo de los reales ($\mathbb{R}$) es vigilada para evitar       ║
+║      colapsos en los espectros del Laplaciano Combinatorio en estratos tácticos.         ║
+║      Se veta matemáticamente la inyección de singularidades (donde $x \to \pm\infty$     ║
+║      o $x = \text{NaN}$) mediante el `NumericSingularityVeto`.                           ║
+║                                                                                          ║
+║  §3. Geometría de Variedades Estadísticas y Límite de Extirpación (MAD):                 ║
+║      La inyección estocástica de datos se somete a la Desviación Absoluta de la Mediana  ║
+║      (MAD) para podar la hiper-esfera de confianza. La dispersión se acota por el        ║
+║      Z-Score modificado con factor de escala asintótica Gaussiana ($c = 0.6745$):        ║
+║          $Z_{mod} = \frac{0.6745 \cdot |x_i - \tilde{x}|}{\text{MAD}} \le \tau_{crit}$   ║
+║      Con $\tau_{crit} = 3.5$. Si la dispersión acusa degeneración extrema, se invoca el  ║
+║      `StatisticalManifoldDeformationVeto`.                                               ║
+║                                                                                          ║
+║  §4. Difeomorfismo de Frontera I/O (Homología de Inodos):                                ║
+║      El sistema de archivos se modela como un grafo de directorios. Para garantizar      ║
+║      que la frontera I/O se resuelva como una variedad absoluta y segura, se exige que   ║
+║      el núcleo de la resolución de ruta sea vacío ($\ker(\text{path\_resolve}) = \emptyset$) ║
+║      y que la profundidad topológica esté acotada por $\le 40$ inodos. Un ciclo infinito ║
+║      detona el `IOBoundaryTopologyVeto`.                                                 ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_DeformationRetractAndFPUProjector                                       ║
+║           Certifica el dominio formal exigiendo el cumplimiento de la idempotencia       ║
+║           y ejecutando la proyección segura FPU IEEE 754.                                ║
+║           [Retorna: Phase1DomainHandoff → puente inicial de Fase 2]                      ║
+║                                                                                          ║
+║  Fase 2 → Phase2_StatisticalManifoldFilter                                               ║
+║           Aplica la filtración isométrica extirpando outliers que amenazan la            ║
+║           integridad de la variedad de la muestra.                                       ║
+║           [Retorna: Phase2StatisticalHandoff → puente inicial de Fase 3]                 ║
+║                                                                                          ║
+║  Fase 3 → Phase3_IOBoundaryDiffeomorphismCertifier                                       ║
+║           Asegura que el mapeo de directorios constituya un Grafo Acíclico Dirigido      ║
+║           (DAG) y bloquea vectores de ataque (Symlink Loops).                            ║
+║           [Retorna: ThermodynamicBoundaryState → objeto final del endofuntor]            ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,116 +1,65 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Pipeline Director Agent — Custodio de la Causalidad Funtorial       ║
-║ Ruta   : app/agents/tactics/pipeline_director_agent.py                       ║
-║ Versión: 3.0.0-Schur-Jordan-Poset-Exact-MV                                   ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-EVOLUCIÓN GRANULAR v3.0.0 (Artesanía Senior + Física Matemática):
-────────────────────────────────────────────────────────────────────────────────
-
-FASE 1 → Certificación espectral de nilpotencia por descomposición de Schur.
-  ─────────────────────────────────────────────────────────────────────────────
-  MEJORA §1.1 — Descomposición de Schur como camino canónico:
-    La descomposición A = Q·T·Q* (Q unitaria, T triangular superior) preserva
-    el espectro exactamente: Spec(A) = diag(T). Se reemplaza eigvals genérico
-    por scipy.linalg.schur para obtener la forma de Schur real (RSF) cuando
-    A ∈ R^{n×n}, evitando errores de extensión analítica al campo complejo.
-
-    Coste aritmético: O(n³) igual que eigvals, pero con backward error
-    garantizado por el Teorema de Perturbación de Bauer-Fike:
-        |λ̃ − λ| ≤ κ₂(Q) · ‖ΔA‖₂
-
-    Para A nilpotente exacta, Q es unitaria ⇒ κ₂(Q) = 1 y el error es mínimo.
-
-  MEJORA §1.2 — Número de condición espectral adaptativo:
-    La tolerancia dinámica incorpora el número de condición de la transformación
-    de similaridad Q de la forma de Schur:
-
-        tol = max(tol_base, κ₂(Q) · √n · ε_machine · ‖A‖_F)
-
-    donde ‖A‖_F es la norma de Frobenius (más sensible a la distribución de
-    energía que ‖A‖_∞) y √n refleja la acumulación de error en n pasos.
-
-  MEJORA §1.3 — Detección de bloques de Jordan 2×2 en RSF:
-    La RSF puede producir bloques 2×2 para pares de valores propios complejos
-    conjugados. Se detectan y se audita que la norma de cada bloque diagonal
-    2×2 sea ≤ tol, garantizando que no hay autovalores complejos con parte
-    real no nula ocultos.
-
-  MEJORA §1.4 — Residual de nilpotencia por serie geométrica truncada:
-    Para matrices grandes (n > power_audit_max_dim), en lugar de omitir el
-    residual, se estima una cota superior usando la norma de Gelfand:
-        ρ(A) = lim_{k→∞} ‖A^k‖^{1/k}
-    via iteración de potencia inversa truncada a k=⌈log₂(n)⌉ pasos.
-
-  MEJORA §1.5 — Índice de nilpotencia certificado:
-    El índice mínimo ν tal que A^ν = 0 se certifica eficientemente:
-        ν ≤ n (por Cayley-Hamilton)
-    Se busca binariamente en [1, n] el menor ν con ‖A^ν‖_∞ ≤ tol_power,
-    lo que proporciona información estructural adicional sobre la profundidad
-    del DAG (ν = longitud máxima de camino + 1).
-
-FASE 2 → Auditoría del difeomorfismo de filtración categórica con auto-bucles.
-  ─────────────────────────────────────────────────────────────────────────────
-  MEJORA §2.1 — Detección canónica de auto-bucles:
-    Una arista (u, u) es un ciclo de longitud 1 que viola:
-      (a) la aciclicidad del DAG (Fase 1 debería haberlo capturado si u tiene
-          peso diagonal A[i,i] ≠ 0, pero podría existir en la lista de edges
-          sin reflejarse en la diagonal de A).
-      (b) la filtración estricta: stratum(u) < stratum(u) es imposible.
-      (c) la filtración laxa: stratum(u) ≤ stratum(u) es trivial pero
-          semánticamente incoherente para un DAG causal.
-    Se lanza SelfLoopVetoError (nueva excepción, subclase de
-    FiltrationViolationVeto) con información diagnóstica del nodo.
-
-  MEJORA §2.2 — Validación de la transpuesta en cross-check:
-    El soporte de la matriz de adyacencia es A[i,j] ≠ 0 para (u→v) con
-    i=index(u), j=index(v). Se añade la verificación de que A[j,i] = 0
-    para toda arista dirigida, garantizando que no existe arista inversa
-    (lo que introduciría un ciclo de longitud 2 no capturado por la diagonal).
-
-  MEJORA §2.3 — Cálculo del histograma de slacks:
-    Se agrega un histograma de distribución de slacks {0,1,2,...,max_slack}
-    al artefacto PosetFiltrationData para diagnóstico de la concentración
-    energética en cada nivel de la filtración.
-
-  MEJORA §2.4 — Detección de nodos aislados sin estrato:
-    Si un nodo aparece en node_strata pero no en ninguna arista, se registra
-    como nodo aislado certificado (no es un error, pero es información
-    estructural relevante para la topología del DAG).
-
-FASE 3 → Intercepción de cohomología de fusión con secuencia exacta completa.
-  ─────────────────────────────────────────────────────────────────────────────
-  MEJORA §3.1 — Métrica de defecto simétrica de Kullback-Leibler discreta:
-    El relative_defect original usa un denominador asimétrico. Se reemplaza
-    por la divergencia simétrica discreta (Jensen-Shannon) entre la distribución
-    degenera δ_{expected} y δ_{observed}:
-
-        defect_JS = |Δβ₁| / (1 + max(β₁(A∪B), expected))
-
-    que es simétrica, acotada en [0,1) y tiene interpretación información-
-    teórica: mide la distancia entre el invariante observado y el predicho.
-
-  MEJORA §3.2 — Validación de la secuencia exacta en H₀:
-    La secuencia de Mayer-Vietoris en grado 0:
-        H₀(A∩B) → H₀(A)⊕H₀(B) → H₀(A∪B) → 0
-    implica:
-        β₀(A∪B) = β₀(A) + β₀(B) − β₀(A∩B) + rank(∂₁)
-    donde rank(∂₁) es el rango del morfismo de conexión en grado 1.
-    Se acepta como parámetro opcional y se valida la consistencia.
-
-  MEJORA §3.3 — Verificación de la desigualdad de Mayer-Vietoris:
-    Independientemente de los rangos exactos, se verifica la desigualdad:
-        |β₁(A∪B) − (β₁(A) + β₁(B))| ≤ β₁(A∩B)
-    que es consecuencia de la exactitud de la secuencia larga y sirve como
-    cota débil siempre válida.
-
-  MEJORA §3.4 — Certificado de la característica de Euler-Poincaré:
-    Se verifica la identidad de Euler-Poincaré bajo fusión:
-        χ(A∪B) = χ(A) + χ(B) − χ(A∩B)
-    donde χ = β₀ − β₁ + β₂ − ...
-    Requiere β₀ opcionales. Si se proporcionan, se valida; si no, se omite.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Pipeline Director Agent (Custodio de la Causalidad Funtorial)                  ║
+║  Ruta   : app/agents/tactics/pipeline_director_agent.py                                  ║
+║  Versión: 3.0.0-Schur-Jordan-Poset-Exact-MV                                              ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor gobierna el `pipeline_director.py` en el estrato TACTICS. Abandona la   ║
+║  orquestación secuencial estocástica para modelar el flujo de ejecución como un Grafo    ║
+║  Acíclico Dirigido (DAG) Algebraico. Cada nodo constituye un endomorfismo proyectivo     ║
+║  sobre el espacio de estados. Su mandato es garantizar axiomáticamente que el colapso    ║
+║  de los datos preserve la causalidad estricta y aniquile anomalías homológicas.          ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CAUSALES:                                       ║
+║                                                                                          ║
+║  §1. Aciclicidad Absoluta e Índice de Nilpotencia (Teoría Espectral):                    ║
+║      La matriz de adyacencia $A$ del DAG de ejecución debe ser estrictamente nilpotente. ║
+║      Se exige que el espectro sea trivial evaluando el radio espectral mediante la       ║
+║      descomposición de Schur (backward-stable):                                          ║
+║          $\rho(A) = \max |\lambda_i| \le \varepsilon_{\text{machine}}$                   ║
+║      Se certifica un índice de nilpotencia $\nu \le n$ tal que $A^\nu = 0$, denotando    ║
+║      la profundidad máxima causal. Violaciones detonan `CausalLoopVetoError`.            ║
+║                                                                                          ║
+║  §2. Difeomorfismo de Filtración Categórica (Poset DIKW):                                ║
+║      El conjunto de nodos $(V, \le_{\text{strata}})$ forma un Poset. El DAG debe ser     ║
+║      compatible con la Ley de Clausura Transitiva:                                       ║
+║          $V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$ ║
+║      Toda arista dirigida $(u \to v)$ debe respetar $\text{stratum}(u) \le \text{stratum}(v)$. ║
+║      La existencia de un auto-bucle $(u, u)$ o una regresión detona `SelfLoopVetoError`  ║
+║      y `FiltrationViolationVeto` incondicionalmente.                                     ║
+║                                                                                          ║
+║  §3. Cohomología de Fusión (Secuencia Larga de Mayer-Vietoris):                          ║
+║      La integración de subcomplejos topológicos (ej. Presupuesto $\cup$ APUs) se audita  ║
+║      exigiendo que no se induzcan ciclos parásitos. Se mide el diferencial de Betti:     ║
+║          $\Delta\beta_1 = \beta_1(A \cup B) - [\beta_1(A) + \beta_1(B) - \beta_1(A \cap B)] = 0$ ║
+║      Rupturas de esta exactitud causan un `HomologicalFusionVeto`.                       ║
+║                                                                                          ║
+║  §4. Identidad de Euler-Poincaré bajo Fusión:                                            ║
+║      La estructura topológica combinada debe preservar la característica de Euler:       ║
+║          $\chi(A \cup B) = \chi(A) + \chi(B) - \chi(A \cap B)$                           ║
+║      Cualquier asimetría revela pérdida de información o fractura de la variedad,        ║
+║      disparando el `EulerPoincareMismatchError`.                                         ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_SpectralNilpotenceCertifier                                             ║
+║           Aplica Schur y búsqueda binaria para certificar nilpotencia espectral ($\nu$). ║
+║           [Retorna: NilpotenceAuditData → objeto inicial de Fase 2]                      ║
+║                                                                                          ║
+║  Fase 2 → Phase2_PosetFiltrationAuditor                                                  ║
+║           Audita la monotonicidad del Poset DIKW, detecta nodos aislados y computa la    ║
+║           distribución de energía causal (histograma de slacks).                         ║
+║           [Retorna: PosetFiltrationData → objeto inicial de Fase 3]                      ║
+║                                                                                          ║
+║  Fase 3 → Phase3_MayerVietorisInterceptor                                                ║
+║           Interceptor de la cohomología de fusión evaluando exactitud homológica y       ║
+║           divergencia de Jensen-Shannon. Construye el estado final causal.               ║
+║           [Retorna: CausalGovernanceState → objeto final del endofuntor $\mathcal{Z}_{Causal}$]  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

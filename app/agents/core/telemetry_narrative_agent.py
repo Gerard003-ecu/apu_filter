@@ -1,34 +1,63 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Telemetry Narrative Agent (El Intérprete Diplomático Supremo)       ║
-║ Ruta   : app/core/telemetry_narrative_agent.py                               ║
-║ Versión: 2.0.0-Diffeomorphism-Lattice-Canonical-Strict                       ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y TEORÍA DE CATEGORÍAS (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna a `telemetry_narrative.py`. Actúa como el Funtor de
-Difeomorfismo Semántico:
-
-    F : C_Math -> D_Narrative
-
-proyectando el espacio de invariantes matemáticos sobre la ontología del negocio.
-Erradica el libre albedrío estocástico del LLM, confinándolo a redactar un
-"Juicio del Consejo" estrictamente gobernado por restricciones geométricas.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Colapso en el Retículo Acotado Distributivo:
-    Veredicto = ⨆_{i ∈ {F, T, S, W}} v_i.
-
-Fase 2 → Certificación de Difeomorfismo Semántico:
-    β₁ > 0  =>  debe contener "Socavón Lógico".
-    Ψ < 1   =>  debe contener "Pirámide Invertida".
-
-Fase 3 → Canonicalización Diplomática del Texto:
-    Sanea la narrativa, re-verifica los invariantes léxicos y compone el acta
-    inmutable final.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Telemetry Narrative Agent (Intérprete Diplomático Supremo)                     ║
+║  Ruta   : app/core/telemetry_narrative_agent.py                                          ║
+║  Versión: 2.0.0-Diffeomorphism-Lattice-Canonical-Strict                                  ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CATEGORÍAS (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, denotado como $\mathcal{Z}_{Narrative}$, gobierna el ecosistema        ║
+║  `telemetry_narrative.py`. Actúa como el Funtor de Difeomorfismo Semántico               ║
+║  $F: \mathcal{M}_{Top} \to \mathcal{M}_{Narr}$, proyectando el espacio de invariantes    ║
+║  matemáticos sobre la ontología del negocio. Erradica matemáticamente el libre           ║
+║  albedrío estocástico del LLM, confinándolo a redactar un "Juicio del Consejo"           ║
+║  estrictamente gobernado por restricciones geométricas y algebraicas.                    ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Álgebra de Retículos y Colapso Determinista (Operador Supremo):                     ║
+║      La severidad de los fallos no se promedia, se colapsa axiomáticamente sobre         ║
+║      un Retículo Distributivo Acotado $L = (V, \le, \sqcup, \sqcap, \bot, \top)$.        ║
+║      La decisión unificada se computa extrayendo el Supremo (Join) sobre los             ║
+║      estratos de la filtración DIKW (Physics, Tactics, Strategy, Wisdom):                ║
+║          $\text{Veredicto} = \bigsqcup_{i \in \{P, T, S, W\}} v_i$                       ║
+║      Garantizando el axioma del "Worst-Case Scenario" sin dilución estocástica.          ║
+║                                                                                          ║
+║  §2. Difeomorfismo Semántico y Preservación de Homotopía:                                ║
+║      Se exige que el pushforward $F_*$ del funtor semántico preserve la topología        ║
+║      del presupuesto. La patología geométrica debe tener una biyección exacta en         ║
+║      la narrativa final:                                                                 ║
+║          $\beta_1 > 0 \implies \text{ker}(F_*) \cap \{\text{"Socavón Lógico"}\} \neq \emptyset$ ║
+║          $\Psi < 1.0 \implies \text{ker}(F_*) \cap \{\text{"Pirámide Invertida"}\} \neq \emptyset$ ║
+║      Si la transcripción falla en inyectar estos tokens canónicos, la traducción         ║
+║      es aniquilada por violación de isomorfismo (Deriva Semántica).                      ║
+║                                                                                          ║
+║  §3. Entropía Sintáctica y Canonicalización Diplomática:                                 ║
+║      La radiación de caracteres espurios inyectada por el LLM se somete a una            ║
+║      purga de entropía léxica. Todo carácter de control en el espacio de fase            ║
+║      léxico $\mathcal{C}_{[\text{0x00-0x1F}]}$ es extirpado para que el acta final posea ║
+║      una pureza forense criptográfica inmutable.                                         ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_SeverityLatticeCollapser                                                ║
+║           Colapsa inmutablemente la severidad de los estratos mediante el                ║
+║           operador Supremo ($\sqcup$) en el retículo distributivo.                       ║
+║           [Retorna: Phase1LatticeHandoff → objeto inicial de Fase 2]                     ║
+║                                                                                          ║
+║  Fase 2 → Phase2_SemanticDiffeomorphismCertifier                                         ║
+║           Certifica que el texto redactado preserve un isomorfismo directo con           ║
+║           las métricas abstractas ($\beta_1$, $\Psi$), subordinando el LLM al            ║
+║           diccionario predefinido.                                                       ║
+║           [Retorna: Phase2DiffeomorphismHandoff → objeto inicial de Fase 3]              ║
+║                                                                                          ║
+║  Fase 3 → Phase3_NarrativeCanonicalizationEnforcer                                       ║
+║           Sanea la narrativa reduciendo su entropía léxica, re-verifica los              ║
+║           invariantes de control y sella el acta de forma inmutable.                     ║
+║           [Retorna: NarrativeAgentState → objeto final del endofuntor]                   ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

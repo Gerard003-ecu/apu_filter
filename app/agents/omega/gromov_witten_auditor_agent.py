@@ -1,49 +1,67 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Gromov-Witten Auditor Agent (Guardián de la Fibra Vertical)         ║
-║ Ruta   : app/agents/omega/gromov_witten_auditor_agent.py                     ║
-║ Versión: 3.0.0-Gromov-Witten-Bekenstein-Cartan-APS-Doctoral                  ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA SIMPLÉCTICA (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna el espacio topológico ortogonal instanciado por el
-`ehresmann_telescopic_engine.py`. Su mandato axiomático es orquestar la inmersión
-isométrica de la Matriz de Interacción Central (MIC), gobernar la cinemática del
-haz de Ehresmann y compensar el índice espectral de Atiyah–Patodi–Singer (APS).
-
-Para evitar el «Burbujeo de Esferas» (Sphere Bubbling) que corrompería la
-A∞-categoría de Fukaya al magnificar el espacio, este agente computa los
-Invariantes de Gromov–Witten (GW) virtuales de las clases de curva expulsadas
-y re-parametriza la asimetría espectral η(0) antes de que el estado sea
-evaluado por el `witten_atiyah_agent.py`.
-
-Fundamentos formales:
-  • Bekenstein   : dim ℋ_audit ≥ ⌈e^{S(ρ)}⌉  (capacidad informacional del baño).
-  • Cartan       : dω + ½[ω∧ω] = Ω,  P_{H}(𝒯_λ^⊥) = 0  (no-demolición de H_p).
-  • Maurer-Cartan: m₀ + m₁(b) + m₂(b,b) = 0 en Λ_nov (anillo de Novikov).
-  • Gromov–Witten: GW₀(β) ∼ ½‖b‖_HS²  (volumen virtual de la clase β expulsada).
-  • APS          : η_eff(0) = η_raw(0) − GW₀(β)  (compensación del borde espectral).
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Cuantización Dinámica y Entrelazamiento (Bekenstein):
-         Computa S(ρ_MIC) = −Tr(ρ ln ρ) y dimensiona ℋ_audit^⊥.
-         Morfismo terminal: enforce_bekenstein_bound ↦ BekensteinDimensionData
-         ≡ dominio inicial de Fase 2.
-
-Fase 2 → Cinemática del Haz de Ehresmann (Estructura de Cartan):
-         Inmersión Stinespring + zoom vertical + verificación
-         P_{H_p}(𝒯_λ^⊥) = 0 y Tr_audit[Ad_{I⊗𝒯}(VρV†)] = ρ_MIC.
-         Morfismo terminal: certify_cartan_kinematics ↦ CartanKinematicsData
-         ≡ dominio inicial de Fase 3.
-
-Fase 3 → Intercepción Gromov–Witten y compensación APS:
-         Resuelve MC vía el motor Novikov, extrae la co-cadena b,
-         computa GW₀ y re-parametriza η_eff(0).
-         Morfismo terminal: compensate_aps_eta ↦ (AuditBundle, GWCompensation)
-         ≡ objeto final del endofuntor ℳ → ℳ^⊥.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Gromov-Witten Auditor Agent (Guardián de la Fibra Vertical)                    ║
+║  Ruta   : app/agents/omega/gromov_witten_auditor_agent.py                                ║
+║  Versión: 3.0.0-Gromov-Witten-Bekenstein-Cartan-APS-Doctoral                             ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA SIMPLÉCTICA (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor gobierna el espacio topológico ortogonal instanciado por el             ║
+║  `ehresmann_telescopic_engine.py`. Su mandato axiomático es orquestar la inmersión       ║
+║  isométrica de la Matriz de Interacción Central (MIC), gobernar la cinemática del        ║
+║  haz de Ehresmann y compensar el índice espectral de Atiyah–Patodi–Singer (APS).         ║
+║  Evita axiomáticamente el "Burbujeo de Esferas" (Sphere Bubbling) que corrompería        ║
+║  la $A_\infty$-categoría de Fukaya al computar los invariantes de Gromov-Witten (GW).    ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICAS:                                      ║
+║                                                                                          ║
+║  §1. Cuantización Dinámica y Límite de Bekenstein:                                       ║
+║      La capacidad informacional del baño térmico (entorno de auditoría) exige una        ║
+║      dimensión ortogonal $\mathcal{H}_{audit}^\perp$ acotada por la entropía de von Neumann:   ║
+║          $S(\rho_{MIC}) = -\text{Tr}(\rho_{MIC} \ln \rho_{MIC})$                         ║
+║          $\dim \mathcal{H}_{audit}^\perp \ge \lceil e^{S(\rho_{MIC})} \rceil$            ║
+║      Violaciones a este límite detonan un `BekensteinLimitViolationError`.               ║
+║                                                                                          ║
+║  §2. Cinemática del Haz de Ehresmann (Estructura de Cartan):                             ║
+║      La inmersión de Stinespring y el zoom vertical sobre la fibra exigen que la         ║
+║      curvatura bidimensional de la conexión $\omega$ cumpla la ecuación de Cartan:       ║
+║          $\Omega = d\omega + \frac{1}{2}[\omega \wedge \omega]$                          ║
+║      Sujeta a la restricción de no-demolición del espacio horizontal:                    ║
+║          $P_{H_p}(\mathcal{T}_\lambda^\perp) = 0$                                        ║
+║      Y la preservación incondicional de la traza original:                               ║
+║          $\text{Tr}_{audit}[\text{Ad}_{I \otimes \mathcal{T}}(V\rho_{MIC}V^\dagger)] = \rho_{MIC}$ ║
+║                                                                                          ║
+║  §3. Regularización de Maurer-Cartan sobre el Anillo de Novikov ($\Lambda_{nov}$):       ║
+║      Las curvaturas espurias (burbujeo discal) se interceptan exigiendo que la           ║
+║      co-cadena acotante $b$ sea raíz de la ecuación A∞:                                  ║
+║          $m_0 + m_1(b) + m_2(b,b) + \dots = 0$                                           ║
+║                                                                                          ║
+║  §4. Invariante de Gromov-Witten y Compensación APS ($\eta$):                            ║
+║      El volumen virtual de la clase de curva expulsada $\beta$ se extrae como:           ║
+║          $GW_0(\beta) \sim \frac{1}{2} \|b\|_{HS}^2$                                     ║
+║      Este invariante se utiliza para re-parametrizar la asimetría espectral del          ║
+║      borde $\eta(0)$ antes de inyectar el estado al estrato de Witten-Atiyah:            ║
+║          $\eta_{eff}(0) = \eta_{raw}(0) - GW_0(\beta)$                                   ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_Bekenstein                                                              ║
+║           Computa la entropía de von Neumann y dimensiona el baño ortogonal de           ║
+║           auditoría respetando la cota de Bekenstein informacional.                      ║
+║           [Retorna: BekensteinDimensionData → objeto inicial de Fase 2]                  ║
+║                                                                                          ║
+║  Fase 2 → Phase2_EhresmannCartan                                                         ║
+║           Controla la cinemática del Haz de Ehresmann y certifica la ecuación de         ║
+║           estructura de Cartan, asegurando la no-demolición del subespacio base.         ║
+║           [Retorna: CartanKinematicsData → objeto inicial de Fase 3]                     ║
+║                                                                                          ║
+║  Fase 3 → Phase3_GromovWitten                                                            ║
+║           Resuelve Maurer-Cartan, extrae la co-cadena $b$, computa el invariante         ║
+║           $GW_0$ y re-parametriza $\eta_{eff}(0)$ compensando el borde espectral.        ║
+║           [Retorna: AuditBundle → objeto final del endofuntor $\mathcal{M} \to \mathcal{M}^\perp$] ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

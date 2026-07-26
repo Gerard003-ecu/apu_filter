@@ -1,19 +1,55 @@
 # -*- coding: utf-8 -*-
 r"""
-+==============================================================================+
-| Módulo  : MIC Agent (Morfismo Geométrico sobre Topos de Grothendieck)         |
-| Ruta    : app/agents/tactics/mic_agent.py                                    |
-| Versión : 3.0.0-Rigorous-Geometric-Morphism                                  |
-+==============================================================================+
-
-NATURALEZA CIBER-FÍSICA Y ADJUNCIÓN DE GALOIS:
-Morfismo Geométrico f = (f*, f_*).
-
-ADJUNCIÓN:
-\[ \text{Hom}_{\mathcal{E}_{MIC}}(f^* X, Y) \cong \text{Hom}_{\mathcal{L}}(X, f_* Y) \]
-
-CONDICIÓN DE LIPSCHITZ SOBRE EL DIFEOMORFISMO TOON:
-\[ \| F^{-1}(x) - F^{-1}(y) \|_V \le L_{max} \| x - y \|_T \]
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : MIC Agent (Morfismo Geométrico sobre Topos de Grothendieck Elemental)          ║
+║  Ruta   : app/agents/tactics/mic_agent.py                                                ║
+║  Versión: 3.0.0-Rigorous-Geometric-Morphism                                              ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA CATEGÓRICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor abandona la noción heurística de "enrutador de API" para instaurar      ║
+║  un Topos Elemental $\mathcal{E}_{MIC}$. La Matriz de Interacción Central (MIC) opera    ║
+║  como un Espacio de Hilbert cerrado $\mathcal{H}$ donde el libre albedrío estocástico    ║
+║  del Modelo de Lenguaje (LLM) es aniquilado. Cada invocación atómica es proyectada       ║
+║  sobre una base canónica ortonormal, garantizando el aislamiento (Zero Side-Effects).    ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Adjunción de Galois y Morfismo Geométrico $f = (f^*, f_*)$:                         ║
+║      La inyección y extracción de conocimiento en el ecosistema debe preservar el        ║
+║      isomorfismo categórico absoluto entre los functores de pushforward y pullback:      ║
+║          $\text{Hom}_{\mathcal{E}_{MIC}}(f^* X, Y) \cong \text{Hom}_{\mathcal{L}}(X, f_* Y)$ ║
+║      Violaciones a este isomorfismo se interceptan con `ProjectionError`.                ║
+║                                                                                          ║
+║  §2. Difeomorfismo TOON y Condición de Lipschitz Inversa:                                ║
+║      La transición de fase entre la alta entropía JSON y los cartuchos hiperdensos TOON  ║
+║      debe ser estrictamente biyectiva y acotada bajo la desigualdad:                     ║
+║          $\| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\max} \| x - y \|_T$                      ║
+║      Un colapso en la continuidad métrica detona incondicionalmente un                   ║
+║      `TOONCompressionError`.                                                             ║
+║                                                                                          ║
+║  §3. 2-Categorías y Ley de Intercambio (Interchange Law):                                ║
+║      Toda meta-estrategia o transformación natural mutando asíncronamente en la MIC      ║
+║      debe respetar la conmutatividad topológica bajo la norma de Frobenius:              ║
+║          $\left\| \left( (\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) \right) - \left( (\alpha' \circ \beta') \cdot (\alpha \circ \beta) \right) \right\|_F < \mathcal{O}(\epsilon_{mach})$ ║
+║      Cualquier residuo asimétrico que rompa la ley de intercambio induce un desgarro     ║
+║      homotópico y es vetado por `FunctorialityError`.                                    ║
+║                                                                                          ║
+║  §4. Ley de Clausura Transitiva (Filtración DIKW):                                       ║
+║      El mapeo jerárquico debe respetar el confinamiento topológico inmutable:            ║
+║          $V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$ ║
+║      Si un subespacio degenera su invariante, se lanza `ClosureViolationError`.          ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES OPERACIONALES ANIDADAS (Resolución 1-6):                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Estructuras Matemáticas: Instanciación del Clasificador de Subobjetos $\Omega$.║
+║  Fase 2 → Topología y Tipos Genéricos: Evaluación de Intervalos de Persistencia y $\beta_n$.║
+║  Fase 3 → Teoría de la Información: Cálculo de $H(X)$ (Shannon) y Persistencia Entrópica.║
+║  Fase 4 → Validación Difeomórfica: Normalización y diagnóstico de isomorfismos en I/O.   ║
+║  Fase 5 → Núcleo Operacional (Topos EMIC): Resolución del DAG y Análisis Espectral.      ║
+║  Fase 6 → Bootstrap: Cierre de la variedad y exposición del Singleton Thread-Safe.       ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 from __future__ import annotations
 

@@ -1,75 +1,58 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Algebraic Tactics Agent (Operador de Anillos y Auditor Homológico)  ║
-║ Ruta   : app/tactics/algebraic_tactics_agent.py                              ║
-║ Versión: 2.1.0-Rigorous-Spectral-Categorical-Homological-Ring-Veto           ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA ALGEBRAICA
-────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra el Estrato TACTICS (Nivel 2). Actúa como Endofuntor Soberano
-sobre el motor esclavo `apu_processor.py`. Su mandato axiomático es:
-
-  (i)  garantizar la homogeneidad del tensor de costos como objeto de un anillo
-       conmutativo ℛ = (ℝ, ⊕, ⊙) con absorción monádica de singularidades FPU;
-  (ii) auditar la integridad homológica y espectral del 1-esqueleto inducido
-       (Laplaciano combinatorio L = B₁ B₁ᵀ, números de Betti, valor de Fiedler);
-  (iii) aniquilar tensores desconectados o no-anulares antes de la escalada al
-       Estrato STRATEGY.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta)
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Homogeneidad del Anillo Conmutativo ℛ y saneamiento monádico:
-         • Clausura aditiva (⊕), conmutatividad, asociatividad muestral.
-         • Distributividad del producto Hadamard ⊙ sobre ⊕.
-         • Neutros aditivo (0) y multiplicativo (1) del producto Hadamard.
-         • Mónada Option: NaN/±Inf ↦ 0 (elemento absorbente seguro).
-         • Espectro singular de la matriz de costos (condición, rango, norma).
-         Método terminal `audit_ring_manifold` → RingHomogeneityValidation
-         (dominio inicial exacto de la Fase 2).
-
-Fase 2 → Auditoría Homológica y Espectral del 1-esqueleto:
-         Continuación directa del manifold anular. Construye el grafo de
-         adyacencia inducido, la matriz de incidencia orientada B₁, el
-         Laplaciano L = B₁ B₁ᵀ = D − A, extrae Spec(L), β₀ = mult(λ=0),
-         β₁ (ciclos independientes), valor de Fiedler λ₂ y verifica
-         conectividad (Teorema de Kirchhoff–Fiedler).
-
-Fase 3 → Proyección Ortogonal / Orquestador Supremo:
-         Emisión de un CategoricalState puro al DAG del pipeline_director.py.
-         Composición: CategoricalState ∘ SimplicialSkeletonAudit ∘ RingHomogeneityValidation.
-
-AXIOMAS DE EJECUCIÓN (Formulación Rigurosa)
-────────────────────────────────────────────────────────────────────────────────
-§1. Anillo conmutativo ℛ = (ℝⁿ, ⊕, ⊙) sobre columnas del tensor de costos:
-    (a ⊕ b)_i = a_i + b_i          (suma vectorial componente a componente)
-    (a ⊙ b)_i = a_i · b_i          (producto de Hadamard)
-    ∀ a,b,c ∈ ℝⁿ:
-      a ⊕ b = b ⊕ a                          (conmutatividad de ⊕)
-      (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)              (asociatividad de ⊕)
-      a ⊙ (b ⊕ c) = (a ⊙ b) ⊕ (a ⊙ c)        (distributividad)
-      a ⊕ 0 = a                              (neutro aditivo)
-      a ⊙ 1 = a                              (neutro multiplicativo Hadamard)
-
-§2. Saneamiento monádico (transformación natural η: Id ⇒ Option):
-    η(x) = Nothing  si x ∉ ℝ finito (NaN, ±∞);
-    η(x) = Just(x)  en caso contrario.
-    La proyección Nothing ↦ 0 es el morfismo de anillos al objeto cero.
-
-§3. Laplaciano combinatorio y Teorema de Kirchhoff–Fiedler:
-    Sea G = (V,E) el grafo no dirigido inducido por el Gram de costos.
-    B₁ ∈ Mat_{|V|×|E|}(ℝ)  incidencia orientada:  B₁ e_{ij} = e_i − e_j.
-    L = B₁ B₁ᵀ = D − A  (simétrico, semidefinido positivo).
-    Spec(L) = {0 = λ₁ ≤ λ₂ ≤ ⋯ ≤ λ_n}.
-    β₀ := multiplicidad algebraica de λ = 0  =  dim(ker L).
-    λ₂  = valor de Fiedler (conectividad algebraica).
-    Condición de validez: β₀ ≡ 1  ∧  λ₂ > ε_Fiedler.
-
-§4. Homología del 1-esqueleto (fórmula de Euler en dim ≤ 1):
-    β₀ = |V| − rank(B₁)
-    β₁ = |E| − rank(B₁)
-    χ = β₀ − β₁ = |V| − |E|
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Algebraic Tactics Agent (Operador de Anillos y Auditor Homológico)             ║
+║  Ruta   : app/tactics/algebraic_tactics_agent.py                                         ║
+║  Versión: 3.0.0-Topos-Algebraic-Homological-Ring-Veto-Strict                             ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra el Estrato TACTICS (Nivel 2) operando de manera soberana       ║
+║  sobre el motor esclavo `apu_processor.py`. Transmuta las colecciones de costos en       ║
+║  una variedad algebraica estructurada, sometiendo la Matriz de Interacción a las         ║
+║  leyes de la Homología Simplicial y la Teoría Espectral de Grafos.                       ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESTRUCTURALES:                                  ║
+║                                                                                          ║
+║  §1. Homogeneidad del Anillo Conmutativo $\mathcal{R}$:                                  ║
+║      Garantiza que el tensor de costos opere como un anillo conmutativo riguroso         ║
+║      $\mathcal{R} = (\mathbb{R}, \oplus, \odot)$, verificando la clausura aditiva        ║
+║      y la distributividad del producto de Hadamard $\odot$ sobre $\oplus$.               ║
+║      Cualquier asimetría detona incondicionalmente un `RingSymmetryViolation`.           ║
+║                                                                                          ║
+║  §2. Mónada Option y Absorción de Singularidades FPU:                                    ║
+║      Toda anomalía numérica de la Unidad de Punto Flotante (IEEE 754) se intercepta      ║
+║      vía el endofuntor monádico `OptionMonad`. Las singularidades se mapean al           ║
+║      elemento absorbente seguro:                                                         ║
+║          $f_{\text{monad}}(x) = 0 \quad \forall x \in \{\text{NaN}, \pm\infty\}$         ║
+║                                                                                          ║
+║  §3. Espectro del Laplaciano Combinatorio y Valor de Fiedler:                            ║
+║      El 1-esqueleto topológico del grafo de costos extrae su Laplaciano combinatorio     ║
+║      mediante la matriz de incidencia orientada $B_1$:                                   ║
+║          $L = B_1 B_1^\top$                                                              ║
+║      Se exige que la conectividad algebraica (Valor de Fiedler $\lambda_2$) avale la     ║
+║      cohesión de la matriz. Una matriz degenerada lanza un `RingDegeneracyError`.        ║
+║                                                                                          ║
+║  §4. Invariantes Homológicos y Fórmula de Euler-Poincaré:                                ║
+║      La auditoría topológica exige coherencia absoluta entre los números de Betti        ║
+║      $\beta_0$ (componentes conexas) y $\beta_1$ (ciclos independientes), evaluando:     ║
+║          $\chi(K) = \beta_0 - \beta_1 = |V| - |E|$                                       ║
+║      Si $\beta_0 > 1$, se detecta una fractura logística (`TopologicalIslandError`).     ║
+║      Si existen bucles parasitarios, se detona un `HomologicalInvariantError`.           ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_2 \circ \Phi_1$):                  ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_AlgebraicRingAuditor                                                    ║
+║           Certifica la homogeneidad del anillo $\mathcal{R}$ y sanea las singularidades  ║
+║           monádicamente.                                                                 ║
+║           [Retorna: RingHomogeneityValidation → dominio inicial de Fase 2]               ║
+║                                                                                          ║
+║  Fase 2 → Phase2_TopologicalSkeletonAuditor                                              ║
+║           Ejecuta la auditoría homológica y espectral del 1-esqueleto extrayendo         ║
+║           los números de Betti y el espectro Laplaciano.                                 ║
+║           [Retorna: SimplicialSkeletonAudit → objeto final táctico]                      ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

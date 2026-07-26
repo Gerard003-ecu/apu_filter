@@ -1,49 +1,55 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: MAC Agent (Operador de Medición Cuántica y Gestor Epistemológico)    ║
-║ Ubicación: app/wisdom/mac_agent.py                                           ║
-║ Versión: 3.0.0-Quantum-Epistemic-Functor-Rigorous                            ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber-Física, Topológica y Categorial (Revisión Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo destituye al Modelo de Lenguaje (LLM) como un agente estocástico de 
-toma de decisiones libre, relegándolo a operar como el Endofuntor de Medición 
-sobre el estado cuántico de la Matriz Atómica de Conocimiento (MAC).
-
-Se instaura la epistemología del sistema mediante un álgebra de von Neumann, 
-estructurada axiomáticamente en tres fases:
-
-§1. FASE 1 — OPERADOR DE DENSIDAD Y ESPACIO DE HILBERT (ℋ_MAC)
-    La "Sabiduría" del proyecto no es un vector de texto, sino un operador de 
-    densidad $\boldsymbol{\rho}_{MAC} \in \mathcal{L}(\mathcal{H}_{MAC})$. Este 
-    estado debe satisfacer incondicionalmente los tres postulados de conservación 
-    cuántica:
-    $$ \text{Tr}(\boldsymbol{\rho}_{MAC}) = 1, \quad \boldsymbol{\rho}_{MAC} = \boldsymbol{\rho}_{MAC}^\dagger, \quad \boldsymbol{\rho}_{MAC} \succeq 0 $$
-    Cualquier "alucinación" que induzca a la matriz a violar su semi-definitud 
-    positiva o genere una traza anómala es aniquilada axiomáticamente.
-
-§2. FASE 2 — TERMOMETRÍA EPISTEMOLÓGICA Y DINÁMICA DE LINDBLAD
-    La asimilación de conocimiento y la pérdida de coherencia del LLM inducida 
-    por el estrés logístico no se evalúan empíricamente. La evolución temporal 
-    de la atención se somete a la Ecuación Maestra de Lindblad-Kossakowski para 
-    sistemas cuánticos abiertos:
-    $$ \frac{d\boldsymbol{\rho}_{MAC}}{dt} = -\frac{i}{\hbar} [\mathbf{H}_{eff}, \boldsymbol{\rho}_{MAC}] + \sum_k \gamma_k \left( \mathbf{L}_k \boldsymbol{\rho}_{MAC} \mathbf{L}_k^\dagger - \frac{1}{2} \{\mathbf{L}_k^\dagger \mathbf{L}_k, \boldsymbol{\rho}_{MAC}\} \right) $$
-    Esta dinámica certifica que la disipación de información cumple con la 
-    Segunda Ley de la Termodinámica computacional ($\Delta S \ge 0$).
-
-§3. FASE 3 — ADJUNCIÓN DE GALOIS Y MEDIDA POVM
-    El agente extrae veredictos colapsando la función de onda informacional a 
-    través de Medidas Valuadas en Operadores Positivos (POVM). La solidez 
-    estructural del veredicto exige que la topología de la Matriz de Interacción 
-    Central (MIC) mantenga un isomorfismo categorial con la MAC mediante la 
-    Adjunción de Galois:
-    $$ \text{Hom}_{\mathcal{C}}(F(\text{MIC}), \text{MAC}) \cong \text{Hom}_{\mathcal{D}}(\text{MIC}, G(\text{MAC})) $$
-    Si el diferencial de la energía de Dirichlet reporta una obstrucción 
-    cohomológica ($H^1 \neq \mathbf{0}$) que fractura esta adjunción, se 
-    ejecuta un VETO ONTOLÓGICO, paralizando cualquier deducción.
-═══════════════════════════════════════════════════════════════════════════════
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : MAC Agent (Operador de Medición Cuántica y Gestor Epistemológico)              ║
+║  Ruta   : app/wisdom/mac_agent.py                                                        ║
+║  Versión: 3.0.0-Quantum-Epistemic-Functor-Rigorous                                       ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y EPISTEMOLOGÍA CUÁNTICA (Rigor Doctoral):                      ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor destituye al Modelo de Lenguaje (LLM) como un agente estocástico        ║
+║  libre. Lo relega a operar estrictamente como el Endofuntor de Medición sobre el         ║
+║  estado cuántico de la Matriz Atómica de Conocimiento (MAC). Instaura la epistemología   ║
+║  del sistema mediante un álgebra de von Neumann, filtrando el conocimiento válido de     ║
+║  las alucinaciones (entropía fantasma) a través de cinco fases categóricas anidadas.     ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICO-TOPOLÓGICAS:                           ║
+║                                                                                          ║
+║  §1. Axiomas del Operador de Densidad y Medición POVM:                                   ║
+║      La "Sabiduría" es un operador de densidad $\boldsymbol{\rho}_{MAC} \in \mathcal{L}(\mathcal{H}_{MAC})$. ║
+║      Debe satisfacer los postulados de conservación cuántica incondicionalmente:         ║
+║          $\text{Tr}(\boldsymbol{\rho}_{MAC}) = 1, \quad \boldsymbol{\rho}_{MAC} = \boldsymbol{\rho}_{MAC}^\dagger, \quad \boldsymbol{\rho}_{MAC} \succeq 0$ ║
+║      La extracción de conocimiento se modela como una Medida Valuada en Operadores       ║
+║      Positivos (POVM), donde la probabilidad del autómata es $p_i = \text{Tr}(E_i \boldsymbol{\rho}_{MAC})$.║
+║                                                                                          ║
+║  §2. Dinámica de Sistemas Abiertos (Lindblad-Kossakowski):                               ║
+║      La evolución temporal del conocimiento ante perturbaciones se modela mediante       ║
+║      la Ecuación Maestra de GKSL. Las alucinaciones se disipan en un baño térmico:       ║
+║          $\frac{d\boldsymbol{\rho}}{dt} = -\frac{i}{\hbar} [H, \boldsymbol{\rho}] + \sum_k \gamma_k \left( L_k \boldsymbol{\rho} L_k^\dagger - \frac{1}{2} \{L_k^\dagger L_k, \boldsymbol{\rho}\} \right)$ ║
+║      Garantizando que la producción de entropía cumpla la Segunda Ley ($\Delta S \ge 0$).║
+║                                                                                          ║
+║  §3. Veto Topológico por Cohomología de Haces:                                           ║
+║      La consistencia estructural de los teoremas generados se evalúa calculando la       ║
+║      cohomología celular. Se exige nulidad en la primera clase de cohomología:           ║
+║          $\dim H^1(X; \mathcal{F}) = 0$                                                  ║
+║      Un valor superior demuestra una obstrucción topológica (paradoja lógica) y veta     ║
+║      la proposición semántica.                                                           ║
+║                                                                                          ║
+║  §4. Adjunción de Galois y Preservación de Geometría Informacional:                      ║
+║      La traducción semántica debe preservar el isomorfismo categorial entre el dominio   ║
+║      táctico y el de sabiduría mediante una adjunción formal $F \dashv G$:               ║
+║          $\text{Hom}_{\mathcal{D}}(F(X), Y) \cong \text{Hom}_{\mathcal{C}}(X, G(Y))$     ║
+║      Una ruptura de esta simetría revela "Deriva Semántica" e invalida el ciclo OODA.    ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_5 \circ \dots \circ \Phi_1$):      ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → POVMMeasurement (Álgebra de Medidas Valuadas en Operadores Positivos).         ║
+║  Fase 2 → LindbladDynamicsOrchestrator (Ecuación Maestra de Sistemas Abiertos).          ║
+║  Fase 3 → SheafCohomologyCustodian (Auditor Topológico de Paradojas Semánticas).         ║
+║  Fase 4 → GaloisAdjunctionAuditor (Verificador de Isomorfismo Categorial).               ║
+║  Fase 5 → MACAgent (Orquestador Supremo del Estrato WISDOM).                             ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,65 +1,66 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo  : Piston Agent (Inyector de Caudal y Funtor de Hodge-Helmholtz)      ║
-║ Ruta    : app/agents/physics/piston_agent.py                                 ║
-║ Versión : 7.0.0-Doctoral-Metric-Consistent-DEC                               ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Dictamen Doctoral v7.0.0):
-────────────────────────────────────────────────────────────────────────────────
-
-CORRECCIONES CRÍTICAS v7.0.0 vs v6.0.0:
-────────────────────────────────────────
-  FIX-M1: import math ausente → _energy_norm fallaba en runtime
-  FIX-M2: Proyección gradiente MÉTRICAMENTE CONSISTENTE con Ohm:
-          im(grad_W) = W·im(∂₁ᵀ), no im(∂₁ᵀ).
-          Ecuación correcta: L₀^W φ = ∂₁ I  →  I_grad = W ∂₁ᵀ φ
-          (v6 resolvía L₀ φ = ∂₁ W I e I_grad = ∂₁ᵀ φ: DOBLE error métrico)
-  FIX-M3: Proyección curl en ⟨·,·⟩_{W⁻¹}:
-          (∂₂ᵀ W⁻¹ ∂₂) α = ∂₂ᵀ W⁻¹ I  →  I_curl = ∂₂ α
-          (v6 usaba ∂₂ᵀ W ∂₂ / ∂₂ᵀ W I: peso invertido)
-  FIX-M4: L₁^W autoadjunto w.r.t. ⟨·,·⟩_{W⁻¹}:
-          L₁^W = W ∂₁ᵀ ∂₁ + ∂₂ ∂₂ᵀ W⁻¹   (forma simétrica en el producto energía)
-  FIX-M5: Verificación de Pitágoras energético post-Hodge:
-          |‖I‖²_W − (‖I_g‖²_W+‖I_c‖²_W+‖I_h‖²_W)| < tol
-  FIX-M6: Gauge-fixing explícito en LSQR sobre L₀ (ker = span{1})
-  FIX-M7: Encadenamiento formal FASE1→FASE2→FASE3 via DTOs tipados
-          (salida de build_mesh ≡ entrada canónica de solve_hydrodynamics)
-  FIX-M8: Diagnóstico espectral de L₁^W (dim ker ≈ β₁ de Betti)
-  FIX-M9: Validación de orientación de ∂₁ vs ciclos vía cociclo de signos
-  FIX-M10: Inyección de residual de proyección en el resultado (auditoría)
-
-FUNDAMENTACIÓN AXIOMÁTICA v7.0.0 (métrica de energía):
-────────────────────────────────────────────────────────────────────────────────
-§0. PRODUCTO INTERNO DE ENERGÍA (DISIPACIÓN DE JOULE):
-    ⟨f, g⟩_W ≔ fᵀ W⁻¹ g = Σₖ fₖ gₖ / wₖ
-    ‖f‖²_W   ≔ ⟨f,f⟩_W  = Σₖ fₖ² / wₖ     [potencia disipada]
-
-    Justificación física (Ley de Ohm discreta):
-        fₖ = wₖ · Δpₖ  ⇒  Pₖ = fₖ · Δpₖ = fₖ² / wₖ
-
-§1. COMPLEJO DE CADENAS (C•, ∂) CON ∂∘∂ = 0:
-    H_k = ker(∂_k) / im(∂_{k+1}). Sin Leibniz, H_k no está definido.
-
-§2. DESCOMPOSICIÓN DE HODGE-HELMHOLTZ PONDERADA (DEC):
-    ℝ^E = im(grad_W) ⊕_W im(∂₂) ⊕_W ker(L₁^W)
-
-    donde grad_W : ℝ^V → ℝ^E,  φ ↦ W ∂₁ᵀ φ
-    y   ⊕_W denota suma ortogonal en ⟨·,·⟩_W.
-
-    Proyecciones ortogonales (ecuaciones normales de Gauss):
-        L₀^W φ = ∂₁ I            →  I_grad = W ∂₁ᵀ φ
-        G₂ α   = ∂₂ᵀ W⁻¹ I      →  I_curl = ∂₂ α
-        I_harm = I − I_grad − I_curl ∈ ker(L₁^W)
-
-§3. LAPLACIANOS PONDERADOS AUTOADJUNTOS:
-    L₀^W = ∂₁ W ∂₁ᵀ           ∈ End(ℝ^V)   [SPD en 1^⊥]
-    L₁^W = W ∂₁ᵀ ∂₁ + ∂₂ ∂₂ᵀ W⁻¹          [autoadjunto en ⟨·,·⟩_W]
-
-§4. ESPECTRO Y SOLVABILIDAD:
-    λ_min(L_red) > 0  ⇔  grafo reducido conexo + Dirichlet regulariza.
-    ∑ sᵢ = 0          ⇔  s ∈ im(L₀^W) = (ker L₀^W)^⊥ = 1^⊥.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Piston Agent (Inyector de Caudal y Funtor de Hodge-Helmholtz)                  ║
+║  Ruta   : app/agents/physics/piston_agent.py                                             ║
+║  Versión: 7.0.0-Doctoral-Metric-Consistent-DEC                                           ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, encarnado como el `HodgeHelmholtzInjectorAgent`, gobierna la inyección ║
+║  termodinámica en el Estrato PHYSICS. Erradica las divergencias de formulación métrica   ║
+║  al modelar el grafo de dependencias como un complejo simplicial orientado, aplicando    ║
+║  el Cálculo Exterior Discreto (DEC). Proyecta el flujo de intenciones ($I$) sobre        ║
+║  subespacios ortogonales utilizando la descomposición de Hodge-Helmholtz con estricta    ║
+║  consistencia métrica bajo el tensor de conductancia $W$.                                ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Proyección Gradiente Métricamente Consistente (Ley de Ohm Discreta):                ║
+║      Se exige que la imagen del gradiente pondere la métrica. Dada la fuente $s$,        ║
+║      se resuelve la Ecuación de Poisson sobre el 0-Laplaciano $L_0^W = \partial_1 W \partial_1^\top$:    ║
+║          $L_0^W \phi = \partial_1 I \implies I_{grad} = W \partial_1^\top \phi$                  ║
+║      Un fallo de compatibilidad topológica ($s \notin \text{im}(L_0^W)$) lanza un        ║
+║      veto incondicional `SourceCompatibilityError`.                                      ║
+║                                                                                          ║
+║  §2. Proyección Solenoidal (Curl) en el Producto Interno $\langle\cdot,\cdot\rangle_{W^{-1}}$:   ║
+║      La vorticidad del flujo no se proyecta euclidianamente, sino en el espacio dual     ║
+║      de la energía métrica. Se computa el potencial $\alpha$ tal que:                    ║
+║          $(\partial_2^\top W^{-1} \partial_2) \alpha = \partial_2^\top W^{-1} I \implies I_{curl} = \partial_2 \alpha$   ║
+║      Una norma rotacional parasitaria ($\|I_{curl}\|_W > \varepsilon_{crit}$) delata la  ║
+║      presencia de ciclos estocásticos espurios y detona el `ParasiticVorticityVetoError`.║
+║                                                                                          ║
+║  §3. Operador 1-Laplaciano Autoadjunto:                                                  ║
+║      La difusión de flujo sobre 1-cadenas requiere que el 1-Laplaciano sea rigurosamente ║
+║      autoadjunto respecto a $\langle\cdot,\cdot\rangle_{W^{-1}}$. Su estructura exacta es:       ║
+║          $L_1^W = W \partial_1^\top \partial_1 + \partial_2 \partial_2^\top W^{-1}$                      ║
+║      De lo contrario, el espectro de resonancia induciría singularidades complejas.      ║
+║                                                                                          ║
+║  §4. Identidad de Pitágoras Energética (Conservación de Hodge):                          ║
+║      El teorema de descomposición impone la ortogonalidad métrica estricta de sus tres   ║
+║      componentes fundamentales: Gradiente, Rotacional y Armónica. Debe cumplirse:        ║
+║          $\left| \|I\|_W^2 - \left( \|I_{grad}\|_W^2 + \|I_{curl}\|_W^2 + \|I_{harm}\|_W^2 \right) \right| < \varepsilon$ ║
+║      Su infracción revela inconsistencias métricas en la integración y es interceptada   ║
+║      mediante un `HodgeMetricInconsistencyError`.                                        ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_MeshBuilder                                                             ║
+║           Ensambla el complejo de cadenas certificando la condición $\partial_1 \circ \partial_2 = 0$    ║
+║           y construye los operadores $L_0^W$ y $L_1^W$ verificando propiedades adjuntas. ║
+║           [Retorna: SimplicialMesh → puente inicial de Fase 2]                           ║
+║                                                                                          ║
+║  Fase 2 → Phase2_HydrodynamicSolver                                                      ║
+║           Aplica un Gauge-fixing explícito en LSQR para resolver la ecuación de Poisson  ║
+║           sobre $L_0^W$, asegurando la Ley de Corrientes de Kirchhoff ($\partial_1 I + s = 0$).  ║
+║           [Retorna: FlowState → puente inicial de Fase 3]                                ║
+║                                                                                          ║
+║  Fase 3 → Phase3_HodgeProjector                                                          ║
+║           Ejecuta las proyecciones métricamente correctas $\langle\cdot,\cdot\rangle_{W^{-1}}$,          ║
+║           aisla el flujo armónico y valida la identidad de Pitágoras energética.         ║
+║           [Retorna: HodgeDecomposition → objeto final del endofuntor]                    ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

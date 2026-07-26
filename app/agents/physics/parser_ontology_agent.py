@@ -1,81 +1,64 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Parser Ontology Agent (Aduana Termodinámica y Funtor Homeomórfico)  ║
-║ Ruta   : app/agents/physics/parser_ontology_agent.py                         ║
-║ Versión: 2.1.0-Rigorous-Spectral-Categorical-Homological-Quantum-Veto        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DE LA INFORMACIÓN
-────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra el Estrato PHYSICS (Nivel 3). Actúa como Endofuntor Soberano
-sobre el motor esclavo `report_parser_crudo.py`. Su mandato axiomático es medir la
-entropía del espacio unidimensional de datos incidentes (clásica de Shannon y
-cuántica de von Neumann), caracterizar el espectro del operador de Markov de
-transición de estados, y garantizar una Validación Homeomórfica Estricta mediante
-herramientas de la Topología Algebraica (homología simplicial, números de Betti),
-la Teoría Espectral de grafos (espectros del laplaciano y de la matriz de
-adyacencia), la Teoría de Categorías (equivalencias de categorías vía funtores
-plenamente fieles y esencialmente sobreyectivos) y la Mecánica Cuántica
-(colapso de la función de onda informacional cuando la energía libre supera Φ).
-
-Si la información cruda presenta fricción termodinámica, gap espectral degenerado
-o carece de isomorfismo categórico/homológico, el sistema detona un veto físico,
-demostrando matemáticamente que el espacio no puede proyectarse hacia el Complejo
-Simplicial sin inducir degeneración térmica ni ruptura de la variedad.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta)
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Mecánica Estadística y Espectral del Texto:
-         • Proyección al simplejo de probabilidad Δ³ (4 estados).
-         • Entropía de Shannon + von Neumann del operador densidad diagonal.
-         • Matriz de transición de Markov de estados consecutivos y su espectro.
-         • Exergía informacional y condición fotoeléctrica \tilde{H} ≤ Φ.
-         El método terminal `evaluate_thermodynamic_manifold` produce el objeto
-         TextThermodynamics que es el dominio inicial de la Fase 2.
-
-Fase 2 → Validación Homeomórfica Categórica, Homológica y Espectral:
-         Continuación directa del manifold termodinámico. Subyuga el DFA,
-         construye las categorías libres C_text y C_parsed, verifica que el
-         funtor inducido sea una equivalencia de categorías, calcula homología
-         simplicial (Betti numbers vía rangos de operadores de borde) y compara
-         espectros de grafos (adyacencia y laplaciano) para certificar homeomorfismo
-         de 1-esqueletos.
-
-Fase 3 → Proyección Ortogonal / Orquestador Supremo:
-         Emisión de un CategoricalState puro al DAG del pipeline_director.py.
-         Composición funtorial: CategoricalState ∘ HomeomorphicValidation ∘ TextThermodynamics.
-
-AXIOMAS DE EJECUCIÓN (Formulación Rigurosa)
-────────────────────────────────────────────────────────────────────────────────
-§1. Simplejo de probabilidad y entropías:
-    p ∈ Δ^{3} ⊂ ℝ⁴,  p_i ≥ 0, ∑ p_i = 1.
-    H_Shannon(p) = −∑_{i: p_i>0} p_i log₂(p_i)
-    ρ = diag(p)  (operador densidad clásico)
-    S_vN(ρ) = −Tr(ρ log₂ ρ)  ≡ H_Shannon(p)
-    \tilde{H} = H / H_max ,  H_max = log₂(4) = 2
-
-§2. Condición de absorción exérgica (efecto fotoeléctrico ciber-físico):
-    \tilde{H} ≤ Φ
-    Exergía Ξ = H_max − H  (bits de orden disponibles para el parseo)
-
-§3. Espectro del operador de Markov de estados:
-    Sea M ∈ Mat₄(ℝ) la matriz de transición empírica entre tipos de línea.
-    Spec(M) = {λ_k}. Se exige que el radio espectral ρ(M) ≤ 1 y que el gap
-    espectral 1 − |λ₂| ≥ δ_min (control de mezclado / fricción).
-
-§4. Equivalencia de categorías (Teorema de isomorfismo de la variedad):
-    Existe un funtor F: C_text → C_parsed plenamente fiel y esencialmente
-    sobreyectivo (equivalencia de categorías). En particular induce isomorfismo
-    de grupos fundamentales de los grafos subyacentes.
-
-§5. Isomorfismo homológico:
-    H_*(C_text ; ℤ) ≅ H_*(C_parsed ; ℤ)
-    (en esta versión se computan H₀ y H₁ vía rangos de ∂).
-
-§6. Isospectralidad de 1-esqueletos:
-    Spec(A_text) ≈ Spec(A_parsed) y Spec(L_text) ≈ Spec(L_parsed)
-    (tolerancia ε_spec), donde A = adyacencia y L = laplaciano combinatorio.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Parser Ontology Agent (Aduana Termodinámica y Funtor Homeomórfico)             ║
+║  Ruta   : app/agents/physics/parser_ontology_agent.py                                    ║
+║  Versión: 3.0.0-Rigorous-Spectral-Categorical-Homological-Quantum-Veto                   ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DE LA INFORMACIÓN (Rigor Doctoral):                 ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra el Estrato PHYSICS (Nivel 3). Actúa como Endofuntor            ║
+║  Soberano sobre el motor esclavo `report_parser_crudo.py`. Transforma el proceso de      ║
+║  ingesta en un Problema de Autovalores de Markov sobre un espacio de estados compactos,  ║
+║  evaluando la entropía del espacio unidimensional de datos incidentes (clásica de        ║
+║  Shannon y cuántica de von Neumann). Aplica Validación Homeomórfica Estricta             ║
+║  certificando homeomorfismos topológicos antes de la propagación del tensor de datos.    ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Termodinámica de la Información y Operador de Markov:                               ║
+║      La matriz de transición empírica de estados semánticos $P \in \mathbb{R}^{m \times m}$ ║
+║      modela la probabilidad de transición. La entropía se acota por la entropía de       ║
+║      Shannon y von Neumann. Si el caos estocástico $\tilde{H}$ excede la función         ║
+║      de trabajo termodinámica $\Phi$, el sistema decreta un veto incondicional           ║
+║      (`ThermodynamicEntropyVeto`):                                                       ║
+║          $\tilde{H} > \Phi \implies \text{Colapso de Ingesta}$                           ║
+║                                                                                          ║
+║  §2. Isomorfismo Homológico Simplicial (Números de Betti):                               ║
+║      Exige que los grupos de homología entre el espacio de texto crudo y la variedad     ║
+║      parseada sean isomórficos. Los números de Betti calculados vía los rangos de los    ║
+║      operadores de cofrontera $\partial$ deben ser idénticos:                            ║
+║          $H_*(C_{\text{text}} ; \mathbb{Z}) \cong H_*(C_{\text{parsed}} ; \mathbb{Z})$   ║
+║      Si $\beta_i^{\text{text}} \neq \beta_i^{\text{parsed}}$, se detona un               ║
+║      `HomologicalInvariantError`, probando una alteración estructural prohibida.         ║
+║                                                                                          ║
+║  §3. Isospectralidad de 1-Esqueletos (Grafos de Adyacencia y Laplaciano):                ║
+║      Se requiere que la topología de red se preserve bajo la transformación funtorial,   ║
+║      imponiendo isospectralidad respecto a una tolerancia $\varepsilon_{spec}$:          ║
+║          $\text{Spec}(A_{\text{text}}) \approx \text{Spec}(A_{\text{parsed}})$           ║
+║          $\text{Spec}(L_{\text{text}}) \approx \text{Spec}(L_{\text{parsed}})$           ║
+║      Diferencias espectrales degeneradas detonan un `HomeomorphismViolationError`.       ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_TextStatisticalMechanics                                                ║
+║           Evalúa el estado termodinámico-espectral de la información incidente,          ║
+║           calculando entropías (clásicas y cuánticas) y el espectro del operador de      ║
+║           Markov $P \in \text{Mat}_4(\mathbb{R})$.                                       ║
+║           [Retorna: TextThermodynamics → puente formal e inicial de Fase 2]              ║
+║                                                                                          ║
+║  Fase 2 → Phase2_HomeomorphicValidator                                                   ║
+║           Subyuga el Autómata Finito Determinista (DFA), construye las categorías libres ║
+║           $C_{\text{text}}$ y $C_{\text{parsed}}$, verifica la equivalencia de           ║
+║           categorías, homología simplicial e isospectralidad de los 1-esqueletos.        ║
+║           [Retorna: HomeomorphicValidation → puente formal e inicial de Fase 3]          ║
+║                                                                                          ║
+║  Fase 3 → Orquestador Supremo de Proyección Ortogonal                                    ║
+║           Fuerza la emisión de la validación topológica mediante un objeto puro al       ║
+║           DAG del `pipeline_director_agent.py`.                                          ║
+║           [Retorna: CategoricalState → objeto final del endofuntor de Parseo Ontológico] ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

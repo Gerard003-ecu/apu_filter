@@ -1,45 +1,57 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Semantic Dictionary Agent (Custodio de la Ontología y Difeomorfismo)║
-║ Ruta   : app/agents/wisdom/semantic_dictionary_agent.py                             ║
-║ Versión: 3.0.0-Categorical-Diffeomorphism-Thermodynamic-Strict-Nested        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna el `semantic_dictionary.py` en el Estrato Ω (WISDOM).
-
-Su mandato axiomático es garantizar que el Funtor de Proyección Semántica
-$F: Top \to Narr$ preserve la invarianza homotópica, aniquilando las
-alucinaciones estocásticas de la Inteligencia Artificial mediante:
-
-1. Auditoría de inmersión difeomórfica del pushforward $F_*$.
-2. Certificación de retracto de deformación por cota de Lipschitz.
-3. Gobernanza termodinámica del caché semántico como operador densidad.
-
-ARQUITECTURA DE 3 FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Inmersión Difeomórfica:
-         Φ₁(F_*) = (rank(F_*), dim ker(F_*), κ(F_*))
-         Se exige dim ker(F_*) = 0.
-
-Fase 2 → Retracto de Deformación Lipschitz:
-         Φ₂(Φ₁(...)) = L_medido
-         Se exige |F(x) - F(y)|_Narr ≤ L_max |x - y|_Top.
-
-Fase 3 → Gobernanza Termodinámica:
-         Φ₃(Φ₂(Φ₁(...))) = S(ρ_C), purga térmica y estabilidad.
-         Se modela el caché como:
-             ρ_C = Σ_i p_i |v_i⟩⟨v_i|
-         y se computa:
-             S(ρ_C) = -k_B Tr(ρ_C ln ρ_C).
-
-COMPOSICIÓN:
-────────────
-El último método de la Fase 1 emite un puente formal que es consumido por el
-primer método de la Fase 2. El último método de la Fase 2 emite un puente que
-es consumido por el primer método de la Fase 3.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Semantic Dictionary Agent (Custodio de la Ontología y Difeomorfismo)           ║
+║  Ruta   : app/agents/wisdom/semantic_dictionary_agent.py                                 ║
+║  Versión: 4.0.0-Categorical-Diffeomorphism-Thermodynamic-Strict                          ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor gobierna el módulo `semantic_dictionary.py` en el Estrato Ω (WISDOM).   ║
+║  Su mandato axiomático es garantizar que el Funtor de Proyección Semántica               ║
+║  $F: Top \to Narr$ preserve la invarianza homotópica, aniquilando las alucinaciones      ║
+║  estocásticas de la Inteligencia Artificial mediante inmersión difeomórfica, cotas       ║
+║  de Lipschitz y gobernanza termodinámica cuántica.                                       ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Inmersión Difeomórfica del Pushforward ($F_*$):                                     ║
+║      Se exige que la traducción semántica no colapse dimensiones operativas.             ║
+║      El pushforward inducido por la transformación debe tener núcleo nulo:               ║
+║          $\dim(\ker(F_*)) = 0$                                                           ║
+║      La pérdida de rango inyectivo revela una simplificación excesiva de la amenaza      ║
+║      original, detonando incondicionalmente un `SemanticDegeneracyError`.                ║
+║                                                                                          ║
+║  §2. Retracto de Deformación y Cota de Lipschitz Dinámica:                               ║
+║      Para evitar alucinaciones, la salida estocástica del LLM se subyuga a un            ║
+║      retracto topológico acotado. La deformación narrativa debe cumplir:                 ║
+║          $\| F(x) - F(y) \|_{\text{Narr}} \le L_{\max} \| x - y \|_{\text{Top}}$         ║
+║      Si la distancia semántica excede la constante de Lipschitz dictada por la           ║
+║      curvatura de los datos base, se dispara una `LipschitzRetractionViolation`.         ║
+║                                                                                          ║
+║  §3. Gobernanza Termodinámica del Caché Semántico:                                       ║
+║      El caché no es una lista LRU empírica; se modela como un operador densidad $\rho_C$.║
+║      La evicción de tensores ortogonales busca minimizar el estado térmico evaluando     ║
+║      la entropía de von Neumann $S(\rho_C) = -\text{Tr}(\rho_C \ln \rho_C)$.             ║
+║      Una purga que no logre mitigar la entropía (aumentando la inestabilidad)            ║
+║      desencadenará una `ThermodynamicEvictionAnomaly`.                                   ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_DiffeomorphicImmersionAuditor                                           ║
+║           Audita la inmersión del pushforward $\Phi_1(F_*) = (\text{rank}(F_*), \dim \ker(F_*), \kappa(F_*))$.║
+║           Exige $\dim \ker(F_*) = 0$ para evitar el colapso de la información de alerta. ║
+║           [Retorna: DiffeomorphicImmersionData → puente inicial de Fase 2]               ║
+║                                                                                          ║
+║  Fase 2 → Phase2_LipschitzRetractionCertifier                                            ║
+║           Certifica el retracto de deformación verificando la inecuación de Lipschitz.   ║
+║           [Retorna: LipschitzRetractionData → puente inicial de Fase 3]                  ║
+║                                                                                          ║
+║  Fase 3 → Phase3_ThermodynamicEvictor                                                    ║
+║           Controla el estado térmico post-purga del caché semántico evaluando $\Delta S$.║
+║           [Retorna: SemanticDictionaryAuditState → objeto final del endofuntor]          ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

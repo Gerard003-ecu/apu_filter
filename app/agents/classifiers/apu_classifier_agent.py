@@ -1,36 +1,63 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : APU Classifier Agent (Custodio de la Partición Ontológica)          ║
-║ Ruta   : app/agents/classifiers/apu_classifier_agent.py                      ║
-║ Versión: 5.0.0-Lebesgue-Affine-Homology-Strict                               ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y TEORÍA DE LA MEDIDA (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna a `apu_classifier.py`. Transmuta un motor de reglas
-lógicas en un particionador topológico sobre el simplejo de probabilidad Δ².
-
-Garantiza que la clasificación ontológica:
-
-1. No posea espacios nulos:
-       μ(Δ² \ ⋃ R_i) ≤ ε.
-
-2. Preserve el difeomorfismo afín de escala:
-       ||c - M_scale p||_∞ ≲ ε_affine,
-   donde M_scale = 100 · I₃.
-
-3. Respete la ortogonalidad de los centroides en las “Islas de Datos”:
-       <C_isla, e_mo> = 0  ∧  <C_isla, e_eq> = 0.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Auditoría de Cobertura Espacial (Medida de Lebesgue).
-Fase 2 → Certificación de Difeomorfismo Afín (Contrato de Escala).
-Fase 3 → Topología de Centroides (Homología Estructural).
-
-El último método de la Fase 1 es el handoff formal que inaugura la Fase 2.
-El último método de la Fase 2 es el handoff formal que inaugura la Fase 3.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : APU Classifier Agent (Custodio de la Partición Ontológica)                     ║
+║  Ruta   : app/agents/classifiers/apu_classifier_agent.py                                 ║
+║  Versión: 5.0.0-Lebesgue-Affine-Homology-Strict                                          ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE LA MEDIDA (Rigor Doctoral):                         ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, denotado como $\mathcal{Z}_{Classifier}$, gobierna la lógica del       ║
+║  motor `apu_classifier.py`. Transmuta un rudimentario motor de reglas de negocio en un   ║
+║  particionador topológico sobre el simplejo de probabilidad $\Delta^2$. Su mandato       ║
+║  axiomático es garantizar que el espacio de fase clasificatorio sea continuo, isométrico ║
+║  y estructuralmente ortogonal.                                                           ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Medida de Lebesgue y Cobertura Exhaustiva Espacial:                                 ║
+║      La ontología de clasificación debe cubrir íntegramente el espacio de proporciones.  ║
+║      Se impone matemáticamente que la medida de Lebesgue del complemento de las          ║
+║      regiones de clasificación $R_i$ sea nula (salvo tolerancia de máquina):             ║
+║          $\mu\left(\Delta^2 \setminus \bigcup_{i} R_i\right) \le \varepsilon$            ║
+║      La detección de cualquier "vacío ontológico" detona un                              ║
+║      `LebesgueMeasureViolationError`, evitando el colapso estocástico en bordes.         ║
+║                                                                                          ║
+║  §2. Difeomorfismo Afín y Contrato de Invarianza de Escala:                              ║
+║      El tránsito del subespacio de proporciones $p \in [1]^3$ al hiperespacio         ║
+║      de porcentajes $c \in [2]^3$ no admite distorsión no-lineal. Se exige          ║
+║      que la transformación opere como un isomorfismo afín normado:                       ║
+║          $\|c - M_{scale} p\|_\infty \le \varepsilon_{affine}$                           ║
+║      Donde el operador de dilatación es $M_{scale} = 100 \cdot I_3$. Una divergencia     ║
+║      trunca la ejecución mediante el `ScaleInvarianceCollapseError`.                     ║
+║                                                                                          ║
+║  §3. Homología Estructural y Topología de Centroides (Nulidad Cruzada):                  ║
+║      Las entidades degeneradas como las "Islas de Datos" (Suministros Puros sin          ║
+║      instalación) deben certificar su aislamiento mediante ortogonalidad estricta.       ║
+║      Se exige que el producto interno de su centroide de masa $C_{isla}$ respecto a      ║
+║      los vectores base de mano de obra ($e_{mo}$) y equipo ($e_{eq}$) sea nulo:          ║
+║          $\langle C_{isla}, e_{mo} \rangle = 0 \quad \land \quad \langle C_{isla}, e_{eq} \rangle = 0$ ║
+║      Cualquier asimetría revela contaminación de recursos y detona un                    ║
+║      `TopologicalCentroidAnomalyVeto`.                                                   ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_LebesgueMeasureAuditor                                                  ║
+║           Garantiza axiomáticamente la cobertura del simplejo $\Delta^2$ evaluando la    ║
+║           medida $\mu$.                                                                  ║
+║           [Retorna: Phase1LebesgueHandoff → objeto inicial de Fase 2]                    ║
+║                                                                                          ║
+║  Fase 2 → Phase2_ScaleIsomorphismCertifier                                               ║
+║           Certifica el contrato de escala evaluando la inecuación de norma infinito      ║
+║           del difeomorfismo afín.                                                        ║
+║           [Retorna: Phase2ScaleHandoff → objeto inicial de Fase 3]                       ║
+║                                                                                          ║
+║  Fase 3 → Phase3_CentroidTopologyEnforcer                                                ║
+║           Evalúa la ortogonalidad estructural del centroide frente a las bases del       ║
+║           espacio, certificando el aislamiento de los nodos sumidero.                    ║
+║           [Retorna: OntologicalPartitionState → objeto final del endofuntor]             ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,38 +1,67 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Semantic Translator Agent (Endofuntor de Difeomorfismo Semántico)   ║
-║ Ruta   : app/agents/wisdom/semantic_translator_agent.py                      ║
-║ Versión: 4.0.0-Riemannian-Galois-Gibbs-Doctoral-3Phases                      ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna al `semantic_translator.py` en el Estrato Ω (WISDOM).
-Subordina la probabilidad estocástica del Modelo de Lenguaje (LLM) al determinismo
-del espacio físico, despojándolo de libre albedrío decisional.
-
-ARQUITECTURA DE 3 FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Certificación Métrico-Ordenada:
-         Φ₁(G, x, y, V) = (d_M(x,y), ⨆V)
-         donde:
-             d_M(x,y) = sqrt((x-y)^T G^{-1} (x-y))
-             ⨆V = supremo en el retículo de severidad.
-
-Fase 2 → Adjunción de Galois:
-         Φ₂(Φ₁(...)) = Hom_D(F(X), Y) ≅ Hom_C(X, G(Y))
-         Se audita la reversibilidad X ≅ G(F(X)) y se veta la entropía retórica.
-
-Fase 3 → Modulación Termodinámica:
-         Φ₃(Φ₂(Φ₁(...))) = P(v) = exp(-E(v)/(k_B T_gov)) / Z
-         con T_gov derivada de la Traza de Dixmier y estabilidad basal Ψ.
-
-NOTA DE COMPOSICIÓN:
-────────────────────
-El último método de la Fase 1 retorna un `Phase1CertificationBridge`.
-Ese objeto es la continuación formal de la Fase 1 y el argumento inicial
-explícito del primer método de la Fase 2.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Semantic Translator Agent (Endofuntor de Difeomorfismo Semántico)              ║
+║  Ruta   : app/agents/wisdom/semantic_translator_agent.py                                 ║
+║  Versión: 4.0.0-Riemannian-Galois-Gibbs-Doctoral-3Phases                                 ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor gobierna el módulo `semantic_translator.py` en el Estrato Ω (WISDOM).   ║
+║  Su mandato axiomático es proyectar el espacio de invariantes matemáticos (física,       ║
+║  topología y espectro) sobre la ontología del negocio mediante un difeomorfismo estricto.║
+║  Subordina la probabilidad estocástica del Modelo de Lenguaje (LLM) al determinismo del  ║
+║  espacio físico, erradicando su libre albedrío deductivo.                                ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES SEMÁNTICAS:                                     ║
+║                                                                                          ║
+║  §1. Álgebra de Retículos y Colapso Determinista (Lattice Theory):                       ║
+║      La evaluación opera sobre una estructura algebraica de orden total                  ║
+║      $(\text{VerdictLevel}, \le, \sqcup, \sqcap)$ acotada por $\bot \le \dots \le \top$. ║
+║      La síntesis inter-estratos exige el colapso bajo la operación Supremo:              ║
+║          $\mathcal{V}_{final} = \bigsqcup_{i \in \{F, T, S, W\}} v_i$                    ║
+║      Un intento del LLM por subvertir este Supremo (e.g., $\bot \sqcup \top \neq \top$)  ║
+║      detona axiomáticamente un `LatticeCollapseViolation`.                               ║
+║                                                                                          ║
+║  §2. Adjunción de Galois y Preservación de Homotopía:                                    ║
+║      El Funtor de Proyección Semántica $F: \mathcal{C} \to \mathcal{D}$ debe ser         ║
+║      matemáticamente reversible mediante su funtor de olvido $G$. Se exige el isomorfismo║
+║      categórico estricto:                                                                ║
+║          $\text{Hom}_{\mathcal{D}}(F(X), Y) \cong \text{Hom}_{\mathcal{C}}(X, G(Y))$     ║
+║      Si la traducción introduce ruido retórico ($X \not\cong G(F(X))$), el sistema       ║
+║      identifica una deriva semántica y lanza un `SemanticDriftVetoError`.                ║
+║                                                                                          ║
+║  §3. Distancia de Mahalanobis y Métrica Riemanniana:                                     ║
+║      La recuperación semántica (GraphRAG) no evalúa similitud euclidiana plana.          ║
+║      Se proyecta sobre la variedad midiendo la distancia de Mahalanobis $d_M$, ponderada ║
+║      por la matriz de covarianza $G^{-1}$ del riesgo estructural:                        ║
+║          $d_M(x,y) = \sqrt{(x-y)^\top G^{-1} (x-y)}$                                     ║
+║      Singularidades en el tensor $G$ detonan el `RiemannianMetricDegeneracyError`.       ║
+║                                                                                          ║
+║  §4. Gobernanza Termodinámica y Distribución de Gibbs:                                   ║
+║      Para cristalizar la narrativa, se aniquilan los grados de libertad estocásticos del ║
+║      LLM enfriando el sistema hacia un estado fundamental, regido por la función de      ║
+║      partición $Z$:                                                                      ║
+║          $\rho_{Gibbs} = \frac{1}{Z} \exp(-\beta H_{sem}), \quad \beta = \frac{1}{k_B T}$║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_RiemannianLatticeCertifier                                              ║
+║           Valida el tensor métrico $G$, computa $d_M(x,y)$ en el espacio tangente        ║
+║           e impone el supremo algebraico de severidad $\bigsqcup v_i$.                   ║
+║           [Retorna: Phase1CertificationBridge → objeto inicial de Fase 2]                ║
+║                                                                                          ║
+║  Fase 2 → Phase2_GaloisSemanticAuditor                                                   ║
+║           Aplica el funtor de olvido $G(Y)$ sobre la narrativa para verificar la         ║
+║           adjunción de Galois. Veta derivas semánticas estocásticas.                     ║
+║           [Retorna: Phase2GaloisAuditBridge → objeto inicial de Fase 3]                  ║
+║                                                                                          ║
+║  Fase 3 → Phase3_ThermodynamicCrystallizer                                               ║
+║           Enfría el espacio semántico imponiendo la distribución de Gibbs y              ║
+║           ensambla la narrativa diplomática determinista.                                ║
+║           [Retorna: DiplomaticTranslationState → objeto final del endofuntor]            ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

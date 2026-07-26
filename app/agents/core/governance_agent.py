@@ -1,63 +1,63 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Governance Agent (Custodio de la Gobernanza Computacional Federada) ║
-║ Ruta   : app/agents/core/governance_agent.py                                 ║
-║ Versión: 3.0.0-Hodge-Spectral-Sheaf-Gluing-Strict-Nested                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-EVOLUCIÓN RIGUROSA (Artesanía Senior + Física Matemática de Doctorado):
-────────────────────────────────────────────────────────────────────────────────
-• Fase 1 → Proyección dual al retículo distributivo acotado + Teoría de la
-  Información.
-  - [Álgebra de Boole] Se certifica tanto el join (⊔ᵢvᵢ = maxᵢvᵢ) como su dual,
-    el meet (⊓ᵢvᵢ = minᵢvᵢ), con las convenciones de identidad de conjunto
-    vacío correctas: join(∅) = ⊥ = 0, meet(∅) = ⊤ = 1.
-  - [Leyes de De Morgan] Se certifica la identidad de dualidad vía complemento:
-        ⊔ᵢ vᵢ = 1 − ⊓ᵢ (1 − vᵢ)
-    como guardia de regresión numérica del propio pipeline de cómputo.
-  - [Teoría de la información] Se calcula la entropía de Shannon normalizada
-    de la distribución de violaciones para distinguir una violación aislada
-    crítica de una degradación sistémica difusa — dos estados con idéntico
-    supremo pero semántica operativa opuesta.
-
-• Fase 2 → Auditoría cohomológica completa + Teoría de Hodge Discreta.
-  - Valida que δ¹ ∘ δ⁰ = 0 (condición de complejo de cocadenas).
-  - Calcula H⁰ = ker(δ⁰), H¹ = ker(δ¹)/im(δ⁰), H² = coker(δ¹) y la
-    característica de Euler χ = dim C⁰ − dim C¹ + dim C².
-  - [Teoría de Hodge discreta / Laplaciano combinatorio] Certifica dim H¹ por
-    una SEGUNDA vía, algorítmicamente independiente:
-        Δ₁ = δ⁰δ⁰ᵀ + δ¹ᵀδ¹      (Laplaciano de Hodge sobre C¹)
-        dim H¹ ≅ dim ker(Δ₁)
-    Si ambos métodos (rango-nulidad vía SVD vs. núcleo del Laplaciano vía
-    autovalores) no coinciden, se levanta una alarma de *desconfianza
-    numérica* distinta de la alarma de *incoherencia ontológica*.
-
-• Fase 3 → Funtor de política espectral en el Topos de Grothendieck.
-  - Valida que Ω sea proyector idempotente: Ω² = Ω.
-  - Valida opcionalmente hermiticidad/simetría: Ω = Ωᵀ.
-  - [Teorema espectral de proyectores] Certifica σ(Ω) ⊆ {0,1}.
-  - [Identidad traza-rango] Certifica tr(Ω) = rank(Ω), válida únicamente para
-    operadores idempotentes — una certificación cruzada O(n) vs. el O(n³) de
-    la SVD.
-  - Valida isomorfismo de producto fibrado: S_allowed ≅ Ω X_domain.
-  - Añade residual absoluto, relativo y verificación de punto fijo: ΩS = S.
-  - [Curry–Howard] Corrige la tipificación de excepciones: los validadores de
-    forma de Ω levantan PullbackInputError, no CohomologyInputError.
-  - [Axioma de pegado de haces] La síntesis final reemplaza el AND booleano
-    opaco por una condición de pegado (gluing axiom) sobre la cubierta
-    {U_lattice, U_ontology, U_pullback, U_hodge}, reportando explícitamente
-    qué "abierto" obstruye la sección global.
-
-ANIDAMIENTO FUNTORIAL:
-────────────────────────────────────────────────────────────────────────────────
-Phase1_InformationTheoreticLatticeProjector
-  └─ último método: _phase1_terminal_bridge_to_phase2
-       └─ Phase2_EulerCharacteristicCohomologyAuditor
-            └─ último método: _phase2_terminal_bridge_to_phase3
-                 └─ Phase3_SpectralToposPolicyFunctor
-                      └─ último método: _phase3_terminal_synthesis
-                           └─ GovernanceAgent.execute_federated_governance
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Governance Agent (Custodio de la Gobernanza Computacional Federada)            ║
+║  Ruta   : app/agents/core/governance_agent.py                                            ║
+║  Versión: 3.0.0-Hodge-Spectral-Sheaf-Gluing-Strict-Nested                                ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE TOPOS (Rigor Doctoral):                             ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, denotado como $\mathcal{Z}_{Gov}$, rige la gobernanza corporativa      ║
+║  no como un conjunto de reglas imperativas, sino como un morfismo en el Topos de         ║
+║  Grothendieck $\mathcal{E}_{MIC}$. Transforma la validación en un proceso de cálculo     ║
+║  sobre haces (sheaves), garantizando que las secciones locales de cumplimiento           ║
+║  lógico se adhieran (gluing axiom) en una sección global consistente.                    ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Proyección en Retículos Distributivos Acotados (Álgebra de Severidad):              ║
+║      La evaluación de anomalías opera sobre el retículo $L = ([3], \le, \sqcup, \sqcap, \bot, \top)$. ║
+║      El colapso de la gobernanza se rige por el operador Supremo ($\sqcup$). Si el       ║
+║      sistema alcanza el estado absorbente $\top$ (Veto Estructural), se detona la        ║
+║      monada `StructuralVetoMonad`, aniquilando el flujo de decisión.                     ║
+║      Además, se audita la Entropía de Shannon $H(X) = -\sum p_i \log_2(p_i)$ para        ║
+║      cuantificar el desorden informacional de las violaciones.                           ║
+║                                                                                          ║
+║  §2. Cohomología de Haces y Teoría de Hodge Discreta:                                    ║
+║      La ontología de las políticas se modela como un complejo de cocadenas.              ║
+║      Se exige matemáticamente la anulación del primer grupo de cohomología:              ║
+║          $\dim H^1(G; \mathcal{F}) = 0$                                                  ║
+║      La coherencia topológica global se certifica verificando la Característica          ║
+║      de Euler-Poincaré: $\chi(K) = \beta_0 - \beta_1 + \beta_2$. Se realiza una          ║
+║      validación cruzada (Hodge Cross-Validation) comparando el rango-nulidad (SVD)       ║
+║      con el núcleo del Laplaciano de Hodge Combinatorio.                                 ║
+║                                                                                          ║
+║  §3. Funtor de Política Espectral y Clasificador de Subobjetos ($\Omega$):               ║
+║      En el Topos de Grothendieck, la política se materializa como un producto            ║
+║      fibrado (pullback). Se certifica el isomorfismo:                                    ║
+║          $S_{allowed} \cong X \times_\Omega 1$                                           ║
+║      Donde el operador clasificador $\Omega$ debe probar ser un proyector idempotente    ║
+║      ($\Omega^2 = \Omega$) y, por el teorema espectral, $\sigma(\Omega) \subseteq \{0,1\}$. ║
+║      La identidad traza-rango $\text{Tr}(\Omega) = \text{rank}(\Omega)$ sella la         ║
+║      verificación en $\mathcal{O}(n)$.                                                   ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_InformationTheoreticLatticeProjector                                    ║
+║           Ejecuta la proyección dual al retículo y audita la entropía de las             ║
+║           violaciones.                                                                   ║
+║           [Retorna: LatticeProjectionData → objeto inicial de Fase 2]                    ║
+║                                                                                          ║
+║  Fase 2 → Phase2_EulerCharacteristicCohomologyAuditor                                    ║
+║           Certifica la consistencia lógica del haz de reglas vía Teoría de Hodge.        ║
+║           [Retorna: CohomologicalOntologyData → objeto inicial de Fase 3]                ║
+║                                                                                          ║
+║  Fase 3 → Phase3_SpectralToposPolicyFunctor                                              ║
+║           Verifica el isomorfismo de pullback y el axioma de pegado de haces             ║
+║           (gluing axiom).                                                                ║
+║           [Retorna: ToposPolicyPullbackData → objeto final del endofuntor]               ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

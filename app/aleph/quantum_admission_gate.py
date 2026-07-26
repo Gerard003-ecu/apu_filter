@@ -1,188 +1,67 @@
 # -*- coding: utf-8 -*-
-"""
-═════════════════════════════════════════════════════════════════════════════
-MÓDULO: Quantum Admission Gate (Operador de Proyección de Hilbert)
-VERSIÓN: 3.0.0 - Refactorización Rigurosa
-UBICACIÓN: app/aleph/quantum_admission_gate.py
-═════════════════════════════════════════════════════════════════════════════
-
-FUNDAMENTOS MATEMÁTICOS:
-
-§1. ESPACIO DE HILBERT COMPLEJO SEPARABLE
-    ℋ := L²(ℝ, ℂ) con producto interno hermítico
-    ⟨ψ|φ⟩ = ∫_ℝ ψ*(x)φ(x)dx
-    
-    Base Ortonormal: {|n⟩}_{n∈ℕ} con:
-        ⟨m|n⟩ = δₘₙ (ortogonalidad)
-        Σₙ |n⟩⟨n| = 𝟙 (completitud - resolución de identidad)
-        ||ψ|| = √⟨ψ|ψ⟩ < ∞ (cuadrado integrable)
-
-§2. OPERADOR HERMÍTICO DE MEDICIÓN
-    Ĥ: ℋ → ℋ, Ĥ† = Ĥ (autoadjunto)
-    
-    Espectro Discreto: σ(Ĥ) = {λₙ}_{n∈ℕ} ⊂ ℝ
-    Ecuación de autovalores: Ĥ|n⟩ = λₙ|n⟩
-    
-    Teorema Espectral:
-        Ĥ = Σₙ λₙ |n⟩⟨n| (descomposición espectral)
-
-§3. REGLA DE BORN (Proyección Probabilística)
-    Dado |ψ⟩ ∈ ℋ normalizado (⟨ψ|ψ⟩ = 1):
-    
-    P(λₙ) = |⟨n|ψ⟩|² (probabilidad de medir λₙ)
-    
-    Conservación: Σₙ P(λₙ) = Σₙ |⟨n|ψ⟩|² = ⟨ψ|ψ⟩ = 1
-
-§4. FIBRADO PRINCIPAL Y ACOPLAMIENTO GAUGE
-    Estructura: π: P → M
-        P: espacio total (fibrado principal)
-        M: variedad base (espacio de configuración)
-        G = U(1): grupo estructural (simetría gauge)
-    
-    Conexión: A ∈ Ω¹(P, 𝔤) donde 𝔤 = Lie(U(1)) ≅ iℝ
-    Curvatura: F = dA + ½[A,A] (2-forma)
-    
-    Función de trabajo como sección:
-        Φ: M → ℝ₊ invariante bajo transformaciones gauge locales
-
-§5. APROXIMACIÓN WKB (Wentzel-Kramers-Brillouin)
-    Ansatz semiclásico: ψ(x) = A(x)exp(iS(x)/ℏ)
-    
-    Condiciones de validez:
-        |ℏ d²V/dx²| / |dV/dx|² ≪ 1 (variación suave)
-        E < V₀ (régimen de túnel)
-        λ_dB ≪ L_barrier (longitud de onda « ancho de barrera)
-    
-    Probabilidad de transmisión:
-        T ≈ exp(-2γ) donde γ = (1/ℏ)∫ₐᵇ √[2m(V(x)-E)]dx
-        
-    Coeficiente de Gamow: γ > 0
-
-§6. TEORÍA DE CATEGORÍAS - ESTRUCTURA FUNCTORIAL
-    Categoría 𝒞_Ext (Payloads Externos):
-        Ob(𝒞_Ext): conjuntos de mappings
-        Mor(𝒞_Ext): funciones de transformación
-    
-    Categoría 𝒞_Phys (Estados Físicos):
-        Ob(𝒞_Phys): espacios de Hilbert
-        Mor(𝒞_Phys): operadores lineales acotados
-    
-    Funtor F: 𝒞_Ext → 𝒞_Phys
-        F(payload) = |ψ⟩ ∈ ℋ
-        F(g ∘ f) = F(g) ∘ F(f) (preserva composición)
-        F(id) = id (preserva identidades)
-
-§7. TOPOLOGÍA ALGEBRAICA - COHOMOLOGÍA DE SHEAVES
-    Haz estructural: ℱ → X (prehaz con condición de pegado)
-    
-    Grupos de cohomología: Hⁿ(X, ℱ)
-    Frustración ⟺ H¹(X, ℱ) ≠ 0 (obstrucción al levantamiento global)
-    
-    Energía de frustración:
-        E_frust = ∫_X ||δω||² donde δ: Cⁿ → Cⁿ⁺¹ (operador coborde)
-
-§8. TEORÍA DE GRAFOS - DAG COMPUTACIONAL
-    G = (V, E) donde:
-        V: nodos de cómputo (operadores)
-        E ⊆ V × V: dependencias dirigidas
-    
-    Propiedades garantizadas:
-        - Acíclico: no existen ciclos (previene deadlock)
-        - Conexo: existe camino desde inputs a outputs
-        - Topológicamente ordenado: ∃ ordenamiento lineal v₁,...,vₙ
-          tal que (vᵢ, vⱼ) ∈ E ⟹ i < j
-
-§9. ÁLGEBRA DE BOOLE Y LÓGICA CUÁNTICA
-    Retícula de proyectores: (𝒫(ℋ), ∧, ∨, ⊥, 0, 𝟙)
-    
-    NO distributiva (diferencia clave con Boole clásica):
-        P ∧ (Q ∨ R) ≠ (P ∧ Q) ∨ (P ∧ R) en general
-    
-    Complemento ortonormal: P⊥ tal que P + P⊥ = 𝟙, PP⊥ = 0
-
-§10. TEOREMA DE NO-CLONACIÓN
-    NO existe U: ℋ ⊗ ℋ → ℋ ⊗ ℋ unitario tal que:
-        U(|ψ⟩ ⊗ |0⟩) = |ψ⟩ ⊗ |ψ⟩ ∀|ψ⟩
-    
-    Implementación: dataclass frozen + eliminación de __copy__/__deepcopy__
-
-═════════════════════════════════════════════════════════════════════════════
-ARQUITECTURA DE GRAFOS - DAG DE DEPENDENCIAS:
-
-    ┌─────────────────────────────────────────────────────────────┐
-    │                        Payload (Input)                       │
-    └───────────────┬──────────────────────┬──────────────────────┘
-                    │                      │
-                    ▼                      ▼
-    ┌───────────────────────┐  ┌──────────────────────────┐
-    │ PayloadSerializer     │  │ SheafOrchestrator        │
-    │ • serialize()         │  │ • get_frustration_energy │
-    │ • deterministic_hash()│  └──────────┬───────────────┘
-    └───────┬───────────────┘             │
-            │                             ▼
-            │                  ┌──────────────────────┐
-            │                  │ CohomologicalVeto    │
-            │                  │ • evaluate()         │
-            │                  └──────────┬───────────┘
-            │                             │
-            ▼                             │
-    ┌─────────────────────┐              │
-    │ EntropyCalculator   │              │
-    │ • shannon_entropy() │              │
-    └─────────┬───────────┘              │
-              │                          │
-              ▼                          │
-    ┌─────────────────────────┐         │
-    │ IncidentEnergyCalc      │         │
-    │ • calculate_energy()    │         │
-    └─────────┬───────────────┘         │
-              │                          │
-              ├──────────────────────────┴──────────────┐
-              │                                         │
-              ▼                                         ▼
-    ┌──────────────────────┐              ┌─────────────────────────┐
-    │ TopologicalWatcher   │              │ LaplaceOracle           │
-    │ • get_threat()       │              │ • get_dominant_pole()   │
-    └──────────┬───────────┘              └───────────┬─────────────┘
-               │                                      │
-               ▼                                      ▼
-    ┌──────────────────────┐              ┌─────────────────────────┐
-    │ WorkFunctionMod      │              │ EffectiveMassModulator  │
-    │ • calculate_Phi()    │              │ • calculate_m_eff()     │
-    └──────────┬───────────┘              └───────────┬─────────────┘
-               │                                      │
-               └──────────────┬───────────────────────┘
-                              │
-                              ▼
-                   ┌──────────────────────┐
-                   │ WKBCalculator        │
-                   │ • compute_T()        │
-                   └──────────┬───────────┘
-                              │
-                              ├─────────────────────┐
-                              │                     │
-                              ▼                     ▼
-                   ┌──────────────────┐  ┌─────────────────────┐
-                   │ ThresholdGen     │  │ WaveCollapse        │
-                   │ • generate_θ()   │  │ • project_state()   │
-                   └────────┬─────────┘  └──────────┬──────────┘
-                            │                       │
-                            └───────────┬───────────┘
-                                        │
-                                        ▼
-                            ┌──────────────────────────┐
-                            │ QuantumMeasurement       │
-                            │ (Resultado Inmutable)    │
-                            └──────────────────────────┘
-
-    Propiedades del DAG:
-    • Acíclico: ✓ (orden parcial bien definido)
-    • Altura: 7 niveles (profundidad de pipeline)
-    • Ancho máximo: 3 nodos paralelos (WKB inputs)
-    • Complejidad temporal: O(n) en tamaño de payload
-    • Complejidad espacial: O(1) (sin recursión)
-
-═════════════════════════════════════════════════════════════════════════════
+r"""
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Quantum Admission Gate (Operador de Proyección de Hilbert)                     ║
+║  Ruta   : app/aleph/quantum_admission_gate.py                                            ║
+║  Versión: 4.0.0-WKB-Born-Categorical-Gauge-Strict                                        ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y MECÁNICA CUÁNTICA (Rigor Doctoral):                           ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra la Aduana Cuántica del Estrato ALEPH ($\aleph_0$). Abandona    ║
+║  la validación estática de payloads (JSON/REST) para tratar cada solicitud como una      ║
+║  función de onda $\psi \in \mathcal{H}$ incidente sobre una barrera de potencial         ║
+║  dinámica. Aplica el Operador Hermítico de Medición $\hat{H}$ para colapsar la           ║
+║  superposición estocástica en un estado determinista, salvaguardando la Malla Agéntica   ║
+║  de la entropía divergente y las obstrucciones cohomológicas.                            ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICAS:                                      ║
+║                                                                                          ║
+║  §1. Espacio de Hilbert y Operador Hermítico:                                            ║
+║      El espacio de configuración de entrada se define como un Espacio de Hilbert         ║
+║      separable $\mathcal{H} := L^2(\mathbb{R}, \mathbb{C})$ con producto interno:        ║
+║          $\langle \psi | \phi \rangle = \int_{\mathbb{R}} \psi^*(x) \phi(x) dx$          ║
+║      La medición se ejecuta mediante un operador estrictamente autoadjunto               ║
+║      $\hat{H}^\dagger = \hat{H}$, garantizando autovalores (energías) reales.            ║
+║      La asimetría hermítica detona incondicionalmente un `QuantumStateError`.            ║
+║                                                                                          ║
+║  §2. Aproximación WKB y Barrera de Potencial:                                            ║
+║      La probabilidad de que un payload atraviese la aduana sin ser reflejado se evalúa   ║
+║      mediante el Ansatz semiclásico de Wentzel-Kramers-Brillouin:                        ║
+║          $\psi(x) = A(x) \exp\left( \frac{i}{\hbar} S(x) \right)$                        ║
+║      Si la energía incidente $E = h\nu$ es inferior a la función de trabajo $\Phi$, la   ║
+║      penetración depende del tunelamiento cuántico. Violaciones del régimen semiclásico  ║
+║      lanzan un `WKBValidityError`.                                                       ║
+║                                                                                          ║
+║  §3. Regla de Born y Colapso Determinista:                                               ║
+║      El sistema proyecta el estado incidente sobre una base ortonormal de autoestados    ║
+║      admisibles $\{|\phi_i\rangle\}$. La probabilidad de colapso obedece:                ║
+║          $P(\lambda_i) = |\langle \phi_i | \psi \rangle|^2$                              ║
+║      Cualquier umbral de colapso fallido precipita el rechazo de la inyección de datos.  ║
+║                                                                                          ║
+║  §4. Fibrado Principal, Holonomía y Acoplamiento Gauge:                                  ║
+║      El control de admisión opera sobre un fibrado principal $\pi: P \to M$ con grupo    ║
+║      estructural $G = U(1)$. Si el `ISheafCohomologyOrchestrator` detecta una frustración║
+║      topológica global en la variedad base $M$, el sistema ejecuta un veto inquebrantable║
+║      levantando el `CohomologicalVetoError`.                                             ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Modulación de Energía y Masa Efectiva:                                         ║
+║           El `IncidentEnergyCalculator` y `EffectiveMassModulator` extraen la entropía   ║
+║           de Shannon y cuantifican la inercia del payload entrante frente a la barrera.  ║
+║           [Retorna: Parámetros Ciber-Físicos Iniciales]                                  ║
+║                                                                                          ║
+║  Fase 2 → Análisis Semiclásico WKB:                                                      ║
+║           El `WKBCalculator` y el oráculo `ILaplaceOracle` computan la amplitud de       ║
+║           transición y la atenuación del paquete de onda a través del potencial $\Phi$.  ║
+║           [Retorna: WKBParameters → Puente a Fase 3]                                     ║
+║                                                                                          ║
+║  Fase 3 → Proyección de Hilbert y Veto Cohomológico:                                     ║
+║           La clase `QuantumAdmissionGate` ejecuta la medición final (Regla de Born) y    ║
+║           consulta al `ISheafCohomologyOrchestrator`.                                    ║
+║           [Retorna: QuantumMeasurement → Objeto final, colapso de la función de onda]    ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

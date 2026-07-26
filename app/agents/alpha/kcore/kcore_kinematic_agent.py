@@ -1,62 +1,67 @@
 # -*- coding: utf-8 -*-
 r"""
-+==============================================================================+
-| Módulo : KCore Kinematic Agent (Director de Flujo y Cinética Logística)      |
-| Ruta   : app/agents/alpha/kcore/kcore_kinematic_agent.py                     |
-| Versión: 6.0.0-Rigorous-IDA-PBC-Hodge-CFL-Sheaf-Spectral                     |
-+==============================================================================+
-
-NATURALEZA CIBER-FÍSICA Y ESTRUCTURA DE DIRAC
-=============================================
-Este módulo impone el moldeado de energía mediante Control Basado en Pasividad
-(IDA-PBC) con proyección pseudoinversa *covariante* respecto a una métrica
-Riemanniana de estado G_μν ≽ 0. La ley de control es:
-
-    F_req(x) ≜ [J_d − R_d] ∇H_d − [J − R] ∇H
-    α(x)     = (gᵀ G g + λ_reg I_m)⁺ gᵀ G F_req
-
-donde (·)⁺ denota la pseudoinversa de Moore-Penrose truncada por el criterio
-espectral de Golub–Van Loan, y λ_reg ≥ 0 es regularización de Tikhonov
-opcional que garantiza estabilidad cuando rank(g) < m.
-
-VÁLVULA DE HODGE (1-FORMAS PONDERADAS)
-======================================
-El Laplaciano de Hodge-1 ponderado sobre el complejo de cadenas del grafo
-logístico es:
-
-    L₁ᵂ = ∂₁ᵀ W⁻¹ ∂₁ + ∂₂ W ∂₂ᵀ
-
-La vorticidad parásita se cuantifica por la norma de energía en 1-cochains:
-
-    ‖I_curl‖_W ≜ √(I_curlᵀ W I_curl)
-
-y se estrangula espectralmente el soporte de I_curl en W.
-
-LÍMITE CFL (DOBLE COTA: GERSCHGORIN + ESPECTRAL)
-================================================
-    ρ_Gersh  ≜ max_i ( |Δ_ii| + Σ_{j≠i} |Δ_ij| )
-    λ_max    ≜ max Spec(Δ_sym)          (ARPACK / fallback denso)
-    Δt_safe  = 2 · CFL_margin / (c_eff · √max(ρ_Gersh, λ_max, ε_mach))
-
-La cota de Gerschgorin es un majorante barato y siempre computable; el
-autovalor máximo refina la cota cuando ARPACK converge.
-
-IDENTIDAD DE HODGE LOCAL (FASE 3)
-=================================
-    δ_CORE ≜ W_mod^{+1/2}   (raíz espectral / pseudo-raíz)
-    δ_COREᵀ δ_CORE ≡ W_mod  (error relativo O(ε_mach))
-
-ESTRUCTURA DE FASES ANIDADAS (CONTINUIDAD FORMAL)
-=================================================
-    Phase1_MatrixValidation.build_preparation_context()
-        →  KinematicPreparationContext
-    Phase2_KinematicSynthesis.__init__(context) / .synthesize()
-        →  KinematicStateTensor  (campo hodge_conductance = W_mod)
-    Phase3_SheafProjection.__init__(W_mod) / .export_stalk()
-        →  SheafStalk
-
-Cada frontera de fase es un DTO inmutable (frozen dataclass) que constituye
-el único contrato de interfaz entre estratos.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : KCore Kinematic Agent (Director de Flujo y Cinética Logística)                 ║
+║  Ruta   : app/agents/alpha/kcore/kcore_kinematic_agent.py                                ║
+║  Versión: 6.0.0-Rigorous-IDA-PBC-Hodge-CFL-Sheaf-Spectral                                ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CONTROL NO LINEAL (Rigor Doctoral):                 ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, denotado como $\mathcal{Z}_{KCORE}$, consagra la Maquinaria            ║
+║  Cinemática del Estrato $\alpha$. Transmuta la energía potencial almacenada en el        ║
+║  foso ($K_{BASE}$) hacia trabajo cinético direccional, gobernando las Actividades        ║
+║  Clave y Canales logísticos [1]. Emplea un control IDA-PBC con una proyección           ║
+║  pseudoinversa covariante sobre el tensor métrico Riemanniano $G_{\mu\nu} \succeq 0$     ║
+║  [2], aniquilando la vorticidad parasitaria y garantizando la estabilidad asintótica   ║
+║  bajo el límite estricto de Courant-Friedrichs-Lewy (CFL).                               ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CINEMÁTICAS:                                    ║
+║                                                                                          ║
+║  §1. Estructura de Dirac y Energy Shaping Covariante (IDA-PBC):                          ║
+║      El agente resuelve la Ecuación de Matching para esculpir el Hamiltoniano:           ║
+║          $[J_d(x) - R_d(x)] \nabla H_d(x) = [J(x) - R(x)] \nabla H(x) + g(x) \alpha(x)$  ║
+║      Extrayendo la ley de control $\alpha(x)$ mediante la proyección de Moore-Penrose    ║
+║      covariante frente al tensor métrico de fondo $G_{\mu\nu}$:                          ║
+║          $\alpha(x) = (g^\top G_{\mu\nu} g)^{-1} g^\top G_{\mu\nu} ([J_d - R_d] \nabla H_d - [J - R] \nabla H)$ ║
+║      Desviaciones en el matching exacto detonan un `DiracMatchingError` [3, 4].       ║
+║                                                                                          ║
+║  §2. Estrangulación de Vorticidad Parasitaria (Teoría de Hodge):                         ║
+║      El flujo logístico debe operar sin crear sumideros rotacionales espurios.           ║
+║      Se cuantifica la vorticidad solenoidal en el grafo del proyecto:                    ║
+║          $\| I_{curl} \|_W^2 = I_{curl}^\top W I_{curl} \le \varepsilon_{crit}$          ║
+║      Un exceso de flujo rotacional no físico levanta el veto absoluto                    ║
+║      `ParasiticVorticityError` [4].                                                    ║
+║                                                                                          ║
+║  §3. Acoplamiento de Impedancia (Kramers-Kronig):                                        ║
+║      Se sintonizan tensores espectrales para prevenir la reflexión de información:       ║
+║          $Z_{load} = \sqrt{\mu_{eff} \cdot \epsilon_{eff}^{-1}}$                         ║
+║      La falla de positividad semidefinida (SPD) detona `ImpedanceReflectionError` [4]. ║
+║                                                                                          ║
+║  §4. Límite de Courant-Friedrichs-Lewy (CFL) y Cota de Gerschgorin:                      ║
+║      Para preservar la causalidad del cono de luz en la red de valor, el                 ║
+║      diferencial temporal $\Delta t$ es estrictamente acotado por:                       ║
+║          $\Delta t \le \frac{2 \cdot \text{CFL}_{margin}}{c_{eff} \cdot \sqrt{\lambda_{\max}(\Delta_{sym})}}$ ║
+║      Donde $\lambda_{\max}(\Delta_{sym})$ se estima vía el teorema de Gerschgorin o      ║
+║      iteración de Lanczos (ARPACK). Violaciones originan `CFLViolationError` [5, 6]. ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_MatrixValidation                                                        ║
+║           Valida la simetría y semidefinición positiva del tensor $G_{\mu\nu}$, la masa  ║
+║           y la impedancia. Extrae invariantes matriciales sin degeneración.              ║
+║           [Retorna: KinematicPreparationContext → puente inicial de Fase 2] [7]        ║
+║                                                                                          ║
+║  Fase 2 → Phase2_IDAPBC_Synthesis_and_Vorticity                                          ║
+║           Resuelve el matching de Dirac, aplica el control covariante $\alpha(x)$        ║
+║           y estrangula el espectro solenoidal parasitario.                               ║
+║           [Retorna: KinematicStateTensor → puente inicial de Fase 3] [7]               ║
+║                                                                                          ║
+║  Fase 3 → Phase3_CFLGovernor_and_SheafFibration                                          ║
+║           Garantiza el límite CFL de paso de tiempo y exporta la fibra celular           ║
+║           satisfaciendo la Identidad de Hodge Local $\delta_{CORE}^\top \delta_{CORE}$.  ║
+║           [Retorna: SheafStalk → objeto final del endofuntor] [7]                      ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

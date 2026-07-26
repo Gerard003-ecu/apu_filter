@@ -1,86 +1,61 @@
 # -*- coding: utf-8 -*-
 r"""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Dirac Interconnection Agent                                         ║
-║  Ruta   : app/agents/physics/dirac_interconnection_agent.py                   ║
-║  Versión: 3.0.0-IDA-PBC-CFL-Governor-Categorical-Spectral                     ║
-╠═══════════════════════════════════════════════════════════════════════════════╣
-║                                                                               ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CONTROL NO LINEAL                        ║
-║  ──────────────────────────────────────────────────────────────────────────   ║
-║  Este módulo consagra la aduana termodinámica entre el estrato TACTICS        ║
-║  (apu_agent.py) y el estrato PHYSICS (flux_condenser.py). Funciona como un    ║
-║  "Demonio de Maxwell" categórico que esculpe el Hamiltoniano del sistema en   ║
-║  ciclo cerrado para garantizar la estabilidad asintótica global.              ║
-║                                                                               ║
-║  AXIOMAS DE EJECUCIÓN                                                         ║
-║  ──────────────────────────────────────────────────────────────────────────   ║
-║  §1. ESTRUCTURA DE DIRAC Y ENERGY SHAPING (IDA-PBC)                           ║
-║      Resuelve la Ecuación de Matching para encontrar α(x):                    ║
-║                                                                               ║
-║        [J_d(x) − R_d(x)] ∇H_d(x) = [J(x) − R(x)] ∇H(x) + g(x) α(x)            ║
-║                                                                               ║
-║      La ley de control α se extrae por pseudoinversa de Moore-Penrose con     ║
-║      verificación SVD del rango de g y test de Lyapunov certificado:          ║
-║        Ḣ_d = −∇H_d^T R_d ∇H_d ≤ 0                                             ║
-║                                                                               ║
-║      MEJORA v3: El rango de g se audita mediante descomposición SVD exacta    ║
-║      con umbral adaptativo σ_tol = tol · σ_max. La pseudoinversa se calcula   ║
-║      vía la descomposición SVD truncada para evitar amplificación de ruido.   ║
-║      El residuo de matching se verifica tanto en norma absoluta como relativa ║
-║      respecto al forzamiento requerido.                                       ║
-║                                                                               ║
-║  §2. SINTONIZACIÓN DINÁMICA DE IMPEDANCIA (PML)                               ║
-║      Aniquila el coeficiente de reflexión Γ sintonizando los tensores         ║
-║      ε_eff, μ_eff con restricción de Kramers-Kronig completa:                 ║
-║                                                                               ║
-║        Z_0 = √(μ_eff · ε_eff⁻¹) ≡ Z_load                                      ║
-║        Γ = (Z_load − Z_0) / (Z_load + Z_0) = 0                                ║
-║                                                                               ║
-║      MEJORA v3: Los tensores ε y μ son matrices simétricas definidas          ║
-║      positivas (no solo diagonales). La verificación Kramers-Kronig comprueba ║
-║      positividad espectral completa. Canales inactivos (Z = ∞) son            ║
-║      representados explícitamente con ε = 0 y velocidad = 0.                  ║
-║                                                                               ║
-║  §3. GOBERNANZA DEL LÍMITE DE COURANT-FRIEDRICHS-LEWY (CFL)                   ║
-║      Audita el Laplaciano del grafo y restringe Δt:                           ║
-║                                                                               ║
-║        Δt ≤ (2 · CFL_margin) / (c_eff · √λ_max(Δ_sym))                        ║
-║                                                                               ║
-║      donde Δ_sym = ½(Δ + Δ^T) es la parte simétrica del Laplaciano.           ║
-║                                                                               ║
-║      MEJORA v3: El estimador espectral implementa tres niveles de fallback:   ║
-║      (1) Lanczos con ARPACK, (2) potencia iterada con deflación Gram-Schmidt, ║
-║      (3) cota de Gerschgorin con factor geométrico exacto. El número CFL se   ║
-║      registra en el diagnóstico con su método de estimación.                  ║
-║                                                                               ║
-║  CADENA CATEGÓRICA (morfismos entre fases)                                    ║
-║  ──────────────────────────────────────────────────────────────────────────   ║
-║  Las tres fases forman una cadena de morfismos en la categoría de             ║
-║  espacios de Hilbert con estructura Port-Hamiltoniana:                        ║
-║                                                                               ║
-║    Phase1.compute_control_law()              → ControlSolution                ║
-║    Phase1.compute_effective_load_impedance() → Z_eff ∈ ℝ^m ∪ {∞}              ║
-║    ─────────────────────────────────────────── (costura Fase 1 → Fase 2)      ║
-║    Phase2.tune_dielectric_tensors()          → ImpedanceTensor                ║
-║    Phase2.compute_effective_wave_speed()     → c_eff ∈ ℝ₊                     ║
-║    ─────────────────────────────────────────── (costura Fase 2 → Fase 3)      ║ 
-║    Phase3.audit_time_step()                  → dt_safe ∈ ℝ₊                   ║
-║    Phase3.cfl_diagnostic()                   → Dict diagnóstico               ║
-║                                                                               ║
-║  MEJORAS GLOBALES v3.0                                                        ║
-║  ──────────────────────────────────────────────────────────────────────────   ║
-║  • SVD truncada con umbral adaptativo para pseudoinversa de Moore-Penrose.    ║
-║  • Verificación Kramers-Kronig mediante análisis espectral completo de ε, μ.  ║
-║  • Laplaciano asimétrico: simetrización exacta con norma de asimetría.        ║
-║  • Lyapunov verificado en trayectorias completas (no solo en un punto).       ║
-║  • Cálculo de Z_eff con análisis de canales inactivos y diagnóstico por canal.║
-║  • Estimador espectral CFL con tres niveles de fallback y cota Gerschgorin    ║
-║    mejorada mediante factor de estructura del grafo.                          ║
-║  • Docstrings LaTeX rigurosos con referencias a definiciones formales.        ║
-║  • Fases anidadas: el último método de cada fase es la costura al inicio      ║
-║    formal de la siguiente.                                                    ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Dirac Interconnection Agent (Demonio de Maxwell y Gobernador IDA-PBC)          ║
+║  Ruta   : app/agents/physics/dirac_interconnection_agent.py                              ║
+║  Versión: 3.0.0-IDA-PBC-CFL-Governor-Categorical-Spectral                                ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CONTROL NO LINEAL (Rigor Doctoral):                 ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra la aduana termodinámica entre el estrato TACTICS               ║
+║  y el estrato PHYSICS. Actúa como un "Demonio de Maxwell" categórico que                 ║
+║  esculpe el Hamiltoniano del sistema en ciclo cerrado, aplicando transformaciones        ║
+║  geométricas sobre el espacio Port-Hamiltoniano para garantizar axiomáticamente          ║
+║  la estabilidad asintótica global.                                                       ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES DE CONTROL:                                     ║
+║                                                                                          ║
+║  §1. Estructura de Dirac y Energy Shaping (IDA-PBC):                                     ║
+║      Modela el flujo mediante Control Basado en Interconexión y Asignación de            ║
+║      Amortiguamiento. Resuelve la Ecuación de Matching para extraer la ley de            ║
+║      control $\alpha(x)$ mediante la pseudoinversa de Moore-Penrose truncada:            ║
+║          $[J_d(x) - R_d(x)] \nabla H_d(x) = [J(x) - R(x)] \nabla H(x) + g(x) \alpha(x)$  ║
+║      Garantizando el decaimiento energético vía el test de Lyapunov certificado:         ║
+║          $\dot{H}_d = -\nabla H_d^\top R_d \nabla H_d \le 0$                             ║
+║      El incumplimiento del matching dispara el veto absoluto `DiracMatchingError`.       ║
+║                                                                                          ║
+║  §2. Sintonización Dinámica de Impedancia (Kramers-Kronig):                              ║
+║      Aniquila el coeficiente de reflexión $\Gamma$ sintonizando los tensores dieléctricos║
+║      y magnéticos efectivos ($\varepsilon_{\text{eff}}, \mu_{\text{eff}} \succ 0$)       ║
+║      para evitar la reflexión térmica de información:                                    ║
+║          $Z_{\text{load}} = \sqrt{\mu_{\text{eff}} \cdot \varepsilon_{\text{eff}}^{-1}} \equiv Z_0$ ║
+║          $\Gamma = \frac{Z_{\text{load}} - Z_0}{Z_{\text{load}} + Z_0} = 0$              ║
+║      Su divergencia detona un `ImpedanceMismatchError`.                                  ║
+║                                                                                          ║
+║  §3. Gobernanza del Límite de Courant-Friedrichs-Lewy (CFL):                             ║
+║      Preserva el cono de luz causal del grafo computacional acotando el                  ║
+║      diferencial de integración $\Delta t$. Audita el Laplaciano simetrizado             ║
+║      $\Delta_{\text{sym}} = \frac{1}{2}(\Delta + \Delta^\top)$:                          ║
+║          $\Delta t \le \frac{2 \cdot \text{CFL}_{\text{margin}}}{c_{\text{eff}} \cdot \sqrt{\lambda_{\max}(\Delta_{\text{sym}})}}$ ║
+║      La ruptura temporal de la causalidad detona el `CFLViolationError`.                 ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_IDAPBC_Solver                                                           ║
+║           Resuelve el matching de Dirac, extrae $\alpha(x)$ y certifica Lyapunov.        ║
+║           [Retorna: ControlSolution e Impedancia $Z_{\text{eff}}$ → dominio de Fase 2]   ║
+║                                                                                          ║
+║  Fase 2 → Phase2_ImpedanceTuner                                                          ║
+║           Sintoniza los tensores $\varepsilon_{\text{eff}}$ y $\mu_{\text{eff}}$,        ║
+║           verificando espectralmente el acoplamiento Kramers-Kronig.                     ║
+║           [Retorna: ImpedanceTensor y $c_{\text{eff}}$ → dominio de Fase 3]              ║
+║                                                                                          ║
+║  Fase 3 → Phase3_CFLGovernor                                                             ║
+║           Estima $\lambda_{\max}(\Delta_{\text{sym}})$ y veta pasos de integración       ║
+║           que violen el cono de luz causal (Estabilidad Asintótica Numérica).            ║
+║           [Retorna: InterconnectionState → objeto final inyectable en flux_condenser]    ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

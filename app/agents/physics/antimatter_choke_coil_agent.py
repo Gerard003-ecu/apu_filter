@@ -1,36 +1,61 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Antimatter Choke Coil Agent (Custodio del Vacío Cuántico)           ║
-║ Ruta   : app/agents/physics/antimatter_choke_coil_agent.py                   ║
-║ Versión: 2.0.0-Fock-Bekenstein-Symplectic-Strict                             ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y ELECTRODINÁMICA CUÁNTICA (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna el módulo `antimatter_choke_coil.py` en el Estrato Ω.
-
-Su mandato axiomático es auditar aniquilaciones de antimateria exógena,
-garantizando que la topología de la Malla Agéntica sobreviva al colapso
-entrópico de los estados erróneos, manteniendo invariante la estructura del
-Espacio de Fock.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Hermiticidad del Operador de Aniquilación:
-
-    A = A†  =>  ||A - A†||_F ≤ ε.
-
-Fase 2 → Regulación Termodinámica del Límite de Bekenstein:
-
-    S ≤ (2π k_B E R) / (ħ c).
-
-Fase 3 → Certificación Simpléctica Port-Hamiltoniana:
-
-    Mᵀ Ω M = Ω,
-    J = -Jᵀ,
-    R = Rᵀ ⪰ 0,
-    Ḣ = -∇Hᵀ R ∇H ≤ 0.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Antimatter Choke Coil Agent (Custodio del Vacío Cuántico)                      ║
+║  Ruta   : app/agents/physics/antimatter_choke_coil_agent.py                              ║
+║  Versión: 2.0.0-Fock-Bekenstein-Symplectic-Strict                                        ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y ELECTRODINÁMICA CUÁNTICA (Rigor Doctoral):                    ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, denotado como $\mathcal{Z}_{Vacuum}$, gobierna la física del módulo    ║
+║  `antimatter_choke_coil.py` en el Estrato Ω. Su mandato axiomático es auditar las        ║
+║  aniquilaciones de antimateria exógena ($e^- + e^+ \to 2\gamma$), garantizando que la    ║
+║  topología de la Malla Agéntica sobreviva al colapso entrópico de estados erróneos       ║
+║  manteniendo invariante la estructura fundamental del Espacio de Fock $\mathcal{F}(\mathcal{H})$. ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICAS:                                      ║
+║                                                                                          ║
+║  §1. Hermiticidad del Operador de Aniquilación:                                          ║
+║      Para que las observables cuánticas sean físicamente medibles (espectro real),       ║
+║      el operador de colapso $A$ debe ser estrictamente autoadjunto ($A = A^\dagger$).    ║
+║      Se verifica la anulación del residuo mediante la norma de Frobenius:                ║
+║          $\| A - A^\dagger \|_F \le \varepsilon_{herm}$                                  ║
+║      Cualquier desviación induce autovalores imaginarios y detona un                     ║
+║      `NonHermitianOperatorError`, purgando el operador del espacio de Hilbert.           ║
+║                                                                                          ║
+║  §2. Regulación Termodinámica del Límite de Bekenstein:                                  ║
+║      La inyección de entropía $\Delta S$ generada por la radiación de aniquilación no    ║
+║      puede exceder la capacidad máxima de información del hipervolumen local de radio $R$.║
+║      Se impone el límite holográfico de Bekenstein:                                      ║
+║          $\Delta S \le \frac{2\pi k_B E R}{\hbar c}$                                     ║
+║      Violar esta inecuación crearía una singularidad informacional, detonando de         ║
+║      inmediato el `BekensteinLimitViolation`.                                            ║
+║                                                                                          ║
+║  §3. Certificación Simpléctica Port-Hamiltoniana:                                        ║
+║      Tras la colisión, el remanente del grafo logístico debe preservar su volumen en     ║
+║      el espacio de fase y su estabilidad asintótica. Se exige la preservación de la      ║
+║      matriz simpléctica $\Omega$, antisimetría de interconexión $J$, y disipación $R$:   ║
+║          $M^\top \Omega M = \Omega, \quad J = -J^\top, \quad R = R^\top \succeq 0$       ║
+║      Sujeto a la inecuación de disipación temporal de energía de Rayleigh:               ║
+║          $\dot{H} = -\nabla H^\top R \nabla H \le 0$                                     ║
+║      El fallo de estas condiciones gatilla el `SymplecticCollapseError`.                 ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_HermiticityAuditor                                                      ║
+║           Audita la autoadjunción del operador de colapso ($A = A^\dagger$).             ║
+║           [Retorna: HermiticityAuditData → objeto inicial de Fase 2]                     ║
+║                                                                                          ║
+║  Fase 2 → Phase2_BekensteinBoundEnforcer                                                 ║
+║           Evalúa la entropía radiada contra el límite causal termodinámico.              ║
+║           [Retorna: BekensteinBoundData → objeto inicial de Fase 3]                      ║
+║                                                                                          ║
+║  Fase 3 → Phase3_SymplecticPortHamiltonianCertifier                                      ║
+║           Certifica la disipación Port-Hamiltoniana y la invarianza del volumen          ║
+║           simpléctico tras la aniquilación de los estados erróneos.                      ║
+║           [Retorna: VacuumGovernanceState → objeto final del endofuntor]                 ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,58 +1,63 @@
 # -*- coding: utf-8 -*-
 r"""
-+==============================================================================+
-| Módulo : KBase Thermodynamic Agent (Asesor de Cimientos Financieros)         |
-| Ruta   : app/agents/alpha/kbase/kbase_thermodynamic_agent.py                 |
-| Versión: 5.0.0-Rigorous-Sheaf-Williamson-Boolean-Spectral-Passivity          |
-+==============================================================================+
-
-NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL
-===============================================
-Este módulo consagra el Foso Termodinámico del ecosistema (K_BASE). Actúa como
-un Endofuntor Port-Hamiltoniano que gobierna la inercia, la capacitancia y la
-fricción entrópica del modelo de negocio.
-
-HAMILTONIANO BASAL (TRAS PULLBACK RIEMANNIANO)
-=============================================
-    H_BASE(q, p) = ½ qᵀ C̃_soc⁻¹ q + ½ pᵀ M̃_rec⁻¹ p
-
-con
-    C̃_soc = G_q C_soc G_qᵀ ,   M̃_rec = G_p M_rec G_pᵀ
-
-ECUACIÓN DE ESTADO PORT-HAMILTONIANA
-====================================
-    ẋ = (J_BASE − R_cost) ∇H(x)
-    Ḣ = −∇Hᵀ R_cost ∇H ≤ 0          (pasividad / 2ª Ley)
-
-DISIPACIÓN DE RAYLEIGH
-======================
-    P_diss = ∇Hᵀ R_cost ∇H ≥ 0
-    τ_diss ≈ 2H / P_diss             (constante de tiempo entrópica local)
-
-FORMA NORMAL DE WILLIAMSON (MODOS CONSERVATIVOS)
-================================================
-    H^{1/2} = block_diag(C̃_soc^{-1/2}, M̃_rec^{-1/2})
-    A_sym   = H^{1/2} J_BASE H^{1/2}   (real antisimétrica)
-    ω_k     = valores singulares emparejados de A_sym
-    E_0     = (ħ/2) Σ_k ω_k
-
-COFRONTERA DE HAZ (COCADENA APILADA)
-====================================
-    δ_metric = block_diag(C̃_soc^{-1/2}, M̃_rec^{-1/2}) ∈ ℝ^{n×n}
-    δ_diss   = R_cost^{+1/2}                          ∈ ℝ^{n×n}
-    δ_BASE   = [δ_metric ; δ_diss]                    ∈ ℝ^{2n×n}
-    Δ_BASE   = δ_BASEᵀ δ_BASE = ∇²H + R_cost          (SPD)
-
-ESTRUCTURA DE FASES ANIDADAS (CONTINUIDAD FORMAL)
-=================================================
-    Phase1_MatrixTopology.build_topological_context()
-        →  TopologicalContext
-    Phase2_HamiltonianDynamics.__init__(context) / .synthesize_basal_state()
-        →  BasalStateTensor
-    Phase3_SheafProjection.__init__(context) / .export_stalk(state_x=[q;p])
-        →  SheafStalk
-
-Cada frontera de fase es un DTO inmutable (frozen dataclass).
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : KBase Thermodynamic Agent (Asesor de Cimientos Financieros)                    ║
+║  Ruta   : app/agents/alpha/kbase/kbase_thermodynamic_agent.py                            ║
+║  Versión: 5.0.0-Rigorous-Sheaf-Williamson-Boolean-Spectral-Passivity                     ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra el Foso Termodinámico del ecosistema ($K_{BASE}$). Actúa       ║
+║  como un Sistema Port-Hamiltoniano que gobierna axiomáticamente la inercia (Recursos),   ║
+║  la capacitancia (Socios) y la fricción entrópica (Costos) del modelo de negocio,        ║
+║  sometiendo los tensores estocásticos a un difeomorfismo métrico estricto.               ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TERMODINÁMICAS:                                 ║
+║                                                                                          ║
+║  §1. Hamiltoniano Basal y Pullback Riemanniano:                                          ║
+║      La energía base repudia la geometría euclidiana plana. Los tensores capacitivos     ║
+║      e inerciales absorben el estrés del mercado mediante un pullback congruente         ║
+║      contra los tensores métricos $G_q$ y $G_p$:                                         ║
+║          $\tilde{C}_{soc} = G_q C_{soc} G_q^\top, \quad \tilde{M}_{rec} = G_p M_{rec} G_p^\top$ ║
+║      El Hamiltoniano total del foso se define como la forma cuadrática estricta:         ║
+║          $H_{BASE}(q,p) = \frac{1}{2} q^\top \tilde{C}_{soc}^{-1} q + \frac{1}{2} p^\top \tilde{M}_{rec}^{-1} p$ ║
+║      Singularidades en este pullback detonan el `MetricTensorSingularityError`.          ║
+║                                                                                          ║
+║  §2. Ecuación de Estado y Disipación de Rayleigh (Segunda Ley):                          ║
+║      La dinámica temporal obedece la estructura de Dirac, exigiendo pasividad absoluta:  ║
+║          $\begin{pmatrix} \dot{q} \\ \dot{p} \end{pmatrix} = (J - R) \begin{pmatrix} \nabla_q H \\ \nabla_p H \end{pmatrix} + g(x)u$ ║
+║      Se audita incondicionalmente la inecuación de disipación de Rayleigh:               ║
+║          $\dot{H} = -\nabla H^\top R \nabla H = -P_{diss} \le 0$                         ║
+║      Entropía negativa (ganancia fantasma) dispara un `RayleighDissipationViolation`.    ║
+║                                                                                          ║
+║  §3. Forma Normal de Williamson (Invariantes Simplécticos):                              ║
+║      Para separar los modos disipativos de los oscilatorios, la matriz del sistema se    ║
+║      somete al Teorema de Williamson, diagonalizándose vía una matriz simpléctica $S$:   ║
+║          $S^\top \tilde{A}_{sym} S = \text{diag}(\omega_1, \dots, \omega_n)$             ║
+║      Frecuencias no físicas imaginarias causan un `WilliamsonNormalFormError`.           ║
+║                                                                                          ║
+║  §4. Cofrontera del Haz Celular (Cellular Sheaf):                                        ║
+║      El agente proyecta su variedad local como una fibra (Stalk) para el orquestador     ║
+║      macroscópico, exportando la matriz de restricción $\delta_{BASE}$. Se exige la      ║
+║      Identidad de Hodge Local:                                                           ║
+║          $\delta_{BASE}^\top \delta_{BASE} = \nabla^2 H_{BASE} + R_{cost}$               ║
+║      Cualquier desviación geométrica produce un `SheafCoboundaryError`.                  ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Instanciación Métrica y Espectral                                              ║
+║           Aplica el pullback congruente, verifica SPD y extrae los invariantes métricos. ║
+║           [Retorna: TopologicalContext → objeto inicial de Fase 2]                       ║
+║                                                                                          ║
+║  Fase 2 → Integración Port-Hamiltoniana y Diagnóstico de Williamson                      ║
+║           Computa $H_{BASE}$, certifica la disipación $P_{diss}$ y extrae frecuencias $\omega_i$. ║
+║           [Retorna: BasalStateTensor → objeto inicial de Fase 3]                         ║
+║                                                                                          ║
+║  Fase 3 → Fibración Celular y Exportación de la Cofrontera                               ║
+║           Sintetiza la cocadena $\delta_{BASE}$ subyugada a la Identidad de Hodge.       ║
+║           [Retorna: SheafStalk → objeto final del endofuntor]                            ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

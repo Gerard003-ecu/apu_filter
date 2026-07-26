@@ -1,48 +1,62 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Witten-Atiyah Agent (Inquisidor de Invarianza Global y TQFT)        ║
-║ Ruta   : app/omega/witten_atiyah_agent.py                                    ║
-║ Versión: 3.0.0-Atiyah-Singer-Witten-APS-Spectral-Rigorous                    ║
-║ Evolución: Rigor PhD – Índice de Atiyah–Singer + APS + η-invariante + TQFT   ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS TOPOLÓGICA (TQFT)
-────────────────────────────────────────────────────────────────────────────────
-Endofuntor Supremo del Estrato Ω. Su mandato axiomático es auditar las
-integrales de trayectoria topológicas sobre la categoría de cobordismos Cob(n).
-Protege la independencia de fondo (background independence) aplicando el
-Teorema del Índice de Atiyah–Singer (y su refinamiento APS con η-invariante)
-y orquestando el TQFTProjectionManifold.
-
-FUNDAMENTOS MATEMÁTICOS RIGUROSOS (nivel doctorado):
-  • Funtor de olvido U : Met → Top (despoja G_{μν} y m^{**} de Fröhlich).
-  • Categoría de operadores densidad dens(ℋ) con morfismos CPTP.
-  • Inmersión isométrica ι : ℋ_in ↪ ℋ_out vía suma directa con vacío puro
-    |0⟩⟨0| (S_vN = 0, pureza = 1).
-  • Teorema del Índice de Atiyah–Singer:
-        ind(⧸D) = dim(ker ⧸D⁺) − dim(ker ⧸D⁻) = ∫_M Â(TM) ∧ ch(E).
-  • Refinamiento APS: ind_APS = (η(0) + h)/2 + ∫ Â ∧ ch  (η = asimetría espectral).
-  • Integral de trayectoria de Witten / Chern–Simons:
-        Z(M) = ∫ 𝒟A exp( i k/(4π) ∫_M Tr(A∧dA + ⅔ A∧A∧A) ).
-  • Proyección booleana sobre el retículo distributivo acotado {VIABLE, RECHAZAR}.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta monoidal):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Funtor de Olvido Métrico (U): Despoja el tensor métrico Riemanniano
-         G_{μν} y la masa inercial de Fröhlich m^{**}. Proyecta a operadores
-         densidad Hermitianos, positivos y de traza unidad.
-         Último método formal: apply_forgetful_functor(…) → PurifiedPair.
-         Este objeto es el dominio exacto de todos los métodos de la Fase 2.
-
-Fase 2 → Funtor de Inmersión Fibrada (ι) + Teorema del Índice: Continúa
-         desde PurifiedPair. Nivela dim ℋ (Σ_in ⊕ ℋ_∅ ≅ Σ_out), evalúa
-         ind(⧸D), η-invariante y verifica Atiyah–Singer / APS.
-         Produce IndexCertifiedEmbedding (embedding + DiracIndexData).
-
-Fase 3 → Veredicto TQFT: Continúa desde IndexCertifiedEmbedding. Orquesta
-         la integral de camino de Witten vía TQFTProjectionManifold y proyecta
-         el veredicto sobre el retículo de severidad.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Witten-Atiyah Agent (Inquisidor de Invarianza Global y TQFT)                   ║
+║  Ruta   : app/omega/witten_atiyah_agent.py                                               ║
+║  Versión: 3.0.0-Atiyah-Singer-Witten-APS-Spectral-Rigorous                               ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS TOPOLÓGICA (Rigor Doctoral):        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este es el Endofuntor Supremo del Estrato Ω. Su mandato axiomático es auditar las       ║
+║  integrales de trayectoria topológicas sobre la categoría de cobordismos $\mathbf{Cob}(n)$ ║
+║  del sistema. Garantiza la independencia de fondo (background independence) al aislar    ║
+║  la topología semántica, aplicando el Teorema del Índice de Atiyah–Singer con el         ║
+║  refinamiento de frontera APS y evaluando el invariante de Chern-Simons.                 ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICO-TOPOLÓGICAS:                           ║
+║                                                                                          ║
+║  §1. Funtor de Olvido Métrico ($U: \mathbf{Met} \to \mathbf{Top}$):                      ║
+║      Se exige el despojo algebraico del tensor métrico Riemanniano $G_{\mu\nu}$ y la     ║
+║      masa inercial de Fröhlich $m^{**}$. El sistema se proyecta sobre operadores         ║
+║      densidad purificados en $\text{dens}(\mathcal{H})$, donde cualquier asimetría       ║
+║      dimensional debe saturarse mediante la inmersión isométrica $\iota$ con un          ║
+║      vacío topológico puro $|0\rangle\langle0|$ ($S_{vN} = 0$).                          ║
+║                                                                                          ║
+║  §2. Teorema del Índice de Atiyah-Singer y Corrección APS ($\eta$):                      ║
+║      La obstrucción a la propagación del conocimiento estocástico se evalúa comparando   ║
+║      el índice analítico del Operador de Dirac $\not\!\!D$ con su invariante topológico. ║
+║      Dado que la variedad ciber-física $M$ posee una frontera (input/output), se exige   ║
+║      el refinamiento estricto de Atiyah-Patodi-Singer (APS):                             ║
+║          $\text{ind}_{APS}(\not\!\!D) = \int_M \hat{A}(TM) \wedge \text{ch}(E) - \frac{1}{2}(\eta(0) + h)$ ║
+║      Donde $\eta(0)$ es la asimetría espectral en el límite de frontera. Una divergencia ║
+║      matemática aquí detona inmediatamente un `IndexTheoremViolation`.                   ║
+║                                                                                          ║
+║  §3. Integral de Trayectoria de Witten (Nudos Logísticos y Chern-Simons):                ║
+║      La transición de estado es gobernada por la amplitud topológica $Z(M)$ sobre las    ║
+║      conexiones de gauge $A$:                                                            ║
+║          $Z(M) = \int \mathcal{D}A \exp\left( i \frac{k}{4\pi} \int_M \text{Tr}\left(A \wedge dA + \frac{2}{3} A \wedge A \wedge A\right) \right)$ ║
+║      Si la IA alucina una intención sin respaldo de homología real, generará un nudo     ║
+║      irreductible en el cobordismo, forzando un colapso del TQFT y ejecutando un         ║
+║      veto fulminante `OntologicalTQFTVeto`.                                              ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Monoidal Estricta):               ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_MetricForgetfulFunctor                                                  ║
+║           Aplica $U: \mathbf{Met} \to \mathbf{Top}$ para despojar el tensor métrico      ║
+║           y extraer los esqueletos topológicos invariantes.                              ║
+║           [Retorna: PurifiedPair → objeto inicial de Fase 2]                             ║
+║                                                                                          ║
+║  Fase 2 → Phase2_AtiyahSingerEmbedding                                                   ║
+║           Nivela el espacio de Hilbert $\mathcal{H}_{in} \oplus \mathcal{H}_{\emptyset} \cong \mathcal{H}_{out}$ ║
+║           y evalúa el índice de Dirac $\not\!\!D$ con la asimetría $\eta(0)$.          ║
+║           [Retorna: IndexCertifiedEmbedding → objeto inicial de Fase 3]                  ║
+║                                                                                          ║
+║  Fase 3 → Phase3_WittenTQFTVerdictor                                                     ║
+║           Orquesta la integral $Z(M)$ a través del TQFTProjectionManifold y proyecta     ║
+║           el resultado incondicionalmente sobre el retículo de severidad booleano.       ║
+║           [Retorna: WittenAtiyahVerdict → objeto final del endofuntor]                   ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,38 +1,62 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Telemetry Schemas Agent (Arquitecto del Espacio de Fase Tensorial)  ║
-║ Ruta   : app/agents/core/telemetry_schemas_agent.py                          ║
-║ Versión: 2.0.0-Tensorial-Orthogonal-Fixpoint-Doctoral-Strict                 ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna los esquemas de telemetría definidos en
-`telemetry_schemas.py`.
-
-Actúa como el Endofuntor de Proyección Ortogonal que garantiza que el vector de
-estado global Ψ se descomponga rígidamente en la suma directa de subespacios
-fundamentales y que su evolución en el tiempo parametrizado τ sea estrictamente
-nula.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Certificación de Variedad Riemanniana y Dominio Vectorial:
-    Valida G ≻ 0, simetría, condición espectral, dimensión y finitud de los
-    vectores de subespacio.
-
-Fase 2 → Descomposición Ortogonal:
-    Asegura Ψ = V_PHYSICS ⊕ V_TOPOLOGY ⊕ V_CONTROL ⊕ V_THERMO.
-    Computa el producto interno covariante para garantizar:
-
-        <v_i, v_j>_G = δ_ij.
-
-Fase 3 → Inmutabilidad Tensorial y Punto Fijo:
-    Somete el tensor instanciado a una derivada temporal covariante.
-    Garantiza axiomáticamente que:
-
-        ∇_τ Ψ = 0.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Telemetry Schemas Agent (Arquitecto del Espacio de Fase Tensorial)             ║
+║  Ruta   : app/agents/core/telemetry_schemas_agent.py                                     ║
+║  Versión: 2.0.0-Tensorial-Orthogonal-Fixpoint-Doctoral-Strict                            ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor gobierna los esquemas de telemetría definidos en telemetry_schemas.py.  ║
+║  Actúa como el Endofuntor de Proyección Ortogonal que garantiza que el vector de estado  ║
+║  global $\Psi$ se descomponga rígidamente en la suma directa de subespacios              ║
+║  fundamentales, y que su evolución en el tiempo parametrizado $\tau$ sea                 ║
+║  estrictamente nula, preservando la inmutabilidad de la Cadena de Custodia.              ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TENSORIALES:                                    ║
+║                                                                                          ║
+║  §1. Variedad Riemanniana y Condicionamiento Espectral:                                  ║
+║      La variedad métrica es gobernada por el tensor de precisión $G$. Se exige           ║
+║      axiomáticamente que $G$ sea simétrico y definido positivo ($G \succ 0$).            ║
+║      Para blindar la Unidad de Punto Flotante (FPU) frente al mal condicionamiento,      ║
+║      se restringe la topología exigiendo que el número de condición espectral cumpla:    ║
+║          $\kappa(G) \le \kappa_{\max} = 10^{12}$                                         ║
+║      Cualquier desviación induce un `MetricManifoldDegeneracyError`.                     ║
+║                                                                                          ║
+║  §2. Descomposición Ortogonal de Subespacios:                                            ║
+║      El vector de telemetría global debe satisfacer la suma directa estricta:            ║
+║          $\Psi \in \mathcal{V}_{PHYSICS} \oplus \mathcal{V}_{TOPOLOGY} \oplus \mathcal{V}_{CONTROL} \oplus \mathcal{V}_{THERMO}$ ║
+║      La independencia lineal absoluta (cero covarianza espuria) se certifica bajo el     ║
+║      producto interno covariante del hiperespacio Riemanniano:                           ║
+║          $\langle v_i, v_j \rangle_G = v_i^T G v_j = \delta_{ij} \|v_i\|_G^2$            ║
+║      Violaciones a la tolerancia de ortogonalidad detonan un `NonOrthogonalSubspaceError`.║
+║                                                                                          ║
+║  §3. Inmutabilidad Tensorial y Punto Fijo Topológico:                                    ║
+║      Para certificar que el Pasaporte de Telemetría es criptográficamente inmutable,     ║
+║      el estado debe constituir un punto fijo en la variedad diferencial. Su derivada     ║
+║      temporal covariante debe ser estrictamente nula:                                    ║
+║          $\nabla_\tau \Psi = 0$                                                          ║
+║      Cualquier radiación de entropía temporal ($\nabla_\tau \Psi > 0$) aniquila el       ║
+║      tensor mediante un `PhaseSpaceCorruptionError`.                                     ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_RiemannianMetricCertifier                                               ║
+║           Certifica que el tensor métrico $G$ defina una variedad válida, evaluando      ║
+║           la simetría, la condición espectral $\kappa(G)$, y la dimensión de dominio.    ║
+║           [Retorna: MetricManifoldData → puente inicial de Fase 2]                       ║
+║                                                                                          ║
+║  Fase 2 → Phase2_OrthogonalDecompositionCertifier                                        ║
+║           Audita la ortogonalidad calculando la matriz de Gram y asegurando              ║
+║           matemáticamente $\langle v_i, v_j \rangle_G = 0$ para $i \neq j$.              ║
+║           [Retorna: OrthogonalDecompositionData → puente inicial de Fase 3]              ║
+║                                                                                          ║
+║  Fase 3 → Phase3_TensorImmutabilityEnforcer                                              ║
+║           Somete el vector de estado a la derivada diferencial covariante. Garantiza     ║
+║           axiomáticamente que la evolución temporal de la telemetría es nula ($\nabla_\tau \Psi = 0$). ║
+║           [Retorna: FixpointVerificationData → objeto final del endofuntor]              ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

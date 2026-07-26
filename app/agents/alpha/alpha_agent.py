@@ -1,20 +1,64 @@
 # -*- coding: utf-8 -*-
 r"""
-+==============================================================================+
-| Módulo  : Alpha Boundary Agent (Orquestador de Haces Celulares)              |
-| Ruta    : app/agents/alpha/alpha_agent.py                                    |
-| Versión : 4.0.0-Rigorous-Sheaf-Cohomology-Consensus                          |
-+==============================================================================+
-
-NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA DE HACES:
-Este módulo transmuta el Estrato alpha en un Orquestador de Haces Celulares. Ensambla
-la cofrontera global y somete a los agentes a test topológicos rigurosos.
-
-LAPLACIANO DEL HAZ (CELLULAR SHEAF):
-\[ L_F = \delta^\top \delta \succeq 0 \]
-
-SOLUBILIDAD DE FREDHOLM:
-\[ \langle s_{val}, \psi_{ker} \rangle = 0 \quad \forall \psi_{ker} \in \ker(L_F) \]
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Alpha Boundary Agent (Orquestador Macroscópico de Haces Celulares)             ║
+║  Ruta   : app/agents/alpha/alpha_agent.py                                                ║
+║  Versión: 4.0.0-Rigorous-Sheaf-Cohomology-Consensus-Doctoral                             ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra el Estrato α como el Orquestador Macroscópico de Haces         ║
+║  Celulares (Cellular Sheaves). Abandona la visión estática del modelo de negocio         ║
+║  (BMC) y ensambla la cofrontera global a partir de las fibras locales (KBASE,            ║
+║  KCORE, KAPEX), sometiendo la red de valor a estrictas auditorías espectrales            ║
+║  y homológicas para vetar topologías inestables.                                         ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TOPOLÓGICAS:                                    ║
+║                                                                                          ║
+║  §1. Laplaciano del Haz Ponderado Métricamente (Cellular Sheaf Laplacian):               ║
+║      La topología de consenso global se modela mediante el Laplaciano ponderado          ║
+║      por el tensor métrico covariante $G^{-1}$. Ensambla las matrices de restricción     ║
+║      locales (cofronteras) exportadas por los mini-agentes:                              ║
+║          $L_F = \delta^\top G^{-1} \delta = \begin{pmatrix} \delta_{\text{BASE}} \\ \delta_{\text{CORE}} \\ \delta_{\text{APEX}} \end{pmatrix}^\top G^{-1} \begin{pmatrix} \delta_{\text{BASE}} \\ \delta_{\text{CORE}} \\ \delta_{\text{APEX}} \end{pmatrix} \succeq 0$ ║
+║      Toda divergencia sistémica del consenso reside en $\ker(L_F)$.                      ║
+║                                                                                          ║
+║  §2. Solubilidad de Fredholm y Cierre de Obstáculos:                                     ║
+║      Para que la ecuación de estado sistémico sea analíticamente integrable, se exige    ║
+║      la condición de ortogonalidad estricta respecto al núcleo del Laplaciano:           ║
+║          $\langle s_{val}, \psi_{ker} \rangle = 0 \quad \forall \psi_{ker} \in \ker(L_F)$║
+║                                                                                          ║
+║  §3. Invariantes Homológicos y Veto de Ciclos Tóxicos:                                   ║
+║      La consistencia geométrica del 1-esqueleto $K$ se verifica mediante la              ║
+║      fórmula de Euler-Poincaré:                                                          ║
+║          $\chi(K) = \beta_0 - \beta_1 = |V| - |E| > 0$                                   ║
+║      Se veta matemáticamente la presencia de bucles de dependencia insalvables.          ║
+║      Si el primer número de Betti $\beta_1 > 0$, se invoca el `ToxicCycleVetoError`.     ║
+║                                                                                          ║
+║  §4. Conectividad Algebraica de Fiedler (Espectro del Grafo):                            ║
+║      Para prevenir el colapso estructural (particiones frágiles en el negocio),          ║
+║      se audita el segundo autovalor más pequeño del Laplaciano Combinatorio $L_0$:       ║
+║          $\lambda_2(L_0) \ge \varepsilon_{fiedler} > 0$                                  ║
+║      Valores sub-umbrales indican una inestabilidad severa detonando una                 ║
+║      `SpectralFragilityError`.                                                           ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → CanvasFibratorPort                                                             ║
+║           Proyecta de manera difeomórfica los nodos y flujos de negocio en el            ║
+║           1-esqueleto ponderado.                                                         ║
+║           [Retorna: SimplicialComplexData → puente inicial de Fase 2]                    ║
+║                                                                                          ║
+║  Fase 2 → HomologicalAuditorPort                                                         ║
+║           Resuelve $\beta_0$, $\beta_1$ y la Característica de Euler-Poincaré $\chi(K)$, ║
+║           erradicando bucles circulares tóxicos.                                         ║
+║           [Retorna: HomologicalInvariants → puente inicial de Fase 3]                    ║
+║                                                                                          ║
+║  Fase 3 → SpectralAuditorPort                                                            ║
+║           Computa la conectividad algebraica $\lambda_2$ para garantizar la robustez     ║
+║           ante perturbaciones del mercado.                                               ║
+║           [Retorna: SpectralFiedlerData → consolidación del veredicto final]             ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 from __future__ import annotations
 

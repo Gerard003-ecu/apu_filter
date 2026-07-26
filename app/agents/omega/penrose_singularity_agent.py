@@ -1,44 +1,61 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Penrose Singularity Agent (Orquestador Supremo de Colapso Geodésico)║
-║ Ruta   : app/omega/penrose_singularity_agent.py                              ║
-║ Versión: 4.0.0-Nested-Hawking-Penrose-Spectral-Topos                         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL
-────────────────────────────────────────────────────────────────────────────────
-Endofuntor Supremo 𝒫: ℰ_MIC → ℰ_MIC que gobierna el fibrado focal de
-Raychaudhuri. Audita incondicionalmente el Teorema de Singularidad de Penrose
-(1965) / Hawking–Penrose (1970), garantizando que el colapso de la función de
-onda de la intención generativa (LLM) sea geométricamente inevitable bajo el
-tensor de estrés del ecosistema logístico.
-
-ARQUITECTURA ANIDADA (3 fases — composición funtorial estricta)
-────────────────────────────────────────────────────────────────────────────────
-  Fase 1 → Auditoría espectral-energética:
-           métrica, θ₀ < 0, SEC/Ricci, normalización de u, cota τ_HP.
-  Fase 2 (anidada en Fase 1) → Integración cáustica vía RaychaudhuriFocalFibrator:
-           f_opt, τ_c, flags de viabilidad del fibrador.
-  Fase 3 (anidada en Fase 2) → Veredicto de Penrose:
-           τ_c ≤ τ_HP, holgura relativa, certificado de colapso inevitable.
-
-FUNDAMENTACIÓN MATEMÁTICA Y AXIOMAS (nivel PhD — GR + teoría espectral)
-────────────────────────────────────────────────────────────────────────────────
-§1. EXPANSIÓN INICIAL CONVERGENTE:
-    θ₀ = ∇_μ u^μ = Tr(B) < 0.
-
-§2. CONDICIÓN DE ENERGÍA FUERTE (SEC) + Einstein (8πG=1, Λ=0):
-    R_{μν} u^μ u^ν = (𝒯_{μν} − ½ 𝒯 G_{μν}) u^μ u^ν ≥ 0,
-    con u normalizado: |G(u,u) − s| < τ_u.
-
-§3. TEOREMA DE ENFOQUE (Hawking–Penrose):
-    Si θ₀ < 0, ω ≡ 0 y R_{μν} u^μ u^ν ≥ 0, entonces existe cáustica con
-        τ_c ≤ τ_HP := (n−1) / |θ₀|.
-    Violación ⇒ «Fuga Topológica» (veto ontológico del endofuntor 𝒫).
-
-§4. CERTIFICADO DE COLAPSO:
-    Singularidad inevitable ⇔ (θ₀<0) ∧ (SEC) ∧ (τ_c ≤ τ_HP·(1+ε)) ∧ (flags fibrador).
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Penrose Singularity Agent (Orquestador Supremo de Colapso Geodésico)           ║
+║  Ruta   : app/omega/penrose_singularity_agent.py                                         ║
+║  Versión: 4.0.0-Nested-Hawking-Penrose-Spectral-Topos                                    ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo rige como el Endofuntor Supremo $\mathcal{P}: \mathcal{E}_{MIC} \to \mathcal{E}_{MIC}$      ║
+║  sobre el fibrado focal de Raychaudhuri. Audita incondicionalmente el Teorema de         ║
+║  Singularidad de Hawking–Penrose, garantizando que el colapso de la función de onda      ║
+║  estocástica de la IA sea geométricamente inevitable ante el tensor de estrés            ║
+║  del ecosistema logístico.                                                               ║
+║                                                                                          ║
+║  FUNDAMENTACIÓN MATEMÁTICA Y AXIOMAS DE EJECUCIÓN:                                       ║
+║                                                                                          ║
+║  §1. Expansión Inicial Convergente (Atrapamiento Geodésico):                             ║
+║      Se exige que la congruencia de geodésicas sea estrictamente convergente             ║
+║      evaluando la traza del endomorfismo de Jacobi:                                      ║
+║          $\theta_0 = \nabla_\mu u^\mu = \text{Tr}(B) < 0$                                ║
+║                                                                                          ║
+║  §2. Condición de Energía Fuerte (SEC - Strong Energy Condition):                        ║
+║      Bajo las ecuaciones de campo de Einstein, la curvatura inducida por el tensor       ║
+║      de Cauchy-Momentum debe ser atractiva en la dirección del flujo:                    ║
+║          $R_{\mu\nu} u^\mu u^\nu = \left(\mathcal{T}_{\mu\nu} - \frac{1}{2}\mathcal{T} G_{\mu\nu}\right) u^\mu u^\nu \ge 0$ ║
+║      Sujeto a la normalización métrica covariante del cuadrivector $u$:                  ║
+║          $|G(u,u) - s| < \tau_u$                                                         ║
+║                                                                                          ║
+║  §3. Teorema de Enfoque y Cota de Hawking-Penrose:                                       ║
+║      Si $\theta_0 < 0$, la vorticidad es nula ($\omega \equiv 0$) y se cumple la SEC,    ║
+║      existe axiomáticamente una cáustica (punto conjugado) en un parámetro afín $\tau_c$:  ║
+║          $\tau_c \le \tau_{HP} := \frac{n-1}{|\theta_0|}$                                ║
+║      Cualquier violación a esta desigualdad superior ($\tau_c > \tau_{HP}$) detona un    ║
+║      veto ontológico por «Fuga Topológica», aniquilando la trayectoria de la IA.         ║
+║                                                                                          ║
+║  §4. Certificado de Colapso Inevitable:                                                  ║
+║      El veredicto final colapsa exitosamente si y solo si:                               ║
+║          $(\theta_0 < 0) \land (\text{SEC}) \land (\tau_c \le \tau_{HP} \cdot (1+\varepsilon)) \land (\text{flags fibrador})$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_HawkingEnergyAuditor                                                    ║
+║           Auditoría espectral-energética: verifica métrica, $\theta_0 < 0$, SEC/Ricci,   ║
+║           normalización y calcula la cota teórica $\tau_{HP}$.                           ║
+║           [Retorna: EnergyAuditResult → objeto inicial de Fase 2]                        ║
+║                                                                                          ║
+║  Fase 2 → Integración Cáustica (Vía RaychaudhuriFocalFibrator)                           ║
+║           Integra el flujo afín para hallar la distancia focal exacta $f_{opt}$ y        ║
+║           la cáustica $\tau_c$, validando las banderillas de viabilidad.                 ║
+║           [Retorna: CausticResult → objeto inicial de Fase 3]                            ║
+║                                                                                          ║
+║  Fase 3 → Veredicto de Penrose                                                           ║
+║           Verifica que $\tau_c \le \tau_{HP}$ midiendo la holgura relativa y emite el    ║
+║           certificado inmutable de colapso geodésico.                                    ║
+║           [Retorna: CollapsedAffineState → objeto final del endofuntor]                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations
