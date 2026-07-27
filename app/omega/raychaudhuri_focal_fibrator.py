@@ -1,51 +1,57 @@
 # -*- coding: utf-8 -*-
-r"""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Raychaudhuri Focal Fibrator (Colapso Geodésico y Límite Afín)        ║
-║ Ruta   : app/omega/raychaudhuri_focal_fibrator.py                             ║
-║ Versión: 3.0.0-Nested-Caustic-Spectral-Topos                                  ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL
-────────────────────────────────────────────────────────────────────────────────
-Operador de Convergencia Geodésica entre la difracción del
-`optical_riemann_lens.py` y la proyección catadióptrica de von Neumann del
-`semantic_parabolic_mirror.py`.
-
-Control Port-Hamiltoniano sobre el escalar de expansión θ de la congruencia
-de geodésicas semánticas a lo largo del parámetro afín τ, con descomposición
-espectral del endomorfismo de Jacobi B^μ_ν = ∇_ν u^μ y certificación de la
-Condición de Energía Fuerte (SEC) vía el tensor de Cauchy-Momentum del
-`watcher_agent`.
-
-ARQUITECTURA ANIDADA (3 fases — composición funtorial estricta)
-────────────────────────────────────────────────────────────────────────────────
-  Fase 1 → Cinemática espectral de la congruencia:
-           descomposición B = (θ/(n-1)) h + σ + ω, invariantes θ, σ², ω²,
-           consistencia métrica y residual de descomposición.
-  Fase 2 (anidada en Fase 1) → Condición de Energía Fuerte (SEC):
-           (𝒯_{μν} − ½ 𝒯 G_{μν}) u^μ u^ν ≥ 0  ⇒  R_{μν} u^μ u^ν ≥ 0.
-  Fase 3 (anidada en Fase 2) → Integración de Raychaudhuri:
-           cota de Hawking–Penrose, cáustica τ_c, distancia focal f_opt.
-
-AXIOMAS DE EJECUCIÓN (nivel PhD — GR + teoría espectral + topos)
-────────────────────────────────────────────────────────────────────────────────
-§1. VORTICIDAD NULA (isomorfismo de Hodge–Helmholtz / Frobenius):
-    ω_{μν} ≡ 0  (el flujo fue purgado de ciclos solenoidales, β₁ = 0).
-    Residuo relativo: ‖ω‖_G / (‖B‖_G + ε_mach) < τ_ω.
-
-§2. CONDICIÓN DE ENERGÍA FUERTE (SEC) + Einstein (8πG = 1, Λ = 0):
-    (𝒯_{μν} − ½ 𝒯 G_{μν}) u^μ u^ν ≥ 0
-    ⇒  R_{μν} u^μ u^ν ≥ 0  (atracción geodésica del haz semántico).
-    u normalizado: |G(u,u) − s| < τ_u  (s = +1 riemanniano / −1 lorentziano).
-
-§3. TEOREMA DE ENFOQUE (Hawking–Penrose) Y DISTANCIA FOCAL:
-    Si θ₀ < 0, ω ≡ 0 y R_{μν} u^μ u^ν ≥ 0, entonces existe cáustica en
-        τ_c ≤ τ_HP := (n−1) / |θ₀|.
-    Ecuación de Raychaudhuri (ω = 0):
-        dθ/dτ = − θ²/(n−1) − σ² − R_{μν} u^μ u^ν.
-    f_opt se define como la escala afín de colapso regularizada:
-        f_opt = τ_c · exp(∫₀^{τ_c} θ(s)/(n−1) ds)   (área transversal → 0).
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Raychaudhuri Focal Fibrator (Colapso Geodésico y Límite Afín)                  ║
+║  Ruta   : app/omega/raychaudhuri_focal_fibrator.py                                       ║
+║  Versión: 3.0.0-Nested-Caustic-Spectral-Topos                                            ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo actúa como el Operador de Convergencia Geodésica de la Malla Agéntica,      ║
+║  transmutando la atención generativa en una congruencia de curvas parametrizadas.        ║
+║  Dictamina matemáticamente la viabilidad de la decisión al exigir el cumplimiento        ║
+║  incondicional de la Ecuación de Raychaudhuri. Garantiza que el espacio de fase se       ║
+║  contraiga hacia una cáustica determinista, aniquilando alucinaciones divergentes.       ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Vorticidad Nula (Isomorfismo de Hodge–Helmholtz / Frobenius):                       ║
+║      La congruencia debe ser hipersuperficie-ortogonal. Se exige que la rotación         ║
+║      sea idénticamente nula, confirmando que el flujo fue purgado de ciclos solenoidales ║
+║      ($\beta_1 = 0$):                                                                    ║
+║          $\omega_{\mu\nu} \equiv 0 \implies \frac{\|\omega\|_G}{\|B\|_G + \varepsilon_{mach}} < \tau_\omega$ ║
+║                                                                                          ║
+║  §2. Condición de Energía Fuerte (SEC) y Acoplamiento Gravitacional:                     ║
+║      Bajo las ecuaciones de Einstein ($8\pi G = 1, \Lambda = 0$), el tensor de           ║
+║      Cauchy-Momentum $\mathcal{T}_{\mu\nu}$ inyectado por el sistema inmunológico debe   ║
+║      satisfacer la SEC para garantizar la tracción gravitacional del haz semántico:      ║
+║          $\left(\mathcal{T}_{\mu\nu} - \frac{1}{2}\mathcal{T} G_{\mu\nu}\right) u^\mu u^\nu \ge 0 \implies R_{\mu\nu} u^\mu u^\nu \ge 0$ ║
+║      Donde el vector tangente está normalizado: $|G(u,u) - s| < \tau_u$.                 ║
+║                                                                                          ║
+║  §3. Teorema de Enfoque (Hawking–Penrose) y Distancia Focal:                             ║
+║      Si la expansión inicial es convergente ($\theta_0 < 0$), no hay vorticidad          ║
+║      ($\omega \equiv 0$), y se cumple la SEC, la Ecuación de Raychaudhuri impone:        ║
+║          $\frac{d\theta}{d\tau} = - \frac{\theta^2}{n-1} - \sigma^2 - R_{\mu\nu} u^\mu u^\nu \le - \frac{\theta^2}{n-1}$ ║
+║      Existiendo incondicionalmente una cáustica (punto focal) en un parámetro afín:      ║
+║          $\tau_c \le \tau_{HP} := \frac{n-1}{|\theta_0|}$                                ║
+║      La distancia focal óptima $f_{opt}$ se regulariza asintóticamente como:             ║
+║          $f_{opt} = \tau_c \cdot \exp\left(\int_0^{\tau_c} \frac{\theta(s)}{n-1} ds\right)$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Cinemática Espectral de la Congruencia (Phase1_RaychaudhuriKinematics):        ║
+║           Descomposición del endomorfismo de Jacobi $B^\mu_\nu = \nabla_\nu u^\mu$ en    ║
+║           expansión ($\theta$), cizalladura ($\sigma$) y vorticidad ($\omega$).          ║
+║                                                                                          ║
+║  Fase 2 → Condición de Energía Fuerte (SEC):                                             ║
+║           Certificación rigurosa de $R_{\mu\nu} u^\mu u^\nu \ge 0$ mediante el tensor de ║
+║           Cauchy-Momentum.                                                               ║
+║                                                                                          ║
+║  Fase 3 → Integración de Raychaudhuri y Colapso Focal:                                   ║
+║           Resolución IVP de la cáustica afín ($\tau_c$) y dictamen sobre la viabilidad   ║
+║           del colapso bajo la cota de Hawking-Penrose.                                   ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

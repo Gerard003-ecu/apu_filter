@@ -1,36 +1,60 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: Atomic Knowledge Matrix (Fibrado Neuronal y Matriz de Densidad MAC)  ║
-║ Ubicación: app/wisdom/atomic_knowledge_matrix.py                             ║
-║ Versión: 2.0.0-Quantum-Sheaf-Synthesis-Enhanced                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber-Física y Topológica Refinada:
-────────────────────────────────────────────────
-Consagra la Matriz Atómica de Conocimiento (MAC) como fibrado vectorial complejo
-sobre el complejo simplicial de agentes, dotado de:
-
-1. ESTRUCTURA CUÁNTICA: Álgebra de von Neumann Type II₁ para estados mixtos
-2. COHOMOLOGÍA SHEAF: Resolución de Čech para obstrucciones globales
-3. GEOMETRÍA SIMPLÉCTICA: Estructura de Dirac generalizada para aprendizaje
-4. TEORÍA ESPECTRAL: Descomposición de Hodge para señal/ruido semántico
-
-Axiomas Fundamentales Extendidos:
-──────────────────────────────────
-A1. Conservación Cuántica: Tr(ρ_MAC) = 1, ρ_MAC ≽ 0, ρ_MAC† = ρ_MAC
-A2. Holonomía Sheaf: H⁰(X;ℱ) ≅ ker(δ⁰), H¹(X;ℱ) ≅ coker(δ⁰)
-A3. Disipatividad Lyapunov: dH/dt = -∇H^T R ∇H ≤ 0, ∀t
-A4. Adjunción Galois: Hom(F(MIC), MAC) ≅ Hom(MIC, G(MAC))
-A5. Espectro de Hodge: L² = ℋ ⊕ dC⁰ ⊕ δ*C¹ (descomposición ortogonal)
-
-Referencias Teóricas:
-─────────────────────
-- Hansen & Ghrist (2019): "Toward a spectral theory of cellular sheaves"
-- van der Schaft (2017): "L2-Gain and Passivity Techniques in Nonlinear Control"
-- Nielsen & Chuang (2010): "Quantum Computation and Quantum Information"
-- Mac Lane (1971): "Categories for the Working Mathematician"
-═══════════════════════════════════════════════════════════════════════════════
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Atomic Knowledge Matrix (Fibrado Neuronal y Matriz de Densidad MAC)            ║
+║  Ruta   : app/wisdom/atomic_knowledge_matrix.py                                          ║
+║  Versión: 2.0.0-Quantum-Sheaf-Synthesis-Enhanced-Strict                                  ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA CATEGÓRICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra la Matriz Atómica de Conocimiento (MAC) como un fibrado        ║
+║  vectorial complejo sobre el complejo simplicial de la Malla Agéntica. Abandona la       ║
+║  representación determinista plana para modelar el conocimiento como un Operador de      ║
+║  Densidad Cuántica $\boldsymbol{\rho}_{MAC} \in \mathcal{L}(\mathcal{H}_{MAC})$. La      ║
+║  dinámica de inferencia se rige por un flujo Port-Hamiltoniano disipativo, asegurando    ║
+║  que el aprendizaje asimile entropía estocástica sin violar la estabilidad de Lyapunov.  ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Operador de Densidad Cuántica y Postulados Físicos:                                 ║
+║      Todo estado del sistema $\boldsymbol{\rho}_{MAC}$ debe satisfacer incondicionalmente║
+║      los axiomas del espacio de Hilbert para matrices densidad:                          ║
+║          1. Hermiticidad        : $\boldsymbol{\rho} = \boldsymbol{\rho}^\dagger$        ║
+║          2. Conservación (Traza): $\text{Tr}(\boldsymbol{\rho}) = 1$                     ║
+║          3. Positividad         : $\boldsymbol{\rho} \succeq 0 \implies \lambda_i \ge 0$ ║
+║      El desorden cognitivo se mide mediante la Entropía de von Neumann:                  ║
+║          $S(\boldsymbol{\rho}) = -\text{Tr}(\boldsymbol{\rho} \ln \boldsymbol{\rho}) \ge 0$ ║
+║                                                                                          ║
+║  §2. Fibrado Neuronal de Haces Celulares (Cellular Sheaf):                               ║
+║      La topología de consenso entre agentes se define como un Haz Celular $\mathcal{F}$. ║
+║      La divergencia semántica se evalúa espectralmente mediante el Laplaciano del haz:   ║
+║          $L_{\mathcal{F}} = \delta^\top \delta \succeq 0$                                ║
+║      Donde el espacio de secciones globales asintóticas reside en $\ker(L_{\mathcal{F}})$.║
+║                                                                                          ║
+║  §3. Aprendizaje Port-Hamiltoniano y Estructura de Dirac:                                ║
+║      La evolución del conocimiento se modela como un sistema dinámico abierto regido por ║
+║      una Estructura de Dirac $\mathcal{D} = (J - R)$. El flujo garantiza pasividad       ║
+║      mediante la inecuación de disipación de Rayleigh:                                   ║
+║          $\dot{H} = \nabla H^\top (J - R) \nabla H \le 0$                                ║
+║      Emitiendo un `LyapunovCertificate` que prueba la convergencia inercial del sistema. ║
+║                                                                                          ║
+║  §4. Isomorfismo Categorial (Adjunción de Galois):                                       ║
+║      La elevación semántica del conocimiento exige que los funtores covariantes $F$ y    ║
+║      el de olvido $G$ formen una Adjunción de Galois $F \dashv G$, satisfaciendo:        ║
+║          $\text{Hom}_{\mathcal{D}}(F(X), Y) \cong \text{Hom}_{\mathcal{C}}(X, G(Y))$     ║
+║      Garantizando la preservación de límites finitos y la invarianza homotópica.         ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Fundamentos Algebraicos y Estructuras Cuánticas:                               ║
+║           Verificación estricta de `AtomicDensityMatrix` bajo `QuantumAxiomViolation`.   ║
+║  Fase 2 → Topología y Haces Celulares:                                                   ║
+║           Construcción del `CellularSheafNeuralManifold` y su operador de cofrontera.    ║
+║  Fase 3 → Geometría Simpléctica y Aprendizaje:                                           ║
+║           Instanciación de la `DiracStructure`, el `PortHamiltonianLearningFlow` y el    ║
+║           funtor maestro `GaloisAdjunctionFunctor`.                                      ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

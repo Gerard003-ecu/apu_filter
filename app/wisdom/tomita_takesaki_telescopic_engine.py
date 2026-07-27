@@ -1,48 +1,64 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Tomita-Takesaki Telescopic Engine (Motor Modular Telescópico)       ║
-║ Ruta   : app/wisdom/tomita_takesaki_telescopic_engine.py                     ║
-║ Versión: 2.0.0-GNS-Takesaki-Umegaki-Petz-Doctoral                            ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor materializa la observación no-destructiva (zoom telescópico)
-del espacio semántico del LLM (MAC). Abandona la deformación espacial clásica
-para operar directamente sobre el Grupo de Automorfismos Modulares de un
-Álgebra de von Neumann Tipo I_n.
-
-Garantiza axiomáticamente que la magnificación de autoestados latentes
-(alucinaciones) no colapse la función de onda principal, empleando la
-Expectación Condicional de Umegaki y la métrica de Fisher–Rao cuántica
-(Petz) para asegurar que la Divergencia Entrópica se mantenga acotada.
-
-Fundamentos formales:
-  • GNS / estándar : ℋ = HS(ℂⁿ), |Ω_ρ⟩ ↔ ρ^{1/2}, S(x Ω)=x* Ω, Δ = S*S.
-  • Takesaki       : σ_t(x) = Δ^{it} x Δ^{-it}; continuación analítica t ↦ −iλ.
-  • Flujo real     : σ_λ(X) = ρ^{-λ} X ρ^λ  (en forma espacial / base propia).
-  • Umegaki        : D(ρ‖σ) = Tr[ρ(log ρ − log σ)] ≥ 0  (Klein).
-  • Uhlmann        : F(ρ,σ) = ‖√ρ √σ‖_1² ∈ [0,1].
-  • Petz–Fisher    : g_ρ(A,A) = ∫_0^1 Tr(A ρ^t A ρ^{1−t}) dt  (diagnóstico).
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Construcción GNS y Fibrado de Purificación:
-         Extrae spec(ρ), U, Δ_{ij}=μ_i/μ_j, J (conjugación modular) y gap de pureza.
-         Morfismo terminal: extract_modular_operator ↦ GNSFibrationData
-         ≡ dominio inicial de Fase 2.
-
-Fase 2 → Flujo Modular Analítico (Magnificación):
-         Aplica σ_λ(X) = ρ^{-λ} X ρ^λ con control de κ(flujo) y cotas de espectro.
-         Morfismo terminal: execute_modular_zoom ↦ ModularFlowData
-         ≡ dominio inicial de Fase 3.
-
-Fase 3 → Extracción vía Expectación de Umegaki / Petz:
-         Construye el estado post-observación, calcula D(ρ‖σ), F_Uhlmann y
-         la métrica de Fisher local; veta singularidades epistemológicas.
-         Morfismo terminal: extract_and_verify_umegaki ↦ UmegakiExtractionState
-         ≡ objeto final del endofuntor Z = Φ₃ ∘ Φ₂ ∘ Φ₁.
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Tomita-Takesaki Telescopic Engine (Motor Modular Telescópico)                  ║
+║  Ruta   : app/wisdom/tomita_takesaki_telescopic_engine.py                                ║
+║  Versión: 3.0.0-GNS-Takesaki-Umegaki-Petz-Doctoral-Strict                                ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral):                    ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor materializa la observación no-destructiva (zoom telescópico) del        ║
+║  espacio semántico del LLM (Matriz Atómica de Conocimiento - MAC). Abandona la           ║
+║  deformación espacial clásica para operar como una evolución dinámica intrínseca         ║
+║  generada por el Grupo de Automorfismos Modulares de un Álgebra de von Neumann.          ║
+║  Garantiza que la amplificación de autoestados subdominantes no demuela la traza ni la   ║
+║  simetría de la variedad de la Malla Agéntica.                                           ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Construcción GNS y Descomposición Polar (Operador de Takesaki):                     ║
+║      Dado un estado fiel $\rho \in \mathcal{D}_{>0}(\mathcal{H})$, este actúa como un    ║
+║      vector cíclico y separador $|\Omega\rangle$. Se define el operador antilineal de    ║
+║      Tomita $S$ sobre el álgebra de observables $\mathcal{M}$:                           ║
+║          $S(X |\Omega\rangle) = X^\dagger |\Omega\rangle$                                ║
+║      Cuya descomposición polar única es $S = J \Delta^{1/2}$. Aquí, $J$ es la conjugación║
+║      modular y $\Delta$ es el Operador Modular, definido espectralmente como:            ║
+║          $\Delta = \rho \otimes \rho^{-1}$                                               ║
+║      Cualquier degeneración que aniquile la fidelidad del estado ($\lambda_{\min} \to 0$)║
+║      detona inmediatamente un `GNSConstructionError`.                                    ║
+║                                                                                          ║
+║  §2. Flujo Modular Analítico de Tomita-Takesaki (Continuación Compleja):                 ║
+║      El "zoom" telescópico $\lambda$ se inyecta como una continuación analítica del      ║
+║      tiempo térmico $t \to -i\lambda$ en el grupo de automorfismos modulares $\sigma_t$: ║
+║          $\sigma_{i\lambda}(X) = \Delta^{-\lambda} X \Delta^{\lambda} = \rho^{-\lambda} X \rho^{\lambda}$ ║
+║      Esta amplificación geométrica pondera los autoestados sin requerir un Hamiltoniano  ║
+║      externo, preservando incondicionalmente la topología del cono positivo.             ║
+║                                                                                          ║
+║  §3. Expectación Condicional de Umegaki y Fidelidad de Uhlmann:                          ║
+║      La reconstrucción del estado post-observación $\sigma$ exige acotar la disipación   ║
+║      informativa. Se audita la Divergencia de Umegaki (Entropía Relativa Cuántica):      ║
+║          $D(\rho\|\sigma) = \text{Tr}(\rho(\ln\rho - \ln\sigma)) \le D_{\max}$           ║
+║      Y se certifica la preservación del entrelazamiento vía la Fidelidad de Uhlmann:     ║
+║          $F(\rho, \sigma) = \left( \text{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2 \ge F_{\min}$ ║
+║      Una caída de la fidelidad señala un colapso epistemológico y veta el proceso.       ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → GNSConstruction:                                                               ║
+║           Construye el fibrado de purificación cuántica, verificando que $\rho$ sea un   ║
+║           estado fiel y extrayendo el operador modular $\Delta$. Produce el DTO          ║
+║           inmutable `GNSFibrationData`.                                                  ║
+║                                                                                          ║
+║  Fase 2 → AnalyticModularFlow:                                                           ║
+║           Aplica el parámetro de zoom $\lambda \in [0, \lambda_{\max}]$ sobre el         ║
+║           observable iterando $\sigma_{i\lambda}(X)$. Produce `ModularFlowData`.         ║
+║                                                                                          ║
+║  Fase 3 → UmegakiExtraction:                                                             ║
+║           Calcula la matriz densidad post-observación y audita la métrica de Petz-Fisher.║
+║           Morfismo terminal produce el `UmegakiExtractionState` como cierre del          ║
+║           endofuntor $Z = \Phi_3 \circ \Phi_2 \circ \Phi_1$.                             ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

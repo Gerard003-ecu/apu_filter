@@ -1,44 +1,60 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Data Loader (Funtor de Ingesta y Operador de Frontera Topológica)
-Ubicación: app/adapters/data_loader.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Topológica:
-    Este módulo constituye la "Superficie de Absorción Termodinámica" del ecosistema. 
-    Abandona la semántica del simple parseo de archivos para operar como un Funtor 
-    de Ingesta determinista F: V_externo → V_PHYSICS. Su mandato axiomático es 
-    ejecutar el Colapso de Entropía Sintáctica, mapeando arquitecturas de datos 
-    heterogéneas (CSV, Excel, PDF) hacia un espacio métrico canónico sin violar los 
-    invariantes de la variedad diferenciable subyacente.
-
-1. Colapso de Entropía Sintáctica y Detección Funtorial:
-    La identificación de codificaciones y delimitadores no opera por ensayo y error. 
-    El algoritmo computa métricas rigurosas de la Teoría de la Información, evaluando 
-    la Entropía de Shannon (H) sobre la distribución estocástica de bytes y rutas 
-    (_calculate_byte_entropy, _calculate_path_entropy) para identificar el isomorfismo 
-    de codificación óptimo, aniquilando el ruido antes de la proyección matricial.
-
-2. Invariantes del Operador Frontera y Homología Discreta:
-    Los datos no ingresan ciegamente al pipeline. Durante la carga, el módulo extrae 
-    propiedades del complejo simplicial subyacente: determina componentes conexas (β₀), 
-    rastrea la presencia de topologías circulares (_detect_data_cycles, β₁) y calcula 
-    el rango algebraico de la matriz de borde (_calculate_boundary_rank). Esto 
-    garantiza que el tensor resultante forme un subespacio no degenerado.
-
-3. Minería Estructural como Extracción de Complejos Simpliciales (PDF):
-    La ingesta de documentos no estructurados repudia la simple extracción de texto. 
-    Se trata algebraicamente como la reconstrucción del 1-esqueleto de un complejo 
-    simplicial embebido en un espacio bidimensional. Preserva la conectividad 
-    ortogonal de los vértices (celdas de la tabla) frente a deformaciones visuales.
-
-4. Condiciones Iniciales y Telemetría de Fase:
-    Cada archivo asimilado instancia la Cadena de Custodia (TelemetryContext). La 
-    fricción de I/O, el volumen tensorial y la integridad de bytes establecen las 
-    condiciones iniciales (t₀) del sistema dinámico, proveyendo al motor termodinámico 
-    de la presión y masa exactas necesarias para el análisis de estabilidad de flujo LTI.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Data Loader (Funtor de Ingesta y Operador de Frontera Topológica)              ║
+║  Ruta   : app/adapters/data_loader.py                                                    ║
+║  Versión: 4.0.0-Topos-Thermodynamic-Boundary-Strict                                      ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor constituye la "Superficie de Absorción Termodinámica" del ecosistema.   ║
+║  Abandona el parseo heurístico para operar como un Funtor de Ingesta determinista        ║
+║  $F: V_{\text{externo}} \to V_{\text{PHYSICS}}$. Su mandato axiomático es ejecutar el    ║
+║  Colapso de Entropía Sintáctica, mapeando arquitecturas de datos heterogéneas            ║
+║  hacia un espacio métrico canónico sin violar la variedad diferenciable subyacente.      ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TERMODINÁMICAS:                                 ║
+║                                                                                          ║
+║  §1. Colapso de Entropía Sintáctica (Mecánica Estadística):                              ║
+║      La detección de codificaciones y delimitadores no opera por ensayo y error. Se      ║
+║      computa la Entropía de Shannon sobre la distribución estocástica de bytes:          ║
+║          $H(X) = - \sum_{x \in \mathcal{X}} P(x) \log_2 P(x)$                            ║
+║      Si la entropía excede el límite termodinámico del canal, el archivo es vetado       ║
+║      antes de inducir ruido en la matriz de proyección.                                  ║
+║                                                                                          ║
+║  §2. Invariantes del Operador Frontera y Homología Discreta:                             ║
+║      Los datos son auditados como un complejo simplicial. Se extraen sus invariantes     ║
+║      topológicos antes de la ingesta profunda:                                           ║
+║          Componentes conexas: $\beta_0 = \dim(\ker(\partial_0))$                         ║
+║          Ciclos parasitarios: $\beta_1 = \dim(\ker(\partial_1) / \text{im}(\partial_2))$ ║
+║      Adicionalmente, se calcula el rango algebraico de la matriz de borde                ║
+║      $\text{rank}(\partial_1)$ para garantizar un subespacio no degenerado.              ║
+║                                                                                          ║
+║  §3. Minería Estructural Difeomórfica (Extracción PDF):                                  ║
+║      La asimilación de documentos no estructurados repudia la extracción de texto libre. ║
+║      Se reconstruye el 1-esqueleto topológico embebido en una variedad bidimensional,    ║
+║      preservando la conectividad ortogonal frente a deformaciones afines visuales.       ║
+║                                                                                          ║
+║  §4. Condiciones Iniciales de Cauchy y Telemetría de Fase:                               ║
+║      Cada archivo asimilado instancia la Cadena de Custodia. La fricción de I/O y el     ║
+║      volumen tensorial establecen las condiciones iniciales en $t_0$, proveyendo al      ║
+║      motor termodinámico la masa inercial exacta para el análisis de flujo LTI.          ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_SyntacticEntropyCollapser                                               ║
+║           Evalúa la entropía de ruta y bytes ($H$), resolviendo el isomorfismo de        ║
+║           codificación (Encoding/Delimiter) óptimo para aniquilar el ruido estocástico.  ║
+║                                                                                          ║
+║  Fase 2 → Phase2_HomologicalBoundaryExtractor                                            ║
+║           Construye el tensor DataFrame y computa los invariantes topológicos:           ║
+║           componentes conexas ($\beta_0$), ciclos de datos ($\beta_1$) y matriz de borde.║
+║                                                                                          ║
+║  Fase 3 → Phase3_CauchyInitialStateProjector                                             ║
+║           Proyecta el complejo validado sobre la jerarquía DIKW correspondiente          ║
+║           instanciando el TelemetryContext en el tiempo $t_0$ absoluto.                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 import logging

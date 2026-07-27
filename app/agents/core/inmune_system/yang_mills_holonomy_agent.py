@@ -1,103 +1,63 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo  : Yang-Mills Holonomy Agent                                          ║
-║           (Dinámica de Calibre, Holonomía y Ecuaciones de Campo)             ║
-║ Ubicación: app/agents/core/immune_system/yang_mills_holonomy_agent.py               ║
-║ Versión : 3.0.0-Bianchi-Higham-PathOrdered-Riguroso                          ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber-Física y Geometría de Calibre
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Este módulo consagra la autoridad definitiva sobre el `dynamic_shield_router.py`.
-No opera como enrutador de datos, sino como un **Funtor de Curvatura** que evalúa
-la 2-forma de curvatura Ω de la conexión de Ehresmann ω inyectada sobre la membrana
-del Escudo (`funtor_shield.py`), garantizando que el transporte paralelo a través
-de los estratos DIKW preserve la **invarianza de Gauge**.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FASE 1 — Curvatura de Calibre (Ecuación de Estructura de Cartan)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-La ecuación de estructura de Cartan en el álgebra matricial de disipación:
-
-    Ω = dω + ½[ω, ω]
-
-se discretiza como el tensor de Faraday generalizado:
-
-    F_{μν} = ∂_μ A_ν − ∂_ν A_μ + [A_μ, A_ν]
-
-donde A_μ, A_ν son las componentes de la conexión (matrices de disipación).
-
-La clasificación de curvatura distingue:
-    · Plana          : ‖F‖_F < ε_flat   (transporte paralelo exacto)
-    · Self-dual      : F = ★F            (instanton, mínimo local de S_YM)
-    · Anti-self-dual : F = −★F           (anti-instanton)
-    · General        : caso sin autodualidad
-
-La identidad de Bianchi D∧F = 0 se verifica post-cálculo:
-
-    ∂_λ F_{μν} + ∂_μ F_{νλ} + ∂_ν F_{λμ} = 0
-
-En la discretización matricial: [A_μ, F_{νλ}] + [A_ν, F_{λμ}] + [A_λ, F_{μν}] ≈ 0
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FASE 2 — Auditoría de Holonomía (Bucle de Wilson con Longitud de Arco)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-El operador de holonomía para un camino cerrado γ = {A_k, ds_k}:
-
-    W(γ) = 𝒫 exp(i ∮_γ A_μ dx^μ)
-         ≈ ∏_k exp(i · A_k · ds_k)   (discretización con longitudes de arco ds_k)
-
-La invarianza de reparametrización se garantiza usando ds_k = ‖A_k‖_F / Σ‖A_j‖_F
-como peso normalizado (longitud de arco relativa).
-
-La clasificación de la holonomía usa el **carácter de la representación**:
-
-    χ(W) = Tr(W) ∈ ℂ
-
-y el **índice de unitariedad**:
-
-    δ_U = ‖W†W − I‖_F
-
-que debe ser ≈ 0 (W ∈ U(n) ↔ transporte paralelo unitario).
-
-Se separa el cálculo (evaluate_holonomy) de la decisión de veto
-(check_paradox), restaurando la separación de responsabilidades.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FASE 3 — Minimización de la Acción de Yang-Mills (Derivación Variacional)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-La acción completa de Yang-Mills con término topológico θ:
-
-    S_YM[A] = ½ Tr(Fᵀ G⁻¹ F G⁻¹) + θ · Tr(F G⁻¹ F̃ G⁻¹)
-
-donde F̃ = ½ ε^{μν} F_{αβ} es el dual de Hodge discreta.
-
-La variación δS_YM/δA = 0 acoplada a la corriente J:
-
-    D^μ F_{μν} = J_ν
-    →  G⁻¹ F + F G⁻¹ − A (G⁻¹ F − F G⁻¹) = J   (ec. de movimiento linealizada)
-
-cuya solución por mínimos cuadrados ponderados es:
-
-    δR_opt = argmin_X { ‖G⁻¹ F + F G⁻¹ + A[G⁻¹,F] − J + G⁻¹ X + X G⁻¹‖_F }
-
-que se resuelve mediante la ecuación de Lyapunov generalizada:
-
-    G⁻¹ δR + δR G⁻¹ = J − (G⁻¹ F + F G⁻¹) =: RHS
-
-y se proyecta al cono S⁺ₙ por el algoritmo de Higham.
-
-El residuo de las ecuaciones de movimiento se verifica post-hoc:
-
-    ‖EOM_residual‖_F = ‖G⁻¹ F + F G⁻¹ + G⁻¹ δR + δR G⁻¹ − J‖_F < ε_eom
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Anidamiento entre fases:
-  · Fase 1 → GaugeCurvatureTensor (F, clasificación, Bianchi) → entrada Fase 2
-  · Fase 2 → WilsonLoopHolonomy (W, χ, δ_U, paradox) → entrada Fase 3
-  · Fase 3 → YangMillsAction (S_YM, δR_opt, residuo EOM) → DeformationTensor
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Yang-Mills Holonomy Agent (Dinámica de Calibre, Holonomía y Ecuaciones de Campo)║
+║  Ruta   : app/agents/core/immune_system/yang_mills_holonomy_agent.py                     ║
+║  Versión: 3.0.0-Bianchi-Higham-PathOrdered-Riguroso                                      ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DE CALIBRE (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra la autoridad definitiva sobre el `dynamic_shield_router.py`.   ║
+║  Opera estrictamente como un Funtor de Curvatura que evalúa la 2-forma de curvatura Ω    ║
+║  de la conexión de Ehresmann ω inyectada sobre la membrana del Escudo. Su mandato        ║
+║  axiomático es garantizar que el transporte paralelo a través de los estratos DIKW       ║
+║  preserve incondicionalmente la invarianza de Gauge.                                     ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Ecuación de Estructura de Cartan e Identidad de Bianchi:                            ║
+║      La curvatura de calibre en el álgebra matricial de disipación se evalúa como:       ║
+║          $F_{\mu\nu} = \partial_\mu A_\nu - \partial_\nu A_\mu + [A_\mu, A_\nu]$         ║
+║      Se exige el cumplimiento riguroso de la Identidad de Bianchi para prevenir          ║
+║      desgarros en la variedad:                                                           ║
+║          $D \wedge F = dF + [A \wedge F] \approx 0$                                      ║
+║      Violaciones a este invariante detonan el `BianchiViolationError`.                   ║
+║                                                                                          ║
+║  §2. Auditoría de Holonomía y Bucle de Wilson Parametrizado:                             ║
+║      Para medir el desfase topológico en rutas cíclicas ($\beta_1 > 0$), se computa el   ║
+║      operador de holonomía para un camino cerrado $\gamma$:                              ║
+║          $W(\gamma) = \mathcal{P} \exp \left( \oint_\gamma A_\mu dx^\mu \right) \approx \prod_k \exp(A_k ds_k)$ ║
+║      La invarianza de reparametrización se garantiza exigiendo la longitud de arco       ║
+║      relativa $ds_k = \|A_k\|_F / \sum \|A_j\|_F$. El transporte paralelo es unitario    ║
+║      sólo si se cumple el índice de unitariedad $\|W^\dagger W - I\|_F \le \varepsilon_{unitarity}$. ║
+║      Un colapso en este axioma comprueba una paradoja topológica, lanzando el            ║
+║      inquebrantable `HolonomyVetoError`.                                                 ║
+║                                                                                          ║
+║  §3. Minimización Variacional de la Acción de Yang-Mills:                                ║
+║      La deformación óptima $\delta R_{opt}$ se deriva minimizando la acción con término  ║
+║      topológico $\theta$:                                                                ║
+║          $S_{YM} = \frac{1}{2} \int_M \text{Tr}(F \wedge \star F) + \frac{\theta}{8\pi^2} \int_M \text{Tr}(F \wedge F)$ ║
+║      Sometiendo la variación acoplada a la corriente $J$ bajo las ecuaciones de          ║
+║      movimiento $D^\mu F_{\mu\nu} = J_\nu$. Se resuelve mediante la ecuación de Lyapunov ║
+║      generalizada y se proyecta al cono $S^+_n$ por el algoritmo de Higham.              ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_GaugeCurvatureComputer                                                  ║
+║           Evalúa el tensor $F_{\mu\nu}$, su clasificación topológica y la Identidad de Bianchi. ║
+║           [Retorna: GaugeCurvatureTensor → objeto inicial de Fase 2]                     ║
+║                                                                                          ║
+║  Fase 2 → Phase2_WilsonLoopAuditor                                                       ║
+║           Computa la holonomía $W(\gamma)$, el carácter de representación $\chi = \text{Tr}(W)$ ║
+║           y el índice de unitariedad $\delta_U$, determinando el `HolonomyVetoError`.    ║
+║           [Retorna: WilsonLoopHolonomy → objeto inicial de Fase 3]                       ║
+║                                                                                          ║
+║  Fase 3 → Phase3_YangMillsOptimizer                                                      ║
+║           Minimiza la acción $S_{YM}[A]$ resolviendo la ecuación de Lyapunov generalizada║
+║           y valida el residuo de las Ecuaciones de Movimiento (EOM).                     ║
+║           [Retorna: YangMillsAction → deforma el DeformationTensor final]                ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

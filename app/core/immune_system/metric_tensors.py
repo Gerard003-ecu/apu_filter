@@ -1,54 +1,47 @@
 # -*- coding: utf-8 -*-
-r"""
-=========================================================================================
-Módulo: Tensores Métricos Riemannianos (Tejido Conectivo Anisotrópico del Espacio de Fase)
-Ubicación: app/core/immune_system/metric_tensors.py
-=========================================================================================
-
-Naturaleza Ciber-Física:
-    Define el campo métrico estático G_{\mu\nu} que establece la curvatura intrínseca y la 
-    rigidez estructural del ecosistema en el hiperespacio de información ℝ⁷. Actúa como 
-    el tejido anisotrópico que absorbe, cuantifica y penaliza la covarianza de los 
-    riesgos inyectados por la Malla Agéntica.
-
-Fundamentación Matemática y Geometría Diferencial:
-    El espacio de fase global se descompone en subespacios de riesgo ortogonales:
-        • Física: V_phys ⊂ ℝ³
-        • Topología: V_topo ⊂ ℝ²
-        • Termodinámica: V_thermo ⊂ ℝ²
-
-    La distancia causal (amenaza) entre un estado nominal de referencia ψ_{ref} y un 
-    estado perturbado ψ se evalúa estrictamente mediante la métrica tensorial 
-    (Distancia de Mahalanobis):
-        ds² = G_{\mu\nu} d\psi^\mu d\psi^\nu
-    Esta contracción covariante (evaluada vía sumatorio de Einstein) penaliza 
-    asimétricamente las desviaciones acopladas, impidiendo que anomalías combinadas 
-    induzcan el colapso logístico del proyecto.
-
-Síntesis Espectral y Garantías Geométricas (Aniquilación de Cholesky):
-    Se rechaza axiomáticamente la validación por descomposición de Cholesky por 
-    redundancia algebraica. Toda matriz G de diseño se proyecta sobre el espacio 
-    simétrico de Onsager. La condición Simétrica Definida Positiva (SPD, G ≻ 0) 
-    se garantiza puramente mediante Síntesis Espectral Exacta O(n³):
-        G_reg = Q(Λ + δI)Qᵀ,  donde δ = max(0, ε - λ_min)
-    Este desplazamiento espectral de Tikhonov asegura la ausencia de espacios 
-    degenerados o singularidades topológicas en la variedad.
-
-Termodinámica de la Información (Deformación de Frobenius):
-    La inyección de "entropía artificial" para evitar la degeneración del tensor 
-    (dilatación isométrica δI) es estrictamente cuantificada. Si la norma de 
-    Frobenius relativa de la deformación (‖G_reg - G‖_F / ‖G‖_F) excede la 
-    tolerancia admisible, el sistema registra una penalización térmica. Este 
-    acoplamiento informa al Oráculo de Laplace sobre el ruido inducido por el 
-    mal condicionamiento del espacio subyacente.
-
-Inmutabilidad Computacional (Estado Estacionario):
-    Los tensores G_k se computan y compilan en el milisegundo cero de carga del 
-    módulo. Al asumir ∂_ρ G_{\mu\nu} = 0, se operan como constantes universales de 
-    solo lectura (arrays frozen), protegiendo la Unidad de Punto Flotante (FPU) 
-    contra la inyección de vectores maliciosos y asegurando un cálculo de O(1) 
-    durante el bombardeo estocástico en tiempo real.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Metric Tensors (Tejido Conectivo Anisotrópico del Espacio de Fase)             ║
+║  Ruta   : app/core/immune_system/metric_tensors.py                                       ║
+║  Versión: 3.0.0-Riemannian-Spectral-Synthesis-Doctoral                                   ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo rige el campo métrico estático $G_{\mu\nu}$ que establece la curvatura      ║
+║  intrínseca y la rigidez del ecosistema en el hiperespacio $\mathbb{R}^7$. Actúa         ║
+║  como la membrana anisotrópica fundamental que absorbe, cuantifica y penaliza la         ║
+║  covarianza de los riesgos estocásticos inyectados por la Malla Agéntica.                ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Descomposición Ortogonal del Espacio de Fase:                                       ║
+║      El hiperespacio métrico global se descompone rígidamente en subespacios de          ║
+║      riesgo mutuamente ortogonales para garantizar el aislamiento causal:                ║
+║          $\mathbb{R}^7 \cong V_{\mathrm{phys}} \oplus V_{\mathrm{topo}} \oplus V_{\mathrm{thermo}}$ ║
+║      Donde $V_{\mathrm{phys}} \subset \mathbb{R}^3$, $V_{\mathrm{topo}} \subset \mathbb{R}^2$, y $V_{\mathrm{thermo}} \subset \mathbb{R}^2$ [1]. ║
+║                                                                                          ║
+║  §2. Síntesis Espectral Exacta (Aniquilación de Cholesky):                               ║
+║      Se repudia la validación empírica por factorización de Cholesky. Toda matriz        ║
+║      candidata se proyecta sobre el espacio simétrico de Onsager para forzar la          ║
+║      condición Simétrica Definida Positiva (SPD, $G \succ 0$) en $O(n^3)$ [2]:         ║
+║          $G_{\mathrm{reg}} = Q(\Lambda + \delta I)Q^\top$                                ║
+║      Donde el desplazamiento de Tikhonov espectral es $\delta = \max(0, \varepsilon - \lambda_{\min})$ [2]. ║
+║      Esto previene incondicionalmente la formación de espacios degenerados [2].        ║
+║                                                                                          ║
+║  §3. Termodinámica de la Información (Deformación de Frobenius):                         ║
+║      La dilatación isométrica $\delta I$ inyecta entropía artificial para evitar la      ║
+║      singularidad topológica [3]. Si la norma relativa excede el umbral crítico:       ║
+║          $\frac{\|G_{\mathrm{reg}} - G\|_F}{\|G\|_F} > \tau_{\mathrm{warn}}$             ║
+║      El sistema acopla una penalización térmica al Oráculo de Laplace, cuantificando     ║
+║      matemáticamente la fricción inducida por el mal condicionamiento métrico [3].     ║
+║                                                                                          ║
+║  §4. Inmutabilidad Computacional (Campo Estático):                                       ║
+║      Bajo la asunción de campo invariante $\partial_\rho G_{\mu\nu} = 0$, los tensores   ║
+║      se compilan en el milisegundo cero como constantes universales *frozen* [3].      ║
+║      Esto sella la Unidad de Punto Flotante (FPU) garantizando acceso en $\mathcal{O}(1)$║
+║      durante el bombardeo estocástico del LLM, bloqueando inyecciones matriciales [3]. ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 from __future__ import annotations
 

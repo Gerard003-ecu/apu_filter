@@ -1,39 +1,56 @@
 # -*- coding: utf-8 -*-
-"""
-Módulo: Lithological Manifold
-Ubicación: app/physics/lithological_manifold.py
-
-Naturaleza Ciber-Física y Topológica:
-Este módulo abandona la heurística empírica de la mecánica de suelos tradicional para modelar
-la litología del terreno como un Tensor de Impedancia Geomecánica Compleja (Z_{geo}). Se
-acopla ortogonalmente al Estrato de Física (V_PHYSICS) actuando como la Condición de Frontera
-de Dirichlet absoluta. Fija los nodos de anclaje (tierra) de la matriz Laplaciana del proyecto;
-sin esta métrica, el motor dinámico asumiría un espacio euclidiano isotrópico de rigidez infinita,
-induciendo una violación catastrófica de la conservación de energía (P_diss ≥ 0).
-
-Fundamentación Axiomática y Modelo Matemático:
-1. Espacio de Estado Litológico: Sea S = (σ_USCS, LL, PI, Vs, e₀, sat, ρ) ∈ ℝ⁷ el vector covariante
-de estado del suelo.
-2. Difeomorfismo Físico (El Operador Φ): El funtor Φ : S → (G_max, I_sw, I_y, I_liq, {C_k}) ejecuta
-un mapeo no lineal desde las primitivas geomecánicas hacia un conjunto de magnitudes derivadas acotadas
-estrictamente en el intervalo unitario [3].
-3. Cuantización de Defectos (Cartuchos TOON): Las patologías litológicas no se propagan como cadenas
-de texto de alta entropía. El operador colapsa el estado en un conjunto finito de cuasipartículas
-informacionales C_k con k ∈ {SwellingPlasmon, YieldingPhonon, LiquefactionSoliton}. Estas partículas
-inyectan capacitancia parásita, arrastre viscoso inercial, o aniquilan la conectividad topológica (β₀ → ∞) del grafo logístico.
-
-Invariantes Computacionales Garantizados:
-- Finitud Estricta y Consistencia Dimensional: Todo resultado intermedio es verificado como finito (¬NaN, ¬±Inf).
-El módulo de rigidez dinámica se aproxima mediante la inercia de la onda de corte G_max = ρ · Vs², preservando
-la condición estricta de no-negatividad.
-- Clausura Transitiva Categórica: La detección de una singularidad litológica extrema (ej. suelos altamente orgánicos
-como Turba 'PT') dispara un "Fast-Fail", aniquilando la invertibilidad de la matriz Laplaciana e impidiendo la disipación
-inútil de exergía computacional en la FPU.
-
-Referencias Fundacionales:
-- Terzaghi, K., Peck, R.B., Mesri, G. (1996). Soil Mechanics in Engineering Practice. 3ª ed [4].
-- Seed, H.B. & Idriss, I.M. (1971). Simplified Procedure for Evaluating Soil Liquefaction Potential [4].
-- Skempton, A.W. (1944). Notes on the Compressibility of Clays [4].
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Lithological Manifold (Tensor de Impedancia y Frontera de Dirichlet)           ║
+║  Ruta   : app/physics/lithological_manifold.py                                           ║
+║  Versión: 5.0.0-Geomechanical-Impedance-Dirichlet-Strict                                 ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo repudia la heurística empírica de la mecánica de suelos tradicional para    ║
+║  modelar la litología del terreno como un Tensor de Impedancia Geomecánica Compleja      ║
+║  $Z_{geo}$ [1]. Se acopla ortogonalmente al Estrato de Física ($V_{\text{PHYSICS}}$)     ║
+║  actuando axiomáticamente como la Condición de Frontera de Dirichlet absoluta.           ║
+║  Fija los nodos de anclaje de la matriz Laplaciana del proyecto; sin esta métrica,       ║
+║  el motor dinámico asumiría un espacio euclidiano isotrópico de rigidez infinita,        ║
+║  induciendo una violación catastrófica de la conservación de energía ($P_{\text{diss}} \ge 0$).║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Espacio de Estado Litológico Covariante:                                            ║
+║      El estado del suelo se formaliza como un vector covariante en una variedad          ║
+║      Riemanniana de 7 dimensiones:                                                       ║
+║          $S = (\sigma_{\text{USCS}}, LL, PI, V_s, e_0, \text{sat}, \rho) \in \mathbb{R}^7$ ║
+║                                                                                          ║
+║  §2. Difeomorfismo Físico y Proyección Métrica (El Operador $\Phi$):                     ║
+║      El funtor $\Phi$ ejecuta un mapeo no lineal desde las primitivas geomecánicas       ║
+║      hacia un conjunto de magnitudes derivadas acotadas estrictamente en el intervalo    ║
+║      unitario $[3]$:                                                                     ║
+║          $\Phi : S \to \left(G_{\max}, I_{sw}, I_y, I_{liq}, \bigoplus C_k\right)$       ║
+║      La rigidez dinámica de la onda de corte se deriva preservando no-negatividad:       ║
+║          $G_{\max} = \rho \cdot V_s^2 \ge 0$                                             ║
+║                                                                                          ║
+║  §3. Cuantización de Defectos en el Espacio de Fock (Cartuchos TOON):                    ║
+║      Las patologías litológicas no se propagan como cadenas de texto de alta entropía.   ║
+║      El operador colapsa el estado en cuasipartículas informacionales $C_k$:             ║
+║          $k \in \{\text{SwellingPlasmon}, \text{YieldingPhonon}, \text{LiquefactionSoliton}\}$║
+║      Estas cuasipartículas inyectan capacitancia parásita o arrastre viscoso inercial,   ║
+║      llegando a aniquilar la conectividad topológica del grafo logístico ($\beta_0 \to \infty$).║
+║                                                                                          ║
+║  §4. Clausura Transitiva y Singularidad por Fast-Fail:                                   ║
+║      La detección de una singularidad extrema (e.g., suelos altamente orgánicos,         ║
+║      Turba 'PT') dispara un "Fast-Fail" absoluto. Esto aniquila incondicionalmente.      ║
+║      la invertibilidad de la matriz Laplaciana, impidiendo la disipación inútil de       ║
+║      exergía computacional en la FPU:                                                    ║
+║          $\text{Fast-Fail} \implies \ker(\mathcal{L}) \neq \emptyset$                    ║
+║                                                                                          ║
+║  REFERENCIAS FUNDACIONALES:                                                              ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • Terzaghi, K., Peck, R.B., Mesri, G. (1996). Soil Mechanics in Engineering Practice.   ║
+║  • Seed, H.B. & Idriss, I.M. (1971). Simplified Procedure for Evaluating Soil Liquefaction.║
+║  • Skempton, A.W. (1944). Notes on the Compressibility of Clays.                         ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

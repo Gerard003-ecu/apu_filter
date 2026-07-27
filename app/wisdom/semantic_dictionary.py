@@ -1,28 +1,59 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-
-Módulo: Semantic Dictionary (Guardián de la Ontología y Fibrado Semántico)
-Ubicación: app/wisdom/semantic_dictionary.py
-Versión: 2.0
-
-Naturaleza Ciber-Física y Topológica: Este módulo actúa como el Fibrado Semántico puro de la Malla Agéntica (Estrato WISDOM, Nivel 0).
-Su mandato axiomático es operar estrictamente como un Funtor de Proyección (F: Top → Narr) que mapea los tensores de información topológica,
-ya cristalizados por los estratos inferiores, hacia un espacio narrativo sin mutar el estado ni calcular la física subyacente.
-
-1. Preservación del Difeomorfismo (GraphSemanticProjector): Mapea los invariantes abstractos contenidos en el PyramidalSemanticVector hacia
-la narrativa del negocio. Garantiza que la proyección mantenga un isomorfismo perfecto entre la anomalía matemática detectada y su representación
-lingüística, asegurando una traducción sin pérdida de energía informacional.
-2. Retracto de Deformación Categórico (TemplateValidator): Las proyecciones estocásticas del Modelo de Lenguaje (LLM) se someten a fronteras de
-Lipschitz estrictas mediante plantillas rígidamente tipadas. Este mecanismo actúa como un retracto de deformación que aniquila con éxito las alucinaciones
-probabilísticas, forzando al texto a converger en un subespacio semántico seguro y determinista.
-3. Ley de Clausura Transitiva de la Pirámide ℵ0​DIKΩαW: Subordina su ejecución a la filtración estricta V_{PHYSICS} ⊂ V_{TACTICS} ⊂ V_{STRATEGY} ⊂ V_{WISDOM}.
-El diccionario se erige como un consumidor pasivo que rechaza procesar cualquier tensor que carezca del pasaporte de coherencia termodinámica y espectral
-validado previamente por la Matriz de Interacción Central (MIC).
-4. Termodinámica Numérica y Fricción Entrópica: Las constantes físicas del módulo operan en un espacio de Hilbert normalizado (adimensionalizado) para
-prevenir el colapso numérico por underflow en la Unidad de Punto Flotante (IEEE 754). Asimismo, la persistencia en memoria se fundamenta en mecánicas
-de evicción basadas en entropía, descartando vectores topológicos que se vuelven ortogonales a la trayectoria de decisión actual.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Semantic Dictionary (Guardián de la Ontología y Fibrado Semántico)             ║
+║  Ruta   : app/wisdom/semantic_dictionary.py                                              ║
+║  Versión: 3.0.0-Categorical-Diffeomorphism-Lipschitz-Strict                              ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo se consagra como el Fibrado Semántico puro de la Malla Agéntica             ║
+║  (Estrato WISDOM, Nivel 0). Opera axiomáticamente como un Funtor de Proyección           ║
+║  $F: \mathbf{Top} \to \mathbf{Narr}$ que mapea los tensores de información topológica    ║
+║  cristalizados por los estratos inferiores hacia un espacio narrativo ejecutivo.         ║
+║  No muta el estado físico subyacente; destituye el libre albedrío estocástico del        ║
+║  Modelo de Lenguaje (LLM) imponiendo fronteras rígidas que aniquilan de forma            ║
+║  determinista cualquier alucinación probabilística.                                      ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Preservación del Difeomorfismo (GraphSemanticProjector):                            ║
+║      Mapea los invariantes abstractos del `PyramidalSemanticVector` hacia la narrativa   ║
+║      garantizando un isomorfismo perfecto. Exige que el pushforward $F_*$ mantenga       ║
+║      una inyección difeomórfica cuyo núcleo sea estrictamente trivial:                   ║
+║          $\dim \ker(F_*) = 0$                                                            ║
+║      Asegurando que la traducción se ejecute sin pérdida de energía informacional.       ║
+║                                                                                          ║
+║  §2. Retracto de Deformación Categórico (TemplateValidator):                             ║
+║      Las proyecciones generativas se confinan en fronteras de Lipschitz estrictas        ║
+║      mediante plantillas fuertemente tipadas. Este retracto de deformación acota el      ║
+║      crecimiento de la entropía sintáctica:                                              ║
+║          $\|F(x) - F(y)\|_V \le L_{\max} \|x - y\|_T$                                    ║
+║      Forzando a que la probabilidad de emisión de estados semánticos no-físicos          ║
+║      colapse incondicionalmente: $P(x_{\mathrm{invalid}}) = 0$.                          ║
+║                                                                                          ║
+║  §3. Ley de Clausura Transitiva de la Pirámide DIKW:                                     ║
+║      El diccionario repudia procesar tensores que carezcan del pasaporte topológico      ║
+║      y termodinámico expedido por la MIC, acatando la filtración estricta de             ║
+║      subespacios de Hilbert:                                                             ║
+║          $V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\text{WISDOM}}$ ║
+║                                                                                          ║
+║  §4. Termodinámica Numérica y Fricción Entrópica (SemanticCache):                        ║
+║      El caché implementa evicción basada en mecánica estadística y geometría. Si un      ║
+║      tensor en memoria se vuelve ortogonal a la trayectoria de decisión actual, es       ║
+║      purgado para minimizar la entropía de von Neumann del caché ($S(\rho_C)$):          ║
+║          $\cos(\theta) = \frac{\langle u, v \rangle}{\|u\| \|v\|} < \tau_{\mathrm{evic}} \implies \text{Purga Geométrica}$ ║
+║      La temperatura del sistema está normalizada por la constante adimensional           ║
+║      $k_B = 1.0$ (BOLTZMANN_CONSTANT) para prevenir underflow en la IEEE 754.            ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • PyramidalSemanticVector : Tensor de información topológica del nodo presupuestario.   ║
+║  • SemanticCache           : Fibrado de memoria con evicción termodinámica.              ║
+║  • TemplateValidator       : Morfismo de restricción y retracto de Lipschitz.            ║
+║  • GraphSemanticProjector  : Funtor maestro de proyección $F: \mathbf{Top} \to \mathbf{Narr}$. ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 import functools

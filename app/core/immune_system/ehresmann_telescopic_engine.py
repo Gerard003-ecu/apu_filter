@@ -1,38 +1,65 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Ehresmann Telescopic Engine (Motor Telescópico de Ehresmann)        ║
-║ Ruta   : app/core/immune_system/ehresmann_telescopic_engine.py               ║
-║ Versión: 3.0.0-Stinespring-Ehresmann-Novikov-A∞-Doctoral                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor materializa la observación no-destructiva (zoom telescópico)
-del presupuesto mediante una inmersión isométrica en una dimensión ortogonal.
-Evita axiomáticamente el "Burbujeo de Esferas" (Sphere Bubbling) en la categoría
-de Fukaya al confinar la torsión visual a la fibra vertical de una Conexión de
-Ehresmann, resolviendo la Ecuación Expandida de Maurer-Cartan sobre el Anillo
-de Novikov Λ_{nov,≥0}[[T]].
-
-Fundamentos formales:
-  • Stinespring  : ∀ canal CPTP Ξ, ∃ V isometría y N tales que Ξ(ρ)=Tr_N(VρV†).
-  • Ehresmann    : TP = H ⊕ V, ω ∈ Ω¹(P,𝔤), curvatura Ω = dω + ½[ω∧ω].
-  • Maurer-Cartan: m₀ + m₁(b) + m₂(b,b) + … = 0 en el dg-álgebra A∞ de co-cadenas.
-  • Novikov      : filtración por área/acción; la serie ∑ a_i T^{λ_i} converge
-                   en la topología T-ádica si λ_i → +∞.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Inmersión de Stinespring: Eleva ρ_MIC a ℋ_MIC ⊗ ℋ_audit^⊥ con V†V = I.
-         El morfismo final de Fase 1 (compute_isometric_immersion) produce el
-         objeto StinespringDilationData que es el dominio inicial de Fase 2.
-Fase 2 → Fibración Vertical (Ehresmann): Proyecta 𝒯_λ^⊥ sobre V_p = ker(dπ).
-         El morfismo final de Fase 2 (apply_telescopic_deformation) produce el
-         objeto VerticalFibrationData que es el dominio inicial de Fase 3.
-Fase 3 → Regularización Maurer-Cartan: Inyecta co-cadenas acotantes en Λ_nov
-         para aniquilar curvaturas espurias (burbujeo discal) y devolver
-         TelescopicAuditState, objeto final del endofuntor Z = Φ₃ ∘ Φ₂ ∘ Φ₁.
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Ehresmann Telescopic Engine (Motor Telescópico de Ehresmann)                   ║
+║  Ruta   : app/core/immune_system/ehresmann_telescopic_engine.py                          ║
+║  Versión: 4.0.0-Stinespring-Fukaya-Novikov-Strict-Doctoral                               ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor materializa la observación no-destructiva (zoom telescópico) del        ║
+║  presupuesto mediante una inmersión isométrica en una dimensión ortogonal.               ║
+║  Evita axiomáticamente el "Burbujeo de Esferas" (Sphere Bubbling) en la categoría de     ║
+║  Fukaya al confinar la torsión visual a la fibra vertical de una Conexión de             ║
+║  Ehresmann. Para restituir el rigor homológico en el ambiente curvo, resuelve la.        ║
+║  Ecuación Expandida de Maurer-Cartan sobre el Anillo de Novikov $\Lambda_{nov}$ acoplada ║
+║  al superpotencial de Landau-Ginzburg.                                                   ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Inmersión Isométrica de Stinespring:                                                ║
+║      Todo canal cuántico CPTP $\Xi$ se eleva al espacio dilatado                         ║
+║      $\mathcal{H}_{MIC} \otimes \mathcal{H}_{audit}^\perp$ garantizando la existencia de ║
+║      una isometría $V$ tal que:                                                          ║
+║          $\Xi(\rho) = \text{Tr}_{\text{env}}(V \rho V^\dagger) \quad \text{con} \quad V^\dagger V = I$ [4] ║
+║      Violaciones a la unitariedad detonan incondicionalmente el                          ║
+║      `StinespringDilationError` [5].                                                   ║
+║                                                                                          ║
+║  §2. Fibración Vertical y Conexión de Ehresmann:                                         ║
+║      La variedad tangente se descompone topológicamente en subespacios horizontales y    ║
+║      verticales $TP = H \oplus V$ [4]. El proyector telescópico confina la deformación ║
+║      a la fibra vertical $V_p = \ker(d\pi)$ [4], dictaminando que la torsión no conta- ║
+║      mine el flujo horizontal base del negocio. Fugas detonan `EhresmannFibrationError` [6].║
+║                                                                                          ║
+║  §3. Regularización de Maurer-Cartan y Potencial de Landau-Ginzburg:                     ║
+║      Para aniquilar los discos J-holomorfos espurios, se inyectan co-cadenas acotantes   ║
+║      (bounding cochains) $b$ [2] que satisfacen la Ecuación Expandida de Maurer-Cartan ║
+║      compensada por el superpotencial de Landau-Ginzburg $W_L$:                          ║
+║          $\sum_{k=0}^{\infty} m_k(b, b, \dots, b) \equiv W_L(b) \cdot [L]$ [3]         ║
+║      La convergencia espectral opera estrictamente en el Anillo de Novikov $\Lambda_{nov}$:║
+║          $\Lambda_{nov} = \left\{ \sum a_r q^r : a_r \in \mathbb{K}, \lim_{i \to \infty} r_i = \infty \right\}$ [3] ║
+║                                                                                          ║
+║  §4. Blindaje Numérico de la Unidad de Punto Flotante (FPU):                             ║
+║      El motor exige un acotamiento estricto sobre el número de condición de las matrices ║
+║      operadas: $\kappa_2(A) \le 10^{14}$ (`_CONDITION_NUMBER_CEILING`) [7]. Divergencias ║
+║      espectrales frente a la filtración de Novikov disparan un `SpectralDegeneracyError` [6].║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $Z = \Phi_3 \circ \Phi_2 \circ \Phi_1$): ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_StinespringImmersion:                                                   ║
+║           Eleva $\rho_{MIC}$ inyectando el baño térmico ortogonal. Valida $V^\dagger V = I$ [4].║
+║           [Retorna: StinespringDilationData → Dominio inicial de Fase 2] [4]           ║
+║                                                                                          ║
+║  Fase 2 → Phase2_TelescopicVerticalFibration:                                            ║
+║           Aplica el tensor telescópico $\mathcal{T}_\lambda^\perp$ y lo confina al $\ker(d\pi)$ [4].     ║
+║           [Retorna: VerticalFibrationData → Dominio inicial de Fase 3] [4]             ║
+║                                                                                          ║
+║  Fase 3 → Phase3_MaurerCartanRegularization:                                             ║
+║           Aplica la regularización de Novikov y Landau-Ginzburg resolviendo la ecuación  ║
+║           en el álgebra $A_\infty$ para certificar el colapso sin burbujas [4].        ║
+║           [Retorna: TelescopicAuditState → Objeto final del endofuntor $Z$] [4]        ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

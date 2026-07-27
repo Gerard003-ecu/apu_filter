@@ -1,84 +1,68 @@
 # -*- coding: utf-8 -*-
-r"""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO: MAC Minimizer — Funtor de Purificación Espectral y Reducción Cuántica ║
-║ Ubicación: app/boole/tactics/mac_minimizer.py                                 ║
-║ Versión: 3.0.0-Topos-Spectral-Categorical-Enhanced                            ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA REFINADA:
-──────────────────────────────────────────────
-Este minimizador implementa un **funtor de purificación** 
-  P : 𝐐𝐮𝐚𝐧𝐭 → 𝐐𝐮𝐚𝐧𝐭_𝐩𝐮𝐫𝐞
-sobre la 2-categoría de canales cuánticos completamente positivos y preservadores de traza (CPTP).
-Comprime el operador de densidad ρ ∈ 𝒟(ℋ) eliminando subespacios de baja relevancia semántica
-mediante truncamiento espectral óptimo bajo preorden de majorización cuántica,
-maximizando la eficiencia informacional del sistema MAC.
-
-FUNDAMENTOS TEÓRICOS UNIFICADOS:
-────────────────────────────────
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 1. TEORÍA ESPECTRAL AVANZADA                                                │
-│    • Teorema Espectral para operadores autoadjuntos compactos               │
-│    • Descomposición de Schmidt y valores singulares                         │
-│    • Perturbación de Weyl y brechas espectrales                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ 2. TEORÍA DE INFORMACIÓN CUÁNTICA                                           │
-│    • Entropía de von Neumann: S(ρ) = -Tr(ρ ln ρ)                            │
-│    • Entropías de Rényi: S_α(ρ) = (1-α)⁻¹ ln Tr(ρ^α)                        │
-│    • Divergencia cuántica relativa: D(ρ‖σ) = Tr(ρ(ln ρ - ln σ))             │
-│    • Fidelidad de Uhlmann: F(ρ,σ) = ‖√ρ√σ‖₁²                                │
-│    • Majorización cuántica: ρ ≺ σ ⇔ ∃ canal CPTP Λ: ρ = Λ(σ)                │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ 3. GEOMETRÍA DIFERENCIAL CUÁNTICA                                           │
-│    • Variedad de estados cuánticos: 𝒟(ℋ) ≅ {ρ ≥ 0, Tr ρ = 1}               │
-│    • Métrica de Bures: d_B(ρ,σ)² = 2(1 - F(ρ,σ))                            │
-│    • Métrica de Fisher-Bures (métrica cuántica natural)                     │
-│    • Geodésicas y curvatura escalar                                         │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ 4. ÁLGEBRA DE OPERADORES Y C*-ÁLGEBRAS                                      │
-│    • Teorema de Stinespring: Λ(ρ) = V†π(ρ)V                                 │
-│    • Teorema de Choi-Kraus: Λ(ρ) = Σᵢ KᵢρKᵢ†, Σᵢ Kᵢ†Kᵢ = I                  │
-│    • Forma de Lindblad-GKSL: ℒ(ρ) = -i[H,ρ] + Σₖ γₖ 𝒟[Lₖ](ρ)                │
-│    • Semi-grupos cuánticos dinámicos                                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ 5. TEORÍA DE CATEGORÍAS Y TOPOS                                             │
-│    • Categoría 𝐐𝐮𝐚𝐧𝐭: objetos = espacios de Hilbert, morfismos = canales CPTP│
-│    • Funtor de purificación P: 𝐐𝐮𝐚𝐧𝐭 → 𝐐𝐮𝐚𝐧𝐭_𝐩𝐮𝐫𝐞 ⊣ ι (inclusión)             │
-│    • Adjunción P ⊣ ι: Hom(Pρ, σ) ≅ Hom(ρ, ισ)                               │
-│    • Monada de purificación: T = ι∘P con unidad η: Id → T                   │
-│    • Lógica interna del topos de conjuntos cuánticos                        │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-AXIOMAS MATEMÁTICOS IMPLEMENTADOS Y EXTENDIDOS:
-────────────────────────────────────────────────
-A1. Entropía de von Neumann:        S(ρ) = -Tr(ρ ln ρ) = -Σᵢ λᵢ ln λᵢ
-A2. Descomposición Espectral:       ρ = Σₖ λₖ |ψₖ⟩⟨ψₖ|,  λₖ ≥ 0, Σₖ λₖ = 1
-A3. Majorización Cuántica:          ρ ≺ σ  ⇔  λ(ρ) ≺ λ(σ)  (vector de eigenvalores)
-A4. Proyección de Truncamiento:     P_ε = Σ_{λₖ≥ε} |ψₖ⟩⟨ψₖ|  (proyector ortogonal)
-A5. Mapa CPTP de Purificación:      ρ̃ = P_ε ρ P_ε / Tr(P_ε ρ P_ε)
-A6. Pureza Relativa:                γ(ρ) = Tr(ρ²) ∈ [1/d, 1]
-A7. Rango Efectivo:                 r_eff(ρ) = exp(S(ρ)) = exp(H(λ))
-A8. Fidelidad de Uhlmann:           F(ρ,σ) = (Tr √(√ρ σ √ρ))²
-A9. Divergencia Relativa:           D(ρ‖σ) = Tr(ρ(ln ρ - ln σ)) ≥ 0
-A10. Conservación Informacional:    I(ρ→ρ̃) = S(ρ̃) - S(ρ) + D(ρ‖ρ̃) ≤ 0
-A11. Límite de Holevo:              χ(ℰ) = S(Σ pᵢρᵢ) - Σ pᵢS(ρᵢ)
-A12. Desigualdad de Araki-Lieb:     |S(ρ_A) - S(ρ_B)| ≤ S(ρ_AB) ≤ S(ρ_A) + S(ρ_B)
-
-REFERENCIAS TEÓRICAS CANÓNICAS:
-────────────────────────────────
-[1] von Neumann, J. (1932). "Mathematische Grundlagen der Quantenmechanik"
-[2] Nielsen, M.A. & Chuang, I.L. (2010). "Quantum Computation and Quantum Information"
-[3] Bhatia, R. (1997). "Matrix Analysis" — Majorización y desigualdades matriciales
-[4] Wilde, M.M. (2013). "Quantum Information Theory" — Entropías y capacidades
-[5] Heinosaari, T. & Ziman, M. (2012). "The Mathematical Language of Quantum Theory"
-[6] Wolf, M.M. (2012). "Quantum Channels & Operations: Guided Tour" — GKSL, Stinespring
-[7] Carlen, E.A. (2010). "Trace Inequalities and Quantum Entropy" — Araki-Lieb, etc.
-[8] Coecke, B. & Kissinger, A. (2017). "Picturing Quantum Processes" — Categorical QM
-[9] Selinger, P. (2007). "Dagger Compact Closed Categories and Completely Positive Maps"
-[10] Jacobs, B. (2015). "New Directions in Categorical Logic for Quantum Mechanics"
-
-═══════════════════════════════════════════════════════════════════════════════
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : MAC Minimizer (Funtor de Purificación Espectral y Reducción Cuántica)          ║
+║  Ruta   : app/boole/tactics/mac_minimizer.py                                             ║
+║  Versión: 3.0.0-Topos-Spectral-Categorical-Enhanced                                      ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral):                    ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este minimizador implementa un Funtor de Purificación estricto                          ║
+║  $P : \mathbf{Quant} \to \mathbf{Quant_{pure}}$ sobre la 2-categoría de canales          ║
+║  cuánticos completamente positivos y preservadores de traza (CPTP). Comprime el          ║
+║  operador de densidad $\rho \in \mathcal{D}(\mathcal{H})$ eliminando subespacios de      ║
+║  baja relevancia semántica, empleando un truncamiento espectral óptimo garantizado       ║
+║  por el preorden de majorización cuántica ($\rho_{pur} \prec \rho_{orig}$).              ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y LÍMITES CUÁNTICOS:                                            ║
+║                                                                                          ║
+║  §1. Adjunción Funtorial de Purificación ($P \dashv \iota$):                             ║
+║      La compresión y posterior inmersión deben formar una Adjunción de Galois entre      ║
+║      la categoría cuántica general y su subcategoría pura. El morfismo unidad $\eta$ y   ║
+║      counidad $\varepsilon$ exigen la invariancia isomórfica del funtor:                 ║
+║          $\text{Hom}(\mathcal{E}_{pur}(\rho), \sigma) \cong \text{Hom}(\rho, \iota(\sigma))$ ║
+║                                                                                          ║
+║  §2. Majorización Cuántica y Truncamiento Óptimo (Nielsen):                              ║
+║      El truncamiento del proyector espectral $P_\varepsilon = \sum_{retener} |\psi_k\rangle\langle\psi_k|$ ║
+║      se restringe axiomáticamente bajo el preorden de Schur-convexidad. Si se emplea el  ║
+║      modo ENTROPY_BOUNDED, se garantiza:                                                 ║
+║          $S(\rho_{pur}) = - \text{Tr}(\rho_{pur} \ln \rho_{pur}) \le S_{max}$            ║
+║      Asegurando que la reducción entrópica no degenere la pureza del canal $\Delta\gamma \ge 0$.║
+║                                                                                          ║
+║  §3. Distancia de Bures y Fidelidad de Uhlmann:                                          ║
+║      El error de la purificación semántica se acota mediante la métrica de fidelidad     ║
+║      para evaluar la preservación de la información mutua:                               ║
+║          $F(\rho_{orig}, \rho_{pur}) = \left( \text{Tr} \sqrt{\sqrt{\rho_{orig}} \rho_{pur} \sqrt{\rho_{orig}}} \right)^2$ ║
+║      Caídas en la fidelidad alteran la métrica de Bures $d_B(\rho, \rho_{pur})$.         ║
+║                                                                                          ║
+║  §4. Poda Lindbladiana y Brecha Disipativa (GKSL):                                       ║
+║      Para la reducción de dinámica en sistemas abiertos, se podan los operadores de      ║
+║      salto $L_k$ evaluando la norma de Frobenius ponderada $\gamma_k \|L_k\|_F$ y el     ║
+║      conmutador $\|[H, L_k]\|$, manteniendo estricta la ecuación maestra:                ║
+║          $\frac{d\rho}{dt} = -i[H, \rho] + \sum_{k} \gamma_k \left( L_k \rho L_k^\dagger - \frac{1}{2}\{L_k^\dagger L_k, \rho\} \right)$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES OPERACIONALES (Topología Estructural):                            ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 0 → Infraestructura Categórica:                                                    ║
+║           Declaración de Protocolos, Adjunción $P \dashv \iota$ y DTOs inmutables        ║
+║           (`SpectralData`, `TruncationReport`, `PruningReport`).                         ║
+║                                                                                          ║
+║  Fase 1 → Extracción de Invariantes:                                                     ║
+║           Cálculo del espectro de $\rho$, pureza, entropía y número de condición.        ║
+║                                                                                          ║
+║  Fase 2 → SpectralTruncationProjector:                                                   ║
+║           Ejecución del truncamiento basado en estrategias (RANK_K, CUMULATIVE_ENERGY,   ║
+║           MAJORIZATION_OPTIMAL). Construye el proyector ortogonal puro.                  ║
+║                                                                                          ║
+║  Fase 3 → LindbladPruningOperator:                                                       ║
+║           Optimización CPTP de la Ecuación Maestra, descartando generadores              ║
+║           dinámicamente irrelevantes para aumentar la eficiencia asintótica.             ║
+║                                                                                          ║
+║  Fase 4 → MACMinimizer (Orquestador Supremo):                                            ║
+║           Funtor de asimilación categórica final que agrupa las métricas de compresión   ║
+║           y valida la Cota de Capacidad Semántica de Holevo $\chi(\mathcal{E}_{pur})$.   ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

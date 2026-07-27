@@ -1,86 +1,59 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : MAC Minimizer Agent (Custodio de la Purificación Espectral)         ║
-║ Ruta   : app/agents/boole/tactics/mac_minimizer_agent.py                     ║
-║ Versión: 3.0.0-Categorical-Topos-Spectral-Quantum-Rigorous                   ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral Avanzado):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna el `mac_minimizer.py` en el estrato WISDOM mediante
-una composición funtorial estricta que preserva invariantes topológicos,
-espectrales y termodinámicos cuánticos.
-
-FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
-
-1. TOPOLOGÍA ALGEBRAICA:
-   - El espacio de matrices de densidad forma un simplejo convexo en C^{d×d}
-   - La purificación espectral es un retracto que preserva la estructura de fibrado
-   - Los certificados forman un 2-funtor entre categorías enriquecidas
-
-2. TEORÍA ESPECTRAL:
-   - Descomposición espectral: ρ = Σᵢ λᵢ |ψᵢ⟩⟨ψᵢ| con λᵢ ∈ σ(ρ)
-   - Cálculo funcional holomorfo: f(ρ) = ∫_Γ f(z)(zI - ρ)⁻¹ dz
-   - Teorema espectral para operadores compactos autoadjuntos
-
-3. TEORÍA DE GRAFOS:
-   - Grafo de dependencias espectrales: G = (V, E) donde V = {λᵢ}, E = acoplamiento
-   - Conectividad algebraica: λ₂(L) mide coherencia cuántica
-   - Isomorfismo de grafos preserva estructura informacional
-
-4. MECÁNICA CUÁNTICA:
-   - Postulado de Born: Tr(ρA) = valor esperado del observable A
-   - Ecuación de von Neumann: dρ/dt = -i[H, ρ]
-   - Límite termodinámico: S(ρ) = -Tr(ρ log ρ)
-
-5. TEORÍA DE CATEGORÍAS Y TOPOS:
-   - Funtor de purificación: P: DensityMat → PureDensityMat
-   - Transformación natural: η: Id ⟹ P ∘ F (fidelidad)
-   - Topos de haces sobre el espectro: Sh(Spec(A))
-
-6. ÁLGEBRA LINEAL RIGUROSA:
-   - Normas matriciales: ‖A‖₂ = σₘₐₓ(A), ‖A‖_F = √Tr(A†A)
-   - Desigualdad de Weyl para perturbaciones espectrales
-   - Teorema de Sylvester para ecuaciones de Lyapunov
-
-7. ÁLGEBRA DE BOOLE Y LÓGICA CUÁNTICA:
-   - Retículo ortomodular de proyectores
-   - Lógica cuántica no distributiva: (P ∨ Q) ∧ R ≠ (P ∧ R) ∨ (Q ∧ R)
-   - Implicación cuántica de Sasaki: P →_S Q = P⊥ ∨ (P ∧ Q)
-
-ARQUITECTURA FUNTORIAL ANIDADA (3 FASES):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Auditoría de Majorización Cuántica
-  ├─ Validación Hermítica y PSD (método inicial)
-  ├─ Saneamiento Espectral
-  ├─ Curvas de Lorenz Cuánticas
-  └─ Certificado de Majorización (método final) ──┐
-                                                   │
-Fase 2 → Certificación de Fidelidad de Uhlmann    │
-  ├─ Consumo del Certificado de Fase 1 ←──────────┘
-  ├─ Raíz Cuadrada Matricial PSD
-  ├─ Núcleo de Fidelidad Cuántica
-  └─ Certificado de Fidelidad (método final) ──┐
-                                                │
-Fase 3 → Cota de Capacidad de Holevo            │
-  ├─ Consumo del Certificado de Fase 2 ←────────┘
-  ├─ Entropía de von Neumann
-  ├─ Diferencial Termodinámico
-  └─ Certificado de Capacidad (método final)
-
-MEJORAS IMPLEMENTADAS:
-────────────────────────────────────────────────────────────────────────────────
-1. Cálculo funcional holomorfo para funciones matriciales
-2. Estimación de error espectral con desigualdad de Weyl
-3. Métricas de distancia cuántica adicionales (traza, Bures, Hellinger)
-4. Análisis de coherencia cuántica mediante elementos fuera de diagonal
-5. Validación de desigualdades de incertidumbre cuántica
-6. Verificación de propiedades de retículo ortomodular
-7. Cálculo de capacidad de Holevo accesible
-8. Análisis de canales cuánticos mediante representación de Kraus
-9. Estimación de complejidad de enredo (entanglement)
-10. Monitoreo de información mutua cuántica
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : MAC Minimizer Agent (Custodio de la Purificación Espectral)                    ║
+║  Ruta   : app/agents/boole/tactics/mac_minimizer_agent.py                                ║
+║  Versión: 3.0.0-Categorical-Topos-Spectral-Quantum-Rigorous                              ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral):                    ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor gobierna el `mac_minimizer.py` en el estrato WISDOM. Consagra la        ║
+║  compresión del operador de densidad $\rho \in \mathcal{D}(\mathcal{H}_{MAC})$           ║
+║  mediante una composición funtorial estricta. Su propósito es ejecutar un truncamiento   ║
+║  espectral óptimo eliminando ruido térmico semántico, preservando simultáneamente los    ║
+║  invariantes topológicos, espectrales y termodinámicos bajo mapas CPTP.                  ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y LÍMITES CUÁNTICOS:                                            ║
+║                                                                                          ║
+║  §1. Preorden de Majorización Cuántica (Schur-Convexidad):                               ║
+║      La purificación no debe incrementar el desorden matricial. Se exige rigurosamente   ║
+║      que el estado purificado $\rho_{pur}$ majorice al estado original $\rho_{orig}$     ║
+║      ($\rho_{pur} \succ \rho_{orig}$), garantizando que las sumas parciales de sus       ║
+║      autovalores ordenados descendentemente cumplan:                                     ║
+║          $\sum_{i=1}^k \lambda_i^{\downarrow}(\rho_{pur}) \ge \sum_{i=1}^k \lambda_i^{\downarrow}(\rho_{orig}) \quad \forall k$ ║
+║      La violación de este preorden detona un `QuantumMajorizationViolation`.             ║
+║                                                                                          ║
+║  §2. Fidelidad de Uhlmann y Distancia de Bures:                                          ║
+║      La poda de operadores no puede mutilar la coherencia de la base lógica. La          ║
+║      distancia entre el estado denso y su aproximación se rige por la Fidelidad          ║
+║      de Uhlmann, que debe superar un umbral crítico de similitud $\mathcal{F}_{\min}$:   ║
+║          $F(\rho_{orig}, \rho_{pur}) = \left( \text{Tr} \sqrt{\sqrt{\rho_{orig}} \rho_{pur} \sqrt{\rho_{orig}}} \right)^2 \ge \mathcal{F}_{\min}$ ║
+║      Un colapso en este isomorfismo semántico dispara el `UhlmannFidelityCollapseError`. ║
+║                                                                                          ║
+║  §3. Límite de Capacidad de Holevo y Entropía de von Neumann:                            ║
+║      La compresión se subordina a la termodinámica de sistemas abiertos. Se exige que    ║
+║      la entropía de von Neumann $S(\rho) = -\text{Tr}(\rho \ln \rho)$ de la matriz no    ║
+║      aumente, de tal modo que $\Delta S = S(\rho_{pur}) - S(\rho_{orig}) \le 0$.          ║
+║      Una destrucción de la capacidad accesible (límite de Holevo) detona de inmediato el ║
+║      `HolevoCapacityDeficitError`.                                                       ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_QuantumMajorizationAuditor                                              ║
+║           Auditoría de las relaciones de dominancia espectral e invariantes matriciales  ║
+║           (Hermiticidad, Traza Unitaria, Positividad Semidefinida).                      ║
+║           [Retorna: MajorizationAuditData → objeto inicial de Fase 2]                    ║
+║                                                                                          ║
+║  Fase 2 → Phase2_UhlmannFidelityCertifier                                                ║
+║           Certificación de la conservación isomórfica semántica $F(\rho_{orig}, \rho_{pur})$.║
+║           [Retorna: FidelityAuditData → objeto inicial de Fase 3]                        ║
+║                                                                                          ║
+║  Fase 3 → Phase3_HolevoCapacityEnforcer                                                  ║
+║           Verificación termodinámica, reducción entrópica y preservación de la           ║
+║           coherencia cuántica / enredo lógico.                                           ║
+║           [Retorna: HolevoAuditData → síntesis en PurificationGovernanceState]           ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

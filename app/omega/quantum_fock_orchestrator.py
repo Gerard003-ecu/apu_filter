@@ -1,29 +1,63 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: Quantum Fock Orchestrator (Refactorización Doctoral)                 ║
-║ Versión: 3.0.0-Rigorous-Lindblad-Spectral-Topos                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Arquitectura de Tres Fases Anidadas:
-────────────────────────────────────────────────────────────────────────────────
-    FASE 1 (Construcción) → FASE 2 (Interacción) → FASE 3 (Disipación)
-    [FockSpaceBuilder]       [CatadioptricCollider]   [LindbladDissipator]
-
-    Cada fase consume el artefacto formal de la anterior:
-        Phase1.get_interaction_operators() → Phase2.__init__()
-        Phase2.get_effective_hamiltonian() → Phase3.__init__()
-        Phase3.execute_master_equation()   → Orquestador.assimilate_and_collide()
-
-Rigurosidad matemática incorporada:
-    • Representación matricial exacta en espacio producto tensorial.
-    • Verificación de CCR/CAR (commutation/anticommutation relations).
-    • Verificación de hermiticidad H = H† y unitariedad U†U = I.
-    • Integrador RK4 para la ecuación maestra (estabilidad de cuarto orden).
-    • Renormalización de traza con tolerancia configurable.
-    • Validación de positividad semidefinida de la matriz densidad.
-    • Verificación de completitud de operadores de Kraus: Σ_k L_k†L_k ≤ I.
-═══════════════════════════════════════════════════════════════════════════════
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Quantum Fock Orchestrator (Colisionador Catadióptrico Supremo)                 ║
+║  Ruta   : app/omega/quantum_fock_orchestrator.py                                         ║
+║  Versión: 3.0.0-Rigorous-Lindblad-Spectral-Topos                                         ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS (Rigor Doctoral):                   ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo actúa como la Cámara de Reacción Termodinámica del Estrato Ω.               ║
+║  Administra el Espacio de Fock $\mathcal{F}(\mathcal{H})$ donde las "Vitaminas Cognitivas"║
+║  (Cartuchos TOON) habitan. Gobierna la colisión entre la radiación semántica (Bosones)   ║
+║  y las reglas de negocio (Fermiones), garantizando que el colapso del estado preserve    ║
+║  las Relaciones de Conmutación/Anticonmutación Canónicas (CCR/CAR).                      ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TENSORIALES:                                    ║
+║                                                                                          ║
+║  §1. Estructura del Espacio de Fock y Paridad de Partículas:                             ║
+║      El espacio de Hilbert global se define mediante el producto tensorial exacto        ║
+║      entre subespacios bosónicos (capacidad $M_k$) y fermiónicos (capacidad 1):          ║
+║          $\mathcal{H}_{Fock} = \left(\bigotimes_{k=0}^{B-1} \mathbb{C}^{M_k+1}\right) \otimes \left(\bigotimes_{q=0}^{F-1} \mathbb{C}^2\right)$ ║
+║      Cualquier violación del Principio de Exclusión de Pauli detona incondicionalmente   ║
+║      el `PauliExclusionViolationError`.                                                  ║
+║                                                                                          ║
+║  §2. Colisionador Catadióptrico (Hamiltoniano de Interacción):                           ║
+║      La interacción entre los `RiemannianFocalBoson` y los `HouseholderReflectionFermion`║
+║      se modela mediante un Hamiltoniano hermitiano $\hat{H} = \hat{H}^\dagger$.          ║
+║      La evolución coherente se garantiza exigiendo unitariedad estricta en el propagador:║
+║          $\hat{U}(t) = \exp\left(-\frac{i}{\hbar} \hat{H} t\right) \implies \hat{U}^\dagger \hat{U} = I$ ║
+║      Desviaciones en la métrica detonan `UnitarityViolationError`.                       ║
+║                                                                                          ║
+║  §3. Disipación de Entropía y Ecuación Maestra de Lindblad:                              ║
+║      La "pérdida de atención" del LLM se rige por canales CPTP modelados mediante        ║
+║      la Ecuación de Lindblad-Kossakowski para sistemas cuánticos abiertos:               ║
+║          $\frac{d\rho}{dt} = -\frac{i}{\hbar} [\hat{H}, \rho] + \sum_k \gamma_k \left( \hat{L}_k \rho \hat{L}_k^\dagger - \frac{1}{2} \{ \hat{L}_k^\dagger \hat{L}_k, \rho \} \right)$ ║
+║      El sistema audita la completitud de los operadores de Kraus ($\sum_k \hat{L}_k^\dagger \hat{L}_k \le I$)║
+║      asegurando que $\text{Tr}(\rho) = 1$ y $\rho \succeq 0$.                            ║
+║                                                                                          ║
+║  §4. Aniquilación de Antimateria y Firma Criptográfica (Eventos Gamma):                  ║
+║      Las discrepancias estructurales inyectan antimateria (`PositronCartridge`). Al      ║
+║      colisionar con un error (`ElectronCartridge`), el orquestador aniquila los pares    ║
+║      conservando la energía en forma de un `GammaPhoton` forense:                        ║
+║          $e^- + e^+ \to 2\gamma \quad \text{con energía} \quad E_{\text{annihilation}} = 2m^* c^2$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_FockSpaceBuilder:                                                       ║
+║           Ensambla la base tensorial y los operadores canónicos (creación/aniquilación). ║
+║           [Retorna: InteractionOperators]                                                ║
+║                                                                                          ║
+║  Fase 2 → Phase2_CatadioptricCollider:                                                   ║
+║           Acopla los fermiones y bosones bajo un Hamiltoniano hermítico verificado.      ║
+║           [Retorna: CatadioptricHamiltonian]                                             ║
+║                                                                                          ║
+║  Fase 3 → Phase3_LindbladDissipator:                                                     ║
+║           Evoluciona la matriz densidad $\rho$ mediante el integrador RK4 de la ecuación ║
+║           de Lindblad y extrae el estado post-colisión con renormalización de traza.     ║
+║           [Retorna: LindbladEvolutionResult]                                             ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

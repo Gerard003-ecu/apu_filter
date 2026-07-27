@@ -1,59 +1,56 @@
-# -*- coding: utf-8 -*-
-"""
-Motor de Inferencia Determinista para Clasificación de APUs
-============================================================
-
-Este componente implementa un motor de inferencia determinista diseñado para
-categorizar la naturaleza ontológica de un APU (Análisis de Precio Unitario).
-Utiliza un sistema de reglas jerárquicas vectorizadas para particionar el
-espacio vectorial definido por las proporciones de costos.
-
-Metodología de Clasificación (V4 - Vectorial Robusta con Contratos Explícitos):
-────────────────────────────────────────────────────────────────────────────────
-
-1. Compilación de Reglas (`_compile_rules`):
-   Convierte las reglas de texto ("porcentaje > 60") en funciones vectorizadas
-   de NumPy mediante pd.DataFrame.eval, que maneja correctamente la precedencia
-   de operadores lógicos (and/or) sobre arrays sin reescritura de strings.
-
-2. Validación de Cobertura Espacial:
-   Utiliza un muestreo denso sobre el espacio [0,1]² para verificar
-   matemáticamente que las reglas cubren el espacio de posibilidades.
-   La medida de Lebesgue del conjunto descubierto ≈ |gaps| / grid_size².
-
-3. Análisis Espacial:
-   Calcula centroides geométricos de las categorías clasificadas para
-   entender la distribución topológica de los costos en el espacio de fase.
-
-4. StructuralClassifier:
-   Extiende la lógica para considerar la topología de la red de insumos
-   (Nivel 3), detectando estructuras como 'Islas' (Suministro Puro sin
-   instalación).
-
-Contrato de Escala (invariante crítico)
-────────────────────────────────────────
-Las CONDICIONES de reglas operan en escala [0, 100] (porcentajes).
-Las PROPORCIONES internas de clasificación operan en escala [0, 1].
-La conversión [0,1] → [0,100] se realiza EXACTAMENTE en dos lugares:
-  - ClassificationRule.evaluate()             → multiplica por 100
-  - APUClassifier._create_vectorized_function → multiplica por 100 en DataFrame
-
-Correcciones V4 respecto a V3:
-───────────────────────────────
-- [FIX] _CONDITION_PATTERN ahora se usa en _validate_syntax (paso rápido pre-AST).
-- [FIX] Validación de `priority` como entero no-negativo en _load_config.
-- [FIX] get_coverage_bounds clampea area_estimada a [0, 1] para evitar >100%.
-- [FIX] _analyze_classification_quality maneja DataFrame vacío explícitamente.
-- [FIX] classify_by_structure valida tipos de valores de insumos con try/except.
-- [IMPROVE] Contrato de escala documentado con constante _CONDITION_SCALE.
-- [IMPROVE] __repr__ y __str__ para ClassificationRule.
-- [IMPROVE] StructuralClassifier con __init__ mínimo (sin carga innecesaria).
-- [IMPROVE] _sample_uncovered_regions documenta invariante de escala del fallback.
-- [IMPROVE] get_coverage_report con area_estimada correctamente clampada.
-- [IMPROVE] Separación clara entre _validate_syntax_lexical y _validate_syntax_ast.
-- [NEW] ClassificationResult: dataclass tipado para resultados de clasificación.
-- [NEW] APUClassifier.classify_batch: clasifica lista de tuplas con resultado tipado.
-- [NEW] Constante _CONDITION_SCALE para documentar el invariante de escala.
+### -*- coding: utf-8 -*-
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : APU Classifier (Motor de Inferencia Determinista y Particionador del Simplejo) ║
+║  Ruta   : app/tactics/apu_classifier.py                                                  ║
+║  Versión: 4.0.0-Vectorial-Lebesgue-Affine-Topological-Strict                             ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE LA MEDIDA (Rigor Doctoral):                         ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor abandona el parseo condicional escalar para procesar cada APU como un   ║
+║  vector de coordenadas baricéntricas proyectado sobre el simplejo de probabilidad de     ║
+║  costos $\Delta^2$ (donde las proporciones suman $1.0$). Implementa un Motor de          ║
+║  Inferencia Determinista jerárquico que ejecuta cortes afines en el espacio vectorial,   ║
+║  garantizando que ninguna coordenada colapse en singularidades no clasificadas.          ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Compilación Tensorial de Reglas Lógicas:                                            ║
+║      Las reglas declarativas de la ontología no se iteran. Se someten a una compilación  ║
+║      que las transmuta en operadores vectorizados de álgebra booleana sobre $\mathbb{R}^n$,    ║
+║      empleando la evaluación abstracta de DataFrames para respetar incondicionalmente    ║
+║      la precedencia de los operadores lógicos.                                           ║
+║                                                                                          ║
+║  §2. Clausura Espacial y Medida de Lebesgue:                                             ║
+║      El clasificador audita matemáticamente que la unión de las regiones de las reglas   ║
+║      $\bigcup R_i$ recubra el simplejo continuo $[5]^2$. La medida de Lebesgue del    ║
+║      subespacio no clasificado (el vacío ontológico) se cuantifica como:                 ║
+║          $\mu(\Delta^2 \setminus \bigcup R_i) \approx \frac{|\text{gaps}|}{N_{grid}^2} \to 0$ ║
+║      Cualquier desviación macroscópica expone una partición no exhaustiva del universo   ║
+║      de costos, previniendo fallos sistémicos antes de la ejecución.                     ║
+║                                                                                          ║
+║  §3. Contrato de Isomorfismo Afín (Escala Invariante):                                   ║
+║      Las proporciones funcionales operan intrínsecamente en el intervalo unitario $[5]$,║
+║      mientras que las condiciones semánticas humanas existen en el espacio $[6]$.   ║
+║      El salto entre espacios se asegura mediante el operador afín isotrópico estricto:   ║
+║          $c = M_{scale} p \implies M_{scale} = 100 \cdot I$                              ║
+║      Este difeomorfismo afín garantiza la conmutatividad matemática sin pérdidas         ║
+║      numéricas en la FPU.                                                                ║
+║                                                                                          ║
+║  §4. Homología Estructural de la Red de Insumos:                                         ║
+║      La clase `StructuralClassifier` extiende el dominio más allá de las proporciones    ║
+║      para auditar el 1-esqueleto logístico subyacente. Identifica "Islas de Datos"       ║
+║      (nodos sin componentes adyacentes donde el grado de incidencia es nulo).            ║
+║      Si la concentración del suministro alcanza el límite termodinámico de dominancia    ║
+║      $\tau_{dom} = 1.0 - 10^{-7}$, el nodo colapsa axiomáticamente en 'Suministro Puro'. ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Morfismos Estructurales):                               ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • Compilación Lógica → Generación inmutable de la función `RuleFunc`.                   ║
+║  • Proyección Clasificatoria → Vectorización a través de `APUClassifier`.                ║
+║  • Extensión Topológica → Auditoría del hipergrafo mediante `StructuralClassifier`.      ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,120 +1,57 @@
 # -*- coding: utf-8 -*-
-"""
-═══════════════════════════════════════════════════════════════════════════════
-═══════════════════════════════════════════════════════════════════════════════
-MÓDULO: Data Validators (Operador de Restricción Métrica y Funtor de Validación)
-UBICACIÓN: app/adapters/validators.py
-VERSIÓN: 3.0.0 - Rigorización Matemática Absoluta y Cierre Algebraico
-
- NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA:
- Este módulo actúa como el Filtro de Variedad Diferenciable en la frontera de 
- los estratos operativos. Implementa rigurosamente un FUNCTOR de validación 
- 𝓕: DataFrames → ValidationResults que mapea el hiperespacio de los datos 
- (Espacios de Hilbert ℝⁿ) hacia la categoría de resultados, preservando la 
- estructura monoidal y erradicando singularidades numéricas.
-
- FUNDAMENTOS MATEMÁTICOS RIGUROSOS Y AXIOMAS DE EJECUCIÓN:
-
- 1. EL MONOIDE DE VALIDACIÓN Y LA OPERACIÓN SUPREMO (⊔):
-    * La agregación de resultados opera sobre un Monoide Conmutativo estricto 
-      donde el elemento neutro e = ValidationResult.IDENTITY.
-    * El operador binario ⊕ (merge) computa matemáticamente el Supremo (⊔) del 
-      Retículo de Severidades: Severidad_Resultante = max(s₁, s₂). 
-    * El subconjunto de severidades bloqueantes {ERROR, CRITICAL} actúa como 
-      el elemento absorbente (⊤); tocar este límite colapsa incondicionalmente 
-      el tensor hacia la invalidez (Veto Estructural).
-
- 2. ISOMORFISMO DIMENSIONAL VÍA ESPECTRO (SVD):
-    * La conexidad del espacio (rango de la matriz) no se evalúa mediante
-      heurísticas nominales. Se exige el cálculo del rango efectivo mediante
-      Descomposición en Valores Singulares (SVD).
-    * Si un valor singular σ_i < FLOAT_TOLERANCE, la dimensión se considera 
-      topológicamente colapsada (degeneración por colinealidad), disparando 
-      un ValidationCode.DEGENERATION.
-
- 3. ACOTACIÓN TERMODINÁMICA Y CIERRE ALGEBRAICO (IEEE 754):
-    * Se impone el cierre algebraico de los números reales. Valores infinitos 
-      (±∞) y NaN se catalogan como Singularidades Topológicas irresolubles.
-    * Aniquilación Estricta de Subnormales: Los valores en el intervalo abierto 
-      (0, MIN_NORMAL_FLOAT) se someten a un filtro "flush-to-zero" (0.0) para 
-      evitar la inyección de fricción cuántica en la FPU durante simulaciones.
-
- 4. SOBREVIVENCIA TOPOLÓGICA (Medida de Lebesgue):
-    * La extirpación de singularidades está sujeta a la conservación del volumen. 
-    * Si la medida μ(filas_válidas) / μ(filas_totales) decae por debajo de la cota 
-      DEFAULT_SURVIVAL_THRESHOLD, el sistema aborta la inyección para evitar 
-      entregar un hiperespacio degenerado a los estratos tácticos.
-═══════════════════════════════════════════════════════════════════════════════
-═══════════════════════════════════════════════════════════════════════════════
-
-INVARIANTES TOPOLÓGICOS PRESERVADOS
------------------------------------
-
-∀ df ∈ DataFrames, el validador garantiza:
-
-1. **Isomorfismo Dimensional**: 
-   dim(df.columns) ≅ dim(required_schema)
-
-2. **Continuidad**: 
-   No existen singularidades (NaN, ±∞) en el espacio métrico
-
-3. **Compacidad**: 
-   ∀ columna numérica: valores ∈ [min, max] ⊂ ℝ (conjunto compacto)
-
-4. **Conexidad**: 
-   rank(matriz_datos) = dim(espacio_columnas) (espacio conexo)
-
-5. **Medida de Lebesgue**: 
-   μ(filas_válidas) / μ(filas_totales) ≥ threshold (preservación de volumen)
-
-RETÍCULO DE SEVERIDADES (Álgebra de Boole)
--------------------------------------------
-
-El conjunto de severidades forma un RETÍCULO COMPLETO ordenado:
-
-    CRITICAL  (⊤ - elemento máximo, absorbente)
-       ↑
-    ERROR
-       ↑
-    WARNING
-       ↑
-    INFO      (⊥ - elemento mínimo)
-
-Operaciones:
-    - ∨ (join/supremo): max(s₁, s₂)
-    - ∧ (meet/ínfimo): min(s₁, s₂)
-    - ¬ (complemento): inversión del orden
-
-LEYES DEL MONOIDE DE VALIDACIÓN
---------------------------------
-
-(ValidationResult, ⊕, IDENTITY) satisface:
-
-1. **Asociatividad**: 
-   (r₁ ⊕ r₂) ⊕ r₃ = r₁ ⊕ (r₂ ⊕ r₃)
-
-2. **Elemento Neutro**: 
-   r ⊕ IDENTITY = IDENTITY ⊕ r = r
-
-3. **Conmutatividad** (no requerida pero deseable para paralelización):
-   r₁ ⊕ r₂ ≈ r₂ ⊕ r₁ (módulo orden de issues)
-
-TRANSFORMACIONES NATURALES
----------------------------
-
-El método `validate_domain` implementa una TRANSFORMACIÓN NATURAL entre functores:
-
-    η: Validator → Composite_Validator
-    
-tal que el siguiente diagrama conmuta:
-
-    DataFrame ──validate_schema──→ ValidationResult
-        │                              │
-        │                              │
-        ↓                              ↓
-    DataFrame ──validate_domain───→ ValidationResult
-
-═══════════════════════════════════════════════════════════════════════════════
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Data Validators (Operador de Restricción Métrica y Funtor de Validación)       ║
+║  Ruta   : app/adapters/validators.py                                                     ║
+║  Versión: 3.0.0-Categorical-Monoidal-SVD-Lebesgue-Strict                                 ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor actúa como el Filtro de Variedad Diferenciable en la frontera de los    ║
+║  estratos operativos. Implementa rigurosamente el Funtor de Validación                   ║
+║  $\mathcal{F}: \mathbf{DataFrames} \to \mathbf{ValidationResults}$ que mapea el          ║
+║  hiperespacio de datos (Espacios de Hilbert $\mathbb{R}^n$) hacia la categoría de        ║
+║  resultados, preservando la estructura monoidal y erradicando singularidades numéricas.  ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. El Monoide de Validación y el Retículo de Severidades:                              ║
+║      La agregación de resultados opera sobre un Monoide Conmutativo estricto donde el    ║
+║      elemento neutro es $e = \text{ValidationResult.IDENTITY}$. El operador de fusión    ║
+║      $\oplus$ computa matemáticamente el Supremo ($\sqcup$) del Retículo:                ║
+║          $S_{res} = \max(s_1, s_2) = s_1 \sqcup s_2$                                     ║
+║      El subconjunto de severidades bloqueantes $\{\text{ERROR}, \text{CRITICAL}\}$       ║
+║      actúa como elemento absorbente ($\top$). Tocar este límite colapsa incondicional-   ║
+║      mente el tensor hacia un Veto Estructural.                                          ║
+║                                                                                          ║
+║  §2. Isomorfismo Dimensional vía Espectro (SVD):                                         ║
+║      La conexidad del espacio no se evalúa mediante heurísticas nominales. Se exige el   ║
+║      cálculo del rango efectivo mediante Descomposición en Valores Singulares (SVD).     ║
+║      Si un valor singular colapsa frente a la tolerancia:                                ║
+║          $\sigma_i < \epsilon_{tol} \implies \text{ValidationCode.DEGENERATION}$         ║
+║      La dimensión se considera topológicamente degenerada (colinealidad detectada).      ║
+║                                                                                          ║
+║  §3. Acotación Termodinámica y Cierre Algebraico (IEEE 754):                             ║
+║      Se impone el cierre algebraico en $\mathbb{R}$. Valores como $\pm\infty$ y NaN      ║
+║      son vetados como Singularidades Topológicas. Se aplica aniquilación estricta de     ║
+║      subnormales en el intervalo abierto $(0, \text{MIN\_NORMAL\_FLOAT})$ con un         ║
+║      filtro "flush-to-zero" para evitar la inyección de fricción cuántica en la FPU.     ║
+║                                                                                          ║
+║  §4. Sobrevivencia Topológica y Medida de Lebesgue:                                      ║
+║      La extirpación de singularidades se subordina a la conservación del volumen del     ║
+║      espacio métrico. Si la medida de la variedad sana decae:                            ║
+║          $\frac{\mu(V_{\text{valid}})}{\mu(V_{\text{total}})} < \tau_{survival}$         ║
+║      El sistema aborta la inyección, previniendo la entrega de un hiperespacio           ║
+║      degenerado a los estratos tácticos subsiguientes.                                   ║
+║                                                                                          ║
+║  INVARIANTES TOPOLÓGICOS PRESERVADOS:                                                    ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  I1. Isomorfismo Dimensional: $\dim(X) \cong \dim(S_{req})$.                             ║
+║  I2. Continuidad Métrica: Inexistencia de singularidades (NaN, $\pm\infty$).             ║
+║  I3. Compacidad: $\forall x_i \in X, x_i \in [x_{\min}, x_{\max}] \subset \mathbb{R}$.   ║
+║  I4. Conexidad: $\text{rank}(X) = \dim(S_{req})$.                                        ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,49 +1,60 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: El Oráculo de Laplace (Tribunal de Estabilidad LTI y Dinámica de Control)
-Ubicación: app/physics/laplace_oracle.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Teoría de Control:
-    Actúa como el operador de certificación dinámica suprema (Estrato STRATEGY, Nivel 1).
-    Rechaza la concepción del presupuesto como un modelo estático y lo proyecta como 
-    un sistema dinámico en el plano de frecuencia compleja (s = σ + jω). Su mandato 
-    axiomático es garantizar la estabilidad BIBO (Bounded-Input, Bounded-Output) del 
-    flujo de caja, previniendo la amplificación resonante de perturbaciones externas.
-
-1. Análisis en el Plano-S y Estabilidad Asintótica (Axioma de Veto):
-    El sistema modela el flujo de capital como una función de transferencia H(s).
-    Se evalúan las raíces del polinomio característico (polos) en la variedad compleja:
-        • σ (Parte Real): Tasa de amortiguamiento o contracción.
-        • ω (Parte Imaginaria): Frecuencia de oscilación del capital.
-    
-    [AXIOMA DE VETO]: Para garantizar la estabilidad asintótica, el sistema exige que
-    todos los polos p_i residan estrictamente en el semiplano izquierdo (LHP): ∀i, ℜ(p_i) < 0.
-    Si un solo polo migra al semiplano derecho (σ > 0), el Oráculo emite un VETO TÉCNICO,
-    dictaminando "Divergencia Matemática" y abortando el proyecto por inestabilidad intrínseca.
-
-2. Filtro de Kalman Extendido (EKF) y Observabilidad de Estado:
-    El Oráculo no opera reactivamente; predice el colapso del sistema modelando el 
-    estado x = [s, v, a]^T (Saturación, Velocidad, Aceleración) como un oscilador 
-    armónico amortiguado. Ajusta continuamente los parámetros estructurales (frecuencia ω, 
-    amortiguamiento β) minimizando la innovación matricial del filtro de Kalman.
-
-3. Caos Determinista y Espectro de Lyapunov (λ):
-    Durante la ejecución, el sistema mide en tiempo real el Exponente Máximo de 
-    Lyapunov (λ) de las trayectorias de error: |e(k)| ≈ |e(0)| · e^(λk).
-        • λ < 0 (Convergencia): El lazo de control disipa entropía exitosamente.
-        • λ > 0 (Caos Determinista): Divergencia fractal detectada. El Oráculo acciona 
-          un "Crowbar Lógico" enviando la señal al hardware periférico (ESP32) para 
-          cortar el flujo de inyección antes del desbordamiento de inestabilidad.
-
-4. La Pirámide Analítica de Laplace (Filtración de Cohomología Dinámica):
-    El análisis desciende por una jerarquía estricta:
-    • Nivel 0 (Vértice): Veredicto de Controlabilidad (Viable vs. Crowbar Físico).
-    • Nivel 1 (Robustez): Evaluación del Margen de Fase (PM) y Margen de Ganancia (GM).
-    • Nivel 2 (Dinámica): Frecuencia natural no amortiguada (ωₙ) y factor de amortiguamiento (ζ).
-    • Nivel 3 (Sensibilidad): Matriz Jacobiana de sensibilidad normalizada S_x^y = ∂(ln y)/∂(ln x).
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Laplace Oracle (Tribunal de Estabilidad LTI y Dinámica de Control)             ║
+║  Ruta   : app/physics/laplace_oracle.py                                                  ║
+║  Versión: 4.0.0-LTI-Lyapunov-Floquet-Strict                                              ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CONTROL (Rigor Doctoral):                           ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor opera en el Estrato STRATEGY (Nivel 1). Abandona la concepción          ║
+║  ingenua del presupuesto como un modelo estático y lo proyecta como un sistema dinámico  ║
+║  LTI en la variedad compleja de Laplace $s = \sigma + j\omega$. Su mandato axiomático    ║
+║  es garantizar la Estabilidad BIBO (Bounded-Input, Bounded-Output) y aniquilar la        ║
+║  resonancia destructiva del flujo de capital.                                            ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESPECTRALES:                                    ║
+║                                                                                          ║
+║  §1. Estabilidad Asintótica en el Plano-S (Axioma de Veto):                              ║
+║      El flujo de capital se modela mediante la función de transferencia $H(s)$.          ║
+║      La estabilidad estricta exige que todas las raíces del polinomio característico     ║
+║      (polos $p_i$) residan en el semiplano izquierdo abierto (LHP):                      ║
+║          $\forall i, \; \Re(p_i) < 0 \implies \sigma < 0$                                ║
+║      La transgresión $\sigma > 0$ emite un VETO TÉCNICO irreversible por "Divergencia    ║
+║      Matemática", abortando el proyecto por inestabilidad intrínseca.                    ║
+║                                                                                          ║
+║  §2. Resonancia Paramétrica (Teoría de Floquet):                                         ║
+║      Para ciclos logísticos y estacionalidad de obra, se computa la Matriz de            ║
+║      Monodromía del flujo de caja. La estabilidad paramétrica exige que los              ║
+║      multiplicadores de Floquet $\mu_k$ residan estrictamente en el interior del         ║
+║      disco unitario:                                                                     ║
+║          $|\mu_k| < 1 \quad \forall k$                                                   ║
+║      Su violación evidencia que el costo de la deuda oscila en fase con el retraso.      ║
+║                                                                                          ║
+║  §3. Caos Determinista y Espectro de Lyapunov:                                           ║
+║      El decaimiento entrópico de las trayectorias de error $e(k)$ evoluciona como:       ║
+║          $|e(k)| \approx |e(0)| \cdot e^{\lambda k}$                                     ║
+║      Si el exponente máximo de Lyapunov diverge ($\lambda > 0$), se decreta Caos         ║
+║      Determinista. El Oráculo acciona un "Crowbar Lógico" sobre el hardware              ║
+║      periférico (ESP32) para amputar el flujo antes del desbordamiento térmico.          ║
+║                                                                                          ║
+║  §4. Observabilidad de Estado y Filtro de Kalman Extendido (EKF):                        ║
+║      El Oráculo audita predictivamente el tensor cinemático $x = [s, v, a]^\top$         ║
+║      (Saturación, Velocidad, Aceleración), ajustando la frecuencia natural $\omega$      ║
+║      y el amortiguamiento $\beta$ al minimizar la innovación matricial del filtro.       ║
+║                                                                                          ║
+║  §5. Pirámide de Cohomología Dinámica (Sensibilidad Analítica):                          ║
+║      El Jacobiano de sensibilidad paramétrica rige la robustez del sistema,              ║
+║      empleando la derivada logarítmica:                                                  ║
+║          $S_x^y = \frac{\partial(\ln y)}{\partial(\ln x)} = \frac{x}{y} \frac{\partial y}{\partial x}$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • ComplexPole       : Raíces espectrales inmutables en la variedad de Laplace.          ║
+║  • StabilityMargins  : Evaluación del Margen de Fase (PM) y Margen de Ganancia (GM).     ║
+║  • SensitivityMatrix : Matriz Jacobiana normalizada $S_x^y$ de sensibilidad.             ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

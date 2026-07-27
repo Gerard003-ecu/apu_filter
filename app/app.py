@@ -1,43 +1,58 @@
 # -*- coding: utf-8 -*-
-"""
-Módulo: Application Gateway (Variedad de Frontera y Operador de Interfaz Ciber-Física)
-Ubicación: app/app.py
-
-Naturaleza Ciber-Física y Topológica:
-    Este módulo trasciende la noción de un "Plano de Control" API. Actúa como la 
-    Variedad de Frontera (Boundary Manifold) que acopla el entorno estocástico externo 
-    con el espacio de fase determinista de la "Fortaleza Matemática". Su mandato 
-    axiomático es establecer las condiciones iniciales (t₀) y de frontera (∂V) antes 
-    de inyectar el flujo de información en la Malla Agéntica.
-
-1. Observabilidad Fractal y Fibrado de Estado (SessionMetadata):
-    Abandona la gestión heurística de sesiones para implementar un Fibrado de Estado 
-    temporal. `SessionMetadata` garantiza la invariancia topológica entre transacciones 
-    asíncronas, utilizando algoritmos de hash criptográfico (SHA-256) para certificar 
-    que el tensor de datos no sufra mutaciones parásitas (rotura de simetría) entre 
-    la fase de Ingesta, el Diagnóstico Topológico y la Estimación Financiera.
-
-2. Inyección de la Cadena de Custodia Termodinámica (TelemetryContext):
-    Instancia el vector de estado inmutable (El Pasaporte de Telemetría) en el instante 
-    cero. Este objeto rige el transporte paralelo a través del ecosistema, acumulando 
-    los sellos de invariantes homológicos (βₙ) y físicos (P_diss ≥ 0) necesarios para 
-    satisfacer la Ley de Clausura Transitiva (V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM) 
-    durante el colapso de la función de evaluación.
-
-3. Control de Impedancia Activa y Amortiguamiento (Rate Limiting):
-    Las válvulas de presión (límites de tasa adaptativos) no operan como simples 
-    restricciones de software; funcionan como elementos resistivos no lineales en un 
-    controlador Port-Hamiltoniano. Actúan como un filtro pasabajo estricto que protege 
-    al `FluxPhysicsEngine` de frentes de onda abruptos (inyecciones de alta frecuencia), 
-    garantizando la estabilidad asintótica y previniendo "catástrofes de resonancia" 
-    por desbordamiento térmico computacional.
-
-4. Proyectores de la Matriz de Interacción Central (Tool Dispatcher):
-    Expone la superficie de actuación del sistema no como endpoints arbitrarios, sino 
-    como proyecciones ortogonales sobre el espacio vectorial de la Matriz de Interacción 
-    Central (MIC). Cada invocación externa (ej. `diagnose_file`, `financial_analysis`) 
-    colapsa la intención del usuario sobre un vector base canónico (eᵢ ∈ ℝⁿ), garantizando 
-    el aislamiento algebraico y la ortogonalidad funcional de los Agentes.
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Application Gateway (Variedad de Frontera y Operador de Interfaz Ciber-Física) ║
+║  Ruta   : app/app.py                                                                     ║
+║  Versión: 5.0.0-Boundary-Manifold-Strict-Isometric                                       ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo repudia la noción tradicional de "Plano de Control API". Se erige           ║
+║  formalmente como la Variedad de Frontera $\partial\mathcal{M}$ que acopla el entorno    ║
+║  estocástico de alta entropía con el espacio de fase determinista de la Malla Agéntica.  ║
+║  Su mandato axiomático es imponer condiciones de frontera de Dirichlet estrictas ($t_0$) ║
+║  antes de autorizar la inyección de cualquier flujo de información hacia los estratos    ║
+║  internos (PHYSICS, TACTICS, STRATEGY, WISDOM).                                          ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Inmersión Isométrica e Invarianza Criptográfica (Integridad de Estado):             ║
+║      Todo tensor de datos externo $x \in \mathcal{M}_{ext}$ es inyectado a la malla      ║
+║      mediante una huella criptográfica SHA-256 $h(x)$. Se exige la preservación de       ║
+║      isomorfismo bajo la métrica discreta, garantizando la inmutabilidad de la sesión:   ║
+║          $h(x) = h(y) \iff \|x - y\|_{L^1} = 0 \quad \text{c.s.}$                        ║
+║      Previniendo ataques de desgarro topológico (Data Tampering).                        ║
+║                                                                                          ║
+║  §2. Funtor de Absorción Monádica (Decoradores de Control):                              ║
+║      El manejo de excepciones abandona el flujo procedural para estructurarse como un    ║
+║      endofuntor sobre la categoría de respuestas $T: \mathcal{R} \to \mathcal{R}_\bot$.  ║
+║      El decorador `@handle_errors` absorbe las singularidades numéricas o topológicas    ║
+║      (excepciones) mapeándolas al elemento absorbente $\bot$ (Error 500/400):            ║
+║          $f(\text{Singularity}) \mapsto \bot \implies \text{Entropía Aislada}$           ║
+║      Garantizando que la inestabilidad de un cálculo jamás colapse el Atlas de la API.   ║
+║                                                                                          ║
+║  §3. Foliación de Trazabilidad y Cronometría (Request IDs & Performance):                ║
+║      La ejecución de cada morfismo de endpoint parametriza una curva $\gamma(t)$. La     ║
+║      inyección del `RequestIdFilter` dota al sistema de logging de una foliación $\mathcal{F}$ ║
+║      donde cada hoja (request) es ortogonal e independiente, permitiendo medir con rigor ║
+║      el diferencial temporal vía el decorador `@timed`:                                  ║
+║          $\Delta t = \int_{\gamma} dt \le \tau_{\text{timeout}}$                         ║
+║                                                                                          ║
+║  §4. Proyección de Salud Piramidal (Diagnóstico Termodinámico):                          ║
+║      Antes de retornar el estado al observador (cliente), la frontera acopla el vector   ║
+║      de respuesta con el Índice de Estabilidad Piramidal $\Psi$.                         ║
+║          $\Psi = \tanh\left(\frac{|V_{base}|}{|V_{apex}|}\right)$                        ║
+║      Asegurando que el cliente siempre reciba el estado de cohesión estructural del      ║
+║      presupuesto junto con el payload computado.                                         ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs) Y FACTORÍAS:                              ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • SessionMetadata      : Coordenadas de integridad del contexto temporal.               ║
+║  • FileValidationResult : Certificado de admisibilidad métrica del archivo.              ║
+║  • PerformanceMetrics   : Operador de recolección de exergía computacional.              ║
+║  • create_app           : Factoría canónica que ensambla el Atlas Topológico (Flask).    ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 import hashlib

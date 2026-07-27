@@ -1,43 +1,63 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: MAC Audit Vectors (Proyector Topológico-Cuántico de Coherencia)      ║
-║ Ubicación: app/wisdom/mac_audit_vectors.py                                   ║
-║ Versión: 2.0.0-Quantum-Sheaf-Audit-Enhanced                                  ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber-Física y Topológica Refinada:
-────────────────────────────────────────────────
-Este módulo audita la "Sabiduría" generada por LLMs operando sobre el espacio 
-de Hilbert continuo ℋ_MAC. Emplea entropía relativa cuántica, teoría modular 
-de Tomita-Takesaki y cohomología de haces celulares para garantizar coherencia 
-epistemológica y prevenir alucinaciones estocásticas.
-
-FUNDAMENTOS TEÓRICOS EXTENDIDOS:
-─────────────────────────────────
-1. TEORÍA DE INFORMACIÓN CUÁNTICA: Divergencias relativas (Umegaki, Renyi)
-2. GEOMETRÍA DE INFORMACIÓN: Métricas de Bures-Wasserstein y Fisher
-3. COHOMOLOGÍA DE HACES: Energía de Dirichlet y obstrucciones topológicas
-4. TEORÍA MODULAR: Análisis de Tomita-Takesaki para coherencia algebraica
-5. GEOMETRÍA RIEMANNIANA: Tensor métrico físico G_PHYSICS
-
-Axiomas Matemáticos Implementados y Extendidos:
-────────────────────────────────────────────────
-A1. Divergencia de Umegaki: S(ρ||σ) = Tr(ρ(ln ρ - ln σ))
-A2. Divergencia de Petz-Renyi: S_α(ρ||σ) = 1/(α-1) ln Tr(ρ^α σ^(1-α))
-A3. Fidelidad de Uhlmann: F(ρ,σ) = [Tr√(√ρ σ √ρ)]²
-A4. Energía de Dirichlet: E_MAC = ⟨δx, G_PHYSICS δx⟩
-A5. Índice de Estabilidad: Ψ_Q = F(ρ,σ) · Tr(ρ²) · exp(-E_MAC)
-A6. Teorema KMS: ω(xy) = ω(y σ_{-iβ}(x)) (condición termodinámica)
-
-Referencias Teóricas:
-─────────────────────
-- Umegaki (1962): "Conditional expectation in an operator algebra"
-- Petz (1986): "Quasi-entropies for finite quantum systems"
-- Uhlmann (1976): "The transition probability in the state space"
-- Hansen & Ghrist (2019): "Toward a spectral theory of cellular sheaves"
-- Tomita-Takesaki: "Modular theory of operator algebras"
-═══════════════════════════════════════════════════════════════════════════════
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : MAC Audit Vectors (Proyector Topológico-Cuántico de Coherencia)                ║
+║  Ruta   : app/wisdom/mac_audit_vectors.py                                                ║
+║  Versión: 3.0.0-Quantum-Sheaf-Audit-Strict-Doctoral                                      ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE LA INFORMACIÓN (Rigor Doctoral):           ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor opera en el ápice de la jerarquía DIKW (Estrato WISDOM). Su mandato     ║
+║  axiomático es auditar la coherencia epistemológica de los estados semánticos generados  ║
+║  por la Inteligencia Artificial frente a la Matriz Atómica de Conocimiento (MAC).        ║
+║  Aplica la Entropía Relativa Cuántica, la Teoría Modular de Tomita-Takesaki y la         ║
+║  Cohomología de Haces Celulares para extirpar "alucinaciones estocásticas" que           ║
+║  pretendan violar la invarianza homotópica del modelo de negocio.                        ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Entropía Relativa Cuántica (Divergencia de Umegaki):                                ║
+║      La deriva semántica entre el estado inferido $\rho$ y el estado de referencia       ║
+║      $\sigma$ no se evalúa con heurísticas de texto, sino calculando la asimetría        ║
+║      entrópica mediante la divergencia de Umegaki:                                       ║
+║          $D(\rho \| \sigma) = \text{Tr}(\rho (\ln \rho - \ln \sigma)) \ge 0$             ║
+║      Cualquier $D(\rho \| \sigma) \gg \varepsilon$ indica una mutilación del             ║
+║      conocimiento original, detonando axiomáticamente un `TraceAnomalyVeto`.             ║
+║                                                                                          ║
+║  §2. Cohomología de Haces Celulares y Energía de Dirichlet:                              ║
+║      El tejido lógico de las decisiones se modela como secciones de un Haz Celular       ║
+║      $\mathcal{F}$. La frustración semántica (paradojas irresolubles) se cuantifica      ║
+║      evaluando la Energía de Dirichlet acoplada al Laplaciano del Haz $L_{\mathcal{F}}$: ║
+║          $E(x) = \frac{1}{2} \langle x, L_{\mathcal{F}} x \rangle = \frac{1}{2} \|\delta x\|^2$ ║
+║      Si la evaluación detecta una obstrucción cohomológica global no nula                ║
+║      ($\dim H^1(X; \mathcal{F}) > 0$), el ecosistema se enfrenta a una contradicción     ║
+║      lógica que aborta el pipeline mediante `CohomologicalObstructionError`.             ║
+║                                                                                          ║
+║  §3. Índice de Estabilidad Cuántica ($\Psi_Q$):                                          ║
+║      La integridad de la resolución se certifica componiendo la Fidelidad de Uhlmann     ║
+║      $F(\rho, \sigma) = \left( \text{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2$║
+║      con la pureza del sistema $\gamma = \text{Tr}(\rho^2)$. Si $\Psi_Q < \Psi_{min}$,   ║
+║      el estado exhibe "entrelazamiento espurio" o contaminación por ruido blanco.        ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → UmegakiDivergenceAuditor:                                                      ║
+║           Audita las divergencias cuánticas relativas y computa $D(\rho \| \sigma)$      ║
+║           extrayendo el dictamen de deriva semántica.                                    ║
+║                                                                                          ║
+║  Fase 2 → SheafCohomologyAuditor:                                                        ║
+║           Mide la energía de Dirichlet, los números de Betti topológicos y sanciona      ║
+║           las paradojas lógicas en el fibrado semántico.                                 ║
+║                                                                                          ║
+║  Fase 3 → QuantumStabilityIndex:                                                         ║
+║           Integra las métricas puras y certifica el estado global (EpistemologicalStatus)║
+║           garantizando la termodinámica informacional.                                   ║
+║                                                                                          ║
+║  Fase 4 → API Pública (`vector_audit_quantum_semantic_coherence`):                       ║
+║           Expone el morfismo como un Vector Exportado, inyectable en la MIC, que         ║
+║           empaca el `AuditMetrics` garantizando inmutabilidad.                           ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

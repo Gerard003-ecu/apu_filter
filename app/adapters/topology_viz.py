@@ -1,46 +1,62 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Topology Visualization (Operador de Inmersión Isomórfica y Semántica Cromática)
-Ubicación: app/adapters/topology_viz.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Topológica:
-    Este módulo rechaza el rol de un simple "adaptador de frontend". Opera como el
-    Operador de Inmersión (Embedding) que proyecta el Complejo Simplicial Abstracto 
-    del presupuesto (espacio métrico de alta dimensionalidad) hacia una Variedad de 
-    Observabilidad bidimensional (Cytoscape.js). Su mandato axiomático es hacer 
-    tangible a la intuición humana el estrés termodinámico y las patologías 
-    homológicas sin degradar la precisión del tensor original.
-
-1. Inmersión Topológica y Preservación de Invariantes:
-    Mapea el 1-esqueleto del grafo de negocio G = (V, E) a elementos visuales 
-    preservando estrictamente la homotopía. Las anomalías matemáticas 
-    (ej. Socavones Lógicos donde β₁ > 0, o Islas de Datos donde β₀ > 1) se 
-    traducen isomórficamente en tensores cromáticos y espaciales inmutables, 
-    permitiendo a la gerencia "ver" la matemática del riesgo.
-
-2. Semántica Cromática y Termodinámica Visual (StressConfig):
-    Los nodos no se colorean por heurísticas estéticas, sino por el nivel de "estrés" 
-    termodinámico. El módulo detecta asimetrías de inercia (SPOF o "Pirámides Invertidas", 
-    donde el índice Ψ < 1.0) e inyecta perturbaciones visuales (como coloración roja 
-    pulsante #EF4444) para representar la concentración anómala de energía logística y 
-    la inminencia de un colapso estructural.
-
-3. Cirugía Topológica y Degradación Segura (Tolerancia a Defectos):
-    Abandona la interrupción binaria (crash) por un modelo de Cirugía Topológica. 
-    Si un nodo o arista (σ_i) presenta degeneración numérica durante la serialización 
-    (ej. inyección de singularidades NaN), el operador ejecuta un "fallback" aislando 
-    el defecto local. Esto preserva la conectividad global del colector (variedad) y 
-    previene que un defecto sintáctico colapse la observabilidad del ecosistema completo.
-
-4. Auditoría Forense y Trazabilidad Tensorial (Caja de Cristal):
-    Los metadatos presentados al usuario no son meros "tooltips"; son la proyección 
-    explícita de la Cadena de Custodia. Cada elemento visual encapsula su derivación 
-    directa del Laplaciano Combinatorio, los scores de anomalía y el costo acotado, 
-    permitiendo al Estrato Ejecutivo auditar las Actas de Deliberación del Consejo 
-    de Sabios directamente sobre la geometría del problema.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Topology Visualization (Funtor de Inmersión Isomórfica y Proyector Cromático)  ║
+║  Ruta   : app/adapters/topology_viz.py                                                   ║
+║  Versión: 4.0.0-Isomorphic-Embedding-Chromatic-Strict                                    ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor abandona el rol pasivo de "adaptador frontend". Actúa como el Operador  ║
+║  de Inmersión (Embedding) $\mathcal{F}_{viz}: \mathcal{K} \hookrightarrow \mathcal{M}_{2D}$, ║
+║  proyectando el Complejo Simplicial Abstracto del presupuesto (espacio métrico de alta   ║
+║  dimensionalidad) hacia una Variedad de Observabilidad bidimensional (Cytoscape.js).     ║
+║  Su mandato axiomático es transmutar el estrés termodinámico y las patologías homológicas║
+║  en una métrica visual tangible, sin degradar la precisión del tensor de estado original.║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Inmersión Topológica y Preservación Homotópica:                                     ║
+║      Mapea el 1-esqueleto del grafo logístico $G = (V, E)$ a un espacio proyectivo       ║
+║      garantizando que la característica de Euler $\chi(K) = \beta_0 - \beta_1$ se        ║
+║      conserve. Socavones Lógicos ($\beta_1 > 0$) e Islas de Datos ($\beta_0 > 1$) se     ║
+║      traducen axiomáticamente a clústeres y ciclos visuales inmutables.                  ║
+║                                                                                          ║
+║  §2. Semántica Cromática y Estrés Termodinámico (Tensor $\sigma^*$):                     ║
+║      El espacio de color no responde a heurísticas estéticas, sino a la concentración de ║
+║      esfuerzos estructurales. La asimetría de inercia (SPOF) o "Pirámides Invertidas"    ║
+║      donde el índice de estabilidad $\Psi < 1.0$, modula el mapeo cromático $\mathcal{C}$:║
+║          $\mathcal{C}(v_i) = \begin{cases} \text{PULSATING\_RED} & \text{si } \sigma^*(v_i) \ge \tau_{crit} \\ \text{BASE\_COLOR} & \text{e.o.c} \end{cases}$ ║
+║      Tangibilizando la acumulación de energía logística y la inminencia de colapso.      ║
+║                                                                                          ║
+║  §3. Cirugía Topológica y Retracto de Deformación (Degradación Segura):                  ║
+║      El sistema proscribe el colapso binario por fallos de serialización. Si un símplex  ║
+║      $\sigma_i$ inyecta singularidades (ej. $NaN, \pm\infty$), el operador ejecuta un    ║
+║      retracto aislando el defecto local (nodos/aristas fallback), preservando:           ║
+║          $\dim H_0(\mathcal{M}_{2D}) \cong \dim H_0(\mathcal{K})$                        ║
+║      Impidiendo que un defecto sintáctico ciegue la observabilidad de la variedad global.║
+║                                                                                          ║
+║  §4. Trazabilidad Tensorial y Auditoría Forense (Tooltip Manifold):                      ║
+║      Los metadatos encapsulados en el renderizado son proyecciones directas de la        ║
+║      Cadena de Custodia. Cada elemento refleja su derivación del Laplaciano Combinatorio ║
+║      $L = D - A$, el score de anomalía y el costo de la integral de trayectoria,         ║
+║      permitiendo auditorías deterministas sobre la geometría del problema.               ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Análisis de Anomalías y Estrés (Topology & Anomaly Extraction)                 ║
+║           Evalúa $\Psi$, extrae concentraciones anómalas e identifica nodos sometidos    ║
+║           a tensión termodinámica extrema (`_identify_stressed_nodes`).                  ║
+║                                                                                          ║
+║  Fase 2 → Construcción del Fibrado Visual (Element Instantiation)                        ║
+║           Genera DTOs inmutables (`CytoscapeNode`, `CytoscapeEdge`) inyectando scores    ║
+║           y clases de equivalencia CSS a través de mapeos cromáticos estrictos.          ║
+║                                                                                          ║
+║  Fase 3 → Proyección a la Variedad 2D y Filtración DIKW (View Functor)                   ║
+║           Filtra la visibilidad basada en el orden parcial de los estratos DIKW          ║
+║           (`STRATUM_VISIBLE_LEVELS`) y emite el JSON determinista final para el cliente. ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

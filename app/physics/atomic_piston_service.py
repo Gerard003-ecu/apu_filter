@@ -1,36 +1,64 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo  : atomic_piston_service.py                                           ║
-║ Versión : 4.0.0-Lie-Geometric-Phase1                                         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-ARQUITECTURA EN 3 FASES ANIDADAS (v4.0.0):
-══════════════════════════════════════════
-FASE 1 — HERRAMIENTAS FÍSICAS Y MATEMÁTICAS
-        (Covarianza Tensorial + Control PID Geométrico sobre Grupos de Lie)
-        
-FASE 2 — GEMELO DIGITAL SIMPLÉCTICO
-        (Estructura Port-Hamiltoniana + Integrador Störmer-Verlet)
-        
-FASE 3 — MICROSERVICIO FLASK + ServiceContext
-        (Buffer Lock-Free + Medición POVM + Cohomología de Haces)
-
-CONTRATO DE SUTURA ENTRE FASES:
-════════════════════════════════
-  Fase 1 → Fase 2: FrictionCalculator.compute_friction() → F_fric ∈ T*M [N]
-                     LieGroupPIDController.update() → u ∈ g [N]
-                     
-  Fase 2 → Fase 3: AtomicPiston.get_state_dict() → x=[q,p,Q]ᵀ serializable
-                     simulation_loop() → buffer.publish() lock-free
-                     
-INVARIANTES MATEMÁTICOS PRESERVADOS:
-════════════════════════════════════
-  I1. Covarianza tensorial: F_fric transforma correctamente bajo cambios de coordenadas
-  I2. Simplecticidad: ω = dq∧dp preservada hasta O(Δt²) en régimen no disipativo
-  I3. Pasividad: Ḣ ≤ ∇Hᵀ B u (el sistema no genera energía internamente)
-  I4. Cohomología: H¹(X; F_IPU) = 0 antes de admitir registro en la malla
-  I5. No-demolición: [H, O_api] = 0 certificado via operadores de Kraus
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Atomic Piston Service (Gemelo Digital Simpléctico y Controlador de Lie)        ║
+║  Ruta   : app/physics/atomic_piston_service.py                                           ║
+║  Versión: 4.0.0-Lie-Geometric-Phase1-Strict                                              ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA SIMPLÉCTICA (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo transmuta la simulación empírica en un Gemelo Digital Port-Hamiltoniano     ║
+║  riguroso. Abandona el control PID Euclidiano para operar sobre Grupos de Lie, y eleva   ║
+║  la concurrencia de la API a un paradigma libre de cerrojos (Lock-Free) donde la lectura ║
+║  de telemetría obedece los postulados de las Medidas Valuadas en Operadores Positivos    ║
+║  (POVM), garantizando mediciones de no-demolición sobre el estado microscópico.          ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS E INVARIANTES ESTRUCTURALES:                                    ║
+║                                                                                          ║
+║  §1. Covarianza Tensorial y Transporte Paralelo (Grupo de Lie):                          ║
+║      El cálculo de fricción opera como un covector estrictamente contenido en el fibrado ║
+║      cotangente $F_{\text{fric}} \in T^*M$. El controlador `LieGroupPIDController`       ║
+║      abandona la resta plana de errores para usar el transporte paralelo $\Gamma_\gamma$ ║
+║      a lo largo de la geodésica $\gamma$, computando la derivada covariante de la        ║
+║      velocidad en el espacio tangente:                                                   ║
+║          $\frac{D \dot{x}}{dt} = \dot{v}^\mu + \Gamma^\mu_{\rho\sigma} v^\rho v^\sigma$  ║
+║                                                                                          ║
+║  §2. Integración Simpléctica y Disipación Port-Hamiltoniana:                             ║
+║      La evolución temporal mediante el integrador Störmer-Verlet preserva la 2-forma     ║
+║      simpléctica $\omega = dq \wedge dp$ hasta el orden $\mathcal{O}(\Delta t^2)$. Se    ║
+║      garantiza matemáticamente la condición de pasividad (Segunda Ley) evaluando la      ║
+║      inecuación de disipación de Rayleigh:                                               ║
+║          $\dot{H} = \nabla H^\top (J - R) \nabla H \le \nabla H^\top B u \implies P_{\text{diss}} \ge 0$ ║
+║      El sistema es axiomáticamente incapaz de generar energía espuria interna.           ║
+║                                                                                          ║
+║  §3. Mediciones POVM y Álgebra Lock-Free (Buffer CAS):                                   ║
+║      La lectura concurrente del estado de la IPU a través de Flask se modela mediante    ║
+║      Operadores de Kraus (`KrausObserver`). Se exige una medición de no-demolición,      ║
+║      certificando el conmutador $[H, O_{\text{api}}] = 0$. Las condiciones de carrera se ║
+║      aniquilan usando un anillo circular $B = \{s_0, s_1, \dots, s_{N-1}\}$ operado vía  ║
+║      Compare-And-Swap (CAS) atómico por el Global Interpreter Lock (GIL):                ║
+║          $\text{write\_idx} = n \pmod N, \quad \text{read\_idx} = (\text{write\_idx} - 1) \pmod N$ ║
+║                                                                                          ║
+║  §4. Cohomología de Haces Celulares (Admisión en la Malla):                              ║
+║      Previo al registro en el ecosistema (AgentAI), el `SheafCohomologyVerifier` audita  ║
+║      el fibrado local. Solo se admite el acoplamiento si el primer grupo de cohomología  ║
+║      es nulo, garantizando ausencia de paradojas circulares en el control:               ║
+║          $H^1(X; \mathcal{F}_{\text{IPU}}) = 0$                                          ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Estricta y Suturas):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Herramientas Físicas (Covarianza Tensorial + Controlador Geométrico Lie).      ║
+║           Produce $F_{\text{fric}}$ y el control $u \in \mathfrak{g}$ como entradas.     ║
+║                                                                                          ║
+║  Fase 2 → Gemelo Digital Simpléctico (`AtomicPiston`).                                   ║
+║           Aplica el control sobre el Hamiltoniano $H(q, p, Q)$ y emite el tensor de      ║
+║           estado serializable $x = [q, p, Q]^\top$.                                      ║
+║                                                                                          ║
+║  Fase 3 → Microservicio Flask + `ServiceContext`.                                        ║
+║           Publica el tensor en el `LockFreeCircularBuffer` para observación POVM y       ║
+║           gestiona la verificación cohomológica.                                         ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 from __future__ import annotations
 import csv

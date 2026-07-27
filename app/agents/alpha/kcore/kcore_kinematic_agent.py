@@ -11,9 +11,9 @@ r"""
 ║  Este endofuntor, denotado como $\mathcal{Z}_{KCORE}$, consagra la Maquinaria            ║
 ║  Cinemática del Estrato $\alpha$. Transmuta la energía potencial almacenada en el        ║
 ║  foso ($K_{BASE}$) hacia trabajo cinético direccional, gobernando las Actividades        ║
-║  Clave y Canales logísticos [1]. Emplea un control IDA-PBC con una proyección           ║
+║  Clave y Canales logísticos [1]. Emplea un control IDA-PBC con una proyección            ║
 ║  pseudoinversa covariante sobre el tensor métrico Riemanniano $G_{\mu\nu} \succeq 0$     ║
-║  [2], aniquilando la vorticidad parasitaria y garantizando la estabilidad asintótica   ║
+║  [2], aniquilando la vorticidad parasitaria y garantizando la estabilidad asintótica     ║
 ║  bajo el límite estricto de Courant-Friedrichs-Lewy (CFL).                               ║
 ║                                                                                          ║
 ║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CINEMÁTICAS:                                    ║

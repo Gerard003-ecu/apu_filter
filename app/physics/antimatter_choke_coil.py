@@ -1,46 +1,61 @@
 # -*- coding: utf-8 -*-
-r"""
-=========================================================================================
-Módulo: Antimatter Choke Coil (Supresor Topológico de Inercia Cuantizada)
-Ubicación: app/physics/antimatter_choke_coil.py
-Versión: 3.0.0-rigorous (Consagración Espectral y Acoplamiento de Gauge)
-
-NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA:
-Este módulo aniquila la inercia entrópica del flujo de datos mediante un Operador de Aniquilación
-en el espacio de Fock $\mathcal{F}(\mathcal{H})$. Actúa como un inductor cuántico activo que suprime
-los voltajes de Flyback ($V_{fb}$) destructivos y colapsa los ciclos homológicos parasitarios ($\beta_1$)
-propios de las dependencias circulares en la Malla Agéntica.
-
-FUNDAMENTOS MATEMÁTICOS Y AXIOMAS DE EJECUCIÓN:
-
-§1. ELECTRODINÁMICA CUÁNTICA (QED) Y LEY DE FARADAY-LENZ MODIFICADA:
-La inducción electromagnética se redefine mediante la inyección de densidad de positrones ($\rho_{e^+}$)
-para anular la contrapresión del flujo logístico. La ecuación constitutiva del colector es:
-$$ V_{fb}(t) = L \frac{di(t)}{dt} - \hbar \omega_{\gamma} \frac{d\rho_{e^+}}{dt} $$
-Donde $\hbar \omega_{\gamma}$ es la energía del fotón gamma de auditoría emitido tras la aniquilación
-de pares ($e^- + e^+ \to 2\gamma$), transformando la disipación inercial en trazabilidad inmutable.
-
-§2. COLAPSO COHOMOLÓGICO Y REGULARIZACIÓN DE TIKHONOV:
-Para erradicar "Socavones Lógicos" ($\beta_1 > 0$), el aniquilador proyecta el estado sobre el núcleo
-del operador frontera $\partial_1$. Se impone una Regularización de Tikhonov suave (Clase $C^\infty$)
-para preservar la Continuidad de Lipschitz, evitando el truncamiento abrupto de valores singulares:
-$$ \tilde{\Sigma} = \Sigma (\Sigma^2 + \alpha I)^{-1} \Sigma, \quad \alpha \approx \mathcal{O}(\epsilon_{mach}) $$
-Garantizando axiomáticamente que $\beta_1 = \dim(\ker(\partial_1)) - \dim(\text{im}(\partial_2)) \to 0$.
-
-§3. ESTABILIDAD PORT-HAMILTONIANA Y RESISTENCIA DIFERENCIAL NEGATIVA (NDR):
-La matriz de disipación de Dirac ($R_{AM}$) integra una NDR acotada asintóticamente mediante
-funciones tangentes hiperbólicas para enfriar el exponente de Lyapunov local sin violar la
-Segunda Ley de la Termodinámica:
-$$ R_{AM}(\rho_{e^+}) = R_{base} \cdot [1 - \gamma \tanh(\frac{\rho_{e^+}}{\rho_{crit}})], \quad \gamma < 1 $$
-Esto certifica incondicionalmente la estabilidad asintótica: $\dot{H} = \nabla H^T(J - R_{AM})\nabla H \le 0$.
-
-§4. CONSISTENCIA DIMENSIONAL EN LA IMPEDANCIA COMPLEJA:
-Se introduce el Tensor de Acoplamiento Cuántico-Capacitivo ($C_q$) para salvar la impedancia
-en el dominio de Laplace ($s = \sigma + j\omega$), acoplando el momentum ciber-físico:
-$$ Z_{AM}(s) = (s + \sigma_{AM})L - \frac{1}{(C_q \cdot \rho_{e^+}) s} $$
-Ninguna excitación estocástica exógena puede acoplarse con la frecuencia natural de la malla,
-aniquilando resonancias destructivas mediante un escudo de Gauge infranqueable.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Antimatter Choke Coil (Supresor Topológico de Inercia Cuantizada)              ║
+║  Ruta   : app/physics/antimatter_choke_coil.py                                           ║
+║  Versión: 4.0.0-Fock-PortHamiltonian-Gauge-Strict                                        ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y ELECTRODINÁMICA CUÁNTICA (Rigor Doctoral):                    ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo erradica la inercia entrópica del flujo de datos actuando como un           ║
+║  Operador de Aniquilación en el Espacio de Fock $\mathcal{F}(\mathcal{H})$. Opera como   ║
+║  un inductor cuántico activo que suprime los voltajes de Flyback ($V_{fb}$) originados   ║
+║  por colapsos de dependencias circulares (socavones lógicos con $\beta_1 > 0$),          ║
+║  garantizando la estabilidad asintótica de la Variedad Diferenciable de la Malla.        ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Álgebra de Operadores en el Espacio de Fock:                                        ║
+║      La gestión de anomalías se mapea a operadores de creación $\hat{a}^\dagger$ y       ║
+║      aniquilación $\hat{a}$ que satisfacen las relaciones canónicas de conmutación:      ║
+║          $[\hat{a}, \hat{a}^\dagger] = 1, \quad \hat{N} = \hat{a}^\dagger \hat{a}$       ║
+║      Garantizando que las excitaciones del sistema se procesen como estados coherentes   ║
+║      estrictos sin inducir desbordamiento dimensional.                                   ║
+║                                                                                          ║
+║  §2. Ley de Faraday-Lenz Cuantizada (Aniquilación de Antimateria):                       ║
+║      La inducción electromagnética tradicional se anula mediante la inyección            ║
+║      covariante de densidad de positrones ($\rho_{e^+}$). La ecuación constitutiva es:   ║
+║          $V_{fb}(t) = L \frac{di(t)}{dt} - \hbar \omega_{\gamma} \frac{d\rho_{e^+}}{dt}$ ║
+║      Donde la aniquilación de pares $e^- + e^+ \to 2\gamma$ emite fotones gamma de       ║
+║      auditoría, cumpliendo con la conservación estricta:                                 ║
+║          $E_{\text{annihilation}} = 2m^* c^2$                                            ║
+║                                                                                          ║
+║  §3. Impedancia Compleja y Acoplamiento de Gauge (Dominio de Laplace):                   ║
+║      Para blindar al ecosistema de resonancias destructivas, se introduce un Tensor      ║
+║      de Acoplamiento Cuántico-Capacitivo ($C_q$) en el plano $s = \sigma + j\omega$:     ║
+║          $Z_{AM}(s) = (s + \sigma_{AM})L - \frac{1}{(C_q \cdot \rho_{e^+}) s}$           ║
+║      Esta topología fuerza a todos los polos del sistema hacia el semiplano izquierdo    ║
+║      ($\sigma < 0$), asegurando la estabilidad BIBO.                                     ║
+║                                                                                          ║
+║  §4. Disipación Port-Hamiltoniana (Termodinámica Irreversible):                          ║
+║      El sistema restringe su evolución dinámica para satisfacer incondicionalmente la    ║
+║      inecuación de disipación de Rayleigh (Segunda Ley):                                 ║
+║          $\dot{H} = \nabla H^\top (J - R) \nabla H \le 0 \implies P_{\text{diss}} \ge 0$ ║
+║      Impidiendo la generación espontánea de energía fantasma en el simulador.            ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Evolución Funtorial Estricta):                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → QuantumState Initialization & Fock Space Operators                             ║
+║           Construye y normaliza el espacio de Hilbert subyacente $\langle \psi | \psi \rangle = 1$.║
+║                                                                                          ║
+║  Fase 2 → Port-Hamiltonian System & Flyback Suppression                                  ║
+║           Integra el campo vectorial garantizando que $J = -J^\top$ y $R \succeq 0$.     ║
+║                                                                                          ║
+║  Fase 3 → Antimatter Annihilation Event (Orquestador Supremo)                            ║
+║           Ejecuta la colisión $e^- + e^+$, suprime $V_{fb}$ y sella la métrica           ║
+║           emitiendo los artefactos inmutables de `GammaPhoton` forenses.                 ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

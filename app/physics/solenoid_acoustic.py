@@ -1,162 +1,59 @@
 # -*- coding: utf-8 -*-
-"""
-═════════════════════════════════════════════════════════════════════════════
-MÓDULO: Solenoide Acústico — Operador de Descomposición de Hodge-Helmholtz
-VERSIÓN: 4.0.0 - Refactorización Rigurosa con Validación Topológica Completa
-UBICACIÓN: app/physics/solenoid_acoustic.py
-═════════════════════════════════════════════════════════════════════════════
-
-FUNDAMENTOS MATEMÁTICOS Y TOPOLÓGICOS:
-
-§1. COMPLEJO DE CADENAS Y COHOMOLOGÍA
-    ───────────────────────────────────
-    
-    Dado un grafo dirigido finito G = (V, E) con |V| = n, |E| = m, definimos
-    el complejo de cadenas simpliciales de dimensión 1:
-    
-        C₀(G; ℝ) ←─∂₁─ C₁(G; ℝ) ←─∂₂─ C₂(G; ℝ)
-    
-    donde:
-        • C₀(G; ℝ) = ℝⁿ: espacio de 0-cadenas (funciones sobre vértices)
-        • C₁(G; ℝ) = ℝᵐ: espacio de 1-cadenas (flujos sobre aristas)
-        • C₂(G; ℝ) = ℝᵏ: espacio de 2-cadenas (ciclos fundamentales)
-    
-    Operadores de borde:
-        ∂₁: C₁ → C₀  (matriz de incidencia B₁ ∈ ℝⁿˣᵐ)
-            (B₁)ᵥₑ = +1 si head(e) = v
-                    -1 si tail(e) = v
-                     0 en otro caso
-        
-        ∂₂: C₂ → C₁  (matriz de ciclos B₂ ∈ ℝᵐˣᵏ)
-    
-    Axioma Fundamental (Condición de Complejo):
-        ∂₁ ∘ ∂₂ = 0  ⟺  B₁ · B₂ = 0
-    
-    Esta condición es exacta en ℝ (con orientaciones consistentes) y
-    garantiza que la imagen de ∂₂ está contenida en el kernel de ∂₁.
-
-§2. HOMOLOGÍA Y NÚMEROS DE BETTI
-    ──────────────────────────────
-    
-    Grupos de homología:
-        H₀(G; ℝ) = ker(∂₁) / im(∂₂) ≅ ℝᶜ
-        H₁(G; ℝ) = ker(∂₂) / im(∂₃) ≅ ℝᵝ¹
-    
-    donde c es el número de componentes conexas y β₁ es el primer número
-    de Betti (rango de ciclos independientes).
-    
-    Números de Betti:
-        β₀ = dim H₀(G; ℝ) = c (componentes conexas)
-        β₁ = dim H₁(G; ℝ) = m - n + c (ciclos independientes)
-        β₂ = 0 (para grafos sin 2-símplices)
-    
-    Característica de Euler-Poincaré:
-        χ(G) = Σᵢ (-1)ⁱ βᵢ = β₀ - β₁ = n - m
-
-§3. TEOREMA DE DESCOMPOSICIÓN DE HODGE
-    ────────────────────────────────────
-    
-    TEOREMA (Hodge, 1941; Eckmann, 1944):
-        Para un complejo de cadenas finito sobre ℝ, existe una descomposición
-        ortogonal única:
-        
-            C₁(G; ℝ) = im(∂₂*) ⊕ im(∂₁) ⊕ ker(Δ₁)
-        
-        donde:
-            • im(∂₂*) = im(B₂): subespacio de ciclos (solenoidal, curl)
-            • im(∂₁) = im(B₁ᵀ): subespacio de gradientes (irrotacional)
-            • ker(Δ₁): subespacio armónico (flujos harmónicos)
-        
-        y Δ₁ = ∂₁*∂₁ + ∂₂∂₂* es el Laplaciano de Hodge.
-    
-    Laplaciano de Hodge sobre 1-cadenas:
-        L₁ = B₁ᵀB₁ + B₂B₂ᵀ ∈ ℝᵐˣᵐ
-        
-        Propiedades:
-            1. L₁ = L₁ᵀ (simétrico)
-            2. L₁ ≥ 0 (semi-definido positivo)
-            3. λᵢ ≥ 0 ∀i (autovalores no negativos)
-            4. ker(L₁) ≅ H₁(G; ℝ) (isomorfismo de Hodge)
-            5. dim ker(L₁) = β₁
-
-§4. PROYECTORES ORTOGONALES
-    ────────────────────────
-    
-    Proyector sobre im(B₂) (subespacio solenoidal):
-        P_curl: ℝᵐ → im(B₂)
-        
-    Construcción estable vía SVD (Golub & Van Loan, §5.5):
-        B₂ = U Σ Vᵀ  (SVD completo)
-        P_curl = Uᵣ Uᵣᵀ
-        
-        donde Uᵣ = columnas de U con σᵢ > tol.
-    
-    Propiedades verificables:
-        1. P_curl² = P_curl (idempotencia)
-        2. P_curl = P_curlᵀ (simetría)
-        3. P_curl L₁ = L₁ P_curl (conmutatividad con Laplaciano)
-
-§5. ANÁLISIS NUMÉRICO Y ESTABILIDAD
-    ─────────────────────────────────
-    
-    Tolerancia adaptativa (convención LAPACK):
-        tol = max(m, n) · σ_max · ε_machine
-    
-    donde:
-        • ε_machine ≈ 2.22×10⁻¹⁶ (IEEE 754 double precision)
-        • σ_max = máximo valor singular de la matriz
-    
-    Número de condición espectral:
-        κ₂(A) = σ_max / σ_min
-    
-    Análisis de error backward (Trefethen & Bau, Lec. 14):
-        Si fl(x) es el resultado en punto flotante, entonces:
-            fl(x) = (x + Δx)(1 + δ)
-        con |δ| ≤ u·cond(problema) donde u = ε_machine/2.
-
-§6. COMPLEJIDAD COMPUTACIONAL
-    ──────────────────────────
-    
-    Matriz de Incidencia B₁:
-        • Construcción: O(m) tiempo, O(nm) espacio (sparse)
-        • SVD: O(min(n², m²)m) tiempo
-    
-    Matriz de Ciclos B₂ (Fundamental Cycle Basis):
-        • MST: O(m log n) con Kruskal/Prim
-        • Ciclos: O(mk) donde k = β₁ = m - n + c
-        • Total: O(m log n + mk) = O(m(log n + m - n))
-    
-    Laplaciano de Hodge L₁:
-        • Construcción: O(m²) tiempo (productos matriciales)
-        • Eigendecomposición: O(m³) tiempo (eigh)
-
-§7. FÍSICA DEL FLUJO
-    ─────────────────
-    
-    Ley de Stokes discreta:
-        ∮_γ I = (B₂ᵀI)_γ = Γ_γ
-    
-    donde γ es un ciclo y Γ_γ es la circulación del flujo alrededor de γ.
-    
-    Energía cinética de vorticidad:
-        E_curl = ‖B₂ᵀI‖² = Iᵀ L_curl I = Iᵀ (B₂B₂ᵀ) I
-    
-    Índice de vorticidad (adimensional):
-        ω = E_curl / ‖I‖² ∈ [0, 1]
-    
-    Interpretación física:
-        ω ≈ 0: flujo irrotacional (laminar, potencial)
-        ω ≈ 1: flujo completamente rotacional (turbulento)
-
-REFERENCIAS:
-    [1] Hodge, W. V. D. (1941). The Theory and Applications of Harmonic Integrals.
-    [2] Eckmann, B. (1944). Harmonische Funktionen und Randwertaufgaben in einem Komplex.
-    [3] Lim, L.-H. (2020). Hodge Laplacians on graphs. SIAM Review, 62(3), 685-715.
-    [4] Golub, G. H., & Van Loan, C. F. (2013). Matrix Computations (4th ed.).
-    [5] Trefethen, L. N., & Bau III, D. (1997). Numerical Linear Algebra.
-    [6] Gross, J. L., & Yellen, J. (2005). Graph Theory and Its Applications (2nd ed.).
-
-═════════════════════════════════════════════════════════════════════════════
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Acoustic Solenoid (Operador de Descomposición de Hodge-Helmholtz)              ║
+║  Ruta   : app/physics/solenoid_acoustic.py                                               ║
+║  Versión: 4.0.0-Topological-Hodge-Helmholtz-Magnon-Strict                                ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor opera como el "Solenoide Acústico" de la arquitectura. Su mandato       ║
+║  axiomático es diseccionar el flujo de dependencias logísticas (1-cadenas) mediante la   ║
+║  Descomposición de Hodge-Helmholtz Discreta. Aísla incondicionalmente la componente      ║
+║  rotacional (vorticidad solenoidal) que induce ciclos infinitos ($\beta_1 > 0$),         ║
+║  cuantizando esta energía parásita en un bosón inmutable (MagnonCartridge) para su       ║
+║  mitigación determinista.                                                                ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Complejo de Cadenas y Condición de Frontera Nula (Nilpotencia):                     ║
+║      El ecosistema se modela como un complejo de cadenas $C_0 \leftarrow C_1 \leftarrow C_2$.║
+║      La integridad del operador exige que la composición de operadores de borde sea      ║
+║      estrictamente nilpotente, certificando que el borde de un borde es nulo:            ║
+║          $\partial_1 \circ \partial_2 = \mathbf{0} \implies \text{im}(\partial_2) \subseteq \ker(\partial_1)$ ║
+║                                                                                          ║
+║  §2. Descomposición Ortogonal de Hodge-Helmholtz (L²-Métrica Ponderada):                 ║
+║      Todo flujo de datos $f \in \mathbb{R}^E$ (espacio de aristas) se descompone         ║
+║      ortogonalmente en tres subespacios bajo la métrica ponderada $W$:                   ║
+║          $f = f_{\text{grad}} + f_{\text{curl}} + f_{\text{harm}}$                       ║
+║      Donde formalmente:                                                                  ║
+║          $\mathbb{R}^E = \text{im}(\partial_1^T) \oplus_W \text{im}(\partial_2) \oplus_W \ker(\Delta_1^W)$ ║
+║                                                                                          ║
+║  §3. Proyector Solenoidal (Acoustic Solenoid Operator):                                  ║
+║      El operador extrae exclusivamente el campo $f_{\text{curl}}$ (vorticidad). La       ║
+║      energía cinética del flujo parasitario se computa bajo el producto interno:         ║
+║          $E_k = \frac{1}{2} \langle f_{\text{curl}}, f_{\text{curl}} \rangle_W = \frac{1}{2} f_{\text{curl}}^T W^{-1} f_{\text{curl}}$ ║
+║      Si $E_k > \varepsilon_{\text{crit}}$, se detecta una resonancia destructiva activa. ║
+║                                                                                          ║
+║  §4. Cuantización de Vorticidad (Bosón Magnón - MagnonCartridge):                        ║
+║      La vorticidad aislada no se reporta como texto; colapsa axiomáticamente en un       ║
+║      bosón de gauge (MagnonCartridge) que encapsula la dimensión del subespacio rotacional║
+║      y la energía cinética parásita, operando como un Veto de Enrutamiento estricto.     ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → HodgeDecompositionBuilder:                                                     ║
+║           Ensambla el complejo de cadenas y garantiza algebraicamente $\partial_1 \partial_2 = 0$.║
+║                                                                                          ║
+║  Fase 2 → AcousticSolenoidOperator & VorticityMetrics:                                   ║
+║           Calcula la descomposición ortogonal, extrae $f_{\text{curl}}$ y computa el     ║
+║           residuo pitagórico para validar la conservación métrica de la energía.         ║
+║                                                                                          ║
+║  Fase 3 → MagnonCartridge Instantiation & inspect_and_mitigate_resonance:                ║
+║           Cuantiza la anomalía en el espacio de Fock emitiendo el bosón Magnón y         ║
+║           retorna el ResonanceMitigationResult hacia el orquestador global.              ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

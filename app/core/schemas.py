@@ -1,61 +1,56 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Schemas (Constitución de los Datos — Esquema Canónico del Sistema de Presupuesto)
-Ubicación: app/core/schemas.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Topológica:
-    Este módulo no define simples clases de datos, establece los Invariantes 
-    Estructurales del espacio de fase presupuestal. Proyecta las entidades financieras 
-    como un complejo simplicial restringido, garantizando que el orquestador opere 
-    sobre un espacio métrico no degenerado y lógicamente coherente.
-
-0. Preliminares: Topología del Grafo Bipartito:
-    La estructura se modela axiomáticamente como un grafo bipartito G = (V_TACTICS ∪ V_PHYSICS, E):
-    • V_TACTICS = {APU₁, APU₂, ...} (nodos internos del estrato táctico).
-    • V_PHYSICS = {Insumo₁, Insumo₂, ...} (nodos hoja del estrato físico).
-    • E ⊆ V_TACTICS × V_PHYSICS (aristas de dependencia directa).
-    
-    Propiedades garantizadas algorítmicamente:
-    (G1) Acíclico Dirigido (DAG): β₁ = 0. Ausencia absoluta de paradojas circulares.
-    (G2) Bipartito Estricto: Las aristas E operan exclusivamente inter-estrato.
-    (G3) Bosque Estructural: Cada APU constituye la raíz de un árbol de expansión de insumos.
-
-1. Invariantes Físico-Matemáticos de Dominio:
-    (I1) Ley de Conservación de Valor: Para todo insumo i, valor_total[i] = cantidad[i] × precio_unitario[i].
-         Debido a la entropía de la Unidad de Punto Flotante (IEEE 754), se impone una 
-         tolerancia híbrida: ε_rel = 1e-6 y ε_abs = 1e-10. 
-         Justificación: Para valores de O(10⁶) y O(10⁹), el error relativo acumulado es O(10⁻²⁷). 
-         El margen ε_rel ≫ 10⁻²⁷ absorbe la fricción numérica sin admitir corrupción contable.
-    
-    (I2) No-negatividad Absoluta: ∀i: cantidad[i] ≥ 0, precio[i] ≥ 0. La energía financiera 
-         negativa carece de significado físico en este marco y es vetada.
-    
-    (I3) Acotación Física (Saturación Dimensional):
-         • Cantidad ∈ [0, 10⁶] (Límite logístico estructural).
-         • Precio ∈ [0, 10⁹] (Límite de capitalización de equipos pesados).
-         • Rendimiento ∈ [0, 10³] (Límite termodinámico del trabajo humano/mecánico).
-    
-    (I4) Normalización Idempotente (Retractos de Deformación):
-         Todo operador normalizador f ∈ {normalize_unit, normalize_description, normalize_codigo}
-         debe garantizar f(f(x)) = f(x). Esta invarianza protege al sistema de mutaciones parásitas 
-         durante evaluaciones cíclicas iterativas.
-
-2. Termodinámica Estructural y Entropía de Shannon:
-    La estabilidad logística (Índice de Fiedler generalizado Ψ) de una APU "a" se deriva 
-    de la dispersión de sus recursos R(a):
-        H = -Σᵢ pᵢ ln(pᵢ)  [nats]
-    Donde pᵢ = valor_total_i / Σ valor_total_j ∈ es la fracción de energía financiera.
-    Normalizado como H_norm = H / ln(n) ∈. Si pᵢ = 1 para un único nodo (H = 0),
-    existe un Punto de Fallo Único (SPOF), lo que desploma el índice Ψ y activa alertas
-    de "Pirámide Invertida" o monopolio logístico.
-
-3. Diversidad Categórica D(a):
-    D(a) = |tipos únicos en R(a)| / 5 ∈. Cuantifica la ortogonalidad de la cadena 
-    de suministro. Una APU con D=0 (monotipo) es intrínsecamente frágil ante fallos de 
-    una sola clase de proveedor.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Schemas (Constitución de los Datos y Fibrado Estructural del Espacio de Fase)  ║
+║  Ruta   : app/core/schemas.py                                                            ║
+║  Versión: 5.0.0-Topological-Bipartite-Thermodynamic-Strict                               ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo repudia la noción pasiva de "clases de datos" para erigirse como la         ║
+║  membrana que impone los Invariantes Estructurales del espacio de fase presupuestal.     ║
+║  Proyecta las entidades financieras como un complejo simplicial bipartito estricto,      ║
+║  garantizando que el orquestador opere exclusivamente sobre una variedad métrica         ║
+║  no degenerada y algebraicamente cerrada.                                                ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Topología del Complejo Simplicial Bipartito:                                        ║
+║      El presupuesto se modela axiomáticamente como un grafo bipartito dirigido           ║
+║      $G = (V_{\text{TACTICS}} \sqcup V_{\text{PHYSICS}}, E)$, donde:                     ║
+║          $V_{\text{TACTICS}}$: Nodos internos (APUs del estrato táctico).                ║
+║          $V_{\text{PHYSICS}}$: Nodos hoja (Insumos atómicos del estrato físico).         ║
+║      Se exige aciclicidad absoluta mediante la aniquilación del primer grupo de          ║
+║      homología con coeficientes reales:                                                  ║
+║          $\dim H_1(G; \mathbb{R}) = \beta_1 = 0$                                         ║
+║      Garantizando la ausencia incondicional de paradojas circulares (socavones lógicos). ║
+║                                                                                          ║
+║  §2. Ley de Conservación de Valor e Invarianza IEEE 754:                                 ║
+║      La energía financiera total obedece la conservación $C = Q \odot P$. Para           ║
+║      absorber la entropía de la Unidad de Punto Flotante (FPU), se impone una cota       ║
+║      de error híbrida estricta:                                                          ║
+║          $\| C - Q \odot P \|_\infty \le \varepsilon_{rel} \| C \|_\infty + \varepsilon_{abs}$ ║
+║      Donde $Q \in \mathbb{R}^+$ y $P \in \mathbb{R}^+$ (no-negatividad absoluta).        ║
+║                                                                                          ║
+║  §3. Acotación Física (Saturación Dimensional):                                          ║
+║      Los tensores escalares se confinan a hipercubos de viabilidad física:               ║
+║          $Q \in [0, 10^6]$ (Límite logístico del trabajo termodinámico)                  ║
+║          $P \in [0, 10^9]$ (Límite de capitalización de equipos pesados)                 ║
+║                                                                                          ║
+║  §4. Retractos de Deformación Idempotentes:                                              ║
+║      Todo operador normalizador $f$ actúa como un proyector ortogonal hacia el espacio   ║
+║      canónico, garantizando axiomáticamente la idempotencia absoluta:                    ║
+║          $f \circ f = f \implies f^2(x) = f(x)$                                          ║
+║      Previniendo mutaciones parásitas durante iteraciones de retroalimentación cíclica.  ║
+║                                                                                          ║
+║  §5. Termodinámica Estructural y Entropía de Shannon:                                    ║
+║      La estabilidad logística se audita mediante la entropía de la energía financiera.   ║
+║      Para las fracciones de participación $p_i = \frac{C_i}{\sum C_j}$:                  ║
+║          $H_{norm} = -\frac{1}{\ln n} \sum_{i=1}^n p_i \ln p_i$                          ║
+║      Si $H_{norm} \to 0$, el tensor colapsa detectando un Punto de Fallo Único (SPOF),   ║
+║      evidenciando un monopolio logístico (Pirámide Invertida).                           ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

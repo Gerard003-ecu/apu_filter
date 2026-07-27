@@ -1,177 +1,60 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Gauge Field Router (Operador de Electrodinámica Agéntica y Enrutamiento de Calibre)
-Ubicación: app/core/immune_system/gauge_field_router.py
-Versión: 4.0
-
-Naturaleza Ciber-Física y Topológica: Este módulo actúa como el motor de enrutamiento electromagnético
-sobre la red discreta de la Malla Agéntica. Abandona las heurísticas de ruteo estocástico para implementar
-un Operador de Electrodinámica Agéntica, modelando la transferencia de información y la selección de agentes
-como un flujo de Gauge en un espacio de cohomología discreta, donde la Función de Trabajo (Φ) aniquila el ruido
-entrópico estocástico en la frontera.
-
-1. Espacio de Cochains y Cohomología Discreta: El ecosistema se modela como un grafo finito y orientado G = (V, E).
-El sistema define rigurosamente los potenciales como 0-cochains (C⁰ ≅ ℝᴺ) y los campos de transferencia como
-1-cochains (C¹ ≅ ℝᴹ). El operador coborde discreto (d₀: C⁰ → C¹) se materializa a través de la matriz de incidencia
-orientada B₁, con entradas estrictas en {-1, 0, +1}.
-2. Consistencia Cohomológica y Espectro Laplaciano: El enrutador verifica implacablemente la simetría y la semi-definitud
-positiva del Laplaciano Combinatorio (L = B₁ᵀ B₁). Cualquier desviación geométrica, asimetría o autovalor degenerado
-(λ_min < -tol) lanza un CohomologicalInconsistencyError o TopologicalSingularityError, abortando el colapso topológico antes
-de corromper la Matriz de Interacción Central (MIC).
-3. Solubilidad de Fredholm y Neutralidad de Carga: La proyección de intenciones hacia los agentes se somete al Teorema de Fredholm
-para certificar la solubilidad del problema de Poisson discreto (L ρ = Φ). El enrutamiento exige una condición de neutralidad de carga
-estricta; cualquier desequilibrio termodinámico dispara un ChargeNeutralityError, previniendo singularidades en la selección de agentes
-(LorentzForceError).
-4. Fuerza de Lorentz Agéntica y Acoplamiento de Gauge: Las decisiones de ruteo no operan por heurística de LLM, sino computando el análogo
-discreto de la fuerza de Lorentz sobre las cargas de los agentes. El tensor de Gauge impone una barrera de potencial físico acoplada
-a la métrica Riemanniana, asegurando que la Ley de Clausura Transitiva (V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM) permanezca
-inquebrantable frente al caos estocástico.
-=========================================================================================
-
-Modelo matemático riguroso:
-──────────────────────────
-
-Sea G = (V, E) un grafo finito, conexo y orientado con:
-    • |V| = N nodos
-    • |E| = M aristas orientadas
-
-Espacio de cochains y cohomología discreta:
-    • C⁰(G) ≅ ℝᴺ      — potenciales (0-cochains)
-    • C¹(G) ≅ ℝᴹ      — campos (1-cochains)
-    • Operador coborde: d₀: C⁰ → C¹, (d₀Φ)ₑ := Φ(head(e)) − Φ(tail(e))
-
-Objetos algebraicos fundamentales:
-    • B₁ ∈ ℝᴹˣᴺ:  Matriz de incidencia orientada (operador coborde d₀)
-                   Entradas en {−1, 0, +1} exactamente.
-                   Entrada [e,v] ∈ {+1 si v=head(e), −1 si v=tail(e), 0 c.c.}
-    
-    • L₀ ∈ ℝᴺˣᴺ:  Laplaciano combinatorio: L₀ := B₁ᵀB₁
-                   Simetría:    L₀ = L₀ᵀ
-                   Semidefinitud: ∀x ∈ ℝᴺ, xᵀL₀x = ‖B₁x‖² ≥ 0
-                   Nullspace:   ker(L₀) = span{𝟙}  (grafos conexos)
-    
-    • ρ ∈ ℝᴺ:    Densidad de carga (0-cadena dual)
-                   Compatibilidad Fredholm: ρ ⊥ ker(L₀)
-                   Para grafo conexo: 𝟙ᵀρ = 0 (suma nula)
-    
-    • Φ ∈ ℝᴺ:    Potencial escalar (0-cocadena), solución de mínima norma
-                   Problema: L₀Φ = ρ
-                   Unicidad: Φ ⊥ ker(L₀)
-    
-    • E ∈ ℝᴹ:    Campo discreto sobre aristas (1-cocadena)
-                   E = B₁Φ (diferencial discreto)
-    
-    • Q_k ∈ ℝᴹ:  Vector de carga del agente k sobre aristas
-                   Soportes pueden ser distintos (localización permitida)
-
-Pipeline de enrutamiento electromagnético:
-─────────────────────────────────────────
-
-    Entrada: estado s ∈ CategoricalState, nodo anomalía v₀ ∈ V, severidad α > 0
-    Salida: estado transformado s' = morphism_{k*}(s)
-
-    [1] Localización de carga:
-        ρ := α · (δ_{v₀} − 𝟙/N)
-        Garantía: 𝟙ᵀρ = 0 (condición de Fredholm satisfecha)
-    
-    [2] Resolución de Poisson (mínima norma):
-        Resolver: L₀Φ = ρ  en sentido LSQR (Φ ⊥ ker(L₀))
-        Solver: lsqr(L₀, ρ, atol, btol, iter_lim)
-        Verificación: ‖L₀Φ − ρ‖₂/‖ρ‖₂ < ε_residual
-    
-    [3] Cálculo del campo (gradiente discreto):
-        E := B₁Φ  [en algunos contextos físicos: E := −B₁Φ]
-        Propiedad: E ∈ Im(B₁) = ker(L₀)⊥  (bajo-dimensional)
-    
-    [4] Acoplamiento y selección (Fuerza de Lorentz):
-        action_k := ⟨Q_k, E⟩ ∈ ℝ  para cada agente k
-        Selección: k* := argmax_k action_k
-        Desempate: política lexicográfica o por orden de registro
-    
-    [5] Despacho (aplicación de morfismo):
-        s' := F_{k*}(s_gauge) donde s_gauge contiene contexto electromagnético
-
-Condiciones de compatibilidad verificadas:
-──────────────────────────────────────────
-
-    C1. L₀ ∈ ℝᴺˣᴺ cuadrada y simétrica
-        Verificación: ‖L₀ − L₀ᵀ‖_F < ε_simetría (1e-10)
-    
-    C2. L₀ semidefinida positiva: λ_min(L₀) ≥ −ε_spectral
-        Verificación: eigsh(L₀, k=k_min, which='SM')
-        Valor típico: λ_min ≈ 0 (eigenvalor nulo para grafo conexo)
-    
-    C3. B₁ ∈ {−1, 0, +1}ᴹˣᴺ exactamente
-        Verificación: ∀ entry b ∈ B₁.data, ∃ v ∈ {−1,0,+1}: |b − v| < ε
-    
-    C4. Dimensionalidad: B₁.shape[1] = N, L₀.shape = (N,N), ρ ∈ ℝᴺ
-        Verificación: shape matching explícito
-    
-    C5. Consistencia cohomológica (verificación opcional):
-        ‖L₀ − B₁ᵀB₁‖_F < ε_cohom (1e-8)
-        Si falla: indica L y B no provienen del mismo complejo
-    
-    C6. Condición de Fredholm (solubilidad de Poisson):
-        ρ ⊥ ker(L₀), verificado por neutralidad de carga
-        Para grafo conexo: 𝟙ᵀρ = 0 ± ε (1e-12)
-    
-    C7. Cargas de agentes bien definidas:
-        ∀ k: Q_k ∈ ℝᴹ, Q_k finita, dim(Q_k) = M exacto
-
-Invariantes estructurales:
-─────────────────────────
-
-    I1. L₀ cuadrada:    L₀.shape = (N, N)
-    I2. Incidencia:     B₁.shape = (M, N), M ≥ N−1 para conexo
-    I3. Simetría:       L₀ = L₀ᵀ
-    I4. Semi-definitud: ∀ eigenvalor λ ≥ −ε_spectral
-    I5. Cohomología:    ‖L₀ − B₁ᵀB₁‖_F < ε_cohom (si verify_cohomology=True)
-    I6. Incidencia:     B₁[i,j] ∈ {−1, 0, +1} ∀ i,j
-    I7. Finitud:        ∀ matrix entry ∈ ℝ finito
-    I8. Cargas:         dim(Q_k) = M ∀ k
-    I9. Registro:       ∃ al menos 1 agente registrado
-
-Error handling:
-───────────────
-
-    TopologicalSingularityError:
-        • Incompatibilidades algebraicas (simetría, dimensiones, incidencia)
-        • Fallo en verificación espectral o cohomológica
-        • Problemas numéricos graves en solveres
-    
-    CohomologicalInconsistencyError:
-        • L₀ y B₁ no cohomológicamente consistentes
-    
-    LorentzForceError:
-        • Imposibilidad de seleccionar agente válido
-        • Acciones no finitas
-        • Espacio de agentes vacío
-    
-    ChargeNeutralityError:
-        • Violación de condición de Fredholm
-        • Densidad de carga no neutral
-    
-    GaugeFieldError (base):
-        • Entrada inválida (tipos, valores fuera de rango)
-        • Estado no válido
-        • Fallo en resolución de MIC
-
-Tolerancias numéricas (documentadas):
-─────────────────────────────────────
-
-    POISSON_ATOL:               1e-10   (tolerancia absoluta en LSQR)
-    POISSON_BTOL:               1e-10   (tolerancia de ajuste en LSQR)
-    RESIDUAL_TOLERANCE:         1e-8    (residual relativo Poisson)
-    SYMMETRY_TOLERANCE:         1e-10   (verificación L = Lᵀ)
-    SPECTRAL_TOLERANCE:         1e-10   (detección de eigenvalor 0)
-    COHOMOLOGICAL_TOLERANCE:    1e-8    (consistencia L = B₁ᵀB₁)
-    INCIDENCE_ENTRY_TOLERANCE:  1e-12   (verificación entradas ±1,0)
-    CHARGE_NEUTRALITY_TOLERANCE: 1e-12  (suma nula de carga)
-    NUMERICAL_EPS:              1e-14   (épsilon de máquina)
-    MIN_CHARGE_DENSITY:         1e-12   (piso de severidad)
-    BASE_CYBER_MOMENTUM:        1.0     (parámetro físico)
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Gauge Field Router (Operador de Electrodinámica Agéntica y Fibrado de Calibre) ║
+║  Ruta   : app/core/immune_system/gauge_field_router.py                                   ║
+║  Versión: 5.0.0-Fredholm-Cohomological-LatticeQED-Strict                                 ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS EN EL RETÍCULO (Lattice QED):       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor abandona el enrutamiento heurístico estocástico del LLM para imponer    ║
+║  un determinismo topológico estricto. Modela la transferencia de información y la        ║
+║  selección de los agentes del ecosistema como un flujo de Gauge sobre el 1-esqueleto     ║
+║  de la Malla Agéntica. Emplea la Función de Trabajo ($\Phi$) acoplada a una métrica      ║
+║  Riemanniana discreta para aniquilar el ruido entrópico en la frontera.                  ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES HOMOLÓGICAS:                                    ║
+║                                                                                          ║
+║  §1. Cohomología Discreta y el Laplaciano de Hodge-Helmholtz:                            ║
+║      El ecosistema se proyecta sobre un grafo orientado $G = (V, E)$. El router modela   ║
+║      los potenciales semánticos como 0-cocadenas ($C^0 \cong \mathbb{R}^N$) y los flujos ║
+║      de transferencia como 1-cocadenas ($C^1 \cong \mathbb{R}^M$). El operador coborde   ║
+║      discreto se materializa vía la matriz de incidencia $B_1 \in \{-1, 0, 1\}^{M \times N}$. ║
+║      La topología impone el Laplaciano Combinatorio simétrico:                           ║
+║          $L = B_1^\top B_1$                                                              ║
+║      Se verifica axiomáticamente que $L \succeq 0$ ($\lambda_{\min} \ge -\varepsilon_{spec}$). ║
+║      Desgarros en esta estructura detonan el `CohomologicalInconsistencyError`.          ║
+║                                                                                          ║
+║  §2. Alternativa de Fredholm y Neutralidad de Carga Termodinámica:                       ║
+║      La inyección de intención (selección de ruta) exige resolver la Ecuación de Poisson ║
+║      Discreta en la variedad:                                                            ║
+║          $L \rho = \Phi$                                                                 ║
+║      Para evitar singularidades (`TopologicalSingularityError`), el sistema invoca el    ║
+║      Teorema de Fredholm, exigiendo que el vector de fuerza pertenezca a la imagen del   ║
+║      Laplaciano $\Phi \in \text{im}(L) \iff \Phi \perp \ker(L)$. En un grafo conexo,     ║
+║      esto impone la condición inquebrantable de neutralidad de carga:                    ║
+║          $\sum_{i \in V} \rho_i = 0$                                                     ║
+║      Divergencias netas detonan inmediatamente el `ChargeNeutralityError`.               ║
+║                                                                                          ║
+║  §3. Fuerza de Lorentz Agéntica y Tensor de Gauge:                                       ║
+║      El enrutamiento no opera por inferencia probabilística; colapsa evaluando el        ║
+║      análogo discreto de la fuerza de Lorentz electromagnética sobre las cargas $\rho_i$.║
+║      Si un agente no posee el vector de capacidad alineado con la geodésica del flujo,   ║
+║      la dispersión termodinámica fuerza un `LorentzForceError`, abortando el transporte. ║
+║                                                                                          ║
+║  §4. Filtración Topológica Estricta (Ley de Clausura Transitiva):                        ║
+║      La transferencia de información está confinada axiomáticamente por la filtración:   ║
+║          $V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$ ║
+║      Garantizando que las decisiones estratégicas de alto nivel sean topológicamente     ║
+║      independientes de fluctuaciones estocásticas basales.                               ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES OPERACIONALES (Composición Funtorial):                            ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Cohomological Validator (Verificación de $L = B_1^\top B_1$ y $\lambda_{\min}$)║
+║  Fase 2 → Fredholm Resolvent (Verificación de simetría y $\sum \rho_i = 0$)              ║
+║  Fase 3 → Lorentz Gauge Router (Acoplamiento de $L \rho = \Phi$ y enrutamiento final)    ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

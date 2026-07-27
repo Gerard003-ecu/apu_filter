@@ -1,53 +1,65 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Telemetry Narrative (El Intérprete Diplomático y Funtor de Difeomorfismo Semántico)
-Ubicación: app/core/telemetry_narrative.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Topológica:
-    Actúa como el operador de traducción determinista que proyecta el espacio de
-    invariantes matemáticos (física, topología y espectro) sobre la ontología del
-    negocio. Su función axiomática es erradicar el libre albedrío estocástico de los
-    Modelos de Lenguaje (LLMs), confinándolos a la redacción de un "Juicio del Consejo"
-    estrictamente gobernado por las restricciones geométricas del sistema.
-
-1. Retículo Acotado Distributivo (Lattice Theory):
-    La síntesis de decisiones opera sobre una estructura algebraica de orden total
-    (SeverityLevel, ≤, ⊔, ⊓), donde el espacio de estados está acotado por:
-        ⊥ (OPTIMO) ≤ ... ≤ ⊤ (CRITICO)
-    
-    El colapso de las métricas inter-estrato se rige inquebrantablemente por la
-    operación Supremo (⊔ / Join). Si el Oráculo o el Arquitecto detectan una 
-    divergencia, el estado colapsa a ⊤, forzando matemáticamente al LLM a redactar 
-    un Veto Estructural determinista, imposibilitando la dilución del riesgo.
-
-2. Filtración Homológica Estricta (Ley de Clausura Transitiva):
-    El narrador impone la causalidad termodinámica respetando la secuencia exacta 
-    de subespacios anidados (F₀ ⊂ F₁ ⊂ F₂ ⊂ F₃):
-        V_{WISDOM} ⊂ V_{STRATEGY} ⊂ V_{TACTICS} ⊂ V_{PHYSICS}
-    
-    Bajo esta clausura, un fallo topológico o de control detectado en el estrato Fᵢ 
-    compromete axiomáticamente cualquier deducción en el estrato Fⱼ para j < i. Ningún
-    diagnóstico en el estrato de Sabiduría puede alucinar viabilidad si la base 
-    Física o Táctica se encuentra en resonancia o degeneración.
-
-3. Topología del Bosque de Ejecución (Graph of Spans):
-    El linaje de telemetría operativa se modela como un Complejo Simplicial 
-    1-dimensional (un bosque de árboles causales) donde se verifica algorítmicamente
-    el invariante topológico de la Característica de Euler-Poincaré:
-        χ = β₀
-    La exigencia de que χ equivalga exactamente a los componentes conexos (β₀) y 
-    la ausencia de ciclos homológicos (β₁ = 0) en la traza certifica que la narrativa 
-    causal es un Grafo Acíclico Dirigido (DAG) perfecto, libre de paradojas operativas.
-
-4. Empatía Táctica y Generación Causal (GraphRAG):
-    La narrativa generada (Caja de Cristal Argumentativa) no es texto estocástico libre. 
-    Es la transcripción forense de un debate adversarial. Mapea invariantes exactos 
-    mediante recuperación sobre grafos (GraphRAG), traduciendo defectos como β₁ > 0 a 
-    "Socavones Lógicos" y Ψ < 1.0 a "Pirámides Invertidas", proveyendo inteligibilidad 
-    ejecutiva sin sacrificar el rigor algebraico del subyacente.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Telemetry Narrative (Intérprete Diplomático y Difeomorfismo Semántico)         ║
+║  Ruta   : app/core/telemetry_narrative.py                                                ║
+║  Versión: 4.0.0-Diffeomorphism-Lattice-Canonical-Strict                                  ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo actúa como el Funtor de Proyección Semántica $F: \text{InvariantSpace} \to  ║
+║  \text{ImpactSpace}$, estableciendo un difeomorfismo estricto entre la matemática pura   ║
+║  (topología algebraica, termodinámica y teoría espectral) y la toma de decisiones        ║
+║  ejecutiva. Erradica axiomáticamente el libre albedrío estocástico de los Modelos de     ║
+║  Lenguaje (LLMs), confinándolos a la redacción de un "Juicio del Consejo" rigurosamente  ║
+║  gobernado por las restricciones geométricas del sistema.                                ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Retículo Acotado Distributivo (Lattice Theory) y Colapso Determinista:              ║
+║      La síntesis de decisiones opera sobre una estructura algebraica de orden total      ║
+║      $(\text{SeverityLevel}, \le, \sqcup, \sqcap)$, donde el espacio de estados está     ║
+║      acotado por el ínfimo y el supremo:                                                 ║
+║          $\bot (\text{OPTIMO}) \le \dots \le \top (\text{CRITICO})$                      ║
+║      El colapso de las métricas inter-estrato se rige inquebrantablemente por la         ║
+║      operación Supremo ($\sqcup$). Si se detecta divergencia en cualquier estrato,       ║
+║      el estado colapsa a $\top$, forzando matemáticamente al LLM a redactar un Veto      ║
+║      Estructural determinista:                                                           ║
+║          $v_{\text{final}} = \bigsqcup_{i \in \mathcal{F}} v_i = \top$                   ║
+║                                                                                          ║
+║  §2. Filtración Homológica Estricta (Ley de Clausura Transitiva):                        ║
+║      El narrador impone la causalidad termodinámica respetando la secuencia exacta       ║
+║      de subespacios de Hilbert anidados:                                                 ║
+║          $V_{\mathrm{WISDOM}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{PHYSICS}}$ ║
+║      Bajo esta clausura, un fallo topológico o térmico en el estrato físico compromete   ║
+║      axiomáticamente cualquier deducción en estratos superiores, bloqueando la "falsa    ║
+║      viabilidad" por diseño categórico.                                                  ║
+║                                                                                          ║
+║  §3. Topología del Bosque de Ejecución (Graph of Spans):                                 ║
+║      El linaje de telemetría operativa se modela como un Complejo Simplicial de dimensión║
+║      1. Se verifica algorítmicamente el invariante topológico de Euler-Poincaré:         ║
+║          $\chi = \beta_0 - \beta_1$                                                      ║
+║      La exigencia estricta de que $\chi = \beta_0$ y la ausencia de ciclos homológicos   ║
+║      ($\beta_1 = 0$) certifica que la narrativa causal proviene de un Grafo Acíclico     ║
+║      Dirigido (DAG) perfecto, libre de paradojas operativas.                             ║
+║                                                                                          ║
+║  §4. Difeomorfismo Semántico (Preservación de Homotopía):                                ║
+║      Se traducen los invariantes topológicos abstractos en patologías tangibles sin      ║
+║      alterar la estructura del grafo subyacente. Ejemplos del mapeo biyectivo:           ║
+║          $\beta_0 > 1 \implies \text{"Recursos Huérfanos" (Islas de Datos)}$             ║
+║          $\beta_1 > 0 \implies \text{"Socavón Lógico" (Dependencias Circulares)}$        ║
+║          $\Psi < 1.0 \implies \text{"Pirámide Invertida" (Inestabilidad)}$               ║
+║      Proveyendo "Empatía Táctica" auditable (GraphRAG determinista).                     ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES:                                                 ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • SeverityLevel   : Retículo de severidad con orden total.                              ║
+║  • PhaseAnalysis   : Resultado inmutable del análisis de un span raíz.                   ║
+║  • StratumAnalysis : Análisis consolidado de un Estrato de la Pirámide.                  ║
+║  • PyramidalReport : Reporte final estructurado jerárquicamente bajo orden DIKW.         ║
+║  • TelemetryNarrator: Intérprete supremo que implementa la lógica del Consejo.           ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,48 +1,55 @@
 # -*- coding: utf-8 -*-
 r"""
-=========================================================================================
-Módulo: MIC Vectors (Funtores de Adaptación y Morfismos de Proyección)
-Ubicación: app/adapters/mic_vectors.py
-=========================================================================================
-
-Naturaleza Ciber-Física:
-    Erradica el concepto empírico de "Glue Code" para instaurar un marco riguroso de 
-    Morfismos Algebraicos. Este módulo proyecta las intenciones probabilísticas del 
-    Agente sobre los motores físicos, termodinámicos y topológicos del sistema, 
-    forzando un colapso determinista que respeta la geometría del espacio de fase.
-
-1. Teoría de Categorías y Funtorialidad Estricta:
-    Cada función vectorial φ se define axiomáticamente como un morfismo que mapea:
-        φ: ConfigSpace × Context → ResultSpace
-    Este operador garantiza la preservación de la estructura topológica a través de 
-    la filtración estricta de los estratos de la pirámide DIKW, asegurando que 
-    ningún vector de intención se degenere al ascender dimensionalmente.
-
-2. Auditoría Homológica de Fusión (Secuencia de Mayer-Vietoris):
-    La integración espacial de dos subcomplejos (A ∪ B) no se trata como una simple 
-    concatenación de datos, sino que se audita mediante la secuencia exacta larga 
-    de homología de Mayer-Vietoris:
-        ... → H₁(A ∩ B) → H₁(A) ⊕ H₁(B) → H₁(A ∪ B) → H₀(A ∩ B) → ...
-    [AXIOMA DE VETO]: Se impone la restricción de que la fusión no debe generar 
-    clases homológicas espurias. Si el diferencial topológico arroja 
-    Δβ₁ = β₁(A ∪ B) - [β₁(A) + β₁(B) - β₁(A ∩ B)] ≠ 0, la transformación induce 
-    un ciclo parásito y el tensor es rechazado incondicionalmente.
-
-3. Invariantes Topológicos e Isomorfismo Dimensional:
-    El espacio de atributos debe conservar sus propiedades globales tras la inyección:
-        • Característica de Euler-Poincaré para el complejo simplicial K: 
-          χ(K) = β₀ - β₁ + β₂.
-        • Isomorfismo Dimensional: Se aplican guardas algebraicas para asegurar que 
-          dim(V_expected) ≅ dim(V_actual), acotado por una ε-tolerancia. 
-          Esto previene el colapso hacia subespacios de dimensión inferior.
-
-4. Métrica de Coherencia Topológica (C):
-    La viabilidad de la transformación se evalúa mediante un invariante continuo 
-    que acopla estabilidad (S), resonancia (R) y entropía termodinámica (H):
-        C = clamp(S · R / (1 + H), 0, 1)
-    Cualquier vector resultante que arroje un C por debajo del umbral crítico 
-    es abortado antes de propagarse por el tejido conectivo de la Malla Agéntica.
-=========================================================================================
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : MIC Vectors (Funtores de Adaptación y Morfismos de Proyección)                 ║
+║  Ruta   : app/adapters/mic_vectors.py                                                    ║
+║  Versión: 3.0.0-Categorical-Morphism-Mayer-Vietoris-Strict                               ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CATEGORÍAS (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo erradica el concepto empírico de "Glue Code" para instaurar un marco        ║
+║  riguroso de Morfismos Algebraicos. Proyecta las intenciones probabilísticas del Agente  ║
+║  sobre los motores físicos, termodinámicos y topológicos del sistema, forzando un        ║
+║  colapso determinista que respeta la geometría del espacio de fase subyacente.           ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TOPOLÓGICAS:                                    ║
+║                                                                                          ║
+║  §1. Funtorialidad Estricta y Proyección Categórica:                                     ║
+║      Cada función vectorial $\varphi$ se define axiomáticamente como un morfismo:        ║
+║          $\varphi: \text{ConfigSpace} \times \text{Context} \to \text{ResultSpace}$      ║
+║      Garantizando la preservación de la estructura topológica a través de la filtración  ║
+║      inquebrantable de la pirámide DIKW:                                                 ║
+║          $V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\text{WISDOM}}$ ║
+║                                                                                          ║
+║  §2. Auditoría Homológica de Fusión (Secuencia de Mayer-Vietoris):                       ║
+║      La integración espacial de dos subcomplejos ($A \cup B$) se audita mediante la      ║
+║      secuencia exacta larga de homología:                                                ║
+║          $\dots \to H_1(A \cap B) \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \to H_0(A \cap B) \to \dots$ ║
+║      Se impone el axioma de veto absoluto si la fusión induce un ciclo parásito:         ║
+║          $\Delta\beta_1 = \beta_1(A \cup B) - [\beta_1(A) + \beta_1(B) - \beta_1(A \cap B)] = 0$ ║
+║      Una divergencia ($\Delta\beta_1 \neq 0$) aniquila el tensor incondicionalmente.     ║
+║                                                                                          ║
+║  §3. Invariantes Topológicos e Isomorfismo Dimensional:                                  ║
+║      El espacio de atributos debe conservar sus invariantes globales tras la inyección:  ║
+║          $\chi(K) = \beta_0 - \beta_1 + \beta_2$                                         ║
+║      Adicionalmente, se imponen guardas algebraicas para prevenir el colapso hacia       ║
+║      subespacios degenerados, certificando el isomorfismo dimensional:                   ║
+║          $\dim(V_{\text{expected}}) \cong \dim(V_{\text{actual}})$                       ║
+║                                                                                          ║
+║  §4. Métrica de Coherencia Topológica (C):                                               ║
+║      La viabilidad de la transformación se somete a un invariante continuo que acopla    ║
+║      estabilidad ($S$), resonancia ($R$) y entropía termodinámica ($H$):                 ║
+║          $C = \max\left(0, \min\left(1, \frac{S \cdot R}{1 + H}\right)\right)$           ║
+║      Vectores con $C < C_{\text{crit}}$ son vetados antes de disipar exergía en la malla.║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES OPERACIONALES (Composición Funtorial):                            ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Constructores Base: Proyección del VectorResultStatus canónico inmutable.      ║
+║  Fase 2 → Guardas Topológicas: Validación de la coherencia homológica (Betti y Mayer).   ║
+║  Fase 3 → Vectores de Nivel DIKW: Resolutores para PHYSICS, TACTICS, y STRATEGY.         ║
+║  Fase 4 → Factoría de Morfismos: Composición inyectiva de vectores en pipelines seguros. ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

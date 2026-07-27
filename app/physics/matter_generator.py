@@ -1,47 +1,50 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Matter Generator (Motor de Colapso de Onda Material y Proyector Logístico)
-Ubicación: app/physics/matter_generator.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Topológica:
-    Actúa como el operador de colapso determinista que proyecta el Complejo Simplicial 
-    jerárquico del presupuesto (Proyecto → Capítulo → APU → Insumo) hacia un subespacio 
-    plano 0-dimensional: la Base Canónica Logística (BOM). Su mandato axiomático es 
-    materializar la intención de diseño en un tensor de compras garantizando la 
-    conservación absoluta de masa y valor.
-
-1. Proyección Topológica de Fibrado (DFS Algebraico):
-    El recorrido de la jerarquía no se modela como un simple algoritmo procedural, sino 
-    como una proyección a través de las fibras del complejo estructural. El sistema 
-    evalúa la dependencia funcional acumulando multiplicadores a lo largo de las 
-    1-cadenas (aristas de consumo), colapsando los grados de libertad jerárquicos 
-    en un vector de masa consolidado, libre de redundancias (isomorfismo de aplanamiento).
-
-2. Conservación de Masa Discreta (Suma de Kahan como Estabilizador LTI):
-    Para satisfacer la "Ley de Conservación de Valor", el sistema mitiga la entropía 
-    intrínseca de la Unidad de Punto Flotante (IEEE 754). Dado el volumen masivo de 
-    operaciones tensoriales, la agregación de cantidades emplea la Suma Compensada de 
-    Kahan. Este algoritmo mantiene un acumulador de error (el compensador de truncamiento), 
-    garantizando que el error relativo asintótico permanezca en el orden de O(ε_mach), 
-    blindando la integridad contable ante la fricción numérica de la máquina.
-
-3. Inyección del Tensor de Fricción Termodinámica (Factores de Desperdicio):
-    Las cantidades teóricas (estado ideal del sistema) se perturban de manera 
-    determinista introduciendo tensores de fricción logística (desperdicio y mermas). 
-    Esta inyección modela la incertidumbre entrópica del mundo real, garantizando que el 
-    tensor material resultante posea la exergía suficiente para contrarrestar la 
-    disipación de recursos en la obra física.
-
-4. Geometría de Distribución y Asimetría de Inercia (Gini):
-    Rechaza las heurísticas empíricas (regla empírica de Pareto) en favor de la 
-    Termodinámica de la Información. Evalúa la concentración de masa de capital 
-    mediante el Índice de Gini (G = Σᵢ Σⱼ |xᵢ - xⱼ| / (2n²μ)). Si G → 1, el sistema 
-    detecta una Singularidad Logística (Puntos Únicos de Fallo o SPOF), alertando que 
-    la inercia del proyecto depende asimétricamente de un subconjunto ínfimo de vértices 
-    en el espacio de suministro.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Matter Generator (Motor de Colapso de Onda Material y Proyector Logístico)     ║
+║  Ruta   : app/physics/matter_generator.py                                                ║
+║  Versión: 5.0.0-Material-Wave-Collapse-Strict                                            ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor abandona la concepción algorítmica ingenua de la "agregación de         ║
+║  datos" para instaurar el Operador de Colapso Determinista. Proyecta el Complejo         ║
+║  Simplicial jerárquico del presupuesto (Proyecto → Capítulo → APU → Insumo) hacia un     ║
+║  subespacio plano 0-dimensional: la Base Canónica Logística (BOM). Su mandato            ║
+║  axiomático es materializar la intención de diseño en un tensor de compras,              ║
+║  garantizando la conservación absoluta de masa y valor.                                  ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Colapso del Complejo Simplicial (Aniquilación de Homología Superior):               ║
+║      El presupuesto inicial reside en un complejo simplicial $\mathcal{K}$ de dimensión  ║
+║      $d$. El generador aplica un operador de retracción $r: \mathcal{K} \to \mathcal{B}$ ║
+║      hacia la Bill of Materials ($\mathcal{B}$). Este colapso destruye la topología de   ║
+║      anidamiento y proyecta el sistema a un espacio de fase puramente másico:            ║
+║          $\dim H_0(\mathcal{B}) = |\mathcal{B}|, \quad \beta_k(\mathcal{B}) = 0 \quad \forall k \ge 1$ ║
+║      Transformando el hipergrafo de dependencias en un conjunto de partículas atómicas.  ║
+║                                                                                          ║
+║  §2. Ley de Conservación de Valor (Teorema de Noether Discreto):                         ║
+║      La energía financiera y la masa inercial deben preservarse isométricamente tras el  ║
+║      colapso topológico. Para todo tensor de precio $\mathcal{P}$ y cantidad $\mathcal{Q}$:║
+║          $\sum_{x \in \mathcal{K}} \mathcal{Q}(x) \odot \mathcal{P}(x) = \sum_{y \in \mathcal{B}} \mathcal{Q}_{BOM}(y) \odot \mathcal{P}_{BOM}(y)$ ║
+║      Cualquier asimetría residual $\Delta E > \varepsilon_{\text{mach}}$ detona un veto  ║
+║      termodinámico por aniquilación espuria de capital o masa en la FPU (IEEE 754).      ║
+║                                                                                          ║
+║  §3. Fibración de Requerimientos y Espacio Cociente:                                     ║
+║      La consolidación de insumos idénticos opera construyendo un espacio cociente        ║
+║      $\mathcal{K} / \sim$ bajo la relación de equivalencia semántica y dimensional.      ║
+║      Para cada clase $[x] \in \mathcal{B}$, la masa resultante es la integral sobre la   ║
+║      fibra proyectada:                                                                   ║
+║          $\mathcal{Q}_{BOM}([x]) = \int_{\pi^{-1}([x])} d\mu_{\mathcal{Q}}$              ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • MaterialRequirement : Fibrado base consolidado con validación estricta de métricas.   ║
+║  • BillOfMaterials     : Tensor plano de requerimientos (BOM) con metadata analítica.    ║
+║  • MatterGenerator     : Funtor supremo de materialización topológico-algebraica.        ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 import logging

@@ -1,109 +1,58 @@
 # -*- coding: utf-8 -*-
-r"""
-=========================================================================================
-Módulo: Semantic Validation Engine (Proyector Semántico con Tensor de Mahalanobis)
-Ubicación: app/boole/wisdom/semantic_validator.py
-Versión: 3.0.0 (Difeomorfismo de Señales y Cohomología Simplicial)
-
-NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL:
-Actúa como el Proyector Semántico Riguroso en el estrato WISDOM. Su objetivo axiomático es colapsar
-la estocástica del Modelo de Lenguaje (LLM) y las señales de decisión bajo un Tensor Métrico estricto, certificando
-la validez a través de la topología geométrica y la cohomología simplicial.
-
-FUNDAMENTOS MATEMÁTICOS Y ANÁLISIS FUNCIONAL:
-
-§1. ESPACIO MÉTRICO DE SEÑALES (TENSOR DE MAHALANOBIS):
-El espacio de señales de intención reside en $\mathbb{R}^4$ con coordenadas $S = (s_0, s_1, s_2, s_3)^T$ [15]. La distancia
-entre la señal actual y el centroide de estabilidad se mide a través del Tensor Métrico Riemanniano $G$ usando la distancia
-de Mahalanobis:
-$$ d_M(x, y) = \sqrt{(x - y)^T G^{-1} (x - y)} $$
-Si el número de condición espectral del tensor supera la barrera ($\kappa(G) \gg 1$), el métrico es degenerado y el validador
-aborta la evaluación por inestabilidad de la variedad.
-
-§2. RETÍCULO COMPLETAMENTE ORDENADO DE VEREDICTOS:
-Las decisiones no son lógicas binarias; habitan en un retículo estructurado (Lattice Theory) [17]:
-$$ \bot (\text{VIABLE}) \le \text{CONDITIONAL} \le \text{WARNING} \le \top (\text{REJECT}) $$
-El validador consolida la severidad mediante la operación Supremo ($\sqcup$). Cualquier obstrucción homológica colapsa el estado
-de la señal hacia el elemento absorbente $\top$.
-
-§3. COHOMOLOGÍA SIMPLICIAL PARA DETECCIÓN DE CONTRADICCIONES:
-Las restricciones de coherencia entre los perfiles de riesgo y la salida del LLM forman un complejo de cocadenas. El motor computa
-la cohomología $H^1(K; \mathbb{R})$. Una contradicción semántica (ej. alto riesgo con baja tolerancia) se detecta axiomáticamente si:
-$$ \dim H^1(K; \mathbb{R}) > 0 $$
-Resultando en un Veto por Obstrucción Topológica, erradicando alucinaciones probabilísticas mediante un teorema geométrico inquebrantable.
-
-FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
-
-§1. ESPACIO MÉTRICO DE SEÑALES CON TENSOR DE MAHALANOBIS
-    Sea S = ℝ⁴ el espacio de señales con coordenadas:
-    - s₀: propósito (purpose)
-    - s₁: confianza (confidence)  
-    - s₂: cumplimiento de restricciones (constraints)
-    - s₃: tolerancia al riesgo (risk)
-    
-    Dotamos S de un tensor métrico Riemanniano G ∈ Sym⁺(4), donde:
-    - G es simétrica: Gᵢⱼ = Gⱼᵢ
-    - G es definida positiva: ∀v ≠ 0, vᵀGv > 0
-    - G codifica acoplamientos: Gᵢⱼ ≠ 0 ⟺ señales i,j están acopladas
-    
-    La distancia de Mahalanobis al ideal s* = (1,1,1,1)ᵀ es:
-    
-        D_M(s) = √[(s - s*)ᵀ G (s - s*)]
-    
-    Propiedades verificadas:
-    - D_M(s) ≥ 0 con igualdad ssi s = s*
-    - D_M es continua en s
-    - Las curvas de nivel {s : D_M(s) = c} son elipsoides
-
-§2. COMPLEJO DE COCADENAS Y COHOMOLOGÍA SIMPLICIAL
-    Modelamos las restricciones de consistencia como un complejo simplicial:
-    
-    K = ({0,1,2,3}, {{0,1}, {1,2}, {2,3}, {3,0}})
-    
-    donde los vértices son índices de señales y las aristas representan
-    restricciones de consistencia.
-    
-    El complejo de cocadenas sobre ℝ es:
-    
-    0 → C⁰(K;ℝ) --δ⁰--> C¹(K;ℝ) --δ¹--> C²(K;ℝ) → 0
-    
-    donde:
-    - C⁰(K;ℝ) = {funciones φ: vértices → ℝ} ≅ ℝ⁴
-    - C¹(K;ℝ) = {funciones ψ: aristas → ℝ} ≅ ℝ⁴
-    - δ⁰(φ)(arista{i,j}) = φ(j) - φ(i)
-    - δ¹(ψ)(triángulo) = suma orientada en frontera
-    
-    La cohomología es:
-    
-    H¹(K;ℝ) = ker(δ¹) / im(δ⁰)
-    
-    Interpretación: dim H¹ > 0 detecta ciclos no triviales en las restricciones,
-    indicando paradojas semánticas irresolubles.
-
-§3. RETÍCULO DE VEREDICTOS CON ESTRUCTURA DE ORDEN
-    El conjunto de veredictos V = {VIABLE, CONDITIONAL, WARNING, REJECT}
-    forma un retículo totalmente ordenado:
-    
-    VIABLE < CONDITIONAL < WARNING < REJECT
-    
-    con operaciones:
-    - Supremo (∨): max según orden
-    - Ínfimo (∧): min según orden
-    
-    Propiedades algebraicas verificadas:
-    - Asociatividad: (v₁ ∨ v₂) ∨ v₃ = v₁ ∨ (v₂ ∨ v₃)
-    - Conmutatividad: v₁ ∨ v₂ = v₂ ∨ v₁
-    - Idempotencia: v ∨ v = v
-    - Elemento absorbente: v ∨ REJECT = REJECT
-
-§4. INVARIANTES Y CONTRATOS
-    Cada método público garantiza:
-    
-    [PRE] Precondiciones sobre argumentos (validación estricta)
-    [POST] Postcondiciones sobre resultados (invariantes de retorno)
-    [INV] Invariantes de clase (consistencia del estado)
-    
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Semantic Validation Engine (Proyector Semántico con Tensor de Mahalanobis)     ║
+║  Ruta   : app/boole/wisdom/semantic_validator.py                                         ║
+║  Versión: 4.0.0-Topological-Cohomology-Riemannian-Strict                                 ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor actúa como el Proyector Semántico Riguroso en el estrato WISDOM.        ║
+║  Su objetivo axiomático es colapsar el ruido estocástico del Modelo de Lenguaje (LLM) y  ║
+║  las señales de decisión bajo un Tensor Métrico Riemanniano estricto, certificando       ║
+║  la validez semántica mediante la topología geométrica y la cohomología simplicial.      ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Tensor Métrico de Mahalanobis (Geometría Riemanniana):                              ║
+║      El espacio de señales $\mathbb{R}^4$ se dota de un tensor métrico de precisión      ║
+║      $G = \Sigma^{-1}$. La distancia geodésica entre el estado de negocio esperado y la  ║
+║      salida estocástica se evalúa mediante la forma cuadrática covariante:               ║
+║          $d_G(x, y) = \sqrt{(x - y)^\top G (x - y)}$                                     ║
+║      Degeneraciones en el condicionamiento espectral de $G$ detonan incondicionalmente   ║
+║      el `MetricDegeneracyError`.                                                         ║
+║                                                                                          ║
+║  §2. Retículo Completamente Ordenado de Veredictos (Álgebra de Heyting):                 ║
+║      Las decisiones rechazan la lógica difusa y forman un retículo acotado estructurado: ║
+║          $\bot (\text{VIABLE}) \le \text{CONDITIONAL} \le \text{WARNING} \le \top (\text{REJECT})$ ║
+║      El validador consolida la severidad mediante el operador Supremo ($\sqcup$).        ║
+║      Cualquier obstrucción homológica colapsa el estado de la señal hacia el elemento    ║
+║      absorbente $\top$:                                                                  ║
+║          $v_{\text{final}} = \bigsqcup_{i \in \mathcal{E}} v_i$                          ║
+║                                                                                          ║
+║  §3. Cohomología Simplicial y Obstrucciones Globales:                                    ║
+║      Las restricciones de coherencia entre los perfiles de riesgo y la salida del LLM    ║
+║      forman un complejo de cocadenas $K$. Se exige que el primer grupo de cohomología    ║
+║      con coeficientes en $\mathbb{R}$ sea trivial. Una contradicción semántica (paradoja)║
+║      se detecta axiomáticamente si y solo si:                                            ║
+║          $\dim H^1(K; \mathbb{R}) > 0 \implies \text{TopologicalObstructionError}$       ║
+║      Esto erradica las alucinaciones probabilísticas mediante un teorema inquebrantable. ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → MahalanobisMetric                                                              ║
+║           Construye y audita el tensor $G$, certificando su naturaleza simétrica         ║
+║           definida positiva (SPD) y controlando $\kappa(G)$ frente a la FPU.             ║
+║                                                                                          ║
+║  Fase 2 → SimplicialCohomology                                                           ║
+║           Evalúa el complejo de señales entre perfiles de riesgo y el LLM, calculando    ║
+║           $\dim H^1(K; \mathbb{R})$ para vetar contradicciones estructurales.            ║
+║                                                                                          ║
+║  Fase 3 → SemanticValidationEngine (Orquestador Supremo)                                 ║
+║           Ensambla los dominios mediante evaluadores (PurposeValidator,                  ║
+║           ConstraintMapper) y fuerza el colapso del estado en el retículo de veredictos. ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,39 +1,59 @@
 # -*- coding: utf-8 -*-
-"""
-Módulo: Governance Engine (El Auditor de Datos)
-================================================
-
-Este componente implementa el motor de Gobernanza Computacional que asegura que
-los "Productos de Datos" (presupuestos, APUs) cumplan con las leyes del sistema
-antes de ser aceptados. Transforma la validación pasiva en una auditoría activa
-basada en ontologías y reglas de negocio.
-
-Arquitectura de Validación:
----------------------------
-
-1. Política como Código (Policy as Code):
-   Evalúa reglas declarativas para determinar cumplimiento de estándares.
-   Genera un `ComplianceReport` con veredicto de severidad (PASS, WARNING, FAIL).
-
-2. Validación Semántica (Ontology Check):
-   Utiliza un Grafo de Conocimiento (Ontología) para verificar que los insumos
-   pertenezcan al dominio correcto del APU. Infiere contexto semántico para
-   detectar anomalías invisibles a la validación sintáctica.
-
-3. Sistema de Penalización (Scorecard):
-   Calcula un puntaje de gobernanza aplicando penalizaciones ponderadas.
-   Puntaje bajo activa protocolos de rechazo automático o auditoría manual.
-
-4. Gestión de Contratos de Datos:
-   Verifica que estructura y contenido respeten contratos definidos
-   (campos obligatorios, tipos de datos, restricciones de dominio).
-
-Invariantes del Sistema:
-------------------------
-- Score ∈ [0.0, 100.0]
-- Score < fail_threshold ⟹ status = FAIL
-- error_count > 0 ⟹ status = FAIL
-- ComplianceReport es inmutable después de construcción
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Governance Engine (Motor de Gobernanza Computacional y Topología de Políticas) ║
+║  Ruta   : app/core/governance.py                                                         ║
+║  Versión: 4.0.0-Policy-As-Code-Categorical-Strict                                        ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CATEGORÍAS (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo abandona la concepción de validación estática pasiva para erigirse          ║
+║  como el Orquestador Categórico de Gobernanza Computacional. Transmuta los               ║
+║  "Productos de Datos" a través de un Funtor de Cumplimiento (Compliance Functor)         ║
+║  basado en ontologías estables y Policy-as-Code. Impone una frontera rígida              ║
+║  garantizando que ninguna entidad defectuosa contamine la Variedad Agéntica.             ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Política como Código y Sistema de Penalización (Métrica de Scorecard):              ║
+║      Las violaciones al contrato actúan como fuerzas disipativas sobre la energía        ║
+║      de confianza del sistema. El Scorecard se proyecta como una métrica acotada:        ║
+║          $\mathcal{S}(x) = \max\left(0, 100 - \sum_{v \in \mathcal{V}(x)} \omega(v)\right)$║
+║      Donde $\omega(v)$ es el peso (penalty) asociado a la severidad de la violación $v$. ║
+║      Esto sella el invariante de dominio absoluto $\mathcal{S} \in [0.0, 100.0]$.        ║
+║                                                                                          ║
+║  §2. Colapso Topológico del Estado de Cumplimiento (Veto Booleano):                      ║
+║      La función de evaluación impone la condición de rechazo absoluto (`FAIL`)           ║
+║      invariablemente bajo el umbral crítico $\tau_{fail}$ o ante defectos fatales:       ║
+║          $\text{Status} = \text{FAIL} \iff (\mathcal{S}(x) < \tau_{fail}) \lor (|E| > 0)$║
+║      Donde $|E|$ representa la cardinalidad del conjunto de violaciones bloqueantes      ║
+║      (error_count). Ningún operador puede eludir este colapso determinista.              ║
+║                                                                                          ║
+║  §3. Validación Semántica y Ontología (Fibrado de Dominio):                              ║
+║      El conocimiento del dominio se modela como un grafo ontológico dirigido $\mathcal{O}$.║
+║      La verificación semántica exige que el vector de características del insumo           ║
+║      sea un subconjunto conexo y congruente de las reglas:                               ║
+║          $x \in \text{Dom}(\mathcal{O}) \implies \dim(\ker(\Phi_{\mathcal{O}}(x))) = 0$  ║
+║      Una desconexión semántica invoca la penalización categórica correspondiente.        ║
+║                                                                                          ║
+║  §4. Contratos de Datos y Clausura de Inmutabilidad:                                     ║
+║      Tras la consolidación, el `ComplianceReport` resultante se cristaliza como un       ║
+║      objeto inmutable. Todo morfismo posterior en la red debe operar sobre este          ║
+║      invariante sin alterar la firma forense de la evaluación original.                  ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES OPERACIONALES (Composición Funtorial):                            ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Data Contract Enforcement (Validación Estructural)                             ║
+║           Aplica restricciones formales y de tipos sobre el tensor de datos entrante.    ║
+║                                                                                          ║
+║  Fase 2 → Semantic Validator (Auditoría Ontológica)                                      ║
+║           Aplica el fibrado evaluando la coherencia frente a `DomainRule` y `Ontology`.  ║
+║                                                                                          ║
+║  Fase 3 → Governance Engine (Orquestador Supremo y Proyección de Penalizaciones)         ║
+║           Sintetiza la sumatoria de métricas $\omega(v)$ y colapsa el estado del objeto  ║
+║           hacia el DTO inmutable `ComplianceReport`.                                     ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

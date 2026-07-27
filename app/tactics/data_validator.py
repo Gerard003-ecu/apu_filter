@@ -1,36 +1,57 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Data Validator (Tribunal de Coherencia Termodinámica y Filtrado Topológico)
-Ubicación: app/tactics/data_validator.py
-Versión: 4.0 – Arquitectura en 3 Fases Anidadas con Rigor Matemático PhD
-=========================================================================================
-
-Fase 1 – Microscopía de Campos (conservación C = Q·P, IEEE 754, limpieza sintáctica).
-         El morfismo final `phase1_to_topological_domain` produce el dominio de
-         incidencia que inicia la Fase 2.
-Fase 2 – Topología Bipartita (complejo simplicial APU–Insumo, laplaciano, β₀, λ₂, SPOF).
-         El morfismo final `phase2_to_thermodynamic_state` produce el estado
-         estructural que inicia la Fase 3.
-Fase 3 – Termodinámica Informacional (entropía de Shannon/von Neumann, temperatura
-         de ingesta, clasificación de estabilidad del tensor de datos).
-
-Principios matemáticos aplicados (rigor formal):
-    • Conservación del valor:  C = Q·P  con tolerancia híbrida
-          ε_abs = max(ulp(C), |C|·ε_mach),  ε_rel = τ·|C|,  ε = ε_abs + ε_rel
-      (criterio de Kahan + IEEE 754-2008 §4.3).
-    • Sensibilidad: g = ‖∇(Q·P)‖₂ = √(P²+Q²);  κ = g·‖(Q,P)‖₂ / max(|C|,ε)
-      (número de condición del producto).
-    • Operador frontera ∂₁ : C₁ → C₀ del complejo de cadenas del grafo bipartito.
-      Nodos flotantes ≡ {u ∈ U | (∂₁ ω)(u) = 0 ∀ ω con soporte en aristas de u}
-      ⇔ grado(u) = 0 ⇔ proyección de ker(Bᵀ) sobre el bloque APU.
-    • Laplaciano bipartito L = [[D_U, −A], [−Aᵀ, D_V]];  espectro real no-negativo.
-      β₀ = mult(λ=0);  λ₂ = conectividad algebraica (Fiedler);  ρ(A) = radio espectral.
-    • Entropía normalizada: H_norm = H / log₂(K) ∈ [0,1],  H = −Σ pᵢ log₂ pᵢ.
-      Temperatura de ingesta: T = α·tasa_alertas + β·(1−Ψ),  Ψ = tanh(|V|/|U|).
-    • Composición de morfismos (teoría de categorías):
-          F₃ ∘ F₂ ∘ F₁ : DataStore → ValidatedThermodynamicState
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Data Validator (Tribunal de Coherencia Termodinámica y Filtrado Topológico)    ║
+║  Ruta   : app/tactics/data_validator.py                                                  ║
+║  Versión: 4.0.0-Topological-Thermodynamic-Strict-Doctoral                                ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo actúa como el Filtro de Variedad Diferenciable transversal del sistema.     ║
+║  Implementa un endofuntor en tres fases anidadas que proyecta el caos informacional      ║
+║  hacia un Complejo Simplicial Bipartito estructurado. Repudia la validación empírica     ║
+║  para imponer invariantes espectrales, termodinámicos y leyes de conservación de la      ║
+║  física estadística sobre el hiperespacio de datos.                                      ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Microscopía de Campos y Ley de Conservación (Simetría Gauge):                       ║
+║      La agregación económica opera bajo la inecuación de tolerancia híbrida para         ║
+║      mitigar la entropía del estándar IEEE 754. Se exige la conservación absoluta:       ║
+║          $C = Q \cdot P \implies \|C - (Q \cdot P)\|_\infty \le \varepsilon_{\mathrm{tol}}$ ║
+║      Cualquier desviación inyecta "antimateria financiera", detonando una corrección     ║
+║      inversa local o un veto estructural irreversible.                                   ║
+║                                                                                          ║
+║  §2. Topología Bipartita y Estabilidad Espectral (Grafo APU-Insumo):                     ║
+║      El tejido logístico se modela como un 1-esqueleto bipartito. El Tribunal evalúa     ║
+║      el espectro del Laplaciano Combinatorio $\mathcal{L} = D - A$ para extraer:         ║
+║          Componentes Conexas (Betti 0) : $\beta_0 = \dim \ker(\mathcal{L})$              ║
+║          Conectividad Algebraica       : $\lambda_2 > 0$ (Valor de Fiedler)              ║
+║      Una caída de $\lambda_2 \to 0$ o $\beta_0 > 1$ demuestra la existencia de Puntos de ║
+║      Fallo Único (SPOF) o Islas de Datos desconectadas del tensor de producción.         ║
+║                                                                                          ║
+║  §3. Termodinámica Informacional (Entropía y Temperatura):                               ║
+║      El estado del tensor de datos se evalúa midiendo su desorden estructural            ║
+║      mediante la entropía de Shannon y su análogo cuántico de von Neumann:               ║
+║          $S(\rho) = -\mathrm{Tr}(\rho \ln \rho)$                                         ║
+║      Si la temperatura de ingesta supera la capacidad de disipación del sistema, el      ║
+║      tensor exhibe inestabilidad asintótica, generando alertas de "Alta Sensibilidad".   ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Microscopía de Campos:                                                         ║
+║           Auditoría de conservación $C = Q \cdot P$ y limpieza sintáctica.               ║
+║           Morfismo terminal: $F_1: \mathrm{DataStore} \to \mathrm{IncidenceDomain}$      ║
+║                                                                                          ║
+║  Fase 2 → Topología Bipartita:                                                           ║
+║           Construcción del complejo simplicial, cálculo de $\beta_0$, $\lambda_2$ y SPOF.║
+║           Morfismo terminal: $F_2: \mathrm{IncidenceDomain} \to \mathrm{StructuralState}$║
+║                                                                                          ║
+║  Fase 3 → Termodinámica Informacional:                                                   ║
+║           Evaluación del tensor de entropía y clasificación térmica.                     ║
+║           Morfismo terminal: $F_3: \mathrm{StructuralState} \to \mathrm{ThermoState}$    ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

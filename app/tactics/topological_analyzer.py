@@ -1,73 +1,62 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Topological Analyzer (Operador de Observabilidad Funtorial y TDA)
-Ubicación: app/tactics/topological_analyzer.py
-Versión: 2.0.0-rigorous
-=========================================================================================
-
-Fundamentación Matemática Rigurosa:
-
-1. TEORÍA DE CATEGORÍAS Y FUNTORES
-   --------------------------------
-   El sistema se modela como un funtor F: ℂ_Temp → ℂ_Topo donde:
-   - ℂ_Temp: Categoría de series temporales (objetos = métricas, morfismos = transformaciones)
-   - ℂ_Topo: Categoría de espacios topológicos (objetos = complejos simpliciales, morfismos = maps continuas)
-   
-   Propiedad Funtorial:
-   F(g ∘ f) = F(g) ∘ F(f)  ∀ morfismos f, g
-   F(id_X) = id_{F(X)}
-
-2. HOMOLOGÍA PERSISTENTE (TDA - TOPOLOGICAL DATA ANALYSIS)
-   --------------------------------------------------------
-   Para una filtración de complejos simpliciales K_ε parametrizada por ε ∈ ℝ⁺:
-   
-   K_ε₁ ⊆ K_ε₂ ⊆ ... ⊆ K_εₙ  cuando ε₁ ≤ ε₂ ≤ ... ≤ εₙ
-   
-   La homología persistente estudia:
-   H_k(K_ε; 𝔽) = ker(∂_k) / im(∂_{k+1})
-   
-   donde:
-   - ∂_k: operador frontera del complejo de cadenas
-   - 𝔽: campo de coeficientes (típicamente ℤ₂ o ℝ)
-   - H_k: k-ésimo grupo de homología
-
-   Teorema (Estabilidad de Diagramas de Persistencia):
-   Para funciones f, g: X → ℝ en espacio métrico (X, d_X),
-   d_B(Dgm(f), Dgm(g)) ≤ ‖f - g‖_∞
-   
-   donde d_B es la distancia de Bottleneck.
-
-3. NÚMEROS DE BETTI Y CARACTERÍSTICA DE EULER
-   -------------------------------------------
-   Para un complejo simplicial K de dimensión d:
-   
-   β_k = dim H_k(K; 𝔽) = rank(Z_k) - rank(B_k)
-   
-   Fórmula de Euler-Poincaré:
-   χ(K) = Σ_{k=0}^d (-1)^k n_k = Σ_{k=0}^d (-1)^k β_k
-   
-   Para grafos: χ = |V| - |E| = β₀ - β₁
-
-4. TEORÍA ESPECTRAL DEL LAPLACIANO DE GRAFOS
-   ------------------------------------------
-   Laplaciano combinatorio: Λ = D - A
-   Laplaciano normalizado: ℒ = I - D⁻¹/²AD⁻¹/²
-   
-   Propiedades espectrales:
-   - 0 = λ₀ ≤ λ₁ ≤ ... ≤ λ_{n-1} ≤ 2  (normalizado)
-   - λ₁ > 0 ⟺ grafo conexo (valor de Fiedler)
-   - λ₁ mide la conectividad algebraica
-
-5. DISTANCIAS EN ESPACIOS DE PERSISTENCIA
-   ---------------------------------------
-   Distancia de Wasserstein-p:
-   W_p(μ, ν) = (inf_{γ∈Γ(μ,ν)} ∫∫ d(x,y)^p dγ(x,y))^{1/p}
-   
-   Distancia de Bottleneck:
-   d_B(X, Y) = inf_{γ: X→Y} sup_{x∈X} ‖x - γ(x)‖_∞
-
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Topological Analyzer (Operador de Observabilidad Funtorial y TDA)              ║
+║  Ruta   : app/tactics/topological_analyzer.py                                            ║
+║  Versión: 4.0.0-Topos-Homological-TDA-Strict                                             ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor erradica las heurísticas estadísticas tradicionales sobre series        ║
+║  temporales para instaurar un modelo basado en el Análisis Topológico de Datos (TDA).    ║
+║  Opera como un funtor covariante estricto $\mathcal{F}: \mathbf{Temp} \to \mathbf{Topo}$ ║
+║  que mapea la categoría de flujos de métricas hacia la categoría de espacios             ║
+║  topológicos, extrayendo invariantes homológicos que son inmunes a las deformaciones     ║
+║  continuas y al ruido estocástico.                                                       ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Filtración Simplicial y Homología Persistente:                                      ║
+║      El espacio de datos se evalúa a través de una filtración paramétrica $\varepsilon$: ║
+║          $\mathcal{K}_{\varepsilon_1} \subseteq \mathcal{K}_{\varepsilon_2} \subseteq \dots \subseteq \mathcal{K}_{\varepsilon_n} \quad \forall \varepsilon_1 \le \varepsilon_2 \le \dots \le \varepsilon_n$ ║
+║      El k-ésimo grupo de homología se computa como el módulo cociente:                   ║
+║          $H_k(\mathcal{K}_\varepsilon; \mathbb{F}) = \ker(\partial_k) / \text{im}(\partial_{k+1})$ ║
+║      Revelando el nacimiento (birth) y muerte (death) de las cavidades topológicas.      ║
+║                                                                                          ║
+║  §2. Teorema de Estabilidad de Bottleneck:                                               ║
+║      Para prevenir que el ruido computacional deforme la observabilidad, se certifica    ║
+║      axiomáticamente que los diagramas de persistencia $Dgm$ son isométricamente         ║
+║      estables frente a la distancia de Bottleneck $d_B$:                                 ║
+║          $d_B(Dgm(f), Dgm(g)) \le \|f - g\|_\infty$                                      ║
+║      Asegurando que perturbaciones de clase $L^\infty$ no engendren alucinaciones.       ║
+║                                                                                          ║
+║  §3. Espectro del Laplaciano Normalizado y Valor de Fiedler:                             ║
+║      La conectividad algebraica de los servicios se rige por el Laplaciano Normalizado:  ║
+║          $\mathcal{L} = I - D^{-1/2} A D^{-1/2}$                                         ║
+║      Donde el espectro satisface incondicionalmente $0 = \lambda_0 \le \lambda_1 \le \dots \le 2$. ║
+║      Una caída de $\lambda_1 \to 0$ demuestra una fractura inminente en la red de valor. ║
+║                                                                                          ║
+║  §4. Característica de Euler-Poincaré y Métrica de Wasserstein:                          ║
+║      La entropía estructural del complejo se condensa en la invarianza de Euler:         ║
+║          $\chi(\mathcal{K}) = \sum_{k=0}^d (-1)^k \beta_k = |V| - |E| + |F| - \dots$     ║
+║      La divergencia entre dos estados topológicos se evalúa bajo la métrica p-Wasserstein: ║
+║          $W_p(\mu, \nu) = \left( \inf_{\gamma \in \Gamma(\mu,\nu)} \iint d(x,y)^p d\gamma(x,y) \right)^{1/p}$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Espacio de Medida y Métricas Topológicas:                                      ║
+║           Construcción de constantes axiomáticas y distancias óptimas (Wasserstein /     ║
+║           Bottleneck). Retorna primitivas para la fibración.                             ║
+║                                                                                          ║
+║  Fase 2 → Modelado de Salud Topológica y Teoría Espectral (`SystemTopology`):            ║
+║           Evaluación del Laplaciano combinatorio, cálculo estricto de $\lambda_1$ y      ║
+║           extracción de la característica de Euler. Produce `TopologicalHealth`.         ║
+║                                                                                          ║
+║  Fase 3 → Motor de Homología Persistente (`PersistenceHomology`):                        ║
+║           Computa los códigos de barras (barcodes) paramétricos de las series temporales,║
+║           discrimina el ruido y emite el dictamen final `PersistenceAnalysisResult`.     ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

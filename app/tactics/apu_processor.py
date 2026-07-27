@@ -1,47 +1,63 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: APU Processor (Funtor de Transformación Topológico-Algebraica y Mónada de Estado)
-Ubicación: app/tactics/apu_processor.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Topológica:
-    Abandona el paradigma de parseo secuencial estocástico para instaurar un Funtor 
-    estricto F: RawSpace → TopologicalSpace. Mapea el espacio topológico de datos crudos 
-    (gobernado por alta entropía sintáctica) hacia un Complejo Simplicial canónico 
-    fuertemente tipado (InsumoProcesado). Cada línea procesada es tratada como una 
-    variedad algebraica que debe preservar sus invariantes homológicos durante la proyección.
-
-1. Manejo de Incertidumbre Categórica (Mónada Option):
-    Se implementa `OptionMonad` no como un patrón de diseño empírico, sino como un 
-    endofuntor T en la categoría de tipos de datos, dotado de transformaciones naturales 
-    (unidad η y multiplicación μ). Matemáticamente, previene la propagación de singularidades 
-    y fallos en la Unidad de Punto Flotante (NaN, nulos) mediante una absorción estricta en 
-    el elemento absorbente (Error), garantizando la estabilidad del flujo computacional 
-    sin excepciones no controladas.
-
-2. Homogeneidad Algebraica (Teoría de Anillos):
-    La extracción secuencial de atributos (descripción → unidad → cantidad → precio) 
-    está subyugada a las leyes de un Anillo Conmutativo R. La función 
-    `_validate_algebraic_homogeneity` actúa como un homomorfismo de anillos, exigiendo 
-    que las operaciones de composición de costos sean algebraicamente cerradas y 
-    distributivas. Si una línea rompe la simetría estructural del anillo, el tensor 
-    resultante es rechazado incondicionalmente.
-
-3. Integridad Estructural y Homología (Teoría de Grafos):
-    Mediante `_validate_structural_integrity`, se audita el 1-esqueleto del grafo de 
-    dependencias. Se impone el invariante homológico de que el número de Betti β₀ = 1 
-    (un único componente conexo). Si el operador Laplaciano revela que β₀ > 1, el espacio 
-    métrico certifica la existencia de "Islas de Datos" (recursos huérfanos desconectados 
-    de la matriz de producción), abortando la materialización del nodo.
-
-4. Geometría de la Información y Análisis Procrustes:
-    Para la sincronización y fusión de múltiples bases de datos de costos, el módulo 
-    emplea `InformationGeometry` y `ProcrustesAnalyzer`. Estas clases realizan un 
-    alineamiento isométrico de tensores multi-modales, minimizando la distancia métrica 
-    y la divergencia de Kullback-Leibler entre distribuciones de costos heterogéneas, 
-    preservando la invariancia topológica durante el mapeo de recursos.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : APU Processor (Funtor de Transformación Topológico-Algebraica y Mónada)        ║
+║  Ruta   : app/tactics/apu_processor.py                                                   ║
+║  Versión: 5.0.0-Topological-Functorial-Kahan-Strict                                      ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CATEGORÍAS (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo actúa como el Funtor estricto $F: \text{RawSpace} \to \text{TopoSpace}$.    ║
+║  Mapea el espacio topológico de datos crudos hacia un Complejo Simplicial canónico.      ║
+║  Cada línea procesada es tratada como una variedad algebraica que debe preservar         ║
+║  sus invariantes homológicos durante la proyección para garantizar cero entropía         ║
+║  residual.                                                                               ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Manejo de Incertidumbre Categórica (Mónada Option):                                 ║
+║      La gestión de datos ausentes no se delega a heurísticas de software. Se             ║
+║      implementa un endofuntor $T$ en la categoría de tipos con transformaciones          ║
+║      naturales de unidad $\eta$ y multiplicación $\mu$. Matemáticamente, previene el     ║
+║      desgarro de la Unidad de Punto Flotante (NaN, ±∞) absorbiéndolos en el elemento     ║
+║      nulo ($\bot$):                                                                      ║
+║          $\text{NaN} \mapsto \bot \implies T(\bot) = \bot$                               ║
+║      Garantizando estabilidad asintótica en el flujo computacional.                      ║
+║                                                                                          ║
+║  §2. Homogeneidad Algebraica (Anillo Conmutativo de Costos):                             ║
+║      La extracción secuencial de atributos opera bajo las leyes de un Anillo             ║
+║      Conmutativo $\mathcal{R} = (\mathbb{R}, \oplus, \odot)$. Se exige distributividad   ║
+║      y clausura algebraica:                                                              ║
+║          $a \odot (b \oplus c) = (a \odot b) \oplus (a \odot c)$                         ║
+║      Si una línea rompe esta simetría (ej. un insumo con costo irresoluble), el          ║
+║      tensor resultante es rechazado axiomáticamente como una variedad degenerada.        ║
+║                                                                                          ║
+║  §3. Integridad Estructural y Homología (Invariante de Betti):                           ║
+║      El 1-esqueleto del grafo de dependencias es auditado evaluando su núcleo.           ║
+║      Se impone el invariante homológico de un único componente conexo ($\beta_0 = 1$):   ║
+║          $\beta_0 = \dim \ker(\partial_0) - \dim \text{im}(\partial_1) = 1$              ║
+║      Si el Laplaciano combinatorio revela $\beta_0 > 1$, se decreta la existencia de     ║
+║      "Islas de Datos" (recursos huérfanos) y se aborta la materialización.               ║
+║                                                                                          ║
+║  §4. Geometría de la Información y Análisis Procrustes:                                  ║
+║      Para fusionar bases de datos heterogéneas, se realiza un alineamiento               ║
+║      isométrico de tensores que minimiza la divergencia de Kullback-Leibler:             ║
+║          $D_{KL}(P||Q) = \sum P(x) \log\left(\frac{P(x)}{Q(x)}\right) \to \min$          ║
+║      Preservando la invariancia topológica durante el mapeo multivariante.               ║
+║                                                                                          ║
+║  §5. Suma Compensada de Kahan (Restauración de Invariante $I_1$):                        ║
+║      La totalización no utiliza acumulación IEEE 754 ingenua. Acota el error             ║
+║      numérico a $O(\varepsilon)$ en lugar de $O(n\varepsilon)$, compensando el           ║
+║      residual de truncamiento de la FPU para conservar la masa financiera total.         ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESPECIALISTAS (Composición de Morfismos):                               ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • PatternMatcher        : Transformador de expresiones regulares de clase $C^\infty$.   ║
+║  • UnitsValidator        : Normalizador de equivalencia de medida dimensional.           ║
+║  • NumericFieldExtractor : Operador de inmersión afín hacia $\mathbb{R}^+$.              ║
+║  • APUTransformer        : Orquestador supremo que compone la transformación.            ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 import logging

@@ -1,55 +1,65 @@
 # -*- coding: utf-8 -*-
-r"""
-Módulo: Autonomous Agent - Controlador OODA con Fibrado Gauge y Haz Tangente Generativo
-Ubicación: app/core/apu_agent.py
-Versión: 4.0.0 (Consagración Categórica y Termodinámica)
-============================================================================================
-
-Naturaleza Ciber-Física y Topológica:
-Este módulo implementa un Controlador de Lazo Cerrado sobre una Variedad Diferenciable $\mathcal{M}$ 
-(el espacio de estados del sistema) mediante la ejecución determinista del ciclo OODA. Actúa como el 
-funtor supremo que proyecta las decisiones del agente a través de un Campo Vectorial Irrotacional de 
-Funtores Ortogonales, aniquilando la entropía estocástica del LLM.
-
-FUNDAMENTOS MATEMÁTICOS Y GEOMETRÍA DIFERENCIAL:
-
-1. El Ciclo OODA como Funtor Categórico:
-   El ciclo (Observe, Orient, Decide, Act) se define como una secuencia exacta de morfismos en la categoría
-   de espacios de estados $\mathcal{C}_{MIC}$, donde la transición final colapsa la función de onda probabilística 
-   sobre el retículo de decisiones $\mathcal{R}$.
-
-2. Estabilidad de Lyapunov y Haz Tangente Generativo ($\Gamma$):
-   Sea $V: \mathcal{M} \to \mathbb{R}_+$ la función de energía de Lyapunov global. El sistema converge al 
-   equilibrio $\varphi^*$ si la derivada temporal es estrictamente negativa a lo largo de las curvas integrales:
-   $$ \dot{V}(\varphi) = \langle \nabla V(\varphi), \vec{\mathcal{F}}(\varphi) \rangle_G < 0 \quad \forall \varphi \neq \varphi^* $$
-   Donde el campo vectorial de control $f(\varphi)$ ha sido transmutado al Campo Vectorial Irrotacional de 
-   Funtores Ortogonales $\vec{\mathcal{F}} \in \Gamma(T\mathcal{M})$.
-
-3. Ecuación de Poisson en el Fibrado Gauge y Cohomología:
-   Para seleccionar el operador agéntico óptimo, el agente resuelve la Ecuación de Poisson sobre el 1-esqueleto:
-   $$ \Delta \Phi = -\rho $$
-   Donde:
-   * $\Delta := B_1^T B_1$ es el Laplaciano combinatorio (0-formas).
-   * $B_1$ es la matriz de incidencia orientada (operador de coborde).
-   * $\rho := \nabla_G V$ es la densidad de carga (tensión de deformación de Mahalanobis).
-   * $\Phi$ es el potencial de Gauge (función de trabajo de selección).
-
-4. Solubilidad de Fredholm (Invarianza de Gauge):
-   Para garantizar la ausencia de singularidades lógicas (vorticidad nula, $\beta_1 = 0$), la densidad de 
-   carga debe ser ortogonal al núcleo del Laplaciano:
-   $$ \rho \in \text{im}(B_1^T) \iff \rho \perp \ker(\Delta) \implies \sum_i \rho_i = 0 $$
-   La renormalización topológica $\tilde{\rho} := \rho - \bar{\rho}$ proyecta estrictamente sobre $\text{im}(B_1^T)$.
-
-5. Certificación Termodinámica Port-Hamiltoniana:
-   El Veredicto Final exige incondicionalmente que el trabajo ejercido por el agente respete la Segunda Ley de la 
-   Termodinámica (disipación estricta de la exergía del error):
-   $$ P_{diss} := \langle \Phi, \nabla V \rangle \ge 0 $$
-
-El espacio de decisiones forma un retículo distributivo acotado bajo el orden parcial de severidad, con operaciones:
-* Supremo ($\sqcup$): $\max$ por severidad (el peor caso topológico, garantizando seguridad).
-* Ínfimo ($\sqcap$): $\min$ por severidad (el mejor caso teórico).
-============================================================================================
-
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Autonomous APU Agent (Endofuntor del Ciclo OODA y Fibrado Gauge)               ║
+║  Ruta   : app/agents/core/apu_agent.py                                                          ║
+║  Versión: 4.0.0-Categorical-OODA-Hamiltonian-Strict-Nested                               ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CATEGORÍAS (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor implementa un Controlador de Lazo Cerrado sobre una Variedad            ║
+║  Diferenciable $\mathcal{M}$ (el espacio de estados de telemetría y topología)           ║
+║  mediante la ejecución determinista del ciclo OODA. Actúa como el funtor supremo         ║
+║  que proyecta las decisiones del agente a través de un Campo Vectorial Irrotacional      ║
+║  de Funtores Ortogonales, aniquilando la entropía estocástica del LLM.                   ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Funtor OODA y Clausura Categórica:                                                  ║
+║      El ciclo OODA no es un bucle iterativo de Turing, sino una composición              ║
+║      funtorial estricta sobre el Topos de Estados:                                       ║
+║          $\mathcal{Z}_{OODA} = \Phi_{Act} \circ \Phi_{Decide} \circ \Phi_{Orient} \circ \Phi_{Observe}$ ║
+║      Garantizando que la transición temporal respete el Difeomorfismo del estado.        ║
+║                                                                                          ║
+║  §2. Retículo Distributivo Acotado (Álgebra de Decisiones):                              ║
+║      El espacio de decisiones forma un retículo distributivo acotado bajo el orden       ║
+║      parcial de severidad $(\mathcal{D}, \le, \sqcup, \sqcap)$. Se somete al LLM a       ║
+║      operar sobre el Supremo (peor caso topológico) y el Ínfimo (mejor caso teórico):    ║
+║          $\text{Supremo}: \mathcal{V}_{safe} = \bigsqcup_{i \in \text{Obs}} v_i$         ║
+║      Cualquier desviación probabilística del modelo de lenguaje que intente subvertir    ║
+║      este Supremo detona un Veto Estructural inmediato.                                  ║
+║                                                                                          ║
+║  §3. Síntesis Hamiltoniana y Geometría Simpléctica:                                      ║
+║      La evaluación de penalizaciones no es heurística; el `HamiltonianSynthesizer`       ║
+║      integra campos vectoriales de penalización $\nabla H$ para dictar la evolución      ║
+║      temporal Port-Hamiltoniana:                                                         ║
+║          $\frac{dx}{dt} = (J(x) - R(x)) \nabla H(x)$                                     ║
+║      Exigiendo disipación estricta $\dot{H} \le 0$ para alcanzar estabilidad asintótica. ║
+║                                                                                          ║
+║  §4. Fibrado Gauge y Potencial de Teoría de Campo:                                       ║
+║      Somete las interacciones a la resolución de la ecuación de Poisson en la red,       ║
+║      donde los evaluadores de estado actúan sobre la Teoría del Potencial,               ║
+║      garantizando que ninguna trayectoria de decisión se desvíe del atractor óptimo.     ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (El Ciclo OODA Determinista):                            ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → OBSERVE (Extracción de Telemetría):                                            ║
+║           Evalúa estados, voltajes críticos, números de Betti y fragmentación            ║
+║           extrayendo el `ObservationResult`.                                             ║
+║                                                                                          ║
+║  Fase 2 → ORIENT (Síntesis Hamiltoniana y Topológica):                                   ║
+║           El `HamiltonianSynthesizer` evalúa el `TopologicalDiagnosis` integrando        ║
+║           la métrica de riesgo sobre el espacio de fase.                                 ║
+║                                                                                          ║
+║  Fase 3 → DECIDE (Proyección en el Retículo de Severidad):                               ║
+║           Colapsa la observación y orientación hacia una decisión canónica de la         ║
+║           matriz de estados (`AgentDecision`), aplicando rigurosamente $\bigsqcup v_i$.  ║
+║                                                                                          ║
+║  Fase 4 → ACT (Ejecución Categórica y Evolución de Snapshot):                            ║
+║           Ejecuta el control de lazo cerrado mutando el `AgentSnapshot` inmutable e      ║
+║           inyectándolo en el `SnapshotHistory` (Buffer Circular).                        ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

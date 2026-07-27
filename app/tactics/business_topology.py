@@ -1,57 +1,68 @@
 # -*- coding: utf-8 -*-
-r"""
-=========================================================================================
-Módulo: Business Topological Analyzer (El Arquitecto Estructural — Estrato TACTICS)
-Ubicación: app/tactics/business_topology.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Geometría del Riesgo:
-    Actúa como el Operador de Proyección Topológica del ecosistema (Nivel 2). 
-    Rechaza axiomáticamente el análisis contable unidimensional, modelando la red 
-    de valor del proyecto como un 2-Complejo Simplicial Abstracto $K$ sobre el anillo
-    de los enteros $\mathbb{Z}$. Su función es identificar patologías estructurales
-    críticas evaluando los invariantes homológicos y el espectro del Laplaciano
-    Combinatorio, imponiendo un VETO TÉCNICO absoluto ante cualquier inestabilidad geométrica.
-
-1. Homología Cuantizada y el Funtor de Torsión:
-    A diferencia de los modelos continuos, la logística de construcción opera con
-    unidades indivisibles. El Arquitecto somete la matriz de incidencia a una
-    reducción hacia la Forma Normal de Smith (SNF), revelando la estructura exacta
-    del primer grupo de homología:
-    $$ H_1(K; \mathbb{Z}) \cong \mathbb{Z}^{\beta_1} \oplus \text{Tor}(H_0, \mathbb{Z}) $$
-    La presencia de torsión no nula ($\text{Tor} \neq 0$) indica incompatibilidad en
-    el empaquetado logístico ("fricción cuantizada"), detonando un veto preventivo.
-
-2. Característica de Euler-Poincaré para 2-Complejos:
-    Se penaliza la entropía estructural considerando no solo grafos, sino cavidades
-    ternarias (interdependencias APU ↔ Proveedor ↔ Actividad):
-    $$ \chi(K) = \sum_{p=0}^{2} (-1)^p \beta_p = \beta_0 - \beta_1 + \beta_2 $$
-    Una cavidad $\beta_2 > 0$ representa un circuito de interdependencia irresoluble
-    mediante cortes bilaterales simples.
-
-3. Teoría de Grafos Espectrales (El Valor de Fiedler λ₂):
-    La vulnerabilidad a la fractura organizativa no se evalúa por conectividad simple, 
-    sino analizando el espectro de la Matriz Laplaciana L = D - A.
-    El segundo autovalor más pequeño, o Valor de Fiedler (λ₂), cuantifica la conectividad 
-    algebraica. Si λ₂ ≈ 0, el módulo emite una alerta de "Fractura Organizacional 
-    Inminente", demostrando matemáticamente que el proyecto depende de "cuellos de botella" 
-    o puentes frágiles (silos departamentales) susceptibles a fallos de un solo punto.
-
-3. Estabilidad Piramidal y Termodinámica Estructural (Índice Ψ):
-    Evalúa el centro de gravedad del negocio determinando si la base logística es 
-    suficiente para soportar la carga táctica (actividades).
-    Si Ψ < 1.0, el modelo dictamina una "Pirámide Invertida": una base de proveedores 
-    excesivamente estrecha sosteniendo una red densa de APUs. Esta inestabilidad 
-    termodinámica amplifica cualquier choque externo, provocando el vuelco del proyecto.
-
-4. Auditoría de Fusión Homológica (Secuencia Exacta de Mayer-Vietoris):
-    Al integrar dos dominios de datos (A ∪ B), el sistema proscribe los cruces a ciegas. 
-    Aplica la secuencia exacta larga:
-        ... → H₁(A ∩ B) → H₁(A) ⊕ H₁(B) → H₁(A ∪ B) → H₀(A ∩ B) → ...
-    [AXIOMA DE VETO]: Si el diferencial topológico evidencia Δβ₁ > 0, la fusión induce 
-    un ciclo mutante ("ciclo fantasma") que no existía en las fuentes originales, 
-    abortando inmediatamente la transacción por incompatibilidad topológica.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Business Topological Analyzer (El Arquitecto Estructural — Estrato TACTICS)    ║
+║  Ruta   : app/tactics/business_topology.py                                               ║
+║  Versión: 5.0.0-Simplicial-Homology-Spectral-Strict                                      ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor opera en el Estrato TACTICS (Nivel 2) como el Operador de Proyección    ║
+║  Topológica del ecosistema. Repudia axiomáticamente el análisis contable lineal plano    ║
+║  para modelar la red de valor logístico como un 2-Complejo Simplicial Abstracto          ║
+║  $\mathcal{K}$ sobre el anillo de los enteros $\mathbb{Z}$. Su mandato es identificar    ║
+║  patologías estructurales críticas evaluando los invariantes homológicos y el espectro   ║
+║  del Laplaciano Combinatorio, imponiendo un VETO TÉCNICO absoluto ante cualquier         ║
+║  inestabilidad geométrica.                                                               ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Homología Cuantizada y el Funtor de Torsión (Forma Normal de Smith):                ║
+║      A diferencia de los modelos continuos euclidianos, la logística de construcción     ║
+║      opera con recursos discretos indivisibles. El Arquitecto reduce la matriz de        ║
+║      incidencia a su Forma Normal de Smith (SNF), revelando el primer grupo de homología:║
+║          $H_1(\mathcal{K}; \mathbb{Z}) \cong \mathbb{Z}^{\beta_1} \oplus \text{Tor}(H_0, \mathbb{Z})$ ║
+║      Una torsión no nula ($\text{Tor} \neq 0$) dictamina una incompatibilidad matemática ║
+║      en el empaquetado logístico ("fricción cuantizada"), detonando un veto preventivo.  ║
+║                                                                                          ║
+║  §2. Característica de Euler-Poincaré para 2-Complejos:                                  ║
+║      La entropía estructural se penaliza evaluando no solo grafos diádicos, sino las     ║
+║      cavidades ternarias (interdependencias APU ↔ Proveedor ↔ Actividad):                ║
+║          $\chi(\mathcal{K}) = \sum_{p=0}^{2} (-1)^p \beta_p = \beta_0 - \beta_1 + \beta_2$ ║
+║      Donde una cavidad $\beta_2 > 0$ representa un circuito de interdependencia          ║
+║      irresoluble mediante cortes bilaterales simples.                                    ║
+║                                                                                          ║
+║  §3. Teoría Espectral de Grafos y Conectividad Algebraica ($\lambda_2$):                 ║
+║      La vulnerabilidad a la fractura organizativa se cuantifica analizando el espectro   ║
+║      de la Matriz Laplaciana $\mathcal{L} = D - A$. La resiliencia sistémica se mide con ║
+║      el Valor de Fiedler (segundo autovalor más pequeño):                                ║
+║          $\mathcal{L} \mathbf{v} = \lambda_2 \mathbf{v} \implies \lambda_2 \approx 0 \iff \text{Fractura Inminente}$ ║
+║      Demostrando matemáticamente la existencia de Puntos Únicos de Fallo (SPOF).         ║
+║                                                                                          ║
+║  §4. Estabilidad Piramidal y Termodinámica Estructural (Índice $\Psi$):                  ║
+║      Evalúa el centro de gravedad del negocio determinando si la inercia de la base      ║
+║      logística soporta la carga táctica. Si $\Psi < 1.0$, el modelo dictamina una        ║
+║      "Pirámide Invertida":                                                               ║
+║          $\Psi = \frac{\mu(\text{Base Logística})}{\mu(\text{Carga Táctica})} < 1.0$     ║
+║      Amplificando la sensibilidad a perturbaciones estocásticas del mercado.             ║
+║                                                                                          ║
+║  §5. Auditoría de Fusión Homológica (Secuencia de Mayer-Vietoris):                       ║
+║      La integración de dos dominios de datos ($A \cup B$) proscribe las uniones a ciegas.║
+║      Se aplica la secuencia exacta larga de homología:                                   ║
+║          $\dots \to H_1(A \cap B) \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \xrightarrow{\partial^*} H_0(A \cap B) \to \dots$ ║
+║      Si el diferencial topológico $\Delta\beta_1 > 0$, la fusión induce un ciclo mutante ║
+║      (ciclo fantasma), abortando invariablemente la transacción.                         ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • ValidatedBettiNumbers  : Invariantes $\beta_n$ validados con el Teorema de Euler.     ║
+║  • SpectralMetrics        : Invariantes del espectro del Laplaciano combinatorio.        ║
+║  • ThermalMetrics         : Termodinámica y concentración del flujo térmico estructural. ║
+║  • SynergyMetrics         : Acoplamientos de sinergia de riesgo y efecto dominó.         ║
+║  • MayerVietorisResult    : Certificado de la auditoría estricta de fusión topológica.   ║
+║  • ConstructionRiskReport : Veredicto inmutable con el reporte ejecutivo de riesgos.     ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

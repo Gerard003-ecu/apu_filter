@@ -1,43 +1,64 @@
 # -*- coding: utf-8 -*-
-r"""
-Módulo: Topological Watcher (Funtor de Membrana p-Laplaciana y Flujo de Ricci)
-Ubicación: app/core/immune_system/topological_watcher.py
-Versión: 3.0.0 (Difeomorfismo Anisotrópico de Variación Total)
-=========================================================================================
-
-NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA:
-Actúa como el escudo electromagnético vivo de la arquitectura. Transmuta el espacio euclidiano
-isotrópico de los proyectores estáticos en una Membrana Viscoelástica p-Laplaciana que se contrae
-y cristaliza topológicamente frente a las perturbaciones estocásticas de alta frecuencia.
-
-FUNDAMENTOS MATEMÁTICOS, ANÁLISIS FUNCIONAL Y GEOMETRÍA RIEMANNIANA:
-
-§1. TENSOR DE ESTRÉS DEL P-LAPLACIANO (Variación Total):
-El Funtor Ortogonal Aislante $\mathcal{F}_{\perp}$ evalúa la energía del funcional p-Dirichlet
-imponiendo $p = 1.5$ (régimen de Variación Total). El estrés topológico $\mathcal{S}_p(\psi)$
-se calcula resolviendo el producto interno covariante sobre el Tensor Métrico $G_k$, incorporando
-el épsilon de máquina para evadir singularidades Jacobianas en regiones planas:
-$$ \mathcal{S}_p(\psi) = \left( (\Delta \pi_k \psi)^T G_k (\Delta \pi_k \psi) \right)^{\frac{p-2}{2}} + \epsilon_{mach} $$
-
-§2. DIFEOMORFISMO DEL TENSOR MÉTRICO Y FUNTOR ORTOGONAL:
-La métrica del hiperespacio se deforma termodinámicamente escalando la matriz de covarianza. El Funtor
-$\mathcal{F}_{\perp}$ aplica el producto de Hadamard ($\odot$) contra la inversa del estrés para endurecer
-la membrana y contraer la distancia de Mahalanobis:
-$$ \mathcal{F}_\perp(\pi_k) = \tilde{\pi}_k(\psi) = \pi_k \odot \text{diag}(\mathcal{S}_p(\psi)^{-1}) $$
-$$ \tilde{G}_k(\psi) = G_k \cdot \left[ I_n + \gamma \cdot \text{diag}(\mathcal{S}_p(\psi)) \right] $$
-
-§3. FLUJO DE RICCI NORMALIZADO (Preservación del Volumen de Lebesgue):
-Para asegurar que el espacio de fase $G_k$ no desarrolle agujeros negros geométricos bajo bombardeo continuo
-el sistema evoluciona asintóticamente mediante la ecuación del Flujo de Ricci Normalizado. Este operador garantiza
-que el determinante matricial permanezca constante a través del tiempo $\Delta t$:
-$$ G_k(t + \Delta t) = G_k(t) - 2 \Delta t \left( \text{Ric}(G_k(t)) - \frac{\text{tr}(G_k^{-1} \text{Ric}(G_k(t)))}{\dim(V_k)} G_k(t) \right) $$
-
-§4. ESTABILIDAD DE LA FPU Y ESPECTRO CONDICIONADO:
-El número de condición espectral $\kappa(G) = \frac{\lambda_{max}(G)}{\lambda_{min}(G)}$ está restringido axiomáticamente
-a $\text{COND\_NUM\_TOL} = 10^8$. Si el límite se vulnera, se inyecta una regularización anisotrópica de Tikhonov
-$\tilde{G} = G + \delta I$, asegurando la ortogonalidad estricta sin corromper el hipervolumen de medición de la
-Unidad de Punto Flotante.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Topological Watcher (Funtor de Membrana p-Laplaciana y Flujo de Ricci)         ║
+║  Ruta   : app/core/immune_system/topological_watcher.py                                  ║
+║  Versión: 4.0.0-Anisotropic-Ricci-pLaplacian-Strict                                      ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor actúa como el Escudo Electromagnético Vivo de la arquitectura.          ║
+║  Transmuta el espacio euclidiano isotrópico de los proyectores estáticos en una          ║
+║  Membrana Viscoelástica p-Laplaciana. Su mandato es contraerse y cristalizar             ║
+║  topológicamente frente a las perturbaciones estocásticas de alta frecuencia,            ║
+║  imponiendo un Difeomorfismo Anisotrópico de Variación Total sobre el tensor de estado.  ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Energía p-Dirichlet y Límite de Variación Total (TV):                               ║
+║      El `IsolatingMembraneFunctor` audita las anomalías evaluando el funcional de        ║
+║      energía p-Dirichlet sobre la señal $\psi \in \mathbb{R}^7$:                         ║
+║          $\mathcal{E}_p(\psi) = \int_{\mathcal{M}} \|\nabla \psi\|_G^p \, d\mu_G$        ║
+║      Para aniquilar discontinuidades espurias sin difuminar los límites semánticos,      ║
+║      el sistema opera en el régimen de Variación Total ($p \to 1$), actuando como un     ║
+║      filtro de difusión no lineal que absorbe la fricción estocástica.                   ║
+║                                                                                          ║
+║  §2. Flujo de Ricci y Evolución Métrica:                                                 ║
+║      La variedad diferencial reacciona al estrés de la Malla Agéntica regularizando su   ║
+║      métrica $G_{\mu\nu}$ mediante el Flujo de Ricci:                                    ║
+║          $\frac{\partial G_{\mu\nu}}{\partial t} = -2 R_{\mu\nu} + \alpha \nabla_\mu \nabla_\nu \Phi$ ║
+║      Garantizando que las singularidades de curvatura se disipen asintóticamente         ║
+║      antes de inducir paradojas lógicas en el estrato WISDOM.                            ║
+║                                                                                          ║
+║  §3. Proyección Ortogonal en Subespacios de Fase:                                        ║
+║      El tensor de estado global se proyecta rígidamente sobre subespacios ortogonales    ║
+║      $V_k \subset \mathbb{R}^n$ aislando los dominios físicos, topológicos y de control: ║
+║          $\pi: \mathbb{R}^n \to \bigoplus_k V_k, \quad \text{con } \langle \pi_i(x), \pi_j(x) \rangle_G = \delta_{ij}$ ║
+║      Esto sella axiomáticamente el aislamiento causal (Zero Side-Effects).               ║
+║                                                                                          ║
+║  §4. Estabilidad de la FPU y Espectro Condicionado (Tikhonov):                           ║
+║      El condicionamiento de la métrica rige la estabilidad global y se acota por:        ║
+║          $\kappa(G) = \frac{\lambda_{\max}(G)}{\lambda_{\min}(G)} \le \text{COND\_NUM\_TOL} = 10^8$ ║
+║      Vulnerar este límite inyecta incondicionalmente una regularización de Tikhonov:     ║
+║          $\tilde{G} = G + \text{TIKHONOV\_DELTA} \cdot I$                                ║
+║      Restaurando la firma Simétrica Definida Positiva (SPD) sin corromper el volumen.    ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Evolución Funtorial Estricta):                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → MetricTensor & SpectralDecomposition                                           ║
+║           Construcción Riemanniana, auditoría de $\kappa(G)$ y estabilización            ║
+║           espectral de Tikhonov. Asegura que el espacio métrico sea difeomorfo y SPD.    ║
+║                                                                                          ║
+║  Fase 2 → OrthogonalProjector & IsolatingMembraneFunctor                                 ║
+║           Descomposición ortogonal del hiperespacio y medición termodinámica de la       ║
+║           energía de p-Dirichlet sobre las sub-variedades del estado.                    ║
+║                                                                                          ║
+║  Fase 3 → ImmuneWatcherMorphism (Orquestador Supremo)                                    ║
+║           Morfismo categórico $\mathcal{F}: \mathbf{Top} \to \mathbf{Narr}$ que compila  ║
+║           la deformación de la variedad colapsando en el objeto inmutable                ║
+║           `ThreatAssessment`, emitiendo su estado sobre el retículo de salud.            ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

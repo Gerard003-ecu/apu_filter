@@ -1,47 +1,60 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Data Flux Condenser (Motor de Dinámica de Campos y Control Port-Hamiltoniano)
-Ubicación: app/physics/flux_condenser.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Topológica:
-    Actúa como el Corazón Hemodinámico del ecosistema, abandonando los modelos de teoría 
-    de colas estocásticas en favor del determinismo de campo continuo. Modela el 
-    tráfico de información como un fluido incompresible y un campo electromagnético sobre 
-    un complejo simplicial, resolviendo la ingesta mediante ecuaciones diferenciales 
-    parciales (PDEs) en un espacio métrico riguroso.
-
-1. Isomorfismo Electro-Hidráulico y Cálculo Exterior Discreto (DEC):
-    Establece una correspondencia biyectiva exacta donde la Presión (P) es la 0-cocadena 
-    (Voltaje) y el Caudal (Q) es la 1-cadena (Corriente). El sistema define 
-    operadores diferenciales discretos mediante la matriz de incidencia (B₁) y matriz de 
-    ciclos (B₂).
-    Aplica la Descomposición de Hodge-Helmholtz (L = L_grad + L_curl) para separar el flujo 
-    en componentes irrotacionales y solenoidales, resolviendo la Ecuación de Poisson en 
-    Grafos (L · p = s) y garantizando la conservación de masa y energía (Teorema de Tellegen).
-
-2. Diferencias Finitas en el Dominio del Tiempo (FDTD) y Electrodinámica:
-    Integra la evolución temporal del flujo resolviendo las ecuaciones de Maxwell iterativamente.
-    Utiliza un esquema de integración "Leapfrog" sobre una retícula de Yee adaptada a grafos.
-    [AXIOMA DE ESTABILIDAD]: El paso de tiempo (Δt) se somete a un control adaptativo estricto 
-    para satisfacer la condición de Courant-Friedrichs-Lewy (CFL), evitando divergencias 
-    numéricas en la propagación de la información [11]. Las reflexiones espurias se aniquilan 
-    mediante Capas Perfectamente Adaptadas (PML) en los nodos frontera.
-
-3. Dinámica de Membrana Viscoelástica (P-Laplaciano):
-    Implementa difusión no lineal mediante el operador p-Laplaciano (p > 2) actuando como una 
-    membrana viscoelástica. Esta formulación modula dinámicamente la conductancia 
-    efectiva de la red para absorber discontinuidades espaciales (Golpes de Ariete computacionales), 
-    proporcionando aislamiento frente a picos transitorios sin desestabilizar el sistema global.
-
-4. Control Hamiltoniano con Puertos (IDA-PBC):
-    La disipación y el enrutamiento se gobiernan mediante la mecánica Hamiltoniana para sistemas 
-    abiertos. Se define el Hamiltoniano H(x) = (1/2)CV² + (1/2)LI². 
-    A través de Interconnection and Damping Assignment Passivity-Based Control (IDA-PBC), 
-    la inyección de datos se regula garantizando que la derivada de la función de Lyapunov sea 
-    definida negativa (ΔV < 0), forzando una estabilidad asintótica inquebrantable frente a la entropía.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Data Flux Condenser (Motor de Dinámica de Campos y Control Port-Hamiltoniano)  ║
+║  Ruta   : app/physics/flux_condenser.py                                                  ║
+║  Versión: 5.0.0-Lattice-QED-PortHamiltonian-Strict                                       ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y ELECTRODINÁMICA CUÁNTICA (Rigor Doctoral):                    ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo se consagra como el Corazón Hemodinámico del ecosistema APU Filter.         ║
+║  Repudia categóricamente los obsoletos modelos estocásticos de colas para transmutar el  ║
+║  tráfico de información en un fluido incompresible regido por un campo electromagnético  ║
+║  sobre un complejo simplicial. Estabiliza el tensor de ingesta resolviendo Ecuaciones    ║
+║  Diferenciales Parciales (PDEs) en un espacio métrico riguroso.                          ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Dinámica Port-Hamiltoniana y Disipación de Rayleigh:                                ║
+║      El sistema restringe la evolución de la red de datos exigiendo que el gradiente     ║
+║      del Hamiltoniano $H(q, p)$ obedezca la inecuación de disipación estricta            ║
+║      (Segunda Ley de la Termodinámica):                                                  ║
+║          $\dot{H} = \nabla H^\top (J - R) \nabla H \le 0 \implies P_{\mathrm{diss}} \ge 0$ ║
+║      Cualquier inyección de datos (throughput) que resulte en disipación negativa        ║
+║      revela una anomalía termodinámica y detona un Veto Físico Absoluto.                 ║
+║                                                                                          ║
+║  §2. Cálculo Exterior Discreto (DEC) y Solucionador de Maxwell:                          ║
+║      Las oscilaciones del flujo logístico se integran mediante un esquema FDTD           ║
+║      (Leap-Frog) provisto de Capas Perfectamente Adaptadas (PML). Las variables de la    ║
+║      red computacional se proyectan isomórficamente sobre un circuito RLC de segundo     ║
+║      orden emulado en hardware periférico (MOSFET IRLZ44N y condensadores de 1F):        ║
+║          $L \frac{d^2q}{dt^2} + R_{\mathrm{ESR}} \frac{dq}{dt} + \frac{1}{C}q = V_{\mathrm{in}}$ ║
+║                                                                                          ║
+║  §3. Control LTI, Anti-Windup y Exponente de Lyapunov:                                   ║
+║      La modulación del flujo se rige por un Controlador PI con mitigación de saturación  ║
+║      integral (Back-Calculation). La estabilidad asintótica se audita estimando en       ║
+║      tiempo real el exponente de Lyapunov máximo $\lambda$:                              ║
+║          $|e(k)| \approx |e(0)| \cdot \exp(\lambda k)$                                   ║
+║      Si $\lambda > 0$, las trayectorias divergen (Caos Determinista); el sistema         ║
+║      acciona un "Crowbar" Físico (freno de emergencia) que aborta incondicionalmente la  ║
+║      ingesta, protegiendo el entorno térmico del hipervisor.                             ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Estricta de Especialistas):                 ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → DiscreteVectorCalculus & MaxwellSolver:                                        ║
+║           Mapeo topológico y resolución de campos electromagnéticos acoplados en el      ║
+║           dominio discreto (1-esqueleto del grafo de dependencias).                      ║
+║                                                                                          ║
+║  Fase 2 → PIController & FluxMuscleController:                                           ║
+║           Lazo de control termodinámico que computa el ciclo de trabajo (PWM) del        ║
+║           músculo virtual, limitando la tasa de cambio (Slew Rate) para prevenir         ║
+║           golpes inerciales (flyback voltage destructivo).                               ║
+║                                                                                          ║
+║  Fase 3 → RefinedFluxPhysicsEngine (DataFluxCondenser):                                  ║
+║           Orquestador supremo que integra los tensores de los dominios magnético,        ║
+║           térmico y mecánico para consolidar el UnifiedPhysicalState.                    ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 import logging

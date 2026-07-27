@@ -1,46 +1,59 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Telemetry Context (Vector de Estado Ciber-Físico y Cadena de Custodia)
-Ubicación: app/core/telemetry.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Topológica:
-    Este módulo no implementa un simple registro de observabilidad; instancia la "Cadena 
-    de Custodia Termodinámica" del sistema. Actúa como un tensor de estado inmutable 
-    (el Pasaporte de Telemetría) que viaja adherido a cada solicitud, acumulando invariantes 
-    físicos, topológicos, espectrales y termodinámicos a medida que atraviesa la variedad 
-    diferenciable de la Malla Agéntica.
-
-1. Filtración Topológica Estricta (Clausura Transitiva DIKW):
-    El contexto rige la propagación de información sobre la secuencia exacta de subespacios:
-        V_{PHYSICS} ⊂ V_{TACTICS} ⊂ V_{STRATEGY} ⊂ V_{WISDOM}
-    El TelemetryContext asegura matemáticamente la propagación de contexto Zero-Trust. 
-    Ningún morfismo en un estrato superior (ej. Sabiduría/LLM) puede instanciarse si el 
-    tensor proyectado en la base física presenta una entropía inválida o inestabilidad 
-    térmica. Esto fundamenta el veto físico absoluto (Fast-Fail) en el milisegundo cero.
-
-2. Grafo de Spans Causales (Observabilidad Fractal):
-    La jerarquía de ejecución no es una lista plana de eventos, sino un bosque de árboles 
-    causales anidados (TelemetrySpan). Este modelo de grafo estructurado permite 
-    un análisis de la cohomología de ejecución, donde la latencia macro y los cuellos 
-    de botella micro se localizan evaluando la fricción temporal en las aristas 
-    direccionales de la operación.
-
-3. Termodinámica de la Información (Sistemas RLC y Port-Hamiltonianos):
-    El contexto acopla directamente los dictámenes del FluxPhysicsEngine. Extrae y 
-    transporta las variables conjugadas del flujo de datos continuo:
-        • Energía Cinética y Potencial (Inercia de carga computacional)
-        • Voltaje de Flyback (Picos de saturación e inestabilidad transitoria)
-        • Potencia Disipada (Medida de la irreversibilidad del proceso, P_diss ≥ 0)
-
-4. Disyuntores Topológicos y Estabilidad Asintótica:
-    Implementa mecanismos de autoprotección mediante límites estrictos (Circuit Breakers 
-    lógicos). Acota rígidamente el número de nodos en el árbol de trazas y el registro de 
-    anomalías para garantizar que la huella de memoria del proceso converja hacia un 
-    atractor estable, bloqueando cualquier divergencia de recursos (fugas de memoria) ante 
-    bombardeos estocásticos de telemetría.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Telemetry Context (Vector de Estado Ciber-Físico y Cadena de Custodia)         ║
+║  Ruta   : app/core/telemetry.py                                                          ║
+║  Versión: 4.0.0-Port-Hamiltonian-Topological-Filtration-Strict                           ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo no implementa un simple registro de observabilidad o bitácora pasiva;       ║
+║  instancia la "Cadena de Custodia Termodinámica" del sistema. Actúa como un tensor       ║
+║  de estado inmutable (el Pasaporte de Telemetría) que viaja adherido a cada solicitud,   ║
+║  acumulando invariantes físicos, topológicos, espectrales y termodinámicos a medida      ║
+║  que atraviesa la variedad diferenciable de la Malla Agéntica.                           ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Filtración Topológica Estricta (Clausura Transitiva DIKW):                          ║
+║      El contexto rige la propagación de información garantizando que los subespacios     ║
+║      de Hilbert formen una secuencia exacta de filtración:                               ║
+║          $V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$ ║
+║      El TelemetryContext asegura matemáticamente la propagación Zero-Trust. Un morfismo  ║
+║      del estrato superior (ej. Sabiduría/LLM) no puede instanciarse si el tensor         ║
+║      proyectado en la base física exhibe entropía anómala o inestabilidad térmica,       ║
+║      imponiendo un Veto Físico Absoluto en el milisegundo cero ($t=0$).                  ║
+║                                                                                          ║
+║  §2. Grafo de Spans Causales (Observabilidad Fractal y Complejos Simpliciales):          ║
+║      La jerarquía de ejecución se modela como un Complejo Simplicial 1-dimensional       ║
+║      (un bosque de árboles causales). Para garantizar un flujo causal sin paradojas      ║
+║      (ciclos infinitos o bloqueos muertos), se exige el invariante de Euler-Poincaré:    ║
+║          $\chi(K) = \beta_0 - \beta_1$                                                   ║
+║      La condición estricta $\beta_1 = 0$ certifica la aciclicidad direccional del flujo. ║
+║                                                                                          ║
+║  §3. Termodinámica de la Información y Sistemas Port-Hamiltonianos:                      ║
+║      El contexto acopla los dictámenes del motor físico, extrayendo variables conjugadas ║
+║      bajo la inecuación de disipación irreversible (Segunda Ley):                        ║
+║          $\dot{H} = \nabla H^\top \cdot \dot{x} \le 0 \implies P_{\mathrm{diss}} \ge 0$  ║
+║      Transporta invariantes críticos como la Energía Cinética ($T \ge 0$), el Voltaje    ║
+║      de Flyback (saturación transitoria) y la Potencia Disipada, mapeando el costo       ║
+║      computacional a un estrés termodinámico mensurable.                                 ║
+║                                                                                          ║
+║  §4. Disyuntores Topológicos y Estabilidad Asintótica:                                   ║
+║      Implementa autoprotección mediante límites estrictos (Circuit Breakers lógicos)     ║
+║      en la profundidad de los árboles causales. Acota la huella de memoria para que      ║
+║      el proceso iterativo converja hacia un atractor estable en el espacio de fase:      ║
+║          $\lim_{t \to \infty} \rho(t) = \rho_{\mathrm{eq}}$                              ║
+║      Bloqueando cualquier divergencia de recursos (fugas de memoria) ante bombardeos     ║
+║      estocásticos de telemetría por parte de la IA.                                      ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • StratumTopology : Define la topología y relaciones del Poset DIKW.                    ║
+║  • TelemetrySpan   : Nodo direccional en la jerarquía simplicial causal.                 ║
+║  • TelemetryContext: Pasaporte inmutable que transporta el tensor de estado global.      ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 import copy

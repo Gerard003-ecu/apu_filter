@@ -1,133 +1,55 @@
 # -*- coding: utf-8 -*-
-r"""
-=========================================================================================
-Módulo: Quantum Algebra (Núcleo Axiomático de Mecánica Cuántica para Malla Agéntica)
-Ubicación: app/core/quantum_algebra.py
-Versión: 2.0.0 (Fase 2: Consagración Cuántica - Refactorización Rigurosa)
-
-=========================================================================================
-NATURALEZA CIBER-FÍSICA Y FUNDAMENTOS MATEMÁTICOS
-=========================================================================================
-
-Este módulo implementa el formalismo completo de la mecánica cuántica de sistemas
-cerrados y abiertos para modelar el espacio de deliberación agéntica mediante
-operadores actuando sobre espacios de Hilbert complejos.
-
-§1. ESPACIO DE HILBERT $\\mathcal{H}_N$ Y ESTRUCTURA MÉTRICA
-────────────────────────────────────────────────────────────────────────────────────
-
-Definición 1.1 (Espacio de Hilbert):
-    $\\mathcal{H}_N \\cong \\mathbb{C}^N$ equipado con el producto interno hermítico:
-    $$ \\langle \\phi | \\psi \\rangle = \\sum_{i=1}^{N} \\overline{\\phi_i} \\psi_i $$
-    
-    donde $\\overline{z}$ denota el conjugado complejo.
-
-Definición 1.2 (Base Ortonormal Canónica):
-    La base $\\mathcal{B} = \\{ |e_i\\rangle \\}_{i=1}^N$ satisface:
-    $$ \\langle e_i | e_j \\rangle = \\delta_{ij} $$
-    
-    donde $\\delta_{ij}$ es el delta de Kronecker.
-
-Teorema 1.3 (Matriz de Gram):
-    Para una base ortonormal, la matriz de Gram $G \\in \\mathbb{C}^{N \\times N}$ 
-    definida como $G_{ij} = \\langle e_i | e_j \\rangle$ es la identidad:
-    $$ G = I_N $$
-    
-    Prueba: Se construye explícitamente verificando que $G = B^{\\dagger} B$ donde
-    $B$ es la matriz cuyas columnas son los vectores de base.
-
-Teorema 1.4 (Integridad del Espacio - Criterio de Rango):
-    El espacio $\\mathcal{H}_N$ es completo si y solo si:
-    $$ \\text{rank}(B) = N $$
-    
-    Verificación Numérica: Se utiliza SVD con tolerancia $\\epsilon_{\\text{mach}}$:
-    $$ \\text{rank}_{\\epsilon}(B) = |\\{ \\sigma_i : \\sigma_i > \\epsilon \\}| = N $$
-
-§2. OPERADOR DE DENSIDAD $\\rho$ (FORMALISMO DE VON NEUMANN)
-────────────────────────────────────────────────────────────────────────────────``
-
-Definición 2.1 (Operador de Densidad):
-    El estado cuántico de un sistema se describe mediante un operador lineal
-    $\\rho: \\mathcal{H}_N \\to \\mathcal{H}_N$ que satisface:
-    
-    (A1) Hermiticidad: $\\rho = \\rho^{\\dagger}$
-    (A2) Positividad Semidefinida: $\\rho \\geq 0$ (espectro no negativo)
-    (A3) Traza Unitaria: $\\text{Tr}(\\rho) = 1$
-
-Lema 2.2 (Consecuencias de Hermiticidad):
-    Si $\\rho = \\rho^{\\dagger}$, entonces:
-    (i)  El espectro es real: $\\lambda_i \\in \\mathbb{R}$
-    (ii) Existe base ortonormal de autovectores: $\\rho = \\sum_i \\lambda_i |i\\rangle\\langle i|$
-
-Teorema 2.3 (Estados Puros vs Mixtos):
-    Sea $\\rho$ un operador de densidad. Entonces:
-    
-    (i)  $\\rho$ es un estado puro $\\iff$ $\\rho^2 = \\rho$ (idempotencia)
-    (ii) $\\rho$ es un estado mixto $\\iff$ $\\text{Tr}(\\rho^2) < 1$
-    
-    Prueba: Para estado puro $|\\psi\\rangle$: $\\rho = |\\psi\\rangle\\langle\\psi|$ 
-    implica $\\rho^2 = \\rho$ por ortonormalidad.
-
-§3. ENTROPÍA DE VON NEUMANN Y TERMODINÁMICA CUÁNTICA
-────────────────────────────────────────────────────────────────────────────────``
-
-Definición 3.1 (Entropía de Von Neumann):
-    La entropía del estado cuántico $\\rho$ se define como:
-    $$ S(\\rho) = -\\text{Tr}(\\rho \\ln \\rho) = -\\sum_{i} \\lambda_i \\ln \\lambda_i $$
-    
-    donde $\\{\\lambda_i\\}$ son los autovalores de $\\rho$ y por convención $0 \\ln 0 = 0$.
-
-Teorema 3.2 (Propiedades de la Entropía):
-    (i)   $S(\\rho) \\geq 0$ con igualdad $\\iff$ $\\rho$ es un estado puro
-    (ii)  $S(\\rho) \\leq \\ln N$ con igualdad $\\iff$ $\\rho = I_N / N$ (estado maximal mixto)
-    (iii) $S(\\rho)$ es cóncava en el conjunto de estados cuánticos
-
-§4. PROYECTORES ORTOGONALES Y MEDICIÓN CUÁNTICA
-────────────────────────────────────────────────────────────────────────────────``
-
-Definición 4.1 (Proyector Ortogonal):
-    Un operador $P: \\mathcal{H}_N \\to \\mathcal{H}_N$ es un proyector ortogonal si:
-    (P1) $P^2 = P$ (idempotencia)
-    (P2) $P^{\\dagger} = P$ (hermiticidad)
-
-Teorema 4.2 (Resolución de la Identidad - POVM):
-    Una familia $\\{P_k\\}_{k=1}^m$ de proyectores forma una medición proyectiva si:
-    $$ \\sum_{k=1}^m P_k = I_N \\quad \\text{y} \\quad P_i P_j = \\delta_{ij} P_i $$
-
-Corolario 4.3 (Conservación de Probabilidad):
-    Para cualquier estado $|\\psi\\rangle$ y medición proyectiva $\\{P_k\\}$:
-    $$ \\sum_{k=1}^m \\langle\\psi|P_k|\\psi\\rangle = 1 $$
-
-§5. APROXIMACIÓN WKB Y EFECTO TÚNEL
-────────────────────────────────────────────────────────────────────────────────``
-
-Teorema 5.1 (Coeficiente de Transmisión WKB):
-    Para una barrera de potencial rectangular con altura $V_0$ y anchura $a$,
-    la probabilidad de transmisión cuántica en el régimen $E < V_0$ es:
-    
-    $$ T \\approx \\exp\\left(-2\\int_{x_1}^{x_2} \\kappa(x) \\, dx\\right) $$
-    
-    donde $\\kappa(x) = \\sqrt{2m(V(x) - E)/\\hbar^2}$ es el número de onda imaginario.
-
-Aproximación 5.2 (Barrera Rectangular):
-    Para barrera rectangular de altura $\\Phi = V_0 - E$ y anchura $a$:
-    $$ T \\approx \\exp\\left(-2a\\sqrt{2m\\Phi/\\hbar^2}\\right) = \\exp(-2\\gamma) $$
-    
-    donde $\\gamma$ es el factor de Gamow.
-
-=========================================================================================
-INVARIANTES TOPOLÓGICOS Y ASERCIONES AXIOMÁTICAS
-=========================================================================================
-
-Los siguientes invariantes deben ser preservados bajo transformaciones del sistema:
-
-(I1) Traza del Operador de Densidad: $\\text{Tr}(\\rho) = 1$ (conservación de probabilidad)
-(I2) Positividad del Espectro: $\\lambda_{\\min}(\\rho) \\geq 0$ (coherencia física)
-(I3) Hermiticidad: $\\|\\rho - \\rho^{\\dagger}\\|_{\\infty} \\leq \\epsilon_{\\text{mach}}$
-(I4) Rango del Espacio: $\\text{rank}_{\\epsilon}(B) = N$ (completitud)
-(I5) Ortogonalidad: $\\|B^{\\dagger}B - I_N\\|_{\\infty} \\leq \\epsilon_{\\text{mach}}$
-
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Quantum Algebra (Núcleo Axiomático de Mecánica Cuántica para Malla Agéntica)   ║
+║  Ruta   : app/core/quantum_algebra.py                                                    ║
+║  Versión: 3.0.0-Hilbert-Topos-VonNeumann-Strict                                          ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral):                    ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo implementa el formalismo axiomático completo de la mecánica cuántica        ║
+║  de sistemas cerrados y abiertos. Modela el espacio de deliberación agéntica             ║
+║  mediante operadores lineales acotados actuando sobre espacios de Hilbert complejos      ║
+║  $\mathcal{H}_N$. Destituye las heurísticas estocásticas clásicas para gobernar la       ║
+║  incertidumbre mediante la evolución de la matriz de densidad bajo el grupo de           ║
+║  automorfismos modulares de von Neumann.                                                 ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESPECTRALES:                                    ║
+║                                                                                          ║
+║  §1. Espacio de Hilbert Complejo Separable ($\mathcal{H}_N$):                            ║
+║      La representación del estado del sistema habita en un espacio de Hilbert finito     ║
+║      $\mathcal{H}_N \cong \mathbb{C}^N$ dotado de un producto interno hermitiano         ║
+║      definido positivo:                                                                  ║
+║          $\langle \phi | \psi \rangle = \sum_{i=1}^N \phi_i^* \psi_i$                    ║
+║      Todo vector de estado puro $|\psi\rangle$ exige normalización $\langle \psi | \psi \rangle = 1$. ║
+║                                                                                          ║
+║  §2. Axiomas del Operador de Densidad (Teorema Espectral):                               ║
+║      El estado mixto de la Malla Agéntica se describe incondicionalmente por el          ║
+║      operador de densidad $\rho \in \mathcal{L}(\mathcal{H}_N)$ que obedece las tres     ║
+║      restricciones de von Neumann:                                                       ║
+║          a) Traza unitaria (Conservación de probabilidad): $\text{Tr}(\rho) = 1$         ║
+║          b) Hermiticidad (Observables reales): $\rho = \rho^\dagger$                     ║
+║          c) Positividad Semidefinida: $\rho \succeq 0 \implies \langle \psi | \rho | \psi \rangle \ge 0$ ║
+║      Violaciones a estos axiomas revelan un desgarro termodinámico y son vetadas.        ║
+║                                                                                          ║
+║  §3. Entropía de von Neumann y Regularización Espectral:                                 ║
+║      La medida del desorden informacional se extrae evaluando:                           ║
+║          $S(\rho) = -\text{Tr}(\rho \ln \rho) = -\sum_{\lambda_i > 0} \lambda_i \ln \lambda_i$ ║
+║      Para blindar a la FPU de singularidades logarítmicas cuando $\lambda_i \to 0$,      ║
+║      el cálculo está rigurosamente acotado por $\varepsilon_{\text{entropy}} = 10^{-14}$.║
+║                                                                                          ║
+║  §4. Registro Cuántico y Funtor de Inmersión (QuantumRegistry):                          ║
+║      Eleva la Matriz de Interacción Central (MIC) clásica al Topos Cuántico, operando    ║
+║      como una estructura C* donde los agentes interactúan mediante mapas Completamente   ║
+║      Positivos y Preservadores de Traza (CPTP).                                          ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • HilbertSpace           : Objeto base $\mathcal{H}_N$ con validación dimensional estricta. ║
+║  • QuantumDensityOperator : Operador de estado $\rho$ con certificación de positividad.  ║
+║  • QuantumRegistry        : Fibrado del ecosistema cuántico MICRegistry.                 ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

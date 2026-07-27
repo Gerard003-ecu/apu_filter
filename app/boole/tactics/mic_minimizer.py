@@ -1,123 +1,53 @@
 # -*- coding: utf-8 -*-
-r"""
-=========================================================================================
-Módulo: MIC Minimizer (Poda Topológica en el Anillo Booleano $\mathbb{Z}_2$)
-Ubicación: app/boole/strategy/mic_minimizer.py
-Versión: 5.0.0 (Rigor en Bases de Gröbner y ROBDD)
-
-NATURALEZA CIBER-FÍSICA Y ÁLGEBRA DE BOOLE:
-Este módulo opera como el Escultor Táctico ($\Gamma$-TACTICS) del ecosistema. Su función es garantizar
-que la base de capacidades de la MIC sea ortonormal y de rango completo, eliminando redundancias operativas
-(homología trivial) para evitar la inflación sintáctica y el colapso atencional.
-
-FUNDAMENTOS MATEMÁTICOS Y GEOMETRÍA ALGEBRAICA:
-
-§1. EL ANILLO BOOLEANO CONMUTATIVO:
-La red de herramientas y dependencias lógicas no se evalúa con condicionales planos, sino que se proyecta sobre
-el anillo cociente:
-$$ \mathcal{R} = \mathbb{Z}_2[x_1, \dots, x_n] / \langle x_i^2 - x_i \rangle $$
-donde cada variable $x_i$ representa una dimensión de capacidad en la base canónica $\mathbb{B}^n$. 
-
-§2. BASE DE GRÖBNER Y ROBDD (DIAGRAMAS DE DECISIÓN):
-Para extraer los implicantes primos esenciales y minimizar el circuito lógico, el módulo computa la Base de
-Gröbner reducida de los ideales en $\mathbb{Z}_2$ y construye un Diagrama de Decisión Binaria Ordenado y Reducido
-(ROBDD). 
-
-§3. NÚCLEO DE INSATISFACIBILIDAD (UNSAT CORE) Y DPLL:
-Se emplea el algoritmo DPLL (SAT Solver) para auditar la matriz [11]. Si el conjunto de herramientas viola la cláusula
-de no-interferencia estricta $\Phi_{MIC}$, el sistema extrae el Núcleo de Insatisfacibilidad y lanza un Veto Estructural:
-$$ \text{UNSAT} \implies \langle e_i, e_j \rangle \neq \delta_{ij} \text{ para algún } i \neq j $$
-Garantizando matemáticamente el isomorfismo de cero efectos secundarios (Zero Side-Effects) cruzados.
-
-    FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
-    
-    I. ÁLGEBRA BOOLEANA Y EL ANILLO ℤ₂[x₁,...,xₙ]/⟨x²ᵢ - xᵢ⟩:
-       
-       Teorema (Estructura del Anillo Booleano):
-       El anillo booleano es isomorfo al álgebra de potencias P(X) bajo:
-           • Suma: diferencia simétrica (XOR)
-           • Producto: intersección (AND)
-           • Elementos: subconjuntos de {x₁,...,xₙ}
-       
-       Propiedades Fundamentales:
-       1. Idempotencia: ∀x ∈ R: x² = x
-       2. Característica 2: ∀x ∈ R: 2x = 0
-       3. Auto-complementación: ∀x ∈ R: x + x = 0
-       
-       Aplicación:
-       Cada herramienta T define un ideal principal ⟨T⟩ en el anillo.
-       La redundancia de T' respecto a {T₁,...,Tₙ} se verifica calculando:
-           NF(T', G) = 0  ⟺  T' ∈ ⟨T₁,...,Tₙ⟩
-       donde G es la base de Gröbner reducida del ideal.
-    
-    II. DIAGRAMAS DE DECISIÓN BINARIA (ROBDD):
-       
-       Teorema (Canonicidad de Bryant):
-       Para orden de variables fijo, el ROBDD reducido es la representación
-       canónica única de una función booleana f: {0,1}ⁿ → {0,1}.
-       
-       Expansión de Shannon:
-       f(x₁,...,xₙ) = x̄₁·f(0,x₂,...,xₙ) + x₁·f(1,x₂,...,xₙ)
-       
-       Complejidad:
-       • Construcción: O(n·2ⁿ) en el peor caso (funciones patológicas)
-       • Operaciones (AND, OR, NOT): O(|ROBDD₁|·|ROBDD₂|)
-       • Isomorfismo: O(1) (comparación de nodos raíz)
-       
-       Aplicación:
-       Dos herramientas son funcionalmente equivalentes si y solo si
-       sus ROBDDs comparten el mismo nodo raíz.
-    
-    III. SATISFACIBILIDAD (SAT) Y DPLL:
-       
-       Teorema (Completitud de DPLL):
-       El algoritmo DPLL es completo y sound para SAT en CNF.
-       
-       Cláusula de No-Interferencia:
-       Φ_MIC = ⋀_{i≠j} ¬(Tᵢ ∧ Tⱼ)
-       
-       Conversión a CNF (forma de Tseitin):
-       ¬(Tᵢ ∧ Tⱼ) ≡ ¬Tᵢ ∨ ¬Tⱼ
-       
-       Por tanto:
-       Φ_MIC = ⋀_{i<j} (¬Tᵢ ∨ ¬Tⱼ)
-       
-       Complejidad:
-       DPLL es exponencial en el peor caso, pero eficiente en instancias
-       de MIC típicas (pequeñas, estructura local).
-    
-    IV. HOMOLOGÍA SIMPLICIAL:
-       
-       Para el complejo simplicial K asociado al grafo de capacidades:
-       
-       Grupos de Homología:
-       • H₀(K; ℤ₂): componentes conexas
-       • H₁(K; ℤ₂): ciclos fundamentales (redundancia circular)
-       
-       Números de Betti:
-       β₀ = dim H₀(K)  (número de componentes)
-       β₁ = dim H₁(K)  (número de "agujeros" de redundancia)
-       
-       Relación de Euler-Poincaré:
-       χ(K) = β₀ - β₁ + β₂ - ...
-    
-    V. ANÁLISIS ESPECTRAL Y CONDICIONAMIENTO:
-       
-       Descomposición en Valores Singulares:
-       M = UΣV^T
-       
-       Número de Condición:
-       κ(M) = σ_max / σ_min
-       
-       Teorema (Estabilidad Numérica):
-       Si κ(M) > 1/ε_machine, la matriz está mal condicionada
-       y las soluciones numéricas son inestables.
-       
-       Aplicación:
-       Un κ(M) grande indica dependencias lineales "suaves" que
-       pueden no ser detectables algebraicamente pero sí numéricamente.
-    
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : MIC Minimizer (Escultor Táctico y Poda Topológica en el Anillo Z₂)             ║
+║  Ruta   : app/boole/strategy/mic_minimizer.py                                            ║
+║  Versión: 5.0.0-Grobner-ROBDD-DPLL-Categorical-Strict                                    ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y ÁLGEBRA DE BOOLE (Rigor Doctoral):                            ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo opera como el Escultor Táctico ($\Gamma$-TACTICS) del ecosistema. Su        ║
+║  función es garantizar que la base de capacidades de la MIC sea ortonormal y de rango    ║
+║  completo, eliminando redundancias operativas (homología trivial) para evitar la         ║
+║  inflación sintáctica y el subsecuente colapso atencional de la Malla Agéntica.          ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Bases de Gröbner en el Anillo Booleano $\mathbb{Z}_2$:                              ║
+║      La redundancia del sistema se proyecta sobre el anillo conmutativo cociente         ║
+║      $\mathcal{R} = \mathbb{Z}_2[x_1, \dots, x_n] / \langle x_i^2 - x_i \rangle$.        ║
+║      La independencia lineal efectiva de las capacidades se evalúa extrayendo la         ║
+║      Base de Gröbner del ideal de interacciones. Un fallo o colapso en este subespacio   ║
+║      detona axiomáticamente un `GrobnerBasisComputationError`.                           ║
+║                                                                                          ║
+║  §2. Núcleo de Insatisfacibilidad (UNSAT Core) y DPLL:                                   ║
+║      La no-interferencia estricta se somete al Algoritmo DPLL (SAT Solver). Si el        ║
+║      conjunto de herramientas viola la cláusula de ortogonalidad $\Phi_{MIC}$, el        ║
+║      sistema extrae el UNSAT Core, demostrando el desgarro geométrico:                   ║
+║          $\text{UNSAT} \implies \langle e_i, e_j \rangle \neq \delta_{ij} \text{ para algún } i \neq j$ ║
+║      Esto invoca un inquebrantable `UnsatCoreError`, garantizando que se cumpla el       ║
+║      isomorfismo de Zero Side-Effects.                                                   ║
+║                                                                                          ║
+║  §3. Diagramas ROBDD y Compresión Homotópica:                                            ║
+║      La transformación del espacio lógico hiperdimensional hacia Diagramas de Decisión   ║
+║      Binaria Reducidos y Ordenados (ROBDD) actúa como una compresión homotópica.         ║
+║      Cualquier obstrucción geométrica que impida el isomorfismo lógico en la             ║
+║      construcción del grafo lanza un `ROBDDConstructionError`.                           ║
+║                                                                                          ║
+║  §4. Consistencia Homológica y Espectral:                                                ║
+║      Cualquier singularidad numérica o inconsistencia homológica detectada en el         ║
+║      análisis de redundancia invoca de inmediato un `HomologicalInconsistencyError`,     ║
+║      abortando la minimización antes de inyectar ruido en el estrato STRATEGY.           ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES OPERACIONALES (Composición Funtorial):                            ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → GrobnerBasisAuditor: Cálculo de ideales y bases en GF(2).                      ║
+║  Fase 2 → DPLLSatSolver: Auditoría de SAT y extracción del UNSAT Core.                   ║
+║  Fase 3 → ROBDDConstructor: Reducción isomórfica del hipercubo lógico.                   ║
+║  Fase 4 → MICRedundancyAnalyzer: Orquestador supremo que consolida el análisis.          ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

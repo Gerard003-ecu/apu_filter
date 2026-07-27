@@ -1,47 +1,69 @@
-"""
-=========================================================================================
-Módulo: Business Canvas Topology (Condición de Frontera Macroscópica — Estrato α)
-Ubicación: app/alfa/business_canvas.py
-=========================================================================================
-
-Naturaleza Ciber-Física:
-    Constituye el límite topológico supremo (Estrato α) del ecosistema APU_filter.
-    Modela el Business Model Canvas (BMC) de la organización matriz no como una
-    abstracción gráfica, sino como un 1-complejo simplicial finito K, auditando
-    matemáticamente su viabilidad estructural antes de permitir la deliberación
-    del Estrato Ω y el procesamiento táctico de presupuestos.
-
-1. Complejo de Cadenas y Operador Frontera:
-    Sea G = (V, E, w) el digrafo ponderado del ecosistema de negocio. 
-    Su proyección al 1-esqueleto no dirigido K induce la secuencia exacta corta 
-    de cadenas con coeficientes en ℝ:
-        0 ⟶ C₁(K; ℝ) xrightarrow{∂₁} C₀(K; ℝ) ⟶ 0
-    El operador frontera discreto ∂₁ se materializa algorítmicamente como la 
-    matriz de incidencia de dimensiones |V| × |E|.
-
-2. Invariantes Homológicos (Teorema de Rango-Nulidad):
-    La viabilidad intrínseca del modelo se extrae computando el rango numérico 
-    estricto del operador frontera ∂₁ mediante Descomposición en Valores Singulares 
-    (SVD) para mantener estabilidad frente al ruido flotante:
-        • β₀ = |V| - rank(∂₁) (Componentes Conexas: Fragmentación del valor)
-        • β₁ = |E| - rank(∂₁) (Dimensión del Espacio de Ciclos: ker(∂₁))
-    
-    [AXIOMA DE CANIBALIZACIÓN]: Si la homología revela β₁ > 0 (clases homológicas
-    no triviales en H₁), el BMC alberga bucles logísticos tóxicos irreconciliables.
-    El sistema impone un veto absoluto retornando REJECTED_TOXIC_CYCLES.
-
-3. Invariante Macroscópico de Euler-Poincaré:
-    La salud sistémica se verifica evaluando la característica de Euler del lienzo:
-        χ(K) = β₀ - β₁ = |V| - |E|
-    Un BMC degenerado con χ ≤ 0 colapsa automáticamente la Malla Agéntica.
-
-4. Espectro Combinatorio y Robustez de la Cadena de Valor:
-    El Laplaciano Combinatorio de grado 0 se define como L₀ = ∂₁∂₁ᵀ. 
-    Su espectro determina la resiliencia estructural de la matriz empresarial.
-    Si el valor de Fiedler (conectividad algebraica λ₂) decae por debajo de la
-    tolerancia admisible (λ₂ < MIN_FIEDLER_VALUE), la empresa sufre de "Fragilidad 
-    Espectral", indicando una alta probabilidad de fractura ante perturbaciones.
-=========================================================================================
+### -*- coding: utf-8 -*-
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Business Canvas Topology (Condición de Frontera Macroscópica — Estrato α)      ║
+║  Ruta   : app/alfa/business_canvas.py                                                    ║
+║  Versión: 4.0.0-Simplicial-Euler-Poincare-Spectral-Strict                                ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra el límite topológico supremo (Estrato α) del ecosistema.       ║
+║  Abandona la concepción estática y gráfica del Business Model Canvas (BMC) para          ║
+║  proyectarlo rigurosamente como un 1-complejo simplicial finito $\mathcal{K}$. Audita la ║
+║  viabilidad estructural del modelo de negocio antes de autorizar la deliberación         ║
+║  del Estrato Ω y la ingesta táctica de presupuestos, previniendo patologías sistémicas.  ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES HOMOLÓGICAS:                                    ║
+║                                                                                          ║
+║  §1. Complejo de Cadenas y Operador Frontera:                                            ║
+║      Sea $G = (V, E, w)$ el digrafo ponderado del ecosistema de negocio.                 ║
+║      Su proyección al 1-esqueleto induce la secuencia exacta corta de cadenas            ║
+║      con coeficientes en $\mathbb{R}$:                                                   ║
+║          $0 \to C_1(\mathcal{K}; \mathbb{R}) \xrightarrow{\partial_1} C_0(\mathcal{K}; \mathbb{R}) \to 0$ ║
+║      Donde el operador frontera discreto $\partial_1$ se materializa como la matriz      ║
+║      de incidencia de dimensiones $|V| \times |E|$.                                      ║
+║                                                                                          ║
+║  §2. Invariantes Homológicos y el Teorema de Rango-Nulidad:                              ║
+║      La viabilidad intrínseca se audita computando el rango estricto del operador        ║
+║      frontera $\partial_1$ vía Descomposición en Valores Singulares (SVD):               ║
+║          $\beta_0 = |V| - \text{rank}(\partial_1)$  (Fragmentación del valor)            ║
+║          $\beta_1 = |E| - \text{rank}(\partial_1)$  (Dimensión del espacio $\ker(\partial_1)$) ║
+║      Si $\beta_1 > 0$, el BMC alberga bucles logísticos tóxicos irreconciliables         ║
+║      (Axioma de Canibalización). Se impone un VETO ABSOLUTO (`REJECTED_TOXIC_CYCLES`).   ║
+║                                                                                          ║
+║  §3. Invariante Macroscópico de Euler-Poincaré:                                          ║
+║      La salud sistémica se certifica evaluando la característica de Euler del lienzo:    ║
+║          $\chi(\mathcal{K}) = \beta_0 - \beta_1 = |V| - |E|$                             ║
+║      Un BMC degenerado con $\chi(\mathcal{K}) \le 0$ colapsa axiomáticamente la Malla Agéntica. ║
+║                                                                                          ║
+║  §4. Espectro Combinatorio y Robustez de la Cadena de Valor:                             ║
+║      El Laplaciano Combinatorio de grado 0 se define como $L_0 = \partial_1 \partial_1^\top$. ║
+║      Su espectro gobierna la resiliencia estructural. Si la conectividad algebraica      ║
+║      (Valor de Fiedler $\lambda_2$) decae por debajo de la tolerancia admisible          ║
+║      ($\lambda_2 < \text{MIN\_FIEDLER\_VALUE}$), la empresa sufre de "Fragilidad         ║
+║      Espectral", delatando una alta probabilidad de fractura ante perturbaciones.        ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Chain Complex Projection                                                       ║
+║           Construye el 1-esqueleto $\mathcal{K}$ y ensambla el operador frontera $\partial_1$. ║
+║           [Retorna: ChainComplex1D → Objeto puente de evaluación estructural]            ║
+║                                                                                          ║
+║  Fase 2 → Homological & Euler-Poincare Auditor                                           ║
+║           Computa los invariantes $\beta_0$, $\beta_1$ y $\chi(\mathcal{K})$ evaluando   ║
+║           rango y nulidad, imponiendo el veto contra la canibalización y degeneración.   ║
+║           [Retorna: HomologyMetrics → Objeto puente de evaluación homológica]            ║
+║                                                                                          ║
+║  Fase 3 → Spectral & Cycle Space Certifier                                               ║
+║           Extrae el espectro de $L_0$, certifica $\lambda_2$ y audita el espacio de      ║
+║           ciclos $\ker(\partial_1)$.                                                     ║
+║           [Retorna: SpectralMetrics y CycleSpaceMetrics]                                 ║
+║                                                                                          ║
+║  Fase 4 → AlphaTopologyVector (Orquestador Supremo del Estrato α)                        ║
+║           Morfismo que consolida la topología, sintetizando todo en el objeto inmutable  ║
+║           `BmcTopologyMetrics`.                                                          ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

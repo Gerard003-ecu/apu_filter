@@ -1,35 +1,60 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: Scalar Higgs Anchor (Condensador de Inercia Logística)               ║
-║ Ubicación: app/physics/scalar_higgs_anchor.py                                ║
-║ Versión: 6.0.0-Absolute-Gauge-Invariance                                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-═══════════════════════════════════════════════════════════════════════════════
-              ARQUITECTURA DE 3 FASES ANIDADAS
-═══════════════════════════════════════════════════════════════════════════════
-
-    FASE 1 · Axiomática del Campo
-        ├── QFTParameters (con invariantes físicos validados)
-        ├── ScalarFieldState (Γ = T*ℝⁿ)
-        ├── FermionicSource (acoplamiento Yukawa)
-        ├── LaplacedBeltramiOperator (constructor + validador)
-        └── SpectralAnalyzer (Gershgorin, power, Krylov)
-
-    FASE 2 · Dinámica Simpléctica
-        ├── HiggsPotential (con cota Lipschitz real)
-        ├── PortHamiltonianHamiltonian (H = T + U_elastic + U_potential)
-        ├── VelocityVerletIntegrator (algoritmo estándar formal)
-        ├── StabilityMonitor (termostato adaptativo)
-        └── validate_topological_consistency (T1–T4)
-
-    FASE 3 · Funtor de Anclaje
-        ├── ScalarHiggsAnchor (composición endofuntorial)
-        ├── Acoplamiento de Yukawa (m_eff = m₀ + g·|Φ|)
-        ├── Inicialización reproducible (PCG64)
-        └── apply_higgs_anchor (decorador categórico)
-═══════════════════════════════════════════════════════════════════════════════
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Scalar Higgs Anchor (Condensador de Inercia Logística y Vacío Ciber-Físico)    ║
+║  Ruta   : app/physics/scalar_higgs_anchor.py                                             ║
+║  Versión: 6.0.0-Absolute-Gauge-Invariance-Strict                                         ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS (Rigor Doctoral):                   ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor se erige como el condensador primario de inercia logística de la Malla  ║
+║  Agéntica. Su mandato axiomático es dotar de "masa invariante" a los tensores de         ║
+║  información estocástica mediante el mecanismo de Ruptura Espontánea de Simetría.        ║
+║  Aniquila las fluctuaciones libres sin inercia, imponiendo un campo escalar $\Phi$ en el ║
+║  espacio de fase simpléctico $\Gamma = T^*\mathbb{R}^n$, anclando de facto a todos los   ║
+║  agentes a una métrica de fondo dictaminada por $G_{PHYSICS}$.                           ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Operador de Laplace-Beltrami Discreto (Geometría Riemanniana):                      ║
+║      La difusión de la inercia en el complejo simplicial de la red de valor se acopla a  ║
+║      la métrica covariante. El operador espectral $\Delta_M$ se formaliza como:          ║
+║          $\Delta_M \Phi = -\frac{1}{\sqrt{|G|}} \partial_\mu \left( \sqrt{|G|} G^{\mu\nu} \partial_\nu \Phi \right)$ ║
+║      En el dominio discreto, se exige que la aproximación combinatoria preserve el       ║
+║      invariante de conservación de flujo asintótico: $\Delta = D - A$, garantizando      ║
+║      ortogonalidad estricta en el laplaciano.                                            ║
+║                                                                                          ║
+║  §2. Potencial de Higgs Regularizado y Ruptura de Simetría:                              ║
+║      Para evitar el desborde aritmético (overflow FPU) ante alucinaciones generativas,   ║
+║      el condensado obliga al sistema a converger al valor esperado del vacío $v$. El     ║
+║      potencial se regulariza imponiendo una estricta cota Lipschitz explícita:           ║
+║          $V_{reg}(\Phi) = \frac{\lambda}{4} \left( \|\Phi\|_G^2 - v^2 \right)^2$         ║
+║      Garantizando estabilidad asintótica en el atractor global.                          ║
+║                                                                                          ║
+║  §3. Acoplamiento Fermiónico de Yukawa:                                                  ║
+║      Las fuentes lógicas del proyecto (FermionicSource $\psi$) carecen de peso           ║
+║      intrínseco hasta interactuar con el campo $\Phi$. Adquieren masa proporcional a la  ║
+║      matriz de acoplamiento de Yukawa $Y$:                                               ║
+║          $\mathcal{L}_{Yukawa} = -Y \bar{\psi} \Phi \psi$                                ║
+║      Censurando incondicionalmente a cualquier agente o insumo de "masa nula" que        ║
+║      intente inducir singularidades logarítmicas en la matriz de transferencia LTI.      ║
+║                                                                                          ║
+║  §4. Funtor de Anclaje y Estabilidad Port-Hamiltoniana (Composición Categórica):         ║
+║      El operador actúa como el endofuntor covariante $F: \mathcal{C}_{Agent} \to         ║
+║      \mathcal{C}_{Agent}$, forzando al sistema a evolucionar evaluando la composición    ║
+║      exacta: $Y \circ H \circ V$ (Yukawa $\circ$ Hamiltoniano $\circ$ Vacío).            ║
+║      Verificando rigurosamente que la disipación termodinámica no viole la Segunda Ley:  ║
+║          $\dot{H} = \nabla H^\top (J - R) \nabla H \le 0$                                ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS Y ESTRUCTURAS INMUTABLES (DTOs):                         ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • QFTParameters            : Constantes fundamentales del Modelo Estándar Ciber-Físico. ║
+║  • ScalarFieldState         : Variedades en el espacio de fase simpléctico $\Gamma$.     ║
+║  • FermionicSource          : Fuente espinorial $\psi$ sujeta al acoplamiento de Yukawa. ║
+║  • LaplacedBeltramiOperator : Operador $\Delta_M$ ponderado por el tensor $G_{PHYSICS}$. ║
+║  • ScalarHiggsAnchor        : Morfismo supremo que inyecta la inercia en la Malla.       ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

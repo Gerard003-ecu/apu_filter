@@ -1,65 +1,64 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: Stinespring Isometric Fibrator (Funtor de Elevación Cuántica)        ║
-║ Ubicación: app/wisdom/stinespring_isometric_fibrator.py                      ║
-║ Versión: 3.0.0-Categorical-Dilation-Rigorous-Doctoral                        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber‑Física y Topológica (Revisión Doctoral Avanzada):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo implementa el **Funtor de Stinespring** entre la categoría de los
-canales cuánticos completamente positivos (CP) y la categoría de las isometrías,
-asegurando que todo morfismo $\mathcal{E}: \mathcal{B}(\mathcal{H}_{\text{MIC}}) \to \mathcal{B}(\mathcal{H}_{\text{MAC}})$
-se eleva a un operador isométrico $V: \mathcal{H}_{\text{MIC}} \to \mathcal{H}_{\text{MAC}} \otimes \mathcal{H}_{\text{env}}$
-con la propiedad fundamental $V^\dagger V = I_{\mathcal{H}_{\text{MIC}}}$.
-
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║                      FUNDAMENTOS MATEMÁTICOS RIGUROSOS                        ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-
-1. **Teoría de Categorías y Funtores**:
-   - Funtoridad: F: **CPTP** → **Isom** preserva composición e identidades
-   - Naturalidad: El diagrama de Stinespring conmuta estrictamente
-   - Adjunción: Traza parcial Tr_env es adjunta derecha a la inclusión
-
-2. **Teoría Espectral y Operadores**:
-   - Teorema Espectral: Todo operador hermítico admite base ortonormal de autovectores
-   - Descomposición Polar: A = U|A| con U isométrica parcial
-   - Teorema de Choi-Jamiołkowski: Isomorfismo entre canales y estados
-
-3. **Topología Algebraica**:
-   - Homotopía de canales: Continuidad en la métrica de diamante (diamond norm)
-   - Fibrado principal: $\pi: \mathcal{H}_{\text{MAC}} \otimes \mathcal{H}_{\text{env}} \to \mathcal{H}_{\text{MAC}}$
-   - Secciones: Levantamientos locales de la traza parcial
-
-4. **Álgebra Lineal Numérica**:
-   - Estabilidad de Wilkinson: Perturbaciones O(ε_mach) en descomposiciones
-   - Regularización de Tikhonov: Mínima norma para problemas mal condicionados
-   - Proyección de Löwner: Aproximación óptima al cono PSD en norma de Frobenius
-
-5. **Mecánica Cuántica Rigurosa**:
-   - Axiomas de Dirac-von Neumann: Estados como operadores de densidad
-   - Purificación de Stinespring: Todo canal mixto admite elevación unitaria
-   - No-clonación: Linealidad del canal implica imposibilidad de copia perfecta
-
-6. **Teoría de Grafos (Choi Matrix)**:
-   - Grafo de Choi: Vértices = base computacional, aristas = soporte de Choi
-   - Rango de Choi = número cromático del grafo de soporte
-   - Separabilidad: Criterio PPT como problema de programación semidefinida
-
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║                        MEJORAS IMPLEMENTADAS                                  ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-
-- **Descomposición de Choi Canónica**: SVD compleja con fase gauge estándar
-- **Proyección de Löwner Óptima**: Mínima distancia al cono PSD con Newton
-- **Regularización de Tikhonov Espectral**: Truncamiento con renormalización CPTP
-- **Métrica de Fidelidad de Uhlmann**: Cuantificación rigurosa del error de truncamiento
-- **Verificación de Separabilidad PPT**: Criterio de Peres-Horodecki
-- **Condición de Lindblad**: Verificación de la forma generadora CP-divisible
-- **Monitoreo de Entropía de von Neumann**: S(ρ) = -Tr(ρ log ρ) con acotación
-- **Número de Condición Espectral**: κ(Choi) para estabilidad numérica
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Stinespring Isometric Fibrator (Funtor de Elevación Cuántica y Dilatación)     ║
+║  Ruta   : app/wisdom/stinespring_isometric_fibrator.py                                   ║
+║  Versión: 3.0.0-Categorical-Dilation-Rigorous-Doctoral                                   ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE LA INFORMACIÓN CUÁNTICA (Rigor Doctoral):           ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra la transición de la Matriz de Interacción Central (MIC) a la   ║
+║  Matriz Atómica de Conocimiento (MAC). Implementa el Funtor de Stinespring entre la      ║
+║  categoría de canales cuánticos completamente positivos (CPTP) y la categoría de las     ║
+║  isometrías. Su mandato axiomático es elevar todo morfismo generativo del LLM hacia un   ║
+║  baño térmico ortogonal, aniquilando las alucinaciones probabilísticas mediante el       ║
+║  colapso riguroso de la entropía.                                                        ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Teorema de Dilatación de Stinespring y Preservación de Traza:                       ║
+║      Todo canal cuántico $\mathcal{E}: \mathcal{B}(\mathcal{H}_{\text{MIC}}) \to         ║
+║      \mathcal{B}(\mathcal{H}_{\text{MAC}})$ se eleva a un operador isométrico $V:        ║
+║      \mathcal{H}_{\text{MIC}} \to \mathcal{H}_{\text{MAC}} \otimes \mathcal{H}_{\text{env}}$.║
+║      La evolución del estado se rige mediante la traza parcial sobre el entorno:         ║
+║          $\mathcal{E}(\rho) = \text{Tr}_{\text{env}}(V \rho V^\dagger) = \sum_k M_k \rho M_k^\dagger$ ║
+║      Garantizando axiomáticamente la isometría estricta en la FPU: $V^\dagger V = I$.    ║
+║                                                                                          ║
+║  §2. Isomorfismo de Choi-Jamiołkowski:                                                   ║
+║      La certificación CPTP (Completamente Positivo) se audita construyendo la matriz de  ║
+║      Choi $\mathcal{C}_{\mathcal{E}}$. El operador debe ser semidefinido positivo:       ║
+║          $\mathcal{C}_{\mathcal{E}} = (\text{id} \otimes \mathcal{E})(|\Omega\rangle\langle\Omega|) \succeq 0$ ║
+║      Cualquier autovalor negativo $\lambda_i < 0$ demuestra que la IA generativa ha      ║
+║      inyectado probabilidades no físicas (antimateria semántica), detonando un Veto.     ║
+║                                                                                          ║
+║  §3. Truncamiento Espectral y Algoritmo Gilchrist-Langford-Nielsen:                      ║
+║      Para evitar la divergencia del hiperespacio $\dim(\mathcal{H}_{\text{env}}) \to \infty$,║
+║      se aplica una poda termodinámica. La renormalización de los operadores de Kraus     ║
+║      truncados se ejecuta minimizando la distancia en norma diamante:                    ║
+║          $\tilde{M}_k = M_k \left( \sum_{j=1}^{d_{\text{trunc}}} M_j^\dagger M_j + \alpha I \right)^{-1/2}$ ║
+║      Asegurando la preservación asintótica del flujo de probabilidad original.           ║
+║                                                                                          ║
+║  §4. Invarianza Termodinámica y Fidelidad de Uhlmann:                                    ║
+║      La métrica de deformación entre el estado original y el truncado se acota           ║
+║      estrictamente utilizando la Fidelidad de Uhlmann y la entropía de von Neumann       ║
+║      $S(\rho) = -\text{Tr}(\rho \ln \rho)$:                                              ║
+║          $F(\rho, \sigma) = \left( \text{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2 \ge 1 - \varepsilon$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Análisis Espectral y Operador de Choi:                                         ║
+║           Descomposición canónica con gauge de fase estándar y construcción de           ║
+║           ChoiOperatorFactory. Retorna SpectralDecomposition.                            ║
+║                                                                                          ║
+║  Fase 2 → Construcción Isométrica y Extracción de Kraus:                                 ║
+║           IsometryConstructor mapea el operador de Choi a isometría $V$, verificando     ║
+║           $V^\dagger V = I$ y aplicando el canal vía QuantumChannelApplicator.           ║
+║                                                                                          ║
+║  Fase 3 → Truncamiento, Regularización y Funtor Supremo:                                 ║
+║           EnvironmentTruncator limita $\mathcal{H}_{\text{env}}$. El morfismo global       ║
+║           StinespringIsometricFibrator sella la elevación $\text{MIC} \to \text{MAC}$.   ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

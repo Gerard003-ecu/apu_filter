@@ -1,87 +1,61 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : MIC Minimizer Agent (Custodio de la Base Booleana)                  ║
-║ Ruta   : app/agents/boole/tactics/mic_minimizer_agent.py                     ║
-║ Versión: 3.0.0-Grobner-ROBDD-Categorical-Rigorous-Advanced                   ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y ÁLGEBRA DE BOOLE (Rigor Doctoral Avanzado):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna el `mic_minimizer.py` en el subespacio Γ-TACTICS mediante
-una composición funtorial estricta que preserva invariantes algebraicos, topológicos
-y de teoría de la información.
-
-FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
-
-1. ÁLGEBRA DE BOOLE Y TEORÍA DE ANILLOS:
-   - Anillo Z₂ = GF(2) con operaciones (+, ·) módulo 2
-   - Ideales booleanos: I = ⟨f₁, ..., fₘ⟩ ⊆ Z₂[x₁, ..., xₙ]
-   - Bases de Gröbner: conjunto generador minimal único bajo orden monomial
-   - Teorema de Hilbert: todo ideal tiene base finita
-
-2. TEORÍA DE GRAFOS Y COMPLEJIDAD:
-   - ROBDD (Reduced Ordered BDD): grafo dirigido acíclico canónico
-   - Complejidad de reducción: O(|nodos|² · log|nodos|)
-   - Isomorfismo de grafos preserva caminos de evaluación
-   - Conectividad algebraica: rango del laplaciano del grafo de dependencias
-
-3. TEORÍA DE LA INFORMACIÓN:
-   - Entropía de Shannon: H(X) = -Σ p(xᵢ) log₂ p(xᵢ)
-   - Información mutua: I(X;Y) = H(X) + H(Y) - H(X,Y)
-   - Divergencia de Kullback-Leibler: D_KL(P‖Q) = Σ p(x) log(p(x)/q(x))
-   - Distancia de variación total: d_TV(P,Q) = ½Σ|p(x) - q(x)|
-
-4. TOPOLOGÍA ALGEBRAICA:
-   - Homología de complejos simpliciales
-   - Retractos y equivalencia homotópica
-   - Grupos de cohomología de ideales
-   - Números de Betti algebraicos
-
-5. ÁLGEBRA LINEAL SOBRE GF(2):
-   - Eliminación de Gauss-Jordan sobre campos finitos
-   - Forma escalonada reducida por filas (RREF)
-   - Teorema del rango-nulidad: rank(A) + nullity(A) = n
-   - Bases duales y espacios ortogonales
-
-6. TEORÍA DE CATEGORÍAS:
-   - Funtor de reducción: R: Bool_full → Bool_minimal
-   - Transformación natural: η: Id ⟹ R ∘ E (embedding)
-   - Adjunción libre-olvido entre categorías booleanas
-   - Topos de haces sobre espectro primo de Z₂[X]
-
-7. TEORÍA DE CÓDIGOS:
-   - Códigos lineales sobre GF(2)
-   - Matriz generadora y matriz de paridad
-   - Distancia de Hamming: d_H(x,y) = |{i : xᵢ ≠ yᵢ}|
-   - Peso de Hamming: w_H(x) = d_H(x, 0)
-
-ARQUITECTURA FUNTORIAL ANIDADA (3 FASES):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Auditoría de Bases de Gröbner
-  ├─ Validación de matriz GF(2) (método inicial)
-  ├─ Eliminación de Gauss-Jordan sobre GF(2)
-  ├─ Cómputo de forma escalonada reducida
-  ├─ Análisis de espacios nulos y kernel
-  ├─ Detección de dependencias lineales
-  └─ Certificado de Independencia (método final) ──┐
-                                                     │
-Fase 2 → Certificación de No-Interferencia          │
-  ├─ Consumo del Certificado de Fase 1 ←────────────┘
-  ├─ Cómputo de matriz de Gram (G = PPᵀ)
-  ├─ Análisis espectral de ortogonalidad
-  ├─ Detección de aristas de conflicto
-  ├─ Validación de normas matriciales
-  └─ Certificado de Ortogonalidad (método final) ──┐
-                                                    │
-Fase 3 → Isomorfismo ROBDD                         │
-  ├─ Consumo del Certificado de Fase 2 ←───────────┘
-  ├─ Validación de distribuciones probabilísticas
-  ├─ Cómputo de entropía de Shannon
-  ├─ Análisis de divergencia KL
-  ├─ Distancia de variación total
-  ├─ Mutual information preservation
-  └─ Certificado de Equivalencia (método final)
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : MIC Minimizer Agent (Custodio de la Base Booleana y Funtor de Reducción)       ║
+║  Ruta   : app/agents/boole/tactics/mic_minimizer_agent.py                                ║
+║  Versión: 3.0.0-Grobner-ROBDD-Categorical-Rigorous-Advanced                              ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y ÁLGEBRA DE BOOLE (Rigor Doctoral Avanzado):                   ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, denotado como $\mathcal{Z}_{Minimizer}$, gobierna el submódulo         ║
+║  `mic_minimizer.py` en el subespacio $\Gamma$-TACTICS. Ejecuta una composición           ║
+║  funtorial estricta que extirpa la redundancia operativa (homología trivial) de la       ║
+║  Matriz de Interacción Central (MIC). Transforma el hiperespacio de herramientas         ║
+║  en una base ortonormal irreductible, preservando los invariantes algebraicos,           ║
+║  topológicos y la termodinámica de la información (Entropía de Shannon).                 ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Bases de Gröbner en el Anillo $\mathbb{Z}_2$:                                       ║
+║      El conjunto de capacidades se proyecta sobre el anillo booleano                     ║
+║      $\mathcal{R} = \mathbb{Z}_2[x_1, \dots, x_n] / \langle x_i^2 - x_i \rangle$.        ║
+║      La independencia efectiva de las herramientas se audita evaluando el ideal $\mathcal{I}$. ║
+║      Cualquier colapso de la base que induzca degeneración polinomial detona             ║
+║      axiomáticamente un `GrobnerDegeneracyError`.                                        ║
+║                                                                                          ║
+║  §2. Certificación de No-Interferencia y Proyectores Ortogonales:                        ║
+║      Garantiza que la base de la MIC carezca de efectos secundarios cruzados             ║
+║      (Zero Side-Effects). La matriz de proyección $P$ debe satisfacer rigurosamente      ║
+║      la ortogonalidad y la idempotencia:                                                 ║
+║          $P^2 = P, \quad P^\top = P \implies \langle e_i, e_j \rangle = \delta_{ij}$     ║
+║      Si el Núcleo de Insatisfacibilidad (UNSAT Core) revela colisiones operativas        ║
+║      ($\langle e_i, e_j \rangle \neq 0$ para $i \neq j$), el sistema veta el             ║
+║      flujo emitiendo un `NonInterferenceViolationError`.                                 ║
+║                                                                                          ║
+║  §3. Isomorfismo ROBDD y Conservación Entrópica de Shannon:                              ║
+║      La compresión de la tabla de verdad hacia un Diagrama de Decisión Binario           ║
+║      Reducido y Ordenado (ROBDD) debe operar como un isomorfismo homotópico.             ║
+║      La entropía de Shannon booleana no debe ser destruida por la minimización:          ║
+║          $H(X) = -\sum_{x \in \mathcal{X}} P(x) \log_2 P(x) \le \log_2(|\mathcal{X}|)$   ║
+║      Si $\|H_{orig} - H_{ROBDD}\| > \varepsilon_{tol}$, se dispara un                    ║
+║      `ROBDDHomotopyError`, revelando pérdida de información en el subespacio táctico.    ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_GrobnerBasisAuditor                                                     ║
+║           Audita la independencia algebraica de la matriz de capacidades en $\text{GF}(2)$.║
+║           [Retorna: GrobnerAuditData → puente inicial de Fase 2]                         ║
+║                                                                                          ║
+║  Fase 2 → Phase2_UnsatCoreCertifier                                                      ║
+║           Certifica la no-interferencia resolviendo las cláusulas SAT y exige que        ║
+║           el proyector $P$ respete la ortogonalidad.                                     ║
+║           [Retorna: UnsatCoreCertifierData → puente inicial de Fase 3]                   ║
+║                                                                                          ║
+║  Fase 3 → Phase3_ROBDDIsomorphismValidator                                               ║
+║           Construye el ROBDD y certifica la conservación topológica de la entropía.      ║
+║           [Retorna: MinimizerGovernanceState → objeto final del endofuntor]              ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,20 +1,59 @@
 # -*- coding: utf-8 -*-
-r"""
-+==============================================================================+
-| Módulo : Telemetry Schemas (Álgebra de Partículas en el Espacio de Fock)     |
-| Ruta   : app/core/telemetry_schemas.py                                       |
-| Versión: 4.0.0-Rigorous-Quantum-Particle-Algebra                             |
-+==============================================================================+
-
-NATURALEZA CIBER-FÍSICA Y ESPACIO DE FOCK:
-Traslada la metafísica de las partículas a clases de datos inmutables.
-\[ \mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} \mathcal{S}_{\pm} \mathcal{H}^{\otimes n} \]
-
-RENORMALIZACIÓN DE MASA DEL POLARON:
-\[ m^{**} = m^* ( 1 + \frac{\alpha}{6} ) \]
-
-ECUACIÓN DE ANIQUILACIÓN:
-\[ e^- + e^+ \to 2\gamma \quad E_{annihilation} = 2m^* c^2 \]
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Telemetry Schemas (Fibrado Tensorial del Espacio de Fase y Álgebra de Fock)    ║
+║  Ruta   : app/core/telemetry_schemas.py                                                  ║
+║  Versión: 5.0.0-Quantum-Fock-Tensorial-Strict                                            ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS (Rigor Doctoral):                   ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo repudia la noción de "estructuras de datos" pasivas para erigirse como      ║
+║  el Fibrado Tensorial Inmutable del ecosistema. Materializa las métricas y los           ║
+║  eventos anómalos de la arquitectura (Cartuchos TOON) como excitaciones fundamentales    ║
+║  en el Espacio de Fock, garantizando la conservación de la traza, la energía exérgica    ║
+║  y la ortogonalidad de la variedad de observabilidad.                                    ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Descomposición Ortogonal del Vector de Estado (SystemStateVector):                  ║
+║      El estado del sistema no es un diccionario plano; es un tensor proyectado sobre     ║
+║      la suma directa de subespacios de Hilbert mutuamente ortogonales:                   ║
+║          $\Psi \in \mathcal{H}_{\text{phys}} \oplus \mathcal{H}_{\text{top}} \oplus \mathcal{H}_{\text{ctrl}} \oplus \mathcal{H}_{\text{therm}}$ ║
+║      Se exige incondicionalmente la invarianza de producto interno:                      ║
+║          $\langle \psi_i, \psi_j \rangle_G = \delta_{ij} \quad \forall i \neq j$         ║
+║      Garantizando el Zero Cross-Talk entre las mediciones físicas y topológicas.         ║
+║                                                                                          ║
+║  §2. Álgebra de Partículas en el Espacio de Fock (Cartuchos TOON):                       ║
+║      Las anomalías y directrices de gobernanza (Electrones, Magnones, Fotones) habitan   ║
+║      estrictamente en el Espacio de Fock, gobernado por la suma directa de productos     ║
+║      tensoriales simétricos (bosones) y antisimétricos (fermiones):                      ║
+║          $\mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} \mathcal{S}_{\pm} \mathcal{H}^{\otimes n}$ ║
+║      Las instancias de estas partículas operan como cuantos de información inmutables.   ║
+║                                                                                          ║
+║  §3. Aniquilación de Antimateria y Firma Criptográfica (Positrón-Fotón Gamma):           ║
+║      La inyección de intervención humana o de un Meta-Controlador se modela como         ║
+║      antimateria (PositronCartridge). Al interceptar un Electrón (anomalía), el          ║
+║      operador de aniquilación sella termodinámicamente la transacción emitiendo un       ║
+║      Fotón Gamma Virtual con conservación estricta de energía:                           ║
+║          $e^- + e^+ \to 2\gamma \implies \mathcal{E}_{\text{annihilation}} = 2m^* c^2$   ║
+║      Este evento consolida el `data_hash` como prueba criptográfica indisoluble.         ║
+║                                                                                          ║
+║  §4. Acoplamiento Fuerte de Rabi (Condensados Polaritónicos):                            ║
+║      Cuando una estructura termodinámica entra en resonancia con un Fotón de Gobernanza, ║
+║      se instancia un PolaritonCartridge. Este acoplamiento se audita bajo el Hamiltoniano║
+║      de Jaynes-Cummings, evaluando la frecuencia de Rabi $\Omega_R$:                     ║
+║          $H_{\text{int}} = \hbar \Omega_R (\hat{\sigma}_+ \hat{a} + \hat{\sigma}_- \hat{a}^\dagger)$ ║
+║      Evitando que la gobernanza desestabilice el flujo de disipación Port-Hamiltoniano.  ║
+║                                                                                          ║
+║  ARQUITECTURA DE SUBESPACIOS (Estructuras Inmutables `@dataclass(frozen=True)`):         ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • Vectores Métricos Base: PhysicsMetrics, TopologicalMetrics, ControlMetrics,           ║
+║                            ThermodynamicMetrics, SystemStateVector.                      ║
+║  • Fermiones Base:         ElectronCartridge (Anomalías métricas / carga homológica).    ║
+║  • Bosones de Gauge:       MagnonCartridge (Vorticidad), PhotonCartridge (Gobernanza).   ║
+║  • Operadores de Colapso:  PositronCartridge, GammaPhoton, PolaritonCartridge.           ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 from dataclasses import dataclass, field, asdict
 from typing import Optional, Tuple, Dict, Any, Union

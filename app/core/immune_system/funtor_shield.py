@@ -1,46 +1,60 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: Funtor Shield (Membrana Aislante y Proyector Simpléctico)            ║
-║ Ubicación: app/core/immune_system/funtor_shield.py                           ║
-║ Versión: 5.0.0-Categorical-Symplectic-Homological                            ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber-Física y Topológica (Revisión Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra la barrera inmunológica del ecosistema, operando como un 
-endofuntor idempotente $\mathcal{F}_{shield}: \mathcal{C}_{states} \to \mathcal{C}_{states}$ 
-sobre el espacio de fase de la Malla Agéntica. Rechaza cualquier evaluación 
-heurística para imponer un Difeomorfismo Simpléctico y Cohomológico que aniquila
-las fluctuaciones probabilísticas degeneradas de los agentes generativos.
-
-Arquitectura Matemática en 3 Fases Anidadas:
-
-§1. FASE 1 — ESPACIO DE FASE Y MÉTRICA RIEMANNIANA
-    Inmersión de los datos crudos en el hiperespacio métrico, donde el vector de
-    fase es evaluado bajo el tensor Riemanniano $G_{PHYSICS}$. Se exige que todo
-    operador de disipación acoplado cumpla la inecuación de matriz semidefinida:
-    $$ R(x) = R(x)^\top \ge 0 $$
-    Cualquier asimetría en la disipación térmica resulta en una singularidad.
-
-§2. FASE 2 — OPERADORES SIMPLÉCTICOS Y FUNTOR DE YONEDA
-    Transmutación del flujo temporal en un sistema Port-Hamiltoniano continuo. 
-    Se incrusta el Funtor Representable de Yoneda-Compatible:
-    $$ \text{Hom}_{\mathcal{C}}(A, -) $$
-    Evaluando la evolución de la energía $H(x)$ para garantizar el decaimiento 
-    estricto del gradiente termodinámico: $\dot{H} \le 0$.
-
-§3. FASE 3 — PROYECTOR IDEMPOTENTE Y COHOMOLOGÍA DE DIRAC
-    Evaluación de la integridad del complejo simplicial a través del detector de 
-    homología $\beta_1$ (Socavones Lógicos). La operación del módulo se define 
-    por la composición endofuntorial inmutable:
-    $$ \mathcal{F}_{shield} = \hat{P} \circ Y \circ S $$
-    Donde $S$ es el morfismo del agente, $Y$ es la restricción de Yoneda, y 
-    $\hat{P}$ es el Proyector Ortogonal Idempotente. Si la energía de Dirichlet 
-    diverge por paradojas topológicas ($\beta_1 > 0$), el proyector colapsa 
-    el estado, previniendo la inyección de entropía en el estrato WISDOM.
-
-═══════════════════════════════════════════════════════════════════════════════
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Funtor Shield (Membrana Aislante y Proyector Simpléctico)                      ║
+║  Ruta   : app/core/immune_system/funtor_shield.py                                        ║
+║  Versión: 5.0.0-Categorical-Symplectic-Homological                                       ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo consagra la barrera inmunológica del ecosistema, operando como un           ║
+║  endofuntor idempotente $\mathcal{F}_{shield}: \mathcal{C}_{states} \to \mathcal{C}_{states}$║
+║  sobre el espacio de fase de la Malla Agéntica. Rechaza cualquier evaluación heurística  ║
+║  para imponer un Difeomorfismo Simpléctico y Cohomológico que aniquila las fluctuaciones ║
+║  probabilísticas degeneradas de los agentes generativos.                                 ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Evolución Port-Hamiltoniana y Disipación Cuadrática:                                ║
+║      La dinámica del sistema subyugado debe satisfacer la ecuación Port-Hamiltoniana:    ║
+║          $\dot{x} = [J(x) - R(x)] \nabla H(x)$                                           ║
+║      Donde $J(x) = -J(x)^\top$ es la estructura de sesgo constante y $R(x) = R(x)^\top \succeq 0$ ║
+║      garantiza la disipación estricta de Rayleigh. Violaciones detonan un Veto Físico.   ║
+║                                                                                          ║
+║  §2. Restricción de Yoneda (Preservación Semántica):                                     ║
+║      El mapeo de estados se somete al Lema de Yoneda, asegurando que la representación   ║
+║      funtorial $Y: \mathcal{C} \to [\mathcal{C}^{\text{op}}, \mathbf{Set}]$ certifique   ║
+║      la biyección natural:                                                               ║
+║          $\text{Hom}(Y(A), F) \cong F(A)$                                                ║
+║      Evitando que el LLM inyecte morfismos espurios que rompan la categoría de estados.  ║
+║                                                                                          ║
+║  §3. Proyector Idempotente y Cohomología de Dirac:                                       ║
+║      La operación del módulo se define por la composición endofuntorial inmutable:       ║
+║          $\mathcal{F}_{shield} = \hat{P} \circ Y \circ S$                                ║
+║      Donde $S$ es el morfismo del agente, $Y$ es la restricción de Yoneda, y $\hat{P}$   ║
+║      es el Proyector Ortogonal Idempotente ($\hat{P}^2 = \hat{P}$).                      ║
+║                                                                                          ║
+║  §4. Homología Discreta y Energía de Dirichlet (Socavones Lógicos):                      ║
+║      Se audita la integridad del complejo simplicial a través del detector de            ║
+║      homología $\beta_1$ (dimensión del primer grupo de homología). Si la energía de     ║
+║      Dirichlet diverge por paradojas topológicas ($\beta_1 > 0$), el proyector colapsa   ║
+║      el estado para prevenir la inyección de entropía en el estrato WISDOM.              ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Extracción Tensorial y ValidatedMetricTensor                                   ║
+║           Aplica el PhaseVectorExtractor para vectorizar el espacio de fase, empleando   ║
+║           la métrica Riemanniana validada $G_{PHYSICS}$.                                 ║
+║                                                                                          ║
+║  Fase 2 → Operadores Simplécticos (ConstantSkewStructure y PortHamiltonianFlow)          ║
+║           Evalúa la disipación cuadrática y la representabilidad de Yoneda sobre el      ║
+║           flujo Port-Hamiltoniano del agente.                                            ║
+║                                                                                          ║
+║  Fase 3 → Proyección de Cohomología y Composición Funtorial Final                        ║
+║           Aplica el RiemannianProjector y el HomologyBettiDetector. Si $\beta_1 = 0$,    ║
+║           el FuntorShield sella la membrana; de lo contrario, detona el colapso defensivo.║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,47 +1,59 @@
 # -*- coding: utf-8 -*-
-"""
-Este módulo provee la infraestructura matemática de bajo nivel que alimenta al 
-'Financial Engine'. Su función es transformar costos deterministas (precios fijos) 
-en variables estocásticas (distribuciones de probabilidad), ejecutando simulaciones 
-masivas para revelar la volatilidad oculta del proyecto.
-
-Capacidades y Metodologías:
----------------------------
-1. Simulación de Monte Carlo Vectorizada:
-   Implementa `MonteCarloSimulator` utilizando NumPy para ejecutar miles de 
-   iteraciones de escenarios de costos de manera eficiente. Transforma la incertidumbre 
-   teórica en un rango de resultados probables.
-
-2. Estadística Descriptiva para Riesgo (VaR y CVaR):
-   Calcula métricas críticas no paramétricas, específicamente los percentiles 
-   (P5, P95) necesarios para determinar el Valor en Riesgo (VaR) 
-   y el Déficit Esperado (CVaR/Expected Shortfall) con confianza estadística.
-
-3. Gestión de Recursos (Memory Safety):
-   Implementa `estimate_memory_usage` para predecir la huella de RAM de la matriz 
-   de simulación antes de su ejecución. Actúa como un disyuntor preventivo para 
-   evitar el colapso del sistema en simulaciones masivas (>1M de iteraciones).
-
-4. Saneamiento de Datos Estocásticos:
-   Asegura que los inputs de la simulación sean numéricamente estables, manejando 
-   valores infinitos, NaNs y aplicando truncamiento de costos negativos (`truncate_negative`) 
-   para mantener la coherencia física del modelo (los precios no pueden ser negativos).
-
-5. Soporte Multi-Distribución:
-   Permite elegir entre distribución normal, log-normal y triangular, siendo la 
-   log-normal más apropiada para variables que no pueden ser negativas (costos).
-
-6. Técnicas de Reducción de Varianza:
-   Implementa variantes antitéticas (antithetic variates) para mejorar la convergencia
-   de las simulaciones con menos iteraciones.
-
-7. Análisis de Convergencia:
-   Verifica si el número de simulaciones es suficiente para obtener estimaciones
-   estadísticamente confiables mediante el error estándar de la media.
-
-8. Análisis de Sensibilidad:
-   Identifica qué APUs contribuyen más a la varianza total del proyecto,
-   permitiendo focalizar esfuerzos de mitigación de riesgo.
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Probability Models (Funtor Estocástico y Espacio de Medida de Lebesgue)        ║
+║  Ruta   : app/core/probability_models.py                                                 ║
+║  Versión: 4.0.0-Stochastic-Measure-Theoretic-Strict                                      ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE LA MEDIDA (Rigor Doctoral):                         ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor abandona el paradigma ingenuo de la contabilidad estática               ║
+║  determinista (donde los costos son distribuciones delta de Dirac $\delta(x - c_0)$).    ║
+║  Eleva el presupuesto a un ensamble microcanónico, modelando cada APU como una           ║
+║  variable aleatoria $X: \Omega \to \mathbb{R}^+$ sobre un espacio de medida.             ║
+║  Aplica integración de Lebesgue vía simulaciones masivas de Monte Carlo para             ║
+║  revelar la topología del riesgo y la volatilidad latente de la malla agéntica.          ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESTOCÁSTICAS:                                   ║
+║                                                                                          ║
+║  §1. Integración de Monte Carlo y el Teorema del Límite Central:                         ║
+║      La esperanza matemática del costo global se computa muestreando el espacio $\Omega$:║
+║          $\mathbb{E}[C] = \int_\Omega C(\omega) d\mathbb{P}(\omega) \approx \frac{1}{N} \sum_{i=1}^N C(\omega_i)$ ║
+║      La convergencia asintótica se certifica acotando el Error Estándar (SE):            ║
+║          $\text{SE} = \frac{\sigma}{\sqrt{N}} \le \varepsilon_{\text{tol}}$              ║
+║      Garantizando que la entropía informacional del estimador se desvanezca.             ║
+║                                                                                          ║
+║  §2. Simetría de Variables Antitéticas (Reducción de Varianza):                          ║
+║      Para acelerar la convergencia en el subespacio de Hilbert sin inflar $N$, se        ║
+║      inyectan pares antitéticos $(X, \tilde{X})$ estrictamente correlacionados           ║
+║      negativamente ($\text{Cov}(X, \tilde{X}) < 0$):                                     ║
+║          $\text{Var}\left(\frac{X + \tilde{X}}{2}\right) = \frac{\text{Var}(X)}{2} + \frac{\text{Cov}(X, \tilde{X})}{2} < \frac{\text{Var}(X)}{2}$ ║
+║      Aumentando la eficiencia asintótica del muestreo tensorial.                         ║
+║                                                                                          ║
+║  §3. Topología del Riesgo (VaR y CVaR):                                                  ║
+║      El análisis no paramétrico de las colas de la distribución (Fat-Tail Risk)          ║
+║      se proyecta sobre los cuantiles $\alpha$ (ej. P95):                                 ║
+║          $\text{VaR}_\alpha(C) = \inf \{ c \in \mathbb{R} \mid \mathbb{P}(C \le c) \ge \alpha \}$ ║
+║      El Déficit Esperado (CVaR) captura la energía de la cola en el espacio de fase:     ║
+║          $\text{CVaR}_\alpha(C) = \frac{1}{1-\alpha} \int_{\alpha}^{1} \text{VaR}_\gamma(C) d\gamma$ ║
+║      Previniendo colapsos financieros no acotados por la varianza simple.                ║
+║                                                                                          ║
+║  §4. Límite Termodinámico de Memoria (Tensor Allocation):                                ║
+║      Antes de instanciar la variedad de simulación $\mathbb{R}^{N \times M}$, se exige   ║
+║      la acotación estricta de la huella de memoria:                                      ║
+║          $\mathcal{S}_{\text{bytes}} = N \cdot M \cdot \text{sizeof}(\text{float64}) \le \mathcal{S}_{\max}$ ║
+║      Si se excede `MEMORY_HARD_LIMIT_GB`, se detona un Veto Preventivo de hardware.      ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES OPERACIONALES (Composición Funtorial):                            ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Tensor Allocation & Sanitization (`estimate_memory_usage`, `sanitize_value`)   ║
+║           Precondicionamiento de datos y auditoría de capacidad FPU/RAM.                 ║
+║  Fase 2 → Stochastic Generation (`MonteCarloSimulator`)                                  ║
+║           Inyección de distribuciones (Normal, Lognormal, Triangular) e instanciación.   ║
+║  Fase 3 → Convergence & Risk Quantification (`calculate_convergence_metrics`)            ║
+║           Cálculo de VaR, CVaR, análisis de sensibilidad y certificación de $\text{SE}$. ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 import logging

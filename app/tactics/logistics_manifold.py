@@ -1,72 +1,61 @@
 # -*- coding: utf-8 -*-
-"""
-=============================================================================
-Módulo: Logistics Manifold (Operador de Enrutamiento Logístico y Renormalización de Masa Térmica)
-Ubicación: app/tactics/logistics_manifold.py
-Versión: 4.0 (Refactorización Axiomática y Teoría de Hodge Combinatoria)
-
-Naturaleza Ciber-Física y Topológica: Este módulo trasciende la algoritmia clásica de grafos para
-instaurarse como un Operador Categórico de Enrutamiento sobre el 1-esqueleto de la organización.
-Modela el flujo de valor logístico como un fluido termodinámico incompresible en un Complejo Simplicial,
-evaluando la distribución de masa térmica mediante la Teoría Espectral de Grafos y el Cálculo Exterior Discreto (DEC).
-
-1. Ecuación de Continuidad y Espacio de Cadenas: Sea G = (V, E) un grafo dirigido finito. El sistema opera
-sobre 1-cadenas C₁(G) ≅ ℝ^|E| (flujos) y 0-cadenas C₀(G) ≅ ℝ^|V| (masas nodales).
-El operador de borde B₁: C₁ → C₀ impone la ley de conservación estricta (Ley de Corrientes de Kirchhoff): B₁f = s. 
-   • Si s[i] > 0 ⟹ Fuente neta (Inyección de exergía).
-   • Si s[i] < 0 ⟹ Sumidero neto (Acumulación o disipación térmica).
-   • Si s[i] = 0 ⟹ Nodo en equilibrio termodinámico perfecto.
-
-2. Descomposición de Hodge-Helmholtz Discreta: El flujo logístico (f) se somete a proyección ortogonal. A través del Laplaciano de Hodge de grado 1 (L₁ = B₁ᵀB₁ + B₂B₂ᵀ), el manifold aísla la componente irrotacional (flujo laminar de valor, f_grad) de la vorticidad parasitaria (ciclos mutantes, f_curl) y las anomalías topológicas (flujos armónicos, f_harm). 
-
-3. Renormalización de Masa Térmica: Las ineficiencias de enrutamiento no se abordan como un simple retardo temporal, sino como "fricción térmica". El operador evalúa la matriz Laplaciana para calcular la disipación espectral (P_diss ≥ 0), garantizando que el transporte minimice la Energía de Dirichlet e impida la formación de "pozos termodinámicos" en la red de suministro.
-
-4. Condición de Fredholm y Veto Cohomológico: La resolución del flujo logístico exige neutralidad escalar global (∑ s[i] = 0). Si el vector de masa térmica no pertenece a la imagen del operador Laplaciano, el sistema detecta una anomalía de conservación y emite un CohomologicalInconsistencyError. Esto destruye la transacción local, preservando inquebrantable la Ley de Clausura Transitiva (V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM).
-
-Referencias Matemáticas Cánonicas:
-[2] Lim, L.-H. "Hodge Laplacians on Graphs." SIAM Review, 62(3), 2020.
-[3] Jiang et al. "Statistical ranking and combinatorial Hodge theory." Math. Programming, 127(1), 2011.
-[4] Mohar, B. "The Laplacian spectrum of graphs." Graph Theory, Combinatorics, and Applications, 1991.
-
-=============================================================================
-
-Fundamentos matemáticos:
-    Sea G = (V, E) un grafo dirigido finito con |V| = n, |E| = m.
-
-    1. Complejo de cadenas discreto:
-        C₀(G) ←─B₁── C₁(G) ←─── C₂(G)
-       donde B₁ ∈ ℝⁿˣᵐ es la matriz de incidencia orientada:
-            B₁[u, e] = +1   si e = (u, ·)  (sale de u)
-            B₁[v, e] = -1   si e = (·, v)  (entra a v)
-
-    2. Ley de conservación discreta (ecuación de continuidad):
-        B₁ f = s
-       donde f ∈ ℝᵐ es el vector de flujo y s ∈ ℝⁿ es el campo
-       fuente-sumidero. La condición necesaria de solvencia es:
-            𝟏ᵀ s = 0   (conservación global de masa)
-
-    3. Descomposición de Hodge discreta sobre 1-cadenas:
-        f = f_grad + f_curl + f_harm
-       con:
-        f_grad ∈ Im(B₁ᵀ)      — componente gradiente (potencial)
-        f_curl ∈ Im(C)         — componente solenoidal (ciclos)
-        f_harm ∈ ker(B₁) ∩ ker(Cᵀ) — componente armónica
-
-    4. Espectro del Laplaciano combinatorio:
-        L₀ = B₁ B₁ᵀ   (Laplaciano nodal)
-        λ₂(L₀) = conectividad algebraica de Fiedler
-
-    5. Geodésicas riemannianas discretas:
-        Para un tensor métrico G ∈ S₊ⁿˣⁿ (simétrico semidefinido positivo),
-        el peso de una arista con vector de atributos x ∈ ℝᵈ es:
-            w(e) = √(xᵀ G x)
-
-Convenciones de signos:
-    - (B₁ f)[i] = ∑_{e sale de i} f(e) - ∑_{e entra a i} f(e)
-    - s[i] > 0  ⟹  fuente neta en nodo i
-    - s[i] < 0  ⟹  sumidero neto en nodo i
-    - s[i] = 0  ⟹  nodo balanceado
-=============================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Logistics Manifold (Operador de Enrutamiento y Renormalización Térmica)        ║
+║  Ruta   : app/tactics/logistics_manifold.py                                              ║
+║  Versión: 4.0.0-Hodge-Helmholtz-Combinatorial-Strict                                     ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo trasciende la algoritmia clásica de grafos para instaurarse como un         ║
+║  Operador Categórico de Enrutamiento sobre el 1-esqueleto del proyecto. Modela el        ║
+║  flujo de valor logístico como un fluido termodinámico incompresible en un Complejo      ║
+║  Simplicial, evaluando la distribución de masa térmica mediante la Teoría Espectral      ║
+║  de Grafos y el Cálculo Exterior Discreto (DEC).                                         ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Ecuación de Continuidad y Espacio de Cadenas (Ley de Kirchhoff):                    ║
+║      Sea $G = (V, E)$ un grafo dirigido finito. El sistema opera sobre 1-cadenas         ║
+║      $C_1(G) \cong \mathbb{R}^{|E|}$ (flujos) y 0-cadenas $C_0(G) \cong \mathbb{R}^{|V|}$║
+║      (masas nodales). El operador de borde $B_1: C_1 \to C_0$ impone axiomáticamente     ║
+║      la conservación estricta:                                                           ║
+║          $B_1 f = s$                                                                     ║
+║      Donde $s_i > 0$ implica una inyección de exergía (fuente) y $s_i < 0$ un            ║
+║      sumidero térmico (disipación).                                                      ║
+║                                                                                          ║
+║  §2. Descomposición de Hodge-Helmholtz Discreta (Proyección Ortogonal):                  ║
+║      El flujo logístico $f$ se disecciona topológicamente aislando la componente         ║
+║      irrotacional de la vorticidad parásita mediante el Laplaciano de grado 1            ║
+║      ($L_1 = B_1^\top B_1 + B_2 B_2^\top$):                                              ║
+║          $f = f_{\text{grad}} + f_{\text{curl}} + f_{\text{harm}}$                       ║
+║      Garantizando que el transporte de recursos se purgue de ciclos de retroalimentación ║
+║      inútiles ($f_{\text{curl}}$) que consumen ancho de banda financiero.                ║
+║                                                                                          ║
+║  §3. Renormalización de Masa Térmica y Disipación (Energía de Dirichlet):                ║
+║      El enrutamiento subóptimo se computa como fricción térmica. El operador evalúa la   ║
+║      matriz Laplaciana $L_0$ para cuantificar la disipación espectral:                   ║
+║          $P_{\text{diss}} = f^\top W f \ge 0$                                            ║
+║      Exigiendo que el flujo minimice la Energía de Dirichlet, aniquilando pozos          ║
+║      termodinámicos en la cadena de suministro.                                          ║
+║                                                                                          ║
+║  §4. Alternativa de Fredholm y Veto Cohomológico:                                        ║
+║      La resolución de la dinámica logística exige neutralidad escalar global:            ║
+║          $\sum_{i \in V} s_i = 0 \implies s \in \text{im}(L_0)$                          ║
+║      Si el vector de masa térmica viola esta condición, el sistema detecta de inmediato  ║
+║      una creación/destrucción fantasma de dinero, lanzando incondicionalmente un         ║
+║      `CohomologicalInconsistencyError`. Esto preserva la Ley de Clausura Transitiva      ║
+║      ($V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset \dots$).                    ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • IncidenceData      : Encapsula el operador de borde $B_1$ construido rigurosamente.   ║
+║  • CycleData          : Matriz generadora del subespacio cíclico y base de homología.    ║
+║  • ContinuityReport   : Diagnóstico de la ecuación discreta $B_1 f = s$.                 ║
+║  • HodgeDecomposition : Tensores ortogonales ($f_{\text{grad}}, f_{\text{curl}}, f_{\text{harm}}$). ║
+║  • LogisticsManifold  : Orquestador categórico del enrutamiento termodinámico.           ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

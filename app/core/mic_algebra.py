@@ -1,41 +1,51 @@
 # -*- coding: utf-8 -*-
-r"""
-Módulo: MIC Algebra (2-Categoría Computacional y Morfismos Estructurales)
-Ubicación: app/core/mic_algebra.py
-Versión: 3.0.0 (Refinada con Rigor de 2-Categorías y Ley de Intercambio)
-=========================================================================================
-
-NATURALEZA CIBER-FÍSICA Y ÁLGEBRA LINEAL:
-Constituye el sustrato algebraico de la Malla Agéntica, abandonando los diccionarios estáticos
-para implementar un espacio de Hilbert cerrado $\mathcal{H}$. Se rige por la Teoría de Categorías
-Superiores, donde las meta-estrategias evolutivas operan como 2-morfismos continuos que evitan el
-desgarro de la variedad diferenciable.
-
-FUNDAMENTOS MATEMÁTICOS Y GEOMETRÍA ESPECTRAL:
-
-§1. EVOLUCIÓN A 2-CATEGORÍAS Y TRANSFORMACIONES NATURALES:
-Los objetos $X, Y$ son estados categóricos, los 1-morfismos $f, g: X \to Y$ son transiciones de datos
-y los 2-morfismos $\alpha: f \Rightarrow g$ son Transformaciones Naturales (meta-estrategias logísticas).
-La coherencia del hiperespacio está blindada incondicionalmente por la Ley de Intercambio (Interchange Law)
-entre composiciones horizontales y verticales:
-$$ (\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) = (\alpha' \circ \beta') \cdot (\alpha \circ \beta) $$
-Cualquier desviación numérica de esta tautología desencadena un `FunctorialityError`.
-
-§2. DETECCIÓN DE SINGULARIDADES VÍA LAPLACIANO COMBINATORIO:
-La detección de dependencias circulares (deadlocks) repudia las heurísticas de listas de visitados.
-Computa sobre el complejo simplicial el núcleo del operador Laplaciano Combinatorio de grado 1
-($\mathcal{L}_1 = \partial_1^T \partial_1 + \partial_2 \partial_2^T$). El sistema alberga vórtices
-parasitarios y aborta la canonicalización si y solo si la dimensión del primer grupo de homología
-es mayor a cero:
-$$ \beta_1 = \dim(\ker(\mathcal{L}_1)) - \dim(\text{im}(\partial_2)) > 0 $$
-
-§3. CLAUSURA TRANSITIVA DE RETÍCULOS ACOTADOS (DIKW):
-Las proyecciones ortogonales $P_k$ mapean el tensor de información a lo largo de la pirámide respetando
-axiomáticamente la inclusión de subespacios de Hilbert:
-$$ V_{\aleph_0} \subset V_{\mathbb{P}} \subset V_{\mathbb{T}} \subset V_{\mathbb{S}} \subset V_{\mathbb{W}} $$
-Donde $\|P_k \psi\| \le \|\psi\|$, garantizando que no se introduzca entropía fantasma.
-=========================================================================================
-
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : MIC Algebra (2-Categoría Computacional y Morfismos Estructurales)              ║
+║  Ruta   : app/core/mic_algebra.py                                                        ║
+║  Versión: 4.0.0-Categorical-Hilbert-Topos-Strict                                         ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y ÁLGEBRA LINEAL (Rigor Doctoral):                              ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo erradica las estructuras de datos mutables clásicas para instaurar la       ║
+║  2-Categoría de la Matriz de Interacción Central ($\mathcal{C}_{MIC}$). Modela la        ║
+║  ejecución de meta-estrategias evolutivas como 2-morfismos continuos que operan sobre    ║
+║  un Espacio de Hilbert cerrado $\mathcal{H}$, evitando el desgarro homotópico de la      ║
+║  variedad diferenciable del proyecto.                                                    ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Ley de Intercambio en Teoría de 2-Categorías:                                       ║
+║      La orquestación de transformaciones naturales asíncronas no admite condiciones de   ║
+║      carrera. Exige el cumplimiento estricto de la Ley de Intercambio para morfismos     ║
+║      $\alpha, \beta, \alpha', \beta'$:                                                   ║
+║          $(\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) = (\alpha' \circ \beta') \cdot (\alpha \circ \beta)$ ║
+║      Toda violación a esta conmutatividad topológica lanza un `FunctorialityError`.      ║
+║                                                                                          ║
+║  §2. Laplaciano Combinatorio de Hodge y Homología Simplicial (Deadlocks):                ║
+║      Se repudian las heurísticas de búsqueda de ciclos. Las dependencias circulares      ║
+║      (deadlocks lógicos) se detectan computando el espectro del Laplaciano Combinatorio  ║
+║      de grado 1 sobre el complejo simplicial del flujo:                                  ║
+║          $\mathcal{L}_1 = \partial_1^T \partial_1 + \partial_2 \partial_2^T$             ║
+║      La canonicalización se aborta si el primer número de Betti es mayor a cero,         ║
+║      indicando vórtices parasitarios:                                                    ║
+║          $\beta_1 = \dim(\ker(\mathcal{L}_1)) - \dim(\text{im}(\partial_2)) > 0$         ║
+║                                                                                          ║
+║  §3. Ley de Clausura Transitiva y Filtración de Retículos (DIKW):                        ║
+║      Los tensores de información ascienden mediante proyecciones ortogonales $P_k$ que   ║
+║      respetan axiomáticamente la inclusión de subespacios de Hilbert:                    ║
+║          $V_{\aleph_0} \subset V_{\mathbb{P}} \subset V_{\mathbb{T}} \subset V_{\mathbb{S}} \subset V_{\mathbb{W}}$ ║
+║      Acotando la energía inyectada para evitar entropía fantasma: $\|P_k \psi\| \le \|\psi\|$. ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS Y SUB-RUTINAS (Axiomatización Estricta):                    ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • CategoricalState       : Objeto fundamental de $\mathcal{C}_{MIC}$, inmutable y tipado. ║
+║  • Morphism               : Funtor abstracto base con axiomas categóricos verificables.  ║
+║  • TwoCategoryOrchestrator: Orquestador con verificación de la Ley de Intercambio.       ║
+║  • HomologicalVerifier    : Auditor topológico para el cálculo de los números de Betti.  ║
+║  • _canonicalize          : Determinismo que previene stack overflow ($max\_depth=64$).  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

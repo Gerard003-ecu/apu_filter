@@ -1,47 +1,59 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Financial Engine (El Oráculo Estocástico y Motor de Termodinámica Financiera)
-Ubicación: app/strategy/financial_engine.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Estocástica:
-    Actúa como el Oráculo del ecosistema en el Estrato STRATEGY (Nivel 1). Este módulo 
-    aniquila el paradigma ingenuo de la contabilidad determinista estática, elevando 
-    el presupuesto a un ensamble microcanónico dentro de un Espacio de Fase continuo. 
-    Transforma magnitudes escalares fijas en variables estocásticas, sometiendo el proyecto 
-    a las leyes de la física estadística y a la teoría de control estocástico.
-
-1. Termodinámica Financiera y Ecuación de Arrhenius (T_sys):
-    El flujo de capital se modela axiomáticamente como una forma de energía sujeta a leyes 
-    de conservación. La volatilidad del mercado se cuantifica como la "Temperatura 
-    del Sistema" (T_sys). Se implementa una Ecuación de Arrhenius modificada que acopla 
-    la "Inercia Financiera" (masa de liquidez × calor específico de contratos) con el estrés 
-    topológico (Ψ), acelerando probabilísticamente el riesgo de quiebra ante "Fiebres 
-    Inflacionarias" (T_sys > 50°C). Se exige que la Exergía (avance útil) 
-    justifique la Entropía inyectada.
-
-2. Variedad Estocástica y Teoría de Medida (Monte Carlo & CVaR):
-    Abandona la evaluación puntual para integrar sobre la medida de probabilidad del 
-    mercado mediante simulaciones de Monte Carlo masivamente vectorizadas. 
-    Calcula el Valor en Riesgo (VaR) y el Déficit Esperado (CVaR) en la cola extrema de la 
-    distribución, estableciendo una cota matemática estricta (95% de confianza) para 
-    cuantificar la contingencia requerida y blindar la rentabilidad ante perturbaciones.
-
-3. Opciones Reales y Retractos de Decisión (Flexibilidad Estratégica):
-    Rechaza la obligación de gasto estático, modelando la gestión del proyecto como un 
-    portafolio de Opciones Reales (modelos Binomiales y Black-Scholes). Cuantifica 
-    algebraicamente el valor de la "Opción de Esperar", otorgando a la Malla Agéntica la 
-    capacidad de postergar el colapso de la función de decisión hasta que la entropía 
-    del mercado se disipe.
-
-4. Acoplamiento Espectral del Costo de Capital (WACC Topológico):
-    La tasa de descuento (WACC) deja de ser un exógeno empírico para convertirse en un 
-    tensor acoplado a la topología. El costo de capital estructural es penalizado 
-    monotónicamente por los invariantes homológicos extraídos del estrato táctico: la 
-    fragmentación (β₀ > 1) y los ciclos de dependencia (β₁ > 0). Esto garantiza 
-    que el riesgo geométrico se traduzca en fricción financiera ineludible.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Financial Engine (Oráculo Estocástico y Funtor de Medida Financiera)           ║
+║  Ruta   : app/strategy/financial_engine.py                                               ║
+║  Versión: 5.0.0-Stochastic-Thermodynamic-Measure-Strict                                  ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y CÁLCULO ESTOCÁSTICO (Rigor Doctoral):                         ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor opera en el Estrato STRATEGY (Nivel 1). Aniquila el paradigma           ║
+║  ingenuo de la contabilidad determinista estática, elevando el presupuesto de obra a     ║
+║  un ensamble microcanónico dentro de un Espacio de Fase continuo. Transforma las         ║
+║  magnitudes escalares fijas en variables estocásticas, sometiendo el proyecto a la       ║
+║  Teoría de Control Estocástico y a la Ecuación Diferencial Parcial (PDE) de difusión.    ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Termodinámica Financiera y Ecuación de Arrhenius (Temperatura T_{sys}):             ║
+║      La volatilidad del mercado se modela como "Calor" inyectado al sistema. El decaimiento║
+║      del margen logístico se acopla a la inercia financiera y al estrés topológico (Ψ)   ║
+║      mediante una Ecuación de Arrhenius modificada:                                      ║
+║          $k_{risk} = A \exp\left(-\frac{\mathcal{E}_{inertia}}{k_B T_{sys} \cdot \Psi}\right)$ ║
+║      Evitando que el "ruido térmico" inflacionario (T_{sys} > 50°C) degenere en una        ║
+║      resonancia destructiva del flujo de caja (quiebra).                                 ║
+║                                                                                          ║
+║  §2. Variedad Estocástica y Teoría de Medida (Cálculo de VaR y CVaR):                    ║
+║      La incertidumbre de los insumos evoluciona bajo un Movimiento Browniano Geométrico  ║
+║      (Lema de Itô):  $dS_t = \mu S_t dt + \sigma S_t dW_t$ .                             ║
+║      El riesgo de cola se cuantifica integrando sobre la medida de Lebesgue para obtener ║
+║      el Déficit Esperado (CVaR) al nivel de confianza $\alpha$:                          ║
+║          $\text{CVaR}_\alpha(X) = \frac{1}{1-\alpha} \int_\alpha^1 \text{VaR}_\gamma(X) d\gamma$ ║
+║      Estableciendo una cota matemática estricta para la provisión de reservas contingentes.║
+║                                                                                          ║
+║  §3. Opciones Reales y Problema de Frontera Libre (Black-Scholes):                       ║
+║      La decisión de ejecución no es estática; la "Opción de Esperar" se modela           ║
+║      resolviendo la PDE de Black-Scholes-Merton:                                         ║
+║          $\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} + r S \frac{\partial V}{\partial S} - r V = 0$ ║
+║      Proveyendo a la Malla Agéntica el valor intrínseco de postergar el colapso de la    ║
+║      decisión operativa hasta que la entropía del mercado se disipe.                     ║
+║                                                                                          ║
+║  §4. Acoplamiento Espectral del Costo de Capital (Topological WACC):                     ║
+║      La tasa de descuento (WACC) abandona su naturaleza empírica exógena para convertirse║
+║      en un tensor acoplado a los invariantes homológicos del Estrato TACTICS:            ║
+║          $WACC_{topo} = WACC_{base} \cdot \left(1 + \kappa_0 \beta_0 + \kappa_1 \beta_1\right) e^{-\lambda_2}$ ║
+║      Garantizando que el riesgo topológico (ciclos $\beta_1 > 0$, fragmentación $\beta_0 > 1$) ║
+║      se traduzca ineludiblemente en una fricción financiera mayor (costo de deuda).      ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • FinancialConfig      : Parámetros del entorno macroeconómico acoplados.               ║
+║  • CapitalAssetPricing  : Motor espectral para cálculo de la tasa libre de riesgo y CAPM.║
+║  • RiskQuantifier       : Funtor de integración de Lebesgue (Monte Carlo, VaR, CVaR).    ║
+║  • RealOptionsAnalyzer  : Solucionador de Ecuaciones Diferenciales Estocásticas (SDE).   ║
+║  • FinancialEngine      : Fachada del oráculo para la termodinámica del valor.           ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 import logging

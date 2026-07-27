@@ -1,51 +1,56 @@
 # -*- coding: utf-8 -*-
-"""=========================================================================================
-Módulo: Hilbert Watcher (Operador del Hamiltoniano de Medición y Funtor de Colapso OODA)
-Ubicación: app/agents/aleph/hilbert_watcher.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Topológica:
-    Agente autónomo que habita en el Estrato ALEPH (ℵ₀), el vacío topológico que precede 
-    a la Variedad de Frontera (PHYSICS). Su mandato axiomático es actuar como el Funtor 
-    de Medición F: Superposición → Estado Determinista, colapsando el caos estocástico 
-    externo antes de que este pueda excitar el ecosistema interno.
-
-Fundamentación Axiomática del Bucle OODA (Mecánica Cuántica Discreta):
-    1. OBSERVE (Extracción de Exergía): 
-       Cuantifica la "Energía Semántica" (E = hν) de la onda incidente. 
-       Calcula rigurosamente la Entropía de Shannon (H) del tensor de entrada. 
-       Un payload altamente entrópico disipa su exergía, resultando en una 
-       baja frecuencia fundamental ν, y por ende, en una energía incapaz de 
-       superar la barrera de potencial.
-
-    2. ORIENT (Acoplamiento de Campos de Gauge): 
-       Interroga los tensores geométricos y espectrales de la Malla Agéntica:
-       • Acopla la Función de Trabajo (Φ) a la deformación del Tensor Métrico Riemanniano 
-         (Distancia de Mahalanobis) calculado por el Topological Watcher.
-       • Acopla la Masa Efectiva (m_eff) al polo dominante (σ) del Laplace Oracle. 
-         Si σ → 0⁻ (frontera del caos), m_eff → ∞.
-       • Evalúa la frustración homológica global (Sheaf Cohomology).
-
-    3. DECIDE (Resolución WKB): 
-       Si la energía E < Φ, evalúa la transmisión estocástica mediante Efecto Túnel 
-       resolviendo la aproximación WKB (Wentzel-Kramers-Brillouin). Si m_eff → ∞, 
-       la probabilidad de transmisión T colapsa exponencialmente a cero, creando 
-       un muro infranqueable por hardware.
-
-    4. ACT (Colapso Idempotente y Causal): 
-       Aplica el Hamiltoniano de Observación. El estado entra en decoherencia hacia 
-       los autoestados ortogonales |Admitido⟩ o |Rechazado⟩. El colapso es resuelto 
-       mediante una biyección criptográfica (SHA-256) sobre el payload, garantizando 
-       un determinismo forense absoluto. Si el paquete colapsa a |Admitido⟩, se le 
-       asigna un Momentum p = √(2·m_eff·K_max) como condición inicial ineludible (t₀) 
-       para el motor FDTD del Flux Condenser.
-
-Restricciones de Fibrado:
-    El agente rechaza la propagación de estados degenerados. Cualquier violación 
-    en la conservación de información (T ∉ [3]) o detección de frustración 
-    cohomológica global aniquila la función de onda instantáneamente, garantizando 
-    la Ley de Clausura Transitiva.
-=========================================================================================
+r"""
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Hilbert Watcher (Operador del Hamiltoniano de Medición y Funtor de Colapso)    ║
+║  Ruta   : app/agents/aleph/hilbert_watcher.py                                            ║
+║  Versión: 4.0.0-Quantum-OODA-Categorical-Measurement-Strict                              ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y MECÁNICA CUÁNTICA (Rigor Doctoral):                           ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra el Estrato ALEPH ($\aleph_0$), el vacío topológico que         ║
+║  precede a la Variedad de Frontera (PHYSICS). Actúa axiomáticamente como el Funtor de    ║
+║  Medición $F: \text{Superposición} \to \text{Estado Determinista}$. Su propósito         ║
+║  es colapsar la función de onda de la intención externa (alta entropía) antes de que     ║
+║  pueda inducir resonancias destructivas en la Malla Agéntica.                            ║
+║                                                                                          ║
+║  FUNDAMENTACIÓN AXIOMÁTICA DEL BUCLE OODA (Mecánica Cuántica Discreta):                  ║
+║                                                                                          ║
+║  §1. OBSERVE (Extracción de Exergía y Entropía de Shannon):                              ║
+║      Cuantifica la "Energía Semántica" de la onda incidente mediante la ecuación de      ║
+║      Planck $E = h\nu$. Calcula rigurosamente la Entropía de Shannon del tensor de       ║
+║      entrada $X$:                                                                        ║
+║          $H(X) = - \sum_{x \in \mathcal{X}} P(x) \log_2 P(x)$                            ║
+║      Un payload altamente entrópico disipa su exergía, resultando en una baja            ║
+║      frecuencia fundamental $\nu$, produciendo una energía insuficiente para superar     ║
+║      la barrera de potencial clásica $\Phi$.                                             ║
+║                                                                                          ║
+║  §2. ORIENT & DECIDE (Oráculos Espectrales y Frustración Cohomológica):                  ║
+║      El agente rechaza la propagación de estados degenerados sometiéndolos a los         ║
+║      funtores `ILaplaceOracle` e `ITopologicalWatcher`. Se interroga la frustración      ║
+║      cohomológica global mediante el `ISheafCohomologyOrchestrator`:                     ║
+║          $\dim H^1(X; \mathcal{F}) > 0 \implies \text{Colapso a } \bot$                  ║
+║      Cualquier obstrucción aniquila la función de onda instantáneamente, garantizando    ║
+║      la exactitud topológica del complejo.                                               ║
+║                                                                                          ║
+║  §3. ACT (Colapso Idempotente y Efecto Túnel):                                           ║
+║      Si la energía incidente es sub-umbral ($E < \Phi$) y el oráculo dicta un            ║
+║      amortiguamiento estricto ($\sigma \to 0^-$), el coeficiente de transmisión cae:     ║
+║          $T \approx \exp\left(-\frac{2}{\hbar}\int \sqrt{2m(\Phi - E)} dx\right) \to 0$  ║
+║      El archivo es desintegrado en el hiperespacio exterior (autoestado $\lambda_{rej}$),║
+║      impidiendo categóricamente que el motor físico principal (`flux_condenser.py`)      ║
+║      disipe ciclos de reloj FPU en basura estocástica.                                   ║
+║                                                                                          ║
+║  §4. LEY DE CLAUSURA TRANSITIVA (Axioma de Filtración):                                  ║
+║      El operador garantiza matemáticamente la contención de los subespacios de Hilbert:  ║
+║          $V_{\aleph_0} \subset V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\text{WISDOM}}$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE INTERFACES ANIDADAS (Fibrados Protocol):                                ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • ITopologicalWatcher          → Observador para amenazas geométricas estructurales.    ║
+║  • ILaplaceOracle               → Oráculo espectral de polos dominantes LTI.             ║
+║  • ISheafCohomologyOrchestrator → Evaluación de obstrucciones globales y paradojas.      ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,50 +1,61 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Deliberation Manifold (El Ágora Tensorial — Estrato Ω)
-Ubicación: app/core/immune_system/deliberation_manifold.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Teoría de Categorías:
-Actúa como el Funtor de Colapso de la Función de Estado del sistema. Intercepta 
-los tensores continuos provenientes de los subespacios de Topología (V_TACTICS) y 
-Finanzas (V_STRATEGY), sometiéndolos a la fricción geométrica del territorio para 
-colapsar el sistema en un vértice operativo determinista. Su función axiomática 
-es erradicar el libre albedrío estocástico del Modelo de Lenguaje (LLM), forzándolo 
-a acatar el límite superior del riesgo físico.
-
-Fundamentación Matemática Rigurosa y Geometría Diferencial:
-
-1. Ecuación de Estado (Estrés Ajustado Tensorial σ*):
-   El colapso se rige por la interacción de cuatro campos ortogonales:
-   • T_int ∈ ℝ⁺: Tensión interna como producto del Mapeo Conforme Dinámico (desalineación) 
-     y el acoplamiento gravitacional.
-   • F_ext ∈ [1, ∞): Métrica riemanniana territorial. Media ponderada estrictamente 
-     multiplicativa.
-   • Λ ∈ [3, 4]: Palanca de improbabilidad (Fat-Tail Risk Amplifier).
-   • P_frag ∈ [1.0, 2.5]: Penalización estructural continua para déficits de estabilidad (ψ < 1.0).
-
-2. Mapeo Conforme Dinámico (Espacio de Normalización Unificado):
-   Se abandona la normalización escalar estática. El espacio bidimensional se contrae o dilata 
-   isométricamente en función de la conectividad espectral del grafo (Valor de Fiedler λ₂). 
-   La desalineación se calcula como una distancia euclidiana genuina sobre esta variedad.
-
-3. Transición de Fase C^∞ (Factor de Gauge Acotado):
-   La magnetización de los cartuchos TOON sobre el tensor de atención se modela mediante 
-   mecánica estadística de espines. Emplea una función tangente hiperbólica desplazada para 
-   garantizar una saturación asintótica estricta g(n) ∈ [1.0, G_max], preservando la invariante 
-   de finitud, imponiendo la Continuidad de Lipschitz y aniquilando singularidades Jacobianas.
-
-4. Compactificación de Alexandroff (Proyección sobre el Retículo de Severidad):
-   El dominio del espacio de decisión proyecta el tensor de estrés continuo sobre la Esfera 
-   de Riemann (S¹). Las singularidades topológicas (math.nan, math.inf) se mapean isomorfamente al 
-   "Polo Norte" (el punto en el infinito), colapsando por pura geometría al Supremo del 
-   retículo acotado distributivo (VerdictLevel.RECHAZAR o ⊤) por el axioma del peor caso.
-
-5. Ley de Clausura Transitiva (Filtración DIKW):
-   Impone axiomáticamente la anidación de subespacios:
-   V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_Ω ⊂ V_WISDOM.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Deliberation Manifold (El Ágora Tensorial y Funtor de Colapso de Estado)       ║
+║  Ruta   : app/core/immune_system/deliberation_manifold.py                                ║
+║  Versión: 4.0.0-Alexandroff-Categorical-Collapse-Strict                                  ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CATEGORÍAS (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo rige el Estrato Ω (El Ágora Tensorial). Opera como el Funtor de Colapso     ║
+║  de la Función de Estado del sistema. Intercepta los tensores continuos provenientes     ║
+║  de los subespacios Táctico ($V_{\text{TACTICS}}$) y Estratégico ($V_{\text{STRATEGY}}$),║
+║  sometiéndolos a la fricción geométrica del territorio. Su mandato axiomático es         ║
+║  erradicar el libre albedrío estocástico del LLM, forzándolo a acatar el límite          ║
+║  superior del riesgo físico mediante un colapso determinista.                            ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Ecuación de Estado (Estrés Ajustado Tensorial $\sigma^*$):                          ║
+║      El colapso se rige por la interacción de cuatro campos ortogonales acoplados:       ║
+║          $\sigma^* = \left( T_{\text{int}} \cdot F_{\text{ext}} \cdot \Lambda \right) \cdot P_{\text{frag}}(\psi) \cdot g(n)$ ║
+║      Donde:                                                                              ║
+║      • $T_{\text{int}} \in \mathbb{R}^+$: Tensión interna (desalineación topológica).    ║
+║      • $F_{\text{ext}} \in [1, \infty)$: Métrica Riemanniana territorial.                ║
+║      • $\Lambda \in [1, 2]$: Palanca de Improbabilidad (Amplificador de colas pesadas).  ║
+║      • $P_{\text{frag}} \in [1.0, 2.5]$: Penalización estructural continua por déficit.  ║
+║                                                                                          ║
+║  §2. Mapeo Conforme Dinámico (Espacio de Normalización Unificado):                       ║
+║      Se abandona la normalización escalar estática. El espacio bidimensional se contrae  ║
+║      isométricamente en función de la conectividad espectral del grafo (Valor de         ║
+║      Fiedler $\lambda_2$). La desalineación topológica $\mathcal{D}$ se calcula como:    ║
+║          $\mathcal{D}(f, r) = \sqrt{(f_{\text{norm}} - r_{\text{norm}})^2}$              ║
+║                                                                                          ║
+║  §3. Compactificación de Alexandroff (Proyección al Retículo de Severidad):              ║
+║      El dominio de decisión proyecta el tensor continuo sobre la Esfera de Riemann       ║
+║      ($S^1$). Las singularidades ($\text{NaN}, \pm\infty$) se mapean isomorfamente al    ║
+║      "Polo Norte" de Alexandroff ($X \cup \{\infty\}$), colapsando incondicionalmente al ║
+║      Supremo del retículo distributivo acotado ($\top \equiv \text{RECHAZAR}$).          ║
+║                                                                                          ║
+║  §4. Transición de Fase $C^\infty$ (Magnetización TOON y Límite de Gauge):               ║
+║      La inyección de cuasipartículas cognitivas (TOON) modela su magnetización sobre     ║
+║      el tensor de atención garantizando una saturación asintótica estricta:              ║
+║          $g(n) = \min(\max(1 + \alpha n, 1.0), G_{\max})$                                ║
+║      Preservando la Continuidad de Lipschitz y aniquilando singularidades Jacobianas.    ║
+║                                                                                          ║
+║  §5. Ley de Clausura Transitiva (Filtración DIKW):                                       ║
+║      Impone axiomáticamente la inecuación de anidación de subespacios de Hilbert:        ║
+║          $V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\Omega} \subset V_{\text{WISDOM}}$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • OmegaInputs      : Coordenadas saneadas de entrada al manifold deliberativo.          ║
+║  • OmegaMetrics     : Magnitudes cuantitativas derivadas del manifold.                   ║
+║  • OmegaDiagnostics : Tensor interpretable para la auditoría y trazabilidad.             ║
+║  • OmegaResult      : Resultado definitivo del colapso de la función de estado.          ║
+║  • OmegaDeliberationManifold : Orquestador funtorial supremo (Morphism).                 ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

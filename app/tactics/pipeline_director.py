@@ -1,51 +1,60 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Pipeline Director (Orquestador de la Variedad Diferenciable y DAG Algebraico)
-Ubicación: app/tactics/pipeline_director.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Topológica:
-    Abandona la orquestación procedural y lineal para actuar como el Motor de Resolución 
-    de un Grafo Acíclico Dirigido (DAG) Algebraico. En este dominio, cada nodo del DAG 
-    constituye un endomorfismo proyectivo en el espacio de estados, y cada arista dicta 
-    la causalidad estricta del flujo de información. Su función axiomática es garantizar 
-    que el colapso de los datos a través del ecosistema sea determinista y libre de 
-    anomalías homológicas.
-
-1. Espacio Vectorial de Operadores y Ordenamiento Topológico:
-    El proceso de transformación se define sobre un espacio vectorial donde cada paso i 
-    es una proyección ortogonal P_i: V → V_i. El DAG impone un orden parcial estricto (≤) 
-    que garantiza la causalidad direccional de las transformaciones:
-        P_j ∘ P_i ≠ P_i ∘ P_j   (No conmutatividad para pasos acoplados)
-    La ejecución se realiza mediante un ordenamiento topológico inquebrantable, asegurando 
-    que los efectos termodinámicos y lógicos se resuelvan sin retroalimentación parásita.
-
-2. Filtración Topológica Estricta (Ley de Clausura Transitiva):
-    El director restringe la evaluación de los operadores a la filtración dictada por la
-    pirámide DIKW:
-        V_{PHYSICS} ⊂ V_{TACTICS} ⊂ V_{STRATEGY} ⊂ V_{WISDOM}
-    [AXIOMA DE CAUSALIDAD]: Un morfismo asignado al estrato k solo es evaluado si y solo 
-    si el tensor de estado proyectado sobre el subespacio k-1 es no degenerado y lógicamente 
-    sano. Esta restricción previene matemáticamente que el Estrato Estratégico o de Sabiduría 
-    opere sobre datos con disipación térmica o inestabilidad física basal.
-
-3. Auditoría Homológica de Fusión (Secuencia de Mayer-Vietoris):
-    Al integrar subcomplejos del presupuesto (e.g., A ∪ B durante la fase de AUDITED_MERGE), 
-    el director invoca la Secuencia Exacta Larga de Homología:
-        ... → H₁(A ∩ B) → H₁(A) ⊕ H₁(B) → H₁(A ∪ B) → H₀(A ∩ B) → ...
-    [AXIOMA DE VETO]: Si el diferencial topológico evidencia la creación de ciclos 
-    espurios (Δβ₁ = β₁(A ∪ B) - [β₁(A) + β₁(B) - β₁(A ∩ B)] ≠ 0), la fusión induce una 
-    paradoja lógica y el tensor es rechazado en tiempo de ejecución, abortando la 
-    propagación por inconsistencia.
-
-4. Estado Tipado Inmutable y Memoización como Isomorfismo:
-    Destituye la mutabilidad de los diccionarios en favor del `StateVector` fuertemente tipado. 
-    La memoización algebraíca aplicada trasciende un simple caché: actúa como una verificación 
-    de isomorfismo. Si la firma criptográfica (TensorSignature) del input y la topología del 
-    operador coinciden, el sistema reconoce la equivalencia de homotopía f(x) ≃ f(x'), 
-    evitando el recálculo y la consiguiente disipación de potencia computacional (eficiencia O(1)).
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Pipeline Director (Orquestador de la Variedad Diferenciable y DAG Algebraico)  ║
+║  Ruta   : app/tactics/pipeline_director.py                                               ║
+║  Versión: 4.0.0-DAG-Algebraic-Mayer-Vietoris-Strict                                      ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo abandona incondicionalmente la orquestación procedural y lineal para        ║
+║  erigirse como el Motor de Resolución de un Grafo Acíclico Dirigido (DAG) Algebraico.    ║
+║  En este dominio, cada nodo del DAG constituye un endomorfismo proyectivo en el          ║
+║  espacio de estados, y cada arista dicta la causalidad estricta del flujo de             ║
+║  información. Su función axiomática es garantizar que el colapso de los datos a          ║
+║  través de la Malla Agéntica sea determinista, asintóticamente estable y libre de        ║
+║  anomalías homológicas.                                                                  ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESTRUCTURALES:                                  ║
+║                                                                                          ║
+║  §1. Espacio Vectorial de Operadores y Ordenamiento Topológico:                          ║
+║      El proceso de transformación se define sobre un espacio vectorial donde cada        ║
+║      paso $i$ es una proyección ortogonal $P_i: V \to V_i$. El DAG impone un orden       ║
+║      parcial estricto ($\le$) que garantiza la causalidad direccional de las             ║
+║      transformaciones:                                                                   ║
+║          $P_j \circ P_i \neq P_i \circ P_j \quad \forall \text{ pasos acoplados}$        ║
+║      Asegurando que los efectos termodinámicos se resuelvan sin retroalimentación.       ║
+║                                                                                          ║
+║  §2. Filtración Topológica Estricta (Ley de Clausura Transitiva):                        ║
+║      El director restringe la evaluación de los operadores a la filtración dictada       ║
+║      por la pirámide DIKW:                                                               ║
+║          $V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\text{WISDOM}}$ ║
+║      [Axioma de Causalidad]: Un morfismo en el estrato $k$ solo se evalúa si el          ║
+║      tensor proyectado sobre $k-1$ es no degenerado y libre de disipación térmica.       ║
+║                                                                                          ║
+║  §3. Auditoría Homológica de Fusión (Secuencia de Mayer-Vietoris):                       ║
+║      Al integrar subcomplejos del presupuesto ($A \cup B$), se invoca la Secuencia       ║
+║      Exacta Larga de Homología:                                                          ║
+║          $\dots \to H_1(A \cap B) \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \to H_0(A \cap B) \to \dots$ ║
+║      Si el diferencial topológico evidencia la creación de ciclos espurios:              ║
+║          $\Delta\beta_1 = \beta_1(A \cup B) - [\beta_1(A) + \beta_1(B) - \beta_1(A \cap B)] \neq 0$ ║
+║      La fusión induce una paradoja lógica y el tensor es vetado irrevocablemente.        ║
+║                                                                                          ║
+║  §4. Estado Tipado Inmutable y Memoización como Isomorfismo:                             ║
+║      Se destituye la mutabilidad en favor del `StateVector`. La memoización se           ║
+║      axiomatiza como una verificación de isomorfismo. Si la firma criptográfica          ║
+║      (`TensorSignature`) coincide, el sistema reconoce la equivalencia de homotopía:     ║
+║          $f(x) \simeq f(x')$                                                             ║
+║      Previniendo el recálculo y garantizando disipación nula de potencia computacional.  ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • StateVector      : Vector de estado tipado que reemplaza diccionarios mutables.       ║
+║  • TensorSignature  : Firma criptográfica (hash) del tensor de datos.                    ║
+║  • AlgebraicDAG     : Grafo Acíclico Dirigido causal de transformaciones.                ║
+║  • PipelineDirector : Orquestador algebraico supremo del flujo logístico.                ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

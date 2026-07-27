@@ -1,50 +1,64 @@
 # -*- coding: utf-8 -*-
-"""
-=========================================================================================
-Módulo: Report Parser Crudo (Autómata Topológico y Filtro de Entropía Sintáctica)
-Ubicación: app/adapters/report_parser_crudo.py
-=========================================================================================
-
-Naturaleza Ciber-Física y Topológica:
-    Este módulo abandona la concepción de un simple "lector de texto" para operar como un 
-    Autómata Finito Determinista (DFA) incrustado en una variedad diferenciable de datos 
-    crudos. Su mandato axiomático es la validación geométrica: debe demostrar que el espacio 
-    de entrada es homeomorfo al espacio canónico del Complejo Simplicial del presupuesto 
-    antes de autorizar su procesamiento semántico.
-
-1. Validación Homeomórfica Estricta (_is_apu_homeomorphic):
-    Establece un isomorfismo estructural entre el árbol de derivación sintáctica (generado 
-    por la gramática Lark) y el espacio platónico de un APU válido. 
-    Garantiza matemáticamente la existencia de una biyección que preserva la estructura 
-    jerárquica padre-hijo (Capítulo → APU → Insumo). Cualquier ruptura en esta 
-    conectividad topológica es detectada como una discontinuidad, abortando la ingesta.
-
-2. Mecánica Estadística del Texto (Geometría de la Información):
-    Implementa operadores de medida rigurosos sobre la variedad unidimensional (líneas de texto) 
-    para separar la señal estructural del ruido estocástico:
-    • Entropía de Campo (H): Cuantifica el desorden en la tipificación de datos mediante 
-      la Entropía de Shannon H = -Σ p_i log₂(p_i). Se normaliza al intervalo [3] 
-      utilizando el invariante de máxima entropía H_max = log₂(4) ≈ 2.0 bits, correspondiente 
-      a los 4 estados fundamentales de los campos (alpha, numeric, mixed, empty).
-    • Cohesión Numérica: Cuantifica la agrupación de valores a través de una función 
-      sigmoide inversa 1/(1+d), acotando la distancia topológica entre campos numéricos 
-      adyacentes al intervalo (0, 1].
-    • Densidad Estructural: Evalúa la relación señal/ruido por línea, acotada estrictamente 
-      a [3].
-
-3. Filtración Funtorial (Sustitución del 'Chain of Responsibility'):
-    Subordina el patrón de diseño empírico a una Filtración de Subespacios. Los operadores 
-    secuenciales (JunkHandler, HeaderHandler, CategoryHandler, InsumoHandler) actúan como 
-    proyectores ortogonales P_i. Cada línea es proyectada y clasificada según 
-    su contribución estructural; el ruido no correlacionado es aniquilado en el núcleo (kernel) 
-    del JunkHandler.
-
-4. Memoria Topológica y Homología Local (ParserContext):
-    Mantiene el estado mutable del parseo (la "Pirámide en construcción"). 
-    Actúa como un evaluador de homología local en tiempo real para resolver la jerarquía del 
-    grafo y detectar componentes conexas degeneradas (recursos huérfanos que carecen de 
-    conexión a un APU).
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Report Parser Crudo (Autómata Topológico y Filtro de Entropía Sintáctica)      ║
+║  Ruta   : app/adapters/report_parser_crudo.py                                            ║
+║  Versión: 4.0.0-Topological-DFA-Shannon-Filtration-Strict                                ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor repudia la concepción empírica de "lector de texto". Ejerce como un     ║
+║  Autómata Finito Determinista (DFA) incrustado en una variedad diferenciable unidimen-   ║
+║  sional de datos crudos. Su mandato axiomático es la Validación Geométrica: debe         ║
+║  demostrar matemáticamente que el espacio topológico de entrada es homeomorfo al         ║
+║  Complejo Simplicial canónico del presupuesto antes de autorizar su ingesta semántica.   ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TOPOLÓGICO-ESTADÍSTICAS:                        ║
+║                                                                                          ║
+║  §1. Mecánica Estadística del Texto (Entropía de Shannon):                               ║
+║      Se aplican operadores de medida sobre la variedad textual para separar la señal     ║
+║      estructural del ruido estocástico. La entropía de campo se computa sobre los        ║
+║      cuatro estados fundamentales $\mathcal{F} = \{\text{alpha}, \text{numeric}, \text{mixed}, \text{empty}\}$:      ║
+║          $H(X) = - \sum_{i \in \mathcal{F}} p_i \log_2(p_i)$                             ║
+║      La entropía se acota por el supremo teórico $H_{\max} = \log_2(4) \approx 2.0$.     ║
+║      Líneas con entropía divergente son truncadas antes de entrar al DFA.                ║
+║                                                                                          ║
+║  §2. Cohesión Numérica y Distancia Topológica:                                           ║
+║      La densidad estructural y la agrupación de valores se cuantifica mediante la cota   ║
+║      del espacio métrico $d$ entre campos numéricos adyacentes:                          ║
+║          $\mathcal{C}(d) = \frac{1}{1 + d} \in (0, 1]$                                   ║
+║      Un descenso abrupto en la cohesión revela una fragmentación en el tensor de texto.  ║
+║                                                                                          ║
+║  §3. Filtración Funtorial y Proyección Ortogonal de Líneas:                              ║
+║      El patrón "Chain of Responsibility" se transforma en una Filtración de Subespacios. ║
+║      Los evaluadores actúan como un conjunto de proyectores ortogonales completos:       ║
+║          $I = P_{\text{Header}} \oplus P_{\text{Category}} \oplus P_{\text{Insumo}} \oplus P_{\text{Junk}}$          ║
+║      El ruido no correlacionado se aniquila implacablemente al proyectarse en el núcleo  ║
+║      del sistema: $v_{\text{ruido}} \in \ker(P_{\text{Junk}})$.                          ║
+║                                                                                          ║
+║  §4. Memoria Topológica, Homología Local y Validación Homeomórfica:                      ║
+║      El `ParserContext` preserva la "Pirámide en Construcción", actuando como un         ║
+║      evaluador de homología local. Si se detecta un recurso que carece de arista         ║
+║      incidente a un APU, el sistema certifica una componente conexa degenerada           ║
+║      (aislamiento topológico $\beta_0 > 1$). Se exige la equivalencia:                   ║
+║          $f: \text{AST}_{\text{Lark}} \xrightarrow{\sim} \mathcal{K}_{\text{APU}}$       ║
+║      Biyección que preserva la estructura (Capítulo → APU → Insumo).                     ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Mechanics & Entropy Filtration                                                 ║
+║           Cuantifica $H(X)$ y $\mathcal{C}(d)$ para podar el hiperespacio de ruido       ║
+║           antes de someter el texto al autómata.                                         ║
+║                                                                                          ║
+║  Fase 2 → Orthogonal Subspace Projection (Line Handlers)                                 ║
+║           Aplica los proyectores $P_i$ para clasificar estructuralmente la señal en      ║
+║           la variedad, segregando encabezados, categorías e insumos atómicos.            ║
+║                                                                                          ║
+║  Fase 3 → Homeomorphic Validation & Context Memory                                       ║
+║           Ensambla el complejo simplicial en el `ParserContext`, evaluando los           ║
+║           invariantes $\beta_0$ y abortando si la biyección topológica $f$ se fractura.  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 import hashlib

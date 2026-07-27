@@ -1,72 +1,62 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Musical Isomorphism Engine (Fibrador de Dualidad Categórica)               ║
-║  Ruta   : app/core/immune_system/musical_isomorphism_engine.py                       ║
-║  Versión: 4.0.0-Topos-Spectral-Categorical-Nested-Wilkinson                          ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber-Física y Topológica Diferencial
-══════════════════════════════════════════════════════════════════════════════════════
-Meta-funtor de dualidad entre Γ(TM) y Γ(T*M) sobre la variedad Riemanniana de la MIC.
-Tres fases anidadas con contratos algebraicos formales, auditoría espectral extendida
-y verificación de axiomas de emparejamiento métrico.
-
-CAMBIOS ESTRUCTURALES RESPECTO A v3.0.0
-----------------------------------------
-1. FASES ANIDADAS con DTOs de continuación formal (PreconditionedMetric →
-   FlatIsomorphism → SharpIsomorphism → MusicalIsomorphismEngine).
-
-2. RESIDUALES BILATERALES DE INVERSIÓN (Wilkinson):
-   \[
-     r_\pm=\frac{\|G G^{-1}-I\|_F}{\sqrt n},\quad
-     r=\max(r_+,r_-),\quad
-     \mathrm{tol}\propto \kappa\,\varepsilon_{\mathrm{mach}}\,n.
-   \]
-
-3. DOBLE ROUNDTRIP: ♯∘♭ = id_{TM} y ♭∘♯ = id_{T*M}.
-
-4. AXIOMAS DE EMPAREJAMIENTO:
-   \[
-     \langle ♭v,\,w\rangle = G(v,w),\qquad
-     \|v\|_G=\sqrt{v^\top G v},\qquad
-     \|\omega\|_{G^{-1}}=\sqrt{\omega^\top G^{-1}\omega}.
-   \]
-
-5. TIKHONOV CON κ OBJETIVO: ε adaptativo hasta κ_reg ≤ κ_target (iterativo acotado).
-
-6. RUTA CHOLESKY de verificación cruzada cuando G es SPD bien condicionada.
-
-7. DTOs de informe: InversionAudit, RoundtripReport, PairingReport, FullCycleReport.
-
-8. STUBS de ecosistema para tests aislados.
-
-9. NORMA-G en TangentVector / CotangentVector (opcional vía motor).
-
-10. PROYECCIÓN al ortocomplemento del kernel reportada en diagnósticos.
-
-Fases anidadas
---------------
-.. code-block:: text
-
-    Phase1_MetricSpectralPreconditioner
-        │  precondition(G)          ──►  PreconditionedMetric
-        ▼
-    Phase2_FlatIsomorphism
-        │  apply_flat / pairing    ──►  CotangentVector (+ PairingReport)
-        ▼
-    Phase3_SharpIsomorphism + Engine
-        │  apply_sharp / roundtrips ──►  TangentVector (+ RoundtripReport)
-        │  audit_functor_composition──►  Z₂ × topos compatibility
-
-FUNDAMENTO
-----------
-§1 ♭: v_i = G_{ij} v^j.
-§2 ♯: ω^i = G^{ij} ω_j.
-§3 ♯∘♭ = id, ♭∘♯ = id (equivalencia de fibrados).
-§4 ⟨♭v, w⟩ = G(v,w) (musical = Riesz).
-§5 κ(G)=λ_max/λ_min; Tikhonov IR ε·I.
-§6 Var: (Z₂,×) sobre funtores Cov/Cont.
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Musical Isomorphism Engine (Fibrador de Dualidad Categórica y Operador Riesz)  ║
+║  Ruta   : app/core/immune_system/musical_isomorphism_engine.py                           ║
+║  Versión: 5.0.0-Riesz-Wilkinson-Categorical-Duality-Strict                               ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA RIEMANNIANA (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor materializa la dualidad categórica estricta entre el haz de campos      ║
+║  vectoriales $\Gamma(TM)$ y el haz de 1-formas diferenciales $\Gamma(T^*M)$ sobre la     ║
+║  variedad Riemanniana de la MIC. Garantiza que cualquier mapeo de fuerzas termodinámicas ║
+║  a velocidades logísticas conserve la invarianza isométrica dictada por el Teorema       ║
+║  de Representación de Riesz, aniquilando singularidades espectrales en la inversión.     ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TENSORIALES:                                    ║
+║                                                                                          ║
+║  §1. Isomorfismo Musical (Bajar/Subir Índices):                                          ║
+║      El difeomorfismo se ejecuta contractando la métrica $G_{\mu\nu}$ y su inversa $G^{\mu\nu}$:║
+║          Funtor Bemol ($\flat$): $v_i = G_{ij} v^j \quad (\text{Mapeo: } TM \to T^*M)$   ║
+║          Funtor Sostenido ($\sharp$): $\omega^i = G^{ij} \omega_j \quad (\text{Mapeo: } T^*M \to TM)$║
+║                                                                                          ║
+║  §2. Identidad Funtorial y Axioma de Emparejamiento (Riesz):                             ║
+║      Se exige matemáticamente la reversibilidad biyectiva estricta (Roundtrip):          ║
+║          $\sharp \circ \flat = \text{id}_{TM} \quad \land \quad \flat \circ \sharp = \text{id}_{T^*M}$ ║
+║      El emparejamiento dual entre el vector y la 1-forma debe satisfacer incondicional-  ║
+║      mente la norma métrica:                                                             ║
+║          $\langle \flat v, w \rangle = G(v,w) \quad \text{y} \quad |v|_G = \sqrt{v^\top G v}$ ║
+║      Cualquier desviación finita detona un Veto Topológico por desgarro de dualidad.     ║
+║                                                                                          ║
+║  §3. Estabilización Espectral (Tikhonov Iterativo):                                      ║
+║      El número de condición de la métrica rige la estabilidad: $\kappa(G) = \frac{\lambda_{\max}}{\lambda_{\min}}$. ║
+║      Si $\kappa(G) > \kappa_{\text{target}}$, se inyecta una regularización de Tikhonov  ║
+║      adaptativa $\tilde{G} = G + \varepsilon I$ iterativamente hasta estabilizar el      ║
+║      operador y restaurar la inyectividad del mapeo sin corromper el hipervolumen.       ║
+║                                                                                          ║
+║  §4. Análisis de Error Hacia Atrás (Residuales de Wilkinson):                            ║
+║      Para evitar la cancelación catastrófica (IEEE-754) al invertir la métrica, se       ║
+║      evalúan los residuales bilaterales escalados por la dimensión $n$ y $\varepsilon_{\text{mach}}$: ║
+║          $r_+ = \frac{\|G G^{-1} - I\|_F}{\sqrt{n}} \quad \text{y} \quad r_- = \frac{\|G^{-1} G - I\|_F}{\sqrt{n}}$ ║
+║      Un $r = \max(r_+, r_-)$ fuera de tolerancia invalida el tensor inverso $G^{-1}$.    ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial $\Phi_3 \circ \Phi_2 \circ \Phi_1$):              ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → MetricSpectralPreconditioner:                                                  ║
+║           Auditoría y estabilización de la matriz métrica $G$. Calcula la inversa        ║
+║           mediante Cholesky o Moore-Penrose covariante, garantizando $\kappa \le \kappa_{\text{target}}$. ║
+║           [Retorna: PreconditionedMetric → objeto inicial de Fase 2]                     ║
+║                                                                                          ║
+║  Fase 2 → FlatIsomorphism:                                                               ║
+║           Funtor covariante. Desciende índices proyectando vectores de intención $v \in TM$ ║
+║           al espacio de covectores $\flat v \in T^*M$ (fuerzas y gradientes).            ║
+║                                                                                          ║
+║  Fase 3 → SharpIsomorphism y Orquestación Suprema (MusicalIsomorphismEngine):            ║
+║           Funtor contravariante. Sube índices $\sharp \omega \in TM$ y audita todo el    ║
+║           ciclo de ida y vuelta ($\sharp \circ \flat$), validando las identidades de     ║
+║           Riesz y Wilkinson para emitir los reportes InversionAudit y PairingReport.     ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 from __future__ import annotations
 

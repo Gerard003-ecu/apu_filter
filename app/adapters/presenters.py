@@ -1,49 +1,64 @@
 # -*- coding: utf-8 -*-
-r"""
-=========================================================================================
-Módulo: Presenters (Operador de Proyección a la Variedad de Salida y Fibración Semántica)
-Ubicación: app/adapters/presenters.py
-=========================================================================================
-
-Naturaleza Ciber‑Física y Topológica:
-    Este módulo no es un simple formateador de datos; actúa como el Proyector 
-    Estructural Final que mapea el Complejo Simplicial del presupuesto (Estrato TACTICS) 
-    hacia la Variedad de Observabilidad del usuario (Estrato WISDOM). Su mandato 
-    axiomático es garantizar que ninguna entropía residual alcance la interfaz ejecutiva, 
-    preservando estrictamente los isomorfismos financieros y semánticos.
-
-1. Fibración Categórica y Clases de Equivalencia (Normalización):
-    Abandona la “estandarización” empírica para instaurar un mapeo de fibración. 
-    Resuelve vacíos y ambigüedades proyectando variantes textuales u ortográficas 
-    hacia clases de equivalencia canónicas exactas. Garantiza que dos recursos 
-    topológicamente homólogos posean firmas de identidad binariamente indistinguibles.
-
-2. Retractos de Deformación (Sanitización Defensiva):
-    Los operadores de limpieza actúan como retractos de deformación continuos. Aniquilan 
-    caracteres de control, entropía de espacios y ruido sintáctico sin alterar el 
-    ADN estructural del dato. Convierte columnas numéricas asegurando la clausura en el 
-    cuerpo de los reales (ℝ) bajo las estrictas restricciones de la FPU (IEEE 754), 
-    preservando el tipado inmutable del tensor durante la proyección.
-
-3. Cuantificación de Medida de Lebesgue (Cálculo de Metadatos):
-    Las estimaciones de cobertura no son simples conteos. El módulo cuantifica la 
-    reducción del espacio de estados (registros) y computa la medida geométrica de 
-    la clasificación, resumiendo las magnitudes económicas agregadas como integrales 
-    definidas sobre los subespacios de costo.
-
-4. Ley de Conservación de Valor (Consistencia de Agregación):
-    Consolida registros por categoría bajo el rigor del Teorema de Conservación del 
-    Valor. Verifica axiomáticamente la relación fundamental del espacio financiero:
-        C = Q × P  (valor_total ≈ cantidad × valor_unitario)
-    Somete esta igualdad a tolerancias híbridas (ε_rel, ε_abs) para absorber la 
-    fricción de truncamiento numérico, dictaminando un VETO DE PRESENTACIÓN si 
-    la discrepancia evidencia una corrupción termodinámica en la contabilidad.
-
-    **NUEVO** – Invariante Global de Suma:
-        Σ_i V_i^{original} ≈ Σ_j V_j^{agregado}
-    Se valida la conservación de la masa financiera total antes y después de la
-    proyección al sub‑espacio de ítems consolidados.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Presenters (Proyector a la Variedad de Salida y Fibración Semántica)           ║
+║  Ruta   : app/adapters/presenters.py                                                     ║
+║  Versión: 4.0.0-Categorical-Lebesgue-Fibration-Strict                                    ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor abandona la noción empírica de "formateador". Actúa como el Proyector   ║
+║  Estructural Final que mapea el Complejo Simplicial del presupuesto (Estrato TACTICS)    ║
+║  hacia la Variedad de Observabilidad (Estrato WISDOM). Su mandato es aniquilar toda      ║
+║  entropía residual antes de la interfaz ejecutiva, preservando axiomáticamente los       ║
+║  isomorfismos financieros y semánticos.                                                  ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Fibración Categórica y Clases de Equivalencia (Normalización):                      ║
+║      Resuelve vacíos proyectando variantes ortográficas hacia clases de equivalencia     ║
+║      canónicas exactas $[x]$. Dos recursos topológicamente homólogos ($x \simeq y$)      ║
+║      colapsan a la misma firma binaria inmutable:                                        ║
+║          $x \simeq y \implies [x] = [y]$                                                 ║
+║                                                                                          ║
+║  §2. Retractos de Deformación (Sanitización Defensiva):                                  ║
+║      Los operadores de limpieza actúan como retractos de deformación continuos.          ║
+║      Aniquilan la entropía del espacio y el ruido sintáctico asegurando la clausura      ║
+║      en el cuerpo de los reales ($\mathbb{R}$) bajo las restricciones de la FPU (IEEE 754),║
+║      preservando el tipado inmutable del tensor de datos.                                ║
+║                                                                                          ║
+║  §3. Cuantificación de Medida de Lebesgue (Metadatos):                                   ║
+║      El resumen de magnitudes económicas se modela como integrales definidas sobre los   ║
+║      subespacios de costo $\Omega_c$ empleando la medida de Lebesgue $\mu$:              ║
+║          $\text{Vol}(C) = \int_{\Omega_c} d\mu$                                          ║
+║                                                                                          ║
+║  §4. Ley de Conservación de Valor (Consistencia de Agregación):                          ║
+║      Verifica axiomáticamente la relación fundamental del espacio financiero:            ║
+║          $C = Q \times P$                                                                ║
+║      Para absorber la fricción de truncamiento numérico, se imponen tolerancias híbridas ║
+║      ($\varepsilon_{rel}, \varepsilon_{abs}$). Si la discrepancia excede:                ║
+║          $|C - (Q \times P)| > \varepsilon_{rel} \max(|C|, |Q \times P|) + \varepsilon_{abs}$ ║
+║      se dictamina un VETO DE PRESENTACIÓN por corrupción termodinámica.                  ║
+║                                                                                          ║
+║  §5. Invariante Global de Suma (Conservación de Masa Financiera):                        ║
+║      Garantiza que la proyección al sub-espacio de ítems consolidados no destruya valor: ║
+║          $\left| \sum_{i \in \mathcal{I}} V_i^{\text{original}} - \sum_{j \in \mathcal{J}} V_j^{\text{agregado}} \right| \le \mathcal{O}(\varepsilon_{\text{mach}})$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Categorical Fibration & Deformation Retract                                    ║
+║           Aplica los retractos continuos para aniquilar el ruido estocástico y           ║
+║           proyectar las entidades a sus clases de equivalencia canónicas.                ║
+║                                                                                          ║
+║  Fase 2 → Thermodynamic Value Conservation                                               ║
+║           Somete el tensor agregado a la inecuación de tolerancia híbrida para           ║
+║           verificar que $C = Q \times P$ localmente.                                     ║
+║                                                                                          ║
+║  Fase 3 → Global Measure & Invariant Audit                                               ║
+║           Computa la medida geométrica de Lebesgue y audita el invariante global         ║
+║           de masa financiera $\sum V^{\text{original}} \approx \sum V^{\text{agregado}}$ antes de exponer el `APUPresenter`.║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

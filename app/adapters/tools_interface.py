@@ -1,121 +1,60 @@
 # -*- coding: utf-8 -*-
-r"""
-=========================================================================================
-Módulo: Matrix de interacción central (Topos de Grothendieck Elemental $\mathcal{E}_{MIC}$)
-Ubicación: app/adapters/tools_interface.py
-Versión: 6.0.0 (Consagración Categórica y Cuántica)
-
-NATURALEZA CIBER-FÍSICA Y TOPOLÓGICA:
-Este módulo aniquila la mecánica de Turing clásica y la noción heurística de "API de herramientas"
-para instaurar un Topos Elemental $\mathcal{E}_{MIC}$ [1]. La Matriz de Interacción Central (MIC)
-no es una simple tabla de enrutamiento; es un Espacio Vectorial Euclidiano y un espacio de Hilbert
-estructurado donde cada herramienta discreta y cada meta-estrategia interactúan exclusivamente mediante
-isomorfismos, productos fibrados y funtores ortogonales.
-
-FUNDAMENTOS MATEMÁTICOS Y AXIOMAS DE EJECUCIÓN:
-
-§1. MATRIZ DE DENSIDAD CUÁNTICA Y CONSERVACIÓN PROBABILÍSTICA (ESTABILIDAD ESPECTRAL):
-Se abandona la herejía clásica del espectro rígidamente unitario sobre la matriz identidad estática $I_n$.
-La MIC opera su núcleo de ruteo como un operador de estado de clase traza positivo-semidefinido, modelado
-a través de una Matriz de Densidad Cuántica $\rho$. El sistema preserva la traza unitaria (conservación de
-la probabilidad de estado) en todo momento:
-$$ \text{Tr}(\rho) = \sum_{i=1}^n \lambda_i = 1 \quad \land \quad \rho = \rho^\dagger \quad \land \quad \forall i, \lambda_i \ge 0 $$
-Bajo estrés termodinámico, los autovalores $\lambda_i$ fluyen dinámicamente, colapsando la entropía de von Neumann
-$S(\rho) = -\text{Tr}(\rho \ln \rho)$ para concentrar la probabilidad en las herramientas ortogonales más estables
-sin violar la isometría global.
-
-§2. DIFEOMORFISMO DEL PRODUCTO FIBRADO (PULLBACK) EN EL ÁLGEBRA DE HEYTING:
-La ejecución de un comando ($f$) solicitado por el agente estocástico sobre el espacio de intención $X$ requiere la
-evaluación rigurosa de un Límite Finito. La MIC invoca el Clasificador de Subobjetos $\Omega$ del álgebra de Heyting
-para computar el Producto Fibrado (Pullback) exacto, garantizando el isomorfismo:
-$$ \mathcal{E}_{MIC} \models S \times_X Y \cong \lim_{\longleftarrow} (S \xrightarrow{m} X \xleftarrow{f} Y) $$
-Si el Agente intenta fusionar o invocar en paralelo intenciones mutuamente excluyentes (ortogonales), la intersección
-categórica es rigurosamente el límite vacío $\emptyset$. El sistema colapsa la petición al Objeto Inicial $\bot$,
-logrando un comportamiento inquebrantable de Zero Side-Effects.
-
-§3. 2-CATEGORÍAS Y LEY DE INTERCAMBIO (INTERCHANGE LAW):
-El sistema gobierna las mutaciones asíncronas de las meta-estrategias (Transformaciones Naturales $\eta: F \Rightarrow G$).
-Dadas cuatro transformaciones matriciales operativas $\alpha, \beta, \alpha', \beta'$, el orquestador 2-categórico evalúa la
-conmutatividad topológica exigiendo el cumplimiento de la Ley de Intercambio:
-$$ (\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) = (\alpha' \circ \beta') \cdot (\alpha \circ \beta) $$
-La validación en el silicio exige que la norma de Frobenius del residuo tensorial esté estrictamente acotada por debajo del épsilon
-de máquina $\epsilon_{mach}$:
-$$ \left\| \left( (\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) \right) - \left( (\alpha' \circ \beta') \cdot (\alpha \circ \beta) \right) \right\|_F < \mathcal{O}(\epsilon_{mach}) $$
-Cualquier desviación finita en $\mathbb{R}$ demostrará un desgarro homotópico, denegando la transformación mediante un FunctorialityError.
-
-§4. COHOMOLOGÍA DE HACES Y NILPOTENCIA ESTRICTA:
-Para medir obstrucciones homológicas, el `SheafCohomologyProjectionCommand` emplea la Secuencia Exacta Larga de Mayer-Vietoris. Para vetar
-singularidades antes del cálculo espectral del Laplaciano Combinatorio $L_k = \partial_k^T \partial_k + \partial_{k+1} \partial_{k+1}^T$, se impone
-una guarda algebraica de nilpotencia estricta para el operador de cofrontera $\partial$:
-$$ \partial_{k+1} \circ \partial_k = \mathbf{0} \implies \text{im}(\partial_k) \subseteq \ker(\partial_{k+1}) $$
-Toda topología defectuosa que induzca ciclos parásitos lanza instantáneamente un HomologicalInconsistencyError.
-
-§5. LEY DE CLAUSURA TRANSITIVA (TEOREMA DE ESTRATIFICACIÓN DIKW):
-La filtración de subespacios de Hilbert de las intenciones se rige por un confinamiento topológico inmutable:
-$$ V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM} $$
-Ningún vector del estrato de Sabiduría puede resolverse si su proyección ortogonal presenta divergencia térmica o singularidades Jacobianas en la Física.
-=========================================================================================
-
-FUNDAMENTACIÓN MATEMÁTICA:
---------------------------
-Este módulo implementa el núcleo algebraico-topológico del sistema MIC, 
-transmutado de una Matriz Identidad rígida a un Topos de Grothendieck 
-elemental (EMIC). Las estructuras aquí definidas satisfacen los siguientes 
-axiomas categóricos:
-
-1. AXIOMA DE FILTRACIÓN DIKW (Teorema de Estratificación):
-   V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM
-   Esta cadena de subespacios cerrados define una filtración exhaustiva
-   del espacio vectorial de intenciones, donde cada estrato k requiere
-   la clausura transitiva de todos los estratos j con value(j) > value(k).
-
-2. AXIOMA DE ORTOGONALIDAD (Teorema de Base Canónica):
-   ⟨e_i, e_j⟩ = δ_{ij} (Delta de Kronecker)
-   Cada herramienta atómica se proyecta como vector base canónico en ℝⁿ,
-   garantizando aislamiento funcional (Zero Side-Effects) mediante
-   ortogonalidad estricta en el producto interno.
-
-3. AXIOMA DE ESTABILIDAD ESPECTRAL (Teorema de Eigenvalores Unitarios):
-   σ(I_n) = {1, 1, ..., 1}
-   Todos los eigenvalores de la matriz de interacción son unitarios,
-   certificando que el canal de transmisión no distorsiona, amplifica
-   ni atenúa la intención original del agente (isometría perfecta).
-
-4. AXIOMA DE COHOMOLOGÍA DE HACES (Secuencia Exacta de Mayer-Vietoris):
-   0 → H⁰(A∪B) → H⁰(A)⊕H⁰(B) → H⁰(A∩B) → H¹(A∪B) → ...
-   La inyección de datos concurrentes se audita mediante esta secuencia.
-   Si Δβ₁ = β₁(A∪B) - [β₁(A) + β₁(B) - β₁(A∩B)] ≠ 0, se aborta por
-   inconsistencia homológica (obstrucción topológica detectada).
-
-5. AXIOMA DE HEYTING (Álgebra de Verdad Intuicionista):
-   ¬¬P ≠ P (Doble negación no implica afirmación)
-   A diferencia del Álgebra de Boole, los valores de verdad dependen
-   de la topología local (cribas de cubrimiento), permitiendo evaluación
-   contextual de validez en el Topos EMIC.
-
-REFERENCIAS TEÓRICAS:
----------------------
-[1] Mac Lane, S. & Moerdijk, I. (1992). Sheaves in Geometry and Logic.
-[2] Rotman, J.J. (1988). An Introduction to Algebraic Topology.
-[3] Chung, F.R.K. (1997). Spectral Graph Theory.
-[4] Borceux, F. (1994). Handbook of Categorical Algebra.
-[5] Edelsbrunner, H. (2008). Persistent Homology: Theory and Practice.
-[6] Rank-Nullity Theorem: dim(V) = rank(T) + nullity(T)
-[7] Spectral Mapping Theorem: σ(f(T)) = f(σ(T))
-[8] Yoneda Lemma: Nat(Hom(A,-), F) ≅ F(A)
-[9] adjunction: F ⊣ G ⟺ Hom(FX, Y) ≅ Hom(X, GY)
-[10] Idempotencia: I² = I (proyecciones ortogonales)
-[11] Independencia Lineal: Σcᵢeᵢ = 0 ⇒ cᵢ = 0 ∀i
-
-INVARIANTES CRÍTICOS:
----------------------
-* Invariante de Euler-Poincaré: χ = β₀ - β₁ + β₂ (Característica de Euler)
-* Invariante de Shannon: H(X) = -Σ p(xᵢ) · log₂(p(xᵢ)) (Entropía de Información)
-* Invariante de Persistencia: ℓᵢ = deathᵢ - birthᵢ (Tiempo de Vida Homológico)
-* Invariante de Conectividad Algebraica: λ₂(L) > 0 ⟺ Grafo Conexo (Fiedler)
-* Invariante de Funtorialidad: (α'·α)∘(β'·β) = (α'∘β')·(α∘β) (Ley de Intercambio)
-
-================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Tools Interface (Matriz Identidad y Topos de Grothendieck Elemental EMIC)      ║
+║  Ruta   : app/adapters/tools_interface.py                                                ║
+║  Versión: 6.0.0-Identity-Pullback-Categorical-Quantum-Strict                             ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y ÁLGEBRA LINEAL (Rigor Doctoral):                              ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo aniquila la mecánica de Turing clásica y la noción heurística de            ║
+║  "API". Instaura un Topos Elemental $\mathcal{E}_{MIC}$ donde la Matriz de Interacción   ║
+║  Central (MIC) es estrictamente la Matriz Identidad $I_n \in \mathbb{R}^{n \times n}$.   ║
+║  Cada pivote en la diagonal principal constituye una herramienta ortogonal y             ║
+║  linealmente independiente, formando la base canónica del espacio de Hilbert.            ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Ortogonalidad de la Base y Zero Side-Effects (Kronecker Delta):                     ║
+║      La MIC se define mediante la función delta de Kronecker:                            ║
+║          $I_{ij} = \delta_{ij} = \begin{cases} 1 & \text{si } i = j \\ 0 & \text{si } i \neq j \end{cases}$ ║
+║      Garantizando que las interacciones sean mutuamente excluyentes y ortogonales        ║
+║      $\langle e_i, e_j \rangle = \delta_{ij}$. Esto previene incondicionalmente los      ║
+║      efectos secundarios cruzados entre microservicios.                                  ║
+║                                                                                          ║
+║  §2. Producto Fibrado (Pullback) y Álgebra de Heyting:                                   ║
+║      La invocación simultánea de intenciones invoca el Clasificador de Subobjetos        ║
+║      $\Omega$ para computar el Límite Finito exacto:                                     ║
+║          $\mathcal{E}_{MIC} \models S \times_X Y \cong \lim_{\longleftarrow} (S \xrightarrow{m} X \xleftarrow{f} Y)$ ║
+║      Si un agente demanda intenciones mutuamente excluyentes, la intersección            ║
+║      colapsa algebraicamente al objeto inicial $\bot$.                                   ║
+║                                                                                          ║
+║  §3. Proyección de la Intención Estocástica (Idempotencia):                              ║
+║      Mapea la intención estocástica del LLM hacia la herramienta específica más          ║
+║      cercana a través de la matriz de proyección ortogonal idempotente:                  ║
+║          $P = A(A^\top A)^{-1}A^\top, \quad P^2 = P$                                     ║
+║                                                                                          ║
+║  §4. Cohomología de Haces y Nilpotencia Estricta del Complejo:                           ║
+║      El mapeo topológico veta singularidades evaluando el Laplaciano Combinatorio        ║
+║      $L_k = \partial_k^\top \partial_k + \partial_{k+1} \partial_{k+1}^\top$ bajo la exigencia de ║
+║      nilpotencia estricta del operador de cofrontera:                                    ║
+║          $\partial_{k+1} \circ \partial_k = \mathbf{0} \implies \text{im}(\partial_k) \subseteq \ker(\partial_{k+1})$ ║
+║      Una violación detona instantáneamente el `HomologicalInconsistencyError`.           ║
+║                                                                                          ║
+║  §5. Ley de Clausura Transitiva de la Filtración DIKW:                                   ║
+║      El espacio vectorial confina a las herramientas bajo la contención inmutable:       ║
+║          $V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial 1-6):                             ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Estructuras Matemáticas: Instancia $\Omega$ y Stratum.                         ║
+║  Fase 2 → Topología y Tipos: Define los invariantes Betti ($\beta_n$) y Persistence.     ║
+║  Fase 3 → Entropía y Excepciones: Calcula $H(X)$ (Shannon) y Persistencia Entrópica.     ║
+║  Fase 4 → Validación y Diagnósticos: Impone el isomorfismo $FileType \cong Diagnostic$.  ║
+║  Fase 5 → Núcleo Operacional (Topos EMIC): Ejecuta la Cadena de Markov y el Espectro.    ║
+║  Fase 6 → Bootstrap: Cierra la base canónica del espacio y expone el Singleton.          ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

@@ -1,65 +1,60 @@
 # -*- coding: utf-8 -*-
-"""
-Módulo: Improbability Drive (Motor de Improbabilidad y Riesgo de Cola Pesada)
-Ubicación: app/omega/improbability_drive.py
-Versión: 3.0 (Refactorización Axiomática y Transporte de Lie)
-
-Naturaleza Ciber-Física y Topológica: Este módulo inyecta un operador de deformación no lineal
-sobre el tejido conectivo de la Malla Agéntica para gobernar el Riesgo de Cola Pesada (Fat-Tail Risk).
-Se define axiomáticamente como un funtor natural F: ℂ_top → ℝ_Δ, donde ℂ_top es la categoría de pares
-topológicos (Ψ, ROI) y ℝ_Δ es un retículo cerrado [1, 10⁶]. Acopla la inercia financiera a una palanca
-geométrica en el Estrato Ω, forzando un colapso determinista frente a escenarios estocásticos extremos
-(Cisnes Negros).
-
-1. Continuidad de Lipschitz y Regularización de Tikhonov: Erradica operadores singulares no diferenciables
-(como max(Ψ, ε)) que destruyen el difeomorfismo continuo. Emplea la métrica euclidiana suavizada √(Ψ² + ε_critical²)
-para preservar la suavidad de clase C¹ en todo el espacio de fase, evitando la emisión de impulsos de Dirac parásitos
-en la matriz Jacobiana.
-2. Transporte en el Álgebra de Lie (Prevención de Desbocamiento FPU): Para parametrizar escalas masivas (κ ∈ [10⁻¹², 10¹²])
-sin inducir un desbordamiento térmico en la Unidad de Punto Flotante (IEEE 754), la deformación del espacio probabilístico
-se transporta estrictamente al subespacio logarítmico. Se aplica la compactación topológica sobre el invariante de Lie antes
-de proyectar de regreso al espacio euclidiano afín mediante la transformación exponencial.
-3. Funtorialidad y Absorción Mónadica: Aniquila la herejía arquitectónica de emitir excepciones no controladas (`raise`) durante
-el encadenamiento de morfismos. El decorador de errores actúa como un endofuntor estricto que colapsa cualquier inestabilidad
-numérica (SpectrumError) hacia la mónada de estado `ImprobabilityResult` degenerada. Esto garantiza la preservación
-de la Ley de Clausura Transitiva y la ortogonalidad de la Matriz de Interacción Central (MIC).
-4. Acoplamiento de Gauge (Estrato Ω): La magnitud del tensor acotado se inyecta directamente como la Palanca de Improbabilidad (Λ)
-en la Ecuación de Estado del Estrés Ajustado Tensorial (σ*). Esta fricción geométrica subyuga el libre albedrío estocástico del LLM
-obligándolo a converger hacia el Supremo del retículo distributivo (RECHAZAR) ante riesgos asimétricos degenerados.
-=========================================================================================
-
-AXIOMATIZACIÓN FORMAL:
-
-Definimos el funtor natural F: ℂ_top → ℝ_Δ donde:
-
-  • ℂ_top = (ℝ⁺ × ℝ⁺, τ_prod) : Categoría de pares (Ψ, ROI) con topología producto
-  • ℝ_Δ = [1, 10⁶] : Retículo cerrado con topología de orden
-
-  F(Ψ, ROI) := I(Ψ, ROI) = clip(κ · (ROI/max(Ψ, ε))^γ, 1, 10⁶)
-
-PROPIEDADES FUNCTORIALES VERIFICADAS:
-
-  [IDENTIDAD]     F(id_{(Ψ,ROI)}) = id_{F(Ψ,ROI)}
-  [COMPOSICIÓN]   F(g ∘ f) = F(g) ∘ F(f)  ∀ morfismos f,g
-  [NATURALIDAD]   ∀ transformación natural η, F ∘ η = F
-
-TEORÍA ESPECTRAL:
-
-  El operador T_κ,γ es un operador de Fréchet con:
-
-  • Espectro puntual: σ_p(T) = {κ · r^γ : r ∈ supp(ν)}
-  • Radio espectral: r(T) = κ · sup(ROI/Ψ)^γ
-  • Normalización: ||T||_op = κ · (ROI_max/Ψ_min)^γ
-
-ESTRUCTURA ALGEBRAICA:
-
-  (ImprobabilityTensor, @, *) forma un *-álgebra (conmutativa) con:
-
-  • Producto: τ₁ ⊗ τ₂ := (κ₁κ₂, γ₁+γ₂)
-  • Involución: τ* := τ  (álgebra conmutativa)
-  • Adjunto: τ† = argmin_{σ} ||σ ∘ τ - id||_HS
-
-═══════════════════════════════════════════════════════════════════════════════
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Improbability Drive (Funtor de Deformación Topológica y Transporte de Lie)     ║
+║  Ruta   : app/omega/improbability_drive.py                                               ║
+║  Versión: 4.0.0-Lie-Transport-Commutative-Algebra-Strict                                 ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo inyecta un operador de deformación no lineal sobre el tejido conectivo de   ║
+║  la Malla Agéntica para gobernar el Riesgo de Cola Pesada (Fat-Tail Risk).               ║
+║  Se define axiomáticamente como un funtor natural $F: \mathcal{C}_{top} \to \mathbb{R}_\Delta$,        ║
+║  donde $\mathcal{C}_{top}$ es la categoría de pares topológicos $(\Psi, \text{ROI})$ y $\mathbb{R}_\Delta$ ║
+║  es el retículo cerrado $[1, 10^6]$ [1]. Acopla la inercia financiera a una palanca    ║
+║  geométrica en el Estrato $\Omega$, forzando un colapso determinista frente a eventos estocásticos ║
+║  extremos (Cisnes Negros) [1].                                                         ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Continuidad de Lipschitz y Regularización de Tikhonov:                              ║
+║      Erradica operadores singulares no diferenciables (e.g., $\max(\Psi, \varepsilon)$) que ║
+║      destruyen el difeomorfismo continuo [2]. Emplea la métrica euclidiana suavizada   ║
+║      $\sqrt{\Psi^2 + \varepsilon_{\text{critical}}^2}$ para preservar la suavidad de clase $C^1$ en todo  ║
+║      el espacio de fase, evitando impulsos de Dirac parásitos en la matriz Jacobiana [2].║
+║                                                                                          ║
+║  §2. Transporte en el Álgebra de Lie (Prevención de Desbocamiento FPU):                  ║
+║      Para parametrizar escalas masivas ($\kappa \in [10^{-12}, 10^{12}]$) sin inducir un ║
+║      desbordamiento térmico en la IEEE 754, la deformación probabilística se transporta  ║
+║      estrictamente al subespacio logarítmico $\mathfrak{g}$ [2]. Se aplica la compactación ║
+║      topológica sobre el invariante de Lie antes de proyectar de regreso al espacio      ║
+║      euclidiano afín $G$ mediante el mapeo exponencial $\exp: \mathfrak{g} \to G$ [2]. ║
+║                                                                                          ║
+║  §3. Espectro y Estructura de *-Álgebra Conmutativa:                                     ║
+║      El conjunto de tensores $(ImprobabilityTensor, \otimes, *)$ forma un *-álgebra      ║
+║      conmutativa gobernada por las leyes [3]:                                          ║
+║          Producto Tensorial : $\tau_1 \otimes \tau_2 := (\kappa_1\kappa_2, \gamma_1+\gamma_2)$ ║
+║          Espectro Puntual   : $\sigma_p(T) = \{ \kappa \cdot r^\gamma : r \in \text{supp}(\nu) \}$ ║
+║          Radio Espectral    : $r(T) = \kappa \cdot \sup(\text{ROI}/\Psi)^\gamma$                 ║
+║          Norma de Operador  : $\|T\|_{op} = \kappa \cdot (\text{ROI}_{\max}/\Psi_{\min})^\gamma$ ║
+║          Involución / Adjunto: $\tau^\dagger = \text{argmin}_{\sigma} \|\sigma \circ \tau - \text{id}\|_{HS}$ ║
+║                                                                                          ║
+║  §4. Funtorialidad Monádica y Acoplamiento de Gauge:                                     ║
+║      El decorador de errores actúa como un endofuntor estricto que colapsa cualquier     ║
+║      inestabilidad ($\text{SpectrumError}$) hacia la mónada de estado degenerada         ║
+║      `ImprobabilityResult` [2]. La magnitud del tensor acotado se inyecta como la        ║
+║      Palanca de Improbabilidad ($\Lambda$) en la Ecuación de Estrés Ajustado Tensorial   ║
+║      ($\sigma^*$), subyugando el libre albedrío del LLM para converger al Supremo        ║
+║      ($\top \equiv \text{RECHAZAR}$) ante riesgos asimétricos.                           ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES Y ESPACIOS CATEGÓRICOS:                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • TopologicalSpace & MetricSpace : Abstracciones para la topología de base $(X, d)$.    ║
+║  • ImprobabilityTensor            : Operador funcional que deforma la probabilidad.      ║
+║  • ImprobabilityResult            : Mónada de estado para absorción de fallos.           ║
+║  • TensorAlgebra                  : Resolutor del *-álgebra conmutativa.                 ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

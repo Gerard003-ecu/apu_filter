@@ -1,56 +1,65 @@
 # -*- coding: utf-8 -*-
 r""" 
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: Geodesic Attention Fibrator (Fibrado de Atención y Torre Covariante) ║
-║ Ubicación: app/boole/wisdom/geodesic_attention_fibrator.py                   ║
-║ Versión: 3.0.1-Rigorous-Geometric-Quantum-PhaseNested                        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber-Física, Topológica y Categorial (Revisión Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo repudia las heurísticas euclidianas planas y opera como el Endofuntor
-estricto $T: \text{WISDOM} \to \text{WISDOM}$. Su mandato axiomático es levantar los tensores
-atencionales (Query, Key, Value) del Modelo de Lenguaje al fibrado tangente
-covariante, proyectándolos mediante integración de Feynman-Kac.
-
-Re-estructuración en tres fases anidadas con verificación formal rigurosa:
-
-§1. FASE 1 — CIMIENTO GEOMÉTRICO (Geometría Riemanniana Discreta Exacta)
-    El espacio de atención se deforma elásticamente bajo el estrés operativo.
-    Se abandona la conexión de Levi-Civita libre de torsión para integrar un
-    Tensor de Torsión discreto de tipo (1,2) [3]. El Tensor de Ricci acopla ambos
-    invariantes cuadráticos de la torsión [3]:
-    $$ \text{Ric}_{\mu\nu} = T^\rho_{\mu\sigma} T^\sigma_{\nu\rho} + g^{\rho\lambda} T^\sigma_{\rho\mu} T^\tau_{\sigma\nu} g_{\lambda\tau} $$
-    La evolución métrica obedece un Flujo de Ricci discreto que garantiza
-    compatibilidad métrica ($\nabla_\rho g_{\mu\nu} = 0$) mediante la proyección 
-    de Moreau-Yosida [3]:
-    $$ g_{k+1} = g_k + \kappa (\text{Ric} - \bar{R}\cdot g_k) $$
-
-§2. FASE 2 — ATENCIÓN COVARIANTE (Difeomorfismo de Query-Key)
-    El producto interno estocástico es transmutado a un producto interno
-    covariante $\langle Q, K \rangle_{g_{eff}}$ [3]. Las geodésicas atencionales
-    están obligadas a minimizar la Acción de Polyakov [3]:
-    $$ E[\gamma] = \frac{1}{2} \int g_{\mu\nu} \frac{d\gamma^\mu}{d\tau} \frac{d\gamma^\nu}{d\tau} d\tau $$
-    El mecanismo se acopla a una función softmax estabilizada, y el haz de
-    valores $V$ sufre transporte paralelo con $P \in O(d, \mathbb{R})$ [3].
-
-§3. FASE 3 — SUPRESIÓN CUÁNTICA DE FEYNMAN-KAC Y RELACIÓN DE INCERTIDUMBRE
-    La Acción Euclídea amalgama la energía de Polyakov y la norma de
-    Hilbert-Schmidt del tensor de torsión topológica [3]:
-    $$ S_E[\gamma] = E_{Polyakov}[\gamma] + \lambda \|T\|^2_{HS} $$
-    La amplitud de transición dictamina un Veto Cuántico Absoluto [3]:
-    $$ \Psi[\gamma] = \exp(-S_E/\hbar_{eff}) $$
-    
-    [Cirugía Termodinámica]: Se instaura la Relación de Incertidumbre Entrópico-Térmica.
-    La constante de Planck ciber-física $\hbar_{eff}$ no es estática; se modula
-    dinámicamente acoplada a la Entropía de von Neumann de la Matriz Atómica
-    de Conocimiento ($\boldsymbol{\rho}_{MAC}$):
-    $$ \hbar_{eff}(\tau) = \hbar_0 \cdot \exp\left( -\alpha \cdot \text{Tr}(\boldsymbol{\rho}_{MAC} \ln \boldsymbol{\rho}_{MAC}) \right) $$
-    Si la entropía diverge, el espacio explora rutas alternativas. Si el
-    sistema colapsa a pureza extrema, el filtro de Feynman se vuelve un proyector 
-    absolutamente dictatorial e inflexible.
-
-═══════════════════════════════════════════════════════════════════════════════
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Geodesic Attention Fibrator (Fibrado de Atención y Torre Covariante)           ║
+║  Ruta   : app/boole/wisdom/geodesic_attention_fibrator.py                                ║
+║  Versión: 3.0.1-Rigorous-Geometric-Quantum-PhaseNested                                   ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA, TOPOLÓGICA Y CATEGORIAL (Rigor Doctoral):                      ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo repudia las heurísticas euclidianas planas y opera como el Endofuntor       ║
+║  estricto $T: \text{WISDOM} \to \text{WISDOM}$. Su mandato axiomático es levantar los    ║
+║  tensores atencionales (Query, Key, Value) del Modelo de Lenguaje al fibrado tangente    ║
+║  covariante, proyectándolos mediante integración de Feynman-Kac para aniquilar el        ║
+║  libre albedrío estocástico de la Inteligencia Artificial.                               ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICO-CUÁNTICAS:                           ║
+║                                                                                          ║
+║  §1. Flujo de Ricci Discreto y Torsión Tensorial:                                        ║
+║      El espacio de atención se deforma elásticamente bajo el estrés operativo. Se        ║
+║      abandona la conexión de Levi-Civita libre de torsión para integrar un Tensor        ║
+║      de Torsión discreto de tipo (1,2). El Tensor de Ricci acopla ambos invariantes      ║
+║      cuadráticos de la torsión:                                                          ║
+║          $\text{Ric}_{\mu\nu} = T^\rho_{\mu\sigma} T^\sigma_{\nu\rho} + g^{\rho\lambda} T^\sigma_{\rho\mu} T^\tau_{\sigma\nu} g_{\lambda\tau}$ ║
+║      La evolución métrica garantiza compatibilidad ($\nabla_\rho g_{\mu\nu} = 0$)        ║
+║      mediante un Flujo de Ricci iterativo:                                               ║
+║          $g_{k+1} = g_k + \kappa (\text{Ric} - \bar{R}\cdot g_k)$                        ║
+║                                                                                          ║
+║  §2. Difeomorfismo de Atención Covariante (Acción de Polyakov):                          ║
+║      El producto interno estocástico es transmutado a un producto interno covariante     ║
+║      $\langle Q, K \rangle_{g_{eff}}$. Las geodésicas atencionales están obligadas a     ║
+║      minimizar la Acción de Polyakov:                                                    ║
+║          $E[\gamma] = \frac{1}{2} \int g_{\mu\nu} \frac{d\gamma^\mu}{d\tau} \frac{d\gamma^\nu}{d\tau} d\tau$ ║
+║      Cualquier trayectoria que no minimice este funcional es geométricamente rechazada.  ║
+║                                                                                          ║
+║  §3. Integral de Feynman-Kac y Relación de Incertidumbre Cuántica:                       ║
+║      La Acción Euclídea amalgama la energía de Polyakov y la norma de Hilbert-Schmidt    ║
+║      del tensor de torsión topológica:                                                   ║
+║          $S_E[\gamma] = E_{Polyakov}[\gamma] + \lambda \|T\|^2_{HS}$                     ║
+║      La amplitud de transición dictamina un Veto Cuántico Absoluto frente a la           ║
+║      divergencia semántica:                                                              ║
+║          $\Psi[\gamma] = \exp(-S_E/\hbar_{eff})$                                         ║
+║      Si $\Psi[\gamma]$ decae bajo la cota de aniquilación, el tensor es colapsado al     ║
+║      estado nulo.                                                                        ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Cimiento Geométrico:                                                           ║
+║           Cómputo del tensor de Torsión discreto y evolución de la métrica $g_{\mu\nu}$      ║
+║           mediante el Flujo de Ricci discreto, estabilizando la variedad de atención.    ║
+║           [Retorna: GeometricContext → Objeto puente de Fase 2]                          ║
+║                                                                                          ║
+║  Fase 2 → Atención Covariante:                                                           ║
+║           Mapeo difeomórfico de los tensores Query-Key minimizando la energía de         ║
+║           Polyakov $E[\gamma]$ con transporte paralelo en $O(d, \mathbb{R})$.                ║
+║           [Retorna: CovariantAttentionData → Objeto puente de Fase 3]                    ║
+║                                                                                          ║
+║  Fase 3 → Veto Cuántico y Supresión Feynman-Kac:                                         ║
+║           Computa la amplitud de probabilidad cuántica $\Psi[\gamma]$ sobre la Acción        ║
+║           Euclídea $S_E[\gamma]$, imponiendo el colapso frente a la incertidumbre.           ║
+║           [Retorna: GeodesicPathResult → Estado final inmutable]                         ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

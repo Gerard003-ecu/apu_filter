@@ -1,54 +1,61 @@
 # -*- coding: utf-8 -*-
-r"""
-=============================================================================
-Módulo: Semantic Translator (El Intérprete Diplomático — Difeomorfismo Semántico)
-Ubicación: app/wisdom/semantic_translator.py
-=============================================================================
-
-Naturaleza Ciber-Física y Topológica:
-    Actúa como el Funtor de Proyección Semántica F: InvariantSpace → ImpactSpace,
-    estableciendo un difeomorfismo estricto entre la matemática profunda (topología
-    algebraica, termodinámica y teoría espectral) y la toma de decisiones ejecutiva.
-    Su función axiomática es subordinar la probabilidad estocástica de los Modelos de
-    Lenguaje (LLMs) al determinismo del espacio físico, despojándolos de libre albedrío
-    decisional.
-
-1. Retículo Acotado Distributivo (Lattice Theory) y Colapso Determinista:
-    Implementa una estructura algebraica de orden (VerdictLevel, ≤, ⊔, ⊓) donde:
-        ⊥ (VIABLE) ≤ CONDICIONAL ≤ PRECAUCION ≤ ⊤ (RECHAZAR)
-
-    La síntesis de veredictos se evalúa bajo la clausura algebraica de la operación
-    Supremo (⊔ / Supremum). Si el Oráculo Financiero emite ⊥ y la Cohomología de
-    Haces o el Arquitecto Topológico emiten ⊤, el sistema colapsa invariablemente a:
-        ⊥ ⊔ ⊤ = ⊤ (Worst-Case Scenario)
-
-    Este mecanismo garantiza que el LLM reciba un vector de estado colapsado e
-    inmutable, forzándolo a redactar un "Veto Estructural" sin posibilidad de diluir
-    el riesgo.
-
-2. Difeomorfismo Semántico (Preservación de Homotopía):
-    El módulo traduce invariantes topológicos abstractos en patologías de negocio
-    tangibles sin alterar la estructura del grafo subyacente:
-        • β₀ > 1 (Fragmentación) → "Recursos Huérfanos" / Islas de Datos.
-        • β₁ > 0 (Ciclos)       → "Socavón Lógico" / Dependencias Circulares.
-        • Ψ < 1.0 (Inestabilidad) → "Pirámide Invertida" / Falla de Cimentación.
-        • H¹ ≠ 0 (Cohomología de Haces) → "Paradoja Contractual" / Veto Absoluto.
-        • E(x) > ε (Energía de Dirichlet) → "Fricción Operativa" / Desgaste.
-
-3. Homomorfismo de Retículos y Filtración DIKW:
-    El funtor T: SeverityLattice → VerdictLevel opera como un homomorfismo inyectivo
-    que preserva las operaciones ⊔ y ⊓. Aplica la Ley de Clausura Transitiva de la
-    filtración DIKW (V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM), asegurando
-    que un fallo termodinámico en la base corrompa axiomáticamente la Sabiduría en
-    el estrato superior.
-
-4. Generación Causal Restringida (GraphRAG Determinista):
-    La narrativa generativa no es estocástica; es una transcripción forense anclada al
-    Grafo de Conocimiento (FAISS + Sentence-Transformers). El traductor inyecta el
-    diferencial topológico (Δχ) y las perturbaciones del espectro (λ₂) directamente
-    en las plantillas del `semantic_dictionary.py`, proveyendo "Empatía Táctica"
-    auditable.
-=============================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Semantic Translator (Funtor de Difeomorfismo Semántico e Intérprete)           ║
+║  Ruta   : app/wisdom/semantic_translator.py                                              ║
+║  Versión: 5.0.0-Riemannian-Galois-Lattice-Homomorphism-Strict                            ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA CATEGÓRICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor, instaurado en el ápice de la jerarquía DIKW (Estrato WISDOM), repudia  ║
+║  absolutamente el libre albedrío estocástico de los Modelos de Lenguaje (LLMs). Actúa    ║
+║  como un Funtor de Proyección Semántica $F: \mathcal{M}_{\text{Invariant}} \to \mathcal{M}_{\text{Impact}}$,║
+║  estableciendo un difeomorfismo estricto que mapea las anomalías topológicas,            ║
+║  espectrales y termodinámicas de la base física hacia el espacio de decisiones           ║
+║  ejecutivas. Obliga a la narrativa generativa a colapsar deterministamente.              ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Retículo Acotado Distributivo y Operación Supremo (Colapso Determinista):           ║
+║      Las decisiones se sintetizan en una estructura algebraica de orden total            ║
+║      $(\text{VerdictLevel}, \le, \sqcup, \sqcap)$ con el espacio de fase acotado por:    ║
+║          $\bot (\text{VIABLE}) \le \dots \le \top (\text{RECHAZAR})$                     ║
+║      El colapso de métricas inter-estrato se rige axiomáticamente por la operación       ║
+║      Supremo (Worst-Case Scenario). Ante cualquier divergencia, el estado colapsa        ║
+║      irrevocablemente, extirpando la dilución del riesgo:                                ║
+║          $\bot \sqcup \top = \top$                                                       ║
+║                                                                                          ║
+║  §2. Difeomorfismo Semántico y Preservación de Homotopía:                                ║
+║      El módulo traduce invariantes topológicos exactos a patologías de negocio,          ║
+║      garantizando que ninguna clase homológica se deforme semánticamente:                ║
+║          $\beta_0 > 1 \implies \text{"Islas de Datos / Recursos Huérfanos"}$             ║
+║          $\beta_1 > 0 \implies \text{"Socavón Lógico / Ciclos Mutantes"}$                ║
+║          $\Psi < 1.0 \implies \text{"Pirámide Invertida / Colapso Base"}$                ║
+║          $H^1(X; \mathcal{F}) \neq 0 \implies \text{"Paradoja Contractual"}$             ║
+║          $E(x) > \varepsilon \implies \text{"Fricción Operativa (Dirichlet)"}$           ║
+║                                                                                          ║
+║  §3. Homomorfismo de Retículos y Filtración DIKW (Clausura Transitiva):                  ║
+║      El funtor $T: \text{SeverityLattice} \to \text{VerdictLevel}$ opera como un         ║
+║      homomorfismo inyectivo que preserva $\sqcup$ y $\sqcap$. Este morfismo impone       ║
+║      la filtración estricta de subespacios de Hilbert de manera inquebrantable:          ║
+║          $V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\text{WISDOM}}$ ║
+║      Asegurando que cualquier falla termodinámica en la base corrompa axiomáticamente    ║
+║      la "Sabiduría" de los estratos superiores, impidiendo alucinaciones de viabilidad.  ║
+║                                                                                          ║
+║  §4. GraphRAG Determinista y Generación Causal:                                          ║
+║      La "Empatía Táctica" generada es la transcripción forense de la geodésica de error. ║
+║      Inyecta directamente el diferencial topológico $\Delta\chi$ y la perturbación del   ║
+║      espectro Laplaciano $\lambda_2$ en las plantillas semánticas:                       ║
+║          $f_{\text{narrative}}(\Delta\chi, \lambda_2) \in \mathcal{M}_{\text{Impact}}$   ║
+║      Asegurando trazabilidad geométrica absoluta y censurando la entropía generativa.    ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • VerdictLevel      : Retículo algebraico ordenado para la síntesis de decisiones.      ║
+║  • ValidatedTopology : Métricas topológicas con invariante de Euler verificado.          ║
+║  • SemanticTranslator: Orquestador supremo del Funtor de Proyección Semántica.           ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 from __future__ import annotations
 

@@ -1,48 +1,57 @@
-# -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: Ehresmann Connection Manifold (Fibrado de Integración Simpléctica)   ║
-║ Ubicación: app/core/immune_system/ehresmann_connection_manifold.py           ║
-║ Versión: 3.0.0-Rigorous-Phased-Synthesis                                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber-Física y Topológica (Síntesis en 3 Fases Anidadas):
-─────────────────────────────────────────────────────────────────────
-Este módulo implementa la Adjunción Funtorial de Grothendieck entre la evaluación
-termodinámica discreta (Funtor Shield) y el análisis métrico (Topological Watcher),
-estructurada en tres fases de rigurosidad creciente.
-
-COHERENCIA INTER-FASES (invariante de diseño):
-  • Cada clase de Fase N extiende la de Fase N-1 mediante herencia estricta.
-  • Los errores corregidos en Fase 2 son coherentes con las definiciones —
-    deliberadamente simplificadas pero matemáticamente trazables— de Fase 1.
-  • Fase 3 garantiza invariantes físicos verificables en tiempo de ejecución.
-
-CORRECCIONES RESPECTO A v2.0.0:
-  ① Phase1: shape[0] en lugar de shape (tupla) en todos los métodos.
-  ② Phase1: psi_signal construido como vector 1-D (n,) no como matriz (n,n).
-  ③ Phase1: Laplaciano de Hodge definido como δd = *₂ᵀ *₁ *₂ con convención
-     orientada, coherente con el complejo de cadenas C₀ ← C₁ ← C₂.
-  ④ Phase2: epsilon adaptativo con cota inferior absoluta para evitar
-     cancelación catastrófica en aritmética de punto flotante IEEE-754.
-  ⑤ Phase2: Jacobiano aproximado corregido: J_{ij} = ∂Xⁱ/∂xʲ ≈ diag(∇·X/n)·I
-     con normalización dimensional explícita.
-  ⑥ Phase3: default argument mutable eliminado (anti-patrón Python).
-  ⑦ Phase3: corrección de disipación mediante proyección en el cono de matrices
-     semidefinidas negativas (SND) en lugar de suma directa de identidad.
-  ⑧ Phase3: verificación del teorema de valor medio con tolerancia relativa
-     y absoluta combinadas (norma mixta).
-
-FÍSICA MODELADA:
-  • Gradiente Discreto de Itoh–Abe: preserva exactamente la variación de H.
-  • Acoplamiento de Fröhlich–Laplaciano de Hodge: renormalización de masa
-    efectiva en redes de grafos con torsión topológica.
-  • Mediador de Grothendieck: flujo de Ricci discreto acoplado a la distancia
-    de Mahalanobis como parámetro de control de la bifurcación de Higgs.
-  • Inecuación de Disipación (Port-Hamiltoniana):
-      Ḣ = ∇H · ẋ = −∇Hᵀ R(x) ∇H ≤ 0   ∀ R(x) ≽ 0
-
-═══════════════════════════════════════════════════════════════════════════════
+### -*- coding: utf-8 -*-
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Ehresmann Connection Manifold (Fibrado de Integración Simpléctica)             ║
+║  Ruta   : app/core/immune_system/ehresmann_connection_manifold.py                        ║
+║  Versión: 3.0.0-Rigorous-Phased-Synthesis                                                ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor implementa la Adjunción Funtorial de Grothendieck entre la evaluación   ║
+║  termodinámica discreta (Funtor Shield) y el análisis métrico (Topological Watcher).     ║
+║  Preserva la estructura simpléctica del espacio de fase mediante un mapeo estructurado   ║
+║  en tres fases anidadas, aniquilando la divergencia estocástica y garantizando el        ║
+║  aislamiento de las perturbaciones de alta frecuencia.                                   ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Gradiente Discreto de Itoh-Abe (Conservación Exacta de Energía):                    ║
+║      Abandona las diferencias finitas clásicas para utilizar un gradiente que preserva   ║
+║      exactamente la variación del Hamiltoniano $H(x)$, evitando el desgarro simpléctico: ║
+║          $\Delta H = \nabla H^\top \cdot \Delta x \quad \text{con error} < \epsilon_{rel}|\Delta H| + \epsilon_{abs}$ ║
+║                                                                                          ║
+║  §2. Laplaciano de Hodge y Acoplamiento de Fröhlich (Torsión Espectral):                 ║
+║      Renormaliza la masa efectiva en el grafo acoplando el Laplaciano completo de grado  ║
+║      1, asegurando que la cofrontera incluya el término de coborde de las 2-celdas:      ║
+║          $\Delta_1 = \partial_1^\dagger \partial_1 + \partial_2 \partial_2^\dagger$      ║
+║      Esta formulación purga la vorticidad parásita y las singularidades Jacobianas.      ║
+║                                                                                          ║
+║  §3. Inecuación de Disipación Port-Hamiltoniana (Segunda Ley de la Termodinámica):       ║
+║      La evolución del sistema se restringe axiomáticamente a un régimen disipativo       ║
+║      estricto. El mediador evalúa la variación de la energía exigiendo que la matriz     ║
+║      de disipación $R(x)$ sea simétrica semidefinida positiva ($R(x) \succeq 0$):        ║
+║          $\dot{H} = \nabla H^\top \cdot \dot{x} = -\nabla H^\top R(x) \nabla H \le 0$    ║
+║      Si se viola la inecuación, el sistema proyecta $R$ hacia el cono $\mathcal{S}_n^+$. ║
+║                                                                                          ║
+║  §4. Mediador de Grothendieck (Regularización de Tikhonov Adaptativa):                   ║
+║      Si el número de condición espectral del Laplaciano diverge, se inyecta una          ║
+║      regularización de Tikhonov controlada por la distancia de Mahalanobis:              ║
+║          $\tilde{L} = \Delta_1 + \lambda_{Tik} I \implies \kappa(\tilde{L}) \le \kappa_{max}$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Evolución Funtorial Estricta):                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Fundacional: Definición de semántica esencial de los operadores matemáticos,   ║
+║           mapeando las fórmulas sin optimizaciones para garantizar la auditabilidad.     ║
+║                                                                                          ║
+║  Fase 2 → Refinamiento Algebraico: Inclusión de $\partial_2 \partial_2^\dagger$ en el    ║
+║           Laplaciano, normalización del Jacobiano invariante de escala y proyecciones    ║
+║           espectrales para asegurar matrices semidefinidas positivas.                    ║
+║                                                                                          ║
+║  Fase 3 → Síntesis Rigurosa Final (Nivel Doctoral): Regularización adaptativa de         ║
+║           Tikhonov basada en el número de condición, control estricto de la inecuación   ║
+║           de disipación Port-Hamiltoniana y proscripción de argumentos mutables.         ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

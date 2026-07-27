@@ -1,50 +1,56 @@
 # -*- coding: utf-8 -*-
-r"""
-=========================================================================================
-Módulo: Semantic Estimator (Proyector Topológico-Semántico y Asesor Táctico)
-Ubicación: app/tactics/semantic_estimator.py
-=========================================================================================
-
-Naturaleza Ciber-Física:
-    Actúa como el Operador de Proyección Semántica en el Estrato TACTICS (Nivel 2). 
-    Su propósito axiomático es resolver la asimetría ontológica entre el lenguaje 
-    natural humano (alta entropía sintáctica) y los invariantes estructurales del 
-    presupuesto, proyectando las descripciones crudas hacia un espacio de Hilbert 
-    continuo $\mathcal{H}$ libre de ruido de formato.
-
-1. Geometría del Espacio de Búsqueda (SearchEngine):
-    La resolución de similitud semántica abandona la coincidencia de cadenas estocástica 
-    para convertirse en una optimización métrica estricta. Cada ítem o descripción se 
-    mapea a un vector denso $v \in \mathbb{R}^d$ utilizando transformadores de sentencias. 
-    El índice FAISS ejecuta una partición del espacio vectorial, identificando vecindades 
-    topológicas mediante la maximización del producto interno normalizado (Similitud del 
-    Coseno):
-        \cos(\theta) = \frac{\langle u, v \rangle}{\|u\| \|v\|}
-    Los ítems conceptualmente homotópicos (e.g., "Mampostería" y "Muro de Ladrillo") 
-    convergen a la misma bola abierta en la variedad, permitiendo una asociación de costos
-    resiliente a la mutación lingüística.
-
-2. Álgebra de Ensamblaje de Costos (CostCalculator):
-    El ensamblaje de presupuestos no es una suma aritmética simple; se modela como una 
-    combinación lineal de vectores de recursos básicos $c = (c_{sum}, c_{mo}, c_{eq})^T$ 
-    modulada por operadores diagonales de fricción territorial $F_{ext}$:
-        C_{total} = F_{ext} \cdot c = \text{diag}(\alpha_{zona}, \beta_{izaje}, \gamma_{seg}) \cdot c
-    Esto garantiza que el costo estimado respete la termodinámica del terreno sin 
-    alterar la proporción interna del recurso.
-
-3. Funtorialidad Categórica y Registro MIC (SemanticEstimatorService):
-    La fachada principal se inyecta en la Matriz de Interacción Central (MIC) como un 
-    Morfismo Atómico. Expone sus capacidades como vectores canónicos ortogonales $e_i$ 
-    sobre la matriz identidad $I_n$. Esto garantiza que sus estimaciones operen bajo el 
-    teorema de Rango-Nulidad estricto, impidiendo efectos secundarios cruzados y 
-    respetando la Ley de Clausura Transitiva de la jerarquía DIKW (V_{PHYSICS} \subset V_{TACTICS}).
-
-Invariantes Computacionales:
-    • Determinismo Espacial: Un hiperparámetro de umbral de similitud (DEFAULT_MIN_SIMILARITY)
-      actúa como cota inferior geométrica para prevenir alucinaciones de mapeo en subespacios
-      degenerados o poco poblados.
-    • Límite de Búsqueda (Top-K): Acota asintóticamente la complejidad de inferencia a $O(K \log N)$.
-=========================================================================================
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Semantic Estimator (Proyector Topológico-Semántico y Asesor Táctico)           ║
+║  Ruta   : app/tactics/semantic_estimator.py                                              ║
+║  Versión: 4.0.0-Hilbert-Rank-Nullity-Categorical-Strict-Nested                           ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo actúa como el Operador de Proyección Semántica en el Estrato TACTICS        ║
+║  (Nivel 2). Su propósito axiomático es resolver la asimetría ontológica entre el         ║
+║  lenguaje natural humano (alta entropía sintáctica) y los invariantes estructurales del  ║
+║  presupuesto. Proyecta las descripciones crudas hacia un espacio de Hilbert continuo     ║
+║  $\mathcal{H}$ libre de ruido de formato, garantizando un ensamblaje de costos exento de ║
+║  fricción termodinámica.                                                                 ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Geometría del Espacio de Búsqueda (Vecindad Topológica de Hilbert):                 ║
+║      La resolución de similitud semántica abandona la coincidencia estocástica de cadenas║
+║      para convertirse en una optimización métrica estricta en $\mathbb{R}^d$. El índice  ║
+║      FAISS ejecuta una partición del espacio vectorial, identificando vecindades         ║
+║      topológicas mediante la maximización del producto interno normalizado:              ║
+║          $\cos(\theta) = \frac{\langle u, v \rangle}{\|u\| \|v\|} \ge \tau_{\min}$       ║
+║      Los ítems conceptualmente homotópicos convergen a la misma bola abierta en la       ║
+║      variedad, erradicando la alucinación de mapeo por mutación lingüística.             ║
+║                                                                                          ║
+║  §2. Álgebra de Ensamblaje de Costos y Fricción Territorial:                             ║
+║      El ensamblaje de presupuestos repudia la suma aritmética escalar. Se modela         ║
+║      categóricamente como una combinación lineal de vectores de recursos                 ║
+║      $c = (c_{sum}, c_{mo}, c_{eq})^T$ modulada por operadores diagonales de fricción    ║
+║      territorial $F_{ext}$:                                                              ║
+║          $C_{total} = F_{ext} \cdot c = \text{diag}(\alpha_{zona}, \beta_{izaje}, \gamma_{seg}) \cdot c$ ║
+║      Esto garantiza que el costo respete la termodinámica local del terreno sin          ║
+║      corromper la proporción intrínseca del recurso.                                     ║
+║                                                                                          ║
+║  §3. Funtorialidad Categórica y Teorema de Rango-Nulidad:                                ║
+║      La fachada principal se inyecta en la Matriz de Interacción Central (MIC) como un   ║
+║      Morfismo Atómico. Expone sus capacidades garantizando el teorema de Rango-Nulidad:  ║
+║          $\text{rank}(T) = 1 \implies \dim(\ker(T)) = n - 1$                             ║
+║      Impidiendo efectos secundarios cruzados (Zero Side-Effects) y respetando la Ley de  ║
+║      Clausura Transitiva estricta de la jerarquía DIKW:                                  ║
+║          $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$       ║
+║                                                                                          ║
+║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES Y LÍMITES COMPUTACIONALES:                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • Complejidad Asintótica : Acotada estrictamente a $\mathcal{O}(K \log N)$ mediante el  ║
+║                             límite topológico de búsqueda Top-K.                         ║
+║  • SearchEngine           : Funtor de partición métrica en $\mathcal{H}$.                ║
+║  • CostCalculator         : Ensamblador del tensor de fricción.                          ║
+║  • SemanticEstimatorService: Orquestador del morfismo en $\mathcal{E}_{MIC}$.            ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

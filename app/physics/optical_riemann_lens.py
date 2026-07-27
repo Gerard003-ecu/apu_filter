@@ -1,197 +1,63 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Optical Riemann Lens — Lente Categórico y Difracción Espectral             ║
-║  Ruta   : app/physics/optical_riemann_lens.py                                        ║
-║  Versión: 4.0.0-Rigorous-Spectral-Adjoint                                            ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber-Física y Topológica (Síntesis en 3 Fases Anidadas):
-══════════════════════════════════════════════════════════════════════
-
-Este módulo consagra la inyección de Óptica Geométrica sobre el colector de la
-Esfera de Riemann (S² ≅ ℂ̂). Actúa como un Lente Categórico que filtra los
-armónicos de alta frecuencia estocástica del LLM, colapsando el rango del
-KV-Cache para preservar la termodinámica computacional.
-
-══════════════════════════════════════════════════════════════════════════════════════
-FUNDAMENTACIÓN MATEMÁTICA AXIOMÁTICA — v4.0.0
-══════════════════════════════════════════════════════════════════════════════════════
-
-§1. MÉTRICA DE FERMAT (Índice de Refracción Adaptativo):
-────────────────────────────────────────────────────────
-El espacio de deliberación se curva ópticamente. El índice de refracción n(σ*)
-modifica la métrica de Riemann mediante el principio de Fermat generalizado:
-
-    g_F = n²(σ*) · G_{μν} dx^μ dx^ν
-
-Definición rigurosa del índice:
-    n(σ*) = 1 + tanh(α · σ*)  ∈ (1, 2)  ∀ σ* ∈ ℝ
-
-donde α = _FERMAT_ALPHA > 0. La condición n < 1 (refracción anómala) es
-algebraicamente imposible con esta fórmula; la excepción OpticalDispersionError
-está reservada para subclases que redefinen el índice con modelos no-lineales.
-
-§2. JACOBIANO CORRECTO DE CUADRATURA GAUSS-LEGENDRE EN S²:
-────────────────────────────────────────────────────────────
-La integral de área sobre S² en coordenadas esféricas:
-
-    ∫_{S²} f dΩ = ∫₀^π ∫₀^{2π} f(θ,φ) sin(θ) dθ dφ
-
-Con el cambio de variable t = cos(θ) ∈ [-1,1], dt = -sin(θ)dθ:
-
-    ∫_{S²} f dΩ = ∫_{-1}^{1} ∫₀^{2π} f(arccos(t), φ) dt dφ
-
-Los nodos y pesos de Gauss-Legendre {(t_i, w_i)} satisfacen:
-    ∫_{-1}^{1} p(t) dt ≈ Σ_i w_i p(t_i)  para deg(p) ≤ 2N-1.
-
-El peso de integración en S² es W_{ij} = w_i · Δφ  (SIN multiplicar por sin θ_i).
-El factor sin(θ) ya está absorbido en la medida dt = d(cos θ).
-
-Verificación: Σ_{i,j} W_{ij} = (Σ_i w_i) · n_φ · Δφ = 2 · 2π = 4π = Área(S²) ✓
-
-§3. COEFICIENTES DE ARMÓNICOS ESFÉRICOS Y PARSEVAL:
-────────────────────────────────────────────────────
-    c_{lm} = ∫_{S²} ψ(θ,φ) · Ȳ_l^m(θ,φ) dΩ
-           ≈ Σ_{i,j} ψ(θ_i, φ_j) · conj(Y_l^m(θ_i, φ_j)) · w_i · Δφ
-
-Identidad de Parseval (Teorema Espectral, Laplace-Beltrami sobre S²):
-    ‖ψ‖²_{L²(S²)} = Σ_{l=0}^{∞} Σ_{m=-l}^{l} |c_{lm}|²
-
-Verificación numérica: |‖ψ‖²_{L²} - Σ|c_{lm}|²| / ‖ψ‖²_{L²} < _PARSEVAL_REL_TOL
-
-Ortogonalidad extendida verificada (§6 de este módulo):
-    ⟨Y_l^m, Y_{l'}^{m'}⟩_{L²(S²)} ≈ δ_{ll'} δ_{mm'}
-para pares (l,m) ∈ {(0,0), (1,0), (1,1), (2,0), (2,2)}.
-
-§4. PROYECCIÓN GRAM-SCHMIDT ROBUSTA A ℝ³:
-──────────────────────────────────────────
-Para proyectar v ∈ ℝⁿ (n ≥ 3) a S²:
-    1. Centrar: v̄ = v - mean(v)
-    2. Si ‖v̄‖ < ε: señal constante → LensSingularityError
-    3. e₁ = v̄/‖v̄‖  (primera dirección: la señal misma)
-    4. e₂, e₃: completar base ortonormal via Gram-Schmidt estabilizado
-       usando los vectores canónicos ordenados por menor proyección en e₁
-    5. Verificar ortogonalidad: |e_i·e_j| < ε para i≠j
-    6. p = [v̄·e₁, v̄·e₂, v̄·e₃] / ‖[...]‖ ∈ S²
-
-§5. OPERADOR DE DIFRACCIÓN (FILTRO ESPECTRAL):
-──────────────────────────────────────────────
-El Lente Categórico aplica la transformación:
-    O_{lens} ψ = Σ_{l=0}^{l_cutoff} Σ_{m=-l}^{l} h(l) · c_{lm} · Y_l^m(θ,φ)
-
-donde h(l) = exp(-γ · n² · l²) es el kernel de amortiguación gaussiana.
-
-§6. PROYECCIÓN ADJUNTA ESPECTRAL AL ESPACIO DE LOGITS:
-───────────────────────────────────────────────────────
-La proyección correcta ψ̃ → ℝⁿ utiliza la adjunta de la función de análisis.
-
-Sea P: ℝⁿ → L²(S²) el operador de análisis (logits → ψ).
-La adjunta P*: L²(S²) → ℝⁿ satisface ⟨Pv, ψ̃⟩_{L²} = ⟨v, P*ψ̃⟩_{ℝⁿ}.
-
-Dado que P es lineal (como función de los coeficientes c_{lm} que determinan
-la reconstrucción en ψ̃), la adjunta está completamente determinada por los
-coeficientes de la expansión filtrada:
-
-    (P*ψ̃)_k = Re(Σ_{l,m} h(l) · c_{lm} · ⟨Y_l^m, φ_k⟩_{L²(S²)})
-
-donde φ_k es la función sensor asociada a la dirección e_k ∈ ℝⁿ.
-
-En la implementación: φ_k se construye evaluando el perfil gaussiano centrado
-en la proyección del vector base canónico e_k a S². Esto requiere O(n) llamadas
-a _map_logits_to_sphere para construir la base de sensores, que se vectoriza.
-
-§7. LEYES DEL LENTE CATEGÓRICO (VERIFICACIÓN):
-────────────────────────────────────────────────
-Sea L = (view, put) el Lente. Las leyes que satisface:
-    1. PutGet: view(put(s, c_{lm})) ≈ O(c_{lm})  [espectro filtrado, no original]
-    2. GetPut: put(s, view(s)) ≈ P*(O(Ps))        [reconstrucción desde s]
-    3. PutPut: put(put(s,a),b) = put(s,b)          [idempotencia del filtro]
-La ley 3 es exacta si h(l) es idempotente (h² = h), lo cual ocurre cuando
-h(l) ∈ {0,1} (filtro ideal). En el caso gaussiano, h² ≠ h, y la composición
-converge al punto fijo ψ = 0 (energía total → 0 tras n aplicaciones).
-
-══════════════════════════════════════════════════════════════════════════════════════
-CORRECCIONES CRÍTICAS v4.0.0 vs v3.0.0:
-══════════════════════════════════════════════════════════════════════════════════════
-
-  BUG 1: Gram-Schmidt numérico no verificado
-          v3.0: fallback usa (min_idx+1)%n que puede coincidir con min_idx (n=1)
-          v4.0: Selección de índices por np.argsort con exclusión explícita
-                + verificación de ortogonalidad de la base resultante
-
-  BUG 2: _map_logits_to_sphere no retorna sigma → recálculo inconsistente en Fase 3
-          v3.0: sigma recalculado manualmente en refract_attention_logits
-          v4.0: Retorna NamedTuple (psi, sigma, theta0, phi0) para consistencia total
-
-  BUG 3: _compute_spherical_coefficients con bucle Python puro O((l+1)²·n_θ·n_φ)
-          v3.0: bucle for l for m en Python puro → lento para l_cutoff > 10
-          v4.0: Vectorización completa: precomputar tensor Y[l,m,i,j] con broadcasting
-
-  BUG 4: Verificación de ortogonalidad solo en Y_0^0
-          v3.0: solo ⟨Y_0^0, Y_0^0⟩ = 1 (trivial, solo verifica área total)
-          v4.0: Verificación de 5 pares cruzados: (0,0)×(0,0), (1,0)×(1,0),
-                (1,1)×(1,1), (1,-1)×(1,1), (2,0)×(1,0) — cubre ortogonalidad real
-
-  BUG 5: _validate_metric_tensor no maneja G con tipo complejo
-          v3.0: eigvalsh falla si G tiene imag parts por casting incorrecto
-          v4.0: Conversión explícita a float64 real antes de eigvalsh + chequeo de imag
-
-  BUG 6: _project_psi_to_logit_space es identidad escalada (no filtra)
-          v3.0: focused = original_logits * (‖ψ̃‖/‖orig‖) — solo cambia magnitud
-          v4.0: Proyección adjunta espectral real: construye funciones sensor {φ_k}
-                via SVD de la base de proyección y calcula ⟨ψ̃, φ_k⟩_{L²}
-
-  BUG 7: energy_retention puede exceder 1.0 sin corrección algebraica
-          v3.0: np.clip a posteriori sin justificación de la fuente
-          v4.0: La proyección adjunta garantiza ‖focused‖ ≤ ‖raw‖ por ser
-                composición de operadores de norma ≤ 1 (filtro pasa-bajos + adjunta)
-
-  BUG 8: Herencia de Morphism sin implementación del protocolo
-          v3.0: class OpticalRiemannLensFibrator(Phase2, Morphism) — Morphism vacío
-          v4.0: Implementa __call__ y compose según el protocolo MIC
-
-══════════════════════════════════════════════════════════════════════════════════════
-ARQUITECTURA DE FASES ANIDADAS (v4.0.0):
-══════════════════════════════════════════════════════════════════════════════════════
-
-  ┌─── FASE 1: Phase1_SphericalHarmonicsSpectrometer ─────────────────────────┐
-  │  _validate_spectrometer_params()       → l_cutoff≥0, γ>0, n_θ≥2l+2, n_φ≥4│
-  │  _build_spherical_grid()               → GL en θ (t=cosθ), uniforme en φ  │
-  │  _validate_grid_orthogonality()        → 5 pares cruzados Y_l^m           │
-  │  _project_logits_to_r3_robust()        → Gram-Schmidt verificado + datos  │
-  │  _map_logits_to_sphere()               → NamedTuple(psi,sigma,θ₀,φ₀)     │
-  │  _validate_psi()                       → finitud, shape, energía > 0      │
-  │  _precompute_harmonics_tensor()        → Y[idx,i,j] precomputado           │
-  │  _compute_spherical_coefficients()     → c_{lm} vectorizado               │
-  │  _verify_parseval_identity()           → Parseval con diagnóstico          │
-  │  grid, l_cutoff, gamma_damping (props)→ acceso solo lectura               │
-  └─────────────────────────────┬──────────────────────────────────────────────┘
-                                │ SphericalSpectrum + SphericalGrid + SpherePoint
-                                ▼
-  ┌─── FASE 2: Phase2_CategoricalOpticLens ────────────────────────────────────┐
-  │  _validate_metric_tensor()             → SPD, real, finito, simétrico      │
-  │  _compute_fermat_refractive_index()    → n∈(1,2), algebraicamente garantido│
-  │  _compute_fermat_metric_trace()        → Tr(n²·G) validado                │
-  │  _build_sensor_basis()                 → {φ_k} via proyección de e_k a S² │
-  │  _reconstruct_psi_from_spectrum()      → ψ̃ vectorizado en grilla S²       │
-  │  _project_psi_to_logit_space()         → proyección adjunta espectral ℝⁿ  │
-  │  _validate_reconstructed_signal()      → finitud, energía, ratio           │
-  │  apply_view_functor()                  → logits → SphericalSpectrum        │
-  │  apply_put_functor()                   → SphericalSpectrum → logits filtrados│
-  └─────────────────────────────┬──────────────────────────────────────────────┘
-                                │ NDArray focused_logits + SpherePoint
-                                ▼
-  ┌─── FASE 3: OpticalRiemannLensFibrator ─────────────────────────────────────┐
-  │  _validate_input_logits()              → tipo, finitud, dim mínima         │
-  │  _validate_stress_norm()               → finitud, tipo numérico            │
-  │  _compute_kv_compression_ratio()       → ratio∈[0,1] algebraico           │
-  │  _build_spectral_diagnostics()         → SpectralDiagnostics completo      │
-  │  refract_attention_logits()            → orquestador → RefractedState      │
-  │  __call__()                            → protocolo Morphism MIC            │
-  │  compose()                             → composición de morfismos          │
-  │  spectral_diagnostics (property)       → último diagnóstico, solo lectura  │
-  └────────────────────────────────────────────────────────────────────────────┘
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Optical Riemann Lens (Lente Categórico y Fibrador de Difracción Espectral)     ║
+║  Ruta   : app/physics/optical_riemann_lens.py                                            ║
+║  Versión: 4.0.0-Rigorous-Spectral-Adjoint                                                ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo consagra la inyección de Óptica Geométrica sobre el colector de la          ║
+║  Esfera de Riemann ($S^2 \cong \hat{\mathbb{C}}$). Actúa como un Lente Categórico que    ║
+║  filtra los armónicos de alta frecuencia estocástica del LLM, colapsando el rango del    ║
+║  KV-Cache para preservar la termodinámica computacional de la Malla Agéntica.            ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
+║                                                                                          ║
+║  §1. Métrica de Fermat e Índice de Refracción Adaptativo:                                ║
+║      El espacio de deliberación se curva ópticamente. El índice de refracción            ║
+║      $n(\sigma^*)$ modifica la métrica de Riemann mediante el principio de Fermat        ║
+║      generalizado, acotado rígidamente al intervalo abierto $(1, 2)$:                    ║
+║          $n(\sigma^*) = 1 + \tanh(\alpha \cdot \sigma^*)$                                ║
+║      Donde $\alpha > 0$. Una refracción anómala ($n < 1$) es algebraicamente imposible,  ║
+║      detonando incondicionalmente la excepción `OpticalDispersionError`.                 ║
+║                                                                                          ║
+║  §2. Proyección Gram-Schmidt y Fibrado Ortogonal a $\mathbb{R}^3$:                       ║
+║      Para proyectar el tensor de intención $v \in \mathbb{R}^n$ (con $n \ge 3$) a $S^2$, ║
+║      se exige la aniquilación de la degeneración métrica mediante una inmersión SVD y    ║
+║      estabilización de Gram-Schmidt. El sistema veta los defectos si la ortogonalidad    ║
+║      falla:                                                                              ║
+║          $e_i \cdot e_j = \delta_{ij} \implies |e_i \cdot e_j| < \varepsilon \quad \forall i \neq j$ ║
+║      Colapsando singularidades a través del `LensSingularityError`.                      ║
+║                                                                                          ║
+║  §3. Operador de Difracción (Filtro Espectral):                                          ║
+║      El Lente Categórico aplica la transformación espectral truncando los armónicos de   ║
+║      alta frecuencia estocástica:                                                        ║
+║          $O_{lens} \psi = \sum_{l=0}^{l_{cutoff}} \sum_{m=-l}^{l} h(l) \cdot c_{lm} \cdot Y_l^m(\theta,\phi)$ ║
+║      Evaluando la función sensor $\varphi_k$ asociada a la dirección canónica $e_k$.     ║
+║                                                                                          ║
+║  §4. Leyes del Lente Categórico y Proyección Adjunta:                                    ║
+║      El Lente $L = (\text{view}, \text{put})$ obedece las leyes de reconstrucción.       ║
+║      Para un filtro gaussiano donde $h^2 \neq h$, la composición converge al punto fijo  ║
+║      garantizando disipación termodinámica (la energía post-filtrado jamás supera a la   ║
+║      energía cruda):                                                                     ║
+║          $\|\psi_{\text{focused}}\|_2 \le \|\psi_{\text{raw}}\|_2$                       ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → SphericalHarmonicsSpectrometer (Espectrómetro de Armónicos Esféricos)          ║
+║           Construye la grilla esférica, valida la ortogonalidad cruzada de los pares     ║
+║           $Y_l^m$ y computa la identidad de Parseval de forma rigurosa.                  ║
+║                                                                                          ║
+║  Fase 2 → CategoricalOpticLens (Óptica de Lentes Categóricos)                            ║
+║           Funtor que valida $G_{\mu\nu}$ como tensor SPD y ejecuta la proyección         ║
+║           adjunta espectral hacia $\mathbb{R}^n$ aplicando $O_{lens}$.                   ║
+║                                                                                          ║
+║  Fase 3 → OpticalRiemannLensFibrator (Orquestador Supremo del Fibrado)                   ║
+║           Consolida el estado óptico refractado (`RefractedState`), comprimiendo el      ║
+║           ratio del KV-Cache y certificando el protocolo de Morfismo en la MIC.          ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

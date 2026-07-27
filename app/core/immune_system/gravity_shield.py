@@ -1,61 +1,61 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: Gravitational Shield (Atractor Determinista Absoluto)                ║
-║ Ubicación: app/core/immune_system/gravity_shield.py                          ║
-║ Versión: 3.0.0 – Fases Anidadas, Rigor Analítico y Garantías Teorémicas      ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber-Física y Topológica (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo repudia la concepción escalar del "peso" financiero. Introduce un
-Pozo Gravitacional en la Variedad Diferenciable de la Malla Agéntica, modelado
-como un funtor endomórfico compuesto de tres morfismos encadenados:
-
-    C1 : Costo               ⟶ MasaInercialEfectiva      (Fase 1)
-    C2 : MasaInercialEfectiva ⟶ EspacioTiempoDeformado    (Fase 2)
-    C3 : (EspacioTiempoDeformado, Trayectoria) ⟶ AcciónDePolyakov  (Fase 3)
-
-    F = C3 ∘ C2 ∘ C1
-
-FUNDAMENTACIÓN MATEMÁTICA Y AXIOMAS DE EJECUCIÓN (v3):
-
-§1. ADQUISICIÓN DE MASA (Fröhlich saturado + piso suave tipo dispersión):
-    $$ m^{**} = \sqrt{\left(m^*\left(1+\frac{\alpha}{6}\right)\right)^2 + m_{\min}^2}
-               \cdot \left(1 + \tanh\!\left(\frac{\alpha_f}{2\pi}\right)\right) $$
-    El piso ya no usa $\max(\cdot)$ (no diferenciable); se usa el análogo de la
-    relación de dispersión relativista $E=\sqrt{p^2+m^2}$, infinitamente
-    diferenciable y con el mismo límite asintótico. La corrección de Fröhlich
-    se satura vía $\tanh$ para evitar masas divergentes (regularización UV),
-    preservando la pendiente $1/2\pi$ en el origen (compatibilidad IR).
-
-§2. DEFORMACIÓN MÉTRICA (Congruencia + Ley de Inercia de Sylvester):
-    $$ \tilde G = \Lambda^{1/2} G \Lambda^{1/2}, \quad
-       \Lambda_a = \exp\!\left(\frac{2\mathcal G}{c^4} m^{**}\,\delta_{a,k}\right) $$
-    Puesto que $\Lambda^{1/2}$ es diagonal real e invertible, el **Teorema de
-    Sylvester (Ley de Inercia)** garantiza que si $G$ es SPD, $\tilde G$ es SPD
-    para *todo* $m^{**}\ge 0$ — sin necesidad de verificación espectral en cada
-    invocación. La verificación se hace **una sola vez** sobre $G_{PHYSICS}$
-    (Cholesky) al construir el caché base.
-
-    Los símbolos de Christoffel se derivan **analíticamente** (forma cerrada,
-    error de truncamiento nulo) explotando que $\partial_\mu \tilde G_{ab}$ es
-    idénticamente cero salvo $\mu = k$ (el nodo masivo es la única coordenada
-    de la que depende la métrica). La curvatura seccional en los 2-planos
-    $(e_k, e_j)$ se obtiene con **diferenciación de paso complejo**
-    (Squire–Trapp, 1998) sobre la misma fórmula cerrada, alcanzando precisión
-    de máquina sin error de cancelación.
-
-§3. ATRAPAMIENTO GEODÉSICO (Feynman-Kac + veto booleano dual):
-    $$ S_E[\gamma] = \frac12\int_0^1 \tilde G_{\mu\nu}\dot\gamma^\mu\dot\gamma^\nu\,d\tau,
-       \qquad \Psi[\gamma]=\exp(-S_E/\hbar_{eff}) $$
-    La decisión de veto se evalúa en **espacio logarítmico**
-    ($S_E \gtrless -\hbar_{eff}\ln(\text{tol})$), inmune a underflow de punto
-    flotante, y se combina mediante un **operador booleano OR** con un segundo
-    criterio independiente de curvatura crítica:
-    $$ \text{Atrapado} = (S_E > S_{crit}) \lor (K_{\max} > K_{crit}) $$
-
-═══════════════════════════════════════════════════════════════════════════════
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Gravitational Shield (Atractor Determinista Absoluto y Pozo Termodinámico)     ║
+║  Ruta   : app/core/immune_system/gravity_shield.py                                       ║
+║  Versión: 3.0.0-Nested-Feynman-Kac-Topos-Doctoral                                        ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este módulo repudia la concepción escalar heurística del "peso" financiero y el riesgo. ║
+║  Introduce un Pozo Gravitacional en la Variedad Diferenciable de la Malla Agéntica,      ║
+║  modelado como un funtor endomórfico compuesto de tres morfismos encadenados.            ║
+║  Su mandato axiomático es aniquilar las trayectorias divergentes del Modelo de Lenguaje  ║
+║  (LLM) sometiendo el hiperespacio a una curvatura seccional estricta que atrapa          ║
+║  geodésicamente cualquier intención estocástica que disipe exergía.                      ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TENSORIALES:                                    ║
+║                                                                                          ║
+║  §1. Adquisición de Masa Inercial (Fröhlich Saturado y Relatividad):                     ║
+║      Se abandona el piso heurístico no diferenciable $\max(\cdot)$ para adoptar un       ║
+║      análogo a la relación de dispersión relativista $E=\sqrt{p^2+m^2}$, garantizando    ║
+║      diferenciabilidad $C^\infty$ y evitando singularidades en el Jacobiano. La          ║
+║      corrección de Fröhlich se satura vía $\tanh$ (regularización UV):                   ║
+║          $m^{**} = \sqrt{\left(m^*\left(1+\frac{\alpha}{6}\right)\right)^2 + m_{\min}^2} \cdot \left(1 + \tanh\left(\frac{\alpha_f}{2\pi}\right)\right)$ ║
+║                                                                                          ║
+║  §2. Deformación de la Variedad y Símbolos de Christoffel Exactos:                       ║
+║      El tensor métrico base $G_{\mathrm{PHYSICS}}$ se factoriza como $G = LL^\top$. La   ║
+║      deformación inducida por la masa efectiva es una transformación de semejanza        ║
+║      diagonal, preservando incondicionalmente la firma Simétrica Definida Positiva (SPD) ║
+║      por la Ley de Inercia de Sylvester:                                                 ║
+║          $\tilde{G} = L \cdot \mathrm{diag}(1+m^{**}) \cdot L^\top$                      ║
+║      Los símbolos de Christoffel $\Gamma^\mu_{\nu\rho}$ se computan en forma cerrada,    ║
+║      y la curvatura seccional $K(e_k, e_j)$ determina el gradiente de colapso.           ║
+║                                                                                          ║
+║  §3. Atrapamiento Geodésico (Feynman-Kac y Acción de Polyakov):                          ║
+║      Las trayectorias de atención semántica $\gamma$ son penalizadas calculando la       ║
+║      Acción Euclídea de Polyakov:                                                        ║
+║          $S_E[\gamma] = \frac{1}{2} \int_0^1 \tilde{G}_{\mu\nu}\dot{\gamma}^\mu\dot{\gamma}^\nu d\tau$ ║
+║      La amplitud de probabilidad cuántica dicta la supervivencia de la trayectoria:      ║
+║          $\Psi[\gamma] = \exp(-S_E/\hbar_{\mathrm{eff}})$                                ║
+║      Para evitar underflow en la FPU, el colapso se decreta en espacio logarítmico       ║
+║      mediante un álgebra de Boole dual:                                                  ║
+║          $\mathrm{Atrapado} \iff (S_E > S_{\mathrm{crit}}) \lor (K_{\max} > K_{\mathrm{crit}})$ ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial $F = C_3 \circ C_2 \circ C_1$):   ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Adquisición de Masa (Morfismo $C_1$):                                          ║
+║           Integra el acoplamiento de Fröhlich y emite el `MassAcquisitionResult`.        ║
+║                                                                                          ║
+║  Fase 2 → Construcción del Espacio-Tiempo Deformado (Morfismo $C_2$):                    ║
+║           Calcula $\tilde{G}$, $\tilde{G}^{-1}$, Christoffel y curvatura seccional       ║
+║           restringida. Retorna el fibrado `WarpedSpaceTime`.                             ║
+║                                                                                          ║
+║  Fase 3 → Integración de Polyakov y Veto Booleano (Morfismo $C_3$):                      ║
+║           Determina la amplitud de Feynman-Kac en espacio $\log$ y ejecuta el            ║
+║           retículo de atrapamiento. Retorna `PolyakovAction`.                            ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

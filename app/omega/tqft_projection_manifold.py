@@ -1,52 +1,62 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : TQFT Projection Manifold (Proyector Topológico Independiente)       ║
-║ Ruta   : app/omega/tqft_projection_manifold.py                               ║
-║ Versión: 3.0.0-Strict-Functorial-Spectral-TQFT                               ║
-║ Evolución: Rigor PhD – Topología Algebraica + Teoría Espectral + Categorías  ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS TOPOLÓGICA (TQFT)
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor consagra la independencia de fondo (background independence) en
-el ecosistema APU Filter. Renuncia a la evaluación del tensor métrico de Riemann
-G_{μν} para auditar el flujo de valor puramente mediante invariantes de nudos y
-sumas de estados en variedades tridimensionales (cobordismos).
-
-Actúa como el Tribunal Absoluto que proyecta las intenciones del agente sobre
-el retículo distributivo acotado (álgebra de Boole de veredictos), evaluando
-cobordismos Z(M) que no pueden ser corrompidos ni siquiera por el colapso
-quiral de un Sofón.
-
-FUNDAMENTOS MATEMÁTICOS RIGUROSOS (nivel doctorado):
-  • Categoría Cob(n) de cobordismos orientados (Atiyah–Segal axioms).
-  • Teoría de Chern–Simons a nivel k ∈ ℤ con forma de conexión A ∈ Ω¹(M, 𝔤).
-  • Invariante de Turaev–Viro (estado-suma) vía contracción de 6j-símbolos
-    del grupo cuántico U_q(sl₂) en raíz de la unidad.
-  • Teoría espectral: truncamiento de Eckart–Young óptimo sobre la red tensorial.
-  • Homología singular: números de Betti βᵢ(Σ) y sucesión exacta de Mayer–Vietoris
-    para la condición de cobordismo.
-  • Funtor de olvido métrico U : Met → Top (olvida G_{μν}, retiene tipo homotópico).
-  • Proyección booleana sobre el retículo distributivo acotado {⊤, ⊥} ≅ {VIABLE, RECHAZAR}.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta monoidal):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Fibrado de Cobordismo: Inicializa el cobordismo M ∈ Cob(3), verifica
-         la condición de adaptación de impedancia topológica (compatibilidad
-         de homología + Kramers–Kronig discreto) y genera el 3-esqueleto.
-         Último método formal: build_cobordism(…) → CobordismManifold.
-         Este objeto es el dominio exacto de todos los métodos de la Fase 2.
-
-Fase 2 → Motor de Invariantes Cuánticos: Continúa directamente desde el
-         CobordismManifold de la Fase 1. Computa S_CS[A] (acción de Chern–Simons
-         discretizada espectralmente) y la suma de estados de Turaev–Viro Z(M)
-         mediante contracción tensorial + truncamiento SVD de rango mínimo
-         (Eckart–Young). Produce QuantumInvariants.
-
-Fase 3 → Colapso Booleano: Continúa desde QuantumInvariants. Proyecta la
-         transición al retículo de severidad (álgebra de Boole completa)
-         vía el morfismo de evaluación característico χ_{knot-free}.
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : TQFT Projection Manifold (Proyector Topológico Independiente)                  ║
+║  Ruta   : app/omega/tqft_projection_manifold.py                                          ║
+║  Versión: 4.0.0-Strict-Functorial-Spectral-TQFT-Doctoral                                 ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS TOPOLÓGICA (TQFT):                  ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor consagra la "Independencia de Fondo" (Background Independence) en       ║
+║  el ecosistema. Aniquila la dependencia geométrica aplicando el Funtor de Olvido         ║
+║  Métrico $U: \mathbf{Met} \to \mathbf{Top}$, reteniendo únicamente el tipo de            ║
+║  homotopía y la clase de gauge. Audita el flujo termodinámico proyectando la             ║
+║  intención del LLM sobre la categoría de cobordismos orientados $\mathbf{Cob}(3)$,       ║
+║  certificando su viabilidad mediante invariantes de nudos y sumas de estados.            ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Funtor de Olvido Métrico (Metric Forgetful Functor U):                              ║
+║      Se despoja al operador de densidad de toda métrica Riemanniana $G_{\mu\nu}$ y de    ║
+║      la masa inercial de Fröhlich $m^{**}$. Esto aísla las paradojas logísticas puras,   ║
+║      haciéndolas inmutables frente al ruido estocástico o térmico de la IA.              ║
+║                                                                                          ║
+║  §2. Axiomas de Atiyah-Segal y Categoría de Cobordismos Cob(3):                          ║
+║      La transición de un estado inicial $\Sigma_{in}$ a un estado final $\Sigma_{out}$   ║
+║      se define formalmente como una 3-variedad $M$ tal que $\partial M = \Sigma_{in}^* \sqcup \Sigma_{out}$. ║
+║      Rupturas en esta continuidad inducen incondicionalmente un `CobordismDegeneracyError`.║
+║                                                                                          ║
+║  §3. Teoría de Chern-Simons y Veto Topológico:                                           ║
+║      Para una conexión gauge $A \in \Omega^1(M, \mathfrak{g})$ a nivel $k \in \mathbb{Z}$, ║
+║      se evalúa la acción discreta:                                                       ║
+║          $S_{CS}[A] = \frac{k}{4\pi} \int_M \text{Tr}\left(A \wedge dA + \frac{2}{3} A \wedge A \wedge A\right)$ ║
+║      Si $S_{CS}[A] \not\equiv 0 \pmod{2\pi\mathbb{Z}/k}$, la IA ha inyectado un "nudo   ║
+║      logístico" irresoluble, detonando de inmediato el `TopologicalKnotVeto`.            ║
+║                                                                                          ║
+║  §4. Suma de Estados de Turaev-Viro y Truncamiento Espectral:                            ║
+║      La integral de trayectoria se computa sobre la triangulación del 3-esqueleto        ║
+║      contrayendo los símbolos-6j del grupo cuántico $U_q(\mathfrak{sl}_2)$ en la raíz de ║
+║      la unidad $q = e^{2\pi i / (k+2)}$:                                                 ║
+║          $Z_{TV}(M) = \sum_{j} w(j) \prod_{v} [2j_v+1]_q \prod_{f} (6j)_f$               ║
+║      Para blindar la FPU frente a tensores masivos, se impone el truncamiento SVD óptimo ║
+║      de Eckart-Young de rango mínimo sobre la red tensorial.                             ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Monoidal Estricta):               ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Phase1_CobordismFibrator:                                                      ║
+║           Inicializa $M \in \mathbf{Cob}(3)$, verifica compatibilidad de homología       ║
+║           y genera el 3-esqueleto. Retorna: `CobordismManifold`.                         ║
+║                                                                                          ║
+║  Fase 2 → Phase2_QuantumInvariantsEngine:                                                ║
+║           Computa $S_{CS}[A]$ y $Z_{TV}(M)$ mediante contracción tensorial de la suma de ║
+║           estados. Retorna: `QuantumInvariants`.                                         ║
+║                                                                                          ║
+║  Fase 3 → Phase3_BooleanCollapseProjector:                                               ║
+║           Proyecta los invariantes sobre el retículo distributivo acotado (Álgebra de    ║
+║           Boole de Veredictos) $\{\top, \bot\} \cong \{\text{VIABLE}, \text{RECHAZAR}\}$.║
+║           Retorna: `TQFTVerdict`.                                                        ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations

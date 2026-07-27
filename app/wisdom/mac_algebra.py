@@ -1,59 +1,69 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo: MAC Algebra (Geometría No Conmutativa y Morfismos Cuánticos)         ║
-║ Ubicación: app/wisdom/mac_algebra.py                                         ║
-║ Versión: 4.0.0-Dagger-Compact-Category-Rigorous                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Naturaleza Ciber-Física y Topológica Refinada:
-────────────────────────────────────────────────
-Este módulo instituye el Álgebra de von Neumann Tipo I_n, el Retículo
-Ortomodular y la Teoría Modular de Tomita-Takesaki sobre el espacio de
-Hilbert de Hilbert-Schmidt asociado a ℋ_MAC. Se corrigen las construcciones
-modulares finitas y se formaliza la conexión entre categorías dagger-compactas,
-lógica cuántica y análisis modular.
-
-FUNDAMENTOS TEÓRICOS EXTENDIDOS:
-─────────────────────────────────
-1. ÁLGEBRAS DE VON NEUMANN: Factores Tipo I_n, II_1, II∞, III
-2. CATEGORÍAS DAGGER-COMPACTAS: Objetos = espacios de Hilbert finitos;
-   Morfismos = canales CPTP; Daga = adjunto de Heisenberg; Tensor = ⊗
-3. LÓGICA CUÁNTICA: Retículo de proyectores L(ℋ) ortomodular no distributivo
-4. TEORÍA MODULAR: Tomita-Takesaki finita con Δ = L_ρ R_{ρ^{-1}},
-   J(A) = ρ^{1/2} A^* ρ^{-1/2}, S = J Δ^{1/2}
-5. GEOMETRÍA NO CONMUTATIVA: Estados fieles y factores finitos
-6. CANALES CUÁNTICOS: Representación de Kraus, matriz de Choi,
-   superoperador de Liouville, verificación explícita de CP
-
-Axiomas Matemáticos Implementados:
-───────────────────────────────────
-A1. CPTP:  ℰ(ρ) = Σₖ Mₖ ρ Mₖ†,  Σₖ Mₖ† Mₖ = I
-A2. CP:   matriz de Choi Λ_ℰ ≥ 0
-A3. Meet: P ∧ Q = lim_{n→∞} (P Q P)^n  (proyección sobre intersección)
-A4. Join: P ∨ Q = P + Q - P ∧ Q
-A5. Ley Ortomodular: P ≤ Q ⇒ P ∨ (P^⊥ ∧ Q) = Q
-A6. Modular: Δ(A) = ρ A ρ^{-1}, J(A) = ρ^{1/2} A^* ρ^{-1/2}
-A7. KMS:  ω(AB) = ω(B σ_{-i}(A)), σ_t(A) = ρ^{it} A ρ^{-it}
-
-Fases Anidadas:
-────────────────
-Fase 1 → Categoría Dagger-Compacta de Canales Cuánticos
-         último método: as_operator_algebra() → OperatorAlgebra
-Fase 2 → Retículo Ortomodular y Lógica Cuántica
-         último método: prepare_modular_state() → estado fiel
-Fase 3 → Teoría Modular de Tomita-Takesaki
-         recibe OperatorAlgebra + estado fiel
-
-Referencias:
-────────────
-- Murray & von Neumann (1936): "On rings of operators"
-- Tomita (1967): "Standard forms of von Neumann algebras"
-- Takesaki (1970): "Tomita's theory of modular Hilbert algebras"
-- Connes (1994): "Noncommutative Geometry"
-- Birkhoff & von Neumann (1936): "The logic of quantum mechanics"
-- Abramsky & Coecke (2004): "A categorical semantics of quantum protocols"
-- Choi (1975): "Completely positive linear maps on complex matrices"
+r""" 
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : MAC Algebra (Geometría No Conmutativa y Morfismos Cuánticos)                   ║
+║  Ruta   : app/wisdom/mac_algebra.py                                                      ║
+║  Versión: 4.0.0-Dagger-Compact-Category-Rigorous                                         ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA CATEGÓRICA CUÁNTICA (Rigor Doctoral):                  ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Este endofuntor instituye el Álgebra de von Neumann Tipo I_n, el Retículo Ortomodular   ║
+║  y la Teoría Modular de Tomita-Takesaki sobre el espacio de Hilbert-Schmidt asociado     ║
+║  a la Matriz Atómica de Conocimiento (H_MAC). Formaliza la conexión absoluta entre       ║
+║  categorías dagger-compactas, lógica cuántica y análisis modular, erradicando la         ║
+║  conmutatividad estocástica del Modelo de Lenguaje (LLM).                                ║
+║                                                                                          ║
+║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
+║                                                                                          ║
+║  §1. Categoría Dagger-Compacta y Canales CPTP (Teorema de Choi):                         ║
+║      Los morfismos en este espacio son Mapas Completamente Positivos y Preservadores de  ║
+║      Traza (CPTP). La estructura dagger (adjunto de Heisenberg) garantiza la reversibilidad║
+║      isométrica débil. Todo canal evoluciona el estado mediante operadores de Kraus M_k: ║
+║          $\mathcal{E}(\rho) = \sum_k M_k \rho M_k^\dagger, \quad \sum_k M_k^\dagger M_k = I$ ║
+║      Garantizando axiomáticamente la conservación de probabilidad de la traza.           ║
+║                                                                                          ║
+║  §2. Retículo Ortomodular (Lógica Cuántica de Birkhoff-von Neumann):                     ║
+║      Las proposiciones semánticas no operan en un álgebra de Boole clásica, sino en el   ║
+║      retículo ortomodular de proyectores ortogonales $\mathcal{P}(\mathcal{H})$.         ║
+║      Para proyectores $P, Q$, se cumple la ortomodularidad:                              ║
+║          $P \le Q \implies Q = P + (Q \wedge P^\perp)$                                   ║
+║      Esto veta la distributividad trivial y permite modelar la incompatibilidad          ║
+║      observacional estricta (conceptos de negocio que no conmutan: $[P, Q] \neq 0$).     ║
+║                                                                                          ║
+║  §3. Teoría Modular de Tomita-Takesaki (Equilibrio Térmico Semántico):                   ║
+║      Dado un estado cíclico y separador $|\Omega\rangle$ (estado fiel validado), se      ║
+║      define el operador antilineal $S |\psi\rangle = |\psi^\dagger\rangle$ y su          ║
+║      descomposición polar $S = J \Delta^{1/2}$. Esto induce el grupo de automorfismos    ║
+║      modulares que evoluciona los observables $X \in \mathcal{M}$ en el "tiempo térmico":║
+║          $\sigma_t(X) = \Delta^{it} X \Delta^{-it}, \quad \forall t \in \mathbb{R}$      ║
+║      Esta dinámica aísla las resonancias semánticas intrínsecas del presupuesto sin      ║
+║      requerir un Hamiltoniano externo empírico.                                          ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Evolución Funtorial Estricta):                          ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Categoría Dagger-Compacta de Canales Cuánticos:                                ║
+║           Define los objetos (espacios finitos) y morfismos (CPTP, Identity, Composed).  ║
+║           Exporta el OperatorAlgebra $M_d(\mathbb{C})$ como objeto subyacente.           ║
+║                                                                                          ║
+║  Fase 2 → Retículo Ortomodular y Lógica Cuántica:                                        ║
+║           Construye el retículo $L(\mathcal{H})$ de proyectores sobre el álgebra.        ║
+║           Valida estados fieles (núcleo trivial) listos para la disección modular.       ║
+║                                                                                          ║
+║  Fase 3 → Teoría Modular de Tomita-Takesaki:                                             ║
+║           Computa los operadores $\Delta$ y $J$, habilitando el flujo analítico continuo ║
+║           $\sigma_t(\cdot)$ y consolidando el TomitaTakesakiTheory DTO.                  ║
+║                                                                                          ║
+║  REFERENCIAS FUNDACIONALES:                                                              ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  • Murray & von Neumann (1936): "On rings of operators"                                  ║
+║  • Birkhoff & von Neumann (1936): "The logic of quantum mechanics"                       ║
+║  • Tomita (1967): "Standard forms of von Neumann algebras"                               ║
+║  • Takesaki (1970): "Tomita's theory of modular Hilbert algebras"                        ║
+║  • Choi (1975): "Completely positive linear maps on complex matrices"                    ║
+║  • Connes (1994): "Noncommutative Geometry"                                              ║
+║  • Abramsky & Coecke (2004): "A categorical semantics of quantum protocols"              ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
 
 from __future__ import annotations
