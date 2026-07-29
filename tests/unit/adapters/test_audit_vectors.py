@@ -1,5 +1,5 @@
 """
-Suite de Pruebas — Vector de Auditoría Topológica.
+Suite de Pruebas — Vector de Auditoría Topológica. Ubicado en tests/unit/adapaters/test_audit_vectors.py
 
 Cobertura de pruebas:
 ─────────────────────

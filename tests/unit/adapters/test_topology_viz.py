@@ -1,4 +1,5 @@
 """
+tests/unit/adapters/test_topology_viz.py
 Suite de pruebas rigurosa para ``app.adapters.topology_viz.py``.
 
 Estructura:

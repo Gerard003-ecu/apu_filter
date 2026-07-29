@@ -2,6 +2,7 @@
 """
 Pruebas unitarias para el módulo data_loader.py utilizando pytest.
 Cubre casos de éxito, manejo de errores y validaciones para CSV, Excel y PDF.
+Ubicado en tests/unit/adapters/test_data_loader.py
 """
 
 from pathlib import Path

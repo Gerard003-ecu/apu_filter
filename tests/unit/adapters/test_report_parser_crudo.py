@@ -1,4 +1,5 @@
 """
+tests/unit/adapters/test_report_parser_crudo.py
 Suite de pruebas rigurosas para ReportParserCrudo (v3 refinado).
 
 Estrategia de testing:

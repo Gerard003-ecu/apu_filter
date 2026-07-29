@@ -6,7 +6,7 @@ import numpy as np
 ================================================================================
 Módulo: test_tools_interface.py
 Submódulo: Pruebas de Estructuras Fundamentales y Configuración
-Ubicación: tests/unit/core/test_tools_interface.py
+Ubicación: tests/unit/adapters/test_tools_interface.py
 Versión: 5.0.0-topological-rigorous
 ================================================================================
 

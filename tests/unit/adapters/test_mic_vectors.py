@@ -1,5 +1,5 @@
 """
-tests/test_mic_vectors.py
+tests/unit/adapters/test_mic_vectors.py
 
 Suite de pruebas exhaustiva para app/adapters/mic_vectors.py
 

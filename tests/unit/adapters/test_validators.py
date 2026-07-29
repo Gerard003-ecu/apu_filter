@@ -1,7 +1,7 @@
 """
 ═══════════════════════════════════════════════════════════════════════════════
 SUITE DE PRUEBAS RIGUROSA: Validadores Ciber-Físicos
-UBICACIÓN: tests/unit/core/test_validators.py
+UBICACIÓN: tests/unit/adapters/test_validators.py
 VERSIÓN: 2.0.0 - Fortificación Algebraica con Cobertura Exhaustiva
 ═══════════════════════════════════════════════════════════════════════════════
 

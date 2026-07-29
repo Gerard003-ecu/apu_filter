@@ -1,4 +1,5 @@
 """
+tests/unit/adapters/test_presenters.py
 Suite de pruebas rigurosa para ``presenters.py``.
 
 Estructura:
