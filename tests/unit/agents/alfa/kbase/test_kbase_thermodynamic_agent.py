@@ -1,2144 +1,2357 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : KBase Thermodynamic Agent (Asesor de Cimientos Financieros)                    ║
-║  Ruta   : app/agents/alpha/kbase/kbase_thermodynamic_agent.py                            ║
-║  Versión: 5.0.0-Rigorous-Sheaf-Williamson-Boolean-Spectral-Passivity                     ║
+║  Módulo : Test Suite — KBase Thermodynamic Agent (Suite de Validación Termodinámica)     ║
+║  Ruta   : tests/unit/agents/alfa/kbase/test_kbase_thermodynamic_agent.py                 ║
+║  Versión: 5.0.0-Rigorous-Sheaf-Williamson-Boolean-Spectral-Passivity-TestSuite           ║
 ╠══════════════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
+║  PROPÓSITO CIBER-FÍSICO Y TOPOLOGÍA DE PRUEBAS (Rigor Categórico):                       ║
 ║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor consagra el Foso Termodinámico del ecosistema ($K_{BASE}$). Actúa       ║
-║  como un Sistema Port-Hamiltoniano que gobierna axiomáticamente la inercia (Recursos),   ║
-║  la capacitancia (Socios) y la fricción entrópica (Costos) del modelo de negocio,        ║
-║  sometiendo los tensores estocásticos a un difeomorfismo métrico estricto.               ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TERMODINÁMICAS:                                 ║
-║                                                                                          ║
-║  §1. Hamiltoniano Basal y Pullback Riemanniano:                                          ║
-║      La energía base repudia la geometría euclidiana plana. Los tensores capacitivos     ║
-║      e inerciales absorben el estrés del mercado mediante un pullback congruente         ║
-║      contra los tensores métricos $G_q$ y $G_p$:                                         ║
-║          $\tilde{C}_{soc} = G_q C_{soc} G_q^\top, \quad \tilde{M}_{rec} = G_p M_{rec} G_p^\top$ ║
-║      El Hamiltoniano total del foso se define como la forma cuadrática estricta:         ║
-║          $H_{BASE}(q,p) = \frac{1}{2} q^\top \tilde{C}_{soc}^{-1} q + \frac{1}{2} p^\top \tilde{M}_{rec}^{-1} p$ ║
-║      Singularidades en este pullback detonan el `MetricTensorSingularityError`.          ║
-║                                                                                          ║
-║  §2. Ecuación de Estado y Disipación de Rayleigh (Segunda Ley):                          ║
-║      La dinámica temporal obedece la estructura de Dirac, exigiendo pasividad absoluta:  ║
-║          $\begin{pmatrix} \dot{q} \\ \dot{p} \end{pmatrix} = (J - R) \begin{pmatrix} \nabla_q H \\ \nabla_p H \end{pmatrix} + g(x)u$ ║
-║      Se audita incondicionalmente la inecuación de disipación de Rayleigh:               ║
-║          $\dot{H} = -\nabla H^\top R \nabla H = -P_{diss} \le 0$                         ║
-║      Entropía negativa (ganancia fantasma) dispara un `RayleighDissipationViolation`.    ║
-║                                                                                          ║
-║  §3. Forma Normal de Williamson (Invariantes Simplécticos):                              ║
-║      Para separar los modos disipativos de los oscilatorios, la matriz del sistema se    ║
-║      somete al Teorema de Williamson, diagonalizándose vía una matriz simpléctica $S$:   ║
-║          $S^\top \tilde{A}_{sym} S = \text{diag}(\omega_1, \dots, \omega_n)$             ║
-║      Frecuencias no físicas imaginarias causan un `WilliamsonNormalFormError`.           ║
-║                                                                                          ║
-║  §4. Cofrontera del Haz Celular (Cellular Sheaf):                                        ║
-║      El agente proyecta su variedad local como una fibra (Stalk) para el orquestador     ║
-║      macroscópico, exportando la matriz de restricción $\delta_{BASE}$. Se exige la      ║
-║      Identidad de Hodge Local:                                                           ║
-║          $\delta_{BASE}^\top \delta_{BASE} = \nabla^2 H_{BASE} + R_{cost}$               ║
-║      Cualquier desviación geométrica produce un `SheafCoboundaryError`.                  ║
+║  Esta suite de pruebas consagra el Foso Termodinámico del ecosistema ($K_{BASE}$)        ║
+║  mediante un funtor de validación que verifica axiomáticamente la inercia (Recursos),    ║
+║  la capacitancia (Socios) y la fricción entrópica (Costos) del modelo de negocio.        ║
 ║                                                                                          ║
 ║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
 ║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Instanciación Métrica y Espectral                                              ║
-║           Aplica el pullback congruente, verifica SPD y extrae los invariantes métricos. ║
-║           [Retorna: TopologicalContext → objeto inicial de Fase 2]                       ║
+║  Fase 1 → Validación de Topología Matricial y Métrica Riemanniana                        ║
+║           Verifica dimensiones, simetrías, pullback congruente y SPD.                    ║
 ║                                                                                          ║
-║  Fase 2 → Integración Port-Hamiltoniana y Diagnóstico de Williamson                      ║
-║           Computa $H_{BASE}$, certifica la disipación $P_{diss}$ y extrae frecuencias $\omega_i$. ║
-║           [Retorna: BasalStateTensor → objeto inicial de Fase 3]                         ║
+║  Fase 2 → Validación de Dinámica Port-Hamiltoniana y Disipación de Rayleigh              ║
+║           Computa H_BASE, certifica P_diss y extrae frecuencias ω_i.                     ║
 ║                                                                                          ║
-║  Fase 3 → Fibración Celular y Exportación de la Cofrontera                               ║
-║           Sintetiza la cocadena $\delta_{BASE}$ subyugada a la Identidad de Hodge.       ║
-║           [Retorna: SheafStalk → objeto final del endofuntor]                            ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+║  Fase 3 → Validación de Fibración Celular y Exportación de la Cofrontera                 ║
+║           Sintetiza la cocadena δ_BASE subyugada a la Identidad de Hodge.                ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝
 """
-
 from __future__ import annotations
 
 # =============================================================================
 # Biblioteca estándar
 # =============================================================================
-import enum
 import logging
-from typing import Final, Optional, Tuple
+from typing import Tuple
+from pathlib import Path
 
 # =============================================================================
-# Álgebra numérica de alta precisión
+# Framework de pruebas
 # =============================================================================
+import pytest
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
 # =============================================================================
-# Estructuras de datos inmutables
+# Módulo bajo prueba
 # =============================================================================
-from dataclasses import dataclass
-
-# =============================================================================
-# Dependencias arquitectónicas del ecosistema APU Filter
-# =============================================================================
-try:
-    from app.core.mic_algebra import CategoricalState, Morphism
-except ImportError:
-    class CategoricalState:  # type: ignore[no-redef]
-        """Stub: estado categórico del ecosistema MIC."""
-
-    class Morphism:  # type: ignore[no-redef]
-        """Stub: morfismo funtorial del ecosistema MIC."""
-
-
-# =============================================================================
-# Logger y constantes globales
-# =============================================================================
-logger = logging.getLogger("MIC.Alpha.KBaseThermodynamicAgent")
-
-_MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
-
+from app.agents.alpha.kbase.kbase_thermodynamic_agent import (
+    KBaseThermodynamicAgent,
+    TopologicalContext,
+    BasalStateTensor,
+    SheafStalk,
+    StabilityFlags,
+    # Excepciones
+    ThermodynamicBaseError,
+    DimensionMismatchError,
+    CapacitanceDegeneracyError,
+    InertialFlybackError,
+    RayleighDissipationViolation,
+    IllConditionedMatrixError,
+    MetricTensorSingularityError,
+    SheafCoboundaryError,
+    StructuralConsistencyError,
+    PassivityCertificateError,
+    WilliamsonNormalFormError,
+)
 
 # =============================================================================
-# SECCIÓN 0 — EXCEPCIONES TERMODINÁMICAS ESTRICTAS
+# Logger y constantes globales de prueba
 # =============================================================================
-
-
-class ThermodynamicBaseError(Exception):
-    """
-    Excepción categórica raíz para violaciones en el Estrato K_BASE.
-
-    Toda excepción de este módulo hereda de esta clase, garantizando que
-    los manejadores de nivel superior puedan capturar cualquier fallo
-    termodinámico con un solo ``except ThermodynamicBaseError``.
-    """
-
-
-class DimensionMismatchError(ThermodynamicBaseError):
-    """
-    Lanzada cuando las dimensiones de las matrices constitutivas son
-    inconsistentes con el espacio de fases (q, p) declarado, o cuando los
-    tensores métricos G_q, G_p no coinciden con dim_q, dim_p.
-    """
-
-
-class CapacitanceDegeneracyError(ThermodynamicBaseError):
-    """
-    Lanzada cuando C̃_soc o M̃_rec (tras el pullback métrico) no son SPD
-    incluso después de aplicar regularización de Tikhonov adaptativa.
-
-    Diagnóstico incluye κ(A), λ_min y el jitter τ finalmente ensayado.
-    """
-
-
-class InertialFlybackError(ThermodynamicBaseError):
-    """
-    Lanzada cuando la inercia de recuperación genera un voltaje transitorio
-    de Flyback que excede el límite de ruptura dieléctrica.
-
-    Condición de disparo: ‖M̃_rec · (∂f/∂t)‖_∞ > V_breakdown
-    """
-
-
-class RayleighDissipationViolation(ThermodynamicBaseError):
-    """
-    Lanzada cuando el modelo disipativo indica entropía negativa (ganancia
-    fantasma), violando la Segunda Ley de la Termodinámica.
-
-    Condición de disparo: ∇Hᵀ R_cost ∇H < −tol  (P_diss < −tol < 0)
-    """
-
-
-class IllConditionedMatrixError(ThermodynamicBaseError):
-    """
-    Lanzada cuando el número de condición espectral κ(A) = λ_max/λ_min
-    supera el umbral configurable, indicando cuasi-singularidad numérica.
-    """
-
-
-class MetricTensorSingularityError(ThermodynamicBaseError):
-    """
-    Lanzada cuando el tensor métrico Riemanniano G_q o G_p es singular o
-    está mal condicionado, invalidando el pullback congruente
-    Ã = G A Gᵀ requerido para absorber el estrés anisotrópico.
-    """
-
-
-class SheafCoboundaryError(ThermodynamicBaseError):
-    """
-    Lanzada cuando la cofrontera discreta δ_BASE no satisface la
-    identidad de Hodge local δᵀδ = ∇²H + R_cost dentro de tolerancia
-    de máquina escalada por ‖Δ_BASE‖_F.
-    """
-
-
-class StructuralConsistencyError(ThermodynamicBaseError):
-    """
-    Lanzada cuando la identidad algebraica exacta del sistema
-    Port-Hamiltoniano, ∇Hᵀẋ ≡ −P_diss (porque ∇Hᵀ J ∇H ≡ 0 para J
-    antisimétrica), se viola más allá del error de redondeo esperado.
-
-    A diferencia de ``RayleighDissipationViolation`` (violación física de
-    la 2ª Ley), esta excepción indica un **error de implementación o de
-    cableado** entre J_base, R_cost y el gradiente ∇H.
-    """
-
-
-class PassivityCertificateError(ThermodynamicBaseError):
-    """
-    Lanzada cuando el certificado de pasividad Ḣ + P_diss ≈ 0 falla, o
-    cuando la tasa de decaimiento entrópica es inconsistente con el
-    Hamiltoniano y el campo vectorial.
-    """
-
-
-class WilliamsonNormalFormError(ThermodynamicBaseError):
-    """
-    Lanzada cuando el diagnóstico de Williamson falla: A_sym no es
-    numéricamente antisimétrica, o el emparejamiento de valores
-    singulares produce frecuencias no físicas (NaN / negativas).
-    """
-
+logger = logging.getLogger("MIC.Alpha.Test.KBaseThermodynamicAgent")
+_MACHINE_EPS: float = float(np.finfo(np.float64).eps)
 
 # =============================================================================
-# SECCIÓN 1 — ÁLGEBRA DE BOOLE DE ESTABILIDAD
+# FIXTURES GLOBALES — GENERADORES DE MATRICES CONSTITUTIVAS
 # =============================================================================
 
 
-class StabilityFlags(enum.Flag):
+@pytest.fixture(scope="module")
+def fixture_valid_matrices_2d() -> Tuple[
+    NDArray[np.float64],
+    NDArray[np.float64],
+    NDArray[np.float64],
+    NDArray[np.float64],
+]:
     r"""
-    Retícula Booleana de predicados de estabilidad termodinámica.
-
-    ``enum.Flag`` provee de forma nativa una **álgebra de Boole** completa
-    sobre el conjunto de predicados: conjunción (`&`), disyunción (`|`),
-    complemento (`~`), elemento ínfimo ``NONE`` (0̄) y elemento supremo
-    ``ALL`` (1̄), satisfaciendo las leyes de De Morgan, distributividad,
-    absorción e idempotencia por construcción del tipo.
-
-    Miembros
-    --------
-    ENERGY_NONNEGATIVE
-        V(q) ≥ 0 ∧ K(p) ≥ 0 (garantizado por SPD, pero verificado).
-    DISSIPATION_VALID
-        P_diss ≥ 0 (Segunda Ley, verificado independientemente).
-    FLYBACK_SAFE
-        ‖V_fb‖_∞ ≤ margin · V_breakdown (margen de seguridad blando).
-    STRUCTURAL_CONSISTENCY
-        |∇Hᵀẋ + P_diss| ≤ tol (identidad algebraica exacta del PH-system).
-    SPECTRAL_CONDITIONING_SOUND
-        κ(C̃_soc), κ(M̃_rec) por debajo de la mitad de κ_max.
-    PASSIVITY_CERTIFICATE
-        |Ḣ_num + P_diss| ≤ tol (certificado de pasividad en caliente).
-    EULER_HOMOGENEITY
-        |q·∇_q H + p·∇_p H − 2H| ≤ tol (H exactamente cuadrática).
+    Genera matrices constitutivas válidas para dim_q=2, dim_p=2.
+    
+    Retorna
+    -------
+    Tuple[C_soc, M_rec, R_cost, J_base]
+        Matrices SPD, PSD, antisimétrica respectivamente.
     """
-
-    NONE = 0
-    ENERGY_NONNEGATIVE = enum.auto()
-    DISSIPATION_VALID = enum.auto()
-    FLYBACK_SAFE = enum.auto()
-    STRUCTURAL_CONSISTENCY = enum.auto()
-    SPECTRAL_CONDITIONING_SOUND = enum.auto()
-    PASSIVITY_CERTIFICATE = enum.auto()
-    EULER_HOMOGENEITY = enum.auto()
-    ALL = (
-        ENERGY_NONNEGATIVE
-        | DISSIPATION_VALID
-        | FLYBACK_SAFE
-        | STRUCTURAL_CONSISTENCY
-        | SPECTRAL_CONDITIONING_SOUND
-        | PASSIVITY_CERTIFICATE
-        | EULER_HOMOGENEITY
+    dim_q, dim_p = 2, 2
+    n = dim_q + dim_p
+    
+    # C_soc: SPD (capacitancia de socios)
+    C_soc: NDArray[np.float64] = np.array(
+        [[2.0, 0.1], [0.1, 1.5]], dtype=np.float64
     )
-
-
-def describe_stability_flags(flags: StabilityFlags) -> str:
-    """
-    Serializa la retícula ``StabilityFlags`` a una cadena legible,
-    listando explícitamente los predicados satisfechos y los violados
-    (complemento relativo a ``StabilityFlags.ALL``).
-    """
-    atomic = [
-        f
-        for f in StabilityFlags
-        if f not in (StabilityFlags.NONE, StabilityFlags.ALL)
-    ]
-    satisfied = [f.name for f in atomic if f in flags]
-    violated = [f.name for f in atomic if f not in flags]
-    return (
-        f"SATISFECHOS={satisfied or ['ninguno']} | "
-        f"VIOLADOS={violated or ['ninguno']} | "
-        f"ESTABLE_TOTAL={flags == StabilityFlags.ALL}"
+    
+    # M_rec: SPD (inercia de recursos)
+    M_rec: NDArray[np.float64] = np.array(
+        [[1.8, 0.05], [0.05, 2.2]], dtype=np.float64
     )
+    
+    # R_cost: PSD (disipación de costos)
+    R_cost: NDArray[np.float64] = np.array(
+        [[0.5, 0.0, 0.0, 0.0],
+         [0.0, 0.3, 0.0, 0.0],
+         [0.0, 0.0, 0.4, 0.0],
+         [0.0, 0.0, 0.0, 0.2]], dtype=np.float64
+    )
+    
+    # J_base: antisimétrica (interconexión)
+    J_base: NDArray[np.float64] = np.array(
+        [[0.0, 0.0, 1.0, 0.0],
+         [0.0, 0.0, 0.0, 1.0],
+         [-1.0, 0.0, 0.0, 0.0],
+         [0.0, -1.0, 0.0, 0.0]], dtype=np.float64
+    )
+    
+    return C_soc, M_rec, R_cost, J_base
+
+
+@pytest.fixture(scope="module")
+def fixture_valid_matrices_1d() -> Tuple[
+    NDArray[np.float64],
+    NDArray[np.float64],
+    NDArray[np.float64],
+    NDArray[np.float64],
+]:
+    r"""
+    Genera matrices constitutivas válidas para dim_q=1, dim_p=1 (caso mínimo).
+    
+    Retorna
+    -------
+    Tuple[C_soc, M_rec, R_cost, J_base]
+    """
+    C_soc: NDArray[np.float64] = np.array([[2.0]], dtype=np.float64)
+    M_rec: NDArray[np.float64] = np.array([[1.5]], dtype=np.float64)
+    R_cost: NDArray[np.float64] = np.array(
+        [[0.3, 0.0], [0.0, 0.2]], dtype=np.float64
+    )
+    J_base: NDArray[np.float64] = np.array(
+        [[0.0, 1.0], [-1.0, 0.0]], dtype=np.float64
+    )
+    
+    return C_soc, M_rec, R_cost, J_base
+
+
+@pytest.fixture(scope="module")
+def fixture_valid_state_vectors_2d() -> Tuple[
+    NDArray[np.float64],
+    NDArray[np.float64],
+    NDArray[np.float64],
+]:
+    r"""
+    Genera vectores de estado válidos para dim_q=2, dim_p=2.
+    
+    Retorna
+    -------
+    Tuple[q, p, df_dt]
+    """
+    q: NDArray[np.float64] = np.array([1.0, 0.5], dtype=np.float64)
+    p: NDArray[np.float64] = np.array([0.8, 1.2], dtype=np.float64)
+    df_dt: NDArray[np.float64] = np.array([0.1, 0.05], dtype=np.float64)
+    
+    return q, p, df_dt
+
+
+@pytest.fixture(scope="module")
+def fixture_metric_tensors_2d() -> Tuple[
+    NDArray[np.float64],
+    NDArray[np.float64],
+]:
+    r"""
+    Genera tensores métricos Riemannianos válidos G_q, G_p.
+    
+    Retorna
+    -------
+    Tuple[G_q, G_p]
+    """
+    G_q: NDArray[np.float64] = np.array(
+        [[1.1, 0.05], [0.05, 0.9]], dtype=np.float64
+    )
+    G_p: NDArray[np.float64] = np.array(
+        [[1.0, 0.0], [0.0, 1.0]], dtype=np.float64
+    )
+    
+    return G_q, G_p
 
 
 # =============================================================================
-# SECCIÓN 2 — ESTRUCTURAS INMUTABLES (DTOs TENSORIALES)
+# FASE 1 — VALIDACIÓN DE TOPOLOGÍA MATRICIAL Y MÉTRICA RIEMANNIANA
 # =============================================================================
-
-
-@dataclass(frozen=True, slots=True)
-class TopologicalContext:
+class TestPhase1_MatrixTopology:
     r"""
-    Contexto inmutable producido por la **Fase 1** (Topología Matricial,
-    Métrica Riemanniana y Teoría Espectral).
-
-    Continuidad formal
-    ------------------
-    Este DTO es el **único argumento** del constructor de
-    ``Phase2_HamiltonianDynamics`` y de ``Phase3_SheafProjection``.
-    Su emisión por ``Phase1_MatrixTopology.build_topological_context()``
-    constituye la frontera Fase 1 → Fases 2/3.
-
-    Atributos
-    ----------
-    L_C, L_M : factores de Cholesky de C̃_soc, M̃_rec.
-    C_inv_sqrt, M_inv_sqrt : raíces de las inversas (precalculadas).
-    C_tilde, M_tilde : matrices pulled-back (trazabilidad / Flyback exacto).
-    R_cost, R_sqrt, J_base : disipación, raíz espectral e interconexión.
-    G_q, G_p : tensores métricos Riemannianos aplicados.
-    kappa_C, kappa_M, kappa_G_q, kappa_G_p : números de condición.
-    epsilon_C, epsilon_M : jitter de Tikhonov aplicado (0 si no fue necesario).
-    dim_q, dim_p : dimensiones de coordenadas y momentos.
-    rank_R, spectral_gap_R, betti_0_R : diagnósticos de R_cost.
-    spectral_gap_C, spectral_gap_M : gaps de C̃_soc, M̃_rec.
-    pullback_amp_C, pullback_amp_M : amplificación de κ por el pullback:
-        κ(Ã) / κ(A) (≈ 1 si G ≈ I; grande si G es anisotrópico agresivo).
-    spectral_entropy_R : entropía de von Neumann del espectro de R_cost.
-    """
-
-    L_C: NDArray[np.float64]
-    L_M: NDArray[np.float64]
-    C_inv_sqrt: NDArray[np.float64]
-    M_inv_sqrt: NDArray[np.float64]
-    C_tilde: NDArray[np.float64]
-    M_tilde: NDArray[np.float64]
-    R_cost: NDArray[np.float64]
-    R_sqrt: NDArray[np.float64]
-    J_base: NDArray[np.float64]
-    G_q: NDArray[np.float64]
-    G_p: NDArray[np.float64]
-    kappa_C: float
-    kappa_M: float
-    kappa_G_q: float
-    kappa_G_p: float
-    epsilon_C: float
-    epsilon_M: float
-    dim_q: int
-    dim_p: int
-    rank_R: int
-    spectral_gap_R: float
-    betti_0_R: int
-    spectral_gap_C: float
-    spectral_gap_M: float
-    pullback_amp_C: float
-    pullback_amp_M: float
-    spectral_entropy_R: float
-
-
-@dataclass(frozen=True, slots=True)
-class BasalStateTensor:
-    r"""
-    Tensor inmutable del estado termodinámico completo del foso.
-
-    Producido por la **Fase 2** (Dinámica Port-Hamiltoniana).
-
-    Continuidad formal
-    ------------------
-    El vector de estado x = [q; p] (reconstruible desde la llamada) y el
-    campo ``vector_field`` alimentan la proyección de la Fase 3. La
-    frontera formal Fase 2 → Fase 3 es ``state_x = concatenate([q, p])``
-    pasado a ``Phase3_SheafProjection.export_stalk``.
-
-    Atributos
-    ----------
-    potential_energy, kinetic_energy, total_hamiltonian : V, K, H ≥ 0.
-    dissipated_power : P_diss ≥ 0.
-    flyback_voltage_norm : ‖M̃_rec · ∂f/∂t‖_∞.
-    grad_H_norm : ‖∇H‖₂.
-    vector_field : ẋ = (J − R) ∇H.
-    euler_homogeneity_residual : |q·∇_q H + p·∇_p H − 2H|.
-    structural_consistency_residual : |∇Hᵀẋ + P_diss|.
-    passivity_residual : |Ḣ_num + P_diss| (certificado de pasividad).
-    dissipation_time_constant : τ_diss = 2H / P_diss (∞ si P_diss ≈ 0).
-    stability_flags : retícula Booleana de predicados.
-    is_thermodynamically_stable : flags == ALL.
-    normal_mode_frequencies, zero_point_energy : Williamson (opcional).
-    state_vector : x = [q; p] empaquetado para la Fase 3.
-    """
-
-    potential_energy: float
-    kinetic_energy: float
-    total_hamiltonian: float
-    dissipated_power: float
-    flyback_voltage_norm: float
-    grad_H_norm: float
-    vector_field: NDArray[np.float64]
-    euler_homogeneity_residual: float
-    structural_consistency_residual: float
-    passivity_residual: float
-    dissipation_time_constant: float
-    stability_flags: StabilityFlags
-    is_thermodynamically_stable: bool
-    normal_mode_frequencies: Optional[NDArray[np.float64]]
-    zero_point_energy: Optional[float]
-    state_vector: NDArray[np.float64]
-
-
-@dataclass(frozen=True, slots=True)
-class SheafStalk:
-    r"""
-    Fibrado celular exportado para el cálculo global del Laplaciano de Haz.
-
-    Producido por la **Fase 3** (Proyección Cohomológica en Haces).
-
-    Continuidad formal
-    ------------------
-    Este DTO es la **salida terminal** de la cadena de tres fases.
-
-    Ensamblaje
-    ----------
-        δ_metric ∈ ℝ^{n×n},  δ_diss ∈ ℝ^{n×n},  δ_BASE ∈ ℝ^{2n×n}
-        Δ_BASE = δ_BASEᵀ δ_BASE = ∇²H + R_cost  (SPD)
-
-    Atributos adicionales v5
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    FASE 1 — TOPOLOGÍA MATRICIAL, PULLBACK RIEMANNIANO Y VALIDACIÓN ESPECTRAL
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida el endofuntor Phase1_MatrixTopology que consagra la
+    geometría Riemanniana del foso termodinámico. Cada método verifica un axioma
+    constitutivo del estrato K_BASE.
+    
+    Invariantes Verificados:
     ------------------------
-    spectral_entropy_hodge : entropía de von Neumann de Spec(Δ_BASE).
-    cheeger_proxy : λ₂(Δ_BASE) / λ_max(Δ_BASE) (proxy de expansión / Cheeger).
+    1. Coherencia dimensional de C_soc, M_rec, R_cost, J_base
+    2. Simetría de C_soc, M_rec, R_cost (A = Aᵀ)
+    3. Antisimetría de J_base (J = −Jᵀ)
+    4. Invertibilidad de tensores métricos G_q, G_p
+    5. Pullback congruente: Ã = G A Gᵀ
+    6. SPD post-pullback (Ley de Sylvester)
+    7. Números de condición κ < κ_max
+    8. Cholesky regularizado con Tikhonov adaptativo
     """
-
-    delta_base: NDArray[np.float64]
-    delta_metric: NDArray[np.float64]
-    delta_dissipative: NDArray[np.float64]
-    hodge_laplacian: NDArray[np.float64]
-    hodge_identity_residual: float
-    hodge_spectral_gap: float
-    hodge_condition_number: float
-    harmonic_dimension: int
-    lossless_subspace_dimension: int
-    state_vector: NDArray[np.float64]
-    projected_state_metric: NDArray[np.float64]
-    projected_state_dissipative: NDArray[np.float64]
-    rank_delta: int
-    spectral_entropy_hodge: float
-    cheeger_proxy: float
-
-
-# =============================================================================
-# SECCIÓN 3 — ORQUESTADOR: KBaseThermodynamicAgent
-#             Tres fases anidadas de rigor creciente
-# =============================================================================
-
-
-class KBaseThermodynamicAgent(Morphism):
-    r"""
-    Orquestador Funtorial del Foso Termodinámico K_BASE.
-
-    Integra el modelo Port-Hamiltoniano del estrato K_BASE mediante tres
-    clases anidadas que operan en cascada estricta:
-
-        Phase1_MatrixTopology
-            ↓  TopologicalContext
-        Phase2_HamiltonianDynamics
-            ↓  BasalStateTensor
-        Phase3_SheafProjection
-            ↓  SheafStalk
-
-    Parámetros de Construcción
-    --------------------------
-    C_soc, M_rec, R_cost, J_base : matrices constitutivas.
-    breakdown_voltage : umbral de ruptura dieléctrica del Flyback.
-    kappa_max : umbral máximo de número de condición.
-    G_q, G_p : tensores métricos Riemannianos (None ⇒ I).
-    hbar : constante de analogía cuántica para E_0.
-    flyback_safety_margin : fracción de V_bd para bandera blanda.
-    """
-
-    FRIENDLY_NAME: str = "Asesor de Cimientos Financieros"
-    VERSION: str = "5.0.0-Rigorous-Sheaf-Williamson-Boolean-Spectral-Passivity"
-
-    def __init__(
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.1 — VALIDACIÓN DIMENSIONAL Y ESTRUCTURAL
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_dimensions_valid_2d(
         self,
-        C_soc: NDArray[np.float64],
-        M_rec: NDArray[np.float64],
-        R_cost: NDArray[np.float64],
-        J_base: NDArray[np.float64],
-        breakdown_voltage: float = 1.0e5,
-        kappa_max: float = 1.0e10,
-        G_q: Optional[NDArray[np.float64]] = None,
-        G_p: Optional[NDArray[np.float64]] = None,
-        hbar: float = 1.0,
-        flyback_safety_margin: float = 0.9,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
     ) -> None:
         r"""
-        Inicializa las matrices constitutivas y ejecuta la Fase 1 de inmediato.
-
-        Lanza
-        -----
-        ValueError
-            Si breakdown_voltage ≤ 0, kappa_max ≤ 1, hbar < 0 o
-            flyback_safety_margin ∉ (0, 1].
-        ThermodynamicBaseError (subclases)
-            Propagadas desde la Fase 1.
+        Verifica que matrices 2D válidas pasan la validación dimensional.
+        
+        Axioma: dim(C_soc) = dim_q², dim(M_rec) = dim_p², 
+                dim(R_cost) = dim(J_base) = (dim_q + dim_p)²
         """
-        if breakdown_voltage <= 0.0:
-            raise ValueError(
-                f"breakdown_voltage debe ser > 0; se obtuvo {breakdown_voltage}."
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        assert agent.context.dim_q == 2
+        assert agent.context.dim_p == 2
+        assert agent.context.C_tilde.shape == (2, 2)
+        assert agent.context.M_tilde.shape == (2, 2)
+        assert agent.context.R_cost.shape == (4, 4)
+        assert agent.context.J_base.shape == (4, 4)
+    
+    def test_phase1_dimensions_valid_1d(
+        self,
+        fixture_valid_matrices_1d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica caso mínimo dim_q=1, dim_p=1 (frontera inferior).
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_1d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        assert agent.context.dim_q == 1
+        assert agent.context.dim_p == 1
+        assert agent.context.C_tilde.shape == (1, 1)
+        assert agent.context.M_tilde.shape == (1, 1)
+    
+    def test_phase1_dimension_mismatch_C_soc_non_square(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que C_soc no cuadrada dispara DimensionMismatchError.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        C_soc_invalid: NDArray[np.float64] = C_soc[:, :1]  # 2×1
+        
+        with pytest.raises(DimensionMismatchError) as exc_info:
+            KBaseThermodynamicAgent(
+                C_soc=C_soc_invalid,
+                M_rec=M_rec,
+                R_cost=R_cost,
+                J_base=J_base,
             )
-        if kappa_max <= 1.0:
-            raise ValueError(
-                f"kappa_max debe ser > 1; se obtuvo {kappa_max}."
+        
+        assert "C_soc debe ser cuadrada" in str(exc_info.value)
+    
+    def test_phase1_dimension_mismatch_R_cost_shape(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que R_cost con forma incorrecta dispara DimensionMismatchError.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        R_cost_invalid: NDArray[np.float64] = np.eye(3, dtype=np.float64)  # 3×3 ≠ 4×4
+        
+        with pytest.raises(DimensionMismatchError) as exc_info:
+            KBaseThermodynamicAgent(
+                C_soc=C_soc,
+                M_rec=M_rec,
+                R_cost=R_cost_invalid,
+                J_base=J_base,
             )
-        if hbar < 0.0:
-            raise ValueError(f"hbar debe ser ≥ 0; se obtuvo {hbar}.")
-        if not (0.0 < flyback_safety_margin <= 1.0):
-            raise ValueError(
-                f"flyback_safety_margin debe estar en (0, 1]; "
-                f"se obtuvo {flyback_safety_margin}."
+        
+        assert "R_cost debe ser" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.2 — VALIDACIÓN DE SIMETRÍAS ESTRUCTURALES
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_symmetry_C_soc_valid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que C_soc simétrica pasa validación.
+        
+        Axioma: C_soc = C_socᵀ dentro de tolerancia ε_mach · ‖C_soc‖_F
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        
+        # Verificar simetría explícita
+        sym_residual = float(la.norm(C_soc - C_soc.T, "fro"))
+        norm_C = float(la.norm(C_soc, "fro"))
+        tol = _MACHINE_EPS * max(norm_C, 1.0)
+        
+        assert sym_residual <= tol, f"Fixture C_soc no es simétrica: {sym_residual}"
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        assert agent is not None
+    
+    def test_phase1_symmetry_C_soc_invalid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que C_soc asimétrica dispara ThermodynamicBaseError.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        C_soc_invalid: NDArray[np.float64] = C_soc.copy()
+        C_soc_invalid[0, 1] += 0.5  # Romper simetría
+        
+        with pytest.raises(ThermodynamicBaseError) as exc_info:
+            KBaseThermodynamicAgent(
+                C_soc=C_soc_invalid,
+                M_rec=M_rec,
+                R_cost=R_cost,
+                J_base=J_base,
             )
-
-        self.breakdown_voltage: float = breakdown_voltage
-        self.kappa_max: float = kappa_max
-        self.hbar: float = hbar
-        self.flyback_safety_margin: float = flyback_safety_margin
-
-        # ------------------------------------------------------------------
-        # Fase 1: Topología Matricial, Riemann y Espectro (inmediata)
-        # ------------------------------------------------------------------
-        self.phase1: KBaseThermodynamicAgent.Phase1_MatrixTopology = (
-            KBaseThermodynamicAgent.Phase1_MatrixTopology(
+        
+        assert "no es simétrica" in str(exc_info.value)
+    
+    def test_phase1_antisymmetry_J_base_valid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que J_base antisimétrica pasa validación.
+        
+        Axioma: J_base = −J_baseᵀ garantiza ∇Hᵀ J ∇H ≡ 0
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        
+        # Verificar antisimetría explícita
+        skew_residual = float(la.norm(J_base + J_base.T, "fro"))
+        norm_J = float(la.norm(J_base, "fro"))
+        tol = _MACHINE_EPS * max(norm_J, 1.0)
+        
+        assert skew_residual <= tol, f"Fixture J_base no es antisimétrica: {skew_residual}"
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        assert agent is not None
+    
+    def test_phase1_antisymmetry_J_base_invalid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que J_base no antisimétrica dispara ThermodynamicBaseError.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        J_base_invalid: NDArray[np.float64] = J_base.copy()
+        J_base_invalid[0, 1] += 0.3  # Romper antisimetría
+        
+        with pytest.raises(ThermodynamicBaseError) as exc_info:
+            KBaseThermodynamicAgent(
+                C_soc=C_soc,
+                M_rec=M_rec,
+                R_cost=R_cost,
+                J_base=J_base_invalid,
+            )
+        
+        assert "no es antisimétrica" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.3 — VALIDACIÓN DE TENSORES MÉTRICOS RIEMANNIANOS
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_metric_tensor_G_q_valid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_metric_tensors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que tensores métricos válidos pasan validación.
+        
+        Axioma: κ(G) = σ_max/σ_min < κ_max para preservar signatura SPD
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        G_q, G_p = fixture_metric_tensors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            G_q=G_q,
+            G_p=G_p,
+        )
+        
+        assert agent.context.kappa_G_q < agent.kappa_max
+        assert agent.context.kappa_G_p < agent.kappa_max
+    
+    def test_phase1_metric_tensor_G_q_singular(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que tensor métrico singular dispara MetricTensorSingularityError.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        G_q_singular: NDArray[np.float64] = np.array(
+            [[1.0, 1.0], [1.0, 1.0]], dtype=np.float64
+        )  # rank 1
+        
+        with pytest.raises(MetricTensorSingularityError) as exc_info:
+            KBaseThermodynamicAgent(
                 C_soc=C_soc,
                 M_rec=M_rec,
                 R_cost=R_cost,
                 J_base=J_base,
-                kappa_max=kappa_max,
-                G_q=G_q,
-                G_p=G_p,
-            )
-        )
-        self.context: TopologicalContext = (
-            self.phase1.build_topological_context()
-        )
-
-        # ------------------------------------------------------------------
-        # Fase 2: Dinámica Port-Hamiltoniana (continuación formal de Fase 1)
-        # ------------------------------------------------------------------
-        self.phase2: KBaseThermodynamicAgent.Phase2_HamiltonianDynamics = (
-            KBaseThermodynamicAgent.Phase2_HamiltonianDynamics(
-                context=self.context,
-                breakdown_voltage=self.breakdown_voltage,
-                kappa_max=self.kappa_max,
-                hbar=self.hbar,
-                flyback_safety_margin=self.flyback_safety_margin,
-            )
-        )
-
-        # Fase 3: Proyección en Haces (instanciación perezosa)
-        self.phase3: Optional[
-            KBaseThermodynamicAgent.Phase3_SheafProjection
-        ] = None
-
-        logger.info(
-            "[KBaseThermodynamicAgent v%s] Inicialización completa. "
-            "dim_q=%d, dim_p=%d, κ(C̃)=%.3e, κ(M̃)=%.3e, rank(R)=%d, "
-            "betti_0(R)=%d, gap(R)=%.3e, S_vN(R)=%.4f, "
-            "amp_pullback(C)=%.3e, amp_pullback(M)=%.3e.",
-            self.VERSION,
-            self.context.dim_q,
-            self.context.dim_p,
-            self.context.kappa_C,
-            self.context.kappa_M,
-            self.context.rank_R,
-            self.context.betti_0_R,
-            self.context.spectral_gap_R,
-            self.context.spectral_entropy_R,
-            self.context.pullback_amp_C,
-            self.context.pullback_amp_M,
-        )
-
-    # =========================================================================
-    # FASE 1 — TOPOLOGÍA MATRICIAL, PULLBACK RIEMANNIANO Y VALIDACIÓN ESPECTRAL
-    # =========================================================================
-
-    class Phase1_MatrixTopology:
-        r"""
-        **Fase 1 – Topología Matricial, Métrica Riemanniana y Teoría Espectral.**
-
-        Responsabilidades (orden estricto):
-
-          a) Coherencia dimensional de C_soc, M_rec, R_cost, J_base.
-          b) Antisimetría de J_base; simetría de C_soc, M_rec, R_cost.
-          c) Invertibilidad / κ de G_q, G_p (identidad por defecto).
-          d) Pullback congruente: C̃ = G_q C G_qᵀ, M̃ = G_p M G_pᵀ.
-          e) Verificación post-pullback de SPD (Ley de Sylvester en caliente).
-          f) κ, gap espectral y amplificación de pullback.
-          g) Cholesky regularizado (Tikhonov adaptativo).
-          h) Precálculo de C̃^{-1/2}, M̃^{-1/2}.
-          i) PSD + raíz espectral + gap + Betti-0 + entropía de von Neumann
-             de R_cost.
-          j) Empaquetado en ``TopologicalContext`` inmutable.
-
-        Tolerancias
-        -----------
-            tol_sym = ε_mach · max(‖A‖_F, 1)
-            tol_pd  = ε_mach · max(|λ_max|, 1)
-            tol_psd = ε_mach · max(‖A‖_F, 1)
-        """
-
-        _EPS: Final[float] = _MACHINE_EPS
-
-        def __init__(
-            self,
-            C_soc: NDArray[np.float64],
-            M_rec: NDArray[np.float64],
-            R_cost: NDArray[np.float64],
-            J_base: NDArray[np.float64],
-            kappa_max: float = 1.0e10,
-            G_q: Optional[NDArray[np.float64]] = None,
-            G_p: Optional[NDArray[np.float64]] = None,
-        ) -> None:
-            """Almacena referencias; copias y defaults en el método terminal."""
-            self._C_soc: NDArray[np.float64] = C_soc
-            self._M_rec: NDArray[np.float64] = M_rec
-            self._R_cost: NDArray[np.float64] = R_cost
-            self._J_base: NDArray[np.float64] = J_base
-            self._kappa_max: float = kappa_max
-            self._G_q_raw: Optional[NDArray[np.float64]] = G_q
-            self._G_p_raw: Optional[NDArray[np.float64]] = G_p
-
-        # ---------------------------------------------------------------------
-        # Métodos privados de validación (orden lógico de ejecución)
-        # ---------------------------------------------------------------------
-
-        def _check_dimensions(self) -> Tuple[int, int]:
-            r"""
-            Verifica dimensiones del espacio de fases (q, p).
-
-            Condiciones formales:
-              • C_soc ∈ ℝ^{dim_q × dim_q}, M_rec ∈ ℝ^{dim_p × dim_p}
-              • R_cost, J_base ∈ ℝ^{n × n}, n = dim_q + dim_p
-              • Todos los arrays son 2D
-
-            Retorna
-            -------
-            Tuple[int, int]
-                (dim_q, dim_p)
-            """
-            for mat, name in [
-                (self._C_soc, "C_soc"),
-                (self._M_rec, "M_rec"),
-                (self._R_cost, "R_cost"),
-                (self._J_base, "J_base"),
-            ]:
-                if mat.ndim != 2:
-                    raise DimensionMismatchError(
-                        f"La matriz '{name}' debe ser 2D; "
-                        f"se obtuvo ndim={mat.ndim}, shape={mat.shape}."
-                    )
-
-            if self._C_soc.shape[0] != self._C_soc.shape[1]:
-                raise DimensionMismatchError(
-                    f"C_soc debe ser cuadrada; se obtuvo shape={self._C_soc.shape}."
-                )
-            dim_q: int = int(self._C_soc.shape[0])
-            if dim_q < 1:
-                raise DimensionMismatchError(
-                    f"dim_q debe ser ≥ 1; se obtuvo {dim_q}."
-                )
-
-            if self._M_rec.shape[0] != self._M_rec.shape[1]:
-                raise DimensionMismatchError(
-                    f"M_rec debe ser cuadrada; se obtuvo shape={self._M_rec.shape}."
-                )
-            dim_p: int = int(self._M_rec.shape[0])
-            if dim_p < 1:
-                raise DimensionMismatchError(
-                    f"dim_p debe ser ≥ 1; se obtuvo {dim_p}."
-                )
-
-            n: int = dim_q + dim_p
-
-            if self._R_cost.shape != (n, n):
-                raise DimensionMismatchError(
-                    f"R_cost debe ser ({n},{n}) = (dim_q+dim_p)², "
-                    f"pero se obtuvo {self._R_cost.shape}. "
-                    f"dim_q={dim_q}, dim_p={dim_p}."
-                )
-            if self._J_base.shape != (n, n):
-                raise DimensionMismatchError(
-                    f"J_base debe ser ({n},{n}); se obtuvo {self._J_base.shape}."
-                )
-
-            logger.debug(
-                "[Fase1] Dimensiones verificadas: dim_q=%d, dim_p=%d, n=%d.",
-                dim_q,
-                dim_p,
-                n,
-            )
-            return dim_q, dim_p
-
-        def _validate_symmetry(
-            self, A: NDArray[np.float64], name: str
-        ) -> None:
-            r"""Verifica A = Aᵀ con tol = ε_mach · max(‖A‖_F, 1)."""
-            norm_A: float = float(la.norm(A, "fro"))
-            tol: float = self._EPS * max(norm_A, 1.0)
-            residual: float = float(la.norm(A - A.T, "fro"))
-            if residual > tol:
-                raise ThermodynamicBaseError(
-                    f"La matriz '{name}' no es simétrica. "
-                    f"‖A−Aᵀ‖_F = {residual:.6e}, tol = {tol:.6e}, "
-                    f"asimetría relativa = "
-                    f"{residual / max(norm_A, 1e-300):.6e}."
-                )
-            logger.debug(
-                "[Fase1] Simetría de '%s': residual=%.3e, tol=%.3e.",
-                name,
-                residual,
-                tol,
-            )
-
-        def _validate_antisymmetry(
-            self, J: NDArray[np.float64], name: str
-        ) -> None:
-            r"""
-            Verifica J = −Jᵀ con tol relativa.
-
-            La antisimetría garantiza que la parte conservativa no produce
-            ni consume energía: ∇Hᵀ J ∇H ≡ 0.
-            """
-            norm_J: float = float(la.norm(J, "fro"))
-            tol: float = self._EPS * max(norm_J, 1.0)
-            residual: float = float(la.norm(J + J.T, "fro"))
-            if residual > tol:
-                raise ThermodynamicBaseError(
-                    f"La matriz '{name}' no es antisimétrica (J ≠ −Jᵀ). "
-                    f"‖J+Jᵀ‖_F = {residual:.6e}, tol = {tol:.6e}."
-                )
-            logger.debug(
-                "[Fase1] Antisimetría de '%s': residual=%.3e, tol=%.3e.",
-                name,
-                residual,
-                tol,
-            )
-
-        def _validate_metric_tensor(
-            self,
-            G: NDArray[np.float64],
-            name: str,
-            expected_dim: int,
-        ) -> float:
-            r"""
-            Valida G ∈ ℝ^{d×d} invertible y bien condicionada vía SVD:
-
-                κ(G) = σ_max / σ_min
-
-            Condición necesaria para que el pullback Ã = G A Gᵀ preserve
-            la signatura de A (Ley de Inercia de Sylvester) sin amplificar
-            patológicamente el número de condición.
-            """
-            if G.ndim != 2 or G.shape != (expected_dim, expected_dim):
-                raise DimensionMismatchError(
-                    f"El tensor métrico '{name}' debe ser "
-                    f"({expected_dim},{expected_dim}); se obtuvo {G.shape}."
-                )
-
-            singular_values: NDArray[np.float64] = la.svdvals(G)
-            sigma_max: float = float(singular_values[0])
-            sigma_min: float = float(singular_values[-1])
-
-            if sigma_max <= 0.0 or sigma_min <= self._EPS * max(sigma_max, 1.0):
-                raise MetricTensorSingularityError(
-                    f"El tensor métrico '{name}' es singular o casi singular. "
-                    f"σ_min={sigma_min:.6e}, σ_max={sigma_max:.6e}."
-                )
-
-            kappa_G: float = sigma_max / sigma_min
-            if kappa_G > self._kappa_max:
-                raise MetricTensorSingularityError(
-                    f"El tensor métrico '{name}' está mal condicionado: "
-                    f"κ(G)={kappa_G:.6e} > κ_max={self._kappa_max:.6e}. "
-                    f"El pullback amplificaría patológicamente el estrés "
-                    f"anisotrópico."
-                )
-
-            logger.debug(
-                "[Fase1] κ(%s)=%.6e (σ_min=%.6e, σ_max=%.6e).",
-                name,
-                kappa_G,
-                sigma_min,
-                sigma_max,
-            )
-            return kappa_G
-
-        def _congruence_pullback(
-            self,
-            A: NDArray[np.float64],
-            G: NDArray[np.float64],
-            name: str,
-        ) -> NDArray[np.float64]:
-            r"""
-            Pullback geométrico congruente:
-
-                Ã = G · A · Gᵀ
-
-            Re-simetriza defensivamente para eliminar ruido O(ε·‖A‖·‖G‖²).
-            """
-            A_tilde: NDArray[np.float64] = G @ A @ G.T
-            A_tilde = 0.5 * (A_tilde + A_tilde.T)
-            rel_change: float = float(la.norm(A_tilde - A, "fro")) / max(
-                float(la.norm(A, "fro")), 1e-300
-            )
-            logger.debug(
-                "[Fase1] Pullback Riemanniano de '%s': ‖Ã−A‖_F/‖A‖_F=%.3e.",
-                name,
-                rel_change,
-            )
-            return A_tilde
-
-        def _spectral_extremes_and_gap(
-            self,
-            A: NDArray[np.float64],
-            name: str,
-            *,
-            require_spd: bool = True,
-        ) -> Tuple[float, float, float, float]:
-            r"""
-            Extrae (κ, λ_min, λ_max, gap) de una matriz simétrica.
-
-            Para n ≥ 2 usa ``eigh(subset_by_index=...)`` en los extremos y
-            en el segundo más pequeño (gap = λ₂ − λ₁). Para n = 1, gap = 0.
-
-            Si require_spd=True, lanza CapacitanceDegeneracyError si
-            λ_min ≤ tol_pd, e IllConditionedMatrixError si κ > κ_max.
-            """
-            n: int = int(A.shape[0])
-            A_sym: NDArray[np.float64] = 0.5 * (A + A.T)
-
-            if n == 1:
-                lambda_min = lambda_max = float(A_sym[0, 0])
-                lambda_second = lambda_min
-            else:
-                # Extremos
-                lambda_min = float(
-                    la.eigh(
-                        A_sym, subset_by_index=[0, 0], eigvals_only=True
-                    )[0]
-                )
-                lambda_max = float(
-                    la.eigh(
-                        A_sym,
-                        subset_by_index=[n - 1, n - 1],
-                        eigvals_only=True,
-                    )[0]
-                )
-                # Segundo más pequeño para el gap (si n ≥ 2)
-                lambda_second = float(
-                    la.eigh(
-                        A_sym, subset_by_index=[1, 1], eigvals_only=True
-                    )[0]
-                )
-
-            tol_pd: float = self._EPS * max(abs(lambda_max), 1.0)
-
-            if require_spd and lambda_min <= tol_pd:
-                raise CapacitanceDegeneracyError(
-                    f"La matriz '{name}' no es Definida Positiva (SPD). "
-                    f"λ_min = {lambda_min:.6e} ≤ tol_pd = {tol_pd:.6e}. "
-                    f"λ_max = {lambda_max:.6e}."
-                )
-
-            if lambda_min > tol_pd:
-                kappa: float = lambda_max / lambda_min
-            else:
-                kappa = float("inf")
-
-            if require_spd and kappa > self._kappa_max:
-                raise IllConditionedMatrixError(
-                    f"La matriz '{name}' está numéricamente mal condicionada. "
-                    f"κ = {kappa:.6e} > κ_max = {self._kappa_max:.6e}. "
-                    f"Considere regularización de Tikhonov o re-escalado."
-                )
-
-            spectral_gap: float = max(lambda_second - lambda_min, 0.0)
-
-            logger.debug(
-                "[Fase1] Espectro '%s': λ_min=%.3e, λ₂=%.3e, λ_max=%.3e, "
-                "κ=%.3e, gap=%.3e.",
-                name,
-                lambda_min,
-                lambda_second,
-                lambda_max,
-                kappa,
-                spectral_gap,
-            )
-            return kappa, lambda_min, lambda_max, spectral_gap
-
-        def _cholesky_spd_regularized(
-            self,
-            A: NDArray[np.float64],
-            name: str,
-            max_attempts: int = 6,
-        ) -> Tuple[NDArray[np.float64], float]:
-            r"""
-            Cholesky A = L Lᵀ con Tikhonov adaptativo:
-
-                A_τ = A + τ I,
-                τ₀ = 0,
-                τ₁ = ε_mach · tr(A)/n,
-                τ_{k+1} = 10 · τ_k
-
-            Retorna (L, tau_final).
-            """
-            A_sym: NDArray[np.float64] = 0.5 * (A + A.T)
-            n: int = int(A_sym.shape[0])
-            trace_scale: float = float(np.trace(A_sym)) / max(n, 1)
-            tau: float = 0.0
-            identity_n: NDArray[np.float64] = np.eye(n, dtype=np.float64)
-
-            for attempt in range(max_attempts + 1):
-                try:
-                    L: NDArray[np.float64] = la.cholesky(
-                        A_sym + tau * identity_n, lower=True
-                    )
-                    if attempt > 0:
-                        logger.warning(
-                            "[Fase1] Tikhonov en '%s': τ=%.3e tras %d intento(s).",
-                            name,
-                            tau,
-                            attempt,
-                        )
-                    else:
-                        logger.debug(
-                            "[Fase1] Cholesky de '%s' sin regularización. "
-                            "L[0,0]=%.6e, L[-1,-1]=%.6e.",
-                            name,
-                            float(L[0, 0]),
-                            float(L[-1, -1]),
-                        )
-                    return L, tau
-                except la.LinAlgError:
-                    if tau == 0.0:
-                        tau = self._EPS * max(trace_scale, 1.0)
-                    else:
-                        tau *= 10.0
-
-            raise CapacitanceDegeneracyError(
-                f"Fallo persistente de Cholesky (LAPACK dpotrf) en '{name}' "
-                f"tras {max_attempts} intentos de Tikhonov "
-                f"(τ_final={tau:.3e}). Degeneración estructural."
-            )
-
-        @staticmethod
-        def _von_neumann_entropy(
-            eigvals: NDArray[np.float64],
-        ) -> float:
-            r"""
-            Entropía de von Neumann del espectro no negativo:
-
-                S = −Σ p_i ln p_i ,  p_i = λ_i / Σ λ_j
-
-            S = 0 ⇔ un solo modo; S → ln(rango) ⇔ espectro plano.
-            """
-            total: float = float(np.sum(eigvals))
-            if total <= 0.0:
-                return 0.0
-            p: NDArray[np.float64] = eigvals / total
-            p_pos = p[p > 0.0]
-            return float(-np.sum(p_pos * np.log(p_pos)))
-
-        def _validate_psd_and_spectral_diagnostics(
-            self,
-            R: NDArray[np.float64],
-            name: str,
-        ) -> Tuple[NDArray[np.float64], int, float, float]:
-            r"""
-            Verifica R ⪰ 0 y calcula:
-
-              1. Raíz espectral R^{1/2}
-              2. rank_R
-              3. Brecha espectral λ₂ − λ₁
-              4. Entropía de von Neumann del espectro
-
-            Retorna
-            -------
-            (R_sqrt, rank_R, spectral_gap, spectral_entropy)
-            """
-            R_sym: NDArray[np.float64] = 0.5 * (R + R.T)
-            norm_R: float = float(la.norm(R_sym, "fro"))
-            tol_psd: float = self._EPS * max(norm_R, 1.0)
-
-            eigvals: NDArray[np.float64]
-            eigvecs: NDArray[np.float64]
-            eigvals, eigvecs = la.eigh(R_sym)
-
-            lambda_min: float = float(eigvals[0])
-            if lambda_min < -tol_psd:
-                raise RayleighDissipationViolation(
-                    f"La matriz '{name}' no es Semidefinida Positiva (PSD). "
-                    f"λ_min = {lambda_min:.6e} < −tol = {-tol_psd:.6e}. "
-                    f"Entropía negativa (ganancia fantasma): violación de "
-                    f"la Segunda Ley de la Termodinámica."
-                )
-
-            eigvals_clamped: NDArray[np.float64] = np.maximum(eigvals, 0.0)
-
-            R_sqrt: NDArray[np.float64] = (
-                eigvecs * np.sqrt(eigvals_clamped)[np.newaxis, :]
-            ) @ eigvecs.T
-            R_sqrt = 0.5 * (R_sqrt + R_sqrt.T)
-
-            rank_R: int = int(np.sum(eigvals_clamped > tol_psd))
-            spectral_gap: float = (
-                float(eigvals_clamped[1] - eigvals_clamped[0])
-                if len(eigvals_clamped) > 1
-                else 0.0
-            )
-            spectral_entropy: float = self._von_neumann_entropy(
-                eigvals_clamped
-            )
-
-            logger.debug(
-                "[Fase1] %s PSD: rank=%d/%d, λ_min=%.3e, λ_max=%.3e, "
-                "gap=%.3e, S_vN=%.4f.",
-                name,
-                rank_R,
-                len(eigvals),
-                lambda_min,
-                float(eigvals[-1]),
-                spectral_gap,
-                spectral_entropy,
-            )
-            return R_sqrt, rank_R, spectral_gap, spectral_entropy
-
-        def _kappa_of_original(
-            self, A: NDArray[np.float64], name: str
-        ) -> float:
-            """κ de la matriz original (pre-pullback) para medir amplificación."""
-            try:
-                kappa, _, _, _ = self._spectral_extremes_and_gap(
-                    A, name, require_spd=True
-                )
-                return kappa
-            except (CapacitanceDegeneracyError, IllConditionedMatrixError):
-                # Si la original ya es borderline, reportamos inf
-                return float("inf")
-
-        # ---------------------------------------------------------------------
-        # Método terminal de la Fase 1 — entrada directa de la Fase 2
-        # ---------------------------------------------------------------------
-
-        def build_topological_context(self) -> "TopologicalContext":
-            r"""
-            **Método terminal de la Fase 1.**
-
-            Ejecuta en secuencia estricta validación, pullback, espectro y
-            factorización; empaqueta el resultado en ``TopologicalContext``.
-
-            El contexto es el **único argumento** del constructor de
-            ``Phase2_HamiltonianDynamics`` (y de ``Phase3_SheafProjection``).
-
-            Flujo interno
-            -------------
-            1. Dimensiones.
-            2. Antisimetría de J_base; simetría de C, M, R.
-            3. Resolución y validación de G_q, G_p.
-            4. κ pre-pullback de C_soc, M_rec.
-            5. Pullback Riemanniano → C̃, M̃.
-            6. κ, gap post-pullback; amplificación κ̃/κ.
-            7. Cholesky regularizado → L_C, L_M.
-            8. Precálculo C̃^{-1/2}, M̃^{-1/2}.
-            9. PSD + raíz + gap + Betti-0 + S_vN de R_cost.
-            10. Empaquetado.
-
-            Retorna
-            -------
-            TopologicalContext
-            """
-            # ---- Paso 1: dimensiones ----
-            dim_q, dim_p = self._check_dimensions()
-
-            # ---- Paso 2: simetrías estructurales ----
-            self._validate_antisymmetry(self._J_base, "J_base")
-            self._validate_symmetry(self._C_soc, "C_soc")
-            self._validate_symmetry(self._M_rec, "M_rec")
-            self._validate_symmetry(self._R_cost, "R_cost")
-
-            # ---- Paso 3: tensores métricos ----
-            G_q: NDArray[np.float64] = (
-                self._G_q_raw
-                if self._G_q_raw is not None
-                else np.eye(dim_q, dtype=np.float64)
-            )
-            G_p: NDArray[np.float64] = (
-                self._G_p_raw
-                if self._G_p_raw is not None
-                else np.eye(dim_p, dtype=np.float64)
-            )
-            kappa_G_q: float = self._validate_metric_tensor(
-                G_q, "G_q", dim_q
-            )
-            kappa_G_p: float = self._validate_metric_tensor(
-                G_p, "G_p", dim_p
-            )
-
-            # ---- Paso 4: κ pre-pullback ----
-            kappa_C_pre: float = self._kappa_of_original(
-                self._C_soc, "C_soc(pre)"
-            )
-            kappa_M_pre: float = self._kappa_of_original(
-                self._M_rec, "M_rec(pre)"
-            )
-
-            # ---- Paso 5: pullback ----
-            C_tilde: NDArray[np.float64] = self._congruence_pullback(
-                self._C_soc, G_q, "C_soc"
-            )
-            M_tilde: NDArray[np.float64] = self._congruence_pullback(
-                self._M_rec, G_p, "M_rec"
-            )
-
-            # ---- Paso 6: espectro post-pullback ----
-            kappa_C, _, _, gap_C = self._spectral_extremes_and_gap(
-                C_tilde, "C̃_soc", require_spd=True
-            )
-            kappa_M, _, _, gap_M = self._spectral_extremes_and_gap(
-                M_tilde, "M̃_rec", require_spd=True
-            )
-
-            pullback_amp_C: float = (
-                kappa_C / kappa_C_pre
-                if math_isfinite(kappa_C_pre) and kappa_C_pre > 0.0
-                else float("inf")
-            )
-            pullback_amp_M: float = (
-                kappa_M / kappa_M_pre
-                if math_isfinite(kappa_M_pre) and kappa_M_pre > 0.0
-                else float("inf")
-            )
-
-            # ---- Paso 7: Cholesky regularizado ----
-            L_C, epsilon_C = self._cholesky_spd_regularized(
-                C_tilde, "C̃_soc"
-            )
-            L_M, epsilon_M = self._cholesky_spd_regularized(
-                M_tilde, "M̃_rec"
-            )
-
-            # ---- Paso 8: raíces de las inversas ----
-            # C̃^{-1/2} = L_C^{-T}  (porque C̃^{-1} = L_C^{-T} L_C^{-1}
-            # y C̃^{-1/2} simétrica = L_C^{-T} en la factorización polar
-            # de la inversa cuando se usa como bloque métrico).
-            # Construcción estable: resolver L_C Y = I ⇒ Y = L_C^{-1};
-            # C_inv_sqrt := Y.T = L_C^{-T}.
-            C_inv_sqrt: NDArray[np.float64] = la.solve_triangular(
-                L_C,
-                np.eye(dim_q, dtype=np.float64),
-                lower=True,
-                check_finite=False,
-            ).T
-            M_inv_sqrt: NDArray[np.float64] = la.solve_triangular(
-                L_M,
-                np.eye(dim_p, dtype=np.float64),
-                lower=True,
-                check_finite=False,
-            ).T
-
-            # ---- Paso 9: R_cost ----
-            R_sqrt, rank_R, spectral_gap_R, spectral_entropy_R = (
-                self._validate_psd_and_spectral_diagnostics(
-                    self._R_cost, "R_cost"
-                )
-            )
-            n_total: int = dim_q + dim_p
-            betti_0_R: int = n_total - rank_R
-
-            # ---- Paso 10: empaquetado ----
-            context = TopologicalContext(
-                L_C=L_C,
-                L_M=L_M,
-                C_inv_sqrt=C_inv_sqrt,
-                M_inv_sqrt=M_inv_sqrt,
-                C_tilde=C_tilde.copy(),
-                M_tilde=M_tilde.copy(),
-                R_cost=self._R_cost.copy(),
-                R_sqrt=R_sqrt,
-                J_base=self._J_base.copy(),
-                G_q=G_q.copy(),
-                G_p=G_p.copy(),
-                kappa_C=kappa_C,
-                kappa_M=kappa_M,
-                kappa_G_q=kappa_G_q,
-                kappa_G_p=kappa_G_p,
-                epsilon_C=epsilon_C,
-                epsilon_M=epsilon_M,
-                dim_q=dim_q,
-                dim_p=dim_p,
-                rank_R=rank_R,
-                spectral_gap_R=spectral_gap_R,
-                betti_0_R=betti_0_R,
-                spectral_gap_C=gap_C,
-                spectral_gap_M=gap_M,
-                pullback_amp_C=pullback_amp_C,
-                pullback_amp_M=pullback_amp_M,
-                spectral_entropy_R=spectral_entropy_R,
-            )
-
-            logger.info(
-                "[Fase1] TopologicalContext ensamblado: dim_q=%d, dim_p=%d, "
-                "κ(C̃)=%.3e, κ(M̃)=%.3e, rank(R)=%d, betti_0(R)=%d, "
-                "gap(R)=%.3e, S_vN(R)=%.4f, amp_C=%.3e, amp_M=%.3e.",
-                dim_q,
-                dim_p,
-                kappa_C,
-                kappa_M,
-                rank_R,
-                betti_0_R,
-                spectral_gap_R,
-                spectral_entropy_R,
-                pullback_amp_C,
-                pullback_amp_M,
-            )
-
-            # ================================================================
-            # CONTRATO DE INTERFAZ FASE 1 → FASE 2
-            # `context` es el argumento directo del constructor de
-            # Phase2_HamiltonianDynamics. Esta devolución es la frontera
-            # formal entre ambas fases anidadas.
-            # ================================================================
-            return context
-
-    # =========================================================================
-    # FASE 2 — DINÁMICA PORT-HAMILTONIANA, RAYLEIGH, WILLIAMSON Y PASIVIDAD
-    # =========================================================================
-
-    class Phase2_HamiltonianDynamics:
-        r"""
-        **Fase 2 – Dinámica Port-Hamiltoniana y Disipación de Rayleigh.**
-
-        Recibe el ``TopologicalContext`` de la Fase 1 y calcula:
-
-          • Energías, gradiente y campo vectorial:
-                ẋ = (J_BASE − R_cost) ∇H
-          • Identidad estructural ∇Hᵀ J ∇H ≡ 0
-          • Homogeneidad de Euler (H cuadrática)
-          • Certificado de pasividad Ḣ + P_diss ≈ 0
-          • Constante de tiempo entrópica τ_diss = 2H / P_diss
-          • Modos normales de Williamson (opt-in)
-          • Retícula Booleana de estabilidad ampliada
-
-        Identidad de energía sin inversión explícita
-        ---------------------------------------------
-            qᵀ Ã⁻¹ q = ‖ L⁻¹ q ‖²     (Ã = L Lᵀ)
-        """
-
-        _EPS: Final[float] = _MACHINE_EPS
-
-        def __init__(
-            self,
-            context: "TopologicalContext",
-            breakdown_voltage: float,
-            kappa_max: float,
-            hbar: float = 1.0,
-            flyback_safety_margin: float = 0.9,
-        ) -> None:
-            r"""
-            **Constructor de la Fase 2: continuación directa de la Fase 1.**
-
-            No re-valida matrices: la corrección (incl. pullback) está
-            garantizada por la Fase 1.
-            """
-            self._ctx: "TopologicalContext" = context
-            self._breakdown_voltage: float = breakdown_voltage
-            self._kappa_max: float = kappa_max
-            self._hbar: float = hbar
-            self._flyback_safety_margin: float = flyback_safety_margin
-
-            logger.debug(
-                "[Fase2] Inicializada: V_bd=%.3e, κ_max=%.3e, ħ=%.3e, "
-                "margen_fb=%.2f, dim_q=%d, dim_p=%d.",
-                breakdown_voltage,
-                kappa_max,
-                hbar,
-                flyback_safety_margin,
-                context.dim_q,
-                context.dim_p,
-            )
-
-        # ---------------------------------------------------------------------
-        # Energías y gradientes
-        # ---------------------------------------------------------------------
-
-        def _evaluate_potential_energy(
-            self, q: NDArray[np.float64]
-        ) -> Tuple[float, NDArray[np.float64]]:
-            r"""
-            V(q) = ½ ‖L_C⁻¹ q‖² = ½ qᵀ C̃_soc⁻¹ q
-            ∇_q V = C̃_soc⁻¹ q
-            """
-            if q.shape != (self._ctx.dim_q,):
-                raise DimensionMismatchError(
-                    f"Vector q debe tener shape ({self._ctx.dim_q},); "
-                    f"se obtuvo {q.shape}."
-                )
-            y: NDArray[np.float64] = la.solve_triangular(
-                self._ctx.L_C, q, lower=True, check_finite=False
-            )
-            V_q: float = 0.5 * float(np.dot(y, y))
-            grad_V_q: NDArray[np.float64] = la.solve_triangular(
-                self._ctx.L_C,
-                y,
-                lower=True,
-                trans="T",
-                check_finite=False,
-            )
-            # Clampeado numérico: V no puede ser legítimamente negativa
-            if V_q < 0.0:
-                V_q = 0.0
-            logger.debug(
-                "[Fase2] V(q)=%.6e, ‖∇V‖=%.6e.",
-                V_q,
-                float(np.linalg.norm(grad_V_q)),
-            )
-            return V_q, grad_V_q
-
-        def _compute_kinetic_energy(
-            self, p: NDArray[np.float64]
-        ) -> Tuple[float, NDArray[np.float64]]:
-            r"""
-            K(p) = ½ ‖L_M⁻¹ p‖² = ½ pᵀ M̃_rec⁻¹ p
-            ∇_p K = M̃_rec⁻¹ p
-            """
-            if p.shape != (self._ctx.dim_p,):
-                raise DimensionMismatchError(
-                    f"Vector p debe tener shape ({self._ctx.dim_p},); "
-                    f"se obtuvo {p.shape}."
-                )
-            y: NDArray[np.float64] = la.solve_triangular(
-                self._ctx.L_M, p, lower=True, check_finite=False
-            )
-            K_p: float = 0.5 * float(np.dot(y, y))
-            grad_K_p: NDArray[np.float64] = la.solve_triangular(
-                self._ctx.L_M,
-                y,
-                lower=True,
-                trans="T",
-                check_finite=False,
-            )
-            if K_p < 0.0:
-                K_p = 0.0
-            logger.debug(
-                "[Fase2] K(p)=%.6e, ‖∇K‖=%.6e.",
-                K_p,
-                float(np.linalg.norm(grad_K_p)),
-            )
-            return K_p, grad_K_p
-
-        def _verify_euler_homogeneity(
-            self,
-            q: NDArray[np.float64],
-            p: NDArray[np.float64],
-            grad_V: NDArray[np.float64],
-            grad_K: NDArray[np.float64],
-            H_total: float,
-        ) -> float:
-            r"""
-            Teorema de Euler para H homogénea de grado 2:
-
-                q · ∇_q H + p · ∇_p H = 2 H
-
-            Retorna el residuo absoluto.
-            """
-            euler_lhs: float = float(np.dot(q, grad_V)) + float(
-                np.dot(p, grad_K)
-            )
-            residual: float = abs(euler_lhs - 2.0 * H_total)
-            scale: float = max(abs(euler_lhs), abs(2.0 * H_total), 1.0)
-            tol: float = 1.0e3 * self._EPS * scale
-            if residual > tol:
-                logger.warning(
-                    "[Fase2] Residuo de Euler elevado: %.6e > tol=%.6e.",
-                    residual,
-                    tol,
-                )
-            return residual
-
-        def _enforce_rayleigh_dissipation(
-            self, grad_H: NDArray[np.float64]
-        ) -> float:
-            r"""
-            Ḣ_diss = −∇Hᵀ R_cost ∇H ≤ 0
-            P_diss = |Ḣ_diss| ≥ 0
-            """
-            n: int = self._ctx.dim_q + self._ctx.dim_p
-            if grad_H.shape != (n,):
-                raise DimensionMismatchError(
-                    f"grad_H debe tener shape ({n},); se obtuvo {grad_H.shape}."
-                )
-
-            R_grad: NDArray[np.float64] = self._ctx.R_cost @ grad_H
-            quad_form: float = float(np.dot(grad_H, R_grad))
-
-            norm_R: float = float(la.norm(self._ctx.R_cost, "fro"))
-            norm_gH2: float = float(np.dot(grad_H, grad_H))
-            tol_diss: float = self._EPS * norm_R * max(norm_gH2, 1.0)
-
-            if quad_form < -tol_diss:
-                logger.error(
-                    "[Fase2] Violación de Rayleigh: ∇HᵀR∇H=%.6e < −tol=%.6e.",
-                    quad_form,
-                    -tol_diss,
-                )
-                raise RayleighDissipationViolation(
-                    f"Violación de la Segunda Ley de la Termodinámica. "
-                    f"∇Hᵀ R_cost ∇H = {quad_form:.6e} < −tol = {-tol_diss:.6e}. "
-                    f"Generación de exergía espontánea."
-                )
-
-            P_diss: float = abs(quad_form)
-            logger.debug("[Fase2] P_diss=%.6e (Rayleigh OK).", P_diss)
-            return P_diss
-
-        def _measure_flyback_voltage(
-            self, df_dt: NDArray[np.float64]
-        ) -> float:
-            r"""
-            ‖M̃_rec · ∂f/∂t‖_∞ reconstruido vía L_M sin materializar M̃:
-
-                M̃ v = L_M (L_Mᵀ v)
-            """
-            if df_dt.shape != (self._ctx.dim_p,):
-                raise DimensionMismatchError(
-                    f"df_dt debe tener shape ({self._ctx.dim_p},); "
-                    f"se obtuvo {df_dt.shape}."
-                )
-            L_M_T_v: NDArray[np.float64] = self._ctx.L_M.T @ df_dt
-            V_fb_vec: NDArray[np.float64] = self._ctx.L_M @ L_M_T_v
-            v_fb_norm: float = float(la.norm(V_fb_vec, np.inf))
-
-            if v_fb_norm > self._breakdown_voltage:
-                logger.critical(
-                    "[Fase2] Golpe de Ariete Logístico: ‖V_fb‖=%.6e > V_bd=%.6e.",
-                    v_fb_norm,
-                    self._breakdown_voltage,
-                )
-                raise InertialFlybackError(
-                    f"Voltaje de Flyback ‖M̃_rec·∂f/∂t‖_∞ = {v_fb_norm:.6e} "
-                    f"excede V_bd = {self._breakdown_voltage:.6e}. "
-                    f"Detención de emergencia exigida."
-                )
-
-            logger.debug(
-                "[Fase2] ‖V_fb‖_∞=%.6e (límite=%.6e, uso=%.1f%%).",
-                v_fb_norm,
-                self._breakdown_voltage,
-                100.0 * v_fb_norm / max(self._breakdown_voltage, 1e-300),
-            )
-            return v_fb_norm
-
-        # ---------------------------------------------------------------------
-        # Campo vectorial y verificaciones estructurales / pasividad
-        # ---------------------------------------------------------------------
-
-        def _compute_vector_field(
-            self, grad_H: NDArray[np.float64]
-        ) -> NDArray[np.float64]:
-            r"""ẋ = (J_BASE − R_cost) ∇H"""
-            return (self._ctx.J_base - self._ctx.R_cost) @ grad_H
-
-        def _verify_structural_consistency(
-            self,
-            grad_H: NDArray[np.float64],
-            x_dot: NDArray[np.float64],
-            P_diss: float,
-        ) -> float:
-            r"""
-            Identidad exacta del PH-system:
-
-                ∇Hᵀ ẋ = ∇Hᵀ J ∇H − ∇Hᵀ R ∇H = −P_diss
-
-            porque ∇Hᵀ J ∇H ≡ 0 (J antisimétrica).
-            """
-            H_dot: float = float(np.dot(grad_H, x_dot))
-            residual: float = abs(H_dot + P_diss)
-            scale: float = max(abs(H_dot), P_diss, 1.0)
-            tol: float = float(np.sqrt(self._EPS)) * scale
-
-            if residual > tol:
-                raise StructuralConsistencyError(
-                    f"Inconsistencia estructural Port-Hamiltoniana: "
-                    f"∇Hᵀẋ = {H_dot:.6e}, −P_diss = {-P_diss:.6e}, "
-                    f"|residuo| = {residual:.6e} > tol = {tol:.6e}. "
-                    f"Verifique el cableado de J_base y R_cost."
-                )
-            logger.debug(
-                "[Fase2] Consistencia estructural: residuo=%.3e, tol=%.3e.",
-                residual,
-                tol,
-            )
-            return residual
-
-        def _verify_passivity_certificate(
-            self,
-            grad_H: NDArray[np.float64],
-            x_dot: NDArray[np.float64],
-            P_diss: float,
-        ) -> float:
-            r"""
-            Certificado de pasividad en caliente:
-
-                Ḣ_num ≜ ∇Hᵀ ẋ
-                |Ḣ_num + P_diss| ≤ √ε · scale
-
-            Equivalente algebraicamente a la consistencia estructural, pero
-            se reporta como predicado independiente en la retícula Booleana
-            (PASSIVITY_CERTIFICATE) para diagnóstico granular.
-
-            Adicionalmente verifica Ḣ_num ≤ tol (no hay creación de energía).
-            """
-            H_dot: float = float(np.dot(grad_H, x_dot))
-            residual: float = abs(H_dot + P_diss)
-            scale: float = max(abs(H_dot), P_diss, 1.0)
-            tol: float = float(np.sqrt(self._EPS)) * scale
-
-            # Ḣ debe ser ≤ 0 (pasividad)
-            if H_dot > tol:
-                raise PassivityCertificateError(
-                    f"Certificado de pasividad violado: Ḣ_num = {H_dot:.6e} > 0 "
-                    f"(tol={tol:.6e}). El sistema generaría energía espontánea."
-                )
-            if residual > tol:
-                raise PassivityCertificateError(
-                    f"Certificado de pasividad inconsistente: "
-                    f"|Ḣ_num + P_diss| = {residual:.6e} > tol = {tol:.6e}."
-                )
-            return residual
-
-        def _dissipation_time_constant(
-            self, H_total: float, P_diss: float
-        ) -> float:
-            r"""
-            Constante de tiempo entrópica local:
-
-                τ_diss = 2 H / P_diss
-
-            (escala de decaimiento si Ḣ ≈ −P_diss y H es cuadrática).
-            Retorna +∞ si P_diss ≈ 0 (subsistema conservativo puro).
-            """
-            if P_diss <= self._EPS * max(H_total, 1.0):
-                return float("inf")
-            return 2.0 * H_total / P_diss
-
-        # ---------------------------------------------------------------------
-        # Williamson (diagnóstico opt-in)
-        # ---------------------------------------------------------------------
-
-        def compute_normal_modes(
-            self,
-        ) -> Tuple[NDArray[np.float64], float]:
-            r"""
-            Frecuencias propias del subsistema conservativo linealizado
-            vía Teorema de Williamson (aritmética real):
-
-                H^{1/2} = block_diag(C̃^{-1/2}, M̃^{-1/2})
-                A_sym   = H^{1/2} J H^{1/2}   (antisimétrica)
-                ω_k     = SV emparejados de A_sym
-                E_0     = (ħ/2) Σ ω_k
-
-            Lanza
-            -----
-            WilliamsonNormalFormError
-                Si A_sym no es numéricamente antisimétrica o hay NaN.
-            """
-            dim_q, dim_p = self._ctx.dim_q, self._ctx.dim_p
-            n: int = dim_q + dim_p
-
-            H_half: NDArray[np.float64] = np.zeros((n, n), dtype=np.float64)
-            H_half[:dim_q, :dim_q] = self._ctx.C_inv_sqrt
-            H_half[dim_q:, dim_q:] = self._ctx.M_inv_sqrt
-
-            A_sym: NDArray[np.float64] = H_half @ self._ctx.J_base @ H_half
-            # Re-antisimetrización defensiva
-            A_skew: NDArray[np.float64] = 0.5 * (A_sym - A_sym.T)
-
-            # Verificar residual de antisimetría
-            skew_res: float = float(la.norm(A_skew + A_skew.T, "fro"))
-            tol_skew: float = 100.0 * self._EPS * max(
-                float(la.norm(A_skew, "fro")), 1.0
-            )
-            if skew_res > tol_skew:
-                raise WilliamsonNormalFormError(
-                    f"A_sym = H^{{1/2}} J H^{{1/2}} no es antisimétrica: "
-                    f"‖A+Aᵀ‖_F = {skew_res:.6e} > tol = {tol_skew:.6e}."
-                )
-
-            singular_values: NDArray[np.float64] = la.svdvals(A_skew)
-            if not np.all(np.isfinite(singular_values)):
-                raise WilliamsonNormalFormError(
-                    "Valores singulares de A_sym contienen NaN/Inf."
-                )
-
-            n_pairs: int = n // 2
-            omegas: NDArray[np.float64] = np.empty(
-                n_pairs, dtype=np.float64
-            )
-            for k in range(n_pairs):
-                # Cada frecuencia física aparece ~2 veces (par ±iω)
-                if 2 * k + 1 < len(singular_values):
-                    omegas[k] = 0.5 * (
-                        singular_values[2 * k]
-                        + singular_values[2 * k + 1]
-                    )
-                else:
-                    omegas[k] = singular_values[2 * k]
-
-            # Modo residual si n impar: el SV más pequeño ≈ 0
-            omegas = np.sort(np.maximum(omegas, 0.0))[::-1]
-            zero_point_energy: float = (
-                0.5 * self._hbar * float(np.sum(omegas))
-            )
-
-            logger.debug(
-                "[Fase2] Williamson: %d pares, ω_max=%.6e, E_0=%.6e (ħ=%.3e).",
-                n_pairs,
-                float(omegas[0]) if n_pairs > 0 else 0.0,
-                zero_point_energy,
-                self._hbar,
-            )
-            return omegas, zero_point_energy
-
-        # ---------------------------------------------------------------------
-        # Retícula Booleana de estabilidad
-        # ---------------------------------------------------------------------
-
-        def _evaluate_stability_flags(
-            self,
-            V_q: float,
-            K_p: float,
-            P_diss: float,
-            v_fb: float,
-            structural_residual: float,
-            passivity_residual: float,
-            euler_residual: float,
-            H_total: float,
-        ) -> StabilityFlags:
-            """Evalúa la retícula StabilityFlags (7 predicados atómicos)."""
-            flags: StabilityFlags = StabilityFlags.NONE
-            energy_tol: float = 1.0e3 * self._EPS
-            struct_tol: float = float(np.sqrt(self._EPS)) * max(
-                P_diss, 1.0
-            )
-            euler_tol: float = 1.0e3 * self._EPS * max(
-                abs(2.0 * H_total), 1.0
-            )
-
-            if V_q >= -energy_tol and K_p >= -energy_tol:
-                flags |= StabilityFlags.ENERGY_NONNEGATIVE
-            if P_diss >= -energy_tol:
-                flags |= StabilityFlags.DISSIPATION_VALID
-            if v_fb <= self._flyback_safety_margin * self._breakdown_voltage:
-                flags |= StabilityFlags.FLYBACK_SAFE
-            if structural_residual <= struct_tol:
-                flags |= StabilityFlags.STRUCTURAL_CONSISTENCY
-            if (
-                self._ctx.kappa_C <= 0.5 * self._kappa_max
-                and self._ctx.kappa_M <= 0.5 * self._kappa_max
-            ):
-                flags |= StabilityFlags.SPECTRAL_CONDITIONING_SOUND
-            if passivity_residual <= struct_tol:
-                flags |= StabilityFlags.PASSIVITY_CERTIFICATE
-            if euler_residual <= euler_tol:
-                flags |= StabilityFlags.EULER_HOMOGENEITY
-
-            logger.debug("[Fase2] %s", describe_stability_flags(flags))
-            return flags
-
-        # ---------------------------------------------------------------------
-        # Método terminal de la Fase 2 — entrada directa de la Fase 3
-        # ---------------------------------------------------------------------
-
-        def synthesize_basal_state(
-            self,
-            q: NDArray[np.float64],
-            p: NDArray[np.float64],
-            df_dt: NDArray[np.float64],
-            compute_normal_modes: bool = False,
-        ) -> "BasalStateTensor":
-            r"""
-            **Método terminal de la Fase 2.**
-
-            Computa el estado termodinámico completo del foso K_BASE.
-            El campo ``state_vector = [q; p]`` es el **dato primario**
-            consumido por ``Phase3_SheafProjection.export_stalk``.
-
-            Parámetros
-            ----------
-            q, p, df_dt : estado y perturbación de flujo.
-            compute_normal_modes : activa Williamson (O(n³) SVD, opt-in).
-
-            Retorna
-            -------
-            BasalStateTensor
-            """
-            # Energías y gradientes
-            V_q, grad_V_q = self._evaluate_potential_energy(q)
-            K_p, grad_K_p = self._compute_kinetic_energy(p)
-            H_total: float = V_q + K_p
-
-            grad_H: NDArray[np.float64] = np.concatenate(
-                [grad_V_q, grad_K_p]
-            )
-            grad_H_norm: float = float(la.norm(grad_H, 2))
-
-            # Euler
-            euler_residual: float = self._verify_euler_homogeneity(
-                q, p, grad_V_q, grad_K_p, H_total
-            )
-
-            # Rayleigh
-            P_diss: float = self._enforce_rayleigh_dissipation(grad_H)
-
-            # Flyback
-            v_fb: float = self._measure_flyback_voltage(df_dt)
-
-            # Campo vectorial
-            x_dot: NDArray[np.float64] = self._compute_vector_field(grad_H)
-
-            # Consistencia estructural
-            structural_residual: float = (
-                self._verify_structural_consistency(
-                    grad_H, x_dot, P_diss
-                )
-            )
-
-            # Certificado de pasividad
-            passivity_residual: float = self._verify_passivity_certificate(
-                grad_H, x_dot, P_diss
-            )
-
-            # Constante de tiempo entrópica
-            tau_diss: float = self._dissipation_time_constant(
-                H_total, P_diss
-            )
-
-            # Retícula Booleana
-            flags: StabilityFlags = self._evaluate_stability_flags(
-                V_q,
-                K_p,
-                P_diss,
-                v_fb,
-                structural_residual,
-                passivity_residual,
-                euler_residual,
-                H_total,
-            )
-
-            # Williamson (opt-in)
-            omegas: Optional[NDArray[np.float64]] = None
-            E0: Optional[float] = None
-            if compute_normal_modes:
-                omegas, E0 = self.compute_normal_modes()
-
-            state_vector: NDArray[np.float64] = np.concatenate([q, p])
-
-            logger.info(
-                "[Fase2] Estado basal: H=%.6e, V=%.6e, K=%.6e, P_diss=%.6e, "
-                "‖V_fb‖=%.6e, ‖∇H‖=%.6e, τ_diss=%.3e, %s.",
-                H_total,
-                V_q,
-                K_p,
-                P_diss,
-                v_fb,
-                grad_H_norm,
-                tau_diss,
-                describe_stability_flags(flags),
-            )
-
-            # ================================================================
-            # CONTRATO DE INTERFAZ FASE 2 → FASE 3
-            # `state_vector = [q; p]` es el argumento directo de
-            # Phase3_SheafProjection.export_stalk().
-            # ================================================================
-            return BasalStateTensor(
-                potential_energy=V_q,
-                kinetic_energy=K_p,
-                total_hamiltonian=H_total,
-                dissipated_power=P_diss,
-                flyback_voltage_norm=v_fb,
-                grad_H_norm=grad_H_norm,
-                vector_field=x_dot,
-                euler_homogeneity_residual=euler_residual,
-                structural_consistency_residual=structural_residual,
-                passivity_residual=passivity_residual,
-                dissipation_time_constant=tau_diss,
-                stability_flags=flags,
-                is_thermodynamically_stable=(flags == StabilityFlags.ALL),
-                normal_mode_frequencies=omegas,
-                zero_point_energy=E0,
-                state_vector=state_vector,
-            )
-
-    # =========================================================================
-    # FASE 3 — PROYECCIÓN COHOMOLÓGICA EN HACES: COCADENA APILADA Y HODGE LOCAL
-    # =========================================================================
-
-    class Phase3_SheafProjection:
-        r"""
-        **Fase 3 – Proyección en Haces y Cofrontera Discreta δ_BASE.**
-
-        Recibe el ``TopologicalContext`` de la Fase 1 y el ``state_vector``
-        del ``BasalStateTensor`` de la Fase 2.
-
-        Construcción de la cocadena apilada
-        ------------------------------------
-            δ_metric = block_diag(C̃^{-1/2}, M̃^{-1/2}) ∈ ℝ^{n×n}
-            δ_diss   = R_cost^{+1/2}                   ∈ ℝ^{n×n}
-            δ_BASE   = [δ_metric ; δ_diss]             ∈ ℝ^{2n×n}
-            Δ_BASE   = δ_BASEᵀ δ_BASE = ∇²H + R_cost   (SPD)
-
-        Diagnósticos espectrales exportados
-        ------------------------------------
-          • gap de Hodge, κ(Δ_BASE)
-          • dim armónica = dim ker(δ_metric) ≡ 0
-          • dim lossless = betti_0(R)
-          • entropía de von Neumann de Spec(Δ_BASE)
-          • proxy de Cheeger λ₂/λ_max
-        """
-
-        _EPS: Final[float] = _MACHINE_EPS
-
-        def __init__(self, context: "TopologicalContext") -> None:
-            r"""
-            **Constructor de la Fase 3: continuación directa de la Fase 2.**
-
-            Ensambla δ_metric, δ_diss, δ_BASE y Δ_BASE **una única vez**
-            (contexto inmutable); ``export_stalk`` reutiliza los precálculos.
-            """
-            self._ctx: "TopologicalContext" = context
-
-            dim_q: int = context.dim_q
-            dim_p: int = context.dim_p
-            n: int = dim_q + dim_p
-
-            delta_metric: NDArray[np.float64] = np.zeros(
-                (n, n), dtype=np.float64
-            )
-            delta_metric[:dim_q, :dim_q] = context.C_inv_sqrt
-            delta_metric[dim_q:, dim_q:] = context.M_inv_sqrt
-            self._delta_metric: NDArray[np.float64] = delta_metric
-
-            self._delta_diss: NDArray[np.float64] = context.R_sqrt.copy()
-
-            self._delta_base: NDArray[np.float64] = np.vstack(
-                [self._delta_metric, self._delta_diss]
-            )  # (2n, n)
-
-            # Δ_BASE = ∇²H + R_cost
-            hessian_block: NDArray[np.float64] = (
-                self._delta_metric.T @ self._delta_metric
-            )
-            self._hodge_laplacian: NDArray[np.float64] = (
-                hessian_block + context.R_cost
-            )
-            self._hodge_laplacian = 0.5 * (
-                self._hodge_laplacian + self._hodge_laplacian.T
-            )
-
-            # Verificar SPD de Δ_BASE con Cholesky (invariante estructural)
-            try:
-                la.cholesky(self._hodge_laplacian, lower=True)
-            except la.LinAlgError as exc:
-                raise SheafCoboundaryError(
-                    f"Δ_BASE = ∇²H + R_cost no es SPD. "
-                    f"Invariante estructural violado. Error: {exc}"
-                ) from exc
-
-            # rank(δ_BASE) = n (columna completa: δ_metric invertible)
-            self._rank_delta: int = n
-
-            logger.debug(
-                "[Fase3] Precalculado: δ_metric=%s, δ_diss=%s, δ_BASE=%s, "
-                "rank_delta=%d.",
-                self._delta_metric.shape,
-                self._delta_diss.shape,
-                self._delta_base.shape,
-                self._rank_delta,
-            )
-
-        def _verify_hodge_identity(self) -> float:
-            r"""
-            Verifica δ_BASEᵀ δ_BASE = Δ_BASE.
-
-            Lanza SheafCoboundaryError si el error relativo > 100·ε_mach.
-            """
-            delta_T_delta: NDArray[np.float64] = (
-                self._delta_base.T @ self._delta_base
-            )
-            residual_F: float = float(
-                la.norm(delta_T_delta - self._hodge_laplacian, "fro")
-            )
-            norm_hodge: float = float(
-                la.norm(self._hodge_laplacian, "fro")
-            )
-            rel_error: float = residual_F / max(norm_hodge, 1.0)
-            tol_metric: float = 100.0 * self._EPS
-
-            if rel_error > tol_metric:
-                raise SheafCoboundaryError(
-                    f"δ_BASE no satisface la identidad de Hodge local. "
-                    f"‖δᵀδ − Δ_BASE‖_F / ‖Δ_BASE‖_F = {rel_error:.6e} > "
-                    f"tol = {tol_metric:.6e}."
-                )
-            logger.debug(
-                "[Fase3] Identidad de Hodge: rel_error=%.3e, tol=%.3e.",
-                rel_error,
-                tol_metric,
-            )
-            return rel_error
-
-        def _compute_hodge_spectrum(
-            self,
-        ) -> Tuple[float, float, int, float, float]:
-            r"""
-            Diagonaliza Δ_BASE y retorna:
-
-                (spectral_gap, condition_number, harmonic_dimension,
-                 spectral_entropy, cheeger_proxy)
-
-            cheeger_proxy ≜ λ₂ / λ_max ∈ [0, 1]
-            """
-            eigvals: NDArray[np.float64] = la.eigvalsh(
-                self._hodge_laplacian
-            )
-            eigvals = np.maximum(eigvals, 0.0)  # clamp ruido
-
-            lambda_min: float = float(eigvals[0])
-            lambda_second: float = (
-                float(eigvals[1]) if len(eigvals) > 1 else lambda_min
-            )
-            lambda_max: float = float(eigvals[-1])
-
-            spectral_gap: float = max(lambda_second - lambda_min, 0.0)
-            condition_number: float = (
-                lambda_max / lambda_min
-                if lambda_min > self._EPS * max(lambda_max, 1.0)
-                else float("inf")
-            )
-
-            # dim ker(δ_metric): debe ser 0
-            tol_kernel: float = self._EPS * max(
-                float(la.norm(self._delta_metric, "fro")), 1.0
-            )
-            harmonic_dimension: int = int(
-                np.sum(la.svdvals(self._delta_metric) <= tol_kernel)
-            )
-
-            # Entropía de von Neumann
-            total: float = float(np.sum(eigvals))
-            if total > 0.0:
-                p = eigvals / total
-                p_pos = p[p > 0.0]
-                spectral_entropy: float = float(
-                    -np.sum(p_pos * np.log(p_pos))
-                )
-            else:
-                spectral_entropy = 0.0
-
-            # Proxy de Cheeger
-            cheeger_proxy: float = (
-                lambda_second / lambda_max if lambda_max > 0.0 else 0.0
-            )
-
-            logger.debug(
-                "[Fase3] Espectro Hodge: gap=%.6e, κ=%.6e, dim_arm=%d, "
-                "S_vN=%.4f, Cheeger≈%.4f.",
-                spectral_gap,
-                condition_number,
-                harmonic_dimension,
-                spectral_entropy,
-                cheeger_proxy,
-            )
-            return (
-                spectral_gap,
-                condition_number,
-                harmonic_dimension,
-                spectral_entropy,
-                cheeger_proxy,
-            )
-
-        # ---------------------------------------------------------------------
-        # Método terminal de la Fase 3 (salida pública del ecosistema)
-        # ---------------------------------------------------------------------
-
-        def export_stalk(
-            self, state_x: NDArray[np.float64]
-        ) -> "SheafStalk":
-            r"""
-            **Método terminal de la Fase 3 y del agente completo.**
-
-            Construye el ``SheafStalk`` con δ_BASE verificado, Δ_BASE,
-            diagnósticos espectrales y proyecciones sobre cada fibra.
-
-            Parámetros
-            ----------
-            state_x : NDArray[np.float64], shape (dim_q + dim_p,)
-                x = [q; p], típicamente ``BasalStateTensor.state_vector``.
-
-            Retorna
-            -------
-            SheafStalk
-            """
-            n: int = self._ctx.dim_q + self._ctx.dim_p
-            if state_x.shape != (n,):
-                raise DimensionMismatchError(
-                    f"state_x debe tener shape ({n},) = (dim_q+dim_p,); "
-                    f"se obtuvo {state_x.shape}."
-                )
-
-            hodge_residual: float = self._verify_hodge_identity()
-            (
-                spectral_gap,
-                condition_number,
-                harmonic_dimension,
-                spectral_entropy,
-                cheeger_proxy,
-            ) = self._compute_hodge_spectrum()
-
-            projected_metric: NDArray[np.float64] = (
-                self._delta_metric @ state_x
-            )
-            projected_diss: NDArray[np.float64] = (
-                self._delta_diss @ state_x
-            )
-
-            logger.info(
-                "[Fase3] SheafStalk exportado: rank_delta=%d, gap=%.3e, "
-                "κ(Δ)=%.3e, dim_arm=%d, dim_lossless=%d, S_vN=%.4f, "
-                "Cheeger≈%.4f, ‖δ_m x‖=%.6e, ‖δ_d x‖=%.6e.",
-                self._rank_delta,
-                spectral_gap,
-                condition_number,
-                harmonic_dimension,
-                self._ctx.betti_0_R,
-                spectral_entropy,
-                cheeger_proxy,
-                float(la.norm(projected_metric, 2)),
-                float(la.norm(projected_diss, 2)),
-            )
-
-            # ================================================================
-            # CONTRATO DE SALIDA DEL AGENTE COMPLETO
-            # ================================================================
-            return SheafStalk(
-                delta_base=self._delta_base.copy(),
-                delta_metric=self._delta_metric.copy(),
-                delta_dissipative=self._delta_diss.copy(),
-                hodge_laplacian=self._hodge_laplacian.copy(),
-                hodge_identity_residual=hodge_residual,
-                hodge_spectral_gap=spectral_gap,
-                hodge_condition_number=condition_number,
-                harmonic_dimension=harmonic_dimension,
-                lossless_subspace_dimension=self._ctx.betti_0_R,
-                state_vector=state_x.copy(),
-                projected_state_metric=projected_metric,
-                projected_state_dissipative=projected_diss,
-                rank_delta=self._rank_delta,
-                spectral_entropy_hodge=spectral_entropy,
-                cheeger_proxy=cheeger_proxy,
-            )
-
-    # =========================================================================
-    # INTERFAZ PÚBLICA DEL AGENTE
-    # =========================================================================
-
-    def synthesize_basal_hamiltonian(
+                G_q=G_q_singular,
+            )
+        
+        assert "singular o casi singular" in str(exc_info.value)
+    
+    def test_phase1_metric_tensor_G_q_ill_conditioned(
         self,
-        q: NDArray[np.float64],
-        p: NDArray[np.float64],
-        df_dt: NDArray[np.float64],
-        compute_normal_modes: bool = False,
-    ) -> BasalStateTensor:
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
         r"""
-        Punto de entrada público para la evaluación termodinámica completa.
-
-        Delega en ``Phase2_HamiltonianDynamics.synthesize_basal_state``.
-
-        Parámetros
-        ----------
-        q, p, df_dt : estado y perturbación de flujo.
-        compute_normal_modes : activa Williamson (opt-in).
-
-        Retorna
-        -------
-        BasalStateTensor
+        Verifica que tensor métrico mal condicionado dispara MetricTensorSingularityError.
         """
-        return self.phase2.synthesize_basal_state(
-            q=q,
-            p=p,
-            df_dt=df_dt,
-            compute_normal_modes=compute_normal_modes,
-        )
-
-    def export_sheaf_stalk(
-        self, state_x: NDArray[np.float64]
-    ) -> SheafStalk:
-        r"""
-        Exporta el Stalk del haz celular y la cofrontera δ_BASE.
-
-        Instancia la Fase 3 perezosamente en la primera llamada.
-
-        Parámetros
-        ----------
-        state_x : NDArray[np.float64], shape (dim_q + dim_p,)
-            Preferiblemente ``BasalStateTensor.state_vector``.
-
-        Retorna
-        -------
-        SheafStalk
-        """
-        if self.phase3 is None:
-            self.phase3 = KBaseThermodynamicAgent.Phase3_SheafProjection(
-                context=self.context
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        G_q_ill: NDArray[np.float64] = np.array(
+            [[1.0, 0.0], [0.0, 1e-12]], dtype=np.float64
+        )  # κ ≈ 1e12
+        
+        with pytest.raises(MetricTensorSingularityError) as exc_info:
+            KBaseThermodynamicAgent(
+                C_soc=C_soc,
+                M_rec=M_rec,
+                R_cost=R_cost,
+                J_base=J_base,
+                G_q=G_q_ill,
+                kappa_max=1e10,
             )
-            logger.info(
-                "[KBaseThermodynamicAgent] Phase3_SheafProjection "
-                "instanciada (lazy init). rank_delta=%d.",
-                self.phase3._rank_delta,
-            )
-        return self.phase3.export_stalk(state_x=state_x)
-
-    def evaluate_full_pipeline(
+        
+        assert "mal condicionado" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.4 — PULLBACK CONGRUENTE Y VALIDACIÓN ESPECTRAL
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_pullback_congruence_preserves_spd(
         self,
-        q: NDArray[np.float64],
-        p: NDArray[np.float64],
-        df_dt: NDArray[np.float64],
-        compute_normal_modes: bool = False,
-    ) -> Tuple[BasalStateTensor, SheafStalk]:
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_metric_tensors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
         r"""
-        Atajo de conveniencia: Fase 2 + Fase 3 en una sola llamada.
-
-        Retorna
-        -------
-        Tuple[BasalStateTensor, SheafStalk]
+        Verifica que pullback congruente preserva signatura SPD.
+        
+        Teorema: Ley de Inercia de Sylvester — Ã = G A Gᵀ tiene misma signatura que A
         """
-        basal = self.synthesize_basal_hamiltonian(
-            q=q,
-            p=p,
-            df_dt=df_dt,
-            compute_normal_modes=compute_normal_modes,
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        G_q, G_p = fixture_metric_tensors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            G_q=G_q,
+            G_p=G_p,
         )
-        stalk = self.export_sheaf_stalk(basal.state_vector)
-        return basal, stalk
+        
+        # Verificar que C̃ y M̃ son SPD (λ_min > 0)
+        lambda_min_C = float(la.eigvalsh(agent.context.C_tilde)[0])
+        lambda_min_M = float(la.eigvalsh(agent.context.M_tilde)[0])
+        
+        assert lambda_min_C > 0, f"C̃ no es SPD: λ_min={lambda_min_C}"
+        assert lambda_min_M > 0, f"M̃ no es SPD: λ_min={lambda_min_M}"
+    
+    def test_phase1_pullback_amplification_measured(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_metric_tensors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que amplificación de κ por pullback se mide correctamente.
+        
+        Métrica: amp = κ(Ã) / κ(A) (≈ 1 si G ≈ I)
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        G_q, G_p = fixture_metric_tensors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            G_q=G_q,
+            G_p=G_p,
+        )
+        
+        assert agent.context.pullback_amp_C >= 0.0
+        assert agent.context.pullback_amp_M >= 0.0
+        assert np.isfinite(agent.context.pullback_amp_C)
+        assert np.isfinite(agent.context.pullback_amp_M)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.5 — CHOLESKY REGULARIZADO Y TIKHONOV ADAPTATIVO
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_cholesky_without_regularization(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que matrices SPD bien condicionadas no requieren Tikhonov.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        # epsilon_C y epsilon_M deben ser 0 si no se requirió regularización
+        assert agent.context.epsilon_C == 0.0
+        assert agent.context.epsilon_M == 0.0
+    
+    def test_phase1_cholesky_factors_valid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que factores de Cholesky reconstruyen las matrices originales.
+        
+        Invariante: C̃ = L_C L_Cᵀ, M̃ = L_M L_Mᵀ
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        C_reconstructed = agent.context.L_C @ agent.context.L_C.T
+        M_reconstructed = agent.context.L_M @ agent.context.L_M.T
+        
+        tol = 1e-10 * max(
+            float(la.norm(agent.context.C_tilde, "fro")),
+            float(la.norm(agent.context.M_tilde, "fro")),
+            1.0
+        )
+        
+        assert float(la.norm(C_reconstructed - agent.context.C_tilde, "fro")) <= tol
+        assert float(la.norm(M_reconstructed - agent.context.M_tilde, "fro")) <= tol
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.6 — DIAGNÓSTICOS ESPECTRALES DE R_cost
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_R_cost_psd_valid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que R_cost PSD pasa validación.
+        
+        Axioma: λ_min(R_cost) ≥ −tol (Segunda Ley de Termodinámica)
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        assert agent.context.rank_R >= 0
+        assert agent.context.spectral_gap_R >= 0.0
+        assert agent.context.spectral_entropy_R >= 0.0
+    
+    def test_phase1_R_cost_not_psd_raises(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que R_cost no PSD dispara RayleighDissipationViolation.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        R_cost_invalid: NDArray[np.float64] = R_cost.copy()
+        R_cost_invalid[0, 0] = -1.0  # λ_min < 0
+        
+        with pytest.raises(RayleighDissipationViolation) as exc_info:
+            KBaseThermodynamicAgent(
+                C_soc=C_soc,
+                M_rec=M_rec,
+                R_cost=R_cost_invalid,
+                J_base=J_base,
+            )
+        
+        assert "Segunda Ley" in str(exc_info.value) or "no es Semidefinida Positiva" in str(exc_info.value)
+    
+    def test_phase1_betti_0_computed(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que betti_0(R) = n − rank(R) se calcula correctamente.
+        
+        Topología: betti_0 cuenta componentes conexas del espacio disipativo
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        n_total = agent.context.dim_q + agent.context.dim_p
+        expected_betti_0 = n_total - agent.context.rank_R
+        
+        assert agent.context.betti_0_R == expected_betti_0
+        assert agent.context.betti_0_R >= 0
 
 
 # =============================================================================
-# Utilidad local (evita importar math solo por isfinite en un punto)
+# FASE 2 — VALIDACIÓN DE DINÁMICA PORT-HAMILTONIANA Y DISIPACIÓN DE RAYLEIGH
 # =============================================================================
+class TestPhase2_HamiltonianDynamics:
+    r"""
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    FASE 2 — DINÁMICA PORT-HAMILTONIANA, RAYLEIGH, WILLIAMSON Y PASIVIDAD
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida el endofuntor Phase2_HamiltonianDynamics que gobierna
+    la evolución temporal del foso termodinámico. Cada método verifica un axioma
+    constitutivo de la dinámica Port-Hamiltoniana.
+    
+    Invariantes Verificados:
+    ------------------------
+    1. Energía potencial V(q) ≥ 0 y energía cinética K(p) ≥ 0
+    2. Hamiltoniano total H = V + K (forma cuadrática estricta)
+    3. Homogeneidad de Euler: q·∇_q H + p·∇_p H = 2H
+    4. Disipación de Rayleigh: P_diss = ∇Hᵀ R ∇H ≥ 0
+    5. Identidad estructural: ∇Hᵀ ẋ = −P_diss
+    6. Certificado de pasividad: Ḣ + P_diss ≈ 0
+    7. Voltaje de Flyback: ‖M̃·∂f/∂t‖_∞ ≤ V_breakdown
+    8. Frecuencias de Williamson ω_i ∈ ℝ⁺
+    9. Retícula Booleana de estabilidad
+    """
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.1 — ENERGÍAS Y GRADIENTES
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_potential_energy_nonnegative(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que energía potencial V(q) ≥ 0 para todo q.
+        
+        Axioma: V(q) = ½ qᵀ C̃⁻¹ q ≥ 0 (C̃ SPD)
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        assert basal.potential_energy >= 0.0, f"V(q) = {basal.potential_energy} < 0"
+    
+    def test_phase2_kinetic_energy_nonnegative(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que energía cinética K(p) ≥ 0 para todo p.
+        
+        Axioma: K(p) = ½ pᵀ M̃⁻¹ p ≥ 0 (M̃ SPD)
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        assert basal.kinetic_energy >= 0.0, f"K(p) = {basal.kinetic_energy} < 0"
+    
+    def test_phase2_hamiltonian_additive(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que H = V + K (aditividad de energías).
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        expected_H = basal.potential_energy + basal.kinetic_energy
+        tol = 1e-12 * max(abs(expected_H), 1.0)
+        
+        assert abs(basal.total_hamiltonian - expected_H) <= tol
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.2 — HOMOGENEIDAD DE EULER
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_euler_homogeneity_valid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica Teorema de Euler para H homogénea de grado 2.
+        
+        Teorema: q·∇_q H + p·∇_p H = 2H (exacto para formas cuadráticas)
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        # El residuo debe estar dentro de tolerancia numérica
+        tol = 1e-9 * max(abs(2.0 * basal.total_hamiltonian), 1.0)
+        
+        assert basal.euler_homogeneity_residual <= tol, \
+            f"Residuo de Euler = {basal.euler_homogeneity_residual} > tol = {tol}"
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.3 — DISIPACIÓN DE RAYLEIGH Y SEGUNDA LEY
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_rayleigh_dissipation_nonnegative(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que P_diss ≥ 0 (Segunda Ley de Termodinámica).
+        
+        Axioma: P_diss = ∇Hᵀ R ∇H ≥ 0 (R PSD)
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        assert basal.dissipated_power >= 0.0, f"P_diss = {basal.dissipated_power} < 0"
+    
+    def test_phase2_rayleigh_violation_raises(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que R_cost no PSD dispara RayleighDissipationViolation.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        R_cost_invalid: NDArray[np.float64] = R_cost.copy()
+        R_cost_invalid[0, 0] = -1.0  # λ_min < 0
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost_invalid,
+            J_base=J_base,
+        )
+        
+        with pytest.raises(RayleighDissipationViolation):
+            agent.synthesize_basal_hamiltonian(
+                q=q,
+                p=p,
+                df_dt=df_dt,
+            )
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.4 — IDENTIDAD ESTRUCTURAL PORT-HAMILTONIANA
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_structural_consistency_valid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica identidad estructural ∇Hᵀ ẋ = −P_diss.
+        
+        Identidad: ∇Hᵀ J ∇H ≡ 0 (J antisimétrica) ⇒ ∇Hᵀ ẋ = −∇Hᵀ R ∇H = −P_diss
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        tol = 1e-10 * max(basal.dissipated_power, 1.0)
+        
+        assert basal.structural_consistency_residual <= tol, \
+            f"Residuo estructural = {basal.structural_consistency_residual} > tol = {tol}"
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.5 — CERTIFICADO DE PASIVIDAD
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_passivity_certificate_valid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica certificado de pasividad Ḣ + P_diss ≈ 0.
+        
+        Certificado: |Ḣ_num + P_diss| ≤ √ε · scale
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        tol = 1e-10 * max(basal.dissipated_power, 1.0)
+        
+        assert basal.passivity_residual <= tol, \
+            f"Residuo de pasividad = {basal.passivity_residual} > tol = {tol}"
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.6 — VOLTAJE DE FLYBACK
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_flyback_voltage_safe(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que voltaje de Flyback está dentro de margen seguro.
+        
+        Condición: ‖M̃·∂f/∂t‖_∞ ≤ margin · V_breakdown
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            breakdown_voltage=1e5,
+            flyback_safety_margin=0.9,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        assert basal.flyback_voltage_norm <= 0.9 * 1e5
+    
+    def test_phase2_flyback_voltage_exceeds_raises(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que Flyback excesivo dispara InertialFlybackError.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        # df_dt muy grande para exceder V_breakdown
+        df_dt_large: NDArray[np.float64] = np.array([1e10, 1e10], dtype=np.float64)
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            breakdown_voltage=1e5,
+        )
+        
+        with pytest.raises(InertialFlybackError):
+            agent.synthesize_basal_hamiltonian(
+                q=q,
+                p=p,
+                df_dt=df_dt_large,
+            )
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.7 — FORMAS NORMALES DE WILLIAMSON
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_williamson_normal_modes_valid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que frecuencias de Williamson son reales y no negativas.
+        
+        Teorema: ω_i ∈ ℝ⁺ para sistema conservativo linealizado
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+            compute_normal_modes=True,
+        )
+        
+        assert basal.normal_mode_frequencies is not None
+        assert np.all(basal.normal_mode_frequencies >= 0.0)
+        assert np.all(np.isfinite(basal.normal_mode_frequencies))
+    
+    def test_phase2_zero_point_energy_computed(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que energía de punto cero E_0 = (ħ/2) Σ ω_i se calcula.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            hbar=1.0,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+            compute_normal_modes=True,
+        )
+        
+        assert basal.zero_point_energy is not None
+        assert basal.zero_point_energy >= 0.0
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.8 — RETÍCULA BOOLEANA DE ESTABILIDAD
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_stability_flags_all_satisfied(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que todas las banderas de estabilidad se satisfacen para sistema válido.
+        
+        Álgebra de Boole: flags == StabilityFlags.ALL
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        assert basal.is_thermodynamically_stable
+        assert basal.stability_flags == StabilityFlags.ALL
+    
+    def test_phase2_stability_flags_describe(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que describe_stability_flags produce cadena legible.
+        """
+        from app.agents.alpha.kbase.kbase_thermodynamic_agent import describe_stability_flags
+        
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        description = describe_stability_flags(basal.stability_flags)
+        
+        assert "SATISFECHOS=" in description
+        assert "VIOLADOS=" in description
+        assert "ESTABLE_TOTAL=" in description
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.9 — CONSTANTE DE TIEMPO ENTRÓPICA
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_dissipation_time_constant_finite(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que τ_diss = 2H / P_diss es finito cuando P_diss > 0.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        if basal.dissipated_power > 1e-12:
+            assert np.isfinite(basal.dissipation_time_constant)
+            assert basal.dissipation_time_constant > 0.0
 
 
-def math_isfinite(x: float) -> bool:
-    """True si x es finito (no NaN, no ±Inf)."""
-    return bool(np.isfinite(x))
+# =============================================================================
+# FASE 3 — VALIDACIÓN DE FIBRACIÓN CELULAR Y EXPORTACIÓN DE COFRONTERA
+# =============================================================================
+class TestPhase3_SheafProjection:
+    r"""
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    FASE 3 — PROYECCIÓN COHOMOLÓGICA EN HACES: COCADENA APILADA Y HODGE LOCAL
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida el endofuntor Phase3_SheafProjection que proyecta
+    la variedad local como una fibra (Stalk) para el orquestador macroscópico.
+    
+    Invariantes Verificados:
+    ------------------------
+    1. Identidad de Hodge local: δ_BASEᵀ δ_BASE = ∇²H + R_cost
+    2. Δ_BASE es SPD (Laplaciano de Hodge)
+    3. Gap espectral de Hodge λ₂ − λ₁
+    4. Número de condición κ(Δ_BASE)
+    5. Dimensión armónica = dim ker(δ_metric)
+    6. Entropía de von Neumann de Spec(Δ_BASE)
+    7. Proxy de Cheeger λ₂/λ_max
+    8. Proyecciones δ_metric·x y δ_diss·x
+    """
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.1 — CONSTRUCCIÓN DE COCADENA APILADA
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_delta_base_shape_valid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que δ_BASE tiene forma (2n, n).
+        
+        Construcción: δ_BASE = [δ_metric; δ_diss] ∈ ℝ^{2n×n}
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        n = agent.context.dim_q + agent.context.dim_p
+        
+        assert stalk.delta_base.shape == (2 * n, n)
+        assert stalk.delta_metric.shape == (n, n)
+        assert stalk.delta_dissipative.shape == (n, n)
+    
+    def test_phase3_delta_metric_block_diagonal(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que δ_metric es block-diag(C̃^{-1/2}, M̃^{-1/2}).
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        dim_q = agent.context.dim_q
+        dim_p = agent.context.dim_p
+        
+        # Verificar bloques diagonales
+        C_block = stalk.delta_metric[:dim_q, :dim_q]
+        M_block = stalk.delta_metric[dim_q:, dim_q:]
+        
+        # Verificar que bloques fuera de diagonal son cero
+        off_diag_1 = stalk.delta_metric[:dim_q, dim_q:]
+        off_diag_2 = stalk.delta_metric[dim_q:, :dim_q]
+        
+        tol = 1e-12
+        
+        assert float(la.norm(off_diag_1, "fro")) <= tol
+        assert float(la.norm(off_diag_2, "fro")) <= tol
+        
+        # Verificar que bloques diagonales coinciden con C_inv_sqrt y M_inv_sqrt
+        assert float(la.norm(C_block - agent.context.C_inv_sqrt, "fro")) <= tol
+        assert float(la.norm(M_block - agent.context.M_inv_sqrt, "fro")) <= tol
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.2 — IDENTIDAD DE HODGE LOCAL
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_hodge_identity_satisfied(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica identidad de Hodge: δ_BASEᵀ δ_BASE = Δ_BASE.
+        
+        Identidad: ‖δᵀδ − Δ_BASE‖_F / ‖Δ_BASE‖_F ≤ 100·ε_mach
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        tol = 100.0 * _MACHINE_EPS
+        
+        assert stalk.hodge_identity_residual <= tol, \
+            f"Residuo de Hodge = {stalk.hodge_identity_residual} > tol = {tol}"
+    
+    def test_phase3_hodge_laplacian_spd(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que Δ_BASE es SPD (Laplaciano de Hodge).
+        
+        Invariante: Δ_BASE = ∇²H + R_cost debe ser SPD
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        lambda_min = float(la.eigvalsh(stalk.hodge_laplacian)[0])
+        
+        assert lambda_min > 0.0, f"Δ_BASE no es SPD: λ_min = {lambda_min}"
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.3 — ESPECTRO DE HODGE
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_hodge_spectral_gap_positive(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que gap espectral de Hodge es no negativo.
+        
+        Métrica: gap = λ₂ − λ₁ ≥ 0
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        assert stalk.hodge_spectral_gap >= 0.0
+    
+    def test_phase3_hodge_condition_number_finite(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que número de condición de Δ_BASE es finito.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        assert np.isfinite(stalk.hodge_condition_number)
+        assert stalk.hodge_condition_number >= 1.0
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.4 — DIMENSIONES TOPOLÓGICAS
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_harmonic_dimension_zero(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que dimensión armónica = dim ker(δ_metric) = 0.
+        
+        Topología: δ_metric invertible ⇒ ker(δ_metric) = {0}
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        assert stalk.harmonic_dimension == 0
+    
+    def test_phase3_lossless_subspace_dimension_matches_betti_0(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que dim_lossless = betti_0(R).
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        assert stalk.lossless_subspace_dimension == agent.context.betti_0_R
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.5 — ENTROPÍA Y PROXY DE CHEEGER
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_spectral_entropy_hodge_nonnegative(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que entropía de von Neumann de Spec(Δ_BASE) es no negativa.
+        
+        Entropía: S = −Σ p_i ln p_i ≥ 0
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        assert stalk.spectral_entropy_hodge >= 0.0
+    
+    def test_phase3_cheeger_proxy_in_range(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que proxy de Cheeger ∈ [0, 1].
+        
+        Proxy: λ₂ / λ_max ∈ [0, 1]
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        assert 0.0 <= stalk.cheeger_proxy <= 1.0
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.6 — PROYECCIONES DE ESTADO
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_projected_state_shapes_valid(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que proyecciones de estado tienen forma correcta.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        n = agent.context.dim_q + agent.context.dim_p
+        
+        assert stalk.projected_state_metric.shape == (n,)
+        assert stalk.projected_state_dissipative.shape == (n,)
+    
+    def test_phase3_projected_state_consistency(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que proyecciones son consistentes con δ·x.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        expected_metric = stalk.delta_metric @ stalk.state_vector
+        expected_diss = stalk.delta_dissipative @ stalk.state_vector
+        
+        tol = 1e-12 * max(
+            float(la.norm(expected_metric, 2)),
+            float(la.norm(expected_diss, 2)),
+            1.0
+        )
+        
+        assert float(la.norm(stalk.projected_state_metric - expected_metric, 2)) <= tol
+        assert float(la.norm(stalk.projected_state_dissipative - expected_diss, 2)) <= tol
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.7 — PIPELINE COMPLETO
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_evaluate_full_pipeline(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica pipeline completo Fase 2 + Fase 3 en una llamada.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal, stalk = agent.evaluate_full_pipeline(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        assert isinstance(basal, BasalStateTensor)
+        assert isinstance(stalk, SheafStalk)
+        assert np.array_equal(basal.state_vector, stalk.state_vector)
+    
+    def test_phase3_lazy_initialization_phase3(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que Phase3 se inicializa perezosamente en primera llamada.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        # Phase3 debe ser None antes de primera llamada
+        assert agent.phase3 is None
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        # Phase3 aún debe ser None (solo se llama a Fase 2)
+        assert agent.phase3 is None
+        
+        # Primera llamada a export_sheaf_stalk inicializa Phase3
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        assert agent.phase3 is not None
+        assert isinstance(stalk, SheafStalk)
+
+
+# =============================================================================
+# PRUEBAS DE INTEGRACIÓN — TRANSICIONES ENTRE FASES
+# =============================================================================
+class TestPhaseTransitions_Integration:
+    r"""
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    PRUEBAS DE INTEGRACIÓN — TRANSICIONES ENTRE FASES ANIDADAS
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida la composición funtorial estricta:
+        Φ₃ ∘ Φ₂ ∘ Φ₁ : Matrices Constitutivas → SheafStalk
+    
+    Cada método verifica que la salida de una fase es la entrada válida
+    de la siguiente fase, garantizando continuidad formal del endofuntor.
+    """
+    
+    def test_phase1_to_phase2_context_continuity(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que TopologicalContext de Fase 1 es entrada válida de Fase 2.
+        
+        Contrato: context es el único argumento del constructor de Phase2
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        # Verificar que context tiene todos los atributos requeridos por Fase 2
+        assert hasattr(agent.context, 'L_C')
+        assert hasattr(agent.context, 'L_M')
+        assert hasattr(agent.context, 'C_inv_sqrt')
+        assert hasattr(agent.context, 'M_inv_sqrt')
+        assert hasattr(agent.context, 'C_tilde')
+        assert hasattr(agent.context, 'M_tilde')
+        assert hasattr(agent.context, 'R_cost')
+        assert hasattr(agent.context, 'J_base')
+        assert hasattr(agent.context, 'dim_q')
+        assert hasattr(agent.context, 'dim_p')
+    
+    def test_phase2_to_phase3_state_vector_continuity(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que state_vector de Fase 2 es entrada válida de Fase 3.
+        
+        Contrato: state_vector = [q; p] es argumento de export_stalk()
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        # state_vector debe tener forma (dim_q + dim_p,)
+        n = agent.context.dim_q + agent.context.dim_p
+        assert basal.state_vector.shape == (n,)
+        
+        # Debe ser concatenación de q y p
+        expected = np.concatenate([q, p])
+        assert np.array_equal(basal.state_vector, expected)
+        
+        # Debe ser entrada válida para export_sheaf_stalk
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        assert np.array_equal(stalk.state_vector, basal.state_vector)
+    
+    def test_phase1_to_phase3_context_reuse(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que Phase3 reusa el mismo TopologicalContext de Fase 1.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        stalk = agent.export_sheaf_stalk(basal.state_vector)
+        
+        # Phase3 debe usar el mismo context que Phase1
+        assert agent.phase3._ctx is agent.context
+    
+    def test_full_pipeline_immutability(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que DTOs son inmutables (frozen dataclasses).
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal, stalk = agent.evaluate_full_pipeline(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        # Intentar modificar debe fallar (frozen=True)
+        with pytest.raises(AttributeError):
+            basal.total_hamiltonian = 999.0  # type: ignore[misc]
+        
+        with pytest.raises(AttributeError):
+            stalk.hodge_laplacian[0, 0] = 999.0  # type: ignore[misc]
+
+
+# =============================================================================
+# PRUEBAS DE CASOS ESPECIALES Y BORDES
+# =============================================================================
+class TestEdgeCases_SpecialConditions:
+    r"""
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    PRUEBAS DE CASOS ESPECIALES Y BORDES
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida comportamiento en condiciones límite:
+    - Matrices casi singulares
+    - Estados cero
+    - Disipación cero (sistema conservativo puro)
+    - Dimensiones grandes
+    """
+    
+    def test_edge_case_zero_state_vector(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica comportamiento con estado cero q=0, p=0.
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        
+        q: NDArray[np.float64] = np.zeros(2, dtype=np.float64)
+        p: NDArray[np.float64] = np.zeros(2, dtype=np.float64)
+        df_dt: NDArray[np.float64] = np.zeros(2, dtype=np.float64)
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        assert basal.potential_energy == 0.0
+        assert basal.kinetic_energy == 0.0
+        assert basal.total_hamiltonian == 0.0
+    
+    def test_edge_case_identity_metric_tensors(
+        self,
+        fixture_valid_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica comportamiento con G_q = I, G_p = I (métrica euclidiana).
+        """
+        C_soc, M_rec, R_cost, J_base = fixture_valid_matrices_2d
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        G_q: NDArray[np.float64] = np.eye(2, dtype=np.float64)
+        G_p: NDArray[np.float64] = np.eye(2, dtype=np.float64)
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+            G_q=G_q,
+            G_p=G_p,
+        )
+        
+        # Pullback con identidad debe preservar matrices originales
+        assert float(la.norm(agent.context.C_tilde - C_soc, "fro")) < 1e-12
+        assert float(la.norm(agent.context.M_tilde - M_rec, "fro")) < 1e-12
+    
+    def test_edge_case_diagonal_matrices(
+        self,
+        fixture_valid_state_vectors_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica comportamiento con matrices diagonales (caso desacoplado).
+        """
+        C_soc: NDArray[np.float64] = np.diag([2.0, 1.5])
+        M_rec: NDArray[np.float64] = np.diag([1.8, 2.2])
+        R_cost: NDArray[np.float64] = np.diag([0.5, 0.3, 0.4, 0.2])
+        J_base: NDArray[np.float64] = np.array(
+            [[0.0, 0.0, 1.0, 0.0],
+             [0.0, 0.0, 0.0, 1.0],
+             [-1.0, 0.0, 0.0, 0.0],
+             [0.0, -1.0, 0.0, 0.0]], dtype=np.float64
+        )
+        
+        q, p, df_dt = fixture_valid_state_vectors_2d
+        
+        agent = KBaseThermodynamicAgent(
+            C_soc=C_soc,
+            M_rec=M_rec,
+            R_cost=R_cost,
+            J_base=J_base,
+        )
+        
+        basal = agent.synthesize_basal_hamiltonian(
+            q=q,
+            p=p,
+            df_dt=df_dt,
+        )
+        
+        assert basal.is_thermodynamically_stable
+
+
+# =============================================================================
+# EJECUCIÓN DIRECTA (para debugging)
+# =============================================================================
+if __name__ == "__main__":
+    pytest.main([
+        __file__,
+        "-v",
+        "--tb=short",
+        "--strict-markers",
+    ])

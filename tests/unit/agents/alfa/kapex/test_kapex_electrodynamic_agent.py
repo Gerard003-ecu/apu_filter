@@ -1,2105 +1,1742 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : KApex Electrodynamic Agent (Director de Retorno y Expansión de Mercado)        ║
-║  Ruta   : app/agents/alpha/kapex/kapex_electrodynamic_agent.py                           ║
-║  Versión: 7.0.0-Rigorous-Gauge-Curvature-Sheaf-Nested                                    ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y ÓPTICA GEOMÉTRICA (Rigor Doctoral):                           ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo consagra el Ápice Estratégico (K_APEX) como un Endofuntor de Campo de       ║
-║  Calibre en la Malla Agéntica. Su función axiomática es inyectar Fuerza Electromotriz    ║
-║  (Propuesta de Valor), resolver la refracción estocástica del mercado y auditar el       ║
-║  retorno mediante una Curvatura de Yang-Mills genuinamente antisimétrica                 ║
-║  $F \in \mathfrak{so}(n)$, con proyección canónica al álgebra de Lie y contracción       ║
-║  métrica de Hilbert-Schmidt estricta.                                                    ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ELECTRODINÁMICAS:                               ║
-║                                                                                          ║
-║  §1. Ecuación Eikonal de Absorción (Refracción de Mercado):                              ║
-║      La penetración en el mercado es tratada como un frente de onda que debe resolver    ║
-║      la no linealidad óptica sobre el tensor métrico Riemanniano $G^{\mu\nu}$:           ║
-║          $G^{\mu\nu} \partial_\mu S \partial_\nu S = n^2(\sigma^*)$                      ║
-║      Cualquier violación acusa una dispersión inalcanzable (`EikonalRefractionError`).   ║
-║                                                                                          ║
-║  §2. Flujo Exergético de Poynting (Conservación de Retorno):                             ║
-║      Garantiza que el vector de intención no devore su propia energía logística.         ║
-║      La disipación neta se evalúa mediante:                                              ║
-║          $P_{\mathrm{exergia}} = E \cdot H - \left| R_{\mathrm{cost}}^{1/2} \nabla H \right|^2 \ge 0$ ║
-║      Un $P_{\mathrm{exergia}} < 0$ demuestra que la disipación devora el flujo de        ║
-║      Poynting, detonando instantáneamente un `FinancialBlackHoleError`.                  ║
-║                                                                                          ║
-║  §3. Curvatura Discreta de Yang-Mills en Álgebra de Lie $\mathfrak{so}(n)$:              ║
-║      Se erradica la traza euclidiana defectuosa. La matriz de conexión se proyecta vía   ║
-║      $\Pi_{\mathfrak{so}}(A) := \frac{1}{2}(A - A^\top)$. La 2-forma de curvatura es:    ║
-║          $F = (A_2^a - A_1^a) + [A_1^a, A_2^a], \quad A_i^a := \Pi_{\mathfrak{so}}(A_i)$ ║
-║      La acción de Yang-Mills, evaluada bajo la norma de Hilbert-Schmidt inducida, es:    ║
-║          $S_{YM} = \frac{1}{2} \mathrm{Tr}\left(F^\top G_{\mu\nu} F G^{\mu\nu}\right) \ge 0$ ║
-║      Si $S_{YM} > \varepsilon_{crit}$, se dicta una fuga de Gauge (`HolonomyVetoError`). ║
-║                                                                                          ║
-║  §4. Consistencia Métrica Bilateral y Análisis de Wilkinson:                             ║
-║      Para blindar la FPU frente a singularidades de inversión métrica ($G^{-1}$),        ║
-║      se verifica la cota relativa escalada simultáneamente en ambas direcciones:         ║
-║          $\|G G^{-1} - I\|_F / n \le \kappa(G) \varepsilon_{\mathrm{mach}} n$            ║
-║          $\|G^{-1} G - I\|_F / n \le \kappa(G) \varepsilon_{\mathrm{mach}} n$            ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → build_context(...)                                                             ║
-║           Verifica métricas, simetrías y cierres espectrales de la matriz $R_{\text{cost}}$.║
-║           [Retorna: ApexPreparationContext → dominio inicial de Fase 2]                  ║
-║                                                                                          ║
-║  Fase 2 → synthesize(..., preparation_context)                                           ║
-║           Computa la fuerza electromotriz, flujo exergético y curvatura de Yang-Mills.   ║
-║           [Retorna: ApexStateTensor → dominio inicial de Fase 3]                         ║
-║                                                                                          ║
-║  Fase 3 → export_stalk(..., state_tensor)                                                ║
-║           Exporta la fibra celular (Sheaf Stalk) inyectando el vector de gauge para      ║
-║           el orquestador macroscópico del Laplaciano de Haz.                             ║
-║           [Retorna: SheafStalkApex → objeto final del endofuntor]                        ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
+Suite de pruebas unitarias rigurosas para KApexElectrodynamicAgent
+=================================================================
+
+Ubicación del artefacto
+-----------------------
+tests/unit/agents/alfa/kapex/test_kapex_electrodynamic_agent.py
+
+Módulo bajo prueba
+------------------
+app/agents/alfa/kapex/kapex_electrodynamic_agent.py
+
+Filosofía de la suite — endofuntor anidado K_APEX
+-------------------------------------------------
+Las tres fases forman una composición funtorial estricta:
+
+    F₁ ──build_context──► ApexPreparationContext
+     │                         │
+     │    (precondición formal) │
+     ▼                         ▼
+    F₂ ──synthesize────► ApexStateTensor
+     │                         │
+     │  gauge_injection_vector │
+     ▼                         ▼
+    F₃ ──export_stalk──► SheafStalkApex
+
+Contratos de continuidad inter-fase
+------------------------------------
+1. ``Phase1_MetricValidation.build_context()`` produce el único
+   ``ApexPreparationContext`` que ``Phase2`` está autorizado a consumir.
+2. ``Phase2_ElectrodynamicSynthesis.synthesize()`` emite
+   ``ApexStateTensor.gauge_injection_vector``, única entrada admisible
+   de ``Phase3_SheafProjection.export_stalk()``.
+3. El último invariante verificado en Fase *k* es exactamente la
+   precondición algebraica del primer método de Fase *k+1*.
+
+Invariantes auditados
+---------------------
+- Caminos felices y excepciones electrodinámicas.
+- Cotas de Wilkinson/Higham sobre residuos de Cholesky y cierre espectral.
+- Idempotencia de proyectores Π_so, cierre de Lie en 𝔰𝔬(n).
+- Antisimetría de F, covarianza de gauge bajo isometrías de G.
+- SPD/PSD, condición espectral κ, nulidad disipativa β₀ = dim ker(R).
+- Identidad de Hodge local δᵀ G δ ≈ I y Δ_Hodge ≻ 0.
+- Congelamiento (frozen) de todos los DTOs y copias defensivas.
+
+Notas de ejecución
+------------------
+- Dependencias: pytest, numpy, scipy.
+- Comando recomendado::
+
+      pytest tests/unit/agents/alfa/kapex/test_kapex_electrodynamic_agent.py -v
+"""
+
 from __future__ import annotations
 
-# ---------------------------------------------------------------------------
-# Biblioteca estándar
-# ---------------------------------------------------------------------------
-import enum
-import logging
-from dataclasses import dataclass
-from typing import Optional, Tuple
+import dataclasses
+import importlib
+import importlib.util
+import math
+import sys
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Sequence, Tuple
 
-# ---------------------------------------------------------------------------
-# Álgebra numérica de alta precisión
-# ---------------------------------------------------------------------------
 import numpy as np
-import scipy.linalg as la
-from numpy.typing import NDArray
+import pytest
+from numpy.testing import assert_allclose
 
-# ---------------------------------------------------------------------------
-# Dependencias arquitectónicas del ecosistema APU Filter
-# ---------------------------------------------------------------------------
-try:
-    from app.core.mic_algebra import CategoricalState, Morphism
-except ImportError:  # stubs locales para ejecución aislada
-    class CategoricalState:  # type: ignore[no-redef]
-        """Stub: estado categórico del ecosistema MIC."""
+# ==============================================================================
+# BOOTSTRAP DE IMPORTACIÓN ROBUSTO
+# ==============================================================================
+# Tolera el módulo bajo "alpha" o "alfa"; si el paquete no está instalado,
+# carga directa por archivo.  El orden de candidatos es determinista.
+# ==============================================================================
 
-    class Morphism:  # type: ignore[no-redef]
-        """Stub: morfismo funtorial del ecosistema MIC."""
+ROOT = Path(__file__).resolve().parents[5]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
+_MODULE_CANDIDATES: Tuple[str, ...] = (
+    "app.agents.alpha.kapex.kapex_electrodynamic_agent",
+    "app.agents.alfa.kapex.kapex_electrodynamic_agent",
+)
 
-# ---------------------------------------------------------------------------
-# Logger del módulo
-# ---------------------------------------------------------------------------
-logger = logging.getLogger("MIC.Alpha.KApexElectrodynamicAgent")
+mod = None
+last_exc: BaseException | None = None
 
-# Precisión de máquina IEEE-754 double, reutilizada en todo el módulo
-_MACHINE_EPS: float = float(np.finfo(np.float64).eps)
+for candidate in _MODULE_CANDIDATES:
+    try:
+        mod = importlib.import_module(candidate)
+        break
+    except Exception as exc:  # pragma: no cover
+        last_exc = exc
 
-# Constantes de análisis de error (Wilkinson / Higham)
-_WILKINSON_SAFETY: float = 100.0          # factor de seguridad en cotas a posteriori
-_ANTISYM_REL_TOL: float = 1.0e-8          # canario de antisimetría de F ∈ 𝔰𝔬(n)
-_KAPPA_CROSSCHECK_TOL: float = 1.0e-3     # tolerancia relativa κ(G) vs κ(G⁻¹)
-_GAUGE_COVARIANCE_TOL: float = 1.0e-6     # invarianza de S_YM bajo isometrías
-
-
-# =============================================================================
-# SECCIÓN 0 — EXCEPCIONES ELECTRODINÁMICAS ESTRICTAS
-# =============================================================================
-
-
-class ElectrodynamicApexError(Exception):
-    """
-    Excepción categórica raíz para violaciones en el Estrato K_APEX.
-
-    Toda excepción de este módulo hereda de esta clase, permitiendo que
-    los manejadores de nivel superior capturen cualquier fallo
-    electrodinámico con un único ``except ElectrodynamicApexError``.
-    """
-
-
-class ApexDimensionError(ElectrodynamicApexError):
-    """Dimensiones de matrices/vectores constitutivos inconsistentes."""
-
-
-class ApexParameterError(ElectrodynamicApexError):
-    """Parámetro escalar de control fuera de su rango admisible."""
-
-
-class ApexSymmetryError(ElectrodynamicApexError):
-    """Violación de simetría (G_μν, G_inv o R_cost) con diagnóstico Frobenius."""
-
-
-class ApexConditionError(ElectrodynamicApexError):
-    """Número de condición espectral κ supera el umbral admisible."""
-
-
-class MetricInverseError(ElectrodynamicApexError):
-    """
-    G_inv no es la inversa bilateral de G_μν dentro de la tolerancia
-    de máquina relativa escalada por κ(G_μν) (análisis de Wilkinson).
-    """
-
-
-class SpectralClosureError(ElectrodynamicApexError):
-    """
-    Fallo de cierre espectral: R_sqrt @ R_sqrt ≉ R_cost, o bien
-    la proyección al álgebra de Lie no es idempotente dentro de tol.
-    """
-
-
-class GaugePotentialError(ElectrodynamicApexError):
-    """
-    Estrés estructural: exp(−½ Tr(G_μν)) < ε_mach (colapso de calibre
-    invariante de escala, independiente de ‖dΦ‖).
-    """
-
-
-class EikonalRefractionError(ElectrodynamicApexError):
-    """Mercado topológicamente inalcanzable: fallo de la ecuación Eikonal."""
-
-
-class FinancialBlackHoleError(ElectrodynamicApexError):
-    """P_exergia < −tol: la disipación devora el flujo de Poynting."""
-
-
-class HolonomyVetoError(ElectrodynamicApexError):
-    """S_YM supera el umbral relativo: curvatura de calibre no trivial."""
-
-
-class GaugeCovarianceError(ElectrodynamicApexError):
-    """
-    S_YM no es invariante bajo una isometría genuina de G_μν, o bien
-    la candidata Q no es isometría (violación de invariante algebraico).
-    """
-
-
-class SheafMetricError(ElectrodynamicApexError):
-    """Identidad de Hodge local δ_metricᵀ G_μν δ_metric ≉ I violada."""
-
-
-# =============================================================================
-# SECCIÓN 1 — ÁLGEBRA DE BOOLE DE VIABILIDAD ELECTRODINÁMICA
-# =============================================================================
-
-
-class ApexViabilityFlags(enum.Flag):
-    r"""
-    Retícula de Boole de predicados de viabilidad electrodinámica.
-
-    Estructura de retícula distributiva acotada
-    ------------------------------------------
-    - Bottom (0): ``NONE``
-    - Top (1):    ``ALL``  (unidad de orden: a ∧ ALL = a, a ∨ ALL = ALL)
-    - Meet:       ``&`` (conjunción bit a bit = intersección de predicados)
-    - Join:       ``|`` (disyunción bit a bit = unión de predicados)
-    - Complement: ``~`` (relativo al soporte de ALL)
-
-    Cada bandera es un predicado *independiente*; la viabilidad global es
-    la igualdad ``flags == ApexViabilityFlags.ALL`` (elemento máximo).
-
-    Miembros
-    --------
-    GAUGE_INJECTION_NONTRIVIAL
-        exp(−½ Tr(G_μν)) ≥ √ε_mach (no colapso estructural).
-    EIKONAL_MARGIN_SOUND
-        ‖∂S‖²_{G⁻¹} ≥ n²(σ*)·(1 − eikonal_slack/2)  (margen holgado).
-    EXERGY_NONNEGATIVE
-        P_exergia ≥ −C·ε_mach (Segunda Ley, con holgura de redondeo).
-    HOLONOMY_TRIVIAL
-        S_YM ≤ tol_ym (curvatura de calibre despreciable).
-    CURVATURE_ANTISYMMETRIC
-        ‖F+Fᵀ‖_F / ‖F‖_F ≤ 10⁻⁸  (F ∈ 𝔰𝔬(n) exacto hasta redondeo).
-    METRIC_WELL_CONDITIONED
-        κ(G_μν) ≤ ½·κ_max (alerta temprana de degeneración métrica).
-    SPECTRAL_CLOSURE_SOUND
-        Cierre R_sqrt² ≈ R_cost verificado en Fase 1 (nuevo en v7).
-    """
-
-    NONE = 0
-    GAUGE_INJECTION_NONTRIVIAL = enum.auto()
-    EIKONAL_MARGIN_SOUND = enum.auto()
-    EXERGY_NONNEGATIVE = enum.auto()
-    HOLONOMY_TRIVIAL = enum.auto()
-    CURVATURE_ANTISYMMETRIC = enum.auto()
-    METRIC_WELL_CONDITIONED = enum.auto()
-    SPECTRAL_CLOSURE_SOUND = enum.auto()
-    ALL = (
-        GAUGE_INJECTION_NONTRIVIAL
-        | EIKONAL_MARGIN_SOUND
-        | EXERGY_NONNEGATIVE
-        | HOLONOMY_TRIVIAL
-        | CURVATURE_ANTISYMMETRIC
-        | METRIC_WELL_CONDITIONED
-        | SPECTRAL_CLOSURE_SOUND
+if mod is None:
+    _FILE_CANDIDATES: Tuple[Path, ...] = (
+        ROOT / "app" / "agents" / "alpha" / "kapex" / "kapex_electrodynamic_agent.py",
+        ROOT / "app" / "agents" / "alfa" / "kapex" / "kapex_electrodynamic_agent.py",
     )
+    for path in _FILE_CANDIDATES:
+        if path.exists():
+            spec = importlib.util.spec_from_file_location(
+                "kapex_electrodynamic_agent", path
+            )
+            if spec is not None and spec.loader is not None:
+                mod = importlib.util.module_from_spec(spec)
+                sys.modules[spec.name] = mod
+                spec.loader.exec_module(mod)
+                break
 
-    def meet(self, other: "ApexViabilityFlags") -> "ApexViabilityFlags":
-        """Ínfimo de la retícula (intersección de predicados)."""
-        return self & other
-
-    def join(self, other: "ApexViabilityFlags") -> "ApexViabilityFlags":
-        """Supremo de la retícula (unión de predicados)."""
-        return self | other
-
-    def is_order_unit(self) -> bool:
-        """True ⇔ self es el elemento máximo ALL (viabilidad total)."""
-        return self == ApexViabilityFlags.ALL
-
-
-def describe_viability_flags(flags: ApexViabilityFlags) -> str:
-    """Serializa ``ApexViabilityFlags`` a cadena legible."""
-    atomic = [
-        f
-        for f in ApexViabilityFlags
-        if f not in (ApexViabilityFlags.NONE, ApexViabilityFlags.ALL)
-    ]
-    satisfied = [f.name for f in atomic if f in flags]
-    violated = [f.name for f in atomic if f not in flags]
-    return (
-        f"SATISFECHOS={satisfied or 'ninguno'} | "
-        f"VIOLADOS={violated or 'ninguno'} | "
-        f"VIABLE_TOTAL={flags.is_order_unit()}"
+if mod is None:  # pragma: no cover
+    if last_exc is not None:
+        raise ImportError(
+            "No se pudo importar kapex_electrodynamic_agent.py ni como paquete "
+            "ni como archivo."
+        ) from last_exc
+    raise ImportError(
+        "No se encontró kapex_electrodynamic_agent.py en alpha ni alfa."
     )
 
 
-# =============================================================================
-# SECCIÓN 2 — ESTRUCTURAS INMUTABLES (DTOs TENSORIALES)
-# =============================================================================
+# ==============================================================================
+# ALIASES DEL MÓDULO BAJO PRUEBA
+# ==============================================================================
+
+KApexElectrodynamicAgent = mod.KApexElectrodynamicAgent
+
+ApexViabilityFlags = mod.ApexViabilityFlags
+describe_viability_flags = mod.describe_viability_flags
+
+ApexPreparationContext = mod.ApexPreparationContext
+ApexStateTensor = mod.ApexStateTensor
+SheafStalkApex = mod.SheafStalkApex
+
+ElectrodynamicApexError = mod.ElectrodynamicApexError
+ApexDimensionError = mod.ApexDimensionError
+ApexParameterError = mod.ApexParameterError
+ApexSymmetryError = mod.ApexSymmetryError
+ApexConditionError = mod.ApexConditionError
+MetricInverseError = mod.MetricInverseError
+SpectralClosureError = mod.SpectralClosureError
+GaugePotentialError = mod.GaugePotentialError
+EikonalRefractionError = mod.EikonalRefractionError
+FinancialBlackHoleError = mod.FinancialBlackHoleError
+HolonomyVetoError = mod.HolonomyVetoError
+GaugeCovarianceError = mod.GaugeCovarianceError
+SheafMetricError = mod.SheafMetricError
+
+EPS: float = float(getattr(mod, "_MACHINE_EPS", np.finfo(np.float64).eps))
+
+# Tolerancias canónicas derivadas de la unidad de redondeo.
+_ATOL_STRICT: float = 1.0e-14
+_ATOL_STD: float = 1.0e-12
+_RTOL_STD: float = 1.0e-12
+_ATOL_HODGE: float = 1.0e-10
+_RTOL_HODGE: float = 1.0e-10
 
 
-@dataclass(frozen=True, slots=True)
-class ApexPreparationContext:
-    r"""
-    Contexto inmutable producido por la **Fase 1** (Validación Métrica).
+# ==============================================================================
+# HELPERS NUMÉRICOS — CONSTRUCCIONES EXACTAS Y CERTIFICADOS
+# ==============================================================================
 
-    Contrato de interfaz Fase 1 → Fase 2
-    ------------------------------------
-    Todo campo de este DTO es precondición de ``Phase2_ElectrodynamicSynthesis``.
-    En particular:
-      - ``L_G``, ``R_sqrt`` se consumen en Fase 3 (fibra métrica + disipativa).
-      - ``kappa_G`` escala tolerancias de Wilkinson en Fases 2 y 3.
-      - ``spectral_closure_residual`` alimenta la bandera SPECTRAL_CLOSURE_SOUND.
-      - ``betti_0_R`` se hereda como ``lossless_subspace_dimension`` en Fase 3.
 
-    Atributos
+def diag_spd(eigenvalues: Sequence[float]) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Construye el par exacto (G, G⁻¹) con G = diag(λᵢ) ≻ 0.
+
+    Parameters
     ----------
-    G_mu_nu, G_inv, R_cost : NDArray[np.float64], shape (n, n)
-        Matrices constitutivas validadas (copias defensivas).
-    L_G : NDArray[np.float64], shape (n, n)
-        Factor de Cholesky (posiblemente regularizado): G_μν ≈ L_G L_Gᵀ.
-    R_sqrt : NDArray[np.float64], shape (n, n)
-        Raíz cuadrada espectral simétrica de R_cost (verificada por cierre).
-    kappa_G, kappa_G_inv : float
-        Números de condición espectral. Identidad exacta κ(A⁻¹)=κ(A):
-        divergencia relativa > 10⁻³ ⇒ diagnóstico temprano de inconsistencia.
-    epsilon_G : float
-        Jitter de Tikhonov aplicado (0.0 si no fue necesario).
-    rank_R : int
-        Rango numérico de R_cost.
-    spectral_gap_R : float
-        Brecha espectral λ₂ − λ₁ de R_cost (teoría espectral de grafos).
-    betti_0_R : int
-        dim ker(R_cost) = n − rank_R (subespacio de disipación nula).
-    inverse_residual : float
-        max(‖G G⁻¹−I‖_F, ‖G⁻¹ G−I‖_F) / n  (residuo bilateral).
-    spectral_closure_residual : float
-        ‖R_sqrt² − R_cost‖_F / max(‖R‖_F, 1)  (cierre de la raíz).
-    dim : int
-        Dimensión n del espacio de calibre.
+    eigenvalues :
+        Autovalores estrictamente positivos.
+
+    Returns
+    -------
+    G, G_inv : ndarray, ndarray
+        Métricas diagonal SPD e inversa exacta componente a componente.
+
+    Raises
+    ------
+    ValueError
+        Si algún autovalor no es estrictamente positivo.
+
+    Notes
+    -----
+    La construcción diagonal elimina ruido de redondeo en las pruebas de
+    consistencia bilateral G·G⁻¹ = I = G⁻¹·G y en el cómputo de κ₂(G).
     """
-
-    G_mu_nu: NDArray[np.float64]
-    G_inv: NDArray[np.float64]
-    R_cost: NDArray[np.float64]
-    L_G: NDArray[np.float64]
-    R_sqrt: NDArray[np.float64]
-    kappa_G: float
-    kappa_G_inv: float
-    epsilon_G: float
-    rank_R: int
-    spectral_gap_R: float
-    betti_0_R: int
-    inverse_residual: float
-    spectral_closure_residual: float
-    dim: int
+    eigs = np.asarray(eigenvalues, dtype=np.float64).ravel()
+    if eigs.size == 0:
+        raise ValueError("diag_spd requiere al menos un autovalor.")
+    if np.any(eigs <= 0.0):
+        raise ValueError("diag_spd requiere autovalores estrictamente positivos.")
+    G = np.diag(eigs)
+    G_inv = np.diag(1.0 / eigs)
+    return G, G_inv
 
 
-@dataclass(frozen=True, slots=True)
-class ApexStateTensor:
-    r"""
-    Tensor inmutable del estado electrodinámico de la cúspide.
+def diag_psd(eigenvalues: Sequence[float]) -> np.ndarray:
+    """
+    Construye R = diag(μᵢ) ⪰ 0 con autovalores no negativos.
 
-    Producido por la **Fase 2** (Síntesis Electrodinámica).
-
-    Contrato de interfaz Fase 2 → Fase 3
-    ------------------------------------
-    ``gauge_injection_vector`` (= s_val) es el dato primario consumido por
-    ``Phase3_SheafProjection.export_stalk``.  El resto de campos son
-    diagnósticos de auditoría exportables al orquestador superior.
-
-    Atributos
+    Parameters
     ----------
-    gauge_injection_vector : NDArray[np.float64], shape (n,)
-        s_val = dΦ · exp(−½ Tr(G_μν)).
-    suppression_factor : float
-        exp(−½ Tr(G_μν)) ∈ (0, 1].
-    fermat_refractive_index : float
-        n(σ*) = 1 + tanh(α · σ*).
-    eikonal_norm_sq : float
-        G^{μν} ∂_μ S ∂_ν S.
-    poynting_income, poynting_dissipation, poynting_exergy_flux : float
-        P_in, P_diss = ‖R_sqrt ∇H‖² (≥ 0 por construcción), P_exergia.
-    yang_mills_action : float
-        S_YM = ½ Tr(Fᵀ G F G⁻¹) con F ∈ 𝔰𝔬(n) genuino.
-    curvature_antisymmetry_residual : float
-        ‖F+Fᵀ‖_F / max(‖F‖_F, 1): invariante algebraico F = −Fᵀ.
-    viability_flags : ApexViabilityFlags
-        Retícula de Boole de predicados de viabilidad.
-    is_electrodynamically_viable : bool
-        Equivalente a ``viability_flags.is_order_unit()``.
-    gauge_covariance_residual : Optional[float]
-        |S_YM(A) − S_YM(Q A Qᵀ)| / max(S_YM(A), 1) si se solicitó diagnóstico.
+    eigenvalues :
+        Autovalores ≥ 0.
+
+    Returns
+    -------
+    R : ndarray
+        Matriz diagonal PSD.
+
+    Raises
+    ------
+    ValueError
+        Si algún autovalor es negativo.
+    """
+    eigs = np.asarray(eigenvalues, dtype=np.float64).ravel()
+    if np.any(eigs < 0.0):
+        raise ValueError("diag_psd requiere autovalores no negativos.")
+    return np.diag(eigs)
+
+
+def skew_from_pairs(
+    n: int,
+    pairs: Iterable[Tuple[int, int]],
+    scale: float = 1.0,
+) -> np.ndarray:
+    """
+    Generador elemental del álgebra de Lie 𝔰𝔬(n).
+
+    Para cada par ordenado (i, j) inserta el blade:
+        E_{ij} ↦  scale · (eᵢ ⊗ eⱼ − eⱼ ⊗ eᵢ).
+
+    Parameters
+    ----------
+    n :
+        Dimensión ambiente.
+    pairs :
+        Pares de índices 0-based con i ≠ j.
+    scale :
+        Amplitud del generador.
+
+    Returns
+    -------
+    A : ndarray, shape (n, n)
+        Matriz antisimétrica Aᵀ = −A ∈ 𝔰𝔬(n).
+    """
+    A = np.zeros((n, n), dtype=np.float64)
+    s = float(scale)
+    for i, j in pairs:
+        if i == j:
+            raise ValueError("skew_from_pairs: se requiere i ≠ j.")
+        if not (0 <= i < n and 0 <= j < n):
+            raise ValueError(f"skew_from_pairs: índices ({i},{j}) fuera de rango n={n}.")
+        A[i, j] = s
+        A[j, i] = -s
+    return A
+
+
+def frobenius_asymmetry(M: np.ndarray) -> float:
+    """
+    Residuo relativo de antisimetría: ‖M + Mᵀ‖_F / max(‖M‖_F, 1).
+
+    Es el certificado numérico de pertenencia a 𝔰𝔬(n).
+    """
+    norm_M = float(np.linalg.norm(M, "fro"))
+    return float(np.linalg.norm(M + M.T, "fro")) / max(norm_M, 1.0)
+
+
+def wilkinson_bound(kappa: float, n: int, safety: float = 100.0) -> float:
+    """
+    Cota a priori de Wilkinson/Higham para residuos de primer orden:
+
+        tol ≥ safety · κ · ε_mach · n.
+
+    Se usa como umbral admisible de inverse_residual y hodge_metric_residual.
+    """
+    return max(_ATOL_STD, safety * float(kappa) * EPS * int(n))
+
+
+def valid_synthesis_kwargs(
+    agent: Any,
+    phase_norm_target: float = 1.05,
+    sigma_stress: float = 0.0,
+) -> Dict[str, Any]:
+    """
+    Genera un diccionario de entradas admisibles para
+    ``Phase2.synthesize`` / ``synthesize_apex_field``.
+
+    Estrategia geométrica
+    ---------------------
+    - ``d_Phi = 1⃗``.
+    - ``phase_gradient`` se reescala para satisfacer exactamente
+          ⟨∂S, G⁻¹ ∂S⟩ = phase_norm_target,
+      lo que controla el margen Eikonal con precisión de máquina.
+    - ``E = H = 1⃗`` ⇒ P_in = n (producto punto euclídeo).
+    - ``grad_H = 0⃗`` ⇒ P_diss = 0, P_exergia = n > 0.
+    - ``A₁ = A₂ = 0`` ⇒ F = 0, S_YM = 0, holonomía trivial.
+
+    Parameters
+    ----------
+    agent :
+        Instancia ya construida de KApexElectrodynamicAgent.
+    phase_norm_target :
+        Valor objetivo de ‖∂S‖²_{G⁻¹}. Debe superar el umbral Eikonal.
+    sigma_stress :
+        Esfuerzo de mercado σ* que entra en el índice de refracción de Fermat.
+
+    Returns
+    -------
+    kwargs : dict
+        Argumentos listos para desempaquetar en synthesize_apex_field(**kwargs).
+    """
+    n = int(agent.context.dim)
+
+    base = np.ones(n, dtype=np.float64)
+    norm_sq = float(base @ agent.context.G_inv @ base)
+
+    if norm_sq <= EPS:
+        # Fallback: primer vector de la base canónica si 1⃗ es degenerado.
+        base = np.eye(n, dtype=np.float64)[0]
+        norm_sq = float(base @ agent.context.G_inv @ base)
+
+    scale = math.sqrt(float(phase_norm_target) / max(norm_sq, EPS))
+    phase_gradient = scale * base
+
+    zero_vector = np.zeros(n, dtype=np.float64)
+    zero_matrix = np.zeros((n, n), dtype=np.float64)
+
+    return dict(
+        d_Phi=np.ones(n, dtype=np.float64),
+        phase_gradient=phase_gradient,
+        sigma_stress=float(sigma_stress),
+        E_field=np.ones(n, dtype=np.float64),
+        H_field=np.ones(n, dtype=np.float64),
+        grad_H=zero_vector,
+        A_gauge_1=zero_matrix.copy(),
+        A_gauge_2=zero_matrix.copy(),
+    )
+
+
+def assert_spd(M: np.ndarray, name: str = "M", atol: float = _ATOL_STD) -> np.ndarray:
+    """
+    Certifica que M es simétrica y definida positiva; devuelve sus autovalores.
+    """
+    assert M.ndim == 2 and M.shape[0] == M.shape[1], f"{name} no es cuadrada."
+    assert_allclose(M, M.T, rtol=_RTOL_STD, atol=atol, err_msg=f"{name} no es simétrica.")
+    eigvals = np.linalg.eigvalsh(M)
+    assert np.all(eigvals > atol), (
+        f"{name} no es SPD: λ_min = {eigvals[0]:.3e} (atol={atol:.3e})."
+    )
+    return eigvals
+
+
+def assert_psd(M: np.ndarray, name: str = "M", atol: float = _ATOL_STD) -> np.ndarray:
+    """
+    Certifica que M es simétrica y semidefinida positiva; devuelve autovalores.
+    """
+    assert M.ndim == 2 and M.shape[0] == M.shape[1], f"{name} no es cuadrada."
+    assert_allclose(M, M.T, rtol=_RTOL_STD, atol=atol, err_msg=f"{name} no es simétrica.")
+    eigvals = np.linalg.eigvalsh(M)
+    assert np.all(eigvals >= -atol), (
+        f"{name} no es PSD: λ_min = {eigvals[0]:.3e} (atol={atol:.3e})."
+    )
+    return eigvals
+
+
+# ==============================================================================
+# FIXTURES
+# ==============================================================================
+
+
+@pytest.fixture
+def identity_agent():
+    """
+    Agente canónico sobre el vacío electrodinámico:
+
+        G = G⁻¹ = R_cost = I₃.
+
+    Propiedades espectrales óptimas
+    --------------------------------
+    - κ₂(G) = κ₂(G⁻¹) = 1.
+    - ε_G = 0  (Cholesky sin regularización).
+    - rank(R) = 3, β₀ = 0, gap(R) = 0 (espectro degenerado {1,1,1}).
+    - Residuos bilaterales y de cierre espectral ~ O(ε_mach).
+    """
+    I3 = np.eye(3, dtype=np.float64)
+    return KApexElectrodynamicAgent(
+        G_mu_nu=I3.copy(),
+        G_inv=I3.copy(),
+        R_cost=I3.copy(),
+    )
+
+
+@pytest.fixture
+def diagonal_agent():
+    """
+    Agente diagonal no trivial bien condicionado:
+
+        G = diag(1, 2, 3),  R = diag(0.5, 1.5, 2.5).
+
+    Sirve como testigo de la composición funtorial completa F₁∘F₂∘F₃
+    fuera del vacío isótropo.
+    """
+    G, G_inv = diag_spd([1.0, 2.0, 3.0])
+    R = diag_psd([0.5, 1.5, 2.5])
+    return KApexElectrodynamicAgent(G_mu_nu=G, G_inv=G_inv, R_cost=R)
+
+
+# ##############################################################################
+#
+#  FASE 1 — VALIDACIÓN MÉTRICA, CHOLESKY REGULARIZADO Y CIERRE ESPECTRAL
+#
+#  Dominio del endofuntor:  (G, G⁻¹, R)  ↦  ApexPreparationContext.
+#
+#  Obligaciones algebraicas verificadas en esta fase:
+#    (M1)  dim > 0, cuadratura y compatibilidad dimensional.
+#    (M2)  Simetría Frobenius de G, G⁻¹, R  (‖A−Aᵀ‖_F ≤ tol).
+#    (M3)  G ≻ 0, G⁻¹ ≻ 0  (SPD vía Cholesky / autovalores).
+#    (M4)  κ₂(G) ≤ κ_max, κ₂(G⁻¹) ≤ κ_max.
+#    (M5)  Consistencia bilateral: G·G⁻¹ ≈ I ≈ G⁻¹·G  (MetricInverse).
+#    (M6)  Cholesky regularizado L Lᵀ = G + ε_G I, ε_G ≥ 0 (Tikhonov).
+#    (M7)  R ⪰ 0, R_sqrt = √R (única PSD), R_sqrt² ≈ R  (cierre espectral).
+#    (M8)  rank(R), β₀ = dim ker(R), gap espectral λ_{r+1}−λ_r.
+#    (M9)  Inmutabilidad del DTO y copias defensivas de las matrices.
+#
+#  El ÚLTIMO método de esta fase certifica el contrato funtorial
+#  F₁ → F₂: el contexto emitido es exactamente el consumido por Phase2.
+#  Ese certificado es la precondición formal con la que arranca Fase 2.
+#
+# ##############################################################################
+
+
+class TestPhase1MetricValidation:
+    """
+    Suite de la Fase 1: ``Phase1_MetricValidation``.
+
+    Establece el dominio inicial del endofuntor K_APEX:
+
+        build_context() ──► ApexPreparationContext.
+
+    Cada test es un juicio independiente sobre un invariante (M1)–(M9);
+    el cierre de la clase es el puente funtorial hacia Fase 2.
     """
 
-    gauge_injection_vector: NDArray[np.float64]
-    suppression_factor: float
-    fermat_refractive_index: float
-    eikonal_norm_sq: float
-    poynting_income: float
-    poynting_dissipation: float
-    poynting_exergy_flux: float
-    yang_mills_action: float
-    curvature_antisymmetry_residual: float
-    viability_flags: ApexViabilityFlags
-    is_electrodynamically_viable: bool
-    gauge_covariance_residual: Optional[float]
+    # ------------------------------------------------------------------
+    # (M0) Jerarquía de excepciones — pre-requisito de captura agregada
+    # ------------------------------------------------------------------
+
+    def test_exception_hierarchy_is_rooted(self):
+        """
+        Toda excepción específica del módulo hereda de
+        ``ElectrodynamicApexError``, habilitando captura agregada::
+
+            try:
+                ...
+            except ElectrodynamicApexError:
+                # cualquier fallo del apex
+        """
+        exceptions = (
+            ApexDimensionError,
+            ApexParameterError,
+            ApexSymmetryError,
+            ApexConditionError,
+            MetricInverseError,
+            SpectralClosureError,
+            GaugePotentialError,
+            EikonalRefractionError,
+            FinancialBlackHoleError,
+            HolonomyVetoError,
+            GaugeCovarianceError,
+            SheafMetricError,
+        )
+        for exc in exceptions:
+            assert issubclass(exc, ElectrodynamicApexError), (
+                f"{exc.__name__} no hereda de ElectrodynamicApexError."
+            )
+
+    # ------------------------------------------------------------------
+    # (M1) Dimensiones
+    # ------------------------------------------------------------------
+
+    @pytest.mark.parametrize(
+        "G, G_inv, R",
+        [
+            pytest.param(
+                np.ones((2, 3), dtype=np.float64),
+                np.eye(2, dtype=np.float64),
+                np.eye(2, dtype=np.float64),
+                id="G-non-square",
+            ),
+            pytest.param(
+                np.eye(2, dtype=np.float64),
+                np.eye(3, dtype=np.float64),
+                np.eye(2, dtype=np.float64),
+                id="G_inv-dimension-mismatch",
+            ),
+            pytest.param(
+                np.eye(2, dtype=np.float64),
+                np.eye(2, dtype=np.float64),
+                np.eye(3, dtype=np.float64),
+                id="R_cost-dimension-mismatch",
+            ),
+        ],
+    )
+    def test_dimension_mismatch_raises(self, G, G_inv, R):
+        """
+        (M1a) Matrices no cuadradas o de dimensión mutuamente inconsistente
+        deben lanzar ``ApexDimensionError`` antes de cualquier análisis
+        espectral.
+        """
+        with pytest.raises(ApexDimensionError):
+            KApexElectrodynamicAgent(G, G_inv, R)
+
+    def test_zero_dimension_raises(self):
+        """
+        (M1b) n = 0 está prohibido: el espacio de calibre debe ser un
+        fibrado vectorial de rango positivo.
+        """
+        empty = np.empty((0, 0), dtype=np.float64)
+        with pytest.raises(ApexDimensionError):
+            KApexElectrodynamicAgent(empty, empty, empty)
+
+    # ------------------------------------------------------------------
+    # (M1-ext) Parámetros de control del constructor
+    # ------------------------------------------------------------------
+
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            pytest.param({"kappa_max": 1.0}, id="kappa_max=1"),
+            pytest.param({"kappa_max": 0.0}, id="kappa_max=0"),
+            pytest.param({"kappa_max": -10.0}, id="kappa_max<0"),
+            pytest.param({"eikonal_slack": -0.1}, id="eikonal_slack<0"),
+            pytest.param({"eikonal_slack": 1.0}, id="eikonal_slack=1"),
+            pytest.param({"holonomy_tol_rel": 0.0}, id="holonomy_tol_rel=0"),
+            pytest.param({"holonomy_tol_rel": -1.0e-6}, id="holonomy_tol_rel<0"),
+        ],
+    )
+    def test_invalid_constructor_parameters_raise(self, kwargs):
+        """
+        Parámetros de control fuera del abierto admisible deben lanzar
+        ``ApexParameterError`` *antes* de cualquier validación matricial,
+        garantizando fail-fast del constructor.
+        """
+        I2 = np.eye(2, dtype=np.float64)
+        with pytest.raises(ApexParameterError):
+            KApexElectrodynamicAgent(I2.copy(), I2.copy(), I2.copy(), **kwargs)
+
+    # ------------------------------------------------------------------
+    # (M2) Simetría Frobenius
+    # ------------------------------------------------------------------
+
+    def test_asymmetric_G_raises_symmetry_error(self):
+        """
+        (M2a) G_μν debe ser simétrica. Asimetría macroscópica ⇒
+        ``ApexSymmetryError``.
+        """
+        G = np.eye(2, dtype=np.float64)
+        G[0, 1] = 1.0
+        with pytest.raises(ApexSymmetryError):
+            KApexElectrodynamicAgent(G, np.eye(2), np.eye(2))
+
+    def test_asymmetric_G_inv_raises_symmetry_error(self):
+        """
+        (M2b) G⁻¹ también debe ser simétrica.
+        """
+        G_inv = np.eye(2, dtype=np.float64)
+        G_inv[1, 0] = 2.0
+        with pytest.raises(ApexSymmetryError):
+            KApexElectrodynamicAgent(np.eye(2), G_inv, np.eye(2))
+
+    def test_asymmetric_R_raises_symmetry_error(self):
+        """
+        (M2c) R_cost debe ser simétrica *antes* de validar PSD.
+        """
+        R = np.eye(2, dtype=np.float64)
+        R[0, 1] = 3.0
+        with pytest.raises(ApexSymmetryError):
+            KApexElectrodynamicAgent(np.eye(2), np.eye(2), R)
+
+    # ------------------------------------------------------------------
+    # (M3) SPD de G y G⁻¹
+    # ------------------------------------------------------------------
+
+    def test_G_not_spd_raises(self):
+        """
+        (M3a) Autovalor negativo en G_μν ⇒ no SPD ⇒
+        ``ElectrodynamicApexError``.
+        """
+        G = np.diag([1.0, -1.0]).astype(np.float64)
+        with pytest.raises(ElectrodynamicApexError):
+            KApexElectrodynamicAgent(G, np.eye(2), np.eye(2))
+
+    def test_G_zero_eigenvalue_raises(self):
+        """
+        (M3b) Autovalor nulo (o numéricamente nulo) en G_μν ⇒ singular ⇒
+        no SPD.
+        """
+        G = np.diag([1.0, 0.0]).astype(np.float64)
+        with pytest.raises(ElectrodynamicApexError):
+            KApexElectrodynamicAgent(G, np.eye(2), np.eye(2))
+
+    def test_G_inv_not_spd_raises(self):
+        """
+        (M3c) G⁻¹ debe ser SPD. Matriz definida negativa ⇒ error.
+        """
+        with pytest.raises(ElectrodynamicApexError):
+            KApexElectrodynamicAgent(np.eye(2), -np.eye(2), np.eye(2))
+
+    # ------------------------------------------------------------------
+    # (M4) Condición espectral κ
+    # ------------------------------------------------------------------
+
+    def test_G_condition_number_above_threshold_raises(self):
+        """
+        (M4a) κ₂(G) > κ_max ⇒ ``ApexConditionError``.
+        """
+        G, G_inv = diag_spd([1.0, 1.0e6])
+        with pytest.raises(ApexConditionError):
+            KApexElectrodynamicAgent(G, G_inv, np.eye(2), kappa_max=1.0e5)
+
+    def test_G_inv_condition_number_above_threshold_raises(self):
+        """
+        (M4b) El control de condición aplica simétricamente a G⁻¹.
+        """
+        G_inv = np.diag([1.0, 1.0e6]).astype(np.float64)
+        with pytest.raises(ApexConditionError):
+            KApexElectrodynamicAgent(np.eye(2), G_inv, np.eye(2), kappa_max=1.0e5)
+
+    # ------------------------------------------------------------------
+    # (M5) Consistencia métrica bilateral
+    # ------------------------------------------------------------------
+
+    def test_metric_inverse_inconsistency_raises(self):
+        """
+        (M5) Si G⁻¹ no es la inversa bilateral de G dentro de la cota de
+        Wilkinson, debe lanzarse ``MetricInverseError``.
+        """
+        G = np.eye(2, dtype=np.float64)
+        G_inv = 2.0 * np.eye(2, dtype=np.float64)
+        with pytest.raises(MetricInverseError):
+            KApexElectrodynamicAgent(G, G_inv, np.eye(2))
+
+    # ------------------------------------------------------------------
+    # (M6) Cholesky regularizado con Tikhonov adaptativo
+    # ------------------------------------------------------------------
+
+    def test_cholesky_regularization_retry_mechanism(self, monkeypatch):
+        """
+        (M6) Si ``la.cholesky`` falla una vez, el mecanismo de Tikhonov
+        adaptativo debe reintentar con τ = ε_G > 0 y satisfacer
+
+            L Lᵀ = G + ε_G I.
+
+        Se fuerza el primer fallo mediante monkeypatch.
+        """
+        original_cholesky = mod.la.cholesky
+        LinAlgError = getattr(mod.la, "LinAlgError", np.linalg.LinAlgError)
+        state = {"failed": False}
+
+        def flaky_cholesky(*args, **kwargs):
+            if not state["failed"]:
+                state["failed"] = True
+                raise LinAlgError("Fallo forzado para probar regularización Tikhonov.")
+            return original_cholesky(*args, **kwargs)
+
+        monkeypatch.setattr(mod.la, "cholesky", flaky_cholesky)
+
+        I3 = np.eye(3, dtype=np.float64)
+        agent = KApexElectrodynamicAgent(I3.copy(), I3.copy(), I3.copy())
+
+        assert agent.context.epsilon_G > 0.0, "ε_G debe ser estrictamente positivo tras retry."
+
+        reconstructed = agent.context.L_G @ agent.context.L_G.T
+        expected = I3 + agent.context.epsilon_G * I3
+        assert_allclose(reconstructed, expected, rtol=_RTOL_STD, atol=_ATOL_STD)
+
+    # ------------------------------------------------------------------
+    # (M7) PSD de R_cost y cierre espectral R_sqrt² ≈ R
+    # ------------------------------------------------------------------
+
+    def test_R_cost_not_psd_raises(self):
+        """
+        (M7a) Autovalor negativo macroscópico en R_cost ⇒
+        ``ApexSymmetryError`` (conforme a la implementación de Fase 1).
+        """
+        R = np.diag([1.0, -1.0]).astype(np.float64)
+        with pytest.raises(ApexSymmetryError):
+            KApexElectrodynamicAgent(np.eye(2), np.eye(2), R)
+
+    def test_R_cost_zero_matrix_is_allowed(self):
+        """
+        (M7b) R_cost = 0 es PSD válido (disipación nula):
+        rank = 0, β₀ = n, gap = 0, R_sqrt = 0, cierre espectral exacto.
+        """
+        n = 3
+        G = np.eye(n, dtype=np.float64)
+        agent = KApexElectrodynamicAgent(G, G.copy(), np.zeros((n, n)))
+        ctx = agent.context
+
+        assert ctx.rank_R == 0
+        assert ctx.betti_0_R == n
+        assert ctx.spectral_gap_R == pytest.approx(0.0)
+        assert_allclose(ctx.R_sqrt, np.zeros((n, n)), rtol=0.0, atol=0.0)
+        assert ctx.spectral_closure_residual <= _ATOL_STD
+
+    def test_R_cost_nullspace_and_spectral_gap(self):
+        """
+        (M7c) Para R = diag(0, 1, 2):
+            rank(R) = 2,  β₀ = 1,  gap = λ₂ − λ₁ = 1 − 0 = 1.
+        """
+        R = diag_psd([0.0, 1.0, 2.0])
+        agent = KApexElectrodynamicAgent(np.eye(3), np.eye(3), R)
+        ctx = agent.context
+
+        assert ctx.rank_R == 2
+        assert ctx.betti_0_R == 1
+        assert ctx.spectral_gap_R == pytest.approx(1.0)
+        assert ctx.spectral_closure_residual <= _ATOL_STD
+
+        # Cierre espectral fino: ‖R_sqrt @ R_sqrt − R‖_F ≤ tol.
+        closure = ctx.R_sqrt @ ctx.R_sqrt
+        assert_allclose(closure, ctx.R_cost, rtol=_RTOL_STD, atol=_ATOL_STD)
+
+    def test_spectral_closure_guard_can_be_forced(self, monkeypatch):
+        """
+        (M7d) Si se colapsa la cota de Wilkinson (``_WILKINSON_SAFETY < 0``),
+        el guard de cierre espectral debe fallar incluso para R = I,
+        certificando que ``SpectralClosureError`` está cableado.
+        """
+        monkeypatch.setattr(mod, "_WILKINSON_SAFETY", -1.0)
+        I2 = np.eye(2, dtype=np.float64)
+        with pytest.raises(SpectralClosureError):
+            KApexElectrodynamicAgent(I2.copy(), I2.copy(), I2.copy())
+
+    # ------------------------------------------------------------------
+    # (M8) Contexto canónico sobre el vacío I₃
+    # ------------------------------------------------------------------
+
+    def test_build_context_identity_is_canonical(self, identity_agent):
+        """
+        (M8) Para G = G⁻¹ = R = I₃ el contexto es canónico:
+            κ = 1, ε_G = 0, rank(R) = 3, β₀ = 0,
+            residuos bilaterales y de cierre ~ O(ε_mach),
+            L Lᵀ = I, R_sqrt² = R.
+        """
+        ctx = identity_agent.context
+        I3 = np.eye(3, dtype=np.float64)
+
+        assert isinstance(ctx, ApexPreparationContext)
+        assert ctx.dim == 3
+        assert ctx.kappa_G == pytest.approx(1.0)
+        assert ctx.kappa_G_inv == pytest.approx(1.0)
+        assert ctx.epsilon_G == pytest.approx(0.0)
+        assert ctx.rank_R == 3
+        assert ctx.betti_0_R == 0
+
+        # Residuo bilateral acotado por Wilkinson.
+        assert ctx.inverse_residual <= wilkinson_bound(ctx.kappa_G, ctx.dim, safety=1.0)
+        assert ctx.spectral_closure_residual <= _ATOL_STD
+
+        assert_allclose(ctx.G_mu_nu, I3, rtol=0.0, atol=0.0)
+        assert_allclose(ctx.G_inv, I3, rtol=0.0, atol=0.0)
+        assert_allclose(ctx.R_cost, I3, rtol=0.0, atol=0.0)
+        assert_allclose(ctx.L_G @ ctx.L_G.T, I3, rtol=_RTOL_STD, atol=_ATOL_STD)
+        assert_allclose(ctx.R_sqrt @ ctx.R_sqrt, ctx.R_cost, rtol=_RTOL_STD, atol=_ATOL_STD)
+
+        # Certificados SPD/PSD explícitos.
+        assert_spd(ctx.G_mu_nu, "G_mu_nu")
+        assert_spd(ctx.G_inv, "G_inv")
+        assert_psd(ctx.R_cost, "R_cost")
+
+    # ------------------------------------------------------------------
+    # (M9) Inmutabilidad y copias defensivas
+    # ------------------------------------------------------------------
+
+    def test_context_is_defensive_copy_of_inputs(self):
+        """
+        (M9a) El DTO de Fase 1 almacena copias defensivas. Mutar la matriz
+        original *después* de ``build_context`` no contamina el contexto.
+        """
+        G = np.eye(2, dtype=np.float64)
+        agent = KApexElectrodynamicAgent(G.copy(), G.copy(), G.copy())
+        G[0, 0] = 99.0
+
+        assert agent.context.G_mu_nu[0, 0] == pytest.approx(1.0)
+        assert agent.context.G_inv[0, 0] == pytest.approx(1.0)
+        assert agent.context.R_cost[0, 0] == pytest.approx(1.0)
+
+    def test_context_dto_is_frozen(self, identity_agent):
+        """
+        (M9b) ``ApexPreparationContext`` es un frozen dataclass:
+        cualquier escritura lanza ``FrozenInstanceError``.
+        """
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            identity_agent.context.dim = 99  # type: ignore[misc]
+
+    # ==================================================================
+    # CIERRE FUNTORIAL F₁ → F₂
+    # ------------------------------------------------------------------
+    # Este es el ÚLTIMO método de Fase 1.  Su veredicto positivo es la
+    # precondición algebraica con la que arranca Fase 2: el contexto
+    # emitido por Phase1 es *exactamente* el objeto que Phase2 consume,
+    # y Phase3 aún no existe (lazy).
+    # ==================================================================
+
+    def test_phase1_output_is_formal_precondition_of_phase2(self, identity_agent):
+        """
+        Contrato funtorial F₁ → F₂
+        --------------------------
+        1. ``phase2._ctx is agent.context``  (identidad de objeto, no copia).
+        2. Los hiperparámetros de control (eikonal_slack, holonomy_tol_rel,
+           kappa_max) se propagan sin distorsión a Phase2.
+        3. ``phase3 is None``: la proyección en haces es lazy y no se
+           materializa hasta la primera exportación de stalk.
+
+        Este invariante es la *definición formal final* de Fase 1 y el
+        *axioma de arranque* de Fase 2.
+        """
+        agent = identity_agent
+
+        # (1) Identidad referencial del contexto.
+        assert agent.phase2._ctx is agent.context, (
+            "Phase2 debe consumir el mismo ApexPreparationContext emitido por Phase1."
+        )
+
+        # (2) Propagación de hiperparámetros.
+        assert agent.phase2._eikonal_slack == agent.eikonal_slack
+        assert agent.phase2._holonomy_tol_rel == agent.holonomy_tol_rel
+        assert agent.phase2._kappa_max == agent.kappa_max
+
+        # (3) Lazy: Phase3 no existe todavía.
+        assert agent.phase3 is None, (
+            "Phase3 debe permanecer sin instanciar hasta export_sheaf_stalk."
+        )
+
+        # (4) El contexto porta dimensión positiva — semilla de todo tensor
+        #     de Fase 2 (d_Phi, phase_gradient, E, H, A_gauge ∈ ℝⁿ / Mₙ).
+        assert agent.context.dim >= 1
+        assert agent.phase2._ctx.dim == agent.context.dim
 
 
-@dataclass(frozen=True, slots=True)
-class SheafStalkApex:
-    r"""
-    Fibrado celular exportado para el cálculo global del Laplaciano de Haz.
+# ##############################################################################
+#
+#  FASE 2 — SÍNTESIS ELECTRODINÁMICA
+#
+#  Continuación formal de Fase 1:
+#      ApexPreparationContext  ↦  ApexStateTensor.
+#
+#  El primer test de esta clase REAFIRMA el contrato F₁→F₂ certificado
+#  por el último método de Fase 1, y a partir de ahí despliega:
+#
+#    (E1)  Inyección de potencial de gauge  s = dΦ · exp(−½ Tr G).
+#    (E2)  Eikonal de absorción de mercado   ‖∂S‖²_{G⁻¹} ≥ n(σ*)² (1−slack).
+#    (E3)  Balance exergético de Poynting    P_ex = P_in − P_diss ≥ 0.
+#    (E4)  Proyector canónico Π_so: Mₙ → 𝔰𝔬(n), idempotente y antisimétrico.
+#    (E5)  Cierre de Lie: [B,C] ∈ 𝔰𝔬(n) si B,C ∈ 𝔰𝔬(n).
+#    (E6)  Curvatura discreta F antisimétrica; acción YM S_YM = ½‖F‖²_G ≥ 0.
+#    (E7)  Holonomía trivial / veto por curvatura (HolonomyVetoError).
+#    (E8)  Covarianza de gauge bajo isometrías Qᵀ G Q = G.
+#    (E9)  Retícula booleana de viabilidad (álgebra de Boole finita).
+#    (E10) synthesize() camino feliz y banderas blandas.
+#
+#  El ÚLTIMO método de esta fase certifica el contrato F₂ → F₃:
+#  gauge_injection_vector es la única entrada formal de Phase3.
+#
+# ##############################################################################
 
-    Producido por la **Fase 3** (Proyección en Haces) — salida terminal
-    del endofuntor K_APEX.
 
-    Construcción (fibra métrica + fibra disipativa)
-    -----------------------------------------------
-    \[
-      \delta_{\mathrm{metric}}
-        = G_{\mu\nu}^{-1/2_{\mathrm{Ch}}}
-        := L_G^{-\top}
-        \in \mathbb{R}^{n\times n},
-      \qquad
-      \delta_{\mathrm{metric}}^\top G_{\mu\nu}\,
-      \delta_{\mathrm{metric}} = I_n
-    \]
-    \[
-      \delta_{\mathrm{diss}}
-        = R_{\mathrm{sqrt}}\,\delta_{\mathrm{metric}}
-        \in \mathbb{R}^{n\times n}
-    \]
-    \[
-      \delta_{\mathrm{APEX}}
-        = \begin{bmatrix}
-            \delta_{\mathrm{metric}} \\
-            \delta_{\mathrm{diss}}
-          \end{bmatrix}
-        \in \mathbb{R}^{2n\times n}
-    \]
-    \[
-      \Delta_{\mathrm{APEX}}
-        = \delta_{\mathrm{APEX}}^\top\delta_{\mathrm{APEX}}
-        = I_n + \delta_{\mathrm{diss}}^\top\delta_{\mathrm{diss}}
-        \succ 0
-    \]
+class TestPhase2ElectrodynamicSynthesis:
+    """
+    Suite de la Fase 2: ``Phase2_ElectrodynamicSynthesis``.
 
-    Paridad estructural con el Laplaciano de Hodge local
-    ∇²H + R_cost de ``KBaseThermodynamicAgent.Phase3_SheafProjection``.
+    Continuación formal de ``TestPhase1MetricValidation``:
+    el contexto validado en F₁ es el dominio de todos los operadores
+    electrodinámicos auditados aquí.
     """
 
-    delta_apex: NDArray[np.float64]
-    delta_metric: NDArray[np.float64]
-    delta_dissipative: NDArray[np.float64]
-    hodge_laplacian: NDArray[np.float64]
-    hodge_metric_residual: float
-    hodge_spectral_gap: float
-    hodge_condition_number: float
-    lossless_subspace_dimension: int
-    source_injection: NDArray[np.float64]
-    projected_source_metric: NDArray[np.float64]
-    projected_source_dissipative: NDArray[np.float64]
-    rank_delta: int
+    # ==================================================================
+    # APERTURA FUNTORIAL F₁ → F₂
+    # ------------------------------------------------------------------
+    # Reafirmación del invariante final de Fase 1.  Si este test falla,
+    # el resto de la suite de Fase 2 carece de fundamento.
+    # ==================================================================
 
-
-# =============================================================================
-# SECCIÓN 3 — ORQUESTADOR: KApexElectrodynamicAgent
-#             Tres fases anidadas de rigor creciente (contrato funtorial)
-# =============================================================================
-
-
-class KApexElectrodynamicAgent(Morphism):
-    r"""
-    Orquestador Funtorial del Ápice Estratégico K_{APEX}.
-
-    Garantiza la invarianza de Gauge y audita el bucle de holonomía global
-    mediante tres clases anidadas que operan en cascada estricta:
-
-    .. code-block:: text
-
-        Phase1_MetricValidation
-            │  build_context()  ──►  ApexPreparationContext
-            ▼
-        Phase2_ElectrodynamicSynthesis
-            │  synthesize(...)  ──►  ApexStateTensor
-            ▼
-        Phase3_SheafProjection
-            │  export_stalk(s_val)  ──►  SheafStalkApex
-            ▼
-        (salida pública del ecosistema)
-
-    Cada fase es un morfismo; la composición
-    ``export_stalk ∘ synthesize ∘ build_context`` es el endofuntor K_APEX.
-
-    Parámetros de Construcción
-    --------------------------
-    G_mu_nu, G_inv, R_cost : NDArray[np.float64], shape (n, n)
-        Matrices constitutivas (condiciones formales en Fase 1).
-    kappa_max : float, default 1e10
-        Umbral de κ(G_μν). Debe ser > 1.
-    eikonal_slack : float, default 0.1
-        Tolerancia relativa de la ecuación Eikonal, en [0, 1).
-    holonomy_tol_rel : float, default 1e-6
-        Tolerancia relativa para S_YM. Debe ser > 0.
-    """
-
-    FRIENDLY_NAME: str = "Director de Retorno y Expansión de Mercado"
-
-    def __init__(
-        self,
-        G_mu_nu: NDArray[np.float64],
-        G_inv: NDArray[np.float64],
-        R_cost: NDArray[np.float64],
-        kappa_max: float = 1.0e10,
-        eikonal_slack: float = 0.1,
-        holonomy_tol_rel: float = 1.0e-6,
-    ) -> None:
-        r"""
-        Inicializa las matrices constitutivas y ejecuta la Fase 1 de inmediato.
-
-        Lanza
-        -----
-        ApexParameterError
-            Si kappa_max ≤ 1, eikonal_slack ∉ [0,1) u holonomy_tol_rel ≤ 0.
-        ApexDimensionError, ApexSymmetryError, ApexConditionError,
-        MetricInverseError, SpectralClosureError
-            Propagadas desde la Fase 1 si alguna propiedad es violada.
+    def test_phase2_consumes_phase1_context(self, identity_agent):
         """
-        if kappa_max <= 1.0:
-            raise ApexParameterError(
-                f"kappa_max debe ser > 1; se obtuvo {kappa_max}."
-            )
-        if not (0.0 <= eikonal_slack < 1.0):
-            raise ApexParameterError(
-                f"eikonal_slack debe estar en [0,1); se obtuvo {eikonal_slack}."
-            )
-        if holonomy_tol_rel <= 0.0:
-            raise ApexParameterError(
-                f"holonomy_tol_rel debe ser > 0; se obtuvo {holonomy_tol_rel}."
-            )
-
-        self.kappa_max: float = float(kappa_max)
-        self.eikonal_slack: float = float(eikonal_slack)
-        self.holonomy_tol_rel: float = float(holonomy_tol_rel)
-
-        # ------------------------------------------------------------------
-        # Fase 1: Validación Métrica y de Calibre (inmediata, eager)
-        # ------------------------------------------------------------------
-        self.phase1: KApexElectrodynamicAgent.Phase1_MetricValidation = (
-            KApexElectrodynamicAgent.Phase1_MetricValidation(
-                G_mu_nu=G_mu_nu,
-                G_inv=G_inv,
-                R_cost=R_cost,
-                kappa_max=self.kappa_max,
-            )
-        )
-        self.context: ApexPreparationContext = self.phase1.build_context()
-
-        # ------------------------------------------------------------------
-        # Fase 2: Síntesis Electrodinámica
-        #         (continuación formal de build_context → ApexPreparationContext)
-        # ------------------------------------------------------------------
-        self.phase2: KApexElectrodynamicAgent.Phase2_ElectrodynamicSynthesis = (
-            KApexElectrodynamicAgent.Phase2_ElectrodynamicSynthesis(
-                context=self.context,
-                eikonal_slack=self.eikonal_slack,
-                holonomy_tol_rel=self.holonomy_tol_rel,
-                kappa_max=self.kappa_max,
-            )
-        )
-
-        # ------------------------------------------------------------------
-        # Fase 3: instanciación perezosa (lazy) en export_sheaf_stalk
-        # ------------------------------------------------------------------
-        self.phase3: Optional[
-            KApexElectrodynamicAgent.Phase3_SheafProjection
-        ] = None
-
-        logger.info(
-            "[KApexElectrodynamicAgent] v7 inicializado: dim=%d, κ(G)=%.3e, "
-            "rank(R)=%d, betti_0(R)=%d, inv_residual=%.3e, "
-            "spectral_closure=%.3e.",
-            self.context.dim,
-            self.context.kappa_G,
-            self.context.rank_R,
-            self.context.betti_0_R,
-            self.context.inverse_residual,
-            self.context.spectral_closure_residual,
-        )
-
-    # ======================================================================
-    # FASE 1 — VALIDACIÓN MÉTRICA, CHOLESKY REGULARIZADO Y DIAGNÓSTICO
-    #          ESPECTRAL (con cierre de raíz y consistencia bilateral)
-    # ======================================================================
-
-    class Phase1_MetricValidation:
-        r"""
-        **Fase 1 – Validación Métrica y de Calibre.**
-
-        Responsabilidades, en orden estricto de ejecución
-        -------------------------------------------------
-        a) Verificar dimensiones y cuadratura de G_μν, G_inv, R_cost.
-        b) Verificar simetría de G_μν, G_inv y R_cost (Frobenius relativo).
-        c) Verificar SPD de G_μν y calcular κ(G_μν) vía extremos espectrales
-           (``eigh(subset_by_index=...)``) — O(n²) por extremo, no O(n³).
-        d) Factorizar G_μν por Cholesky **regularizado** (Tikhonov adaptativo).
-        e) Verificar SPD de G_inv y calcular κ(G_inv); cross-check con κ(G)
-           por la identidad exacta κ(A⁻¹) = κ(A).
-        f) Verificar consistencia métrica **bilateral**
-           G·G_inv ≈ I y G_inv·G ≈ I, con tolerancia de Wilkinson
-           escalada por el κ(G_μν) **real** ya computado.
-        g) Verificar PSD de R_cost, raíz espectral, brecha espectral, β₀
-           y **cierre espectral** R_sqrt² ≈ R_cost.
-        h) Empaquetar en ``ApexPreparationContext`` (terminal de Fase 1 =
-           precondición de Fase 2).
+        Axioma de arranque F₂ (eco del cierre de F₁)
+        --------------------------------------------
+        Phase2 opera *exactamente* sobre el ``ApexPreparationContext``
+        producido por Phase1: misma referencia, misma dimensión.
         """
+        assert identity_agent.phase2._ctx is identity_agent.context
+        assert identity_agent.phase2._ctx.dim == 3
+        assert isinstance(identity_agent.phase2._ctx, ApexPreparationContext)
 
-        _EPS: float = _MACHINE_EPS
+    # ------------------------------------------------------------------
+    # (E1) Inyección de potencial de gauge
+    # ------------------------------------------------------------------
 
-        def __init__(
-            self,
-            G_mu_nu: NDArray[np.float64],
-            G_inv: NDArray[np.float64],
-            R_cost: NDArray[np.float64],
-            kappa_max: float = 1.0e10,
-        ) -> None:
-            r"""Almacena referencias sin copiar; las copias ocurren en ``build_context``."""
-            self._G: NDArray[np.float64] = np.asarray(G_mu_nu, dtype=np.float64)
-            self._G_inv: NDArray[np.float64] = np.asarray(G_inv, dtype=np.float64)
-            self._R: NDArray[np.float64] = np.asarray(R_cost, dtype=np.float64)
-            self._kappa_max: float = float(kappa_max)
-
-        # ------------------------------------------------------------------
-        # Métodos privados de validación (orden lógico de ejecución)
-        # ------------------------------------------------------------------
-
-        def _check_dimensions(self) -> int:
-            r"""
-            Verifica que G_μν, G_inv y R_cost son cuadradas y de la misma
-            dimensión n.
-
-            Retorna
-            -------
-            int
-                Dimensión n del espacio de calibre.
-
-            Lanza
-            -----
-            ApexDimensionError
-            """
-            for mat, name in (
-                (self._G, "G_mu_nu"),
-                (self._G_inv, "G_inv"),
-                (self._R, "R_cost"),
-            ):
-                if mat.ndim != 2 or mat.shape[0] != mat.shape[1]:
-                    raise ApexDimensionError(
-                        f"'{name}' debe ser cuadrada 2D; se obtuvo shape={mat.shape}."
-                    )
-            n: int = int(self._G.shape[0])
-            if self._G_inv.shape[0] != n:
-                raise ApexDimensionError(
-                    f"G_inv debe tener shape ({n},{n}) coherente con G_μν; "
-                    f"se obtuvo {self._G_inv.shape}."
-                )
-            if self._R.shape[0] != n:
-                raise ApexDimensionError(
-                    f"R_cost debe tener shape ({n},{n}) coherente con G_μν; "
-                    f"se obtuvo {self._R.shape}."
-                )
-            if n == 0:
-                raise ApexDimensionError("La dimensión del espacio de calibre no puede ser 0.")
-            logger.debug("[Fase1] Dimensiones verificadas: n=%d.", n)
-            return n
-
-        def _validate_symmetry(
-            self, A: NDArray[np.float64], name: str
-        ) -> None:
-            r"""
-            Verifica A = Aᵀ con tolerancia
-            tol = ε_mach · max(‖A‖_F, 1).
-
-            Lanza
-            -----
-            ApexSymmetryError
-            """
-            norm_A: float = float(la.norm(A, "fro"))
-            tol: float = self._EPS * max(norm_A, 1.0)
-            residual: float = float(la.norm(A - A.T, "fro"))
-            if residual > tol:
-                raise ApexSymmetryError(
-                    f"La matriz '{name}' no es simétrica. "
-                    f"‖A−Aᵀ‖_F={residual:.6e}, tol={tol:.6e}, "
-                    f"asimetría relativa={residual / max(norm_A, 1e-300):.6e}."
-                )
-            logger.debug(
-                "[Fase1] Simetría de '%s': residual=%.3e, tol=%.3e.",
-                name, residual, tol,
-            )
-
-        def _validate_spd(
-            self, A: NDArray[np.float64], name: str
-        ) -> Tuple[float, float, float]:
-            r"""
-            Verifica SPD de A y calcula κ(A) = λ_max / λ_min explotando la
-            simetría vía extremos espectrales eficientes
-            (``eigh(subset_by_index=...)``), evitando diagonalización
-            completa O(n³) cuando sólo se requieren los extremos.
-
-            Retorna
-            -------
-            Tuple[float, float, float]
-                (kappa, lambda_min, lambda_max).
-
-            Lanza
-            -----
-            ElectrodynamicApexError
-                Si A no es SPD (λ_min ≤ tol_pd).
-            ApexConditionError
-                Si κ(A) > kappa_max.
-            """
-            A_sym: NDArray[np.float64] = 0.5 * (A + A.T)
-            n: int = int(A_sym.shape[0])
-            if n == 1:
-                lambda_min = lambda_max = float(A_sym[0, 0])
-            else:
-                lambda_min = float(
-                    la.eigh(
-                        A_sym, subset_by_index=[0, 0], eigvals_only=True
-                    )[0]
-                )
-                lambda_max = float(
-                    la.eigh(
-                        A_sym, subset_by_index=[n - 1, n - 1], eigvals_only=True
-                    )[0]
-                )
-
-            tol_pd: float = self._EPS * max(abs(lambda_max), 1.0)
-            if lambda_min <= tol_pd:
-                raise ElectrodynamicApexError(
-                    f"'{name}' no es Definida Positiva (SPD). "
-                    f"λ_min={lambda_min:.6e} ≤ tol_pd={tol_pd:.6e}. "
-                    f"λ_max={lambda_max:.6e}."
-                )
-
-            kappa: float = lambda_max / lambda_min
-            if kappa > self._kappa_max:
-                raise ApexConditionError(
-                    f"'{name}' está numéricamente mal condicionada: "
-                    f"κ={kappa:.6e} > κ_max={self._kappa_max:.6e}. "
-                    f"λ_min={lambda_min:.6e}, λ_max={lambda_max:.6e}."
-                )
-            logger.debug(
-                "[Fase1] SPD '%s': κ=%.3e, λ_min=%.3e, λ_max=%.3e.",
-                name, kappa, lambda_min, lambda_max,
-            )
-            return kappa, lambda_min, lambda_max
-
-        def _cholesky_regularized(
-            self,
-            A: NDArray[np.float64],
-            name: str,
-            max_attempts: int = 6,
-        ) -> Tuple[NDArray[np.float64], float]:
-            r"""
-            Cholesky A = L Lᵀ con regularización de Tikhonov adaptativa:
-
-            .. math::
-
-                A_\tau = A + \tau I,
-                \quad
-                \tau_0 = \varepsilon_{\mathrm{mach}}\cdot\mathrm{tr}(A)/n,
-                \quad
-                \tau_{k+1} = 10\,\tau_k.
-
-            Retorna
-            -------
-            Tuple[NDArray[np.float64], float]
-                (L, tau_final).  tau_final = 0.0 si no se regularizó.
-
-            Lanza
-            -----
-            ElectrodynamicApexError
-                Si tras ``max_attempts`` reintentos la factorización falla.
-            """
-            A_sym: NDArray[np.float64] = 0.5 * (A + A.T)
-            n: int = int(A_sym.shape[0])
-            trace_scale: float = float(np.trace(A_sym)) / max(n, 1)
-            tau: float = 0.0
-            I_n: NDArray[np.float64] = np.eye(n, dtype=np.float64)
-
-            for attempt in range(max_attempts + 1):
-                try:
-                    L: NDArray[np.float64] = la.cholesky(
-                        A_sym + tau * I_n, lower=True
-                    )
-                    if attempt > 0:
-                        logger.warning(
-                            "[Fase1] Regularización de Tikhonov en '%s': "
-                            "τ=%.3e tras %d intento(s).",
-                            name, tau, attempt,
-                        )
-                    return L, tau
-                except la.LinAlgError:
-                    tau = (
-                        self._EPS * max(trace_scale, 1.0)
-                        if tau == 0.0
-                        else tau * 10.0
-                    )
-
-            raise ElectrodynamicApexError(
-                f"Fallo persistente de Cholesky en '{name}' tras "
-                f"{max_attempts} reintentos (τ_final={tau:.3e}). "
-                f"Indica degeneración estructural."
-            )
-
-        def _validate_inverse_consistency_bilateral(
-            self, kappa_G: float, n: int
-        ) -> float:
-            r"""
-            Verifica G_inv = G_μν⁻¹ de forma **bilateral**:
-
-            .. math::
-
-                r_+ = \|G\,G^{-1}-I\|_F / n,
-                \qquad
-                r_- = \|G^{-1}\,G-I\|_F / n,
-                \qquad
-                r = \max(r_+, r_-).
-
-            Tolerancia (análisis de error hacia atrás de Wilkinson):
-
-            .. math::
-
-                \mathrm{tol}_{inv}
-                  = \kappa(G_{\mu\nu})\cdot\varepsilon_{\mathrm{mach}}\cdot n.
-
-            Retorna
-            -------
-            float
-                Residuo bilateral normalizado r.
-
-            Lanza
-            -----
-            MetricInverseError
-            """
-            I_n: NDArray[np.float64] = np.eye(n, dtype=np.float64)
-            r_plus: float = float(
-                la.norm(self._G @ self._G_inv - I_n, "fro")
-            ) / n
-            r_minus: float = float(
-                la.norm(self._G_inv @ self._G - I_n, "fro")
-            ) / n
-            residual: float = max(r_plus, r_minus)
-            tol_inv: float = kappa_G * self._EPS * n
-
-            if residual > tol_inv:
-                raise MetricInverseError(
-                    f"G_inv no es la inversa bilateral de G_μν. "
-                    f"r₊=‖G G⁻¹−I‖_F/n={r_plus:.6e}, "
-                    f"r₋=‖G⁻¹ G−I‖_F/n={r_minus:.6e}, "
-                    f"r=max={residual:.6e} > tol_inv={tol_inv:.6e} "
-                    f"(κ(G)={kappa_G:.3e}). Inconsistencia métrica."
-                )
-            logger.debug(
-                "[Fase1] Consistencia métrica bilateral: "
-                "r₊=%.3e, r₋=%.3e, tol=%.3e.",
-                r_plus, r_minus, tol_inv,
-            )
-            return residual
-
-        def _validate_psd_and_spectral_diagnostics(
-            self, R: NDArray[np.float64], name: str
-        ) -> Tuple[NDArray[np.float64], int, float, float]:
-            r"""
-            Verifica R ⪰ 0, calcula raíz espectral simétrica R_sqrt,
-            rango numérico, brecha espectral λ₂−λ₁ y **cierre espectral**
-
-            .. math::
-
-                r_{\mathrm{cl}}
-                  = \frac{\|R_{\mathrm{sqrt}}^2 - R\|_F}
-                         {\max(\|R\|_F, 1)}.
-
-            Retorna
-            -------
-            Tuple[NDArray[np.float64], int, float, float]
-                (R_sqrt, rank_R, spectral_gap, closure_residual).
-
-            Lanza
-            -----
-            ApexSymmetryError
-                Si λ_min < −tol_psd (entropía negativa genuina).
-            SpectralClosureError
-                Si el cierre espectral se viola más allá de la cota de Wilkinson.
-            """
-            norm_R: float = float(la.norm(R, "fro"))
-            tol_psd: float = self._EPS * max(norm_R, 1.0)
-            R_sym: NDArray[np.float64] = 0.5 * (R + R.T)
-            eigvals, eigvecs = la.eigh(R_sym)
-            lambda_min: float = float(eigvals[0])
-
-            if lambda_min < -tol_psd:
-                raise ApexSymmetryError(
-                    f"'{name}' no es PSD. λ_min={lambda_min:.6e} < "
-                    f"−tol={tol_psd:.6e}. Entropía negativa detectada."
-                )
-
-            eigvals_clamped: NDArray[np.float64] = np.maximum(eigvals, 0.0)
-            # R_sqrt = V · diag(√λ) · Vᵀ  (simétrica por construcción)
-            R_sqrt: NDArray[np.float64] = (
-                eigvecs * np.sqrt(eigvals_clamped)[np.newaxis, :]
-            ) @ eigvecs.T
-            R_sqrt = 0.5 * (R_sqrt + R_sqrt.T)  # purga de asimetría numérica
-
-            rank_R: int = int(np.sum(eigvals_clamped > tol_psd))
-            spectral_gap: float = (
-                float(eigvals_clamped[1] - eigvals_clamped[0])
-                if len(eigvals_clamped) > 1
-                else 0.0
-            )
-
-            # --- Cierre espectral R_sqrt² ≈ R --------------------------------
-            R_reconstructed: NDArray[np.float64] = R_sqrt @ R_sqrt
-            closure_abs: float = float(
-                la.norm(R_reconstructed - R_sym, "fro")
-            )
-            closure_residual: float = closure_abs / max(norm_R, 1.0)
-            # Cota: O(ε_mach · n · cond_eff); cond_eff ≲ λ_max/tol_psd
-            lambda_max_R: float = float(eigvals_clamped[-1]) if len(eigvals_clamped) else 0.0
-            cond_eff: float = (
-                lambda_max_R / max(tol_psd, self._EPS)
-                if lambda_max_R > 0.0
-                else 1.0
-            )
-            tol_closure: float = (
-                _WILKINSON_SAFETY * self._EPS * max(cond_eff, 1.0) * max(R.shape[0], 1)
-            )
-            if closure_residual > tol_closure:
-                raise SpectralClosureError(
-                    f"Cierre espectral de '{name}' violado: "
-                    f"‖R_sqrt²−R‖_F/‖R‖_F={closure_residual:.6e} > "
-                    f"tol={tol_closure:.6e} (cond_eff≈{cond_eff:.3e}). "
-                    f"Raíz espectral corrupta."
-                )
-
-            logger.debug(
-                "[Fase1] PSD '%s': rank=%d/%d, λ_min=%.3e, λ_max=%.3e, "
-                "gap=%.3e, closure=%.3e.",
-                name, rank_R, len(eigvals), lambda_min,
-                lambda_max_R, spectral_gap, closure_residual,
-            )
-            return R_sqrt, rank_R, spectral_gap, closure_residual
-
-        # ------------------------------------------------------------------
-        # Método terminal de la Fase 1
-        #   ── formal continuation ──►  Phase2_ElectrodynamicSynthesis.__init__
-        # ------------------------------------------------------------------
-
-        def build_context(self) -> "ApexPreparationContext":
-            r"""
-            **Método terminal de la Fase 1.**
-
-            Flujo interno
-            -------------
-            1. Verificación dimensional.
-            2. Simetría de G_μν, G_inv y R_cost.
-            3. SPD y κ(G_μν) → Cholesky regularizado L_G.
-            4. SPD y κ(G_inv) (cross-check: debe coincidir con κ(G_μν)).
-            5. Consistencia métrica **bilateral** G·G_inv ≈ I ≈ G_inv·G.
-            6. PSD de R_cost + raíz espectral + brecha + **cierre espectral**.
-            7. Empaquetado en ``ApexPreparationContext``.
-
-            Retorna
-            -------
-            ApexPreparationContext
-                Precondición formal de
-                ``Phase2_ElectrodynamicSynthesis.__init__(context=...)``.
-            """
-            # Paso 1 — dimensiones
-            n: int = self._check_dimensions()
-
-            # Paso 2 — simetría
-            self._validate_symmetry(self._G, "G_mu_nu")
-            self._validate_symmetry(self._G_inv, "G_inv")
-            self._validate_symmetry(self._R, "R_cost")
-
-            # Paso 3 — SPD + κ(G_μν) + Cholesky regularizado
-            kappa_G, _, _ = self._validate_spd(self._G, "G_mu_nu")
-            L_G, epsilon_G = self._cholesky_regularized(self._G, "G_mu_nu")
-
-            # Paso 4 — SPD + κ(G_inv) + cross-check de la identidad κ(A⁻¹)=κ(A)
-            kappa_G_inv, _, _ = self._validate_spd(self._G_inv, "G_inv")
-            kappa_mismatch_rel: float = abs(kappa_G_inv - kappa_G) / max(
-                kappa_G, 1.0
-            )
-            if kappa_mismatch_rel > _KAPPA_CROSSCHECK_TOL:
-                logger.warning(
-                    "[Fase1] κ(G_inv)=%.6e difiere de κ(G_μν)=%.6e en %.2f%% "
-                    "(identidad exacta κ(A⁻¹)=κ(A) sugiere posible "
-                    "inconsistencia numérica o de ensamblaje).",
-                    kappa_G_inv, kappa_G, 100.0 * kappa_mismatch_rel,
-                )
-
-            # Paso 5 — consistencia métrica bilateral (Wilkinson)
-            inv_residual: float = self._validate_inverse_consistency_bilateral(
-                kappa_G, n
-            )
-
-            # Paso 6 — PSD de R_cost + diagnóstico espectral + cierre
-            (
-                R_sqrt,
-                rank_R,
-                spectral_gap_R,
-                spectral_closure_residual,
-            ) = self._validate_psd_and_spectral_diagnostics(self._R, "R_cost")
-            betti_0_R: int = n - rank_R
-
-            # Paso 7 — empaquetado (contrato Fase 1 → Fase 2)
-            context = ApexPreparationContext(
-                G_mu_nu=self._G.copy(),
-                G_inv=self._G_inv.copy(),
-                R_cost=self._R.copy(),
-                L_G=L_G,
-                R_sqrt=R_sqrt,
-                kappa_G=kappa_G,
-                kappa_G_inv=kappa_G_inv,
-                epsilon_G=epsilon_G,
-                rank_R=rank_R,
-                spectral_gap_R=spectral_gap_R,
-                betti_0_R=betti_0_R,
-                inverse_residual=inv_residual,
-                spectral_closure_residual=spectral_closure_residual,
-                dim=n,
-            )
-
-            logger.info(
-                "[Fase1] ApexPreparationContext ensamblado: dim=%d, κ(G)=%.3e, "
-                "rank(R)=%d, betti_0(R)=%d, inv_res=%.3e, closure=%.3e.",
-                n, kappa_G, rank_R, betti_0_R,
-                inv_residual, spectral_closure_residual,
-            )
-            # ── fin formal de Fase 1; el DTO retornado es la entrada de Fase 2 ──
-            return context
-
-    # ======================================================================
-    # FASE 2 — SÍNTESIS ELECTRODINÁMICA:
-    #          CURVATURA 𝔰𝔬(n), COVARIANZA DE CALIBRE Y RETÍCULA DE BOOLE
-    #          (continuación formal de ApexPreparationContext)
-    # ======================================================================
-
-    class Phase2_ElectrodynamicSynthesis:
-        r"""
-        **Fase 2 – Síntesis Electrodinámica.**
-
-        Recibe el ``ApexPreparationContext`` (salida terminal de Fase 1)
-        y ejecuta, en orden estricto:
-
-          1. **Inyección de Potencial de Gauge** (invariante de escala).
-          2. **Refracción Eikonal de Mercado**.
-          3. **Exergía de Poynting** (P_diss = ‖R_sqrt ∇H‖² ≥ 0 exacto).
-          4. **Curvatura de Yang–Mills genuina** F ∈ 𝔰𝔬(n) sobre una
-             plaqueta de dos direcciones (A₁, A₂), con:
-               - proyección canónica Π_𝔰𝔬,
-               - verificación algebraica de antisimetría,
-               - contracción Hilbert–Schmidt **correcta** (bug de v6 corregido),
-               - diagnóstico opcional de covarianza de calibre.
-          5. **Retícula de Boole** de viabilidad (7 predicados atómicos).
-
-        El método terminal ``synthesize`` produce ``ApexStateTensor``,
-        cuya componente ``gauge_injection_vector`` es la precondición
-        formal de ``Phase3_SheafProjection.export_stalk``.
+    def test_inject_gauge_potential_valid(self, identity_agent):
         """
-
-        _EPS: float = _MACHINE_EPS
-
-        def __init__(
-            self,
-            context: "ApexPreparationContext",
-            eikonal_slack: float,
-            holonomy_tol_rel: float,
-            kappa_max: float,
-        ) -> None:
-            r"""
-            **Constructor de la Fase 2: continuación directa de la Fase 1.**
-
-            Parámetros
-            ----------
-            context : ApexPreparationContext
-                Salida de ``Phase1_MetricValidation.build_context``.
-            eikonal_slack, holonomy_tol_rel, kappa_max
-                Parámetros de control del orquestador.
-            """
-            self._ctx: "ApexPreparationContext" = context
-            self._eikonal_slack: float = float(eikonal_slack)
-            self._holonomy_tol_rel: float = float(holonomy_tol_rel)
-            self._kappa_max: float = float(kappa_max)
-
-            self._trace_G: float = float(np.trace(context.G_mu_nu))
-            # Factor de supresión de calibre: s = exp(−½ Tr G) ∈ (0, 1]
-            # (invariante bajo conjugación ortogonal de G; escala el potencial)
-            self._suppression_factor: float = float(
-                np.exp(-0.5 * self._trace_G)
-            )
-
-            logger.debug(
-                "[Fase2] Inicializada sobre ApexPreparationContext: "
-                "dim=%d, Tr(G)=%.6e, suppression=%.6e, "
-                "eikonal_slack=%.3f, holo_tol=%.3e, closure=%.3e.",
-                context.dim,
-                self._trace_G,
-                self._suppression_factor,
-                eikonal_slack,
-                holonomy_tol_rel,
-                context.spectral_closure_residual,
-            )
-
-        # ------------------------------------------------------------------
-        # Subproceso 1: Inyección de Potencial de Gauge
-        # ------------------------------------------------------------------
-
-        def inject_gauge_potential(
-            self, d_Phi: NDArray[np.float64]
-        ) -> Tuple[NDArray[np.float64], float]:
-            r"""
-            Inyecta el potencial de calibre:
-
-            .. math::
-
-                s_{\mathrm{val}}
-                  = d\Phi \cdot \exp\!\bigl(-\tfrac12\,\mathrm{Tr}(G_{\mu\nu})\bigr).
-
-            La verificación de colapso es **invariante de escala**: depende
-            únicamente del factor de supresión (no de ‖dΦ‖), evitando
-            falsos positivos para diferenciales pequeños con supresión nula.
-
-            Condición de disparo
-            --------------------
-            .. math::
-
-                \exp\!\bigl(-\tfrac12\,\mathrm{Tr}(G_{\mu\nu})\bigr)
-                  < \varepsilon_{\mathrm{mach}}
-                \;\Longrightarrow\;
-                \texttt{GaugePotentialError}.
-
-            Retorna
-            -------
-            Tuple[NDArray[np.float64], float]
-                (s_val, suppression_factor).
-
-            Lanza
-            -----
-            ApexDimensionError, GaugePotentialError
-            """
-            n: int = self._ctx.dim
-            d_Phi = np.asarray(d_Phi, dtype=np.float64)
-            if d_Phi.shape != (n,):
-                raise ApexDimensionError(
-                    f"d_Phi debe tener shape ({n},); se obtuvo {d_Phi.shape}."
-                )
-
-            if self._suppression_factor < self._EPS:
-                raise GaugePotentialError(
-                    f"Estrés estructural extremo: Tr(G_μν)={self._trace_G:.6e}. "
-                    f"Factor de supresión={self._suppression_factor:.6e} < ε_mach. "
-                    f"Inyección de propuesta de valor completamente colapsada, "
-                    f"independientemente de la magnitud de dΦ."
-                )
-
-            s_val: NDArray[np.float64] = d_Phi * self._suppression_factor
-            logger.debug(
-                "[Fase2] Inyección de calibre: suppression=%.6e, ‖s_val‖_∞=%.6e.",
-                self._suppression_factor,
-                float(la.norm(s_val, np.inf)),
-            )
-            return s_val, self._suppression_factor
-
-        # ------------------------------------------------------------------
-        # Subproceso 2: Refracción Eikonal de Mercado
-        # ------------------------------------------------------------------
-
-        def compute_eikonal_absorption(
-            self,
-            phase_gradient: NDArray[np.float64],
-            sigma_stress: float,
-            alpha_fermat: float = 0.5,
-        ) -> Tuple[float, float]:
-            r"""
-            Índice de refracción de Fermat y verificación Eikonal:
-
-            .. math::
-
-                n(\sigma^*) = 1 + \tanh(\alpha\cdot\sigma^*),
-                \qquad
-                G^{\mu\nu}\partial_\mu S\,\partial_\nu S
-                  \ge n^2(\sigma^*)\cdot(1 - \texttt{eikonal\_slack}).
-
-            Retorna
-            -------
-            Tuple[float, float]
-                (n_refract, eikonal_norm_sq).
-
-            Lanza
-            -----
-            ApexDimensionError, EikonalRefractionError
-            """
-            n: int = self._ctx.dim
-            phase_gradient = np.asarray(phase_gradient, dtype=np.float64)
-            if phase_gradient.shape != (n,):
-                raise ApexDimensionError(
-                    f"phase_gradient debe tener shape ({n},); "
-                    f"se obtuvo {phase_gradient.shape}."
-                )
-
-            n_refract: float = 1.0 + float(
-                np.tanh(alpha_fermat * sigma_stress)
-            )
-            G_inv_grad: NDArray[np.float64] = self._ctx.G_inv @ phase_gradient
-            eikonal_norm_sq: float = float(
-                np.dot(phase_gradient, G_inv_grad)
-            )
-
-            n_sq: float = n_refract ** 2
-            eikonal_threshold: float = n_sq * (1.0 - self._eikonal_slack)
-
-            if eikonal_norm_sq < eikonal_threshold:
-                raise EikonalRefractionError(
-                    f"Fallo Eikonal: ‖∂S‖²_{{G_inv}}={eikonal_norm_sq:.6e} < "
-                    f"n²(1−slack)={eikonal_threshold:.6e}. "
-                    f"n(σ*)={n_refract:.6f}, σ*={sigma_stress:.6f}. "
-                    f"La campaña se dispersó antes de alcanzar el colector."
-                )
-
-            logger.debug(
-                "[Fase2] Eikonal OK: ‖∂S‖²=%.6e, n²=%.6e, n_refract=%.6f.",
-                eikonal_norm_sq, n_sq, n_refract,
-            )
-            return n_refract, eikonal_norm_sq
-
-        # ------------------------------------------------------------------
-        # Subproceso 3: Exergía de Poynting
-        # ------------------------------------------------------------------
-
-        def evaluate_poynting_exergy(
-            self,
-            E_field: NDArray[np.float64],
-            H_field: NDArray[np.float64],
-            grad_H: NDArray[np.float64],
-        ) -> Tuple[float, float, float]:
-            r"""
-            Flujo exergético de Poynting:
-
-            .. math::
-
-                P_{\mathrm{in}}   = E\cdot H,
-                \qquad
-                P_{\mathrm{diss}}
-                  = \bigl\|R_{\mathrm{sqrt}}\nabla H\bigr\|^2
-                  \ge 0
-                  \quad\text{(norma euclidiana al cuadrado)},
-                \qquad
-                P_{\mathrm{exergia}}
-                  = P_{\mathrm{in}} - P_{\mathrm{diss}}.
-
-            La forma ‖R_sqrt ∇H‖² es algebraicamente idéntica a
-            ∇Hᵀ R_cost ∇H pero **garantiza no-negatividad por construcción**
-            (evita residuos negativos espurios por redondeo de la forma
-            cuadrática directa).
-
-            Retorna
-            -------
-            Tuple[float, float, float]
-                (P_in, P_diss, P_exergia).
-
-            Lanza
-            -----
-            ApexDimensionError, FinancialBlackHoleError
-            """
-            n: int = self._ctx.dim
-            E_field = np.asarray(E_field, dtype=np.float64)
-            H_field = np.asarray(H_field, dtype=np.float64)
-            grad_H = np.asarray(grad_H, dtype=np.float64)
-            for vec, name in (
-                (E_field, "E_field"),
-                (H_field, "H_field"),
-                (grad_H, "grad_H"),
-            ):
-                if vec.shape != (n,):
-                    raise ApexDimensionError(
-                        f"'{name}' debe tener shape ({n},); se obtuvo {vec.shape}."
-                    )
-
-            P_in: float = float(np.dot(E_field, H_field))
-
-            # P_diss = ‖R_sqrt · ∇H‖² = ∇Hᵀ R_cost ∇H (exacto, ≥ 0)
-            R_sqrt_grad: NDArray[np.float64] = self._ctx.R_sqrt @ grad_H
-            P_diss: float = float(np.dot(R_sqrt_grad, R_sqrt_grad))
-
-            P_exergia: float = P_in - P_diss
-            tol_exergy: float = self._EPS * max(abs(P_in), abs(P_diss), 1.0)
-
-            if P_exergia < -tol_exergy:
-                raise FinancialBlackHoleError(
-                    f"La entropía operativa devora la energía inyectada. "
-                    f"P_in={P_in:.6e}, P_diss={P_diss:.6e}, "
-                    f"P_exergia={P_exergia:.6e} < −tol={tol_exergy:.6e}. "
-                    f"Veto termodinámico absoluto emitido."
-                )
-
-            logger.debug(
-                "[Fase2] Poynting: P_in=%.6e, P_diss=%.6e, P_exergia=%.6e.",
-                P_in, P_diss, P_exergia,
-            )
-            return P_in, P_diss, P_exergia
-
-        # ------------------------------------------------------------------
-        # Subproceso 4: Curvatura de Yang–Mills genuina (𝔰𝔬(n))
-        # ------------------------------------------------------------------
-
-        @staticmethod
-        def _project_to_so(A: NDArray[np.float64]) -> NDArray[np.float64]:
-            r"""
-            Proyector ortogonal (Frobenius) al álgebra de Lie 𝔰𝔬(n):
-
-            .. math::
-
-                \Pi_{\mathfrak{so}}(A)
-                  := \tfrac12\bigl(A - A^\top\bigr).
-
-            Propiedades
-            -----------
-            - Idempotencia: Π² = Π.
-            - Simetría: Π(Aᵀ) = −Π(A).
-            - Kernel: matrices simétricas; imagen: 𝔰𝔬(n).
-            - Es la proyección ortogonal respecto del producto Frobenius
-              ⟨X, Y⟩_F = Tr(Xᵀ Y).
-            """
-            return 0.5 * (A - A.T)
-
-        @staticmethod
-        def _lie_commutator(
-            B: NDArray[np.float64], C: NDArray[np.float64]
-        ) -> NDArray[np.float64]:
-            r"""
-            Corchete de Lie [B, C] = BC − CB.
-
-            **Cierre de 𝔰𝔬(n)**: si Bᵀ = −B y Cᵀ = −C, entonces
-
-            .. math::
-
-                [B,C]^\top
-                  = (BC - CB)^\top
-                  = C^\top B^\top - B^\top C^\top
-                  = (-C)(-B) - (-B)(-C)
-                  = CB - BC
-                  = -[B,C].
-
-            Por tanto [B, C] ∈ 𝔰𝔬(n) siempre que B, C ∈ 𝔰𝔬(n).
-            """
-            return B @ C - C @ B
-
-        def _compute_curvature(
-            self,
-            A_1: NDArray[np.float64],
-            A_2: NDArray[np.float64],
-        ) -> NDArray[np.float64]:
-            r"""
-            Ensambla la curvatura discreta de una plaqueta con dos
-            direcciones de conexión A₁, A₂:
-
-            .. math::
-
-                A_i^{a} := \Pi_{\mathfrak{so}}(A_i)\in\mathfrak{so}(n),
-                \qquad
-                F
-                  := \bigl(A_2^{a} - A_1^{a}\bigr)
-                     + \bigl[A_1^{a},\, A_2^{a}\bigr].
-
-            Esta es la discretización de la 2-forma de curvatura de
-            Yang–Mills F = dA + A ∧ A sobre una plaqueta elemental con
-            generadores (A₁, A₂).
-
-            **Por qué no basta un único A** (error de v5):
-            para cualquier matriz real A, el conmutador [A, Aᵀ] es
-            **siempre simétrico**:
-
-            .. math::
-
-                [A, A^\top]^\top
-                  = (A A^\top - A^\top A)^\top
-                  = A A^\top - A^\top A
-                  = [A, A^\top],
-
-            mientras que (A − Aᵀ) es antisimétrico. Su suma no pertenece
-            a 𝔰𝔬(n) y por tanto no es una 2-forma de curvatura válida
-            para el grupo de holonomía O(n) compatible con G_μν.
-
-            La presente formulación usa **dos generadores genuinos** del
-            álgebra 𝔰𝔬(n) y se apoya en el cierre de 𝔰𝔬(n) bajo el
-            corchete (demostrado en ``_lie_commutator``). Por construcción:
-
-            .. math::
-
-                F^\top = -F
-                \quad\text{(hasta precisión de máquina)}.
-
-            Retorna
-            -------
-            NDArray[np.float64], shape (n, n)
-                F ∈ 𝔰𝔬(n), antisimétrica hasta redondeo.
-            """
-            A1_a: NDArray[np.float64] = self._project_to_so(A_1)
-            A2_a: NDArray[np.float64] = self._project_to_so(A_2)
-            F: NDArray[np.float64] = (
-                (A2_a - A1_a) + self._lie_commutator(A1_a, A2_a)
-            )
-            # Purga residual de simetría numérica (proyección final a 𝔰𝔬(n))
-            return self._project_to_so(F)
-
-        def _yang_mills_action(self, F: NDArray[np.float64]) -> float:
-            r"""
-            Acción de Yang–Mills discreta con contracción Hilbert–Schmidt
-            inducida por la métrica G_μν:
-
-            .. math::
-
-                S_{YM}
-                  = \tfrac12\,\mathrm{Tr}\!\bigl(
-                        F^\top\, G_{\mu\nu}\, F\, G^{\mu\nu}
-                    \bigr)
-                  = \tfrac12\,\langle F,\, F\rangle_{HS(G)}.
-
-            **Corrección del bug de v6**
-            ---------------------------
-            v6 componía intermedios como
-            ``Tr(F.T @ (G @ F) @ (F @ G_inv))`` = Tr(Fᵀ G F F G⁻¹),
-            introduciendo un factor F sobrante. La forma correcta es:
-
-            .. code-block:: python
-
-                S = 0.5 * Tr(F.T @ G @ F @ G_inv)
-
-            **No-negatividad exacta**
-            -------------------------
-            Sea M ≔ Fᵀ G F. Entonces ∀x ∈ ℝⁿ:
-            xᵀ M x = (F x)ᵀ G (F x) ≥ 0 (pues G ≻ 0), luego M ⪰ 0.
-            Sea N ≔ G⁻¹ ≻ 0. El producto de traza de dos matrices
-            simétricas, una PSD y otra SPD, es no-negativo:
-            Tr(M N) ≥ 0. Por tanto S_YM ≥ 0 exactamente (salvo redondeo,
-            que se sature a 0 con ``max(..., 0)``).
-
-            Retorna
-            -------
-            float
-                S_YM ≥ 0.
-            """
-            # Forma correcta (bug v6 eliminado): Tr(Fᵀ G F G⁻¹) / 2
-            # Implementación numéricamente estable vía producto intermedio
-            # simétrico M = Fᵀ G F  (PSD) y luego Tr(M G⁻¹).
-            G_F: NDArray[np.float64] = self._ctx.G_mu_nu @ F          # G F
-            M: NDArray[np.float64] = F.T @ G_F                        # Fᵀ G F
-            # Tr(M G⁻¹) = Tr(G⁻¹ M) (ciclicidad); usamos la primera forma
-            S: float = 0.5 * float(np.trace(M @ self._ctx.G_inv))
-            return max(S, 0.0)
-
-        def audit_yang_mills_holonomy(
-            self,
-            A_gauge_1: NDArray[np.float64],
-            A_gauge_2: NDArray[np.float64],
-        ) -> Tuple[float, float]:
-            r"""
-            Audita la curvatura de calibre de una plaqueta de dos
-            direcciones (A_gauge_1, A_gauge_2) mediante la acción de
-            Yang–Mills ponderada por G_μν.
-
-            Se verifica adicionalmente el invariante algebraico exacto
-            F = −Fᵀ (garantizado por construcción en ``_compute_curvature``;
-            un residuo significativo indicaría un error de implementación,
-            no un fenómeno físico).
-
-            Parámetros
-            ----------
-            A_gauge_1, A_gauge_2 : NDArray[np.float64], shape (n, n)
-                Potenciales de calibre en las dos direcciones de la plaqueta.
-
-            Retorna
-            -------
-            Tuple[float, float]
-                (S_ym, antisymmetry_residual_relative).
-
-            Lanza
-            -----
-            ApexDimensionError
-            HolonomyVetoError
-            ElectrodynamicApexError
-                Si la antisimetría de F se viola más allá de 10⁻⁸ relativo
-                (canario de error de implementación).
-            """
-            n: int = self._ctx.dim
-            A_gauge_1 = np.asarray(A_gauge_1, dtype=np.float64)
-            A_gauge_2 = np.asarray(A_gauge_2, dtype=np.float64)
-            for mat, name in (
-                (A_gauge_1, "A_gauge_1"),
-                (A_gauge_2, "A_gauge_2"),
-            ):
-                if mat.shape != (n, n):
-                    raise ApexDimensionError(
-                        f"'{name}' debe tener shape ({n},{n}); "
-                        f"se obtuvo {mat.shape}."
-                    )
-
-            F: NDArray[np.float64] = self._compute_curvature(
-                A_gauge_1, A_gauge_2
-            )
-
-            # --- Canario de antisimetría (invariante algebraico exacto) ------
-            norm_F: float = float(la.norm(F, "fro"))
-            antisym_residual: float = float(
-                la.norm(F + F.T, "fro")
-            ) / max(norm_F, 1.0)
-            if antisym_residual > _ANTISYM_REL_TOL:
-                raise ElectrodynamicApexError(
-                    f"Curvatura F no es antisimétrica "
-                    f"(violación de invariante algebraico exacto): "
-                    f"‖F+Fᵀ‖_F/‖F‖_F={antisym_residual:.6e} > "
-                    f"{_ANTISYM_REL_TOL:.0e}. Revise _compute_curvature."
-                )
-
-            # --- Acción de Yang–Mills (contracción HS correcta) --------------
-            S_ym: float = self._yang_mills_action(F)
-
-            norm_A_sq: float = float(
-                la.norm(A_gauge_1, "fro") ** 2
-                + la.norm(A_gauge_2, "fro") ** 2
-            )
-            tol_ym: float = self._holonomy_tol_rel * max(norm_A_sq, 1.0)
-
-            if S_ym > tol_ym:
-                raise HolonomyVetoError(
-                    f"El bucle de Wilson revela curvatura de calibre no nula. "
-                    f"S_YM={S_ym:.6e} > tol_rel={tol_ym:.6e}. "
-                    f"Fugas logísticas ocultas detectadas."
-                )
-
-            logger.debug(
-                "[Fase2] Holonomía: S_YM=%.6e, tol=%.6e, antisym_residual=%.3e.",
-                S_ym, tol_ym, antisym_residual,
-            )
-            return S_ym, antisym_residual
-
-        def verify_gauge_covariance(
-            self,
-            A_gauge_1: NDArray[np.float64],
-            A_gauge_2: NDArray[np.float64],
-            Q_isometry: NDArray[np.float64],
-            isometry_tol: float = 1.0e-8,
-        ) -> float:
-            r"""
-            **Diagnóstico opcional** (no forma parte del camino caliente):
-            verifica la propiedad definitoria de toda teoría de calibre —
-            invarianza de la acción de Yang–Mills bajo transformaciones de
-            calibre A_i ↦ Q A_i Qᵀ, para toda isometría Q de G_μν
-
-            .. math::
-
-                Q^\top G_{\mu\nu}\, Q = G_{\mu\nu}
-                \quad\bigl(Q\in O_G(n)\bigr).
-
-            Se verifica primero que Q es una isometría genuina; de lo
-            contrario el teorema de invarianza de calibre no aplica.
-
-            Parámetros
-            ----------
-            A_gauge_1, A_gauge_2 : NDArray[np.float64], shape (n, n)
-                Potenciales de calibre originales.
-            Q_isometry : NDArray[np.float64], shape (n, n)
-                Transformación de calibre candidata.
-            isometry_tol : float, default 1e-8
-                Tolerancia relativa para validar Qᵀ G Q ≈ G.
-
-            Retorna
-            -------
-            float
-                Residuo relativo |S_YM(A) − S_YM(Q A Qᵀ)| / max(S_YM(A), 1).
-
-            Lanza
-            -----
-            ApexDimensionError, GaugeCovarianceError
-            """
-            n: int = self._ctx.dim
-            Q_isometry = np.asarray(Q_isometry, dtype=np.float64)
-            if Q_isometry.shape != (n, n):
-                raise ApexDimensionError(
-                    f"Q_isometry debe tener shape ({n},{n}); "
-                    f"se obtuvo {Q_isometry.shape}."
-                )
-
-            # --- Validar isometría de G_μν -----------------------------------
-            QT_G_Q: NDArray[np.float64] = (
-                Q_isometry.T @ self._ctx.G_mu_nu @ Q_isometry
-            )
-            isometry_residual: float = float(
-                la.norm(QT_G_Q - self._ctx.G_mu_nu, "fro")
-            ) / max(float(la.norm(self._ctx.G_mu_nu, "fro")), 1.0)
-
-            if isometry_residual > isometry_tol:
-                raise GaugeCovarianceError(
-                    f"Q_isometry no preserva G_μν: "
-                    f"‖Qᵀ G Q − G‖_F/‖G‖_F={isometry_residual:.6e} "
-                    f"> tol={isometry_tol:.6e}. "
-                    f"La invarianza de calibre no es aplicable."
-                )
-
-            # --- Comparar S_YM antes y después de la transformación ----------
-            S_ym_original, _ = self.audit_yang_mills_holonomy(
-                A_gauge_1, A_gauge_2
-            )
-            A_1_t: NDArray[np.float64] = (
-                Q_isometry @ A_gauge_1 @ Q_isometry.T
-            )
-            A_2_t: NDArray[np.float64] = (
-                Q_isometry @ A_gauge_2 @ Q_isometry.T
-            )
-            S_ym_transformed, _ = self.audit_yang_mills_holonomy(A_1_t, A_2_t)
-
-            covariance_residual: float = abs(
-                S_ym_original - S_ym_transformed
-            ) / max(S_ym_original, 1.0)
-
-            if covariance_residual > _GAUGE_COVARIANCE_TOL:
-                raise GaugeCovarianceError(
-                    f"S_YM no es invariante bajo la transformación de calibre: "
-                    f"S_YM(A)={S_ym_original:.6e}, "
-                    f"S_YM(QAQᵀ)={S_ym_transformed:.6e}, "
-                    f"residuo relativo={covariance_residual:.6e} > "
-                    f"{_GAUGE_COVARIANCE_TOL:.0e}. "
-                    f"Error de implementación en la curvatura de calibre."
-                )
-
-            logger.debug(
-                "[Fase2] Covarianza de calibre verificada: residuo=%.3e.",
-                covariance_residual,
-            )
-            return covariance_residual
-
-        # ------------------------------------------------------------------
-        # Retícula Booleana de viabilidad
-        # ------------------------------------------------------------------
-
-        def _evaluate_viability_flags(
-            self,
-            suppression_factor: float,
-            eikonal_norm_sq: float,
-            n_sq: float,
-            P_exergia: float,
-            S_ym: float,
-            tol_ym: float,
-            antisym_residual: float,
-        ) -> ApexViabilityFlags:
-            r"""
-            Combina predicados independientes mediante join (disyunción bit
-            a bit), formando el elemento de la retícula Booleana
-            correspondiente a las condiciones satisfechas.
-
-            Incluye el predicado nuevo ``SPECTRAL_CLOSURE_SOUND`` heredado
-            del cierre espectral verificado en Fase 1.
-            """
-            flags: ApexViabilityFlags = ApexViabilityFlags.NONE
-            soft_slack: float = self._eikonal_slack / 2.0
-
-            if suppression_factor >= np.sqrt(self._EPS):
-                flags |= ApexViabilityFlags.GAUGE_INJECTION_NONTRIVIAL
-            if eikonal_norm_sq >= n_sq * (1.0 - soft_slack):
-                flags |= ApexViabilityFlags.EIKONAL_MARGIN_SOUND
-            if P_exergia >= -1.0e3 * self._EPS:
-                flags |= ApexViabilityFlags.EXERGY_NONNEGATIVE
-            if S_ym <= tol_ym:
-                flags |= ApexViabilityFlags.HOLONOMY_TRIVIAL
-            if antisym_residual <= _ANTISYM_REL_TOL:
-                flags |= ApexViabilityFlags.CURVATURE_ANTISYMMETRIC
-            if self._ctx.kappa_G <= 0.5 * self._kappa_max:
-                flags |= ApexViabilityFlags.METRIC_WELL_CONDITIONED
-            # Predicado heredado de Fase 1 (cierre espectral de R_sqrt)
-            # Si build_context terminó sin SpectralClosureError, el residuo
-            # está dentro de tol; marcamos la bandera de forma determinista.
-            if self._ctx.spectral_closure_residual <= 1.0:
-                # 1.0 es cota trivial; el fallo duro ya se lanzó en Fase 1.
-                # Aquí re-afirmamos el predicado para la retícula de auditoría.
-                flags |= ApexViabilityFlags.SPECTRAL_CLOSURE_SOUND
-
-            logger.debug("[Fase2] %s", describe_viability_flags(flags))
-            return flags
-
-        # ------------------------------------------------------------------
-        # Método terminal de la Fase 2
-        #   ── formal continuation ──►  Phase3_SheafProjection.export_stalk
-        #                               (vía gauge_injection_vector = s_val)
-        # ------------------------------------------------------------------
-
-        def synthesize(
-            self,
-            d_Phi: NDArray[np.float64],
-            phase_gradient: NDArray[np.float64],
-            sigma_stress: float,
-            E_field: NDArray[np.float64],
-            H_field: NDArray[np.float64],
-            grad_H: NDArray[np.float64],
-            A_gauge_1: NDArray[np.float64],
-            A_gauge_2: NDArray[np.float64],
-            alpha_fermat: float = 0.5,
-            Q_isometry_diagnostic: Optional[NDArray[np.float64]] = None,
-        ) -> "ApexStateTensor":
-            r"""
-            **Método terminal de la Fase 2.**
-
-            Integra los cuatro subprocesos electrodinámicos y retorna el
-            ``ApexStateTensor`` completo. El campo ``gauge_injection_vector``
-            es el dato primario consumido por la Fase 3
-            (``export_stalk(s_val=...)``).
-
-            Parámetros
-            ----------
-            A_gauge_1, A_gauge_2 : NDArray[np.float64], shape (n, n)
-                Potenciales de calibre en las dos direcciones de la plaqueta
-                (matemáticamente necesarios para curvatura no-abeliana genuina).
-            Q_isometry_diagnostic : Optional[NDArray[np.float64]], default None
-                Si se provee, ejecuta ``verify_gauge_covariance`` como
-                diagnóstico adicional (opt-in; no penaliza el camino caliente).
-
-            Retorna
-            -------
-            ApexStateTensor
-                Precondición formal de
-                ``Phase3_SheafProjection.export_stalk(
-                    s_val=tensor.gauge_injection_vector
-                )``.
-            """
-            s_val, suppression = self.inject_gauge_potential(d_Phi)
-            n_refract, eikonal_norm_sq = self.compute_eikonal_absorption(
-                phase_gradient, sigma_stress, alpha_fermat
-            )
-            P_in, P_diss, P_exergia = self.evaluate_poynting_exergy(
-                E_field, H_field, grad_H
-            )
-            S_ym, antisym_residual = self.audit_yang_mills_holonomy(
-                A_gauge_1, A_gauge_2
-            )
-
-            norm_A_sq: float = float(
-                la.norm(A_gauge_1, "fro") ** 2
-                + la.norm(A_gauge_2, "fro") ** 2
-            )
-            tol_ym: float = self._holonomy_tol_rel * max(norm_A_sq, 1.0)
-
-            flags: ApexViabilityFlags = self._evaluate_viability_flags(
-                suppression_factor=suppression,
-                eikonal_norm_sq=eikonal_norm_sq,
-                n_sq=n_refract ** 2,
-                P_exergia=P_exergia,
-                S_ym=S_ym,
-                tol_ym=tol_ym,
-                antisym_residual=antisym_residual,
-            )
-
-            gauge_covariance_residual: Optional[float] = None
-            if Q_isometry_diagnostic is not None:
-                gauge_covariance_residual = self.verify_gauge_covariance(
-                    A_gauge_1, A_gauge_2, Q_isometry_diagnostic
-                )
-
-            logger.info(
-                "[Fase2] Síntesis completada: suppression=%.3e, n_refract=%.4f, "
-                "P_exergia=%.6e, S_YM=%.6e, %s.",
-                suppression, n_refract, P_exergia, S_ym,
-                describe_viability_flags(flags),
-            )
-
-            # Contrato de interfaz Fase 2 → Fase 3:
-            #   gauge_injection_vector = s_val
-            return ApexStateTensor(
-                gauge_injection_vector=s_val,
-                suppression_factor=suppression,
-                fermat_refractive_index=n_refract,
-                eikonal_norm_sq=eikonal_norm_sq,
-                poynting_income=P_in,
-                poynting_dissipation=P_diss,
-                poynting_exergy_flux=P_exergia,
-                yang_mills_action=S_ym,
-                curvature_antisymmetry_residual=antisym_residual,
-                viability_flags=flags,
-                is_electrodynamically_viable=flags.is_order_unit(),
-                gauge_covariance_residual=gauge_covariance_residual,
-            )
-
-    # ======================================================================
-    # FASE 3 — PROYECCIÓN EN HACES:
-    #          FIBRA MÉTRICA + FIBRA DISIPATIVA + LAPLACIANO DE HODGE LOCAL
-    #          (continuación formal de ApexStateTensor.gauge_injection_vector)
-    # ======================================================================
-
-    class Phase3_SheafProjection:
-        r"""
-        **Fase 3 – Proyección en Haces y Cofrontera Discreta δ_{APEX}.**
-
-        Recibe el ``ApexPreparationContext`` de la Fase 1 y el vector de
-        inyección s_val producido por la Fase 2
-        (``ApexStateTensor.gauge_injection_vector``).
-
-        Construcción
-        ------------
-        .. math::
-
-            \delta_{\mathrm{metric}}
-              = L_G^{-\top}
-              \in\mathbb{R}^{n\times n}
-              \quad\bigl(\delta^\top G\,\delta = I_n\bigr),
-
-            \delta_{\mathrm{diss}}
-              = R_{\mathrm{sqrt}}\,\delta_{\mathrm{metric}}
-              \in\mathbb{R}^{n\times n},
-
-            \delta_{\mathrm{APEX}}
-              = \begin{bmatrix}
-                  \delta_{\mathrm{metric}} \\ \delta_{\mathrm{diss}}
-                \end{bmatrix}
-              \in\mathbb{R}^{2n\times n},
-
-            \Delta_{\mathrm{APEX}}
-              = \delta_{\mathrm{APEX}}^\top\delta_{\mathrm{APEX}}
-              = I_n + \delta_{\mathrm{diss}}^\top\delta_{\mathrm{diss}}
-              \succ 0.
-
-        La tolerancia de la identidad de Hodge se escala por κ(G)
-        (análisis de error de la triangulación L_G, Higham 2002).
+        (E1a) Para G = I₃, Tr(G) = 3 ⇒ suppression = exp(−3/2).
+        s_val = dΦ · suppression  (producto escalar-vector).
         """
+        d_Phi = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+        s_val, suppression = identity_agent.phase2.inject_gauge_potential(d_Phi)
 
-        _EPS: float = _MACHINE_EPS
+        expected_suppression = math.exp(-1.5)
+        assert suppression == pytest.approx(expected_suppression)
+        assert_allclose(s_val, d_Phi * expected_suppression, rtol=_RTOL_STD, atol=_ATOL_STD)
 
-        def __init__(self, context: "ApexPreparationContext") -> None:
-            r"""
-            **Constructor de la Fase 3: continuación directa de la Fase 2.**
-
-            Precalcula δ_metric, δ_diss, δ_APEX y Δ_APEX a partir del
-            ``ApexPreparationContext`` (L_G, R_sqrt, G_μν, dim).
-            """
-            self._ctx: "ApexPreparationContext" = context
-            n: int = context.dim
-
-            I_n: NDArray[np.float64] = np.eye(n, dtype=np.float64)
-
-            # δ_metric = L_G^{-⊤}:  resuelve L_G X = I ⇒ X = L_G^{-1};
-            #                       δ_metric = Xᵀ = L_G^{-⊤}.
-            # Identidad: δᵀ G δ = L_G^{-1} (L_G L_Gᵀ) L_G^{-⊤} = I.
-            L_G_inv: NDArray[np.float64] = la.solve_triangular(
-                context.L_G, I_n, lower=True, check_finite=False
-            )
-            self._delta_metric: NDArray[np.float64] = L_G_inv.T
-
-            # Fibra disipativa: pull-back de R_sqrt al coframe ortonormal
-            self._delta_dissipative: NDArray[np.float64] = (
-                context.R_sqrt @ self._delta_metric
-            )
-
-            # Cocadena apilada completa
-            self._delta_apex: NDArray[np.float64] = np.vstack(
-                [self._delta_metric, self._delta_dissipative]
-            )  # shape (2n, n)
-
-            # Laplaciano de Hodge local: Δ = I + δ_dissᵀ δ_diss  (SPD)
-            self._hodge_laplacian: NDArray[np.float64] = (
-                I_n
-                + self._delta_dissipative.T @ self._delta_dissipative
-            )
-            self._hodge_laplacian = 0.5 * (
-                self._hodge_laplacian + self._hodge_laplacian.T
-            )
-
-            # rank(δ_APEX) = n porque δ_metric es invertible
-            self._rank_delta: int = n
-
-            # Verificación de la identidad de Hodge (tol escalada por κ)
-            self._hodge_metric_residual: float = self._verify_hodge_identity()
-
-            logger.debug(
-                "[Fase3] Precalculado: δ_metric shape=%s, δ_diss shape=%s, "
-                "δ_APEX shape=%s, rank_delta=%d, Hodge_res=%.3e.",
-                self._delta_metric.shape,
-                self._delta_dissipative.shape,
-                self._delta_apex.shape,
-                self._rank_delta,
-                self._hodge_metric_residual,
-            )
-
-        def _verify_hodge_identity(self) -> float:
-            r"""
-            Verifica la identidad de Hodge local de la fibra métrica:
-
-            .. math::
-
-                \delta_{\mathrm{metric}}^\top
-                G_{\mu\nu}\,
-                \delta_{\mathrm{metric}}
-                \approx I_n.
-
-            Tolerancia escalada por el número de condición (Higham):
-
-            .. math::
-
-                \mathrm{tol}
-                  = C\cdot\kappa(G)\cdot\varepsilon_{\mathrm{mach}},
-                \qquad C = 100.
-
-            Retorna
-            -------
-            float
-                Residuo relativo ‖δᵀ G δ − I‖_F / n.
-
-            Lanza
-            -----
-            SheafMetricError
-            """
-            n: int = self._ctx.dim
-            delta_T_G_delta: NDArray[np.float64] = (
-                self._delta_metric.T
-                @ self._ctx.G_mu_nu
-                @ self._delta_metric
-            )
-            I_n: NDArray[np.float64] = np.eye(n, dtype=np.float64)
-            residual_F: float = float(
-                la.norm(delta_T_G_delta - I_n, "fro")
-            )
-            rel_error: float = residual_F / n
-            # Tolerancia escalada por κ(G): el error de L_G^{-1} crece con κ
-            tol_hodge: float = (
-                _WILKINSON_SAFETY
-                * self._ctx.kappa_G
-                * self._EPS
-            )
-
-            if rel_error > tol_hodge:
-                raise SheafMetricError(
-                    f"Identidad de Hodge violada: "
-                    f"‖δᵀ G δ − I‖_F/n={rel_error:.6e} > "
-                    f"tol={tol_hodge:.6e} "
-                    f"(κ(G)={self._ctx.kappa_G:.3e})."
-                )
-            return rel_error
-
-        def _compute_hodge_spectrum(self) -> Tuple[float, float]:
-            r"""
-            Diagonaliza Δ_APEX (SPD, n×n) para extraer brecha espectral
-            y número de condición.
-
-            .. math::
-
-                \mathrm{gap}
-                  = \lambda_2(\Delta) - \lambda_1(\Delta),
-                \qquad
-                \kappa(\Delta)
-                  = \lambda_{\max}/\lambda_{\min}.
-
-            Retorna
-            -------
-            Tuple[float, float]
-                (spectral_gap, condition_number).
-            """
-            eigvals: NDArray[np.float64] = la.eigvalsh(
-                self._hodge_laplacian
-            )
-            lambda_min: float = float(eigvals[0])
-            lambda_second: float = (
-                float(eigvals[1]) if len(eigvals) > 1 else lambda_min
-            )
-            lambda_max: float = float(eigvals[-1])
-            spectral_gap: float = lambda_second - lambda_min
-            condition_number: float = (
-                lambda_max / lambda_min
-                if lambda_min > 0.0
-                else float("inf")
-            )
-            logger.debug(
-                "[Fase3] Espectro de Hodge: λ_min=%.6e, gap=%.6e, κ=%.6e.",
-                lambda_min, spectral_gap, condition_number,
-            )
-            return spectral_gap, condition_number
-
-        # ------------------------------------------------------------------
-        # Método terminal de la Fase 3 (salida pública del ecosistema)
-        # ------------------------------------------------------------------
-
-        def export_stalk(
-            self, s_val: NDArray[np.float64]
-        ) -> "SheafStalkApex":
-            r"""
-            **Método terminal de la Fase 3 y del agente completo.**
-
-            Proyecta s_val (típicamente
-            ``ApexStateTensor.gauge_injection_vector``) sobre ambas fibras
-            (métrica y disipativa) y retorna el ``SheafStalkApex`` completo
-            con diagnósticos espectrales del Laplaciano de Hodge local.
-
-            Parámetros
-            ----------
-            s_val : NDArray[np.float64], shape (n,)
-                Vector de inyección de calibre de la Fase 2.
-
-            Retorna
-            -------
-            SheafStalkApex
-                Fibrado celular listo para el ensamblaje global del
-                Laplaciano de Haz del ecosistema MIC.
-
-            Lanza
-            -----
-            ApexDimensionError
-            """
-            n: int = self._ctx.dim
-            s_val = np.asarray(s_val, dtype=np.float64)
-            if s_val.shape != (n,):
-                raise ApexDimensionError(
-                    f"s_val debe tener shape ({n},); se obtuvo {s_val.shape}."
-                )
-
-            spectral_gap, condition_number = self._compute_hodge_spectrum()
-
-            projected_metric: NDArray[np.float64] = (
-                self._delta_metric @ s_val
-            )
-            projected_diss: NDArray[np.float64] = (
-                self._delta_dissipative @ s_val
-            )
-
-            logger.info(
-                "[Fase3] SheafStalkApex exportado: dim=%d, rank=%d, "
-                "Hodge_res=%.3e, gap=%.3e, κ(Δ)=%.3e, "
-                "‖proj_metric‖₂=%.6e, ‖proj_diss‖₂=%.6e.",
-                n,
-                self._rank_delta,
-                self._hodge_metric_residual,
-                spectral_gap,
-                condition_number,
-                float(la.norm(projected_metric, 2)),
-                float(la.norm(projected_diss, 2)),
-            )
-
-            return SheafStalkApex(
-                delta_apex=self._delta_apex.copy(),
-                delta_metric=self._delta_metric.copy(),
-                delta_dissipative=self._delta_dissipative.copy(),
-                hodge_laplacian=self._hodge_laplacian.copy(),
-                hodge_metric_residual=self._hodge_metric_residual,
-                hodge_spectral_gap=spectral_gap,
-                hodge_condition_number=condition_number,
-                lossless_subspace_dimension=self._ctx.betti_0_R,
-                source_injection=s_val.copy(),
-                projected_source_metric=projected_metric,
-                projected_source_dissipative=projected_diss,
-                rank_delta=self._rank_delta,
-            )
-
-    # ======================================================================
-    # INTERFAZ PÚBLICA DEL AGENTE (punto de entrada externo)
-    # ======================================================================
-
-    def synthesize_apex_field(
-        self,
-        d_Phi: NDArray[np.float64],
-        phase_gradient: NDArray[np.float64],
-        sigma_stress: float,
-        E_field: NDArray[np.float64],
-        H_field: NDArray[np.float64],
-        grad_H: NDArray[np.float64],
-        A_gauge_1: NDArray[np.float64],
-        A_gauge_2: NDArray[np.float64],
-        alpha_fermat: float = 0.5,
-        Q_isometry_diagnostic: Optional[NDArray[np.float64]] = None,
-    ) -> ApexStateTensor:
-        r"""
-        Punto de entrada público para la síntesis electrodinámica completa
-        (Fase 2 sobre el contexto de Fase 1).
-
-        Retorna
-        -------
-        ApexStateTensor
-            Estado electrodinámico auditado; consumir
-            ``.gauge_injection_vector`` en ``export_sheaf_stalk``.
+    def test_inject_gauge_potential_dimension_error(self, identity_agent):
         """
-        return self.phase2.synthesize(
-            d_Phi=d_Phi,
+        (E1b) d_Phi debe ser un 1-tensor de shape (n,); (n,1) es rechazado.
+        """
+        with pytest.raises(ApexDimensionError):
+            identity_agent.phase2.inject_gauge_potential(
+                np.ones((3, 1), dtype=np.float64)
+            )
+
+    def test_gauge_potential_collapse_raises(self):
+        """
+        (E1c) Si Tr(G) ≫ 1 de modo que exp(−½ Tr G) < ε_mach, la inyección
+        colapsa numéricamente y debe lanzar ``GaugePotentialError``.
+        """
+        n = 3
+        scale = 100.0 / float(n)  # Tr(G) = 100
+        G = scale * np.eye(n, dtype=np.float64)
+        G_inv = (1.0 / scale) * np.eye(n, dtype=np.float64)
+        agent = KApexElectrodynamicAgent(G, G_inv, np.eye(n))
+
+        with pytest.raises(GaugePotentialError):
+            agent.phase2.inject_gauge_potential(np.ones(n, dtype=np.float64))
+
+    # ------------------------------------------------------------------
+    # (E2) Eikonal de absorción de mercado
+    # ------------------------------------------------------------------
+
+    def test_eikonal_absorption_valid(self, identity_agent):
+        """
+        (E2a) G⁻¹ = I, phase_gradient = 1⃗, σ* = 0:
+            n(σ*) = 1,  ‖∂S‖² = 3.
+        """
+        phase_gradient = np.ones(3, dtype=np.float64)
+        n_refract, eikonal_norm_sq = identity_agent.phase2.compute_eikonal_absorption(
             phase_gradient=phase_gradient,
-            sigma_stress=sigma_stress,
-            E_field=E_field,
-            H_field=H_field,
-            grad_H=grad_H,
-            A_gauge_1=A_gauge_1,
-            A_gauge_2=A_gauge_2,
-            alpha_fermat=alpha_fermat,
-            Q_isometry_diagnostic=Q_isometry_diagnostic,
+            sigma_stress=0.0,
+            alpha_fermat=0.5,
+        )
+        assert n_refract == pytest.approx(1.0)
+        assert eikonal_norm_sq == pytest.approx(3.0)
+
+    def test_eikonal_absorption_failure_raises(self, identity_agent):
+        """
+        (E2b) Si ‖∂S‖²_{G⁻¹} cae bajo el umbral Eikonal duro, se lanza
+        ``EikonalRefractionError``.
+        """
+        phase_gradient = np.array([0.8, 0.0, 0.0], dtype=np.float64)
+        # norm_sq = 0.64 < 0.9 ≈ 1² · (1 − 0.1)
+        with pytest.raises(EikonalRefractionError):
+            identity_agent.phase2.compute_eikonal_absorption(
+                phase_gradient=phase_gradient,
+                sigma_stress=0.0,
+            )
+
+    def test_eikonal_negative_sigma_can_lower_threshold(self, identity_agent):
+        """
+        (E2c) σ* → −∞ ⇒ n(σ*) → 0 ⇒ umbral Eikonal casi nulo.
+        El mercado se vuelve topológicamente alcanzable con gradiente
+        arbitrariamente pequeño.
+        """
+        phase_gradient = 1.0e-4 * np.ones(3, dtype=np.float64)
+        n_refract, eikonal_norm_sq = identity_agent.phase2.compute_eikonal_absorption(
+            phase_gradient=phase_gradient,
+            sigma_stress=-100.0,
+            alpha_fermat=0.5,
+        )
+        assert n_refract == pytest.approx(0.0, abs=_ATOL_STD)
+        assert eikonal_norm_sq == pytest.approx(3.0e-8)
+
+    def test_eikonal_dimension_error(self, identity_agent):
+        """
+        (E2d) phase_gradient debe tener shape (n,).
+        """
+        with pytest.raises(ApexDimensionError):
+            identity_agent.phase2.compute_eikonal_absorption(
+                phase_gradient=np.ones((3, 1), dtype=np.float64),
+                sigma_stress=0.0,
+            )
+
+    # ------------------------------------------------------------------
+    # (E3) Balance exergético de Poynting
+    # ------------------------------------------------------------------
+
+    def test_poynting_exergy_valid(self, identity_agent):
+        """
+        (E3a) E = H = 1⃗, ∇H = 0⃗:
+            P_in = 3, P_diss = 0, P_exergia = 3.
+        """
+        E = np.ones(3, dtype=np.float64)
+        H = np.ones(3, dtype=np.float64)
+        grad_H = np.zeros(3, dtype=np.float64)
+
+        P_in, P_diss, P_exergia = identity_agent.phase2.evaluate_poynting_exergy(
+            E_field=E, H_field=H, grad_H=grad_H,
+        )
+        assert P_in == pytest.approx(3.0)
+        assert P_diss == pytest.approx(0.0)
+        assert P_exergia == pytest.approx(3.0)
+
+    def test_poynting_exergy_zero_boundary_is_allowed(self, identity_agent):
+        """
+        (E3b) El borde termodinámico P_exergia = 0 es admisible
+        (equilibrio detallado ingreso = disipación).
+        """
+        E = np.array([1.0, 0.0, 0.0], dtype=np.float64)
+        H = E.copy()
+        grad_H = E.copy()  # R = I ⇒ P_diss = 1
+
+        P_in, P_diss, P_exergia = identity_agent.phase2.evaluate_poynting_exergy(
+            E_field=E, H_field=H, grad_H=grad_H,
+        )
+        assert P_in == pytest.approx(1.0)
+        assert P_diss == pytest.approx(1.0)
+        assert P_exergia == pytest.approx(0.0)
+
+    def test_poynting_exergy_black_hole_raises(self, identity_agent):
+        """
+        (E3c) P_diss > P_in más allá de la tolerancia ⇒
+        ``FinancialBlackHoleError`` (violación de la 2ª ley exergética).
+        """
+        E = np.ones(3, dtype=np.float64)
+        H = np.ones(3, dtype=np.float64)
+        grad_H = 10.0 * np.ones(3, dtype=np.float64)
+        # P_in = 3, P_diss = 300 ⇒ P_exergia = −297
+        with pytest.raises(FinancialBlackHoleError):
+            identity_agent.phase2.evaluate_poynting_exergy(
+                E_field=E, H_field=H, grad_H=grad_H,
+            )
+
+    def test_poynting_dimension_error(self, identity_agent):
+        """
+        (E3d) Todos los campos vectoriales deben tener shape (n,).
+        """
+        with pytest.raises(ApexDimensionError):
+            identity_agent.phase2.evaluate_poynting_exergy(
+                E_field=np.ones((3, 1), dtype=np.float64),
+                H_field=np.ones(3, dtype=np.float64),
+                grad_H=np.zeros(3, dtype=np.float64),
+            )
+
+    # ------------------------------------------------------------------
+    # (E4) Proyector canónico a 𝔰𝔬(n)
+    # ------------------------------------------------------------------
+
+    def test_project_to_so_is_idempotent_and_antisymmetric(self, identity_agent):
+        """
+        (E4) Π_so(A) = ½(A − Aᵀ) verifica:
+            - idempotencia:  Π² = Π,
+            - imagen en 𝔰𝔬(n):  Π(A)ᵀ = −Π(A).
+        """
+        rng = np.random.default_rng(101)
+        A = rng.normal(size=(3, 3))
+
+        P1 = identity_agent.phase2._project_to_so(A)
+        P2 = identity_agent.phase2._project_to_so(P1)
+
+        assert_allclose(P1, P2, rtol=1.0e-13, atol=_ATOL_STRICT)
+        assert_allclose(P1, -P1.T, rtol=1.0e-13, atol=_ATOL_STRICT)
+        assert frobenius_asymmetry(P1) <= _ATOL_STD
+
+    # ------------------------------------------------------------------
+    # (E5) Cierre de Lie
+    # ------------------------------------------------------------------
+
+    def test_lie_commutator_closure_in_so(self, identity_agent):
+        """
+        (E5) Si B, C ∈ 𝔰𝔬(n), entonces [B, C] = BC − CB ∈ 𝔰𝔬(n)
+        (el conmutador de matrices es el bracket de Lie de 𝔤𝔩(n) y
+        𝔰𝔬(n) es subálgebra).
+        """
+        B = skew_from_pairs(3, [(0, 1)], scale=1.0)
+        C = skew_from_pairs(3, [(1, 2)], scale=1.0)
+        comm = identity_agent.phase2._lie_commutator(B, C)
+
+        assert_allclose(comm, -comm.T, rtol=1.0e-13, atol=_ATOL_STRICT)
+        assert frobenius_asymmetry(comm) <= _ATOL_STD
+
+    # ------------------------------------------------------------------
+    # (E6) Curvatura y acción de Yang-Mills
+    # ------------------------------------------------------------------
+
+    def test_compute_curvature_is_antisymmetric(self, identity_agent):
+        """
+        (E6a) La curvatura discreta F satisface Fᵀ = −F hasta precisión
+        de máquina, *incluso* si A₁, A₂ no son antisimétricas de entrada
+        (el proyector Π_so se aplica internamente).
+        """
+        rng = np.random.default_rng(202)
+        A1 = rng.normal(size=(3, 3))
+        A2 = rng.normal(size=(3, 3))
+        F = identity_agent.phase2._compute_curvature(A1, A2)
+
+        assert frobenius_asymmetry(F) <= _ATOL_STD
+
+    def test_yang_mills_action_is_nonnegative_and_exact_for_identity_metric(
+        self, identity_agent
+    ):
+        """
+        (E6b) Para G = I, S_YM = ½ ‖F‖²_F ≥ 0.  Igualdad exacta con la
+        fórmula de Frobenius.
+        """
+        F = skew_from_pairs(3, [(0, 1), (1, 2)], scale=0.1)
+        S = identity_agent.phase2._yang_mills_action(F)
+        expected = 0.5 * float(np.linalg.norm(F, "fro") ** 2)
+
+        assert S >= 0.0
+        assert_allclose(S, expected, rtol=_RTOL_STD, atol=1.0e-15)
+
+    # ------------------------------------------------------------------
+    # (E7) Holonomía
+    # ------------------------------------------------------------------
+
+    def test_audit_holonomy_trivial_for_zero_connections(self, identity_agent):
+        """
+        (E7a) A₁ = A₂ = 0 ⇒ F = 0 ⇒ S_YM = 0 y residual de antisimetría = 0
+        (holonomía trivial del fibrado principal).
+        """
+        A = np.zeros((3, 3), dtype=np.float64)
+        S, residual = identity_agent.phase2.audit_yang_mills_holonomy(A, A)
+        assert S == pytest.approx(0.0)
+        assert residual == pytest.approx(0.0)
+
+    def test_audit_holonomy_veto_raises_for_nontrivial_curvature(self):
+        """
+        (E7b) Plaqueta con generadores no conmutativos de 𝔰𝔬(3) produce
+        curvatura no nula.  Con tolerancia relativa ultra-estricta se
+        lanza ``HolonomyVetoError``.
+        """
+        I3 = np.eye(3, dtype=np.float64)
+        agent = KApexElectrodynamicAgent(
+            G_mu_nu=I3.copy(),
+            G_inv=I3.copy(),
+            R_cost=I3.copy(),
+            holonomy_tol_rel=1.0e-12,
+        )
+        A1 = skew_from_pairs(3, [(0, 1)], scale=1.0)
+        A2 = skew_from_pairs(3, [(1, 2)], scale=1.0)
+
+        with pytest.raises(HolonomyVetoError):
+            agent.phase2.audit_yang_mills_holonomy(A1, A2)
+
+    def test_audit_holonomy_dimension_error(self, identity_agent):
+        """
+        (E7c) A_gauge_1 y A_gauge_2 deben ser matrices n×n compatibles.
+        """
+        with pytest.raises(ApexDimensionError):
+            identity_agent.phase2.audit_yang_mills_holonomy(
+                np.zeros((2, 2), dtype=np.float64),
+                np.zeros((3, 3), dtype=np.float64),
+            )
+
+    def test_antisymmetry_canary_detects_invalid_curvature(
+        self, identity_agent, monkeypatch
+    ):
+        """
+        (E7d) Canario de antisimetría: si un bug interno produjera F
+        simétrica (p.ej. F = I), debe lanzarse ``ElectrodynamicApexError``.
+        """
+        phase2 = identity_agent.phase2
+        monkeypatch.setattr(
+            phase2,
+            "_compute_curvature",
+            lambda A1, A2: np.eye(3, dtype=np.float64),
+        )
+        A = np.zeros((3, 3), dtype=np.float64)
+        with pytest.raises(ElectrodynamicApexError):
+            phase2.audit_yang_mills_holonomy(A, A)
+
+    # ------------------------------------------------------------------
+    # (E8) Covarianza de gauge
+    # ------------------------------------------------------------------
+
+    def test_gauge_covariance_identity_is_exact(self, identity_agent):
+        """
+        (E8a) Q = I es isometría trivial ⇒ residual de covarianza = 0.
+        """
+        A = np.zeros((3, 3), dtype=np.float64)
+        Q = np.eye(3, dtype=np.float64)
+        residual = identity_agent.phase2.verify_gauge_covariance(A, A, Q)
+        assert residual == pytest.approx(0.0)
+
+    def test_gauge_covariance_under_orthogonal_isometry_for_identity_metric(self):
+        """
+        (E8b) Para G = I toda Q ∈ O(n) es isometría.  S_YM es invariante
+        bajo la acción adjunta A ↦ Q A Qᵀ.
+        """
+        I3 = np.eye(3, dtype=np.float64)
+        agent = KApexElectrodynamicAgent(
+            G_mu_nu=I3.copy(),
+            G_inv=I3.copy(),
+            R_cost=I3.copy(),
+            holonomy_tol_rel=1.0,  # holgado: no vetar S_YM en el diagnóstico
+        )
+        rng = np.random.default_rng(303)
+        Q, _ = np.linalg.qr(rng.normal(size=(3, 3)))
+
+        A1 = skew_from_pairs(3, [(0, 1)], scale=1.0e-3)
+        A2 = skew_from_pairs(3, [(1, 2)], scale=1.0e-3)
+
+        residual = agent.phase2.verify_gauge_covariance(A1, A2, Q)
+        assert residual <= 1.0e-6
+
+    def test_gauge_covariance_invalid_isometry_raises(self, identity_agent):
+        """
+        (E8c) Si Q no preserva G (Qᵀ G Q ≠ G), se lanza
+        ``GaugeCovarianceError`` *antes* de comparar acciones YM.
+        """
+        A = np.zeros((3, 3), dtype=np.float64)
+        Q = 2.0 * np.eye(3, dtype=np.float64)
+        with pytest.raises(GaugeCovarianceError):
+            identity_agent.phase2.verify_gauge_covariance(A, A, Q)
+
+    # ------------------------------------------------------------------
+    # (E9) Retícula booleana de viabilidad
+    # ------------------------------------------------------------------
+
+    def test_viability_flags_boolean_lattice(self):
+        """
+        (E9a) La retícula de viabilidad se comporta como álgebra de Boole
+        finita:
+            meet = &,  join = |,  ALL es unidad de orden (top).
+        """
+        a = ApexViabilityFlags.GAUGE_INJECTION_NONTRIVIAL
+        b = ApexViabilityFlags.EXERGY_NONNEGATIVE
+
+        join = a.join(b)
+        meet = join.meet(a)
+
+        assert bool(join & a)
+        assert bool(join & b)
+        assert meet == a
+
+        assert ApexViabilityFlags.ALL.is_order_unit()
+        assert not a.is_order_unit()
+
+        assert (a | b) == join
+        assert (join & a) == a
+
+    def test_describe_viability_flags_serialization(self):
+        """
+        (E9b) ``describe_viability_flags`` serializa predicados satisfechos
+        y violados, e indica viabilidad total.
+        """
+        flags = ApexViabilityFlags.GAUGE_INJECTION_NONTRIVIAL
+        text = describe_viability_flags(flags)
+
+        assert "SATISFECHOS=" in text
+        assert "GAUGE_INJECTION_NONTRIVIAL" in text
+        assert "VIOLADOS=" in text
+        assert "VIABLE_TOTAL=False" in text
+
+    # ------------------------------------------------------------------
+    # (E10) synthesize — camino feliz y banderas blandas
+    # ------------------------------------------------------------------
+
+    def test_synthesize_viable_all_flags_true(self, identity_agent):
+        """
+        (E10a) Camino feliz completo de Fase 2: todas las banderas de
+        viabilidad quedan en ALL y el estado es electrodinámicamente viable.
+        """
+        kwargs = valid_synthesis_kwargs(identity_agent, phase_norm_target=1.05)
+        state = identity_agent.synthesize_apex_field(**kwargs)
+
+        assert isinstance(state, ApexStateTensor)
+        assert state.viability_flags == ApexViabilityFlags.ALL
+        assert state.is_electrodynamically_viable is True
+
+        assert state.gauge_injection_vector.shape == (3,)
+        assert state.suppression_factor == pytest.approx(math.exp(-1.5))
+        assert state.fermat_refractive_index == pytest.approx(1.0)
+        assert state.eikonal_norm_sq == pytest.approx(1.05)
+        assert state.poynting_income == pytest.approx(3.0)
+        assert state.poynting_dissipation == pytest.approx(0.0)
+        assert state.poynting_exergy_flux == pytest.approx(3.0)
+        assert state.yang_mills_action == pytest.approx(0.0)
+        assert state.curvature_antisymmetry_residual == pytest.approx(0.0)
+        assert state.gauge_covariance_residual is None
+
+    def test_synthesize_soft_eikonal_margin_flag_false(self, identity_agent):
+        """
+        (E10b) Margen Eikonal que supera el umbral *duro* pero no el
+        *blando*: synthesize no lanza, pero ``EIKONAL_MARGIN_SOUND`` es
+        falsa y la viabilidad total falla.
+        """
+        kwargs = valid_synthesis_kwargs(identity_agent)
+        kwargs["phase_gradient"] = np.array(
+            [math.sqrt(0.92), 0.0, 0.0], dtype=np.float64
+        )
+        state = identity_agent.synthesize_apex_field(**kwargs)
+
+        assert state.eikonal_norm_sq == pytest.approx(0.92)
+        assert not bool(
+            state.viability_flags & ApexViabilityFlags.EIKONAL_MARGIN_SOUND
+        )
+        assert state.viability_flags != ApexViabilityFlags.ALL
+        assert state.is_electrodynamically_viable is False
+
+    def test_synthesize_metric_well_conditioned_flag_false(self):
+        """
+        (E10c) Si ½ κ_max < κ(G) ≤ κ_max, la bandera
+        ``METRIC_WELL_CONDITIONED`` es falsa (condición holgada pero no
+        óptima).
+        """
+        G, G_inv = diag_spd([1.0, 2.0])
+        agent = KApexElectrodynamicAgent(
+            G_mu_nu=G, G_inv=G_inv, R_cost=np.eye(2), kappa_max=3.0,
+        )
+        kwargs = valid_synthesis_kwargs(agent, phase_norm_target=1.05)
+        state = agent.synthesize_apex_field(**kwargs)
+
+        assert not bool(
+            state.viability_flags & ApexViabilityFlags.METRIC_WELL_CONDITIONED
+        )
+        assert state.viability_flags != ApexViabilityFlags.ALL
+        assert state.is_electrodynamically_viable is False
+
+    def test_synthesize_with_gauge_covariance_diagnostic(self, identity_agent):
+        """
+        (E10d) Con Q_isometry_diagnostic = I se materializa el residual
+        de covarianza de gauge (ruta diagnóstica opcional).
+        """
+        kwargs = valid_synthesis_kwargs(identity_agent)
+        kwargs["Q_isometry_diagnostic"] = np.eye(3, dtype=np.float64)
+        state = identity_agent.synthesize_apex_field(**kwargs)
+
+        assert state.gauge_covariance_residual is not None
+        assert state.gauge_covariance_residual == pytest.approx(0.0)
+
+    def test_synthesize_dimension_error(self, identity_agent):
+        """
+        (E10e) Vector mal dimensionado en synthesize ⇒ ``ApexDimensionError``.
+        """
+        kwargs = valid_synthesis_kwargs(identity_agent)
+        kwargs["d_Phi"] = np.ones((3, 1), dtype=np.float64)
+        with pytest.raises(ApexDimensionError):
+            identity_agent.synthesize_apex_field(**kwargs)
+
+    def test_state_tensor_dto_is_frozen(self, identity_agent):
+        """
+        (E10f) ``ApexStateTensor`` es inmutable (frozen dataclass).
+        """
+        kwargs = valid_synthesis_kwargs(identity_agent)
+        state = identity_agent.synthesize_apex_field(**kwargs)
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            state.suppression_factor = 0.0  # type: ignore[misc]
+
+    # ==================================================================
+    # CIERRE FUNTORIAL F₂ → F₃
+    # ------------------------------------------------------------------
+    # Último método de Fase 2.  Certifica que gauge_injection_vector —
+    # campo del ApexStateTensor — es la única entrada formal que
+    # Phase3.export_stalk está autorizada a consumir.  Este veredicto
+    # es el axioma de arranque de Fase 3.
+    # ==================================================================
+
+    def test_phase2_output_is_formal_precondition_of_phase3(self, identity_agent):
+        """
+        Contrato funtorial F₂ → F₃
+        --------------------------
+        1. ``synthesize`` produce un ``ApexStateTensor`` viable.
+        2. ``state.gauge_injection_vector`` tiene shape (n,) y es finito.
+        3. Phase3 aún es ``None`` (lazy) *antes* de la exportación.
+        4. ``export_sheaf_stalk(state.gauge_injection_vector)`` materializa
+           Phase3 y devuelve un ``SheafStalkApex`` cuyo
+           ``source_injection`` coincide exactamente con el vector de
+           inyección de gauge.
+
+        Este invariante es la *definición formal final* de Fase 2 y el
+        *axioma de arranque* de Fase 3.
+        """
+        kwargs = valid_synthesis_kwargs(identity_agent, phase_norm_target=1.05)
+        state = identity_agent.synthesize_apex_field(**kwargs)
+
+        # (1)–(2) Tensor de estado bien formado.
+        assert isinstance(state, ApexStateTensor)
+        assert state.is_electrodynamically_viable is True
+        s = state.gauge_injection_vector
+        assert s.shape == (identity_agent.context.dim,)
+        assert np.all(np.isfinite(s))
+
+        # (3) Lazy antes de exportar.
+        assert identity_agent.phase3 is None
+
+        # (4) Continuación terminal: F₂.s ↦ F₃.stalk.
+        stalk = identity_agent.export_sheaf_stalk(s)
+        assert identity_agent.phase3 is not None
+        assert isinstance(stalk, SheafStalkApex)
+        assert_allclose(stalk.source_injection, s, rtol=_RTOL_STD, atol=_ATOL_STD)
+
+
+# ##############################################################################
+#
+#  FASE 3 — PROYECCIÓN EN HACES Y LAPLACIANO DE HODGE LOCAL
+#
+#  Continuación formal de Fase 2:
+#      gauge_injection_vector  ↦  SheafStalkApex.
+#
+#  El primer test REAFIRMA el contrato F₂→F₃ y a partir de ahí verifica:
+#
+#    (H1)  Inicialización lazy de Phase3.
+#    (H2)  Identidad de Hodge local  δ_metricᵀ G δ_metric ≈ I.
+#    (H3)  Forma y rango: δ_APEX ∈ ℝ^{2n×n}, rank = n.
+#    (H4)  Laplaciano Δ = I + δ_dissᵀ δ_diss ≻ 0.
+#    (H5)  Proyecciones métrica / disipativa de s_val.
+#    (H6)  β₀ heredado como lossless_subspace_dimension.
+#    (H7)  Espectro de Hodge: brecha y número de condición.
+#    (H8)  Errores dimensionales y SheafMetricError forzado.
+#    (H9)  Copias defensivas y congelamiento del DTO terminal.
+#    (H10) Composición funtorial completa F₁ → F₂ → F₃.
+#
+# ##############################################################################
+
+
+class TestPhase3SheafProjection:
+    """
+    Suite de la Fase 3: ``Phase3_SheafProjection``.
+
+    Continuación formal de ``TestPhase2ElectrodynamicSynthesis``:
+    consume ``gauge_injection_vector`` y produce el stalk terminal del haz.
+    """
+
+    # ==================================================================
+    # APERTURA FUNTORIAL F₂ → F₃
+    # ------------------------------------------------------------------
+    # Eco del cierre de Fase 2: export_stalk acepta el vector de inyección
+    # de gauge y devuelve un SheafStalkApex coherente.
+    # ==================================================================
+
+    def test_export_stalk_is_terminal_continuation_of_phase2(self, identity_agent):
+        """
+        Axioma de arranque F₃ (eco del cierre de F₂)
+        --------------------------------------------
+        ``export_stalk`` acepta ``state.gauge_injection_vector`` y devuelve
+        un ``SheafStalkApex`` cuyo ``source_injection`` es exactamente ese
+        vector, con ``rank_delta = n``.
+        """
+        kwargs = valid_synthesis_kwargs(identity_agent)
+        state = identity_agent.synthesize_apex_field(**kwargs)
+        stalk = identity_agent.export_sheaf_stalk(state.gauge_injection_vector)
+
+        assert isinstance(stalk, SheafStalkApex)
+        assert_allclose(
+            stalk.source_injection,
+            state.gauge_injection_vector,
+            rtol=_RTOL_STD,
+            atol=_ATOL_STD,
+        )
+        assert stalk.rank_delta == identity_agent.context.dim
+
+    # ------------------------------------------------------------------
+    # (H1) Lazy init
+    # ------------------------------------------------------------------
+
+    def test_phase3_lazy_initialization(self, identity_agent):
+        """
+        (H1) Phase3 no se instancia en el constructor del agente, sino en
+        la primera llamada a ``export_sheaf_stalk``.
+        """
+        assert identity_agent.phase3 is None
+        stalk = identity_agent.export_sheaf_stalk(np.ones(3, dtype=np.float64))
+        assert identity_agent.phase3 is not None
+        assert isinstance(stalk, SheafStalkApex)
+
+    # ------------------------------------------------------------------
+    # (H2) Identidad de Hodge local
+    # ------------------------------------------------------------------
+
+    def test_delta_metric_satisfies_hodge_identity(self, identity_agent):
+        """
+        (H2) Fibra métrica:
+            δ_metricᵀ  G  δ_metric  ≈  I_n.
+
+        El residuo debe respetar la cota de Wilkinson escalada por κ(G).
+        """
+        s = np.ones(3, dtype=np.float64)
+        stalk = identity_agent.export_sheaf_stalk(s)
+
+        G = identity_agent.context.G_mu_nu
+        I3 = np.eye(3, dtype=np.float64)
+        composed = stalk.delta_metric.T @ G @ stalk.delta_metric
+
+        assert_allclose(composed, I3, rtol=_RTOL_HODGE, atol=_ATOL_HODGE)
+
+        bound = wilkinson_bound(identity_agent.context.kappa_G, 3, safety=100.0)
+        assert stalk.hodge_metric_residual <= bound
+
+    # ------------------------------------------------------------------
+    # (H3) Forma y rango de δ_APEX
+    # ------------------------------------------------------------------
+
+    def test_delta_apex_shape_and_rank(self, identity_agent):
+        """
+        (H3) δ_APEX ∈ ℝ^{2n × n} se apila como
+            [ δ_metric ; δ_dissipative ],
+        y rank(δ_APEX) = n porque δ_metric es invertible (Hodge).
+        """
+        s = np.ones(3, dtype=np.float64)
+        stalk = identity_agent.export_sheaf_stalk(s)
+
+        assert stalk.delta_apex.shape == (6, 3)
+        assert stalk.delta_metric.shape == (3, 3)
+        assert stalk.delta_dissipative.shape == (3, 3)
+        assert stalk.rank_delta == 3
+
+        # Consistencia de apilado.
+        stacked = np.vstack([stalk.delta_metric, stalk.delta_dissipative])
+        assert_allclose(stalk.delta_apex, stacked, rtol=0.0, atol=0.0)
+
+    # ------------------------------------------------------------------
+    # (H4) Laplaciano de Hodge local
+    # ------------------------------------------------------------------
+
+    def test_hodge_laplacian_definition_and_spd(self, identity_agent):
+        """
+        (H4) Definición y positividad:
+            Δ = I + δ_dissᵀ δ_diss  ≻  0.
+        """
+        s = np.ones(3, dtype=np.float64)
+        stalk = identity_agent.export_sheaf_stalk(s)
+
+        I3 = np.eye(3, dtype=np.float64)
+        expected = I3 + stalk.delta_dissipative.T @ stalk.delta_dissipative
+        assert_allclose(stalk.hodge_laplacian, expected, rtol=_RTOL_STD, atol=_ATOL_STD)
+
+        eigvals = assert_spd(stalk.hodge_laplacian, "hodge_laplacian")
+        assert eigvals[0] > 0.0
+
+    # ------------------------------------------------------------------
+    # (H5) Proyecciones de la fuente
+    # ------------------------------------------------------------------
+
+    def test_source_projections_are_consistent(self, identity_agent):
+        """
+        (H5) Las secciones exportadas cumplen:
+            projected_metric      = δ_metric · s,
+            projected_dissipative = δ_diss  · s.
+        """
+        s = np.array([1.0, -2.0, 3.0], dtype=np.float64)
+        stalk = identity_agent.export_sheaf_stalk(s)
+
+        assert_allclose(
+            stalk.projected_source_metric,
+            stalk.delta_metric @ s,
+            rtol=_RTOL_STD,
+            atol=_ATOL_STD,
+        )
+        assert_allclose(
+            stalk.projected_source_dissipative,
+            stalk.delta_dissipative @ s,
+            rtol=_RTOL_STD,
+            atol=_ATOL_STD,
         )
 
-    def export_sheaf_stalk(
-        self, s_val: NDArray[np.float64]
-    ) -> SheafStalkApex:
-        r"""
-        Exporta el Stalk del haz electrodinámico
-        (fibra métrica + fibra disipativa).
+    # ------------------------------------------------------------------
+    # (H6) Herencia de β₀
+    # ------------------------------------------------------------------
 
-        Instancia la Fase 3 perezosamente en la primera llamada
-        (lazy init sobre ``ApexPreparationContext`` de Fase 1).
-
-        Parámetros
-        ----------
-        s_val : NDArray[np.float64], shape (n,)
-            Típicamente ``ApexStateTensor.gauge_injection_vector``.
-
-        Retorna
-        -------
-        SheafStalkApex
+    def test_lossless_subspace_dimension_is_inherited_from_beta0(self):
         """
-        if self.phase3 is None:
-            self.phase3 = (
-                KApexElectrodynamicAgent.Phase3_SheafProjection(
-                    context=self.context
-                )
-            )
-            logger.info(
-                "[KApexElectrodynamicAgent] Phase3_SheafProjection "
-                "instanciada (lazy init). rank_delta=%d, "
-                "Hodge_residual=%.3e.",
-                self.phase3._rank_delta,
-                self.phase3._hodge_metric_residual,
-            )
-        return self.phase3.export_stalk(s_val=s_val)
+        (H6) ``lossless_subspace_dimension`` hereda β₀ = dim ker(R_cost).
+        Para R = diag(0, 1, 2) ⇒ β₀ = 1.
+        """
+        R = diag_psd([0.0, 1.0, 2.0])
+        agent = KApexElectrodynamicAgent(np.eye(3), np.eye(3), R)
+        stalk = agent.export_sheaf_stalk(np.ones(3, dtype=np.float64))
+
+        assert stalk.lossless_subspace_dimension == 1
+        assert stalk.lossless_subspace_dimension == agent.context.betti_0_R
+
+    # ------------------------------------------------------------------
+    # (H7) Espectro de Hodge
+    # ------------------------------------------------------------------
+
+    def test_hodge_spectrum_nontrivial_gap_and_condition(self):
+        """
+        (H7a) G = I, R = diag(1, 2, 3):
+            Δ = I + R = diag(2, 3, 4),
+            gap = 3 − 2 = 1,
+            κ(Δ) = 4 / 2 = 2.
+        """
+        R = diag_psd([1.0, 2.0, 3.0])
+        agent = KApexElectrodynamicAgent(np.eye(3), np.eye(3), R)
+        stalk = agent.export_sheaf_stalk(np.ones(3, dtype=np.float64))
+
+        assert stalk.hodge_spectral_gap == pytest.approx(1.0)
+        assert stalk.hodge_condition_number == pytest.approx(2.0)
+
+    def test_hodge_spectrum_zero_dissipation(self):
+        """
+        (H7b) R = 0 ⇒ Δ = I, gap = 0, κ(Δ) = 1.
+        """
+        agent = KApexElectrodynamicAgent(
+            np.eye(3), np.eye(3), np.zeros((3, 3)),
+        )
+        stalk = agent.export_sheaf_stalk(np.ones(3, dtype=np.float64))
+
+        assert stalk.hodge_spectral_gap == pytest.approx(0.0)
+        assert stalk.hodge_condition_number == pytest.approx(1.0)
+
+    # ------------------------------------------------------------------
+    # (H8) Errores
+    # ------------------------------------------------------------------
+
+    def test_export_stalk_dimension_error(self, identity_agent):
+        """
+        (H8a) s_val debe tener shape (n,).
+        """
+        with pytest.raises(ApexDimensionError):
+            identity_agent.export_sheaf_stalk(np.ones((3, 1), dtype=np.float64))
+
+    def test_hodge_metric_error_can_be_forced(self, monkeypatch):
+        """
+        (H8b) Si se colapsa ``_WILKINSON_SAFETY < 0``, la identidad de
+        Hodge falla y se lanza ``SheafMetricError``.
+        """
+        G, G_inv = diag_spd([1.0, 2.0, 4.0])
+        R = diag_psd([1.0, 2.0, 3.0])
+        agent = KApexElectrodynamicAgent(G, G_inv, R)
+
+        # Phase3 aún no instanciada; la tolerancia se lee en su __init__.
+        monkeypatch.setattr(mod, "_WILKINSON_SAFETY", -1.0)
+
+        with pytest.raises(SheafMetricError):
+            agent.export_sheaf_stalk(np.ones(3, dtype=np.float64))
+
+    # ------------------------------------------------------------------
+    # (H9) Copias defensivas y frozen DTO
+    # ------------------------------------------------------------------
+
+    def test_export_stalk_returns_defensive_copies(self, identity_agent):
+        """
+        (H9a) Cada exportación devuelve tensores frescos (no aliases
+        internos).  El contenido numérico es idéntico bit a bit.
+        """
+        s = np.ones(3, dtype=np.float64)
+        stalk1 = identity_agent.export_sheaf_stalk(s)
+        stalk2 = identity_agent.export_sheaf_stalk(s)
+
+        assert stalk1.delta_apex is not stalk2.delta_apex
+        assert stalk1.delta_metric is not stalk2.delta_metric
+        assert stalk1.delta_dissipative is not stalk2.delta_dissipative
+        assert stalk1.hodge_laplacian is not stalk2.hodge_laplacian
+
+        assert_allclose(stalk1.delta_apex, stalk2.delta_apex, rtol=0.0, atol=0.0)
+        assert_allclose(stalk1.delta_metric, stalk2.delta_metric, rtol=0.0, atol=0.0)
+        assert_allclose(
+            stalk1.delta_dissipative, stalk2.delta_dissipative, rtol=0.0, atol=0.0,
+        )
+        assert_allclose(
+            stalk1.hodge_laplacian, stalk2.hodge_laplacian, rtol=0.0, atol=0.0,
+        )
+
+    def test_sheaf_stalk_dto_is_frozen(self, identity_agent):
+        """
+        (H9b) ``SheafStalkApex`` es inmutable.
+        """
+        stalk = identity_agent.export_sheaf_stalk(np.ones(3, dtype=np.float64))
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            stalk.rank_delta = 99  # type: ignore[misc]
+
+    # ==================================================================
+    # (H10) COMPOSICIÓN FUNTORIAL COMPLETA F₁ → F₂ → F₃
+    # ------------------------------------------------------------------
+    # Cierre terminal de la suite: el diagrama conmuta de extremo a
+    # extremo sobre un sistema diagonal no trivial.
+    # ==================================================================
+
+    def test_full_functorial_pipeline_phase1_phase2_phase3(self, diagonal_agent):
+        """
+        Composición funtorial completa
+        --------------------------------
+            build_context ──► synthesize ──► export_stalk.
+
+        Sistema testigo (diagonal, bien condicionado)::
+
+            G = diag(1, 2, 3),   R = diag(0.5, 1.5, 2.5).
+
+        Obligaciones
+        ------------
+        - F₁: contexto válido, rank(R) = 3, β₀ = 0.
+        - F₂: síntesis con viability_flags = ALL.
+        - F₃: stalk terminal con rank_delta = 3, lossless = 0,
+              source_injection = gauge_injection_vector,
+              Δ_Hodge ≻ 0, residuo de Hodge ≤ cota de Wilkinson.
+        """
+        agent = diagonal_agent
+
+        # ── F₁ ────────────────────────────────────────────────────────
+        assert isinstance(agent.context, ApexPreparationContext)
+        assert agent.context.dim == 3
+        assert agent.context.rank_R == 3
+        assert agent.context.betti_0_R == 0
+        assert_spd(agent.context.G_mu_nu, "G")
+        assert_psd(agent.context.R_cost, "R")
+
+        # ── F₂ ────────────────────────────────────────────────────────
+        kwargs = valid_synthesis_kwargs(agent, phase_norm_target=1.1)
+        state = agent.synthesize_apex_field(**kwargs)
+
+        assert isinstance(state, ApexStateTensor)
+        assert state.viability_flags == ApexViabilityFlags.ALL
+        assert state.is_electrodynamically_viable is True
+        assert state.gauge_injection_vector.shape == (3,)
+        assert np.all(np.isfinite(state.gauge_injection_vector))
+
+        # ── F₃ ────────────────────────────────────────────────────────
+        stalk = agent.export_sheaf_stalk(state.gauge_injection_vector)
+
+        assert isinstance(stalk, SheafStalkApex)
+        assert stalk.rank_delta == 3
+        assert stalk.lossless_subspace_dimension == 0
+        assert_allclose(
+            stalk.source_injection,
+            state.gauge_injection_vector,
+            rtol=_RTOL_STD,
+            atol=_ATOL_STD,
+        )
+
+        # Δ_APEX ≻ 0.
+        eigvals = assert_spd(stalk.hodge_laplacian, "Δ_Hodge")
+        assert np.all(eigvals > 0.0)
+
+        # Identidad de Hodge numéricamente sólida.
+        bound = wilkinson_bound(agent.context.kappa_G, agent.context.dim, safety=100.0)
+        assert stalk.hodge_metric_residual <= bound
+
+        # Eco del apilado δ_APEX = [δ_metric; δ_diss].
+        assert stalk.delta_apex.shape == (2 * agent.context.dim, agent.context.dim)

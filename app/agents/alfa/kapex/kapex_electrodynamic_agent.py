@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
 ║  Módulo : KApex Electrodynamic Agent (Director de Retorno y Expansión de Mercado)        ║
-║  Ruta   : app/agents/alpha/kapex/kapex_electrodynamic_agent.py                           ║
+║  Ruta   : app/agents/alfa/kapex/kapex_electrodynamic_agent.py                           ║
 ║  Versión: 7.0.0-Rigorous-Gauge-Curvature-Sheaf-Nested                                    ║
 ╠══════════════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                          ║

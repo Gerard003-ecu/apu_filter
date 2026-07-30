@@ -1,1143 +1,1967 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Geodesic Attention Fibrator Agent (Custodio de Covarianza)          ║
-║ Ruta   : app/agents/boole/wisdom/geodesic_attention_fibrator_agent.py        ║
-║ Versión: 2.0.0-Ricci-Polyakov-FeynmanKac-Strict                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna al `geodesic_attention_fibrator.py` en el estrato WISDOM.
-
-Subordina la generación de tensores de atención del LLM a las leyes invariantes
-del flujo de Ricci, la acción de Polyakov y la integral de Feynman-Kac.
-
-Erradica las heurísticas atencionales basadas en distancia euclidiana plana y
-exige que toda conexión Query-Key ocurra sobre geodésicas de mínima acción.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Auditoría del Flujo de Ricci y Torsión:
-    Exige convergencia métrica relativa:
-
-        ||g_{k+1} - g_k||_F / max(1, ||g_k||_F, ||g_{k+1}||_F) < ε_Ricci.
-
-    Además valida que ambas métricas sean Riemannianas válidas:
-        - Simétricas.
-        - Definidas positivas.
-        - Finitas.
-        - Numéricamente estables.
-
-    Último método de Fase 1:
-        _audit_ricci_flow_convergence(...)
-
-    Dicho método retorna un certificado `RicciFlowAuditData`, el cual se
-    convierte en el objeto inicial de la Fase 2.
-
-Fase 2 → Certificación de la Acción de Polyakov:
-    Garantiza la minimización covariante:
-
-        E[γ] = 1/2 ∫ g_{μν} γ̇^μ γ̇^ν dτ.
-
-    En forma discreta:
-
-        E[γ] ≈ 1/2 Σ_i v_iᵀ G v_i Δτ.
-
-    Primer método de Fase 2:
-        _certify_polyakov_geodesic_action(..., ricci_audit)
-
-    Este método es la continuación formal de Fase 1: recibe el certificado de
-    convergencia métrica y lo propaga como invariante inicial.
-
-Fase 3 → Veto Cuántico de Feynman-Kac:
-    Fuerza la amplitud de transición:
-
-        Ψ[γ] = exp(-S_E / ħ_eff) ≥ Ψ_min,
-
-    donde:
-
-        S_E = E_Polyakov + λ ||T||²_HS.
-
-    Primer método de Fase 3:
-        _enforce_feynman_kac_quantum_veto(..., polyakov_audit)
-
-    Este método continúa formalmente la Fase 2: recibe el certificado de
-    estabilidad geodésica y verifica que la amplitud cuántica sea admisible.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Test Suite — Geodesic Attention Fibrator Agent (Custodio de Covarianza)        ║
+║  Ruta   : tests/unit/agents/boole/wisdom/test_geodesic_attention_fibrator_agent.py       ║
+║  Versión: 7.0.0-Rigorous-Ricci-Polyakov-FeynmanKac-Hodge-Spectral-TestSuite              ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  PROPÓSITO CIBER-FÍSICO Y TOPOLOGÍA DE PRUEBAS (Rigor Categórico):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Esta suite de pruebas consagra la Gobernanza de Covarianza Atencional del estrato       ║
+║  WISDOM mediante un funtor de validación que verifica axiomáticamente el flujo de        ║
+║  Ricci, la acción de Polyakov y el veto cuántico de Feynman-Kac del modelo LLM.          ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Auditoría del Flujo de Ricci y Torsión                                         ║
+║           Verifica convergencia métrica, SPD, simetría y números de condición.           ║
+║                                                                                          ║
+║  Fase 2 → Certificación de la Acción de Polyakov                                         ║
+║           Computa E[γ], certifica estabilidad geodésica y valida términos cinéticos.     ║
+║                                                                                          ║
+║  Fase 3 → Veto Cuántico de Feynman-Kac                                                   ║
+║           Sintetiza la amplitud de transición Ψ[γ] subyugada al mínimo cuántico.         ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝
 """
-
 from __future__ import annotations
 
+# =============================================================================
+# Biblioteca estándar
+# =============================================================================
 import logging
-import math
-from dataclasses import dataclass
-from typing import Any, Final, List, Optional
+from typing import Tuple, Optional
+from pathlib import Path
 
+# =============================================================================
+# Framework de pruebas
+# =============================================================================
+import pytest
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
+# =============================================================================
+# Módulo bajo prueba
+# =============================================================================
+from app.agents.boole.wisdom.geodesic_attention_fibrator_agent import (
+    GeodesicAttentionFibratorAgent,
+    RicciFlowAuditData,
+    PolyakovActionAuditData,
+    FeynmanKacAuditData,
+    GeodesicAttentionGovernanceState,
+    # Excepciones
+    GeodesicAttentionAgentError,
+    GeodesicInputValidationError,
+    MetricDegeneracyError,
+    RicciFlowDivergenceError,
+    PolyakovActionViolationError,
+    QuantumFeynmanKacVeto,
+)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Dependencias arquitectónicas del ecosistema APU Filter
-# ─────────────────────────────────────────────────────────────────────────────
-try:
-    from app.core.mic_algebra import Morphism, TopologicalInvariantError
-except ImportError:
+# =============================================================================
+# Logger y constantes globales de prueba
+# =============================================================================
+logger = logging.getLogger("MAC.Wisdom.Test.GeodesicAttentionFibratorAgent")
+_MACHINE_EPS: float = float(np.finfo(np.float64).eps)
 
-    class TopologicalInvariantError(Exception):
-        r"""Violación a un invariante topológico categórico en el Topos E_MIC."""
-        pass
-
-    class Morphism:
-        r"""Clase base de Morfismos del Topos."""
-        pass
-
-
-logger = logging.getLogger("MAC.Wisdom.GeodesicAttentionFibratorAgent")
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# §A. CONSTANTES FÍSICO-GEOMÉTRICAS Y LÍMITES CUÁNTICOS
-# ═══════════════════════════════════════════════════════════════════════════════
-_MACHINE_EPSILON: Final[float] = float(np.finfo(np.float64).eps)
-
-_RICCI_CONVERGENCE_TOL: Final[float] = 1e-8
-_POLYAKOV_ENERGY_CEILING: Final[float] = 1e6
-_HBAR_EFF: Final[float] = 1.054e-2
-_MIN_QUANTUM_AMPLITUDE: Final[float] = 1e-4
-
-_METRIC_SYMMETRY_TOLERANCE: Final[float] = 1e-10
-_SPD_NEGATIVE_TOLERANCE: Final[float] = 1e-12
-_SPD_EIGENVALUE_FLOOR: Final[float] = 1e-15
-
-_KINETIC_TOLERANCE: Final[float] = 1e-12
-_ENERGY_TOLERANCE: Final[float] = 1e-12
-_ACTION_TOLERANCE: Final[float] = 1e-12
-
-_NUMERICAL_SAFETY_FACTOR: Final[float] = 128.0
+# =============================================================================
+# FIXTURES GLOBALES — GENERADORES DE TENORES MÉTRICOS Y ESTADOS
+# =============================================================================
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §B. JERARQUÍA DE EXCEPCIONES GEOMÉTRICAS
-# ═══════════════════════════════════════════════════════════════════════════════
-class GeodesicAttentionAgentError(TopologicalInvariantError):
-    r"""Excepción raíz del Custodio de Covarianza Atencional."""
-    pass
-
-
-class GeodesicInputValidationError(GeodesicAttentionAgentError):
-    r"""Detonada si los tensores métricos, velocidades o escalares son inválidos."""
-    pass
-
-
-class MetricDegeneracyError(GeodesicAttentionAgentError):
-    r"""Detonada si una métrica no es simétrica, finita o definida positiva."""
-    pass
-
-
-class RicciFlowDivergenceError(GeodesicAttentionAgentError):
-    r"""Detonada si el flujo de Ricci no converge dentro de la tolerancia elástica."""
-    pass
-
-
-class PolyakovActionViolationError(GeodesicAttentionAgentError):
-    r"""Detonada si la energía geodésica de Polyakov es inválida, negativa o divergente."""
-    pass
-
-
-class QuantumFeynmanKacVeto(GeodesicAttentionAgentError):
-    r"""Detonada si la amplitud cuántica de transición cae bajo el mínimo físico."""
-    pass
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# §C. ESTRUCTURAS INMUTABLES (DTOs del Fibrado Covariante)
-# ═══════════════════════════════════════════════════════════════════════════════
-@dataclass(frozen=True, slots=True)
-class RicciFlowAuditData:
+@pytest.fixture(scope="module")
+def fixture_valid_metrics_3d() -> Tuple[
+    NDArray[np.float64],
+    NDArray[np.float64],
+]:
     r"""
-    Artefacto de Fase 1.
-    Certificado de convergencia de la métrica Riemanniana discreta.
-
-    Este objeto es el resultado final del último método de Fase 1 y el objeto
-    inicial de Fase 2.
+    Genera tensores métricos Riemannianos válidos para dim=3.
+    
+    Retorna
+    -------
+    Tuple[g_k, g_k_plus_1]
+        Métricas SPD simétricas con convergencia garantizada.
     """
-    dimension: int
-    metric_residual_norm: float
-    metric_relative_residual: float
-    condition_number_g_k: float
-    condition_number_g_k_plus_1: float
-    metric_convergence_tolerance: float
-    is_metric_converged: bool
+    dim = 3
+    
+    # g_k: SPD simétrica
+    g_k: NDArray[np.float64] = np.array(
+        [[1.1, 0.05, 0.02],
+         [0.05, 1.0, 0.03],
+         [0.02, 0.03, 0.9]], dtype=np.float64
+    )
+    
+    # g_k_plus_1: SPD simétrica, cercana a g_k (convergencia Ricci)
+    g_k_plus_1: NDArray[np.float64] = np.array(
+        [[1.12, 0.06, 0.025],
+         [0.06, 1.02, 0.035],
+         [0.025, 0.035, 0.92]], dtype=np.float64
+    )
+    
+    return g_k, g_k_plus_1
 
 
-@dataclass(frozen=True, slots=True)
-class PolyakovActionAuditData:
+@pytest.fixture(scope="module")
+def fixture_valid_metrics_2d() -> Tuple[
+    NDArray[np.float64],
+    NDArray[np.float64],
+]:
     r"""
-    Artefacto de Fase 2.
-    Certificado de transporte paralelo y energía geodésica.
-
-    Este objeto es el resultado final de Fase 2 y el objeto inicial de Fase 3.
+    Genera tensores métricos Riemannianos válidos para dim=2 (caso mínimo).
+    
+    Retorna
+    -------
+    Tuple[g_k, g_k_plus_1]
     """
-    steps: int
-    dimension: int
-    geodesic_energy: float
-    min_kinetic_term: float
-    max_kinetic_term: float
-    energy_ceiling: float
-    polyakov_tolerance: float
-    is_geodesic_stable: bool
+    dim = 2
+    
+    g_k: NDArray[np.float64] = np.array(
+        [[1.1, 0.05],
+         [0.05, 1.0]], dtype=np.float64
+    )
+    
+    g_k_plus_1: NDArray[np.float64] = np.array(
+        [[1.12, 0.06],
+         [0.06, 1.02]], dtype=np.float64
+    )
+    
+    return g_k, g_k_plus_1
 
 
-@dataclass(frozen=True, slots=True)
-class FeynmanKacAuditData:
+@pytest.fixture(scope="module")
+def fixture_valid_geodesic_velocity_3d() -> NDArray[np.float64]:
     r"""
-    Artefacto de Fase 3.
-    Certificado de amplitud de transición cuántica.
+    Genera matriz de velocidades geodésicas válida para dim=3.
+    
+    Retorna
+    -------
+    NDArray[np.float64], shape (steps, dim)
     """
-    euclidean_action: float
-    log_transition_amplitude: float
-    transition_amplitude: float
-    min_quantum_amplitude: float
-    is_attention_allowed: bool
+    steps, dim = 5, 3
+    
+    velocity: NDArray[np.float64] = np.array(
+        [[0.1, 0.05, 0.08],
+         [0.12, 0.06, 0.09],
+         [0.11, 0.055, 0.085],
+         [0.13, 0.065, 0.095],
+         [0.105, 0.052, 0.082]], dtype=np.float64
+    )
+    
+    return velocity
 
 
-@dataclass(frozen=True, slots=True)
-class GeodesicAttentionGovernanceState:
+@pytest.fixture(scope="module")
+def fixture_valid_geodesic_velocity_1d() -> NDArray[np.float64]:
     r"""
-    Objeto final del endofuntor Z_GeodesicAgent.
+    Genera vector de velocidad geodésica 1D (caso mínimo).
+    
+    Retorna
+    -------
+    NDArray[np.float64], shape (dim,)
     """
-    ricci_audit: RicciFlowAuditData
-    polyakov_audit: PolyakovActionAuditData
-    feynman_kac_audit: FeynmanKacAuditData
-    is_epistemologically_valid: bool
+    velocity: NDArray[np.float64] = np.array([0.1, 0.05, 0.08], dtype=np.float64)
+    
+    return velocity
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §D. GUARDAS NUMÉRICAS INTERNAS
-# ═══════════════════════════════════════════════════════════════════════════════
-class _FiniteNumericalGuard:
+@pytest.fixture(scope="module")
+def fixture_valid_scalar_params() -> Tuple[float, float, float]:
     r"""
-    Capa de saneamiento numérico para evitar que singularidades aritméticas
-    contaminen los invariantes geométricos y cuánticos.
+    Genera parámetros escalares válidos para la síntesis.
+    
+    Retorna
+    -------
+    Tuple[d_tau, torsion_hs_norm_sq, lambda_coupling]
     """
-
-    @staticmethod
-    def _as_finite_real_array(name: str, value: Any) -> NDArray[np.float64]:
-        r"""
-        Convierte un objeto a arreglo float64, rechazando:
-            - Objetos complejos.
-            - Valores NaN.
-            - Valores infinitos.
-        """
-        try:
-            raw = np.asarray(value)
-        except Exception as exc:
-            raise GeodesicInputValidationError(
-                f"{name} no puede interpretarse como arreglo numérico."
-            ) from exc
-
-        if np.iscomplexobj(raw):
-            raise GeodesicInputValidationError(
-                f"{name} debe ser real; se rechazó entrada compleja."
-            )
-
-        try:
-            arr = raw.astype(np.float64, copy=False)
-        except (TypeError, ValueError) as exc:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser numérico real convertible a float64."
-            ) from exc
-
-        if not np.all(np.isfinite(arr)):
-            raise GeodesicInputValidationError(
-                f"{name} contiene valores NaN o infinitos."
-            )
-
-        return arr
-
-    @classmethod
-    def _as_finite_real_matrix(
-        cls,
-        name: str,
-        value: Any,
-        *,
-        square: bool = False,
-    ) -> NDArray[np.float64]:
-        r"""
-        Valida una matriz real finita.
-        """
-        arr = cls._as_finite_real_array(name, value)
-
-        if arr.ndim != 2:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser una matriz 2D."
-            )
-
-        if square and arr.shape[0] != arr.shape[1]:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser una matriz cuadrada."
-            )
-
-        return arr
-
-    @classmethod
-    def _as_finite_velocity_matrix(
-        cls,
-        name: str,
-        value: Any,
-    ) -> NDArray[np.float64]:
-        r"""
-        Valida una matriz de velocidades geodésicas.
-
-        Acepta:
-            - Matriz 2D de forma (steps, dim).
-            - Vector 1D de forma (dim,), interpretado como un único paso.
-        """
-        arr = cls._as_finite_real_array(name, value)
-
-        if arr.ndim == 1:
-            arr = arr.reshape(1, -1)
-        elif arr.ndim != 2:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser una matriz 2D (steps, dim) o un vector 1D."
-            )
-
-        if arr.size == 0 or arr.shape[0] == 0 or arr.shape[1] == 0:
-            raise GeodesicInputValidationError(
-                f"{name} no puede ser vacío."
-            )
-
-        return arr
-
-    @classmethod
-    def _as_finite_scalar(cls, name: str, value: Any) -> float:
-        r"""
-        Valida un escalar real finito.
-        """
-        arr = cls._as_finite_real_array(name, value)
-
-        if arr.size != 1:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser un escalar."
-            )
-
-        scalar = float(arr.reshape(-1)[0])
-
-        if not math.isfinite(scalar):
-            raise GeodesicInputValidationError(
-                f"{name} no es finito."
-            )
-
-        return scalar
-
-    @classmethod
-    def _as_finite_positive_scalar(cls, name: str, value: Any) -> float:
-        r"""
-        Valida un escalar real estrictamente positivo.
-        """
-        scalar = cls._as_finite_scalar(name, value)
-
-        positivity_tolerance = (
-            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON
-        )
-
-        if scalar <= positivity_tolerance:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser estrictamente positivo. "
-                f"Valor recibido = {scalar:.6e}."
-            )
-
-        return scalar
-
-    @classmethod
-    def _as_finite_nonnegative_scalar(cls, name: str, value: Any) -> float:
-        r"""
-        Valida un escalar real no negativo.
-
-        Si la negatividad es sólo numérica y pequeña, se proyecta a cero.
-        """
-        scalar = cls._as_finite_scalar(name, value)
-
-        nonnegative_tolerance = (
-            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON
-        )
-
-        if scalar < -nonnegative_tolerance:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser no negativo. "
-                f"Valor recibido = {scalar:.6e}."
-            )
-
-        return max(0.0, scalar)
+    d_tau: float = 0.01
+    torsion_hs_norm_sq: float = 0.05
+    lambda_coupling: float = 0.1
+    
+    return d_tau, torsion_hs_norm_sq, lambda_coupling
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 1: AUDITORÍA DE LA CONVERGENCIA DEL FLUJO DE RICCI                   ║
-# ║                                                                             ║
-# ║   Valida:                                                                   ║
-# ║       g_k, g_{k+1} ∈ Sym^+(n)                                               ║
-# ║       ||g_{k+1} - g_k||_F / scale < ε_Ricci                                 ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-class Phase1_RicciFlowAuditor(_FiniteNumericalGuard):
+# =============================================================================
+# FASE 1 — AUDITORÍA DEL FLUJO DE RICCI Y TORSIÓN
+# =============================================================================
+class TestPhase1_RicciFlowAuditor:
     r"""
-    Garantiza que la deformación métrica inducida por la torsión atencional
-    converja a un estado estacionario suave.
-
-    La métrica Riemanniana discreta debe permanecer en el cono de matrices
-    simétricas definidas positivas:
-
-        g ∈ Sym^+(n).
-
-    Esto evita colapsos de firma, torsión no física y burbujeo geométrico.
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    FASE 1 — AUDITORÍA DE CONVERGENCIA MÉTRICA Y FLUJO DE RICCI
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida el endofuntor Phase1_RicciFlowAuditor que consagra la
+    geometría Riemanniana discreta del espacio atencional. Cada método verifica un axioma
+    constitutivo del estrato WISDOM.
+    
+    Invariantes Verificados:
+    ------------------------
+    1. Coherencia dimensional de g_k, g_k_plus_1
+    2. Simetría de métricas (G = Gᵀ)
+    3. Definida positiva (λ_min > 0)
+    4. Finitud de entradas (no NaN, no Inf)
+    5. Convergencia del flujo: ||g_{k+1} - g_k||_F / scale < ε_Ricci
+    6. Números de condición κ < κ_max
+    7. Regularización espectral de autovalores pequeños
     """
-
-    def _sanitize_spd_metric(
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.1 — VALIDACIÓN DIMENSIONAL Y ESTRUCTURAL
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_dimensions_valid_3d(
         self,
-        name: str,
-        metric: NDArray[np.float64],
-    ) -> tuple[NDArray[np.float64], NDArray[np.float64], float, float, float]:
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
         r"""
-        Valida y sanea una métrica Riemanniana.
-
-        Exige:
-            - Matriz cuadrada.
-            - Entradas finitas.
-            - Simetría dentro de tolerancia.
-            - Espectro real.
-            - Positive definiteness dentro de tolerancia.
-
-        Retorna:
-            metric_sanitized:
-                Métrica simétrica y definida positiva reconstruida espectralmente.
-
-            eigenvalues:
-                Autovalores saneados.
-
-            condition_number:
-                Número de condición espectral κ(G).
-
-            min_eigenvalue_original:
-                Mínimo autovalor original antes de saneamiento.
-
-            max_eigenvalue_original:
-                Máximo autovalor original antes de saneamiento.
+        Verifica que métricas 3D válidas pasan la validación dimensional.
+        
+        Axioma: g_k, g_k_plus_1 ∈ ℝ^{n×n}, misma dimensión
         """
-        G = self._as_finite_real_matrix(name, metric, square=True)
-
-        if G.shape[0] == 0:
-            raise GeodesicInputValidationError(
-                f"{name} no puede ser una métrica vacía."
-            )
-
-        frobenius_norm = float(la.norm(G, ord="fro"))
-
-        if not math.isfinite(frobenius_norm):
-            raise MetricDegeneracyError(
-                f"La norma de Frobenius de {name} no es finita."
-            )
-
-        symmetry_residual_norm = float(la.norm(G - G.T, ord="fro"))
-
-        if not math.isfinite(symmetry_residual_norm):
-            raise MetricDegeneracyError(
-                f"El residuo de simetría de {name} no es finito."
-            )
-
-        symmetry_tolerance = max(
-            _METRIC_SYMMETRY_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON,
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
         )
-
-        symmetry_relative_residual = symmetry_residual_norm / max(
-            1.0,
-            frobenius_norm,
-        )
-
-        if symmetry_relative_residual > symmetry_tolerance:
-            raise MetricDegeneracyError(
-                f"{name} no es simétrica dentro de tolerancia. "
-                f"Residuo relativo = {symmetry_relative_residual:.6e} > "
-                f"{symmetry_tolerance:.6e}."
-            )
-
-        G_symmetric = (G + G.T) / 2.0
-
-        if not np.all(np.isfinite(G_symmetric)):
-            raise MetricDegeneracyError(
-                f"La simetrización de {name} produjo valores no finitos."
-            )
-
-        try:
-            eigenvalues, eigenvectors = np.linalg.eigh(G_symmetric)
-        except np.linalg.LinAlgError as exc:
-            raise MetricDegeneracyError(
-                f"Diagonalización hermítica de {name} falló."
-            ) from exc
-
-        eigenvalues = np.asarray(eigenvalues, dtype=np.float64)
-
-        if not np.all(np.isfinite(eigenvalues)):
-            raise MetricDegeneracyError(
-                f"Los autovalores de {name} no son finitos."
-            )
-
-        if eigenvalues.size == 0:
-            raise MetricDegeneracyError(
-                f"{name} posee espectro vacío."
-            )
-
-        max_eigenvalue_original = float(np.max(eigenvalues))
-        min_eigenvalue_original = float(np.min(eigenvalues))
-
-        if max_eigenvalue_original <= 0.0:
-            raise MetricDegeneracyError(
-                f"{name} no es definida positiva. "
-                f"Máximo autovalor = {max_eigenvalue_original:.6e}."
-            )
-
-        negative_tolerance = max(
-            _SPD_NEGATIVE_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, max_eigenvalue_original),
-        )
-
-        if min_eigenvalue_original < -negative_tolerance:
-            raise MetricDegeneracyError(
-                f"{name} no es definida positiva. "
-                f"Autovalor mínimo = {min_eigenvalue_original:.6e} < "
-                f"-{negative_tolerance:.6e}."
-            )
-
-        eigenvalue_floor = max(
-            _SPD_EIGENVALUE_FLOOR,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, max_eigenvalue_original),
-        )
-
-        if np.any(eigenvalues < eigenvalue_floor):
-            logger.warning(
-                "%s posee autovalores por debajo del piso numérico %.6e; "
-                "se regulariza espectralmente.",
-                name,
-                eigenvalue_floor,
-            )
-            eigenvalues = np.clip(eigenvalues, eigenvalue_floor, None)
-
-        metric_sanitized = (eigenvectors * eigenvalues) @ eigenvectors.T
-        metric_sanitized = (metric_sanitized + metric_sanitized.T) / 2.0
-
-        if not np.all(np.isfinite(metric_sanitized)):
-            raise MetricDegeneracyError(
-                f"La reconstrucción espectral de {name} produjo valores no finitos."
-            )
-
-        min_eigenvalue_sanitized = float(np.min(eigenvalues))
-        max_eigenvalue_sanitized = float(np.max(eigenvalues))
-
-        if min_eigenvalue_sanitized <= 0.0:
-            raise MetricDegeneracyError(
-                f"{name} sigue siendo degenerada tras el saneamiento espectral."
-            )
-
-        condition_number = float(
-            max_eigenvalue_sanitized / min_eigenvalue_sanitized
-        )
-
-        if not math.isfinite(condition_number):
-            raise MetricDegeneracyError(
-                f"El número de condición de {name} no es finito."
-            )
-
-        return (
-            metric_sanitized,
-            eigenvalues,
-            condition_number,
-            min_eigenvalue_original,
-            max_eigenvalue_original,
-        )
-
-    def _audit_ricci_flow_convergence(
+        
+        assert ricci_audit.dimension == 3
+        assert ricci_audit.is_metric_converged is True
+        assert ricci_audit.metric_relative_residual < 1e-8
+    
+    def test_phase1_dimensions_valid_2d(
         self,
-        g_k: NDArray[np.float64],
-        g_k_plus_1: NDArray[np.float64],
-    ) -> RicciFlowAuditData:
+        fixture_valid_metrics_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
         r"""
-        Último método de la Fase 1.
-
-        Calcula el residuo relativo del flujo métrico discreto:
-
-            ||g_{k+1} - g_k||_F / max(1, ||g_k||_F, ||g_{k+1}||_F).
-
-        Exige que ambas métricas sean Riemannianas válidas y que el residuo
-        sea menor que la tolerancia de convergencia.
-
-        Este método retorna un certificado `RicciFlowAuditData`, el cual
-        constituye el objeto inicial de la Fase 2.
+        Verifica caso mínimo dim=2 (frontera inferior).
         """
-        G_k, _, condition_k, _, _ = self._sanitize_spd_metric("g_k", g_k)
-
-        G_k_plus_1, _, condition_k_plus_1, _, _ = self._sanitize_spd_metric(
-            "g_k_plus_1",
-            g_k_plus_1,
+        g_k, g_k_plus_1 = fixture_valid_metrics_2d
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
         )
-
-        if G_k.shape != G_k_plus_1.shape:
-            raise GeodesicInputValidationError(
-                "g_k y g_k_plus_1 deben tener la misma dimensión."
+        
+        assert ricci_audit.dimension == 2
+        assert ricci_audit.is_metric_converged is True
+    
+    def test_phase1_dimension_mismatch_g_k_non_square(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que g_k no cuadrada dispara GeodesicInputValidationError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        g_k_invalid: NDArray[np.float64] = g_k[:, :2]  # 3×2
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(GeodesicInputValidationError) as exc_info:
+            agent._audit_ricci_flow_convergence(
+                g_k=g_k_invalid,
+                g_k_plus_1=g_k_plus_1,
             )
-
-        metric_difference = G_k_plus_1 - G_k
-
-        if not np.all(np.isfinite(metric_difference)):
-            raise RicciFlowDivergenceError(
-                "La diferencia métrica g_{k+1} - g_k produjo valores no finitos."
+        
+        assert "cuadrada" in str(exc_info.value) or "2D" in str(exc_info.value)
+    
+    def test_phase1_dimension_mismatch_g_k_g_k_plus_1(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que dimensiones inconsistentes entre g_k y g_k_plus_1 disparan error.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        g_k_plus_1_invalid: NDArray[np.float64] = np.eye(2, dtype=np.float64)  # 2×2 ≠ 3×3
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(GeodesicInputValidationError) as exc_info:
+            agent._audit_ricci_flow_convergence(
+                g_k=g_k,
+                g_k_plus_1=g_k_plus_1_invalid,
             )
-
-        residual_norm = float(la.norm(metric_difference, ord="fro"))
-
-        norm_g_k = float(la.norm(G_k, ord="fro"))
-        norm_g_k_plus_1 = float(la.norm(G_k_plus_1, ord="fro"))
-
-        if not math.isfinite(residual_norm):
-            raise RicciFlowDivergenceError(
-                "El residuo del flujo de Ricci no es finito."
-            )
-
-        if not math.isfinite(norm_g_k) or not math.isfinite(norm_g_k_plus_1):
-            raise RicciFlowDivergenceError(
-                "Las normas métricas del flujo de Ricci no son finitas."
-            )
-
-        scale = max(1.0, norm_g_k, norm_g_k_plus_1)
-        relative_residual = residual_norm / scale
-
-        if not math.isfinite(relative_residual):
-            raise RicciFlowDivergenceError(
-                "El residuo relativo del flujo de Ricci no es finito."
-            )
-
-        convergence_tolerance = max(
-            _RICCI_CONVERGENCE_TOL,
-            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON,
+        
+        assert "dimensión" in str(exc_info.value) or "shape" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.2 — VALIDACIÓN DE SIMETRÍA MÉTRICA
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_symmetry_g_k_valid(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que g_k simétrica pasa validación.
+        
+        Axioma: g_k = g_kᵀ dentro de tolerancia ε_mach · ‖g_k‖_F
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        
+        # Verificar simetría explícita
+        sym_residual = float(la.norm(g_k - g_k.T, "fro"))
+        norm_g = float(la.norm(g_k, "fro"))
+        tol = _MACHINE_EPS * max(norm_g, 1.0)
+        
+        assert sym_residual <= tol, f"Fixture g_k no es simétrica: {sym_residual}"
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
         )
-
-        if relative_residual >= convergence_tolerance:
-            raise RicciFlowDivergenceError(
-                "Divergencia topológica en la variedad atencional. "
-                f"El flujo de Ricci no convergió. "
-                f"Residuo relativo = {relative_residual:.6e} >= "
-                f"{convergence_tolerance:.6e}. "
-                "La atención intentó curvar el espacio más allá de su límite elástico."
+        
+        assert ricci_audit is not None
+    
+    def test_phase1_symmetry_g_k_invalid(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que g_k asimétrica dispara MetricDegeneracyError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        g_k_invalid: NDArray[np.float64] = g_k.copy()
+        g_k_invalid[0, 1] += 0.5  # Romper simetría
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(MetricDegeneracyError) as exc_info:
+            agent._audit_ricci_flow_convergence(
+                g_k=g_k_invalid,
+                g_k_plus_1=g_k_plus_1,
             )
-
-        condition_warning_threshold = 1.0 / _MACHINE_EPSILON
-
-        if condition_k > condition_warning_threshold:
-            logger.warning(
-                "g_k está mal condicionada: κ(g_k) = %.6e.",
-                condition_k,
-            )
-
-        if condition_k_plus_1 > condition_warning_threshold:
-            logger.warning(
-                "g_k_plus_1 está mal condicionada: κ(g_{k+1}) = %.6e.",
-                condition_k_plus_1,
-            )
-
-        return RicciFlowAuditData(
-            dimension=int(G_k.shape[0]),
-            metric_residual_norm=float(residual_norm),
-            metric_relative_residual=float(relative_residual),
-            condition_number_g_k=float(condition_k),
-            condition_number_g_k_plus_1=float(condition_k_plus_1),
-            metric_convergence_tolerance=float(convergence_tolerance),
-            is_metric_converged=True,
+        
+        assert "simétrica" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.3 — VALIDACIÓN DE DEFINIDA POSITIVA (SPD)
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_spd_g_k_valid(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que g_k SPD pasa validación.
+        
+        Axioma: λ_min(g_k) > 0 (todos autovalores positivos)
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        
+        # Verificar SPD explícito
+        eigvals = la.eigvalsh(g_k)
+        lambda_min = float(np.min(eigvals))
+        
+        assert lambda_min > 0.0, f"Fixture g_k no es SPD: λ_min={lambda_min}"
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
         )
+        
+        assert ricci_audit.condition_number_g_k < 1e10
+    
+    def test_phase1_spd_g_k_invalid_negative_eigenvalue(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que g_k con autovalor negativo dispara MetricDegeneracyError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        g_k_invalid: NDArray[np.float64] = g_k.copy()
+        g_k_invalid[0, 0] = -1.0  # Forzar λ_min < 0
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(MetricDegeneracyError) as exc_info:
+            agent._audit_ricci_flow_convergence(
+                g_k=g_k_invalid,
+                g_k_plus_1=g_k_plus_1,
+            )
+        
+        assert "definida positiva" in str(exc_info.value) or "SPD" in str(exc_info.value)
+    
+    def test_phase1_spd_g_k_near_singular(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que g_k casi singular dispara MetricDegeneracyError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        g_k_singular: NDArray[np.float64] = np.array(
+            [[1.0, 1.0, 1.0],
+             [1.0, 1.0, 1.0],
+             [1.0, 1.0, 1.0]], dtype=np.float64
+        )  # rank 1, λ_min = 0
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(MetricDegeneracyError) as exc_info:
+            agent._audit_ricci_flow_convergence(
+                g_k=g_k_singular,
+                g_k_plus_1=g_k_plus_1,
+            )
+        
+        assert "singular" in str(exc_info.value) or "degenerada" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.4 — CONVERGENCIA DEL FLUJO DE RICCI
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_ricci_convergence_valid(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que flujo de Ricci converge dentro de tolerancia.
+        
+        Condición: ||g_{k+1} - g_k||_F / scale < ε_Ricci
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        assert ricci_audit.is_metric_converged is True
+        assert ricci_audit.metric_relative_residual < 1e-8
+    
+    def test_phase1_ricci_divergence_raises(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que divergencia del flujo de Ricci dispara RicciFlowDivergenceError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        g_k_plus_1_divergent: NDArray[np.float64] = g_k_plus_1 * 100.0  # Cambio grande
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(RicciFlowDivergenceError) as exc_info:
+            agent._audit_ricci_flow_convergence(
+                g_k=g_k,
+                g_k_plus_1=g_k_plus_1_divergent,
+            )
+        
+        assert "convergió" in str(exc_info.value) or "Divergencia" in str(exc_info.value)
+    
+    def test_phase1_ricci_residual_computed(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que residuo relativo del flujo de Ricci se calcula correctamente.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        # Verificar cálculo manual del residuo
+        diff = g_k_plus_1 - g_k
+        residual_norm = float(la.norm(diff, "fro"))
+        scale = max(1.0, float(la.norm(g_k, "fro")), float(la.norm(g_k_plus_1, "fro")))
+        expected_relative = residual_norm / scale
+        
+        assert abs(ricci_audit.metric_relative_residual - expected_relative) < 1e-12
+        assert ricci_audit.metric_residual_norm == residual_norm
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.5 — NÚMEROS DE CONDICIÓN
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_condition_numbers_computed(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que números de condición κ(g_k), κ(g_k_plus_1) se calculan.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        assert ricci_audit.condition_number_g_k >= 1.0
+        assert ricci_audit.condition_number_g_k_plus_1 >= 1.0
+        assert np.isfinite(ricci_audit.condition_number_g_k)
+        assert np.isfinite(ricci_audit.condition_number_g_k_plus_1)
+    
+    def test_phase1_condition_number_ill_conditioned(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que métrica mal condicionada dispara MetricDegeneracyError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        g_k_ill: NDArray[np.float64] = np.array(
+            [[1.0, 0.0, 0.0],
+             [0.0, 1e-12, 0.0],
+             [0.0, 0.0, 1.0]], dtype=np.float64
+        )  # κ ≈ 1e12
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(MetricDegeneracyError) as exc_info:
+            agent._audit_ricci_flow_convergence(
+                g_k=g_k_ill,
+                g_k_plus_1=g_k_plus_1,
+            )
+        
+        assert "condición" in str(exc_info.value) or "κ" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.6 — VALIDACIÓN DE FINITUD NUMÉRICA
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_finite_values_valid(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que métricas con valores finitos pasan validación.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        assert np.all(np.isfinite(ricci_audit.metric_residual_norm))
+        assert np.all(np.isfinite(ricci_audit.metric_relative_residual))
+    
+    def test_phase1_nan_values_raise(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que NaN en métricas dispara GeodesicInputValidationError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        g_k_nan: NDArray[np.float64] = g_k.copy()
+        g_k_nan[0, 0] = np.nan
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(GeodesicInputValidationError) as exc_info:
+            agent._audit_ricci_flow_convergence(
+                g_k=g_k_nan,
+                g_k_plus_1=g_k_plus_1,
+            )
+        
+        assert "NaN" in str(exc_info.value) or "infinitos" in str(exc_info.value)
+    
+    def test_phase1_inf_values_raise(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que Inf en métricas dispara GeodesicInputValidationError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        g_k_inf: NDArray[np.float64] = g_k.copy()
+        g_k_inf[0, 0] = np.inf
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(GeodesicInputValidationError) as exc_info:
+            agent._audit_ricci_flow_convergence(
+                g_k=g_k_inf,
+                g_k_plus_1=g_k_plus_1,
+            )
+        
+        assert "infinitos" in str(exc_info.value) or "NaN" in str(exc_info.value)
+    
+    def test_phase1_complex_values_raise(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que valores complejos disparan GeodesicInputValidationError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        g_k_complex: NDArray[np.complex128] = g_k.astype(np.complex128)
+        g_k_complex[0, 0] += 0.1j
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(GeodesicInputValidationError) as exc_info:
+            agent._audit_ricci_flow_convergence(
+                g_k=g_k_complex,
+                g_k_plus_1=g_k_plus_1,
+            )
+        
+        assert "compleja" in str(exc_info.value) or "real" in str(exc_info.value)
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 2: CERTIFICACIÓN DE LA ACCIÓN DE POLYAKOV                            ║
-# ║                                                                             ║
-# ║   Evalúa:                                                                   ║
-# ║       E[γ] = 1/2 Σ v_iᵀ G v_i Δτ                                            ║
-# ║                                                                             ║
-# ║   Esta fase comienza consumiendo el certificado de Fase 1.                  ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-class Phase2_PolyakovActionCertifier(Phase1_RicciFlowAuditor):
+# =============================================================================
+# FASE 2 — CERTIFICACIÓN DE LA ACCIÓN DE POLYAKOV
+# =============================================================================
+class TestPhase2_PolyakovActionCertifier:
     r"""
-    Exige matemáticamente que las trayectorias Query-Key minimicen la energía
-    geodésica covariante.
-
-    La acción de Polyakov en discretización afín es:
-
-        E[γ] ≈ 1/2 Σ_i v_iᵀ G v_i Δτ.
-
-    Esta fase hereda de Fase 1 y su primer método recibe explícitamente el
-    certificado de convergencia métrica emitido por:
-
-        Phase1_RicciFlowAuditor._audit_ricci_flow_convergence(...)
-
-    De este modo, la Fase 2 no es autónoma: está anidada funcionalmente en la
-    Fase 1.
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    FASE 2 — ACCIÓN GEODÉSICA DE POLYAKOV Y ESTABILIDAD CINEMÁTICA
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida el endofuntor Phase2_PolyakovActionCertifier que gobierna
+    la minimización covariante de la energía geodésica. Cada método verifica un axioma
+    constitutivo de la acción de Polyakov.
+    
+    Invariantes Verificados:
+    ------------------------
+    1. Energía geodésica E[γ] ≥ 0
+    2. Términos cinéticos vᵀ G v ≥ 0
+    3. Homogeneidad de la forma cuadrática
+    4. Consistencia dimensional con certificado de Fase 1
+    5. Techo de energía E[γ] ≤ E_ceiling
+    6. Continuidad formal desde RicciFlowAuditData
     """
-
-    def _certify_polyakov_geodesic_action(
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.1 — ENERGÍA GEODÉSICA Y TÉRMINOS CINÉTICOS
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_geodesic_energy_nonnegative(
         self,
-        geodesic_velocity_matrix: NDArray[np.float64],
-        g_metric: NDArray[np.float64],
-        d_tau: float,
-        ricci_audit: Optional[RicciFlowAuditData] = None,
-    ) -> PolyakovActionAuditData:
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
         r"""
-        Primer método de la Fase 2.
-
-        Continuación formal del último método de Fase 1.
-
-        Integra la forma cuadrática Riemanniana sobre los diferenciales afines
-        de la curva geodésica.
-
-        Si `ricci_audit` es provisto:
-            - Verifica que la Fase 1 haya certificado convergencia métrica.
-            - Exige consistencia dimensional con la métrica certificada.
-
-        Retorna:
-            PolyakovActionAuditData, certificado que sirve como objeto inicial
-            de la Fase 3.
+        Verifica que energía geodésica E[γ] ≥ 0 para todo v.
+        
+        Axioma: E[γ] = ½ τ Σ v_iᵀ G v_i ≥ 0 (G SPD)
         """
-        if ricci_audit is not None:
-            if not ricci_audit.is_metric_converged:
-                raise RicciFlowDivergenceError(
-                    "La Fase 2 no puede iniciarse: la Fase 1 no certificó "
-                    "convergencia del flujo de Ricci."
-                )
-
-        velocities = self._as_finite_velocity_matrix(
-            "geodesic_velocity_matrix",
-            geodesic_velocity_matrix,
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        # Fase 1 primero
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
         )
-
-        metric_sanitized, _, metric_condition, _, _ = self._sanitize_spd_metric(
-            "g_metric",
-            g_metric,
-        )
-
-        steps, dimension = velocities.shape
-
-        if dimension != metric_sanitized.shape[0]:
-            raise GeodesicInputValidationError(
-                "Dimensión inconsistente entre geodesic_velocity_matrix y g_metric. "
-                f"Velocity dim={dimension}, metric dim={metric_sanitized.shape[0]}."
-            )
-
-        if ricci_audit is not None:
-            if ricci_audit.dimension != dimension:
-                raise GeodesicInputValidationError(
-                    "Inconsistencia dimensional entre Fase 1 y Fase 2. "
-                    f"Fase 1 certificó dim={ricci_audit.dimension}, pero "
-                    f"Fase 2 recibió dim={dimension}."
-                )
-
-        tau = self._as_finite_positive_scalar("d_tau", d_tau)
-
-        try:
-            metric_velocities = velocities @ metric_sanitized
-            kinetic_terms = np.sum(metric_velocities * velocities, axis=1)
-        except Exception as exc:
-            raise PolyakovActionViolationError(
-                "No fue posible evaluar la forma cuadrática Riemanniana vᵀ G v."
-            ) from exc
-
-        kinetic_terms = np.asarray(kinetic_terms, dtype=np.float64)
-
-        if not np.all(np.isfinite(kinetic_terms)):
-            raise PolyakovActionViolationError(
-                "Los términos cinéticos vᵀ G v contienen valores NaN o infinitos."
-            )
-
-        if kinetic_terms.size == 0:
-            raise PolyakovActionViolationError(
-                "La trayectoria geodésica no posee pasos de integración."
-            )
-
-        max_abs_kinetic = float(np.max(np.abs(kinetic_terms)))
-
-        kinetic_tolerance = max(
-            _KINETIC_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, max_abs_kinetic),
-        )
-
-        min_kinetic_raw = float(np.min(kinetic_terms))
-
-        if min_kinetic_raw < -kinetic_tolerance:
-            raise PolyakovActionViolationError(
-                "Violación del tensor métrico: energía cinética negativa detectada. "
-                f"Mínimo vᵀ G v = {min_kinetic_raw:.6e} < "
-                f"-{kinetic_tolerance:.6e}."
-            )
-
-        kinetic_terms = np.clip(kinetic_terms, 0.0, None)
-
-        min_kinetic_term = float(np.min(kinetic_terms))
-        max_kinetic_term = float(np.max(kinetic_terms))
-        total_kinetic = float(np.sum(kinetic_terms))
-
-        if not math.isfinite(total_kinetic):
-            raise PolyakovActionViolationError(
-                "La suma de términos cinéticos no es finita."
-            )
-
-        geodesic_energy = 0.5 * tau * total_kinetic
-
-        if not math.isfinite(geodesic_energy):
-            raise PolyakovActionViolationError(
-                "La energía de Polyakov no es finita."
-            )
-
-        energy_tolerance = max(
-            _ENERGY_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, abs(geodesic_energy)),
-        )
-
-        if geodesic_energy < -energy_tolerance:
-            raise PolyakovActionViolationError(
-                "La energía de Polyakov es negativa fuera de tolerancia numérica."
-            )
-
-        geodesic_energy = max(0.0, geodesic_energy)
-
-        ceiling_tolerance = max(
-            _ENERGY_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, _POLYAKOV_ENERGY_CEILING),
-        )
-
-        if geodesic_energy > _POLYAKOV_ENERGY_CEILING + ceiling_tolerance:
-            raise PolyakovActionViolationError(
-                "Fricción geodésica catastrófica. "
-                f"La energía de Polyakov E[γ] = {geodesic_energy:.6e} supera "
-                f"el límite admisible {_POLYAKOV_ENERGY_CEILING:.6e}. "
-                "La conexión Query-Key propuesta es estocásticamente inviable."
-            )
-
-        if metric_condition > 1.0 / _MACHINE_EPSILON:
-            logger.warning(
-                "La métrica de Polyakov está mal condicionada: κ(G) = %.6e.",
-                metric_condition,
-            )
-
-        return PolyakovActionAuditData(
-            steps=int(steps),
-            dimension=int(dimension),
-            geodesic_energy=float(geodesic_energy),
-            min_kinetic_term=float(min_kinetic_term),
-            max_kinetic_term=float(max_kinetic_term),
-            energy_ceiling=float(_POLYAKOV_ENERGY_CEILING),
-            polyakov_tolerance=float(energy_tolerance),
-            is_geodesic_stable=True,
-        )
-
-
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 3: VETO CUÁNTICO DE FEYNMAN-KAC                                      ║
-# ║                                                                             ║
-# ║   Exige:                                                                    ║
-# ║       Ψ[γ] = exp(-S_E / ħ_eff) ≥ Ψ_min                                      ║
-# ║                                                                             ║
-# ║   Esta fase comienza consumiendo el certificado de Fase 2.                  ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-class Phase3_FeynmanKacQuantumVeto(Phase2_PolyakovActionCertifier):
-    r"""
-    Acopla la energía geodésica con la norma de Hilbert-Schmidt del tensor de
-    torsión.
-
-    Garantiza que la amplitud de probabilidad semántica no se desvanezca por
-    alucinaciones atencionales.
-
-    La acción euclídea total es:
-
-        S_E[γ] = E_Polyakov[γ] + λ ||T||²_HS.
-
-    La amplitud de transición es:
-
-        Ψ[γ] = exp(-S_E / ħ_eff).
-
-    Esta fase hereda de Fase 2 y su primer método recibe explícitamente el
-    certificado de estabilidad geodésica emitido por:
-
-        Phase2_PolyakovActionCertifier._certify_polyakov_geodesic_action(...)
-
-    De este modo, la Fase 3 está anidada funcionalmente en la Fase 2.
-    """
-
-    def _enforce_feynman_kac_quantum_veto(
-        self,
-        polyakov_energy: float,
-        torsion_hs_norm_sq: float,
-        lambda_coupling: float,
-        polyakov_audit: Optional[PolyakovActionAuditData] = None,
-    ) -> FeynmanKacAuditData:
-        r"""
-        Primer método de la Fase 3.
-
-        Continuación formal de Fase 2.
-
-        Construye la acción euclídea total:
-
-            S_E = E_Polyakov + λ ||T||²_HS,
-
-        y computa la amplitud de transición:
-
-            Ψ = exp(-S_E / ħ_eff).
-
-        Si `polyakov_audit` es provisto:
-            - Verifica que la Fase 2 haya certificado estabilidad geodésica.
-            - Exige consistencia entre la energía recibida y la certificada.
-
-        Retorna:
-            FeynmanKacAuditData, certificado final de admisibilidad atencional.
-        """
-        if polyakov_audit is not None:
-            if not polyakov_audit.is_geodesic_stable:
-                raise PolyakovActionViolationError(
-                    "La Fase 3 no puede iniciarse: la Fase 2 no certificó "
-                    "estabilidad de la acción de Polyakov."
-                )
-
-        energy = self._as_finite_nonnegative_scalar(
-            "polyakov_energy",
-            polyakov_energy,
-        )
-
-        torsion_norm_sq = self._as_finite_nonnegative_scalar(
-            "torsion_hs_norm_sq",
-            torsion_hs_norm_sq,
-        )
-
-        coupling = self._as_finite_nonnegative_scalar(
-            "lambda_coupling",
-            lambda_coupling,
-        )
-
-        if polyakov_audit is not None:
-            consistency_tolerance = max(
-                _ACTION_TOLERANCE,
-                _NUMERICAL_SAFETY_FACTOR
-                * _MACHINE_EPSILON
-                * max(
-                    1.0,
-                    abs(energy),
-                    abs(polyakov_audit.geodesic_energy),
-                ),
-            )
-
-            if abs(energy - polyakov_audit.geodesic_energy) > consistency_tolerance:
-                raise PolyakovActionViolationError(
-                    "Inconsistencia energética entre Fase 2 y Fase 3. "
-                    f"Energía certificada en Fase 2 = {polyakov_audit.geodesic_energy:.6e}, "
-                    f"energía recibida en Fase 3 = {energy:.6e}."
-                )
-
-        euclidean_action = energy + coupling * torsion_norm_sq
-
-        if not math.isfinite(euclidean_action):
-            raise QuantumFeynmanKacVeto(
-                "La acción euclídea S_E no es finita."
-            )
-
-        action_tolerance = max(
-            _ACTION_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, abs(euclidean_action)),
-        )
-
-        if euclidean_action < -action_tolerance:
-            raise PolyakovActionViolationError(
-                "La acción euclídea S_E es negativa fuera de tolerancia numérica."
-            )
-
-        euclidean_action = max(0.0, euclidean_action)
-
-        if _HBAR_EFF <= 0.0:
-            raise GeodesicAttentionAgentError(
-                "La constante efectiva ħ_eff debe ser estrictamente positiva."
-            )
-
-        log_transition_amplitude = -euclidean_action / _HBAR_EFF
-
-        if not math.isfinite(log_transition_amplitude):
-            raise QuantumFeynmanKacVeto(
-                "El logaritmo de la amplitud de transición no es finito."
-            )
-
-        min_log_amplitude = math.log(_MIN_QUANTUM_AMPLITUDE)
-
-        if log_transition_amplitude < min_log_amplitude:
-            raise QuantumFeynmanKacVeto(
-                "Veto cuántico absoluto. "
-                f"Amplitud de transición de Feynman-Kac insuficiente. "
-                f"log(Ψ) = {log_transition_amplitude:.6e} < "
-                f"log(Ψ_min) = {min_log_amplitude:.6e}. "
-                "El LLM intentó formar un enlace atencional topológicamente muerto."
-            )
-
-        tiny_log = math.log(np.finfo(np.float64).tiny)
-
-        if log_transition_amplitude < tiny_log:
-            transition_amplitude = 0.0
-        else:
-            transition_amplitude = float(math.exp(log_transition_amplitude))
-
-        amplitude_tolerance = max(
-            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON,
-            1e-15,
-        )
-
-        if transition_amplitude < _MIN_QUANTUM_AMPLITUDE - amplitude_tolerance:
-            raise QuantumFeynmanKacVeto(
-                "Veto cuántico absoluto. "
-                f"Amplitud de transición Ψ = {transition_amplitude:.6e} < "
-                f"Ψ_min = {_MIN_QUANTUM_AMPLITUDE:.6e}."
-            )
-
-        return FeynmanKacAuditData(
-            euclidean_action=float(euclidean_action),
-            log_transition_amplitude=float(log_transition_amplitude),
-            transition_amplitude=float(transition_amplitude),
-            min_quantum_amplitude=float(_MIN_QUANTUM_AMPLITUDE),
-            is_attention_allowed=True,
-        )
-
-
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   ORQUESTADOR SUPREMO: GEODESIC ATTENTION FIBRATOR AGENT                    ║
-# ║                                                                             ║
-# ║   Endofuntor Z_GeodesicAgent = Φ₃ ∘ Φ₂ ∘ Φ₁                                ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-class GeodesicAttentionFibratorAgent(Morphism, Phase3_FeynmanKacQuantumVeto):
-    r"""
-    El Custodio de la Covarianza Atencional en el estrato WISDOM.
-
-    Somete los tensores de atención del Modelo de Lenguaje a la mecánica de
-    integrales de trayectoria y relatividad general discreta, erradicando el
-    emparejamiento estocástico basado en productos punto euclidianos planos.
-    """
-
-    def execute_geodesic_attention_governance(
-        self,
-        g_k: NDArray[np.float64],
-        g_k_plus_1: NDArray[np.float64],
-        geodesic_velocity_matrix: NDArray[np.float64],
-        d_tau: float,
-        torsion_hs_norm_sq: float,
-        lambda_coupling: float,
-    ) -> GeodesicAttentionGovernanceState:
-        r"""
-        Ejecuta la composición funtorial estricta:
-
-            Φ₁ : Auditoría de convergencia del flujo de Ricci.
-            Φ₂ : Certificación de la acción geodésica de Polyakov.
-            Φ₃ : Veto cuántico de Feynman-Kac.
-
-        Parámetros:
-            g_k:
-                Métrica Riemanniana en el paso k.
-
-            g_k_plus_1:
-                Métrica Riemanniana en el paso k+1.
-
-            geodesic_velocity_matrix:
-                Matriz de velocidades geodésicas V ∈ R^{steps × dim}.
-
-            d_tau:
-                Diferencial afín Δτ > 0.
-
-            torsion_hs_norm_sq:
-                Norma de Hilbert-Schmidt al cuadrado del tensor de torsión.
-
-            lambda_coupling:
-                Acoplamiento no negativo λ entre energía geodésica y torsión.
-
-        Retorna:
-            GeodesicAttentionGovernanceState con los tres certificados y validez
-            epistemológica final.
-        """
-        # Fase 1: Certificar convergencia del tensor métrico bajo flujo de Ricci.
-        ricci_audit = self._audit_ricci_flow_convergence(
-            g_k,
-            g_k_plus_1,
-        )
-
-        # Fase 2: Certificar que la conexión Query-Key minimiza la acción de Polyakov.
-        polyakov_audit = self._certify_polyakov_geodesic_action(
-            geodesic_velocity_matrix,
-            g_k_plus_1,
-            d_tau,
+        
+        # Fase 2
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
             ricci_audit=ricci_audit,
         )
-
-        # Fase 3: Certificar viabilidad cuántica de la transición semántica.
-        feynman_kac_audit = self._enforce_feynman_kac_quantum_veto(
-            polyakov_audit.geodesic_energy,
-            torsion_hs_norm_sq,
-            lambda_coupling,
-            polyakov_audit=polyakov_audit,
+        
+        assert polyakov_audit.geodesic_energy >= 0.0, \
+            f"E[γ] = {polyakov_audit.geodesic_energy} < 0"
+    
+    def test_phase2_kinetic_terms_nonnegative(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que términos cinéticos vᵀ G v ≥ 0 para cada paso.
+        
+        Axioma: v_iᵀ G v_i ≥ 0 ∀ i (G SPD)
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
         )
-
-        is_epistemologically_valid = bool(
-            ricci_audit.is_metric_converged
-            and polyakov_audit.is_geodesic_stable
-            and feynman_kac_audit.is_attention_allowed
-        )
-
-        if not is_epistemologically_valid:
-            raise GeodesicAttentionAgentError(
-                "La composición funtorial no autorizó la atención geodésica."
-            )
-
-        logger.info(
-            "Gobernanza de Covarianza Atencional certificada. "
-            "Δg(Ricci): %.6e | "
-            "E[γ]: %.6f | "
-            "Ψ[γ]: %.6e",
-            ricci_audit.metric_relative_residual,
-            polyakov_audit.geodesic_energy,
-            feynman_kac_audit.transition_amplitude,
-        )
-
-        return GeodesicAttentionGovernanceState(
+        
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
             ricci_audit=ricci_audit,
-            polyakov_audit=polyakov_audit,
-            feynman_kac_audit=feynman_kac_audit,
-            is_epistemologically_valid=is_epistemologically_valid,
         )
+        
+        assert polyakov_audit.min_kinetic_term >= 0.0
+        assert polyakov_audit.max_kinetic_term >= 0.0
+    
+    def test_phase2_geodesic_energy_ceiling(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que E[γ] ≤ E_ceiling (techo de energía admisible).
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
+            ricci_audit=ricci_audit,
+        )
+        
+        assert polyakov_audit.geodesic_energy <= polyakov_audit.energy_ceiling
+    
+    def test_phase2_geodesic_energy_exceeds_ceiling_raises(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que E[γ] > E_ceiling dispara PolyakovActionViolationError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        # Velocidades muy grandes para exceder techo
+        velocities_large: NDArray[np.float64] = np.ones((5, 3), dtype=np.float64) * 1e6
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        with pytest.raises(PolyakovActionViolationError) as exc_info:
+            agent._certify_polyakov_geodesic_action(
+                geodesic_velocity_matrix=velocities_large,
+                g_metric=g_k_plus_1,
+                d_tau=d_tau,
+                ricci_audit=ricci_audit,
+            )
+        
+        assert "energía" in str(exc_info.value).lower() or "Polyakov" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.2 — CONSISTENCIA DIMENSIONAL CON FASE 1
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_dimension_consistency_with_phase1(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que dimensión de velocidades coincide con certificado de Fase 1.
+        
+        Contrato: dim(velocities) == ricci_audit.dimension
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
+            ricci_audit=ricci_audit,
+        )
+        
+        assert polyakov_audit.dimension == ricci_audit.dimension
+    
+    def test_phase2_dimension_mismatch_with_phase1_raises(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que inconsistencia dimensional dispara GeodesicInputValidationError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        # Métrica de dimensión diferente
+        g_wrong: NDArray[np.float64] = np.eye(2, dtype=np.float64)  # 2×2 ≠ 3×3
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        with pytest.raises(GeodesicInputValidationError) as exc_info:
+            agent._certify_polyakov_geodesic_action(
+                geodesic_velocity_matrix=velocities,
+                g_metric=g_wrong,
+                d_tau=d_tau,
+                ricci_audit=ricci_audit,
+            )
+        
+        assert "dimensión" in str(exc_info.value) or "inconsistente" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.3 — CONTINUIDAD FORMAL DESDE FASE 1
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_requires_phase1_convergence(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que Fase 2 requiere convergencia certificada de Fase 1.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        # Forzar is_metric_converged = False (simulado)
+        from dataclasses import replace
+        ricci_audit_failed = replace(ricci_audit, is_metric_converged=False)
+        
+        with pytest.raises(RicciFlowDivergenceError) as exc_info:
+            agent._certify_polyakov_geodesic_action(
+                geodesic_velocity_matrix=velocities,
+                g_metric=g_k_plus_1,
+                d_tau=d_tau,
+                ricci_audit=ricci_audit_failed,
+            )
+        
+        assert "Fase 1" in str(exc_info.value) or "convergencia" in str(exc_info.value)
+    
+    def test_phase2_works_without_phase1_audit(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que Fase 2 puede operar sin certificado de Fase 1 (ricci_audit=None).
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        # Sin ricci_audit
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
+            ricci_audit=None,
+        )
+        
+        assert polyakov_audit.is_geodesic_stable is True
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.4 — VALIDACIÓN DE PARÁMETROS ESCALARES
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_d_tau_positive(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que d_tau > 0 es requerido.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        with pytest.raises(GeodesicInputValidationError) as exc_info:
+            agent._certify_polyakov_geodesic_action(
+                geodesic_velocity_matrix=velocities,
+                g_metric=g_k_plus_1,
+                d_tau=0.0,  # No positivo
+                ricci_audit=ricci_audit,
+            )
+        
+        assert "positivo" in str(exc_info.value) or "d_tau" in str(exc_info.value)
+    
+    def test_phase2_d_tau_negative_raises(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que d_tau < 0 dispara GeodesicInputValidationError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        with pytest.raises(GeodesicInputValidationError) as exc_info:
+            agent._certify_polyakov_geodesic_action(
+                geodesic_velocity_matrix=velocities,
+                g_metric=g_k_plus_1,
+                d_tau=-0.01,  # Negativo
+                ricci_audit=ricci_audit,
+            )
+        
+        assert "positivo" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.5 — VALIDACIÓN DE MATRIZ DE VELOCIDADES
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_velocity_matrix_1d_accepted(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_1d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que vector 1D de velocidades es aceptado (steps=1).
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_1d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
+            ricci_audit=ricci_audit,
+        )
+        
+        assert polyakov_audit.steps == 1
+        assert polyakov_audit.dimension == 3
+    
+    def test_phase2_velocity_matrix_empty_raises(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que matriz de velocidades vacía dispara PolyakovActionViolationError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        velocities_empty: NDArray[np.float64] = np.array([], dtype=np.float64).reshape(0, 3)
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        with pytest.raises(GeodesicInputValidationError) as exc_info:
+            agent._certify_polyakov_geodesic_action(
+                geodesic_velocity_matrix=velocities_empty,
+                g_metric=g_k_plus_1,
+                d_tau=d_tau,
+                ricci_audit=ricci_audit,
+            )
+        
+        assert "vacío" in str(exc_info.value) or "empty" in str(exc_info.value)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# EXPORTACIÓN CANÓNICA
-# ═══════════════════════════════════════════════════════════════════════════════
-__all__: List[str] = [
-    "GeodesicAttentionAgentError",
-    "GeodesicInputValidationError",
-    "MetricDegeneracyError",
-    "RicciFlowDivergenceError",
-    "PolyakovActionViolationError",
-    "QuantumFeynmanKacVeto",
-    "RicciFlowAuditData",
-    "PolyakovActionAuditData",
-    "FeynmanKacAuditData",
-    "GeodesicAttentionGovernanceState",
-    "Phase1_RicciFlowAuditor",
-    "Phase2_PolyakovActionCertifier",
-    "Phase3_FeynmanKacQuantumVeto",
-    "GeodesicAttentionFibratorAgent",
-]
+# =============================================================================
+# FASE 3 — VETO CUÁNTICO DE FEYNMAN-KAC
+# =============================================================================
+class TestPhase3_FeynmanKacQuantumVeto:
+    r"""
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    FASE 3 — AMPLITUD DE TRANSICIÓN CUÁNTICA Y VETO DE FEYNMAN-KAC
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida el endofuntor Phase3_FeynmanKacQuantumVeto que fuerza
+    la admisibilidad cuántica de la transición semántica. Cada método verifica un axioma
+    constitutivo del veto cuántico.
+    
+    Invariantes Verificados:
+    ------------------------
+    1. Acción euclídea S_E ≥ 0
+    2. Amplitud de transición Ψ ≥ Ψ_min
+    3. Log-amplitud finita y computable
+    4. Consistencia energética con Fase 2
+    5. ħ_eff > 0
+    6. Continuidad formal desde PolyakovActionAuditData
+    """
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.1 — ACCIÓN EUCLÍDEA Y AMPLITUD
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_euclidean_action_nonnegative(
+        self,
+        fixture_valid_scalar_params: Tuple[float, float, float],
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que acción euclídea S_E ≥ 0.
+        
+        Fórmula: S_E = E_Polyakov + λ ||T||²_HS
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        # Fases 1 y 2
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
+            ricci_audit=ricci_audit,
+        )
+        
+        # Fase 3
+        feynman_kac_audit = agent._enforce_feynman_kac_quantum_veto(
+            polyakov_energy=polyakov_audit.geodesic_energy,
+            torsion_hs_norm_sq=torsion_hs_norm_sq,
+            lambda_coupling=lambda_coupling,
+            polyakov_audit=polyakov_audit,
+        )
+        
+        assert feynman_kac_audit.euclidean_action >= 0.0
+    
+    def test_phase3_transition_amplitude_above_minimum(
+        self,
+        fixture_valid_scalar_params: Tuple[float, float, float],
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que Ψ ≥ Ψ_min (amplitud admisible).
+        
+        Fórmula: Ψ = exp(-S_E / ħ_eff) ≥ Ψ_min
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
+            ricci_audit=ricci_audit,
+        )
+        
+        feynman_kac_audit = agent._enforce_feynman_kac_quantum_veto(
+            polyakov_energy=polyakov_audit.geodesic_energy,
+            torsion_hs_norm_sq=torsion_hs_norm_sq,
+            lambda_coupling=lambda_coupling,
+            polyakov_audit=polyakov_audit,
+        )
+        
+        assert feynman_kac_audit.transition_amplitude >= feynman_kac_audit.min_quantum_amplitude
+        assert feynman_kac_audit.is_attention_allowed is True
+    
+    def test_phase3_log_amplitude_finite(
+        self,
+        fixture_valid_scalar_params: Tuple[float, float, float],
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que log(Ψ) es finito.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
+            ricci_audit=ricci_audit,
+        )
+        
+        feynman_kac_audit = agent._enforce_feynman_kac_quantum_veto(
+            polyakov_energy=polyakov_audit.geodesic_energy,
+            torsion_hs_norm_sq=torsion_hs_norm_sq,
+            lambda_coupling=lambda_coupling,
+            polyakov_audit=polyakov_audit,
+        )
+        
+        assert np.isfinite(feynman_kac_audit.log_transition_amplitude)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.2 — VETO CUÁNTICO (AMPLITUD INSUFICIENTE)
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_quantum_veto_low_amplitude_raises(
+        self,
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que Ψ < Ψ_min dispara QuantumFeynmanKacVeto.
+        """
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        # Energía muy alta para reducir amplitud
+        polyakov_energy_high: float = 1e10
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(QuantumFeynmanKacVeto) as exc_info:
+            agent._enforce_feynman_kac_quantum_veto(
+                polyakov_energy=polyakov_energy_high,
+                torsion_hs_norm_sq=torsion_hs_norm_sq,
+                lambda_coupling=lambda_coupling,
+                polyakov_audit=None,
+            )
+        
+        assert "Veto" in str(exc_info.value) or "amplitud" in str(exc_info.value).lower()
+    
+    def test_phase3_quantum_veto_high_torsion_raises(
+        self,
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que torsión excesiva dispara QuantumFeynmanKacVeto.
+        """
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        # Torsión muy alta
+        torsion_high: float = 1e10
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(QuantumFeynmanKacVeto) as exc_info:
+            agent._enforce_feynman_kac_quantum_veto(
+                polyakov_energy=0.01,
+                torsion_hs_norm_sq=torsion_high,
+                lambda_coupling=lambda_coupling,
+                polyakov_audit=None,
+            )
+        
+        assert "Veto" in str(exc_info.value) or "amplitud" in str(exc_info.value).lower()
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.3 — CONSISTENCIA ENERGÉTICA CON FASE 2
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_energy_consistency_with_phase2(
+        self,
+        fixture_valid_scalar_params: Tuple[float, float, float],
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que energía en Fase 3 coincide con certificado de Fase 2.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
+            ricci_audit=ricci_audit,
+        )
+        
+        # Energía consistente
+        feynman_kac_audit = agent._enforce_feynman_kac_quantum_veto(
+            polyakov_energy=polyakov_audit.geodesic_energy,
+            torsion_hs_norm_sq=torsion_hs_norm_sq,
+            lambda_coupling=lambda_coupling,
+            polyakov_audit=polyakov_audit,
+        )
+        
+        assert feynman_kac_audit.is_attention_allowed is True
+    
+    def test_phase3_energy_inconsistency_raises(
+        self,
+        fixture_valid_scalar_params: Tuple[float, float, float],
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que inconsistencia energética dispara PolyakovActionViolationError.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
+            ricci_audit=ricci_audit,
+        )
+        
+        # Energía inconsistente
+        with pytest.raises(PolyakovActionViolationError) as exc_info:
+            agent._enforce_feynman_kac_quantum_veto(
+                polyakov_energy=polyakov_audit.geodesic_energy * 2.0,  # Diferente
+                torsion_hs_norm_sq=torsion_hs_norm_sq,
+                lambda_coupling=lambda_coupling,
+                polyakov_audit=polyakov_audit,
+            )
+        
+        assert "inconsistencia" in str(exc_info.value).lower() or "energética" in str(exc_info.value).lower()
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.4 — VALIDACIÓN DE PARÁMETROS CUÁNTICOS
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_lambda_coupling_nonnegative(
+        self,
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que lambda_coupling ≥ 0 es requerido.
+        """
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(GeodesicInputValidationError) as exc_info:
+            agent._enforce_feynman_kac_quantum_veto(
+                polyakov_energy=0.01,
+                torsion_hs_norm_sq=torsion_hs_norm_sq,
+                lambda_coupling=-0.1,  # Negativo
+                polyakov_audit=None,
+            )
+        
+        assert "no negativo" in str(exc_info.value) or "negativo" in str(exc_info.value)
+    
+    def test_phase3_torsion_norm_nonnegative(
+        self,
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que torsion_hs_norm_sq ≥ 0 es requerido.
+        """
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(GeodesicInputValidationError) as exc_info:
+            agent._enforce_feynman_kac_quantum_veto(
+                polyakov_energy=0.01,
+                torsion_hs_norm_sq=-0.05,  # Negativo
+                lambda_coupling=lambda_coupling,
+                polyakov_audit=None,
+            )
+        
+        assert "no negativo" in str(exc_info.value) or "negativo" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.5 — CONTINUIDAD FORMAL DESDE FASE 2
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_requires_phase2_stability(
+        self,
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que Fase 3 requiere estabilidad certificada de Fase 2.
+        """
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        # Certificado de Fase 2 con is_geodesic_stable = False
+        from dataclasses import replace
+        from app.agents.boole.wisdom.geodesic_attention_fibrator_agent import PolyakovActionAuditData
+        
+        polyakov_audit_failed = PolyakovActionAuditData(
+            steps=5,
+            dimension=3,
+            geodesic_energy=0.01,
+            min_kinetic_term=0.0,
+            max_kinetic_term=0.1,
+            energy_ceiling=1e6,
+            polyakov_tolerance=1e-12,
+            is_geodesic_stable=False,  # Inestable
+        )
+        
+        with pytest.raises(PolyakovActionViolationError) as exc_info:
+            agent._enforce_feynman_kac_quantum_veto(
+                polyakov_energy=0.01,
+                torsion_hs_norm_sq=torsion_hs_norm_sq,
+                lambda_coupling=lambda_coupling,
+                polyakov_audit=polyakov_audit_failed,
+            )
+        
+        assert "Fase 2" in str(exc_info.value) or "estabilidad" in str(exc_info.value)
+    
+    def test_phase3_works_without_phase2_audit(
+        self,
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que Fase 3 puede operar sin certificado de Fase 2 (polyakov_audit=None).
+        """
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        # Sin polyakov_audit
+        feynman_kac_audit = agent._enforce_feynman_kac_quantum_veto(
+            polyakov_energy=0.01,
+            torsion_hs_norm_sq=torsion_hs_norm_sq,
+            lambda_coupling=lambda_coupling,
+            polyakov_audit=None,
+        )
+        
+        assert feynman_kac_audit.is_attention_allowed is True
+
+
+# =============================================================================
+# PRUEBAS DE INTEGRACIÓN — PIPELINE COMPLETO
+# =============================================================================
+class TestFullPipeline_Integration:
+    r"""
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    PRUEBAS DE INTEGRACIÓN — COMPOSICIÓN FUNTORIAL Φ₃ ∘ Φ₂ ∘ Φ₁
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida la composición funtorial estricta del agente completo.
+    Cada método verifica que la cadena de tres fases opera correctamente en conjunto.
+    """
+    
+    def test_full_pipeline_valid_inputs(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica pipeline completo con entradas válidas.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        state = agent.execute_geodesic_attention_governance(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+            geodesic_velocity_matrix=velocities,
+            d_tau=d_tau,
+            torsion_hs_norm_sq=torsion_hs_norm_sq,
+            lambda_coupling=lambda_coupling,
+        )
+        
+        assert state.is_epistemologically_valid is True
+        assert state.ricci_audit.is_metric_converged is True
+        assert state.polyakov_audit.is_geodesic_stable is True
+        assert state.feynman_kac_audit.is_attention_allowed is True
+    
+    def test_full_pipeline_ricci_divergence_fails(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que divergencia de Ricci falla el pipeline completo.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        g_k_plus_1_divergent: NDArray[np.float64] = g_k_plus_1 * 100.0
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(RicciFlowDivergenceError):
+            agent.execute_geodesic_attention_governance(
+                g_k=g_k,
+                g_k_plus_1=g_k_plus_1_divergent,
+                geodesic_velocity_matrix=velocities,
+                d_tau=d_tau,
+                torsion_hs_norm_sq=torsion_hs_norm_sq,
+                lambda_coupling=lambda_coupling,
+            )
+    
+    def test_full_pipeline_polyakov_violation_fails(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que violación de Polyakov falla el pipeline completo.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        # Velocidades muy grandes
+        velocities_large: NDArray[np.float64] = velocities * 1e6
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(PolyakovActionViolationError):
+            agent.execute_geodesic_attention_governance(
+                g_k=g_k,
+                g_k_plus_1=g_k_plus_1,
+                geodesic_velocity_matrix=velocities_large,
+                d_tau=d_tau,
+                torsion_hs_norm_sq=torsion_hs_norm_sq,
+                lambda_coupling=lambda_coupling,
+            )
+    
+    def test_full_pipeline_quantum_veto_fails(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que veto cuántico falla el pipeline completo.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        # Torsión muy alta
+        torsion_high: float = 1e10
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        with pytest.raises(QuantumFeynmanKacVeto):
+            agent.execute_geodesic_attention_governance(
+                g_k=g_k,
+                g_k_plus_1=g_k_plus_1,
+                geodesic_velocity_matrix=velocities,
+                d_tau=d_tau,
+                torsion_hs_norm_sq=torsion_high,
+                lambda_coupling=lambda_coupling,
+            )
+    
+    def test_full_pipeline_dto_immutability(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica que DTOs son inmutables (frozen dataclasses).
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        state = agent.execute_geodesic_attention_governance(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+            geodesic_velocity_matrix=velocities,
+            d_tau=d_tau,
+            torsion_hs_norm_sq=torsion_hs_norm_sq,
+            lambda_coupling=lambda_coupling,
+        )
+        
+        # Intentar modificar debe fallar (frozen=True)
+        with pytest.raises(AttributeError):
+            state.is_epistemologically_valid = False  # type: ignore[misc]
+        
+        with pytest.raises(AttributeError):
+            state.ricci_audit.dimension = 999  # type: ignore[misc]
+        
+        with pytest.raises(AttributeError):
+            state.polyakov_audit.geodesic_energy = 999.0  # type: ignore[misc]
+        
+        with pytest.raises(AttributeError):
+            state.feynman_kac_audit.transition_amplitude = 0.0  # type: ignore[misc]
+    
+    def test_full_pipeline_audit_data_consistency(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica consistencia entre certificados de las tres fases.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        state = agent.execute_geodesic_attention_governance(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+            geodesic_velocity_matrix=velocities,
+            d_tau=d_tau,
+            torsion_hs_norm_sq=torsion_hs_norm_sq,
+            lambda_coupling=lambda_coupling,
+        )
+        
+        # Dimensiones consistentes
+        assert state.ricci_audit.dimension == state.polyakov_audit.dimension
+        
+        # Energías consistentes
+        assert state.polyakov_audit.geodesic_energy >= 0.0
+        assert state.feynman_kac_audit.euclidean_action >= state.polyakov_audit.geodesic_energy
+        
+        # Validez epistemológica implica todas las fases válidas
+        if state.is_epistemologically_valid:
+            assert state.ricci_audit.is_metric_converged
+            assert state.polyakov_audit.is_geodesic_stable
+            assert state.feynman_kac_audit.is_attention_allowed
+
+
+# =============================================================================
+# PRUEBAS DE CASOS ESPECIALES Y BORDES
+# =============================================================================
+class TestEdgeCases_SpecialConditions:
+    r"""
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    PRUEBAS DE CASOS ESPECIALES Y BORDES
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida comportamiento en condiciones límite:
+    - Métricas casi singulares
+    - Estados cero
+    - Tolerancias numéricas
+    - Valores extremos
+    """
+    
+    def test_edge_case_zero_velocity(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica comportamiento con velocidades cero v = 0.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        velocities_zero: NDArray[np.float64] = np.zeros((5, 3), dtype=np.float64)
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities_zero,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
+            ricci_audit=ricci_audit,
+        )
+        
+        assert polyakov_audit.geodesic_energy == 0.0
+        assert polyakov_audit.min_kinetic_term == 0.0
+        assert polyakov_audit.max_kinetic_term == 0.0
+    
+    def test_edge_case_identity_metrics(
+        self,
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica comportamiento con g_k = g_k_plus_1 = I (métrica euclidiana).
+        """
+        dim = 3
+        g_k: NDArray[np.float64] = np.eye(dim, dtype=np.float64)
+        g_k_plus_1: NDArray[np.float64] = np.eye(dim, dtype=np.float64)
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        # Residuo debe ser muy pequeño (cero teórico)
+        assert ricci_audit.metric_relative_residual < 1e-14
+        assert ricci_audit.is_metric_converged is True
+    
+    def test_edge_case_minimum_dimension(
+        self,
+        fixture_valid_metrics_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica comportamiento con dimensión mínima (n=2).
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_2d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        velocities: NDArray[np.float64] = np.array(
+            [[0.1, 0.05],
+             [0.12, 0.06]], dtype=np.float64
+        )
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        state = agent.execute_geodesic_attention_governance(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+            geodesic_velocity_matrix=velocities,
+            d_tau=d_tau,
+            torsion_hs_norm_sq=torsion_hs_norm_sq,
+            lambda_coupling=lambda_coupling,
+        )
+        
+        assert state.ricci_audit.dimension == 2
+        assert state.is_epistemologically_valid is True
+    
+    def test_edge_case_tolerance_boundaries(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica comportamiento en límites de tolerancia numérica.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        # Métricas muy cercanas (en límite de convergencia)
+        g_k_plus_1_boundary: NDArray[np.float64] = g_k + 1e-9 * np.eye(3, dtype=np.float64)
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1_boundary,
+        )
+        
+        assert ricci_audit.is_metric_converged is True
+        assert ricci_audit.metric_relative_residual < 1e-8
+    
+    def test_edge_case_very_small_d_tau(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica comportamiento con d_tau muy pequeño.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        d_tau_small: float = 1e-12
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau_small,
+            ricci_audit=ricci_audit,
+        )
+        
+        assert polyakov_audit.geodesic_energy >= 0.0
+        assert np.isfinite(polyakov_audit.geodesic_energy)
+    
+    def test_edge_case_very_small_coupling(
+        self,
+        fixture_valid_metrics_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_geodesic_velocity_3d: NDArray[np.float64],
+        fixture_valid_scalar_params: Tuple[float, float, float],
+    ) -> None:
+        r"""
+        Verifica comportamiento con lambda_coupling muy pequeño.
+        """
+        g_k, g_k_plus_1 = fixture_valid_metrics_3d
+        velocities = fixture_valid_geodesic_velocity_3d
+        d_tau, torsion_hs_norm_sq, lambda_coupling = fixture_valid_scalar_params
+        
+        lambda_coupling_small: float = 1e-12
+        
+        agent = GeodesicAttentionFibratorAgent()
+        
+        ricci_audit = agent._audit_ricci_flow_convergence(
+            g_k=g_k,
+            g_k_plus_1=g_k_plus_1,
+        )
+        
+        polyakov_audit = agent._certify_polyakov_geodesic_action(
+            geodesic_velocity_matrix=velocities,
+            g_metric=g_k_plus_1,
+            d_tau=d_tau,
+            ricci_audit=ricci_audit,
+        )
+        
+        feynman_kac_audit = agent._enforce_feynman_kac_quantum_veto(
+            polyakov_energy=polyakov_audit.geodesic_energy,
+            torsion_hs_norm_sq=torsion_hs_norm_sq,
+            lambda_coupling=lambda_coupling_small,
+            polyakov_audit=polyakov_audit,
+        )
+        
+        assert feynman_kac_audit.is_attention_allowed is True
+        assert np.isfinite(feynman_kac_audit.euclidean_action)
+
+
+# =============================================================================
+# EJECUCIÓN DIRECTA (para debugging)
+# =============================================================================
+if __name__ == "__main__":
+    pytest.main([
+        __file__,
+        "-v",
+        "--tb=short",
+        "--strict-markers",
+    ])

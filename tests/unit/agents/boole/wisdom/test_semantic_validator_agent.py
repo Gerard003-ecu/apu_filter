@@ -1,878 +1,1719 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Semantic Validator Agent (Custodio de la Cohomología Semántica)     ║
-║ Ruta   : app/agents/boole/wisdom/semantic_validator_agent.py                 ║
-║ Versión: 2.0.0-Topological-Cohomology-Lattice-Doctoral-Strict                ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna al `semantic_validator.py` en el estrato WISDOM.
-
-Impone la geométrica sobre las salidas estocásticas del LLM. Evalúa
-la distancia de Mahalanobis en la variedad semántica, audita la dimensión de la
-cohomología simplicial H¹(K; ℝ) y colapsa el retículo de veredictos usando el
-operador algebraico Supremo (⊔), aniquilando alucinaciones probabilísticas.
-
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Certificación Métrica de Mahalanobis:
-    Asegura que el tensor G sea:
-        - Simétrico.
-        - Definido positivo.
-        - Numéricamente estable.
-        - Con número de condición acotado.
-
-Fase 2 → Auditoría de Cohomología Simplicial:
-    Exige, para el complejo de cadenas:
-
-        C₂ --∂₂--> C₁ --∂₁--> C₀,
-
-    la condición de frontera:
-
-        ∂₁ ∘ ∂₂ = 0,
-
-    y computa:
-
-        dim H¹(K; ℝ) = dim ker(∂₁) - dim im(∂₂).
-
-    En modo estricto, dim H¹ > 0 detona veto absoluto.
-    En modo no estricto, retorna incoherencia lógica para que la Fase 3 colapse
-    el retículo hacia REJECT.
-
-Fase 3 → Colapso en Retículo Completamente Ordenado:
-    Fuerza:
-
-        Veredicto = ⨆ v_i.
-
-    Si existe obstrucción cohomológica, el supremo se transmuta al elemento
-    máximo absorbente:
-
-        ⊤ = REJECT.
-
-    La Fase 3 comienza consumiendo el certificado de la Fase 2.
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║  Módulo : Test Suite — Semantic Validator Agent (Custodio de Cohomología Semántica)      ║
+║  Ruta   : tests/unit/agents/boole/wisdom/test_semantic_validator_agent.py                ║
+║  Versión: 8.0.0-Rigorous-Mahalanobis-Cohomology-Lattice-Heyting-TestSuite                ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                          ║
+║  PROPÓSITO CIBER-FÍSICO Y TOPOLOGÍA DE PRUEBAS (Rigor Categórico):                       ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Esta suite de pruebas consagra la Gobernanza de Cohomología Semántica del estrato       ║
+║  WISDOM mediante un funtor de validación que verifica axiomáticamente la métrica         ║
+║  de Mahalanobis, la nulidad del complejo de cadenas y el colapso del retículo de         ║
+║  Heyting del modelo LLM.                                                                 ║
+║                                                                                          ║
+║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  Fase 1 → Certificación Métrica de Mahalanobis                                           ║
+║           Valida simetría, SPD y κ(G) del tensor métrico semántico.                      ║
+║                                                                                          ║
+║  Fase 2 → Auditoría de Cohomología Simplicial                                            ║
+║           Verifica ∂₁∘∂₂ = 0 y computa dim H¹(K; ℝ).                                     ║
+║                                                                                          ║
+║  Fase 3 → Colapso en Retículo Completamente Ordenado                                     ║
+║           Fuerza Veredicto = ⨆ v_i con veto cohomológico.                                ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝
 """
-
 from __future__ import annotations
 
+# =============================================================================
+# Biblioteca estándar
+# =============================================================================
 import logging
-import math
-from dataclasses import dataclass
-from enum import IntEnum, unique
-from typing import Any, Final, List, Optional, Sequence
+from typing import Tuple, List, Optional
+from pathlib import Path
 
+# =============================================================================
+# Framework de pruebas
+# =============================================================================
+import pytest
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
+# =============================================================================
+# Módulo bajo prueba
+# =============================================================================
+from app.agents.boole.wisdom.semantic_validator_agent import (
+    SemanticValidatorAgent,
+    MahalanobisMetricData,
+    SimplicialCohomologyData,
+    LatticeCollapseData,
+    SemanticGovernanceState,
+    StrictVerdict,
+    # Excepciones
+    SemanticValidatorAgentError,
+    SemanticInputValidationError,
+    MetricDegeneracyVeto,
+    CohomologicalObstructionVeto,
+    LatticeCollapseVeto,
+)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Dependencias arquitectónicas del ecosistema APU Filter
-# ─────────────────────────────────────────────────────────────────────────────
-try:
-    from app.core.mic_algebra import Morphism, TopologicalInvariantError
-except ImportError:
+# =============================================================================
+# Logger y constantes globales de prueba
+# =============================================================================
+logger = logging.getLogger("MAC.Wisdom.Test.SemanticValidatorAgent")
+_MACHINE_EPS: float = float(np.finfo(np.float64).eps)
 
-    class TopologicalInvariantError(Exception):
-        r"""Violación a un invariante topológico categórico en el Topos E_MIC."""
-        pass
-
-    class Morphism:
-        r"""Clase base de Morfismos del Topos."""
-        pass
-
-
-logger = logging.getLogger("MAC.Wisdom.SemanticValidatorAgent")
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# §A. CONSTANTES FÍSICO-MATEMÁTICAS Y ESPECTRALES
-# ═══════════════════════════════════════════════════════════════════════════════
-_MACHINE_EPSILON: Final[float] = float(np.finfo(np.float64).eps)
-
-_MAX_CONDITION_NUMBER: Final[float] = 1e8
-_COHOMOLOGY_TOLERANCE: Final[float] = 1e-10
-_METRIC_SYMMETRY_TOLERANCE: Final[float] = 1e-10
-_SPD_TOLERANCE: Final[float] = 1e-12
-_CHAIN_COMPLEX_TOLERANCE: Final[float] = 1e-10
-_NUMERICAL_SAFETY_FACTOR: Final[float] = 128.0
+# =============================================================================
+# FIXTURES GLOBALES — GENERADORES DE TENORES MÉTRICOS Y MATRICES DE FRONTERA
+# =============================================================================
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §B. JERARQUÍA DE EXCEPCIONES TOPOLÓGICAS (VETOS ABSOLUTOS)
-# ═══════════════════════════════════════════════════════════════════════════════
-class SemanticValidatorAgentError(TopologicalInvariantError):
-    r"""Excepción raíz del Custodio de la Cohomología Semántica."""
-    pass
-
-
-class SemanticInputValidationError(SemanticValidatorAgentError):
-    r"""Detonada si los tensores, matrices de frontera o veredictos son inválidos."""
-    pass
-
-
-class MetricDegeneracyVeto(SemanticValidatorAgentError):
-    r"""Detonada si κ(G) > κ_max o si el tensor de Mahalanobis no es SPD."""
-    pass
-
-
-class CohomologicalObstructionVeto(SemanticValidatorAgentError):
-    r"""Detonada si el complejo de cadenas es inválido o si dim H¹ > 0 en modo estricto."""
-    pass
-
-
-class LatticeCollapseVeto(SemanticValidatorAgentError):
-    r"""Detonada si la operación Supremo ⊔ falla matemáticamente."""
-    pass
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# §C. RETÍCULO COMPLETAMENTE ORDENADO
-# ═══════════════════════════════════════════════════════════════════════════════
-@unique
-class StrictVerdict(IntEnum):
+@pytest.fixture(scope="module")
+def fixture_valid_metric_3d() -> NDArray[np.float64]:
     r"""
-    Retículo de veredictos:
-
-        ⊥ = VIABLE ≤ CONDITIONAL ≤ WARNING ≤ REJECT = ⊤.
+    Genera tensor métrico de Mahalanobis válido para dim=3.
+    
+    Retorna
+    -------
+    NDArray[np.float64], shape (3, 3), SPD simétrica
     """
-    VIABLE = 0
-    CONDITIONAL = 1
-    WARNING = 2
-    REJECT = 3
+    G: NDArray[np.float64] = np.array(
+        [[1.1, 0.05, 0.02],
+         [0.05, 1.0, 0.03],
+         [0.02, 0.03, 0.9]], dtype=np.float64
+    )
+    
+    return G
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §D. ESTRUCTURAS INMUTABLES (DTOs del Espacio de Fase Semántico)
-# ═══════════════════════════════════════════════════════════════════════════════
-@dataclass(frozen=True, slots=True)
-class MahalanobisMetricData:
+@pytest.fixture(scope="module")
+def fixture_valid_metric_2d() -> NDArray[np.float64]:
     r"""
-    Artefacto de Fase 1.
-    Certificado espectral del tensor métrico.
-
-    Este objeto es el resultado final del último método de Fase 1 y el objeto
-    inicial de Fase 2.
+    Genera tensor métrico de Mahalanobis válido para dim=2 (caso mínimo).
+    
+    Retorna
+    -------
+    NDArray[np.float64], shape (2, 2), SPD simétrica
     """
-    dimension: int
-    min_eigenvalue: float
-    max_eigenvalue: float
-    condition_number: float
-    symmetry_residual: float
-    metric_tolerance: float
-    is_positive_definite: bool
+    G: NDArray[np.float64] = np.array(
+        [[1.1, 0.05],
+         [0.05, 1.0]], dtype=np.float64
+    )
+    
+    return G
 
 
-@dataclass(frozen=True, slots=True)
-class SimplicialCohomologyData:
+@pytest.fixture(scope="module")
+def fixture_valid_boundary_matrices_3d() -> Tuple[
+    NDArray[np.float64],
+    NDArray[np.float64],
+]:
     r"""
-    Artefacto de Fase 2.
-    Certificado de Nulidad de Obstrucciones.
-
-    Este objeto es el resultado final de Fase 2 y el objeto inicial de Fase 3.
+    Genera matrices de frontera válidas para complejo de cadenas 3D.
+    
+    Convención:
+        ∂₁ : C₁ → C₀  =>  d1.shape = (dim_C0, dim_C1)
+        ∂₂ : C₂ → C₁  =>  d2.shape = (dim_C1, dim_C2)
+    
+    Retorna
+    -------
+    Tuple[boundary_matrix_d1, boundary_matrix_d2]
     """
-    dim_C0: int
-    dim_C1: int
-    dim_C2: int
-    rank_d1: int
-    rank_d2: int
-    kernel_d1_dim: int
-    image_d2_dim: int
-    h1_dimension: int
-    chain_complex_residual: float
-    cohomology_tolerance: float
-    is_logically_coherent: bool
+    # dim_C0 = 3, dim_C1 = 4, dim_C2 = 2
+    d1: NDArray[np.float64] = np.array(
+        [[1.0, -1.0, 0.0, 0.0],
+         [0.0, 1.0, -1.0, 0.0],
+         [0.0, 0.0, 1.0, -1.0]], dtype=np.float64
+    )
+    
+    d2: NDArray[np.float64] = np.array(
+        [[1.0, 0.0],
+         [1.0, 1.0],
+         [0.0, 1.0],
+         [0.0, 0.0]], dtype=np.float64
+    )
+    
+    # Verificar que ∂₁∘∂₂ = 0
+    composition = d1 @ d2
+    assert float(la.norm(composition, "fro")) < 1e-10, \
+        "Fixture no satisface ∂₁∘∂₂ = 0"
+    
+    return d1, d2
 
 
-@dataclass(frozen=True, slots=True)
-class LatticeCollapseData:
+@pytest.fixture(scope="module")
+def fixture_valid_boundary_matrices_2d() -> Tuple[
+    NDArray[np.float64],
+    NDArray[np.float64],
+]:
     r"""
-    Artefacto de Fase 3.
-    Colapso algebraico del estado en el retículo de Heyting.
+    Genera matrices de frontera válidas para complejo de cadenas 2D (caso mínimo).
+    
+    Retorna
+    -------
+    Tuple[boundary_matrix_d1, boundary_matrix_d2]
     """
-    supremum_verdict: StrictVerdict
-    verdict_count: int
-    has_cohomological_obstruction: bool
-    is_worst_case_enforced: bool
+    # dim_C0 = 2, dim_C1 = 2, dim_C2 = 1
+    d1: NDArray[np.float64] = np.array(
+        [[1.0, -1.0],
+         [0.0, 1.0]], dtype=np.float64
+    )
+    
+    d2: NDArray[np.float64] = np.array(
+        [[1.0],
+         [1.0]], dtype=np.float64
+    )
+    
+    # Verificar que ∂₁∘∂₂ = 0
+    composition = d1 @ d2
+    assert float(la.norm(composition, "fro")) < 1e-10, \
+        "Fixture no satisface ∂₁∘∂₂ = 0"
+    
+    return d1, d2
 
 
-@dataclass(frozen=True, slots=True)
-class SemanticGovernanceState:
+@pytest.fixture(scope="module")
+def fixture_valid_verdicts() -> List[StrictVerdict]:
     r"""
-    Objeto final del endofuntor Z_SemValidator.
+    Genera secuencia de veredictos válidos.
+    
+    Retorna
+    -------
+    List[StrictVerdict]
     """
-    metric_audit: MahalanobisMetricData
-    cohomology_audit: SimplicialCohomologyData
-    lattice_audit: LatticeCollapseData
-    is_epistemologically_valid: bool
+    return [
+        StrictVerdict.VIABLE,
+        StrictVerdict.CONDITIONAL,
+        StrictVerdict.WARNING,
+    ]
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §E. GUARDAS NUMÉRICAS INTERNAS
-# ═══════════════════════════════════════════════════════════════════════════════
-class _FiniteNumericalGuard:
+@pytest.fixture(scope="module")
+def fixture_verdicts_with_reject() -> List[StrictVerdict]:
     r"""
-    Capa de saneamiento numérico para evitar que singularidades aritméticas
-    contaminen los invariantes topológicos y espectrales.
+    Genera secuencia de veredictos que incluye REJECT.
+    
+    Retorna
+    -------
+    List[StrictVerdict]
     """
-
-    @staticmethod
-    def _as_finite_real_matrix(
-        name: str,
-        value: Any,
-        *,
-        square: bool = False,
-    ) -> NDArray[np.float64]:
-        r"""
-        Valida una matriz real finita.
-        """
-        try:
-            raw = np.asarray(value)
-        except Exception as exc:
-            raise SemanticInputValidationError(
-                f"{name} no puede interpretarse como arreglo numérico."
-            ) from exc
-
-        if np.iscomplexobj(raw):
-            raise SemanticInputValidationError(
-                f"{name} debe ser real; se rechazó entrada compleja."
-            )
-
-        try:
-            arr = raw.astype(np.float64, copy=False)
-        except (TypeError, ValueError) as exc:
-            raise SemanticInputValidationError(
-                f"{name} debe ser numérico real convertible a float64."
-            ) from exc
-
-        if not np.all(np.isfinite(arr)):
-            raise SemanticInputValidationError(
-                f"{name} contiene valores NaN o infinitos."
-            )
-
-        if arr.ndim != 2:
-            raise SemanticInputValidationError(
-                f"{name} debe ser una matriz 2D."
-            )
-
-        if square and arr.shape[0] != arr.shape[1]:
-            raise SemanticInputValidationError(
-                f"{name} debe ser una matriz cuadrada."
-            )
-
-        return arr
-
-    @staticmethod
-    def _frobenius_norm(A: NDArray[np.float64]) -> float:
-        r"""
-        Norma de Frobenius numéricamente segura.
-        """
-        if A.size == 0:
-            return 0.0
-
-        value = float(la.norm(A, ord="fro"))
-        return value if math.isfinite(value) else math.inf
+    return [
+        StrictVerdict.VIABLE,
+        StrictVerdict.REJECT,
+        StrictVerdict.WARNING,
+    ]
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 1: CERTIFICACIÓN MÉTRICA DE MAHALANOBIS                              ║
-# ║                                                                             ║
-# ║   Audita la matriz de precisión G para el cálculo de d_G(x, y).             ║
-# ║   Exige G ∈ Sym^+(n) y κ(G) ≤ κ_max.                                        ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-class Phase1_MetricTensorAuditor(_FiniteNumericalGuard):
+# =============================================================================
+# FASE 1 — CERTIFICACIÓN MÉTRICA DE MAHALANOBIS
+# =============================================================================
+class TestPhase1_MetricTensorCertification:
     r"""
-    Garantiza que el espacio de validación semántica esté provisto de una métrica
-    Riemanniana bien definida, sin degeneración espectral.
-
-    La matriz G debe ser simétrica y definida positiva:
-
-        G ∈ Sym^+(n).
-
-    Además, su número de condición debe permanecer acotado:
-
-        κ(G) = λ_max / λ_min ≤ κ_max.
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    FASE 1 — CERTIFICACIÓN ESPECTRAL DEL TENSOR DE MAHALANOBIS
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida el endofuntor Phase1_MetricTensorAuditor que consagra la
+    geometría Riemanniana del espacio de validación semántica. Cada método verifica un
+    axioma constitutivo del estrato WISDOM.
+    
+    Invariantes Verificados:
+    ------------------------
+    1. Coherencia dimensional de G_metric
+    2. Simetría de G_metric (G = Gᵀ)
+    3. Definida positiva (λ_min > 0)
+    4. Finitud de entradas (no NaN, no Inf)
+    5. Número de condición κ(G) ≤ κ_max
+    6. Regularización espectral de autovalores pequeños
     """
-
-    def _audit_mahalanobis_metric_tensor(
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.1 — VALIDACIÓN DIMENSIONAL Y ESTRUCTURAL
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_dimensions_valid_3d(
         self,
-        G_metric: NDArray[np.float64],
-    ) -> MahalanobisMetricData:
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
         r"""
-        Último método de la Fase 1.
-
-        Valida el tensor métrico de Mahalanobis mediante diagonalización
-        hermítica real.
-
-        Este método retorna un certificado `MahalanobisMetricData`, el cual
-        constituye el objeto inicial de la Fase 2.
+        Verifica que métrica 3D válida pasa la validación dimensional.
+        
+        Axioma: G_metric ∈ ℝ^{n×n}, cuadrada
         """
-        G = self._as_finite_real_matrix("G_metric", G_metric, square=True)
-
-        dimension = G.shape[0]
-
-        if dimension == 0:
-            raise SemanticInputValidationError(
-                "G_metric no puede ser una matriz vacía."
-            )
-
-        frobenius_norm = self._frobenius_norm(G)
-
-        if not math.isfinite(frobenius_norm):
-            raise MetricDegeneracyVeto(
-                "La norma de Frobenius de G_metric no es finita."
-            )
-
-        symmetry_residual_norm = self._frobenius_norm(G - G.T)
-
-        if not math.isfinite(symmetry_residual_norm):
-            raise MetricDegeneracyVeto(
-                "El residuo de simetría de G_metric no es finito."
-            )
-
-        symmetry_tolerance = max(
-            _METRIC_SYMMETRY_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON,
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
         )
-
-        symmetry_residual = symmetry_residual_norm / max(1.0, frobenius_norm)
-
-        if symmetry_residual > symmetry_tolerance:
-            raise MetricDegeneracyVeto(
-                "El tensor de Mahalanobis no es simétrico dentro de tolerancia. "
-                f"Residuo relativo = {symmetry_residual:.6e} > "
-                f"{symmetry_tolerance:.6e}."
-            )
-
-        G_symmetric = (G + G.T) / 2.0
-
-        if not np.all(np.isfinite(G_symmetric)):
-            raise MetricDegeneracyVeto(
-                "La simetrización de G_metric produjo valores no finitos."
-            )
-
-        try:
-            eigenvalues = la.eigvalsh(G_symmetric)
-        except np.linalg.LinAlgError as exc:
-            raise MetricDegeneracyVeto(
-                "Fallo en la diagonalización del tensor de Mahalanobis."
-            ) from exc
-
-        eigenvalues = np.asarray(eigenvalues, dtype=np.float64)
-
-        if not np.all(np.isfinite(eigenvalues)):
-            raise MetricDegeneracyVeto(
-                "Los autovalores de G_metric no son finitos."
-            )
-
-        min_eigenvalue = float(np.min(eigenvalues))
-        max_eigenvalue = float(np.max(eigenvalues))
-
-        if max_eigenvalue <= 0.0:
-            raise MetricDegeneracyVeto(
-                "El tensor métrico no es definido positivo. "
-                f"λ_max = {max_eigenvalue:.6e} <= 0."
-            )
-
-        spd_tolerance = max(
-            _SPD_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, max_eigenvalue),
-        )
-
-        if min_eigenvalue <= spd_tolerance:
-            raise MetricDegeneracyVeto(
-                "El tensor métrico no es definido positivo. "
-                f"λ_min = {min_eigenvalue:.6e} <= "
-                f"tolerancia SPD = {spd_tolerance:.6e}. "
-                "El espacio semántico se ha rasgado."
-            )
-
-        condition_number = max_eigenvalue / min_eigenvalue
-
-        if not math.isfinite(condition_number):
-            raise MetricDegeneracyVeto(
-                "El número de condición κ(G) no es finito."
-            )
-
-        condition_tolerance = max(
-            1e-8,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, _MAX_CONDITION_NUMBER),
-        )
-
-        if condition_number > _MAX_CONDITION_NUMBER + condition_tolerance:
-            raise MetricDegeneracyVeto(
-                "Degeneración espectral. "
-                f"κ(G) = {condition_number:.6e} > "
-                f"κ_max = {_MAX_CONDITION_NUMBER:.6e}."
-            )
-
-        return MahalanobisMetricData(
-            dimension=int(dimension),
-            min_eigenvalue=float(min_eigenvalue),
-            max_eigenvalue=float(max_eigenvalue),
-            condition_number=float(condition_number),
-            symmetry_residual=float(symmetry_residual),
-            metric_tolerance=float(spd_tolerance),
-            is_positive_definite=True,
-        )
-
-
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 2: AUDITORÍA DE COHOMOLOGÍA SIMPLICIAL                               ║
-# ║                                                                             ║
-# ║   Evalúa:                                                                   ║
-# ║       dim H¹(K; ℝ) = dim ker(∂₁) - dim im(∂₂)                               ║
-# ║                                                                             ║
-# ║   Esta fase comienza consumiendo el certificado de Fase 1.                  ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-class Phase2_SimplicialCohomologyAuditor(Phase1_MetricTensorAuditor):
-    r"""
-    Audita el complejo de señales entre perfiles de riesgo y salidas del LLM,
-    buscando agujeros topológicos causados por alucinaciones estocásticas.
-
-    El complejo de cadenas debe satisfacer:
-
-        ∂₁ ∘ ∂₂ = 0.
-
-    Bajo esta condición:
-
-        H¹(K; ℝ) = ker(∂₁) / im(∂₂),
-
-    y por tanto:
-
-        dim H¹ = dim C¹ - rank(∂₁) - rank(∂₂).
-    """
-
-    @staticmethod
-    def _numerical_rank(A: NDArray[np.float64]) -> int:
-        r"""
-        Calcula el rango numérico de una matriz mediante SVD con tolerancia
-        adaptativa.
-
-        La tolerancia usada es:
-
-            tol = max(ε_coh, c · ε_maq · max(shape(A)) · σ_max(A)).
-        """
-        if A.size == 0 or min(A.shape) == 0:
-            return 0
-
-        try:
-            singular_values = la.svdvals(A)
-        except np.linalg.LinAlgError as exc:
-            raise CohomologicalObstructionVeto(
-                "SVD no convergió al auditar el complejo simplicial."
-            ) from exc
-
-        singular_values = np.asarray(singular_values, dtype=np.float64)
-
-        if not np.all(np.isfinite(singular_values)):
-            raise CohomologicalObstructionVeto(
-                "Los valores singulares del operador de frontera no son finitos."
-            )
-
-        if singular_values.size == 0:
-            return 0
-
-        sigma_max = float(singular_values[0])
-
-        if sigma_max == 0.0:
-            return 0
-
-        tolerance = max(
-            _COHOMOLOGY_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(A.shape)
-            * sigma_max,
-        )
-
-        return int(np.count_nonzero(singular_values > tolerance))
-
-    def _certify_simplicial_cohomology(
+        
+        assert metric_audit.dimension == 3
+        assert metric_audit.is_positive_definite is True
+        assert metric_audit.condition_number < 1e8
+    
+    def test_phase1_dimensions_valid_2d(
         self,
-        boundary_matrix_d1: NDArray[np.float64],
-        boundary_matrix_d2: NDArray[np.float64],
-        metric_audit: Optional[MahalanobisMetricData] = None,
-        *,
-        strict_cohomological_veto: bool = True,
-    ) -> SimplicialCohomologyData:
+        fixture_valid_metric_2d: NDArray[np.float64],
+    ) -> None:
         r"""
-        Primer método de la Fase 2.
-
-        Continuación formal del último método de Fase 1.
-
-        Computa:
-
-            dim ker(∂₁) = dim C¹ - rank(∂₁),
-            dim im(∂₂) = rank(∂₂),
-            dim H¹ = dim ker(∂₁) - dim im(∂₂).
-
-        Si `metric_audit` es provisto:
-            - Verifica que la Fase 1 haya certificado una métrica SPD.
-
-        Si `strict_cohomological_veto=True`:
-            - dim H¹ > 0 detona `CohomologicalObstructionVeto`.
-
-        Si `strict_cohomological_veto=False`:
-            - dim H¹ > 0 retorna `is_logically_coherent=False`, permitiendo que
-              la Fase 3 colapse el retículo hacia REJECT.
-
-        Retorna:
-            SimplicialCohomologyData, certificado que sirve como objeto inicial
-            de la Fase 3.
+        Verifica caso mínimo dim=2 (frontera inferior).
         """
-        if metric_audit is not None:
-            if not metric_audit.is_positive_definite:
-                raise MetricDegeneracyVeto(
-                    "La Fase 2 no puede iniciarse: la Fase 1 no certificó "
-                    "una métrica de Mahalanobis definida positiva."
-                )
-
-        d1 = self._as_finite_real_matrix(
-            "boundary_matrix_d1",
-            boundary_matrix_d1,
+        G = fixture_valid_metric_2d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
         )
-
-        d2 = self._as_finite_real_matrix(
-            "boundary_matrix_d2",
-            boundary_matrix_d2,
-        )
-
-        # Convención de formas:
-        #   ∂₁ : C₁ → C₀  =>  d1.shape = (dim_C0, dim_C1)
-        #   ∂₂ : C₂ → C₁  =>  d2.shape = (dim_C1, dim_C2)
-        if d1.shape[1] != d2.shape[0]:
-            raise SemanticInputValidationError(
-                "Las matrices de frontera no componen un complejo de cadenas. "
-                f"∂₁ espera dim C¹={d1.shape[1]}, pero ∂₂ tiene dominio "
-                f"dim C¹={d2.shape[0]}."
-            )
-
-        dim_C0, dim_C1 = d1.shape
-        _, dim_C2 = d2.shape
-
-        composition = d1 @ d2
-
-        if not np.all(np.isfinite(composition)):
-            raise CohomologicalObstructionVeto(
-                "La composición ∂₁∘∂₂ produjo valores no finitos."
-            )
-
-        composition_norm = self._frobenius_norm(composition)
-        d1_norm = self._frobenius_norm(d1)
-        d2_norm = self._frobenius_norm(d2)
-
-        if (
-            not math.isfinite(composition_norm)
-            or not math.isfinite(d1_norm)
-            or not math.isfinite(d2_norm)
-        ):
-            raise CohomologicalObstructionVeto(
-                "Las normas del complejo de cadenas no son finitas."
-            )
-
-        max_float = float(np.finfo(np.float64).max)
-
-        if (
-            d1_norm > 0.0
-            and d2_norm > 0.0
-            and d1_norm <= max_float / max(1.0, d2_norm)
-        ):
-            product_scale = d1_norm * d2_norm
-        else:
-            product_scale = math.inf
-
-        if math.isfinite(product_scale):
-            scale = max(1.0, product_scale)
-        else:
-            scale = max(1.0, composition_norm)
-
-        chain_complex_residual = composition_norm / scale
-
-        if not math.isfinite(chain_complex_residual):
-            raise CohomologicalObstructionVeto(
-                "El residuo del complejo de cadenas ∂₁∘∂₂ no es finito."
-            )
-
-        chain_complex_tolerance = max(
-            _CHAIN_COMPLEX_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON,
-        )
-
-        if chain_complex_residual > chain_complex_tolerance:
-            raise CohomologicalObstructionVeto(
-                "Violación del complejo de cadenas. "
-                f"∂₁∘∂₂ ≠ 0. Residuo relativo = {chain_complex_residual:.6e} > "
-                f"{chain_complex_tolerance:.6e}."
-            )
-
-        rank_d1 = self._numerical_rank(d1)
-        rank_d2 = self._numerical_rank(d2)
-
-        kernel_d1_dim = int(dim_C1 - rank_d1)
-        image_d2_dim = int(rank_d2)
-
-        h1_dimension = int(kernel_d1_dim - image_d2_dim)
-
-        if h1_dimension < 0:
-            if h1_dimension >= -2:
-                logger.warning(
-                    "dim H¹ calculada fue negativa (%d); se proyecta a 0 por "
-                    "tolerancia numérica.",
-                    h1_dimension,
-                )
-                h1_dimension = 0
-            else:
-                raise CohomologicalObstructionVeto(
-                    "Violación grave del complejo de cadenas: "
-                    f"dim im(∂₂) excede dim ker(∂₁) en {abs(h1_dimension)}. "
-                    "im(∂₂) no está contenido en ker(∂₁)."
-                )
-
-        is_logically_coherent = h1_dimension == 0
-
-        if not is_logically_coherent:
-            if strict_cohomological_veto:
-                raise CohomologicalObstructionVeto(
-                    "Obstrucción semántica global. "
-                    f"El modelo de lenguaje generó un razonamiento cíclico "
-                    f"contradictorio: dim H¹(K; ℝ) = {h1_dimension} > 0."
-                )
-
-            logger.warning(
-                "Obstrucción semántica detectada: dim H¹(K; ℝ) = %d. "
-                "Se delega el colapso del retículo a la Fase 3.",
-                h1_dimension,
-            )
-
-        return SimplicialCohomologyData(
-            dim_C0=int(dim_C0),
-            dim_C1=int(dim_C1),
-            dim_C2=int(dim_C2),
-            rank_d1=int(rank_d1),
-            rank_d2=int(rank_d2),
-            kernel_d1_dim=int(kernel_d1_dim),
-            image_d2_dim=int(image_d2_dim),
-            h1_dimension=int(h1_dimension),
-            chain_complex_residual=float(chain_complex_residual),
-            cohomology_tolerance=float(chain_complex_tolerance),
-            is_logically_coherent=bool(is_logically_coherent),
-        )
-
-
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 3: COLAPSO EN EL RETÍCULO COMPLETAMENTE ORDENADO                     ║
-# ║                                                                             ║
-# ║   Fuerza:                                                                   ║
-# ║       Veredicto = ⨆ v_i                                                     ║
-# ║                                                                             ║
-# ║   Si dim H¹ > 0, colapsa a ⊤ = REJECT.                                      ║
-# ║                                                                             ║
-# ║   Esta fase comienza consumiendo el certificado de Fase 2.                  ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-class Phase3_LatticeSupremumProjector(Phase2_SimplicialCohomologyAuditor):
-    r"""
-    Fuerza a la evaluación a converger en el peor caso topológico, garantizando
-    la seguridad del espacio de decisión de la Malla Agéntica.
-
-    El retículo de veredictos es completamente ordenado:
-
-        VIABLE ≤ CONDITIONAL ≤ WARNING ≤ REJECT.
-
-    Las obstrucciones cohomológicas se comportan como el elemento máximo
-    absorbente:
-
-        x ⊔ ⊤ = ⊤.
-    """
-
-    def _enforce_supremum_lattice_collapse(
+        
+        assert metric_audit.dimension == 2
+        assert metric_audit.is_positive_definite is True
+    
+    def test_phase1_dimension_mismatch_non_square(
         self,
-        verdicts: Optional[Sequence[StrictVerdict]],
-        has_cohomological_obstruction: bool = False,
-        cohomology_audit: Optional[SimplicialCohomologyData] = None,
-    ) -> LatticeCollapseData:
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
         r"""
-        Primer método de la Fase 3.
-
-        Continuación formal de Fase 2.
-
-        Evalúa el Supremo en el álgebra de Heyting.
-
-        Si `cohomology_audit` es provisto:
-            - Verifica si existe obstrucción cohomológica.
-            - Si dim H¹ > 0, fuerza el supremo a REJECT.
-
-        Si `has_cohomological_obstruction=True`:
-            - Fuerza directamente el supremo a REJECT.
-
-        Retorna:
-            LatticeCollapseData, certificado final del colapso reticular.
+        Verifica que G_metric no cuadrada dispara SemanticInputValidationError.
         """
-        if cohomology_audit is not None:
-            if cohomology_audit.h1_dimension > 0:
-                has_cohomological_obstruction = True
-
-            if not cohomology_audit.is_logically_coherent:
-                has_cohomological_obstruction = True
-
-        verdict_sequence: List[StrictVerdict] = list(verdicts) if verdicts else []
-
-        if has_cohomological_obstruction:
-            logger.warning(
-                "Obstrucción topológica detectada. "
-                "Transmutando el Supremo hacia REJECT (⊤)."
+        G = fixture_valid_metric_3d
+        G_invalid: NDArray[np.float64] = G[:, :2]  # 3×2
+        
+        agent = SemanticValidatorAgent()
+        
+        with pytest.raises(SemanticInputValidationError) as exc_info:
+            agent._audit_mahalanobis_metric_tensor(
+                G_metric=G_invalid,
             )
-
-            return LatticeCollapseData(
-                supremum_verdict=StrictVerdict.REJECT,
-                verdict_count=len(verdict_sequence),
-                has_cohomological_obstruction=True,
-                is_worst_case_enforced=True,
-            )
-
-        if not verdict_sequence:
-            raise LatticeCollapseVeto(
-                "Conjunto vacío ∅ en el dominio de veredictos."
-            )
-
-        for index, verdict in enumerate(verdict_sequence):
-            if not isinstance(verdict, StrictVerdict):
-                raise LatticeCollapseVeto(
-                    f"Veredicto inválido en índice {index}: {verdict!r}. "
-                    "Debe pertenecer a StrictVerdict."
-                )
-
-        supremum = max(verdict_sequence, key=lambda v: v.value)
-
-        if StrictVerdict.REJECT in verdict_sequence and supremum != StrictVerdict.REJECT:
-            raise LatticeCollapseVeto(
-                "Violación de la clausura suprema: ⊥ ⊔ ⊤ ≠ ⊤."
-            )
-
-        return LatticeCollapseData(
-            supremum_verdict=supremum,
-            verdict_count=len(verdict_sequence),
-            has_cohomological_obstruction=False,
-            is_worst_case_enforced=True,
-        )
-
-
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   ORQUESTADOR SUPREMO: SEMANTIC VALIDATOR AGENT                             ║
-# ║                                                                             ║
-# ║   Endofuntor Z_SemValidator = Φ₃ ∘ Φ₂ ∘ Φ₁                                 ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-class SemanticValidatorAgent(Morphism, Phase3_LatticeSupremumProjector):
-    r"""
-    El Custodio de la Cohomología Semántica.
-
-    Gobierna incondicionalmente el módulo `semantic_validator.py`, subyugando
-    la estocástica del LLM a los invariantes de la cohomología simplicial y el
-    colapso del retículo en el estrato WISDOM.
-    """
-
-    def execute_semantic_cohomology_governance(
+        
+        assert "cuadrada" in str(exc_info.value) or "2D" in str(exc_info.value)
+    
+    def test_phase1_dimension_mismatch_empty(
         self,
-        G_metric: NDArray[np.float64],
-        boundary_matrix_d1: NDArray[np.float64],
-        boundary_matrix_d2: NDArray[np.float64],
-        proposed_verdicts: Sequence[StrictVerdict],
-    ) -> SemanticGovernanceState:
+    ) -> None:
         r"""
-        Ejecuta la composición funtorial estricta:
-
-            Φ₁ : Certificación métrica de Mahalanobis.
-            Φ₂ : Auditoría de cohomología simplicial.
-            Φ₃ : Colapso del retículo de decisiones.
-
-        Parámetros:
-            G_metric:
-                Tensor métrico de Mahalanobis.
-
-            boundary_matrix_d1:
-                Operador frontera ∂₁: C₁ → C₀.
-
-            boundary_matrix_d2:
-                Operador frontera ∂₂: C₂ → C₁.
-
-            proposed_verdicts:
-                Secuencia de veredictos propuestos.
-
-        Retorna:
-            SemanticGovernanceState con los tres certificados y validez
-            epistemológica final.
+        Verifica que G_metric vacía dispara SemanticInputValidationError.
         """
-        # Fase 1: Certificación del tensor métrico de Mahalanobis.
-        metric_audit = self._audit_mahalanobis_metric_tensor(G_metric)
+        G_empty: NDArray[np.float64] = np.array([], dtype=np.float64).reshape(0, 0)
+        
+        agent = SemanticValidatorAgent()
+        
+        with pytest.raises(SemanticInputValidationError) as exc_info:
+            agent._audit_mahalanobis_metric_tensor(
+                G_metric=G_empty,
+            )
+        
+        assert "vacía" in str(exc_info.value) or "empty" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.2 — VALIDACIÓN DE SIMETRÍA MÉTRICA
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_symmetry_valid(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que G_metric simétrica pasa validación.
+        
+        Axioma: G = Gᵀ dentro de tolerancia ε_mach · ‖G‖_F
+        """
+        G = fixture_valid_metric_3d
+        
+        # Verificar simetría explícita
+        sym_residual = float(la.norm(G - G.T, "fro"))
+        norm_G = float(la.norm(G, "fro"))
+        tol = _MACHINE_EPS * max(norm_G, 1.0)
+        
+        assert sym_residual <= tol, f"Fixture G no es simétrica: {sym_residual}"
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        assert metric_audit is not None
+    
+    def test_phase1_symmetry_invalid(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que G_metric asimétrica dispara MetricDegeneracyVeto.
+        """
+        G = fixture_valid_metric_3d
+        G_invalid: NDArray[np.float64] = G.copy()
+        G_invalid[0, 1] += 0.5  # Romper simetría
+        
+        agent = SemanticValidatorAgent()
+        
+        with pytest.raises(MetricDegeneracyVeto) as exc_info:
+            agent._audit_mahalanobis_metric_tensor(
+                G_metric=G_invalid,
+            )
+        
+        assert "simétrico" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.3 — VALIDACIÓN DE DEFINIDA POSITIVA (SPD)
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_spd_valid(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que G_metric SPD pasa validación.
+        
+        Axioma: λ_min(G) > 0 (todos autovalores positivos)
+        """
+        G = fixture_valid_metric_3d
+        
+        # Verificar SPD explícito
+        eigvals = la.eigvalsh(G)
+        lambda_min = float(np.min(eigvals))
+        
+        assert lambda_min > 0.0, f"Fixture G no es SPD: λ_min={lambda_min}"
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        assert metric_audit.min_eigenvalue > 0.0
+        assert metric_audit.max_eigenvalue > 0.0
+    
+    def test_phase1_spd_invalid_negative_eigenvalue(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que G_metric con autovalor negativo dispara MetricDegeneracyVeto.
+        """
+        G = fixture_valid_metric_3d
+        G_invalid: NDArray[np.float64] = G.copy()
+        G_invalid[0, 0] = -1.0  # Forzar λ_min < 0
+        
+        agent = SemanticValidatorAgent()
+        
+        with pytest.raises(MetricDegeneracyVeto) as exc_info:
+            agent._audit_mahalanobis_metric_tensor(
+                G_metric=G_invalid,
+            )
+        
+        assert "definido positivo" in str(exc_info.value) or "SPD" in str(exc_info.value)
+    
+    def test_phase1_spd_invalid_near_singular(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que G_metric casi singular dispara MetricDegeneracyVeto.
+        """
+        G_singular: NDArray[np.float64] = np.array(
+            [[1.0, 1.0, 1.0],
+             [1.0, 1.0, 1.0],
+             [1.0, 1.0, 1.0]], dtype=np.float64
+        )  # rank 1, λ_min = 0
+        
+        agent = SemanticValidatorAgent()
+        
+        with pytest.raises(MetricDegeneracyVeto) as exc_info:
+            agent._audit_mahalanobis_metric_tensor(
+                G_metric=G_singular,
+            )
+        
+        assert "singular" in str(exc_info.value) or "degenerada" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.4 — NÚMEROS DE CONDICIÓN
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_condition_number_within_limit(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que κ(G) < κ_max.
+        """
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        assert metric_audit.condition_number < 1e8
+        assert np.isfinite(metric_audit.condition_number)
+    
+    def test_phase1_condition_number_exceeds_limit(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que κ(G) > κ_max dispara MetricDegeneracyVeto.
+        """
+        G_ill: NDArray[np.float64] = np.array(
+            [[1.0, 0.0, 0.0],
+             [0.0, 1e-9, 0.0],
+             [0.0, 0.0, 1.0]], dtype=np.float64
+        )  # κ ≈ 1e9 > 1e8
+        
+        agent = SemanticValidatorAgent()
+        
+        with pytest.raises(MetricDegeneracyVeto) as exc_info:
+            agent._audit_mahalanobis_metric_tensor(
+                G_metric=G_ill,
+            )
+        
+        assert "condición" in str(exc_info.value) or "κ" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.5 — VALIDACIÓN DE FINITUD NUMÉRICA
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_finite_values_valid(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que métrica con valores finitos pasa validación.
+        """
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        assert np.all(np.isfinite(metric_audit.min_eigenvalue))
+        assert np.all(np.isfinite(metric_audit.max_eigenvalue))
+        assert np.all(np.isfinite(metric_audit.condition_number))
+    
+    def test_phase1_nan_values_raise(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que NaN en métrica dispara SemanticInputValidationError.
+        """
+        G = fixture_valid_metric_3d
+        G_nan: NDArray[np.float64] = G.copy()
+        G_nan[0, 0] = np.nan
+        
+        agent = SemanticValidatorAgent()
+        
+        with pytest.raises(SemanticInputValidationError) as exc_info:
+            agent._audit_mahalanobis_metric_tensor(
+                G_metric=G_nan,
+            )
+        
+        assert "NaN" in str(exc_info.value) or "infinitos" in str(exc_info.value)
+    
+    def test_phase1_inf_values_raise(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que Inf en métrica dispara SemanticInputValidationError.
+        """
+        G = fixture_valid_metric_3d
+        G_inf: NDArray[np.float64] = G.copy()
+        G_inf[0, 0] = np.inf
+        
+        agent = SemanticValidatorAgent()
+        
+        with pytest.raises(SemanticInputValidationError) as exc_info:
+            agent._audit_mahalanobis_metric_tensor(
+                G_metric=G_inf,
+            )
+        
+        assert "infinitos" in str(exc_info.value) or "NaN" in str(exc_info.value)
+    
+    def test_phase1_complex_values_raise(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que valores complejos disparan SemanticInputValidationError.
+        """
+        G = fixture_valid_metric_3d
+        G_complex: NDArray[np.complex128] = G.astype(np.complex128)
+        G_complex[0, 0] += 0.1j
+        
+        agent = SemanticValidatorAgent()
+        
+        with pytest.raises(SemanticInputValidationError) as exc_info:
+            agent._audit_mahalanobis_metric_tensor(
+                G_metric=G_complex,
+            )
+        
+        assert "compleja" in str(exc_info.value) or "real" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 1.6 — DIAGNÓSTICOS ESPECTRALES
+    # -------------------------------------------------------------------------
+    
+    def test_phase1_eigenvalues_computed(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que autovalores mínimo y máximo se calculan correctamente.
+        """
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        # Verificar contra cálculo directo
+        eigvals = la.eigvalsh(G)
+        expected_min = float(np.min(eigvals))
+        expected_max = float(np.max(eigvals))
+        
+        tol = 1e-10 * max(abs(expected_min), abs(expected_max), 1.0)
+        
+        assert abs(metric_audit.min_eigenvalue - expected_min) <= tol
+        assert abs(metric_audit.max_eigenvalue - expected_max) <= tol
+    
+    def test_phase1_symmetry_residual_computed(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que residuo de simetría se calcula correctamente.
+        """
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        # Para matriz simétrica, residuo debe ser muy pequeño
+        assert metric_audit.symmetry_residual < 1e-10
 
-        # Fase 2: Certificación de cohomología simplicial.
-        # Se usa modo no estricto para permitir que una obstrucción H¹ > 0
-        # sea tratada por la Fase 3 como colapso reticular hacia REJECT.
-        cohomology_audit = self._certify_simplicial_cohomology(
-            boundary_matrix_d1,
-            boundary_matrix_d2,
+
+# =============================================================================
+# FASE 2 — AUDITORÍA DE COHOMOLOGÍA SIMPLICIAL
+# =============================================================================
+class TestPhase2_SimplicialCohomologyAudit:
+    r"""
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    FASE 2 — AUDITORÍA DE COHOMOLOGÍA SIMPLICIAL Y COMPLEJO DE CADENAS
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida el endofuntor Phase2_SimplicialCohomologyAuditor que
+    gobierna la nulidad del complejo de cadenas y la dimensión de H¹.
+    
+    Invariantes Verificados:
+    ------------------------
+    1. Condición de frontera: ∂₁∘∂₂ = 0
+    2. dim H¹ = dim ker(∂₁) - dim im(∂₂)
+    3. Rango numérico vía SVD
+    4. Consistencia dimensional con certificado de Fase 1
+    5. Modo estricto vs no estricto para veto cohomológico
+    """
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.1 — VALIDACIÓN DEL COMPLEJO DE CADENAS
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_chain_complex_valid_3d(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que complejo de cadenas válido pasa validación.
+        
+        Axioma: ∂₁∘∂₂ = 0 dentro de tolerancia
+        """
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        # Fase 1 primero
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        # Fase 2
+        cohomology_audit = agent._certify_simplicial_cohomology(
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
             metric_audit=metric_audit,
             strict_cohomological_veto=False,
         )
-
-        # Fase 3: Colapso del retículo de decisiones.
-        lattice_audit = self._enforce_supremum_lattice_collapse(
-            proposed_verdicts,
-            cohomology_audit=cohomology_audit,
+        
+        assert cohomology_audit.chain_complex_residual < 1e-10
+        assert cohomology_audit.is_logically_coherent is True
+    
+    def test_phase2_chain_complex_valid_2d(
+        self,
+        fixture_valid_boundary_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_2d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica caso mínimo dim=2.
+        """
+        d1, d2 = fixture_valid_boundary_matrices_2d
+        G = fixture_valid_metric_2d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
         )
-
-        is_epistemologically_valid = bool(
-            metric_audit.is_positive_definite
-            and cohomology_audit.is_logically_coherent
-            and lattice_audit.is_worst_case_enforced
-        )
-
-        if cohomology_audit.is_logically_coherent:
-            logger.info(
-                "Gobernanza semántica certificada. "
-                "κ(G): %.6e | dim H¹: %d | Veredicto Supremo: %s",
-                metric_audit.condition_number,
-                cohomology_audit.h1_dimension,
-                lattice_audit.supremum_verdict.name,
-            )
-        else:
-            logger.warning(
-                "Gobernanza semántica con obstrucción cohomológica. "
-                "κ(G): %.6e | dim H¹: %d | Veredicto Supremo forzado: %s",
-                metric_audit.condition_number,
-                cohomology_audit.h1_dimension,
-                lattice_audit.supremum_verdict.name,
-            )
-
-        return SemanticGovernanceState(
+        
+        cohomology_audit = agent._certify_simplicial_cohomology(
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
             metric_audit=metric_audit,
-            cohomology_audit=cohomology_audit,
-            lattice_audit=lattice_audit,
-            is_epistemologically_valid=is_epistemologically_valid,
+            strict_cohomological_veto=False,
         )
+        
+        assert cohomology_audit.chain_complex_residual < 1e-10
+    
+    def test_phase2_chain_complex_violation_raises(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que ∂₁∘∂₂ ≠ 0 dispara CohomologicalObstructionVeto.
+        """
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        G = fixture_valid_metric_3d
+        
+        # Modificar d2 para violar ∂₁∘∂₂ = 0
+        d2_invalid: NDArray[np.float64] = d2.copy()
+        d2_invalid[0, 0] += 1.0  # Romper condición de frontera
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        with pytest.raises(CohomologicalObstructionVeto) as exc_info:
+            agent._certify_simplicial_cohomology(
+                boundary_matrix_d1=d1,
+                boundary_matrix_d2=d2_invalid,
+                metric_audit=metric_audit,
+                strict_cohomological_veto=False,
+            )
+        
+        assert "∂₁∘∂₂" in str(exc_info.value) or "complejo" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.2 — DIMENSIÓN DE COHOMOLOGÍA H¹
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_h1_dimension_zero_valid(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que dim H¹ = 0 indica coherencia lógica.
+        """
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        cohomology_audit = agent._certify_simplicial_cohomology(
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            metric_audit=metric_audit,
+            strict_cohomological_veto=False,
+        )
+        
+        assert cohomology_audit.h1_dimension == 0
+        assert cohomology_audit.is_logically_coherent is True
+    
+    def test_phase2_h1_dimension_positive_strict_veto(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que dim H¹ > 0 en modo estricto dispara CohomologicalObstructionVeto.
+        """
+        # Construir matrices con dim H¹ > 0
+        # dim_C0 = 2, dim_C1 = 3, dim_C2 = 1
+        # ker(∂₁) = dim_C1 - rank(∂₁) = 3 - 1 = 2
+        # im(∂₂) = rank(∂₂) = 0 (si ∂₂ = 0)
+        # dim H¹ = 2 - 0 = 2 > 0
+        
+        d1: NDArray[np.float64] = np.array(
+            [[1.0, 0.0, 0.0],
+             [0.0, 0.0, 0.0]], dtype=np.float64
+        )
+        
+        d2: NDArray[np.float64] = np.array(
+            [[0.0],
+             [0.0],
+             [0.0]], dtype=np.float64
+        )
+        
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        with pytest.raises(CohomologicalObstructionVeto) as exc_info:
+            agent._certify_simplicial_cohomology(
+                boundary_matrix_d1=d1,
+                boundary_matrix_d2=d2,
+                metric_audit=metric_audit,
+                strict_cohomological_veto=True,  # Modo estricto
+            )
+        
+        assert "H¹" in str(exc_info.value) or "obstrucción" in str(exc_info.value)
+    
+    def test_phase2_h1_dimension_positive_non_strict(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que dim H¹ > 0 en modo no estricto retorna is_logically_coherent=False.
+        """
+        d1: NDArray[np.float64] = np.array(
+            [[1.0, 0.0, 0.0],
+             [0.0, 0.0, 0.0]], dtype=np.float64
+        )
+        
+        d2: NDArray[np.float64] = np.array(
+            [[0.0],
+             [0.0],
+             [0.0]], dtype=np.float64
+        )
+        
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        cohomology_audit = agent._certify_simplicial_cohomology(
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            metric_audit=metric_audit,
+            strict_cohomological_veto=False,  # Modo no estricto
+        )
+        
+        assert cohomology_audit.h1_dimension > 0
+        assert cohomology_audit.is_logically_coherent is False
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.3 — RANGO NUMÉRICO VÍA SVD
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_rank_computed_correctly(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que rangos de ∂₁ y ∂₂ se calculan correctamente.
+        """
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        cohomology_audit = agent._certify_simplicial_cohomology(
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            metric_audit=metric_audit,
+            strict_cohomological_veto=False,
+        )
+        
+        # Verificar que rangos son consistentes con dimensiones
+        assert cohomology_audit.rank_d1 >= 0
+        assert cohomology_audit.rank_d2 >= 0
+        assert cohomology_audit.rank_d1 <= min(d1.shape)
+        assert cohomology_audit.rank_d2 <= min(d2.shape)
+    
+    def test_phase2_kernel_and_image_dimensions(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que dim ker(∂₁) y dim im(∂₂) se calculan correctamente.
+        """
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        cohomology_audit = agent._certify_simplicial_cohomology(
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            metric_audit=metric_audit,
+            strict_cohomological_veto=False,
+        )
+        
+        # dim ker(∂₁) = dim C¹ - rank(∂₁)
+        expected_kernel = cohomology_audit.dim_C1 - cohomology_audit.rank_d1
+        
+        assert cohomology_audit.kernel_d1_dim == expected_kernel
+        assert cohomology_audit.image_d2_dim == cohomology_audit.rank_d2
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.4 — CONSISTENCIA DIMENSIONAL CON FASE 1
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_requires_phase1_positive_definite(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que Fase 2 requiere métrica SPD de Fase 1.
+        """
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        # Forzar is_positive_definite = False (simulado)
+        from dataclasses import replace
+        metric_audit_failed = replace(metric_audit, is_positive_definite=False)
+        
+        with pytest.raises(MetricDegeneracyVeto) as exc_info:
+            agent._certify_simplicial_cohomology(
+                boundary_matrix_d1=d1,
+                boundary_matrix_d2=d2,
+                metric_audit=metric_audit_failed,
+                strict_cohomological_veto=False,
+            )
+        
+        assert "Fase 1" in str(exc_info.value) or "métrica" in str(exc_info.value)
+    
+    def test_phase2_works_without_phase1_audit(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica que Fase 2 puede operar sin certificado de Fase 1 (metric_audit=None).
+        """
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        # Sin metric_audit
+        cohomology_audit = agent._certify_simplicial_cohomology(
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            metric_audit=None,
+            strict_cohomological_veto=False,
+        )
+        
+        assert cohomology_audit.is_logically_coherent is True
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 2.5 — VALIDACIÓN DE MATRICES DE FRONTERA
+    # -------------------------------------------------------------------------
+    
+    def test_phase2_boundary_matrices_dimension_mismatch(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que dimensiones inconsistentes entre d1 y d2 disparan error.
+        """
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        G = fixture_valid_metric_3d
+        
+        # d2 con filas incorrectas (debe coincidir con columnas de d1)
+        d2_invalid: NDArray[np.float64] = np.ones((3, 2), dtype=np.float64)  # 3 filas ≠ 4
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        with pytest.raises(SemanticInputValidationError) as exc_info:
+            agent._certify_simplicial_cohomology(
+                boundary_matrix_d1=d1,
+                boundary_matrix_d2=d2_invalid,
+                metric_audit=metric_audit,
+                strict_cohomological_veto=False,
+            )
+        
+        assert "dimensión" in str(exc_info.value) or "complejo" in str(exc_info.value)
+    
+    def test_phase2_boundary_matrices_empty_raises(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que matrices de frontera vacías disparan error.
+        """
+        d1_empty: NDArray[np.float64] = np.array([], dtype=np.float64).reshape(0, 0)
+        d2_empty: NDArray[np.float64] = np.array([], dtype=np.float64).reshape(0, 0)
+        
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        with pytest.raises(SemanticInputValidationError):
+            agent._certify_simplicial_cohomology(
+                boundary_matrix_d1=d1_empty,
+                boundary_matrix_d2=d2_empty,
+                metric_audit=metric_audit,
+                strict_cohomological_veto=False,
+            )
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# EXPORTACIÓN CANÓNICA
-# ═══════════════════════════════════════════════════════════════════════════════
-__all__: List[str] = [
-    "SemanticValidatorAgentError",
-    "SemanticInputValidationError",
-    "MetricDegeneracyVeto",
-    "CohomologicalObstructionVeto",
-    "LatticeCollapseVeto",
-    "StrictVerdict",
-    "MahalanobisMetricData",
-    "SimplicialCohomologyData",
-    "LatticeCollapseData",
-    "SemanticGovernanceState",
-    "Phase1_MetricTensorAuditor",
-    "Phase2_SimplicialCohomologyAuditor",
-    "Phase3_LatticeSupremumProjector",
-    "SemanticValidatorAgent",
-]
+# =============================================================================
+# FASE 3 — COLAPSO EN RETÍCULO COMPLETAMENTE ORDENADO
+# =============================================================================
+class TestPhase3_LatticeSupremumCollapse:
+    r"""
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    FASE 3 — COLAPSO DEL RETÍCULO DE HEYTING Y VEREDICTO SUPREMO
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida el endofuntor Phase3_LatticeSupremumProjector que fuerza
+    la convergencia en el peor caso topológico del espacio de decisión.
+    
+    Invariantes Verificados:
+    ------------------------
+    1. Supremo en retículo completamente ordenado: ⊥ ≤ CONDITIONAL ≤ WARNING ≤ ⊤
+    2. Obstrucción cohomológica colapsa a REJECT (⊤)
+    3. Elemento máximo absorbente: x ⊔ ⊤ = ⊤
+    4. Consistencia con certificado de Fase 2
+    """
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.1 — CÁLCULO DEL SUPREMO EN RETÍCULO
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_supremum_computed_correctly(
+        self,
+        fixture_valid_verdicts: List[StrictVerdict],
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que supremo del retículo se calcula correctamente.
+        
+        Retículo: VIABLE(0) ≤ CONDITIONAL(1) ≤ WARNING(2) ≤ REJECT(3)
+        """
+        verdicts = fixture_valid_verdicts
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        cohomology_audit = agent._certify_simplicial_cohomology(
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            metric_audit=metric_audit,
+            strict_cohomological_veto=False,
+        )
+        
+        lattice_audit = agent._enforce_supremum_lattice_collapse(
+            verdicts=verdicts,
+            cohomology_audit=cohomology_audit,
+        )
+        
+        # Supremum debe ser WARNING (el máximo en la secuencia)
+        assert lattice_audit.supremum_verdict == StrictVerdict.WARNING
+        assert lattice_audit.verdict_count == len(verdicts)
+    
+    def test_phase3_supremum_with_reject_always_reject(
+        self,
+        fixture_verdicts_with_reject: List[StrictVerdict],
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que si hay REJECT en la secuencia, supremo = REJECT.
+        
+        Propiedad: ⊤ es elemento máximo absorbente
+        """
+        verdicts = fixture_verdicts_with_reject
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        cohomology_audit = agent._certify_simplicial_cohomology(
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            metric_audit=metric_audit,
+            strict_cohomological_veto=False,
+        )
+        
+        lattice_audit = agent._enforce_supremum_lattice_collapse(
+            verdicts=verdicts,
+            cohomology_audit=cohomology_audit,
+        )
+        
+        assert lattice_audit.supremum_verdict == StrictVerdict.REJECT
+    
+    def test_phase3_supremum_empty_verdicts_raises(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que veredictos vacíos disparan LatticeCollapseVeto.
+        """
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        cohomology_audit = agent._certify_simplicial_cohomology(
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            metric_audit=metric_audit,
+            strict_cohomological_veto=False,
+        )
+        
+        with pytest.raises(LatticeCollapseVeto) as exc_info:
+            agent._enforce_supremum_lattice_collapse(
+                verdicts=[],  # Vacío
+                cohomology_audit=cohomology_audit,
+            )
+        
+        assert "vacío" in str(exc_info.value) or "∅" in str(exc_info.value)
+    
+    def test_phase3_supremum_invalid_verdict_raises(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que veredicto inválido dispara LatticeCollapseVeto.
+        """
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        cohomology_audit = agent._certify_simplicial_cohomology(
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            metric_audit=metric_audit,
+            strict_cohomological_veto=False,
+        )
+        
+        # Veredicto inválido (no pertenece a StrictVerdict)
+        invalid_verdicts = [StrictVerdict.VIABLE, "INVALIDO"]  # type: ignore[list-item]
+        
+        with pytest.raises(LatticeCollapseVeto) as exc_info:
+            agent._enforce_supremum_lattice_collapse(
+                verdicts=invalid_verdicts,
+                cohomology_audit=cohomology_audit,
+            )
+        
+        assert "inválido" in str(exc_info.value) or "StrictVerdict" in str(exc_info.value)
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.2 — VETO COHOMOLÓGICO (COLAPSO A REJECT)
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_cohomological_obstruction_forces_reject(
+        self,
+        fixture_valid_verdicts: List[StrictVerdict],
+    ) -> None:
+        r"""
+        Verifica que obstrucción cohomológica fuerza supremo = REJECT.
+        
+        Propiedad: x ⊔ ⊤ = ⊤ (elemento máximo absorbente)
+        """
+        verdicts = fixture_valid_verdicts
+        
+        agent = SemanticValidatorAgent()
+        
+        # Forzar obstrucción cohomológica directamente
+        lattice_audit = agent._enforce_supremum_lattice_collapse(
+            verdicts=verdicts,
+            has_cohomological_obstruction=True,  # Forzar veto
+            cohomology_audit=None,
+        )
+        
+        assert lattice_audit.supremum_verdict == StrictVerdict.REJECT
+        assert lattice_audit.has_cohomological_obstruction is True
+        assert lattice_audit.is_worst_case_enforced is True
+    
+    def test_phase3_cohomological_obstruction_from_audit(
+        self,
+        fixture_valid_verdicts: List[StrictVerdict],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que dim H¹ > 0 en cohomology_audit fuerza REJECT.
+        """
+        verdicts = fixture_valid_verdicts
+        
+        # Construir auditoría con obstrucción
+        cohomology_audit_invalid = SimplicialCohomologyData(
+            dim_C0=2,
+            dim_C1=3,
+            dim_C2=1,
+            rank_d1=1,
+            rank_d2=0,
+            kernel_d1_dim=2,
+            image_d2_dim=0,
+            h1_dimension=2,  # > 0
+            chain_complex_residual=0.0,
+            cohomology_tolerance=1e-10,
+            is_logically_coherent=False,
+        )
+        
+        agent = SemanticValidatorAgent()
+        
+        lattice_audit = agent._enforce_supremum_lattice_collapse(
+            verdicts=verdicts,
+            cohomology_audit=cohomology_audit_invalid,
+        )
+        
+        assert lattice_audit.supremum_verdict == StrictVerdict.REJECT
+        assert lattice_audit.has_cohomological_obstruction is True
+    
+    # -------------------------------------------------------------------------
+    # SECCIÓN 3.3 — CONSISTENCIA CON FASE 2
+    # -------------------------------------------------------------------------
+    
+    def test_phase3_requires_phase2_coherence(
+        self,
+        fixture_valid_verdicts: List[StrictVerdict],
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_metric_3d: NDArray[np.float64],
+    ) -> None:
+        r"""
+        Verifica que Fase 3 respeta certificado de coherencia de Fase 2.
+        """
+        verdicts = fixture_valid_verdicts
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        G = fixture_valid_metric_3d
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        cohomology_audit = agent._certify_simplicial_cohomology(
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            metric_audit=metric_audit,
+            strict_cohomological_veto=False,
+        )
+        
+        lattice_audit = agent._enforce_supremum_lattice_collapse(
+            verdicts=verdicts,
+            cohomology_audit=cohomology_audit,
+        )
+        
+        # Si no hay obstrucción, supremo debe ser el máximo de los veredictos
+        if cohomology_audit.is_logically_coherent:
+            assert lattice_audit.supremum_verdict == max(verdicts, key=lambda v: v.value)
+    
+    def test_phase3_works_without_phase2_audit(
+        self,
+        fixture_valid_verdicts: List[StrictVerdict],
+    ) -> None:
+        r"""
+        Verifica que Fase 3 puede operar sin certificado de Fase 2 (cohomology_audit=None).
+        """
+        verdicts = fixture_valid_verdicts
+        
+        agent = SemanticValidatorAgent()
+        
+        # Sin cohomology_audit
+        lattice_audit = agent._enforce_supremum_lattice_collapse(
+            verdicts=verdicts,
+            cohomology_audit=None,
+        )
+        
+        assert lattice_audit.supremum_verdict == StrictVerdict.WARNING
+        assert lattice_audit.has_cohomological_obstruction is False
+
+
+# =============================================================================
+# PRUEBAS DE INTEGRACIÓN — PIPELINE COMPLETO
+# =============================================================================
+class TestFullPipeline_Integration:
+    r"""
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    PRUEBAS DE INTEGRACIÓN — COMPOSICIÓN FUNTORIAL Φ₃ ∘ Φ₂ ∘ Φ₁
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida la composición funtorial estricta del agente completo.
+    Cada método verifica que la cadena de tres fases opera correctamente en conjunto.
+    """
+    
+    def test_full_pipeline_valid_inputs(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_verdicts: List[StrictVerdict],
+    ) -> None:
+        r"""
+        Verifica pipeline completo con entradas válidas.
+        """
+        G = fixture_valid_metric_3d
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        verdicts = fixture_valid_verdicts
+        
+        agent = SemanticValidatorAgent()
+        
+        state = agent.execute_semantic_cohomology_governance(
+            G_metric=G,
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            proposed_verdicts=verdicts,
+        )
+        
+        assert state.is_epistemologically_valid is True
+        assert state.metric_audit.is_positive_definite is True
+        assert state.cohomology_audit.is_logically_coherent is True
+        assert state.lattice_audit.is_worst_case_enforced is True
+    
+    def test_full_pipeline_metric_degeneracy_fails(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_verdicts: List[StrictVerdict],
+    ) -> None:
+        r"""
+        Verifica que degeneración métrica falla el pipeline completo.
+        """
+        G_invalid: NDArray[np.float64] = np.array(
+            [[-1.0, 0.0, 0.0],
+             [0.0, 1.0, 0.0],
+             [0.0, 0.0, 1.0]], dtype=np.float64
+        )
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        verdicts = fixture_valid_verdicts
+        
+        agent = SemanticValidatorAgent()
+        
+        with pytest.raises(MetricDegeneracyVeto):
+            agent.execute_semantic_cohomology_governance(
+                G_metric=G_invalid,
+                boundary_matrix_d1=d1,
+                boundary_matrix_d2=d2,
+                proposed_verdicts=verdicts,
+            )
+    
+    def test_full_pipeline_cohomological_obstruction_fails(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+        fixture_valid_verdicts: List[StrictVerdict],
+    ) -> None:
+        r"""
+        Verifica que obstrucción cohomológica falla el pipeline completo.
+        """
+        G = fixture_valid_metric_3d
+        verdicts = fixture_valid_verdicts
+        
+        # Matrices con dim H¹ > 0
+        d1: NDArray[np.float64] = np.array(
+            [[1.0, 0.0, 0.0],
+             [0.0, 0.0, 0.0]], dtype=np.float64
+        )
+        
+        d2: NDArray[np.float64] = np.array(
+            [[0.0],
+             [0.0],
+             [0.0]], dtype=np.float64
+        )
+        
+        agent = SemanticValidatorAgent()
+        
+        with pytest.raises(CohomologicalObstructionVeto):
+            agent.execute_semantic_cohomology_governance(
+                G_metric=G,
+                boundary_matrix_d1=d1,
+                boundary_matrix_d2=d2,
+                proposed_verdicts=verdicts,
+            )
+    
+    def test_full_pipeline_dto_immutability(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_verdicts: List[StrictVerdict],
+    ) -> None:
+        r"""
+        Verifica que DTOs son inmutables (frozen dataclasses).
+        """
+        G = fixture_valid_metric_3d
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        verdicts = fixture_valid_verdicts
+        
+        agent = SemanticValidatorAgent()
+        
+        state = agent.execute_semantic_cohomology_governance(
+            G_metric=G,
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            proposed_verdicts=verdicts,
+        )
+        
+        # Intentar modificar debe fallar (frozen=True)
+        with pytest.raises(AttributeError):
+            state.is_epistemologically_valid = False  # type: ignore[misc]
+        
+        with pytest.raises(AttributeError):
+            state.metric_audit.dimension = 999  # type: ignore[misc]
+        
+        with pytest.raises(AttributeError):
+            state.cohomology_audit.h1_dimension = 999  # type: ignore[misc]
+        
+        with pytest.raises(AttributeError):
+            state.lattice_audit.supremum_verdict = StrictVerdict.REJECT  # type: ignore[misc]
+    
+    def test_full_pipeline_audit_data_consistency(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_verdicts: List[StrictVerdict],
+    ) -> None:
+        r"""
+        Verifica consistencia entre certificados de las tres fases.
+        """
+        G = fixture_valid_metric_3d
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        verdicts = fixture_valid_verdicts
+        
+        agent = SemanticValidatorAgent()
+        
+        state = agent.execute_semantic_cohomology_governance(
+            G_metric=G,
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            proposed_verdicts=verdicts,
+        )
+        
+        # Dimensiones consistentes
+        assert state.metric_audit.dimension > 0
+        
+        # Validez epistemológica implica todas las fases válidas
+        if state.is_epistemologically_valid:
+            assert state.metric_audit.is_positive_definite
+            assert state.cohomology_audit.is_logically_coherent
+            assert state.lattice_audit.is_worst_case_enforced
+        
+        # Si hay obstrucción cohomológica, supremo debe ser REJECT
+        if not state.cohomology_audit.is_logically_coherent:
+            assert state.lattice_audit.supremum_verdict == StrictVerdict.REJECT
+
+
+# =============================================================================
+# PRUEBAS DE CASOS ESPECIALES Y BORDES
+# =============================================================================
+class TestEdgeCases_SpecialConditions:
+    r"""
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    PRUEBAS DE CASOS ESPECIALES Y BORDES
+    ═══════════════════════════════════════════════════════════════════════════════════════
+    
+    Esta clase de pruebas valida comportamiento en condiciones límite:
+    - Métricas casi singulares
+    - Estados cero
+    - Tolerancias numéricas
+    - Valores extremos
+    """
+    
+    def test_edge_case_identity_metric(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_verdicts: List[StrictVerdict],
+    ) -> None:
+        r"""
+        Verifica comportamiento con G = I (métrica euclidiana).
+        """
+        dim = 3
+        G: NDArray[np.float64] = np.eye(dim, dtype=np.float64)
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        verdicts = fixture_valid_verdicts
+        
+        agent = SemanticValidatorAgent()
+        
+        state = agent.execute_semantic_cohomology_governance(
+            G_metric=G,
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            proposed_verdicts=verdicts,
+        )
+        
+        assert state.metric_audit.condition_number == 1.0
+        assert state.is_epistemologically_valid is True
+    
+    def test_edge_case_minimum_dimension(
+        self,
+        fixture_valid_metric_2d: NDArray[np.float64],
+        fixture_valid_boundary_matrices_2d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica comportamiento con dimensión mínima (n=2).
+        """
+        G = fixture_valid_metric_2d
+        d1, d2 = fixture_valid_boundary_matrices_2d
+        
+        verdicts: List[StrictVerdict] = [StrictVerdict.VIABLE]
+        
+        agent = SemanticValidatorAgent()
+        
+        state = agent.execute_semantic_cohomology_governance(
+            G_metric=G,
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            proposed_verdicts=verdicts,
+        )
+        
+        assert state.metric_audit.dimension == 2
+        assert state.is_epistemologically_valid is True
+    
+    def test_edge_case_tolerance_boundaries(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_verdicts: List[StrictVerdict],
+    ) -> None:
+        r"""
+        Verifica comportamiento en límites de tolerancia numérica.
+        """
+        G = fixture_valid_metric_3d
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        verdicts = fixture_valid_verdicts
+        
+        # Matrices muy cercanas a violar condición de frontera
+        d2_boundary: NDArray[np.float64] = d2 + 1e-11 * np.ones_like(d2)
+        
+        agent = SemanticValidatorAgent()
+        
+        # Debe pasar si está dentro de tolerancia
+        state = agent.execute_semantic_cohomology_governance(
+            G_metric=G,
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2_boundary,
+            proposed_verdicts=verdicts,
+        )
+        
+        assert state.cohomology_audit.chain_complex_residual < 1e-10
+    
+    def test_edge_case_single_verdict(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica comportamiento con único veredicto.
+        """
+        G = fixture_valid_metric_3d
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        
+        verdicts: List[StrictVerdict] = [StrictVerdict.CONDITIONAL]
+        
+        agent = SemanticValidatorAgent()
+        
+        state = agent.execute_semantic_cohomology_governance(
+            G_metric=G,
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            proposed_verdicts=verdicts,
+        )
+        
+        assert state.lattice_audit.supremum_verdict == StrictVerdict.CONDITIONAL
+        assert state.lattice_audit.verdict_count == 1
+    
+    def test_edge_case_all_verdicts_same(
+        self,
+        fixture_valid_metric_3d: NDArray[np.float64],
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+    ) -> None:
+        r"""
+        Verifica comportamiento con todos los veredictos iguales.
+        """
+        G = fixture_valid_metric_3d
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        
+        verdicts: List[StrictVerdict] = [
+            StrictVerdict.WARNING,
+            StrictVerdict.WARNING,
+            StrictVerdict.WARNING,
+        ]
+        
+        agent = SemanticValidatorAgent()
+        
+        state = agent.execute_semantic_cohomology_governance(
+            G_metric=G,
+            boundary_matrix_d1=d1,
+            boundary_matrix_d2=d2,
+            proposed_verdicts=verdicts,
+        )
+        
+        assert state.lattice_audit.supremum_verdict == StrictVerdict.WARNING
+        assert state.lattice_audit.verdict_count == 3
+    
+    def test_edge_case_very_well_conditioned_metric(
+        self,
+        fixture_valid_boundary_matrices_3d: Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ],
+        fixture_valid_verdicts: List[StrictVerdict],
+    ) -> None:
+        r"""
+        Verifica comportamiento con métrica muy bien condicionada (κ ≈ 1).
+        """
+        G: NDArray[np.float64] = np.eye(3, dtype=np.float64) * 1.0001
+        d1, d2 = fixture_valid_boundary_matrices_3d
+        verdicts = fixture_valid_verdicts
+        
+        agent = SemanticValidatorAgent()
+        
+        metric_audit = agent._audit_mahalanobis_metric_tensor(
+            G_metric=G,
+        )
+        
+        assert metric_audit.condition_number < 2.0
+        assert metric_audit.is_positive_definite is True
+
+
+# =============================================================================
+# EJECUCIÓN DIRECTA (para debugging)
+# =============================================================================
+if __name__ == "__main__":
+    pytest.main([
+        __file__,
+        "-v",
+        "--tb=short",
+        "--strict-markers",
+    ])
