@@ -1,1165 +1,1560 @@
-# -*- coding: utf-8 -*-
+# -- coding: utf-8 --
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Telemetry Schemas Agent (Arquitecto del Espacio de Fase Tensorial)             ║
-║  Ruta   : app/agents/core/telemetry_schemas_agent.py                                     ║
-║  Versión: 2.0.0-Tensorial-Orthogonal-Fixpoint-Doctoral-Strict                            ║
+║  Módulo : Test Telemetry Schemas Agent (Suite de Validación de Espacio de Fase Tensorial)║
+║  Ruta   : tests/unit/agents/core/test_telemetry_schemas_agent.py                         ║
+║  Versión: 2.0.0-Tensorial-Orthogonal-Fixpoint-Doctoral-Strict-Nested                     ║
 ╠══════════════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║
+║  ARQUITECTURA DE PRUEBAS (Composición Funtorial Φ₃ ∘ Φ₂ ∘ Φ₁):                           ║
 ║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor gobierna los esquemas de telemetría definidos en telemetry_schemas.py.  ║
-║  Actúa como el Endofuntor de Proyección Ortogonal que garantiza que el vector de estado  ║
-║  global $\Psi$ se descomponga rígidamente en la suma directa de subespacios              ║
-║  fundamentales, y que su evolución en el tiempo parametrizado $\tau$ sea                 ║
-║  estrictamente nula, preservando la inmutabilidad de la Cadena de Custodia.              ║
+║  Este módulo de pruebas implementa una batería exhaustiva que valida la integridad       ║
+║  Riemanniana, ortogonal y diferencial del endofuntor Z_Tensorial.                        ║
 ║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TENSORIALES:                                    ║
+║  FASE 1 → Certificación de Variedad Riemanniana                                          ║
+║           Valida: G = Gᵀ, G ≻ 0, κ(G) ≤ 10¹²                                             ║
 ║                                                                                          ║
-║  §1. Variedad Riemanniana y Condicionamiento Espectral:                                  ║
-║      La variedad métrica es gobernada por el tensor de precisión $G$. Se exige           ║
-║      axiomáticamente que $G$ sea simétrico y definido positivo ($G \succ 0$).            ║
-║      Para blindar la Unidad de Punto Flotante (FPU) frente al mal condicionamiento,      ║
-║      se restringe la topología exigiendo que el número de condición espectral cumpla:    ║
-║          $\kappa(G) \le \kappa_{\max} = 10^{12}$                                         ║
-║      Cualquier desviación induce un `MetricManifoldDegeneracyError`.                     ║
+║  FASE 2 → Descomposición Ortogonal de Subespacios                                        ║
+║           Valida: ⟨v_i, v_j⟩_G = δ_ij y Matriz de Gram bien condicionada                 ║
 ║                                                                                          ║
-║  §2. Descomposición Ortogonal de Subespacios:                                            ║
-║      El vector de telemetría global debe satisfacer la suma directa estricta:            ║
-║          $\Psi \in \mathcal{V}_{PHYSICS} \oplus \mathcal{V}_{TOPOLOGY} \oplus \mathcal{V}_{CONTROL} \oplus \mathcal{V}_{THERMO}$ ║
-║      La independencia lineal absoluta (cero covarianza espuria) se certifica bajo el     ║
-║      producto interno covariante del hiperespacio Riemanniano:                           ║
-║          $\langle v_i, v_j \rangle_G = v_i^T G v_j = \delta_{ij} \|v_i\|_G^2$            ║
-║      Violaciones a la tolerancia de ortogonalidad detonan un `NonOrthogonalSubspaceError`.║
+║  FASE 3 → Imposición de Inmutabilidad y Punto Fijo                                       ║
+║           Valida: ∇_τ Ψ = 0 (derivada covariante nula)                                   ║
 ║                                                                                          ║
-║  §3. Inmutabilidad Tensorial y Punto Fijo Topológico:                                    ║
-║      Para certificar que el Pasaporte de Telemetría es criptográficamente inmutable,     ║
-║      el estado debe constituir un punto fijo en la variedad diferencial. Su derivada     ║
-║      temporal covariante debe ser estrictamente nula:                                    ║
-║          $\nabla_\tau \Psi = 0$                                                          ║
-║      Cualquier radiación de entropía temporal ($\nabla_\tau \Psi > 0$) aniquila el       ║
-║      tensor mediante un `PhaseSpaceCorruptionError`.                                     ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
+║  COBERTURA DE EXCEPCIONES TENSORIALES:                                                   ║
 ║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_RiemannianMetricCertifier                                               ║
-║           Certifica que el tensor métrico $G$ defina una variedad válida, evaluando      ║
-║           la simetría, la condición espectral $\kappa(G)$, y la dimensión de dominio.    ║
-║           [Retorna: MetricManifoldData → puente inicial de Fase 2]                       ║
+║  • DomainIntegrityViolationError        → Violaciones de dominio ontológico              ║
+║  • MetricManifoldDegeneracyError        → Métrica no PSD o mal condicionada              ║
+║  • NonOrthogonalSubspaceError           → Covarianza espuria entre subespacios           ║
+║  • PhaseSpaceCorruptionError            → Mutación temporal del tensor (∇_τ Ψ > 0)       ║
 ║                                                                                          ║
-║  Fase 2 → Phase2_OrthogonalDecompositionCertifier                                        ║
-║           Audita la ortogonalidad calculando la matriz de Gram y asegurando              ║
-║           matemáticamente $\langle v_i, v_j \rangle_G = 0$ para $i \neq j$.              ║
-║           [Retorna: OrthogonalDecompositionData → puente inicial de Fase 3]              ║
+║  EJECUCIÓN:                                                                              ║
+║  ──────────────────────────────────────────────────────────────────────────────          ║
+║  $ pytest tests/unit/agents/core/test_telemetry_schemas_agent.py -v                      ║
 ║                                                                                          ║
-║  Fase 3 → Phase3_TensorImmutabilityEnforcer                                              ║
-║           Somete el vector de estado a la derivada diferencial covariante. Garantiza     ║
-║           axiomáticamente que la evolución temporal de la telemetría es nula ($\nabla_\tau \Psi = 0$). ║
-║           [Retorna: FixpointVerificationData → objeto final del endofuntor]              ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╚══════════════════════════════════════════════════════════════════════════════════════════╝
 """
 
-from __future__ import annotations
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# §0. IMPORTACIONES Y CONFIGURACIÓN DEL ENTORNO DE PRUEBAS
+# ═══════════════════════════════════════════════════════════════════════════════════════════
 
-import logging
-import math
-from dataclasses import dataclass
-from typing import Any, Final, Optional, Tuple
-
+import pytest
 import numpy as np
-import scipy.linalg as la
+import math
+from typing import Any, Optional
 from numpy.typing import NDArray
 
+# Importación del módulo bajo prueba
+from app.agents.core.telemetry_schemas_agent import (
+    # Excepciones Tensoriales
+    TelemetrySchemasAgentError,
+    DomainIntegrityViolationError,
+    MetricManifoldDegeneracyError,
+    NonOrthogonalSubspaceError,
+    PhaseSpaceCorruptionError,
+    # Estructuras Inmutables (DTOs)
+    MetricManifoldData,
+    OrthogonalDecompositionData,
+    FixpointVerificationData,
+    Phase1MetricHandoff,
+    Phase2OrthogonalityHandoff,
+    TensorialPhaseSpaceState,
+    # Fases Anidadas
+    Phase1_RiemannianMetricCertifier,
+    Phase2_OrthogonalDecompositionCertifier,
+    Phase3_TensorImmutabilityEnforcer,
+    # Orquestador Supremo
+    TelemetrySchemasAgent,
+    # Constantes Matemáticas y de Tolerancia
+    _MACHINE_EPSILON,
+    _ORTHOGONALITY_TOLERANCE,
+    _FIXPOINT_TOLERANCE,
+    _METRIC_SYMMETRY_TOLERANCE,
+    _MAX_METRIC_CONDITION_NUMBER,
+    _SUBSPACE_NORM_TOLERANCE,
+    # Métrica por defecto
+    G_PHYSICS,
+)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Dependencias arquitectónicas del ecosistema APU Filter (Stubs de aislamiento)
-# ─────────────────────────────────────────────────────────────────────────────
-try:
-    from app.core.mic_algebra import (
-        Morphism,
-        CategoricalState,
-        TopologicalInvariantError,
-    )
-except ImportError:
-
-    class TopologicalInvariantError(Exception):
-        r"""Violación a un invariante topológico categórico en el Topos MIC."""
-        pass
-
-    class Morphism:
-        """Clase base de Morfismos del Topos."""
-        pass
-
-    CategoricalState = Any
-
-
-try:
-    from app.core.immune_system.metric_tensors import G_PHYSICS
-except ImportError:
-    # Fallback Euclidiano para pruebas aisladas.
-    G_PHYSICS = np.eye(4, dtype=np.float64)
-
-
-try:
-    from app.core.telemetry_schemas import SystemStateVector
-except ImportError:
-    # Stub estructural si el esquema aún no está disponible.
-    SystemStateVector = Any
-
-
-logger = logging.getLogger("MIC.Core.TelemetrySchemasAgent")
-
-if not logger.handlers:
-    logger.addHandler(logging.NullHandler())
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# §A. FIXTURES Y UTILITARIOS DE PRUEBA (Infraestructura Categórica)
+# ═══════════════════════════════════════════════════════════════════════════════════════════
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §A. CONSTANTES MATEMÁTICAS Y DE TOLERANCIA
-# ═══════════════════════════════════════════════════════════════════════════════
-
-_MACHINE_EPSILON: Final[float] = float(np.finfo(np.float64).eps)
-
-# Cota superior para covarianza cruzada fuera de la diagonal.
-_ORTHOGONALITY_TOLERANCE: Final[float] = 1e-10
-
-# Tolerancia estricta para ∇_τ Ψ = 0.
-_FIXPOINT_TOLERANCE: Final[float] = 1e-12
-
-# Tolerancia para simetría métrica.
-_METRIC_SYMMETRY_TOLERANCE: Final[float] = 1e-12
-
-# Número de condición máximo admisible para métricas y matrices de Gram.
-_MAX_METRIC_CONDITION_NUMBER: Final[float] = 1e12
-
-# Norma mínima para vectores de subespacio no degenerados.
-_SUBSPACE_NORM_TOLERANCE: Final[float] = 1e-12
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# §B. JERARQUÍA DE EXCEPCIONES TENSORIALES
-# ═══════════════════════════════════════════════════════════════════════════════
-
-class TelemetrySchemasAgentError(TopologicalInvariantError):
-    """Excepción raíz del Arquitecto del Espacio de Fase Tensorial."""
-    pass
-
-
-class DomainIntegrityViolationError(TelemetrySchemasAgentError):
-    """Detonada cuando un vector, matriz o dimensión viola su contrato de dominio."""
-    pass
-
-
-class MetricManifoldDegeneracyError(TelemetrySchemasAgentError):
-    r"""
-    Detonada si la métrica G no define una variedad Riemanniana válida:
-    no es cuadrada, no es finita, no es simétrica o no es definida positiva.
+@pytest.fixture
+def schemas_agent() -> TelemetrySchemasAgent:
     """
-    pass
-
-
-class NonOrthogonalSubspaceError(TelemetrySchemasAgentError):
-    r"""
-    Detonada si <v_i, v_j>_G ≠ 0 para i ≠ j.
-
-    Indica que las dimensiones de los estratos (por ejemplo, Física y Control)
-    están entrelazadas o contaminadas por covarianza espuria.
+    Fixture: Instancia del Arquitecto del Espacio de Fase Tensorial.
+    Retorna el endofuntor completo para pruebas de integración.
     """
-    pass
+    return TelemetrySchemasAgent()
 
 
-class PhaseSpaceCorruptionError(TelemetrySchemasAgentError):
-    r"""
-    Detonada si ∇_τ Ψ > 0.
-
-    El tensor de telemetría sufrió una mutación termodinámica parásita durante
-    su viaje entre instantes parametrizados.
+@pytest.fixture
+def phase1_certifier() -> Phase1_RiemannianMetricCertifier:
     """
-    pass
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# §C. ESTRUCTURAS INMUTABLES (DTOs del Topos)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-@dataclass(frozen=True, slots=True)
-class MetricManifoldData:
-    r"""Artefacto de Fase 1. Certificado de la variedad Riemanniana."""
-    dimension: int
-    metric_condition_number: float
-    symmetry_deviation: float
-    min_eigenvalue: float
-    is_positive_definite: bool
-
-
-@dataclass(frozen=True, slots=True)
-class OrthogonalDecompositionData:
-    r"""Artefacto de Fase 2. Certificado de ortogonalidad del estado global Ψ."""
-    gram_matrix: NDArray[np.float64]
-    off_diagonal_norm: float
-    is_strictly_orthogonal: bool
-    diagonal_deviation: float = 0.0
-    gram_condition_number: float = 1.0
-    orthogonality_tolerance: float = _ORTHOGONALITY_TOLERANCE
-
-
-@dataclass(frozen=True, slots=True)
-class FixpointVerificationData:
-    r"""Artefacto de Fase 3. Certificado de inmutabilidad y punto fijo."""
-    covariant_derivative_norm: float
-    is_fixed_point: bool
-    fixpoint_tolerance: float = _FIXPOINT_TOLERANCE
-    state_dimension: int = 0
-
-
-@dataclass(frozen=True, slots=True)
-class Phase1MetricHandoff:
-    r"""
-    Handoff formal de Fase 1 → Fase 2.
-
-    Este objeto es la continuación material de la certificación Riemanniana y
-    el prefijo obligatorio de la descomposición ortogonal.
+    Fixture: Instancia de Phase1_RiemannianMetricCertifier.
+    Para pruebas unitarias de la Fase 1.
     """
-    metric_audit: MetricManifoldData
-    G_certified: NDArray[np.float64]
-    V_physics_certified: NDArray[np.float64]
-    V_topology_certified: NDArray[np.float64]
-    V_control_certified: NDArray[np.float64]
-    V_thermo_certified: NDArray[np.float64]
+    return Phase1_RiemannianMetricCertifier()
 
 
-@dataclass(frozen=True, slots=True)
-class Phase2OrthogonalityHandoff:
-    r"""
-    Handoff formal de Fase 2 → Fase 3.
-
-    Este objeto transporta la base ortonormal certificada y la auditoría de
-    ortogonalidad como prefijo obligatorio del verificador de punto fijo.
+@pytest.fixture
+def phase2_certifier() -> Phase2_OrthogonalDecompositionCertifier:
     """
-    phase1_handoff: Phase1MetricHandoff
-    orthogonality_audit: OrthogonalDecompositionData
-    basis_matrix: NDArray[np.float64]
+    Fixture: Instancia de Phase2_OrthogonalDecompositionCertifier.
+    Para pruebas unitarias de la Fase 2.
+    """
+    return Phase2_OrthogonalDecompositionCertifier()
 
 
-@dataclass(frozen=True, slots=True)
-class TensorialPhaseSpaceState:
-    r"""Objeto final del endofuntor Z_Schemas."""
-    orthogonality_audit: OrthogonalDecompositionData
-    fixpoint_audit: FixpointVerificationData
-    is_epistemologically_valid: bool
-    metric_audit: Optional[MetricManifoldData] = None
+@pytest.fixture
+def phase3_enforcer() -> Phase3_TensorImmutabilityEnforcer:
+    """
+    Fixture: Instancia de Phase3_TensorImmutabilityEnforcer.
+    Para pruebas unitarias de la Fase 3.
+    """
+    return Phase3_TensorImmutabilityEnforcer()
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 1: CERTIFICACIÓN DE VARIEDAD RIEMANNIANA Y DOMINIO VECTORIAL         ║
-# ║   Valida G ≻ 0, simetría, condición espectral y vectores de subespacio.     ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
+@pytest.fixture
+def valid_metric_4x4() -> NDArray[np.float64]:
+    """
+    Fixture: Matriz métrica G válida (4x4, simétrica, definida positiva).
+    """
+    # Matriz simétrica definida positiva
+    A = np.array([
+        [2.0, 0.1, 0.0, 0.0],
+        [0.1, 2.0, 0.1, 0.0],
+        [0.0, 0.1, 2.0, 0.1],
+        [0.0, 0.0, 0.1, 2.0],
+    ], dtype=np.float64)
+    return A @ A.T  # Garantiza simetría y PSD
 
-class Phase1_RiemannianMetricCertifier:
+
+@pytest.fixture
+def valid_subspace_vectors_4d() -> tuple[
+    NDArray[np.float64],
+    NDArray[np.float64],
+    NDArray[np.float64],
+    NDArray[np.float64],
+]:
+    """
+    Fixture: Cuatro vectores de subespacio válidos (dimensión 4).
+    Orthogonales entre sí en espacio Euclidiano.
+    """
+    v_physics = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64)
+    v_topology = np.array([0.0, 1.0, 0.0, 0.0], dtype=np.float64)
+    v_control = np.array([0.0, 0.0, 1.0, 0.0], dtype=np.float64)
+    v_thermo = np.array([0.0, 0.0, 0.0, 1.0], dtype=np.float64)
+    return v_physics, v_topology, v_control, v_thermo
+
+
+@pytest.fixture
+def valid_state_vectors_4d() -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    """
+    Fixture: Dos vectores de estado idénticos (punto fijo válido).
+    Ψ(t₀) = Ψ(t₁) para ∇_τ Ψ = 0.
+    """
+    psi = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+    return psi.copy(), psi.copy()
+
+
+@pytest.fixture
+def identity_matrix_4x4() -> NDArray[np.float64]:
+    """
+    Fixture: Matriz identidad 4x4 (métrica Euclidiana trivial).
+    """
+    return np.eye(4, dtype=np.float64)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+#   FASE 1: CERTIFICACIÓN DE VARIEDAD RIEMANNIANA
+#   Valida: G = Gᵀ, G ≻ 0, κ(G) ≤ 10¹²
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+
+class TestPhase1_RiemannianMetricCertifier:
     r"""
-    Certifica que el tensor métrico G define una variedad Riemanniana válida y
-    que los vectores de subespacio pertenecen al dominio material correcto.
+    ╔═══════════════════════════════════════════════════════════════════════════════════════╗
+    ║  FASE 1: CERTIFICACIÓN DE VARIEDAD RIEMANNIANA                                        ║
+    ║  ─────────────────────────────────────────────────────────────────────────────        ║
+    ║  Esta clase de pruebas valida la geometría Riemanniana del tensor métrico G.          ║
+    ║  Cada método prueba un axioma específico del §1 del módulo principal.                 ║
+    ╚═══════════════════════════════════════════════════════════════════════════════════════╝
     """
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.1. Tolerancia adaptativa
-    # ─────────────────────────────────────────────────────────────────────────
-    def _adaptive_tolerance(
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §1.1. Pruebas de Tolerancia Adaptativa (Método: _adaptive_tolerance)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_adaptive_tolerance_with_ndarray_reference(
         self,
-        base_tolerance: float,
-        reference: Any,
-    ) -> float:
-        r"""
-        Construye una tolerancia numéricamente consciente:
-
-            tol = max(tol_base, κ · ε_máquina · tamaño · escala)
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
         """
-        if isinstance(reference, np.ndarray):
-            size = max(1, int(reference.size))
-            if reference.size == 0:
-                scale = 1.0
-            else:
-                scale = max(
-                    1.0,
-                    float(la.norm(reference.ravel(), ord=np.inf)),
-                )
-        else:
-            size = 1
-            try:
-                scale = max(1.0, abs(float(reference)))
-            except (TypeError, ValueError):
-                scale = 1.0
-
-        return max(
-            float(base_tolerance),
-            10.0 * _MACHINE_EPSILON * size * scale,
+        PRUEBA: Tolerancia adaptativa con referencia de tipo NDArray.
+        VALIDA: El cálculo de escala mediante norma L∞ del vector.
+        """
+        reference = np.array([1e6, 2e6, 3e6, 4e6], dtype=np.float64)
+        tolerance = phase1_certifier._adaptive_tolerance(
+            base_tolerance=_SUBSPACE_NORM_TOLERANCE,
+            reference=reference,
         )
+        assert isinstance(tolerance, float)
+        assert tolerance >= _SUBSPACE_NORM_TOLERANCE
+        assert np.isfinite(tolerance)
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.2. Coerción de vectores finitos
-    # ─────────────────────────────────────────────────────────────────────────
-    def _coerce_finite_vector(
+    def test_adaptive_tolerance_with_scalar_reference(
         self,
-        name: str,
-        vector: Any,
-        expected_dim: Optional[int] = None,
-    ) -> NDArray[np.float64]:
-        r"""
-        Materializa un vector float64 unidimensional, verifica finitud absoluta
-        y, si se indica, impone dimensión exacta.
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
         """
-        try:
-            arr = np.asarray(vector, dtype=np.float64)
-        except (TypeError, ValueError) as exc:
-            raise DomainIntegrityViolationError(
-                f"El vector ontológico '{name}' no puede materializarse como "
-                f"NDArray[np.float64]."
-            ) from exc
-
-        if arr.ndim == 0:
-            arr = arr.reshape(1)
-        else:
-            arr = arr.reshape(-1)
-
-        if arr.size == 0:
-            raise DomainIntegrityViolationError(
-                f"El vector ontológico '{name}' está vacío."
-            )
-
-        if not np.all(np.isfinite(arr)):
-            raise DomainIntegrityViolationError(
-                f"El vector ontológico '{name}' contiene componentes no finitas."
-            )
-
-        if expected_dim is not None and arr.size != int(expected_dim):
-            raise DomainIntegrityViolationError(
-                f"El vector ontológico '{name}' debe tener dimensión "
-                f"{expected_dim}, pero posee {arr.size} componentes."
-            )
-
-        return arr
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.3. Coerción de matrices cuadradas finitas
-    # ─────────────────────────────────────────────────────────────────────────
-    def _coerce_finite_square_matrix(
-        self,
-        name: str,
-        matrix: Any,
-    ) -> NDArray[np.float64]:
-        r"""
-        Materializa una matriz float64 cuadrada y verifica finitud absoluta.
+        PRUEBA: Tolerancia adaptativa con referencia escalar.
+        VALIDA: El manejo correcto de escalares float.
         """
-        try:
-            arr = np.asarray(matrix, dtype=np.float64)
-        except (TypeError, ValueError) as exc:
-            raise DomainIntegrityViolationError(
-                f"La matriz ontológica '{name}' no puede materializarse como "
-                f"NDArray[np.float64]."
-            ) from exc
-
-        if arr.ndim != 2:
-            raise DomainIntegrityViolationError(
-                f"La matriz ontológica '{name}' debe ser bidimensional."
-            )
-
-        if arr.shape[0] != arr.shape[1]:
-            raise DomainIntegrityViolationError(
-                f"La matriz ontológica '{name}' debe ser cuadrada."
-            )
-
-        if arr.shape[0] == 0:
-            raise DomainIntegrityViolationError(
-                f"La matriz ontológica '{name}' está vacía."
-            )
-
-        if not np.all(np.isfinite(arr)):
-            raise DomainIntegrityViolationError(
-                f"La matriz ontológica '{name}' contiene componentes no finitas."
-            )
-
-        return arr
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.4. Certificación de métrica Riemanniana
-    # ─────────────────────────────────────────────────────────────────────────
-    def _certify_riemannian_metric(
-        self,
-        G_metric: Optional[NDArray[np.float64]],
-        expected_dim: Optional[int] = None,
-    ) -> Tuple[NDArray[np.float64], MetricManifoldData]:
-        r"""
-        Certifica que G_metric sea una métrica Riemanniana válida:
-
-            G = Gᵀ, G ≻ 0, κ(G) < κ_max.
-
-        Si G_metric es None, se emplea la métrica física por defecto G_PHYSICS.
-        """
-        G_source = G_PHYSICS if G_metric is None else G_metric
-        G = self._coerce_finite_square_matrix("G_metric", G_source)
-
-        n = int(G.shape[0])
-
-        if expected_dim is not None and n != int(expected_dim):
-            raise DomainIntegrityViolationError(
-                f"La métrica G_metric posee dimensión {n}, pero se esperaba "
-                f"{expected_dim}."
-            )
-
-        # Simetría estricta de la métrica.
-        symmetry_deviation = float(la.norm(G - G.T, ord="fro"))
-        symmetry_tolerance = self._adaptive_tolerance(
-            _METRIC_SYMMETRY_TOLERANCE,
-            G,
+        reference = 1e9
+        tolerance = phase1_certifier._adaptive_tolerance(
+            base_tolerance=_SUBSPACE_NORM_TOLERANCE,
+            reference=reference,
         )
+        assert isinstance(tolerance, float)
+        assert tolerance >= _SUBSPACE_NORM_TOLERANCE
 
-        if symmetry_deviation > symmetry_tolerance:
-            raise MetricManifoldDegeneracyError(
-                f"Métrica Riemanniana no simétrica. "
-                f"||G - Gᵀ||_F = {symmetry_deviation:.6e} > "
-                f"{symmetry_tolerance:.6e}."
-            )
-
-        # Proyección simétrica para eliminar ruido antisimétrico infinitesimal.
-        G = 0.5 * (G + G.T)
-
-        # Espectro real por simetría.
-        eigenvalues = la.eigvalsh(G)
-        min_eigenvalue = float(np.min(eigenvalues))
-        max_eigenvalue = float(np.max(eigenvalues))
-
-        if max_eigenvalue <= 0.0:
-            raise MetricManifoldDegeneracyError(
-                "Métrica Riemanniana degenerada: autovalor máximo no positivo."
-            )
-
-        # Cota de positividad relativa para evitar singularidades numéricas.
-        relative_eigenvalue_tolerance = (
-            10.0 * _MACHINE_EPSILON * n * max_eigenvalue
+    def test_adaptive_tolerance_with_empty_array(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Tolerancia adaptativa con array vacío (caso borde).
+        VALIDA: El manejo defensivo de arrays de tamaño cero.
+        """
+        reference = np.array([], dtype=np.float64)
+        tolerance = phase1_certifier._adaptive_tolerance(
+            base_tolerance=_SUBSPACE_NORM_TOLERANCE,
+            reference=reference,
         )
+        assert isinstance(tolerance, float)
+        assert np.isfinite(tolerance)
 
-        if min_eigenvalue <= relative_eigenvalue_tolerance:
-            raise MetricManifoldDegeneracyError(
-                f"Métrica Riemanniana no definida positiva. "
-                f"λ_min={min_eigenvalue:.6e} <= "
-                f"{relative_eigenvalue_tolerance:.6e}."
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §1.2. Pruebas de Coerción de Vectores (Método: _coerce_finite_vector)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_coerce_finite_vector_valid(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Coerción de vector válido.
+        VALIDA: Conversión a NDArray[np.float64] unidimensional.
+        """
+        input_data = [1.0, 2.0, 3.0, 4.0]
+        result = phase1_certifier._coerce_finite_vector("test_vector", input_data)
+        assert isinstance(result, np.ndarray)
+        assert result.dtype == np.float64
+        assert result.ndim == 1
+        assert result.size == 4
+        assert np.all(np.isfinite(result))
+
+    def test_coerce_finite_vector_with_expected_dim(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Coerción con dimensión esperada válida.
+        VALIDA: Verificación de dimensionalidad.
+        """
+        input_data = [1.0, 2.0, 3.0, 4.0]
+        result = phase1_certifier._coerce_finite_vector(
+            "test_vector",
+            input_data,
+            expected_dim=4,
+        )
+        assert result.size == 4
+
+    def test_coerce_finite_vector_dimension_mismatch_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Dimensión incompatible lanza DomainIntegrityViolationError.
+        VALIDA: Validación estricta de dimensionalidad.
+        """
+        input_data = [1.0, 2.0, 3.0]
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase1_certifier._coerce_finite_vector(
+                "test_vector",
+                input_data,
+                expected_dim=4,
+            )
+        assert "dimensión" in str(exc_info.value).lower()
+
+    def test_coerce_finite_vector_empty_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Vector vacío lanza DomainIntegrityViolationError.
+        VALIDA: No-degeneración del espacio vectorial.
+        """
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase1_certifier._coerce_finite_vector("test_empty", np.array([], dtype=np.float64))
+        assert "vacío" in str(exc_info.value).lower()
+
+    def test_coerce_finite_vector_nan_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Vector con NaN lanza DomainIntegrityViolationError.
+        VALIDA: Finitud absoluta de componentes.
+        """
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase1_certifier._coerce_finite_vector(
+                "test_nan",
+                np.array([1.0, np.nan, 3.0, 4.0]),
+            )
+        assert "no finitas" in str(exc_info.value).lower()
+
+    def test_coerce_finite_vector_inf_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Vector con infinito lanza DomainIntegrityViolationError.
+        VALIDA: Finitud absoluta de componentes.
+        """
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase1_certifier._coerce_finite_vector(
+                "test_inf",
+                np.array([1.0, np.inf, 3.0, 4.0]),
+            )
+        assert "no finitas" in str(exc_info.value).lower()
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §1.3. Pruebas de Coerción de Matrices (Método: _coerce_finite_square_matrix)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_coerce_finite_square_matrix_valid(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Coerción de matriz cuadrada válida.
+        VALIDA: Conversión a NDArray[np.float64] 2-D cuadrada.
+        """
+        result = phase1_certifier._coerce_finite_square_matrix("test_matrix", valid_metric_4x4)
+        assert isinstance(result, np.ndarray)
+        assert result.dtype == np.float64
+        assert result.ndim == 2
+        assert result.shape[0] == result.shape[1]
+        assert result.shape[0] == 4
+        assert np.all(np.isfinite(result))
+
+    def test_coerce_finite_square_matrix_non_square_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Matriz no cuadrada lanza DomainIntegrityViolationError.
+        VALIDA: Exigencia de cuadratura.
+        """
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase1_certifier._coerce_finite_square_matrix(
+                "test_rect",
+                np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+            )
+        assert "cuadrada" in str(exc_info.value).lower()
+
+    def test_coerce_finite_square_matrix_empty_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Matriz vacía lanza DomainIntegrityViolationError.
+        VALIDA: No-degeneración matricial.
+        """
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase1_certifier._coerce_finite_square_matrix(
+                "test_empty",
+                np.array([]).reshape(0, 0),
+            )
+        assert "vacía" in str(exc_info.value).lower()
+
+    def test_coerce_finite_square_matrix_nan_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Matriz con NaN lanza DomainIntegrityViolationError.
+        VALIDA: Finitud absoluta de entradas.
+        """
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase1_certifier._coerce_finite_square_matrix(
+                "test_nan",
+                np.array([[1.0, np.nan], [0.0, 1.0]]),
+            )
+        assert "no finitas" in str(exc_info.value).lower()
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §1.4. Pruebas de Certificación de Métrica Riemanniana (Método: _certify_riemannian_metric)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_certify_riemannian_metric_valid(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Certificación de métrica Riemanniana válida.
+        VALIDA: §1. G = Gᵀ, G ≻ 0, κ(G) ≤ 10¹².
+        """
+        G_certified, metric_audit = phase1_certifier._certify_riemannian_metric(valid_metric_4x4)
+        assert isinstance(metric_audit, MetricManifoldData)
+        assert metric_audit.dimension == 4
+        assert metric_audit.is_positive_definite is True
+        assert metric_audit.metric_condition_number < _MAX_METRIC_CONDITION_NUMBER
+        assert np.allclose(G_certified, G_certified.T)  # Simetría
+
+    def test_certify_riemannian_metric_none_uses_default(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Métrica None usa G_PHYSICS por defecto.
+        VALIDA: Fallback Euclidiano.
+        """
+        G_certified, metric_audit = phase1_certifier._certify_riemannian_metric(None)
+        assert isinstance(metric_audit, MetricManifoldData)
+        assert metric_audit.is_positive_definite is True
+        assert np.array_equal(G_certified, G_PHYSICS)
+
+    def test_certify_riemannian_metric_asymmetric_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Métrica asimétrica lanza MetricManifoldDegeneracyError.
+        VALIDA: §1. Simetría estricta G = Gᵀ.
+        """
+        G_asym = np.array([
+            [1.0, 2.0, 0.0, 0.0],
+            [0.5, 1.0, 0.0, 0.0],  # Asimetría significativa
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ], dtype=np.float64)
+        with pytest.raises(MetricManifoldDegeneracyError) as exc_info:
+            phase1_certifier._certify_riemannian_metric(G_asym)
+        assert "simétrica" in str(exc_info.value).lower() or "simetría" in str(exc_info.value).lower()
+
+    def test_certify_riemannian_metric_not_psd_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Métrica no definida positiva lanza MetricManifoldDegeneracyError.
+        VALIDA: §1. G ≻ 0 (positividad estricta).
+        """
+        G_not_psd = np.array([
+            [-1.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ], dtype=np.float64)
+        with pytest.raises(MetricManifoldDegeneracyError) as exc_info:
+            phase1_certifier._certify_riemannian_metric(G_not_psd)
+        assert "definida positiva" in str(exc_info.value).lower() or "λ_min" in str(exc_info.value)
+
+    def test_certify_riemannian_metric_ill_conditioned_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Métrica mal condicionada lanza MetricManifoldDegeneracyError.
+        VALIDA: §1. κ(G) ≤ 10¹².
+        """
+        # Matriz con número de condición muy alto
+        G_ill = np.array([
+            [1e15, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ], dtype=np.float64)
+        with pytest.raises(MetricManifoldDegeneracyError) as exc_info:
+            phase1_certifier._certify_riemannian_metric(G_ill)
+        assert "condicionada" in str(exc_info.value).lower() or "κ" in str(exc_info.value)
+
+    def test_certify_riemannian_metric_dimension_mismatch_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Dimensión incompatible lanza DomainIntegrityViolationError.
+        VALIDA: Consistencia dimensional esperada.
+        """
+        G_3x3 = np.eye(3, dtype=np.float64)
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase1_certifier._certify_riemannian_metric(G_3x3, expected_dim=4)
+        assert "dimensión" in str(exc_info.value).lower()
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §1.5. Pruebas de Certificación de Vectores de Subespacio (Método: _certify_subspace_vector)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_certify_subspace_vector_valid(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+    ) -> None:
+        """
+        PRUEBA: Certificación de vector de subespacio válido.
+        VALIDA: Norma Euclidiana no degenerada.
+        """
+        v_physics, _, _, _ = valid_subspace_vectors_4d
+        result = phase1_certifier._certify_subspace_vector("V_physics", v_physics, dimension=4)
+        assert isinstance(result, np.ndarray)
+        assert result.size == 4
+        assert np.all(np.isfinite(result))
+
+    def test_certify_subspace_vector_null_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Vector nulo lanza DomainIntegrityViolationError.
+        VALIDA: No-degeneración de subespacio.
+        """
+        v_null = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase1_certifier._certify_subspace_vector("V_null", v_null, dimension=4)
+        assert "nulo" in str(exc_info.value).lower() or "degenerado" in str(exc_info.value).lower()
+
+    def test_certify_subspace_vector_near_null_raises(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+    ) -> None:
+        """
+        PRUEBA: Vector casi nulo lanza DomainIntegrityViolationError.
+        VALIDA: Tolerancia de norma mínima.
+        """
+        v_near_null = np.array([1e-15, 1e-15, 1e-15, 1e-15], dtype=np.float64)
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase1_certifier._certify_subspace_vector("V_near_null", v_near_null, dimension=4)
+        assert "degenerado" in str(exc_info.value).lower()
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §1.6. Pruebas de Handoff Fase 1 → Fase 2 (Método: _phase1_certify_and_handoff_to_phase2)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_phase1_certify_and_handoff_to_phase2_valid(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Handoff formal de Fase 1 a Fase 2.
+        VALIDA: Continuidad funtorial Φ₁ → Φ₂.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        handoff = phase1_certifier._phase1_certify_and_handoff_to_phase2(
+            V_physics=v_physics,
+            V_topology=v_topology,
+            V_control=v_control,
+            V_thermo=v_thermo,
+            G_metric=valid_metric_4x4,
+        )
+        assert isinstance(handoff, Phase1MetricHandoff)
+        assert isinstance(handoff.metric_audit, MetricManifoldData)
+        assert isinstance(handoff.G_certified, np.ndarray)
+        assert isinstance(handoff.V_physics_certified, np.ndarray)
+        assert isinstance(handoff.V_topology_certified, np.ndarray)
+        assert isinstance(handoff.V_control_certified, np.ndarray)
+        assert isinstance(handoff.V_thermo_certified, np.ndarray)
+        # Validación de handoff: datos certificados deben ser finitos
+        assert np.all(np.isfinite(handoff.G_certified))
+        assert np.all(np.isfinite(handoff.V_physics_certified))
+
+    def test_phase1_metric_handoff_immutability(
+        self,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Phase1MetricHandoff es inmutable.
+        VALIDA: Integridad del artefacto de handoff.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        handoff = phase1_certifier._phase1_certify_and_handoff_to_phase2(
+            V_physics=v_physics,
+            V_topology=v_topology,
+            V_control=v_control,
+            V_thermo=v_thermo,
+            G_metric=valid_metric_4x4,
+        )
+        with pytest.raises((AttributeError, TypeError)):
+            handoff.metric_audit = None  # type: ignore
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+#   FASE 2: CERTIFICACIÓN DE LA DESCOMPOSICIÓN ORTOGONAL
+#   Valida: ⟨v_i, v_j⟩_G = δ_ij
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+
+class TestPhase2_OrthogonalDecompositionCertifier:
+    r"""
+    ╔═══════════════════════════════════════════════════════════════════════════════════════╗
+    ║  FASE 2: CERTIFICACIÓN DE LA DESCOMPOSICIÓN ORTOGONAL                                 ║
+    ║  ─────────────────────────────────────────────────────────────────────────────        ║
+    ║  Esta clase de pruebas valida la ortogonalidad Riemanniana de los subespacios.        ║
+    ║  Cada método prueba un axioma específico del §2 del módulo principal.                 ║
+    ╚═══════════════════════════════════════════════════════════════════════════════════════╝
+    """
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §2.1. Pruebas de Producto Interno Covariante (Método: _metric_inner_product)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_metric_inner_product_valid(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Producto interno covariante calculado correctamente.
+        VALIDA: ⟨u, v⟩_G = uᵀ G v.
+        """
+        u = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        v = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        result = phase2_certifier._metric_inner_product(u, v, valid_metric_4x4)
+        assert isinstance(result, float)
+        assert np.isfinite(result)
+        assert result > 0  # Producto de vector consigo mismo
+
+    def test_metric_inner_product_orthogonal_vectors(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        identity_matrix_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Producto interno de vectores ortogonales es cero.
+        VALIDA: ⟨e_i, e_j⟩ = 0 para i ≠ j.
+        """
+        u = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        v = np.array([0.0, 1.0, 0.0, 0.0], dtype=np.float64)
+        result = phase2_certifier._metric_inner_product(u, v, identity_matrix_4x4)
+        assert result == 0.0
+
+    def test_metric_inner_product_non_finite_raises(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Producto interno no finito lanza DomainIntegrityViolationError.
+        VALIDA: Finitud del producto interno.
+        """
+        u = np.array([np.inf, 0.0, 0.0, 0.0], dtype=np.float64)
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase2_certifier._metric_inner_product(u, u, valid_metric_4x4)
+        assert "no finito" in str(exc_info.value).lower()
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §2.2. Pruebas de Norma Riemanniana (Método: _metric_subspace_norm)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_metric_subspace_norm_valid(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Norma Riemanniana calculada correctamente.
+        VALIDA: ||v||_G = sqrt(vᵀ G v).
+        """
+        v = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        result = phase2_certifier._metric_subspace_norm("test_vector", v, valid_metric_4x4)
+        assert isinstance(result, float)
+        assert np.isfinite(result)
+        assert result > 0
+
+    def test_metric_subspace_norm_degenerate_raises(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Norma degenerada lanza DomainIntegrityViolationError.
+        VALIDA: Positividad estricta de norma.
+        """
+        v = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase2_certifier._metric_subspace_norm("test_null", v, valid_metric_4x4)
+        assert "degenerada" in str(exc_info.value).lower()
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §2.3. Pruebas de Normalización Riemanniana (Método: _normalize_subspace_vector)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_normalize_subspace_vector_valid(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Normalización Riemanniana de vector válido.
+        VALIDA: ||v̂||_G = 1.
+        """
+        v = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        result = phase2_certifier._normalize_subspace_vector("test_vector", v, valid_metric_4x4)
+        assert isinstance(result, np.ndarray)
+        assert result.size == 4
+        # Verificar que la norma normalizada es 1
+        norm = phase2_certifier._metric_subspace_norm("normalized", result, valid_metric_4x4)
+        assert np.isclose(norm, 1.0, atol=1e-10)
+
+    def test_normalize_subspace_vector_non_finite_raises(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Normalización produce componentes no finitas lanza excepción.
+        VALIDA: Finitud de vector normalizado.
+        """
+        v = np.array([np.inf, 0.0, 0.0, 0.0], dtype=np.float64)
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase2_certifier._normalize_subspace_vector("test_inf", v, valid_metric_4x4)
+        assert "no finitas" in str(exc_info.value).lower()
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §2.4. Pruebas de Certificación de Descomposición Ortogonal (Método: _certify_orthogonal_decomposition_from_certified_vectors)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_certify_orthogonal_decomposition_valid(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        identity_matrix_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Certificación de descomposición ortogonal válida.
+        VALIDA: §2. ⟨v_i, v_j⟩_G = δ_ij.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        audit, basis_matrix = phase2_certifier._certify_orthogonal_decomposition_from_certified_vectors(
+            V_physics=v_physics,
+            V_topology=v_topology,
+            V_control=v_control,
+            V_thermo=v_thermo,
+            G_metric=identity_matrix_4x4,
+        )
+        assert isinstance(audit, OrthogonalDecompositionData)
+        assert audit.is_strictly_orthogonal is True
+        assert audit.off_diagonal_norm < _ORTHOGONALITY_TOLERANCE
+        assert basis_matrix.shape == (4, 4)
+
+    def test_certify_orthogonal_decomposition_non_orthogonal_raises(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        identity_matrix_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Vectores no ortogonales lanza NonOrthogonalSubspaceError.
+        VALIDA: §2. Independencia lineal absoluta.
+        """
+        # Vectores no ortogonales (comparten componentes)
+        v1 = np.array([1.0, 1.0, 0.0, 0.0], dtype=np.float64)
+        v2 = np.array([1.0, 1.0, 0.0, 0.0], dtype=np.float64)  # Mismo que v1
+        v3 = np.array([0.0, 0.0, 1.0, 0.0], dtype=np.float64)
+        v4 = np.array([0.0, 0.0, 0.0, 1.0], dtype=np.float64)
+        with pytest.raises(NonOrthogonalSubspaceError) as exc_info:
+            phase2_certifier._certify_orthogonal_decomposition_from_certified_vectors(
+                V_physics=v1,
+                V_topology=v2,
+                V_control=v3,
+                V_thermo=v4,
+                G_metric=identity_matrix_4x4,
+            )
+        assert "ortogonal" in str(exc_info.value).lower() or "covarianza" in str(exc_info.value).lower()
+
+    def test_certify_orthogonal_decomposition_gram_ill_conditioned_raises(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+    ) -> None:
+        """
+        PRUEBA: Matriz de Gram mal condicionada lanza NonOrthogonalSubspaceError.
+        VALIDA: κ(Gram) < 10¹².
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        # Métrica mal condicionada
+        G_ill = np.array([
+            [1e15, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ], dtype=np.float64)
+        with pytest.raises(NonOrthogonalSubspaceError) as exc_info:
+            phase2_certifier._certify_orthogonal_decomposition_from_certified_vectors(
+                V_physics=v_physics,
+                V_topology=v_topology,
+                V_control=v_control,
+                V_thermo=v_thermo,
+                G_metric=G_ill,
+            )
+        assert "condicionada" in str(exc_info.value).lower() or "κ" in str(exc_info.value)
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §2.5. Pruebas de Wrapper Público (Método: _certify_orthogonal_decomposition)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_certify_orthogonal_decomposition_valid(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        identity_matrix_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Wrapper público de certificación ortogonal.
+        VALIDA: Compatibilidad retroactiva.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        audit = phase2_certifier._certify_orthogonal_decomposition(
+            V_physics=v_physics,
+            V_topology=v_topology,
+            V_control=v_control,
+            V_thermo=v_thermo,
+            G_metric=identity_matrix_4x4,
+        )
+        assert isinstance(audit, OrthogonalDecompositionData)
+        assert audit.is_strictly_orthogonal is True
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §2.6. Pruebas de Handoff Fase 2 → Fase 3 (Método: _phase2_certify_and_handoff_to_phase3)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_phase2_certify_and_handoff_to_phase3_valid(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Handoff formal de Fase 2 a Fase 3.
+        VALIDA: Continuidad funtorial Φ₂ → Φ₃.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        phase1_handoff = phase1_certifier._phase1_certify_and_handoff_to_phase2(
+            V_physics=v_physics,
+            V_topology=v_topology,
+            V_control=v_control,
+            V_thermo=v_thermo,
+            G_metric=valid_metric_4x4,
+        )
+        handoff = phase2_certifier._phase2_certify_and_handoff_to_phase3(phase1_handoff)
+        assert isinstance(handoff, Phase2OrthogonalityHandoff)
+        assert isinstance(handoff.phase1_handoff, Phase1MetricHandoff)
+        assert isinstance(handoff.orthogonality_audit, OrthogonalDecompositionData)
+        assert isinstance(handoff.basis_matrix, np.ndarray)
+        assert handoff.orthogonality_audit.is_strictly_orthogonal is True
+
+    def test_phase2_handoff_invalid_phase1_handoff_raises(
+        self,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+    ) -> None:
+        """
+        PRUEBA: Handoff de Fase 1 inválido lanza DomainIntegrityViolationError.
+        VALIDA: Validación de prefijo formal.
+        """
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase2_certifier._phase2_certify_and_handoff_to_phase3(
+                phase1_handoff=None  # type: ignore
+            )
+        assert "phase1metrichandoff" in str(exc_info.value).lower()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+#   FASE 3: IMPOSICIÓN DE INMUTABILIDAD Y PUNTO FIJO
+#   Valida: ∇_τ Ψ = 0
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+
+class TestPhase3_TensorImmutabilityEnforcer:
+    r"""
+    ╔═══════════════════════════════════════════════════════════════════════════════════════╗
+    ║  FASE 3: IMPOSICIÓN DE INMUTABILIDAD Y PUNTO FIJO                                     ║
+    ║  ─────────────────────────────────────────────────────────────────────────────        ║
+    ║  Esta clase de pruebas valida la inmutabilidad temporal del tensor de estado.         ║
+    ║  Cada método prueba un axioma específico del §3 del módulo principal.                 ║
+    ╚═══════════════════════════════════════════════════════════════════════════════════════╝
+    """
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §3.1. Pruebas de Coerción de Vectores de Estado (Método: _coerce_state_vector)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_coerce_state_vector_valid(
+        self,
+        phase3_enforcer: Phase3_TensorImmutabilityEnforcer,
+    ) -> None:
+        """
+        PRUEBA: Coerción de vector de estado válido.
+        VALIDA: Conversión a NDArray[np.float64] con dimensión esperada.
+        """
+        psi = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+        result = phase3_enforcer._coerce_state_vector("Psi", psi, dimension=4)
+        assert isinstance(result, np.ndarray)
+        assert result.dtype == np.float64
+        assert result.size == 4
+
+    def test_coerce_state_vector_dimension_mismatch_raises(
+        self,
+        phase3_enforcer: Phase3_TensorImmutabilityEnforcer,
+    ) -> None:
+        """
+        PRUEBA: Dimensión incompatible lanza DomainIntegrityViolationError.
+        VALIDA: Consistencia dimensional con métrica.
+        """
+        psi = np.array([1.0, 2.0, 3.0], dtype=np.float64)  # Dimensión 3
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase3_enforcer._coerce_state_vector("Psi", psi, dimension=4)
+        assert "dimensión" in str(exc_info.value).lower()
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §3.2. Pruebas de Norma Riemanniana de Estado (Método: _riemannian_state_norm)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_riemannian_state_norm_valid(
+        self,
+        phase3_enforcer: Phase3_TensorImmutabilityEnforcer,
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Norma Riemanniana de estado calculada correctamente.
+        VALIDA: ||Ψ||_G = sqrt(Ψᵀ G Ψ).
+        """
+        psi = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+        result = phase3_enforcer._riemannian_state_norm("Psi", psi, valid_metric_4x4)
+        assert isinstance(result, float)
+        assert np.isfinite(result)
+        assert result > 0
+
+    def test_riemannian_state_norm_negative_quadratic_raises(
+        self,
+        phase3_enforcer: Phase3_TensorImmutabilityEnforcer,
+    ) -> None:
+        """
+        PRUEBA: Forma cuadrática negativa lanza PhaseSpaceCorruptionError.
+        VALIDA: Positividad de norma Riemanniana.
+        """
+        # Métrica no PSD para forzar forma cuadrática negativa
+        G_negative = np.array([
+            [-1.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ], dtype=np.float64)
+        psi = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        with pytest.raises(PhaseSpaceCorruptionError) as exc_info:
+            phase3_enforcer._riemannian_state_norm("Psi", psi, G_negative)
+        assert "negativa" in str(exc_info.value).lower() or "cuadrática" in str(exc_info.value).lower()
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §3.3. Pruebas de Punto Fijo Interno (Método: _enforce_tensor_immutability_and_fixpoint_internal)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_enforce_tensor_immutability_and_fixpoint_internal_valid(
+        self,
+        phase3_enforcer: Phase3_TensorImmutabilityEnforcer,
+        valid_state_vectors_4d: tuple[NDArray[np.float64], NDArray[np.float64]],
+        identity_matrix_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Punto fijo válido (Ψ(t₀) = Ψ(t₁)).
+        VALIDA: §3. ∇_τ Ψ = 0.
+        """
+        psi_t0, psi_t1 = valid_state_vectors_4d
+        result = phase3_enforcer._enforce_tensor_immutability_and_fixpoint_internal(
+            Psi_t0=psi_t0,
+            Psi_t1=psi_t1,
+            G_metric=identity_matrix_4x4,
+        )
+        assert isinstance(result, FixpointVerificationData)
+        assert result.is_fixed_point is True
+        assert result.covariant_derivative_norm < _FIXPOINT_TOLERANCE
+
+    def test_enforce_tensor_immutability_and_fixpoint_internal_corruption_raises(
+        self,
+        phase3_enforcer: Phase3_TensorImmutabilityEnforcer,
+        identity_matrix_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Corrupción temporal (Ψ(t₀) ≠ Ψ(t₁)) lanza PhaseSpaceCorruptionError.
+        VALIDA: §3. Inmutabilidad Tensorial.
+        """
+        psi_t0 = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+        psi_t1 = np.array([2.0, 3.0, 4.0, 5.0], dtype=np.float64)  # Diferente
+        with pytest.raises(PhaseSpaceCorruptionError) as exc_info:
+            phase3_enforcer._enforce_tensor_immutability_and_fixpoint_internal(
+                Psi_t0=psi_t0,
+                Psi_t1=psi_t1,
+                G_metric=identity_matrix_4x4,
+            )
+        assert "corrupción" in str(exc_info.value).lower() or "punto fijo" in str(exc_info.value).lower()
+
+    def test_enforce_tensor_immutability_and_fixpoint_internal_dimension_mismatch_raises(
+        self,
+        phase3_enforcer: Phase3_TensorImmutabilityEnforcer,
+        identity_matrix_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Dimensión incompatible entre Ψ(t₀) y Ψ(t₁) lanza excepción.
+        VALIDA: Consistencia dimensional temporal.
+        """
+        psi_t0 = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+        psi_t1 = np.array([1.0, 2.0, 3.0], dtype=np.float64)  # Dimensión diferente
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase3_enforcer._enforce_tensor_immutability_and_fixpoint_internal(
+                Psi_t0=psi_t0,
+                Psi_t1=psi_t1,
+                G_metric=identity_matrix_4x4,
+            )
+        assert "dimensión" in str(exc_info.value).lower() or "incompatible" in str(exc_info.value).lower()
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §3.4. Pruebas de Wrapper Público (Método: _enforce_tensor_immutability_and_fixpoint)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_enforce_tensor_immutability_and_fixpoint_valid(
+        self,
+        phase3_enforcer: Phase3_TensorImmutabilityEnforcer,
+        valid_state_vectors_4d: tuple[NDArray[np.float64], NDArray[np.float64]],
+        identity_matrix_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Wrapper público de inmutabilidad.
+        VALIDA: Compatibilidad retroactiva.
+        """
+        psi_t0, psi_t1 = valid_state_vectors_4d
+        result = phase3_enforcer._enforce_tensor_immutability_and_fixpoint(
+            Psi_t0=psi_t0,
+            Psi_t1=psi_t1,
+            G_metric=identity_matrix_4x4,
+        )
+        assert isinstance(result, FixpointVerificationData)
+        assert result.is_fixed_point is True
+
+    # ───────────────────────────────────────────────────────────────────────────────────────
+    # §3.5. Pruebas de Finalización Funtorial (Método: _phase3_finalize_from_phase2_handoff)
+    # ───────────────────────────────────────────────────────────────────────────────────────
+
+    def test_phase3_finalize_from_phase2_handoff_valid(
+        self,
+        phase3_enforcer: Phase3_TensorImmutabilityEnforcer,
+        phase1_certifier: Phase1_RiemannianMetricCertifier,
+        phase2_certifier: Phase2_OrthogonalDecompositionCertifier,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        valid_state_vectors_4d: tuple[NDArray[np.float64], NDArray[np.float64]],
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Finalización funtorial completa Φ₃ ∘ Φ₂ ∘ Φ₁.
+        VALIDA: Composición de las tres fases.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        psi_t0, psi_t1 = valid_state_vectors_4d
+        phase1_handoff = phase1_certifier._phase1_certify_and_handoff_to_phase2(
+            V_physics=v_physics,
+            V_topology=v_topology,
+            V_control=v_control,
+            V_thermo=v_thermo,
+            G_metric=valid_metric_4x4,
+        )
+        phase2_handoff = phase2_certifier._phase2_certify_and_handoff_to_phase3(phase1_handoff)
+        state = phase3_enforcer._phase3_finalize_from_phase2_handoff(
+            phase2_handoff=phase2_handoff,
+            Psi_t0=psi_t0,
+            Psi_t1=psi_t1,
+        )
+        assert isinstance(state, TensorialPhaseSpaceState)
+        assert isinstance(state.orthogonality_audit, OrthogonalDecompositionData)
+        assert isinstance(state.fixpoint_audit, FixpointVerificationData)
+        assert isinstance(state.metric_audit, MetricManifoldData)
+        assert state.is_epistemologically_valid is True
+        assert state.fixpoint_audit.is_fixed_point is True
+
+    def test_phase3_handoff_invalid_phase2_handoff_raises(
+        self,
+        phase3_enforcer: Phase3_TensorImmutabilityEnforcer,
+        valid_state_vectors_4d: tuple[NDArray[np.float64], NDArray[np.float64]],
+    ) -> None:
+        """
+        PRUEBA: Handoff de Fase 2 inválido lanza DomainIntegrityViolationError.
+        VALIDA: Validación de prefijo formal.
+        """
+        psi_t0, psi_t1 = valid_state_vectors_4d
+        with pytest.raises(DomainIntegrityViolationError) as exc_info:
+            phase3_enforcer._phase3_finalize_from_phase2_handoff(
+                phase2_handoff=None,  # type: ignore
+                Psi_t0=psi_t0,
+                Psi_t1=psi_t1,
+            )
+        assert "phase2orthogonalityhandoff" in str(exc_info.value).lower()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+#   ORQUESTADOR SUPREMO: TELEMETRYSCHEMASAGENT (Pruebas de Integración)
+#   Valida: Endofuntor Z_Tensorial = Φ₃ ∘ Φ₂ ∘ Φ₁
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+
+class TestTelemetrySchemasAgent_Integration:
+    r"""
+    ╔═══════════════════════════════════════════════════════════════════════════════════════╗
+    ║  ORQUESTADOR SUPREMO: TELEMETRYSCHEMASAGENT                                           ║
+    ║  ─────────────────────────────────────────────────────────────────────────────        ║
+    ║  Pruebas de integración que validan el endofuntor completo Z_Tensorial.               ║
+    ║  Estas pruebas aseguran que la composición Φ₃ ∘ Φ₂ ∘ Φ₁ funciona correctamente.       ║
+    ╚═══════════════════════════════════════════════════════════════════════════════════════╝
+    """
+
+    def test_telemetry_schemas_agent_execute_tensorial_phase_space_governance_valid(
+        self,
+        schemas_agent: TelemetrySchemasAgent,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        valid_state_vectors_4d: tuple[NDArray[np.float64], NDArray[np.float64]],
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Ejecución completa del gobierno de espacio de fase tensorial.
+        VALIDA: Endofuntor Z_Tensorial con datos válidos.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        psi_t0, psi_t1 = valid_state_vectors_4d
+        state = schemas_agent.execute_tensorial_phase_space_governance(
+            V_physics=v_physics,
+            V_topology=v_topology,
+            V_control=v_control,
+            V_thermo=v_thermo,
+            Psi_t0=psi_t0,
+            Psi_t1=psi_t1,
+            G_metric=valid_metric_4x4,
+        )
+        assert isinstance(state, TensorialPhaseSpaceState)
+        assert state.is_epistemologically_valid is True
+        assert state.orthogonality_audit.is_strictly_orthogonal is True
+        assert state.fixpoint_audit.is_fixed_point is True
+        assert isinstance(state.metric_audit, MetricManifoldData)
+
+    def test_telemetry_schemas_agent_call_alias_valid(
+        self,
+        schemas_agent: TelemetrySchemasAgent,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        valid_state_vectors_4d: tuple[NDArray[np.float64], NDArray[np.float64]],
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Alias invocable __call__ del endofuntor.
+        VALIDA: Sintaxis alternativa de ejecución.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        psi_t0, psi_t1 = valid_state_vectors_4d
+        state = schemas_agent(
+            V_physics=v_physics,
+            V_topology=v_topology,
+            V_control=v_control,
+            V_thermo=v_thermo,
+            Psi_t0=psi_t0,
+            Psi_t1=psi_t1,
+            G_metric=valid_metric_4x4,
+        )
+        assert isinstance(state, TensorialPhaseSpaceState)
+        assert state.is_epistemologically_valid is True
+
+    def test_telemetry_schemas_agent_metric_manifold_degeneracy_error(
+        self,
+        schemas_agent: TelemetrySchemasAgent,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        valid_state_vectors_4d: tuple[NDArray[np.float64], NDArray[np.float64]],
+    ) -> None:
+        """
+        PRUEBA: Métrica degenerada lanza MetricManifoldDegeneracyError.
+        VALIDA: Propagación de excepciones de Fase 1.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        psi_t0, psi_t1 = valid_state_vectors_4d
+        G_not_psd = np.array([
+            [-1.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ], dtype=np.float64)
+        with pytest.raises(MetricManifoldDegeneracyError):
+            schemas_agent(
+                V_physics=v_physics,
+                V_topology=v_topology,
+                V_control=v_control,
+                V_thermo=v_thermo,
+                Psi_t0=psi_t0,
+                Psi_t1=psi_t1,
+                G_metric=G_not_psd,
             )
 
-        metric_condition_number = float(max_eigenvalue / min_eigenvalue)
-
-        if (
-            not np.isfinite(metric_condition_number)
-            or metric_condition_number > _MAX_METRIC_CONDITION_NUMBER
-        ):
-            raise MetricManifoldDegeneracyError(
-                f"Métrica Riemanniana mal condicionada. "
-                f"κ(G)={metric_condition_number:.6e} > "
-                f"{_MAX_METRIC_CONDITION_NUMBER:.6e}."
+    def test_telemetry_schemas_agent_non_orthogonal_subspace_error(
+        self,
+        schemas_agent: TelemetrySchemasAgent,
+        valid_state_vectors_4d: tuple[NDArray[np.float64], NDArray[np.float64]],
+        identity_matrix_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Subespacios no ortogonales lanza NonOrthogonalSubspaceError.
+        VALIDA: Propagación de excepciones de Fase 2.
+        """
+        psi_t0, psi_t1 = valid_state_vectors_4d
+        # Vectores no ortogonales
+        v1 = np.array([1.0, 1.0, 0.0, 0.0], dtype=np.float64)
+        v2 = np.array([1.0, 1.0, 0.0, 0.0], dtype=np.float64)
+        v3 = np.array([0.0, 0.0, 1.0, 0.0], dtype=np.float64)
+        v4 = np.array([0.0, 0.0, 0.0, 1.0], dtype=np.float64)
+        with pytest.raises(NonOrthogonalSubspaceError):
+            schemas_agent(
+                V_physics=v1,
+                V_topology=v2,
+                V_control=v3,
+                V_thermo=v4,
+                Psi_t0=psi_t0,
+                Psi_t1=psi_t1,
+                G_metric=identity_matrix_4x4,
             )
 
-        metric_audit = MetricManifoldData(
-            dimension=n,
-            metric_condition_number=metric_condition_number,
-            symmetry_deviation=symmetry_deviation,
-            min_eigenvalue=min_eigenvalue,
+    def test_telemetry_schemas_agent_phase_space_corruption_error(
+        self,
+        schemas_agent: TelemetrySchemasAgent,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        identity_matrix_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Corrupción temporal lanza PhaseSpaceCorruptionError.
+        VALIDA: Propagación de excepciones de Fase 3.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        psi_t0 = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+        psi_t1 = np.array([2.0, 3.0, 4.0, 5.0], dtype=np.float64)  # Diferente
+        with pytest.raises(PhaseSpaceCorruptionError):
+            schemas_agent(
+                V_physics=v_physics,
+                V_topology=v_topology,
+                V_control=v_control,
+                V_thermo=v_thermo,
+                Psi_t0=psi_t0,
+                Psi_t1=psi_t1,
+                G_metric=identity_matrix_4x4,
+            )
+
+    def test_telemetry_schemas_agent_domain_integrity_violation_error(
+        self,
+        schemas_agent: TelemetrySchemasAgent,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        valid_state_vectors_4d: tuple[NDArray[np.float64], NDArray[np.float64]],
+    ) -> None:
+        """
+        PRUEBA: Violación de integridad de dominio lanza DomainIntegrityViolationError.
+        VALIDA: Validación de tipos de entrada.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        psi_t0, psi_t1 = valid_state_vectors_4d
+        # Vector nulo
+        v_null = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        with pytest.raises(DomainIntegrityViolationError):
+            schemas_agent(
+                V_physics=v_null,
+                V_topology=v_topology,
+                V_control=v_control,
+                V_thermo=v_thermo,
+                Psi_t0=psi_t0,
+                Psi_t1=psi_t1,
+                G_metric=None,
+            )
+
+    def test_telemetry_schemas_agent_inheritance_chain(
+        self,
+        schemas_agent: TelemetrySchemasAgent,
+    ) -> None:
+        """
+        PRUEBA: Cadena de herencia del TelemetrySchemasAgent.
+        VALIDA: Arquitectura de fases anidadas.
+        """
+        assert isinstance(schemas_agent, TelemetrySchemasAgent)
+        assert isinstance(schemas_agent, Phase3_TensorImmutabilityEnforcer)
+        assert isinstance(schemas_agent, Phase2_OrthogonalDecompositionCertifier)
+        assert isinstance(schemas_agent, Phase1_RiemannianMetricCertifier)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# §Z. PRUEBAS DE ESTRUCTURAS DE DATOS (Data Classes)
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+
+class TestDataStructures:
+    r"""
+    ╔═══════════════════════════════════════════════════════════════════════════════════════╗
+    ║  PRUEBAS DE ESTRUCTURAS DE DATOS INMUTABLES                                           ║
+    ║  ─────────────────────────────────────────────────────────────────────────────        ║
+    ║  Valida la integridad de todos los DTOs del espacio tensorial.                        ║
+    ╚═══════════════════════════════════════════════════════════════════════════════════════╝
+    """
+
+    def test_metric_manifold_data_creation(
+        self,
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Creación de MetricManifoldData.
+        VALIDA: Estructura inmutable del certificado Riemanniano.
+        """
+        audit = MetricManifoldData(
+            dimension=4,
+            metric_condition_number=10.0,
+            symmetry_deviation=1e-15,
+            min_eigenvalue=0.5,
             is_positive_definite=True,
         )
+        assert audit.dimension == 4
+        assert audit.is_positive_definite is True
 
-        return G, metric_audit
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.5. Certificación de vectores de subespacio
-    # ─────────────────────────────────────────────────────────────────────────
-    def _certify_subspace_vector(
+    def test_orthogonal_decomposition_data_creation(
         self,
-        name: str,
-        vector: Any,
-        dimension: int,
-    ) -> NDArray[np.float64]:
-        r"""
-        Certifica que un vector de subespacio sea finito, dimensionalmente
-        compatible y no degenerado.
+        identity_matrix_4x4: NDArray[np.float64],
+    ) -> None:
         """
-        v = self._coerce_finite_vector(name, vector, expected_dim=dimension)
-
-        euclidean_norm = float(la.norm(v, ord=2))
-        norm_tolerance = max(
-            _SUBSPACE_NORM_TOLERANCE,
-            10.0 * _MACHINE_EPSILON * dimension * max(1.0, euclidean_norm),
-        )
-
-        if euclidean_norm <= norm_tolerance:
-            raise DomainIntegrityViolationError(
-                f"Vector de subespacio '{name}' es nulo o numéricamente "
-                f"degenerado. ||{name}||₂={euclidean_norm:.6e} <= "
-                f"{norm_tolerance:.6e}."
-            )
-
-        return v
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.6. ÚLTIMO MÉTODO DE FASE 1: HANDOFF FORMAL HACIA FASE 2
-    # ─────────────────────────────────────────────────────────────────────────
-    def _phase1_certify_and_handoff_to_phase2(
-        self,
-        V_physics: NDArray[np.float64],
-        V_topology: NDArray[np.float64],
-        V_control: NDArray[np.float64],
-        V_thermo: NDArray[np.float64],
-        G_metric: Optional[NDArray[np.float64]] = None,
-    ) -> Phase1MetricHandoff:
-        r"""
-        Último método de la Fase 1.
-
-        Su definición formal es la continuación directa de la Fase 2:
-        entrega la métrica certificada y los vectores de subespacio saneados
-        como prefijo obligatorio de la descomposición ortogonal.
+        PRUEBA: Creación de OrthogonalDecompositionData.
+        VALIDA: Artefacto de Fase 2.
         """
-        G_certified, metric_audit = self._certify_riemannian_metric(G_metric)
-        dimension = metric_audit.dimension
-
-        V_physics_certified = self._certify_subspace_vector(
-            "V_physics",
-            V_physics,
-            dimension,
-        )
-        V_topology_certified = self._certify_subspace_vector(
-            "V_topology",
-            V_topology,
-            dimension,
-        )
-        V_control_certified = self._certify_subspace_vector(
-            "V_control",
-            V_control,
-            dimension,
-        )
-        V_thermo_certified = self._certify_subspace_vector(
-            "V_thermo",
-            V_thermo,
-            dimension,
-        )
-
-        logger.debug(
-            "Fase 1 completada. dim=%d | κ(G)=%.6e | λ_min=%.6e.",
-            metric_audit.dimension,
-            metric_audit.metric_condition_number,
-            metric_audit.min_eigenvalue,
-        )
-
-        return Phase1MetricHandoff(
-            metric_audit=metric_audit,
-            G_certified=G_certified,
-            V_physics_certified=V_physics_certified,
-            V_topology_certified=V_topology_certified,
-            V_control_certified=V_control_certified,
-            V_thermo_certified=V_thermo_certified,
-        )
-
-
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 2: CERTIFICACIÓN DE LA DESCOMPOSICIÓN ORTOGONAL                      ║
-# ║   Garantiza <v_i, v_j>_G = δ_ij.                                           ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-
-class Phase2_OrthogonalDecompositionCertifier(Phase1_RiemannianMetricCertifier):
-    r"""
-    Asegura matemáticamente que los cuatro subespacios del Pasaporte de
-    Telemetría no presenten covarianza espuria, manteniéndose independientes en
-    el hiperespacio Riemanniano.
-    """
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.1. Producto interno covariante
-    # ─────────────────────────────────────────────────────────────────────────
-    def _metric_inner_product(
-        self,
-        u: NDArray[np.float64],
-        v: NDArray[np.float64],
-        G_metric: NDArray[np.float64],
-    ) -> float:
-        r"""
-        Computa el producto interno covariante:
-
-            <u, v>_G = uᵀ G v.
-        """
-        value = float(np.dot(u, G_metric @ v))
-
-        if not np.isfinite(value):
-            raise DomainIntegrityViolationError(
-                "Producto interno covariante no finito."
-            )
-
-        return value
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.2. Norma Riemanniana de subespacio
-    # ─────────────────────────────────────────────────────────────────────────
-    def _metric_subspace_norm(
-        self,
-        name: str,
-        v: NDArray[np.float64],
-        G_metric: NDArray[np.float64],
-    ) -> float:
-        r"""
-        Computa la norma Riemanniana:
-
-            ||v||_G = sqrt(vᵀ G v).
-
-        Exige positividad estricta para evitar subespacios degenerados.
-        """
-        quadratic_form = self._metric_inner_product(v, v, G_metric)
-
-        if quadratic_form <= _SUBSPACE_NORM_TOLERANCE:
-            raise DomainIntegrityViolationError(
-                f"Vector de subespacio '{name}' posee norma Riemanniana "
-                f"degenerada. ||{name}||_G²={quadratic_form:.6e} <= "
-                f"{_SUBSPACE_NORM_TOLERANCE:.6e}."
-            )
-
-        return math.sqrt(quadratic_form)
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.3. Normalización Riemanniana de subespacio
-    # ─────────────────────────────────────────────────────────────────────────
-    def _normalize_subspace_vector(
-        self,
-        name: str,
-        v: NDArray[np.float64],
-        G_metric: NDArray[np.float64],
-    ) -> NDArray[np.float64]:
-        r"""
-        Normaliza un vector respecto a la métrica G:
-
-            v̂ = v / ||v||_G.
-        """
-        norm = self._metric_subspace_norm(name, v, G_metric)
-        normalized = v / norm
-
-        if not np.all(np.isfinite(normalized)):
-            raise DomainIntegrityViolationError(
-                f"La normalización Riemanniana de '{name}' produjo componentes "
-                f"no finitas."
-            )
-
-        return normalized
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.4. Certificación interna de descomposición ortogonal
-    # ─────────────────────────────────────────────────────────────────────────
-    def _certify_orthogonal_decomposition_from_certified_vectors(
-        self,
-        V_physics: NDArray[np.float64],
-        V_topology: NDArray[np.float64],
-        V_control: NDArray[np.float64],
-        V_thermo: NDArray[np.float64],
-        G_metric: NDArray[np.float64],
-    ) -> Tuple[OrthogonalDecompositionData, NDArray[np.float64]]:
-        r"""
-        Computa la Matriz de Gram Mᵀ G M sobre los subespacios normalizados y
-        certifica:
-
-            diag(Gram) ≈ 1,
-            ||Gram_off||_F ≈ 0,
-            κ(Gram) < κ_max.
-        """
-        v_p = self._normalize_subspace_vector("V_physics", V_physics, G_metric)
-        v_t = self._normalize_subspace_vector("V_topology", V_topology, G_metric)
-        v_c = self._normalize_subspace_vector("V_control", V_control, G_metric)
-        v_th = self._normalize_subspace_vector("V_thermo", V_thermo, G_metric)
-
-        # Matriz bloque M (n x 4).
-        M = np.column_stack((v_p, v_t, v_c, v_th))
-
-        if not np.all(np.isfinite(M)):
-            raise DomainIntegrityViolationError(
-                "La matriz de bases ortonormales M contiene componentes no "
-                "finitas."
-            )
-
-        # Matriz de Gram inducida por el tensor métrico Riemanniano.
-        gram_matrix = M.T @ G_metric @ M
-
-        if not np.all(np.isfinite(gram_matrix)):
-            raise DomainIntegrityViolationError(
-                "La matriz de Gram contiene componentes no finitas."
-            )
-
-        # Simetrización de ruido numérico.
-        gram_matrix = 0.5 * (gram_matrix + gram_matrix.T)
-
-        diagonal_values = np.diag(gram_matrix)
-        off_diagonal = gram_matrix - np.diag(diagonal_values)
-
-        off_diagonal_norm = float(la.norm(off_diagonal, ord="fro"))
-        diagonal_deviation = float(
-            la.norm(diagonal_values - np.ones(4, dtype=np.float64), ord=np.inf)
-        )
-
-        orthogonality_tolerance = self._adaptive_tolerance(
-            _ORTHOGONALITY_TOLERANCE,
-            gram_matrix,
-        )
-
-        if diagonal_deviation > orthogonality_tolerance:
-            raise NonOrthogonalSubspaceError(
-                f"La diagonal de la matriz de Gram se aparta de la identidad. "
-                f"||diag(Gram)-1||_∞ = {diagonal_deviation:.6e} > "
-                f"{orthogonality_tolerance:.6e}."
-            )
-
-        if off_diagonal_norm > orthogonality_tolerance:
-            raise NonOrthogonalSubspaceError(
-                f"Fuga de información entre subespacios detectada. "
-                f"Norma de covarianza cruzada ||Gram_off||_F = "
-                f"{off_diagonal_norm:.6e} > "
-                f"{orthogonality_tolerance:.6e}. "
-                f"El espacio no obedece la suma directa ortogonal estricta."
-            )
-
-        # Auditoría espectral de la matriz de Gram.
-        gram_eigenvalues = la.eigvalsh(gram_matrix)
-        gram_min_eigenvalue = float(np.min(gram_eigenvalues))
-        gram_max_eigenvalue = float(np.max(gram_eigenvalues))
-
-        if gram_max_eigenvalue <= 0.0:
-            raise NonOrthogonalSubspaceError(
-                "Matriz de Gram degenerada: autovalor máximo no positivo."
-            )
-
-        gram_relative_eigenvalue_tolerance = (
-            10.0 * _MACHINE_EPSILON * gram_matrix.shape[0] * gram_max_eigenvalue
-        )
-
-        if gram_min_eigenvalue <= gram_relative_eigenvalue_tolerance:
-            raise NonOrthogonalSubspaceError(
-                f"Matriz de Gram casi singular. "
-                f"λ_min={gram_min_eigenvalue:.6e} <= "
-                f"{gram_relative_eigenvalue_tolerance:.6e}."
-            )
-
-        gram_condition_number = float(
-            gram_max_eigenvalue / gram_min_eigenvalue
-        )
-
-        if (
-            not np.isfinite(gram_condition_number)
-            or gram_condition_number > _MAX_METRIC_CONDITION_NUMBER
-        ):
-            raise NonOrthogonalSubspaceError(
-                f"Matriz de Gram mal condicionada. "
-                f"κ(Gram)={gram_condition_number:.6e} > "
-                f"{_MAX_METRIC_CONDITION_NUMBER:.6e}."
-            )
-
         audit = OrthogonalDecompositionData(
-            gram_matrix=gram_matrix,
-            off_diagonal_norm=off_diagonal_norm,
+            gram_matrix=identity_matrix_4x4,
+            off_diagonal_norm=0.0,
             is_strictly_orthogonal=True,
-            diagonal_deviation=diagonal_deviation,
-            gram_condition_number=gram_condition_number,
-            orthogonality_tolerance=orthogonality_tolerance,
         )
+        assert audit.is_strictly_orthogonal is True
+        assert audit.off_diagonal_norm == 0.0
 
-        return audit, M
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.5. Wrapper público / retrocompatible de ortogonalidad
-    # ─────────────────────────────────────────────────────────────────────────
-    def _certify_orthogonal_decomposition(
+    def test_fixpoint_verification_data_creation(
         self,
-        V_physics: NDArray[np.float64],
-        V_topology: NDArray[np.float64],
-        V_control: NDArray[np.float64],
-        V_thermo: NDArray[np.float64],
-        G_metric: NDArray[np.float64],
-    ) -> OrthogonalDecompositionData:
-        r"""
-        Computa la Matriz de Gram Mᵀ G_{μν} M sobre los subespacios
-        normalizados. Conserva la signatura original de Fase 1/2.
+    ) -> None:
         """
-        G_certified, _ = self._certify_riemannian_metric(G_metric)
-        dimension = int(G_certified.shape[0])
-
-        V_physics_certified = self._certify_subspace_vector(
-            "V_physics",
-            V_physics,
-            dimension,
-        )
-        V_topology_certified = self._certify_subspace_vector(
-            "V_topology",
-            V_topology,
-            dimension,
-        )
-        V_control_certified = self._certify_subspace_vector(
-            "V_control",
-            V_control,
-            dimension,
-        )
-        V_thermo_certified = self._certify_subspace_vector(
-            "V_thermo",
-            V_thermo,
-            dimension,
-        )
-
-        audit, _ = self._certify_orthogonal_decomposition_from_certified_vectors(
-            V_physics_certified,
-            V_topology_certified,
-            V_control_certified,
-            V_thermo_certified,
-            G_certified,
-        )
-
-        return audit
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.6. ÚLTIMO MÉTODO DE FASE 2: HANDOFF FORMAL HACIA FASE 3
-    # ─────────────────────────────────────────────────────────────────────────
-    def _phase2_certify_and_handoff_to_phase3(
-        self,
-        phase1_handoff: Phase1MetricHandoff,
-    ) -> Phase2OrthogonalityHandoff:
-        r"""
-        Último método de la Fase 2.
-
-        Su definición formal es la continuación directa de la Fase 3:
-        entrega la auditoría de ortogonalidad y la base ortonormal como prefijo
-        obligatorio del verificador de inmutabilidad tensorial.
+        PRUEBA: Creación de FixpointVerificationData.
+        VALIDA: Artefacto de Fase 3.
         """
-        if not isinstance(phase1_handoff, Phase1MetricHandoff):
-            raise DomainIntegrityViolationError(
-                "Fase 2 exige un Phase1MetricHandoff como prefijo formal."
-            )
-
-        audit, basis_matrix = (
-            self._certify_orthogonal_decomposition_from_certified_vectors(
-                phase1_handoff.V_physics_certified,
-                phase1_handoff.V_topology_certified,
-                phase1_handoff.V_control_certified,
-                phase1_handoff.V_thermo_certified,
-                phase1_handoff.G_certified,
-            )
-        )
-
-        logger.debug(
-            "Fase 2 completada. ||Gram_off||_F=%.6e | diag_dev=%.6e | "
-            "κ(Gram)=%.6e.",
-            audit.off_diagonal_norm,
-            audit.diagonal_deviation,
-            audit.gram_condition_number,
-        )
-
-        return Phase2OrthogonalityHandoff(
-            phase1_handoff=phase1_handoff,
-            orthogonality_audit=audit,
-            basis_matrix=basis_matrix,
-        )
-
-
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 3: IMPOSICIÓN DE INMUTABILIDAD Y PUNTO FIJO                          ║
-# ║   Garantiza ∇_τ Ψ = 0 a través de la evolución temporal.                   ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-
-class Phase3_TensorImmutabilityEnforcer(
-    Phase2_OrthogonalDecompositionCertifier
-):
-    r"""
-    Somete el vector de estado a una auditoría diferencial para asegurar que la
-    telemetría sea criptográficamente inmutable y represente un punto fijo en la
-    variedad.
-    """
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.1. Coerción de vectores de estado
-    # ─────────────────────────────────────────────────────────────────────────
-    def _coerce_state_vector(
-        self,
-        name: str,
-        state_vector: Any,
-        dimension: int,
-    ) -> NDArray[np.float64]:
-        r"""
-        Coerciona un vector de estado global Ψ, exigiendo finitud y dimensión
-        compatible con la métrica certificada.
-        """
-        return self._coerce_finite_vector(
-            name,
-            state_vector,
-            expected_dim=dimension,
-        )
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.2. Norma Riemanniana de estado
-    # ─────────────────────────────────────────────────────────────────────────
-    def _riemannian_state_norm(
-        self,
-        name: str,
-        state_vector: NDArray[np.float64],
-        G_metric: NDArray[np.float64],
-    ) -> float:
-        r"""
-        Computa ||Ψ||_G = sqrt(Ψᵀ G Ψ), con saneamiento de ruido negativo
-        infinitesimal.
-        """
-        quadratic_form = float(np.dot(state_vector, G_metric @ state_vector))
-
-        if not np.isfinite(quadratic_form):
-            raise PhaseSpaceCorruptionError(
-                f"La forma cuadrática Riemanniana de '{name}' no es finita."
-            )
-
-        scale = max(1.0, abs(quadratic_form))
-        quadratic_tolerance = max(
-            _FIXPOINT_TOLERANCE,
-            10.0 * _MACHINE_EPSILON * state_vector.size * scale,
-        )
-
-        if quadratic_form < -quadratic_tolerance:
-            raise PhaseSpaceCorruptionError(
-                f"Forma cuadrática Riemanniana negativa para '{name}': "
-                f"{quadratic_form:.6e} < -{quadratic_tolerance:.6e}."
-            )
-
-        if quadratic_form < 0.0:
-            quadratic_form = 0.0
-
-        return math.sqrt(quadratic_form)
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.3. Implementación interna de punto fijo
-    # ─────────────────────────────────────────────────────────────────────────
-    def _enforce_tensor_immutability_and_fixpoint_internal(
-        self,
-        Psi_t0: NDArray[np.float64],
-        Psi_t1: NDArray[np.float64],
-        G_metric: NDArray[np.float64],
-    ) -> FixpointVerificationData:
-        r"""
-        Computa la norma de la derivada covariante discreta:
-
-            ||∇_τ Ψ||_G = ||Ψ(t₁) - Ψ(t₀)||_G.
-
-        Si la norma supera la tolerancia adaptativa, el tensor fue corrompido
-        durante su tránsito.
-        """
-        if Psi_t0.shape != Psi_t1.shape:
-            raise DomainIntegrityViolationError(
-                f"Los vectores de estado Ψ_t0 y Ψ_t1 poseen dimensiones "
-                f"incompatibles: {Psi_t0.shape} != {Psi_t1.shape}."
-            )
-
-        diff_Psi = Psi_t1 - Psi_t0
-
-        if not np.all(np.isfinite(diff_Psi)):
-            raise PhaseSpaceCorruptionError(
-                "La diferencia covariante Ψ_t1 - Ψ_t0 contiene componentes no "
-                "finitas."
-            )
-
-        norm_t0 = self._riemannian_state_norm("Psi_t0", Psi_t0, G_metric)
-        norm_t1 = self._riemannian_state_norm("Psi_t1", Psi_t1, G_metric)
-        nabla_tau = self._riemannian_state_norm("diff_Psi", diff_Psi, G_metric)
-
-        scale = max(1.0, norm_t0, norm_t1, nabla_tau)
-        dimension = int(Psi_t0.size)
-
-        fixpoint_tolerance = max(
-            _FIXPOINT_TOLERANCE,
-            10.0 * _MACHINE_EPSILON * dimension * scale,
-        )
-
-        if nabla_tau > fixpoint_tolerance:
-            raise PhaseSpaceCorruptionError(
-                f"Corrupción en el Pasaporte de Telemetría. El tensor no es un "
-                f"punto fijo. Magnitud de la derivada covariante ∇_τ Ψ = "
-                f"{nabla_tau:.6e} > {fixpoint_tolerance:.6e}. "
-                f"Posible mutación parásita en la Malla Agéntica."
-            )
-
-        return FixpointVerificationData(
-            covariant_derivative_norm=nabla_tau,
+        audit = FixpointVerificationData(
+            covariant_derivative_norm=0.0,
             is_fixed_point=True,
-            fixpoint_tolerance=fixpoint_tolerance,
-            state_dimension=dimension,
         )
+        assert audit.is_fixed_point is True
+        assert audit.covariant_derivative_norm == 0.0
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.4. Wrapper público / retrocompatible de inmutabilidad
-    # ─────────────────────────────────────────────────────────────────────────
-    def _enforce_tensor_immutability_and_fixpoint(
+    def test_phase1_metric_handoff_creation(
         self,
-        Psi_t0: NDArray[np.float64],
-        Psi_t1: NDArray[np.float64],
-        G_metric: NDArray[np.float64],
-    ) -> FixpointVerificationData:
-        r"""
-        Computa la norma de la derivada covariante discreta ||∇_τ Ψ||_G².
-        Conserva la signatura original de Fase 2.
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
         """
-        G_certified, metric_audit = self._certify_riemannian_metric(G_metric)
-        dimension = metric_audit.dimension
-
-        Psi_t0_certified = self._coerce_state_vector(
-            "Psi_t0",
-            Psi_t0,
-            dimension,
+        PRUEBA: Creación de Phase1MetricHandoff.
+        VALIDA: Puente funtorial Φ₁ → Φ₂.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        metric_audit = MetricManifoldData(
+            dimension=4,
+            metric_condition_number=10.0,
+            symmetry_deviation=1e-15,
+            min_eigenvalue=0.5,
+            is_positive_definite=True,
         )
-        Psi_t1_certified = self._coerce_state_vector(
-            "Psi_t1",
-            Psi_t1,
-            dimension,
+        handoff = Phase1MetricHandoff(
+            metric_audit=metric_audit,
+            G_certified=valid_metric_4x4,
+            V_physics_certified=v_physics,
+            V_topology_certified=v_topology,
+            V_control_certified=v_control,
+            V_thermo_certified=v_thermo,
         )
+        assert isinstance(handoff.metric_audit, MetricManifoldData)
+        assert np.array_equal(handoff.G_certified, valid_metric_4x4)
 
-        return self._enforce_tensor_immutability_and_fixpoint_internal(
-            Psi_t0_certified,
-            Psi_t1_certified,
-            G_certified,
-        )
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.5. ÚLTIMO MÉTODO DE FASE 3: FINALIZACIÓN FUNTORIAL
-    # ─────────────────────────────────────────────────────────────────────────
-    def _phase3_finalize_from_phase2_handoff(
+    def test_phase2_orthogonality_handoff_creation(
         self,
-        phase2_handoff: Phase2OrthogonalityHandoff,
-        Psi_t0: NDArray[np.float64],
-        Psi_t1: NDArray[np.float64],
-    ) -> TensorialPhaseSpaceState:
-        r"""
-        Último método de la Fase 3.
-
-        Compone los certificados de Fase 1, Fase 2 y Fase 3 en el objeto
-        terminal TensorialPhaseSpaceState.
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
         """
-        if not isinstance(phase2_handoff, Phase2OrthogonalityHandoff):
-            raise DomainIntegrityViolationError(
-                "Fase 3 exige un Phase2OrthogonalityHandoff como prefijo "
-                "formal."
-            )
-
-        G_certified = phase2_handoff.phase1_handoff.G_certified
-        dimension = phase2_handoff.phase1_handoff.metric_audit.dimension
-
-        Psi_t0_certified = self._coerce_state_vector(
-            "Psi_t0",
-            Psi_t0,
-            dimension,
+        PRUEBA: Creación de Phase2OrthogonalityHandoff.
+        VALIDA: Puente funtorial Φ₂ → Φ₃.
+        """
+        v_physics, v_topology, v_control, v_thermo = valid_subspace_vectors_4d
+        metric_audit = MetricManifoldData(
+            dimension=4,
+            metric_condition_number=10.0,
+            symmetry_deviation=1e-15,
+            min_eigenvalue=0.5,
+            is_positive_definite=True,
         )
-        Psi_t1_certified = self._coerce_state_vector(
-            "Psi_t1",
-            Psi_t1,
-            dimension,
+        phase1_handoff = Phase1MetricHandoff(
+            metric_audit=metric_audit,
+            G_certified=valid_metric_4x4,
+            V_physics_certified=v_physics,
+            V_topology_certified=v_topology,
+            V_control_certified=v_control,
+            V_thermo_certified=v_thermo,
         )
-
-        fixpoint_audit = self._enforce_tensor_immutability_and_fixpoint_internal(
-            Psi_t0_certified,
-            Psi_t1_certified,
-            G_certified,
+        ortho_audit = OrthogonalDecompositionData(
+            gram_matrix=np.eye(4, dtype=np.float64),
+            off_diagonal_norm=0.0,
+            is_strictly_orthogonal=True,
         )
+        handoff = Phase2OrthogonalityHandoff(
+            phase1_handoff=phase1_handoff,
+            orthogonality_audit=ortho_audit,
+            basis_matrix=np.eye(4, dtype=np.float64),
+        )
+        assert isinstance(handoff.phase1_handoff, Phase1MetricHandoff)
+        assert isinstance(handoff.orthogonality_audit, OrthogonalDecompositionData)
 
+    def test_tensorial_phase_space_state_creation(
+        self,
+        valid_subspace_vectors_4d: tuple[NDArray[np.float64], ...],
+        valid_metric_4x4: NDArray[np.float64],
+    ) -> None:
+        """
+        PRUEBA: Creación de TensorialPhaseSpaceState (objeto final).
+        VALIDA: Estado epistemológico completo del endofuntor.
+        """
+        metric_audit = MetricManifoldData(
+            dimension=4,
+            metric_condition_number=10.0,
+            symmetry_deviation=1e-15,
+            min_eigenvalue=0.5,
+            is_positive_definite=True,
+        )
+        ortho_audit = OrthogonalDecompositionData(
+            gram_matrix=np.eye(4, dtype=np.float64),
+            off_diagonal_norm=0.0,
+            is_strictly_orthogonal=True,
+        )
+        fixpoint_audit = FixpointVerificationData(
+            covariant_derivative_norm=0.0,
+            is_fixed_point=True,
+        )
         state = TensorialPhaseSpaceState(
-            orthogonality_audit=phase2_handoff.orthogonality_audit,
+            orthogonality_audit=ortho_audit,
             fixpoint_audit=fixpoint_audit,
             is_epistemologically_valid=True,
-            metric_audit=phase2_handoff.phase1_handoff.metric_audit,
+            metric_audit=metric_audit,
         )
-
-        logger.info(
-            "Arquitectura del Espacio de Fase Tensorial certificada. "
-            "Gram Off-Diagonal=%.6e | Mutación Covariante ∇_τ=%.6e | "
-            "κ(G)=%.6e.",
-            state.orthogonality_audit.off_diagonal_norm,
-            state.fixpoint_audit.covariant_derivative_norm,
-            phase2_handoff.phase1_handoff.metric_audit.metric_condition_number,
-        )
-
-        return state
+        assert state.is_epistemologically_valid is True
+        assert isinstance(state.orthogonality_audit, OrthogonalDecompositionData)
+        assert isinstance(state.fixpoint_audit, FixpointVerificationData)
+        assert isinstance(state.metric_audit, MetricManifoldData)
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   ORQUESTADOR SUPREMO: TELEMETRY SCHEMAS AGENT                              ║
-# ║   Endofuntor Z_Schemas = Φ₃ ∘ Φ₂ ∘ Φ₁                                      ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# §∞. PRUEBAS DE CONSTANTES MATEMÁTICAS Y DE TOLERANCIA
+# ═══════════════════════════════════════════════════════════════════════════════════════════
 
-class TelemetrySchemasAgent(Morphism, Phase3_TensorImmutabilityEnforcer):
+
+class TestMathematicalToleranceConstants:
     r"""
-    El Arquitecto del Espacio de Fase Tensorial.
-
-    Garantiza axiomáticamente que la instanciación de cualquier estado respete
-    la independencia lineal de las bases y permanezca inmutable en el tiempo.
+    ╔═══════════════════════════════════════════════════════════════════════════════════════╗
+    ║  PRUEBAS DE CONSTANTES MATEMÁTICAS Y DE TOLERANCIA                                    ║
+    ║  ─────────────────────────────────────────────────────────────────────────────        ║
+    ║  Valida que las constantes del módulo tengan valores correctos y consistentes.        ║
+    ╚═══════════════════════════════════════════════════════════════════════════════════════╝
     """
 
-    def execute_tensorial_phase_space_governance(
-        self,
-        V_physics: NDArray[np.float64],
-        V_topology: NDArray[np.float64],
-        V_control: NDArray[np.float64],
-        V_thermo: NDArray[np.float64],
-        Psi_t0: NDArray[np.float64],
-        Psi_t1: NDArray[np.float64],
-        G_metric: Optional[NDArray[np.float64]] = None,
-    ) -> TensorialPhaseSpaceState:
-        r"""
-        Ejecuta la composición funtorial estricta sobre el vector de
-        telemetría.
+    def test_machine_epsilon_value(self) -> None:
         """
-        phase1_handoff = self._phase1_certify_and_handoff_to_phase2(
-            V_physics=V_physics,
-            V_topology=V_topology,
-            V_control=V_control,
-            V_thermo=V_thermo,
-            G_metric=G_metric,
-        )
+        PRUEBA: Valor de _MACHINE_EPSILON.
+        VALIDA: Precisión de float64 de NumPy.
+        """
+        assert _MACHINE_EPSILON == float(np.finfo(np.float64).eps)
+        assert _MACHINE_EPSILON > 0
+        assert _MACHINE_EPSILON < 1e-15
 
-        phase2_handoff = self._phase2_certify_and_handoff_to_phase3(
-            phase1_handoff=phase1_handoff,
-        )
+    def test_orthogonality_tolerance_value(self) -> None:
+        """
+        PRUEBA: Valor de _ORTHOGONALITY_TOLERANCE.
+        VALIDA: Tolerancia de ortogonalidad.
+        """
+        assert _ORTHOGONALITY_TOLERANCE == 1e-10
+        assert _ORTHOGONALITY_TOLERANCE > 0
 
-        return self._phase3_finalize_from_phase2_handoff(
-            phase2_handoff=phase2_handoff,
-            Psi_t0=Psi_t0,
-            Psi_t1=Psi_t1,
-        )
+    def test_fixpoint_tolerance_value(self) -> None:
+        """
+        PRUEBA: Valor de _FIXPOINT_TOLERANCE.
+        VALIDA: Tolerancia de punto fijo.
+        """
+        assert _FIXPOINT_TOLERANCE == 1e-12
+        assert _FIXPOINT_TOLERANCE > 0
 
-    def __call__(
-        self,
-        V_physics: NDArray[np.float64],
-        V_topology: NDArray[np.float64],
-        V_control: NDArray[np.float64],
-        V_thermo: NDArray[np.float64],
-        Psi_t0: NDArray[np.float64],
-        Psi_t1: NDArray[np.float64],
-        G_metric: Optional[NDArray[np.float64]] = None,
-    ) -> TensorialPhaseSpaceState:
-        r"""Alias invocable del endofuntor de gobierno tensorial."""
-        return self.execute_tensorial_phase_space_governance(
-            V_physics=V_physics,
-            V_topology=V_topology,
-            V_control=V_control,
-            V_thermo=V_thermo,
-            Psi_t0=Psi_t0,
-            Psi_t1=Psi_t1,
-            G_metric=G_metric,
-        )
+    def test_metric_symmetry_tolerance_value(self) -> None:
+        """
+        PRUEBA: Valor de _METRIC_SYMMETRY_TOLERANCE.
+        VALIDA: Tolerancia de simetría métrica.
+        """
+        assert _METRIC_SYMMETRY_TOLERANCE == 1e-12
+        assert _METRIC_SYMMETRY_TOLERANCE > 0
+
+    def test_max_metric_condition_number_value(self) -> None:
+        """
+        PRUEBA: Valor de _MAX_METRIC_CONDITION_NUMBER.
+        VALIDA: Número de condición máximo admisible.
+        """
+        assert _MAX_METRIC_CONDITION_NUMBER == 1e12
+        assert _MAX_METRIC_CONDITION_NUMBER > 0
+
+    def test_subspace_norm_tolerance_value(self) -> None:
+        """
+        PRUEBA: Valor de _SUBSPACE_NORM_TOLERANCE.
+        VALIDA: Norma mínima de subespacio.
+        """
+        assert _SUBSPACE_NORM_TOLERANCE == 1e-12
+        assert _SUBSPACE_NORM_TOLERANCE > 0
+
+    def test_g_physics_default_metric(self) -> None:
+        """
+        PRUEBA: G_PHYSICS es matriz identidad 4x4.
+        VALIDA: Métrica Euclidiana por defecto.
+        """
+        assert isinstance(G_PHYSICS, np.ndarray)
+        assert G_PHYSICS.shape == (4, 4)
+        assert np.array_equal(G_PHYSICS, np.eye(4, dtype=np.float64))
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# EXPORTACIÓN CANÓNICA
-# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# §Ω. EJECUCIÓN DIRECTA (Para debugging)
+# ═══════════════════════════════════════════════════════════════════════════════════════════
 
-__all__ = [
-    "TelemetrySchemasAgentError",
-    "DomainIntegrityViolationError",
-    "MetricManifoldDegeneracyError",
-    "NonOrthogonalSubspaceError",
-    "PhaseSpaceCorruptionError",
-    "MetricManifoldData",
-    "OrthogonalDecompositionData",
-    "FixpointVerificationData",
-    "Phase1MetricHandoff",
-    "Phase2OrthogonalityHandoff",
-    "TensorialPhaseSpaceState",
-    "Phase1_RiemannianMetricCertifier",
-    "Phase2_OrthogonalDecompositionCertifier",
-    "Phase3_TensorImmutabilityEnforcer",
-    "TelemetrySchemasAgent",
-]
+if __name__ == "__main__":
+    """
+    Ejecución directa para debugging fuera de pytest.
+    Uso: python tests/unit/agents/core/test_telemetry_schemas_agent.py
+    """
+    import sys
+    import os
+    
+    # Agregar el directorio raíz al path
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../")))
+    
+    pytest.main([__file__, "-v", "--tb=short"])

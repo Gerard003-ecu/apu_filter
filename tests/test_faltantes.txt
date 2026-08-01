@@ -1,9 +1,4 @@
 archivos test faltantes:
-   + test_schemas_agent.py
-   + test_telemetry_agent.py
-   + test_telemetry_narrative_agent.py
-   + test_telemetry_schemas_agent.py
-   + test_utils_agent.py
    + test_antimatter_choke_coil_agent.py
    + test_pipeline_director_agent.py
    + test_semantic_estimator_agent.py
