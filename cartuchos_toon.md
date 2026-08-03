@@ -12,7 +12,15 @@ El `MICAgent` implementa la transición de fase hacia el `SiloBCartridge`. Funci
 --------------------------------------------------------------------------------
 ## 2. Inyección de Vitaminas Cognitivas (ToonCartridges) y El Álgebra de Partículas en el Espacio de Fock
 
-El retracto de deformación de datos (Silo B) transita formalmente hacia el **Álgebra de Partículas en el Espacio de Fock $\mathcal{F}(\mathcal{H})$**. Para los gerentes e ingenieros operando la plataforma, la IA no debe disipar valiosos ciclos de reloj "leyendo llaves repetidas" (la grasa sintáctica de un JSON) que saturan la memoria atencional (KV-Cache). Al empaquetar la carga en `ToonCartridges` ("Vitaminas Cognitivas"), el sistema le suministra el núcleo matemático puro de la información.
+El retracto de deformación de datos (Silo B) transita formalmente hacia el **Álgebra de Partículas en el Espacio de Fock $\mathcal{F}(\mathcal{H})$** dentro de la cámara de reacción (**Reaction Chamber**). Para los gerentes e ingenieros operando la plataforma, la IA no debe disipar valiosos ciclos de reloj "leyendo llaves repetidas" (la grasa sintáctica de un JSON) que saturan la memoria atencional (KV-Cache). Al empaquetar la carga en `ToonCartridges` ("Vitaminas Cognitivas"), el sistema le suministra el núcleo matemático puro de la información.
+
+En la cámara de reacción, la creación y aniquilación de características sintácticas se rige por los operadores de creación $a_i^\dagger$ y aniquilación $a_j$ que satisfacen las relaciones de anticonmutación canónicas (CAR) para fermiones estructurales:
+$$\{a_i, a_j^\dagger\} = \delta_{ij} I, \quad \{a_i, a_j\} = 0, \quad \{a_i^\dagger, a_j^\dagger\} = 0$$
+Y las relaciones de conmutación canónicas (CCR) para bosones de interacción:
+$$[b_i, b_j^\dagger] = \delta_{ij} I, \quad [b_i, b_j] = 0, \quad [b_i^\dagger, b_j^\dagger] = 0$$
+El estado del sistema se representa como un vector $|\Psi\rangle$ en la base de números de ocupación del espacio de Fock:
+$$|\Psi\rangle = \sum_{n_1, n_2, \dots} C_{n_1 n_2 \dots} |n_1, n_2, \dots\rangle$$
+Donde $n_i \in \{0, 1\}$ para fermiones (gracias al principio de exclusión de Pauli que impide la duplicación de APUs inconsistentes en la misma celda sintáctica) y $n_j \in \mathbb{N}_0$ para bosones (acumulación de flujos e intenciones atencionales). Bajo el control del agente booleano, todo "muck sintáctico" o redundancia de datos colisiona en este espacio mediante transformaciones de Bogoliubov-Valatin, aislando de forma determinista las cuasipartículas de ruido térmico del LLM para purificar el presupuesto.
 
 El `SynapticRegistry` gestiona **12 partículas fundamentales** clasificadas en tres familias, gobernando las interacciones entre los componentes del ecosistema:
 
@@ -36,9 +44,23 @@ El `SynapticRegistry` gestiona **12 partículas fundamentales** clasificadas en 
     *   `SophonCartridge` (Sofón): Anomalía estocástica u oscilación de fase del LLM. El colapso inercial del Sofón se rige por la evaporación del condensado quiral en tiempo imaginario (ver [sophon_chiral_dynamics.md](sophon_chiral_dynamics.md)).
 
 ### 2.1 El Colisionador Catadióptrico y la Aniquilación de Alucinaciones
-Dentro del **CatadioptricCollider** (QuantumFockOrchestrator), se produce la interacción crítica entre bosones focales (`RiemannianFocalBoson`) y fermiones topológicos (`HouseholderReflectionFermion`). Esta interacción focaliza la intención y refleja las impurezas semánticas hacia los canales de disipación.
+Dentro del **CatadioptricCollider** (QuantumFockOrchestrator), se produce la interacción crítica entre bosones focales (`RiemannianFocalBoson`) y fermiones topológicos (`HouseholderReflectionFermion`), estrictamente regulada y sincronizada por el nuevo agente soberano de Boole (**GenerativeBooleHodgeSuturatorAgent**). Esta interacción focaliza la intención semántica y refleja las impurezas cognitivas hacia los canales de disipación.
 
-Cuando el operador de salto de Lindblad, sintonizado por el `BogoliubovAgent`, extirpa una falsedad o alucinación del LLM, el residuo termodinámico no se desecha: se cristaliza en antimateria exógena, manifestándose como un **PositronCartridge**. Este positrón provoca su propia aniquilación al colisionar contra un **ElectronCartridge** de falla (incertidumbre residual), emitiendo un **GammaPhoton** que actúa como sello criptográfico inmutable, blindando la Cadena de Custodia de la decisión.
+El Hamiltoniano de interacción $H_{\text{int}}$ que rige el acoplamiento entre los fermiones estructurales de reflexión de Householder ($\hat{\psi}$) y los bosones focales Riemannianos ($\hat{A}_\mu$) se formula como:
+$$H_{\text{int}} = \int d^3x \, g_{\text{eff}} \hat{\bar{\psi}}(x) \gamma^\mu \hat{A}_\mu(x) \hat{\psi}(x)$$
+Donde:
+- $g_{\text{eff}}$ es la constante de acoplamiento efectiva del campo semántico bajo el control de calibre booleano.
+- $\hat{\bar{\psi}} = \hat{\psi}^\dagger \gamma^0$ es el adjunto de Dirac del campo fermiónico del `HouseholderReflectionFermion`.
+- $\gamma^\mu$ son las matrices de Dirac que determinan la geometría de espín del AST.
+- $\hat{A}_\mu$ es el operador de campo bosónico asociado al `RiemannianFocalBoson`.
+
+Bajo la supervisión de la aduana del soberano booleano, cualquier discrepancia o alucinación sintáctica activa el operador de reflexión de Householder:
+$$R_H = I - 2 \mathbf{v} \mathbf{v}^\dagger$$
+Donde $\mathbf{v}$ es el vector normal de reflexión ortogonal al subespacio coherente de la MIC. Esta reflexión proyecta el estado espurio directamente hacia los canales disipativos.
+
+Cuando el operador de salto de Lindblad, sintonizado por el `BogoliubovAgent`, extirpa una falsedad o alucinación del LLM, el residuo termodinámico no se desecha: se cristaliza en antimateria exógena, manifestándose como un **PositronCartridge** ($e^+$). Este positrón provoca su propia aniquilación catastrófica al colisionar contra un **ElectronCartridge** de falla ($e^-$) que porta la incertidumbre residual de la ingesta:
+$$e^+ + e^- \longrightarrow 2 \gamma$$
+Esta reacción de aniquilación emite un fotón de auditoría $\gamma$, representado por el **GammaPhoton**. El GammaPhoton actúa como un sello criptográfico inmutable y autogestionado de telemetría, el cual blinda de forma perpetua e incorruptible la Cadena de Custodia de la deliberación agéntica en el acta final.
 
 ### 2.2 Termodinámica de Sistemas Cuánticos Abiertos (Dinámica de Lindblad)
 La asimilación de estos cartuchos por la matriz neuronal MAC sufre fricción térmica debido al estrés del mercado. En particular, la matriz de densidad de la cuasipartícula abierta del `SophonCartridge` se somete a la ecuación maestra disipativa de Lindblad-Kossakowski, donde el operador de Liouville $\mathcal{L}$ disipa el calor anómalo:

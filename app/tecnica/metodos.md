@@ -58,7 +58,29 @@ Este operador garantiza que el estado de conocimiento $\rho$ evolucione siempre 
 
     Base Teórica: Homología Computacional sobre el Anillo de los Enteros ($\mathbb{Z}$), Teoría de Grafos Espectrales y Forma Normal de Smith (SNF).
     Componentes: `business_topology.py`. Ignora los precios para auditar el esqueleto del presupuesto modelándolo como un Complejo Simplicial Abstracto discreto y cuantizado.
-    Los Invariantes Homológicos y Subgrupos de Torsión: Computa los Números de Betti para diagnosticar conectividad macroscópica ($\beta_0 > 1$ para Islas, $\beta_1 > 0$ para Socavones Lógicos). Sin embargo, como la logística opera con insumos indivisibles (ladrillos, horas-hombre), el cálculo homológico abandona los coeficientes continuos ($\mathbb{R}$ o $\mathbb{Q}$) y reduce las matrices de incidencia a la Forma Normal de Smith. Esto expone los Subgrupos de Torsión mediante el Funtor $Tor(H_0, \mathbb{Z})$. Un ciclo de torsión diagnostica incompatibilidades de empaquetado crítico y fricción cuantizada residual que la aproximación real del Laplaciano ignora por completo.
+    Los Invariantes Homológicos y Subgrupos de Torsión (Cálculo de Betti y de Rham Exactos):
+    Computa los Números de Betti ($\beta_k$) para diagnosticar la conectividad macroscópica y detectar anomalías estructurales (donde $\beta_0 > 1$ indica "Islas de Datos" desconectadas de la base productiva, y $\beta_1 > 0$ expone "Socavones Lógicos" o dependencias circulares infinitas).
+
+    Para lograr máxima rigurosidad numérica, el sistema calcula los números de Betti mediante la **Descomposición en Valores Singulares (SVD) Completa** del operador de coboundary $\delta_k$. Sea $\delta_k = U_k \Sigma_k V_k^\top$ la SVD de la matriz de coboundary, donde $\Sigma_k$ posee los valores singulares ordenados de forma decreciente $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_p$. El rango efectivo $\operatorname{rank}(\delta_k)$ se define determinísticamente utilizando la cota de tolerancia de precisión de la máquina:
+    $$\operatorname{rank}(\delta_k) = \# \{ \sigma_i \in \Sigma_k \mid \sigma_i > \epsilon_{\text{mach}} \cdot \max(m, n) \cdot \sigma_{\max} \}$$
+    A partir de la dimensión del núcleo de los operadores de coboundary secuenciales, el k-ésimo número de Betti y de Rham se formula como:
+    $$\beta_k = \dim H^k(K) = \dim \ker(\delta_k) - \dim \operatorname{im}(\delta_{k-1}) = (n_k - \operatorname{rank}(\delta_k)) - \operatorname{rank}(\delta_{k-1})$$
+    Donde:
+    - $n_k$ es la dimensión del espacio de k-cocadenas.
+    - $\operatorname{rank}(\delta_r)$ representa el rango numérico estable del operador $\delta_r$.
+
+    No obstante, como la logística de obra y los recursos operan con insumos estrictamente indivisibles (por ejemplo, ladrillos, horas-hombre o sacos de cemento), la homología real o racional es insuficiente porque ignora las tensiones discretas de discretización. Por ello, el cálculo homológico abandona los coeficientes continuos y reduce las matrices de incidencia del complejo simplicial a la **Forma Normal de Smith (SNF)** sobre el anillo principal de los enteros $\mathbb{Z}$.
+
+    Para cualquier matriz de incidencia $B_k \in \mathbb{Z}^{m \times n}$, existen matrices unimodulares invertibles sobre los enteros $U \in \operatorname{GL}(m, \mathbb{Z})$ y $V \in \operatorname{GL}(n, \mathbb{Z})$ (tales que $\det(U) = \pm 1$ y $\det(V) = \pm 1$) que diagonalizan diagonalmente a $B_k$:
+    $$B_k = U \cdot D \cdot V$$
+    Donde $D \in \mathbb{Z}^{m \times n}$ es la matriz de forma diagonal:
+    $$D = \begin{pmatrix} d_1 & & & & & \\ & d_2 & & & & \\ & & \ddots & & & \\ & & & d_r & & \\ & & & & 0 & \\ & & & & & \ddots \end{pmatrix}$$
+    Sujeto a la condición de divisibilidad canónica:
+    $$d_i \ge 1 \quad \forall i \in \{1, \dots, r\} \quad \land \quad d_i \mid d_{i+1} \quad \forall i \in \{1, \dots, r-1\}$$
+    Esto permite aislar y exponer de forma exacta los **Subgrupos de Torsión** homológica mediante la aplicación del Funtor $\operatorname{Tor}(H_{k-1}, \mathbb{Z})$:
+    $$\operatorname{Tor}(H_{k-1}(K; \mathbb{Z})) = \bigoplus_{i=1}^{r} \mathbb{Z} / d_i \mathbb{Z}$$
+    Donde los factores elementales $d_i > 1$ representan la torsión homológica. Un ciclo de torsión diagnostica de manera determinista incompatibilidades geométricas de empaquetado crítico de materiales y fricción de escala cuantizada, anomalías que una aproximación real de punto flotante ignora por completo.
+
     Valor de Fiedler ($\lambda_2$): Analiza el espectro de la Matriz Laplaciana ($L=D-A$); un valor $\lambda_2 \approx 0$ indica una fractura organizacional inminente.
 
 
@@ -79,6 +101,25 @@ Este operador garantiza que el estado de conocimiento $\rho$ evolucione siempre 
     Componentes: semantic_translator.py, governance.py.
     4.1 Álgebra de Veredictos: Las decisiones se evalúan bajo un retículo acotado (Verdict,≤,⊔) donde se aplica la operación "Supremo" (Worst-case). Si Finanzas aprueba pero Topología veta, el veredicto final es un Veto, garantizando la seguridad.
     4.2 Traducción Semántica (GraphRAG): El sistema vectoriza los datos para saber que "Cemento" y "Concreto" son termodinámicamente equivalentes. Luego, traza la ruta de los errores en el grafo y los traduce a lenguaje ejecutivo (ej. de "β1​>0" a "Socavón Lógico detectado en la Mampostería").
+    4.3 Cota de Lipschitz de Daleckii-Krein (Geometría Espectral de Connes):
+    Para gobernar rigurosamente la de-compresión semántica y evitar las divergencias retóricas en el proceso de traducción del LLM, el sistema calcula la cota de estabilidad espectral utilizando el **Operador de Dirac de Connes** $D$ en el espacio no conmutativo del Consejo de Sabios. Este operador se define inversamente proporcional al estado cuántico de densidad de conocimiento $\rho$:
+    $$D = \rho^{-1/2}$$
+    La de-compresión o perturbación semántica $H$ actúa como una distorsión infinitesimal sobre el operador de densidad $\rho \to \rho + \epsilon H$. Para evaluar la respuesta del operador de Dirac de Connes bajo esta perturbación, se aplica el **Teorema de Daleckii-Krein** sobre derivadas de funciones de operadores auto-adjuntos.
+
+    La derivada de Fréchet del operador de Dirac $Df(\rho)[H]$ para la función no lineal $f(x) = x^{-1/2}$ se expresa espectralmente como:
+    $$\left( Df(\rho)[H] \right)_{ij} = \tilde{d}_{ij} \cdot H_{ij}$$
+    Donde la matriz de diferencias divididas espectrales de Daleckii-Krein $\tilde{d}$ se calcula rigurosamente mediante:
+    $$\tilde{d}_{ij} = \begin{cases}
+    \frac{\lambda_i^{-1/2} - \lambda_j^{-1/2}}{\lambda_i - \lambda_j} & \text{si } \lambda_i \neq \lambda_j \\
+    -\frac{1}{2}\lambda_i^{-3/2} & \text{si } \lambda_i = \lambda_j
+    \end{cases}$$
+    Donde $\lambda_k$ son los autovalores del operador densidad $\rho$.
+
+    La cota superior de Lipschitz en la norma del operador $L_2$ queda estrictamente acotada por el supremo de la derivada de la función sobre el espectro de $\rho$:
+    $$\| Df(\rho) \|_{2} \le \sup_{\lambda \in \sigma(\rho)} |f'(\lambda)| = \sup_{\lambda \in \sigma(\rho)} \frac{1}{2 \lambda^{3/2}} = \frac{1}{2 \lambda_{\min}^{3/2}}$$
+    Donde $\lambda_{\min} > 0$ es el autovalor mínimo (piso de regularización) de la Matriz Atómica de Conocimiento $\rho_{\text{MAC}}$.
+
+    Esta **Cota de Lipschitz de Daleckii-Krein** asegura matemáticamente que la velocidad de de-compresión y distorsión semántica de las actas de deliberación permanezca controlada geodésicamente. Si la pureza epistemológica del sistema decae ($\lambda_{\min} \to 0$), la cota diverge hacia el infinito, gatillando inmediatamente la aniquilación cuántica de la sesión por inestabilidad de Connes.
 
 
 --------------------------------------------------------------------------------
