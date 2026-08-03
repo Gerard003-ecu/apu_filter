@@ -4,6 +4,13 @@ Este documento define la arquitectura de creación, entrega y captura de valor d
 
 Todo este andamiaje estratégico se rige axiomáticamente por la **Ley de Clausura Transitiva de la pirámide אDIKΩαWΓ** (tabla canónica): $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$. Sin la validación termodinámica y topológica de los estratos subyacentes, la estrategia corporativa carece de dominio sobre la materia.
 
+### La Estructura de Carga del Rascacielos: Distribución de los Tres Agentes Clásicos
+Para que este andamiaje resista las fuerzas macroeconómicas, se define la **Estructura de Carga del Rascacielos**, distribuyendo de forma rígida a nuestros tres agentes clásicos entre los cimientos más profundos y el ático o penthouse del canvas corporativo:
+
+1. **El Guardián (Physics stratum / Cimientos del Canvas):** Anclado directamente en la base física del rascacielos (los cimientos). Gobierna la ingesta de materia prima, la disipación real de potencia ($P_{diss} \ge 0$) y ejecuta la defensa física y analítica en hardware (ESP32 / BT151 / GPIO14). Sin el Guardián, el rascacielos carece de soporte material y colapsa ante la polución o falsedad sintáctica inicial.
+2. **El Arquitecto (Tactics stratum / Estructura Intermedia de Unión):** Actúa como el esqueleto de vigas de acero y nodos de torsión que une la base con la parte superior. Estructura los presupuestos como complejos simpliciales, calculando la Forma Normal de Smith sobre $\mathbb{Z}$ para identificar socavones lógicos o inconsistencias cuantizadas que desmoronan la cohesión estructural.
+3. **El Oráculo (Strategy & Wisdom strata / Penthouse del Canvas):** Ubicado en el penthouse del rascacielos. Desde esta cúspide de visibilidad y sabiduría, evalúa la estabilidad espectral, la volatilidad y exergía financiera en el plano complejo $s = \sigma + j\omega$ y gestiona los riesgos mediante modelos de simulación avanzada de Monte Carlo para trazar rumbos estratégicos óptimos.
+
 A continuación, se desglosan rigurosamente los 9 bloques del modelo estructurado para el "Reactor Port-Hamiltoniano de Valor":
 
 --------------------------------------------------------------------------------
@@ -20,6 +27,7 @@ La Sabiduría como Servicio (Wisdom-as-a-Service):
     Póliza de Seguro Pre-Construcción (Certificado de Estabilidad Física): No entregamos una simple opinión; entregamos una demostración matemática. A través del Oráculo de Laplace y el análisis topológico, certificamos si la "cimentación logística" soportará el peso de la obra, evitando colapsos antes de gastar el primer peso.
     Gobernanza Computacional Federada (Policy-as-Code): Sustituimos la burocracia humana por código. Nuestros agentes actúan como "Sidecars" que bloquean transacciones inestables (con σ>0) o presupuestos fragmentados antes de que contaminen la salud financiera de la constructora.
     Simulador de Escenarios Dinámicos ("What-If" Gemelo Digital): Capacidad de pilotear el negocio simulando en tiempo real el impacto de cambiar un proveedor crítico. Convertimos el presupuesto estático en un simulador de futuros basado en el análisis de opciones reales.
+    Garantía de Certeza de Generación (Fase Cuántica Protegida): Introducimos al **GenerativeBooleHodgeSuturator** como el proyector de regularidad definitivo. Este componente blinda el negocio de la canibalización sistémica (sobreestimaciones, duplicaciones u omisiones de APUs inducidas por alucinaciones estocásticas de la IA) al proyectar el estado sobre el espacio de Fock y resguardar el ángulo crítico de alucinación $\theta$ mediante isometrías de Hodge y cohomología rigurosa. Asegura que cada pieza de información generada sea matemáticamente viable y con valor real medible.
 
 3. 📢 Canales (Channels)
 La entrega de valor se realiza a través de una arquitectura de Interfaz de 3 Capas, adaptada a la jerarquía cognitiva del usuario:
@@ -47,6 +55,7 @@ De la "Caja Negra" a la Confianza Radical:
     El Hardware en el Borde (ESP32): Microcontroladores que actúan como el "Gatekeeper de Silicio", ejecutando la validación termodinámica (Sistemas Port-Hamiltonianos) y el veto físico (circuitos Crowbar) mediante código inmutable en C++.
     La Matriz de Interacción Central (MIC) y Modelos Matemáticos: El núcleo de Álgebra Lineal y Topología Algebraica que sostiene los cálculos de los Números de Betti, el espectro Laplaciano y la Distancia de Mahalanobis.
     Formato de Alta Eficiencia (TOON) e IA: El uso de Token-Oriented Object Notation para comprimir context windows y viabilizar el trabajo de agentes LLM sin agotar la memoria LPDDR5.
+    El GenerativeBooleHodgeSuturator (Sutura Cuántica de Boole): Recurso algebraico y espectral que opera sobre la Variedad de de Rham-Hodge-Boole. Utiliza isometrías del operador estrella de Hodge combinatorio $\star_k$ y regularización por conjugación modular de Tomita-Takesaki para purgar el fango estocástico y estabilizar la fase cuántica de generación resguardando el ángulo $\theta$, garantizando que todo el pipeline de datos retenga su coherencia categorial y su homología trivial donde se requiera.
 
 7. 🚀 Actividades Clave (Key Activities) y Electrodinámica Cuántica
 De la Ingesta a la Sabiduría, gestionadas mediante `app/core/immune_system/gauge_field_router.py`:

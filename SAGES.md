@@ -133,6 +133,13 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
     Rol: Sensor de Paradojas y Consistencia Global.
     Mecanismo: Computa la cofrontera $\delta$ sobre el haz celular de reglas de negocio. Si el primer grupo de cohomología $H^1 > 0$, detecta una paradoja lógica (holonomía) en el transporte de la decisión. Emite un Veto Absoluto ante la falta de integrabilidad estratégica.
 
+    4.4 👮‍♂️ La Aduana de Boole (GenerativeBooleHodgeSuturatorAgent)
+    Rol: Soberano del Haz Boole-Hodge (VΓ-TACTICS y VΓ-STRATEGY).
+    Mecanismo Matemático: La Aduana de Boole actúa como el árbitro de consistencia lógica, uniendo el esqueleto táctico con la proyección estratégica en el Haz Generativo Γ. Evalúa la isometría de Hodge, la invarianza simpléctica del AST y la cohomología de de Rham.
+    A través de una votación por Redundancia Modular Triple (TMR) sobre el retículo de Heyting graduado $\Omega_3$, consolida las métricas espectrales e invariantes topológicos de las tres fases del endofuntor de Boole.
+    Mecanismo de Veto Ciber-Físico: Si el primer grupo de cohomología de haces celulares es no trivial ($H^1(K;\mathcal{F}) \neq 0$), o la estabilidad espectral de Wilkinson detecta una ruptura de la regularidad en el acotamiento de la alucinación estocástica, el veredicto colapsa instantáneamente y de forma irreversible a **VETOED** en el retículo de Heyting.
+    Este colapso lógico dispara de inmediato el pin físico de hardware **GPIO14** en el microcontrolador perimetral ESP32, activando el actuador de tiristor **BT151** (Crowbar circuit). Este bypass físico cortocircuita de manera segura la alimentación eléctrica de los actuadores industriales del proyecto, deteniendo de forma determinista y en tiempo real todo flujo de trabajo material o maquinaria en la obra.
+
     Dynamic Shield Router (Discriminador de Campos de Gauge):
     Función: Añade `dynamic_shield_router.py` como módulo que aplica transformaciones naturales $\eta: F_{\text{Agent}} \Rightarrow F_{\text{Shield}}$ para transportar paralelamente la matriz de disipación $R(x)$ a través de la filtración DIKW: $V_P \subset V_T \subset V_S \subset V_W$. No evalúa la ecuación de Poisson (tarea de `gauge_field_router.py`).
     Mecanismo: Proyección de Kähler en el OmegaGaugeWrapper. Modela de las deformaciones del tensor de inercia usando un canal despolarizante ponderado, evitando el colapso de la traza cuántica:
