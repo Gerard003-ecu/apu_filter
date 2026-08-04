@@ -6,7 +6,7 @@ r"""
 ║  Versión: 6.0.0-Absolute-Gauge-Invariance-Strict                                         ║
 ╠══════════════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS (Rigor Doctoral):                   ║
+║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS:                                    ║
 ║  ──────────────────────────────────────────────────────────────────────────────          ║
 ║  Este endofuntor se erige como el condensador primario de inercia logística de la Malla  ║
 ║  Agéntica. Su mandato axiomático es dotar de "masa invariante" a los tensores de         ║
