@@ -501,14 +501,6 @@ def _discrete_hodge_laplacian(
 
 
 # =============================================================================
-#
-#  ███████╗ █████╗ ███████╗███████╗     ██╗
-#  ██╔════╝██╔══██╗██╔════╝██╔════╝    ███║
-#  █████╗  ███████║███████╗█████╗      ╚██║
-#  ██╔══╝  ██╔══██║╚════██║██╔══╝       ██║
-#  ██║     ██║  ██║███████║███████╗     ██║
-#  ╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝     ╚═╝
-#
 #  FASE 1 — OBSERVE
 #  Física cuántica de Fock · Postulados de Dirac–von Neumann · MAC
 # =============================================================================
@@ -520,7 +512,7 @@ class Phase1_SpectralObserver:
     ║                                                                          ║
     ║  Dominio categórico:                                                     ║
     ║    $\mathbf{Hilb}_{\mathrm{fin}}$ (Hilbert finito-dimensional)           ║
-    ║    $\mathcal{F}=\bigoplus_{n=0}^{N}\bigwedge^n\mathcal{H}$ (Fock)       ║
+    ║    $\mathcal{F}=\bigoplus_{n=0}^{N}\bigwedge^n\mathcal{H}$ (Fock)        ║
     ║                                                                          ║
     ║  Morfismos auditados:                                                    ║
     ║    $\psi\mapsto\|\psi\|_2$,  $\rho\mapsto(\rho^\dagger,\mathrm{Tr},\sigma)$║
@@ -778,25 +770,8 @@ class Phase1_SpectralObserver:
             tmr_votes=tmr_votes,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # MORFISMO DE TRANSICIÓN FASE 1 → FASE 2
-    # El certificado de Observe es el objeto inicial del funtor Orient.
-    # La continuación covariante se materializa por herencia:
-    #   Phase2_GaugeBooleanValidator(Phase1_SpectralObserver)
-    # y por el método `orient_symplectic_and_boole`, que consume `mac_density`
-    # (ya auditada en Fase 1) junto con el Jacobiano AST y la MIC booleana.
-    # ─────────────────────────────────────────────────────────────────────────
-
 
 # =============================================================================
-#
-#  ███████╗ █████╗ ███████╗███████╗    ██████╗
-#  ██╔════╝██╔══██╗██╔════╝██╔════╝    ╚════██╗
-#  █████╗  ███████║███████╗█████╗       █████╔╝
-#  ██╔══╝  ██╔══██║╚════██║██╔══╝      ██╔═══╝
-#  ██║     ██║  ██║███████║███████╗    ███████╗
-#  ╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝    ╚══════╝
-#
 #  FASE 2 — ORIENT
 #  Calibre simpléctico · Semianillo booleano · Involución modular Tomita–Takesaki
 # =============================================================================
@@ -1086,25 +1061,8 @@ class Phase2_GaugeBooleanValidator(Phase1_SpectralObserver):
             tmr_votes=tmr_votes,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # MORFISMO DE TRANSICIÓN FASE 2 → FASE 3
-    # El certificado de Orient alimenta la decisión cohomológica.
-    # La continuación covariante se materializa por herencia:
-    #   Phase3_SheafSpectralValidator(Phase2_GaugeBooleanValidator)
-    # y por el método `decide_cohomology_and_spectrum`, que cierra el ciclo
-    # OODA sobre el complejo de cocadenas del haz tangente.
-    # ─────────────────────────────────────────────────────────────────────────
-
 
 # =============================================================================
-#
-#  ███████╗ █████╗ ███████╗███████╗    ██████╗
-#  ██╔════╝██╔══██╗██╔════╝██╔════╝    ╚════██╗
-#  █████╗  ███████║███████╗█████╗       █████╔╝
-#  ██╔══╝  ██╔══██║╚════██║██╔══╝       ╚═══██╗
-#  ██║     ██║  ██║███████║███████╗    ██████╔╝
-#  ╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝    ╚═════╝
-#
 #  FASE 3 — DECIDE
 #  Complejo de cocadenas · Números de Betti · Laplaciano de Hodge · κ de Wilkinson
 # =============================================================================
@@ -1415,24 +1373,8 @@ class Phase3_SheafSpectralValidator(Phase2_GaugeBooleanValidator):
             tmr_votes=tmr_votes,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # MORFISMO DE TRANSICIÓN FASE 3 → AGENTE SOBERANO
-    # El certificado de Decide es el objeto sobre el cual el soberano aplica
-    # el join de Heyting global, la votación TMR de segundo nivel y el
-    # accionamiento físico del crowbar (GPIO14 / BT151).
-    # Continuación: GenerativeBooleHodgeSuturatorAgent(Morphism, Phase3_...).
-    # ─────────────────────────────────────────────────────────────────────────
-
 
 # =============================================================================
-#
-#   █████╗  ██████╗ ███████╗███╗   ██╗████████╗███████╗
-#  ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔════╝
-#  ███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║   █████╗
-#  ██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║   ██╔══╝
-#  ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║   ███████╗
-#  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
-#
 #  AGENTE SOBERANO — Gobernanza OODA completa + Crowbar ciber-físico
 # =============================================================================
 class GenerativeBooleHodgeSuturatorAgent(Morphism, Phase3_SheafSpectralValidator):
@@ -1754,14 +1696,3 @@ class GenerativeBooleHodgeSuturatorAgent(Morphism, Phase3_SheafSpectralValidator
                 ) from exc
             return state
 
-
-# =============================================================================
-# FIN DEL MÓDULO — Generative Boole Hodge Suturator Agent v5.0.0
-# Cadena de herencia anidada:
-#   Phase1_SpectralObserver
-#     └── Phase2_GaugeBooleanValidator
-#           └── Phase3_SheafSpectralValidator
-#                 └── GenerativeBooleHodgeSuturatorAgent
-# Cada fase expone sub-auditorías atómicas + orquestador + clasificador TMR/Ω₃.
-# El último método de la Fase k es el morfismo de continuación de la Fase k+1.
-# =============================================================================

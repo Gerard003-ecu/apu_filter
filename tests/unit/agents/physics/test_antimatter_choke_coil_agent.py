@@ -1,988 +1,1918 @@
 # -*- coding: utf-8 -*-
-r"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Antimatter Choke Coil Agent (Custodio del Vacío Cuántico)                      ║
-║  Ruta   : app/agents/physics/antimatter_choke_coil_agent.py                              ║
-║  Versión: 2.0.0-Fock-Bekenstein-Symplectic-Strict                                        ║
+║  Batería de pruebas unitarias para:                                                      ║
+║  app/agents/physics/antimatter_choke_coil_agent.py                                       ║
 ╠══════════════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y ELECTRODINÁMICA CUÁNTICA (Rigor Doctoral):                    ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor, denotado como $\mathcal{Z}_{Vacuum}$, gobierna la física del módulo    ║
-║  `antimatter_choke_coil.py` en el Estrato Ω. Su mandato axiomático es auditar las        ║
-║  aniquilaciones de antimateria exógena ($e^- + e^+ \to 2\gamma$), garantizando que la    ║
-║  topología de la Malla Agéntica sobreviva al colapso entrópico de estados erróneos       ║
-║  manteniendo invariante la estructura fundamental del Espacio de Fock $\mathcal{F}(\mathcal{H})$. ║
+║  ORGANIZACIÓN POR FASES ANIDADAS:                                                        ║
+║  ────────────────────────────────                                                        ║
+║  Fase 1 → Hermiticidad del operador de aniquilación.                                     ║
+║           El último test valida que `Phase1HermiticityHandoff` es el objeto inicial      ║
+║           de Fase 2.                                                                     ║
 ║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICAS:                                      ║
+║  Fase 2 → Cota termodinámica de Bekenstein.                                              ║
+║           El primer insumo formal es `Phase1HermiticityHandoff`.                         ║
+║           El último test valida que `Phase2BekensteinHandoff` es el objeto inicial       ║
+║           de Fase 3.                                                                     ║
 ║                                                                                          ║
-║  §1. Hermiticidad del Operador de Aniquilación:                                          ║
-║      Para que las observables cuánticas sean físicamente medibles (espectro real),       ║
-║      el operador de colapso $A$ debe ser estrictamente autoadjunto ($A = A^\dagger$).    ║
-║      Se verifica la anulación del residuo mediante la norma de Frobenius:                ║
-║          $\| A - A^\dagger \|_F \le \varepsilon_{herm}$                                  ║
-║      Cualquier desviación induce autovalores imaginarios y detona un                     ║
-║      `NonHermitianOperatorError`, purgando el operador del espacio de Hilbert.           ║
+║  Fase 3 → Certificación simpléctica Port-Hamiltoniana.                                   ║
+║           El primer insumo formal es `Phase2BekensteinHandoff`.                          ║
 ║                                                                                          ║
-║  §2. Regulación Termodinámica del Límite de Bekenstein:                                  ║
-║      La inyección de entropía $\Delta S$ generada por la radiación de aniquilación no    ║
-║      puede exceder la capacidad máxima de información del hipervolumen local de radio $R$.║
-║      Se impone el límite holográfico de Bekenstein:                                      ║
-║          $\Delta S \le \frac{2\pi k_B E R}{\hbar c}$                                     ║
-║      Violar esta inecuación crearía una singularidad informacional, detonando de         ║
-║      inmediato el `BekensteinLimitViolation`.                                            ║
+║  Orquestación → Endofuntor completo `AntimatterChokeCoilAgent`.                          ║
 ║                                                                                          ║
-║  §3. Certificación Simpléctica Port-Hamiltoniana:                                        ║
-║      Tras la colisión, el remanente del grafo logístico debe preservar su volumen en     ║
-║      el espacio de fase y su estabilidad asintótica. Se exige la preservación de la      ║
-║      matriz simpléctica $\Omega$, antisimetría de interconexión $J$, y disipación $R$:   ║
-║          $M^\top \Omega M = \Omega, \quad J = -J^\top, \quad R = R^\top \succeq 0$       ║
-║      Sujeto a la inecuación de disipación temporal de energía de Rayleigh:               ║
-║          $\dot{H} = -\nabla H^\top R \nabla H \le 0$                                     ║
-║      El fallo de estas condiciones gatilla el `SymplecticCollapseError`.                 ║
+║  CONVENCIONES:                                                                           ║
+║  ─────────────                                                                           ║
+║  - Los tests acceden deliberadamente a métodos protegidos (`_...`) porque la             ║
+║    especificación física y categórica está implementada en esos puntos de control.       ║
+║  - Se emplean tolerancias adaptativas coherentes con el módulo auditado.                 ║
+║  - No se introduce aleatoriedad no controlada: todo RNG está sembrado.                   ║
 ║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_HermiticityAuditor                                                      ║
-║           Audita la autoadjunción del operador de colapso ($A = A^\dagger$).             ║
-║           [Retorna: HermiticityAuditData → objeto inicial de Fase 2]                     ║
-║                                                                                          ║
-║  Fase 2 → Phase2_BekensteinBoundEnforcer                                                 ║
-║           Evalúa la entropía radiada contra el límite causal termodinámico.              ║
-║           [Retorna: BekensteinBoundData → objeto inicial de Fase 3]                      ║
-║                                                                                          ║
-║  Fase 3 → Phase3_SymplecticPortHamiltonianCertifier                                      ║
-║           Certifica la disipación Port-Hamiltoniana y la invarianza del volumen          ║
-║           simpléctico tras la aniquilación de los estados erróneos.                      ║
-║           [Retorna: VacuumGovernanceState → objeto final del endofuntor]                 ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╚══════════════════════════════════════════════════════════════════════════════════════════╝
 """
-
 from __future__ import annotations
 
+import dataclasses
+import importlib
+import importlib.util
 import logging
 import math
-from dataclasses import dataclass
-from typing import Any, Final, Optional, Tuple
+import sys
+from pathlib import Path
+from typing import Any, Dict
+
+import pytest
+
+# Dependencias duras del módulo auditado.
+pytest.importorskip("numpy", reason="El módulo auditado requiere NumPy.")
+pytest.importorskip("scipy", reason="El módulo auditado requiere SciPy.")
 
 import numpy as np
-import scipy.linalg as la
-from numpy.typing import NDArray
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §0. CARGA ROBUSTA DEL MÓDULO BAJO PRUEBA
+# ══════════════════════════════════════════════════════════════════════════════
+
+_TARGET_MODULE_NAME = "app.agents.physics.antimatter_choke_coil_agent"
+_TARGET_REL_PATH = Path("app") / "agents" / "physics" / "antimatter_choke_coil_agent.py"
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Dependencias arquitectónicas del ecosistema APU Filter
-# ─────────────────────────────────────────────────────────────────────────────
-try:
-    from app.core.mic_algebra import Morphism, TopologicalInvariantError
-except ImportError:
-
-    class TopologicalInvariantError(Exception):
-        r"""Violación a un invariante topológico categórico en el Topos MIC."""
+def _candidate_roots() -> list[Path]:
+    """Devuelve raíces candidatas donde podría encontrarse el paquete `app`."""
+    roots: list[Path] = [Path.cwd()]
+    try:
+        roots.extend(Path(__file__).resolve().parents)
+    except Exception:  # pragma: no cover - defensa extrema del loader
         pass
 
-    class Morphism:
-        """Clase base de Morfismos del Topos."""
-        pass
+    unique_roots: list[Path] = []
+    for root in roots:
+        if root not in unique_roots:
+            unique_roots.append(root)
+    return unique_roots
 
 
-logger = logging.getLogger("MIC.Omega.VacuumCustodian")
-
-if not logger.handlers:
-    logger.addHandler(logging.NullHandler())
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# §A. CONSTANTES FÍSICAS, CODATA Y LÍMITES CUÁNTICOS
-# ═══════════════════════════════════════════════════════════════════════════════
-
-_MACHINE_EPSILON: Final[float] = float(np.finfo(np.float64).eps)
-
-# Tolerancia espectral para A = A†.
-_HERMITICITY_TOLERANCE: Final[float] = 1e-12
-
-# Tolerancia de preservación de la forma simpléctica ω.
-_SYMPLECTIC_TOLERANCE: Final[float] = 1e-10
-
-# Tolerancia para J = -Jᵀ.
-_ANTISYMMETRY_TOLERANCE: Final[float] = 1e-10
-
-# Tolerancia para R = Rᵀ.
-_R_SYMMETRY_TOLERANCE: Final[float] = 1e-10
-
-# Tolerancia de semidefinición positiva R ⪰ 0.
-_PSD_EIGENVALUE_TOLERANCE: Final[float] = 1e-12
-
-# Tolerancias para la cota de Bekenstein.
-_BEKENSTEIN_ABS_TOLERANCE: Final[float] = 1e-12
-_BEKENSTEIN_REL_TOLERANCE: Final[float] = 1e-12
-
-# Constantes físicas efectivas.
-_HBAR_EFF: Final[float] = 1.054e-34
-_C_EFF: Final[float] = 299_792_458.0
-_K_B: Final[float] = 1.380_649e-23
+def _ensure_syspath_for_app() -> None:
+    """Inserta en `sys.path` la raíz del proyecto si contiene el módulo objetivo."""
+    for root in _candidate_roots():
+        candidate = root / _TARGET_REL_PATH
+        if candidate.is_file():
+            root_str = str(root)
+            if root_str not in sys.path:
+                sys.path.insert(0, root_str)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §B. JERARQUÍA DE EXCEPCIONES CUÁNTICAS
-# ═══════════════════════════════════════════════════════════════════════════════
-
-class VacuumCustodianError(TopologicalInvariantError):
-    """Excepción raíz del Custodio del Vacío Cuántico."""
-    pass
-
-
-class DomainIntegrityViolationError(VacuumCustodianError):
-    """Detonada cuando un operador, vector o escalar viola su dominio formal."""
-    pass
-
-
-class NonHermitianOperatorError(VacuumCustodianError):
-    r"""Detonada si ||A - A†||_F > ε. Los observables dejan de ser reales."""
-    pass
-
-
-class BekensteinLimitViolation(VacuumCustodianError):
-    r"""Detonada si la aniquilación inyecta más entropía que la cota causal."""
-    pass
-
-
-class SymplecticCollapseError(VacuumCustodianError):
-    r"""Detonada si se destruye el volumen del espacio de fase o la disipación."""
-    pass
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# §C. ESTRUCTURAS INMUTABLES (DTOs del Espacio de Fock)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-@dataclass(frozen=True, slots=True)
-class HermiticityAuditData:
-    r"""Artefacto de Fase 1. Certificado espectral de autoadjunción."""
-    residual_norm: float
-    is_hermitian: bool
-    operator_dimension: int = 0
-    hermiticity_tolerance: float = _HERMITICITY_TOLERANCE
-    spectral_imaginary_norm: float = 0.0
-
-
-@dataclass(frozen=True, slots=True)
-class BekensteinBoundData:
-    r"""Artefacto de Fase 2. Certificado de cota termodinámica de radiación."""
-    entropy_emitted: float
-    bekenstein_bound: float
-    is_entropically_safe: bool
-    gamma_energy: float = 0.0
-    system_radius: float = 0.0
-    entropy_tolerance: float = 0.0
-
-
-@dataclass(frozen=True, slots=True)
-class SymplecticDissipationData:
-    r"""Artefacto de Fase 3. Certificado de geometría Port-Hamiltoniana."""
-    symplectic_residual: float
-    dissipation_rate: float
-    is_symplectically_invariant: bool
-    symplectic_tolerance: float = _SYMPLECTIC_TOLERANCE
-    antisymmetry_residual: float = 0.0
-    r_symmetry_residual: float = 0.0
-    r_min_eigenvalue: float = 0.0
-
-
-@dataclass(frozen=True, slots=True)
-class Phase1HermiticityHandoff:
-    r"""
-    Handoff formal de Fase 1 → Fase 2.
-
-    Este objeto es la continuación material de la hermiticidad y el prefijo
-    obligatorio de la regulación de Bekenstein.
+def _load_target_module():
     """
-    hermiticity_audit: HermiticityAuditData
-    operator_dimension: int
-
-
-@dataclass(frozen=True, slots=True)
-class Phase2BekensteinHandoff:
-    r"""
-    Handoff formal de Fase 2 → Fase 3.
-
-    Este objeto transporta la certificación de hermiticidad y la cota
-    termodinámica como prefijo obligatorio de la fase simpléctica.
+    Importa el módulo objetivo por nombre de paquete; si falla, lo carga
+    directamente desde el sistema de ficheros.
     """
-    phase1_handoff: Phase1HermiticityHandoff
-    bekenstein_audit: BekensteinBoundData
+    _ensure_syspath_for_app()
 
-
-@dataclass(frozen=True, slots=True)
-class VacuumGovernanceState:
-    r"""Objeto final del endofuntor Z_Vacuum."""
-    hermiticity_audit: HermiticityAuditData
-    bekenstein_audit: BekensteinBoundData
-    symplectic_audit: SymplecticDissipationData
-    is_epistemologically_valid: bool
-
-
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 1: HERMITICIDAD DEL OPERADOR DE ANIQUILACIÓN                         ║
-# ║   Exige A = A† => ||A - A†||_F ≤ ε.                                        ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-
-class Phase1_HermiticityAuditor:
-    r"""
-    Garantiza que el operador de colapso en el espacio de Fock preserve un
-    espectro real, impidiendo que variables de estado imaginarias corrompan
-    la inferencia.
-    """
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.1. Tolerancia adaptativa
-    # ─────────────────────────────────────────────────────────────────────────
-    def _adaptive_tolerance(
-        self,
-        base_tolerance: float,
-        reference: Any,
-    ) -> float:
-        r"""
-        Construye una tolerancia numéricamente consciente:
-
-            tol = max(tol_base, κ · ε_máquina · tamaño · escala)
-        """
-        if isinstance(reference, np.ndarray):
-            size = max(1, int(reference.size))
-            if reference.size == 0:
-                scale = 1.0
-            else:
-                scale = max(
-                    1.0,
-                    float(la.norm(reference.ravel(), ord=np.inf)),
+    try:
+        return importlib.import_module(_TARGET_MODULE_NAME)
+    except Exception as import_error:
+        for root in _candidate_roots():
+            candidate = root / _TARGET_REL_PATH
+            if candidate.is_file():
+                spec = importlib.util.spec_from_file_location(
+                    _TARGET_MODULE_NAME,
+                    str(candidate),
                 )
-        else:
-            size = 1
-            try:
-                scale = max(1.0, abs(float(reference)))
-            except (TypeError, ValueError):
-                scale = 1.0
+                if spec is None or spec.loader is None:
+                    continue
 
-        return max(
-            float(base_tolerance),
-            10.0 * _MACHINE_EPSILON * size * scale,
+                module = importlib.util.module_from_spec(spec)
+                sys.modules[_TARGET_MODULE_NAME] = module
+                spec.loader.exec_module(module)
+                return module
+
+        raise ImportError(
+            "No se pudo importar el módulo bajo prueba "
+            f"'{_TARGET_MODULE_NAME}' ni localizar '{_TARGET_REL_PATH}'."
+        ) from import_error
+
+
+target = _load_target_module()
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §1. IMPORTACIÓN DE SÍMBOLOS AUDITADOS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Excepciones.
+VacuumCustodianError = target.VacuumCustodianError
+DomainIntegrityViolationError = target.DomainIntegrityViolationError
+NonHermitianOperatorError = target.NonHermitianOperatorError
+SpectralContaminationError = target.SpectralContaminationError
+BekensteinLimitViolation = target.BekensteinLimitViolation
+CausalityViolationError = target.CausalityViolationError
+SymplecticCollapseError = target.SymplecticCollapseError
+PhaseSpaceTopologyError = target.PhaseSpaceTopologyError
+
+# DTOs.
+SpectralDecompositionData = target.SpectralDecompositionData
+HermiticityAuditData = target.HermiticityAuditData
+BekensteinBoundData = target.BekensteinBoundData
+SymplecticDissipationData = target.SymplecticDissipationData
+Phase1HermiticityHandoff = target.Phase1HermiticityHandoff
+Phase2BekensteinHandoff = target.Phase2BekensteinHandoff
+VacuumGovernanceState = target.VacuumGovernanceState
+
+# Clases de fase.
+Phase1_HermiticityAuditor = target.Phase1_HermiticityAuditor
+Phase2_BekensteinBoundEnforcer = target.Phase2_BekensteinBoundEnforcer
+Phase3_SymplecticPortHamiltonianCertifier = target.Phase3_SymplecticPortHamiltonianCertifier
+
+# Orquestador.
+AntimatterChokeCoilAgent = target.AntimatterChokeCoilAgent
+
+# Entidades categóricas opcionales.
+TopologicalInvariantError = getattr(target, "TopologicalInvariantError", None)
+Morphism = getattr(target, "Morphism", None)
+
+# Constantes físicas y numéricas.
+_MACHINE_EPSILON = float(getattr(target, "_MACHINE_EPSILON", np.finfo(np.float64).eps))
+_HBAR_EFF = float(getattr(target, "_HBAR_EFF", 1.054_571_817e-34))
+_C_EFF = float(getattr(target, "_C_EFF", 299_792_458.0))
+_K_B = float(getattr(target, "_K_B", 1.380_649e-23))
+_ELECTRON_MASS_KG = float(
+    getattr(target, "_ELECTRON_MASS_KG", 9.109_383_7015e-31)
+)
+
+_LOGGER_NAME = getattr(
+    getattr(target, "logger", None),
+    "name",
+    "MIC.Omega.VacuumCustodian.Granular",
+)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §2. FÁBRICAS DE DATOS DETERMINISTAS
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+def make_hermitian_operator(n: int = 2, seed: int = 7) -> np.ndarray:
+    """
+    Construye un operador hermítico complejo deterministicamente.
+
+    Se fuerza matemáticamente:
+        A = (A + A†) / 2
+    para garantizar autoadjunción dentro de la precisión flotante.
+    """
+    rng = np.random.default_rng(seed)
+    A = rng.normal(size=(n, n)) + 1j * rng.normal(size=(n, n))
+    A = 0.5 * (A + A.conj().T)
+    return A.astype(np.complex128)
+
+
+def make_non_hermitian_operator() -> np.ndarray:
+    """Devuelve un operador manifiestamente no autoadjunto."""
+    return np.array(
+        [[0.0 + 0.0j, 1.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]],
+        dtype=np.complex128,
+    )
+
+
+def make_canonical_antisymmetric_matrix(dim: int) -> np.ndarray:
+    """
+    Construye una matriz antisimétrica canónica de dimensión `dim`.
+
+    Para dim = 2n:
+        J = [[0, I], [-I, 0]]
+    """
+    if dim <= 0 or dim % 2 != 0:
+        raise ValueError("make_canonical_antisymmetric_matrix requiere dim par y positivo.")
+
+    n = dim // 2
+    J = np.zeros((dim, dim), dtype=np.float64)
+    identity = np.eye(n, dtype=np.float64)
+    J[:n, n:] = identity
+    J[n:, :n] = -identity
+    return J
+
+
+def make_symplectic_inputs(
+    dim: int = 2,
+    dissipation: float = 0.1,
+    seed: int = 11,
+) -> Dict[str, np.ndarray]:
+    """
+    Genera insumos válidos para la Fase 3.
+
+    Incluye:
+        - jacobian_M = I (simpléctico).
+        - grad_H determinista.
+        - J antisimétrica canónica.
+        - R simétrica y semidefinida positiva.
+    """
+    if dim <= 0 or dim % 2 != 0:
+        raise ValueError("make_symplectic_inputs requiere una dimensión par y positiva.")
+
+    rng = np.random.default_rng(seed)
+    grad_H = rng.normal(scale=0.25, size=dim).astype(np.float64)
+
+    return {
+        "jacobian_M": np.eye(dim, dtype=np.float64),
+        "grad_H": grad_H,
+        "J_matrix": make_canonical_antisymmetric_matrix(dim),
+        "R_matrix": float(dissipation) * np.eye(dim, dtype=np.float64),
+    }
+
+
+def bekenstein_bound_value(energy: float, radius: float) -> float:
+    """
+    Calcula la cota de Bekenstein con las mismas constantes efectivas
+    empleadas por el módulo auditado:
+
+        S_max = 2π k_B E R / (ℏ c)
+    """
+    return (2.0 * math.pi * _K_B * float(energy) * float(radius)) / (
+        _HBAR_EFF * _C_EFF
+    )
+
+
+def make_bekenstein_safe_inputs() -> Dict[str, float]:
+    """
+    Insumos físicamente seguros para la aniquilación e⁻ + e⁺ → 2γ.
+
+    Se emplea:
+        E ≈ 2 m_e c²
+        R = 1 nm
+        S = 1e-30 J/K
+    """
+    gamma_energy = 2.0 * _ELECTRON_MASS_KG * _C_EFF**2
+    system_radius_R = 1.0e-9
+    emitted_entropy_S = 1.0e-30
+
+    return {
+        "gamma_energy": float(gamma_energy),
+        "system_radius_R": float(system_radius_R),
+        "emitted_entropy_S": float(emitted_entropy_S),
+    }
+
+
+def make_synthetic_bekenstein_inputs(entropy_fraction: float = 0.5) -> Dict[str, float]:
+    """
+    Insumos sintéticos macroscópicos para evaluar la cota de Bekenstein
+    en un régimen donde la tolerancia absoluta no domina la comparación.
+    """
+    energy = 1.0
+    radius = 1.0
+    bound = bekenstein_bound_value(energy, radius)
+    entropy = float(entropy_fraction) * bound
+
+    return {
+        "gamma_energy": energy,
+        "system_radius_R": radius,
+        "emitted_entropy_S": entropy,
+    }
+
+
+def make_valid_agent_inputs(dim: int = 2, seed: int = 17) -> Dict[str, Any]:
+    """Construye insumos completos válidos para el orquestador supremo."""
+    operator_A = make_hermitian_operator(n=2, seed=seed)
+    bekenstein_inputs = make_bekenstein_safe_inputs()
+    symplectic_inputs = make_symplectic_inputs(dim=dim, dissipation=0.15, seed=seed + 1)
+
+    return {
+        "operator_A": operator_A,
+        **bekenstein_inputs,
+        **symplectic_inputs,
+    }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §3. FIXTURES POR FASES
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+@pytest.fixture(scope="function")
+def phase1_auditor() -> Phase1_HermiticityAuditor:
+    """Instancia fresca del auditor de Fase 1."""
+    return Phase1_HermiticityAuditor()
+
+
+@pytest.fixture(scope="function")
+def phase2_enforcer() -> Phase2_BekensteinBoundEnforcer:
+    """Instancia fresca del regulador de Fase 2."""
+    return Phase2_BekensteinBoundEnforcer()
+
+
+@pytest.fixture(scope="function")
+def phase3_certifier() -> Phase3_SymplecticPortHamiltonianCertifier:
+    """Instancia fresca del certificador de Fase 3."""
+    return Phase3_SymplecticPortHamiltonianCertifier()
+
+
+@pytest.fixture(scope="function")
+def agent() -> AntimatterChokeCoilAgent:
+    """Instancia fresca del endofuntor orquestador."""
+    return AntimatterChokeCoilAgent()
+
+
+@pytest.fixture(scope="function")
+def hermitian_operator_2x2() -> np.ndarray:
+    """Operador hermítico 2×2 determinista."""
+    return make_hermitian_operator(n=2, seed=7)
+
+
+@pytest.fixture(scope="function")
+def non_hermitian_operator_2x2() -> np.ndarray:
+    """Operador no hermítico 2×2."""
+    return make_non_hermitian_operator()
+
+
+@pytest.fixture(scope="function")
+def bekenstein_safe_inputs() -> Dict[str, float]:
+    """Insumos seguros para la cota de Bekenstein."""
+    return make_bekenstein_safe_inputs()
+
+
+@pytest.fixture(scope="function")
+def phase1_handoff(
+    phase1_auditor: Phase1_HermiticityAuditor,
+    hermitian_operator_2x2: np.ndarray,
+) -> Phase1HermiticityHandoff:
+    """
+    Artefacto terminal de Fase 1.
+
+    Este fixture materializa la salida formal de Fase 1 y se convierte
+    en el prefijo obligatorio de Fase 2.
+    """
+    return phase1_auditor._phase1_audit_and_handoff_to_phase2(
+        operator_A=hermitian_operator_2x2,
+    )
+
+
+@pytest.fixture(scope="function")
+def phase2_handoff(
+    phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+    phase1_handoff: Phase1HermiticityHandoff,
+    bekenstein_safe_inputs: Dict[str, float],
+) -> Phase2BekensteinHandoff:
+    """
+    Artefacto terminal de Fase 2.
+
+    Este fixture materializa la salida formal de Fase 2 y se convierte
+    en el prefijo obligatorio de Fase 3.
+    """
+    return phase2_enforcer._phase2_enforce_and_handoff_to_phase3(
+        phase1_handoff=phase1_handoff,
+        **bekenstein_safe_inputs,
+    )
+
+
+@pytest.fixture(scope="function")
+def symplectic_inputs_2d() -> Dict[str, np.ndarray]:
+    """Insumos simplécticos válidos en dimensión 2."""
+    return make_symplectic_inputs(dim=2, dissipation=0.1, seed=13)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §4. CONTRATO DEL MÓDULO Y TAXONOMÍA DE EXCEPCIONES
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+class TestModuleContractAndExceptionTaxonomy:
+    """
+    Contrato estructural del módulo.
+
+    Verifica que el módulo expone las clases, DTOs y excepciones
+    requeridos por la arquitectura funtorial.
+    """
+
+    def test_module_exposes_core_types(self) -> None:
+        """El módulo debe exponer todos los tipos públicos principales."""
+        core_names = (
+            "VacuumCustodianError",
+            "DomainIntegrityViolationError",
+            "NonHermitianOperatorError",
+            "SpectralContaminationError",
+            "BekensteinLimitViolation",
+            "CausalityViolationError",
+            "SymplecticCollapseError",
+            "PhaseSpaceTopologyError",
+            "SpectralDecompositionData",
+            "HermiticityAuditData",
+            "BekensteinBoundData",
+            "SymplecticDissipationData",
+            "Phase1HermiticityHandoff",
+            "Phase2BekensteinHandoff",
+            "VacuumGovernanceState",
+            "Phase1_HermiticityAuditor",
+            "Phase2_BekensteinBoundEnforcer",
+            "Phase3_SymplecticPortHamiltonianCertifier",
+            "AntimatterChokeCoilAgent",
         )
 
+        for name in core_names:
+            assert hasattr(target, name), f"El módulo no expone el tipo requerido: {name}"
+
+    def test_phase_class_hierarchy_is_nested(self) -> None:
+        """La jerarquía de clases debe reflejar la composición de fases."""
+        assert issubclass(Phase2_BekensteinBoundEnforcer, Phase1_HermiticityAuditor)
+        assert issubclass(
+            Phase3_SymplecticPortHamiltonianCertifier,
+            Phase2_BekensteinBoundEnforcer,
+        )
+        assert issubclass(
+            AntimatterChokeCoilAgent,
+            Phase3_SymplecticPortHamiltonianCertifier,
+        )
+
+    def test_agent_is_morphism_if_morphism_exists(self) -> None:
+        """El agente debe ser un morfismo si el topo MIC define `Morphism`."""
+        if Morphism is None:
+            pytest.skip("El módulo auditado no expone Morphism.")
+
+        assert issubclass(AntimatterChokeCoilAgent, Morphism)
+
+    @pytest.mark.parametrize(
+        "exc",
+        [
+            DomainIntegrityViolationError,
+            NonHermitianOperatorError,
+            SpectralContaminationError,
+            BekensteinLimitViolation,
+            CausalityViolationError,
+            SymplecticCollapseError,
+            PhaseSpaceTopologyError,
+        ],
+    )
+    def test_exceptions_are_rooted_in_vacuum_custodian_error(self, exc) -> None:
+        """Toda excepción cuántica debe descender de VacuumCustodianError."""
+        assert issubclass(exc, VacuumCustodianError)
+
+    def test_root_exception_inherits_topological_invariant_error_if_available(self) -> None:
+        """Si existe TopologicalInvariantError, la raíz cuántica debe heredarla."""
+        if TopologicalInvariantError is None:
+            pytest.skip("TopologicalInvariantError no está disponible en el módulo.")
+
+        assert issubclass(VacuumCustodianError, TopologicalInvariantError)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §5. FASE 1 — HERMITICIDAD DEL OPERADOR DE ANIQUILACIÓN
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+class TestPhase1HermiticityAuditor:
+    """
+    Fase 1: Auditoría de hermiticidad.
+
+    Objetivo:
+        A = A†  ⇒  ||A - A†||_F <= ε
+
+    El último test de esta clase valida que el objeto terminal de Fase 1,
+    `Phase1HermiticityHandoff`, es exactamente el objeto inicial que
+    Fase 2 requiere para continuar la composición funtorial.
+    """
+
+    def test_phase1_auditor_is_instantiable(self) -> None:
+        """Fase 1 debe poder instanciarse sin estado mutable."""
+        auditor = Phase1_HermiticityAuditor()
+        assert isinstance(auditor, Phase1_HermiticityAuditor)
+
     # ─────────────────────────────────────────────────────────────────────────
-    # 1.2. Coerción de escalares finitos
+    # 5.1. Coerción de escalares
     # ─────────────────────────────────────────────────────────────────────────
-    def _coerce_finite_scalar(
+
+    @pytest.mark.parametrize("value", [0.0, 1.0, -2.5, 1e300])
+    def test_coerce_finite_scalar_accepts_finite_reals(
         self,
-        name: str,
+        phase1_auditor: Phase1_HermiticityAuditor,
+        value: float,
+    ) -> None:
+        """Todo escalar físico finito debe poder materializarse como float."""
+        scalar = phase1_auditor._coerce_finite_scalar("x", value)
+        assert scalar == float(value)
+        assert np.isfinite(scalar)
+
+    @pytest.mark.parametrize("value", [True, False, np.bool_(True), np.bool_(False)])
+    def test_coerce_finite_scalar_rejects_booleans(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
         value: Any,
-    ) -> float:
-        r"""
-        Materializa un escalar float64 finito, rechazando booleanos.
-        """
-        if isinstance(value, (bool, np.bool_)):
-            raise DomainIntegrityViolationError(
-                f"El escalar '{name}' no puede ser booleano."
-            )
+    ) -> None:
+        """Los booleanos pertenecen a B₂, no a R, y deben ser rechazados."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_scalar("x", value)
 
-        try:
-            scalar = float(value)
-        except (TypeError, ValueError, OverflowError) as exc:
-            raise DomainIntegrityViolationError(
-                f"El escalar '{name}' no puede materializarse como float."
-            ) from exc
-
-        if not np.isfinite(scalar):
-            raise DomainIntegrityViolationError(
-                f"El escalar '{name}' no es finito."
-            )
-
-        return scalar
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.3. Coerción de matrices finitas
-    # ─────────────────────────────────────────────────────────────────────────
-    def _coerce_finite_matrix(
+    @pytest.mark.parametrize(
+        "value",
+        [float("inf"), float("-inf"), float("nan"), "inf", "-inf", "nan"],
+    )
+    def test_coerce_finite_scalar_rejects_non_finite_values(
         self,
-        name: str,
-        matrix: Any,
-        dtype: Any = np.float64,
-        square_required: bool = False,
-    ) -> NDArray[Any]:
-        r"""
-        Materializa una matriz finita y, si se exige, cuadrada.
-        """
-        try:
-            arr = np.asarray(matrix, dtype=dtype)
-        except (TypeError, ValueError) as exc:
-            raise DomainIntegrityViolationError(
-                f"La matriz '{name}' no puede materializarse como NDArray."
-            ) from exc
+        phase1_auditor: Phase1_HermiticityAuditor,
+        value: Any,
+    ) -> None:
+        """Los escalares no finitos deben violar la integridad de dominio."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_scalar("x", value)
 
-        if arr.ndim != 2:
-            raise DomainIntegrityViolationError(
-                f"La matriz '{name}' debe ser bidimensional."
-            )
-
-        if arr.size == 0:
-            raise DomainIntegrityViolationError(
-                f"La matriz '{name}' está vacía."
-            )
-
-        if square_required and arr.shape[0] != arr.shape[1]:
-            raise DomainIntegrityViolationError(
-                f"La matriz '{name}' debe ser cuadrada en el espacio de Hilbert."
-            )
-
-        if not np.all(np.isfinite(arr)):
-            raise DomainIntegrityViolationError(
-                f"La matriz '{name}' contiene componentes no finitas."
-            )
-
-        return arr
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.4. Coerción de vectores finitos
-    # ─────────────────────────────────────────────────────────────────────────
-    def _coerce_finite_vector(
+    @pytest.mark.parametrize("value", [object(), 1 + 2j, [1.0]])
+    def test_coerce_finite_scalar_rejects_non_convertible_values(
         self,
-        name: str,
-        vector: Any,
-        expected_dim: Optional[int] = None,
-    ) -> NDArray[np.float64]:
-        r"""
-        Materializa un vector float64 finito y, si se indica, con dimensión
-        exacta.
-        """
-        try:
-            arr = np.asarray(vector, dtype=np.float64)
-        except (TypeError, ValueError) as exc:
-            raise DomainIntegrityViolationError(
-                f"El vector '{name}' no puede materializarse como NDArray."
-            ) from exc
+        phase1_auditor: Phase1_HermiticityAuditor,
+        value: Any,
+    ) -> None:
+        """Los valores no convertibles a float deben ser rechazados."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_scalar("x", value)
 
-        if arr.ndim == 0:
-            arr = arr.reshape(1)
-        else:
-            arr = arr.reshape(-1)
-
-        if arr.size == 0:
-            raise DomainIntegrityViolationError(
-                f"El vector '{name}' está vacío."
-            )
-
-        if expected_dim is not None and arr.size != int(expected_dim):
-            raise DomainIntegrityViolationError(
-                f"El vector '{name}' debe tener dimensión {expected_dim}, "
-                f"pero posee {arr.size} componentes."
-            )
-
-        if not np.all(np.isfinite(arr)):
-            raise DomainIntegrityViolationError(
-                f"El vector '{name}' contiene componentes no finitas."
-            )
-
-        return arr
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.5. Auditoría de hermiticidad
-    # ─────────────────────────────────────────────────────────────────────────
-    def _audit_operator_hermiticity(
+    def test_coerce_finite_scalar_rejects_negative_when_not_allowed(
         self,
-        operator_A: NDArray[np.complex128],
-    ) -> HermiticityAuditData:
-        r"""
-        Calcula la norma de Frobenius de la diferencia entre el operador y su
-        adjunto:
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Si allow_negative=False, cualquier valor negativo es inválido."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_scalar("x", -1e-20, allow_negative=False)
 
-            ||A - A†||_F ≤ ε.
-        """
-        A = self._coerce_finite_matrix(
-            "operator_A",
-            operator_A,
-            dtype=np.complex128,
+    # ─────────────────────────────────────────────────────────────────────────
+    # 5.2. Coerción de matrices
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_coerce_finite_matrix_accepts_square_finite_matrix(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Una matriz finita cuadrada debe ser aceptada."""
+        matrix = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+        out = phase1_auditor._coerce_finite_matrix(
+            "M",
+            matrix,
+            dtype=np.float64,
             square_required=True,
         )
+        np.testing.assert_allclose(out, matrix)
 
-        A_dagger = A.conj().T
-        residual = float(la.norm(A - A_dagger, ord="fro"))
-
-        tolerance = self._adaptive_tolerance(_HERMITICITY_TOLERANCE, A)
-
-        if residual > tolerance:
-            raise NonHermitianOperatorError(
-                "Asimetría CPT detectada: el operador de aniquilación no es "
-                f"autoadjunto. Residuo ||A - A†||_F = {residual:.6e} > "
-                f"{tolerance:.6e}."
-            )
-
-        return HermiticityAuditData(
-            residual_norm=residual,
-            is_hermitian=True,
-            operator_dimension=int(A.shape[0]),
-            hermiticity_tolerance=tolerance,
-            spectral_imaginary_norm=0.0,
-        )
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.6. ÚLTIMO MÉTODO DE FASE 1: HANDOFF FORMAL HACIA FASE 2
-    # ─────────────────────────────────────────────────────────────────────────
-    def _phase1_audit_and_handoff_to_phase2(
+    def test_coerce_finite_matrix_rejects_non_2d_object(
         self,
-        operator_A: NDArray[np.complex128],
-    ) -> Phase1HermiticityHandoff:
-        r"""
-        Último método de la Fase 1.
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Un vector no es una matriz y debe ser rechazado."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_matrix("M", np.array([1.0, 2.0]))
 
-        Su definición formal es la continuación directa de la Fase 2:
-        entrega el certificado de hermiticidad y la dimensión del operador
-        como prefijo obligatorio de la cota de Bekenstein.
-        """
-        hermiticity_audit = self._audit_operator_hermiticity(operator_A)
-
-        logger.debug(
-            "Fase 1 completada. ||A - A†||_F=%.6e | dim=%d.",
-            hermiticity_audit.residual_norm,
-            hermiticity_audit.operator_dimension,
-        )
-
-        return Phase1HermiticityHandoff(
-            hermiticity_audit=hermiticity_audit,
-            operator_dimension=hermiticity_audit.operator_dimension,
-        )
-
-
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 2: REGULACIÓN TERMODINÁMICA DEL LÍMITE DE BEKENSTEIN                 ║
-# ║   Verifica S ≤ (2π k_B E R) / (ħ c).                                       ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-
-class Phase2_BekensteinBoundEnforcer(Phase1_HermiticityAuditor):
-    r"""
-    Controla la liberación de entropía durante la colisión e⁻ + e⁺ → 2γ.
-    Previene la formación de singularidades informacionales.
-    """
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.1. Certificación de no negatividad escalar
-    # ─────────────────────────────────────────────────────────────────────────
-    def _certify_nonnegative_scalar(
+    def test_coerce_finite_matrix_rejects_empty_matrix(
         self,
-        name: str,
-        value: Any,
-    ) -> float:
-        r"""
-        Certifica que un escalar sea finito y no negativo, con saneamiento de
-        ruido infinitesimal.
-        """
-        scalar = self._coerce_finite_scalar(name, value)
-        tolerance = self._adaptive_tolerance(_BEKENSTEIN_ABS_TOLERANCE, scalar)
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Una matriz vacía no pertenece al espacio de Hilbert operativo."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_matrix("M", np.empty((0, 0)))
 
-        if scalar < -tolerance:
-            raise DomainIntegrityViolationError(
-                f"El escalar '{name}' es negativo: {scalar:.6e}."
-            )
-
-        if scalar < 0.0:
-            scalar = 0.0
-
-        return scalar
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.2. Certificación de radio causal positivo
-    # ─────────────────────────────────────────────────────────────────────────
-    def _certify_positive_radius(
+    def test_coerce_finite_matrix_enforces_squareness(
         self,
-        name: str,
-        value: Any,
-    ) -> float:
-        r"""
-        Certifica que el radio de contención sea estrictamente positivo.
-        """
-        scalar = self._coerce_finite_scalar(name, value)
-        tolerance = self._adaptive_tolerance(_BEKENSTEIN_ABS_TOLERANCE, scalar)
-
-        if scalar <= tolerance:
-            raise BekensteinLimitViolation(
-                f"El radio de contención '{name}' debe ser estrictamente "
-                f"positivo. Valor observado: {scalar:.6e}."
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Si square_required=True, la matriz debe ser cuadrada."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_matrix(
+                "M",
+                np.zeros((2, 3)),
+                square_required=True,
             )
 
-        return scalar
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.3. Imposición de la cota de Bekenstein
-    # ─────────────────────────────────────────────────────────────────────────
-    def _enforce_bekenstein_gamma_bound(
+    def test_coerce_finite_matrix_enforces_min_dimension(
         self,
-        gamma_energy: float,
-        system_radius_R: float,
-        emitted_entropy_S: float,
-    ) -> BekensteinBoundData:
-        r"""
-        Calcula la cota de Bekenstein y verifica que la entropía liberada no
-        desgarre la variedad de datos:
-
-            S ≤ (2π k_B E R) / (ħ c).
-        """
-        E = self._certify_nonnegative_scalar("gamma_energy", gamma_energy)
-        R = self._certify_positive_radius("system_radius_R", system_radius_R)
-        S = self._certify_nonnegative_scalar("emitted_entropy_S", emitted_entropy_S)
-
-        s_bound = (
-            2.0
-            * math.pi
-            * _K_B
-            * E
-            * R
-        ) / (_HBAR_EFF * _C_EFF)
-
-        if not np.isfinite(s_bound) or s_bound < 0.0:
-            raise BekensteinLimitViolation(
-                "La cota de Bekenstein no es finita o resultó negativa."
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """La dimensión mínima debe ser respetada."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_matrix(
+                "M",
+                np.array([[1.0]]),
+                min_dimension=2,
             )
 
-        entropy_tolerance = max(
-            _BEKENSTEIN_ABS_TOLERANCE,
-            _BEKENSTEIN_REL_TOLERANCE * max(1.0, abs(S), abs(s_bound)),
+    def test_coerce_finite_matrix_rejects_non_finite_entries(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Una matriz con NaN/Inf debe ser rechazada."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_matrix("M", np.array([[np.nan, 0.0]]))
+
+    def test_coerce_finite_matrix_rejects_ragged_sequence(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Una secuencia irregular no puede materializarse como matriz."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_matrix("M", [[1.0], [2.0, 3.0]])
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 5.3. Coerción de vectores
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_coerce_finite_vector_accepts_scalar_and_column_vectors(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Escalares y vectores columna deben ser aplanados correctamente."""
+        scalar_vector = phase1_auditor._coerce_finite_vector("v", 3.0)
+        assert scalar_vector.shape == (1,)
+        assert scalar_vector[0] == 3.0
+
+        column_vector = phase1_auditor._coerce_finite_vector(
+            "v",
+            np.array([[1.0], [2.0]]),
+        )
+        assert column_vector.shape == (2,)
+        np.testing.assert_allclose(column_vector, np.array([1.0, 2.0]))
+
+    def test_coerce_finite_vector_rejects_empty_vector(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Un vector vacío viola la completitud del espacio de fase."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_vector("v", np.array([]))
+
+    def test_coerce_finite_vector_enforces_expected_dimension(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """La dimensión esperada debe cumplirse exactamente."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_vector(
+                "v",
+                np.array([1.0, 2.0]),
+                expected_dim=3,
+            )
+
+    def test_coerce_finite_vector_rejects_non_finite_entries(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Un vector con componentes no finitas debe ser rechazado."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._coerce_finite_vector("v", np.array([1.0, np.nan]))
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 5.4. Tolerancia adaptativa
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_adaptive_tolerance_is_lower_bounded_by_base(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """La tolerancia nunca debe ser menor que la tolerancia base."""
+        base = 1e-8
+        tol = phase1_auditor._adaptive_tolerance(base, 0.0)
+        assert tol >= base
+
+    def test_adaptive_tolerance_grows_with_scale(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """La tolerancia debe crecer con la escala del objeto auditado."""
+        large_reference = np.ones(10, dtype=np.float64) * 1e9
+        tol_large = phase1_auditor._adaptive_tolerance(1e-12, large_reference)
+        assert tol_large > 1e-12
+
+    def test_adaptive_tolerance_amplifies_with_condition_number(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """La tolerancia debe amplificarse con el número de condición."""
+        well_conditioned = np.eye(2, dtype=np.float64)
+        ill_conditioned = np.diag([1.0, 1e-9]).astype(np.float64)
+
+        tol_well = phase1_auditor._adaptive_tolerance(
+            1e-12,
+            well_conditioned,
+            condition_amplification=True,
+        )
+        tol_ill = phase1_auditor._adaptive_tolerance(
+            1e-12,
+            ill_conditioned,
+            condition_amplification=True,
         )
 
-        if S > s_bound + entropy_tolerance:
-            raise BekensteinLimitViolation(
-                "Desgarro cosmológico: la aniquilación liberó entropía "
-                f"S={S:.6e} superior a la cota de Bekenstein "
-                f"S_max={s_bound:.6e} dentro de tolerancia "
-                f"{entropy_tolerance:.6e}."
+        assert tol_ill > tol_well
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 5.5. Auditoría de hermiticidad
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_hermitian_identity_operator_is_certified(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """La identidad es autoadjunta y debe ser certificada."""
+        A = np.eye(3, dtype=np.complex128)
+        audit = phase1_auditor._audit_operator_hermiticity(A)
+
+        assert audit.is_hermitian is True
+        assert audit.operator_dimension == 3
+        assert audit.residual_norm <= audit.hermiticity_tolerance
+        assert audit.spectral_decomposition is not None
+        assert audit.spectral_decomposition.is_spectrally_clean is True
+
+    def test_random_hermitian_operator_is_certified(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Un operador hermítico aleatorio determinista debe ser certificado."""
+        A = make_hermitian_operator(n=4, seed=99)
+        audit = phase1_auditor._audit_operator_hermiticity(A)
+
+        assert audit.is_hermitian is True
+        assert audit.operator_dimension == 4
+        assert audit.residual_norm <= audit.hermiticity_tolerance
+        assert audit.spectral_decomposition is not None
+        assert np.all(np.isfinite(audit.spectral_decomposition.eigenvalues_real))
+
+    def test_zero_operator_is_certified_and_condition_number_is_infinite(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """El operador cero es hermítico pero singular; κ(A)=∞."""
+        A = np.zeros((2, 2), dtype=np.complex128)
+        audit = phase1_auditor._audit_operator_hermiticity(A)
+
+        assert audit.is_hermitian is True
+        assert audit.spectral_decomposition is not None
+        assert math.isinf(audit.spectral_decomposition.condition_number)
+
+    def test_non_hermitian_operator_is_rejected(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+        non_hermitian_operator_2x2: np.ndarray,
+    ) -> None:
+        """Un operador no autoadjunto debe detonar NonHermitianOperatorError."""
+        with pytest.raises(NonHermitianOperatorError):
+            phase1_auditor._audit_operator_hermiticity(non_hermitian_operator_2x2)
+
+    def test_non_square_operator_is_rejected(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Un operador no cuadrado viola el dominio del espacio de Hilbert."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._audit_operator_hermiticity(
+                np.ones((2, 3), dtype=np.complex128)
             )
 
-        return BekensteinBoundData(
-            entropy_emitted=S,
-            bekenstein_bound=s_bound,
-            is_entropically_safe=True,
-            gamma_energy=E,
-            system_radius=R,
-            entropy_tolerance=entropy_tolerance,
-        )
+    def test_non_finite_operator_is_rejected(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Un operador con componentes no finitas debe ser rechazado."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase1_auditor._audit_operator_hermiticity(
+                np.array([[np.nan, 0.0], [0.0, 1.0]], dtype=np.complex128)
+            )
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 2.4. ÚLTIMO MÉTODO DE FASE 2: HANDOFF FORMAL HACIA FASE 3
+    # 5.6. Descomposición espectral
     # ─────────────────────────────────────────────────────────────────────────
-    def _phase2_enforce_and_handoff_to_phase3(
+
+    def test_spectral_decomposition_validates_real_spectrum(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Un operador diagonal real debe tener espectro real certificado."""
+        A = np.diag([1.0, 2.0, 3.0]).astype(np.complex128)
+        data = phase1_auditor._spectral_decomposition_and_validation(A)
+
+        assert data.is_spectrally_clean is True
+        np.testing.assert_allclose(data.eigenvalues_real, np.array([1.0, 2.0, 3.0]))
+        assert data.eigenvalues_imaginary_norm == pytest.approx(0.0, abs=1e-15)
+        assert data.trace_real == pytest.approx(6.0)
+        assert data.trace_imaginary_norm == pytest.approx(0.0, abs=1e-15)
+
+    def test_spectral_decomposition_rejects_imaginary_trace(
+        self,
+        phase1_auditor: Phase1_HermiticityAuditor,
+    ) -> None:
+        """Una traza con parte imaginaria no tolerable debe ser rechazada."""
+        A = np.array([[1.0 + 2.0j]], dtype=np.complex128)
+        with pytest.raises(SpectralContaminationError):
+            phase1_auditor._spectral_decomposition_and_validation(A)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 5.7. Handoff terminal de Fase 1
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_phase1_handoff_contains_complete_certificate(
         self,
         phase1_handoff: Phase1HermiticityHandoff,
-        gamma_energy: float,
-        system_radius_R: float,
-        emitted_entropy_S: float,
-    ) -> Phase2BekensteinHandoff:
-        r"""
-        Último método de la Fase 2.
+    ) -> None:
+        """El handoff de Fase 1 debe contener el certificado completo."""
+        assert isinstance(phase1_handoff, Phase1HermiticityHandoff)
+        assert phase1_handoff.hermiticity_audit.is_hermitian is True
+        assert phase1_handoff.operator_dimension == (
+            phase1_handoff.hermiticity_audit.operator_dimension
+        )
+        assert (
+            phase1_handoff.spectral_certificate
+            is phase1_handoff.hermiticity_audit.spectral_decomposition
+        )
 
-        Su definición formal es la continuación directa de la Fase 3:
-        entrega el certificado de Bekenstein y el handoff de Fase 1 como
-        prefijo obligatorio de la certificación simpléctica.
+    def test_phase1_handoff_is_immutable(
+        self,
+        phase1_handoff: Phase1HermiticityHandoff,
+    ) -> None:
+        """El handoff de Fase 1 debe ser inmutable."""
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            phase1_handoff.operator_dimension = 3
+
+    def test_phase1_terminal_handoff_is_phase2_initial_object(
+        self,
+        phase1_handoff: Phase1HermiticityHandoff,
+        bekenstein_safe_inputs: Dict[str, float],
+    ) -> None:
         """
-        if not isinstance(phase1_handoff, Phase1HermiticityHandoff):
-            raise DomainIntegrityViolationError(
-                "Fase 2 exige un Phase1HermiticityHandoff como prefijo formal."
-            )
+        Lema de Continuación Funtorial Φ₂ ∘ Φ₁:
 
-        bekenstein_audit = self._enforce_bekenstein_gamma_bound(
-            gamma_energy=gamma_energy,
-            system_radius_R=system_radius_R,
-            emitted_entropy_S=emitted_entropy_S,
-        )
+        El objeto terminal de Fase 1 debe ser aceptado como prefijo formal
+        por Fase 2 sin pérdida de identidad categórica.
+        """
+        enforcer = Phase2_BekensteinBoundEnforcer()
 
-        logger.debug(
-            "Fase 2 completada. S=%.6e | S_max=%.6e.",
-            bekenstein_audit.entropy_emitted,
-            bekenstein_audit.bekenstein_bound,
-        )
-
-        return Phase2BekensteinHandoff(
+        phase2_handoff = enforcer._phase2_enforce_and_handoff_to_phase3(
             phase1_handoff=phase1_handoff,
-            bekenstein_audit=bekenstein_audit,
+            **bekenstein_safe_inputs,
         )
 
+        assert isinstance(phase2_handoff, Phase2BekensteinHandoff)
+        assert phase2_handoff.phase1_handoff is phase1_handoff
+        assert phase2_handoff.bekenstein_audit.is_entropically_safe is True
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 3: CERTIFICACIÓN SIMPLÉCTICA PORT-HAMILTONIANA                       ║
-# ║   Exige MᵀΩM = Ω, J = -Jᵀ, R = Rᵀ ⪰ 0, Ḣ ≤ 0.                             ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
 
-class Phase3_SymplecticPortHamiltonianCertifier(Phase2_BekensteinBoundEnforcer):
-    r"""
-    Asegura que, tras el impacto de la antimateria, el remanente del grafo
-    logístico recupere su estabilidad asintótica sin perder el volumen
-    simpléctico.
+# ══════════════════════════════════════════════════════════════════════════════
+# §6. FASE 2 — REGULACIÓN TERMODINÁMICA DE BEKENSTEIN
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+class TestPhase2BekensteinBoundEnforcer:
+    """
+    Fase 2: Regulación termodinámica.
+
+    Objetivo:
+        S <= 2π k_B E R / (ℏ c)
+
+    El primer insumo formal es `Phase1HermiticityHandoff`.
+    El último test valida que el objeto terminal de Fase 2 es aceptado
+    por Fase 3 como prefijo formal.
     """
 
+    def test_phase2_enforcer_is_instantiable(self) -> None:
+        """Fase 2 debe poder instanciarse como extensión de Fase 1."""
+        enforcer = Phase2_BekensteinBoundEnforcer()
+        assert isinstance(enforcer, Phase2_BekensteinBoundEnforcer)
+        assert isinstance(enforcer, Phase1_HermiticityAuditor)
+
     # ─────────────────────────────────────────────────────────────────────────
-    # 3.1. Construcción de la 2-forma canónica
+    # 6.1. Certificación de escalares no negativos
     # ─────────────────────────────────────────────────────────────────────────
-    def _build_symplectic_form(
+
+    @pytest.mark.parametrize("value", [0.0, 1e-30, 1.0, 1e6])
+    def test_certify_nonnegative_scalar_accepts_zero_and_positive(
         self,
-        n: int,
-    ) -> NDArray[np.float64]:
-        r"""
-        Construye:
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+        value: float,
+    ) -> None:
+        """Magnitudes físicas no negativas deben ser certificadas."""
+        scalar = phase2_enforcer._certify_nonnegative_scalar("x", value)
+        assert scalar == float(value)
+        assert scalar >= 0.0
 
-            Ω = [[0, I], [-I, 0]].
-        """
-        omega = np.zeros((2 * n, 2 * n), dtype=np.float64)
-        identity = np.eye(n, dtype=np.float64)
-
-        omega[:n, n:] = identity
-        omega[n:, :n] = -identity
-
-        return omega
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.2. Certificación de antisimetría de J
-    # ─────────────────────────────────────────────────────────────────────────
-    def _certify_antisymmetric_matrix(
+    @pytest.mark.parametrize("value", [-1e-20, -1.0, -1e30])
+    def test_certify_nonnegative_scalar_rejects_negative(
         self,
-        name: str,
-        matrix: NDArray[np.float64],
-        expected_dim: int,
-    ) -> float:
-        r"""
-        Certifica J = -Jᵀ.
-        """
-        if matrix.shape != (expected_dim, expected_dim):
-            raise SymplecticCollapseError(
-                f"La matriz '{name}' debe tener dimensión "
-                f"{expected_dim}x{expected_dim}."
-            )
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+        value: float,
+    ) -> None:
+        """Magnitudes físicas negativas deben violar el dominio."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase2_enforcer._certify_nonnegative_scalar("x", value)
 
-        residual = float(la.norm(matrix + matrix.T, ord="fro"))
-        tolerance = self._adaptive_tolerance(_ANTISYMMETRY_TOLERANCE, matrix)
-
-        if residual > tolerance:
-            raise SymplecticCollapseError(
-                f"La matriz '{name}' no es antisimétrica. "
-                f"||J + Jᵀ||_F = {residual:.6e} > {tolerance:.6e}."
-            )
-
-        return residual
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.3. Certificación de simetría y semidefinición positiva de R
-    # ─────────────────────────────────────────────────────────────────────────
-    def _certify_symmetric_positive_semidefinite_matrix(
+    @pytest.mark.parametrize("value", [True, np.bool_(False)])
+    def test_certify_nonnegative_scalar_rejects_booleans(
         self,
-        name: str,
-        matrix: NDArray[np.float64],
-        expected_dim: int,
-    ) -> Tuple[NDArray[np.float64], float, float]:
-        r"""
-        Certifica R = Rᵀ y R ⪰ 0.
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+        value: Any,
+    ) -> None:
+        """Los booleanos no pertenecen al dominio escalar físico."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase2_enforcer._certify_nonnegative_scalar("x", value)
 
-        Retorna R simetrizada, residuo de simetría y autovalor mínimo.
-        """
-        if matrix.shape != (expected_dim, expected_dim):
-            raise SymplecticCollapseError(
-                f"La matriz '{name}' debe tener dimensión "
-                f"{expected_dim}x{expected_dim}."
-            )
-
-        symmetry_residual = float(la.norm(matrix - matrix.T, ord="fro"))
-        symmetry_tolerance = self._adaptive_tolerance(
-            _R_SYMMETRY_TOLERANCE,
-            matrix,
-        )
-
-        if symmetry_residual > symmetry_tolerance:
-            raise SymplecticCollapseError(
-                f"La matriz '{name}' no es simétrica. "
-                f"||R - Rᵀ||_F = {symmetry_residual:.6e} > "
-                f"{symmetry_tolerance:.6e}."
-            )
-
-        R_sym = 0.5 * (matrix + matrix.T)
-
-        eigenvalues = la.eigvalsh(R_sym)
-        min_eigenvalue = float(np.min(eigenvalues)) if eigenvalues.size else 0.0
-        max_abs_eigenvalue = (
-            float(np.max(np.abs(eigenvalues))) if eigenvalues.size else 1.0
-        )
-
-        psd_tolerance = max(
-            _PSD_EIGENVALUE_TOLERANCE,
-            10.0 * _MACHINE_EPSILON * expected_dim * max(1.0, max_abs_eigenvalue),
-        )
-
-        if min_eigenvalue < -psd_tolerance:
-            raise SymplecticCollapseError(
-                f"La matriz '{name}' no es semidefinida positiva. "
-                f"λ_min={min_eigenvalue:.6e} < -{psd_tolerance:.6e}."
-            )
-
-        return R_sym, symmetry_residual, min_eigenvalue
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.4. Certificación simpléctica Port-Hamiltoniana
-    # ─────────────────────────────────────────────────────────────────────────
-    def _certify_symplectic_port_hamiltonian(
+    @pytest.mark.parametrize("value", [0.0, 1e-20])
+    def test_certify_nonnegative_scalar_strict_positive_rejects_non_positive(
         self,
-        jacobian_M: NDArray[np.float64],
-        grad_H: NDArray[np.float64],
-        J_matrix: NDArray[np.float64],
-        R_matrix: NDArray[np.float64],
-    ) -> SymplecticDissipationData:
-        r"""
-        Evalúa el difeomorfismo canónico y la termodinámica del estrangulador:
-
-            Mᵀ Ω M = Ω,
-            J = -Jᵀ,
-            R = Rᵀ ⪰ 0,
-            Ḣ = -∇Hᵀ R ∇H ≤ 0.
-        """
-        M = self._coerce_finite_matrix(
-            "jacobian_M",
-            jacobian_M,
-            dtype=np.float64,
-            square_required=True,
-        )
-
-        dim = int(M.shape[0])
-
-        if dim == 0 or dim % 2 != 0:
-            raise SymplecticCollapseError(
-                "La matriz Jacobiana del espacio de fase debe tener dimensión "
-                "par y no nula."
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+        value: float,
+    ) -> None:
+        """En modo estricto, el escalar debe ser mayor que la tolerancia."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase2_enforcer._certify_nonnegative_scalar(
+                "x",
+                value,
+                strict_positive=True,
             )
 
-        n = dim // 2
-
-        grad = self._coerce_finite_vector(
-            "grad_H",
-            grad_H,
-            expected_dim=dim,
+    def test_certify_nonnegative_scalar_strict_positive_accepts_macro_value(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+    ) -> None:
+        """Un valor macroscópico debe superar la tolerancia absoluta."""
+        scalar = phase2_enforcer._certify_nonnegative_scalar(
+            "x",
+            1e-6,
+            strict_positive=True,
         )
-
-        J = self._coerce_finite_matrix(
-            "J_matrix",
-            J_matrix,
-            dtype=np.float64,
-            square_required=True,
-        )
-
-        R = self._coerce_finite_matrix(
-            "R_matrix",
-            R_matrix,
-            dtype=np.float64,
-            square_required=True,
-        )
-
-        # 1. Estructura Port-Hamiltoniana: J antisimétrica.
-        antisymmetry_residual = self._certify_antisymmetric_matrix(
-            "J_matrix",
-            J,
-            dim,
-        )
-
-        # 2. Estructura disipativa: R simétrica y semidefinida positiva.
-        R_certified, r_symmetry_residual, r_min_eigenvalue = (
-            self._certify_symmetric_positive_semidefinite_matrix(
-                "R_matrix",
-                R,
-                dim,
-            )
-        )
-
-        # 3. Auditoría del volumen simpléctico: Mᵀ Ω M = Ω.
-        omega = self._build_symplectic_form(n)
-        omega_transformed = M.T @ omega @ M
-
-        if not np.all(np.isfinite(omega_transformed)):
-            raise SymplecticCollapseError(
-                "La transformación simpléctica MᵀΩM contiene componentes no "
-                "finitas."
-            )
-
-        symplectic_residual = float(la.norm(omega_transformed - omega, ord="fro"))
-        symplectic_tolerance = self._adaptive_tolerance(
-            _SYMPLECTIC_TOLERANCE,
-            M,
-        )
-
-        if symplectic_residual > symplectic_tolerance:
-            raise SymplecticCollapseError(
-                "Degradación del espacio de fase: el evento de aniquilación "
-                f"destruyó la 2-forma canónica ω. Residuo ||MᵀΩM - Ω||_F = "
-                f"{symplectic_residual:.6e} > {symplectic_tolerance:.6e}."
-            )
-
-        # 4. Auditoría de disipación Port-Hamiltoniana:
-        #    Ḣ = -∇Hᵀ R ∇H ≤ 0.
-        h_dot = -float(grad.T @ R_certified @ grad)
-
-        if not np.isfinite(h_dot):
-            raise SymplecticCollapseError(
-                "La tasa de disipación Ḣ no es finita."
-            )
-
-        dissipation_tolerance = max(
-            _MACHINE_EPSILON,
-            self._adaptive_tolerance(_SYMPLECTIC_TOLERANCE, grad),
-        )
-
-        if h_dot > dissipation_tolerance:
-            raise SymplecticCollapseError(
-                "Violación termodinámica: la bobina de choque inyectó energía "
-                f"parásita al sistema. Ḣ={h_dot:.6e} > "
-                f"{dissipation_tolerance:.6e}."
-            )
-
-        return SymplecticDissipationData(
-            symplectic_residual=symplectic_residual,
-            dissipation_rate=h_dot,
-            is_symplectically_invariant=True,
-            symplectic_tolerance=symplectic_tolerance,
-            antisymmetry_residual=antisymmetry_residual,
-            r_symmetry_residual=r_symmetry_residual,
-            r_min_eigenvalue=r_min_eigenvalue,
-        )
+        assert scalar == pytest.approx(1e-6)
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 3.5. ÚLTIMO MÉTODO DE FASE 3: FINALIZACIÓN FUNTORIAL
+    # 6.2. Certificación de radio causal
     # ─────────────────────────────────────────────────────────────────────────
-    def _phase3_finalize_from_phase2_handoff(
+
+    @pytest.mark.parametrize("radius", [1e-9, 1e-3, 1.0, 10.0])
+    def test_certify_positive_radius_accepts_valid_radii(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+        radius: float,
+    ) -> None:
+        """Radios por encima de la tolerancia deben ser certificados."""
+        certified_radius = phase2_enforcer._certify_positive_radius("R", radius)
+        assert certified_radius == pytest.approx(radius)
+
+    @pytest.mark.parametrize("radius", [0.0, -1e-9, -1.0])
+    def test_certify_positive_radius_rejects_non_positive_radii(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+        radius: float,
+    ) -> None:
+        """Un radio no positivo destruye la región causal."""
+        with pytest.raises(BekensteinLimitViolation):
+            phase2_enforcer._certify_positive_radius("R", radius)
+
+    def test_certify_positive_radius_rejects_subtolerance_radius(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+    ) -> None:
+        """Un radio por debajo de la tolerancia absoluta es rechazado."""
+        with pytest.raises(BekensteinLimitViolation):
+            phase2_enforcer._certify_positive_radius("R", 1e-15)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.3. Consistencia dimensional física
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_dimensional_consistency_emits_warnings_for_extreme_values(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Valores extremos deben generar advertencias diagnósticas."""
+        with caplog.at_level(logging.WARNING, logger=_LOGGER_NAME):
+            phase2_enforcer._verify_dimensional_consistency(
+                energy=1e11,
+                radius=1e-21,
+                entropy=1e11,
+            )
+
+        assert len(caplog.records) == 3
+
+    def test_dimensional_consistency_does_not_warn_for_regular_values(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Valores regulares no deben generar advertencias."""
+        with caplog.at_level(logging.WARNING, logger=_LOGGER_NAME):
+            phase2_enforcer._verify_dimensional_consistency(
+                energy=1.0,
+                radius=1.0,
+                entropy=1.0,
+            )
+
+        assert len(caplog.records) == 0
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.4. Métricas derivadas
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_light_crossing_time_is_radius_over_c(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+    ) -> None:
+        """El tiempo de cruce lumínico debe ser t = R/c."""
+        radius = 123.456
+        expected = radius / _C_EFF
+        observed = phase2_enforcer._compute_light_crossing_time(radius)
+        assert math.isclose(observed, expected, rel_tol=1e-15, abs_tol=0.0)
+
+    @pytest.mark.parametrize("bound", [0.0, -1.0])
+    def test_information_capacity_bits_is_zero_for_nonpositive_bound(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+        bound: float,
+    ) -> None:
+        """Una cota no positiva no puede contener información."""
+        bits = phase2_enforcer._compute_information_capacity_bits(bound)
+        assert bits == 0.0
+
+    def test_information_capacity_bits_positive_bound(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+    ) -> None:
+        """Una cota positiva debe convertirse a bits vía Landauer."""
+        bound = 10.0
+        expected = bound / (_K_B * math.log(2.0))
+        observed = phase2_enforcer._compute_information_capacity_bits(bound)
+        assert math.isclose(observed, expected, rel_tol=1e-12, abs_tol=0.0)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.5. Imposición de la cota de Bekenstein
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_enforce_bekenstein_bound_accepts_physical_safe_inputs(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+        bekenstein_safe_inputs: Dict[str, float],
+    ) -> None:
+        """La aniquilación física segura debe pasar la cota."""
+        audit = phase2_enforcer._enforce_bekenstein_gamma_bound(
+            **bekenstein_safe_inputs,
+        )
+
+        assert audit.is_entropically_safe is True
+        assert audit.entropy_emitted == pytest.approx(
+            bekenstein_safe_inputs["emitted_entropy_S"]
+        )
+        assert audit.bekenstein_bound > 0.0
+        assert audit.entropy_ratio >= 0.0
+        assert audit.entropy_ratio <= 1.0
+        assert audit.causal_light_crossing_time > 0.0
+        assert audit.information_capacity_bits > 0.0
+
+    def test_enforce_bekenstein_bound_accepts_exact_synthetic_bound(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+    ) -> None:
+        """S = S_max debe ser aceptado dentro de tolerancias numéricas."""
+        inputs = make_synthetic_bekenstein_inputs(entropy_fraction=1.0)
+        audit = phase2_enforcer._enforce_bekenstein_gamma_bound(**inputs)
+
+        assert audit.is_entropically_safe is True
+        assert math.isclose(
+            audit.entropy_ratio,
+            1.0,
+            rel_tol=1e-12,
+            abs_tol=1e-15,
+        )
+
+    def test_enforce_bekenstein_bound_accepts_half_synthetic_bound(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+    ) -> None:
+        """S = S_max/2 debe ser aceptado y registrar ratio 0.5."""
+        inputs = make_synthetic_bekenstein_inputs(entropy_fraction=0.5)
+        audit = phase2_enforcer._enforce_bekenstein_gamma_bound(**inputs)
+
+        assert audit.is_entropically_safe is True
+        assert math.isclose(
+            audit.entropy_ratio,
+            0.5,
+            rel_tol=1e-12,
+            abs_tol=1e-15,
+        )
+
+    def test_enforce_bekenstein_bound_rejects_entropy_excess(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+    ) -> None:
+        """S > S_max debe detonar BekensteinLimitViolation."""
+        inputs = make_synthetic_bekenstein_inputs(entropy_fraction=1.01)
+
+        with pytest.raises(BekensteinLimitViolation):
+            phase2_enforcer._enforce_bekenstein_gamma_bound(**inputs)
+
+    def test_enforce_bekenstein_bound_accepts_zero_energy_zero_entropy(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+    ) -> None:
+        """El vacío trivial E=0, S=0 debe ser seguro."""
+        audit = phase2_enforcer._enforce_bekenstein_gamma_bound(
+            gamma_energy=0.0,
+            system_radius_R=1.0,
+            emitted_entropy_S=0.0,
+        )
+
+        assert audit.is_entropically_safe is True
+        assert audit.bekenstein_bound == pytest.approx(0.0)
+        assert audit.information_capacity_bits == 0.0
+
+    def test_enforce_bekenstein_bound_rejects_zero_energy_with_macro_entropy(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+    ) -> None:
+        """E=0 con entropía macroscópica viola la cota causal."""
+        with pytest.raises(BekensteinLimitViolation):
+            phase2_enforcer._enforce_bekenstein_gamma_bound(
+                gamma_energy=0.0,
+                system_radius_R=1.0,
+                emitted_entropy_S=1e-6,
+            )
+
+    def test_enforce_bekenstein_bound_rejects_nonfinite_bound(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Una cota no finita debe ser rechazada explícitamente."""
+        monkeypatch.setattr(target, "_K_B", float("nan"))
+
+        with pytest.raises(BekensteinLimitViolation):
+            phase2_enforcer._enforce_bekenstein_gamma_bound(
+                gamma_energy=1.0,
+                system_radius_R=1.0,
+                emitted_entropy_S=0.0,
+            )
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 6.6. Handoff terminal de Fase 2
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_phase2_requires_phase1_handoff(
+        self,
+        phase2_enforcer: Phase2_BekensteinBoundEnforcer,
+        bekenstein_safe_inputs: Dict[str, float],
+    ) -> None:
+        """Fase 2 debe rechazar cualquier prefijo que no sea Fase 1."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase2_enforcer._phase2_enforce_and_handoff_to_phase3(
+                phase1_handoff=object(),
+                **bekenstein_safe_inputs,
+            )
+
+    def test_phase2_handoff_preserves_phase1_certificate(
         self,
         phase2_handoff: Phase2BekensteinHandoff,
-        jacobian_M: NDArray[np.float64],
-        grad_H: NDArray[np.float64],
-        J_matrix: NDArray[np.float64],
-        R_matrix: NDArray[np.float64],
-    ) -> VacuumGovernanceState:
-        r"""
-        Último método de la Fase 3.
+        phase1_handoff: Phase1HermiticityHandoff,
+    ) -> None:
+        """El handoff de Fase 2 debe preservar identidad del handoff de Fase 1."""
+        assert phase2_handoff.phase1_handoff is phase1_handoff
+        assert (
+            phase2_handoff.phase1_handoff.hermiticity_audit
+            is phase1_handoff.hermiticity_audit
+        )
 
-        Compone los certificados de Fase 1, Fase 2 y Fase 3 en el objeto
-        terminal VacuumGovernanceState.
+    def test_phase2_handoff_contains_safe_bekenstein_audit(
+        self,
+        phase2_handoff: Phase2BekensteinHandoff,
+    ) -> None:
+        """El handoff de Fase 2 debe contener una auditoría entrópica segura."""
+        assert phase2_handoff.bekenstein_audit.is_entropically_safe is True
+        assert phase2_handoff.bekenstein_audit.bekenstein_bound >= 0.0
+        assert np.isfinite(phase2_handoff.bekenstein_audit.entropy_ratio)
+
+    def test_phase2_handoff_is_immutable(
+        self,
+        phase2_handoff: Phase2BekensteinHandoff,
+    ) -> None:
+        """El handoff de Fase 2 debe ser inmutable."""
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            phase2_handoff.bekenstein_audit = None
+
+    def test_phase2_terminal_handoff_is_phase3_initial_object(
+        self,
+        phase2_handoff: Phase2BekensteinHandoff,
+        symplectic_inputs_2d: Dict[str, np.ndarray],
+    ) -> None:
         """
-        if not isinstance(phase2_handoff, Phase2BekensteinHandoff):
-            raise DomainIntegrityViolationError(
-                "Fase 3 exige un Phase2BekensteinHandoff como prefijo formal."
-            )
+        Lema de Continuación Funtorial Φ₃ ∘ Φ₂:
 
-        symplectic_audit = self._certify_symplectic_port_hamiltonian(
-            jacobian_M=jacobian_M,
-            grad_H=grad_H,
-            J_matrix=J_matrix,
-            R_matrix=R_matrix,
+        El objeto terminal de Fase 2 debe ser aceptado como prefijo formal
+        por Fase 3 y permitir la certificación simpléctica.
+        """
+        certifier = Phase3_SymplecticPortHamiltonianCertifier()
+
+        state = certifier._phase3_finalize_from_phase2_handoff(
+            phase2_handoff=phase2_handoff,
+            **symplectic_inputs_2d,
         )
 
-        state = VacuumGovernanceState(
-            hermiticity_audit=phase2_handoff.phase1_handoff.hermiticity_audit,
-            bekenstein_audit=phase2_handoff.bekenstein_audit,
-            symplectic_audit=symplectic_audit,
-            is_epistemologically_valid=True,
-        )
-
-        logger.info(
-            "Vacío cuántico auditado categóricamente. "
-            "||A - A†||_F=%.6e | S=%.6e ≤ S_max=%.6e | Ḣ=%.6e.",
-            state.hermiticity_audit.residual_norm,
-            state.bekenstein_audit.entropy_emitted,
-            state.bekenstein_audit.bekenstein_bound,
-            state.symplectic_audit.dissipation_rate,
-        )
-
-        return state
+        assert isinstance(state, VacuumGovernanceState)
+        assert state.is_epistemologically_valid is True
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   ORQUESTADOR SUPREMO: ANTIMATTER CHOKE COIL AGENT                          ║
-# ║   Endofuntor Z_Vacuum = Φ₃ ∘ Φ₂ ∘ Φ₁                                      ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
+# ══════════════════════════════════════════════════════════════════════════════
+# §7. FASE 3 — CERTIFICACIÓN SIMPLÉCTICA PORT-HAMILTONIANA
+# ══════════════════════════════════════════════════════════════════════════════
 
-class AntimatterChokeCoilAgent(
-    Morphism,
-    Phase3_SymplecticPortHamiltonianCertifier,
-):
-    r"""
-    El Custodio del Vacío Cuántico en el Estrato Ω.
 
-    Somete los procesos de inyección de antimateria exógena a las leyes
-    inmutables de la conservación geométrica y los límites absolutos de la
-    entropía.
+class TestPhase3SymplecticPortHamiltonianCertifier:
+    """
+    Fase 3: Certificación simpléctica y disipación Port-Hamiltoniana.
+
+    Condiciones:
+        1. Mᵀ Ω M = Ω
+        2. J = -Jᵀ
+        3. R = Rᵀ ⪰ 0
+        4. Ḣ = -∇Hᵀ R ∇H <= 0
+
+    El primer insumo formal es `Phase2BekensteinHandoff`.
     """
 
-    def execute_vacuum_governance(
+    def test_phase3_certifier_is_instantiable(self) -> None:
+        """Fase 3 debe poder instanciarse como extensión de Fase 2."""
+        certifier = Phase3_SymplecticPortHamiltonianCertifier()
+        assert isinstance(certifier, Phase3_SymplecticPortHamiltonianCertifier)
+        assert isinstance(certifier, Phase2_BekensteinBoundEnforcer)
+        assert isinstance(certifier, Phase1_HermiticityAuditor)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.1. Forma simpléctica canónica
+    # ─────────────────────────────────────────────────────────────────────────
+
+    @pytest.mark.parametrize("n", [0, -1, -2])
+    def test_build_symplectic_form_rejects_nonpositive_dof(
         self,
-        operator_A: NDArray[np.complex128],
-        gamma_energy: float,
-        system_radius_R: float,
-        emitted_entropy_S: float,
-        jacobian_M: NDArray[np.float64],
-        grad_H: NDArray[np.float64],
-        J_matrix: NDArray[np.float64],
-        R_matrix: NDArray[np.float64],
-    ) -> VacuumGovernanceState:
-        r"""
-        Ejecuta la composición funtorial estricta.
-        """
-        phase1_handoff = self._phase1_audit_and_handoff_to_phase2(
-            operator_A=operator_A,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+        n: int,
+    ) -> None:
+        """El número de grados de libertad debe ser positivo."""
+        with pytest.raises(PhaseSpaceTopologyError):
+            phase3_certifier._build_symplectic_form(n)
+
+    @pytest.mark.parametrize("n", [1, 2])
+    def test_build_symplectic_form_canonical_properties(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+        n: int,
+    ) -> None:
+        """La 2-forma canónica debe ser antisimétrica, cuadrática y unitaria."""
+        omega = phase3_certifier._build_symplectic_form(n)
+        dim = 2 * n
+
+        assert omega.shape == (dim, dim)
+        np.testing.assert_allclose(omega.T, -omega, atol=1e-15)
+        np.testing.assert_allclose(omega @ omega, -np.eye(dim), atol=1e-15)
+
+        det = float(np.linalg.det(omega))
+        assert det == pytest.approx(1.0, abs=1e-8)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.2. Topología del espacio de fase
+    # ─────────────────────────────────────────────────────────────────────────
+
+    @pytest.mark.parametrize("dim, expected_dof", [(2, 1), (4, 2), (6, 3)])
+    def test_verify_phase_space_dimension_accepts_even_dimensions(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+        dim: int,
+        expected_dof: int,
+    ) -> None:
+        """El teorema de Darboux exige dimensión par."""
+        dof = phase3_certifier._verify_phase_space_dimension(dim)
+        assert dof == expected_dof
+
+    @pytest.mark.parametrize("dim", [1, 3, 5])
+    def test_verify_phase_space_dimension_rejects_odd_dimensions(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+        dim: int,
+    ) -> None:
+        """Una dimensión impar no admite estructura simpléctica."""
+        with pytest.raises(PhaseSpaceTopologyError):
+            phase3_certifier._verify_phase_space_dimension(dim)
+
+    @pytest.mark.parametrize("dim", [0, -2])
+    def test_verify_phase_space_dimension_rejects_nonpositive_dimensions(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+        dim: int,
+    ) -> None:
+        """Una dimensión no positiva es topológicamente inválida."""
+        with pytest.raises(PhaseSpaceTopologyError):
+            phase3_certifier._verify_phase_space_dimension(dim)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.3. Antisimetría de J
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_certify_antisymmetric_matrix_accepts_canonical_J(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Una matriz J canónica debe ser certificada como antisimétrica."""
+        J = make_canonical_antisymmetric_matrix(4)
+        residual = phase3_certifier._certify_antisymmetric_matrix("J", J, 4)
+        assert residual == pytest.approx(0.0, abs=1e-15)
+
+    def test_certify_antisymmetric_matrix_accepts_tolerated_noise(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Ruido simétrico infinitesimal dentro de tolerancia debe pasar."""
+        J = make_canonical_antisymmetric_matrix(4)
+        J_noisy = J + 1e-12 * np.ones((4, 4), dtype=np.float64)
+
+        residual = phase3_certifier._certify_antisymmetric_matrix("J", J_noisy, 4)
+        assert np.isfinite(residual)
+        assert residual <= 1e-10
+
+    def test_certify_antisymmetric_matrix_rejects_symmetric_part(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Una matriz simétrica no puede ser matriz de interconexión."""
+        J_bad = np.eye(4, dtype=np.float64)
+
+        with pytest.raises(SymplecticCollapseError):
+            phase3_certifier._certify_antisymmetric_matrix("J", J_bad, 4)
+
+    def test_certify_antisymmetric_matrix_rejects_wrong_dimension(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """La dimensión esperada debe coincidir exactamente."""
+        J = make_canonical_antisymmetric_matrix(4)
+
+        with pytest.raises(SymplecticCollapseError):
+            phase3_certifier._certify_antisymmetric_matrix("J", J, 2)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.4. Simetría y semidefinición positiva de R
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_certify_symmetric_positive_semidefinite_accepts_identity(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """R = I es simétrica y definida positiva."""
+        R = np.eye(3, dtype=np.float64)
+        R_cert, sym_res, min_eig, max_eig = (
+            phase3_certifier._certify_symmetric_positive_semidefinite_matrix(
+                "R",
+                R,
+                3,
+            )
         )
 
-        phase2_handoff = self._phase2_enforce_and_handoff_to_phase3(
-            phase1_handoff=phase1_handoff,
-            gamma_energy=gamma_energy,
-            system_radius_R=system_radius_R,
-            emitted_entropy_S=emitted_entropy_S,
+        np.testing.assert_allclose(R_cert, R)
+        assert sym_res == pytest.approx(0.0, abs=1e-15)
+        assert min_eig == pytest.approx(1.0)
+        assert max_eig == pytest.approx(1.0)
+
+    def test_certify_symmetric_positive_semidefinite_accepts_zero(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """R = 0 es semidefinida positiva y representa disipación nula."""
+        R = np.zeros((2, 2), dtype=np.float64)
+        R_cert, sym_res, min_eig, max_eig = (
+            phase3_certifier._certify_symmetric_positive_semidefinite_matrix(
+                "R",
+                R,
+                2,
+            )
         )
 
-        return self._phase3_finalize_from_phase2_handoff(
+        np.testing.assert_allclose(R_cert, R)
+        assert sym_res == pytest.approx(0.0, abs=1e-15)
+        assert min_eig == pytest.approx(0.0, abs=1e-15)
+        assert max_eig == pytest.approx(0.0, abs=1e-15)
+
+    def test_certify_symmetric_positive_semidefinite_accepts_tiny_negative_within_tolerance(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Autovalores negativos dentro de tolerancia numérica se toleran."""
+        R = np.diag([-1e-13, 1.0]).astype(np.float64)
+
+        R_cert, sym_res, min_eig, max_eig = (
+            phase3_certifier._certify_symmetric_positive_semidefinite_matrix(
+                "R",
+                R,
+                2,
+            )
+        )
+
+        assert np.all(np.isfinite(R_cert))
+        assert sym_res == pytest.approx(0.0, abs=1e-15)
+        assert min_eig < 0.0
+        assert min_eig >= -1e-12
+        assert max_eig == pytest.approx(1.0)
+
+    def test_certify_symmetric_positive_semidefinite_rejects_negative_eigenvalue(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Un autovalor negativo macroscópico viola pasividad."""
+        R = np.diag([-1e-2, 1.0]).astype(np.float64)
+
+        with pytest.raises(SymplecticCollapseError):
+            phase3_certifier._certify_symmetric_positive_semidefinite_matrix(
+                "R",
+                R,
+                2,
+            )
+
+    def test_certify_symmetric_positive_semidefinite_rejects_nonsymmetric_matrix(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """R debe ser simétrica antes de evaluar semidefinición positiva."""
+        R = np.array([[1.0, 1.0], [0.0, 1.0]], dtype=np.float64)
+
+        with pytest.raises(SymplecticCollapseError):
+            phase3_certifier._certify_symmetric_positive_semidefinite_matrix(
+                "R",
+                R,
+                2,
+            )
+
+    def test_certify_symmetric_positive_semidefinite_rejects_wrong_dimension(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """La dimensión de R debe coincidir con el espacio de fase."""
+        R = np.eye(2, dtype=np.float64)
+
+        with pytest.raises(SymplecticCollapseError):
+            phase3_certifier._certify_symmetric_positive_semidefinite_matrix(
+                "R",
+                R,
+                3,
+            )
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.5. Invarianza de volumen simpléctico
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_symplectic_volume_preservation_accepts_identity(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """M = I preserva trivialmente la 2-forma canónica."""
+        omega = phase3_certifier._build_symplectic_form(1)
+        M = np.eye(2, dtype=np.float64)
+
+        residual, det_residual = (
+            phase3_certifier._verify_symplectic_volume_preservation(M, omega)
+        )
+
+        assert residual == pytest.approx(0.0, abs=1e-15)
+        assert det_residual == pytest.approx(0.0, abs=1e-12)
+
+    def test_symplectic_volume_preservation_accepts_shear(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Una cizalla con determinante unitario es simpléctica en 2D."""
+        omega = phase3_certifier._build_symplectic_form(1)
+        M = np.array([[1.0, 1.0], [0.0, 1.0]], dtype=np.float64)
+
+        residual, det_residual = (
+            phase3_certifier._verify_symplectic_volume_preservation(M, omega)
+        )
+
+        assert residual <= 1e-10
+        assert det_residual <= 1e-9
+
+    def test_symplectic_volume_preservation_rejects_scaling(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Una homotecia M = 2I destruye el volumen simpléctico."""
+        omega = phase3_certifier._build_symplectic_form(1)
+        M = 2.0 * np.eye(2, dtype=np.float64)
+
+        with pytest.raises(SymplecticCollapseError):
+            phase3_certifier._verify_symplectic_volume_preservation(M, omega)
+
+    def test_symplectic_volume_preservation_rejects_nonfinite_transformation(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Una transformación no finita debe detonar colapso simpléctico."""
+        omega = phase3_certifier._build_symplectic_form(1)
+        M = np.array([[np.nan, 0.0], [0.0, 1.0]], dtype=np.float64)
+
+        with pytest.raises(SymplecticCollapseError):
+            phase3_certifier._verify_symplectic_volume_preservation(M, omega)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.6. Disipación Port-Hamiltoniana
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_audit_dissipation_is_nonpositive_for_psd_R(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Con R ⪰ 0, la tasa de energía debe ser no positiva."""
+        grad_H = np.array([1.0, 2.0], dtype=np.float64)
+        R = np.eye(2, dtype=np.float64)
+
+        h_dot = phase3_certifier._audit_port_hamiltonian_dissipation(grad_H, R)
+
+        assert h_dot <= 0.0
+        assert math.isclose(h_dot, -5.0, rel_tol=1e-15, abs_tol=0.0)
+
+    def test_audit_dissipation_zero_for_zero_gradient(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Si ∇H = 0, la tasa de disipación es exactamente cero."""
+        grad_H = np.zeros(2, dtype=np.float64)
+        R = np.eye(2, dtype=np.float64)
+
+        h_dot = phase3_certifier._audit_port_hamiltonian_dissipation(grad_H, R)
+        assert h_dot == pytest.approx(0.0, abs=1e-15)
+
+    def test_audit_dissipation_rejects_energy_injection(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Una matriz R negativa inyecta energía y viola la segunda ley."""
+        grad_H = np.array([1.0, 1.0], dtype=np.float64)
+        R = -np.eye(2, dtype=np.float64)
+
+        with pytest.raises(SymplecticCollapseError):
+            phase3_certifier._audit_port_hamiltonian_dissipation(grad_H, R)
+
+    def test_audit_dissipation_rejects_nonfinite_rate(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Una tasa de disipación no finita debe ser rechazada."""
+        grad_H = np.array([np.nan, 1.0], dtype=np.float64)
+        R = np.eye(2, dtype=np.float64)
+
+        with pytest.raises(SymplecticCollapseError):
+            phase3_certifier._audit_port_hamiltonian_dissipation(grad_H, R)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.7. Certificación completa Port-Hamiltoniana
+    # ─────────────────────────────────────────────────────────────────────────
+
+    @pytest.mark.parametrize("dim", [2, 4])
+    def test_certify_symplectic_port_hamiltonian_valid(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+        dim: int,
+    ) -> None:
+        """Un sistema Port-Hamiltoniano válido debe certificarse."""
+        inputs = make_symplectic_inputs(dim=dim, dissipation=0.2, seed=dim)
+
+        audit = phase3_certifier._certify_symplectic_port_hamiltonian(**inputs)
+
+        assert audit.is_symplectically_invariant is True
+        assert audit.phase_space_dimension == dim
+        assert audit.degrees_of_freedom == dim // 2
+        assert audit.dissipation_rate <= 0.0
+        assert np.isfinite(audit.symplectic_residual)
+        assert np.isfinite(audit.determinant_residual)
+        assert np.isfinite(audit.antisymmetry_residual)
+        assert np.isfinite(audit.r_symmetry_residual)
+        assert audit.r_min_eigenvalue >= -1e-12
+
+    def test_certify_symplectic_port_hamiltonian_rejects_odd_dimension(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Una dimensión impar debe violar la topología del espacio de fase."""
+        M = np.eye(1, dtype=np.float64)
+        grad_H = np.ones(1, dtype=np.float64)
+        J = np.zeros((1, 1), dtype=np.float64)
+        R = np.eye(1, dtype=np.float64)
+
+        with pytest.raises(PhaseSpaceTopologyError):
+            phase3_certifier._certify_symplectic_port_hamiltonian(
+                jacobian_M=M,
+                grad_H=grad_H,
+                J_matrix=J,
+                R_matrix=R,
+            )
+
+    def test_certify_symplectic_port_hamiltonian_rejects_nonfinite_jacobian(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Un jacobiano no finito viola la integridad de dominio."""
+        inputs = make_symplectic_inputs(dim=2, dissipation=0.1, seed=3)
+        inputs["jacobian_M"] = np.array([[np.nan, 0.0], [0.0, 1.0]], dtype=np.float64)
+
+        with pytest.raises(DomainIntegrityViolationError):
+            phase3_certifier._certify_symplectic_port_hamiltonian(**inputs)
+
+    def test_certify_symplectic_port_hamiltonian_rejects_wrong_grad_dimension(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """El gradiente hamiltoniano debe tener la dimensión del espacio de fase."""
+        inputs = make_symplectic_inputs(dim=2, dissipation=0.1, seed=5)
+        inputs["grad_H"] = np.ones(3, dtype=np.float64)
+
+        with pytest.raises(DomainIntegrityViolationError):
+            phase3_certifier._certify_symplectic_port_hamiltonian(**inputs)
+
+    def test_certify_symplectic_port_hamiltonian_rejects_invalid_J(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Una matriz J no antisimétrica debe detonar colapso simpléctico."""
+        inputs = make_symplectic_inputs(dim=2, dissipation=0.1, seed=7)
+        inputs["J_matrix"] = np.eye(2, dtype=np.float64)
+
+        with pytest.raises(SymplecticCollapseError):
+            phase3_certifier._certify_symplectic_port_hamiltonian(**inputs)
+
+    def test_certify_symplectic_port_hamiltonian_rejects_invalid_R(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+    ) -> None:
+        """Una matriz R negativa debe violar la condición de pasividad."""
+        inputs = make_symplectic_inputs(dim=2, dissipation=0.1, seed=9)
+        inputs["R_matrix"] = -np.eye(2, dtype=np.float64)
+
+        with pytest.raises(SymplecticCollapseError):
+            phase3_certifier._certify_symplectic_port_hamiltonian(**inputs)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 7.8. Finalización funtorial de Fase 3
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def test_phase3_finalize_requires_phase2_handoff(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+        symplectic_inputs_2d: Dict[str, np.ndarray],
+    ) -> None:
+        """Fase 3 debe rechazar cualquier prefijo que no sea Fase 2."""
+        with pytest.raises(DomainIntegrityViolationError):
+            phase3_certifier._phase3_finalize_from_phase2_handoff(
+                phase2_handoff=object(),
+                **symplectic_inputs_2d,
+            )
+
+    def test_phase3_finalize_returns_vacuum_state_from_phase2_handoff(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+        phase2_handoff: Phase2BekensteinHandoff,
+        symplectic_inputs_2d: Dict[str, np.ndarray],
+    ) -> None:
+        """La finalización debe producir un VacuumGovernanceState válido."""
+        state = phase3_certifier._phase3_finalize_from_phase2_handoff(
             phase2_handoff=phase2_handoff,
-            jacobian_M=jacobian_M,
-            grad_H=grad_H,
-            J_matrix=J_matrix,
-            R_matrix=R_matrix,
+            **symplectic_inputs_2d,
         )
 
-    def __call__(
+        assert isinstance(state, VacuumGovernanceState)
+        assert state.is_epistemologically_valid is True
+        assert state.hermiticity_audit.is_hermitian is True
+        assert state.bekenstein_audit.is_entropically_safe is True
+        assert state.symplectic_audit.is_symplectically_invariant is True
+
+    def test_phase3_finalize_propagates_phase1_and_phase2_certificates(
         self,
-        operator_A: NDArray[np.complex128],
-        gamma_energy: float,
-        system_radius_R: float,
-        emitted_entropy_S: float,
-        jacobian_M: NDArray[np.float64],
-        grad_H: NDArray[np.float64],
-        J_matrix: NDArray[np.float64],
-        R_matrix: NDArray[np.float64],
-    ) -> VacuumGovernanceState:
-        r"""Alias invocable del endofuntor de gobierno del vacío cuántico."""
-        return self.execute_vacuum_governance(
-            operator_A=operator_A,
-            gamma_energy=gamma_energy,
-            system_radius_R=system_radius_R,
-            emitted_entropy_S=emitted_entropy_S,
-            jacobian_M=jacobian_M,
-            grad_H=grad_H,
-            J_matrix=J_matrix,
-            R_matrix=R_matrix,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+        phase2_handoff: Phase2BekensteinHandoff,
+        symplectic_inputs_2d: Dict[str, np.ndarray],
+    ) -> None:
+        """Los certificados previos deben propagarse sin mutación."""
+        state = phase3_certifier._phase3_finalize_from_phase2_handoff(
+            phase2_handoff=phase2_handoff,
+            **symplectic_inputs_2d,
         )
 
+        assert state.hermiticity_audit is (
+            phase2_handoff.phase1_handoff.hermiticity_audit
+        )
+        assert state.bekenstein_audit is phase2_handoff.bekenstein_audit
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# EXPORTACIÓN CANÓNICA
-# ═══════════════════════════════════════════════════════════════════════════════
+    def test_phase3_finalize_rejects_invalid_symplectic_input(
+        self,
+        phase3_certifier: Phase3_SymplecticPortHamiltonianCertifier,
+        phase2_handoff: Phase2BekensteinHandoff,
+        symplectic_inputs_2d: Dict[str, np.ndarray],
+    ) -> None:
+        """Una entrada simpléctica inválida debe impedir la finalización."""
+        bad_inputs = dict(symplectic_inputs_2d)
+        bad_inputs["jacobian_M"] = 2.0 * np.eye(2, dtype=np.float64)
 
-__all__ = [
-    "VacuumCustodianError",
-    "DomainIntegrityViolationError",
-    "NonHermitianOperatorError",
-    "BekensteinLimitViolation",
-    "SymplecticCollapseError",
-    "HermiticityAuditData",
-    "BekensteinBoundData",
-    "SymplecticDissipationData",
-    "Phase1HermiticityHandoff",
-    "Phase2BekensteinHandoff",
-    "VacuumGovernanceState",
-    "Phase1_HermiticityAuditor",
-    "Phase2_BekensteinBoundEnforcer",
-    "Phase3_SymplecticPortHamiltonianCertifier",
-    "AntimatterChokeCoilAgent",
-]
+        with pytest.raises(SymplecticCollapseError):
+            phase3_certifier._phase3_finalize_from_phase2_handoff(
+                phase2_handoff=phase2_handoff,
+                **bad_inputs,
+            )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §8. ORQUESTADOR SUPREMO — ENDOFUNTOR COMPLETO
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+class TestEndToEndVacuumGovernance:
+    """
+    Orquestación completa:
+
+        Z_Vacuum = Φ₃ ∘ Φ₂ ∘ Φ₁
+
+    Estos tests validan el diagrama conmutativo completo, la metadata
+    de gobernanza y la inmutabilidad del estado terminal.
+    """
+
+    def test_agent_is_phase3_subclass_and_morphism_if_available(self) -> None:
+        """El agente debe componer todas las fases y ser morfismo si aplica."""
+        agent_instance = AntimatterChokeCoilAgent()
+
+        assert isinstance(agent_instance, Phase3_SymplecticPortHamiltonianCertifier)
+        assert isinstance(agent_instance, Phase2_BekensteinBoundEnforcer)
+        assert isinstance(agent_instance, Phase1_HermiticityAuditor)
+
+        if Morphism is not None:
+            assert isinstance(agent_instance, Morphism)
+
+    def test_execute_vacuum_governance_valid_end_to_end(
+        self,
+        agent: AntimatterChokeCoilAgent,
+    ) -> None:
+        """El endofuntor completo debe certificar un vacío cuántico válido."""
+        inputs = make_valid_agent_inputs(dim=2, seed=17)
+        state = agent.execute_vacuum_governance(**inputs)
+
+        assert isinstance(state, VacuumGovernanceState)
+        assert state.is_epistemologically_valid is True
+
+        assert state.hermiticity_audit.is_hermitian is True
+        assert state.bekenstein_audit.is_entropically_safe is True
+        assert state.symplectic_audit.is_symplectically_invariant is True
+        assert state.symplectic_audit.dissipation_rate <= 0.0
+
+    def test_callable_alias_returns_governance_state(
+        self,
+        agent: AntimatterChokeCoilAgent,
+    ) -> None:
+        """__call__ debe ser un alias del endofuntor de gobierno."""
+        inputs = make_valid_agent_inputs(dim=2, seed=19)
+        state = agent(**inputs)
+
+        assert isinstance(state, VacuumGovernanceState)
+        assert state.is_epistemologically_valid is True
+
+    def test_execute_accepts_zero_dissipation(
+        self,
+        agent: AntimatterChokeCoilAgent,
+    ) -> None:
+        """R = 0 representa disipación nula y debe ser válido."""
+        inputs = make_valid_agent_inputs(dim=2, seed=23)
+        inputs["R_matrix"] = np.zeros((2, 2), dtype=np.float64)
+
+        state = agent.execute_vacuum_governance(**inputs)
+
+        assert state.is_epistemologically_valid is True
+        assert state.symplectic_audit.dissipation_rate == pytest.approx(
+            0.0,
+            abs=1e-15,
+        )
+
+    def test_execute_accepts_shear_jacobian(
+        self,
+        agent: AntimatterChokeCoilAgent,
+    ) -> None:
+        """Un jacobiano de cizalla con det=1 debe preservar el volumen."""
+        inputs = make_valid_agent_inputs(dim=2, seed=29)
+        inputs["jacobian_M"] = np.array(
+            [[1.0, 1.0], [0.0, 1.0]],
+            dtype=np.float64,
+        )
+
+        state = agent.execute_vacuum_governance(**inputs)
+
+        assert state.is_epistemologically_valid is True
+        assert state.symplectic_audit.is_symplectically_invariant is True
+
+    def test_execute_rejects_non_hermitian_operator(
+        self,
+        agent: AntimatterChokeCoilAgent,
+        non_hermitian_operator_2x2: np.ndarray,
+    ) -> None:
+        """Fase 1 debe abortar la composición si A ≠ A†."""
+        inputs = make_valid_agent_inputs(dim=2, seed=31)
+        inputs["operator_A"] = non_hermitian_operator_2x2
+
+        with pytest.raises(NonHermitianOperatorError):
+            agent.execute_vacuum_governance(**inputs)
+
+    def test_execute_rejects_non_square_operator(
+        self,
+        agent: AntimatterChokeCoilAgent,
+    ) -> None:
+        """Un operador no cuadrado viola el dominio de Fase 1."""
+        inputs = make_valid_agent_inputs(dim=2, seed=37)
+        inputs["operator_A"] = np.ones((2, 3), dtype=np.complex128)
+
+        with pytest.raises(DomainIntegrityViolationError):
+            agent.execute_vacuum_governance(**inputs)
+
+    def test_execute_rejects_bekenstein_violation(
+        self,
+        agent: AntimatterChokeCoilAgent,
+    ) -> None:
+        """Fase 2 debe abortar si la entropía excede la cota causal."""
+        inputs = make_valid_agent_inputs(dim=2, seed=41)
+        inputs["emitted_entropy_S"] = 1.0e-6
+
+        with pytest.raises(BekensteinLimitViolation):
+            agent.execute_vacuum_governance(**inputs)
+
+    def test_execute_rejects_symplectic_collapse(
+        self,
+        agent: AntimatterChokeCoilAgent,
+    ) -> None:
+        """Fase 3 debe abortar si se destruye el volumen simpléctico."""
+        inputs = make_valid_agent_inputs(dim=2, seed=43)
+        inputs["jacobian_M"] = 2.0 * np.eye(2, dtype=np.float64)
+
+        with pytest.raises(SymplecticCollapseError):
+            agent.execute_vacuum_governance(**inputs)
+
+    def test_execute_with_four_dimensional_phase_space(
+        self,
+        agent: AntimatterChokeCoilAgent,
+    ) -> None:
+        """El endofuntor debe funcionar en espacios de fase 4D."""
+        inputs = make_valid_agent_inputs(dim=4, seed=47)
+        state = agent.execute_vacuum_governance(**inputs)
+
+        assert state.is_epistemologically_valid is True
+        assert state.symplectic_audit.phase_space_dimension == 4
+        assert state.symplectic_audit.degrees_of_freedom == 2
+
+    def test_governance_metadata_is_complete_and_finite(
+        self,
+        agent: AntimatterChokeCoilAgent,
+    ) -> None:
+        """La metadata de gobernanza debe ser completa, finita y coherente."""
+        inputs = make_valid_agent_inputs(dim=4, seed=53)
+        state = agent.execute_vacuum_governance(**inputs)
+
+        meta = state.governance_metadata
+
+        expected_keys = {
+            "functor_composition",
+            "phase1_residual",
+            "phase2_entropy_ratio",
+            "phase3_dissipation_rate",
+            "phase_space_dof",
+            "information_capacity_bits",
+        }
+        assert expected_keys.issubset(meta.keys())
+
+        assert meta["functor_composition"] == "Φ₃ ∘ Φ₂ ∘ Φ₁"
+        assert meta["phase_space_dof"] == 2
+
+        assert np.isfinite(float(meta["phase1_residual"]))
+        assert np.isfinite(float(meta["phase2_entropy_ratio"]))
+        assert np.isfinite(float(meta["phase3_dissipation_rate"]))
+        assert np.isfinite(float(meta["information_capacity_bits"]))
+
+        assert float(meta["phase1_residual"]) >= 0.0
+        assert float(meta["phase2_entropy_ratio"]) >= 0.0
+        assert float(meta["phase3_dissipation_rate"]) <= 0.0
+        assert float(meta["information_capacity_bits"]) >= 0.0
+
+    def test_vacuum_governance_state_is_immutable(
+        self,
+        agent: AntimatterChokeCoilAgent,
+    ) -> None:
+        """El objeto terminal del endofuntor debe ser inmutable."""
+        inputs = make_valid_agent_inputs(dim=2, seed=59)
+        state = agent.execute_vacuum_governance(**inputs)
+
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            state.is_epistemologically_valid = False
+
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            state.hermiticity_audit.residual_norm = 1.0
+
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            state.governance_metadata = {}
