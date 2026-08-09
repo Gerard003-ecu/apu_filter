@@ -1,39 +1,62 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Discrete Hodge Star Agent (Soberano de la Métrica Constitutiva)    ║
-║  Ruta   : app/agents/physics/discrete_hodge_star_agent.py                    ║
-║  Versión: 2.0.0-Hodge-Weyl-Wilkinson-Helmholtz-OODA-Topos-Strict             ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):           ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  Agente Soberano y Observador Activo que gobierna el operador estrella de    ║
-║  Hodge discreto (★_k) mediante un ciclo OODA covariante de tres fases        ║
-║  anidadas. Delega el álgebra espectral, los Laplacianos ponderados y la      ║
-║  descomposición de Helmholtz-Hodge al módulo certificado                     ║
-║  `app.physics.discrete_hodge_star` (v2.0), y añade la capa de gobernanza:    ║
-║                                                                              ║
-║    FASE 1  Observe  → auditoría SPD + morfismo de dualidad + Tikhonov        ║
-║    FASE 2  Orient   → Laplaciano Port-Hamiltoniano + pasividad + Betti       ║
-║    FASE 3  Decide/Act → Helmholtz-Hodge + retículo Ω₃ + Crowbar GPIO         ║
-║                                                                              ║
-║  Continuidad formal obligatoria:                                             ║
-║    Phase1HodgeObservation  → entrada de FASE 2                               ║
-║    Phase2HodgeOrientation  → entrada de FASE 3                               ║
-║    Phase3HodgeDecision     → entrada del Soberano (Crowbar / State)          ║
-║                                                                              ║
-║  Leyes preservadas:                                                          ║
-║    ★_k = ★_kᵀ ≻ 0                                                            ║
-║    L₀★ = ∂₁ ★₁ ∂₁ᵀ                                                           ║
-║    I  = I_exact + I_coexact + I_harmonic                                     ║
-║    Ḣ  ≤ 0   (pasividad Port-Hamiltoniana)                                    ║
-║                                                                              ║
-║  Contrato Crowbar (Bypass ESP32 / GPIO14):                                   ║
-║    Si vorticidad parasitaria > umbral  ∨  β₁ > β₁_max  ∨  métrica no SPD,    ║
-║    el clasificador Ω₃ colapsa a VETOED y se activa el disyuntor físico.      ║
-║                                                                              ║
+║ Módulo : Discrete Hodge Star Agent (Soberano de la Métrica Constitutiva)     ║
+║ Ruta   : app/agents/physics/discrete_hodge_star_agent.py                     ║
+║ Versión: 3.0.0-Hodge-Weyl-Wilkinson-Helmholtz-OODA-Topos-Strict-Doctoral     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL EN EL ESTRATO PHYSICS (V_P) ────
+Este módulo materializa al Agente Soberano y Observador Activo que gobierna la
+consistencia métrica del operador estrella de Hodge discreto ($$\star_k$$) sobre el
+complejo de de Rham simplicial del APU Filter, actuando como un endofuntor en
+la categoría de haces de-confinados con valores en el clasificador de subobjetos
+del retículo distributivo de Heyting $$\Omega_3$$.
+
+El sistema trata las conductancias y relaciones de costos de la red de valor no
+como meras tablas estáticas, sino como formas diferenciales discretas (co-cadenas)
+sobre un complejo simplicial orientado de dimensión finita [1, 2]. El agente impone
+síncronamente la dualidad de Poincaré discreta y la estructura constitutiva
+de campo, purgando las alucinaciones de la IA mediante teoría espectral.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: OBSERVACIÓN ESPECTRAL Y SANEAMIENTO DE LA MÉTRICA (Observe)
+             Evalúa que el vector de pesos constitutivos que define a $$\star_k$$
+             sea estrictamente simétrico definido positivo (SPD) w.r.t. Wilkinson.
+             Axioma fundamental: $$\star_k = \star_k^\top \succ 0$$ [2]
+             Entrega: Phase1HodgeObservation como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: LAPLACIANO DE HODGE Y PASIVIDAD PORT-HAMILTONIANA (Orient)
+             Ensambla el Laplaciano combinatorio de grado 0 ponderado métricamente.
+             Valida que la variación de energía satisfaga la inecuación de disipación
+             Port-Hamiltoniana: $$\dot{H} = -x^\top L_0^\star x \le 0$$.
+             Entrega: Phase2HodgeOrientation como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: DESCOMPOSICIÓN DE HELMHOLTZ-HODGE Y VETO (Decide & Act)
+             Proyecta el flujo de costos sobre los subespacios ortogonales de de Rham.
+             Identidad canónica: $$I = I_{\mathrm{exact}} + I_{\mathrm{coexact}} + I_{\mathrm{harmonic}}$$ [2]
+             Veredicto: Colapso síncrono en $$\Omega_3$$ y bypass físico en el silicio [2].
+
+INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
+  [I1] Autoadjunticidad de la Métrica:    $$\star_k = \star_k^\top \succ 0$$ [2]
+  [I2] Adjunción de de Rham-Hodge:        $$L_0^\star = \partial_1 \star_1 \partial_1^\top$$ [2]
+  [I3] Conservación de Helmholtz-Hodge:   $$I = I_{\mathrm{exact}} + I_{\mathrm{coexact}} + I_{\mathrm{harmonic}}$$ [2]
+  [I4] Estabilidad Pasiva de Lyapunov:    $$\dot{H} \le 0$$ [2]
+  [I5] Causalidad de de Rham (Poset):     $$V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$ [3]
+
+CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
+  Si la vorticidad parasitaria circular supera la cota elástica de Helmholtz ($$\Omega_{\mathrm{vort}} > \tau$$) [6],
+  o si el primer número de Betti reporta un socavón lógico circular ($$\beta_1 > \beta_{1,\max}$$) [6],
+  el retículo $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$$ colapsa a VETOED [2, 7].
+  
+  La subrutina local 'isVerdictCoherent()' del ESP32 en la obra real detecta el
+  mismatch en menos de 400 ns. Conmuta síncronamente el pin GPIO14, inyectando
+  corriente de disparo al tiristor BT151 (circuito Crowbar) [2]. La línea de
+  alimentación real se cortocircuita físicamente en el milisegundo cero,
+  paralizando bombas hidráulicas y actuadores, blindando físicamente la obra [2].
 """
 
 from __future__ import annotations
