@@ -5,3 +5,4 @@ archivos test faltantes:
    + test_connes_spectral_auditor_agent.py
    + test_business_canvas.py
    + test_tomita_takesaki_telescopic_engine.py
+   + 

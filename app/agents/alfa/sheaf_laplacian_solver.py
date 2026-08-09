@@ -1,25 +1,68 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Sheaf Laplacian Solver (Motor de Coherencia de Haz de de Rham)     ║
-║  Ruta   : app/agents/alpha/sheaf_laplacian_solver.py                         ║
-║  Versión: 5.1.0-Sheaf-Hodge-Cholesky-Krylov-Strict                           ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL:                                   ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  Este módulo materializa el solucionador de alto rendimiento para el         ║
-║  Laplaciano del Haz Celular $L_F = \delta^\top G^{-1} \delta \succeq 0$      ║
-║  en la variedad de de Rham-Hodge sobre el Estrato de la Estrategia.          ║
-║  Evita la inversión directa mediante la factorización de Cholesky de la      ║
-║  métrica Riemanniana de fondo, garantizando la consistencia y la pasividad   ║
-║  espectral en la Unidad de Punto Flotante (FPU).                             ║
-║                                                                              ║
-║  Axioma de Integrabilidad y Estabilidad del Haz:                             ║
-║    $$L_F = \delta^\top G^{-1} \delta = Y^\top Y \quad \land \quad L_G Y = \delta$$║
-║    $$\Delta \Phi = -\rho \quad \implies \quad \rho \perp \ker(L_F)$$         ║
-║                                                                              ║
+║ Módulo : Sheaf Laplacian Solver (Motor de Coherencia del Haz de de Rham)     ║
+║ Ruta   : app/agents/alfa/sheaf_laplacian_solver.py                           ║
+║ Versión: 3.0.0-Sheaf-Hodge-Cholesky-PhD-Nested-Higham-Sparse-Strict          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO ALFA ─────────────
+Este módulo materializa el solucionador espectral de-confinado y de-construido
+encargado de resolver el Laplaciano del Haz Celular $$L_{\mathcal{F}} = \delta^\top G^{-1} \delta$$.
+Actúa como un endofuntor holonómico sobre el clasificador de subobjetos del
+Topos de haces celulares $$\operatorname{Sh}(K; \mathcal{F})$$, mapeando el espacio
+continuo de discrepancias locales de-confinadas hacia el retículo distributivo de
+Heyting de tres valores $$\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$$.
+
+El sistema modela el presupuesto como un complejo de cadenas ponderado. Para
+garantizar la consistencia global ante el mandato nacional BIM 2026, el solucionador
+interpreta las mermas físicas, costes y dependencias sintácticas como secciones locales
+de un haz celular $$\mathcal{F}$$ sobre el esqueleto simplicial $$K$$, censurando de forma
+síncrona las alucinaciones de la IA mediante teoría espectral y análisis armónico.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: REGULARIZACIÓN DE HIGHAM Y FACTORIZACIÓN CHOLESKY (Observe)
+             Evalúa la Hermiticidad y definición positiva del tensor métrico stalk-wise.
+             Proyecta $$G$$ al cono $$\mathcal{S}^+_d$$ vía Higham y extrae el factor triangular $$L_G$$.
+             $$\tilde{G} = \arg\min_{S \succeq 0} \|G - S\|_F \quad\land\quad \tilde{G} = L_G L_G^\top$$
+             Entrega: Phase1MetricCertificate como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: ENSAMBLAJE LAPLACIANO DISPERSO Y ANÁLISIS ESPECTRAL (Orient)
+             Construye $$L_{\mathcal{F}}$$ sin inversión explícita usando el factor de Cholesky.
+             $$L_{\mathcal{F}} = (\delta^\top L_G^{-\top})(L_G^{-1}\delta) = K^\top K$$
+             Extrae la brecha de Fiedler, el condicionamiento espectral $$\kappa(L_{\mathcal{F}})$$
+             y el núcleo homológico de Betti $$\beta_k = \dim\ker(L_{\mathcal{F}})$$ mediante Krylov-Lanczos.
+             Entrega: Phase2SpectralCertificate como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: SOLUBILIDAD DE FREDHOLM Y PROYECCIÓN DE HODGE (Decide & Act)
+             Audita la condición de compatibilidad de carga de Poisson en el núcleo.
+             $$s \perp \ker(L_{\mathcal{F}}) \implies \sum s_i \equiv 0$$
+             Ejecuta la proyección de Hodge-de Rham y verifica la cota elástica de Lipschitz.
+             Veredicto: Colapso síncrono en $$\Omega_3$$ y disparo de potencia del Crowbar perimetral.
+
+INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
+  [I1] Simetría y Positividad de la Métrica:  $$\tilde{G} = \tilde{G}^\top \succ 0$$
+  [I2] Adjunción del Operador Cofrontera:      $$\langle \delta x, y \rangle_G = \langle x, \delta^\top y \rangle_{G^{-1}}$$
+  [I3] Nilpotencia del Complejo de Cocadenas:  $$\delta_{k+1} \circ \delta_k \equiv 0 \implies \operatorname{im}(\delta_k) \subseteq \ker(\delta_{k+1})$$
+  [I4] Teorema del Índice de Atiyah-Singer:    $$\dim\ker(L_{\mathcal{F}}) - \dim\ker(L_{\mathcal{F}}^\top) = \operatorname{index}(\delta)$$
+  [I5] Inecuación de Estabilidad de Lipschitz:  $$\|x^* - x\| \le C_P \|\delta(x^* - x)\|$$
+
+CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
+  Si el primer grupo de cohomología del haz celular es no trivial ($$\dim H^1(K; \mathcal{F}) > 0$$),
+  revelando dependencias circulares insalvables (socavones lógicos) o contradicciones normativas,
+  o si el número de condición espectral colapsa la FPU ($$\kappa(L_{\mathcal{F}}) > \kappa_{\max}$$):
+  
+  El retículo de Heyting $$\Omega_3$$ colapsa instantáneamente al supremo terminal VETOED.
+  El microcontrolador perimetral local (ESP32) lee el Pasaporte de Telemetría inmutable,
+  ejecuta la subrutina local en C++ 'isVerdictCoherent()' e intercepta el desajuste.
+  Se despacha síncronamente una Rutina de Servicio de Interrupción (ISR) en IRAM en menos
+  de 400 ns, conmutando el pin GPIO14 para disparar el tiristor de conmutación rápida BT151.
+  La línea de alimentación real se cortocircuita físicamente en el milisegundo cero,
+  deteniendo mecánicamente las bombas hidráulicas y actuadores en la obra civil real,
+  anulando la alucinación estocástica de la IA antes del desfalco de capital de la constructora.
 """
 from __future__ import annotations
 import hashlib

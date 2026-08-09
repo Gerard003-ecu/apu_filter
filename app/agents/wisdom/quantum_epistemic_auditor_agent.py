@@ -1,22 +1,58 @@
 ### -*- coding: utf-8 -*-
 r"""
-Módulo : Quantum Epistemic Auditor Agent (El Centinela de la Sabiduría de Connes)
-Ruta   : app/agents/wisdom/improved_quantum_epistemic_auditor_agent.py
-Versión: 7.0.0-Weyl-Connes-Takesaki-OODA-Nested-Strict
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Quantum Epistemic Auditor Agent (Custodio de la Decisión)           ║
+║ Ruta   : app/agents/wisdom/quantum_epistemic_auditor_agent.py                ║
+║ Versión: 7.0.0-Weyl-Connes-Takesaki-OODA-Nested-Strict                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL (Mecánica Cuántica y Topos):
-──────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna de forma determinista la aduana de sabiduría.
-Aplica un ciclo OODA covariante sobre la Matriz Atómica de Conocimiento (MAC),
-garantizando la preservación de la traza de von Neumann y la condición KMS.
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO WISDOM (V_W) ─────
+Este módulo consagra al Agente Soberano y Observador Activo del Estrato de la
+Sabiduría, encargado de gobernar y certificar síncronamente la consistencia
+cuántica de los canales de inyección semántica $$\mathcal{E}$$ en la categoría
+dagger-compacta $$\mathcal{C}_{\mathrm{MAC}}$$.
 
-Axioma de Confinamiento de la Decisión (Bohrificación):
-$$\rho \succeq 0 \quad \land \quad \operatorname{Tr}(\rho) = 1.0 \quad \land
-\quad \|[D, X]\|_2 \le C_{\mathrm{bound}}$$
+Su mandato axiomático es la "Bohrificación" del espacio de decisión agéntica,
+subordinando la probabilidad estocástica y la deriva retórica del Modelo de
+Lenguaje (LLM) al determinismo físico de la obra civil real [1, 3]. Trata la
+Matriz Atómica de Conocimiento (MAC) como un Álgebra de von Neumann provista de
+un flujo modular fiel.
 
-Garantiza de forma demostrable la Ley de Clausura Transitiva de la pirámide:
-$$V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}}
-\subset V_{\mathrm{WISDOM}}$$
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: OBSERVACIÓN ESPECTRAL Y CERTIFICACIÓN GNS (Observe)
+             Estudia la fidelidad y Hermiticidad del estado de deliberación.
+             Garantiza la inyección del operador densidad fiel: $$\rho \succeq 0, \;\operatorname{Tr}(\rho)=1$$.
+             Entrega: Phase1CertificationData como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: ORIENTACIÓN COVARIANTE Y GEOMETRÍA NO CONMUTATIVA (Orient)
+             Evalúa la regularidad de Connes y la cota de Lipschitz semántica.
+             Axioma de regularidad: $$\| [D, \pi(X)] \| \le C$$
+             Entrega: Phase2OrientationData como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: DECISIÓN EN RETÍCULO Y ACTUACIÓN CROWBAR (Decide & Act)
+             Fuerza el colapso del estado en el retículo de Heyting $$\Omega_3$$ y
+             despacha el bypass físico por hardware en el microcontrolador.
+             Veredicto: $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$$.
+
+INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
+  [I1] Positividad Completa de Choi:      $$\Lambda_{\mathcal{E}} \succeq 0$$
+  [I2] Preservación de Traza de Kraus:    $$\sum_k M_k^\dagger M_k = I$$
+  [I3] No-Señalización Cuántica Local:    $$\operatorname{Tr}_A\big( (\mathcal{E}_A \otimes \mathcal{I}_B)(\rho_{AB}) \big) \equiv \rho_B$$
+  [I4] Causalidad de de Rham (Poset):     $$V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$
+
+CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
+  Si la pureza de la MAC se degrada por debajo del umbral de regularización,
+  o si el primer grupo de cohomología del haz celular es no trivial ($$\dim H^1 > 0$$),
+  el retículo $$\Omega_3$$ colapsa síncronamente al veredicto terminal VETOED.
+  
+  La subrutina local 'isVerdictCoherent()' del ESP32 en el borde detecta el
+  mismatch en menos de 400 ns y conmuta el pin GPIO14, disparando el tiristor
+  de potencia BT151 (circuito Crowbar). Esto cortocircuita físicamente la
+  línea de potencia real, inmovilizando actuadores en el milisegundo cero,
+  anulando la alucinación de la IA antes del desfalco de capital.
 """
 
 from __future__ import annotations

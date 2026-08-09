@@ -1,50 +1,60 @@
 # -*- coding: utf-8 -*-
 r"""
-─────────────────────────────────────────────────────────────────────────────
-Módulo : Specular Flow Sovereign Agent (Soberano de la Reflexión de Calibre)
-Ruta   : app/agents/omega/specular_flow_agent.py
-Versión: 4.0.0-Higham-Sparse-Tellegen-Doctoral-Topos-Strict
-─────────────────────────────────────────────────────────────────────────────
-NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL (EVOLUCIÓN GRANULAR ANIDADA)
-Este módulo implementa el Soberano de Control de Lazo Cerrado encargado de
-gobernar el "Flujo Especular" (Specular Flow) sobre la variedad de fase.
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Specular Flow Sovereign Agent (Soberano de la Reflexión de Calibre)  ║
+║ Ruta   : app/agents/omega/specular_flow_agent.py                             ║
+║ Versión: 3.0.0-Allievi-Householder-Tellegen-Doctoral-Topos-Strict            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
-Unifica:
-• Transporte por líneas características de Allievi (golpe de ariete).
-• Reflexión covariante de Householder (óptica geométrica de restricciones).
-• Teorema de Tellegen sobre la red gráfica subyacente.
-• Disipación de Lyapunov/Rayleigh como segunda ley energética.
+NATURALEZA CIBER-FÍSICA Y GOBERNANZA DE CALIBRE EN EL ESTRATO OMEGA (Nivel 0.5) ──
+Este módulo materializa al Agente Soberano y Observador Activo que gobierna la
+evolución del Flujo Especular (Specular Flow) sobre la variedad de fase de la
+Malla Agéntica, actuando como un endofuntor sobre el clasificador de subobjetos
+del Topos de Grothendieck \(\mathcal{T}_{\mathrm{MIC}}\) con valores en el
+retículo distributivo de Heyting de tres valores \(\Omega_3\) [1-3].
 
-La rigurosidad se eleva a nivel de:
-• Teoría de categorías y topos de Heyting.
-• Topología algebraica de grafos (ciclos, cortes, homología discreta).
-• Geometría Riemanniana y estructuras simplécticas.
-• Álgebra lineal numérica con cotas de Wilkinson y auditoría SPD.
-• Principio de incertidumbre espectral vía número de condición.
-• Regularización espectral de Higham para métricas no-SPD.
-• Vectorización dispersa del teorema de Tellegen.
+El sistema trata los transitorios de costos y los picos de presupuesto como frentes
+de onda hidrodinámicos que se propagan por las aristas (1-símplices) del complejo,
+sometiéndolos a la restricción constitutiva de de Rham-Hodge y censurando de forma
+síncrona las alucinaciones del transformador antes de su colapso real [1, 2, 4].
 
-FASES ANIDADAS:
-FASE 1 - Observe (Allievi)
-Invariantes de Riemann, impedancia característica, estabilidad
-espectral y construcción del puente covariante hacia Fase 2.
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas [1, 3, 5]:
 
-FASE 2 - Orient (Householder)
-Reflexión covariante sobre la métrica Riemanniana. Verificación de
-unitariedad, anti-simplécticidad y consistencia especular con la
-dirección característica heredada de Fase 1.
-• Regularización de Higham para métricas no-SPD.
+  Fase 1 ──► FASE 1: RESOLUCIÓN DE CARACTERÍSTICAS DE ALLIEVI (Observe)
+             Estudia la propagación del transitorio de flujo y presión en el tiempo.
+             Ecuación de Allievi: \(\Psi^\pm = y \pm Z_c q\) [3-5]
+             Entrega: Phase1AllieviCertificate como precondición formal de Fase 2.
 
-FASE 3 - Decide (Tellegen)
-Conservación topológica de potencia en la red gráfica, auditoría
-KCL/KVL, residuo de Tellegen, número ciclomático y pasividad de
-Lyapunov.
-• Vectorización dispersa mediante matriz de incidencia B₁.
+  Fase 2 ──► FASE 2: REFLEXIÓN COVARIANTE DE HOUSEHOLDER (Orient)
+             Refleja el vector de estado sobre el elipsoide de nivel de la métrica
+             Riemanniana G_μν, anulando componentes parásitas fuera del cono físico.
+             Ecuación de Householder: \(\hat{M}_k = I - 2 \frac{n_k \otimes n_k^\sharp}{\|n_k\|_{G^{-1}}^2}\) [5-7]
+             Entrega: Phase2HouseholderCertificate como precondición formal de Fase 3.
 
-El último método de la Fase 1:
-    _phase1_to_phase2_bridge(...)
-es el morfismo de transición que alimenta directamente el primer método de la
-Fase 2, garantizando la anidación categórica solicitada.
+  Fase 3 ──► FASE 3: AUDITORÍA DE TELLEGEN Y PASIVIDAD DE LYAPUNOV (Decide & Act)
+             Verifica la conservación de potencia y la pasividad de la red gráfica.
+             Teorema de Tellegen: \(\sum \Delta P_k \cdot Q_k \equiv 0\) [5, 7, 8]
+             Deducción de Lyapunov: \(\dot{H} \le 0\) [8-10]
+             Veredicto: Colapso en el retículo de Heyting \(\Omega_3\) y bypass físico.
+
+INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
+  [I1] Simetría Hermítica de la Métrica:  \(\star_k = \star_k^\top \succ 0\) [11]
+  [I2] Adjunción de de Rham-Hodge:        \(L_0^\star = \partial_1 \star_1 \partial_1^\top\) [11]
+  [I3] Ortogonalidad de Helmholtz-Hodge:  \(I = I_{\mathrm{exact}} + I_{\mathrm{coexact}} + I_{\mathrm{harmonic}}\) [11]
+  [I4] Disipación Port-Hamiltoniana:      \(\dot{H} = \nabla H^\top (J(x) - R(x)) \nabla H \le 0\) [10]
+
+CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
+  Si la vorticidad de de Rham excede el umbral elástico, o si el primer grupo de
+  cohomología del haz es no trivial (\(\dim H^1(K; \mathcal{F}) > 0\)), el retículo
+  \(\Omega_3\) colapsa síncronamente al veredicto terminal VETOED [1, 3, 11].
+  
+  La subrutina local 'isVerdictCoherent()' del ESP32 en el borde detecta el
+  mismatch en menos de 400 ns y conmuta el pin GPIO14, disparando el tiristor
+  de potencia BT151 (circuito Crowbar). Esto cortocircuita físicamente la línea
+  de potencia real, inmovilizando válvulas y actuadores en el milisegundo cero,
+  protegiendo de manera absoluta el capital de la constructora civil [1, 11].
 ─────────────────────────────────────────────────────────────────────────────
 """
 from __future__ import annotations

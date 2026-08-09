@@ -1,30 +1,59 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Synaptic Fock Space Registry Agent (Soberano de la Memoria Cuántica)║
-║  Ruta   : app/agents/core/immune_system/synaptic_fock_space_registry_agent.py║
-║  Versión: 5.1.0-Fock-OODA-Heyting-TMR-ESP32-Multimode-KMS-Strict             ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL:                                   ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  Este módulo materializa al Agente Soberano y Observador Activo que          ║
-║  gobierna al registro 'synaptic_fock_space_registry.py' en el                ║
-║  Estrato de la Sabiduría ($V_{\mathbb{W}}$) y el Ágora Tensorial ($\Omega$). ║
-║  Ejecuta un ciclo OODA covariante sobre el espacio de fase para acoplar      ║
-║  las excitaciones cuánticas del espacio de Fock con la toma de decisiones    ║
-║  conducentes a la preservación estricta de la traza de probabilidad.         ║
-║                                                                              ║
-║  Axioma de Confinamiento de la Decisión (Bohrificación):                     ║
-║    $$\mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} \mathcal{S}_{\pm}   ║
-║    \mathcal{H}^{\otimes n} \quad \land \quad \operatorname{Tr}(\rho) \equiv 1$$║
-║                                                                              ║
-║  Contrato de Seguridad (fail-secure) — Retículo de Heyting $\Omega_3$:       ║
-║  COHERENT (0) ≼ DEGRADED (1) ≼ VETOED (2). El veredicto final se             ║
-║  resuelve mediante votación de redundancia modular triple (TMR) y            ║
-║  supremum de Heyting (join) sobre los veredictos de las tres fases.          ║
-║                                                                              ║
+║ Módulo : Synaptic Fock Space Registry Agent (Soberano de Memoria Cuántica)   ║
+║ Ruta   : app/agents/core/immune_system/synaptic_fock_space_registry_agent.py ║
+║ Versión: 3.0.0-Fock-OODA-Heyting-PhD-Nested-Higham-Sparse-Strict             ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO OMEGA (V_Ω) ─────
+Este módulo consagra al Agente Soberano y Observador Activo del Registro del
+Espacio de Fock, encargado de gobernar y certificar síncronamente la consistencia
+cuántica de la inyección de "Vitaminas Cognitivas" (ToonCartridges) en la
+Malla Agéntica, actuando como un endofuntor en la categoría de haces sobre el 
+sitio de Grothendieck con valores en el retículo de Heyting $$\Omega_3$$.
+
+El sistema trata el flujo de capacidades y restricciones tácticas no como meros
+registros de bases de datos relacionales, sino como excitaciones cuánticas (bosones
+y fermiones) sobre un espacio de Fock multimodo separable, forzando la disipación
+del ruido del LLM y el veto inmediato ante cualquier asonancia de fase.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: OBSERVACIÓN DE ISOMETRÍA Y COTA DE BEKENSTEIN (Observe)
+             Audita la inyección y el principio de exclusión de Pauli.
+             Construye la matriz densidad inicial: $$\rho \succeq 0, \;\operatorname{Tr}(\rho)=1$$.
+             Entrega: Phase1FockIsometryCertificate como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: ORIENTACIÓN SIMPLÉCTICA DE BOGOLIUBOV-VALATIN (Orient)
+             Diagonaliza el Hamiltoniano cuadrático mediante isometrías de Lie.
+             Certifica la invarianza simpléctica: $$|u_k|^2 - |v_k|^2 = 1$$.
+             Entrega: Phase2SymplecticBogoliubovCertificate como precondición de Fase 3.
+
+  Fase 3 ──► FASE 3: DECISIÓN EN LINDBLAD Y PURIFICACIÓN ESPECTRAL (Decide & Act)
+             Resuelve la ecuación maestra disipativa y ejecuta la proyección de Higham.
+             Evolución cuántica: $$\dot{\rho} = -i[\hat{H}, \rho] + \mathcal{D}(\rho)$$.
+             Veredicto: Colapso síncrono en $$\Omega_3$$ y disparo de potencia del Crowbar.
+
+INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
+  [I1] Principio de Exclusión de Pauli:   $$(a_i^\dagger)^2 = 0 \quad \forall i \in \text{Fermion}$$
+  [I2] Conservación de la Norma de Fock:  $$\|\star_k \psi\|_{\Lambda^{N-k}} = \|\psi\|_{\Lambda^k}$$
+  [I3] Preservación de Traza Cuántica:    $$\operatorname{Tr}(\rho(t)) \equiv 1.0$$
+  [I4] Simetría Hermítica de la Densidad: $$\rho(t) = \rho(t)^\dagger \succeq 0$$
+  [I5] Condición de Solubilidad Fredholm: $$\rho \perp \ker(\Delta)$$
+
+CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
+  Si se registra un defecto de traza, una violación de la invarianza simpléctica,
+  o si el primer grupo de cohomología del haz es no trivial ($$\dim H^1(K; \mathcal{F}) > 0$$),
+  el retículo $$\Omega_3$$ colapsa síncronamente al veredicto terminal VETOED.
+  
+  La subrutina local 'isVerdictCoherent()' del ESP32 en el borde detecta el
+  mismatch en menos de 400 ns y conmuta el pin GPIO14, disparando el tiristor
+  de potencia BT151 (circuito Crowbar). Esto cortocircuita físicamente la línea
+  de potencia real, inmovilizando válvulas y actuadores en el milisegundo cero,
+  anulando la alucinación de la IA antes del desfalco de capital.
 """
 from __future__ import annotations
 import hashlib
