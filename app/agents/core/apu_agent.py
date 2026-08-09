@@ -2,7 +2,7 @@
 r""" 
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
 ║  Módulo : Autonomous APU Agent (Endofuntor del Ciclo OODA y Fibrado Gauge)               ║
-║  Ruta   : app/agents/core/apu_agent.py                                                          ║
+║  Ruta   : app/agents/core/apu_agent.py                                                   ║
 ║  Versión: 4.0.0-Categorical-OODA-Hamiltonian-Strict-Nested                               ║
 ╠══════════════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                          ║
