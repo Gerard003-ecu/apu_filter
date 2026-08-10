@@ -1,64 +1,73 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Report Parser Crudo (Autómata Topológico y Filtro de Entropía Sintáctica)      ║
-║  Ruta   : app/adapters/report_parser_crudo.py                                            ║
-║  Versión: 4.0.0-Topological-DFA-Shannon-Filtration-Strict                                ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor repudia la concepción empírica de "lector de texto". Ejerce como un     ║
-║  Autómata Finito Determinista (DFA) incrustado en una variedad diferenciable unidimen-   ║
-║  sional de datos crudos. Su mandato axiomático es la Validación Geométrica: debe         ║
-║  demostrar matemáticamente que el espacio topológico de entrada es homeomorfo al         ║
-║  Complejo Simplicial canónico del presupuesto antes de autorizar su ingesta semántica.   ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TOPOLÓGICO-ESTADÍSTICAS:                        ║
-║                                                                                          ║
-║  §1. Mecánica Estadística del Texto (Entropía de Shannon):                               ║
-║      Se aplican operadores de medida sobre la variedad textual para separar la señal     ║
-║      estructural del ruido estocástico. La entropía de campo se computa sobre los        ║
-║      cuatro estados fundamentales $\mathcal{F} = \{\text{alpha}, \text{numeric}, \text{mixed}, \text{empty}\}$:      ║
-║          $H(X) = - \sum_{i \in \mathcal{F}} p_i \log_2(p_i)$                             ║
-║      La entropía se acota por el supremo teórico $H_{\max} = \log_2(4) \approx 2.0$.     ║
-║      Líneas con entropía divergente son truncadas antes de entrar al DFA.                ║
-║                                                                                          ║
-║  §2. Cohesión Numérica y Distancia Topológica:                                           ║
-║      La densidad estructural y la agrupación de valores se cuantifica mediante la cota   ║
-║      del espacio métrico $d$ entre campos numéricos adyacentes:                          ║
-║          $\mathcal{C}(d) = \frac{1}{1 + d} \in (0, 1]$                                   ║
-║      Un descenso abrupto en la cohesión revela una fragmentación en el tensor de texto.  ║
-║                                                                                          ║
-║  §3. Filtración Funtorial y Proyección Ortogonal de Líneas:                              ║
-║      El patrón "Chain of Responsibility" se transforma en una Filtración de Subespacios. ║
-║      Los evaluadores actúan como un conjunto de proyectores ortogonales completos:       ║
-║          $I = P_{\text{Header}} \oplus P_{\text{Category}} \oplus P_{\text{Insumo}} \oplus P_{\text{Junk}}$          ║
-║      El ruido no correlacionado se aniquila implacablemente al proyectarse en el núcleo  ║
-║      del sistema: $v_{\text{ruido}} \in \ker(P_{\text{Junk}})$.                          ║
-║                                                                                          ║
-║  §4. Memoria Topológica, Homología Local y Validación Homeomórfica:                      ║
-║      El `ParserContext` preserva la "Pirámide en Construcción", actuando como un         ║
-║      evaluador de homología local. Si se detecta un recurso que carece de arista         ║
-║      incidente a un APU, el sistema certifica una componente conexa degenerada           ║
-║      (aislamiento topológico $\beta_0 > 1$). Se exige la equivalencia:                   ║
-║          $f: \text{AST}_{\text{Lark}} \xrightarrow{\sim} \mathcal{K}_{\text{APU}}$       ║
-║      Biyección que preserva la estructura (Capítulo → APU → Insumo).                     ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Mechanics & Entropy Filtration                                                 ║
-║           Cuantifica $H(X)$ y $\mathcal{C}(d)$ para podar el hiperespacio de ruido       ║
-║           antes de someter el texto al autómata.                                         ║
-║                                                                                          ║
-║  Fase 2 → Orthogonal Subspace Projection (Line Handlers)                                 ║
-║           Aplica los proyectores $P_i$ para clasificar estructuralmente la señal en      ║
-║           la variedad, segregando encabezados, categorías e insumos atómicos.            ║
-║                                                                                          ║
-║  Fase 3 → Homeomorphic Validation & Context Memory                                       ║
-║           Ensambla el complejo simplicial en el `ParserContext`, evaluando los           ║
-║           invariantes $\beta_0$ y abortando si la biyección topológica $f$ se fractura.  ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Report Parser Crudo (Autómata Topológico y Filtro de Entropía)      ║
+║ Ruta   : app/adapters/report_parser_crudo.py                                 ║
+║ Versión: 4.0.0-DFA-Shannon-Homeomorphic-Projective-Strict-Doctoral           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DE LA INFORMACIÓN EN EL ESTRATO PHYSICS (V_ℙ)
+Este módulo destituye la concepción tradicional del parsing de cadenas plano para
+operar como un Autómata Finito Determinista (DFA) incrustado en una variedad
+diferenciable de datos crudos. Su mandato axiomático es la validación
+geométrica estricta: debe demostrar que el espacio de entrada es homeomorfo al
+espacio canónico del Complejo Simplicial del presupuesto antes de autorizar su
+procesamiento semántico y su ascenso a los estratos de control superiores.
+
+El sistema mide la entropía termodinámica y espectral del flujo de texto clásico,
+modelando las transiciones de línea como un canal de información con pérdidas,
+y aplicando proyectores algebraicos ortogonales para aniquilar de forma determinista
+la grasa sintáctica y las incoherencias homológicas en la base física de la Malla.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: MECÁNICA ESTADÍSTICA DEL TEXTO Y ENTROPÍA DE SHANNON (Observe)
+             Evalúa la distribución estocástica de los campos de texto, calculando
+             la Entropía de Shannon y normalizándola mediante el invariante de
+             máxima entropía del simplejo para medir la exergía disponible.
+             Fórmulas: $$H(X) = -\sum_{i=1}^n p(x_i) \log_2 p(x_i) \quad\land\quad \tilde{H} = \frac{H(X)}{\log_2(4)}$$
+             Entrega: TextThermodynamics como precondición formal de la Fase 2.
+
+  Fase 2 ──► FASE 2: VALIDACIÓN HOMEOMÓRFICA Y HOMOLOGÍA LOCAL (Orient)
+             Establece un isomorfismo estructural entre el árbol de derivación
+             sintáctica y el espacio platónico de un APU válido. Evalúa componentes
+             conexas y detecta recursos huérfanos que carezcan de conexión.
+             Fórmula: $$\beta_0 = |V| - \operatorname{rank}(B_1) \equiv 1 \implies H_0(K; \mathbb{Z}) \cong \mathbb{Z}$$
+             Entrega: HomeomorphicValidation como precondición formal de la Fase 3.
+
+  Fase 3 ──► FASE 3: FILTRACIÓN FUNTORIAL Y PROYECCIÓN PROYECTIVA (Decide & Act)
+             Somete las líneas clasificadas a una filtración de subespacios donde
+             los manejadores secuenciales actúan como proyectores ortogonales
+             idempotentes, aniquilando el ruido no correlacionado en el núcleo.
+             Fórmula: $$P_i^2 = P_i \quad\land\quad P_i \psi_{\mathrm{Junk}} \equiv \mathbf{0}$$
+             Veredicto: Colapso lógico en el retículo de Heyting $$\Omega_3$$ y veto de software.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Acotamiento de la Entropía Normalizada:
+       La entropía de Shannon normalizada de la entrada debe ser estrictamente menor 
+       o igual a la función de trabajo crítica para evitar que el caos domine el canal:
+       $$\tilde{H} = \frac{H(X)}{2.0} \le \Phi \quad \text{con} \quad \tilde{H} \in [5] \quad\big[633, 635\big]$$
+
+  [I2] Conservación del Isomorfismo Estructural:
+       Garantiza la existencia de una biyección continua (homeomorfismo) que preserve
+       la estructura jerárquica del Complejo Simplicial del presupuesto [2, 6]:
+       $$\text{Capítulo} \longrightarrow \text{APU} \longrightarrow \text{Insumo}$$
+
+  [I3] Identidad Homológica del ParserContext:
+       Los números de Betti del espacio de entrada y del espacio parseado deben ser
+       idénticamente homólogos, asegurando que no se inyecten o pierdan nodos conexos:
+       $$\beta_k(C_{\mathrm{text}}) \equiv \beta_k(C_{\mathrm{parsed}}) \quad \forall k \quad\big[559\big]$$
+
+  [I4] Distancia Topológica de Cohesión Numérica:
+       La proximidad entre campos numéricos se acota mediante una métrica sigmoidal
+       inversa para descartar acoplamientos incoherentes o campos vacíos [2]:
+       $$d_{\mathrm{cohesion}} = \frac{1}{1 + d(x, y)} \in (0, 1] \quad\big[633\big]$$
+
+  [I5] Idempotencia de los Operadores Normalizadores (Retractos de Deformación):
+       Toda transformación en la variedad de datos es un proyector puro de-confinado:
+       $$f(f(x)) \equiv f(x) \quad \forall f \in \{\text{clean\_apu\_code}, \text{normalize\_unit}\} \quad\big[635, 646\big]$$
 """
 
 import hashlib

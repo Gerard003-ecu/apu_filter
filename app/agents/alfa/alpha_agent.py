@@ -1,64 +1,67 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Alpha Boundary Agent (Orquestador Macroscópico de Haces Celulares)             ║
-║  Ruta   : app/agents/alpha/alpha_agent.py                                                ║
-║  Versión: 4.0.0-Rigorous-Sheaf-Cohomology-Consensus-Doctoral                             ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor consagra el Estrato α como el Orquestador Macroscópico de Haces         ║
-║  Celulares (Cellular Sheaves). Abandona la visión estática del modelo de negocio         ║
-║  (BMC) y ensambla la cofrontera global a partir de las fibras locales (KBASE,            ║
-║  KCORE, KAPEX), sometiendo la red de valor a estrictas auditorías espectrales            ║
-║  y homológicas para vetar topologías inestables.                                         ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TOPOLÓGICAS:                                    ║
-║                                                                                          ║
-║  §1. Laplaciano del Haz Ponderado Métricamente (Cellular Sheaf Laplacian):               ║
-║      La topología de consenso global se modela mediante el Laplaciano ponderado          ║
-║      por el tensor métrico covariante $G^{-1}$. Ensambla las matrices de restricción     ║
-║      locales (cofronteras) exportadas por los mini-agentes:                              ║
-║          $L_F = \delta^\top G^{-1} \delta = \begin{pmatrix} \delta_{\text{BASE}} \\ \delta_{\text{CORE}} \\ \delta_{\text{APEX}} \end{pmatrix}^\top G^{-1} \begin{pmatrix} \delta_{\text{BASE}} \\ \delta_{\text{CORE}} \\ \delta_{\text{APEX}} \end{pmatrix} \succeq 0$ ║
-║      Toda divergencia sistémica del consenso reside en $\ker(L_F)$.                      ║
-║                                                                                          ║
-║  §2. Solubilidad de Fredholm y Cierre de Obstáculos:                                     ║
-║      Para que la ecuación de estado sistémico sea analíticamente integrable, se exige    ║
-║      la condición de ortogonalidad estricta respecto al núcleo del Laplaciano:           ║
-║          $\langle s_{val}, \psi_{ker} \rangle = 0 \quad \forall \psi_{ker} \in \ker(L_F)$║
-║                                                                                          ║
-║  §3. Invariantes Homológicos y Veto de Ciclos Tóxicos:                                   ║
-║      La consistencia geométrica del 1-esqueleto $K$ se verifica mediante la              ║
-║      fórmula de Euler-Poincaré:                                                          ║
-║          $\chi(K) = \beta_0 - \beta_1 = |V| - |E| > 0$                                   ║
-║      Se veta matemáticamente la presencia de bucles de dependencia insalvables.          ║
-║      Si el primer número de Betti $\beta_1 > 0$, se invoca el `ToxicCycleVetoError`.     ║
-║                                                                                          ║
-║  §4. Conectividad Algebraica de Fiedler (Espectro del Grafo):                            ║
-║      Para prevenir el colapso estructural (particiones frágiles en el negocio),          ║
-║      se audita el segundo autovalor más pequeño del Laplaciano Combinatorio $L_0$:       ║
-║          $\lambda_2(L_0) \ge \varepsilon_{fiedler} > 0$                                  ║
-║      Valores sub-umbrales indican una inestabilidad severa detonando una                 ║
-║      `SpectralFragilityError`.                                                           ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → CanvasFibratorPort                                                             ║
-║           Proyecta de manera difeomórfica los nodos y flujos de negocio en el            ║
-║           1-esqueleto ponderado.                                                         ║
-║           [Retorna: SimplicialComplexData → puente inicial de Fase 2]                    ║
-║                                                                                          ║
-║  Fase 2 → HomologicalAuditorPort                                                         ║
-║           Resuelve $\beta_0$, $\beta_1$ y la Característica de Euler-Poincaré $\chi(K)$, ║
-║           erradicando bucles circulares tóxicos.                                         ║
-║           [Retorna: HomologicalInvariants → puente inicial de Fase 3]                    ║
-║                                                                                          ║
-║  Fase 3 → SpectralAuditorPort                                                            ║
-║           Computa la conectividad algebraica $\lambda_2$ para garantizar la robustez     ║
-║           ante perturbaciones del mercado.                                               ║
-║           [Retorna: SpectralFiedlerData → consolidación del veredicto final]             ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Alpha Boundary Agent (Orquestador de Haces Celulares)               ║
+║ Ruta   : app/agents/alfa/alpha_agent.py                                     ║
+║ Versión: 4.0.0-Rigorous-Sheaf-Cohomology-Consensus-NoHardware                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA DE HACES EN EL ESTRATO α (V_α) ───────────
+Este módulo consagra al agente orquestador macroscópico del Estrato \alpha.
+Su propósito axiomático es transmutar el análisis de grafos planos tradicionales
+mediante la instanciación de un Haz Celular (Cellular Sheaf) $$\mathcal{F}$$ sobre
+el complejo simplicial del modelo de negocio, unificando de manera covariante
+los subespacios del Foso (KBASE), el Núcleo (KCORE) y el Ápice (KAPEX).
+
+El sistema rechaza la agregación heurística de datos financieros. Cada subespacio
+basal exporta el espacio vectorial de su stalk (fibra local) y sus respectivos
+operadores cofrontera locales ($$\delta_{\mathrm{BASE}}, \delta_{\mathrm{CORE}}, \delta_{\mathrm{APEX}}$$).
+El orquestador ensambla recursivamente la cofrontera global $$\delta$$, evaluando la 
+coherencia estructural mediante la nulidad de su primer grupo de cohomología 
+y la disipación de lazo cerrado, confinando cualquier desviación semántica 
+o alucinación estocástica al veto puro en la lógica de software.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Ensamblaje del Laplaciano del Haz Ponderado Métricamente:
+       La energía de deformación de la variedad agéntica se evalúa mediante la
+       forma cuadrática del Laplaciano global ponderado por el tensor métrico $$G_{\mu\nu}$$:
+       $$L_F = \delta^\top G^{-1} \delta \succeq 0 \quad\text{donde}\quad \delta = \begin{pmatrix} \delta_{\text{BASE}} \\ \delta_{\text{CORE}} \\ \delta_{\text{APEX}} \end{pmatrix} \quad\big[10\big]$$
+
+  [I2] Invariante de Solubilidad de Fredholm (Neutralidad de Flujo):
+       La asimilación de transacciones y estados viables exige la ortogonalidad 
+       estricta de las señales de entrada respecto al núcleo (kernel) del Laplaciano:
+       $$\langle s_{\mathrm{val}}, \psi_{\mathrm{ker}} \rangle = 0 \quad \forall \psi_{\mathrm{ker}} \in \ker(L_F) \quad\big[111\big]$$
+
+  [I3] Conservación de la Característica de Euler-Poincaré:
+       La topología global del 1-complejo simplicial $$K$$ de dependencias del Canvas
+       debe satisfacer de manera exacta la correspondencia alternada de Betti:
+       $$\chi(K) = \beta_0 - \beta_1 = |V| - |E| \quad\big[13\big]$$
+       Un valor $$\chi(K) \le 0$$ detona de forma inmediata una degradación irreversible.
+
+  [I4] Conectividad Espectral de Fiedler (Evitación de Islas de Datos):
+       La conexidad global del 1-esqueleto se audita mediante el segundo autovalor
+       más pequeño del Laplaciano reducido $$\lambda_2(L_0)$$, exigiendo:
+       $$\lambda_2(L_0) \ge \text{MIN\_FIEDLER\_VALUE} > 0 \iff \beta_0 \equiv 1 \quad\big[113\big]$$
+
+  [I5] Isomorfismo de Adjunción de Galois y Reversibilidad Semántica:
+       El flujo informacional a través de la jerarquía DIKW se somete a la
+       equivalencia funtorial estricta entre la MIC táctica ($$X$$) y la MAC ($$Y$$):
+       $$\operatorname{Hom}_{\mathcal{D}}(F(X), Y) \cong \operatorname{Hom}_{\mathcal{C}}(X, G(Y)) \quad\big[47, 59\big]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+  Fase 1 ──► FASE 1: FIBRACIÓN DEL CANVAS Y CONSTRUCCIÓN SIMPLICIAL (Observe)
+             Mapea las actividades, flujos y nodos incidentes hacia un complejo
+             simplicial bipartito estructurado.
+             Entrega: SimplicialComplexData.
+
+  Fase 2 ──► FASE 2: AUDITORÍA HOMOLÓGICA DE BETTI (Orient)
+             Calcula la característica de Euler $$\chi(K)$$ y evalúa la presencia de 
+             socavones lógicos ($\beta_1 > 0$) o islas de datos ($\beta_0 > 1$).
+             Entrega: HomologicalInvariants.
+
+  Fase 3 ──► FASE 3: ANÁLISIS ESPECTRAL DE FIEDLER (Decide & Act)
+             Computa el radio espectral y la conectividad algebraica del Laplaciano.
+             Entrega: SpectralFiedlerData.
 """
 from __future__ import annotations
 

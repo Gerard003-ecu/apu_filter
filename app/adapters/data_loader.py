@@ -1,60 +1,53 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Data Loader (Funtor de Ingesta y Operador de Frontera Topológica)              ║
-║  Ruta   : app/adapters/data_loader.py                                                    ║
-║  Versión: 4.0.0-Topos-Thermodynamic-Boundary-Strict                                      ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor constituye la "Superficie de Absorción Termodinámica" del ecosistema.   ║
-║  Abandona el parseo heurístico para operar como un Funtor de Ingesta determinista        ║
-║  $F: V_{\text{externo}} \to V_{\text{PHYSICS}}$. Su mandato axiomático es ejecutar el    ║
-║  Colapso de Entropía Sintáctica, mapeando arquitecturas de datos heterogéneas            ║
-║  hacia un espacio métrico canónico sin violar la variedad diferenciable subyacente.      ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TERMODINÁMICAS:                                 ║
-║                                                                                          ║
-║  §1. Colapso de Entropía Sintáctica (Mecánica Estadística):                              ║
-║      La detección de codificaciones y delimitadores no opera por ensayo y error. Se      ║
-║      computa la Entropía de Shannon sobre la distribución estocástica de bytes:          ║
-║          $H(X) = - \sum_{x \in \mathcal{X}} P(x) \log_2 P(x)$                            ║
-║      Si la entropía excede el límite termodinámico del canal, el archivo es vetado       ║
-║      antes de inducir ruido en la matriz de proyección.                                  ║
-║                                                                                          ║
-║  §2. Invariantes del Operador Frontera y Homología Discreta:                             ║
-║      Los datos son auditados como un complejo simplicial. Se extraen sus invariantes     ║
-║      topológicos antes de la ingesta profunda:                                           ║
-║          Componentes conexas: $\beta_0 = \dim(\ker(\partial_0))$                         ║
-║          Ciclos parasitarios: $\beta_1 = \dim(\ker(\partial_1) / \text{im}(\partial_2))$ ║
-║      Adicionalmente, se calcula el rango algebraico de la matriz de borde                ║
-║      $\text{rank}(\partial_1)$ para garantizar un subespacio no degenerado.              ║
-║                                                                                          ║
-║  §3. Minería Estructural Difeomórfica (Extracción PDF):                                  ║
-║      La asimilación de documentos no estructurados repudia la extracción de texto libre. ║
-║      Se reconstruye el 1-esqueleto topológico embebido en una variedad bidimensional,    ║
-║      preservando la conectividad ortogonal frente a deformaciones afines visuales.       ║
-║                                                                                          ║
-║  §4. Condiciones Iniciales de Cauchy y Telemetría de Fase:                               ║
-║      Cada archivo asimilado instancia la Cadena de Custodia. La fricción de I/O y el     ║
-║      volumen tensorial establecen las condiciones iniciales en $t_0$, proveyendo al      ║
-║      motor termodinámico la masa inercial exacta para el análisis de flujo LTI.          ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_SyntacticEntropyCollapser                                               ║
-║           Evalúa la entropía de ruta y bytes ($H$), resolviendo el isomorfismo de        ║
-║           codificación (Encoding/Delimiter) óptimo para aniquilar el ruido estocástico.  ║
-║                                                                                          ║
-║  Fase 2 → Phase2_HomologicalBoundaryExtractor                                            ║
-║           Construye el tensor DataFrame y computa los invariantes topológicos:           ║
-║           componentes conexas ($\beta_0$), ciclos de datos ($\beta_1$) y matriz de borde.║
-║                                                                                          ║
-║  Fase 3 → Phase3_CauchyInitialStateProjector                                             ║
-║           Proyecta el complejo validado sobre la jerarquía DIKW correspondiente          ║
-║           instanciando el TelemetryContext en el tiempo $t_0$ absoluto.                  ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Data Loader (Funtor de Ingesta y Operador de Frontera Topológica)   ║
+║ Ruta   : app/adapters/data_loader.py                                         ║
+║ Versión: 4.0.0-Shannon-Betti-Fibration-Strict-Doctoral-NoHardware            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO PHYSICS (V_ℙ) ───
+Este módulo materializa la "Superficie de Absorción Termodinámica" de la Malla 
+Agéntica, operando formalmente como un Funtor de Ingesta determinista:
+
+                           F: V_{\mathrm{externo}} \longrightarrow V_{\mathbb{P}}
+
+Su mandato axiomático es ejecutar el Colapso de Entropía Sintáctica 
+mapeando estructuras de datos heterogéneas crudas (CSV, Excel, PDF) hacia el 
+espacio físico covariante sin violar la suavidad de la variedad diferenciable 
+subyacente. Se repudia el simple parseo ad-hoc en favor del cálculo de 
+invariantes topológicos, teoría de la información de Shannon-von Neumann, 
+y la conservación homológica discreta sobre el 1-esqueleto del complejo simplicial 
+del presupuesto.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ──────────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: TEORÍA DE LA INFORMACIÓN Y SANEAMIENTO ENTROPICO (Observe)
+             Evalúa la distribución estocástica de bytes y rutas mediante la
+             entropía de Shannon para determinar el isomorfismo de codificación.
+             Ecuación: $$H(X) = -\sum_{i=1}^n p(x_i) \log_2 p(x_i) \quad\text{[2, 3]}$$
+             Entrega: Phase1EntropySymmetryReport como precondición de la Fase 2.
+
+  Fase 2 ──► FASE 2: MINERÍA SIMPLICIAL Y OPERADOR FRONTERA (Orient)
+             Reconstruye el 1-esqueleto discreto del complejo simplicial, evaluando
+             componentes conexas y calculando el rango algebraico de la frontera:
+             $$\beta_0 = |V| - \operatorname{rank}(B_1) \quad\land\quad \beta_1 = |E| - \operatorname{rank}(B_1) \quad\text{[4, 5]}$$
+             Entrega: Phase2SimplicialComplexReport como precondición de la Fase 3.
+
+  Fase 3 ──► FASE 3: INSTANCIACIÓN DE TELEMETRÍA Y CLAUSURA (Decide & Act)
+             Instancia síncronamente el Pasaporte de Telemetría (TelemetryContext)
+             con las condiciones iniciales $$t_0$$ [2], garantizando la Ley de Clausura:
+             $$V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}} \quad\text{[6-8]}$$
+             Veredicto: Bloqueo síncrono mediante TopologicalInvariantError o EmptyManifoldError.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Colapso de Entropía Normalizada:       $$\tilde{H} = \frac{H(X)}{\log_2(4)} \le 1.0 \quad \text{con } \tilde{H} \in [9] \quad\text{[10, 11]}$$
+  [I2] Conexidad Homológica Estricta:         $$\beta_0 = 1 \iff H_0(K; \mathbb{Z}) \cong \mathbb{Z} \quad \text{(Evitación de "Islas de Datos") [12, 13]}$$
+  [I3] Trivialidad Homological de Ciclos:     $$\beta_1 = 0 \iff H_1(K; \mathbb{Z}) \cong \mathbf{0} \quad \text{(Ausencia de "Socavones Lógicos") [13, 14]}$$
+  [I4] Consistencia de de Rham-Hodge:         $$\partial_1 \circ \partial_2 = \mathbf{0} \quad \text{(Axioma de Complejo de Cadenas canónico) [15]}$$
+  [I5] Isomorfismo de Proyección Inyectiva:   $$\|F(x) - F(y)\|_V \le L_{\max} \|x - y\|_T \quad \text{s.t. } L_{\max} < \infty \quad\text{[16, 17]}$$
 """
 
 import logging

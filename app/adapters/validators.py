@@ -1,57 +1,75 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Data Validators (Operador de Restricción Métrica y Funtor de Validación)       ║
-║  Ruta   : app/adapters/validators.py                                                     ║
-║  Versión: 3.0.0-Categorical-Monoidal-SVD-Lebesgue-Strict                                 ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor actúa como el Filtro de Variedad Diferenciable en la frontera de los    ║
-║  estratos operativos. Implementa rigurosamente el Funtor de Validación                   ║
-║  $\mathcal{F}: \mathbf{DataFrames} \to \mathbf{ValidationResults}$ que mapea el          ║
-║  hiperespacio de datos (Espacios de Hilbert $\mathbb{R}^n$) hacia la categoría de        ║
-║  resultados, preservando la estructura monoidal y erradicando singularidades numéricas.  ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. El Monoide de Validación y el Retículo de Severidades:                              ║
-║      La agregación de resultados opera sobre un Monoide Conmutativo estricto donde el    ║
-║      elemento neutro es $e = \text{ValidationResult.IDENTITY}$. El operador de fusión    ║
-║      $\oplus$ computa matemáticamente el Supremo ($\sqcup$) del Retículo:                ║
-║          $S_{res} = \max(s_1, s_2) = s_1 \sqcup s_2$                                     ║
-║      El subconjunto de severidades bloqueantes $\{\text{ERROR}, \text{CRITICAL}\}$       ║
-║      actúa como elemento absorbente ($\top$). Tocar este límite colapsa incondicional-   ║
-║      mente el tensor hacia un Veto Estructural.                                          ║
-║                                                                                          ║
-║  §2. Isomorfismo Dimensional vía Espectro (SVD):                                         ║
-║      La conexidad del espacio no se evalúa mediante heurísticas nominales. Se exige el   ║
-║      cálculo del rango efectivo mediante Descomposición en Valores Singulares (SVD).     ║
-║      Si un valor singular colapsa frente a la tolerancia:                                ║
-║          $\sigma_i < \epsilon_{tol} \implies \text{ValidationCode.DEGENERATION}$         ║
-║      La dimensión se considera topológicamente degenerada (colinealidad detectada).      ║
-║                                                                                          ║
-║  §3. Acotación Termodinámica y Cierre Algebraico (IEEE 754):                             ║
-║      Se impone el cierre algebraico en $\mathbb{R}$. Valores como $\pm\infty$ y NaN      ║
-║      son vetados como Singularidades Topológicas. Se aplica aniquilación estricta de     ║
-║      subnormales en el intervalo abierto $(0, \text{MIN\_NORMAL\_FLOAT})$ con un         ║
-║      filtro "flush-to-zero" para evitar la inyección de fricción cuántica en la FPU.     ║
-║                                                                                          ║
-║  §4. Sobrevivencia Topológica y Medida de Lebesgue:                                      ║
-║      La extirpación de singularidades se subordina a la conservación del volumen del     ║
-║      espacio métrico. Si la medida de la variedad sana decae:                            ║
-║          $\frac{\mu(V_{\text{valid}})}{\mu(V_{\text{total}})} < \tau_{survival}$         ║
-║      El sistema aborta la inyección, previniendo la entrega de un hiperespacio           ║
-║      degenerado a los estratos tácticos subsiguientes.                                   ║
-║                                                                                          ║
-║  INVARIANTES TOPOLÓGICOS PRESERVADOS:                                                    ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  I1. Isomorfismo Dimensional: $\dim(X) \cong \dim(S_{req})$.                             ║
-║  I2. Continuidad Métrica: Inexistencia de singularidades (NaN, $\pm\infty$).             ║
-║  I3. Compacidad: $\forall x_i \in X, x_i \in [x_{\min}, x_{\max}] \subset \mathbb{R}$.   ║
-║  I4. Conexidad: $\text{rank}(X) = \dim(S_{req})$.                                        ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Data Validators (Operador de Restricción Métrica y Funtor de Val.)  ║
+║ Ruta   : app/adapters/validators.py                                          ║
+║ Versión: 4.0.0-Monoidal-Lebesgue-SVD-Heyting-Strict-Doctoral                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL LÍMITE DE INGESTA (V_ℙ) ───
+Este módulo consagra el Filtro de Variedad Diferenciable en la frontera de los 
+estratos operativos del ecosistema APU Filter. En lugar de implementar simples 
+validaciones heurísticas de control de flujo o parsing defensivo procedimental, 
+el módulo formaliza y ejecuta de manera estricta un **Funtor de Validación** 
+entre la categoría de DataFrames y la categoría de resultados monoidales:
+
+                         𝓕: \mathbf{DataFrames} \longrightarrow \mathbf{ValidationResults}
+
+Este operador realiza el pullback de restricciones dimensionales y termodinámicas
+sobre el espacio de Hilbert continuo $$\mathbb{R}^n$$. Su propósito axiomático es
+aniquilar de manera determinista las singularidades de-normalizadas, el ruido
+sintáctico, y el mal condicionamiento espectral en el milisegundo cero de la 
+transacción, blindando síncronamente la consistencia de los números de Betti y 
+la característica de Euler en las capas tácticas y estratégicas del software.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y PROPIEDADES DE CALIBRE PRESERVADAS: ──────
+  [I1] Isomorfismo Dimensional del Esquema:
+       El mapeo proyectivo conserva la correspondencia natural entre la dimensión
+       del DataFrame incidente y el esquema canónico inmutable de restricciones:
+       $$\dim(\operatorname{df}.\mathrm{columns}) \cong \dim(\mathcal{S}_{\mathrm{required}}) \quad\big[897\big]$$
+
+  [I2] Continuidad de la Variedad en el Espacio Métrico:
+       El subespacio de datos admitido se restringe a un subconjunto compacto 
+       libre de singularidades locales, excluyendo de forma incondicional 
+       valores de punto flotante de-normalizados, infinitos o no numéricos (NaN):
+       $$\mathcal{X} \subset \mathbb{R}^n \setminus \{\pm\infty, \mathrm{NaN}\} \quad\big[896, 897\big]$$
+
+  [I3] Compacidad de Atributos Físicos:
+       Para cada columna con dimensión física o financiera (Cantidad, Precio, 
+       Rendimiento), se exige la pertenencia estricta de las variables de estado
+       al intervalo compacto acotado por los límites reales del sistema:
+       $$\forall x_i \in \operatorname{df}[C_j] : x_i \in [x_{\min}, x_{\max}] \subset \mathbb{R} \quad\big[896, 897\big]$$
+
+  [I4] Conexidad Espectral y Conservación de Rango (SVD):
+       Para evitar colapsos dimensionales por colinealidad degenerativa, el
+       rango efectivo de la matriz de datos se audita espectralmente, exigiendo
+       que la distancia al núcleo de-confinado sea strictly positiva:
+       $$\operatorname{rank}(M) = \operatorname{dim}(\operatorname{span}(M)) \equiv n \iff \sigma_i \ge \epsilon_{\mathrm{Wilkinson}} > 0 \quad\big[896, 897\big]$$
+
+  [I5] Conservación de Volumen bajo la Medida de Lebesgue:
+       La purga e inyección de datos preserva la masa informacional, limitando
+       la fracción de filas anómalas descartadas para no entregar una variedad
+       vacía u homológicamente degenerada a la Malla:
+       $$\frac{\mu(\mathcal{X}_{\mathrm{valida}})}{\mu(\mathcal{X}_{\mathrm{total}})} = \frac{\int_{\mathcal{X}} \chi_E(x) \, d\mu}{\int_{\mathcal{X}} d\mu} \ge \tau_{\mathrm{survival}} \quad\big[896, 897\big]$$
+
+ESTRUCTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+  Fase 1 ──► FASE 1: MICROCOPÍA DE CAMPOS Y CIERRE ESPECTRAL FPU (Observe)
+             Normaliza y valida los campos primarios, aplicando un filtro de
+             "flush-to-zero" a valores menores que el mínimo normalizado:
+             $$\forall |x| \in (0, \text{MIN\_NORMAL\_FLOAT}) \implies x \to 0.0 \quad\big[896\big]$$
+             Entrega: Phase1FPUInspectionData como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: AUDITORÍA DE RANGO Y CONEXIDAD ESPECTRAL (Orient)
+             Calcula el espectro SVD para verificar la conexidad del espacio de
+             datos, proscribiendo colinealidades.
+             Fórmula: $$M = U \Sigma V^\top \quad\big[896\big]$$
+             Entrega: Phase2SpectralOrthogonalityData como precondición de Fase 3.
+
+  Fase 3 ──► FASE 3: CONSOLIDACIÓN DE RESULTADOS EN EL MONOIDE (Decide & Act)
+             Agrupa los hallazgos atómicos del monoide libre, resolviendo el
+             veredicto en el retículo de Heyting completo de severidades:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\} \quad\big[898\big]$$
+             Veredicto final: Excepción de Veto Estructural o colapso síncrono.
 """
 
 from __future__ import annotations

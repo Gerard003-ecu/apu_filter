@@ -1,62 +1,67 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Audit Vectors (Proyector de Coherencia Topológica y Entropía Estructural)      ║
-║  Ruta   : app/adapters/audit_vectors.py                                                  ║
-║  Versión: 3.0.0-Bipartite-Spectral-Thermodynamic-Strict                                  ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DE LA INFORMACIÓN (Rigor Doctoral):                 ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor consagra la auditoría de la red de valor en el Estrato TACTICS.         ║
-║  Abandona las heurísticas empíricas para modelar el ecosistema de costos como un         ║
-║  Complejo Simplicial Bipartito $G = (U \cup V, E)$, donde $U$ son los APUs y $V$ los     ║
-║  Insumos. Cuantifica la fricción logística, la vulnerabilidad topológica y la            ║
-║  estabilidad mediante Teoría Espectral de Grafos y Termodinámica de la Información.      ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Conectividad Algebraica y Espectro del Laplaciano (Valor de Fiedler):               ║
-║      La cohesión estructural del presupuesto se certifica extrayendo el espectro del     ║
-║      Laplaciano combinatorio $L = D - A$. La conectividad algebraica $\lambda_2$ debe    ║
-║      ser estrictamente positiva para garantizar un grafo sin particiones aisladas:       ║
-║          $L v = \lambda v \implies \lambda_2 > 0$                                        ║
-║      Si $\lambda_2 \to 0$, el tensor logístico presenta fracturas y detona una alerta    ║
-║      de desconexión estructural (Topological Island).                                    ║
-║                                                                                          ║
-║  §2. Termodinámica de la Información y Entropía de Concentración (HHI):                  ║
-║      La dependencia de la red hacia monopolios logísticos se evalúa calculando el        ║
-║      Índice de Herfindahl-Hirschman (o de Simpson) sobre la distribución de recursos:    ║
-║          $HHI = \sum_{i \in V} s_i^2 \quad \text{donde } s_i = \frac{p_i}{\sum p_j}$     ║
-║      A su vez, se computa el número efectivo de especies mediante números de Hill        ║
-║      para acotar termodinámicamente la diversidad del suministro.                        ║
-║                                                                                          ║
-║  §3. Índice de Estabilidad Compuesto ($\Psi$):                                           ║
-║      Las métricas extraídas se proyectan en un escalar continuo de viabilidad            ║
-║      $\Psi \in [2]$ integrando la diversidad (Simpson), cohesión ($\lambda_2$),       ║
-║      robustez no-lineal y distribución (Gini):                                           ║
-║          $\Psi = f(S, \lambda_2, R_{topo}, G)$                                           ║
-║      Sub-umbrales críticos de $\Psi$ imponen automáticamente un Veredicto de Inestabilidad.║
-║                                                                                          ║
-║  §4. Trazabilidad Criptográfica Determinista:                                            ║
-║      El estado evaluado se sella inmutablemente mediante una función de Hash SHA-256     ║
-║      sobre el vector de métricas $\mathcal{M}$, certificando el momento $t_0$:           ║
-║          $H_{audit} = \text{SHA-256}(\mathcal{M} \oplus t_0)$                            ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Bipartite Topological Projection                                               ║
-║           Aplica isomorfismos de saneamiento y verifica esquemas (SchemaValidationResult)║
-║           asegurando que los tensores de datos preserven su dominio de incidencia.       ║
-║                                                                                          ║
-║  Fase 2 → Spectral & Thermodynamic Extraction                                            ║
-║           Computa $\lambda_2$ (_compute_algebraic_connectivity), evalúa el HHI y la      ║
-║           robustez no lineal ante nodos flotantes (grados nulos).                        ║
-║                                                                                          ║
-║  Fase 3 → Causal Verdict Synthesis                                                       ║
-║           Ensambla el `GraphMetrics`, identifica factores divergentes y emite un         ║
-║           `StabilityVerdict` estructurado con su respectivo sello criptográfico.         ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Audit Vectors (Proyector de Coherencia Topológica y Entropía)      ║
+║ Ruta   : app/adapters/audit_vectors.py                                       ║
+║ Versión: 4.0.0-Tactical-Homological-Fiedler-Entropy-Strict-Doctoral          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DE LA INFORMACIÓN EN EL ESTRATO TACTICS (V_𝕋)
+Este módulo formaliza la auditoría estructural y el análisis de estabilidad de
+la Malla Agéntica, modelando la red de valor del presupuesto como un Complejo
+Simplicial Bipartito orientado $$K = (U \cup V, E)$$. 
+
+El sistema abandona las métricas contables heurísticas unidimensionales para
+analizar de forma determinista la estabilidad topológica de la cadena de
+suministro, la conectividad espectral y la distribución de masa del capital.
+Toda evaluación táctica se subyuga a la invariancia de la característica de Euler,
+la regularidad espectral de Fiedler y la entropía de Shannon, proyectando las
+decisiones de negocio hacia la aduana epistemológica superior del software.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y PROPIEDADES DE CALIBRE PRESERVADAS: ──────
+  [I1] Conectividad Espectral de Fiedler:
+       La conectividad algebraica $$\lambda_2$$ de la proyección unimodal de la MIC
+       determina de forma unívoca la conexidad del 1-esqueleto. Se exige que:
+       $$\lambda_2(L_{\mathrm{APU}}) > 0 \iff \beta_0 = 1 \quad\text{[Grafo Conexo]} \quad [3, 4]$$
+
+  [I2] Invariancia de la Característica de Euler-Poincaré:
+       La topología del complejo simplicial de restricciones $$K$$ debe satisfacer
+       estrictamente la identidad homológica para complejos discretos de dimensión $$\le 1$$:
+       $$\chi(K) = \beta_0 - \beta_1 = |V| - |E| \quad [2, 5]$$
+       Donde el primer número de Betti $$\beta_0$$ cuenta las Islas de Datos 
+       y el segundo número $$\beta_1$$ cuenta los Socavones Lógicos.
+
+  [I3] Conservación de Probabilidad y Entropía Estructural de Shannon:
+       La distribución de masa financiera del presupuesto se modela como una medida
+       de probabilidad discreta $$p_i$$ sobre los nodos de la red, cuya entropía 
+       estructural normalizada se define estrictamente en el intervalo $$[7]$$:
+       $$H_{\mathrm{norm}} = -\frac{1}{\ln(n)} \sum_{i=1}^n p_i \ln(p_i) \quad [8] \quad \text{donde} \quad p_i = \frac{v_i}{\sum_j v_j} \quad [8]$$
+
+  [I4] Desequilibrio de Asignación y Coeficiente de Gini:
+       Mide la concentración de masa financiera y monopolios de suministro mediante
+       la formulación continua del coeficiente de Gini sobre el simplejo:
+       $$I_{\mathrm{Gini}} = \frac{\sum_{i=1}^n \sum_{j=1}^n |v_i - v_j|}{2 n^2 \bar{v}} \quad [9]$$
+
+  [I5] Isomorfismo Criptográfico Forense (Sello del Estado):
+       Sella síncronamente el estado métrico y topológico del presupuesto generando
+       un hash forense SHA-256 determinista a partir de los invariantes físicos resueltos:
+       $$\text{Hash} = \operatorname{SHA-256}\big( \beta_0 \parallel \beta_1 \parallel \lambda_2 \parallel \Psi \parallel \text{Timestamp} \big) \quad [10]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+  Fase 1 ──► FASE 1: GEOMETRÍA ESPECTRAL Y CONECTIVIDAD ALGEBRAICA (Observe)
+             Ensambla la matriz de adyacencia bipartita y el Laplaciano reducido
+             para extraer el valor de Fiedler $$\lambda_2$$ mediante Lanczos.
+             Entrega: SpectralFiedlerData como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: HOMOLOGÍA SIMPLICIAL E INVARIANTES DE BETTI (Orient)
+             Calcula los números de Betti exactos $$\beta_0$$ y $$\beta_1$$ aplicando la Forma
+             Normal de Smith (SNF) sobre el anillo principal de los enteros $$\mathbb{Z}$$.
+             Entrega: SimplicialSkeletonAudit como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: CONVERGENCIA DE ESTABILIDAD Y COMPRESIONES (Decide & Act)
+             Computa el Índice de Estabilidad Compuesto $$\Psi$$ mediante la media
+             geométrica ponderada de la robustez, entropía y conectividad.
+             Veredicto: Colapso síncrono en el retículo distributivo de Heyting $$\Omega_3$$.
 """
 
 from __future__ import annotations

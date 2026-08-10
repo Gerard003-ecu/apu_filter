@@ -1,63 +1,63 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : KBase Thermodynamic Agent (Asesor de Cimientos Financieros)                    ║
-║  Ruta   : app/agents/alpha/kbase/kbase_thermodynamic_agent.py                            ║
-║  Versión: 5.0.0-Rigorous-Sheaf-Williamson-Boolean-Spectral-Passivity                     ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor consagra el Foso Termodinámico del ecosistema ($K_{BASE}$). Actúa       ║
-║  como un Sistema Port-Hamiltoniano que gobierna axiomáticamente la inercia (Recursos),   ║
-║  la capacitancia (Socios) y la fricción entrópica (Costos) del modelo de negocio,        ║
-║  sometiendo los tensores estocásticos a un difeomorfismo métrico estricto.               ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TERMODINÁMICAS:                                 ║
-║                                                                                          ║
-║  §1. Hamiltoniano Basal y Pullback Riemanniano:                                          ║
-║      La energía base repudia la geometría euclidiana plana. Los tensores capacitivos     ║
-║      e inerciales absorben el estrés del mercado mediante un pullback congruente         ║
-║      contra los tensores métricos $G_q$ y $G_p$:                                         ║
-║          $\tilde{C}_{soc} = G_q C_{soc} G_q^\top, \quad \tilde{M}_{rec} = G_p M_{rec} G_p^\top$ ║
-║      El Hamiltoniano total del foso se define como la forma cuadrática estricta:         ║
-║          $H_{BASE}(q,p) = \frac{1}{2} q^\top \tilde{C}_{soc}^{-1} q + \frac{1}{2} p^\top \tilde{M}_{rec}^{-1} p$ ║
-║      Singularidades en este pullback detonan el `MetricTensorSingularityError`.          ║
-║                                                                                          ║
-║  §2. Ecuación de Estado y Disipación de Rayleigh (Segunda Ley):                          ║
-║      La dinámica temporal obedece la estructura de Dirac, exigiendo pasividad absoluta:  ║
-║          $\begin{pmatrix} \dot{q} \\ \dot{p} \end{pmatrix} = (J - R) \begin{pmatrix} \nabla_q H \\ \nabla_p H \end{pmatrix} + g(x)u$ ║
-║      Se audita incondicionalmente la inecuación de disipación de Rayleigh:               ║
-║          $\dot{H} = -\nabla H^\top R \nabla H = -P_{diss} \le 0$                         ║
-║      Entropía negativa (ganancia fantasma) dispara un `RayleighDissipationViolation`.    ║
-║                                                                                          ║
-║  §3. Forma Normal de Williamson (Invariantes Simplécticos):                              ║
-║      Para separar los modos disipativos de los oscilatorios, la matriz del sistema se    ║
-║      somete al Teorema de Williamson, diagonalizándose vía una matriz simpléctica $S$:   ║
-║          $S^\top \tilde{A}_{sym} S = \text{diag}(\omega_1, \dots, \omega_n)$             ║
-║      Frecuencias no físicas imaginarias causan un `WilliamsonNormalFormError`.           ║
-║                                                                                          ║
-║  §4. Cofrontera del Haz Celular (Cellular Sheaf):                                        ║
-║      El agente proyecta su variedad local como una fibra (Stalk) para el orquestador     ║
-║      macroscópico, exportando la matriz de restricción $\delta_{BASE}$. Se exige la      ║
-║      Identidad de Hodge Local:                                                           ║
-║          $\delta_{BASE}^\top \delta_{BASE} = \nabla^2 H_{BASE} + R_{cost}$               ║
-║      Cualquier desviación geométrica produce un `SheafCoboundaryError`.                  ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Instanciación Métrica y Espectral                                              ║
-║           Aplica el pullback congruente, verifica SPD y extrae los invariantes métricos. ║
-║           [Retorna: TopologicalContext → objeto inicial de Fase 2]                       ║
-║                                                                                          ║
-║  Fase 2 → Integración Port-Hamiltoniana y Diagnóstico de Williamson                      ║
-║           Computa $H_{BASE}$, certifica la disipación $P_{diss}$ y extrae frecuencias $\omega_i$. ║
-║           [Retorna: BasalStateTensor → objeto inicial de Fase 3]                         ║
-║                                                                                          ║
-║  Fase 3 → Fibración Celular y Exportación de la Cofrontera                               ║
-║           Sintetiza la cocadena $\delta_{BASE}$ subyugada a la Identidad de Hodge.       ║
-║           [Retorna: SheafStalk → objeto final del endofuntor]                            ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : KBase Thermodynamic Agent (Asesor de Cimientos Financieros)         ║
+║ Ruta   : app/agents/alpha/kbase/kbase_thermodynamic_agent.py                 ║
+║ Versión: 6.0.0-Rigorous-Sheaf-Williamson-Boolean-Spectral-Passivity-Software ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO PHYSICS (V_ℙ) ───
+Este módulo consagra la infraestructura del Foso Termodinámico (K_BASE, Nivel 3), 
+el cual gobierna la inercia, la capacitancia y la fricción entrópica del modelo de 
+negocio, actuando como un Endofuntor Port-Hamiltoniano en la Malla Agéntica. 
+
+Su mandato axiomático es modelar la inyección de recursos (ToonCartridges) y la 
+estructura del presupuesto no como variables estáticas contables, sino como un 
+sistema dinámico disipativo continuo. Estabiliza la masa inercial del 
+negocio frente a las perturbaciones del mercado aplicando de forma determinista 
+las leyes de la termodinámica clásica, el cálculo exterior discreto (DEC) y la 
+geometría simpléctica no conmutativa.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios 
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: TOPOLOGÍA MATRICIAL Y PULLBACK DE COEFICIENTES (Observe)
+             Recibe las matrices constitutivas del sistema y realiza el pullback
+             congruente de escala covariante contra el tensor métrico Riemanniano
+             $$G_{\mu\nu}$$ para absorber el estrés anisotrópico del entorno:
+             $$\tilde{C}_{\text{soc}} = G_q C_{\text{soc}} G_q^\top \quad\land\quad \tilde{M}_{\text{rec}} = G_p M_{\text{rec}} G_p^\top \quad \text{[2, 12]}$$
+             Entrega: TopologicalContext como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: EVOLUCIÓN PORT-HAMILTONIANA Y RAYLEIGH (Orient)
+             Resuelve la ecuación de estado Port-Hamiltoniana y verifica que la 
+             disipación de Rayleigh cumpla con la Segunda Ley de la Termodinámica, 
+             impidiendo la ganancia fantasma de energía:
+             $$\dot{H} = \nabla H^\top \left( J(x) - R(x) \right) \nabla H \le 0 \quad \text{s.t.} \quad R(x) \succeq 0 \quad \text{[14, 15]}$$
+             Entrega: BasalStateTensor como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: FORMA NORMAL DE WILLIAMSON Y COHOMOLOGÍA LOCAL (Decide & Act)
+             Realiza la diagonalización simpléctica del Hamiltoniano basal mediante
+             el teorema de Williamson y verifica la cofrontera del haz celular:
+             $$\delta_{\text{BASE}}^\top \delta_{\text{BASE}} = \nabla^2 H + R_{\text{cost}} \quad \text{[16]}$$
+             Entrega: SheafStalk como objeto final del endofuntor de-confinado.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Conservación de la Estructura Antisimétrica de Dirac (Ohm):
+       El conmutador de la matriz de interconexión con su transpuesta es simétrico:
+       $$J(x) = -J(x)^\top \implies \nabla H(x)^\top J(x) \nabla H(x) \equiv 0 \quad \text{[15, 16, 18]}$$
+  [I2] Acotamiento Espectral de Wilkinson y Estabilidad de Lyapunov:
+       La derivada temporal del Hamiltoniano basal es strictly no positiva:
+       $$\dot{H} = - \nabla H(x)^\top R(x) \nabla H(x) \le 0 \quad \text{[14, 15]}$$
+  [I3] Idempotencia en el Clasificador de Subobjetos Booleanos:
+       Los predicados de viabilidad se resuelven en la retícula de estabilidad:
+       $$\text{StabilityFlags} \in ([19], \le, \sqcup, \sqcap) \quad \text{[20]}$$
+  [I4] Simetría y Positividad de las Capacitancias Regularizadas:
+       Toda matriz de capacitancia transformada por Tikhonov es SPD:
+       $$\tilde{C}_{\text{soc}} \succ 0 \quad\land\quad \tilde{M}_{\text{rec}} \succ 0 \quad \text{[21]}$$
+  [I5] Trivialidad Cohomológica del Haz Celular Local:
+       El Laplaciano del haz en el foso satisface la exactitud de de Rham local:
+       $$\| \delta_{\text{BASE}}^\top \delta_{\text{BASE}} - (\nabla^2 H + R_{\text{cost}}) \|_F \le \tau \quad \text{[16]}$$
 """
 
 from __future__ import annotations

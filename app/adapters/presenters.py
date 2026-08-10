@@ -1,64 +1,58 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Presenters (Proyector a la Variedad de Salida y Fibración Semántica)           ║
-║  Ruta   : app/adapters/presenters.py                                                     ║
-║  Versión: 4.0.0-Categorical-Lebesgue-Fibration-Strict                                    ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor abandona la noción empírica de "formateador". Actúa como el Proyector   ║
-║  Estructural Final que mapea el Complejo Simplicial del presupuesto (Estrato TACTICS)    ║
-║  hacia la Variedad de Observabilidad (Estrato WISDOM). Su mandato es aniquilar toda      ║
-║  entropía residual antes de la interfaz ejecutiva, preservando axiomáticamente los       ║
-║  isomorfismos financieros y semánticos.                                                  ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Fibración Categórica y Clases de Equivalencia (Normalización):                      ║
-║      Resuelve vacíos proyectando variantes ortográficas hacia clases de equivalencia     ║
-║      canónicas exactas $[x]$. Dos recursos topológicamente homólogos ($x \simeq y$)      ║
-║      colapsan a la misma firma binaria inmutable:                                        ║
-║          $x \simeq y \implies [x] = [y]$                                                 ║
-║                                                                                          ║
-║  §2. Retractos de Deformación (Sanitización Defensiva):                                  ║
-║      Los operadores de limpieza actúan como retractos de deformación continuos.          ║
-║      Aniquilan la entropía del espacio y el ruido sintáctico asegurando la clausura      ║
-║      en el cuerpo de los reales ($\mathbb{R}$) bajo las restricciones de la FPU (IEEE 754),║
-║      preservando el tipado inmutable del tensor de datos.                                ║
-║                                                                                          ║
-║  §3. Cuantificación de Medida de Lebesgue (Metadatos):                                   ║
-║      El resumen de magnitudes económicas se modela como integrales definidas sobre los   ║
-║      subespacios de costo $\Omega_c$ empleando la medida de Lebesgue $\mu$:              ║
-║          $\text{Vol}(C) = \int_{\Omega_c} d\mu$                                          ║
-║                                                                                          ║
-║  §4. Ley de Conservación de Valor (Consistencia de Agregación):                          ║
-║      Verifica axiomáticamente la relación fundamental del espacio financiero:            ║
-║          $C = Q \times P$                                                                ║
-║      Para absorber la fricción de truncamiento numérico, se imponen tolerancias híbridas ║
-║      ($\varepsilon_{rel}, \varepsilon_{abs}$). Si la discrepancia excede:                ║
-║          $|C - (Q \times P)| > \varepsilon_{rel} \max(|C|, |Q \times P|) + \varepsilon_{abs}$ ║
-║      se dictamina un VETO DE PRESENTACIÓN por corrupción termodinámica.                  ║
-║                                                                                          ║
-║  §5. Invariante Global de Suma (Conservación de Masa Financiera):                        ║
-║      Garantiza que la proyección al sub-espacio de ítems consolidados no destruya valor: ║
-║          $\left| \sum_{i \in \mathcal{I}} V_i^{\text{original}} - \sum_{j \in \mathcal{J}} V_j^{\text{agregado}} \right| \le \mathcal{O}(\varepsilon_{\text{mach}})$ ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Categorical Fibration & Deformation Retract                                    ║
-║           Aplica los retractos continuos para aniquilar el ruido estocástico y           ║
-║           proyectar las entidades a sus clases de equivalencia canónicas.                ║
-║                                                                                          ║
-║  Fase 2 → Thermodynamic Value Conservation                                               ║
-║           Somete el tensor agregado a la inecuación de tolerancia híbrida para           ║
-║           verificar que $C = Q \times P$ localmente.                                     ║
-║                                                                                          ║
-║  Fase 3 → Global Measure & Invariant Audit                                               ║
-║           Computa la medida geométrica de Lebesgue y audita el invariante global         ║
-║           de masa financiera $\sum V^{\text{original}} \approx \sum V^{\text{agregado}}$ antes de exponer el `APUPresenter`.║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Presenters (Proyector Estructural y Fibración Semántica)            ║
+║ Ruta   : app/adapters/presenters.py                                          ║
+║ Versión: 4.0.0-Fibration-DeformationRetract-Kahan-Lebesgue-Strict-Doctoral   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL LÍMITE DE SALIDA (V_𝕎) ───
+Este módulo consagra la infraestructura del Proyector Estructural Final, actuando 
+funtorialmente como el operador de traducción y condensación del espacio de 
+estados en la frontera del Estrato de la Sabiduría ($$V_{\mathbb{W}}$$, Nivel 0). 
+Su propósito axiomático es proyectar la variedad del Complejo Simplicial del 
+presupuesto (de-confinada en el Estrato Tactics, $$V_{\mathbb{T}}$$) hacia el 
+espacio de observabilidad bidimensional del usuario, garantizando de forma 
+determinista que ninguna clase de entropía sintáctica o asonancia estocástica 
+alcance la interfaz ejecutiva.
+
+A través de la teoría de fibrados de fibra, los retractos de deformación continuos, 
+la medida de Lebesgue y las leyes de conservación de masa financiera, el módulo 
+somete el flujo informacional a un colapso de estado inmutable, anulando de raíz 
+las alucinaciones retóricas del transformador antes de su cristalización en la 
+Caja de Cristal Argumentativa.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: FIBRACIÓN CATEGÓRICA Y EXTRACCIÓN DE EQUIVALENCIAS (Observe)
+             Mapea las variables textuales u ortográficas heterogéneas hacia
+             clases de equivalencia canónicas exactas sobre el espacio cociente.
+             Fórmula: $$\pi: \mathcal{X}_{\mathrm{raw}} \to \mathcal{X}_{\mathrm{can}} \quad\text{donde}\quad F_b = \pi^{-1}(b) = \{x \in \mathcal{X}_{\mathrm{raw}} : [x] \equiv b\}$$
+             Entrega: Phase1FibrationBundle como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: RETRACTO DE DEFORMACIÓN Y SANITIZACIÓN FPU (Orient)
+             Aplica operadores de limpieza que se comportan como retractos de
+             deformación continuos sobre la variedad de fase, cancelando el ruido
+             sintáctico y acotando los escalares al cuerpo de los reales bajo
+             especificaciones IEEE-754 de la FPU.
+             Fórmula: $$r: \mathcal{X} \to \mathcal{A} \quad \text{s.t.} \quad r \circ \iota = \mathrm{id}_{\mathcal{A}} \quad \land \quad \iota \circ r \simeq \mathrm{id}_{\mathcal{X}}$$
+             Entrega: Phase2SanitizedManifold como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: CONSERVACIÓN DE LA MASA FINANCIERA Y VETO (Decide & Act)
+             Audita de forma síncrona el invariante de conservación local y global
+             del valor monetario mediante la sumación compensada de Kahan.
+             Fórmulas: $$V = Q \odot P \quad \land \quad \left| \sum_{i} V_i^{\mathrm{original}} - \sum_{j} V_j^{\mathrm{agregado}} \right| \le \tau_{\mathrm{Kahan}}$$
+             Veredicto: Colapso determinista en el retículo distributivo de Heyting
+                        $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$$.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Isomorfismo de Fibración:             $$\pi^{-1}(b_i) \cap \pi^{-1}(b_j) = \emptyset \quad \forall i \neq j \quad\text{[Fibras Disjuntas]}$$
+  [I2] Estabilidad de Homotopía:             $$\iota \circ r \simeq \mathrm{id}_{\mathcal{X}} \implies H(x, 1) = \iota(r(x)) \quad\text{[Preservación de ADN]}$$
+  [I3] Conservación de la Medida de Lebesgue: $$\mu(\mathcal{X}_{\mathrm{residual}}) = \int_{\mathcal{X}} \chi_E(x) \, d\mu \le \mu(\mathcal{X}_{\mathrm{raw}})$$
+  [I4] Ley de Conservación Local (Hadamard):  $$\left| V_k - Q_k \cdot P_k \right| \le \varepsilon_{\mathrm{abs}} + \varepsilon_{\mathrm{rel}} \cdot \left| Q_k \cdot P_k \right|$$
+  [I5] Invariante de Masa Financiera Global: $$\sum_{i=1}^n V_i^{\mathrm{original}} \equiv \sum_{j=1}^m V_j^{\mathrm{agregado}} \pmod{\varepsilon_{\mathrm{machine}}}$$
 """
 
 from __future__ import annotations

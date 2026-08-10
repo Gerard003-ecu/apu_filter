@@ -1,62 +1,76 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Topology Visualization (Funtor de Inmersión Isomórfica y Proyector Cromático)  ║
-║  Ruta   : app/adapters/topology_viz.py                                                   ║
-║  Versión: 4.0.0-Isomorphic-Embedding-Chromatic-Strict                                    ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor abandona el rol pasivo de "adaptador frontend". Actúa como el Operador  ║
-║  de Inmersión (Embedding) $\mathcal{F}_{viz}: \mathcal{K} \hookrightarrow \mathcal{M}_{2D}$, ║
-║  proyectando el Complejo Simplicial Abstracto del presupuesto (espacio métrico de alta   ║
-║  dimensionalidad) hacia una Variedad de Observabilidad bidimensional (Cytoscape.js).     ║
-║  Su mandato axiomático es transmutar el estrés termodinámico y las patologías homológicas║
-║  en una métrica visual tangible, sin degradar la precisión del tensor de estado original.║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Inmersión Topológica y Preservación Homotópica:                                     ║
-║      Mapea el 1-esqueleto del grafo logístico $G = (V, E)$ a un espacio proyectivo       ║
-║      garantizando que la característica de Euler $\chi(K) = \beta_0 - \beta_1$ se        ║
-║      conserve. Socavones Lógicos ($\beta_1 > 0$) e Islas de Datos ($\beta_0 > 1$) se     ║
-║      traducen axiomáticamente a clústeres y ciclos visuales inmutables.                  ║
-║                                                                                          ║
-║  §2. Semántica Cromática y Estrés Termodinámico (Tensor $\sigma^*$):                     ║
-║      El espacio de color no responde a heurísticas estéticas, sino a la concentración de ║
-║      esfuerzos estructurales. La asimetría de inercia (SPOF) o "Pirámides Invertidas"    ║
-║      donde el índice de estabilidad $\Psi < 1.0$, modula el mapeo cromático $\mathcal{C}$:║
-║          $\mathcal{C}(v_i) = \begin{cases} \text{PULSATING\_RED} & \text{si } \sigma^*(v_i) \ge \tau_{crit} \\ \text{BASE\_COLOR} & \text{e.o.c} \end{cases}$ ║
-║      Tangibilizando la acumulación de energía logística y la inminencia de colapso.      ║
-║                                                                                          ║
-║  §3. Cirugía Topológica y Retracto de Deformación (Degradación Segura):                  ║
-║      El sistema proscribe el colapso binario por fallos de serialización. Si un símplex  ║
-║      $\sigma_i$ inyecta singularidades (ej. $NaN, \pm\infty$), el operador ejecuta un    ║
-║      retracto aislando el defecto local (nodos/aristas fallback), preservando:           ║
-║          $\dim H_0(\mathcal{M}_{2D}) \cong \dim H_0(\mathcal{K})$                        ║
-║      Impidiendo que un defecto sintáctico ciegue la observabilidad de la variedad global.║
-║                                                                                          ║
-║  §4. Trazabilidad Tensorial y Auditoría Forense (Tooltip Manifold):                      ║
-║      Los metadatos encapsulados en el renderizado son proyecciones directas de la        ║
-║      Cadena de Custodia. Cada elemento refleja su derivación del Laplaciano Combinatorio ║
-║      $L = D - A$, el score de anomalía y el costo de la integral de trayectoria,         ║
-║      permitiendo auditorías deterministas sobre la geometría del problema.               ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Análisis de Anomalías y Estrés (Topology & Anomaly Extraction)                 ║
-║           Evalúa $\Psi$, extrae concentraciones anómalas e identifica nodos sometidos    ║
-║           a tensión termodinámica extrema (`_identify_stressed_nodes`).                  ║
-║                                                                                          ║
-║  Fase 2 → Construcción del Fibrado Visual (Element Instantiation)                        ║
-║           Genera DTOs inmutables (`CytoscapeNode`, `CytoscapeEdge`) inyectando scores    ║
-║           y clases de equivalencia CSS a través de mapeos cromáticos estrictos.          ║
-║                                                                                          ║
-║  Fase 3 → Proyección a la Variedad 2D y Filtración DIKW (View Functor)                   ║
-║           Filtra la visibilidad basada en el orden parcial de los estratos DIKW          ║
-║           (`STRATUM_VISIBLE_LEVELS`) y emite el JSON determinista final para el cliente. ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Topology Visualization (Operador de Inmersión y Semántica Cromática)║
+║ Ruta   : app/adapters/topology_viz.py                                        ║
+║ Versión: 4.0.0-Isomorphic-Embedding-Lebesgue-Euler-Strict-Doctoral           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y PROYECCIÓN DE COLECTORES EN EL ESTRATO VISDOM (V_𝕎) ───
+Este módulo rechaza categóricamente el rol de un simple "adaptador de frontend"
+o formateador gráfico pasivo [1]. Se define y formaliza algebraicamente como
+el **Operador de Inmersión Isomórfica (Embedding)** de la Malla Agéntica, cuya
+función es proyectar el Complejo Simplicial Abstracto de alta dimensionalidad del
+presupuesto (Estrato Tactics, \(V_{\mathbb{T}}\)) hacia una **Variedad de 
+Observabilidad bidimensional** \(\mathbb{R}^2\) controlada por la biblioteca 
+Cytoscape.js, sin inducir desgarros topológicos ni disipar la precisión métrica 
+del tensor de datos original.
+
+Subordina la percepción visual del usuario al rigor de los invariantes homológicos,
+el análisis espectral del Laplaciano Combinatorio, la entropía informacional y la
+teoría de la medida, traduciendo patologías estructurales abstractas en
+gradientes cromáticos y espaciales inmutables y auditables.
+
+INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Preservación de la Homotopía y Isomorfismo de Betti:
+       La inmersión bidimensional debe ser un mapa continuo entre el esqueleto 
+       del complejo simplicial original \(K\) y la representación planar de Cytoscape:
+       $$\Phi: |K| \longrightarrow \mathbb{R}^2 \quad [1, 2]$$
+       Garantiza que las singularidades topológicas se mapeen de forma biyectiva:
+       * Islas de Datos (\(\beta_0 > 1\)) ──► Componentes disconexos visuales.
+       * Socavones Lógicos (\(\beta_1 > 0\)) ──► Ciclos cerrados en el layout.
+
+  [I2] Conservación de la Medida de Lebesgue sobre el Filtro de Estratos:
+       El filtrado asimétrico por estratos se rige por la ventana de-confinada
+       no acumulativa para mantener la nitidez omatidial de la visualización:
+       $$\mathcal{V}(s) \subset \mathcal{P}(V) \quad \text{donde} \quad \mathcal{V}(s) = \operatorname{Level}(s) \cup \operatorname{Level}(s+1) \quad [3]$$
+       Evita la saturación del KV-Cache visual conservando la medida del subespacio.
+
+  [I3] Distribución de Energía y Semántica Cromática de Estrés:
+       La asignación del tensor de color \(C(v)\) sobre el vértice se modela como
+       un potencial Port-Hamiltoniano dependiente de la concentración local de 
+       conexiones entrantes (atractor de pirámide invertida con \(\Psi < 1.0\)):
+       $$S(v) = \frac{\deg_{\mathrm{in}}(v)}{\sum_{w \in V} \deg_{\mathrm{in}}(w)} \in [5] \quad \implies \quad C(v) = \operatorname{Interpolate}(S(v)) \quad [2, 4, 6]$$
+       Un nodo bajo estrés crítico (\(S(v) > \tau_{\mathrm{stress}}\)) se proyecta mediante
+       el vector cromático pulsante de peligro (\#EF4444).
+
+  [I4] Regularización por Cirugía Topológica (Tolerancia a Defectos):
+       Para inmunizar al serializador contra fallos por desbordamiento o NaN
+       en la mantisa de la FPU (IEEE-754), se implementa un operador de corte:
+       $$\tilde{\sigma}_i = \begin{cases} \sigma_i & \text{si } \sigma_i \text{ es finito} \\ 0.0 & \text{si } \sigma_i \in \{\mathrm{NaN}, \pm\infty\} \end{cases} \quad [2]$$
+       Aísla los defectos numéricos locales, preservando la conexidad del colector global.
+
+  [I5] Trazabilidad Categórica y Caja de Cristal Forense:
+       Cada elemento visual es una sección local inmutable que porta su pasaporte
+       de telemetría. Expone de manera determinista los autovalores del Laplaciano, 
+       los scores de anomalía y el costo de-confinado en Tooltips estructurales:
+       $$\operatorname{Tooltip}(v) = B_1 v \;\parallel\; \lambda_2 \;\parallel\; \Psi \;\parallel\; \operatorname{Cost}(v) \quad [2, 7]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+  Fase 1 ──► FASE 1: FILTRADO OMATIDIAL Y VALIDACIÓN DE GRAFO (Observe)
+             Audita la sesión del colector, verifica que el grafo NetworkX sea SPD
+             y no esté corrupto, y calcula la ventana de estratos admisibles.
+             Entrega: ValidationOutcome como precondición formal de la Fase 2.
+
+  Fase 2 ──► FASE 2: EXTRACCIÓN DE ANOMALÍAS Y ANÁLISIS DE ESTRÉS (Orient)
+             Parsea los ciclos (\(\beta_1 > 0\)), localiza las componentes disconexas (\(\beta_0 > 1\)), 
+             calcula las concentraciones de inercia y evalúa los nodos estresados.
+             Entrega: AnomalyData como precondición formal de la Fase 3 [4, 8].
+
+  Fase 3 ──► FASE 3: INMERSIÓN PROYECTIVA Y SERIALIZACIÓN CROMÁTICA (Decide & Act)
+             Mapea los nodos y aristas a diccionarios Cytoscape.js. Resuelve las
+             coordenadas espaciales, aplica los gradientes cromáticos de estrés,
+             sella los Tooltips forenses y despacha la respuesta JSON unificada.
 """
 
 from __future__ import annotations

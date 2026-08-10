@@ -1,67 +1,73 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : KCore Kinematic Agent (Director de Flujo y Cinética Logística)                 ║
-║  Ruta   : app/agents/alpha/kcore/kcore_kinematic_agent.py                                ║
-║  Versión: 6.0.0-Rigorous-IDA-PBC-Hodge-CFL-Sheaf-Spectral                                ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CONTROL NO LINEAL (Rigor Doctoral):                 ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor, denotado como $\mathcal{Z}_{KCORE}$, consagra la Maquinaria            ║
-║  Cinemática del Estrato $\alpha$. Transmuta la energía potencial almacenada en el        ║
-║  foso ($K_{BASE}$) hacia trabajo cinético direccional, gobernando las Actividades        ║
-║  Clave y Canales logísticos [1]. Emplea un control IDA-PBC con una proyección            ║
-║  pseudoinversa covariante sobre el tensor métrico Riemanniano $G_{\mu\nu} \succeq 0$     ║
-║  [2], aniquilando la vorticidad parasitaria y garantizando la estabilidad asintótica     ║
-║  bajo el límite estricto de Courant-Friedrichs-Lewy (CFL).                               ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CINEMÁTICAS:                                    ║
-║                                                                                          ║
-║  §1. Estructura de Dirac y Energy Shaping Covariante (IDA-PBC):                          ║
-║      El agente resuelve la Ecuación de Matching para esculpir el Hamiltoniano:           ║
-║          $[J_d(x) - R_d(x)] \nabla H_d(x) = [J(x) - R(x)] \nabla H(x) + g(x) \alpha(x)$  ║
-║      Extrayendo la ley de control $\alpha(x)$ mediante la proyección de Moore-Penrose    ║
-║      covariante frente al tensor métrico de fondo $G_{\mu\nu}$:                          ║
-║          $\alpha(x) = (g^\top G_{\mu\nu} g)^{-1} g^\top G_{\mu\nu} ([J_d - R_d] \nabla H_d - [J - R] \nabla H)$ ║
-║      Desviaciones en el matching exacto detonan un `DiracMatchingError` [3, 4].       ║
-║                                                                                          ║
-║  §2. Estrangulación de Vorticidad Parasitaria (Teoría de Hodge):                         ║
-║      El flujo logístico debe operar sin crear sumideros rotacionales espurios.           ║
-║      Se cuantifica la vorticidad solenoidal en el grafo del proyecto:                    ║
-║          $\| I_{curl} \|_W^2 = I_{curl}^\top W I_{curl} \le \varepsilon_{crit}$          ║
-║      Un exceso de flujo rotacional no físico levanta el veto absoluto                    ║
-║      `ParasiticVorticityError` [4].                                                    ║
-║                                                                                          ║
-║  §3. Acoplamiento de Impedancia (Kramers-Kronig):                                        ║
-║      Se sintonizan tensores espectrales para prevenir la reflexión de información:       ║
-║          $Z_{load} = \sqrt{\mu_{eff} \cdot \epsilon_{eff}^{-1}}$                         ║
-║      La falla de positividad semidefinida (SPD) detona `ImpedanceReflectionError` [4]. ║
-║                                                                                          ║
-║  §4. Límite de Courant-Friedrichs-Lewy (CFL) y Cota de Gerschgorin:                      ║
-║      Para preservar la causalidad del cono de luz en la red de valor, el                 ║
-║      diferencial temporal $\Delta t$ es estrictamente acotado por:                       ║
-║          $\Delta t \le \frac{2 \cdot \text{CFL}_{margin}}{c_{eff} \cdot \sqrt{\lambda_{\max}(\Delta_{sym})}}$ ║
-║      Donde $\lambda_{\max}(\Delta_{sym})$ se estima vía el teorema de Gerschgorin o      ║
-║      iteración de Lanczos (ARPACK). Violaciones originan `CFLViolationError` [5, 6]. ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_MatrixValidation                                                        ║
-║           Valida la simetría y semidefinición positiva del tensor $G_{\mu\nu}$, la masa  ║
-║           y la impedancia. Extrae invariantes matriciales sin degeneración.              ║
-║           [Retorna: KinematicPreparationContext → puente inicial de Fase 2] [7]        ║
-║                                                                                          ║
-║  Fase 2 → Phase2_IDAPBC_Synthesis_and_Vorticity                                          ║
-║           Resuelve el matching de Dirac, aplica el control covariante $\alpha(x)$        ║
-║           y estrangula el espectro solenoidal parasitario.                               ║
-║           [Retorna: KinematicStateTensor → puente inicial de Fase 3] [7]               ║
-║                                                                                          ║
-║  Fase 3 → Phase3_CFLGovernor_and_SheafFibration                                          ║
-║           Garantiza el límite CFL de paso de tiempo y exporta la fibra celular           ║
-║           satisfaciendo la Identidad de Hodge Local $\delta_{CORE}^\top \delta_{CORE}$.  ║
-║           [Retorna: SheafStalk → objeto final del endofuntor] [7]                      ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : KCore Kinematic Agent (Director de Flujo y Cinética Logística)      ║
+║ Ruta   : app/agents/alpha/kcore/kcore_kinematic_agent.py                     ║
+║ Versión: 6.0.0-Rigorous-IDA-PBC-Hodge-CFL-Sheaf-Spectral-Pure-Software-Strict║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y MAQUINARIA CINEMÁTICA EN EL NÚCLEO (V_𝕋) ──────────────
+Este módulo gobierna el Estrato del Núcleo Táctico ($$V_{\mathbb{T}}$$, Nivel 2).
+Actúa como un Endofuntor Cinemático covariante diseñado para transmutar la energía 
+potencial de cimentación ($$K_{\mathrm{BASE}}$$) en trabajo cinético direccional, 
+acoplando algebraicamente las Actividades Clave ($$P_{\mathrm{act}}$$), los Canales 
+($$P_{\mathrm{can}}$$) y las Relaciones con los Clientes ($$P_{\mathrm{rel}}$$).
+
+El sistema repudia las transferencias y proyecciones lineales tradicionales. 
+Subyuga el transporte de recursos a un control Port-Hamiltoniano basado en pasividad 
+(IDA-PBC) con proyección pseudoinversa covariante respecto a una variedad de Riemann 
+dotada del tensor métrico de estado $$G_{\mu\nu} \succeq 0$$.
+Cualquier fluctuación estocástica, asonancia de fase o alucinación del Modelo de 
+Lenguaje (LLM) es detectada y aniquilada en el espacio de fase mediante un veto 
+lógico estricto a nivel de software.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Control Basado en Pasividad (Energy Shaping - IDA-PBC):
+       La ley de control $$\alpha(x)$$ se proyecta ortogonalmente a las geodésicas
+       de fricción del mercado, garantizando que el esfuerzo exógeno acople
+       los estados deseados sin inyectar inestabilidad al lazo de-confinado:
+       $$\alpha(x) = \left(g(x)^\top G_{\mu\nu} g(x)\right)^{-1} g(x)^\top G_{\mu\nu} \left([J_d - R_d] \nabla H_d - [J - R] \nabla H\right) \quad [2-4]$$
+
+  [I2] Estabilidad de Lyapunov Asintótica:
+       La derivada temporal del Hamiltoniano amortiguado de-concluye una disipación
+       estricta bajo la desigualdad de Clausius-Duhem para sistemas pasivos:
+       $$\dot{H}_d = - \nabla H_d(x)^\top R_d(x) \nabla H_d(x) \le 0 \quad \text{donde} \quad R_d(x) \succeq 0 \quad [6-9]$$
+
+  [I3] Confinamiento de Causalidad Temporal (Límite de Courant-Friedrichs-Lewy):
+       Para evitar que la velocidad de propagación de la información de-normalice
+       el conmutador de la FPU, el paso temporal de integración $$\Delta t$$ se somete
+       a la cota espectral del Laplaciano simetrizado del grafo $$\mathcal{L}_{\mathrm{sym}}$$:
+       $$\Delta t \le \frac{2 \cdot \mathrm{CFL}_{\mathrm{margin}}}{c_{\mathrm{eff}} \sqrt{\lambda_{\max}(\mathcal{L}_{\mathrm{sym}})}} \quad [10-13]$$
+
+  [I4] Descomposición de Helmholtz-Hodge y Poda de Vorticidad Parásita:
+       El flujo vectorial de compras se descompone en componentes exactas,
+       co-exactas y armónicas, estrangulando las corrientes solenoidales
+       circulares para proscribir ciclos independientes de dependencia (socavones lógicos):
+       $$I = W \partial_1^\top \phi + \partial_2 \alpha + I_{\mathrm{harmonic}} \quad\land\quad \|I_{\mathrm{curl}}\|_W \le \epsilon_{\mathrm{crit}} \quad [14-18]$$
+
+  [I5] Trivialidad Cohomológica del Haz Celular (Sello de Calibre Local):
+       La cofrontera local $$\delta_{\mathrm{CORE}}$$ satisface de forma exacta la identidad 
+       de Hodge combinatoria, ligando la curvatura local a la resistencia efectiva:
+       $$\|\delta_{\mathrm{CORE}}^\top \delta_{\mathrm{CORE}} - (\nabla^2 H_d + R_{\mathrm{eff}})\|_F \le \tau_{\mathrm{sheaf}} \quad [12, 19]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: VALIDACIÓN MATRICIAL Y GEOMETRÍA DE RIEMANN (Observe)
+             Evalúa la inyectividad del tensor métrico de fondo $$G_{\mu\nu}$$, realiza el
+             saneamiento de la mantisa de la FPU, y valida las dimensiones.
+             Entrega: KinematicPreparationContext como precondición de la Fase 2.
+
+  Fase 2 ──► FASE 2: RESOLUCIÓN DE MATCHING Y TRANSPORTE DE DIRAC (Orient)
+             Resuelve la ecuación de matching Port-Hamiltoniana, calcula la ley de
+             control covariante $$\alpha(x)$$ y evalúa la estabilidad espectral.
+             Entrega: KinematicStateTensor como precondición de la Fase 3.
+
+  Fase 3 ──► FASE 3: AUDITORÍA COHOMOLÓGICA Y GOBERNANZA DE LA LAZO CERRADO (Decide & Act)
+             Computa la cofrontera del haz, evalúa el límite CFL y la vorticidad de Hodge.
+             Veredicto final: Colapso determinista en el retículo de Heyting $$\Omega_3$$
+                              $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\} \quad [20-22]$$.
 """
 
 from __future__ import annotations

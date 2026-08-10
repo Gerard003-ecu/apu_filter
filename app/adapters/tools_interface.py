@@ -1,60 +1,75 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Tools Interface (Matriz Identidad y Topos de Grothendieck Elemental EMIC)      ║
-║  Ruta   : app/adapters/tools_interface.py                                                ║
-║  Versión: 6.0.0-Identity-Pullback-Categorical-Quantum-Strict                             ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y ÁLGEBRA LINEAL (Rigor Doctoral):                              ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo aniquila la mecánica de Turing clásica y la noción heurística de            ║
-║  "API". Instaura un Topos Elemental $\mathcal{E}_{MIC}$ donde la Matriz de Interacción   ║
-║  Central (MIC) es estrictamente la Matriz Identidad $I_n \in \mathbb{R}^{n \times n}$.   ║
-║  Cada pivote en la diagonal principal constituye una herramienta ortogonal y             ║
-║  linealmente independiente, formando la base canónica del espacio de Hilbert.            ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Ortogonalidad de la Base y Zero Side-Effects (Kronecker Delta):                     ║
-║      La MIC se define mediante la función delta de Kronecker:                            ║
-║          $I_{ij} = \delta_{ij} = \begin{cases} 1 & \text{si } i = j \\ 0 & \text{si } i \neq j \end{cases}$ ║
-║      Garantizando que las interacciones sean mutuamente excluyentes y ortogonales        ║
-║      $\langle e_i, e_j \rangle = \delta_{ij}$. Esto previene incondicionalmente los      ║
-║      efectos secundarios cruzados entre microservicios.                                  ║
-║                                                                                          ║
-║  §2. Producto Fibrado (Pullback) y Álgebra de Heyting:                                   ║
-║      La invocación simultánea de intenciones invoca el Clasificador de Subobjetos        ║
-║      $\Omega$ para computar el Límite Finito exacto:                                     ║
-║          $\mathcal{E}_{MIC} \models S \times_X Y \cong \lim_{\longleftarrow} (S \xrightarrow{m} X \xleftarrow{f} Y)$ ║
-║      Si un agente demanda intenciones mutuamente excluyentes, la intersección            ║
-║      colapsa algebraicamente al objeto inicial $\bot$.                                   ║
-║                                                                                          ║
-║  §3. Proyección de la Intención Estocástica (Idempotencia):                              ║
-║      Mapea la intención estocástica del LLM hacia la herramienta específica más          ║
-║      cercana a través de la matriz de proyección ortogonal idempotente:                  ║
-║          $P = A(A^\top A)^{-1}A^\top, \quad P^2 = P$                                     ║
-║                                                                                          ║
-║  §4. Cohomología de Haces y Nilpotencia Estricta del Complejo:                           ║
-║      El mapeo topológico veta singularidades evaluando el Laplaciano Combinatorio        ║
-║      $L_k = \partial_k^\top \partial_k + \partial_{k+1} \partial_{k+1}^\top$ bajo la exigencia de ║
-║      nilpotencia estricta del operador de cofrontera:                                    ║
-║          $\partial_{k+1} \circ \partial_k = \mathbf{0} \implies \text{im}(\partial_k) \subseteq \ker(\partial_{k+1})$ ║
-║      Una violación detona instantáneamente el `HomologicalInconsistencyError`.           ║
-║                                                                                          ║
-║  §5. Ley de Clausura Transitiva de la Filtración DIKW:                                   ║
-║      El espacio vectorial confina a las herramientas bajo la contención inmutable:       ║
-║          $V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$ ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial 1-6):                             ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Estructuras Matemáticas: Instancia $\Omega$ y Stratum.                         ║
-║  Fase 2 → Topología y Tipos: Define los invariantes Betti ($\beta_n$) y Persistence.     ║
-║  Fase 3 → Entropía y Excepciones: Calcula $H(X)$ (Shannon) y Persistencia Entrópica.     ║
-║  Fase 4 → Validación y Diagnósticos: Impone el isomorfismo $FileType \cong Diagnostic$.  ║
-║  Fase 5 → Núcleo Operacional (Topos EMIC): Ejecuta la Cadena de Markov y el Espectro.    ║
-║  Fase 6 → Bootstrap: Cierra la base canónica del espacio y expone el Singleton.          ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Central Interaction Interface (La Base Canónica y el Topos EMIC)    ║
+║ Ruta   : app/adapters/tools_interface.py                                     ║
+║ Versión: 6.0.0-Topos-Grothendieck-StandardBasis-Orthogonal-Strict-Doctoral   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ÁLGEBRA CATEGÓRICA EN EL ESTRATO TACTICS (V_𝕋) ───
+Este módulo destruye la concepción ordinaria de una "API de utilidades" o tabla
+de despacho procedimental, elevando el espacio de acciones del Agente a un Topos
+Elemental de Grothendieck $$\mathcal{E}_{\mathrm{MIC}}$$. La interfaz de herramientas
+se define formalmente como la realización de la **Base Estándar** en el espacio
+vectorial euclidiano complejo separable $$\mathbb{R}^n$$.
+
+Cada herramienta atómica se representa unívocamente como un vector "one-hot"
+$$e_i$$. Al compilar la interfaz, el sistema ensambla la matriz identidad $$I_n \in \mathbb{R}^{n \times n}$$,
+cuyos pivotes diagonales constituyen la existencia ontológica de las capacidades,
+mientras que las entradas extra-diagonales nulas garantizan la ausencia de
+acoplamiento y la total ortogonalidad funcional.
+
+INVARIANTES MATEMÁTICOS, CATEGÓRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Ortonormalidad Estricta de la Base Canónica (Zero Side-Effects):
+       La interfaz se rige por la función delta de Kronecker $$\delta_{ij}$$,
+       garantizando que la activación de la herramienta $$i$$ no inyecte energía
+       o proyecciones espurias sobre la dimensión de la herramienta $$j$$:
+       \\[I_{ij} = \delta_{ij} = \begin{cases} 1 & \text{si } i = j \\ 0 & \text{si } i \neq j \end{cases}\\]
+
+  [I2] Nulidad del Espacio de Núcleo (Responsabilidad Absoluta):
+       La matriz $$I_n$$ posee rango completo ($$\operatorname{rank}(I_n) = n$$), lo que
+       garantiza que la dimensión de su núcleo (Null Space) sea idénticamente nula:
+       \\[\ker(I_n) = \{\mathbf{0}\} \implies I_n x = \mathbf{0} \iff x = \mathbf{0}\\]
+       Esto asegura matemáticamente que ninguna acción intencional del usuario
+       sea amortiguada o ignorada por el despachador.
+
+  [I3] Difeomorfismo del Pullback sobre el Retículo de Heyting:
+       La composición paralela de intenciones semánticas $$X$$ e $$Y$$ se somete
+       a la construcción del límite finito del producto fibrado (pullback)
+       en el clasificador de subobjetos $$\Omega_3$$ del topos:
+       \\[\mathcal{E}_{\mathrm{MIC}} \models S \times_X Y \cong \lim_{\longleftarrow} (S \xrightarrow{m} X \xleftarrow{f} Y)\\]
+       Si las intenciones son mutuamente ortogonales, el pullback colapsa al
+       límite vacío $$\emptyset$$, forzando la transición al objeto inicial $$\bot$$.
+
+  [I4] Diagonalización de la Complejidad Computacional (Escalabilidad Lineal):
+       Al desacoplar por completo las variables de transición, la complejidad
+       temporal del despacho de herramientas se asienta estrictamente en tiempo
+       lineal $$\mathcal{O}(n)$$ en lugar de crecer de forma cuadrática $$\mathcal{O}(n^2)$$,
+       sosteniendo espacios de acción de gran escala (Large Action Spaces).
+
+  [I5] Principio de Máxima Entropía y Potencial Insesgado:
+       La matriz identidad representa el estado de máxima entropía direccional:
+       \\[H(I_n) = -\sum_{i=1}^n p_i \ln(p_i) \quad \text{con} \quad p_i = \frac{1}{n} \quad \forall i\\]
+       Esto previene que la geometría de la interfaz sesgue o pre-condicione
+       las decisiones del Agente, obligando a que toda la direccionalidad e 
+       "inteligencia" provenga exclusivamente del tensor de deliberación del LLM.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+  Fase 1 ──► FASE 1: PROYECCIÓN ORTOGONAL DE INTENCIONES (Observe)
+             Recibe el vector de intención $$x \in \mathbb{R}^n$$ y calcula la
+             proyección geométrica sobre la base canónica aplicando el operador:
+             \\[P = A(A^\top A)^{-1}A^\top\\]
+             Certifica que las autovalores satisfagan $$\lambda \in \{0, 1\}$$.
+
+  Fase 2 ──► FASE 2: AUDITORÍA DE ACOPLAMIENTO EN EL GRUPO DE CALIBRE (Orient)
+             Evalúa que el conmutador de Lie entre canales de herramientas sea
+             idénticamente nulo, proscribiendo el entrelazamiento de fase:
+             \\[[e_i, e_j] = 0 \quad \forall i, j\\]
+
+  Fase 3 ──► FASE 3: CLAUSURA DE LÍMITES EN EL RETÍCULO DE HEYTING (Decide & Act)
+             Somete la intención filtrada al clasificador de subobjetos de la
+             Malla agéntica. Si se viola el isomorfismo de-compresivo, el estado
+             colapsa, abortando la ejecución mediante un OrthogonalityViolationError.
 """
 
 from __future__ import annotations

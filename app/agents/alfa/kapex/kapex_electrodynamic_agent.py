@@ -1,64 +1,81 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : KApex Electrodynamic Agent (Director de Retorno y Expansión de Mercado)        ║
-║  Ruta   : app/agents/alfa/kapex/kapex_electrodynamic_agent.py                           ║
-║  Versión: 7.0.0-Rigorous-Gauge-Curvature-Sheaf-Nested                                    ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y ÓPTICA GEOMÉTRICA (Rigor Doctoral):                           ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo consagra el Ápice Estratégico (K_APEX) como un Endofuntor de Campo de       ║
-║  Calibre en la Malla Agéntica. Su función axiomática es inyectar Fuerza Electromotriz    ║
-║  (Propuesta de Valor), resolver la refracción estocástica del mercado y auditar el       ║
-║  retorno mediante una Curvatura de Yang-Mills genuinamente antisimétrica                 ║
-║  $F \in \mathfrak{so}(n)$, con proyección canónica al álgebra de Lie y contracción       ║
-║  métrica de Hilbert-Schmidt estricta.                                                    ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ELECTRODINÁMICAS:                               ║
-║                                                                                          ║
-║  §1. Ecuación Eikonal de Absorción (Refracción de Mercado):                              ║
-║      La penetración en el mercado es tratada como un frente de onda que debe resolver    ║
-║      la no linealidad óptica sobre el tensor métrico Riemanniano $G^{\mu\nu}$:           ║
-║          $G^{\mu\nu} \partial_\mu S \partial_\nu S = n^2(\sigma^*)$                      ║
-║      Cualquier violación acusa una dispersión inalcanzable (`EikonalRefractionError`).   ║
-║                                                                                          ║
-║  §2. Flujo Exergético de Poynting (Conservación de Retorno):                             ║
-║      Garantiza que el vector de intención no devore su propia energía logística.         ║
-║      La disipación neta se evalúa mediante:                                              ║
-║          $P_{\mathrm{exergia}} = E \cdot H - \left| R_{\mathrm{cost}}^{1/2} \nabla H \right|^2 \ge 0$ ║
-║      Un $P_{\mathrm{exergia}} < 0$ demuestra que la disipación devora el flujo de        ║
-║      Poynting, detonando instantáneamente un `FinancialBlackHoleError`.                  ║
-║                                                                                          ║
-║  §3. Curvatura Discreta de Yang-Mills en Álgebra de Lie $\mathfrak{so}(n)$:              ║
-║      Se erradica la traza euclidiana defectuosa. La matriz de conexión se proyecta vía   ║
-║      $\Pi_{\mathfrak{so}}(A) := \frac{1}{2}(A - A^\top)$. La 2-forma de curvatura es:    ║
-║          $F = (A_2^a - A_1^a) + [A_1^a, A_2^a], \quad A_i^a := \Pi_{\mathfrak{so}}(A_i)$ ║
-║      La acción de Yang-Mills, evaluada bajo la norma de Hilbert-Schmidt inducida, es:    ║
-║          $S_{YM} = \frac{1}{2} \mathrm{Tr}\left(F^\top G_{\mu\nu} F G^{\mu\nu}\right) \ge 0$ ║
-║      Si $S_{YM} > \varepsilon_{crit}$, se dicta una fuga de Gauge (`HolonomyVetoError`). ║
-║                                                                                          ║
-║  §4. Consistencia Métrica Bilateral y Análisis de Wilkinson:                             ║
-║      Para blindar la FPU frente a singularidades de inversión métrica ($G^{-1}$),        ║
-║      se verifica la cota relativa escalada simultáneamente en ambas direcciones:         ║
-║          $\|G G^{-1} - I\|_F / n \le \kappa(G) \varepsilon_{\mathrm{mach}} n$            ║
-║          $\|G^{-1} G - I\|_F / n \le \kappa(G) \varepsilon_{\mathrm{mach}} n$            ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → build_context(...)                                                             ║
-║           Verifica métricas, simetrías y cierres espectrales de la matriz $R_{\text{cost}}$.║
-║           [Retorna: ApexPreparationContext → dominio inicial de Fase 2]                  ║
-║                                                                                          ║
-║  Fase 2 → synthesize(..., preparation_context)                                           ║
-║           Computa la fuerza electromotriz, flujo exergético y curvatura de Yang-Mills.   ║
-║           [Retorna: ApexStateTensor → dominio inicial de Fase 3]                         ║
-║                                                                                          ║
-║  Fase 3 → export_stalk(..., state_tensor)                                                ║
-║           Exporta la fibra celular (Sheaf Stalk) inyectando el vector de gauge para      ║
-║           el orquestador macroscópico del Laplaciano de Haz.                             ║
-║           [Retorna: SheafStalkApex → objeto final del endofuntor]                        ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : KApex Electrodynamic Agent (Director de Retorno y Expansión)        ║
+║ Ruta   : app/agents/alpha/kapex/kapex_electrodynamic_agent.py                ║
+║ Versión: 7.0.0-Rigorous-Gauge-Curvature-Sheaf-Nested-NoHardware              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ÓPTICA GEOMÉTRICA EN EL ÁPICE ESTRATÉGICO (V_𝕊) ──────
+Este módulo consagra el Ápice Estratégico como un Endofuntor de Campo de Calibre 
+que actúa sobre la variedad del modelo de negocio, inyectando Fuerza Electromotriz
+(FEM) en el bloque de Propuesta de Valor, modelando la refracción competitiva de 
+Segmentos de Clientes y auditando de manera implacable el retorno exergético 
+en los Flujos de Ingresos.
+
+Sustituye de raíz los análisis macroeconómicos tradicionales por un formalismo 
+de teoría de campos electromagnéticos clásico-cuánticos. Modeliza el flujo de 
+capital como una corriente en un medio anisótropo no lineal gobernado por una 
+curvatura de Yang–Mills discreta antisimétrica $$F \in \mathfrak{so}(n)$$ con 
+proyección al álgebra de Lie y contracción métrica en el espacio de Hilbert-Schmidt,
+confinando cualquier desviación semántica a través de veto lógico en el software.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados estratégicos se rige por un contrato covariante estricto
+que enlaza el pipeline a través de tres morfismos encadenados:
+
+  Fase 1 ──► FASE 1: VALIDACIÓN MÉTRICA Y CONSISTENCIA BILATERAL (build_context)
+             Audita que el tensor métrico Riemanniano de fondo $$G_{\mu\nu}$$ sea 
+             simétrico definido positivo (SPD) y calcula su inversa bilateral exacta
+             bajo la cota de Wilkinson para prevenir derivas de punto flotante.
+             Entrega: ApexPreparationContext como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: TRANSPORTE DE GAUGE Y ÓPTICA EIKONAL (synthesize)
+             Resuelve la ecuación Eikonal no lineal de refracción sobre el medio
+             competitivo y evalúa la acción de Yang-Mills discreta $$S_{\mathrm{YM}}$$
+             para estimar la fuga de Gauge.
+             Entrega: ApexStateTensor como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: EXPORTACIÓN COHOMOLÓGICA AL STALK (export_stalk)
+             Valida la consistencia de la identidad de Hodge local, proyectando 
+             las restricciones al stalk del haz celular global $$L_F$$ para la 
+             orquestación del consenso macroscópico.
+             Entrega: SheafStalkApex como objeto final del endofuntor de-confinado.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Conservación de la Acción de Yang-Mills (Invarianza de Calibre):
+       La curvatura de la plaqueta $$F$$ debe satisfacer de forma exacta la acción:
+       $$S_{\mathrm{YM}} = \frac{1}{2} \operatorname{Tr}\bigl(F^\top G_{\mu\nu} F G^{\mu\nu}\bigr) = \frac{1}{2} \langle F, F \rangle_{\mathrm{HS}(G)} \ge 0 \quad$$
+       La no-negatividad se garantiza si $$M := F^\top G_{\mu\nu} F \succeq 0 \quad\land\quad N := G^{\mu\nu} \succ 0$$.
+
+  [I2] Proyección Canónica al Álgebra de Lie $$\mathfrak{so}(n)$$:
+       Toda matriz $$A$$ se proyecta de forma idempotente al espacio antisimétrico:
+       $$\Pi_{\mathfrak{so}}(A) := \frac{1}{2}\bigl(A - A^\top\bigr) \quad \implies \quad \Pi_{\mathfrak{so}}^2 = \Pi_{\mathfrak{so}} \quad \land \quad \operatorname{im} \Pi_{\mathfrak{so}} = \mathfrak{so}(n) \quad$$
+       La curvatura del campo se construye estrictamente dentro del álgebra:
+       $$F = \bigl(A_2^a - A_1^a\bigr) + [A_1^a, A_2^a] \quad \text{donde} \quad A_i^a := \Pi_{\mathfrak{so}}(A_i) \quad$$
+
+  [I3] Consistencia Métrica Bilateral de Wilkinson:
+       El análisis del error hacia atrás en la inversión de la métrica exige:
+       $$\frac{\|G G^{-1} - I\|_F}{n} \le \kappa(G) \varepsilon_{\mathrm{mach}} n \quad\land\quad \frac{\|G^{-1} G - I\|_F}{n} \le \kappa(G) \varepsilon_{\mathrm{mach}} n \quad$$
+
+  [I4] Cierre Espectral de la Raíz de Disipación:
+       El tensor de amortiguamiento se verifica contra su raíz cuadrada espectral:
+       $$\frac{\|R_{\mathrm{sqrt}}^2 - R_{\mathrm{cost}}\|_F}{\max(\|R_{\mathrm{cost}}\|_F, 1)} \le C \varepsilon_{\mathrm{mach}} \kappa_{\mathrm{eff}}(R) \quad$$
+
+  [I5] Isomorfismo de Hodge Local (Consistencia Co-homológica):
+       La triangulación y la restricción del haz celular se someten a la cota:
+       $$\frac{\|\delta_{\mathrm{metric}}^\top G_{\mu\nu} \delta_{\mathrm{metric}} - I\|_F}{n} \le C \kappa(G_{\mu\nu}) \varepsilon_{\mathrm{mach}} \quad$$
+
+  [I6] Conservación y Flujo Exergético (Teorema de Poynting):
+       La penetración del mercado exige resolver la Ecuación Eikonal no lineal:
+       $$G^{\mu\nu} \partial_\mu S \partial_\nu S = N^{\mu\nu} \sigma_{\mu\nu}^* \quad$$
+       Mientras que la potencia de exergía estratégica debe ser estrictamente positiva:
+       $$P_{\text{exergia}} = \langle E \smile \star H, [\partial K] \rangle - \int_K \nabla H^\top R_{\text{cost}} \nabla H \ge 0 \quad$$
+
+  [I7] Lógica Reticular de Heyting Completa:
+       Los predicados de viabilidad de `ApexViabilityFlags` se evalúan mediante
+       operaciones booleanas cerradas de meet ($$\wedge$$) y join ($$\vee$$), 
+       satisfaciendo el elemento unitario de orden total.
 """
 from __future__ import annotations
 

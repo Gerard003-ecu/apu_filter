@@ -1,55 +1,66 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : MIC Vectors (Funtores de Adaptación y Morfismos de Proyección)                 ║
-║  Ruta   : app/adapters/mic_vectors.py                                                    ║
-║  Versión: 3.0.0-Categorical-Morphism-Mayer-Vietoris-Strict                               ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CATEGORÍAS (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo erradica el concepto empírico de "Glue Code" para instaurar un marco        ║
-║  riguroso de Morfismos Algebraicos. Proyecta las intenciones probabilísticas del Agente  ║
-║  sobre los motores físicos, termodinámicos y topológicos del sistema, forzando un        ║
-║  colapso determinista que respeta la geometría del espacio de fase subyacente.           ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TOPOLÓGICAS:                                    ║
-║                                                                                          ║
-║  §1. Funtorialidad Estricta y Proyección Categórica:                                     ║
-║      Cada función vectorial $\varphi$ se define axiomáticamente como un morfismo:        ║
-║          $\varphi: \text{ConfigSpace} \times \text{Context} \to \text{ResultSpace}$      ║
-║      Garantizando la preservación de la estructura topológica a través de la filtración  ║
-║      inquebrantable de la pirámide DIKW:                                                 ║
-║          $V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\text{WISDOM}}$ ║
-║                                                                                          ║
-║  §2. Auditoría Homológica de Fusión (Secuencia de Mayer-Vietoris):                       ║
-║      La integración espacial de dos subcomplejos ($A \cup B$) se audita mediante la      ║
-║      secuencia exacta larga de homología:                                                ║
-║          $\dots \to H_1(A \cap B) \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \to H_0(A \cap B) \to \dots$ ║
-║      Se impone el axioma de veto absoluto si la fusión induce un ciclo parásito:         ║
-║          $\Delta\beta_1 = \beta_1(A \cup B) - [\beta_1(A) + \beta_1(B) - \beta_1(A \cap B)] = 0$ ║
-║      Una divergencia ($\Delta\beta_1 \neq 0$) aniquila el tensor incondicionalmente.     ║
-║                                                                                          ║
-║  §3. Invariantes Topológicos e Isomorfismo Dimensional:                                  ║
-║      El espacio de atributos debe conservar sus invariantes globales tras la inyección:  ║
-║          $\chi(K) = \beta_0 - \beta_1 + \beta_2$                                         ║
-║      Adicionalmente, se imponen guardas algebraicas para prevenir el colapso hacia       ║
-║      subespacios degenerados, certificando el isomorfismo dimensional:                   ║
-║          $\dim(V_{\text{expected}}) \cong \dim(V_{\text{actual}})$                       ║
-║                                                                                          ║
-║  §4. Métrica de Coherencia Topológica (C):                                               ║
-║      La viabilidad de la transformación se somete a un invariante continuo que acopla    ║
-║      estabilidad ($S$), resonancia ($R$) y entropía termodinámica ($H$):                 ║
-║          $C = \max\left(0, \min\left(1, \frac{S \cdot R}{1 + H}\right)\right)$           ║
-║      Vectores con $C < C_{\text{crit}}$ son vetados antes de disipar exergía en la malla.║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES OPERACIONALES (Composición Funtorial):                            ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Constructores Base: Proyección del VectorResultStatus canónico inmutable.      ║
-║  Fase 2 → Guardas Topológicas: Validación de la coherencia homológica (Betti y Mayer).   ║
-║  Fase 3 → Vectores de Nivel DIKW: Resolutores para PHYSICS, TACTICS, y STRATEGY.         ║
-║  Fase 4 → Factoría de Morfismos: Composición inyectiva de vectores en pipelines seguros. ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : MIC Vectors (Funtores de Adaptación y Morfismos de Proyección)      ║
+║ Ruta   : app/adapters/mic_vectors.py                                         ║
+║ Versión: 4.0.0-MayerVietoris-Euler-Betti-MoorePenrose-Strict-Doctoral        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO TACTICS (V_𝕋) ───
+Este módulo consagra la infraestructura vectorial del Estrato Táctico ($$V_{\mathbb{T}}$$),
+aboliendo de raíz el paradigma empírico de interfaces de pegamento procedimentales
+en favor de un marco riguroso de morfismos algebraicos e inmersiones simplécticas.
+
+Cada vector de intención semántica $$\phi$$ se formaliza como un morfismo covariante
+que actúa sobre el espacio de configuración del presupuesto:
+
+             $$\phi: \text{ConfigSpace} \times \text{Context} \longrightarrow \text{ResultSpace} \quad\text{[1]}$$
+
+Su propósito axiomático es mapear las intenciones probabilísticas del agente hacia los
+motores físicos y topológicos subyacentes, garantizando que el transporte paralelo
+no introduzca entropía fantasma ni desgarre la estructura homotópica de la variedad.
+
+INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Ortonormalidad de la Base de la MIC (Zero Side-Effects):
+       Las capacidades del agente se modelan como una base ortonormal estándar
+       en el espacio vectorial euclidiano $$\mathbb{R}^n$$, erradicando efectos secundarios:
+       $$\langle e_i, e_j \rangle = \delta_{ij} \implies \operatorname{rank}(\text{MIC}) = n \quad\land\quad \ker(\text{MIC}) = \{\mathbf{0}\} \quad\text{[2-4]}$$
+
+  [I2] Conservación Homotópica de la Fusión (Teorema de Mayer-Vietoris):
+       La integración de dos subcomplejos presupuestarios $$A \cup B$$ se somete
+       a la exactitud de la secuencia exacta larga de de Rham Čech, exigiendo
+       la nulidad estricta del residuo homológico para impedir "socavones lógicos":
+       $$\Delta\beta_1 = \beta_1(A \cup B) - \left[ \beta_1(A) + \beta_1(B) - \beta_1(A \cap B) \right] \equiv 0 \quad\text{[1]}$$
+
+  [I3] Invariancia de la Característica de Euler-Poincaré:
+       La topología discreta de la red simplicial $$K$$ de dependencias se conserva
+       bajo la proyección dimensional alternada de sus números de Betti:
+       $$\chi(K) = \beta_0 - \beta_1 + \beta_2 \quad\text{[1]}$$
+
+  [I4] Métrica de Coherencia Topológica Continua:
+       La viabilidad geométrica de la transformación se cuantifica mediante la
+       fricción que acopla estabilidad ($$S$$), resonancia ($$R$$) y entropía ($$H$$):
+       $$C = \operatorname{clamp}\left( \frac{S \cdot R}{1 + H}, 0, 1 \right) \quad\text{[1]}$$
+
+  [I5] Confinamiento Monótono de la Filtración DIKW (Ley de Clausura):
+       El ascenso de los vectores a través de la pirámide de subespacios de Hilbert
+       impone la preservación de la norma del proyector ortonormal idempotente:
+       $$\|P_k \psi\| \le \|\psi\| \implies V_{\aleph_0} \subset V_{\mathbb{P}} \subset V_{\mathbb{T}} \subset V_{\mathbb{S}} \subset V_{\mathbb{W}} \quad\text{[5]}$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+  Fase 1 ──► FASE 1: PROYECCIÓN ISOMÓRFICA Y SANEAMIENTO DIMENSIONAL (Observe)
+             Estudia la dimensionalidad estructural y verifica el isomorfismo:
+             $$\operatorname{dim}(V_{\mathrm{expected}}) \cong \operatorname{dim}(V_{\mathrm{actual}}) \quad\text{[1]}$$
+             Entrega: Dimensionality como precondición formal de la Fase 2.
+
+  Fase 2 ──► FASE 2: ANÁLISIS HOMOLÓGICO DE MAYER-VIETORIS (Orient)
+             Calcula los números de Betti exactos $$\beta_k$$ aplicando reducción Smith
+             sobre el operador frontera $$\partial_k$$ y evalúa el residuo de fusión $$\Delta\beta_1$$.
+             Entrega: BettiNumbers como precondición formal de la Fase 3.
+
+  Fase 3 ──► FASE 3: SÍNTESIS DE VEREDICTO Y COLAPSO DE COHERENCIA (Decide & Act)
+             Computa el invariante continuo de coherencia $$C$$ y determina el colapso.
+             Veredicto: Emisión de VectorResult con estricta inmutabilidad.
 """
 
 from __future__ import annotations

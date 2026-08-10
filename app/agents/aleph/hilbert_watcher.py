@@ -1,56 +1,78 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Hilbert Watcher (Operador del Hamiltoniano de Medición y Funtor de Colapso)    ║
-║  Ruta   : app/agents/aleph/hilbert_watcher.py                                            ║
-║  Versión: 4.0.0-Quantum-OODA-Categorical-Measurement-Strict                              ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y MECÁNICA CUÁNTICA (Rigor Doctoral):                           ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor consagra el Estrato ALEPH ($\aleph_0$), el vacío topológico que         ║
-║  precede a la Variedad de Frontera (PHYSICS). Actúa axiomáticamente como el Funtor de    ║
-║  Medición $F: \text{Superposición} \to \text{Estado Determinista}$. Su propósito         ║
-║  es colapsar la función de onda de la intención externa (alta entropía) antes de que     ║
-║  pueda inducir resonancias destructivas en la Malla Agéntica.                            ║
-║                                                                                          ║
-║  FUNDAMENTACIÓN AXIOMÁTICA DEL BUCLE OODA (Mecánica Cuántica Discreta):                  ║
-║                                                                                          ║
-║  §1. OBSERVE (Extracción de Exergía y Entropía de Shannon):                              ║
-║      Cuantifica la "Energía Semántica" de la onda incidente mediante la ecuación de      ║
-║      Planck $E = h\nu$. Calcula rigurosamente la Entropía de Shannon del tensor de       ║
-║      entrada $X$:                                                                        ║
-║          $H(X) = - \sum_{x \in \mathcal{X}} P(x) \log_2 P(x)$                            ║
-║      Un payload altamente entrópico disipa su exergía, resultando en una baja            ║
-║      frecuencia fundamental $\nu$, produciendo una energía insuficiente para superar     ║
-║      la barrera de potencial clásica $\Phi$.                                             ║
-║                                                                                          ║
-║  §2. ORIENT & DECIDE (Oráculos Espectrales y Frustración Cohomológica):                  ║
-║      El agente rechaza la propagación de estados degenerados sometiéndolos a los         ║
-║      funtores `ILaplaceOracle` e `ITopologicalWatcher`. Se interroga la frustración      ║
-║      cohomológica global mediante el `ISheafCohomologyOrchestrator`:                     ║
-║          $\dim H^1(X; \mathcal{F}) > 0 \implies \text{Colapso a } \bot$                  ║
-║      Cualquier obstrucción aniquila la función de onda instantáneamente, garantizando    ║
-║      la exactitud topológica del complejo.                                               ║
-║                                                                                          ║
-║  §3. ACT (Colapso Idempotente y Efecto Túnel):                                           ║
-║      Si la energía incidente es sub-umbral ($E < \Phi$) y el oráculo dicta un            ║
-║      amortiguamiento estricto ($\sigma \to 0^-$), el coeficiente de transmisión cae:     ║
-║          $T \approx \exp\left(-\frac{2}{\hbar}\int \sqrt{2m(\Phi - E)} dx\right) \to 0$  ║
-║      El archivo es desintegrado en el hiperespacio exterior (autoestado $\lambda_{rej}$),║
-║      impidiendo categóricamente que el motor físico principal (`flux_condenser.py`)      ║
-║      disipe ciclos de reloj FPU en basura estocástica.                                   ║
-║                                                                                          ║
-║  §4. LEY DE CLAUSURA TRANSITIVA (Axioma de Filtración):                                  ║
-║      El operador garantiza matemáticamente la contención de los subespacios de Hilbert:  ║
-║          $V_{\aleph_0} \subset V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\text{WISDOM}}$ ║
-║                                                                                          ║
-║  ARQUITECTURA DE INTERFACES ANIDADAS (Fibrados Protocol):                                ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • ITopologicalWatcher          → Observador para amenazas geométricas estructurales.    ║
-║  • ILaplaceOracle               → Oráculo espectral de polos dominantes LTI.             ║
-║  • ISheafCohomologyOrchestrator → Evaluación de obstrucciones globales y paradojas.      ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Hilbert Watcher (Operador del Hamiltoniano de Medición)             ║
+║ Ruta   : app/agents/aleph/hilbert_watcher.py                                 ║
+║ Versión: 4.0.0-Aleph-OODA-WKB-Spectral-ZeroTrust-Strict                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COLAPSO DE ONDA EN EL ESTRATO ALEPH (\(\aleph_0\)) ───
+Este módulo consagra la aduana cuántico-informacional primaria del sistema, 
+operando formalmente como el Funtor de Medición Coherente:
+
+                           𝓕: \mathbf{Superposition} \longrightarrow \mathbf{Eigenstate}
+
+Habita estrictamente en el Estrato Aleph ($$\aleph_0$$, Nivel 4), constituyendo el 
+vacío topológico y la capa límite termodinámica que precede a la variedad 
+diferenciable de la base física ($$V_{\mathbb{P}}$$). Su mandato 
+axiomático es ejecutar el colapso determinista de la función de onda semántica 
+asociada a los payloads y solicitudes entrantes, aniquilando el caos estocástico 
+y la redundancia sintáctica ("fango informativo") antes de que exciten los 
+motores analíticos e inyecten entropía espuria en el núcleo.
+
+A través de la cuantización de la energía semántica, el modelado de penetración de 
+barrera por efecto túnel (WKB) y la lógica intuicionista sobre retículos, el 
+agente actúa como un filtro pasabajo infranqueable de-confinado en el software.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES DE CONSERVACIÓN PRESERVADOS: ──────
+  [I1] Espectro Binario de Proyección Hermítica (Postulado de Born):
+       El operador de proyección de medición $$P$$ es estrictamente autoadjunto e 
+       idempotente, confinando su espectro al dominio binario de decisión:
+       $$P = P^\dagger \quad\land\quad P^2 = P \implies \sigma(P) \subseteq \{0, 1\} \quad$$
+       La probabilidad de transición del estado de entrada $$\psi$$ se rige por:
+       $$p_i = \frac{\|P_i \psi\|^2}{\|\psi\|^2} \in [6] \quad$$
+
+  [I2] Conservación de la Información y Confinamiento de Exergía:
+       La exergía o información útil $$\Xi$$ del cuanto informacional incidente se
+       deduce a partir de la entropía de Shannon $$H(X)$$ del payload [3, 7]:
+       $$H(X) = -\sum_{i=1}^n p(x_i) \log_2 p(x_i) \quad\land\quad \Xi = H_{\max} - H(X) \ge 0 \quad$$
+       La energía semántica $$E = h\nu$$ debe superar la función de trabajo $$\Phi$$ 
+       (acoplada al tensor de Gauge) para producir fotoelectrones semánticos:
+       $$K_{\max} = E - \Phi = h\nu - \Phi \ge 0 \quad$$
+
+  [I3] No-Demolición Cuántica (Conmutación del Observable):
+       La medición e inspección de la API no destruye ni altera el Hamiltoniano 
+       basal del sistema físico ($$H$$), al operar sobre una copia de lectura:
+       $$[H, \mathcal{O}_{\mathrm{api}}] = H \mathcal{O}_{\mathrm{api}} - \mathcal{O}_{\mathrm{api}} H \equiv 0 \quad$$
+
+  [I4] Límite Semiclásico y Transmisión WKB (Efecto Túnel):
+       Si la energía incidente es sub-umbral ($$E < \Phi$$), la probabilidad de 
+       transmisión $$T$$ a través de la barrera de potencial se resuelve mediante 
+       la integral de fase de Wentzel-Kramers-Brillouin:
+       $$T \approx \exp\left( -2 \int_{x_1}^{x_2} \sqrt{\frac{2m_{\mathrm{eff}}}{\hbar^2}(\Phi(x) - E)} \, dx \right) \quad$$
+
+  [I5] Monotonicidad Causal de la Filtración (Clausura Transitiva DIKW):
+       La propagación del estado se confina strictly a la cadena de subespacios:
+       $$V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}} \quad$$
+       Ningún operador de sabiduría se evalúa si la base física reporta $$P_{\mathrm{diss}} < 0$$:
+       $$\|P_k \psi\| \le \|\psi\| \implies H^1(K; \mathcal{F}) = \mathbf{0} \quad$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+  Fase 1 ──► FASE 1: OBSERVE — ANÁLISIS ESPECTRAL Y EXERGÍA DE SHANNON
+             Sanea el payload, calcula el espectro de frecuencias incidentes y
+             computa la entropía de Shannon $$H(X)$$ para derivar la energía.
+             Entrega: WavefunctionState como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: ORIENT — PENETRACIÓN WKB Y ACOPLAMIENTO DE GAUGE
+             Somete el estado sub-umbral a la integral de fase WKB. Si choca contra
+             un punto de retorno (Cáustica), añade $$+1$$ al Índice de Maslov:
+             $$\psi(x) \to \psi(x) e^{i \frac{\pi}{2} \mu_{\mathrm{Maslov}}} \quad$$
+             Entrega: TunnelingProbability como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: DECIDE & ACT — COLAPSO EN HEYTING Y VETO LÓGICO
+             Sella el veredicto en el clasificador de subobjetos del retículo $$\Omega_3$$:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\} \quad$$
+             Veredicto terminal: Colapso síncrono del estado de software.
 """
 
 from __future__ import annotations
