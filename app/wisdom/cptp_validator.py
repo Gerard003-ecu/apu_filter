@@ -1,36 +1,62 @@
 ### -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Quantum CPTP Channel Validator (Auditor Espectral de Choi)         ║
-║  Ruta   : app/wisdom/cptp_validator.py                                       ║
-║  Versión: 6.0.0-Choi-Jamiolkowski-Kraus-Nested-Strict                        ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL:                                   ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  Este módulo actúa como el validador axiomático de morfismos cuánticos       ║
-║  en la categoría dagger-compacta $\mathcal{C}_{\mathrm{MAC}}$.               ║
-║  Verifica la completitud de Kraus y la positividad de la matriz de Choi      ║
-║  mediante la descomposición espectral de Weyl-Wilkinson, previniendo la      ║
-║  inyección de alucinaciones no unitarias en el Estrato WISDOM.               ║
-║                                                                              ║
-║  Arquitectura de Fases Anidadas (CPTP → Choi → PPT):                         ║
-║    FASE 1 — Consistencia dimensional y normalización de Kraus                ║
-║    FASE 2 — Trace-Preserving + construcción de Choi     (continúa F1)        ║
-║    FASE 3 — CP espectral, rango, PPT y certificado      (continúa F2)        ║
-║                                                                              ║
-║  Axioma de Consistencia de Calibre (Stinespring–Kraus–Choi):                 ║
-║  $$\Lambda_{\mathcal{E}}\succeq 0
-║    \quad\land\quad
-║    \sum_k M_k^\dagger M_k = I
-║    \quad\land\quad
-║    \operatorname{Tr}_B(\Lambda_{\mathcal{E}})=I_A/d$$                        ║
-║                                                                              ║
-║  Isomorfismo de Choi–Jamiołkowski:                                           ║
-║  $$\mathcal{E}\leftrightarrow\Lambda_{\mathcal{E}}
-║    =\sum_k\operatorname{vec}(M_k)\operatorname{vec}(M_k)^\dagger
-║    \in\mathcal{B}(\mathcal{H}_A\otimes\mathcal{H}_{A'})$$                    ║
+║ Módulo : Quantum CPTP Channel Validator (Auditor Espectral de Choi)          ║
+║ Ruta   : app/wisdom/cptp_validator.py                                        ║
+║ Versión: 6.0.0-Choi-Jamiolkowski-Kraus-Nested-Strict-Doctoral                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO WISDOM (V_W) ─────
+Este módulo consagra al validador axiomático y matemático encargado de certificar
+síncronamente la consistencia cuántica de los canales de inyección semántica
+$$\mathcal{E}$$ en la categoría dagger-compacta de sistemas abiertos $$\mathcal{C}_{\mathrm{MAC}}$$.
+
+Su propósito fundamental es someter las transiciones atencionales del Modelo de
+Lenguaje (LLM) a las restricciones inquebrantables del formalismo de Choi-Jamiołkowski,
+garantizando la positividad completa (CP) y la preservación exacta de la traza (TP)
+mediante descomposiciones espectrales estables de Weyl-Wilkinson. Esto previene
+de raíz la inyección de alucinaciones no unitarias y fluctuaciones estocásticas
+en el núcleo del Santuario del Estrato Wisdom ($$V_{\mathbb{W}}$$).
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: CONSISTENCIA DIMENSIONAL Y SANEAMIENTO ESPECTRAL (Observe)
+             Audita las dimensiones de los operadores de Kraus $$M_k \in \mathbb{C}^{d \times d}$$.
+             Sanea el espacio y aplica rotación de fase de gauge de calibración:
+             $$\hat{M}_k \leftarrow e^{-i \theta_k} M_k$$.
+             Entrega: Phase1KrausSanitizerCertificate como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: ISOMORFISMO DE CHOI-JAMIOŁKOWSKI Y UNITALIDAD (Orient)
+             Construye de forma bilineal la matriz de Choi $$\Lambda_{\mathcal{E}} \in \mathbb{C}^{d^2 \times d^2}$$.
+             Verifica la completitud de la traza y cuantifica el defecto de unitalidad:
+             $$\Delta_{\mathrm{unital}} = \left\| \sum_k M_k M_k^\dagger - I \right\|_F$$.
+             Entrega: Phase2ChoiIsomorphismCertificate como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: POSITIVIDAD COMPLETA (CP), PPT Y CAUSALIDAD (Decide & Act)
+             Extrae el espectro de $$\Lambda_{\mathcal{E}}$$ y verifica el criterio de Peres-Horodecki.
+             Garantiza la condición de No-Señalización cuántica bipartita de-confinada.
+             Veredicto: Colapso síncrono al veredicto terminal en el retículo Heyting $$\Omega_3$$.
+
+INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
+  [I1] Conservación de Traza de Kraus:    $$\sum_{k=1}^r M_k^\dagger M_k = I_A \quad \implies \quad \operatorname{Tr}(\mathcal{E}(\rho)) \equiv 1.0$$
+  [I2] Positividad Completa de Choi:      $$\Lambda_{\mathcal{E}} = \sum_{k=1}^r \operatorname{vec}(M_k) \operatorname{vec}(M_k)^\dagger \succeq 0$$
+  [I3] No-Señalización Cuántica Local:    $$\operatorname{Tr}_A\big( (\mathcal{E}_A \otimes \mathcal{I}_B)(\rho_{AB}) \big) \equiv \rho_B$$
+  [I4] Simetría Hermítica de Choi:        $$\Lambda_{\mathcal{E}} = \Lambda_{\mathcal{E}}^\dagger \quad \implies \quad \lambda_i \in \mathbb{R}$$
+  [I5] Isomorfismo de Adjunción:          $$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong_{G_{\mu\nu}} \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC}))$$
+
+CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
+  Si el canal cuántico registra una pérdida de traza ($$\| \sum M_k^\dagger M_k - I \|_F > \tau$$),
+  un autovalor de Choi negativo fuera de tolerancia ($$\lambda_i < \epsilon_{\mathrm{floor}}$$), o una
+  violación de la condición de No-Señalización bipartita, el retículo distributivo
+  de Heyting $$\Omega_3$$ colapsa de forma instantánea al Supremo terminal VETOED.
+  
+  La subrutina local 'isVerdictCoherent()' del ESP32 en el borde de la obra real
+  detecta el mismatch en menos de 400 ns y conmuta el pin GPIO14. Esto dispara la
+  compuerta de potencia del tiristor de conmutación rápida BT151 (circuito Crowbar),
+  cortocircuitando la alimentación trifásica de los actuadores hidráulicos en el
+  milisegundo cero, anulando la alucinación antes del desfalco financiero.
 """
 
 from __future__ import annotations

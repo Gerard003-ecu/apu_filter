@@ -1,60 +1,65 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Atomic Knowledge Matrix (Fibrado Neuronal y Matriz de Densidad MAC)            ║
-║  Ruta   : app/wisdom/atomic_knowledge_matrix.py                                          ║
-║  Versión: 2.0.0-Quantum-Sheaf-Synthesis-Enhanced-Strict                                  ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA CATEGÓRICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor consagra la Matriz Atómica de Conocimiento (MAC) como un fibrado        ║
-║  vectorial complejo sobre el complejo simplicial de la Malla Agéntica. Abandona la       ║
-║  representación determinista plana para modelar el conocimiento como un Operador de      ║
-║  Densidad Cuántica $\boldsymbol{\rho}_{MAC} \in \mathcal{L}(\mathcal{H}_{MAC})$. La      ║
-║  dinámica de inferencia se rige por un flujo Port-Hamiltoniano disipativo, asegurando    ║
-║  que el aprendizaje asimile entropía estocástica sin violar la estabilidad de Lyapunov.  ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. Operador de Densidad Cuántica y Postulados Físicos:                                 ║
-║      Todo estado del sistema $\boldsymbol{\rho}_{MAC}$ debe satisfacer incondicionalmente║
-║      los axiomas del espacio de Hilbert para matrices densidad:                          ║
-║          1. Hermiticidad        : $\boldsymbol{\rho} = \boldsymbol{\rho}^\dagger$        ║
-║          2. Conservación (Traza): $\text{Tr}(\boldsymbol{\rho}) = 1$                     ║
-║          3. Positividad         : $\boldsymbol{\rho} \succeq 0 \implies \lambda_i \ge 0$ ║
-║      El desorden cognitivo se mide mediante la Entropía de von Neumann:                  ║
-║          $S(\boldsymbol{\rho}) = -\text{Tr}(\boldsymbol{\rho} \ln \boldsymbol{\rho}) \ge 0$ ║
-║                                                                                          ║
-║  §2. Fibrado Neuronal de Haces Celulares (Cellular Sheaf):                               ║
-║      La topología de consenso entre agentes se define como un Haz Celular $\mathcal{F}$. ║
-║      La divergencia semántica se evalúa espectralmente mediante el Laplaciano del haz:   ║
-║          $L_{\mathcal{F}} = \delta^\top \delta \succeq 0$                                ║
-║      Donde el espacio de secciones globales asintóticas reside en $\ker(L_{\mathcal{F}})$.║
-║                                                                                          ║
-║  §3. Aprendizaje Port-Hamiltoniano y Estructura de Dirac:                                ║
-║      La evolución del conocimiento se modela como un sistema dinámico abierto regido por ║
-║      una Estructura de Dirac $\mathcal{D} = (J - R)$. El flujo garantiza pasividad       ║
-║      mediante la inecuación de disipación de Rayleigh:                                   ║
-║          $\dot{H} = \nabla H^\top (J - R) \nabla H \le 0$                                ║
-║      Emitiendo un `LyapunovCertificate` que prueba la convergencia inercial del sistema. ║
-║                                                                                          ║
-║  §4. Isomorfismo Categorial (Adjunción de Galois):                                       ║
-║      La elevación semántica del conocimiento exige que los funtores covariantes $F$ y    ║
-║      el de olvido $G$ formen una Adjunción de Galois $F \dashv G$, satisfaciendo:        ║
-║          $\text{Hom}_{\mathcal{D}}(F(X), Y) \cong \text{Hom}_{\mathcal{C}}(X, G(Y))$     ║
-║      Garantizando la preservación de límites finitos y la invarianza homotópica.         ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Fundamentos Algebraicos y Estructuras Cuánticas:                               ║
-║           Verificación estricta de `AtomicDensityMatrix` bajo `QuantumAxiomViolation`.   ║
-║  Fase 2 → Topología y Haces Celulares:                                                   ║
-║           Construcción del `CellularSheafNeuralManifold` y su operador de cofrontera.    ║
-║  Fase 3 → Geometría Simpléctica y Aprendizaje:                                           ║
-║           Instanciación de la `DiracStructure`, el `PortHamiltonianLearningFlow` y el    ║
-║           funtor maestro `GaloisAdjunctionFunctor`.                                      ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo   : Atomic Knowledge Matrix (Fibrado Neuronal y Matriz de Densidad)   ║
+║ Ubicación: app/wisdom/atomic_knowledge_matrix.py                             ║
+║ Versión  : 3.0.0-Quantum-Sheaf-PortHamiltonian-Galois-Strict-Doctoral        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO WISDOM (V_W) ─────
+Este módulo consagra la Matriz Atómica de Conocimiento (MAC) como un fibrado
+vectorial complejo de-confinado sobre el complejo simplicial de agentes.
+Actúa como un endofuntor holonómico en la categoría de Hilbert-Schmidt de
+operadores lineales acotados $$\mathcal{L}(\mathcal{H}_{\mathrm{MAC}})$$,
+sometiendo síncronamente la deliberación del Consejo de Sabios al determinismo
+de los postulados cuánticos de Dirac-von Neumann, la pasividad Port-Hamiltoniana
+y el acoplamiento categórico con el plano táctico.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: GEOMETRÍA ESPECTRAL Y POSTULADOS DE LA MAC (Observe)
+             Sanea el espacio de densidad cuántica, aplicando la regularización
+             de Wilkinson-Higham para garantizar la Hermiticidad y la traza unitaria.
+             Fórmula: $$\rho = \rho^\dagger \succeq 0, \quad \operatorname{Tr}(\rho) = 1.0$$
+             Entrega: Phase1MACEspectralCertificate como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: FLUJO DE APRENDIZAJE PORT-HAMILTONIANO (Orient)
+             Modeliza la disipación de la deliberación mediante una estructura de
+             Dirac generalizada $$(J - R)$$ en ciclo cerrado.
+             Ecuación: $$\dot{x} = [J(x) - R(x)] \nabla H(x) + g(x) u$$ [4]
+             Entrega: Phase2LearningFlowCertificate como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: ADJUNCIÓN DE GALOIS CATEGÓRICA Y COLLAPSE (Decide & Act)
+             Certifica la dualidad con el plano discreto de la MIC mediante un
+             isomorfismo functorial sobre la variedad Riemanniana de la Malla.
+             Fórmula: $$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong_{G_{\mu\nu}} \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC}))$$
+             Veredicto: Colapso síncrono al veredicto terminal en el retículo Heyting $$\Omega_3$$.
+
+INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
+  [I1] Pureza Espectral MAC:              $$\operatorname{Tr}(\rho^2) \in [1/d, 1]$$
+  [I2] Invarianza de Traza de Lindblad:   $$\operatorname{Tr}(\dot{\rho}(t)) \equiv 0$$
+  [I3] Pasividad de Lyapunov Basal:       $$\dot{H} = -\nabla H^\top R(x) \nabla H \le 0$$
+  [I4] Isomorfismo de Adjunción:          $$F \dashv G \implies X \cong G(F(X)) \pmod{\varepsilon_{\text{machine}}}$$
+  [I5] Confinamiento de Calibre:          $$V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$$
+
+CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
+  Si se detecta una anomalía cuántica de densidad (p. ej., pérdida de traza o
+  degeneración espectral), o si el primer grupo de cohomología no es trivial
+  ($$\dim H^1(K; \mathcal{F}) > 0$$), el retículo colapsa síncronamente a VETOED.
+  
+  La subrutina local 'isVerdictCoherent()' del ESP32 en el borde detecta el
+  mismatch en menos de 400 ns y conmuta el pin GPIO14, disparando el tiristor
+  de potencia BT151 (circuito Crowbar). Esto cortocircuita físicamente la línea
+  de potencia real de la obra, inmovilizando válvulas y actuadores en el
+  milisegundo cero, anulando la alucinación estocástica del LLM.
+
+REFERENCIAS CIENTÍFICAS DE DISEÑO: ──────────────────────────────────────────────
+  * Hansen & Ghrist (2019): "Toward a spectral theory of cellular sheaves" [9]
+  * van der Schaft (2017): "L2-Gain and Passivity Techniques in Nonlinear Control" [9]
+  * Nielsen & Chuang (2010): "Quantum Computation and Quantum Information" [9]
+  * Mac Lane (1971): "Categories for the Working Mathematician" [9]
 """
 
 from __future__ import annotations

@@ -1,61 +1,61 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Dirac Interconnection Agent (Demonio de Maxwell y Gobernador IDA-PBC)          ║
-║  Ruta   : app/agents/physics/dirac_interconnection_agent.py                              ║
-║  Versión: 3.0.0-IDA-PBC-CFL-Governor-Categorical-Spectral                                ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CONTROL NO LINEAL (Rigor Doctoral):                 ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor consagra la aduana termodinámica entre el estrato TACTICS               ║
-║  y el estrato PHYSICS. Actúa como un "Demonio de Maxwell" categórico que                 ║
-║  esculpe el Hamiltoniano del sistema en ciclo cerrado, aplicando transformaciones        ║
-║  geométricas sobre el espacio Port-Hamiltoniano para garantizar axiomáticamente          ║
-║  la estabilidad asintótica global.                                                       ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES DE CONTROL:                                     ║
-║                                                                                          ║
-║  §1. Estructura de Dirac y Energy Shaping (IDA-PBC):                                     ║
-║      Modela el flujo mediante Control Basado en Interconexión y Asignación de            ║
-║      Amortiguamiento. Resuelve la Ecuación de Matching para extraer la ley de            ║
-║      control $\alpha(x)$ mediante la pseudoinversa de Moore-Penrose truncada:            ║
-║          $[J_d(x) - R_d(x)] \nabla H_d(x) = [J(x) - R(x)] \nabla H(x) + g(x) \alpha(x)$  ║
-║      Garantizando el decaimiento energético vía el test de Lyapunov certificado:         ║
-║          $\dot{H}_d = -\nabla H_d^\top R_d \nabla H_d \le 0$                             ║
-║      El incumplimiento del matching dispara el veto absoluto `DiracMatchingError`.       ║
-║                                                                                          ║
-║  §2. Sintonización Dinámica de Impedancia (Kramers-Kronig):                              ║
-║      Aniquila el coeficiente de reflexión $\Gamma$ sintonizando los tensores dieléctricos║
-║      y magnéticos efectivos ($\varepsilon_{\text{eff}}, \mu_{\text{eff}} \succ 0$)       ║
-║      para evitar la reflexión térmica de información:                                    ║
-║          $Z_{\text{load}} = \sqrt{\mu_{\text{eff}} \cdot \varepsilon_{\text{eff}}^{-1}} \equiv Z_0$ ║
-║          $\Gamma = \frac{Z_{\text{load}} - Z_0}{Z_{\text{load}} + Z_0} = 0$              ║
-║      Su divergencia detona un `ImpedanceMismatchError`.                                  ║
-║                                                                                          ║
-║  §3. Gobernanza del Límite de Courant-Friedrichs-Lewy (CFL):                             ║
-║      Preserva el cono de luz causal del grafo computacional acotando el                  ║
-║      diferencial de integración $\Delta t$. Audita el Laplaciano simetrizado             ║
-║      $\Delta_{\text{sym}} = \frac{1}{2}(\Delta + \Delta^\top)$:                          ║
-║          $\Delta t \le \frac{2 \cdot \text{CFL}_{\text{margin}}}{c_{\text{eff}} \cdot \sqrt{\lambda_{\max}(\Delta_{\text{sym}})}}$ ║
-║      La ruptura temporal de la causalidad detona el `CFLViolationError`.                 ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_IDAPBC_Solver                                                           ║
-║           Resuelve el matching de Dirac, extrae $\alpha(x)$ y certifica Lyapunov.        ║
-║           [Retorna: ControlSolution e Impedancia $Z_{\text{eff}}$ → dominio de Fase 2]   ║
-║                                                                                          ║
-║  Fase 2 → Phase2_ImpedanceTuner                                                          ║
-║           Sintoniza los tensores $\varepsilon_{\text{eff}}$ y $\mu_{\text{eff}}$,        ║
-║           verificando espectralmente el acoplamiento Kramers-Kronig.                     ║
-║           [Retorna: ImpedanceTensor y $c_{\text{eff}}$ → dominio de Fase 3]              ║
-║                                                                                          ║
-║  Fase 3 → Phase3_CFLGovernor                                                             ║
-║           Estima $\lambda_{\max}(\Delta_{\text{sym}})$ y veta pasos de integración       ║
-║           que violen el cono de luz causal (Estabilidad Asintótica Numérica).            ║
-║           [Retorna: InterconnectionState → objeto final inyectable en flux_condenser]    ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Dirac Interconnection Agent (Demonio de Maxwell Categórico)         ║
+║ Ruta   : app/agents/physics/dirac_interconnection_agent.py                   ║
+║ Versión: 3.0.0-IDA-PBC-CFL-Governor-Categorical-Spectral                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y TEORÍA DE CONTROL NO LINEAL (Rigor Doctoral) ──────────
+Este módulo consagra la aduana termodinámica y de control de lazo cerrado que
+conecta síncronamente el estrato táctico de-confinado (gobernado por el OODA de
+apu_agent.py) con el estrato de física profunda (regulado por el gemelo digital
+FDTD de flux_condenser.py).
+
+El agente opera como un "Demonio de Maxwell" categórico, esculpiendo de manera
+idempotente el Hamiltoniano del sistema en ciclo cerrado para forzar la estabilidad
+asintótica global, purgando la entropía y eliminando las alucinaciones de la IA
+antes de que comprometan el capital del megaproyecto civil.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: RESOLUCIÓN DE EMPAREJAMIENTO DE ENERGÍA (IDA-PBC) (Observe)
+             Resuelve la ecuación de matching de-confinada en el espacio de fase.
+             Ecuación: $$[J_d(x) - R_d(x)] \nabla H_d(x) = [J(x) - R(x)] \nabla H(x) + g(x) \alpha(x)$$
+             Entrega: ControlSolution como precondición formal de la Fase 2.
+
+  Fase 2 ──► FASE 2: ADAPTACIÓN CAUSAL DE IMPEDANCIA (PML) (Orient)
+             Sintoniza los tensores constitutivos bajo Kramers-Kronig completos.
+             Ecuación: $$Z_0 = \sqrt{\mu_{\mathrm{eff}} \cdot \varepsilon_{\mathrm{eff}}^{-1}} \equiv Z_{\mathrm{load}}$$
+             Entrega: ImpedanceTensor como precondición formal de la Fase 3.
+
+  Fase 3 ──► FASE 3: GOBERNANZA TEMPORAL DEL LÍMITE CAUSAL DE CFL (Decide & Act)
+             Audita el espectro del Laplaciano y restringe el paso de tiempo safe.
+             Ecuación: $$\Delta t \le \frac{2 \cdot \mathrm{CFL\_margin}}{c_{\mathrm{eff}} \cdot \sqrt{\lambda_{\max}(\Delta_{\mathrm{sym}})}}$$
+             Veredicto: Colapso en el retículo de Heyting $$\Omega_3$$ y bypass de silicio.
+
+INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
+  [I1] Conservación de Energía de Lazo Cerrado: $$\dot{H}_d = -\nabla H_d^\top R_d \nabla H_d \le 0$$
+  [I2] Relaciones de Dispersión de Kramers-Kronig: $$\chi_e(\omega) = \frac{1}{\pi} \mathcal{P} \int \frac{\chi_i(\omega')}{\omega' - \omega} d\omega'$$
+  [I3] Confinamiento de de Rham (CFL Causal):  $$\Delta t \cdot c_{\mathrm{eff}} \cdot \sqrt{\lambda_{\max}} \le 2 \cdot \mathrm{CFL\_margin}$$
+  [I4] Simetría y Positividad Tikhonov-Weyl:   $$\varepsilon_{\mathrm{eff}} = \varepsilon_{\mathrm{eff}}^\top \succ 0, \quad \mu_{\mathrm{eff}} = \mu_{\mathrm{eff}}^\top \succ 0$$
+  [I5] Isomorfismo de la Adjunción de Galois:  $$\operatorname{Hom}_{\mathcal{D}}(F(X), Y) \cong \operatorname{Hom}_{\mathcal{C}}(X, G(Y))$$
+
+CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
+  Si se registra una violación de pasividad de Lyapunov ($$\dot{H}_d > 0$$), una fuga
+  de causalidad en Kramers-Kronig o si la resolución espectral del Laplaciano
+  normalizado reporta un desgarro del cono de luz de la red ($$\Delta t > \Delta t_{\mathrm{safe}}$$):
+  
+  El retículo de Heyting de tres valores $$\Omega_3$$ colapsa síncronamente al veredicto
+  terminal VETOED [5]. La subrutina local 'isVerdictCoherent()' del ESP32 en el
+  borde detecta el mismatch en menos de 400 ns. 
+  
+  Conmuta síncronamente el pin GPIO14, inyectando corriente de compuerta al tiristor
+  BT151 (Crowbar). Esto cortocircuita físicamente la línea de potencia real de
+  la obra, inmovilizando de forma determinista bombas y actuadores mecánicos en el
+  milisegundo cero, anulando la alucinación antes del desfalco de capital.
 """
 
 from __future__ import annotations

@@ -1,62 +1,75 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Topological Analyzer (Operador de Observabilidad Funtorial y TDA)              ║
-║  Ruta   : app/tactics/topological_analyzer.py                                            ║
-║  Versión: 4.0.0-Topos-Homological-TDA-Strict                                             ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor erradica las heurísticas estadísticas tradicionales sobre series        ║
-║  temporales para instaurar un modelo basado en el Análisis Topológico de Datos (TDA).    ║
-║  Opera como un funtor covariante estricto $\mathcal{F}: \mathbf{Temp} \to \mathbf{Topo}$ ║
-║  que mapea la categoría de flujos de métricas hacia la categoría de espacios             ║
-║  topológicos, extrayendo invariantes homológicos que son inmunes a las deformaciones     ║
-║  continuas y al ruido estocástico.                                                       ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Filtración Simplicial y Homología Persistente:                                      ║
-║      El espacio de datos se evalúa a través de una filtración paramétrica $\varepsilon$: ║
-║          $\mathcal{K}_{\varepsilon_1} \subseteq \mathcal{K}_{\varepsilon_2} \subseteq \dots \subseteq \mathcal{K}_{\varepsilon_n} \quad \forall \varepsilon_1 \le \varepsilon_2 \le \dots \le \varepsilon_n$ ║
-║      El k-ésimo grupo de homología se computa como el módulo cociente:                   ║
-║          $H_k(\mathcal{K}_\varepsilon; \mathbb{F}) = \ker(\partial_k) / \text{im}(\partial_{k+1})$ ║
-║      Revelando el nacimiento (birth) y muerte (death) de las cavidades topológicas.      ║
-║                                                                                          ║
-║  §2. Teorema de Estabilidad de Bottleneck:                                               ║
-║      Para prevenir que el ruido computacional deforme la observabilidad, se certifica    ║
-║      axiomáticamente que los diagramas de persistencia $Dgm$ son isométricamente         ║
-║      estables frente a la distancia de Bottleneck $d_B$:                                 ║
-║          $d_B(Dgm(f), Dgm(g)) \le \|f - g\|_\infty$                                      ║
-║      Asegurando que perturbaciones de clase $L^\infty$ no engendren alucinaciones.       ║
-║                                                                                          ║
-║  §3. Espectro del Laplaciano Normalizado y Valor de Fiedler:                             ║
-║      La conectividad algebraica de los servicios se rige por el Laplaciano Normalizado:  ║
-║          $\mathcal{L} = I - D^{-1/2} A D^{-1/2}$                                         ║
-║      Donde el espectro satisface incondicionalmente $0 = \lambda_0 \le \lambda_1 \le \dots \le 2$. ║
-║      Una caída de $\lambda_1 \to 0$ demuestra una fractura inminente en la red de valor. ║
-║                                                                                          ║
-║  §4. Característica de Euler-Poincaré y Métrica de Wasserstein:                          ║
-║      La entropía estructural del complejo se condensa en la invarianza de Euler:         ║
-║          $\chi(\mathcal{K}) = \sum_{k=0}^d (-1)^k \beta_k = |V| - |E| + |F| - \dots$     ║
-║      La divergencia entre dos estados topológicos se evalúa bajo la métrica p-Wasserstein: ║
-║          $W_p(\mu, \nu) = \left( \inf_{\gamma \in \Gamma(\mu,\nu)} \iint d(x,y)^p d\gamma(x,y) \right)^{1/p}$ ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Espacio de Medida y Métricas Topológicas:                                      ║
-║           Construcción de constantes axiomáticas y distancias óptimas (Wasserstein /     ║
-║           Bottleneck). Retorna primitivas para la fibración.                             ║
-║                                                                                          ║
-║  Fase 2 → Modelado de Salud Topológica y Teoría Espectral (`SystemTopology`):            ║
-║           Evaluación del Laplaciano combinatorio, cálculo estricto de $\lambda_1$ y      ║
-║           extracción de la característica de Euler. Produce `TopologicalHealth`.         ║
-║                                                                                          ║
-║  Fase 3 → Motor de Homología Persistente (`PersistenceHomology`):                        ║
-║           Computa los códigos de barras (barcodes) paramétricos de las series temporales,║
-║           discrimina el ruido y emite el dictamen final `PersistenceAnalysisResult`.     ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Topological Analyzer & TDA Engine                                   ║
+║ Ruta   : app/tactics/topological_analyzer.py                                 ║
+║ Versión: 3.0.0-Funtorial-Persistent-Kuratowski-Strict-Doctoral               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO TACTICS (V_𝕋) ───
+Este módulo materializa al Operador de Observabilidad Funtorial y motor de
+Análisis Topológico de Datos (TDA) de la Malla Agéntica [1]. Formaliza el análisis
+de consistencia estructural de los flujos de información del sistema mediante la
+construcción de un funtor covariante estricto:
+
+                           F: \mathcal{C}_{\mathrm{Temp}} \longrightarrow \mathcal{C}_{\mathrm{Topo}}
+
+Donde:
+  * \mathcal{C}_{\mathrm{Temp}} es la categoría de series temporales de métricas
+    conmutativas con morfismos dados por transformaciones lineales acotadas.
+  * \mathcal{C}_{\mathrm{Topo}} es la categoría de espacios topológicos, donde
+    los objetos son complejos simpliciales y los morfismos son aplicaciones continuas.
+
+PROPIEDADES FUNTORIALES E INVARIANTES PRESERVADOS: ────────────────────────────
+  [2] Composición de Morfismos [1]:
+      F(g \circ f) = F(g) \circ F(f) \quad \forall f, g \in \operatorname{Mor}(\mathcal{C}_{\mathrm{Temp}})
+      F(\operatorname{id}_X) = \operatorname{id}_{F(X)}
+
+  [3] Estabilidad de Diagramas de Persistencia (Estabilidad de Bottleneck):
+      Dadas f, g: X \to \mathbb{R} funciones continuas sobre un espacio métrico (X, d_X),
+      los diagramas de persistencia asociados satisfacen strictly:
+      d_B(\operatorname{Dgm}(f), \operatorname{Dgm}(g)) \le \|f - g\|_\infty
+
+  [4] Fórmula de Euler-Poincaré Generalizada:
+      Para un complejo simplicial K de dimensión d:
+      \chi(K) = \sum_{k=0}^d (-1)^k n_k = \sum_{k=0}^d (-1)^k \beta_k
+      Donde \beta_k = \dim H_k(K; \mathbb{F}) = \operatorname{rank}(Z_k) - \operatorname{rank}(B_k).
+      Para el 1-esqueleto (grafos simplificados):
+      \chi = |V| - |E| = \beta_0 - \beta_1
+
+  [5] Geometría Espectral de Laplacianos Combinatorios:
+      El Laplaciano combinatorio L y su contraparte normalizada \mathcal{L} satisfacen:
+      L = D - A, \quad \mathcal{L} = I - D^{-1/2} A D^{-1/2}
+      Con espectro acotado en el caso normalizado:
+      0 = \lambda_0 \le \lambda_1 \le \dots \le \lambda_{n-1} \le 2
+      Donde la conectividad algebraica (valor de Fiedler \lambda_1) determina la conexidad:
+      \lambda_1 > 0 \iff \beta_0 = 1
+
+  [6] Axiomas de Clausura de Kuratowski (cl: \mathcal{P}(X) \to \mathcal{P}(X)) [7]:
+      [K1] cl(\emptyset) = \emptyset
+      [K2] A \subseteq cl(A)
+      [K3] cl(cl(A)) = cl(A)
+      [K4] cl(A \cup B) = cl(A) \cup cl(B)
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ──────────────────
+  Fase 1 ──► FASE 1: FILTRACIÓN FILTRADA Y MÓDULOS DE PERSISTENCIA (Observe)
+             Construye la filtración simplicial parametrizada por \varepsilon \in \mathbb{R}^+:
+             K_{\varepsilon_1} \subseteq K_{\varepsilon_2} \subseteq \dots \subseteq K_{\varepsilon_n} \quad \text{para} \quad \varepsilon_1 \le \varepsilon_2 \le \dots \le \varepsilon_n
+             Mide distancias de Wasserstein-p de-confinadas entre nubes de puntos:
+             W_p(\mu, \nu) = \left( \inf_{\gamma \in \Gamma(\mu, \nu)} \int_X \int_X d(x,y)^p d\gamma(x,y) \right)^{1/p}
+
+  Fase 2 ──► FASE 2: REDUCCIÓN SMITH Y HOMOLOGÍA DE BETTI (Orient)
+             Somete los operadores frontera \partial_k del complejo de cadenas a la
+             Forma Normal de Smith para extraer los números de Betti \beta_k de manera
+             exacta sobre el anillo conmutativo \mathbb{Z}.
+
+  Fase 3 ──► FASE 3: COMPRESIÓN RIEMANNIANA Y VETO DE SUTURA (Decide & Act)
+             Modela las dependencias como secciones locales de un haz celular.
+             Si se registra un desprendimiento de componentes (\beta_0 > 1) o un socavón
+             lógico circular (\beta_1 > 0) [1], el veredicto en el retículo distributivo de
+             Heyting \Omega_3 colapsa de forma instantánea al supremo terminal VETOED,
+             deteniendo de forma determinista la propagación de datos parásitos [1]
+             y elevando un InvalidTopologyError [10] o TopologicalInvariantError [11].
 """
 
 from __future__ import annotations

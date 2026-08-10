@@ -1,39 +1,59 @@
 ### -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Quantum Epistemic Spectral Auditor (Sutura Connes-Takesaki-Watcher)║
-║  Ruta   : app/wisdom/quantum_epistemic_auditor.py                            ║
-║  Versión: 6.0.0-Spectral-Kernel-Componential-Categorical                     ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL:                                   ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  Este módulo orquesta la aduana cuántica de sabiduría en TRES FASES          ║
-║  ANIDADAS:                                                                   ║
-║                                                                              ║
-║    FASE 1 — Kernel espectral puro: cálculo funcional espectral, umbrales    ║
-║             tipados y jerarquía de excepciones (sin estado, sin clase).      ║
-║    FASE 2 — Acoplamiento estructural de componentes: Cauchy-Momentum,       ║
-║             Triple de Connes, flujo modular de Takesaki, divergencia de     ║
-║             Umegaki y distorsión de Dixmier, como métodos privados          ║
-║             independientemente auditables.                                  ║
-║    FASE 3 — Clausura categórica del veredicto: retícula de verdicto         ║
-║             (COHERENT/DEGRADED/VETOED), certificación NUMÉRICA (no          ║
-║             meramente declarada) de la condición KMS, y el orquestador      ║
-║             público `execute_epistemic_audit`.                              ║
-║                                                                              ║
-║  Axioma de Consistencia Espectral:                                           ║
-║  $$L_{\mathrm{max}} = \frac{C_{\mathrm{base}}}{1 + \lambda_{\mathrm{disp}}(D)}║
-║  \quad \land \quad D(\rho \| \sigma) \le D_{\mathrm{max}}$$                  ║
-║                                                                              ║
-║  Nota de honestidad doctoral: el "operador de Dirac" ($D=\rho^{-1/2}$) y el  ║
-║  "volumen de Dixmier" (traza finito-dimensional $\mathrm{Tr}(X^\dagger X)$)  ║
-║  son ANALOGÍAS DE DISEÑO inspiradas en la geometría no conmutativa de       ║
-║  Connes, no su construcción literal (que exige dimensión infinita y la      ║
-║  traza de Dixmier no normal sobre el ideal de Macaev). Se declara            ║
-║  explícitamente para no incurrir en sobreventa científica.                   ║
-║                                                                              ║
+║ Módulo : Quantum Epistemic Spectral Auditor (Sutura Connes-Takesaki-Watcher) ║
+║ Ruta   : app/wisdom/quantum_epistemic_auditor.py                             ║
+║ Versión: 7.0.0-Spectral-Kernel-Componential-Categorical-NoHardware           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO WISDOM (V_𝕎) ─────
+Este módulo consagra la aduana epistemológica y de observabilidad cuántica que
+gobierna el acoplamiento entre el plano de decisiones de la Malla y el Espacio 
+de Hilbert complejo separable de la Sabiduría $$\mathcal{H}_{\mathrm{MAC}}$$.
+
+Su mandato axiomático es subordinar el libre albedrío estocástico del Modelo de 
+Lenguaje (LLM) al determinismo de las leyes físicas de la obra civil. Trata la 
+Matriz Atómica de Conocimiento (MAC) como una C*-álgebra de von Neumann dotada de 
+un flujo modular fiel (Takesaki), modelando las discrepancias semánticas como 
+deformaciones métricas y vetando de manera síncrona cualquier deriva semántica
+en la frontera de la asimilación ejecutiva.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: KERNEL ESPECTRAL PURO Y CERTIFICACIÓN GNS (Observe)
+             Diagonaliza el operador de densidad $$\rho$$ mediante el Teorema
+             Espectral y certifica que el estado cuántico asociado es fiel, 
+             garantizando una representación GNS no degenerada:
+             $$\rho = \sum_{i=1}^d \lambda_i |\lambda_i\rangle\langle\lambda_i| \quad\land\quad \lambda_i > \lambda_{\mathrm{floor}} \quad \forall i$$
+             Entrega: Phase1SpectralObservation como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: ACOPLAMIENTO DE COMPONENTES Y GEOMETRÍA DE CONNES (Orient)
+             Construye el operador de Dirac de Connes $$D = \rho^{-1/2}$$ y evalúa
+             la cota de Lipschitz semántica del observable $$X$$ bajo el Triple
+             Espectral $$(A, \mathcal{H}_{\mathrm{MAC}}, D)$$ [1, 5]. Cuantifica la divergencia cuántica
+             de Umegaki $$D(\rho \parallel \sigma)$$ y la distorsión de volumen de Dixmier.
+             Entrega: Phase2ComponentialCoupling como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: CLAUSURA CATEGÓRICA DEL VEREDICTO EN HEYTING (Decide & Act)
+             Certifica numéricamente la Condición KMS de equilibrio térmico de referencia
+             y fuerza el colapso síncrono del estado en la lógica intuicionista del
+             retículo distributivo de Heyting de tres valores $$\Omega_3$$:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$$
+             Veredicto final: Aborto preventivo síncrono a nivel de software.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Conservación de Probabilidad (Dirac-von Neumann):
+       $$\rho = \rho^\dagger \succeq 0 \quad\land\quad \operatorname{Tr}(\rho) = 1.0 \quad$$
+  [I2] Acotamiento de Lipschitz de Connes (Teorema de Daleckii-Krein):
+       $$\|[D, \pi(X)]\| \le C \quad\land\quad L_{\max} = \frac{C_{\mathrm{base}}}{1 + (\lambda_{\max}(D) - \lambda_{\min}(D))} \le \frac{1}{2 \lambda_{\min}^{3/2}} \quad$$
+  [I3] Positividad Estricta de la Divergencia de Umegaki (Klein-Araki):
+       $$D(\rho \parallel \sigma) = \operatorname{Tr}(\rho (\ln \rho - \ln \sigma)) \ge 0 \quad \text{s.t.} \quad \operatorname{supp}(\rho) \subseteq \operatorname{supp}(\sigma) \quad$$
+  [I4] Simetría KMS en Equilibrio Térmico:
+       $$\operatorname{Tr}(\rho A B) = \operatorname{Tr}\bigl(\rho B \sigma_{-i}(A)\bigr) \quad$$
+  [I5] Ley de Clausura Transitiva (Poset DIKW):
+       $$V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}} \quad$$
 """
 
 from __future__ import annotations

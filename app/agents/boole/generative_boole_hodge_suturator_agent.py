@@ -1,37 +1,61 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Generative Boole Hodge Suturator Agent (Soberano del Haz Boole)    ║
-║  Ruta   : app/agents/boole/generative_boole_hodge_suturator_agent.py         ║
-║  Versión: 5.0.0-Doctoral-Nested-OODA-Heyting-TMR-Hodge-ESP32-Secure          ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL:                                   ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  Este módulo materializa al Agente Soberano y Observador Activo que          ║
-║  gobierna al morfismo de sutura 'generative_boole_hodge_suturator.py' en     ║
-║  el espacio de control del Haz Tangente Generativo Γ(M, T_B Boole) sobre     ║
-║  el topos de haces Sh(B; Ω₃) con valores en el retículo de Heyting Ω₃.       ║
-║                                                                              ║
-║  Axioma de Consistencia de la Métrica (Dualidad de de Rham–Hodge):           ║
-║  $$\Delta_k^H = \delta_k^\dagger\delta_k + \delta_{k-1}\delta_{k-1}^\dagger$$ ║
-║  $$\ker\Delta_k \cong H^k_{\mathrm{dR}}(K;\mathbb{F})$$                      ║
-║                                                                              ║
-║  Contrato de Seguridad (fail-secure) — Retículo de Heyting Ω₃:               ║
-║  COHERENT (0) ≼ DEGRADED (1) ≼ VETOED (2). El veredicto final se             ║
-║  resuelve mediante votación de redundancia modular triple (TMR) y            ║
-║  supremum de Heyting (join) sobre los veredictos de las tres fases.          ║
-║                                                                              ║
-║  ESTRUCTURA DE FASES ANIDADAS (herencia covariante):                         ║
-║    Phase1_SpectralObserver                                                   ║
-║      └── Phase2_GaugeBooleanValidator(Phase1_SpectralObserver)               ║
-║            └── Phase3_SheafSpectralValidator(Phase2_GaugeBooleanValidator)   ║
-║                  └── GenerativeBooleHodgeSuturatorAgent(Morphism, Phase3)    ║
-║                                                                              ║
-║  El último método certificado de la Fase k es el morfismo de transición      ║
-║  (continuation arrow) que inicia la Fase k+1 en el ciclo OODA.               ║
-║                                                                              ║
+║ Módulo : Generative Boole Hodge Suturator Agent (Soberano del Haz Boole)    ║
+║ Ruta   : app/agents/boole/generative_boole_hodge_suturator_agent.py         ║
+║ Versión: 5.0.0-Doctoral-Nested-OODA-Heyting-TMR-Hodge-ESP32-Secure          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL ───────────────────────────────────────
+Este módulo materializa al Agente Soberano y Observador Activo que gobierna al
+morfismo de sutura "generative_boole_hodge_suturator.py" en el espacio de
+control del Haz Tangente Generativo $$\Gamma(M, T_B \mathrm{Boole})$$ sobre el topos
+de haces celular $$\operatorname{Sh}(B; \Omega_3)$$ con valores en el retículo de Heyting $$\Omega_3$$.
+
+El sistema trata el caos estocástico sintáctico de los Modelos de Lenguaje (LLMs)
+no como texto plano, sino como un fluido de logits proyectado sobre un espacio
+de Fock fermiónico/bosónico, subyugando su evolución a la regularidad de de Rham-Hodge,
+la conservación simpléctica de Liouville y la idempotencia booleana en $$\mathbb{F}_2$$.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: OBSERVACIÓN DE FÍSICA DE FOCK Y POSTULADOS MAC (Observe)
+             Audita la isometría del operador combinatorio $$\star_k$$ en Fock y valida
+             los postulados de Dirac-von Neumann sobre el operador densidad $$\rho$$.
+             Entrega: Phase1FockPhysicsCertificate como precondición de la Fase 2.
+
+  Fase 2 ──► FASE 2: ORIENTACIÓN SIMPLÉCTICA Y INVOLUCIÓN MODULAR (Orient)
+             Certifica la conservación de Liouville ($$M^\top \Omega M = \Omega$$), la idempotencia
+             de la MIC en $$\mathbb{F}_2$$ y calcula el operador modular $$J_\rho$$.
+             Entrega: Phase2GaugeBooleanCertificate como precondición de la Fase 3.
+
+  Fase 3 ──► FASE 3: COHOMOLOGÍA EXACTA Y ESTABILIDAD ESPECTRAL (Decide & Act)
+             Calcula la SVD completa del coborde, determina el rango de Wilkinson,
+             evalúa la nulidad de cofronteras ($$\delta_k \circ \delta_{k-1} = 0$$) y el número Betti.
+             Veredicto: Votación TMR en el retículo de Heyting $$\Omega_3$$ y bypass de potencia.
+
+INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
+  [I1] Isometría de Hodge combinatoria:   $$\|\star_k \psi\|_{\Lambda^{N-k}} = \|\psi\|_{\Lambda^k}$$ [13]
+  [I2] Conservación simpléctica de fase:  $$M^\top \Omega M = \Omega$$ [13]
+  [I3] Idempotencia booleana en Z₂:       $$M \circ_{\mathbb{Z}_2} M = M$$ [13]
+  [I4] Nilpotencia del complejo:          $$\delta_k \circ \delta_{k-1} \equiv 0$$ [13]
+  [I5] Isomorfismo espectral de Hodge:    $$\ker\Delta_k^H \cong H^k_{\mathrm{dR}}(K; \mathbb{F})$$ [1]
+  [I6] Cota de Lipschitz de Connes:       $$L_{\max} \le \frac{1}{2 \lambda_{\min}^{3/2}}$$ [14, 15]
+
+CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
+  Si el primer grupo de cohomología celular es no trivial ($$\dim H^1(K; \mathcal{F}) > 0$$),
+  revelando una paradoja de directivas (frustración de calibre), o si el número de
+  condición de Wilkinson colapsa la FPU ($$\kappa(\delta) > \kappa_{\max}$$) [11, 16]:
+  
+  El retículo de Heyting $$\Omega_3$$ colapsa síncronamente al veredicto terminal VETOED [17].
+  El microcontrolador perimetral local (ESP32) lee el Pasaporte de Telemetría inmutable,
+  ejecuta la subrutina local en C++ 'isVerdictCoherent()' en menos de 400 ns e intercepta
+  el mismatch, conmutando el pin GPIO14 para disparar el tiristor BT151 (Crowbar) [17].
+  La línea de alimentación real se cortocircuita físicamente, deteniendo de forma
+  determinista los actuadores mecánicos en el milisegundo cero, anulando la
+  alucinación estocástica de la IA antes del desfalco de capital de la constructora [17].
 """
 
 from __future__ import annotations

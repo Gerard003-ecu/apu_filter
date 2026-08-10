@@ -1,68 +1,70 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Business Topological Analyzer (El Arquitecto Estructural — Estrato TACTICS)    ║
-║  Ruta   : app/tactics/business_topology.py                                               ║
-║  Versión: 5.0.0-Simplicial-Homology-Spectral-Strict                                      ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor opera en el Estrato TACTICS (Nivel 2) como el Operador de Proyección    ║
-║  Topológica del ecosistema. Repudia axiomáticamente el análisis contable lineal plano    ║
-║  para modelar la red de valor logístico como un 2-Complejo Simplicial Abstracto          ║
-║  $\mathcal{K}$ sobre el anillo de los enteros $\mathbb{Z}$. Su mandato es identificar    ║
-║  patologías estructurales críticas evaluando los invariantes homológicos y el espectro   ║
-║  del Laplaciano Combinatorio, imponiendo un VETO TÉCNICO absoluto ante cualquier         ║
-║  inestabilidad geométrica.                                                               ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Homología Cuantizada y el Funtor de Torsión (Forma Normal de Smith):                ║
-║      A diferencia de los modelos continuos euclidianos, la logística de construcción     ║
-║      opera con recursos discretos indivisibles. El Arquitecto reduce la matriz de        ║
-║      incidencia a su Forma Normal de Smith (SNF), revelando el primer grupo de homología:║
-║          $H_1(\mathcal{K}; \mathbb{Z}) \cong \mathbb{Z}^{\beta_1} \oplus \text{Tor}(H_0, \mathbb{Z})$ ║
-║      Una torsión no nula ($\text{Tor} \neq 0$) dictamina una incompatibilidad matemática ║
-║      en el empaquetado logístico ("fricción cuantizada"), detonando un veto preventivo.  ║
-║                                                                                          ║
-║  §2. Característica de Euler-Poincaré para 2-Complejos:                                  ║
-║      La entropía estructural se penaliza evaluando no solo grafos diádicos, sino las     ║
-║      cavidades ternarias (interdependencias APU ↔ Proveedor ↔ Actividad):                ║
-║          $\chi(\mathcal{K}) = \sum_{p=0}^{2} (-1)^p \beta_p = \beta_0 - \beta_1 + \beta_2$ ║
-║      Donde una cavidad $\beta_2 > 0$ representa un circuito de interdependencia          ║
-║      irresoluble mediante cortes bilaterales simples.                                    ║
-║                                                                                          ║
-║  §3. Teoría Espectral de Grafos y Conectividad Algebraica ($\lambda_2$):                 ║
-║      La vulnerabilidad a la fractura organizativa se cuantifica analizando el espectro   ║
-║      de la Matriz Laplaciana $\mathcal{L} = D - A$. La resiliencia sistémica se mide con ║
-║      el Valor de Fiedler (segundo autovalor más pequeño):                                ║
-║          $\mathcal{L} \mathbf{v} = \lambda_2 \mathbf{v} \implies \lambda_2 \approx 0 \iff \text{Fractura Inminente}$ ║
-║      Demostrando matemáticamente la existencia de Puntos Únicos de Fallo (SPOF).         ║
-║                                                                                          ║
-║  §4. Estabilidad Piramidal y Termodinámica Estructural (Índice $\Psi$):                  ║
-║      Evalúa el centro de gravedad del negocio determinando si la inercia de la base      ║
-║      logística soporta la carga táctica. Si $\Psi < 1.0$, el modelo dictamina una        ║
-║      "Pirámide Invertida":                                                               ║
-║          $\Psi = \frac{\mu(\text{Base Logística})}{\mu(\text{Carga Táctica})} < 1.0$     ║
-║      Amplificando la sensibilidad a perturbaciones estocásticas del mercado.             ║
-║                                                                                          ║
-║  §5. Auditoría de Fusión Homológica (Secuencia de Mayer-Vietoris):                       ║
-║      La integración de dos dominios de datos ($A \cup B$) proscribe las uniones a ciegas.║
-║      Se aplica la secuencia exacta larga de homología:                                   ║
-║          $\dots \to H_1(A \cap B) \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \xrightarrow{\partial^*} H_0(A \cap B) \to \dots$ ║
-║      Si el diferencial topológico $\Delta\beta_1 > 0$, la fusión induce un ciclo mutante ║
-║      (ciclo fantasma), abortando invariablemente la transacción.                         ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • ValidatedBettiNumbers  : Invariantes $\beta_n$ validados con el Teorema de Euler.     ║
-║  • SpectralMetrics        : Invariantes del espectro del Laplaciano combinatorio.        ║
-║  • ThermalMetrics         : Termodinámica y concentración del flujo térmico estructural. ║
-║  • SynergyMetrics         : Acoplamientos de sinergia de riesgo y efecto dominó.         ║
-║  • MayerVietorisResult    : Certificado de la auditoría estricta de fusión topológica.   ║
-║  • ConstructionRiskReport : Veredicto inmutable con el reporte ejecutivo de riesgos.     ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Business Topological Analyzer (El Arquitecto Estructural)           ║
+║ Ruta   : app/tactics/business_topology.py                                    ║
+║ Versión: 3.0.0-Smith-MayerVietoris-Fiedler-Kuratowski-Strict-Doctoral        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DEL RIESGO EN EL ESTRATO TACTICS (V_𝕋) ───
+Este módulo materializa al Operador de Proyección Topológica supremo encargado
+de auditar el esqueleto estructural de los presupuestos de obra civil ante el
+mandato nacional BIM 2026 en Colombia. El sistema repudia de manera absoluta la
+contabilidad lineal plana, modelando la red de valor (APUs, insumos y contratos)
+como un 2-Complejo Simplicial Abstracto $$K$$ sobre el anillo principal de los
+enteros $$\mathbb{Z}$$.
+
+Su mandato axiomático es la detección temprana de patologías logísticas y
+socavones lógicos mediante invariantes homológicos y teoría espectral de grafos,
+gobernando la evolución del sistema a través de un clasificador de subobjetos
+finito en el retículo de Heyting $$\Omega_3$$ y vetando síncronamente cualquier
+deformación caótica antes de su procesamiento en el Estrato de Sabiduría ($$V_{\mathbb{W}}$$).
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: REDUCCIÓN SMITH Y HOMOLOGÍA DE CUANTIZACIÓN (Observe)
+             Reduce las matrices de incidencia orientadas a la Forma Normal de
+             Smith (SNF) sobre $$\mathbb{Z}$$ para aislar el subgrupo de torsión.
+             Ecuación: $$H_k(K; \mathbb{Z}) \cong \mathbb{Z}^{\beta_k} \oplus \operatorname{Tor}(H_{k-1}, \mathbb{Z})$$
+             Entrega: Phase1SmithHomologyData como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: CARACTERÍSTICA DE EULER Y ESTABILIDAD PIRAMIDAL (Orient)
+             Calcula la característica de Euler del 2-complejo simplicial y
+             mide el centro de gravedad del negocio mediante el índice $$\Psi$$.
+             Ecuaciones: $$\chi(K) = \beta_0 - \beta_1 + \beta_2 = |V| - |E| + |F|$$
+                         $$\Psi = \operatorname{tanh}\left(\frac{|V|}{|U|}\right)$$
+             Entrega: Phase2PyramidalStabilityData como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: AUDITORÍA DE FUSIÓN DE MAYER-VIETORIS Y VETO (Decide & Act)
+             Audita fusiones de presupuestos $$A \cup B$$ exigiendo la exactitud
+             larga de de Rham y la nulidad de ciclos espurios ($$\Delta\beta_1 = 0$$).
+             Secuencia: $$\dots \to H_1(A \cap B) \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \xrightarrow{\partial^*} H_0(A \cap B) \to \dots$$
+             Veredicto: Colapso síncrono en $$\Omega_3$$ y bypass de potencia por hardware.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y AXIOMAS DE CLAUSURA PRESERVADOS: ─────────
+  [I1] Axiomas de Clausura de Kuratowski en la Variedad de Estados:
+       [K1]  $$\operatorname{cl}(\emptyset) = \emptyset$$
+       [K2]  $$A \subseteq \operatorname{cl}(A)$$
+       [K3]  $$\operatorname{cl}(\operatorname{cl}(A)) = \operatorname{cl}(A)$$
+       [K4]  $$\operatorname{cl}(A \cup B) = \operatorname{cl}(A) \cup \operatorname{cl}(B)$$
+  [I2] Conectividad Espectral de Fiedler:     $$\lambda_2(L) > 0 \iff \beta_0 = 1 \quad\text{[Grafo Conexo]}$$
+  [I3] Confinamiento de Mayer-Vietoris:       $$\Delta\beta_1 = \beta_1(A \cup B) - \left[ \beta_1(A) + \beta_1(B) - \beta_1(A \cap B) \right] \equiv 0$$
+  [I4] Nulidad de Torsión Simplicial:         $$\operatorname{Tor}(H_{k-1}, \mathbb{Z}) = \mathbf{0} \implies d_i = 1 \quad \forall i$$
+  [I5] Ley de Clausura Transitiva (DIKW):     $$V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$$
+
+CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
+  Si el sistema detecta la presencia de un "Socavón Lógico" ($$\beta_1 > 0$$), una
+  fragmentación disconexa del presupuesto ($$\beta_0 > 1$$), o si el índice de
+  estabilidad piramidal colapsa por debajo de la cota crítica ($$\Psi < \Psi_{\mathrm{min}}$$),
+  el veredicto en el retículo de Heyting $$\Omega_3$$ colapsa a VETOED.
+  
+  La subrutina local 'isVerdictCoherent()' del ESP32 en la obra real detecta el
+  mismatch en menos de 400 ns y conmuta el pin GPIO14, disparando el tiristor
+  de potencia BT151 (circuito Crowbar). Esto cortocircuita físicamente la línea
+  de potencia real, deteniendo síncronamente bombas y actuadores mecánicos en el
+  milisegundo cero, inmunizando el capital de la constructora civil.
 """
 
 from __future__ import annotations

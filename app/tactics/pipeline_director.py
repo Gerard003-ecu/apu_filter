@@ -1,60 +1,51 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Pipeline Director (Orquestador de la Variedad Diferenciable y DAG Algebraico)  ║
-║  Ruta   : app/tactics/pipeline_director.py                                               ║
-║  Versión: 4.0.0-DAG-Algebraic-Mayer-Vietoris-Strict                                      ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo abandona incondicionalmente la orquestación procedural y lineal para        ║
-║  erigirse como el Motor de Resolución de un Grafo Acíclico Dirigido (DAG) Algebraico.    ║
-║  En este dominio, cada nodo del DAG constituye un endomorfismo proyectivo en el          ║
-║  espacio de estados, y cada arista dicta la causalidad estricta del flujo de             ║
-║  información. Su función axiomática es garantizar que el colapso de los datos a          ║
-║  través de la Malla Agéntica sea determinista, asintóticamente estable y libre de        ║
-║  anomalías homológicas.                                                                  ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESTRUCTURALES:                                  ║
-║                                                                                          ║
-║  §1. Espacio Vectorial de Operadores y Ordenamiento Topológico:                          ║
-║      El proceso de transformación se define sobre un espacio vectorial donde cada        ║
-║      paso $i$ es una proyección ortogonal $P_i: V \to V_i$. El DAG impone un orden       ║
-║      parcial estricto ($\le$) que garantiza la causalidad direccional de las             ║
-║      transformaciones:                                                                   ║
-║          $P_j \circ P_i \neq P_i \circ P_j \quad \forall \text{ pasos acoplados}$        ║
-║      Asegurando que los efectos termodinámicos se resuelvan sin retroalimentación.       ║
-║                                                                                          ║
-║  §2. Filtración Topológica Estricta (Ley de Clausura Transitiva):                        ║
-║      El director restringe la evaluación de los operadores a la filtración dictada       ║
-║      por la pirámide DIKW:                                                               ║
-║          $V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\text{WISDOM}}$ ║
-║      [Axioma de Causalidad]: Un morfismo en el estrato $k$ solo se evalúa si el          ║
-║      tensor proyectado sobre $k-1$ es no degenerado y libre de disipación térmica.       ║
-║                                                                                          ║
-║  §3. Auditoría Homológica de Fusión (Secuencia de Mayer-Vietoris):                       ║
-║      Al integrar subcomplejos del presupuesto ($A \cup B$), se invoca la Secuencia       ║
-║      Exacta Larga de Homología:                                                          ║
-║          $\dots \to H_1(A \cap B) \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \to H_0(A \cap B) \to \dots$ ║
-║      Si el diferencial topológico evidencia la creación de ciclos espurios:              ║
-║          $\Delta\beta_1 = \beta_1(A \cup B) - [\beta_1(A) + \beta_1(B) - \beta_1(A \cap B)] \neq 0$ ║
-║      La fusión induce una paradoja lógica y el tensor es vetado irrevocablemente.        ║
-║                                                                                          ║
-║  §4. Estado Tipado Inmutable y Memoización como Isomorfismo:                             ║
-║      Se destituye la mutabilidad en favor del `StateVector`. La memoización se           ║
-║      axiomatiza como una verificación de isomorfismo. Si la firma criptográfica          ║
-║      (`TensorSignature`) coincide, el sistema reconoce la equivalencia de homotopía:     ║
-║          $f(x) \simeq f(x')$                                                             ║
-║      Previniendo el recálculo y garantizando disipación nula de potencia computacional.  ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • StateVector      : Vector de estado tipado que reemplaza diccionarios mutables.       ║
-║  • TensorSignature  : Firma criptográfica (hash) del tensor de datos.                    ║
-║  • AlgebraicDAG     : Grafo Acíclico Dirigido causal de transformaciones.                ║
-║  • PipelineDirector : Orquestador algebraico supremo del flujo logístico.                ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Pipeline Director (Orquestador de la Variedad y DAG Algebraico)     ║
+║ Ruta   : app/tactics/pipeline_director.py                                    ║
+║ Versión: 4.0.0-DAG-Algebraic-MayerVietoris-Poset-Strict                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA CAUSAL EN EL ESTRATO TACTICS (V_𝕋) ───
+Este módulo consagra la orquestación algebraica del sistema APU Filter v5.0,
+destituyendo toda secuencia procedural plana en favor de un Motor de Resolución
+sobre un Grafo Acíclico Dirigido (DAG) Algebraico. Cada paso del pipeline se
+define formalmente como un endomorfismo proyectivo $$P_i: V \to V_i$$ sobre el
+espacio de estados, donde la no conmutatividad de operadores acoplados:
+
+                           $$P_j \circ P_i \neq P_i \circ P_j$$
+
+dicta un orden parcial estricto ($$\le$$) que preserva la causalidad direccional de
+los datos y aniquila ciclos parásitos de información en tiempo de ejecución [2].
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: ANÁLISIS DE ACICLICIDAD Y NILPOTENCIA SPECTRAL (Observe)
+             Audita el operador de adyacencia $$A$$ del DAG, calculando el índice
+             mínimo de nilpotencia $$\nu$$ para certificar la ausencia de ciclos:
+             $$A^\nu = \mathbf{0} \quad \text{con} \quad \nu \le n$$
+             Entrega: NilpotenceAuditData como precondición formal de la Fase 2.
+
+  Fase 2 ──► FASE 2: CLAUTURA TRANSITIVA Y FILTRACIÓN DEL POSET DIKW (Orient)
+             Aplica la Ley de Clausura Transitiva de Warshall, confinando el flujo
+             en la filtración estricta de subespacios:
+             $$V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$
+             Entrega: PosetFiltrationData como precondición formal de la Fase 3.
+
+  Fase 3 ──► FASE 3: INTERCEPCIÓN COHOMOLÓGICA DE MAYER-VIETORIS (Decide & Act)
+             Audita las fusiones concurrentes de subcomplejos $$A \cup B$$ exigiendo la
+             nulidad del residuo homológico de la secuencia exacta larga:
+             $$\Delta\beta_1 = \beta_1(A \cup B) - \left[ \beta_1(A) + \beta_1(B) - \beta_1(A \cap B) \right] \equiv 0$$
+             Veredicto: Colapso síncrono al veredicto terminal en el retículo Heyting $$\Omega_3$$.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y AXIOMAS DE CLAUSURA PRESERVADOS: ─────────
+  [I1] Nilpotencia Estricta del DAG:          $$\rho(A) = 0 \implies \sigma(A) = \{0\} \quad\text{[A es acíclico]}$$
+  [I2] Monotonicidad de la Filtración:        $$s(u) \le s(v) \quad \forall (u \to v) \in E_{\mathrm{DAG}}$$
+  [I3] Preservación de Homotopía (Mayer-V):   $$\Delta\beta_1 = 0 \implies H^1(A \cup B) \cong H^1(A) \oplus H^1(B) / \operatorname{im}(\partial^*)$$
+  [I4] Identidad de Euler-Poincaré:          $$\chi(A \cup B) = \chi(A) + \chi(B) - \chi(A \cap B)$$
+  [I5] Isomorfismo de Memoización Orbitaria:  $$f(x) \simeq f(x') \implies \text{Hash}(x) \equiv \text{Hash}(x') \quad\text{[O(1) exergético]}$$
 """
 
 from __future__ import annotations

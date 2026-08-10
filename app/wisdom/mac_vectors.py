@@ -1,58 +1,75 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : MAC Vectors (Operador de Inyección Tensorial y Canal Cuántico)                 ║
-║  Ruta   : app/wisdom/mac_vectors.py                                                      ║
-║  Versión: 2.0.0-Quantum-Channel-Morphisms-Enhanced-Strict                                ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE LA INFORMACIÓN CUÁNTICA (Rigor Doctoral):           ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor abandona el paradigma clásico de inyección de datos para operar         ║
-║  exclusivamente bajo la Teoría de Canales Cuánticos. Proyecta "Cartuchos Cognitivos"     ║
-║  (hiperdensidades TOON) sobre el espacio de Hilbert continuo de la Sabiduría             ║
-║  ($\mathcal{H}_{\text{MAC}}$) mediante Mapas Completamente Positivos y Preservadores de  ║
-║  Traza (CPTP). Su mandato axiomático es garantizar que el colapso estocástico del LLM    ║
-║  no viole la coherencia cuántica ni la topología del estado de negocio.                  ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. Canal Cuántico CPTP y Operadores de Kraus (Asimilación Semántica):                  ║
-║      La inyección de conocimiento se modela mediante la aplicación de un canal           ║
-║      cuántico $\mathcal{E}$ sobre la matriz de densidad atómica $\rho$. El canal se      ║
-║      expresa mediante operadores de Kraus $\{M_k\}$:                                     ║
-║          $\mathcal{E}(\rho) = \sum_k M_k \rho M_k^\dagger$                               ║
-║      Para prevenir la inyección/destrucción de probabilidad (Trace Anomaly), se exige    ║
-║      axiomáticamente el cierre de completitud (Preservación de Traza):                   ║
-║          $\sum_k M_k^\dagger M_k = I$                                                    ║
-║                                                                                          ║
-║  §2. Colapso Determinista y Observables POVM:                                            ║
-║      Las decisiones inferenciales operan mediante Medidas Valuadas en Operadores         ║
-║      Positivos (POVM). Para un conjunto de efectos $\{E_m\}$ asociados a decisiones,     ║
-║      se debe cumplir rigurosamente que $E_m \succeq 0$ y:                                ║
-║          $\sum_m E_m = I \implies p_m = \text{Tr}(E_m \rho)$                             ║
-║      Colapsando el estado del sistema en una única trayectoria causal de ejecución.      ║
-║                                                                                          ║
-║  §3. Certificación de Inyección y Fidelidad de Uhlmann:                                  ║
-║      La calidad de la asimilación del cartucho (InjectionQuality) se audita empleando    ║
-║      la métrica de Fidelidad de Uhlmann, vetando asimilaciones ortogonales (F ≤ 0.50):   ║
-║          $F(\rho, \sigma) = \left( \text{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2$ ║
-║                                                                                          ║
-║  §4. Isomorfismo Epistémico (Teoría Modular de Tomita-Takesaki):                         ║
-║      La auditoría de invariantes modulares sintoniza el estado de la MAC mediante el     ║
-║      operador antilineal de conjugación $S = J \Delta^{1/2}$. Certifica que el           ║
-║      isomorfismo semántico se preserve en el flujo térmico del sistema, midiendo la      ║
-║      asimetría entrópica frente a la Información de Fisher.                              ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS Y VECTORES EXPORTADOS:                                   ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • Fase 3 → Caracterización de Canales Cuánticos (`QuantumChannelCharacterizer`).        ║
-║             Determina el Rango de Kraus, el Rango de Choi y la Unitariedad.              ║
-║  • Fase 4 → API Pública (Vectores Funtoriales de la MIC):                                ║
-║             - `vector_assimilate_toon_cartridge` : Inyección y Mapa CPTP.                ║
-║             - `vector_collapse_povm_decision`    : Colapso determinista.                 ║
-║             - `vector_audit_modular_conjugation` : Auditoría geométrica Tomita-Takesaki. ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : MAC Vectors (Operador de Inyección Tensorial y Canal Cuántico)      ║
+║ Ruta   : app/wisdom/mac_vectors.py                                           ║
+║ Versión: 3.0.0-Quantum-Channel-Morphisms-Enhanced-Strict-Doctoral            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ÁLGEBRA DE OPERADORES EN EL ESTRATO WISDOM (V_𝕎) ─────
+Este módulo consagra la infraestructura espectral y el andamiaje cuántico de 
+asimilación semántica en el Estrato de la Sabiduría ($$V_{\mathbb{W}}$$). 
+Su mandato fundamental es modelar la inyección de "Vitaminas Cognitivas" (ToonCartridges) 
+no como un procesamiento estocástico de texto libre, sino como morfismos de canales 
+cuánticos completamente positivos y preservadores de traza (CPTP) en la categoría 
+dagger-compacta del sistema.
+
+Toda asimilación e inyección proyecta el estado de deliberación mixto sobre el 
+espacio de Hilbert complejo separable $$\mathcal{H}_{\mathrm{MAC}}$$, aplicando 
+el formalismo de Kraus-Stinespring y la conjugación modular de Tomita-Takesaki 
+para aniquilar de forma determinista la deriva semántica y las alucinaciones 
+del transformador antes de su consolidación en el pasaporte de telemetría [1, 4].
+
+INVARIANTES MATEMÁTICOS, CATEGORIALES Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Conservación de Probabilidad (Postulado de Dirac-von Neumann):
+       El operador de densidad resultante $$\rho_{\mathrm{post}}$$ tras la acción 
+       del canal $$\mathcal{E}(\rho)$$ debe conservar estrictamente la traza unitaria 
+       y la simetría hermítica semidefinida positiva:
+       $$\rho = \rho^\dagger \succeq 0 \quad\land\quad \operatorname{Tr}(\rho) \equiv 1.0 \quad [3]$$
+
+  [I2] Completitud de Kraus del Canal Semántico:
+       El conjunto de operadores de acoplamiento semántico $$\{M_k\}$$ que define al 
+       canal CPTP $$\mathcal{E}$$ satisface de manera unívoca la condición de clausura 
+       para preservar la traza de forma bilateral:
+       $$\sum_k M_k^\dagger M_k = I_d \quad\implies\quad \operatorname{Tr}(\mathcal{E}(\rho)) = \operatorname{Tr}(\rho) \quad [3, 5]$$
+
+  [I3] Completitud de la Medida de Decisión POVM:
+       El colapso determinista de los vectores de intención semántica se rige 
+       por una Medida Valuada en Operadores Positivos (POVM), satisfaciendo:
+       $$\hat{E}_i \succeq 0 \quad\forall i \quad\land\quad \sum_k \hat{E}_k = I_d \quad\implies\quad \sum_i P(i) \equiv 1.0 \quad [6]$$
+
+  [I4] Involución Modular del Espejo de Tomita-Takesaki:
+       El operador de conjugación modular antiunitario $$J_\rho$$ conserva la 
+       simetría de fase cuántica, garantizando que el flujo modular no conmutativo 
+       sea reflexivo y libre de degeneraciones numéricas en la FPU:
+       $$J_\rho(X) = \rho^{1/2} X^\dagger \rho^{-1/2} \quad\implies\quad J_\rho^2 = \operatorname{Id} \quad [4, 6]$$
+
+  [I5] Isomorfismo de la Adjunción de Galois:
+       La consistencia del transporte paralelo entre el espacio de acción discreto 
+       de la MIC y el de sabiduría continuo de la MAC exige la equivalencia natural:
+       $$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong_{G_{\mu\nu}} \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC})) \quad [4]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: ASIMILACIÓN Y CANAL CPTP DE KRAUS (Observe)
+             Recibe la matriz de densidad $$\rho$$ y el conjunto de operadores de Kraus.
+             Ejecuta la inyección semántica aplicando el mapa completamente positivo:
+             $$\mathcal{E}(\rho) = \sum_k M_k \rho M_k^\dagger \quad [5]$$
+             Entrega: Phase1AsimilatedState como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: COLAPSO POVM Y ESTADÍSTICA DE TOMA DE DECISIONES (Orient)
+             Proyecta la intención semántica de la IA sobre los observables POVM,
+             calculando la probabilidad espectral de Born y la entropía lineal:
+             $$P(i) = \operatorname{Tr}(\rho \hat{E}_i) \quad [6]$$
+             Entrega: Phase2POVMCollapseState como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: AUDITORÍA MODULAR DE CONJUGACIÓN Y VETO DE HEYTING (Decide & Act)
+             Audita el desvío de fase y la asimetría entrópica mediante Tomita-Takesaki.
+             Si la fidelidad de Uhlmann decae por debajo de la cota cuántica permitida:
+             $$F(\rho, \sigma) = \left( \operatorname{Tr}\sqrt{\rho^{1/2} \sigma \rho^{1/2}} \right)^2 < \tau_{\mathrm{fid}}$$
+             El retículo distributivo colapsa, vetando la transacción en el software.
 """
 
 from __future__ import annotations

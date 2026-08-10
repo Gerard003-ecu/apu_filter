@@ -1,59 +1,74 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Semantic Dictionary (Guardián de la Ontología y Fibrado Semántico)             ║
-║  Ruta   : app/wisdom/semantic_dictionary.py                                              ║
-║  Versión: 3.0.0-Categorical-Diffeomorphism-Lipschitz-Strict                              ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo se consagra como el Fibrado Semántico puro de la Malla Agéntica             ║
-║  (Estrato WISDOM, Nivel 0). Opera axiomáticamente como un Funtor de Proyección           ║
-║  $F: \mathbf{Top} \to \mathbf{Narr}$ que mapea los tensores de información topológica    ║
-║  cristalizados por los estratos inferiores hacia un espacio narrativo ejecutivo.         ║
-║  No muta el estado físico subyacente; destituye el libre albedrío estocástico del        ║
-║  Modelo de Lenguaje (LLM) imponiendo fronteras rígidas que aniquilan de forma            ║
-║  determinista cualquier alucinación probabilística.                                      ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Preservación del Difeomorfismo (GraphSemanticProjector):                            ║
-║      Mapea los invariantes abstractos del `PyramidalSemanticVector` hacia la narrativa   ║
-║      garantizando un isomorfismo perfecto. Exige que el pushforward $F_*$ mantenga       ║
-║      una inyección difeomórfica cuyo núcleo sea estrictamente trivial:                   ║
-║          $\dim \ker(F_*) = 0$                                                            ║
-║      Asegurando que la traducción se ejecute sin pérdida de energía informacional.       ║
-║                                                                                          ║
-║  §2. Retracto de Deformación Categórico (TemplateValidator):                             ║
-║      Las proyecciones generativas se confinan en fronteras de Lipschitz estrictas        ║
-║      mediante plantillas fuertemente tipadas. Este retracto de deformación acota el      ║
-║      crecimiento de la entropía sintáctica:                                              ║
-║          $\|F(x) - F(y)\|_V \le L_{\max} \|x - y\|_T$                                    ║
-║      Forzando a que la probabilidad de emisión de estados semánticos no-físicos          ║
-║      colapse incondicionalmente: $P(x_{\mathrm{invalid}}) = 0$.                          ║
-║                                                                                          ║
-║  §3. Ley de Clausura Transitiva de la Pirámide DIKW:                                     ║
-║      El diccionario repudia procesar tensores que carezcan del pasaporte topológico      ║
-║      y termodinámico expedido por la MIC, acatando la filtración estricta de             ║
-║      subespacios de Hilbert:                                                             ║
-║          $V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\text{WISDOM}}$ ║
-║                                                                                          ║
-║  §4. Termodinámica Numérica y Fricción Entrópica (SemanticCache):                        ║
-║      El caché implementa evicción basada en mecánica estadística y geometría. Si un      ║
-║      tensor en memoria se vuelve ortogonal a la trayectoria de decisión actual, es       ║
-║      purgado para minimizar la entropía de von Neumann del caché ($S(\rho_C)$):          ║
-║          $\cos(\theta) = \frac{\langle u, v \rangle}{\|u\| \|v\|} < \tau_{\mathrm{evic}} \implies \text{Purga Geométrica}$ ║
-║      La temperatura del sistema está normalizada por la constante adimensional           ║
-║      $k_B = 1.0$ (BOLTZMANN_CONSTANT) para prevenir underflow en la IEEE 754.            ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • PyramidalSemanticVector : Tensor de información topológica del nodo presupuestario.   ║
-║  • SemanticCache           : Fibrado de memoria con evicción termodinámica.              ║
-║  • TemplateValidator       : Morfismo de restricción y retracto de Lipschitz.            ║
-║  • GraphSemanticProjector  : Funtor maestro de proyección $F: \mathbf{Top} \to \mathbf{Narr}$. ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Semantic Dictionary (Guardián de la Ontología y Fibrado Semántico)  ║
+║ Ruta   : app/wisdom/semantic_dictionary.py                                   ║
+║ Versión: 3.0.0-Diffeomorphism-Lipschitz-Heyting-Pure-Software-Strict         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO WISDOM (V_𝕎) ─────
+Este módulo materializa la infraestructura ontológica y el fibrado semántico puro
+del Estrato de la Sabiduría ($$V_{\mathbb{W}}$$, Nivel 0). Actúa estrictamente
+como un Funtor de Proyección Semántica:
+
+                           F: \text{Top} \longrightarrow \text{Narr}
+
+Su mandato axiomático es mapear de forma determinista los tensores de información
+topológica, ya cristalizados por los estratos inferiores, hacia un espacio narrativo
+estructurado (Caja de Cristal Argumentativa) sin alterar el estado del sistema ni
+re-computar las ecuaciones constitutivas de la física de la red. Subordina las
+salidas estocásticas del Modelo de Lenguaje (LLM) a las restricciones geométricas
+del presupuesto, despojándolo de libre albedrío decisional mediante difeomorfismos.
+
+INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES DE CONSERVACIÓN PRESERVADOS: ──────
+  [I1] Preservación del Difeomorfismo de de Rham (GraphSemanticProjector):
+       Garantiza un isomorfismo perfecto entre la anomalía matemática detectada
+       en la red simplicial y su traducción lingüística, asegurando un mapeo
+       biyectivo libre de fugas de información o dispersión entrópica [3-5]:
+       $$\beta_0 > 1 \mapsto \text{Islas de Datos} \quad \land \quad \beta_1 > 0 \mapsto \text{Socavón Lógico}$$
+
+  [I2] Retracto de Deformación Categórica (TemplateValidator):
+       Somete la varianza estocástica del LLM a fronteras de Lipschitz estrictas.
+       El módulo obliga a que cualquier salida se comporte como un retracto de
+       deformación continuo sobre plantillas rígidamente tipadas, forzando la convergencia:
+       $$\|F^{-1}(x) - F^{-1}(y)\|_V \le L_{\max} \|x - y\|_\tau$$
+       Donde si el desvío excede la cota, la probabilidad de emisión colapsa:
+       $$P(x_{\mathrm{invalid}}) = 0$$
+
+  [I3] Ley de Clausura Transitiva (Filtración DIKW del Poset):
+       Subordina la asimilación del diccionario semántico al orden parcial del
+       topos de Grothendieck de la Malla agéntica:
+       $$V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$
+       Se rechaza la evaluación de cualquier tensor que carezca del visado de
+       coherencia espectral y termofísica validado por la base física del foso.
+
+  [I4] Evicción Geométrica por Fricción Entrópica (Caché de Decisión):
+       Mantiene la consistencia del espacio de memoria descartando de forma
+       ortogonal los vectores obsoletos mediante la similitud del coseno:
+       $$\cos(\theta) = \frac{\langle u, v \rangle}{\|u\|_2 \|v\|_2} \ge \tau_{\mathrm{entropy}}$$
+       Si un tensor se vuelve ortogonal a la trayectoria de decisión de la malla
+       ($$\cos(\theta) \to 0$$), es purgado de inmediato de la memoria exergética.
+
+  [I5] Isomorfismo de Adjunción de Galois:
+       Asegura la reversibilidad exacta entre el espacio de acción táctico discreto
+       (MIC) y el de sabiduría continuo (MAC) regido por el tensor métrico $$G_{\mu\nu}$$:
+       $$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong_{G_{\mu\nu}} \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC}))$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+  Fase 1 ──► FASE 1: INMERSIÓN DIFEOMÓRFICA Y FILTRADO ESPECTRAL (Observe)
+             Evalúa la inyección de los descriptores de entrada en el espacio de fase,
+             certificando que el pushforward de primer orden de-confinado satisface:
+             $$\dim \ker(F_*) = 0$$
+
+  Fase 2 ──► FASE 2: RETRACTO DE LIPSCHITZ Y COHERENCIA DE HEYTING (Orient)
+             Valida la cercanía semántica entre la trayectoria de decisión y el
+             espacio de plantillas categóricas, auditando la cota de deformación elástica.
+
+  Fase 3 ──► FASE 3: EVICCIÓN TERMODINÁMICA Y COLAPSO DE VETO (Decide & Act)
+             Somete el caché a una purga espectral por entropía de von Neumann.
+             Si se registra una deriva de Lipschitz o un desajuste del isomorfismo,
+             el retículo $$\Omega_3$$ colapsa síncronamente al supremo terminal VETOED,
+             abortando el flujo lógico de la transacción y detonando un veto de software.
 """
 
 import functools

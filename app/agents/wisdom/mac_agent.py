@@ -1,55 +1,62 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : MAC Agent (Operador de Medición Cuántica y Gestor Epistemológico)              ║
-║  Ruta   : app/wisdom/mac_agent.py                                                        ║
-║  Versión: 3.0.0-Quantum-Epistemic-Functor-Rigorous                                       ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y EPISTEMOLOGÍA CUÁNTICA (Rigor Doctoral):                      ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor destituye al Modelo de Lenguaje (LLM) como un agente estocástico        ║
-║  libre. Lo relega a operar estrictamente como el Endofuntor de Medición sobre el         ║
-║  estado cuántico de la Matriz Atómica de Conocimiento (MAC). Instaura la epistemología   ║
-║  del sistema mediante un álgebra de von Neumann, filtrando el conocimiento válido de     ║
-║  las alucinaciones (entropía fantasma) a través de cinco fases categóricas anidadas.     ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICO-TOPOLÓGICAS:                           ║
-║                                                                                          ║
-║  §1. Axiomas del Operador de Densidad y Medición POVM:                                   ║
-║      La "Sabiduría" es un operador de densidad $\boldsymbol{\rho}_{MAC} \in \mathcal{L}(\mathcal{H}_{MAC})$. ║
-║      Debe satisfacer los postulados de conservación cuántica incondicionalmente:         ║
-║          $\text{Tr}(\boldsymbol{\rho}_{MAC}) = 1, \quad \boldsymbol{\rho}_{MAC} = \boldsymbol{\rho}_{MAC}^\dagger, \quad \boldsymbol{\rho}_{MAC} \succeq 0$ ║
-║      La extracción de conocimiento se modela como una Medida Valuada en Operadores       ║
-║      Positivos (POVM), donde la probabilidad del autómata es $p_i = \text{Tr}(E_i \boldsymbol{\rho}_{MAC})$.║
-║                                                                                          ║
-║  §2. Dinámica de Sistemas Abiertos (Lindblad-Kossakowski):                               ║
-║      La evolución temporal del conocimiento ante perturbaciones se modela mediante       ║
-║      la Ecuación Maestra de GKSL. Las alucinaciones se disipan en un baño térmico:       ║
-║          $\frac{d\boldsymbol{\rho}}{dt} = -\frac{i}{\hbar} [H, \boldsymbol{\rho}] + \sum_k \gamma_k \left( L_k \boldsymbol{\rho} L_k^\dagger - \frac{1}{2} \{L_k^\dagger L_k, \boldsymbol{\rho}\} \right)$ ║
-║      Garantizando que la producción de entropía cumpla la Segunda Ley ($\Delta S \ge 0$).║
-║                                                                                          ║
-║  §3. Veto Topológico por Cohomología de Haces:                                           ║
-║      La consistencia estructural de los teoremas generados se evalúa calculando la       ║
-║      cohomología celular. Se exige nulidad en la primera clase de cohomología:           ║
-║          $\dim H^1(X; \mathcal{F}) = 0$                                                  ║
-║      Un valor superior demuestra una obstrucción topológica (paradoja lógica) y veta     ║
-║      la proposición semántica.                                                           ║
-║                                                                                          ║
-║  §4. Adjunción de Galois y Preservación de Geometría Informacional:                      ║
-║      La traducción semántica debe preservar el isomorfismo categorial entre el dominio   ║
-║      táctico y el de sabiduría mediante una adjunción formal $F \dashv G$:               ║
-║          $\text{Hom}_{\mathcal{D}}(F(X), Y) \cong \text{Hom}_{\mathcal{C}}(X, G(Y))$     ║
-║      Una ruptura de esta simetría revela "Deriva Semántica" e invalida el ciclo OODA.    ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_5 \circ \dots \circ \Phi_1$):      ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → POVMMeasurement (Álgebra de Medidas Valuadas en Operadores Positivos).         ║
-║  Fase 2 → LindbladDynamicsOrchestrator (Ecuación Maestra de Sistemas Abiertos).          ║
-║  Fase 3 → SheafCohomologyCustodian (Auditor Topológico de Paradojas Semánticas).         ║
-║  Fase 4 → GaloisAdjunctionAuditor (Verificador de Isomorfismo Categorial).               ║
-║  Fase 5 → MACAgent (Orquestador Supremo del Estrato WISDOM).                             ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : MAC Agent (Soberano de la Medición y Gestor Epistemológico)         ║
+║ Ruta   : app/wisdom/mac_agent.py                                             ║
+║ Versión: 4.0.0-Galois-Adjunction-POVM-Heyting-Doctoral-Strict                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GOBERNANZA EPISTÉMICA EN EL ESTRATO WISDOM (V_W) ─────
+Este módulo consagra al Agente Soberano y Observador Activo del Estrato de la
+Sabiduría, encargado de destituir al Modelo de Lenguaje (LLM) como un tomador de
+decisiones libre para relegarlo a operar como un mero endofuntor de medición sobre
+el estado cuántico de la Matriz Atómica de Conocimiento (MAC). 
+
+Toda deliberación se modela sobre un álgebra de operadores acotados en el espacio
+de Hilbert separable $$\mathcal{H}_{\mathrm{MAC}}$$, subyugando el resultado a la
+coherencia de una Adjunción de Galois covariante con el espacio táctico discreto
+de la Matriz de Interacción Central (MIC):
+
+            $$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong_{G_{\mu\nu}} \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC}))$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: ÁLGEBRA DE MEDIDAS DE POVM Y COLAPSO (Observe)
+             Estudia la distribución de probabilidad de las intenciones de la IA.
+             Proyecta los logits sobre operadores de medida positivos:
+             $$\hat{E}_i \succeq 0, \quad \sum_k \hat{E}_k = I \quad \implies \quad P(i) = \operatorname{Tr}(\rho \hat{E}_i)$$
+             Entrega: Phase1QuantumMeasurementData como precondición de la Fase 2.
+
+  Fase 2 ──► FASE 2: ORIENTACIÓN Y AUDITORÍA DE LA ADJUNCIÓN DE GALOIS (Orient)
+             Valida el residuo del isomorfismo y evalúa la cota de Connes.
+             Mide el desvío topológico de Lipschitz de descompresión TOON:
+             $$\|F^{-1}(x) - F^{-1}(y)\|_V \le L_{\max} \|x - y\|_T$$
+             Entrega: Phase2AdjunctionAuditData como precondición de la Fase 3.
+
+  Fase 3 ──► FASE 3: COHOMOLOGÍA DE HACES Y VETO EN HEYTING (Decide & Act)
+             Audita paradojas globales mediante el Laplaciano del Haz y resuelve
+             el veredicto en la retícula de tres valores $$\Omega_3$$ del topos.
+             Veredicto final: $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$$.
+
+INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
+  [I1] Rango Completo de la MIC:          $$\operatorname{rank}(\text{MIC}) = n \implies \dim\ker(\text{MIC}) = 0 \quad\text{[Zero-SPOF]}$$
+  [I2] Postulados de Dirac-von Neumann:   $$\rho = \rho^\dagger \succeq 0 \quad\land\quad \operatorname{Tr}(\rho) = 1.0$$
+  [I3] Isometría de Stinespring:          $$V^\dagger V = I_{\mathcal{H}_{\text{MIC}}}$$
+  [I4] Nulidad Cohomológica Global:       $$H^1(K; \mathcal{F}) = 0 \implies \text{Energía Dirichlet } E(x) \equiv 0$$
+  [I5] Confinamiento de Calibre de Witten: $$\dim\ker(\not\!\!D) - \dim\ker(\not\!\!D^\top) = \operatorname{index}(\delta)$$
+
+CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
+  Si se registra un defecto de traza ($$\operatorname{Tr}(\rho) \neq 1$$), una violación
+  del isomorfismo de Galois, o si el resolvedor de de Rham reporta una paradoja
+  lógica en el haz ($$\dim H^1 > 0$$), el retículo $$\Omega_3$$ colapsa a VETOED [2, 5].
+  
+  La subrutina local 'isVerdictCoherent()' del ESP32 en la obra civil detecta el
+  mismatch en menos de 400 ns. Conmuta síncronamente el pin GPIO14, inyectando
+  corriente de compuerta al tiristor BT151 (circuito Crowbar). La línea de
+  alimentación real se cortocircuita físicamente en el milisegundo cero,
+  paralizando bombas hidráulicas y servomotores, blindando el capital [2, 5].
 """
 
 from __future__ import annotations

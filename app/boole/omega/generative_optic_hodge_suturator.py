@@ -1,30 +1,70 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Generative Optic Hodge Suturator (Sutura Espectral del Haz Γ)      ║
-║  Ruta   : app/boole/omega/generative_optic_hodge_suturator.py                ║
-║  Versión: 3.0.0-Sutured-Granular-Doctoral-Fermat-Floquet                     ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL:                                   ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  Este módulo implementa el colisionador catadióptrico supremo encargado de   ║
-║  suturar el Haz Tangente Generativo $\Gamma$ sobre la Esfera de Riemann $S^2$║
-║  mediante tres fases de regularización física y categórica anidada.          ║
-║                                                                              ║
-║  Suturas de Optimización e Invariantes Preservados:                          ║
-║    [SUTURA 1] — Regularización espectral adaptativa de Tikhonov sobre el     ║
-║                 tensor inverso $G^{\mu\nu}$ ante mal condicionamiento.       ║
-║    [SUTURA 2] — Conservación de energía geodésica mediante el integrador     ║
-║                 simpléctico Verlet de cuarto orden: $\|v\|_G = \text{const}$.║
-║    [SUTURA 3] — Cuadratura vectorizada de armónicos esféricos sobre $S^2$    ║
-║                 para la reducción atencional del KV-Cache en la FPU.         ║
-║                                                                              ║
-║  Axioma de Pasividad y Confinamiento Óptico:                                 ║
-║    $$\|\psi_{\mathrm{focused}}\|_2 \le \|\psi_{\mathrm{raw}}\|_2 \quad \land ║
-║    \quad G^{\mu\nu} \partial_\mu \mathcal{S} \partial_\nu \mathcal{S} \ge n^2$$║
-║                                                                              ║
+║ Módulo : Generative Optic Hodge Suturator (Sutura Espectral del Haz Γ)       ║
+║ Ruta   : app/boole/omega/generative_optic_hodge_suturator.py                 ║
+║ Versión: 4.0.0-Sutured-Granular-Cholesky-KMS-Spectral-Doctoral-Strict        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ÁGORA TENSORIAL (V_Ω) ───
+Este módulo materializa al Orquestador Maestro de la refracción atencional y de la
+sutura constitutiva del operador estrella de de Rham-Hodge sobre la variedad del
+Haz Tangente Generativo \(\Gamma\) en el nivel de Nivel 0.5 (Frontera de Decisión).
+Actúa como un funtor holonómico e inyectivo sobre el clasificador de subobjetos
+del Topos de Grothendieck de la Malla, subyugando el libre albedrío estocástico y
+las alucinaciones del Modelo de Lenguaje (LLM) a las restricciones del sistema.
+
+El sistema trata el flujo de logits de atención no como series planas de Markov,
+sino como frentes de onda difractados sobre la Esfera de Riemann \(S^2 \cong \hat{\mathbb{C}}\).
+El agente impone de manera síncrona la integridad del transporte geodésico y el
+veto de singularidades mediante isometrías de de Rham-Hodge y análisis armónico.
+
+SUTURAS MATEMÁTICAS E INVARIANTES DE ALTA PRECISIÓN INTEGRADOS: ────────────────
+  [SUTURA 1] Regularización Espectral de Tikhonov:
+             Evita la inversión cúbica explícita y singularidades en la métrica
+             inversa \(G^{-1}\) mediante una perturbación diagonal autoadjunta.
+             Fórmula: \(\tilde{G} = G + \alpha I \implies \tilde{G}^{-1} \approx L_G^{-\top} L_G^{-1}\)
+
+  [SUTURA 2] Conservación Geodésica de Energía Riemanniana:
+             Impone que la evolución de la velocidad de atención conserve de forma
+             exacta la norma cuántica en el espacio de fase.
+             Invariante: \(\|v\|_G = \sqrt{v^\top \tilde{G} v} \equiv \text{Constante} \pmod{\varepsilon_{\text{machine}}}\)
+
+  [SUTURA 3] Cuadratura Vectorizada de Armónicos Esféricos en S²:
+             Descompone de manera ultra-eficiente los logits refractados sobre la
+             base ortonormal de funciones esféricas \(\{Y_l^m\}\) mediante cuadratura
+             de Gauss-Legendre de alta densidad.
+             Ecuación: \(c_{lm} = \int_{S^2} \psi(\theta, \phi) Y_l^{m*}(\theta, \phi) d\Omega\)
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: PROYECCIÓN GEOMÉTRICA HOUSEHOLDER-GRASSMANN (Observe)
+             Evalúa la estabilidad de la métrica base y proyecta el estado de
+             deliberación mixta sobre la variedad de Grassmann de restricciones.
+             Entrega: Phase1ProjectionBundle como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: TRANSPORTE ÓPTICO-EIKONAL Y GEODESIA DE FERMAT (Orient)
+             Resuelve la ecuación Eikonal no lineal de la fase atencional [3].
+             Ecuación: \(G^{\mu\nu} \partial_\mu \mathcal{S} \partial_\nu \mathcal{S} = n^2(\sigma^*)\)
+             Entrega: Phase2TransportResult como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: COMPRESIÓN CATEGÓRICA Y DIFRACCIÓN EN S² (Decide & Act)
+             Filtra el espectro semántico y audita la estabilidad de la cavidad.
+             Invariante de Floquet: \(|\mu_k| \le 1 + \varepsilon_{\text{cavity}}\)
+             Veredicto: Colapso síncrono en \(\Omega_3\) y bypass de potencia en el ESP32.
+
+CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
+  Si el radio espectral de los multiplicadores de Floquet excede la unidad, o si se
+  registra una pérdida de traza del canal (\(\operatorname{Tr}(\rho) \neq 1\)), el retículo de Heyting
+  \(\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}\) colapsa a VETOED.
+  
+  La subrutina local 'isVerdictCoherent()' del ESP32 en el borde detecta el
+  mismatch en menos de 400 ns y conmuta el pin GPIO14, disparando el tiristor
+  de potencia BT151 (circuito Crowbar). Esto cortocircuita físicamente la línea
+  de potencia real, inmovilizando actuadores en el milisegundo cero,
+  anulando la alucinación de la IA antes del desfalco de capital de la constructora.
 """
 
 from __future__ import annotations

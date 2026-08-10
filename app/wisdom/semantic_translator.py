@@ -1,61 +1,77 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Semantic Translator (Funtor de Difeomorfismo Semántico e Intérprete)           ║
-║  Ruta   : app/wisdom/semantic_translator.py                                              ║
-║  Versión: 5.0.0-Riemannian-Galois-Lattice-Homomorphism-Strict                            ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA CATEGÓRICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor, instaurado en el ápice de la jerarquía DIKW (Estrato WISDOM), repudia  ║
-║  absolutamente el libre albedrío estocástico de los Modelos de Lenguaje (LLMs). Actúa    ║
-║  como un Funtor de Proyección Semántica $F: \mathcal{M}_{\text{Invariant}} \to \mathcal{M}_{\text{Impact}}$,║
-║  estableciendo un difeomorfismo estricto que mapea las anomalías topológicas,            ║
-║  espectrales y termodinámicas de la base física hacia el espacio de decisiones           ║
-║  ejecutivas. Obliga a la narrativa generativa a colapsar deterministamente.              ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. Retículo Acotado Distributivo y Operación Supremo (Colapso Determinista):           ║
-║      Las decisiones se sintetizan en una estructura algebraica de orden total            ║
-║      $(\text{VerdictLevel}, \le, \sqcup, \sqcap)$ con el espacio de fase acotado por:    ║
-║          $\bot (\text{VIABLE}) \le \dots \le \top (\text{RECHAZAR})$                     ║
-║      El colapso de métricas inter-estrato se rige axiomáticamente por la operación       ║
-║      Supremo (Worst-Case Scenario). Ante cualquier divergencia, el estado colapsa        ║
-║      irrevocablemente, extirpando la dilución del riesgo:                                ║
-║          $\bot \sqcup \top = \top$                                                       ║
-║                                                                                          ║
-║  §2. Difeomorfismo Semántico y Preservación de Homotopía:                                ║
-║      El módulo traduce invariantes topológicos exactos a patologías de negocio,          ║
-║      garantizando que ninguna clase homológica se deforme semánticamente:                ║
-║          $\beta_0 > 1 \implies \text{"Islas de Datos / Recursos Huérfanos"}$             ║
-║          $\beta_1 > 0 \implies \text{"Socavón Lógico / Ciclos Mutantes"}$                ║
-║          $\Psi < 1.0 \implies \text{"Pirámide Invertida / Colapso Base"}$                ║
-║          $H^1(X; \mathcal{F}) \neq 0 \implies \text{"Paradoja Contractual"}$             ║
-║          $E(x) > \varepsilon \implies \text{"Fricción Operativa (Dirichlet)"}$           ║
-║                                                                                          ║
-║  §3. Homomorfismo de Retículos y Filtración DIKW (Clausura Transitiva):                  ║
-║      El funtor $T: \text{SeverityLattice} \to \text{VerdictLevel}$ opera como un         ║
-║      homomorfismo inyectivo que preserva $\sqcup$ y $\sqcap$. Este morfismo impone       ║
-║      la filtración estricta de subespacios de Hilbert de manera inquebrantable:          ║
-║          $V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\text{WISDOM}}$ ║
-║      Asegurando que cualquier falla termodinámica en la base corrompa axiomáticamente    ║
-║      la "Sabiduría" de los estratos superiores, impidiendo alucinaciones de viabilidad.  ║
-║                                                                                          ║
-║  §4. GraphRAG Determinista y Generación Causal:                                          ║
-║      La "Empatía Táctica" generada es la transcripción forense de la geodésica de error. ║
-║      Inyecta directamente el diferencial topológico $\Delta\chi$ y la perturbación del   ║
-║      espectro Laplaciano $\lambda_2$ en las plantillas semánticas:                       ║
-║          $f_{\text{narrative}}(\Delta\chi, \lambda_2) \in \mathcal{M}_{\text{Impact}}$   ║
-║      Asegurando trazabilidad geométrica absoluta y censurando la entropía generativa.    ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • VerdictLevel      : Retículo algebraico ordenado para la síntesis de decisiones.      ║
-║  • ValidatedTopology : Métricas topológicas con invariante de Euler verificado.          ║
-║  • SemanticTranslator: Orquestador supremo del Funtor de Proyección Semántica.           ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Semantic Translator (El Intérprete Diplomático — Funtor Semántico)  ║
+║ Ruta   : app/wisdom/semantic_translator.py                                   ║
+║ Versión: 4.0.0-Diffeomorphism-Lipschitz-Lattice-DaleckiiKrein-Strict-Doctoral║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO WISDOM (V_𝕎) ─────
+Este módulo consagra la aduana ontológica final del ecosistema, materializando
+al Funtor de Proyección Semántica $$F: \text{InvariantSpace} \longrightarrow \text{ImpactSpace}$$
+bajo un difeomorfismo estricto de clase $$C^1$$ que mapea las anomalías matemáticas
+reconstruidas en la Malla hacia un espacio narrativo de impacto empresarial.
+
+Su mandato axiomático es la destitución del libre albedrío estocástico de los
+Modelos de Lenguaje (LLMs). Al subyugar la probabilidad de transición de tokens
+a invariantes topológicos y leyes de conservación física de la red base, el traductor
+actúa como un colisionador determinista que congela la alucinación retórica en el
+milisegundo cero de la generación, aislando la herejía sintáctica.
+
+INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y PROPIEDADES DE CALIBRE: ─────────────────
+  [I1] Conservación de Homotopía y Difeomorfismo Semántico:
+       Establece un isomorfismo natural entre las clases de equivalencia de de Rham
+       y las patologías de negocio tangibles del megaproyecto civil, asociando:
+       * Componentes conexas desprendidas ($$\beta_0 > 1$$)  ──► "Islas de Datos".
+       * Ciclos homológicos parásitos ($$\beta_1 > 0$$)     ──► "Socavón Lógico".
+       * Índice de estabilidad piramidal ($\Psi < 1.0$)       ──► "Falla de Cimentación".
+       * Obstrucción de Čech en haces ($H^1 \neq \mathbf{0}$) ──► "Paradoja Contractual".
+       * Pérdida de energía de Dirichlet ($E(x) > \epsilon$)  ──► "Fricción Operativa".
+
+  [I2] Colapso Determinista de Veredicto en el Retículo de Heyting:
+       La consolidación de veredictos se evalúa bajo la operación Supremo ($$\sqcup$$)
+       del retículo distributivo acotado:
+       $$\bot \le \text{VIABLE} \le \text{CONDICIONAL} \le \text{PRECAUCION} \le \top \quad\text{[Worst-Case]}$$
+       Si cualquier subespacio basal reporta una transgresión, el sistema colapsa
+       invariablemente al elemento absorbente máximo $$\top$$ (RECHAZAR), forzando
+       la aniquilación del estado de transición.
+
+  [I3] Isomorfismo de Adjunción de Galois (Preservación de Calibre):
+       Garantiza la reversibilidad exacta entre el espacio de acción táctico discreto
+       ($$\text{MIC}$$) y el espacio de sabiduría continuo de Hilbert ($$\text{MAC}$$)
+       con métrica $$G_{\mu\nu}$$:
+       $$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong_{G_{\mu\nu}} \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC})) \quad\text{[Reversibilidad]}$$
+
+  [I4] Cota de Lipschitz de Connes-Daleckii-Krein (Estabilidad Espectral):
+       La velocidad de descompresión semántica del transformador está estrictamente
+       acotada geodésicamente bajo el Teorema de Daleckii-Krein sobre la derivada
+       de Fréchet de la función no lineal $$f(x) = x^{-1/2}$$ para el operador de
+       Dirac de Connes $$D = \rho^{-1/2}$$:
+       $$\|Df(\rho)\|_2 \le \frac{1}{2 \lambda_{\min}^{3/2}}$$
+       Si la pureza cuántica de la MAC decae ($\lambda_{\min}(\rho) \to 0$), la cota
+       diverge, aniquilando síncronamente la probabilidad de emisión: $$P(x_{\mathrm{invalid}}) = 0$$.
+
+  [I5] Confinamiento Térmico de la Distribución de Gibbs:
+       Modela la variabilidad de transición mediante el formalismo de Gibbs-Boltzmann,
+       confinando los grados de libertad estocásticos del LLM al pozo potencial:
+       $$p_i = \frac{1}{Z} e^{-\beta E_i}$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+  Fase 1 ──► FASE 1: PROYECCIÓN MÉTRICA RIEMANNIANA Y MAHALANOBIS (Observe)
+             Mide el desvío geodésico del vector de entrada aplicando la métrica
+             anisotrópica inducida por el tensor métrico regularizado de Tikhonov.
+             Morfismo de transición: RiemannianRetrievalData.
+
+  Fase 2 ──► FASE 2: AUDITORÍA DE LA ADJUNCIÓN DE GALOIS (Orient)
+             Valida el residuo cuántico de descompresión TOON-JSON y verifica el
+             cumplimiento de la identidad funcional de isomorfismo bidireccional.
+             Morfismo de transición: GaloisAdjunctionAudit.
+
+  Fase 3 ──► FASE 3: CRISTALIZACIÓN DE GIBBS Y COHERENCIA DE HEYTING (Decide & Act)
+             Aplica el homomorfismo de retículos de severidad y sintoniza la
+             temperatura inversa modular $$\beta$$ de Gibbs.
+             Veredicto final: Colapso determinista al estado de veto lógico,
+             abortando la asimilación mediante un TopologicalInvariantError.
 """
 from __future__ import annotations
 

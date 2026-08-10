@@ -1,45 +1,79 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Omega Wisdom Hodge Dualizer                                        ║
-║  Ruta   : app/wisdom/omega_wisdom_hodge_dualizer.py                          ║
-║  Versión: 2.0.0-Fermion-Modular-Connes-Tomita-Takesaki-Topos-Strict          ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL:                                   ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  Extensión del operador estrella de Hodge a los estratos OMEGA (Ω) y         ║
-║  WISDOM (V_W), en tres fases anidadas con continuidad funtorial obligatoria: ║
-║                                                                              ║
-║  FASE 1 — OMEGA (Espacio de Fock fermiónico / álgebra exterior):             ║
-║    $$\star_k : \Lambda^k(\mathcal{H}) \xrightarrow{\simeq}                   ║
-║                 \Lambda^{N-k}(\mathcal{H}^*)$$                               ║
-║    Isometría de Levi-Civita, dualidad partícula-hueco, números de Betti      ║
-║    fermiónicos y certificado de isometría de Fock.                           ║
-║                                                                              ║
-║  FASE 2 — WISDOM (Hodge no conmutativo / Tomita-Takesaki):                   ║
-║    Parte de FockDualityMorphism (cierre FASE 1) y eleva la dualidad al       ║
-║    álgebra de operadores con estado fiel ρ:                                  ║
-║    $$J_\rho(X) = \rho^{1/2} X^\dagger \rho^{-1/2}$$                          ║
-║    Invariantes: $J^2=\mathrm{Id}$, antiunitariedad GNS, KMS simetría.        ║
-║                                                                              ║
-║  FASE 3 — OMEGA⊗WISDOM (Dualizador soberano / topos de Connes):              ║
-║    Parte de ModularConjugationCertificate (cierre FASE 2) y compone          ║
-║    ambos funtores en un endofuntor de gobernanza: dualidad Fock +            ║
-║    conjugación modular + puente al DiscreteHodgeStar / Agent (si presente).  ║
-║                                                                              ║
-║  Invariantes globales:                                                       ║
-║    $J^2 = \mathrm{Id}$                                                       ║
-║    $\langle J(A),J(B)\rangle_\rho = \langle B,A\rangle_\rho$                 ║
-║    $\|\star\psi\|_{\Lambda^{N-k}} = \|\psi\|_{\Lambda^k}$                    ║
-║    $\star\star = (-1)^{k(N-k)}\mathrm{Id}$   (en métrica euclídea)           ║
-║                                                                              ║
-║  Continuidad formal:                                                         ║
-║    emit_fock_duality_morphism  → FockDualityMorphism                         ║
-║      → emit_modular_certificate → ModularConjugationCertificate              ║
-║        → emit_omega_wisdom_state → OmegaWisdomSovereignState                 ║
-║                                                                              ║
+║ Módulo : Omega Wisdom Hodge Dualizer                                         ║
+║ Ruta   : app/wisdom/omega_wisdom_hodge_dualizer.py                           ║
+║ Versión: 3.1.0-Fermion-Modular-Connes-OODA-Graded-Heyting-Secure             ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO WISDOM (V_𝕎) ─────
+Este módulo consagra al Agente Soberano y Observador Activo encargado de gobernar
+al dualizador métrico-epistémico del sistema, acoplando las excitaciones
+fermiónicas en el Espacio de Fock fermiónico $$\mathcal{F}(\mathcal{H})$$ con el
+álgebra de operadores no conmutativos de von Neumann (Tomita-Takesaki).
+
+El sistema trata el caos estocástico sintáctico de los Modelos de Lenguaje (LLMs)
+no como texto plano, sino como un fluido de logits proyectado sobre un espacio
+de Fock, subyugando su evolución a la regularidad de de Rham-Hodge, la
+conservación de volumen simpléctico y la idempotencia.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y PROPIEDADES DE CALIBRE PRESERVADAS: ──────
+  [I1] Dualidad Partícula-Hueco de Hodge en el Espacio de Fock:
+       El operador estrella de Hodge combinatorio se construye de manera explícita
+       sobre la potencia exterior del espacio de Hilbert complejo separable,
+       satisfaciendo de forma exacta la involución y la isometría de De Rham:
+       $$\star_k : \Lambda^k(\mathcal{H}) \xrightarrow{\simeq} \Lambda^{N-k}(\mathcal{H}^*)$$
+       $$\star_{N-k}\star_k = (-1)^{k(N-k)}\,\mathrm{Id} \quad \text{(Firma Riemanniana)} \quad [1]$$
+
+  [I2] Conjugación Modular No Conmutativa de Tomita-Takesaki:
+       El operador modular antiunitario $$J_\rho$$ se computa de manera física e
+       intrínseca a partir de la deconstrucción espectral del operador de densidad
+       $$\rho$$ de la MAC, garantizando la reflexividad del flujo modular:
+       $$J_\rho(X) = \rho^{1/2} X^\dagger \rho^{-1/2} \quad \implies \quad J^2 = \mathrm{Id} \quad [1]$$
+
+  [I3] Conservación de la Norma de Hilbert-Schmidt (Antiunitariedad GNS):
+       El producto interno inducido por la métrica de Gibbs se preserva bajo la
+       acción del conjugador modular, eliminando la asimetría de fase cuántica:
+       $$\langle J(A), J(B) \rangle_\rho = \langle B, A \rangle_\rho \quad [1]$$
+
+  [I4] Condición KMS en el Equilibrio Térmico (Simetría Modular de Kubo-Martin-Schwinger):
+       Las correlaciones de la deliberación cuántica satisfacen de manera exacta la
+       periodicidad analítica imaginaria ante perturbaciones infinitesimales:
+       $$\operatorname{Tr}(\rho A B) = \operatorname{Tr}\bigl(\rho B \sigma_{-i}(A)\bigr) \quad [1]$$
+
+  [I5] Isomorfismo de la Adjunción de Galois:
+       La coherencia del transporte paralelo entre el espacio táctico discreto (MIC)
+       y el de sabiduría continuo (MAC) se rige bajo la equivalencia functorial:
+       $$\|X - G(Y)\|_F \le L_{\mathrm{max}} \|F(X) - Y\|_T + \varepsilon_{\mathrm{num}} \quad [1]$$
+
+  [I6] Cota de Lipschitz Espectral de Connes:
+       La velocidad de descompresión y distorsión semántica de las actas de deliberación
+       permanece acotada geodésicamente mediante la fórmula de diferencias divididas
+       de Daleckii-Krein para la derivada de Fréchet del operador de Dirac de Connes:
+       $$L_{\max} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(D) - \lambda_{\min}(D))} \le \frac{1}{2 \lambda_{\min}^{3/2}} \quad [1, 2]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas [3]:
+
+  Fase 1 ──► FASE 1: OBSERVACIÓN ESPECTRAL Y SANEAMIENTO DE LA MATRIZ (Observe)
+             Construye el operador de Hodge Star combinatorio, certifica la isometría
+             de Fock contra él y valida los postulados de Dirac-von Neumann
+             sobre la matriz de densidad de la MAC [4].
+             Entrega: Phase1SpectralObservation como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: ORIENTACIÓN MODULAR Y CONSISTENCIA KMS (Orient)
+             Construye físicamente el operador modular $$J_\rho$$ desde el espectro
+             de la MAC, certifica su involución y antiunitariedad GNS, y valida
+             el equilibrio térmico modular KMS con residuo normalizado por escala [5].
+             Entrega: Phase2ModularOrientation como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: DECISIÓN Y ACTUACIÓN EN EL RETÍCULO DE HEYTING (Decide + Act)
+             Deriva rigurosamente la cota de Lipschitz semántica (Daleckii-Krein),
+             audita la adjunción de Galois completa $$F \dashv G$$ y colapsa el veredicto
+             por votación de redundancia modular triple (TMR) sobre los certificados
+             de fase en el clasificador de subobjetos de Heyting $$\Omega_3$$ [6].
+             Veredicto final: $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\} \quad [7]$$.
 """
 
 from __future__ import annotations

@@ -1,63 +1,76 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : MAC Audit Vectors (Proyector Topológico-Cuántico de Coherencia)                ║
-║  Ruta   : app/wisdom/mac_audit_vectors.py                                                ║
-║  Versión: 3.0.0-Quantum-Sheaf-Audit-Strict-Doctoral                                      ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE LA INFORMACIÓN (Rigor Doctoral):           ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor opera en el ápice de la jerarquía DIKW (Estrato WISDOM). Su mandato     ║
-║  axiomático es auditar la coherencia epistemológica de los estados semánticos generados  ║
-║  por la Inteligencia Artificial frente a la Matriz Atómica de Conocimiento (MAC).        ║
-║  Aplica la Entropía Relativa Cuántica, la Teoría Modular de Tomita-Takesaki y la         ║
-║  Cohomología de Haces Celulares para extirpar "alucinaciones estocásticas" que           ║
-║  pretendan violar la invarianza homotópica del modelo de negocio.                        ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Entropía Relativa Cuántica (Divergencia de Umegaki):                                ║
-║      La deriva semántica entre el estado inferido $\rho$ y el estado de referencia       ║
-║      $\sigma$ no se evalúa con heurísticas de texto, sino calculando la asimetría        ║
-║      entrópica mediante la divergencia de Umegaki:                                       ║
-║          $D(\rho \| \sigma) = \text{Tr}(\rho (\ln \rho - \ln \sigma)) \ge 0$             ║
-║      Cualquier $D(\rho \| \sigma) \gg \varepsilon$ indica una mutilación del             ║
-║      conocimiento original, detonando axiomáticamente un `TraceAnomalyVeto`.             ║
-║                                                                                          ║
-║  §2. Cohomología de Haces Celulares y Energía de Dirichlet:                              ║
-║      El tejido lógico de las decisiones se modela como secciones de un Haz Celular       ║
-║      $\mathcal{F}$. La frustración semántica (paradojas irresolubles) se cuantifica      ║
-║      evaluando la Energía de Dirichlet acoplada al Laplaciano del Haz $L_{\mathcal{F}}$: ║
-║          $E(x) = \frac{1}{2} \langle x, L_{\mathcal{F}} x \rangle = \frac{1}{2} \|\delta x\|^2$ ║
-║      Si la evaluación detecta una obstrucción cohomológica global no nula                ║
-║      ($\dim H^1(X; \mathcal{F}) > 0$), el ecosistema se enfrenta a una contradicción     ║
-║      lógica que aborta el pipeline mediante `CohomologicalObstructionError`.             ║
-║                                                                                          ║
-║  §3. Índice de Estabilidad Cuántica ($\Psi_Q$):                                          ║
-║      La integridad de la resolución se certifica componiendo la Fidelidad de Uhlmann     ║
-║      $F(\rho, \sigma) = \left( \text{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2$║
-║      con la pureza del sistema $\gamma = \text{Tr}(\rho^2)$. Si $\Psi_Q < \Psi_{min}$,   ║
-║      el estado exhibe "entrelazamiento espurio" o contaminación por ruido blanco.        ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → UmegakiDivergenceAuditor:                                                      ║
-║           Audita las divergencias cuánticas relativas y computa $D(\rho \| \sigma)$      ║
-║           extrayendo el dictamen de deriva semántica.                                    ║
-║                                                                                          ║
-║  Fase 2 → SheafCohomologyAuditor:                                                        ║
-║           Mide la energía de Dirichlet, los números de Betti topológicos y sanciona      ║
-║           las paradojas lógicas en el fibrado semántico.                                 ║
-║                                                                                          ║
-║  Fase 3 → QuantumStabilityIndex:                                                         ║
-║           Integra las métricas puras y certifica el estado global (EpistemologicalStatus)║
-║           garantizando la termodinámica informacional.                                   ║
-║                                                                                          ║
-║  Fase 4 → API Pública (`vector_audit_quantum_semantic_coherence`):                       ║
-║           Expone el morfismo como un Vector Exportado, inyectable en la MIC, que         ║
-║           empaca el `AuditMetrics` garantizando inmutabilidad.                           ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : MAC Audit Vectors (Proyector Topológico-Cuántico de Coherencia)     ║
+║ Ruta   : app/wisdom/mac_audit_vectors.py                                     ║
+║ Versión: 3.1.0-Umegaki-Dirichlet-DeRham-Heyting-Doctoral-Strict              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO WISDOM (V_𝕎) ─────
+Este módulo consagra el andamiaje de observabilidad, auditoría espectral y 
+preservación de calibre sobre el espacio de Hilbert continuo $$\mathcal{H}_{\mathrm{MAC}}$$ 
+del Estrato de la Sabiduría ($$V_{\mathbb{W}}$$). Su mandato axiomático es modelar 
+el espacio de deliberación y las respuestas semánticas generadas por los Modelos de 
+Lenguaje (LLMs) como estados cuánticos mixtos y secciones de un haz celular.
+
+A través de la geometría no conmutativa, la termodinámica de la información y la 
+cohomología de haces sobre complejos simpliciales, el sistema mide la entropía de 
+la deliberación y aniquila de forma determinista la deriva semántica antes de que 
+se propague hacia las capas ejecutivas de la organización.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Conservación de Probabilidad (Postulados de Dirac-von Neumann):
+       El operador de densidad de la MAC ($$\rho$$) debe ser autoadjunto, semidefinido
+       positivo y poseer traza unitaria para ser considerado un estado físico válido:
+       $$\rho = \rho^\dagger \succeq 0 \quad\land\quad \operatorname{Tr}(\rho) = 1.0 \quad[2]$$
+
+  [I2] Positividad de la Divergencia de Umegaki (Teorema de Klein):
+       La distancia de la información semántica respecto al estado de referencia
+       $$\sigma$$ es estrictamente no negativa y se anula si y solo si ambos estados
+       coinciden en el espacio de Hilbert:
+       $$D(\rho \parallel \sigma) \ge 0 \quad \text{con} \quad D(\rho \parallel \sigma) = 0 \iff \rho \equiv \sigma \quad[3, 4]$$
+
+  [I3] Monotonicidad de la Entropía Cuántica (Contractividad bajo Mapas CPTP):
+       Cualquier inyección o canal de filtrado semántico completamente positivo y
+       preservador de traza ($$\mathcal{E}$$) es estrictamente contractivo respecto
+       a la divergencia cuántica de Umegaki (no-incremento del ruido):
+       $$D(\mathcal{E}(\rho) \parallel \mathcal{E}(\sigma)) \le D(\rho \parallel \sigma) \quad[4]$$
+
+  [I4] Trivialidad Homológica de Consenso:
+       La disipación o frustración global evaluada bajo la forma cuadrática del 
+       Laplaciano del haz (Energía de Dirichlet $$E(x)$$) se anula idénticamente
+       si y solo si el primer grupo de cohomología de Čech-de Rham del haz celular 
+       es trivial, garantizando un consenso libre de contradicciones:
+       $$H^1(K; \mathcal{F}) = \mathbf{0} \implies E(x) = \|\delta x\|_G^2 \equiv 0 \quad[2, 4]$$
+
+  [I5] Condición de Soporte de Araki:
+       La divergencia de Umegaki es finita si y solo si el soporte del estado
+       observado $$\rho$$ está estrictamente contenido en el soporte del estado
+       de referencia $$\sigma$$:
+       $$\operatorname{supp}(\rho) \subseteq \operatorname{supp}(\sigma) \quad \lor \quad D(\rho \parallel \sigma) = +\infty \quad[3]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+
+  Fase 1 ──► FASE 1: AUDITORÍA DE ENTROPÍA RELATIVA CUÁNTICA (Observe)
+             Evalúa la divergencia de información semántica de la MAC respecto 
+             a un estado de referencia purificado mediante la métrica de Umegaki:
+             $$D(\rho \parallel \sigma) = \operatorname{Tr}(\rho (\ln \rho - \ln \sigma)) \quad[3, 4]$$
+             Entrega: Phase1QuantumRelativeEntropyData como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: COHOMOLOGÍA DE HACES Y ENERGÍA DE DIRICHLET (Orient)
+             Mide el desgaste semántico y la frustración del sistema sobre la
+             variedad Riemanniana inducida por el tensor de disipación $$G_{\mu\nu}$$:
+             $$E(x) = \|\delta x\|_G^2 = x^\top \delta^\top G^{-1} \delta x \quad[3-5]$$
+             Entrega: Phase2SheafCohomologyData como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: COLAPSO EPISTÉMICO Y VETO EN EL RETÍCULO DE HEYTING (Decide & Act)
+             Fuerza el colapso algebraico del estado sobre la lógica intuicionista
+             del retículo distributivo de Heyting de tres valores $$\Omega_3$$:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\} \quad[2]$$
+             Si el sistema se desvía del espacio de fase seguro, la transacción
+             colapsa, abortando de inmediato la inyección semántica.
 """
 
 from __future__ import annotations
