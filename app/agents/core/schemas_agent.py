@@ -1,67 +1,75 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Schemas Agent (Custodio de los Invariantes Estructurales)                      ║
-║  Ruta   : app/agents/core/schemas_agent.py                                               ║
-║  Versión: 2.0.0-Topological-Bipartite-Thermodynamic-Strict                               ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DEL RIESGO (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor, denotado como $\mathcal{Z}_{Schemas}$, gobierna el módulo `schemas.py`.║
-║  Abandona la validación de tipos escalares pasiva para erigirse como un proyector        ║
-║  geométrico que somete el estado financiero a un complejo simplicial restringido,        ║
-║  imponiendo la no-degeneración de la variedad financiera.                                ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y LÍMITES FÍSICOS:                                              ║
-║                                                                                          ║
-║  §1. No-degeneración de la Variedad Financiera (Positividad Estricta):                   ║
-║      Se exige que los tensores de cantidad, precio y valor total pertenezcan al          ║
-║      ortante positivo del espacio euclidiano:                                            ║
-║          $Q \succeq 0, \quad P \succeq 0, \quad V \succeq 0$                             ║
-║                                                                                          ║
-║  §2. Conservación de la Energía Financiera (Producto de Hadamard):                       ║
-║      La agregación de masa de capital se evalúa mediante la norma infinito del           ║
-║      residuo, sometida a la inecuación de tolerancia híbrida (IEEE 754):                 ║
-║          $\|V - (Q \odot P)\|_\infty \le \varepsilon_{abs} + \varepsilon_{rel} \cdot \text{escala}$ ║
-║      Cualquier violación detona un `BipartiteDegeneracyError`.                           ║
-║                                                                                          ║
-║  §3. Saturación Dimensional Física (Hipercubo de Acotación):                             ║
-║      Los tensores están restringidos axiomáticamente a los siguientes límites            ║
-║      termométricos:                                                                      ║
-║          $Q \in [0, 10^6], \quad P \in [0, 10^9], \quad \text{Rend} \in [0, 10^3]$       ║
-║      Desbordar este hiperespacio activa un `DimensionalSaturationError`.                 ║
-║                                                                                          ║
-║  §4. Retractos de Deformación e Idempotencia:                                            ║
-║      Todo operador de normalización $f$ debe actuar como un proyector ortogonal          ║
-║      matemáticamente perfecto, garantizando la idempotencia estricta:                    ║
-║          $f(f(x)) = f(x)$                                                                ║
-║                                                                                          ║
-║  §5. Estabilidad Termodinámica Estructural:                                              ║
-║      Se impide la instanciación de "Pirámides Invertidas" y Puntos de Fallo Único        ║
-║      (SPOF) calculando la entropía normalizada de Shannon de la energía financiera       ║
-║      y la diversidad categórica $D(a)$:                                                  ║
-║          $H_{norm} = -\frac{\sum p_i \ln(p_i)}{\ln(n)} \ge 0.1$                          ║
-║          $D(a) = \frac{|\text{categorias}|}{5} > 0$                                      ║
-║      Una degeneración a $H_{norm} \to 0$ lanza un `StructuralThermodynamicError`.        ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_BipartiteGeometryCertifier                                              ║
-║           Garantiza que la inyección de costos no produzca antimateria financiera        ║
-║           y certifica la conservación exacta bajo el producto de Hadamard $\odot$.       ║
-║           [Retorna: BipartiteGeometryData → objeto inicial de Fase 2]                    ║
-║                                                                                          ║
-║  Fase 2 → Phase2_DimensionalSaturationEnforcer                                           ║
-║           Aplica el hipercubo de acotación y verifica la idempotencia de todos           ║
-║           los operadores de normalización.                                               ║
-║           [Retorna: DimensionalSaturationData → objeto inicial de Fase 3]                ║
-║                                                                                          ║
-║  Fase 3 → Phase3_StructuralThermodynamicAuditor                                          ║
-║           Evalúa el colapso entrópico $H_{norm}$ y el tensor de diversidad $D(a)$        ║
-║           para vetar monopolios logísticos estructurales.                                ║
-║           [Retorna: StructuralThermodynamicsData → objeto final del endofuntor]          ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Schemas Agent (Custodio de los Invariantes Estructurales)           ║
+║ Ruta   : app/agents/core/schemas_agent.py                                    ║
+║ Versión: 3.0.0-Topological-Bipartite-Thermodynamic-Strict-Pure-Software      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DEL RIESGO EN EL ESTRATO DE CIMENTACIÓN ────
+Este módulo consagra la aduana estructural y de validación geométrica primaria,
+operando formalmente como el Endofuntor de Invarianza Estructural:
+
+     𝒵_schemas: \mathcal{C}_{\mathrm{state}} \longrightarrow \mathcal{C}_{\mathrm{validated}}
+
+Su propósito axiomático es interceptar, validar y constreñir las entidades 
+del presupuesto y sus relaciones mutuas, proyectándolas hacia un complejo 
+simplicial bipartito $$G = (V_{\text{TACTICS}} \cup V_{\text{PHYSICS}}, E)$$ 
+estrictamente ordenado.
+
+El agente rechaza la verificación pasiva de tipos o esquemas escalares tradicionales.
+Trata el espacio de datos como una variedad diferenciable constreñida por leyes 
+de conservación termodinámica, ortogonalidad e idempotencia.
+La mitigación de anomalías y la contención de fallos se resuelven de forma 
+puramente matemática y síncrona en el plano lógico de software, forzando el 
+colapso determinista de la transacción en memoria RAM ante cualquier desvío 
+estructural.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la composición covariante de morfismos
+en la categoría de complejos simpliciales y se ejecuta síncronamente en tres fases:
+
+  Fase 1 ──► FASE 1: GEOMETRÍA BIPARTITA Y CONSERVACIÓN (Phase1_BipartiteGeometryCertifier)
+             Valida que el tensor de costos satisfaga la ley de conservación física
+             de la masa financiera, calculando residuos relativos en la FPU:
+             $$\| V_{\text{total}} - Q \cdot P \|_2 \le \tau_{\text{geometry}} \cdot \max(\|V_{\text{total}}\|_2, 1.0) \quad\big[604, 615\big]$$
+             Entrega: Phase1GeometryHandoff como precondición de la Fase 2.
+
+  Fase 2 ──► FASE 2: ENFORZAMIENTO DE SATURACIÓN Y RETRACTO (Phase2_DimensionalSaturationEnforcer)
+             Aplica el proyector de acotamiento compacto en el hipercubo físico,
+             e impone la idempotencia estricta de los normalizadores en el espacio cociente:
+             $$f \circ f = f \quad \implies \quad f(f(x)) \equiv f(x) \quad\big[604, 616\big]$$
+             Entrega: Phase2SaturationHandoff como precondición de la Fase 3.
+
+  Fase 3 ──► FASE 3: TERMODINÁMICA ESTRUCTURAL Y DIVERSIDAD (Phase3_StructuralThermodynamicAuditor)
+             Mide el desorden del sistema mediante la entropía normalizada de Shannon
+             e identifica Puntos Únicos de Fallo (SPOF) en la cimentación táctica:
+             $$H_{\text{norm}} = -\frac{1}{\ln(n)} \sum_{i=1}^n p_i \ln(p_i) \quad\land\quad D(a) = \frac{|\text{Types}(R(a))|}{\mathcal{C}_{\text{ref}}} \quad\big[604, 616\big]$$
+             Entrega: StructuralInvariantState como certificado final de la variedad.
+
+INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Conservación de la Energía Financiera (Ley de de Rham-Kirchhoff):
+       El valor total de cada insumo procesado debe equivaler de manera exacta al
+       producto de su cantidad por su precio unitario w.r.t. el épsilon de máquina:
+       $$V_{\text{total}} = Q \cdot P \pmod{\varepsilon_{\mathrm{machine}}} \quad\big[604, 615\big]$$
+
+  [I2] Idempotencia en el Espacio Cociente (Axioma de Kuratowski):
+       Todo operador normalizador actua como un retracto de deformación rígido:
+       $$\| f(f(x)) - f(x) \|_F \equiv 0 \pmod{\varepsilon_{\mathrm{machine}}} \quad\big[604, 616\big]$$
+
+  [I3] Confinamiento al Hipercubo Compacto de Fase:
+       Las magnitudes físicas de-confinadas están acotadas estrictamente:
+       $$Q \in [0, Q_{\max}] \quad\land\quad P \in [0, P_{\max}] \quad\land\quad R_{\text{end}} \in [0, R_{\max}] \quad\big[604, 616\big]$$
+
+  [I4] Estabilidad Térmica de Shannon y Diversidad de de Rham:
+       Para evitar la fragmentación o el colapso por monopolio en el suministro,
+       el índice de estabilidad y la entropía normalizada deben superar la cota:
+       $$H_{\text{norm}} \ge \tau_{\mathrm{entropy}} \quad\land\quad D(a) \ge \tau_{\mathrm{diversity}} \quad\big[604, 616\big]$$
+
+  [I5] Isomorfismo de Fibrado en el Retículo de Heyting completo $$\Omega_3$$:
+       La consistencia del esquema se evalúa sobre el topos de Grothendieck
+       mediante el pullback canónico en el clasificador de subobjetos:
+       $$\mathcal{E}_{\mathrm{MIC}} \models S \times_X Y \cong \lim_{\longleftarrow} (S \xrightarrow{m} X \xleftarrow{f} Y) \quad\big[610, 617\big]$$
 """
 
 from __future__ import annotations

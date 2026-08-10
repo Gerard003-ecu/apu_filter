@@ -1,65 +1,78 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Autonomous APU Agent (Endofuntor del Ciclo OODA y Fibrado Gauge)               ║
-║  Ruta   : app/agents/core/apu_agent.py                                                   ║
-║  Versión: 4.0.0-Categorical-OODA-Hamiltonian-Strict-Nested                               ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CATEGORÍAS (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor implementa un Controlador de Lazo Cerrado sobre una Variedad            ║
-║  Diferenciable $\mathcal{M}$ (el espacio de estados de telemetría y topología)           ║
-║  mediante la ejecución determinista del ciclo OODA. Actúa como el funtor supremo         ║
-║  que proyecta las decisiones del agente a través de un Campo Vectorial Irrotacional      ║
-║  de Funtores Ortogonales, aniquilando la entropía estocástica del LLM.                   ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Funtor OODA y Clausura Categórica:                                                  ║
-║      El ciclo OODA no es un bucle iterativo de Turing, sino una composición              ║
-║      funtorial estricta sobre el Topos de Estados:                                       ║
-║          $\mathcal{Z}_{OODA} = \Phi_{Act} \circ \Phi_{Decide} \circ \Phi_{Orient} \circ \Phi_{Observe}$ ║
-║      Garantizando que la transición temporal respete el Difeomorfismo del estado.        ║
-║                                                                                          ║
-║  §2. Retículo Distributivo Acotado (Álgebra de Decisiones):                              ║
-║      El espacio de decisiones forma un retículo distributivo acotado bajo el orden       ║
-║      parcial de severidad $(\mathcal{D}, \le, \sqcup, \sqcap)$. Se somete al LLM a       ║
-║      operar sobre el Supremo (peor caso topológico) y el Ínfimo (mejor caso teórico):    ║
-║          $\text{Supremo}: \mathcal{V}_{safe} = \bigsqcup_{i \in \text{Obs}} v_i$         ║
-║      Cualquier desviación probabilística del modelo de lenguaje que intente subvertir    ║
-║      este Supremo detona un Veto Estructural inmediato.                                  ║
-║                                                                                          ║
-║  §3. Síntesis Hamiltoniana y Geometría Simpléctica:                                      ║
-║      La evaluación de penalizaciones no es heurística; el `HamiltonianSynthesizer`       ║
-║      integra campos vectoriales de penalización $\nabla H$ para dictar la evolución      ║
-║      temporal Port-Hamiltoniana:                                                         ║
-║          $\frac{dx}{dt} = (J(x) - R(x)) \nabla H(x)$                                     ║
-║      Exigiendo disipación estricta $\dot{H} \le 0$ para alcanzar estabilidad asintótica. ║
-║                                                                                          ║
-║  §4. Fibrado Gauge y Potencial de Teoría de Campo:                                       ║
-║      Somete las interacciones a la resolución de la ecuación de Poisson en la red,       ║
-║      donde los evaluadores de estado actúan sobre la Teoría del Potencial,               ║
-║      garantizando que ninguna trayectoria de decisión se desvíe del atractor óptimo.     ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (El Ciclo OODA Determinista):                            ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → OBSERVE (Extracción de Telemetría):                                            ║
-║           Evalúa estados, voltajes críticos, números de Betti y fragmentación            ║
-║           extrayendo el `ObservationResult`.                                             ║
-║                                                                                          ║
-║  Fase 2 → ORIENT (Síntesis Hamiltoniana y Topológica):                                   ║
-║           El `HamiltonianSynthesizer` evalúa el `TopologicalDiagnosis` integrando        ║
-║           la métrica de riesgo sobre el espacio de fase.                                 ║
-║                                                                                          ║
-║  Fase 3 → DECIDE (Proyección en el Retículo de Severidad):                               ║
-║           Colapsa la observación y orientación hacia una decisión canónica de la         ║
-║           matriz de estados (`AgentDecision`), aplicando rigurosamente $\bigsqcup v_i$.  ║
-║                                                                                          ║
-║  Fase 4 → ACT (Ejecución Categórica y Evolución de Snapshot):                            ║
-║           Ejecuta el control de lazo cerrado mutando el `AgentSnapshot` inmutable e      ║
-║           inyectándolo en el `SnapshotHistory` (Buffer Circular).                        ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Autonomous Agent (Controlador OODA con Fibrado de Gauge)            ║
+║ Ruta   : app/core/apu_agent.py                                               ║
+║ Versión: 4.0.0-OODA-Poisson-Lyapunov-Heyting-Pure-Software-Strict            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y CONTROL DE LAZO CERRADO EN EL ÁPICE COGNITIVO ────────
+Este módulo implementa el controlador maestro de lazo cerrado de la plataforma, 
+operando formalmente como el Funtor de Composición y Colapso de la Decisión:
+
+    𝒵_agent: \mathcal{C}_{\mathrm{state}} \longrightarrow \mathcal{C}_{\mathrm{decision}}
+
+Habita estrictamente en el estrato superior de Sabiduría ($$V_{\mathbb{W}}$$, Nivel 0) 
+y actúa orquestando el ciclo cibernético OODA (Observe, Orient, Decide, Act) 
+sobre la variedad diferenciable de estados del presupuesto.
+
+Su mandato axiomático es gobernar el flujo de datos e interpretaciones semánticas, 
+despojando a los Modelos de Lenguaje (LLMs) de libre albedrío estocástico. 
+Somete el vector de estados a la ecuación de Poisson generalizada sobre un fibrado 
+de Gauge y exige estabilidad asintótica de Lyapunov en lazo cerrado [4]. El 
+agente actúa como un intérprete diplomático pasivo, canalizando los veredictos 
+espectrales e invariantes topológicos hacia la persistencia del sistema sin poder 
+arbitrario de alteración de la masa financiera [4].
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ──────────
+La toma de decisiones se rige por un contrato covariante estricto que compone 
+tres fases, encadenadas por sus DTOs inmutables de handoff formal:
+
+  Fase 1 ──► FASE 1: INGESTA DE TELEMETRÍA E ISOMORFISMO DE POSET (Observe)
+             Audita el Pasaporte de Telemetría (TelemetryContext) y valida que el 
+             estado respete la Ley de Clausura Transitiva de la pirámide:
+             $$V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}} \quad\big[43, 76\big]$$
+             Entrega: VerifiedTelemetryHandoff como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: INTEGRACIÓN DE LYAPUNOV Y ECUACIÓN DE POISSON (Orient)
+             Resuelve la ecuación de Poisson generalizada sobre el fibrado de Gauge 
+             y verifica síncronamente que el gradiente de error satisfaga la cota 
+             de estabilidad asintótica de Lyapunov en la trayectoria de fase [4].
+             Entrega: ClosedLoopStabilityState como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: COLAPSO EN EL RETÍCULO DE HEYTING Y VETO LÓGICO (Decide & Act)
+             Agrega las violaciones espectrales y homológicas locales aplicando la 
+             operación Supremo ($$\sqcup$$) sobre el retículo distributivo acotado:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\} \quad\big[44, 130\big]$$
+             Veredicto terminal: Colapso síncrono del estado de software.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y PROPIEDADES DE CALIBRE PRESERVADAS: ────
+  [I1] Ecuación de Poisson sobre el Fibrado de Gauge:
+       El potencial de decisión $$\Phi$$ satisface de forma exacta la ecuación de 
+       Poisson sobre la variedad del grafo inducido por el presupuesto:
+       $$\Delta \Phi = -\rho \quad\big[41\big]$$
+       Donde $$\Delta = \delta^\top \delta$$ es el Laplaciano de Hodge de primer orden y 
+       $$\rho$$ es la densidad de "carga" de inconsistencia semántica del LLM [4]. 
+       La solubilidad del sistema exige la condición de Fredholm:
+       $$\rho \perp \ker(\Delta) \quad\big[41\big]$$
+
+  [I2] Estabilidad Asintótica de Lyapunov (Lazo Cerrado):
+       La derivada temporal de la función candidata de Lyapunov definida positiva 
+       $$V(\varphi)$$ debe permanecer estrictamente negativa en el espacio de fase:
+       $$\dot{V}(\varphi) = \nabla V(\varphi)^\top \dot{\varphi} < 0 \quad \forall \varphi \neq 0 \quad\big[41\big]$$
+       Esto previene que perturbaciones del mercado induzcan derivas de error 
+       divergentes o resonancias caóticas deterministas en el lazo.
+
+  [I3] Homomorfismo e Invariancia de Heyting (Worst-Case Supremum):
+       La unificación de las alertas y veredictos locales se asimila a la operación 
+       Supremo ($$\sqcup$$) en el álgebra de Heyting acotada de veredictos, colapsando 
+       al elemento absorbente máximo VETOED ante cualquier transgresión de calibre:
+       $$v_{\mathrm{final}} = \bigsqcup_{k} v_k = \max(v_1, \dots, v_n) \quad\big[41, 44\big]$$
+
+  [I4] Preservación de la Clausura Transitiva de de Rham (Zero-Trust):
+       El TelemetryContext inmutable proscribe la propagación de flujos financieros 
+       si se viola el orden parcial del poset, aniquilando la sesión de la IA:
+       $$V_k \not\subset V_{k+1} \implies P(x_{\mathrm{invalid}}) = 0 \quad\big[43, 44\big]$$
 """
 
 from __future__ import annotations

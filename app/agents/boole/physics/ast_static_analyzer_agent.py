@@ -1,38 +1,73 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : AST Static Analyzer Agent                                              ║
-║           (Custodio de la Cohomología Sintáctica)                                ║
-║  Ruta   : app/agents/boole/physics/ast_static_analyzer_agent.py                  ║
-║  Versión: 3.0.0-Symplectic-Dirichlet-Cohomology-Evolved                          ║
-╠══════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                  ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA SIMPLÉCTICA (Rigor Doctoral):               ║
-║  ──────────────────────────────────────────────────────────────────              ║
-║  Este endofuntor gobierna a `ast_static_analyzer.py` en V_{Γ-PHYSICS}.           ║
-║  El AST generado por la IA es tratado como un espacio de fase mecánico           ║
-║  (M, ω), aplicando invariantes topológicos, termodinámicos y cohomológicos       ║
-║  para aniquilar código estocástico que diisipe energía computacional             ║
-║  no acotada.                                                                     ║
-║                                                                                  ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                ║
-║  ────────────────────────────────────────────────────────────────                ║
-║  Fase 1 → Auditoría de Invarianza Simpléctica:                                   ║
-║      Evalúa la conservación del volumen en el espacio de fase sintáctico         ║
-║      mediante la forma canónica ω = Σ dq_i ∧ dp_i. Exige Mᵀ Ω M = Ω.             ║
-║      Último método: _audit_symplectic_invariance(...)                            ║
-║      Retorna: SymplecticInvariantData  →  objeto inicial de Fase 2.              ║
-║                                                                                  ║
-║  Fase 2 → Control Port-Hamiltoniano y Fronteras de Dirichlet:                    ║
-║      Impone disipación estricta: P_diss = ⟨Φ, ∇V⟩ ≥ 0.                           ║
-║      Primer método: _enforce_dirichlet_thermodynamics(..., symplectic_audit)     ║
-║      Retorna: ThermodynamicDirichletData  →  objeto inicial de Fase 3.           ║
-║                                                                                  ║
-║  Fase 3 → Cohomología de Haces Celulares:                                        ║
-║      Exige dim H¹(G; F) = 0.                                                     ║
-║      Primer método: _audit_cellular_sheaf_cohomology(..., thermodynamic_audit)   ║
-║      Retorna: SheafCohomologyAuditData  →  objeto final del endofuntor.          ║
-╚══════════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : AST Static Analyzer Agent (Custodio de la Cohomología Sintáctica)   ║
+║ Ruta   : app/agents/boole/physics/ast_static_analyzer_agent.py               ║
+║ Versión: 4.0.0-Symplectic-Dirichlet-Cohomology-Evolved-Pure-Software-Strict  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA SIMPLÉCTICA EN EL ESTRATO Γ-PHYSICS ───────
+Este módulo consagra el endofuntor de auditoría y control de-confinado en el
+Estrato de Física Sintáctica ($$V_{\Gamma-\mathrm{PHYSICS}}$$), gobernando de manera
+soberana al resolvedor secundario "ast_static_analyzer.py".
+
+El sistema rechaza la validación procedural estática tradicional (linting)
+en favor de un formalismo de mecánica simpléctica clásica-cuántica.
+Trata el Árbol de Sintaxis Abstracta (AST) del código generado no como un grafo
+de dependencias plano y pasivo, sino como una trayectoria continua en un
+**Espacio de Fase Simpléctico** $$(\mathcal{M}, \omega)$$.
+Somete la evolución sintáctica a restricciones geodésicas de mínima acción,
+aniquilando de forma determinista y en tiempo de ejecución cualquier código
+estocástico, anomalía de formato o bifurcación degenerada ("fango sintáctico")
+que disipe recursos computacionales o KV-Cache del LLM.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES DE CONSERVACIÓN PRESERVADAS: ────────
+  [I1] Invarianza Simpléctica de Liouville (Conservación de Volumen):
+       El Jacobiano $$M$$ de la transformación sintáctica inducida por el código
+       debe actuar como un difeomorfismo canónico, preservando la 2-forma elíptica:
+       $$M^\top \Omega M = \Omega \quad \text{donde} \quad \Omega = \begin{pmatrix} 0 & I \\ -I & 0 \end{pmatrix} \quad\big[9, 41, 152\big]$$
+
+  [I2] Conservación y Disipación Termodinámica bajo Fronteras de Dirichlet:
+       La complejidad del programa se modela como inercia termodinámica. Las
+       fronteras de Dirichlet confinan la propagación de efectos secundarios,
+       exigiendo que la disipación de Rayleigh sea estrictamente no negativa:
+       $$P_{\mathrm{diss}} = \langle \Phi, \nabla V \rangle \ge 0 \quad\land\quad \dot{H} = \nabla H^\top \left( J - R \right) \nabla H \le 0 \quad\big[41, 147, 152, 159\big]$$
+
+  [I3] Trivialidad Cohomológica del Haz Celular (Consenso Libre de Paradojas):
+       La flujo de variables se eleva a secciones de un haz celular $$\mathcal{F}$$.
+       La consistencia global exige la nulidad del primer grupo de cohomología
+       para proscribir la existencia de socavones lógicos o variables huérfanas:
+       $$H^1(G; \mathcal{F}) = \mathbf{0} \quad\big[41, 152, 160\big]$$
+
+  [I4] Invariancia de la Característica de de Rham-Euler-Poincaré:
+       La topología discreta del 1-complejo simplicial $$K$$ de dependencias del
+       AST satisface rigurosamente la alternancia homológica de Betti:
+       $$\chi(K) = \beta_0 - \beta_1 = |V| - |E| \quad\big[11, 40, 84, 152, 160\big]$$
+
+  [I5] Acotamiento Lipschitz Espectral de Connes-Dirac:
+       La constante de Lipschitz semántica $$L_{\max}$$ que gobierna el acoplamiento
+       del funtor inverso $$F^{-1}: \mathrm{TOON} \to \mathrm{JSON}$$ se acota
+       mediante el espectro del operador de Dirac de Connes ($$\not\ D$$):
+       $$L_{\max} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(\not\ D) - \lambda_{\min}(\not\ D))} \le \frac{1}{2 \lambda_{\min}^{3/2}} \quad\big[54, 55, 461\big]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la composición covariante de morfismos
+sobre la categoría de espacios pre-Hilbertianos y se ejecuta en tres fases:
+
+  Fase 1 ──► FASE 1: AUDITORÍA DE INVARIANZA SIMPLÉCTICA (Observe)
+             Evalúa la conservación de Liouville en el espacio de fase sintáctico
+             y calcula la pureza espectral.
+             Entrega: SymplecticInvariantData como precondición formal de Fase 2.
+
+  Fase 2 ──► FASE 2: CONTROL PORT-HAMILTONIANO Y FRONTERAS (Orient)
+             Aplica la inecuación de disipación de Rayleigh bajo fronteras de
+             Dirichlet, aislando subárboles y confinando la inercia sintáctica.
+             Entrega: ThermodynamicDirichletData como precondición formal de Fase 3.
+
+  Fase 3 ──► FASE 3: COHOMOLOGÍA DE HACES Y PROYECCIÓN DE HEYTING (Decide & Act)
+             Calcula el espectro SVD del operador coborde, determina el rango
+             de Wilkinson, y evalúa el veredicto en el retículo de Heyting $$\Omega_3$$.
+             Entrega: SheafCohomologyAuditData como certificado terminal de la variedad.
 """
 
 from __future__ import annotations

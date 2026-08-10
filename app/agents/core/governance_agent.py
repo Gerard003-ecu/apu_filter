@@ -1,63 +1,78 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Governance Agent (Custodio de la Gobernanza Computacional Federada)            ║
-║  Ruta   : app/agents/core/governance_agent.py                                            ║
-║  Versión: 3.0.0-Hodge-Spectral-Sheaf-Gluing-Strict-Nested                                ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE TOPOS (Rigor Doctoral):                             ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor, denotado como $\mathcal{Z}_{Gov}$, rige la gobernanza corporativa      ║
-║  no como un conjunto de reglas imperativas, sino como un morfismo en el Topos de         ║
-║  Grothendieck $\mathcal{E}_{MIC}$. Transforma la validación en un proceso de cálculo     ║
-║  sobre haces (sheaves), garantizando que las secciones locales de cumplimiento           ║
-║  lógico se adhieran (gluing axiom) en una sección global consistente.                    ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. Proyección en Retículos Distributivos Acotados (Álgebra de Severidad):              ║
-║      La evaluación de anomalías opera sobre el retículo $L = ([3], \le, \sqcup, \sqcap, \bot, \top)$. ║
-║      El colapso de la gobernanza se rige por el operador Supremo ($\sqcup$). Si el       ║
-║      sistema alcanza el estado absorbente $\top$ (Veto Estructural), se detona la        ║
-║      monada `StructuralVetoMonad`, aniquilando el flujo de decisión.                     ║
-║      Además, se audita la Entropía de Shannon $H(X) = -\sum p_i \log_2(p_i)$ para        ║
-║      cuantificar el desorden informacional de las violaciones.                           ║
-║                                                                                          ║
-║  §2. Cohomología de Haces y Teoría de Hodge Discreta:                                    ║
-║      La ontología de las políticas se modela como un complejo de cocadenas.              ║
-║      Se exige matemáticamente la anulación del primer grupo de cohomología:              ║
-║          $\dim H^1(G; \mathcal{F}) = 0$                                                  ║
-║      La coherencia topológica global se certifica verificando la Característica          ║
-║      de Euler-Poincaré: $\chi(K) = \beta_0 - \beta_1 + \beta_2$. Se realiza una          ║
-║      validación cruzada (Hodge Cross-Validation) comparando el rango-nulidad (SVD)       ║
-║      con el núcleo del Laplaciano de Hodge Combinatorio.                                 ║
-║                                                                                          ║
-║  §3. Funtor de Política Espectral y Clasificador de Subobjetos ($\Omega$):               ║
-║      En el Topos de Grothendieck, la política se materializa como un producto            ║
-║      fibrado (pullback). Se certifica el isomorfismo:                                    ║
-║          $S_{allowed} \cong X \times_\Omega 1$                                           ║
-║      Donde el operador clasificador $\Omega$ debe probar ser un proyector idempotente    ║
-║      ($\Omega^2 = \Omega$) y, por el teorema espectral, $\sigma(\Omega) \subseteq \{0,1\}$. ║
-║      La identidad traza-rango $\text{Tr}(\Omega) = \text{rank}(\Omega)$ sella la         ║
-║      verificación en $\mathcal{O}(n)$.                                                   ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_InformationTheoreticLatticeProjector                                    ║
-║           Ejecuta la proyección dual al retículo y audita la entropía de las             ║
-║           violaciones.                                                                   ║
-║           [Retorna: LatticeProjectionData → objeto inicial de Fase 2]                    ║
-║                                                                                          ║
-║  Fase 2 → Phase2_EulerCharacteristicCohomologyAuditor                                    ║
-║           Certifica la consistencia lógica del haz de reglas vía Teoría de Hodge.        ║
-║           [Retorna: CohomologicalOntologyData → objeto inicial de Fase 3]                ║
-║                                                                                          ║
-║  Fase 3 → Phase3_SpectralToposPolicyFunctor                                              ║
-║           Verifica el isomorfismo de pullback y el axioma de pegado de haces             ║
-║           (gluing axiom).                                                                ║
-║           [Retorna: ToposPolicyPullbackData → objeto final del endofuntor]               ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Governance Agent (Custodio de la Gobernanza Computacional)          ║
+║ Ruta   : app/agents/core/governance_agent.py                                 ║
+║ Versión: 3.0.0-Hodge-Spectral-Sheaf-Gluing-Strict-Nested-NoHardware          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA EN EL ESTRATO STRATEGY (V_𝕊) ─────────────
+Este módulo consagra la aduana inmunológica de la gobernanza computacional,
+operando formalmente como el Funtor de Política Espectral en el Topos de 
+Grothendieck de la Malla Agéntica [1]:
+
+     𝒵_{\mathrm{Gov}}: \mathbf{StrategySpace} \longrightarrow \mathbf{ToposPolicy}
+
+Su propósito es interceptar, evaluar y sincronizar las directrices declarativas
+de control de-confinado frente a las restricciones físicas y tácticas locales.
+Subyuga el análisis normativo a un formalismo algebraico y categorial estricto, 
+midiendo la entropía informacional de las violaciones de la Malla y evaluando 
+las restricciones de calibre en el clasificador de subobjetos del topos.
+
+Toda la contención de fallos y resolución de consistencia se confina de manera
+síncrona y determinista al plano lógico de software mediante el álgebra de 
+Heyting acotada, repudiando de raíz toda actuación por hardware mecánico o 
+disyuntores físicos externos.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ──────
+La transición de estados de gobernanza se rige por un contrato covariante estricto
+que compone secuencialmente tres fases acopladas:
+
+  Fase 1 ──► FASE 1: PROYECCIÓN AL RETÍCULO DISTRIBUTIVO Y ENTROPÍA (Observe)
+             Evalúa las violaciones normalizadas en el retículo acotado
+             L = ([4], ≤, ⊔, ⊓, ⊥, ⊤) y computa la entropía de Shannon de 
+             la distribución de fallos para estimar el desorden informacional.
+             Entrega: LatticeProjectionData como precondición de la Fase 2.
+
+  Fase 2 ──► FASE 2: COHOMOLOGÍA DE LA CARACTERÍSTICA DE EULER (Orient)
+             Calcula los números de Betti y verifica que la dimensión del primer
+             grupo de cohomología H¹(G; F) se anule de forma exacta.
+             Realiza la validación cruzada del Laplaciano de Hodge combinatorio.
+             Entrega: CohomologicalOntologyData como precondición de la Fase 3.
+
+  Fase 3 ──► FASE 3: FUNTOR DE POLÍTICA ESPECTRAL EN EL TOPOS (Decide & Act)
+             Aplica Policy-as-Code evaluando el clasificador de subobjetos Ω.
+             Verifica que Ω sea un proyector idempotente (Ω² = Ω) y autoadjunto.
+             Valida la consistencia global mediante el axioma de pegado de haces.
+             Entrega: FederatedGovernanceState como certificado terminal del funtor.
+
+INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES DE CONSERVACIÓN PRESERVADOS: ──────
+  [I1] Estructura de Retículo Distributivo Acotado (Lattice):
+       La severidad total se unifica bajo la operación Supremo (⊔), garantizando
+       la consistencia con la lógica difusa y la dualidad de De Morgan:
+       $$v_{\mathrm{final}} = \bigsqcup_{i} v_i = \max(v_1, v_2, v_3) \in L \quad$$
+
+  [I2] Conservación y Nulidad de Obstrucción Cohomológica:
+       Para garantizar la consistencia contractual y la ausencia de paradojas,
+       la dimensión de H¹ calculada vía rango-nulidad (SVD) debe coincidir
+       con el espectro del Laplaciano de Hodge combinatorio y ser nula:
+       $$\dim H^1(G; \mathcal{F})_{\mathrm{SVD}} \equiv \dim H^1(G; \mathcal{F})_{\mathrm{Hodge}} = 0 \quad$$
+
+  [I3] Idempotencia y Simetría del Clasificador de Subobjetos:
+       El operador de política del Topos Ω actúa de forma idempotente y autoadjunta
+       sobre el subespacio de cumplimiento permitido:
+       $$\Omega^2 = \Omega \quad\land\quad \Omega = \Omega^\top \quad \implies \quad \sigma(\Omega) \subseteq \{0, 1\} \quad$$
+
+  [I4] Certificación Cruzada de la Identidad Traza-Rango:
+       Para el proyector de calibre Ω, la traza compleja debe equivaler
+       estrictamente a su rango numérico efectivo de Weyl con precisión de máquina:
+       $$\operatorname{Tr}(\Omega) = \operatorname{rank}(\Omega) \quad$$
+
+  [I5] Axioma de Pegado sobre la Cubierta de Certificados (Sheaf Gluing):
+       Las secciones locales de cumplimiento sobre la cubierta de abiertos 
+       {U_lattice, U_ontology, U_pullback, U_hodge} se consolidan en una 
+       sección de gobernanza global si y solo si sus restricciones coinciden:
+       $$s_i|_{U_i \cap U_j} = s_j|_{U_i \cap U_j} \quad \forall i, j \quad$$
 """
 
 from __future__ import annotations

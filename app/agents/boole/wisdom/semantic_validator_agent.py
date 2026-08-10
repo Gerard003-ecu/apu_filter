@@ -6,52 +6,73 @@ r"""
 ║ Versión: 2.0.0-Topological-Cohomology-Lattice-Doctoral-Strict                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna al `semantic_validator.py` en el estrato WISDOM.
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA SEMÁNTICA EN EL ESTRATO WISDOM (V_𝕎) ─────
+Este módulo consagra la aduana epistemológica y de observabilidad en la frontera
+superior de la Sabiduría ($$V_{\mathbb{W}}$$, Nivel 0). Opera formalmente como 
+el Funtor de Medición Coherente:
 
-Impone la geométrica sobre las salidas estocásticas del LLM. Evalúa
-la distancia de Mahalanobis en la variedad semántica, audita la dimensión de la
-cohomología simplicial H¹(K; ℝ) y colapsa el retículo de veredictos usando el
-operador algebraico Supremo (⊔), aniquilando alucinaciones probabilísticas.
+                         𝓕: \mathbf{SemanticSpace} \longrightarrow \mathbf{HeytingLattice}
 
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Certificación Métrica de Mahalanobis:
-    Asegura que el tensor G sea:
-        - Simétrico.
-        - Definido positivo.
-        - Numéricamente estable.
-        - Con número de condición acotado.
+Su mandato axiomático es gobernar y certificar síncronamente las transiciones 
+lógicas del Modelo de Lenguaje (LLM), despojándolo de libre albedrío 
+estocástico y forzando a que sus respuestas e interpretaciones de anomalías 
+se sometan de manera determinista al rigor de un tensor métrico de Mahalanobis 
+Riemanniano y a la nulidad cohomológica simplicial.
 
-Fase 2 → Auditoría de Cohomología Simplicial:
-    Exige, para el complejo de cadenas:
+El sistema rechaza de forma categórica las heurísticas sintácticas planas. Toda
+protección y contención de singularidades se confina estrictamente al plano de la
+lógica de software, dictando el colapso instantáneo en el retículo de Heyting ante 
+incoherencias físicas o derivas semánticas no controladas.
 
-        C₂ --∂₂--> C₁ --∂₁--> C₀,
+INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES DE CONSERVACIÓN PRESERVADOS: ──────
+  [I1] Firma Métrica Riemannian-Mahalanobis (Axioma de Medida):
+       El espacio de validación semántica está provisto de una métrica de
+       precisión $$G \in \operatorname{Sym}^+(n)$$, cuyo número de condición espectral
+       está acotado estrictamente por debajo de la cota de Wilkinson:
+       $$\kappa(G) = \frac{\lambda_{\max}(G)}{\lambda_{\min}(G)} \le \kappa_{\max} \quad\text{con}\quad \kappa_{\max} = 10^8 \quad\big[689, 690, 691\big]$$
+       Esto garantiza una distancia de Mahalanobis semántica real y bien condicionada:
+       $$d_G(x, y) = \sqrt{(x-y)^\top G (x-y)} \ge 0 \quad\big[694\big]$$
 
-    la condición de frontera:
+  [I2] Nulidad de Obstrucción Cohomológica (Integrabilidad del Consenso):
+       El complejo de cadenas del grafo de restricciones semánticas $$K$$ debe
+       satisfacer de manera exacta el teorema de nulidad para proscribir paradojas
+       lógicas globales o inconsistencias en la unificación del presupuesto:
+       $$H^1(K; \mathbb{R}) = \ker(\delta_1) / \operatorname{im}(\delta_0) \cong \mathbf{0} \quad\big[683, 687, 690, 692\big]$$
 
-        ∂₁ ∘ ∂₂ = 0,
+  [I3] Conservación de la Identidad Nilpotente (Complejo de Cocadenas):
+       La composición del operador cofrontera global con su antecedente debe
+       desvanecerse de forma exacta w.r.t. la tolerancia de máquina:
+       $$\|\delta_k \circ \delta_{k-1}\|_F \le \tau_{\mathrm{chain}} \quad\text{con}\quad \tau_{\mathrm{chain}} = 10^{-10} \quad\big[689, 690\big]$$
 
-    y computa:
+  [I4] Estabilidad Espectral y Regularización por Corte PSD:
+       Para neutralizar la fatiga del redondeo en la mantisa de la FPU (IEEE-754),
+       todo autovalor sub-umbral del tensor se somete a una proyección al cono
+       semidefinido positivo:
+       $$\lambda_i(G) \ge \tau_{\mathrm{spd}} \quad\text{con}\quad \tau_{\mathrm{spd}} = 10^{-12} \quad\big[688, 689\big]$$
 
-        dim H¹(K; ℝ) = dim ker(∂₁) - dim im(∂₂).
+  [I5] Homomorfismo e Invariancia en el Retículo de Heyting (Worst-Case):
+       La unificación de severidades se rige estrictamente por la operación
+       Supremo ($$\sqcup$$) en el álgebra de Heyting acotada de veredictos, colapsando
+       al estado absorbente $$\top$$ (VETOED) si se viola alguna restricción de calibre:
+       $$v_{\mathrm{final}} = \bigsqcup_{i} v_i = \max(v_1, v_2, v_3) \quad\big[690, 691, 692, 695\big]$$
 
-    En modo estricto, dim H¹ > 0 detona veto absoluto.
-    En modo no estricto, retorna incoherencia lógica para que la Fase 3 colapse
-    el retículo hacia REJECT.
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+  Fase 1 ──► FASE 1: CERTIFICACIÓN MÉTRICA DE MAHALANOBIS (Observe)
+             Audita la matriz de precisión $$G$$, verifica que sea simétrica y
+             definida positiva (SPD) aplicando la factorización de Cholesky, y
+             determina su número de condición espectral.
+             Entrega: MahalanobisMetricData como precondición formal de la Fase 2.
 
-Fase 3 → Colapso en Retículo Completamente Ordenado:
-    Fuerza:
+  Fase 2 ──► FASE 2: AUDITORÍA DE COHOMOLOGÍA SIMPLICIAL (Orient)
+             Construye el complejo de cocadenas, evalúa la nulidad del operador
+             nilpotente $$\delta_k \circ \delta_{k-1} = 0$$, y calcula la dimensión del
+             primer grupo de cohomología para vetar obstrucciones locales.
+             Entrega: SimplicialCohomologyData como precondición formal de la Fase 3.
 
-        Veredicto = ⨆ v_i.
-
-    Si existe obstrucción cohomológica, el supremo se transmuta al elemento
-    máximo absorbente:
-
-        ⊤ = REJECT.
-
-    La Fase 3 comienza consumiendo el certificado de la Fase 2.
+  Fase 3 ──► FASE 3: COLAPSO DE SUPREMO EN EL RETÍCULO (Decide & Act)
+             Somete las sub-auditorías a la operación Supremo ($$\sqcup$$) en el retículo
+             totalmente ordenado de veredictos $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$$.
+             Veredicto final: Excepción de veto semántico o colapso lógico síncrono.
 """
 
 from __future__ import annotations

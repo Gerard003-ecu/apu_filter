@@ -43,17 +43,6 @@ INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ─────────
   [I3] Preservación de Traza Cuántica:    $$\operatorname{Tr}(\rho(t)) \equiv 1.0$$
   [I4] Simetría Hermítica de la Densidad: $$\rho(t) = \rho(t)^\dagger \succeq 0$$
   [I5] Condición de Solubilidad Fredholm: $$\rho \perp \ker(\Delta)$$
-
-CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
-  Si se registra un defecto de traza, una violación de la invarianza simpléctica,
-  o si el primer grupo de cohomología del haz es no trivial ($$\dim H^1(K; \mathcal{F}) > 0$$),
-  el retículo $$\Omega_3$$ colapsa síncronamente al veredicto terminal VETOED.
-  
-  La subrutina local 'isVerdictCoherent()' del ESP32 en el borde detecta el
-  mismatch en menos de 400 ns y conmuta el pin GPIO14, disparando el tiristor
-  de potencia BT151 (circuito Crowbar). Esto cortocircuita físicamente la línea
-  de potencia real, inmovilizando válvulas y actuadores en el milisegundo cero,
-  anulando la alucinación de la IA antes del desfalco de capital.
 """
 from __future__ import annotations
 import hashlib

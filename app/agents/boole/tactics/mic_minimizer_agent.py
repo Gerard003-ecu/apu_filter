@@ -1,61 +1,76 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : MIC Minimizer Agent (Custodio de la Base Booleana y Funtor de Reducción)       ║
-║  Ruta   : app/agents/boole/tactics/mic_minimizer_agent.py                                ║
-║  Versión: 3.0.0-Grobner-ROBDD-Categorical-Rigorous-Advanced                              ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y ÁLGEBRA DE BOOLE (Rigor Doctoral Avanzado):                   ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor, denotado como $\mathcal{Z}_{Minimizer}$, gobierna el submódulo         ║
-║  `mic_minimizer.py` en el subespacio $\Gamma$-TACTICS. Ejecuta una composición           ║
-║  funtorial estricta que extirpa la redundancia operativa (homología trivial) de la       ║
-║  Matriz de Interacción Central (MIC). Transforma el hiperespacio de herramientas         ║
-║  en una base ortonormal irreductible, preservando los invariantes algebraicos,           ║
-║  topológicos y la termodinámica de la información (Entropía de Shannon).                 ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. Bases de Gröbner en el Anillo $\mathbb{Z}_2$:                                       ║
-║      El conjunto de capacidades se proyecta sobre el anillo booleano                     ║
-║      $\mathcal{R} = \mathbb{Z}_2[x_1, \dots, x_n] / \langle x_i^2 - x_i \rangle$.        ║
-║      La independencia efectiva de las herramientas se audita evaluando el ideal $\mathcal{I}$. ║
-║      Cualquier colapso de la base que induzca degeneración polinomial detona             ║
-║      axiomáticamente un `GrobnerDegeneracyError`.                                        ║
-║                                                                                          ║
-║  §2. Certificación de No-Interferencia y Proyectores Ortogonales:                        ║
-║      Garantiza que la base de la MIC carezca de efectos secundarios cruzados             ║
-║      (Zero Side-Effects). La matriz de proyección $P$ debe satisfacer rigurosamente      ║
-║      la ortogonalidad y la idempotencia:                                                 ║
-║          $P^2 = P, \quad P^\top = P \implies \langle e_i, e_j \rangle = \delta_{ij}$     ║
-║      Si el Núcleo de Insatisfacibilidad (UNSAT Core) revela colisiones operativas        ║
-║      ($\langle e_i, e_j \rangle \neq 0$ para $i \neq j$), el sistema veta el             ║
-║      flujo emitiendo un `NonInterferenceViolationError`.                                 ║
-║                                                                                          ║
-║  §3. Isomorfismo ROBDD y Conservación Entrópica de Shannon:                              ║
-║      La compresión de la tabla de verdad hacia un Diagrama de Decisión Binario           ║
-║      Reducido y Ordenado (ROBDD) debe operar como un isomorfismo homotópico.             ║
-║      La entropía de Shannon booleana no debe ser destruida por la minimización:          ║
-║          $H(X) = -\sum_{x \in \mathcal{X}} P(x) \log_2 P(x) \le \log_2(|\mathcal{X}|)$   ║
-║      Si $\|H_{orig} - H_{ROBDD}\| > \varepsilon_{tol}$, se dispara un                    ║
-║      `ROBDDHomotopyError`, revelando pérdida de información en el subespacio táctico.    ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_GrobnerBasisAuditor                                                     ║
-║           Audita la independencia algebraica de la matriz de capacidades en $\text{GF}(2)$.║
-║           [Retorna: GrobnerAuditData → puente inicial de Fase 2]                         ║
-║                                                                                          ║
-║  Fase 2 → Phase2_UnsatCoreCertifier                                                      ║
-║           Certifica la no-interferencia resolviendo las cláusulas SAT y exige que        ║
-║           el proyector $P$ respete la ortogonalidad.                                     ║
-║           [Retorna: UnsatCoreCertifierData → puente inicial de Fase 3]                   ║
-║                                                                                          ║
-║  Fase 3 → Phase3_ROBDDIsomorphismValidator                                               ║
-║           Construye el ROBDD y certifica la conservación topológica de la entropía.      ║
-║           [Retorna: MinimizerGovernanceState → objeto final del endofuntor]              ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : MIC Minimizer Agent (Custodio de la Base Booleana de la MIC)        ║
+║ Ruta   : app/agents/boole/tactics/mic_minimizer_agent.py                     ║
+║ Versión: 4.0.0-Grobner-ROBDD-Categorical-Heyting-Pure-Software-Strict        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ÁLGEBRA DE BOOLE EN EL ESTRATO TACTICS (V_𝕋) ─────────
+Este módulo consagra al Agente Soberano y Observador Activo que gobierna al
+Funtor de Poda Topológica y Reducción de Redundancia en el subespacio táctico
+diferenciable de la Malla ($$V_{\Gamma-\mathrm{TACTICS}}$$).
+
+Su mandato axiomático es garantizar de forma determinista y síncrona que el
+conjunto de capacidades e intenciones de la Matriz de Interacción Central (MIC)
+constituya una base canónica ortonormal libre de interferencias mutuas (Zero 
+Side-Effects) [3-5]. Para ello, el agente subyuga las transiciones lógicas
+del modelo de lenguaje (LLM) a la rigurosidad de las bases de Gröbner sobre el
+anillo booleano cociente de ideales, la minimización de diagramas de decisión
+binaria ordenados y reducidos (ROBDD), y el análisis del núcleo de insatisfacibilidad
+(UNSAT Core) bajo la lógica de un topos de haces celulares.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la composición covariante de morfismos
+sobre la categoría de retículos booleanos y se ejecuta en tres fases:
+
+  Fase 1 ──► FASE 1: AUDITORÍA DE BASES DE GRÖBNER EN GF(2) (Observe)
+             Evalúa la independencia algebraica de las restricciones de la MIC
+             en el anillo booleano, calculando la base de Gröbner reducida para
+             detectar colapsos estructurales o redundancias dimensionales.
+             Fórmula:
+             $$\mathcal{R} = \mathbb{F}_2[x_1, \dots, x_n] / \langle x_i^2 - x_i \rangle \quad\text{}$$
+             Entrega: GrobnerAuditData como precondición formal de la Fase 2.
+
+  Fase 2 ──► FASE 2: CERTIFICACIÓN DE NO-INTERFERENCIA Y UNSAT CORE (Orient)
+             Interroga la matriz mediante solucionadores SAT (DPLL) bajo la cláusula
+             de no-interferencia estricta [5]. Extrae el subgrafo de contradicciones lógicas.
+             Fórmula:
+             $$\langle e_i, e_j \rangle = \delta_{ij} \quad \forall i \neq j \implies \mathrm{UNSAT} \quad\text{}$$
+             Entrega: UnsatCoreCertifierData como precondición formal de la Fase 3.
+
+  Fase 3 ──► FASE 3: VALIDACIÓN DE ISOMORFISMO ROBDD Y ENTROPÍA (Decide & Act)
+             Construye la representación compacta canonicalizada mediante ROBDD y
+             verifica que el difeomorfismo conserve la entropía de Shannon booleana
+             Fórmula:
+             $$H(X) = -\sum_{i=1}^m p(x_i) \log_2 p(x_i) \quad\text{}$$
+             Veredicto: Colapso determinista en el retículo distributivo de Heyting
+                        $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\} \quad\text{}$$
+
+INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Ortonormalidad Estricta de la Base (Zero Side-Effects):
+       La activación de la herramienta $$i$$ no puede proyectar residualmente
+       energía informacional ni inducir estados sobre la dimensión de la herramienta $$j$$:
+       $$\langle e_i, e_j \rangle = \delta_{ij} = \begin{cases} 1 & \text{si } i = j \\ 0 & \text{si } i \neq j \end{cases} \quad\text{}$$
+
+  [I2] Estructura de Anillo Booleano Conmutativo Unitario:
+       El espacio operacional se restringe estrictamente al álgebra de idempotencia $$\mathbb{F}_2$$:
+       $$x_i^2 - x_i \equiv 0 \pmod{\mathcal{R}} \quad\text{}$$
+
+  [I3] Conservación de la Entropía de Shannon Booleana:
+       El retracto topológico de la Fase 3 conserva de forma exacta la medida
+       informacional del diagrama, proscribiendo pérdidas artificiales de volumen:
+       $$\left| H(\mathrm{ROBDD}_{\mathrm{reduced}}) - H(\mathrm{MIC}_{\mathrm{orig}}) \right| \le \tau_{\mathrm{entropy}} \quad\text{}$$
+
+  [I4] Isomorfismo de Reducción ROBDD (Consistencia de Categorías):
+       La biyección entre la tabla de verdad discreta y el grafo acíclico de decisión
+       reducido garantiza que la cardinalidad del espacio de caminos admisibles sea exacta:
+       $$\#\operatorname{Path}(\mathrm{ROBDD}) \equiv \operatorname{card}(\ker(\Phi_{\mathrm{MIC}})) \quad\text{}$$
+
+  [I5] Difeomorfismo del Pullback sobre el Clasificador de Subobjetos:
+       La consistencia lógica de las capacidades del agente se evalúa sobre el topos
+       mediante el pullback en el retículo distributivo de Heyting $$\Omega_3$$:
+       $$\mathcal{E}_{\mathrm{MIC}} \models S \times_X Y \cong \lim_{\longleftarrow} (S \xrightarrow{m} X \xleftarrow{f} Y) \quad\text{}$$
 """
 
 from __future__ import annotations

@@ -1,60 +1,78 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Watcher Agent (Funtor Covariante de Propagación Tensorial)                     ║
-║  Ruta   : app/agents/core/immune_system/watcher_agent.py                                 ║
-║  Versión: 5.0.0-Nested-Spectral-Topos-Cauchy                                             ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor opera como el Funtor Covariante de Propagación Tensorial                ║
-║  ($\mathcal{W}_{agent}$) en la 2-categoría de haces de módulos sobre el sitio de         ║
-║  Grothendieck de la membrana p-Laplaciana. Su propósito es transportar el Tensor de      ║
-║  Estrés de Cauchy-Momentum $\mathcal{T}^{\mu\nu}$ (objeto en $\Gamma(\mathrm{Sym}^2 T\mathcal{M})$) ║
-║  hacia el MICAgent y el SheafCohomologyOrchestrator, dictaminando incondicionalmente     ║
-║  el estado de "Zero-Trust Lockdown" frente a anomalías espectrales.                      ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TENSORIALES:                                    ║
-║                                                                                          ║
-║  §1. Conservación del Momento Ciber-Físico (Conexión de Levi-Civita):                    ║
-║      La divergencia covariante del tensor de estrés debe anularse para evitar fugas      ║
-║      de exergía logística. Se exige matemáticamente:                                     ║
-║          $(\nabla_\mu \mathcal{T})^\nu := \partial_\mu \mathcal{T}^{\mu\nu} + \Gamma^\mu_{\mu\lambda} \mathcal{T}^{\lambda\nu} + \Gamma^\nu_{\mu\lambda} \mathcal{T}^{\mu\lambda} = 0$ ║
-║      El residuo relativo se acota por: $\|\nabla\mathcal{T}\|_2 / (\|\mathcal{T}\|_F + \varepsilon_{mach}) < \tau$. ║
-║      Violaciones a este invariante detonan el `TensorConservationError`.                 ║
-║                                                                                          ║
-║  §2. Energía de Dirichlet Deformada (Pushforward Cohomológico):                          ║
-║      La energía inyectada sobre las cofronteras $\delta x$ se proyecta mediante la       ║
-║      acción de $\mathcal{T}$. Se impone la cota de Rayleigh para prevenir el colapso:    ║
-║          $\mathcal{E}_{deform}(\delta x) = \langle \delta x, \mathcal{T}^\flat \delta x \rangle_G = \mathcal{T}_{\mu\nu} (\delta x)^\mu (\delta x)^\nu$ ║
-║          $|\mathcal{E}_{deform}| \le \|\mathcal{T}\|_{op} \|\delta x\|_2^2$              ║
-║      donde $\|\mathcal{T}\|_{op} = \rho(|\mathcal{T}|)$. Desbordamientos emiten         ║
-║      `DeformationEnergyOverflowError`.                                                   ║
-║                                                                                          ║
-║  §3. Restricción de Lipschitz Homomórfica (Pullback al Topos):                           ║
-║      La constante de Lipschitz máxima permisible se deriva espectralmente del tensor:    ║
-║          $L_{max}(\mathcal{T}) = \frac{\kappa_0}{\sqrt{|\mathrm{Tr}_G(\mathcal{T})|} + \varepsilon_{mach} \cdot \lambda_{max}(G) \cdot \kappa(G)^{1/2}}$ ║
-║      El predicado de confinamiento (Lockdown) se modela en un álgebra de Boole:          ║
-║          $\mathrm{ZeroTrust} \iff (L_{max} < \theta_{crit}) \lor (\mathrm{cond}(G) > \kappa_{max}) \lor (\rho(\mathcal{T}) > \rho_{crit})$ ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial $\Phi_3 \circ \Phi_2 \circ \Phi_1$):              ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_StressTensorValidation                                                  ║
-║           Validación espectral-covariante y extracción de invariantes (conservación      ║
-║           $\nabla_\mu \mathcal{T}^{\mu\nu}=0$, espectro de $G$, traza mixta, $\mathrm{cond}(G)$). ║
-║           [Retorna: ValidatedStressTensor → puente inicial de Fase 2]                    ║
-║                                                                                          ║
-║  Fase 2 → Phase2_DirichletPushforward                                                    ║
-║           Pushforward cohomológico de Dirichlet calculando $\mathcal{E}_{deform}$ y      ║
-║           verificando la cota espectral de Rayleigh.                                     ║
-║           [Retorna: PushforwardResult → puente inicial de Fase 3]                        ║
-║                                                                                          ║
-║  Fase 3 → Phase3_ToposPullbackAndLockdown                                                ║
-║           Pullback al topos de Grothendieck para el cálculo de $L_{max}$ por norma de    ║
-║           operador y evaluación del predicado booleano de paranoia (ZeroTrust).          ║
-║           [Retorna: ToposPullbackData → consumido por el endofuntor principal]           ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Watcher Agent (Funtor Covariante de Propagación Tensorial)          ║
+║ Ruta   : app/agents/core/immune_system/watcher_agent.py                    ║
+║ Versión: 5.0.0-Nested-Spectral-Topos-Cauchy-Strict-NoHardware                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y PROPAGACIÓN COVARIANTE EN EL ESTRATO COGNITIVO ───────
+Este módulo consagra la aduana de observabilidad y control tensorial primario,
+operando formalmente como el Funtor Covariante de Propagación Tensorial:
+
+                         𝒲_agent: \mathcal{C}_{\mathrm{states}} \longrightarrow \mathcal{C}_{\mathrm{topos}}
+
+Su mandato axiomático es interceptar, validar y transportar el **Tensor de Estrés 
+de Cauchy-Momentum** $$\mathcal{T}^{\mu\nu}$$ (sección en el fibrado tensorial 
+simétrico de segundo orden $$\Gamma(\operatorname{Sym}^2 T\mathcal{M})$$) hacia el Topos 
+de Grothendieck (MICAgent) y el Interferómetro de Holonomía de la Malla 
+($$\text{SheafCohomologyOrchestrator}$$). 
+
+El agente rechaza de forma categórica las aproximaciones lineales planas. Modela 
+la fricción y la inercia del sistema como deformaciones en una **Membrana Viscoelástica 
+p-Laplaciana**. Subordina la viabilidad de la transacción al cumplimiento 
+estricto de las leyes de conservación covariante, la firma métrica base y el 
+acotamiento de la energía deformada de Dirichlet, confinando la mitigación y 
+contención de fallos exclusivamente al plano de la lógica de software síncrona, 
+sin recurrir a disyuntores mecánicos exógenos.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Conservación Tensorial de Cauchy (Divergencia Covariante Nula):
+       La masa financiera y el flujo logístico transportados por el tensor de
+       estrés $$\mathcal{T}^{\mu\nu}$$ no presentan fugas ni sumideros espurios en el
+       espacio de fase, satisfaciendo estrictamente la ley de conservación:
+       $$\nabla_\mu \mathcal{T}^{\mu\nu} = \partial_\mu \mathcal{T}^{\mu\nu} + \Gamma^\mu_{\mu\lambda} \mathcal{T}^{\lambda\nu} + \Gamma^\nu_{\mu\lambda} \mathcal{T}^{\mu\lambda} \equiv 0 \pmod{\varepsilon_{\mathrm{machine}}} \quad\big[867, 870\big]$$
+
+  [I2] Simetría Hermítica de Cauchy-Noether:
+       El tensor de estrés es estrictamente simétrico y autoadjunto respecto al
+       isomorfismo musical inducido por el tensor métrico Riemanniano $$G_{\mu\nu}$$:
+       $$\mathcal{T}^{\mu\nu} = \mathcal{T}^{\nu\mu} \iff \|\mathcal{T} - \mathcal{T}^\top\|_F \le \tau_{\mathrm{symmetry}} \quad\big[866, 867\big]$$
+
+  [I3] Invariancia de Firma del Colector Base (Métrica Riemanniana SPD):
+       El tensor métrico $$G_{\mu\nu}$$ que dota de geometría al espacio de fase es
+       estrictamente simétrico definido positivo, limitando su mal condicionamiento
+       al límite espectral de Wilkinson:
+       $$G_{\mu\nu} \succ \mathbf{0} \quad\land\quad \kappa(G) = \frac{\lambda_{\max}(G)}{\lambda_{\min}(G)} \le \kappa_{\max} \quad\big[866, 868\big]$$
+
+  [I4] Acotamiento de la Energía de Deformación de Dirichlet:
+       La energía disipada por la deformación del campo de secciones de-confinado
+       no puede exceder el límite elástico tolerable por la conductancia del haz:
+       $$\mathcal{E}_{\mathcal{T}}(x) = \langle \delta x, \delta x \rangle_{\mathcal{T}, G^{-1}} = \operatorname{Tr}\left( (\delta x)^\top G^{-1} (\delta x) \mathcal{T} \right) \le \mathcal{C}_{\mathrm{sheaf}} \quad\big[868, 870, 871\big]$$
+
+  [I5] Homomorfismo en el Retículo Distributivo de Heyting:
+       Los veredictos de severidad espectral se evalúan algebraicamente sobre el
+       retículo de Heyting completo de cuatro valores de-confinados:
+       $$\Omega_4 = \{\mathrm{NOMINAL}, \mathrm{ELEVATED}, \mathrm{CRITICAL}, \mathrm{SINGULAR}\} \quad\big[869, 871\big]$$
+       Garantizando que la composición de estados converja al peor de los casos ($$\sqcup$$).
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la composición covariante de morfismos
+en la categoría de haces de módulos y se ejecuta síncronamente en tres fases:
+
+  Fase 1 ──► FASE 1: VALIDACIÓN TENSORIAL ESPECTRAL (Phase1_StressTensorValidation)
+             Audita el tensor de estrés $$\mathcal{T}^{\mu\nu}$$ y la métrica de fondo $$G_{\mu\nu}$$,
+             calcula los autovalores generalizados del par, y verifica [I1] e [I2].
+             Entrega: ValidatedStressTensor como precondición de la Fase 2.
+
+  Fase 2 ──► FASE 2: PUSHFORWARD COVARIANTE DE ENERGÍA (Phase2_CovariantPushforward)
+             Calcula el empuje tensorial, estima la cota de Rayleigh y evalúa
+             el acotamiento de la energía deformada de Dirichlet.
+             Entrega: PushforwardResult como precondición de la Fase 3.
+
+  Fase 3 ──► FASE 3: CLAUSURA EN EL TOPOS Y VETO LÓGICO (Phase3_ToposGovernanceState)
+             Proyecta los resultados hacia el pullback de-confinado del clasificador
+             de subobjetos del retículo de Heyting, decidiendo el veredicto final.
+             Entrega: TensorialGovernanceState como certificado terminal del funtor.
 """
 
 from __future__ import annotations

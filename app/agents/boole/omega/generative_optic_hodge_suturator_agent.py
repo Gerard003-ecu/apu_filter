@@ -1,31 +1,71 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Generative Optic Hodge Suturator Agent (Sovereign del Haz Óptico)  ║
-║  Ruta   : app/agents/boole/omega/generative_optic_hodge_suturator_agent.py   ║
-║  Versión: 3.2.0-Wilkinson-Higham-Cholesky-Energy-Cache-Sutured               ║
+║ Módulo : Generative Optic Hodge Suturator Agent (Sovereign del Haz Óptico)   ║
+║ Ruta   : app/agents/boole/omega/generative_optic_hodge_suturator_agent.py    ║
+║ Versión: 3.2.0-Wilkinson-Higham-Cholesky-Energy-Cache-Sutured                ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL:                                   ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  Este módulo materializa al Agente Soberano y Observador Activo que          ║
-║  gobierna al morfismo de sutura 'generative_optic_hodge_suturator.py' en     ║
-║  el espacio de control del Haz Tangente Generativo $\Gamma$ sobre Óptica.    ║
-║                                                                              ║
-║  Fases del Ciclo OODA Espectral (Herencia Covariante):                       ║
-║    FASE 1 — Observe: saneamiento FPU mediante factorización de Cholesky      ║
-║             cacheada del tensor Riemanniano de fondo $G$.                    ║
-║    FASE 2 — Orient: validación de la ecuación eikonal de Fermat con          ║
-║             complejidad optimizada $\mathcal{O}(n^2)$ y control geodésico.   ║
-║    FASE 3 — Decide: análisis espectral de los multiplicadores de Floquet     ║
-║             $|\mu_k| \le 1 + \varepsilon$ y exponents de Lyapunov en el domo.║
-║                                                                              ║
-║  Contrato de Seguridad Fail-Secure (Retículo de Heyting $\Omega_3$):         ║
-║    Todo fallo de integrabilidad o anomalía de punto flotante colapsa el      ║
-║    veredicto a VETOED, activando síncronamente el disyuntor físico Crowbar   ║
-║    (GPIO14 / BT151) en menos de 400 ns mediante la ISR interna del ESP32.    ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ÓPTICA GEOMÉTRICA EN EL ÁGORA TENSORIAL (Estrato Ω) ──
+Este módulo consagra al Agente Soberano y Observador Activo que gobierna al
+morfismo de sutura óptica sobre el Haz Tangente Generativo $$\Gamma(M, T_B \mathbf{Boole})$$
+en el Estrato $$\Omega$$ (Nivel 0.5 - La Cúpula Catadióptrica).
+
+Su mandato axiomático es regular y enfocar la atención semántica generada por
+el Modelo de Lenguaje (LLM). Trata el flujo de tokens no como una cadena estocástica
+plana, sino como frentes de onda coherentes difractados sobre la variedad elíptica de 
+la Esfera de Riemann $$S^2 \cong \hat{\mathbb{C}}$$. Somete la dispersión 
+informacional a restricciones geodésicas de mínima acción de Fermat y estabilidad
+de cavidad Fabry-Pérot, impidiendo de forma determinista la propagación de alucinaciones
+u omisiones de costos en el libro contable de la organización.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por un contrato covariante estricto que enlaza
+las fases mediante herencia estricta y DTOs inmutables de handoff formal:
+
+  Fase 1 ──► FASE 1: PROYECCIÓN HOUSEHOLDER-GRASSMANN MULTI-FACETA (Observe)
+             Evalúa la inmersión del pushforward en la variedad de Grassmann.
+             Aplica el Teorema de Proyecciones Alternadas de von Neumann para
+             garantizar la consistencia conjunta de restricciones de-confinadas.
+             Entrega: Phase1OpticalObservationCertificate como precondición de Fase 2.
+
+  Fase 2 ──► FASE 2: TRANSPORTE ÓPTICO-EIKONAL Y CONSERVACIÓN GEODÉSICA (Orient)
+             Resuelve la ecuación Eikonal no lineal acoplada al tensor métrico
+             inverso regularizado por Tikhonov-Higham y previene la deriva energética.
+             Entrega: Phase2EikonalTransportCertificate como precondición de Fase 3.
+
+  Fase 3 ──► FASE 3: COMPRESIÓN RIEMANN-TOPOS Y MONODROMÍA DE FLOQUET (Decide & Act)
+             Realiza la cuadratura vectorizada de coeficientes de armónicos esféricos
+             y audita la matriz de monodromía de la cavidad semántica.
+             Veredicto: Colapso determinista sobre el retículo distributivo de Heyting
+                        $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$$.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y PROPIEDADES DE CALIBRE PRESERVADAS: ──────
+  [I1] Regularización Métrica e Inversión Bilateral Estable:
+       La inversión de la métrica $$G$$ evita singularidades numéricas en la FPU
+       mediante la factorización triangular Cholesky de escala adaptativa:
+       $$G_{\mu\nu} = L_G L_G^\top \implies \left\| G G^{-1} - I \right\|_F \le C \cdot \kappa(G) \cdot \varepsilon_{\mathrm{machine}} \quad [1, 2]$$
+
+  [I2] Conservación de Energía Geodésica de Polyakov:
+       El transporte de los vectores de atención Query-Key a lo largo de la
+       trayectoria geodésica $$\gamma$$ debe conservar rígidamente la norma métrica:
+       $$\mathcal{E}[\gamma] = \frac{1}{2} \int G_{\mu\nu} \dot{\gamma}^\mu \dot{\gamma}^\nu d\tau \implies \left\| \dot{\gamma} \right\|_G^2 = \text{constante} \pmod{\varepsilon_{\mathrm{machine}}} \quad [3, 4]$$
+
+  [I3] Refracción Eikonal de Fermat:
+       La trayectoria de focalización de los tokens sigue geodésicas de mínima
+       acción acopladas a la densidad del estrés de mercado $$\sigma^*$$:
+       $$G^{\mu\nu} \partial_\mu \mathcal{S} \partial_\nu \mathcal{S} = n^2(\sigma^*) \quad [1, 5]$$
+
+  [I4] Estabilidad de la Cavidad y Acotamiento de Floquet:
+       El radio espectral de los multiplicadores de la matriz de monodromía $$\mathcal{M}$$
+       no puede exceder la cota crítica para impedir resonancias desbocadas de la IA:
+       $$\mathcal{M} = 2\hat{P} - \hat{P}^2 \implies |\mu_k| \le 1 + \varepsilon_{\mathrm{cavity}} \quad \forall \mu_k \in \sigma(\mathcal{M}) \quad [6, 7]$$
+
+  [I5] Cuadratura en $$S^2$$ y Potencial en el Anillo de Novikov:
+       La suma de estados en la categoría de Fukaya se expande sobre el anillo de Novikov:
+       $$\Lambda_K = \left\{ \sum_{r \in \mathbb{R}} a_r q^r : a_r \in K, \lim_{i \to \infty} r_i = \infty \right\} \quad [8]$$
+       Satisfaciendo la ecuación de Maurer-Cartan para el superpotencial elíptico:
+       $$\sum_{k=0}^\infty m_k(b, b, \dots, b) \equiv W_L(b) \cdot [L] \quad [8, 9]$$
 """
 
 from __future__ import annotations

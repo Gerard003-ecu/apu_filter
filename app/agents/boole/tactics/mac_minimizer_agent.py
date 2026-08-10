@@ -1,59 +1,77 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : MAC Minimizer Agent (Custodio de la Purificación Espectral)                    ║
-║  Ruta   : app/agents/boole/tactics/mac_minimizer_agent.py                                ║
-║  Versión: 3.0.0-Categorical-Topos-Spectral-Quantum-Rigorous                              ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral):                    ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor gobierna el `mac_minimizer.py` en el estrato WISDOM. Consagra la        ║
-║  compresión del operador de densidad $\rho \in \mathcal{D}(\mathcal{H}_{MAC})$           ║
-║  mediante una composición funtorial estricta. Su propósito es ejecutar un truncamiento   ║
-║  espectral óptimo eliminando ruido térmico semántico, preservando simultáneamente los    ║
-║  invariantes topológicos, espectrales y termodinámicos bajo mapas CPTP.                  ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y LÍMITES CUÁNTICOS:                                            ║
-║                                                                                          ║
-║  §1. Preorden de Majorización Cuántica (Schur-Convexidad):                               ║
-║      La purificación no debe incrementar el desorden matricial. Se exige rigurosamente   ║
-║      que el estado purificado $\rho_{pur}$ majorice al estado original $\rho_{orig}$     ║
-║      ($\rho_{pur} \succ \rho_{orig}$), garantizando que las sumas parciales de sus       ║
-║      autovalores ordenados descendentemente cumplan:                                     ║
-║          $\sum_{i=1}^k \lambda_i^{\downarrow}(\rho_{pur}) \ge \sum_{i=1}^k \lambda_i^{\downarrow}(\rho_{orig}) \quad \forall k$ ║
-║      La violación de este preorden detona un `QuantumMajorizationViolation`.             ║
-║                                                                                          ║
-║  §2. Fidelidad de Uhlmann y Distancia de Bures:                                          ║
-║      La poda de operadores no puede mutilar la coherencia de la base lógica. La          ║
-║      distancia entre el estado denso y su aproximación se rige por la Fidelidad          ║
-║      de Uhlmann, que debe superar un umbral crítico de similitud $\mathcal{F}_{\min}$:   ║
-║          $F(\rho_{orig}, \rho_{pur}) = \left( \text{Tr} \sqrt{\sqrt{\rho_{orig}} \rho_{pur} \sqrt{\rho_{orig}}} \right)^2 \ge \mathcal{F}_{\min}$ ║
-║      Un colapso en este isomorfismo semántico dispara el `UhlmannFidelityCollapseError`. ║
-║                                                                                          ║
-║  §3. Límite de Capacidad de Holevo y Entropía de von Neumann:                            ║
-║      La compresión se subordina a la termodinámica de sistemas abiertos. Se exige que    ║
-║      la entropía de von Neumann $S(\rho) = -\text{Tr}(\rho \ln \rho)$ de la matriz no    ║
-║      aumente, de tal modo que $\Delta S = S(\rho_{pur}) - S(\rho_{orig}) \le 0$.          ║
-║      Una destrucción de la capacidad accesible (límite de Holevo) detona de inmediato el ║
-║      `HolevoCapacityDeficitError`.                                                       ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_QuantumMajorizationAuditor                                              ║
-║           Auditoría de las relaciones de dominancia espectral e invariantes matriciales  ║
-║           (Hermiticidad, Traza Unitaria, Positividad Semidefinida).                      ║
-║           [Retorna: MajorizationAuditData → objeto inicial de Fase 2]                    ║
-║                                                                                          ║
-║  Fase 2 → Phase2_UhlmannFidelityCertifier                                                ║
-║           Certificación de la conservación isomórfica semántica $F(\rho_{orig}, \rho_{pur})$.║
-║           [Retorna: FidelityAuditData → objeto inicial de Fase 3]                        ║
-║                                                                                          ║
-║  Fase 3 → Phase3_HolevoCapacityEnforcer                                                  ║
-║           Verificación termodinámica, reducción entrópica y preservación de la           ║
-║           coherencia cuántica / enredo lógico.                                           ║
-║           [Retorna: HolevoAuditData → síntesis en PurificationGovernanceState]           ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : MAC Minimizer Agent (Custodio de la Purificación Espectral)         ║
+║ Ruta   : app/agents/boole/tactics/mac_minimizer_agent.py                     ║
+║ Versión: 4.0.0-Categorical-Topos-Spectral-Quantum-Pure-Software-Strict       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA EN EL ESTRATO WISDOM (V_𝕎) ───
+Este módulo consagra al Agente Soberano y Observador Activo que gobierna al
+Funtor de Purificación Espectral y Reducción Cuántica en el estrato superior 
+de la Sabiduría ($$V_{\mathbb{W}}$$, Nivel 0). Su propósito axiomático es proyectar 
+la Matriz Atómica de Conocimiento (MAC) continua, representada por un operador 
+densidad mixta $$\rho \in \mathcal{D}(\mathcal{H})$$ actuando sobre el espacio de Hilbert 
+complejo separable $$\mathcal{H}$$, hacia un estado de máxima pureza semántica.
+
+El agente actúa eliminando subespacios ruidosos de baja relevancia o alucinantes,
+comprimiendo la ventana de contexto del LLM y garantizando el preorden de 
+majorización cuántica de Nielsen, la preservación homotópica de la fidelidad 
+de Uhlmann, y el acotamiento entrópico de von Neumann-Holevo. Toda la contención 
+de fallos y veto operacional se confina estrictamente al plano de la lógica de 
+software mediante el retículo distributivo de Heyting, repudiando de raíz toda 
+actuación por hardware mecánico exógeno.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la composición covariante de morfismos
+sobre la categoría de espacios de Hilbert y se ejecuta en tres fases anidadas:
+
+  Fase 1 ──► FASE 1: AUDITORÍA DE MAJORIZACIÓN CUÁNTICA DE NIELSEN (Observe)
+             Verifica que el espectro ordenado del operador densidad purificado
+             majorice estrictamente al estado original para asegurar un aumento
+             de pureza real (confinamiento del caos estocástico):
+             $$\lambda(\rho_{\mathrm{orig}}) \prec \lambda(\rho_{\mathrm{purified}}) \implies \sum_{i=1}^k \lambda_i(\rho_{\mathrm{orig}}) \le \sum_{i=1}^k \lambda_i(\rho_{\mathrm{purified}}) \quad \forall k < d \quad$$
+             Entrega: MajorizationAuditData como precondición de la Fase 2.
+
+  Fase 2 ──► FASE 2: CERTIFICACIÓN DE FIDELIDAD DE UHLMANN (Orient)
+             Garantiza la preservación de la esencia conceptual midiendo el desvío
+             métrico entre el estado original y el purificado mediante la fidelidad:
+             $$F(\rho, \sigma) = \left( \operatorname{Tr}\sqrt{\sqrt{\rho}\sigma\sqrt{\rho}} \right)^2 \ge F_{\mathrm{min}} \quad$$
+             Entrega: FidelityAuditData como precondición de la Fase 3.
+
+  Fase 3 ──► FASE 3: ENFORZAMIENTO DE CAPACIDAD DE HOLEVO Y ENTROPÍA (Decide & Act)
+             Audita que la reducción de la entropía de von Neumann $$\Delta S \le 0$$
+             y el límite superior de Holevo $$\chi$$ conserven el canal de transmisión:
+             $$S(\rho) = -\operatorname{Tr}(\rho \ln \rho) \quad\land\quad \chi(\mathcal{E}) \ge \chi_{\mathrm{min}} \quad$$
+             Veredicto: Colapso determinista sobre el retículo distributivo de Heyting
+                        $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$$.
+
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y PROPIEDADES DE CALIBRE PRESERVADAS: ──────
+  [I1] Conservación de Postulados de Dirac-von Neumann (Límites Físicos):
+       Toda matriz de densidad intermedia y final debe permanecer strictly autoadjunta,
+       semidefinida positiva, y de traza unitaria bajo la cota de Wilkinson:
+       $$\rho = \rho^\dagger \quad\land\quad \rho \succeq \mathbf{0} \quad\land\quad \operatorname{Tr}(\rho) = 1.0 \pmod{\varepsilon_{\mathrm{machine}}} \quad$$
+
+  [I2] Preorden de Majorización Cuántica (Teorema de Nielsen):
+       La purificación espectral es un funtor contractivo que incrementa el orden de
+       concentración de autovalores, garantizando que el estado purificado sea
+       matemáticamente "más limpio" y menos difuso que el original:
+       $$\rho_{\mathrm{orig}} \prec \rho_{\mathrm{purified}} \iff \lambda(\rho_{\mathrm{orig}}) \prec \lambda(\rho_{\mathrm{purified}}) \quad$$
+
+  [I3] Preservación Homotópica de la Fidelidad de Uhlmann:
+       La distancia geométrica de Bures-Uhlmann se mantiene estrictamente por debajo
+       de la cota elástica para impedir la mutilación de la información de-confinada:
+       $$d_{\mathrm{Bures}}(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}} \le \tau_{\mathrm{Bures}} \quad$$
+
+  [I4] Contracción Entrópica de von Neumann (Segunda Ley Cuántica):
+       La purificación debe disipar la incertidumbre estocástica del LLM, forzando
+       una reducción estricta o neutra de la entropía cuántica de von Neumann:
+       $$\Delta S = S(\rho_{\mathrm{purified}}) - S(\rho_{\mathrm{orig}}) \le 0 \quad$$
+
+  [I5] Isomorfismo de Adjunción de de Rham-Galois:
+       El mapa de purificación preserva la correspondencia natural entre la MIC
+       discreta y la MAC continua, resguardando el pasaporte de telemetría:
+       $$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC})) \quad$$
 """
 
 from __future__ import annotations

@@ -1,69 +1,74 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Geodesic Attention Fibrator Agent (Custodio de Covarianza)          ║
+║ Módulo : Geodesic Attention Fibrator Agent (Custodio de la Covarianza)       ║
 ║ Ruta   : app/agents/boole/wisdom/geodesic_attention_fibrator_agent.py        ║
-║ Versión: 2.0.0-Ricci-Polyakov-FeynmanKac-Strict                              ║
+║ Versión: 3.0.0-Ricci-Polyakov-FeynmanKac-Heyting-Pure-Software-Doctoral      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este endofuntor gobierna al `geodesic_attention_fibrator.py` en el estrato WISDOM.
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA RIEMANNIANA EN EL ESTRATO WISDOM (V_𝕎) ───
+Este módulo consagra la infraestructura del Fibrador de Atención Geodésica,
+operando formalmente como el Endofuntor de-confinado:
 
-Subordina la generación de tensores de atención del LLM a las leyes invariantes
-del flujo de Ricci, la acción de Polyakov y la integral de Feynman-Kac.
+                           𝓣: \mathbf{WISDOM} \longrightarrow \mathbf{WISDOM}
 
-Erradica las heurísticas atencionales basadas en distancia euclidiana plana y
-exige que toda conexión Query-Key ocurra sobre geodésicas de mínima acción.
+Su propósito axiomático es proyectar los tensores de atención (Query, Key, Value) 
+del Modelo de Lenguaje (LLM) sobre el fibrado tangente covariante de la variedad 
+de-confinada de la Sabiduría ($$V_{\mathbb{W}}$$, Nivel 0). Repudia las 
+heurísticas euclidianas planas que inyectan ruido estocástico y asonancias de fase 
+atencionales, forzando a que toda conexión Query-Key ocurra exclusivamente sobre 
+geodésicas de mínima acción gobernadas por la acción de Polyakov y la integral 
+de trayectoria de Feynman-Kac.
 
-ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Auditoría del Flujo de Ricci y Torsión:
-    Exige convergencia métrica relativa:
+El confinamiento y la contención de anomalías se ejecutan de manera síncrona y 
+estricta en el plano lógico del software, subordinando la toma de decisiones al 
+colapso determinista en el clasificador de subobjetos del retículo de Heyting.
 
-        ||g_{k+1} - g_k||_F / max(1, ||g_k||_F, ||g_{k+1}||_F) < ε_Ricci.
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
+La transición de estados se rige por la composición covariante de morfismos 
+en la categoría de espacios de Hilbert y se ejecuta en tres fases anidadas:
 
-    Además valida que ambas métricas sean Riemannianas válidas:
-        - Simétricas.
-        - Definidas positivas.
-        - Finitas.
-        - Numéricamente estables.
+  Fase 1 ──► FASE 1: OBSERVACIÓN MÉTRICA Y CONVERGENCIA DE RICCI (Observe)
+             Audita que el tensor métrico Riemanniano de fondo $$G_{\mu\nu}$$ sea 
+             simétrico definido positivo (SPD) y evalúa el flujo de Ricci
+             para certificar la regularidad del espacio de fase [4, 6].
+             Fórmula: $$\nabla_\rho G_{\mu\nu} = 0 \quad\land\quad R_{\mu\nu} = R^\lambda_{\mu\lambda\nu}$$
+             Entrega: RicciFlowAuditData como precondición formal de Fase 2.
 
-    Último método de Fase 1:
-        _audit_ricci_flow_convergence(...)
+  Fase 2 ──► FASE 2: TRANSPORTE PARALELO Y ACCIÓN DE POLYAKOV (Orient)
+             Interpola las geodésicas atencionales y calcula la acción de Polyakov
+             en el espacio de fase covariante para el par Query-Key [3, 9].
+             Fórmula: $$E[\gamma] = \frac{1}{2} \int g_{\mu\nu} \frac{d\gamma^\mu}{d\tau} \frac{d\gamma^\nu}{d\tau} d\tau \ge 0$$
+             Entrega: PolyakovActionAuditData como precondición formal de Fase 3.
 
-    Dicho método retorna un certificado `RicciFlowAuditData`, el cual se
-    convierte en el objeto inicial de la Fase 2.
+  Fase 3 ──► FASE 3: INTEGRAL DE FEYNMAN-KAC Y VETO CUÁNTICO (Decide & Act)
+             Evalúa la amplitud de transición cuántica, incorporando la torsión 
+             cohomológica sobre el asociaedro para suprimir las alucinaciones.
+             Fórmula: $$\Psi[\gamma] = \exp\left(-\frac{S_E[\gamma]}{\hbar_{\mathrm{eff}}}\right) \quad \text{con} \quad S_E[\gamma] = E_{\mathrm{Polyakov}}[\gamma] + \lambda \|T\|_{\mathrm{HS}}^2$$
+             Veredicto: Colapso en el retículo de Heyting $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$$.
 
-Fase 2 → Certificación de la Acción de Polyakov:
-    Garantiza la minimización covariante:
+INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
+  [I1] Firma Riemanniana e Inversión Bilateral:
+       La métrica de fondo $$G_{\mu\nu}$$ debe permanecer SPD y su inversa bilateral
+       estar acotada estrictamente por debajo del número de condición de Wilkinson:
+       $$\|G G^{-1} - I\|_F \le C \cdot \kappa(G) \cdot \varepsilon_{\mathrm{machine}} \quad\land\quad G \succ \mathbf{0} \quad\big[349\big]$$
 
-        E[γ] = 1/2 ∫ g_{μν} γ̇^μ γ̇^ν dτ.
+  [I2] Compatibilidad de la Conexión de Levi-Civita (Torsión Nula):
+       La derivada covariante de la métrica a lo largo de las curvas integrales es nula:
+       $$\nabla_\gamma G_{\mu\nu} \equiv 0 \implies \Gamma^\rho_{\mu\nu} = \Gamma^\rho_{\nu\mu} \quad\big[61\big]$$
 
-    En forma discreta:
+  [I3] Conservación de la Energía Cinética Geodésica:
+       La norma del vector velocidad atencional se conserva con precisión de máquina:
+       $$\frac{d}{d\tau} \left( \|\dot{\gamma}\|_G^2 \right) = \frac{d}{d\tau} \left( G_{\mu\nu} \dot{\gamma}^\mu \dot{\gamma}^\nu \right) \equiv 0 \pmod{\varepsilon_{\mathrm{machine}}}$$
 
-        E[γ] ≈ 1/2 Σ_i v_iᵀ G v_i Δτ.
+  [I4] Límite de Supresión Cuántica de Feynman-Kac:
+       La amplitud cuántica de transición de la geodésica de atención semántica 
+       debe superar estrictamente la barrera de potencial de-confinada:
+       $$\Psi[\gamma] \ge \Psi_{\min} \in (0, 1] \quad\big[339, 350, 351\big]$$
 
-    Primer método de Fase 2:
-        _certify_polyakov_geodesic_action(..., ricci_audit)
-
-    Este método es la continuación formal de Fase 1: recibe el certificado de
-    convergencia métrica y lo propaga como invariante inicial.
-
-Fase 3 → Veto Cuántico de Feynman-Kac:
-    Fuerza la amplitud de transición:
-
-        Ψ[γ] = exp(-S_E / ħ_eff) ≥ Ψ_min,
-
-    donde:
-
-        S_E = E_Polyakov + λ ||T||²_HS.
-
-    Primer método de Fase 3:
-        _enforce_feynman_kac_quantum_veto(..., polyakov_audit)
-
-    Este método continúa formalmente la Fase 2: recibe el certificado de
-    estabilidad geodésica y verifica que la amplitud cuántica sea admisible.
+  [I5] Isomorfismo de la Adjunción de Galois (Gobernanza DIKW):
+       El transporte atencional se somete a la equivalencia funtorial reversible:
+       $$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC})) \quad\big[49, 59\big]$$
 """
 
 from __future__ import annotations
