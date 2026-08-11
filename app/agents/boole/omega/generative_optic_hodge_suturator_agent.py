@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Generative Optic Hodge Suturator Agent (Sovereign del Haz Óptico)   ║
+║ Módulo : Generative Optic Hodge Suturator Agent (Soberano del Haz Óptico)    ║
 ║ Ruta   : app/agents/boole/omega/generative_optic_hodge_suturator_agent.py    ║
 ║ Versión: 3.2.0-Wilkinson-Higham-Cholesky-Energy-Cache-Sutured                ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
