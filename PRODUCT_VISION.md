@@ -12,6 +12,11 @@ Re-anclamos axiomáticamente nuestra propuesta de valor fundamental bajo el lema
 
 Así como un sistema de navegación inercial aeroespacial integra la aceleración lineal y la velocidad angular mediante una plataforma giroscópica estabilizada para deducir la posición tridimensional exacta en ausencia de señales de satélite, APU_filter calcula continuamente la trayectoria del costo y el flujo logístico dentro del colector de Riemann del proyecto. Mide la inercia del capital, el momento de la cadena de suministro y la aceleración de sobrecostos mediante el tensor métrico $G_{\mu\nu}$, guiando la toma de decisiones por geodésicas de mínima disipación de exergía. Si un presupuesto se desvía de la ruta de estabilidad espectral estricta, el giroscopio de nuestra Variedad Agéntica detecta el torque de la entropía semántica, recalculando el rumbo de forma instantánea.
 
+En este motor dinámico, los componentes síncronos **Riemannian Inertia Agent** (`riemannian_inertia_agent.py`) y **Riemannian Inertia Modulator** (`riemannian_inertia_modulator.py`) inyectan fuerzas giroscópicas de Lorentz en el fibrado cotangente $T^*M$ para desviar el ruido y prevenir alucinaciones financieras sin alterar la energía interna:
+- **Espectroscopía del Momentum covariante:** $p_\mu = G_{\mu\nu} \dot{q}^\nu$
+- **Síntesis del Tensor de Lorentz:** $W_{\mu\nu} = \alpha(p_\mu \omega_\nu - p_\nu \omega_\mu)$
+- **Conservación Estructural Simpléctica (Trabajo Nilpotente):** $\langle \nabla H, J_{\text{eff}} \nabla H \rangle \equiv 0$
+
 ### 1.2. El Disyuntor Físico Booleano: Purificación del Fango Sintáctico
 El sistema incorpora el **Disyuntor Físico Booleano** como la última y más rigurosa línea de defensa cognitiva frente a la polución informacional. Los megaproyectos de infraestructura suelen estar plagados de datos de baja fidelidad: hojas de cálculo masivas sin estructurar, Excels disconexos y archivos JSON hiperdensos saturados de "grasa sintáctica" (llaves redundantes, diccionarios anidados ineficientemente y metadatos espurios que agotan el KV-Cache de los LLMs).
 
@@ -242,7 +247,7 @@ L_{1W} = \partial_1^\top W^{-1} \partial_1 + \partial_2 \partial_2^\top W
 \]
 
 El agente estrangula la conductancia W en las aristas cíclicas, forzando un flujo laminar irrotacional.
-Cono de Luz Causal (Condición CFL): El diferencial temporal del negocio queda subyugado a la conectividad espectral del grafo, previniendo dispersión numérica por iteraciones inasumibles:
+Cono de Luz Causal (Condición CFL): El diferencial temporal del negocio queda subyugado a la conectividad espectral del grafo, previniendo de dispersión numérica por iteraciones inasumibles:
 \[
 \Delta t \le \frac{2 \cdot \text{CFL}_{\text{margin}}}{c_{\text{eff}} \cdot \max_i \left( |\Delta_{ii}| + \sum_{j \neq i} |\Delta_{ij}| \right)}
 \]
@@ -317,7 +322,7 @@ Evolución Temporal del Estado (Ecuación Maestra): En PRODUCT_VISION.md, se deb
 \frac{d \rho_{\text{MAC}}}{dt} = -\frac{i}{\hbar} [H_{\text{eff}}, \rho_{\text{MAC}}] + \sum_{k} \gamma_k \left( L_k \rho_{\text{MAC}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\text{MAC}} \} \right)
 \]
 
-Fase 2: Mapeo Tipológico en telemetry_schemas.py y cartuchos_toon.md
+Fase 2: Mapeo Tipológico en telemetry_schemas.py and cartuchos_toon.md
 Objetivo: Trasladar la metafísica de las partículas a clases de datos inmutables (frozen dataclasses) con invariantes físicos rigurosos.
 Acciones Exigidas:
 

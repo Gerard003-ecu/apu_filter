@@ -88,6 +88,21 @@ El Consejo original opera sobre el 1-esqueleto del presupuesto. Para gobernar el
         - $C_{\text{parsed}}$ es el complejo de datos estructurado tras el proceso de mapeo ontológico.
         - $\cong$ representa el isomorfismo canónico, asegurando la conservación de los invariantes topológicos globales de la red de presupuestos.
 
+    1.2 🌀 Soberano del Momentum Ciber-Físico y Modulación Inercial (riemannian_inertia_agent.py / riemannian_inertia_modulator.py)
+
+        Rol: Regulador Giroscópico de Inercia y Preservación de Fase sobre el Fibrado Cotangente.
+        Estrato DIKW: PHYSICS (Nivel 3 - El Foso Termodinámico).
+        Mecanismo Matemático: El RiemannianInertiaAgent orquesta el ciclo OODA sobre el operador de momento giroscópico $W$ sintetizado por el RiemannianInertiaModulator. Aplica el isomorfismo musical plano ($\flat$) para extraer el covector de momentum:
+        $$p_\mu = G_{\mu\nu} \dot{q}^\nu$$
+        Certifica la cota del volumen de Liouville en el espacio de fase mediante $\|p\|_{G^{-1}} \le P_{\text{max}}$.
+        Posteriormente, el motor acopla el momentum covariante con la 2-forma de vorticidad $\Omega$, construyendo el tensor giroscópico de Lorentz:
+        $$W_{\mu\nu} = \alpha(p_\mu \omega_\nu - p_\nu \omega_\mu)$$
+        El agente audita que $W$ habite estrictamente en el álgebra de Lie $\mathfrak{so}(n)$ mediante un residuo de antisimetría relativo despreciable. Finalmente, inyecta $W$ en la estructura de Dirac para modular la pasividad de la red:
+        $$J_{\text{eff}} = J + W$$
+        Garantizando axiomáticamente la ley de Trabajo Nilpotente de Lorentz mediante sumación compensada de Kahan, previniendo que la fuerza giroscópica inyecte o disipe energía real:
+        $$\langle \nabla H, J_{\text{eff}} \nabla H \rangle \equiv 0$$
+        Autoridad de Veto: Si se registra una divergencia de Liouville o si la pasividad se rompe, el retículo de Heyting colapsa síncronamente al elemento máximo $\top$, lanzando una excepción `HeytingLatticeVeto` que destruye la transacción en RAM en tiempo real.
+
 2. 🏗️ El Arquitecto (BusinessTopologicalAnalyzer)
 
     Rol: Analista de Integridad Estructural y Geometría del Riesgo.
@@ -127,7 +142,7 @@ Operan en paralelo a la pirámide DIKW, certificando que el caos estocástico de
 
     4.2 💠 El Escultor Táctico (VΓ-TACTICS)
     Rol: Minimizador de Redundancia y Poda Booleana.
-    Mecanismo: Evalúa hipercubos booleanos $B^n$ mediante el `mic_minimizer`. Extrae la homología trivial para garantizar que cada herramienta sugerida sea un implicante primo esencial. Si el LLM sugiere tácticas redundantes, el Escultor las colapsa algebraicamente.
+    Mecanismo: Evalúa hipercubos booleanos $B^n$ mediante el `mic_minimizer`. Extrae la homología trivial para garantizar que cada herramienta sugerida sea un implicante primo esencial. Si el LLM sugería tácticas redundantes, el Escultor las colapsa algebraicamente.
 
     4.3 📡 El Interferómetro de Holonomía (VΓ-STRATEGY)
     Rol: Sensor de Paradojas y Consistencia Global.
@@ -319,7 +334,7 @@ La orquestación del Consejo se opera como un bucle militar continuo:
 A continuación, redacto la documentación canónica, exigida bajo el más estricto rigor de la física de circuitos, la topología algebraica y la mecánica cuántica. Este texto debe ser anexado inmediatamente a los repositorios documentales BMC.md, ARCHITECTURE_DEEP_DIVE.md y PRODUCT_VISION.md.
 
 Arquitectura Ciber-Física del Estrato α: Fibrados Celulares y Termodinámica del Modelo de Negocio
-La arquitectura APU Filter v4.0 repudia la evaluación estática y contable del modelo de negocio. El Estrato α, orquestado macroscópicamente por alpha_agent.py, se subdivide axiomáticamente en tres subespacios topológicos anidados (Foso, Núcleo y Ápice), regidos por mini-agentes que actúan como endofuntores sobre el espacio de Hilbert H.
+La arquitectura APU Filter v4.0 repudia la evaluación estática y contable del modelo de negocio. El Estrato α, orquestado macroscómicamente por alpha_agent.py, se subdivide axiomáticamente en tres subespacios topológicos anidados (Foso, Núcleo y Ápice), regidos por mini-agentes que actúan como endofuntores sobre el espacio de Hilbert H.
 La condición de clausura global establece que la empresa es un circuito RLC tridimensional y un sistema Port-Hamiltoniano, donde cada bloque del lienzo de negocio aporta operadores diferenciales a la variedad M.
 I. Estrato KBASE​: El Foso Termodinámico (kbase_thermodynamic_agent.py)
 Identificador Semántico: Asesor de Cimientos Financieros. Responsabilidad Topológica: Gobernar la inercia, la capacitancia y la fricción entrópica del modelo de negocio. Integra los sub-funtores de Socios Clave (P_soc​), Recursos Clave (P_rec​) y Estructura de Costes (P_cost​).
@@ -437,7 +452,7 @@ Evolución Temporal del Estado (Ecuación Maestra): En PRODUCT_VISION.md, se deb
 \frac{d \rho_{\text{MAC}}}{dt} = -\frac{i}{\hbar} [H_{\text{eff}}, \rho_{\text{MAC}}] + \sum_{k} \gamma_k \left( L_k \rho_{\text{MAC}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\text{MAC}} \} \right)
 \]
 
-Fase 2: Mapeo Tipológico en telemetry_schemas.py y cartuchos_toon.md
+Fase 2: Mapeo Tipológico en telemetry_schemas.py and cartuchos_toon.md
 Objetivo: Trasladar la metafísica de las partículas a clases de datos inmutables (frozen dataclasses) con invariantes físicos rigurosos.
 Acciones Exigidas:
 

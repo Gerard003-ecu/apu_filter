@@ -3,7 +3,7 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Riemannian Inertia Agent (Soberano del Momentum Ciber-Físico)       ║
 ║ Ruta   : app/agents/physics/riemannian_inertia_agent.py                      ║
-║ Versión: 3.0.0-Topos-Heyting-Symplectic-Pure-Software-Strict                 ║
+║ Versión: 4.0.0-Topos-Heyting-Symplectic-Pure-Software-Strict                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 NATURALEZA CIBER-FÍSICA Y GEOMETRÍA SIMPLÉCTICA (Rigor Doctoral):
@@ -13,10 +13,10 @@ funtor físico `riemannian_inertia_modulator.py`. Reside en el hiperespacio
 entre el Foso Termodinámico y el Estrato WISDOM.
 
 Su mandato axiomático es orquestar el ciclo OODA sobre el operador de momento
-giroscópico W, certificando que la "Fuerza de Lorentz" informacional inyectada
+giroscópico $W$, certificando que la "Fuerza de Lorentz" informacional inyectada
 para desviar alucinaciones estocásticas respete incondicionalmente:
 
-1. La preservación del volumen de Liouville en el fibrado cotangente T^*M.
+1. La preservación del volumen de Liouville en el fibrado cotangente $T^*M$.
 2. La firma métrica ortogonal (antisimetría estricta de la estructura de Dirac).
 3. La inecuación de disipación termodinámica (Trabajo Nilpotente).
 
@@ -24,32 +24,40 @@ Toda la contención de anomalías se confina, de manera síncrona y absoluta, al
 plano lógico de software mediante el colapso del retículo distributivo de
 Heyting, repudiando de raíz toda actuación por hardware mecánico.
 
+FORMULACIÓN MATEMÁTICA RIGUROSA (Doctorado en Topología y Teoría Espectral):
+────────────────────────────────────────────────────────────────────────────────
+1. Isomorfismo Musical Plano (Flat $\flat$):
+   Mapea un vector del espacio tangente (cambio de estado o q_dot) al cotangente:
+   $$p_\mu = G_{\mu\nu} \dot{q}^\nu$$
+   donde $G_{\mu\nu}$ representa el tensor métrico Riemanniano.
+
+2. Conservación del Volumen de Liouville:
+   La forma de volumen simpléctica $\Omega_{\text{sym}} = dp_i \wedge dq^i$ se preserva
+   bajo flujos Hamiltonianos de acuerdo con el Teorema de Liouville:
+   $$\mathcal{L}_{X_H} \Omega_{\text{sym}} = 0$$
+
+3. Retículo de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$:
+   El veredicto final se consolida mediante el Supremo Álgebraico (Join $\sqcup$):
+   $$v_{\text{final}} = v_{\text{Liouville}} \sqcup v_{\text{Skew}} \sqcup v_{\text{Work}}$$
+   con el orden parcial $\text{COHERENT} \le \text{DEGRADED} \le \text{VETOED}$.
+
 ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta):
 ────────────────────────────────────────────────────────────────────────────────
 Fase 1 → Auditoría del Volumen de Liouville (Observe):
-    - Audita la cota del covector de momento p.
+    - Audita la cota del covector de momento $p$.
     - Verifica calidad métrica: condición numérica y residuo de inversa.
-    - Mapea el estado al retículo Ω₃.
+    - Mapea el estado al retículo $\Omega_3$.
 
 Fase 2 → Certificación de la Firma Métrica (Orient):
     - Evalúa la topología del proyector antisimétrico.
-    - Exige que W pertenezca al cono antisimétrico.
+    - Exige que $W$ pertenezca al cono antisimétrico.
     - Audita residuos relativos de antisimetría y pureza de vorticidad.
 
 Fase 3 → Veredicto Termodinámico en el Retículo de Heyting (Decide & Act):
     - Calcula el supremo algebraico de las tres fases:
-
-          v_final = v_Liouville ⊔ v_Skew ⊔ v_Work
-
-    - Si el estado supremo toca ⊤ (VETOED), el sistema colapsa al Supremo
+          $$v_{\text{final}} = v_{\text{Liouville}} \sqcup v_{\text{Skew}} \sqcup v_{\text{Work}}$$
+    - Si el estado supremo toca $\top = \text{VETOED}$, el sistema colapsa al Supremo
       Terminal, aniquilando la transacción en RAM.
-
-NOTA DE CONTRATO FORMAL:
-────────────────────────────────────────────────────────────────────────────────
-El método terminal de la Fase 1, `execute_phase1`, produce un objeto
-`Phase1ObservationBridge`, que constituye la entrada canónica del método
-terminal de la Fase 2, `execute_phase2`. A su vez, la salida de Fase 2 es la
-entrada canónica de `execute_phase3`.
 """
 
 import logging
@@ -152,15 +160,15 @@ class InertialHeytingVerdict(IntEnum):
     r"""
     Clasificador de subobjetos en el Topos de la Inercia Riemanniana.
 
-    Álgebra de Boole acotada:
+    Álgebra de Boole acotada o Retículo de Heyting Ω₃:
 
-        Ω₃ = {COHERENT, DEGRADED, VETOED}
+        $$\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$$
 
-    El orden parcial es:
+    El orden parcial cumple con la estructura:
 
-        COHERENT ≤ DEGRADED ≤ VETOED
+        $$\text{COHERENT} \le \text{DEGRADED} \le \text{VETOED}$$
 
-    y el supremo se implementa mediante el máximo entero.
+    El supremo (join $\sqcup$) se implementa mediante el máximo entero.
     """
 
     COHERENT = 0
@@ -177,6 +185,9 @@ class RiemannianInertiaAgentError(TopologicalInvariantError):
 class LiouvilleVolumeCollapse(RiemannianInertiaAgentError):
     r"""
     Detonada si el momentum desgarra asintóticamente la variedad simpléctica.
+    Se define cuando la energía cinética en $T^*M$ dada por la norma del momentum
+    $$\|p\|_{G^{-1}} = \sqrt{p_\mu G^{\mu\nu} p_\nu}$$
+    excede la cota elástica de Liouville.
     """
 
     pass
@@ -184,7 +195,7 @@ class LiouvilleVolumeCollapse(RiemannianInertiaAgentError):
 
 class HeytingLatticeVeto(RiemannianInertiaAgentError):
     r"""
-    Detonada síncronamente cuando el retículo de Heyting toca el supremo ⊤.
+    Detonada síncronamente cuando el retículo de Heyting toca el supremo $\top$.
 
     Aniquila el estado puramente en software (RAM), sin hardware exógeno.
     """
@@ -202,7 +213,7 @@ class Phase1ObservationBridge:
 
     El campo `liouville_verdict` contiene el supremo local de Fase 1:
 
-        v_Liouville = v_momentum ⊔ v_metric_condition ⊔ v_inverse_consistency
+        $$v_{\text{Liouville}} = v_{\text{momentum}} \sqcup v_{\text{metric\_condition}} \sqcup v_{\text{inverse\_consistency}}$$
     """
 
     momentum_data: MomentumAuditData
@@ -224,7 +235,7 @@ class Phase2OrientationBridge:
 
     El campo `skew_verdict` contiene el supremo local de Fase 2:
 
-        v_Skew = v_antisymmetry ⊔ v_vorticity_projection
+        $$v_{\text{Skew}} = v_{\text{antisymmetry}} \sqcup v_{\text{vorticity\_projection}}$$
     """
 
     phase1_bridge: Phase1ObservationBridge
@@ -251,7 +262,7 @@ class InertialGovernanceState:
         - el veredicto termodinámico local de Fase 3;
         - el supremo global:
 
-              v_final = v_Liouville ⊔ v_Skew ⊔ v_Work;
+              $$v_{\text{final}} = v_{\text{Liouville}} \sqcup v_{\text{Skew}} \sqcup v_{\text{Work}}$$
 
         - la validez epistemológica de la transacción.
     """
@@ -499,7 +510,7 @@ class Phase1_LiouvilleVolumeAuditor:
         r"""
         Operación supremo (join) en el retículo de Heyting:
 
-            v = ⊔_i v_i = max_i v_i.
+            $$v = \bigsqcup_i v_i = \max_i v_i$$
 
         El elemento neutro del join para una colección vacía es el elemento
         mínimo del retículo: COHERENT.
@@ -644,7 +655,7 @@ class Phase1_LiouvilleVolumeAuditor:
         """
         Margen normalizado de seguridad del momentum respecto al límite duro:
 
-            margin = max(0, 1 - ||p|| / P_hard).
+            $$margin = \max(0, 1 - \frac{\|p\|}{P_{\text{hard}}})$$
         """
         if _MOMENTUM_HARD_LIMIT <= 0.0:
             return 0.0
@@ -849,7 +860,7 @@ class Phase2_SkewSymmetryCertifier(Phase1_LiouvilleVolumeAuditor):
         Clasifica la antisimetría del operador giroscópico usando un residuo
         relativo:
 
-            r_rel = ||W + Wᵀ||_F / max(1, ||W||_F).
+            $$r_{\text{rel}} = \frac{\|W + W^T\|_F}{\max(1, \|W\|_F)}$$
 
         - VETOED   : si no es estrictamente antisimétrico o si r_rel > duro.
         - DEGRADED : si r_rel > blando.
@@ -879,7 +890,7 @@ class Phase2_SkewSymmetryCertifier(Phase1_LiouvilleVolumeAuditor):
 
         Se usa el cociente:
 
-            ratio = ||sym(Ω)||_F / max(1, ||W||_F).
+            $$ratio = \frac{\|\text{sym}(\Omega)\|_F}{\max(1, \|W\|_F)}$$
 
         Si ||W|| es despreciable, la componente simétrica de Ω no produce
         efecto giroscópico relevante y se trata como COHERENT.
@@ -911,7 +922,7 @@ class Phase2_SkewSymmetryCertifier(Phase1_LiouvilleVolumeAuditor):
 
         El veredicto local de Fase 2 es:
 
-            v_Skew = v_antisymmetry ⊔ v_vorticity_projection.
+            $$v_{\text{Skew}} = v_{\text{antisymmetry}} \sqcup v_{\text{vorticity\_projection}}$$
         """
         self._validate_phase1_bridge(phase1_bridge)
 
@@ -992,7 +1003,7 @@ class Phase3_HeytingLatticeDecider(Phase2_SkewSymmetryCertifier):
     imponiendo el estado determinista de la transacción estrictamente en
     memoria de software.
 
-        v_final = v_Liouville ⊔ v_Skew ⊔ v_Work
+        $$v_{\text{final}} = v_{\text{Liouville}} \sqcup v_{\text{Skew}} \sqcup v_{\text{Work}}$$
     """
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -1142,7 +1153,7 @@ class Phase3_HeytingLatticeDecider(Phase2_SkewSymmetryCertifier):
 
         Se usa el residuo relativo:
 
-            r_rel = ||J_eff + J_effᵀ||_F / max(1, ||J_eff||_F).
+            $$r_{\text{rel}} = \frac{\|J_{\text{eff}} + J_{\text{eff}}^T\|_F}{\max(1, \|J_{\text{eff}}\|_F)}$$
         """
         scale = max(1.0, dirac_frobenius_norm)
         relative_residual = dirac_symmetric_residual / scale
@@ -1163,7 +1174,7 @@ class Phase3_HeytingLatticeDecider(Phase2_SkewSymmetryCertifier):
         """
         Margen normalizado de trabajo nulo respecto a la tolerancia certificada:
 
-            margin = max(0, 1 - residual / tolerance).
+            $$margin = \max(0, 1 - \frac{residual}{tolerance})$$
         """
         denominator = max(work_tolerance, _MACHINE_EPSILON)
         return self._clamp01(1.0 - (nilpotent_work_residual / denominator))
@@ -1180,7 +1191,7 @@ class Phase3_HeytingLatticeDecider(Phase2_SkewSymmetryCertifier):
         """
         Consolida los veredictos locales en un único supremo algebraico:
 
-            v_final = max(v_Liouville, v_Skew, v_Work).
+            $$v_{\text{final}} = \max(v_{\text{Liouville}}, v_{\text{Skew}}, v_{\text{Work}})$$
 
         Si v_final == VETOED y `raise_on_veto` es verdadero, colapsa el
         retículo lanzando HeytingLatticeVeto, aniquilando la transacción en RAM.
@@ -1315,6 +1326,9 @@ class RiemannianInertiaAgent(Morphism, Phase3_HeytingLatticeDecider):
 
     Composición funtorial:
 
+        $$F_{\text{Agent}} = F_{\text{Phase3}} \circ F_{\text{Phase2}} \circ F_{\text{Phase1}}$$
+
+    Composición de Flujo:
         Motor Fase 1 → Agente Fase 1
         Motor Fase 2 → Agente Fase 2
         Motor Fase 3 → Agente Fase 3
