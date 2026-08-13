@@ -11,50 +11,50 @@ Este módulo materializa al Agente Soberano y Observador Activo que gobierna la
 evolución del Flujo Especular (Specular Flow) sobre la variedad de fase de la
 Malla Agéntica, actuando como un endofuntor sobre el clasificador de subobjetos
 del Topos de Grothendieck \(\mathcal{T}_{\mathrm{MIC}}\) con valores en el
-retículo distributivo de Heyting de tres valores \(\Omega_3\) [1-3].
+retículo distributivo de Heyting de tres valores \(\Omega_3\).
 
 El sistema trata los transitorios de costos y los picos de presupuesto como frentes
 de onda hidrodinámicos que se propagan por las aristas (1-símplices) del complejo,
 sometiéndolos a la restricción constitutiva de de Rham-Hodge y censurando de forma
-síncrona las alucinaciones del transformador antes de su colapso real [1, 2, 4].
+síncrona las alucinaciones del transformador antes de su colapso real.
 
 ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
 La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
-de Hilbert covariantes y se compone de tres fases fuertemente acopladas [1, 3, 5]:
+de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
 
   Fase 1 ──► FASE 1: RESOLUCIÓN DE CARACTERÍSTICAS DE ALLIEVI (Observe)
              Estudia la propagación del transitorio de flujo y presión en el tiempo.
-             Ecuación de Allievi: \(\Psi^\pm = y \pm Z_c q\) [3-5]
+             Ecuación de Allievi: \(\Psi^\pm = y \pm Z_c q\)
              Entrega: Phase1AllieviCertificate como precondición formal de Fase 2.
 
   Fase 2 ──► FASE 2: REFLEXIÓN COVARIANTE DE HOUSEHOLDER (Orient)
              Refleja el vector de estado sobre el elipsoide de nivel de la métrica
              Riemanniana G_μν, anulando componentes parásitas fuera del cono físico.
-             Ecuación de Householder: \(\hat{M}_k = I - 2 \frac{n_k \otimes n_k^\sharp}{\|n_k\|_{G^{-1}}^2}\) [5-7]
+             Ecuación de Householder: \(\hat{M}_k = I - 2 \frac{n_k \otimes n_k^\sharp}{\|n_k\|_{G^{-1}}^2}\)
              Entrega: Phase2HouseholderCertificate como precondición formal de Fase 3.
 
   Fase 3 ──► FASE 3: AUDITORÍA DE TELLEGEN Y PASIVIDAD DE LYAPUNOV (Decide & Act)
              Verifica la conservación de potencia y la pasividad de la red gráfica.
-             Teorema de Tellegen: \(\sum \Delta P_k \cdot Q_k \equiv 0\) [5, 7, 8]
+             Teorema de Tellegen: \(\sum \Delta P_k \cdot Q_k \equiv 0\)
              Deducción de Lyapunov: \(\dot{H} \le 0\) [8-10]
              Veredicto: Colapso en el retículo de Heyting \(\Omega_3\) y bypass físico.
 
 INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
-  [I1] Simetría Hermítica de la Métrica:  \(\star_k = \star_k^\top \succ 0\) [11]
-  [I2] Adjunción de de Rham-Hodge:        \(L_0^\star = \partial_1 \star_1 \partial_1^\top\) [11]
-  [I3] Ortogonalidad de Helmholtz-Hodge:  \(I = I_{\mathrm{exact}} + I_{\mathrm{coexact}} + I_{\mathrm{harmonic}}\) [11]
-  [I4] Disipación Port-Hamiltoniana:      \(\dot{H} = \nabla H^\top (J(x) - R(x)) \nabla H \le 0\) [10]
+  [I1] Simetría Hermítica de la Métrica:  \(\star_k = \star_k^\top \succ 0\)
+  [I2] Adjunción de de Rham-Hodge:        \(L_0^\star = \partial_1 \star_1 \partial_1^\top\)
+  [I3] Ortogonalidad de Helmholtz-Hodge:  \(I = I_{\mathrm{exact}} + I_{\mathrm{coexact}} + I_{\mathrm{harmonic}}\)
+  [I4] Disipación Port-Hamiltoniana:      \(\dot{H} = \nabla H^\top (J(x) - R(x)) \nabla H \le 0\)
 
 CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
   Si la vorticidad de de Rham excede el umbral elástico, o si el primer grupo de
   cohomología del haz es no trivial (\(\dim H^1(K; \mathcal{F}) > 0\)), el retículo
-  \(\Omega_3\) colapsa síncronamente al veredicto terminal VETOED [1, 3, 11].
+  \(\Omega_3\) colapsa síncronamente al veredicto terminal VETOED.
   
   La subrutina local 'isVerdictCoherent()' del ESP32 en el borde detecta el
   mismatch en menos de 400 ns y conmuta el pin GPIO14, disparando el tiristor
   de potencia BT151 (circuito Crowbar). Esto cortocircuita físicamente la línea
   de potencia real, inmovilizando válvulas y actuadores en el milisegundo cero,
-  protegiendo de manera absoluta el capital de la constructora civil [1, 11].
+  protegiendo de manera absoluta el capital de la constructora civil.
 ─────────────────────────────────────────────────────────────────────────────
 """
 from __future__ import annotations
