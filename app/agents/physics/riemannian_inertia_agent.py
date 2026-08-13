@@ -3,61 +3,85 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Riemannian Inertia Agent (Soberano del Momentum Ciber-Físico)       ║
 ║ Ruta   : app/agents/physics/riemannian_inertia_agent.py                      ║
-║ Versión: 4.0.0-Topos-Heyting-Symplectic-Pure-Software-Strict                 ║
+║ Versión: 3.1.0-Topos-Heyting-Symplectic-Pure-Software-Strict                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA SIMPLÉCTICA (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra al Agente Soberano y Observador Activo que gobierna al
-funtor físico `riemannian_inertia_modulator.py`. Reside en el hiperespacio
-entre el Foso Termodinámico y el Estrato WISDOM.
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA SIMPLÉCTICA (Rigor Doctoral): ──────────────
+Este módulo consagra al Agente Soberano y Observador Activo que gobierna al 
+funtor físico `riemannian_inertia_modulator.py`. Reside en el hiperespacio 
+del estrato superior de Sabiduría ($$V_{\mathbb{W}}$$, Nivel 0), supervisando la 
+dinámica de-confinada del espacio de fase de la Malla.
 
-Su mandato axiomático es orquestar el ciclo OODA sobre el operador de momento
-giroscópico $W$, certificando que la "Fuerza de Lorentz" informacional inyectada
-para desviar alucinaciones estocásticas respete incondicionalmente:
+Su mandato axiomático es orquestar el ciclo OODA sobre el operador de momento 
+giroscópico $$\mathcal{W}$$ en el fibrado cotangente $$T^*\mathcal{M}$$, 
+sometiendo el flujo de intenciones semánticas a restricciones geométricas rigurosas. 
+Actúa aplicando una "Fuerza de Lorentz" informacional que desvía trayectorias de 
+alto riesgo (alucinaciones probabilísticas del LLM) hacia sumideros de disipación 
+sin alterar el Hamiltoniano de energía basal del sistema. Toda contención de 
+fallos se confina de manera síncrona y absoluta al plano lógico de software 
+mediante el colapso del retículo de Heyting, repudiando de raíz dependencias 
+de hardware mecánico o disyuntores exógenos en este estrato.
 
-1. La preservación del volumen de Liouville en el fibrado cotangente $T^*M$.
-2. La firma métrica ortogonal (antisimetría estricta de la estructura de Dirac).
-3. La inecuación de disipación termodinámica (Trabajo Nilpotente).
+INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES CONSERVATIVAS PRESERVADOS: ────────
 
-Toda la contención de anomalías se confina, de manera síncrona y absoluta, al
-plano lógico de software mediante el colapso del retículo distributivo de
-Heyting, repudiando de raíz toda actuación por hardware mecánico.
+  [I1] Preservación del Volumen de Liouville (Divergencia de Fase Nula):
+       La evolución del sistema en el espacio de fase de-confinado conserva
+       idénticamente la 2-forma simpléctica canónica de Liouville:
+       $$\omega = \sum_{i=1}^n dq_i \wedge dp_i \quad\big[42\big]$$
+       Esto exige que el flujo inducido por el operador efectivo de Dirac 
+       $$J_{\mathrm{eff}}(x) = J(x) + \mathcal{W}_{\mathrm{proj}}(p)$$ sea 
+       estrictamente libre de divergencia en la variedad simpléctica $$\mathcal{M}$$:
+       $$\operatorname{div}(\dot{x}) = \sum_{k=1}^{2n} \frac{\partial \dot{x}_k}{\partial x_k} = \operatorname{Tr}\left( J_{\mathrm{eff}}(x) \frac{\partial^2 H}{\partial x^2} \right) + \operatorname{Tr}\left( \frac{\partial J_{\mathrm{eff}}(x)}{\partial x} \operatorname{diag}(\nabla H(x)) \right) \equiv 0 \pmod{\varepsilon_{\mathrm{machine}}}$$
+       El primer término se anula por la simetría del Hessiano de Schwarz y la 
+       antisimetría estricta de $$J_{\mathrm{eff}}$$; el segundo término se anula 
+       puesto que la diagonal del tensor giroscópico $$\mathcal{W}_{\mathrm{proj}}(p)$$ 
+       se construye mediante el producto exterior de-confinado:
+       $$\mathcal{W}_{ii}(p) \equiv 0 \implies \frac{\partial \mathcal{W}_{ii}(p)}{\partial p_i} \equiv 0$$
 
-FORMULACIÓN MATEMÁTICA RIGUROSA (Doctorado en Topología y Teoría Espectral):
-────────────────────────────────────────────────────────────────────────────────
-1. Isomorfismo Musical Plano (Flat $\flat$):
-   Mapea un vector del espacio tangente (cambio de estado o q_dot) al cotangente:
-   $$p_\mu = G_{\mu\nu} \dot{q}^\nu$$
-   donde $G_{\mu\nu}$ representa el tensor métrico Riemanniano.
+  [I2] Antisimetría Métrica y Firma de Calibre (Álgebra de Lie $$\mathfrak{so}(n)$$):
+       El tensor giroscópico de Lorentz $$\mathcal{W}_{\mathrm{proj}}(p)$$ debe habitar 
+       estrictamente en el álgebra de Lie del cono antisimétrico w.r.t. el tensor 
+       métrico de Riemann $$G_{\mu\nu}$$:
+       $$\mathcal{W}_{\mathrm{proj}}^\top G_{\mu\nu} + G_{\mu\nu} \mathcal{W}_{\mathrm{proj}} = \mathbf{0} \quad\big[29\big]$$
+       El agente audita este invariante mediante el residuo relativo de Frobenius:
+       $$r_{\mathrm{skew}} = \frac{\|\mathcal{W}_{\mathrm{proj}} + \mathcal{W}_{\mathrm{proj}}^\top\|_F}{\max(1.0, \|\mathcal{W}_{\mathrm{proj}}\|_F)} \le \varepsilon_{\mathrm{skew}} \quad\big[29\big]$$
 
-2. Conservación del Volumen de Liouville:
-   La forma de volumen simpléctica $\Omega_{\text{sym}} = dp_i \wedge dq^i$ se preserva
-   bajo flujos Hamiltonianos de acuerdo con el Teorema de Liouville:
-   $$\mathcal{L}_{X_H} \Omega_{\text{sym}} = 0$$
+  [I3] Ley de Trabajo Mecánico Nilpotente (Segunda Ley):
+       Para garantizar la pasividad estricta de la Unidad de Punto Flotante (FPU), 
+       la fuerza inercial inyectada debe ser ortogonal al flujo del gradiente 
+       del Hamiltoniano de energía, asegurando un trabajo mecánico neto nulo:
+       $$P_{\mathrm{gyro}} = \langle \nabla_p H, \mathcal{W}_{\mathrm{proj}}(p) \nabla_p H \rangle_G \equiv 0 \pmod{\varepsilon_{\mathrm{machine}}} \quad\big[29, 36\big]$$
+       Este cálculo se evalúa mediante sumación compensada de Kahan en la Fase 3 
+       para expurgar la deriva de redondeo de la mantisa de coma flotante (IEEE-754).
 
-3. Retículo de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$:
-   El veredicto final se consolida mediante el Supremo Álgebraico (Join $\sqcup$):
-   $$v_{\text{final}} = v_{\text{Liouville}} \sqcup v_{\text{Skew}} \sqcup v_{\text{Work}}$$
-   con el orden parcial $\text{COHERENT} \le \text{DEGRADED} \le \text{VETOED}$.
+  [I4] Isomorfismo de de Rham-Hodge y Anulación de Torsión:
+       El transporte paralelo del momentum covariante a lo largo de las curvas de 
+       decisión se subordina a la conexión única de Levi-Civita libre de torsión 
+       ($$T(X,Y) = 0$$) compatible con la métrica:
+       $$\nabla_\gamma G_{\mu\nu} = 0 \quad\big[41\big]$$
+       Se exige que el primer número de Betti de de Rham sea nulo para aniquilar 
+       los "socavones lógicos" (ciclos de dependencias circulares) en la Malla:
+       $$\beta_1 \equiv \dim H^1_{\mathrm{dR}}(K; \mathbb{F}_2) = 0 \quad\big[33\big]$$
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta):
-────────────────────────────────────────────────────────────────────────────────
-Fase 1 → Auditoría del Volumen de Liouville (Observe):
-    - Audita la cota del covector de momento $p$.
-    - Verifica calidad métrica: condición numérica y residuo de inversa.
-    - Mapea el estado al retículo $\Omega_3$.
+ESTRUCTURA DE TRES FASES ANIDADAS (Composición Funtorial OODA): ─────────────────
+La transición de estados se rige por un contrato covariante estricto que compone 
+secuencialmente tres morfismos encadenados por sus DTOs inmutables de handoff formal:
 
-Fase 2 → Certificación de la Firma Métrica (Orient):
-    - Evalúa la topología del proyector antisimétrico.
-    - Exige que $W$ pertenezca al cono antisimétrico.
-    - Audita residuos relativos de antisimetría y pureza de vorticidad.
+  Fase 1 ──► FASE 1: AUDITORÍA DE LIOUVILLE (Phase1_LiouvilleVolumeAuditor)
+             Intercepta el covector de momentum $$p_\mu = G_{\mu\nu}\dot{q}^\nu$$ y 
+             audita la cota del volumen en el espacio de fase mediante la norma dual:
+             $$\|p\|_{G^{-1}} = \sqrt{p_\mu G^{\mu\nu} p_\nu} \le P_{\max} \quad\big[29\big]$$
+             Entrega: Phase1ObservationBridge como precondición formal de la Fase 2.
 
-Fase 3 → Veredicto Termodinámico en el Retículo de Heyting (Decide & Act):
-    - Calcula el supremo algebraico de las tres fases:
-          $$v_{\text{final}} = v_{\text{Liouville}} \sqcup v_{\text{Skew}} \sqcup v_{\text{Work}}$$
-    - Si el estado supremo toca $\top = \text{VETOED}$, el sistema colapsa al Supremo
-      Terminal, aniquilando la transacción en RAM.
+  Fase 2 ──► FASE 2: CERTIFICACIÓN DE FIRMA MÉTRICA (Phase2_SkewSymmetryCertifier)
+             Valida la antisimetría del operador de Lorentz $$\mathcal{W}_{\mathrm{proj}}$$ y la 
+             idempotencia del proyector en la variedad de Grassmann [4, 6].
+             Entrega: Phase2OrientationBridge como precondición formal de la Fase 3.
+
+  Fase 3 ──► FASE 3: COLAPSO TERMODINÁMICO DE HEYTING (Phase3_HeytingLatticeDecider)
+             Somete la matriz de Dirac efectiva $$J_{\mathrm{eff}} = J + \mathcal{W}_{\mathrm{proj}}$$ a la 
+             auditoría de trabajo nilpotente en la FPU mediante sumación de Kahan.
+             Entrega: InertialGovernanceState como certificado terminal del funtor.
 """
 
 import logging

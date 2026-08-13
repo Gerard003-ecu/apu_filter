@@ -3,49 +3,70 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Riemannian Inertia Modulator (Motor de Momento Giroscópico)         ║
 ║ Ruta   : app/physics/riemannian_inertia_modulator.py                         ║
-║ Versión: 4.0.0-Symplectic-Lorentz-Kahan-Strict-Software                      ║
+║ Versión: 3.1.0-Symplectic-Lorentz-Kahan-Strict-Software                      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-OBJETO CIENTÍFICO-TÉCNICO (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo implementa un funtor de moldeo de inercia (Mass Shaping Functor)
-sobre el fibrado cotangente $T^*M$, inyectando una fuerza de Lorentz
-informacional estrictamente giroscópica en la dinámica transaccional.
+OBJETO CIENTÍFICO-TÉCNICO Y FUNDAMENTACIÓN GEOMÉTRICA (Rigor Doctoral): ────────
+Este módulo implementa el **Funtor de Moldeo de Masa** (Mass Shaping Functor) 
+sobre el fibrado cotangente $$\mathcal{T}^* \mathcal{M}$$. Su propósito 
+axiomático es inyectar una "Fuerza de Lorentz" informacional de naturaleza 
+estrictamente giroscópica en la trayectoria del espacio de fase transaccional, 
+con el fin de desviar las fluctuaciones estocásticas y las alucinaciones de 
+los Modelos de Lenguaje (LLMs) hacia sumideros de disipación, sin alterar la 
+energía Hamiltoniana interna del sistema.
 
-La arquitectura está organizada en tres fases anidadas:
+El módulo trata el flujo logístico del presupuesto como un fluido continuo, 
+subyugando el transporte paralelo de los covectores de estado a la regularidad 
+del cono antisimétrico de Lie y preservando de manera exacta la 2-forma simpléctica 
+canónica de Liouville.
 
-FASE 1 → Espectroscopía del Momentum
-    - Aplica el isomorfismo musical plano (flat $\flat$): $p = G \dot{q}$.
-    - Valida que $G$ sea una métrica riemanniana: simétrica, definida positiva,
-      bien condicionada y coherentemente invertida.
-    - Certifica la cota de inercia mediante $\|p\|_{G^{-1}}$.
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
+La transmutación del momento se rige por un contrato algebraico rígido donde la 
+salida inmutable de cada fase actúa como la precondición formal de la siguiente:
 
-FASE 2 → Síntesis del Operador Giroscópico
-    - Recibe el certificado de Fase 1.
-    - Acopla el momentum covariante con una vorticidad proyectada a 2-forma.
-    - Construye $W = \alpha (p \wedge \omega)$ y lo proyecta al cono de matrices antisimétricas.
+  Fase 1 ──► FASE 1: ESPECTROSCOPÍA DEL MOMENTUM (Phase1_MomentumSpectrometer)
+             Aplica el isomorfismo musical plano (flat, $$\flat$$) para descender
+             índices en la variedad Riemanniana anisotrópica:
+             $$p_\mu = G_{\mu\nu} \dot{q}^\nu \quad\big[8, 25, 30\big]$$
+             Certifica la cota de inercia mediante la norma dual inducida:
+             $$\|p\|_{G^{-1}} = \sqrt{p_\mu G^{\mu\nu} p_\nu} \le P_{\max} \quad\big[8, 25\big]$$
+             Entrega: MomentumAuditData como precondición formal de la Fase 2.
 
-FASE 3 → Modulación Simpléctica y Veredicto Termodinámico
-    - Recibe el certificado de Fase 2.
-    - Inyecta $W$ en la estructura de Dirac $J$.
-    - Certifica que $J_{\text{eff}}$ permanece antisimétrica y que
-      $\langle \nabla H, J_{\text{eff}} \nabla H \rangle = 0$ dentro de cotas adaptativas de máquina.
+  Fase 2 ──► FASE 2: SÍNTESIS DEL OPERADOR GIROSCÓPICO (Phase2_GyroscopicSynthesizer)
+             Acopla el momentum covariante $$p$$ con la vorticidad solenoidal $$\omega$$
+             (2-forma de refracción territorial) para construir el tensor de Lorentz:
+             $$W_{\mu\nu} = \alpha \left( p_\mu \omega_\nu - p_\nu \omega_{\mu} \right) \quad\big[8, 25, 30\big]$$
+             Proyecta $$W$$ al álgebra de Lie del cono antisimétrico $$\mathfrak{so}(n)$$
+             exigiendo la nulidad del residuo de Frobenius:
+             $$r_{\mathrm{skew}} = \frac{\|W + W^\top\|_F}{\max(1, \|W\|_F)} \le \epsilon_{\mathrm{skew}} \quad\big[8, 25\big]$$
+             Entrega: GyroscopicSynthesisData como precondición formal de la Fase 3.
 
-PROPIEDADES FÍSICAS PRESERVADAS (Leyes y Teoremas):
-────────────────────────────────────────────────────────────────────────────────
-1. Pasividad simpléctica:
-       $$x^T J_{\text{eff}} x = 0 \quad \forall x \in \mathbb{R}^{2n}$$
-       para toda matriz efectiva antisimétrica $J_{\text{eff}}^T = -J_{\text{eff}}$.
+  Fase 3 ──► FASE 3: MODULACIÓN SIMPLÉCTICA Y TRABAJO NILPOTENTE (Phase3_SymplecticInertiaModulator)
+             Inyecta el tensor giroscópico $$W$$ en el operador de interconexión de 
+             Dirac $$J_{\mathrm{base}}$$ del sistema Port-Hamiltoniano:
+             $$J_{\mathrm{eff}} = J_{\mathrm{base}} + W \quad\big[8, 25\big]$$
+             Certifica la nulidad del trabajo mecánico neto mediante el algoritmo 
+             de sumación compensada de Kahan sobre el gradiente Hamiltoniano $$\nabla H$$:
+             $$P_{\mathrm{gyro}} = \langle \nabla H, J_{\mathrm{eff}} \nabla H \rangle \equiv 0 \pmod{\varepsilon_{\mathrm{machine}}} \quad\big[8, 25\big]$$
+             Entrega: ThermodynamicVetoData como certificado inmutable terminal.
 
-2. No inyección de energía espuria:
-       El operador giroscópico realiza trabajo mecánico neto nulo sobre el gradiente hamiltoniano:
-       $$\dot{H} = \langle \nabla H, J_{\text{eff}} \nabla H \rangle = 0$$
+INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y PROPIEDADES DE CALIBRE PRESERVADOS: ─────
+  [I1] Invariancia de la Forma Simpléctica (Volumen de Liouville):
+       El operador $$J_{\mathrm{eff}}$$ es estrictamente antisimétrico, garantizando 
+       que el flujo conserve el volumen en el espacio de fase simpléctico, 
+       acatando de manera idéntica el Teorema de Liouville:
+       $$x^\top J_{\mathrm{eff}} x \equiv 0 \quad \forall x \in \mathbb{R}^{2n} \quad\big[8\big]$$
 
-3. Conservación estructural:
-       $J_{\text{eff}}$ pertenece al álgebra de Lie del grupo simpléctico ($\mathfrak{sp}(2n, \mathbb{R})$ local).
+  [I2] Coherencia Métrica de de Rham (Isomorfismo Musical):
+       El motor de isomorfismo exige consistencia bilateral en la inversión 
+       espectral de la métrica $$G_{\mu\nu}$$ respecto al límite de Wilkinson:
+       $$\max\left( \frac{\|G G^{-1} - I\|_F}{\sqrt{n}}, \frac{\|G^{-1} G - I\|_F}{\sqrt{n}} \right) \le C \cdot \kappa(G) \cdot \varepsilon_{\mathrm{machine}}$$
 
-4. Robustez numérica:
-       Se emplea sumación compensada de Kahan y cotas adaptativas ULP.
+  [I3] Conservación Termodinámica e Inecuación de Clausius-Duhem:
+       Dado que la inyección giroscópica de Lorentz no realiza trabajo neto, 
+       la tasa de disipación de Rayleigh del sistema Port-Hamiltoniano basal se 
+       mantiene incondicionalmente pasiva y no-negativa:
+       $$\dot{H} = -\nabla H^\top R(x) \nabla H \le 0 \quad \text{donde} \quad R(x) = R(x)^\top \succeq \mathbf{0} \quad\big[25\big]$$
 """
 
 import logging
