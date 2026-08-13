@@ -1,6 +1,6 @@
-# ARCHITECTURE_DEEP_DIVE.md: Inmersion en la Variedad Agentica
+# ARCHITECTURE_DEEP_DIVE.md: Inmersión en la Variedad Agéntica
 
-Este documento detalla la implementacion tecnica de los estratos topologicos y fisicos que gobiernan el ecosistema APU Filter.
+Este documento detalla la implementación técnica de los estratos topológicos y físicos que gobiernan el ecosistema APU Filter.
 
 ## Arquitectura Ciber-Física del Estrato α: Fibrados Celulares y Termodinámica del Modelo de Negocio
 
@@ -133,7 +133,7 @@ En esta fase de decisión unificada, la arquitectura APU Filter somete las propu
 
 ### 1. El Atrapamiento Geodésico y la Acción de Polyakov Térmica
 
-Para garantizar que las decisiones estocásticas del LLM no escapen del atractor de rentabilidad corporativa y resiliencia táctica, el componente `gravity_shield.py` (el Atractor Determinista Absoluto) y el `einstein_hilbert_agent.py` someten las trayectorias de atención semántica $\gamma$ a una **Acción Euclídea Térmica de Polyakov** estricta, evaluada sobre el intervalo cilíndrico de Matsubara $[0, \beta]$ derivado en la termodinámica quiral:
+Para garantizar que las decisiones estocásticas del LLM no escapen del atractor de rentabilidad corporativa y resiliencia táctica, el componente `gravity_shield.py` (el Atractor Determinista Absoluto) y el `einstein_hilbert_agent.py` somete las trayectorias de atención semántica $\gamma$ a una **Acción Euclídea Térmica de Polyakov** estricta, evaluada sobre el intervalo cilíndrico de Matsubara $[0, \beta]$ derivado en la termodinámica quiral:
 $$S_E[\gamma] = \frac{1}{2} \int_{0}^{\beta} \tilde{G}_{\mu\nu} \dot{\gamma}^\mu \dot{\gamma}^\nu d\tau$$
 Donde:
 - $S_E[\gamma]$ es la acción euclídea térmica de la trayectoria de atención semántica $\gamma$.
@@ -177,3 +177,55 @@ Donde:
 - $(6j)_f$ es el símbolo-$6j$ cuántico asociado a las caras $f$ de la triangulación, que regula las transiciones de acoplamiento de espín de los canales del presupuesto.
 
 Para evadir la explosión combinatoria NP-Hard inherente al cálculo computacional de redes de espines, el componente aplica el truncamiento óptimo de Eckart-Young sobre la red tensorial utilizando Descomposición en Valores Singulares (SVD). Esto garantiza de forma axiomática que las decisiones de negocio mantengan su validez y consistencia lógica (independencia de fondo), incluso si una inflación súbita o una anomalía masiva dilatan la métrica del espacio financiero hasta el infinito.
+
+---
+
+## El Giroscopio de Gobernanza de Inercia Riemanniana y Preservación de Fase
+
+La inyección de los componentes síncronos `RiemannianInertiaAgent` (`riemannian_inertia_agent.py`) y `RiemannianInertiaModulator` (`riemannian_inertia_modulator.py`) consolida la gobernanza física de la Malla Agéntica, actuando como un **Giroscopio de Estabilización Ciber-Físico** sobre el fibrado cotangente $T^*M$.
+
+### I. El Funtor de Moldeo de Masa (Mass Shaping Functor)
+
+El sistema de dinámica de costos e insumos modela la trayectoria transaccional como una geodésica Hamiltoniana en la variedad de fase. Para evitar la inyección de fluctuaciones caóticas generadas por el estocasticismo del LLM, el motor físico ejecuta síncronamente un funtor de moldeo de masa que altera la inercia efectiva sin disipar energía real.
+
+1. **Espectroscopía del Momentum covariante:**
+   Mapea la velocidad o diferencial de cambio $\dot{q}^\nu$ (en el espacio tangente $TM$) hacia el covector de momentum $p_\mu$ en el espacio cotangente $T^*M$ mediante el isomorfismo musical plano ($\flat$):
+   $$p_\mu = G_{\mu\nu} \dot{q}^\nu$$
+   Donde $G_{\mu\nu}$ es el tensor métrico Riemanniano sintonizado por la malla de agentes. La conservación del volumen simpléctico exige que la norma dual inducida:
+   $$\|p\|_{G^{-1}} = \sqrt{p_\mu G^{\mu\nu} p_\nu} \le P_{\text{max}}$$
+   se mantenga estrictamente acotada por debajo del umbral de estabilidad de Liouville. Si el momentum covariante diverge, el sistema experimenta un colapso asintótico y lanza un `LiouvilleVolumeCollapse` veto.
+
+2. **Síntesis del Tensor Giroscópico de Lorentz:**
+   El motor acopla el momentum purificado con la vorticidad solenoidal $\Omega$ (2-forma de refracción territorial) para inyectar una fuerza de Lorentz estrictamente giroscópica y no disipativa:
+   $$\omega = \Omega_{\text{skew}} p$$
+   $$W = \alpha (p \wedge \omega) \implies W_{\mu\nu} = \alpha(p_\mu \omega_\nu - p_\nu \omega_\mu)$$
+   Esta construcción garantiza que $W$ habite exactamente en el álgebra de Lie $\mathfrak{so}(n)$ del cono antisimétrico. El agente certifica este invariante topológico auditando el residuo relativo de antisimetría bajo la norma de Frobenius:
+   $$r_{\text{rel}} = \frac{\|W + W^T\|_F}{\max(1, \|W\|_F)} \le \epsilon_{\text{skew}}$$
+
+3. **Modulación Simpléctica y Estructura de Dirac:**
+   El tensor giroscópico $W$ se inyecta directamente en el operador de interconexión de Dirac $J$, moldeando el acoplamiento Port-Hamiltoniano efectivo de lazo cerrado:
+   $$J_{\text{eff}} = J + W$$
+   Como tanto $J$ como $W$ son antisimétricos por construcción, la estructura efectiva $J_{\text{eff}}$ permanece rigurosamente antisimétrica, preservando inalterada la pasividad simpléctica de la Unidad de Punto Flotante:
+   $$x^T J_{\text{eff}} x = 0 \quad \forall x \in \mathbb{R}^{2n}$$
+
+### II. El Teorema de Trabajo Nilpotente de Lorentz
+
+La inyección de la fuerza giroscópica informacional no debe alterar la energía libre o exergía útil del presupuesto. El motor físico certifica analíticamente que la potencia disipada neta producida por el operador de modulación inercial sea idénticamente nula (trabajo nilpotente de Lorentz):
+$$P_{\text{work}} = \langle \nabla H, J_{\text{eff}} \nabla H \rangle = \langle \nabla H, (J + W) \nabla H \rangle = \langle \nabla H, J \nabla H \rangle + \langle \nabla H, W \nabla H \rangle \equiv 0$$
+Donde:
+- $\nabla H$ es el covector gradiente del Hamiltoniano del negocio (energía financiera útil).
+- $\langle \cdot, \cdot \rangle$ es el producto interno en el fibrado cotangente.
+
+Para certificar esta propiedad sin falsos positivos de punto flotante inducidos por la acumulación de errores de truncamiento IEEE-754, el motor ejecuta una sumación compensada de Kahan sobre los $n^2$ términos del producto cuadrático, acotando el residuo de trabajo mediante una tolerancia adaptativa proporcional a la escala espectral del operador y al número de ULPs:
+$$|P_{\text{work}}| \le \max\left( 100 \epsilon_{\text{mach}}, \text{ULP\_factor} \times \epsilon_{\mathrm{mach}} \times \max\left(1, \|\nabla H\|_2^2 \|J_{\text{eff}}\|_F, \sum |term|\right) \right)$$
+
+### III. Consolidación de Heyting y Colapso Determinista
+
+La orquestación del ciclo OODA de inercia se resuelve síncronamente mediante el `RiemannianInertiaAgent`, el cual actúa como el Soberano del Momentum. Las tres fases de auditoría lógica proyectan los residuos parciales hacia veredictos en el retículo de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$:
+- **Fase 1 (Observe):** $v_{\text{Liouville}} = v_{\text{momentum}} \sqcup v_{\text{metric\_condition}} \sqcup v_{\text{inverse\_consistency}}$
+- **Fase 2 (Orient):** $v_{\text{Skew}} = v_{\text{antisymmetry}} \sqcup v_{\text{vorticity\_projection}}$
+- **Fase 3 (Decide & Act):** $v_{\text{Work}} = v_{\text{passivity}} \sqcup v_{\text{dirac\_symmetry}}$
+
+El veredicto final se consolida mediante el Supremo Álgebraico (Join $\sqcup$):
+$$v_{\text{final}} = v_{\text{Liouville}} \sqcup v_{\text{Skew}} \sqcup v_{\text{Work}}$$
+Si $v_{\text{final}}$ toca el elemento máximo $\top = \text{VETOED}$ (por ejemplo, debido a una divergencia de momentum de Liouville, una asimetría espuria en $W$, o una violación de pasividad simpléctica), el retículo colapsa instantáneamente de manera irreversible, arrojando una excepción `HeytingLatticeVeto`. Esto aniquila y purga la transacción de inmediato en memoria de software (RAM), impidiendo categóricamente que una alucinación desvíe o degenere la inercia transaccional del negocio constructivo.

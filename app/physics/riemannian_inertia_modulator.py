@@ -3,44 +3,49 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Riemannian Inertia Modulator (Motor de Momento Giroscópico)         ║
 ║ Ruta   : app/physics/riemannian_inertia_modulator.py                         ║
-║ Versión: 3.0.0-Symplectic-Lorentz-Kahan-Strict-Software                      ║
+║ Versión: 4.0.0-Symplectic-Lorentz-Kahan-Strict-Software                      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-OBJETO CIENTÍFICO-TÉCNICO:
+OBJETO CIENTÍFICO-TÉCNICO (Rigor Doctoral):
 ────────────────────────────────────────────────────────────────────────────────
 Este módulo implementa un funtor de moldeo de inercia (Mass Shaping Functor)
-sobre el fibrado cotangente T^*M, inyectando una fuerza de Lorentz
+sobre el fibrado cotangente $T^*M$, inyectando una fuerza de Lorentz
 informacional estrictamente giroscópica en la dinámica transaccional.
 
 La arquitectura está organizada en tres fases anidadas:
 
 FASE 1 → Espectroscopía del Momentum
-    - Aplica el isomorfismo musical plano (flat): p = G q̇.
-    - Valida que G sea una métrica riemanniana: simétrica, definida positiva,
+    - Aplica el isomorfismo musical plano (flat $\flat$): $p = G \dot{q}$.
+    - Valida que $G$ sea una métrica riemanniana: simétrica, definida positiva,
       bien condicionada y coherentemente invertida.
-    - Certifica la cota de inercia mediante ||p||_{G^{-1}}.
+    - Certifica la cota de inercia mediante $\|p\|_{G^{-1}}$.
 
 FASE 2 → Síntesis del Operador Giroscópico
     - Recibe el certificado de Fase 1.
     - Acopla el momentum covariante con una vorticidad proyectada a 2-forma.
-    - Construye W = α(p ∧ ω) y lo proyecta al cono de matrices antisimétricas.
+    - Construye $W = \alpha (p \wedge \omega)$ y lo proyecta al cono de matrices antisimétricas.
 
 FASE 3 → Modulación Simpléctica y Veredicto Termodinámico
     - Recibe el certificado de Fase 2.
-    - Inyecta W en la estructura de Dirac J.
-    - Certifica que J_eff permanece antisimétrica y que
-      ⟨∇H, J_eff ∇H⟩ = 0 dentro de cotas adaptativas de máquina.
+    - Inyecta $W$ en la estructura de Dirac $J$.
+    - Certifica que $J_{\text{eff}}$ permanece antisimétrica y que
+      $\langle \nabla H, J_{\text{eff}} \nabla H \rangle = 0$ dentro de cotas adaptativas de máquina.
 
-PROPIEDADES FÍSICAS PRESERVADAS:
+PROPIEDADES FÍSICAS PRESERVADAS (Leyes y Teoremas):
 ────────────────────────────────────────────────────────────────────────────────
 1. Pasividad simpléctica:
-       xᵀ J_eff x = 0  para J_eff antisimétrica.
+       $$x^T J_{\text{eff}} x = 0 \quad \forall x \in \mathbb{R}^{2n}$$
+       para toda matriz efectiva antisimétrica $J_{\text{eff}}^T = -J_{\text{eff}}$.
+
 2. No inyección de energía espuria:
-       el operador giroscópico realiza trabajo mecánico neto nulo.
+       El operador giroscópico realiza trabajo mecánico neto nulo sobre el gradiente hamiltoniano:
+       $$\dot{H} = \langle \nabla H, J_{\text{eff}} \nabla H \rangle = 0$$
+
 3. Conservación estructural:
-       J_eff pertenece al álgebra de Lie del grupo simpléctico (so(2n) local).
+       $J_{\text{eff}}$ pertenece al álgebra de Lie del grupo simpléctico ($\mathfrak{sp}(2n, \mathbb{R})$ local).
+
 4. Robustez numérica:
-       se emplea sumación compensada de Kahan y cotas adaptativas ULP.
+       Se emplea sumación compensada de Kahan y cotas adaptativas ULP.
 """
 
 import logging
@@ -108,19 +113,28 @@ class RiemannianInertiaError(TopologicalInvariantError):
 
 
 class MomentumDivergenceError(RiemannianInertiaError):
-    """Detonada si ||p||_{G^{-1}} excede la cota elástica admisible."""
+    r"""
+    Detonada si $\|p\|_{G^{-1}}$ excede la cota elástica admisible:
+        $$\|p\|_{G^{-1}} = \sqrt{p_\mu G^{\mu\nu} p_\nu} > P_{\text{max}}$$
+    """
 
     pass
 
 
 class SkewSymmetryViolationError(RiemannianInertiaError):
-    """Detonada si la proyección antisimétrica retiene componentes simétricas."""
+    r"""
+    Detonada si la proyección antisimétrica retiene componentes simétricas significativas:
+        $$\frac{\|W + W^T\|_F}{\max(1, \|W\|_F)} > \epsilon_{\text{skew}}$$
+    """
 
     pass
 
 
 class SymplecticWorkViolationError(RiemannianInertiaError):
-    """Detonada si el operador efectivo realiza trabajo neto no nulo."""
+    r"""
+    Detonada si el operador efectivo realiza trabajo neto no nulo:
+        $$|\langle \nabla H, J_{\text{eff}} \nabla H \rangle| > \tau_{\text{work}}$$
+    """
 
     pass
 
@@ -166,16 +180,16 @@ class ThermodynamicVetoData:
 # ══════════════════════════════════════════════════════════════════════════════
 class Phase1_MomentumSpectrometer:
     r"""
-    Extrae el covector de momentum mediante el isomorfismo musical plano:
+    Extrae el covector de momentum mediante el isomorfismo musical plano ($\flat$):
 
-        p_μ = G_{μν} q̇^ν
+        $$p_\mu = G_{\mu\nu} \dot{q}^\nu$$
 
     y certifica:
         1. dimensionalidad y finitud de los tensores;
         2. simetría métrica;
         3. definición positiva de G y G^{-1};
         4. consistencia de la inversa;
-        5. cota de inercia ||p||_{G^{-1}}.
+        5. cota de inercia $\|p\|_{G^{-1}}$.
     """
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -247,7 +261,7 @@ class Phase1_MomentumSpectrometer:
         """
         Cota adaptativa relativa a la escala de la matriz:
 
-            tol = max(tol_base, tol_base * max(1, ||matrix||_F))
+            $$tol = \max(tol_{\text{base}}, tol_{\text{base}} \times \max(1, \|matrix\|_F))$$
 
         Esto evita falsos positivos por escala sin perder rigor estructural.
         """
@@ -271,7 +285,7 @@ class Phase1_MomentumSpectrometer:
         Certifica definición positiva mediante factorización de Cholesky.
 
         Para una métrica riemanniana G se exige:
-            G = Gᵀ,   vᵀ G v > 0  ∀ v ≠ 0.
+            $$G = G^T, \quad v^T G v > 0 \quad \forall v \ne 0$$
         """
         try:
             np.linalg.cholesky(matrix)
@@ -412,14 +426,14 @@ class Phase1_MomentumSpectrometer:
         r"""
         Isomorfismo musical plano:
 
-            p = G q̇,   p_μ = G_{μν} q̇^ν.
+            $$p = G \dot{q}, \quad p_\mu = G_{\mu\nu} \dot{q}^\nu$$
         """
         q_dot = self._validate_vector(q_dot, "q_dot")
         G_tensor = self._validate_square_matrix(G_tensor, "G_tensor")
 
         if G_tensor.shape[0] != q_dot.size:
             raise RiemannianInertiaError(
-                "Dimensión incompatible entre q_dot y G_tensor."
+                "Dimensión incompatible entre q_dot and G_tensor."
             )
 
         p = G_tensor @ q_dot
@@ -441,11 +455,11 @@ class Phase1_MomentumSpectrometer:
         r"""
         Certifica la norma inducida por la métrica dual:
 
-            ||p||_{G^{-1}} = sqrt(p_μ G^{μν} p_ν).
+            $$\|p\|_{G^{-1}} = \sqrt{p_\mu G^{\mu\nu} p_\nu}$$
 
         Esta cantidad coincide, salvo error de inversa, con:
 
-            sqrt(q̇ᵀ G q̇),
+            $$\sqrt{\dot{q}^T G \dot{q}}$$
 
         lo cual es la energía cinética geométrica de la trayectoria.
         """
@@ -552,12 +566,12 @@ class Phase2_GyroscopicSynthesizer(Phase1_MomentumSpectrometer):
     r"""
     Recibe el certificado de Fase 1 y construye el tensor giroscópico:
 
-        W_{μν} = α (p_μ ω_ν - p_ν ω_μ),
+        $$W_{\mu\nu} = \alpha (p_\mu \omega_\nu - p_\nu \omega_\mu)$$
 
-    donde ω = Ω p y Ω es una 2-forma de vorticidad proyectada al cono
+    donde $\omega = \Omega p$ y $\Omega$ es una 2-forma de vorticidad proyectada al cono
     antisimétrico.
 
-    La construcción garantiza que W ∈ so(n), evitando componentes
+    La construcción garantiza que $W \in \mathfrak{so}(n)$, evitando componentes
     disipativas o inyección energética espuria.
     """
 
@@ -568,11 +582,11 @@ class Phase2_GyroscopicSynthesizer(Phase1_MomentumSpectrometer):
         r"""
         Proyecta la matriz de vorticidad al espacio de 2-formas:
 
-            Ω_skew = 1/2 (Ω - Ωᵀ).
+            $$\Omega_{\text{skew}} = \frac{1}{2} (\Omega - \Omega^T)$$
 
         El residuo devuelto es la componente simétrica descartada:
 
-            ||1/2(Ω + Ωᵀ)||_F.
+            $$\| \frac{1}{2}(\Omega + \Omega^T) \|_F$$
 
         Esto es físicamente necesario: la vorticidad es una 2-forma;
         la parte simétrica corresponde a deformación/strain, no a rotación.
@@ -601,11 +615,11 @@ class Phase2_GyroscopicSynthesizer(Phase1_MomentumSpectrometer):
         r"""
         Proyección ortogonal al cono antisimétrico:
 
-            W_proj = 1/2 (W_raw - W_rawᵀ).
+            $$W_{\text{proj}} = \frac{1}{2} (W_{\text{raw}} - W_{\text{raw}}^T)$$
 
-        Se audita el residuo:
+        Se audita el residuo de antisimetría:
 
-            ||W_proj + W_projᵀ||_F.
+            $$\| W_{\text{proj}} + W_{\text{proj}}^T \|_F$$
 
         En aritmética exacta este residuo es cero; en IEEE-754 se admite
         hasta una cota adaptativa de máquina.
@@ -638,9 +652,9 @@ class Phase2_GyroscopicSynthesizer(Phase1_MomentumSpectrometer):
         r"""
         Síntesis del tensor de Lorentz giroscópico:
 
-            ω = Ω_skew p,
-            W = α (p ∧ ω),
-            W_{μν} = α (p_μ ω_ν - p_ν ω_μ).
+            $$\omega = \Omega_{\text{skew}} p$$
+            $$W = \alpha (p \wedge \omega)$$
+            $$W_{\mu\nu} = \alpha (p_\mu \omega_\nu - p_\nu \omega_\mu)$$
 
         Esta construcción es manifiestamente antisimétrica.
         """
@@ -720,17 +734,17 @@ class Phase2_GyroscopicSynthesizer(Phase1_MomentumSpectrometer):
 # ══════════════════════════════════════════════════════════════════════════════
 class Phase3_SymplecticInertiaModulator(Phase2_GyroscopicSynthesizer):
     r"""
-    Inyecta W en la estructura de Dirac J:
+    Inyecta $W$ en la estructura de Dirac $J$:
 
-        J_eff = J + W,
+        $$J_{\text{eff}} = J + W$$
 
     y certifica la pasividad simpléctica:
 
-        ⟨∇H, J_eff ∇H⟩ = 0.
+        $$\langle \nabla H, J_{\text{eff}} \nabla H \rangle = 0$$
 
     Para ello:
-        1. exige que J sea antisimétrica;
-        2. proyecta J_eff al cono antisimétrico;
+        1. exige que $J$ sea antisimétrica;
+        2. proyecta $J_{\text{eff}}$ al cono antisimétrico;
         3. audita el trabajo mediante sumación compensada de Kahan;
         4. emplea cotas adaptativas proporcionales a la escala del problema.
     """
@@ -743,7 +757,7 @@ class Phase3_SymplecticInertiaModulator(Phase2_GyroscopicSynthesizer):
         r"""
         Valida que la estructura de Dirac base sea antisimétrica:
 
-            J + Jᵀ = 0.
+            $$J + J^T = 0$$
 
         En estructuras Port-Hamiltonianas, J pertenece al álgebra de Lie
         del grupo simpléctico; cualquier componente simétrica representa
@@ -777,7 +791,7 @@ class Phase3_SymplecticInertiaModulator(Phase2_GyroscopicSynthesizer):
         r"""
         Acopla el operador giroscópico a la estructura de Dirac:
 
-            J_eff = J + W.
+            $$J_{\text{eff}} = J + W$$
 
         Como J y W son antisimétricas, J_eff también lo es. Se realiza una
         proyección final de saneamiento para eliminar ruido de mantisa.
@@ -813,7 +827,7 @@ class Phase3_SymplecticInertiaModulator(Phase2_GyroscopicSynthesizer):
         A: NDArray[np.float64],
     ) -> tuple[float, float]:
         r"""
-        Calcula xᵀ A x mediante sumación compensada de Kahan.
+        Calcula $x^T A x$ mediante sumación compensada de Kahan.
 
         Retorna:
             work_sum  : suma compensada de términos;
@@ -821,7 +835,7 @@ class Phase3_SymplecticInertiaModulator(Phase2_GyroscopicSynthesizer):
 
         Esta doble suma permite construir una cota de error adaptativa:
 
-            |error| ≲ ε_machine * Σ |term|.
+            $$|\text{error}| \lesssim \epsilon_{\text{machine}} \times \sum |term|$$
 
         Se evita la acumulación ingenua de n² términos, que puede enmascarar
         cancelaciones finas en matrices antisimétricas.
@@ -888,10 +902,7 @@ class Phase3_SymplecticInertiaModulator(Phase2_GyroscopicSynthesizer):
         r"""
         Construye una cota adaptativa para el trabajo nulo:
 
-            tol = max(
-                100 ε,
-                ULP_factor * ε * max(1, ||∇H||₂² ||J_eff||_F, Σ|term|)
-            ).
+            $$tol = \max(100 \epsilon, \text{ULP\_factor} \times \epsilon \times \max(1, \|\nabla H\|_2^2 \|J_{\text{eff}}\|_F, \sum |term|))$$
 
         Esto evita falsos vetos cuando la escala del gradiente o de J es
         grande, manteniendo sensibilidad a violaciones estructurales.
@@ -919,16 +930,16 @@ class Phase3_SymplecticInertiaModulator(Phase2_GyroscopicSynthesizer):
         r"""
         Certifica el teorema de trabajo nulo:
 
-            xᵀ J_eff x = 0,  si J_effᵀ = -J_eff.
+            $$x^T J_{\text{eff}} x = 0 \quad \text{si} \quad J_{\text{eff}}^T = -J_{\text{eff}}$$
 
         La certificación se realiza en tres niveles:
 
         1. Residuo simétrico:
-               ||J_eff + J_effᵀ||_F ≈ 0.
+               $$\|J_{\text{eff}} + J_{\text{eff}}^T\|_F \approx 0$$
         2. Proyección estricta:
-               J_certified = skew(J_eff).
+               $$J_{\text{certified}} = \text{skew}(J_{\text{eff}})$$
         3. Auditoría de Kahan:
-               |xᵀ J_certified x| ≤ tol_adaptativa.
+               $$|x^T J_{\text{certified}} x| \le tol_{\text{adaptativa}}$$
         """
         grad_H = self._validate_vector(grad_H, "grad_H")
         J_eff = self._validate_square_matrix(J_eff, "J_eff")
