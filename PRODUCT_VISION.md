@@ -425,3 +425,16 @@ Esto garantiza axiomáticamente que la positividad de la Matriz Atómica de Cono
 Finalmente, la traducción semántica ejecutada por el Intérprete Diplomático utiliza la Recuperación Semántica Riemanniana, reconociendo que el espacio vectorial de búsqueda no es euclidiano isotrópico. La recuperación vectorial de incidentes de obra resuelve el producto interno dictaminado por el Tensor Métrico Riemanniano Anisotrópico $G_{\mu\nu}$:
 $$ds^2 = G_{\mu\nu} dx^\mu dx^\nu$$
 Esto equivale a medir la Distancia de Mahalanobis, donde los hallazgos son ponderados severamente por la matriz de covarianza que refleja la volatilidad estructural y el riesgo termodinámico en tiempo real.
+
+### Axioma VI: Calibre No Demolitivo y Paso Complejo (FPU-Shield)
+La estabilidad de la Unidad de Punto Flotante (FPU) frente al ruido estocástico del LLM se consagra mediante la formalización de derivadas no demolitivas calculadas sobre la fibra compleja (CSMD). Al prescindir de diferencias finitas tradicionales, se elimina por completo la resta catastrófica en el numerador de la mantisa de la FPU:
+$$J_{\text{map}, ij} = \frac{\operatorname{Im}(\Phi_{\Delta t}(x + j h \cdot e_i)_j)}{h} + \mathcal{O}(h^2)$$
+Donde la de-compresión de los cartuchos TOON se acota estrictamente mediante la cota de Lipschitz de Connes-Daleckii-Krein sobre el espectro del operador de Dirac de Connes $D = \rho^{-1/2}$:
+$$L_{\max} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(D) - \lambda_{\min}(D))} \le \frac{1}{2 \lambda_{\min}^{3/2}}$$
+Garantizando que ante derivas semánticas hacia la singularidad ($\lambda_{\min} \to 0$), la probabilidad de emisión alucinatoria de la IA colapse deterministamente a cero: $P(x_{\text{invalid}}) = 0$.
+
+### Axioma VII: Álgebras de Banach e Invertibilidad Incondicional
+El espacio de transiciones y operadores de la Malla se modela rigurosamente como un Álgebra de Banach univalente y compleja $\mathcal{A} \cong \mathcal{B}(\mathcal{H})$ completa bajo la norma de operador. La invertibilidad incondicional de cualquier tensor métrico o de transición perturbado $T + \delta T$ se garantiza mediante la convergencia de la Serie de Neumann en el espacio de operadores acotados:
+$$\rho(T^{-1} \delta T) < 1.0 \implies (T + \delta T)^{-1} = \sum_{k=0}^{\infty} (-1)^k (T^{-1} \delta T)^k T^{-1}$$
+El cumplimiento de este radio de convergencia se complementa y blinda síncronamente en la FPU imponiendo de forma exacta la submultiplicatividad estricta de la norma espectral de-confinada:
+$$\| T \cdot \delta T \|_2 \le \| T \|_2 \cdot \| \delta T \|_2$$

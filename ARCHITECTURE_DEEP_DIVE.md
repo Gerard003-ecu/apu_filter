@@ -16,6 +16,20 @@ La energía total se calcula mediante:
 Hamiltoniano basal:
 \[ H_{\text{BASE}}(q,p) = \frac{1}{2} q^\top \tilde{C}_{\text{soc}}^{-1} q + \frac{1}{2} p^\top \tilde{M}_{\text{rec}}^{-1} p \]
 
+#### Resolución Espectral de de Rham-Hodge y Causalidad Kramers-Kronig
+El subespacio basal incorpora las propiedades analíticas del propagador de Green y la regularización espectral en el foso de la pirámide de control, formalizando la transición de variables logísticas a través del cálculo exterior discreto.
+
+La Función de Green estática se define como la pseudoinversa de Moore-Penrose estable del Laplaciano del Haz Celular $L_F = \delta^\top G^{-1} \delta$:
+\[ L_F G L_F = L_F \quad \wedge \quad G \cdot \mathbf{1} = \mathbf{0} \]
+
+El propagador retardado causal dinámico en el plano-S complejos se formula como:
+\[ G_F(s) = (L_F - (s + j \cdot h) I_n)^{-1} \]
+Donde $h = 10^{-20}$ es el paso imaginario infinitesimal de la diferenciación por paso complejo (CSMD), forzando el transporte al cumplimiento de las relaciones de dispersión de Kramers-Kronig.
+
+El Soberano de Calibre audita síncronamente los residuos de autoadjunción y nulidad del kernel:
+\[ r_{\text{adj}} = \| G - G^\top \|_F \le 1.0 \times 10^{-11} \quad \wedge \quad r_{\text{kernel}} = \| G \cdot \mathbf{1} \|_2 \le 1.0 \times 10^{-11} \]
+Cualquier polo dinámico $p_i$ que migre al semiplano derecho de Laplace ($\operatorname{Re}(p_i) \ge 0$) es vetado asintóticamente.
+
 ### II. Estrato KCORE: La Maquinaria Cinemática (kcore_kinematic_agent.py)
 
 Identificador Semántico: Director de Flujo y Cinética Logística. Responsabilidad Topológica: Transmutar la energía potencial en trabajo cinético direccional.

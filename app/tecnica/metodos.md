@@ -10,7 +10,19 @@ Este documento técnico desglosa la maquinaria matemática que permite al Consej
     Base Teórica: Ecuaciones de Maxwell discretizadas, Control Port-Hamiltoniano (PHS) y Física de Semiconductores.
     Componentes: flux_condenser.py, neuromorphic_solver.py, Firmware ESP32 (telemetry.h). El Guardián no lee bits; procesa un fluido de información con propiedades físicas (Energía, Resistencia, Inercia).
 
-1.1 Filtrado Topológico y Descomposición de Hodge-Helmholtz Discreta ($L_1$) El Guardián no procesa el archivo línea por línea; somete la cadena de suministro al Cálculo Exterior Discreto (DEC). El operador $\Delta_1 = B_1^T B_1 + B_2 B_2^T$ divide el tensor de flujo de materiales de manera ortogonal en:
+1.1 Propagador de de Rham, de Rham-Hodge y Causalidad de Kramers-Kronig
+El sistema incorpora la resolución de la ecuación de Poisson generalizada sobre el Laplaciano del Haz Celular $L_F = \delta^\top G^{-1} \delta$, definiendo la Función de Green estática como la pseudoinversa de Moore-Penrose estable, la cual satisface de forma exacta:
+$$L_F G L_F = L_F \quad \wedge \quad G \cdot \mathbf{1} = \mathbf{0}$$
+Para el análisis transitorio y el régimen dinámico bajo excitación, se integra el propagador retardado causal en el plano-S complejos:
+$$G_F(s) = (L_F - (s + j \cdot h) I_n)^{-1}$$
+Donde $h = 10^{-20}$ representa el paso imaginario infinitesimal de la diferenciación por paso complejo (CSMD). Este transporte en la frecuencia compleja queda subyugado rigurosamente al cumplimiento de las relaciones de dispersión de Kramers-Kronig (transformada de Hilbert):
+$$\operatorname{Re}(G_F(\omega)) = \frac{1}{\pi} \mathcal{P} \int_{-\infty}^{\infty} \frac{\operatorname{Im}(G_F(\omega'))}{\omega' - \omega} d\omega'$$
+$$\operatorname{Im}(G_F(\omega)) = -\frac{1}{\pi} \mathcal{P} \int_{-\infty}^{\infty} \frac{\operatorname{Re}(G_F(\omega'))}{\omega' - \omega} d\omega'$$
+Asimismo, el Soberano de Calibre audita síncronamente los residuos de autoadjunción y nulidad del kernel para instrumentar la Coherencia de de Rham:
+$$r_{\text{adj}} = \| G - G^\top \|_F \le 1.0 \times 10^{-11} \quad \wedge \quad r_{\text{kernel}} = \| G \cdot \mathbf{1} \|_2 \le 1.0 \times 10^{-11}$$
+Cualquier polo dinámico $p_i$ que migre al semiplano derecho de Laplace (RHP / LHP, $\operatorname{Re}(p_i) \ge 0$) es vetado asintóticamente en el milisegundo cero, impidiendo la divergencia paramétrica en el lazo.
+
+1.2 Filtrado Topológico y Descomposición de Hodge-Helmholtz Discreta ($L_1$) El Guardián no procesa el archivo línea por línea; somete la cadena de suministro al Cálculo Exterior Discreto (DEC). El operador $\Delta_1 = B_1^T B_1 + B_2 B_2^T$ divide el tensor de flujo de materiales de manera ortogonal en:
 
     Campo de Gradiente Puro ($f_{grad}$): La información estructurada útil (flujo laminar) que la membrana permite pasar hacia el estrato Táctico.
     Campo Rotacional ($f_{curl}$): El "Vórtice Logístico" (transporte en bucle parasitario) queda aniquilado matemáticamente. El Guardián extrae esta componente solenoidal ($f_{curl} \in im(B_2)$) para vetar la ineficiencia logística en la raíz y entregar un flujo logístico no viscoso al sistema de decisiones.
