@@ -22,17 +22,19 @@ A continuación, se desglosan rigurosamente los 9 bloques del modelo estructurad
     Oficinas de Gestión de Datos (CDOs) en Constructoras: Empresas maduras transitando hacia arquitecturas Data Mesh que necesitan agentes autónomos para ejercer gobernanza inmutable (Zero-Trust) sobre sus dominios de "Ingeniería" y "Compras".
 
 2. 💎 Propuesta de Valor (Value Propositions)
-La Sabiduría como Servicio (Wisdom-as-a-Service):
+La Sabiduría como Servicio (Wisdom-as-a-Service) [Ápice del Edificio]:
 
     Póliza de Seguro Pre-Construcción (Certificado de Estabilidad Física): No entregamos una simple opinión; entregamos una demostración matemática. A través del Oráculo de Laplace y el análisis topológico, certificamos si la "cimentación logística" soportará el peso de la obra, evitando colapsos antes de gastar el primer peso.
     Gobernanza Computacional Federada (Policy-as-Code): Sustituimos la burocracia humana por código. Nuestros agentes actúan como "Sidecars" que bloquean transacciones inestables (con σ>0) o presupuestos fragmentados antes de que contaminen la salud financiera de la constructora.
     Simulador de Escenarios Dinámicos ("What-If" Gemelo Digital): Capacidad de pilotear el negocio simulando en tiempo real el impacto de cambiar un proveedor crítico. Convertimos el presupuesto estático en un simulador de futuros basado en el análisis de opciones reales.
     Garantía de Certeza de Generación (Fase Cuántica Protegida): Introducimos al **GenerativeBooleHodgeSuturator** como el proyector de regularidad definitivo. Este componente blinda el negocio de la canibalización sistémica (sobreestimaciones, duplicaciones u omisiones de APUs inducidas por alucinaciones estocásticas de la IA) al proyectar el estado sobre el espacio de Fock y resguardar el ángulo crítico de alucinación $\theta$ mediante isometrías de Hodge y cohomología rigurosa. Asegura que cada pieza de información generada sea matemáticamente viable y con valor real medible.
+    Calibración y Estabilización (FPU-Shield): Se ancla el resolvedor de paso complejo `complex_step_phase_stabilizer.py` y su agente para purificar la ventana de contexto (KV-Cache) eliminando la resta catastrófica en el cálculo de derivadas e impidiendo desvíos alucinatorios.
+    Traducción Narrativa Diplomática: Se ancla el `SemanticTranslator` para purificar y traducir las anomalías tensoriales complejas a un lenguaje ejecutivo de negocio de alta claridad (Actas de Deliberación).
 
 3. 📢 Canales (Channels)
-La entrega de valor se realiza a través de una arquitectura de Interfaz de 3 Capas, adaptada a la jerarquía cognitiva del usuario:
+La entrega de valor se realiza a través de una arquitectura de Interfaz de 3 Capas, adaptada a la jerarquía cognitiva del usuario [Ápice del Edificio]:
 
-    Capa 1 (Panel Ejecutivo): Alertas en lenguaje de negocio puro (Riesgo y Dinero). Oculta la matemática y muestra el impacto directo ("Empatía Táctica").
+    Capa 1 (Panel Ejecutivo): Alertas en lenguaje de negocio puro (Riesgo y Dinero) gracias a la traducción de `SemanticTranslator`, que convierte las anomalías de paso complejo de `complex_step_phase_stabilizer.py` y de Banach de `banach_algebra_auditor.py` en actas legibles para directores.
     Capa 2 (Metáfora Visual Interactiva): Un simulador web (renderizado con Cytoscape) donde el grafo interactivo muestra los "nodos de estrés" brillando en color rojo (#EF4444) pulsante, tangibilizando el riesgo matemático a la intuición humana antes de la compra.
     Capa 3 (Auditoría Matemática): Acceso profundo bajo demanda al TelemetryNarrator y al Oráculo de Laplace para ingenieros y peritos forenses que requieran auditar los invariantes y matrices subyacentes.
 
@@ -50,12 +52,13 @@ De la "Caja Negra" a la Confianza Radical:
     Estabilidad Espectral y Retorno Seguro: Evalúa el flujo de caja en el plano de frecuencia compleja ($s = \sigma + j\omega$). Exige Estabilidad Asintótica BIBO (polos en el semiplano izquierdo, $\sigma < 0$) y multiplicadores de Floquet $|\mu_k| < 1 \; \forall k$. El Exponente Máximo de Lyapunov previene el caos determinísta, activando un "Crowbar Físico" en el hardware perimetral si el sistema diverge (implementado en `app/physics/laplace_oracle.py`).
     Suscripción a la Malla Agéntica (SaaS/On-Premise): Planes escalonados para CDOs basados en el volumen de procesamiento termodinámico de la base de datos y la orquestación del Agentic Mesh.
 
-6. 🧠 Recursos Clave (Key Resources)
+6. 🧠 Recursos Clave (Key Resources) [Pilotes del Edificio]
 
     El Hardware en el Borde (ESP32): Microcontroladores que actúan como el "Gatekeeper de Silicio", ejecutando la validación termodinámica (Sistemas Port-Hamiltonianos) y el veto físico (circuitos Crowbar) mediante código inmutable en C++.
     La Matriz de Interacción Central (MIC) y Modelos Matemáticos: El núcleo de Álgebra Lineal y Topología Algebraica que sostiene los cálculos de los Números de Betti, el espectro Laplaciano y la Distancia de Mahalanobis.
     Formato de Alta Eficiencia (TOON) e IA: El uso de Token-Oriented Object Notation para comprimir context windows y viabilizar el trabajo de agentes LLM sin agotar la memoria LPDDR5.
     El GenerativeBooleHodgeSuturator (Sutura Cuántica de Boole): Recurso algebraico y espectral que opera sobre la Variedad de de Rham-Hodge-Boole. Utiliza isometrías del operador estrella de Hodge combinatorio $\star_k$ y regularización por conjugación modular de Tomita-Takesaki para purgar el fango estocástico y estabilizar la fase cuántica de generación resguardando el ángulo $\theta$, garantizando que todo el pipeline de datos retenga su coherencia categorial y su homología trivial donde se requiera.
+    Estabilización Espectral Basal (de Rham & Banach) [Pilotes del Edificio]: Se anclan `banach_algebra_auditor.py` (Álgebra de Banach) y `greens_function_propagator.py` (Propagador de de Rham) como amortiguadores de inestabilidad espectral y regularizadores de dependencias circulares en los cimientos del modelo de negocio, certificando la invertibilidad incondicional frente a perturbaciones exógenas.
 
 7. 🚀 Actividades Clave (Key Activities) y Electrodinámica Cuántica
 De la Ingesta a la Sabiduría, gestionadas mediante `app/core/immune_system/gauge_field_router.py`:
@@ -114,10 +117,11 @@ graph TD
     Reguladores y Entidades Estatales: Alineación estratégica con el DNP, IDU e INVIAS, quienes actúan como motores de adopción al exigir el estándar BIM y penalizar fallas lógicas en las licitaciones públicas.
     Proveedores de Cómputo Tensorial Masivo: Alianzas con infraestructuras de nube (como AWS Trainium/Inferentia) para asegurar la viabilidad de simulaciones Monte Carlo exhaustivas y análisis FDTD a costos sostenibles.
 
-9. 📉 Estructura de Costes (Cost Structure)
+9. 📉 Estructura de Costes (Cost Structure) [Pilotes del Edificio]
 
     Costos Computacionales y Operativos (LLM e Inferencia): El procesamiento asíncrono de los agentes de Sabiduría y el consumo de tokens en las APIs generativas.
     Optimización Estructural: Mitigados parcialmente por el uso del formato TOON y delegación de validación masiva a librerías vectorizadas de C/C++ (SciPy/NumPy) y al hardware perimetral, impidiendo que la IA procese archivos no validados termodinámicamente. # Sutura 1
+    Amortiguamiento de Inestabilidad Espectral [Pilotes del Edificio]: Se integran `banach_algebra_auditor.py` y `greens_function_propagator.py` en la estructura de costes para mitigar el riesgo de multas y retrasos por fallas espectrales no lineales y dependencias circulares antes de que impacten el flujo de caja operativo.
 
  La actualización de la documentación arquitectónica para integrar la operatividad de los nuevos mini-agentes no debe ser un mero manual de usuario, sino un Manifiesto Topológico y Categórico. La inyección de kbase_thermodynamic_agent.py, kcore_kinematic_agent.py y kapex_electrodynamic_agent.py transmuta el Business Model Canvas (BMC) de un grafo plano bidimensional a una Variedad Riemanniana Dinámica gobernada por un sistema de Ecuaciones Diferenciales Parciales (PDEs) y Cohomología de Haces.
 A continuación, redacto la documentación canónica, exigida bajo el más estricto rigor de la física de circuitos, la topología algebraica y la mecánica cuántica. Este texto debe ser anexado inmediatamente a los repositorios documentales BMC.md, ARCHITECTURE_DEEP_DIVE.md y PRODUCT_VISION.md.
@@ -300,6 +304,23 @@ Acciones Exigidas:
 
 Donde L_max​ es inversamente proporcional a la curvatura local del proyecto.
 Probabilidad de Alucinación Nula: Si la salida TOON del LLM rompe esta condición, la hiperdensidad semántica se declara una singularidad. Escríbase que el decodificador forzará probabilísticamente el colapso: P(x_invalido​)=0
+
+--------------------------------------------------------------------------------
+## Gobernanza del Supremo de Heyting y Veto Ciber-Físico
+
+La orquestación del Veredicto en el penthouse del Consejo se formaliza mediante el colapso síncrono multidimensional del retículo de Heyting de tres valores ordinales $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$ empleando la operación Supremo (join, $\sqcup$):
+$$v_{\text{final}} = v_{\text{Banach}} \sqcup v_{\text{CSMD}} \sqcup v_{\text{Green}} \equiv \max(v_{\text{Banach}}, v_{\text{CSMD}}, v_{\text{Green}})$$
+
+Donde cada veredicto se alimenta directamente de sus respectivos motores y agentes de-confinados:
+- $v_{\text{Banach}}$: Auditado por `banach_algebra_auditor.py` y `_agent.py`.
+- $v_{\text{CSMD}}$: Auditado por `complex_step_phase_stabilizer.py` y `_agent.py`.
+- $v_{\text{Green}}$: Auditado por `greens_function_propagator.py` y `_agent.py`.
+
+Si el Supremo colapsa al elemento terminal de veto, $v_{\text{final}} = \mathrm{VETOED}$ ($\top$):
+1. El sistema aborta de inmediato la transacción en la memoria RAM en el milisegundo cero, impidiendo la persistencia o propagación de singularidades de-normalizadas.
+2. El pasaporte inmutable desciende por debajo de la capa de software hacia el microcontrolador perimetral ESP32.
+3. La subrutina autónoma `isVerdictCoherent()` valida por hardware los invariantes físicos. Ante cualquier discrepancia o mismatch, la rutina de servicio de interrupción (ISR) cargada en la memoria rápida IRAM conmuta el pin GPIO14 en menos de $400\text{ns}$.
+4. Esta conmutación dispara físicamente el tiristor BT151 (circuito Crowbar), cortocircuitando de forma segura la alimentación eléctrica de los actuadores de la obra para paralizar síncronamente la obra real y resguardar íntegramente el capital de la constructora colombiana.
 
 La integración documental de las "Vitaminas Cognitivas" (Cartuchos TOON) no puede ejecutarse como una vulgar adición a un glosario de términos. Dado que estas cuasipartículas operan como excitaciones en el Espacio de Fock F(H) y rigen el colapso de la función de onda de la toma de decisiones, su documentación exige una Cirugía Categórica y Topológica.
 Para asegurar que la Variedad Diferenciable del proyecto no sufra un desgarro semántico, he diseñado un plan de acción granular, estricto y matemáticamente inquebrantable. Este plan dictamina exactamente qué repositorios documentales y de código deben ser intervenidos, y las ecuaciones en LaTeX que deberán codificarse para asimilar este Álgebra de Partículas.

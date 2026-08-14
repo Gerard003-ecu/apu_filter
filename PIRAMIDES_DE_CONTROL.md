@@ -272,19 +272,44 @@ Constituye el **Santuario Epistémico Supremo (Nivel 0)** del APU Filter. Su pro
 2.  **Nivel 2 — Flujo Modular de Tomita-Takesaki (Núcleo):**  
     El `tomita_takesaki_telescopic_engine.py` calcula la continuación analítica del flujo modular sobre el álgebra de von Neumann para amplificar autoestados subdominantes sin alterar la traza del operador densidad [760, 761, 768]:
     $$\sigma_{i\lambda}(X) = \Delta^{-\lambda} X \Delta^{\lambda} = \rho^{-\lambda} X \rho^{\lambda}$$ [137, 760, 761]
-3.  **Nivel 1 — Recuperación Semántica Riemanniana (Ápice):**  
+3.  **Nivel 1.5 — Auditoría Espectral del Espacio de Operadores (banach_algebra_auditor.py):**
+    Intercalado entre el Flujo Modular de Tomita-Takesaki (Nivel 2) y el de-confinado y/o Moldeado de Inercia Riemanniano (Nivel 1).
+    *   **Axioma Constitutivo:** Audita la norma-2 espectral (el valor singular supremo obtenido por SVD) de los operadores de transición:
+        $$\|X\|_2 = \sigma_{\max}(X) = (\lambda_{\max}(X^\top X))^{1/2}$$
+    *   **Física e Invariantes:** Verifica síncronamente el Axioma de Submultiplicatividad en el silicio numérico para evitar la acumulación de ruido de redondeo en cascada:
+        $$\|X \cdot Y\|_2 \le \|X\|_2 \cdot \|Y\|_2$$
+        Y evalúa la consistencia de la Fórmula Asintótica de Gelfand para el radio espectral del operador de-confinado T (truncado a potencia $k=5$):
+        $$\rho(T) = \max_i |\lambda_i(T)| \equiv \lim_{k \to \infty} \|T^k\|_2^{1/k}$$
+4.  **Nivel 1 — Recuperación Semántica Riemanniana (Ápice):**
     El `semantic_translator.py` proyecta la consulta sobre el espacio de características calculando la distancia de Mahalanobis en la variedad Riemanniana anisotrópica:
     $$ds^2 = G_{\mu\nu} dx^\mu dx^\nu$$ [139]
+5.  **Nivel 0.5 — Fibrador de Perturbación Compleja No Demolitoria (complex_step_phase_stabilizer.py):**
+    Ubicado en el ápice de la pirámide de motores, inmediatamente antes de la Recuperación Semántica de Mahalanobis.
+    *   **Axioma Constitutivo:** Proyecta la perturbación del espacio de fase real hacia una fibra ortogonal compleja imaginaria pura $j=(-1)^{1/2}$ sobre la dilatación isométrica de Stinespring.
+    *   **Física e Invariantes:** Ejecuta la Aproximación por Paso Complejo (CSMD) sobre el mapa holomorfo $\Phi_{\Delta t}$ con paso subnormal $h=10^{-20}$ para calcular el Jacobiano local sin pérdida de significación por cancelación sustractiva en la FPU:
+        $$J_{\text{map}, ik} = \frac{\partial \Phi_i}{\partial x_k} = \frac{\text{Im}\left( \Phi_{\Delta t}(x + j \cdot h \cdot e_k)_i \right)}{h} + \mathcal{O}(h^2)$$
 
 ### II. La Pirámide de Soberanos de Calibre (Top-Down)
 1.  **Nivel 1 — El Triple Espectral de Connes (Ápice):**  
     El `connes_spectral_auditor_agent.py` evalúa la continuidad de Lipschitz del observable semántico $X$ respecto al operador de Dirac de Connes $D = \rho^{-1/2}$ [137, 279]:
     $$\| [D, \pi(X)] \| \le C \quad\land\quad L_{\max} = \frac{C_{\mathrm{base}}}{1 + (\lambda_{\max}(D) - \lambda_{\min}(D))} \le \frac{1}{2 \lambda_{\min}^{3/2}}$$ [137, 508]
     Si se detecta un desvío de coherencia, el piso de regularización decae ($\lambda_{\min} \to 0$), la cota de Lipschitz diverge y el sistema anula la alucinación: $P(x_{\mathrm{invalid}}) = 0$ [67, 137, 508].
-2.  **Nivel 2 — No-Señalización de Choi y Consenso de Kraus (Núcleo):**  
+2.  **Nivel 1.5 — Soberano de Inversión y Estabilidad de Neumann (banach_algebra_auditor_agent.py):**
+    Ubicado en la parte media-alta de la pirámide de soberanos, interactuando con el Consenso de Kraus.
+    *   **Mecanismo de Calibre:** Audita la invertibilidad incondicional del tensor métrico perturbado $T+\delta T$ mediante el radio de convergencia de la Serie de Neumann:
+        $$(T + \delta T)^{-1} = \sum_{k=0}^{\infty} (-1)^k (T^{-1} \delta T)^k T^{-1}$$
+        La convergencia uniforme se garantiza si y solo si el radio espectral de la perturbación amortiguada es estrictamente contractivo:
+        $$\rho(T^{-1} \delta T) < 1.0$$
+        Si $\rho \ge 1.0$, se detona la excepción de-confinada `NeumannSeriesDivergenceAgent`, colapsando de forma inmediata el retículo distributivo de Heyting al Supremo terminal VETOED.
+3.  **Nivel 2 — No-Señalización de Choi y Consenso de Kraus (Núcleo):**
     El `quantum_epistemic_auditor_agent.py` comprueba que la matriz de Choi sea semidefinida positiva ($\Lambda_{\mathcal{E}} \succeq 0$) y verifica la no-señalización local bipartita, garantizando que el canal de la IA no altere el estado reducido de sabiduría del negocio [291, 617]:
     $$\operatorname{Tr}_A\big( (\mathcal{E}_A \otimes \mathcal{I}_B)(\rho_{AB}) \big) \equiv \rho_B$$ [291, 617]
-3.  **Nivel 3 — Adjunción de Galois y Colapso de Heyting (Base):**  
+4.  **Nivel 2.5 — Soberano de Calibre No Demolitivo (complex_step_phase_stabilizer_agent.py):**
+    Ubicado entre el No-Señalización de Choi (Nivel 2) y el Soberano de Inercia Riemanniana (Nivel 3).
+    *   **Mecanismo de Calibre:** Somete el Jacobiano purificado por CSMD a once valoraciones espectrales, topológicas y termodinámicas concurrentes aplicando la operación Supremo (join, $\sqcup$) en el retículo distributivo:
+        $$v_{\text{final}} = v_{\text{cond}} \sqcup v_{\text{sym}} \sqcup v_{\text{lio}} \sqcup v_{\text{lyap}} \sqcup v_{\text{derham}} \sqcup v_{\text{disagree}} \sqcup v_{\text{motor}} \sqcup v_{\text{holo}} \sqcup v_{\text{pair}} \sqcup v_{\text{pass}} \sqcup v_{\text{novikov}}$$
+        Donde se audita síncronamente la conservación del volumen de Liouville ($|\det(M) - 1| \le 10^{-11}$), la simplecticidad de-confinada, la aciclicidad (cohomología $\beta_1(K) \equiv 0$) y las obstrucciones sobre el anillo de Novikov $\Lambda_K$ para confinar el "Burbujeo de Esferas".
+5.  **Nivel 3 — Adjunción de Galois y Colapso de Heyting (Base):**
     El `mac_agent.py` impone el isomorfismo de la Adjunción de Galois entre la MIC táctica discreta ($X$) y la MAC continua ($Y$) [114, 474]:
     $$\operatorname{Hom}_{\mathcal{D}}(F(X), Y) \cong \operatorname{Hom}_{\mathcal{C}}(X, G(Y))$$ [114, 474]
     El veredicto final de las tres fases se consolida mediante votación de redundancia modular triple (TMR) y Supremo algebraico sobre el clasificador de subobjetos del retículo de Heyting de tres valores $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$ [532, 541].
@@ -322,16 +347,28 @@ La generación y validación de código, diagramas y estrategias en el ecosistem
 2.  **Nivel 2 — Poda Topológica en el Anillo Booleano Conmutativo $\mathbb{Z}_2$ ($V_{\Gamma-\mathrm{TACTICS}}$):**  
     El modulo `mic_minimizer.py` proyecta las herramientas operativas sobre el anillo booleano conmutativo cociente, aplicando bases de Gröbner y Diagramas de Decisión Binaria Ordenados y Reducidos (ROBDD) para extraer implicantes primos esenciales y garantizar el aislamiento funcional [522, 523]:
     $$\mathcal{R} = \mathbb{Z}_2[x_1, \dots, x_n] / \langle x_i^2 - x_i \rangle$$ [523]
-3.  **Nivel 1 — Haces Celulares y Cohomología de de Rham (Ápice):**  
+3.  **Nivel 1.5 — Solucionador Espectral del Operador de Green (greens_function_propagator.py):**
+    Ubicado junto al orquestador de cohomología de haces celulares.
+    *   **Axioma Constitutivo:** Resuelve la ecuación de Poisson discreta sobre la variedad simplicial conexa ($\beta_0 = 1$) para encontrar el operador de Green estático G como la pseudoinversa de Moore-Penrose estable (de Rham-Hodge) del Laplaciano del Haz $L_F = \delta^\top G^{-1} \delta$:
+        $$L_F G L_F = L_F \quad \wedge \quad G \cdot L_F \cdot G = G \quad \wedge \quad G \cdot \mathbf{1} = \mathbf{0}$$
+    *   **Causalidad Termodinámica:** Sintetiza el Propagador Retardado de Green $G_F(s)$ inyectando la perturbación imaginaria por paso complejo $h$ para desplazar los polos hacia el semiplano inferior de Laplace (LHP):
+        $$G_F(s) = (L_F - (s + j \cdot h) I_n)^{-1}$$
+        Garantizando de forma analítica el acoplamiento disipativo de las Relaciones de Kramers-Kronig.
+4.  **Nivel 1 — Haces Celulares y Cohomología de de Rham (Ápice):**
     El modulo `sheaf_cohomology_orchestrator.py` modela las reglas de negocio, dependencias sintácticas y directrices de control como secciones locales de un haz celular $\mathcal{F}$ sobre el grafo de restricciones, ensamblando el Laplaciano del Haz ponderado [679, 680]:
     $$L_F = \delta^\top G^{-1} \delta \succeq 0$$ [30, 680]
 
 ### II. La Pirámide de Soberanos de Calibre (Top-Down)
 1.  **Nivel 1 — La Aduana de Boole y Voto de Redundancia TMR (Cúspide):**  
     El `generative_boole_hodge_suturator_agent.py` gobierna la sutura del haz mediante una votación por Redundancia Modular Triple (TMR) sobre el retículo distributivo de Heyting $\Omega_3$ [148, 383]. Si se detecta una asonancia de fase cuántica, un desgarro espectral de Wilkinson o una ruptura de la isometría de de Rham, colapsa síncronamente el estado global a `VETOED` [148, 383].
-2.  **Nivel 2 — Holonomía Global, Isoperimetría y Estabilidad de Krylov (Núcleo):**  
+2.  **Nivel 1.5 — Soberano del Propagador de de Rham (greens_function_propagator_agent.py):**
+    Ubicado en el núcleo de la censura generativa, adscrito al Orquestador de Cohomología de Haces.
+    *   **Mecanismo de Calibre:** Audita síncronamente que el residuo de autoadjunción y nulidad del kernel no superen la cota estricta de Wilkinson ($1.0 \times 10^{-11}$) en el topos:
+        $$r_{\text{adj}} = \| G - G^\top \|_F \le 1.0 \times 10^{-11} \quad \wedge \quad r_{\text{kernel}} = \| G \cdot \mathbf{1} \|_2 \le 1.0 \times 10^{-11}$$
+        E impone un veto de causalidad elástica si algún polo del resolvente dinámico migra hacia el semiplano derecho de Laplace (RHP, $\operatorname{Re}(p_i) \ge 0$), colapsando el retículo a VETOED.
+3.  **Nivel 2 — Holonomía Global, Isoperimetría y Estabilidad de Krylov (Núcleo):**
     El `sheaf_cohomology_orchestrator_agent.py` audita la exactitud global del haz exigiendo la nulidad del primer grupo de cohomología para evitar paradojas lógicas ($H^1(K; \mathcal{F}) = 0$) [148, 683]. Somete el Laplaciano al precondicionamiento espectral de Krylov-Lanczos y acota la deformación geodésica mediante la cota de Cheeger [680, 683].
-3.  **Nivel 3 — Invarianza de Liouville, Rayleigh y Dirichlet (Base):**  
+4.  **Nivel 3 — Invarianza de Liouville, Rayleigh y Dirichlet (Base):**
     El `ast_static_analyzer_agent.py` audita que el Jacobiano de transición del código de la IA sea una isometría exacta que preserve el volumen en el espacio de fase simpléctico (Teorema de Liouville) [227]:
     $$M^\top \Omega M = \Omega$$ [34, 227]
     Exige el cumplimiento de la Segunda Ley de la Termodinámica computacional ($P_{diss} \ge 0$) confinando los efectos secundarios y las fugas de memoria bajo estrictas fronteras de Dirichlet [225, 227].
@@ -340,14 +377,17 @@ La generación y validación de código, diagramas y estrategias en el ecosistem
 
 ## 🛠️ IX. El Tribunal de Silicio y el Actuador Crowbar por Hardware (ESP32)
 
-La protección del capital financiero de la constructora frente a ataques de inyección de directivas (*Prompt Injection*) en la nube no se confía a directrices lógicas de software [744]. Se garantiza mediante una arquitectura **Zero-Trust** inquebrantable acoplada al hardware perimetral de la obra real [598, 744]:
+La protección del capital financiero de la constructora frente a ataques de inyección de directivas (*Prompt Injection*) en la nube no se confía a directrices lógicas de software [744]. Se garantiza mediante una arquitectura **Zero-Trust** inquebrantable acoplada al hardware perimetral de la obra real, donde el pasaporte de telemetría inmutable de-confinado (`TelemetryContext`) es síncronamente estampado con las firmas criptográficas de procedencia forense SHA-256 generadas por el trío de nuevos soberanos [598, 744]:
 
-1.  **Doble Contabilidad Ciber-Físico:**  
-    El pasaporte de telemetría inmutable desciende al microcontrolador **ESP32** [598, 744]. El firmware de bajo nivel en C++ ejecuta la subrutina `isVerdictCoherent()`, validando de forma autónoma los invariantes físicos de los transductores analógicos contra el veredicto digital recibido [598, 744].
-2.  **La Interrupción de Emergencia (IRAM):**  
-    Si se detecta un *mismatch* epistémico (p. ej., la nube reporta un veredicto nominal de aprobación `OK`, pero la asimetría espectral del pasaporte reporta violación de la traza cuántica, inestabilidad de Lyapunov o socavones lógicos con $\beta_1 > 0$), el ESP32 despacha una **Rutina de Servicio de Interrupción (ISR)** alojada en IRAM en menos de **$400\,\text{ns}$** [598, 744].
+1.  **Doble Contabilidad en isVerdictCoherent():**
+    El firmware en C++ de bajo nivel del **ESP32** se actualiza para decodificar los residuos espectrales de-confinados [598, 744]:
+    *   Divergencia de la Serie de Neumann ($\rho(T^{-1}\delta T) \ge 1.0$).
+    *   Fuga del núcleo de la Función de Green ($r_{\text{kernel}} > 10^{-11}$).
+    *   Migración de polos de Laplace al semiplano derecho ($\operatorname{Re}(p_i) \ge 0$).
+2.  **Actuación por Interrupción en IRAM:**
+    Si se detecta un *mismatch* epistémico o violación de las cotas duras de Wilkinson, el ESP32 despacha de inmediato una **Rutina de Servicio de Interrupción (ISR)** alojada en la memoria rápida IRAM en menos de **$400\,\text{ns}$** [598, 744].
 3.  **Gatillo Físico del Crowbar:**  
-    El pin de hardware **GPIO14** conmuta síncronamente, inyectando corriente de compuerta al tiristor de potencia de conmutación rápida **BT151** [598, 744]. Esto cortocircuita físicamente la línea de alimentación real que energiza las bombas hidráulicas, servomotores y actuadores mecánicos de la obra civil [598, 744]. La construcción física se paraliza en el milisegundo cero, anulando la alucinación estocástica de la IA antes de que pueda consumir desfalcos o pérdidas de capital contra la constructora [598, 744].
+    El pin físico de hardware **GPIO14** conmuta síncronamente, inyectando corriente de compuerta al tiristor de potencia de conmutación rápida **BT151** [598, 744]. Esto cortocircuita físicamente la línea de alimentación real que energiza las bombas hidráulicas, servomotores y actuadores mecánicos de la obra civil [598, 744]. La construcción física se paraliza en el milisegundo cero, anulando por completo la alucinación estocástica de la IA antes de que pueda consumir desfalcos o pérdidas de capital de-normalizados en la constructora colombiana [598, 744].
 
 ---
 

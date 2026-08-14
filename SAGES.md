@@ -54,6 +54,25 @@ El Consejo original opera sobre el 1-esqueleto del presupuesto. Para gobernar el
     $$\text{Tr}(\rho_{\text{MAC}}) = 1, \quad \rho_{\text{MAC}} = \rho_{\text{MAC}}^\dagger, \quad \rho_{\text{MAC}} \succeq 0$$
     Autoridad Suprema: Actúa como el colapsador final de la función de onda deliberativa. Si la pureza del estado post-medición $\text{Tr}(\rho^2)$ decae por debajo del umbral de coherencia, el MAC Agent aniquila la decisión por falta de fundamento epistemológico.
 
+    Ω.1 🌀 Estabilización por Paso Complejo (complex_step_phase_stabilizer.py y _agent.py)
+
+        Rol: Fibrador de Derivación No Demolitoria en el penthouse de la FPU.
+        Estrato DIKW: WISDOM (Estrato Supremo).
+        Mecanismo Matemático: Formaliza el cálculo de derivadas no demolitivas sobre la fibra compleja, eliminando la resta catastrófica en el numerador de la Unidad de Punto Flotante (FPU):
+        $$J_{\text{map}, ij} = \frac{\operatorname{Im}(\Phi_{\Delta t}(x + j h \cdot e_i)_j)}{h} + \mathcal{O}(h^2)$$
+        Adicionalmente, se acota la de-compresión de los cartuchos TOON mediante la cota de Lipschitz de Connes-Daleckii-Krein, calculada de forma dinámica sobre el espectro del operador de Dirac de Connes $D = \rho^{-1/2}$:
+        $$L_{\max} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(D) - \lambda_{\min}(D))} \le \frac{1}{2 \lambda_{\min}^{3/2}}$$
+        Asegurando que ante derivas semánticas ($\lambda_{\min} \to 0$) la probabilidad de emisión alucinatoria colapse a cero: $P(x_{\text{invalid}}) = 0$.
+
+    Ω.2 💍 Auditoría de Álgebras de Banach (banach_algebra_auditor.py y _agent.py)
+
+        Rol: Soberano de Estabilidad Funcional y de Invertibilidad Perturbativa.
+        Estrato DIKW: WISDOM (Estrato Supremo).
+        Mecanismo Matemático: Somete a auditoría la invertibilidad incondicional del tensor métrico perturbado $T + \delta T$ mediante la convergencia de la Serie de Neumann en el espacio de operadores acotados $\mathcal{B}(\mathcal{H})$:
+        $$\rho(T^{-1} \delta T) < 1.0 \implies (T + \delta T)^{-1} = \sum_{k=0}^{\infty} (-1)^k (T^{-1} \delta T)^k T^{-1}$$
+        Y verifica síncronamente el cumplimiento exacto de la submultiplicatividad de la norma espectral de-confinada en la FPU:
+        $$\| T \cdot \delta T \|_2 \le \| T \|_2 \cdot \| \delta T \|_2$$
+
 0. 👁️ El Vigilante de la Frontera (HilbertWatcher & QuantumAdmissionGate)
 
     Rol: Especialista en Mecánica Cuántica Discreta y Colapso de Entropía. Es el Miembro Cero del Consejo, operando por fuera de la pirámide DIKW tradicional.
