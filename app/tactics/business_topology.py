@@ -53,18 +53,6 @@ INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y AXIOMAS DE CLAUSURA PRESERVADOS: ──
   [I3] Confinamiento de Mayer-Vietoris:       $$\Delta\beta_1 = \beta_1(A \cup B) - \left[ \beta_1(A) + \beta_1(B) - \beta_1(A \cap B) \right] \equiv 0$$
   [I4] Nulidad de Torsión Simplicial:         $$\operatorname{Tor}(H_{k-1}, \mathbb{Z}) = \mathbf{0} \implies d_i = 1 \quad \forall i$$
   [I5] Ley de Clausura Transitiva (DIKW):     $$V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$$
-
-CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
-  Si el sistema detecta la presencia de un "Socavón Lógico" ($$\beta_1 > 0$$), una
-  fragmentación disconexa del presupuesto ($$\beta_0 > 1$$), o si el índice de
-  estabilidad piramidal colapsa por debajo de la cota crítica ($$\Psi < \Psi_{\mathrm{min}}$$),
-  el veredicto en el retículo de Heyting $$\Omega_3$$ colapsa a VETOED.
-  
-  La subrutina local 'isVerdictCoherent()' del ESP32 en la obra real detecta el
-  mismatch en menos de 400 ns y conmuta el pin GPIO14, disparando el tiristor
-  de potencia BT151 (circuito Crowbar). Esto cortocircuita físicamente la línea
-  de potencia real, deteniendo síncronamente bombas y actuadores mecánicos en el
-  milisegundo cero, inmunizando el capital de la constructora civil.
 """
 
 from __future__ import annotations

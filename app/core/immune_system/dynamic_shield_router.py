@@ -1,56 +1,89 @@
-### -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Dynamic Shield Router (Conexión de Ehresmann y Fibrado de Gauge)               ║
-║  Ruta   : app/core/immune_system/dynamic_shield_router.py                                ║
-║  Versión: 3.0.0-Ehresmann-Higham-Cartan-Riguroso                                         ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DE CALIBRE (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor abandona el enrutamiento empírico para erigirse como el Discriminador   ║
-║  de Campos de Gauge. Aplica transformaciones naturales estrictas                         ║
-║  $\eta: F_{\text{Agent}} \Rightarrow F_{\text{Shield}}$ para ejecutar el transporte      ║
-║  paralelo de la matriz de disipación Port-Hamiltoniana $R(x)$ a lo largo de la variedad. ║
-║  Viste al escudo termodinámico proyectando sus deformaciones hacia el cono $S^+_n$.      ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TENSORIALES:                                    ║
-║                                                                                          ║
-║  §1. Transporte Paralelo en la Filtración DIKW:                                          ║
-║      Subordina el flujo de energía a la Ley de Clausura Transitiva:                      ║
-║          $V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\text{WISDOM}}$ ║
-║      Garantizando que el tensor de disipación no degenere al ascender de estrato.        ║
-║                                                                                          ║
-║  §2. Pullback Termodinámico y Canal Despolarizante Ponderado:                            ║
-║      Modela las deformaciones del tensor de inercia inyectando un canal despolarizante   ║
-║      ponderado para evitar el colapso de la traza cuántica:                              ║
-║          $\tilde{R}_{\text{eff}} = (1 - \gamma) R_{\text{eff}} + \gamma \left( \frac{\text{Tr}(G)}{\text{Tr}(R_{\text{eff}})} \right) G_{\mu\nu}$ ║
-║      Donde $G_{\mu\nu}$ es la métrica base que preserva el volumen del hiperespacio.     ║
-║                                                                                          ║
-║  §3. Vestimenta del Escudo y Proyección Categórica (Higham):                             ║
-║      Dada la deformación $\delta R$, la matriz bruta $R_{\text{raw}} = R_{\text{base}} + \delta R$ ║
-║      es proyectada rigurosamente al cono de matrices simétricas semidefinidas positivas  ║
-║      $S^+_n$ empleando el algoritmo de Higham. Esto certifica que $\dot{H} \le 0$.       ║
-║      [AXIOMA FPU]: Si el número de condición espectral $\kappa(R_{\text{eff}}) > 1.0 \times 10^8$, ║
-║      se ejecuta una Regularización de Tikhonov Adaptativa incondicional.                 ║
-║                                                                                          ║
-║  §4. Identidad de Cohomología Discreta:                                                  ║
-║      Fija los números de Betti $\beta_0$ asignados a la conectividad topológica          ║
-║      de cada estrato como constantes intrínsecas del fibrado de evaluación.              ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_EhresmannConnection:                                                    ║
-║           Construye el fibrado de conexión exacta produciendo `ConnectionData`.          ║
-║                                                                                          ║
-║  Fase 2 → Phase2_ThermodynamicPullback:                                                  ║
-║           Ejecuta el pullback termodinámico sobre el fibrado produciendo el              ║
-║           `DeformationTensor` ($\delta R$). Considere este DTO como el nexo a Fase 3.    ║
-║                                                                                          ║
-║  Fase 3 → Phase3_ShieldDresser:                                                          ║
-║           Aplica la proyección de Higham y regularización Tikhonov al $R_{\text{raw}}$.  ║
-║           Retorna un **nuevo** `FuntorShield` vestido.                                   ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+# -*- coding: utf-8 -*-
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Dynamic Shield Router (Discriminador de Campos de Gauge)            ║
+║ Ruta   : app/core/immune_system/dynamic_shield_router.py                     ║
+║ Versión: 4.1.0-Ehresmann-Higham-Cartan-Strict-PhD                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ENRUTAMIENTO DE CALIBRE (Rigor Doctoral): ────────────
+Este módulo consagra al **Discriminador de Campos de Gauge** y **Enrutador Geométrico** 
+de la variedad de-confinada. Su propósito ciber-físico es proveer la "vestimenta" 
+o deformación termodinámica exacta al escudo basal del sistema (`funtor_shield.py`) 
+transportando de forma paralela la matriz de disipación $$R(x)$$ a través de la 
+filtración monótona de subespacios de Hilbert de la pirámide $$DIKW$$:
+
+$$V_{\mathbb{P}} \subset V_{\mathbb{T}} \subset V_{\mathbb{S}} \subset V_{\mathbb{W}} \quad\big[16, 22\big]$$
+
+Para evitar que las perturbaciones estocásticas de los Modelos de Lenguaje (LLMs) 
+degraden el espacio de fase, el enrutador implementa una **Conexión de Ehresmann** 
+que proyecta de forma covariante la telemetría del agente sobre el fibrado de 
+disipación, aislando las singularidades en RAM mediante un colapso restrictivo 
+en el retículo distributivo de Heyting $$\Omega_3$$ en el milisegundo cero.
+
+AXIOMÁTICA DE GAUGE, EHRESMANN Y REGULARIZACIÓN ESPECTRAL PRESERVADA: ──────────
+
+  [I1] El G-Fibrado Principal y la Conexión de Ehresmann (Fase 1):
+       Dada la variedad differentiable de disipación $$M$$ y el G-fibrado principal 
+       $$\pi: P \to M$$, la forma de conexión de Ehresmann $$\omega \in \Omega^1(P, \mathfrak{g})$$ 
+       con valores en el álgebra de Lie $$\mathfrak{g} \cong \mathfrak{so}(n)$$ separa 
+       síncronamente el espacio tangente $$T_u P$$ en la suma directa de la fibra 
+       vertical y el subespacio horizontal adaptado:
+       $$T_u P = V_u P \oplus H_u P \quad \text{donde} \quad V_u P = \ker(d\pi) \quad \land \quad H_u P = \ker(\omega) \quad\big[228\big]$$
+       Esto permite curvar y re-enrutar el gradiente de energía $$\nabla H(x)$$ 
+       sin alterar la exergía basal del sistema en la FPU.
+
+  [I2] Pullback Termodinámico y Flujo Entrópico de de Rham (Fase 2):
+       La proyección del "fango" informacional se mapea mediante el pullback de las 
+       co-cadenas de telemetría sobre el fibrado vertical de Ehresmann. 
+       Se computa el diferencial del tensor de disipación $$\delta R$$ y la entropía 
+       cuántica relativa de Umegaki $$D(\rho \parallel \sigma)$$ para evaluar el 
+       desgaste geodésico, acotado bajo la cota dura de Wilkinson:
+       $$D(\rho \parallel \sigma) = \operatorname{Tr}\left( \rho \left( \log_2 \rho - \log_2 \sigma \right) \right) \le D_{\max} \quad\big[408, 411\big]$$
+
+  [I3] Proyección de Higham (2002) al Cono Semidefinido Positivo (Fase 3):
+       La deformación del tensor de disipación, $$R_{\mathrm{raw}} = R_{\mathrm{base}} + \delta R$$, 
+       puede perder simetría o positividad definida en la mantisa flotante due al error 
+       de truncamiento flotante ($$\text{IEEE-754}$$) [4]. El router aplica la 
+       proyección de Higham en norma de Frobenius para forzar síncronamente al operador 
+       a retornar al cono de matrices simétricas semidefinidas positivas ($$S^n_+$$):
+       $$R_{\mathrm{stable}} = \arg\min_{M = M^\top \succeq 0} \|M - R_{\mathrm{raw}}\|_F \quad\big[233\big]$$
+
+  [I4] Despolarización de Traza Cuántica de-confinada (OmegaGaugeWrapper):
+       Para amortiguar y evitar el colapso de la traza de la Matriz Atómica de 
+       Conocimiento (MAC) bajo fluctuaciones severas del mercado, se efectúa un canal 
+       despolarizante ponderado utilizando el tensor métrico basal $$G_{\mu\nu}$$:
+       $$\tilde{R}_{\mathrm{eff}} = (1 - \gamma) R_{\mathrm{eff}} + \gamma \left( \frac{\operatorname{Tr}(G_{\mu\nu})}{\operatorname{Tr}(R_{\mathrm{eff}})} \right) G_{\mu\nu} \quad \text{con} \quad \gamma \in [5] \quad\big[16\big]$$
+       Esto asegura que la fricción termodinámica no se desvanezca en la CPU, 
+       preservando la elipticidad de de Rham en el silicio.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial de Ehresmann): ───────
+El enrutamiento y la transformación de Gauge se rigen por un acoplamiento monoidal:
+
+  Fase 1 ──► CONEXIÓN DE EHRESMANN (Phase1_EhresmannConnection)
+             Ingiere la telemetría del agente, extrae el flujo del sistema, calcula 
+             el proyector horizontal de Ehresmann, y sanea el espacio tangente.
+             Último morfismo: handoff_phase1_to_phase2.
+             Entrega: ConnectionData.
+
+  Fase 2 ──► PULLBACK TERMODINÁMICO DE SANEAMIENTO (Phase2_ThermodynamicPullback)
+             Consume la ConnectionData. Realiza la inmersión del vector de 
+             estado, computa el diferencial de disipación $$\delta R$$ y evalúa la 
+             entropía de von Neumann para caracterizar el ruido de redondeo.
+             Último morfismo: handoff_phase2_to_phase3.
+             Entrega: DeformationTensor.
+
+  Fase 3 ──► VESTIMENTA DE HIGHAM Y VETO DE HEYTING (Phase3_ShieldDresser)
+             Consume la DeformationTensor. Aplica la regularización adaptativa de Tikhonov 
+             e inyecta la proyección de Higham (2002) para estabilizar el cono SPD. 
+             Colapsa el veredicto final en el retículo de Heyting $$\Omega_3$$:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[228\big]$$
+             Si el radio espectral de la deformación se desborda, detona la excepción 
+             'DressingError', purga la memoria RAM e interrumpe síncronamente al ESP32.
+             Entrega: FuntorShield (vestido inmutable).
+
+Funtor Maestro de Enrutamiento y Calibre:
+  $$\mathcal{Z}_{\mathrm{router}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[228, 234\big]$$
 """
 
 from __future__ import annotations

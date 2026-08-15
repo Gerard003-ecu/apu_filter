@@ -8,11 +8,11 @@ r"""
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DE CALIBRE (Rigor Doctoral): ──────────────
-Este módulo consagra la autoridad definitiva sobre el dynamic_shield_router.py 
-. No opera como un mero enrutador o filtro procedimental de datos, sino 
+Este módulo consagra la autoridad definitiva sobre el dynamic_shield_router.py.
+No opera como un mero enrutador o filtro procedimental de datos, sino 
 como un **Funtor de Curvatura** que evalúa la 2-forma de curvatura $$\Omega$$ 
 de la conexión de Ehresmann $$\omega$$ inyectada sobre la membrana de disipación 
-del Escudo (funtor_shield.py) [1]. Su mandato primordial es garantizar que el 
+del Escudo (funtor_shield.py). Su mandato primordial es garantizar que el 
 transporte paralelo de los tensores de estado a través de la filtración de la 
 jerarquía DIKW preserve estrictamente la **invarianza de Gauge**.
 

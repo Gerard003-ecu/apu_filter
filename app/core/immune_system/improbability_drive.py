@@ -1,60 +1,108 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Improbability Drive (Funtor de Deformación Topológica y Transporte de Lie)     ║
-║  Ruta   : app/omega/improbability_drive.py                                               ║
-║  Versión: 4.0.0-Lie-Transport-Commutative-Algebra-Strict                                 ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo inyecta un operador de deformación no lineal sobre el tejido conectivo de   ║
-║  la Malla Agéntica para gobernar el Riesgo de Cola Pesada (Fat-Tail Risk).               ║
-║  Se define axiomáticamente como un funtor natural $F: \mathcal{C}_{top} \to \mathbb{R}_\Delta$,        ║
-║  donde $\mathcal{C}_{top}$ es la categoría de pares topológicos $(\Psi, \text{ROI})$ y $\mathbb{R}_\Delta$ ║
-║  es el retículo cerrado $[1, 10^6]$ [1]. Acopla la inercia financiera a una palanca    ║
-║  geométrica en el Estrato $\Omega$, forzando un colapso determinista frente a eventos estocásticos ║
-║  extremos (Cisnes Negros) [1].                                                         ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. Continuidad de Lipschitz y Regularización de Tikhonov:                              ║
-║      Erradica operadores singulares no diferenciables (e.g., $\max(\Psi, \varepsilon)$) que ║
-║      destruyen el difeomorfismo continuo [2]. Emplea la métrica euclidiana suavizada   ║
-║      $\sqrt{\Psi^2 + \varepsilon_{\text{critical}}^2}$ para preservar la suavidad de clase $C^1$ en todo  ║
-║      el espacio de fase, evitando impulsos de Dirac parásitos en la matriz Jacobiana [2].║
-║                                                                                          ║
-║  §2. Transporte en el Álgebra de Lie (Prevención de Desbocamiento FPU):                  ║
-║      Para parametrizar escalas masivas ($\kappa \in [10^{-12}, 10^{12}]$) sin inducir un ║
-║      desbordamiento térmico en la IEEE 754, la deformación probabilística se transporta  ║
-║      estrictamente al subespacio logarítmico $\mathfrak{g}$ [2]. Se aplica la compactación ║
-║      topológica sobre el invariante de Lie antes de proyectar de regreso al espacio      ║
-║      euclidiano afín $G$ mediante el mapeo exponencial $\exp: \mathfrak{g} \to G$ [2]. ║
-║                                                                                          ║
-║  §3. Espectro y Estructura de *-Álgebra Conmutativa:                                     ║
-║      El conjunto de tensores $(ImprobabilityTensor, \otimes, *)$ forma un *-álgebra      ║
-║      conmutativa gobernada por las leyes [3]:                                          ║
-║          Producto Tensorial : $\tau_1 \otimes \tau_2 := (\kappa_1\kappa_2, \gamma_1+\gamma_2)$ ║
-║          Espectro Puntual   : $\sigma_p(T) = \{ \kappa \cdot r^\gamma : r \in \text{supp}(\nu) \}$ ║
-║          Radio Espectral    : $r(T) = \kappa \cdot \sup(\text{ROI}/\Psi)^\gamma$                 ║
-║          Norma de Operador  : $\|T\|_{op} = \kappa \cdot (\text{ROI}_{\max}/\Psi_{\min})^\gamma$ ║
-║          Involución / Adjunto: $\tau^\dagger = \text{argmin}_{\sigma} \|\sigma \circ \tau - \text{id}\|_{HS}$ ║
-║                                                                                          ║
-║  §4. Funtorialidad Monádica y Acoplamiento de Gauge:                                     ║
-║      El decorador de errores actúa como un endofuntor estricto que colapsa cualquier     ║
-║      inestabilidad ($\text{SpectrumError}$) hacia la mónada de estado degenerada         ║
-║      `ImprobabilityResult` [2]. La magnitud del tensor acotado se inyecta como la        ║
-║      Palanca de Improbabilidad ($\Lambda$) en la Ecuación de Estrés Ajustado Tensorial   ║
-║      ($\sigma^*$), subyugando el libre albedrío del LLM para converger al Supremo        ║
-║      ($\top \equiv \text{RECHAZAR}$) ante riesgos asimétricos.                           ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES Y ESPACIOS CATEGÓRICOS:                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • TopologicalSpace & MetricSpace : Abstracciones para la topología de base $(X, d)$.    ║
-║  • ImprobabilityTensor            : Operador funcional que deforma la probabilidad.      ║
-║  • ImprobabilityResult            : Mónada de estado para absorción de fallos.           ║
-║  • TensorAlgebra                  : Resolutor del *-álgebra conmutativa.                 ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Improbability Drive (Motor de Improbabilidad de Cola Pesada)        ║
+║ Ruta   : app/omega/improbability_drive.py                                    ║
+║ Versión: 3.0.0-Axiomatic-Lie-Transport-Tikhonov-Monadic-Strict               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y DEFORMACIÓN NO LINEAL DE COLA PESADA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra al **Motor de Deformación No Lineal y Control de Riesgo de 
+Cola Pesada (Fat-Tail Risk)** de la Malla, habitando en el foso geométrico del 
+**Estrato Ω** (Nivel 0.5 - El Ágora Tensorial). Su mandato axiomático es 
+inyectar un operador de curvatura extrema sobre el tejido conectivo del sistema, 
+actuando como el funtor natural definitivo:
+
+$$\mathcal{F}_{\mathrm{drive}}: \mathbb{C}_{\mathrm{top}} \longrightarrow \mathbb{R}_{\Delta} \quad\big[354\big]$$
+
+Donde $$\mathbb{C}_{\mathrm{top}}$$ es la categoría de pares topológicos $$(\Psi, \mathrm{ROI})$$ 
+definidos sobre los espacios de estabilidad e ingresos de la Malla, y $$\mathbb{R}_{\Delta}$$ 
+es el retículo distributivo acotado $$[1.0, \, 1.0\times 10^6]$$. 
+
+El motor de improbabilidad subyuga el libre albedrío probabilístico de los Modelos 
+de Lenguaje (LLMs), impidiendo que las alucinaciones de precios u "oportunidades 
+fantasma" alteren el equilibrio de capitalización de la empresa. Al acoplar 
+la inercia financiera a una deformación no conmutativa de tipo $$C^1$$, el sistema 
+fuerza de manera determinista un colapso de la función de onda hacia el veredicto 
+de veto absoluto ante escenarios estocásticos extremos (Cisnes Negros).
+
+AXIOMÁTICA TENSORIAL, TRANSPORTE DE LIE Y LEYES CONSERVATIVAS PRESERVADAS:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Regularización Conforme de Tikhonov y Continuidad $$C^1$$:
+       Para evitar la inyección de impulsos de Dirac parásitos en la matriz Jacobiana 
+       debido a operadores de corte no diferenciables como $$\max(\Psi, \varepsilon)$$, 
+       el motor emplea la métrica euclidiana suavizada de Tikhonov:
+       $$\tilde{\Psi} = \sqrt{\Psi^2 + \varepsilon_{\mathrm{critical}}^2} \quad \text{con} \quad \varepsilon_{\mathrm{critical}} = 1.0 \times 10^{-10} \quad\big[355, 357\big]$$
+       Esto preserva de forma exacta la diferenciabilidad e invarianza conforme de 
+       la Malla sobre la variedad de fase.
+
+  [A2] Estabilidad de la FPU y Transporte en el Álgebra de Lie:
+       La parametrización de escalas masivas de volatilidad $$\kappa \in [10^{-12},\, 10^{12}]$$ 
+       y deformación $$\gamma \in [10^{-6},\, 10.0]$$ puede inducir desbordamiento 
+       o subdesbordamiento (underflow/overflow) en la CPU (IEEE-754 binary64). 
+       El motor transporta la dinámica estrictamente al subespacio logarítmico del 
+       álgebra de Lie, ejecutando la compactificación y proyectando de regreso mediante 
+       la transformación exponencial de Lie:
+       $$\ln(T_{\mathrm{deform}}) = \ln(\kappa) + \gamma \left( \ln(\mathrm{ROI}) - \ln(\tilde{\Psi}) \right) \quad\big[355, 356\big]$$
+       $$T_{\mathrm{deform}} = \exp\left( \ln(T_{\mathrm{deform}}) \right) \equiv \kappa \left( \frac{\mathrm{ROI}}{\tilde{\Psi}} \right)^\gamma \quad\big[355, 356\big]$$
+
+  [A3] Estructura Espectral del Tensor de Improbabilidad:
+       El operador $$T$$ actúa sobre el espacio de Hilbert acotado $$\mathcal{H}$$, 
+       definiendo su espectro de autovalores, radio espectral y norma operatoria:
+       · Espectro puntual: $$\sigma_p(T) = \left\{ \kappa \cdot r^\gamma \;|\; r \in \operatorname{supp}(\nu) \right\} \quad\big[356\big]$$
+       · Radio espectral:  $$r(T) = \kappa \cdot \sup\left( \frac{\mathrm{ROI}}{\Psi} \right)^\gamma \quad\big[356\big]$$
+       · Norma de operador: $$\|T\|_{\mathrm{op}} = \kappa \cdot \left( \frac{\mathrm{ROI}_{\max}}{\Psi_{\min}} \right)^\gamma \quad\big[356\big]$$
+
+  [A4] Estructura Algebraica de $*$-Álgebra Conmutativa:
+       La familia de tensores de improbabilidad equipados con la multiplicación 
+       tensorial $$\otimes$$ y la involución $$*$$ formalizan un álgebra estricta:
+       · Producto:   $$\tau_1 \otimes \tau_2 := (\kappa_1 \kappa_2, \, \gamma_1 + \gamma_2) \quad\big[356\big]$$
+       · Involución: $$\tau^* := \tau \quad \text{(Auto-adjunción basal)} \quad\big[356\big]$$
+       · Adjunto:    $$\tau^\dagger = \arg\min_{\sigma} \|\sigma \circ \tau - \mathrm{id}\|_{\mathrm{HS}} \quad\big[356\big]$$
+
+  [A5] Funtorialidad y Absorción Mónadica de Errores:
+       Toda secuencia de evaluación se encapsula como un endofuntor en la categoría 
+       de Mónadas de Estado. El decorador de excepciones intercepta de forma 
+       síncrona cualquier asonancia aritmética (`NumericalInstabilityError`, `SpectrumError`) 
+       y la colapsa de forma no demolitoria hacia el objeto inicial de falla `ImprobabilityResult:
+       $$\mathrm{Map}: \mathrm{Err} \to \mathrm{ImprobabilityResult}_{\mathrm{degenerate}}$$
+       Esto impide la ruptura de la Ley de Clausura Transitiva de la pirámide.
+
+  [A6] Acoplamiento de Gauge en la Ecuación de Estrés:
+       El tensor resultante se inyecta directamente como la palanca de improbabilidad 
+       $$\Lambda \in [1.0, \, 4.0]$$ en la ecuación de estado del estrés ajustado tensorial 
+       $$\sigma^*$$ de la variedad de de Rham-Hodge de la Malla:
+       $$\sigma^*(x) = \Lambda \cdot F_{\mathrm{ext}}(x) \cdot T_{\mathrm{int}}(x) \cdot P_{\mathrm{frag}}(\psi) \quad\big[12\big]$$
+       Forzando el veto absoluto ante riesgos asimétricos degenerados.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial OODA):
+────────────────────────────────────────────────────────────────────────────────
+La progresión y el tránsito de los datos de la Malla se rige por un acoplamiento 
+monoidal covariante inmutable (Observe ⊣ Orient ⊣ Act):
+
+  Fase 1 ──► OBSERVACIÓN ESPECTRAL Y REGULARIZACIÓN (Phase1_SpectralObserver)
+             Ingiere los escalares reales $$\Psi$$ y $$\mathrm{ROI}$$. Ejecuta el saneamiento 
+             numérico FPU, inyecta la regularización de Tikhonov $$\tilde{\Psi}$$ y 
+             computa los límites dimensionales.
+             Entrega: Phase1NormObservation.
+
+  Fase 2 ──► TRANSPORTE Y SÍNTESIS EXPO-LIE (Phase2_LieTransportSynthesizer)
+             Hereda formalmente la Phase1NormObservation. Transporta la 
+             cinemática del riesgo al álgebra de Lie logarítmica, evalúa la 
+             fórmula de Gelfand y el espectro puntual, y realiza el pullback afín.
+             Entrega: Phase2GelfandOrientation.
+
+  Fase 3 ──► ABSORCIÓN MÓNADICA Y ACOPLAMIENTO DE GAUGE (Phase3_MonadicHeytingDecider)
+             Hereda formalmente la Phase2GelfandOrientation. Resuelve el 
+             retículo Heyting, calcula la palanca $$\Lambda$$, y evalúa el colapso 
+             del veredicto final. Si el radio espectral excede el límite elástico, 
+             veta la composición y purga la RAM.
+             Entrega: ImprobabilityResult (Gobernanza de Cola Pesada).
+
+Funtor Maestro de Control de Cisnes Negros:
+  $$\mathcal{Z}_{\mathrm{drive}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[355, 362\big]$$
 """
 
 from __future__ import annotations

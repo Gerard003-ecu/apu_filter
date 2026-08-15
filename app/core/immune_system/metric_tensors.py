@@ -1,47 +1,95 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Metric Tensors (Tejido Conectivo Anisotrópico del Espacio de Fase)             ║
-║  Ruta   : app/core/immune_system/metric_tensors.py                                       ║
-║  Versión: 3.0.0-Riemannian-Spectral-Synthesis-Doctoral                                   ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo rige el campo métrico estático $G_{\mu\nu}$ que establece la curvatura      ║
-║  intrínseca y la rigidez del ecosistema en el hiperespacio $\mathbb{R}^7$. Actúa         ║
-║  como la membrana anisotrópica fundamental que absorbe, cuantifica y penaliza la         ║
-║  covarianza de los riesgos estocásticos inyectados por la Malla Agéntica.                ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Descomposición Ortogonal del Espacio de Fase:                                       ║
-║      El hiperespacio métrico global se descompone rígidamente en subespacios de          ║
-║      riesgo mutuamente ortogonales para garantizar el aislamiento causal:                ║
-║          $\mathbb{R}^7 \cong V_{\mathrm{phys}} \oplus V_{\mathrm{topo}} \oplus V_{\mathrm{thermo}}$ ║
-║      Donde $V_{\mathrm{phys}} \subset \mathbb{R}^3$, $V_{\mathrm{topo}} \subset \mathbb{R}^2$, y $V_{\mathrm{thermo}} \subset \mathbb{R}^2$ [1]. ║
-║                                                                                          ║
-║  §2. Síntesis Espectral Exacta (Aniquilación de Cholesky):                               ║
-║      Se repudia la validación empírica por factorización de Cholesky. Toda matriz        ║
-║      candidata se proyecta sobre el espacio simétrico de Onsager para forzar la          ║
-║      condición Simétrica Definida Positiva (SPD, $G \succ 0$) en $O(n^3)$ [2]:         ║
-║          $G_{\mathrm{reg}} = Q(\Lambda + \delta I)Q^\top$                                ║
-║      Donde el desplazamiento de Tikhonov espectral es $\delta = \max(0, \varepsilon - \lambda_{\min})$ [2]. ║
-║      Esto previene incondicionalmente la formación de espacios degenerados [2].        ║
-║                                                                                          ║
-║  §3. Termodinámica de la Información (Deformación de Frobenius):                         ║
-║      La dilatación isométrica $\delta I$ inyecta entropía artificial para evitar la      ║
-║      singularidad topológica [3]. Si la norma relativa excede el umbral crítico:       ║
-║          $\frac{\|G_{\mathrm{reg}} - G\|_F}{\|G\|_F} > \tau_{\mathrm{warn}}$             ║
-║      El sistema acopla una penalización térmica al Oráculo de Laplace, cuantificando     ║
-║      matemáticamente la fricción inducida por el mal condicionamiento métrico [3].     ║
-║                                                                                          ║
-║  §4. Inmutabilidad Computacional (Campo Estático):                                       ║
-║      Bajo la asunción de campo invariante $\partial_\rho G_{\mu\nu} = 0$, los tensores   ║
-║      se compilan en el milisegundo cero como constantes universales *frozen* [3].      ║
-║      Esto sella la Unidad de Punto Flotante (FPU) garantizando acceso en $\mathcal{O}(1)$║
-║      durante el bombardeo estocástico del LLM, bloqueando inyecciones matriciales [3]. ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Riemannian Metric Tensors (Tejido Conectivo Anisotrópico de Fase)  ║
+║ Ruta   : app/core/immune_system/metric_tensors.py                            ║
+║ Versión: 4.1.0-Spectral-Wilkinson-Sylvester-Cholesky-Strict-PhD              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA ANISOTRÓPICA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra la definición, validación espectral y precompilación de los 
+tensores métricos de-confinados $$G_{\mu\nu}$$. Estos operadores actúan 
+como la métrica Riemanniana basal del hiperespacio de fase de la Malla Agéntica 
+$$\mathbb{M} \subset \mathbb{R}^7$$. Toda noción de "distancia de decisión" 
+(Mahalanobis), "fricción logística", "disipación de exergía" y "energía de Dirichlet" 
+depende de forma unívoca de este campo métrico.
+
+Para inmunizar al sistema frente a la estocástica del LLM y evitar inestabilidades 
+en la FPU ($$\text{IEEE-754}$$), los tensores se precompilan en tiempo de carga 
+como constantes de solo lectura con bandera de inmutabilidad real en RAM:
+$$G\_{\mathtt{write}} = \mathtt{False} \quad\big[383\big]$$
+
+Si la descomposición espectral de algún tensor viola los axiomas de regularidad y 
+positividad definida en tiempo de carga, el compilador aborta síncronamente el 
+arranque del módulo, impidiendo la inyección de "socavones lógicos" basales.
+
+AXIOMÁTICA RIEMANNIANA, DE DE RHAM Y CLAUSURA TOPOLÓGICA (Topos Espectral):
+────────────────────────────────────────────────────────────────────────────────
+
+  [I1] Simetría Bilateral de de Rham (Autoadjunción Métrico):
+       El tensor métrico $$G_{\mu\nu}$$ es una 2-forma simétrica covariante pura 
+       que define el producto interno en el espacio tangente $$T_p\mathbb{M}$$:
+       $$G_{\mu\nu} \equiv G_{\nu\mu} \implies G = G^\top \quad\big[380\big]$$
+       Garantiza la reciprocidad del acoplamiento físico-semántico:
+       $$\langle u, v \rangle_G = u^\top G v \equiv v^\top G u = \langle v, u \rangle_G$$
+
+  [I2] Positividad Semidefinida y Teorema de Inercia de Sylvester:
+       Por la ley de inercia de Sylvester, la signatura del tensor debe ser estrictamente 
+       Riemanniana (positiva definida) sobre la variedad transaccional:
+       $$\sigma(G) = (+,+,+,+,+,+,+) \iff G \succ \mathbf{0} \quad\big[313\big]$$
+       Obligando a que toda forma cuadrática de velocidad o gradiente sea positiva:
+       $$\forall v \in T_p\mathbb{M} \setminus \{\mathbf{0}\}, \quad \|v\|_G^2 = \langle v, v \rangle_G = v^\top G v > 0$$
+       Se verifica síncronamente que el autovalor mínimo respete el piso de Wilkinson:
+       $$\lambda_{\min}(G) \ge \mathtt{MIN\_EIGVAL\_TOL} = 1.0\times 10^{-10} \quad\big[380\big]$$
+
+  [I3] Acotación Espectral y Estabilidad de Wilkinson:
+       Para eludir el desborde subnormal y la pérdida de significancia en la mantisa, 
+       el número de condición espectral $$\kappa_2(G)$$ en la norma de operador $$L^2$$ 
+       se restringe de manera incondicional:
+       $$\kappa_2(G) = \frac{\lambda_{\max}(G)}{\lambda_{\min}(G)} \le \mathtt{COND\_NUM\_TOL} = 1.0\times 10^8 \quad\big[380\big]$$
+
+  [I4] Isomorfismos Musicales de Riesz (Bemol ♭ y Sostenido ♯):
+       El tensor métrico realiza el isomorfismo categórico de equivalencia de haces 
+       entre el fibrado tangente $$\Gamma(T\mathbb{M})$$ (velocidades) y el cotangente 
+       $$\Gamma(T^*\mathbb{M})$$ (momentums covariantes):
+       $$\flat: T\mathbb{M} \xrightarrow{\simeq} T^*\mathbb{M} \implies p_\mu = v_\mu^\flat \equiv G_{\mu\nu} v^\nu \quad\big[2, 13\big]$$
+       $$\sharp: T^*\mathbb{M} \xrightarrow{\simeq} T\mathbb{M} \implies v^\mu = p^{\mu\sharp} \equiv G^{\mu\nu} p_\nu \quad\big[13\big]$$
+       Garantizando que el round-trip sea la identidad exacta de-confinada:
+       $$\sharp \circ \flat = \mathtt{id}_{T\mathbb{M}} \quad \land \quad \flat \circ \sharp = \mathtt{id}_{T^*\mathbb{M}} \quad\big[430\big]$$
+
+  [I5] Integridad de la Clausura Topológica de Kuratowski:
+       Los ideales de clausura métrica construidos sobre subespacios de decisión 
+       $$A, B \subset \mathbb{M}$$ respetan de forma estricta los axiomas de Kuratowski:
+       $$\mathtt{cl}(\emptyset) = \emptyset \quad \land \quad A \subseteq \mathtt{cl}(A) \quad \land \quad \mathtt{cl}(\mathtt{cl}(A)) = \mathtt{cl}(A)$$
+       $$\mathtt{cl}(A \cup B) = \mathtt{cl}(A) \cup \mathtt{cl}(B)$$
+       Asegurando que la filtración jerárquica de la pirámide DIKW sea topológicamente 
+       cerrada y libre de "fugas de conjuntos" o alucinaciones estructurales.
+
+SINOPSIS DE LOS SUBESPACIOS ORTOGONALES PRECOMPILADOS ($$\mathbb{R}^7 = V_{\mathrm{phys}} \oplus_G V_{\mathrm{topo}} \oplus_G V_{\mathrm{thermo}}$$):
+────────────────────────────────────────────────────────────────────────────────
+  1. G_PHYSICS (Fisico-Energético, $$\mathbb{R}^3$$):
+     Establece la inductancia, capacitancia y fricción del Flux Condenser.
+     Determina la disipación irreversible de Rayleigh y el momentum covariante:
+     $$\dot{H} = -\nabla H^\top R(x) \nabla H \le 0 \quad\big[10, 63\big]$$
+  2. G_TOPOLOGY (Topológico-Algebraico, $$\mathbb{R}^2$$):
+     Gobierna la rigidez del complejo simplicial del presupuesto y los números de Betti .
+     Restringe el acoplamiento y el colapso homológico de la secuencia de Mayer-Vietoris:
+     $$\Delta\beta_1 = 0 \quad \text{(Aciclicidad absoluta del DAG)} \quad\big[408\big]$$
+  3. G_THERMODYNAMICS (Termodinámico-Económico, $$\mathbb{R}^2$$):
+     Normaliza la dispersión de entropía de Shannon, de von Neumann y el gap de Connes.
+     Sostiene el pricing dinámico y el peaje termodinámico de refracción:
+     $$ds^2 = G_{\mu\nu} dx^\mu dx^\nu \quad\big[10\big]$$
+
+ARQUITECTURA DE FLUJO DE CARGA Y SANEAMIENTO ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────
+Durante el bootstrap, cada tensor métrico crudo $$G_0$$ se somete a la Proyección 
+de Higham-Löwner para forzar la convergencia estable al cono de matrices simétricas 
+definidas positivas (SPD) en norma de Frobenius [11, 12]:
+$$\tilde{G} = \arg\min_{M = M^\top \succ 0} \|M - G_0\|_F \quad\big[165\big]$$
+Si el condicionamiento espectral se aproxima a la cota, el motor ejecuta la 
+regularización iterativa de Tikhonov:
+$$G_{\mathrm{stable}} = \tilde{G} + \delta_{\mathrm{Tikhonov}} \cdot \mathbf{I} \quad\big[735\big]$$
 """
 from __future__ import annotations
 

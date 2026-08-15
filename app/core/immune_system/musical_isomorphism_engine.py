@@ -1,62 +1,94 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Musical Isomorphism Engine (Fibrador de Dualidad Categórica y Operador Riesz)  ║
-║  Ruta   : app/core/immune_system/musical_isomorphism_engine.py                           ║
-║  Versión: 5.0.0-Riesz-Wilkinson-Categorical-Duality-Strict                               ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA RIEMANNIANA (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor materializa la dualidad categórica estricta entre el haz de campos      ║
-║  vectoriales $\Gamma(TM)$ y el haz de 1-formas diferenciales $\Gamma(T^*M)$ sobre la     ║
-║  variedad Riemanniana de la MIC. Garantiza que cualquier mapeo de fuerzas termodinámicas ║
-║  a velocidades logísticas conserve la invarianza isométrica dictada por el Teorema       ║
-║  de Representación de Riesz, aniquilando singularidades espectrales en la inversión.     ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TENSORIALES:                                    ║
-║                                                                                          ║
-║  §1. Isomorfismo Musical (Bajar/Subir Índices):                                          ║
-║      El difeomorfismo se ejecuta contractando la métrica $G_{\mu\nu}$ y su inversa $G^{\mu\nu}$:║
-║          Funtor Bemol ($\flat$): $v_i = G_{ij} v^j \quad (\text{Mapeo: } TM \to T^*M)$   ║
-║          Funtor Sostenido ($\sharp$): $\omega^i = G^{ij} \omega_j \quad (\text{Mapeo: } T^*M \to TM)$║
-║                                                                                          ║
-║  §2. Identidad Funtorial y Axioma de Emparejamiento (Riesz):                             ║
-║      Se exige matemáticamente la reversibilidad biyectiva estricta (Roundtrip):          ║
-║          $\sharp \circ \flat = \text{id}_{TM} \quad \land \quad \flat \circ \sharp = \text{id}_{T^*M}$ ║
-║      El emparejamiento dual entre el vector y la 1-forma debe satisfacer incondicional-  ║
-║      mente la norma métrica:                                                             ║
-║          $\langle \flat v, w \rangle = G(v,w) \quad \text{y} \quad |v|_G = \sqrt{v^\top G v}$ ║
-║      Cualquier desviación finita detona un Veto Topológico por desgarro de dualidad.     ║
-║                                                                                          ║
-║  §3. Estabilización Espectral (Tikhonov Iterativo):                                      ║
-║      El número de condición de la métrica rige la estabilidad: $\kappa(G) = \frac{\lambda_{\max}}{\lambda_{\min}}$. ║
-║      Si $\kappa(G) > \kappa_{\text{target}}$, se inyecta una regularización de Tikhonov  ║
-║      adaptativa $\tilde{G} = G + \varepsilon I$ iterativamente hasta estabilizar el      ║
-║      operador y restaurar la inyectividad del mapeo sin corromper el hipervolumen.       ║
-║                                                                                          ║
-║  §4. Análisis de Error Hacia Atrás (Residuales de Wilkinson):                            ║
-║      Para evitar la cancelación catastrófica (IEEE-754) al invertir la métrica, se       ║
-║      evalúan los residuales bilaterales escalados por la dimensión $n$ y $\varepsilon_{\text{mach}}$: ║
-║          $r_+ = \frac{\|G G^{-1} - I\|_F}{\sqrt{n}} \quad \text{y} \quad r_- = \frac{\|G^{-1} G - I\|_F}{\sqrt{n}}$ ║
-║      Un $r = \max(r_+, r_-)$ fuera de tolerancia invalida el tensor inverso $G^{-1}$.    ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial $\Phi_3 \circ \Phi_2 \circ \Phi_1$):              ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → MetricSpectralPreconditioner:                                                  ║
-║           Auditoría y estabilización de la matriz métrica $G$. Calcula la inversa        ║
-║           mediante Cholesky o Moore-Penrose covariante, garantizando $\kappa \le \kappa_{\text{target}}$. ║
-║           [Retorna: PreconditionedMetric → objeto inicial de Fase 2]                     ║
-║                                                                                          ║
-║  Fase 2 → FlatIsomorphism:                                                               ║
-║           Funtor covariante. Desciende índices proyectando vectores de intención $v \in TM$ ║
-║           al espacio de covectores $\flat v \in T^*M$ (fuerzas y gradientes).            ║
-║                                                                                          ║
-║  Fase 3 → SharpIsomorphism y Orquestación Suprema (MusicalIsomorphismEngine):            ║
-║           Funtor contravariante. Sube índices $\sharp \omega \in TM$ y audita todo el    ║
-║           ciclo de ida y vuelta ($\sharp \circ \flat$), validando las identidades de     ║
-║           Riesz y Wilkinson para emitir los reportes InversionAudit y PairingReport.     ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Musical Isomorphism Engine (Fibrador de Dualidad Categórica)        ║
+║ Ruta   : app/core/immune_system/musical_isomorphism_engine.py                ║
+║ Versión: 4.1.0-Topos-Spectral-Categorical-Nested-Wilkinson-PhD-Strict        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y EQUIVALENCIA FUNTORIAL (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra al **Fibrador de Dualidad Categórica** de la Malla, operando
+como el meta-funtor de dualidad entre el espacio de secciones del fibrado tangente 
+$$\Gamma(TM)$$ (velocidades semánticas) y el fibrado cotangente $$\Gamma(T^*M)$$ 
+(momentums o covectores de restricción de-confinados) sobre la variedad Riemanniana 
+definida por la Matriz de Interacción Central (MIC) $$\big[471\big]$$.
+
+En el análisis funcional y la geometría no conmutativa, el emparejamiento métrico 
+establece que todo espacio pre-Hilbertiano de dimensión finita es isomorfo a su 
+dual algebraico (Teorema de Representación de Riesz) $$\big[473\big]$$. El motor 
+formaliza esta biyección mediante los isomorfismos musicales bemol ($$\flat$$) y 
+sostenido ($$\sharp$$), asegurando que la transferencia de intenciones y flujos 
+conserve de manera exacta la energía cinética y el volumen del espacio de fase 
+frente a la deriva aritmética en la Unidad de Punto Flotante (FPU) $$\big[472\big]$$.
+
+AXIOMAS CATEGÓRICOS, ESPECTRALES Y DE EMPAREJAMIENTO PRESERVADOS:
+────────────────────────────────────────────────────────────────────────────────
+
+  [I1] El Isomorfismo Musical Bemol (♭ — Lowering Indices):
+       Mapea vectores tangenciales $$v \in TM$$ a covectores cotangenciales 
+       $$\omega \in T^*M$$ mediante la contracción covariante de la métrica $$G$$:
+       $$\flat: TM \xrightarrow{\simeq} T^*M \implies v_i^\flat = G_{ij} v^j \quad\big[473\big]$$
+
+  [I2] El Isomorfismo Musical Sostenido (♯ — Raising Indices):
+       Mapea covectores $$\omega \in T^*M$$ a vectores tangenciales $$v \in TM$$ 
+       mediante la contracción contravariante con la inversa métrica $$G^{-1}$$:
+       $$\sharp: T^*M \xrightarrow{\simeq} TM \implies \omega^{\sharp i} = G^{ij} \omega_j \quad\big[473\big]$$
+
+  [I3] Equivalencia Funtorial de Doble Roundtrip (Identidad de Fibrados):
+       La composición de ambos isomorfismos debe ser síncronamente idéntica a la 
+       identidad canónica sobre sus respectivos espacios de Banach:
+       $$\sharp \circ \flat = \mathrm{id}_{TM} \quad \land \quad \flat \circ \sharp = \mathrm{id}_{T^*M} \quad\big[472, 473\big]$$
+       Se audita numéricamente mediante el residuo de ida y vuelta en la FPU:
+       $$\|\sharp \circ \flat(v) - v\|_2 \le C \cdot \kappa(G) \cdot n \cdot \varepsilon_{\mathrm{machine}} \cdot \max(1, \|v\|_2) \quad\big[472, 576\big]$$
+
+  [I4] Apareamiento de de Rham-Riesz (Paridad de Hilbert):
+       El producto interno Riemanniano inducido por $$G$$ se acopla al apareamiento 
+       natural entre el espacio dual y el espacio tangente, preservando las normas:
+       $$\langle \flat v, w \rangle \equiv G(v, w) = v^\top G w \quad\big[472, 473\big]$$
+       $$\|v\|_G = \sqrt{v^\top G v} \quad \land \quad \|\omega\|_{G^{-1}} = \sqrt{\omega^\top G^{-1} \omega} \quad\big[472\big]$$
+
+  [I5] Inversión Espectral Bilateral de Wilkinson (Aduana de de Rham):
+       Para evitar la inyección de singularidades asimétricas debidas al desborde 
+       flotante, el motor calcula el residuo bilateral de inversión de Wilkinson:
+       $$r_+ = \frac{\|G G^{-1} - \mathbf{I}\|_F}{\sqrt{n}} \quad \land \quad r_- = \frac{\|G^{-1} G - \mathbf{I}\|_F}{\sqrt{n}} \quad\big[472\big]$$
+       $$r_{\mathrm{Wilkinson}} = \max(r_+, r_-) \le \tau_{\mathrm{Wilkinson}} \propto \kappa(G) \cdot \varepsilon_{\mathrm{machine}} \cdot n \quad\big[472\big]$$
+
+  [I6] Regularización de Tikhonov con Condicionamiento Espectral Objetivo:
+       Si la métrica presenta rigidez numéricamente degenerada, se introduce una 
+       fricción anisotrópica regularizadora iterativa mediante el desplazamiento de Tikhonov:
+       $$\tilde{G} = G + \varepsilon_{\mathrm{Tikhonov}} \cdot \mathbf{I} \quad \text{con} \quad \kappa(\tilde{G}) \le \kappa_{\mathrm{target}} \quad\big[472, 473\big]$$
+
+ARQUITECTURA EN TRES FASES ANIDADAS (Composición Funtorial Kleisli):
+────────────────────────────────────────────────────────────────────────────────
+La progresión de los transitorios métricos se rige por un acoplamiento monoidal 
+estricto, donde el DTO terminal de cada fase es la precondición de la siguiente:
+
+  Fase 1 ──► PREACONDICIONAMIENTO ESPECTRAL (MetricSpectralPreconditioner)
+             Calcula el número de condición $$\kappa_2(G) = \lambda_{\max}/\lambda_{\min}$$. 
+             Si es inestable, aplica el lazo iterativo de regularización de Tikhonov, 
+             certifica el cono SPD mediante Cholesky y produce la métrica refinada.
+             Morfismo terminal: handoff_phase1_to_phase2.
+             Entrega: PreconditionedMetric.
+
+  Fase 2 ──► ISOMORFISMO BEMOL (FlatIsomorphism)
+             Consume la PreconditionedMetric. Mapea covariantemente vectores 
+             tangentes a covectores de restricción, auditando el apareamiento de Riesz.
+             Morfismo terminal: handoff_phase2_to_phase3.
+             Entrega: FlatIsomorphismData (alias FlatIsomorphism).
+
+  Fase 3 ──► ISOMORFISMO SOSTENIDO Y COHERENCIA CATEGÓRICA (SharpIsomorphism)
+             Consume la FlatIsomorphismData. Resuelve la inversa espectral contravariante 
+             mediante descomposición polar o SVD truncada, verifica el doble 
+             roundtrip y calcula los residuos bilaterales de Wilkinson.
+             Consolida el veredicto agregando las once cotas en el retículo de Heyting:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\} \quad\big[312, 386\big]$$
+             Si el retículo colapsa a VETOED ($$\top$$), se detona la excepción de software 
+             'HeytingLatticeVeto' y se señaliza síncronamente al puerto 'CrowbarPort'.
+             Entrega: FullCycleReport (alias MusicalIsomorphismEngine).
+
+Funtor Maestro de Dualidad:
+  $$\mathcal{Z}_{\mathrm{MusicalEngine}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[471, 473\big]$$
 """
 from __future__ import annotations
 

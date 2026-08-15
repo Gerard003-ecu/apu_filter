@@ -1,61 +1,101 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Gravitational Shield (Atractor Determinista Absoluto y Pozo Termodinámico)     ║
-║  Ruta   : app/core/immune_system/gravity_shield.py                                       ║
-║  Versión: 3.0.0-Nested-Feynman-Kac-Topos-Doctoral                                        ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo repudia la concepción escalar heurística del "peso" financiero y el riesgo. ║
-║  Introduce un Pozo Gravitacional en la Variedad Diferenciable de la Malla Agéntica,      ║
-║  modelado como un funtor endomórfico compuesto de tres morfismos encadenados.            ║
-║  Su mandato axiomático es aniquilar las trayectorias divergentes del Modelo de Lenguaje  ║
-║  (LLM) sometiendo el hiperespacio a una curvatura seccional estricta que atrapa          ║
-║  geodésicamente cualquier intención estocástica que disipe exergía.                      ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TENSORIALES:                                    ║
-║                                                                                          ║
-║  §1. Adquisición de Masa Inercial (Fröhlich Saturado y Relatividad):                     ║
-║      Se abandona el piso heurístico no diferenciable $\max(\cdot)$ para adoptar un       ║
-║      análogo a la relación de dispersión relativista $E=\sqrt{p^2+m^2}$, garantizando    ║
-║      diferenciabilidad $C^\infty$ y evitando singularidades en el Jacobiano. La          ║
-║      corrección de Fröhlich se satura vía $\tanh$ (regularización UV):                   ║
-║          $m^{**} = \sqrt{\left(m^*\left(1+\frac{\alpha}{6}\right)\right)^2 + m_{\min}^2} \cdot \left(1 + \tanh\left(\frac{\alpha_f}{2\pi}\right)\right)$ ║
-║                                                                                          ║
-║  §2. Deformación de la Variedad y Símbolos de Christoffel Exactos:                       ║
-║      El tensor métrico base $G_{\mathrm{PHYSICS}}$ se factoriza como $G = LL^\top$. La   ║
-║      deformación inducida por la masa efectiva es una transformación de semejanza        ║
-║      diagonal, preservando incondicionalmente la firma Simétrica Definida Positiva (SPD) ║
-║      por la Ley de Inercia de Sylvester:                                                 ║
-║          $\tilde{G} = L \cdot \mathrm{diag}(1+m^{**}) \cdot L^\top$                      ║
-║      Los símbolos de Christoffel $\Gamma^\mu_{\nu\rho}$ se computan en forma cerrada,    ║
-║      y la curvatura seccional $K(e_k, e_j)$ determina el gradiente de colapso.           ║
-║                                                                                          ║
-║  §3. Atrapamiento Geodésico (Feynman-Kac y Acción de Polyakov):                          ║
-║      Las trayectorias de atención semántica $\gamma$ son penalizadas calculando la       ║
-║      Acción Euclídea de Polyakov:                                                        ║
-║          $S_E[\gamma] = \frac{1}{2} \int_0^1 \tilde{G}_{\mu\nu}\dot{\gamma}^\mu\dot{\gamma}^\nu d\tau$ ║
-║      La amplitud de probabilidad cuántica dicta la supervivencia de la trayectoria:      ║
-║          $\Psi[\gamma] = \exp(-S_E/\hbar_{\mathrm{eff}})$                                ║
-║      Para evitar underflow en la FPU, el colapso se decreta en espacio logarítmico       ║
-║      mediante un álgebra de Boole dual:                                                  ║
-║          $\mathrm{Atrapado} \iff (S_E > S_{\mathrm{crit}}) \lor (K_{\max} > K_{\mathrm{crit}})$ ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial $F = C_3 \circ C_2 \circ C_1$):   ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Adquisición de Masa (Morfismo $C_1$):                                          ║
-║           Integra el acoplamiento de Fröhlich y emite el `MassAcquisitionResult`.        ║
-║                                                                                          ║
-║  Fase 2 → Construcción del Espacio-Tiempo Deformado (Morfismo $C_2$):                    ║
-║           Calcula $\tilde{G}$, $\tilde{G}^{-1}$, Christoffel y curvatura seccional       ║
-║           restringida. Retorna el fibrado `WarpedSpaceTime`.                             ║
-║                                                                                          ║
-║  Fase 3 → Integración de Polyakov y Veto Booleano (Morfismo $C_3$):                      ║
-║           Determina la amplitud de Feynman-Kac en espacio $\log$ y ejecuta el            ║
-║           retículo de atrapamiento. Retorna `PolyakovAction`.                            ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Gravitational Shield (Atractor Determinista Absoluto)               ║
+║ Ruta   : app/core/immune_system/gravity_shield.py                            ║
+║ Versión: 3.1.0-Polyakov-Matsubara-FeynmanKac-Cholesky-Wilkinson-PhD-Strict   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ATRACTOR DETERMINISTA ABSOLUTO (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra el **Funtor Endomórfico Gravitatorio** que actúa sobre la variedad
+diferenciable de la Malla Agéntica $$\mathbb{M} \subset \mathbb{R}^7$$. Repudia la concepción 
+escalar del riesgo financiero e introduce un **Pozo Gravitacional** asintótico que 
+subyuga las trayectorias de atención semántica de la IA a las restricciones 
+métricas de la Relatividad General y la Mecánica Cuántica de Sistemas Abiertos.
+
+Para aniquilar el libre albedrío estocástico de los Modelos de Lenguaje (LLMs) y 
+confinar sus desviaciones o "alucinaciones de coste" en la Unidad de Punto Flotante 
+(FPU), el módulo somete toda trayectoria de atención $$\gamma$$ a una **Acción Euclídea 
+Térmica de Polyakov** estricta, integrada sobre el círculo compacto de Matsubara:
+
+$$S_E[\gamma] = \frac{1}{2} \int_{0}^{\beta} \tilde{G}_{\mu\nu} \dot{\gamma}^\mu \dot{\gamma}^\nu d\tau \quad\big[4\big]$$
+
+Donde la métrica deformada $$\tilde{G}_{\mu\nu}$$ encapsula el "peso" del riesgo 
+logístico, obligando a que toda transición semántica inviable degenere en una 
+singularidad de horizonte de sucesos (caída libre geodésica al sumidero). Esto 
+provoca el colapso instantáneo de la amplitud de Feynman-Kac a cero, vetando la 
+transacción en RAM en el milisegundo cero.
+
+AXIOMÁTICA GRAVITATORIA, DE DE RHAM Y TERMOMECÁNICA CUÁNTICA PRESERVADA:
+────────────────────────────────────────────────────────────────────────────────
+
+  [I1] Adquisición de Masa Inercial y Acoplamiento de Fröhlich (Fase 1):
+       La masa inercial efectiva del insumo $$m^{**}$$ se renormaliza ante el estrés 
+       térmico y la volatilidad $$\alpha_v$$ mediante la auto-energía de Fröhlich 
+       saturada infinitamente diferenciable (similar a la dispersión relativista):
+       $$m^{**} = m^* \cdot \left(1 + \frac{\alpha_f}{6}\right) \quad \land \quad m^{**} \ge m^*_{\min} \quad\big[10, 340\big]$$
+       Donde $$\alpha_f = \tanh(\alpha_v)$$ representa la fricción de acoplamiento.
+
+  [I2] Deformación Conforme Métrica y Conservación de Sylvester (Fase 2):
+       La inyección de masa deforma de manera conforme la métrica Riemanniana 
+       $$G_{\mu\nu}$$ a través de una transformación de semejanza diagonal:
+       $$\tilde{G}_{\mu\nu} = \Omega^2(x) G_{\mu\nu} = \left(1 + \frac{2\mathcal{G}m^{**}}{c^2 r}\right) G_{\mu\nu} \quad\big[338, 341\big]$$
+       Por la Ley de Inercia de Sylvester, se valida mediante Cholesky que $$G$$ sea 
+       estrictamente simétrica definida positiva (SPD), lo que garantiza de forma 
+       exacta que la variedad conserve su carácter de colector Riemanniano:
+       $$\lambda_{\min}(\tilde{G}) \ge \mathtt{MIN\_EIGVAL\_TOL} = 1.0\times 10^{-10} \quad\big[149, 335\big]$$
+
+  [I3] Conexión de Levi-Civita y Derivadas por Paso Complejo (CSMD):
+       El transporte geodésico y la curvatura exigen evaluar los Símbolos de Christoffel 
+       $$\Gamma^\rho_{\mu\nu}$$ en forma cerrada exacta a partir del gradiente métrico:
+       $$\Gamma_{\mu\nu}^{\rho} = \frac{1}{2} \tilde{G}^{\rho\lambda} \left( \partial_{\mu} \tilde{G}_{\lambda\nu} + \partial_{\nu} \tilde{G}_{\mu\lambda} - \partial_{\lambda} \tilde{G}_{\mu\nu} \right) \quad\big[17\big]$$
+       Para blindar la mantisa del redondeo por resta catastrófica ($$\text{IEEE-754}$$), 
+       la derivada del tensor se calcula por diferenciación de paso complejo (CSMD):
+       $$\partial_k \tilde{G}_{\mu\nu} = \frac{\operatorname{Im}\left( \tilde{G}_{\mu\nu}(x + j \cdot h \cdot e_k) \right)}{h} + \mathcal{O}(h^2) \quad\big[12, 342\big]$$
+
+  [I4] Curvatura Seccional de Riemann y Atrapamiento de de Rham:
+       El tensor de Riemann se contrae localmente en torno al nodo masivo para 
+       computar la curvatura seccional exacta $$K(e_k, e_j)$$. Si el escalar 
+       excede la cota elástica de resiliencia del negocio, el espacio tangente se 
+       cierra en un horizonte de sucesos (cáustica geodésica), decretando el veto:
+       $$\| R^\rho{}_{\sigma\mu\nu} \|_{\tilde{G}} > r_{\mathrm{inj}}(\mathbb{M}, \tilde{G}_{\mu\nu})^{-2} \quad\big[22\big]$$
+
+  [I5] Amplitud de Feynman-Kac e Inmunidad Térmica (Fase 3):
+       La viabilidad de transición del vector de intencionalidad semántica a lo 
+       largo de la geodésica $$\gamma$$ se evalúa mediante el proyector de Feynman-Kac:
+       $$\Psi[\gamma] = \exp\left(-\frac{S_E[\gamma]}{\hbar_{\mathrm{eff}}}\right) \quad\big[18, 339\big]$$
+       Si $$\Psi[\gamma] \to 0$$, se produce una violación catastrófica del horizonte de 
+       sucesos logístico, detonando `EventHorizonViolation` en RAM.
+
+ESTRUCTURA DE TRES FASES ANIDADAS (Composición Funtorial de Kleisli):
+────────────────────────────────────────────────────────────────────────────────
+La progresión y el tránsito de los datos del espacio de fase se rigen por un 
+encadenamiento formal e inmutable (Observe ⊣ Orient ⊣ Act):
+
+  Fase 1 ──► OBSERVACIÓN DE MASA Y RENORMALIZACIÓN (Phase1_MassAcquisition)
+             Calcula la masa inercial efectiva $$m^{**}$$ integrando el acoplamiento 
+             de Fröhlich sobre el estrés de volatilidad del insumo.
+             Entrega: MassAcquisitionResult como precondición de la Fase 2.
+
+  Fase 2 ──► DEFORMACIÓN CONFORME Y TRANSPORTE COVARIANTE (Phase2_ConformalWarping)
+             Hereda formalmente el MassAcquisitionResult. Construye el colector 
+             $$\tilde{G}_{\mu\nu}$$, verifica Cholesky, calcula los símbolos de Christoffel 
+             vía CSMD y computa la curvatura seccional de Riemann.
+             Entrega: WarpedSpaceTime como precondición de la Fase 3.
+
+  Fase 3 ──► ACCIÓN DE POLYAKOV Y VETO DE HEYTING (Phase3_HeytingPolyakovDecider)
+             Hereda formalmente el WarpedSpaceTime. Resuelve la acción de Polyakov 
+             sobre el círculo térmico de Matsubara $$[0, \beta]$$, estima la amplitud 
+             $$\Psi[\gamma]$$ de Feynman-Kac y colapsa el veredicto sobre el retículo Heyting:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[12, 15\big]$$
+             Si $$\Psi[\gamma] < \mathtt{MIN\_QUANTUM\_AMPLITUDE}$$, el retículo colapsa a 
+             VETOED ($$\top$$), levantando síncronamente la excepción 'EventHorizonViolation' 
+             para purgar la sesión en RAM.
+             Entrega: PolyakovAction (alias GravitationalShieldState).
+
+Funtor Supremo de Atractor Gravitatorio:
+  $$\mathcal{Z}_{\mathrm{shield}} = C_3 \circ C_2 \circ C_1 \quad\big[332\big]$$
 """
 
 from __future__ import annotations

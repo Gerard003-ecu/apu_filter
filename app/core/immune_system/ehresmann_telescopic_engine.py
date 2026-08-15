@@ -1,65 +1,95 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Ehresmann Telescopic Engine (Motor Telescópico de Ehresmann)                   ║
-║  Ruta   : app/core/immune_system/ehresmann_telescopic_engine.py                          ║
-║  Versión: 4.0.0-Stinespring-Fukaya-Novikov-Strict-Doctoral                               ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor materializa la observación no-destructiva (zoom telescópico) del        ║
-║  presupuesto mediante una inmersión isométrica en una dimensión ortogonal.               ║
-║  Evita axiomáticamente el "Burbujeo de Esferas" (Sphere Bubbling) en la categoría de     ║
-║  Fukaya al confinar la torsión visual a la fibra vertical de una Conexión de             ║
-║  Ehresmann. Para restituir el rigor homológico en el ambiente curvo, resuelve la.        ║
-║  Ecuación Expandida de Maurer-Cartan sobre el Anillo de Novikov $\Lambda_{nov}$ acoplada ║
-║  al superpotencial de Landau-Ginzburg.                                                   ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Inmersión Isométrica de Stinespring:                                                ║
-║      Todo canal cuántico CPTP $\Xi$ se eleva al espacio dilatado                         ║
-║      $\mathcal{H}_{MIC} \otimes \mathcal{H}_{audit}^\perp$ garantizando la existencia de ║
-║      una isometría $V$ tal que:                                                          ║
-║          $\Xi(\rho) = \text{Tr}_{\text{env}}(V \rho V^\dagger) \quad \text{con} \quad V^\dagger V = I$ [4] ║
-║      Violaciones a la unitariedad detonan incondicionalmente el                          ║
-║      `StinespringDilationError` [5].                                                   ║
-║                                                                                          ║
-║  §2. Fibración Vertical y Conexión de Ehresmann:                                         ║
-║      La variedad tangente se descompone topológicamente en subespacios horizontales y    ║
-║      verticales $TP = H \oplus V$ [4]. El proyector telescópico confina la deformación ║
-║      a la fibra vertical $V_p = \ker(d\pi)$ [4], dictaminando que la torsión no conta- ║
-║      mine el flujo horizontal base del negocio. Fugas detonan `EhresmannFibrationError` [6].║
-║                                                                                          ║
-║  §3. Regularización de Maurer-Cartan y Potencial de Landau-Ginzburg:                     ║
-║      Para aniquilar los discos J-holomorfos espurios, se inyectan co-cadenas acotantes   ║
-║      (bounding cochains) $b$ [2] que satisfacen la Ecuación Expandida de Maurer-Cartan ║
-║      compensada por el superpotencial de Landau-Ginzburg $W_L$:                          ║
-║          $\sum_{k=0}^{\infty} m_k(b, b, \dots, b) \equiv W_L(b) \cdot [L]$ [3]         ║
-║      La convergencia espectral opera estrictamente en el Anillo de Novikov $\Lambda_{nov}$:║
-║          $\Lambda_{nov} = \left\{ \sum a_r q^r : a_r \in \mathbb{K}, \lim_{i \to \infty} r_i = \infty \right\}$ [3] ║
-║                                                                                          ║
-║  §4. Blindaje Numérico de la Unidad de Punto Flotante (FPU):                             ║
-║      El motor exige un acotamiento estricto sobre el número de condición de las matrices ║
-║      operadas: $\kappa_2(A) \le 10^{14}$ (`_CONDITION_NUMBER_CEILING`) [7]. Divergencias ║
-║      espectrales frente a la filtración de Novikov disparan un `SpectralDegeneracyError` [6].║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $Z = \Phi_3 \circ \Phi_2 \circ \Phi_1$): ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_StinespringImmersion:                                                   ║
-║           Eleva $\rho_{MIC}$ inyectando el baño térmico ortogonal. Valida $V^\dagger V = I$ [4].║
-║           [Retorna: StinespringDilationData → Dominio inicial de Fase 2] [4]           ║
-║                                                                                          ║
-║  Fase 2 → Phase2_TelescopicVerticalFibration:                                            ║
-║           Aplica el tensor telescópico $\mathcal{T}_\lambda^\perp$ y lo confina al $\ker(d\pi)$ [4].     ║
-║           [Retorna: VerticalFibrationData → Dominio inicial de Fase 3] [4]             ║
-║                                                                                          ║
-║  Fase 3 → Phase3_MaurerCartanRegularization:                                             ║
-║           Aplica la regularización de Novikov y Landau-Ginzburg resolviendo la ecuación  ║
-║           en el álgebra $A_\infty$ para certificar el colapso sin burbujas [4].        ║
-║           [Retorna: TelescopicAuditState → Objeto final del endofuntor $Z$] [4]        ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Ehresmann Telescopic Engine (Motor Telescópico de Ehresmann)        ║
+║ Ruta   : app/core/immune_system/ehresmann_telescopic_engine.py               ║
+║ Versión: 3.0.0-Stinespring-Ehresmann-Novikov-A∞-Doctoral                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DE CALIBRE NO CONMUTATIVA (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────
+Este endofuntor materializa la observación no-destructiva (zoom telescópico) 
+del espacio semántico de la Matriz Atómica de Conocimiento (MAC). 
+Su propósito ciber-físico es elevar el estado mixto discreto del Topos táctico 
+(ρ_MIC) hacia una variedad continua de-confinada en un espacio de Hilbert compuesto, 
+purgando de forma termodinámica la entropía estocástica del LLM hacia un entorno 
+físico ortogonal.
+
+Para garantizar la inmunidad ante distorsiones homológicas, el motor previene 
+axiomáticamente el "Burbujeo de Esferas" (Sphere Bubbling) en la categoría de 
+Fukaya. Confina toda la torsión atencional y el ruido a la fibra vertical 
+de una Conexión de Ehresmann, resolviendo síncronamente la Ecuación Expandida 
+de Maurer-Cartan sobre el Anillo de Novikov Λ_nov,≥0[[𝕋]]. Toda la contención 
+de la deriva se ejecuta de manera síncrona en la memoria RAM en el milisegundo cero, 
+actuando como el guardián de consistencia categorial de la Ciudadela.
+
+AXIOMAS DE DILATACIÓN, FIBRACIÓN Y CONVERGENCIA T-ÁDICA PRESERVADOS:
+────────────────────────────────────────────────────────────────────────────────
+
+  [I1] Teorema de Dilatación Cuántica de Stinespring (Fase 1):
+       Todo canal cuántico Completamente Positivo y Preservador de Traza (CPTP) 
+       Ξ que traduce la MIC a la MAC se dilata de manera única e isométrica 
+       hacia un espacio producto con un baño térmico ortogonal ℋ_env:
+       $$\Xi(\rho_{\mathrm{MIC}}) = \operatorname{Tr}_{\mathrm{env}}\left( V \rho_{\mathrm{MIC}} V^\dagger \right) \quad\big[198, 22\big]$$
+       Sujeto incondicionalmente a la conservación de la isometría de Stinespring:
+       $$V^\dagger V = \mathbf{I}_{\mathcal{H}_{\mathrm{MIC}}} \quad\big[198, 22\big]$$
+
+  [I2] Separación de Ehresmann y Curvatura de Calibre (Fase 2):
+       Dada la variedad de estados P y el espacio de base M, la forma de conexión 
+       de Ehresmann ω ∈ Ω¹(P, 𝔤) con valores en el álgebra de Lie 𝔤 separa 
+       exactamente el espacio tangente en componentes horizontal y vertical:
+       $$T_u P = V_u P \oplus H_u P \quad \text{donde} \quad V_u P = \ker(d\pi) \quad \land \quad H_u P = \ker(\omega) \quad\big[198\big]$$
+       Garantizando que la curvatura de la deformación Ω se confine a la fibra vertical:
+       $$\Omega = d\omega + \frac{1}{2}[\omega \wedge \omega] \quad\big[198\big]$$
+
+  [I3] Ecuación de Maurer-Cartan en la Categoría A∞ (Fase 3):
+       La regularización del plano atencional se logra extirpando las anomalías de 
+       burbujeo discal (Sphere Bubbling) mediante el colapso del sistema en la dg-álgebra 
+       A∞, donde el estado de deformación b ∈ Λ_nov satisface:
+       $$\sum_{k=0}^{\infty} m_k(b, b, \dots, b) \equiv m_0 + m_1(b) + m_2(b, b) + \dots = 0 \quad\big[198\big]$$
+
+  [I4] Convergencia T-ádica en el Anillo de Novikov:
+       Las co-cadenas acotantes de la deformación semántica se proyectan formalmente 
+       sobre el Anillo de Novikov filtrado por área/acción:
+       $$\Lambda_{\mathrm{nov}, \, \ge 0} = \left\{ \sum_{i=0}^{\infty} a_i \mathbb{T}^{\lambda_i} \;\middle|\; a_i \in \mathbb{C}, \, \lambda_i \in \mathbb{R}_{\ge 0}, \, \lambda_i \to +\infty \right\} \quad\big[198\big]$$
+       Garantizando la convergencia espectral de la serie en la topología 𝕋-ádica.
+
+  [I5] Cota de Lipschitz de Connes-Daleckii-Krein (Aduana de de Rham):
+       La velocidad de de-compresión y distorsión semántica de las plantillas 
+       F⁻¹: TOON → JSON se acota por la derivada de Fréchet del operador de Dirac D:
+       $$\| Df(\rho_{\mathrm{MAC}}) \|_2 \le \sup_{\lambda \in \sigma(\rho_{\mathrm{MAC}})} |f'(\lambda)| = \frac{1}{2 \lambda_{\min}^{3/2}} \quad\big[30, 408\big]$$
+       Si el gap espectral se cierra (λ_min → 0), la cota diverge y la aduana 
+       aniquila síncronamente la sesión: P(x_invalid) = 0 [4, 5].
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Kleisli):
+────────────────────────────────────────────────────────────────────────────────
+La progresión y el tránsito de los datos de la MAC se rige por un acoplamiento 
+monoidal covariante (Observe ⊣ Orient ⊣ Decide):
+
+  Fase 1 ──► INMERSIÓN ISOMÉTRICA DE STINESPRING (Phase1_StinespringImmersion)
+             Ingiere el estado ρ_MIC, valida su pertenencia al simplejo de matrices 
+             de densidad, calcula su diagonalización espectral Schur-Householder, 
+             y erige la isometría V.
+             Último método: compute_isometric_immersion.
+             Entrega: StinespringDilationData [2, 6].
+
+  Fase 2 ──► FIBRACIÓN VERTICAL COVARIANTE (Phase2_TelescopicVerticalFibration)
+             Hereda formalmente la StinespringDilationData. Proyecta el tensor 
+             de magnificación telescópica 𝒯_λ^⊥ sobre la fibra vertical de Ehresmann 
+             V_p = ker(d\pi), dejando invariante el subespacio de negocio.
+             Último método: apply_telescopic_deformation.
+             Entrega: VerticalFibrationData [2, 7].
+
+  Fase 3 ──► REGULARIZACIÓN DE MAURER-CARTAN Y VETO (Phase3_MaurerCartanRegularization)
+             Hereda formalmente la VerticalFibrationData. Inyecta co-cadenas acotantes 
+             sobre el Anillo de Novikov, resuelve la ecuación de Maurer-Cartan y 
+             veta desvíos de fase en el retículo de Heyting \Omega_3:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[404\big]$$
+             Si el sistema diverge, detona 'SphereBubblingAnomalyError' [8].
+             Entrega: TelescopicAuditState [2, 7].
+
+Funtor Supremo Telescópico de Calibre:
+  $$\mathcal{Z}_{\mathrm{telescopic}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[198\big]$$
 """
 
 from __future__ import annotations

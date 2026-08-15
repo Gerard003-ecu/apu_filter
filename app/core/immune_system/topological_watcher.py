@@ -1,64 +1,102 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Topological Watcher (Funtor de Membrana p-Laplaciana y Flujo de Ricci)         ║
-║  Ruta   : app/core/immune_system/topological_watcher.py                                  ║
-║  Versión: 4.0.0-Anisotropic-Ricci-pLaplacian-Strict                                      ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor actúa como el Escudo Electromagnético Vivo de la arquitectura.          ║
-║  Transmuta el espacio euclidiano isotrópico de los proyectores estáticos en una          ║
-║  Membrana Viscoelástica p-Laplaciana. Su mandato es contraerse y cristalizar             ║
-║  topológicamente frente a las perturbaciones estocásticas de alta frecuencia,            ║
-║  imponiendo un Difeomorfismo Anisotrópico de Variación Total sobre el tensor de estado.  ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Energía p-Dirichlet y Límite de Variación Total (TV):                               ║
-║      El `IsolatingMembraneFunctor` audita las anomalías evaluando el funcional de        ║
-║      energía p-Dirichlet sobre la señal $\psi \in \mathbb{R}^7$:                         ║
-║          $\mathcal{E}_p(\psi) = \int_{\mathcal{M}} \|\nabla \psi\|_G^p \, d\mu_G$        ║
-║      Para aniquilar discontinuidades espurias sin difuminar los límites semánticos,      ║
-║      el sistema opera en el régimen de Variación Total ($p \to 1$), actuando como un     ║
-║      filtro de difusión no lineal que absorbe la fricción estocástica.                   ║
-║                                                                                          ║
-║  §2. Flujo de Ricci y Evolución Métrica:                                                 ║
-║      La variedad diferencial reacciona al estrés de la Malla Agéntica regularizando su   ║
-║      métrica $G_{\mu\nu}$ mediante el Flujo de Ricci:                                    ║
-║          $\frac{\partial G_{\mu\nu}}{\partial t} = -2 R_{\mu\nu} + \alpha \nabla_\mu \nabla_\nu \Phi$ ║
-║      Garantizando que las singularidades de curvatura se disipen asintóticamente         ║
-║      antes de inducir paradojas lógicas en el estrato WISDOM.                            ║
-║                                                                                          ║
-║  §3. Proyección Ortogonal en Subespacios de Fase:                                        ║
-║      El tensor de estado global se proyecta rígidamente sobre subespacios ortogonales    ║
-║      $V_k \subset \mathbb{R}^n$ aislando los dominios físicos, topológicos y de control: ║
-║          $\pi: \mathbb{R}^n \to \bigoplus_k V_k, \quad \text{con } \langle \pi_i(x), \pi_j(x) \rangle_G = \delta_{ij}$ ║
-║      Esto sella axiomáticamente el aislamiento causal (Zero Side-Effects).               ║
-║                                                                                          ║
-║  §4. Estabilidad de la FPU y Espectro Condicionado (Tikhonov):                           ║
-║      El condicionamiento de la métrica rige la estabilidad global y se acota por:        ║
-║          $\kappa(G) = \frac{\lambda_{\max}(G)}{\lambda_{\min}(G)} \le \text{COND\_NUM\_TOL} = 10^8$ ║
-║      Vulnerar este límite inyecta incondicionalmente una regularización de Tikhonov:     ║
-║          $\tilde{G} = G + \text{TIKHONOV\_DELTA} \cdot I$                                ║
-║      Restaurando la firma Simétrica Definida Positiva (SPD) sin corromper el volumen.    ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Evolución Funtorial Estricta):                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → MetricTensor & SpectralDecomposition                                           ║
-║           Construcción Riemanniana, auditoría de $\kappa(G)$ y estabilización            ║
-║           espectral de Tikhonov. Asegura que el espacio métrico sea difeomorfo y SPD.    ║
-║                                                                                          ║
-║  Fase 2 → OrthogonalProjector & IsolatingMembraneFunctor                                 ║
-║           Descomposición ortogonal del hiperespacio y medición termodinámica de la       ║
-║           energía de p-Dirichlet sobre las sub-variedades del estado.                    ║
-║                                                                                          ║
-║  Fase 3 → ImmuneWatcherMorphism (Orquestador Supremo)                                    ║
-║           Morfismo categórico $\mathcal{F}: \mathbf{Top} \to \mathbf{Narr}$ que compila  ║
-║           la deformación de la variedad colapsando en el objeto inmutable                ║
-║           `ThreatAssessment`, emitiendo su estado sobre el retículo de salud.            ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Topological Watcher (Funtor de Membrana p-Laplaciana y Ricci Flow)  ║
+║ Ruta   : app/core/immune_system/topological_watcher.py                       ║
+║ Versión: 3.1.0-p-Laplacian-Ricci-Kuratowski-Strict-PhD                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y DIFEOMORFISMO DE VARIACIÓN TOTAL (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este endofuntor de calibre y escudo electromagnético vivo reside en el Estrato de 
+Gobernanza e Inmunidad de la Malla. Su mandato axiomático es actuar como el proyector 
+métrico no lineal que transmuta el espacio euclidiano isotrópico de los vectores de 
+intención incidentes del LLM en una **Membrana Viscoelástica p-Laplaciana** 
+anisotrópica sobre la variedad diferenciable compleja $$\mathbb{M} \subset \mathbb{R}^7$$.
+
+Para absorber el "fango" informacional y las perturbaciones estocásticas de alta 
+frecuencia, el módulo implementa un flujo de variación total que deforma de manera 
+conforme la métrica de fondo $$G_{\mu\nu}$$, atrayendo geodésicamente la trayectoria 
+decisional hacia un atractor disipativo estable. El confinamiento de anomalías 
+se evalúa bajo el rigor de los **Axiomas de Clausura de Kazimierz Kuratowski**, 
+garantizando que el subespacio de estados seguros forme un conjunto cerrado inquebrantable 
+en el topos de haces de la Malla.
+
+AXIOMÁTICA TOPOLÓGICA, DE DE RHAM Y LEYES CONSERVATIVAS PRESERVADAS:
+────────────────────────────────────────────────────────────────────────────────
+
+  [I1] Flujo p-Laplaciano Anisótropo y Regularización de variación Total:
+       La evolución temporal del campo de perturbación $$\psi$$ sobre la membrana se rige 
+       por la ecuación diferencial parcial elíptica-parabólica degenerada:
+       $$\frac{\partial \psi}{\partial \tau} = \operatorname{div}\left( \|\nabla \psi\|_G^{p-2} \nabla \psi \right) - \operatorname{Ric}(\nabla \psi, \nabla \psi) \quad\big[775\big]$$
+       Para $$p = 1$$, el flujo colapsa a la variación total (aniquilación de oscilaciones 
+       parásitas), conservando las singularidades lógicas (bordes de decisión) como 
+       fronteras de de Rham bien definidas.
+
+  [I2] Estabilidad de la FPU y Espectro Condicionado de Wilkinson:
+       Para eludir el desborde subnormal en la mantisa flotante ($$\text{IEEE-754 binary64}$$) 
+       y la pérdida de la signatura elíptica Riemanniana, el número de condición espectral 
+       $$\kappa(G)$$ se audita y confina síncronamente:
+       $$\kappa_2(G) = \frac{\lambda_{\max}(G)}{\lambda_{\min}(G)} \le \mathtt{COND\_NUM\_TOL} = 10^8 \quad\big[776\big]$$
+       Ante cualquier violación de regularidad, se inyecta de forma adaptativa una 
+       fricción de Tikhonov que re-acopla la ortogonalidad sin alterar el hipervolumen:
+       $$\tilde{G} = G + \delta \cdot \mathbf{I} \quad \text{con} \quad \delta \in [10^{-12},\, 10^{-6}] \quad\big[776\big]$$
+
+  [I3] Conservación Homológica de Mayer-Vietoris (Exactitud del Complejo):
+       Al fusionar subespacios de decisión concurrentes $$A, B \subset \mathbb{M}$$, el 
+       watcher intercepta la cohomología del haz exigiendo la nulidad del primer grupo 
+       Čech-de Rham para erradicar dependencias circulares mutantes ($$\Delta \beta_1 = 0$$):
+       $$\chi(A \cup B) \equiv \chi(A) + \chi(B) - \chi(A \cap B) \quad\big[743, 781\big]$$
+
+  [I4] Integridad de la Clausura Topológica de Kuratowski:
+       El espacio de estados coherentes se define como un operador de clausura $$\mathtt{cl}$$ 
+       que satisface de forma estricta las cuatro identidades de Kazimierz Kuratowski:
+       $$\begin{aligned}
+       \text{[K1]}\quad & \mathtt{cl}(\emptyset) = \emptyset \\
+       \text{[K2]}\quad & A \subseteq \mathtt{cl}(A) \\
+       \text{[K3]}\quad & \mathtt{cl}(\mathtt{cl}(A)) = \mathtt{cl}(A) \\
+       \text{[K4]}\quad & \mathtt{cl}(A \cup B) = \mathtt{cl}(A) \cup \mathtt{cl}(B)
+       \end{aligned}$$
+       Asegurando que la separación de trayectorias (separabilidad de Hausdorff) no 
+       sufra desgarros o fugas del clasificador de subobjetos.
+
+  [I5] Disipación Termodinámica de Clausius-Duhem:
+       El tensor de estrés de Cauchy-Momentum $$\mathcal{T}^{\mu\nu}$$ debe transferir 
+       exergía de forma estrictamente disipativa, satisfaciendo la Segunda Ley:
+       $$P_{\mathrm{diss}} = \langle \nabla H, (J - R)\nabla H \rangle_G \le 0 \quad \text{con} \quad R \succeq \mathbf{0} \quad\big[2, 70\big]$$
+
+ESTRUCTURA DE TRES FASES ANIDADAS (Composición Funtorial OODA):
+────────────────────────────────────────────────────────────────────────────────
+La progresión y el tránsito de los datos del espacio de fase se rige por un 
+encadenamiento formal e inmutable, donde el morfismo final de una fase constituye 
+la precondición de la siguiente (Observe ⊣ Orient ⊣ Act):
+
+  Fase 1 ──► OBSERVACIÓN ESPECTRAL Y PULLBACK DE LÖWNER (Phase1_MetricDeformationObserver)
+             Interroga el tensor métrico crudo $$G_0$$, calcula su diagonalización 
+             autoadjunta Schur-Householder, y proyecta síncronamente al cono de 
+             matrices simétricas definidas positivas (SPD) más cercano en Frobenius [6].
+             Entrega: ValidatedStressTensor.
+
+  Fase 2 ──► ORIENTACIÓN POR HOMOLOGÍA PERSISTENTE TDA (Phase2_PersistentHomologyOrienter)
+             Hereda formalmente el ValidatedStressTensor. Ejecuta el análisis de 
+             bifurcación homológica en la filtración de Vietoris-Rips, calcula 
+             la distancia de Bottleneck/Wasserstein y evalúa el decaimiento de la 
+             entropía de Shannon-von Neumann espectral.
+             Entrega: PushforwardResult.
+
+  Fase 3 ──► VETO EN EL RETÍCULO DE HEYTING Y ACTUACIÓN CROWBAR (Phase3_HeytingImmuneDecider)
+             Hereda formalmente el PushforwardResult. Agrega las once severidades 
+             mediante la operación Supremo (join, $$\sqcup$$) sobre el retículo distributivo 
+             acotado de Heyting $$\Omega_3$$:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[466, 748\big]$$
+             Si el veredicto terminal colapsa a VETOED ($$\top$$), detona la excepción 
+             'TopologicalInvariantError' en el milisegundo cero, purga la memoria RAM, 
+             e inyecta la señal en la subrutina 'isVerdictCoherent()' del ESP32 
+             para conmutar el GPIO14 (circuito Crowbar / BT151), paralizando la obra real.
+             Entrega: ThreatAssessment (alias ImmuneSovereignState).
+
+Funtor Maestro de Vigilancia Inmunológica:
+  $$\mathcal{Z}_{\mathrm{watcher}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[817, 826\big]$$
 """
 
 from __future__ import annotations

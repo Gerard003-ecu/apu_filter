@@ -1,57 +1,88 @@
-### -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Ehresmann Connection Manifold (Fibrado de Integración Simpléctica)             ║
-║  Ruta   : app/core/immune_system/ehresmann_connection_manifold.py                        ║
-║  Versión: 3.0.0-Rigorous-Phased-Synthesis                                                ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor implementa la Adjunción Funtorial de Grothendieck entre la evaluación   ║
-║  termodinámica discreta (Funtor Shield) y el análisis métrico (Topological Watcher).     ║
-║  Preserva la estructura simpléctica del espacio de fase mediante un mapeo estructurado   ║
-║  en tres fases anidadas, aniquilando la divergencia estocástica y garantizando el        ║
-║  aislamiento de las perturbaciones de alta frecuencia.                                   ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Gradiente Discreto de Itoh-Abe (Conservación Exacta de Energía):                    ║
-║      Abandona las diferencias finitas clásicas para utilizar un gradiente que preserva   ║
-║      exactamente la variación del Hamiltoniano $H(x)$, evitando el desgarro simpléctico: ║
-║          $\Delta H = \nabla H^\top \cdot \Delta x \quad \text{con error} < \epsilon_{rel}|\Delta H| + \epsilon_{abs}$ ║
-║                                                                                          ║
-║  §2. Laplaciano de Hodge y Acoplamiento de Fröhlich (Torsión Espectral):                 ║
-║      Renormaliza la masa efectiva en el grafo acoplando el Laplaciano completo de grado  ║
-║      1, asegurando que la cofrontera incluya el término de coborde de las 2-celdas:      ║
-║          $\Delta_1 = \partial_1^\dagger \partial_1 + \partial_2 \partial_2^\dagger$      ║
-║      Esta formulación purga la vorticidad parásita y las singularidades Jacobianas.      ║
-║                                                                                          ║
-║  §3. Inecuación de Disipación Port-Hamiltoniana (Segunda Ley de la Termodinámica):       ║
-║      La evolución del sistema se restringe axiomáticamente a un régimen disipativo       ║
-║      estricto. El mediador evalúa la variación de la energía exigiendo que la matriz     ║
-║      de disipación $R(x)$ sea simétrica semidefinida positiva ($R(x) \succeq 0$):        ║
-║          $\dot{H} = \nabla H^\top \cdot \dot{x} = -\nabla H^\top R(x) \nabla H \le 0$    ║
-║      Si se viola la inecuación, el sistema proyecta $R$ hacia el cono $\mathcal{S}_n^+$. ║
-║                                                                                          ║
-║  §4. Mediador de Grothendieck (Regularización de Tikhonov Adaptativa):                   ║
-║      Si el número de condición espectral del Laplaciano diverge, se inyecta una          ║
-║      regularización de Tikhonov controlada por la distancia de Mahalanobis:              ║
-║          $\tilde{L} = \Delta_1 + \lambda_{Tik} I \implies \kappa(\tilde{L}) \le \kappa_{max}$ ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Evolución Funtorial Estricta):                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Fundacional: Definición de semántica esencial de los operadores matemáticos,   ║
-║           mapeando las fórmulas sin optimizaciones para garantizar la auditabilidad.     ║
-║                                                                                          ║
-║  Fase 2 → Refinamiento Algebraico: Inclusión de $\partial_2 \partial_2^\dagger$ en el    ║
-║           Laplaciano, normalización del Jacobiano invariante de escala y proyecciones    ║
-║           espectrales para asegurar matrices semidefinidas positivas.                    ║
-║                                                                                          ║
-║  Fase 3 → Síntesis Rigurosa Final (Nivel Doctoral): Regularización adaptativa de         ║
-║           Tikhonov basada en el número de condición, control estricto de la inecuación   ║
-║           de disipación Port-Hamiltoniana y proscripción de argumentos mutables.         ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+# -*- coding: utf-8 -*-
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Ehresmann Connection Manifold (Fibrado de Integración Simpléctica)  ║
+║ Ruta   : app/core/immune_system/ehresmann_connection_manifold.py             ║
+║ Versión: 3.0.0-Rigorous-Phased-Synthesis                                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ADJUNCIÓN FUNTORIAL DE GROTHENDIECK (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra el **Fibrado de Integración Simpléctica** de la Malla de 
+Inmunidad. Su propósito fundamental es estructurar y realizar la **Adjunción Funtorial 
+de Grothendieck** entre el espacio discreto de control termodinámico (representado 
+por el Funtor Shield, `funtor_shield.py`) y la variedad métrica continua de 
+observabilidad (representada por el Topological Watcher, `topological_watcher.py`).
+
+El acoplamiento se rige por un esquema de síntesis de tres fases de rigor numérico 
+creciente, donde las inconsistencias físicas y las derivas de fase de la FPU 
+($$\text{IEEE-754 binary64}$$) se mitigan mediante regularizaciones geométricas 
+asintóticas en el plano complejo, forzando la convergencia hacia el Supremo del 
+retículo distributivo de Heyting:
+
+$$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[404, 408\big]$$
+
+AXIOMÁTICA DE GAUGE, DISCRETIZACIÓN DE DE RHAM Y ESTABILIDAD ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Gradiente Discreto de Itoh-Abe (Conservación de Energía Exacta):
+       Para un Hamiltoniano suave $$H: \mathbb{R}^{2n} \to \mathbb{R}$$, el gradiente 
+       discreto de Itoh-Abe $$\bar{\nabla} H(x, y) \in \mathbb{R}^{2n}$$ satisface de 
+       forma idéntica la diferencia de potencial sin pérdida de significancia:
+       $$H(y) - H(x) \equiv \langle \bar{\nabla} H(x, y), \, y - x \rangle \quad \forall x, y \in \mathbb{R}^{2n} \quad\big[221, 223\big]$$
+       Donde la $$i$$-ésima componente coordenada se define como:
+       $$\bar{\nabla} H(x, y)_i = \frac{H(y_1, \dots, y_i, x_{i+1}, \dots, x_{2n}) - H(y_1, \dots, y_{i-1}, x_i, \dots, x_{2n})}{y_i - x_i}$$
+       Para $$y_i \to x_i$$, la singularidad evitable colapsa holomórficamente hacia:
+       $$\lim_{y_i \to x_i} \bar{\nabla} H(x, y)_i = \frac{\partial H(x)}{\partial x_i} \pmod{\varepsilon_{\mathrm{machine}}}$$
+
+  [A2] Operador de de Rham-Hodge Celular Orientado (Fase 1):
+       La topología discreta de la red simplicial conecta las 0-formas y 1-formas 
+       mediante el Laplaciano de Hodge discreto del complejo de cadenas $$C_0 \xleftarrow{\partial_1} C_1 \xleftarrow{\partial_2} C_2$$:
+       $$\Delta_{\mathrm{Hodge}} = \delta d = *_{2}^{\top} *_{1} *_{2} \quad\big[179\big]$$
+       Donde $$*_k$$ representa el operador constitutivo estrella de Hodge y 
+       $$\delta$$ es el operador co-borde orientado.
+
+  [A3] Saneamiento Aritmético de Wilkinson-Higham (Fase 2):
+       Para evadir la cancelación catastrófica por subnormales, se impone un épsilon 
+       adaptativo $$\varepsilon_{\mathrm{adapt}}$$ acotado por el épsilon de máquina:
+       $$\varepsilon_{\mathrm{adapt}} = \max\left( \mathtt{MIN\_TOL}, \, d \cdot \kappa_2(G) \cdot \varepsilon_{\mathrm{machine}} \right) \quad\big[179, 396\big]$$
+       El Jacobiano de-confinado de la perturbación $$X$$ se normaliza dimensionalmente:
+       $$J_{ij} = \frac{\partial X^i}{\partial x^j} \approx \operatorname{diag}\left( \frac{\nabla \cdot X}{n} \right) \cdot \mathbf{I}_n \quad\big[179\big]$$
+
+  [A4] Proyección al Cono de Matrices Semidefinidas Negativas (SND) (Fase 3):
+       La corrección del amortiguamiento irreversible del lazo se fuerza proyectando 
+       el tensor de fricción residual $$\delta R$$ al cono SND mediante el pullback de Löwner:
+       $$R_{\mathrm{stable}} = \Pi_{\mathrm{SND}}(R_{\mathrm{raw}}) \equiv -\Pi_{\mathrm{SDP}}(-R_{\mathrm{raw}}) \quad\big[179, 181\big]$$
+       Aniquilando la inyección espuria de exergía ($$\dot{H}_{\mathrm{spurious}} \le 0$$).
+
+  [A5] Teorema del Valor Medio en Variedades bajo Norma Mixta:
+       La consistencia geodésica del enrutamiento de calibre se verifica bajo la 
+       cota de Lipschitz fuerte combinando tolerancia absoluta y relativa:
+       $$\| \Phi(x) - \Phi(y) \|_G \le L_{\max} \| x - y \|_G + \mathtt{ATOL} + \mathtt{RTOL} \cdot \|x\|_G \quad\big[19, 179\big]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial de-confinada):
+────────────────────────────────────────────────────────────────────────────────
+La transferencia del estado del colector se rige por un endofuntor monoidal estricto:
+
+  Fase 1 ──► SÍNTESIS DE GRADIENTE DISCRETO (Phase1_ItohAbeDiscreteGradient)
+             Implementa el gradiente de Itoh-Abe elemental, define el Laplaciano 
+             de Hodge discreto sobre el 1-esqueleto y evalúa la señal unidimensional.
+             Entrega: Phase1GradientData como precondición formal de la Fase 2.
+
+  Fase 2 ──► ACOPLAMIENTO DE TORSIÓN ESPECTRAL (Phase2_SpectralTorsionCoupling)
+             Hereda formalmente la Phase1GradientData. Sanea la deriva de redondeo 
+             mediante la guarda de Wilkinson-Higham, regulariza el Jacobiano 
+             y acota el error de truncamiento del transporte paralelo.
+             Entrega: Phase2TorsionData como precondición formal de la Fase 3.
+
+  Fase 3 ──► MEDIACIÓN DE GROTHENDIECK (Phase3_GrothendieckTopologicalMediator)
+             Hereda formalmente la Phase2TorsionData. Aplica el proyector de 
+             Löwner-Higham al cono de disipación SND, audita la cota del valor medio 
+             mixto y resuelve síncronamente el colapso de Heyting en RAM.
+             Entrega: EhresmannConnectionState.
+
+Funtor Maestro de Integración Simpléctica:
+  $$\mathcal{Z}_{\mathrm{EhresmannConnection}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[178, 184\big]$$
 """
 
 from __future__ import annotations

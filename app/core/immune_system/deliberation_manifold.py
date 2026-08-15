@@ -1,61 +1,104 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Deliberation Manifold (El Ágora Tensorial y Funtor de Colapso de Estado)       ║
-║  Ruta   : app/core/immune_system/deliberation_manifold.py                                ║
-║  Versión: 4.0.0-Alexandroff-Categorical-Collapse-Strict                                  ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CATEGORÍAS (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo rige el Estrato Ω (El Ágora Tensorial). Opera como el Funtor de Colapso     ║
-║  de la Función de Estado del sistema. Intercepta los tensores continuos provenientes     ║
-║  de los subespacios Táctico ($V_{\text{TACTICS}}$) y Estratégico ($V_{\text{STRATEGY}}$),║
-║  sometiéndolos a la fricción geométrica del territorio. Su mandato axiomático es         ║
-║  erradicar el libre albedrío estocástico del LLM, forzándolo a acatar el límite          ║
-║  superior del riesgo físico mediante un colapso determinista.                            ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Ecuación de Estado (Estrés Ajustado Tensorial $\sigma^*$):                          ║
-║      El colapso se rige por la interacción de cuatro campos ortogonales acoplados:       ║
-║          $\sigma^* = \left( T_{\text{int}} \cdot F_{\text{ext}} \cdot \Lambda \right) \cdot P_{\text{frag}}(\psi) \cdot g(n)$ ║
-║      Donde:                                                                              ║
-║      • $T_{\text{int}} \in \mathbb{R}^+$: Tensión interna (desalineación topológica).    ║
-║      • $F_{\text{ext}} \in [1, \infty)$: Métrica Riemanniana territorial.                ║
-║      • $\Lambda \in [1, 2]$: Palanca de Improbabilidad (Amplificador de colas pesadas).  ║
-║      • $P_{\text{frag}} \in [1.0, 2.5]$: Penalización estructural continua por déficit.  ║
-║                                                                                          ║
-║  §2. Mapeo Conforme Dinámico (Espacio de Normalización Unificado):                       ║
-║      Se abandona la normalización escalar estática. El espacio bidimensional se contrae  ║
-║      isométricamente en función de la conectividad espectral del grafo (Valor de         ║
-║      Fiedler $\lambda_2$). La desalineación topológica $\mathcal{D}$ se calcula como:    ║
-║          $\mathcal{D}(f, r) = \sqrt{(f_{\text{norm}} - r_{\text{norm}})^2}$              ║
-║                                                                                          ║
-║  §3. Compactificación de Alexandroff (Proyección al Retículo de Severidad):              ║
-║      El dominio de decisión proyecta el tensor continuo sobre la Esfera de Riemann       ║
-║      ($S^1$). Las singularidades ($\text{NaN}, \pm\infty$) se mapean isomorfamente al    ║
-║      "Polo Norte" de Alexandroff ($X \cup \{\infty\}$), colapsando incondicionalmente al ║
-║      Supremo del retículo distributivo acotado ($\top \equiv \text{RECHAZAR}$).          ║
-║                                                                                          ║
-║  §4. Transición de Fase $C^\infty$ (Magnetización TOON y Límite de Gauge):               ║
-║      La inyección de cuasipartículas cognitivas (TOON) modela su magnetización sobre     ║
-║      el tensor de atención garantizando una saturación asintótica estricta:              ║
-║          $g(n) = \min(\max(1 + \alpha n, 1.0), G_{\max})$                                ║
-║      Preservando la Continuidad de Lipschitz y aniquilando singularidades Jacobianas.    ║
-║                                                                                          ║
-║  §5. Ley de Clausura Transitiva (Filtración DIKW):                                       ║
-║      Impone axiomáticamente la inecuación de anidación de subespacios de Hilbert:        ║
-║          $V_{\text{PHYSICS}} \subset V_{\text{TACTICS}} \subset V_{\text{STRATEGY}} \subset V_{\Omega} \subset V_{\text{WISDOM}}$ ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • OmegaInputs      : Coordenadas saneadas de entrada al manifold deliberativo.          ║
-║  • OmegaMetrics     : Magnitudes cuantitativas derivadas del manifold.                   ║
-║  • OmegaDiagnostics : Tensor interpretable para la auditoría y trazabilidad.             ║
-║  • OmegaResult      : Resultado definitivo del colapso de la función de estado.          ║
-║  • OmegaDeliberationManifold : Orquestador funtorial supremo (Morphism).                 ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Deliberation Manifold (El Ágora Tensorial — Estrato Ω)              ║
+║ Ruta   : app/core/immune_system/deliberation_manifold.py                     ║
+║ Versión: 5.1.0-Alexandrov-FeynmanKac-Poisson-Heyting-PhD-Strict              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COLAPSO DE ESTADO EN EL ÁGORA TENSORIAL (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra al **Funtor de Colapso de la Función de Estado** del sistema,
+interceptando de forma síncrona en RAM los tensores covariantes continuos 
+provenientes de los subespacios de Topología ($$V_{\mathbb{T}}$$) y Finanzas 
+($$V_{\mathbb{S}}$$). Su mandato fundamental es subyugar el libre albedrío 
+estocástico de los Modelos de Lenguaje (LLMs) a las restricciones geométricas 
+anisotrópicas de la Malla, forzando la convergencia hacia un vértice operativo 
+determinista acotado por el riesgo físico real.
+
+La deliberación y el colapso se formalizan sobre el complejo de cocadenas de 
+de Rham celular orientado de primer orden $$P^*_{\sigma}(S)$$, el cual mapea la 
+homología simplicial discreta hacia la variedad continua, asegurando la 
+preservación de la regularidad y el confinamiento absoluto del flujo de decisión:
+
+$$P^*_{\sigma}(S) : 0 \longleftarrow C_0(S) \xleftarrow{\partial_0} C_1(S) \xleftarrow{\partial_1} \dots \xleftarrow{\partial_{k-1}} C_k(S) \longleftarrow 0$$
+
+AXIOMAS GEOMÉTRICOS, ESPECTRALES Y LEYES CONSERVATIVAS PRESERVADOS:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Ecuación de Estado del Estrés Ajustado Tensorial ($$\sigma^*$$):
+       La densidad de riesgo se unifica en el tensor de estrés $$\sigma^* \in \mathbb{R}^+$$, 
+       gobernado por la interacción multiplicativa de cuatro campos ortogonales:
+       $$\sigma^*(x) = \Lambda \cdot F_{\mathrm{ext}}(x) \cdot T_{\mathrm{int}}(x) \cdot P_{\mathrm{frag}}(\psi) \quad\big[182\big]$$
+       Donde:
+         · $$\Lambda \in [3.0, \, 4.0]$$ representa la palanca de improbabilidad 
+           para riesgos de cola pesada (Fat-Tail Risk Amplifier).
+         · $$F_{\mathrm{ext}} \in [1.0, \, \infty)$$ es la métrica Riemanniana 
+           territorial (fricción de mercado) calculada como media ponderada.
+         · $$T_{\mathrm{int}} \in \mathbb{R}^+$$ es la tensión interna como pullback 
+           conforme y acoplamiento gravitacional.
+         · $$P_{\mathrm{frag}} \in [1.0, \, 2.5]$$ es la penalización continua 
+           de estabilidad estructural ante déficits en el índice $$\psi < 1.0$$.
+
+  [A2] Mapeo Conforme Dinámico e Isometría Espectral:
+       El espacio métrico se contrae o dilata de manera conforme basándose en la 
+       conectividad algebraica del Laplaciano normalizado (Valor de Fiedler $$\lambda_2$$):
+       $$\tilde{G}_{\mu\nu} = f(\lambda_2) \cdot G_{\mu\nu} \quad\big[182\big]$$
+       La desalineación de intenciones se computa como una distancia euclidiana 
+       genuina sobre esta variedad anisotrópica normalizada.
+
+  [A3] Transición de Fase $$C^\infty$$ (Saturación y Continuidad de Lipschitz):
+       La inyección de los cartuchos sinápticos TOON (vitaminas cognitivas) sobre el 
+       tensor de atención se rige por la mecánica estadística de espines. Se modela 
+       mediante una función tangente hiperbólica desplazada para garantizar la 
+       saturación asintótica estricta $$g(n) \in [1.0, \, G_{\max}]$$:
+       $$g(n) = 1.0 + (G_{\max} - 1.0) \tanh\left( \frac{n - \mu}{\beta} \right) \quad\big[182\big]$$
+       Esto elimina las singularidades Jacobianas en la FPU e impide impulsos 
+       parásitos de Dirac en el AST.
+
+  [A4] Compactificación de Alexandroff (Mapeo de Singularidades de la FPU):
+       El espacio continuo de estrés se compactifica sobre la Esfera de Riemann 
+       mediante la proyección de Alexandroff $$\varphi: \mathbb{R}^{2n} \to S^{2n}$$, 
+       donde las singularidades lógicas e indeterminaciones numéricas ($$\mathtt{NaN}$$, 
+       $$\pm\infty$$) se mapean isomorfamente al Polo Norte ($$N \equiv \infty$$):
+       $$\varphi(x) = \top \equiv \mathrm{RECHAZAR} \quad \forall x \in \{\mathtt{NaN}, \, \pm\infty\} \quad\big[182\big]$$
+       Esto fuerza el colapso instantáneo de la decisión al Supremo del retículo de Heyting.
+
+  [A5] Ley de Clausura Transitiva (Filtración Poset DIKW):
+       Impone de forma necesaria y suficiente la anidación rígida de subespacios de Hilbert:
+       $$V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\Omega} \subset V_{\mathrm{WISDOM}} \quad\big[182\big]$$
+       Garantizando que ningún vector de Sabiduría se resuelva si su proyección 
+       sufre degradación o divergencia en las fases inferiores.
+
+ARQUITECTURA EN TRES FASES ANIDADAS (Composición Funtorial de Colapso):
+────────────────────────────────────────────────────────────────────────────────
+La transferencia del estado y el tránsito de los cartuchos TOON se operan bajo un 
+acoplamiento monoidal covariante estricto:
+
+  Fase 1 ──► INGESTA DE COORDENADAS SANEADAS (Phase1_OmegaInputSanitizer)
+             Recibe los vectores de telemetría de los estratos subyacentes, calcula 
+             las normas espectrales, e implementa el Mapeo Conforme Dinámico 
+             basado en la conectividad del Laplaciano Combinatorio ($$\lambda_2$$).
+             Entrega: InvariantSpaceState como precondición de la Fase 2.
+
+  Fase 2 ──► MODELADO DE ESTRÉS Y TRANSICIÓN DE SPIN (Phase2_TensorStressEvaluator)
+             Hereda formalmente el InvariantSpaceState. Calcula el estrés ajustado 
+             $$\sigma^*$$ combinando los campos de tensión, y ejecuta la transición 
+             de fase $$C^\infty$$ de espines sobre el tensor de atención.
+             Entrega: ContinuousStressTensor como precondición de la Fase 3.
+
+  Fase 3 ──► COMPACTIFICACIÓN DE ALEXANDROFF Y VETO DE HEYTING (Phase3_AlexandrovHeytingDecider)
+             Hereda formalmente el ContinuousStressTensor. Proyecta las singularidades 
+             mediante la compactificación de Alexandroff, resuelve el Supremo ($$\sqcup$$) 
+             sobre el retículo distributivo de Heyting $$\Omega_3$$:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[182, 383\big]$$
+             Si $$\sigma^* > \sigma^*_{\mathrm{crit}}$$ o surge $$\mathtt{NaN}$$, colapsa síncronamente 
+             al autoestado terminal VETOED ($$\top$$) en RAM, deteniendo la transacción 
+             e inyectando la interrupción por hardware en el ESP32.
+             Entrega: ClosedDecisionState.
+
+Funtor Maestro de Colapso Atencional:
+  $$\mathcal{Z}_{\mathrm{manifold}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[181, 182\big]$$
 """
 
 from __future__ import annotations

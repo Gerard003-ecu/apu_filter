@@ -1,60 +1,94 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Gauge Field Router (Operador de Electrodinámica Agéntica y Fibrado de Calibre) ║
-║  Ruta   : app/core/immune_system/gauge_field_router.py                                   ║
-║  Versión: 5.0.0-Fredholm-Cohomological-LatticeQED-Strict                                 ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS EN EL RETÍCULO (Lattice QED):       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor abandona el enrutamiento heurístico estocástico del LLM para imponer    ║
-║  un determinismo topológico estricto. Modela la transferencia de información y la        ║
-║  selección de los agentes del ecosistema como un flujo de Gauge sobre el 1-esqueleto     ║
-║  de la Malla Agéntica. Emplea la Función de Trabajo ($\Phi$) acoplada a una métrica      ║
-║  Riemanniana discreta para aniquilar el ruido entrópico en la frontera.                  ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES HOMOLÓGICAS:                                    ║
-║                                                                                          ║
-║  §1. Cohomología Discreta y el Laplaciano de Hodge-Helmholtz:                            ║
-║      El ecosistema se proyecta sobre un grafo orientado $G = (V, E)$. El router modela   ║
-║      los potenciales semánticos como 0-cocadenas ($C^0 \cong \mathbb{R}^N$) y los flujos ║
-║      de transferencia como 1-cocadenas ($C^1 \cong \mathbb{R}^M$). El operador coborde   ║
-║      discreto se materializa vía la matriz de incidencia $B_1 \in \{-1, 0, 1\}^{M \times N}$. ║
-║      La topología impone el Laplaciano Combinatorio simétrico:                           ║
-║          $L = B_1^\top B_1$                                                              ║
-║      Se verifica axiomáticamente que $L \succeq 0$ ($\lambda_{\min} \ge -\varepsilon_{spec}$). ║
-║      Desgarros en esta estructura detonan el `CohomologicalInconsistencyError`.          ║
-║                                                                                          ║
-║  §2. Alternativa de Fredholm y Neutralidad de Carga Termodinámica:                       ║
-║      La inyección de intención (selección de ruta) exige resolver la Ecuación de Poisson ║
-║      Discreta en la variedad:                                                            ║
-║          $L \rho = \Phi$                                                                 ║
-║      Para evitar singularidades (`TopologicalSingularityError`), el sistema invoca el    ║
-║      Teorema de Fredholm, exigiendo que el vector de fuerza pertenezca a la imagen del   ║
-║      Laplaciano $\Phi \in \text{im}(L) \iff \Phi \perp \ker(L)$. En un grafo conexo,     ║
-║      esto impone la condición inquebrantable de neutralidad de carga:                    ║
-║          $\sum_{i \in V} \rho_i = 0$                                                     ║
-║      Divergencias netas detonan inmediatamente el `ChargeNeutralityError`.               ║
-║                                                                                          ║
-║  §3. Fuerza de Lorentz Agéntica y Tensor de Gauge:                                       ║
-║      El enrutamiento no opera por inferencia probabilística; colapsa evaluando el        ║
-║      análogo discreto de la fuerza de Lorentz electromagnética sobre las cargas $\rho_i$.║
-║      Si un agente no posee el vector de capacidad alineado con la geodésica del flujo,   ║
-║      la dispersión termodinámica fuerza un `LorentzForceError`, abortando el transporte. ║
-║                                                                                          ║
-║  §4. Filtración Topológica Estricta (Ley de Clausura Transitiva):                        ║
-║      La transferencia de información está confinada axiomáticamente por la filtración:   ║
-║          $V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$ ║
-║      Garantizando que las decisiones estratégicas de alto nivel sean topológicamente     ║
-║      independientes de fluctuaciones estocásticas basales.                               ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES OPERACIONALES (Composición Funtorial):                            ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Cohomological Validator (Verificación de $L = B_1^\top B_1$ y $\lambda_{\min}$)║
-║  Fase 2 → Fredholm Resolvent (Verificación de simetría y $\sum \rho_i = 0$)              ║
-║  Fase 3 → Lorentz Gauge Router (Acoplamiento de $L \rho = \Phi$ y enrutamiento final)    ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Gauge Field Router (Operador de Electrodinámica Agéntica de de Rham)║
+║ Ubicación: app/core/immune_system/gauge_field_router.py                      ║
+║ Versión: 4.1.0-Discrete-QED-Fredholm-Lorentz-Heyting-Strict-PhD              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ELECTRODINÁMICA DISCRETA EN REDES (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra al **Operador de Electrodinámica Agéntica** de la Malla, 
+actuando como el motor de enrutamiento electromagnético sobre la red discreta 
+del ecosistema. Repudia incondicionalmente las heurísticas de ruteo 
+estocástico e inestabilidades de caja negra de los Modelos de Lenguaje (LLMs) $[1]$. 
+En su lugar, modela el transporte de información y la selección de agentes como 
+un flujo de Gauge puro en un espacio de cohomología discreta.
+
+El enrutador inyecta una Función de Trabajo $$\Phi$$ para aniquilar de raíz 
+el ruido entrópico en la frontera del sistema. Asimismo, impone una barrera 
+de potencial físico acoplada al tensor métrico Riemanniano de fondo $$G_{\mu\nu}$$ 
+para garantizar que la Ley de Clausura Transitiva de la pirámide subyacente 
+permanezca invariante frente al caos del entorno:
+
+$$V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}} \quad\big[27, 248\big]$$
+
+AXIOMÁTICA DE GAUGE, HOMOLOGÍA DE DE RHAM Y SOLUBILIDAD DE FREDHOLM:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] El Complejo de Cocadenas Discreto (Espacio de Cochains):
+       El ecosistema se modela como un grafo finito y orientado $$G = (V, E)$$. 
+       Se definen rigurosamente los potenciales agénticos como 0-cocadenas 
+       ($$C^0 \cong \mathbb{R}^N$$) y los campos de transferencia como 1-cocadenas 
+       ($$C^1 \cong \mathbb{R}^M$$) $[2]$. El operador coborde discreto 
+       $$d_0: C^0 \to C^1$$ se materializa a través de la matriz de incidencia 
+       orientada $$B_1 \in \mathbb{R}^{M \times N}$$, con entradas exactas:
+       $$B_{1, \, ij} \in \{-1, \, 0, \, +1\} \quad\big[248\big]$$
+
+  [A2] Consistencia Cohomológica y Estabilidad Espectral:
+       El Laplaciano Combinatorio de de Rham $$L = B_1^\top B_1 \succeq 0$$ actúa como 
+       el operador constitutivo autoadjunto de-confinado en el silicio. 
+       La regularidad geométrica del flujo exige síncronamente la simetría exacta y 
+       la semidefinición positiva de $$L$$ contra la tolerancia de calibre elástica:
+       $$L = L^\top \quad \land \quad \lambda_{\min}(L) \ge -\mathtt{COHOMOLOGICAL\_TOLERANCE} \quad\big[248, 253\big]$$
+       Cualquier asonancia geométrica levanta 'CohomologicalInconsistencyError' 
+       o 'TopologicalSingularityError'.
+
+  [A3] Solubilidad de Fredholm y Neutralidad de Carga (Poisson Discreto):
+       La proyección de intenciones hacia los agentes se somete al Teorema de 
+       Fredholm para resolver de forma exacta el problema de Poisson discreto 
+       para la densidad de carga de entrada $$\rho \in C^0$$:
+       $$L \rho = \Phi \quad\big[248, 253\big]$$
+       Garantizando que la densidad de carga sea ortogonal al núcleo (kernel) 
+       del Laplaciano, preservando la neutralidad de carga global:
+       $$\rho \in \operatorname{im}(B_1^\top) \iff \rho \perp \ker(L) \implies \sum_{i=1}^N \rho_i \equiv 0 \quad\big[72, 248\big]$$
+       La violación de esta condición de solubilidad dispara 'ChargeNeutralityError'.
+
+  [A4] Fuerza de Lorentz Agéntica y Acoplamiento de Gauge:
+       Las decisiones de ruteo se toman evaluando de forma determinista la fuerza 
+       de Lorentz discreta sobre las cargas de los agentes, deformando el plano 
+       atencional mediante una barrera de potencial acoplada a $$G_{\mu\nu}$$. 
+       Si el acoplamiento diverge, se levanta 'LorentzForceError' para evitar 
+       la inyección de singularidades en la persistencia del topos.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial de de Rham):
+────────────────────────────────────────────────────────────────────────────────
+La propagación y el tránsito de los potenciales de Gauge se rigen por un 
+encadenamiento covariante inmutable (Observe ⊣ Orient ⊣ Act):
+
+  Fase 1 ──► OBSERVE: AUDITORÍA DE CONSISTENCIA COHOMOLÓGICA (Phase1_CohomologyAuditor)
+             Construye el Laplaciano $$L = B_1^\top B_1$$, verifica la simetría 
+             exacta en la FPU, e interroga síncronamente su regularidad espectral.
+             Entrega: CohomologicalConsistencyReport como precondición formal de Fase 2.
+
+  Fase 2 ──► ORIENT: EXAMEN DE FREDHOLM Y SOLUBILIDAD (Phase2_FredholmSolvabilityCertifier)
+             Hereda formalmente el CohomologicalConsistencyReport. Sanea la densidad 
+             de carga de entrada $$\rho$$, valida la ortogonalidad al kernel de $$L$$ 
+             y resuelve de manera estable la ecuación de Poisson $$L \rho = \Phi$$.
+             Entrega: SolvabilityCertificate como precondición formal de Fase 3.
+
+  Fase 3 ──► DECIDE & ACT: LORENTZ ROUTING Y VETO DE HEYTING (Phase3_LorentzHeytingRouter)
+             Hereda formalmente el SolvabilityCertificate. Computa la fuerza de 
+             Lorentz discreta, inyecta el acoplamiento de Gauge e integra el 
+             veredicto en el retículo de Heyting de tres valores ordinales:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[31, 248\big]$$
+             Si surge una fuga de Gauge o asimetría espectral ($$r > \mathtt{TOL}$$), 
+             el retículo colapsa síncronamente al Supremo terminal VETOED ($$\top$$), 
+             detonando 'GaugeTearingError' en RAM para congelar la CPU en el milisegundo cero.
+             Entrega: RouterGovernanceState.
+
+Funtor Maestro de Enrutamiento y Dinámica Electrodinámica:
+  $$\mathcal{Z}_{\mathrm{router}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[248\big]$$
 """
 
 from __future__ import annotations

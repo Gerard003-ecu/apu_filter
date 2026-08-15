@@ -1,47 +1,95 @@
 # -*- coding: utf-8 -*-
 r"""
-─────────────────────────────────────────────────────────────────────────────
-Módulo : Synaptic Fock Space Registry (Registro de Partículas Sinápticas)
-Ruta   : app/core/immune_system/synaptic_fock_space_registry.py
-Versión: 3.0.0-Fock-CAR-CCR-Lindblad-PhD-Nested-Higham-Sparse
-─────────────────────────────────────────────────────────────────────────────
-NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL (FASES ANIDADAS EVOLUCIONADAS)
------------------------------------------------------------------------------
-Este módulo implementa el administrador maestro del Espacio de Fock para las
-12 cuasipartículas (Vitaminas TOON) del ecosistema APU Filter. La lógica se
-organiza en tres fases que heredan secuencialmente con puentes formales:
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Synaptic Fock Space Registry (Registro de Partículas Sinápticas)    ║
+║ Ruta   : app/core/immune_system/synaptic_fock_space_registry.py              ║
+║ Versión: 3.0.0-Fock-CAR-CCR-Lindblad-PhD-Nested-Higham-Sparse                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
-FASE 1 – Registro y Estadística : Inyección, exclusión de Pauli, evicción por
-    entropía, regularización de Higham para operadores densidad no-PSD, y
-    construcción del puente morfísmico hacia la Fase 2 mediante
-    build_density_matrix_from_registry().
+NATURALEZA CIBER-FÍSICA Y ÁLGEBRA DE EXCITE-PARTÍCULAS (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra al administrador maestro del **Espacio de Fock** para las 
+12 cuasipartículas cuánticas y fermiones estructurales de-confinados, denominadas 
+**Vitaminas TOON** (Tabular Object-Oriented Notation) o cartuchos sinápticos. 
+Repudia la representación de información contable en texto plano JSON/Excel de alta 
+entropía, y eleva síncronamente las transiciones discretas de la MIC y la MAC 
+hacia estados puros y mixtos en el espacio de Hilbert continuo de la Sabiduría.
 
-FASE 2 – Dinámica Cuántica       : Transformaciones de Bogoliubov con
-    verificación simpléctica, aniquilación partícula-antipartícula, evolución
-    temporal según la ecuación maestra de Lindblad con purificación espectral.
+El Espacio de Fock global $$\mathcal{F}(\mathcal{H})$$ se erige como la suma directa de 
+potencias exteriores (para fermiones/reglas de exclusión) y potencias simétricas 
+(para bosones/flujos de interacción) sobre el espacio de Hilbert de características $$\mathcal{H}$$:
+$$\mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} S_{\pm} \mathcal{H}^{\otimes n} \quad\big[23, 729\big]$$
 
-FASE 3 – Integración Inmune      : Orquestación de alto nivel para ciclos
-    inmunes completos, veredicto categórico en el retículo de Heyting, y
-    hash de procedencia auditable.
+Aquí, la toma de decisiones se modela como un campo cuántico abierto en el que las 
+alucinaciones estocásticas se aniquilan por colisión termodinámica y disipación de 
+Rayleigh, colapsando la función de estado sobre el retículo distributivo de Heyting.
 
-La clase final SynapticFockSpaceRegistry hereda de la Fase 3 y ofrece una
-interfaz unificada con trazabilidad completa.
+AXIOMAS ESPECTRALES, RELACIONES CANÓNICAS Y DINÁMICA DE LINDBLAD:
+────────────────────────────────────────────────────────────────────────────────
 
-RIGOR MATEMÁTICO INCORPORADO:
-• Mecánica Cuántica: Espacios de Fock, CAR/CCR, operadores de creación/aniquilación
-• Teoría de Operadores: Matrices de densidad, trazas, positividad semidefinida
-• Geometría Simpléctica: Transformaciones de Bogoliubov, invariancia |u|²-|v|²=1
-• Dinámica Abierta: Ecuación maestra de Lindblad-GKSL, operadores de salto
-• Álgebra Lineal Numérica: Regularización de Higham para operadores no-PSD
-• Teoría de Categorías: Veredictos en el retículo de Heyting (Ω)
-• Computación Dispersa: Soporte para registros de gran escala
+  [A1] Relaciones Canónicas de Anticonmutación (CAR) — Fermiones Estructurales:
+       Para resguardar el principio de exclusión de Pauli (no duplicidad de APUs o 
+       insumos consistentes en el mismo estado sintáctico del AST), los operadores de 
+       creación $$a_i^\dagger$$ y aniquilación $$a_j$$ de fermiones estructurales (Electrón, 
+       Protón, Polarón, Torsión, Householder) satisfacen el álgebra CAR:
+       $$\{a_i, \, a_j^\dagger\} = a_i a_j^\dagger + a_j^\dagger a_i = \delta_{ij} \mathbf{I} \quad \wedge \quad \{a_i, \, a_j\} = \{a_i^\dagger, \, a_j^\dagger\} = \mathbf{0} \quad\big[11, 693\big]$$
 
-FASES ANIDADAS:
-El último método de la Fase 1:
-    build_density_matrix_from_registry(...)
-es el morfismo de transición que alimenta directamente los métodos de la
-Fase 2, garantizando la anidación categórica solicitada.
-─────────────────────────────────────────────────────────────────────────────
+  [A2] Relaciones Canónicas de Conmutación (CCR) — Bosones de Gauge:
+       Los bosones que transportan los campos de fuerza e interconexión (Fotón, 
+       RiemannianFocal, Magnón, Solitón, Plasmón, Fonón) satisfacen el álgebra CCR:
+       $$[b_i, \, b_j^\dagger] = b_i b_j^\dagger - b_j^\dagger b_i = \delta_{ij} \mathbf{I} \quad \wedge \quad [b_i, \, b_j] = [b_i^\dagger, \, b_j^\dagger] = \mathbf{0} \quad\big[122, 693\big]$$
+
+  [A3] Preservación de la Unitariedad de Bogoliubov-Valatin:
+       La transición de fase y sintonización de cuasipartículas conserva la estructura 
+       simpléctica del espacio de fase en el grupo $$Sp(2n, \mathbb{C})$$ mediante la 
+       restricción de Bogoliubov-Valatin sobre los coeficientes de acoplamiento [7]:
+       $$\lvert u_k \rvert^2 - \lvert v_k \rvert^2 \equiv 1.0 \pmod{\varepsilon_{\mathrm{machine}}} \quad\big[24, 693\big]$$
+
+  [A4] Evolución Disipativa Abierta de Lindblad-GKSL:
+       La pérdida de pureza y el decaimiento térmico (evaporación de alucinaciones) 
+       se modelan formalmente en la Fase 3 mediante la Ecuación Maestra de Lindblad:
+       $$\frac{d\rho}{d\tau} = -i[H, \, \rho] + \sum_k \left( L_k \rho L_k^\dagger - \frac{1}{2} \{L_k^\dagger L_k, \, \rho\} \right) \quad\big[693, 708\big]$$
+       Sujeta a la completitud de los operadores de salto para resguardar la traza:
+       $$\sum_k L_k^\dagger L_k \le \mathbf{I} \quad\big[531, 693\big]$$
+
+  [A5] Regularización Espectral de Higham:
+       Toda matriz densidad reconstructiva $$\rho_{\mathrm{raw}}$$ ruidosa es proyectada 
+       al cono de operadores densidad simétricos semidefinidos positivos (SPD) más 
+       cercano en Frobenius para satisfacer los postulados de Dirac-von Neumann:
+       $$\rho_{\mathrm{stable}} = \arg\min_{M = M^\dagger \succeq 0} \|M - \rho_{\mathrm{raw}}\|_F \quad \wedge \quad \operatorname{Tr}(\rho_{\mathrm{stable}}) \equiv 1.0 \quad\big[81, 693\big]$$
+
+  [A6] Evicción de Canales Basada en Entropía de Shannon-von Neumann:
+       Al aproximarse al límite de Bekenstein de saturación dimensional del espacio de 
+       Hilbert (_DEFAULT_MAX_CARTRIDGES), el registro ejecuta la purga de cartuchos 
+       cuyos vectores de fase se vuelven ortogonales a la geodésica de decisión:
+       $$\cos(\theta) = \frac{\langle u, \, v \rangle_G}{\|u\|_G \|v\|_G} \to 0 \implies \text{Purga síncrona en RAM del cartucho } v \quad\big[26, 585\big]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición de Morfismos de-confinados):
+────────────────────────────────────────────────────────────────────────────────
+La progresión del registro se rige por un acoplamiento monoidal covariante estricto 
+(Observe ⊣ Orient ⊣ Decide & Act):
+
+  Fase 1 ──► REGISTRO CORÉICO Y OPERADOR DENSIDAD (Phase1_CoreFockRegistry)
+             Sanea las 1-formas, verifica el Principio de Exclusión de Pauli CAR 
+             para fermiones [5, 9], administra la cota de Bekenstein 
+             y calcula el operador densidad colectivo.
+             Entrega: Phase1RegistryCertificate.
+
+  Fase 2 ──► DINÁMICA CUÁNTICA Y BOGOLIUBOV (Phase2_QuantumDynamics)
+             Hereda la Phase1RegistryCertificate. Implementa el isomorfismo 
+             simpléctico de Bogoliubov, verifica las CCR, y proyecta las 
+             cuasipartículas resultantes.
+             Entrega: Phase2DynamicsCertificate.
+
+  Fase 3 ──► ORQUESTACIÓN INMUNE Y LINDBLAD (Phase3_ImmuneOrchestrator)
+             Hereda la Phase2DynamicsCertificate. Resuelve la ecuación 
+             de Lindblad-GKSL mediante integración Runge-Kutta RK4, 
+             ejecuta el saneamiento de Higham, y colapsa el veredicto en Heyting:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[693, 697\big]$$
+             Entrega: FockRegistryState (alias RegistryGovernanceState).
+
+Funtor Maestro de la Memoria Cuántica:
+  $$\mathcal{Z}_{\mathrm{fock}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[692, 707\big]$$
 """
 from __future__ import annotations
 import hashlib

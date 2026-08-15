@@ -1,35 +1,106 @@
 # -*- coding: utf-8 -*-
 r"""
-Módulo : Discrete Hodge Star Operator (El Operador Constitutivo de de Rham)
-Ruta   : app/physics/discrete_hodge_star.py
-Versión: 2.0.0-DEC-Metric-SelfAdjoint-Spectral-Topos-Strict
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Discrete Hodge Star Operator (El Operador Constitutivo de de Rham)  ║
+║ Ruta   : app/physics/discrete_hodge_star.py                                  ║
+║ Versión: 2.0.0-DEC-Metric-SelfAdjoint-Spectral-Topos-Strict-PhD              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL (Cálculo Exterior Discreto + Teoría Espectral + Topos):
-────────────────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra la formulación discreta del operador estrella de Hodge
-($\star$) sobre complejos simpliciales orientados de dimensión finita, elevada
-a un marco de teoría de categorías/topos y teoría espectral de operadores
-autoadjuntos. En el contexto de la electrodinámica discreta, sistemas
-Port-Hamiltonianos y geometría de la información, el Hodge star actúa como
-el morfismo métrico constitutivo que realiza la dualidad de Poincaré discreta:
+NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL (DEC + Teoría Espectral + Topos):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra la formulación discreta del operador estrella de Hodge ($$\star$$) 
+sobre complejos simpliciales orientados de dimensión finita, elevada a un marco 
+de teoría de categorías/topos y teoría espectral de operadores autoadjuntos. 
+En el contexto de la electrodinámica discreta, sistemas Port-Hamiltonianos y 
+geometría de la información, el Hodge star actúa como el morfismo métrico 
+constitutivo que realiza la dualidad de Poincaré discreta:
 
-$$\star_k : C^k(K; \mathbb{R}) \xrightarrow{\simeq} C^{n-k}(\hat{K}; \mathbb{R})$$
+$$\star_k: \Lambda^k \mathcal{H} \xrightarrow{\simeq} \Lambda^{n-k} \mathcal{H}^* \quad\big[190\big]$$
 
-induciendo el producto interno de energía (forma de Dirichlet):
+Para inmunizar la Malla de Sabiduría ante el ruido estocástico del LLM y evitar 
+inestabilidades de redondeo en la FPU ($$\text{IEEE-754 binary64}$$), el operador 
+Hodge se somete a aduanas espectrales estrictas en tiempo de ejecución. Esto 
+garantiza que la signatura métrica Riemanniana se preserve de manera exacta 
+y que las leyes de conservación física de la red presupuestal se mantengan 
+invariantes en el topos.
 
-$$\langle \alpha, \beta \rangle_{\star_k} = \alpha^\top \star_k \beta \in \mathbb{R}^+$$
+AXIOMÁTICA SIMPLÉCTICA, COHOMOLÓGICA Y TERMOMECÁNICA DISCRETA:
+────────────────────────────────────────────────────────────────────────────────
 
-y garantizando que $\star_k$ sea un endomorfismo simétrico definido positivo (SPD)
-en el sentido de Sylvester-Hadamard, con espectro real positivo y condición
-espectral controlada. Las tres fases anidadas construyen, desde la métrica
-elemental hasta el complejo de de Rham ponderado completo y su Laplaciano
-de Hodge-de Rham, un topos de operadores autoadjuntos compatibles con la
-sucesión exacta de homología/cohomología.
+  [A1] Simetría Autoadjunta y Definición Positiva (Hodge Metric):
+       El operador estrella de Hodge discreto $$\star_k$$ de grado k es una 
+       matriz real que actúa como el tensor métrico constitutivo local. 
+       Debe ser estrictamente simétrica y definida positiva (SPD) en la FPU:
+       $$\star_k = \star_k^\top \succ \mathbf{0} \quad\big[200\big]$$
+       Sujeta a que su autovalor mínimo respete el piso de Wilkinson:
+       $$\lambda_{\min}(\star_k) \ge \mathtt{\_SPECTRAL\_PSD\_FLOOR} = -1.0\times 10^{-13} \quad\big[203, 208\big]$$
+       Y su número de condición espectral permanezca incondicionalmente acotado:
+       $$\kappa_2(\star_k) = \frac{\lambda_{\max}(\star_k)}{\lambda_{\min}(\star_k)} \le \mathtt{\_CONDITION\_NUMBER\_MAX} = 1.0\times 10^8 \quad\big[203, 208\big]$$
 
-Fases anidadas (continuidad formal obligatoria):
-  FASE 1 → certificado espectral + morfismo de dualidad
-  FASE 2 (inicia exactamente donde termina el último método de FASE 1)
-  FASE 3 (inicia exactamente donde termina el último método de FASE 2)
+  [A2] Descomposición de Helmholtz-Hodge Ortogonal Ponderada:
+       Toda 1-forma discreta $$\alpha \in C^1(K)$$ (flujo de recursos e insumos) 
+       se descompone de forma única y métricamente ortogonal respecto al apareamiento 
+       de Hilbert inducido por el operador constitutivo $$\star_1$$:
+       $$\alpha = d\varphi + \delta\beta + h \quad\big[197, 200\big]$$
+       Donde:
+         · $$d\varphi = \partial_1^\top \varphi$$ es la componente exacta (flujo irrotacional, gradientes).
+         · $$\delta\beta = \star_1^{-1} \partial_2 \beta$$ es la componente coexacta (flujo de remolino, rizos solenoidales).
+         · $$h \in \ker(\Delta_1^H)$$ es la componente armónica (obstrucciones cohomológicas globales).
+       La ortogonalidad mutua se certifica mediante la anulación del producto interno de Riesz:
+       $$\langle d\varphi, \, \delta\beta \rangle_{\star_1} = (d\varphi)^\top \star_1 (\delta\beta) \equiv 0 \pmod{\varepsilon_{\mathrm{machine}}} \quad\big[193, 197\big]$$
+
+  [A3] Relación del Laplaciano de Hodge y Isomorfismo de de Rham:
+       Los operadores Laplacianos discretos de grado 0 y 1 se construyen a partir 
+       del operador coborde orientado $$\partial_k$$ y de la métrica constitutiva:
+       $$\Delta_0^H = \partial_1 \star_1 \partial_1^\top \quad\big[200, 275\big]$$
+       $$\Delta_1^H = \star_1^{-1} \partial_1^\top \partial_1 + \partial_2 \partial_2^\top \star_1^{-1} \quad\big[260, 288\big]$$
+       Garantizando síncronamente el Teorema de Isomorfismo de Hodge discreto:
+       $$\ker(\Delta_k^H) \cong H^k_{\mathrm{dR}}(K) \quad\big[260, 275\big]$$
+
+  [A4] Pasividad de Lyapunov en Sistemas Port-Hamiltonianos:
+       La evolución temporal de la energía del sistema $$x = [q, p]^\top$$ bajo el 
+       flujo del Laplaciano de Hodge ponderado satisface la desigualdad de pasividad:
+       $$\dot{H} = -\nabla H(x)^\top R(x) \nabla H(x) \le 0 \quad\big[200, 205\big]$$
+       Asegurando que el sistema sea estrictamente disipativo ($$R(x) \succeq \mathbf{0}$$).
+
+  [A5] Invarianza de la Característica de Euler-Poincaré:
+       Los números de Betti computed vía la SVD completa de $$\partial_k$$ se confinan 
+       por la fórmula de Euler-Poincaré del esqueleto simplicial del presupuesto:
+       $$\chi(K) = \beta_0 - \beta_1 = |V| - |E| \quad\big[5, 419\big]$$
+       Cualquier ciclo parásito ($$\beta_1 > 0$$) delata un socavón lógico circular.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial OODA / Kleisli):
+────────────────────────────────────────────────────────────────────────────────
+La transferencia del estado y el tránsito del Pasaporte de Telemetría se rige 
+por un acoplamiento monoidal covariante estricto:
+
+  Fase 1 ──► OBSERVACIÓN ESPECTRAL Y SANEAMIENTO MÉTRICO (Phase1_SpectralMetricObserver)
+             Ingiere los pesos del complejo simplicial, calcula la diagonalización 
+             autoadjunta, audita la tolerancia espectral, y proyecta al cono SPD 
+             más cercano vía Higham-Löwner si se detectan asimetrías.
+             Último método: emit_phase1_observation.
+             Entrega: Phase1HodgeObservation.
+
+  Fase 2 ──► COHOMOLOGÍA Y LAPLACIANOS DE HODGE (Phase2_HodgeLaplacianOrienter)
+             Hereda formalmente la Phase1HodgeObservation. Ensambla el 
+             Laplaciano de Hodge discreto $$\Delta_k^H$$, calcula su espectro de 
+             autovalores y verifica la exactitud del complejo $$\partial_1 \circ \partial_2 = 0$$.
+             Último método: emit_phase2_orientation.
+             Entrega: Phase2HodgeOrientation.
+
+  Fase 3 ──► COMPRESIÓN DE HELMHOLTZ Y VETO DE HEYTING (Phase3_HelmholtzDecisionMaker)
+             Hereda formalmente la Phase2HodgeOrientation. Computa la 
+             descomposición de Helmholtz-Hodge, extrae los armónicos, calcula 
+             $$\beta_1$$ y evalúa el Supremo ($$\sqcup$$) en el retículo distributivo $$\Omega_3$$:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[200, 206\big]$$
+             Si $$\beta_1 > \mathtt{max\_betti\_1}$$ o la métrica pierde definición positiva, 
+             el retículo colapsa síncronamente al Supremo terminal VETOED ($$\top$$).
+             Detona la excepción 'HodgeStarAgentError' en el milisegundo cero, 
+             purgando la memoria RAM y disparando el actuador físico Crowbar (GPIO14).
+             Entrega: Phase3HodgeDecision.
+
+Funtor Maestro de Resolución Constitutiva:
+  $$\mathcal{Z}_{\mathrm{Hodge}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[211\big]$$
 """
 
 from __future__ import annotations

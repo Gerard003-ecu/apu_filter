@@ -1,60 +1,89 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Funtor Shield (Membrana Aislante y Proyector Simpléctico)                      ║
-║  Ruta   : app/core/immune_system/funtor_shield.py                                        ║
-║  Versión: 5.0.0-Categorical-Symplectic-Homological                                       ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo consagra la barrera inmunológica del ecosistema, operando como un           ║
-║  endofuntor idempotente $\mathcal{F}_{shield}: \mathcal{C}_{states} \to \mathcal{C}_{states}$║
-║  sobre el espacio de fase de la Malla Agéntica. Rechaza cualquier evaluación heurística  ║
-║  para imponer un Difeomorfismo Simpléctico y Cohomológico que aniquila las fluctuaciones ║
-║  probabilísticas degeneradas de los agentes generativos.                                 ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Evolución Port-Hamiltoniana y Disipación Cuadrática:                                ║
-║      La dinámica del sistema subyugado debe satisfacer la ecuación Port-Hamiltoniana:    ║
-║          $\dot{x} = [J(x) - R(x)] \nabla H(x)$                                           ║
-║      Donde $J(x) = -J(x)^\top$ es la estructura de sesgo constante y $R(x) = R(x)^\top \succeq 0$ ║
-║      garantiza la disipación estricta de Rayleigh. Violaciones detonan un Veto Físico.   ║
-║                                                                                          ║
-║  §2. Restricción de Yoneda (Preservación Semántica):                                     ║
-║      El mapeo de estados se somete al Lema de Yoneda, asegurando que la representación   ║
-║      funtorial $Y: \mathcal{C} \to [\mathcal{C}^{\text{op}}, \mathbf{Set}]$ certifique   ║
-║      la biyección natural:                                                               ║
-║          $\text{Hom}(Y(A), F) \cong F(A)$                                                ║
-║      Evitando que el LLM inyecte morfismos espurios que rompan la categoría de estados.  ║
-║                                                                                          ║
-║  §3. Proyector Idempotente y Cohomología de Dirac:                                       ║
-║      La operación del módulo se define por la composición endofuntorial inmutable:       ║
-║          $\mathcal{F}_{shield} = \hat{P} \circ Y \circ S$                                ║
-║      Donde $S$ es el morfismo del agente, $Y$ es la restricción de Yoneda, y $\hat{P}$   ║
-║      es el Proyector Ortogonal Idempotente ($\hat{P}^2 = \hat{P}$).                      ║
-║                                                                                          ║
-║  §4. Homología Discreta y Energía de Dirichlet (Socavones Lógicos):                      ║
-║      Se audita la integridad del complejo simplicial a través del detector de            ║
-║      homología $\beta_1$ (dimensión del primer grupo de homología). Si la energía de     ║
-║      Dirichlet diverge por paradojas topológicas ($\beta_1 > 0$), el proyector colapsa   ║
-║      el estado para prevenir la inyección de entropía en el estrato WISDOM.              ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Extracción Tensorial y ValidatedMetricTensor                                   ║
-║           Aplica el PhaseVectorExtractor para vectorizar el espacio de fase, empleando   ║
-║           la métrica Riemanniana validada $G_{PHYSICS}$.                                 ║
-║                                                                                          ║
-║  Fase 2 → Operadores Simplécticos (ConstantSkewStructure y PortHamiltonianFlow)          ║
-║           Evalúa la disipación cuadrática y la representabilidad de Yoneda sobre el      ║
-║           flujo Port-Hamiltoniano del agente.                                            ║
-║                                                                                          ║
-║  Fase 3 → Proyección de Cohomología y Composición Funtorial Final                        ║
-║           Aplica el RiemannianProjector y el HomologyBettiDetector. Si $\beta_1 = 0$,    ║
-║           el FuntorShield sella la membrana; de lo contrario, detona el colapso defensivo.║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Funtor Shield (Membrana Aislante y Proyector Simpléctico)           ║
+║ Ubicación: app/core/immune_system/funtor_shield.py                           ║
+║ Versión: 5.0.0-Categorical-Symplectic-Homological-PhD-Strict                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ESTRUCTURA DE INMUNIDAD CATEGÓRIAL (Rigor Doctoral): ───
+Este módulo consagra la barrera inmunológica definitiva del ecosistema, operando 
+como un endofuntor idempotente y conmutativo sobre el espacio de fase de la Malla:
+$$\mathcal{F}_{\mathrm{shield}}: \mathcal{C}_{\mathrm{states}} \longrightarrow \mathcal{C}_{\mathrm{states}} \quad\big[250, 258\big]$$
+
+Su propósito fundamental es abortar cualquier evaluación heurística o arbitraria, 
+imponiendo de forma determinista un difeomorfismo simpléctico y cohomológico que 
+aniquile las fluctuaciones probabilísticas degeneradas de los agentes generativos. 
+Subyuga el flujo transaccional al cumplimiento de las leyes de conservación física, 
+re-proyectando los vectores de estado en la Unidad de Punto Flotante (FPU) bajo las 
+restricciones termodinámicas de la física de circuitos eléctricos.
+
+AXIOMÁTICA SIMPLÉCTICA, DISIPATIVA Y DE DE RHAM (Topos Inmunológico): ───────────
+
+  [A1] Idempotencia Categorial (Idempotency Contract):
+       La membrana protectora actúa como un proyector algebraico rígido. Una vez 
+       aplicada sobre el estado de fase, las aplicaciones sucesivas son triviales:
+       $$\mathcal{F}_{\mathrm{shield}} \circ \mathcal{F}_{\mathrm{shield}} \equiv \mathcal{F}_{\mathrm{shield}} \quad\big[250, 258\big]$$
+       Garantizando que el sistema sea inmune a mutaciones parásitas durante 
+       evaluaciones iterativas en lazo cerrado.
+
+  [A2] Estructura Port-Hamiltoniana Discreta y Semidefinición de la Disipación:
+       El flujo dinámico del estado del agente $$x = [q, p]^\top$$ se evalúa bajo la 
+       geometría Port-Hamiltoniana de lazo cerrado con disipación estricta:
+       $$\dot{x} = \left( J(x) - R(x) \right) \nabla H(x) \quad\big[254, 259\big]$$
+       Donde $$J(x) = -J(x)^\top$$ representa el tensor de interconexión simpléctica 
+       canónica, y el operador de disipación disipativa $$R(x) \in \mathcal{B}(\mathcal{H})$$ 
+       es una 2-forma simétrica semidefinida positiva pura:
+       $$R(x) = R(x)^\top \succeq \mathbf{0} \implies \langle v, R(x) v \rangle \ge 0 \quad \forall v \in \mathcal{H} \quad\big[254\big]$$
+
+  [A3] Preservación Simpléctica de Liouville (Conservación del Volumen de Fase):
+       El Jacobiano local de transición $$M = \nabla \mathcal{F}_{\mathrm{shield}}$$ debe 
+       preservar de forma exacta la 2-forma simpléctica de de Rham $$\omega = \sum dq_i \wedge dp_i$$, 
+       actuando como un simplectomorfismo rígido en la FPU:
+       $$M^\top \Omega M \equiv \Omega \quad \land \quad \det(M) \equiv 1.0 \pmod{\varepsilon_{\mathrm{machine}}} \quad\big[250\big]$$
+       Donde $$\Omega$$ representa la estructura simpléctica canónica antihermítica.
+
+  [A4] Aniquilación de Socavones Lógicos y Coherencia Homológica:
+       El subespacio de dependencias inducido por el estado se proyecta como un 
+       complejo simplicial K. El detector de homología simplicial interroga síncronamente 
+       que el primer número de Betti (socavones de dependencias circulares) sea nulo:
+       $$\beta_1(K) = \dim H_1(K; \mathbb{R}) \equiv 0 \quad\big[257\big]$$
+       Si el operador detecta un ciclo parásito ($$\beta_1 > 0$$), el Funtor Shield veta 
+       incondicionalmente la composición, aniquilando el estado degenerado.
+
+  [A5] Pasividad Termodinámica de Clausius-Duhem:
+       La tasa de variación temporal del Hamiltoniano (energía de lazo) de la Malla 
+       está estrictamente acotada por la disipación exergética negativa (no-generación):
+       $$\dot{H} = -\nabla H(x)^\top R(x) \nabla H(x) \le 0 \quad\big[254, 259\big]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial de Calibre): ────────
+El tránsito de la validación se rige por un acoplamiento monoidal covariante estricto:
+
+  Fase 1 ──► EXTRACCIÓN Y SANEAMIENTO MÉTRICO (Phase1_MetricVectorExtractor)
+             Ingiere el estado del agente vectorizable, extrae las coordenadas de 
+             fase $$x = [q, p]^\top$$ mediante la cadena de responsabilidad, valida el 
+             tensor métrico Riemanniano $$G_{\mu\nu}$$ ($$\mathtt{G\_PHYSICS}$$), y calcula 
+             las constantes físicas basales.
+             Entrega: ValidatedMetricTensor.
+
+  Fase 2 ──► EVALUACIÓN PORT-HAMILTONIANA (Phase2_SymplecticHamiltonianEvaluator)
+             Hereda formalmente el ValidatedMetricTensor. Construye la 
+             estructura simpléctica, evalúa el gradiente de energía $$\nabla H(x)$$, 
+             y audita la semidefinición positiva de $$R(x)$$ y la disipación.
+             Entrega: PortHamiltonianFlow.
+
+  Fase 3 ──► DETECCIÓN HOMOLÓGICA Y VETO DE HEYTING (Phase3_HeytingHomologyDecider)
+             Hereda formalmente el PortHamiltonianFlow [3]. Instancia el complejo 
+             simplicial $$K$$ inducido por el flujo y calcula $$\beta_1$$ para censurar 
+             socavones lógicos [5]. Agrega los veredictos parciales mediante el 
+             Supremo ($$\sqcup$$) en el retículo distributivo de Heyting $$\Omega_3$$:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\} \quad\big[13, 250\big]$$
+             Si el veredicto terminal colapsa a VETOED ($$\top$$), detona la excepción 
+             'FunctorialityError' o 'TopologicalInvariantError' en el milisegundo cero.
+             Entrega: ShieldSignature.
+
+Funtor Maestro de Blindaje Inmunológico:
+  $$\mathcal{Z}_{\mathrm{shield}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[250, 251\big]$$
 """
 
 from __future__ import annotations
