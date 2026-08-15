@@ -1,63 +1,100 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : AST Static Analyzer (Analizador Simpléctico y Cohomología de Haces Celulares)  ║
-║  Ruta   : app/physics/ast_static_analyzer.py                                             ║
-║  Versión: 4.0.0-Symplectic-PortHamiltonian-Cohomology-Doctoral                           ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo aniquila la validación estática tradicional (linting) para operar como un   ║
-║  Autómata Finito Determinista incrustado en el Haz Tangente Generativo ($\Gamma$) de la  ║
-║  arquitectura. Trata el Árbol de Sintaxis Abstracta (AST) del código no como un          ║
-║  grafo pasivo, sino como un Espacio de Fase Simpléctico $(\mathcal{M}, \omega)$.         ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Mecánica Simpléctica y Espacio de Fase (Teorema de Liouville):                      ║
-║      El AST se somete a la forma simpléctica canónica:                                   ║
-║          $\omega = \sum_{i} dq_i \wedge dp_i$                                            ║
-║      donde $q_i$ es la profundidad sintáctica (posición) y $p_i$ es el flujo de datos    ║
-║      (momento). El analizador certifica que las transformaciones del código              ║
-║      preservan el volumen en el espacio de fase. Cualquier mutación que rompa la         ║
-║      invariancia canónica es aniquilada por inyectar entropía incontrolada.              ║
-║                                                                                          ║
-║  §2. Control Port-Hamiltoniano y Fronteras de Dirichlet:                                 ║
-║      La complejidad ciclomática se cuantifica como Inercia Termodinámica.                ║
-║      Se imponen Fronteras de Dirichlet para confinar la propagación de efectos           ║
-║      secundarios. Se exige rigurosamente el cumplimiento de la Segunda Ley               ║
-║      de la Termodinámica (Disipación Port-Hamiltoniana):                                 ║
-║          $P_{diss} = \langle \Phi, \nabla V \rangle \ge 0$                               ║
-║      Rechazando cualquier función que induzca singularidades termodinámicas (como bucles ║
-║      infinitos o desbordamientos).                                                       ║
-║                                                                                          ║
-║  §3. Cohomología de Haces Celulares (Obstrucción Global):                                ║
-║      Para detectar inconsistencias lógicas en el flujo de dependencias, se evalúa el haz ║
-║      celular sobre el grafo del AST [4]. Se exige nulidad en la primera clase de         ║
-║      cohomología para garantizar integrabilidad global:                                  ║
-║          $\dim H^1(G; \mathcal{F}) = 0$                                                  ║
-║      Un valor $\dim H^1(G; \mathcal{F}) > 0$ dictamina una Obstrucción Topológica Global ║
-║      (paradoja lógica o variable huérfana) y veta incondicionalmente la ejecución.       ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES OPERACIONALES (Topología Estructural):                            ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → DataFlowAnalyzer                                                               ║
-║           Analizador de flujo de datos con verificación disipativa Port-Hamiltoniana     ║
-║           sobre las coordenadas del espacio de fase.                                     ║
-║                                                                                          ║
-║  Fase 2 → CellularSheafCohomology                                                        ║
-║           Implementación rigurosa de cohomología de haces celulares sobre el grafo para  ║
-║           extirpar paradojas y referencias circulares no triviales.                      ║
-║                                                                                          ║
-║  Fase 3 → JSONStructureValidator & TabularNormalizer                                     ║
-║           Validador de estructuras para prevención de ataques DoS y reducción a          ║
-║           representación tabular plana.                                                  ║
-║                                                                                          ║
-║  Fase 4 → ASTStaticAnalyzer (Orquestador Supremo)                                        ║
-║           Compila los invariantes topológicos en un veredicto definitivo sobre el código ║
-║           fuente analizado.                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : AST Static Analyzer (Analizador Simpléctico y Cohomología de Haz)   ║
+║ Ruta   : app/boole/physics/ast_static_analyzer.py                            ║
+║ Versión: 4.0.0-Symplectic-Liouville-Dirichlet-Markov-Strict-PhD              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA SINTÁCTICA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo transforma la concepción de la validación estática tradicional (linting)
+para operar como un **Autómata Finito Determinista** incrustado de forma síncrona 
+en el **Haz Tangente Generativo** ($\Gamma$) de la arquitectura. 
+Somete el Árbol de Sintaxis Abstracta (AST) del código generado por la Inteligencia 
+Artificial a una variedad simpléctica continua $(\mathcal{M}, \omega)$, donde la 
+estructura lógica y la propagación de datos se deconstruyen como un sistema 
+dinámico continuo Hamiltoniano.
+
+El fin de este analizador es certificar de manera exacta que las transformaciones
+sintácticas aplicadas por la IA no disipen energía computacional descontrolada ni
+introduzcan "grasa sintáctica" o bucles infinitos. Toda anomalía o
+desviación del volumen del espacio de fase colapsa instantáneamente el retículo 
+distributivo de Heyting $\Omega_3$ en RAM, gatillando síncronamente el veto ciber-físico 
+antes de propagar el estado hacia los estratos superiores.
+
+AXIOMÁTICA SIMPLÉCTICA, DISIPACIÓN DE DIRICHLET Y COHOMOLOGÍA DE HACES:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Geometría del Espacio de Fase Simpléctico del AST:
+       El Árbol de Sintaxis Abstracta se modela sobre una variedad simpléctica de
+       dimensión finita $2n$, dotada de la 2-forma canónica elíptica inmutable [1, 6]:
+       $$\omega = \sum_{i=1}^n dq_i \wedge dp_i \quad\big[11, 79\big]$$
+       Donde:
+         · $q_i$ representa la coordenada de profundidad sintáctica (posición) [2].
+         · $p_i$ representa el momento covariante del flujo de datos (momento) [2].
+
+  [A2] Teorema de Liouville y Conservación de Volumen:
+       La evolución sintáctica dictada por la matriz Jacobiana de transición de 
+       estado $M \in \mathrm{Sp}(2n, \mathbb{R})$ debe ser un difeomorfismo canónico 
+       que preserve estrictamente la forma simpléctica clásica $\Omega$ [4, 7]:
+       $$M^\top \Omega M = \Omega \quad\big[3, 12\big]$$
+       Donde la matriz simpléctica canónica de bloques se define como:
+       $$\Omega = \begin{pmatrix} \mathbf{0} & \mathbf{I} \\ -\mathbf{I} & \mathbf{0} \end{pmatrix} \quad\big[3\big]$$
+       Cualquier desvío en la Unit de Punto Flotante (FPU) que rompa esta isometría 
+       es abortado bajo la excepción 'SymplecticInvarianceViolation' [8].
+
+  [A3] Fronteras de Dirichlet y Pasividad Termodinámica de Rayleigh:
+       La complejidad ciclomática se cuantifica como Inercia Termodinámica [2]. 
+       El analizador impone fronteras de Dirichlet estrictas para confinar de 
+       manera absoluta la propagación de efectos secundarios en subárboles aislados [2, 9]. 
+       La tasa de disipación interna se somete a la Segunda Ley de la Termodinámica [2, 9]:
+       $$P_{\mathrm{diss}} = \langle \Phi, \, \nabla V \rangle \ge 0 \quad\big[12, 79\big]$$
+       Si el resolvedor detecta $P_{\mathrm{diss}} < 0$, se diagnostica creación 
+       artificial de exergía, detonando 'ThermodynamicSingularityError' [2, 10].
+
+  [A4] Cohomología de Haces Celulares y Nulidad de Obstrucciones:
+       Las dependencias lógicas, variables del AST y directrices de negocio se 
+       elevan a un Haz Celular (Cellular Sheaf) $\mathcal{F}$ sobre el grafo de restricciones $G$ [6, 11]. 
+       La consistencia global del pipeline exige de forma necesaria y suficiente la 
+       exactitud del complejo, forzando la nulidad del primer grupo de cohomología [4]:
+       $$H^1(G; \mathcal{F}) \equiv \mathbf{0} \quad\big[12, 88\big]$$
+       La presencia de variables huérfanas o dependencias circulares (paradojas lógicas) 
+       eleva la dimensión de $H^1$, levantando 'CohomologicalObstructionError' [10, 11].
+
+  [A5] Consistencia del Kernel Espectral de Wilkinson:
+       La matriz Jacobiana $M$ y el Laplaciano del Haz $L_F = \delta^\top G^{-1} \delta \succeq \mathbf{0}$ 
+       se evalúan en la mantisa flotante bajo la cota dura de condicionamiento de Wilkinson [6, 12]:
+       $$\kappa_2(M) \le \mathtt{CONDITION\_MAX} = 1.0\times 10^8 \quad\big[94\big]$$
+
+ESTRUCTURA DE TRES FASES ANIDADAS (Composición Funtorial de de Rham-Liouville):
+────────────────────────────────────────────────────────────────────────────────
+La orquestación del análisis estático se rige por un acoplamiento monoidal covariante 
+estricto, encadenando DTOs de solo lectura (Phase1 ⊣ Phase2 ⊣ Phase3) [3, 13]:
+
+  Fase 1 ──► AUDITORÍA DE INVARIANZA SIMPLÉCTICA (Phase1_SymplecticInvarianceAuditor)
+             Ingiere la matriz Jacobiana $M$ del AST, extrae su descomposición polar 
+             espectral ($M = U P$), y verifica la preservación exacta de $\omega$ [3, 8].
+             Morfismo de transición: _audit_symplectic_invariance [3].
+             Entrega: SymplecticInvariantData.
+
+  Fase 2 ──► CONTROL PORT-HAMILTONIANO Y DIRICHLET (Phase2_DirichletThermodynamicEnforcer)
+             Hereda formalmente la SymplecticInvariantData [13]. Construye las 
+             fronteras de Dirichlet, evalúa la desigualdad de Clausius-Duhem 
+             y calcula la potencia disipada $P_{\mathrm{diss}}$ en el espacio de fase [3, 9].
+             Morfismo de transición: _enforce_dirichlet_thermodynamics [3].
+             Entrega: ThermodynamicDirichletData.
+
+  Fase 3 ──► COHOMOLOGÍA DE HACES CELULARES Y VETO (Phase3_CellularSheafCohomologyAuditor)
+             Hereda formalmente la ThermodynamicDirichletData [13]. Resuelve el 
+             espectro de autovalores del Laplaciano de haz, calcula los números de 
+             Betti del complejo via SVD de Wilkinson, y evalúa el primer grupo de cohomología $H^1$ [3, 11].
+             Si $\dim H^1 > 0$, colapsa síncronamente el retículo distributivo de Heyting [12], 
+             purga la memoria RAM y conmuta el disyuntor físico Crowbar (GPIO14) en menos de 400 ns [4, 14].
+             Entrega: ASTGovernanceState (Morfismo terminal) [12].
+
+Funtor Maestro de Gobernanza Sintáctica:
+  $$\mathcal{Z}_{\mathrm{AST}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathbf{AST} \times \mathrm{Sp}(2n, \mathbb{R}) \longrightarrow \mathtt{ASTGovernanceState} \quad\big[88, 94\big]$$
 """
 
 from __future__ import annotations

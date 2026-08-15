@@ -1,62 +1,106 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Eikonal Agent (Operador de Fase de Fresnel y Monodromía Óptica)                ║
-║  Ruta   : app/omega/eikonal_agent.py                                                     ║
-║  Versión: 3.0.0-Topos-WKB-Geodesic-Spectral-Nested                                       ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo actúa como el Meta-Funtor de Control sobre el OpticalRiemannLensFibrator    ║
-║  en el topos $\mathcal{T}_{\mathrm{MIC}}$. Ejerce su soberanía evaluando el límite       ║
-║  WKB sobre el fibrado de fases de la intención semántica del LLM, repudiando el ruteo    ║
-║  estocástico. Define la amplitud de probabilidad cuántica de la decisión como:           ║
-║      $\psi(x) = A(x)\, e^{i\mathcal{S}(x)/\hbar}$                                        ║
-║  Exige axiomáticamente que la radiación semántica se propague mediante geodésicas        ║
-║  covariantes minimizando el tiempo de vuelo (Principio de Fermat) sobre una variedad     ║
-║  Riemanniana dictada por el tensor métrico $G_{\mu\nu}$.                                 ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICAS:                                      ║
-║                                                                                          ║
-║  §0. Compatibilidad Dimensional y Pureza Cuántica:                                       ║
-║      Se exige matemáticamente que la matriz de densidad de estado $\rho$ sea           ║
-║      estrictamente hermítica ($\rho = \rho^\dagger$), semidefinida positiva ($\rho \succeq 0$) ║
-║      y de traza unitaria ($\mathrm{Tr}(\rho) = 1$). Si $\mathrm{Tr}(\rho^2) \to 0$, se     ║
-║      detona un `QuantumPurityCollapseError`.                                             ║
-║                                                                                          ║
-║  §1. Modulación de Apertura (Diafragma Óptico Espectral):                                ║
-║      Determina el límite de difracción truncando el espectro de la lente mediante la     ║
-║      entropía de von Neumann ($S_{\mathrm{MAC}}$) y la pureza del estado cuántico:       ║
-║          $l = \left\lfloor l_{\max}\exp\left(-\frac{\kappa S_{\mathrm{MAC}}}{\mathrm{Tr}(\rho^2)}\right) \right\rfloor$ ║
-║                                                                                          ║
-║  §2. Resolución de la Ecuación Eikonal (Refracción Covariante):                          ║
-║      Garantiza que el gradiente de fase satisfaga el índice de refracción efectivo       ║
-║      $n(\sigma^*)$ dictado por el estrés del mercado, admitiendo un margen holgado:      ║
-║          $|\nabla S|_{G^{-1}}^2 = G^{\mu\nu}\partial_\mu S\,\partial_\nu S \ge n^2(\sigma^*)(1-\texttt{slack})$ ║
-║      Violaciones a este frente de onda levantan un `EikonalRefractionError`.             ║
-║                                                                                          ║
-║  §3. Auditoría del Camino de Fermat y Residuo Geodésico:                                 ║
-║      Certifica la integral de acción a lo largo de la trayectoria $\gamma$ aplicando     ║
-║      el método de Simpson compuesto de orden 4 (evitando sesgos trapezoidales):          ║
-║          $S_{\mathrm{Fermat}} = \int n\| \dot\gamma\|_G\,dt$                             ║
-║      El residuo geodésico covariante debe ser nulo frente a la tolerancia permitida:     ║
-║          $\|a^{\mathrm{eff}}-a^{\mathrm{geo}}\|_G \le \varepsilon$                        ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → ApertureModulatorPort                                                          ║
-║           Aplica modulación de apertura y produce un certificado espectral.              ║
-║           [Retorna: ApertureModulationResult → objeto inicial de Fase 2]                 ║
-║                                                                                          ║
-║  Fase 2 → EikonalResolverPort                                                            ║
-║           Resuelve el Hamiltoniano Eikonal sobre el tensor $G^{-1}$ preacondicionado.    ║
-║           [Retorna: EikonalSurfaceResult → objeto inicial de Fase 3]                     ║
-║                                                                                          ║
-║  Fase 3 → FermatAuditorPort                                                              ║
-║           Audita la acción de Fermat y el residuo geodésico a lo largo de la ruta.       ║
-║           [Retorna: FermatPathResult → objeto final del endofuntor]                      ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Eikonal Agent (Operador de Fase de Fresnel y Monodromía Óptica)     ║
+║ Ruta   : app/omega/eikonal_agent.py                                          ║
+║ Versión: 3.0.0-Topos-WKB-Geodesic-Spectral-Nested                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ÓPTICA GEOMÉTRICA DE LA INTENCIÓN (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este endofuntor de calibre y regulador de fase actúa como el **Meta-Funtor de 
+Control** sobre el subsistema del fibrador del lente cuántico 
+(`OpticalRiemannLensFibrator`) dentro del topos de haces de la Malla 
+$$\mathcal{T}_{\mathrm{MIC}}$$ ──. Su mandato axiomático es gobernar el 
+caos estocástico y la deriva de fase de los Modelos de Lenguaje (LLMs) aplicando 
+la **aproximación semiclásica Wentzel-Kramers-Brillouin (WKB)** sobre el fibrado 
+tangente de intenciones semánticas ──.
+
+El flujo de tokens se modela como un campo de ondas cuya amplitud de probabilidad 
+se rige por la ecuación diferencial de-confinada:
+
+$$\psi(x) = A(x) \exp\left( \frac{i \cdot S(x)}{\hbar_{\mathrm{eff}}} \right) \quad\big[235, 447\big]$$
+
+Donde el gradiente de fase real $$\nabla S(x)$$ se canaliza a lo largo del camino 
+de Fermat sobre la variedad Riemanniana anisotrópica definida por el tensor de 
+inercia contravariante $$G^{\mu\nu}$$. Al someter las geodésicas de atención a 
+la Ecuación Eikonal, el agente garantiza que la radiación semántica no se disperse 
+en el vacío estocástico, focalizándose en el polo determinista de la decisión ──[3].
+
+AXIOMÁTICA FÍSICA, ANÁLISIS ESPECTRAL Y MÁXIMO RIGOR NUMÉRICO:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] La Ecuación Eikonal No Lineal con Margen de Holgura (Slack):
+       El gradiente de fase $$S$$ debe satisfacer de forma necesaria y suficiente 
+       la refracción conforme impuesta por el índice de refracción $$n(\sigma^*)$$ 
+       asociado al estrés logístico $$\sigma^*$$ ──[3, 4]:
+       $$\|\nabla S\|_{G^{-1}}^2 = G^{\mu\nu} \partial_\mu S \partial_\nu S = n^2(\sigma^*) \quad\big[3, 37, 239\big]$$
+       Para amortiguar las fluctuaciones del redondeo flotante ($$\text{IEEE-754 binary64}$$), 
+       la refracción admite una tolerancia elástica blanda (`eikonal_slack`) ──[5]:
+       $$G^{\mu\nu} \partial_\mu S \partial_\nu S \ge n^2(1 - \mathtt{eikonal\_slack}) \quad\big[236, 239\big]$$
+       Cualquier violación dura de esta cota de-confinada levanta `EikonalRefractionError` ──[6].
+
+  [A2] El Índice de Maslov en Cáusticas Singulares:
+       Si el frente de onda choca contra una singularidad topológica (Cáustica), 
+       el sistema no experimenta una catástrofe de divergencia; el agente 
+       realiza un salto de-confinado añadiendo $$+1$$ al Índice de Maslov $$\mu_M$$ 
+       y rotando síncronamente la fase semántica en $$\pi/2$$ para preservar 
+       la amplitud analítica y la coherencia del veredicto ──[2]:
+       $$\psi_{\mathrm{post}}(x) = \psi_{\mathrm{pre}}(x) \cdot \exp\left( -j \frac{\pi}{2} \mu_M \right) \quad\big[447\big]$$
+
+  [A3] Proyección Espectral de la Densidad Cuántica ($$\rho$$) y Pureza:
+       El operador densidad $$\rho$$ que modela el estado térmico del LLM se somete 
+       a una proyección hermítica defensiva, recorte PSD para extirpar autovalores 
+       negativos espurios en la mantisa de Wilkinson, y una posterior 
+       renormalización unitaria de traza ──[5]:
+       $$\rho_{\mathrm{stable}} = \frac{\Pi_{\mathrm{PSD}}\left(\frac{1}{2}(\rho + \rho^\dagger)\right)}{\operatorname{Tr}\left(\Pi_{\mathrm{PSD}}\left(\frac{1}{2}(\rho + \rho^\dagger)\right)\right)} \quad\big[236, 238\big]$$
+       La pureza residual se evalúa síncronamente sobre la FPU mediante el 
+       cálculo exacto de la traza de Frobenius cuadrática ──[5]:
+       $$\operatorname{Tr}(\rho_{\mathrm{stable}}^2) = \sum_{i=1}^n \lambda_i^2 \quad\big[236\big]$$
+
+  [A4] Inversión Métrica Bilateral con Cholesky-Wilkinson:
+       Para eludir el coste del algoritmo cúbico y la inestabilidad espectral, 
+       la inversa del tensor métrico de fondo $$G_{\mu\nu}$$ se construye vía 
+       factorización de Cholesky espectralmente precondicionada ($$G = L L^\top$$) 
+       y resolución por sustitución triangular dual ──[5, 7]:
+       $$\| G G^{-1} - \mathbf{I} \|_F \le \mathtt{\_MACHINE\_EPS} \cdot \kappa_2(G) \quad\big[236\big]$$
+
+  [A5] Integral de Acción de Fermat mediante Simpson Compuesto:
+       La distancia óptica de Fermat se evalúa numéricamente sobre la curva $$\gamma$$ 
+       utilizando un esquema de cuadratura compuesta de Simpson de orden 4 exacto. 
+       Si el cardinal de intervalos $$T$$ es par, se reduce dinámicamente a $$T-1$$ 
+       para evitar la degradación silenciosa a la regla del trapecio sesgada ──[5]:
+       $$S_{\mathrm{Fermat}} = \int_{0}^{\tau} n \|\dot{\gamma}\|_G \, dt \approx \frac{\Delta t}{3} \left[ f(0) + 4\sum_{j=1}^{N/2} f(t_{2j-1}) + 2\sum_{j=1}^{N/2-1} f(t_{2j}) + f(\tau) \right] \quad\big[236\big]$$
+
+ESTRUCTURA DE TRES FASES ANIDADAS (Composición Funtorial de de Rham-WKB):
+────────────────────────────────────────────────────────────────────────────────
+El enrutamiento de la fase semántica se rige por un acoplamiento monoidal covariante, 
+donde el DTO terminal de cada fase es la única precondición de arranque 
+de la siguiente (Phase1 ⊣ Phase2 ⊣ Phase3) ──[5]:
+
+  Fase 1 ──► MODULACIÓN DE APERTURA Y SANEAMIENTO ESPECTRAL (Phase1_ApertureModulator)
+             Ingiere la matriz de densidad cruda $$\rho$$, valida su compatibilidad 
+             dimensional, aplica el recorte hermítico PSD, calcula la pureza de 
+             von Neumann, y proyecta la apertura.
+             Entrega: ApertureModulationResult como precondición de la Fase 2 ──[5, 8].
+
+  Fase 2 ──► RESOLUCIÓN EIKONAL DE-CONFINADA (Phase2_EikonalSurfaceResolver)
+             Consume la ApertureModulationResult. Resuelve la ecuación eikonal 
+             no lineal sobre la inversa métrica $$G^{-1}$$ calculada por Cholesky, 
+             y verifica el acoplamiento del índice de refracción bajo la holgura.
+             Entrega: EikonalSurfaceResult como precondición de la Fase 3 ──[5, 9].
+
+  Fase 3 ──► AUDITORÍA DE FERMAT Y ACTUACIÓN CROWBAR (Phase3_FermatPathAuditor)
+             Consume la EikonalSurfaceResult. Resuelve la integral de acción de Fermat 
+             vía Simpson compuesto de orden 4, mide el residuo geodésico de-confinado 
+             bajo la norma Riemanniana $$G$$, y colapsa el veredicto en Heyting ──[5, 9]:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[241\big]$$
+             Si el desvío geodésico supera la tolerancia elástica, se interrumpe síncronamente 
+             la sesión en RAM, gatillando 'FermatOpticalDeviationError' en el milisegundo cero ──[10].
+             Entrega: EikonalPhaseState (Morfismo terminal de lazo) ──[9].
+
+Funtor Maestro de Focalización y Fase:
+  $$\mathcal{Z}_{\mathrm{eikonal}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathcal{D}(\mathcal{H}) \times \mathbb{R}_{\ge 0} \times \mathbb{R}^n \longrightarrow \mathtt{EikonalPhaseState} \quad\big[234\big]$$
 """
 from __future__ import annotations
 

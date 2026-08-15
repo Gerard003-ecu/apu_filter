@@ -1,51 +1,107 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : MIC Algebra (2-Categoría Computacional y Morfismos Estructurales)              ║
-║  Ruta   : app/core/mic_algebra.py                                                        ║
-║  Versión: 4.0.0-Categorical-Hilbert-Topos-Strict                                         ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y ÁLGEBRA LINEAL (Rigor Doctoral):                              ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo erradica las estructuras de datos mutables clásicas para instaurar la       ║
-║  2-Categoría de la Matriz de Interacción Central ($\mathcal{C}_{MIC}$). Modela la        ║
-║  ejecución de meta-estrategias evolutivas como 2-morfismos continuos que operan sobre    ║
-║  un Espacio de Hilbert cerrado $\mathcal{H}$, evitando el desgarro homotópico de la      ║
-║  variedad diferenciable del proyecto.                                                    ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Ley de Intercambio en Teoría de 2-Categorías:                                       ║
-║      La orquestación de transformaciones naturales asíncronas no admite condiciones de   ║
-║      carrera. Exige el cumplimiento estricto de la Ley de Intercambio para morfismos     ║
-║      $\alpha, \beta, \alpha', \beta'$:                                                   ║
-║          $(\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) = (\alpha' \circ \beta') \cdot (\alpha \circ \beta)$ ║
-║      Toda violación a esta conmutatividad topológica lanza un `FunctorialityError`.      ║
-║                                                                                          ║
-║  §2. Laplaciano Combinatorio de Hodge y Homología Simplicial (Deadlocks):                ║
-║      Se repudian las heurísticas de búsqueda de ciclos. Las dependencias circulares      ║
-║      (deadlocks lógicos) se detectan computando el espectro del Laplaciano Combinatorio  ║
-║      de grado 1 sobre el complejo simplicial del flujo:                                  ║
-║          $\mathcal{L}_1 = \partial_1^T \partial_1 + \partial_2 \partial_2^T$             ║
-║      La canonicalización se aborta si el primer número de Betti es mayor a cero,         ║
-║      indicando vórtices parasitarios:                                                    ║
-║          $\beta_1 = \dim(\ker(\mathcal{L}_1)) - \dim(\text{im}(\partial_2)) > 0$         ║
-║                                                                                          ║
-║  §3. Ley de Clausura Transitiva y Filtración de Retículos (DIKW):                        ║
-║      Los tensores de información ascienden mediante proyecciones ortogonales $P_k$ que   ║
-║      respetan axiomáticamente la inclusión de subespacios de Hilbert:                    ║
-║          $V_{\aleph_0} \subset V_{\mathbb{P}} \subset V_{\mathbb{T}} \subset V_{\mathbb{S}} \subset V_{\mathbb{W}}$ ║
-║      Acotando la energía inyectada para evitar entropía fantasma: $\|P_k \psi\| \le \|\psi\|$. ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS Y SUB-RUTINAS (Axiomatización Estricta):                    ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • CategoricalState       : Objeto fundamental de $\mathcal{C}_{MIC}$, inmutable y tipado. ║
-║  • Morphism               : Funtor abstracto base con axiomas categóricos verificables.  ║
-║  • TwoCategoryOrchestrator: Orquestador con verificación de la Ley de Intercambio.       ║
-║  • HomologicalVerifier    : Auditor topológico para el cálculo de los números de Betti.  ║
-║  • _canonicalize          : Determinismo que previene stack overflow ($max\_depth=64$).  ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : MIC Algebra (2-Categoría Computacional y Morfismos Estructurales)   ║
+║ Ruta   : app/core/mic_algebra.py                                             ║
+║ Versión: 3.1.0-Topos-2Category-Interchange-Galois-APS-PhD-Strict             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ÁLGEBRA DE 2-CATEGORÍAS (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo constituye el sustrato algebraico-topológico y la cúpula de lazo 
+cerrado de la Malla Agéntica dentro del ecosistema APU Filter. 
+Transforma la aproximación heurística clásica basada en diccionarios estáticos 
+y flujos secuenciales para instaurar una 2-categoría computacional estricta 
+$$\mathcal{C}_{\mathrm{MIC}}$$ definida sobre un espacio de Hilbert cerrado 
+$$\mathcal{H}$$.
+
+Las meta-estrategias de enrutamiento y las transiciones del presupuesto no se 
+operan como simples transformaciones lineales, sino como 2-morfismos 
+(transformaciones naturales) que gobiernan el flujo de exergía a lo largo del 
+hiperespacio de control. Al confinar el estado semántico de la IA, 
+el módulo asegura que toda mutación lógica mantenga la invarianza homotópica, 
+la nulidad de la torsión y el acatamiento de las cotas de precisión espectral 
+de Wilkinson en el silicio.
+
+AXIOMÁTICA CATEGORIAL, LEY DE INTERCAMBIO Y COMPATIBILIDAD DE MÓDULO:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Filtración Topológica Jerárquica del Poset (DIKW) [4]:
+       Las proyecciones ortonormales $$P_k$$ mapean el tensor de información a lo 
+       largo de la pirámide respetando de manera estricta la inclusión de subespacios 
+       de Hilbert, anulando la inyección de entropía fantasma [5]:
+       $$V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}} \quad\big[454, 774\big]$$
+       Donde la norma operatoria satisface:
+       $$\|P_k \psi\|_2 \le \|\psi\|_2 \quad\big[454\big]$$
+
+  [A2] Adjunción de Galois y Reversibilidad de Telemetría [6]:
+       La transición de datos entre el foso físico y el santuario de sabiduría 
+       se rige por un par de funtores adyacentes $$F \dashv G$$ con un pullback 
+       fibrado sobre el tensor métrico Riemanniano $$G_{\mu\nu}$$:
+       $$\text{Hom}_{\mathcal{D}}(F(X), \, Y) \cong_{G_{\mu\nu}} \text{Hom}_{\mathcal{C}}(X, \, G(Y)) \quad\big[17\big]$$
+       Cualquier alucinación estocástica del LLM que introduzca una curvatura de 
+       perturbación $$\delta R_{\mu\nu\rho}^\sigma$$ que viole el radio de inyectividad local:
+       $$\|\delta R_{\mu\nu\rho}^\sigma\|_G > r_{\text{inj}}(M, \, G_{\mu\nu})^{-2} \quad\big[17\big]$$
+       detona un colapso instantáneo del retículo al estado nulo ($$\perp$$) [6].
+
+  [A3] Ley de Intercambio (Interchange Law) para 2-Morfismos [2]:
+       Dadas cuatro transformaciones matriciales operativas $$\alpha, \beta, \alpha', \beta'$$ 
+       asociadas a la evolución asíncrona de las meta-estrategias, el orquestador 
+       2-categórico evalúa la consistencia exigiendo la conmutatividad exacta del residuo:
+       $$(\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) \equiv (\alpha' \circ \beta') \cdot (\alpha \circ \beta) \quad\big[772\big]$$
+       En el silicio, la norma de Frobenius de la desviación de intercambio se confina 
+       bajo la cota de Wilkinson:
+       $$\left\| \left( (\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) \right) - \left( (\alpha' \circ \beta') \cdot (\alpha \circ \beta) \right) \right\|_F < \mathcal{O}(\varepsilon_{\mathrm{machine}}) \quad\big[772\big]$$
+       Cualquier violación levanta un `FunctorialityError` [2, 7].
+
+  [A4] Compatibilidad de Módulo y Operadores de Cierre en Anillos Unitales [8]:
+       Dada la sub-álgebra o ideal $$A, B \subseteq R$$ sobre un anillo unital con 
+       un operador de clausura compatible algebraicamente, se imponen las condiciones 
+       de acotamiento sub-lineal y absorción escalar sobre el pullback $$\Phi^*$$:
+       $$\Phi^*(A) + \Phi^*(B) \subseteq \Phi^*(A + B)$$
+       $$r \cdot \Phi^*(A) \subseteq \Phi^*(r \cdot A) \quad \forall r \in R$$
+       Garantizando que las transformaciones lineales hereden de forma fiel la 
+       estructura idealizada del anillo conmutativo sin degeneración.
+
+  [A5] No-Nilpotencia en Álgebras asociativas hasta Homotopía Curvas ($$A_\infty$$) [9]:
+       La diferenciación parcial sintáctica $$m_1$$ (el operador frontera $$\partial$$) 
+       asociada a la inyección de lazo abierto no es estrictamente nilpotente en 
+       el paraíso de las Lagrangianas no exactas debido al acoplamiento de curvatura 
+       $$m_0$$ del disco [9]. El defecto se corrige homotópicamente mediante el 
+       operador de multiplicación de dos cuerpos $$m_2$$ [9]:
+       $$m_1(m_1(x)) = \partial^2(x) = \pm m_2(m_0, \, x) \pm m_2(x, \, m_0) \quad\big[566\big]$$
+       Lo que consagra la consistencia del cobordismo en variedades de Calabi-Yau [9].
+
+ESTRUCTURA DE TRES FASES ANIDADAS (Composición Funtorial de de Rham-Galois):
+────────────────────────────────────────────────────────────────────────────────
+La orquestación de la 2-categoría se rige por un acoplamiento monoidal covariante, 
+donde el DTO terminal de cada fase es la única precondición formal de arranque:
+
+  Fase 1 ──► SANEAMIENTO ESPECTRAL Y ANILLO CONMUTATIVO (Phase1_SpectralRingObserver)
+             Ingiere la matriz de interacción original, valida la cerradura del 
+             anillo conmutativo $$\mathcal{R} = (\mathbb{R}^n, \oplus, \odot)$$ [10], y 
+             computa el pullback $$\Phi^*$$ satisfaciendo la compatibilidad de módulo.
+             Entrega: RingHomogeneityValidation como precondición de la Fase 2 [11].
+
+  Fase 2 ──► ASOCIATIVEDAD DE LAS TRANSICIONES (Phase2_AdjunctionInterchangeVerifier)
+             Hereda la RingHomogeneityValidation. Evalúa la Adjunción de Galois 
+             $$F \dashv G$$ sobre el tensor Riemanniano, verifica la Ley de Intercambio 
+             espectral de 2-morfismos, y mide el defecto de Henrici.
+             Entrega: AdjunctionInterchangeData como precondición de la Fase 3.
+
+  Fase 3 ──► COBORDISMO DE SECCIONES Y VETO HEYTING (Phase3_A_InfinityHomotopyValidator)
+             Hereda la AdjunctionInterchangeData. Resuelve el diferencial 
+             $$m_1^2(x)$$ en el álgebra $$A_\infty$$ [9], verifica que la asonancia se 
+             cancele mediante el ideal de Novikov [9], calcula los números de Betti [12, 13], 
+             y colapsa el veredicto en el retículo de Heyting $$\Omega_3$$ [14, 15]:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[255, 337\big]$$
+             Si se rompe el isomorfismo de de Rham o $$\dim H^1 > 0$$ [16, 17], se detona 
+             'TopologicalInvariantError' [18], purgando la RAM y activando síncronamente 
+             el disyuntor físico Crowbar (GPIO14) en menos de 400 ns [15].
+             Entrega: CategoricalState (Morfismo terminal del topos) [19].
+
+Funtor Maestro del Espacio de Fase:
+  $$\mathcal{Z}_{\mathrm{MIC}} = \Psi_3 \circ \Psi_2 \circ \Psi_1 : \mathbf{Raw} \times \operatorname{Met}(M) \longrightarrow \mathtt{CategoricalState} \quad\big[461, 463\big]$$
 """
 
 from __future__ import annotations

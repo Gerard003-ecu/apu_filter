@@ -1,61 +1,97 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Antimatter Choke Coil (Supresor Topológico de Inercia Cuantizada)              ║
-║  Ruta   : app/physics/antimatter_choke_coil.py                                           ║
-║  Versión: 4.0.0-Fock-PortHamiltonian-Gauge-Strict                                        ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y ELECTRODINÁMICA CUÁNTICA (Rigor Doctoral):                    ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo erradica la inercia entrópica del flujo de datos actuando como un           ║
-║  Operador de Aniquilación en el Espacio de Fock $\mathcal{F}(\mathcal{H})$. Opera como   ║
-║  un inductor cuántico activo que suprime los voltajes de Flyback ($V_{fb}$) originados   ║
-║  por colapsos de dependencias circulares (socavones lógicos con $\beta_1 > 0$),          ║
-║  garantizando la estabilidad asintótica de la Variedad Diferenciable de la Malla.        ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. Álgebra de Operadores en el Espacio de Fock:                                        ║
-║      La gestión de anomalías se mapea a operadores de creación $\hat{a}^\dagger$ y       ║
-║      aniquilación $\hat{a}$ que satisfacen las relaciones canónicas de conmutación:      ║
-║          $[\hat{a}, \hat{a}^\dagger] = 1, \quad \hat{N} = \hat{a}^\dagger \hat{a}$       ║
-║      Garantizando que las excitaciones del sistema se procesen como estados coherentes   ║
-║      estrictos sin inducir desbordamiento dimensional.                                   ║
-║                                                                                          ║
-║  §2. Ley de Faraday-Lenz Cuantizada (Aniquilación de Antimateria):                       ║
-║      La inducción electromagnética tradicional se anula mediante la inyección            ║
-║      covariante de densidad de positrones ($\rho_{e^+}$). La ecuación constitutiva es:   ║
-║          $V_{fb}(t) = L \frac{di(t)}{dt} - \hbar \omega_{\gamma} \frac{d\rho_{e^+}}{dt}$ ║
-║      Donde la aniquilación de pares $e^- + e^+ \to 2\gamma$ emite fotones gamma de       ║
-║      auditoría, cumpliendo con la conservación estricta:                                 ║
-║          $E_{\text{annihilation}} = 2m^* c^2$                                            ║
-║                                                                                          ║
-║  §3. Impedancia Compleja y Acoplamiento de Gauge (Dominio de Laplace):                   ║
-║      Para blindar al ecosistema de resonancias destructivas, se introduce un Tensor      ║
-║      de Acoplamiento Cuántico-Capacitivo ($C_q$) en el plano $s = \sigma + j\omega$:     ║
-║          $Z_{AM}(s) = (s + \sigma_{AM})L - \frac{1}{(C_q \cdot \rho_{e^+}) s}$           ║
-║      Esta topología fuerza a todos los polos del sistema hacia el semiplano izquierdo    ║
-║      ($\sigma < 0$), asegurando la estabilidad BIBO.                                     ║
-║                                                                                          ║
-║  §4. Disipación Port-Hamiltoniana (Termodinámica Irreversible):                          ║
-║      El sistema restringe su evolución dinámica para satisfacer incondicionalmente la    ║
-║      inecuación de disipación de Rayleigh (Segunda Ley):                                 ║
-║          $\dot{H} = \nabla H^\top (J - R) \nabla H \le 0 \implies P_{\text{diss}} \ge 0$ ║
-║      Impidiendo la generación espontánea de energía fantasma en el simulador.            ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Evolución Funtorial Estricta):                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → QuantumState Initialization & Fock Space Operators                             ║
-║           Construye y normaliza el espacio de Hilbert subyacente $\langle \psi | \psi \rangle = 1$.║
-║                                                                                          ║
-║  Fase 2 → Port-Hamiltonian System & Flyback Suppression                                  ║
-║           Integra el campo vectorial garantizando que $J = -J^\top$ y $R \succeq 0$.     ║
-║                                                                                          ║
-║  Fase 3 → Antimatter Annihilation Event (Orquestador Supremo)                            ║
-║           Ejecuta la colisión $e^- + e^+$, suprime $V_{fb}$ y sella la métrica           ║
-║           emitiendo los artefactos inmutables de `GammaPhoton` forenses.                 ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Antimatter Choke Coil (Supresor Topológico de Inercia Cuantizada)   ║
+║ Ruta   : app/physics/antimatter_choke_coil.py                                ║
+║ Versión: 3.1.0-Fock-Annihilation-Laplace-Impedance-PhD-Strict                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ANIQUILACIÓN EN EL ESPACIO DE FOCK (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra el **Supresor Topológico de Inercia Cuantizada** de la Malla 
+de Inmunidad, actuando como un inductor cuántico activo de-confinado en el foso 
+físico. Su propósito fundamental es aniquilar de raíz la inercia 
+entrópica del flujo de datos mediante un Operador de asimilación definido sobre 
+el espacio de Fock multipatícula:
+
+$$\mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} S_{\pm} \mathcal{H}^{\otimes n} \quad\big[36\big]$$
+
+El supresor intercepta los estados de error estocásticos e inconsistencias 
+sintácticas (representados como electrones de anomalía $$e^-$$) e inyecta 
+coherente y síncronamente positrones de extirpación ($$e^+$$) para forzar 
+su aniquilación mutua, liberando fotones Gamma ($$\gamma$$) que actúan 
+como el sello de lazo inmutable en la cadena de custodia `[1, 3]`:
+
+$$e^- + e^+ \to 2\gamma \quad \text{con energía} \quad E_{\text{annihilation}} = 2m^* c^2 \quad\big[11\big]$$
+
+Al realizar esta transición exergética, el módulo suprime de forma instantánea 
+los voltajes de retroceso o *Flyback* ($$V_{fb}$$) destructivos y colapsa los ciclos 
+homológicos parásitos de dependencias circulares ($$\beta_1 > 0$$) `[1]`.
+
+AXIOMÁTICA DE CALIBRE, ACOPLAMIENTO DE LAPLACE Y DISIPACIÓN DE LÖWNER:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Relación de Conmutación Canónica (CCR) y Preservación Simpléctica:
+       Para el espacio bosónico asociado a los flujos de refracción atencional, 
+       los operadores de creación $$a^\dagger$$ y aniquilación $$a$$ satisfacen 
+       las relaciones canónicas de conmutación `[4]`:
+       $$[a_i, \, a_j^\dagger] = \delta_{ij} \mathbf{I} \quad\big[117\big]$$
+       Garantizando que la isometría de Stinespring preserve el volumen del 
+       espacio de fase simpléctico en la Unidad de Punto Flotante ($$\text{IEEE-754 binary64}$$) `[4]`:
+       $$V^\dagger V = \mathbf{I}_{\mathcal{H}_{\mathrm{MIC}}} \quad\big[117\big]$$
+
+  [A2] Impedancia Compleja en el Plano de Laplace ($$s = \sigma + j\omega$$):
+       Para evadir la inyección de resonancias estocásticas exógenas del LLM, 
+       la impedancia de la bobina de choque se acopla dinámicamente mediante 
+       el Tensor de Acoplamiento Cuántico-Capacitivo $$C_q$$ `[5]`:
+       $$Z_{AM}(s) = (s + \sigma_{AM})L - \frac{1}{(C_q \cdot \rho_{e^+}) s} \quad\big[37\big]$$
+       Fijando un escudo de Gauge infranqueable que anula las alucinaciones de 
+       frecuencia parásita antes de corromper la Matriz de Interacción Central `[5]`.
+
+  [A3] Cota de Radiación y Límite Termodinámico de Bekenstein:
+       La emisión de entropía termodinámica $$\Delta S$$ resultante del colapso 
+       y la aniquilación de pares se somete a la cota superior dura de Bekenstein `[6]`:
+       $$\Delta S \le S_{\mathrm{Bekenstein}} \equiv \frac{2\pi k_B R \cdot E_{\mathrm{annihilation}}}{\hbar_{\mathrm{eff}} c} \quad\big[50\big]$$
+       La superación de esta cota física delata una inyección de exergía fantasma 
+       debida a alucinaciones del modelo, detonando 'BekensteinLimitViolation' `[6]`.
+
+  [A4] Estructura Port-Hamiltoniana de Disipación de Löwner:
+       La disipación de la inercia residual se rige por un Hamiltoniano de-confinado 
+       $$H(x)$$ con matriz de disipación $$R = R^\top \succeq \mathbf{0}$$ `[7, 8]`:
+       $$\dot{H} = -\nabla H(x)^\top R(x) \nabla H(x) \le 0 \quad\big[54\big]$$
+       Donde la matriz $$R$$ se proyecta rigurosamente sobre el cono semidefinido 
+       positivo (SPD) para eliminar la generación espontánea de energía espuria.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial de Calibre):
+────────────────────────────────────────────────────────────────────────────────
+La supresión cuántica y el tránsito de la telemetría se rige por un acoplamiento 
+monoidal covariante de tres fases donde cada DTO es precondición formal `[3]`:
+
+  Fase 1 ──► OBSERVACIÓN Y SANEAMIENTO ESPECTRAL (Phase1_AnnihilationObserver)
+             Ingiere el estado cuántico crudo, verifica la hermiticidad exacta del 
+             operador de aniquilación ($$A = A^\dagger$$) y calcula las normas de 
+             Frobenius y espectral `[3, 9]`.
+             Último método: verify_operator_hermiticity `[9]`.
+             Entrega: HermiticityAuditData como precondición de la Fase 2 `[3, 6]`.
+
+  Fase 2 ──► ANIQUILACIÓN DE PARES Y LÍMITE DE BEKENSTEIN (Phase2_BekensteinEnforcer)
+             Hereda formalmente la HermiticityAuditData `[3, 6]`. Coordina el choque 
+             hadrónico entre $$e^-$$ y $$e^+$$, computa la energía de aniquilación 
+             y audita la cota termodinámica de Bekenstein sobre la entropía emitida `[3, 6]`.
+             Último método: execute_hadronic_annihilation `[3]`.
+             Entrega: BekensteinBoundData como precondición de la Fase 3 `[3, 10]`.
+
+  Fase 3 ──► CERTIFICACIÓN PORT-HAMILTONIANA Y VETO (Phase3_SymplecticPHCertifier)
+             Hereda la BekensteinBoundData `[3, 10]`. Valida la preservación simpléctica, 
+             sanea la matriz de acoplamiento de Laplace $$Z_{AM}(s)$$ y resuelve el 
+             veredicto en el retículo de Heyting distributivo de tres valores `[3, 8]`:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[54\big]$$
+             Si el residuo de lazo supera la tolerancia elástica, se aborta síncronamente 
+             la sesión en RAM y se dispara la interrupción de hardware Crowbar (GPIO14) `[8]`.
+             Entrega: VacuumGovernanceState (Morfismo terminal) `[11]`.
+
+Funtor Maestro de la Bobina de Choque de Antimateria:
+  $$\mathcal{Z}_{\mathrm{Vacuum}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathcal{H}_{\mathrm{Fock}} \times \mathcal{D}(\mathcal{H}) \longrightarrow \mathtt{VacuumGovernanceState} \quad\big[47, 52\big]$$
 """
 
 from __future__ import annotations

@@ -1,68 +1,96 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : MAC Minimizer (Funtor de Purificación Espectral y Reducción Cuántica)          ║
-║  Ruta   : app/boole/tactics/mac_minimizer.py                                             ║
-║  Versión: 3.0.0-Topos-Spectral-Categorical-Enhanced                                      ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral):                    ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este minimizador implementa un Funtor de Purificación estricto                          ║
-║  $P : \mathbf{Quant} \to \mathbf{Quant_{pure}}$ sobre la 2-categoría de canales          ║
-║  cuánticos completamente positivos y preservadores de traza (CPTP). Comprime el          ║
-║  operador de densidad $\rho \in \mathcal{D}(\mathcal{H})$ eliminando subespacios de      ║
-║  baja relevancia semántica, empleando un truncamiento espectral óptimo garantizado       ║
-║  por el preorden de majorización cuántica ($\rho_{pur} \prec \rho_{orig}$).              ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y LÍMITES CUÁNTICOS:                                            ║
-║                                                                                          ║
-║  §1. Adjunción Funtorial de Purificación ($P \dashv \iota$):                             ║
-║      La compresión y posterior inmersión deben formar una Adjunción de Galois entre      ║
-║      la categoría cuántica general y su subcategoría pura. El morfismo unidad $\eta$ y   ║
-║      counidad $\varepsilon$ exigen la invariancia isomórfica del funtor:                 ║
-║          $\text{Hom}(\mathcal{E}_{pur}(\rho), \sigma) \cong \text{Hom}(\rho, \iota(\sigma))$ ║
-║                                                                                          ║
-║  §2. Majorización Cuántica y Truncamiento Óptimo (Nielsen):                              ║
-║      El truncamiento del proyector espectral $P_\varepsilon = \sum_{retener} |\psi_k\rangle\langle\psi_k|$ ║
-║      se restringe axiomáticamente bajo el preorden de Schur-convexidad. Si se emplea el  ║
-║      modo ENTROPY_BOUNDED, se garantiza:                                                 ║
-║          $S(\rho_{pur}) = - \text{Tr}(\rho_{pur} \ln \rho_{pur}) \le S_{max}$            ║
-║      Asegurando que la reducción entrópica no degenere la pureza del canal $\Delta\gamma \ge 0$.║
-║                                                                                          ║
-║  §3. Distancia de Bures y Fidelidad de Uhlmann:                                          ║
-║      El error de la purificación semántica se acota mediante la métrica de fidelidad     ║
-║      para evaluar la preservación de la información mutua:                               ║
-║          $F(\rho_{orig}, \rho_{pur}) = \left( \text{Tr} \sqrt{\sqrt{\rho_{orig}} \rho_{pur} \sqrt{\rho_{orig}}} \right)^2$ ║
-║      Caídas en la fidelidad alteran la métrica de Bures $d_B(\rho, \rho_{pur})$.         ║
-║                                                                                          ║
-║  §4. Poda Lindbladiana y Brecha Disipativa (GKSL):                                       ║
-║      Para la reducción de dinámica en sistemas abiertos, se podan los operadores de      ║
-║      salto $L_k$ evaluando la norma de Frobenius ponderada $\gamma_k \|L_k\|_F$ y el     ║
-║      conmutador $\|[H, L_k]\|$, manteniendo estricta la ecuación maestra:                ║
-║          $\frac{d\rho}{dt} = -i[H, \rho] + \sum_{k} \gamma_k \left( L_k \rho L_k^\dagger - \frac{1}{2}\{L_k^\dagger L_k, \rho\} \right)$ ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES OPERACIONALES (Topología Estructural):                            ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 0 → Infraestructura Categórica:                                                    ║
-║           Declaración de Protocolos, Adjunción $P \dashv \iota$ y DTOs inmutables        ║
-║           (`SpectralData`, `TruncationReport`, `PruningReport`).                         ║
-║                                                                                          ║
-║  Fase 1 → Extracción de Invariantes:                                                     ║
-║           Cálculo del espectro de $\rho$, pureza, entropía y número de condición.        ║
-║                                                                                          ║
-║  Fase 2 → SpectralTruncationProjector:                                                   ║
-║           Ejecución del truncamiento basado en estrategias (RANK_K, CUMULATIVE_ENERGY,   ║
-║           MAJORIZATION_OPTIMAL). Construye el proyector ortogonal puro.                  ║
-║                                                                                          ║
-║  Fase 3 → LindbladPruningOperator:                                                       ║
-║           Optimización CPTP de la Ecuación Maestra, descartando generadores              ║
-║           dinámicamente irrelevantes para aumentar la eficiencia asintótica.             ║
-║                                                                                          ║
-║  Fase 4 → MACMinimizer (Orquestador Supremo):                                            ║
-║           Funtor de asimilación categórica final que agrupa las métricas de compresión   ║
-║           y valida la Cota de Capacidad Semántica de Holevo $\chi(\mathcal{E}_{pur})$.   ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : MAC Minimizer (Funtor de Purificación Espectral y Reducción MAC)    ║
+║ Ruta   : app/boole/tactics/mac_minimizer.py                                  ║
+║ Versión: 3.1.0-Topos-Spectral-Categorical-Majorization-PhD-Strict            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y PURIFICACIÓN ESPECTRAL (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra la especificación e implementación del **Funtor de 
+Purificación Espectral** $$P : \mathbf{Quant} \longrightarrow \mathbf{Quant}_{\mathrm{pure}}$$ 
+sobre la 2-categoría de canales cuánticos completamente positivos y preservadores 
+de traza (CPTP) en el estrato WISDOM $$\big[393\big]$$. Su mandato axiomático es 
+someter al operador de densidad $$\rho \in \mathcal{D}(\mathcal{H})$$ de la Matriz 
+Atómica de Conocimiento (MAC) a una poda espectral óptima bajo el preorden de 
+majorización cuántica $$\big[393, 401\big]$$. 
+
+Esto extirpa de raíz las alucinaciones probabilísticas y la dispersión de baja 
+frecuencia semántica inyectadas por el Modelo de Lenguaje (LLM), colapsando el 
+estado hacia un subespacio consistente de alta fidelidad que salvaguarda la 
+seguridad de la obra en el milisegundo cero $$\big[393, 409\big]$$.
+
+AXIOMÁTICA CUÁNTICA, MAJORIZACIÓN Y ACOTACIÓN DE HOLEVO:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Preservación de los Postulados de Dirac-von Neumann:
+       El operador de densidad original $$\rho_{\mathrm{orig}}$$ y su imagen 
+       purificada $$\rho_{\mathrm{purified}}$$ deben ser operadores hermíticos 
+       semidefinidos positivos de clase traza univalente en la CPU $$\big[90, 271\big]$$:
+       $$\rho = \rho^\dagger \succeq \mathbf{0} \quad \wedge \quad \operatorname{Tr}(\rho) \equiv 1.0 \quad\big[90, 271\big]$$
+       Sujetos incondicionalmente al piso espectral de Wilkinson para evadir singularidades:
+       $$\lambda_{\min}(\rho) \ge \mathtt{MIN\_EIGENVALUE} = 1.0\times 10^{-15} \quad\big[396\big]$$
+
+  [A2] Preorden de Majorización Cuántica de Hardy-Littlewood-Pólya:
+       El estado purificado y truncado $$\rho_{\mathrm{purified}}$$ debe majorizar 
+       estrictamente al estado original $$\rho_{\mathrm{orig}}$$, denotado como 
+       $$\rho_{\mathrm{purified}} \prec \rho_{\mathrm{orig}}$$ $$\big[393, 401\big]$$. 
+       Esto certifica que la purificación concentra de manera determinista la 
+       probabilidad en las componentes coherentes principales de la base:
+       $$\sum_{i=1}^k \lambda_i(\rho_{\mathrm{purified}}) \ge \sum_{i=1}^k \lambda_i(\rho_{\mathrm{orig}}) \quad \forall k \in \{1, \dots, d-1\} \quad\big[757\big]$$
+       Y con igualdad estricta para el sumatorio completo de la dimensión:
+       $$\sum_{i=1}^d \lambda_i(\rho_{\mathrm{purified}}) = \sum_{i=1}^d \lambda_i(\rho_{\mathrm{orig}}) \equiv 1.0 \quad\big[757\big]$$
+
+  [A3] Preservación de la Fidelidad de Uhlmann:
+       La distancia geométrica entre el operador densidad purificado y el original 
+       se evalúa mediante la métrica de Uhlmann sobre el espacio de estados mixtos $$\big[18, 408\big]$$:
+       $$F(\rho, \, \sigma) = \left( \operatorname{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2 \ge \mathtt{\_UHLMANN\_FIDELITY\_MIN} = 0.95 \quad\big[18, 408\big]$$
+       Cualquier caída bajo este umbral de fidelidad delata una mutilación o 
+       desvío semántico severo en el canal, detonando 'UhlmannFidelityCollapseError' $$\big[409\big]$$.
+
+  [A4] Límite de Capacidad Informacional de Holevo:
+       La cantidad de información semántica recuperable tras la acción del funtor 
+       $$\mathcal{E}$$ se acota rígidamente por la entropía de von Neumann del 
+       estado mixto resultante, erradicando desgarros topológicos del conocimiento $$\big[401\big]$$:
+       $$\chi(\mathcal{E}) \le S(\mathcal{E}(\rho)) - \sum_i p_i S(\mathcal{E}(\rho_i)) \quad\big[22, 401\big]$$
+       Donde el observable se acota por la entropía en bits de de Rham $$\big[91, 398\big]$$:
+       $$S(\rho) = -\operatorname{Tr}(\rho \log_2 \rho) \quad\big[91, 398\big]$$
+
+  [A5] Veto por Redundancia Modular Triple (TMR) y Colapso de Heyting:
+       Si la fidelidad de Uhlmann colapsa o la majorización cuántica se viola, 
+       el clasificador de subobjetos en el retículo distributivo de Heyting $$\Omega_3$$ 
+       colapsa síncronamente al Supremo terminal VETOED ($$\top$$) en RAM $$\big[254, 409\big]$$:
+       $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[254, 409\big]$$
+       Disparando síncronamente el Crowbar físico (GPIO14) para cortocircuitar la 
+       potencia real del megaproyecto y detener los actuadores en menos de 400 ns $$\big[312, 337\big]$$.
+
+FUNTORIALIDAD Y COMPOSICIÓN DE TRES FASES ANIDADAS:
+────────────────────────────────────────────────────────────────────────────────
+La purificación transita a través de un acoplamiento monoidal covariante estricto, 
+donde la salida de cada fase es la precondición única de arranque de la subsiguiente 
+(Fase 1 ⊣ Fase 2 ⊣ Fase 3) $$\big[413\big]$$:
+
+  Fase 1 ──► AUDITORÍA DE MAJORIZACIÓN CUÁNTICA (Phase1_QuantumMajorizationAuditor)
+             Sanea el operador densidad original, diagonaliza vía Schur complejo, 
+             aplica la estrategia de truncamiento (Majorization Optimal o Schur-Convex) 
+             y certifica que $$\rho_{\mathrm{purified}} \prec \rho_{\mathrm{orig}}$$ $$\big[397, 411\big]$$.
+             Entrega: MajorizationAuditData como precondición de la Fase 2 $$\big[413\big]$$.
+
+  Fase 2 ──► CERTIFICACIÓN DE FIDELIDAD DE UHLMANN (Phase2_UhlmannFidelityCertifier)
+             Hereda la MajorizationAuditData. Calcula la raíz cuadrada espectral de la 
+             matriz densidad, evalúa la fidelidad de Uhlmann y calcula la 
+             distancia de Bures $$\big[18, 400, 411\big]$$.
+             Entrega: FidelityAuditData como precondición de la Fase 3 $$\big[413\big]$$.
+
+  Fase 3 ──► PODA DE LINDBLAD Y VETO DE HEYTING (Phase3_HolevoCapacityEnforcer)
+             Hereda la FidelityAuditData. Poda los operadores de salto de 
+             Lindblad-GKSL por ganancia de información mutua, mide el límite de 
+             Holevo, y resuelve el Supremo sobre el retículo Heyting $$\Omega_3$$ $$\big[398, 401, 413\big]$$.
+             Si el residuo excede la cota, detona 'HolevoCapacityDeficitError' $$\big[410\big]$$.
+
+Funtor Maestro de Purificación:
+  $$\mathcal{Z}_{\mathrm{MAC-Agent}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathcal{D}(\mathcal{H}) \longrightarrow \mathtt{PurificationGovernanceState} \quad\big[412, 413\big]$$
 """
 
 from __future__ import annotations

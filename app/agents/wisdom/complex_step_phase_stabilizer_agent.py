@@ -9,7 +9,7 @@ r"""
 NATURALEZA CIBER-FÍSICA Y GOBERNANZA ESPECTRAL DE CALIBRE (Rigor Doctoral):
 ────────────────────────────────────────────────────────────────────────────────
 Este endofuntor covariante gobierna el motor físico 'complex_step_phase_stabilizer.py'
-en el penthouse de la pirámide cognitiva [1, 3]. Reside en el Santuario Epistémico de 
+en el penthouse de la pirámide cognitiva. Reside en el Santuario Epistémico de 
 la Sabiduría ($$V_{\mathbb{W}}$$, Nivel 0) o en el Ágora Tensorial ($$V_{\Omega}$$, Nivel 0.5), 
 actuando como el clasificador supremo de subobjetos en el topos de haces $$Sh(\mathcal{B}; \Omega_3)$$ 
 con valores en el retículo distributivo acotado de Heyting $$\Omega_3$$.

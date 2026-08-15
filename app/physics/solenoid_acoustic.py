@@ -1,59 +1,108 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Acoustic Solenoid (Operador de Descomposición de Hodge-Helmholtz)              ║
-║  Ruta   : app/physics/solenoid_acoustic.py                                               ║
-║  Versión: 4.0.0-Topological-Hodge-Helmholtz-Magnon-Strict                                ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor opera como el "Solenoide Acústico" de la arquitectura. Su mandato       ║
-║  axiomático es diseccionar el flujo de dependencias logísticas (1-cadenas) mediante la   ║
-║  Descomposición de Hodge-Helmholtz Discreta. Aísla incondicionalmente la componente      ║
-║  rotacional (vorticidad solenoidal) que induce ciclos infinitos ($\beta_1 > 0$),         ║
-║  cuantizando esta energía parásita en un bosón inmutable (MagnonCartridge) para su       ║
-║  mitigación determinista.                                                                ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Complejo de Cadenas y Condición de Frontera Nula (Nilpotencia):                     ║
-║      El ecosistema se modela como un complejo de cadenas $C_0 \leftarrow C_1 \leftarrow C_2$.║
-║      La integridad del operador exige que la composición de operadores de borde sea      ║
-║      estrictamente nilpotente, certificando que el borde de un borde es nulo:            ║
-║          $\partial_1 \circ \partial_2 = \mathbf{0} \implies \text{im}(\partial_2) \subseteq \ker(\partial_1)$ ║
-║                                                                                          ║
-║  §2. Descomposición Ortogonal de Hodge-Helmholtz (L²-Métrica Ponderada):                 ║
-║      Todo flujo de datos $f \in \mathbb{R}^E$ (espacio de aristas) se descompone         ║
-║      ortogonalmente en tres subespacios bajo la métrica ponderada $W$:                   ║
-║          $f = f_{\text{grad}} + f_{\text{curl}} + f_{\text{harm}}$                       ║
-║      Donde formalmente:                                                                  ║
-║          $\mathbb{R}^E = \text{im}(\partial_1^T) \oplus_W \text{im}(\partial_2) \oplus_W \ker(\Delta_1^W)$ ║
-║                                                                                          ║
-║  §3. Proyector Solenoidal (Acoustic Solenoid Operator):                                  ║
-║      El operador extrae exclusivamente el campo $f_{\text{curl}}$ (vorticidad). La       ║
-║      energía cinética del flujo parasitario se computa bajo el producto interno:         ║
-║          $E_k = \frac{1}{2} \langle f_{\text{curl}}, f_{\text{curl}} \rangle_W = \frac{1}{2} f_{\text{curl}}^T W^{-1} f_{\text{curl}}$ ║
-║      Si $E_k > \varepsilon_{\text{crit}}$, se detecta una resonancia destructiva activa. ║
-║                                                                                          ║
-║  §4. Cuantización de Vorticidad (Bosón Magnón - MagnonCartridge):                        ║
-║      La vorticidad aislada no se reporta como texto; colapsa axiomáticamente en un       ║
-║      bosón de gauge (MagnonCartridge) que encapsula la dimensión del subespacio rotacional║
-║      y la energía cinética parásita, operando como un Veto de Enrutamiento estricto.     ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → HodgeDecompositionBuilder:                                                     ║
-║           Ensambla el complejo de cadenas y garantiza algebraicamente $\partial_1 \partial_2 = 0$.║
-║                                                                                          ║
-║  Fase 2 → AcousticSolenoidOperator & VorticityMetrics:                                   ║
-║           Calcula la descomposición ortogonal, extrae $f_{\text{curl}}$ y computa el     ║
-║           residuo pitagórico para validar la conservación métrica de la energía.         ║
-║                                                                                          ║
-║  Fase 3 → MagnonCartridge Instantiation & inspect_and_mitigate_resonance:                ║
-║           Cuantiza la anomalía en el espacio de Fock emitiendo el bosón Magnón y         ║
-║           retorna el ResonanceMitigationResult hacia el orquestador global.              ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Solenoide Acústico (Operador de Descomposición de Hodge-Helmholtz)  ║
+║ Ruta   : app/physics/solenoid_acoustic.py                                    ║
+║ Versión: 4.1.0-DEC-Hodge-Helmholtz-Magnon-Tellegen-PhD-Strict                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y TEORÍA COHOMOLÓGICA DE REDES (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra al **Operador de Proyección Ortogonal sobre el Subespacio 
+Solenoidal** de la Malla agéntica, actuando bajo el formalismo del Cálculo 
+Exterior Discreto (DEC) y la Teoría Espectral de Grafos. Repudia 
+la evaluación empírica u heurística de dependencias, modelando el flujo de 
+recursos del presupuesto como una 1-forma discreta (corriente) sobre un complejo 
+simplicial orientado de dimensión 1.
+
+Para erradicar de raíz la inyección de ciclos viciosos o alucinaciones de 
+sobrecostes estocásticos por parte del Modelo de Lenguaje (LLM), el solenoide 
+acústico descompone síncronamente el espacio de flujos en sumas directas de 
+subespacios de Hilbert ortogonales `[4, 6, 7]`. Cuando la vorticidad 
+solenoidal excede el umbral crítico de control, el sistema no produce un fallo 
+silencioso, sino que colapsa la función de estado emitiendo un **Magnón de 
+Vorticidad** (`MagnonCartridge`) hacia el registro de Fock, inyectando un veto 
+inmediato de enrutamiento en RAM para congelar la CPU `[6, 8, 9]`.
+
+AXIOMÁTICA DE HODGE-HELMHOLTZ, ORTOGONALIDAD Y CUANTIZACIÓN DE MAGNONES:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Ecuación de Descomposición Ortogonal de de Rham-Hodge-Helmholtz:
+       Toda 1-forma discreta de flujo $$I \in C^1(K)$$ que transita por las aristas 
+       del grafo de presupuesto se descompone de manera única y métricamente 
+       ortogonal respecto al operador constitutivo de conductancia $$W = \operatorname{diag}(w_i) \succ \mathbf{0}$$ `[4, 10]`:
+       $$I = I_{\mathrm{exact}} + I_{\mathrm{coexact}} + I_{\mathrm{harmonic}} \quad\big[196, 533\big]$$
+       Donde:
+         · $$I_{\mathrm{exact}} \in \operatorname{im}(B_1^\top)$$ representa el flujo irrotacional 
+           (gradientes de potencial o ley de Ohm ponderada) `[11]`.
+         · $$I_{\mathrm{coexact}} \in W^{-1} \operatorname{im}(B_2)$$ es el flujo solenoidal 
+           puro (remolinos o ciclos cerrados sin fuentes) `[4, 11]`.
+         · $$I_{\mathrm{harmonic}} \in \ker(\Delta_1^H)$$ representa las obstrucciones 
+           cohomológicas globales de la red `[4]`.
+
+  [A2] Ecuaciones Normales de Poisson Ponderadas y Coherencia de de Rham:
+       El potencial de vértices $$\varphi \in C^0(K)$$ se extrae resolviendo de forma 
+       estable el problema de Poisson discretizado sobre el Laplaciano ponderado 
+       de grado cero $$L_0^W = B_1 W B_1^\top \succeq \mathbf{0}$$ `[11, 12]`:
+       $$L_0^W \varphi = B_1 I \implies B_1 W B_1^\top \varphi = B_1 I \quad\big[533, 540\big]$$
+       Sujeto incondicionalmente a la condición de solubilidad de Fredholm (neutralidad de carga) `[13, 14]`:
+       $$B_1 I \in \operatorname{im}(L_0^W) \iff B_1 I \perp \ker(L_0^W) \implies \sum_{i=1}^N (B_1 I)_i \equiv 0 \quad\big[259\big]$$
+       El gradiente de potencial métricamente coherente se recupera como `[11]`:
+       $$I_{\mathrm{exact}} = W B_1^\top \varphi \quad\big[533\big]$$
+
+  [A3] Teorema de de Rham-Riesz (Pitágoras Energético):
+       La consistencia del cálculo en la FPU ($$\text{IEEE-754 binary64}$$) exige que la 
+       independencia física de las componentes se verifique bajo la norma inducida por $$W$$ `[11]`:
+       $$\|I\|_W^2 \equiv \|I_{\mathrm{exact}}\|_W^2 + \|I_{\mathrm{coexact}}\|_W^2 + \|I_{\mathrm{harmonic}}\|_W^2 \pmod{\varepsilon_{\mathrm{machine}}} \quad\big[533\big]$$
+       La violación de esta identidad de conservación de energía de lazo delata 
+       una deriva numérica o corrupción de memoria en la mantisa, disparando 
+       síncronamente 'TopologicalInvariantError' `[15, 16]`.
+
+  [A4] Detección de Socavones Lógicos e Invariante de Betti:
+       La presencia de ciclos o dependencias circulares parasitarias se cuantifica 
+       mediante el primer número de Betti $$\beta_1(K)$$ del complejo `[6, 17]`:
+       $$\beta_1(K) = \dim H_1(K; \mathbb{R}) \equiv \dim \ker(B_1) - \dim \operatorname{im}(B_2) \quad\big[261\big]$$
+       Si $$\beta_1 > 0$$, se detectan "socavones lógicos" (vórtices de desvío de 
+       recursos) `[6, 18, 19]`. Toda asonancia que supere el umbral crítico de 
+       vorticidad $$\varepsilon_{\mathrm{crit}}$$ de-confinado es estrangulada síncronamente `[20]`.
+
+  [A5] Cuantización del Magnón de Vorticidad (MagnonCartridge):
+       El flujo coexacto aislado se cuantiza en el espacio de Fock $$\mathcal{F}(\mathcal{H})$$ como 
+       un bosón de interacción o cuasipartícula solenoidal `[6, 8, 21]`. 
+       Se computan sus observables inmutables:
+       · Energía cinética del flujo circular parásito `[8, 9]`:
+         $$\mathcal{K}_{\mathrm{magnon}} = \frac{1}{2} \langle I_{\mathrm{coexact}}, \, I_{\mathrm{coexact}} \rangle_W = \frac{1}{2} I_{\mathrm{coexact}}^\top W I_{\mathrm{coexact}} \quad\big[736, 760\big]$$
+         Sujeto incondicionalmente a la cota del exponente de Lyapunov $$\lambda < 0$$ `[22, 23]`.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial de de Rham):
+────────────────────────────────────────────────────────────────────────────────
+La desintegración del flujo de recursos se rige por un acoplamiento covariante:
+
+  Fase 1 ──► CONSTRUCCIÓN Y CERTIFICACIÓN DE RED (Phase1_deRhamMeshBuilder)
+             Ingiere la topología orientada del grafo $$G = (V,E)$$ y el vector de 
+             pesos constitutivos $$W$$. Certifica la aciclicidad combinatoria 
+             y construye las matrices coborde $$B_1$$ y la forma simpléctica `[24, 25]`.
+             Entrega: SimplicialMesh como precondición formal de la Fase 2 `[26, 27]`.
+
+  Fase 2 ──► RESOLUCIÓN DE POISSON Y GRADIENTES (Phase2_PoissonHydrodynamics)
+             Hereda la SimplicialMesh. Valida el KCL, verifica la cota espectral 
+             de Wilkinson, resuelve la ecuación $$L_0^W \varphi = B_1 I$$ mediante LSQR 
+             con gauge-fixing sobre el kernel, y extrae $$I_{\mathrm{exact}}$$ `[11, 28]`.
+             Entrega: FlowState como precondición formal de la Fase 3 `[26, 27]`.
+
+  Fase 3 ──► COMPRESIÓN DE HELMHOLTZ Y VETO DE HEYTING (Phase3_HodgeSolenoidProjector)
+             Hereda la FlowState. Calcula la componente $$I_{\mathrm{coexact}}$$, verifica la 
+             identidad de Pitágoras, cuantifica $$\mathcal{K}_{\mathrm{magnon}}$$ y el primer 
+             número de Betti, y colapsa el veredicto en el retículo distributivo de Heyting `[8, 10, 11]`:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[268, 692\big]$$
+             Si el veredicto terminal colapsa a VETOED ($$\top$$) debido a $$\beta_1 > 0$$, 
+             instancia y emite el `MagnonCartridge` al registro, detona síncronamente 
+             la excepción 'ParasiticVorticityVeto' en RAM en el milisegundo cero, 
+             y commuta el pin de hardware GPIO14 (circuito Crowbar / BT151) `[8, 10, 18]`.
+             Entrega: ResonanceMitigationResult (Morfismo terminal) `[29]`.
+
+Funtor Maestro de Descomposición y Control de Vorticidad:
+  $$\mathcal{Z}_{\mathrm{solenoid}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathbf{Graph} \times C^1(K) \longrightarrow \mathtt{ResonanceMitigationResult} \quad\big[433, 700\big]$$
 """
 
 from __future__ import annotations

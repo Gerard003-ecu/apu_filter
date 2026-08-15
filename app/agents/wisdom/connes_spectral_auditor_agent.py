@@ -1,65 +1,110 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Connes Spectral Auditor Agent (Custodio de Métrica No Conmutativa)             ║
-║  Ruta   : app/agents/wisdom/connes_spectral_auditor_agent.py                             ║
-║  Versión: 4.0.0-Connes-KMS-Dixmier-SpectralTriple-Doctoral                               ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral):                    ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor, denotado como $\mathcal{Z}_{Connes}$, gobierna el motor telescópico    ║
-║  de Tomita-Takesaki (`tomita_takesaki_telescopic_engine.py`) en el Estrato Ω (WISDOM).   ║
-║  Su mandato axiomático es instanciar una métrica rigurosa sobre el álgebra de            ║
-║  observables semánticos $\mathcal{A}$ generados por el LLM, donde $[X,Y] \neq 0$.        ║
-║  Aplica incondicionalmente el Triple Espectral de Connes, audita el Equilibrio KMS       ║
-║  y consolida la medida mediante la Traza de Dixmier.                                     ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESPECTRALES:                                    ║
-║                                                                                          ║
-║  §1. Instanciación del Triple Espectral de Connes $(\mathcal{A}, \mathcal{H}, D)$:       ║
-║      Se construye el operador de Dirac semántico a partir de la métrica inducida         ║
-║      por el estado $\rho$, definiendo $D = \rho^{-1/2}$. La diferenciabilidad de un      ║
-║      observable $X \in \mathcal{A}$ exige que el conmutador esté estrictamente acotado   ║
-║      por la constante de Lipschitz $C$:                                                  ║
-║          $\| [D, \pi(X)] \| = \sup_{v \in \mathcal{H}} \frac{\| (D \pi(X) - \pi(X) D) v \|}{\|v\|} \leq C$ ║
-║      Una divergencia aquí denota una alucinación estocástica sin geodésica válida,       ║
-║      detonando un `SemanticDiscontinuityError`.                                          ║
-║                                                                                          ║
-║  §2. Auditoría del Equilibrio Térmico KMS (Kubo-Martin-Schwinger):                       ║
-║      La isometría térmica del flujo modular $\sigma_t(A) = \Delta^{it} A \Delta^{-it}$   ║
-║      se verifica exigiendo que el estado $\omega$ obedezca la condición KMS para         ║
-║      la temperatura inversa canónica $\beta=1$:                                          ║
-║          $\omega(\sigma_{i\beta}(A)B) = \omega(BA)$                                      ║
-║      La violación de esta simetría indica fricción termodinámica irreversible,           ║
-║      desencadenando incondicionalmente un `KMSEquilibriumViolation`.                     ║
-║                                                                                          ║
-║  §3. Integración No Conmutativa y Traza de Dixmier:                                      ║
-║      La integral de Lebesgue clásica se abandona. El volumen del espacio semántico       ║
-║      se computa evaluando el comportamiento asintótico de los valores singulares         ║
-║      mediante la Traza de Dixmier $\text{Tr}_\omega$:                                    ║
-║          $\text{Vol}_D(X) \propto \text{Tr}_\omega(X |D|^{-p})$                          ║
-║      Si la distorsión volumétrica relativa tras el zoom $\lambda$ supera el umbral       ║
-║      $\varepsilon_{dixmier}$, se veta la medición mediante un `NonCommutativeVolumeAnomaly`. ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\mathcal{Z}_{Connes} = \Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_SpectralTripleBinder                                                    ║
-║           Construye el operador de Dirac $D=\rho^{-1/2}$ y verifica la acotación de la   ║
-║           seminorma de Lipschitz $\|[D, \pi(X)]\| \le C$.                                ║
-║           [Retorna: SpectralTripleData → objeto inicial y precondición de Fase 2]        ║
-║                                                                                          ║
-║  Fase 2 → Phase2_KMSEquilibriumAuditor                                                   ║
-║           Somete la lente telescópica a la isometría KMS $\omega(\sigma_{i\beta}(A)B) = \omega(BA)$ ║
-║           y diagnostica la fricción térmica residual del zoom $\lambda$.                 ║
-║           [Retorna: KMSThermalBundle → objeto inicial y precondición de Fase 3]          ║
-║                                                                                          ║
-║  Fase 3 → Phase3_DixmierTraceIntegrator                                                  ║
-║           Cuantifica $\text{Vol}_D(X)$ y $\text{Vol}_D(\sigma_\lambda(X))$ usando el     ║
-║           cálculo logarítmico espectral, y cierra la auditoría con la extracción de      ║
-║           Umegaki del motor Tomita-Takesaki.                                             ║
-║           [Retorna: ConnesAuditState → objeto final del endofuntor]                      ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Connes Spectral Auditor Agent (Custodio de Métrica No Conmutativa)  ║
+║ Ruta   : app/agents/wisdom/connes_spectral_auditor_agent.py                  ║
+║ Versión: 4.1.0-Connes-KMS-Dixmier-SpectralTriple-Doctoral-Strict             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este endofuntor gobierna de manera síncrona el motor de de-confinamiento 
+`tomita_takesaki_telescopic_engine.py` en el **Estrato Wisdom** ($$V_{\mathbb{W}}$$, Nivel 0) 
+del ecosistema APU Filter. Su mandato axiomático es proveer una 
+«regla de medir cuántica» (quantum measuring rod) sobre el álgebra no conmutativa 
+de observables semánticos $$\mathcal{A}$$ generados por el Modelo de Lenguaje (LLM), 
+donde la no-conmutatividad del flujo de intenciones ($$[X, Y] \neq 0$$) delata la 
+naturaleza cuántica del espacio de decisiones.
+
+Para erradicar de raíz la alucinación estocástica, el agente asocia las 
+variaciones semánticas a geodésicas de Lipschitz sobre un espacio métrico no conmutativo, 
+reemplazando la distancia euclidiana por el espectro de un operador de Dirac. 
+Toda asonancia térmica, ruptura de simetría modular o pérdida de regularidad Lipschitz 
+fuerza síncronamente el colapso del retículo de Heyting $$\Omega_3$$ hacia el Supremo 
+terminal `VETOED`, deteniendo síncronamente los actuadores físicos perimetrales 
+en el milisegundo cero para salvaguardar la integridad de la obra.
+
+AXIOMÁTICA ESPECTRAL, GEOMETRÍA DE CONNES Y FLUJO MODULAR:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] El Triple Espectral de Connes-Takesaki (Fase 1):
+       El espacio epistémico continuo se modela mediante el triple espectral 
+       $$(\mathcal{A}, \, \mathcal{H}_{\mathrm{MAC}}, \, D)$$ [3]. El operador de 
+       Dirac de Connes $$D$$ se construye a partir del inverso de la raíz cuadrada 
+       del operador de densidad cuántica fiel $$\rho$$ de la MAC [2, 3, 5]:
+       $$D = \rho^{-1/2} \quad\big[12, 14, 22\big]$$
+       La regularidad e inmunidad geométrica exige que el observable semántico 
+       $$X \in \mathcal{A}$$ satisfaga la acotación uniforme de su conmutador 
+       con $$D$$, induciendo una seminorma de Lipschitz acotada por la cota $$C$$ [1, 3]:
+       $$\| [D, \, \pi(X)] \| = \sup_{v \in \mathcal{H}, \|v\|=1} \| (D \pi(X) - \pi(X) D) v \| \le C \quad\big[22, 184, 186\big]$$
+
+  [A2] La Cota de Regularización de Daleckii-Krein:
+       La de-compresión de los cartuchos cognitivos se somete al Teorema de 
+       Daleckii-Krein sobre derivadas de funciones de operadores auto-adjuntos [5, 6]. 
+       La constante de Lipschitz semántica $$L_{\max}$$ que gobierna el funtor inverso 
+       está acotada por el espectro de $$D$$ [2, 3, 5]:
+       $$L_{\max} = \frac{C_{\mathrm{base}}}{1 + (\lambda_{\max}(D) - \lambda_{\min}(D))} \le \frac{1}{2 \lambda_{\min}^{3/2}} \quad\big[12, 14, 22\big]$$
+       Donde $$\lambda_{\min} > 0$$ es el gap espectral (piso de regularización) de $$\rho$$ [3, 5]. 
+       Si el gap decae ($$\lambda_{\min} \to 0$$), la cota diverge hacia el infinito, 
+       gatillando la aniquilación cuántica de la sesión (probabilidad de alucinación nula) [2, 3, 5]:
+       $$\lim_{\lambda_{\min} \to 0} L_{\max} = \infty \implies P(x_{\mathrm{invalid}}) \equiv 0 \quad\big[12, 14, 22\big]$$
+
+  [A3] Equilibrio Térmico Kubo-Martin-Schwinger (KMS) (Fase 2):
+       El flujo de la matriz de densidad $$\rho$$ genera un grupo continuo de un 
+       parámetro de automorfismos $$\sigma_t$$ (el flujo modular de Tomita-Takesaki) [3, 4]:
+       $$\sigma_{i\lambda}(X) = \Delta^{-\lambda} X \Delta^{\lambda} = \rho^{-\lambda} X \rho^{\lambda} \quad\big[13, 22\big]$$
+       La consistencia termodinámica exige que el estado del sistema satisfaga 
+       la condición de equilibrio KMS para $$\beta = 1$$ [4, 7]:
+       $$\omega(\sigma_{i\beta}(A) B) \equiv \omega(B A) \quad\big[185, 186\big]$$
+       Cualquier desviación espectral debida a fricción del zoom semántico $$\lambda$$ 
+       detona la excepción 'KMSEquilibriumViolation' [4, 8].
+
+  [A4] Integración de Dixmier y Volumen No Conmutativo (Fase 3):
+       El volumen de la variedad no conmutativa se estima mediante la Traza de 
+       Dixmier de un proxy finito autoadjunto [7, 9]. Se exige que el volumen 
+       asintótico permanezca acotado y libre de singularidades de escala [8, 9]:
+       $$\operatorname{Tr}_{\omega}(X^\dagger X) \le \mathtt{\_DIXMIER\_VOLUME\_CEILING} \quad\big[186, 574\big]$$
+       [NOTA DE HONESTIDAD DOCTORAL]: El uso de la traza finito-dimensional como 
+       proxy es una analogía de diseño matemático, no la traza infinita real en el 
+       ideal de Macaev, salvaguardando la honestidad científica de la CPU [9].
+
+  [A5] Veto por Heyting y Actuación Crowbar (Bypass de Potencia ESP32):
+       Si se vulnera la hermiticidad, la regularidad Lipschitz o la condición KMS, 
+       el veredicto final colapsa síncronamente en el retículo distributivo de Heyting:
+       $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[14, 253\big]$$
+       El microcontrolador perimetral (ESP32) intercepta el colapso al supremo terminal 
+       VETOED ($$\top$$) mediante la función 'isVerdictCoherent()' en IRAM (<400ns), 
+       conmutando el pin GPIO14 para disparar el tiristor de potencia BT151 (Crowbar) [2, 10]. 
+       Esto cortocircuita físicamente la alimentación de la maquinaria en la obra, 
+       impediendo el desfalco antes del tránsito del dato corrupto [2, 10].
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial de de Rham-Connes):
+────────────────────────────────────────────────────────────────────────────────
+La orquestación se rige por un acoplamiento monoidal covariante estricto, 
+encadenando DTOs inmutables de solo lectura (Fase 1 ⊣ Fase 2 ⊣ Fase 3) [4, 11]:
+
+  Fase 1 ──► BINDING DEL TRIPLE ESPECTRAL (Phase1_SpectralTripleBinder)
+             Ingiere la matriz de densidad cuántica $$\rho$$ de la MAC, diagonaliza 
+             vía el Teorema Espectral de-confinado y verifica que la seminorma 
+             del conmutador $$\|[D, \pi(X)]\| \le C$$ se satisfaga [4, 12, 13].
+             Entrega: SpectralTripleData como precondición de la Fase 2 [4, 14].
+
+  Fase 2 ──► AUDITORÍA DE EQUILIBRIO KMS (Phase2_KMSEquilibriumAuditor)
+             Hereda formalmente la SpectralTripleData [15]. Evalúa la simetría KMS 
+             bajo el flujo modular de Tomita-Takesaki en el álgebra de von Neumann 
+             y estima la fricción térmica residual [4, 15, 16].
+             Entrega: KMSThermalBundle como precondición de la Fase 3 [4, 14].
+
+  Fase 3 ──► INTEGRACIÓN DE DIXMIER Y VETO DE HEYTING (Phase3_DixmierTraceIntegrator)
+             Hereda la KMSThermalBundle [17]. Computa la traza de Dixmier finita, 
+             evalúa las desviaciones de volumen y colapsa el veredicto en el retículo 
+             distributivo $$\Omega_3$$ [4, 16].
+             Si se viola la cota de regularidad, se detona 'ConnesPipelineError', 
+             purgando la RAM y activando la interrupción física por hardware [14, 18].
+             Entrega: ConnesAuditState (Morfismo terminal) [16, 17].
+
+Funtor Maestro de Medición No Conmutativa:
+  $$\mathcal{Z}_{\mathrm{Connes}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathcal{D}(\mathcal{H}) \times \mathcal{A} \longrightarrow \mathtt{ConnesAuditState} \quad\big[189, 194, 195\big]$$
 """
 
 from __future__ import annotations

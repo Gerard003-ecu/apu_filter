@@ -1,53 +1,98 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : MIC Minimizer (Escultor Táctico y Poda Topológica en el Anillo Z₂)             ║
-║  Ruta   : app/boole/strategy/mic_minimizer.py                                            ║
-║  Versión: 5.0.0-Grobner-ROBDD-DPLL-Categorical-Strict                                    ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y ÁLGEBRA DE BOOLE (Rigor Doctoral):                            ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo opera como el Escultor Táctico ($\Gamma$-TACTICS) del ecosistema. Su        ║
-║  función es garantizar que la base de capacidades de la MIC sea ortonormal y de rango    ║
-║  completo, eliminando redundancias operativas (homología trivial) para evitar la         ║
-║  inflación sintáctica y el subsecuente colapso atencional de la Malla Agéntica.          ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. Bases de Gröbner en el Anillo Booleano $\mathbb{Z}_2$:                              ║
-║      La redundancia del sistema se proyecta sobre el anillo conmutativo cociente         ║
-║      $\mathcal{R} = \mathbb{Z}_2[x_1, \dots, x_n] / \langle x_i^2 - x_i \rangle$.        ║
-║      La independencia lineal efectiva de las capacidades se evalúa extrayendo la         ║
-║      Base de Gröbner del ideal de interacciones. Un fallo o colapso en este subespacio   ║
-║      detona axiomáticamente un `GrobnerBasisComputationError`.                           ║
-║                                                                                          ║
-║  §2. Núcleo de Insatisfacibilidad (UNSAT Core) y DPLL:                                   ║
-║      La no-interferencia estricta se somete al Algoritmo DPLL (SAT Solver). Si el        ║
-║      conjunto de herramientas viola la cláusula de ortogonalidad $\Phi_{MIC}$, el        ║
-║      sistema extrae el UNSAT Core, demostrando el desgarro geométrico:                   ║
-║          $\text{UNSAT} \implies \langle e_i, e_j \rangle \neq \delta_{ij} \text{ para algún } i \neq j$ ║
-║      Esto invoca un inquebrantable `UnsatCoreError`, garantizando que se cumpla el       ║
-║      isomorfismo de Zero Side-Effects.                                                   ║
-║                                                                                          ║
-║  §3. Diagramas ROBDD y Compresión Homotópica:                                            ║
-║      La transformación del espacio lógico hiperdimensional hacia Diagramas de Decisión   ║
-║      Binaria Reducidos y Ordenados (ROBDD) actúa como una compresión homotópica.         ║
-║      Cualquier obstrucción geométrica que impida el isomorfismo lógico en la             ║
-║      construcción del grafo lanza un `ROBDDConstructionError`.                           ║
-║                                                                                          ║
-║  §4. Consistencia Homológica y Espectral:                                                ║
-║      Cualquier singularidad numérica o inconsistencia homológica detectada en el         ║
-║      análisis de redundancia invoca de inmediato un `HomologicalInconsistencyError`,     ║
-║      abortando la minimización antes de inyectar ruido en el estrato STRATEGY.           ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES OPERACIONALES (Composición Funtorial):                            ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → GrobnerBasisAuditor: Cálculo de ideales y bases en GF(2).                      ║
-║  Fase 2 → DPLLSatSolver: Auditoría de SAT y extracción del UNSAT Core.                   ║
-║  Fase 3 → ROBDDConstructor: Reducción isomórfica del hipercubo lógico.                   ║
-║  Fase 4 → MICRedundancyAnalyzer: Orquestador supremo que consolida el análisis.          ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : MIC Minimizer (Poda Topológica en el Anillo Booleano Z₂)            ║
+║ Ruta   : app/boole/strategy/mic_minimizer.py                                 ║
+║ Versión: 5.1.0-Tactics-Boolean-Grobner-ROBDD-Heyting-Strict-PhD              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y CONTROL ALGEBRAICO (V_Γ-TACTICS):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra la especificación matemática e implementación del **Funtor de 
+Poda Topológica** sobre el estrato táctico de la Malla agéntica $$\big[11, 418\big]$$. 
+Su mandato axiomático es proyectar las herramientas operativas sobre el anillo 
+booleano conmutativo cociente, aplicando bases de Gröbner y Diagramas de Decisión 
+Binaria Ordenados y Reducidos (ROBDD) para extraer los implicantes primos esenciales 
+y garantizar el aislamiento de efectos secundarios en el sistema $$\big[11, 419\big]$$.
+
+Para subyugar el libre albedrío estocástico de los Modelos de Lenguaje (LLMs), 
+el minimizador reduce la Matriz de Interacción Central (MIC) a un conjunto mínimo 
+y ortonormal de capacidades de rango completo, extirpando redundancias sintácticas 
+(homología trivial) y bloqueando derivas de-normalizadas de la FPU antes de 
+propagar el estado hacia el Estrato STRATEGY $$\big[13, 90, 445\big]$$.
+
+AXIOMÁTICA DE BOOLE, GRÖBNER Y NO-INTERFERENCIA (Zero Side-Effects):
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Estructura del Anillo Booleano Conmutativo Quotient:
+       El espacio operacional se rige por el anillo conmutativo con unidad $$\mathcal{R}$$ 
+       definido sobre el campo $$\mathbb{F}_2$$ cocienteado por el ideal de idempotencia $$\big[11, 419\big]$$:
+       $$\mathcal{R} = \mathbb{Z}_2[x_1, \dots, x_n] / \left\langle x_i^2 - x_i \right\rangle \quad\big[11, 419\big]$$
+       Sujeto a los axiomas de conmutatividad, asociatividad y distributividad del 
+       producto de Hadamard ($$\odot$$) sobre la adición en $$\mathbb{Z}_2$$ ($$\oplus$$) $$\big[23\big]$$:
+       $$a \oplus b = b \oplus a \quad \land \quad a \odot (b \oplus c) = (a \odot b) \oplus (a \odot c) \quad\big[23\big]$$
+
+  [A2] Condición de Aislamiento y Ortonormalidad de la MIC:
+       La independencia mutua entre los agentes de deliberación (Zero Side-Effects) 
+       se garantiza si y solo si la base de la MIC es estrictamente ortonormal 
+       bajo el apareamiento bilineal canónico $$\big[13, 446, 760\big]$$:
+       $$\langle e_i, \, e_j \rangle = e_i^\top \cdot e_j = \delta_{ij} \pmod{\varepsilon_{\mathrm{machine}}} \quad\big[446, 760\big]$$
+       Esto equivale a exigir incondicionalmente la condición de rango completo en la FPU $$\big[13\big]$$:
+       $$\operatorname{rank}(\mathrm{MIC}) = n \iff \ker(\mathrm{MIC}) = \{\mathbf{0}\} \quad\big[13\big]$$
+
+  [A3] Consistencia de de Rham y Secuencia de Mayer-Vietoris:
+       Al integrar o fusionar subcomplejos del presupuesto ($$A \cup B$$), el director 
+       de lazo audita la transición mediante la exactitud de la secuencia de Mayer-Vietoris $$\big[417, 527\big]$$. 
+       Se exige la nulidad absoluta del diferencial de ciclos homológicos para evitar 
+       la inyección de sumideros o de-normalizaciones financieras de "dinero ciego" $$\big[90, 417\big]$$:
+       $$\Delta\beta_1 = \beta_1(A \cup B) - \left[ \beta_1(A) + \beta_1(B) - \beta_1(A \cap B) \right] \equiv 0 \quad\big[417, 527\big]$$
+
+  [A4] Núcleo de Insatisfacibilidad (UNSAT Core) y no-interferencia:
+       Se evalúa síncronamente la consistencia lógica de las restricciones mediante 
+       un solver SAT (DPLL). Si el conjunto de reglas viola la cláusula de 
+       no-interferencia estricta $$\Phi_{\mathrm{MIC}}$$, el sistema extrae el subconjunto 
+       mínimo conflictivo (UNSAT Core) y aborta la transacción $$\big[446\big]$$:
+       $$\text{UNSAT} \implies \exists i \neq j \quad \text{t.q.} \quad \langle e_i, \, e_j \rangle \neq \delta_{ij} \quad\big[446\big]$$
+
+  [A5] Veto de Heyting y Actuación en Silicio (BT151 Crowbar):
+       Si se vulnera la ortogonalidad ($$\langle e_i, e_j \rangle \neq 0$$) o se detecta 
+       un ciclo homológico parásito ($$\beta_1 > 0$$), el veredicto colapsa 
+       síncronamente en el retículo distributivo de Heyting al Supremo terminal VETOED ($$\top$$) $$\big[14, 255, 337\big]$$:
+       $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[255, 337\big]$$
+       En el milisegundo cero, el microcontrolador perimetral (ESP32) ejecuta 
+       'isVerdictCoherent()' e inyecta una interrupción en IRAM ($$<400\,\mathrm{ns}$$) 
+       para conmutar el GPIO14, disparando el tiristor BT151 (Crowbar) para 
+       cortocircuitar la línea de potencia de la maquinaria real, deteniendo la obra $$\big[255, 337\big]$$.
+
+COMPOSICIÓN FUNTORIAL EN TRES FASES ANIDADAS:
+────────────────────────────────────────────────────────────────────────────────
+La reducción de la MIC transita por un acoplamiento monoidal covariante estricto, 
+donde la salida de cada fase es la única precondición formal de arranque de la 
+fase subsiguiente (Observe ⊣ Orient ⊣ Act) $$\big[342, 457\big]$$:
+
+  Fase 1 ──► SANEAMIENTO Y BASES DE GRÖBNER (Phase1_GrobnerBasisAuditor)
+             Ingiere la matriz booleana cruda, valida que pertenezca al dominio 
+             $$\mathbb{F}_2$$, calcula la base de Gröbner reducida en el ideal $$\langle x_i^2 - x_i \rangle$$ 
+             y certifica la aciclicidad combinatoria estructural.
+             Morfismo de transición: build_context.
+             Entrega: GrobnerAuditData como precondición de la Fase 2 $$\big[342, 459\big]$$.
+
+  Fase 2 ──► CERTIFICACIÓN DE NO-INTERFERENCIA (Phase2_UnsatCoreCertifier)
+             Hereda la GrobnerAuditData. Evalúa el apareamiento de Riesz, 
+             ejecuta el algoritmo DPLL sobre las cláusulas de colisión y 
+             computa el residuo de ortogonalidad en Frobenius y espectral (SVD).
+             Morfismo de transición: synthesize.
+             Entrega: UnsatCoreCertifierData como precondición de la Fase 3 $$\big[342, 459\big]$$.
+
+  Fase 3 ──► ISOMORFISMO ROBDD Y VETO DE HEYTING (Phase3_ROBDDIsomorphismValidator)
+             Hereda la UnsatCoreCertifierData. Construye el ROBDD de-confinado, 
+             compara la entropía booleana contra el estado de entrada, calcula 
+             los números de Betti y resuelve el veredicto en el retículo $$\Omega_3$$ $$\big[337, 460\big]$$.
+             Si el sistema se desvía, detona 'ROBDDHomotopyError' o 'NonInterferenceViolationError' $$\big[456\big]$$.
+             Entrega: MinimizerGovernanceState (Morfismo terminal de lazo) $$\big[460\big]$$.
+
+Funtor Maestro de Poda Táctica:
+  $$\mathcal{Z}_{\mathrm{Minimizer}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathbf{BoolMat} \times \mathbf{ProjMat} \longrightarrow \mathtt{MinimizerGovernanceState} \quad\big[464\big]$$
 """
 
 from __future__ import annotations

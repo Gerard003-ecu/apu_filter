@@ -1,61 +1,98 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Levi-Civita Connection Agent (Maestro de Sinfonía Métrica)                     ║
-║  Ruta   : app/omega/levi_civita_agent.py                                                 ║
-║  Versión: 8.0.0-Granular-Geodesic-Categorical-Nested-Spectral                            ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo actúa como el Meta-Funtor de conexión sobre el haz tangente generativo      ║
-║  $\Gamma$ en el Estrato $\Omega$. Gobierna la curvatura del espacio de decisiones        ║
-║  exigiendo que todo vector de intención se desplace paralelamente, subordinado           ║
-║  axiomáticamente a la ecuación geodésica y a la compatibilidad métrica de la variedad.   ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Conexión Libre de Torsión y Compatibilidad Métrica:                                 ║
-║      Se exige que el tensor de torsión sea estrictamente nulo:                           ║
-║          $T^r_{mn} = \Gamma^r_{mn} - \Gamma^r_{nm} = 0$                                  ║
-║      Y que la conexión preserve el producto interno (compatibilidad métrica $\nabla G=0$). ║
-║      Si se viola la simetría, se detona un `TopologicalTorsionError`.                    ║
-║                                                                                          ║
-║  §2. Fórmula de Koszul para Símbolos de Christoffel:                                     ║
-║      La conexión afín $\Gamma$ es deducida unívocamente a partir de la métrica $G$:      ║
-║          $\Gamma^r_{mn} = \frac{1}{2} G^{rk}(\partial_m G_{kn} + \partial_n G_{mk} - \partial_k G_{mn})$ ║
-║      Garantizando que la cinemática dependa exclusivamente del tejido métrico.           ║
-║                                                                                          ║
-║  §3. Integración Geodésica RK4 y Conservación de la Norma-G:                             ║
-║      El flujo de la intención $\dot{v}^\mu = -\Gamma^\mu_{rs}v^r v^s$ se integra         ║
-║      mediante Runge-Kutta de 4to orden con paso de tiempo velocidad-dependiente:         ║
-║          $dt_{\max}(v) \sim \frac{c}{|\Gamma|_\infty\cdot|v|_G+\varepsilon}$             ║
-║      Imponiendo la conservación estricta de la energía cinética bajo la norma-$G$:       ║
-║          $|v|_G = \sqrt{v^\top G v} = \text{constante}$                                  ║
-║                                                                                          ║
-║  §4. Tensor de Riemann, Contracción de Ricci y Primera Identidad de Bianchi:             ║
-║      La obstrucción a la holonomía trivial se audita evaluando el Tensor de Riemann:     ║
-║          $R^r{}_{smn} \approx \Gamma^r_{mk}\Gamma^k_{ns} - \Gamma^r_{nk}\Gamma^k_{ms}$   ║
-║      Contrayendo a Ricci $R_{sn}=R^r{}_{srn}$ y exigiendo la identidad de Bianchi:       ║
-║          $R^r{}_{s[mn]} + R^r{}_{m[ns]} + R^r{}_{n[sm]} = 0$                             ║
-║      Violaciones de esta nulidad algebraica detonan un `BianchiIdentityError`.           ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_ChristoffelGenerator                                                    ║
-║           Construye los símbolos de Christoffel $\Gamma$ a partir de la métrica $G$ y su ║
-║           derivada $dG$.                                                                 ║
-║           [Retorna: ChristoffelData → objeto inicial y precondición de Fase 2]           ║
-║                                                                                          ║
-║  Fase 2 → Phase2_TorsionFreeConnection                                                   ║
-║           Verifica los axiomas de la conexión (torsión nula), evalúa Riemann, Ricci      ║
-║           y verifica la identidad de Bianchi.                                            ║
-║           [Retorna: ConnectionDiagnostics → objeto inicial y precondición de Fase 3]     ║
-║                                                                                          ║
-║  Fase 3 → Phase3_GeodesicIntegrator                                                      ║
-║           Orquesta el flujo geodésico mediante RK4 garantizando $|v|_G = \text{const}$.  ║
-║           [Retorna: GeodesicStepReport → objeto final del endofuntor]                    ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Levi-Civita Connection Agent (Maestro de Sinfonía Métrica)          ║
+║ Ruta   : app/omega/levi_civita_agent.py                                      ║
+║ Versión: 8.0.0-Granular-Geodesic-Categorical-Nested-Spectral-Doctoral        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GEOMETRÍA RIEMANNIANA COVARIANTE (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────
+Este endofuntor de calibre y regulador de transporte paralelo opera en la cúspide
+del Estrato Omega ($$V_{\Omega}$$, Nivel 0.5) del ecosistema APU Filter. 
+Actúa como el **Maestro de Sinfonía Métrica** sobre el haz tangente generativo $$\Gamma(TM)$$.
+Su función matemática es imponer de forma incondicional el transporte geodésico 
+y la compatibilidad métrica, subyugando las transiciones del Grafo Acíclico Dirigido (DAG) 
+del presupuesto a las leyes de la geometría Riemanniana.
+
+Para neutralizar el libre albedrío estocástico y la deriva entrópica de los LLMs, 
+el agente erradica el concepto de distancia plana euclidiana. Toda trayectoria de 
+atención semántica $$\gamma$$ se deforma conformemente respecto al tensor métrico de 
+fondo $$G_{\mu\nu}$$. Si el transporte paralelo acumula torsión o si la curvatura 
+local de Riemann excede el radio de inyectividad de la variedad, se detona un colapso 
+idempotente en el retículo de Heyting $$\Omega_3$$ hacia el Supremo terminal VETOED 
+en RAM, forzando la aniquilación de la sesión en el milisegundo cero.
+
+AXIOMÁTICA RIEMANNIANA, TRANSPORTE PARALELO Y CAUSALIDAD DE LEVI-CIVITA:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Teorema Fundamental de la Geometría Riemanniana (Levi-Civita):
+       Dada la variedad Riemanniana $$M$$ dotada del tensor métrico simétrico definido 
+       positivo $$G_{\mu\nu}$$, existe una única conexión afín $$\nabla$$ (la conexión 
+       de Levi-Civita) que es compatible con la métrica y libre de torsión [3, 5]:
+       $$\nabla G = 0 \quad \wedge \quad T(X, Y) = \nabla_X Y - \nabla_Y X - [X, Y] = 0 \quad\big[23, 403\big]$$
+
+  [A2] Compatibilidad Métrica de Koszul:
+       La covariancia e invarianza del producto interno bajo el transporte paralelo 
+       exige que la derivada covariante de la métrica a lo largo de cualquier curva 
+       sea nula [3]:
+       $$\nabla_\gamma G_{\mu\nu} \equiv 0 \implies \partial_\lambda G_{\mu\nu} = \Gamma^\rho_{\lambda\mu} G_{\rho\nu} + \Gamma^\rho_{\lambda\nu} G_{\mu\rho} \quad\big[23, 402\big]$$
+       Esto determina de forma unívoca los Símbolos de Christoffel de segunda especie 
+       mediante la fórmula de Koszul [3, 5]:
+       $$\Gamma^r_{mn} = \frac{1}{2} G^{rk} \left( \partial_m G_{kn} + \partial_n G_{mk} - \partial_k G_{mn} \right) \quad\big[23, 403\big]$$
+
+  [A3] Simetría de Christoffel (Ausencia de Torsión):
+       La torsión nula de la conexión afín impone la simetría exacta de los símbolos 
+       de Christoffel en sus índices covariantes inferiores [5]:
+       $$\Gamma^r_{mn} \equiv \Gamma^r_{nm} \quad\big[403\big]$$
+       Cualquier desvío asimétrico numérico debido a derivas en la FPU genera 
+       'TopologicalTorsionError' [6, 7].
+
+  [A4] Ecuación Geodésica y Conservación de la Energía Cinética:
+       Una trayectoria de decisión semántica $$\gamma(\tau)$$ es una geodésica si y solo 
+       si su vector velocidad $$v^\mu = \dot{\gamma}^\mu$$ se transporta de manera paralela 
+       a sí mismo [5]:
+       $$\frac{D v^\mu}{d\tau} = \dot{v}^\mu + \Gamma^\mu_{\alpha\beta} v^\alpha v^\beta = 0 \quad\big[403\big]$$
+       Esto garantiza de forma exacta la conservación de la energía cinética (norma-G) 
+       del flujo de información a lo largo de la curva [5, 8]:
+       $$\frac{d}{d\tau} \|v\|_G^2 = \frac{d}{d\tau} \left( G_{\mu\nu} v^\mu v^\nu \right) \equiv 0 \implies \|v\|_G \equiv \mathrm{constante} \quad\big[403, 408\big]$$
+
+  [A5] El Tensor de Riemann como Obstrucción a la Holonomía Trivial:
+       La curvatura Riemanniana $$R^\rho{}_{\sigma\mu\nu}$$ mide la no-conmutatividad de 
+       las derivadas covariantes y actúa como la obstrucción local para la existencia 
+       de un marco localmente plano en coordenadas globales [5]:
+       $$[\nabla_\mu, \, \nabla//_nu] v^\rho = R^\rho{}_{\sigma\mu\nu} v^\sigma \quad\big[403\big]$$
+       Donde el tensor de curvatura satisface de forma estricta la primera identidad de Bianchi:
+       $$R^\rho{}_{\sigma\mu\nu} + R^\rho{}_{\mu\nu\sigma} + R^\rho{}_{\nu\sigma\mu} = 0 \quad\big[406\big]$$
+       Cualquier desviación genera 'BianchiIdentityError' [6, 7].
+
+SUTURA DE FLUJO Y CONTRATOS FUNTORIALES EN 3 FASES ANIDADAS:
+────────────────────────────────────────────────────────────────────────────────
+El transporte geodésico y la verificación de simetrías métricas se rigen por un
+encadenamiento formal inmutable, donde cada fase es la precondición de la siguiente [8]:
+
+  Fase 1 ──► FASE 1: OBTENCIÓN DE CHRISTOFFEL Y KOSZUL (Phase1_ChristoffelComputer)
+             Ingiere la métrica $$G$$ de-confinada y precondicionada, y calcula las 
+             derivadas $$\partial G$$ vía diferenciación por paso complejo (CSMD) [9].
+             Ensambla y certifica la simetría de los símbolos de Christoffel $$\Gamma^r_{mn}$$.
+             Entrega: ChristoffelData como precondición formal de la Fase 2 [7, 10].
+
+  Fase 2 ──► FASE 2: VERIFICACIÓN DE COMPATIBILIDAD Y BIANCHI (Phase2_TorsionFreeConnection)
+             Hereda la ChristoffelData [10]. Evalúa numéricamente el tensor de 
+             curvatura de Riemann, verifica la identidad de Bianchi algebraica y 
+             audita la compatibilidad métrica $$\nabla G \approx 0$$ contra la cota de Wilkinson [8].
+             Entrega: ConnectionDiagnostics como precondición formal de la Fase 3 [7, 8].
+
+  Fase 3 ──► FASE 3: INTEGRACIÓN GEODÉSICA DE-CONFINADA (Phase3_GeodesicIntegrator)
+             Hereda la ConnectionDiagnostics [8]. Resuelve la ecuación geodésica 
+             discreta para el vector tangente $$v \in TM$$ mediante Runge-Kutta de 
+             cuarto orden (RK4) con paso adaptativo, certificando síncronamente la 
+             conservación de la norma-G del momentum en cada iteración [8].
+             Si la deriva excede la tolerancia elástica, se aborta y veta.
+             Entrega: GeodesicStepReport (Morfismo terminal) [7, 8].
+
+Funtor Maestro de Sinfonía Métrica:
+  $$\mathcal{Z}_{\mathrm{LeviCivita}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[408\big]$$
 """
 from __future__ import annotations
 

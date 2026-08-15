@@ -1,64 +1,97 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Floquet Monodromy Agent (Operador de Sintonización y Monodromía)               ║
-║  Ruta   : app/omega/floquet_agent.py                                                     ║
-║  Versión: 3.0.0-Topos-CPTP-Monodromy-Spectral-Nested                                     ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo actúa como el Meta-Funtor de Control sobre la cavidad de Fabry-Pérot        ║
-║  semántica (`semantic_parabolic_mirror`) en el topos $\mathcal{T}_{\mathrm{MIC}}$.       ║
-║  Gobierna la reflexión de la radiación semántica del LLM, colapsando el rango del        ║
-║  KV-Cache mediante isometrías de canales cuánticos CPTP (Completamente Positivos         ║
-║  y Preservadores de Traza) para aniquilar la entropía estocástica.                       ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICAS:                                      ║
-║                                                                                          ║
-║  §1. Idempotencia y Simetría del Proyector Ortogonal ($\hat{P}$):                        ║
-║      La radiación se proyecta ortogonalmente. Se exige axiomáticamente que el            ║
-║      operador sea idempotente y simétrico, evaluando el residuo de Frobenius:            ║
-║          $\|\hat{P}^2 - \hat{P}\|_F \le \varepsilon, \quad \|\hat{P} - \hat{P}^\top\|_F \le \varepsilon$ ║
-║      Un proyector numéricamente corrupto invalida la monodromía.                         ║
-║                                                                                          ║
-║  §2. Matriz de Monodromía de Floquet y Estabilidad Espectral:                            ║
-║      La iteración en la cavidad se modela mediante el operador de Monodromía:            ║
-║          $\mathcal{M} = 2\hat{P} - \hat{P}^2$                                            ║
-║      Para garantizar la estabilidad asintótica, el espectro de multiplicadores de        ║
-║      Floquet $\mu_k \in \sigma(\mathcal{M})$ debe satisfacer incondicionalmente:         ║
-║          $|\mu_k| \le 1 + \varepsilon$                                                   ║
-║      Cualquier violación acusa una resonancia destructiva (`FloquetInstabilityError`).   ║
-║                                                                                          ║
-║  §3. Evolución de Canal CPTP y Completitud de Kraus Bilateral:                           ║
-║      La transformación del estado $\rho_{\mathrm{pre}} = |\psi\rangle\langle\psi|$ se rige ║
-║      por operadores de Kraus $\{E_k\}$. Se exige la condición CPTP exacta:               ║
-║          $C := \sum_k E_k^\dagger E_k = I$                                               ║
-║      Verificada numéricamente como $\|C - I\|_F \le \varepsilon$ y cotas espectrales     ║
-║      estrictas sobre $\lambda_{\min}(C-I)$ y $\lambda_{\max}(C-I)$.                      ║
-║      La evolución del estado se materializa como:                                        ║
-║          $\rho_{\mathrm{post}} = \sum_k E_k \rho_{\mathrm{pre}} E_k^\dagger$             ║
-║                                                                                          ║
-║  §4. Auditoría Entrópica Cuántica (von Neumann):                                         ║
-║      La disipación semántica se evalúa sobre los autovalores de la matriz de             ║
-║      densidad. El diferencial termodinámico se audita mediante:                          ║
-║          $\Delta S = S(\rho_{\mathrm{post}}) - S(\rho_{\mathrm{pre}})$                   ║
-║      Donde $S(\rho) = -\text{Tr}(\rho \ln \rho)$.                                        ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → ProjectorSynthesizerPort                                                       ║
-║           Sintetiza y certifica el proyector ortogonal $\hat{P}$ (Idempotencia).         ║
-║           [Retorna: ProjectorSynthesisResult → objeto inicial de Fase 2]                 ║
-║                                                                                          ║
-║  Fase 2 → FloquetAuditorPort                                                             ║
-║           Construye la Matriz de Monodromía $\mathcal{M}$ y confina los multiplicadores. ║
-║           [Retorna: FloquetMonodromyState → objeto inicial de Fase 3]                    ║
-║                                                                                          ║
-║  Fase 3 → KrausChannelPort                                                               ║
-║           Ejecuta la evolución CPTP, certifica $C=I$ bilateral y audita la entropía.     ║
-║           [Retorna: QuantumChannelEvolution → objeto final del endofuntor]               ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Floquet Monodromy Agent (Operador de Sintonización y Monodromía)    ║
+║ Ruta   : app/omega/floquet_agent.py                                          ║
+║ Versión: 3.1.0-Topos-CPTP-Monodromy-Spectral-Nested-PhD                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico): ──────────────
+Este módulo consagra al **Meta-Funtor de Control** sobre la cavidad resonante 
+de Fabry-Pérot semántica ($$\mathcal{T}_{\mathrm{MIC}}$$) en el topos del 
+sistema agéntico $$\mathcal{T}_{\mathrm{MIC}}$$. Su mandato es 
+gobernar de manera determinista la reflexión y fase de la radiación semántica (tokens) 
+del Modelo de Lenguaje (LLM). 
+
+Repudia incondicionalmente las mitigaciones empíricas basadas en heurísticas de caja 
+negra. En su lugar, somete el plano de control a tres fases anidadas acopladas a la 
+dinámica de Floquet, sintonizando la interferencia destructiva de alucinaciones 
+mediante la matriz de monodromía de la cavidad. Toda asonancia 
+espectral o deriva en la traza de preservación cuántica gatilla síncronamente el veto 
+del retículo de Heyting, forzando la evicción física del transitorio en RAM antes de 
+comprometer la Matriz de Interacción Central (MIC).
+
+AXIOMÁTICA DE FLOQUET, TRÁNSITO KRAUS Y MONODROMÍA ESPECTRAL: ──────────────────
+
+  [A1] Compatibilidad Dimensional e Inmersión Métrico-Mapeada:
+       La consistencia del espacio de fase exige que el tensor métrico de fondo 
+       $$G \in \mathbb{R}^{d \times d}$$ sea real y definido positivo, acoplado al 
+       gradiente observacional $$n = G\nabla H$$. 
+       Si la norma inercial del gradiente decae al vacío de-confinado, el operador 
+       proyector colapsa de forma trivial a la identidad de-confinada:
+       $$\|n\|_G = 0 \implies \hat{P} = \mathbf{I} \quad\big[246\big]$$
+       Cualquier asimetría dimensional o colinealidad inyectada levanta síncronamente 
+       'DimensionalMismatchError'.
+
+  [A2] Operador de Monodromía de Fabry-Pérot:
+       La reflexión múltiple del haz de logits dentro del resonador semántico se 
+       modela mediante la Matriz de Monodromía $$\mathcal{M}$$:
+       $$\mathcal{M} = 2\hat{P} - \hat{P}^2 \quad\big[246\big]$$
+       Donde el proyector $$\hat{P}$$ se sintoniza a través del flujo modular y del 
+       Laplaciano Combinatorio de de Rham $$L$$ que rige la evolución libre:
+       $$\mathcal{M}_{\mathrm{on}} = \hat{P} e^{-L \Delta t} \hat{P} \quad\big[35\big]$$
+
+  [A3] Estabilidad de Floquet y Criterio de Causalidad Espectral:
+       Para evitar la resonancia paramétrica destructiva (alucinaciones de alta 
+       frecuencia o desvíos de precios en el megaproyecto), todos los multiplicadores 
+       de Floquet $$\mu_k \in \sigma(\mathcal{M})$$ deben residir estrictamente 
+       dentro del disco unitario cerrado regularizado por la holgura de la cavidad:
+       $$\max_k |\mu_k| \le 1.0 + \varepsilon_{\mathrm{cavity}} \quad\big[35, 246\big]$$
+       Cualquier migración al semiplano derecho inestable dispara 'FloquetInstabilityError' $$[3]$$.
+
+  [A4] Completitud Kraus Bilateral (CPTP) en el Consenso de Sabios:
+       La transición de fase semántica se representa como un mapa cuántico completamente 
+       positivo y preservador de traza (CPTP) en representación de operadores de 
+       Kraus $$M_k$$, exigiendo el cumplimiento estricto de la unidad de normalización:
+       $$\mathcal{C} = \sum_k M_k^\dagger M_k \equiv \mathbf{I} \quad\big[246\big]$$
+       Si el residuo de Frobenius en la FPU excede el épsilon de máquina de la aduana:
+       $$\|\mathcal{C} - \mathbf{I}\|_F > \mathtt{KRAUS\_TOLERANCE} \quad\big[248\big]$$
+       se aborta la sesión en RAM levantando síncronamente 'KrausTraceViolationError' $$[3]$$.
+
+  [A5] Auditoría de Entropía Térmica de von Neumann:
+       La pureza del canal de inyección semántica se verifica interactivamente midiendo 
+       la disipación de la entropía cuántica de von Neumann entre el estado de entrada 
+       y salida del LLM $$[4]$$:
+       $$S(\rho) = -\operatorname{Tr}(\rho \ln \rho) \quad\big[246\big]$$
+       Garantizando la disipación del ruido estocástico del modelo de lenguaje.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición de Morfismos de de Rham): ───────
+La propagación y el tránsito de los datos de la Malla se rigen por un acoplamiento 
+monoidal covariante estricto (Observe ⊣ Orient ⊣ Act) $$[2]$$:
+
+  Fase 1 ──► OBSERVE: SÍNTESIS COVARIANTE DE PROYECTOR (ProjectorSynthesizerPort)
+             Ingiere el gradiente de intenciones $$n$$, verifica la compatibilidad 
+             dimensional contra el tensor de fondo $$G$$, y sintoniza el proyector 
+             de Householder $$\hat{P}$$.
+             Entrega: ProjectorSynthesisResult como precondición de la Fase 2 $$[5, 6]$$.
+
+  Fase 2 ──► ORIENT: AUDITORÍA DE MONODROMÍA DE FLOQUET (FloquetAuditorPort)
+             Hereda la ProjectorSynthesisResult. Calcula la matriz de monodromía 
+             $$\mathcal{M}$$, resuelve síncronamente su espectro de autovalores 
+             en la FPU, y verifica la cota de estabilidad de Floquet.
+             Entrega: FloquetMonodromyState como precondición de la Fase 3.
+
+  Fase 3 ──► ACT: EVOLUCIÓN DE CANAL KRAUS Y VETO DE HEYTING (KrausChannelPort)
+             Hereda la FloquetMonodromyState. Ejecuta el canal CPTP, audita la 
+             completitud bilateral de Kraus, calcula el diferencial de entropía 
+             de von Neumann y colapsa el veredicto en el retículo de Heyting:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[692\big]$$
+             Si el sistema acumula derivas o inestabilidades, se levanta la excepción 
+             'FloquetInstabilityError', purga la RAM y commuta el Crowbar (GPIO14).
+             Entrega: QuantumChannelEvolution (Morfismo terminal).
+
+Funtor Maestro de Focalización de lazo:
+  $$\mathcal{Z}_{\mathrm{floquet}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[245, 252\big]$$
 """
 from __future__ import annotations
 

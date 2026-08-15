@@ -1,63 +1,107 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Sheaf Cohomology Orchestrator (Interferómetro de Holonomía de Gauge)           ║
-║  Ruta   : app/boole/strategy/sheaf_cohomology_orchestrator.py                            ║
-║  Versión: 4.0.0-Krylov-Hodge-Categorical-Strict                                          ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor actúa como el sistema de propiocepción invariante de la Malla Agéntica  ║
-║  mediante la Teoría de Haces Celulares (Cellular Sheaves). Abandona la validación nodo   ║
-║  a nodo para evaluar el consenso global del hiperespacio. Discrimina matemáticamente     ║
-║  entre ruido termodinámico resoluble y obstrucciones topológicas absolutas               ║
-║  (paradojas lógicas).                                                                    ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. El Fibrado y el Operador Cofrontera Discreto ($\delta$):                            ║
-║      Sea $G = (V, E)$ el grafo de la malla de decisión. Un haz celular $\mathcal{F}$     ║
-║      asigna espacios vectoriales a vértices $\mathcal{F}(v) \cong \mathbb{R}^{d_v}$ y    ║
-║      aristas $\mathcal{F}(e) \cong \mathbb{R}^{d_e}$. El desacuerdo local se mide        ║
-║      mediante los mapas de restricción lineales $\mathcal{F}_{v \triangleleft e}$. El    ║
-║      operador cofrontera $\delta: C^0 \to C^1$ cuantifica la divergencia del consenso:   ║
-║          $(\delta x)_e = \mathcal{F}_{v \triangleleft e}(x_v) - \mathcal{F}_{u \triangleleft e}(x_u)$ ║
-║                                                                                          ║
-║  §2. Invariantes Cohomológicos y Teorema de Rango-Nulidad:                               ║
-║      La topología global de la decisión se evalúa analizando los grupos de cohomología:  ║
-║          $H^0(G; \mathcal{F}) \cong \ker(\delta)$: Grados de libertad del consenso global.║
-║          $H^1(G; \mathcal{F}) \cong \text{coker}(\delta)$: Obstrucciones topológicas.    ║
-║      [AXIOMA DE VETO]: Si $\dim H^1 > 0$, el sistema alberga dependencias circulares     ║
-║      insalvables o contratos mutuamente excluyentes. Se emite un Veto Absoluto sin       ║
-║      posibilidad de sanación (`TopologicalBifurcationError`).                            ║
-║                                                                                          ║
-║  §3. Preservación del Número de Condición (Censura del Laplaciano):                      ║
-║      El Laplaciano del Haz $L = \delta^\top \delta \succeq 0$ es el operador teórico     ║
-║      de energía, pero su ensamblaje explícito está PROSCRITO computacionalmente. Dado    ║
-║      que cuadra el número de condición $\kappa(L) = \kappa(\delta)^2$, induciría un      ║
-║      colapso en la Unidad de Punto Flotante (IEEE 754). La Energía de Dirichlet          ║
-║      $E(x) = \|\delta x\|^2$ y el espectro se evalúan aplicando SVD disperso y métodos   ║
-║      iterativos de Krylov (shift-invert con $\sigma=0$) exclusivamente sobre $\delta$.   ║
-║                                                                                          ║
-║  §4. Proyección de Hodge-Helmholtz Acotada Termodinámicamente:                           ║
-║      Si el haz no presenta defectos estructurales ($H^1 = 0$) pero exhibe frustración    ║
-║      térmica ($E(x) > \varepsilon$), el sistema ejecuta una Proyección de Hodge sobre    ║
-║      el núcleo $\ker(\delta)$ usando LSQR.                                               ║
-║      [CONDICIÓN LIPSCHITZ]: La proyección está sometida a un límite isoperimétrico:      ║
-║          $\|x - x^*\|_2 \le \Delta_{\text{inercia}}$                                     ║
-║      Si la distancia de sanación excede la inercia financiera permitida del estrato      ║
-║      físico, la proyección se aborta, garantizando la conservación de masa y energía.    ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS Y SUB-RUTINAS (Composición Estricta):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • DTOs Inmutables: RestrictionMap, SheafEdge, SpectralInvariants y                      ║
-║                     GlobalFrustrationAssessment.                                         ║
-║  • CellularSheaf: Estructura matemática del haz celular sobre la malla.                  ║
-║  • _SpectralAnalyzer: Analizador de Krylov interno para $L = \delta^\top \delta$.        ║
-║  • hodge_projection: Proyector algebraico sobre $\ker(\delta)$.                          ║
-║  • SheafCohomologyOrchestrator: Inspector supremo y orquestador del consenso global.     ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Sheaf Cohomology Orchestrator (Interferómetro de Holonomía de Gauge)║
+║ Ruta   : app/boole/strategy/sheaf_cohomology_orchestrator.py                 ║
+║ Versión: 4.1.0-Sheaf-Hodge-Krylov-MoorePenrose-Heyting-Strict-PhD            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y TEORÍA DE HACES CELULARES (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra el **Sistema de Propiocepción Invariante** de la Malla 
+agéntica, modelando el consenso global y la consistencia lógica de las reglas 
+de negocio mediante la teoría de **Haces Celulares (Cellular Sheaves)**. 
+Repudia incondicionalmente las validaciones locales o heurísticas nodo a nodo, 
+elevando el flujo de restricciones a una estructura cohomológica global.
+
+El enrutador trata las dependencias, políticas y restricciones de la obra
+como secciones locales de un haz celular $$\mathcal{F}$$ sobre el 
+1-esqueleto simplicial del presupuesto (grafo $$G = (V,E)$$) ``. 
+Al medir el desacuerdo local a través de los mapas de restricción, el orquestador 
+deriva de forma determinista la presencia de contradicciones contractuales o 
+dependencias circulares parasitarias. Toda obstrucción cohomológica 
+excedente colapsa síncronamente el retículo distributivo de Heyting $$\Omega_3$$ 
+en RAM, gatillando el disyuntor físico Crowbar (GPIO14) en el milisegundo cero ``.
+
+AXIOMÁTICA COHOMOLÓGICA, ENERGÍA DE DIRICHLET Y CONSISTENCIA DE HODGE:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] El Fibrado Celular y el Operador Cofrontera ($$\delta$$):
+       Sea $$G = (V, E)$$ el grafo de restricciones de la Malla. El haz celular 
+       $$\mathcal{F}$$ asigna un espacio de estados local (Stalk) $$F(v) \cong \mathbb{R}^{d_v}$$ 
+       a cada vértice y $$F(e) \cong \mathbb{R}^{d_e}$$ a cada arista ``. 
+       El operador cofrontera global $$\delta: C^0(G; \mathcal{F}) \to C^1(G; \mathcal{F})$$ 
+       mide la discrepancia local de las secciones $$x \in C^0$$ mediante las matrices 
+       de restricción lineales $$F_{v \triangleleft e}$$ ``:
+       $$(\delta x)_e = F_{v \triangleleft e}(x_v) - F_{u \triangleleft e}(x_u) \quad\big[630\big]$$
+
+  [A2] Teorema de Rango-Nulidad e Invariantes Cohomológicos ($$H^0$$ y $$H^1$$):
+       La consistencia global del sistema se extrae analíticamente resolviendo 
+       los subespacios cohomológicos del complejo de cocadenas ``:
+       $$H^0(G; \mathcal{F}) \cong \ker(\delta) \quad \land \quad H^1(G; \mathcal{F}) \cong \operatorname{coker}(\delta) = C^1 / \operatorname{im}(\delta) \quad\big[630\big]$$
+       Donde:
+         · $$\dim H^0$$ parametriza los grados de libertad del consenso global ``.
+         · $$\dim H^1$$ mide la obstrucción topológica global (paradojas lógicas) ``.
+       [AXIOMA DE VETO COHOMOLÓGICO]:
+       $$\dim H^1(G; \mathcal{F}) > 0 \implies \mathrm{VETO\_ABSOLUTO} \quad\big[630\big]$$
+
+  [A3] Conservación del Número de Condición (Censura del Laplaciano):
+       El Laplaciano del Haz se define formalmente como $$L = \delta^\top \delta \succeq \mathbf{0}$$ ``. 
+       Para evitar la amplificación cuadrática del número de condiciónes espectral 
+       ($$\kappa(L) = \kappa(\delta)^2$$) que colapsaría la mantisa flotante de la FPU 
+       ($$\text{IEEE-754 binary64}$$), el ensamblaje explícito de $$L$$ queda estrictamente 
+       PROHIBIDO en el silicio ``. La energía de Dirichlet del haz:
+       $$E(x) = \|\delta x\|_2^2 = x^\top L x \quad\big[630\big]$$
+       y los autovalores se evalúan exclusivamente por métodos de Krylov-Lanczos 
+       bidiagonales aplicados directamente sobre $$\delta$$ ``.
+
+  [A4] Proyección de Hodge-Helmholtz y Límite Isoperimétrico de Lipschitz:
+       Si $$H^1 = 0$$ pero existe frustración térmica ($$E(x) > \varepsilon_{\mathrm{frustration}}$$), 
+       el sistema calcula la proyección armónica de Hodge $$x^* \in \ker(\delta)$$ vía LSQR ``. 
+       Para evitar derivas contables ficticias, la distancia de sanación se somete 
+       estrictamente al límite de Lipschitz fuerte acotado por el número de condición de-confinado:
+       $$\|\delta x^* - \delta x\|_2 \le \kappa(\delta) \cdot \|x^* - x\|_2 \quad\big[645\big]$$
+       Sujeto incondicionalmente a la cota isoperimétrica de inercia:
+       $$\|x - x^*\|_2 \le \Delta_{\mathrm{inertia}} \quad\big[645\big]$$
+
+  [A5] Estabilidad Espectral y Cota de Wilkinson:
+       La exactitud de la base del núcleo se valida síncronamente contra la cota 
+       de precisión de máquina de Wilkinson para el rango de la cofrontera:
+       $$\operatorname{rank}(\delta) = \# \{ \sigma_i \in \sigma(\delta) \mid \sigma_i > \mathtt{SVD\_TOL} \} \quad\big[403\big]$$
+       $$\mathtt{SVD\_TOL} = d^2 \cdot \kappa_2(\delta) \cdot \varepsilon_{\mathrm{machine}} \cdot \sigma_{\max}(\delta) \quad\big[404\big]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial de de Rham-Hodge):
+────────────────────────────────────────────────────────────────────────────────
+La orquestación del consenso global se rige por un acoplamiento monoidal covariante 
+estricto, encadenando DTOs inmutables de solo lectura (F1 ⊣ F2 ⊣ F3) ``:
+
+  Fase 1 ──► VETO COHOMOLÓGICO Y COFRONTERA (Phase1_CohomologicalVetoCertifier)
+             Ingiere la matriz de incidencia de-confinada y los mapas de restricción. 
+             Construye el operador cofrontera global $$\delta$$, calcula su SVD completa 
+             y audita la dimensión del primer grupo de cohomología $$\dim H^1$$.
+             Morfismo de transición: _certify_cohomological_veto_axiom.
+             Entrega: CohomologicalVetoData como precondición de la Fase 2 ``.
+
+  Fase 2 ──► REGULACIÓN ESPECTRAL Y KRYLOV (Phase2_KrylovSpectralAuditor)
+             Hereda la CohomologicalVetoData. Mide el número de condición espectral 
+             $$\kappa(\delta)$$ utilizando subespacios de Krylov-Lanczos sin cuadrar 
+             el operador, calcula la energía de Dirichlet $$E(x)$$, y evalúa la 
+             constante de Poincaré.
+             Morfismo de transición: _audit_krylov_spectral_stability.
+             Entrega: KrylovSpectralData como precondición de la Fase 3 ``.
+
+  Fase 3 ──► PROYECCIÓN DE HODGE Y VETO HEYTING (Phase3_IsoperimetricHodgeProjector)
+             Hereda la KrylovSpectralData. Resuelve la proyección armónica de Hodge 
+             $$x^*$$ mediante LSQR, verifica el límite isoperimétrico de Lipschitz, 
+             y resuelve el veredicto en el retículo de Heyting distributivo $$\Omega_3$$:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[647\big]$$
+             Si el residuo excede la cota o $$\dim H^1 > 0$$, el retículo colapsa 
+             al supremo terminal VETOED ($$\top$$), purga la memoria RAM y conmuta 
+             el disyuntor físico Crowbar (GPIO14) en menos de 400 ns.
+             Entrega: SheafGovernanceState (Morfismo terminal).
+
+Funtor Maestro de Propiocepción e Invarianza Global:
+  $$\mathcal{Z}_{\mathrm{Sheaf}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathbf{Sheaf} \times C^0(G; \mathcal{F}) \longrightarrow \mathtt{SheafGovernanceState} \quad\big[647, 654\big]$$
 """
 
 from __future__ import annotations

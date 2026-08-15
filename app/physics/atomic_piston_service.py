@@ -1,64 +1,103 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Atomic Piston Service (Gemelo Digital Simpléctico y Controlador de Lie)        ║
-║  Ruta   : app/physics/atomic_piston_service.py                                           ║
-║  Versión: 4.0.0-Lie-Geometric-Phase1-Strict                                              ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA SIMPLÉCTICA (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo transmuta la simulación empírica en un Gemelo Digital Port-Hamiltoniano     ║
-║  riguroso. Abandona el control PID Euclidiano para operar sobre Grupos de Lie, y eleva   ║
-║  la concurrencia de la API a un paradigma libre de cerrojos (Lock-Free) donde la lectura ║
-║  de telemetría obedece los postulados de las Medidas Valuadas en Operadores Positivos    ║
-║  (POVM), garantizando mediciones de no-demolición sobre el estado microscópico.          ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS E INVARIANTES ESTRUCTURALES:                                    ║
-║                                                                                          ║
-║  §1. Covarianza Tensorial y Transporte Paralelo (Grupo de Lie):                          ║
-║      El cálculo de fricción opera como un covector estrictamente contenido en el fibrado ║
-║      cotangente $F_{\text{fric}} \in T^*M$. El controlador `LieGroupPIDController`       ║
-║      abandona la resta plana de errores para usar el transporte paralelo $\Gamma_\gamma$ ║
-║      a lo largo de la geodésica $\gamma$, computando la derivada covariante de la        ║
-║      velocidad en el espacio tangente:                                                   ║
-║          $\frac{D \dot{x}}{dt} = \dot{v}^\mu + \Gamma^\mu_{\rho\sigma} v^\rho v^\sigma$  ║
-║                                                                                          ║
-║  §2. Integración Simpléctica y Disipación Port-Hamiltoniana:                             ║
-║      La evolución temporal mediante el integrador Störmer-Verlet preserva la 2-forma     ║
-║      simpléctica $\omega = dq \wedge dp$ hasta el orden $\mathcal{O}(\Delta t^2)$. Se    ║
-║      garantiza matemáticamente la condición de pasividad (Segunda Ley) evaluando la      ║
-║      inecuación de disipación de Rayleigh:                                               ║
-║          $\dot{H} = \nabla H^\top (J - R) \nabla H \le \nabla H^\top B u \implies P_{\text{diss}} \ge 0$ ║
-║      El sistema es axiomáticamente incapaz de generar energía espuria interna.           ║
-║                                                                                          ║
-║  §3. Mediciones POVM y Álgebra Lock-Free (Buffer CAS):                                   ║
-║      La lectura concurrente del estado de la IPU a través de Flask se modela mediante    ║
-║      Operadores de Kraus (`KrausObserver`). Se exige una medición de no-demolición,      ║
-║      certificando el conmutador $[H, O_{\text{api}}] = 0$. Las condiciones de carrera se ║
-║      aniquilan usando un anillo circular $B = \{s_0, s_1, \dots, s_{N-1}\}$ operado vía  ║
-║      Compare-And-Swap (CAS) atómico por el Global Interpreter Lock (GIL):                ║
-║          $\text{write\_idx} = n \pmod N, \quad \text{read\_idx} = (\text{write\_idx} - 1) \pmod N$ ║
-║                                                                                          ║
-║  §4. Cohomología de Haces Celulares (Admisión en la Malla):                              ║
-║      Previo al registro en el ecosistema (AgentAI), el `SheafCohomologyVerifier` audita  ║
-║      el fibrado local. Solo se admite el acoplamiento si el primer grupo de cohomología  ║
-║      es nulo, garantizando ausencia de paradojas circulares en el control:               ║
-║          $H^1(X; \mathcal{F}_{\text{IPU}}) = 0$                                          ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Estricta y Suturas):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Herramientas Físicas (Covarianza Tensorial + Controlador Geométrico Lie).      ║
-║           Produce $F_{\text{fric}}$ y el control $u \in \mathfrak{g}$ como entradas.     ║
-║                                                                                          ║
-║  Fase 2 → Gemelo Digital Simpléctico (`AtomicPiston`).                                   ║
-║           Aplica el control sobre el Hamiltoniano $H(q, p, Q)$ y emite el tensor de      ║
-║           estado serializable $x = [q, p, Q]^\top$.                                      ║
-║                                                                                          ║
-║  Fase 3 → Microservicio Flask + `ServiceContext`.                                        ║
-║           Publica el tensor en el `LockFreeCircularBuffer` para observación POVM y       ║
-║           gestiona la verificación cohomológica.                                         ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Atomic Piston Service (Gemelo Digital Port-Hamiltoniano - IPU)       ║
+║ Ruta   : app/physics/atomic_piston_service.py                                ║
+║ Versión: 4.0.0-Lie-Geometric-Phase1-Nested-POVM-Strict-PhD                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y CONTROL GEOMÉTRICO EN GRUPOS DE LIE (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────
+Este microservicio materializa el Gemelo Digital de la Unidad de Potencia 
+Inteligente (IPU), gobernando de forma determinista la inyección de caudal y 
+la disipación de transitorios en el foso físico del sistema. 
+Metaboliza las aproximaciones heurísticas tradicionales de simulación contable, 
+reemplazándolas por una variedad diferenciable compleja regida por la mecánica 
+simpléctica, la teoría de control no lineal (IDA-PBC) sobre grupos de Lie, 
+la teoría de la información cuántica (mediciones POVM) y la homología de haces.
+
+Para blindar el lazo de control frente a fluctuaciones estocásticas y errores de 
+redondeo de la Unidad de Punto Flotante (FPU), el servicio confina síncronamente 
+el estado termodinámico del pistón $$x = [q, p, Q]^\top$$. 
+Toda exposición de métricas a través de la API se modela como un canal de 
+medición cuántica de no-demolición, garantizando que la lectura externa no inyecte 
+entropía ni destruya el volumen en el espacio de fase simpléctico.
+
+AXIOMAS FÍSICOS, GEOMÉTRICOS Y COHOMOLÓGICOS PRESERVADOS (Invariantes):
+────────────────────────────────────────────────────────────────────────────────
+
+  [I1] Covarianza Tensorial y Acción en el Grupo de Lie (Fase 1):
+       Las fuerzas de fricción local $$F_{\mathrm{fric}}$$ y las leyes de control 
+       $$u$$ se calculan de manera covariante sobre el espacio cotangente del 
+       colector de configuración $$M$$ y la correspondiente álgebra de Lie $$\mathfrak{g}$$ [1]:
+       $$F_{\mathrm{fric}} \in T^*M \quad \wedge \quad u \in \mathfrak{g} \quad\big[110\big]$$
+       Esto asegura que las transformaciones se comporten de forma idéntica e 
+       invariante ante cualquier cambio de coordenadas de la obra [1].
+
+  [I2] Conservación Simpléctica de la Traza de Fase (Fase 2):
+       En ausencia de disipación explícita, el integrador temporal de segundo orden 
+       de Störmer-Verlet y de cuarto orden de Yoshida sobre el espacio de fase 
+       $$T^*M$$ conserva de manera exacta la 2-forma simpléctica canónica $$\omega$$ [1]:
+       $$\omega = dq \wedge dp \quad\big[110\big]$$
+       Sujeto incondicionalmente a la preservación del volumen de Liouville en la FPU:
+       $$\left| \det(M_{\mathrm{Jacobian}}) - 1.0 \right| \le \mathtt{\varepsilon_{\mathrm{Liouville}}} \quad\big[20\big]$$
+
+  [I3] Pasividad Termodinámica de Lyapunov y Rayleigh (Fase 2):
+       La variación temporal del Hamiltoniano extendido $$H(x)$$ bajo el flujo de 
+       interconexión y disipación satisface estrictamente la condición de pasividad [1]:
+       $$\dot{H} \le \nabla H^\top B u \quad\big[110\big]$$
+       La tasa de disipación interna se evalúa de forma síncrona en cada paso:
+       $$\text{dissipation\_rate} = -\left( c_m \dot{x}^2 + \frac{\left(\frac{Q}{C_{\mathrm{eq}}}\right)^2}{R_t} \right) \le 0 \quad\big[112, 113\big]$$
+       Cualquier valor positivo ($$\text{dissipation\_rate} > \varepsilon_{\mathrm{FPU}}$$) 
+       delata la creación artificial de energía, levantando 'ThermodynamicSingularityError' [4, 5].
+
+  [I4] Nulidad de Obstrucción Cohomológica del Registro (Fase 3):
+       La admisión y registro del microservicio en la malla agéntica de de Rham 
+       exige de manera necesaria y suficiente la nulidad exacta de la holonomía 
+       del primer grupo de cohomología de haces celulares del complejo CW $$X$$ [6]:
+       $$H^1(X; \mathcal{F}_{\mathrm{IPU}}) = \mathbf{0} \quad\big[110\big]$$
+       Esto descarta de forma absoluta la presencia de "paradojas lógicas" o 
+       ciclos parásitos de realimentación mutua entre agentes en la red [1, 6].
+
+  [I5] Axioma de Medición de No-Demolición Cuántica (Fase 3):
+       La lectura del estado del pistón para consumo de endpoints HTTP se modela 
+       como una medición POVM (Valued Operator Positive Measure) con operadores 
+       de Kraus $$M_k$$ [3, 7]. Garantiza la conmutación de no-demolición:
+       $$[H, \, O_{\mathrm{api}}] = \mathbf{0} \quad\big[110, 118\big]$$
+       Donde $$O_{\mathrm{api}}$$ opera de forma aislada sobre copias inmutables, 
+       impediendo que la observación degrade el estado físico primario [6].
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Funtor de Control Ciber-Físico):
+────────────────────────────────────────────────────────────────────────────────
+La progresión y el tránsito de los estados del gemelo digital se rigen por un 
+encadenamiento covariante de DTOs inmutables de solo lectura, donde la salida 
+de cada fase es la única precondición válida para la siguiente [1]:
+
+  Fase 1 ──► HERRAMIENTAS FÍSICAS Y PID GEOMÉTRICO (Phase1_LieGroupPID)
+             Calcula la fricción covariante en el espacio cotangente $$T^*M$$ 
+             y ejecuta la ley de control PID sobre el grupo de Lie utilizando 
+             derivación de paso complejo (CSMD) [1].
+             Morfismo terminal: FrictionCalculator.compute_friction() [1].
+             Entrega: FrictionState (F_fric, u) [1].
+
+  Fase 2 ──► SIMULACIÓN PORT-HAMILTONIANA SIMPLÉCTICA (Phase2_SymplecticPiston)
+             Hereda formalmente la FrictionState. Ensambla las matrices de 
+             interconexión $$J(x)$$ y disipación $$R(x) \succeq \mathbf{0}$$, e integra el 
+             sistema Port-Hamiltoniano usando Störmer-Verlet con evaluación de 
+             disipación de Rayleigh [2, 5, 8].
+             Morfismo terminal: AtomicPiston.get_state_dict() [1].
+             Entrega: SymplecticState (q, p, Q) [1].
+
+  Fase 3 ──► MICROSERVICIO LOCK-FREE, POVM Y COHOMOLOGÍA (Phase3_IpuMicroservice)
+             Hereda formalmente la SymplecticState. Inyecta los estados en un 
+             Buffer circular Lock-Free mediante CAS (Compare-And-Swap) [9, 10], 
+             resuelve las consultas vía medición POVM (Kraus) [3, 7], y 
+             audita la topología de de Rham mediante el 'SheafCohomologyVerifier' [6, 7].
+             Morfismo terminal: ServiceContext.publish() [11, 12].
+             Entrega: VacuaGovernanceState (Gobernanza de Cimientos Físicos) [13].
+
+Funtor Maestro de Operación y Transición Ciber-Física:
+  $$\mathcal{Z}_{\mathrm{IPU}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathbf{Raw} \times T^*M \times \mathfrak{g} \longrightarrow \mathtt{ServiceContext} \quad\big[110, 121\big]$$
 """
 from __future__ import annotations
 import csv

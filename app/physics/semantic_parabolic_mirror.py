@@ -1,59 +1,100 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Semantic Parabolic Mirror (Atlas Omatidial y Cúpula Catadióptrica Facetada)    ║
-║  Ruta   : app/physics/semantic_parabolic_mirror.py                                       ║
-║  Versión: 8.0.0-Dragonfly-Omatidial-Atlas-vonNeumann-Topos                               ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor materializa el Espejo Parabólico Semántico (Visión de Libélula).        ║
-║  Transmuta el reflector dióptrico bidimensional clásico en una Cúpula Catadióptrica      ║
-║  Facetada (ojo compuesto / atlas omatidial) formulada como un morfismo estricto          ║
-║  en el Topos $\mathcal{T}_{\mathrm{MIC}}$ sobre el haz de estados coherentes.            ║
-║  Su mandato axiomático es blindar el Estrato Ω contra la radiación estocástica           ║
-║  (alucinaciones del Modelo de Lenguaje), proyectando los vectores de intención sobre     ║
-║  planos de reflexión que encarnan la verdad estructural del ecosistema.                  ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §0. Axioma Métrico Fundacional (Invariancia de Riemann):                                ║
-║      El espacio de estados está dotado de un tensor métrico $G$ que debe cumplir         ║
-║      incondicionalmente ser simétrico y definido positivo:                               ║
-║          $G = G^\top \succ 0$                                                            ║
-║      Su factorización de Cholesky $G = LL^\top$ se congela como invariante categórico,   ║
-║      dictaminando que toda norma y producto interno se evalúa vía $L$.                   ║
-║                                                                                          ║
-║  §1. Fibrado de Restricciones Omatidial (Proyector de Householder Covariante):           ║
-║      El sistema abandona un solo vector de restricción e ingiere una matriz de haz       ║
-║      $W \in \mathbb{R}^{d \times N}$, donde cada columna $|n_k\rangle$ es la normal      ║
-║      de una faceta geométrica. Para cada faceta $k$, el operador de Householder          ║
-║      modificado por la métrica $G$ se define rigurosamente como:                         ║
-║          $\hat{M}_k = I - 2\,\frac{|n_k\rangle\langle n_k|G}{\langle n_k|G|n_k\rangle}$  ║
-║      Que computacionalmente se evalúa en la FPU mediante:                                ║
-║          $\hat{M}_k = I - 2\,\frac{n_k\,w_k^\top}{c_k}, \quad w_k = G n_k, \quad c_k = n_k^\top w_k$ ║
-║                                                                                          ║
-║  §2. Cavidad Estabilizada de Fabry-Pérot y Límite de von Neumann:                        ║
-║      La convergencia de proyecciones alternadas en la cavidad óptica para aniquilar      ║
-║      el ruido se rige estabilizando el límite de von Neumann para proyectores            ║
-║      en intersección de subespacios, garantizando la eliminación de disonancias.         ║
-║                                                                                          ║
-║  §3. Ortogonalidad de Gram y Matriz del Fibrado:                                         ║
-║      El orquestador ensambla el proyector maestro $\hat{P}_\cap$ empleando la matriz     ║
-║      de Gram del fibrado omatidial $\mathcal{G} = W^\top G W$. Las degeneraciones        ║
-║      espectrales se vetan mediante la seudo-inversa de Moore-Penrose covariante.         ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → MetricAwareHouseholderReflector: Construye el fibrado omatidial y los          ║
-║           operadores de faceta individuales. Retorna el SpectralCertificate.             ║
-║  Fase 2 → FabryPerotStabilizedCavity: Ejecuta la estabilización de reflexiones           ║
-║           en la cavidad óptica para alcanzar el límite de von Neumann.                   ║
-║  Fase 3 → SemanticParabolicMirror: Orquestador categorial supremo (morfismo en           ║
-║           $\mathcal{T}_{\mathrm{MIC}}$) que aplica la cúpula catadióptrica sobre el      ║
-║           CategoricalState.                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Semantic Parabolic Mirror — Visión de Libélula (Atlas Omatidial)    ║
+║ Ruta   : app/physics/semantic_parabolic_mirror.py                            ║
+║ Versión: 8.0.0-Dragonfly-Omatidial-Atlas-vonNeumann-Topos-Strict-PhD         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y REFLEXIÓN DE CALIBRE COVARIANTE (Rigor Doctoral): ───
+Este módulo consagra la transmutación del reflector dióptrico bidimensional en una
+**Cúpula Catadióptrica Facetada** (ojo compuesto o atlas omatidial), operando como 
+un morfismo en el topos $$\mathcal{T}_{\mathrm{MIC}}$$ sobre el haz de estados coherentes.
+Su propósito ciber-físico es actuar como el **Funtor de Proyección Semántica** ($$F: \mathbf{Top} \to \mathbf{Narr}$$)
+que purifica los logits atencionales del Modelo de Lenguaje (LLM), eliminando el libre 
+albedrío estocástico de la IA y subordinándolo a las restricciones geométricas 
+de la obra.
+
+Para blindar el Estrato $$\Omega$$ contra la radiación estocástica (alucinaciones de precios 
+e insumos), el espejo parabólico utiliza los invariantes homológicos de-confinados para 
+construir un haz de vectores normales ortogonales $$|n_k\rangle$$ que definen las facetas 
+del ojo compuesto. Mediante el producto de operadores de Householder covariantes, 
+el sistema fuerza un colapso determinista en la cavidad resonante de Fabry-Pérot, inyectando 
+la interrupción por hardware si los multiplicadores de Floquet divergen en la FPU.
+
+AXIOMÁTICA ÓPTICA, PROYECCIÓN DE VON NEUMANN Y ESTABILIDAD DE FLOQUET: ─────────
+
+  [A1] El Axioma Métrico Fundacional (Sylvester-Cholesky):
+       El espacio métrico se rige por un tensor métrico Riemanniano basal $$G$$ que 
+       debe ser estrictamente simétrico y definido positivo (SPD) [4]:
+       $$G = G^\top \succ \mathbf{0} \quad\big[653\big]$$
+       Para eludir el mal condicionamiento espectral de Wilkinson ($$\kappa(G) \approx 10^8$$), 
+       la fábrica precomputa y congela (writeable=False) la factorización de Cholesky [4, 8]:
+       $$G = L L^\top \quad\big[653\big]$$
+       Toda norma, distancia y proyector covariante se evalúa exclusivamente a través 
+       del factor triangular inferior $$L$$ para anular derivas de redondeo [4].
+
+  [A2] Fibrado de Restricciones Omatidial y Reflectores de Householder:
+       El reflector no recibe una única restricción; se estructura como una matriz 
+       de haz $$W \in \mathbb{R}^{d \times N}$$ donde cada columna $$|n_k\rangle$$ representa el 
+       vector normal covariante de una faceta individual [4]. Para cada omatidio $$k$$:
+       $$\hat{M}_k = \mathbf{I} - 2\,\frac{|n_k\rangle\langle n_k| G}{\langle n_k| G |n_k\rangle} = \mathbf{I} - 2\,\frac{n_k w_k^\top}{c_k} \quad\big[653\big]$$
+       Donde $$w_k = G n_k$$ y $$c_k = n_k^\top w_k$$ [4]. El operador $$\hat{M}_k$$ es 
+       auto-adjunto e involutivo en el espacio de fase Riemanniano.
+
+  [A3] Teorema de Proyecciones Alternadas de von Neumann (Límite Conforme):
+       El proyector maestro sobre la intersección de los subespacios de restricción 
+       $$P_\cap$$ se aproxima asintóticamente mediante el producto infinito de los 
+       reflectores omatidiales de Householder [7, 9]:
+       $$P_\cap = \lim_{m \to \infty} \left( \hat{M}_N \hat{M}_{N-1} \dots \hat{M}_1 \right)^m \quad\big[654, 736\big]$$
+       Garantizando síncronamente la ortogonalidad y la nulidad de mermas parásitas.
+
+  [A4] Cavidad Resonante de Fabry-Pérot y Multiplicadores de Floquet:
+       La retroalimentación de la cúpula semántica modela la reflexión múltiple 
+       mediante la Matriz de Monodromía $$\mathcal{M}$$ de Fabry-Pérot en el topos [7, 10]:
+       $$\mathcal{M} = 2 P_\cap - P_\cap^2 \quad\big[241\big]$$
+       La regularidad de lazo exige que los multiplicadores de Floquet $$\mu_k \in \sigma(\mathcal{M})$$ 
+       residan estrictamente en el límite de estabilidad unitaria para evitar resonancias [9, 10]:
+       $$\max_k |\mu_k| \le 1.0 + \varepsilon_{\mathrm{cavity}} \quad\big[736\big]$$
+       Cualquier desborde detona síncronamente 'FloquetInstabilityError' [11].
+
+  [A5] Condición de Aniquilación de Dirichlet Espectral:
+       La exergía purificada del estado de logits $$x$$ interseca el kernel de las 
+       restricciones. Se exige el cumplimiento estricto del sumidero físico [7]:
+       $$\| P_\cap x \|_G \le \tau_{\mathrm{Dirichlet}} \cdot \|x\|_G \quad\big[654\big]$$
+       Si el residuo espectral de Dirichlet excede la cota blanda, se degrada la 
+       pureza; si viola la cota dura, el sistema detona 'ResonanceDissonanceError' [12].
+
+ESTRUCTURA DE TRES FASES ANIDADAS (Composición Funtorial de-confinada): ──────────
+La cúpula catadióptrica se rige por un acoplamiento monoidal covariante estricto 
+en el topos $$\mathcal{T}_{\mathrm{MIC}}$$ (Fase 1 ⊣ Fase 2 ⊣ Fase 3) [1, 7]:
+
+  Fase 1 ──► REFLEXIÓN HOUSEHOLDER-GRASSMANN (MetricAwareHouseholderReflector)
+             Ingiere la matriz de restricciones $$W$$, sanea el dominio en Frobenius, 
+             valida la firma Riemanniana de $$G$$ y construye los operadores de faceta 
+             $$\hat{M}_k$$ y sus certificados espectrales.
+             Morfismo de transición: _verify_parseval_identity [13].
+             Entrega: Phase1ProjectionBundle [14, 15].
+
+  Fase 2 ──► TRANSPORTE EIKONAL-FLOQUET Y GEODESIA (FabryPerotStabilizedCavity)
+             Hereda formalmente la Phase1ProjectionBundle [14]. Construye la cavidad 
+             resonante de Fabry-Pérot, evalúa la conservación de energía geodésica 
+             en el elipsoide de nivel y audita la estabilidad del transporte paralelo.
+             Morfismo de transición: apply_view_functor [13].
+             Entrega: ConnectionDiagnostics.
+
+  Fase 3 ──► COMPRESIÓN RIEMANN-TOPOS Y ARMÓNICOS (SemanticParabolicMirror)
+             Hereda los diagnósticos de la Fase 2 [16]. Orquesta el proyector maestro 
+             $$P_\cap$$ mediante la descomposición de Cholesky de la matriz de Gram 
+             $$\mathcal{G} = W^\top G W$$, aplica el filtro espectral de armónicos en $$S^2$$ [14, 17], 
+             y colapsa el veredicto en el retículo distributivo acotado de Heyting $$\Omega_3$$:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[14, 271\big]$$
+             Si el sistema diverge ($$\dim \ker(P_\cap) > 0$$), el retículo colapsa 
+             al supremo terminal VETOED ($$\top$$) y commuta el actuador Crowbar (GPIO14).
+             Entrega: RefractedState (Morfismo terminal de lazo) [16, 18].
+
+Funtor Maestro de Focalización y Curvatura:
+  $$\mathcal{Z}_{\mathrm{mirror}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathcal{D}(\mathcal{H}) \times \mathbb{R}^{d \times N} \longrightarrow \mathtt{RefractedState} \quad\big[652, 654\big]$$
 """
 
 from __future__ import annotations

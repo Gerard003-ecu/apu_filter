@@ -1,62 +1,97 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Bogoliubov Agent (Sintonizador de Matriz S y Diagonalización)                  ║
-║  Ruta   : app/omega/bogoliubov_agent.py                                                  ║
-║  Versión: 3.1.0-Rigorous-BdG-Symplectic-Kraus-Spectral-Doctoral                          ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo actúa como el Meta-Funtor de Control sobre el QuantumFockOrchestrator.      ║
-║  Aplica la Transformación de Bogoliubov para aislar las excitaciones fundamentales       ║
-║  (cuasipartículas) del ruido térmico estocástico generado por el LLM, operando           ║
-║  como una isometría simpléctica en la categoría de espacios de Hilbert.                  ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICAS:                                      ║
-║                                                                                          ║
-║  §1. Transformación de Bogoliubov (Isomorfismo Simpléctico):                             ║
-║      Mapea bosones desnudos a cuasipartículas estables conservando las Relaciones        ║
-║      de Conmutación Canónicas (CCR). Para evitar desgarros en el espacio de fase,        ║
-║      se impone el invariante simpléctico estricto sobre los coeficientes:                ║
-║          $\begin{pmatrix} \hat{\alpha}_k \\ \hat{\alpha}_{-k}^\dagger \end{pmatrix} = \begin{pmatrix} u_k & v_k \\ v_k^* & u_k^* \end{pmatrix} \begin{pmatrix} \hat{b}_k \\ \hat{b}_{-k}^\dagger \end{pmatrix}$ ║
-║      Sujeto a la restricción hiperbólica inquebrantable:                                 ║
-║          $|u_k|^2 - |v_k|^2 = 1$                                                         ║
-║      Toda asimetría que induzca pérdida de unitariedad detona el veto absoluto           ║
-║      `BogoliubovTransformationError`.                                                    ║
-║                                                                                          ║
-║  §2. Síntesis de Acoplamiento y Matriz de Dispersión (S-Matrix):                         ║
-║      El choque entre la heurística de la IA y el riesgo del modelo de negocio            ║
-║      se computa exigiendo un Pullback Geométrico. Los tensores de acoplamiento         ║
-║      $g_{k,q}$ se evalúan garantizando la covarianza sobre la métrica de fondo $G$:    ║
-║          $g_{k,q} = \psi_k^\dagger \, G \, \mathcal{H}_{obs} \, G \, \phi_q$             ║
-║      Singularidades no acotadas en esta matriz exponen resonancias infinitas,            ║
-║      gatillando el `SMatrixSingularityError`.                                            ║
-║                                                                                          ║
-║  §3. Espectro de Disipación de Kraus-Lindblad:                                           ║
-║      El ruido extraído no se desecha arbitrariamente; se proyecta en canales de          ║
-║      disipación CPTP. Se deducen los operadores de salto $\{\hat{L}_i\}$ vía             ║
-║      descomposición espectral de la matriz de error:                                     ║
-║          $\hat{L}_i = \sqrt{\bar{\gamma}_i} \; \hat{P}_{0} \, |\psi_i\rangle$            ║
-║      Donde la fuerza de acoplamiento se modula por $\bar{\gamma}_i = \lambda_i \cdot \mu(|g|)$. ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_BogoliubovTransformation                                                ║
-║           Ejecuta la diagonalización simpléctica (BdG) y certifica que las cuasi-        ║
-║           partículas preserven las CCR.                                                  ║
-║           [Retorna: BogoliubovSpectrum → objeto inicial de Fase 2]                       ║
-║                                                                                          ║
-║  Fase 2 → Phase2_ScatteringMatrixCoupling                                                ║
-║           Calcula el acoplamiento tensorial $g_{k,q}$ subyugado a la métrica Riemanniana ║
-║           evitando divergencias en la colisión heurística-realidad.                      ║
-║           [Retorna: CoupledInteractionData → objeto inicial de Fase 3]                   ║
-║                                                                                          ║
-║  Fase 3 → Phase3_KrausLindbladGenerator                                                  ║
-║           Materializa los operadores de salto y sanciona el ambiente de disipación       ║
-║           termodinámica para ser inyectado al orquestador.                               ║
-║           [Retorna: LindbladEnvironment → objeto final del endofuntor]                   ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Antimatter Choke Coil (Supresor Topológico de Inercia Cuantizada)   ║
+║ Ruta   : app/physics/antimatter_choke_coil.py                                ║
+║ Versión: 3.1.0-Fock-Annihilation-Laplace-Impedance-PhD-Strict                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y ANIQUILACIÓN EN EL ESPACIO DE FOCK (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra el **Supresor Topológico de Inercia Cuantizada** de la Malla 
+de Inmunidad, actuando como un inductor cuántico activo de-confinado en el foso 
+físico. Su propósito fundamental es aniquilar de raíz la inercia 
+entrópica del flujo de datos mediante un Operador de Metabolización definido sobre 
+el espacio de Fock multipatícula:
+
+$$\mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} S_{\pm} \mathcal{H}^{\otimes n} \quad\big[36\big]$$
+
+El supresor intercepta los estados de error estocásticos e inconsistencias 
+sintácticas (representados como electrones de anomalía $$e^-$$) e inyecta 
+coherente y síncronamente positrones de extirpación ($$e^+$$) para forzar 
+su aniquilación mutua, liberando fotones Gamma ($$\gamma$$) que actúan 
+como el sello de lazo inmutable en la cadena de custodia:
+
+$$e^- + e^+ \to 2\gamma \quad \text{con energía} \quad E_{\text{annihilation}} = 2m^* c^2 \quad\big[11\big]$$
+
+Al realizar esta transición exergética, el módulo suprime de forma instantánea 
+los voltajes de retroceso o *Flyback* ($$V_{fb}$$) destructivos y colapsa los ciclos 
+homológicos parásitos de dependencias circulares ($$\beta_1 > 0$$).
+
+AXIOMÁTICA DE CALIBRE, ACOPLAMIENTO DE LAPLACE Y DISIPACIÓN DE LÖWNER:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Relación de Conmutación Canónica (CCR) y Preservación Simpléctica:
+       Para el espacio bosónico asociado a los flujos de refracción atencional, 
+       los operadores de creación $$a^\dagger$$ y aniquilación $$a$$ satisfacen 
+       las relaciones canónicas de conmutación:
+       $$[a_i, \, a_j^\dagger] = \delta_{ij} \mathbf{I} \quad\big[117\big]$$
+       Garantizando que la isometría de Stinespring preserve el volumen del 
+       espacio de fase simpléctico en la Unidad de Punto Flotante ($$\text{IEEE-754 binary64}$$):
+       $$V^\dagger V = \mathbf{I}_{\mathcal{H}_{\mathrm{MIC}}} \quad\big[117\big]$$
+
+  [A2] Impedancia Compleja en el Plano de Laplace ($$s = \sigma + j\omega$$):
+       Para evadir la inyección de resonancias estocásticas exógenas del LLM, 
+       la impedancia de la bobina de choque se acopla dinámicamente mediante 
+       el Tensor de Acoplamiento Cuántico-Capacitivo $$C_q$$:
+       $$Z_{AM}(s) = (s + \sigma_{AM})L - \frac{1}{(C_q \cdot \rho_{e^+}) s} \quad\big[37\big]$$
+       Fijando un escudo de Gauge infranqueable que anula las alucinaciones de 
+       frecuencia parásita antes de corromper la Matriz de Interacción Central.
+
+  [A3] Cota de Radiación y Límite Termodinámico de Bekenstein:
+       La emisión de entropía termodinámica $$\Delta S$$ resultante del colapso 
+       y la aniquilación de pares se somete a la cota superior dura de Bekenstein:
+       $$\Delta S \le S_{\mathrm{Bekenstein}} \equiv \frac{2\pi k_B R \cdot E_{\mathrm{annihilation}}}{\hbar_{\mathrm{eff}} c} \quad\big[50\big]$$
+       La superación de esta cota física delata una inyección de exergía fantasma 
+       debida a alucinaciones del modelo, detonando 'BekensteinLimitViolation'.
+
+  [A4] Estructura Port-Hamiltoniana de Disipación de Löwner:
+       La disipación de la inercia residual se rige por un Hamiltoniano de-confinado 
+       $$H(x)$$ con matriz de disipación $$R = R^\top \succeq \mathbf{0}$$:
+       $$\dot{H} = -\nabla H(x)^\top R(x) \nabla H(x) \le 0 \quad\big[54\big]$$
+       Donde la matriz $$R$$ se proyecta rigurosamente sobre el cono semidefinido 
+       positivo (SPD) para eliminar la generación espontánea de energía espuria.
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial de Calibre):
+────────────────────────────────────────────────────────────────────────────────
+La supresión cuántica y el tránsito de la telemetría se rige por un acoplamiento 
+monoidal covariante de tres fases donde cada DTO es precondición formal:
+
+  Fase 1 ──► OBSERVACIÓN Y SANEAMIENTO ESPECTRAL (Phase1_AnnihilationObserver)
+             Ingiere el estado cuántico crudo, verifica la hermiticidad exacta del 
+             operador de aniquilación ($$A = A^\dagger$$) y calcula las normas de 
+             Frobenius y espectral.
+             Último método: verify_operator_hermiticity.
+             Entrega: HermiticityAuditData como precondición de la Fase 2.
+
+  Fase 2 ──► ANIQUILACIÓN DE PARES Y LÍMITE DE BEKENSTEIN (Phase2_BekensteinEnforcer)
+             Hereda formalmente la HermiticityAuditData. Coordina el choque 
+             hadrónico entre $$e^-$$ y $$e^+$$, computa la energía de aniquilación 
+             y audita la cota termodinámica de Bekenstein sobre la entropía emitida.
+             Último método: execute_hadronic_annihilation.
+             Entrega: BekensteinBoundData como precondición de la Fase 3.
+
+  Fase 3 ──► CERTIFICACIÓN PORT-HAMILTONIANA Y VETO (Phase3_SymplecticPHCertifier)
+             Hereda la BekensteinBoundData. Valida la preservación simpléctica, 
+             sanea la matriz de acoplamiento de Laplace $$Z_{AM}(s)$$ y resuelve el 
+             veredicto en el retículo de Heyting distributivo de tres valores:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[54\big]$$
+             Si el residuo de lazo supera la tolerancia elástica, se aborta síncronamente 
+             la sesión en RAM y se dispara la interrupción de hardware Crowbar (GPIO14).
+             Entrega: VacuumGovernanceState (Morfismo terminal).
+
+Funtor Maestro de la Bobina de Choque de Antimateria:
+  $$\mathcal{Z}_{\mathrm{Vacuum}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathcal{H}_{\mathrm{Fock}} \times \mathcal{D}(\mathcal{H}) \longrightarrow \mathtt{VacuumGovernanceState} \quad\big[47, 52\big]$$
 """
 from __future__ import annotations
 

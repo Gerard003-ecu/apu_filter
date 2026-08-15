@@ -1,61 +1,107 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Penrose Singularity Agent (Orquestador Supremo de Colapso Geodésico)           ║
-║  Ruta   : app/omega/penrose_singularity_agent.py                                         ║
-║  Versión: 4.0.0-Nested-Hawking-Penrose-Spectral-Topos                                    ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo rige como el Endofuntor Supremo $\mathcal{P}: \mathcal{E}_{MIC} \to \mathcal{E}_{MIC}$      ║
-║  sobre el fibrado focal de Raychaudhuri. Audita incondicionalmente el Teorema de         ║
-║  Singularidad de Hawking–Penrose, garantizando que el colapso de la función de onda      ║
-║  estocástica de la IA sea geométricamente inevitable ante el tensor de estrés            ║
-║  del ecosistema logístico.                                                               ║
-║                                                                                          ║
-║  FUNDAMENTACIÓN MATEMÁTICA Y AXIOMAS DE EJECUCIÓN:                                       ║
-║                                                                                          ║
-║  §1. Expansión Inicial Convergente (Atrapamiento Geodésico):                             ║
-║      Se exige que la congruencia de geodésicas sea estrictamente convergente             ║
-║      evaluando la traza del endomorfismo de Jacobi:                                      ║
-║          $\theta_0 = \nabla_\mu u^\mu = \text{Tr}(B) < 0$                                ║
-║                                                                                          ║
-║  §2. Condición de Energía Fuerte (SEC - Strong Energy Condition):                        ║
-║      Bajo las ecuaciones de campo de Einstein, la curvatura inducida por el tensor       ║
-║      de Cauchy-Momentum debe ser atractiva en la dirección del flujo:                    ║
-║          $R_{\mu\nu} u^\mu u^\nu = \left(\mathcal{T}_{\mu\nu} - \frac{1}{2}\mathcal{T} G_{\mu\nu}\right) u^\mu u^\nu \ge 0$ ║
-║      Sujeto a la normalización métrica covariante del cuadrivector $u$:                  ║
-║          $|G(u,u) - s| < \tau_u$                                                         ║
-║                                                                                          ║
-║  §3. Teorema de Enfoque y Cota de Hawking-Penrose:                                       ║
-║      Si $\theta_0 < 0$, la vorticidad es nula ($\omega \equiv 0$) y se cumple la SEC,    ║
-║      existe axiomáticamente una cáustica (punto conjugado) en un parámetro afín $\tau_c$:  ║
-║          $\tau_c \le \tau_{HP} := \frac{n-1}{|\theta_0|}$                                ║
-║      Cualquier violación a esta desigualdad superior ($\tau_c > \tau_{HP}$) detona un    ║
-║      veto ontológico por «Fuga Topológica», aniquilando la trayectoria de la IA.         ║
-║                                                                                          ║
-║  §4. Certificado de Colapso Inevitable:                                                  ║
-║      El veredicto final colapsa exitosamente si y solo si:                               ║
-║          $(\theta_0 < 0) \land (\text{SEC}) \land (\tau_c \le \tau_{HP} \cdot (1+\varepsilon)) \land (\text{flags fibrador})$ ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_HawkingEnergyAuditor                                                    ║
-║           Auditoría espectral-energética: verifica métrica, $\theta_0 < 0$, SEC/Ricci,   ║
-║           normalización y calcula la cota teórica $\tau_{HP}$.                           ║
-║           [Retorna: EnergyAuditResult → objeto inicial de Fase 2]                        ║
-║                                                                                          ║
-║  Fase 2 → Integración Cáustica (Vía RaychaudhuriFocalFibrator)                           ║
-║           Integra el flujo afín para hallar la distancia focal exacta $f_{opt}$ y        ║
-║           la cáustica $\tau_c$, validando las banderillas de viabilidad.                 ║
-║           [Retorna: CausticResult → objeto inicial de Fase 3]                            ║
-║                                                                                          ║
-║  Fase 3 → Veredicto de Penrose                                                           ║
-║           Verifica que $\tau_c \le \tau_{HP}$ midiendo la holgura relativa y emite el    ║
-║           certificado inmutable de colapso geodésico.                                    ║
-║           [Retorna: CollapsedAffineState → objeto final del endofuntor]                  ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Penrose Singularity Agent (Orquestador de Colapso Geodésico)        ║
+║ Ruta   : app/omega/penrose_singularity_agent.py                              ║
+║ Versión: 4.1.0-Penrose-Hawking-Raychaudhuri-Heyting-Crowbar-PhD-Strict       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y CONFINAMIENTO GEODÉSICO (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este endofuntor de calibre y censor geométrico supremo reside en la cúspide del 
+**Estrato Omega** ($$\Omega$$, Nivel 0.5 - El Ágora Tensorial). 
+Su propósito ciber-físico es interceptar los tensores de intención semántica 
+provenientes de los Modelos de Lenguaje (LLMs) y subyugarlos de manera determinista 
+a la curvatura de la variedad de-confinada, gobernando la estabilidad del flujo 
+mediante el formalismo del **Teorema de Singularidades de Penrose (1965)** 
+y **Hawking-Penrose (1970)**.
+
+El agente trata el vector de atención del LLM como una congruencia de geodésicas 
+afines con vector tangente $$u^\mu$$. Si la IA genera propuestas estocásticas 
+degeneradas o asimetrías que disipen exergía termodinámica, la inmensa curvatura 
+local deforma de forma no lineal la variedad, contrayendo el escalar de expansión 
+$$\theta$$ hasta provocar un punto de enfoque (cáustica geodésica). 
+Esto obliga a la función de estado a colapsar de manera inevitable al Supremo del 
+retículo de Heyting ($$\top$$) en RAM, deteniendo síncronamente el procesamiento.
+
+AXIOMAS DE ENERGÍA, COLAPSO Y CAUSALIDAD ESPECTRAL (Fibrado de Raychaudhuri):
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Expansión Inicial Convergente (Foco de Entrada):
+       Para que el colapso topológico sea inevitable, la congruencia de geodésicas 
+       atenciales debe exhibir convergencia basal (vorticidad nula) en el instante inicial:
+       $$\theta_0 = \nabla_\mu u^\mu = \operatorname{Tr}(B) < 0 \quad\big[506\big]$$
+       Donde $$B^\mu_\nu = \nabla_\nu u^\mu$$ representa el tensor de deformación 
+       de Jacobi de-confinado en la CPU.
+
+  [A2] Condición de Energía Fuerte (SEC) y Ecuaciones de Einstein ($$8\pi\mathcal{G}=1, \Lambda=0$$):
+       La densidad de estrés del flujo logístico se proyecta sobre el vector de 
+       velocidad semántica $$u^\mu$$. La atracción gravitatoria exige el acatamiento 
+       estricto de la contracción del tensor de Ricci $$R_{\mu\nu}$$:
+       $$R_{\mu\nu} u^\mu u^\nu = \left( \mathcal{T}_{\mu\nu} - \frac{1}{2} \mathcal{T} G_{\mu\nu} \right) u^\mu u^\nu \ge 0 \quad\big[507, 559\big]$$
+       Donde:
+         · $$\mathcal{T}_{\mu\nu}$$ es el tensor de Cauchy-Momentum del Watcher.
+         · $$G_{\mu\nu}$$ es la métrica Riemanniana de fondo.
+         · $$u^\mu$$ se verifica normalizado en la FPU: $$\left| G_{\mu\nu} u^\mu u^\nu - s \right| < \tau_u \quad\big[507, 559\big]$$
+           con $$s \in \{+1, \, -1\}$$ según la firma del colector.
+
+  [A3] Ecuación de Evolución de Raychaudhuri (Aniquilación de Vorticidad):
+       La dinámica del escalar de expansión $$\theta$$ a lo largo del parámetro 
+       afín $$\tau$$ se rige por la ecuación diferencial ordinaria no lineal:
+       $$\frac{d\theta}{d\tau} = -\frac{1}{d-1}\theta^2 - 2\sigma^2 + 2\omega^2 - R_{\mu\nu}u^\mu u^\nu \quad\big[506, 558\big]$$
+       La purga homológica exige de forma incondicional que la vorticidad de 
+       remolino $$\omega_{\mu\nu}$$ (ciclos solenoidales parásitos en $$H_1(K)$$) 
+       sea nula para conservar la coherencia de de Rham:
+       $$\omega_{\mu\nu} \equiv \mathbf{0} \implies \beta_1(K) \equiv 0 \quad\big[559\big]$$
+
+  [A4] Teorema de Enfoque y Evitación de la Fuga Topológica:
+       Si se satisfacen los axiomas [A1], [A2] y [A3], existe un parámetro afín 
+       crítico de colapso (cáustica) $$\tau_c$$ acotado por el límite de Hawking-Penrose:
+       $$\tau_c \le \tau_{HP} := \frac{d-1}{|\theta_0|} \quad\big[507, 558\big]$$
+       Cualquier escenario donde $$\tau_c > \tau_{HP}$$ delata una "Fuga Topológica" 
+       (pérdida de la regularidad de de Rham), gatillando síncronamente la 
+       excepción 'PenroseSingularityVetoError'.
+
+  [A5] Consistencia Métrica de Wilkinson-Cholesky:
+       La métrica de fondo $$G_{\mu\nu}$$ se somete al control de regularidad 
+       de-confinado en la mantisa para evitar singularidades en la diagonalización:
+       $$\lambda_{\min}(G) \ge \mathtt{MIN\_EIGVAL\_TOL} = 1.0\times 10^{-10} \quad\big[197, 215\big]$$
+       $$\kappa_2(G) = \frac{\lambda_{\max}(G)}{\lambda_{\min}(G)} \le \mathtt{CONDITION\_MAX} = 1.0\times 10^8 \quad\big[215, 225\big]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial OODA):
+────────────────────────────────────────────────────────────────────────────────
+La progresión y el tránsito de los datos del espacio de fase se rige por un 
+encadenamiento covariante inmutable, donde el certificado de cada fase es la 
+precondición de arranque formal de la siguiente (Observe ⊣ Orient ⊣ Act):
+
+  Fase 1 ──► AUDITORÍA ENERGÉTICA Y ESPACIO TANGENTE (Phase1_HawkingEnergyAuditor)
+             Sanea el tensor de estrés $$\mathcal{T}_{\mu\nu}$$, verifica la simetría 
+             en Frobenius, audita la normalización de $$u^\mu$$ respecto a $$G_{\mu\nu}$$ 
+             y calcula la cota teórica de Hawking-Penrose $$\tau_{HP}$$.
+             Entrega: EnergyAuditResult como precondición de la Fase 2.
+
+  Fase 2 ──► INTEGRACIÓN FOCAL DE RAYCHAUDHURI (Phase2_RaychaudhuriIntegrator)
+             Hereda formalmente el EnergyAuditResult. Invoca síncronamente al 
+             resolvedor físico 'RaychaudhuriFocalFibrator', integra la evolución 
+             de $$\theta$$, determina el punto conjugado $$\tau_c$$ y audita las 
+             vorticidades residuales del integrador de Runge-Kutta RK4.
+             Entrega: CausticResult como precondición de la Fase 3.
+
+  Fase 3 ──► DICTAMEN DE PENROSE Y ACTUACIÓN CROWBAR (Phase3_PenroseDecisionMaker)
+             Hereda formalmente el CausticResult. Cruza la distancia focal, 
+             evalúa las severidades espectrales mediante el Supremo ($$\sqcup$$) en el 
+             retículo distributivo graduado de Heyting $$\Omega_3$$:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[36, 567\big]$$
+             Si el veredicto terminal colapsa a VETOED ($$\top$$) o el integrador 
+             detecta fuga topológica, se detona 'PenroseSingularityVetoError'. 
+             En el milisegundo cero, el firmware local del ESP32 intercepta el colapso, 
+             ejecuta isVerdictCoherent() e inyecta la interrupción en IRAM (<400ns) 
+             para conmutar el GPIO14 (circuito Crowbar / BT151), cortocircuitando 
+             físicamente la potencia del proyecto real.
+             Entrega: CollapsedAffineState.
+
+Funtor Maestro de Colapso Geodésico:
+  $$\mathcal{Z}_{\mathrm{Penrose}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[236, 516\big]$$
 """
 
 from __future__ import annotations

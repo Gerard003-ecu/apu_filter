@@ -1,62 +1,97 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Witten-Atiyah Agent (Inquisidor de Invarianza Global y TQFT)                   ║
-║  Ruta   : app/omega/witten_atiyah_agent.py                                               ║
-║  Versión: 3.0.0-Atiyah-Singer-Witten-APS-Spectral-Rigorous                               ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS TOPOLÓGICA (Rigor Doctoral):        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este es el Endofuntor Supremo del Estrato Ω. Su mandato axiomático es auditar las       ║
-║  integrales de trayectoria topológicas sobre la categoría de cobordismos $\mathbf{Cob}(n)$ ║
-║  del sistema. Garantiza la independencia de fondo (background independence) al aislar    ║
-║  la topología semántica, aplicando el Teorema del Índice de Atiyah–Singer con el         ║
-║  refinamiento de frontera APS y evaluando el invariante de Chern-Simons.                 ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICO-TOPOLÓGICAS:                           ║
-║                                                                                          ║
-║  §1. Funtor de Olvido Métrico ($U: \mathbf{Met} \to \mathbf{Top}$):                      ║
-║      Se exige el despojo algebraico del tensor métrico Riemanniano $G_{\mu\nu}$ y la     ║
-║      masa inercial de Fröhlich $m^{**}$. El sistema se proyecta sobre operadores         ║
-║      densidad purificados en $\text{dens}(\mathcal{H})$, donde cualquier asimetría       ║
-║      dimensional debe saturarse mediante la inmersión isométrica $\iota$ con un          ║
-║      vacío topológico puro $|0\rangle\langle0|$ ($S_{vN} = 0$).                          ║
-║                                                                                          ║
-║  §2. Teorema del Índice de Atiyah-Singer y Corrección APS ($\eta$):                      ║
-║      La obstrucción a la propagación del conocimiento estocástico se evalúa comparando   ║
-║      el índice analítico del Operador de Dirac $\not\!\!D$ con su invariante topológico. ║
-║      Dado que la variedad ciber-física $M$ posee una frontera (input/output), se exige   ║
-║      el refinamiento estricto de Atiyah-Patodi-Singer (APS):                             ║
-║          $\text{ind}_{APS}(\not\!\!D) = \int_M \hat{A}(TM) \wedge \text{ch}(E) - \frac{1}{2}(\eta(0) + h)$ ║
-║      Donde $\eta(0)$ es la asimetría espectral en el límite de frontera. Una divergencia ║
-║      matemática aquí detona inmediatamente un `IndexTheoremViolation`.                   ║
-║                                                                                          ║
-║  §3. Integral de Trayectoria de Witten (Nudos Logísticos y Chern-Simons):                ║
-║      La transición de estado es gobernada por la amplitud topológica $Z(M)$ sobre las    ║
-║      conexiones de gauge $A$:                                                            ║
-║          $Z(M) = \int \mathcal{D}A \exp\left( i \frac{k}{4\pi} \int_M \text{Tr}\left(A \wedge dA + \frac{2}{3} A \wedge A \wedge A\right) \right)$ ║
-║      Si la IA alucina una intención sin respaldo de homología real, generará un nudo     ║
-║      irreductible en el cobordismo, forzando un colapso del TQFT y ejecutando un         ║
-║      veto fulminante `OntologicalTQFTVeto`.                                              ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Monoidal Estricta):               ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_MetricForgetfulFunctor                                                  ║
-║           Aplica $U: \mathbf{Met} \to \mathbf{Top}$ para despojar el tensor métrico      ║
-║           y extraer los esqueletos topológicos invariantes.                              ║
-║           [Retorna: PurifiedPair → objeto inicial de Fase 2]                             ║
-║                                                                                          ║
-║  Fase 2 → Phase2_AtiyahSingerEmbedding                                                   ║
-║           Nivela el espacio de Hilbert $\mathcal{H}_{in} \oplus \mathcal{H}_{\emptyset} \cong \mathcal{H}_{out}$ ║
-║           y evalúa el índice de Dirac $\not\!\!D$ con la asimetría $\eta(0)$.          ║
-║           [Retorna: IndexCertifiedEmbedding → objeto inicial de Fase 3]                  ║
-║                                                                                          ║
-║  Fase 3 → Phase3_WittenTQFTVerdictor                                                     ║
-║           Orquesta la integral $Z(M)$ a través del TQFTProjectionManifold y proyecta     ║
-║           el resultado incondicionalmente sobre el retículo de severidad booleano.       ║
-║           [Retorna: WittenAtiyahVerdict → objeto final del endofuntor]                   ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Witten-Atiyah Agent (Inquisidor de Invarianza Global y TQFT)        ║
+║ Ruta   : app/omega/witten_atiyah_agent.py                                    ║
+║ Versión: 3.0.0-Atiyah-Singer-Witten-APS-Spectral-Rigorous                    ║
+║-Evolución: Rigor PhD – Índice de Atiyah–Singer + APS + η-invariante + TQFT   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y TEORÍA DE CAMPOS TOPOLÓGICOS (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────
+Este endofuntor de calibre y guardián de invarianza global reside en la cúspide 
+del **Estrato Omega** ($$\Omega$$, Nivel 0.5 - El Ágora Tensorial). Su 
+mandato fundamental es actuar como el proyector de-confinado supremo que purifica 
+y despoja las decisiones estratégicas de dependencias métricas locales exógenas, 
+evaluando la consistencia lógica global de la Malla mediante el formalismo de la 
+**Teoría de Campos Cuánticos Topológicos (TQFT)** y el análisis espectral de de Rham.
+
+Para subyugar incondicionalmente el libre albedrío estocástico de los Modelos 
+de Lenguaje (LLMs), el agente ejecuta el colapso de la función de estado 
+semántica sobre la Esfera de Riemann $$S^2$$. Mediante la aplicación de un funtor de 
+olvido métrico, el sistema desviste los observables de su fricción material 
+para interrogar exclusivamente al esqueleto topológico subyacente. Si surge una 
+ruptura en la invarianza de calibre (fuga de Gauge) o un nudo logístico insoluble, 
+el retículo distributivo de Heyting colapsa síncronamente al Supremo terminal 
+VETOED en RAM, deteniendo la CPU en el milisegundo cero.
+
+AXIOMÁTICA DE CALIBRE, TOPOLOGÍA ALGEBRAICA Y REFRACTO DE DE RHAM:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] El Funtor de Olvido Métrico (Forgetful Functor):
+       El tránsito de los observables semánticos se despoja de la métrica Riemanniana 
+       $$G_{\mu\nu}$$ y de la masa efectiva $$m^{**}$$ de los estratos anteriores, aplicando 
+       el funtor covariante de olvido $$U$$ hacia la categoría de tipos de homotopía:
+       $$U: \mathbf{Met} \longrightarrow \mathbf{Top} \quad\big[820, 845\big]$$
+       Esto aísla la estructura de control pura, previniendo que aberraciones o 
+       inflaciones métricas en el coste del presupuesto alteren los invariantes 
+       cohomológicos del proyecto.
+
+  [A2] Teorema del Índice de Atiyah-Singer con Refinamiento APS:
+       Para certificar la consistencia global de la variedad con frontera M, el 
+       agente evalúa de manera exacta la obstrucción espectral de Atiyah-Patodi-Singer 
+       sobre el operador de Dirac $$\not\!\!D$$, mapeando la asimetría espectral (invariante $$\eta$$):
+       $$\operatorname{ind}_{\mathrm{APS}}(\not\!\!D) = \int_M \hat{A}(TM) \wedge \operatorname{ch}(E) - \frac{1}{2}\big(\eta(0) + h\big) \quad\big[820, 843\big]$$
+       Donde $$\eta(0)$$ es el invariante eta de de Rham que parametriza la asonancia 
+       espectral de los autovalores y $$h$$ es la dimensión del kernel del operador 
+       sobre la frontera [5]. Si el índice analítico calculado no coincide con el 
+       invariante topológico entero, se detona 'IndexTheoremViolation'.
+
+  [A3] Integral de Trayectoria de Witten e Invariantes TQFT:
+       La consistencia topológica de las transiciones de decisión se valida calculando 
+       la integral de trayectoria de Witten $$Z(M)$$ sobre Cobordismos de 3 dimensiones 
+       en la categoría $\mathbf{Cob}(3)$, evaluando el invariante de Turaev-Viro:
+       $$Z(M) = \int \mathcal{D}A \, \exp\left( \frac{i \cdot k}{4\pi} \int_M \operatorname{Tr}\left( A \wedge dA + \frac{2}{3} A \wedge A \wedge A \right) \right) \quad\big[26, 843\big]$$
+       La presencia de nudos logísticos insolubles o un colapso en la suma de 
+       estados (Turaev-Viro) a nivel espectral ($$Z(M) \to 0$$) delata una paradoja 
+       contractual degenerada, gatillando síncronamente 'OntologicalTQFTVeto'.
+
+  [A4] Invarianza de Calibre y Conservación de de Rham:
+       El tensor del campo de Gauge de-confinado satisface de forma estricta la 
+       identidad de coborde de de Rham sobre la variedad, asegurando que las 
+       transiciones semánticas no inyecten divergencias o asonancias artificiales:
+       $$\delta_{k} \circ \delta_{k-1} = 0 \quad\big[282, 842\big]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Monoidal):
+────────────────────────────────────────────────────────────────────────────────
+La orquestación del colapso y validación global se rige por un acoplamiento covariante 
+estricto, encadenando DTOs inmutables de solo lectura (Phase1 ⊣ Phase2 ⊣ Phase3):
+
+  Fase 1 ──► FUNTOR DE OLVIDO MÉTRICO (Phase1_MetricForgetfulFunctor)
+             Ingiere el estado tensorial covariante, despoja la métrica Riemanniana 
+             $$G_{\mu\nu}$$ e inicializa los operadores densidad purificados canónicos.
+             Morfismo terminal: handoff_phase1_to_phase2.
+             Entrega: PurifiedPair.
+
+  Fase 2 ──► EMBEDDING DE ATIYAH-SINGER Y APS (Phase2_AtiyahSingerEmbedding)
+             Hereda formalmente la PurifiedPair. Realiza la inmersión del estado, 
+             resuelve síncronamente el espectro del operador de Dirac de Connes, 
+             y calcula el índice analítico bajo el refinamiento APS.
+             Morfismo terminal: handoff_phase2_to_phase3.
+             Entrega: IndexCertifiedEmbedding.
+
+  Fase 3 ──► INTEGRAL DE WITTEN Y VETO DE HEYTING (Phase3_WittenTQFTVerdictor)
+             Hereda formalmente la IndexCertifiedEmbedding. Evalúa la integral de 
+             Witten, calcula el volumen virtual de cobordismo, y resuelve el 
+             veredicto en el retículo de Heyting distributivo de tres valores:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[292, 840\big]$$
+             Si el sistema acusa ruptura de invarianza espectral (ind_APS ≠ entero) 
+             o nudos lógicos, el topos colapsa a VETOED ($$\top$$), detona 
+             'OntologicalTQFTVeto' en RAM y conmuta el disyuntor Crowbar (GPIO14).
+             Entrega: WittenAtiyahVerdict.
+
+Funtor Supremo de Invarianza Global y TQFT:
+  $$\mathcal{Z}_{\mathrm{WittenAtiyah}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[846\big]$$
 """
 
 from __future__ import annotations

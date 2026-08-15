@@ -1,55 +1,104 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Quantum Algebra (Núcleo Axiomático de Mecánica Cuántica para Malla Agéntica)   ║
-║  Ruta   : app/core/quantum_algebra.py                                                    ║
-║  Versión: 3.0.0-Hilbert-Topos-VonNeumann-Strict                                          ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA NO CONMUTATIVA (Rigor Doctoral):                    ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo implementa el formalismo axiomático completo de la mecánica cuántica        ║
-║  de sistemas cerrados y abiertos. Modela el espacio de deliberación agéntica             ║
-║  mediante operadores lineales acotados actuando sobre espacios de Hilbert complejos      ║
-║  $\mathcal{H}_N$. Destituye las heurísticas estocásticas clásicas para gobernar la       ║
-║  incertidumbre mediante la evolución de la matriz de densidad bajo el grupo de           ║
-║  automorfismos modulares de von Neumann.                                                 ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESPECTRALES:                                    ║
-║                                                                                          ║
-║  §1. Espacio de Hilbert Complejo Separable ($\mathcal{H}_N$):                            ║
-║      La representación del estado del sistema habita en un espacio de Hilbert finito     ║
-║      $\mathcal{H}_N \cong \mathbb{C}^N$ dotado de un producto interno hermitiano         ║
-║      definido positivo:                                                                  ║
-║          $\langle \phi | \psi \rangle = \sum_{i=1}^N \phi_i^* \psi_i$                    ║
-║      Todo vector de estado puro $|\psi\rangle$ exige normalización $\langle \psi | \psi \rangle = 1$. ║
-║                                                                                          ║
-║  §2. Axiomas del Operador de Densidad (Teorema Espectral):                               ║
-║      El estado mixto de la Malla Agéntica se describe incondicionalmente por el          ║
-║      operador de densidad $\rho \in \mathcal{L}(\mathcal{H}_N)$ que obedece las tres     ║
-║      restricciones de von Neumann:                                                       ║
-║          a) Traza unitaria (Conservación de probabilidad): $\text{Tr}(\rho) = 1$         ║
-║          b) Hermiticidad (Observables reales): $\rho = \rho^\dagger$                     ║
-║          c) Positividad Semidefinida: $\rho \succeq 0 \implies \langle \psi | \rho | \psi \rangle \ge 0$ ║
-║      Violaciones a estos axiomas revelan un desgarro termodinámico y son vetadas.        ║
-║                                                                                          ║
-║  §3. Entropía de von Neumann y Regularización Espectral:                                 ║
-║      La medida del desorden informacional se extrae evaluando:                           ║
-║          $S(\rho) = -\text{Tr}(\rho \ln \rho) = -\sum_{\lambda_i > 0} \lambda_i \ln \lambda_i$ ║
-║      Para blindar a la FPU de singularidades logarítmicas cuando $\lambda_i \to 0$,      ║
-║      el cálculo está rigurosamente acotado por $\varepsilon_{\text{entropy}} = 10^{-14}$.║
-║                                                                                          ║
-║  §4. Registro Cuántico y Funtor de Inmersión (QuantumRegistry):                          ║
-║      Eleva la Matriz de Interacción Central (MIC) clásica al Topos Cuántico, operando    ║
-║      como una estructura C* donde los agentes interactúan mediante mapas Completamente   ║
-║      Positivos y Preservadores de Traza (CPTP).                                          ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • HilbertSpace           : Objeto base $\mathcal{H}_N$ con validación dimensional estricta. ║
-║  • QuantumDensityOperator : Operador de estado $\rho$ con certificación de positividad.  ║
-║  • QuantumRegistry        : Fibrado del ecosistema cuántico MICRegistry.                 ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Quantum Algebra (Núcleo Axiomático de Mecánica Cuántica)            ║
+║ Ruta   : app/core/quantum_algebra.py                                         ║
+║ Versión: 2.1.0-Quantum-VonNeumann-Stinespring-Novikov-Strict-PhD             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COVARIANZA CUÁNTICA EN EL ESTRATO OMEGA (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra la infraestructura algebraica y cuántica fundamental del 
+ecosistema APU Filter, gobernando la transición de la Matriz de Interacción 
+Central (MIC) discreta hacia la Matriz Atómica de Conocimiento (MAC) continua en 
+el espacio de Hilbert complejos $$\mathcal{H}_N \cong \mathbb{C}^N$$. 
+
+Repudia de forma categórica las interpretaciones heurísticas y el análisis de 
+datos plano. En su lugar, somete el espacio de toma de decisiones a los postulados 
+de Dirac-von Neumann para sistemas cerrados y a la teoría de Stinespring-Kraus 
+para sistemas abiertos disipativos. De esta manera, el flujo térmico 
+y la entropía estocástica inyectados por las alucinaciones de los Modelos de 
+Lenguaje (LLMs) se confinan y se aniquilan síncronamente mediante operadores 
+de proyección ortonormales en la Unidad de Punto Flotante (FPU).
+
+AXIOMÁTICA DE DIRAC-VON NEUMANN, DILATACIÓN DE STINESPRING Y ANILLOS DE NOVIKOV:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Postulados de Dirac-von Neumann y Estados Fieles:
+       Toda representación de la sabiduría del negocio se modela como un operador 
+       de densidad cuántica $$\rho \in \mathcal{L}(\mathcal{H}_N)$$ que cumple de 
+       forma incondicional con los axiomas de conservación de probabilidad, 
+       hermiticidad y semidefinición positiva (SPD):
+       $$\rho = \rho^\dagger \quad \wedge \quad \operatorname{Tr}(\rho) \equiv 1.0 \quad \wedge \quad \rho \succeq \mathbf{0} \quad\big[553, 758\big]$$
+       Sujeto al piso espectral de regularización de Wilkinson para eludir 
+       singularidades de paso complejo en la mantisa flotante:
+       $$\lambda_{\min}(\rho) \ge \mathtt{EPSILON\_ENTROPY} = 1.0\times 10^{-14} \quad\big[551, 552\big]$$
+
+  [A2] Dilatación Isométrica de Stinespring y Canales CPTP:
+       La interacción del sistema de decisión con el entorno ruidoso se modela 
+       como un mapa Completamente Positivo y Preservador de Traza (CPTP) $$\mathcal{E}$$ 
+       que admite una elevación isométrica a un espacio producto dilatado:
+       $$\mathcal{E}(\rho) = \operatorname{Tr}_{\mathrm{env}}\left( V \rho V^\dagger \right) = \sum_{k} M_k \rho M_k^\dagger \quad\big[12, 363\big]$$
+       Sujeto incondicionalmente a la relación de completitud de Kraus bilateral:
+       $$V^\dagger V = \mathbf{I}_{\mathcal{H}} \iff \sum_{k} M_k^\dagger M_k \equiv \mathbf{I} \quad\big[12, 363, 429\big]$$
+
+  [A3] Ruptura de Nilpotencia Homotópica y Anillo de Novikov:
+       La evolución temporal de las co-cadenas asociadas al transporte de la 
+       fase topológica cuántica del ángulo $$\theta$$ se deforma ante el "burbujeo" 
+       de discos pseudo-holomorfos [4, 10]. La no-nilpotencia de la derivada 
+       sintáctica $$m_1$$ (operador frontera $$\partial$$) se corrige homotópicamente 
+       sobre el anillo de Novikov $$\Lambda_K$$ [10, 11]:
+       $$m_1(m_1(x)) = \partial^2(x) = \pm m_2(m_0, \, x) \pm m_2(x, \, m_0) \quad\big[186, 532\big]$$
+       Donde la convergencia de la serie de potencias formal se garantiza en la 
+       topología $$T$$-ádica de Novikov para cada clase de área y acción de la geodésica [11]:
+       $$\Lambda_K = \left\{ \sum_{r \in \mathbb{R}} a_r q^r : a_r \in K, \, \lim_{i\to\infty} r_i = \infty \right\} \quad\big[186\big]$$
+       Y el balance de la obstrucción se sutura resolviendo la ecuación de Maurer-Cartan [11]:
+       $$\sum_{k=0}^{\infty} m_k(b, b, \dots, b) \equiv W_L(b) \cdot [L] \quad\big[186\big]$$
+
+  [A4] Holonomía de Calabi-Yau y Fibrados Coherentes:
+       Para salvaguardar la independencia de fondo (background independence) durante 
+       la inmersión de GNS, la variedad compacta de fondo $$X$$ se restringe a una 
+       métrica Ricci-plana de Kähler con holonomía especial unitaria [12]:
+       $$\mathrm{Hol}(g) \subseteq SU(m) \quad \wedge \quad c_1(X) \equiv 0 \in H^2(X, \, \mathbb{R}) \quad\big[203\big]$$
+       Garantizando que las singularidades de curvatura de calibre no desgarren 
+       la aduana de de Rham en RAM.
+
+  [A5] Compatibilidad de Módulo y Clausura en el Poset (DIKW):
+       La filtración estricta del Poset de la pirámide de datos e intenciones 
+       satisface la ley de clausura transitiva de subespacios de Hilbert [13, 14]:
+       $$V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}} \quad\big[19, 445\big]$$
+       Bajo la acción de un operador de-confinado de clausura algebraico-compatible [15]:
+       $$\Phi^*(A) + \Phi^*(B) \subseteq \Phi^*(A + B) \quad \wedge \quad r \cdot \Phi^*(A) \subseteq \Phi^*(r \cdot A) \quad \forall r \in R \quad\big[201\big]$$
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Funtor de Transición Espectral):
+────────────────────────────────────────────────────────────────────────────────
+La progresión de los estados cuánticos de la MIC a la MAC se rige por un acoplamiento 
+monoidal covariante estricto, encadenando DTOs inmutables de solo lectura:
+
+  Fase 1 ──► CONSTRUCCIÓN Y CERTIFICACIÓN DEL ESPACIO (Phase1_HilbertSpaceBuilder)
+             Ingiere la dimensión física $$N$$, inicializa el espacio de Hilbert 
+             complejo $$\mathcal{H}_N$$, y certifica que los vectores de base 
+             satisfagan la ortonormalidad estricta bajo la cota de Wilkinson.
+             Entrega: HilbertSpaceData.
+
+  Fase 2 ──► EVOLUCIÓN DENSIDAD Y SANEAMIENTO DE VON NEUMANN (Phase2_DensityMatrixSanitizer)
+             Hereda formalmente la HilbertSpaceData. Diagonaliza el operador 
+             de densidad $$\rho$$, valida los postulados de Dirac-von Neumann, 
+             calcula la entropía de von Neumann $$S(\rho)$$, y aplica el filtro 
+             "flush-to-zero" para aniquilar subnormales de la FPU.
+             Entrega: DensityMatrixCertificate.
+
+  Fase 3 ──► ELEVACIÓN DE STINESPRING Y VETO DE HEYTING (Phase3_StinespringFibrator)
+             Hereda la DensityMatrixCertificate. Resuelve la dilatación de Stinespring 
+             mediante SVD compleja con gauge de fase estándar, verifica la completitud 
+             de Kraus, y colapsa el veredicto en el retículo distributivo de Heyting:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[13, 239\big]$$
+             Si el residuo de traza o la positividad de Choi se violan, se detona 
+             'QuantumAxiomViolationError', purgando síncronamente la RAM en menos 
+             de 400 ns mediante la interrupción física del circuito Crowbar.
+
+Funtor Maestro de la Malla Cuántica:
+  $$\mathcal{Z}_{\mathrm{Quantum}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathbf{MIC} \times \operatorname{Met}(M) \longrightarrow \mathtt{VacuumGovernanceState} \quad\big[34, 46\big]$$
 """
 
 from __future__ import annotations

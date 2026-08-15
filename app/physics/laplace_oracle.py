@@ -1,60 +1,112 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Laplace Oracle (Tribunal de Estabilidad LTI y Dinámica de Control)             ║
-║  Ruta   : app/physics/laplace_oracle.py                                                  ║
-║  Versión: 4.0.0-LTI-Lyapunov-Floquet-Strict                                              ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CONTROL (Rigor Doctoral):                           ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor opera en el Estrato STRATEGY (Nivel 1). Abandona la concepción          ║
-║  ingenua del presupuesto como un modelo estático y lo proyecta como un sistema dinámico  ║
-║  LTI en la variedad compleja de Laplace $s = \sigma + j\omega$. Su mandato axiomático    ║
-║  es garantizar la Estabilidad BIBO (Bounded-Input, Bounded-Output) y aniquilar la        ║
-║  resonancia destructiva del flujo de capital.                                            ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESPECTRALES:                                    ║
-║                                                                                          ║
-║  §1. Estabilidad Asintótica en el Plano-S (Axioma de Veto):                              ║
-║      El flujo de capital se modela mediante la función de transferencia $H(s)$.          ║
-║      La estabilidad estricta exige que todas las raíces del polinomio característico     ║
-║      (polos $p_i$) residan en el semiplano izquierdo abierto (LHP):                      ║
-║          $\forall i, \; \Re(p_i) < 0 \implies \sigma < 0$                                ║
-║      La transgresión $\sigma > 0$ emite un VETO TÉCNICO irreversible por "Divergencia    ║
-║      Matemática", abortando el proyecto por inestabilidad intrínseca.                    ║
-║                                                                                          ║
-║  §2. Resonancia Paramétrica (Teoría de Floquet):                                         ║
-║      Para ciclos logísticos y estacionalidad de obra, se computa la Matriz de            ║
-║      Monodromía del flujo de caja. La estabilidad paramétrica exige que los              ║
-║      multiplicadores de Floquet $\mu_k$ residan estrictamente en el interior del         ║
-║      disco unitario:                                                                     ║
-║          $|\mu_k| < 1 \quad \forall k$                                                   ║
-║      Su violación evidencia que el costo de la deuda oscila en fase con el retraso.      ║
-║                                                                                          ║
-║  §3. Caos Determinista y Espectro de Lyapunov:                                           ║
-║      El decaimiento entrópico de las trayectorias de error $e(k)$ evoluciona como:       ║
-║          $|e(k)| \approx |e(0)| \cdot e^{\lambda k}$                                     ║
-║      Si el exponente máximo de Lyapunov diverge ($\lambda > 0$), se decreta Caos         ║
-║      Determinista. El Oráculo acciona un "Crowbar Lógico" sobre el hardware              ║
-║      periférico (ESP32) para amputar el flujo antes del desbordamiento térmico.          ║
-║                                                                                          ║
-║  §4. Observabilidad de Estado y Filtro de Kalman Extendido (EKF):                        ║
-║      El Oráculo audita predictivamente el tensor cinemático $x = [s, v, a]^\top$         ║
-║      (Saturación, Velocidad, Aceleración), ajustando la frecuencia natural $\omega$      ║
-║      y el amortiguamiento $\beta$ al minimizar la innovación matricial del filtro.       ║
-║                                                                                          ║
-║  §5. Pirámide de Cohomología Dinámica (Sensibilidad Analítica):                          ║
-║      El Jacobiano de sensibilidad paramétrica rige la robustez del sistema,              ║
-║      empleando la derivada logarítmica:                                                  ║
-║          $S_x^y = \frac{\partial(\ln y)}{\partial(\ln x)} = \frac{x}{y} \frac{\partial y}{\partial x}$ ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • ComplexPole       : Raíces espectrales inmutables en la variedad de Laplace.          ║
-║  • StabilityMargins  : Evaluación del Margen de Fase (PM) y Margen de Ganancia (GM).     ║
-║  • SensitivityMatrix : Matriz Jacobiana normalizada $S_x^y$ de sensibilidad.             ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Laplace Oracle (Tribunal de Estabilidad Dinámica de de Rham-LTI)   ║
+║ Ruta   : app/physics/laplace_oracle.py                                       ║
+║ Versión: 7.1.0-LTI-BIBO-Lyapunov-EKF-SVD-Wilkinson-Strict-PhD                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA DINÁMICA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra al **Operador de Certificación Dinámica Suprema** de la Malla,
+residiendo en el penthouse del **Estrato STRATEGY** (Nivel 1). Su mandato 
+fundamental es repudiar la concepción del presupuesto y la toma de decisiones 
+financieras como variables estáticas puras, transmutando el flujo de caja en un 
+sistema dinámico continuo de-confinado en el plano de frecuencia compleja:
+
+$$s = \sigma + j\omega \quad\big[2, 378\big]$$
+
+Para eludir derivas entrópicas e inyecciones estocásticas del LLM que desvíen la
+geodésica, el oráculo proyecta la evolución del capital sobre una variedad compleja, 
+modelando la impedancia del sistema (análoga al Flux Condenser) y forzando la 
+convergencia determinista hacia el semiplano izquierdo de estabilidad asintótica. 
+Toda singularidad espectral o divergencia de fase en la mantisa flotante 
+($$\text{IEEE-754 binary64}$$) se aborta síncronamente en RAM mediante el colapso 
+del retículo de Heyting distributivo, actuando como el guardián de control causal 
+de la Ciudadela de Cristal.
+
+AXIOMÁTICA DE CONTROL, ESTABILIDAD DE LYAPUNOV Y OBSERVABILIDAD ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Estabilidad Asintótica BIBO (Bounded-Input Bounded-Output) en el Plano-S:
+       El flujo transaccional se modela como una función de transferencia racional:
+       $$H(s) = \frac{Y(s)}{X(s)} = \frac{\sum_{m=0}^M b_m s^m}{\sum_{n=0}^N a_n s^n} \quad\big[378, 379\big]$$
+       Para garantizar la estabilidad asintótica de lazo cerrado, se exige de forma 
+       incondicional que todos los polos $$p_i$$ (raíces del polinomio característico 
+       determinado por $$\det(s\mathbf{I} - \mathbf{A}) = 0$$) residan estrictamente 
+       en el semiplano abierto izquierdo de Laplace (LHP):
+       $$\max_{i} \Re(p_i) < 0 \quad\big[2, 379\big]$$
+       La migración de un solo polo hacia el semiplano derecho ($$\Re(p_i) \ge 0$$) 
+       demuestra la inyección de exergía financiera negativa, levantando síncronamente 
+       la excepción 'ControlInstabilityError'.
+
+  [A2] Filtro de Kalman Extendido (EKF) y Observabilidad de Estado:
+       El oráculo no opera reactivamente; predice el colapso de lazo abierto 
+       modelando el vector de estado dinámico $$x = [s, v, a]^\top$$ (Saturación, 
+       Velocidad y Aceleración) como un oscilador armónico amortiguado no lineal:
+       $$\dot{x} = \mathbf{A}(x)x + \mathbf{B}u + \mathbf{w} \quad\big[379\big]$$
+       La matriz de covarianza del error de estimación $$\mathbf{P}$$ se propaga 
+       síncronamente sobre la Unit de Punto Flotante (FPU), minimizando la innovación 
+       espectral para garantizar la observabilidad total en el sentido de Kalman:
+       $$\operatorname{rank}\left( \begin{bmatrix} \mathbf{C} & \mathbf{C}\mathbf{A} & \dots & \mathbf{C}\mathbf{A}^{n-1} \end{bmatrix}^\top \right) \equiv n \quad\big[379\big]$$
+
+  [A3] Caos Determinista y Exponente de Lyapunov ($$\lambda$$):
+       La evolución del error de predicción semántica $$e(k)$$ bajo perturbaciones 
+       se evalúa en tiempo de ejecución para prevenir la amplificación caótica fractal:
+       $$\|e(k)\|_2 \approx \|e(0)\|_2 \cdot e^{\lambda k} \quad\big[2, 379\big]$$
+       Sujeto incondicionalmente a la cota del exponente de Lyapunov:
+       $$\lambda = \lim_{k \to \infty} \frac{1}{k} \ln \left( \frac{\|e(k)\|_2}{\|e(0)\|_2} \right) < 0 \quad\big[2, 371\big]$$
+       Si $$\lambda \ge 0$$, se diagnostica caos determinista, detonando de inmediato 
+       el colapso en software del retículo de Heyting.
+
+  [A4] Pasividad de Lyapunov-Rayleigh y Trabajo Exergético de Poynting:
+       La disipación neta en la FPU debe cumplir con la Segunda Ley de la 
+       Termodinámica para precluir la creación de exergía ficticia en lazo cerrado:
+       $$\dot{V}(x) = \langle \nabla V(x), \, (J(x) - R(x))\nabla V(x) \rangle_G = -\nabla V(x)^\top R(x) \nabla V(x) \le 0 \quad\big[40, 57, 126\big]$$
+       Donde el operador de disipación de Rayleigh $$R(x) \succeq \mathbf{0}$$ garantiza 
+       la pasividad incondicional del resolvedor.
+
+  [A5] Acotación por Criterio de Estabilidad de Jury:
+       Antes de transferir la discretización del flujo al dominio digital, el oráculo 
+       valida que los parámetros sintonizados $$K_p, K_i$$ pertenezcan al interior 
+       del simplejo de Jury, garantizando que el mapeo conforme $$z = e^{s T_s}$$ mapée 
+       los polos al interior del disco unitario abierto:
+       $$|z_i| < 1.0 \quad \forall z_i \in \sigma(\mathbf{A}_d) \quad\big[2, 312\big]$$
+
+ARQUITECTURA DE LA PIRÁMIDE ANALÍTICA DE LAPLACE (Observe ⊣ Orient ⊣ Act):
+────────────────────────────────────────────────────────────────────────────────
+El análisis dinámico de la Malla desciende por una jerarquía estricta de cuatro 
+niveles integrados de forma funtorial:
+
+  Nivel 0 ──► VÉRTICE: CONTROLABILIDAD Y CROWBAR (Viable vs. Veto)
+             Emite el veredicto final. Si el sistema diverge o $$\lambda \ge 0$$, 
+             el retículo de Heyting colapsa a VETOED ($$\top$$). 
+             El Soberano actúa síncronamente en RAM en el milisegundo cero 
+             para congelar el estado de la CPU, señalizando físicamente 
+             al disyuntor Crowbar perimetral (GPIO14 / BT151).
+
+  Nivel 1 ──► ROBUSTEZ: MARGEN DE FASE Y GANANCIA (PM & GM)
+             Hereda formalmente el espectro del sistema. Mide los márgenes de 
+             estabilidad relativa de Bode: Margen de Fase ($$\mathrm{PM}$$) y 
+             Margen de Ganancia ($$\mathrm{GM}$$) en decibelios en el topos:
+             $$\mathrm{PM} = 180^\circ + \angle H(j\omega_{gc}) \quad\big[379\big]$$
+             $$\mathrm{GM}_{\mathrm{dB}} = -20 \log_{10} |H(j\omega_{pc})| \quad\big[379\big]$$
+
+  Nivel 2 ──► DINÁMICA: FRECUENCIA NATURAL Y AMORTIGUAMIENTO ($$\omega_n$$ & $$\zeta$$)
+             Hereda del Nivel 3. Resuelve los parámetros constitutivos del polo 
+             dominante complejo conjugado $$s_{1,2} = -\zeta\omega_n \pm j\omega_n\sqrt{1-\zeta^2}$$:
+             $$\omega_n = \frac{|\Re(p_{\mathrm{dom}})|}{\zeta} \quad \land \quad \zeta = \cos\left(\operatorname{arctan}\left(\frac{\Im(p_{\mathrm{dom}})}{\Re(p_{\mathrm{dom}})}\right)\right) \quad\big[379, 548\big]$$
+             Garantizando amortiguamiento subcrítico sin resonancia descontrolada.
+
+  Nivel 3 ──► BASE: SENSIBILIDAD JACOBIANA NORMALIZADA ($$S_x^y$$)
+             Ingiere la matriz Jacobiana de la dinámica de compras, normalizando 
+             las derivadas logarítmicas de-confinadas ante variaciones de parámetros:
+             $$S_x^y = \frac{\partial \ln y}{\partial \ln x} = \frac{x}{y} \frac{\partial y}{\partial x} \quad\big[379\big]$$
+             Esto mide la susceptibilidad del sistema a fluctuaciones externas 
+             e irregularidades de escala en la base de la pirámide.
+
+Funtor Maestro del Oráculo de Laplace:
+  $$\mathcal{Z}_{\mathrm{Laplace}} = \Phi_{\mathrm{Nivel0}} \circ \Phi_{\mathrm{Nivel1}} \circ \Phi_{\mathrm{Nivel2}} \circ \Phi_{\mathrm{Nivel3}} \quad\big[174, 379\big]$$
 """
 
 from __future__ import annotations

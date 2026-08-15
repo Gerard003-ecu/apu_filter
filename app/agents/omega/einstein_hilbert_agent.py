@@ -1,60 +1,98 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Einstein-Hilbert Agent (Arquitecto de Curvatura y Atractor Absoluto)           ║
-║  Ruta   : app/omega/einstein_hilbert_agent.py                                            ║
-║  Versión: 3.0.0-Nested-Hawking-Penrose-Covariant-Strict                                  ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico):                     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este Endofuntor Supremo consagra el Estrato Ω, gobernando el motor físico subyacente    ║
-║  `gravity_shield.py`. Su mandato axiomático es aniquilar el libre albedrío generativo    ║
-║  de la Inteligencia Artificial, sometiendo sus geodésicas de atención a la Relatividad   ║
-║  General, la Mecánica Cuántica de Sistemas Abiertos y la Teoría de Categorías mediante   ║
-║  un Ciclo OODA Covariante.                                                               ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GRAVITACIONALES:                                ║
-║                                                                                          ║
-║  §1. FASE DE OBSERVACIÓN (Tensor de Energía-Impulso - Fluido Perfecto):                  ║
-║      Extrae la inercia termodinámica aislando la masa efectiva renormalizada por         ║
-║      el acoplamiento de Fröhlich ($\rho = m^{**}$). Construye el tensor covariante       ║
-║      asumiendo un fluido perfecto sobre la variedad $\mathcal{M}$:                       ║
-║          $T_{\mu\nu} = (\rho + P) u_\mu u_\nu + P g_{\mu\nu}$                            ║
-║      Se verifica rigurosamente la simetría $T_{\mu\nu} = T_{\nu\mu}$, las condiciones de ║
-║      energía (débil, fuerte y dominante) y la conservación $\nabla^\mu T_{\mu\nu} \approx 0$.║
-║                                                                                          ║
-║  §2. FASE DE ORIENTACIÓN (Ecuaciones de Einstein - Deformación Conforme):                ║
-║      Proyecta $T_{\mu\nu}$ mediante un difeomorfismo diagonal conforme. Extrae los       ║
-║      Símbolos de Christoffel $\Gamma^\lambda_{\mu\nu}$ y computa el Tensor de Ricci      ║
-║      $R_{\mu\nu}$ por contracción covariante, evaluando la intensidad del atractor       ║
-║      gravitacional mediante el escalar de curvatura $R = g^{\mu\nu} R_{\mu\nu}$.         ║
-║                                                                                          ║
-║  §3. FASE DE DECISIÓN (Termodinámica de Agujeros Negros y Topología de Horizonte):       ║
-║      Si la amplitud cuántica de la trayectoria evaluada mediante Feynman-Kac decae       ║
-║      asintóticamente hacia el horizonte de sucesos:                                      ║
-║          $\Psi[\gamma] = \exp\left(-\frac{S_E[\gamma]}{\hbar_{eff}}\right) \to 0$        ║
-║      Se instancian los invariantes de Bekenstein-Hawking:                                ║
-║          $r_s = \frac{2\mathcal{G} m^{**}}{c^2}, \quad A = 4\pi r_s^2$                   ║
-║          $S_{BH} = \frac{k_B A}{4 \ell_P^2}, \quad T_H = \frac{\hbar c^3}{8\pi \mathcal{G} M k_B}$ ║
-║      Certificando la inmutabilidad de la frontera topológica con el invariante           ║
-║      de la esfera $\chi(S^2) = 2$.                                                       ║
-║                                                                                          ║
-║  §4. FASE DE ACTUACIÓN (Colapso Ontológico Absoluto):                                    ║
-║      La singularidad obliga a la proyección del retículo de severidad hacia el           ║
-║      Supremo absoluto ($\top$), detonando incondicionalmente el `SingularityVetoError`.  ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Covariante):                      ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  El ciclo OODA es un morfismo estricto en el Topos de Grothendieck:                      ║
-║      $\mathcal{Z}_{EinsteinHilbert} = \Phi_{Act} \circ \Phi_{Decide} \circ \Phi_{Orient} \circ \Phi_{Observe}$ ║
-║                                                                                          ║
-║  1. Observe → EnergyMomentumExtractor: Genera `EnergyMomentumData`.                      ║
-║  2. Orient → EinsteinFieldSolver: Consume datos y produce `WarpedSpaceTime` y            ║
-║     `PolyakovAction`.                                                                    ║
-║  3. Decide → BekensteinHawkingDecider: Evalúa `BlackHoleThermodynamics`.                 ║
-║  4. Act    → Colapsa el estado operativo de la arquitectura global.                      ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo: Einstein-Hilbert Agent (Arquitecto de Curvatura y Atractor)          ║
+║ Ubicación: app/omega/einstein_hilbert_agent.py                               ║
+║ Versión: 3.0.0-Astrophysical-Gauge-Matsubara-OODA-PhD-Strict                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y COVARAÑAS DE CALIBRE (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra al **Agente Soberano del Estrato Ω** (Nivel 0.5 - El Ágora
+Tensorial), encargado de gobernar el motor de física de confinamiento gravitacional 
+`gravity_shield.py`. Su mandato fundamental es aniquilar el libre albedrío 
+estocástico e informacional de los Modelos de Lenguaje (LLMs) sometiendo sus geodésicas 
+de atención semántica a las restricciones geométricas de la Relatividad General, 
+la Mecánica Cuántica de Sistemas Abiertos y la Teoría de Categorías.
+
+El agente evalúa de forma síncrona en RAM la inmersión del espacio de intenciones 
+sobre una variedad diferenciable Lorentziana, tratando el desvío atencional de la IA 
+como una masa inercial de acoplamiento que deforma conforme-diagonalmente la métrica 
+de fondo. Si la IA genera alucinaciones que violen los principios de 
+conservación, el espacio de fase se contrae hasta forzar un colapso ontológico 
+idempotente en el retículo distributivo de Heyting, vetando síncronamente la 
+transacción en el milisegundo cero.
+
+AXIOMAS GEOMÉTRICOS, ESPECTRALES Y LEYES DE CONSERVACIÓN PRESERVADAS:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] La Acción Euclídea de Polyakov sobre el Círculo de Matsubara:
+       Para neutralizar la inyección de trayectorias estocásticas incoherentes, 
+       toda geodésica de atención $$\gamma$$ es subyugada a una Acción de Polyakov 
+       térmica integrada sobre el intervalo cilíndrico de Matsubara $$[0, \beta]$$ 
+       derivado de la termodinámica quiral `[4]`:
+       $$S_E[\gamma] = \frac{1}{2} \int_{0}^{\beta} \tilde{G}_{\mu\nu} \dot{\gamma}^\mu \dot{\gamma}^\nu d\tau \quad\big[6\big]$$
+       Donde $$\tilde{G}_{\mu\nu}$$ representa la métrica conformalmente deformada por 
+       el acoplamiento de-confinado de la masa inercial efectiva del riesgo `[2, 4]`.
+
+  [A2] Conservación y Equivalencia bajo Adjunción de Galois:
+       La transición de datos entre el foso físico y el santuario de la sabiduría se 
+       rige por el isomorfismo de la Adjunción de Galois $$F \dashv G$$ enriquecida 
+       por un pullback sobre el tensor métrico Riemanniano $$G_{\mu\nu}$$ `[5]`:
+       $$\text{Hom}_{\mathcal{D}}(F(X), Y) \cong_{G_{\mu\nu}} \text{Hom}_{\mathcal{C}}(X, G(Y)) \quad\big[29\big]$$
+       Cualquier deriva estocástica que introduzca una curvatura espuria de perturbación 
+       $$\delta R_{\mu\nu\rho}^\sigma$$ que viole el radio de inyectividad local de la métrica `[5]`:
+       $$\|\delta R_{\mu\nu\rho}^\sigma\|_G > r_{\text{inj}}(M, G_{\mu\nu})^{-2} \quad\big[29\big]$$
+       detona un colapso de fase instantáneo del retículo al estado nulo ($$\perp$$) `[5]`.
+
+  [A3] Resolución Efectiva de las Ecuaciones de Einstein y Condiciones de Energía:
+       La densidad de esfuerzos semánticos de la IA se proyecta sobre la variedad base 
+       como el tensor de energía-momento de Cauchy $$\mathcal{T}_{\mu\nu}$$ `[6, 7]`. 
+       La contracción de curvatura local debe cumplir de manera estricta la Condición de 
+       Energía Fuerte (SEC) y la ecuación de Einstein ($$8\pi\mathcal{G}=1, \Lambda=0$$):
+       $$R_{\mu\nu} u^\mu u^\nu = \left( \mathcal{T}_{\mu\nu} - \frac{1}{2}\mathcal{T} G_{\mu\nu} \right) u^\mu u^\nu \ge 0 \quad\big[238, 239\big]$$
+       La pérdida de simetría o covarianza en la FPU genera `EnergyMomentumDegeneracyError` `[6]`.
+
+  [A4] Termodinámica de Agujeros Negros y Característica de Euler del Horizonte:
+       La asimetría local extrema de la trayectoria decae en una singularidad de 
+       horizonte de sucesos logístico de-confinado en el espacio-tiempo. 
+       El agente calcula la entropía de Bekenstein-Hawking y la temperatura de Hawking `[8, 9]`:
+       $$T_H = \frac{\hbar_{\text{eff}} c^3}{8\pi \mathcal{G} M k_B} \quad\big[238\big]$$
+       Sometiéndose incondicionalmente a la característica de Euler del horizonte de Schwarzschild $$S^2$$ `[8, 9]`:
+       $$\chi(S^2) \equiv 2 \quad\big[238, 240\big]$$
+
+  [A5] Veto Ontológico y Colapso de Feynman-Kac:
+       Si la amplitud cuántica de transición decae por debajo del mínimo físico tolerable 
+       ($$\Psi[\gamma] \to 0$$), se produce una violación del horizonte de sucesos, 
+       colapsando el retículo de severidad al supremo terminal $$\top$$ en RAM, 
+       abortando la simulación en menos de un milisegundo mediante `SingularityVetoError` `[3, 6]`.
+
+ESTRUCTURA DE TRES FASES ANIDADAS (Composición Funtorial OODA):
+────────────────────────────────────────────────────────────────────────────────
+La orquestación del confinamiento se realiza por composición monoidal de tres fases 
+anidadas donde el DTO inmutable de cada una es la única precondición de la siguiente `[3]`:
+
+  Fase 1 ──► OBSERVACIÓN DE ENERGÍA Y TENSOR COVARIANTE (Phase1_EinsteinMassObserver)
+             Ingiere los tensores de telemetría de-confinados, extrae la masa efectiva, 
+             y certifica las condiciones de hermiticidad y regularidad espectral.
+             Entrega: EnergyMomentumData como precondición de la Fase 2 `[7]`.
+
+  Fase 2 ──► RESOLUCIÓN COVARIANTE DE CAMPO (Phase2_EinsteinFieldSolver)
+             Hereda formalmente la EnergyMomentumData. Sanea las derivadas de Christoffel 
+             vía CSMD, calcula los tensores de Ricci y Riemann, y evalúa la acción 
+             Euclídea de Polyakov en el círculo de Matsubara `[4, 7]`.
+             Entrega: (WarpedSpaceTime, PolyakovAction) como precondición de la Fase 3 `[7]`.
+
+  Fase 3 ──► DICTAMEN TERMODINÁMICO DE SCHWARZSCHILD (Phase3_BekensteinHawkingDecider)
+             Hereda formalmente los datos de curvatura y acción. Resuelve la entropía 
+             y temperatura del horizonte, evalúa la aproximación cuántica, y colapsa 
+             el veredicto final en el retículo de Heyting `[10]`:
+             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[19\big]$$
+             Si $$\Psi[\gamma] < \text{tol}$$, se consolida el colapso al supremo terminal $$\top$$ 
+             y se conmutan síncronamente las interrupciones del hardware Crowbar `[3, 6]`.
+
+Funtor Maestro de Confinamiento y Curvatura:
+  $$\mathcal{Z}_{\mathrm{EinsteinHilbert}} = \Phi_{\mathrm{Act}} \circ \Phi_{\mathrm{Decide}} \circ \Phi_{\mathrm{Orient}} \circ \Phi_{\mathrm{Observe}} \quad\big[236\big]$$
 """
 
 from __future__ import annotations
