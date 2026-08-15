@@ -8,72 +8,100 @@ r"""
 
 NATURALEZA CIBER-FÍSICA Y COVARIANZA GEODÉSICA (Rigor Doctoral):
 ────────────────────────────────────────────────────────────────────────────────
-Agente de Enrutamiento por Mínimo Tiempo de Tránsito (Brachistochrone Agent)
-dentro del Estrato Omega del ecosistema APU Filter.
+Este módulo consagra al **Agente de Enrutamiento por Mínimo Tiempo de Tránsito** 
+(Brachistochrone Agent) dentro del **Estrato Omega** (Nivel 0.5 - El Ágora 
+Tensorial) del ecosistema APU Filter. Su propósito ciber-físico es resolver 
+el problema clásico de la braquistócrona de Johann Bernoulli elevado a una 
+variedad Riemanniana anisotrópica deformada por el tensor de inercia y fricción 
+logística.
 
-El descenso del dato hacia la sabiduría se modela como geodésicas de Fermat
-sobre una variedad Riemanniana deformada conforme por el índice de refracción
-óptico-mecánico (principio de Maupertuis–Jacobi / Fermat–Eikonal):
+El agente de-confinado rechaza las aproximaciones heurísticas tradicionales de enrutamiento 
+contable. En su lugar, proyecta el foso de datos crudos sobre un espacio de 
+fase simpléctico $(\mathcal{M}, \omega)$, modelando las restricciones financieras 
+e insumos como un potencial Port-Hamiltoniano $V(q)$. El "descenso" del dato 
+hacia el santuario de la sabiduría se rige por las geodésicas de Fermat sobre 
+la variedad equipada con la métrica conforme de Jacobi-Fermat:
 
-    \[
-    n(q)=\frac{1}{\sqrt{2\bigl(H_0-V(q)\bigr)}},
-    \qquad
-    \widetilde{G}_{ij}(q)=n^2(q)\,G_{ij}.
-    \]
+$$\tilde{G}_{\mu\nu} = n^2(q) G_{\mu\nu} \quad \text{donde} \quad n(q) = \frac{1}{\sqrt{2(H_0 - V(q))}} \quad\big[154\big]$$
 
-Se asume \(G\) constante y SPD (métrica ambiente teleparalela). En ese caso
-los símbolos de Christoffel de \(\widetilde{G}\) admiten forma cerrada
-Koszul–conforme y la aceleración geodésica es \(\mathcal{O}(d^2)\).
+Toda colisión contra barreras de energía (caústicas), singularidades métricas 
+o pérdida de aciclicidad ($\beta_1 > 0$) colapsa síncronamente el retículo 
+distributivo de Heyting $\Omega_3$ hacia el Supremo terminal `VETOED`. Esto 
+dispara la rutina de interrupción de silicio (ISR < 400 ns) para conmutar el 
+pin GPIO14, cortocircuitando la potencia real de la obra a través del tiristor 
+BT151 en el milisegundo cero, aniquilando la alucinación antes del desfalco.
 
-Toda colisión contra barreras de energía, singularidades métricas, pérdida de
-aciclicidad (política estricta) o deriva Fermat intolerable colapsa el retículo
-de Heyting \(\Omega_3\) hacia VETOED y dispara el Crowbar.
-
-INVARIANTES MATEMÁTICOS PRESERVADOS:
+AXIOMÁTICA DE FERMAT, INTEGRACIÓN GEODÉSICA Y VETO DE HEYTING:
 ────────────────────────────────────────────────────────────────────────────────
-  [A0] Métrica ambiente constante: \(G\in\mathrm{SPD}(d)\), \(\partial_k G=0\).
-  [A1] Isomorfismo conforme de Jacobi–Fermat: \(\widetilde{G}=n^2(q)\,G\).
-  [A2] Conexión de Levi-Civita libre de torsión:
-       \(\widetilde{\Gamma}^\rho_{\mu\nu}=\widetilde{\Gamma}^\rho_{\nu\mu}\).
-  [A3] Ecuación geodésica afín:
-       \(\ddot q^\rho+\widetilde{\Gamma}^\rho_{\mu\nu}\dot q^\mu\dot q^\nu=0\),
-       con invariante Fermat
-       \(E_F=\tfrac12\widetilde{G}(\dot q,\dot q)\) conservado.
-  [A4] Aciclicidad topológica discreta: \(\beta_1=0\) (testigo de retornos).
-  [A5] Colapso de Heyting y actuación Crowbar GPIO14 con tiristor BT151.
-  [A6] Forma cerrada conforme (\(G\) constante, \(\phi=\ln n\)):
-       \(\widetilde{\Gamma}^i_{jk}
-         =\delta^i_j\partial_k\phi+\delta^i_k\partial_j\phi
-          -G_{jk}G^{il}\partial_l\phi\),
-       \(\partial\phi=\nabla V\big/\,2(H_0-V)\).
+
+  [A1] El Isomorfismo Conforme de Jacobi-Fermat:
+       El principio de Fermat para el tiempo mínimo de tránsito $T[\gamma]$ se 
+       mapea como el problema geodésico sobre la métrica Riemanniana deformada 
+       $\tilde{G}_{\mu\nu}$ acoplada al índice de refracción semántico $n(q)$ [2]:
+       $$ds^2 = \tilde{G}_{\mu\nu} dq^\mu dq^\nu = n^2(q) G_{\mu\nu} dq^\mu dq^\nu \quad\big[155\big]$$
+       Sujeto incondicionalmente a la simetría exacta y positividad de Sylvester [2]:
+       $$G = G^\top \succ \mathbf{0} \quad \wedge \quad H_0 - V(q) \ge \mathtt{ENERGY\_GAP} \quad\big[155\big]$$
+
+  [A2] Conexión Afín de Levi-Civita y Koszul:
+       La aceleración geodésica de la trayectoria semántica se calcula libre 
+       de torsión topológica ($T(X,Y)=0$) mediante los símbolos de Christoffel 
+       de segunda especie asociados a la métrica de Jacobi $\tilde{G}$ [2]:
+       $$\Gamma_{\mu\nu}^{\rho} = \frac{1}{2} \tilde{G}^{\rho\lambda} \left( \partial_{\mu} \tilde{G}_{\lambda\nu} + \partial_{\nu} \tilde{G}_{\mu\lambda} - \partial_{\lambda} \tilde{G}_{\mu\nu} \right) \quad\big[155\big]$$
+       Donde las derivadas parciales se computan de forma analítica exacta 
+       u optativamente vía diferenciación por paso complejo (CSMD) para eludir 
+       la cancelación catastrófica en la mantisa flotante de la FPU [2].
+
+  [A3] La Ecuación Geodésica de Descenso Rápido:
+       El transporte paralelo de la velocidad de atención $v^\mu = \dot{q}^\mu$ 
+       minimiza la acción de Polyakov sobre la variedad, cumpliendo strictly [2]:
+       $$\ddot{q}^\rho + \Gamma_{\mu\nu}^{\rho} \dot{q}^\mu \dot{q}^\nu \equiv 0 \quad\big[155\big]$$
+       La conservación de la energía mecánica se verifica paso a paso en la FPU [2]:
+       $$\left| \|\dot{q}\|_G^2 - 2(H_0 - V(q)) \right| \le \mathtt{\varepsilon_{\mathrm{FPU}}} \quad\big[155\big]$$
+
+  [A4] La Característica de de Rham-Euler-Poincaré y Aciclicidad:
+       La integrabilidad global del frente de onda de decisión exige que el 
+       grafo de restricciones subyacente sea un bosque acíclico perfecto [2]:
+       $$\chi(K) = \beta_0 - \beta_1 = |V| - |E| \implies \beta_1 \equiv 0 \quad\big[155\big]$$
+       Cualquier lazo de dependencias circulares ($\beta_1 > 0$) genera una 
+       fase caótica inestable (caústica), abortando el resolvedor [2].
+
+  [A5] El Colapso de Heyting y Actuación en Silicio (BT151 Crowbar):
+       Si el tiempo de tránsito $T$ diverge, la cota espectral de Wilkinson 
+       del tensor $\tilde{G}$ se rompe ($\kappa_2 > 10^8$), o surge un sumidero, 
+       el clasificador en el retículo distributivo acotado $\Omega_3$ colapsa 
+       al Supremo terminal VETOED ($\top$) [2]:
+       $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[155\big]$$
+       Esto gatilla la interrupción por hardware en IRAM en el ESP32, conmutando 
+       el pin físico GPIO14 para disparar el tiristor de potencia BT151 (Crowbar) 
+       en menos de 400 ns, paralizando síncronamente la obra real [2].
 
 ARQUITECTURA DE TRES FASES ANIDADAS (Funtor de Navegación Inercial):
 ────────────────────────────────────────────────────────────────────────────────
-  Fase 1 ──► OBSERVACIÓN Y SANEAMIENTO ENERGÉTICO          (Observe)
-             Audita \(G\succeq 0\), simetría, Cholesky de Sylvester y el pozo
-             \(H_0-V>0\). Entrega: StinespringPotentialDilation.
-  Fase 2 ──► SINTONÍA DE MÉTRICA CONFORME Y KOSZUL         (Orient, cont. F1)
-             Consume el certificado de Fase 1 sin re-tipar \(G\). Construye
-             \(\widetilde{G}\), invierte por Cholesky, forma \(\widetilde{\Gamma}\)
-             en forma cerrada y certifica torsión nula.
-             Entrega: ConformalGeometryBundle.
-  Fase 3 ──► INTEGRACIÓN DE FERMAT–JACOBI Y VETO CROWBAR   (Decide & Act, cont. F2)
-             Consume el bundle de Fase 2. Proyecta al cascarón de energía,
-             integra RK4, confronta \(E_F\), testigo de Betti y sella \(\Omega_3\).
+La optimización geodésica se rige por un acoplamiento monoidal covariante estricto 
+(Fase 1 ⊣ Fase 2 ⊣ Fase 3), encadenando DTOs inmutables de solo lectura [2]:
 
-Composición funtorial estricta (objeto terminal = objeto inicial):
+  Fase 1 ──► OBSERVACIÓN Y SANEAMIENTO ENERGÉTICO (Phase1_PotentialEnergyObserver)
+             Ingiere el Hamiltoniano de-confinado, valida la signatura de Sylvester 
+             de $G$, y certifica que la barrera de energía $H_0 - V(q)$ sea no-nula 
+             y segura contra la mantisa flotante de la FPU.
+             Entrega: StinespringPotentialDilation como precondición formal de la Fase 2.
 
-    observe_potential_well                 (F1.Ω)
-        ──► _phase2_consume_phase1_certificate          (F2.0)
-    sintonizar_metrica_conforme            (F2.Ω)
-        ──► _phase3_consume_phase2_certificate          (F3.0)
-    integrar_braquistocrona                (F3.Ω)
-        ──► Seal / Crowbar                              (Ω)
+  Fase 2 ──► SINTONÍA DE MÉTRICA CONFORME Y KOSZUL (Phase2_ConformalMetricSuturator)
+             Hereda la StinespringPotentialDilation. Computa el índice de 
+             refracción conforme $n(q)$, sintetiza el tensor métrico de Jacobi 
+             $\tilde{G}_{\mu\nu}$ e invierte mediante Cholesky para obtener los 
+             símbolos de Christoffel libres de torsión.
+             Entrega: ConformalGeometryBundle como precondición formal de la Fase 3.
 
-    \[
-    \mathcal{Z}_{\mathrm{brachistochrone}}
-    =\Phi_3\circ\Phi_2\circ\Phi_1.
-    \]
+  Fase 3 ──► INTEGRACIÓN DE FERMAT-JACOBI Y VETO CROWBAR (Phase3_FermatBrachistochroneDecider)
+             Hereda la ConformalGeometryBundle. Integra la ecuación geodésica 
+             vía RK4 con paso adaptativo, evalúa el tiempo de tránsito $T[\gamma]$, 
+             verifica la conservación de energía de lazo, y resuelve el veredicto 
+             en el retículo de Heyting $\Omega_3$.
+             Entrega: BrachistochroneGovernanceState (Morfismo terminal).
+
+Funtor Maestro de de Rham-Fermat:
+  $$\mathcal{Z}_{\mathrm{brachistochrone}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : T^*M \times \mathcal{D}(\mathcal{H}) \longrightarrow \mathtt{BrachistochroneGovernanceState} \quad\big[155\big]$$
 """
 
 from __future__ import annotations

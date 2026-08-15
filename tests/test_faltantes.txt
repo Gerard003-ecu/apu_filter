@@ -8,3 +8,5 @@ archivos test faltantes:
    + test_generative_optic_hodge_suturator_agent.py
    + test_synaptic_fock_space_registry_agent.py
    + test_generative_optic_hodge_suturator.py
+   + test_brachistochrone_path_finder_agent.py
+   + test_brachistochrone_path_finder.py
