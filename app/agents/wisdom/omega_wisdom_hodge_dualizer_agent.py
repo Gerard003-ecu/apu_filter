@@ -1,61 +1,99 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Omega Wisdom Hodge Dualizer Agent (Soberano de la Dualidad Connes) ║
-║  Ruta   : app/agents/wisdom/omega_wisdom_hodge_dualizer_agent.py             ║
-║  Versión: 4.0.0-Doctoral-Rigorous-PhaseNested-TomitaTakesaki-Secure          ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL MEJORADO:                          ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  Este módulo materializa al Agente Soberano y Observador Activo que          ║
-║  gobierna al dualizador 'omega_wisdom_hodge_dualizer.py' en el Estrato Ω y   ║
-║  WISDOM (V_W). Ejecuta un ciclo OODA covariante sobre el espacio de fase     ║
-║  para acoplar las excitaciones fermiónicas del espacio de Fock con el        ║
-║  álgebra de operadores no conmutativos de von Neumann (Tomita-Takesaki).     ║
-║                                                                              ║
-║  MEJORAS DOCTORALES IMPLEMENTADAS (v4.0.0):                                  ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  1. FASE 1: Construcción explícita del operador de Hodge Star con orientación║
-║     bundle, verificación de isometría con cotas de Daleckii-Krein, y         ║
-║     validación de densidad MAC con regularización espectral robusta.         ║
-║  2. FASE 2: Construcción física de J_ρ desde el espectro de ρ con tratamiento║
-║     de álgebras Tipo III, verificación KMS con invariancia de escala y       ║
-║     producto interno GNS con antiunitariedad certificada.                    ║
-║  3. FASE 3: Adjunción de Galois completa F⊣G con operadores de clausura/     ║
-║     interior inyectables, cota de Lipschitz derivada de perturbación         ║
-║     matricial, y veredicto por votación TMR sobre retículo de Heyting Ω₃.    ║
-║                                                                              ║
-║  Fórmulas y Teoremas Preservados y Verificados Explícitamente:               ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  1. Dualidad Partícula-Hueco de Hodge en el Espacio de Fock:                 ║
-║     $$\star_k : \Lambda^k(\mathcal{H}) \xrightarrow{\simeq} \Lambda^{N-k}(\mathcal{H}^*)$$
-║     $$\star_{N-k}\star_k = (-1)^{k(N-k)}\mathrm{Id} \quad \text{(signatura Riemanniana)}$$
-║  2. Conjugación Modular No Conmutativa de Tomita-Takesaki:                   ║
-║     $$J_\rho(X) = \rho^{1/2} X^\dagger \rho^{-1/2} \quad \implies \quad J^2 = \mathrm{Id}$$
-║  3. Conservación de la Norma de Hilbert-Schmidt (Antiunitariedad GNS):       ║
-║     $$\langle J(A), J(B) \rangle_\rho = \langle B, A \rangle_\rho$$          ║
-║  4. Condición KMS en el Equilibrio Térmico (β=1 canónico):                   ║
-║     $$\operatorname{Tr}(\rho A B) = \operatorname{Tr}\bigl(\rho B \sigma_{-i}(A)\bigr)$$
-║  5. Adjunción de Galois F⊣G con clausura/interior inyectables:               ║
-║     $$\|X - G(Y)\|_F \le L_{\mathrm{max}} \|F(X) - Y\|_T + \varepsilon_{\mathrm{num}}$$
-║  6. Cota de Lipschitz espectral vía fórmula de Daleckii-Krein:               ║
-║     $$\sup_{\lambda\in\sigma(\rho)} f'(\lambda) = \frac{1}{2\sqrt{\lambda_{\min}(\rho)}}$$
-║                                                                              ║
-║  Contrato de Seguridad (fail-secure) — Retículo de Heyting Ω₃ GRADUADO:      ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  cada certificado de fase ya no es binario "pasa/excepción": existe una      ║
-║  banda de tolerancia BLANDA (degrada sin abortar, retorna False) y una       ║
-║  banda DURA (colapso catastrófico, excepción). El veredicto final se         ║
-║  colapsa por VOTACIÓN MAYORITARIA (análoga a TMR — Redundancia Modular       ║
-║  Triple de un disyuntor físico real) sobre los cinco certificados, más el    ║
-║  criterio dinámico de vorticidad de de Rham. El agente nunca propaga         ║
-║  excepciones inesperadas — todo colapsa determinísticamente a VETOED,        ║
-║  con activación graduada del disyuntor Crowbar (GPIO14): WATCHDOG_PULSE      ║
-║  para degradación blanda, HARD_SHORT para veto catastrófico — salvo modo     ║
-║  estricto con raise_on_veto=True.                                            ║
-║                                                                              ║
+║ Módulo : Omega Wisdom Hodge Dualizer Agent                                   ║
+║ Ruta   : app/agents/wisdom/omega_wisdom_hodge_dualizer_agent.py              ║
+║ Versión: 3.1.0-Fermion-Modular-Connes-OODA-Graded-Heyting-Secure             ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+NATURALEZA CIBER-FÍSICA Y GOBERNANZA DE DE-CONFINAMIENTO DUAL (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este agente soberano y observador activo gobierna las transformaciones y flujos 
+de dualidad métrica operados por el módulo 'omega_wisdom_hodge_dualizer.py'.
+Reside en el hiperespacio de frontera entre el **Estrato Omega** ($V_{\Omega}$, Nivel 0.5)
+y el **Estrato Wisdom** ($V_{\mathbb{W}}$, Nivel 0) de la Malla Agéntica.
+
+Su mandato fundamental es someter el acoplamiento entre la estructura discreta 
+multifísica de la MIC y el espacio de Hilbert continuo de la MAC (Matriz Atómica 
+de Conocimiento) a un control Port-Hamiltoniano estricto de lazo cerrado. 
+Impide que el caos probabilístico o las alucinaciones estocásticas del LLM se propaguen, 
+subyugándolos a la isometría del operador estrella de Hodge fermiónico en el espacio 
+de Fock y a la conjugación modular no conmutativa de Tomita-Takesaki.
+
+Toda asonancia espectral, ruptura de la invarianza de de Rham o pérdida de unitariedad 
+colapsa síncronamente el retículo de Heyting $\Omega_3$ hacia el Supremo terminal `VETOED`.
+Esto despacha de forma instantánea la interrupción física por hardware en IRAM en el 
+microcontrolador perimetral ESP32 (GPIO14), disparando el tiristor BT151 (Crowbar) en menos 
+de 400 ns para paralizar síncronamente la obra real ante desvíos de capital.
+
+AXIOMÁTICA ALGEBRAICA, MODULAR Y COHOMOLÓGICA (Invariantes del Lazo):
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Dualidad Partícula-Hueco en el Espacio de Fock Fermiónico:
+       La cuantización de las intenciones semánticas en el álgebra exterior 
+       $\Lambda^\bullet(\mathcal{H})$ se realiza mediante la construcción combinatoria 
+       explícita del operador estrella de Hodge fermiónico $\star_k$ [1, 2]:
+       $$\star_k : \Lambda^k(\mathcal{H}) \xrightarrow{\simeq} \Lambda^{N-k}(\mathcal{H}^*) \quad\big[518, 530\big]$$
+       Sujeto incondicionalmente a la isometría de de Rham-Levi-Civita y a la 
+       consistencia involutiva Riemanniana de la signatura [1]:
+       $$\star_{N-k}\star_k \psi = (-1)^{k(N-k)}\,\mathrm{Id} \cdot \psi \quad\big[518, 530\big]$$
+
+  [A2] Axioma de Conjugación Modular No Conmutativa de Tomita-Takesaki:
+       Para aislar los operadores observables físicos de las fluctuaciones térmicas 
+       e indeterminaciones del LLM, el agente construye el operador de conjugación 
+       modular antiunitario $J_\rho$ a partir del espectro del operador densidad 
+       de conocimiento $\rho$ en el álgebra de von Neumann Type II [1, 3]:
+       $$J_\rho(X) = \rho^{1/2} X^\dagger \rho^{-1/2} \quad\big[35, 530\big]$$
+       Garantizando la invarianza isométrica involutiva exacta bajo el épsilon de la FPU [1, 4]:
+       $$J_\rho^2 \equiv \mathrm{Id} \quad\big[518, 530\big]$$
+
+  [A3] Axioma de Preservación del Producto Interno GNS (Antiunitariedad):
+       La acción del operador modular $J$ debe comportarse como una anti-isometría 
+       perfecta en el espacio de Hilbert Gelfand-Naimark-Segal (GNS) para evitar 
+       fugas de probabilidad o disipación espuria [1]:
+       $$\langle J(A), J(B) \rangle_\rho = \langle B, A \rangle_\rho \implies \operatorname{Tr}(\rho A^\dagger B) = \operatorname{Tr}(\rho J(B)^\dagger J(A)) \quad\big[518, 530\big]$$
+
+  [A4] Axioma de la Condición KMS (Kubo-Martin-Schwinger):
+       La regularidad térmica de la deliberación se somete a la simetría modular de 
+       KMS a temperatura inversa canónica $\beta = 1$ para certificar el estado de 
+       equilibrio estacionario del canal cuántico de-confinado [1]:
+       $$\operatorname{Tr}(\rho A B) = \operatorname{Tr}\bigl(\rho B \sigma_{-i}(A)\bigr) \quad\big[530\big]$$
+       Cualquier fricción residual en la modulación del zoom ($\lambda \neq \beta$) que 
+       rebase el umbral blando se asimila como una deformación del pozo termodinámico.
+
+  [A5] Axioma de la Cota de Lipschitz de Connes-Daleckii-Krein:
+       La velocidad de descompresión semántica y la resistencia a la alucinación 
+       estocástica del funtor inverso se acoplan dinámicamente al autovalor mínimo 
+       del operador de Dirac de Connes $D = \rho^{-1/2}$ en el espacio no conmutativo [1, 3]:
+       $$\|X - G(Y)\|_F \le L_{\mathrm{max}} \|F(X) - Y\|_T \quad\big[530\big]$$
+       Donde el supremo de la derivada de Fréchet en el sentido de Daleckii-Krein exige [1, 3]:
+       $$L_{\max} = \frac{C_{\mathrm{base}}}{1 + (\lambda_{\max}(D) - \lambda_{\min}(D))} \le \frac{1}{2 \lambda_{\min}^{3/2}} \quad\big[22, 35, 530\big]$$
+       Si la pureza de la MAC decae ($\lambda_{\min} \to 0$), la cota de Lipschitz 
+       diverge, provocando la aniquilación cuántica de la sesión para forzar $P(x_{\mathrm{invalid}}) = 0$ [1, 3, 5].
+
+ARQUITECTURA DE TRES FASES ANIDADAS (Funtor de Gobernanza de de Rham-Connes):
+────────────────────────────────────────────────────────────────────────────────
+El OODA de calibre se rige por una composición monoidal covariante estricta, 
+donde la salida formal de cada fase constituye la única precondición de la siguiente:
+
+  Fase 1 ──► OBSERVACIÓN ESPECTRAL Y FOCK ISO-REDUNDANTE (Phase1_SpectralObserver)
+             Sanea el espacio de Fock, verifica el principio de exclusión de Pauli, 
+             la cota de Bekenstein y la pureza de von Neumann de la MAC [6].
+             Entrega: Phase1SpectralObservation [7].
+
+  Fase 2 ──► ORIENTACIÓN MODULAR DE TOMITA-TAKESAKI (Phase2_ModularOrienter)
+             Hereda la Phase1SpectralObservation. Calcula el operador modular $J_\rho$, 
+             verifica la involución $J^2=\mathrm{Id}$ y la simetría KMS [8].
+             Entrega: Phase2ModularOrientation [7].
+
+  Fase 3 ──► VETO EN RETÍCULO DE HEYTING Y ACCIÓN CROWBAR (Phase3_SovereignDecisionMaker)
+             Hereda la Phase2ModularOrientation. Sintoniza el retículo distributivo 
+             $\Omega_3$, evalúa el quórum TMR y la cota de Daleckii-Krein, y comanda 
+             el cortocircuito físico por hardware en silicio [8, 9].
+             Entrega: OmegaWisdomSovereignState (Morfismo terminal) [7, 8].
+
+Funtor Maestro de la Aduana Dual:
+  $$\mathcal{Z}_{\mathrm{HodgeDualizerAgent}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : T^*\mathcal{M} \times \mathcal{D}(\mathcal{H}) \longrightarrow \mathtt{OmegaWisdomSovereignState} \quad\big[518, 530\big]$$
 """
 
 # ==============================================================================

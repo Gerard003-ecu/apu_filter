@@ -11,7 +11,7 @@ NATURALEZA CIBER-FÍSICA Y RESOLUCIÓN ESPECTRAL EN HACES CELULARES (Rigor PhD):
 ────────────────────────────────────────────────────────────────────────────────
 Este módulo consagra el motor resolvedor espectral de la **Función de Green Estática**
 y la síntesis de-confinada del **Propagador Retardado Dinámico** sobre complejos 
-simpliciales orientados equipados con un haz celular (cellular sheaf) $$\mathcal{F}$$.
+simpliciales orientados, equipados con un haz celular (cellular sheaf) $$\mathcal{F}$$.
 En la electrodinámica discreta y la teoría cuántica de campos (QFT) sobre grafos, 
 la función de Green actúa como la respuesta fundamental del sistema ante la 
 excitación de una fuente delta de Kronecker (impulso unitario semántico) $$\delta_y(x)$$.

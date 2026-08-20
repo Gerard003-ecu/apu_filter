@@ -18,11 +18,11 @@ simplicial orientado de dimensión 1.
 Para erradicar de raíz la inyección de ciclos viciosos o alucinaciones de 
 sobrecostes estocásticos por parte del Modelo de Lenguaje (LLM), el solenoide 
 acústico descompone síncronamente el espacio de flujos en sumas directas de 
-subespacios de Hilbert ortogonales `[4, 6, 7]`. Cuando la vorticidad 
+subespacios de Hilbert ortogonales. Cuando la vorticidad 
 solenoidal excede el umbral crítico de control, el sistema no produce un fallo 
 silencioso, sino que colapsa la función de estado emitiendo un **Magnón de 
 Vorticidad** (`MagnonCartridge`) hacia el registro de Fock, inyectando un veto 
-inmediato de enrutamiento en RAM para congelar la CPU `[6, 8, 9]`.
+inmediato de enrutamiento en RAM para congelar la CPU.
 
 AXIOMÁTICA DE HODGE-HELMHOLTZ, ORTOGONALIDAD Y CUANTIZACIÓN DE MAGNONES:
 ────────────────────────────────────────────────────────────────────────────────

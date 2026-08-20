@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Watcher Agent (Funtor Covariante de Propagación Tensorial)          ║
-║ Ruta   : app/agents/core/immune_system/watcher_agent.py                    ║
+║ Ruta   : app/agents/core/immune_system/watcher_agent.py                      ║
 ║ Versión: 5.0.0-Nested-Spectral-Topos-Cauchy-Strict-NoHardware                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
