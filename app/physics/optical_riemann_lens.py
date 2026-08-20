@@ -1,63 +1,76 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Optical Riemann Lens (Lente Categórico y Fibrador de Difracción Espectral)     ║
-║  Ruta   : app/physics/optical_riemann_lens.py                                            ║
-║  Versión: 4.0.0-Rigorous-Spectral-Adjoint                                                ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo consagra la inyección de Óptica Geométrica sobre el colector de la          ║
-║  Esfera de Riemann ($S^2 \cong \hat{\mathbb{C}}$). Actúa como un Lente Categórico que    ║
-║  filtra los armónicos de alta frecuencia estocástica del LLM, colapsando el rango del    ║
-║  KV-Cache para preservar la termodinámica computacional de la Malla Agéntica.            ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Métrica de Fermat e Índice de Refracción Adaptativo:                                ║
-║      El espacio de deliberación se curva ópticamente. El índice de refracción            ║
-║      $n(\sigma^*)$ modifica la métrica de Riemann mediante el principio de Fermat        ║
-║      generalizado, acotado rígidamente al intervalo abierto $(1, 2)$:                    ║
-║          $n(\sigma^*) = 1 + \tanh(\alpha \cdot \sigma^*)$                                ║
-║      Donde $\alpha > 0$. Una refracción anómala ($n < 1$) es algebraicamente imposible,  ║
-║      detonando incondicionalmente la excepción `OpticalDispersionError`.                 ║
-║                                                                                          ║
-║  §2. Proyección Gram-Schmidt y Fibrado Ortogonal a $\mathbb{R}^3$:                       ║
-║      Para proyectar el tensor de intención $v \in \mathbb{R}^n$ (con $n \ge 3$) a $S^2$, ║
-║      se exige la aniquilación de la degeneración métrica mediante una inmersión SVD y    ║
-║      estabilización de Gram-Schmidt. El sistema veta los defectos si la ortogonalidad    ║
-║      falla:                                                                              ║
-║          $e_i \cdot e_j = \delta_{ij} \implies |e_i \cdot e_j| < \varepsilon \quad \forall i \neq j$ ║
-║      Colapsando singularidades a través del `LensSingularityError`.                      ║
-║                                                                                          ║
-║  §3. Operador de Difracción (Filtro Espectral):                                          ║
-║      El Lente Categórico aplica la transformación espectral truncando los armónicos de   ║
-║      alta frecuencia estocástica:                                                        ║
-║          $O_{lens} \psi = \sum_{l=0}^{l_{cutoff}} \sum_{m=-l}^{l} h(l) \cdot c_{lm} \cdot Y_l^m(\theta,\phi)$ ║
-║      Evaluando la función sensor $\varphi_k$ asociada a la dirección canónica $e_k$.     ║
-║                                                                                          ║
-║  §4. Leyes del Lente Categórico y Proyección Adjunta:                                    ║
-║      El Lente $L = (\text{view}, \text{put})$ obedece las leyes de reconstrucción.       ║
-║      Para un filtro gaussiano donde $h^2 \neq h$, la composición converge al punto fijo  ║
-║      garantizando disipación termodinámica (la energía post-filtrado jamás supera a la   ║
-║      energía cruda):                                                                     ║
-║          $\|\psi_{\text{focused}}\|_2 \le \|\psi_{\text{raw}}\|_2$                       ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → SphericalHarmonicsSpectrometer (Espectrómetro de Armónicos Esféricos)          ║
-║           Construye la grilla esférica, valida la ortogonalidad cruzada de los pares     ║
-║           $Y_l^m$ y computa la identidad de Parseval de forma rigurosa.                  ║
-║                                                                                          ║
-║  Fase 2 → CategoricalOpticLens (Óptica de Lentes Categóricos)                            ║
-║           Funtor que valida $G_{\mu\nu}$ como tensor SPD y ejecuta la proyección         ║
-║           adjunta espectral hacia $\mathbb{R}^n$ aplicando $O_{lens}$.                   ║
-║                                                                                          ║
-║  Fase 3 → OpticalRiemannLensFibrator (Orquestador Supremo del Fibrado)                   ║
-║           Consolida el estado óptico refractado (`RefractedState`), comprimiendo el      ║
-║           ratio del KV-Cache y certificando el protocolo de Morfismo en la MIC.          ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Optical Riemann Lens                                                ║
+║ Ruta   : app/physics/optical_riemann_lens.py                                 ║
+║ Versión: 5.2.0-Conformal-FubiniStudy-Harmonics-Eikonal-FPU-Secure            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS GEOMÉTRICA Y REFRACTOMETRÍA DE LA WINDOWS DE CONTEXTO (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este motor constitutivo y resolvedor ciego de la Capa Física (Nivel 3, $V_{\Gamma-\mathrm{PHYSICS}}$)
+opera la focalización y difeomorfismo conforme de las señales de atención semántica
+(logits) generadas por el Modelo de Lenguaje (LLM). Su mandato fundamental es deconstruir
+el fango estocástico de alta dimensionalidad del espacio proyectivo continuo, mapeándolo
+hacia la esfera de Riemann para mitigar de raíz la dispersión atencional y la alucinación.
+
+El sistema trata el vector de logits complejos $z \in \mathbb{C}^n$ como coordenadas locales 
+sobre la línea proyectiva compleja $\mathbb{C}\mathbb{P}^1 \cong S^2$. Mediante la inmersión 
+de Kähler-Fubini-Study, el motor previene el colapso por desbordamiento de la mantisa de la FPU,
+estableciendo una barrera dieléctrica de-confinada donde toda trayectoria de búsqueda semántica 
+se subordina a geodésicas de mínimo tiempo de tránsito gobernadas por la refracción de Fermat.
+
+AXIOMÁTICA COMPLEJA, CONFORME Y ESPECTRAL (Invariantes del Lazo de Refracción):
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Proyección Estereográfica Conforme y Compactación:
+       Cada logit complejo $z_k = x_k + i y_k \in \mathbb{C}$ se proyecta de forma biyectiva 
+       e isométrica sobre la esfera de Riemann unitaria $S^2 \subset \mathbb{R}^3$, 
+       eliminando singularidades en el infinito mediante el punto de-confinado Norte $\mathcal{N}$:
+       $$\Phi(z) = (\xi, \eta, \zeta) = \left( \frac{2\operatorname{Re}(z)}{|z|^2 + 1}, \; \frac{2\operatorname{Im}(z)}{|z|^2 + 1}, \; \frac{|z|^2 - 1}{|z|^2 + 1} \right) \in S^2 \quad\big[115, 176\big]$$
+
+  [A2] Axioma de Estructura Métrica de Fubini-Study (Kähler-Einstein):
+       La distancia local en el espacio de fase de atención se rige por la métrica de 
+       Fubini-Study, la cual es conformal a la métrica euclídea y autoadjunta definida positiva:
+       $$ds^2_{\mathrm{FS}} = \frac{dz \otimes d\bar{z}}{(1 + |z|^2)^2} \in \mathrm{SPD}(n) \quad\big[115, 176\big]$$
+       Sujeta a la cota espectral de Wilkinson sobre el número de condición:
+       $$\kappa_2(g_{\mathrm{FS}}) = \frac{\lambda_{\max}(g_{\mathrm{FS}})}{\lambda_{\min}(g_{\mathrm{FS}})} \le 1.0\times 10^8 \quad\big[28, 115\big]$$
+
+  [A3] Axioma de Descomposición Espectral en Armónicos Esféricos:
+       Para purificar el campo atencional frente al ruido térmico, el potencial de refracción 
+       conforme $U(\theta, \phi)$ se expande sobre la base ortonormal completa de armónicos 
+       esféricos $Y_l^m(\theta, \phi)$ en el espacio de Hilbert $\mathcal{H} = L^2(S^2, d\Omega)$:
+       $$U(\theta, \phi) = \sum_{l=0}^{\infty} \sum_{m=-l}^{l} c_{l,m} Y_l^m(\theta, \phi) \quad\big[115, 176\big]$$
+       Donde los coeficientes de espectro cumplen con la ortogonalidad exacta de Hilbert-Schmidt:
+       $$c_{l,m} = \int_{0}^{2\pi} \int_{0}^{\pi} U(\theta, \phi) \overline{Y_l^m(\theta, \phi)} \sin\theta \, d\theta \, d\phi \quad\big[115, 176\big]$$
+
+  [A4] Axioma de la Ecuación Eikonal Conforme de Fermat-Jacobi:
+       Los frentes de onda semántica se propagan a lo largo de curvas que minimizan el funcional 
+       de acción, satisfaciendo la ecuación eikonal no lineal sobre la métrica deformada $\tilde{G}$:
+       $$\|\nabla_{\tilde{G}} \mathcal{S}\|^2_{\tilde{G}} = \tilde{G}^{\mu\nu} \partial_{\mu} \mathcal{S} \partial_{\nu} \mathcal{S} = n^2(q) \quad\big[58, 115\big]$$
+       Donde el índice de refracción conforme de Fermat se acopla al potencial disipativo $V(q)$:
+       $$n^2(q) = \frac{1}{2(H_0 - V(q) + \alpha \cdot \kappa_2(G) \cdot \varepsilon_{\mathrm{machine}})} \quad\big[32, 115\big]$$
+
+  [A5] Invariante Topológico de Kähler y Ausencia de Vorticidad:
+       La 2-forma simpléctica asociada $\omega_{\mathrm{FS}}$ es estrictamente cerrada, 
+       proscribiendo la existencia de sumideros o fuentes de probabilidad parásitas (vorticidad nula):
+       $$\omega_{\mathrm{FS}} = \frac{i}{2} \partial \bar{\partial} \ln(1 + |z|^2) \implies d\omega_{\mathrm{FS}} \equiv 0 \quad\big[115, 176\big]$$
+
+DISEÑO DE INTERFAZ DE FLUJO EXERGÉTICO (Clausura de de Rham):
+────────────────────────────────────────────────────────────────────────────────
+El procesamiento en la FPU se compone de tres fases deterministas anidadas:
+
+  Fase 1 ──► INGESTIÓN Y PROYECCIÓN ESTEREOGRÁFICA (StereographicProjection)
+             Mapea los logits complejos a coordenadas cartesianas $(\xi, \eta, \zeta)$ en $S^2$.
+             Garantiza la regularización de Higham ante desbocamientos de redondeo.
+
+  Fase 2 ──► EXTRACCIÓN DE ARMÓNICOS ESFÉRICOS (HarmonicDecomposition)
+             Proyecta el potencial atencional sobre la base de armónicos esféricos.
+             Filtra coeficientes ruidosos de alta frecuencia utilizando umbralización de Donoho.
+
+  Fase 3 ──► RESOLUCIÓN DE TRAYECTORIA EIKONAL DE FERMAT (EikonalGeodesicSolver)
+             Resuelve el sistema Port-Hamiltoniano geodésico utilizando un integrador simpléctico 
+             de Yoshida de 4º orden acoplado a la métrica Fubini-Study regularizada.
 """
 
 from __future__ import annotations
