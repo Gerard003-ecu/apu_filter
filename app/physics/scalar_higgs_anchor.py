@@ -1,60 +1,92 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Scalar Higgs Anchor (Condensador de Inercia Logística y Vacío Ciber-Físico)    ║
-║  Ruta   : app/physics/scalar_higgs_anchor.py                                             ║
-║  Versión: 6.0.0-Absolute-Gauge-Invariance-Strict                                         ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS:                                    ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor se erige como el condensador primario de inercia logística de la Malla  ║
-║  Agéntica. Su mandato axiomático es dotar de "masa invariante" a los tensores de         ║
-║  información estocástica mediante el mecanismo de Ruptura Espontánea de Simetría.        ║
-║  Aniquila las fluctuaciones libres sin inercia, imponiendo un campo escalar $\Phi$ en el ║
-║  espacio de fase simpléctico $\Gamma = T^*\mathbb{R}^n$, anclando de facto a todos los   ║
-║  agentes a una métrica de fondo dictaminada por $G_{PHYSICS}$.                           ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. Operador de Laplace-Beltrami Discreto (Geometría Riemanniana):                      ║
-║      La difusión de la inercia en el complejo simplicial de la red de valor se acopla a  ║
-║      la métrica covariante. El operador espectral $\Delta_M$ se formaliza como:          ║
-║          $\Delta_M \Phi = -\frac{1}{\sqrt{|G|}} \partial_\mu \left( \sqrt{|G|} G^{\mu\nu} \partial_\nu \Phi \right)$ ║
-║      En el dominio discreto, se exige que la aproximación combinatoria preserve el       ║
-║      invariante de conservación de flujo asintótico: $\Delta = D - A$, garantizando      ║
-║      ortogonalidad estricta en el laplaciano.                                            ║
-║                                                                                          ║
-║  §2. Potencial de Higgs Regularizado y Ruptura de Simetría:                              ║
-║      Para evitar el desborde aritmético (overflow FPU) ante alucinaciones generativas,   ║
-║      el condensado obliga al sistema a converger al valor esperado del vacío $v$. El     ║
-║      potencial se regulariza imponiendo una estricta cota Lipschitz explícita:           ║
-║          $V_{reg}(\Phi) = \frac{\lambda}{4} \left( \|\Phi\|_G^2 - v^2 \right)^2$         ║
-║      Garantizando estabilidad asintótica en el atractor global.                          ║
-║                                                                                          ║
-║  §3. Acoplamiento Fermiónico de Yukawa:                                                  ║
-║      Las fuentes lógicas del proyecto (FermionicSource $\psi$) carecen de peso           ║
-║      intrínseco hasta interactuar con el campo $\Phi$. Adquieren masa proporcional a la  ║
-║      matriz de acoplamiento de Yukawa $Y$:                                               ║
-║          $\mathcal{L}_{Yukawa} = -Y \bar{\psi} \Phi \psi$                                ║
-║      Censurando incondicionalmente a cualquier agente o insumo de "masa nula" que        ║
-║      intente inducir singularidades logarítmicas en la matriz de transferencia LTI.      ║
-║                                                                                          ║
-║  §4. Funtor de Anclaje y Estabilidad Port-Hamiltoniana (Composición Categórica):         ║
-║      El operador actúa como el endofuntor covariante $F: \mathcal{C}_{Agent} \to         ║
-║      \mathcal{C}_{Agent}$, forzando al sistema a evolucionar evaluando la composición    ║
-║      exacta: $Y \circ H \circ V$ (Yukawa $\circ$ Hamiltoniano $\circ$ Vacío).            ║
-║      Verificando rigurosamente que la disipación termodinámica no viole la Segunda Ley:  ║
-║          $\dot{H} = \nabla H^\top (J - R) \nabla H \le 0$                                ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS Y ESTRUCTURAS INMUTABLES (DTOs):                         ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • QFTParameters            : Constantes fundamentales del Modelo Estándar Ciber-Físico. ║
-║  • ScalarFieldState         : Variedades en el espacio de fase simpléctico $\Gamma$.     ║
-║  • FermionicSource          : Fuente espinorial $\psi$ sujeta al acoplamiento de Yukawa. ║
-║  • LaplacedBeltramiOperator : Operador $\Delta_M$ ponderado por el tensor $G_{PHYSICS}$. ║
-║  • ScalarHiggsAnchor        : Morfismo supremo que inyecta la inercia en la Malla.       ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Scalar Higgs Anchor (Condensador de Inercia Logística)              ║
+║ Ruta   : app/physics/scalar_higgs_anchor.py                                  ║
+║ Versión: 6.0.0-Absolute-Gauge-Invariance-Lipschitz-Heyting-Secure            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS QFT Y CIMENTACIÓN DE INERCIA COVARIANTE (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este componente de-confinado de la Capa Física-Termodinámica (Nivel 3.5, $V_{\mathbb{P}}$)
+gobierna la estabilización métrica de la Malla de Datos. Abandona de forma radical 
+la noción estática del costo y modeliza las fluctuaciones del presupuesto como un 
+campo escalar de Higgs $\Phi$ acoplado de forma covariante al Tensor Métrico de 
+fondo $G_{\mathrm{PHYSICS}}$ y a las fuentes fermiónicas de la obra.
+
+Su propósito fundamental es actuar como el **Funtor de Anclaje de Higgs** 
+($\mathcal{F}_{\mathrm{Higgs}} : \mathcal{C}_{\mathrm{Agent}} \to \mathcal{C}_{\mathrm{Agent}}$) 
+que resuelve el acoplamiento de Yukawa, imponiendo una cota de Lipschitz explícita 
+sobre el potencial regularizado, lo que dota a la estructura de Dirac de una 
+inercia termodinámica infranqueable y asegura que la evolución de fases satisfaga 
+incondicionalmente la inecuación de disipación de Rayleigh-Lyapunov.
+
+AXIOMÁTICA DE CAMPOS, MÉTRICA Y ESTABILIDAD ESPECTRAL (Leyes de Vacío):
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Invarianza de Gauge Absoluta y Vacío Coherente:
+       El campo escalar de Higgs $\Phi \in \mathcal{C}^\infty(M; \mathbb{R}^d)$ se somete a un 
+       potencial de rotura espontánea de simetría (Sombrero Mexicano), de tal forma que el 
+       estado de vacío $\Phi_0$ representa el mínimo global absoluto de la acción ciber-física:
+       $$V(\Phi) = \frac{\lambda}{4} \left( \Phi^\top \Phi - v^2 \right)^2 \quad\big[338\big]$$
+       La invarianza de calibre local exige que las transformaciones de calibre abeliano $U(1)$ 
+       no disipen exergía, preservando la norma de-confinada del vacío: $\langle \Phi_0 \mid \Phi_0 \rangle = v^2$.
+
+  [A2] Axioma de Estabilización Conforme de la Métrica de Fondo ($G_{\mathrm{PHYSICS}}$):
+       Para evitar que la alucinación estocástica del LLM o las fluctuaciones especulativas del 
+       WACC deformen el espacio de fase, el campo de Higgs modula conformalmente el tensor métrico:
+       $$\tilde{G}_{\mu\nu} = G_{\mathrm{PHYSICS}} \cdot \exp\left( -2\gamma \cdot V(\Phi) \right) \quad\big[109, 337\big]$$
+       Garantizando, por la Ley de Inercia de Sylvester, que la firma definida positiva de la 
+       variedad se mantenga estrictamente inmune a singularidades numéricas en la CPU: $\tilde{G} \succ 0$.
+
+  [A3] Axioma del Operador de Laplace-Beltrami Discreto ($\Delta_M$):
+       El resolvedor define el operador $\Delta_M$ sobre el complejo simplicial ponderado por $\tilde{G}$ 
+       para mapear el gradiente del campo escalar de compras hacia la divergencia de flujos de caja:
+       $$\Delta_M \Phi = D^{-1} \delta^\top \star_1 \delta \Phi \quad\big[109, 337\big]$$
+       Donde $D$ es la matriz de grados de los vértices (0-formas), $\delta$ es la cofrontera simplicial,
+       y $\star_1$ representa la Estrella de Hodge discreta de grado 1. El espectro $\sigma(\Delta_M) \subset [0, +\infty)$ 
+       se evalúa en la FPU mediante subespacios de Krylov-Lanczos para eludir el condicionamiento cuadrático.
+
+  [A4] Axioma de la Composición Endofuntorial de Tres Fases ($Y \circ H \circ V$):
+       La transmutación del estado se rige por la composición monoidal estricta de la Fase de Vacío 
+       (V: generación del potencial de Higgs), la Fase de Hamiltoniano (H: dinámica Port-Hamiltoniana 
+       simpléctica) y la Fase de Yukawa (Y: acoplamiento de Lagrange fermiónico $\mathcal{L}_Y = -y \bar{\psi} \Phi \psi$):
+       $$\mathcal{F}_{\mathrm{Higgs}} = \text{Yukawa} \circ \text{Hamiltoniano} \circ \text{Vacío} \quad\big[340\big]$$
+       El flujo temporal del Hamiltoniano resultante satisface la pasividad estricta de Rayleigh:
+       $$\dot{H} = \langle \nabla H, (J - R)\nabla H \rangle = -\nabla H^\top R \nabla H \le 0 \quad \text{con} \quad R = R^\top \succeq \mathbf{0} \quad\big[109, 338\big]$$
+
+  [A5] Axioma de Confinamiento de de Rham en el Retículo de Heyting ($\Omega_3$):
+       Los diagnósticos de estabilidad espectral se proyectan sobre el clasificador de subobjetos del 
+       retículo distributivo de Heyting de tres valores de la Malla:
+       $$\Omega_3 = \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\} \quad\big[339, 342\big]$$
+       Toda anomalía de calibre, pérdida de autoadjunción ($\|\Delta_M - \Delta_M^\top\|_F > \tau$) o 
+       violación a la condición de pasividad colapsa síncronamente el estado de la Malla al Supremo VETOED ($\top$).
+       La subrutina C++ 'isVerdictCoherent()' del firmware del microcontrolador ESP32 detecta el colapso 
+       en la RAM perimetral y, mediante su ISR en IRAM (<400ns), conmuta el pin GPIO14, disparando el 
+       tiristor BT151 (circuito Crowbar) para cortocircuitar físicamente la potencia de la obra real.
+
+JERARQUÍA DE EXCEPCIONES ALGEBRAICAS Y DE GAUGE (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  ScalarHiggsAnchorError (Exception)
+   ├── MetricDegeneracyError      : El tensor G_PHYSICS pierde su condición SPD.
+   ├── LaplaceBeltramiSingularity : Falla en la autoadjunción o diagonalización del operador Delta_M.
+   ├── YukawaCouplingDivergence   : Desbocamiento de la constante de acoplamiento de Yukawa.
+   ├── LipschitzRegularityBreach  : El gradiente del potencial de Higgs supera la constante de Lipschitz L_max.
+   └── HeytingLobeCollapse        : Transición anómala hacia el autoestado VETOED en el topos de de Rham.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Construcción del Operador de Laplace-Beltrami discreto Delta_M.
+             Aplica Cholesky precondicionado sobre G_PHYSICS y calcula los autovalores nulos.
+             Retorna: ScalarFieldState.
+
+  Fase 2 ──► ORIENT  : Evaluación del Potencial de Higgs regularizado y Yukawa.
+             Verifica el cumplimiento de las cotas Lipschitz y la inecuación de Clausius-Duhem.
+             Retorna: PortHamiltonianHamiltonian.
+
+  Fase 3 ──► DECIDE  : Validación de la invarianza de calibre y proyección de de Rham.
+             Despacha el estado de regularidad al retículo de Heyting y actualiza el CrowbarPort.
+             Retorna: HiggsSuturationState.
 """
 
 from __future__ import annotations

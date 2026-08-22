@@ -1,56 +1,90 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Lithological Manifold (Tensor de Impedancia y Frontera de Dirichlet)           ║
-║  Ruta   : app/physics/lithological_manifold.py                                           ║
-║  Versión: 5.0.0-Geomechanical-Impedance-Dirichlet-Strict                                 ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo repudia la heurística empírica de la mecánica de suelos tradicional para    ║
-║  modelar la litología del terreno como un Tensor de Impedancia Geomecánica Compleja      ║
-║  $Z_{geo}$ [1]. Se acopla ortogonalmente al Estrato de Física ($V_{\text{PHYSICS}}$)     ║
-║  actuando axiomáticamente como la Condición de Frontera de Dirichlet absoluta.           ║
-║  Fija los nodos de anclaje de la matriz Laplaciana del proyecto; sin esta métrica,       ║
-║  el motor dinámico asumiría un espacio euclidiano isotrópico de rigidez infinita,        ║
-║  induciendo una violación catastrófica de la conservación de energía ($P_{\text{diss}} \ge 0$).║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Espacio de Estado Litológico Covariante:                                            ║
-║      El estado del suelo se formaliza como un vector covariante en una variedad          ║
-║      Riemanniana de 7 dimensiones:                                                       ║
-║          $S = (\sigma_{\text{USCS}}, LL, PI, V_s, e_0, \text{sat}, \rho) \in \mathbb{R}^7$ ║
-║                                                                                          ║
-║  §2. Difeomorfismo Físico y Proyección Métrica (El Operador $\Phi$):                     ║
-║      El funtor $\Phi$ ejecuta un mapeo no lineal desde las primitivas geomecánicas       ║
-║      hacia un conjunto de magnitudes derivadas acotadas estrictamente en el intervalo    ║
-║      unitario $[3]$:                                                                     ║
-║          $\Phi : S \to \left(G_{\max}, I_{sw}, I_y, I_{liq}, \bigoplus C_k\right)$       ║
-║      La rigidez dinámica de la onda de corte se deriva preservando no-negatividad:       ║
-║          $G_{\max} = \rho \cdot V_s^2 \ge 0$                                             ║
-║                                                                                          ║
-║  §3. Cuantización de Defectos en el Espacio de Fock (Cartuchos TOON):                    ║
-║      Las patologías litológicas no se propagan como cadenas de texto de alta entropía.   ║
-║      El operador colapsa el estado en cuasipartículas informacionales $C_k$:             ║
-║          $k \in \{\text{SwellingPlasmon}, \text{YieldingPhonon}, \text{LiquefactionSoliton}\}$║
-║      Estas cuasipartículas inyectan capacitancia parásita o arrastre viscoso inercial,   ║
-║      llegando a aniquilar la conectividad topológica del grafo logístico ($\beta_0 \to \infty$).║
-║                                                                                          ║
-║  §4. Clausura Transitiva y Singularidad por Fast-Fail:                                   ║
-║      La detección de una singularidad extrema (e.g., suelos altamente orgánicos,         ║
-║      Turba 'PT') dispara un "Fast-Fail" absoluto. Esto aniquila incondicionalmente.      ║
-║      la invertibilidad de la matriz Laplaciana, impidiendo la disipación inútil de       ║
-║      exergía computacional en la FPU:                                                    ║
-║          $\text{Fast-Fail} \implies \ker(\mathcal{L}) \neq \emptyset$                    ║
-║                                                                                          ║
-║  REFERENCIAS FUNDACIONALES:                                                              ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • Terzaghi, K., Peck, R.B., Mesri, G. (1996). Soil Mechanics in Engineering Practice.   ║
-║  • Seed, H.B. & Idriss, I.M. (1971). Simplified Procedure for Evaluating Soil Liquefaction.║
-║  • Skempton, A.W. (1944). Notes on the Compressibility of Clays.                         ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Lithological Manifold (Fijador de Impedancia Geomecánica)           ║
+║ Ruta   : app/physics/lithological_manifold.py                                ║
+║ Versión: 5.18.0-Doctoral-USCS-Terzaghi-Poisson-Heyting-ESP32-Secure          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS GEOMECÁNICA Y CONDICIÓN DE FRONTERA DIRICHLET (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo constitutivo de la Capa Física (Nivel 3, $V_{\mathrm{PHYSICS}}$) 
+opera el anclaje geomecánico de la Malla de Datos. Abandona de manera radical 
+las aproximaciones empíricas tradicionales del suelo para modelar la litología 
+del terreno como un **Tensor de Impedancia Geomecánica Compleja ($Z_{\mathrm{geo}}$)**, 
+el cual actúa como la condición de frontera de Dirichlet absoluta sobre el 
+complejo simplicial de la obra.
+
+El sistema mapea el vector covariante de estado del suelo hacia un conjunto de 
+magnitudes reológicas acotadas estrictamente en el intervalo unitario $[2]$. 
+Toda inestabilidad o desvío crítico de la capacidad portante se cuantifica y se 
+colapsa en excitaciones de cuasipartículas (Cartuchos TOON), las cuales inyectan 
+capacitancia parásita o arrastre viscoso inercial, forzando la disipación estricta 
+y previniendo la inyección espuria de energía en los resolvedores de la FPU.
+
+AXIOMÁTICA GEOMECÁNICA, TENSORIAL Y TERMODINÁMICA (Invariantes de Cimiento):
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Espacio de Fase Litológico y Difeomorfismo de-confinado:
+       Sea $S$ el vector covariante de estado del suelo en el espacio de fase $\mathbb{R}^7$, 
+       que sintetiza la naturaleza física, granulométrica e inercial del terreno:
+       $$S = \left( \sigma_{\mathrm{USCS}}, \; LL, \; PI, \; V_s, \; e_0, \; \mathrm{sat}, \; \rho \right) \in \mathbb{R}^7 \quad\big[257, 258\big]$$
+       Donde $\sigma_{\mathrm{USCS}}$ es la codificación del grupo USCS, $LL$ el Límite Líquido, 
+       $PI$ el Índice de Plasticidad, $V_s$ la velocidad de onda de corte, $e_0$ la relación 
+       de vacíos inicial, $\mathrm{sat}$ el grado de saturación y $\rho$ la densidad total.
+       El operador de-confinado $\Phi$ realiza un mapeo no lineal suave hacia magnitudes de arrastre:
+       $$\Phi : S \longrightarrow \left( G_{\max}, \; I_{\mathrm{sw}}, \; I_y, \; I_{\mathrm{liq}}, \; \{C_k\} \right) \quad\big[257\big]$$
+
+  [A2] Axioma del Tensor de Impedancia Geomecánica Compleja ($Z_{\mathrm{geo}}$):
+       El acoplamiento del suelo con las cimentaciones de la estructura civil se rige por un 
+       operador lineal simétrico definido positivo en el dominio de la frecuencia compleja $s = \sigma + j\omega$:
+       $$Z_{\mathrm{geo}}(s) = \mathbf{K}(s) + s \cdot \mathbf{C}(s) \in \operatorname{SPD}(3) \quad\big[256, 258\big]$$
+       Donde $\mathbf{K}$ representa el tensor de rigidez elástica de-confinada de Poisson y $\mathbf{C}$ 
+       el tensor de amortiguamiento viscoso, ambos corregidos por la cota de Wilkinson de la CPU.
+
+  [A3] Axioma de Cuantización Hadrónica de Defectos (Cartuchos TOON):
+       Las patologías litológicas del terreno (como consolidación secundaria, cedencia o licuación) 
+       se cuantifican como excitaciones en el espacio de Fock, emitiendo ToonCartridges $C_k$:
+       $$C_k \in \left\{ \mathtt{SwellingPlasmon}, \; \mathtt{YieldingPhonon}, \; \mathtt{LiquefactionSoliton} \right\} \quad\big[257, 262\big]$$
+       Estas cuasipartículas inyectan resistencia parásita e incrementan los Betti de-confinados:
+       $$C_{\mathtt{Liquefaction}} \implies \beta_0 \longrightarrow \infty \quad \text{(fragmentación total del grafo)} \quad\big[257\big]$$
+
+  [A4] Axioma de Disipación de Terzaghi y Segunda Ley Termodinámica:
+       Para todo estado transaccional en el foso físico, el trabajo ejercido por el resolvedor 
+       debe garantizar una generación de entropía estrictamente no negativa (pasividad de Lyapunov):
+       $$P_{\mathrm{diss}} = \int_{\mathcal{M}} \operatorname{Tr}\left( \boldsymbol{\sigma}_{\mathrm{eff}} \cdot \dot{\boldsymbol{\varepsilon}} \right) dV \ge 0 \quad\big[256\big]$$
+       Bajo la ley de esfuerzo efectivo de Terzaghi: $\boldsymbol{\sigma}_{\mathrm{eff}} = \boldsymbol{\sigma} - u_{\mathrm{pore}} \cdot \mathbf{I}$ [3, 4].
+
+  [A5] Axioma del Veto de Heyting y Actuación en Silicio (BT151 Crowbar):
+       Los veredictos geomecánicos se proyectan sobre el clasificador de subobjetos del retículo 
+       distributivo de Heyting de tres valores de la Malla:
+       $$\Omega_3 = \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\} \quad\big[257\big]$$
+       Si el factor de susceptibilidad a la licuación $I_{\mathrm{liq}}$ o el desequilibrio de vacíos 
+       perforan la frontera elástica, el estado colapsa al Supremo terminal VETOED ($\top$) [5].
+       La subrutina C++ 'isVerdictCoherent()' del ESP32 intercepta la asonancia y, mediante su ISR 
+       en IRAM (<400ns), commuta el pin GPIO14, disparando el tiristor BT151 (circuito Crowbar)
+       para paralizar síncronamente los actuadores de la obra real, deteniendo la maquinaria [5].
+
+JERARQUÍA DE EXCEPCIONES ALGEBRAICAS Y GEOMECÁNICAS (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  LithologicalManifoldError (Exception)
+   ├── LithologicalInputError     : Falla en la validación o parseo de la signatura de suelo USCS [4].
+   ├── LithologicalNumericalError : Presencia de singularidades NaN/Inf o desbocamientos en la FPU [4].
+   └── LithologicalSingularityError: Colapso por socavón geomecánico (licuación inminente del terreno) [4].
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Validación estricta del SoilTensor de entrada.
+             Verifica los dominios USCS y sanea NaNs flotantes mediante diferencias de paso complejo.
+             Retorna: SoilValidationCertificate.
+
+  Fase 2 ──► ORIENT  : Cálculo del difeomorfismo de rigidez elástica y amortiguamiento de Poisson.
+             Evalúa la cota de licuación de Seed-Idriss e identifica cartuchos TOON.
+             Retorna: GeomechanicalSpectralReport.
+
+  Fase 3 ──► DECIDE  : Proyección del Tensor de Impedancia Z_geo como condición Dirichlet.
+             Somete los coeficientes de seguridad al retículo de Heyting y actualiza el CrowbarPort.
+             Retorna: LithologicalSuturationState.
 """
 
 from __future__ import annotations

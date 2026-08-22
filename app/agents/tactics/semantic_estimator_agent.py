@@ -1,60 +1,91 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Semantic Estimator Agent (Custodio de la Geometría Vectorial)                  ║
-║  Ruta   : app/agents/tactics/semantic_estimator_agent.py                                 ║
-║  Versión: 5.0.0-Hilbert-Rank-Nullity-Categorical-Strict-Granular                         ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y ÁLGEBRA LINEAL (Rigor Doctoral):                              ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor gobierna al `semantic_estimator.py` en el Estrato TACTICS. Su mandato   ║
-║  axiomático es resolver la asimetría ontológica entre el lenguaje natural (alta entropía)║
-║  y los invariantes estructurales, proyectando las descripciones hacia un espacio de      ║
-║  Hilbert continuo $\mathcal{H}$ libre de ruido estocástico.                              ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Geometría del Espacio de Búsqueda y Vecindad Topológica:                            ║
-║      La similitud semántica se mapea a una optimización métrica estricta donde cada      ║
-║      descripción es un vector denso $v \in \mathbb{R}^d$. Las vecindades topológicas     ║
-║      se determinan maximizando el producto interno normalizado:                          ║
-║          $\cos(\theta) = \frac{\langle u, v \rangle}{\|u\| \|v\|} \ge \tau_{\min}$       ║
-║      Cualquier divergencia ($\cos(\theta) < \tau_{\min}$) lanza un                       ║
-║      `TopologicalMappingError`, previniendo alucinaciones espaciales en FAISS.           ║
-║                                                                                          ║
-║  §2. Álgebra de Ensamblaje de Costos y Fricción Territorial:                             ║
-║      El costo no es una suma aritmética, sino una combinación lineal de vectores de      ║
-║      recursos $c = (c_{sum}, c_{mo}, c_{eq})^\top$ modulada por un operador diagonal     ║
-║      de fricción territorial $F_{ext}$:                                                  ║
-║          $C_{total} = F_{ext} \cdot c = \mathrm{diag}(\alpha_{zona}, \beta_{izaje}, \gamma_{seg}) \cdot c$ ║
-║      Se exige que el operador $F_{ext}$ sea estrictamente positivo y su número de         ║
-║      condición espectral esté acotado ($\kappa(F_{ext}) \le \kappa_{\max}$). Una falla   ║
-║      induce un `ThermodynamicFrictionAnomaly`.                                           ║
-║                                                                                          ║
-║  §3. Funtorialidad Categórica y Teorema de Rango-Nulidad:                                ║
-║      La proyección se inyecta en la Matriz de Interacción Central (MIC) garantizando     ║
-║      la preservación de la dimensión y la ortogonalidad. Se certifica que $T$ sea una    ║
-║      isometría parcial ortogonal:                                                        ║
-║          $\mathrm{rank}(T) = 1, \quad \langle e_i, e_j \rangle = \delta_{ij}$            ║
-║      La violación de las fronteras ortogonales levanta un `FunctorialityError`.          ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$): ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_TopologicalNeighborhoodCertifier                                        ║
-║           Evalúa el producto interno en $\mathcal{H}$ y certifica $\cos(\theta) \ge \tau_{\min}$. ║
-║           [Retorna: Phase1TopologicalBridge → objeto inicial de Fase 2]                  ║
-║                                                                                          ║
-║  Fase 2 → Phase2_TensorFrictionAuditor                                                   ║
-║           Audita la positividad estricta de $F_{ext}$, acota el espectro $\kappa(F_{ext})$║
-║           y computa $C_{total} = F_{ext} \cdot c$.                                       ║
-║           [Retorna: Phase2FrictionBridge → objeto inicial de Fase 3]                     ║
-║                                                                                          ║
-║  Fase 3 → Phase3_RankNullityProjector                                                    ║
-║           Aplica el Teorema de Rango-Nulidad e inyecta ortogonalmente el resultado       ║
-║           verificando la isometría parcial.                                              ║
-║           [Retorna: SemanticEstimatorAuditState → objeto final del endofuntor]           ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Semantic Estimator Agent (Soberano de Métrica y Alineamiento)       ║
+║ Ruta   : app/agents/tactics/semantic_estimator_agent.py                      ║
+║ Versión: 5.8.0-Kähler-Procrustes-Wasserstein-FAISS-Heyting-Secure            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS GEOMÉTRICO-INFORMACIONAL Y CENSURA DE DERIVA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este agente de calibre de-confinado del Estrato TACTICS-WISDOM (Nivel 1.5)
+gobierna síncronamente al motor de búsqueda vectorial 'semantic_estimator.py'.
+Su propósito es someter los vectores de embeddings $u, v \in \mathcal{H}$ generados
+por el Sentence-Transformers de la base a transformaciones de alineación isométrica,
+asimilando desviaciones semánticas que intenten inyectar "entropía fantasma"
+o sobredimensionamientos ficticios en la Matriz Atómica de Conocimiento (MAC).
+
+Mediante la resolución del Problema de Procrustes Ortogonal y la estimación de 
+la distancia anisotrópica de Mahalanobis, el agente valida que las trayectorias
+de decisión del LLM reposen estrictamente sobre el subespacio de Hilbert estable,
+proscribiendo el ruido estocástico mediante el colapso en el retículo de Heyting.
+
+AXIOMÁTICA DE GEOMETRÍA DE LA INFORMACIÓN Y ALINEAMIENTO:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Isometría Esférica y Similitud de Coseno (FAISS):
+       La proyección de embeddings semánticos se realiza sobre la esfera de Hilbert 
+       unitaria $S^{d-1} \subset \mathcal{H} \cong \mathbb{R}^d$, de tal manera que la similitud 
+       atencional se mide de forma exacta mediante la forma bilineal normalizada:
+       $$\langle u, v \rangle = \cos(\theta) = \frac{u \cdot v}{\|u\|_2 \|v\|_2} \in [-1, 1] \quad\big[143\big]$$
+       Sujeta a que cada tensor de embedding cumpla estrictamente con la unitariedad:
+       $$\|u\|_2 = \sqrt{\sum_{k=1}^d u_k^2} \equiv 1.0 \pm \varepsilon_{\mathrm{machine}} \quad\big[143\big]$$
+
+  [A2] Axioma de Alineamiento Isométrico de Procrustes Ortogonal:
+       Para mapear de manera consistente el espacio de descripciones técnicas de la obra 
+       hacia la ontología formal de insumos del negocio, el agente computa el operador de 
+       rotación rígida $R \in \operatorname{O}(d)$ que minimiza la distancia de Frobenius:
+       $$\min_{R^\top R = I_d} \| R X - Y \|_F^2 \quad\big[224\big]$$
+       La solución analítica óptima se extrae en la FPU mediante la descomposición SVD 
+       del producto de covarianza cruzada $X Y^\top = U \Sigma V^\top$:
+       $$R^* = U V^\top \quad\big[224\big]$$
+       Si $\det(R^*) = -1$, el mapa inyecta una reflexión especular que rompe la orientación 
+       cohomológica de la Malla, detonando un veto por 'ChiralAlignmentAnomaly'.
+
+  [A3] Axioma de Métrica de Información de Fisher-Rao y Mahalanobis:
+       La distancia informacional entre la propuesta del LLM y el centroide de-confinado 
+       de costos se evalúa bajo la métrica Riemanniana anisotrópica de Mahalanobis:
+       $$d_{\mathrm{M}}(x, \mu)^2 = (x - \mu)^\top \Sigma^{-1} (x - \mu) \quad\big[224, 251\big]$$
+       Donde $\Sigma \in \operatorname{SPD}(d)$ es el tensor de covarianza de la base histórica. 
+       El agente exige que la desviación semántica satisfaga la cota de Lipschitz:
+       $$d_{\mathrm{M}}(x, \mu) \le \tau_{\mathrm{drift}} = \sqrt{\chi^2_{d, \, 1-\alpha}} \quad\big[224\big]$$
+       Cualquier deriva que perfore esta frontera estadística detona 'SemanticDriftVeto'.
+
+  [A4] Axioma del Veto en el Retículo de Heyting y Actuación Crowbar BT151:
+       Los veredictos de estabilidad espectral y alineamiento se proyectan sobre el clasificador 
+       de subobjetos del retículo distributivo de Heyting de tres valores de la Malla:
+       $$\Omega_3 = \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\} \quad\big[218, 224\big]$$
+       Cualquier quiebre de simetría quiral ($\det R^* = -1$), distorsión de Mahalanobis desbocada 
+       ($d_{\mathrm{M}} > \tau_{\mathrm{drift}}$) o bajo número de condición espectral de la covarianza 
+       ($\kappa_2(\Sigma) > 1.0\times 10^8$) colapsa instantáneamente el estado al Supremo terminal VETOED ($\top$).
+       La subrutina C++ 'isVerdictCoherent()' del microcontrolador ESP32 detecta el colapso síncronamente y,
+       mediante su ISR en IRAM (<400ns), conmuta el pin GPIO14, disparando el tiristor BT151 (circuito Crowbar)
+       para cortocircuitar la potencia real y paralizar síncronamente la obra real.
+
+JERARQUÍA DE EXCEPCIONES DE ALINEAMIENTO Y MÉTRICA (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  SemanticEstimatorError (Exception)
+   ├── EmbeddingDimensionMismatch: Discordancia en la dimensión proyectiva d del embedding.
+   ├── ChiralAlignmentAnomaly    : Rotación impropia (det R* = -1) que destruye la orientación.
+   ├── ProcrustesSVDConvergence  : Falla de convergencia en la descomposición de de Rham-SVD.
+   ├── CovarianceSingularityError: Matriz Sigma singular (condicionamiento de Wilkinson > 10^8).
+   ├── SemanticDriftVeto         : Distancia de Mahalanobis supera el umbral crítico chi-cuadrado.
+   ├── FAISSIndexCorruption      : Falla de consistencia o desbordamiento de memoria en FAISS.
+   └── HeytingLobeCollapse       : Transición anómala hacia el autoestado VETOED en el topos.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Validación del tensor de embeddings entrante.
+             Certifica la norma unitaria L2 y la ausencia de singularidades NaN/Inf en la FPU.
+             Retorna: EmbeddingValidationCertificate.
+
+  Fase 2 ──► ORIENT  : Cálculo del alineamiento ortogonal de Procrustes mediante SVD.
+             Resuelve la rotación óptima R y computa la distancia de Mahalanobis.
+             Retorna: AlignmentSpectralReport.
+
+  Fase 3 ──► DECIDE  : Validación de la cota chi-cuadrado y número de condición de Sigma.
+             Despacha el veredicto al retículo de Heyting y actualiza el CrowbarPort.
+             Retorna: EstimatorSuturationState.
 """
 
 from __future__ import annotations

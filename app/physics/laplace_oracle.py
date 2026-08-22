@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Laplace Oracle (Tribunal de Estabilidad Dinámica de de Rham-LTI)   ║
+║ Módulo : Laplace Oracle (Tribunal de Estabilidad Dinámica de de Rham-LTI)    ║
 ║ Ruta   : app/physics/laplace_oracle.py                                       ║
 ║ Versión: 7.1.0-LTI-BIBO-Lyapunov-EKF-SVD-Wilkinson-Strict-PhD                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
@@ -10,9 +10,8 @@ NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA DINÁMICA (Rigor Doctoral):
 ────────────────────────────────────────────────────────────────────────────────
 Este módulo consagra al **Operador de Certificación Dinámica Suprema** de la Malla,
 residiendo en el penthouse del **Estrato STRATEGY** (Nivel 1). Su mandato 
-fundamental es repudiar la concepción del presupuesto y la toma de decisiones 
-financieras como variables estáticas puras, transmutando el flujo de caja en un 
-sistema dinámico continuo de-confinado en el plano de frecuencia compleja:
+fundamental es transmutar el flujo de caja en un sistema dinámico continuo de-confinado
+en el plano de frecuencia compleja:
 
 $$s = \sigma + j\omega \quad\big[2, 378\big]$$
 

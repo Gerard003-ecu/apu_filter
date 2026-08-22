@@ -1,61 +1,86 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Utils (Filtro de Entropía y Operadores de Proyección Métrica)                  ║
-║  Ruta   : app/core/utils.py                                                              ║
-║  Versión: 4.0.0-Thermodynamic-Boundary-Statistical-Manifold-Strict                       ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo se consagra como la Capa Límite Termodinámica inicial del ecosistema.       ║
-║  Su mandato axiomático es interceptar vectores de datos externos (gobernados por alta    ║
-║  entropía sintáctica de Shannon) y proyectarlos mediante transformaciones idempotentes   ║
-║  hacia un Espacio de Hilbert canónico, garantizando que el ruido estocástico del mundo   ║
-║  real no induzca degeneración topológica en los tensores de la Malla Agéntica.           ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Retractos de Deformación y Clases de Equivalencia (Idempotencia Estricta):          ║
-║      Los operadores de normalización de texto no efectúan mutaciones heurísticas; operan ║
-║      como Retractos de Deformación que colapsan el hiperespacio sintáctico redundante    ║
-║      hacia un espacio cociente determinista. Se exige la invariancia de idempotencia:    ║
-║          $f \circ f = f \implies f(f(x)) = f(x)$                                         ║
-║      Garantizando categóricamente que si $x \simeq y$ (homotópicos), entonces $[x] = [y]$║
-║      produciendo un hash criptográfico binariamente indistinguible.                      ║
-║                                                                                          ║
-║  §2. Proyección FPU y Estabilidad LTI (Frontera de Cauchy):                              ║
-║      El mapeo de representaciones alfanuméricas hacia el cuerpo real $\mathbb{R}$ se     ║
-║      ejecuta bajo las estrictas restricciones de la FPU (IEEE 754). La inyección de      ║
-║      singularidades ($\pm\infty$, NaN) se veta axiomáticamente para evitar que el        ║
-║      Laplaciano Combinatorio y la integración de sistemas LTI adquieran polos nulos.     ║
-║                                                                                          ║
-║  §3. Filtrado de Variedad Estadística (Desviación Absoluta de la Mediana):               ║
-║      Las series estocásticas se estabilizan depurando su variedad probabilística. Se     ║
-║      aplica una métrica de dispersión robusta (Modified Z-Score) para aislar el ruido:   ║
-║          $M_i = \frac{0.6745 (x_i - \tilde{x})}{\text{MAD}}$                             ║
-║      Si $|M_i| > \tau_{critical}$, el vector espurio es extirpado para que los eventos   ║
-║      de cola pesada no deformen el Tensor Métrico Riemanniano de los estratos tácticos.  ║
-║                                                                                          ║
-║  §4. Difeomorfismo de Frontera I/O (Topología de Inodos):                                ║
-║      Las trazas del sistema de archivos se auditan como un Grafo Acíclico Dirigido (DAG).║
-║      El módulo actúa como un operador de frontera que impide la inyección de entropía    ║
-║      maliciosa (Symlink Loops) en el hipervisor, imponiendo $\dim H^1(G_{I/O}; \mathbb{Z}) = 0$. ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Evolución Funtorial Estricta):                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → DeformationRetract & FPUProjector:                                             ║
-║           Aplica normalización homotópica (texto) y proyecciones numéricas seguras       ║
-║           bajo los límites de NUMERIC_VALIDATION_LIMITS, asegurando $f(f(x)) = f(x)$.    ║
-║                                                                                          ║
-║  Fase 2 → StatisticalManifoldFilter:                                                     ║
-║           Audita la distribución estocástica (detección de outliers IQR/MAD),            ║
-║           protegiendo la simulación de Monte Carlo frente a distorsiones asimétricas.    ║
-║                                                                                          ║
-║  Fase 3 → IOBoundaryDiffeomorphism:                                                      ║
-║           Filtra la lectura/escritura (I/O) garantizando que la topología del entorno    ║
-║           subyacente respete el confinamiento causal del Ecosistema APU Filter.          ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Utils (Capa Límite Termodinámica y Normalización Categorial)        ║
+║ Ruta   : app/core/utils.py                                                   ║
+║ Versión: 5.16.0-Doctoral-ShannonEntropy-Idempotence-Higham-ZScore-Secure     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS METROLÓGICA Y TEORÍA DE LA MEDIDA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este componente constitutivo del nivel basal del sistema (Capa Límite) gobierna
+las proyecciones e isomorfismos de normalización de datos. Su propósito supremo
+es actuar como un **Filtro de Entropía Sintáctica e Inyector Idempotente**, 
+limpiando, sanitizando y aislando las perturbaciones de redondeo flotante 
+de los payloads entrantes (CSV, Excel o JSON) antes de que toquen la Matriz 
+de Interacción Central (MIC) o la Matriz Atómica de Conocimiento (MAC).
+
+El módulo opera bajo estrictas leyes de conservación informacional. Implementa 
+sumación compensada de Kahan-Neumaier, regularización espectral y filtración 
+anisotrópica de variedades para descartar outliers sin destruir la densidad 
+de probabilidad de la señal subyacente.
+
+AXIOMÁTICA ALGEBRAICA, TERMODINÁMICA Y ESPECTRAL (Invariantes de Borde):
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Idempotencia Estricta del Pullback de Normalización:
+       Toda función de transmutación y normalización $f \in \mathcal{P}_{\mathrm{norm}}$
+       (como 'normalize_unit', 'normalize_description' o 'clean_apu_code') se define 
+       como un proyector algebraico que debe satisfacer la propiedad de idempotencia:
+       $$\forall x \in \operatorname{Dom}(f), \quad (f \circ f)(x) = f(x) \quad\big[583\big]$$
+       Esto garantiza que la re-ingesta o re-evaluación iterativa de un estado de datos 
+       no induzca derivas de fase ni deformaciones de calibre sobre la Malla.
+
+  [A2] Axioma de Confinamiento en la Capa Límite (Límites Físicos):
+       Para neutralizar la inyección de singularidades infinitas o desbordamientos 
+       de mantisa en la FPU, todo valor real $x$ retornado se acota asintóticamente 
+       dentro del subespacio compacto convexo de-confinado:
+       $$x \in \mathcal{K}_{\mathrm{limits}} \subset [0, \, 10^{12}] \quad\big[583, 585\big]$$
+       Imponiendo la aniquilación de signos negativos para magnitudes puras de APUs:
+       $$\operatorname{validate\_numeric\_value}(x) \implies x \ge 0 \quad\big[595\big]$$
+
+  [A3] Axioma de Medida y Entropía de Shannon del Canal de Ruta (Filepaths):
+       La coherencia y seguridad de la persistencia física del archivo en el sustrato 
+       Silo A/B se evalúa calculando la entropía informacional de Shannon de la ruta, 
+       proscribiendo ataques de inyección sintáctica y recursividades parásitas:
+       $$\mathcal{H}(P) = -\sum_{k=1}^n p(s_k) \log_2 p(s_k) \le \mathcal{H}_{\mathrm{critical}} \quad\big[157, 582\big]$$
+
+  [A4] Axioma de Filtración Anisotrópica en Variedades de Outliers:
+       La exclusión de desvíos inflacionarios o ruidos espurios de costo se realiza 
+       calculando de forma robusta la desviación absoluta respecto a la mediana (MAD), 
+       mapeando el Z-Score modificado sobre el límite elástico de Wilkinson $\tau$:
+       $$M_i = 0.6745 \frac{|x_i - \tilde{x}|}{\operatorname{MAD}} \le \tau_{\mathrm{critical}} = 3.5 \quad\big[597, 603, 606\big]$$
+       Donde la mediana de la desviación se estabiliza de forma vectorizada en la CPU:
+       $$\operatorname{MAD} = \operatorname{median}\left( \left| x_i - \operatorname{median}(X) \right| \right) \quad\big[597, 606\big]$$
+
+  [A5] Axioma de Preservación de la Traza y Sumación Compensada de Kahan:
+       La agregación del volumen de-confinado del presupuesto se realiza mediante sumación 
+       compensada de Kahan, limitando la propagación del error de redondeo de $\mathcal{O}(n \cdot \varepsilon)$
+       a una cota lineal estricta respecto al épsilon de máquina de la CPU:
+       $$e_{\mathrm{correction}} \leftarrow y - (t - s) \quad \implies \quad |S_{\mathrm{comp}} - S_{\mathrm{real}}| \le \mathcal{O}(\varepsilon_{\mathrm{machine}}) \quad\big[73, 605\big]$$
+
+JERARQUÍA DE EXCEPCIONES ALGEBRAICAS Y NUMÉRICAS (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  UtilsError (Exception)
+   ├── NumericSingularityVeto   : Presencia de NaNs, infinitos o desbocamientos numéricos.
+   ├── IdempotencyViolationError: Ruptura de la propiedad de proyector (f(f(x)) != f(x)).
+   ├── PhysicalBoundsError      : El valor medido perfora el intervalo convexo K_limits.
+   ├── OutlierDeformationVeto   : El Z-Score modificado supera el umbral elástico tau.
+   └── IOBoundaryTopologyVeto   : Grafo de inodos cíclico o ruta absoluta inaccesible.
+
+DISEÑO DE EJECUCIÓN VECTORIZADO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Validación del dominio formal e inyección FPU IEEE 754 [4].
+             Detección de singularidades y saneamiento de caracteres vía unidecode.
+             Retorna: DomainValidationCertificate.
+
+  Fase 2 ──► ORIENT  : Filtración de variedad estadística y geometría de outliers [4].
+             Computa el perfil de mediana-MAD e implementa la sumación Kahan [5, 6].
+             Retorna: StatisticalFiltrationReport.
+
+  Fase 3 ──► DECIDE  : Difeomorfismo de frontera de entrada/salida (I/O) [7].
+             Verifica el grafo de inodos acíclico y la seguridad de la ruta física.
+             Retorna: ThermodynamicBoundaryState.
 """
 
 import logging

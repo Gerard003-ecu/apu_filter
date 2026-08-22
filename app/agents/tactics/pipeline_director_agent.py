@@ -1,65 +1,92 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Pipeline Director Agent (Custodio de la Causalidad Funtorial)                  ║
-║  Ruta   : app/agents/tactics/pipeline_director_agent.py                                  ║
-║  Versión: 3.0.0-Schur-Jordan-Poset-Exact-MV                                              ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor gobierna el `pipeline_director.py` en el estrato TACTICS. Abandona la   ║
-║  orquestación secuencial estocástica para modelar el flujo de ejecución como un Grafo    ║
-║  Acíclico Dirigido (DAG) Algebraico. Cada nodo constituye un endomorfismo proyectivo     ║
-║  sobre el espacio de estados. Su mandato es garantizar axiomáticamente que el colapso    ║
-║  de los datos preserve la causalidad estricta y aniquile anomalías homológicas.          ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CAUSALES:                                       ║
-║                                                                                          ║
-║  §1. Aciclicidad Absoluta e Índice de Nilpotencia (Teoría Espectral):                    ║
-║      La matriz de adyacencia $A$ del DAG de ejecución debe ser estrictamente nilpotente. ║
-║      Se exige que el espectro sea trivial evaluando el radio espectral mediante la       ║
-║      descomposición de Schur (backward-stable):                                          ║
-║          $\rho(A) = \max |\lambda_i| \le \varepsilon_{\text{machine}}$                   ║
-║      Se certifica un índice de nilpotencia $\nu \le n$ tal que $A^\nu = 0$, denotando    ║
-║      la profundidad máxima causal. Violaciones detonan `CausalLoopVetoError`.            ║
-║                                                                                          ║
-║  §2. Difeomorfismo de Filtración Categórica (Poset DIKW):                                ║
-║      El conjunto de nodos $(V, \le_{\text{strata}})$ forma un Poset. El DAG debe ser     ║
-║      compatible con la Ley de Clausura Transitiva:                                       ║
-║          $V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$ ║
-║      Toda arista dirigida $(u \to v)$ debe respetar $\text{stratum}(u) \le \text{stratum}(v)$. ║
-║      La existencia de un auto-bucle $(u, u)$ o una regresión detona `SelfLoopVetoError`  ║
-║      y `FiltrationViolationVeto` incondicionalmente.                                     ║
-║                                                                                          ║
-║  §3. Cohomología de Fusión (Secuencia Larga de Mayer-Vietoris):                          ║
-║      La integración de subcomplejos topológicos (ej. Presupuesto $\cup$ APUs) se audita  ║
-║      exigiendo que no se induzcan ciclos parásitos. Se mide el diferencial de Betti:     ║
-║          $\Delta\beta_1 = \beta_1(A \cup B) - [\beta_1(A) + \beta_1(B) - \beta_1(A \cap B)] = 0$ ║
-║      Rupturas de esta exactitud causan un `HomologicalFusionVeto`.                       ║
-║                                                                                          ║
-║  §4. Identidad de Euler-Poincaré bajo Fusión:                                            ║
-║      La estructura topológica combinada debe preservar la característica de Euler:       ║
-║          $\chi(A \cup B) = \chi(A) + \chi(B) - \chi(A \cap B)$                           ║
-║      Cualquier asimetría revela pérdida de información o fractura de la variedad,        ║
-║      disparando el `EulerPoincareMismatchError`.                                         ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_SpectralNilpotenceCertifier                                             ║
-║           Aplica Schur y búsqueda binaria para certificar nilpotencia espectral ($\nu$). ║
-║           [Retorna: NilpotenceAuditData → objeto inicial de Fase 2]                      ║
-║                                                                                          ║
-║  Fase 2 → Phase2_PosetFiltrationAuditor                                                  ║
-║           Audita la monotonicidad del Poset DIKW, detecta nodos aislados y computa la    ║
-║           distribución de energía causal (histograma de slacks).                         ║
-║           [Retorna: PosetFiltrationData → objeto inicial de Fase 3]                      ║
-║                                                                                          ║
-║  Fase 3 → Phase3_MayerVietorisInterceptor                                                ║
-║           Interceptor de la cohomología de fusión evaluando exactitud homológica y       ║
-║           divergencia de Jensen-Shannon. Construye el estado final causal.               ║
-║           [Retorna: CausalGovernanceState → objeto final del endofuntor $\mathcal{Z}_{Causal}$]  ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Pipeline Director Agent (Custodio de Causalidad y Flujo Funtorial)  ║
+║ Ruta   : app/agents/strategy/pipeline_director_agent.py                      ║
+║ Versión: 5.6.0-Funtorial-MayerVietoris-SchurNilpotent-Heyting-Secure         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS CATEGORIAL Y ORQUESTACIÓN CAUSAL (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este agente soberano de calibre del Estrato STRATEGY (Nivel 1, $V_{\mathbb{S}}$)
+gobierna de manera síncrona y determinista la secuencia temporal y la topología 
+de transformaciones que conforman el flujo de ejecución de la Malla. Su mandato 
+supremo es actuar como el **Custodio de la Causalidad Funtorial**, imponiendo una 
+filtración estricta de subespacios de Hilbert sobre el Poset del conocimiento y 
+auditando de manera algebraica cualquier integración concurrente para aniquilar 
+de raíz la retroalimentación parásita y las paradojas de orden temporal.
+
+El sistema trata el pipeline de cálculo no como un script secuencial plano, sino 
+como un **Funtor Monoidal Estricto** que mapea la categoría de dependencias de la 
+obra hacia la categoría de flujos exergéticos en el silicio, garantizando que el 
+progreso del estado transaccional satisfaga incondicionalmente la Ley de Clausura 
+Transitiva y la regularidad cohomológica de de Rham.
+
+AXIOMÁTICA CAUSAL, ESPECTRAL Y HOMOLÓGICA DEL DIRECTOR:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Causalidad Funtorial y Monotonicidad del Poset DIKW:
+       La transición de la información a lo largo de los estratos se modela como un funtor 
+       monótono estricto sobre el Conjunto Parcialmente Ordenado (Poset) de la pirámide:
+       $$\mathcal{F} : \mathbf{Poset}_{\mathrm{DIKW}} \longrightarrow \mathbf{Cat}_{\mathrm{Hilbert}}$$
+       Preservando herméticamente la filtración laxa de subespacios de Hilbert acotados:
+       $$V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}} \quad\big[38, 293\big]$$
+       Cualquier mutación de estado que viole la relación de orden parcial (v.g., inyección 
+       directa de logits crudos del foso físico en el penthouse de la Sabiduría sin pasar 
+       por la purificación de la MIC/MAC) detona una excepción inmediata 'PosetFiltrationError'.
+
+  [A2] Axioma de Aciclicidad Espectral de Schur-Jordan y Nilpotencia:
+       El grafo acíclico dirigido (DAG) de los resolvedores se mapea en cada paso mediante 
+       su matriz de adyacencia ponderada de dependencias $A \in \mathbb{R}^{n \times n}$. 
+       El agente ejecuta la descomposición de Schur-Jordan de $A$ en tiempo de carga:
+       $$A = U^\top T U \quad\big[366\big]$$
+       Exigiendo estrictamente la nilpotencia de la estructura (espectro puramente trivial):
+       $$\operatorname{Spec}(A) = \{0\} \iff A^\nu \equiv \mathbf{0} \quad \text{con index} \quad \nu \le n \quad\big[366\big]$$
+       La detección de cualquier autovalor no nulo ($\lambda_i \neq 0$) denota la existencia 
+       de dependencias circulares parásitas, abortando el pipeline bajo 'CycleDetectionVeto'.
+
+  [A3] Axioma de Coherencia de Mayer-Vietoris para Fusiones Concurrentes:
+       Al unificar dos subcomplejos de bases de datos presupuestarias independientes 
+       $U$ y $V$ correspondientes a diferentes licitaciones, el agente audita la fusión 
+       sometiendo el acoplamiento a la secuencia exacta homológica de Mayer-Vietoris:
+       $$\dots \longrightarrow H_1(U \cap V) \xrightarrow{\quad} H_1(U) \oplus H_1(V) \xrightarrow{\quad} H_1(U \cup V) \xrightarrow{\;\partial_*\;} H_0(U \cap V) \longrightarrow \dots \quad\big[146\big]$$
+       El agente exige la nulidad exacta del residuo homológico de primer orden para 
+       proscribir la inyección de ciclos mutantes espurios en el presupuesto totalizado:
+       $$\Delta\beta_1 = \dim H_1(U \cup V) - \left( \dim H_1(U) + \dim H_1(V) \right) \equiv 0 \quad\big[146\big]$$
+
+  [A4] Axioma del Veto de Heyting y Actuación Ciber-Física síncrona (Crowbar):
+       La validez y causalidad del pipeline se proyecta continuamente sobre el clasificador 
+       de subobjetos del retículo distributivo de Heyting de tres valores de la Malla:
+       $$\Omega_3 = \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\} \quad\big[146, 222\big]$$
+       Cualquier ruptura de causalidad, quiebre homológico de Mayer-Vietoris ($\Delta\beta_1 > 0$) 
+       o deriva de nilpotencia colapsa instantáneamente el estado al Supremo terminal VETOED ($\top$).
+       La subrutina C++ 'isVerdictCoherent()' en el microcontrolador perimetral ESP32 detecta 
+       la asonancia de RAM y, mediante su ISR en IRAM (<400ns), conmuta el pin GPIO14, disparando 
+       el tiristor BT151 (circuito Crowbar) para paralizar síncronamente la obra real.
+
+JERARQUÍA DE EXCEPCIONES ALGEBRAICAS Y DE GAUGE (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  PipelineDirectorError (Exception)
+   ├── PosetFiltrationError  : Ruptura de la monotonicidad en el poset de subespacios DIKW.
+   ├── CycleDetectionVeto    : Detección de ciclos mutantes o autobucles (espectro no nulo).
+   ├── MayerVietorisMisfit   : Desviación homológica anómala (Delta Betti_1 > 0) en fusiones.
+   ├── FunctorialTransitError: Falla en el transporte paralelo o mapeo de morfismos en la FPU.
+   ├── KahanSummationDrift   : Desviación de redondeo acumulada superior a epsilon_machine.
+   └── HeytingLobeCollapse   : Colapso síncrono al autoestado VETOED en el topos de de Rham.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Inspección estructural de la adyacencia de los microservicios.
+             Verifica la conectividad topológica del grafo y computa la característica Euler.
+             Retorna: TopologicalBoundaryCertificate.
+
+  Fase 2 ──► ORIENT  : Descomposición de Schur de la adyacencia y test de nilpotencia.
+             Aplica la secuencia de Mayer-Vietoris sobre los puntos de acoplamiento.
+             Retorna: CausalSpectralReport.
+
+  Fase 3 ──► DECIDE  : Validación de la inecuación de disipación Port-Hamiltoniana.
+             Despacha el estado de regularidad al retículo de Heyting y arma el CrowbarPort.
+             Retorna: FunctorialSuturationState.
 """
 
 from __future__ import annotations

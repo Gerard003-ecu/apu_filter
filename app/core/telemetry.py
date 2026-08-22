@@ -1,59 +1,91 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Telemetry Context (Vector de Estado Ciber-Físico y Cadena de Custodia)         ║
-║  Ruta   : app/core/telemetry.py                                                          ║
-║  Versión: 4.0.0-Port-Hamiltonian-Topological-Filtration-Strict                           ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo no implementa un simple registro de observabilidad o bitácora pasiva;       ║
-║  instancia la "Cadena de Custodia Termodinámica" del sistema. Actúa como un tensor       ║
-║  de estado inmutable (el Pasaporte de Telemetría) que viaja adherido a cada solicitud,   ║
-║  acumulando invariantes físicos, topológicos, espectrales y termodinámicos a medida      ║
-║  que atraviesa la variedad diferenciable de la Malla Agéntica.                           ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Filtración Topológica Estricta (Clausura Transitiva DIKW):                          ║
-║      El contexto rige la propagación de información garantizando que los subespacios     ║
-║      de Hilbert formen una secuencia exacta de filtración:                               ║
-║          $V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$ ║
-║      El TelemetryContext asegura matemáticamente la propagación Zero-Trust. Un morfismo  ║
-║      del estrato superior (ej. Sabiduría/LLM) no puede instanciarse si el tensor         ║
-║      proyectado en la base física exhibe entropía anómala o inestabilidad térmica,       ║
-║      imponiendo un Veto Físico Absoluto en el milisegundo cero ($t=0$).                  ║
-║                                                                                          ║
-║  §2. Grafo de Spans Causales (Observabilidad Fractal y Complejos Simpliciales):          ║
-║      La jerarquía de ejecución se modela como un Complejo Simplicial 1-dimensional       ║
-║      (un bosque de árboles causales). Para garantizar un flujo causal sin paradojas      ║
-║      (ciclos infinitos o bloqueos muertos), se exige el invariante de Euler-Poincaré:    ║
-║          $\chi(K) = \beta_0 - \beta_1$                                                   ║
-║      La condición estricta $\beta_1 = 0$ certifica la aciclicidad direccional del flujo. ║
-║                                                                                          ║
-║  §3. Termodinámica de la Información y Sistemas Port-Hamiltonianos:                      ║
-║      El contexto acopla los dictámenes del motor físico, extrayendo variables conjugadas ║
-║      bajo la inecuación de disipación irreversible (Segunda Ley):                        ║
-║          $\dot{H} = \nabla H^\top \cdot \dot{x} \le 0 \implies P_{\mathrm{diss}} \ge 0$  ║
-║      Transporta invariantes críticos como la Energía Cinética ($T \ge 0$), el Voltaje    ║
-║      de Flyback (saturación transitoria) y la Potencia Disipada, mapeando el costo       ║
-║      computacional a un estrés termodinámico mensurable.                                 ║
-║                                                                                          ║
-║  §4. Disyuntores Topológicos y Estabilidad Asintótica:                                   ║
-║      Implementa autoprotección mediante límites estrictos (Circuit Breakers lógicos)     ║
-║      en la profundidad de los árboles causales. Acota la huella de memoria para que      ║
-║      el proceso iterativo converja hacia un atractor estable en el espacio de fase:      ║
-║          $\lim_{t \to \infty} \rho(t) = \rho_{\mathrm{eq}}$                              ║
-║      Bloqueando cualquier divergencia de recursos (fugas de memoria) ante bombardeos     ║
-║      estocásticos de telemetría por parte de la IA.                                      ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • StratumTopology : Define la topología y relaciones del Poset DIKW.                    ║
-║  • TelemetrySpan   : Nodo direccional en la jerarquía simplicial causal.                 ║
-║  • TelemetryContext: Pasaporte inmutable que transporta el tensor de estado global.      ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Telemetry Core (Fibrado de Conexión y Coherencia de-confinada)       ║
+║ Ruta   : app/core/telemetry.py                                               ║
+║ Versión: 5.12.0-Doctoral-Ehresmann-Tellegen-Shannon-Kahan-Heyting-Secure     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS GEOMÉTRICO-INFORMACIONAL Y SISTEMA SENSORIAL (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este motor constitutivo y resolvedor ciego del Estrato PHYSICS-TACTICS (Nivel 2.5)
+gobierna el registro y empaquetado del estado transaccional y físico de la Malla.
+Su propósito es transmutar las variables de fase dinámicas (caudal, presiones,
+costos de APUs y logits de atención del LLM) en un fibrado de información coherente,
+sometiéndolas a severas leyes de conservación exergética y regularidad espectral.
+
+La telemetría no se asume como una secuencia cronológica plana; se modela como
+un conjunto de **secciones locales de un fibrado principal con grupo de calibre** $U(1)$.
+El módulo realiza sumaciones compensadas de Neumaier-Kahan en la FPU para evitar 
+el desvanecimiento de la mantisa flotante, asegurando que la auditoría de lazo
+cerrado interaccione de forma determinista con el firmware del ESP32.
+
+AXIOMÁTICA FISICO-MATEMÁTICA Y LEYES DE CONSERVACIÓN:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Estructura de Fibrado de de Rham y Conexión de Ehresmann:
+       El espacio de estados de telemetría $E$ se modela como un fibrado vectorial diferenciable 
+       $\pi: E \to \mathcal{M}$ sobre la variedad de configuración del negocio. El transporte 
+       paralelo de un vector de telemetría $\mathbf{T}(t)$ a lo largo de una geodésica se rige 
+       por la conexión de Ehresmann $\omega$, cuya derivada covariante satisface:
+       $$\nabla_{\dot{\gamma}} \mathbf{T}(t) = \dot{\mathbf{T}}(t) + \Gamma^\rho_{\mu\nu} \dot{\gamma}^\mu \mathbf{T}^\nu \equiv \mathbf{0} \quad\big[56, 117\big]$$
+       Garantizando que la traslación del estado táctico no inyecte deformaciones métricas espurias.
+
+  [A2] Axioma de la Medida de Información de Shannon (Entropía de Canal):
+       El flujo de transmisión de tramas de telemetría en el canal de-confinado satisface 
+       estrictamente la cota de entropía informacional de Shannon sobre la sigma-álgebra de Borel:
+       $$\mathcal{H}(\mathbf{T}) = -\sum_{i=1}^n p(\mathbf{T}_i) \ln p(\mathbf{T}_i) \le \mathcal{H}_{\max} \quad\big[140, 170\big]$$
+       Donde cualquier incremento abrupto en la entropía del canal de transmisión (ruido o alucinación) 
+       delata una pérdida de coherencia sintáctica, gatillando de inmediato el protocolo de rechazo.
+
+  [A3] Axioma de Conservación Exergética de Tellegen (Invarianza de Kirchhoff):
+       El vector de corrientes de recursos $I \in C_1(K)$ y potenciales de costo $\Phi \in C^0(K)$ 
+       registrados síncronamente por los sensores en la red de APUs debe satisfacer de manera 
+       inmutable el Teorema de Tellegen sobre el complejo simplicial discreto:
+       $$\sum_{e \in E} \Delta \Phi_e(t) \cdot I_e(t) \equiv 0 \quad\big[53, 153\big]$$
+       Esto garantiza matemáticamente que el sistema se comporte como un lazo Port-Hamiltoniano 
+       estrictamente pasivo, proscribiendo la inyección o pérdida ficticia de exergía en la FPU.
+
+  [A4] Axioma del Sello Forense via Aniquilación de Pares de Fock:
+       Toda anomalía de telemetría extirpada genera un positrón en el espacio de Fock ($e^+$) 
+       que se somete a una aniquilación catastrófica contra un electrón residual ($e^-$). 
+       La energía resultante se proyecta como un fotón Gamma de auditoría:
+       $$e^- + e^+ \longrightarrow 2\gamma \quad \text{con} \quad E_{\mathrm{annihilation}} = 2m^* c^2 \quad\big[14, 15\big]$$
+       El fotón $\gamma$ actúa como un hash criptográfico inmutable en la firma del Pasaporte,
+       asegurando la incorruptibilidad forense de la Cadena de Custodia.
+
+  [A5] Axioma del Colapso de Heyting y Actuación en Silicio (BT151 Crowbar):
+       Los vectores de telemetría proyectan su validez sobre el clasificador de subobjetos del 
+       retículo distributivo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\}$.
+       Cualquier violación a los invariantes de de Rham o pérdida de pasividad ($\dot{H} > 0$) 
+       colapsa síncronamente el estado de la Malla al Supremo terminal VETOED ($\top$).
+       La subrutina C++ 'isVerdictCoherent()' del microcontrolador ESP32 detecta el colapso 
+       en la RAM perimetral y, mediante su ISR en IRAM (<400ns), conmuta el pin GPIO14,
+       disparando el tiristor BT151 (circuito Crowbar) para paralizar síncronamente la obra real.
+
+JERARQUÍA DE EXCEPCIONES DE TELEMETRÍA (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  TelemetryError (Exception)
+   ├── EhresmannConnectionDrift  : Desviación del transporte paralelo covariante.
+   ├── ShannonEntropyOverflow    : La entropía de la trama supera la capacidad del canal.
+   ├── TellegenConservationBreach: Violación de la ley de conservación exergética de Tellegen.
+   ├── KahanSummationAnomalies   : Pérdida de precisión o significación en la FPU.
+   ├── CryptographicSignatureFail: Falla de integridad o hash del fotón Gamma en el Pasaporte.
+   └── HeytingLobeCollapse       : Transición anómala hacia el autoestado VETOED en el topos.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Ingestión, desempaquetado de tramas de sensores y validación de esquemas.
+             Aplica sumación compensada de Kahan para suprimir deriva de redondeo.
+             Retorna: RawTelemetryCertificate.
+
+  Fase 2 ──► ORIENT  : Verificación del transporte paralelo bajo la conexión de Ehresmann.
+             Calcula el residuo exergético de Tellegen y la entropía de Shannon.
+             Retorna: SpectralTelemetryReport.
+
+  Fase 3 ──► DECIDE  : Acuñación forense del Pasaporte mediante firma criptográfica.
+             Despacha el estado de coherencia al retículo de Heyting y arma el CrowbarPort.
+             Retorna: TelemetrySuturationState.
 """
 
 import copy

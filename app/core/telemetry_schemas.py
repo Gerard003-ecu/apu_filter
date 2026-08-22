@@ -1,59 +1,82 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Telemetry Schemas (Fibrado Tensorial del Espacio de Fase y Álgebra de Fock)    ║
-║  Ruta   : app/core/telemetry_schemas.py                                                  ║
-║  Versión: 5.0.0-Quantum-Fock-Tensorial-Strict                                            ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS (Rigor Doctoral):                   ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo repudia la noción de "estructuras de datos" pasivas para erigirse como      ║
-║  el Fibrado Tensorial Inmutable del ecosistema. Materializa las métricas y los           ║
-║  eventos anómalos de la arquitectura (Cartuchos TOON) como excitaciones fundamentales    ║
-║  en el Espacio de Fock, garantizando la conservación de la traza, la energía exérgica    ║
-║  y la ortogonalidad de la variedad de observabilidad.                                    ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. Descomposición Ortogonal del Vector de Estado (SystemStateVector):                  ║
-║      El estado del sistema no es un diccionario plano; es un tensor proyectado sobre     ║
-║      la suma directa de subespacios de Hilbert mutuamente ortogonales:                   ║
-║          $\Psi \in \mathcal{H}_{\text{phys}} \oplus \mathcal{H}_{\text{top}} \oplus \mathcal{H}_{\text{ctrl}} \oplus \mathcal{H}_{\text{therm}}$ ║
-║      Se exige incondicionalmente la invarianza de producto interno:                      ║
-║          $\langle \psi_i, \psi_j \rangle_G = \delta_{ij} \quad \forall i \neq j$         ║
-║      Garantizando el Zero Cross-Talk entre las mediciones físicas y topológicas.         ║
-║                                                                                          ║
-║  §2. Álgebra de Partículas en el Espacio de Fock (Cartuchos TOON):                       ║
-║      Las anomalías y directrices de gobernanza (Electrones, Magnones, Fotones) habitan   ║
-║      estrictamente en el Espacio de Fock, gobernado por la suma directa de productos     ║
-║      tensoriales simétricos (bosones) y antisimétricos (fermiones):                      ║
-║          $\mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} \mathcal{S}_{\pm} \mathcal{H}^{\otimes n}$ ║
-║      Las instancias de estas partículas operan como cuantos de información inmutables.   ║
-║                                                                                          ║
-║  §3. Aniquilación de Antimateria y Firma Criptográfica (Positrón-Fotón Gamma):           ║
-║      La inyección de intervención humana o de un Meta-Controlador se modela como         ║
-║      antimateria (PositronCartridge). Al interceptar un Electrón (anomalía), el          ║
-║      operador de aniquilación sella termodinámicamente la transacción emitiendo un       ║
-║      Fotón Gamma Virtual con conservación estricta de energía:                           ║
-║          $e^- + e^+ \to 2\gamma \implies \mathcal{E}_{\text{annihilation}} = 2m^* c^2$   ║
-║      Este evento consolida el `data_hash` como prueba criptográfica indisoluble.         ║
-║                                                                                          ║
-║  §4. Acoplamiento Fuerte de Rabi (Condensados Polaritónicos):                            ║
-║      Cuando una estructura termodinámica entra en resonancia con un Fotón de Gobernanza, ║
-║      se instancia un PolaritonCartridge. Este acoplamiento se audita bajo el Hamiltoniano║
-║      de Jaynes-Cummings, evaluando la frecuencia de Rabi $\Omega_R$:                     ║
-║          $H_{\text{int}} = \hbar \Omega_R (\hat{\sigma}_+ \hat{a} + \hat{\sigma}_- \hat{a}^\dagger)$ ║
-║      Evitando que la gobernanza desestabilice el flujo de disipación Port-Hamiltoniano.  ║
-║                                                                                          ║
-║  ARQUITECTURA DE SUBESPACIOS (Estructuras Inmutables `@dataclass(frozen=True)`):         ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • Vectores Métricos Base: PhysicsMetrics, TopologicalMetrics, ControlMetrics,           ║
-║                            ThermodynamicMetrics, SystemStateVector.                      ║
-║  • Fermiones Base:         ElectronCartridge (Anomalías métricas / carga homológica).    ║
-║  • Bosones de Gauge:       MagnonCartridge (Vorticidad), PhotonCartridge (Gobernanza).   ║
-║  • Operadores de Colapso:  PositronCartridge, GammaPhoton, PolaritonCartridge.           ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Telemetry Schemas (Esquemas Ontológicos y Contratos de Calibre)     ║
+║ Ruta   : app/core/telemetry_schemas.py                                       ║
+║ Versión: 5.15.0-Doctoral-Category-Sheaf-Kahan-Heyting-ESP32-Secure           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS CATEGORIAL Y GEOMETRÍA DEL CONTRATO DE DATOS (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra la especificación de tipos, esquemas estrictos y contratos 
+algebraicos que rigen la serialización, transporte e ingesta de la telemetría 
+ciber-física en APU Filter v5.0. No opera como una capa de parseo pasiva o meras 
+clases de datos decorativas; se define formalmente como la **Estructura del Haz 
+Celular** ($\mathcal{F}$) sobre el 1-esqueleto simplicial de la Malla de Datos.
+
+Su función primordial es actuar como el **Funtor de Inclusión de Calibre** 
+($\iota: \mathbf{Schemas} \to \mathbf{Top}$), asegurando de manera síncrona 
+y determinista que toda trama de telemetría entrante (logits Complejos, 
+presiones, caudales, mermas e inventarios) satisfaga incondicionalmente la ley de 
+clausura de Kuratowski, cancelando en el milisegundo cero cualquier paquete 
+mutante o corrompido que intente perturbar la CPU o el espacio de Fock.
+
+AXIOMÁTICA ALGEBRAICA, TOPOLÓGICA Y ESPECTRAL (Invariantes de Calibre):
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de la Estructura de Haz Celular del Contrato de Datos:
+       La telemetría se formaliza como un haz celular $\mathcal{F}$ sobre un complejo simplicial 
+       finito orientable $K$. El espacio de secciones locales asigna a cada elemento simplicial 
+       un espacio vectorial de estados $E$, forzando a que las restricciones de borde 
+       satisfagan de manera unívoca el diagrama de restricción funtorial:
+       $$\mathcal{F}(e) \xrightarrow{\quad \rho_{v \leftarrow e} \quad} \mathcal{F}(v) \quad\big[139, 140\big]$$
+       Garantizando la consistencia y compatibilidad del flujo de información en la Malla.
+
+  [A2] Axioma de Homogeneidad Métrica de Kahan-Neumaier:
+       Las magnitudes reales físicas y financieras representadas en los esquemas (v.g. costos, 
+       caudales y voltajes) deben registrar su acumulación temporal empleando sumas compensadas 
+       en punto flotante para suprimir pérdidas de significación en la mantisa de la FPU:
+       $$S_{\mathrm{comp}} = \sum_{k=1}^N x_k \oplus e_{\mathrm{correction}} \quad \implies \quad |S_{\mathrm{comp}} - S_{\mathrm{real}}| \le \varepsilon_{\mathrm{machine}} \cdot \sum |x_k| \quad\big[139, 170\big]$$
+
+  [A3] Axioma de la Métrica de Información y Entropía Sintáctica de Shannon:
+       La densidad de caracteres y la estructura sintáctica de las tramas de telemetría se 
+       somete a una cota de entropía informacional de Shannon sobre la sigma-álgebra de Borel:
+       $$\mathcal{H}(\mathbf{T}) = -\sum_{i=1}^n p(x_i) \ln p(x_i) \le \mathcal{H}_{\mathrm{crit}} \quad\big[139, 140\big]$$
+       Donde cualquier exceso de entropía delata una corrupción estructural de la trama 
+       (payload de fango), provocando la desintegración idempotente del paquete de-confinado.
+
+  [A4] Axioma del Veto en el Retículo de Heyting y Actuación en Silicio (BT151):
+       Los certificados de validación sintáctica proyectan su veredicto de consistencia sobre el 
+       clasificador de subobjetos del retículo distributivo de Heyting de tres valores de la Malla:
+       $$\Omega_3 = \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\} \quad\big[139, 140\big]$$
+       Toda anomalía de tipo, nulidad estructural ($\beta_1(K) > 0$) o desbocamiento de entropía 
+       colapsa síncronamente el estado de la Malla al Supremo terminal VETOED ($\top$).
+       La subrutina C++ 'isVerdictCoherent()' del firmware del microcontrolador ESP32 detecta 
+       el colapso en RAM perimetral y, mediante su ISR en IRAM (<400ns), conmuta el pin GPIO14,
+       disparando el tiristor BT151 (circuito Crowbar) para paralizar síncronamente la obra real.
+
+JERARQUÍA DE EXCEPCIONES ALGEBRAICAS Y SINTÁCTICAS (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  TelemetrySchemaError (Exception)
+   ├── SheafRestrictionBreach     : Ruptura del homomorfismo de restricción del haz celular.
+   ├── SyntacticEntropyOverflow   : Entropía de Shannon de la trama por encima del límite crítico.
+   ├── StructuralNulityAnomaly    : Presencia de campos nulos o indeterminaciones físicas en la FPU.
+   ├── KahanUnderflowDrift        : Pérdida acumulada de precisión flotante fuera de epsilon_machine.
+   └── HeytingLobeCollapse        : Transición anómala hacia el autoestado VETOED en el topos.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Ingestión, de-serialización y validación estricta de tipos de la trama.
+             Verifica la ausencia de singularidades NaN/Inf en la FPU mediante sumación Kahan.
+             Retorna: RawSchemaCertificate.
+
+  Fase 2 ──► ORIENT  : Validación de homomorfismos sobre el complejo de haces celulares.
+             Calcula el residuo exergético de Tellegen y la entropía de Shannon.
+             Retorna: SheafValidationReport.
+
+  Fase 3 ──► DECIDE  : Emisión del Certificado de Coherencia Criptográfica inmutable.
+             Despacha el estado de regularidad al retículo de Heyting y actualiza el CrowbarPort.
+             Retorna: SchemaSuturationState.
 """
 from dataclasses import dataclass, field, asdict
 from typing import Optional, Tuple, Dict, Any, Union

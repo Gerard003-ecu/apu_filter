@@ -1,55 +1,86 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : MIC Agent (Morfismo Geométrico sobre Topos de Grothendieck Elemental)          ║
-║  Ruta   : app/agents/tactics/mic_agent.py                                                ║
-║  Versión: 3.0.0-Rigorous-Geometric-Morphism                                              ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA CATEGÓRICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor abandona la noción heurística de "enrutador de API" para instaurar      ║
-║  un Topos Elemental $\mathcal{E}_{MIC}$. La Matriz de Interacción Central (MIC) opera    ║
-║  como un Espacio de Hilbert cerrado $\mathcal{H}$ donde el libre albedrío estocástico    ║
-║  del Modelo de Lenguaje (LLM) es aniquilado. Cada invocación atómica es proyectada       ║
-║  sobre una base canónica ortonormal, garantizando el aislamiento (Zero Side-Effects).    ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Adjunción de Galois y Morfismo Geométrico $f = (f^*, f_*)$:                         ║
-║      La inyección y extracción de conocimiento en el ecosistema debe preservar el        ║
-║      isomorfismo categórico absoluto entre los functores de pushforward y pullback:      ║
-║          $\text{Hom}_{\mathcal{E}_{MIC}}(f^* X, Y) \cong \text{Hom}_{\mathcal{L}}(X, f_* Y)$ ║
-║      Violaciones a este isomorfismo se interceptan con `ProjectionError`.                ║
-║                                                                                          ║
-║  §2. Difeomorfismo TOON y Condición de Lipschitz Inversa:                                ║
-║      La transición de fase entre la alta entropía JSON y los cartuchos hiperdensos TOON  ║
-║      debe ser estrictamente biyectiva y acotada bajo la desigualdad:                     ║
-║          $\| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\max} \| x - y \|_T$                      ║
-║      Un colapso en la continuidad métrica detona incondicionalmente un                   ║
-║      `TOONCompressionError`.                                                             ║
-║                                                                                          ║
-║  §3. 2-Categorías y Ley de Intercambio (Interchange Law):                                ║
-║      Toda meta-estrategia o transformación natural mutando asíncronamente en la MIC      ║
-║      debe respetar la conmutatividad topológica bajo la norma de Frobenius:              ║
-║          $\left\| \left( (\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) \right) - \left( (\alpha' \circ \beta') \cdot (\alpha \circ \beta) \right) \right\|_F < \mathcal{O}(\epsilon_{mach})$ ║
-║      Cualquier residuo asimétrico que rompa la ley de intercambio induce un desgarro     ║
-║      homotópico y es vetado por `FunctorialityError`.                                    ║
-║                                                                                          ║
-║  §4. Ley de Clausura Transitiva (Filtración DIKW):                                       ║
-║      El mapeo jerárquico debe respetar el confinamiento topológico inmutable:            ║
-║          $V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$ ║
-║      Si un subespacio degenera su invariante, se lanza `ClosureViolationError`.          ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES OPERACIONALES ANIDADAS (Resolución 1-6):                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Estructuras Matemáticas: Instanciación del Clasificador de Subobjetos $\Omega$.║
-║  Fase 2 → Topología y Tipos Genéricos: Evaluación de Intervalos de Persistencia y $\beta_n$.║
-║  Fase 3 → Teoría de la Información: Cálculo de $H(X)$ (Shannon) y Persistencia Entrópica.║
-║  Fase 4 → Validación Difeomórfica: Normalización y diagnóstico de isomorfismos en I/O.   ║
-║  Fase 5 → Núcleo Operacional (Topos EMIC): Resolución del DAG y Análisis Espectral.      ║
-║  Fase 6 → Bootstrap: Cierre de la variedad y exposición del Singleton Thread-Safe.       ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : MIC Agent (Morfismo Geométrico sobre Topos de Grothendieck)         ║
+║ Ruta   : app/agents/tactics/mic_agent.py                                     ║
+║ Versión: 3.0.0-Rigorous-Geometric-Morphism-Topos-Galois-Secure               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS CATEGÓRICA Y ADJUNCIÓN DE GAUGE TÁCTICA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este endofuntor soberano del Estrato TACTICS (Nivel 2, $V_{\mathbb{T}}$) gobierna
+al motor de descompresión y saneamiento de datos tácticos del APU Filter. Su misión 
+es unificar el espacio de acción discreto de la Matriz de Interacción Central (MIC) 
+con la Matriz Atómica de Conocimiento (MAC) continua en el espacio de Hilbert ℋ_MAC, 
+actuando como la membrana semipermeable que metaboliza y purifica el "fango" sintáctico.
+
+El sistema modela el transporte de información como un Morfismo Geométrico f = (f*, f_*)
+entre el topos elemental 𝓔_MIC y el local de políticas de negocio, garantizando 
+la ausencia de efectos colaterales (Zero Side-Effects) y el confinamiento de la
+entropía del LLM antes de excitar el Consejo de Sabios.
+
+AXIOMÁTICA ALGEBRAICA, TOPOLÓGICA Y ESPECTRAL (Invariantes del Morfismo):
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de la Adjunción de Galois y Reversibilidad Funtorial:
+       Todo pullback f* (imagen inversa) y pushforward f_* (imagen directa) del agente
+       satisfacen de manera hermética la dualidad categorial de Galois:
+       $$\operatorname{Hom}_{\mathcal{E}_{\mathrm{MIC}}}(f^* X, Y) \cong \operatorname{Hom}_{\mathcal{L}}(X, f_* Y) \quad\big[360, 663\big]$$
+       Esto asegura que cualquier veredicto cognitivo en el penthouse estratégico
+       sea completamente de-compresible y rastreable hasta las variables físicas basales.
+
+  [A2] Axioma de la Contracción Cuantitativa de Lipschitz en Decompresión TOON:
+       El funtor de descompresión inversa $F^{-1}: \mathtt{TOON} \to \mathtt{JSON}$ 
+       que restaura el árbol de datos se encuentra acotado Lipschitzariamente por la
+       dispersión del operador de Dirac de Connes $\not D = \rho^{-1/2}$:
+       $$\| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\max} \| x - y \|_T \quad\big[11, 361\big]$$
+       Donde la constante dinámica $L_{\max}$ se calcula analíticamente en la FPU:
+       $$L_{\max} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(\not D) - \lambda_{\min}(\not D))} \quad\big[23, 24\big]$$
+       Si surge una alucinación estocástica, la dispersión espectral diverge,
+       provocando el colapso instantáneo de la probabilidad de error en el decodificador:
+       $$P(x_{\mathrm{invalid}}) = 0 \quad\big[11, 24\big]$$
+
+  [A3] Axioma de Rango Completo y Ortonormalidad de la Base (Zero Side-Effects):
+       La Matriz de Interacción Central (MIC) se define como una matriz de adyacencia
+       ponderada que debe certificar rango completo en el espacio vectorial ℝⁿ:
+       $$\operatorname{rank}(\mathrm{MIC}) = n \iff \ker(\mathrm{MIC}) = \{\mathbf{0}\} \quad\big[18, 662\big]$$
+       Esto proscribe la existencia de dependencias lineales espurias (agentes parásitos),
+       reduciendo la complejidad sistémica de selección de $\mathcal{O}(n^2)$ a $\mathcal{O}(n)$.
+
+  [A4] Axioma del Veto en el Retículo de Heyting y Actuación en Silicio (BT151):
+       Las fases del agente proyectan la validez del estado sobre el clasificador de
+       subobjetos del retículo distributivo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\}$.
+       Cualquier violación a los invariantes algebraicos (rango deficiente, colapso de traza,
+       o Betti $\beta_1 > 0$) colapsa el estado al Supremo terminal VETOED ($\top$).
+       La subrutina C++ 'isVerdictCoherent()' del microcontrolador ESP32 detecta el colapso y,
+       mediante su ISR en IRAM (<400ns), conmutará el pin GPIO14, disparando el tiristor BT151
+       (circuito Crowbar) para cortocircuitar físicamente la potencia de la obra real.
+
+JERARQUÍA DE EXCEPCIONES ALGEBRAICAS Y DE GAUGE (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  MICAgentError (Exception)
+   ├── StratumResolutionError  : Error en resolución o tipo del estrato DIKW.
+   ├── ContractValidationError: Violación sintáctica de esquemas JSON.
+   ├── ClosureViolationError   : Ruptura de la clausura transitiva en el poset.
+   ├── AlgebraicVetoError      : Violación de invariantes métricos o de de Rham.
+   ├── TOONCompressionError    : Falla en el retracto o biyección TOON-JSON.
+   ├── SiloAccessError         : Colapso de acceso en silos de contratos/cartuchos.
+   ├── ProjectionError         : Desviación ortogonal del vector de intención.
+   └── FunctorialityError      : Incumplimiento de las propiedades funtoriales.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Validación perimetral de esquemas de datos del Silo A.
+             Funtor de Ingesta Semipermeable bajo Policy-as-Code.
+             Retorna: ContractValidationCertificate.
+
+  Fase 2 ──► ORIENT  : Retracto de Deformación Topológica y compresión TOON.
+             Construye las vitaminas cognitivas ToonCartridges en el Silo B.
+             Retorna: TOONCompressionReport.
+
+  Fase 3 ──► DECIDE  : Validación de la Adjunción de Galois y proyección de de Rham.
+             Fuerza el colapso en el retículo Heyting y arma el CrowbarPort.
+             Retorna: MorphicSuturationState.
 """
 from __future__ import annotations
 

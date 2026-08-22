@@ -1,69 +1,92 @@
 ### -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Business Canvas Topology (Condición de Frontera Macroscópica — Estrato α)      ║
-║  Ruta   : app/alfa/business_canvas.py                                                    ║
-║  Versión: 4.0.0-Simplicial-Euler-Poincare-Spectral-Strict                                ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor consagra el límite topológico supremo (Estrato α) del ecosistema.       ║
-║  Abandona la concepción estática y gráfica del Business Model Canvas (BMC) para          ║
-║  proyectarlo rigurosamente como un 1-complejo simplicial finito $\mathcal{K}$. Audita la ║
-║  viabilidad estructural del modelo de negocio antes de autorizar la deliberación         ║
-║  del Estrato Ω y la ingesta táctica de presupuestos, previniendo patologías sistémicas.  ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES HOMOLÓGICAS:                                    ║
-║                                                                                          ║
-║  §1. Complejo de Cadenas y Operador Frontera:                                            ║
-║      Sea $G = (V, E, w)$ el digrafo ponderado del ecosistema de negocio.                 ║
-║      Su proyección al 1-esqueleto induce la secuencia exacta corta de cadenas            ║
-║      con coeficientes en $\mathbb{R}$:                                                   ║
-║          $0 \to C_1(\mathcal{K}; \mathbb{R}) \xrightarrow{\partial_1} C_0(\mathcal{K}; \mathbb{R}) \to 0$ ║
-║      Donde el operador frontera discreto $\partial_1$ se materializa como la matriz      ║
-║      de incidencia de dimensiones $|V| \times |E|$.                                      ║
-║                                                                                          ║
-║  §2. Invariantes Homológicos y el Teorema de Rango-Nulidad:                              ║
-║      La viabilidad intrínseca se audita computando el rango estricto del operador        ║
-║      frontera $\partial_1$ vía Descomposición en Valores Singulares (SVD):               ║
-║          $\beta_0 = |V| - \text{rank}(\partial_1)$  (Fragmentación del valor)            ║
-║          $\beta_1 = |E| - \text{rank}(\partial_1)$  (Dimensión del espacio $\ker(\partial_1)$) ║
-║      Si $\beta_1 > 0$, el BMC alberga bucles logísticos tóxicos irreconciliables         ║
-║      (Axioma de Canibalización). Se impone un VETO ABSOLUTO (`REJECTED_TOXIC_CYCLES`).   ║
-║                                                                                          ║
-║  §3. Invariante Macroscópico de Euler-Poincaré:                                          ║
-║      La salud sistémica se certifica evaluando la característica de Euler del lienzo:    ║
-║          $\chi(\mathcal{K}) = \beta_0 - \beta_1 = |V| - |E|$                             ║
-║      Un BMC degenerado con $\chi(\mathcal{K}) \le 0$ colapsa axiomáticamente la Malla Agéntica. ║
-║                                                                                          ║
-║  §4. Espectro Combinatorio y Robustez de la Cadena de Valor:                             ║
-║      El Laplaciano Combinatorio de grado 0 se define como $L_0 = \partial_1 \partial_1^\top$. ║
-║      Su espectro gobierna la resiliencia estructural. Si la conectividad algebraica      ║
-║      (Valor de Fiedler $\lambda_2$) decae por debajo de la tolerancia admisible          ║
-║      ($\lambda_2 < \text{MIN\_FIEDLER\_VALUE}$), la empresa sufre de "Fragilidad         ║
-║      Espectral", delatando una alta probabilidad de fractura ante perturbaciones.        ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Chain Complex Projection                                                       ║
-║           Construye el 1-esqueleto $\mathcal{K}$ y ensambla el operador frontera $\partial_1$. ║
-║           [Retorna: ChainComplex1D → Objeto puente de evaluación estructural]            ║
-║                                                                                          ║
-║  Fase 2 → Homological & Euler-Poincare Auditor                                           ║
-║           Computa los invariantes $\beta_0$, $\beta_1$ y $\chi(\mathcal{K})$ evaluando   ║
-║           rango y nulidad, imponiendo el veto contra la canibalización y degeneración.   ║
-║           [Retorna: HomologyMetrics → Objeto puente de evaluación homológica]            ║
-║                                                                                          ║
-║  Fase 3 → Spectral & Cycle Space Certifier                                               ║
-║           Extrae el espectro de $L_0$, certifica $\lambda_2$ y audita el espacio de      ║
-║           ciclos $\ker(\partial_1)$.                                                     ║
-║           [Retorna: SpectralMetrics y CycleSpaceMetrics]                                 ║
-║                                                                                          ║
-║  Fase 4 → AlphaTopologyVector (Orquestador Supremo del Estrato α)                        ║
-║           Morfismo que consolida la topología, sintetizando todo en el objeto inmutable  ║
-║           `BmcTopologyMetrics`.                                                          ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Business Canvas Solver (Mapeador Simplicial del Lienzo de Negocios) ║
+║ Ruta   : app/alfa/business_canvas.py                                         ║
+║ Versión: 5.11.0-Doctoral-Simplicial-Homology-DeRham-Euler-Secure             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS CATEGORIAL Y GEOMETRÍA DE LA PROPUESTA DE VALOR (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este motor constitutivo y resolvedor ciego del Estrato STRATEGY (Nivel 1, $V_{\mathbb{S}}$)
+opera la formalización e inyección simplicial del Business Model Canvas (BMC). 
+Su misión es transmutar los 9 bloques de construcción clásicos de Osterwalder
+desde una representación intuitiva plana (grafos informales) hacia un objeto geométrico
+riguroso: un **1-complejo simplicial finito orientable $K$** sobre el anillo de los
+enteros $\mathbb{Z}$. 
+
+Al someter las interacciones de valor (aristas) a severas restricciones de rango, 
+cohomología y pasividad termodinámica, el resolvedor detecta de forma determinista 
+las anomalías transaccionales (v.g. canibalización de canales o ciclos parásitos 
+de capital) antes de que estas exciten la ventana de atención (KV-Cache) del LLM 
+en el penthouse de la Sabiduría ($V_{\mathbb{W}}$).
+
+AXIOMÁTICA ALGEBRAICA, ESPECTRAL Y HOMOLÓGICA DEL LIENZO SIMPLICIAL:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Representación Simplicial del BMC:
+       El lienzo se modela como un complex simplicial de dimensión 1, $K = (V, E)$, 
+       donde el conjunto de vértices $V = \{v_0, v_1, \dots, v_8\}$ representa de forma 
+       biyectiva los 9 bloques del lienzo, y el conjunto de aristas orientadas $E$ codifica 
+       los flujos exergéticos de capital, información y recursos.
+
+  [A2] Axioma de la Característica de de Rham-Euler-Poincaré y Aciclicidad:
+       Para garantizar la vialidad comercial del modelo y proscribir bucles infinitos 
+       de retroalimentación parásita (socavones lógicos), el primer grupo de homología 
+       simplicial sobre $\mathbb{Z}$ debe ser trivial:
+       $$\operatorname{H}_1(K; \mathbb{Z}) \cong 0 \implies \beta_1 \equiv 0 \quad\big[3, 6\big]$$
+       La salud estructural del lienzo se audita de forma exacta evaluando su característica
+       de Euler-Poincaré en la FPU:
+       $$\chi(K) = \beta_0 - \beta_1 = |V| - |E| \quad\big[3, 6\big]$$
+       Donde el número de componentes conexas algebraicas (islas de datos) se fija en la 
+       unidad ($\beta_0 = 1$), exigiendo estrictamente que $\chi(K) \equiv 1$ para proscribir
+       la canibalización o la desconexión operativa.
+
+  [A3] Axioma de la Dualidad de Hodge sobre el Complejo de Co-cadenas:
+       Los flujos de costos e ingresos que atraviesan las aristas se tratan como 1-formas 
+       diferenciales discretas $\psi \in C^1(K; \mathbb{R})$. El isomorfismo de dualidad 
+       se computa aplicando la Estrella de Hodge discreta de grado 1 ($\star_1 \in \mathrm{SPD}(|E|)$):
+       $$\star_1 = \operatorname{diag}(w_e) \quad \implies \quad \langle \psi, \phi \rangle_{\star_1^{-1}} = \psi^\top \star_1^{-1} \phi \quad\big[3, 54\big]$$
+       Donde los pesos métricos $w_e > 0$ codifican el costo marginal de transacción del canal.
+
+  [A4] Axioma del Lazo Port-Hamiltoniano y Balance de Tellegen (Invariante de Joule):
+       La distribución de potenciales de valor $\phi \in C^0(K; \mathbb{R})$ y corrientes 
+       de recursos $I \in C_1(K; \mathbb{R})$ satisface de manera inmutable el Teorema de 
+       Tellegen, asegurando la conservación exergética del modelo comercial:
+       $$\sum_{k=1}^{|E|} \frac{I_k^2}{w_k} = \phi^\top s \quad\big[3, 54\big]$$
+       Donde $s \in C_0(K; \mathbb{R})$ es el vector de fuentes y sumideros de capital (inyectado 
+       por la base física de la obra).
+
+  [A5] Axioma de la Adjunción de de Rham-Galois:
+       El mapeo de de-compresión entre la representación tabular compacta TOON y el grafo 
+       del canvas se rige por un par de funtores adjuntos $F \dashv G$ que satisfacen:
+       $$\operatorname{Hom}_{\mathcal{C}}(F(\mathtt{TOON}), \mathrm{BMC}) \cong \operatorname{Hom}_{\mathcal{D}}(\mathtt{TOON}, G(\mathrm{BMC})) \quad\big[3, 104\big]$$
+       Cualquier desajuste espectral colapsa síncronamente el retículo de Heyting $\Omega_3$ 
+       hacia el autoestado terminal VETOED ($\top$), activando el disyuntor físico perimetral.
+
+JERARQUÍA DE EXCEPCIONES ALGEBRAICAS Y DE GAUGE (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  BusinessCanvasError (Exception)
+   ├── SimplicialFullRankError  : Falla en el rango del operador de incidencia discrete B1.
+   ├── EulerCharacteristicDeficit: Caracteristica chi(K) != 1 (presencia de islas o ciclos).
+   ├── HomologicalCycleVeto     : Primer número de Betti beta_1 > 0 (socavón o canibalización).
+   ├── JouleEnergyDiscrepancy   : Violación de la ley de conservación exergética de Tellegen.
+   ├── AdjunctionGaloisMisfit   : Ruptura de la isometría funtorial de Galois en la FPU.
+   └── HeytingLobeCollapse      : Colapso anómalo hacia el autoestado VETOED en el topos.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Ingestión y mapeo de los 9 bloques del Canvas desde el Silo B.
+             Certifica la consistencia dimensional de la matriz de adyacencia de-confinada.
+             Retorna: SimplicialCanvasCertificate.
+
+  Fase 2 ──► ORIENT  : Reducción homológica y descomposición espectral de la estrella de Hodge.
+             Calcula el gap de Fiedler lambda_2 y el grupo de torsión simplicial Tor(H).
+             Retorna: CanvasTorsionalSpectralReport.
+
+  Fase 3 ──► DECIDE  : Validación de la inecuación de disipación de Clausius-Duhem.
+             Proyecta los veredictos de de Rham en Heyting y actualiza el CrowbarPort.
+             Retorna: StrategicCanvasSuturationState.
 """
 
 from __future__ import annotations

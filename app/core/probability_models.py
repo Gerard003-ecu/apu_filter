@@ -1,59 +1,95 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Probability Models (Funtor Estocástico y Espacio de Medida de Lebesgue)        ║
-║  Ruta   : app/core/probability_models.py                                                 ║
-║  Versión: 4.0.0-Stochastic-Measure-Theoretic-Strict                                      ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE LA MEDIDA (Rigor Doctoral):                         ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor abandona el paradigma ingenuo de la contabilidad estática               ║
-║  determinista (donde los costos son distribuciones delta de Dirac $\delta(x - c_0)$).    ║
-║  Eleva el presupuesto a un ensamble microcanónico, modelando cada APU como una           ║
-║  variable aleatoria $X: \Omega \to \mathbb{R}^+$ sobre un espacio de medida.             ║
-║  Aplica integración de Lebesgue vía simulaciones masivas de Monte Carlo para             ║
-║  revelar la topología del riesgo y la volatilidad latente de la malla agéntica.          ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESTOCÁSTICAS:                                   ║
-║                                                                                          ║
-║  §1. Integración de Monte Carlo y el Teorema del Límite Central:                         ║
-║      La esperanza matemática del costo global se computa muestreando el espacio $\Omega$:║
-║          $\mathbb{E}[C] = \int_\Omega C(\omega) d\mathbb{P}(\omega) \approx \frac{1}{N} \sum_{i=1}^N C(\omega_i)$ ║
-║      La convergencia asintótica se certifica acotando el Error Estándar (SE):            ║
-║          $\text{SE} = \frac{\sigma}{\sqrt{N}} \le \varepsilon_{\text{tol}}$              ║
-║      Garantizando que la entropía informacional del estimador se desvanezca.             ║
-║                                                                                          ║
-║  §2. Simetría de Variables Antitéticas (Reducción de Varianza):                          ║
-║      Para acelerar la convergencia en el subespacio de Hilbert sin inflar $N$, se        ║
-║      inyectan pares antitéticos $(X, \tilde{X})$ estrictamente correlacionados           ║
-║      negativamente ($\text{Cov}(X, \tilde{X}) < 0$):                                     ║
-║          $\text{Var}\left(\frac{X + \tilde{X}}{2}\right) = \frac{\text{Var}(X)}{2} + \frac{\text{Cov}(X, \tilde{X})}{2} < \frac{\text{Var}(X)}{2}$ ║
-║      Aumentando la eficiencia asintótica del muestreo tensorial.                         ║
-║                                                                                          ║
-║  §3. Topología del Riesgo (VaR y CVaR):                                                  ║
-║      El análisis no paramétrico de las colas de la distribución (Fat-Tail Risk)          ║
-║      se proyecta sobre los cuantiles $\alpha$ (ej. P95):                                 ║
-║          $\text{VaR}_\alpha(C) = \inf \{ c \in \mathbb{R} \mid \mathbb{P}(C \le c) \ge \alpha \}$ ║
-║      El Déficit Esperado (CVaR) captura la energía de la cola en el espacio de fase:     ║
-║          $\text{CVaR}_\alpha(C) = \frac{1}{1-\alpha} \int_{\alpha}^{1} \text{VaR}_\gamma(C) d\gamma$ ║
-║      Previniendo colapsos financieros no acotados por la varianza simple.                ║
-║                                                                                          ║
-║  §4. Límite Termodinámico de Memoria (Tensor Allocation):                                ║
-║      Antes de instanciar la variedad de simulación $\mathbb{R}^{N \times M}$, se exige   ║
-║      la acotación estricta de la huella de memoria:                                      ║
-║          $\mathcal{S}_{\text{bytes}} = N \cdot M \cdot \text{sizeof}(\text{float64}) \le \mathcal{S}_{\max}$ ║
-║      Si se excede `MEMORY_HARD_LIMIT_GB`, se detona un Veto Preventivo de hardware.      ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES OPERACIONALES (Composición Funtorial):                            ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Tensor Allocation & Sanitization (`estimate_memory_usage`, `sanitize_value`)   ║
-║           Precondicionamiento de datos y auditoría de capacidad FPU/RAM.                 ║
-║  Fase 2 → Stochastic Generation (`MonteCarloSimulator`)                                  ║
-║           Inyección de distribuciones (Normal, Lognormal, Triangular) e instanciación.   ║
-║  Fase 3 → Convergence & Risk Quantification (`calculate_convergence_metrics`)            ║
-║           Cálculo de VaR, CVaR, análisis de sensibilidad y certificación de $\text{SE}$. ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Probability Models (Oráculo Estocástico de Bajo Nivel)              ║
+║ Ruta   : app/core/probability_models.py                                      ║
+║ Versión: 3.1.0-Doctoral-MonteCarlo-Borel-ExpectedShortfall-MemorySecure      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS ESTOCÁSTICA Y TERMODINÁMICA DE LA MEDIDA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra la infraestructura matemática de bajo nivel que alimenta
+al motor estratégico 'Financial Engine'. Abandona definitivamente el paradigma 
+ingenuo de la contabilidad determinista lineal y estática, transmutando los 
+costos fijos del presupuesto en variables aleatorias continuas de-confinadas 
+definidas sobre el espacio de medida de Borel $(\mathbb{R}, \mathcal{B}(\mathbb{R}), \mathbb{P})$.
+
+A través de la simulación masiva de Monte Carlo vectorizada en la FPU, el sistema 
+revela la volatilidad oculta del proyecto y mapea el riesgo de cola pesada (Fat-Tail) 
+asociado al fango de sobrecostos de la obra. El motor de cálculo se comporta 
+como un operador de proyección estadística, aplicando rigurosas técnicas de 
+reducción de varianza e inyectando un disyuntor analítico de seguridad de memoria 
+para impedir desbocamientos de recursos y el colapso del sistema físico.
+
+AXIOMÁTICA DE TEORÍA DE LA MEDIDA Y RIESGO COHERENTE:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de la Medida de Costo No Negativa (Borel-Saneamiento):
+       Todo costo real $X$ se define como una variable aleatoria medible respecto a la 
+       filtración natural, cuya densidad de probabilidad satisface la cota física de-confinada:
+       $$\mathbb{P}(X < 0) = 0 \quad\big[471\big]$$
+       Para garantizar este principio ineludible, el operador de saneamiento estocástico 
+       aplica la truncación estricta al semiplano positivo mediante el proyector de Tikhonov:
+       $$\operatorname{truncate\_negative}(x) = \max\left(x, \, \tau_{\mathrm{min}}\right) \quad \text{con} \quad \tau_{\mathrm{min}} \ge 1.0\times 10^{-10} \quad\big[471, 473\big]$$
+
+  [A2] Axioma de Multi-Distribución y Densidad de Probabilidad (Log-Normal):
+       Para variables que no pueden ser negativas (costos de APUs), la medida se rige 
+       canónicamente por la distribución Log-Normal, cuya función de densidad de 
+       probabilidad (PDF) se formaliza en la CPU sin restas catastróficas como:
+       $$f(x; \mu, \sigma) = \frac{1}{x\sigma\sqrt{2\pi}} \exp\left( -\frac{(\ln x - \mu)^2}{2\sigma^2} \right) \mathbb{1}_{\{x > 0\}} \quad\big[471\big]$$
+
+  [A3] Axioma de Coherencia de la Medida de Riesgo (VaR y Expected Shortfall):
+       La evaluación de la contingencia requerida para absorber fluctuaciones se computa 
+       mediante el Déficit Esperado (CVaR/Expected Shortfall) al nivel de confianza $\alpha = 0.95$. 
+       Al ser una medida de riesgo coherente (satisface subaditividad, monotonicidad, 
+       homogeneidad positiva e invarianza por traslación), CVaR integra exactamente 
+       la cola extrema de la distribución sobre Lebesgue:
+       $$\operatorname{CVaR}_{\alpha}(X) = \mathbb{E}\left[ X \mid X \ge \operatorname{VaR}_{\alpha}(X) \right] = \frac{1}{1-\alpha} \int_{\alpha}^{1} \operatorname{VaR}_{u}(X) \, du \quad\big[471\big]$$
+       Donde el Valor en Riesgo (VaR) se extrae como la función cuantil o inversa de la medida:
+       $$\operatorname{VaR}_{\alpha}(X) = F_X^{-1}(\alpha) = \inf\left\{ x \in \mathbb{R} : F_X(x) \ge \alpha \right| \quad\big[471\big]$$
+
+  [A4] Axioma de Reducción de Varianza via Variantes Antitéticas:
+       Para acelerar la convergencia asintótica del estimador de Monte Carlo en la FPU, 
+       se inyecta una simetría reflexiva de-confinada sobre el espacio de probabilidad. 
+       Dado un número pseudoaleatorio uniforme $U \sim \mathcal{U}(0,1)$, se evalúa el par 
+       de trayectorias antitéticas $(U, 1-U)$ para inducir una covarianza negativa estricta:
+       $$\operatorname{Cov}\left( g(U), \, g(1-U) \right) < 0 \quad\big[471\big]$$
+       Reduciendo la varianza del estimador promedio de forma exacta hasta el épsilon de la máquina:
+       $$\operatorname{Var}\left( \frac{g(U) + g(1-U)}{2} \right) = \frac{1}{4} \left( \operatorname{Var}(g(U)) + \operatorname{Var}(g(1-U)) + 2\operatorname{Cov}(g(U), g(1-U)) \right) \quad\big[471\big]$$
+
+  [A5] Axioma de Convergencia Espectral y Error Estándar (SEM):
+       La suficiencia y estabilidad del número de simulaciones $N_{\mathrm{sim}}$ se audita 
+       mediante el comportamiento del Error Estándar de la Media (SEM). El integrador 
+       exige que la fluctuación residual satisfaga la cota de tolerancia de Wilkinson:
+       $$\operatorname{SEM} = \frac{\sigma_{\mathrm{sim}}}{\sqrt{N_{\mathrm{sim}}}} \le \tau_{\mathrm{convergence}} = 0.01 \quad\big[471, 473\big]$$
+
+  [A6] Axioma de Seguridad de Memoria en Espacio de Hilbert Finito:
+       Para evitar el desbordamiento de la memoria física y neutralizar el colapso de la FPU 
+       en simulaciones masivas ($N_{\mathrm{sim}} > 1.0\times 10^6$), la huella de RAM estimada 
+       por el proyector de Hilbert debe acotarse estrictamente antes del pre-llenado de buffers:
+       $$\operatorname{RAM}_{\mathrm{est}} = N_{\mathrm{sim}} \cdot N_{\mathrm{apus}} \cdot \operatorname{sizeof}(\mathtt{float64}) \le \text{Threshold}_{\mathrm{Memory}} = 100\text{ MB} \quad\big[471, 473\big]$$
+
+JERARQUÍA DE EXCEPCIONES ESTOCÁSTICAS Y DE GAUGE (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  ProbabilityModelError (Exception)
+   ├── MemoryHardLimitExceeded     : El tamaño proyectado de la simulación excede el límite físico.
+   ├── NegativeCostTruncationAnomaly : Error al intentar procesar o normalizar variables de costo negativas.
+   ├── VarianceConvergenceFailure   : El estimador SEM supera la tolerancia de convergencia de Wilkinson.
+   └── InvalidDistributionParameters: Parámetros de distribución (volatilidad, límites) fuera de dominio.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (Observe-Orient-Decide):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Validación perimetral, saneamiento de NaNs e infinitos en la FPU.
+             Estimación predictiva de memoria y truncamiento de costos negativos.
+             Retorna: MonteCarloSanitizationCertificate.
+
+  Fase 2 ──► ORIENT  : Configuración de la base de simulación (Normal, Log-Normal, Triangular).
+             Construcción del generador con variables antitéticas para reducción de varianza.
+             Retorna: StatisticalSimulationProfile.
+
+  Fase 3 ──► DECIDE  : Ejecución del solucionador de Monte Carlo y cálculo de percentiles.
+             Extracción de VaR, CVaR y análisis espectral de convergencia y sensibilidad.
+             Retorna: SimulationResultState.
 """
 
 import logging

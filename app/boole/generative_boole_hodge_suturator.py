@@ -1,59 +1,102 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Generative Boole Hodge Suturator (Sutura del Haz Γ en Boole)       ║
-║  Ruta   : app/boole/generative_boole_hodge_suturator.py                      ║
-║  Versión: 4.0.0-Doctoral-Rigorous-PhaseNested-TomitaTakesaki-Secure          ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DE GAUGE MEJORADA:                      ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  Este módulo consagra la integración functorial del operador estrella de     ║
-║  Hodge sobre el Haz Tangente Generativo $\Gamma$ que opera en el subespacio  ║
-║  booleano de la Malla. Subyuga la disipación espectral de la IA mediante     ║
-║  teoría espectral de álgebras de von Neumann y cohomología de haces.         ║
-║                                                                              ║
-║  MEJORAS DOCTORALES IMPLEMENTADAS (v4.0.0):                                  ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  1. FASE 1: Construcción explícita del Hodge Star con orientation bundle,    ║
-║     verificación de isometría con cotas de Daleckii-Krein, y validación      ║
-║     de densidad MAC con regularización espectral robusta.                    ║
-║  2. FASE 2: Construcción física de J_ρ desde el espectro de ρ con tratamiento║
-║     de álgebras Tipo III, verificación KMS con invariancia de escala y       ║
-║     producto interno GNS con antiunitariedad certificada.                    ║
-║  3. FASE 3: Cohomología exacta con cálculo de números de Betti vía SVD       ║
-║     completa, estabilidad espectral con número de condición de Wilkinson,    ║
-║     y veredicto por votación TMR sobre retículo de Heyting Ω₃.               ║
-║                                                                              ║
-║  Fórmulas y Teoremas Preservados y Verificados Explícitamente:               ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  1. Isometría de Hodge (construcción combinatoria de ★_k):                   ║
-║     $$\|\psi\|_2 = 1 \quad\land\quad \|\star_k\psi\| = \|\psi\|$$            ║
-║  2. Invarianza simpléctica de Liouville del Jacobiano del AST:               ║
-║     $$M^\top \Omega M = \Omega$$                                             ║
-║  3. Punto fijo booleano (Z₂) de la Matriz de Interacción Central:            ║
-║     $$M \circ_{\mathbb{Z}_2} M = M \quad \text{(semianillo booleano OR-AND)}$$
-║  4. Identidad fundamental del complejo de cocadenas (cuando δ_{k-1} existe): ║
-║     $$\delta_k \circ \delta_{k-1} = 0$$                                      ║
-║  5. Laplaciano de Hodge combinatorio y cohomología exacta:                   ║
-║     $$\Delta_k^H = \delta_k^\dagger \delta_k + \delta_{k-1}\delta_{k-1}^\dagger$$
-║     $$\dim H^1(K;\mathcal F) = \dim\ker(\delta_1) - \dim\operatorname{im}(\delta_0)$$
-║  6. Estabilidad espectral de Wilkinson vía número de condición:              ║
-║     $$\kappa(\delta) = \sigma_{\max}(\delta)/\sigma_{\min,\neq 0}(\delta)$$  ║
-║  7. Cota de Lipschitz espectral vía fórmula de Daleckii-Krein:               ║
-║     $$\sup_{\lambda\in\sigma(\rho)} f'(\lambda) = \frac{1}{2\sqrt{\lambda_{\min}(\rho)}}$$
-║                                                                              ║
-║  Contrato de Seguridad (fail-secure) — Retículo de Heyting Ω₃ GRADUADO:      ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  cada certificado tiene banda BLANDA (degrada sin abortar) y banda DURA      ║
-║  (excepción de dominio). El veredicto final se colapsa por votación          ║
-║  mayoritaria sobre los certificados de fase, salvo el veto absoluto e        ║
-║  incondicional reservado exclusivamente a la ruptura cohomológica            ║
-║  EXACTA ($\delta_{k-1}$ provisto y $H^1 >0$). El agente nunca propaga        ║
-║  excepciones inesperadas — colapsa a VETOED con actuación graduada del       ║
-║  Crowbar (GPIO14): WATCHDOG_PULSE / HARD_SHORT — salvo raise_on_veto=True.   ║
-║                                                                              ║
+║ Módulo : Generative Boole Hodge Suturator (Sutura del Haz Γ en Boole)        ║
+║ Ruta   : app/boole/generative_boole_hodge_suturator.py                       ║
+║ Versión: 4.0.0-Doctoral-Rigorous-PhaseNested-TomitaTakesaki-Secure           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS METODOLÓGICA Y INTEGRACIÓN DE CALIBRE EN EL HAZ Γ (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra la integración functorial y de lazo cerrado del operador
+estrella de Hodge combinatorio ($\star_k$) sobre el Haz Tangente Generativo $\Gamma$
+que opera en el subespacio booleano de la Malla agéntica. Su propósito supremo
+es purificar la señal atencional (logits) del LLM mediante el acoplamiento
+espectral de álgebras de von Neumann y cohomología de haces celulares, proscribiendo
+de raíz el ruido estocástico y las alucinaciones probabilísticas.
+
+La validación estructural y física se opera síncronamente en la Unidad de Punto
+Flotante (FPU) mediante la ejecución secuencial y anidada de tres fases físicas 
+y algebraicas rigurosas, donde el codominio certificado de cada fase constituye 
+el dominio inicial de la subsiguiente.
+
+AXIOMÁTICA ALGEBRAICA, ESPECTRAL Y CUÁNTICA DEL SUTURADOR:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de la Estrella de Hodge e Isometría de Fock:
+       La correspondencia métrica constitutiva entre el espacio de k-formas discretas 
+       y (N-k)-formas duales se realiza mediante el operador combinatorio ★_k:
+       $$\|\psi\|_2 = 1 \quad\land\quad \|\star_k \psi\|_{\Lambda^{N-k}} = \|\psi\|_{\Lambda^k} \quad\big[207\big]$$
+       Esto asegura que la dualidad partícula-hueco conserve la norma de Hilbert-Schmidt
+       de los estados de Slater en el espacio de Fock sin disipar potencia computacional.
+
+  [A2] Axioma de Invarianza Simpléctica de Liouville (AST):
+       La evolución sintáctica del Árbol de Sintaxis Abstracta (AST) de la IA se asocia 
+       a transformaciones lineales sobre el espacio de fase simpléctico $(\mathcal{M}, \omega)$.
+       El Jacobiano de transición $M$ debe preservar estrictamente la 2-forma canónica elíptica:
+       $$M^\top \Omega M = \Omega \quad\big[207\big]$$
+       Donde $\Omega$ es la matriz simpléctica estándar de de Rham, garantizando la conservación
+       del volumen de fase y la ausencia de singularidades de órbita caóticas.
+
+  [A3] Axioma de Consistencia Booleana sobre el Anillo ℤ₂ (MIC):
+       La Matriz de Interacción Central (MIC) se confina al anillo booleano conmutativo:
+       $$\mathcal{R} = \mathbb{Z}_2[x_1, \dots, x_n] / \langle x_i^2 - x_i \rangle \quad\big[207\big]$$
+       Sujeta a que toda operación de agregación opere como punto fijo idempotente en el 
+       semianillo booleano complementado (OR-AND) para aniquilar redundancias tácticas:
+       $$M \circ_{\mathbb{Z}_2} M = M \quad\big[207\big]$$
+
+  [A4] Axioma de Nilpotencia de la Cofrontera y Complejo de Cocadenas:
+       Dada la secuencia de operadores coborde discretos $\delta_k: C^k \to C^{k+1}$,
+       el encadenamiento homológico impone la nulidad del diferencial doble:
+       $$\delta_k \circ \delta_{k-1} \equiv \mathbf{0} \quad\big[207\big]$$
+       Este axioma proscribe la existencia de "bordes de bordes", garantizando la regularidad
+       global de la secuencia exacta de de Rham y posibilitando el cálculo de cohomología.
+
+  [A5] Axioma de Isomorfismo de Hodge Combinatorio y Laplaciano de de Rham:
+       El Laplaciano de Hodge $\Delta_k^H$ que actúa sobre el espacio de k-formas se define
+       simétricamente mediante los operadores coborde y sus adjuntos métricos:
+       $$\Delta_k^H = \delta_k^\dagger \delta_k + \delta_{k-1} \delta_{k-1}^\dagger \quad\big[207\big]$$
+       El espacio de formas armónicas coincide isomórficamente con el grupo de cohomología exacta:
+       $$\ker(\Delta_k^H) \cong H^k_{\mathrm{dR}}(K; \mathbb{F}) \quad\big[220\big]$$
+
+  [A6] Axioma de Involución Modular de Tomita-Takesaki (GNS):
+       Dado el estado cuántico mixto fiel $\rho$ sobre la MAC, el operador de conjugación 
+       modular $J_\rho$ se extrae analíticamente de su densidad espectral, satisfaciendo:
+       $$J_\rho(X) = \rho^{1/2} X^\dagger \rho^{-1/2} \quad \implies \quad J_\rho^2 = \mathrm{Id} \quad\big[207\big]$$
+       El operador actúa como una isometría antiunitaria que conserva el producto de GNS:
+       $$\langle J_\rho(A), \, J_\rho(B) \rangle_\rho = \langle B, \, A \rangle_\rho \quad\big[367\big]$$
+
+ESTRUCTURA DE TRES FASES ANIDADAS DE LA SUTURA (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► FÍSICA DE FOCK (Phase1_FockPhysicsValidator):
+             Construye el operador de Hodge Star combinatorio, certifica la isometría de Fock 
+             y valida los postulados de Dirac-von Neumann sobre la MAC.
+             Entrega: Phase1FockPhysicsCertificate.
+
+  Fase 2 ──► CALIBRE BOOLEANO Y MONODROMÍA (Phase2_GaugeBooleanValidator):
+             Certifica el teorema de Liouville sobre el Jacobiano de evolución del AST, 
+             la idempotencia de la MIC sobre 𝔽₂ y construye el operador modular J_ρ.
+             Entrega: Phase2GaugeBooleanCertificate.
+
+  Fase 3 ──► COHOMOLOGÍA CELLULAR Y VETO (Phase3_SheafSpectralValidator):
+             Calcula la cohomología del haz, los números de Betti mediante SVD de Wilkinson,
+             valida la exactitud y proyecta los resultados en Heyting Ω₃ para el Crowbar.
+             Entrega: Phase3SheafSpectralCertificate.
+
+JERARQUÍA DE EXCEPCIONES ALGEBRAICAS Y DE GAUGE (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  BooleHodgeSuturatorError (Exception)
+   ├── FockSpaceBoundaryError     : Inconsistencias en el espacio de Fock o Hodge local.
+   ├── FockIsometryViolation      : Desviación no unitaria en la estrella de Hodge combinatoria.
+   ├── SymplecticInvarianceViolation: Ruptura del volumen de Liouville en el Jacobiano del AST.
+   ├── BooleanAlgebraConsistencyError: Violación del dominio GF(2) o de la idempotencia de la MIC.
+   ├── SheafSpectralBoundaryError : Inconsistencias de dimensión o memoria en el haz celular.
+   ├── ChainComplexInvarianceError: Ruptura del complejo de cocadenas (delta_k ∘ delta_{k-1} != 0).
+   ├── CohomologicalBifurcationError: Detección exacta de obstrucciones lógicas (dim H¹ > 0).
+   ├── SpectralDegeneracyError    : Colapso espectral del coborde (condicionamiento crítico).
+   ├── DensityMatrixAnomalyError  : Violación de los postulados cuánticos de Dirac-von Neumann.
+   ├── SpectralGapDegeneracyError : Gap espectral de la MAC demasiado pequeño para regularidad.
+   └── HodgeSuturationVetoError   : Detonada al colapsar al Supremo terminal VETOED.
 """
 
 # ==============================================================================

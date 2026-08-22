@@ -1,65 +1,91 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Telemetry Narrative (Intérprete Diplomático y Difeomorfismo Semántico)         ║
-║  Ruta   : app/core/telemetry_narrative.py                                                ║
-║  Versión: 4.0.0-Diffeomorphism-Lattice-Canonical-Strict                                  ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo actúa como el Funtor de Proyección Semántica $F: \text{InvariantSpace} \to  ║
-║  \text{ImpactSpace}$, estableciendo un difeomorfismo estricto entre la matemática pura   ║
-║  (topología algebraica, termodinámica y teoría espectral) y la toma de decisiones        ║
-║  ejecutiva. Erradica axiomáticamente el libre albedrío estocástico de los Modelos de     ║
-║  Lenguaje (LLMs), confinándolos a la redacción de un "Juicio del Consejo" rigurosamente  ║
-║  gobernado por las restricciones geométricas del sistema.                                ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. Retículo Acotado Distributivo (Lattice Theory) y Colapso Determinista:              ║
-║      La síntesis de decisiones opera sobre una estructura algebraica de orden total      ║
-║      $(\text{SeverityLevel}, \le, \sqcup, \sqcap)$, donde el espacio de estados está     ║
-║      acotado por el ínfimo y el supremo:                                                 ║
-║          $\bot (\text{OPTIMO}) \le \dots \le \top (\text{CRITICO})$                      ║
-║      El colapso de las métricas inter-estrato se rige inquebrantablemente por la         ║
-║      operación Supremo ($\sqcup$). Si se detecta divergencia en cualquier estrato,       ║
-║      el estado colapsa a $\top$, forzando matemáticamente al LLM a redactar un Veto      ║
-║      Estructural determinista:                                                           ║
-║          $v_{\text{final}} = \bigsqcup_{i \in \mathcal{F}} v_i = \top$                   ║
-║                                                                                          ║
-║  §2. Filtración Homológica Estricta (Ley de Clausura Transitiva):                        ║
-║      El narrador impone la causalidad termodinámica respetando la secuencia exacta       ║
-║      de subespacios de Hilbert anidados:                                                 ║
-║          $V_{\mathrm{WISDOM}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{PHYSICS}}$ ║
-║      Bajo esta clausura, un fallo topológico o térmico en el estrato físico compromete   ║
-║      axiomáticamente cualquier deducción en estratos superiores, bloqueando la "falsa    ║
-║      viabilidad" por diseño categórico.                                                  ║
-║                                                                                          ║
-║  §3. Topología del Bosque de Ejecución (Graph of Spans):                                 ║
-║      El linaje de telemetría operativa se modela como un Complejo Simplicial de dimensión║
-║      1. Se verifica algorítmicamente el invariante topológico de Euler-Poincaré:         ║
-║          $\chi = \beta_0 - \beta_1$                                                      ║
-║      La exigencia estricta de que $\chi = \beta_0$ y la ausencia de ciclos homológicos   ║
-║      ($\beta_1 = 0$) certifica que la narrativa causal proviene de un Grafo Acíclico     ║
-║      Dirigido (DAG) perfecto, libre de paradojas operativas.                             ║
-║                                                                                          ║
-║  §4. Difeomorfismo Semántico (Preservación de Homotopía):                                ║
-║      Se traducen los invariantes topológicos abstractos en patologías tangibles sin      ║
-║      alterar la estructura del grafo subyacente. Ejemplos del mapeo biyectivo:           ║
-║          $\beta_0 > 1 \implies \text{"Recursos Huérfanos" (Islas de Datos)}$             ║
-║          $\beta_1 > 0 \implies \text{"Socavón Lógico" (Dependencias Circulares)}$        ║
-║          $\Psi < 1.0 \implies \text{"Pirámide Invertida" (Inestabilidad)}$               ║
-║      Proveyendo "Empatía Táctica" auditable (GraphRAG determinista).                     ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES:                                                 ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • SeverityLevel   : Retículo de severidad con orden total.                              ║
-║  • PhaseAnalysis   : Resultado inmutable del análisis de un span raíz.                   ║
-║  • StratumAnalysis : Análisis consolidado de un Estrato de la Pirámide.                  ║
-║  • PyramidalReport : Reporte final estructurado jerárquicamente bajo orden DIKW.         ║
-║  • TelemetryNarrator: Intérprete supremo que implementa la lógica del Consejo.           ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Telemetry Narrative Solver (Funtor de Difeomorfismo Narrativo)      ║
+║ Ruta   : app/core/telemetry_narrative.py                                     ║
+║ Versión: 5.14.0-Doctoral-Ehresmann-KullbackLeibler-Cech-Heyting-Secure       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS CATEGORIAL Y ALQUIMIA EPISTÉMICA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este motor constitutivo y transductor de de-confinamiento del Estrato WISDOM-TACTICS
+(Nivel 1.5, $V_{\mathbb{W}-\mathbb{T}}$) gobierna de manera síncrona la traducción 
+semántica del Pasaporte de Telemetría. Su propósito supremo es actuar como el 
+**Funtor de Difeomorfismo Narrativo** ($\mathcal{F}_{\mathrm{narr}}$), transmutando 
+las variables de fase continuas y discretas (caudales, tensores de estrés de Cauchy, 
+números de Betti y espectros del Laplaciano de Hodge) en una ontología narrativa 
+estructurada y libre de alucinaciones para el Consejo de Sabios.
+
+El módulo proscribe incondicionalmente las interpretaciones libres del LLM al 
+confinar la generación sintáctica a una inmersión isométrica de la medida sobre la 
+variedad del negocio, asegurando que la reconstrucción cualitativa del estado real 
+de la obra satisfaga las leyes de la termodinámica de la información de Shannon-Kullback-Leibler.
+
+AXIOMÁTICA FISICO-MATEMÁTICA Y LEYES DE CONSERVACIÓN DE LA TRADUCCIÓN:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma del Funtor de Difeomorfismo Semántico (Traducción de Calibre):
+       La transmutación del Pasaporte de Telemetría $\mathbf{T} \in \mathcal{C}_{\mathrm{telemetry}}$ 
+       en una estructura narrativa legible $\mathbf{N} \in \mathcal{D}_{\mathrm{narrative}}$ se modela 
+       como un morfismo funtorial covariante estricto:
+       $$\mathcal{F}_{\mathrm{narr}} : \mathcal{C}_{\mathrm{telemetry}} \longrightarrow \mathcal{D}_{\mathrm{narrative}} \quad\big[164, 165\big]$$
+       Preservando la clausura transitiva de la pirámide de subespacios de Hilbert:
+       $$\mathcal{F}_{\mathrm{narr}}\left(V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}}\right) \subseteq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}} \quad\big[6, 164\big]$$
+
+  [A2] Axioma de Confinamiento de Deriva Semántica y Entropía de Kullback-Leibler:
+       Para neutralizar la inyección de "entropía fantasma" o alucinación literaria 
+       por parte del decodificador del LLM, la divergencia de Kullback-Leibler entre la 
+       medida de probabilidad de la telemetría física ($\mathbb{P}$) y la densidad del 
+       texto generado ($\mathbb{Q}$) debe permanecer estrictamente sub-umbral en la FPU:
+       $$D_{\mathrm{KL}}(\mathbb{P} \parallel \mathbb{Q}) = \int_{\mathbb{R}} p(x) \ln\left( \frac{p(x)}{q(x)} \right) dx \le \tau_{\mathrm{drift}} \quad\big[140, 164\big]$$
+       Sujeta a que el número de condición de la matriz de covarianza de la transición 
+       no induzca pérdidas de significación flotante: $\kappa_2(\Sigma) \le 1.0\times 10^8$.
+
+  [A3] Axioma de Isomorfismo Homológico de Čech-de Rham (Traducción de Betti):
+       La descripción narrativa de las patologías del presupuesto (islas de datos $\beta_0 > 1$ 
+       o socavones lógicos $\beta_1 > 0$) se rige de manera exacta por el isomorfismo de-confinado:
+       $$\operatorname{H}^k(K; \mathcal{F}) \cong \operatorname{H}^k_{\mathrm{\check{C}ech}}(\mathcal{U}; \mathcal{F}) \quad\big[146, 164\big]$$
+       Esto garantiza algebraicamente que la narrativa describa con fidelidad absoluta la 
+       topología del complejo simplicial, proscribiendo la invención de características homológicas.
+
+  [A4] Axioma de Invarianza de Traza Semántica (Conservación de Born):
+       El operador densidad de la sabiduría narrativa $\rho_{\mathrm{narr}}$ proyectado en 
+       el espacio de Hilbert $\mathcal{H}$ debe conservar estrictamente la unitariedad de la medida:
+       $$\operatorname{Tr}(\rho_{\mathrm{narr}}) \equiv 1.0 \pm \varepsilon_{\mathrm{machine}} \quad\big[146, 165\big]$$
+       Donde cualquier residuo $\delta \neq 0$ delata un desbocamiento probabilístico en el 
+       canal de atención del LLM, detonando 'TraceConservationBreach'.
+
+  [A5] Axioma del Veto de Heyting y Actuación en Silicio (BT151 Crowbar):
+       Las interpretaciones narrativas proyectan su coherencia lógica sobre el clasificador 
+       de subobjetos del retículo distributivo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\}$.
+       Cualquier deriva semántica ($D_{\mathrm{KL}} > \tau_{\mathrm{drift}}$) o pérdida de unitariedad 
+       ($\operatorname{Tr}(\rho) \neq 1$) colapsa instantáneamente el estado al Supremo terminal VETOED ($\top$).
+       La subrutina C++ 'isVerdictCoherent()' del microcontrolador ESP32 detecta la anomalía en RAM y,
+       mediante su ISR en IRAM (<400ns), conmuta el pin GPIO14, disparando el tiristor BT151 (circuito Crowbar)
+       para paralizar físicamente los actuadores mecánicos en la obra real en el milisegundo cero.
+
+JERARQUÍA DE EXCEPCIONES NARRATIVAS Y DE GAUGE (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  TelemetryNarrativeError (Exception)
+   ├── SemanticDriftOverflow   : Divergencia Kullback-Leibler supera la cota de estabilidad tau.
+   ├── HomologicalTranslation  : Discordancia entre los números de Betti y la narrativa Čech.
+   ├── TraceConservationBreach : Pérdida de unitariedad probabilística en el operador de densidad.
+   ├── CofrontierValidationFail: Ruptura de la nilpotencia de de Rham (delta_k o delta_k-1 != 0).
+   └── HeytingLobeCollapse     : Transición anómala hacia el autoestado VETOED en el topos.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Ingestión del Pasaporte de Telemetría y cálculo de la norma L2 de logits.
+             Verifica la ausencia de singularidades NaN/Inf en la FPU mediante sumación Kahan.
+             Retorna: TelemetryPayloadCertificate.
+
+  Fase 2 ──► ORIENT  : Proyección de la densidad atencional sobre el espacio de Hilbert MAC.
+             Calcula la divergencia de Kullback-Leibler y el isomorfismo Čech-de Rham.
+             Retorna: TranslationSpectralReport.
+
+  Fase 3 ──► DECIDE  : Validación de la cota de Lipschitz y de la invarianza de traza.
+             Somete el estado de traducción al retículo de Heyting y arma el CrowbarPort.
+             Retorna: NarrativeSuturationState.
 """
 
 from __future__ import annotations

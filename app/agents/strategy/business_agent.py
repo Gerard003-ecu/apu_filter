@@ -1,59 +1,88 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Business Agent (Operador de Síntesis Categórica y Cerebro Ejecutivo)           ║
-║  Ruta   : app/strategy/business_agent.py                                                 ║
-║  Versión: 3.0.0-Categorical-Synthesis-Doctoral-Strict                                    ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TEORÍA DE CATEGORÍAS (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor consagra el Cerebro Ejecutivo del Estrato STRATEGY. Orquesta la         ║
-║  inteligencia de negocio modelando las finanzas y la topología del proyecto como una     ║
-║  2-categoría computacional. Transmuta la evaluación estática mediante Opciones Reales    ║
-║  y somete el estado de la Malla Agéntica a un Retículo de Auditoría Adversarial.         ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y ÁLGEBRA DE DECISIONES:                                        ║
-║                                                                                          ║
-║  §1. Álgebra de Retículos y Severidad de Veto (Lattice Theory):                          ║
-║      La evaluación de riesgos no opera de manera heurística, sino que se proyecta sobre  ║
-║      un Retículo Booleano $\mathcal{B} = (V, \sqcap, \sqcup, \bot, \top)$ acotado.       ║
-║      Si cualquier dimensión estructural emite un veto, el álgebra de decisiones impone   ║
-║      el colapso hacia el elemento supremo (Worst-case / RECHAZO):                        ║
-║          $\mathcal{V}_{final} = \bigsqcup_{i \in \mathcal{I}} v_i$                       ║
-║      La violación de la monotonicidad en el retículo levanta un `MathematicalError`.     ║
-║                                                                                          ║
-║  §2. Termodinámica Financiera y Ecuación de Black-Scholes-Merton:                        ║
-║      El presupuesto se trata como un fluido en un espacio de fase estocástico. Para la   ║
-║      teoría de Opciones Reales (Opción de Espera, etc.), la evolución del valor $V$      ║
-║      está estrictamente acoplada a la Ecuación Diferencial Parcial de Black-Scholes:     ║
-║          $\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} + rS \frac{\partial V}{\partial S} - rV = 0$ ║
-║      Bajo la dinámica de Ito $dS = \mu S dt + \sigma S dW_t$. Desviaciones o singularidades ║
-║      en la volatilidad termodinámica se rechazan categóricamente.                        ║
-║                                                                                          ║
-║  §3. Auditoría Adversarial (Risk Challenger) y Estrategias de Pivote:                    ║
-║      Somete la topología a modelos de pensamiento lateral mediante estrategias de pivote ║
-║      (Monopolio Coberturado, Cuarentena Topológica). Exige que las anomalías             ║
-║      topológicas ($\beta_1 > 0$) sean confinadas mediante un proyector ortogonal a un    ║
-║      subespacio de "Cuarentena" para preservar la métrica del ecosistema sano.           ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Topological & Thermodynamic Engine                                             ║
-║           Integra el `TopologicalMetricsBundle` y el `ThermodynamicState`, mapeando      ║
-║           invariantes estructurales y calculando la entropía financiera.                 ║
-║           [Retorna: SynthesisContext → objeto inicial de Fase 2]                         ║
-║                                                                                          ║
-║  Fase 2 → Real Options & Financial Valuation                                             ║
-║           Aplica el motor Black-Scholes sobre los componentes de fricción. Transforma    ║
-║           incertidumbre escalar en distribuciones valoradas en el cuerpo $\mathbb{R}$.   ║
-║           [Retorna: ValuationManifold → objeto inicial de Fase 3]                        ║
-║                                                                                          ║
-║  Fase 3 → Risk Challenger & Executive Composition                                        ║
-║           Aplica la auditoría adversarial, extrae excepciones de pivote y computa el     ║
-║           supremo en el retículo de decisiones, delegando al `ReportComposer`.           ║
-║           [Retorna: StrategicReport → objeto final del endofuntor]                       ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Business Agent (Soberano de Síntesis Categórica y Cerebro Ejecutivo) ║
+║ Ruta   : app/agents/strategy/business_agent.py                                ║
+║ Versión: 5.10.0-Doctoral-Simplicial-BMC-MayerVietoris-Fiedler-Heyting-Secure  ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS CATEGORIAL Y GEOMETRÍA DEL VALOR (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este agente soberano de calibre del Estrato STRATEGY-WISDOM (Nivel 1, $V_{\mathbb{S}}$)
+gobierna la síntesis categórica macroscópica de la Malla, actuando como el **CFO
+Virtual (Chief Financial Officer)** de-confinado. Su propósito es transmutar
+el Business Model Canvas (BMC) de un diagrama plano e intuitivo a un complejo
+simplicial finito y dinámico $K$ sobre el anillo de los enteros $\mathbb{Z}$,
+sometiendo el flujo de valor a severas condiciones de rigidez espectral, homología
+y pasividad termodinámica Port-Hamiltoniana.
+
+El `BusinessAgent` actúa como una fachada monolítica autoadjunta que unifica las 
+variables tácticas de los APUs y los resolvedores mecánicos de la base física con 
+las expectativas estratégicas del negocio. Blinda herméticamente al 
+ecosistema frente a la canibalización y alucinaciones estocásticas de la IA generativa 
+al subordinar el espacio de decisión a un retículo distributivo de Heyting $\Omega_3$ 
+que interacciona síncronamente con el disyuntor por hardware del ESP32.
+
+AXIOMÁTICA ALGEBRAICO-TOPOLÓGICA DEL RECTOR COMERCIAL:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de la Estructura de Carga de Rascacielos:
+       La viabilidad estratégica del negocio se apoya en los estratos subyacentes,
+       satisfaciendo la Ley de Clausura Transitiva de la pirámide $\aleph\mathrm{DIK}\Omega\alpha\mathrm{W}\Gamma$:
+       $$V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}} \quad\big[15, 449\big]$$
+       El agente proscribe la inyección de propuestas desprovistas de soporte térmico
+       en la base (PHYSICS) o de ortonormalidad booleana en el núcleo (TACTICS) [9].
+
+  [A2] Axioma de Canibalización y Característica de Euler-Poincaré:
+       El Business Model Canvas se formaliza como un 1-complejo simplicial $K$ generado 
+       por los 9 bloques nodales $P_i$ [2, 10]. Para aniquilar de raíz bucles tóxicos 
+       de retroalimentación parásita, el primer número de Betti (espacio de ciclos) debe ser trivial:
+       $$\beta_1 = \dim Z_1(K) - \operatorname{rank}(\partial_1) \equiv 0 \implies \operatorname{H}_1(K; \mathbb{Z}) \cong 0 \quad\big[140, 147\big]$$
+       La salud del modelo se audita de forma exacta evaluando la Característica de Euler:
+       $$\chi(K) = \beta_0 - \beta_1 + \beta_2 = |V| - |E| + |F| \quad\big[17, 24\big]$$
+       Si la homología detecta $\beta_1 > 0$ o $\chi(K) \le 0$, el BMC padece de canibalización
+       de recursos, detonando un veto absoluto por 'REJECTED_TOXIC_CYCLES' [2, 11].
+
+  [A3] Axioma de Coherencia de Fusión Licitatoria (Mayer-Vietoris):
+       Al unificar y consolidar dos subcomplejos presupuestarios disjuntos $A$ y $B$, el 
+       agente proscribe la generación de dependencias circulares mutantes y "ciclos fantasma", 
+       exigiendo la exactitud estricta en la Sucesión Exacta Larga de Mayer-Vietoris:
+       $$\Delta\beta_1 = \beta_1(A \cup B) - \left[ \beta_1(A) + \beta_1(B) - \beta_1(A \cap B) \right] \equiv 0 \quad\big[25, 147\big]$$
+       Cualquier residuo homológico $\Delta\beta_1 > 0$ detona 'HomologicalInconsistencyError' [12, 13].
+
+  [A4] Axioma de Pasividad Espectral de Laplace-Jury (Oráculo BIBO):
+       La función de transferencia de ingresos $H(s)$ en el dominio de Laplace complejos 
+       $s = \sigma + j\omega$ debe presentar estabilidad asintótica incondicional BIBO [1]:
+       $$\max_{i} \operatorname{Re}(p_i) < 0 \quad \wedge \quad \rho(T^{-1}\delta T) < 1.0 \quad\big[17, 27\big]$$
+       Donde la Serie de Neumann garantiza la invertibilidad del operador perturbado [7]. 
+       Cualquier deriva hacia el caos determinista o polo en el semiplano derecho (RHP, $\sigma \ge 0$)
+       colapsa el retículo al Supremo terminal VETOED ($\top$), activando el Crowbar físico [1, 7].
+
+JERARQUÍA DE EXCEPCIONES Y VETOS DE CONTROL ESTRATÉGICO:
+────────────────────────────────────────────────────────────────────────────────
+  MathematicalError (Exception)
+   ├── TopologicalInvariantError    : Violación en el conteo o persistencia de Betti.
+   │    ├── BMCTopologyError        : Deformación o inconsistencia en bloques del BMC.
+   │    ├── HomologicalInconsistency: Ruptura de la exactitud de Mayer-Vietoris.
+   │    └── TopologicalIslandError  : Detección de subgrafos disconexos (Betti_0 > 1).
+   ├── SpectralAnalysisError        : Falla en la diagonalización de la FPU o Fiedler nulo.
+   │    └── NeumannSeriesDivergence : Tensor inestable (radio espectral de perturbación >= 1.0).
+   ├── RiskChallengerVetoError      : Veto por desbordamiento de las cotas de VaR/CVaR.
+   └── RealOptionsValuationError    : Singularidad en frontera de Black-Scholes o árbol binomial.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Ingestión del lienzo de negocio como matriz de adyacencia de-confinada.
+             Audita la norma de Frobenius y la compatibilidad con 'ColumnNames' [14].
+             Retorna: CanvasSymmetryData.
+
+  Fase 2 ──► ORIENT  : Reducción homológica y estimación espectral del Laplaciano de Hodge.
+             Calcula el gap de Fiedler $\lambda_2$ y el índice de estabilidad piramidal $\Psi$ [13].
+             Retorna: StructuralThermodynamicReport.
+
+  Fase 3 ──► DECIDE  : Evaluación del riesgo de cola pesada (CVaR al 95%) y Opciones Reales [15].
+             Somete los veredictos de de Rham al Supremo del retículo de Heyting $\Omega_3$ [7].
+             Retorna: StrategicGovernanceVerdict.
 """
 
 from __future__ import annotations

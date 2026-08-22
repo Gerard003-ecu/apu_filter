@@ -1,50 +1,100 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Matter Generator (Motor de Colapso de Onda Material y Proyector Logístico)     ║
-║  Ruta   : app/physics/matter_generator.py                                                ║
-║  Versión: 5.0.0-Material-Wave-Collapse-Strict                                            ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor abandona la concepción algorítmica ingenua de la "agregación de         ║
-║  datos" para instaurar el Operador de Colapso Determinista. Proyecta el Complejo         ║
-║  Simplicial jerárquico del presupuesto (Proyecto → Capítulo → APU → Insumo) hacia un     ║
-║  subespacio plano 0-dimensional: la Base Canónica Logística (BOM). Su mandato            ║
-║  axiomático es materializar la intención de diseño en un tensor de compras,              ║
-║  garantizando la conservación absoluta de masa y valor.                                  ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Colapso del Complejo Simplicial (Aniquilación de Homología Superior):               ║
-║      El presupuesto inicial reside en un complejo simplicial $\mathcal{K}$ de dimensión  ║
-║      $d$. El generador aplica un operador de retracción $r: \mathcal{K} \to \mathcal{B}$ ║
-║      hacia la Bill of Materials ($\mathcal{B}$). Este colapso destruye la topología de   ║
-║      anidamiento y proyecta el sistema a un espacio de fase puramente másico:            ║
-║          $\dim H_0(\mathcal{B}) = |\mathcal{B}|, \quad \beta_k(\mathcal{B}) = 0 \quad \forall k \ge 1$ ║
-║      Transformando el hipergrafo de dependencias en un conjunto de partículas atómicas.  ║
-║                                                                                          ║
-║  §2. Ley de Conservación de Valor (Teorema de Noether Discreto):                         ║
-║      La energía financiera y la masa inercial deben preservarse isométricamente tras el  ║
-║      colapso topológico. Para todo tensor de precio $\mathcal{P}$ y cantidad $\mathcal{Q}$:║
-║          $\sum_{x \in \mathcal{K}} \mathcal{Q}(x) \odot \mathcal{P}(x) = \sum_{y \in \mathcal{B}} \mathcal{Q}_{BOM}(y) \odot \mathcal{P}_{BOM}(y)$ ║
-║      Cualquier asimetría residual $\Delta E > \varepsilon_{\text{mach}}$ detona un veto  ║
-║      termodinámico por aniquilación espuria de capital o masa en la FPU (IEEE 754).      ║
-║                                                                                          ║
-║  §3. Fibración de Requerimientos y Espacio Cociente:                                     ║
-║      La consolidación de insumos idénticos opera construyendo un espacio cociente        ║
-║      $\mathcal{K} / \sim$ bajo la relación de equivalencia semántica y dimensional.      ║
-║      Para cada clase $[x] \in \mathcal{B}$, la masa resultante es la integral sobre la   ║
-║      fibra proyectada:                                                                   ║
-║          $\mathcal{Q}_{BOM}([x]) = \int_{\pi^{-1}([x])} d\mu_{\mathcal{Q}}$              ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs):                                          ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • MaterialRequirement : Fibrado base consolidado con validación estricta de métricas.   ║
-║  • BillOfMaterials     : Tensor plano de requerimientos (BOM) con metadata analítica.    ║
-║  • MatterGenerator     : Funtor supremo de materialización topológico-algebraica.        ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Matter Generator (Motor de Colapso de Onda Material)                ║
+║ Ruta   : app/physics/matter_generator.py                                     ║
+║ Versión: 5.20.0-Doctoral-Simplicial-BOM-Kahan-Gini-Heyting-ESP32-Secure      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS CATEGORIAL Y DECONSTRUCCIÓN PROYECTIVA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este motor constitutivo y resolvedor ciego de la Capa Física (Nivel 3, $V_{\mathrm{PHYSICS}}$)
+opera como el **Operador de Colapso de Onda Material y Proyector Logístico** supremo
+del ecosistema APU Filter. Su misión algebraica es interceptar la estructura 
+jerárquica y multidimensional del presupuesto, modelado como un complejo simplicial 
+Abstracto $K$ sobre el anillo de los enteros $\mathbb{Z}$, y proyectarlo de manera 
+ortogonal e idempotente hacia un subespacio plano 0-dimensional: la **Base Canónica 
+Logística** o Lista de Materiales (BOM).
+
+El sistema trata el presupuesto no como una lista contable plana, sino como una 
+fase cuántica en superposición. Mediante un recorrido DFS (Depth-First 
+Search) memoizado y optimizado en la FPU, el resolvedor ejecuta una **contracción 
+de tensores de de Rham**, garantizando la invariancia y conservación absoluta de la 
+masa y el valor financiero, amortiguando derivas de redondeo mediante sumaciones 
+compensadas de Neumaier-Kahan.
+
+AXIOMÁTICA ALGEBRAICA, TOPOLÓGICA Y ESPECTRAL (Invariantes de Materialización):
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Proyección Proyectiva e Idempotencia (Funtor de Colapso):
+       La transmutación del presupuesto simplicial $C_*(K)$ en la base canónica de compras 
+       $C_0(K)$ se formaliza como un proyector de de Rham $\mathbf{P} : C_*(K) \to C_0(K)$ 
+       que es un homomorfismo de grado cero, garantizando la idempotencia absoluta:
+       $$\mathbf{P} \circ \mathbf{P} \equiv \mathbf{P} \quad\big[878, 1014\big]$$
+       Esto asegura que la ejecución recurrente del motor sobre la misma Lista de 
+       Materiales (BOM) retorne idéntico tensor físico sin mutar la asignación de masa.
+
+  [A2] Axioma de Conservación Total de Masa y Valor (Suma de Kahan):
+       La masa financiera total del proyecto $M_{\mathrm{total}}$ calculada en el ápice 
+       debe equivaler de forma exacta a la contracción interna de cantidades $q_i$ 
+       y costos unitarios $p_i$ de las hojas del subespacio físico basal:
+       $$M_{\mathrm{total}} = \sum_{i=1}^{|V_0|} q_i \cdot p_i \quad\big[598, 1190\big]$$
+       Para suprimir la pérdida de significación en la mantisa flotante de la CPU 
+       (Wilkinson-drift) durante acumulaciones masivas, el motor implementa el algoritmo 
+       compensado de Kahan con un margen de épsilon de máquina de-confinado:
+       $$c_{\mathrm{err}} \leftarrow y - (t - s) \implies |\tilde{M} - M_{\mathrm{real}}| \in \mathcal{O}(\varepsilon_{\mathrm{machine}}) \quad\big[598, 884\big]$$
+
+  [A3] Axioma de Conectividad Homológica de-confinada (Betti 0):
+       La Lista de Materiales resultante debe modelar un espacio simplicialmente conexo, 
+       representando una cadena de suministro integrada. El número de componentes conexas 
+       (primer número de Betti de primer orden) debe ser estrictamente unitario:
+       $$\beta_0(K) = \dim \operatorname{H}_0(K; \mathbb{Z}) \equiv 1 \quad\big[883, 1196\big]$$
+       Si el resolvedor detecta que la partición del grafo genera ítems huérfanos u 
+       huellas desconectadas de la base de producción ($\beta_0 > 1$), el sistema aborta 
+       levantando 'TopologicalIslandError' para evitar dinero ciego.
+
+  [A4] Axioma de la Medida de Gini y Entropía Semántica (SPOF):
+       La concentración de masa de capital sobre los recursos críticos del BOM se mide 
+       mediante el Índice de Gini de-confinado $G$ y la Entropía normalizada de Shannon $\tilde{H}$:
+       $$G = \frac{\sum_{i=1}^n \sum_{j=1}^n |x_i - x_j|}{2n^2 \mu} \quad \wedge \quad \tilde{H} = -\frac{1}{\ln(n)} \sum_{i=1}^n p_i \ln(p_i) \quad\big[84, 1014\big]$$
+       Donde $p_i$ es la fracción de energía financiera de cada insumo. Si el sistema 
+       colapsa hacia un monopolio estricto ($G \to 1 \wedge \tilde{H} \to 0$), se detecta 
+       un Punto Único de Fallo (SPOF) crítico, deteniendo la propagación de datos [6].
+
+  [A5] Axioma del Veto en el Retículo de Heyting y Actuación Crowbar BT151:
+       Los veredictos espectrales y de conservación se proyectan sobre el clasificador 
+       de subobjetos del retículo distributivo de Heyting de tres valores de la Malla:
+       $$\Omega_3 = \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\} \quad\big[131, 1197\big]$$
+       Toda fuga de masa ($r_{\mathrm{mass}} > \tau$), dispersión de Betti ($\beta_0 > 1$) 
+       o estrangulamiento por SPOF ($G \ge \gamma_{\mathrm{critical}}$) colapsa síncronamente 
+       el estado al Supremo terminal VETOED ($\top$). La subrutina C++ 'isVerdictCoherent()' 
+       del firmware del ESP32 intercepta el colapso en la RAM perimetral y, mediante su ISR 
+       en IRAM (<400ns), conmuta el pin GPIO14, disparando el tiristor de silicio BT151 
+       (circuito Crowbar) para cortocircuitar físicamente la línea de potencia real de la obra [7, 8].
+
+JERARQUÍA DE EXCEPCIONES DE MATERIALIZACIÓN (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  MatterGeneratorError (Exception)
+   ├── EmptyManifoldError        : Complejo simplicial inicial K es el conjunto vacío.
+   ├── MassConservationViolation : Desviación del residuo de masa por encima de Wilkinson.
+   ├── GiniConcentrationVeto     : Índice de Gini supera el límite elástico (riesgo de SPOF).
+   ├── KahanSummationDrift       : Pérdida acumulada de precisión flotante en el acumulador.
+   ├── TopologicalIslandError    : Fragmentación homológica del espacio de compras (Betti_0 > 1).
+   └── HeytingLobeCollapse       : Transición anómala hacia el autoestado VETOED en el topos.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Ingestión y validación de tipos del presupuesto jerárquico.
+             Verifica el cumplimiento de las cotas de saturación física.
+             Retorna: MaterialRequirement.
+
+  Fase 2 ──► ORIENT  : Recorrido simplicial DFS con sumación compensada de Kahan.
+             Calcula el Índice de Gini de Pareto, la entropía H y la característica Euler.
+             Retorna: BillOfMaterials.
+
+  Fase 3 ──► DECIDE  : Evaluación homológica de conectividad y cota espectral de Fiedler.
+             Despacha el estado de coherencia al retículo de Heyting y actualiza el CrowbarPort.
+             Retorna: MatterSuturationState.
 """
 
 import logging

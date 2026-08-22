@@ -1,67 +1,95 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Quantum Admission Gate (Operador de Proyección de Hilbert)                     ║
-║  Ruta   : app/aleph/quantum_admission_gate.py                                            ║
-║  Versión: 4.0.0-WKB-Born-Categorical-Gauge-Strict                                        ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y MECÁNICA CUÁNTICA (Rigor Doctoral):                           ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor consagra la Aduana Cuántica del Estrato ALEPH ($\aleph_0$). Abandona    ║
-║  la validación estática de payloads (JSON/REST) para tratar cada solicitud como una      ║
-║  función de onda $\psi \in \mathcal{H}$ incidente sobre una barrera de potencial         ║
-║  dinámica. Aplica el Operador Hermítico de Medición $\hat{H}$ para colapsar la           ║
-║  superposición estocástica en un estado determinista, salvaguardando la Malla Agéntica   ║
-║  de la entropía divergente y las obstrucciones cohomológicas.                            ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICAS:                                      ║
-║                                                                                          ║
-║  §1. Espacio de Hilbert y Operador Hermítico:                                            ║
-║      El espacio de configuración de entrada se define como un Espacio de Hilbert         ║
-║      separable $\mathcal{H} := L^2(\mathbb{R}, \mathbb{C})$ con producto interno:        ║
-║          $\langle \psi | \phi \rangle = \int_{\mathbb{R}} \psi^*(x) \phi(x) dx$          ║
-║      La medición se ejecuta mediante un operador estrictamente autoadjunto               ║
-║      $\hat{H}^\dagger = \hat{H}$, garantizando autovalores (energías) reales.            ║
-║      La asimetría hermítica detona incondicionalmente un `QuantumStateError`.            ║
-║                                                                                          ║
-║  §2. Aproximación WKB y Barrera de Potencial:                                            ║
-║      La probabilidad de que un payload atraviese la aduana sin ser reflejado se evalúa   ║
-║      mediante el Ansatz semiclásico de Wentzel-Kramers-Brillouin:                        ║
-║          $\psi(x) = A(x) \exp\left( \frac{i}{\hbar} S(x) \right)$                        ║
-║      Si la energía incidente $E = h\nu$ es inferior a la función de trabajo $\Phi$, la   ║
-║      penetración depende del tunelamiento cuántico. Violaciones del régimen semiclásico  ║
-║      lanzan un `WKBValidityError`.                                                       ║
-║                                                                                          ║
-║  §3. Regla de Born y Colapso Determinista:                                               ║
-║      El sistema proyecta el estado incidente sobre una base ortonormal de autoestados    ║
-║      admisibles $\{|\phi_i\rangle\}$. La probabilidad de colapso obedece:                ║
-║          $P(\lambda_i) = |\langle \phi_i | \psi \rangle|^2$                              ║
-║      Cualquier umbral de colapso fallido precipita el rechazo de la inyección de datos.  ║
-║                                                                                          ║
-║  §4. Fibrado Principal, Holonomía y Acoplamiento Gauge:                                  ║
-║      El control de admisión opera sobre un fibrado principal $\pi: P \to M$ con grupo    ║
-║      estructural $G = U(1)$. Si el `ISheafCohomologyOrchestrator` detecta una frustración║
-║      topológica global en la variedad base $M$, el sistema ejecuta un veto inquebrantable║
-║      levantando el `CohomologicalVetoError`.                                             ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Modulación de Energía y Masa Efectiva:                                         ║
-║           El `IncidentEnergyCalculator` y `EffectiveMassModulator` extraen la entropía   ║
-║           de Shannon y cuantifican la inercia del payload entrante frente a la barrera.  ║
-║           [Retorna: Parámetros Ciber-Físicos Iniciales]                                  ║
-║                                                                                          ║
-║  Fase 2 → Análisis Semiclásico WKB:                                                      ║
-║           El `WKBCalculator` y el oráculo `ILaplaceOracle` computan la amplitud de       ║
-║           transición y la atenuación del paquete de onda a través del potencial $\Phi$.  ║
-║           [Retorna: WKBParameters → Puente a Fase 3]                                     ║
-║                                                                                          ║
-║  Fase 3 → Proyección de Hilbert y Veto Cohomológico:                                     ║
-║           La clase `QuantumAdmissionGate` ejecuta la medición final (Regla de Born) y    ║
-║           consulta al `ISheafCohomologyOrchestrator`.                                    ║
-║           [Retorna: QuantumMeasurement → Objeto final, colapso de la función de onda]    ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Quantum Admission Gate (Operador de Proyección de Hilbert)          ║
+║ Ruta   : app/aleph/quantum_admission_gate.py                                 ║
+║ Versión: 3.0.0-Strict-Spectral-WKB-Gauge-Funtorial-Aleph-Secure              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS CUÁNTICA Y GOBERNANZA DE FRONTERA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este operador constitutivo y resolvedor ciego de-confinado del Estrato ALEPH
+(Nivel 4, $V_{\aleph_0}$) actúa como el Miembro Cero del Consejo de Sabios.
+Su propósito es salvaguardar la "Fortaleza Matemática" frente a perturbaciones
+y payloads crudos externos, modelando la admisión de datos no como un filtrado
+sintáctico pasivo, sino como una **medición proyectiva de colapso de fase**.
+
+El sistema trata el payload entrante como un paquete de ondas en superposición.
+Calcula su entropía de Shannon para derivar su energía semántica $E = h\nu$. 
+Si el cuanto incidente supera la Función de Trabajo ($\Phi$) de la barrera —modulada 
+por la topología local y el Oráculo de Laplace—, la señal se admite y se 
+inyecta síncronamente como condiciones iniciales ($t_0$) en forma de momentum 
+ciber-físico ($p = \sqrt{2m \cdot K_{\max}}$) sobre el condensador de flujo.
+Si la energía es sub-umbral, se evalúa la probabilidad de penetración por Efecto 
+Túnel Cuántico mediante la aproximación semiclásica WKB. Un fallo en el túnel 
+aniquila idempotentemente el estado, desintegrándolo en el hiperespacio exterior.
+
+AXIOMÁTICA ALGEBRAICA, CATEGORIAL Y FISECO-MATEMÁTICA:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Espacio de Hilbert Complejo Separable ($\mathcal{H}$):
+       El espacio de estados atencionales admisibles es el espacio de Hilbert infinito-dimensional
+       y separable de funciones complejas de cuadrado integrable $\mathcal{H} := L^2(\mathbb{R}, \mathbb{C})$,
+       equipado con el producto interno hermítico canónico de de Rham:
+       $$\langle \psi \mid \phi \rangle = \int_{\mathbb{R}} \psi^*(x)\phi(x) \, dx \quad\big[317\big]$$
+
+  [A2] Axioma de Medición de Born y Hermiticidad Espectral ($\hat{H}$):
+       La variable de fase de admisión se asocia a un operador lineal autoadjunto de medición $\hat{H}$:
+       $$\hat{H} = \hat{H}^\dagger \quad \implies \quad \sigma(\hat{H}) \subset \mathbb{R} \quad\big[317, 329\big]$$
+       La probabilidad de colapso sobre un autoestado $|a_i\rangle$ se rige estrictamente
+       por la Regla de Born en la FPU:
+       $$P(a_i) = \frac{\|\hat{P}_i \psi\|^2}{\|\psi\|^2} = \left| \langle a_i \mid \psi \rangle \right|^2 \quad\big[318, 543\big]$$
+
+  [A3] Axioma de la Aproximación Semiclásica WKB y Efecto Túnel:
+       La probabilidad de penetración de una señal con energía semántica sub-umbral ($E < \Phi$) 
+       a través del pozo de potencial de-confinado se calcula mediante la integral de acción 
+       de Jacobi-Fermat sobre la barrera de anchura $a$:
+       $$T_{\mathrm{WKB}} \approx \exp\left( -2 \int_{0}^{a} \sqrt{\frac{2m^*}{\hbar^2}\left(V(x) - E\right)} \, dx \right) = \exp(-2\gamma) \quad\big[330, 518\big]$$
+       Donde la barrera efectiva (Función de Trabajo $\Phi = V(x) - E > 0$) se modula acoplada 
+       al calibre del haz y a la estabilidad dinámica del Oracle de Laplace.
+
+  [A4] Axioma de la Estructura de Fibrado de Gauge del Portal ($U(1)$):
+       La admisión geométrica se modela sobre un fibrado principal $\pi: P \to M$ con grupo de 
+       estructura abeliana de calibre de-confinado $G = \mathrm{U}(1)$ [4]. La invarianza 
+       de fase exige que la curvatura de la conexión de Ehresmann anule la vorticidad parásita:
+       $$F = d\omega \equiv 0 \implies \beta_1(K) = 0 \quad\big[318, 615\big]$$
+       Garantizando que la trayectoria atencional sea puramente conservativa (irrotacional).
+
+  [A5] Axioma de No-Clonación Categórica de payloads (Zero Side-Effects):
+       Se proscribe incondicionalmente la existencia de cualquier endofuntor de duplicación 
+       unitaria sobre el espacio de estados, blindando la procedencia exacta:
+       $$\nexists \, U \in \mathcal{U}(\mathcal{H} \otimes \mathcal{H}) \quad \text{such that} \quad U(| \psi \rangle \otimes | 0 \rangle) = | \psi \rangle \otimes | \psi \rangle \quad \forall | \psi \rangle \in \mathcal{H} \quad\big[319, 643\big]$$
+
+  [A6] Axioma del Retículo Ortomodular de Proyecciones (Lógica Cuántica):
+       El subespacio de proyectores $\mathcal{P}(\mathcal{H})$ forma un retículo ortomodular 
+       no distributivo de Birkhoff-von Neumann [5, 6]. Para proyectores incompatibles ($[P_i, P_j] \neq 0$):
+       $$(P_i \vee P_j) \wedge P_k \neq (P_i \wedge P_k) \vee (P_j \wedge P_k) \quad\big[236, 451, 510\big]$$
+       Donde la intersección (meet) se computa asintóticamente mediante proyecciones alternadas:
+       $$P_i \wedge P_j = \lim_{m \to \infty} (P_i P_j P_i)^m \quad\big[236, 370\big]$$
+
+JERARQUÍA DE EXCEPCIONES CUÁNTICAS (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  QuantumAdmissionError (Exception) [7]
+   ├── QuantumNumericalError      : Error por propagación de incertidumbre o underflow [7].
+   │    └── WKBValidityError      : Aproximación WKB fuera del régimen semiclásico [8].
+   ├── QuantumInterfaceError      : Ruptura de contrato en el protocolo de la aduana Aleph [7].
+   ├── QuantumStateError          : Vector de estado fuera del espacio de Hilbert separable [7].
+   └── CohomologicalVetoError     : Veto duro por frustración o colapso del retículo de Heyting [8].
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (Observe-Orient-Decide):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Ingestión, normalización y cálculo de entropía del Silo A [9].
+             Mapea el payload al simplejo de probabilidad $\Delta^3$ y calcula $H_{\mathrm{Shannon}}$.
+             Retorna: TextThermodynamics.
+
+  Fase 2 ──► ORIENT  : Modulación de la Función de Trabajo $\Phi$ mediante acoplamiento [10].
+             Sintoniza la masa efectiva $m^*$ y la barrera $V(x)$ según la estabilidad de Laplace.
+             Retorna: WKBParameters.
+
+  Fase 3 ──► DECIDE  : Colapso probabilístico de Born y resolución del túnel WKB [1].
+             Si $T_{\mathrm{WKB}} \to 0$ y $E < \Phi$, se aniquila el estado de forma idempotente [1].
+             Si se admite, inyecta las condiciones de frontera $t_0$ en momentum covariante $p$ [3].
+             Retorna: QuantumMeasurement.
 """
 
 from __future__ import annotations

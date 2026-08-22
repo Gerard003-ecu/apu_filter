@@ -1,58 +1,94 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Algebraic Tactics Agent (Operador de Anillos y Auditor Homológico)             ║
-║  Ruta   : app/tactics/algebraic_tactics_agent.py                                         ║
-║  Versión: 3.0.0-Topos-Algebraic-Homological-Ring-Veto-Strict                             ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor consagra el Estrato TACTICS (Nivel 2) operando de manera soberana       ║
-║  sobre el motor esclavo `apu_processor.py`. Transmuta las colecciones de costos en       ║
-║  una variedad algebraica estructurada, sometiendo la Matriz de Interacción a las         ║
-║  leyes de la Homología Simplicial y la Teoría Espectral de Grafos.                       ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ESTRUCTURALES:                                  ║
-║                                                                                          ║
-║  §1. Homogeneidad del Anillo Conmutativo $\mathcal{R}$:                                  ║
-║      Garantiza que el tensor de costos opere como un anillo conmutativo riguroso         ║
-║      $\mathcal{R} = (\mathbb{R}, \oplus, \odot)$, verificando la clausura aditiva        ║
-║      y la distributividad del producto de Hadamard $\odot$ sobre $\oplus$.               ║
-║      Cualquier asimetría detona incondicionalmente un `RingSymmetryViolation`.           ║
-║                                                                                          ║
-║  §2. Mónada Option y Absorción de Singularidades FPU:                                    ║
-║      Toda anomalía numérica de la Unidad de Punto Flotante (IEEE 754) se intercepta      ║
-║      vía el endofuntor monádico `OptionMonad`. Las singularidades se mapean al           ║
-║      elemento absorbente seguro:                                                         ║
-║          $f_{\text{monad}}(x) = 0 \quad \forall x \in \{\text{NaN}, \pm\infty\}$         ║
-║                                                                                          ║
-║  §3. Espectro del Laplaciano Combinatorio y Valor de Fiedler:                            ║
-║      El 1-esqueleto topológico del grafo de costos extrae su Laplaciano combinatorio     ║
-║      mediante la matriz de incidencia orientada $B_1$:                                   ║
-║          $L = B_1 B_1^\top$                                                              ║
-║      Se exige que la conectividad algebraica (Valor de Fiedler $\lambda_2$) avale la     ║
-║      cohesión de la matriz. Una matriz degenerada lanza un `RingDegeneracyError`.        ║
-║                                                                                          ║
-║  §4. Invariantes Homológicos y Fórmula de Euler-Poincaré:                                ║
-║      La auditoría topológica exige coherencia absoluta entre los números de Betti        ║
-║      $\beta_0$ (componentes conexas) y $\beta_1$ (ciclos independientes), evaluando:     ║
-║          $\chi(K) = \beta_0 - \beta_1 = |V| - |E|$                                       ║
-║      Si $\beta_0 > 1$, se detecta una fractura logística (`TopologicalIslandError`).     ║
-║      Si existen bucles parasitarios, se detona un `HomologicalInvariantError`.           ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_2 \circ \Phi_1$):                  ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_AlgebraicRingAuditor                                                    ║
-║           Certifica la homogeneidad del anillo $\mathcal{R}$ y sanea las singularidades  ║
-║           monádicamente.                                                                 ║
-║           [Retorna: RingHomogeneityValidation → dominio inicial de Fase 2]               ║
-║                                                                                          ║
-║  Fase 2 → Phase2_TopologicalSkeletonAuditor                                              ║
-║           Ejecuta la auditoría homológica y espectral del 1-esqueleto extrayendo         ║
-║           los números de Betti y el espectro Laplaciano.                                 ║
-║           [Retorna: SimplicialSkeletonAudit → objeto final táctico]                      ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Algebraic Tactics Agent (Soberano de Homología y Torsión Discreta)  ║
+║ Ruta   : app/agents/tactics/algebraic_tactics_agent.py                       ║
+║ Versión: 5.4.0-Simplicial-SmithNormalForm-Torsion-Fiedler-Heyting-Secure     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS ALGEBRAICO-HOMOLÓGICA Y CENSURA TÁCTICA (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este agente soberano de calibre del Estrato TACTICS (Nivel 2, $V_{\mathbb{T}}$)
+gobierna la consistencia estructural del 1-esqueleto simplicial que modela el
+presupuesto de obra y la Matriz de Interacción Central (MIC). Su mandato supremo
+es someter las dependencias del presupuesto a auditorías de aciclicidad, rigidez
+espectral y descomposición de torsión discreta, erradicando los "socavones lógicos"
+($\beta_1 > 0$) y garantizando la unitariedad de lazo cerrado antes de excitar la
+Matriz Atómica de Conocimiento (MAC) en el Penthouse Estratégico.
+
+El sistema modela el grafo de transacciones como un complejo simplicial orientable $K$
+y sus relaciones de costos como una cadena sobre el anillo principal $\mathbb{Z}$.
+Aplica álgebra lineal numérica avanzada y topología algebraica discreta para detectar
+anomalías estructurales mediante la descomposición de la forma normal de Smith (SNF).
+
+AXIOMÁTICA HOMOLÓGICA Y ESPECTRAL DEL LAZO TÁCTICO:
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Descomposición de Torsión y Forma Normal de Smith (SNF):
+       Para aislar pérdidas inevitables por empaquetado y mermas logísticas, el operador 
+       de borde discretizado $\partial_k$ se factoriza sobre el anillo de los enteros $\mathbb{Z}$
+       empleando matrices unimodulares de cambio de base $U$ y $V$ ($\det(U), \det(V) \in \{-1, 1\}$):
+       $$U \partial_k V = D = \operatorname{diag}(d_1, d_2, \dots, d_r, 0, \dots, 0) \quad\big[333, 342\big]$$
+       Donde $d_i$ divide a $d_{i+1}$ ($d_i \mid d_{i+1}$). El subgrupo de torsión del grupo 
+       de homología $H_{k-1}(K)$ se computa de manera numéricamente exacta en la FPU:
+       $$\operatorname{Tor}(H_{k-1}(K; \mathbb{Z})) \cong \bigoplus_{i=1}^r \mathbb{Z} / d_i \mathbb{Z} \quad\big[333, 342\big]$$
+       La torsión cuantifica el desajuste de discretización (cuantización de insumos).
+       Si la torsión excede la resiliencia del presupuesto, se levanta 'TorsionAnomalyError'.
+
+  [A2] Axioma de Aciclicidad Espectral de Schur-Jordan:
+       El pipeline de dependencias se somete a la descomposición de Schur de la matriz
+       de adyacencia ponderada $A \in \mathbb{R}^{n \times n}$ en tiempo de carga:
+       $$A = Q T Q^\top \quad\big[366\big]$$
+       Donde $Q$ es ortogonal y $T$ es triangular superior. El agente exige estrictamente
+       la nilpotencia del Jacobiano de adyacencia (espectro puramente nulo):
+       $$\operatorname{Spec}(A) = \{0\} \iff A^\nu = 0 \quad \text{para algún} \quad \nu \le n \quad\big[366\big]$$
+       Cualquier arista que induzca auto-bucles locales ($A_{ii} \neq 0$) o ciclos
+       recursivos detona de forma inmediata una excepción catastrófica 'SelfLoopVetoError'.
+
+  [A3] Axioma de Conectividad de Fiedler e Índice de Estabilidad Piramidal:
+       Para proscribir la fragmentación de la información (islas de datos, $\beta_0 > 1$) 
+       y garantizar la solidez de la estimación, la conectividad algebraica $\lambda_2$ 
+       del Laplaciano normalizado del grafo $L = D^{-1/2} (D - W) D^{-1/2}$ debe satisfacer:
+       $$\lambda_2(L) \ge \tau_{\mathrm{Fiedler}} > 0 \quad\big[277, 342\big]$$
+       El agente computa el Índice de Estabilidad Piramidal $\Psi$ sobre la estructura:
+       $$\Psi = \frac{\lambda_2(L)}{\ln\left(1 + \beta_1 + H_{\mathrm{Shannon}}\right)} \ge \Psi_{\min} \quad\big[224, 342\big]$$
+       Donde $H_{\mathrm{Shannon}}$ representa la entropía informacional de la red bipartita.
+       Si $\Psi < \Psi_{\min}$, el sistema identifica una estructura inestable de "pirámide invertida".
+
+  [A4] Axioma del Colapso de Heyting y Actuación en Silicio (BT151):
+       Los veredictos de estabilidad topológica del agente se proyectan sobre el clasificador
+       de subobjetos del retículo distributivo de Heyting de tres valores:
+       $$\Omega_3 = \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\} \quad\big[146, 222\big]$$
+       Cualquier quiebre de simetría espectral, rango deficiente o torsión anómala colapsa
+       el estado al Supremo terminal VETOED ($\top$). La subrutina C++ 'isVerdictCoherent()'
+       en el microcontrolador ESP32 detecta el colapso síncronamente y, mediante su ISR
+       en IRAM (<400ns), conmuta el pin GPIO14, disparando el tiristor de potencia BT151
+       (circuito Crowbar) para cortocircuitar físicamente la línea de alimentación real.
+
+JERARQUÍA DE EXCEPCIONES ALGEBRAICAS Y TÓSIONALES (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  AlgebraicTacticsError (Exception)
+   ├── SmithNormalFormError  : Falla en la diagonalización de de Rham-Smith en la FPU.
+   ├── TorsionAnomalyError   : Subgrupo de torsión Tor(H) excede la tolerancia del negocio.
+   ├── SelfLoopVetoError     : Detección de ciclos recursivos o autobucles en el Jacobiano.
+   ├── SpectralGapDeficitError: Conectividad algebraica lambda_2 inferior a tau_Fiedler.
+   ├── PyramidalStabilityError: Índice de estabilidad piramidal Psi por debajo de Psi_min.
+   ├── RingClosureViolation  : Incumplimiento de homogeneidad en el anillo conmutativo R.
+   └── HeytingLobeCollapse   : Transición anómala hacia el autoestado VETOED en el topos.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Inspección simplicial de dependencias y construcción de la MIC.
+             Verifica el rango del operador de incidencia discreto boundary_1.
+             Retorna: SimplicialBoundaryCertificate.
+
+  Fase 2 ──► ORIENT  : Descomposición de la Forma Normal de Smith sobre el anillo Z.
+             Aisla el subgrupo de torsión Tor(H) y calcula el valor de Fiedler lambda_2.
+             Retorna: TorsionalSpectralReport.
+
+  Fase 3 ──► DECIDE  : Evaluación de la estabilidad piramidal Psi y el espectro de Schur.
+             Somete el veredicto al retículo de Heyting y actualiza el CrowbarPort.
+             Retorna: AlgebraicSuturationState.
 """
 
 from __future__ import annotations

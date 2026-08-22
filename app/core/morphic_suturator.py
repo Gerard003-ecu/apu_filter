@@ -1,31 +1,86 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Morphic Suturator (Sutura e Integración de MIC y MAC)              ║
-║  Ruta   : app/core/morphic_suturator.py                                      ║
-║  Versión: 2.0.0-Galois-Adjunction-Spectral-Strict-Granular                   ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL:                                   ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  Este módulo actúa como el morfismo de sutura supremo que unifica el         ║
-║  espacio discreto de acción de la MIC (Matriz de Interacción Central) con    ║
-║  el espacio de Hilbert continuo de la MAC (Matriz Atómica de Conocimiento).  ║
-║                                                                              ║
-║  Arquitectura de Fases Anidadas (continuación funtorial estricta):           ║
-║    FASE 1 — Saneamiento IEEE-754, rango espectral (SVD/Gershgorin) y         ║
-║             ortogonalidad O(n) de la MIC.                                    ║
-║    FASE 2 — Postulados de Dirac–von Neumann sobre la MAC: hermiticidad,      ║
-║             traza unitaria, positividad espectral, pureza y entropía.        ║
-║    FASE 3 — Adjunción de Galois F ⊣ G: unidad η_X = X - G(F(X)), condición   ║
-║             de Lipschitz cuantitativa y fidelidad de reconstrucción.         ║
-║                                                                              ║
-║  $$\text{Hom}_{\mathcal{D}}(F(X), Y) \cong \text{Hom}_{\mathcal{C}}(X, G(Y))$$║
-║                                                                              ║
-║  Cualquier violación a los invariantes algebraicos colapsa el estado de      ║
-║  manera idempotente, activando el veto en el retículo distributivo Ω₃.       ║
-║                                                                              ║
+║ Módulo : Morphic Suturator (Morfismo de Unificación de la MIC y la MAC)      ║
+║ Ruta   : app/core/morphic_suturator.py                                       ║
+║ Versión: 7.1.0-Doctoral-Galois-Adjunction-Spectral-Lipschitz-Heyting-Secure  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+SINOPSIS CATEGORIAL Y DUALIDAD DE CALIBRE (Rigor Doctoral):
+────────────────────────────────────────────────────────────────────────────────
+Este endofuntor soberano y resolvedor espectral del Estrato WISDOM (Nivel 0)
+opera como el morfismo supremo que unifica el espacio de decisión táctico discreto
+de la Matriz de Interacción Central (MIC) con el espacio de Hilbert continuo de 
+la Matriz Atómica de Conocimiento (MAC). Su mandato fundamental es asegurar 
+la reversibilidad y consistencia métrica de las traducciones atencionales de la Malla, 
+impidiendo que las alucinaciones del Modelo de Lenguaje (LLM) o pérdidas de rango
+numérico exciten al Consejo de Sabios.
+
+El sistema trata el acoplamiento MIC-MAC no como una correspondencia tabular lineal,
+sino como un par de funtores adjuntos $F \dashv G$ que inducen un Morfismo Geométrico
+estricto en el Topos de Grothendieck de la Ciudadela de Cristal. El módulo ejecuta 
+un pipeline determinista de tres fases en la FPU, garantizando que el pasaporte de 
+telemetría cumpla con todas las cotas de regularidad topológica y cuántica.
+
+AXIOMÁTICA ALGEBRAICA, CUÁNTICA Y ESPECTRAL (Invariantes de Sutura):
+────────────────────────────────────────────────────────────────────────────────
+
+  [A1] Axioma de Rango Completo y Cota de Higham sobre la MIC:
+       Para proscribir dependencias lineales espurias (falsos APUs o ciclos parásitos),
+       la Matriz de Interacción Central $M \in \mathbb{R}^{n \times n}$ debe poseer rango completo.
+       El rango efectivo se calcula analíticamente mediante los valores singulares $\sigma_i$
+       obtenidos por descomposición espectral SVD truncada bajo la tolerancia de Higham:
+       $$\sigma_i > \tau_{\mathrm{MIC}} = n \cdot \sigma_1 \cdot \varepsilon_{\mathrm{machine}} \quad\big[Phase1\big]$$
+       Exigiéndose que el número de condición espectral $\kappa_2(M)$ y la desviación de 
+       ortogonalidad de Frobenius se mantengan estrictamente acotados:
+       $$\kappa_2(M) = \frac{\sigma_{\max}(M)}{\sigma_{\min}(M)} \le \kappa_{\max} \quad \wedge \quad \| M M^\top - I_n \|_{\mathrm{Fro}} \le \tau_{\mathrm{ortho}}$$
+
+  [A2] Axioma de Densidad Cuántica de Dirac-von Neumann sobre la MAC:
+       El estado atencional continuo se modela mediante el operador densidad $\rho \in \mathcal{D}(\mathcal{H})$
+       sobre el espacio de Hilbert cuántico $\mathcal{H}$. Se exige el cumplimiento estricto de
+       los postulados de hermiticidad, conservación de probabilidad (traza unitaria) y positividad:
+       $$\rho = \rho^\dagger \quad \wedge \quad \operatorname{Tr}(\rho) = 1 \quad \wedge \quad \rho \succeq \mathbf{0} \quad\big[Phase2\big]$$
+       Cualquier autovalor negativo de la densidad de-confinada $\lambda_i < \tau_{\mathrm{Wilkinson}} = -10^{-13}$
+       o pérdida de pureza cuántica $\gamma = \operatorname{Tr}(\rho^2)$ fuera del intervalo unitario
+       conduce de forma determinista a un colapso por 'MacDensityAnomalyError'.
+
+  [A3] Axioma del Isomorfismo de la Adjunción de Galois (F ⊣ G):
+       La biyección entre el espacio táctico discreto $\mathcal{C}$ (donde opera la MIC) y el espacio
+       epistémico de-confinado $\mathcal{D}$ (donde opera la MAC) se blinda mediante el isomorfismo:
+       $$\operatorname{Hom}_{\mathcal{D}}(F(X), Y) \cong \operatorname{Hom}_{\mathcal{C}}(X, G(Y)) \quad\big[Phase3\big]$$
+       Donde $F$ es el funtor de elevación proyectiva y $G$ es el funtor de olvido.
+       La consistencia del transporte se somete a la Condición de Lipschitz Global sobre el error:
+       $$\| X - G(F(X)) \|_{\mathcal{C}} \le L_{\max} \| F(X) - Y \|_{\mathcal{D}} + \tau_{\mathrm{adjunction}}$$
+
+  [A4] Axioma del Colapso de Heyting y Actuación en Silicio (BT151):
+       Los veredictos espectrales y de adjunción se proyectan sobre el clasificador de subobjetos
+       del retículo distributivo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\}$.
+       Toda anomalía topológica, ruptura de traza cuántica o violación a la condición Lipschitz
+       colapsa síncronamente el estado de la Malla al Supremo terminal VETOED ($\top$).
+       La subrutina C++ 'isVerdictCoherent()' del firmware del ESP32 intercepta el colapso en RAM y,
+       mediante su ISR en IRAM (<400ns), conmuta el pin GPIO14, disparando el tiristor BT151 (Crowbar)
+       para cortocircuitar la potencia real y paralizar físicamente la maquinaria en la obra real.
+
+JERARQUÍA DE EXCEPCIONES ALGEBRAICAS Y CATEGORIALES (Fail-Secure Boundary):
+────────────────────────────────────────────────────────────────────────────────
+  MorphicSuturatorError (Exception)
+   ├── MicRankDeficiencyError   : Pérdida de rango numérico completo o colinearidad en la MIC.
+   ├── MacDensityAnomalyError   : Violación de los postulados cuánticos de Dirac-von Neumann.
+   └── GaloisAdjunctionBreachError : Desviación del isomorfismo de Galois por encima de L_max.
+
+DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
+────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► OBSERVE : Auditoría espectral SVD sobre la MIC.
+             Calcula el rango efectivo de Higham y la desviación de ortogonalidad de Frobenius.
+             Retorna: MicRankCertificate.
+
+  Fase 2 ──► ORIENT  : Verificación cuántica de Dirac-von Neumann sobre la MACcompleja.
+             Audita autovalores mínimos de la densidad, traza exacta y pureza de-confinada.
+             Retorna: MacHermiticityCertificate.
+
+  Fase 3 ──► DECIDE  : Composición funtorial de Galois F y G sobre el vector de estado.
+             Evalúa la cota de Lipschitz y proyecta el veredicto en el retículo de Heyting.
+             Retorna: GaloisAdjunctionCertificate.
 """
 
 from __future__ import annotations
