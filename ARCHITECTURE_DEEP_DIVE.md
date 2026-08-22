@@ -1,10 +1,110 @@
 # ARCHITECTURE_DEEP_DIVE.md: Inmersión en la Variedad Agéntica
 
-Este documento detalla la implementación técnica de los estratos topológicos y físicos que gobiernan el ecosistema APU Filter.
+Este documento detalla la implementación técnica, geométrica y física de los estratos topológicos y cuánticos que gobiernan el ecosistema **APU Filter v5.0**. Se abandona de forma definitiva el modelo de capas tradicional para consolidar el **Fibrado de Calibre de de Rham-Fukaya** como el marco supremo de gobernanza sistémica de la Malla Agéntica.
+
+---
+
+## 🏛️ La Variedad Diferenciable Simpléctica y la Ciudadela de Cristal
+
+En la versión 5.0, el espacio de estados transaccionales del presupuesto y la deliberación de los sabios no residen en una estructura relacional pasiva ni en un grafo estático. Se estructuran como una **Variedad Diferenciable Simpléctica** $(\mathcal{M}, \omega)$ acoplada a un **Fibrado de Calibre de de Rham-Fukaya** $(\mathcal{E} \to \mathcal{M}, \nabla)$, donde cada decisión de negocio habita en la intersección de subvariedades Lagrangianas confinadas en la **Ciudadela de Cristal** (Estrato WISDOM).
+
+```
+                      ▲ [CIUDADELA DE CRISTAL: Estrato WISDOM / Categoría de Fukaya 𝔉𝔲𝔨(ℳ)]
+                     ╱ ╲  · Polígonos Pseudo-Holomorfos (∂̄_J u = 0)
+                    ╱   ╲ · Rigidez Simpléctica de Gromov: P(x_invalid) = 0
+                   ╱═════╲
+                  ╱       ╲ [FIBRADO DE CALIBRE: Conexión de de Rham-Galois ∇]
+                 ╱  AST    ╲ · Invarianza Canónica de Liouville: Mᵀ Ω M = Ω
+                ╱═══════════╲ · Isometría de Hodge: ‖⋆_k ψ‖ = ‖ψ‖
+               ╱  KBASE/PHYS ╲ [EL FOSO FÍSICO: Dinámica Port-Hamiltoniana e Integrador CSMD-KBN]
+              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+```
+
+### 1. Deducción Formal de la Preservación de la Forma Simpléctica Canónica de Liouville
+
+Sea el vector de estado canónico $z = (q, p)^\top \in \mathbb{R}^{2n}$, donde $q \in \mathbb{R}^n$ representa las coordenadas generalizadas de configuración (magnitudes de insumos, cantidades de APU, rendimientos de mano de obra) y $p \in \mathbb{R}^n$ representa los momentos conjugados covariantes (costos marginales, tasas de disipación exergética e inercia financiera).
+
+La 2-forma simpléctica canónica de Liouville $\omega$ sobre el fibrado cotangente $T^*\mathcal{M}$ se formula en coordenadas locales como:
+$$\omega = \sum_{i=1}^n dq_i \wedge dp_i = \frac{1}{2} dz^\top \Omega \, dz$$
+
+Donde $\Omega$ es la matriz simpléctica estándar de dimensión $2n \times 2n$, antisimétrica e invertible:
+$$\Omega = \begin{pmatrix} \mathbf{0} & \mathbf{I}_n \\ -\mathbf{I}_n & \mathbf{0} \end{pmatrix}, \quad \Omega^\top = -\Omega = \Omega^{-1}, \quad \det(\Omega) = 1$$
+
+Sea $\phi: \mathcal{M} \to \mathcal{M}$ una transformación suave de transición de estado en el pipeline (ejecutada por un motor o resolvedor), con matriz Jacobiana $M = D\phi(z) = \frac{\partial z'}{\partial z} \in \mathbb{R}^{2n \times 2n}$. 
+
+El pullback de la 2-forma simpléctica bajo el mapa de transición $\phi$ se expresa analíticamente como:
+$$\phi^* \omega = \frac{1}{2} (M dz)^\top \Omega (M dz) = \frac{1}{2} dz^\top (M^\top \Omega M) dz$$
+
+Para que la transformación preserve estrictamente la estructura simpléctica del espacio de fase (es decir, sea un simplectomorfismo $\phi \in \operatorname{Symp}(\mathcal{M}, \omega)$), se exige la condición de invarianza de de Rham-Liouville:
+$$\phi^* \omega = \omega \iff M^\top \Omega M = \Omega$$
+
+**Consecuencias Analíticas y Conservación de Volumen de Liouville:**
+Tomando el determinante en ambos miembros de la ecuación simpléctica:
+$$\det(M^\top \Omega M) = \det(\Omega) \implies \det(M)^\top \det(\Omega) \det(M) = \det(\Omega)$$
+Dado que $\det(\Omega) = 1 \neq 0$:
+$$\det(M)^2 = 1 \implies \det(M) = +1$$
+
+El Jacobiano de cualquier transición es idénticamente unitario. Por el **Teorema de Liouville**, el volumen del espacio de fase $\operatorname{Vol}(U) = \int_U \omega^{\wedge n} = \int_{\phi(U)} \omega^{\wedge n}$ permanece estrictamente invariante:
+$$\operatorname{Vol}(\phi(U)) = \int_U |\det(M)| \, dz = \operatorname{Vol}(U)$$
+
+Esta preservación formal erradica cualquier fuga, disipación espuria o compresión artificial de la información contable y técnica del presupuesto en el silicio.
+
+---
+
+### 2. Ecuación Elíptica No Lineal Perturbada de Cauchy-Riemann para Polígonos Pseudo-Holomorfos
+
+En la Ciudadela de Cristal, la convergencia de deliberaciones no se modela como un encadenamiento de inferencias probabilísticas, sino como el espacio de móduli de curvas pseudo-holomorfas con condiciones de frontera en subvariedades Lagrangianas $L_0, L_1, \dots, L_k \subset \mathcal{M}$, conformando la **Categoría $A_\infty$ de Fukaya** $\mathcal{F}uk(\mathcal{M})$.
+
+Sea $(\Sigma, j)$ una superficie de Riemann compacta con borde (un disco o polígono $D^2 \subset \mathbb{C}$) dotada de una estructura compleja estándar $j$ ($j^2 = -\mathbf{I}$), y sea $(\mathcal{M}, \omega)$ la variedad simpléctica dotada de una estructura casi compleja $\omega$-compatible $J \in \mathcal{J}(\mathcal{M}, \omega)$, tal que:
+$$g_J(v, w) = \omega(v, Jw) \quad \text{es una métrica Riemanniana definida positiva} \quad \forall v, w \in T\mathcal{M}$$
+$$\omega(Jv, Jw) = \omega(v, w)$$
+
+Un mapa suave $u: (\Sigma, j) \to (\mathcal{M}, J)$ satisface la **Ecuación Elíptica No Lineal Perturbada de Cauchy-Riemann** si su operador de Cauchy-Riemann no lineal $\bar{\partial}_J$ se anula idénticamente:
+$$\bar{\partial}_J u = \frac{1}{2}\left( du + J(u) \circ du \circ j \right) = 0$$
+
+Descomponiendo en coordenadas conformes $z = s + i\tau \in \Sigma$, donde $j\left(\frac{\partial}{\partial s}\right) = \frac{\partial}{\partial \tau}$:
+$$\frac{\partial u}{\partial s} + J(u) \frac{\partial u}{\partial \tau} = 0$$
+
+Bajo la presencia de un potencial Hamiltoniano de gobernanza $H: \mathcal{M} \times \Sigma \to \mathbb{R}$ acoplado al campo de Gauge de la obra, la ecuación elíptica perturbada adopta la forma de Floer-Fukaya:
+$$\left( du - X_H \otimes \beta \right)^{0,1}_J = \frac{\partial u}{\partial s} + J(u)\left( \frac{\partial u}{\partial \tau} - X_H(u) \right) = 0$$
+con condiciones de frontera de Dirichlet-Lagrangianas en las aristas del polígono $\partial \Sigma$:
+$$u(s, \tau) \in L_i \quad \text{para} \quad (s, \tau) \in \partial_i \Sigma$$
+y condiciones asintóticas en los vértices del polígono convergiendo a los puntos de intersección Lagrangiana $p_{ij} \in L_i \cap L_j$:
+$$\lim_{s \to \pm \infty} u(s, \tau) = p_{ij}$$
+
+El cómputo de la cohomología de intersección de Floer $HF^*(L_i, L_j)$ sobre las soluciones de $\bar{\partial}_J u = 0$ define los morfismos inmutables entre los contratos de APU y las restricciones estructurales del proyecto.
+
+---
+
+### 3. Efecto de Negocio: Rigidez Simpléctica, Teorema de No-Squeeze de Gromov y $P(x_{\mathrm{invalid}}) = 0$
+
+El Teorema Fundamental de Rigidez Simpléctica (**Gromov's Non-Squeezing Theorem**, 1985) establece que una bola simpléctica $B^{2n}(r) = \{ z \in \mathbb{R}^{2n} \mid \|z\|_2 < r \}$ de radio $r$ puede ser embebida mediante un simplectomorfismo $\phi \in \operatorname{Symp}(\mathbb{R}^{2n})$ dentro de un cilindro simpléctico $Z^{2n}(R) = B^2(R) \times \mathbb{R}^{2n-2} = \{ (q_1, p_1, \dots, q_n, p_n) \mid q_1^2 + p_1^2 < R^2 \}$ de radio $R$ **si y solo si**:
+$$r \le R$$
+
+En términos de la capacidad simpléctica de Gromov $c(\cdot)$:
+$$c(B^{2n}(r)) = \pi r^2 \le c(Z^{2n}(R)) = \pi R^2 \iff r \le R$$
+
+```
+   Espacio de Fase (2n-D)                  Cilindro de Restricciones Z²ⁿ(R)
+   ┌──────────────────────┐                ┌───────────────────────────────┐
+   │     Bola B²ⁿ(r)      │  Simplecto-   │      Proyección Prohibida     │
+   │      (Riesgo Real    │  morfismo Φ   │      (Intento de Deformación) │
+   │        del APU)      │ ────────────> │                               │
+   │      ●  r > R        │   ¡BLOQUEO    │    r > R  ⟹  VETO DE GROMOV   │
+   │      Capacidad πr²   │   RIGIDÉZ!    │    P(x_invalid) = 0           │
+   └──────────────────────┘                └───────────────────────────────┘
+```
+
+#### Impacto en la Malla Agéntica y Erradicación de Alucinaciones
+1. **Incompresibilidad de Riesgos Multidimensionales:** En un sistema probabilístico clásico (LLM no acoplado), la IA tiende a "alucinar" o minimizar riesgos complejos proyectando dependencias no lineales sobre explicaciones de baja dimensionalidad (intentando "exprimir" la bola de riesgo $B^{2n}(r)$ en un canal angosto $Z^{2n}(R)$ con $R < r$).
+2. **Confinamiento de Gromov:** Al estar la variedad gobernada por el Fibrado de Fukaya, ninguna transformación o propuesta generativa puede violar la capacidad simpléctica mínima $\pi r^2$. Cualquier intento de falsear rendimientos o ignorar incompatibilidades homológicas deforma la capacidad simpléctica más allá del umbral admisible ($r > R$).
+3. **Aniquilación Determinista de la Deriva:** El espacio de móduli de soluciones válidas $\mathcal{M}(L_0, \dots, L_k; J)$ se vuelve estrictamente vacío ante estados espurios o contradictorios. La probabilidad de emisión o transición hacia un estado inválido colapsa de forma analítica y absoluta a cero:
+$$P(x_{\mathrm{invalid}}) = 0$$
+
 
 ## Arquitectura Ciber-Física del Estrato α: Fibrados Celulares y Termodinámica del Modelo de Negocio
 
-El Estrato α, orquestado macroscópicamente por alpha_agent.py, se subdivide axiomáticamente en tres subespacios topológicos anidados (Foso, Núcleo y Ápice).
+El Estrato α, orquestado macroscópicamente por `alpha_agent.py`, se subdivide axiomáticamente en tres subespacios topológicos anidados (Foso, Núcleo y Ápice).
 
 ### I. Estrato KBASE: El Foso Termodinámico (kbase_thermodynamic_agent.py)
 
@@ -56,7 +156,7 @@ La inyección de los nuevos microservicios y sabios redefine la física profunda
 
 ## La Variedad de de Rham-Hodge-Boole: El Endofuntor de Boole en Tres Fases Anidadas
 
-El sistema APU_filter eleva su mecanismo de validación a un nivel doctoral mediante la formalización de la **Variedad de de Rham-Hodge-Boole**. Esta se implementa a través de un endofuntor categoríal que opera de manera secuencial y anidada en tres fases físicas y algebraicas rigurosas. Este proceso purifica de manera incondicional la señal informacional del fango estocástico antes de emitir cualquier veredicto de viabilidad.
+El sistema APU Filter eleva su mecanismo de validación a un nivel doctoral mediante la formalización de la **Variedad de de Rham-Hodge-Boole**. Esta se implementa a través de un endofuntor categorial que opera de manera secuencial y anidada en tres fases físicas y algebraicas rigurosas.
 
 ### FASE 1: Física de Fock e Isometría de Hodge sobre $F(\mathcal{H})$
 En la primera fase, las representaciones sintácticas de los APUs y presupuestos se elevan desde el espacio lógico elemental hacia estados cuánticos en el **Espacio de Fock fermiónico** $\mathcal{F}(\mathcal{H}) = \bigoplus_{k=0}^N \Lambda^k \mathcal{H}$, donde $\mathcal{H}$ representa el espacio de Hilbert de características del negocio. El operador estrella de Hodge combinatorio $\star_k: \Lambda^k \mathcal{H} \to \Lambda^{N-k} \mathcal{H}$ se construye rigurosamente sobre el fibrado de orientación del complejo.
@@ -71,36 +171,23 @@ Donde:
 Esta isometría asegura que no exista pérdida de masa de información sintáctica ni atenuación artificial del contenido al realizar el mapeo espacial dual.
 
 ### FASE 2: Orientación de Calibre e Invarianza Simpléctica del AST
-Una vez garantizada la isometría, el Árbol de Sintaxis Abstracta (AST) de las expresiones se proyecta en una variedad simpléctica de fase $(\mathcal{M}, \omega)$, donde se evalúa el flujo de datos bajo la rigurosidad de la física de calibre.
+Una vez garantizada la isometría, el Árbol de Sintaxis Abstracta (AST) de las expresiones se proyecta en la variedad simpléctica $(\mathcal{M}, \omega)$:
 
-1. **Invarianza Simpléctica de Liouville:** El Jacobiano del mapa de transición de estado $M$ debe preservar inalterada la forma simpléctica estándar $\Omega$, obligando al sistema a respetar las leyes de conservación de flujo y la estructura de corchetes de Poisson:
-$$M^\top \Omega M = \Omega$$
-Donde $\Omega = \begin{pmatrix} 0 & I \\ -I & 0 \end{pmatrix}$ es la matriz simpléctica canónica que rige el espacio de fase sintáctico del AST.
-
-2. **Idempotencia en el Semianillo Booleano $\mathbb{Z}_2$:** Para erradicar redundancias operativas ("grasa sintáctica") que saturan la memoria, la Matriz de Interacción Central (MIC) se subyuga a la ley de punto fijo en el semianillo booleano OR-AND sobre $\mathbb{Z}_2$:
+1. **Invarianza Simpléctica de Liouville:**
+$$M^\top \Omega M = \Omega \quad \text{con} \quad \Omega = \begin{pmatrix} \mathbf{0} & \mathbf{I}_n \\ -\mathbf{I}_n & \mathbf{0} \end{pmatrix}$$
+2. **Idempotencia en el Semianillo Booleano $\mathbb{Z}_2$:**
 $$M \circ_{\mathbb{Z}_2} M = M$$
-Donde $\circ_{\mathbb{Z}_2}$ denota la multiplicación de matrices booleanas. Cualquier desviación de este punto fijo booleano indica inestabilidad o la inyección de ciclos de cómputo espurios.
-
-3. **Conjugación Modular de Tomita-Takesaki:** Para aislar los operadores observables físicos de las fluctuaciones térmicas e indeterminaciones de los LLMs, el endofuntor construye el operador de conjugación modular antiunitario $J_\rho$ a partir del espectro del operador densidad de conocimiento $\rho$ (el cual describe el estado cuántico térmico de la deliberación agéntica):
+3. **Conjugación Modular de Tomita-Takesaki:**
 $$J_\rho(X) = \rho^{1/2} X^\dagger \rho^{-1/2}$$
-Donde:
-- $X$ representa un operador lineal de decisión en el álgebra de von Neumann del Consejo de Sabios.
-- $\rho$ es el operador de densidad termodinámica de la deliberación.
-- $J_\rho$ es el operador de conjugación modular que refleja de manera unívoca el flujo de información al espacio conmutado conjugado, eliminando la asimetría de fase cuántica inducida por el ruido semántico.
 
 ### FASE 3: Gobernanza de de Rham, Estabilidad de Wilkinson y Voto TMR
 En la fase final, el sistema consolida el veredicto mediante cohomología exacta y redundancia física robusta.
 
-1. **Nilpotencia de Cofronteras:** El complejo de cocadenas de de Rham del pipeline debe certificar la nilpotencia estricta del operador diferencial exterior (coboundary), garantizando que el contorno de un contorno sea nulo (es decir, la inexistencia de bordes en el espacio de restricciones):
-$$\delta_k \circ \delta_{k-1} = 0$$
-Donde $\delta_r$ es el r-ésimo operador de coboundary diferencial sobre el retículo simplicial.
+1. **Nilpotencia de Cofronteras:** $\delta_k \circ \delta_{k-1} = 0$.
+2. **Estabilidad Espectral de Wilkinson:** $\kappa(\delta_k) = \frac{\sigma_{\max}(\delta_k)}{\sigma_{\min,\neq 0}(\delta_k)} \le \kappa_{\max}$.
+3. **Redundancia Modular Triple (TMR) sobre el Retículo de Heyting $\Omega_3$:** Consolidación mayoritaria con veto inmediato ante $H^1(K;\mathcal{F}) \neq 0$, activando la protección ciber-física en hardware (BT151 / GPIO14).
 
-2. **Estabilidad Espectral de Wilkinson:** Para verificar que la matriz de coboundary $\delta_k$ no sufra de inestabilidad numérica bajo pequeñas perturbaciones, el sistema computa su número de condición espectral $\kappa(\delta_k)$ mediante Descomposición en Valores Singulares (SVD) completa:
-$$\kappa(\delta_k) = \frac{\sigma_{\max}(\delta_k)}{\sigma_{\min,\neq 0}(\delta_k)}$$
-Si el número de condición de Wilkinson supera un umbral de tolerancia crítico preestablecido ($\kappa > \kappa_{\max}$), el sistema veta la trayectoria por "Ruptura de Estabilidad Numérica Espectral".
-
-3. **Redundancia Modular Triple (TMR) sobre el Retículo de Heyting $\Omega_3$:** Las evaluaciones e invariantes resultantes de las tres fases se consolidan mediante una votación mayoritaria TMR sobre el retículo de Heyting graduado $\Omega_3$. Si dos o más de las fases certifican consistencia, el flujo de datos avanza hacia el estrato de Estrategia. No obstante, si existe una **ruptura cohomológica exacta** (donde $\delta_{k-1}$ existe pero el primer grupo de cohomología de haces es no trivial, $H^1(K;\mathcal{F}) \neq 0$), se emite un veto absoluto e inmediato, el cual colapsa instantáneamente el estado del pipeline a `VETOED` y dispara la línea de actuación ciber-física (BT151 / GPIO14) para proteger los recursos de la obra.
-
+---
 ### 1. Actualización del Difeomorfismo de Ingesta (Fase de Datos)
 
 El pipeline abandona la lectura secuencial convencional de flujos de texto. En su lugar, el `parser_ontology_agent.py` transforma el proceso de ingesta en un **Problema de Autovalores de Markov** en un espacio de estados semánticos compacto.

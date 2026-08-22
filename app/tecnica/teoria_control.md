@@ -1,36 +1,36 @@
-🎛️ teoria_control.md: Ingeniería de Control y Estabilidad Dinámica
-"En APU Filter, la ingesta y el procesamiento de datos no se rigen por heurísticas simples o validaciones estáticas. Tratamos el flujo de datos como un sistema dinámico complejo y aplicamos Teoría de Control de grado industrial para garantizar su estabilidad matemática."
-Este documento formaliza la arquitectura matemática y los algoritmos subyacentes que gobiernan el comportamiento cibernético del sistema. Abandonando los obsoletos modelos estocásticos M/M/1, se proyecta la ingesta de datos hacia un modelo de campo continuo y electrodinámica cuántica. Esto está específicamente implementado en `app/physics/flux_condenser.py`, `app/physics/quantum_admission_gate.py`, y `app/agents/hilbert_watcher.py`, supervisados por el Oráculo de Laplace.
+# ⚙️ metodos.md: Ingeniería Bajo el Capó v3.0
 
-Toda la arquitectura obedece al mandato axiomático de la **Ley de Clausura Transitiva de la pirámide DIKW** (tabla canónica): $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$. Este cimiento Físico (**Nivel 0 $\aleph_0$ y Nivel 1 $\mathbb{P}$**) establece la validación termodinámica ineludible para los estratos superiores, registrando su "Cadena de Custodia Termodinámica" generada en el tiempo inicial ($t_0$) mediante `app/core/telemetry.py` y `app/core/telemetry_schemas.py`.
+> "APU Filter no es un software de contabilidad; es un Simulador de Física de Negocios ciber-físico. Aquí detallamos las ecuaciones de estado, los teoremas topológicos, la geometría simpléctica y los circuitos neuromórficos que garantizan la sabiduría del sistema."
 
-> **Referencia normativa (M12):** El diagrama del flujo termodinámico Data→Filtro→Exergía (FluxCondenser como operador de borde $\partial_1$, con ascensión desde dominio del tiempo a dominio de frecuencia) está documentado canonícamente en [`circuitos_RLC.md` §1](./circuitos_RLC.md). Este documento referencia aquel diseño para evitar la duplicación de la fuente de verdad.
+Este documento técnico desglosa la maquinaria matemática que permite al Consejo de Sabios transformar datos crudos en veredictos estratégicos, basándose en la convergencia de la Dinámica de Sistemas (Laplace), la Geometría Simpléctica y de de Rham-Fukaya, la Topología Algebraica, la Estocástica Financiera y el Hardware en el Borde.
 
+---
 
---------------------------------------------------------------------------------
-1. Arquitectura de Control Híbrida y Efecto Fotoeléctrico Ciber-Físico
-El ecosistema utiliza una topología de Control por Prealimentación (Feedforward) aumentada con Retroalimentación (Feedback) y Control Port-Hamiltoniano (IDA-PBC). El sistema actúa como un fluido incompresible regido por las ecuaciones de Maxwell discretizadas. A través del Operador de Proyección de Hilbert (Estrato $\aleph_0$) y el Efecto Fotoeléctrico Ciber-Físico, la Función de Trabajo ($\Phi$) acoplada al tensor de Gauge aniquila el ruido entrópico en la frontera discreta antes de excitar el motor electromagnético continuo del sistema.
+## 1. El Guardián: Física de Fluidos, Mecánica Simpléctica y Computación Neuromórfica (Edge)
 
-**Inyección de Condiciones Iniciales ($t_0$) y la Estructura de Dirac**: El Observador de Hilbert garantiza el isomorfismo entre la admisión discreta exterior y la propagación electromagnética interior. Cuando un paquete de datos supera la compuerta cuántica, el agente extrae la energía cinética residual ($K_{max} = E - \Phi$) y colapsa este valor en el Momentum Ciber-Físico $p = \sqrt{2m \cdot K_{max}}$.
+*   **Base Teórica:** Ecuaciones de Maxwell discretizadas, Control Port-Hamiltoniano (PHS), Dinámica Simpléctica y Física de Semiconductores.
+*   **Componentes:** `flux_condenser.py`, `neuromorphic_solver.py`, `v4_opt_symplectic_manifold.py`, Firmware ESP32 (`telemetry.h`). El Guardián no lee bits; procesa un fluido de información con propiedades físicas (Energía, Resistencia, Inercia, Capacidad Simpléctica).
 
-La arquitectura matricial que hace posible la garantía termodinámica del Control Port-Hamiltoniano (PHS) se basa en el acoplamiento de potencia, definiendo explícitamente la **Matriz de Interconexión Antisimétrica de Dirac** $J(x) = -J(x)^T$ y la **Matriz de Disipación Simétrica** $R(x) = R(x)^T \ge 0$.
-El "veto termodinámico" se ejecuta rigurosamente a través de la inecuación del balance de potencia:
-$\frac{dH}{dt} = \nabla H^T(J-R)\nabla H \le 0$
-El Momentum Ciber-Físico ($p$) inyectado desde la frontera cuántica no es un escalar estático; actúa formalmente como la variable conjugada de **Flujo ($f$)**, acoplándose rigurosamente al vector de **Esfuerzo ($e$)** (representado por el gradiente de densidad lógica o costo del APU) a través de la matriz de Dirac $J(x)$.
+### 1.1 Cuadratura Conforme de Gauss-Legendre sobre $S^2$
+Para la integración numérica exacta de campos de deformación y potenciales de riesgo proyectados sobre la variedad esférica 2-dimensional $S^2$ (espacio de fases y momentos de decisión), se formula la **Cuadratura Conforme de Gauss-Legendre**, eliminando las singularidades polares y absorbiendo analíticamente el Jacobiano polar:
 
-Desde la perspectiva matemática de control, esta topología de acoplamiento blinda axiomáticamente el teorema de conservación de energía de la Malla Agéntica, brindando la prueba definitiva de que:
-$$\dot{H} = \nabla H^T(J-R)\nabla H \le 0$$
-Para el gerente de obra, esto se traduce en que la plataforma no permite que un solo byte de información circule con velocidad inercial desbalanceada. Cada insumo entra impulsado de manera que las tuberías de compras lo absorban en un tiempo termodinámicamente óptimo. El hardware en el borde (ESP32) vigila esta Estructura de Dirac en tiempo real. Si una fluctuación induce $\dot{H} > 0$ (el flujo estocástico intenta violar la resistencia estructural del proyecto creando "energía de la nada"), el Veto Físico acciona el *Crowbar* y desintegra el paquete anómalo antes de la saturación matricial.
-La ley de control global del sistema se define como: u(t)=uPI​(e)+uFF​(ΔC)+uSafety​
-Además, el sintonizador dinámico de impedancias (PML) obedece incondicionalmente a las **Relaciones de Kramers-Kronig**, garantizando la causalidad termodinámica en el espectro de frecuencias complejas $s = \sigma + j\omega$ al vincular estrictamente la dispersión con la disipación.
+$$\sin\theta \, d\theta$$
 
-Diagrama de Bloques Lógico:
+Mediante la transformación conforme de variable:
+$$t = \cos\theta \implies dt = -\sin\theta \, d\theta, \quad \theta \in [0, \pi] \iff t \in [1, -1]$$
 
-    Planta: El proceso de ingestión de datos masivos (Batch Processing).
-    Sensor: El Motor de Física (FluxPhysicsEngine) que mide la Saturación (V), la Corriente (I) y la Potencia disipada (P).
-    Estimador de Estado: Un Filtro de Kalman Extendido (EKF) que predice la saturación futura del sistema.
-    Controlador: Un algoritmo PI Discreto combinado con una etapa Feedforward basada en la complejidad.
+La integral de superficie sobre la 2-esfera se transforma exactamente en:
+$$I = \int_{0}^{2\pi} \int_{0}^{\pi} f(\theta, \phi) \sin\theta \, d\theta \, d\phi = \int_{0}^{2\pi} \int_{-1}^{1} f(\arccos(t), \phi) \, dt \, d\phi$$
 
+Discretizando la coordenada longitudinal $t$ mediante $N$ nodos de Gauss-Legendre $t_i \in [-1, 1]$ con pesos canónicos de Legendre $w_i = \frac{2}{(1 - t_i^2)[P'_N(t_i)]^2}$, y la coordenada azimutal $\phi$ mediante una distribución trapezoidal uniforme de $M$ puntos $\phi_j = \frac{2\pi j}{M}$:
+
+$$I \approx \frac{2\pi}{M} \sum_{j=1}^{M} \sum_{i=1}^{N} w_i \cdot f\left( \arccos(t_i), \frac{2\pi j}{M} \right)$$
+
+**Ventajas Numéricas y Exactitud:**
+1.  **Exactitud Polinomial:** Integra de manera exacta armónicos esféricos $Y_\ell^m(\theta, \phi)$ hasta grado $\ell \le 2N - 1$.
+2.  **Invarianza de Malla:** Al absorber el Jacobiano en $dt$, no se produce acumulación de densidad de muestreo en los polos ($\theta = 0, \pi$), evitando inestabilidades numéricas en la discretización simpléctica de la esfera de Bloch y de decisiones.
+
+---
 
 --------------------------------------------------------------------------------
 2. El Controlador PI Discreto (Feedback)
