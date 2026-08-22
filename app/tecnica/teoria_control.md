@@ -32,6 +32,51 @@ $$I \approx \frac{2\pi}{M} \sum_{j=1}^{M} \sum_{i=1}^{N} w_i \cdot f\left( \arcc
 
 ---
 
+### 1.2 Sumación Compensada de Kahan-Babuška-Neumaier (KBN)
+En la acumulación de grandes volúmenes de costos unitarios, trazas de operadores densidad y pasos de integración simpléctica de Störmer-Verlet, la suma estándar de punto flotante acumula un error de redondeo de Wilkinson que escala con la raíz o el número de términos: $\mathcal{O}(N \varepsilon_{\text{mach}})$.
+
+Para anular este fenómeno, el ecosistema implementa de forma obligatoria el algoritmo de **Sumación Compensada de Kahan-Babuška-Neumaier (KBN)**:
+
+Sea $s$ el acumulador en punto flotante $\text{np.float64}$ y $c$ el residuo de compensación persistente. Para cada nuevo término $x$:
+
+$$t = s + x$$
+$$c = \begin{cases} (s - t) + x & \text{si } |s| \ge |x| \\ (x - t) + s & \text{si } |s| < |x| \end{cases}$$
+$$s_{\text{acum}} = s_{\text{acum}} + c$$
+
+A diferencia de la suma simple de Kahan (que asume que el acumulador es mayor que el término entrante), KBN evalúa la magnitud relativa $|s| \ge |x|$, compensando con precisión exacta la pérdida de bits significativos tanto si se suman números pequeños a un acumulador grande, como si se suma un término dominante a un acumulador pequeño.
+
+**Cota de Error:**
+$$|s_{\text{KBN}} - s_{\text{exact}}| \le \left( 2\varepsilon_{\text{mach}} + \mathcal{O}(N \varepsilon_{\text{mach}}^2) \right) \sum |x_i| = \mathcal{O}(\varepsilon_{\text{mach}})$$
+Garantizando que la precisión del presupuesto sea independiente de la profundidad del árbol del APU.
+
+---
+
+### 1.3 Propagador de de Rham, de Rham-Hodge y Causalidad de Kramers-Kronig
+El sistema incorpora la resolución de la ecuación de Poisson generalizada sobre el Laplaciano del Haz Celular $L_F = \delta^\top G^{-1} \delta$, definiendo la Función de Green estática como la pseudoinversa de Moore-Penrose estable, la cual satisface de forma exacta:
+$$L_F G L_F = L_F \quad \wedge \quad G \cdot \mathbf{1} = \mathbf{0}$$
+Para el análisis transitorio y el régimen dinámico bajo excitación, se integra el propagador retardado causal en el plano-S complejos:
+
+**Inyección de Condiciones Iniciales ($t_0$) y la Estructura de Dirac**: El Observador de Hilbert garantiza el isomorfismo entre la admisión discreta exterior y la propagación electromagnética interior. Cuando un paquete de datos supera la compuerta cuántica, el agente extrae la energía cinética residual ($K_{max} = E - \Phi$) y colapsa este valor en el Momentum Ciber-Físico $p = \sqrt{2m \cdot K_{max}}$.
+
+La arquitectura matricial que hace posible la garantía termodinámica del Control Port-Hamiltoniano (PHS) se basa en el acoplamiento de potencia, definiendo explícitamente la **Matriz de Interconexión Antisimétrica de Dirac** $J(x) = -J(x)^T$ y la **Matriz de Disipación Simétrica** $R(x) = R(x)^T \ge 0$.
+El "veto termodinámico" se ejecuta rigurosamente a través de la inecuación del balance de potencia:
+$\frac{dH}{dt} = \nabla H^T(J-R)\nabla H \le 0$
+El Momentum Ciber-Físico ($p$) inyectado desde la frontera cuántica no es un escalar estático; actúa formalmente como la variable conjugada de **Flujo ($f$)**, acoplándose rigurosamente al vector de **Esfuerzo ($e$)** (representado por el gradiente de densidad lógica o costo del APU) a través de la matriz de Dirac $J(x)$.
+
+Desde la perspectiva matemática de control, esta topología de acoplamiento blinda axiomáticamente el teorema de conservación de energía de la Malla Agéntica, brindando la prueba definitiva de que:
+$$\dot{H} = \nabla H^T(J-R)\nabla H \le 0$$
+Para el gerente de obra, esto se traduce en que la plataforma no permite que un solo byte de información circule con velocidad inercial desbalanceada. Cada insumo entra impulsado de manera que las tuberías de compras lo absorban en un tiempo termodinámicamente óptimo. El hardware en el borde (ESP32) vigila esta Estructura de Dirac en tiempo real. Si una fluctuación induce $\dot{H} > 0$ (el flujo estocástico intenta violar la resistencia estructural del proyecto creando "energía de la nada"), el Veto Físico acciona el *Crowbar* y desintegra el paquete anómalo antes de la saturación matricial.
+La ley de control global del sistema se define como: u(t)=uPI​(e)+uFF​(ΔC)+uSafety​
+Además, el sintonizador dinámico de impedancias (PML) obedece incondicionalmente a las **Relaciones de Kramers-Kronig**, garantizando la causalidad termodinámica en el espectro de frecuencias complejas $s = \sigma + j\omega$ al vincular estrictamente la dispersión con la disipación.
+
+Diagrama de Bloques Lógico:
+
+    Planta: El proceso de ingestión de datos masivos (Batch Processing).
+    Sensor: El Motor de Física (FluxPhysicsEngine) que mide la Saturación (V), la Corriente (I) y la Potencia disipada (P).
+    Estimador de Estado: Un Filtro de Kalman Extendido (EKF) que predice la saturación futura del sistema.
+    Controlador: Un algoritmo PI Discreto combinado con una etapa Feedforward basada en la complejidad.
+
+
 --------------------------------------------------------------------------------
 2. El Controlador PI Discreto (Feedback)
 El objetivo primario del lazo cerrado es eliminar el error de estado estacionario (e(k)=SP−PV) manteniendo la saturación de la memoria en un Setpoint óptimo del 30% (Flujo Laminar).
