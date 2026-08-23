@@ -3,7 +3,7 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Pipeline Director Agent (Custodio de Causalidad y Flujo Funtorial)  ║
 ║ Ruta   : app/agents/strategy/pipeline_director_agent.py                      ║
-║ Versión: 5.6.0-Funtorial-MayerVietoris-SchurNilpotent-Heyting-Secure         ║
+║ Versión: 2.0.0-Funtorial-MayerVietoris-SchurNilpotent-Heyting-Secure         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 SINOPSIS CATEGORIAL Y ORQUESTACIÓN CAUSAL (Rigor Doctoral):
