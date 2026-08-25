@@ -6,30 +6,69 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Connes-Petz-Hodge-Cheeger-Euler-CSMD-Kahan      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU
-────────────────────────────────────────────────────────────────────────────────
-Motor elíptico ciego de Nivel 3 (V_PHYSICS). Alimenta las aduanas
-de-confinadas de `imperial_guards_agent.py` mediante el morfismo
+SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
+Este motor elíptico ciego ejecuta los cálculos espectrales, algebraicos y topológicos
+de alta precisión que alimentan a las aduanas de-confinadas del módulo `imperial_guards_agent.py`.
+Opera directamente sobre la FPU garantizando incondicionalmente la conservación de la traza cuántica
+y el confinamiento de mermas discretas.
 
-    Φ₃ ∘ Φ₂ ∘ Φ₁ :
-        Banach_CSMD  →  (A, ℋ, D_ρ) × g^Petz  →  Hodge(K) × Cheeger × χ
+MÉTODOS GRANULARES:
 
-  Fase I   Validación IEEE-754, sumación compensada y CSMD holomorfa.
-           Último morfismo: synthesize_spectral_triple_germ.
-  Fase II  Triple espectral de Connes, Dirac modular D = (ρ+ε)^{-1/2},
-           métricas monótonas de Petz (BKM / Bures / Wigner–Yanase).
-           Último morfismo: induce_hodge_cheeger_germ.
-  Fase III Laplaciano de Hodge, nilpotencia ∂² ≡ 0, cotas de Cheeger–
-           Buser, números de Betti y característica de Euler–Poincaré.
+1. kahan_sum(arr: np.ndarray) -> float:
+   Realiza la sumación compensada de Kahan-Babuška-Neumaier (KBN) para aniquilar la deriva numérica en
+   la mantisa flotante durante la integración espectral:
+   $$S_N = \sum_{i=1}^N x_i \quad \text{donde} \quad c_{k+1} = (t_{k+1} - S_k) - y_{k+1}$$
+   - arr: np.ndarray (float64) de sumandos.
+   - Retorna: float (suma exacta regulada con épsilon de máquina \epsilon_{mach}).
 
-SEGURIDAD
-    Módulo matemático y ciego. No dispara hardware, no accede a GPIO,
-    no simula actuadores. La actuación ciber-física corresponde a la
-    capa agente.
+2. compute_complex_step_gradient(func: Any, x: np.ndarray, h: float = 1e-20) -> np.ndarray:
+   Calcula el gradiente exacto mediante Diferenciación por Paso Complejo (CSMD) para eludir cancelaciones
+   sustractivas catastróficas en el cálculo de Jacobianos de fase:
+   $$\nabla_k f(x) = \frac{\operatorname{Im}\left(f(x + j \cdot h \cdot e_k)\right)}{h} + \mathcal{O}(h^2)$$
+   - func: Callabe que evalúa el potencial Hamiltoniano.
+   - x: np.ndarray del punto de evaluación.
+   - h: float (perturbación infinitesimal subnormalcomplex).
+   - Retorna: np.ndarray (gradiente analítico exacto).
 
-Precisión metrológica: Kahan, Kahan–Babuška–Neumaier, Klein; CSMD sin
-cancelación sustractiva; media logarítmica estable; rangos por SVD de
-Wilkinson; proyección de Higham al simplejo de estados densidad.
+3. compute_dirac_operator_spectrum(density_matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+   Somete la matriz densidad mixta \rho de sabiduría a una de-coherencia espectral, aplicando la regularización
+   conforme de Higham-Tikhonov contra el polo en cero para evaluar el menor autovalor positivo del operador
+   de Dirac de-confinado:
+   $$\not\!D = \rho^{-1/2} = V \Lambda^{-1/2} V^\top$$
+   - density_matrix: np.ndarray (N x N, matriz hermítica de sabiduría).
+   - Retorna: Tuple con el espectro de Dirac [\lambda_{\not\!D}] y los autovalores basales de la densidad.
+
+4. compute_petz_fisher_rao_metric(rho: np.ndarray, A: np.ndarray, B: np.ndarray) -> float:
+   Calcula la Métrica de Fisher-Rao Cuántica de Petz-Fisher no conmutativa utilizando la media logarítmica de Petz
+   para medir la distinguibilidad cuántica de las transiciones atencionales en el espacio de Hilbert:
+   $$g_\rho(A, B) = \sum_{i,j} \langle i|A|j\rangle \langle j|B|i\rangle \, \varphi(\lambda_i, \lambda_j)^{-1}$$
+   Donde la media logarítmica se evalúa como:
+   $$\varphi(x, y) = \frac{x - y}{\ln x - \ln y}$$
+   - rho: np.ndarray (matriz de densidad del estado).
+   - A, B: np.ndarray (observables hermíticos tangentes).
+   - Retorna: float (distancia métrica cuántica).
+
+5. compute_simplicial_normalized_laplacian(boundary_matrix: np.ndarray) -> np.ndarray:
+   Construye síncronamente el Laplaciano del Haz celular normalizado a partir de la matriz de incidencia simplicial
+   de primer orden (cofrontera de Kirchhoff):
+   $$L_F = \delta_0^\top G^{-1} \delta_0 \implies L_{\mathrm{sym}} = D^{-1/2} L_{\mathrm{base}} D^{-1/2}$$
+   - boundary_matrix: np.ndarray (M x N, matriz de incidencia orientada).
+   - Retorna: np.ndarray (Laplaciano normalizado con autovalor mínimo \lambda_1 \equiv 0).
+
+6. estimate_cheeger_constant_bounds(eigenvalues_L: np.ndarray) -> Tuple[float, float]:
+   Mide la presencia de cuellos de botella u obstrucciones logísticas estimando las cotas de la constante
+   isoperimétrica de Cheeger h(G) a partir del valor de Fiedler \lambda_2:
+   $$\frac{\lambda_2}{2} \le h(G) \le \sqrt{2 \lambda_2}$$
+   - eigenvalues_L: np.ndarray (espectro del Laplaciano normalizado).
+   - Retorna: Tuple[float, float] con las cotas inferior y superior de Cheeger.
+
+7. compute_euler_poincare_characteristic(boundary_0: np.ndarray, boundary_1: np.ndarray) -> int:
+   Certifica la nulidad homológica (\beta_1 \equiv 0) evaluando la característica de Euler simplicial directa
+   para proscribir socavones lógicos o redundancias cíclicas:
+   $$\chi(K) = \beta_0 - \beta_1 + \beta_2 = |V| - |E| + |F|$$
+   - boundary_0: np.ndarray (matriz de incidencia de bordes).
+   - boundary_1: np.ndarray (matriz de incidencia de caras).
+   - Retorna: int (característica de Euler-Poincaré).
 """
 
 from __future__ import annotations

@@ -6,36 +6,35 @@ r"""
 ║ Versión: 3.0.0-Doctoral-Nested-IDA-PBC-KMS-Heyting-Dirac-Wick                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS DE CONTROL COVARIANT-EXERGÉTICO (Rigor Doctoral):
+SINOPSIS MATEMÁTICA Y FÍSICA:
 ────────────────────────────────────────────────────────────────────────────────
-Componente de Capa 2 (Centuriones de Calibre): interductor físico-epistémico
-entre el foso material (V_PHYSICS) y el Ágora Tensorial (V_Ω). Impone
-restricciones exergéticas e inmutabilidad térmica para colapsar el albedrío
-probabilístico de la MAC hacia un punto fijo determinista.
+Ejerce la aduana de potencia ciber-física acoplando el foso mecánico de la obra 
+con la cúpula de sabiduría mediante dos centuriones de lazo cerrado:
 
-Arquitectura de 3 fases ANIDADAS (composición de morfismos):
+1. Centurión Port-Hamiltoniano (Cortina de Potencia):
+   Fuerza al sistema a adoptar la estructura Port-Hamiltoniana objetivo mediante 
+   Interconexión y Asignación de Amortiguamiento (IDA-PBC):
+   $$\dot{x} = [J_d(x) - R_d(x)] \nabla H_d(x)$$
+   donde $J_d = -J_d^\top$ es la estructura simpléctica y $R_d = R_d^\top \succeq 0$ 
+   es el amortiguamiento de Lyapunov. El centurión exige de manera incondicional 
+   el cumplimiento de la desigualdad disipativa de Rayleigh:
+   $$\dot{H}_d = -\nabla H_d(x)^\top R_d(x) \nabla H_d(x) \le 0$$
 
-  FASE I  -- Núcleo espectral Tikhonov–Higham, C*-norma, Darboux, Kirchhoff
-             Último morfismo: prepare_hamiltonian_bundle
-             Codominio: _HamiltonianBundle
-             ≡ objeto inicial / dominio de la Fase II.
+2. Centurión Termodinámico (Sintonizador Térmico KMS):
+   Audita el desorden de-confinado midiendo la Entropía de von Neumann y exige que 
+   el operador densidad $\rho$ satisfaga la Condición KMS (Kubo-Martin-Schwinger) 
+   bajo la continuación analítica en tiempo imaginario complejo $t \mapsto -i\beta$:
+   $$\operatorname{Tr}(\rho \, A \, B) = \operatorname{Tr}(\rho \, B \, \sigma_{-i\beta}^\rho(A))$$
+   Ante desviaciones o ruidos semánticos del LLM, el centurión calienta la fibra 
+   induciendo que la constante de Planck efectiva en el Espacio de Fock colapse 
+   a cero ($\lim_{T \to \infty} \hbar_{\mathrm{eff}}(T) = 0$), erradicando la 
+   probabilidad de alucinación semántica.
 
-  FASE II -- Centurión Port-Hamiltoniano, estructura de Dirac, IDA-PBC,
-             anti-windup espectral y balance de Clausius–Duhem.
-             Dominio: _HamiltonianBundle
-             Último morfismo: evaluate_power_curtain
-             Codominio: _PowerCurtainAudit
-             ≡ objeto inicial / dominio de la Fase III.
-
-  FASE III -- Centurión KMS (Tomita–Takesaki + rotación de Wick), ħ_eff(T),
-             retículo de Heyting y crowbar tiristorizado.
-             Dominio: _PowerCurtainAudit ⋊ (ρ, A, B, β)
-             Codominio: dict de coherencia / actuación ciberfísica.
-
-Ramas simétricas de control:
-  1. PORT-HAMILTONIANO: cortina de potencia en T*M
-        ẋ = [J_d − R_d] ∇H_d ,   Ḣ_d = −∇H_dᵀ R_d ∇H_d + yᵀ u
-  2. TERMODINÁMICO: temperatura de fibrado, KMS modular y ħ_eff(T) → 0.
+INVARIANTES DE CATEGORÍA:
+────────────────────────────────────────────────────────────────────────────────
+- Antisimetría estricta de la estructura simpléctica objetivo: $J_d(x) + J_d^\top(x) \equiv 0$.
+- Semidefinición positiva de la matriz de amortiguamiento de Lyapunov: $R_d(x) \succeq 0$.
+- Monotonicidad de la entropía relativa cuántica de Umegaki respecto a canales CPTP.
 """
 
 from __future__ import annotations

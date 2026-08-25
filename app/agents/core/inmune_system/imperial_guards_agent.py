@@ -6,60 +6,36 @@ r"""
 ║ Versión: 2.0.0-Doctoral-Heyting-OODA-Cheeger-Connes-CAS-Kahan-Secure         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS METROLÓGICA Y SEGURIDAD HOMOLÓGICA (Rigor Doctoral):
+SINOPSIS MATEMÁTICA Y GEOMÉTRICA:
 ────────────────────────────────────────────────────────────────────────────────
-Este componente de protección inmunológica opera en la frontera crítica entre el
-foso táctico de la Matriz de Interacción Central (MIC) y el Santuario Epistémico
-Supremo de la Matriz Atómica de Conocimiento (MAC) en el nivel de Sabiduría (V_W).
+Ejerce la censura de primer nivel en el foso de la obra civil. Evalúa la 
+regularidad y conectividad espectral del grafo de presupuesto $G = (V, E)$ 
+mediante dos aduanas paralelas:
 
-Su propósito es actuar como aduana espectral definitiva («Guardias Imperiales»),
-evaluando dos familias de curvas en el espacio de fase simpléctico (ℳ, ω):
+1. Regularidad de Connes (Espacio Continuo / Hilbert):
+   Audita la constante de Lipschitz no conmutativa $L_{\max}$ sobre el espectro 
+   del operador de Dirac generalizado $\not\!D = \rho^{-1/2}$:
+   $$L_{\max} \le \frac{1}{2 \lambda_{\min}^{3/2}} \le \tau_{\mathrm{Lipschitz}}$$
+   Si el LLM alucina o inyecta transitorios de-normalizados, el gap espectral 
+   colapsa ($\lambda_{\min} \to 0$), provocando la divergencia asintótica de la 
+   cota ($L_{\max} \to \infty$) y anulando determinísticamente la probabilidad 
+   de emisión inválida: $P(x_{\mathrm{invalid}}) = 0$.
 
-GUARDIA 1 — CURVAS HETEROGEOMORFAS DE AUDITORÍA ESPECTRAL:
-    Audita el confinamiento de Lipschitz no conmutativo de Connes-Daleckii-Krein
-    sobre el espectro del operador de Dirac de-confinado ⧸D = ρ^{-1/2} en el
-    espacio de Hilbert continuo H_MAC:
+2. Conectividad de Cheeger (Espacio Discreto / Simplicial):
+   Evalúa el valor de Fiedler $\lambda_2$ (conectividad algebraica) del Laplaciano 
+   normalizado de Haz $L_F = \delta_0^\top G^{-1} \delta_0$ para confinar la 
+   constante isoperimétrica de Cheeger $h(G)$:
+   $$\frac{h^2(G)}{2} \le \lambda_2 \le 2 h(G)$$
+   Monitorea síncronamente el Índice de Estabilidad Piramidal $\Psi$:
+   $$\Psi = \frac{\lambda_2}{1.0 + \beta_1 + (\beta_0 - 1)} \ge \Psi_{\mathrm{min}}$$
+   donde $\beta_0 > 1$ revela sub-grafos huérfanos y $\beta_1 > 0$ expone ciclos 
+   parásitos o socavones lógicos de-confinados.
 
-        L_max ≤ 1 / (2 λ_min^{3/2})
-
-    Toda asonancia cuántica semántica (alucinación de la IA) colapsa el gap
-    espectral (λ_min -> 0), forzando que la constante de Lipschitz L_max
-    diverja al infinito, anulando determinísticamente la probabilidad de estados
-    invalidantes: P(x_invalid) = 0.
-
-GUARDIA 2 — CURVAS HOMOGEOMORFAS DE CUELLOS LOGÍSTICOS:
-    Audita la conectividad algebraica (valor de Fiedler λ_2) y la presencia de
-    cuellos de botella organizacionales mediante la constante isoperimétrica de
-    Cheeger en el 2-complejo simplicial K:
-
-        h²(G) / 2 ≤ λ₂ ≤ 2 h(G)
-
-    Veta de forma síncrona la existencia de:
-        - Islas de Datos: β₀ > 1.
-        - Vacío topológico: β₀ = 0.
-        - Socavones lógicos o dependencias circulares: β₁ > 0.
-        - Pirámides invertidas: Ψ por debajo de umbrales críticos.
-
-FASES ANIDADAS:
-    FASE 1: Phase1SpectralGuardianMixin
-        - Auditoría espectral del operador de Dirac.
-        - Cota Lipschitz de Connes.
-        - Contrato de salida: Phase1SpectralObservation.
-
-    FASE 2: Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin)
-        - Auditoría topológica/logística del Laplaciano y números de Betti.
-        - Brecha de Fiedler, Cheeger y estabilidad piramidal Ψ.
-        - Contrato de salida: Phase2LogisticObservation.
-
-    FASE 3: ImperialGuardsAgent(Phase2LogisticGuardianMixin)
-        - Tribunal de Heyting: join ⊔ sobre Ω₃.
-        - Actuación CAS/Crowbar simulada.
-        - Certificado inmutable ImperialGuardsCertificate.
-
-NOTA DE SEGURIDAD:
+INVARIANTES DE CATEGORÍA:
 ────────────────────────────────────────────────────────────────────────────────
-Toda activación del disyuntor es simulada en este módulo. No se ejecuta acceso
-real a GPIO, IRAM ni hardware físico desde este archivo.
+- Preservación de la signatura métrica de-confinada $\operatorname{sgn}(G) = (1, n-1)$.
+- Hermiticidad incondicional del operador densidad: $\rho = \rho^\dagger$.
+- Normalización unitaria de la traza cuántica de la sabiduría: $\operatorname{Tr}(\rho) \equiv 1.0$.
 """
 
 from __future__ import annotations

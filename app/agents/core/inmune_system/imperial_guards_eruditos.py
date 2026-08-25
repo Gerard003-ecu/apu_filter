@@ -6,32 +6,31 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Heyting-Floer-Cech-Hodge-OODA-CAS               ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU
+SINOPSIS MATEMÁTICA Y COHOMOLÓGICA:
 ────────────────────────────────────────────────────────────────────────────────
-Séquito de Capa 4.5. Provee argumentos homotópicos y cohomológicos no
-abelianos a los Sabios mediante el morfismo de fases anidadas
+Sostiene síncronamente la consistencia estructural del Consejo de Sabios, 
+bloqueando alucinaciones estocásticas en la ventana de atención del LLM mediante 
+dos aduanas cohomológicas:
 
-    Φ_III ∘ Φ_II ∘ Φ_I :
-        Floer × Ȟ^•  →  Heyt(H₃)  →  OODA ↠ 2_interlock
+1. Cohomología Simpléctica de Floer:
+   Modeliza el frente de logits como cilindros pseudo-holomorfos $u: \mathbb{R} \times S^1 \to \mathcal{M}$ 
+   en el colector simpléctico, resolviendo la ecuación de Cauchy-Riemann perturbada:
+   $$\bar{\partial}_{J, H}(u) = \frac{\partial u}{\partial s} + J(u) \left( \frac{\partial u}{\partial t} - X_H(u) \right) \equiv 0$$
+   La nulidad de la co-frontera ($\partial_{\mathrm{Floer}}^2 \equiv 0$) garantiza 
+   la rigidez simpléctica ante deformaciones asonantes inducidas por el modelo.
 
-  Fase I   Auditoría espectral ciega al ImperialEruditosEngine
-           (cilindro de Floer, nervio de Čech, Hodge).
-           Último morfismo: synthesize_heyting_audit_germ.
-  Fase II  Clasificador en el álgebra de Heyting
-           H₃ = {VETOED ≺ DEGRADED ≺ COHERENT}, umbrales relativos
-           de Wilkinson y join de Gödel. Último morfismo:
-           induce_ooda_actuation_germ.
-  Fase III Ciclo OODA (Observe–Orient–Decide–Act) y colapso del
-           filtro primo 𝒰 : H₃² → 2 (interlock lógico).
+2. Cohomología Atencional Čech:
+   Modeliza los pesos de atención del KV-Cache como secciones de un haz celular 
+   $\mathcal{F}_{\mathrm{att}}$ sobre la cobertura Čech $\mathcal{U}$. Exige la 
+   nulidad incondicional de la clase de obstrucción virtual:
+   $$\check{H}^1(\mathcal{U}; \, \mathcal{F}_{\mathrm{att}}) \equiv 0$$
+   para aniquilar bucles de atención parasitarios o redundancias atencionales.
 
-SEGURIDAD
-    Este módulo clasifica consistencia homológica y emite un veredicto
-    de retículo. No accede a GPIO, no dispara crowbars, no programa
-    firmware. La actuación ciber-física, si existe, vive fuera de aquí.
-
-Precisión metrológica: umbrales relativos a la norma de Frobenius /
-masa nuclear; consumo de certificados 3.0 del motor (CZ, Maslov,
-Betti, δ²) con repliegue a la API 2.0.
+INVARIANTES DE CATEGORÍA:
+────────────────────────────────────────────────────────────────────────────────
+- Invarianza simpléctica exacta de la estructura de casi-complejo $J$: $J^2 \equiv -\mathrm{Id}$.
+- Conservación del índice de Maslov a lo largo de trayectorias pseudo-holomorfas.
+- Nulidad de la clase virtual de Čech en el semiplano complejo estable.
 """
 
 from __future__ import annotations

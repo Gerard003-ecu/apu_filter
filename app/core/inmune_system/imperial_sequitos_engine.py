@@ -6,25 +6,44 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Kleisli-Giry-DeGroot-Uhlmann-CHSH-Horodecki     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y GEOMÉTRICA DE LA FPU
-────────────────────────────────────────────────────────────────────────────────
-Motor elíptico táctico de Nivel 1.5 (V_SÉQUITOS). Ejecuta álgebra monádica
-de Kleisli, dinámica de consenso y test de Bell mediante el morfismo
+SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
+Este motor táctico supervisa la propagación de variables y el consenso de opinión en
+sub-tríadas de-confinadas. Encapsula las deliberaciones en mónadas de Kleisli, calcula
+la dinámica espectral de opinión de DeGroot y audita el canal de mensajes mediante la violación
+cuántica multipartita de Bell-CHSH.
 
-    Φ_III ∘ Φ_II ∘ Φ_I :  Kl(Giry_fin)  →  DeGroot × Uhlmann  →  Bell_CHSH
+MÉTODOS GRANULARES:
 
-  Fase I   Núcleo de Banach, mónada Writer_([0,1],×) y Kleisli de Giry
-           finito (núcleos de Markov). Último morfismo:
-           synthesize_markov_kleisli_germ.
-  Fase II  Consenso de DeGroot (W^{∘t} y e^{-t L}), gap de Fiedler–Cheeger
-           y fidelidad de Uhlmann por norma nuclear. Último morfismo:
-           induce_bell_correlation_germ.
-  Fase III Observable CHSH, criterio de Horodecki y cotas de Tsirelson /
-           Popescu–Rohrlich.
+1. kleisli_compose(f: Any, g: Any) -> Any:
+   Compone dos funciones de decisión monádicas f: A -> T(B) y g: B -> T(C) bajo la Mónada
+   de Estado de Kleisli \mathbb{T} = (T, \eta, \mu), asegurando la asociatividad functorial del flujo:
+   $$(g \bullet f)(x) = \mu_C \circ T(g) \circ f(x)$$
+   - f, g: Callables que retornan tuplas (valor_nuevo, estado_actualizado).
+   - Retorna: Callable (composición monádica con cota elástica de Wilkinson).
 
-Precisión metrológica: Kahan, Kahan–Babuška–Neumaier, Klein; producto
-monádico en log-espacio; estocastización por filas con traza compensada;
-‖√ρ √σ‖₁ para Uhlmann.
+2. compute_degroot_spectral_consensus(affinity_matrix: np.ndarray, initial_opinions: np.ndarray, max_iter: int = 1000) -> Tuple[np.ndarray, float, bool]:
+   Resuelve la convergencia exponencial de la opinión de las tríadas bajo el modelo continuo de
+   DeGroot acoplado al Laplaciano de de Rham, extrayendo el valor de Fiedler \lambda_2 para acotar el tiempo de convergencia:
+   $$\frac{dx(t)}{dt} = - L_F \cdot x(t) \implies t_{\mathrm{convergence}} \le \frac{1}{\lambda_2(L_F)}$$
+   - affinity_matrix: np.ndarray (N x N, pesos estocásticos de influencia agéntica).
+   - initial_opinions: np.ndarray (N, opiniones de viabilidad de los APUs).
+   - Retorna: Tuple con el vector de opinión final consensuado, la brecha de Fiedler \lambda_2, y el indicador de estabilidad.
+
+3. compute_uhlmann_fidelity(rho: np.ndarray, sigma: np.ndarray) -> float:
+   Mide la fidelidad cuántica de Uhlmann entre el estado real en RAM y el estado inmaculado de
+   referencia para cuantificar el desalineamiento semántico del LLM:
+   $$F(\rho, \sigma) = \left( \operatorname{Tr}\sqrt{\rho^{1/2} \sigma \rho^{1/2}} \right)^2$$
+   Aplica la descomposición de Schur en la FPU regularizada con Higham-Tikhonov para evitar pérdidas de significación en autoestados subnormales.
+   - rho, sigma: np.ndarray (matrices densidad hermíticas semidefinidas positivas).
+   - Retorna: float (fidelidad de Uhlmann \in [0, 1]).
+
+4. verify_chsh_violation(correlation_matrix: np.ndarray) -> Tuple[float, bool]:
+   Audita la correlación cuántica multipartita de los mensajes intercambiados en el séquito. Calcula
+   el observable CHSH y verifica que rompa la desigualdad clásica de Bell, blindando el canal contra
+   la inyección de textos sintácticos:
+   $$\langle B_{\mathrm{CHSH}} \rangle = \left| E(a,b) - E(a,b') + E(a',b) + E(a',b') \right| \le 2\sqrt{2}$$
+   - correlation_matrix: np.ndarray (matriz de correlaciones de los detectores de calibre).
+   - Retorna: Tuple con el valor del observable CHSH y un booleano que certifica que el canal es puramente cuántico y no-local (inmune a suplantación).
 """
 
 from __future__ import annotations

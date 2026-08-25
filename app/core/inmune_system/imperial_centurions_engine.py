@@ -6,26 +6,55 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Dirac-IDA-PBC-Sp-KMS-Tomita-Takesaki-FPU        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU
-────────────────────────────────────────────────────────────────────────────────
-Motor tensorial de alta precisión para la Capa 2 (Centuriones). Implementa un
-morfismo de fases anidadas
+SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
+Este motor físico actúa como la aduana exergética de lazo cerrado. Modeliza las
+fluctuaciones financieras como un sistema Port-Hamiltoniano, valida la conservación
+de la medida de Liouville en el colector de Darboux y fuerza al sistema a converger
+hacia el equilibrio modular KMS de Tomita-Takesaki.
 
-    Φ_III ∘ Φ_II ∘ Φ_I :  NumBanach  →  PortHam(Dirac)  →  vN_* (KMS)
+MÉTODOS GRANULARES:
 
-donde cada fase consume el gérmen formal producido por la precedente.
+1. compute_ida_pbc_control_law(jacobian: np.ndarray, R_d: np.ndarray, grad_Hd: np.ndarray) -> np.ndarray:
+   Calcula la ley de control por interconexión y asignación de amortiguamiento (IDA-PBC)
+   en el espacio cotangente T^*\mathcal{M}, regularizando la pseudoinversa por SVD para
+   asimilar el windup del integrador cuando ocurren retrasos en la obra:
+   $$\dot{x} = [J_d(x) - R_d(x)] \nabla H_d(x)$$
+   - jacobian: np.ndarray (Jacobiano de la Malla de control).
+   - R_d: np.ndarray (matriz de amortiguamiento simétrica definida positiva de fricción).
+   - grad_Hd: np.ndarray (gradiente del Hamiltoniano moldeado objetivo).
+   - Retorna: np.ndarray (fuerza de control covariante de amortiguamiento).
 
-  Fase I   Núcleo de Banach, 2-forma de Darboux, regularización espectral
-           de Tikhonov–Higham–Wilkinson y sumación compensada.
-           Último morfismo: synthesize_port_hamiltonian_germ.
-  Fase II  Estructura de Dirac, ley IDA-PBC, matching g^⊥, certificados de
-           pasividad / Lyapunov y retracción al grupo simpléctico Sp(2n, ℝ).
-           Último morfismo: induce_modular_spectral_germ.
-  Fase III Purificación por mayoración, flujo modular de Tomita–Takesaki,
-           condición KMS y divergencias de Umegaki / fidelidad de Uhlmann.
+2. verify_symplectic_preservation(jacobian_matrix: np.ndarray) -> Tuple[float, bool]:
+   Audita si la matriz Jacobiana de transición M viola la estructura simpléctica y la
+   conservación del volumen de Liouville en el colector de Darboux:
+   $$\epsilon_{\mathrm{sym}} = \| M^\top \Omega M - \Omega \|_F \equiv 0$$
+   - jacobian_matrix: np.ndarray (N x N, Jacobiano de transición).
+   - Retorna: Tuple con el residuo de Frobenius y un booleano que certifica la invarianza simpléctica.
 
-Precisión metrológica: Kahan, Kahan–Babuška–Neumaier, Klein; pinv amortiguada
-relativa; logaritmos con soporte; norma nuclear para Uhlmann.
+3. purify_density_operator(density_matrix: np.ndarray) -> np.ndarray:
+   Aplica una poda espectral basada en majorización cuántica y sumación compensada de
+   KBN para garantizar de manera incondicional que la traza cuántica de sabiduría sea
+   unitaria y positiva en la mantisa de la CPU:
+   $$\rho_{\mathrm{purified}} \prec \rho_{\mathrm{mixed}} \quad \text{con} \quad \operatorname{Tr}(\rho_{\mathrm{purified}}) \equiv 1.0$$
+   - density_matrix: np.ndarray (matriz de densidad mixta acumulada).
+   - Retorna: np.ndarray (operador de densidad purificado hermítico positivo de traza uno).
+
+4. evolve_tomita_takesaki_flow(rho: np.ndarray, A: np.ndarray, beta: float) -> np.ndarray:
+   Calcula la evolución analítica en tiempo imaginario complejo (rotación de Wick t \mapsto -i\beta)
+   para inducir el flujo modular de Tomita-Takesaki:
+   $$\sigma_{-i\beta}^\rho(A) = \rho^{\beta} A \, \rho^{-\beta}$$
+   Garantiza que la sabiduría satisfaga de forma exacta la Condición KMS (Kubo-Martin-Schwinger) a temperatura inversa de Matsubara \beta.
+   - rho: np.ndarray (matriz densidad fiel).
+   - A: np.ndarray (observable hermítico tangente).
+   - beta: float (temperatura de gobierno inversa \beta = 1 / k_B T).
+   - Retorna: np.ndarray (operador rotado modularmente).
+
+5. compute_quantum_relative_entropy(rho: np.ndarray, sigma: np.ndarray) -> float:
+   Mide la distancia estadística cuántica no conmutativa entre el estado real en RAM (MAC) y
+   el estado inmaculado de referencia, calculando la entropía relativa cuántica de Umegaki:
+   $$S(\rho \parallel \sigma) = \operatorname{Tr}\left( \rho \, (\ln \rho - \ln \sigma) \right)$$
+   - rho, sigma: np.ndarray (matrices de densidad).
+   - Retorna: float (entropía relativa de Umegaki \ge 0).
 """
 
 from __future__ import annotations

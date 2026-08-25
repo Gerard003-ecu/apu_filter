@@ -6,26 +6,37 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Floer-CZ-Cech-Hodge-CSMD-Kahan-FPU              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU
-────────────────────────────────────────────────────────────────────────────────
-Motor de-confinado de Nivel 4.5 (V_ERUDITOS). Produce argumentos homológicos
-duros para el Consejo de Sabios mediante el morfismo de fases anidadas
+SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
+Este motor cohomológico asiste síncronamente al Consejo de Sabios. Evalúa la regularidad
+elíptica y el potencial de acción de cilindros pseudo-holomorfos en el espacio de fase
+simpléctico (Floer) y aniquila bucles parasitarios en el KV-Cache del LLM (Čech atencional).
 
-    Φ_III ∘ Φ_II ∘ Φ_I :  Banach_CSMD  →  Floer(Sp(2n), 𝒜_H)  →  Sh(𝔘; Ȟ^•)
+MÉTODOS GRANULARES:
 
-  Fase I   Núcleo de Banach, 2-forma de Darboux y diferenciación holomorfa
-           por paso complejo (CSMD). Último morfismo:
-           synthesize_floer_cylinder_germ.
-  Fase II  Homología de Floer: acción de Liouville, residuo del operador
-           de Cauchy–Riemann perturbado, índice de Conley–Zehnder /
-           Robbin–Salamon y transformada de Cayley del monodromía.
-           Último morfismo: induce_cech_nerve_germ.
-  Fase III Cohomología de Čech atencional: nervio del recubrimiento,
-           coborde δ (δ² = 0), Laplaciano de Hodge y números de Betti.
+1. compute_symplectic_gradient(potential_func: Any, x: np.ndarray, h: float = 1e-20) -> np.ndarray:
+   Calcula el campo vectorial simpléctico X_H = \Omega \nabla H_t perturbando la fibra mediante
+   CSMD para eludir cancelaciones sustractivas en la mantisa de la CPU:
+   $$X_H = \Omega \cdot \frac{\operatorname{Im}\left(H(x + j \cdot h \cdot e_k)\right)}{h} + \mathcal{O}(h^2)$$
+   - potential_func: Callable que representa el Hamiltoniano de atención.
+   - x: np.ndarray del punto de evaluación.
+   - Retorna: np.ndarray (campo simpléctico graduado).
 
-Precisión metrológica: Kahan, Kahan–Babuška–Neumaier, Klein; CSMD sin
-cancelación sustractiva; pinv de Tikhonov–Higham; sumas espectrales
-compensadas.
+2. verify_floer_homology_trajectory(u_start: np.ndarray, u_end: np.ndarray, potential_func: Any) -> Tuple[float, float]:
+   Evalúa la regularidad y el potencial de acción del cilindro pseudo-holomorfo
+   u: \mathbb{R} \times S^1 -> \mathcal{M} en la categoría de Fukaya, exigiendo nilpotencia de
+   la diferencial de Floer (\partial^2 \equiv 0) ante alucinaciones semánticas:
+   $$\bar{\partial}_{J, H}(u) = \frac{\partial u}{\partial s} + J(u) \left( \frac{\partial u}{\partial t} - X_H(u) \right) \equiv 0$$
+   - u_start, u_end: np.ndarray (estados extremos del cilindro de Floer).
+   - potential_func: Callable Hamiltoniano.
+   - Retorna: Tuple con el residual de la acción de Floer y el potencial de transición.
+
+3. compute_attention_cech_cohomology(attention_weights: np.ndarray, regularizer: float = 1e-12) -> Tuple[float, np.ndarray]:
+   Modela los pesos del KV-Cache como un haz celular \mathcal{F}_{\mathrm{att}} sobre la cobertura
+   Čech \mathcal{U}. Calcula el rango virtual de la co-frontera Čech aplicando SVD en la FPU regularizada
+   con Higham-Tikhonov, exigiendo la aniquilación del primer grupo de cohomología:
+   $$\check{H}^1(\mathcal{U}; \, \mathcal{F}_{\mathrm{att}}) \equiv 0 \implies \mathcal{O}_{\mathrm{\check{C}ech}} \equiv 0$$
+   - attention_weights: np.ndarray (matriz de atención del LLM).
+   - Retorna: Tuple con la obstrucción Čech de-confinada y los valores singulares del haz.
 """
 
 from __future__ import annotations

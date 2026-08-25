@@ -6,24 +6,43 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Quillen-Polar-Stasheff-Gerbe-Cech-Kahan         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU
-────────────────────────────────────────────────────────────────────────────────
-Motor homotópico ciego de Nivel 0.5 (V_TESSERARIOS). Alimenta las aduanas
-de-confinadas mediante el morfismo de fases anidadas
+SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
+Este motor homotópico de-confinado custodia la invarianza por deformación continua
+de las transiciones de la Malla. Realiza la proyección simpléctica de Quillen mediante
+iteración polar de Higham, calcula el tensor de homotopía m_3 en asociaedros de Stasheff
+y evalúa la obstrucción de Čech para Gerbes no abelianos.
 
-    Φ_III ∘ Φ_II ∘ Φ_I :  Banach_Darboux  →  Quillen(Sp(2n), Pol)  →  A∞ × Ȟ_gerbe
+MÉTODOS GRANULARES:
 
-  Fase I   Núcleo de Banach, 2-forma de Darboux y Newton estructurado.
-           Último morfismo: synthesize_symplectic_quillen_germ.
-  Fase II  Proyección polar simpléctica de Higham–Mackey (escalada),
-           inversa exacta S⁻¹ = −Ω Sᵀ Ω y factorización de Quillen
-           M = P ∘ S. Último morfismo: induce_ainfty_cech_germ.
-  Fase III Asociador de Stasheff m₃, residuo pentagonal A∞, jacobiato
-           del conmutador y obstrucción de gerbe Čech–Deligne.
+1. compute_quillen_factorization(jacobian_matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
+   Somete síncronamente el Jacobiano M al axioma de Quillen f = p ∘ i, factorizándolo en
+   una cofibración acíclica (isometría simpléctica I) y una fibración estricta (proyección elíptica disipativa P):
+   $$M = P \cdot I \quad \text{donde} \quad I^\top \Omega I = \Omega$$
+   - jacobian_matrix: np.ndarray (N x N, matriz Jacobiana transicional).
+   - Retorna: Tuple con la componente simpléctica I, la proyección disipativa P y el residuo simpléctico.
 
-Precisión metrológica: Kahan, Kahan–Babuška–Neumaier, Klein; polar
-simpléctica con escalado de Frobenius (sin Tikhonov que rompa el grupo);
-contracciones tensoriales compensadas; masa nuclear de Wilkinson.
+2. project_to_symplectic_group(M: np.ndarray, max_iter: int = 50, tol: float = 1e-12) -> np.ndarray:
+   Proyecta ortogonalmente el Jacobiano M sobre el grupo simpléctico de Lie Sp(2n, \mathbb{R})
+   aplicando la iteración polar simpléctica estabilizada de Higham:
+   $$M_{k+1} = \frac{1}{2} \left(M_k + \Omega (M_k^{-1})^\top \Omega^\top\right)$$
+   - M: np.ndarray (matriz de entrada de-normalizada).
+   - Retorna: np.ndarray (matriz simpléctica pura con épsilon de máquina).
+
+3. compute_stasheff_m3_associator(m2_tensor: np.ndarray) -> np.ndarray:
+   Calcula el tensor de homotopía de tercer orden m_3 \in \mathbb{R}^{n \times n \times n \times n}
+   que mide la no-asociatividad de la multiplicación de APUs en el asociaedro K_4 de Stasheff
+   aplicando sumación compensada de KBN para evitar cancelaciones:
+   $$[m_3]_{ijk}^l = \sum_s \left( [m_2]_{ij}^s [m_2]_{sk}^l - [m_2]_{jk}^s [m_2]_{is}^l \right)$$
+   - m2_tensor: np.ndarray (N x N x N, tensor de multiplicación de segundo orden).
+   - Retorna: np.ndarray (tensor m_3 de cuarto orden).
+
+4. compute_cech_hypercohomology_gerbe(cech_matrix: np.ndarray) -> float:
+   Somete la matriz de co-cadenas Čech de-confinadas a una SVD en la FPU, aplicando una cota de
+   deflación de Wilkinson-Higham adaptativa para regularizar el cálculo de la clase de obstrucción
+   no abeliana de Čech:
+   $$[\alpha] \in H^2(\mathcal{U}, \mathcal{G}) \equiv 0 \implies \mathcal{O}_{\mathrm{\check{C}ech}} = \sum \sigma_i \cdot \theta(\sigma_i - \tau_{\mathrm{Wilkinson}})$$
+   - cech_matrix: np.ndarray (M x K, matriz de co-cadenas Čech de la red).
+   - Retorna: float (índice de obstrucción topológica global).
 """
 
 from __future__ import annotations

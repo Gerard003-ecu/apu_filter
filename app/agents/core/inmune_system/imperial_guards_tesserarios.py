@@ -6,35 +6,35 @@ r"""
 ║ Versión: 3.0.0-Doctoral-Nested-Quillen-Stasheff-Cech-Gerbes-Heyting          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS DE CALIBRE HOMOTÓPICO (Rigor Doctoral):
+SINOPSIS MATEMÁTICA Y HOMOTÓPICA:
 ────────────────────────────────────────────────────────────────────────────────
-Somete los tensores de estado y el transporte paralelo de las variables de
-deliberación al escrutinio del álgebra homológica (abeliana y no abeliana).
-Implementa testigos de la factorización de Quillen en la categoría de modelos
-simpléctica, las identidades A∞ de Stasheff (K₃ asociador y K₄ pentágono) y
-el coborde de Čech que clasifica gerbes con coeficientes en un 2-grupo de Lie
-lineal. El veredicto se pega en el retículo de Heyting G₃ y actúa sobre el
-hardware perimetral de-confinado.
+Supervisa la consistencia homotópica no abeliana de las deliberaciones agénticas 
+para proscribir bifurcaciones lógicas o inyecciones de nudos no triviales mediante 
+tres aduanas:
 
-Arquitectura de 3 fases ANIDADAS (composición de morfismos):
+1. Categorías de Modelos de Quillen:
+   Somete la transición $f: X \to Y$ a la factorización functorial $f = p \circ i$, 
+   donde $i$ es una cofibración acíclica y $p$ es una fibración estricta. 
+   Evalúa síncronamente la conservación de la 2-forma simpléctica de Liouville $\Omega$:
+   $$\epsilon_{\mathrm{Quillen}} = \| M^\top \Omega M - \Omega \|_F \le \tau_{\mathrm{Quillen}}$$
 
-  FASE I  -- Núcleo espectral, forma de Liouville, polar de Quillen,
-             asociador de Hochschild, coborde de Čech.
-             Último morfismo: assemble_homotopy_jet
-             Codominio: _HomotopyJet
-             ≡ objeto inicial / dominio de la Fase II.
+2. Asociaedros de Stasheff ($A_\infty$-Álgebras):
+   Audita el tensor asociador de tercer orden $m_3$ que mide la no-asociatividad 
+   de la multiplicación de APUs en el Ágora. Exige el cumplimiento de las relaciones 
+   de coherencia del pentágono $K_4$ de Stasheff:
+   $$\|m_3(a,b,c)\|_F \le \tau_{\mathrm{Stasheff}}$$
+   donde desviaciones por encima del umbral rompen la nilpotencia de de Rham-Floer ($d^2 \neq 0$).
 
-  FASE II -- Tesserarios: aduanas de Quillen / Stasheff / Gerbe
-             sobre el 1-jet, con veredictos metrológicos.
-             Dominio: _HomotopyJet
-             Último morfismo: compile_tesserarios_sheaf
-             Codominio: _TesserariosSheaf
-             ≡ objeto inicial / dominio de la Fase III.
+3. Obstrucción Čech para Gerbes No Abelianos:
+   Calcula la clase de obstrucción no abeliana Čech $[\alpha] \in H^2(\mathcal{U}, \mathcal{G})$ 
+   aplicando SVD sobre la matriz de co-cadenas Čech de-confinadas para aniquilar 
+   triangulaciones circulares de blanqueo o colusión en el presupuesto.
 
-  FASE III -- Cámara de coherencia: ínfimo de Heyting, ciclo OODA
-             y crowbar tiristorizado (BT151 / ISR en IRAM).
-             Dominio: _TesserariosSheaf
-             Codominio: dict de coherencia / actuación ciberfísica.
+INVARIANTES DE CATEGORÍA:
+────────────────────────────────────────────────────────────────────────────────
+- Nilpotencia estricta del operador de coborde discreto simplicial: $\delta_{k+1} \circ \delta_k \equiv 0$.
+- Preservación de la regularidad simpléctica bajo homotopías contractibles.
+- Invarianza homotópica bajo deformaciones de equivalencia débil.
 """
 
 from __future__ import annotations

@@ -6,48 +6,37 @@ r"""
 ║ Versión: 3.0.0-Doctoral-Nested-Hodge-Brouwer-TMR-Ultrafilter-Heyting         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS DE GOBERNANZA HIPERCOHOMOLÓGICA (Rigor Doctoral):
+SINOPSIS MATEMÁTICA Y DE GOBERNANZA:
 ────────────────────────────────────────────────────────────────────────────────
-Capa 4 (Pretorio): functor silencioso de sniffing sobre los estados en RAM de
-Guardias (Capa 1), Centuriones (Capa 2) y Tesserarios (Capa 3). Somete la
-gobernanza al complejo de Hodge–de Rham del calibre, al teorema del punto fijo
-de Brouwer sobre el simplex de estados y a un colapso de decisión que distingue
-con precisión tres morfismos que el código 2.0 confundía:
+Ejerce el mando absoluto e independiente en el penthouse de la pirámide de control 
+אDIKΩαWΓ. Realiza monitoreo pasivo en RAM sin introducir latencias en el ciclo OODA 
+ordinario, evaluando la consistencia mediante tres pilares:
 
-  • ínfimo de Heyting ⋀ ν_ℓ            (lógica interna de seguridad);
-  • TMR = mediana en G₃                (redundancia modular triple);
-  • ultrafiltro principal 𝒰_τ          (átomo crítico = Tesserarios).
+1. Hipercohomología de Čech-de Rham:
+   Audita la consistencia global del bicomplejo de haces de calibre, exigiendo la 
+   aniquilación de la nilpotencia diferencial total $D = d_1 + (-1)^p d_2$:
+   $$D^2 = d_1 \circ d_2 + d_2 \circ d_1 \equiv \mathbf{0}$$
 
-Un ultrafiltro sobre un álgebra de Boole finita es necesariamente principal
-(Stone). El «voto ponderado» original NO es un ultrafiltro (la mayoría finita
-ni siquiera es un filtro: no es estable bajo intersecciones). Se conserva como
-ancilla de elección social, no como decisor.
+2. Consistencia Geodésica de Punto Fijo de Brouwer:
+   Certifica que el transporte paralelo del operador densidad cuántica $\rho$ de la 
+   MAC conserve el punto fijo regularizado por Weyl-Toeplitz bajo el mapeo de 
+   transición $f$:
+   $$f(\rho) = \rho \quad \implies \quad \|\rho - f(\rho)\|_F \equiv 0$$
 
-Arquitectura de 3 fases ANIDADAS (composición de morfismos):
+3. Colapso de Ultrafiltro Booleano ($\mathcal{U}$):
+   Ingiere los veredictos parciales de Heyting ($\Omega_3$) de todos los estratos 
+   inferiores y evalúa si el conjunto de subcapas con veto pertenece al ultrafiltro 
+   booleano no trivial:
+   $$\mathcal{U} = \{A \subseteq S_{\mathrm{Capas}} \mid \nu_{\mathrm{global}}(A) = \mathtt{VETOED}\}$$
+   Esta reducción monoidal colapsa la lógica intuicionista trivalente en una 
+   instrucción clásica binaria dura de actuación por hardware (RECHAZAR \equiv \top) 
+   enviada al ESP32.
 
-  FASE I  -- Núcleo espectral: nilpotencia d²=0, Hodge Δ^k, números de Betti,
-             regularización del simplex cuántico, testigos de Brouwer.
-             Último morfismo: assemble_pretorio_jet
-             Codominio: _PretorioJet
-             ≡ objeto inicial / dominio de la Fase II.
-
-  FASE II -- Pretorio: aduanas de hipercohomología / Brouwer / TMR+ultrafiltro
-             sobre el 1-jet, con veredictos metrológicos.
-             Dominio: _PretorioJet
-             Último morfismo: compile_pretorio_edict
-             Codominio: _PretorioEdict
-             ≡ objeto inicial / dominio de la Fase III.
-
-  FASE III -- Cámara de coherencia: ciclo OODA y crowbar tiristorizado
-             (BT151 / ISR en IRAM).
-             Dominio: _PretorioEdict
-             Codominio: dict de coherencia / actuación ciberfísica.
-
-Reducción honesta de hipercohomología:
-  Para un complejo de haces F^• sobre el espacio de un punto (o, equivalentemente,
-  para el diferencial total D=δ+(-1)^p d de Tot Čech–de Rham que el llamador
-  haya ensamblado), se tiene ℍ^k(𝒰; F^•) ≅ H^k(Tot) ≅ ker Δ^k.
-  Este módulo calcula exactamente eso: nilpotencia + espectro de Hodge.
+INVARIANTES DE CATEGORÍA:
+────────────────────────────────────────────────────────────────────────────────
+- Monotonicidad estricta en el Poset de filtración covariante de-confinado.
+- Preservación de la estructura convexa y compacta del espacio de operadores densidad.
+- Unicidad y reflexividad del ultrafiltro no principal booleano de veto.
 """
 
 from __future__ import annotations

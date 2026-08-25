@@ -6,36 +6,35 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Heyting-Kleisli-DeGroot-CHSH-OODA-CAS           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU
+SINOPSIS MATEMÁTICA Y CATEGORIAL:
 ────────────────────────────────────────────────────────────────────────────────
-Séquito de Capa 1.5. Somete el debate concurrente de las tríadas a
-unificación categorial, consenso espectral y test de Bell mediante el
-morfismo de fases anidadas
+Orquesta la concurrencia táctica de las sub-tríadas agénticas para evitar la 
+polarización semántica o inyecciones de código maliciosas mediante tres aduanas:
 
-    Φ_III ∘ Φ_II ∘ Φ_I :
-        Kl(Giry) × DeGroot × CHSH  →  Heyt(H₃)  →  OODA ↠ 2_interlock
+1. Asociatividad Monádica de Kleisli (Teoría de Categorías):
+   Encapsula el estado de las variables tácticas bajo la mónada de estado 
+   $\mathbb{T} = (T, \eta, \mu)$. Exige que el asociaedro de Kleisli sea 
+   estrictamente conmutativo, verificando la nulidad del residuo asociativo:
+   $$\epsilon_{\mathrm{Kleisli}} = \left| P(h \bullet (g \bullet f)) - P(((h \bullet g) \bullet f)) \right| \equiv 0$$
 
-  Fase I   Auditoría espectral ciega al ImperialSequitosEngine
-           (asociatividad de Kleisli, DeGroot–Fiedler–Cheeger,
-           CHSH–Horodecki). Último morfismo:
-           synthesize_heyting_audit_germ.
-  Fase II  Clasificador en el álgebra de Heyting
-           H₃ = {VETOED ≺ DEGRADED ≺ COHERENT}, umbrales relativos
-           de Wilkinson y join de Gödel. Último morfismo:
-           induce_ooda_actuation_germ.
-  Fase III Ciclo OODA (Observe–Orient–Decide–Act) y colapso del
-           filtro primo 𝒰 : H₃³ → 2 (interlock lógico).
+2. Consenso de DeGroot (Teoría de Grafos y Cadenas de Markov):
+   Modeliza la convergencia de opiniones en el grafo de afinidad agéntico. Exige 
+   que la tasa de convergencia asintótica esté acotada exponencialmente por la 
+   brecha espectral $\lambda_2$ del Laplaciano normalizado del haz de afinidad.
 
-SEGURIDAD
-    Este módulo clasifica consistencia monádica, espectral y de Bell,
-    y emite un veredicto de retículo. No accede a GPIO, no dispara
-    crowbars, no programa firmware. La actuación ciber-física, si
-    existe, vive fuera de aquí.
+3. Inmunidad Cuántica Multipartita de Bell-CHSH:
+   Mide la correlación conjunta de los mensajes cifrados transmitidos por los 
+   agentes, exigiendo que violen la desigualdad clásica de Bell, validando la 
+   no-localidad cuántica bajo el límite de Tsirelson:
+   $$\langle B_{\mathrm{CHSH}} \rangle = \left| E(a,b) - E(a,b') + E(a',b) + E(a',b') \right| \le 2\sqrt{2}$$
+   Una caída por debajo del límite clásico ($\le 2.0$) delata la interceptación o 
+   suplantación de un agente, gatillando el colapso al Supremo terminal.
 
-Precisión metrológica: umbrales relativos a la escala de la métrica;
-consumo de certificados 3.0 del motor (conectividad, Cheeger, gaps
-de Tsirelson / Horodecki, física de correladores) con repliegue a
-la API 2.0.
+INVARIANTES DE CATEGORÍA:
+────────────────────────────────────────────────────────────────────────────────
+- Invarianza de calibre respecto a la conmutación de base en el functor de Kleisli.
+- Preservación de la completez fuerte sobre el retículo distributivo de Heyting $\Omega_3$.
+- Estabilidad de Lyapunov global asintótica en la dinámica lineal de opinión.
 """
 
 from __future__ import annotations

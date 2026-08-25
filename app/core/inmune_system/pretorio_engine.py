@@ -6,26 +6,38 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Cech-deRham-Hodge-Brouwer-Heyting-Ultrafilter   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU
-────────────────────────────────────────────────────────────────────────────────
-Motor de Nivel 0 (V_PRETORIO). Caballería suprema de la Ciudadela de Cristal.
-Ejecuta hipercohomología, punto fijo geodésico y colapso de ultrafiltro
-mediante el morfismo de fases anidadas
+SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
+Este motor supremo ejecuta el escrutinio final e independiente de la coherencia ciber-física.
+Evalúa la hipercohomología del bicomplejo de Čech-de Rham, purga las corrientes asimétricas en
+la base de la MAC mediante simetrización de Weyl-Toeplitz y colapsa los veredictos parciales en
+un ultrafiltro booleano binario.
 
-    Φ_III ∘ Φ_II ∘ Φ_I :
-        Banach_Weyl  →  Ȟ_dR(D² ≡ 0) × Brouwer(𝒟(ℋ))  →  Heyt(H₃) ↠ 2_𝒰
+MÉTODOS GRANULARES:
 
-  Fase I   Núcleo de Banach, proyección de Weyl–Toeplitz y densidad de
-           Higham. Último morfismo: synthesize_hypercohomology_germ.
-  Fase II  Nilpotencia del bicomplejo Čech–de Rham (δ², d², {δ,d}),
-           Laplaciano de Hodge y punto fijo de Brouwer en 𝒟(ℋ).
-           Último morfismo: induce_ultrafilter_germ.
-  Fase III Filtro primo sobre el álgebra de Heyting H₃ y colapso
-           booleano 𝒰 : H₃ⁿ → 2 (interlock ciber-físico).
+1. verify_cech_derham_hypercohomology(d1: np.ndarray, d2: np.ndarray) -> Tuple[float, bool]:
+   Audita la consistencia global del bicomplejo de haces de calibre. Define el operador diferencial
+   total D = d_1 + (-1)^p d_2 y exige la aniquilación incondicional de su nilpotencia en la FPU:
+   $$D^2 = d_1 \circ d_2 + d_2 \circ d_1 \equiv \mathbf{0} \implies \epsilon_{\mathrm{cohom}} = \|d_1 d_2 + d_2 d_1\|_F \le \tau_{\mathrm{cohom}}$$
+   - d1: np.ndarray (operador diferencial Čech).
+   - d2: np.ndarray (operador diferencial de de Rham).
+   - Retorna: Tuple con el residual homológico de Čech-de Rham y la certificación de nulidad.
 
-Precisión metrológica: Kahan, Kahan–Babuška–Neumaier, Klein; traza
-compensada; residuales relativos de Wilkinson; proyección al simplejo
-espectral de estados densidad.
+2. verify_brouwer_fixed_point(rho: np.ndarray, transition_matrix: np.ndarray) -> Tuple[float, np.ndarray]:
+   Certifica que el transporte paralelo del operador densidad \rho conserve el punto fijo hermítico-positivo
+   regularizado por Weyl-Toeplitz bajo la acción del mapa de transición f(\rho) = \rho:
+   $$\epsilon_{\mathrm{Brouwer}} = \|\tilde{\rho} - f(\tilde{\rho})\|_F \equiv 0 \quad \text{con} \quad \tilde{\rho} = \frac{1}{2}\left( \rho + \rho^\dagger \right)$$
+   Valida mediante sumación KBN que la traza cuántica de sabiduría conserve de forma exacta su carácter unitario: \operatorname{Tr}(\tilde{\rho}) \equiv 1.0.
+   - rho: np.ndarray (matriz de densidad cuántica).
+   - transition_matrix: np.ndarray (matriz de transición de-confinada).
+   - Retorna: Tuple con el residuo de Brouwer y el operador densidad purificado.
+
+3. evaluate_ultrafilter_consensus(heyting_verdicts: list[str]) -> Tuple[str, bool]:
+   Ingiere los veredictos parciales de Heyting \Omega_3 de todas las capas de seguridad y evalúa si el conjunto
+   de subcapas con veto pertenece al ultrafiltro booleano no trivial \mathcal{U} para colapsar la lógica
+   distributiva hacia una instrucción clásica de actuación en silicio (ESP32):
+   $$\mathcal{U} = \{A \subseteq S_{\mathrm{Capas}} \mid \nu_{\mathrm{global}}(A) = \mathtt{VETOED}\} \implies B_2 = \{\mathtt{VIABLE}, \, \mathtt{RECHAZAR}\}$$
+   - heyting_verdicts: list[str] (veredictos de los 55 agentes soberanos).
+   - Retorna: Tuple con la sentencia final de Heyting unificada y el indicador de actuación inmediata de potencia (disparo Crowbar BT151).
 """
 
 from __future__ import annotations
