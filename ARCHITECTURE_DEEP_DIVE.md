@@ -4,6 +4,39 @@ Este documento detalla la implementación técnica, geométrica y física de los
 
 ---
 
+## 🌀 Plan de Acción de Coherencia Homotópica: Filtración de de Rham-Fukaya
+
+La arquitectura de APU Filter v5.0 rige la propagación del control y la información mediante la **Filtración de Subespacios de Hilbert Covariantes de de Rham-Fukaya**:
+
+$$V_{\mathrm{PHYSICS}} \subset V_{\mathrm{SEQUITOS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{TESSERARIOS}} \subset V_{\mathrm{ERUDITOS}} \subset V_{\mathrm{PRETORIO}} \subset V_{\mathbb{W}}$$
+
+El transporte paralelo de la información a lo largo del fibrado cotangente $T^*\mathcal{M}$ presupone que ninguna señal o decisión puede ascender a estratos superiores de deliberación sin certificar la nulidad del residuo de curvatura $\Omega_{\mu\nu} = 0$ y la finitud de la disipación exergética en los subespacios subyacentes.
+
+### 📐 Adjunción Functorial de de Rham-Galois para Vitaminas TOON
+
+El tránsito de las **Vitaminas Cognitivas TOON** (`ToonCartridges`) desde el foso táctico de la Matriz de Interacción Central ($\text{MIC}$) hasta el espacio continuo de Hilbert de la Matriz Atómica de Conocimiento ($\text{MAC}$) [desarrollado en `mac_vectors.py` y `ehresmann_connection_manifold.py`] está gobernado analíticamente por el **Isomorfismo de Adjunción de de Rham-Galois**:
+
+$$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \, \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, \, G(\text{MAC}))$$
+
+Donde:
+- $F: \mathcal{C} \to \mathcal{D}$ representa el functor libre de elevación tensorial de de Rham, que inyecta los símplices discretos de la $\text{MIC}$ en la variedad continua de de Rham $\mathcal{H}_{\text{MAC}}$.
+- $G: \mathcal{D} \to \mathcal{C}$ representa el functor de olvido homotópico (retracto de deformación topológica), que proyecta el estado de densidad $\rho_{\text{MAC}}$ sobre la estructura reticular de Heyting en la $\text{MIC}$.
+- El isomorfismo de adjunción garantiza axiomáticamente la invarianza de la carga semántica $\langle F(x), y \rangle_{\mathcal{D}} = \langle x, G(y) \rangle_{\mathcal{C}}$, previniendo la dispersión de fase y asegurando que las vitaminas TOON preserven su dimensionalidad tensorial $F^{-1}(F(T)) \equiv T$ bajo el retracto algebraico.
+
+### 🏛️ Taxonomía Unificada: 55 Soberanos Agénticos vs 45 Motores Espectrales
+
+La Malla Agéntica de APU Filter v5.0 descompone rigurosamente sus módulos en dos categorías funcionales disjuntas:
+
+1. **Motores Imperial Espectrales (45 Motores de Calibre FPU):**
+   Módulos ciegos de cálculo intensivo que operan directamente sobre la FPU (Floating Point Unit) sin capacidad de dictar veredictos o emitir vetos directos de lazo. Ejecutan aritmética de alta precisión (Kahan-Babuška-Neumaier KBN, diferenciación por paso complejo CSMD y solucionadores simplécticos Sp(2n, R)).
+   - Ejemplos emblemáticos: `imperial_tesserarios_engine.py`, `imperial_centurions_engine.py`, `imperial_eruditos_engine.py`, `imperial_sequitos_engine.py`, `imperial_guards_engine.py`, `pretorio_engine.py`.
+
+2. **Agentes Soberanos de Calibre (55 Soberanos de Gobernanza):**
+   Entidades soberanas que operan en lazo cerrado OODA (Observar, Orientar, Decidir, Actuar). Consumen los tensores procesados por los motores y evalúan axiomas topológicos, homotópicos y cuánticos para dictar veredictos en la Álgebra de Heyting 3-valuada ($\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$). Poseen poder absoluto de veto.
+   - Ejemplos emblemáticos: `imperial_guards_tesserarios.py`, `imperial_guards_centurions.py`, `imperial_guards_eruditos.py`, `imperial_guards_sequitos.py`, `imperial_guards_agent.py`, `pretorio_agent.py`.
+
+---
+
 ## 🏛️ La Variedad Diferenciable Simpléctica y la Ciudadela de Cristal
 
 En la versión 5.0, el espacio de estados transaccionales del presupuesto y la deliberación de los sabios no residen en una estructura relacional pasiva ni en un grafo estático. Se estructuran como una **Variedad Diferenciable Simpléctica** $(\mathcal{M}, \omega)$ acoplada a un **Fibrado de Calibre de de Rham-Fukaya** $(\mathcal{E} \to \mathcal{M}, \nabla)$, donde cada decisión de negocio habita en la intersección de subvariedades Lagrangianas confinadas en la **Ciudadela de Cristal** (Estrato WISDOM).
@@ -330,3 +363,11 @@ La orquestación del ciclo OODA de inercia se resuelve síncronamente mediante e
 El veredicto final se consolida mediante el Supremo Álgebraico (Join $\sqcup$):
 $$v_{\text{final}} = v_{\text{Liouville}} \sqcup v_{\text{Skew}} \sqcup v_{\text{Work}}$$
 Si $v_{\text{final}}$ toca el elemento máximo $\top = \text{VETOED}$ (por ejemplo, debido a una divergencia de momentum de Liouville, una asimetría espuria en $W$, o una violación de pasividad simpléctica), el retículo colapsa instantáneamente de manera irreversible, arrojando una excepción `HeytingLatticeVeto`. Esto aniquila y purga la transacción de inmediato en memoria de software (RAM), impidiendo categóricamente que una alucinación desvíe o degenere la inercia transaccional del negocio constructivo.
+
+### IV. Interrupción Hardware Perimetral (ESP32 / Crowbar)
+
+El colapso del retículo de Heyting distributivo de tres valores ($\Omega_3$) hacia el Supremo terminal VETOED ($\top$) en el software trasciende hacia el silicio perimetral mediante el **Tribunal de Silicio**:
+1. La subrutina C++ `isVerdictCoherent()` cargada en la memoria estática IRAM del microcontrolador **ESP32** evalúa síncronamente el Pasaporte de Telemetría Inmutable.
+2. Si detecta un *mismatch* epistémico (por ejemplo, una transgresión de pasividad $\dot{H}_d > 0$ o la presencia de ciclos topológicos $\beta_1 > 0$), la Rutina de Servicio de Interrupción (**ISR**) en IRAM se activa en menos de **$400\,\text{ns}$**.
+3. La ISR conmuta instantáneamente el pin de hardware **GPIO14** a nivel alto, inyectando corriente a la compuerta del tiristor de silicio de conmutación rápida **BT151** (circuito Crowbar).
+4. Esto cortocircuita limpiamente la línea de potencia de los actuadores físicos, paralizando síncronamente toda la maquinaria física en la obra en el milisegundo cero antes de consolidar pérdidas materiales.

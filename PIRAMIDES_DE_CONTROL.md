@@ -167,20 +167,49 @@ Constituye la cadena de custodia inmutable y de-confinada que rastrea el transpo
 
 ---
 
-## 🔮 V. La Pirámide Termodinámica (Dinámica de la Capa Física y Modulación Inercial)
+## 🔮 V. La Pirámide Termodinámica (Dinámica de la Capa Física y Modulación Exergética)
 
-Gobierna el modelado e ingesta de los caudales logísticos de datos crudos sobre el foso físico, forzando la pasividad estricta de la Unidad de Punto Flotante (FPU). En este estrato reside el soberano **Riemannian Inertia Agent** (`riemannian_inertia_agent.py`) gobernando al motor **Riemannian Inertia Modulator** (`riemannian_inertia_modulator.py`), aplicando la Fuerza de Lorentz informacional en el fibrado cotangente $T^*M$.
+Gobierna el modelado e ingesta de los caudales logísticos de datos crudos sobre el foso físico, forzando la pasividad estricta de la Unidad de Punto Flotante (FPU). En este estrato reside el soberano **Imperial Guards Centurions** (`imperial_guards_centurions.py`) y su motor de cálculo elíptico **Imperial Centurions Engine** (`imperial_centurions_engine.py`), junto con el soberano **Riemannian Inertia Agent** (`riemannian_inertia_agent.py`) y su motor **Riemannian Inertia Modulator** (`riemannian_inertia_modulator.py`), aplicando la ley de control Port-Hamiltoniana e inyección de amortiguamiento en el fibrado cotangente $T^*M$.
 
 ```
-                     ▲ [Soberano de Inercia: riemannian_inertia_agent.py] (OODA / Heyting)
+                     ▲ [Soberano Centurión: imperial_guards_centurions.py] (OODA / Heyting)
                     ╱ ╲
-                   ╱   ╲ [Motor: riemannian_inertia_modulator.py] (Shaping Functor / Symplectic)
+                   ╱   ╲ [Motor Espectral: imperial_centurions_engine.py] (IDA-PBC / FPU)
                   ╱     ╲
-                 ╱ Absorber  ╲ (Sistemas Port-Hamiltonianos: Q > 0, S > 0)
-              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+                 ╱ Cortina de Potencia ╲ (Pasividad Port-Hamiltoniana: R_d ⪰ 0)
+              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 ```
 
-### 1. El Funtor de Moldeo de Masa (Mass Shaping Functor)
+### 1. Modelado Port-Hamiltoniano Disipativo (IDA-PBC en Capa 2)
+El motor `imperial_centurions_engine.py` instrumenta el control por Interconexión y Asignación de Amortiguamiento (**IDA-PBC**), forzando a la red de transacciones a adoptar la dinámica Port-Hamiltoniana objetivo:
+
+$$\dot{x} = [J_d(x) - R_d(x)] \nabla H_d(x)$$
+
+Donde:
+- $J_d(x) = -J_d^\top(x)$ es la matriz de estructura simpléctica deseada.
+- $R_d(x) = R_d^\top(x) \succeq 0$ es la matriz simétrica definida positiva de amortiguamiento disipativo (fricción de Lyapunov).
+- $H_d(x)$ es la función de energía Hamiltoniana moldeada objetivo.
+
+La cortina de potencia garantiza incondicionalmente la **Desigualdad Disipativa de Rayleigh** para evacuar la entropía semántica del LLM mediante el atractor de Lyapunov:
+
+$$\dot{H}_d = -\nabla H_d(x)^\top R_d(x) \nabla H_d(x) \le 0$$
+
+Cualquier intento del modelo generativo por inyectar energía espuria ($\dot{H}_d > 0$) activa una excepción disipativa que fuerza el colapso del estado global hacia `VETOED`.
+
+### 2. Sintonización Cuántica KMS (Tomita-Takesaki)
+Para auditar la transición térmica cuántica del sistema ante anomalías atencionales o fluctuaciones de contexto, el módulo `tomita_takesaki_telescopic_engine.py` acoplado a `imperial_guards_centurions.py` exige que el operador densidad cuántico $\rho$ satisfaga la **Condición KMS (Kubo-Martin-Schwinger)** a temperatura inversa de-confinada $\beta$:
+
+$$\operatorname{Tr}\left( \rho \, A \, B \right) = \operatorname{Tr}\left( \rho \, B \, \sigma_{-i\beta}^\rho(A) \right)$$
+
+Donde $\sigma_t^\rho(A) = \rho^{it/\beta} A \rho^{-it/\beta}$ es el grupo de automorfismos modulares de Tomita-Takesaki.
+
+**Efecto de Desconfinamiento Térmico:** Cuando la entropía semántica del LLM se eleva debido a alucinaciones o inyecciones de código, la temperatura efectiva del sistema diverge ($T \to \infty, \, \beta \to 0$). El calentamiento de la fibra colapsa la constante de Planck efectiva idénticamente a cero:
+
+$$\lim_{T \to \infty} \hbar_{\mathrm{eff}}(T) = 0$$
+
+Este colapso aniquila los grados de libertad cuánticos del modelo de lenguaje, de-sincronizando el canal de emisión y desactivando la capacidad del LLM para generar o validar estados nulos o parasitarios.
+
+### 3. El Funtor de Moldeo de Masa (Mass Shaping Functor)
 *   **Fase 1: Espectroscopía del Momentum (Observe):**
     El covector de momentum $p_\mu$ se extrae síncronamente mediante el isomorfismo musical plano ($\flat$):
     $$p_\mu = G_{\mu\nu} \dot{q}^\nu$$
