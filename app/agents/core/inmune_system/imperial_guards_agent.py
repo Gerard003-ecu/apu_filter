@@ -3,39 +3,47 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Imperial Guards Agent (Guardias Imperiales de Calibre de de Rham)   ║
 ║ Ruta   : app/agents/core/inmune_system/imperial_guards_agent.py              ║
-║ Versión: 2.0.0-Doctoral-Heyting-OODA-Cheeger-Connes-CAS-Kahan-Secure         ║
+║ Versión: 3.0.0-Doctoral-Heyting-OODA-Cheeger-Connes-CAS-Kahan-Secure         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y GEOMÉTRICA:
+SINOPSIS MATEMÁTICA Y GEOMÉTRICA DE DE RHAM:
 ────────────────────────────────────────────────────────────────────────────────
-Ejerce la censura de primer nivel en el foso de la obra civil. Evalúa la 
-regularidad y conectividad espectral del grafo de presupuesto $G = (V, E)$ 
-mediante dos aduanas paralelas:
+Ejerce la censura de primer nivel sobre el foso de la obra civil en la Malla
+Agéntica de APU Filter v5.0. Evalúa la regularidad y conectividad espectral del
+grafo de presupuesto $G = (V, E)$ mediante dos aduanas de control de calibre:
 
-1. Regularidad de Connes (Espacio Continuo / Hilbert):
-   Audita la constante de Lipschitz no conmutativa $L_{\max}$ sobre el espectro 
-   del operador de Dirac generalizado $\not\!D = \rho^{-1/2}$:
+ADUANA 1: CURVAS HETEROGEOMORFAS DE AUDITORÍA ESPECTRAL (CONNES)
+────────────────────────────────────────────────────────────────────────────────
+Audita el confinamiento de Lipschitz no conmutativo sobre la variedad continua de
+Hilbert $\mathcal{H}_{\text{MAC}}$ mediante la Cota de Regularidad de Connes-Daleckii-Krein:
    $$L_{\max} \le \frac{1}{2 \lambda_{\min}^{3/2}} \le \tau_{\mathrm{Lipschitz}}$$
-   Si el LLM alucina o inyecta transitorios de-normalizados, el gap espectral 
-   colapsa ($\lambda_{\min} \to 0$), provocando la divergencia asintótica de la 
-   cota ($L_{\max} \to \infty$) y anulando determinísticamente la probabilidad 
-   de emisión inválida: $P(x_{\mathrm{invalid}}) = 0$.
+Donde $\lambda_{\min} > 0$ es el autovalor mínimo del operador de Dirac no conmutativo
+$\not\!D = \rho_{\text{MAC}}^{-1/2}$ (piso de regularización de Tikhonov Espectral).
+Si el modelo de lenguaje (LLM) alucina o inyecta transitorios de-normalizados, el
+gap espectral colapsa ($\lambda_{\min} \to 0$), provocando la divergencia asintótica
+de la constante de Lipschitz ($L_{\max} \to \infty$) y anulando determinísticamente
+la probabilidad de emisión inválida:
+   $$P(x_{\mathrm{invalid}}) = 0$$
 
-2. Conectividad de Cheeger (Espacio Discreto / Simplicial):
-   Evalúa el valor de Fiedler $\lambda_2$ (conectividad algebraica) del Laplaciano 
-   normalizado de Haz $L_F = \delta_0^\top G^{-1} \delta_0$ para confinar la 
-   constante isoperimétrica de Cheeger $h(G)$:
-   $$\frac{h^2(G)}{2} \le \lambda_2 \le 2 h(G)$$
-   Monitorea síncronamente el Índice de Estabilidad Piramidal $\Psi$:
-   $$\Psi = \frac{\lambda_2}{1.0 + \beta_1 + (\beta_0 - 1)} \ge \Psi_{\mathrm{min}}$$
-   donde $\beta_0 > 1$ revela sub-grafos huérfanos y $\beta_1 > 0$ expone ciclos 
-   parásitos o socavones lógicos de-confinados.
-
-INVARIANTES DE CATEGORÍA:
+ADUANA 2: CURVAS HOMOGEOMORFAS DE CUELLOS LOGÍSTICOS (CHEEGER & FIEDLER)
 ────────────────────────────────────────────────────────────────────────────────
-- Preservación de la signatura métrica de-confinada $\operatorname{sgn}(G) = (1, n-1)$.
-- Hermiticidad incondicional del operador densidad: $\rho = \rho^\dagger$.
-- Normalización unitaria de la traza cuántica de la sabiduría: $\operatorname{Tr}(\rho) \equiv 1.0$.
+Audita la conectividad algebraica y la ausencia de cuellos de botella u obstrucciones
+topológicas sobre el complejo simplicial $K$ evaluando el valor de Fiedler $\lambda_2$
+del Laplaciano de Haz de de Rham-Hodge $L_F = \delta_0^\top G^{-1} \delta_0$.
+Somete el grafo de dependencias a la Desigualdad Isoperimétrica de Cheeger:
+   $$\frac{h^2(G)}{2} \le \lambda_2 \le 2 h(G) \implies \frac{\lambda_2}{2} \le h(G) \le \sqrt{2 \lambda_2}$$
+Monitorea síncronamente el Índice de Estabilidad Piramidal $\Psi$:
+   $$\Psi = \frac{\lambda_2}{1.0 + \beta_1 + (\beta_0 - 1)} \ge \Psi_{\mathrm{min}}$$
+Donde $\beta_0 > 1$ revela sub-grafos huérfanos e islas de contratistas disconexas, y
+$\beta_1 > 0$ expone ciclos parásitos, triangulación de presupuestos y socavones lógicos.
+
+INVARIANTES CATEGÓRICOS Y DE HARDWARE PERIMETRAL:
+────────────────────────────────────────────────────────────────────────────────
+- Invarianza de la signatura métrica de-confinada: $\operatorname{sgn}(G) = (1, n-1)$.
+- Hermiticidad incondicional del operador densidad: $\rho = \rho^\dagger \succeq 0$.
+- Unitariedad de la traza cuántica de la sabiduría: $\operatorname{Tr}(\rho) \equiv 1.0$.
+- Veto en el retículo de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$ ($\top = \text{VETOED}$).
+- Interrupción perimetral ESP32 en IRAM ($t_{\text{actuation}} \le 400\,\text{ns}$) activando el tiristor BT151 (Crowbar) vía GPIO14.
 """
 
 from __future__ import annotations
