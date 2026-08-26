@@ -1,24 +1,47 @@
-archivos test faltantes:
-   + test_antimatter_choke_coil_agent.py --- tests/
-   + test_pipeline_director_agent.py
-   + test_semantic_estimator_agent.py
-   + test_connes_spectral_auditor_agent.py
-   + test_business_canvas.py
-   + test_tomita_takesaki_telescopic_engine.py
-   + test_generative_optic_hodge_suturator_agent.py
-   + test_synaptic_fock_space_registry_agent.py
-   + test_generative_optic_hodge_suturator.py
-   + test_brachistochrone_path_finder_agent.py
-   + test_brachistochrone_path_finder.py
-   + test_imperial_guards_agent.py
-   + test_imperial_guards_centurions.py
-   + test_imperial_guards_eruditos.py
-   + test_imperial_guards_sequitos.py
-   + test_imperial_guards_tesserarios.py
-   + test_pretorio_agent.py
-   + test_imperial_centurions_engine.py
-   + test_imperial_eruditos_engine.py
-   + test_imperial_guards_engine.py
-   + test_imperial_sequitos_engine.py
-   + test_imperial_tesserarios_engine.py
-   + test_pretorio_engine.py
+# artefactos de soberanos de calibre y motores:
+   + antimatter_choke_coil_agent.py ------------- app/agents/physics/antimatter_choke_coil_agent.py
+   + pipeline_director_agent.py ----------------- app/agents/tactics/pipeline_director_agent.py
+   + semantic_estimator_agent.py ---------------- app/agents/tactics/semantic_estimator_agent.py
+   + connes_spectral_auditor_agent.py ----------- app/agents/wisdom/connes_spectral_auditor_agent.py
+   + business_canvas.py ------------------------- app/alfa/business_canvas.py
+   + tomita_takesaki_telescopic_engine.py ------- app/agents/wisdom/tomita_takesaki_telescopic_engine.py
+   + synaptic_fock_space_registry_agent.py ------ app/agents/core/inmune_system/synaptic_fock_space_registry_agent.py
+   + brachistochrone_path_finder_agent.py ------- app/agents/boole/omega/brachistochrone_path_finder_agent.py
+   + brachistochrone_path_finder.py ------------- app/boole/physics/brachistochrone_path_finder.py
+   + imperial_guards_agent.py ------------------- app/agents/core/inmune_system/imperial_guards_agent.py
+   + imperial_guards_centurions.py -------------- app/agents/core/inmune_system/imperial_guards_centurions.py
+   + imperial_guards_eruditos.py ---------------- app/agents/core/inmune_system/imperial_guards_eruditos.py
+   + imperial_guards_sequitos.py ---------------- app/agents/core/inmune_system/imperial_guards_sequitos.py
+   + imperial_guards_tesserarios.py ------------- app/agents/core/inmune_system/imperial_guards_tesserarios.py 
+   + pretorio_agent.py -------------------------- app/agents/core/inmune_system/pretorio_agent.py
+   + imperial_centurions_engine.py -------------- app/core/inmune_system/imperial_centurions_engine.py
+   + imperial_eruditos_engine.py ---------------- app/core/inmune_system/imperial_eruditos_engine.py
+   + imperial_guards_engine.py ------------------ app/core/inmune_system/imperial_guards_engine.py
+   + imperial_sequitos_engine.py ---------------- app/core/inmune_system/imperial_sequitos_engine.py
+   + imperial_tesserarios_engine.py ------------- app/core/inmune_system/imperial_tesserarios_engine.py
+   + pretorio_engine.py ------------------------- app/core/inmune_system/pretorio_engine.py
+
+
+
+# artefactos de test faltantes para soberanos y motores:
+   + test_antimatter_choke_coil_agent.py ------------- tests/unit/agents/physics/test_antimatter_choke_coil_agent.py
+   + test_pipeline_director_agent.py ----------------- tests/unit/agents/tactics/test_pipeline_director_agent.py
+   + test_semantic_estimator_agent.py ---------------- tests/unit/agents/tactics/test_semantic_estimator_agent.py
+   + test_connes_spectral_auditor_agent.py ----------- tests/unit/agents/wisdom/test_connes_spectral_auditor_agent.py
+   + test_business_canvas.py ------------------------- tests/unit/alfa/test_business_canvas.py
+   + test_tomita_takesaki_telescopic_engine.py ------- tests/unit/agents/wisdom/test_tomita_takesaki_telescopic_engine.py
+   + test_synaptic_fock_space_registry_agent.py ------ tests/unit/agents/core/inmune_system/test_synaptic_fock_space_registry_agent.py
+   + test_brachistochrone_path_finder_agent.py ------- tests/unit/agents/boole/omega/test_brachistochrone_path_finder_agent.py
+   + test_brachistochrone_path_finder.py ------------- tests/unit/boole/physics/test_brachistochrone_path_finder.py
+   + test_imperial_guards_agent.py ------------------- tests/unit/agents/core/inmune_system/test_imperial_guards_agent.py
+   + test_imperial_guards_centurions.py -------------- tests/unit/agents/core/inmune_system/test_imperial_guards_centurions.py
+   + test_imperial_guards_eruditos.py ---------------- tests/unit/agents/core/inmune_system/test_imperial_guards_eruditos.py
+   + test_imperial_guards_sequitos.py ---------------- tests/unit/agents/core/inmune_system/test_imperial_guards_sequitos.py
+   + test_imperial_guards_tesserarios.py ------------- tests/unit/agents/core/inmune_system/test_imperial_guards_tesserarios.py
+   + test_pretorio_agent.py -------------------------- tests/unit/agents/core/inmune_system/test_pretorio_agent.py
+   + test_imperial_centurions_engine.py -------------- tests/unit/core/inmune_system/test_imperial_centurions_engine.py
+   + test_imperial_eruditos_engine.py ---------------- tests/unit/core/inmune_system/test_imperial_eruditos_engine.py
+   + test_imperial_guards_engine.py ------------------ tests/unit/core/inmune_system/test_imperial_guards_engine.py
+   + test_imperial_sequitos_engine.py ---------------- tests/unit/core/inmune_system/test_imperial_sequitos_engine.py
+   + test_imperial_tesserarios_engine.py ------------- tests/unit/core/inmune_system/test_imperial_tesserarios_engine.py
+   + test_pretorio_engine.py ------------------------- tests/unit/core/inmune_system/test_pretorio_engine.py
