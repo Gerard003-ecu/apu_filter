@@ -253,20 +253,30 @@ Somete el Árbol de Sintaxis Abstracta (AST) y las transiciones del canal cuánt
 ```
 
 ### I. La Pirámide de Motores (Bottom-Up)
-1.  **Nivel 3 — Espacio de Fock y Excitaciones de Partículas (Base):**  
+1.  **Nivel 0.5 — Tensor de Energía-Momento de Calibre y Colisionador de Fock (`fock_forensic_hall.py`):**
+    Computa el Tensor de Energía-Momento de Calibre $\mathcal{T}^{\mu\nu}$ de los fotones gamma de auditoría emitidos en la aniquilación de pares $e^- e^+ \to 2\gamma$ y verifica la divergencia covariante de de Rham nula en el Foso Forense:
+    $$\mathcal{T}^{\mu\nu} = p^\mu p^\nu + \frac{1}{2} G^{\mu\nu} (p \cdot p) \quad \wedge \quad \nabla_\nu \mathcal{T}^{\mu\nu} \equiv 0$$
+2.  **Nivel 3 — Espacio de Fock y Excitaciones de Partículas (Base):**
     Recibe las "Vitaminas Cognitivas" (ToonCartridges) y las inyecta en la cámara de reacción cuántica del `SynapticRegistry`. Se rige por las relaciones de anticonmutación (CAR) para fermiones estructurales y de conmutación (CCR) para bosones de interacción, aplicando el Principio de Exclusión de Pauli para aniquilar duplicaciones sintácticas.
-2.  **Nivel 2 — Transitorios de Allievi y Geometría de Levi-Civita (Núcleo):**  
+3.  **Nivel 2 — Transitorios de Allievi y Geometría de Levi-Civita (Núcleo):**
     Transporta los momentos a lo largo del haz generativo. La evolución temporal se modela mediante el integrador de Heun de segundo orden, garantizando la compatibilidad métrica ($\nabla_\rho G_{\mu\nu} = 0$) a través de los Símbolos de Christoffel [467].
-3.  **Nivel 1 — Lente de Riemann y Armónicos Esféricos (Ápice):**  
+4.  **Nivel 1 — Lente de Riemann y Armónicos Esféricos (Ápice):**
     El `OpticalRiemannLens` descompone los logits semánticos en armónicos esféricos ($Y_l^m$) sobre la Esfera de Riemann ($S^2 \cong \hat{\mathbb{C}}$) utilizando contracción tensorial vectorizada en la FPU, filtrando oscilaciones espurias.
+5.  **Nivel 4.5 — Resolvedor Espectral de Connes-Daleckii-Krein (`gauge_projection_engine.py`):**
+    Operador de fuerza bruta en FPU que calcula la constante de Lipschitz de Connes-Daleckii-Krein aplicando la fórmula de diferencias divididas en la base propia para neutralizar la deriva de Wilkinson:
+    $$D_{ik} = f^{[1]}(\lambda_i, \lambda_k) = \frac{\lambda_i^{-1/2} - \lambda_k^{-1/2}}{\lambda_i - \lambda_k} \quad (\lambda_i \neq \lambda_k)$$
 
 ### II. La Pirámide de Soberanos (Top-Down)
-1.  **Nivel 1 — Atiyah-Singer, APS y Confinamiento (Ápice):**  
+1.  **Nivel 0.5 — Custodio de Volumen de Fase y Pureza Cuántica (`fock_forensic_hall_agent.py`):**
+    Soberano de calibre del Salón de Eventos Forense que orquesta el bucle covariante OODA, monitorea la pureza cuántica $\operatorname{Tr}(\rho^2)$, la eficiencia exergética $\eta_{\mathrm{ex}}$ y la entropía de von Neumann $S(\rho)$, dictando sentencias inmutables de veto en el retículo distributivo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$.
+2.  **Nivel 1 — Atiyah-Singer, APS y Confinamiento (Ápice):**
     El `WittenAtiyahAgent` aplica el funtor de olvido métrico ($U: \mathbf{Met} \to \mathbf{Top}$) para despojar el tensor métrico Riemanniano de la base de datos y calcula el Teorema del Índice de Atiyah-Singer con refinamiento Atiyah-Patodi-Singer (APS).
-2.  **Nivel 2 — Vetos por Singularidad y Raychaudhuri (Núcleo):**  
+3.  **Nivel 2 — Vetos por Singularidad y Raychaudhuri (Núcleo):**
     El `PenroseSingularityAgent` evalúa la contracción del escalar de expansión geodésica ($\theta$) mediante la ecuación de Raychaudhuri, prohibiendo trayectorias de caos determinista ($\lambda > 0$).
-3.  **Nivel 3 — Bogoliubov, TMR y Actuación en Silicio (Base):**  
+4.  **Nivel 3 — Bogoliubov, TMR y Actuación en Silicio (Base):**
     El `BogoliubovAgent` aplica la sintonización de la matriz de dispersión exigiendo la preservación simpléctica de Bogoliubov-Valatin ($|u_k|^2 - |v_k|^2 = 1.0$). Si se detecta una asonancia de fase, el clasificador de subobjetos colapsa a `VETOED` en el retículo de Heyting $\Omega_3$.
+5.  **Nivel 4.5 — Aduana Espectral y Arsenal de Proyección (`gauge_projection_armory.py`):**
+    Soberano de la capa $V_{\mathrm{ERUDITOS}}$ que purifica los estados mixtos $\rho$ vía proyecciones de Weyl-Toeplitz y regularización de Higham-Tikhonov, certificando la cota $L(X) \le \tau_{\mathrm{Lip}}$ antes de escalar al Pretorio.
 
 ---
 
@@ -417,9 +427,9 @@ La generación y validación de código, diagramas y estrategias en el ecosistem
 
 ---
 
-## 🛠️ IX. El Tribunal de Silicio y el Actuador Crowbar por Hardware (ESP32)
+## 🛠️ IX. El Tribunal de Silicio y la Reducción Monoidal de Actuación Crowbar (ESP32)
 
-La protección del capital financiero de la constructora frente a ataques de inyección de directivas (*Prompt Injection*) o alucinaciones en la nube no se confía a directrices lógicas de software. Se garantiza mediante una arquitectura **Zero-Trust** inquebrantable acoplada al hardware perimetral de la obra real, donde el pasaporte de telemetría inmutable (`TelemetryContext`) es síncronamente firmado con hashes SHA-256 por los soberanos de de Rham y de calibre:
+La protección del capital financiero de la constructora frente a ataques de inyección de directivas (*Prompt Injection*) o alucinaciones en la nube no se confía a directrices lógicas de software. Se garantiza mediante una reducción monoidal desde el retículo intuicionista distributivo $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$ hacia la decisión binaria en el silicio real $\mu: \Omega_3 \to \mathbb{Z}_2$, acoplada al hardware perimetral de la obra real donde el pasaporte de telemetría inmutable (`TelemetryContext`) es síncronamente firmado con hashes SHA-256 por los soberanos de de Rham y de calibre:
 
 ```
      [Servidor Cloud / Malla Agéntica]
@@ -427,7 +437,8 @@ La protección del capital financiero de la constructora frente a ataques de iny
                     ▼
      ┌─────────────────────────────────────────────────────────────┐
      │  MICROCONTROLADOR PERIMETRAL ESP32                         │
-     │  · ISR en IRAM (Latencia de Interrupción < 400 ns)         │
+     │  · Deserialización síncrona vía ArduinoJson                │
+     │  · Rutina isVerdictCoherent() & ISR en IRAM (< 400 ns)     │
      │  · Decodificación en Silicio de Residuos de Wilkinson      │
      └──────────────────────────────┬──────────────────────────────┘
                                     │ GPIO14 (Disparo de Compuerta)
@@ -435,12 +446,12 @@ La protección del capital financiero de la constructora frente a ataques de iny
      ┌─────────────────────────────────────────────────────────────┐
      │  CIRCUITO CROWBAR (Tiristor de Potencia BT151)             │
      │  · Cortocircuito físico controlado de la línea de potencia │
-     │  · Desenergización total de maquinaria en t = 0 ms         │
+     │  · Desenergización total de bombas, mezcladoras y pistones  │
      └─────────────────────────────────────────────────────────────┘
 ```
 
-1.  **Doble Contabilidad en `isVerdictCoherent()`:**
-    El firmware en C++ de bajo nivel del **ESP32** decodifica en tiempo real los residuos espectrales y topológicos:
+1.  **Doble Contabilidad en `isVerdictCoherent()` y Deserialización `ArduinoJson`:**
+    El firmware en C++ de bajo nivel del **ESP32** lee y deserializa el pasaporte de telemetría firmado usando la librería `ArduinoJson`, decodificando en tiempo real los residuos espectrales y topológicos:
     *   Divergencia simpléctica de Liouville ($\|M^\top \Omega M - \Omega\|_F > 10^{-11}$).
     *   Ruptura de la Ecuación de Cauchy-Riemann ($\|\bar{\partial}_J u\| > 10^{-10}$).
     *   Divergencia de la Serie de Neumann ($\rho(T^{-1}\delta T) \ge 1.0$).
@@ -448,10 +459,10 @@ La protección del capital financiero de la constructora frente a ataques de iny
     *   Migración de polos de Laplace al semiplano derecho ($\operatorname{Re}(p_i) \ge 0$).
 
 2.  **Actuación por Interrupción en IRAM (< 400 ns):**
-    Si se detecta un *mismatch* epistémico o violación de las cotas duras de Wilkinson, el ESP32 despacha de inmediato una **Rutina de Servicio de Interrupción (ISR)** alojada en la memoria ultrarrápida **IRAM** con latencia determinista inferior a **$400\,\text{ns}$**.
+    Si se detecta un *mismatch* epistémico o violación de las cotas duras de Wilkinson, la rutina `isVerdictCoherent()` activa la **Rutina de Servicio de Interrupción (ISR)** alojada en la memoria ultrarrápida **IRAM** con latencia determinista inferior a **$400\,\text{ns}$**.
 
 3.  **Gatillo Físico del Tiristor Crowbar BT151 vía GPIO14:**  
-    El pin físico de hardware **GPIO14** conmuta a nivel alto (`HIGH`), inyectando corriente de compuerta inmediata al tiristor de potencia de conmutación ultrarrápida **BT151**. Esto produce un cortocircuito franco y controlado en la línea de alimentación de potencia que energiza las bombas hidráulicas, plantas de dosificación, servomotores y actuadores mecánicos de la obra civil. La infraestructura física se desenergiza en el milisegundo cero, anulando por completo la alucinación estocástica de la IA antes de que pueda consumir desfalcos o pérdidas de capital en la constructora.
+    El pin físico de hardware **GPIO14** conmuta a nivel alto (`HIGH`), inyectando corriente de compuerta inmediata al tiristor de potencia de conmutación ultrarrápida **BT151**. Esto produce un cortocircuito franco y controlado en la línea de alimentación de potencia que energiza las bombas hidráulicas, mezcladoras, plantas de dosificación, servomotores y pistones neumáticos de la obra civil. La infraestructura física se desenergiza en el milisegundo cero, anulando por completo la alucinación estocástica de la IA antes de consolidar pérdidas materiales o sanciones ante el SECOP II.
 
 ---
 
