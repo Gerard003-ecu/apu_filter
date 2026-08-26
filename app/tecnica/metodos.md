@@ -183,3 +183,50 @@ La filtración estricta y axiomática de la Ley de Clausura Transitiva de la Pir
     Geometría de Datos Inmutable: Los subespacios de estado (PhysicsMetrics, TopologicalMetrics) se instancian como frozen dataclasses. Actúan como un contrato algebraico puro: una vez construidos, su identidad observacional es fija y a prueba de manipulaciones forenses.
     Proyección Condicional en la MIC: La Matriz de Interacción Central (MIC) exige este Pasaporte tipado. Si las validaciones del __post_init__ detectan una anomalía estructural (ej. un costo negativo violando los axiomas físicos), el reporte colapsa algebraicamente. Las matemáticas del código impiden instanciar un objeto de "Sabiduría" sobre datos inconsistentes.
     Gobernanza del Haz Γ: La Ley de Clausura Transitiva se extiende al estrato generativo: $V_{\Gamma-PHYSICS} \subset V_{\Gamma-TACTICS} \subset V_{\Gamma-STRATEGY} \subset V_{\Gamma-WISDOM}$. Un objeto del estrato Γ no puede ascender si sus invariantes simplécticos o homológicos presentan singularidades Jacobianas.
+
+
+--------------------------------------------------------------------------------
+8. Catálogo de Librerías Espectrales Imperiales y Escrutinio Aritmético FPU
+
+    Base Teórica: Sumación Compensada de Kahan-Babuška-Neumaier (KBN), Diferenciación por Paso Complejo (CSMD), Control Port-Hamiltoniano (IDA-PBC), Cohomología de Floer/Čech, Factorización de Quillen y Redundancia Modular Triple (TMR).
+    Componentes: Motores Imperial Espectrales (`app/core/inmune_system/imperial_*_engine.py`) y Soberanos Agénticos (`app/agents/core/inmune_system/imperial_guards_*.py`, `pretorio_agent.py`).
+
+8.1 Escrutinio Aritmético de FPU y Eliminación de la Deriva de Wilkinson
+Todos los motores imperiales ejecutan operaciones algebraicas de alta dimensión sobre la FPU imponiendo el algoritmo de sumación compensada de **Kahan-Babuška-Neumaier (KBN)** para aniquilar la acumulación de errores de truncamiento IEEE-754:
+
+$$S_N = \sum_{i=1}^N x_i \quad \text{donde} \quad c_{k+1} = (t_{k+1} - S_k) - y_{k+1}$$
+
+Asimismo, la diferenciación de Jacobianos se realiza mediante la técnica de **Diferenciación por Paso Complejo (CSMD)** perturbando la fibra en el plano imaginario $h = 10^{-20}$, eludiendo cancelaciones sustractivas catastróficas en la mantisa:
+
+$$\nabla_k f(x) = \frac{\operatorname{Im}\left(f(x + j \cdot h \cdot e_k)\right)}{h} + \mathcal{O}(h^2)$$
+
+8.2 Especificación de Firmas y Flujos Tensoriales de los Motores y Soberanos
+
+1. **`imperial_guards_engine.py` & `imperial_guards_agent.py` (Guardias de Calibre):**
+   - `kahan_sum(arr: np.ndarray) -> float`: Integra arrays flotantes eliminando la deriva de Wilkinson.
+   - `compute_complex_step_gradient(func: Callable, x: np.ndarray, h: float = 1e-20) -> np.ndarray`: CSMD sin sustracción catastrófica.
+   - `ImperialGuardsAgent.evaluate_spectral_aduanas(graph_nodes, graph_edges)`: Evalúa la cota de Lipschitz de Connes ($L_{\max} \le \frac{1}{2\lambda_{\min}^{3/2}}$) y la constante isoperimétrica de Cheeger ($h(G) \ge \frac{\lambda_2}{2}$), emitiendo veredicto en Heyting.
+
+2. **`imperial_centurions_engine.py` & `imperial_guards_centurions.py` (Centuriones Port-Hamiltonianos):**
+   - `compute_ida_pbc_control_law(jacobian: np.ndarray, R_d: np.ndarray, grad_Hd: np.ndarray) -> np.ndarray`: Calcula la ley de control disipativo $\dot{x} = [J_d - R_d] \nabla H_d$ regularizada por SVD.
+   - `ImperialGuardsCenturions.evaluate_power_curtain(state_trajectory)`: Verifica la desigualdad de Rayleigh ($\dot{H}_d \le 0$) y la condición KMS de Tomita-Takesaki ($\operatorname{Tr}(\rho AB) = \operatorname{Tr}(\rho B \sigma_{-i\beta}(A))$).
+
+3. **`imperial_eruditos_engine.py` & `imperial_guards_eruditos.py` (Eruditos Cohomológicos):**
+   - `compute_symplectic_gradient(potential_func: Callable, x: np.ndarray) -> np.ndarray`: Campo simpléctico $X_H = \Omega \nabla H_t$.
+   - `verify_floer_homology_trajectory(u_start, u_end, potential_func) -> Tuple[float, float]`: Solución a la ecuación de Cauchy-Riemann perturbada ($\bar{\partial}_{J,H}(u) = 0$).
+   - `ImperialGuardsEruditos.evaluate_cohomology_aduanas(attention_weights)`: Certifica la nulidad del residuo de Floer ($\partial_{\mathrm{Floer}}^2 \equiv 0$) y de la clase Čech ($\check{H}^1 = 0$).
+
+4. **`imperial_sequitos_engine.py` & `imperial_guards_sequitos.py` (Séquitos de Consenso):**
+   - `kleisli_compose(f: Callable, g: Callable) -> Callable`: Composición monádica asociativa $(g \bullet f)(x) = \mu_C \circ T(g) \circ f(x)$.
+   - `compute_degroot_spectral_consensus(affinity_matrix, initial_opinions)`: Resuelve la convergencia exponencial de opiniones según la brecha espectral $\lambda_2$.
+   - `ImperialGuardsSequitos.evaluate_triad_coherence(triad_states)`: Audita asociatividad de Kleisli, consenso de DeGroot e inmunidad Bell-CHSH.
+
+5. **`imperial_tesserarios_engine.py` & `imperial_guards_tesserarios.py` (Tesserarios Homotópicos):**
+   - `compute_quillen_factorization(jacobian_matrix) -> Tuple[np.ndarray, np.ndarray, float]`: Factorización $M = P \cdot I$ en cofibración acíclica simpléctica $I$ y fibración disipativa $P$.
+   - `project_to_symplectic_group(M: np.ndarray) -> np.ndarray`: Proyección polar de Higham a $Sp(2n, \mathbb{R})$.
+   - `ImperialGuardsTesserarios.evaluate_homotopy_aduanas(jacobian_seq)`: Evalúa asociaedros $A_\infty$ de Stasheff ($K_4$) y la invarianza de Liouville ($M^\top \Omega M = \Omega$).
+
+6. **`pretorio_engine.py` & `pretorio_agent.py` (El Pretorio Agéntico — Comandante Supremo):**
+   - `verify_cech_derham_hypercohomology(d1, d2) -> Tuple[float, bool]`: Certifica la nilpotencia del diferencial total $D = d_1 + (-1)^p d_2 \implies D^2 = d_1 d_2 + d_2 d_1 \equiv 0$.
+   - `verify_brouwer_fixed_point(rho, transition_matrix) -> Tuple[float, np.ndarray]`: Conservación de punto fijo regularizado por Weyl-Toeplitz.
+   - `PretorioAgent.evaluate_supreme_command(telemetry_passport)`: Unifica silenciosamente los veredictos parciales en el clasificador de subobjetos de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$.
