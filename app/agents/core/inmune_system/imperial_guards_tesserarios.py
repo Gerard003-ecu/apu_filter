@@ -6,35 +6,37 @@ r"""
 ║ Versión: 3.0.0-Doctoral-Nested-Quillen-Stasheff-Cech-Gerbes-Heyting          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y HOMOTÓPICA:
+SINOPSIS MATEMÁTICA Y HOMOTÓPICA DE DE RHAM:
 ────────────────────────────────────────────────────────────────────────────────
-Supervisa la consistencia homotópica no abeliana de las deliberaciones agénticas 
-para proscribir bifurcaciones lógicas o inyecciones de nudos no triviales mediante 
-tres aduanas:
+Supervisa la consistencia homotópica no abeliana en la Capa 3 ($V_{\mathrm{STRATEGY}} \subset V_{\mathrm{TESSERARIOS}}$)
+de las deliberaciones agénticas para proscribir bifurcaciones lógicas o inyecciones de nudos no triviales mediante
+tres aduanas de control:
 
-1. Categorías de Modelos de Quillen:
-   Somete la transición $f: X \to Y$ a la factorización functorial $f = p \circ i$, 
-   donde $i$ es una cofibración acíclica y $p$ es una fibración estricta. 
+1. ADUANA DE CATEGORÍAS DE MODELOS DE QUILLEN:
+   Somete la transición Jacobiana $f: X \to Y$ a la factorización functorial $f = p \circ i$,
+   donde $i$ es una cofibración acíclica y $p$ es una fibración estricta disipativa.
    Evalúa síncronamente la conservación de la 2-forma simpléctica de Liouville $\Omega$:
    $$\epsilon_{\mathrm{Quillen}} = \| M^\top \Omega M - \Omega \|_F \le \tau_{\mathrm{Quillen}}$$
 
-2. Asociaedros de Stasheff ($A_\infty$-Álgebras):
+2. ADUANA DE ASOCIAEDROS DE STASHEFF ($A_\infty$-ÁLGEBRAS):
    Audita el tensor asociador de tercer orden $m_3$ que mide la no-asociatividad 
    de la multiplicación de APUs en el Ágora. Exige el cumplimiento de las relaciones 
    de coherencia del pentágono $K_4$ de Stasheff:
    $$\|m_3(a,b,c)\|_F \le \tau_{\mathrm{Stasheff}}$$
-   donde desviaciones por encima del umbral rompen la nilpotencia de de Rham-Floer ($d^2 \neq 0$).
+   Donde desviaciones por encima del umbral rompen la nilpotencia de de Rham-Floer ($d^2 \neq \mathbf{0}$).
 
-3. Obstrucción Čech para Gerbes No Abelianos:
-   Calcula la clase de obstrucción no abeliana Čech $[\alpha] \in H^2(\mathcal{U}, \mathcal{G})$ 
+3. ADUANA DE OBSTRUCCIÓN DE ČECH PARA GERBES NO ABELIANOS:
+   Calcula la clase de obstrucción no abeliana Čech $[\alpha] \in \check{H}^2(\mathcal{U}, \mathcal{G})$
    aplicando SVD sobre la matriz de co-cadenas Čech de-confinadas para aniquilar 
    triangulaciones circulares de blanqueo o colusión en el presupuesto.
 
-INVARIANTES DE CATEGORÍA:
+INVARIANTES CATEGÓRICOS Y DE HARDWARE PERIMETRAL:
 ────────────────────────────────────────────────────────────────────────────────
-- Nilpotencia estricta del operador de coborde discreto simplicial: $\delta_{k+1} \circ \delta_k \equiv 0$.
+- Nilpotencia estricta del operador de coborde discreto simplicial: $\delta_{k+1} \circ \delta_k \equiv \mathbf{0}$.
 - Preservación de la regularidad simpléctica bajo homotopías contractibles.
 - Invarianza homotópica bajo deformaciones de equivalencia débil.
+- Veto en el retículo de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$ ($\top = \text{VETOED}$).
+- Interrupción perimetral ESP32 en IRAM ($t_{\text{actuation}} \le 400\,\text{ns}$) activando el tiristor BT151 (Crowbar) vía GPIO14.
 """
 
 from __future__ import annotations

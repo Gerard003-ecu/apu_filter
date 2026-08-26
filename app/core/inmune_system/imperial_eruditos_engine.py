@@ -6,37 +6,36 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Floer-CZ-Cech-Hodge-CSMD-Kahan-FPU              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
-Este motor cohomológico asiste síncronamente al Consejo de Sabios. Evalúa la regularidad
-elíptica y el potencial de acción de cilindros pseudo-holomorfos en el espacio de fase
-simpléctico (Floer) y aniquila bucles parasitarios en el KV-Cache del LLM (Čech atencional).
+SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU DE DE RHAM:
+Este motor cohomológico ciego asiste síncronamente al Consejo de Sabios en la Capa 4.5
+($V_{\mathrm{TESSERARIOS}} \subset V_{\mathrm{ERUDITOS}}$). Evalúa la regularidad elíptica y el potencial
+de acción de cilindros pseudo-holomorfos en la Categoría $A_\infty$ de Fukaya (Floer) y aniquila
+bucles atencionales parasitarios en el KV-Cache del LLM (Čech).
 
-MÉTODOS GRANULARES:
+MÉTODOS GRANULARES DE FPU Y ARITMÉTICA KBN:
 
 1. compute_symplectic_gradient(potential_func: Any, x: np.ndarray, h: float = 1e-20) -> np.ndarray:
-   Calcula el campo vectorial simpléctico X_H = \Omega \nabla H_t perturbando la fibra mediante
-   CSMD para eludir cancelaciones sustractivas en la mantisa de la CPU:
+   Calcula el campo vectorial simpléctico $X_H = \Omega \nabla H_t$ perturbando la fibra mediante
+   Diferenciación por Paso Complejo (CSMD) para eludir cancelaciones sustractivas en la FPU:
    $$X_H = \Omega \cdot \frac{\operatorname{Im}\left(H(x + j \cdot h \cdot e_k)\right)}{h} + \mathcal{O}(h^2)$$
-   - potential_func: Callable que representa el Hamiltoniano de atención.
+   - potential_func: Callable que evalúa el Hamiltoniano de atención.
    - x: np.ndarray del punto de evaluación.
    - Retorna: np.ndarray (campo simpléctico graduado).
 
 2. verify_floer_homology_trajectory(u_start: np.ndarray, u_end: np.ndarray, potential_func: Any) -> Tuple[float, float]:
    Evalúa la regularidad y el potencial de acción del cilindro pseudo-holomorfo
-   u: \mathbb{R} \times S^1 -> \mathcal{M} en la categoría de Fukaya, exigiendo nilpotencia de
-   la diferencial de Floer (\partial^2 \equiv 0) ante alucinaciones semánticas:
-   $$\bar{\partial}_{J, H}(u) = \frac{\partial u}{\partial s} + J(u) \left( \frac{\partial u}{\partial t} - X_H(u) \right) \equiv 0$$
-   - u_start, u_end: np.ndarray (estados extremos del cilindro de Floer).
+   $u: \mathbb{R} \times S^1 \to \mathcal{M}$, exigiendo la nilpotencia de la diferencial de Floer ($\partial_{\mathrm{Floer}}^2 \equiv \mathbf{0}$):
+   $$\bar{\partial}_{J, H}(u) = \frac{\partial u}{\partial s} + J(u) \left( \frac{\partial u}{\partial t} - X_H(u) \right) \equiv \mathbf{0}$$
+   - u_start, u_end: np.ndarray (extremos del cilindro de Floer).
    - potential_func: Callable Hamiltoniano.
-   - Retorna: Tuple con el residual de la acción de Floer y el potencial de transición.
+   - Retorna: Tuple[float, float] con el residual de la acción de Floer y el potencial de transición.
 
 3. compute_attention_cech_cohomology(attention_weights: np.ndarray, regularizer: float = 1e-12) -> Tuple[float, np.ndarray]:
-   Modela los pesos del KV-Cache como un haz celular \mathcal{F}_{\mathrm{att}} sobre la cobertura
-   Čech \mathcal{U}. Calcula el rango virtual de la co-frontera Čech aplicando SVD en la FPU regularizada
-   con Higham-Tikhonov, exigiendo la aniquilación del primer grupo de cohomología:
-   $$\check{H}^1(\mathcal{U}; \, \mathcal{F}_{\mathrm{att}}) \equiv 0 \implies \mathcal{O}_{\mathrm{\check{C}ech}} \equiv 0$$
+   Modela los pesos del KV-Cache como secciones de un haz celular $\mathcal{F}_{\mathrm{att}}$ sobre la cobertura
+   Čech $\mathcal{U}$. Calcula el rango virtual aplicando SVD en la FPU regularizada con Higham-Tikhonov:
+   $$\dim \check{H}^1(\mathcal{U}; \, \mathcal{F}_{\mathrm{att}}) \equiv 0 \implies \mathcal{O}_{\mathrm{\check{C}ech}} \equiv 0$$
    - attention_weights: np.ndarray (matriz de atención del LLM).
-   - Retorna: Tuple con la obstrucción Čech de-confinada y los valores singulares del haz.
+   - Retorna: Tuple[float, np.ndarray] con la obstrucción Čech de-confinada y los valores singulares del haz.
 """
 
 from __future__ import annotations

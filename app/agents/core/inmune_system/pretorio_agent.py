@@ -6,37 +6,37 @@ r"""
 ║ Versión: 3.0.0-Doctoral-Nested-Hodge-Brouwer-TMR-Ultrafilter-Heyting         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y DE GOBERNANZA:
+SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE DE RHAM:
 ────────────────────────────────────────────────────────────────────────────────
-Ejerce el mando absoluto e independiente en el penthouse de la pirámide de control 
-אDIKΩαWΓ. Realiza monitoreo pasivo en RAM sin introducir latencias en el ciclo OODA 
-ordinario, evaluando la consistencia mediante tres pilares:
+Ejerce el mando absoluto e independiente en la Capa 4 ($V_{\mathrm{ERUDITOS}} \subset V_{\mathrm{PRETORIO}} \subset V_{\mathbb{W}}$)
+del penthouse de la pirámide de control אDIKΩαWΓ. Realiza monitoreo pasivo en RAM sin
+introducir latencias en el ciclo OODA ordinario, evaluando la consistencia mediante tres pilares:
 
-1. Hipercohomología de Čech-de Rham:
+1. HIPERCOHOMOLOGÍA DE ČECH-DE RHAM:
    Audita la consistencia global del bicomplejo de haces de calibre, exigiendo la 
    aniquilación de la nilpotencia diferencial total $D = d_1 + (-1)^p d_2$:
-   $$D^2 = d_1 \circ d_2 + d_2 \circ d_1 \equiv \mathbf{0}$$
+   $$D^2 = d_1 \circ d_2 + d_2 \circ d_1 \equiv \mathbf{0} \implies \epsilon_{\mathrm{cohom}} = \|d_1 d_2 + d_2 d_1\|_F \le \tau_{\mathrm{cohom}}$$
 
-2. Consistencia Geodésica de Punto Fijo de Brouwer:
-   Certifica que el transporte paralelo del operador densidad cuántica $\rho$ de la 
-   MAC conserve el punto fijo regularizado por Weyl-Toeplitz bajo el mapeo de 
-   transición $f$:
+2. CONSISTENCIA GEODÉSICA DE PUNTO FIJO DE BROUWER:
+   Certifica que el transporte paralelo del operador densidad cuántico $\rho$ de la
+   MAC conserve el punto fijo regularizado por Weyl-Toeplitz bajo el mapeo de transición $f$:
    $$f(\rho) = \rho \quad \implies \quad \|\rho - f(\rho)\|_F \equiv 0$$
 
-3. Colapso de Ultrafiltro Booleano ($\mathcal{U}$):
-   Ingiere los veredictos parciales de Heyting ($\Omega_3$) de todos los estratos 
-   inferiores y evalúa si el conjunto de subcapas con veto pertenece al ultrafiltro 
+3. COLAPSO MONOIDAL DE ULTRAFILTRO BOOLEANO ($\mathcal{U}$):
+   Ingiere los veredictos parciales del retículo de Heyting ($\Omega_3$) de todos los
+   estratos inferiores y evalúa si el conjunto de subcapas con veto pertenece al ultrafiltro
    booleano no trivial:
    $$\mathcal{U} = \{A \subseteq S_{\mathrm{Capas}} \mid \nu_{\mathrm{global}}(A) = \mathtt{VETOED}\}$$
-   Esta reducción monoidal colapsa la lógica intuicionista trivalente en una 
-   instrucción clásica binaria dura de actuación por hardware (RECHAZAR \equiv \top) 
-   enviada al ESP32.
+   Esta reducción monoidal colapsa la lógica intuicionista trivalente en una instrucción clásica
+   binaria dura ($\text{RECHAZAR} \equiv \top$) enviada al microcontrolador ESP32.
 
-INVARIANTES DE CATEGORÍA:
+INVARIANTES CATEGÓRICOS Y DE HARDWARE PERIMETRAL:
 ────────────────────────────────────────────────────────────────────────────────
 - Monotonicidad estricta en el Poset de filtración covariante de-confinado.
 - Preservación de la estructura convexa y compacta del espacio de operadores densidad.
 - Unicidad y reflexividad del ultrafiltro no principal booleano de veto.
+- Colapso terminal en el retículo de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$ ($\top = \text{VETOED}$).
+- Interrupción perimetral ESP32 en IRAM ($t_{\text{actuation}} \le 400\,\text{ns}$) activando el tiristor BT151 (Crowbar) vía GPIO14.
 """
 
 from __future__ import annotations

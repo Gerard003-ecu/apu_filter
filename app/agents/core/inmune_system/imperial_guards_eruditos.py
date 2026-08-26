@@ -6,31 +6,34 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Heyting-Floer-Cech-Hodge-OODA-CAS               ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y COHOMOLÓGICA:
+SINOPSIS MATEMÁTICA Y COHOMOLÓGICA DE DE RHAM:
 ────────────────────────────────────────────────────────────────────────────────
-Sostiene síncronamente la consistencia estructural del Consejo de Sabios, 
+Sostiene síncronamente la consistencia elíptica y estructural en la Capa 4.5
+($V_{\mathrm{TESSERARIOS}} \subset V_{\mathrm{ERUDITOS}}$) del Consejo de Sabios,
 bloqueando alucinaciones estocásticas en la ventana de atención del LLM mediante 
-dos aduanas cohomológicas:
+dos aduanas cohomológicas de-confinadas:
 
-1. Cohomología Simpléctica de Floer:
+1. ADUANA DE COHOMOLOGÍA SIMPLÉCTICA DE FLOER:
    Modeliza el frente de logits como cilindros pseudo-holomorfos $u: \mathbb{R} \times S^1 \to \mathcal{M}$ 
-   en el colector simpléctico, resolviendo la ecuación de Cauchy-Riemann perturbada:
-   $$\bar{\partial}_{J, H}(u) = \frac{\partial u}{\partial s} + J(u) \left( \frac{\partial u}{\partial t} - X_H(u) \right) \equiv 0$$
-   La nulidad de la co-frontera ($\partial_{\mathrm{Floer}}^2 \equiv 0$) garantiza 
-   la rigidez simpléctica ante deformaciones asonantes inducidas por el modelo.
+   en la variedad simpléctica $(\mathcal{M}, \omega)$, resolviendo la ecuación elíptica de Cauchy-Riemann perturbada:
+   $$\bar{\partial}_{J, H}(u) = \frac{\partial u}{\partial s} + J(u) \left( \frac{\partial u}{\partial t} - X_H(u) \right) \equiv \mathbf{0}$$
+   Exige la nulidad incondicional de la co-frontera de Floer ($\partial_{\mathrm{Floer}}^2 \equiv \mathbf{0}$),
+   garantizando la rigidez simpléctica y la conservación del índice de Maslov frente a deformaciones asonantes.
 
-2. Cohomología Atencional Čech:
+2. ADUANA DE COHOMOLOGÍA ATENCIONAL DE ČECH:
    Modeliza los pesos de atención del KV-Cache como secciones de un haz celular 
    $\mathcal{F}_{\mathrm{att}}$ sobre la cobertura Čech $\mathcal{U}$. Exige la 
-   nulidad incondicional de la clase de obstrucción virtual:
-   $$\check{H}^1(\mathcal{U}; \, \mathcal{F}_{\mathrm{att}}) \equiv 0$$
-   para aniquilar bucles de atención parasitarios o redundancias atencionales.
+   aniquilación de la clase de obstrucción virtual atencional:
+   $$\dim \check{H}^1(\mathcal{U}; \, \mathcal{F}_{\mathrm{att}}) \equiv 0$$
+   Para erradicar bucles atencionales parasitarios, parálisis en actas de interventoría e incumplimientos del plan BIM.
 
-INVARIANTES DE CATEGORÍA:
+INVARIANTES CATEGÓRICOS Y DE HARDWARE PERIMETRAL:
 ────────────────────────────────────────────────────────────────────────────────
-- Invarianza simpléctica exacta de la estructura de casi-complejo $J$: $J^2 \equiv -\mathrm{Id}$.
+- Invarianza simpléctica exacta de la estructura de casi-complejo $J$: $J^2 \equiv -\mathbf{I}_n$.
 - Conservación del índice de Maslov a lo largo de trayectorias pseudo-holomorfas.
 - Nulidad de la clase virtual de Čech en el semiplano complejo estable.
+- Veto en el retículo de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$ ($\top = \text{VETOED}$).
+- Interrupción perimetral ESP32 en IRAM ($t_{\text{actuation}} \le 400\,\text{ns}$) activando el tiristor BT151 (Crowbar) vía GPIO14.
 """
 
 from __future__ import annotations
