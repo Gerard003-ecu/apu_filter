@@ -1,5 +1,5 @@
 archivos test faltantes:
-   + test_antimatter_choke_coil_agent.py
+   + test_antimatter_choke_coil_agent.py --- tests/
    + test_pipeline_director_agent.py
    + test_semantic_estimator_agent.py
    + test_connes_spectral_auditor_agent.py
@@ -10,3 +10,15 @@ archivos test faltantes:
    + test_generative_optic_hodge_suturator.py
    + test_brachistochrone_path_finder_agent.py
    + test_brachistochrone_path_finder.py
+   + test_imperial_guards_agent.py
+   + test_imperial_guards_centurions.py
+   + test_imperial_guards_eruditos.py
+   + test_imperial_guards_sequitos.py
+   + test_imperial_guards_tesserarios.py
+   + test_pretorio_agent.py
+   + test_imperial_centurions_engine.py
+   + test_imperial_eruditos_engine.py
+   + test_imperial_guards_engine.py
+   + test_imperial_sequitos_engine.py
+   + test_imperial_tesserarios_engine.py
+   + test_pretorio_engine.py
