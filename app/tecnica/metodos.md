@@ -31,7 +31,7 @@ Cualquier polo dinámico $p_i$ que migre al semiplano derecho de Laplace (RHP / 
 Antes de procesar, se linealiza el sistema y se analiza su función de transferencia H(s). Si se detectan polos en el semiplano derecho (RHP, σ>0), el sistema veta la ingesta por "Divergencia Matemática" (inestabilidad intrínseca).
 Adicionalmente, la auditoría del límite de Courant-Friedrichs-Lewy (CFL) ha sido formalizada sobre la simetrización del grafo acíclico dirigido. El Laplaciano de Hodge de grado 0 interviene como el operador autoadjunto que previene singularidades espectrales en la asimilación logística, imponiendo la restricción temporal:
 $$ \Delta t \leq \frac{2}{c_{\text{eff}} \cdot \left( \lambda_{\max} (\partial_1^T W \partial_1) \right)^{1/2}} $$
-1.3 Simulación Neuromórfica y Hardware en el Borde (ESP32) La matemática se materializa en el silicio. El sistema proyecta sus invariantes a un nodo perimetral ESP32 que actúa como un "Gatekeeper Físico" mediante una arquitectura de Diodos Lambda (JFETs cruzados):
+1.3 Simulación Neuromórfica, Reducción Monoidal y Hardware en el Borde (ESP32) La matemática se materializa en el silicio real mediante una reducción monoidal desde el retículo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$ a decisiones binarias en el silicio $\mu : \Omega_3 \to \mathbb{Z}_2$. La rutina local en C++ `isVerdictCoherent()` lee y valida el pasaporte deserializado por `ArduinoJson`. Ante un veto ($\top \mapsto 1$), la Rutina de Servicio de Interrupción (ISR) cargada en la memoria estática IRAM inmune a latencias de bus se activa en menos de **400 ns**, conmutando el pin **GPIO14** a nivel alto (`HIGH`). Esto inyecta corriente directa a la compuerta del tiristor **BT151** (circuito Crowbar), cortocircuitando la línea de potencia de los actuadores y paralizando al instante la maquinaria pesada (bombas hidráulicas, mezcladoras y pistones) en el milisegundo cero antes de consolidar pérdidas materiales ante el SECOP II.
 
     Resistencia Diferencial Negativa (NDR): Si el índice de Estabilidad Piramidal ($\Psi$) cae bajo $\Psi_{\min}$, la presión topológica eleva el voltaje de excitación del circuito virtual hacia la región NDR.
     El Sistema Siente Dolor: El circuito entra en oscilación caótica (spiking), traduciendo matemáticamente un mal diseño de presupuesto en una respuesta neuromórfica análoga a una neurona biológica en pánico. Esto dispara los "Crowbar circuits" (actuadores físicos) para detener la ejecución.
@@ -230,3 +230,22 @@ $$\nabla_k f(x) = \frac{\operatorname{Im}\left(f(x + j \cdot h \cdot e_k)\right)
    - `verify_cech_derham_hypercohomology(d1, d2) -> Tuple[float, bool]`: Certifica la nilpotencia del diferencial total $D = d_1 + (-1)^p d_2 \implies D^2 = d_1 d_2 + d_2 d_1 \equiv 0$.
    - `verify_brouwer_fixed_point(rho, transition_matrix) -> Tuple[float, np.ndarray]`: Conservación de punto fijo regularizado por Weyl-Toeplitz.
    - `PretorioAgent.evaluate_supreme_command(telemetry_passport)`: Unifica silenciosamente los veredictos parciales en el clasificador de subobjetos de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$.
+
+8.3 Firmas de Calibre del Salón Forense y el Arsenal de Proyección
+
+1. **`fock_forensic_hall.py` & `fock_forensic_hall_agent.py` (Salón de Eventos Forense del Espacio de Fock):**
+   - `solve_lindblad_annihilation(rho_initial: np.ndarray, gamma_annihilation: float, time_step: float) -> Tuple[np.ndarray, float, float]`: Resuelve la integración del semigrupo de co-aniquilación fermiónica bajo Lindblad-GKSL, retornando $(\rho_t, S(\rho_t), \eta_{\mathrm{ex}})$.
+   - `compute_energy_momentum_tensor(momentum_vector: np.ndarray, metric_tensor: np.ndarray) -> Tuple[np.ndarray, float]`: Computa $\mathcal{T}^{\mu\nu} = p^\mu p^\nu + \frac{1}{2} G^{\mu\nu}(p \cdot p)$ y el residuo algebraico de la divergencia covariante de de Rham $\nabla_\nu \mathcal{T}^{\mu\nu}$.
+   - `execute_forensic_cycle(...)` / `execute_forensic_agent_cycle(...)`: Bucle OODA covariante que genera los DTOs inmutables `TelemetryStamp` y `FockForensicCertificate`.
+   - **DTOs `TelemetryStamp` & `FockForensicCertificate`:**
+     Transportan síncronamente: entropía de von Neumann $S(\rho)$, pureza cuántica del estado $\operatorname{Tr}(\rho^2)$, fidelidad de Uhlmann $F(\rho_0, \rho_1)$, traza del tensor $\mathcal{T}^{\mu\nu}$, anomalía de Weyl $g_{\mu\nu}\mathcal{T}^{\mu\nu}$, residuo de divergencia $\nabla_\nu \mathcal{T}^{\mu\nu}$, eficiencia exergética $\eta_{\mathrm{ex}}$, latencia de interrupción de silicio (ns) y sello criptográfico SHA-256 en la Cadena de Custodia.
+
+2. **`gauge_projection_engine.py` & `gauge_projection_armory.py` (Arsenal de Proyección de Calibre):**
+   - `weyl_toeplitz_projection(M: np.ndarray)` / `weyl_toeplitz_symmetrization(rho: np.ndarray) -> np.ndarray`: Symmetrización proyectiva de Frobenius $\Pi_H(M) = \frac{M + M^\dagger}{2}$.
+   - `higham_tikhonov_regularization(rho_wt: np.ndarray, mu_floor: float) -> Tuple[np.ndarray, float, float]`: Proyección al símplice de probabilidad $\Delta^{n-1}$ (Duchi) seguida de la estabilización despolarizante de Higham-Tikhonov $\Phi_\gamma(\rho) = \frac{\rho + \gamma I}{1 + n\gamma}$, retornando $(\rho_\mu, \lambda_{\min}, \alpha)$.
+   - `connes_daleckii_krein_commutator(rho_reg: np.ndarray, pi_X: np.ndarray)` / `connes_daleckii_krein_filter(...) -> Tuple[np.ndarray, float]`: Evalúa el conmutador $[D, \pi(X)]$ y la seminorma de Connes $L(X) = \|[D, \pi(X)]\|_{B(\mathcal{H})}$ usando el mapa de diferencias divididas espectrales de Daletskii-Krein:
+     $$D_{ik} = f^{[1]}(\lambda_i, \lambda_k) = \frac{\lambda_i^{-1/2} - \lambda_k^{-1/2}}{\lambda_i - \lambda_k} \quad (\lambda_i \neq \lambda_k), \quad D_{ii} = -\frac{1}{2}\lambda_i^{-3/2}$$
+   - `complex_step_spectral_derivative(rho_reg, perturbation, pi_x, step_h) -> float`: Gradiente de paso complejo no demolitivo (CSMD) sobre el espectro:
+     $$\frac{d L_{\max}}{d\epsilon} \approx \frac{\operatorname{Im}\left( L_{\max}(\tilde{M} + j \cdot h \cdot \delta M) \right)}{h}$$
+   - **DTO `ArmoryTelemetry`:**
+     Encapsula el veredicto en $\Omega_3$, $\lambda_{\min}$, factor de escala $\alpha$, constante de Lipschitz $L(X)$, tolerancia permitida $\tau_{\mathrm{Lip}}$, estado del interlock y operador purificado $\rho_\mu$.

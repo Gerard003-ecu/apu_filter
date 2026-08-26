@@ -261,9 +261,49 @@ Donde:
 
 Si el vector detectado posee componentes ortogonales a la componente conexa principal, el sistema detona de inmediato un `TopologicalIslandError` (Error de Isla Topológica), abortando el flujo de datos y protegiendo el estrato de estrategia de dependencias fantasma o recursos desconectados de la base productiva.
 
-## El Ágora Tensorial (Estrato Ω)
+## El Ágora Tensorial (Estrato Ω - Nivel 0.5) y el Salón de Eventos Forense
 
-En esta fase de decisión unificada, la arquitectura APU Filter somete las propuestas y trayectorias deliberativas de la malla agéntica a restricciones geométricas de la gravedad clásica y la gravedad cuántica de lazos.
+En esta fase de decisión unificada, la arquitectura APU Filter somete las propuestas y trayectorias deliberativas de la malla agéntica a restricciones geométricas de la gravedad clásica, la gravedad cuántica de lazos y el colisionador de-confinado del Espacio de Fock.
+
+### 0. El Salón de Eventos Forense (fock_forensic_hall.py & fock_forensic_hall_agent.py)
+
+En el Nivel 0.5 ($V_\Omega$), el **Salón de Eventos Forense** opera como el colisionador de-confinado donde el choque del par electrón-positrón (APU-Censura) satisface las Relaciones de Anticonmutación Canónicas (CAR) de Fermi sobre la base de Fock fermiónica $\mathcal{H} = \mathcal{F}_-(\mathbb{C}^n) \cong \mathbb{C}^{2^n}$:
+
+$$\{a_i, \, a_j^\dagger\} = \delta_{ij} \mathbf{I}, \quad \{a_i, \, a_j\} = \mathbf{0}, \quad \{a_i^\dagger, \, a_j^\dagger\} = \mathbf{0}$$
+
+La dinámica transitoria de las anomalías estocásticas se procesa mediante la Ecuación Maestra disipativa de Lindblad-GKSL (Gorini-Kossakowski-Sudarshan-Lindblad) implementada en `fock_forensic_hall.py`:
+
+$$\frac{d\rho}{dt} = -i[\hat{H}, \rho] + \sum_k \gamma_k \left( L_k \rho L_k^\dagger - \frac{1}{2}\{L_k^\dagger L_k, \rho\} \right)$$
+
+Donde $H = \sum_j N_j$ representa el operador de número de ocupación y $L_k$ define los canales de co-aniquilación fermiónica. El agente soberano `fock_forensic_hall_agent.py` consume esta dinámica para anular alucinaciones estocásticas, evaluando de forma continua:
+1. **Entropía de von Neumann:** $S(\rho) = -\operatorname{Tr}(\rho \log \rho)$, junto a la min-entropía $S_\infty(\rho) = -\log \lambda_{\max}$ y Rényi-2 $S_2(\rho) = -\log \operatorname{Tr}(\rho^2)$.
+2. **Eficiencia Exergética de Ocupación:** $\eta_{\mathrm{ex}} = \frac{\langle N\rangle_0 - \langle N\rangle_t}{\langle N\rangle_0} \in [0, 1]$.
+3. **Pureza Cuántica:** $\operatorname{Tr}(\rho^2)$ y Fidelidad de Uhlmann $F(\rho_0, \rho_1) = (\operatorname{Tr}\sqrt{\sqrt{\rho_0}\rho_1\sqrt{\rho_0}})^2$.
+4. **Tensor de Energía-Momento de Calibre y Divergencia de de Rham:**
+$$\mathcal{T}^{\mu\nu} = p^\mu p^\nu + \frac{1}{2} G^{\mu\nu} (p \cdot p) \quad \wedge \quad \nabla_\nu \mathcal{T}^{\mu\nu} \equiv 0$$
+   cuya traza $g_{\mu\nu}\mathcal{T}^{\mu\nu}$ certifica la anomalía de traza de Weyl.
+
+Toda la evaluación OODA en lazo cerrado proyecta las violaciones atómicas hacia la cadena de Heyting $\Omega_3 = \{\mathrm{COHERENT} < \mathrm{DEGRADED} < \mathrm{VETOED}\}$, emitiendo el certificado forense inmutable `FockForensicCertificate` con sello criptográfico SHA-256.
+
+### 1. La Capa de Regularización Espectral (Nivel 4.5 — $V_{\mathrm{ERUDITOS}}$: gauge_projection_armory.py & gauge_projection_engine.py)
+
+Como aduana espectral intermedia entre el Patio de Armas y el Pretorio, el **Arsenal de Proyección de Calibre** (`gauge_projection_armory.py` y `gauge_projection_engine.py`) purifica los operadores densidad mixtos $\rho$ mediante un pipeline numérico proyectivo de tres etapas:
+
+1. **Projector Hermítico de Weyl-Toeplitz (Frobenius-Óptimo):**
+$$\Pi_H(\rho) = \frac{\rho + \rho^\dagger}{2}$$
+2. **Proyección Euclídea al Símplice de Higham-Duchi:**
+$$\pi_\Delta(\lambda) = \arg\min_{x \in \Delta^{n-1}} \|x - \lambda\|_2, \quad \Delta^{n-1} = \{x \in \mathbb{R}^n : x \ge 0, \; \mathbf{1}^\top x = 1\}$$
+3. **Estabilización Despolarizante de Higham-Tikhonov:**
+$$\Phi_\gamma(\rho) = \frac{\rho + \gamma \mathbf{I}}{1 + n\gamma} \quad \text{con} \quad \gamma = \frac{\mu - \lambda_{\min}}{1 - n\mu}$$
+   garantizando que el espectro regularizado mantenga su suelo estrictamente positivo $\lambda_{\min}(\Phi_\gamma(\rho)) \ge \mu < \frac{1}{n}$.
+
+Asimismo, el Arsenal evalúa la seminorma de Lipschitz no conmutativa de Connes sobre el conmutador $[D, \pi(X)]$ con el operador derivado $D = \rho^{-1/2}$:
+
+$$L(X) = \|[D, \pi(X)]\|_{B(\mathcal{H})}$$
+
+donde las diferencias divididas de Daletskii-Krein para $f(\lambda) = \lambda^{-1/2}$ neutralizan la deriva de Wilkinson en la FPU:
+
+$$D_{ik} = f^{[1]}(\lambda_i, \lambda_k) = \frac{\lambda_i^{-1/2} - \lambda_k^{-1/2}}{\lambda_i - \lambda_k} \quad (\lambda_i \neq \lambda_k), \quad D_{ii} = -\frac{1}{2}\lambda_i^{-3/2}$$
 
 ### 1. El Atrapamiento Geodésico y la Acción de Polyakov Térmica
 
@@ -364,10 +404,14 @@ El veredicto final se consolida mediante el Supremo Álgebraico (Join $\sqcup$):
 $$v_{\text{final}} = v_{\text{Liouville}} \sqcup v_{\text{Skew}} \sqcup v_{\text{Work}}$$
 Si $v_{\text{final}}$ toca el elemento máximo $\top = \text{VETOED}$ (por ejemplo, debido a una divergencia de momentum de Liouville, una asimetría espuria en $W$, o una violación de pasividad simpléctica), el retículo colapsa instantáneamente de manera irreversible, arrojando una excepción `HeytingLatticeVeto`. Esto aniquila y purga la transacción de inmediato en memoria de software (RAM), impidiendo categóricamente que una alucinación desvíe o degenere la inercia transaccional del negocio constructivo.
 
-### IV. Interrupción Hardware Perimetral (ESP32 / Crowbar)
+### IV. Interrupción Hardware Perimetral (ESP32 / Crowbar) y Reducción Monoidal
 
-El colapso del retículo de Heyting distributivo de tres valores ($\Omega_3$) hacia el Supremo terminal VETOED ($\top$) en el software trasciende hacia el silicio perimetral mediante el **Tribunal de Silicio**:
-1. La subrutina C++ `isVerdictCoherent()` cargada en la memoria estática IRAM del microcontrolador **ESP32** evalúa síncronamente el Pasaporte de Telemetría Inmutable.
-2. Si detecta un *mismatch* epistémico (por ejemplo, una transgresión de pasividad $\dot{H}_d > 0$ o la presencia de ciclos topológicos $\beta_1 > 0$), la Rutina de Servicio de Interrupción (**ISR**) en IRAM se activa en menos de **$400\,\text{ns}$**.
-3. La ISR conmuta instantáneamente el pin de hardware **GPIO14** a nivel alto, inyectando corriente a la compuerta del tiristor de silicio de conmutación rápida **BT151** (circuito Crowbar).
-4. Esto cortocircuita limpiamente la línea de potencia de los actuadores físicos, paralizando síncronamente toda la maquinaria física en la obra en el milisegundo cero antes de consolidar pérdidas materiales.
+El colapso del retículo de Heyting distributivo intuicionista de tres valores ($\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$) hacia el Supremo terminal VETOED ($\top$) se proyecta mediante una reducción monoidal hacia la toma de decisiones binaria pura en el silicio real:
+
+$$\mu_{\text{monoidal}} : \Omega_3 \longrightarrow \mathbb{Z}_2, \quad \mu(\mathrm{COHERENT}) = 0, \; \mu(\mathrm{DEGRADED}) = 0, \; \mu(\mathrm{VETOED}) = 1$$
+
+El acoplamiento físico en el **Tribunal de Silicio** del microcontrolador **ESP32** se ejecuta de forma síncrona:
+1. La rutina local en C++ `isVerdictCoherent()` lee y valida el pasaporte de telemetría deserializado en tiempo real por `ArduinoJson`.
+2. Ante un veredicto de veto ($\top \mapsto 1$), la Rutina de Servicio de Interrupción (**ISR**) alojada en la memoria ultrarrápida **IRAM** conmuta el pin físico **GPIO14** a nivel alto (`HIGH`) en menos de **400 ns**.
+3. La señal inyecta corriente continua directa a la compuerta del tiristor de silicio de conmutación rápida **BT151** (circuito Crowbar), cortocircuitando limpiamente la línea de alimentación de potencia de los actuadores reales.
+4. Se paraliza de forma instantánea la maquinaria pesada (bombas hidráulicas, mezcladoras y pistones neumáticos) en el milisegundo cero, anulando la anomalía de la IA en el mundo físico antes de consolidar pérdidas materiales o sanciones ante el SECOP II.
