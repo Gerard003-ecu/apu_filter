@@ -4,7 +4,7 @@ Este documento detalla la implementación técnica, geométrica y física de los
 
 ---
 
-## 🌀 Plan de Acción de Coherencia Homotópica: Filtración de de Rham-Fukaya
+## 🌀 Coherencia Homotópica: Filtración de de Rham-Fukaya
 
 La arquitectura de APU Filter v5.0 rige la propagación del control y la información mediante la **Filtración de Subespacios de Hilbert Covariantes de de Rham-Fukaya**:
 
