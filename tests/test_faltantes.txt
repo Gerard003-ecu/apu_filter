@@ -22,7 +22,6 @@
    + pretorio_engine.py ------------------------- app/core/inmune_system/pretorio_engine.py
 
 
-
 # artefactos de test faltantes para soberanos y motores:
    + test_antimatter_choke_coil_agent.py ------------- tests/unit/agents/physics/test_antimatter_choke_coil_agent.py
    + test_pipeline_director_agent.py ----------------- tests/unit/agents/tactics/test_pipeline_director_agent.py
