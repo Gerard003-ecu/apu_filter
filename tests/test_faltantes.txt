@@ -20,6 +20,9 @@
    + imperial_sequitos_engine.py ---------------- app/core/inmune_system/imperial_sequitos_engine.py
    + imperial_tesserarios_engine.py ------------- app/core/inmune_system/imperial_tesserarios_engine.py
    + pretorio_engine.py ------------------------- app/core/inmune_system/pretorio_engine.py
+   + kapex_electrodynamic_engine.py ------------- app/alfa/kbase/kbase_thermodynamic_engine.py
+   + kbase_thermodynamic_engine.py -------------- app/alfa/kbase/kbase_thermodynamic_engine.py
+   + kcore_kinematic_engine.py ------------------ app/alfa/kcore/kcore_kinematic_engine.py
 
 
 # artefactos de test faltantes para soberanos y motores:
@@ -44,3 +47,6 @@
    + test_imperial_sequitos_engine.py ---------------- tests/unit/core/inmune_system/test_imperial_sequitos_engine.py
    + test_imperial_tesserarios_engine.py ------------- tests/unit/core/inmune_system/test_imperial_tesserarios_engine.py
    + test_pretorio_engine.py ------------------------- tests/unit/core/inmune_system/test_pretorio_engine.py
+   + test_kapex_electrodynamic_engine.py ------------- tests/unit/alfa/kbase/kbase_thermodynamic_engine.py
+   + test_kbase_thermodynamic_engine.py -------------- tests/unit/alfa/kbase/kbase_thermodynamic_engine.py
+   + test_kcore_kinematic_engine.py ------------------ tests/unit/alfa/kcore/kcore_kinematic_engine.py
