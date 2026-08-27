@@ -3,30 +3,36 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Thermal Gradient Agent (Soberano de Calibre del Campo Térmico)      ║
 ║ Ruta   : app/agents/physics/thermal_gradient_agent.py                        ║
-║ Versión: 3.0.0-Doctoral-Heyting-OODA-Carnot-Fourier-Landauer-CAS-Secure      ║
+║ Versión: 3.1.0-Doctoral-Caputo-CechSheaf-KMS-Heyting-OODA-CAS-Secure         ║
 ║                                                                              ║
-║ SINOPSIS MATEMÁTICA (rigor doctoral, no ornamental):                         ║
-║ El agente es un endofunctor de supervisión  S = Act ∘ Orient ∘ Observe       ║
-║ sobre el topos de sellos emitidos por ThermalGradientLaws. No recalcula      ║
-║ Fourier; audita el certificado del motor contra identidades que deben        ║
-║ anularse en aritmética exacta y contra umbrales de *política* (misión),      ║
-║ que no se confunden con la 2ª ley.                                           ║
+║ SINOPSIS (rigor doctoral; lo que SÍ se computa):                             ║
+║ El agente es el endofunctor de supervisión  S = Act ∘ Orient ∘ Observe       ║
+║ sobre sellos de ThermalGradientLaws. No re-simula Fourier. Audita el         ║
+║ certificado y tres memorias / geometrías opcionales:                         ║
 ║                                                                              ║
-║   Física (veto duro)     Φ = σ − ⟨q, dT⟩/T²  ≥  τ_CD                         ║
-║                          ‖q + κ ∇T‖ ≈ 0 ,  T > 0 ,  η_C ∈ [0, 1)             ║
-║                          σ ≥ Γ ln 2 ,  CSMD(½ pᵀκp) = κp                     ║
-║   Política (degradación) η_C ≱ τ_misión  ⇒  DEGRADED, jamás VETO             ║
-║                          (v2 vetaba el equilibrio isotermo: η_C = 0.)        ║
-║   Calibre                meet de Heyting(agente, motor)  =  peor verdad      ║
-║                          (join de severidad). CERTIFIED es ⊤, no un          ║
-║                          token desconocido.                                  ║
+║   (1) Caputo / Grünwald–Letnikov  α ∈ (0,1) sobre la serie {Φ_n, T_n}        ║
+║       D^α f_n = Δt^{-α} ∑_{j=0}^{n} w_j^{(α)} f_{n-j}                        ║
+║       w_0=1,  w_j = (1 − (α+1)/j) w_{j−1}                                    ║
+║       I^α Φ  (Riemann–Liouville discreta) acumula fugas seculares.           ║
+║       |D^α T| grande + I^α Φ ≥ 0  → transitorio (no veto).                   ║
+║       I^α Φ < τ_frac persistente → veto secular.  NO es un D^α de Rham       ║
+║       sobre un complejo simplicial: no hay 1-esqueleto aquí.                 ║
 ║                                                                              ║
-║ ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS (mixins = morfismos):         ║
-║   Fase 1  Observe  :  In → Phase1ThermalObservation                          ║
-║   Fase 2  Orient   :  Phase1ThermalObservation → Phase2ThermalOrientation    ║
-║   Fase 3  Decide/Act: (Phase1 × Phase2) → Phase3ThermalDecision              ║
+║   (2) Haz de Heyting sobre un cubrimiento finito {U_i} de coordenadas        ║
+║       Sección Γ(U_i): veredicto local de ⟨q,dT⟩|_{U_i}.                      ║
+║       Restricción: meet en U_i ∩ U_j.                                        ║
+║       H¹_Čech ≠ 0  ⇔  dos cartas solapadas con |Δ rank| ≥ 2.                 ║
+║       Veto quirúrgico: se aislan las cartas VETOED; el resto opera.          ║
+║       Sin cubrimiento: una carta, H¹=0.  NO es un topos de Grothendieck.     ║
 ║                                                                              ║
-║ Toda actuación Crowbar/GPIO es SIMULADA. No hay acceso a silicio real.       ║
+║   (3) KMS finito-dimensional (si se inyectan ρ, H)                           ║
+║       ρ_β = e^{−βH}/Z ,  β = 1/T                                             ║
+║       D(ρ‖ρ_β) y  ‖log ρ + βH − c I‖_HS  (defecto modular).                  ║
+║       F_Uhlmann(ρ,ρ_β) = ‖√ρ √ρ_β‖_1² .                                      ║
+║       Sin ρ: kms_available=False.  NO hay álgebra de von Neumann MAC.        ║
+║                                                                              ║
+║ ARQUITECTURA: In --F1→ Phase1 --F2→ Phase2 --F3→ Phase3 → Certificate        ║
+║ Crowbar/GPIO SIMULADO. No hay acceso a silicio.                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -35,16 +41,17 @@ from __future__ import annotations
 import logging
 import math
 import threading
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Final, List, Optional, Tuple
+from typing import Any, Deque, Dict, Final, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 import scipy.linalg as la
 
 try:
     from thermal_gradient_laws import ThermalGradientLaws
-except ImportError:  # pragma: no cover — resolución de paquete de la Malla
+except ImportError:  # pragma: no cover
     try:
         from app.physics.thermal_gradient_laws import ThermalGradientLaws
     except ImportError:
@@ -53,7 +60,7 @@ except ImportError:  # pragma: no cover — resolución de paquete de la Malla
 logger = logging.getLogger("APU.Agents.ThermalGradientAgent")
 
 # ---------------------------------------------------------------------------
-# Constantes metrológicas (Wilkinson / IEEE-754 binary64)
+# Constantes metrológicas
 # ---------------------------------------------------------------------------
 _MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
 _WILKINSON_LIMIT: Final[float] = 1e-15
@@ -73,22 +80,26 @@ _LANDAUER_ABS_TOL: Final[float] = 100.0 * _MACHINE_EPS
 _CONDITION_VETO: Final[float] = 1e12
 _CONDITION_DEGRADED: Final[float] = 1e8
 
+_DEFAULT_ALPHA: Final[float] = 0.5
+_DEFAULT_HISTORY: Final[int] = 32
+_DEFAULT_DT: Final[float] = 1.0
+_FRAC_SECULAR_TAU: Final[float] = 1e-3
+_KMS_VETO: Final[float] = 1e-2
+_KMS_DEGRADED: Final[float] = 1e-4
+_CECH_RANK_GAP: Final[int] = 2
+_PSD_TOLERANCE: Final[float] = 1e-10
+_DENSITY_TRACE_TOLERANCE: Final[float] = 1e-10
+
 
 # =============================================================================
-# Retículo de Heyting (cadena de 4 puntos).
+# Retículo de Heyting
 # =============================================================================
 class HeytingVerdict(str, Enum):
     r"""
-    Cadena de verdad  ⊥ = VETOED ≺ DEGRADED ≺ COHERENT ≺ CERTIFIED = ⊤.
+    Cadena  ⊥ = VETOED ≺ DEGRADED ≺ COHERENT ≺ CERTIFIED = ⊤.
 
-    En un orden total el álgebra de Heyting es única:
-        a ∧ b = min(a, b),   a ∨ b = max(a, b),
-        a → b = ⊤  si a ≼ b,  y  a → b = b  en caso contrario,
-        ¬a = a → ⊥.
-
-    La *severidad* de alarma es el orden opuesto. El «join de seguridad»
-    (peor gana) es el meet de verdad. v2 usaba Ω₃ y trataba cualquier
-    token desconocido —incluido CERTIFIED del motor v3— como VETOED.
+    El «join de seguridad» (peor gana) es el meet de verdad.
+    CERTIFIED es ⊤, no un token desconocido.
     """
 
     VETOED = "VETOED"
@@ -129,24 +140,27 @@ class HeytingVerdict(str, Enum):
 
 
 # =============================================================================
-# Contratos inmutables de fase
+# Contratos inmutables
 # =============================================================================
 def _freeze_array(arr: np.ndarray) -> np.ndarray:
-    """Copia C-contigua de solo lectura: inmuniza el paquete frente a aliasing."""
     out = np.array(arr, copy=True)
     out.setflags(write=False)
     return out
 
 
+def _logsumexp(values: np.ndarray) -> float:
+    data = np.asarray(values, dtype=np.float64).ravel()
+    if data.size == 0:
+        return -np.inf
+    finite = data[np.isfinite(data)]
+    if finite.size == 0:
+        return -np.inf
+    shift = float(np.max(finite))
+    return shift + float(np.log(np.sum(np.exp(finite - shift))))
+
+
 @dataclass(frozen=True, slots=True)
 class EngineCertificateAudit:
-    r"""
-    Lectura crítica del sello del motor (no una recomputación de Fourier).
-
-    Campos ausentes en un motor 1.x/2.x se marcan `available=False` y no
-    vetan por sí solos; un motor 3.x que *declare* residuos rotos sí veta.
-    """
-
     available: bool
     engine_verdict: str
     engine_interlock_fired: bool
@@ -167,13 +181,74 @@ class EngineCertificateAudit:
     engine_veto_reasons: Tuple[str, ...]
     engine_degraded_reasons: Tuple[str, ...]
     missing_keys: Tuple[str, ...]
+    adaptive_tau_cd: float = float("nan")
+    tellegen_residual: float = float("nan")
+
+
+@dataclass(frozen=True, slots=True)
+class FractionalMemoryChart:
+    r"""Carta de memoria no-markoviana (Caputo / Grünwald–Letnikov / RL)."""
+
+    alpha: float
+    dt: float
+    window: int
+    samples: int
+    gl_phi: float
+    gl_temperature: float
+    rl_integral_phi: float
+    secular_leak: bool
+    transient_flag: bool
+    kernel_l1: float
+
+
+@dataclass(frozen=True, slots=True)
+class ChartSection:
+    r"""Sección local Γ(U, ℋ) sobre una carta de coordenadas."""
+
+    name: str
+    indices: Tuple[int, ...]
+    pairing: float
+    phi_local: float
+    dirichlet_mass: float
+    verdict: str
+    rank: int
+
+
+@dataclass(frozen=True, slots=True)
+class SheafCohomologyChart:
+    r"""
+    Čech H¹ de un cubrimiento finito con valores en la cadena de Heyting.
+
+    `obstructed` ⇔ existe solape con |Δ rank| ≥ 2 (no pegable).
+    `isolated_charts` = cartas cuyo veredicto local es VETOED.
+    """
+
+    cover_names: Tuple[str, ...]
+    sections: Tuple[ChartSection, ...]
+    overlap_disagreements: Tuple[Tuple[str, str, str, str], ...]
+    cech_h1_obstructed: bool
+    isolated_charts: Tuple[str, ...]
+    surgical_possible: bool
+    global_meet: str
+
+
+@dataclass(frozen=True, slots=True)
+class KMSChart:
+    r"""Defecto KMS / modular a β = 1/T sobre M_n(ℂ)."""
+
+    available: bool
+    is_density: bool
+    inverse_temperature: float
+    relative_entropy: float
+    modular_defect: float
+    uhlmann_fidelity: float
+    von_neumann_entropy: float
+    kms_coherent: bool
 
 
 @dataclass(frozen=True, slots=True)
 class Phase1ThermalObservation:
-    r"""
-    Objeto terminal de la Fase 1 ≡ objeto inicial de la Fase 2.
-    """
+    r"""Objeto terminal de la Fase 1 ≡ objeto inicial de la Fase 2."""
 
     clausius_duhem_residual: float
     carnot_efficiency: float
@@ -182,21 +257,23 @@ class Phase1ThermalObservation:
     heat_flux_energy: float
     temperature_system: float
     heat_flux_vector: np.ndarray
+    grad_T: np.ndarray
+    entropy_production_rate: float
     engine_stamp: Dict[str, Any]
     observation_valid: bool
     engine_alive: bool
     certificate_audit: EngineCertificateAudit
+    history_length: int
     diagnostics: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "heat_flux_vector", _freeze_array(self.heat_flux_vector))
+        object.__setattr__(self, "grad_T", _freeze_array(self.grad_T))
 
 
 @dataclass(frozen=True, slots=True)
 class Phase2ThermalOrientation:
-    r"""
-    Objeto terminal de la Fase 2 ≡ segundo factor del dominio de la Fase 3.
-    """
+    r"""Objeto terminal de la Fase 2 ≡ segundo factor del dominio de la Fase 3."""
 
     is_cd_coherent: bool
     is_exergy_sufficient: bool
@@ -207,19 +284,24 @@ class Phase2ThermalOrientation:
     is_carnot_in_range: bool
     is_engine_alive: bool
     is_certificate_internally_consistent: bool
+    is_fractional_secular: bool
+    is_fractional_transient: bool
+    is_sheaf_obstructed: bool
+    is_kms_coherent: bool
     cd_margin: float
     exergy_margin: float
     fourier_margin: float
     landauer_margin: float
     physics_score: float
     policy_score: float
+    fractional: Optional[FractionalMemoryChart]
+    sheaf: Optional[SheafCohomologyChart]
+    kms: Optional[KMSChart]
     diagnostics: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
 class Phase3ThermalDecision:
-    r"""Sello de decisión (Act) del soberano de calibre."""
-
     heyting_verdict: str
     heyting_rank: int
     heyting_score: float
@@ -231,18 +313,16 @@ class Phase3ThermalDecision:
     dual_channel_actuation: bool
     supervisor_disagreement: bool
     conservation_residual: float
+    isolated_charts: Tuple[str, ...]
+    surgical_veto: bool
+    cech_h1_obstructed: bool
+    fractional_cd_accumulator: float
+    kms_defect: float
     diagnostics: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
 class ThermalGradientCertificate:
-    r"""
-    Certificado inmutable de regularidad termodinámica.
-
-    Claves 1.x/2.x se conservan; las de supervisión v3 van al final con
-    valores por defecto para no romper desestructuración antigua.
-    """
-
     phase: str
     heyting_verdict: str
     clausius_duhem_residual: float
@@ -265,6 +345,12 @@ class ThermalGradientCertificate:
     engine_heyting_verdict: str = ""
     policy_exergy_sufficient: bool = True
     supervisor_disagreement: bool = False
+    fractional_cd_accumulator: float = 0.0
+    cech_h1_obstructed: bool = False
+    isolated_charts: Tuple[str, ...] = ()
+    surgical_veto: bool = False
+    kms_defect: float = 0.0
+    uhlmann_fidelity: float = 1.0
 
 
 # =============================================================================
@@ -274,10 +360,8 @@ class Phase1ThermalObservationMixin:
     r"""
     FASE 1 — OBSERVE.
 
-    Invoca el motor en modo fail-safe, extrae el sello y construye una
-    auditoría de certificado. El último método, `phase1_observe_engine_stamp`,
-    tiene por codominio `Phase1ThermalObservation`, que ES el dominio de
-    `phase2_orient_from_observation`.
+    Invoca el motor, extrae el sello, empuja (Φ, T, |dT|²) a la memoria
+    fraccional. Codominio: `Phase1ThermalObservation`.
     """
 
     def __init__(
@@ -289,6 +373,10 @@ class Phase1ThermalObservationMixin:
         *,
         rng_seed: Optional[int] = None,
         exergy_is_hard_veto: bool = False,
+        fractional_alpha: float = _DEFAULT_ALPHA,
+        history_window: int = _DEFAULT_HISTORY,
+        time_step: float = _DEFAULT_DT,
+        coordinate_cover: Optional[Mapping[str, Sequence[int]]] = None,
     ) -> None:
         self._n = self._validate_positive_int("dimension_n", dimension_n)
         self._safety_margin = self._validate_positive_finite("safety_margin", safety_margin)
@@ -302,6 +390,14 @@ class Phase1ThermalObservationMixin:
         self._exergy_thresh = float(exergy_threshold / self._safety_margin)
         self._exergy_is_hard_veto = bool(exergy_is_hard_veto)
 
+        alpha = self._validate_finite("fractional_alpha", fractional_alpha)
+        if not (0.0 < alpha < 1.0):
+            raise ValueError("fractional_alpha debe vivir en (0, 1).")
+        self._alpha = float(alpha)
+        self._history_window = int(max(2, history_window))
+        self._dt = self._validate_positive_finite("time_step", time_step)
+        self._cover = self._normalize_cover(coordinate_cover)
+
         self._engine = ThermalGradientLaws(
             dimension_n=self._n,
             safety_margin=self._safety_margin,
@@ -310,6 +406,20 @@ class Phase1ThermalObservationMixin:
         self._rng = np.random.default_rng(rng_seed)
         self._interlock_lock = threading.Lock()
         self._interlock_state = False
+        self._history: Deque[Tuple[float, float, float]] = deque(maxlen=self._history_window)
+
+    def _normalize_cover(
+        self,
+        cover: Optional[Mapping[str, Sequence[int]]],
+    ) -> Dict[str, Tuple[int, ...]]:
+        if not cover:
+            return {}
+        out: Dict[str, Tuple[int, ...]] = {}
+        for name, idxs in cover.items():
+            unique = tuple(sorted({int(i) for i in idxs if 0 <= int(i) < self._n}))
+            if unique:
+                out[str(name)] = unique
+        return out
 
     @staticmethod
     def _validate_positive_int(name: str, value: Any) -> int:
@@ -362,25 +472,17 @@ class Phase1ThermalObservationMixin:
         return total + compensator
 
     def kahan_sum(self, arr: np.ndarray) -> float:
-        r"""Kahan–Babuška–Neumaier.  |fl(∑x) − ∑x| ≤ (2u + O(u²)) ∑|x|."""
         vec = np.asarray(arr, dtype=np.float64).ravel()
-        if vec.ndim != 1:
-            raise ValueError(f"kahan_sum espera un vector 1-D, se recibió {np.asarray(arr).shape}")
         return float(np.real(self._neumaier_sum(vec)))
 
     @staticmethod
-    def _extract_float(
-        mapping: Dict[str, Any],
-        key: str,
-        default: float,
-    ) -> Tuple[float, bool]:
+    def _extract_float(mapping: Dict[str, Any], key: str, default: float) -> Tuple[float, bool]:
         if key not in mapping:
             return default, False
         try:
-            value = float(mapping[key])
+            return float(mapping[key]), True
         except (TypeError, ValueError):
             return default, False
-        return value, True
 
     def _extract_vector(self, mapping: Dict[str, Any], key: str) -> Tuple[np.ndarray, bool]:
         default = np.zeros(self._n, dtype=np.float64)
@@ -409,7 +511,6 @@ class Phase1ThermalObservationMixin:
         stamp: Dict[str, Any],
         diagnostics: Dict[str, Any],
     ) -> EngineCertificateAudit:
-        """Lee el sello v3 (y degrada con gracia si el motor es 1.x/2.x)."""
         missing: List[str] = []
 
         def grab(key: str, default: float) -> float:
@@ -431,11 +532,9 @@ class Phase1ThermalObservationMixin:
             if isinstance(p2, dict):
                 nested_p2 = p2
 
-        pairing = grab("q_dot_grad_T", float("nan")) if "q_dot_grad_T" in stamp else float(
-            nested_p2.get("q_dot_grad_T", float("nan"))
-        )
+        pairing = float(nested_p2.get("q_dot_grad_T", float("nan")))
         condition = float(nested_p2.get("metric_condition", float("nan")))
-        third_law = bool(nested_p1.get("third_law_flag", False) or diagnostics.get("third_law_flag", False))
+        third_law = bool(nested_p1.get("third_law_flag", False))
         t_clamped = bool(nested_p1.get("temperature_clamped", False))
 
         return EngineCertificateAudit(
@@ -452,18 +551,22 @@ class Phase1ThermalObservationMixin:
             carnot_density=grab("carnot_density", float("nan")),
             T_hot=grab("T_hot", float("nan")),
             T_cold=grab("T_cold", float("nan")),
-            pairing_q_dT=float(pairing) if math.isfinite(pairing) else float("nan"),
+            pairing_q_dT=pairing,
             metric_condition=condition,
             third_law_flag=third_law,
             temperature_clamped=t_clamped,
             engine_veto_reasons=self._extract_string_tuple(stamp, "veto_reasons"),
             engine_degraded_reasons=self._extract_string_tuple(stamp, "degraded_reasons"),
             missing_keys=tuple(missing),
+            adaptive_tau_cd=grab("adaptive_tau_cd", float("nan")),
+            tellegen_residual=grab("tellegen_residual", float("nan")),
         )
 
     def _fail_safe_observation(
         self,
         diagnostics: Dict[str, Any],
+        grad_T: np.ndarray,
+        entropy_production_rate: float,
     ) -> Phase1ThermalObservation:
         empty_q = np.zeros(self._n, dtype=np.float64)
         audit = EngineCertificateAudit(
@@ -496,12 +599,31 @@ class Phase1ThermalObservationMixin:
             heat_flux_energy=0.0,
             temperature_system=float("nan"),
             heat_flux_vector=empty_q,
+            grad_T=grad_T,
+            entropy_production_rate=entropy_production_rate,
             engine_stamp={},
             observation_valid=False,
             engine_alive=False,
             certificate_audit=audit,
+            history_length=len(self._history),
             diagnostics=diagnostics,
         )
+
+    def _push_history(self, phi: float, temperature: float, dirichlet: float) -> int:
+        with self._interlock_lock:
+            self._history.append(
+                (
+                    float(phi) if math.isfinite(phi) else 0.0,
+                    float(temperature) if math.isfinite(temperature) else 0.0,
+                    float(max(dirichlet, 0.0)) if math.isfinite(dirichlet) else 0.0,
+                )
+            )
+            return len(self._history)
+
+    def reset_fractional_memory(self) -> None:
+        """Purga la ventana de Caputo (p. ej. tras un rearranque de misión)."""
+        with self._interlock_lock:
+            self._history.clear()
 
     def phase1_observe_engine_stamp(
         self,
@@ -515,23 +637,30 @@ class Phase1ThermalObservationMixin:
         r"""
         [FASE 1 — ÚLTIMO MORFISMO: OBSERVE]
 
-        Codominio
-        ---------
-        `Phase1ThermalObservation`
-
-        Continuidad formal
-        ------------------
-        Este paquete **es** el dominio del primer morfismo de la Fase 2,
-        `phase2_orient_from_observation(self, observation)`.
-        `engine_kwargs` se reenvía al motor v3 (conductivity_type, length_scale,
-        ambient_temperature, info_erasure_rate) y se ignora con gracia si el
-        motor subyacente aún no los acepta.
+        Codominio: `Phase1ThermalObservation`
+        = dominio de `phase2_orient_from_observation`.
         """
-        logger.info("Fase Observe: capturando el sello del motor térmico.")
+        logger.info("Fase Observe: sello del motor + memoria fraccional.")
         diagnostics: Dict[str, Any] = {
             "observe_phase": "engine_invocation",
             "engine_invoked": True,
         }
+        try:
+            grad_T = np.asarray(grad_T_raw, dtype=np.float64).reshape(-1)
+            if grad_T.size != self._n:
+                grad_T = np.zeros(self._n, dtype=np.float64)
+                diagnostics["grad_T_invalid"] = True
+        except (TypeError, ValueError):
+            grad_T = np.zeros(self._n, dtype=np.float64)
+            diagnostics["grad_T_invalid"] = True
+
+        sigma = 0.0
+        try:
+            sigma = float(entropy_production_rate)
+            if not math.isfinite(sigma):
+                sigma = 0.0
+        except (TypeError, ValueError):
+            sigma = 0.0
 
         try:
             stamp = self._engine.execute_thermal_cycle(
@@ -543,7 +672,6 @@ class Phase1ThermalObservationMixin:
                 **engine_kwargs,
             )
         except TypeError:
-            # Motor 1.x/2.x sin kwargs v3.
             try:
                 stamp = self._engine.execute_thermal_cycle(
                     K_raw=K_raw,
@@ -554,13 +682,13 @@ class Phase1ThermalObservationMixin:
                 )
                 diagnostics["engine_kwargs_dropped"] = tuple(engine_kwargs.keys())
             except Exception as exc:
-                logger.exception("El motor térmico falló. Colapso fail-safe a observación inválida.")
+                logger.exception("Motor térmico falló. Fail-safe.")
                 diagnostics.update({"engine_error": str(exc), "engine_invoked": False})
-                return self._fail_safe_observation(diagnostics)
+                return self._fail_safe_observation(diagnostics, grad_T, sigma)
         except Exception as exc:
-            logger.exception("El motor térmico falló. Colapso fail-safe a observación inválida.")
+            logger.exception("Motor térmico falló. Fail-safe.")
             diagnostics.update({"engine_error": str(exc), "engine_invoked": False})
-            return self._fail_safe_observation(diagnostics)
+            return self._fail_safe_observation(diagnostics, grad_T, sigma)
 
         if not isinstance(stamp, dict):
             try:
@@ -574,19 +702,12 @@ class Phase1ThermalObservationMixin:
         exergy_potential, ex_present = self._extract_float(stamp, "exergy_potential", float("nan"))
         temperature_system, t_present = self._extract_float(stamp, "T_sys_clamped", float("nan"))
         heat_flux_vector, heat_flux_valid = self._extract_vector(stamp, "heat_flux_vector")
+        dirichlet, _ = self._extract_float(stamp, "dirichlet_energy", float("nan"))
 
-        if not cd_present:
-            diagnostics["missing_clausius_duhem_residual"] = True
-        if not eta_present:
-            diagnostics["missing_carnot_efficiency"] = True
-            if not math.isfinite(carnot_efficiency):
-                carnot_efficiency = 0.0
-        if not ex_present:
-            diagnostics["missing_exergy_potential"] = True
-            if not math.isfinite(exergy_potential):
-                exergy_potential = 0.0
-        if not t_present:
-            diagnostics["missing_T_sys_clamped"] = True
+        if not eta_present and not math.isfinite(carnot_efficiency):
+            carnot_efficiency = 0.0
+        if not ex_present and not math.isfinite(exergy_potential):
+            exergy_potential = 0.0
 
         if heat_flux_valid:
             energy = self.kahan_sum(np.asarray(heat_flux_vector, dtype=np.float64) ** 2)
@@ -595,7 +716,6 @@ class Phase1ThermalObservationMixin:
             if not math.isfinite(heat_flux_norm):
                 heat_flux_norm = 0.0
                 heat_flux_energy = 0.0
-                diagnostics["heat_flux_norm_nonfinite"] = True
         else:
             heat_flux_norm = 0.0
             heat_flux_energy = 0.0
@@ -606,15 +726,14 @@ class Phase1ThermalObservationMixin:
             diagnostics["engine"] = dict(engine_diagnostics)
 
         audit = self._audit_engine_certificate(stamp, diagnostics)
+        hist_len = self._push_history(cd_residual, temperature_system, dirichlet)
         observation_valid = bool(
-            heat_flux_valid
-            and cd_present
-            and math.isfinite(cd_residual)
-            and t_present
-            and math.isfinite(temperature_system)
+            heat_flux_valid and cd_present and math.isfinite(cd_residual)
+            and t_present and math.isfinite(temperature_system)
         )
         diagnostics["observation_valid"] = observation_valid
-        diagnostics["certificate_missing_keys"] = audit.missing_keys
+        diagnostics["history_length"] = hist_len
+        diagnostics["cover_names"] = tuple(self._cover.keys())
 
         return Phase1ThermalObservation(
             clausius_duhem_residual=cd_residual,
@@ -624,24 +743,27 @@ class Phase1ThermalObservationMixin:
             heat_flux_energy=heat_flux_energy,
             temperature_system=temperature_system,
             heat_flux_vector=heat_flux_vector,
+            grad_T=grad_T,
+            entropy_production_rate=sigma,
             engine_stamp=dict(stamp),
             observation_valid=observation_valid,
             engine_alive=True,
             certificate_audit=audit,
+            history_length=hist_len,
             diagnostics=diagnostics,
         )
 
 
 # =============================================================================
-# FASE 2 — ORIENT
-# Dominio = Phase1ThermalObservation (codominio del último método de Fase 1).
+# FASE 2 — ORIENT (Caputo + Čech + KMS)
+# Dominio = Phase1ThermalObservation
 # =============================================================================
 class Phase2ThermalOrientationMixin(Phase1ThermalObservationMixin):
     r"""
     FASE 2 — ORIENT.
 
-    Separa *física* (2ª ley, Fourier, T>0, Landauer, CSMD) de *política*
-    (umbral de exergía de misión). v2 mezclaba ambas y vetaba el equilibrio.
+    Física instantánea (sello) + memoria fraccional + haz de cartas + KMS.
+    Codominio: `Phase2ThermalOrientation`.
     """
 
     def verify_thermodynamic_coherence(
@@ -649,11 +771,7 @@ class Phase2ThermalOrientationMixin(Phase1ThermalObservationMixin):
         cd_residual: float,
         exergy_potential: float,
     ) -> Tuple[bool, bool]:
-        r"""
-        [COMPATIBILIDAD 1.X — FASE ORIENT]
-
-        Φ ≥ τ_CD  y  exergy ≥ τ_exergy  (esta última es política, no 2ª ley).
-        """
+        """[COMPATIBILIDAD 1.X — FASE ORIENT]"""
         try:
             cd_value = float(cd_residual)
         except (TypeError, ValueError):
@@ -666,86 +784,291 @@ class Phase2ThermalOrientationMixin(Phase1ThermalObservationMixin):
         is_exergy_sufficient = math.isfinite(exergy_value) and exergy_value >= self._exergy_thresh
         return is_cd_coherent, is_exergy_sufficient
 
+    @staticmethod
+    def _gl_weights(alpha: float, n: int) -> np.ndarray:
+        w = np.empty(n, dtype=np.float64)
+        if n <= 0:
+            return w
+        w[0] = 1.0
+        for j in range(1, n):
+            w[j] = w[j - 1] * (j - 1.0 - alpha) / j
+        return w
+
+    @staticmethod
+    def _rl_kernel(alpha: float, n: int, dt: float) -> np.ndarray:
+        r"""Núcleo RL I^α: k_j = Δt^α (j+1)^{α−1} / Γ(α), j=0..n−1 (más reciente = 0)."""
+        if n <= 0:
+            return np.zeros(0, dtype=np.float64)
+        g = math.gamma(alpha)
+        k = np.empty(n, dtype=np.float64)
+        scale = (dt ** alpha) / g
+        for j in range(n):
+            k[j] = scale * ((j + 1.0) ** (alpha - 1.0))
+        return k
+
+    def _fractional_memory_chart(self) -> FractionalMemoryChart:
+        with self._interlock_lock:
+            hist = tuple(self._history)
+        n = len(hist)
+        if n == 0:
+            return FractionalMemoryChart(
+                alpha=self._alpha, dt=self._dt, window=self._history_window, samples=0,
+                gl_phi=0.0, gl_temperature=0.0, rl_integral_phi=0.0,
+                secular_leak=False, transient_flag=False, kernel_l1=0.0,
+            )
+        phi = np.array([h[0] for h in hist], dtype=np.float64)
+        temp = np.array([h[1] for h in hist], dtype=np.float64)
+        # GL: el presente es el último sample; pesos w_j multiplican f_{n-1-j}.
+        w = self._gl_weights(self._alpha, n)
+        dt_a = self._dt ** (-self._alpha)
+        gl_phi = float(dt_a * self.kahan_sum(w * phi[::-1]))
+        gl_T = float(dt_a * self.kahan_sum(w * temp[::-1]))
+        rl = self._rl_kernel(self._alpha, n, self._dt)
+        rl_phi = float(self.kahan_sum(rl * phi[::-1]))
+        kernel_l1 = float(self.kahan_sum(np.abs(rl)))
+        # Fuga secular: la integral fraccional de Φ es persistentemente negativa.
+        secular = bool(n >= 4 and rl_phi < -_FRAC_SECULAR_TAU * self._safety_margin)
+        # Transitorio: |D^α T| grande frente a la escala de T, sin fuga de Φ.
+        t_scale = float(max(abs(temp[-1]), 1.0))
+        transient = bool(
+            n >= 4
+            and abs(gl_T) > 0.05 * t_scale * (self._dt ** (-self._alpha))
+            and rl_phi >= -_FRAC_SECULAR_TAU * self._safety_margin
+        )
+        return FractionalMemoryChart(
+            alpha=self._alpha,
+            dt=self._dt,
+            window=self._history_window,
+            samples=n,
+            gl_phi=gl_phi,
+            gl_temperature=gl_T,
+            rl_integral_phi=rl_phi,
+            secular_leak=secular,
+            transient_flag=transient,
+            kernel_l1=kernel_l1,
+        )
+
+    def _local_phi(
+        self,
+        observation: Phase1ThermalObservation,
+        indices: Tuple[int, ...],
+    ) -> Tuple[float, float, float]:
+        q = np.asarray(observation.heat_flux_vector, dtype=np.float64)
+        g = np.asarray(observation.grad_T, dtype=np.float64)
+        idx = np.array(indices, dtype=int)
+        pairing = float(self.kahan_sum(q[idx] * g[idx]))
+        mass = float(self.kahan_sum(g[idx] * g[idx]))
+        mass_tot = float(self.kahan_sum(g * g))
+        frac = mass / mass_tot if mass_tot > _WILKINSON_FLOOR else (len(indices) / max(self._n, 1))
+        sigma_u = float(observation.entropy_production_rate) * frac
+        T = observation.temperature_system
+        t2 = T * T if math.isfinite(T) and T > 0.0 else 1.0
+        phi_u = float(sigma_u - pairing / t2)
+        return pairing, phi_u, mass
+
+    def _local_verdict(self, phi_u: float, tau: float) -> HeytingVerdict:
+        if not math.isfinite(phi_u):
+            return HeytingVerdict.VETOED
+        if phi_u < tau:
+            return HeytingVerdict.VETOED
+        if phi_u < 0.0:
+            return HeytingVerdict.DEGRADED
+        return HeytingVerdict.CERTIFIED
+
+    def _sheaf_cech_chart(self, observation: Phase1ThermalObservation) -> SheafCohomologyChart:
+        tau = self._cd_thresh
+        if not self._cover:
+            pairing = float(
+                self.kahan_sum(
+                    np.asarray(observation.heat_flux_vector) * np.asarray(observation.grad_T)
+                )
+            ) if observation.engine_alive else float("nan")
+            section = ChartSection(
+                name="global",
+                indices=tuple(range(self._n)),
+                pairing=pairing,
+                phi_local=observation.clausius_duhem_residual,
+                dirichlet_mass=float("nan"),
+                verdict=HeytingVerdict.parse(observation.certificate_audit.engine_verdict or "COHERENT").value,
+                rank=HeytingVerdict.parse(observation.certificate_audit.engine_verdict or "COHERENT").rank,
+            )
+            return SheafCohomologyChart(
+                cover_names=("global",),
+                sections=(section,),
+                overlap_disagreements=(),
+                cech_h1_obstructed=False,
+                isolated_charts=(),
+                surgical_possible=False,
+                global_meet=section.verdict,
+            )
+
+        sections: List[ChartSection] = []
+        for name, idxs in self._cover.items():
+            pairing, phi_u, mass = self._local_phi(observation, idxs)
+            v = self._local_verdict(phi_u, tau)
+            sections.append(
+                ChartSection(
+                    name=name, indices=idxs, pairing=pairing, phi_local=phi_u,
+                    dirichlet_mass=mass, verdict=v.value, rank=v.rank,
+                )
+            )
+
+        disagreements: List[Tuple[str, str, str, str]] = []
+        names = list(self._cover.keys())
+        for i, a in enumerate(names):
+            for b in names[i + 1 :]:
+                overlap = tuple(sorted(set(self._cover[a]) & set(self._cover[b])))
+                if not overlap:
+                    continue
+                sa = next(s for s in sections if s.name == a)
+                sb = next(s for s in sections if s.name == b)
+                if abs(sa.rank - sb.rank) >= _CECH_RANK_GAP:
+                    disagreements.append((a, b, sa.verdict, sb.verdict))
+
+        isolated = tuple(s.name for s in sections if s.verdict == HeytingVerdict.VETOED.value)
+        meet = HeytingVerdict.CERTIFIED
+        for s in sections:
+            meet = meet.meet(HeytingVerdict.parse(s.verdict))
+        obstructed = bool(disagreements)
+        surgical = bool(isolated) and (len(isolated) < len(sections) or not obstructed)
+        return SheafCohomologyChart(
+            cover_names=tuple(names),
+            sections=tuple(sections),
+            overlap_disagreements=tuple(disagreements),
+            cech_h1_obstructed=obstructed,
+            isolated_charts=isolated,
+            surgical_possible=surgical,
+            global_meet=meet.value,
+        )
+
+    def _kms_chart(
+        self,
+        rho: Optional[np.ndarray],
+        hamiltonian: Optional[np.ndarray],
+        temperature: float,
+    ) -> KMSChart:
+        if rho is None or hamiltonian is None:
+            return KMSChart(
+                available=False, is_density=False, inverse_temperature=float("nan"),
+                relative_entropy=float("nan"), modular_defect=float("nan"),
+                uhlmann_fidelity=float("nan"), von_neumann_entropy=float("nan"),
+                kms_coherent=True,
+            )
+        rho_h = 0.5 * (np.asarray(rho, dtype=np.complex128) + np.asarray(rho, dtype=np.complex128).conj().T)
+        H_h = 0.5 * (np.asarray(hamiltonian, dtype=np.complex128) + np.asarray(hamiltonian, dtype=np.complex128).conj().T)
+        if rho_h.shape != (self._n, self._n) or H_h.shape != (self._n, self._n):
+            return KMSChart(
+                available=True, is_density=False, inverse_temperature=float("nan"),
+                relative_entropy=float("inf"), modular_defect=float("inf"),
+                uhlmann_fidelity=0.0, von_neumann_entropy=float("nan"),
+                kms_coherent=False,
+            )
+        evals, evecs = la.eigh(rho_h)
+        evals = np.real(evals)
+        trace = float(np.real(np.sum(evals)))
+        min_eig = float(np.min(evals))
+        is_density = min_eig >= -_PSD_TOLERANCE and abs(trace - 1.0) <= _DENSITY_TRACE_TOLERANCE
+        acc_s: List[float] = []
+        for eta in evals:
+            clipped = max(float(eta), 0.0)
+            if clipped > _WILKINSON_FLOOR:
+                acc_s.append(float(-clipped * np.log(clipped)))
+        svn = float(self.kahan_sum(np.asarray(acc_s, dtype=np.float64))) if acc_s else 0.0
+        T = float(temperature) if math.isfinite(temperature) and temperature > 0.0 else float("nan")
+        if not math.isfinite(T):
+            return KMSChart(
+                available=True, is_density=is_density, inverse_temperature=float("nan"),
+                relative_entropy=float("inf"), modular_defect=float("inf"),
+                uhlmann_fidelity=0.0, von_neumann_entropy=svn, kms_coherent=False,
+            )
+        beta = 1.0 / T
+        energy = float(np.real(np.trace(rho_h @ H_h)))
+        h_eigs = np.real(la.eigvalsh(H_h))
+        log_z = _logsumexp(-beta * h_eigs)
+        relative = max(0.0, float(-svn + beta * energy + log_z))
+        # log ρ = V log(η)_+ V† ;  c = −mean(log η + β λ_H) en el soporte.
+        log_eta = np.log(np.maximum(evals, _WILKINSON_FLOOR))
+        log_rho = (evecs * log_eta) @ evecs.conj().T
+        target = -beta * H_h
+        residual = log_rho - target
+        residual = residual - (np.trace(residual) / self._n) * np.eye(self._n)
+        modular = float(la.norm(residual, ord="fro"))
+        # Gibbs para fidelidad de Uhlmann.
+        gibbs_e = np.exp(-beta * h_eigs - log_z)
+        # ρ_β comparte la eigenbasis de H, no necesariamente la de ρ.
+        H_vecs = la.eigh(H_h)[1]
+        rho_beta = (H_vecs * gibbs_e) @ H_vecs.conj().T
+        try:
+            sqrt_rho = evecs * np.sqrt(np.maximum(evals, 0.0)) @ evecs.conj().T
+            inner = sqrt_rho @ rho_beta @ sqrt_rho
+            fid_eigs = np.real(la.eigvalsh(inner))
+            fidelity = float(np.real(np.sum(np.sqrt(np.maximum(fid_eigs, 0.0)))) ** 2)
+            fidelity = float(np.clip(fidelity, 0.0, 1.0))
+        except la.LinAlgError:
+            fidelity = 0.0
+        coherent = bool(is_density and relative <= _KMS_VETO and modular <= 1.0)
+        return KMSChart(
+            available=True,
+            is_density=is_density,
+            inverse_temperature=beta,
+            relative_entropy=relative,
+            modular_defect=modular,
+            uhlmann_fidelity=fidelity,
+            von_neumann_entropy=svn,
+            kms_coherent=coherent,
+        )
+
     def _phase2_audit_engine_certificate(
         self,
         observation: Phase1ThermalObservation,
     ) -> Dict[str, Any]:
-        r"""
-        [FASE 2 — PRIMER MORFISMO: AUDITORÍA DEL CERTIFICADO]
-
-        Dominio
-        -------
-        `Phase1ThermalObservation` ← continuación formal de
-        `phase1_observe_engine_stamp`.
-
-        Identidades de supervisión (no se re-simula el ciclo):
-          1. η_C ∈ [0, 1];
-          2. T_h ≥ T_c > 0 si ambos están presentes;
-          3. Φ ≥ τ_CD;
-          4. ⟨q, dT⟩ ≤ ε_u  (anti-Fourier);
-          5. veredicto del motor ∈ {VETOED, DEGRADED, COHERENT, CERTIFIED};
-          6. si el motor declara Fourier/CSMD/Landauer, sus residuos acotados.
-        """
         audit = observation.certificate_audit
         flags: Dict[str, Any] = {}
-
         eta = observation.carnot_efficiency
         flags["carnot_in_range"] = math.isfinite(eta) and 0.0 <= eta <= 1.0 + 1e-12
-
         T = observation.temperature_system
         flags["temperature_physical"] = math.isfinite(T) and T > 0.0 and not audit.third_law_flag
-
         T_h, T_c = audit.T_hot, audit.T_cold
         if math.isfinite(T_h) and math.isfinite(T_c):
             flags["carnot_reservoirs_ordered"] = bool(T_h + 1e-12 >= T_c > 0.0)
             if math.isfinite(eta) and T_h > T_c > 0.0:
-                eta_id = 1.0 - T_c / T_h
-                flags["carnot_identity_residual"] = float(abs(eta - eta_id))
+                flags["carnot_identity_residual"] = float(abs(eta - (1.0 - T_c / T_h)))
             else:
                 flags["carnot_identity_residual"] = 0.0
         else:
             flags["carnot_reservoirs_ordered"] = True
             flags["carnot_identity_residual"] = 0.0
-
         pairing = audit.pairing_q_dT
         flags["anti_fourier"] = bool(math.isfinite(pairing) and pairing > _WILKINSON_FLOOR)
-
-        if math.isfinite(audit.fourier_residual):
-            flags["fourier_coherent"] = audit.fourier_residual <= _FOURIER_VETO * self._safety_margin
-        else:
-            flags["fourier_coherent"] = True  # motor 1.x: no hay evidencia en contra
-
-        if math.isfinite(audit.csmd_error):
-            flags["csmd_coherent"] = audit.csmd_error <= _CSMD_VETO
-        else:
-            flags["csmd_coherent"] = True
-
-        if math.isfinite(audit.landauer_gap):
-            flags["landauer_coherent"] = audit.landauer_gap >= -_LANDAUER_ABS_TOL
-        else:
-            flags["landauer_coherent"] = True
-
+        flags["fourier_coherent"] = (
+            True if not math.isfinite(audit.fourier_residual)
+            else audit.fourier_residual <= _FOURIER_VETO * self._safety_margin
+        )
+        flags["csmd_coherent"] = (
+            True if not math.isfinite(audit.csmd_error) else audit.csmd_error <= _CSMD_VETO
+        )
+        flags["landauer_coherent"] = (
+            True if not math.isfinite(audit.landauer_gap)
+            else audit.landauer_gap >= -_LANDAUER_ABS_TOL
+        )
         flags["engine_verdict_known"] = audit.engine_verdict in {
             "VETOED", "DEGRADED", "COHERENT", "CERTIFIED", "",
         }
-        flags["engine_vetoed"] = audit.engine_verdict == "VETOED" or bool(audit.engine_veto_reasons)
         return flags
 
     def phase2_orient_from_observation(
         self,
         observation: Phase1ThermalObservation,
+        *,
+        density_rho: Optional[np.ndarray] = None,
+        hamiltonian_H: Optional[np.ndarray] = None,
     ) -> Phase2ThermalOrientation:
         r"""
         [FASE 2 — ÚLTIMO MORFISMO: ORIENT]
 
-        Codominio
-        ---------
-        `Phase2ThermalOrientation`
-
-        Continuidad formal
-        ------------------
-        Junto con el `Phase1ThermalObservation` residual, este objeto es el
-        dominio de `phase3_decide_from_orientation(self, observation, orientation)`.
+        Dominio : `Phase1ThermalObservation`
+        Codominio: `Phase2ThermalOrientation`
+        = segundo factor de `phase3_decide_from_orientation`.
         """
         if not isinstance(observation, Phase1ThermalObservation):
             raise TypeError("observation debe ser Phase1ThermalObservation.")
@@ -756,6 +1079,9 @@ class Phase2ThermalOrientationMixin(Phase1ThermalObservationMixin):
         )
         flags = self._phase2_audit_engine_certificate(observation)
         audit = observation.certificate_audit
+        frac = self._fractional_memory_chart()
+        sheaf = self._sheaf_cech_chart(observation)
+        kms = self._kms_chart(density_rho, hamiltonian_H, observation.temperature_system)
 
         cd_value = observation.clausius_duhem_residual
         exergy_value = observation.exergy_potential
@@ -765,12 +1091,9 @@ class Phase2ThermalOrientationMixin(Phase1ThermalObservationMixin):
         )
         fourier_margin = (
             float(_FOURIER_VETO * self._safety_margin - audit.fourier_residual)
-            if math.isfinite(audit.fourier_residual)
-            else float("inf")
+            if math.isfinite(audit.fourier_residual) else float("inf")
         )
-        landauer_margin = (
-            float(audit.landauer_gap) if math.isfinite(audit.landauer_gap) else float("inf")
-        )
+        landauer_margin = float(audit.landauer_gap) if math.isfinite(audit.landauer_gap) else float("inf")
 
         is_fourier = bool(flags["fourier_coherent"]) and not flags["anti_fourier"]
         is_csmd = bool(flags["csmd_coherent"])
@@ -779,10 +1102,8 @@ class Phase2ThermalOrientationMixin(Phase1ThermalObservationMixin):
         is_carnot = bool(flags["carnot_in_range"]) and bool(flags["carnot_reservoirs_ordered"])
         identity_ok = float(flags["carnot_identity_residual"]) <= 1e-8
         cert_ok = (
-            observation.observation_valid
-            and observation.engine_alive
-            and bool(flags["engine_verdict_known"])
-            and identity_ok
+            observation.observation_valid and observation.engine_alive
+            and bool(flags["engine_verdict_known"]) and identity_ok
         )
 
         physics_terms = [
@@ -794,6 +1115,8 @@ class Phase2ThermalOrientationMixin(Phase1ThermalObservationMixin):
             1.0 if is_carnot else 0.0,
             1.0 if observation.engine_alive else 0.0,
             1.0 if observation.observation_valid else 0.0,
+            0.0 if frac.secular_leak else 1.0,
+            0.0 if (kms.available and not kms.kms_coherent) else 1.0,
         ]
         physics_score = float(min(physics_terms))
         if math.isfinite(audit.fourier_residual) and audit.fourier_residual > 0.0:
@@ -802,19 +1125,17 @@ class Phase2ThermalOrientationMixin(Phase1ThermalObservationMixin):
                 float(np.exp(-audit.fourier_residual / max(_FOURIER_DEGRADED, _WILKINSON_FLOOR))),
             )
         policy_score = (
-            1.0
-            if is_exergy_sufficient
-            else float(np.clip(observation.exergy_potential / max(self._exergy_thresh, _WILKINSON_FLOOR), 0.0, 0.99))
-            if math.isfinite(observation.exergy_potential)
-            else 0.0
+            1.0 if is_exergy_sufficient
+            else float(np.clip(
+                observation.exergy_potential / max(self._exergy_thresh, _WILKINSON_FLOOR), 0.0, 0.99,
+            ))
+            if math.isfinite(observation.exergy_potential) else 0.0
         )
 
         diagnostics: Dict[str, Any] = {
             "cd_threshold": self._cd_thresh,
             "exergy_threshold": self._exergy_thresh,
             "exergy_is_hard_veto": self._exergy_is_hard_veto,
-            "cd_residual": cd_value,
-            "exergy_potential": exergy_value,
             "cd_margin": cd_margin,
             "exergy_margin": exergy_margin,
             "fourier_margin": fourier_margin,
@@ -824,6 +1145,13 @@ class Phase2ThermalOrientationMixin(Phase1ThermalObservationMixin):
             "certificate_flags": flags,
             "physics_score": physics_score,
             "policy_score": policy_score,
+            "fractional_alpha": self._alpha,
+            "rl_integral_phi": frac.rl_integral_phi,
+            "gl_phi": frac.gl_phi,
+            "cech_h1_obstructed": sheaf.cech_h1_obstructed,
+            "isolated_charts": sheaf.isolated_charts,
+            "kms_available": kms.available,
+            "kms_relative_entropy": kms.relative_entropy,
         }
         return Phase2ThermalOrientation(
             is_cd_coherent=is_cd_coherent,
@@ -835,36 +1163,37 @@ class Phase2ThermalOrientationMixin(Phase1ThermalObservationMixin):
             is_carnot_in_range=is_carnot,
             is_engine_alive=observation.engine_alive,
             is_certificate_internally_consistent=cert_ok,
+            is_fractional_secular=frac.secular_leak,
+            is_fractional_transient=frac.transient_flag,
+            is_sheaf_obstructed=sheaf.cech_h1_obstructed,
+            is_kms_coherent=kms.kms_coherent,
             cd_margin=cd_margin,
             exergy_margin=exergy_margin,
             fourier_margin=fourier_margin,
             landauer_margin=landauer_margin,
             physics_score=physics_score,
             policy_score=policy_score,
+            fractional=frac,
+            sheaf=sheaf,
+            kms=kms,
             diagnostics=diagnostics,
         )
 
 
 # =============================================================================
 # FASE 3 — DECIDE / ACT
-# Dominio = Phase1ThermalObservation × Phase2ThermalOrientation.
+# Dominio = Phase1 × Phase2
 # =============================================================================
 class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
     r"""
     FASE 3 — DECIDE / ACT.
 
-    Meet de Heyting (agente ∧ motor). Crowbar SIMULADO, canal independiente
-    del interlock del motor (supervisión a dos canales).
+    Meet de Heyting (agente ∧ motor ∧ Caputo ∧ Čech ∧ KMS).
+    Crowbar SIMULADO; veto quirúrgico si el haz lo permite.
     """
 
     @staticmethod
     def _join_heyting_verdicts(verdicts: Tuple[str, ...]) -> str:
-        r"""
-        Join de *severidad* = meet de verdad.
-
-        CERTIFIED se reconoce. Un token desconocido no vacío colapsa a VETOED
-        (fail-safe); la cadena vacía no vota.
-        """
         acc = HeytingVerdict.CERTIFIED
         saw = False
         for token in verdicts:
@@ -882,23 +1211,16 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
         is_cd_coherent: bool,
         is_exergy_sufficient: bool,
     ) -> Tuple[str, Tuple[str, ...], Tuple[str, ...]]:
-        """
-        Clasificador 1.x/2.x evolucionado: la exergía insuficiente es
-        DEGRADED (política), no VETO, salvo `exergy_is_hard_veto=True`.
-        """
         veto_reasons: List[str] = []
         degraded_reasons: List[str] = []
-
         cd_finite = math.isfinite(cd_residual)
         exergy_finite = math.isfinite(exergy_potential)
-
         if not cd_finite:
             veto_reasons.append("clausius_duhem_residual_nonfinite")
         if not is_cd_coherent:
             veto_reasons.append("clausius_duhem_residual_below_threshold")
         if cd_finite and cd_residual < 0.0:
             degraded_reasons.append("clausius_duhem_residual_negative")
-
         if not exergy_finite:
             degraded_reasons.append("exergy_potential_nonfinite")
         elif not is_exergy_sufficient:
@@ -908,7 +1230,6 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
                 degraded_reasons.append("exergy_potential_below_policy_threshold")
         if exergy_finite and exergy_potential < _DEGRADED_EXERGY_THRESHOLD:
             degraded_reasons.append("exergy_potential_below_degraded_threshold")
-
         if veto_reasons:
             verdict = HeytingVerdict.VETOED.value
         elif degraded_reasons:
@@ -921,11 +1242,13 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
         self,
         observation: Phase1ThermalObservation,
         orientation: Phase2ThermalOrientation,
-    ) -> Tuple[HeytingVerdict, float, Tuple[str, ...], Tuple[str, ...]]:
-        """Clasificador de supervisión: física dura + política + sello del motor."""
+    ) -> Tuple[HeytingVerdict, float, Tuple[str, ...], Tuple[str, ...], Tuple[str, ...], bool]:
         veto: List[str] = []
         degraded: List[str] = []
         audit = observation.certificate_audit
+        frac = orientation.fractional
+        sheaf = orientation.sheaf
+        kms = orientation.kms
 
         if not observation.engine_alive:
             veto.append("engine_invocation_failed")
@@ -949,6 +1272,12 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
             veto.append("carnot_efficiency_out_of_physical_range")
         if math.isfinite(audit.metric_condition) and audit.metric_condition > _CONDITION_VETO:
             veto.append("metric_condition_explosive")
+        if orientation.is_fractional_secular:
+            veto.append("caputo_secular_leak")
+        if kms is not None and kms.available and not kms.is_density:
+            veto.append("kms_density_axioms_violated")
+        if kms is not None and kms.available and kms.relative_entropy > _KMS_VETO:
+            veto.append("kms_relative_entropy_excessive")
 
         if (
             math.isfinite(observation.clausius_duhem_residual)
@@ -961,10 +1290,7 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
                 veto.append("exergy_potential_below_threshold")
             else:
                 degraded.append("exergy_potential_below_policy_threshold")
-        if (
-            math.isfinite(observation.exergy_potential)
-            and observation.exergy_potential < _DEGRADED_EXERGY_THRESHOLD
-        ):
+        if math.isfinite(observation.exergy_potential) and observation.exergy_potential < _DEGRADED_EXERGY_THRESHOLD:
             degraded.append("exergy_potential_below_degraded_threshold")
         if audit.temperature_clamped and not audit.third_law_flag:
             degraded.append("temperature_clamped_to_wilkinson_floor")
@@ -974,6 +1300,10 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
             degraded.append("metric_ill_conditioned")
         if not orientation.is_certificate_internally_consistent:
             degraded.append("certificate_internal_inconsistency")
+        if orientation.is_fractional_transient:
+            degraded.append("caputo_high_frequency_transient")
+        if kms is not None and kms.available and _KMS_DEGRADED < kms.relative_entropy <= _KMS_VETO:
+            degraded.append("kms_relative_entropy_degraded")
         if audit.engine_verdict == "DEGRADED":
             degraded.append("engine_heyting_degraded")
         if audit.engine_verdict == "VETOED":
@@ -982,6 +1312,26 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
             tag = f"engine:{reason}"
             if tag not in veto:
                 veto.append(tag)
+
+        isolated: Tuple[str, ...] = sheaf.isolated_charts if sheaf is not None else ()
+        surgical = False
+        if sheaf is not None and sheaf.isolated_charts and sheaf.surgical_possible:
+            # Veto local no se eleva a global si el meet del resto no es ⊥
+            # y no hay obstrucción Čech irresoluble en un solape certificado.
+            rest = [
+                s for s in sheaf.sections if s.name not in sheaf.isolated_charts
+            ]
+            rest_meet = HeytingVerdict.CERTIFIED
+            for s in rest:
+                rest_meet = rest_meet.meet(HeytingVerdict.parse(s.verdict))
+            if rest and rest_meet is not HeytingVerdict.VETOED:
+                surgical = True
+                for tag in ("clausius_duhem_residual_below_threshold",):
+                    if tag in veto and observation.clausius_duhem_residual >= self._cd_thresh:
+                        veto.remove(tag)
+                degraded.append("sheaf_surgical_isolation")
+        if sheaf is not None and sheaf.cech_h1_obstructed and not surgical:
+            veto.append("cech_h1_obstruction")
 
         physics = float(orientation.physics_score)
         policy = float(orientation.policy_score)
@@ -1000,7 +1350,17 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
                 verdict = HeytingVerdict.VETOED
         else:
             verdict = HeytingVerdict.VETOED
-        return verdict, float(meet), tuple(veto), tuple(degraded)
+
+        if surgical and verdict is HeytingVerdict.VETOED and "cech_h1_obstruction" not in veto:
+            # La parálisis global se degrada a aislamiento local.
+            if "engine_invocation_failed" not in veto and "third_law_nonpositive_temperature" not in veto:
+                verdict = HeytingVerdict.DEGRADED
+                degraded.append("global_veto_demoted_to_surgical")
+                veto = [v for v in veto if v not in {"clausius_duhem_residual_below_threshold"}]
+
+        rl_acc = float(frac.rl_integral_phi) if frac is not None else 0.0
+        _ = rl_acc
+        return verdict, float(meet), tuple(veto), tuple(degraded), isolated, surgical
 
     def evaluate_heyting_decision_lattice(
         self,
@@ -1031,18 +1391,20 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
             self._interlock_state = False
             return previous_state
 
-    def _act_from_verdict(self, verdict: str) -> Tuple[bool, float]:
-        normalized_verdict = str(verdict).strip().upper()
-        if normalized_verdict != HeytingVerdict.VETOED.value:
+    def _act_from_verdict(self, verdict: str, *, surgical: bool) -> Tuple[bool, float]:
+        normalized = str(verdict).strip().upper()
+        if normalized != HeytingVerdict.VETOED.value:
+            return False, 0.0
+        if surgical:
+            logger.warning(
+                "Veto quirúrgico: no se dispara Crowbar global. Cartas aisladas en telemetría."
+            )
             return False, 0.0
         swapped = self._cas_interlock(expected=False, desired=True)
         if not swapped:
-            logger.warning(
-                "CAS: el interlock del AGENTE ya estaba enclavado. "
-                "Se reconoce el veto y se registra la latencia SIMULADA."
-            )
+            logger.warning("CAS: interlock del AGENTE ya enclavado. Latencia SIMULADA.")
         jitter = float(self._rng.normal(loc=0.0, scale=4.0))
-        actuation_latency_ns = float(
+        latency = float(
             np.clip(
                 _CROWBAR_IRAM_LATENCY_NS + jitter,
                 _CROWBAR_LATENCY_FLOOR_NS,
@@ -1050,15 +1412,14 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
             )
         )
         logger.critical(
-            "VETO TÉRMICO DEL SOBERANO DE CALIBRE. "
-            "Crowbar BT151 [GPIO14] SIMULADO. Latencia ficticia: %.2f ns.",
-            actuation_latency_ns,
+            "VETO TÉRMICO DEL SOBERANO. Crowbar BT151 [GPIO14] SIMULADO. Latencia ficticia: %.2f ns.",
+            latency,
         )
-        return True, actuation_latency_ns
+        return True, latency
 
     def act_hardware_interlock_simulation(self, verdict: str) -> Tuple[bool, float]:
         """[COMPATIBILIDAD 1.X — FASE ACT]. GPIO/IRAM no se tocan."""
-        return self._act_from_verdict(verdict)
+        return self._act_from_verdict(verdict, surgical=False)
 
     def _phase3_conservation_audit(
         self,
@@ -1066,15 +1427,6 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
         orientation: Phase2ThermalOrientation,
         verdict: HeytingVerdict,
     ) -> float:
-        r"""
-        Residuos KBN de consistencia supervisor–sello:
-          1. |‖Q‖² − E_KBN(Q)|;
-          2. flag CD vs signo de Φ;
-          3. η_C fuera de [0, 1];
-          4. T ≤ 0 con observación «válida»;
-          5. veredicto CERTIFIED con física_score < 1;
-          6. conservación declarada por el motor.
-        """
         q = np.asarray(observation.heat_flux_vector, dtype=np.float64)
         energy_l2 = float(np.real(np.dot(q, q))) if q.size else 0.0
         energy_gap = abs(energy_l2 - observation.heat_flux_energy)
@@ -1085,28 +1437,15 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
         if (not orientation.is_cd_coherent) and math.isfinite(phi) and phi >= self._cd_thresh:
             cd_inconsistent = 1.0
         eta = observation.carnot_efficiency
-        eta_res = 0.0 if (not math.isfinite(eta) or 0.0 <= eta <= 1.0 + 1e-12) else abs(eta - min(max(eta, 0.0), 1.0))
-        temp_res = (
-            1.0
-            if observation.observation_valid and not orientation.is_temperature_physical
-            else 0.0
-        )
-        certified_lie = (
-            1.0
-            if verdict is HeytingVerdict.CERTIFIED and orientation.physics_score < 0.99
-            else 0.0
-        )
+        eta_res = 0.0 if (not math.isfinite(eta) or 0.0 <= eta <= 1.0 + 1e-12) else 1.0
+        temp_res = 1.0 if observation.observation_valid and not orientation.is_temperature_physical else 0.0
+        certified_lie = 1.0 if verdict is HeytingVerdict.CERTIFIED and orientation.physics_score < 0.99 else 0.0
         engine_cons = observation.certificate_audit.conservation_residual
         engine_cons_term = float(engine_cons) if math.isfinite(engine_cons) else 0.0
+        tellegen = observation.certificate_audit.tellegen_residual
+        tellegen_term = float(tellegen) if math.isfinite(tellegen) else 0.0
         terms = np.asarray(
-            [
-                energy_gap,
-                cd_inconsistent,
-                eta_res,
-                temp_res,
-                certified_lie,
-                max(0.0, engine_cons_term),
-            ],
+            [energy_gap, cd_inconsistent, eta_res, temp_res, certified_lie, max(0.0, engine_cons_term), tellegen_term],
             dtype=np.float64,
         )
         return float(np.real(self._neumaier_sum(terms)))
@@ -1119,39 +1458,42 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
         r"""
         [FASE 3 — ÚLTIMO MORFISMO: DECIDE / ACT]
 
-        Dominio
-        -------
-        `Phase1ThermalObservation × Phase2ThermalOrientation`
-        ← continuación formal de `phase1_observe_engine_stamp` y
-        `phase2_orient_from_observation`.
-
-        No hay Fase 4: el sello `Phase3ThermalDecision` es S(estado).
+        Dominio: `Phase1ThermalObservation × Phase2ThermalOrientation`.
         """
         if not isinstance(observation, Phase1ThermalObservation):
             raise TypeError("observation debe ser Phase1ThermalObservation.")
         if not isinstance(orientation, Phase2ThermalOrientation):
             raise TypeError("orientation debe ser Phase2ThermalOrientation.")
 
-        agent_verdict, score, veto_reasons, degraded_reasons = self._classify_heyting_supervised(
-            observation, orientation
+        agent_verdict, score, veto_reasons, degraded_reasons, isolated, surgical = (
+            self._classify_heyting_supervised(observation, orientation)
         )
         engine_token = observation.certificate_audit.engine_verdict
         final_verdict = HeytingVerdict.parse(
             self._join_heyting_verdicts((agent_verdict.value, engine_token)),
             unknown_as_veto=True,
         )
+        if surgical and final_verdict is HeytingVerdict.VETOED:
+            if "engine_invocation_failed" not in veto_reasons:
+                final_verdict = HeytingVerdict.DEGRADED
+
         disagreement = bool(
             engine_token
             and HeytingVerdict.parse(engine_token, unknown_as_veto=True) is not agent_verdict
         )
         if disagreement:
-            degraded_extra = degraded_reasons + ("supervisor_engine_disagreement",)
-            degraded_reasons = degraded_extra
+            degraded_reasons = degraded_reasons + ("supervisor_engine_disagreement",)
 
         conservation = self._phase3_conservation_audit(observation, orientation, final_verdict)
-        interlock_fired, latency = self._act_from_verdict(final_verdict.value)
+        interlock_fired, latency = self._act_from_verdict(final_verdict.value, surgical=surgical)
         engine_interlock = bool(observation.certificate_audit.engine_interlock_fired)
         dual = bool(interlock_fired and engine_interlock)
+        frac = orientation.fractional
+        kms = orientation.kms
+        sheaf = orientation.sheaf
+        rl_acc = float(frac.rl_integral_phi) if frac is not None else 0.0
+        kms_def = float(kms.relative_entropy) if (kms is not None and kms.available and math.isfinite(kms.relative_entropy)) else 0.0
+        h1 = bool(sheaf.cech_h1_obstructed) if sheaf is not None else False
 
         diagnostics: Dict[str, Any] = {
             "observe": dict(observation.diagnostics),
@@ -1167,11 +1509,15 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
             "agent_interlock_fired": interlock_fired,
             "dual_channel_actuation": dual,
             "conservation_residual": conservation,
+            "isolated_charts": isolated,
+            "surgical_veto": surgical,
+            "cech_h1_obstructed": h1,
+            "fractional_cd_accumulator": rl_acc,
+            "kms_defect": kms_def,
         }
         logger.debug(
-            "Fase 3: agente=%s motor=%s final=%s score=%.4f Φ=%.6e η=%.6e cons=%.3e",
-            agent_verdict.value, engine_token, final_verdict.value, score,
-            observation.clausius_duhem_residual, observation.carnot_efficiency, conservation,
+            "Fase 3: agente=%s motor=%s final=%s score=%.4f I^αΦ=%.3e H¹=%s surgical=%s",
+            agent_verdict.value, engine_token, final_verdict.value, score, rl_acc, h1, surgical,
         )
         return Phase3ThermalDecision(
             heyting_verdict=final_verdict.value,
@@ -1185,18 +1531,21 @@ class Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin):
             dual_channel_actuation=dual,
             supervisor_disagreement=disagreement,
             conservation_residual=conservation,
+            isolated_charts=isolated,
+            surgical_veto=surgical,
+            cech_h1_obstructed=h1,
+            fractional_cd_accumulator=rl_acc,
+            kms_defect=kms_def,
             diagnostics=diagnostics,
         )
 
 
 # =============================================================================
-# CLASE PÚBLICA — functor S = Act ∘ Orient ∘ Observe
+# CLASE PÚBLICA — S = Act ∘ Orient ∘ Observe
 # =============================================================================
 class ThermalGradientAgent(Phase3ThermalDecisionActuationMixin):
     r"""
-    Soberano de calibre de los gradientes de calor.
-
-    Encadena las tres fases anidadas sin objetos huérfanos:
+    Soberano de calibre.
 
         In --F1→ Phase1ThermalObservation --F2→ Phase2ThermalOrientation
            --F3→ Phase3ThermalDecision → ThermalGradientCertificate
@@ -1209,12 +1558,11 @@ class ThermalGradientAgent(Phase3ThermalDecisionActuationMixin):
         T_sys: float,
         metric_tensor: np.ndarray,
         entropy_production_rate: float,
+        *,
+        density_rho: Optional[np.ndarray] = None,
+        hamiltonian_H: Optional[np.ndarray] = None,
         **engine_kwargs: Any,
     ) -> ThermalGradientCertificate:
-        r"""
-        Orquesta el ciclo OODA de gobernanza. Firma 1.x conservada;
-        kwargs se reenvían al motor v3.
-        """
         observation = self.phase1_observe_engine_stamp(
             K_raw=K_raw,
             grad_T_raw=grad_T_raw,
@@ -1223,15 +1571,17 @@ class ThermalGradientAgent(Phase3ThermalDecisionActuationMixin):
             entropy_production_rate=entropy_production_rate,
             **engine_kwargs,
         )
-        orientation = self.phase2_orient_from_observation(observation)
+        orientation = self.phase2_orient_from_observation(
+            observation, density_rho=density_rho, hamiltonian_H=hamiltonian_H,
+        )
         decision = self.phase3_decide_from_orientation(observation, orientation)
 
         if decision.heyting_verdict == HeytingVerdict.VETOED.value:
             logger.error(
-                "Fase Decide/Act: VETO TÉRMICO. Φ=%.6f, exergía=%.6f, η=%.4f%%, razones=%s",
+                "VETO TÉRMICO. Φ=%.6f η=%.4f I^αΦ=%.3e razones=%s",
                 observation.clausius_duhem_residual,
-                observation.exergy_potential,
-                (observation.carnot_efficiency * 100.0) if math.isfinite(observation.carnot_efficiency) else float("nan"),
+                observation.carnot_efficiency,
+                decision.fractional_cd_accumulator,
                 decision.veto_reasons,
             )
 
@@ -1241,6 +1591,8 @@ class ThermalGradientAgent(Phase3ThermalDecisionActuationMixin):
             "phase3": dict(decision.diagnostics),
         }
         audit = observation.certificate_audit
+        kms = orientation.kms
+        fid = float(kms.uhlmann_fidelity) if (kms is not None and kms.available and math.isfinite(kms.uhlmann_fidelity)) else 1.0
         return ThermalGradientCertificate(
             phase="G_THERMAL_GRADIENTS_SUTURATED",
             heyting_verdict=decision.heyting_verdict,
@@ -1264,45 +1616,53 @@ class ThermalGradientAgent(Phase3ThermalDecisionActuationMixin):
             engine_heyting_verdict=audit.engine_verdict,
             policy_exergy_sufficient=orientation.is_exergy_sufficient,
             supervisor_disagreement=decision.supervisor_disagreement,
+            fractional_cd_accumulator=decision.fractional_cd_accumulator,
+            cech_h1_obstructed=decision.cech_h1_obstructed,
+            isolated_charts=decision.isolated_charts,
+            surgical_veto=decision.surgical_veto,
+            kms_defect=decision.kms_defect,
+            uhlmann_fidelity=fid,
         )
 
 
-# -----------------------------------------------------------------------------
-# Autocomprobación
-# -----------------------------------------------------------------------------
 if __name__ == "__main__":
-    print("Iniciando autocomprobación de Thermal Gradient Agent v3...")
-    agent = ThermalGradientAgent(dimension_n=3, rng_seed=0)
+    print("Autocomprobación Thermal Gradient Agent v3.1 (Caputo / Čech / KMS)...")
+    agent = ThermalGradientAgent(
+        dimension_n=3, rng_seed=0,
+        coordinate_cover={"partners": [0, 1], "resources": [1, 2]},
+        fractional_alpha=0.5, history_window=16,
+    )
     K = np.eye(3)
     G = np.eye(3)
     grad = np.array([1.0, 0.0, 0.0])
 
     cert = agent.execute_thermal_agent_cycle(K, grad, 300.0, G, 0.0)
-    print("Veredicto:", cert.heyting_verdict, "score=", cert.heyting_score)
-    print("Φ CD:", cert.clausius_duhem_residual, "η:", cert.carnot_efficiency)
-    print("Exergía (calidad, no 1-|Φ|):", cert.exergy_potential)
-    print("Fourier/CSMD:", cert.fourier_residual, cert.csmd_error)
-    print("Política exergía suficiente:", cert.policy_exergy_sufficient)
-    print("Desacuerdo supervisor/motor:", cert.supervisor_disagreement)
-    print("Razones veto/degradado:", cert.veto_reasons, cert.degraded_reasons)
+    print("Ciclo 1:", cert.heyting_verdict, "I^αΦ=", cert.fractional_cd_accumulator,
+          "H¹=", cert.cech_h1_obstructed, "isolated=", cert.isolated_charts)
 
     iso = agent.execute_thermal_agent_cycle(K, np.zeros(3), 300.0, G, 0.0)
-    print("Isotermo ∇T=0 (equilibrio; no debe vetar por η=0):", iso.heyting_verdict, "η=", iso.carnot_efficiency)
+    print("Isotermo:", iso.heyting_verdict, "η=", iso.carnot_efficiency)
+
+    # Memoria: muchos ciclos coherentes no deben vetar.
+    for _ in range(8):
+        agent.execute_thermal_agent_cycle(K, grad, 300.0, G, 0.0)
+    slow = agent.execute_thermal_agent_cycle(K, grad, 300.0, G, 0.0)
+    print("Tras 10 ciclos coherentes:", slow.heyting_verdict, "I^αΦ=", slow.fractional_cd_accumulator)
+
+    # KMS: Gibbs a T=300 con H diagonal debe ser coherente.
+    H = np.diag([0.0, 1.0, 2.0])
+    beta = 1.0 / 300.0
+    z = np.exp(-beta * np.array([0.0, 1.0, 2.0]))
+    rho = np.diag(z / z.sum())
+    kms_ok = agent.execute_thermal_agent_cycle(K, grad, 300.0, G, 0.0, density_rho=rho, hamiltonian_H=H)
+    print("KMS Gibbs:", kms_ok.heyting_verdict, "D=", kms_ok.kms_defect, "F=", kms_ok.uhlmann_fidelity)
+
+    rho_bad = np.diag([1.0, 0.0, 0.0])
+    kms_bad = agent.execute_thermal_agent_cycle(K, grad, 300.0, G, 0.0, density_rho=rho_bad, hamiltonian_H=H)
+    print("KMS puro vs Gibbs:", kms_bad.heyting_verdict, "D=", kms_bad.kms_defect, kms_bad.veto_reasons)
 
     cold = agent.execute_thermal_agent_cycle(K, grad, -1.0, G, 0.0)
-    print("T<0 (3ª ley):", cold.heyting_verdict, cold.veto_reasons)
-
-    land = agent.execute_thermal_agent_cycle(K, grad, 300.0, G, 0.0, info_erasure_rate=1e9)
-    print("Landauer:", land.heyting_verdict, land.veto_reasons)
-
-    # Fail-safe: motor sustituido por un lanzador.
-    class _Boom:
-        def execute_thermal_cycle(self, **_: Any) -> Dict[str, Any]:
-            raise RuntimeError("FPU thermal core dumped")
-
-    agent._engine = _Boom()  # type: ignore[assignment]
-    boom = agent.execute_thermal_agent_cycle(K, grad, 300.0, G, 0.0)
-    print("Fail-safe motor muerto:", boom.heyting_verdict, boom.observation_valid, boom.veto_reasons)
+    print("T<0:", cold.heyting_verdict, cold.veto_reasons)
 
 
 __all__ = [
@@ -1311,6 +1671,10 @@ __all__ = [
     "Phase3ThermalDecision",
     "ThermalGradientCertificate",
     "EngineCertificateAudit",
+    "FractionalMemoryChart",
+    "ChartSection",
+    "SheafCohomologyChart",
+    "KMSChart",
     "Phase1ThermalObservationMixin",
     "Phase2ThermalOrientationMixin",
     "Phase3ThermalDecisionActuationMixin",

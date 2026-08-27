@@ -7,7 +7,7 @@ Este plan de acción de-confina y establece la ruta metrológica y categorial pa
 ---
 
 ## ╔══════════════════════════════════════════════════════════════════════════════╗
-##   FASE I: Re-suturación de `PIRAMIDES_DE_CONTROL_v8.md`
+##   FASE I: Re-suturación de `PIRAMIDES_DE_CONTROL.md`
 ## ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ### 1. Inserción en la Pirámide de Motores (Bottom-Up)
@@ -35,7 +35,7 @@ Este plan de acción de-confina y establece la ruta metrológica y categorial pa
 ---
 
 ## ╔══════════════════════════════════════════════════════════════════════════════╗
-##   FASE II: Re-suturación de `ARCHITECTURE_DEEP_DIVE_v5.md`
+##   FASE II: Re-suturación de `ARCHITECTURE_DEEP_DIVE.md`
 ## ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ### 1. El Desdoblamiento del Espacio de Fase
@@ -56,7 +56,7 @@ Este plan de acción de-confina y establece la ruta metrológica y categorial pa
 ---
 
 ## ╔══════════════════════════════════════════════════════════════════════════════╗
-##   FASE III: Sincronización Funcional de `metodos_v3.md` y `SAGES_v5.md`
+##   FASE III: Sincronización Funcional de `metodos.md` y `SAGES.md`
 ## ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ### 1. Actualización de Firmas de de Rham en `metodos_v3.md`
@@ -69,13 +69,13 @@ Declarar de manera formal las firmas de métodos, DTOs y flujos de datos en RAM:
 *   **`ThermalGradientAgent` (Soberano — `app/agents/thermal_gradient_agent.py`):**
     *   `execute_thermal_agent_cycle(...)`: Orquesta el bucle covariante OODA. Retorna `ThermalGradientCertificate` (DTO inmutable con hash SHA-256).
 
-### 2. Sincronización de Protocolos en `SAGES_v5.md`
+### 2. Sincronización de Protocolos en `SAGES.md`
 *   Integrar la aduana del `ThermalGradientAgent` en el censo oficial del **Consejo de Sabios**, asignando su canal de comunicación síncrono al **Ágora Tensorial $V_{\Omega}$** y definiendo sus dependencias con los soberanos de base (`kbase_thermodynamic_agent.py`) y del núcleo (`kcore_kinematic_agent.py`).
 
 ---
 
 ## ╔══════════════════════════════════════════════════════════════════════════════╗
-##   FASE IV: Traducción de de Rham-Carnot a "Dolor y Dinero" (`BMC_v4.md` y `PRODUCT_VISION_v5.md`)
+##   FASE IV: Traducción de de Rham-Carnot a "Dolor y Dinero" (`BMC.md` y `PRODUCT_VISION.md`)
 ## ╚══════════════════════════════════════════════════════════════════════════════╝
 
 Para asegurar que estas abstracciones geométricas tengan sentido para el director de datos, la interventoría y el SECOP II, se introduce la matriz de correspondencia exergética:
@@ -91,15 +91,3 @@ Para asegurar que estas abstracciones geométricas tengan sentido para el direct
 *   **Acción de Control:** Alarma temprana degradada que obliga a re-suturar la asignación de recursos y ortonormalizar la base de conductancias.
 
 ---
-
-## ╔══════════════════════════════════════════════════════════════════════════════╗
-##   FASE V: Fortificación Espectral y Cierre de Kuratowski (Mejoras Propuestas)
-## ╚══════════════════════════════════════════════════════════════════════════════╝
-
-Para blindar la fortaleza matemática ante variaciones de alta frecuencia, el plan prescribe la implementación progresiva de tres refinamientos espectrales en la FPU:
-
-1.  **Deflación Espectral de Weyl:** Reemplazar el cómputo de `la.eigh` por una iteración simétrica de Lanczos para extraer de forma adaptativa únicamente el gap espectral dominante del menor autovalor positivo $\lambda_{\min}$, reduciendo la complejidad computacional de $\mathcal{O}(n^3)$ a $\mathcal{O}(k \cdot n^2)$ y purgando la deriva de Wilkinson.
-2.  **Resolvedor de Gradiente Discreto de Itoh-Abe Covariante:** Sustituir el cálculo lineal de producto interno por la derivada de Itoh-Abe a lo largo de las geodésicas de de Rham, garantizando que el residuo disipativo conserve la ortonormalidad exacta respecto a la métrica Riemanniana de fondo y anulando errores de curvatura.
-3.  **Compensación de Maurer-Cartan sobre el Anillo de Novikov Ultramétrico:** Modular dinámicamente el límite elástico de Clausius-Duhem $\tau_{\mathrm{CD}}$ evaluando la Ecuación de Maurer-Cartan sobre el Anillo de Novikov $\Lambda_{\mathbb{R}}$:
-    $$\tau_{\mathrm{CD}}(t) = \tau_{\mathrm{CD}}^{(0)} \cdot \exp\left(-\|W_L(b)\|_{\Lambda_{\mathbb{R}}}\right)$$
-    Esto dilata elásticamente el margen de seguridad ante transitorios rápidos de corta duración, absorbiendo el ruido estocástico de licitación y previniendo vetos espurios (frustración de calibre).
