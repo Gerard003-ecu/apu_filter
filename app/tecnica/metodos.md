@@ -240,7 +240,12 @@ $$\nabla_k f(x) = \frac{\operatorname{Im}\left(f(x + j \cdot h \cdot e_k)\right)
    - **DTOs `TelemetryStamp` & `FockForensicCertificate`:**
      Transportan síncronamente: entropía de von Neumann $S(\rho)$, pureza cuántica del estado $\operatorname{Tr}(\rho^2)$, fidelidad de Uhlmann $F(\rho_0, \rho_1)$, traza del tensor $\mathcal{T}^{\mu\nu}$, anomalía de Weyl $g_{\mu\nu}\mathcal{T}^{\mu\nu}$, residuo de divergencia $\nabla_\nu \mathcal{T}^{\mu\nu}$, eficiencia exergética $\eta_{\mathrm{ex}}$, latencia de interrupción de silicio (ns) y sello criptográfico SHA-256 en la Cadena de Custodia.
 
-2. **`gauge_projection_engine.py` & `gauge_projection_armory.py` (Arsenal de Proyección de Calibre):**
+2. **`kapex_electrodynamic_agent.py` (Director de Retorno y Expansión — M4a & Estrato KAPEX):**
+   - `build_context() -> ApexPreparationContext`: Executada en Fase 1, valida la métrica $G_{\mu\nu}$, la inversa bilateral de Wilkinson y exige la condición espectral M4a ($\kappa_2(G) \le \kappa_{\max}$; si $\kappa_2(G) > \kappa_{\max} \implies \mathrm{ApexConditionError}$).
+   - `synthesize(...) -> ApexStateTensor`: Fase 2, resuelve la refracción Eikonal $G^{\mu\nu}\partial_\mu S \partial_\nu S \ge n^2(\sigma^*)(1 - \mathrm{slack})$, el flujo exergético de Poynting $P_{\mathrm{exergia}} \ge 0$ y la acción de Yang-Mills $S_{\mathrm{YM}} = \frac{1}{2}\operatorname{Tr}(F^\top G F G^{-1}) \ge 0$ con $F \in \mathfrak{so}(n)$.
+   - `export_sheaf_stalk(s_val) -> SheafStalkApex`: Fase 3, construye la cofrontera $\delta_{\mathrm{APEX}} = [\delta_{\mathrm{metric}}; \delta_{\mathrm{diss}}]$ y el Laplaciano local de Hodge $\Delta_{\mathrm{APEX}} = I_n + \delta_{\mathrm{diss}}^\top \delta_{\mathrm{diss}} \succ 0$.
+
+3. **`gauge_projection_engine.py` & `gauge_projection_armory.py` (Arsenal de Proyección de Calibre):**
    - `weyl_toeplitz_projection(M: np.ndarray)` / `weyl_toeplitz_symmetrization(rho: np.ndarray) -> np.ndarray`: Symmetrización proyectiva de Frobenius $\Pi_H(M) = \frac{M + M^\dagger}{2}$.
    - `higham_tikhonov_regularization(rho_wt: np.ndarray, mu_floor: float) -> Tuple[np.ndarray, float, float]`: Proyección al símplice de probabilidad $\Delta^{n-1}$ (Duchi) seguida de la estabilización despolarizante de Higham-Tikhonov $\Phi_\gamma(\rho) = \frac{\rho + \gamma I}{1 + n\gamma}$, retornando $(\rho_\mu, \lambda_{\min}, \alpha)$.
    - `connes_daleckii_krein_commutator(rho_reg: np.ndarray, pi_X: np.ndarray)` / `connes_daleckii_krein_filter(...) -> Tuple[np.ndarray, float]`: Evalúa el conmutador $[D, \pi(X)]$ y la seminorma de Connes $L(X) = \|[D, \pi(X)]\|_{B(\mathcal{H})}$ usando el mapa de diferencias divididas espectrales de Daletskii-Krein:
