@@ -254,3 +254,47 @@ $$\nabla_k f(x) = \frac{\operatorname{Im}\left(f(x + j \cdot h \cdot e_k)\right)
      $$\frac{d L_{\max}}{d\epsilon} \approx \frac{\operatorname{Im}\left( L_{\max}(\tilde{M} + j \cdot h \cdot \delta M) \right)}{h}$$
    - **DTO `ArmoryTelemetry`:**
      Encapsula el veredicto en $\Omega_3$, $\lambda_{\min}$, factor de escala $\alpha$, constante de Lipschitz $L(X)$, tolerancia permitida $\tau_{\mathrm{Lip}}$, estado del interlock y operador purificado $\rho_\mu$.
+
+4. **`thermal_gradient_laws.py` & `thermal_gradient_agent.py` (Motor y Soberano de Gradientes Térmicos):**
+   - **`thermal_gradient_laws.py` (Leyes y Gradientes Térmicos en FPU):**
+     - `execute_thermal_cycle(K_raw, grad_T_raw, T_sys, metric_tensor, entropy_production_rate, ...) -> dict`: Ejecuta la ingesta de Fase 1 (Lanczos, Higham), simulación Carnot de Fase 2 (Itoh-Abe, Tellegen) y decisión adaptativa de Fase 3 ($\tau_{\mathrm{CD}}$ adaptativo), retornando el sello dictionary inmutable.
+     - `_factorize_spd(matrix, name, mode) -> SpectralChart`: Deflación Krylov-Lanczos ($\mathcal{O}(k n^2)$) y Higham-Tikhonov shift.
+     - `_itoh_abe_discrete_gradient(energy, x, y) -> Tuple[np.ndarray, float]`: Gradiente discreto con Identidad de Tellegen $| \langle \bar{\nabla}_{\mathrm{IA}} \bar{E}(0,p), p \rangle - \bar{E}(p) | = 0$.
+     - `_update_transient_filtration(grad_norm_g) -> TransientFiltration`: Valuación ultramétrica-surrogate $\nu(b_t) = \ln(1 + b_t/(s_t + \epsilon))$ y modulación del umbral $\tau_{\mathrm{CD}}(t) = -\tau_0 \cdot \text{safety} \cdot \exp(-\nu(b_t))$.
+   - **`thermal_gradient_agent.py` (Soberano Térmico de Calibre - $S = \mathrm{Act} \circ \mathrm{Orient} \circ \mathrm{Observe}$):**
+     - `execute_thermal_agent_cycle(K_raw, grad_T_raw, T_sys, metric_tensor, entropy_production_rate, density_rho, hamiltonian_H, ...) -> ThermalGradientCertificate`: Orquesta las tres fases del soberano y emite el certificado inmutable.
+     - `_fractional_memory_chart() -> FractionalMemoryChart`: Derivada discreta de Caputo $D^\alpha f_n = \Delta t^{-\alpha} \sum w_j f_{n-j}$ e integral Riemann-Liouville $I^\alpha \Phi$.
+     - `_sheaf_cech_chart(observation) -> SheafCohomologyChart`: Secciones locales sobre el cubrimiento $\{U_i\}$ y cohomología de Čech $H^1_{\check{\mathrm{Cech}}}$ para aislamiento quirúrgico de cartas vetadas.
+     - `_kms_chart(rho, H, T) -> KMSChart`: Entropía relativa $D(\rho \| \rho_\beta)$, defecto modular y Fidelidad de Uhlmann $F(\rho, \rho_\beta) = \|\sqrt{\rho}\sqrt{\rho_\beta}\|_1^2$.
+   - **DTO Inmutable `ThermalGradientCertificate` (signed SHA-256 en RAM):**
+     ```python
+     @dataclass(frozen=True, slots=True)
+     class ThermalGradientCertificate:
+         phase: str                           # "G_THERMAL_GRADIENTS_SUTURATED"
+         heyting_verdict: str                 # CERTIFIED, COHERENT, DEGRADED, VETOED
+         clausius_duhem_residual: float       # Φ_disip calculado en FPU via KBN
+         carnot_efficiency: float             # Eficiencia del ciclo de Carnot η_C
+         exergy_potential: float              # Potencial exergético [0.0, 1.0]
+         heat_flux_norm: float                # Norma L2 de Q^μ covariante
+         temperature_system: float            # Temperatura acotada del sistema
+         hardware_interlock_fired: bool       # Estado de conmutación del BT151
+         actuation_latency_ns: float          # Latencia física simulada (< 400 ns)
+         veto_reasons: Tuple[str, ...]        # Razones de veto
+         degraded_reasons: Tuple[str, ...]    # Razones de degradación
+         heyting_score: float                 # Calificación en el retículo [0.0, 1.0]
+         conservation_residual: float         # Residuo de conservación
+         fourier_residual: float              # Residuo constitutivo de Fourier
+         csmd_error: float                    # Error de paso complejo CSMD
+         landauer_gap: float                  # Brecha de disipación de Landauer
+         gouy_stodola: float                  # Exergía disipada T0 * Φ
+         observation_valid: bool              # Validez de la ingesta
+         engine_heyting_verdict: str          # Veredicto emitido por el motor
+         policy_exergy_sufficient: bool       # Suficiencia de exergía
+         supervisor_disagreement: bool        # Discrepancia entre motor y agente
+         fractional_cd_accumulator: float     # Acumulado Riemann-Liouville I^α Φ
+         cech_h1_obstructed: bool             # Flag de obstrucción H¹ de Čech
+         isolated_charts: Tuple[str, ...]     # Cartas aisladas quirúrgicamente
+         surgical_veto: bool                  # Bandera de veto quirúrgico
+         kms_defect: float                    # Defecto de entropía relativa KMS
+         uhlmann_fidelity: float              # Fidelidad de Uhlmann F(ρ, ρ_β)
+     ```

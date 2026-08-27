@@ -173,6 +173,16 @@ Propiedades Fundamentales de Censura:
         $$\langle \nabla H, J_{\text{eff}} \nabla H \rangle \equiv 0$$
         Autoridad de Veto: Si se registra una divergencia de Liouville o si la pasividad se rompe, el retículo de Heyting colapsa síncronamente al elemento máximo $\top$, lanzando una excepción `HeytingLatticeVeto` que destruye la transacción en RAM en tiempo real.
 
+    1.3 🌀 Soberano Termodinámico y Calibre del Campo Térmico (`thermal_gradient_agent.py` & `thermal_gradient_laws.py`)
+
+        Rol: Soberano de Calibre del Campo Térmico y Termostato Numérico de de Rham.
+        Estrato DIKW: PHYSICS (Nivel 3 - El Foso Termodinámico) y OMEGA ($V_\Omega$ - Ágora Tensorial).
+        Mecanismo Matemático: El `ThermalGradientAgent` orquesta un bucle covariante de tres fases $S = \mathrm{Act} \circ \mathrm{Orient} \circ \mathrm{Observe}$ sobre los certificados inmutables emitidos por el motor `ThermalGradientLaws`.
+        - **Deflación Espectral y Gradiente Discreto:** El motor `thermal_gradient_laws.py` purga asimetrías de Onsager vía proyección Hermítica de Weyl-Toeplitz $\mathcal{P}_{\mathrm{WT}}(\mathcal{K}) = \frac{1}{2}(\mathcal{K} + \mathcal{K}^\top)$, ejecuta deflación Krylov-Lanczos de complejidad $\mathcal{O}(k \cdot n^2)$ mediante subespacios de ARPACK (`eigsh`), regulariza por Higham-Tikhonov y aplica el Gradiente Discreto de Itoh-Abe con la Identidad de Tellegen $\langle \bar{\nabla}_{\mathrm{IA}} \bar{E}(0,p), p \rangle = \bar{E}(p) - \bar{E}(0)$ en FPU.
+        - **Memoria Fraccional Caputo y Haz de Čech:** El soberano calcula la derivada de Caputo / Grünwald-Letnikov $D^\alpha f_n = \Delta t^{-\alpha} \sum_{j=0}^n w_j^{(\alpha)} f_{n-j}$ y la integral Riemann-Liouville $I^\alpha \Phi$. Evalúa las secciones locales $\Gamma(U_i, \mathcal{H})$ sobre el haz de Heyting y registra la obstrucción del primer grupo de cohomología de Čech ($H^1_{\check{\mathrm{Cech}}} \neq 0$) ante solapes de discrepancia de rango $|\Delta \mathrm{rank}| \ge 2$, ejecutando veto quirúrgico si la discrepancia está aislada.
+        - **Sintonización KMS y Fidelidad de Uhlmann:** Fiscaliza la densidad $\rho_\beta = e^{-\beta H}/Z$, el defecto modular $\|\log \rho + \beta H - c \mathbf{I}\|_{\mathrm{HS}}$ y la Fidelidad de Uhlmann $F(\rho, \rho_\beta) = \|\sqrt{\rho}\sqrt{\rho_\beta}\|_1^2 \in [0,1]$.
+        Autoridad de Veto: Si se detecta violación de Clausius-Duhem ($\Phi_{\mathrm{disip}} < \tau_{\mathrm{CD}}$), desgarro de Fourier, flag de 3ª ley ($T_{\mathrm{sys}} \le 0$), fugas seculares fraccionales ($I^\alpha \Phi < -\tau_{\mathrm{secular}}$) o defecto KMS excesivo, el clasificador de Heyting colapsa a $\bot = \mathrm{VETOED}$. Dispara el interlock simulado CAS para la conmutación perimetral Crowbar en IRAM ESP32 ($< 400\,\text{ns}$) y emite el DTO firmado `ThermalGradientCertificate`.
+
 2. 🏗️ El Arquitecto (BusinessTopologicalAnalyzer)
 
     Rol: Analista de Integridad Estructural y Geometría del Riesgo.
