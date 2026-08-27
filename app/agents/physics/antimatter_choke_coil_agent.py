@@ -390,7 +390,7 @@ class Phase1_HermiticityAuditor:
         if isinstance(value, (bool, np.bool_)):
             raise DomainIntegrityViolationError(
                 f"El escalar '{name}' no puede ser booleano. "
-                f"Los booleanos pertenecen al topos $\mathbb{B}_2$, no a $\mathbb{R}$."
+                "Los booleanos pertenecen al topos $\\mathbb{B}_2$, no a $\\mathbb{R}$."
             )
         try:
             scalar = float(value)

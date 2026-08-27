@@ -1703,6 +1703,12 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
     def __init__(self) -> None:
         super().__init__()
 
+    def __call__(self, state: Any = None, **kwargs: Any) -> Any:
+        r"""Invocación como morfismo categórico."""
+        if kwargs:
+            return self.compute_brachistochrone_path(**kwargs)
+        return state
+
     def compute_brachistochrone_path(
         self,
         g_base: NDArray[np.float64],

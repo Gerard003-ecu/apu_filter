@@ -94,7 +94,7 @@ except ImportError:  # pragma: no cover
 # Importación robusta del motor del Espacio de Fock
 # ─────────────────────────────────────────────────────────────────────────────
 try:
-    from app.core.immune_system.synaptic_fock_space_registry import (
+    from app.core.inmune_system.synaptic_fock_space_registry import (
         SynapticFockSpaceRegistry,
         ToonCartridge,
         ElectronCartridge,
@@ -1015,7 +1015,8 @@ class SynapticFockSpaceRegistryAgent(Morphism, Phase3_LindbladPassivityValidator
         tolerance : float
             Cota de precisión para validaciones.
         """
-        super().__init__(tolerance=tolerance)
+        Morphism.__init__(self, "SynapticFockSpaceRegistryAgent")
+        Phase3_LindbladPassivityValidator.__init__(self, tolerance=tolerance)
         self._raise_on_veto = raise_on_veto
         self._target_stratum: Stratum = Stratum.WISDOM
 
@@ -1154,6 +1155,12 @@ class SynapticFockSpaceRegistryAgent(Morphism, Phase3_LindbladPassivityValidator
                     "Colapso catastrófico no tipado del soberano."
                 ) from exc
             return self._cataclysm_state(reason=str(exc), timestamp_utc=timestamp_utc)
+
+    def __call__(self, state: Any = None, **kwargs: Any) -> Any:
+        r"""Invocación como morfismo categórico."""
+        if kwargs:
+            return self.execute_sovereign_governance(**kwargs)
+        return state
 
     # ─────────────────────────────────────────────────────────────────────
     # Certificados vetados para cortocircuito anidado

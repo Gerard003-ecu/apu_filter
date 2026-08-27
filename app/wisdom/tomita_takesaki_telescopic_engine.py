@@ -1102,6 +1102,12 @@ class TomitaTakesakiTelescopicEngine(Morphism, Phase3_UmegakiExtraction):
 
         return audit_state
 
+    def __call__(self, state: Any = None, **kwargs: Any) -> Any:
+        r"""Invocación como morfismo categórico."""
+        if kwargs:
+            return self.execute_telescopic_audit(**kwargs)
+        return state
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # EXPORTACIÓN CANÓNICA DEL MÓDULO

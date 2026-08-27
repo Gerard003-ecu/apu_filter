@@ -1266,8 +1266,15 @@ class SynapticFockSpaceRegistry(Morphism, Phase3_ImmuneOrchestrator):
         halt_on_veto : bool
             Si True, lanza excepción cuando el veredicto es VETOED.
         """
-        super().__init__(max_cartridges=max_cartridges, tolerance=tolerance)
+        Morphism.__init__(self, "SynapticFockSpaceRegistry")
+        Phase3_ImmuneOrchestrator.__init__(self, max_cartridges=max_cartridges, tolerance=tolerance)
         self._halt_on_veto = halt_on_veto
+
+    def __call__(self, state: Any = None, **kwargs: Any) -> Any:
+        r"""Invocación como morfismo categórico."""
+        if kwargs:
+            return self.execute_full_registry_cycle(**kwargs)
+        return state
 
     def execute_full_registry_cycle(
         self,

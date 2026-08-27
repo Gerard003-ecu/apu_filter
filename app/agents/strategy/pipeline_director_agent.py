@@ -2795,6 +2795,12 @@ class PipelineDirectorAgent(Morphism, Phase3_MayerVietorisInterceptor):
             raise_on_veto=raise_on_veto,
         )
 
+    def __call__(self, state: Any = None, **kwargs: Any) -> Any:
+        r"""Invocación como morfismo categórico."""
+        if kwargs:
+            return self.execute_causal_governance(**kwargs)
+        return state
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # §E. EXPORTACIÓN CANÓNICA

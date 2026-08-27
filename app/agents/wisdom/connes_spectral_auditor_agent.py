@@ -1254,6 +1254,12 @@ class ConnesSpectralAuditorAgent(Morphism, Phase3_DixmierTraceIntegrator):
                 f"Fallo no catalogado en la tubería espectral de Connes: {exc}"
             ) from exc
 
+    def __call__(self, state: Any = None, **kwargs: Any) -> Any:
+        r"""Invocación como morfismo categórico."""
+        if kwargs:
+            return self.execute_spectral_audit(**kwargs)
+        return state
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # EXPORTACIÓN CANÓNICA DEL MÓDULO

@@ -794,7 +794,7 @@ class KapexElectrodynamicEngine:
         """
         chart = packet.spectral_chart
         F = np.asarray(packet.curvature_tensor)
-        curv_frob = float(la.norm(F.reshape(self._n * self._n, self._n, self._n), ord="fro"))
+        curv_frob = float(np.linalg.norm(F))
 
         radii = np.zeros(self._n, dtype=np.float64)
         ops: List[float] = []

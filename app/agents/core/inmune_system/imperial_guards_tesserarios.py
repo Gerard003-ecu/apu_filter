@@ -229,7 +229,7 @@ class _HomotopySpectralCore:
 
     @staticmethod
     def frobenius(array: np.ndarray) -> float:
-        return float(la.norm(np.asarray(array, dtype=np.float64), "fro"))
+        return float(np.linalg.norm(np.asarray(array, dtype=np.float64)))
 
     @classmethod
     def relative_frobenius(cls, residual: np.ndarray, scale_of: np.ndarray) -> float:

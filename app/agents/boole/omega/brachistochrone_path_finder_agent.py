@@ -1740,6 +1740,12 @@ class BrachistochronePathFinderAgent(Morphism, Phase3_FermatBrachistochroneDecid
         self._crowbar = crowbar_actuator or LoggingCrowbarActuator()
         self._raise_on_veto = raise_on_veto
 
+    def __call__(self, state: Any = None, **kwargs: Any) -> Any:
+        r"""Invocación como morfismo categórico."""
+        if kwargs:
+            return self.execute_brachistochrone_governance(**kwargs)
+        return state
+
     # ── FASE Ω.1 · conjunción de hard-gates en Ω₃ ─────────────────────────
     @staticmethod
     def _phase_omega_heyting_join(
