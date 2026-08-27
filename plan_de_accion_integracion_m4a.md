@@ -5,7 +5,7 @@
 
 ### I. Introducción y Justificación Metrológica
 
-La presente hoja de ruta o **Plan de Acción Difeomórfico** surge como respuesta al dictamen analítico emitido por el Consejo tras procesar la telemetría e impresiones del artefacto `"Inteligencia_cuántica_aplicada_a_la_construcción.m4a"`. La principal debilidad estructural de **APU Filter v5.0** radica en un desajuste de impedancia cognitiva: la tendencia a sobre-abstraer las capas lógicas mediante formalismos de la gravedad cuántica y la topología simpléctica sin proveer un puente explícito y visceral hacia el fango de la obra civil y las demandas regulatorias del **Mandato BIM 2026** y el **SECOP II** en Colombia.
+La presente hoja de ruta o **Plan de Acción Difeomórfico** surge como respuesta al dictamen analítico emitido por el Consejo tras procesar la telemetría e impresiones del artefacto. La principal debilidad estructural de **APU Filter v5.0** radica en un desajuste de impedancia cognitiva: la tendencia a sobre-abstraer las capas lógicas mediante formalismos de la gravedad cuántica y la topología simpléctica sin proveer un puente explícito y visceral hacia el fango de la obra civil y las demandas regulatorias del **Mandato BIM 2026** y el **SECOP II** en Colombia.
 
 Para impedir la dispersión de fase y que el sistema sea desestimado como ciencia ficción de-normalizada ante la junta directiva, se establece este plan obligatorio de inyección empírica y re-sutura documental de la fortaleza matemática de de Rham.
 
