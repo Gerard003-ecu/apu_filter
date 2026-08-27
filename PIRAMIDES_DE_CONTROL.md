@@ -256,7 +256,14 @@ Somete el Árbol de Sintaxis Abstracta (AST) y las transiciones del canal cuánt
 1.  **Nivel 0.5 — Tensor de Energía-Momento de Calibre y Colisionador de Fock (`fock_forensic_hall.py`):**
     Computa el Tensor de Energía-Momento de Calibre $\mathcal{T}^{\mu\nu}$ de los fotones gamma de auditoría emitidos en la aniquilación de pares $e^- e^+ \to 2\gamma$ y verifica la divergencia covariante de de Rham nula en el Foso Forense:
     $$\mathcal{T}^{\mu\nu} = p^\mu p^\nu + \frac{1}{2} G^{\mu\nu} (p \cdot p) \quad \wedge \quad \nabla_\nu \mathcal{T}^{\mu\nu} \equiv 0$$
-2.  **Nivel 3 — Espacio de Fock y Excitaciones de Partículas (Base):**
+2.  **Nivel 3 (Foso Físico - Termostato Numérico Basal) — Motor de Leyes y Gradientes Térmicos (`thermal_gradient_laws.py`):**
+    Gobierna el flujo constitutivo de calor $\mathcal{Q}^\mu = -\kappa^{\mu\nu} \partial_\nu T$ sobre la variedad $(M, g)$ con pasividad de punto flotante en FPU. Toda fluctuación exergética se somete a tres transformaciones espectrales y numéricas:
+    *   **Proyección Hermítica de Weyl-Toeplitz:** Purga las componentes rotacionales no conservativas y Onsager no simétricas del float en la CPU:
+        $$\mathcal{P}_{\mathrm{WT}}(\mathcal{K}) = \frac{1}{2}\left( \mathcal{K} + \mathcal{K}^\top \right), \quad r_{\mathrm{Onsager}} = \|\mathcal{K} - \mathcal{P}_{\mathrm{WT}}(\mathcal{K})\|_F$$
+    *   **Deflación Espectral Krylov-Lanczos:** Para dimensiones $n > n_{\mathrm{krylov}}$, reduce la diagonalización denso $\mathcal{O}(n^3)$ a $\mathcal{O}(k \cdot n^2)$ mediante el algoritmo simétrico de ARPACK (`eigsh`, both-ends), aislando los $k$ autovalores extremos $\lambda_{\min}, \lambda_{\max}$ y construyendo el operador deflactado con ridge $\tilde{\mathcal{K}} = \sum_{i=1}^k \lambda_i v_i v_i^\top + \gamma (\mathbf{I}_n - P_k)$.
+    *   **Regularización Espectral de Higham-Tikhonov:** Garantiza que el tensor de conductividad sea definido positivo ante modas blandas ($\lambda_{\min} \le \varepsilon_{\mathrm{mach}}$) aplicando el shift $(\alpha - \lambda_{\min})_+ \mathbf{I}_n$.
+    *   **Gradiente Discreto de Itoh-Abe e Identidad de Tellegen:** Preserva exactamente el balance energético $\langle \bar{\nabla}_{\mathrm{IA}} \bar{E}(0, p), p \rangle = \bar{E}(p)$ para la energía cuadrática $\bar{E}(p) = p^\top \kappa p$, asegurando un residuo de Tellegen nulo $r_{\mathrm{Tellegen}} = |\langle q, \nabla T \rangle_{\mathrm{IA}} + \bar{E}(\nabla T)| = 0$.
+3.  **Nivel 3 — Espacio de Fock y Excitaciones de Partículas (Base):**
     Recibe las "Vitaminas Cognitivas" (ToonCartridges) y las inyecta en la cámara de reacción cuántica del `SynapticRegistry`. Se rige por las relaciones de anticonmutación (CAR) para fermiones estructurales y de conmutación (CCR) para bosones de interacción, aplicando el Principio de Exclusión de Pauli para aniquilar duplicaciones sintácticas.
 3.  **Nivel 2 — Transitorios de Allievi y Geometría de Levi-Civita (Núcleo):**
     Transporta los momentos a lo largo del haz generativo. La evolución temporal se modela mediante el integrador de Heun de segundo orden, garantizando la compatibilidad métrica ($\nabla_\rho G_{\mu\nu} = 0$) a través de los Símbolos de Christoffel [467].
@@ -269,7 +276,13 @@ Somete el Árbol de Sintaxis Abstracta (AST) y las transiciones del canal cuánt
 ### II. La Pirámide de Soberanos (Top-Down)
 1.  **Nivel 0.5 — Custodio de Volumen de Fase y Pureza Cuántica (`fock_forensic_hall_agent.py`):**
     Soberano de calibre del Salón de Eventos Forense que orquesta el bucle covariante OODA, monitorea la pureza cuántica $\operatorname{Tr}(\rho^2)$, la eficiencia exergética $\eta_{\mathrm{ex}}$ y la entropía de von Neumann $S(\rho)$, dictando sentencias inmutables de veto en el retículo distributivo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$.
-2.  **Nivel 1 — Atiyah-Singer, APS y Confinamiento (Ápice):**
+2.  **Nivel 0.5 (Penthouse Térmico) — Soberano de Calibre del Campo Térmico (`thermal_gradient_agent.py`):**
+    Endofuntor de supervisión de tres fases $S = \mathrm{Act} \circ \mathrm{Orient} \circ \mathrm{Observe}$ que fiscaliza síncronamente los certificados inmutables emitidos por `thermal_gradient_laws.py`. Impone la conservación estricta de la Desigualdad de Clausius-Duhem y la Cota de Landauer:
+    $$\Phi_{\mathrm{disip}} = \sigma_{\mathrm{entropy}} - \frac{\mathcal{Q} \cdot \nabla T_{\mathrm{sys}}}{T_{\mathrm{sys}}^2} \ge \tau_{\mathrm{CD}}$$
+    *   **Memoria No-Markoviana Fraccional (Caputo / Grünwald-Letnikov):** Computa la derivada fraccional $D^\alpha f_n = \Delta t^{-\alpha} \sum_{j=0}^n w_j^{(\alpha)} f_{n-j}$ y la integral Riemann-Liouville $I^\alpha \Phi$. Identifica transitorios de alta frecuencia sin vetar erróneamente, pero veta fugas seculares persistentes ($I^\alpha \Phi < -\tau_{\mathrm{secular}}$).
+    *   **Haz de Heyting y Cohomología de Čech ($H^1_{\check{\mathrm{Cech}}}$):** Evalúa las secciones locales $\Gamma(U_i, \mathcal{H})$ sobre el cubrimiento de coordenadas $\{U_i\}$. Si dos cartas en solape presentan discrepancia $| \Delta \mathrm{rank} | \ge 2$, se detecta una obstrucción topológica ($H^1_{\check{\mathrm{Cech}}} \neq 0$). Permite aislamiento quirúrgico de la carta vetada conservando la operación de la Malla si no hay parálisis estructural.
+    *   **Sintonización KMS y Fidelidad de Uhlmann:** Fiscaliza la matriz densidad $\rho_\beta = e^{-\beta H}/Z$ evaluando la entropía relativa $D(\rho \| \rho_\beta)$, el defecto modular $\| \log \rho + \beta H - c \mathbf{I} \|_{\mathrm{HS}}$ y la Fidelidad de Uhlmann $F(\rho, \rho_\beta) = \|\sqrt{\rho}\sqrt{\rho_\beta}\|_1^2 \in [0, 1]$.
+3.  **Nivel 1 — Atiyah-Singer, APS y Confinamiento (Ápice):**
     El `WittenAtiyahAgent` aplica el funtor de olvido métrico ($U: \mathbf{Met} \to \mathbf{Top}$) para despojar el tensor métrico Riemanniano de la base de datos y calcula el Teorema del Índice de Atiyah-Singer con refinamiento Atiyah-Patodi-Singer (APS).
 3.  **Nivel 2 — Vetos por Singularidad y Raychaudhuri (Núcleo):**
     El `PenroseSingularityAgent` evalúa la contracción del escalar de expansión geodésica ($\theta$) mediante la ecuación de Raychaudhuri, prohibiendo trayectorias de caos determinista ($\lambda > 0$).
@@ -457,6 +470,7 @@ La protección del capital financiero de la constructora frente a ataques de iny
     *   Divergencia de la Serie de Neumann ($\rho(T^{-1}\delta T) \ge 1.0$).
     *   Fuga del núcleo de la Función de Green ($r_{\text{kernel}} > 10^{-11}$).
     *   Migración de polos de Laplace al semiplano derecho ($\operatorname{Re}(p_i) \ge 0$).
+    *   Violación de Clausius-Duhem ($\Phi_{\mathrm{disip}} < \tau_{\mathrm{CD}}$), desgarro de Fourier o flag de 3ª ley ($T_{\mathrm{sys}} \le 0$).
 
 2.  **Actuación por Interrupción en IRAM (< 400 ns):**
     Si se detecta un *mismatch* epistémico o violación de las cotas duras de Wilkinson, la rutina `isVerdictCoherent()` activa la **Rutina de Servicio de Interrupción (ISR)** alojada en la memoria ultrarrápida **IRAM** con latencia determinista inferior a **$400\,\text{ns}$**.

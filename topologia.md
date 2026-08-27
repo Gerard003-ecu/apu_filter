@@ -139,6 +139,32 @@ $\dots \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \xrightarrow{\partial^*} H_0(A
 
 
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+6. Dinámica Covariante de Calibre y Umbral de Clausius-Duhem Adaptativo
+
+En la arquitectura v5.0 de APU Filter, la dinámica térmica y la conservación del flujo de calor se someten a la geometría Riemanniana covariante de de Rham (`thermal_gradient_laws.py`) y al control de calibre del soberano supervisor (`thermal_gradient_agent.py`).
+
+### I. Gradiente Discreto de Itoh-Abe Covariante y la Identidad de Tellegen
+Para sustituir los gradientes euclídeos planos y evitar errores por desajuste de curvatura Riemanniana bajo la métrica de fondo $G_{\mu\nu}$, el flujo constitutivo $\mathcal{Q}^\mu = -\kappa^{\mu\nu} \partial_\nu T$ y su pairing de dualidad con $\nabla T$ se evalúan mediante el **Gradiente Discreto de Itoh-Abe**:
+$$\mathcal{Q}^\mu_{k+1} = \mathcal{Q}^\mu_k - \frac{\bar{E}(\mathcal{Q}_k) - \bar{E}(\mathcal{Q}_k - \Delta_k e_k)}{\Delta_k} G^{\mu\nu} e_\nu$$
+donde $\bar{E}(p) = p^\top \kappa p$ es la energía cuadrática de Dirichlet. El gradiente de Itoh-Abe satisface exactamente la **Identidad de Tellegen** en aritmética flotante KBN:
+$$\langle \bar{\nabla}_{\mathrm{IA}} \bar{E}(0, p), p \rangle = \bar{E}(p) - \bar{E}(0)$$
+garantizando la conservación del pairing $\langle \mathcal{Q}, \nabla T \rangle_{\mathrm{IA}} = -\bar{E}(\nabla T)$ independientemente de la dirección o la escala de discretización.
+
+### II. Modulación Adaptativa de Clausius-Duhem sobre el Anillo de Novikov Ultramétrico
+Para erradicar la "frustración de calibre" (vetos falsos positivos provocados por picos numéricos o transitorios térmicos de corta duración durante cierres de obra), el umbral de Clausius-Duhem no es estático; se deforma elásticamente sobre el anillo de Novikov mediante la valuación ultramétrica-surrogate de la perturbación $b_t$:
+$$x_t = \|\nabla T\|_g = \sqrt{\nabla T^\top G^{-1} \nabla T}$$
+$$s_t = \rho s_{t-1} + (1-\rho) x_t \quad (\text{envolvente de memoria de fase Rham-Caputo})$$
+$$b_t = |x_t - s_t| \implies \nu(b_t) = \ln\left(1 + \frac{b_t}{s_t + \varepsilon_{\mathrm{mach}}}\right)$$
+$$\tau_{\mathrm{CD}}(t) = -\tau_0 \cdot \text{safety} \cdot \exp\left( -\nu(b_t) \right)$$
+
+Ante transitorios de alta frecuencia ($\nu(b_t)$ elevado), el umbral $\tau_{\mathrm{CD}}(t)$ se dilata elásticamente (haciéndose más negativo), absorbiendo el spike de $\Phi_{\mathrm{disip}}$ sin activar vetos parásitos. Sin embargo, ante desequilibrios seculares persistentes ($\nu(b_t) \to 0$ e $I^\alpha \Phi < 0$), el umbral decae de forma determinista y gatilla inexorablemente el veto ciber-físico.
+
+### III. Haz de Heyting y Cohomología de Čech ($H^1_{\check{\mathrm{Cech}}}$) para Veto Quirúrgico
+La supervisión del campo térmico sobre un cubrimiento finito de coordenadas $\{U_i\}$ construye el haz de Heyting $\mathcal{H}$ con secciones locales $\Gamma(U_i, \mathcal{H})$ que asignan veredictos en la cadena $\bot = \mathrm{VETOED} \prec \mathrm{DEGRADED} \prec \mathrm{COHERENT} \prec \mathrm{CERTIFIED} = \top$.
+La inconsistencia entre cartas solapadas $U_i \cap U_j$ se cuantifica mediante la divergencia de rango $|\Delta \mathrm{rank}| = |\mathrm{rank}(v_i) - \mathrm{rank}(v_j)|$. Si $|\Delta \mathrm{rank}| \ge 2$, se activa la **Obstrucción de Čech** ($H^1_{\check{\mathrm{Cech}}} \neq 0$). Si las cartas colapsadas a $\mathrm{VETOED}$ se encuentran aisladas topológicamente y el meet del resto permanece coherente, el sistema ejecuta un **Veto Quirúrgico**, aislando únicamente las cartas defectuosas y preservando la operabilidad continua de la Malla Agéntica.
+
+--------------------------------------------------------------------------------
 Síntesis Operativa en el Estrato Ω
 Este documento fundamenta que en APU_filter, la validación topológica no es una sugerencia, es el muro portante de la arquitectura Zero-Trust. Todos los vectores que salen del BusinessTopologicalAnalyzer actúan como Semillas JSON deterministas.
 Al sellar el Pasaporte de Telemetría con estos invariantes, garantizamos que el "Consejo de Sabios" (los LLMs) no pueda alucinar o forzar la aprobación de un proyecto. El algoritmo obliga a que cualquier deliberación se subordine perpetuamente a la forma matemática del negocio.

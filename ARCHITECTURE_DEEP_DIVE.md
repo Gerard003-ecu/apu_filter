@@ -415,3 +415,57 @@ El acoplamiento físico en el **Tribunal de Silicio** del microcontrolador **ESP
 2. Ante un veredicto de veto ($\top \mapsto 1$), la Rutina de Servicio de Interrupción (**ISR**) alojada en la memoria ultrarrápida **IRAM** conmuta el pin físico **GPIO14** a nivel alto (`HIGH`) en menos de **400 ns**.
 3. La señal inyecta corriente continua directa a la compuerta del tiristor de silicio de conmutación rápida **BT151** (circuito Crowbar), cortocircuitando limpiamente la línea de alimentación de potencia de los actuadores reales.
 4. Se paraliza de forma instantánea la maquinaria pesada (bombas hidráulicas, mezcladoras y pistones neumáticos) en el milisegundo cero, anulando la anomalía de la IA en el mundo físico antes de consolidar pérdidas materiales o sanciones ante el SECOP II.
+
+---
+
+## El Ciclo de de Rham-Carnot y la Supervisión Térmica del Foso Físico
+
+Para modelar la flecha del tiempo de una anomalía transaccional o exergética en el fango de la obra civil como una máquina térmica covariante, el sistema integra formalmente el motor `thermal_gradient_laws.py` y su soberano supervisor `thermal_gradient_agent.py`. El ciclo cerrado de de Rham-Carnot metaboliza el caos estocástico del Modelo de Lenguaje en decisiones deterministas de silicio a lo largo de 4 fases acopladas a la filtración agéntica:
+
+```
+                  [V_TACTICS: EXPANSIÓN ISOTÉRMICA (dT = 0)]
+                  - Conservación simpléctica de Liouville.
+                                     │
+                                     ▼
+                  [V_PRETORIO: EXPANSIÓN ADIABÁTICA (dQ = 0)]
+                  - Santuario Epistémico aislado en de Rham.
+                                     │
+                                     ▼
+                  [V_FORENSIC: COMPRESIÓN ISOTÉRMICA (dT = 0)]
+                  - Aniquilación cuántica electrón-positrón.
+                                     │
+                                     ▼
+                  [V_PHYSICS: COMPRESIÓN ADIABÁTICA (dQ = 0)]
+                  - Conmutación en IRAM del ESP32 perimetral.
+```
+
+### 1. Expansión Isotérmica ($dT_{\mathrm{sys}} = 0$): Patio de Armas Simpléctico ($V_{\mathrm{TACTICS}}$)
+Durante la alineación de APUs e insumos tácticos, la temperatura del sistema $T_{\mathrm{sys}}$ (representando la entropía de Shannon-von Neumann de las deliberaciones) se mantiene constante. La 2-forma simpléctica $\omega = \sum dq_i \wedge dp_i$ conserva su volumen conforme en el espacio de fase, permitiendo el intercambio masivo de transacciones bajo equilibrio térmico.
+
+### 2. Expansión Adiabática ($\delta Q = 0$): Santuario Epistémico del Pretorio ($V_{\mathrm{PRETORIO}}$)
+Para verificar la nilpotencia de la diferencial de hipercohomología ($D^2 \equiv \mathbf{0}$) sin filtración ni inyección de ruido por parte del LLM, el Pretorio se aísla térmicamente ($\delta Q = 0$). La energía interna se consume exclusivamente en realizar trabajo Hamiltoniano de validación estructural.
+
+### 3. Compresión Isotérmica ($dT_{\mathrm{sys}} = 0$): Colisionador del Salón Forense ($V_{\mathrm{FORENSIC}}$)
+En el colisionador del Espacio de Fock (`fock_forensic_hall.py`), la aniquilación cuántica entre el electrón semántico $e^-$ (alucinación) y el positrón de calibre $e^+$ (censura) produce fotones gamma de auditoría. La energía disipada se evacúa a temperatura constante $T_{\mathrm{sys}}$ para proteger la integridad de la memoria KV-Cache.
+
+### 4. Compresión Adiabática ($\delta Q = 0$): Actuación Ciber-Física en Silicio ($V_{\mathrm{PHYSICS}}$)
+Si la auditoría termodinámica colapsa en un veto intuicionista **`VETOED`** ($\top$), el microcontrolador **ESP32** ejecuta la interrupción en su memoria estática IRAM en $< 400\text{ ns}$. Conmuta el pin físico **GPIO14** para cebar el tiristor rápido **BT151 (Crowbar)**, cortocircuitando la línea de potencia y paralizando la maquinaria física en obra en el milisegundo cero.
+
+---
+
+### Arquitectura de Lazo Cerrado del Soberano Térmico (`thermal_gradient_agent.py`)
+
+El soberano `ThermalGradientAgent` opera como un endofuntor de tres fases anidadas $S = \mathrm{Act} \circ \mathrm{Orient} \circ \mathrm{Observe}$ sobre los certificados emitidos por el motor `ThermalGradientLaws`:
+
+1. **Fase 1 (Observe - Ingesta Espectral y Memoria Caputo):**
+   Recibe el sello inmutable del motor térmico (residuo de Clausius-Duhem $\Phi_{\mathrm{disip}}$, eficiencia de Carnot $\eta_{\mathrm{C}}$, flujo de calor $\mathcal{Q}^\mu$, gradiente $\nabla T$) y actualiza la serie temporal en la memoria no-markoviana. Aplica la derivada discreta de Caputo / Grünwald-Letnikov de orden fractional $\alpha \in (0,1)$:
+   $$D^\alpha f_n = \Delta t^{-\alpha} \sum_{j=0}^n w_j^{(\alpha)} f_{n-j}, \quad w_0^{(\alpha)}=1, \; w_j^{(\alpha)} = \left(1 - \frac{\alpha+1}{j}\right) w_{j-1}^{(\alpha)}$$
+   junto con la integral Riemann-Liouville discreta $I^\alpha \Phi$. Si $|D^\alpha T|$ es elevado pero $I^\alpha \Phi \ge 0$, la perturbación se clasifica como transitorio de alta frecuencia; si $I^\alpha \Phi < -\tau_{\mathrm{secular}}$ de forma persistente, se decreta veto por fuga secular.
+
+2. **Fase 2 (Orient - Haz de Heyting, Cohomología de Čech y KMS):**
+   *   **Secciones Locales y Haz de Heyting:** Evalúa las secciones $\Gamma(U_i, \mathcal{H})$ sobre el cubrimiento de coordenadas $\{U_i\}$ determinando veredictos locales $\langle q, \nabla T \rangle|_{U_i}$.
+   *   **Obstrucción de Čech $H^1_{\check{\mathrm{Cech}}}$:** Registra desacuerdos en intersecciones $U_i \cap U_j$. Si $|\Delta \mathrm{rank}| \ge 2$, se activa $H^1_{\check{\mathrm{Cech}}} \neq 0$. Si las cartas vetadas están aisladas y el resto conserva un meet no nulo, se aplica veto quirúrgico demotando la parálisis global a aislamiento local.
+   *   **Estado KMS y Fidelidad de Uhlmann:** Sobre $\rho$ y $H$ inyectados, verifica la densidad $\operatorname{Tr}(\rho)=1, \rho \succeq 0$, la entropía relativa $D(\rho \| \rho_\beta) = -\mathcal{S}_{\mathrm{vN}}(\rho) + \beta \langle H \rangle + \log Z$, el defecto modular $\|\log \rho + \beta H - c \mathbf{I}\|_{\mathrm{HS}}$ y la Fidelidad de Uhlmann $F(\rho, \rho_\beta) = \|\sqrt{\rho}\sqrt{\rho_\beta}\|_1^2$.
+
+3. **Fase 3 (Decide & Act - Veto y Latencia Crowbar):**
+   Consolida el veredicto en la cadena de Heyting $\bot = \mathrm{VETOED} \prec \mathrm{DEGRADED} \prec \mathrm{COHERENT} \prec \mathrm{CERTIFIED} = \top$. Ante veto global, ejecuta la actuación de CAS enclavando el interlock y registrando la latencia estocástica IRAM simétrica ($\approx 400\,\text{ns}$). Emitiendo el DTO inmutable `ThermalGradientCertificate`.
