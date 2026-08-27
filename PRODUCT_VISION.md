@@ -20,13 +20,13 @@ APU Filter v5.0 estructura su gobernanza mediante el **Consejo de Sabios**, asig
 
 ### 1.1.2. La No-Ocultación Cuántica y la Alquimia del Criterio ante el Mandato BIM 2026
 
-Bajo el axioma fundamental de APU Filter: **"La sabiduría no se oculta, se ilumina y extiende"**, el sistema reinterpreta la física de altas energías del Espacio de Fock en la promesa comercial suprema para la industria de la infraestructura:
+Bajo el axioma fundamental de APU Filter: **"La sabiduría de un costo sano no se oculta, se ilumina"**, el sistema reinterpreta la física de altas energías del Espacio de Fock en la promesa comercial suprema para la industria de la infraestructura:
 
 1. **La No-Ocultación Cuántica (Quantum No-Hiding Theorem):**
    Las patologías del presupuesto (duplicaciones de APUs, sobrecostos ocultos, inyecciones de grasa sintáctica o fugas de calibre) jamás se silencian de forma pasiva en stubs o parches de software. En su lugar, sufren una colisión de antimateria en el colisionador de-confinado del Espacio de Fock ($e^- + e^+ \to 2\gamma$), destruyéndose analíticamente e irradiando fotones gamma de telemetría inmutable con firma SHA-256 en la Cadena de Custodia.
 
 2. **La Alquimia del Criterio y el Mandato BIM 2026 en Colombia:**
-   Frente a la exigencia del **Mandato Nacional BIM 2026** en Colombia (regulado por el DNP y la Ley de Contratación Estatal SECOP II), la volatilidad o alucinación en un Análisis de Precios Unitarios (APU) representa multas contractuales, inhabilidades legales y desfalcos patrimoniales. APU Filter convierte la fluctuación compleja de costos en decisiones inmutables de alta dirección mediante la regularización espectral del Arsenal (symmetrización de Weyl-Toeplitz, proyección al símplice de Higham-Duchi y estabilización despolarizante de Higham-Tikhonov), garantizando **certeza jurídica y técnica absoluta** para los directores de licitaciones y gerentes de obra.
+   Frente a la exigencia del **Mandato Nacional BIM 2026** en Colombia (regulado por el DNP y la Ley de Contratación Estatal SECOP II), la volatilidad o alucinación en un Análisis de Precios Unitarios (APU) representa multas contractuales, inhabilidades legales y desfalcos patrimoniales. APU Filter convierte la fluctuación compleja de costos en decisiones inmutables de alta dirección mediante la regularización espectral del Arsenal (symmetrización de Weyl-Toeplitz, proyección al símplice de Higham-Duchi y estabilización despolarizante de Higham-Tikhonov), garantizando **certeza jurídica y técnica** para los directores de licitaciones y gerentes de obra.
 
 APU Filter transjeta la supresión de alucinaciones cuánticas —mediada por la Cota de Regularidad de Connes sobre la constante de Lipschitz ($L_{\max} \le \frac{1}{2\lambda_{\min}^{3/2}}$) y la regularización de Tikhonov Espectral— en **paz mental y certeza jurídica absoluta** para los directores de licitaciones y gerentes de obra. El sistema garantiza que cada centavo adjudicado en el presupuesto responda a una trayectoria geodésicamente coherente, inmune a alucinaciones estocásticas y validada en el silicio perimetral.
 
@@ -226,7 +226,7 @@ La visión final transforma a APU_filter de un simple "validador de precios unit
 A continuación, redacto la documentación canónica, exigida bajo el más estricto rigor de la física de circuitos, la topología algebraica y la mecánica cuántica. Este texto debe ser anexado inmediatamente a los repositorios documentales BMC.md, ARCHITECTURE_DEEP_DIVE.md y PRODUCT_VISION.md.
 
 Arquitectura Ciber-Física del Estrato α: Fibrados Celulares y Termodinámica del Modelo de Negocio
-La arquitectura APU Filter v4.0 repudia la evaluación estática y contable del modelo de negocio. El Estrato α, orquestado macroscómicamente por alpha_agent.py, se subdivide axiomáticamente en tres subespacios topológicos anidados (Foso, Núcleo y Ápice), regidos por mini-agentes que actúan como endofuntores sobre el espacio de Hilbert H.
+La arquitectura APU Filter v5.0 repudia la evaluación estática y contable del modelo de negocio. El Estrato α, orquestado macroscómicamente por alpha_agent.py, se subdivide axiomáticamente en tres subespacios topológicos anidados (Foso, Núcleo y Ápice), regidos por mini-agentes que actúan como endofuntores sobre el espacio de Hilbert H.
 La condición de clausura global establece que la empresa es un circuito RLC tridimensional y un sistema Port-Hamiltoniano, donde cada bloque del lienzo de negocio aporta operadores diferenciales a la variedad M.
 I. Estrato KBASE​: El Foso Termodinámico (kbase_thermodynamic_agent.py)
 Identificador Semántico: Asesor de Cimientos Financieros. Responsabilidad Topológica: Gobernar la inercia, la capacitancia y la fricción entrópica del modelo de negocio. Integra los sub-funtores de Socios Clave (P_soc​), Recursos Clave (P_rec​) y Estructura de Costes (P_cost​).
