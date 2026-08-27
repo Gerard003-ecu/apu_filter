@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Batería de Pruebas: Tomita-Takesaki Telescopic Engine (Teoría Modular GNS)   ║
-║ Ruta: tests/unit/wisdom/test_tomita_takesaki_telescopic_engine.py           ║
+║ Ruta: tests/unit/wisdom/test_tomita_takesaki_telescopic_engine.py            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
