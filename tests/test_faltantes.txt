@@ -31,7 +31,7 @@
    + test_semantic_estimator_agent.py ---------------- tests/unit/agents/tactics/test_semantic_estimator_agent.py
    + test_connes_spectral_auditor_agent.py ----------- tests/unit/agents/wisdom/test_connes_spectral_auditor_agent.py
    + test_business_canvas.py ------------------------- tests/unit/alfa/test_business_canvas.py
-   + test_tomita_takesaki_telescopic_engine.py ------- tests/unit/agents/wisdom/test_tomita_takesaki_telescopic_engine.py
+   + test_tomita_takesaki_telescopic_engine.py ------- tests/unit/wisdom/test_tomita_takesaki_telescopic_engine.py
    + test_synaptic_fock_space_registry_agent.py ------ tests/unit/agents/core/inmune_system/test_synaptic_fock_space_registry_agent.py
    + test_brachistochrone_path_finder_agent.py ------- tests/unit/agents/boole/omega/test_brachistochrone_path_finder_agent.py
    + test_brachistochrone_path_finder.py ------------- tests/unit/boole/physics/test_brachistochrone_path_finder.py
