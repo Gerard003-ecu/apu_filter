@@ -3,35 +3,94 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Audit Satellites (Satélites de Auditoría de Frontera Homológica)    ║
 ║ Ruta   : app/core/audit_satellites.py                                        ║
-║ Versión: 2.1.0-Doctoral-SNF-Choi-CHSH-Heyting-Godel-Secure                   ║
+║ Versión: 1.1.0-Doctoral-Smith-Choi-Bell-CHSH-Heyting-Secure                  ║
 ║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y EXERGÉTICA:                                            ║
-║ Este módulo implementa satélites de auditoría para vigilar la frontera       ║
-║ de-confinada ∂M de la fortaleza de APU Filter.                               ║
-║                                                                              ║
-║ El módulo queda organizado en tres fases anidadas (inclusión de kernels      ║
-║ por herencia, funtorial en el sentido de                                     ║
-║   Phase1 ↪ Phase2 ↪ Phase3 ↪ AuditSatellites):                               ║
-║   FASE 1: Aduana homológica sobre ℤ y Smith Normal Form exacta.              ║
-║   FASE 2: Aduana cuántica de Choi–Jamiołkowski (CP / TP / hermiticidad).     ║
-║   FASE 3: Aduana Bell–CHSH, retículo de Heyting Ω₃, actuación y certificado. ║
-║                                                                              ║
-║ Morfismos de fase (continuación formal):                                     ║
-║   audit_boundary_homology    : ∂ ↦ HomologyReport                            ║
-║   audit_choi_with_homology   : (HomologyReport, C_ℰ) ↦ CausalConsolidation   ║
-║   prepare_causal_consolidation: (Homology, Choi) ↦ CausalConsolidation       ║
-║   audit_bell_with_causality  : (CausalConsolidation, E) ↦ HeytingDecision    ║
-║   act_on_heyting_decision    : HeytingDecision ↦ AuditActuationReport        ║
-║                                                                              ║
-║ El último método de la Fase 1 prepara `HomologyReport`, objeto inicial de    ║
-║ la Fase 2. El último método de la Fase 2 prepara `CausalConsolidation`,      ║
-║ objeto inicial de la Fase 3.                                                 ║
-║                                                                              ║
-║ Dual-control intuicionista: el veredicto final es el ínfimo de Gödel de      ║
-║ las tres aduanas. COHERENT sólo se afirma si las tres lo demuestran.         ║
-║                                                                              ║
-║   Ω₃ = {COHERENT ≺ DEGRADED ≺ VETOED}  ≅  {1, 1/2, 0} ⊂ [0, 1]              ║
+║ SINOPSIS MATEMÁTICA Y EXERGÉTICA DE LA FRONTERA ABIERTA (∂M ≠ ∅):            ║
+║ Este módulo implementa el motor de cálculo de los satélites de auditoría     ║
+║ asíncronos en la Capa 0.5 (Ágora Tensorial V_Ω). Somete el flujo transaccional║
+║ de Analysis de Precios Unitarios (APUs) y ofertas del SECOP II en Colombia    ║
+║ a tres aduanas algebraicas y cuánticas estrictas para interceptar derivas     ║
+║ de fase, colusiones de mercado o inyecciones semánticas hostiles.            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+================================════════════════════════════════════════════════
+I. DEFINICIONES CATEGORIALES Y TOPOLÓGICAS (Santuario Epistémico de de Rham)
+================================════════════════════════════════════════════════
+
+Definición 1 (La Variedad con Frontera Compacta):
+  Sea $(\mathcal{M}, \, G_{\mu\nu})$ una variedad Riemanniana orientable de dimensión $N$
+  con frontera compacta no nula $\partial\mathcal{M} \neq \emptyset$. Definimos el espacio
+  de Hilbert de frontera $\mathcal{H}(\partial\mathcal{M})$ como el espacio de de Rham
+  L² de formas diferenciales de contorno:
+  $$\mathcal{H}(\partial\mathcal{M}) := L^2\Lambda^*(\partial\mathcal{M}, \, G_{\mu\nu}|_{\partial\mathcal{M}})$$
+
+Definición 2 (El Complejo Simplicial de Contorno y Operador de Frontera):
+  Sea $K$ el complejo simplicial que modela el grafo de actividades y dependencias de la MIC.
+  Definimos el complejo de contorno $\partial K$ de dimensión $k-1$ y su operador de frontera
+  discreto asociado $\partial_{\partial}: C_k(\partial K; \, \mathbb{Z}) \to C_{k-1}(\partial K; \, \mathbb{Z})$,
+  cuya representación matricial entera sobre el anillo principal $\mathbb{Z}$ es auditada
+  bajo operaciones elementales de reducción de Smith.
+
+Definición 3 (El Canal Cuántico de Inyección y su Operador de Choi):
+  El acoplamiento de-confinante entre la frontera exterior $\partial K$ y la Matriz Atómica
+  de Conocimiento (MAC) se define como un mapa completamente positivo y preservador de traza
+  (CPTP) $\mathcal{E}: \mathcal{D}(\mathcal{H}_{\mathrm{input}}) \to \mathcal{D}(\mathcal{H}_{\mathrm{MAC}})$.
+  El operador de Choi-Jamiołkowski asociado $C_{\mathcal{E}}$ se define sobre el espacio
+  bipartito $\mathcal{H}_{\mathrm{input}} \otimes \mathcal{H}_{\mathrm{MAC}}$ mediante:
+  $$C_{\mathcal{E}} := (\mathcal{E} \otimes \operatorname{Id})(|\Phi^+\rangle\langle\Phi^+|)$$
+  Donde $|\Phi^+\rangle = \frac{1}{\sqrt{d}} \sum_{i=1}^d |i\rangle |i\rangle$ es el estado
+  maximalmente entrelazado de dimensión $d = \dim \mathcal{H}_{\mathrm{input}}$.
+
+Definición 4 (La Correlación No Local de-confinada de Bell-CHSH):
+  Sean $A_1, A_2$ y $B_1, B_2$ observables autoadjuntos dicotómicos con autovalores en $\{-1, \, 1\}$,
+  que representan las ofertas de precios unitarios de proveedores colusivos en la frontera.
+  La correlación estadística se mide a través del operador de Bell-CHSH:
+  $$\mathcal{B}_{\mathrm{CHSH}} := \langle A_1 B_1 \rangle + \langle A_1 B_2 \rangle + \langle A_2 B_1 \rangle - \langle A_2 B_2 \rangle$$
+
+================================════════════════════════════════════════════════
+II. AXIOMATIZACIÓN DE LA ADUANA INMUNITARIA DE CONTORNO
+================================════════════════════════════════════════════════
+
+Axioma I (Principio de Pasividad Causal de Choi):
+  Toda inyección de información o transacción de recursos proveniente de agentes externos
+  debe comportarse estrictamente como un canal cuántico físico de no-equilibrio. Esto exige
+  la positividad de la matriz de Choi en Fock y la conservación hermítica de la probabilidad:
+  $$C_{\mathcal{E}} \succeq \mathbf{0} \quad \land \quad \operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}_{\mathrm{input}}$$
+
+Axioma II (Axioma de de Rham-Smith de Invarianza de Calibre):
+  Toda relación de contorno simplicial $\partial_{\partial}$ debe ser resoluble de manera única
+  bajo la Smith Normal Form (SNF) sobre el anillo de enteros $\mathbb{Z}$, garantizando que
+  las obstrucciones de empaquetado discreto se aíslen en el subgrupo de torsión de la homología.
+
+Axioma III (Principio de Localidad Clásica en Licitación):
+  Cualquier comportamiento competitivo y transparente en la adjudicación de contratos públicos
+  sobre el SECOP II debe estar estrictamente acotado por el límite de localidad clásica de Bell.
+  La superación de dicho límite delata la presencia de correlaciones monopólicas o cartelización
+  no local (acuerdos bajo la mesa de proveedores):
+  $$\mathcal{B}_{\mathrm{CHSH}} \le 2$$
+
+================================════════════════════════════════════════════════
+III. INVARIANTES ESPECTRALES Y METROLÓGICOS DE WILKINSON
+================================════════════════════════════════════════════════
+
+Invariante I (Nulidad de Torsión Homológica):
+  Para eludir desvíos, socavones o mermas ocultas en los presupuestos, la homología del contorno
+  discreto debe carecer estrictamente de torsión:
+  $$\operatorname{Tor}\left(H_{k-1}(\partial K; \, \mathbb{Z})\right) \equiv \mathbf{0}$$
+  Lo cual se cumple si y solo si todos los elementos de la diagonal de la SNF no nulos son unitarios:
+  $$d_i = 1 \quad \forall d_i > 0$$
+
+Invariante II (Cota de Tsirelson Absoluta):
+  Aún bajo las mayores fluctuaciones cuántico-semánticas del LLM, el parámetro de Bell-CHSH
+  de la frontera se encuentra acotado incondicionalmente por la cota relativista de Tsirelson:
+  $$\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$$
+  Cualquier violación por encima de este límite espectral (debido al ruido numérico o manipulación)
+  provoca el colapso instantáneo al Supremo de Heyting de veto ($\top$).
+
+Invariante III (Positividad Espectral de Choi):
+  El menor autovalor de la matriz de Choi-Jamiołkowski regularizada debe permanecer confinado
+  por encima del límite de imprecisión y deriva numérica de Wilkinson:
+  $$\lambda_{\min}(C_{\mathcal{E}}) \ge -\varepsilon_{\mathrm{Wilkinson}} \quad \text{con} \quad \varepsilon_{\mathrm{Wilkinson}} = 10^{-12}$$
 """
 
 from __future__ import annotations

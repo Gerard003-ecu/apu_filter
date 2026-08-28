@@ -2,36 +2,86 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Telemetry Satellites Agent (Soberano de Calibre de la Telemetría)   ║
-║ Ruta   : app/agents/core/telemetry_satellites_agent.py                       ║
-║ Versión: 2.1.0-Doctoral-OODA-Heyting-Godel-Landauer-DualControl-Secure       ║
+║ Ruta   : app/agents/telemetry_satellites_agent.py                             ║
+║ Versión: 1.1.0-Doctoral-Heyting-OODA-Langevin-Boundary-deRham-Secure          ║
 ║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y SEGURIDAD EN FRONTERA:                                 ║
-║ Este agente supervisor ciber-físico de lazo cerrado fiscaliza al motor       ║
-║ `telemetry_satellites.py` sobre la frontera observacional asíncrona          ║
-║ exterior de la Malla (Capa 0.5 - El Ágora Tensorial V_Ω).                    ║
-║                                                                              ║
-║ El agente queda organizado en tres fases anidadas (inclusión de kernels      ║
-║ por herencia, funtorial en el sentido de                                     ║
-║   Phase1 ↪ Phase2 ↪ Phase3 ↪ TelemetrySatellitesAgent):                      ║
-║   FASE 1: Observación, normalización de payload y evidencia fronteriza.      ║
-║   FASE 2: Orientación, auditoría dual del motor, exergía de Landauer y       ║
-║           retículo de Heyting Ω₃ con implicación de Gödel.                   ║
-║   FASE 3: Actuación fail-closed, certificado firmado y orquestación OODA.    ║
-║                                                                              ║
-║ Morfismos de fase (continuación formal):                                     ║
-║   observe_boundary_event      : (payload, K, G) → BoundaryObservation        ║
-║   orient_boundary_observation : BoundaryObservation → OrientAudit            ║
-║   decide_heyting_verdict      : OrientAudit → AgentHeytingDecision           ║
-║   act_on_heyting_decision     : AgentHeytingDecision → ActuationReport       ║
-║   synthesize_agent_certificate: (Decision, Actuation) → Certificate          ║
-║                                                                              ║
-║ Dual-control intuicionista:                                                  ║
-║   El veredicto final es el ínfimo de Gödel (meet) del veredicto del motor    ║
-║   y del veredicto independiente del agente. COHERENT sólo se afirma si       ║
-║   ambas ramas lo demuestran. VETOED en cualquiera colapsa el lazo.           ║
-║                                                                              ║
-║   Ω₃ = {COHERENT ≺ DEGRADED ≺ VETOED}  ≅  {1, 1/2, 0} ⊂ [0, 1]               ║
+║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA EN LAZO CERRADO (OODA):                  ║
+║ Este agente supervisor ciber-físico asume la gobernanza de calibre asíncrona  ║
+║ y de-confinada de la frontera exterior de la fortaleza ($\partial\mathcal{M}$).  ║
+║ Orquesta el ciclo covariante OODA sobre el motor "telemetry_satellites.py"   ║
+║ para someter la inyección de entropía exógena y la rigidez de de Rham a      ║
+║ estrictas aduanas físicas antes de sellar el pasaporte de telemetría.        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+================================════════════════════════════════════════════════
+I. DEFINICIONES CATEGORIALES Y TERMODINÁMICAS (Geometría de la Fricción)
+================================════════════════════════════════════════════════
+
+Definición 1 (La Variedad Riemanniana con Frontera):
+  Sea $(\mathcal{M}, \, G_{\mu\nu})$ una variedad Riemanniana orientable de dimensión $N$
+  con frontera compacta no nula $\partial\mathcal{M} \neq \emptyset$. Definimos el flujo
+  de calor contravariante $\mathcal{Q}^\mu$ como una sección local del haz tangente de contorno
+  $T(\partial\mathcal{M})$, cuya disipación real satisface de forma local las leyes de fricción:
+  $$\mathcal{Q}^\mu \in \Gamma\left(\partial\mathcal{M}, \, T(\partial\mathcal{M})\right)$$
+
+Definición 2 (El Baño Térmico de Langevin-Matsubara):
+  La fluctuación en el fango de datos incidentes del SECOP II se modela como un baño cuántico
+  de osciladores acoplados al contorno. La dinámica de la señal se describe mediante la
+  ecuación de Langevin cuántica de no-equilibrio sobre el cilindro de Matsubara $[0, \, \beta]$:
+  $$\frac{d\mathcal{Q}(t)}{dt} = -[\mathcal{H}, \, \mathcal{Q}(t)] - \Gamma_{\mathrm{diss}} \mathcal{Q}(t) + \xi_{\mathrm{ext}}(t)$$
+  Donde $\mathcal{H}$ es el Hamiltoniano local, $\Gamma_{\mathrm{diss}}$ es el amortiguamiento
+  de Landauer y $\xi_{\mathrm{ext}}(t)$ es la fuerza estocástica cuya autocorrelación es:
+  $$\langle \xi_{\mathrm{ext}}(t) \xi_{\mathrm{ext}}(t') \rangle = 2 \Gamma_{\mathrm{diss}} k_B T_{\mathrm{sys}} \delta(t - t')$$
+
+Definición 3 (El Pullback Covariante de de Rham):
+  El transporte de las perturbaciones externas hacia el interior inmutable de la fortaleza
+  se rige por el pullback covariante $\phi^*$, que preserva el confinamiento de fase:
+  $$\phi^*: \mathcal{H}(\partial\mathcal{M}) \longrightarrow \mathcal{H}(\mathcal{M}_{\mathrm{internal}}) \quad \implies \quad \phi^*\left(H_{\mathrm{ext}}\right) \oplus \mathtt{TelemetryContext}$$
+
+================================════════════════════════════════════════════════
+II. AXIOMATIZACIÓN DE LA ADUANA TÉRMICA (Invariantes de Conservación)
+================================════════════════════════════════════════════════
+
+Axioma I (Principio de Disipación de Clausius-Duhem):
+  Toda inyección de transacciones de la frontera exógena debe satisfacer localmente la desigualdad
+  termodinámica de Clausius-Duhem en lazo cerrado para garantizar la pasividad de Lyapunov:
+  $$\Phi_{\mathrm{disip}} = \sigma_{\mathrm{entropy}} - \frac{\mathcal{Q} \cdot \nabla T_{\mathrm{sys}}}{T_{\mathrm{sys}}^2} \ge \tau_{\mathrm{CD}}(t)$$
+  Donde $\tau_{\mathrm{CD}}(t)$ es el umbral de conducción geodésica discreta.
+
+Axioma II (Axioma de Confinamiento Entrópico de Shannon):
+  La entropía informacional instantánea de un payload incidente de bytes $x$, evaluada
+  en la Unidad de Punto Flotante (FPU), se encuentra estrictamente confinada en el intervalo:
+  $$0.0 \le H_{\mathrm{ext}}(x) \le \ln(256) \approx 5.545177$$
+  Cualquier desbordamiento de esta cota delata una inyección caótica hostil (ataque DoS semántico).
+
+Axioma III (Teorema de Actuación Ciber-Física Determinista en Silicio):
+  Ante el colapso del retículo distributivo de Heyting al Supremo terminal VETOED ($\top$),
+  la sentencia criptográfica SHA-256 en RAM se despacha de forma instantánea al ESP32,
+  forzando a que la Interrupt Service Routine (ISR) en IRAM actúe en menos de $400\text{ ns}$:
+  $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
+  Disparando el tiristor rápido BT151 (Crowbar) para paralizar mecánicamente la obra civil.
+
+================================════════════════════════════════════════════════
+III. INVARIANTES ESPECTRALES Y METROLÓGICOS DE WILKINSON (FPU Secure)
+================================════════════════════════════════════════════════
+
+Invariante I (Invertibilidad Espectral de Higham-Tikhonov):
+  La purificación del tensor de conductividad de frontera $\mathcal{K}$ exige que el espectro
+  deformado esté acotado estrictamente por encima de la cota de Wilkinson de la CPU:
+  $$\lambda_{\min}(\tilde{\mathcal{K}}) \ge \varepsilon_{\mathrm{Wilkinson}} \quad \text{con} \quad \varepsilon_{\mathrm{Wilkinson}} = 10^{-15}$$
+  Garantizando que $\tilde{\mathcal{K}}$ sea estrictamente definido positivo ($\tilde{\mathcal{K}} \succ \mathbf{0}$) e invertible.
+
+Invariante II (Confinamiento del Número de Condición Espectral):
+  Para eludir singularidades polares o inestabilidad numérica, el número de condición espectral
+  $\kappa_2(\tilde{\mathcal{K}})$ del contorno regularizado satisface la cota restrictiva:
+  $$\kappa_2(\tilde{\mathcal{K}}) = \frac{\lambda_{\max}(\tilde{\mathcal{K}})}{\lambda_{\min}(\tilde{\mathcal{K}})} \le \tau_{\mathrm{cond}}$$
+  Donde $\tau_{\mathrm{cond}}$ es modulado por el margen de seguridad elástico.
+
+Invariante III (Estabilidad Asintótica de Lyapunov de de Rham):
+  Bajo deformaciones de Novikov y perturbaciones exógenas $\delta T$, el funcional de energía
+  cuadrático del sistema satisface la contracción asintótica estricta de Lyapunov:
+  $$\dot{V}(p) = p^\top \tilde{\mathcal{K}} p \le 0$$
+  Asegurando la convergencia global de lazo cerrado ante el ruido transitorio.
 """
 
 from __future__ import annotations

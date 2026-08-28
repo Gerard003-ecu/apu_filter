@@ -3,30 +3,91 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Telemetry Satellites (Satélites de Telemetría de Frontera)          ║
 ║ Ruta   : app/core/telemetry_satellites.py                                    ║
-║ Versión: 2.1.0-Doctoral-Nested-Cholesky-Heyting-Landauer-Secure              ║
+║ Versión: 1.1.0-Doctoral-Asynchronous-Boundary-Langevin-Heyting-Secure        ║
 ║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y EXERGÉTICA:                                            ║
-║ Este módulo implementa satélites de telemetría asíncronos para vigilar la    ║
-║ frontera de-confinada ∂M de la fortaleza de APU Filter.                      ║
-║                                                                              ║
-║ La arquitectura queda dividida en tres fases anidadas (inclusión de          ║
-║ kernels por herencia, funtorial en el sentido de                             ║
-║   Phase1 ↪ Phase2 ↪ Phase3 ↪ SatelliteObserver):                             ║
-║   FASE 1: Metrología fundamental, espectro de Rényi y regularización SPD.    ║
-║   FASE 2: Problema generalizado de Sturm–Liouville, exergía de Landauer y    ║
-║           retículo de Heyting Ω₃ con implicación de Gödel.                   ║
-║   FASE 3: Orquestación asíncrona, actuación fail-closed y certificado.       ║
-║                                                                              ║
-║ Morfismos de fase (continuación formal):                                     ║
-║   prepare_boundary_state  : (payload, K, G) → BoundaryState                  ║
-║   analyze_boundary_state  : BoundaryState → SpectralBoundaryAnalysis         ║
-║   decide_heyting_verdict  : SpectralBoundaryAnalysis → HeytingDecision       ║
-║   synthesize_certificate  : HeytingDecision → SatelliteTelemetryCertificate  ║
-║                                                                              ║
-║ El último método de la Fase 1 prepara `BoundaryState`, objeto inicial de     ║
-║ la Fase 2. El último método de la Fase 2 prepara `HeytingDecision`, objeto   ║
-║ inicial de la Fase 3.                                                        ║
+║ SINOPSIS MATEMÁTICA Y EXERGÉTICA DE LA FRONTERA ABIERTA (∂M ≠ ∅):            ║
+║ Este módulo implementa el motor de cálculo en la Capa 0.5 (Ágora Tensorial   ║
+║ V_Ω) para los satélites de telemetría de-confinados encargados de vigilar la ║
+║ frontera abierta de la Malla. Intercepta frentes de onda de datos incidentes ║
+║ (BOM, JSON, cotizaciones del SECOP II) y calcula el estado térmico-Langevin  ║
+║ de contorno, proyectando un pullback inmutable sobre el pasaporte antes de   ║
+║ que la entropía externa de-normalize la mantisa del sistema.                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+================================════════════════════════════════════════════════
+I. DEFINICIONES TERMODINÁMICAS Y GEOMÉTRICAS (Física de Sistemas Abiertos)
+================================════════════════════════════════════════════════
+
+Definición 1 (La Variedad con Frontera Compacta No Homogénea):
+  Sea $(\mathcal{M}, \, G_{\mu\nu})$ una variedad Riemanniana orientable de dimensión $N$
+  con tensor métrico $G_{\mu\nu}$ y frontera compacta $\partial\mathcal{M} \neq \emptyset$.
+  Definimos el contorno de-confinado como el foso basal expuesto al baño térmico de
+  fluctuaciones del mercado exterior y la inyección de datos de entrada:
+  $$\partial\mathcal{M} \subset \mathcal{M}$$
+
+Definición 2 (El Campo de Flujo de Calor Covariante):
+  Definimos el vector de flujo de calor exergético contravariante $\mathcal{Q}^\mu$ a lo largo
+  del contorno de-confinado como una sección local de la restricción del haz tangente:
+  $$\mathcal{Q}^\mu \in \Gamma\left(\partial\mathcal{M}, \, T\mathcal{M}|_{\partial\mathcal{M}}\right)$$
+  Su transporte paralelo se rige por la conexión afín compatible con la métrica.
+
+Definición 3 (El Pullback Funtorial de Calibre):
+  El acoplamiento asíncrono y no bloqueante entre la frontera exterior $\partial\mathcal{M}$
+  y el interior de la fortaleza se realiza mediante el pullback funtorial covariante $\phi^*$:
+  $$\phi^*: \mathcal{H}(\partial\mathcal{M}) \longrightarrow \mathcal{H}(\mathcal{M}_{\mathrm{internal}}) \quad \implies \quad \phi^*\left(H_{\mathrm{ext}}\right) \oplus \mathtt{TelemetryContext}$$
+  Donde $\mathcal{H}(\cdot)$ denota el espacio de Hilbert continuo de estados de fase.
+
+Definición 4 (La Fuga Exergética de de Rham):
+  Se define la fuga exergética local $\Xi_{\mathrm{leak}}$ de la frontera de de Rham como el
+  producto tensorizado de la entropía informacional de Shannon y la rigidez espectral:
+  $$\Xi_{\mathrm{leak}} := H_{\mathrm{ext}} \cdot \kappa_2(\tilde{\mathcal{K}}) \cdot 10^{-3}$$
+  Donde $\kappa_2(\tilde{\mathcal{K}})$ es el número de condición espectral del operador regularizado.
+
+================================════════════════════════════════════════════════
+II. AXIOMATIZACIÓN DE LA ADUANA TERMODINÁMICA (Leyes de Conservación)
+================================════════════════════════════════════════════════
+
+Axioma I (Principio de Disipación de Clausius-Duhem):
+  Toda inyección de transacciones de la frontera exógena debe satisfacer localmente la desigualdad
+  termodinámica de Clausius-Duhem en lazo cerrado para garantizar la pasividad de Lyapunov:
+  $$\Phi_{\mathrm{disip}} = \sigma_{\mathrm{entropy}} - \frac{\mathcal{Q} \cdot \nabla T_{\mathrm{sys}}}{T_{\mathrm{sys}}^2} \ge \tau_{\mathrm{CD}}(t)$$
+  Donde $\sigma_{\mathrm{entropy}}$ es la producción de entropía y $\tau_{\mathrm{CD}}(t)$ es el
+  umbral de conducción geodésica discreta.
+
+Axioma II (Axioma de Confinamiento Entrópico de Shannon):
+  La entropía informacional instantánea de un payload incidente de bytes $x$, evaluada
+  en la Unidad de Punto Flotante (FPU), se encuentra estrictamente confinada en el intervalo:
+  $$0.0 \le H_{\mathrm{ext}}(x) \le \ln(256) \approx 5.545177$$
+  Cualquier desbordamiento de esta cota delata una inyección caótica hostil (ataque DoS semántico).
+
+Axioma III (Teorema de Actuación Ciber-Física Determinista en Silicio):
+  Ante el colapso del retículo distributivo de Heyting al Supremo terminal VETOED ($\top$),
+  la sentencia criptográfica SHA-256 en RAM se despacha de forma instantánea al ESP32,
+  forzando a que la Interrupt Service Routine (ISR) en IRAM actúe en menos de $400\text{ ns}$:
+  $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
+  Disparando el tiristor rápido BT151 (Crowbar) para paralizar mecánicamente la obra civil.
+
+================================════════════════════════════════════════════════
+III. INVARIANTES ESPECTRALES Y METROLÓGICOS DE WILKINSON (FPU Secure)
+================================════════════════════════════════════════════════
+
+Invariante I (Invertibilidad Espectral de Higham-Tikhonov):
+  La purificación del tensor de conductividad de frontera $\mathcal{K}$ exige que el espectro
+  deformado esté acotado estrictamente por encima de la cota de Wilkinson de la CPU:
+  $$\lambda_{\min}(\tilde{\mathcal{K}}) \ge \varepsilon_{\mathrm{Wilkinson}} \quad \text{con} \quad \varepsilon_{\mathrm{Wilkinson}} = 10^{-15}$$
+  Garantizando que $\tilde{\mathcal{K}}$ sea estrictamente definido positivo ($\tilde{\mathcal{K}} \succ \mathbf{0}$) e invertible.
+
+Invariante II (Confinamiento del Número de Condición Espectral):
+  Para eludir singularidades polares o inestabilidad numérica, el número de condición espectral
+  $\kappa_2(\tilde{\mathcal{K}})$ del contorno regularizado satisface la cota restrictiva:
+  $$\kappa_2(\tilde{\mathcal{K}}) = \frac{\lambda_{\max}(\tilde{\mathcal{K}})}{\lambda_{\min}(\tilde{\mathcal{K}})} \le \tau_{\mathrm{cond}}$$
+  Donde $\tau_{\mathrm{cond}}$ es modulado por el margen de seguridad elástico.
+
+Invariante III (Estabilidad Asintótica de Lyapunov de de Rham):
+  Bajo deformaciones de Novikov y perturbaciones exógenas $\delta T$, el funcional de energía
+  cuadrático del sistema satisface la contracción asintótica estricta de Lyapunov:
+  $$\dot{V}(p) = p^\top \tilde{\mathcal{K}} p \le 0$$
+  Asegurando la convergencia global de lazo cerrado ante el ruido transitorio.
 """
 
 from __future__ import annotations
