@@ -6,11 +6,11 @@ r"""
 ║ Versión: 1.1.0-Doctoral-Heyting-OODA-Smith-Choi-Bell-ESP32-Secure            ║
 ║                                                                              ║
 ║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO (OODA):                  ║
-║ Este agente supervisor ciber-físico asume la gobernanza de calibre asíncrona  ║
+║ Este agente supervisor ciber-físico asume la gobernanza de calibre asíncrona ║
 ║ y de-confinada de la frontera exterior de la fortaleza ($\partial\mathcal{M}$).  ║
 ║ Orquesta el ciclo covariante OODA sobre el motor "audit_satellites.py" para  ║
-║ someter las transacciones del SECOP II y el Mandato BIM 2026 en Colombia a  ║
-║ aduanas de regularidad homológica, causalidad CPTP y no-localidad clásica.  ║
+║ someter las transacciones del SECOP II y el Mandato BIM 2026 en Colombia a   ║
+║ aduanas de regularidad homológica, causalidad CPTP y no-localidad clásica.   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ================================════════════════════════════════════════════════
