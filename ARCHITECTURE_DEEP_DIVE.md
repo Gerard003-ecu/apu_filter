@@ -4,13 +4,38 @@ Este documento detalla la implementación técnica, geométrica y física de los
 
 ---
 
-## 🌀 Coherencia Homotópica: Filtración de de Rham-Fukaya
+## 🌀 Coherencia Homotópica: Filtración de de Rham-Fukaya y la Frontera Abierta De-confinada
 
 La arquitectura de APU Filter v5.0 rige la propagación del control y la información mediante la **Filtración de Subespacios de Hilbert Covariantes de de Rham-Fukaya**:
 
 $$V_{\mathrm{PHYSICS}} \subset V_{\mathrm{SEQUITOS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{TESSERARIOS}} \subset V_{\mathrm{ERUDITOS}} \subset V_{\mathrm{PRETORIO}} \subset V_{\mathbb{W}}$$
 
 El transporte paralelo de la información a lo largo del fibrado cotangente $T^*\mathcal{M}$ presupone que ninguna señal o decisión puede ascender a estratos superiores de deliberación sin certificar la nulidad del residuo de curvatura $\Omega_{\mu\nu} = 0$ y la finitud de la disipación exergética en los subespacios subyacentes.
+
+### 🌐 Axiomatización de la Frontera Abierta ($\partial \mathcal{M} \neq \varnothing$) y el Cinturón Orbital
+
+En las formulaciones simétricas cerradas, el espacio de fase se asumía sin frontera ($\partial \mathcal{M} = \varnothing$). La inyección real de licitaciones de obra pública en SECOP II exige redefinir la Malla como una **variedad Riemanniana con frontera compacta de-confinada** $(\mathcal{M}, G_{\mu\nu})$ tal que $\partial \mathcal{M} \neq \varnothing$.
+
+El contorno $\partial \mathcal{M}$ es un sistema fuera del equilibrio gobernado por el **Cinturón Orbital de Satélites** (`telemetry_satellites.py` / `telemetry_satellites_agent.py` y `audit_satellites.py` / `audit_satellites_agent.py`):
+
+1. **Ecuación de Langevin Cuántica No-Markoviana (Telemetría de Frontera):**
+   La fluctuación exógena exterior se modela como una fuerza estocástica $\xi_{\mathrm{ext}}(t)$ que excita el contorno:
+   $$\frac{d \mathcal{Q}(t)}{dt} = -[\mathcal{H}_{\mathrm{boundary}}, \, \mathcal{Q}(t)] - \Gamma_{\mathrm{diss}} \mathcal{Q}(t) + \xi_{\mathrm{ext}}(t)$$
+   donde $\langle \xi_{\mathrm{ext}}(t) \xi_{\mathrm{ext}}(t') \rangle = 2 \Gamma_{\mathrm{diss}} k_B T_{\mathrm{sys}} \delta(t - t')$.
+   La entropía $H_{\mathrm{ext}}$ y el condicionado $\kappa_2$ proyectan la fuga exergética $\Xi_{\mathrm{leak}} = H_{\mathrm{ext}} \ln(1+\kappa_2)$ al pasaporte de telemetría mediante el pullback de de Rham $\phi^*: \mathcal{H}(\partial \mathcal{M}) \to \mathcal{H}(\mathcal{M}_{\mathrm{internal}})$.
+
+2. **Fiscalización de Torsión Homológica sobre $\mathbb{Z}$ (Auditoría de Frontera):**
+   El satélite discretiza el contorno simplicial $\partial K$ y calcula la Forma Normal de Smith (SNF) exacta sobre el anillo principal $\mathbb{Z}$:
+   $$S = U \cdot \partial_{\partial} \cdot V = \operatorname{diag}(d_1, \, d_2, \, \dots, \, d_r, \, 0, \, \dots, \, 0)$$
+   exigiendo la nulidad del subgrupo de torsión homológica $\operatorname{Tor}(H_k(\partial K; \, \mathbb{Z})) \equiv \mathbf{0}$ ($d_i = 1$). Cualquier $d_i > 1$ delata mermas o incompatibilidades de empaquetado discreto.
+
+3. **Causalidad CPTP de Choi-Jamiołkowski y Contención Bell-CHSH:**
+   El canal de inyección $\mathcal{E}$ se audita exigiendo la semidefinición positiva de la matriz de Choi $C_{\mathcal{E}} = (\mathcal{E} \otimes \operatorname{Id})(|\Phi^+\rangle\langle\Phi^+|) \succeq \mathbf{0}$ ($\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}$) y la preservación de traza parcial $\operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}_{\mathrm{input}}$. Para erradicar acuerdos monopolísticos o colusión de proveedores en SECOP II, se evalúa el parámetro Bell-CHSH:
+   $$\mathcal{B}_{\mathrm{CHSH}} = \left| E_{11} + E_{12} + E_{21} - E_{22} \right| \le 2\sqrt{2}$$
+   Violaciones a la cota clásica ($> 2.0$) o a la cota cuántica de Tsirelson ($> 2\sqrt{2}$) forzaran veto instantáneo.
+
+4. **Orquestación OODA en Tres Fases Anidadas y Doble Firma SHA-256:**
+   Los Soberanos Orbitales ejecutan el ciclo OODA en tres fases anidadas (Phase1 Observe Kernel $\to$ Phase2 Orient Kernel $\to$ Phase3 Actuation/Certificate Kernel). El veredicto final resulta del meet intuicionista de Gödel en $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Se emite un certificado inmutable respaldado por dos huellas SHA-256: `decision_sha256` (isomorfa) y `digital_signature_sha256` (no-repudio). Ante veto, la ISR en IRAM del ESP32 commuta GPIO14 en $< 400\text{ ns}$ disparando el tiristor BT151 del circuito Crowbar.
 
 ### 📐 Adjunción Functorial de de Rham-Galois para Vitaminas TOON
 

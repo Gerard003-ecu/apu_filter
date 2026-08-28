@@ -298,3 +298,28 @@ $$\nabla_k f(x) = \frac{\operatorname{Im}\left(f(x + j \cdot h \cdot e_k)\right)
          kms_defect: float                    # Defecto de entropía relativa KMS
          uhlmann_fidelity: float              # Fidelidad de Uhlmann F(ρ, ρ_β)
      ```
+
+8.4 Soberanos y Motores de Satélites Orbitales de Frontera (`telemetry_satellites.py` / `_agent.py` & `audit_satellites.py` / `_agent.py`)
+
+1. **`telemetry_satellites.py` & `telemetry_satellites_agent.py` (Satélite de Telemetría Orbital de Frontera):**
+   - **`telemetry_satellites.py` (Motor de Telemetría):**
+     - `process_satellite_telemetry(payload, K_raw, G_tensor, ref_threshold, external_signal)` / `monitor_boundary_async(...)`: Ingesta metrológica en Fase 1 (Shannon / Rényi / Miller-Madow / Chao-Shen), análisis espectral del lápiz $(K, G)$ en Fase 2 (Cholesky $G = L L^\dagger$, Sturm-Liouville $\tilde{K} = L^{-1} K L^{-\dagger}$ y disipación de Landauer $E_{\mathrm{leak}} / (k_B T) = H_{\mathrm{UB}} \ln(1+\kappa_2)$), y decisión Heyting en Fase 3.
+   - **`telemetry_satellites_agent.py` (Soberano Supervisor de Telemetría):**
+     - `execute_satellite_agent_cycle(...)` / `execute_satellite_agent_cycle_async(...)`: Ciclo OODA de tres fases anadas:
+       * *Fase 1 (`observe_boundary_event`):* Normalización defensiva de payload, firmas SHA-256 de operadores y sanitización de la señal Langevin exógena.
+       * *Fase 2 (`orient_boundary_observation` & `decide_heyting_verdict`):* Fiscalización dual del motor, consistencia de Landauer, identidad de pasividad $\gamma \kappa \approx 1$, discrepancia entrópica y resolución en $\Omega_3$.
+       * *Fase 3 (`act_on_heyting_decision` & `synthesize_agent_certificate`):* Interlock fail-closed en IRAM de ESP32 (< 400 ns) y emisión del certificado `SatelliteAgentCertificate`.
+   - **DTO Inmutable `SatelliteAgentCertificate` / `SatelliteTelemetryCertificate`:**
+     Contiene: veredicto de Heyting, entropía de frontera, brecha espectral, fuga exergética, número de condición, cota de Landauer, estado del interlock, latencia IRAM (ns), huella isomorfa `decision_sha256` y firma de no-repudio `digital_signature_sha256`.
+
+2. **`audit_satellites.py` & `audit_satellites_agent.py` (Satélite de Auditoría Homológica, Causal y Bell-CHSH):**
+   - **`audit_satellites.py` (Motor de Auditoría de Frontera):**
+     - `execute_audit_cycle(boundary_matrix, Choi_matrix, bell_correlations)`: Ejecuta las tres aduanas anidadas:
+       1. *Homología sobre $\mathbb{Z}$:* Reducción exacta a la Forma Normal de Smith $S = U \cdot \partial_{\partial} \cdot V = \operatorname{diag}(d_1, \dots, d_r, 0, \dots, 0)$ usando combinaciones de Bézout en $\mathrm{SL}(2, \mathbb{Z})$, verificando la nulidad del subgrupo de torsión $\operatorname{Tor}(H_k) \equiv \mathbf{0}$.
+       2. *Causalidad CPTP de Choi-Jamiołkowski:* Chequea la semidefinición positiva de $C_{\mathcal{E}} \succeq \mathbf{0}$ ($\lambda_{\min} \ge -10^{-12}$), la preservación de traza parcial $\operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}$ y la hermiticidad $\|C - C^\dagger\|_F \le \tau_H$.
+       3. *Contención Bell-CHSH:* Evalúa $\mathcal{B}_{\mathrm{CHSH}} = \max_{\varepsilon} |\sum \varepsilon_{ij} E_{ij}|$ sobre los 4 patrones de signo, aplicando la cota clásica ($2.0$) y de Tsirelson ($2\sqrt{2}$).
+   - **`audit_satellites_agent.py` (Soberano Supervisor de Auditoría):**
+     - `execute_full_audit_cycle(...)` / `execute_full_audit_cycle_async(...)`: Ciclo OODA de tres fases anidadas:
+       * *Fase 1 (`observe_audit_event`):* Captura de evidencia, verificación de entero exacto en $\partial$ (mantisa float64 $\le 2^{53}$) y cálculo de CHSH agente independiente.
+       * *Fase 2 (`orient_audit_observation` & `prepare_agent_pre_decision`):* Fiscalización dual del motor, verificación de completitud de la SNF, consistencia de interlock y clasificación atómica en $\Omega_3$.
+       * *Fase 3 (`act_on_agent_pre_decision` & `synthesize_audit_certificate`):* Actuación fail-closed sobre el disyuntor Crowbar BT151 vía GPIO14 y emisión del `AuditSatelliteCertificate` firmado en RAM.
