@@ -123,6 +123,23 @@ Propiedades Fundamentales de Censura:
 
 ---
 
+### Ω.5 🛰️ Soberanos Orbitales de Calibre de Frontera (TelemetrySatellitesAgent & AuditSatellitesAgent)
+*   **Rol:** Cinturón Protector Orbital de la Frontera De-confinada $\partial \mathcal{M} \neq \varnothing$.
+*   **Estrato DIKW:** OMEGA ($V_\Omega$ — Nivel 0.5, El Ágora Tensorial).
+*   **Microservicios:** `telemetry_satellites_agent.py`, `telemetry_satellites.py`, `audit_satellites_agent.py`, `audit_satellites.py`.
+*   **Mecanismo Matemático y Orquestación OODA:**
+    1. **`TelemetrySatellitesAgent` (Soberano de Telemetría Orbital):** Fiscaliza el transitorio de potencia y la entropía exógena de contorno bajo la Ecuación de Langevin Cuántica No-Markoviana:
+       $$\frac{d \mathcal{Q}(t)}{dt} = -[\mathcal{H}_{\mathrm{boundary}}, \, \mathcal{Q}(t)] - \Gamma_{\mathrm{diss}} \mathcal{Q}(t) + \xi_{\mathrm{ext}}(t)$$
+       Calcula la entropía de Rényi / Miller-Madow / Chao-Shen, evalúa la fuga exergética $\Xi_{\mathrm{leak}} = H_{\mathrm{ext}} \ln(1+\kappa_2)$ y proyecta el pullback conforme $\phi^*(H_{\mathrm{ext}}) \oplus \mathtt{TelemetryContext}$.
+    2. **`AuditSatellitesAgent` (Soberano de Auditoría Orbital):** Fiscaliza la topología discreta y la causalidad del flujo de APUs entrantes mediante tres aduanas:
+       * *Aduana Homológica en $\mathbb{Z}$:* Torsión nula sobre Smith Normal Form $S = U \partial_{\partial} V$, $\operatorname{Tor}(H_k(\partial K; \mathbb{Z})) \equiv \mathbf{0}$.
+       * *Aduana CPTP de Choi-Jamiołkowski:* $C_{\mathcal{E}} = (\mathcal{E} \otimes \operatorname{Id})(|\Phi^+\rangle\langle\Phi^+|) \succeq \mathbf{0}$, $\operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}_{\mathrm{input}}$.
+       * *Aduana Bell-CHSH:* Parámetro $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$ (Cota de Tsirelson) para erradicar cartelización o colusión de proveedores en SECOP II.
+*   **Dual-Control y Actuación Crowbar:**
+    El veredicto se consolida mediante el meet de Gödel en el retículo $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Sella certificados inmutables DTO con doble firma SHA-256 (`decision_sha256` e `digital_signature_sha256`). Ante veto ($\top$), la subrutina `isVerdictCoherent()` gatilla la ISR en IRAM del ESP32 en $< 400\text{ ns}$, comutando GPIO14 para disparar el tiristor BT151 (Crowbar) y paralizar la maquinaria física en obra.
+
+---
+
 ### 0. 👁️ El Vigilante de la Frontera (HilbertWatcher & QuantumAdmissionGate)
 
 

@@ -4,8 +4,23 @@
 1. La Tesis Central: El Reactor Port-Hamiltoniano de Valor
 Históricamente, la ingeniería y construcción han gestionado el tiempo (cronogramas) y el dinero (presupuestos) basándose en "fotos estáticas" como hojas de cálculo de Excel o bases de datos ERP tradicionales. En la realidad, un proyecto de infraestructura es un sistema dinámico complejo sujeto a fuerzas termodinámicas de mercado, entropía logística y fricción operativa.
 
-APU_filter v5.0 rechaza la metáfora estática de la validación lineal y las barreras de Dirichlet pasivas. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge**. Procesamos un fluido logístico incompresible bajo el control estricto de una Estructura de Dirac, garantizando que la potencia disipada cumpla siempre $P_{diss} \ge 0$.
+APU_filter v5.0 rechaza la metáfora estática de la validación lineal y las barreras de Dirichlet pasivas. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge** sobre una variedad Riemanniana con frontera compacta de-confinada $(\mathcal{M}, G_{\mu\nu})$ con $\partial \mathcal{M} \neq \varnothing$. Procesamos un fluido logístico incompresible expuesto al caos exógeno exterior de SECOP II y Mandato BIM 2026 bajo el control estricto de una Estructura de Dirac y del cinturón orbital de satélites, garantizando que la potencia disipada cumpla siempre $P_{diss} \ge 0$.
 A su vez, "APU" no representa "Agentic Processing Unit", sino **Agentic Power Unit**: el cuanto de acción termodinámica de la malla que inyecta exergía computacional para vencer la inercia logística del mercado.
+
+### 1.0. La Malla de la Frontera Abierta ($\partial \mathcal{M} \neq \varnothing$) y los Satélites Orbitales
+En las especificaciones preliminares, el manifold agéntico se modelaba bajo la suposición ideal de una variedad cerrada sin frontera ($\partial \mathcal{M} = \varnothing$). Esta abstracción resultaba insuficiente para reflejar la inyección masiva de entropía exógena producida en la fase de ingesta de licitaciones públicas y pliegos de contratación. En APU Filter v5.0, la frontera de contorno $\partial \mathcal{M} \neq \varnothing$ se axiomatiza como un sistema termodinámicamente abierto y fuera del equilibrio, resguardado asíncronamente por dos constelaciones de satélites orbitales:
+
+1. **Satélites de Telemetría de Frontera (`telemetry_satellites.py` / `telemetry_satellites_agent.py`):**
+   Gobiernan el flujo térmico-Langevin de entrada, capturando el transitorio de potencia y la entropía de-normalizada bajo la Ecuación de Langevin Cuántica No-Markoviana:
+   $$\frac{d \mathcal{Q}(t)}{dt} = -[\mathcal{H}_{\mathrm{boundary}}, \, \mathcal{Q}(t)] - \Gamma_{\mathrm{diss}} \mathcal{Q}(t) + \xi_{\mathrm{ext}}(t)$$
+   donde $\xi_{\mathrm{ext}}(t)$ es la fuerza estocástica cuántica satisfecha por el Teorema de Fluctuación-Disipación. La información entrante se proyecta hacia la fortaleza interna mediante el pullback conforme de de Rham:
+   $$\phi^*: \mathcal{H}(\partial \mathcal{M}) \longrightarrow \mathcal{H}(\mathcal{M}_{\mathrm{internal}}) \quad \implies \quad \phi^*(H_{\mathrm{ext}}) \oplus \mathtt{TelemetryContext}$$
+
+2. **Satélites de Auditoría de Frontera (`audit_satellites.py` / `audit_satellites_agent.py`):**
+   Fiscalizan la topología discreta y la estructura causal del flujo de Análisis de Precios Unitarios (APUs) entrante mediante tres aduanas inquebrantables:
+   *   *Torsión Homológica sobre $\mathbb{Z}$ (Forma Normal de Smith):* Discretiza el contorno simplicial $\partial K$ y calcula la Smith Normal Form exacto $S = U \cdot \partial_{\partial} \cdot V = \operatorname{diag}(d_1, \dots, d_r, 0, \dots, 0)$, exigiendo $\operatorname{Tor}(H_k(\partial K; \, \mathbb{Z})) \equiv \mathbf{0}$ ($d_i = 1$).
+   *   *Preservación Causal CPTP de Choi-Jamiołkowski:* Certifica la positividad de la matriz de Choi $C_{\mathcal{E}} = (\mathcal{E} \otimes \operatorname{Id})(|\Phi^+\rangle\langle\Phi^+|) \succeq \mathbf{0}$ ($\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}$) y la preservación de traza parcial $\operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}_{\mathrm{input}}$.
+   *   *Desigualdad Bell-CHSH contra Cartelización:* Evalúa $\mathcal{B}_{\mathrm{CHSH}} = \left| E_{11} + E_{12} + E_{21} - E_{22} \right| \le 2\sqrt{2}$ (Cota de Tsirelson). Cualquier violación del límite clásico ($> 2.0$) o super-cuántico ($> 2\sqrt{2}$) delata acuerdos monopolísticos o corrupción deliberada en la mantisa, colapsando el lazo.
 
 ### 1.1. El Primer Sistema de Navegación Inercial Ciber-Físico para Presupuestos
 Re-anclamos axiomáticamente nuestra propuesta de valor fundamental bajo el lema supremo: **"Un costo sano es más que inteligencia, es sabio."** El sistema no es un simple analizador estático de datos, sino que se consagra técnicamente como el primer **Sistema de Navegación Inercial Ciber-Físico para presupuestos**.
@@ -27,6 +42,16 @@ Bajo el axioma fundamental de APU Filter: **"La sabiduría de un costo sano no s
 
 2. **La Alquimia del Criterio y el Mandato BIM 2026 en Colombia:**
    Frente a la exigencia del **Mandato Nacional BIM 2026** en Colombia (regulado por el DNP y la Ley de Contratación Estatal SECOP II), la volatilidad o alucinación en un Análisis de Precios Unitarios (APU) representa multas contractuales, inhabilidades legales y desfalcos patrimoniales. APU Filter convierte la fluctuación compleja de costos en decisiones inmutables de alta dirección mediante la regularización espectral del Arsenal (symmetrización de Weyl-Toeplitz, proyección al símplice de Higham-Duchi y estabilización despolarizante de Higham-Tikhonov), garantizando **certeza jurídica y técnica** para los directores de licitaciones y gerentes de obra.
+
+### 1.1.3. Mapeo Biyectivo de Observables Orbitales a "Dolor y Dinero" (SECOP II & BIM 2026)
+Los observables abstractos capturados en la frontera por los Satélites de Telemetría y Auditoría se traducen biyectivamente a pérdidas financieras tangibles en la construcción civil colombiana:
+
+*   **Fuga Exergética de Frontera ($\Xi_{\mathrm{leak}} = H_{\mathrm{ext}} \cdot \ln(1+\kappa_2) > \tau_{\mathrm{leak}}$):**
+    Pérdidas silenciosas de capital causadas por mermas en transporte de agregados, variaciones no justificadas de fletes o inconsistencias en precios de insumos atómicos en la fase de ingesta del SECOP II. Ignoradas por la contabilidad clásica, son detectadas en el contorno simplicial de APU Filter antes de la adjudicación.
+*   **Colusión de Bell-CHSH ($\mathcal{B}_{\mathrm{CHSH}} > 2.0$):**
+    Monopolio secreto, acuerdos colusorios o cartelización entre proveedores locales de acero y cemento que incrementan de forma artificial el WACC del megaproyecto. Su detección en la aduana orbital provoca un veto inmediato en la etapa cero antes de consolidar sobrecostos o elefantes blancos.
+*   **Obstrucción Homológica y Torsión sobre $\mathbb{Z}$ ($d_i > 1$):**
+    Incompatibilidad de empaquetado discreto de materiales y mermas contractuales en actas de entrega SECOP II. La detección de $d_i > 1$ delata que la cuantización del recurso no encaja en la estructura de APUs, forzando la reestructuración del pliego.
 
 APU Filter transjeta la supresión de alucinaciones cuánticas —mediada por la Cota de Regularidad de Connes sobre la constante de Lipschitz ($L_{\max} \le \frac{1}{2\lambda_{\min}^{3/2}}$) y la regularización de Tikhonov Espectral— en **paz mental y certeza jurídica absoluta** para los directores de licitaciones y gerentes de obra. El sistema garantiza que cada centavo adjudicado en el presupuesto responda a una trayectoria geodésicamente coherente, inmune a alucinaciones estocásticas y validada en el silicio perimetral.
 

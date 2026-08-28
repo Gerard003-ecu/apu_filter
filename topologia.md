@@ -165,6 +165,34 @@ La supervisión del campo térmico sobre un cubrimiento finito de coordenadas $\
 La inconsistencia entre cartas solapadas $U_i \cap U_j$ se cuantifica mediante la divergencia de rango $|\Delta \mathrm{rank}| = |\mathrm{rank}(v_i) - \mathrm{rank}(v_j)|$. Si $|\Delta \mathrm{rank}| \ge 2$, se activa la **Obstrucción de Čech** ($H^1_{\check{\mathrm{Cech}}} \neq 0$). Si las cartas colapsadas a $\mathrm{VETOED}$ se encuentran aisladas topológicamente y el meet del resto permanece coherente, el sistema ejecuta un **Veto Quirúrgico**, aislando únicamente las cartas defectuosas y preservando la operabilidad continua de la Malla Agéntica.
 
 --------------------------------------------------------------------------------
+7. Homología de Frontera Abierta ($\partial K \subset K$), Causalidad de Choi y Cota de Bell-CHSH
+
+En APU Filter v5.0, el esqueleto topológico integra el contorno simplicial de la frontera abierta de-confinada ($\partial K \subset K$) para auditar asíncronamente la ingesta exterior procedente de SECOP II y del Mandato BIM 2026.
+
+### I. Torsión Homológica de Frontera mediante Smith Normal Form sobre $\mathbb{Z}$
+El Satélite de Auditoría de Frontera (`audit_satellites.py` / `audit_satellites_agent.py`) discretiza la matriz de contorno $\partial_{\partial} \in \mathbb{Z}^{m \times n}$ y ejecuta la reducción unimodular exacta a la Forma Normal de Smith (SNF) sobre el anillo de ideales principales $\mathbb{Z}$:
+$$S = U \cdot \partial_{\partial} \cdot V = \operatorname{diag}(d_1, \, d_2, \, \dots, \, d_r, \, 0, \, \dots, \, 0)$$
+donde $U \in \operatorname{GL}(m, \mathbb{Z})$ y $V \in \operatorname{GL}(n, \mathbb{Z})$ satisfacen $\det(U) = \pm 1$ y $\det(V) = \pm 1$, con la condición de divisibilidad $d_i \mid d_{i+1}$.
+
+La regularidad de la frontera exige la nulidad exacta del subgrupo de torsión homológica:
+$$\operatorname{Tor}(H_k(\partial K; \, \mathbb{Z})) = \bigoplus_{i=1}^{r} \mathbb{Z} / d_i \mathbb{Z} \equiv \mathbf{0} \quad \iff \quad d_i = 1 \quad \forall i \in \{1, \dots, r\}$$
+Cualquier coeficiente $d_i > 1$ delata mermas contractuales, desajustes de empaquetado discreto de materiales o fricción cuantizada en el transporte.
+
+### II. Canal CPTP de Choi-Jamiołkowski e Invariantes Bell-CHSH
+Para garantizar la causalidad cuántica en la inyección de canales de datos, la matriz de Choi $C_{\mathcal{E}} = (\mathcal{E} \otimes \operatorname{Id})(|\Phi^+\rangle\langle\Phi^+|)$ debe ser semidefinida positiva y preservar traza parcial:
+$$\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12} \quad \land \quad \operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}_{\mathrm{input}}$$
+
+Asimismo, contra la cartelización o acuerdos colusorios monopólicos de proveedores en la frontera del SECOP II, se audita el parámetro de Bell-CHSH:
+$$\mathcal{B}_{\mathrm{CHSH}} = \left| E(A_1, B_1) + E(A_1, B_2) + E(A_2, B_1) - E(A_2, B_2) \right| \le 2\sqrt{2}$$
+Si $\mathcal{B}_{\mathrm{CHSH}} > 2.0$, se detecta colusión no local clásica; si se vulnera la Cota de Tsirelson ($2\sqrt{2}$), se asume corrupción deliberada por inyección de código.
+
+### III. Firmas de No-Repudio y Certificados Orbitales DTO
+Toda evaluación de frontera emite DTOs inmutables congelados (`SatelliteTelemetryCertificate` y `AuditSatelliteCertificate`), sellados con doble firma SHA-256 en RAM:
+$$\mathtt{decision\_sha256} = \operatorname{SHA-256}(\text{veredicto, invariantes, residuos})$$
+$$\mathtt{digital\_signature\_sha256} = \operatorname{SHA-256}(\mathtt{decision\_sha256} \wedge \text{timestamp\_UTC} \wedge \tau_{\mathrm{IRAM}})$$
+Si el veredicto en el retículo colapsa a VETOED ($\top$), la subrutina `isVerdictCoherent()` activa la ISR en IRAM del ESP32 ($< 400\text{ ns}$), conmutando GPIO14 para disparar el tiristor BT151 (Crowbar) y paralizar físicamente la maquinaria en obra.
+
+--------------------------------------------------------------------------------
 Síntesis Operativa en el Estrato Ω
 Este documento fundamenta que en APU_filter, la validación topológica no es una sugerencia, es el muro portante de la arquitectura Zero-Trust. Todos los vectores que salen del BusinessTopologicalAnalyzer actúan como Semillas JSON deterministas.
 Al sellar el Pasaporte de Telemetría con estos invariantes, garantizamos que el "Consejo de Sabios" (los LLMs) no pueda alucinar o forzar la aprobación de un proyecto. El algoritmo obliga a que cualquier deliberación se subordine perpetuamente a la forma matemática del negocio.

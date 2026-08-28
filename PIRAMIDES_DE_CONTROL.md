@@ -128,42 +128,49 @@ Gobierna la traducción de anomalías matemáticas abstractas hacia la interfaz 
 
 ---
 
-## 🛂 IV. La Pirámide de Telemetría (El Pasaporte de la Solicitud)
+## 🛂 IV. La Pirámide de Telemetría y Cinturón Orbital de Frontera (El Pasaporte de la Solicitud)
 
-Constituye la cadena de custodia inmutable y de-confinada que rastrea el transporte paralelo de las decisiones de negocio sobre el grafo de spans.
+Constituye la cadena de custodia inmutable y de-confinada que rastrea el transporte paralelo de las decisiones de negocio sobre el grafo de spans y fiscaliza asíncronamente la frontera abierta del manifold ($\partial \mathcal{M} \neq \varnothing$).
 
 ```
                      ▲ [Identificar] (Pasaporte / TelemetryContext)
                     ╱ ╲
-                   ╱   ╲ [Contextualizar] (Carpeta Flux / Metadata de Sesión)
+                   ╱   ╲ [Cinturón Orbital] (Satélites de Telemetría y Auditoría de Frontera)
                   ╱     ╲
-                 ╱ Crono─╲
-                ╱  metrar ╲ (Reloj / Latencia de Spans)
-               ╱           ╲
-              ╱  Registrar  ╲ (Señales de estado y Ondas de transitorios)
-             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+                 ╱ Context─╲ (Carpeta Flux / Metadata de Sesión y Distancia ds²)
+                ╱  ualizar  ╲
+               ╱             ╲
+              ╱ Cronometrar & ╲ (Onda, Reloj de Spans, Langevin & Smith Normal Form)
+             ╱   Registrar     ╲
+            ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 ```
 
-### 1. Nivel 3 — Registrar: Onda y Señal de Estado
-*   **Axioma Co-homológico:** Captura de forma continua las trazas transitorias de las variables de estado física y de cómputo en la base de la pirámide.
-*   **Física y Ecuaciones:** El flujo de telemetría de execution se modela como el complejo de cocadenas de de Rham celular de primer orden:
+### 1. Nivel 3 — Registrar: Onda y Señal de Estado en la Frontera Abierta ($\partial \mathcal{M} \neq \varnothing$)
+*   **Axioma Co-homológico:** Captura de forma continua las trazas transitorias de las variables de estado física y de cómputo en la base de la pirámide. La frontera de contorno $\partial \mathcal{M}$ se modela como una variedad Riemanniana compacta con frontera abierta y fuera del equilibrio, expuesta a la inyección de entropía exterior procedente de la ingesta de datos del SECOP II y del Mandato BIM 2026.
+*   **Física y Ecuaciones:** El flujo de telemetría de ejecución se modela como el complejo de cocadenas de de Rham celular de primer orden:
     $$P_\sigma^*(S) : 0 \longleftarrow C_0(S) \longleftarrow^{\partial_0} C_1(S) \longleftarrow^{\partial_1} \dots \longleftarrow^{\partial_{k-1}} C_k(S) \longleftarrow 0$$
-    Garantizando la nilpotencia exacta frente a la inyección de auto-bucles de latencia ($\partial_k \circ \partial_{k-1} \equiv 0$).
+    Garantizando la nilpotencia exacta frente a la inyección de auto-bucles de latencia ($\partial_k \circ \partial_{k-1} \equiv 0$). La fluctuación exógena en el contorno obedece la Ecuación de Langevin Cuántica No-Markoviana:
+    $$\frac{d \mathcal{Q}(t)}{dt} = -[\mathcal{H}_{\mathrm{boundary}}, \, \mathcal{Q}(t)] - \Gamma_{\mathrm{diss}} \mathcal{Q}(t) + \xi_{\mathrm{ext}}(t)$$
+    donde $\langle \xi_{\mathrm{ext}}(t) \xi_{\mathrm{ext}}(t') \rangle = 2 \Gamma_{\mathrm{diss}} k_B T_{\mathrm{sys}} \delta(t - t')$.
 
-### 2. Nivel 2 — Cronometrar: La Métrica Temporal
+### 2. Nivel 2 — Cronometrar: La Métrica Temporal y Sincronización Orbital
 *   **Axioma Co-homológico:** Mide y asocia las latencias de ejecución y la fricción temporal en cada arista direccional del bosque de spans causales.
 *   **Física y Ecuaciones:** Audita que la jerarquía sea un bosque causal perfecto (libre de bucles infinitos) verificando la **Fórmula de Euler-Poincaré para grafos de observabilidad**:
     $$\chi(K) = \beta_0 - \beta_1 = |V| - |E| \implies \beta_1 \equiv 0$$
+    Síncronamente, los Satélites de Telemetría (`telemetry_satellites.py` / `telemetry_satellites_agent.py`) proyectan la entropía instantánea $H_{\mathrm{ext}}$ y el número de condición de Wilkinson $\kappa_2(\tilde{\mathcal{K}})$ hacia el pasaporte mediante el pullback funtorial:
+    $$\phi^*: \mathcal{H}(\partial \mathcal{M}) \longrightarrow \mathcal{H}(\mathcal{M}_{\mathrm{internal}}) \quad \implies \quad \phi^*(H_{\mathrm{ext}}) \oplus \mathtt{TelemetryContext}$$
 
-### 3. Nivel 1 — Contextualizar: La Carpeta Flux
+### 3. Nivel 1 — Contextualizar: La Carpeta Flux y Fiscalización Causal Cuántica
 *   **Axioma Co-homológico:** Asocia de forma compacta y georreferenciada la metadata de sesión, umbrales SRE de mitigación (*Load Shedding*) y la zona geográfica.
 *   **Física y Ecuaciones:** Deforma los costos nominales proyectando la distancia de Mahalanobis en el espacio Riemanniano anisótropo del proyecto:
     $$ds^2 = G_{\mu\nu} dx^\mu dx^\nu$$
+    Los Satélites de Auditoría (`audit_satellites.py` / `audit_satellites_agent.py`) inspeccionan la inyección de canales mediante la matriz de Choi $C_{\mathcal{E}} = (\mathcal{E} \otimes \operatorname{Id})(|\Phi^+\rangle\langle\Phi^+|) \succeq \mathbf{0}$, verificando $\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}$ y la preservación exacta de la traza parcial $\operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}_{\mathrm{input}}$.
 
-### 4. Nivel 0 — Identificar: El Pasaporte de Telemetría (`TelemetryContext`)
+### 4. Nivel 0 — Identificar: El Pasaporte de Telemetría (`TelemetryContext`) y Doble Firma de No-Repudio
 *   **Axioma Co-homológico:** Instancia el objeto inmutable de procedencia y trazabilidad que viaja como un **Gemelo Digital** a lo largo de toda la Malla.
 *   **Física y Ecuaciones:** Exige la contención de subespacios de Hilbert covariantes y restringe la escalada mediante el isomorfismo de la Adjunción de Galois:
     $$\operatorname{Hom}_{\mathcal{D}}(F(X), Y) \cong_{G_{\mu\nu}} \operatorname{Hom}_{\mathcal{C}}(X, G(Y))$$
+    Sella cada transacción orbital con doble firma inmutable SHA-256 en RAM: la huella isomorfa (`decision_sha256`) sin marcas de reloj y la huella digital de no-repudio (`digital_signature_sha256`) con el sello temporal UTC. Si el veredicto colapsa a $\top$ (VETOED) en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$, la rutina local en C++ `isVerdictCoherent()` activa la ISR en IRAM del ESP32 en $< 400\text{ ns}$, conmuta el pin GPIO14 y dispara el tiristor BT151 del circuito Crowbar para paralizar los actuadores mecánicos en obra.
 
 ---
 
@@ -274,6 +281,14 @@ Somete el Árbol de Sintaxis Abstracta (AST) y las transiciones del canal cuánt
     $$D_{ik} = f^{[1]}(\lambda_i, \lambda_k) = \frac{\lambda_i^{-1/2} - \lambda_k^{-1/2}}{\lambda_i - \lambda_k} \quad (\lambda_i \neq \lambda_k)$$
 
 ### II. La Pirámide de Soberanos (Top-Down)
+0.  **Nivel 0.5 (Cinturón Orbital de Frontera) — Soberanos de Telemetría y Auditoría de Frontera (`telemetry_satellites_agent.py` & `audit_satellites_agent.py`):**
+    Soberanos ciber-físicos de lazo cerrado que orbitan la frontera abierta de-confinada $\partial \mathcal{M} \neq \varnothing$ para interceptar el caos exógeno del SECOP II y Mandato BIM 2026 antes de su ingreso a la fortaleza:
+    *   **`telemetry_satellites_agent.py` (Soberano de Telemetría):** Fiscaliza síncronamente al motor `telemetry_satellites.py` mediante el ciclo OODA en tres fases (Observe, Orient, Decide/Act). Evalúa la fuerza estocástica Langevin $\xi_{\mathrm{ext}}(t)$, calcula la entropía de respaldo de Shannon / Miller-Madow / $H_\infty$, verifica la fuga exergética de Landauer $\Xi_{\mathrm{leak}} = H_{\mathrm{ext}} \ln(1+\kappa_2)$ y proyecta el pullback conforme $\phi^*(H_{\mathrm{ext}}) \oplus \mathtt{TelemetryContext}$.
+    *   **`audit_satellites_agent.py` (Soberano de Auditoría):** Fiscaliza síncronamente al motor `audit_satellites.py` mediante tres aduanas doctorales anidadas:
+        1. *Aduana Homológica sobre $\mathbb{Z}$:* Re-calcula la Smith Normal Form (SNF) $S = U \cdot \partial_{\partial} \cdot V = \operatorname{diag}(d_1, \dots, d_r, 0, \dots, 0)$, exigiendo la nulidad del subgrupo de torsión $\operatorname{Tor}(H_k(\partial K; \mathbb{Z})) \equiv \mathbf{0}$ ($d_i = 1$).
+        2. *Aduana Cuántica de Choi-Jamiołkowski (CPTP):* Verifica la semidefinición positiva de la matriz de Choi $C_{\mathcal{E}} = (\mathcal{E} \otimes \operatorname{Id})(|\Phi^+\rangle\langle\Phi^+|) \succeq \mathbf{0}$ ($\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}$) y la traza parcial $\operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}_{\mathrm{input}}$.
+        3. *Aduana Bell-CHSH y Cota de Tsirelson:* Evalúa el parámetro $\mathcal{B}_{\mathrm{CHSH}} = |E_{11}+E_{12}+E_{21}-E_{22}| \le 2\sqrt{2}$ para desarticular la cartelización o colusión de proveedores en SECOP II.
+    *   **Dual-Control y Actuación Crowbar:** El veredicto final es el ínfimo de Gödel (meet) en $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Firma certificados inmutables con doble hash SHA-256 (`decision_sha256` y `digital_signature_sha256`). Ante veto ($\top$), gatilla la ISR en IRAM del ESP32 (< 400 ns) conmuntando GPIO14 para disparar el tiristor BT151 del circuito Crowbar.
 1.  **Nivel 0.5 — Custodio de Volumen de Fase y Pureza Cuántica (`fock_forensic_hall_agent.py`):**
     Soberano de calibre del Salón de Eventos Forense que orquesta el bucle covariante OODA, monitorea la pureza cuántica $\operatorname{Tr}(\rho^2)$, la eficiencia exergética $\eta_{\mathrm{ex}}$ y la entropía de von Neumann $S(\rho)$, dictando sentencias inmutables de veto en el retículo distributivo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$.
 2.  **Nivel 0.5 (Penthouse Térmico) — Soberano de Calibre del Campo Térmico (`thermal_gradient_agent.py`):**
