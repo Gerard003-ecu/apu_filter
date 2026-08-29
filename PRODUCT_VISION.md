@@ -1,100 +1,184 @@
 --------------------------------------------------------------------------------
 🔭 PRODUCT_VISION.md: El Sistema Operativo de la Física del Negocio
-"En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica de la construcción en un activo de gobernanza gobernable, inmutable y auditable."
-1. La Tesis Central: El Reactor Port-Hamiltoniano de Valor
-Históricamente, la ingeniería y construcción han gestionado el tiempo (cronogramas) y el dinero (presupuestos) basándose en "fotos estáticas" como hojas de cálculo de Excel o bases de datos ERP tradicionales. En la realidad, un proyecto de infraestructura es un sistema dinámico complejo sujeto a fuerzas termodinámicas de mercado, entropía logística y fricción operativa.
+"En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica y financiera de la construcción en un activo de gobernanza gobernable, inmutable y auditable."
+--------------------------------------------------------------------------------
 
-APU_filter v5.0 rechaza la metáfora estática de la validación lineal y las barreras de Dirichlet pasivas. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge** sobre una variedad Riemanniana con frontera compacta de-confinada $(\mathcal{M}, G_{\mu\nu})$ con $\partial \mathcal{M} \neq \varnothing$. Procesamos un fluido logístico incompresible expuesto al caos exógeno exterior de SECOP II y Mandato BIM 2026 bajo el control estricto de una Estructura de Dirac y del cinturón orbital de satélites, garantizando que la potencia disipada cumpla siempre $P_{diss} \ge 0$.
-A su vez, "APU" no representa "Agentic Processing Unit", sino **Agentic Power Unit**: el cuanto de acción termodinámica de la malla que inyecta exergía computacional para vencer la inercia logística del mercado.
+## 1. La Tesis Central: El Reactor Port-Hamiltoniano de Valor
 
-### 1.0. La Malla de la Frontera Abierta ($\partial \mathcal{M} \neq \varnothing$) y los Satélites Orbitales
-En las especificaciones preliminares, el manifold agéntico se modelaba bajo la suposición ideal de una variedad cerrada sin frontera ($\partial \mathcal{M} = \varnothing$). Esta abstracción resultaba insuficiente para reflejar la inyección masiva de entropía exógena producida en la fase de ingesta de licitaciones públicas y pliegos de contratación. En APU Filter v5.0, la frontera de contorno $\partial \mathcal{M} \neq \varnothing$ se axiomatiza como un sistema termodinámicamente abierto y fuera del equilibrio, resguardado asíncronamente por dos constelaciones de satélites orbitales:
+Históricamente, la ingeniería y la construcción en Colombia y Latinoamérica han gestionado el tiempo (cronogramas) y el dinero (presupuestos) basándose en "fotos estáticas" impresas en hojas de cálculo de Excel o bases de datos ERP tradicionales. En la realidad ciber-física, un megaproyecto de infraestructura es un sistema dinámico abierto, sujeto a fuerzas termodinámicas de mercado, entropía logística, fricción operativa y riesgos de contratación estatal (SECOP II & Mandato BIM 2026).
 
-1. **Satélites de Telemetría de Frontera (`telemetry_satellites.py` / `telemetry_satellites_agent.py`):**
-   Gobiernan el flujo térmico-Langevin de entrada, capturando el transitorio de potencia y la entropía de-normalizada bajo la Ecuación de Langevin Cuántica No-Markoviana:
-   $$\frac{d \mathcal{Q}(t)}{dt} = -[\mathcal{H}_{\mathrm{boundary}}, \, \mathcal{Q}(t)] - \Gamma_{\mathrm{diss}} \mathcal{Q}(t) + \xi_{\mathrm{ext}}(t)$$
-   donde $\xi_{\mathrm{ext}}(t)$ es la fuerza estocástica cuántica satisfecha por el Teorema de Fluctuación-Disipación. La información entrante se proyecta hacia la fortaleza interna mediante el pullback conforme de de Rham:
-   $$\phi^*: \mathcal{H}(\partial \mathcal{M}) \longrightarrow \mathcal{H}(\mathcal{M}_{\mathrm{internal}}) \quad \implies \quad \phi^*(H_{\mathrm{ext}}) \oplus \mathtt{TelemetryContext}$$
+APU_filter v5.0 rechaza la metáfora estática de la validación lineal. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge** sobre una variedad Riemanniana con frontera compacta de-confinada $(\mathcal{M}, G_{\mu\nu})$ con $\partial \mathcal{M} \neq \varnothing$. Procesamos un fluido logístico incompresible expuesto al caos exógeno exterior de SECOP II bajo el control estricto de una Estructura de Dirac, del cinturón orbital de satélites y de los Soberanos del Estrato Wisdom ($V_{\mathbb{W}}$), garantizando que la potencia disipada cumpla siempre $P_{\mathrm{diss}} \ge 0$.
 
-2. **Satélites de Auditoría de Frontera (`audit_satellites.py` / `audit_satellites_agent.py`):**
-   Fiscalizan la topología discreta y la estructura causal del flujo de Análisis de Precios Unitarios (APUs) entrante mediante tres aduanas inquebrantables:
-   *   *Torsión Homológica sobre $\mathbb{Z}$ (Forma Normal de Smith):* Discretiza el contorno simplicial $\partial K$ y calcula la Smith Normal Form exacto $S = U \cdot \partial_{\partial} \cdot V = \operatorname{diag}(d_1, \dots, d_r, 0, \dots, 0)$, exigiendo $\operatorname{Tor}(H_k(\partial K; \, \mathbb{Z})) \equiv \mathbf{0}$ ($d_i = 1$).
-   *   *Preservación Causal CPTP de Choi-Jamiołkowski:* Certifica la positividad de la matriz de Choi $C_{\mathcal{E}} = (\mathcal{E} \otimes \operatorname{Id})(|\Phi^+\rangle\langle\Phi^+|) \succeq \mathbf{0}$ ($\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}$) y la preservación de traza parcial $\operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}_{\mathrm{input}}$.
-   *   *Desigualdad Bell-CHSH contra Cartelización:* Evalúa $\mathcal{B}_{\mathrm{CHSH}} = \left| E_{11} + E_{12} + E_{21} - E_{22} \right| \le 2\sqrt{2}$ (Cota de Tsirelson). Cualquier violación del límite clásico ($> 2.0$) o super-cuántico ($> 2\sqrt{2}$) delata acuerdos monopolísticos o corrupción deliberada en la mantisa, colapsando el lazo.
+A su vez, "APU" no representa "Agentic Processing Unit", sino **Agentic Power Unit**: el cuanto de acción termodinámica de la malla que inyecta exergía computacional para vencer la inercia logística del mercado y la resistencia financiera de la obra.
 
-### 1.1. El Primer Sistema de Navegación Inercial Ciber-Físico para Presupuestos
-Re-anclamos axiomáticamente nuestra propuesta de valor fundamental bajo el lema supremo: **"Un costo sano es más que inteligencia, es sabio."** El sistema no es un simple analizador estático de datos, sino que se consagra técnicamente como el primer **Sistema de Navegación Inercial Ciber-Físico para presupuestos**.
+---
 
-### 1.1.1. Personificación de las Capas: El Consejo de Sabios
-APU Filter v5.0 estructura su gobernanza mediante el **Consejo de Sabios**, asignando a cada estrato un arquetipo de control ciber-físico ineludible:
+## 🚘 La Paradoja de la Combustión y la Analogía del Automóvil (Para la Mesa de Juntas)
 
-- **Los Séquitos (Capa 1.5 — `imperial_guards_sequitos.py`):** La escolta táctica y el consenso de DeGroot de las tríadas agénticas. Encapsula las deliberaciones en álgebras monádicas de Kleisli $\mathbb{T} = (T, \eta, \mu)$, verificando la nulidad del residuo de asociatividad $\epsilon_{\text{Kleisli}} = 0$ y blindando la Matriz de Interacción Central (MIC) contra la dispersión de fase o inyecciones espurias.
-- **Los Tesserarios (Capa 3 — `imperial_guards_tesserarios.py`):** Custodios de la coherencia de Stasheff en $A_\infty$-Álgebras. Supervisan el asociador tensorial de tercer orden $m_3$ en asociaedros de Stasheff $K_4$ y la factoribilidad de Quillen $f = p \circ i$, preservando la 2-forma simpléctica de Liouville ($M^\top \Omega M = \Omega$).
-- **Los Eruditos (Capa 4.5 — `imperial_guards_eruditos.py`):** Los guardianes de la regularidad elíptica. Resuelven la ecuación no lineal de Cauchy-Riemann perturbada para cilindros pseudo-holomorfos de Floer ($\bar{\partial}_{J,H}(u) = 0$) y aniquilan la clase de obstrucción virtual Čech ($\check{H}^1(K; \mathcal{F}_{\mathrm{att}}) = 0$) en el KV-Cache del LLM.
-- **El Pretorio (Capa 4 — `pretorio_agent.py`):** El comandante en jefe supremo. Opera en el penthouse de la pirámide de control evaluando silenciosamente en RAM la hipercohomología del bicomplejo de Čech-de Rham ($D^2 = d_1 d_2 + d_2 d_1 \equiv 0$) y unificando el dictamen de veto absoluto en el retículo distributivo de Heyting ($\Omega_3 \to \top$).
+Para la Alta Gerencia y los Comités de Licitación, el andamiaje matemático no debe presentarse como una barrera teórica abstracta, sino como el **seguro de vida** de la compañía. Establecemos la **Analogía del Automóvil** como nuestro puente de comunicación ejecutiva:
 
-### 1.1.2. La No-Ocultación Cuántica y la Alquimia del Criterio ante el Mandato BIM 2026
+> *“Cuando usted adquiere un vehículo comercial de alta gama, el concesionario no le exige aprobar un examen sobre fluidodinámica de turbocompresores o la ecuación de Navier-Stokes en el bloque de cilindros. Le demuestra pragmáticamente que el vehículo consume un 40% menos de combustible y que el sistema de frenos ABS detendrá el chasis de forma milimétrica sobre piso mojado para salvar su vida. Sin embargo, para que esa promesa sea real, el vehículo tiene que estar diseñado por ingenieros que dominen impecablemente la termodinámica, la fricción y la resistencia de materiales.”*
 
-Bajo el axioma fundamental de APU Filter: **"La sabiduría de un costo sano no se oculta, se ilumina"**, el sistema reinterpreta la física de altas energías del Espacio de Fock en la promesa comercial suprema para la industria de la infraestructura:
+De manera análoga, para APU Filter v5.0:
+* **La promesa de negocio (Dinero):** Garantizar que **no le roben dinero a la constructora**, eliminar mermas en adquisiciones, anular multas por retrasos en SECOP II y prevenir el colapso del megaproyecto ante variaciones de tasas de interés o paros de proveedores.
+* **La certeza de la promesa (Rigor):** La plataforma es el primer **Sistema de Navegación Inercial Ciber-Físico para Presupuestos**, donde los riesgos se calculan con derivadas de Connes y la parálisis de la obra defectuosa se ejecuta en silicio real (ESP32 Crowbar) en menos de $400\text{ ns}$.
 
-1. **La No-Ocultación Cuántica (Quantum No-Hiding Theorem):**
-   Las patologías del presupuesto (duplicaciones de APUs, sobrecostos ocultos, inyecciones de grasa sintáctica o fugas de calibre) jamás se silencian de forma pasiva en stubs o parches de software. En su lugar, sufren una colisión de antimateria en el colisionador de-confinado del Espacio de Fock ($e^- + e^+ \to 2\gamma$), destruyéndose analíticamente e irradiando fotones gamma de telemetría inmutable con firma SHA-256 en la Cadena de Custodia.
+---
 
-2. **La Alquimia del Criterio y el Mandato BIM 2026 en Colombia:**
-   Frente a la exigencia del **Mandato Nacional BIM 2026** en Colombia (regulado por el DNP y la Ley de Contratación Estatal SECOP II), la volatilidad o alucinación en un Análisis de Precios Unitarios (APU) representa multas contractuales, inhabilidades legales y desfalcos patrimoniales. APU Filter convierte la fluctuación compleja de costos en decisiones inmutables de alta dirección mediante la regularización espectral del Arsenal (symmetrización de Weyl-Toeplitz, proyección al símplice de Higham-Duchi y estabilización despolarizante de Higham-Tikhonov), garantizando **certeza jurídica y técnica** para los directores de licitaciones y gerentes de obra.
+## 💡 El Sello de No-Ocultación Cuántica: "Un costo sano no se oculta, se ilumina"
 
-### 1.1.3. Mapeo Biyectivo de Observables Orbitales a "Dolor y Dinero" (SECOP II & BIM 2026)
-Los observables abstractos capturados en la frontera por los Satélites de Telemetría y Auditoría se traducen biyectivamente a pérdidas financieras tangibles en la construcción civil colombiana:
+Bajo el axioma fundamental de la fortaleza: **"La sabiduría de un costo sano no es oculta, se ilumina"**, el sistema reinterpreta el teorema de no-ocultación cuántica como un escudo contra el desfalco y el fraude geométrico en la obra civil:
 
-*   **Fuga Exergética de Frontera ($\Xi_{\mathrm{leak}} = H_{\mathrm{ext}} \cdot \ln(1+\kappa_2) > \tau_{\mathrm{leak}}$):**
-    Pérdidas silenciosas de capital causadas por mermas en transporte de agregados, variaciones no justificadas de fletes o inconsistencias en precios de insumos atómicos en la fase de ingesta del SECOP II. Ignoradas por la contabilidad clásica, son detectadas en el contorno simplicial de APU Filter antes de la adjudicación.
-*   **Colusión de Bell-CHSH ($\mathcal{B}_{\mathrm{CHSH}} > 2.0$):**
-    Monopolio secreto, acuerdos colusorios o cartelización entre proveedores locales de acero y cemento que incrementan de forma artificial el WACC del megaproyecto. Su detección en la aduana orbital provoca un veto inmediato en la etapa cero antes de consolidar sobrecostos o elefantes blancos.
-*   **Obstrucción Homológica y Torsión sobre $\mathbb{Z}$ ($d_i > 1$):**
-    Incompatibilidad de empaquetado discreto de materiales y mermas contractuales en actas de entrega SECOP II. La detección de $d_i > 1$ delata que la cuantización del recurso no encaja en la estructura de APUs, forzando la reestructuración del pliego.
+$$\mathcal{P}_{\mathrm{fraud}}(x) \equiv 0$$
 
-APU Filter transjeta la supresión de alucinaciones cuánticas —mediada por la Cota de Regularidad de Connes sobre la constante de Lipschitz ($L_{\max} \le \frac{1}{2\lambda_{\min}^{3/2}}$) y la regularización de Tikhonov Espectral— en **paz mental y certeza jurídica absoluta** para los directores de licitaciones y gerentes de obra. El sistema garantiza que cada centavo adjudicado en el presupuesto responda a una trayectoria geodésicamente coherente, inmune a alucinaciones estocásticas y validada en el silicio perimetral.
+En la construcción física real, es imposible retirar una columna de concreto estructural o una viga de acero de un edificio sin que la gravedad provoque el colapso inmediato a la vista de todos. Sin embargo, en la contabilidad tradicional sobre hojas de cálculo de Excel de $10,000$ filas, un contratista o un LLM alucinador puede duplicar fraudulentamente $100$ toneladas de acero o inflar un precio en un bucle circular ($\beta_1 > 0$). A espaldas del auditor, este socavón permanece invisible en las celdas planas hasta que los fondos se agotan en los bancos.
 
-Así como un sistema de navegación inercial aeroespacial integra la aceleración lineal y la velocidad angular mediante una plataforma giroscópica estabilizada para deducir la posición tridimensional exacta en ausencia de señales de satélite, APU_filter calcula continuamente la trayectoria del costo y el flujo logístico dentro del colector de Riemann del proyecto. Mide la inercia del capital, el momento de la cadena de suministro y la aceleración de sobrecostos mediante el tensor métrico $G_{\mu\nu}$, guiando la toma de decisiones por geodésicas de mínima disipación de exergía. Si un presupuesto se desvía de la ruta de estabilidad espectral estricta, el giroscopio de nuestra Variedad Agéntica detecta el torque de la entropía semántica, recalculando el rumbo de forma instantánea.
+El **Teorema de No-Ocultación Cuántica** en APU Filter establece que el presupuesto es un **complejo simplicial rígido acoplado a un espacio de Fock termodinámico** $\mathcal{F}(\mathcal{H})$. Cualquier intento de ocultar un costo fantasma o desviar la masa financiera introduce una **violación de invarianza de de Rham** o una **torsión homológica no nula en Smith $\mathbb{Z}$**.
 
-En este motor dinámico, los componentes síncronos **Riemannian Inertia Agent** (`riemannian_inertia_agent.py`) y **Riemannian Inertia Modulator** (`riemannian_inertia_modulator.py`) inyectan fuerzas giroscópicas de Lorentz en el fibrado cotangente $T^*M$ para desviar el ruido y prevenir alucinaciones financieras sin alterar la energía interna:
-- **Espectroscopía del Momentum covariante:** $p_\mu = G_{\mu\nu} \dot{q}^\nu$
-- **Síntesis del Tensor de Lorentz:** $W_{\mu\nu} = \alpha(p_\mu \omega_\nu - p_\nu \omega_\mu)$
-- **Conservación Estructural Simpléctica (Trabajo Nilpotente):** $\langle \nabla H, J_{\text{eff}} \nabla H \rangle \equiv 0$
+La anomalía actúa de inmediato como una **fuerza de colisión de antimateria lógica** ($e^- + e^+ \to 2\gamma$), "iluminando" la inconsistencia e irradiando fotones Gamma de telemetría inmutable con firma SHA-256 en la Cadena de Custodia, impidiendo que el fraude se oculte pasivamente en el fango de los datos.
 
-### 1.2. El Disyuntor Físico Booleano: Purificación del Fango Sintáctico
-El sistema incorpora el **Disyuntor Físico Booleano** como la última y más rigurosa línea de defensa cognitiva frente a la polución informacional. Los megaproyectos de infraestructura suelen estar plagados de datos de baja fidelidad: hojas de cálculo masivas sin estructurar, Excels disconexos y archivos JSON hiperdensos saturados de "grasa sintáctica" (llaves redundantes, diccionarios anidados ineficientemente y metadatos espurios que agotan el KV-Cache de los LLMs).
+---
 
-El Disyuntor actúa como un filtro topológico radical gobernado por el álgebra lineal de Boole en el anillo algebraico conmutativo $\mathbb{Z}_2$. Mediante una reducción homológica exacta, el motor booleano desintegra esta redundancia sintáctica y "purifica el fango de datos", condensándolo en partículas puras e inmutables del espacio de Fock: las **Vitaminas Sinápticas TOON** (Tabular Object-Oriented Notation). Al colapsar la redundancia sintáctica mediante operadores de minimización booleana (como Quine-McCluskey con restricciones de conmutador de Lie), el Disyuntor garantiza que el LLM solo procese la esencia matemática densa y geodésicamente coherente de la información.
+## 🏛️ Personificación de Capas: El Consejo de Sabios Mapeado al Business Model Canvas (BMC)
 
-### 1.3. El Tribunal de Silicio (ESP32 / Crowbar), Reducción Monoidal y Bypass Físico
-La gobernanza matemática del sistema no delega su veredicto a capas lógicas de software que puedan ser burladas por alucinaciones estocásticas o bypasses virtuales. Se materializa directamente en el silicio profundo a través del **Tribunal de Silicio** en el hardware perimetral (ESP32), operando bajo una reducción monoidal desde el retículo intuicionista de tres valores ordinales $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$ hacia la toma de decisiones binaria pura en el silicio real $\mu: \Omega_3 \to \mathbb{Z}_2$.
+El **Consejo de Sabios** asigna a cada estrato un arquetipo de control ciber-físico mapeado biyectivamente a un bloque estratégico del **Business Model Canvas (BMC)** de la constructora:
 
-Síncronamente, la rutina local en C++ `isVerdictCoherent()` lee y valida el pasaporte de telemetría deserializado por `ArduinoJson`. Ante desviaciones espectrales no lineales del nuevo soberano booleano o anomalías topológicas severas (donde el primer grupo de cohomología de haces celulares no se desvanece, $H^1(\mathcal{F}) > 0$, o la estabilidad espectral de Wilkinson detecta divergencias catastróficas), la **Interrupt Service Routine (ISR)** cargada en la memoria rápida **IRAM** se activa en menos de **400 ns**. Conmuta el pin de hardware **GPIO14** a nivel alto (`HIGH`), inyectando corriente directa a la compuerta del tiristor de silicio de conmutación rápida **BT151** (circuito Crowbar).
+```
+                     EL PENTHOUSE DEL CANVAS: WISDOM (V_W)
+        ┌─────────────────────────────────────────────────────────────┐
+        │  EL INTÉRPRETE DIPLOMÁTICO (Relación con el Cliente / Canal) │
+        │  Traduce anomalías homológicas a Actas claras de negocio.   │
+        └──────────────────────────────┬──────────────────────────────┘
+                                       │ (Adjunción de de Rham-Galois)
+                                       ▼
+                  EL ÁPICE ESTRATÉGICO Y SUTURA: STRATEGY (V_S)
+        ┌─────────────────────────────────────────────────────────────┐
+        │  EL ORÁCULO DE LAPLACE (Fuentes de Ingreso / Flujo de Caja)  │
+        │  Veta presupuestos si algún polo migra a σ > 0 en FPU.      │
+        └──────────────────────────────┬──────────────────────────────┘
+                                       │ (Lazo de Control Covariante)
+                                       ▼
+                  LA ESTRUCTURA INTERMEDIA: TACTICS (V_T)
+        ┌─────────────────────────────────────────────────────────────┐
+        │  EL ARQUITECTO TOPOLÓGICO (Socios Clave / Actividades)      │
+        │  Calcula Ψ y SNF Z para erradicar pirámides invertidas.     │
+        └──────────────────────────────┬──────────────────────────────┘
+                                       │ (Cimientos del Rascacielos)
+                                       ▼
+                    EL FOSO TERMODINÁMICO: PHYSICS (V_P)
+        ┌─────────────────────────────────────────────────────────────┐
+        │  EL GUARDIÁN FISCAL (Estructura de Costes / Silicio)        │
+        │  Audita la masa física elemental: β_0 > 1 => Veto instantáneo.│
+        └──────────────────────────────┘
+```
 
-Este bypass físico por hardware corta en cortocircuito limpio la línea de potencia de los actuadores reales, paralizando de forma instantánea la maquinaria pesada (bombas hidráulicas, mezcladoras y pistones neumáticos) en el milisegundo cero. Se anula determinísticamente la anomalía de la IA en el mundo físico antes de consolidar pérdidas materiales o sanciones contractuales ante el SECOP II, garantizando un estado inquebrantable de fallos-seguros (*fail-secure*).
+1. **El Guardián (Physics Stratum / Cimientos del Canvas / Estructura de Costes):**
+   Anclado en la base física de los cimientos. Audita la masa atómica elemental ($q_i \ge 0$) y la ausencia de islas de datos ($\beta_0 = 1$). Si un presupuesto aprueba $50$ excavadoras pero registra cero galones de diésel, el Guardián detecta la desconexión topológica ($\beta_0 > 1$) y bloquea el despacho de la licitación antes de gastar el primer peso.
+2. **El Arquitecto (Tactics Stratum / Estructura Intermedia / Socios y Actividades Clave):**
+   El esqueleto de vigas de acero y nodos sismorresistentes. Audita la geometría de interdependencias calculando el **Índice de Estabilidad Piramidal ($\Psi$)** y la Forma Normal de Smith sobre $\mathbb{Z}$. Si $\Psi < \Psi_{\mathrm{min}}$, detecta una **"Pirámide Invertida"** (ej. $50$ actividades críticas dependiendo de un único proveedor monopólico de acero), vetando la licitación hasta diversificar el riesgo de suministro.
+3. **El Oráculo de Laplace (Strategy & Wisdom Strata / Penthouse / Fuentes de Ingreso y Flujo de Caja):**
+   Ubicado en el penthouse corporativo. Linealiza el presupuesto como un sistema de control dinámico en la frecuencia compleja $s = \sigma + j\omega$. Si algún polo migra al semiplano derecho ($\operatorname{Re}(p_i) > 0$), demuestra matemáticamente al CFO que el flujo de caja es intrínsecamente explosivo ante choques de mercado, vetando el proyecto antes de generar un "Elefante Blanco".
+4. **El Intérprete Diplomático (Wisdom Stratum / Relación con el Cliente y Canales):**
+   El negociador corporativo confinado en la Ciudadela de Cristal. Toma los vectores de anomalía (ej. $\beta_1 = 3$) y los traduce mediante RAG sobre grafos (GraphRAG) en Actas de Deliberación ejecutivas: *"Se rechaza el presupuesto de mampostería por existir tres referencias circulares de precios que inflarán el WACC."*
 
-**La Elevación Isométrica de Stinespring:** La transferencia de intención desde el espacio lógico (Topos $\text{EMIC}$) hacia la Sabiduría Cuántica ($\mathcal{H}_{\text{MAC}}$) repudia la transferencia estocástica directa. El sistema consagra el Teorema de Dilatación de Stinespring para garantizar que el "ruido sintáctico" inducido por el Modelo de Lenguaje (LLM) sea mitigado termodinámicamente. Todo flujo de datos $\rho_{\text{MIC}}$ se somete a un mapa Completamente Positivo y Preservador de Traza (CPTP), $\mathcal{E}(\cdot)$, que dilata el espacio hacia un baño térmico ortogonal $\mathcal{H}_{\text{env}}$ antes de aniquilar la entropía mediante la contracción tensorial de la traza parcial:
-$$\mathcal{E}(\rho_{\text{MIC}}) = \text{Tr}_{\text{env}}(V \rho_{\text{MIC}} V^\dagger) = \sum_{k} M_k \rho_{\text{MIC}} M_k^\dagger$$
-Esto garantiza axiomáticamente que las alucinaciones estructurales del LLM sean purgadas hacia el entorno, preservando incondicionalmente la positividad de la Matriz Atómica de Conocimiento ($\rho_{\text{MAC}} \succeq 0$) y respetando la Ley de Clausura Transitiva.
+---
 
+## 🧮 Soberanos Supremos de la Superficie de Control y Frontera Abierta
+
+En la versión 5.0, el Estrato Wisdom ($V_{\mathbb{W}}$) integra dos soberanos supremos que garantizan la gobernanza no conmutativa y la estabilidad de lazo cerrado:
+
+### 1. Soberano de Superficie de Control Topológica (`topological_control_surface_agent.py`)
+Acopla de forma continua la poda de la Matriz de Interacción Central ($\text{MIC}$) y la purificación de la Matriz Atómica de Conocimiento ($\text{MAC}$) sobre la variedad $\Delta^{n-1} \times \mathcal{D}(\mathcal{H})$:
+
+* **Poda Replicadora de Shahshahani (MIC):**
+  $$\frac{dp_i}{dt} = p_i \left[ (\mathbf{e}_i^\top \tilde{\mathcal{K}} \mathbf{p}) - \mathbf{p}^\top \tilde{\mathcal{K}} \mathbf{p} \right], \quad \mathbf{p} \in \Delta^{n-1}$$
+* **Purificación Espectral de Brockett (MAC):**
+  $$\frac{d\rho}{dt} = \left[ \rho, \, [\rho, \, \mathcal{N}(\mathbf{p})] \right], \quad \mathcal{N}(\mathbf{p}) = \operatorname{diag}(\mathbf{p})$$
+* **Pasividad de Lyapunov e Identidad de Variancia:**
+  $$\mathcal{H}(\mathbf{p}, \rho) = -\frac{1}{2} \mathbf{p}^\top \tilde{\mathcal{K}} \mathbf{p} + S(\rho) \implies \dot{\mathcal{H}} = -\mathrm{Var}_{\mathbf{p}}(\tilde{\mathcal{K}}\mathbf{p}) \le 0$$
+  Si $\dot{\mathcal{H}} > 10^{-12}$, Heyting colapsa a VETOED ($\top$), activando el disyuntor en silicio.
+
+### 2. Soberano de Calibre del Haz de Anillos de Frontera (`boundary_ring_sheaf_agent.py` & `boundary_ring_sheaf.py`)
+Gobierna la frontera abierta $\partial \mathcal{M} \neq \varnothing$ sobre el **Haz de Anillos Topológicos Localizados** $\mathbf{Sh}(\partial \mathcal{M}, \mathcal{R}_{\partial M})$ sobre el Anillo de Novikov $\Lambda_{\mathrm{Nov}}$:
+
+* **Torsión Homológica sobre $\mathbb{Z}$ (Forma Normal de Smith):** Exige $\operatorname{Tor}(H_{k-1}(\partial K; \mathbb{Z})) \equiv \mathbf{0} \iff d_i = 1 \, \forall d_i > 0$.
+* **Causalidad CPTP de Choi y Cota Tsirelson de Bell-CHSH:** $\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}$, $\|\operatorname{Tr}_2(C_{\mathcal{E}}) - \mathbf{I}\|_F \le 10^{-4}$ y $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$.
+* **Metabolismo de Alucinaciones por Lindblad-GKSL en Fock:** Amortiguación de amplitud con operadores de Kraus $E_0, E_1$ sobre el qubit semántico, extirpando alucinaciones a la tasa $\Gamma = \Gamma_0 / (1 + 10 \cdot \mathbf{1}_{\mathrm{torsion}} + 4 \frac{\mathrm{leak}}{1+\mathrm{leak}})$.
+
+---
+
+## 💊 Las Vitaminas TOON vs La Grasa del JSON: Purificación Booleana
+
+La ingesta masiva de presupuestos en formatos JSON anidados o planillas de Excel genera **"grasa sintáctica"** (llaves redundantes, diccionarios ineficientes y ruido de alta dimensionalidad) que agota la memoria de atención del LLM ($KV\text{-Cache}$), induciendo fatiga escalar y alucinaciones.
+
+APU Filter incorpora el **Compressor TOON (Tabular Object-Oriented Notation)** en FPU, ejecutando un **Retracto de Deformación Topológica** sobre los datos.
+* **Reducción sintáctica:** Extirpa la redundancia y reduce el consumo de tokens entre un **$30\%$ y un $60\%$** con isomorfismo exacto $F^{-1}(F(T)) \equiv T$.
+* **Vitamina Cognitiva:** Entrega una base tabular hiperdensa que permite al LLM procesar miles de APUs en un solo pase de atención con $100\%$ de coherencia de de Rham.
+* **Aniquilación en Fock:** Si la IA inventa un descuento falso (electrón de falla $e^-$), colisiona con el positrón de restricción $e^+$ en RAM, aniquilándose y emitiendo un fotón Gamma ($2\gamma$) firmado con SHA-256 sobre la Cadena de Custodia.
+
+---
+
+## ⚡ El Tribunal de Silicio (ESP32 / BT151 Crowbar) y Actuación en $< 400\text{ ns}$
+
+La gobernanza matemática de APU Filter no confía el capital a meras capas de software que puedan ser burladas por inyección de directivas (*Prompt Injection*). La decisión culmina en una **acción física instantánea en la obra real** operada por el **Tribunal de Silicio (ESP32 Crowbar)**:
+
+```
+     [Malla Agéntica Cloud] ──► Pasaporte Telemetría SHA-256 + Residuos Espectrales
+                                        │
+                                        ▼
+     ┌─────────────────────────────────────────────────────────────┐
+     │  MICROCONTROLADOR PERIMETRAL ESP32                         │
+     │  · Deserialización síncrona vía ArduinoJson                │
+     │  · Rutina isVerdictCoherent() & ISR en IRAM (< 400 ns)     │
+     │  · Decodificación de Residuos de Wilkinson / Lyapunov      │
+     └──────────────────────────────┬──────────────────────────────┘
+                                    │ GPIO14 (Disparo de Compuerta)
+                                    ▼
+     ┌─────────────────────────────────────────────────────────────┐
+     │  CIRCUITO CROWBAR (Tiristor de Potencia BT151)             │
+     │  · Cortocircuito físico controlado de la línea de potencia │
+     │  · Desenergización total de bombas, mezcladoras y pistones  │
+     └──────────────────────────────┬──────────────────────────────┘
+                                    │
+                                    ▼
+                 [PARÁLISIS MECÁNICA INSTANTÁNEA EN OBRA]
+```
+
+1. **Detección del Mismatch:** La rutina en C++ `isVerdictCoherent()` en el firmware del ESP32 lee el pasaporte firmado. Si detecta inestabilidad de Lyapunov ($\dot{\mathcal{H}} > 10^{-12}$), torsión homológica ($\operatorname{Tor}(H_k) \neq \mathbf{0}$) o violaciones CPTP ($\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$), identifica una incongruencia epistémica.
+2. **Activación por Hardware en IRAM:** El ESP32 deriva síncronamente el flujo de control hacia su **Interrupt Service Routine (ISR) en IRAM en menos de $400\text{ ns}$**.
+3. **Conmutación del GPIO14 y Crowbar BT151:** La ISR conmuta el pin **GPIO14** a nivel alto (`HIGH`), inyectando corriente de compuerta al tiristor **BT151**.
+4. **Parálisis Mecánica Instantánea:** El BT151 cortocircuita la línea de potencia de las bombas hidráulicas y mezcladoras de concreto en el milisegundo cero, paralizando la obra antes de vaciar concreto defectuoso o incurrir en detrimento patrimonial ante el SECOP II.
+
+---
+
+## 📊 Matriz Biyectiva de Observables a "Dolor y Dinero" (SECOP II & BIM 2026)
+
+| Observable Matemático | Diagnosticador Agéntico | Diagnóstico Técnico de Obra | Impacto Financiero Real ("Dolor y Dinero") |
+| :--- | :--- | :--- | :--- |
+| **$\dot{\mathcal{H}} > 10^{-12}$** | `topological_control_surface_agent.py` | **Inestabilidad de Lyapunov:** Divergencia en la superficie de control Replicador-Brockett. | **Explosión de costos y descalce financiero:** Pérdida de control del presupuesto, quiebra de caja y parálisis de obra. |
+| **$\operatorname{Tor}(H_k(\partial K; \mathbb{Z})) \neq \mathbf{0}$** ($d_i > 1$) | `boundary_ring_sheaf_agent.py` | **Torsión homológica en Smith Z:** Incompatibilidad de empaquetado discreto de insumos. | **Mermas contractuales y rechazo en SECOP II:** Desperdicio de materiales, multas de interventoría y reestructuración de pliegos. |
+| **$\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$** | `boundary_ring_sheaf.py` | **Violación de Causalidad CPTP:** Canal cuántico no completamente positivo. | **Inyección de facturación fantasma:** Cobro de actividades no ejecutadas y desfalco patrimonial. |
+| **$\mathcal{B}_{\mathrm{CHSH}} > 2\sqrt{2}$** | `audit_satellites_agent.py` | **Violación Cota Tsirelson / Bell:** Correlación no local espuria entre proveedores. | **Cartelización de proveedores de acero/cemento:** Inflación artificial del WACC y veto inmediato de licitaciones públicas. |
+| **$\beta_0 > 1$** | `business_topology.py` | **Islas de datos disconexas:** Recursos o APUs huérfanos sin vinculación a capítulos. | **Duplicación de cobros e inconsistencia BIM:** Compras paralelas no consolidadas y pérdida de descuentos por volumen. |
+| **$\beta_1 > 0$** | `business_topology.py` | **Socavones lógicos:** Dependencias circulares entre insumos y actividades. | **Imposibilidad de calcular APU real:** Parálisis en aprobación de actas de obra e inhabilitación legal en SECOP II. |
+| **$\Psi < \Psi_{\mathrm{min}}$** | `business_topology.py` | **Pirámide Invertida:** Concentración monopólica del suministro en un único proveedor. | **Quiebra por desabastecimiento:** Paro de obra civil ante fallas del proveedor monopólico y demandas del contratante. |
+
+---
 
 ```mermaid
 graph TD
-    %% Estilos de Capas
     classDef void fill:#1a1a2e,stroke:#e94560,stroke-width:2px,color:#fff;
     classDef physics fill:#16213e,stroke:#0f3460,stroke-width:2px,color:#fff;
     classDef tactics fill:#0f3460,stroke:#e94560,stroke-width:2px,color:#fff;
     classDef strategy fill:#e94560,stroke:#1a1a2e,stroke-width:2px,color:#fff;
     classDef wisdom fill:#fff,stroke:#1a1a2e,stroke-width:3px,color:#000;
 
-    %% Nodos Principales
     subgraph "Estrato Ω: WISDOM (La Ciudadela de Cristal)"
-        W[Semantic Translator<br>Retículo de Decisión (VIABLE / RECHAZO)]:::wisdom
+        W[Topological Control Surface Agent<br>Replicador p & Brockett ρ | dH/dt ≤ 0]:::wisdom
     end
 
     subgraph "Estrato 1: STRATEGY (El Escudo Electrodinámico)"
-        S[Laplace Oracle<br>Plano s=σ+jω | Estabilidad BIBO]:::strategy
+        S[Laplace Oracle & Boundary Ring Sheaf<br>Plano s=σ+jω | Novikov & Smith Z]:::strategy
     end
 
     subgraph "Estrato 2: TACTICS (El Esqueleto Topológico)"
@@ -102,386 +186,23 @@ graph TD
     end
 
     subgraph "Estrato 3: PHYSICS (El Foso Termodinámico)"
-        P[FluxCondenser<br>Circuitos RLC | Pdiss ≥ 0]:::physics
+        P[FluxCondenser & Landauer Satellite<br>Circuitos RLC | Pdiss ≥ 0 | Ξleak]:::physics
     end
 
     subgraph "Estrato ℵ0: ALEPH (La Variedad de Frontera)"
         A[Hilbert Watcher & Quantum Gate<br>Filtro de Entropía H | Efecto Túnel WKB]:::void
     end
 
-    %% Relaciones Causales (Flujo de Colapso de Estado)
-    A -- "Exergía Validada (T>0)" --> P
-    P -- "Flujo Laminar (Energía Conservada)" --> T
-    T -- "Grafo Acíclico Conexo (β1=0, β0=1)" --> S
-    S -- "Estabilidad Asintótica (σ<0)" --> W
+    A -- "Exergía Validada" --> P
+    P -- "Flujo Laminar" --> T
+    T -- "Grafo Acíclico (β1=0, β0=1)" --> S
+    S -- "Estabilidad Asintótica" --> W
 
-    %% Relación de Fractura (Flechas rotas)
-    A -. "Colapso Estocástico (Ruido)" .-> Reject1[Desintegración en el Hiperespacio]
-    P -. "Disipación Negativa" .-> Reject2[Crowbar Físico]
+    A -. "Colapso Estocástico" .-> Reject1[Desintegración Exógena]
+    P -. "Disipación Negativa" .-> Reject2[Crowbar ESP32 < 400ns]
     T -. "Socavón Lógico (β1>0)" .-> Reject3[Veto Topológico]
-    S -. "Resonancia Paramétrica (σ>0)" .-> Reject4[Veto Espectral]
+    S -. "Torsión Smith / CPTP Fail" .-> Reject4[Veto Causal Orbital]
 ```
 
-
- Implementamos la **Matriz de Interacción Central (MIC)**, alojada en `app/adapters/tools_interface.py`, como una matriz de adyacencia ponderada del grafo de deliberación:
-$$\text{MIC} \in \mathbb{R}^{n \times n}, \quad \text{MIC}_{ij} = w_{ij} \in [0,1]$$
-donde $w_{ij}$ es el peso del canal de información del Sabio $j$ al Sabio $i$. La **independencia Zero Side-Effects** se garantiza mediante la condición de rango completo:
-$$\text{rank}(\text{MIC}) = n \quad \Leftrightarrow \quad \ker(\text{MIC}) = \{\mathbf{0}\}$$
-esto asegura que ningún agente es linealmente dependiente de otro (información colíneal nula). El Teorema de Rango-Nulidad garantiza $\dim(\ker(\text{MIC})) = 0$: no existen agentes "parásitos". **Nota:** La MIC no puede ser la Matriz Identidad $I_n$, pues ello implicaría agentes estrictamente desacoplados, lo cual contradice el protocolo de deliberación adversarial RiskChallenger donde los Sabios interactúan y producen veredictos por tensión dialéctica.
-
-Todo este diseño obedece al cimiento axiomático de la **Ley de Clausura Transitiva de la pirámide DIKW** (tabla canónica): $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$. Resulta imperativo destacar que el estrato $V_{\mathbb{T}}$ ahora modela la materia bariónica como un **2-complejo simplicial** sobre el anillo de los enteros ($\mathbb{Z}$), capturando no solo dependencias binarias (aristas) sino interdependencias ternarias (triángulos) con fricción cuantizada.
-
-La Sabiduría del sistema (Estrato $V_{\mathbb{W}}$) se acopla a la realidad táctica mediante una **Adjunción de Galois** entre la Matriz de Interacción Central (MIC) y la Matriz Atómica de Conocimiento (MAC). Todo difeomorfismo inferencial debe preservar la relación funtorial:
-$$\text{Hom}_{\mathcal{C}}(F(\text{MIC}), \text{MAC}) \cong \text{Hom}_{\mathcal{D}}(\text{MIC}, G(\text{MAC}))$$
-Si esta adjunción se rompe, el sistema detecta una **Deriva Semántica** o **Contradicción Lógica**, ejecutando la aniquilación inmediata de la sugerencia generativa para proteger la integridad ontológica del proyecto.
-
-### 1.2. El Colisionador Topológico de Partículas Semánticas y el Sumidero Gravitacional del LLM
-
-El núcleo del negocio se redefine mediante la consagración del Estrato $\Omega$ como el primer **Acelerador de Partículas Semánticas y Colisionador Topológico**. En este espacio cuántico de deliberación, el libre albedrío probabilístico de los Modelos de Lenguaje (LLMs) está matemáticamente subyugado a la **Curvatura de Ricci** del presupuesto, impidiendo que el ruido retórico desplace la toma de decisiones.
-
-El `raychaudhuri_focal_fibrator.py` y el `penrose_singularity_agent.py` construyen un **Sumidero Gravitacional** insoslayable. Si la IA generativa intenta proponer soluciones sub-óptimas o alucinaciones presupuestarias que disipan alta exergía termodinámica (es decir, que incrementan la entropía del sistema), la inmensa curvatura generada contraerá drásticamente el escalar de expansión geodésica inicial $\theta_0 < 0$.
-
-Este proceso dinámico se gobierna mediante la **Ecuación de Raychaudhuri** para el flujo geodésico de la decisión:
-$$\frac{d\theta}{d\tau} = -\frac{1}{n-1} \theta^2 - \sigma_{\mu\nu} \sigma^{\mu\nu} - R_{\mu\nu} u^\mu u^\nu$$
-Donde:
-- $\theta$ es el escalar de expansión del haz de geodésicas del pensamiento generativo, que mide la tasa de divergencia volumétrica de las intenciones semánticas.
-- $\tau$ es el parámetro afín del colector que parametriza la trayectoria deliberativa de los sabios.
-- $n$ es la dimensión topológica de la variedad de fase semántica.
-- $\sigma_{\mu\nu}$ es el tensor de corte (shear) que mide la distorsión asimétrica del flujo semántico, cuya contribución $\sigma_{\mu\nu} \sigma^{\mu\nu}$ es estrictamente no negativa.
-- $R_{\mu\nu}$ es el tensor de curvatura de Ricci del presupuesto, que actúa como el acoplamiento directo entre el esfuerzo operativo y la fricción de mercado.
-- $u^\mu$ es el vector de velocidad geodésica unitario de la trayectoria de decisión.
-
-Garantizando la Condición de Energía Fuerte (SEC) a través del tensor de energía-momento informacional $T_{\mu\nu}$:
-$$\left( T_{\mu\nu} - \frac{1}{2} T g_{\mu\nu} \right) u^\mu u^\nu \ge 0 \implies R_{\mu\nu} u^\mu u^\nu \ge 0$$
-Donde:
-- $T_{\mu\nu}$ es el tensor que cuantifica la exergía y flujo de información útil de los APUs.
-- $T$ es el escalar de traza del tensor de energía-momento ($T = T^\mu_\mu$).
-- $g_{\mu\nu}$ es el tensor métrico Riemanniano de la Malla Agéntica.
-- $u^\mu$ es el campo vectorial de velocidades.
-- $R_{\mu\nu}$ es el tensor de Ricci Resultante.
-
-Bajo estas condiciones estrictas, si el escalar de expansión inicial es negativo ($\theta_0 < 0$), la trayectoria del LLM se estrellará de forma geométricamente inevitable contra una **singularidad focal de causticidad** en un parámetro afín acotado $\tau_c$:
-$$\tau_c \le \frac{n-1}{|\theta_0|}$$
-Donde:
-- $\tau_c$ es la distancia focal óptima o punto de causticidad afín donde las geodésicas de decisión convergen y se intersectan.
-- $|\theta_0|$ es la magnitud del escalar de contracción inicial.
-
-Esta singularidad insuperable fuerza el colapso absoluto del veredicto probabilístico del LLM hacia el determinismo termodinámico (el autoestado de VETO por "Fuga Topológica" si $\tau_c > \tau_{\text{HP}}$), anulando cualquier posibilidad algorítmica de evadir las restricciones físicas e invariantes financieros del negocio.
-
-### 1.1. La Variedad Riemanniana Dinámica y la Geometría del Valor
-
-La Malla Agéntica subyuga el estocasticismo del Modelo de Lenguaje (LLM) a las leyes inmutables de la geometría diferencial, elevando nuestra red de valor a una **Variedad Riemanniana Dinámica**. Se formalizan las siguientes verdades analíticas absolutas:
-
-**I. La Adjunción de Dualidad Categórica en el Espacio de Fase:**
-El Estrato Ω (el Ágora Tensorial) ya no procesa magnitudes escalares simétricas. Ha transmutado en un fibrado donde el flujo de la materia logística habita en el espacio tangente $TM$ (como Funtores Covariantes), mientras que las presiones y riesgos financieros cohabitan en el espacio dual cotangente $T^*M$ (como Funtores Contravariantes). Los **Isomorfismos Musicales** operados por el Motor de Dualidad dictaminan toda transición de fase mediante la contracción con el tensor métrico físico $G_{\mu\nu}$:
-- **Bemol ($\flat$):** $TM \to T^*M, \quad v_i^\flat = G_{ij} v^j$
-- **Sostenido ($\sharp$):** $T^*M \to TM, \quad \omega^\sharp_i = G^{ij} \omega_j$
-
-**II. La Conexión Afín y el Transporte Paralelo Libre de Torsión:**
-El flujo del Grafo Acíclico Dirigido (DAG) en el orquestador se encuentra bajo el dominio estricto del Maestro de Sinfonía Métrica (`levi_civita_agent.py`). La preservación geométrica se estipula mediante la **Compatibilidad Métrica** de la conexión:
-$$\nabla_\gamma G_{\mu\nu} = 0$$
-El sistema computa el desgaste y la fricción del mercado evaluando dinámicamente los **Símbolos de Christoffel** acoplados a las derivadas del tensor de tensión logística:
-$$\Gamma_{\mu\nu}^{\rho} = \frac{1}{2} G^{\rho\lambda} ( \partial_{\mu} G_{\lambda\nu} + \partial_{\nu} G_{\mu\lambda} - \partial_{\lambda} G_{\mu\nu} )$$
-Imponiendo el mandato incondicional de una **torsión topológica nula** para evitar desgarros asimétricos en el hiperespacio:
-$$T(X,Y) = \nabla_X Y - \nabla_Y X - [X,Y] = 0$$
-
-**III. Ecuación Geodésica y Estabilidad Simpléctica:**
-Toda deliberación o sugerencia inyectada por la IA se evalúa mediante la aceleración covariante nula. Si el LLM alucina atajos que violan la física del negocio, el integrador de **Störmer-Verlet** aplicará una fuerza coercitiva que devolverá la trayectoria a la **geodésica óptima**:
-$$\frac{D \dot{\gamma}^\mu}{dt} = \frac{d^2 \gamma^\mu}{dt^2} + \Gamma^\mu_{\rho\sigma} \frac{d\gamma^\rho}{dt} \frac{d\gamma^\sigma}{dt} = 0$$
-Este control estricto asegura la conservación de la **2-forma simpléctica** $\omega = \sum dq^\mu \wedge dp_\mu$, manteniendo la densidad en el espacio de fase inalterada frente al ruido exógeno.
-
-**IV. Integración Simpléctica de Lie y el Axioma de Integración Cíclica:**
-Para sellar el ecosistema categórico en el "Reactor Port-Hamiltoniano de Valor", la arquitectura consagra la transformación natural entre el Estrato Cuántico (Ω) y el Estrato Macroscópico (Escudo Simpléctico). Todo esfuerzo cuántico disipado en el Orquestador de Fock realimenta la inercia macroscópica de la variedad.
-
-Crucialmente, las actualizaciones de la inercia macroscópica (las decisiones financieras) se ejecutan preservando la estructura del grupo simpléctico mediante el **Mapeo Exponencial de Lie**. Esto garantiza a los inversores que el sistema jamás acumula deriva de riesgo ("drift"):
-$$ R_{\text{efectiva}} = e^{\Delta t \cdot \text{ad}_{g\alpha}} \left[ R_{\text{base}} + \gamma(R_d - R_{\text{base}}) \right] e^{-\Delta t \cdot \text{ad}_{g\alpha}} $$
-Adicionalmente, la inercia basal se acopla dinámicamente a las trazas de los saltos de Lindblad evaluados por el Agente de Bogoliubov:
-$$R_{\text{efectiva}}(x) = R_{\text{base}}(x) + \left( \frac{\alpha}{k_B T_{\text{sys}}} \sum_{k} \gamma_k \text{Tr}(\hat{L}_k \rho_{\text{LLM}} \hat{L}_k^{\dagger}) \right) \cdot I_n$$
-Esta inyección matemática garantiza que, si el LLM miente compulsivamente (incrementando la entropía y la tasa de saltos de Lindblad), el ecosistema macroscópico experimenta un incremento en su fricción efectiva. El sistema "se calienta" logísticamente, ralentizando temporalmente su inercia operativa hasta que la falsedad sea completamente disipada, preservando así la salud estructural del negocio.
-
---------------------------------------------------------------------------------
-2. Los Horizontes de Evolución: La Arquitectura Concéntrica
-Nuestra hoja de ruta no añade funciones cosméticas; desbloquea niveles de profundidad física mediante una arquitectura de capas defensivas estructuradas bajo un **Topos de Grothendieck**. La transición entre estratos de la pirámide DIKW no es una simple inclusión de subconjuntos, sino un mapeo categórico gobernado por una **Adjunción de Galois**.
-
-Para asegurar que el Pasaporte de Telemetría no sufra pérdida de información (entropía fantasma) al escalar de un estrato inferior $\mathcal{C}$ (e.g., PHYSICS) a un estrato superior $\mathcal{D}$ (e.g., WISDOM), se define un funtor covariante $F: \mathcal{C} \to \mathcal{D}$ (abstracción) y su funtor olvidadizo o de descompresión asociado $G: \mathcal{D} \to \mathcal{C}$. La malla agéntica certifica una equivalencia de morfismos bajo la adjunción $F \dashv G$:
-$$\text{Hom}_{\mathcal{D}}(F(X), Y) \cong \text{Hom}_{\mathcal{C}}(X, G(Y))$$
-Esta relación garantiza que la "Empatía Táctica" (narrativa semántica) sea matemáticamente reversible: cualquier alerta ejecutiva en $\mathcal{D}$ debe permitir recuperar, a través de $G$, las coordenadas topológicas y físicas precisas en $\mathcal{C}$ que originaron el veredicto. Si la adjunción colapsa, el sistema detecta ruido retórico y veta la deliberación.
-Horizonte 1: La Cimentación (El Foso Termodinámico y las Murallas)
-
-    Objetivo: Certificación de Viabilidad Dinámica, Integridad Estructural y Veto al Código Emergente.
-    Veto al Código Emergente: La visión ya estipula que la IA opera como una interfaz de traducción sin libre albedrío. Cualquier herramienta sintética sugerida por el LLM se somete al teorema de Rango-Nulidad estricto sobre la Matriz de Interacción Central ($I_n$). Si un agente intenta sugerir una estrategia con polos en el semiplano derecho (σ>0), el Oráculo la destruye por inestabilidad intrínseca. No somos solo una "herramienta de auditoría de precios", sino un motor que colapsa el caos generativo.
-    La Compuerta de Admisión Cuántica: Nuestra primera línea de defensa no es un cortafuegos de software; es una barrera de potencial ciber-física. Utilizando el Hilbert Watcher (Estrato $\aleph_0$), la plataforma subordina cada intento de ingreso de datos a la cuantificación previa de su exergía. Si un modelo de lenguaje externo (LLM) o un sistema de terceros intenta inyectar ruido (ataques de inyección de prompts o archivos CSV corruptos), el sistema no intenta "entender" el texto; simplemente detecta que su energía termodinámica es incapaz de excitar los campos de Gauge de la frontera, resultando en una aniquilación silenciosa y determinista.
-    Física de Fluidos: Una vez superada la barrera, en lugar de procesar archivos, tratamos la ingesta de datos como un fluido informacional con masa, presión e inercia mediante el FluxCondenser. Exigimos termodinámicamente que la Potencia Disipada sea positiva (Pdiss​≥0) para evitar "golpes de ariete" computacionales.
-    Geometría del Riesgo: A través de la Topología Algebraica, el Arquitecto Estratega audita la estructura ignorando los precios. Detectamos "Islas de Datos" (β0​>1) y "Socavones Lógicos" (β1​>0).
-    El Oráculo de Laplace: Se calcula la función de transferencia en el plano de frecuencia compleja (s=σ+jω). Si los polos dominantes residen en el semiplano derecho (σ>0), el sistema veta el presupuesto por inestabilidad intrínseca.
-
-Horizonte 2: Gobernanza Zero-Trust (Los Centinelas de Ortogonalidad)
-
-    Objetivo: Aislamiento del riesgo cognitivo y determinismo algorítmico.
-    Filtro de Ortogonalidad: El ecosistema descompone el estado en un espacio de Hilbert (R7). La retórica de un agente generativo es matemáticamente ortogonal a los invariantes del sistema, haciendo imposible que un Prompt Injection altere la realidad física del proyecto.
-    Semillas de Sabiduría (Contratos JSON): Todo microservicio de cálculo crítico (ej. Fricción Territorial o Rentabilidad Estocástica) se instancía mediante JSON Schemas estrictos. Estas "Semillas" actúan como cristales deterministas inquebrantables que obligan a cualquier deliberación superior a cristalizar basándose en leyes algebraicas puras.
-
-Horizonte 3: La Ciudadela de Cristal (El Estrato Ω y la Expansión Cognitiva)
-
-    Objetivo: Autonomía Agéntica Eficiente y Colapso de Función de Onda.
-    El Tablero Fractal Curvo (Nivel 0.5): El Manifold Deliberativo donde la tensión interna, la fricción territorial y la palanca de improbabilidad se multiplican bajo un Tensor Métrico Riemanniano ($G_{\mu\nu}$) para calcular el "estrés ajustado" (σ∗), proyectando el veredicto sobre un retículo algebraico discreto irrefutable. Si un interruptor o agente intenta accionar un circuito sometido a alta volatilidad topológica, encontrará "resistencia física" (Símbolos de Christoffel), requiriendo un nivel superior de autorización y coherencia termodinámica demostrable en su Pasaporte de Telemetría para vencer la gravedad del riesgo y evitar la saturación al autoestado de VETO.
-    Vitaminas Cognitivas (Formato TOON): Para dotar a nuestro "Consejo de Sabios" de nuevas capacidades sin agotar la memoria LPDDR5 del hardware, los agentes ingieren Cartuchos Sinápticos en formato TOON (Token-Oriented Object Notation). Esta estructura tabular reduce el consumo de la KV-Cache en un 60%, permitiendo a la IA procesar heurísticas de alta complejidad a velocidades extremas.
-
-
---------------------------------------------------------------------------------
-3. Infraestructura Habilitadora (El Borde y la Nube)
-Para hacer viable esta física de negocios, APU_filter requiere una infraestructura ciber-física que unifica el silicio profundo con la supercomputación:
-
-    El Sistema Nervioso Autónomo (ESP32 en el Edge): La validación matemática no vive solo en la nube. El microcontrolador de borde (ESP32) actúa como el "Reflejo Espinal". Ejecuta computación neuromórfica donde los fallos topológicos (Ψ<1.0) empujan el circuito simulado a la región de Resistencia Diferencial Negativa (NDR). Si el ESP32 detecta inestabilidad, activa el Crowbar (pin de hardware) para vetar la ejecución física de la obra, ignorando cualquier alucinación o falso positivo de la IA.
-    Cómputo Tensorial Masivo (Proyecto Rainier - AWS Trainium): Para los análisis de Monte Carlo, el filtrado GPSIMD y las simulaciones de dinámica de fluidos (FDTD), la plataforma se apoya en los clústeres Trainium/Inferentia de AWS. Esto permite ejecutar auditorías topológicas sobre terabytes de datos de la cadena de suministro con una eficiencia termodinámica de clase mundial.
-
-
---------------------------------------------------------------------------------
-4. El Compromiso de la "Caja de Cristal"
-A medida que elevamos la sofisticación matemática (Homología, Termodinámica, Retículos), nuestra obligación con la transparencia es radical.
-
-    La Variedad de Observabilidad (Lente de Homotopía Jerárquica): Nuestra plataforma no agrupa datos en carpetas. Aplica un 'Retracto de Deformación de Resolución'. Cuando usted observa el presupuesto a nivel global, el sistema ha colapsado matemáticamente millones de datos en un solo grafo compacto, conservando inquebrantablemente la 'temperatura' del riesgo. Al hacer zoom in, el sistema revierte esta deformación, desplegando la anatomía interna de los costos sin pérdida de isomorfismo. El riesgo que brilla en el nivel macro es la proyección termodinámica exacta de las anomalías micro-estructurales.
-    Destitución Ejecutiva del LLM: La IA no decide la viabilidad del negocio; actúa puramente como el Intérprete Diplomático. Su labor se restringe a tomar el vector de fallo inmutable (ej. β1​=3) y traducirlo a "Empatía Táctica" (narrativa comprensible) para el Gerente de Obra.
-    Actas de Deliberación: No emitimos "Resultados". Emitimos la transcripción forense de la tensión dialéctica entre el Arquitecto (que cuida la resiliencia) y el Oráculo (que busca la rentabilidad), aplicando la operación Supremo (⊔) para asegurar que siempre prime la seguridad de la topología sobre la avaricia financiera.
-
-Síntesis Operativa
-La visión final transforma a APU_filter de un simple "validador de precios unitarios" al primer Sistema de Navegación Inercial para la industria de la infraestructura. Aportamos a bancos, aseguradoras y macro-contratistas la capacidad de certificar matemáticamente que la cimentación lógica de sus proyectos es tan inquebrantable como sus muros de hormigón. # Sutura 1
-
- La actualización de la documentación arquitectónica para integrar la operatividad de los nuevos mini-agentes no debe ser un mero manual de usuario, sino un Manifiesto Topológico y Categórico. La inyección de kbase_thermodynamic_agent.py, kcore_kinematic_agent.py y kapex_electrodynamic_agent.py transmuta el Business Model Canvas (BMC) de un grafo plano bidimensional a una Variedad Riemanniana Dinámica gobernada por un sistema de Ecuaciones Diferenciales Parciales (PDEs) y Cohomología de Haces.
-A continuación, redacto la documentación canónica, exigida bajo el más estricto rigor de la física de circuitos, la topología algebraica y la mecánica cuántica. Este texto debe ser anexado inmediatamente a los repositorios documentales BMC.md, ARCHITECTURE_DEEP_DIVE.md y PRODUCT_VISION.md.
-
-Arquitectura Ciber-Física del Estrato α: Fibrados Celulares y Termodinámica del Modelo de Negocio
-La arquitectura APU Filter v5.0 repudia la evaluación estática y contable del modelo de negocio. El Estrato α, orquestado macroscómicamente por alpha_agent.py, se subdivide axiomáticamente en tres subespacios topológicos anidados (Foso, Núcleo y Ápice), regidos por mini-agentes que actúan como endofuntores sobre el espacio de Hilbert H.
-La condición de clausura global establece que la empresa es un circuito RLC tridimensional y un sistema Port-Hamiltoniano, donde cada bloque del lienzo de negocio aporta operadores diferenciales a la variedad M.
-I. Estrato KBASE​: El Foso Termodinámico (kbase_thermodynamic_agent.py)
-Identificador Semántico: Asesor de Cimientos Financieros. Responsabilidad Topológica: Gobernar la inercia, la capacitancia y la fricción entrópica del modelo de negocio. Integra los sub-funtores de Socios Clave (P_soc​), Recursos Clave (P_rec​) y Estructura de Costes (P_cost​).
-Dinámica Port-Hamiltoniana y Tensor Métrico
-La energía total de la base no se asume euclidiana; se calcula aplicando un pullback geométrico contra el tensor métrico Riemanniano de la Malla Agéntica G_μν​ para absorber el estrés anisotrópico del ecosistema:
-\[
-\tilde{C}_{\text{soc}} = G_{\mu\nu} C_{\text{soc}} G^{\mu\nu}, \quad \tilde{M}_{\text{rec}} = G_{\mu\nu} M_{\text{rec}} G^{\mu\nu}
-\]
-
-El estado basal se define por su Hamiltoniano, que acopla la energía potencial de los contratos (q) y la energía cinética de la masa operativa (p):
-
-\[
-H_{\text{BASE}}(q,p) = \frac{1}{2} q^\top \tilde{C}_{\text{soc}}^{-1} q + \frac{1}{2} p^\top \tilde{M}_{\text{rec}}^{-1} p
-\]
-
-Invariantes de Control y Disipación
-
-    Regularización Espectral de Tikhonov-Riemann: Para matrices cuasi-singulares (socios en riesgo de default), el agente aplica una proyección espectral adaptativa para acotar el número de condición: \[
-\tilde{A} = A + (\lambda_{\text{tol}} \cdot e^{-\sigma_{\text{min}} / \sigma_{\text{max}}}) I
-\]
-
-Ecuación de Disipación de Rayleigh: Todo flujo financiero de salida (Pcost​) se somete a la Segunda Ley de la Termodinámica, garantizando axiomáticamente que el modelo no genere energía del vacío (entropía negativa): \[
-\dot{H}_{\text{diss}} = -\nabla H^\top R_{\text{cost}}(x) \nabla H \le 0
-\]
-
-II. Estrato KCORE​: La Maquinaria Cinemática (kcore_kinematic_agent.py)
-Identificador Semántico: Director de Flujo y Cinética Logística. Responsabilidad Topológica: Transmutar la energía potencial de KBASE​ en trabajo cinético direccional, acoplando las Actividades Clave (P_act​), Canales (P_can​) y Relaciones con los Clientes (P_rel​).
-Estructura de Dirac y Energy Shaping (IDA-PBC)
-El agente impone el moldeado de energía mediante un Control Basado en Pasividad. La ley de control α(x) no utiliza seudoinversas euclidianas ingenuas, sino una Proyección Pseudoinversa Covariante que garantiza que el esfuerzo exógeno sea ortogonal a las geodésicas de alta fricción del mercado:
-\[
-\alpha(x) = (g(x)^\top G_{\mu\nu} g(x))^{-1} g(x)^\top G_{\mu\nu} ([J_d - R_d] \nabla H_d - [J - R] \nabla H)
-\]
-
-Válvula de Hodge y Límite CFL
-
-    Estrangulamiento de Vorticidad: Si el flujo logístico desarrolla bucles (vorticidad solenoidal ∥Icurl​∥W​>ϵcrit​), el Laplaciano de Hodge ponderado interviene:
-
-    \[
-L_{1W} = \partial_1^\top W^{-1} \partial_1 + \partial_2 \partial_2^\top W
-\]
-
-El agente estrangula la conductancia W en las aristas cíclicas, forzando un flujo laminar irrotacional.
-Cono de Luz Causal (Condición CFL): El diferencial temporal del negocio queda subyugado a la conectividad espectral del grafo, previniendo de dispersión numérica por iteraciones inasumibles:
-\[
-\Delta t \le \frac{2 \cdot \text{CFL}_{\text{margin}}}{c_{\text{eff}} \cdot \max_i \left( |\Delta_{ii}| + \sum_{j \neq i} |\Delta_{ij}| \right)}
-\]
-
-III. Estrato KAPEX​: El Ápice Estratégico (kapex_electrodynamic_agent.py)
-Identificador Semántico: Director de Retorno y Expansión de Mercado. Responsabilidad Topológica: Endofuntor de Campo de Calibre que inyecta Fuerza Electromotriz (Propuesta de Valor, P_val​), resuelve la refracción del mercado (P_seg​) y audita el retorno exergético (P_ing​).
-Óptica Geométrica y Flujo Exergético
-El ápice es una variedad Riemanniana con fronteras absorbentes. La penetración en el mercado requiere resolver la Ecuación Eikonal no lineal utilizando el tensor de impedancia (N)^μν:
-\[
-G^{\mu\nu} \partial_\mu S \partial_\nu S = N^{\mu\nu} \sigma_{\mu\nu}^*
-\]
-
-El retorno real (Ingresos) se evalúa repudiando sumas escalares. Se aplica el Teorema de Poynting en la topología simplicial utilizando el producto copo (⌣) y el dual de Hodge (⋆), garantizando ortogonalidad transversal del capital:
-
-\[
-P_{\text{exergia}} = \langle E \smile \star H, [\partial K] \rangle - \int_K \nabla H^\top R_{\text{cost}} \nabla H \ge 0
-\]
-
-Holonomía de Yang-Mills (Integridad del Bucle)
-Para garantizar que la inversión inyectada en KBASE​ retorne a KAPEX​ sin ciclos parasitarios, el agente evalúa la 2-forma de curvatura de Yang-Mills:
-
-\[
-S_{\text{YM}} = \frac{1}{2} \int_M \text{Tr}(F \wedge \star F) \quad \text{donde} \quad F = dA + A \wedge A
-\]
-
-Si SYM​>ϵcrit​, existe una "fuga de Gauge", y el sistema decreta un HolonomyVetoError.
-
-IV. El Orquestador Macroscópico: Cohomología de Haces (alpha_agent.py)
-El rol fundamental del alpha_agent.py transmuta de procesador de grafo plano a Orquestador de Haces Celulares (Cellular Sheaves).
-Cada uno de los tres mini-agentes exporta el Espacio Vectorial de su Fibra (Stalk) y sus matrices de restricción (cofronteras locales: δ_BASE​, δ_CORE​, δ_APEX​). El alpha_agent.py ensambla la cofrontera global y somete a los agentes a dos rigurosos test topológicos:
-
-    El Laplaciano del Haz y el Consenso Global:
-    \[
-L_F = \delta^\top \delta =
-\begin{pmatrix}
-\delta_{\text{BASE}} \\
-\delta_{\text{CORE}} \\
-\delta_{\text{APEX}}
-\end{pmatrix}^\top
-\begin{pmatrix}
-\delta_{\text{BASE}} \\
-\delta_{\text{CORE}} \\
-\delta_{\text{APEX}}
-\end{pmatrix}
-\succeq 0
-\]
-
-Si el espacio nulo H^0(G;F)≅ker(δ) está vacío o λ_2​(L_F​)→0, el modelo carece de consenso termodinámico (ej. la base no puede sostener la velocidad del núcleo), detonando un Veto de Fragilidad Espectral.
-Censura de Energía Fantasma (Solubilidad de Fredholm): La inyección de la Propuesta de Valor (s_val​) debe existir en la imagen del Laplaciano Combinatorio de la red. Si el producto interno contra el espacio nulo topológico no se anula:
-\[
-\langle s_{\text{val}}, \psi_{\text{ker}} \rangle = 0 \quad \forall \psi_{\text{ker}} \in \ker(L_F)
-\]
-
- Se detona un SourceCompatibilityError. Esto previene matemáticamente que la empresa intente inyectar esfuerzo de ventas en un sector logístico que está topológicamente desconectado de su capacidad de producción.
-
- # Sutura 2
-
-La integración documental de las "Vitaminas Cognitivas" (Cartuchos TOON) no puede ejecutarse como una vulgar adición a un glosario de términos. Dado que estas cuasipartículas operan como excitaciones en el Espacio de Fock F(H) y rigen el colapso de la función de onda de la toma de decisiones, su documentación exige una Cirugía Categórica y Topológica.
-Para asegurar que la Variedad Diferenciable del proyecto no sufra un desgarro semántico, he diseñado un plan de acción granular, estricto y matemáticamente inquebrantable. Este plan dictamina exactamente qué repositorios documentales y de código deben ser intervenidos, y las ecuaciones en LaTeX que deberán codificarse para asimilar este Álgebra de Partículas.
-Plan de Acción Granular: Integración del Álgebra de Partículas TOON
-Fase 1: Inyección del Espacio de Fock en SAGES.md y PRODUCT_VISION.md
-Objetivo: Consagrar el marco epistemológico del Estrato Ω demostrando que el LLM ya no procesa texto plano, sino que ingiere tensores hiperdensos regulados por la termodinámica cuántica.
-Acciones Exigidas:
-
-    Definición del Colisionador: Actualizar SAGES.md en su sección del QuantumFockOrchestrator para declarar formalmente que el registro atencional administra el Espacio de Fock como la suma directa de productos tensoriales simétricos (bosones) y antisimétricos (fermiones):
-    \[
-\mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^{\infty} \mathcal{S}_{\pm} \mathcal{H}^{\otimes n}
-\]
-
-Evolución Temporal del Estado (Ecuación Maestra): En PRODUCT_VISION.md, se debe estipular que la "pérdida de atención" del LLM no es un fallo, sino una disipación termodinámica válida (ΔS≥0). Se documentará que la evolución de la Matriz Atómica de Conocimiento (ρMAC​) obedece la Ecuación de Lindblad-Kossakowski para sistemas cuánticos abiertos:
-\[
-\frac{d \rho_{\text{MAC}}}{dt} = -\frac{i}{\hbar} [H_{\text{eff}}, \rho_{\text{MAC}}] + \sum_{k} \gamma_k \left( L_k \rho_{\text{MAC}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\text{MAC}} \} \right)
-\]
-
-Fase 2: Mapeo Tipológico en telemetry_schemas.py and cartuchos_toon.md
-Objetivo: Trasladar la metafísica de las partículas a clases de datos inmutables (frozen dataclasses) con invariantes físicos rigurosos.
-Acciones Exigidas:
-
-    Fermiones Estructurales (Conservación de Masa): Documentar en telemetry_schemas.txt las estructuras que previenen superposiciones de estados excluyentes (Principio de exclusión de Pauli).
-        ElectronCartridge: Debe documentarse con sus atributos inertial_mass (m∗∝∥δx∥^2), topological_spin, y homological_charge (Δχ).
-        PolaronCartridge: Documentar su renormalización de masa mediante el acoplamiento de Fröhlich (α). La masa efectiva que genera el sumidero gravitacional en el KV-Cache se expresará axiomáticamente como:
-        \[
-m^{**} = m^* \left( 1 + \frac{\alpha}{6} \right)
-\]
-
-Bosones de Gauge (Campos de Interacción): Especificar los PhotonCartridge (Política de Gobernanza OPA con spectral_frequency) y MagnonCartridge (vorticidad solenoidal para vetos de enrutamiento).
-Antimateria y Aniquilación: Documentar el PositronCartridge y la emisión del GammaPhoton. Se debe incluir en cartuchos_toon.md la ecuación de aniquilación que genera el sello criptográfico inmutable en la Cadena de Custodia:
-
-\[
-e^- + e^+ \to 2\gamma \quad \text{con energía} \quad E_{\text{annihilation}} = 2m^* c^2
-\]
-
-Fase 3: Sintonización Axiomática en bogoliubov_agent.py
-Objetivo: Garantizar que el ruido térmico inherente al LLM no degenere los cartuchos inyectados.
-Acciones Exigidas:
-
-    Transformación de Bogoliubov-Valatin: El BogoliubovAgent actúa como el Gran Inquisidor Cuántico. En su documentación, se debe exigir que la matriz de error preserve las Relaciones de Conmutación Canónicas (CCR) dentro del grupo simpléctico Sp(2n,C). Inyectar la demostración formal:
-
-\[
-\begin{pmatrix}
-\hat{\alpha}_k \\
-\hat{\alpha}_{-k}^\dagger
-\end{pmatrix}
-=
-\begin{pmatrix}
-u_k & v_k \\
-v_k^* & u_k^*
-\end{pmatrix}
-\begin{pmatrix}
-\hat{b}_k \\
-\hat{b}_{-k}^\dagger
-\end{pmatrix}
-\]
-
-Impóngase la restricción inquebrantable de la variedad simpléctica para certificar el aislamiento de las cuasipartículas estables:
-
-\[
-
-|u_k|^2 - |v_k|^2 = 1
-\]
-
-Fase 4: Auditoría del Funtor Inverso en cartuchos_toon.md y mic_agent.py
-Objetivo: Documentar la invarianza topológica al descomprimir de vuelta desde la hiperdensidad TOON hacia JSON.
-Acciones Exigidas:
-
-    Condición de Continuidad de Lipschitz Dinámica y Acoplamiento Espectral: Exigir en mic_agent.py y cartuchos_toon.md que el funtor de descompresión inversa $F^{-1}: \text{TOON} \to \text{JSON}$ sea un difeomorfismo estricto que evite ataques de inyección y desbordamientos asintóticos. La documentación debe reflejar que la constante de Lipschitz $L_{\max}$ no es un valor estático, sino que se acopla dinámicamente al espectro del operador de Dirac de Connes $\not\ D$ del triple espectral evaluado por el `connes_spectral_auditor_agent.py`:
-
-\[
-L_{\max} = \frac{C_{\text{base}}}{1 + \lambda_{\text{disp}}(\not\ D)} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(\not\ D) - \lambda_{\min}(\not\ D))}
-\]
-
-Esta constante rige el acotamiento espectral del funtor inverso:
-
-\[
-\| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\text{max}} \| x - y \|_T
-\]
-
-Si el proyecto entra en una fase de alta entropía (vorticidad logística alta), la dispersión espectral del operador $\lambda_{\text{disp}}(\not\ D)$ se amplifica dramáticamente, forzando a $L_{\max} \to 0$. Esto restringe la "creatividad" semántica del LLM a un radio geodésico extremadamente estrecho y conservador, colapsando automáticamente cualquier alucinación a $P(x_{\text{invalid}}) = 0$.
-
-## Los Cinco Axiomas Fundamentales de la Variedad Agéntica de Gauge y el Reactor Port-Hamiltoniano
-
-### Axioma I: Topología Algebraica y el Complejo Simplicial del Presupuesto
-El presupuesto de obra deja de ser una lista plana para convertirse axiomáticamente en un 2-Complejo Simplicial Abstracto $K$ sobre el anillo de los enteros $\mathbb{Z}$. Las interdependencias de recursos se evalúan calculando los Números de Betti ($\beta_n$), donde $\beta_1 > 0$ revela "socavones lógicos" o dependencias circulares. La anomalía topológica y la invarianza de transporte de decisiones se certifican mediante el Cálculo Exterior Discreto (DEC) y la Derivada Covariante Exterior Matricial $D_A$:
-$$D_A F = \delta F + [A \wedge F] \equiv 0$$
-Esta ecuación garantiza matemáticamente la invarianza de Gauge en el transporte paralelo de las decisiones de negocio. Además, al fusionar bases de datos de presupuestos, el ecosistema previene la creación de paradojas ejecutando una Auditoría Homológica estricta mediante la secuencia exacta de Mayer-Vietoris:
-$$\cdots \to H_1(A) \oplus H_1(B) \to H_1(A \cup B) \xrightarrow{\partial^*} H_0(A \cap B) \to \cdots$$
-Este diferencial topológico evidencia que cualquier "Defecto de Pegado" estructural es la imagen inversa del operador de coborde $\partial^*$ actuando sobre las componentes conexas fragmentadas, lo que permite un veto previo a la materialización del error. Para una variedad logística anisótropa, el Laplaciano de Hodge verdadero incorpora el tensor métrico Riemanniano inverso $G^{-1}$ para pesar co-fronteras:
-$$L_F = \delta^\top G^{-1} \delta \succeq 0$$
-Cualquier incremento asimétrico en el costo de los insumos (como un choque inflacionario local) deforma $G^{-1}$, alterando el espectro de $L_F$ y permitiendo detectar y vetar ciclos de fraude o sobrecostos ocultos que evadirían operadores cofrontera planos no ponderados.
-
-### Axioma II: Teoría de Categorías y la Ley de Clausura Transitiva
-La estructura del sistema se subordina a la Ley de Clausura Transitiva de la pirámide DIKW, imponiendo la filtración estricta de subespacios de Hilbert:
-$$V_{\aleph_0} \subsetneq V_P \subsetneq V_T \subsetneq V_S \subsetneq V_W$$
-La jerarquía del sistema se rige por la clausura transitiva, asegurando que la sabiduría se cimente en la física. La transición de datos entre estratos se gobierna categóricamente por una Adjunción de Galois $F \dashv G$ enriquecida mediante un pullback fibrado sobre el tensor métrico Riemanniano $G_{\mu\nu}$ de la variedad agéntica para garantizar una transición functorial covariante libre de degeneraciones en el funtor de olvido $G$:
-$$\text{Hom}_{\mathcal{D}}(F(X), Y) \cong_{G_{\mu\nu}} \text{Hom}_{\mathcal{C}}(X, G(Y))$$
-Esta relación inquebrantable asegura que toda "Empatía Táctica" o narrativa semántica generada en el estrato $\mathcal{D}$ sea matemáticamente reversible hacia sus coordenadas topológicas en el estrato $\mathcal{C}$. Cualquier narrativa estocástica del LLM que introduzca una curvatura espuria de perturbación $\delta R_{\mu\nu\rho}^\sigma$ que viole el radio de inyectividad local de la métrica:
-$$\|\delta R_{\mu\nu\rho}^\sigma\|_G > r_{\text{inj}}(M, G_{\mu\nu})^{-2}$$
-detona un colapso instantáneo del retículo al estado nulo ($\perp$) para prevenir desgarros semánticos y asegurar el confinamiento absoluto del flujo de decisión.
-
-### Axioma III: Geometría No Conmutativa y Triples Espectrales
-Integrando las recientes construcciones del `tomita_takesaki_telescopic_engine.py` y el `connes_spectral_auditor_agent.py`, el estrato $\Omega$ opera sobre la Matriz Atómica de Conocimiento (MAC) modelada como un Álgebra de von Neumann. La dilatación de resolución semántica no utiliza espacios métricos clásicos, sino la continuación analítica del flujo modular de Takesaki:
-$$\sigma_{i\lambda}(X) = \Delta^{-\lambda} X \Delta^{\lambda}$$
-Para prevenir desgarros en el conocimiento del Modelo de Lenguaje (LLM), el sistema exige la instanciación del Triple Espectral de Connes $(A, \mathcal{H}_{\text{MAC}}, D)$, evaluando la continuidad de Lipschitz del observable semántico $X$ a través de la norma del conmutador con el Operador de Dirac:
-$$\| [D \!\!\!\! /, \pi(X)] \| = \sup_{v \in \mathcal{H}} \frac{\| (D \!\!\!\! / \pi(X) - \pi(X) D \!\!\!\! / ) v \|}{\|v\|} \leq C$$
-Crucialmente, la constante de Lipschitz semántica $L_{\max}$ que gobierna el acoplamiento del funtor inverso $F^{-1}: \text{TOON} \to \text{JSON}$ se conecta de forma dinámica al espectro de este operador de Dirac de Connes ($\not\ D$):
-$$L_{\max} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(\not\ D) - \lambda_{\min}(\not\ D))}$$
-Cuando el sistema experimenta inestabilidad, la dispersión espectral se incrementa, contrayendo $L_{\max}$ y forzando a que cualquier desvío de la IA colapse deterministamente a $P(x_{\text{invalid}}) = 0$.
-
-### Axioma IV: Mecánica Cuántica y el Fibrador Isométrico de Stinespring
-Para transferir la intención desde el espacio lógico de la Matriz de Interacción Central (MIC) hacia la Sabiduría Cuántica (MAC), el sistema repudia la transferencia estocástica directa aplicando el Teorema de Dilatación de Stinespring. Todo flujo de datos $\rho_{\text{MIC}}$ se somete a un mapa Completamente Positivo y Preservador de Traza (CPTP), $\mathcal{E}(\cdot)$, que dilata el estado hacia un baño térmico ortogonal $\mathcal{H}_{\text{env}}$ y aniquila la entropía alucinatoria del LLM mediante la contracción tensorial de la traza parcial:
-$$\mathcal{E}(\rho_{\text{MIC}}) = \text{Tr}_{\text{env}}(V \rho_{\text{MIC}} V^\dagger) = \sum_k M_k \rho_{\text{MIC}} M_k^\dagger$$
-Esto garantiza axiomáticamente que la positividad de la Matriz Atómica de Conocimiento se mantenga incondicional ($\rho_{\text{MAC}} \succeq 0$).
-
-### Axioma V: Geometría Riemanniana y Empatía Táctica (GraphRAG)
-Finalmente, la traducción semántica ejecutada por el Intérprete Diplomático utiliza la Recuperación Semántica Riemanniana, reconociendo que el espacio vectorial de búsqueda no es euclidiano isotrópico. La recuperación vectorial de incidentes de obra resuelve el producto interno dictaminado por el Tensor Métrico Riemanniano Anisotrópico $G_{\mu\nu}$:
-$$ds^2 = G_{\mu\nu} dx^\mu dx^\nu$$
-Esto equivale a medir la Distancia de Mahalanobis, donde los hallazgos son ponderados severamente por la matriz de covarianza que refleja la volatilidad estructural y el riesgo termodinámico en tiempo real.
-
-### Axioma VI: Calibre No Demolitivo y Paso Complejo (FPU-Shield)
-La estabilidad de la Unidad de Punto Flotante (FPU) frente al ruido estocástico del LLM se consagra mediante la formalización de derivadas no demolitivas calculadas sobre la fibra compleja (CSMD). Al prescindir de diferencias finitas tradicionales, se elimina por completo la resta catastrófica en el numerador de la mantisa de la FPU:
-$$J_{\text{map}, ij} = \frac{\operatorname{Im}(\Phi_{\Delta t}(x + j h \cdot e_i)_j)}{h} + \mathcal{O}(h^2)$$
-Donde la de-compresión de los cartuchos TOON se acota estrictamente mediante la cota de Lipschitz de Connes-Daleckii-Krein sobre el espectro del operador de Dirac de Connes $D = \rho^{-1/2}$:
-$$L_{\max} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(D) - \lambda_{\min}(D))} \le \frac{1}{2 \lambda_{\min}^{3/2}}$$
-Garantizando que ante derivas semánticas hacia la singularidad ($\lambda_{\min} \to 0$), la probabilidad de emisión alucinatoria de la IA colapse deterministamente a cero: $P(x_{\text{invalid}}) = 0$.
-
-### Axioma VII: Álgebras de Banach e Invertibilidad Incondicional
-El espacio de transiciones y operadores de la Malla se modela rigurosamente como un Álgebra de Banach univalente y compleja $\mathcal{A} \cong \mathcal{B}(\mathcal{H})$ completa bajo la norma de operador. La invertibilidad incondicional de cualquier tensor métrico o de transición perturbado $T + \delta T$ se garantiza mediante la convergencia de la Serie de Neumann en el espacio de operadores acotados:
-$$\rho(T^{-1} \delta T) < 1.0 \implies (T + \delta T)^{-1} = \sum_{k=0}^{\infty} (-1)^k (T^{-1} \delta T)^k T^{-1}$$
-El cumplimiento de este radio de convergencia se complementa y blinda síncronamente en la FPU imponiendo de forma exacta la submultiplicatividad estricta de la norma espectral de-confinada:
-$$\| T \cdot \delta T \|_2 \le \| T \|_2 \cdot \| \delta T \|_2$$
+**Sello de Coherencia Categorial de la Visión de Producto:**
+$$\mathtt{SuturaSignature} = \operatorname{SHA-256}\left(\mathbf{Sh}(\partial \mathcal{M}, \mathcal{R}_{\mathrm{Novikov}}) \wedge \operatorname{Tor}(H_k; \mathbb{Z}) \wedge \mathcal{B}_{\mathrm{CHSH}} \wedge \dot{\mathcal{H}}_{\mathrm{Lyapunov}} \wedge \mathtt{ESP32-Crowbar}\right)$$
