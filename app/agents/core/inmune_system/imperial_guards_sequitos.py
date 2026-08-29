@@ -6,35 +6,36 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Heyting-Kleisli-DeGroot-CHSH-OODA-CAS           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y CATEGORIAL:
+SINOPSIS MATEMÁTICA Y CATEGORIAL DE DE RHAM:
 ────────────────────────────────────────────────────────────────────────────────
-Orquesta la concurrencia táctica de las sub-tríadas agénticas para evitar la 
-polarización semántica o inyecciones de código maliciosas mediante tres aduanas:
+Orquesta la concurrencia táctica en la Capa 1.5 ($V_{\mathrm{PHYSICS}} \subset V_{\mathrm{SEQUITOS}} \subset V_{\mathrm{TACTICS}}$)
+de las sub-tríadas agénticas para evitar la dispersión de fase, polarización semántica e inyecciones de código mediante tres aduanas:
 
-1. Asociatividad Monádica de Kleisli (Teoría de Categorías):
-   Encapsula el estado de las variables tácticas bajo la mónada de estado 
-   $\mathbb{T} = (T, \eta, \mu)$. Exige que el asociaedro de Kleisli sea 
-   estrictamente conmutativo, verificando la nulidad del residuo asociativo:
-   $$\epsilon_{\mathrm{Kleisli}} = \left| P(h \bullet (g \bullet f)) - P(((h \bullet g) \bullet f)) \right| \equiv 0$$
+1. ADUANA DE ASOCIATIVIDAD MONÁDICA DE KLEISLI (TEORÍA DE CATEGORÍAS):
+   Encapsula el estado de las variables tácticas bajo la mónada de estado de Kleisli
+   $\mathbb{T} = (T, \eta, \mu)$. Exige la conmutatividad estricta del asociaedro de Kleisli,
+   verificando la aniquilación del residuo asociativo:
+   $$\epsilon_{\mathrm{Kleisli}} = \left| P(h \bullet (g \bullet f)) - P((h \bullet g) \bullet f) \right| \equiv 0$$
+   Donde $(g \bullet f)(x) = \mu_C \circ T(g) \circ f(x)$ es la composición monádica.
 
-2. Consenso de DeGroot (Teoría de Grafos y Cadenas de Markov):
+2. ADUANA DE CONSENSO CONTINUO DE DEGROOT (TEORÍA DE GRAFOS):
    Modeliza la convergencia de opiniones en el grafo de afinidad agéntico. Exige 
    que la tasa de convergencia asintótica esté acotada exponencialmente por la 
    brecha espectral $\lambda_2$ del Laplaciano normalizado del haz de afinidad.
 
-3. Inmunidad Cuántica Multipartita de Bell-CHSH:
-   Mide la correlación conjunta de los mensajes cifrados transmitidos por los 
-   agentes, exigiendo que violen la desigualdad clásica de Bell, validando la 
-   no-localidad cuántica bajo el límite de Tsirelson:
+3. ADUANA DE INMUNIDAD CUÁNTICA MULTIPARTITA BELL-CHSH:
+   Audita la correlación conjunta de los mensajes cifrados transmitidos por la tríada,
+   exigiendo la violación de la desigualdad clásica de Bell bajo el Límite de Tsirelson:
    $$\langle B_{\mathrm{CHSH}} \rangle = \left| E(a,b) - E(a,b') + E(a',b) + E(a',b') \right| \le 2\sqrt{2}$$
-   Una caída por debajo del límite clásico ($\le 2.0$) delata la interceptación o 
-   suplantación de un agente, gatillando el colapso al Supremo terminal.
+   Una caída por debajo de la cota clásica ($\le 2.0$) delata suplantación de identidad o dispersión de fase.
 
-INVARIANTES DE CATEGORÍA:
+INVARIANTES CATEGÓRICOS Y DE HARDWARE PERIMETRAL:
 ────────────────────────────────────────────────────────────────────────────────
 - Invarianza de calibre respecto a la conmutación de base en el functor de Kleisli.
 - Preservación de la completez fuerte sobre el retículo distributivo de Heyting $\Omega_3$.
 - Estabilidad de Lyapunov global asintótica en la dinámica lineal de opinión.
+- Veto en el retículo de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$ ($\top = \text{VETOED}$).
+- Interrupción perimetral ESP32 en IRAM ($t_{\text{actuation}} \le 400\,\text{ns}$) activando el tiristor BT151 (Crowbar) vía GPIO14.
 """
 
 from __future__ import annotations

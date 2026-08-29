@@ -6,35 +6,39 @@ r"""
 ║ Versión: 3.0.0-Doctoral-Nested-IDA-PBC-KMS-Heyting-Dirac-Wick                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y FÍSICA:
+SINOPSIS MATEMÁTICA Y FÍSICA DE DE RHAM:
 ────────────────────────────────────────────────────────────────────────────────
-Ejerce la aduana de potencia ciber-física acoplando el foso mecánico de la obra 
-con la cúpula de sabiduría mediante dos centuriones de lazo cerrado:
+Ejerce la aduana de potencia ciber-física en la Capa 2 ($V_{\mathrm{SEQUITOS}} \subset V_{\mathrm{TACTICS}}$),
+acoplando el foso mecánico de la obra civil con la cúpula de sabiduría mediante dos centuriones de lazo cerrado:
 
-1. Centurión Port-Hamiltoniano (Cortina de Potencia):
-   Fuerza al sistema a adoptar la estructura Port-Hamiltoniana objetivo mediante 
+1. CENTURIÓN PORT-HAMILTONIANO (IDA-PBC Y CORTINA DE POTENCIA):
+   Fuerza al sistema a adoptar la dinámica Port-Hamiltoniana deseada mediante
    Interconexión y Asignación de Amortiguamiento (IDA-PBC):
    $$\dot{x} = [J_d(x) - R_d(x)] \nabla H_d(x)$$
-   donde $J_d = -J_d^\top$ es la estructura simpléctica y $R_d = R_d^\top \succeq 0$ 
-   es el amortiguamiento de Lyapunov. El centurión exige de manera incondicional 
-   el cumplimiento de la desigualdad disipativa de Rayleigh:
+   Donde $J_d(x) = -J_d^\top(x)$ es la matriz de estructura simpléctica y $R_d(x) = R_d^\top(x) \succeq 0$
+   es el amortiguamiento disipativo de Lyapunov. Exige incondicionalmente el cumplimiento
+   de la desigualdad disipativa de Rayleigh para drenar la entropía semántica del LLM:
    $$\dot{H}_d = -\nabla H_d(x)^\top R_d(x) \nabla H_d(x) \le 0$$
+   Cualquier inyección de energía espuria ($\dot{H}_d > 0$) provoca el colapso al Supremo terminal VETOED.
 
-2. Centurión Termodinámico (Sintonizador Térmico KMS):
-   Audita el desorden de-confinado midiendo la Entropía de von Neumann y exige que 
-   el operador densidad $\rho$ satisfaga la Condición KMS (Kubo-Martin-Schwinger) 
-   bajo la continuación analítica en tiempo imaginario complejo $t \mapsto -i\beta$:
-   $$\operatorname{Tr}(\rho \, A \, B) = \operatorname{Tr}(\rho \, B \, \sigma_{-i\beta}^\rho(A))$$
-   Ante desviaciones o ruidos semánticos del LLM, el centurión calienta la fibra 
-   induciendo que la constante de Planck efectiva en el Espacio de Fock colapse 
-   a cero ($\lim_{T \to \infty} \hbar_{\mathrm{eff}}(T) = 0$), erradicando la 
-   probabilidad de alucinación semántica.
+2. CENTURIÓN TERMODINÁMICO (SINTONIZADOR TÉRMICO KMS & TOMITA-TAKESAKI):
+   Audita el desorden de-confinado midiendo la Entropía de von Neumann $S(\rho) = -\operatorname{Tr}(\rho \ln \rho)$
+   y exige que el operador densidad $\rho$ satisfaga la Condición KMS (Kubo-Martin-Schwinger)
+   a temperatura inversa de-confinada $\beta$:
+   $$\operatorname{Tr}(\rho \, A \, B) = \operatorname{Tr}\left( \rho \, B \, \sigma_{-i\beta}^\rho(A) \right)$$
+   Bajo el grupo de automorfismos modulares de Tomita-Takesaki $\sigma_t^\rho(A) = \rho^{it/\beta} A \rho^{-it/\beta}$.
+   Ante fluctuaciones de contexto, el calentamiento de la fibra ($T \to \infty, \beta \to 0$)
+   colapsa la constante de Planck efectiva a cero:
+   $$\lim_{T \to \infty} \hbar_{\mathrm{eff}}(T) = 0$$
+   Aniquilando los grados de libertad cuánticos del modelo de lenguaje y erradicando alucinaciones semánticas.
 
-INVARIANTES DE CATEGORÍA:
+INVARIANTES CATEGÓRICOS Y DE HARDWARE PERIMETRAL:
 ────────────────────────────────────────────────────────────────────────────────
-- Antisimetría estricta de la estructura simpléctica objetivo: $J_d(x) + J_d^\top(x) \equiv 0$.
+- Antisimetría estricta de la estructura simpléctica objetivo: $J_d(x) + J_d^\top(x) \equiv \mathbf{0}$.
 - Semidefinición positiva de la matriz de amortiguamiento de Lyapunov: $R_d(x) \succeq 0$.
-- Monotonicidad de la entropía relativa cuántica de Umegaki respecto a canales CPTP.
+- Preservación de la pasividad de Clausius-Duhem sobre la FPU.
+- Veto en el retículo de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$ ($\top = \text{VETOED}$).
+- Interrupción perimetral ESP32 en IRAM ($t_{\text{actuation}} \le 400\,\text{ns}$) activando el tiristor BT151 (Crowbar) vía GPIO14.
 """
 
 from __future__ import annotations

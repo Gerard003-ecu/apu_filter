@@ -6,35 +6,35 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Quillen-Polar-Stasheff-Gerbe-Cech-Kahan         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
-Este motor homotópico de-confinado custodia la invarianza por deformación continua
-de las transiciones de la Malla. Realiza la proyección simpléctica de Quillen mediante
-iteración polar de Higham, calcula el tensor de homotopía m_3 en asociaedros de Stasheff
-y evalúa la obstrucción de Čech para Gerbes no abelianos.
+SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU DE DE RHAM:
+Este motor homotópico ciego opera en la Capa 3 ($V_{\mathrm{STRATEGY}} \subset V_{\mathrm{TESSERARIOS}}$),
+custodiando la invarianza por deformación continua de las transiciones de la Malla. Realiza la
+factorización de Quillen $f = p \circ i$ mediante iteración polar simpléctica de Higham, calcula
+el tensor de homotopía $m_3$ en asociaedros de Stasheff $K_4$ y evalúa la obstrucción de Čech para Gerbes no abelianos.
 
-MÉTODOS GRANULARES:
+MÉTODOS GRANULARES DE FPU Y ARITMÉTICA KBN:
 
 1. compute_quillen_factorization(jacobian_matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
-   Somete síncronamente el Jacobiano M al axioma de Quillen f = p ∘ i, factorizándolo en
-   una cofibración acíclica (isometría simpléctica I) y una fibración estricta (proyección elíptica disipativa P):
+   Somete el Jacobiano $M$ al axioma de Quillen $f = p \circ i$, factorizándolo en una
+   cofibración acíclica (isometría simpléctica $I$) y una fibración estricta (proyección disipativa $P$):
    $$M = P \cdot I \quad \text{donde} \quad I^\top \Omega I = \Omega$$
-   - jacobian_matrix: np.ndarray (N x N, matriz Jacobiana transicional).
-   - Retorna: Tuple con la componente simpléctica I, la proyección disipativa P y el residuo simpléctico.
+   - jacobian_matrix: np.ndarray (N x N, Jacobiano de transición).
+   - Retorna: Tuple[np.ndarray, np.ndarray, float] con la isometría $I$, la proyección $P$ y el residuo simpléctico.
 
 2. project_to_symplectic_group(M: np.ndarray, max_iter: int = 50, tol: float = 1e-12) -> np.ndarray:
-   Proyecta ortogonalmente el Jacobiano M sobre el grupo simpléctico de Lie Sp(2n, \mathbb{R})
+   Proyecta ortogonalmente el Jacobiano $M$ sobre el grupo simpléctico de Lie $\mathrm{Sp}(2n, \mathbb{R})$
    aplicando la iteración polar simpléctica estabilizada de Higham:
    $$M_{k+1} = \frac{1}{2} \left(M_k + \Omega (M_k^{-1})^\top \Omega^\top\right)$$
-   - M: np.ndarray (matriz de entrada de-normalizada).
+   - M: np.ndarray (matriz de entrada).
    - Retorna: np.ndarray (matriz simpléctica pura con épsilon de máquina).
 
 3. compute_stasheff_m3_associator(m2_tensor: np.ndarray) -> np.ndarray:
-   Calcula el tensor de homotopía de tercer orden m_3 \in \mathbb{R}^{n \times n \times n \times n}
-   que mide la no-asociatividad de la multiplicación de APUs en el asociaedro K_4 de Stasheff
-   aplicando sumación compensada de KBN para evitar cancelaciones:
+   Calcula el tensor de homotopía de tercer orden $m_3 \in \mathbb{R}^{n \times n \times n \times n}$
+   que mide la no-asociatividad de la multiplicación en el asociaedro $K_4$ de Stasheff
+   aplicando sumación compensada de KBN:
    $$[m_3]_{ijk}^l = \sum_s \left( [m_2]_{ij}^s [m_2]_{sk}^l - [m_2]_{jk}^s [m_2]_{is}^l \right)$$
    - m2_tensor: np.ndarray (N x N x N, tensor de multiplicación de segundo orden).
-   - Retorna: np.ndarray (tensor m_3 de cuarto orden).
+   - Retorna: np.ndarray (tensor $m_3$ de cuarto orden).
 
 4. compute_cech_hypercohomology_gerbe(cech_matrix: np.ndarray) -> float:
    Somete la matriz de co-cadenas Čech de-confinadas a una SVD en la FPU, aplicando una cota de

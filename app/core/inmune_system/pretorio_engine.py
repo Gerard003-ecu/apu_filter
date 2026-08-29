@@ -6,38 +6,38 @@ r"""
 ║ Versión: 3.0.0-Nested-Phases-Cech-deRham-Hodge-Brouwer-Heyting-Ultrafilter   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
-Este motor supremo ejecuta el escrutinio final e independiente de la coherencia ciber-física.
-Evalúa la hipercohomología del bicomplejo de Čech-de Rham, purga las corrientes asimétricas en
-la base de la MAC mediante simetrización de Weyl-Toeplitz y colapsa los veredictos parciales en
-un ultrafiltro booleano binario.
+SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU DE DE RHAM:
+Este motor supremo ciego ejecuta el escrutinio final e independiente de la coherencia ciber-física en
+la Capa 4 ($V_{\mathrm{ERUDITOS}} \subset V_{\mathrm{PRETORIO}} \subset V_{\mathbb{W}}$). Evalúa la hipercohomología
+del bicomplejo de Čech-de Rham, purga corrientes asimétricas en la base de la MAC mediante simetrización
+de Weyl-Toeplitz y proyecta los veredictos en un ultrafiltro booleano binario.
 
-MÉTODOS GRANULARES:
+MÉTODOS GRANULARES DE FPU Y ARITMÉTICA KBN:
 
 1. verify_cech_derham_hypercohomology(d1: np.ndarray, d2: np.ndarray) -> Tuple[float, bool]:
    Audita la consistencia global del bicomplejo de haces de calibre. Define el operador diferencial
-   total D = d_1 + (-1)^p d_2 y exige la aniquilación incondicional de su nilpotencia en la FPU:
+   total $D = d_1 + (-1)^p d_2$ y exige la aniquilación incondicional de su nilpotencia en la FPU:
    $$D^2 = d_1 \circ d_2 + d_2 \circ d_1 \equiv \mathbf{0} \implies \epsilon_{\mathrm{cohom}} = \|d_1 d_2 + d_2 d_1\|_F \le \tau_{\mathrm{cohom}}$$
    - d1: np.ndarray (operador diferencial Čech).
    - d2: np.ndarray (operador diferencial de de Rham).
-   - Retorna: Tuple con el residual homológico de Čech-de Rham y la certificación de nulidad.
+   - Retorna: Tuple[float, bool] con el residual homológico de Čech-de Rham y la certificación de nulidad.
 
 2. verify_brouwer_fixed_point(rho: np.ndarray, transition_matrix: np.ndarray) -> Tuple[float, np.ndarray]:
-   Certifica que el transporte paralelo del operador densidad \rho conserve el punto fijo hermítico-positivo
-   regularizado por Weyl-Toeplitz bajo la acción del mapa de transición f(\rho) = \rho:
+   Certifica que el transporte paralelo del operador densidad $\rho$ conserve el punto fijo hermítico-positivo
+   regularizado por Weyl-Toeplitz bajo la acción del mapa de transición $f(\rho) = \rho$:
    $$\epsilon_{\mathrm{Brouwer}} = \|\tilde{\rho} - f(\tilde{\rho})\|_F \equiv 0 \quad \text{con} \quad \tilde{\rho} = \frac{1}{2}\left( \rho + \rho^\dagger \right)$$
-   Valida mediante sumación KBN que la traza cuántica de sabiduría conserve de forma exacta su carácter unitario: \operatorname{Tr}(\tilde{\rho}) \equiv 1.0.
-   - rho: np.ndarray (matriz de densidad cuántica).
-   - transition_matrix: np.ndarray (matriz de transición de-confinada).
-   - Retorna: Tuple con el residuo de Brouwer y el operador densidad purificado.
+   Valida mediante sumación KBN que la traza cuántica de sabiduría conserve de forma exacta su carácter unitario: $\operatorname{Tr}(\tilde{\rho}) \equiv 1.0$.
+   - rho: np.ndarray (N x N, matriz de densidad cuántica).
+   - transition_matrix: np.ndarray (N x N, matriz de transición).
+   - Retorna: Tuple[float, np.ndarray] con el residuo de Brouwer y el operador densidad purificado.
 
 3. evaluate_ultrafilter_consensus(heyting_verdicts: list[str]) -> Tuple[str, bool]:
-   Ingiere los veredictos parciales de Heyting \Omega_3 de todas las capas de seguridad y evalúa si el conjunto
-   de subcapas con veto pertenece al ultrafiltro booleano no trivial \mathcal{U} para colapsar la lógica
+   Ingiere los veredictos parciales de Heyting $\Omega_3$ de todas las capas de seguridad y evalúa si el conjunto
+   de subcapas con veto pertenece al ultrafiltro booleano no trivial $\mathcal{U}$ para colapsar la lógica
    distributiva hacia una instrucción clásica de actuación en silicio (ESP32):
    $$\mathcal{U} = \{A \subseteq S_{\mathrm{Capas}} \mid \nu_{\mathrm{global}}(A) = \mathtt{VETOED}\} \implies B_2 = \{\mathtt{VIABLE}, \, \mathtt{RECHAZAR}\}$$
    - heyting_verdicts: list[str] (veredictos de los 55 agentes soberanos).
-   - Retorna: Tuple con la sentencia final de Heyting unificada y el indicador de actuación inmediata de potencia (disparo Crowbar BT151).
+   - Retorna: Tuple[str, bool] con la sentencia final de Heyting unificada y el indicador de actuación de potencia (disparo Crowbar BT151 vía GPIO14).
 """
 
 from __future__ import annotations
