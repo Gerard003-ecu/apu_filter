@@ -112,7 +112,42 @@ Esta **Cota de Lipschitz de Daleckii-Krein** asegura que la velocidad de de-comp
 
 ---
 
-## 5. Firmas de Calibre de la Malla Agéntica y Firma Integrada SHA-256
+## 5. La Rampa de Confianza Graduada (Veto Suave vs Veto Duro)
+
+Para conciliar la precisión de la geometría doctoral con la operatividad continua en seco del frente de obra civil (erradicando falsos positivos que provocarían el secado del concreto dentro de las tuberías de bombeo hidráulicas), el sistema instrumenta la **Rampa de Confianza Graduada**:
+
+```
+  [ PAYLOAD INCIDENTE EN EL REACTOR DE FRONTERA ]
+                         │
+                         ▼
+        ¿Divergencia o anomalía espectral?
+                         │
+         ┌───────────────┴───────────────┐
+         ▼ (Sí)                          ▼ (No)
+  ¿La transgresión es irreversible?   [COHERENT]
+  (Choi < -10⁻⁴, d_i > 1, Fraude)     - Emisión de firma SHA-256
+         │                            - Flujo óptimo en obra
+   ┌─────┴─────────────────────┐
+   ▼ (No: Ruido menor)         ▼ (Sí: Inestabilidad/Dolo)
+[VETO SUAVE - LUZ ÁMBAR]     [VETO DURO - CROWBAR BT151]
+- Alerta visual en panel     - Colapso Heyting Ω₃ ↦ VETOED (⊤)
+- Override humano (1 h)      - Conmutación GPIO14 (< 400 ns)
+- Solicitud de ajuste        - Paralización de maquinaria en seco
+```
+
+### 5.1 Veto Suave (Luz Ámbar de Telemetría)
+Gatillado ante ruidos de baja frecuencia o fluctuaciones marginales de precios ($\Psi = 0.69 < \Psi_{\min}=0.70$).
+* **Mecanismo:** El ESP32 no interrumpe la potencia. Activa una baliza visual en campamento y abre una ventana de gracia de **1 hora** en el panel *RiskChallenger*.
+* **Override Dialéctico:** La interventoría puede firmar un **Positrón de Autorización Humana** $e^+$ que aniquila la anomalía $e^-$, regularizando la geodésica sin detener el vertido de concreto.
+
+### 5.2 Veto Duro (Hardware Crowbar BT151 en $< 400\text{ ns}$)
+Reservado para transgresiones irreversibles, dolo o fraude fiscal ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-4}$, o divergencia de Lyapunov $\dot{\mathcal{H}} > 10^{-4}$).
+* **Mecanismo:** El retículo colapsa al Supremo VETOED ($\top$).
+* **Bypass de Silicio en IRAM:** La rutina C++ `isVerdictCoherent()` activa la **ISR en memoria IRAM del ESP32 en $< 400\text{ ns}$**, conmutando **GPIO14** a nivel alto y disparando el tiristor de potencia **BT151 (Crowbar circuit)** para paralizar mezcladoras y bombas en seco en el milisegundo cero.
+
+---
+
+## 6. Firmas de Calibre de la Malla Agéntica y Firma Integrada SHA-256
 
 Cada transacción orbital emite un certificado inmutable sellado por una **Firma de Calibre Integrada SHA-256** en memoria RAM:
 

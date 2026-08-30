@@ -277,6 +277,41 @@ Para modelar la flecha del tiempo de una anomalía transaccional en el fango de 
 
 ---
 
+## 🏰 Sutura de la Fortaleza: Rampa de Confianza Graduada (Veto Suave vs. Veto Duro)
+
+Para erradicar la traba operativa del "secado de concreto en tuberías" causado por falsos positivos de software rígidos en obra civil, APU Filter v5.0 implementa formalmente la **Rampa de Confianza Graduada** en el Tribunal de Silicio:
+
+```
+  [ PAYLOAD INCIDENTE EN EL REACTOR DE FRONTERA ]
+                         │
+                         ▼
+        ¿Divergencia o anomalía espectral?
+                         │
+         ┌───────────────┴───────────────┐
+         ▼ (Sí)                          ▼ (No)
+  ¿La transgresión es irreversible?   [COHERENT]
+  (Choi < -10⁻⁴, d_i > 1, Fraude)     - Emisión de firma SHA-256
+         │                            - Flujo óptimo en obra
+   ┌─────┴─────────────────────┐
+   ▼ (No: Ruido menor)         ▼ (Sí: Inestabilidad/Dolo)
+[VETO SUAVE - LUZ ÁMBAR]     [VETO DURO - CROWBAR BT151]
+- Alerta visual en panel     - Colapso Heyting Ω₃ ↦ VETOED (⊤)
+- Override humano (1 h)      - Conmutación GPIO14 (< 400 ns)
+- Solicitud de ajuste        - Paralización de maquinaria en seco
+```
+
+### 1. Veto Suave (Luz Ámbar de Telemetría)
+Se gatilla cuando la anomalía es de carácter transitorio o reversible ($\Psi = 0.69 < \Psi_{\min}=0.70$ o desvíos menores en el condicionado $\kappa_2$).
+* **Acción:** No interrumpe los actuadores mecánicos. En su lugar, el ESP32 conmuta una baliza de advertencia e inicia una ventana de gracia de **1 hora** en el panel *RiskChallenger*.
+* **Override Dialéctico:** Permite inyectar un **Positrón de Autorización Humana** $e^+$ firmado criptográficamente por la interventoría para aniquilar la anomalía semántica $e^-$, permitiendo continuar el vaciado de concreto sin pérdidas materiales.
+
+### 2. Veto Duro (Frenado Ciber-Físico por Crowbar BT151 en $<400\text{ ns}$)
+Se activa únicamente ante violaciones irreversibles, dolo o fraude contractual ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-4}$, o divergencia de Lyapunov $\dot{\mathcal{H}} > 10^{-4}$).
+* **Acción:** El retículo de Heyting $\Omega_3$ colapsa al Supremo VETOED ($\top$).
+* **Ejecución en IRAM:** La rutina en C++ `isVerdictCoherent()` ejecuta la **ISR en memoria IRAM del ESP32 en $<400\text{ ns}$**, conmutando GPIO14 para disparar el tiristor **BT151 (Crowbar)**, cortocircuitando la línea de alimentación y paralizando las bombas hidráulicas en seco en el milisegundo cero.
+
+---
+
 ## ⚡ El Tribunal de Silicio (ESP32 / BT151 Crowbar) y Actuación en $< 400\text{ ns}$
 
 El colapso del retículo de Heyting distributivo intuicionista de tres valores ($\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$) hacia el Supremo terminal VETOED ($\top$) se proyecta mediante una reducción monoidal hacia la toma de decisiones binaria pura en el silicio real:
