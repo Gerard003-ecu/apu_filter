@@ -118,6 +118,34 @@ APU Filter incorpora el **Compressor TOON (Tabular Object-Oriented Notation)** e
 
 ---
 
+## 🏰 Sutura de la Fortaleza: La Rampa de Confianza Graduada (Veto Suave vs Veto Duro)
+
+Para evitar la paralización inadvertida de vertidos de concreto por falsos positivos (que provocaría el secado del material en las tuberías de bombeo hidráulicas), APU Filter v5.0 instrumenta una **Rampa de Confianza Graduada** en la variedad de fase:
+
+```
+  [ PAYLOAD INCIDENTE EN EL REACTOR DE FRONTERA ]
+                         │
+                         ▼
+        ¿Divergencia o anomalía espectral?
+                         │
+         ┌───────────────┴───────────────┐
+         ▼ (Sí)                          ▼ (No)
+  ¿La transgresión es irreversible?   [COHERENT]
+  (Choi < -10⁻⁴, d_i > 1, Fraude)     - Emisión de firma SHA-256
+         │                            - Flujo óptimo en obra
+   ┌─────┴─────────────────────┐
+   ▼ (No: Ruido menor)         ▼ (Sí: Inestabilidad/Dolo)
+[VETO SUAVE - LUZ ÁMBAR]     [VETO DURO - CROWBAR BT151]
+- Alerta visual en panel     - Colapso Heyting Ω₃ ↦ VETOED (⊤)
+- Override humano (1 h)      - Conmutación GPIO14 (< 400 ns)
+- Solicitud de ajuste        - Paralización de maquinaria en seco
+```
+
+* **Veto Suave (Luz Ámbar / Grace Window 1h):** Se gatilla ante fluctuaciones estocásticas de menor cuantía ($\Psi = 0.69 < 0.70$). La potencia de los actuadores se mantiene activa mientras se enciende una baliza de alerta visual en obra y se otorga **1 hora** al director de interventoría para firmar un **Positrón de Autorización Humana** $e^+$ que aniquila la anomalía $e^-$.
+* **Veto Duro (Frenado por Silicio ESP32 Crowbar < 400 ns):** Reservado para transgresiones de dolo o colapso homológico ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-4}$, $\dot{\mathcal{H}} > 10^{-4}$). El retículo de Heyting colapsa a VETOED ($\top$), activando la **ISR en IRAM del ESP32** en $< 400\text{ ns}$ para conmutar **GPIO14** y disparar el tiristor **BT151**, paralizando la maquinaria en seco.
+
+---
+
 ## ⚡ El Tribunal de Silicio (ESP32 / BT151 Crowbar) y Actuación en $< 400\text{ ns}$
 
 La gobernanza matemática de APU Filter no confía el capital a meras capas de software que puedan ser burladas por inyección de directivas (*Prompt Injection*). La decisión culmina en una **acción física instantánea en la obra real** operada por el **Tribunal de Silicio (ESP32 Crowbar)**:

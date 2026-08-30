@@ -164,7 +164,35 @@ Síncronamente, el Agente de Bogoliubov construye **Operadores de Salto de Kraus
 
 ---
 
-## 8. Actuación Ciber-Física en Silicio (ESP32 Crowbar < 400 ns)
+## 8. La Rampa de Confianza Graduada y Actuación Ciber-Física en Silicio
+
+Para conciliar la rigidez matemática con las exigencias del frente de obra civil (evitando detener el bombeo de concreto por fluctuaciones estocásticas menores y previniendo que la mezcla se seque dentro de las tuberías hidráulicas), la variedad topológica discrimina dos regímenes de censura:
+
+```
+  [ PAYLOAD INCIDENTE EN EL REACTOR DE FRONTERA ]
+                         │
+                         ▼
+        ¿Divergencia o anomalía espectral?
+                         │
+         ┌───────────────┴───────────────┐
+         ▼ (Sí)                          ▼ (No)
+  ¿La transgresión es irreversible?   [COHERENT]
+  (Choi < -10⁻⁴, d_i > 1, Fraude)     - Emisión de firma SHA-256
+         │                            - Flujo óptimo en obra
+   ┌─────┴─────────────────────┐
+   ▼ (No: Ruido menor)         ▼ (Sí: Inestabilidad/Dolo)
+[VETO SUAVE - LUZ ÁMBAR]     [VETO DURO - CROWBAR BT151]
+- Alerta visual en panel     - Colapso Heyting Ω₃ ↦ VETOED (⊤)
+- Override humano (1 h)      - Conmutación GPIO14 (< 400 ns)
+- Solicitud de ajuste        - Paralización de maquinaria en seco
+```
+
+1. **Veto Suave (Luz Ámbar de Telemetría):** Se activa ante fluctuaciones marginales del mercado o desvíos transitorios ($\Psi = 0.69 < \Psi_{\min}=0.70$). La potencia en obra se mantiene activa mientras se enciende una baliza estroboscópica y se otorga **1 hora** a la interventoría para firmar un **Positrón de Autorización Humana** $e^+$ que aniquila la anomalía semántica $e^-$.
+2. **Veto Duro (Frenado por Hardware ESP32 Crowbar < 400 ns):** Reservado para rupturas irreversibles ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-4}$, o divergencia de Lyapunov $\dot{\mathcal{H}} > 10^{-4}$). El retículo de Heyting colapsa a VETOED ($\top$), ejecutando la **ISR en memoria IRAM del ESP32 en $<400\text{ ns}$**, conmutando **GPIO14** y disparando el tiristor **BT151** para paralizar la maquinaria pesada en seco antes de consolidar el desfalco.
+
+---
+
+## 9. Actuación Ciber-Física en Silicio (ESP32 Crowbar < 400 ns)
 
 Si el veredicto en Heyting colapsa al Supremo terminal VETOED ($\top$):
 1. Se aplica la reducción monoidal $\mu : \Omega_3 \to \mathbb{Z}_2$.

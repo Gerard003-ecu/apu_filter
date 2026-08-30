@@ -89,6 +89,7 @@ from typing import (
     Final,
     Mapping,
     Optional,
+    Protocol,
     Tuple,
     TYPE_CHECKING,
 )
@@ -1125,94 +1126,42 @@ class HilbertObserverAgent(Morphism):
             coherence_preserved = 0.5
 
         # Construir el nuevo estado basado en la medición débil
-        if predominant_state is not None and coherence_preserved < 0.1:
-            # Caso cercano a medición fuerte: colapso casi completo
-            if predominant_state == HilbertEigenstate.ADMITTED:
-                return HilbertObserverAgent._collapse_to_admitted(
-                    state, wave, context, {
-                        "energy": wave.energy,
-                        "work_function": wave.work_function,
-                        "effective_mass": (
-                            wave.effective_mass
-                            if math.isfinite(wave.effective_mass)
-                            else "+Inf"
-                        ),
-                        "transmission_prob": wave.transmission_prob,
-                        "frustrated": wave.frustrated,
-                        "threat_level": wave.threat_level,
-                        "dominant_pole_real": wave.dominant_pole_real,
-                        "frustration_energy": wave.frustration_energy,
-                        "collapse_threshold": wave.collapse_threshold,
-                    }
-                )
-            else:  # REJECTED
-                return HilbertObserverAgent._collapse_to_rejected(
-                    state, wave, context, {
-                        "energy": wave.energy,
-                        "work_function": wave.work_function,
-                        "effective_mass": (
-                            wave.effective_mass
-                            if math.isfinite(wave.effective_mass)
-                            else "+Inf"
-                        ),
-                        "transmission_prob": wave.transmission_prob,
-                        "frustrated": wave.frustrated,
-                        "threat_level": wave.threat_level,
-                        "dominant_pole_real": wave.dominant_pole_real,
-                        "frustration_energy": wave.frustration_energy,
-                        "collapse_threshold": wave.collapse_threshold,
-                    }
-                )
+        # Determinamos si colapsa o no basado en la comparación T vs collapse_threshold
+        if wave.frustrated or wave.transmission_prob < wave.collapse_threshold:
+            return HilbertObserverAgent._collapse_to_rejected(
+                state, wave, context, {
+                    "energy": wave.energy,
+                    "work_function": wave.work_function,
+                    "effective_mass": (
+                        wave.effective_mass
+                        if math.isfinite(wave.effective_mass)
+                        else "+Inf"
+                    ),
+                    "transmission_prob": wave.transmission_prob,
+                    "frustrated": wave.frustrated,
+                    "threat_level": wave.threat_level,
+                    "dominant_pole_real": wave.dominant_pole_real,
+                    "frustration_energy": wave.frustration_energy,
+                    "collapse_threshold": wave.collapse_threshold,
+                }
+            )
         else:
-            # Caso de medición débil: preservar coherencia
-            # Creamos un estado que refleja la superposición ponderada
-            
-            # Calculamos los componentes de la superposición
-            transmission_amplitude = math.sqrt(transmission_prob)
-            reflection_amplitude = math.sqrt(reflection_prob)
-            
-            # El estado resultante es una superposición:
-            # |ψ_result⟩ = transmission_amplitude |Admitido⟩ + reflection_amplitude |Rechazado⟩
-            # con una fase que depende de la coherencia preservada
-            
-            # Para mantener tracibilidad, registramos ambos componentes
-            # pero el estado categórico mantiene el payload original
-            # con contexto enriquecido que indica la superposición
-            
-            # En la práctica, para un sistema categórico, representamos
-            # esta superposición mediante un estado mixto en el contexto
-            
-            if transmission_prob > reflection_prob:
-                lean_toward = HilbertEigenstate.ADMITTED.name
-                confidence = transmission_prob
-            elif reflection_prob > transmission_prob:
-                lean_toward = HilbertEigenstate.REJECTED.name
-                confidence = reflection_prob
-            else:
-                lean_toward = "SUPERPOSICION"
-                confidence = 0.5
-
-            # Actualización débil del contexto que preserva información
-            weak_context = {
-                **context,
-                "weak_measurement": weak_measurement,
-                "measurement_outcome": {
-                    "lean_toward": lean_toward,
-                    "confidence": confidence,
-                    "coherence_preserved": coherence_preserved,
-                    "transmission_amplitude": transmission_amplitude,
-                    "reflection_amplitude": reflection_amplitude,
-                    "predominant_state": predominant_state.name if predominant_state else "SUPERPOSICION"
-                },
-                "quantum_measurement": weak_measurement  # Para compatibilidad con detección de idempotencia
-            }
-
-            # El resultado es un estado categórico que mantiene el payload
-            # pero con contexto que refleja la medición débil realizada
-            return CategoricalState(
-                payload=state.payload,
-                context=weak_context,
-                validated_stata=state.validated_stata  # Preservamos las capas validadas previamente
+            return HilbertObserverAgent._collapse_to_admitted(
+                state, wave, context, {
+                    "energy": wave.energy,
+                    "work_function": wave.work_function,
+                    "effective_mass": (
+                        wave.effective_mass
+                        if math.isfinite(wave.effective_mass)
+                        else "+Inf"
+                    ),
+                    "transmission_prob": wave.transmission_prob,
+                    "frustrated": wave.frustrated,
+                    "threat_level": wave.threat_level,
+                    "dominant_pole_real": wave.dominant_pole_real,
+                    "frustration_energy": wave.frustration_energy,
+                    "collapse_threshold": wave.collapse_threshold,
+                }
             )
 
     @staticmethod
@@ -1298,8 +1247,8 @@ class HilbertObserverAgent(Morphism):
         return CategoricalState(
             payload=state.payload,
             context=new_context,
-            validated_stata=(
-                state.validated_stata | {Stratum.PHYSICS}
+            validated_strata=(
+                state.validated_strata | {Stratum.PHYSICS}
             ),
         )
 
@@ -1362,7 +1311,7 @@ class HilbertObserverAgent(Morphism):
         return CategoricalState(
             payload=state.payload,
             context=new_context,
-            validated_stata=frozenset(),
+            validated_strata=frozenset(),
         )
 
     # ─────────────────────────────────────────────────────────────────

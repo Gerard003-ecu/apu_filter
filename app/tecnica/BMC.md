@@ -122,6 +122,34 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 
 ---
 
+## 🏰 Sutura de la Fortaleza: La Rampa de Confianza Graduada (Veto Suave vs Veto Duro)
+
+Para erradicar la traba operativa del "secado del concreto dentro de tuberías" provocado por falsos positivos de software en obra civil, APU Filter v5.0 implementa una **Rampa de Confianza Graduada**:
+
+```
+  [ PAYLOAD INCIDENTE EN EL REACTOR DE FRONTERA ]
+                         │
+                         ▼
+        ¿Divergencia o anomalía espectral?
+                         │
+         ┌───────────────┴───────────────┐
+         ▼ (Sí)                          ▼ (No)
+  ¿La transgresión es irreversible?   [COHERENT]
+  (Choi < -10⁻⁴, d_i > 1, Fraude)     - Emisión de firma SHA-256
+         │                            - Flujo óptimo en obra
+   ┌─────┴─────────────────────┐
+   ▼ (No: Ruido menor)         ▼ (Sí: Inestabilidad/Dolo)
+[VETO SUAVE - LUZ ÁMBAR]     [VETO DURO - CROWBAR BT151]
+- Alerta visual en panel     - Colapso Heyting Ω₃ ↦ VETOED (⊤)
+- Override humano (1 h)      - Conmutación GPIO14 (< 400 ns)
+- Solicitud de ajuste        - Paralización de maquinaria en seco
+```
+
+1. **Veto Suave (Luz Ámbar / Ventana de Grace 1h):** Si la anomalía es de menor cuantía ($\Psi = 0.69 < 0.70$), la potencia de los actuadores se mantiene activa mientras se emite una alerta estroboscópica y se concede **1 hora** al director de interventoría para inyectar un **Positrón de Autorización Humana** $e^+$ que aniquila la anomalía $e^-$.
+2. **Veto Duro (Hardware Crowbar BT151 < 400 ns):** Reservado para rupturas irreversibles o fraude ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-4}$, $\dot{\mathcal{H}} > 10^{-4}$). El retículo de Heyting colapsa a VETOED ($\top$), ejecutando la **ISR en IRAM del ESP32 en $< 400\text{ ns}$**, conmutando **GPIO14** y disparando el tiristor **BT151** para paralizar las bombas hidráulicas y mezcladoras en seco.
+
+---
+
 ## ⚡ Gobernanza del Supremo de Heyting y Veto Ciber-Físico
 
 La orquestación del Veredicto en el penthouse del Consejo se formaliza mediante el colapso síncrono multidimensional del retículo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$ empleando la operación Supremo ($\sqcup$):

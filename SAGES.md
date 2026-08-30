@@ -170,6 +170,34 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
 
 ---
 
+## 🏰 Sutura de la Fortaleza: La Rampa de Confianza Graduada (Veto Suave vs Veto Duro)
+
+El Consejo de Sabios implementa la **Rampa de Confianza Graduada** para resolver la brecha entre la abstracción matemática y la operación continua en seco del frente de obra civil:
+
+```
+  [ PAYLOAD INCIDENTE EN EL REACTOR DE FRONTERA ]
+                         │
+                         ▼
+        ¿Divergencia o anomalía espectral?
+                         │
+         ┌───────────────┴───────────────┐
+         ▼ (Sí)                          ▼ (No)
+  ¿La transgresión es irreversible?   [COHERENT]
+  (Choi < -10⁻⁴, d_i > 1, Fraude)     - Emisión de firma SHA-256
+         │                            - Flujo óptimo en obra
+   ┌─────┴─────────────────────┐
+   ▼ (No: Ruido menor)         ▼ (Sí: Inestabilidad/Dolo)
+[VETO SUAVE - LUZ ÁMBAR]     [VETO DURO - CROWBAR BT151]
+- Alerta visual en panel     - Colapso Heyting Ω₃ ↦ VETOED (⊤)
+- Override humano (1 h)      - Conmutación GPIO14 (< 400 ns)
+- Solicitud de ajuste        - Paralización de maquinaria en seco
+```
+
+* **Veto Suave (Luz Ámbar / Ventana de 1h):** Se gatilla ante desvíos de baja frecuencia ($\Psi = 0.69 < 0.70$). La potencia física de los actuadores se mantiene activa mientras se emite una alerta estroboscópica y se otorga **1 hora** a la interventoría para firmar un **Positrón de Autorización Humana** $e^+$ que aniquila la anomalía semántica $e^-$.
+* **Veto Duro (Hardware Crowbar BT151 < 400 ns):** Reservado para rupturas irreversibles o fraude ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-4}$, $\dot{\mathcal{H}} > 10^{-4}$). El retículo colapsa a VETOED ($\top$), activando la **ISR en IRAM del ESP32** en $< 400\text{ ns}$ para conmutar **GPIO14** y disparar el tiristor **BT151**, paralizando la maquinaria en seco.
+
+---
+
 ## ⚡ El Tribunal de Silicio y la Reducción Monoidal de Actuación Crowbar (ESP32)
 
 La protección del capital financiero no se confía a directrices lógicas de software. Se garantiza mediante una reducción monoidal desde el retículo intuicionista distributivo $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$ hacia la decisión binaria en silicio real $\mu: \Omega_3 \to \mathbb{Z}_2$, acoplada al microcontrolador perimetral **ESP32**:
