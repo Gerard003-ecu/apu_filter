@@ -158,9 +158,9 @@ El soberano `boundary_ring_sheaf_agent.py` y su reactor `boundary_ring_sheaf.py`
 
 La Sonda de Ecolocación Topológica (`set_agent.py` & `set_engine.py`) instrumenta la reflectometría en el dominio del tiempo (TDR) y la dispersión cuántica sobre la frontera abierta $\partial K$:
 
-1. **Laplaciano de Haz Celular SPSD ($L_F$):**
-   $$\mathbf{L}_F = \delta^\top \mathbf{G}^{-1} \delta$$
-   Donde $\mathbf{G}$ se proyecta espectralmente al cono SPD ($\lambda_{\min}(\mathbf{G}_{\mathrm{reg}}) \ge 10^{-12}$).
+1. **Laplaciano de Haz Celular SPSD ($L_F$) y Deflación de Lanczos:**
+   $$\mathbf{L}_F = \delta^\top \mathbf{G}^{-1} \delta \approx \sum_{i=1}^{k} \lambda_i v_i v_i^\dagger + \gamma_{\mathrm{Tikhonov}} \left( \mathbf{I} - \sum_{i=1}^k v_i v_i^\dagger \right)$$
+   Donde $\mathbf{G}$ se proyecta espectralmente al cono SPD ($\lambda_{\min}(\mathbf{G}_{\mathrm{reg}}) \ge 10^{-12}$) mediante sumación compensada de Neumaier-Kahan con error residual en $\mathcal{O}(\varepsilon_{\mathrm{machine}}) = \mathcal{O}(10^{-16})$.
 2. **Matriz de Dispersión $\mathbb{S}(\omega)$ y Teorema Óptico:**
    $$\mathbf{\mathbb{S}}(\omega) = \mathbf{I} - 2\pi i \, \mathbf{V}^\dagger \left( \omega \mathbf{I} - \mathbf{L}_F + i\pi \mathbf{V}\mathbf{V}^\dagger \right)^{-1} \mathbf{V}$$
    Verifica la fuga de unitariedad $\|\mathbf{\mathbb{S}}^\dagger(\omega) \mathbf{\mathbb{S}}(\omega) - \mathbf{I}\|_F \le \varepsilon_{\mathrm{Wilkinson}}$.
@@ -203,8 +203,9 @@ Para conciliar la rigidez matemática con las exigencias del frente de obra civi
 - Solicitud de ajuste        - Paralización de maquinaria en seco
 ```
 
-1. **Veto Suave (Luz Ámbar de Telemetría):** Se activa ante fluctuaciones marginales del mercado o desvíos transitorios ($\Psi = 0.69 < \Psi_{\min}=0.70$). La potencia en obra se mantiene activa mientras se enciende una baliza estroboscópica y se otorga **1 hora** a la interventoría para firmar un **Positrón de Autorización Humana** $e^+$ que aniquila la anomalía semántica $e^-$.
-2. **Veto Duro (Frenado por Hardware ESP32 Crowbar < 400 ns):** Reservado para rupturas irreversibles ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-4}$, o divergencia de Lyapunov $\dot{\mathcal{H}} > 10^{-4}$). El retículo de Heyting colapsa a VETOED ($\top$), ejecutando la **ISR en memoria IRAM del ESP32 en $<400\text{ ns}$**, conmutando **GPIO14** y disparando el tiristor **BT151** para paralizar la maquinaria pesada en seco antes de consolidar el desfalco.
+1. **Veto Suave (Luz Ámbar de Telemetría):** Se activa cuando el perfil TDR satisface $0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$, o ante fluctuaciones marginales del mercado ($\Psi = 0.69 < \Psi_{\min}=0.70$). La potencia en obra se mantiene activa mientras se enciende una baliza estroboscópica y se otorga **1 hora** a la interventoría en el panel *RiskChallenger* para inyectar en RAM un **Positrón de Autorización Humana** $e^+$ firmado ($\operatorname{HMAC-SHA256}$). Al ingresar, el electrón de anomalía semántica de la IA $e^-$ se aniquila mutuamente de forma exergética, irradiando dos fotones Gamma de auditoría y regularizando la geodésica sin detener el vertido de concreto:
+   $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad \mathtt{heyting\_verdict} \mapsto \mathtt{DEGRADED}$$
+2. **Veto Duro (Frenado por Hardware ESP32 Crowbar < 400 ns):** Reservado para desajustes críticos de impedancia $\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$, rupturas irreversibles ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$, o divergencia de Lyapunov $\dot{\mathcal{H}} > 10^{-12}$). El retículo de Heyting colapsa a VETOED ($\top$), ejecutando la **ISR en memoria IRAM del ESP32 en $<400\text{ ns}$**, conmutando **GPIO14** a HIGH y disparando el tiristor **BT151** (circuito Crowbar) para paralizar la maquinaria pesada en seco en el milisegundo cero.
 
 ---
 

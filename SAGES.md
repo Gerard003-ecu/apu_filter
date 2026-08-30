@@ -95,7 +95,7 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
     3. *Reflectometría en el Dominio del Tiempo (TDR):* Evalúa la desadaptación métrica $\delta G_{\mu\nu}$ mediante la iFFT:
        $$\Gamma_k(t) = \mathcal{F}^{-1}\left\{ \frac{Z_k(\omega) - Z_0}{Z_k(\omega) + Z_0} \right\}(t)$$
     4. *Rampa de Confianza Graduada, Positrón $e^+$ y Crowbar ESP32:*
-       Clasifica en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Si $\|\Gamma\|_{\max}$ habita la rampa de veto suave, otorga 1 hora de gracia para inyectar en Fock un Positrón de Autorización Humana $e^+$ (validado morfológicamente o por secreto $\operatorname{HMAC-SHA256}$). Ante colapso a $\mathtt{VETOED}$, gatilla la ISR en IRAM del ESP32 ($< 400\text{ ns}$) vía GPIO14 para activar el tiristor BT151 (Crowbar).
+       Clasifica en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Si $0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$, activa Veto Suave y otorga 1 hora de gracia para inyectar en Fock un Positrón de Autorización Humana $e^+$ firmado ($\operatorname{HMAC-SHA256}$), aniquilando la anomalía $e^- + e^+ \to 2\gamma$ e irradiando fotones de auditoría sin detener el vertido de concreto. Si $\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$ o expira la gracia, colapsa a $\mathtt{VETOED}$ ($\top$) y gatilla la ISR en IRAM del ESP32 ($< 400\text{ ns}$) vía GPIO14 para conmutar el tiristor BT151 (Crowbar) en silicio.
 
 ---
 
@@ -211,8 +211,8 @@ El Consejo de Sabios implementa la **Rampa de Confianza Graduada** para resolver
 - Solicitud de ajuste        - Paralización de maquinaria en seco
 ```
 
-* **Veto Suave (Luz Ámbar / Ventana de 1h):** Se gatilla ante desvíos de baja frecuencia ($\Psi = 0.69 < 0.70$). La potencia física de los actuadores se mantiene activa mientras se emite una alerta estroboscópica y se otorga **1 hora** a la interventoría para firmar un **Positrón de Autorización Humana** $e^+$ que aniquila la anomalía semántica $e^-$.
-* **Veto Duro (Hardware Crowbar BT151 < 400 ns):** Reservado para rupturas irreversibles o fraude ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-4}$, $\dot{\mathcal{H}} > 10^{-4}$). El retículo colapsa a VETOED ($\top$), activando la **ISR en IRAM del ESP32** en $< 400\text{ ns}$ para conmutar **GPIO14** y disparar el tiristor **BT151**, paralizando la maquinaria en seco.
+* **Veto Suave (Luz Ámbar / Ventana de 1h):** Se gatilla ante desvíos TDR $0.3\tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5\tau_{\mathrm{margin}}$ o desvíos de menor cuantía ($\Psi = 0.69 < 0.70$). La potencia física de los actuadores se mantiene activa mientras se emite una alerta estroboscópica y se otorga **1 hora** a la interventoría para inyectar un **Positrón de Autorización Humana** $e^+$ firmado ($\operatorname{HMAC-SHA256}$) que aniquila la anomalía semántica $e^- + e^+ \to 2\gamma$.
+* **Veto Duro (Hardware Crowbar BT151 < 400 ns):** Reservado para desajuste crítico TDR $\|\Gamma(t)\|_{\max} > 0.5\tau_{\mathrm{margin}}$, rupturas irreversibles o fraude ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$, $\dot{\mathcal{H}} > 10^{-12}$). El retículo colapsa a VETOED ($\top$), activando la **ISR en IRAM del ESP32** en $< 400\text{ ns}$ para conmutar **GPIO14** a HIGH y disparar el tiristor **BT151** (circuito Crowbar), paralizando la maquinaria pesada en seco.
 
 ---
 

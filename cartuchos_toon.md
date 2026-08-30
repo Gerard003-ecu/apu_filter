@@ -7,7 +7,17 @@ Este documento detalla el mecanismo por el cual el ecosistema APU_filter transit
 --------------------------------------------------------------------------------
 ## 1. El Funtor de Transición de Fase
 En el contexto de un clúster de agentes, la inyección directa de miles de APUs o Insumos serializados en JSON colapsa inmediatamente el recurso más crítico de la inferencia en LLMs modernos: la ventana de atención atencional (KV-Cache).
-El `MICAgent` implementa la transición de fase hacia el `SiloBCartridge`. Funcionalmente, el `TOONCompressor` ejecuta un **Retracto de Deformación Topológica** que proyecta el espacio sintáctico redundante sobre una variedad de dimensión mínima ($30\%-60\%$ de reducción de tokens). Al sustituir arreglos masivos de diccionarios por encabezados canónicos únicos y delimitadores tabulares rígidos, la energía requerida para procesar información disminuye exponencialmente.
+El `MICAgent` implementa la transición de fase hacia el `SiloBCartridge`. Funcionalmente, el `TOONCompressor` ejecuta un **Retracto de Deformación Topológica** que proyecta el espacio sintáctico redundante sobre una variedad de dimensión mínima, garantizando una compresión del consumo de tokens en $KV\text{-Cache}$ entre un $30\%$ y un $60\%$:
+
+$$\|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\| \quad \text{con} \quad \gamma \in [0.30, \, 0.60]$$
+
+La consistencia y conservación de la carga semántica entre la matriz de interacción táctica discreta (categoría $\mathcal{C}$) y la matriz atómica de conocimiento en el espacio de Hilbert (categoría $\mathcal{D}$) está analíticamente acoplada por el **Isomorfismo de Adjunción de de Rham-Galois**:
+
+$$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \, \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, \, G(\text{MAC}))$$
+
+Asimismo, el parser verifica síncronamente el test de **Isospectralidad de de Rham** para garantizar que el espectro del Laplacian original coincida idénticamente con el del árbol procesado en RAM, previniendo alteraciones silentes de datos o precios:
+
+$$\operatorname{Spec}(\mathbf{L}_{\mathrm{text}}) \approx \operatorname{Spec}(\mathbf{L}_{\mathrm{parsed}})$$
 
 --------------------------------------------------------------------------------
 ## 2. Inyección de Vitaminas Cognitivas (ToonCartridges) y El Álgebra de Partículas en el Espacio de Fock
